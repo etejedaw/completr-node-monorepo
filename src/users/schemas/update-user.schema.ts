@@ -9,5 +9,3 @@ export const UpdateUserSchema = z
 	})
 	.strict()
 	.readonly();
-
-export type UpdateUser = z.infer<typeof UpdateUserSchema>;
