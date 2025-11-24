@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError, ZodType } from "zod";
 
-export function validateSchema(zodSchema: ZodType, requestKey: RequestKey) {
+export function validateSchemaMiddleware(
+	zodSchema: ZodType,
+	requestKey: RequestKey
+) {
 	return (request: Request, response: Response, next: NextFunction) => {
 		try {
 			const data = zodSchema.parse(request[requestKey]);

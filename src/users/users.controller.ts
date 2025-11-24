@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import * as usersService from "./users.service";
 import { userSerializer } from "./users.serializer";
-import { UpdateUser, UserIdParams, UsernameParams } from "./schemas";
-import { AuthRequest } from "../common/interfaces/auth-request.interface";
+import { UsernameParams } from "./schemas";
+import { AuthRequest } from "../auth/interfaces/auth-request.interface";
+import { UpdateUserDto } from "./dtos";
 
 export async function getUserByUsername(request: Request, response: Response) {
 	const params = request.params as UsernameParams;
@@ -18,11 +19,23 @@ export async function getUserByUsername(request: Request, response: Response) {
 	return response.status(200).json({ user: userSerializer(userPlain) });
 }
 
-export async function patchUser(request: Request, response: Response) {
-	const userBody = request.body as UpdateUser;
-	const params = request.params as UserIdParams;
+export async function getUserMe(request: Request, response: Response) {
+	const authRequest = request as AuthRequest;
 
-	const userId = params.userId;
+	const userId = authRequest.user.id;
+
+	const user = await usersService.findUserById(userId);
+	if (!user) return response.status(404).json({ message: "User not found" });
+
+	const userPlain = user.get({ plain: true });
+	return response.status(200).json({ user: userSerializer(userPlain) });
+}
+
+export async function patchUser(request: Request, response: Response) {
+	const authRequest = request as AuthRequest;
+	const userBody = request.body as UpdateUserDto;
+
+	const userId = authRequest.user.id;
 
 	const user = await usersService.updateUser(userId, userBody);
 	if (!user) return response.status(404).json({ message: "User not found" });
@@ -32,7 +45,7 @@ export async function patchUser(request: Request, response: Response) {
 	return response.status(200).json({ user: userSerializer(userPlain) });
 }
 
-export async function getDeactivateUser(request: Request, response: Response) {
+export async function deleteUser(request: Request, response: Response) {
 	const authRequest = request as AuthRequest;
 	const userId = authRequest.user.id;
 
