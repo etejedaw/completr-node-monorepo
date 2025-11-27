@@ -2,10 +2,12 @@ import { LoginDto, RegisterDto } from "./dtos";
 import * as userService from "../users/users.service";
 import * as passwordService from "./password.service";
 import * as tokenService from "./token.service";
+import * as authDomainError from "./errors/auth.domains-error";
 
 export async function register(registerDto: RegisterDto) {
-	const userDb = await userService.findUserByEmail(registerDto.email);
-	if (userDb) throw new Error("User already exists");
+	const userEmail = await userService.findUserByEmail(registerDto.email);
+	const userName = await userService.findUserByEmail(registerDto.username);
+	if (userEmail || userName) throw authDomainError.userAlreadyExists();
 
 	const hashPassword = await passwordService.hashPassword(registerDto.password);
 
@@ -25,13 +27,13 @@ export async function register(registerDto: RegisterDto) {
 
 export async function login(loginDto: LoginDto) {
 	const user = await userService.findUserByEmail(loginDto.email);
-	if (!user?.isActive) throw new Error("Invalid credentials");
+	if (!user) throw authDomainError.invalidCredentials();
 
 	const comparePassword = await passwordService.verifyPassword(
 		loginDto.password,
 		user.password
 	);
-	if (!comparePassword) throw new Error("Invalid credentials");
+	if (!comparePassword) throw authDomainError.invalidCredentials();
 
 	const payload = { id: user.id, username: user.username, email: user.email };
 	const accessToken = tokenService.signAccessToken(payload);
@@ -42,8 +44,7 @@ export async function login(loginDto: LoginDto) {
 export async function changePassword(userId: string, password: string) {
 	const hashPassword = await passwordService.hashPassword(password);
 
-	const user = await userService.updatePassword(userId, hashPassword);
-	if (!user) throw new Error("Invalid credentials");
+	await userService.updatePassword(userId, hashPassword);
 
 	return true;
 }
