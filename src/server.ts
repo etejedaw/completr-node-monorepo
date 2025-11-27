@@ -4,6 +4,8 @@ import cors from "cors";
 import usersRoute from "./users/users.routes";
 import authRouter from "./auth/auth.router";
 import { corsConfig } from "./common/config/cors.config";
+import { errorHandlerMiddleware } from "./common/middlewares/error-handler.middleware";
+import { correlationIdMiddleware } from "./common/middlewares/correlation-id.middleware";
 
 export function server(port: number) {
 	const app = express();
@@ -12,8 +14,10 @@ export function server(port: number) {
 	app.use(helmet());
 	app.use(cors(corsConfig));
 
-	app.use("/api", authRouter);
-	app.use("/api", usersRoute);
+	app.use(correlationIdMiddleware);
+	app.use(authRouter);
+	app.use(usersRoute);
+	app.use(errorHandlerMiddleware);
 
 	app.listen(port, () => console.log(`Server running on port ${port}`));
 }
