@@ -12,17 +12,17 @@ import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middle
 const router = Router();
 
 router.get(
+	"/users/me",
+	[rateLimiterMiddleware(userLimiter), authMiddleware],
+	usersController.getUserMe
+);
+router.get(
 	"/users/:username",
 	[
 		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamsSchema, "params")
 	],
 	usersController.getUserByUsername
-);
-router.get(
-	"/users/me",
-	[rateLimiterMiddleware(userLimiter), authMiddleware],
-	usersController.getUserMe
 );
 router.patch(
 	"/users/me",
