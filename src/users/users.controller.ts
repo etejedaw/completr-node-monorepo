@@ -2,43 +2,43 @@ import { Request, Response } from "express";
 import * as usersService from "./users.service";
 import { userSerializer } from "./users.serializer";
 import { UsernameParams } from "./schemas";
-import { AuthRequest } from "../auth/interfaces/auth-request.interface";
 import { UpdateUserDto } from "./dtos";
+import * as userDomain from "./errors/users.domain-error";
+import { CustomRequest } from "../common/interfaces/custom-request.interface";
 
 export async function getUserByUsername(request: Request, response: Response) {
 	const params = request.params as UsernameParams;
 
-	const username = params.username;
+	const { username } = params;
 
 	const user = await usersService.findUserByUsername(username);
-	if (!user?.isPublic)
-		return response.status(404).json({ message: "User not found" });
+	if (!user) throw userDomain.userNotFound();
+	if (!user.isPublic) throw userDomain.userPrivate();
 
 	const userPlain = user.get({ plain: true });
-
 	return response.status(200).json({ user: userSerializer(userPlain) });
 }
 
 export async function getUserMe(request: Request, response: Response) {
-	const authRequest = request as AuthRequest;
+	const customRequest = request as CustomRequest;
 
-	const userId = authRequest.user.id;
+	const { id } = customRequest.user;
 
-	const user = await usersService.findUserById(userId);
-	if (!user) return response.status(404).json({ message: "User not found" });
+	const user = await usersService.findUserById(id);
+	if (!user) throw userDomain.userNotFound();
 
 	const userPlain = user.get({ plain: true });
 	return response.status(200).json({ user: userSerializer(userPlain) });
 }
 
 export async function patchUser(request: Request, response: Response) {
-	const authRequest = request as AuthRequest;
-	const userBody = request.body as UpdateUserDto;
+	const customRequest = request as CustomRequest;
 
-	const userId = authRequest.user.id;
+	const updateUserDto = request.body as UpdateUserDto;
+	const { id } = customRequest.user;
 
-	const user = await usersService.updateUser(userId, userBody);
-	if (!user) return response.status(404).json({ message: "User not found" });
+	const user = await usersService.updateUser(id, updateUserDto);
+	if (!user) throw userDomain.userNotFound();
 
 	const userPlain = user.get({ plain: true });
 
@@ -46,19 +46,19 @@ export async function patchUser(request: Request, response: Response) {
 }
 
 export async function deleteUser(request: Request, response: Response) {
-	const authRequest = request as AuthRequest;
-	const userId = authRequest.user.id;
+	const customRequest = request as CustomRequest;
 
-	await usersService.deactivateUser(userId);
+	const { id } = customRequest.user;
 
+	await usersService.deactivateUser(id);
 	return response.sendStatus(204);
 }
 
-export async function getReactivateUser(request: Request, response: Response) {
-	const authRequest = request as AuthRequest;
-	const userId = authRequest.user.id;
+export async function pathReactivateUser(request: Request, response: Response) {
+	const customRequest = request as CustomRequest;
 
-	await usersService.reactivateUser(userId);
+	const { id } = customRequest.user;
 
+	await usersService.reactivateUser(id);
 	return response.sendStatus(204);
 }
