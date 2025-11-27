@@ -1,18 +1,24 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError, ZodType } from "zod";
+import { DomainError } from "../errors/domain-error";
 
 export function validateSchemaMiddleware(
 	zodSchema: ZodType,
 	requestKey: RequestKey
 ) {
-	return (request: Request, response: Response, next: NextFunction) => {
+	return (request: Request, _response: Response, next: NextFunction) => {
 		try {
 			const data = zodSchema.parse(request[requestKey]);
 			request[requestKey] = data;
 			next();
 		} catch (error) {
 			if (error instanceof ZodError)
-				return response.status(422).json({ error: JSON.parse(error.message) });
+				throw new DomainError(
+					"Common Module",
+					"COMMON_SCHEMA_INVALID",
+					"Invalid request schema",
+					{ error: JSON.parse(error.message) }
+				);
 			throw error;
 		}
 	};
