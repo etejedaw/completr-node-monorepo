@@ -2,13 +2,14 @@ import { Request, Response } from "express";
 import { LoginDto, RegisterDto } from "./dtos";
 import * as authService from "./auth.service";
 import { userSerializer } from "../users";
-import { AuthRequest } from "./interfaces/auth-request.interface";
 import { ChangePassword } from "./schemas";
+import { CustomRequest } from "../common/interfaces/custom-request.interface";
 
 export async function postRegister(request: Request, response: Response) {
-	const body = request.body as RegisterDto;
+	const customRequest = request as CustomRequest;
+	const registerDto = customRequest.body as RegisterDto;
 
-	const userRegister = await authService.register(body);
+	const userRegister = await authService.register(registerDto);
 
 	const userPlain = userRegister.user.get({ plain: true });
 	const accessToken = userRegister.accessToken;
@@ -22,9 +23,10 @@ export async function postRegister(request: Request, response: Response) {
 }
 
 export async function postLogin(request: Request, response: Response) {
-	const body = request.body as LoginDto;
+	const customRequest = request as CustomRequest;
+	const loginDto = customRequest.body as LoginDto;
 
-	const userLogin = await authService.login(body);
+	const userLogin = await authService.login(loginDto);
 
 	const data = {
 		access_token: userLogin.accessToken
@@ -37,9 +39,10 @@ export async function patchChangePassword(
 	request: Request,
 	response: Response
 ) {
-	const requestAuth = request as AuthRequest;
+	const customRequest = request as CustomRequest;
 	const body = request.body as ChangePassword;
-	const user = requestAuth.user;
+
+	const user = customRequest.user;
 
 	await authService.changePassword(user.id, body.password);
 
