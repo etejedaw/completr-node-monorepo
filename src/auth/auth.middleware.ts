@@ -1,24 +1,26 @@
 import { Request, Response, NextFunction } from "express";
-import { AuthRequest } from "./interfaces/auth-request.interface";
 import { HeaderTokenSchema } from "./schemas";
 import * as tokenService from "./token.service";
 import { ZodError } from "zod";
+import { CustomRequest } from "../common/interfaces/custom-request.interface";
+import * as authDomainsErrors from "./errors/auth.domains-error";
 
 export function authMiddleware(
 	request: Request,
-	response: Response,
+	_response: Response,
 	next: NextFunction
 ) {
-	const authRequest = request as AuthRequest;
+	const customRequest = request as CustomRequest;
+
 	try {
 		const headers = HeaderTokenSchema.parse(request.headers);
 		const [_prefix, token] = headers.authorization.split(" ");
 		const payload = tokenService.verifyAccessToken(token!);
-		authRequest.user = payload;
-		next();
+		customRequest.user = payload;
+		return next();
 	} catch (error) {
 		if (error instanceof ZodError)
-			return response.status(422).json({ error: JSON.parse(error.message) });
-		return response.sendStatus(401);
+			throw authDomainsErrors.authSchemaInvalid({ ...error });
+		throw authDomainsErrors.authInvalidToken({ error });
 	}
 }
