@@ -11,8 +11,6 @@ export interface ServiceErrorOptions {
 	service: string;
 	raw: unknown;
 	externalError?: ExternalError;
-	internalError?: InternalError;
-	networkError?: NetworkError;
 }
 
 interface ExternalError {
@@ -22,14 +20,4 @@ interface ExternalError {
 	statusCode: number;
 	requestBody?: unknown;
 	responseBody?: unknown;
-}
-
-interface InternalError {
-	message?: string;
-	context?: Record<string, unknown>;
-}
-
-interface NetworkError {
-	url?: string;
-	message?: string;
 }

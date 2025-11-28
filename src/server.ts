@@ -6,6 +6,7 @@ import authRouter from "./auth/auth.router";
 import { corsConfig } from "./common/config/cors.config";
 import { errorHandlerMiddleware } from "./common/middlewares/error-handler.middleware";
 import { correlationIdMiddleware } from "./common/middlewares/correlation-id.middleware";
+import { loggerMiddleware } from "./common/middlewares/logger.middleware";
 
 export function server(port: number) {
 	const app = express();
@@ -15,6 +16,7 @@ export function server(port: number) {
 	app.use(cors(corsConfig));
 
 	app.use(correlationIdMiddleware);
+	app.use(loggerMiddleware);
 	app.use(authRouter);
 	app.use(usersRoute);
 	app.use(errorHandlerMiddleware);
