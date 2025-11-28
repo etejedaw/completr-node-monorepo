@@ -1,14 +1,14 @@
 {
-	"name": "backlogr-node-backend",
+	"name": "completr-node-backend",
 	"version": "1.0.0",
 	"description": "",
-	"homepage": "https://github.com/etejedaw/backlogr-node-backend#readme",
+	"homepage": "https://github.com/etejedaw/completr-node-backend#readme",
 	"bugs": {
-		"url": "https://github.com/etejedaw/backlogr-node-backend/issues"
+		"url": "https://github.com/etejedaw/completr-node-backend/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/etejedaw/backlogr-node-backend.git"
+		"url": "git+https://github.com/etejedaw/completr-node-backend.git"
 	},
 	"license": "ISC",
 	"author": "",
