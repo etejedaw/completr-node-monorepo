@@ -4,6 +4,8 @@ import * as passwordService from "./password.service";
 import * as tokenService from "./token.service";
 import * as authDomainError from "./errors/auth.domains-error";
 
+const DEFAULT_AVATAR_URL = "completr.app/default/profile.jpg";
+
 export async function register(registerDto: RegisterDto) {
 	const userEmail = await userService.findUserByEmail(registerDto.email);
 	const userName = await userService.findUserByEmail(registerDto.username);
@@ -14,7 +16,7 @@ export async function register(registerDto: RegisterDto) {
 	const userData = {
 		...registerDto,
 		password: hashPassword,
-		avatarUrl: registerDto.avatarUrl || "backlogr.app/default/profile.jpg"
+		avatarUrl: registerDto.avatarUrl || DEFAULT_AVATAR_URL
 	};
 
 	const user = await userService.createUser(userData);
