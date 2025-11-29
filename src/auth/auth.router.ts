@@ -19,6 +19,7 @@ router.post(
 	],
 	authController.postRegister
 );
+
 router.post(
 	"/auth/login",
 	[
@@ -27,11 +28,12 @@ router.post(
 	],
 	authController.postLogin
 );
+
 router.patch(
 	"/auth/password",
 	[
 		rateLimiterMiddleware(authLimiter),
-		authMiddleware,
+		authMiddleware(),
 		validateSchemaMiddleware(ChangePasswordSchema, "body")
 	],
 	authController.patchChangePassword

@@ -23,7 +23,11 @@ export function authDomainToHttpMapper(
 		});
 
 	if (error.code === "AUTH_INVALID_CREDENTIALS")
-		return new HttpError({ ...baseOptions, status: 401 });
+		return new HttpError({
+			...baseOptions,
+			detail: "Invalid email or password",
+			status: 401
+		});
 
 	if (error.code === "AUTH_INVALID_TOKEN")
 		return new HttpError({
@@ -45,6 +49,13 @@ export function authDomainToHttpMapper(
 			...baseOptions,
 			detail: "Too many authentication attempts. Please try again later.",
 			status: 429
+		});
+
+	if (error.code === "AUTH_FORBIDDEN")
+		return new HttpError({
+			...baseOptions,
+			detail: "Your role does not grant permission",
+			status: 403
 		});
 
 	return new HttpError({ ...baseOptions, status: 500 });

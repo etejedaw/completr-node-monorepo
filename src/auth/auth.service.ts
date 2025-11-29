@@ -21,7 +21,7 @@ export async function register(registerDto: RegisterDto) {
 
 	const user = await userService.createUser(userData);
 
-	const payload = { id: user.id, username: user.username, email: user.email };
+	const payload = { sub: user.id, username: user.username, email: user.email };
 	const accessToken = tokenService.signAccessToken(payload);
 
 	return { user, accessToken };
@@ -37,7 +37,7 @@ export async function login(loginDto: LoginDto) {
 	);
 	if (!comparePassword) throw authDomainError.invalidCredentials();
 
-	const payload = { id: user.id, username: user.username, email: user.email };
+	const payload = { sub: user.id, username: user.username, email: user.email };
 	const accessToken = tokenService.signAccessToken(payload);
 
 	return { accessToken };

@@ -46,3 +46,12 @@ export function authSchemaInvalid(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function authForbidden(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"AUTH_FORBIDDEN",
+		"You do not have permission to access this resource",
+		context
+	);
+}

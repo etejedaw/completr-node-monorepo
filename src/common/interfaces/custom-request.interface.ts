@@ -1,7 +1,9 @@
 import { Request } from "express";
-import { JwtPayload } from "./jwt-payload.interface";
+import { User } from "../../users";
 
 export interface CustomRequest extends Request {
-	user: JwtPayload;
+	user: CustomUser;
 	correlationId: string;
 }
+
+type CustomUser = Pick<User, "id" | "username" | "email" | "role" | "isActive">;
