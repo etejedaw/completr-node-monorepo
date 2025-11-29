@@ -13,9 +13,10 @@ const router = Router();
 
 router.get(
 	"/users/me",
-	[rateLimiterMiddleware(userLimiter), authMiddleware],
+	[rateLimiterMiddleware(userLimiter), authMiddleware()],
 	usersController.getUserMe
 );
+
 router.get(
 	"/users/:username",
 	[
@@ -24,18 +25,20 @@ router.get(
 	],
 	usersController.getUserByUsername
 );
+
 router.patch(
 	"/users/me",
 	[
 		rateLimiterMiddleware(userLimiter),
-		authMiddleware,
+		authMiddleware(),
 		validateSchemaMiddleware(UpdateUserSchema, "body")
 	],
 	usersController.patchUser
 );
+
 router.delete(
 	"/users/me/deactivate",
-	[rateLimiterMiddleware(userLimiter), authMiddleware],
+	[rateLimiterMiddleware(userLimiter), authMiddleware()],
 	usersController.deleteUser
 );
 

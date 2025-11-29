@@ -5,9 +5,9 @@ export function userSerializer(user: User) {
 		id: user.id,
 		username: user.username,
 		email: user.email,
+		role: user.role,
 		name: user.name,
 		bio: user.bio,
-		avatarUrl: user.avatarUrl,
-		isPublic: user.isPublic
+		avatarUrl: user.avatarUrl
 	};
 }

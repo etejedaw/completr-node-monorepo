@@ -1,16 +1,17 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
+import { UserRole } from "./user-role.type";
 
 class User extends Model {
 	declare id: string;
 	declare username: string;
 	declare email: string;
 	declare password: string;
+	declare role: UserRole;
 	declare name: string;
 	declare bio?: string;
 	declare avatarUrl: string;
 	declare isPublic: boolean;
-	declare isPremium: boolean;
 	declare isActive: boolean;
 }
 
@@ -24,11 +25,15 @@ User.init(
 		username: { type: DataTypes.STRING(15), unique: true, allowNull: false },
 		email: { type: DataTypes.STRING, unique: true, allowNull: false },
 		password: { type: DataTypes.STRING, allowNull: false },
+		role: {
+			type: DataTypes.ENUM("user", "premium", "moderator", "admin"),
+			allowNull: false,
+			defaultValue: "user"
+		},
 		name: DataTypes.STRING(80),
 		bio: DataTypes.STRING(250),
 		avatarUrl: DataTypes.STRING,
 		isPublic: { type: DataTypes.BOOLEAN, defaultValue: true },
-		isPremium: { type: DataTypes.BOOLEAN, defaultValue: false },
 		isActive: { type: DataTypes.BOOLEAN, defaultValue: true }
 	},
 	{ sequelize }
