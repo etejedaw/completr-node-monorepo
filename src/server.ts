@@ -3,6 +3,8 @@ import helmet from "helmet";
 import cors from "cors";
 import usersRoute from "./users/users.routes";
 import authRouter from "./auth/auth.router";
+import gamesRouter from "./games/games.router";
+import platformRouter from "./platforms/platforms.route";
 import { corsConfig } from "./common/config/cors.config";
 import { errorHandlerMiddleware } from "./common/middlewares/error-handler.middleware";
 import { correlationIdMiddleware } from "./common/middlewares/correlation-id.middleware";
@@ -19,6 +21,8 @@ export function server(port: number) {
 	app.use(loggerMiddleware);
 	app.use(authRouter);
 	app.use(usersRoute);
+	app.use(gamesRouter);
+	app.use(platformRouter);
 	app.use(errorHandlerMiddleware);
 
 	app.listen(port, () => console.log(`Server running on port ${port}`));
