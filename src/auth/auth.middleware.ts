@@ -20,8 +20,7 @@ export function authMiddleware(...roles: UserRole[]) {
 			const payload = tokenService.verifyAccessToken(token!);
 
 			const user = await userService.findUserById(payload.sub);
-			if (!user || !user.isActive) throw userDomainsErrors.userNotFound();
-
+			if (!user || !user.isActive) throw authDomainsErrors.authInvalidToken();
 			const customUser = {
 				id: user.id,
 				username: user.username,
@@ -31,15 +30,16 @@ export function authMiddleware(...roles: UserRole[]) {
 			};
 			customRequest.user = customUser;
 
-			if (!roles.length) next();
-			if (user.role === "admin") next();
-			if (!roles.includes(user.role))
-				authDomainsErrors.authForbidden({ required: roles, user: user.role });
+			if (!roles.length) return next();
+			if (user.role === "admin") return next();
+			if (!roles.includes(user.role)) throw authDomainsErrors.authForbidden();
 
 			return next();
 		} catch (error) {
 			if (error instanceof ZodError)
-				throw authDomainsErrors.authSchemaInvalid({ ...error });
+				throw authDomainsErrors.authSchemaInvalid({
+					error: JSON.parse(error.message)
+				});
 			if (error instanceof DomainError) throw error;
 			throw authDomainsErrors.authInvalidToken({ error });
 		}
