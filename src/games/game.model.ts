@@ -6,7 +6,6 @@ class Game extends Model {
 	declare title: string;
 	declare code: string;
 	declare description: string;
-	declare platforms: string[];
 	declare releaseAt?: Date;
 	declare coverUrl?: string;
 	declare averageScore?: number;
@@ -33,10 +32,6 @@ Game.init(
 			allowNull: false
 		},
 		description: DataTypes.STRING,
-		platforms: {
-			type: DataTypes.ARRAY(DataTypes.STRING),
-			allowNull: false
-		},
 		releaseAt: DataTypes.DATE,
 		coverUrl: DataTypes.STRING,
 		averageScore: DataTypes.FLOAT,
