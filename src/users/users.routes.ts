@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as usersController from "./users.controller";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { UpdateUserSchema, UsernameParamsSchema } from "./schemas";
+import { UpdateUserSchema, UsernameParamSchema } from "./schemas";
 import { authMiddleware } from "../auth/auth.middleware";
 import {
 	publicLimiter,
@@ -21,7 +21,7 @@ router.get(
 	"/users/:username",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		validateSchemaMiddleware(UsernameParamsSchema, "params")
+		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	usersController.getUserByUsername
 );

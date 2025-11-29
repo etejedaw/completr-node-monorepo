@@ -1,8 +1,6 @@
 import { ServiceError } from "../../common/errors/service-error";
 
-const BASE_OPTIONS = {
-	service: "Users Service"
-};
+const BASE_OPTIONS = { service: "Users Service" };
 
 export function notFoundError() {
 	return new ServiceError("USER_NOT_FOUND", {

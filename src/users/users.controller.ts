@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import * as usersService from "./users.service";
 import { userSerializer } from "./users.serializer";
-import { UsernameParams } from "./schemas";
+import { UsernameParam } from "./schemas";
 import { UpdateUserDto } from "./dtos";
 import * as userDomain from "./errors/users.domain-error";
 import { CustomRequest } from "../common/interfaces/custom-request.interface";
 
 export async function getUserByUsername(request: Request, response: Response) {
-	const params = request.params as UsernameParams;
+	const params = request.params as UsernameParam;
 
 	const { username } = params;
 
@@ -16,7 +16,9 @@ export async function getUserByUsername(request: Request, response: Response) {
 	if (!user.isPublic) throw userDomain.userPrivate();
 
 	const userPlain = user.get({ plain: true });
-	return response.status(200).json({ user: userSerializer(userPlain) });
+
+	const data = { user: userSerializer(userPlain) };
+	return response.status(200).json(data);
 }
 
 export async function getUserMe(request: Request, response: Response) {
@@ -28,7 +30,9 @@ export async function getUserMe(request: Request, response: Response) {
 	if (!user) throw userDomain.userNotFound();
 
 	const userPlain = user.get({ plain: true });
-	return response.status(200).json({ user: userSerializer(userPlain) });
+
+	const data = { user: userSerializer(userPlain) };
+	return response.status(200).json(data);
 }
 
 export async function patchUser(request: Request, response: Response) {
@@ -42,7 +46,8 @@ export async function patchUser(request: Request, response: Response) {
 
 	const userPlain = user.get({ plain: true });
 
-	return response.status(200).json({ user: userSerializer(userPlain) });
+	const data = { user: userSerializer(userPlain) };
+	return response.status(200).json(data);
 }
 
 export async function deleteUser(request: Request, response: Response) {

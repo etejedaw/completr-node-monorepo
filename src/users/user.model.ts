@@ -10,9 +10,11 @@ class User extends Model {
 	declare role: UserRole;
 	declare name: string;
 	declare bio?: string;
-	declare avatarUrl: string;
+	declare avatarUrl?: string;
 	declare isPublic: boolean;
 	declare isActive: boolean;
+	declare createdAt: Date;
+	declare updatedAt: Date;
 }
 
 User.init(

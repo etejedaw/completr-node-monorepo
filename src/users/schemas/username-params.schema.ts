@@ -1,10 +1,10 @@
 import z from "zod";
 
-export const UsernameParamsSchema = z
+export const UsernameParamSchema = z
 	.object({
 		username: z.string()
 	})
 	.strict()
 	.readonly();
 
-export type UsernameParams = z.infer<typeof UsernameParamsSchema>;
+export type UsernameParam = z.infer<typeof UsernameParamSchema>;
