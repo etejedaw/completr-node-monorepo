@@ -10,6 +10,7 @@ export async function databaseInit() {
 	setupAssociations();
 
 	await sequelize.sync({
-		force: environmentConfig.NODE_ENV === "test"
+		force: environmentConfig.NODE_ENV === "test",
+		alter: environmentConfig.NODE_ENV === "dev"
 	});
 }
