@@ -18,7 +18,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 	const userPlain = user.get({ plain: true });
 
 	const data = { user: userSerializer(userPlain) };
-	return response.status(200).json(data);
+	return response.status(200).json({ data });
 }
 
 export async function getUserMe(request: Request, response: Response) {
@@ -32,7 +32,7 @@ export async function getUserMe(request: Request, response: Response) {
 	const userPlain = user.get({ plain: true });
 
 	const data = { user: userSerializer(userPlain) };
-	return response.status(200).json(data);
+	return response.status(200).json({ data });
 }
 
 export async function patchUser(request: Request, response: Response) {
@@ -47,7 +47,7 @@ export async function patchUser(request: Request, response: Response) {
 	const userPlain = user.get({ plain: true });
 
 	const data = { user: userSerializer(userPlain) };
-	return response.status(200).json(data);
+	return response.status(200).json({ data });
 }
 
 export async function deleteUser(request: Request, response: Response) {
