@@ -6,7 +6,7 @@ export function userAlreadyExists(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
 		"AUTH_USER_ALREADY_EXISTS",
-		"User or email are already registered",
+		"Username or email are already registered",
 		context
 	);
 }
