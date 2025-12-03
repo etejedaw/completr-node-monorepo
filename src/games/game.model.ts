@@ -1,5 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
+import { Platform } from "../platforms/platform.model";
 
 class Game extends Model {
 	declare id: string;
@@ -13,6 +14,7 @@ class Game extends Model {
 	declare isActive: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
+	declare Platforms: Platform[];
 }
 
 Game.init(
@@ -38,7 +40,7 @@ Game.init(
 		averagePlaytime: DataTypes.FLOAT,
 		isActive: {
 			type: DataTypes.BOOLEAN,
-			defaultValue: false
+			defaultValue: true
 		}
 	},
 	{ sequelize }

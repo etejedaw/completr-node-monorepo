@@ -3,12 +3,28 @@ import { RegisterGameDto } from "./dtos/register-game.dto";
 import { Game } from "./game.model";
 import { UpdateGameDto } from "./dtos/update-game.dto";
 import * as gamesServiceError from "./errors/games.service-error";
+import * as gamePlatformsService from "../game-platforms/game-platforms.service";
+import * as platformsService from "../platforms/platforms.service";
+import * as platformDomainError from "../platforms/errors/platform.domain-error";
 import slugify from "slugify";
 
 export async function registerGame(registerGameDto: RegisterGameDto) {
 	try {
 		const code = slugifyTitle(registerGameDto.title);
-		return await Game.create({ ...registerGameDto, code });
+		const { platforms, ...gameDto } = registerGameDto;
+
+		const gameDb = await Game.create({ ...gameDto, code });
+		const platformsDb = await platformsService.findPlatformsByCode(platforms);
+
+		await gamePlatformsService.linkGameToPlatforms(
+			gameDb.id,
+			platformsDb.map((platform) => platform.id)
+		);
+
+		const gameCreated = await findGameById(gameDb.id);
+		if (!gameCreated) throw gamesServiceError.notFoundError();
+
+		return gameCreated;
 	} catch (error) {
 		if (error instanceof UniqueConstraintError)
 			throw gamesServiceError.uniqueConstraintError(error);
@@ -19,19 +35,37 @@ export async function registerGame(registerGameDto: RegisterGameDto) {
 }
 
 export async function findGameByCode(code: string) {
-	return await Game.findOne({ where: { code, isActive: true } });
+	return await Game.findOne({
+		where: { code, isActive: true },
+		include: [{ association: "Platforms" }]
+	});
 }
 
 export async function findGameById(id: string) {
-	return await Game.findOne({ where: { id, isActive: true } });
+	return await Game.findOne({
+		where: { id, isActive: true },
+		include: [{ association: "Platforms" }]
+	});
 }
 
 export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 	const game = await findGameById(id);
 	if (!game) throw gamesServiceError.notFoundError();
 
-	await game.update(updateGameDto);
-	return game;
+	const { platforms, ...gameDto } = updateGameDto;
+
+	if (platforms?.length === 0)
+		await gamePlatformsService.replaceGamePlatforms(game.id, []);
+	if (platforms && platforms.length > 0) {
+		const platformDb = await platformsService.findPlatformsByCode(platforms);
+		if (platformDb.length !== platforms.length)
+			throw platformDomainError.platformNotFound();
+		const platformsIds = platformDb.map((platform) => platform.id);
+		await gamePlatformsService.replaceGamePlatforms(game.id, platformsIds);
+	}
+
+	await game.update(gameDto);
+	return (await findGameById(id)) as Game;
 }
 
 export async function updateTitle(id: string, title: string) {
@@ -46,18 +80,18 @@ export async function updateTitle(id: string, title: string) {
 
 export async function deactivateGame(id: string) {
 	const game = await findGameById(id);
-	if (!game) throw gamesServiceError.notFoundError();
+	if (!game) return false;
 
 	await game.update({ isActive: false });
-	return game;
+	return true;
 }
 
 export async function reactivateGame(id: string) {
 	const game = await findGameById(id);
-	if (!game) throw gamesServiceError.notFoundError();
+	if (!game) return false;
 
 	await game.update({ isActive: true });
-	return game;
+	return true;
 }
 
 function slugifyTitle(title: string) {
