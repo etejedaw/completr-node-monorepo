@@ -22,6 +22,7 @@ User.init(
 		id: {
 			type: DataTypes.UUID,
 			primaryKey: true,
+			allowNull: false,
 			defaultValue: Sequelize.literal("gen_random_uuid()")
 		},
 		username: { type: DataTypes.STRING(15), unique: true, allowNull: false },

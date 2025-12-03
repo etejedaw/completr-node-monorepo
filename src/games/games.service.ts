@@ -3,7 +3,7 @@ import { RegisterGameDto } from "./dtos/register-game.dto";
 import { Game } from "./game.model";
 import { UpdateGameDto } from "./dtos/update-game.dto";
 import * as gamesServiceError from "./errors/games.service-error";
-import * as gamePlatformsService from "../game-platforms/game-platforms.service";
+import * as gamePlatformsService from "../game-platform/game-platform.service";
 import * as platformsService from "../platforms/platforms.service";
 import * as platformDomainError from "../platforms/errors/platform.domain-error";
 import slugify from "slugify";

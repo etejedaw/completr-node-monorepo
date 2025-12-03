@@ -1,6 +1,6 @@
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
-import { GamePlatform } from "../game-platforms/game-platform.model";
+import { GamePlatform } from "../game-platform/game-platform.model";
 
 export function setupAssociations() {
 	platformGame();
