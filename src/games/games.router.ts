@@ -5,14 +5,24 @@ import { RegisterGameSchema } from "./schemas/register-game.schema";
 import * as gamesController from "./games.controller";
 import { UpdateGameSchema } from "./schemas/update-game.schema";
 import { GameIdParamSchema } from "./schemas/game-id-params.schema";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+import {
+	publicLimiter,
+	userLimiter
+} from "../common/config/rate-limiter.config";
 
 const router = Router();
 
-router.get("/games/:code", gamesController.getGameByCode);
+router.get(
+	"/games/:code",
+	rateLimiterMiddleware(publicLimiter),
+	gamesController.getGameByCode
+);
 
 router.post(
 	"/games",
 	[
+		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
 		validateSchemaMiddleware(RegisterGameSchema, "body")
 	],
@@ -22,6 +32,7 @@ router.post(
 router.patch(
 	"/games/:id",
 	[
+		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
 		validateSchemaMiddleware(GameIdParamSchema, "params"),
 		validateSchemaMiddleware(UpdateGameSchema, "body")
@@ -32,6 +43,7 @@ router.patch(
 router.delete(
 	"/games/:id",
 	[
+		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
 		validateSchemaMiddleware(GameIdParamSchema, "params")
 	],

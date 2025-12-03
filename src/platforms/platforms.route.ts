@@ -4,7 +4,10 @@ import { authMiddleware } from "../auth/auth.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { RegisterPlatformSchema } from "./schemas/register-platform.schema";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
-import { publicLimiter } from "../common/config/rate-limiter.config";
+import {
+	publicLimiter,
+	userLimiter
+} from "../common/config/rate-limiter.config";
 import { PlatformCodeParamSchema } from "./schemas/platform-code-params.schema";
 import { UpdatePlatformSchema } from "./schemas/update-platform.schema";
 import { PlatformIdCodeParamSchema } from "./schemas/platformid-params.schema";
@@ -29,22 +32,31 @@ router.get(
 router.post(
 	"/platform",
 	[
-		authMiddleware("admin"),
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("moderator"),
 		validateSchemaMiddleware(RegisterPlatformSchema, "body")
 	],
 	platformController.postPlatform
 );
 
-router.patch("/platform/:id", [
-	authMiddleware("admin"),
-	validateSchemaMiddleware(UpdatePlatformSchema, "body"),
+router.patch(
+	"/platform/:id",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("moderator"),
+		validateSchemaMiddleware(UpdatePlatformSchema, "body")
+	],
 	platformController.patchPlatform
-]);
+);
 
-router.delete("/platform/:id", [
-	authMiddleware("admin"),
-	validateSchemaMiddleware(PlatformIdCodeParamSchema, "params"),
+router.delete(
+	"/platform/:id",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("moderator"),
+		validateSchemaMiddleware(PlatformIdCodeParamSchema, "params")
+	],
 	platformController.deletePlatform
-]);
+);
 
 export default router;
