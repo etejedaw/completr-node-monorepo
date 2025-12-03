@@ -4,7 +4,6 @@ import * as tokenService from "./token.service";
 import { ZodError } from "zod";
 import { CustomRequest } from "../common/interfaces/custom-request.interface";
 import * as authDomainsErrors from "./errors/auth.domains-error";
-import * as userDomainsErrors from "../users/errors/users.domain-error";
 import * as userService from "../users/users.service";
 import { DomainError } from "../common/errors/domain-error";
 import { UserRole } from "../users/user-role.type";
@@ -21,6 +20,7 @@ export function authMiddleware(...roles: UserRole[]) {
 
 			const user = await userService.findUserById(payload.sub);
 			if (!user || !user.isActive) throw authDomainsErrors.authInvalidToken();
+
 			const customUser = {
 				id: user.id,
 				username: user.username,
