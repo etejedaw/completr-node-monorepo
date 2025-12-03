@@ -3,10 +3,10 @@ import { Platform } from "../platforms/platform.model";
 import { GamePlatform } from "../game-platform/game-platform.model";
 
 export function setupAssociations() {
-	platformGame();
+	gamePlatform();
 }
 
-function platformGame() {
+function gamePlatform() {
 	Platform.belongsToMany(Game, {
 		through: GamePlatform,
 		foreignKey: "platformId",
