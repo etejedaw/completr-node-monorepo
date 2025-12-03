@@ -4,6 +4,7 @@ export function platformSerializer(platform: Platform) {
 	return {
 		id: platform.id,
 		name: platform.name,
+		code: platform.code,
 		abbreviation: platform.abbreviation,
 		description: platform.description,
 		manufacturer: platform.manufacturer,

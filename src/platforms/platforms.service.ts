@@ -32,6 +32,10 @@ export async function findAllPlatforms() {
 	return await Platform.findAll({ where: { isActive: true } });
 }
 
+export async function findPlatformsByCode(codes: string[]) {
+	return await Platform.findAll({ where: { code: codes, isActive: true } });
+}
+
 export async function updatePlatform(
 	id: string,
 	updatePlatformDto: UpdatePlatformDto
@@ -55,18 +59,18 @@ export async function updateTitle(id: string, title: string) {
 
 export async function deactivatePlatform(id: string) {
 	const platform = await findPlaformById(id);
-	if (!platform) throw platformServiceError.notFoundError();
+	if (!platform) return false;
 
 	await platform.update({ isActive: false });
-	return platform;
+	return true;
 }
 
 export async function reactivatePlatform(id: string) {
 	const platform = await findPlaformById(id);
-	if (!platform) throw platformServiceError.notFoundError();
+	if (!platform) return false;
 
 	await platform.update({ isActive: true });
-	return platform;
+	return true;
 }
 
 function slugifyTitle(title: string) {

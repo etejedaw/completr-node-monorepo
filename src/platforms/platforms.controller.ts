@@ -18,17 +18,17 @@ export async function getPlatformByCode(request: Request, response: Response) {
 	const platformPlain = platform.get({ plain: true });
 
 	const data = { platform: platformSerializer(platformPlain) };
-	return response.status(200).json(data);
+	return response.status(200).json({ data });
 }
 
-export async function getAllPlatforms(request: Request, response: Response) {
+export async function getAllPlatforms(_request: Request, response: Response) {
 	const platforms = await platformService.findAllPlatforms();
 	const platformsPlain = platforms.map((platform) =>
 		platform.get({ plain: true })
 	);
 
 	const data = { platforms: platformsPlain.map(platformSerializer) };
-	return response.status(201).json(data);
+	return response.status(201).json({ data });
 }
 
 export async function postPlatform(request: Request, response: Response) {
@@ -40,8 +40,8 @@ export async function postPlatform(request: Request, response: Response) {
 	const platformPlain = platformRegister.get({ plain: true });
 
 	const data = { platform: platformSerializer(platformPlain) };
-	console.log(data);
-	return response.status(201).json(data);
+
+	return response.status(201).json({ data });
 }
 
 export async function patchPlatform(request: Request, response: Response) {
@@ -59,5 +59,14 @@ export async function patchPlatform(request: Request, response: Response) {
 	const platformPlain = platform.get({ plain: true });
 
 	const data = { platform: platformSerializer(platformPlain) };
-	return response.status(200).json(data);
+	return response.status(200).json({ data });
+}
+
+export async function deletePlatform(request: Request, response: Response) {
+	const platformCodeParam = request.params as PlatformIdParam;
+
+	const { platformId } = platformCodeParam;
+
+	await platformService.deactivatePlatform(platformId);
+	return response.sendStatus(204);
 }
