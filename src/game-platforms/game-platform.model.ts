@@ -17,7 +17,12 @@ GamePlatform.init(
 			primaryKey: true
 		}
 	},
-	{ sequelize, tableName: "game_platform", timestamps: false }
+	{
+		sequelize,
+		tableName: "game_platform",
+		indexes: [{ unique: true, fields: ["gameId", "platformId"] }],
+		timestamps: false
+	}
 );
 
 export { GamePlatform };
