@@ -19,7 +19,6 @@ GamePlatform.init(
 	},
 	{
 		sequelize,
-		tableName: "game_platform",
 		indexes: [{ unique: true, fields: ["gameId", "platformId"] }],
 		timestamps: false
 	}
