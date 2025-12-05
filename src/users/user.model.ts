@@ -12,6 +12,7 @@ class User extends Model {
 	declare bio?: string;
 	declare avatarUrl?: string;
 	declare isPublic: boolean;
+	declare isGameshelfPublic: boolean;
 	declare isActive: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -37,6 +38,7 @@ User.init(
 		bio: DataTypes.STRING(250),
 		avatarUrl: DataTypes.STRING,
 		isPublic: { type: DataTypes.BOOLEAN, defaultValue: true },
+		isGameshelfPublic: { type: DataTypes.BOOLEAN, defaultValue: true },
 		isActive: { type: DataTypes.BOOLEAN, defaultValue: true }
 	},
 	{ sequelize }
