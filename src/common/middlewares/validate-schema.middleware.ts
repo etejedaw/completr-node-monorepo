@@ -9,7 +9,7 @@ export function validateSchemaMiddleware(
 	return (request: Request, _response: Response, next: NextFunction) => {
 		try {
 			const data = zodSchema.parse(request[requestKey]);
-			request[requestKey] = data;
+			Object.assign(request[requestKey], data);
 			next();
 		} catch (error) {
 			if (error instanceof ZodError)

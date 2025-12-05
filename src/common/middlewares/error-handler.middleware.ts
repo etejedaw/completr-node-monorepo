@@ -11,6 +11,7 @@ export function errorHandlerMiddleware(
 ) {
 	const customRequest = request as CustomRequest;
 	const { correlationId } = customRequest;
+
 	const domainError = globalErrorDomainNormalizer(error, correlationId);
 	const httpError = globalErrorHttpNormalizer(domainError, customRequest);
 

@@ -9,6 +9,7 @@ export function globalErrorHttpNormalizer(
 	error: DomainError,
 	request: CustomRequest
 ) {
+	console.log(error);
 	if (error.module === "User Module")
 		return usersDomainToHttpMapper(error, request);
 
