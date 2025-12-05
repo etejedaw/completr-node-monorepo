@@ -21,11 +21,19 @@ export async function getGameByCode(request: Request, response: Response) {
 	return response.status(200).json({ data });
 }
 
+export async function getAllGames(_request: Request, response: Response) {
+	const games = await gameService.findAll();
+
+	const gamesPlain = games.map((game) => game.get({ plain: true }));
+
+	const data = { games: gamesPlain.map(gameSerializer) };
+	return response.status(200).json({ data });
+}
+
 export async function postGame(request: Request, response: Response) {
 	const registerGameDto = request.body as RegisterGameDto;
 
 	const gameRegister = await gameService.registerGame(registerGameDto);
-
 	const gamePlain = gameRegister.get({ plain: true });
 
 	const data = { game: gameSerializer(gamePlain) };
@@ -39,7 +47,6 @@ export async function patchGame(request: Request, response: Response) {
 	const { id } = params;
 
 	const game = await gameService.updateGame(id, updateGameDto);
-
 	const gamePlain = game.get({ plain: true });
 
 	const data = { game: gameSerializer(gamePlain) };

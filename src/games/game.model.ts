@@ -22,6 +22,7 @@ Game.init(
 		id: {
 			type: DataTypes.UUID,
 			primaryKey: true,
+			allowNull: false,
 			defaultValue: Sequelize.literal("gen_random_uuid()")
 		},
 		title: {

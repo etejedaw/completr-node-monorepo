@@ -14,6 +14,12 @@ import {
 const router = Router();
 
 router.get(
+	"/games",
+	rateLimiterMiddleware(publicLimiter),
+	gamesController.getAllGames
+);
+
+router.get(
 	"/games/:code",
 	rateLimiterMiddleware(publicLimiter),
 	gamesController.getGameByCode

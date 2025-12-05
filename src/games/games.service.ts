@@ -48,6 +48,10 @@ export async function findGameById(id: string) {
 	});
 }
 
+export async function findAll() {
+	return await Game.findAll({ include: [{ association: "Platforms" }] });
+}
+
 export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 	const game = await findGameById(id);
 	if (!game) throw gamesServiceError.notFoundError();
