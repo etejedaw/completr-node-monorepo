@@ -9,7 +9,11 @@ import { DomainError } from "../common/errors/domain-error";
 import { UserRole } from "../users/user-role.type";
 
 export function authMiddleware(...roles: UserRole[]) {
-	return async (request: Request, _response: Response, next: NextFunction) => {
+	return async (
+		request: Request,
+		_response: Response,
+		next: NextFunction
+	) => {
 		const customRequest = request as CustomRequest;
 
 		try {
@@ -19,7 +23,8 @@ export function authMiddleware(...roles: UserRole[]) {
 			const payload = tokenService.verifyAccessToken(token!);
 
 			const user = await userService.findUserById(payload.sub);
-			if (!user || !user.isActive) throw authDomainsErrors.authInvalidToken();
+			if (!user || !user.isActive)
+				throw authDomainsErrors.authInvalidToken();
 
 			const customUser = {
 				id: user.id,
@@ -32,7 +37,8 @@ export function authMiddleware(...roles: UserRole[]) {
 
 			if (!roles.length) return next();
 			if (user.role === "admin") return next();
-			if (!roles.includes(user.role)) throw authDomainsErrors.authForbidden();
+			if (!roles.includes(user.role))
+				throw authDomainsErrors.authForbidden();
 
 			return next();
 		} catch (error) {

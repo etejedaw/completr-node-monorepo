@@ -10,5 +10,8 @@ export function signAccessToken(payload: JwtPayload) {
 }
 
 export function verifyAccessToken(token: string): JwtPayload {
-	return jwt.verify(token, environmentConfig.ACCESS_TOKEN_SECRET) as JwtPayload;
+	return jwt.verify(
+		token,
+		environmentConfig.ACCESS_TOKEN_SECRET
+	) as JwtPayload;
 }

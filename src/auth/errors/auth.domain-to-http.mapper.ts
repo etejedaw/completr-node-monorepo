@@ -39,8 +39,7 @@ export function authDomainToHttpMapper(
 	if (error.code === "AUTH_SCHEMA_INVALID")
 		return new HttpError({
 			...baseOptions,
-			detail:
-				"The provided authentication data does not match the required format",
+			detail: "The provided authentication data does not match the required format",
 			status: 422
 		});
 

@@ -9,7 +9,9 @@ export async function register(registerDto: RegisterDto) {
 	const userName = await userService.findUserByEmail(registerDto.username);
 	if (userEmail || userName) throw authDomainError.userAlreadyExists();
 
-	const hashPassword = await passwordService.hashPassword(registerDto.password);
+	const hashPassword = await passwordService.hashPassword(
+		registerDto.password
+	);
 
 	const userData = {
 		...registerDto,
@@ -18,7 +20,11 @@ export async function register(registerDto: RegisterDto) {
 
 	const user = await userService.createUser(userData);
 
-	const payload = { sub: user.id, username: user.username, email: user.email };
+	const payload = {
+		sub: user.id,
+		username: user.username,
+		email: user.email
+	};
 	const accessToken = tokenService.signAccessToken(payload);
 
 	return { user, accessToken };
@@ -34,7 +40,11 @@ export async function login(loginDto: LoginDto) {
 	);
 	if (!comparePassword) throw authDomainError.invalidCredentials();
 
-	const payload = { sub: user.id, username: user.username, email: user.email };
+	const payload = {
+		sub: user.id,
+		username: user.username,
+		email: user.email
+	};
 	const accessToken = tokenService.signAccessToken(payload);
 
 	return { accessToken };
