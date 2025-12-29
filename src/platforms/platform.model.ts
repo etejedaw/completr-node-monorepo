@@ -11,7 +11,7 @@ class Platform extends Model {
 	declare generation?: number;
 	declare logoUrl?: string;
 	declare releaseAt: Date;
-	declare isActive: Boolean;
+	declare isActive: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }

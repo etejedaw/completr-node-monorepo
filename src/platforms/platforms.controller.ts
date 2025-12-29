@@ -40,7 +40,6 @@ export async function postPlatform(request: Request, response: Response) {
 	const platformPlain = platformRegister.get({ plain: true });
 
 	const data = { platform: platformSerializer(platformPlain) };
-
 	return response.status(201).json({ data });
 }
 
