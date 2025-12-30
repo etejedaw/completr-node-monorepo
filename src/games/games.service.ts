@@ -6,11 +6,11 @@ import * as gamesServiceError from "./errors/games.service-error";
 import * as gamePlatformsService from "../game-platform/game-platform.service";
 import * as platformsService from "../platforms/platforms.service";
 import * as platformDomainError from "../platforms/errors/platform.domain-error";
-import slugify from "slugify";
+import { titleToSlug } from "../common/utils/title-to-slug.util";
 
 export async function registerGame(registerGameDto: RegisterGameDto) {
 	try {
-		const code = slugifyTitle(registerGameDto.title);
+		const code = titleToSlug(registerGameDto.title);
 		const { platforms, ...gameDto } = registerGameDto;
 
 		const gameDb = await Game.create({ ...gameDto, code });
@@ -71,7 +71,7 @@ export async function updateTitle(id: string, title: string) {
 	const game = await findGameById(id);
 	if (!game) throw gamesServiceError.notFoundError();
 
-	const code = slugifyTitle(title);
+	const code = titleToSlug(title);
 
 	await game.update({ title, code });
 	return game;
@@ -91,14 +91,6 @@ export async function reactivateGame(id: string) {
 
 	await game.update({ isActive: true });
 	return true;
-}
-
-function slugifyTitle(title: string) {
-	return slugify(title, {
-		replacement: "-",
-		lower: true,
-		strict: true
-	});
 }
 
 async function platformsUpdate(gameId: string, platforms: string[]) {

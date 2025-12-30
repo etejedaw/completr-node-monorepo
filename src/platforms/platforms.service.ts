@@ -1,15 +1,15 @@
-import slugify from "slugify";
 import { RegisterPlatformDto } from "./dtos/register-platform.dto";
 import * as platformServiceError from "./errors/platforms.service-error";
 import { Platform } from "./platform.model";
 import { UniqueConstraintError, ValidationError } from "sequelize";
 import { UpdatePlatformDto } from "./dtos/update-platform.dto";
+import { titleToSlug } from "../common/utils/title-to-slug.util";
 
 export async function registerPlatform(
 	registerPlatformDto: RegisterPlatformDto
 ) {
 	try {
-		const code = slugifyTitle(registerPlatformDto.name);
+		const code = titleToSlug(registerPlatformDto.name);
 		return await Platform.create({ ...registerPlatformDto, code });
 	} catch (error) {
 		if (error instanceof UniqueConstraintError)
@@ -51,7 +51,7 @@ export async function updateTitle(id: string, title: string) {
 	const platform = await findPlaformById(id);
 	if (!platform) throw platformServiceError.notFoundError();
 
-	const code = slugifyTitle(title);
+	const code = titleToSlug(title);
 
 	await platform.update({ title, code });
 	return platform;
@@ -71,12 +71,4 @@ export async function reactivatePlatform(id: string) {
 
 	await platform.update({ isActive: true });
 	return true;
-}
-
-function slugifyTitle(title: string) {
-	return slugify(title, {
-		replacement: "-",
-		lower: true,
-		strict: true
-	});
 }
