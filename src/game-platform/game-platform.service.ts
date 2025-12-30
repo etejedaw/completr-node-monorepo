@@ -4,7 +4,7 @@ export async function linkGameToPlatforms(
 	gameId: string,
 	platformsId: string[]
 ) {
-	const gamePlatforms = platformsId.map((platformId) => ({
+	const gamePlatforms = platformsId.map(platformId => ({
 		gameId,
 		platformId
 	}));

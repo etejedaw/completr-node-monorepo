@@ -24,7 +24,7 @@ export async function getGameByCode(request: Request, response: Response) {
 export async function getAllGames(_request: Request, response: Response) {
 	const games = await gameService.findAll();
 
-	const gamesPlain = games.map((game) => game.get({ plain: true }));
+	const gamesPlain = games.map(game => game.get({ plain: true }));
 
 	const data = { games: gamesPlain.map(gameSerializer) };
 	return response.status(200).json({ data });

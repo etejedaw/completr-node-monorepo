@@ -14,11 +14,12 @@ export async function registerGame(registerGameDto: RegisterGameDto) {
 		const { platforms, ...gameDto } = registerGameDto;
 
 		const gameDb = await Game.create({ ...gameDto, code });
-		const platformsDb = await platformsService.findPlatformsByCode(platforms);
+		const platformsDb =
+			await platformsService.findPlatformsByCode(platforms);
 
 		await gamePlatformsService.linkGameToPlatforms(
 			gameDb.id,
-			platformsDb.map((platform) => platform.id)
+			platformsDb.map(platform => platform.id)
 		);
 
 		const gameCreated = await findGameById(gameDb.id);
@@ -58,18 +59,12 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 
 	const { platforms, ...gameDto } = updateGameDto;
 
-	if (platforms?.length === 0)
-		await gamePlatformsService.replaceGamePlatforms(game.id, []);
-	if (platforms && platforms.length > 0) {
-		const platformDb = await platformsService.findPlatformsByCode(platforms);
-		if (platformDb.length !== platforms.length)
-			throw platformDomainError.platformNotFound();
-		const platformsIds = platformDb.map((platform) => platform.id);
-		await gamePlatformsService.replaceGamePlatforms(game.id, platformsIds);
-	}
+	if (platforms) await platformsUpdate(game.id, platforms);
 
 	await game.update(gameDto);
-	return (await findGameById(id)) as Game;
+
+	const updatedGame = await findGameById(id);
+	return updatedGame as Game;
 }
 
 export async function updateTitle(id: string, title: string) {
@@ -104,4 +99,17 @@ function slugifyTitle(title: string) {
 		lower: true,
 		strict: true
 	});
+}
+
+async function platformsUpdate(gameId: string, platforms: string[]) {
+	if (platforms.length === 0)
+		return await gamePlatformsService.replaceGamePlatforms(gameId, []);
+
+	const platformDb = await platformsService.findPlatformsByCode(platforms);
+
+	if (platformDb.length !== platforms.length)
+		throw platformDomainError.platformNotFound();
+
+	const platformsIds = platformDb.map(platform => platform.id);
+	await gamePlatformsService.replaceGamePlatforms(gameId, platformsIds);
 }

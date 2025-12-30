@@ -23,7 +23,7 @@ export async function getPlatformByCode(request: Request, response: Response) {
 
 export async function getAllPlatforms(_request: Request, response: Response) {
 	const platforms = await platformService.findAllPlatforms();
-	const platformsPlain = platforms.map((platform) =>
+	const platformsPlain = platforms.map(platform =>
 		platform.get({ plain: true })
 	);
 
