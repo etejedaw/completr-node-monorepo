@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint";
 import eslintConfigPrettier from "eslint-config-prettier";
 
 export default defineConfig(
-	{ ignores: ["dist", "coverage", "node_modules"] },
+	{ ignores: ["dist", "coverage", "node_modules", "logs"] },
 	eslint.configs.recommended,
 	tseslint.configs.recommended,
 	tseslint.configs.strict,
