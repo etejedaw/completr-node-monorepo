@@ -1,32 +1,46 @@
-import { RegisterGameshelfDto } from "./dtos/register-gameshelf.dto";
-import { UpdateGameshelfDto } from "./dtos/update-gameshelf.dto";
+import { Game } from "../games/game.model";
+import { Platform } from "../platforms/platform.model";
+import { User } from "../users";
+import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
+import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import { GameShelf } from "./game-shelf.model";
 
-export async function registerGameshelf(
-	registerGameshelfDto: RegisterGameshelfDto
+export async function registerGameShelf(
+	userId: string,
+	registerGameShelfDto: RegisterGameShelfDto
 ) {
-	return GameShelf.create(registerGameshelfDto);
+	return GameShelf.create({ ...registerGameShelfDto, userId });
 }
 
-export async function findGameshelfById(id: string) {
+export async function findGameShelfById(id: string) {
 	return await GameShelf.findOne({ where: { id } });
 }
 
-export async function findGameshelfsByUserId(userId: string) {
-	return await GameShelf.findAll({ where: { userId } });
+export async function findGameShelfByUserId(userId: string) {
+	return await GameShelf.findAll({
+		where: { userId },
+		include: [{ model: Game }, { model: Platform }, { model: User }]
+	});
 }
 
-export async function updateGameshelf(
+export async function updateGameShelf(
 	id: string,
-	updateGameshelfDto: UpdateGameshelfDto
+	userId: string,
+	updateGameShelfDto: UpdateGameShelfDto
 ) {
-	const gameshelf = await findGameshelfById(id);
-	if (!gameshelf) throw new Error("Gameshelf not found"); //TODO: Mejorar manejo de errores
+	const gameShelf = await findGameShelfById(id);
+	if (!gameShelf) throw new Error("GameShelf not found"); //TODO: Mejorar manejo de errores
+	if (gameShelf.userId !== userId) throw new Error("Forbidden"); //TODO: Mejorar manejo de errores
 
-	await gameshelf.update(updateGameshelfDto);
-	return gameshelf;
+	await gameShelf.update(updateGameShelfDto);
+	return gameShelf;
 }
 
-export async function removeGameshelf(id: string) {
-	await GameShelf.destroy({ where: { id } });
+export async function removeGameShelf(id: string, userId: string) {
+	const gameShelf = await findGameShelfById(id);
+	if (!gameShelf) return false;
+	if (gameShelf.userId !== userId) return false;
+
+	await GameShelf.destroy({ where: { id, userId } });
+	return true;
 }
