@@ -15,12 +15,14 @@ const router = Router();
 
 router.get(
 	"/games",
+	authMiddleware("user", "premium", "moderator"),
 	rateLimiterMiddleware(publicLimiter),
 	gamesController.getAllGames
 );
 
 router.get(
 	"/games/:code",
+	authMiddleware("user", "premium", "moderator"),
 	rateLimiterMiddleware(publicLimiter),
 	gamesController.getGameByCode
 );
