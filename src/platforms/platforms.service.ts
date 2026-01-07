@@ -21,19 +21,19 @@ export async function registerPlatform(
 }
 
 export async function findPlaformByCode(code: string) {
-	return await Platform.findOne({ where: { code, isActive: true } });
+	return await Platform.findOne({ where: { code } });
 }
 
 export async function findPlaformById(id: string) {
-	return await Platform.findOne({ where: { id, isActive: true } });
+	return await Platform.findOne({ where: { id } });
 }
 
 export async function findAllPlatforms() {
-	return await Platform.findAll({ where: { isActive: true } });
+	return await Platform.findAll();
 }
 
 export async function findPlatformsByCode(codes: string[]) {
-	return await Platform.findAll({ where: { code: codes, isActive: true } });
+	return await Platform.findAll({ where: { code: codes } });
 }
 
 export async function updatePlatform(
@@ -57,18 +57,10 @@ export async function updateTitle(id: string, title: string) {
 	return platform;
 }
 
-export async function deactivatePlatform(id: string) {
+export async function removePlatform(id: string) {
 	const platform = await findPlaformById(id);
 	if (!platform) return false;
 
-	await platform.update({ isActive: false });
-	return true;
-}
-
-export async function reactivatePlatform(id: string) {
-	const platform = await findPlaformById(id);
-	if (!platform) return false;
-
-	await platform.update({ isActive: true });
+	await Platform.destroy({ where: { id } });
 	return true;
 }

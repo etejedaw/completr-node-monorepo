@@ -2,7 +2,7 @@ import z from "zod";
 
 export const PlatformCodeParamSchema = z
 	.object({
-		code: z.string()
+		code: z.string().nonempty()
 	})
 	.strict()
 	.readonly();

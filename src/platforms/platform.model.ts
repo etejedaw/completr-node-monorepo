@@ -11,7 +11,6 @@ class Platform extends Model {
 	declare generation?: number;
 	declare logoUrl?: string;
 	declare releaseAt: Date;
-	declare isActive: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
@@ -44,11 +43,7 @@ Platform.init(
 		},
 		generation: DataTypes.SMALLINT,
 		logoUrl: DataTypes.STRING,
-		releaseAt: DataTypes.DATE,
-		isActive: {
-			type: DataTypes.BOOLEAN,
-			defaultValue: true
-		}
+		releaseAt: DataTypes.DATE
 	},
 	{ sequelize }
 );

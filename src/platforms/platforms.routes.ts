@@ -10,13 +10,16 @@ import {
 } from "../common/config/rate-limiter.config";
 import { PlatformCodeParamSchema } from "./schemas/platform-code-params.schema";
 import { UpdatePlatformSchema } from "./schemas/update-platform.schema";
-import { PlatformIdCodeParamSchema } from "./schemas/platformid-params.schema";
+import { PlatformIdParamSchema } from "./schemas/platformid-params.schema";
 
 const router = Router();
 
 router.get(
 	"/platform",
-	rateLimiterMiddleware(publicLimiter),
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authMiddleware("user", "premium", "moderator")
+	],
 	platformController.getAllPlatforms
 );
 
@@ -24,6 +27,7 @@ router.get(
 	"/platform/:code",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authMiddleware("user", "premium", "moderator"),
 		validateSchemaMiddleware(PlatformCodeParamSchema, "params")
 	],
 	platformController.getPlatformByCode
@@ -54,7 +58,7 @@ router.delete(
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
-		validateSchemaMiddleware(PlatformIdCodeParamSchema, "params")
+		validateSchemaMiddleware(PlatformIdParamSchema, "params")
 	],
 	platformController.deletePlatform
 );

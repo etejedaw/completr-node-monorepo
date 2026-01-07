@@ -1,10 +1,10 @@
 import z from "zod";
 
-export const PlatformIdCodeParamSchema = z
+export const PlatformIdParamSchema = z
 	.object({
 		platformId: z.string()
 	})
 	.strict()
 	.readonly();
 
-export type PlatformIdParam = z.infer<typeof PlatformIdCodeParamSchema>;
+export type PlatformIdParam = z.infer<typeof PlatformIdParamSchema>;

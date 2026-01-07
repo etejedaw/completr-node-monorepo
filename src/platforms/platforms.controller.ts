@@ -28,7 +28,7 @@ export async function getAllPlatforms(_request: Request, response: Response) {
 	);
 
 	const data = { platforms: platformsPlain.map(platformSerializer) };
-	return response.status(201).json({ data });
+	return response.status(200).json({ data });
 }
 
 export async function postPlatform(request: Request, response: Response) {
@@ -45,9 +45,9 @@ export async function postPlatform(request: Request, response: Response) {
 
 export async function patchPlatform(request: Request, response: Response) {
 	const updatePlatformDto = request.body as UpdatePlatformDto;
-	const platformCodeParam = request.params as PlatformIdParam;
+	const platformIdParam = request.params as PlatformIdParam;
 
-	const { platformId } = platformCodeParam;
+	const { platformId } = platformIdParam;
 
 	const platform = await platformService.updatePlatform(
 		platformId,
@@ -62,10 +62,10 @@ export async function patchPlatform(request: Request, response: Response) {
 }
 
 export async function deletePlatform(request: Request, response: Response) {
-	const platformCodeParam = request.params as PlatformIdParam;
+	const platformIdParam = request.params as PlatformIdParam;
 
-	const { platformId } = platformCodeParam;
+	const { platformId } = platformIdParam;
 
-	await platformService.deactivatePlatform(platformId);
+	await platformService.removePlatform(platformId);
 	return response.sendStatus(204);
 }
