@@ -12,7 +12,6 @@ class User extends Model {
 	declare bio?: string;
 	declare avatarUrl?: string;
 	declare isPublic: boolean;
-	declare isGameshelfPublic: boolean;
 	declare isActive: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -26,9 +25,20 @@ User.init(
 			allowNull: false,
 			defaultValue: Sequelize.literal("gen_random_uuid()")
 		},
-		username: { type: DataTypes.STRING(15), unique: true, allowNull: false },
-		email: { type: DataTypes.STRING, unique: true, allowNull: false },
-		password: { type: DataTypes.STRING, allowNull: false },
+		username: {
+			type: DataTypes.STRING(15),
+			unique: true,
+			allowNull: false
+		},
+		email: {
+			type: DataTypes.STRING,
+			unique: true,
+			allowNull: false
+		},
+		password: {
+			type: DataTypes.STRING,
+			allowNull: false
+		},
 		role: {
 			type: DataTypes.ENUM("user", "premium", "moderator", "admin"),
 			allowNull: false,
@@ -37,9 +47,14 @@ User.init(
 		name: DataTypes.STRING(80),
 		bio: DataTypes.STRING(250),
 		avatarUrl: DataTypes.STRING,
-		isPublic: { type: DataTypes.BOOLEAN, defaultValue: true },
-		isGameshelfPublic: { type: DataTypes.BOOLEAN, defaultValue: true },
-		isActive: { type: DataTypes.BOOLEAN, defaultValue: true }
+		isPublic: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: true
+		},
+		isActive: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: true
+		}
 	},
 	{ sequelize }
 );
