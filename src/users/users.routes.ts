@@ -8,6 +8,7 @@ import {
 	userLimiter
 } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+import gameShelfRouter from "../game-shelf/game-shelf.routes";
 
 const router = Router();
 
@@ -41,5 +42,7 @@ router.delete(
 	[rateLimiterMiddleware(userLimiter), authMiddleware()],
 	usersController.deleteUser
 );
+
+router.use("/users/me/game-shelf", gameShelfRouter);
 
 export default router;
