@@ -55,8 +55,6 @@
 - [x] Registro con validación de política de contraseñas (Zod)
 - [x] Login con JWT (access token) + Refresh tokens
 - [x] Middleware de autenticación (`auth.middleware.ts`)
-- [ ] Endpoint de renovación de token (`POST /auth/refresh`)
-- [ ] Endpoint de logout / invalidación de refresh token
 - [x] Schemas de validación: `login.schema.ts`, `register.schema.ts`, `header-token.schema.ts`, `change-password.schema.ts`
 
 ### Error handling por módulo
@@ -232,6 +230,13 @@
 
 - [ ] Reemplazar `sequelize.sync()` por migraciones (`sequelize-cli` o `umzug`) antes de que haya usuarios reales
 - [ ] Crear migraciones iniciales para todos los modelos existentes
+
+### Auth — Refresh tokens
+
+- [ ] Endpoint de renovación de token (`POST /auth/refresh`)
+- [ ] Endpoint de logout / invalidación de refresh token
+- [ ] Almacenar refresh tokens en DB
+- [ ] Access token corto (15-30 min) + refresh token largo (30 días)
 
 ### Onboarding para amigos
 
