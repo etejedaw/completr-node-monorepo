@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { GenreCodeParam } from "./schemas/genre-code-params.schema";
 import * as genreService from "./genres.service";
+import * as genreDomainError from "./errors/genres.domain-error";
 import { RegisterGenreDto } from "./dtos/register-genre.dto";
 import { UpdateGenreDto } from "./dtos/update-genre.dto";
 import { GenreIdParam } from "./schemas/genre-id-params.schema";
@@ -11,7 +12,7 @@ export async function getGenreByCode(request: Request, response: Response) {
 	const { code } = param;
 
 	const genre = await genreService.findGenreByCode(code);
-	if (!genre) throw new Error("Genre not found"); // TODO: Update error message
+	if (!genre) throw genreDomainError.genreNotFound();
 
 	const genrePlain = genre.get({ plain: true });
 
@@ -44,7 +45,6 @@ export async function patchGenre(request: Request, response: Response) {
 	const { genreId } = genreIdParam;
 
 	const genre = await genreService.updateGenre(genreId, updateGenreDto);
-	if (!genre) throw new Error("Genre Not Found"); //TODO: Update error message
 
 	const genrePlain = genre.get({ plain: true });
 

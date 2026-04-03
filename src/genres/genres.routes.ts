@@ -44,17 +44,18 @@ router.post(
 );
 
 router.patch(
-	"/platform/:id",
+	"/genre/:genreId",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		validateSchemaMiddleware(GenreIdParamSchema, "params"),
 		validateSchemaMiddleware(UpdateGenreSchema, "body")
 	],
 	genreController.patchGenre
 );
 
 router.delete(
-	"/platform/:id",
+	"/genre/:genreId",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),

@@ -3,16 +3,17 @@ import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { RegisterGenreDto } from "./dtos/register-genre.dto";
 import { Genre } from "./genres.model";
 import { UpdateGenreDto } from "./dtos/update-genre.dto";
+import * as genreServiceError from "./errors/genres.service-error";
 
 export async function registerGenre(registerGenre: RegisterGenreDto) {
 	try {
 		const code = titleToSlug(registerGenre.name);
 		return await Genre.create({ ...registerGenre, code });
 	} catch (error) {
-		// TODO: Actualizar mensajes de error
 		if (error instanceof UniqueConstraintError)
-			throw new Error("Code already exists");
-		if (error instanceof ValidationError) throw new Error("Error rules");
+			throw genreServiceError.uniqueConstraintError(error);
+		if (error instanceof ValidationError)
+			throw genreServiceError.validationError(error);
 		throw error;
 	}
 }
@@ -35,7 +36,7 @@ export async function findGenresByCode(codes: string[]) {
 
 export async function updateGenre(id: string, updateGenreDto: UpdateGenreDto) {
 	const genre = await findGenreById(id);
-	if (!genre) throw new Error("Genre Not Found"); //TODO: Actualizar mensajes de error
+	if (!genre) throw genreServiceError.notFoundError();
 
 	const name = updateGenreDto.name;
 	const code = titleToSlug(name);
