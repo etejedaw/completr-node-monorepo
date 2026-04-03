@@ -1,60 +1,60 @@
 info:
-  name: Update User
-  type: http
-  seq: 3
+    name: Update User
+    type: http
+    seq: 3
 
 http:
-  method: PATCH
-  url: "{{baseUrl}}/users/me"
-  headers:
-    - name: Content-Type
-      value: application/json
-  auth:
-    type: bearer
-    token: "{{token}}"
-  body:
-    type: json
-    data: |-
-      {
-        "name": "John Updated",
-        "bio": "Updated bio",
-        "isPublic": true
-      }
+    method: PATCH
+    url: "{{baseUrl}}/users/me"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth:
+        type: bearer
+        token: "{{token}}"
+    body:
+        type: json
+        data: |-
+            {
+              "name": "John Updated",
+              "bio": "Updated bio",
+              "isPublic": true
+            }
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Update User Profile
+    ## Update User Profile
 
-  Updates the authenticated user's profile. All fields are optional.
+    Updates the authenticated user's profile. All fields are optional.
 
-  **Authentication:** Bearer token required.
-  **Rate Limit:** 50 requests per minute.
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
 
-  ### Request Body
+    ### Request Body
 
-  | Field     | Type    | Required | Description          |
-  |-----------|---------|----------|----------------------|
-  | name      | string  | No       | 1-80 characters      |
-  | bio       | string  | No       | 1-250 characters     |
-  | avatarUrl | string  | No       | Valid URL             |
-  | isPublic  | boolean | No       | Profile visibility   |
+    | Field     | Type    | Required | Description          |
+    |-----------|---------|----------|----------------------|
+    | name      | string  | No       | 1-80 characters      |
+    | bio       | string  | No       | 1-250 characters     |
+    | avatarUrl | string  | No       | Valid URL             |
+    | isPublic  | boolean | No       | Profile visibility   |
 
-  ### Response (200)
+    ### Response (200)
 
-  ```json
-  {
-    "data": {
-      "user": {
-        "id": "uuid",
-        "username": "johndoe",
-        "email": "johndoe@example.com",
-        "role": "user",
-        "name": "John Updated",
-        "bio": "Updated bio",
-        "avatarUrl": "https://example.com/avatar.png"
+    ```json
+    {
+      "data": {
+        "user": {
+          "id": "uuid",
+          "username": "johndoe",
+          "email": "johndoe@example.com",
+          "role": "user",
+          "name": "John Updated",
+          "bio": "Updated bio",
+          "avatarUrl": "https://example.com/avatar.png"
+        }
       }
     }
-  }
-  ```
+    ```

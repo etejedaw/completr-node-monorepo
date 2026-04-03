@@ -1,69 +1,69 @@
 info:
-  name: Update Genre
-  type: http
-  seq: 4
+    name: Update Genre
+    type: http
+    seq: 4
 
 http:
-  method: PATCH
-  url: "{{baseUrl}}/platform/:id"
-  params:
-    - name: id
-      value: ""
-      type: path
-  headers:
-    - name: Content-Type
-      value: application/json
-  auth:
-    type: bearer
-    token: "{{token}}"
-  body:
-    type: json
-    data: |-
-      {
-        "name": "Action RPG"
-      }
+    method: PATCH
+    url: "{{baseUrl}}/platform/:id"
+    params:
+        - name: id
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth:
+        type: bearer
+        token: "{{token}}"
+    body:
+        type: json
+        data: |-
+            {
+              "name": "Action RPG"
+            }
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Update Genre
+    ## Update Genre
 
-  Updates an existing genre.
+    Updates an existing genre.
 
-  > **Note:** This endpoint is NOT registered in the server yet.
-  > The genre router is defined but not imported in `server.ts`.
+    > **Note:** This endpoint is NOT registered in the server yet.
+    > The genre router is defined but not imported in `server.ts`.
 
-  > **BUG:** The route path is `/platform/:id` instead of `/genres/:id`.
-  > This is likely a copy-paste error in `genres.routes.ts:47`.
+    > **BUG:** The route path is `/platform/:id` instead of `/genres/:id`.
+    > This is likely a copy-paste error in `genres.routes.ts:47`.
 
-  **Authentication:** Bearer token required (role: moderator).
-  **Rate Limit:** 50 requests per minute.
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
 
-  ### Path Parameters
+    ### Path Parameters
 
-  | Param | Type   | Required | Description       |
-  |-------|--------|----------|-------------------|
-  | id    | string | Yes      | The genre UUID    |
+    | Param | Type   | Required | Description       |
+    |-------|--------|----------|-------------------|
+    | id    | string | Yes      | The genre UUID    |
 
-  ### Request Body
+    ### Request Body
 
-  | Field | Type   | Required | Description        |
-  |-------|--------|----------|--------------------|
-  | name  | string | Yes      | Max 50 characters  |
+    | Field | Type   | Required | Description        |
+    |-------|--------|----------|--------------------|
+    | name  | string | Yes      | Max 50 characters  |
 
-  ### Response (200)
+    ### Response (200)
 
-  ```json
-  {
-    "data": {
-      "genre": {
-        "id": "uuid",
-        "name": "Action RPG",
-        "code": "action-rpg",
-        "createdAt": "2025-01-01T00:00:00.000Z",
-        "updatedAt": "2025-01-01T00:00:00.000Z"
+    ```json
+    {
+      "data": {
+        "genre": {
+          "id": "uuid",
+          "name": "Action RPG",
+          "code": "action-rpg",
+          "createdAt": "2025-01-01T00:00:00.000Z",
+          "updatedAt": "2025-01-01T00:00:00.000Z"
+        }
       }
     }
-  }
-  ```
+    ```

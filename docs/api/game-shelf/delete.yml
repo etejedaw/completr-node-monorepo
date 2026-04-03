@@ -1,37 +1,37 @@
 info:
-  name: Remove from Game Shelf
-  type: http
-  seq: 4
+    name: Remove from Game Shelf
+    type: http
+    seq: 4
 
 http:
-  method: DELETE
-  url: "{{baseUrl}}/users/me/game-shelf/:gameShelfId"
-  params:
-    - name: gameShelfId
-      value: ""
-      type: path
-  auth:
-    type: bearer
-    token: "{{token}}"
+    method: DELETE
+    url: "{{baseUrl}}/users/me/game-shelf/:gameShelfId"
+    params:
+        - name: gameShelfId
+          value: ""
+          type: path
+    auth:
+        type: bearer
+        token: "{{token}}"
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Remove from Game Shelf
+    ## Remove from Game Shelf
 
-  Removes a game from the authenticated user's game shelf.
-  The entry must belong to the authenticated user.
+    Removes a game from the authenticated user's game shelf.
+    The entry must belong to the authenticated user.
 
-  **Authentication:** Bearer token required (roles: user, premium, moderator).
-  **Rate Limit:** 50 requests per minute.
+    **Authentication:** Bearer token required (roles: user, premium, moderator).
+    **Rate Limit:** 50 requests per minute.
 
-  ### Path Parameters
+    ### Path Parameters
 
-  | Param       | Type   | Required | Description              |
-  |-------------|--------|----------|--------------------------|
-  | gameShelfId | string | Yes      | The game shelf entry UUID|
+    | Param       | Type   | Required | Description              |
+    |-------------|--------|----------|--------------------------|
+    | gameShelfId | string | Yes      | The game shelf entry UUID|
 
-  ### Response (204)
+    ### Response (204)
 
-  No content.
+    No content.

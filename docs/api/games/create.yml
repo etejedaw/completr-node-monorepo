@@ -1,73 +1,73 @@
 info:
-  name: Create Game
-  type: http
-  seq: 3
+    name: Create Game
+    type: http
+    seq: 3
 
 http:
-  method: POST
-  url: "{{baseUrl}}/games"
-  headers:
-    - name: Content-Type
-      value: application/json
-  auth:
-    type: bearer
-    token: "{{token}}"
-  body:
-    type: json
-    data: |-
-      {
-        "title": "Metro Exodus",
-        "description": "FPS narrativo que mezcla combate, sigilo, exploracion y terror de supervivencia",
-        "platforms": ["steam", "psx"],
-        "releaseAt": "2019-02-14",
-        "coverUrl": "https://example.com/cover.jpg"
-      }
+    method: POST
+    url: "{{baseUrl}}/games"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth:
+        type: bearer
+        token: "{{token}}"
+    body:
+        type: json
+        data: |-
+            {
+              "title": "Metro Exodus",
+              "description": "FPS narrativo que mezcla combate, sigilo, exploracion y terror de supervivencia",
+              "platforms": ["steam", "psx"],
+              "releaseAt": "2019-02-14",
+              "coverUrl": "https://example.com/cover.jpg"
+            }
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Create Game
+    ## Create Game
 
-  Creates a new game entry.
+    Creates a new game entry.
 
-  **Authentication:** Bearer token required (role: moderator).
-  **Rate Limit:** 50 requests per minute.
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
 
-  ### Request Body
+    ### Request Body
 
-  | Field       | Type     | Required | Description                           |
-  |-------------|----------|----------|---------------------------------------|
-  | title       | string   | Yes      | Max 200 characters                    |
-  | description | string   | Yes      | Game description                      |
-  | platforms   | string[] | Yes      | Array of platform codes (min 1)       |
-  | releaseAt   | string   | No       | ISO date (e.g. "2019-02-14")          |
-  | coverUrl    | string   | No       | URL to cover image                    |
+    | Field       | Type     | Required | Description                           |
+    |-------------|----------|----------|---------------------------------------|
+    | title       | string   | Yes      | Max 200 characters                    |
+    | description | string   | Yes      | Game description                      |
+    | platforms   | string[] | Yes      | Array of platform codes (min 1)       |
+    | releaseAt   | string   | No       | ISO date (e.g. "2019-02-14")          |
+    | coverUrl    | string   | No       | URL to cover image                    |
 
-  ### Response (201)
+    ### Response (201)
 
-  ```json
-  {
-    "data": {
-      "game": {
-        "id": "uuid",
-        "title": "Metro Exodus",
-        "code": "metro-exodus",
-        "description": "FPS narrativo...",
-        "releaseAt": "2019-02-14",
-        "coverUrl": "https://example.com/cover.jpg",
-        "averageScore": null,
-        "averagePlaytime": null,
-        "updatedAt": "2025-01-01T00:00:00.000Z",
-        "platforms": [
-          {
-            "id": "uuid",
-            "name": "Steam",
-            "code": "steam",
-            "abbreviation": "steam"
-          }
-        ]
+    ```json
+    {
+      "data": {
+        "game": {
+          "id": "uuid",
+          "title": "Metro Exodus",
+          "code": "metro-exodus",
+          "description": "FPS narrativo...",
+          "releaseAt": "2019-02-14",
+          "coverUrl": "https://example.com/cover.jpg",
+          "averageScore": null,
+          "averagePlaytime": null,
+          "updatedAt": "2025-01-01T00:00:00.000Z",
+          "platforms": [
+            {
+              "id": "uuid",
+              "name": "Steam",
+              "code": "steam",
+              "abbreviation": "steam"
+            }
+          ]
+        }
       }
     }
-  }
-  ```
+    ```

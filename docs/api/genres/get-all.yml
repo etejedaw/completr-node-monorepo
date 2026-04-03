@@ -1,43 +1,43 @@
 info:
-  name: Get All Genres
-  type: http
-  seq: 1
+    name: Get All Genres
+    type: http
+    seq: 1
 
 http:
-  method: GET
-  url: "{{baseUrl}}/genres"
-  auth:
-    type: bearer
-    token: "{{token}}"
+    method: GET
+    url: "{{baseUrl}}/genres"
+    auth:
+        type: bearer
+        token: "{{token}}"
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Get All Genres
+    ## Get All Genres
 
-  Returns a list of all genres.
+    Returns a list of all genres.
 
-  > **Note:** This endpoint is NOT registered in the server yet.
-  > The genre router is defined but not imported in `server.ts`.
+    > **Note:** This endpoint is NOT registered in the server yet.
+    > The genre router is defined but not imported in `server.ts`.
 
-  **Authentication:** Bearer token required (roles: user, premium, moderator).
-  **Rate Limit:** 100 requests per minute.
+    **Authentication:** Bearer token required (roles: user, premium, moderator).
+    **Rate Limit:** 100 requests per minute.
 
-  ### Response (200)
+    ### Response (200)
 
-  ```json
-  {
-    "data": {
-      "genres": [
-        {
-          "id": "uuid",
-          "name": "Action",
-          "code": "action",
-          "createdAt": "2025-01-01T00:00:00.000Z",
-          "updatedAt": "2025-01-01T00:00:00.000Z"
-        }
-      ]
+    ```json
+    {
+      "data": {
+        "genres": [
+          {
+            "id": "uuid",
+            "name": "Action",
+            "code": "action",
+            "createdAt": "2025-01-01T00:00:00.000Z",
+            "updatedAt": "2025-01-01T00:00:00.000Z"
+          }
+        ]
+      }
     }
-  }
-  ```
+    ```

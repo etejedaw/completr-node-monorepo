@@ -1,53 +1,53 @@
 info:
-  name: Get Platform by Code
-  type: http
-  seq: 2
+    name: Get Platform by Code
+    type: http
+    seq: 2
 
 http:
-  method: GET
-  url: "{{baseUrl}}/platform/:code"
-  params:
-    - name: code
-      value: playstation-2
-      type: path
-  auth:
-    type: bearer
-    token: "{{token}}"
+    method: GET
+    url: "{{baseUrl}}/platform/:code"
+    params:
+        - name: code
+          value: playstation-2
+          type: path
+    auth:
+        type: bearer
+        token: "{{token}}"
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Get Platform by Code
+    ## Get Platform by Code
 
-  Returns a single platform by its slug code.
+    Returns a single platform by its slug code.
 
-  **Authentication:** Bearer token required (roles: user, premium, moderator).
-  **Rate Limit:** 100 requests per minute.
+    **Authentication:** Bearer token required (roles: user, premium, moderator).
+    **Rate Limit:** 100 requests per minute.
 
-  ### Path Parameters
+    ### Path Parameters
 
-  | Param | Type   | Required | Description                               |
-  |-------|--------|----------|-------------------------------------------|
-  | code  | string | Yes      | The platform's slug (e.g. playstation-2)  |
+    | Param | Type   | Required | Description                               |
+    |-------|--------|----------|-------------------------------------------|
+    | code  | string | Yes      | The platform's slug (e.g. playstation-2)  |
 
-  ### Response (200)
+    ### Response (200)
 
-  ```json
-  {
-    "data": {
-      "platform": {
-        "id": "uuid",
-        "name": "PlayStation 2",
-        "code": "playstation-2",
-        "abbreviation": "ps2",
-        "description": "Sony's second home console",
-        "manufacturer": "Sony",
-        "generation": 6,
-        "logoUrl": null,
-        "releaseAt": "2000-03-04",
-        "updatedAt": "2025-01-01T00:00:00.000Z"
+    ```json
+    {
+      "data": {
+        "platform": {
+          "id": "uuid",
+          "name": "PlayStation 2",
+          "code": "playstation-2",
+          "abbreviation": "ps2",
+          "description": "Sony's second home console",
+          "manufacturer": "Sony",
+          "generation": 6,
+          "logoUrl": null,
+          "releaseAt": "2000-03-04",
+          "updatedAt": "2025-01-01T00:00:00.000Z"
+        }
       }
     }
-  }
-  ```
+    ```

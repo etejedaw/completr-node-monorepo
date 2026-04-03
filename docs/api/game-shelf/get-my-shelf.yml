@@ -1,56 +1,56 @@
 info:
-  name: Get My Game Shelf
-  type: http
-  seq: 2
+    name: Get My Game Shelf
+    type: http
+    seq: 2
 
 http:
-  method: GET
-  url: "{{baseUrl}}/users/me/game-shelf"
-  auth:
-    type: bearer
-    token: "{{token}}"
+    method: GET
+    url: "{{baseUrl}}/users/me/game-shelf"
+    auth:
+        type: bearer
+        token: "{{token}}"
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Get My Game Shelf
+    ## Get My Game Shelf
 
-  Returns the authenticated user's game shelf with game and platform details.
+    Returns the authenticated user's game shelf with game and platform details.
 
-  **Authentication:** Bearer token required (roles: user, premium, moderator).
-  **Rate Limit:** 50 requests per minute.
+    **Authentication:** Bearer token required (roles: user, premium, moderator).
+    **Rate Limit:** 50 requests per minute.
 
-  ### Response (200)
+    ### Response (200)
 
-  ```json
-  {
-    "data": {
-      "gameShelf": [
-        {
-          "id": "uuid",
-          "userId": "uuid",
-          "acquiredAt": "2024-12-25",
-          "edition": "Standard",
-          "notes": "Gift from a friend",
-          "isPublic": false,
-          "game": {
+    ```json
+    {
+      "data": {
+        "gameShelf": [
+          {
             "id": "uuid",
-            "title": "Metro Exodus",
-            "code": "metro-exodus",
-            "releaseAt": "2019-02-14",
-            "coverUrl": null
-          },
-          "platform": {
-            "id": "uuid",
-            "name": "Steam",
-            "code": "steam",
-            "generation": null,
-            "logoUrl": null,
-            "releaseAt": "2003-09-12"
+            "userId": "uuid",
+            "acquiredAt": "2024-12-25",
+            "edition": "Standard",
+            "notes": "Gift from a friend",
+            "isPublic": false,
+            "game": {
+              "id": "uuid",
+              "title": "Metro Exodus",
+              "code": "metro-exodus",
+              "releaseAt": "2019-02-14",
+              "coverUrl": null
+            },
+            "platform": {
+              "id": "uuid",
+              "name": "Steam",
+              "code": "steam",
+              "generation": null,
+              "logoUrl": null,
+              "releaseAt": "2003-09-12"
+            }
           }
-        }
-      ]
+        ]
+      }
     }
-  }
-  ```
+    ```

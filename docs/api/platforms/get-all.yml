@@ -1,45 +1,45 @@
 info:
-  name: Get All Platforms
-  type: http
-  seq: 1
+    name: Get All Platforms
+    type: http
+    seq: 1
 
 http:
-  method: GET
-  url: "{{baseUrl}}/platform"
-  auth:
-    type: bearer
-    token: "{{token}}"
+    method: GET
+    url: "{{baseUrl}}/platform"
+    auth:
+        type: bearer
+        token: "{{token}}"
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Get All Platforms
+    ## Get All Platforms
 
-  Returns a list of all platforms.
+    Returns a list of all platforms.
 
-  **Authentication:** Bearer token required (roles: user, premium, moderator).
-  **Rate Limit:** 100 requests per minute.
+    **Authentication:** Bearer token required (roles: user, premium, moderator).
+    **Rate Limit:** 100 requests per minute.
 
-  ### Response (200)
+    ### Response (200)
 
-  ```json
-  {
-    "data": {
-      "platforms": [
-        {
-          "id": "uuid",
-          "name": "PlayStation 2",
-          "code": "playstation-2",
-          "abbreviation": "ps2",
-          "description": "Sony's second home console",
-          "manufacturer": "Sony",
-          "generation": 6,
-          "logoUrl": null,
-          "releaseAt": "2000-03-04",
-          "updatedAt": "2025-01-01T00:00:00.000Z"
-        }
-      ]
+    ```json
+    {
+      "data": {
+        "platforms": [
+          {
+            "id": "uuid",
+            "name": "PlayStation 2",
+            "code": "playstation-2",
+            "abbreviation": "ps2",
+            "description": "Sony's second home console",
+            "manufacturer": "Sony",
+            "generation": 6,
+            "logoUrl": null,
+            "releaseAt": "2000-03-04",
+            "updatedAt": "2025-01-01T00:00:00.000Z"
+          }
+        ]
+      }
     }
-  }
-  ```
+    ```

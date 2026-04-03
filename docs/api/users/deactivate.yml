@@ -1,26 +1,26 @@
 info:
-  name: Deactivate User
-  type: http
-  seq: 4
+    name: Deactivate User
+    type: http
+    seq: 4
 
 http:
-  method: DELETE
-  url: "{{baseUrl}}/users/me/deactivate"
-  auth:
-    type: bearer
-    token: "{{token}}"
+    method: DELETE
+    url: "{{baseUrl}}/users/me/deactivate"
+    auth:
+        type: bearer
+        token: "{{token}}"
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Deactivate User
+    ## Deactivate User
 
-  Deactivates the authenticated user's account. This is a soft delete.
+    Deactivates the authenticated user's account. This is a soft delete.
 
-  **Authentication:** Bearer token required.
-  **Rate Limit:** 50 requests per minute.
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
 
-  ### Response (204)
+    ### Response (204)
 
-  No content.
+    No content.

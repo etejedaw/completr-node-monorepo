@@ -1,62 +1,62 @@
 info:
-  name: Register
-  type: http
-  seq: 1
+    name: Register
+    type: http
+    seq: 1
 
 http:
-  method: POST
-  url: "{{baseUrl}}/auth/register"
-  headers:
-    - name: Content-Type
-      value: application/json
-  body:
-    type: json
-    data: |-
-      {
-        "username": "johndoe",
-        "email": "johndoe@example.com",
-        "password": "Qwerty1+",
-        "name": "John Doe",
-        "bio": "Gamer since 1990",
-        "avatarUrl": "https://example.com/avatar.png"
-      }
+    method: POST
+    url: "{{baseUrl}}/auth/register"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "username": "johndoe",
+              "email": "johndoe@example.com",
+              "password": "Qwerty1+",
+              "name": "John Doe",
+              "bio": "Gamer since 1990",
+              "avatarUrl": "https://example.com/avatar.png"
+            }
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Register User
+    ## Register User
 
-  Creates a new user account.
+    Creates a new user account.
 
-  **Rate Limit:** 3 requests per minute.
+    **Rate Limit:** 3 requests per minute.
 
-  ### Request Body
+    ### Request Body
 
-  | Field       | Type   | Required | Description                                        |
-  |-------------|--------|----------|----------------------------------------------------|
-  | username    | string | Yes      | 4-15 characters, will be converted to lowercase    |
-  | email       | string | Yes      | Valid email, will be converted to lowercase         |
-  | password    | string | Yes      | 8-15 chars, uppercase, lowercase, number, special  |
-  | name        | string | Yes      | 4-80 characters                                    |
-  | bio         | string | No       | Max 250 characters                                 |
-  | avatarUrl   | string | No       | Valid URL                                           |
+    | Field       | Type   | Required | Description                                        |
+    |-------------|--------|----------|----------------------------------------------------|
+    | username    | string | Yes      | 4-15 characters, will be converted to lowercase    |
+    | email       | string | Yes      | Valid email, will be converted to lowercase         |
+    | password    | string | Yes      | 8-15 chars, uppercase, lowercase, number, special  |
+    | name        | string | Yes      | 4-80 characters                                    |
+    | bio         | string | No       | Max 250 characters                                 |
+    | avatarUrl   | string | No       | Valid URL                                           |
 
-  ### Response (201)
+    ### Response (201)
 
-  ```json
-  {
-    "data": {
-      "user": {
-        "id": "uuid",
-        "username": "johndoe",
-        "email": "johndoe@example.com",
-        "role": "user",
-        "name": "John Doe",
-        "bio": "Gamer since 1990",
-        "avatarUrl": "https://example.com/avatar.png"
-      },
-      "access_token": "jwt_token"
+    ```json
+    {
+      "data": {
+        "user": {
+          "id": "uuid",
+          "username": "johndoe",
+          "email": "johndoe@example.com",
+          "role": "user",
+          "name": "John Doe",
+          "bio": "Gamer since 1990",
+          "avatarUrl": "https://example.com/avatar.png"
+        },
+        "access_token": "jwt_token"
+      }
     }
-  }
-  ```
+    ```

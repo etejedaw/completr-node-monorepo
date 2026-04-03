@@ -1,63 +1,63 @@
 info:
-  name: Add Game to Shelf
-  type: http
-  seq: 1
+    name: Add Game to Shelf
+    type: http
+    seq: 1
 
 http:
-  method: POST
-  url: "{{baseUrl}}/users/me/game-shelf"
-  headers:
-    - name: Content-Type
-      value: application/json
-  auth:
-    type: bearer
-    token: "{{token}}"
-  body:
-    type: json
-    data: |-
-      {
-        "gameId": "b24143ce-2427-4391-b321-58423bbc7ef2",
-        "platformId": "97e1d29c-8aa3-4a32-b4f4-a1f83d0ec0eb",
-        "edition": "Standard",
-        "acquiredAt": "2024-12-25",
-        "notes": "Gift from a friend"
-      }
+    method: POST
+    url: "{{baseUrl}}/users/me/game-shelf"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth:
+        type: bearer
+        token: "{{token}}"
+    body:
+        type: json
+        data: |-
+            {
+              "gameId": "b24143ce-2427-4391-b321-58423bbc7ef2",
+              "platformId": "97e1d29c-8aa3-4a32-b4f4-a1f83d0ec0eb",
+              "edition": "Standard",
+              "acquiredAt": "2024-12-25",
+              "notes": "Gift from a friend"
+            }
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Add Game to Shelf
+    ## Add Game to Shelf
 
-  Adds a game to the authenticated user's game shelf.
+    Adds a game to the authenticated user's game shelf.
 
-  **Authentication:** Bearer token required (roles: user, premium, moderator).
-  **Rate Limit:** 50 requests per minute.
+    **Authentication:** Bearer token required (roles: user, premium, moderator).
+    **Rate Limit:** 50 requests per minute.
 
-  ### Request Body
+    ### Request Body
 
-  | Field      | Type   | Required | Description                     |
-  |------------|--------|----------|---------------------------------|
-  | gameId     | string | Yes      | UUID of the game                |
-  | platformId | string | Yes      | UUID of the platform            |
-  | edition    | string | No       | Max 100 characters              |
-  | acquiredAt | string | No       | ISO date (e.g. "2024-12-25")    |
-  | notes      | string | No       | Max 100 characters              |
+    | Field      | Type   | Required | Description                     |
+    |------------|--------|----------|---------------------------------|
+    | gameId     | string | Yes      | UUID of the game                |
+    | platformId | string | Yes      | UUID of the platform            |
+    | edition    | string | No       | Max 100 characters              |
+    | acquiredAt | string | No       | ISO date (e.g. "2024-12-25")    |
+    | notes      | string | No       | Max 100 characters              |
 
-  ### Response (201)
+    ### Response (201)
 
-  ```json
-  {
-    "data": {
-      "gameShelf": {
-        "id": "uuid",
-        "userId": "uuid",
-        "platformId": "uuid",
-        "isPublic": false,
-        "acquiredAt": "2024-12-25",
-        "edition": "Standard",
-        "notes": "Gift from a friend"
+    ```json
+    {
+      "data": {
+        "gameShelf": {
+          "id": "uuid",
+          "userId": "uuid",
+          "platformId": "uuid",
+          "isPublic": false,
+          "acquiredAt": "2024-12-25",
+          "edition": "Standard",
+          "notes": "Gift from a friend"
+        }
       }
     }
-  }
-  ```
+    ```

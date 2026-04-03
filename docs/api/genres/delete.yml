@@ -1,42 +1,42 @@
 info:
-  name: Delete Genre
-  type: http
-  seq: 5
+    name: Delete Genre
+    type: http
+    seq: 5
 
 http:
-  method: DELETE
-  url: "{{baseUrl}}/platform/:id"
-  params:
-    - name: id
-      value: ""
-      type: path
-  auth:
-    type: bearer
-    token: "{{token}}"
+    method: DELETE
+    url: "{{baseUrl}}/platform/:id"
+    params:
+        - name: id
+          value: ""
+          type: path
+    auth:
+        type: bearer
+        token: "{{token}}"
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Delete Genre
+    ## Delete Genre
 
-  Deletes a genre.
+    Deletes a genre.
 
-  > **Note:** This endpoint is NOT registered in the server yet.
-  > The genre router is defined but not imported in `server.ts`.
+    > **Note:** This endpoint is NOT registered in the server yet.
+    > The genre router is defined but not imported in `server.ts`.
 
-  > **BUG:** The route path is `/platform/:id` instead of `/genres/:id`.
-  > This is likely a copy-paste error in `genres.routes.ts:55`.
+    > **BUG:** The route path is `/platform/:id` instead of `/genres/:id`.
+    > This is likely a copy-paste error in `genres.routes.ts:55`.
 
-  **Authentication:** Bearer token required (role: moderator).
-  **Rate Limit:** 50 requests per minute.
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
 
-  ### Path Parameters
+    ### Path Parameters
 
-  | Param | Type   | Required | Description       |
-  |-------|--------|----------|-------------------|
-  | id    | string | Yes      | The genre UUID    |
+    | Param | Type   | Required | Description       |
+    |-------|--------|----------|-------------------|
+    | id    | string | Yes      | The genre UUID    |
 
-  ### Response (204)
+    ### Response (204)
 
-  No content.
+    No content.

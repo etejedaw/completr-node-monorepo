@@ -1,48 +1,48 @@
 info:
-  name: Get User by Username
-  type: http
-  seq: 2
+    name: Get User by Username
+    type: http
+    seq: 2
 
 http:
-  method: GET
-  url: "{{baseUrl}}/users/:username"
-  params:
-    - name: username
-      value: johndoe
-      type: path
+    method: GET
+    url: "{{baseUrl}}/users/:username"
+    params:
+        - name: username
+          value: johndoe
+          type: path
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Get User by Username
+    ## Get User by Username
 
-  Returns the public profile of a user by their username.
-  The user must have `isPublic` set to `true` to be visible.
+    Returns the public profile of a user by their username.
+    The user must have `isPublic` set to `true` to be visible.
 
-  **Authentication:** Not required.
-  **Rate Limit:** 100 requests per minute.
+    **Authentication:** Not required.
+    **Rate Limit:** 100 requests per minute.
 
-  ### Path Parameters
+    ### Path Parameters
 
-  | Param    | Type   | Required | Description          |
-  |----------|--------|----------|----------------------|
-  | username | string | Yes      | The user's username  |
+    | Param    | Type   | Required | Description          |
+    |----------|--------|----------|----------------------|
+    | username | string | Yes      | The user's username  |
 
-  ### Response (200)
+    ### Response (200)
 
-  ```json
-  {
-    "data": {
-      "user": {
-        "id": "uuid",
-        "username": "johndoe",
-        "email": "johndoe@example.com",
-        "role": "user",
-        "name": "John Doe",
-        "bio": "Gamer since 1990",
-        "avatarUrl": "https://example.com/avatar.png"
+    ```json
+    {
+      "data": {
+        "user": {
+          "id": "uuid",
+          "username": "johndoe",
+          "email": "johndoe@example.com",
+          "role": "user",
+          "name": "John Doe",
+          "bio": "Gamer since 1990",
+          "avatarUrl": "https://example.com/avatar.png"
+        }
       }
     }
-  }
-  ```
+    ```

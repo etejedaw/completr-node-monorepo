@@ -1,57 +1,57 @@
 info:
-  name: Create Genre
-  type: http
-  seq: 3
+    name: Create Genre
+    type: http
+    seq: 3
 
 http:
-  method: POST
-  url: "{{baseUrl}}/genre"
-  headers:
-    - name: Content-Type
-      value: application/json
-  auth:
-    type: bearer
-    token: "{{token}}"
-  body:
-    type: json
-    data: |-
-      {
-        "name": "Action"
-      }
+    method: POST
+    url: "{{baseUrl}}/genre"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth:
+        type: bearer
+        token: "{{token}}"
+    body:
+        type: json
+        data: |-
+            {
+              "name": "Action"
+            }
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Create Genre
+    ## Create Genre
 
-  Creates a new genre entry.
+    Creates a new genre entry.
 
-  > **Note:** This endpoint is NOT registered in the server yet.
-  > The genre router is defined but not imported in `server.ts`.
-  > Additionally, the route path uses `/genre` (singular) instead of `/genres`.
+    > **Note:** This endpoint is NOT registered in the server yet.
+    > The genre router is defined but not imported in `server.ts`.
+    > Additionally, the route path uses `/genre` (singular) instead of `/genres`.
 
-  **Authentication:** Bearer token required (role: moderator).
-  **Rate Limit:** 50 requests per minute.
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
 
-  ### Request Body
+    ### Request Body
 
-  | Field | Type   | Required | Description        |
-  |-------|--------|----------|--------------------|
-  | name  | string | Yes      | Max 50 characters  |
+    | Field | Type   | Required | Description        |
+    |-------|--------|----------|--------------------|
+    | name  | string | Yes      | Max 50 characters  |
 
-  ### Response (201)
+    ### Response (201)
 
-  ```json
-  {
-    "data": {
-      "genre": {
-        "id": "uuid",
-        "name": "Action",
-        "code": "action",
-        "createdAt": "2025-01-01T00:00:00.000Z",
-        "updatedAt": "2025-01-01T00:00:00.000Z"
+    ```json
+    {
+      "data": {
+        "genre": {
+          "id": "uuid",
+          "name": "Action",
+          "code": "action",
+          "createdAt": "2025-01-01T00:00:00.000Z",
+          "updatedAt": "2025-01-01T00:00:00.000Z"
+        }
       }
     }
-  }
-  ```
+    ```

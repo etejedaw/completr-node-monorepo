@@ -1,52 +1,52 @@
 info:
-  name: Get All Games
-  type: http
-  seq: 1
+    name: Get All Games
+    type: http
+    seq: 1
 
 http:
-  method: GET
-  url: "{{baseUrl}}/games"
-  auth:
-    type: bearer
-    token: "{{token}}"
+    method: GET
+    url: "{{baseUrl}}/games"
+    auth:
+        type: bearer
+        token: "{{token}}"
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Get All Games
+    ## Get All Games
 
-  Returns a list of all games.
+    Returns a list of all games.
 
-  **Authentication:** Bearer token required (roles: user, premium, moderator).
-  **Rate Limit:** 100 requests per minute.
+    **Authentication:** Bearer token required (roles: user, premium, moderator).
+    **Rate Limit:** 100 requests per minute.
 
-  ### Response (200)
+    ### Response (200)
 
-  ```json
-  {
-    "data": {
-      "games": [
-        {
-          "id": "uuid",
-          "title": "Metro Exodus",
-          "code": "metro-exodus",
-          "description": "FPS game...",
-          "releaseAt": "2019-02-14",
-          "coverUrl": null,
-          "averageScore": null,
-          "averagePlaytime": null,
-          "updatedAt": "2025-01-01T00:00:00.000Z",
-          "platforms": [
-            {
-              "id": "uuid",
-              "name": "Steam",
-              "code": "steam",
-              "abbreviation": "steam"
-            }
-          ]
-        }
-      ]
+    ```json
+    {
+      "data": {
+        "games": [
+          {
+            "id": "uuid",
+            "title": "Metro Exodus",
+            "code": "metro-exodus",
+            "description": "FPS game...",
+            "releaseAt": "2019-02-14",
+            "coverUrl": null,
+            "averageScore": null,
+            "averagePlaytime": null,
+            "updatedAt": "2025-01-01T00:00:00.000Z",
+            "platforms": [
+              {
+                "id": "uuid",
+                "name": "Steam",
+                "code": "steam",
+                "abbreviation": "steam"
+              }
+            ]
+          }
+        ]
+      }
     }
-  }
-  ```
+    ```

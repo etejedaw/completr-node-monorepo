@@ -6,20 +6,20 @@
 
 ## 📆 Resumen cronológico
 
-| Mes | Etapa |
-|-----|-------|
-| 1 | Fase 0 — Setup y arquitectura |
-| 2–3 | Fase 1 — Excel Killer (solo tú) |
-| 3–4 | Fase 2 — MVP Amigos (5–20 personas) |
-| 4–6 | Fase 3 — Beta Cerrada (50–200 usuarios, invitación) |
-| 6–9 | Fase 4 — Beta Pública (500+ usuarios) |
-| 9–10 | Fase 5 — Estabilización y calidad |
-| 10–12 | Fase 6 — Premium (desarrollo + lanzamiento) |
-| 12+ | Fase 7 — Escalamiento continuo |
+| Mes   | Etapa                                               |
+| ----- | --------------------------------------------------- |
+| 1     | Fase 0 — Setup y arquitectura                       |
+| 2–3   | Fase 1 — Excel Killer (solo tú)                     |
+| 3–4   | Fase 2 — MVP Amigos (5–20 personas)                 |
+| 4–6   | Fase 3 — Beta Cerrada (50–200 usuarios, invitación) |
+| 6–9   | Fase 4 — Beta Pública (500+ usuarios)               |
+| 9–10  | Fase 5 — Estabilización y calidad                   |
+| 10–12 | Fase 6 — Premium (desarrollo + lanzamiento)         |
+| 12+   | Fase 7 — Escalamiento continuo                      |
 
 ---
 
-## 🟩 FASE 0 — Diseño y Setup *(~2–3 semanas)*
+## 🟩 FASE 0 — Diseño y Setup _(~2–3 semanas)_
 
 **Objetivo:** Base técnica sólida y arquitectura limpia antes de escribir lógica de negocio.
 
@@ -40,14 +40,14 @@
 - [x] **Game**: id (UUID), title, slug, cover_url, hltb_duration, metacritic_score, metadata_pending (bool), created_at
 - [x] **Platform**: id (UUID), name, slug, code
 - [x] **Genre**: id (UUID), name, slug, code
-- [x] **GamePlatform**: game_id, platform_id *(tabla pivote)*
-- [x] **GameGenre**: game_id, genre_id *(tabla pivote)*
-- [x] **GameShelf**: id, user_id, game_id, user_rating (nullable), real_duration (nullable), notes (nullable), acquired_at — *Registro de qué juegos tiene el usuario, no de listas*
+- [x] **GamePlatform**: game_id, platform_id _(tabla pivote)_
+- [x] **GameGenre**: game_id, genre_id _(tabla pivote)_
+- [x] **GameShelf**: id, user_id, game_id, user_rating (nullable), real_duration (nullable), notes (nullable), acquired_at — _Registro de qué juegos tiene el usuario, no de listas_
 - [x] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
 - [x] **ListItem**: id, list_id, game_id, playthrough_id (nullable — null en `collection` usa estado global, en `challenge` apunta al playthrough creado), position (int, para orden manual), added_at
-- [x] **ListFollower**: id, list_id, user_id, is_visible (bool, default true — controla si el seguimiento aparece en el perfil público del usuario), followed_at — *Permite a usuarios seguir listas públicas de otros. El progreso se calcula cruzando los juegos de la lista con el `UserGameStatus` del seguidor. Visibilidad: `User.isPublic AND ListFollower.isVisible`*
-- [x] **UserGameStatus**: user_id, game_id (PK compuesta), status (`not_started` | `playing` | `completed` | `abandoned`), play_count (int), updated_at — *Estado global del juego para el usuario. Se actualiza automáticamente según el playthrough más reciente*
-- [x] **UserPlaythrough (Playthrough)**: id (UUID), user_id, game_id, platform_id, status (`playing` | `completed` | `abandoned`), started_at, finished_at (nullable), real_duration (nullable), notes (nullable) — *Historial de partidas individuales. Cada vez que el usuario inicia o reinicia un juego se crea un nuevo registro. El número de playthrough se calcula en el serializer ordenando por `started_at`*
+- [x] **ListFollower**: id, list_id, user_id, is_visible (bool, default true — controla si el seguimiento aparece en el perfil público del usuario), followed_at — _Permite a usuarios seguir listas públicas de otros. El progreso se calcula cruzando los juegos de la lista con el `UserGameStatus` del seguidor. Visibilidad: `User.isPublic AND ListFollower.isVisible`_
+- [x] **UserGameStatus**: user_id, game_id (PK compuesta), status (`not_started` | `playing` | `completed` | `abandoned`), play_count (int), updated_at — _Estado global del juego para el usuario. Se actualiza automáticamente según el playthrough más reciente_
+- [x] **UserPlaythrough (Playthrough)**: id (UUID), user_id, game_id, platform_id, status (`playing` | `completed` | `abandoned`), started_at, finished_at (nullable), real_duration (nullable), notes (nullable) — _Historial de partidas individuales. Cada vez que el usuario inicia o reinicia un juego se crea un nuevo registro. El número de playthrough se calcula en el serializer ordenando por `started_at`_
 - [x] Definir todas las asociaciones en `associations.database.ts` con Foreign Keys explícitamente tipadas como UUID
 
 ### Auth
@@ -86,12 +86,12 @@
 
 ---
 
-## 🟨 FASE 1 — Excel Killer *(~4–6 semanas)*
+## 🟨 FASE 1 — Excel Killer _(~4–6 semanas)_
 
 **Objetivo:** Reemplazar NocoDB/Google Sheets. Importar tus datos, ver ratios calculados, filtrar por status y semestre.
 **Condición de éxito:** Puedes importar tu CSV, ver la lista ordenada por ratio, filtrar por semestre y trackear playthroughs.
 
-> 👤 *Release interna — solo tú lo usas.*
+> 👤 _Release interna — solo tú lo usas._
 
 ### Módulo de Juegos (catálogo global)
 
@@ -115,9 +115,9 @@
 
 - [ ] `UserGameStatus` se crea automáticamente al primer playthrough de un juego (status: `playing`, play_count: 1)
 - [ ] `UserGameStatus.status` se actualiza automáticamente según el playthrough más reciente:
-  - Playthrough completado → status: `completed`
-  - Playthrough abandonado → status: `abandoned`
-  - Nuevo playthrough iniciado → status: `playing`, play_count +1
+    - Playthrough completado → status: `completed`
+    - Playthrough abandonado → status: `abandoned`
+    - Nuevo playthrough iniciado → status: `playing`, play_count +1
 - [ ] `PATCH /playthroughs/:id` — Actualizar un playthrough (cambiar status a `completed`/`abandoned`, agregar `real_duration`, `finished_at`, `notes`)
 - [ ] `GET /users/me/playthroughs` — Ver historial de playthroughs del usuario
 - [ ] `GET /users/me/playthroughs?game_id=:id` — Ver playthroughs de un juego específico
@@ -147,8 +147,8 @@
 - [ ] `PATCH /lists/:id` — Renombrar lista / cambiar visibilidad pública (no se puede cambiar el `type` después de creada)
 - [ ] `DELETE /lists/:id` — Eliminar lista (bloqueado si `is_default: true`)
 - [ ] `POST /lists/:id/items` — Añadir juego a una lista
-  - Si la lista es `collection`: crea ListItem sin playthrough, el estado se resuelve desde `UserGameStatus`
-  - Si la lista es `challenge`: crea ListItem + nuevo `UserPlaythrough` automáticamente
+    - Si la lista es `collection`: crea ListItem sin playthrough, el estado se resuelve desde `UserGameStatus`
+    - Si la lista es `challenge`: crea ListItem + nuevo `UserPlaythrough` automáticamente
 - [ ] `DELETE /lists/:id/items/:itemId` — Quitar juego de una lista
 - [ ] `PATCH /lists/:id/items/:itemId` — Actualizar posición del ítem
 
@@ -169,7 +169,7 @@
 
 - [ ] Al crear un juego nuevo, marcarlo como `metadata_pending: true`
 - [ ] Implementar cola de tareas con `node-cron` (o BullMQ+Redis si se escala) para scraping nocturno
-  - [ ] Job nocturno: buscar juegos con `metadata_pending: true`, obtener `hltb_duration` de HLTB y `metacritic_score` de Metacritic/OpenCritic, actualizar el registro y setear `metadata_pending: false`
+    - [ ] Job nocturno: buscar juegos con `metadata_pending: true`, obtener `hltb_duration` de HLTB y `metacritic_score` de Metacritic/OpenCritic, actualizar el registro y setear `metadata_pending: false`
 - [ ] Manejo de errores del scraper: reintentos, logging de fallos, fallback a datos manuales
 - [ ] Evaluar OpenCritic como alternativa/complemento a Metacritic según disponibilidad de API
 
@@ -179,14 +179,14 @@
 - [ ] Servicio de parseo y validación del CSV
 - [ ] Lógica de match con juegos existentes en el catálogo (por título/slug) o creación de juego básico con `metadata_pending: true` si no existe
 - [ ] Mapeo de cada fila al nuevo modelo:
-  - Crear/vincular `Game` en el catálogo
-  - Crear `GameShelf` entry (el usuario posee el juego)
-  - Crear `UserGameStatus` con el status de la fila
-  - Si status es `completed`/`abandoned`/`playing`: crear `UserPlaythrough` con `real_duration`, `finished_at`, `notes`
-  - Derivar semestre desde `finished_at` (ene-jun = S01, jul-dic = S02); filas sin fecha → `UserGameStatus` con status `not_started`
+    - Crear/vincular `Game` en el catálogo
+    - Crear `GameShelf` entry (el usuario posee el juego)
+    - Crear `UserGameStatus` con el status de la fila
+    - Si status es `completed`/`abandoned`/`playing`: crear `UserPlaythrough` con `real_duration`, `finished_at`, `notes`
+    - Derivar semestre desde `finished_at` (ene-jun = S01, jul-dic = S02); filas sin fecha → `UserGameStatus` con status `not_started`
 - [ ] Reporte de filas con errores al importar
 
-### UI básica *(si aplica en esta fase)*
+### UI básica _(si aplica en esta fase)_
 
 - [ ] Frontend con Angular
 - [ ] Configurar como PWA (`@angular/pwa`): service worker, manifest, instalable en móvil
@@ -196,21 +196,21 @@
 
 ---
 
-## 🟧 FASE 2 — MVP Amigos *(~3–4 semanas)*
+## 🟧 FASE 2 — MVP Amigos _(~3–4 semanas)_
 
 **Objetivo:** Que tus amigos puedan crear cuenta, importar sus juegos y que se vean mutuamente.
 **Condición de éxito:** Un amigo puede registrarse, ver tu perfil, ver qué estás jugando, y tú puedes ver su progreso en una lista.
 
-> 👥 *Release privada — 5 a 20 amigos y conocidos.*
+> 👥 _Release privada — 5 a 20 amigos y conocidos._
 
 ### Perfil público básico
 
 - [ ] `GET /users/:username` — Página pública con estadísticas básicas:
-  - Total de juegos completados
-  - Total abandonados
-  - Juegos en progreso
-  - Ratio promedio
-  - Total de playthroughs (incluye replays)
+    - Total de juegos completados
+    - Total abandonados
+    - Juegos en progreso
+    - Ratio promedio
+    - Total de playthroughs (incluye replays)
 - [ ] Widget "Jugando ahora" en el perfil: muestra los juegos con status `playing`
 - [ ] Listas públicas del usuario visibles en su perfil
 
@@ -246,12 +246,12 @@
 
 ---
 
-## 🟦 FASE 3 — Beta Cerrada *(~2–3 meses)*
+## 🟦 FASE 3 — Beta Cerrada _(~2–3 meses)_
 
 **Objetivo:** Validar que la app genera interés real fuera de tu círculo cercano. Sistema de invitación.
 **Condición de éxito:** Usuarios que no conoces usan la app regularmente y completan juegos.
 
-> 🔒 *Beta por invitación — 50 a 200 usuarios.*
+> 🔒 _Beta por invitación — 50 a 200 usuarios._
 
 ### Sistema social
 
@@ -270,10 +270,10 @@
 - [ ] `GET /lists/:id/followers` — Ver seguidores de una lista (cantidad y usuarios)
 - [ ] `GET /lists/following` — Ver las listas públicas que sigo
 - [ ] Al ver una lista seguida, mostrar el progreso personal del usuario:
-  - Cuántos juegos de la lista ha completado: "18/30 completados"
-  - Cuáles faltan por completar
-  - Para cada juego: su `UserGameStatus` (completado, no iniciado, etc.) y `play_count`
-  - Para juegos con múltiples playthroughs: mostrar cuántas veces se ha completado cada uno
+    - Cuántos juegos de la lista ha completado: "18/30 completados"
+    - Cuáles faltan por completar
+    - Para cada juego: su `UserGameStatus` (completado, no iniciado, etc.) y `play_count`
+    - Para juegos con múltiples playthroughs: mostrar cuántas veces se ha completado cada uno
 
 ### Social — Ver actividad de amigos
 
@@ -300,12 +300,12 @@
 
 ---
 
-## 🟩 FASE 4 — Beta Pública *(~2–3 meses)*
+## 🟩 FASE 4 — Beta Pública _(~2–3 meses)_
 
 **Objetivo:** Abrir el registro a todos. Validar retención, onboarding y UX a escala.
 **Condición de éxito:** Usuarios nuevos entienden la app sin ayuda, completan juegos, y vuelven la semana siguiente.
 
-> 🚀 *Backlogr – Public Beta (500+ usuarios). Sin premium. El objetivo es mejorar, corregir y estabilizar.*
+> 🚀 _Backlogr – Public Beta (500+ usuarios). Sin premium. El objetivo es mejorar, corregir y estabilizar._
 
 ### Reviews
 
@@ -317,10 +317,10 @@
 ### Estadísticas de listas públicas
 
 - [ ] Estadísticas agregadas de la lista:
-  - Número de seguidores
-  - Número de seguidores que la han completado al 100%
-  - Juego más completado de la lista
-  - Juego menos completado de la lista
+    - Número de seguidores
+    - Número de seguidores que la han completado al 100%
+    - Juego más completado de la lista
+    - Juego menos completado de la lista
 - [ ] Listas públicas que el usuario sigue, con su progreso, visibles en su perfil
 
 ### Social avanzado
@@ -346,7 +346,7 @@
 
 ---
 
-## 🟥 FASE 5 — Estabilización y Calidad *(~1–1.5 meses)*
+## 🟥 FASE 5 — Estabilización y Calidad _(~1–1.5 meses)_
 
 **Objetivo:** Mejorar experiencia basada en feedback real de la beta pública. No agregar premium todavía.
 
@@ -378,11 +378,11 @@
 
 ---
 
-## ⭐ FASE 6 — Premium *(~2–3 meses desarrollo + 1 mes lanzamiento)*
+## ⭐ FASE 6 — Premium _(~2–3 meses desarrollo + 1 mes lanzamiento)_
 
 **Objetivo:** Construir y lanzar Premium de forma suave y no agresiva. Sin paywalls incómodos.
 
-> 🔥 Filosofía: *"Si te gusta Backlogr, esta versión es para apoyar el proyecto."* (estilo Trakt)
+> 🔥 Filosofía: _"Si te gusta Backlogr, esta versión es para apoyar el proyecto."_ (estilo Trakt)
 
 ### Estadísticas avanzadas (premium)
 
@@ -418,11 +418,11 @@
 
 - [ ] Guardar `steam_id` en modelo `User` (`PATCH /users/me/steam-id`)
 - [ ] `POST /users/sync/steam` — Disparar sincronización manual con Steam
-  - [ ] Consumir API pública de Steam: `GetOwnedGames`
-  - [ ] Crear o actualizar entradas en `GameShelf` con los juegos de Steam
+    - [ ] Consumir API pública de Steam: `GetOwnedGames`
+    - [ ] Crear o actualizar entradas en `GameShelf` con los juegos de Steam
 - [ ] Worker Service en `src/integrations/steam/`:
-  - [ ] Sincronización automática periódica (cron)
-  - [ ] Comparar `playtime_forever` de Steam con `hltb_duration` para calcular `personal_ratio` ajustado
+    - [ ] Sincronización automática periódica (cron)
+    - [ ] Comparar `playtime_forever` de Steam con `hltb_duration` para calcular `personal_ratio` ajustado
 
 ### Conveniencia (premium)
 
@@ -453,7 +453,7 @@
 
 ---
 
-## 🟩 FASE 7 — Escalamiento Continuo *(12+ meses)*
+## 🟩 FASE 7 — Escalamiento Continuo _(12+ meses)_
 
 **Objetivo:** Mejorar retención, engagement y expandir la plataforma.
 
@@ -475,33 +475,33 @@
 
 > Filosofía: Free es una experiencia completa para gestionar tu backlog. Premium agrega insights, personalización y conveniencia.
 
-| Feature | Free | Premium |
-|---------|------|---------|
-| **Tracking de juegos y playthroughs** | ✅ Completo | ✅ Completo |
-| **Vistas/filtros (status, semestre)** | ✅ | ✅ |
-| **Listas (collection + challenge)** | ✅ Hasta 5 (Backlog no cuenta) | ✅ Ilimitadas |
-| **CSV import** | ✅ | ✅ |
-| **Ratio y personal ratio** | ✅ | ✅ + Fórmula personalizable |
-| **HLTB/Metacritic auto-fetch** | ✅ | ✅ Prioridad en cola |
-| **Perfil público** | ✅ | ✅ + URL personalizada |
-| **Follow usuarios** | ✅ | ✅ |
-| **Seguir listas públicas + progreso** | ✅ | ✅ |
-| **Reviews** | ✅ | ✅ |
-| **Búsqueda y ordenamiento** | ✅ | ✅ |
-| **Logros/milestones** | ✅ | ✅ |
-| **Resumen semestral** | ✅ Básico (texto) | ✅ Detallado (gráficos) |
-| **Notificación de progreso** | ✅ | ✅ |
-| **Exportar** | ✅ CSV | ✅ CSV + JSON |
-| **Estadísticas avanzadas** | ❌ | ✅ Gráficos, trends, patrones |
-| **Comparación con amigos** | ❌ | ✅ Side-by-side stats |
-| **Temas visuales** | ❌ | ✅ dark, retro, minimal, etc. |
-| **Avatar personalizado** | ❌ | ✅ Upload |
-| **Listas colaborativas** | ❌ | ✅ Roles editor/viewer |
-| **Sync Steam** | ❌ | ✅ Auto-import + playtime |
-| **Backup Google Drive** | ❌ | ✅ Automático |
-| **Notificaciones sociales** | ❌ | ✅ |
-| **API personal** | ❌ | ✅ Webhooks, integraciones |
-| **Badge Supporter** | ❌ | ✅ |
+| Feature                               | Free                           | Premium                       |
+| ------------------------------------- | ------------------------------ | ----------------------------- |
+| **Tracking de juegos y playthroughs** | ✅ Completo                    | ✅ Completo                   |
+| **Vistas/filtros (status, semestre)** | ✅                             | ✅                            |
+| **Listas (collection + challenge)**   | ✅ Hasta 5 (Backlog no cuenta) | ✅ Ilimitadas                 |
+| **CSV import**                        | ✅                             | ✅                            |
+| **Ratio y personal ratio**            | ✅                             | ✅ + Fórmula personalizable   |
+| **HLTB/Metacritic auto-fetch**        | ✅                             | ✅ Prioridad en cola          |
+| **Perfil público**                    | ✅                             | ✅ + URL personalizada        |
+| **Follow usuarios**                   | ✅                             | ✅                            |
+| **Seguir listas públicas + progreso** | ✅                             | ✅                            |
+| **Reviews**                           | ✅                             | ✅                            |
+| **Búsqueda y ordenamiento**           | ✅                             | ✅                            |
+| **Logros/milestones**                 | ✅                             | ✅                            |
+| **Resumen semestral**                 | ✅ Básico (texto)              | ✅ Detallado (gráficos)       |
+| **Notificación de progreso**          | ✅                             | ✅                            |
+| **Exportar**                          | ✅ CSV                         | ✅ CSV + JSON                 |
+| **Estadísticas avanzadas**            | ❌                             | ✅ Gráficos, trends, patrones |
+| **Comparación con amigos**            | ❌                             | ✅ Side-by-side stats         |
+| **Temas visuales**                    | ❌                             | ✅ dark, retro, minimal, etc. |
+| **Avatar personalizado**              | ❌                             | ✅ Upload                     |
+| **Listas colaborativas**              | ❌                             | ✅ Roles editor/viewer        |
+| **Sync Steam**                        | ❌                             | ✅ Auto-import + playtime     |
+| **Backup Google Drive**               | ❌                             | ✅ Automático                 |
+| **Notificaciones sociales**           | ❌                             | ✅                            |
+| **API personal**                      | ❌                             | ✅ Webhooks, integraciones    |
+| **Badge Supporter**                   | ❌                             | ✅                            |
 
 ---
 
@@ -512,8 +512,8 @@ Estas decisiones aplican a **todo el proyecto**, no son una fase:
 - **Separación `games` vs `game-shelf`:** `games` es el catálogo global (admin lo alimenta). `game-shelf` es la relación usuario↔juego con sus datos personales (`user_rating`, `real_duration`, `notes`). No mezclarlos.
 - **Separación `game-shelf` vs `lists`:** `game-shelf` registra qué juegos tiene el usuario. `lists` y `list-items` gestionan las colecciones organizadas. Un juego puede estar en `game-shelf` sin estar en ninguna lista, y en varias listas a la vez.
 - **Dos tipos de lista (`collection` vs `challenge`):**
-  - `collection`: Lista para organizar juegos (ej: "Juegos de PS1", "RPGs favoritos", el Backlog por defecto). Muestra el estado global del juego desde `UserGameStatus`. No crea playthroughs.
-  - `challenge`: Lista con tracking propio (ej: "Semestre 2025-2", "Maratón horror"). Al añadir un juego, se crea un nuevo `UserPlaythrough` automáticamente. Tiene `start_date`, `end_date` y `target_count` opcionales. Todo empieza desde cero independiente del estado global.
+    - `collection`: Lista para organizar juegos (ej: "Juegos de PS1", "RPGs favoritos", el Backlog por defecto). Muestra el estado global del juego desde `UserGameStatus`. No crea playthroughs.
+    - `challenge`: Lista con tracking propio (ej: "Semestre 2025-2", "Maratón horror"). Al añadir un juego, se crea un nuevo `UserPlaythrough` automáticamente. Tiene `start_date`, `end_date` y `target_count` opcionales. Todo empieza desde cero independiente del estado global.
 - **Estado global (`UserGameStatus`) vs playthroughs (`UserPlaythrough`):** El estado global es la fuente de verdad sobre si un juego fue completado alguna vez. Se actualiza automáticamente según el playthrough más reciente. Los playthroughs son el historial de partidas individuales con sus fechas, duración, plataforma y notas. Modelo inspirado en Trakt: un juego se completa una vez globalmente; si se rejuega, se añade un nuevo playthrough.
 - **Vistas ≠ Listas:** Las vistas (pendientes, jugando, completados, por semestre) son **filtros sobre `UserGameStatus` y `UserPlaythrough`**, no listas separadas. Las listas son colecciones curadas (sagas, temáticas, challenges). Esto replica el modelo mental de NocoDB donde las vistas son filtros sobre la misma tabla.
 - **Semestre = filtro por fecha:** No existe un campo "semestre". El semestre se deriva de `UserPlaythrough.finished_at`: ene-jun = S01, jul-dic = S02. Las vistas semestrales son simplemente filtros por rango de fechas.

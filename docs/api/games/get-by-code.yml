@@ -1,60 +1,60 @@
 info:
-  name: Get Game by Code
-  type: http
-  seq: 2
+    name: Get Game by Code
+    type: http
+    seq: 2
 
 http:
-  method: GET
-  url: "{{baseUrl}}/games/:code"
-  params:
-    - name: code
-      value: metro-exodus
-      type: path
-  auth:
-    type: bearer
-    token: "{{token}}"
+    method: GET
+    url: "{{baseUrl}}/games/:code"
+    params:
+        - name: code
+          value: metro-exodus
+          type: path
+    auth:
+        type: bearer
+        token: "{{token}}"
 
 settings:
-  encodeUrl: true
+    encodeUrl: true
 
 docs: |-
-  ## Get Game by Code
+    ## Get Game by Code
 
-  Returns a single game by its slug code.
+    Returns a single game by its slug code.
 
-  **Authentication:** Bearer token required (roles: user, premium, moderator).
-  **Rate Limit:** 100 requests per minute.
+    **Authentication:** Bearer token required (roles: user, premium, moderator).
+    **Rate Limit:** 100 requests per minute.
 
-  ### Path Parameters
+    ### Path Parameters
 
-  | Param | Type   | Required | Description                        |
-  |-------|--------|----------|------------------------------------|
-  | code  | string | Yes      | The game's slug (e.g. metro-exodus)|
+    | Param | Type   | Required | Description                        |
+    |-------|--------|----------|------------------------------------|
+    | code  | string | Yes      | The game's slug (e.g. metro-exodus)|
 
-  ### Response (200)
+    ### Response (200)
 
-  ```json
-  {
-    "data": {
-      "game": {
-        "id": "uuid",
-        "title": "Metro Exodus",
-        "code": "metro-exodus",
-        "description": "FPS game...",
-        "releaseAt": "2019-02-14",
-        "coverUrl": null,
-        "averageScore": null,
-        "averagePlaytime": null,
-        "updatedAt": "2025-01-01T00:00:00.000Z",
-        "platforms": [
-          {
-            "id": "uuid",
-            "name": "Steam",
-            "code": "steam",
-            "abbreviation": "steam"
-          }
-        ]
+    ```json
+    {
+      "data": {
+        "game": {
+          "id": "uuid",
+          "title": "Metro Exodus",
+          "code": "metro-exodus",
+          "description": "FPS game...",
+          "releaseAt": "2019-02-14",
+          "coverUrl": null,
+          "averageScore": null,
+          "averagePlaytime": null,
+          "updatedAt": "2025-01-01T00:00:00.000Z",
+          "platforms": [
+            {
+              "id": "uuid",
+              "name": "Steam",
+              "code": "steam",
+              "abbreviation": "steam"
+            }
+          ]
+        }
       }
     }
-  }
-  ```
+    ```
