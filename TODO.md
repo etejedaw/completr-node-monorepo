@@ -41,13 +41,13 @@
 - [x] **Platform**: id (UUID), name, slug, code
 - [x] **Genre**: id (UUID), name, slug, code
 - [x] **GamePlatform**: game_id, platform_id *(tabla pivote)*
-- [ ] **GameGenre**: game_id, genre_id *(tabla pivote)*
+- [x] **GameGenre**: game_id, genre_id *(tabla pivote)*
 - [x] **GameShelf**: id, user_id, game_id, user_rating (nullable), real_duration (nullable), notes (nullable), acquired_at — *Registro de qué juegos tiene el usuario, no de listas*
-- [ ] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
-- [ ] **ListItem**: id, list_id, game_id, playthrough_id (nullable — null en `collection` usa estado global, en `challenge` apunta al playthrough creado), position (int, para orden manual), added_at
-- [ ] **ListFollower**: id, list_id, user_id, is_visible (bool, default true — controla si el seguimiento aparece en el perfil público del usuario), followed_at — *Permite a usuarios seguir listas públicas de otros. El progreso se calcula cruzando los juegos de la lista con el `UserGameStatus` del seguidor. Visibilidad: `User.isPublic AND ListFollower.isVisible`*
-- [ ] **UserGameStatus**: user_id, game_id, status (`not_started` | `playing` | `completed` | `abandoned`), play_count (int), updated_at — *Estado global del juego para el usuario. Se actualiza automáticamente según el playthrough más reciente*
-- [ ] **UserPlaythrough**: id (UUID), user_id, game_id, platform_id, playthrough_number (int), status (`playing` | `completed` | `abandoned`), started_at, finished_at (nullable), real_duration (nullable), abandon_reason (nullable), notes (nullable) — *Historial de partidas individuales. Cada vez que el usuario inicia o reinicia un juego se crea un nuevo registro*
+- [x] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
+- [x] **ListItem**: id, list_id, game_id, playthrough_id (nullable — null en `collection` usa estado global, en `challenge` apunta al playthrough creado), position (int, para orden manual), added_at
+- [x] **ListFollower**: id, list_id, user_id, is_visible (bool, default true — controla si el seguimiento aparece en el perfil público del usuario), followed_at — *Permite a usuarios seguir listas públicas de otros. El progreso se calcula cruzando los juegos de la lista con el `UserGameStatus` del seguidor. Visibilidad: `User.isPublic AND ListFollower.isVisible`*
+- [x] **UserGameStatus**: user_id, game_id (PK compuesta), status (`not_started` | `playing` | `completed` | `abandoned`), play_count (int), updated_at — *Estado global del juego para el usuario. Se actualiza automáticamente según el playthrough más reciente*
+- [x] **UserPlaythrough (Playthrough)**: id (UUID), user_id, game_id, platform_id, status (`playing` | `completed` | `abandoned`), started_at, finished_at (nullable), real_duration (nullable), notes (nullable) — *Historial de partidas individuales. Cada vez que el usuario inicia o reinicia un juego se crea un nuevo registro. El número de playthrough se calcula en el serializer ordenando por `started_at`*
 - [x] Definir todas las asociaciones en `associations.database.ts` con Foreign Keys explícitamente tipadas como UUID
 
 ### Auth
@@ -67,7 +67,9 @@
 - [x] `platforms` — ServiceError + DomainError (sin registrar en normalizers globales)
 - [x] `genres` — ServiceError + DomainError (sin registrar en normalizers globales)
 - [x] `game-shelf` — ServiceError + DomainError (sin registrar en normalizers globales)
-- [ ] Registrar `games`, `platforms`, `genres` y `game-shelf` en `global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts` para mapeo correcto de HTTP status codes
+- [ ] Registrar `games`, `platforms`, `genres` y `game-shelf` en `global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts` para mapeo correcto de HTTP status codes (actualmente los DomainErrors de estos módulos caen al handler genérico que retorna 500 para todo)
+- [ ] Corregir `games.service.ts` que lanza `platformDomainError.platformNotFound()` directamente desde el service — los services solo deben lanzar `ServiceError` (errores técnicos/infraestructura), los `DomainError` (errores de reglas de negocio) se lanzan desde el controller
+- [ ] Agregar validación `.uuid()` en todos los schemas de params que reciben IDs (Zod v4 soporta `z.string().uuid()`)
 
 ### Correcciones de rutas
 
@@ -118,7 +120,7 @@
   - Playthrough completado → status: `completed`
   - Playthrough abandonado → status: `abandoned`
   - Nuevo playthrough iniciado → status: `playing`, play_count +1
-- [ ] `PATCH /playthroughs/:id` — Actualizar un playthrough (cambiar status a `completed`/`abandoned`, agregar `real_duration`, `finished_at`, `notes`, `abandon_reason`)
+- [ ] `PATCH /playthroughs/:id` — Actualizar un playthrough (cambiar status a `completed`/`abandoned`, agregar `real_duration`, `finished_at`, `notes`)
 - [ ] `GET /users/me/playthroughs` — Ver historial de playthroughs del usuario
 - [ ] `GET /users/me/playthroughs?game_id=:id` — Ver playthroughs de un juego específico
 
@@ -133,6 +135,11 @@
 - [ ] `GET /users/me/games?from=2025-01-01&to=2025-06-30` — Vista "Semestre 2025-S01" (filtro por rango de fechas de `finished_at` en playthroughs)
 - [ ] Soportar combinación de filtros: `?status=completed&from=2025-07-01&to=2025-12-31` (completados del semestre 2025-S02)
 - [ ] Cada resultado incluye: juego, plataforma, estado global, play_count, datos del playthrough relevante
+
+### Transacciones en operaciones multi-paso
+
+- [ ] Implementar transacciones de Sequelize en operaciones que involucran múltiples modelos (ej: crear challenge + playthrough + listItem, importar CSV con múltiples inserts)
+- [ ] Refactorizar `games.service.ts → registerGame` para usar transacción (actualmente crea juego + vincula plataformas sin atomicidad)
 
 ### Módulo de Listas
 
@@ -220,6 +227,11 @@
 - [ ] `GET /lists/:id/public` — Ver una lista pública por URL
 - [ ] Hacer que las listas con `is_public: true` sean visibles en el perfil del usuario
 - [ ] Al ver la lista de otro usuario, mostrar tu propio estado para cada juego (si aplica)
+
+### Migraciones de base de datos
+
+- [ ] Reemplazar `sequelize.sync()` por migraciones (`sequelize-cli` o `umzug`) antes de que haya usuarios reales
+- [ ] Crear migraciones iniciales para todos los modelos existentes
 
 ### Onboarding para amigos
 
@@ -343,7 +355,7 @@
 ### Funcionalidades de gestión
 
 - [ ] Sistema de tags personalizados por juego/lista
-- [ ] Sistema de "motivo de abandono" al marcar un playthrough como `abandoned` (campo `abandon_reason` en `UserPlaythrough`)
+- [ ] Sistema de "motivo de abandono" al marcar un playthrough como `abandoned` (se usa el campo `notes` del playthrough)
 - [ ] Exportar listas: `GET /lists/:id/export?format=csv` y `?format=json`
 - [ ] Historial de actividad del usuario por período (semestre/año)
 
