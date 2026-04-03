@@ -19,3 +19,30 @@ export function gameShelfForbidden(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function gameShelfValidation(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_SHELF_VALIDATION_ERROR",
+		"Game shelf validation failed",
+		context
+	);
+}
+
+export function gameShelfUniqueConstraint(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_SHELF_UNIQUE_CONSTRAINT",
+		"Game shelf entry already exists",
+		context
+	);
+}
+
+export function gameShelfInternalError(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_SHELF_INTERNAL_ERROR",
+		"Unexpected GameShelf Service error",
+		context
+	);
+}

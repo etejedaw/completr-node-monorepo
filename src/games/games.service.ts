@@ -5,7 +5,6 @@ import { UpdateGameDto } from "./dtos/update-game.dto";
 import * as gamesServiceError from "./errors/games.service-error";
 import * as gamePlatformsService from "../game-platform/game-platform.service";
 import * as platformsService from "../platforms/platforms.service";
-import * as platformDomainError from "../platforms/errors/platform.domain-error";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
 
 export async function registerGame(registerGameDto: RegisterGameDto) {
@@ -100,7 +99,7 @@ async function platformsUpdate(gameId: string, platforms: string[]) {
 	const platformDb = await platformsService.findPlatformsByCode(platforms);
 
 	if (platformDb.length !== platforms.length)
-		throw platformDomainError.platformNotFound();
+		throw gamesServiceError.platformNotFoundError();
 
 	const platformsIds = platformDb.map(platform => platform.id);
 	await gamePlatformsService.replaceGamePlatforms(gameId, platformsIds);

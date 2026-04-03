@@ -10,3 +10,39 @@ export function gameNotFound(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function gamePlatformNotFound(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_PLATFORM_NOT_FOUND",
+		"One or more platforms not found",
+		context
+	);
+}
+
+export function gameValidation(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_VALIDATION_ERROR",
+		"Game validation failed",
+		context
+	);
+}
+
+export function gameUniqueConstraint(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_UNIQUE_CONSTRAINT",
+		"Game already exists",
+		context
+	);
+}
+
+export function gameInternalError(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_INTERNAL_ERROR",
+		"Unexpected Games Service error",
+		context
+	);
+}

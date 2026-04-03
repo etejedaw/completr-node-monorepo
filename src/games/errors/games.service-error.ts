@@ -22,3 +22,10 @@ export function notFoundError() {
 		raw: undefined
 	});
 }
+
+export function platformNotFoundError() {
+	return new ServiceError("GAME_PLATFORM_NOT_FOUND", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
