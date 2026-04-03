@@ -1,0 +1,53 @@
+import { DataTypes, Model, Sequelize } from "sequelize";
+import { sequelize } from "../database/sequelize.database";
+
+export type PlaythroughStatus = "playing" | "completed" | "abandoned";
+
+class Playthrough extends Model {
+	declare id: string;
+	declare userId: string;
+	declare gameId: string;
+	declare platformId: string;
+	declare status: PlaythroughStatus;
+	declare startedAt?: Date;
+	declare finishedAt?: Date;
+	declare realDuration?: number;
+	declare notes?: string;
+	declare createdAt: Date;
+	declare updatedAt: Date;
+}
+
+Playthrough.init(
+	{
+		id: {
+			type: DataTypes.UUID,
+			primaryKey: true,
+			allowNull: false,
+			defaultValue: Sequelize.literal("gen_random_uuid()")
+		},
+		userId: {
+			type: DataTypes.UUID,
+			allowNull: false
+		},
+		gameId: {
+			type: DataTypes.UUID,
+			allowNull: false
+		},
+		platformId: {
+			type: DataTypes.UUID,
+			allowNull: false
+		},
+		status: {
+			type: DataTypes.ENUM("playing", "completed", "abandoned"),
+			allowNull: false,
+			defaultValue: "playing"
+		},
+		startedAt: DataTypes.DATE,
+		finishedAt: DataTypes.DATE,
+		realDuration: DataTypes.FLOAT,
+		notes: DataTypes.TEXT
+	},
+	{ sequelize }
+);
+
+export { Playthrough };
