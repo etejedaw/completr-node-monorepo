@@ -1,0 +1,6 @@
+name: Develop
+variables:
+  - name: BASE_URL
+    value: http://localhost:3000
+  - secret: true
+    name: TOKEN

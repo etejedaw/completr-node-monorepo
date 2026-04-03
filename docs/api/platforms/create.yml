@@ -1,0 +1,70 @@
+info:
+  name: Create Platform
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/platform"
+  headers:
+    - name: Content-Type
+      value: application/json
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "PlayStation 2",
+        "abbreviation": "ps2",
+        "description": "Sony's second home console",
+        "manufacturer": "Sony",
+        "generation": 6,
+        "logoUrl": "https://example.com/ps2-logo.png",
+        "releaseAt": "2000-03-04"
+      }
+
+settings:
+  encodeUrl: true
+
+docs: |-
+  ## Create Platform
+
+  Creates a new platform entry.
+
+  **Authentication:** Bearer token required (role: moderator).
+  **Rate Limit:** 50 requests per minute.
+
+  ### Request Body
+
+  | Field        | Type   | Required | Description                     |
+  |--------------|--------|----------|---------------------------------|
+  | name         | string | Yes      | Max 100 characters              |
+  | abbreviation | string | Yes      | Max 10 characters               |
+  | description  | string | Yes      | Platform description            |
+  | manufacturer | string | Yes      | Max 100 characters              |
+  | generation   | number | No       | Positive integer                |
+  | logoUrl      | string | No       | URL to logo image               |
+  | releaseAt    | string | Yes      | ISO date (e.g. "2000-03-04")    |
+
+  ### Response (201)
+
+  ```json
+  {
+    "data": {
+      "platform": {
+        "id": "uuid",
+        "name": "PlayStation 2",
+        "code": "playstation-2",
+        "abbreviation": "ps2",
+        "description": "Sony's second home console",
+        "manufacturer": "Sony",
+        "generation": 6,
+        "logoUrl": "https://example.com/ps2-logo.png",
+        "releaseAt": "2000-03-04",
+        "updatedAt": "2025-01-01T00:00:00.000Z"
+      }
+    }
+  }
+  ```

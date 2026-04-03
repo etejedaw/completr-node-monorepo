@@ -1,0 +1,36 @@
+info:
+  name: Delete Platform
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/platform/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+
+docs: |-
+  ## Delete Platform
+
+  Deletes a platform.
+
+  **Authentication:** Bearer token required (role: moderator).
+  **Rate Limit:** 50 requests per minute.
+
+  ### Path Parameters
+
+  | Param | Type   | Required | Description         |
+  |-------|--------|----------|---------------------|
+  | id    | string | Yes      | The platform UUID   |
+
+  ### Response (204)
+
+  No content.

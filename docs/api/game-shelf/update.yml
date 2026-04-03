@@ -1,0 +1,70 @@
+info:
+  name: Update Game Shelf Entry
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/users/me/game-shelf/:gameShelfId"
+  params:
+    - name: gameShelfId
+      value: ""
+      type: path
+  headers:
+    - name: Content-Type
+      value: application/json
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "edition": "Deluxe",
+        "notes": "Updated notes",
+        "acquiredAt": "2024-12-25"
+      }
+
+settings:
+  encodeUrl: true
+
+docs: |-
+  ## Update Game Shelf Entry
+
+  Updates a game shelf entry. All fields are optional.
+  The entry must belong to the authenticated user.
+
+  **Authentication:** Bearer token required (roles: user, premium, moderator).
+  **Rate Limit:** 50 requests per minute.
+
+  ### Path Parameters
+
+  | Param       | Type   | Required | Description              |
+  |-------------|--------|----------|--------------------------|
+  | gameShelfId | string | Yes      | The game shelf entry UUID|
+
+  ### Request Body
+
+  | Field      | Type   | Required | Description                  |
+  |------------|--------|----------|------------------------------|
+  | edition    | string | No       | Max 100 characters           |
+  | notes      | string | No       | Max 100 characters           |
+  | acquiredAt | string | No       | ISO date (e.g. "2024-12-25") |
+
+  ### Response (200)
+
+  ```json
+  {
+    "data": {
+      "gameShelf": {
+        "id": "uuid",
+        "userId": "uuid",
+        "platformId": "uuid",
+        "isPublic": false,
+        "acquiredAt": "2024-12-25",
+        "edition": "Deluxe",
+        "notes": "Updated notes"
+      }
+    }
+  }
+  ```

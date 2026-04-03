@@ -1,0 +1,78 @@
+info:
+  name: Update Platform
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/platform/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  headers:
+    - name: Content-Type
+      value: application/json
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "abbreviation": "ps2",
+        "description": "Updated description",
+        "manufacturer": "Sony",
+        "generation": 6,
+        "logoUrl": "https://example.com/ps2-logo.png",
+        "releaseAt": "2000-03-04"
+      }
+
+settings:
+  encodeUrl: true
+
+docs: |-
+  ## Update Platform
+
+  Updates an existing platform. All fields are optional.
+
+  **Authentication:** Bearer token required (role: moderator).
+  **Rate Limit:** 50 requests per minute.
+
+  ### Path Parameters
+
+  | Param | Type   | Required | Description         |
+  |-------|--------|----------|---------------------|
+  | id    | string | Yes      | The platform UUID   |
+
+  ### Request Body
+
+  | Field        | Type   | Required | Description            |
+  |--------------|--------|----------|------------------------|
+  | abbreviation | string | No       | Max 10 characters      |
+  | description  | string | No       | Platform description   |
+  | manufacturer | string | No       | Max 100 characters     |
+  | generation   | number | No       | Positive integer       |
+  | logoUrl      | string | No       | URL to logo image      |
+  | releaseAt    | string | No       | ISO date               |
+
+  ### Response (200)
+
+  ```json
+  {
+    "data": {
+      "platform": {
+        "id": "uuid",
+        "name": "PlayStation 2",
+        "code": "playstation-2",
+        "abbreviation": "ps2",
+        "description": "Updated description",
+        "manufacturer": "Sony",
+        "generation": 6,
+        "logoUrl": "https://example.com/ps2-logo.png",
+        "releaseAt": "2000-03-04",
+        "updatedAt": "2025-01-01T00:00:00.000Z"
+      }
+    }
+  }
+  ```

@@ -1,0 +1,85 @@
+info:
+  name: Update Game
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/games/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  headers:
+    - name: Content-Type
+      value: application/json
+  auth:
+    type: bearer
+    token: "{{token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "description": "Updated description",
+        "platforms": ["steam", "gogcom"],
+        "releaseAt": "2019-02-14",
+        "coverUrl": "https://example.com/cover.jpg",
+        "averageScore": 85,
+        "averagePlaytime": 120
+      }
+
+settings:
+  encodeUrl: true
+
+docs: |-
+  ## Update Game
+
+  Updates an existing game. All fields are optional.
+
+  **Authentication:** Bearer token required (role: moderator).
+  **Rate Limit:** 50 requests per minute.
+
+  ### Path Parameters
+
+  | Param | Type   | Required | Description     |
+  |-------|--------|----------|-----------------|
+  | id    | string | Yes      | The game UUID   |
+
+  ### Request Body
+
+  | Field           | Type     | Required | Description                    |
+  |-----------------|----------|----------|--------------------------------|
+  | description     | string   | No       | Game description               |
+  | platforms       | string[] | No       | Array of platform codes        |
+  | releaseAt       | string   | No       | ISO date                       |
+  | coverUrl        | string   | No       | URL to cover image             |
+  | averageScore    | number   | No       | Average game score             |
+  | averagePlaytime | number   | No       | Average playtime in minutes    |
+
+  ### Response (200)
+
+  ```json
+  {
+    "data": {
+      "game": {
+        "id": "uuid",
+        "title": "Metro Exodus",
+        "code": "metro-exodus",
+        "description": "Updated description",
+        "releaseAt": "2019-02-14",
+        "coverUrl": "https://example.com/cover.jpg",
+        "averageScore": 85,
+        "averagePlaytime": 120,
+        "updatedAt": "2025-01-01T00:00:00.000Z",
+        "platforms": [
+          {
+            "id": "uuid",
+            "name": "Steam",
+            "code": "steam",
+            "abbreviation": "steam"
+          }
+        ]
+      }
+    }
+  }
+  ```

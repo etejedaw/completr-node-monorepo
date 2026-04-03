@@ -1,0 +1,36 @@
+info:
+  name: Delete Game
+  type: http
+  seq: 5
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/games/:id"
+  params:
+    - name: id
+      value: ""
+      type: path
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+
+docs: |-
+  ## Delete Game
+
+  Deactivates a game (soft delete).
+
+  **Authentication:** Bearer token required (role: moderator).
+  **Rate Limit:** 50 requests per minute.
+
+  ### Path Parameters
+
+  | Param | Type   | Required | Description     |
+  |-------|--------|----------|-----------------|
+  | id    | string | Yes      | The game UUID   |
+
+  ### Response (204)
+
+  No content.
