@@ -23,7 +23,12 @@ UserGameStatus.init(
 			primaryKey: true
 		},
 		status: {
-			type: DataTypes.ENUM("not_started", "playing", "completed", "abandoned"),
+			type: DataTypes.ENUM(
+				"not_started",
+				"playing",
+				"completed",
+				"abandoned"
+			),
 			allowNull: false,
 			defaultValue: "not_started"
 		},

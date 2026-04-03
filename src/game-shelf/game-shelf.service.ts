@@ -31,7 +31,8 @@ export async function updateGameShelf(
 ) {
 	const gameShelf = await findGameShelfById(id);
 	if (!gameShelf) throw gameShelfServiceError.notFoundError();
-	if (gameShelf.userId !== userId) throw gameShelfServiceError.forbiddenError();
+	if (gameShelf.userId !== userId)
+		throw gameShelfServiceError.forbiddenError();
 
 	await gameShelf.update(updateGameShelfDto);
 	return gameShelf;
