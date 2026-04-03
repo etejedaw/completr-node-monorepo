@@ -4,11 +4,7 @@ import * as gameShelfService from "./game-shelf.service";
 import { CustomRequest } from "../common/interfaces/custom-request.interface";
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import { GameShelfIdParam } from "./schemas/game-shelf-id-params.schema";
-import {
-	gameShelfMeSerializer,
-	gameShelfSerializer,
-	gameShelfSerializerTiny
-} from "./serializers";
+import { gameShelfMeSerializer, gameShelfSerializerTiny } from "./serializers";
 
 export async function postGameShelf(request: Request, response: Response) {
 	const customRequest = request as CustomRequest;
@@ -38,7 +34,9 @@ export async function getMeGameShelf(request: Request, response: Response) {
 	return response.status(200).json({ data });
 }
 
-export async function getUserGameShelf(request: Request, response: Response) {}
+export async function getUserGameShelf(_request: Request, _response: Response) {
+	// TODO
+}
 
 export async function patchGameShelf(request: Request, response: Response) {
 	const customRequest = request as CustomRequest;

@@ -4,6 +4,7 @@ import { User } from "../users";
 import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import { GameShelf } from "./game-shelf.model";
+import * as gameShelfServiceError from "./errors/game-shelf.service-error";
 
 export async function registerGameShelf(
 	userId: string,
@@ -29,8 +30,8 @@ export async function updateGameShelf(
 	updateGameShelfDto: UpdateGameShelfDto
 ) {
 	const gameShelf = await findGameShelfById(id);
-	if (!gameShelf) throw new Error("GameShelf not found"); //TODO: Mejorar manejo de errores
-	if (gameShelf.userId !== userId) throw new Error("Forbidden"); //TODO: Mejorar manejo de errores
+	if (!gameShelf) throw gameShelfServiceError.notFoundError();
+	if (gameShelf.userId !== userId) throw gameShelfServiceError.forbiddenError();
 
 	await gameShelf.update(updateGameShelfDto);
 	return gameShelf;
