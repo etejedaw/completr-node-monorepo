@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { HeaderTokenSchema } from "./schemas";
-import * as tokenService from "./token.service";
+import * as tokenService from "./services/token.service";
 import { ZodError } from "zod";
 import { CustomRequest } from "../common/interfaces/custom-request.interface";
 import * as authDomainsErrors from "./errors/auth.domains-error";

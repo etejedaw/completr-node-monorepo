@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
-import { environmentConfig } from "../common/config/environment.config";
+import { environmentConfig } from "../../common/config/environment.config";
 import type { StringValue } from "ms";
-import { JwtPayload } from "../common/interfaces/jwt-payload.interface";
+import { JwtPayload } from "../../common/interfaces/jwt-payload.interface";
 
 export function signAccessToken(payload: JwtPayload) {
 	return jwt.sign(payload, environmentConfig.ACCESS_TOKEN_SECRET, {
