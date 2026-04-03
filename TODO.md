@@ -61,12 +61,12 @@
 
 - [x] `auth` — Patrón completo: ServiceError → DomainError → HttpError con normalizers y mappers
 - [x] `users` — Patrón completo: ServiceError → DomainError → HttpError con normalizers y mappers
-- [x] `games` — ServiceError + DomainError (sin registrar en normalizers globales)
-- [x] `platforms` — ServiceError + DomainError (sin registrar en normalizers globales)
-- [x] `genres` — ServiceError + DomainError (sin registrar en normalizers globales)
-- [x] `game-shelf` — ServiceError + DomainError (sin registrar en normalizers globales)
-- [ ] Registrar `games`, `platforms`, `genres` y `game-shelf` en `global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts` para mapeo correcto de HTTP status codes (actualmente los DomainErrors de estos módulos caen al handler genérico que retorna 500 para todo)
-- [ ] Corregir `games.service.ts` que lanza `platformDomainError.platformNotFound()` directamente desde el service — los services solo deben lanzar `ServiceError` (errores técnicos/infraestructura), los `DomainError` (errores de reglas de negocio) se lanzan desde el controller
+- [x] `games` — Patrón completo: ServiceError → DomainError → HttpError con normalizers y mappers
+- [x] `platforms` — Patrón completo: ServiceError → DomainError → HttpError con normalizers y mappers
+- [x] `genres` — Patrón completo: ServiceError → DomainError → HttpError con normalizers y mappers
+- [x] `game-shelf` — Patrón completo: ServiceError → DomainError → HttpError con normalizers y mappers
+- [x] Registrar `games`, `platforms`, `genres` y `game-shelf` en `global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts`
+- [x] Corregir `games.service.ts` — reemplazado `platformDomainError.platformNotFound()` por `gamesServiceError.platformNotFoundError()`
 - [ ] Agregar validación `.uuid()` en todos los schemas de params que reciben IDs (Zod v4 soporta `z.string().uuid()`)
 
 ### Correcciones de rutas
