@@ -9,6 +9,7 @@ class Game extends Model {
 	declare description: string;
 	declare releaseAt?: Date;
 	declare coverUrl?: string;
+	declare isDlc: boolean;
 	declare isActive: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -35,6 +36,10 @@ Game.init(
 		description: DataTypes.STRING,
 		releaseAt: DataTypes.DATE,
 		coverUrl: DataTypes.STRING,
+		isDlc: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: false
+		},
 		isActive: {
 			type: DataTypes.BOOLEAN,
 			defaultValue: true
