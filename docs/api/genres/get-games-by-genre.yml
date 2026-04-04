@@ -1,0 +1,63 @@
+info:
+    name: Get Games by Genre
+    type: http
+    seq: 6
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/genres/:code/games"
+    params:
+        - name: code
+          value: action
+          type: path
+    auth:
+        type: bearer
+        token: "{{token}}"
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Games by Genre
+
+    Returns all games that belong to a specific genre.
+
+    **Authentication:** Bearer token required (role: user, premium, moderator).
+    **Rate Limit:** 100 requests per minute.
+
+    ### Path Parameters
+
+    | Param | Type   | Required | Description                    |
+    |-------|--------|----------|--------------------------------|
+    | code  | string | Yes      | The genre code (e.g. "action") |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "genre": {
+          "id": "uuid",
+          "name": "Action",
+          "code": "action"
+        },
+        "games": [
+          {
+            "id": "uuid",
+            "title": "Resident Evil 4",
+            "code": "resident-evil-4",
+            "description": "...",
+            "releaseAt": "2005-01-11",
+            "coverUrl": "https://...",
+            "isDlc": false,
+            "parentGameId": null,
+            "updatedAt": "...",
+            "platforms": [...],
+            "genres": [
+              { "id": "uuid", "name": "Action", "code": "action" }
+            ]
+          }
+        ]
+      }
+    }
+    ```
