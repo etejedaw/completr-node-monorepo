@@ -8,6 +8,17 @@ export function gameSerializer(game: Game) {
 	const scores = game.GameScores?.map(scoreSerializer) ?? [];
 	const times = game.GameTimes?.map(timeSerializer) ?? [];
 
+	const completrScore = game.GameScores?.find(
+		s => s.source === "completr"
+	)?.score;
+	const completrTime = game.GameTimes?.find(
+		t => t.source === "completr"
+	)?.duration;
+	const ratio =
+		completrScore && completrTime
+			? completrScore / completrTime
+			: undefined;
+
 	return {
 		id: game.id,
 		title: game.title,
@@ -18,6 +29,7 @@ export function gameSerializer(game: Game) {
 		isDlc: game.isDlc,
 		parentGameId: game.parentGameId,
 		updatedAt: game.updatedAt,
+		ratio,
 		platforms: game.Platforms.map(platformSerializer),
 		genres: game.Genres.map(genreSerializer),
 		scores,
