@@ -1,7 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 
-export type ScoreSource = "metacritic" | "opencritic" | "rawg" | "backlogr";
+export type ScoreSource = "metacritic" | "opencritic" | "rawg" | "completr";
 
 class GameScore extends Model {
 	declare id: string;
@@ -28,7 +28,7 @@ GameScore.init(
 				"metacritic",
 				"opencritic",
 				"rawg",
-				"backlogr"
+				"completr"
 			),
 			allowNull: false
 		},
