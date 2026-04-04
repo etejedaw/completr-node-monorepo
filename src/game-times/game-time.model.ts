@@ -1,7 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 
-export type TimeSource = "hltb" | "backlogr";
+export type TimeSource = "hltb" | "rawg" | "backlogr";
 
 class GameTime extends Model {
 	declare id: string;
@@ -24,7 +24,7 @@ GameTime.init(
 			allowNull: false
 		},
 		source: {
-			type: DataTypes.ENUM("hltb", "backlogr"),
+			type: DataTypes.ENUM("hltb", "rawg", "backlogr"),
 			allowNull: false
 		},
 		duration: {
