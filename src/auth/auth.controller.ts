@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { LoginDto, RegisterDto } from "./dtos";
 import * as authService from "./auth.service";
-import { userSerializer } from "../users";
+import { userMeSerializer } from "../users";
 import { ChangePassword } from "./schemas";
 import { CustomRequest } from "../common/interfaces/custom-request.interface";
 
@@ -15,7 +15,7 @@ export async function postRegister(request: Request, response: Response) {
 	const accessToken = userRegister.accessToken;
 
 	const data = {
-		user: userSerializer(userPlain),
+		user: userMeSerializer(userPlain),
 		access_token: accessToken
 	};
 
