@@ -10,7 +10,6 @@ http:
         - name: username
           value: johndoe
           type: path
-    auth: none
 
 settings:
     encodeUrl: true
