@@ -34,7 +34,7 @@ router.get(
 );
 
 router.post(
-	"/genre",
+	"/genres",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
