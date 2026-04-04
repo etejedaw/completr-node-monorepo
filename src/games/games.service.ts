@@ -79,7 +79,9 @@ export async function findGamesByGenreCode(genreCode: string) {
 			{
 				association: "Genres",
 				where: { code: genreCode }
-			}
+			},
+			{ association: "GameScores" },
+			{ association: "GameTimes" }
 		]
 	});
 }
