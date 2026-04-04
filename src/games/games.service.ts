@@ -4,7 +4,9 @@ import { Game } from "./game.model";
 import { UpdateGameDto } from "./dtos/update-game.dto";
 import * as gamesServiceError from "./errors/games.service-error";
 import * as gamePlatformsService from "../game-platform/game-platform.service";
+import * as gameGenresService from "../game-genre/game-genre.service";
 import * as platformsService from "../platforms/platforms.service";
+import * as genresService from "../genres/genres.service";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
 
 export async function registerGame(registerGameDto: RegisterGameDto) {
@@ -56,9 +58,10 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 	const game = await findGameById(id);
 	if (!game) throw gamesServiceError.notFoundError();
 
-	const { platforms, ...gameDto } = updateGameDto;
+	const { platforms, genres, ...gameDto } = updateGameDto;
 
 	if (platforms) await platformsUpdate(game.id, platforms);
+	if (genres) await genresUpdate(game.id, genres);
 
 	await game.update(gameDto);
 
@@ -103,4 +106,14 @@ async function platformsUpdate(gameId: string, platforms: string[]) {
 
 	const platformsIds = platformDb.map(platform => platform.id);
 	await gamePlatformsService.replaceGamePlatforms(gameId, platformsIds);
+}
+
+async function genresUpdate(gameId: string, genres: string[]) {
+	if (genres.length === 0)
+		return await gameGenresService.replaceGameGenres(gameId, []);
+
+	const genreDb = await genresService.findGenresByCode(genres);
+
+	const genreIds = genreDb.map(genre => genre.id);
+	await gameGenresService.replaceGameGenres(gameId, genreIds);
 }
