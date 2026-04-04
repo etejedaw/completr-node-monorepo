@@ -2,11 +2,17 @@ import { Game } from "../../games/game.model";
 import { Platform } from "../../platforms/platform.model";
 import { GameShelf } from "../game-shelf.model";
 
-export function gameShelfMeSerializer(gameShelf: GameShelf) {
+export function gameShelfMeSerializer(
+	gameShelf: GameShelf,
+	realDuration?: number
+) {
 	const ratio =
 		gameShelf.score && gameShelf.duration
 			? gameShelf.score / gameShelf.duration
 			: null;
+
+	const personalRatio =
+		gameShelf.score && realDuration ? gameShelf.score / realDuration : null;
 
 	return {
 		id: gameShelf.id,
@@ -20,6 +26,8 @@ export function gameShelfMeSerializer(gameShelf: GameShelf) {
 		scoreSource: gameShelf.scoreSource,
 		durationSource: gameShelf.durationSource,
 		ratio,
+		realDuration: realDuration ?? null,
+		personalRatio,
 		game: gameSerializer(gameShelf.Game),
 		platform: platformSerializer(gameShelf.Platform)
 	};
