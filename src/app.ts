@@ -1,9 +1,9 @@
 import { environmentConfig } from "./common/config/environment.config";
-import { databaseInit } from "./database/database.init";
+import { initDatabase } from "./database/init.database";
 import { server } from "./server";
 
 async function bootstrap() {
-	await databaseInit();
+	await initDatabase();
 	server(environmentConfig.PORT);
 }
 

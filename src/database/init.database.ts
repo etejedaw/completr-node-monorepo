@@ -18,7 +18,7 @@ import "../game-scores/game-score.model";
 import "../game-times/game-time.model";
 import "../saved-filters/saved-filter.model";
 
-export async function databaseInit() {
+export async function initDatabase() {
 	setupAssociations();
 
 	await sequelize.sync({
