@@ -2,6 +2,8 @@ import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { Platform } from "../platforms/platform.model";
 import { Genre } from "../genres/genres.model";
+import { GameScore } from "../game-scores/game-score.model";
+import { GameTime } from "../game-times/game-time.model";
 
 class Game extends Model {
 	declare id: string;
@@ -17,6 +19,8 @@ class Game extends Model {
 	declare updatedAt: Date;
 	declare Platforms: Platform[];
 	declare Genres: Genre[];
+	declare GameScores: GameScore[];
+	declare GameTimes: GameTime[];
 }
 
 Game.init(
