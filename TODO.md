@@ -37,14 +37,16 @@
 ### Modelos de base de datos
 
 - [x] **User**: id (UUID), username, email, password_hash, steam_id (nullable), avatar_url, role, created_at
-- [x] **Game**: id (UUID), title, slug, cover_url, hltb_duration, metacritic_score, metadata_pending (bool), created_at
+- [x] **Game**: id (UUID), title, slug, cover*url, metadata_pending (bool), created_at — *`averageScore` y `averagePlaytime` eliminados, ahora viven en `GameScore`\_
 - [x] **Platform**: id (UUID), name, slug, code
 - [x] **Genre**: id (UUID), name, slug, code
 - [x] **GamePlatform**: game*id, platform_id *(tabla pivote)\_
-- [x] **GameGenre**: game*id, genre_id *(tabla pivote)\_
-- [x] **GameShelf**: id, user*id, game_id, user_rating (nullable), real_duration (nullable), notes (nullable), acquired_at — \_Registro de qué juegos tiene el usuario, no de listas*
+- [x] **GameGenre**: game_id, genre_id (tabla pivote)
+- [x] **GameScore**: game_id + source (PK compuesta), score (nullable), duration (nullable), count (int), updated_at — Catálogo global de puntajes y tiempos por fuente. Sources: `metacritic`, `opencritic`, `hltb`, `backlogr`. Actualizado por cron mensual
+- [x] **GameShelf**: id, user_id, game_id, user_rating (nullable), notes (nullable), acquired_at, score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Registro de qué juegos tiene el usuario + puntaje/duración que eligió usar para su ratio
 - [x] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
-- [x] **ListItem**: id, list_id, game_id, playthrough_id (nullable — null en `collection` usa estado global, en `challenge` apunta al playthrough creado), position (int, para orden manual), added_at
+- [x] **ListItem**: id, list_id, game_id, playthrough_id (nullable), position (int), score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Datos de puntaje congelados al añadir a la lista, actualizables manualmente por el usuario
+- [x] **SavedFilter**: id (UUID), user_id, name, filters (JSON), sort_by (nullable), sort_order, created_at — Filtros guardados del backlog. Free: hasta 3, Premium: ilimitados
 - [x] **ListFollower**: id, list*id, user_id, is_visible (bool, default true — controla si el seguimiento aparece en el perfil público del usuario), followed_at — \_Permite a usuarios seguir listas públicas de otros. El progreso se calcula cruzando los juegos de la lista con el `UserGameStatus` del seguidor. Visibilidad: `User.isPublic AND ListFollower.isVisible`*
 - [x] **UserGameStatus**: user*id, game_id (PK compuesta), status (`not_started` | `playing` | `completed` | `abandoned`), play_count (int), updated_at — \_Estado global del juego para el usuario. Se actualiza automáticamente según el playthrough más reciente*
 - [x] **UserPlaythrough (Playthrough)**: id (UUID), user*id, game_id, platform_id, status (`playing` | `completed` | `abandoned`), started_at, finished_at (nullable), real_duration (nullable), notes (nullable) — \_Historial de partidas individuales. Cada vez que el usuario inicia o reinicia un juego se crea un nuevo registro. El número de playthrough se calcula en el serializer ordenando por `started_at`*
@@ -482,7 +484,10 @@
 | **Listas (collection + challenge)**   | ✅ Hasta 5 (Backlog no cuenta) | ✅ Ilimitadas                 |
 | **CSV import**                        | ✅                             | ✅                            |
 | **Ratio y personal ratio**            | ✅                             | ✅ + Fórmula personalizable   |
-| **HLTB/Metacritic auto-fetch**        | ✅                             | ✅ Prioridad en cola          |
+| **Fuentes de score**                  | ✅ Backlogr community + manual | ✅ + Metacritic, OpenCritic   |
+| **Filtros del backlog**               | ✅ Ilimitados                  | ✅ Ilimitados                 |
+| **Filtros guardados**                 | ✅ Hasta 3                     | ✅ Ilimitados                 |
+| **HLTB auto-fetch**                   | ✅                             | ✅ Prioridad en cola          |
 | **Perfil público**                    | ✅                             | ✅ + URL personalizada        |
 | **Follow usuarios**                   | ✅                             | ✅                            |
 | **Seguir listas públicas + progreso** | ✅                             | ✅                            |
@@ -524,3 +529,8 @@ Estas decisiones aplican a **todo el proyecto**, no son una fase:
 - **`metadata_pending`:** Cualquier juego creado manualmente nace con `metadata_pending: true`. El worker nocturno se encarga de enriquecerlo con datos de HLTB y Metacritic.
 - **Lista Backlog por defecto:** Se crea automáticamente al registrar un usuario. `is_default: true`, `type: collection`. No puede eliminarse ni renombrarse. El reto semestral se implementa como una lista `challenge` separada.
 - **`personal_ratio`:** Se calcula desde `UserPlaythrough.real_duration` del playthrough completado. Si hay múltiples playthroughs completados, se usa el primero o el mejor según preferencia.
+- **Sistema de puntajes en 3 niveles:**
+    - `GameScore` — Catálogo global de puntajes/tiempos por fuente (Metacritic, OpenCritic, HLTB, Backlogr community). Actualizado por cron mensual. La ficha del juego muestra todos los disponibles.
+    - `GameShelf` — Puntaje/duración que el usuario eligió para su backlog. Se precarga al añadir un juego, editable manualmente. Determina el ratio en el backlog.
+    - `ListItem` — Puntaje/duración congelados al añadir a una lista. No editables manualmente, solo con "actualizar puntajes" o "elegir fuente". Las listas no permiten valores custom, solo fuentes oficiales.
+- **Filtros guardados (`SavedFilter`):** Los usuarios pueden filtrar su backlog libremente (status, género, plataforma, semestre, etc.). Los filtros se pueden guardar con un nombre. Free: hasta 3 guardados. Premium: ilimitados. Los filtros guardados son presets de query params, no listas.
