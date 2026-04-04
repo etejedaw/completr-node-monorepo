@@ -27,7 +27,7 @@ settings:
 docs: |-
     ## Create Game Score
 
-    Creates or updates a game score for a specific source. If a score already exists for the same game and source, it will be updated.
+    Creates a game score for a specific source. Returns 409 if a score for this game and source already exists.
 
     **Authentication:** Bearer token required (role: moderator).
     **Rate Limit:** 50 requests per minute.

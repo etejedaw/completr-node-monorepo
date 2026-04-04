@@ -1,0 +1,67 @@
+info:
+    name: Update Game Score
+    type: http
+    seq: 3
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/game-scores/:gameId/:source"
+    params:
+        - name: gameId
+          value: ""
+          type: path
+        - name: source
+          value: metacritic
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth:
+        type: bearer
+        token: "{{token}}"
+    body:
+        type: json
+        data: |-
+            {
+              "score": 92
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Update Game Score
+
+    Updates an existing game score for a specific source. Returns 404 if the score does not exist.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param  | Type   | Required | Description                                  |
+    |--------|--------|----------|----------------------------------------------|
+    | gameId | uuid   | Yes      | The game UUID                                |
+    | source | string | Yes      | Score source: metacritic, opencritic, rawg   |
+
+    ### Request Body
+
+    | Field | Type   | Required | Description                               |
+    |-------|--------|----------|-------------------------------------------|
+    | score | number | Yes      | The new score value                       |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "gameScore": {
+          "id": "uuid",
+          "gameId": "uuid",
+          "source": "metacritic",
+          "score": 92,
+          "updatedAt": "2025-01-01T00:00:00.000Z"
+        }
+      }
+    }
+    ```
