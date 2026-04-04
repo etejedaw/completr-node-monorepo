@@ -5,9 +5,9 @@ info:
 
 http:
     method: PATCH
-    url: "{{baseUrl}}/platform/:id"
+    url: "{{baseUrl}}/genre/:genreId"
     params:
-        - name: id
+        - name: genreId
           value: ""
           type: path
     headers:
@@ -31,20 +31,14 @@ docs: |-
 
     Updates an existing genre.
 
-    > **Note:** This endpoint is NOT registered in the server yet.
-    > The genre router is defined but not imported in `server.ts`.
-
-    > **BUG:** The route path is `/platform/:id` instead of `/genres/:id`.
-    > This is likely a copy-paste error in `genres.routes.ts:47`.
-
     **Authentication:** Bearer token required (role: moderator).
     **Rate Limit:** 50 requests per minute.
 
     ### Path Parameters
 
-    | Param | Type   | Required | Description       |
-    |-------|--------|----------|-------------------|
-    | id    | string | Yes      | The genre UUID    |
+    | Param   | Type | Required | Description    |
+    |---------|------|----------|----------------|
+    | genreId | uuid | Yes      | The genre UUID |
 
     ### Request Body
 

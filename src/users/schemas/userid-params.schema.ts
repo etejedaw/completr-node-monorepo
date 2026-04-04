@@ -2,7 +2,7 @@ import z from "zod";
 
 export const UserIdParamsSchema = z
 	.object({
-		userId: z.string()
+		userId: z.uuid()
 	})
 	.strict()
 	.readonly();

@@ -40,14 +40,14 @@
 - [x] **Game**: id (UUID), title, slug, cover_url, hltb_duration, metacritic_score, metadata_pending (bool), created_at
 - [x] **Platform**: id (UUID), name, slug, code
 - [x] **Genre**: id (UUID), name, slug, code
-- [x] **GamePlatform**: game_id, platform_id _(tabla pivote)_
-- [x] **GameGenre**: game_id, genre_id _(tabla pivote)_
-- [x] **GameShelf**: id, user_id, game_id, user_rating (nullable), real_duration (nullable), notes (nullable), acquired_at — _Registro de qué juegos tiene el usuario, no de listas_
+- [x] **GamePlatform**: game*id, platform_id *(tabla pivote)\_
+- [x] **GameGenre**: game*id, genre_id *(tabla pivote)\_
+- [x] **GameShelf**: id, user*id, game_id, user_rating (nullable), real_duration (nullable), notes (nullable), acquired_at — \_Registro de qué juegos tiene el usuario, no de listas*
 - [x] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
 - [x] **ListItem**: id, list_id, game_id, playthrough_id (nullable — null en `collection` usa estado global, en `challenge` apunta al playthrough creado), position (int, para orden manual), added_at
-- [x] **ListFollower**: id, list_id, user_id, is_visible (bool, default true — controla si el seguimiento aparece en el perfil público del usuario), followed_at — _Permite a usuarios seguir listas públicas de otros. El progreso se calcula cruzando los juegos de la lista con el `UserGameStatus` del seguidor. Visibilidad: `User.isPublic AND ListFollower.isVisible`_
-- [x] **UserGameStatus**: user_id, game_id (PK compuesta), status (`not_started` | `playing` | `completed` | `abandoned`), play_count (int), updated_at — _Estado global del juego para el usuario. Se actualiza automáticamente según el playthrough más reciente_
-- [x] **UserPlaythrough (Playthrough)**: id (UUID), user_id, game_id, platform_id, status (`playing` | `completed` | `abandoned`), started_at, finished_at (nullable), real_duration (nullable), notes (nullable) — _Historial de partidas individuales. Cada vez que el usuario inicia o reinicia un juego se crea un nuevo registro. El número de playthrough se calcula en el serializer ordenando por `started_at`_
+- [x] **ListFollower**: id, list*id, user_id, is_visible (bool, default true — controla si el seguimiento aparece en el perfil público del usuario), followed_at — \_Permite a usuarios seguir listas públicas de otros. El progreso se calcula cruzando los juegos de la lista con el `UserGameStatus` del seguidor. Visibilidad: `User.isPublic AND ListFollower.isVisible`*
+- [x] **UserGameStatus**: user*id, game_id (PK compuesta), status (`not_started` | `playing` | `completed` | `abandoned`), play_count (int), updated_at — \_Estado global del juego para el usuario. Se actualiza automáticamente según el playthrough más reciente*
+- [x] **UserPlaythrough (Playthrough)**: id (UUID), user*id, game_id, platform_id, status (`playing` | `completed` | `abandoned`), started_at, finished_at (nullable), real_duration (nullable), notes (nullable) — \_Historial de partidas individuales. Cada vez que el usuario inicia o reinicia un juego se crea un nuevo registro. El número de playthrough se calcula en el serializer ordenando por `started_at`*
 - [x] Definir todas las asociaciones en `associations.database.ts` con Foreign Keys explícitamente tipadas como UUID
 
 ### Auth
@@ -67,7 +67,7 @@
 - [x] `game-shelf` — Patrón completo: ServiceError → DomainError → HttpError con normalizers y mappers
 - [x] Registrar `games`, `platforms`, `genres` y `game-shelf` en `global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts`
 - [x] Corregir `games.service.ts` — reemplazado `platformDomainError.platformNotFound()` por `gamesServiceError.platformNotFoundError()`
-- [ ] Agregar validación `.uuid()` en todos los schemas de params que reciben IDs (Zod v4 soporta `z.string().uuid()`)
+- [x] Agregar validación `z.uuid()` en todos los schemas de params que reciben IDs (Zod v4 usa `z.uuid()`, no `z.string().uuid()`)
 
 ### Correcciones de rutas
 
@@ -81,8 +81,8 @@
 
 ### Seed / datos iniciales
 
-- [ ] Seed de plataformas iniciales (PC, PS5, Xbox, Switch, etc.)
-- [ ] Seed de géneros iniciales (RPG, FPS, Survival Horror, etc.)
+- [ ] Cargar plataformas iniciales via API (`POST /platform`): Steam, PSX, PS2, PS3, PS4, PS5, PSP, PSVita, Xbox, X360, XOne, XSX, NES, SNES, N64, GCN, Wii, WiiU, Switch, Switch 2, GBA, NDS, 3DS, Genesis, Dreamcast, GOG, Epic, Android, iOS
+- [ ] Cargar géneros iniciales via API (`POST /genre`): Action, Adventure, RPG, FPS, TPS, Survival Horror, Platformer, Metroidvania, Puzzle, Strategy, Simulation, Racing, Fighting, Stealth, Roguelike, Souls-like, Visual Novel, Sandbox, Open World, etc.
 
 ---
 

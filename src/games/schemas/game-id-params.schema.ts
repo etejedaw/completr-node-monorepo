@@ -2,7 +2,7 @@ import z from "zod";
 
 export const GameIdParamSchema = z
 	.object({
-		id: z.string()
+		id: z.uuid()
 	})
 	.strict()
 	.readonly();

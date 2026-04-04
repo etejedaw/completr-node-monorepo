@@ -2,7 +2,7 @@ import z from "zod";
 
 export const PlatformIdParamSchema = z
 	.object({
-		platformId: z.string()
+		platformId: z.uuid()
 	})
 	.strict()
 	.readonly();

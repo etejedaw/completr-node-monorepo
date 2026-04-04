@@ -2,7 +2,7 @@ import z from "zod";
 
 export const GenreIdParamSchema = z
 	.object({
-		genreId: z.string()
+		genreId: z.uuid()
 	})
 	.strict()
 	.readonly();
