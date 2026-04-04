@@ -4,6 +4,8 @@ import { gamesDomainToHttpMapper } from "../../games/errors/games.domain-to-http
 import { platformsDomainToHttpMapper } from "../../platforms/errors/platforms.domain-to-http.mapper";
 import { genresDomainToHttpMapper } from "../../genres/errors/genres.domain-to-http.mapper";
 import { gameShelfDomainToHttpMapper } from "../../game-shelf/errors/game-shelf.domain-to-http.mapper";
+import { gameScoresDomainToHttpMapper } from "../../game-scores/errors/game-scores.domain-to-http.mapper";
+import { gameTimesDomainToHttpMapper } from "../../game-times/errors/game-times.domain-to-http.mapper";
 import { CustomRequest } from "../interfaces/custom-request.interface";
 import { commonDomainToHttpMapper } from "./common.domain-to-http.mapper";
 import { DomainError } from "./domain-error";
@@ -30,6 +32,12 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "GameShelf Module")
 		return gameShelfDomainToHttpMapper(error, request);
+
+	if (error.module === "GameScore Module")
+		return gameScoresDomainToHttpMapper(error, request);
+
+	if (error.module === "GameTime Module")
+		return gameTimesDomainToHttpMapper(error, request);
 
 	if (error.module === "Common Module" || error.module === "COMMON")
 		return commonDomainToHttpMapper(error, request);
