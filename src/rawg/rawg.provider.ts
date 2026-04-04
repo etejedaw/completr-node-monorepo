@@ -1,4 +1,8 @@
-import { RawgGameDetail, RawgGameSearchResult } from "./rawg.interface";
+import {
+	RawgGameDetail,
+	RawgGameSearchResult,
+	RawgSearchFilters
+} from "./rawg.interface";
 import * as rawgServiceError from "./errors/rawg.service-error";
 
 export class RawgProvider {
@@ -8,13 +12,20 @@ export class RawgProvider {
 
 	async searchGame(
 		query: string,
-		pageSize = 5
+		filters: RawgSearchFilters = {}
 	): Promise<RawgGameSearchResult[]> {
 		const url = new URL(`${this.BASE_URL}/games`);
 		url.searchParams.set("key", this.apiKey);
 		url.searchParams.set("search", query);
-		url.searchParams.set("page_size", pageSize.toString());
 		url.searchParams.set("search_precise", "true");
+
+		const { page_size = 5, ...rest } = filters;
+		url.searchParams.set("page_size", page_size.toString());
+
+		for (const [key, value] of Object.entries(rest)) {
+			if (value !== undefined)
+				url.searchParams.set(key, value.toString());
+		}
 
 		const response = await fetch(url.toString());
 		this.handleErrors(response);

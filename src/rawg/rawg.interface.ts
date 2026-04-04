@@ -34,3 +34,14 @@ export interface RawgSearchResponse {
 	next: string | null;
 	results: RawgGameSearchResult[];
 }
+
+export interface RawgSearchFilters {
+	page_size?: number;
+	dates?: string;
+	platforms?: string;
+	genres?: string;
+	metacritic?: string;
+	ordering?: string;
+	search_exact?: boolean;
+	exclude_additions?: boolean;
+}
