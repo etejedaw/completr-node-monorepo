@@ -15,6 +15,7 @@ import { GameTime } from "../game-times/game-time.model";
 import { SavedFilter } from "../saved-filters/saved-filter.model";
 
 export function setupAssociations() {
+	gameDlc();
 	gamePlatform();
 	gameGenre();
 	gameShelf();
@@ -26,6 +27,11 @@ export function setupAssociations() {
 	gameScores();
 	gameTimes();
 	savedFilters();
+}
+
+function gameDlc() {
+	Game.hasMany(Game, { foreignKey: "parentGameId", as: "Dlcs" });
+	Game.belongsTo(Game, { foreignKey: "parentGameId", as: "ParentGame" });
 }
 
 function gamePlatform() {
