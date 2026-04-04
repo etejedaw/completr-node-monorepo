@@ -5,6 +5,7 @@ import { RegisterGameSchema } from "./schemas/register-game.schema";
 import * as gamesController from "./games.controller";
 import { UpdateGameSchema } from "./schemas/update-game.schema";
 import { GameIdParamSchema } from "./schemas/game-id-params.schema";
+import { GameCodeParamSchema } from "./schemas/game-code-params.schema";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import {
 	publicLimiter,
@@ -15,15 +16,16 @@ const router = Router();
 
 router.get(
 	"/games",
-	authMiddleware("user", "premium", "moderator"),
-	rateLimiterMiddleware(publicLimiter),
+	[rateLimiterMiddleware(publicLimiter)],
 	gamesController.getAllGames
 );
 
 router.get(
 	"/games/:code",
-	authMiddleware("user", "premium", "moderator"),
-	rateLimiterMiddleware(publicLimiter),
+	[
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(GameCodeParamSchema, "params")
+	],
 	gamesController.getGameByCode
 );
 
