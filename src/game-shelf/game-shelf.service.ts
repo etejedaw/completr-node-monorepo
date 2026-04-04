@@ -1,7 +1,6 @@
 import { Game } from "../games/game.model";
 import { Genre } from "../genres/genres.model";
 import { Platform } from "../platforms/platform.model";
-import { Playthrough } from "../playthroughs/playthrough.model";
 import { User } from "../users";
 import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
@@ -20,7 +19,7 @@ export async function findGameShelfById(id: string) {
 }
 
 export async function findGameShelfByUserId(userId: string) {
-	const shelfItems = await GameShelf.findAll({
+	return await GameShelf.findAll({
 		where: { userId },
 		include: [
 			{ model: Game, include: [{ model: Genre }] },
@@ -28,22 +27,6 @@ export async function findGameShelfByUserId(userId: string) {
 			{ model: User }
 		]
 	});
-
-	const gameIds = shelfItems.map(item => item.gameId);
-
-	const completedPlaythroughs = await Playthrough.findAll({
-		where: { userId, gameId: gameIds, status: "completed" },
-		order: [["finishedAt", "ASC"]]
-	});
-
-	const playthroughMap = new Map<string, number>();
-	for (const pt of completedPlaythroughs) {
-		if (!playthroughMap.has(pt.gameId) && pt.realDuration) {
-			playthroughMap.set(pt.gameId, pt.realDuration);
-		}
-	}
-
-	return { shelfItems, playthroughMap };
 }
 
 export async function updateGameShelf(

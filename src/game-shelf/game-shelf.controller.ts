@@ -27,15 +27,10 @@ export async function getMeGameShelf(request: Request, response: Response) {
 
 	const userId = customRequest.user.id;
 
-	const { shelfItems, playthroughMap } =
-		await gameShelfService.findGameShelfByUserId(userId);
-	const gameShelfPlain = shelfItems.map(game => game.get({ plain: true }));
+	const gameShelf = await gameShelfService.findGameShelfByUserId(userId);
+	const gameShelfPlain = gameShelf.map(game => game.get({ plain: true }));
 
-	const data = {
-		gameShelf: gameShelfPlain.map(item =>
-			gameShelfMeSerializer(item, playthroughMap.get(item.gameId))
-		)
-	};
+	const data = { gameShelf: gameShelfPlain.map(gameShelfMeSerializer) };
 	return response.status(200).json({ data });
 }
 
