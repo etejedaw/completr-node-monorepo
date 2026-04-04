@@ -29,6 +29,16 @@ export async function findGameShelfByUserId(userId: string) {
 	});
 }
 
+export async function findPublicGameShelfByUserId(userId: string) {
+	return await GameShelf.findAll({
+		where: { userId, isPublic: true },
+		include: [
+			{ model: Game, include: [{ model: Genre }] },
+			{ model: Platform }
+		]
+	});
+}
+
 export async function updateGameShelf(
 	id: string,
 	userId: string,
