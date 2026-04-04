@@ -1,0 +1,57 @@
+info:
+    name: Create Game Time
+    type: http
+    seq: 1
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/game-times"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth:
+        type: bearer
+        token: "{{token}}"
+    body:
+        type: json
+        data: |-
+            {
+              "gameId": "",
+              "source": "hltb",
+              "duration": 15.5
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Create Game Time
+
+    Creates or updates a game duration for a specific source. If a time already exists for the same game and source, it will be updated.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Request Body
+
+    | Field    | Type   | Required | Description                           |
+    |----------|--------|----------|---------------------------------------|
+    | gameId   | uuid   | Yes      | The game UUID                         |
+    | source   | string | Yes      | Time source: hltb, rawg, backlogr     |
+    | duration | number | Yes      | Duration in hours                     |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "gameTime": {
+          "id": "uuid",
+          "gameId": "uuid",
+          "source": "hltb",
+          "duration": 15.5,
+          "updatedAt": "2025-01-01T00:00:00.000Z"
+        }
+      }
+    }
+    ```
