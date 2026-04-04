@@ -6,7 +6,6 @@ info:
 http:
     method: GET
     url: "{{BASE_URL}}/genres"
-    auth: inherit
 
 settings:
     encodeUrl: true

@@ -10,7 +10,6 @@ http:
         - name: code
           value: action
           type: path
-    auth: inherit
 
 settings:
     encodeUrl: true
