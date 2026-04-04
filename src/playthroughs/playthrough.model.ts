@@ -1,7 +1,11 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 
-export type PlaythroughStatus = "playing" | "completed" | "abandoned";
+export type PlaythroughStatus =
+	| "not_started"
+	| "playing"
+	| "completed"
+	| "abandoned";
 
 class Playthrough extends Model {
 	declare id: string;
@@ -38,9 +42,14 @@ Playthrough.init(
 			allowNull: false
 		},
 		status: {
-			type: DataTypes.ENUM("playing", "completed", "abandoned"),
+			type: DataTypes.ENUM(
+				"not_started",
+				"playing",
+				"completed",
+				"abandoned"
+			),
 			allowNull: false,
-			defaultValue: "playing"
+			defaultValue: "not_started"
 		},
 		startedAt: DataTypes.DATE,
 		finishedAt: DataTypes.DATE,
