@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { Platform } from "../platforms/platform.model";
+import { Genre } from "../genres/genres.model";
 
 class Game extends Model {
 	declare id: string;
@@ -15,6 +16,7 @@ class Game extends Model {
 	declare createdAt: Date;
 	declare updatedAt: Date;
 	declare Platforms: Platform[];
+	declare Genres: Genre[];
 }
 
 Game.init(

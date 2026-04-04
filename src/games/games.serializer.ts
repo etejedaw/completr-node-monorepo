@@ -1,3 +1,4 @@
+import { Genre } from "../genres/genres.model";
 import { Platform } from "../platforms/platform.model";
 import { Game } from "./game.model";
 
@@ -12,7 +13,8 @@ export function gameSerializer(game: Game) {
 		isDlc: game.isDlc,
 		parentGameId: game.parentGameId,
 		updatedAt: game.updatedAt,
-		platforms: game.Platforms.map(platformSerializer)
+		platforms: game.Platforms.map(platformSerializer),
+		genres: game.Genres.map(genreSerializer)
 	};
 }
 
@@ -22,5 +24,13 @@ function platformSerializer(platform: Platform) {
 		name: platform.name,
 		code: platform.code,
 		abbreviation: platform.abbreviation
+	};
+}
+
+function genreSerializer(genre: Genre) {
+	return {
+		id: genre.id,
+		name: genre.name,
+		code: genre.code
 	};
 }
