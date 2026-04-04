@@ -5,7 +5,9 @@ import { userLimiter } from "../common/config/rate-limiter.config";
 import { authMiddleware } from "../auth/auth.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { RegisterGameTimeSchema } from "./schemas/register-game-time.schema";
+import { UpdateGameTimeSchema } from "./schemas/update-game-time.schema";
 import { GameTimeParamsSchema } from "./schemas/game-time-params.schema";
+import { GameTimeIdParamsSchema } from "./schemas/game-time-id-params.schema";
 
 const router = Router();
 
@@ -17,6 +19,17 @@ router.post(
 		validateSchemaMiddleware(RegisterGameTimeSchema, "body")
 	],
 	gameTimesController.postGameTime
+);
+
+router.patch(
+	"/game-times/:gameId/:source",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("moderator"),
+		validateSchemaMiddleware(GameTimeIdParamsSchema, "params"),
+		validateSchemaMiddleware(UpdateGameTimeSchema, "body")
+	],
+	gameTimesController.patchGameTime
 );
 
 router.get(
