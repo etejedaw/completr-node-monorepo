@@ -37,7 +37,7 @@ docs: |-
     | Field    | Type   | Required | Description                           |
     |----------|--------|----------|---------------------------------------|
     | gameId   | uuid   | Yes      | The game UUID                         |
-    | source   | string | Yes      | Time source: hltb, rawg, backlogr     |
+    | source   | string | Yes      | Time source: hltb, rawg     |
     | duration | number | Yes      | Duration in hours                     |
 
     ### Response (201)

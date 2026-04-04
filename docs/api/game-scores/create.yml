@@ -37,7 +37,7 @@ docs: |-
     | Field  | Type   | Required | Description                                      |
     |--------|--------|----------|--------------------------------------------------|
     | gameId | uuid   | Yes      | The game UUID                                    |
-    | source | string | Yes      | Score source: metacritic, opencritic, rawg, backlogr |
+    | source | string | Yes      | Score source: metacritic, opencritic, rawg |
     | score  | number | Yes      | The score value (scale depends on source)        |
 
     ### Response (201)
