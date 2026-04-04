@@ -44,7 +44,10 @@ function gameSerializer(game: Game) {
 		description: game.description,
 		releaseAt: game.releaseAt,
 		coverUrl: game.coverUrl,
-		isDlc: game.isDlc
+		isDlc: game.isDlc,
+		genres:
+			game.Genres?.map(g => ({ id: g.id, name: g.name, code: g.code })) ??
+			[]
 	};
 }
 

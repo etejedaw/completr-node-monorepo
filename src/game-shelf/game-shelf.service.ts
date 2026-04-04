@@ -1,4 +1,5 @@
 import { Game } from "../games/game.model";
+import { Genre } from "../genres/genres.model";
 import { Platform } from "../platforms/platform.model";
 import { Playthrough } from "../playthroughs/playthrough.model";
 import { User } from "../users";
@@ -21,7 +22,11 @@ export async function findGameShelfById(id: string) {
 export async function findGameShelfByUserId(userId: string) {
 	const shelfItems = await GameShelf.findAll({
 		where: { userId },
-		include: [{ model: Game }, { model: Platform }, { model: User }]
+		include: [
+			{ model: Game, include: [{ model: Genre }] },
+			{ model: Platform },
+			{ model: User }
+		]
 	});
 
 	const gameIds = shelfItems.map(item => item.gameId);
