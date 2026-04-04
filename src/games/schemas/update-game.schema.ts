@@ -5,9 +5,7 @@ export const UpdateGameSchema = z
 		description: z.string().nonempty().optional(),
 		platforms: z.array(z.string().max(100).nonempty()).optional(),
 		releaseAt: z.iso.date().optional(),
-		coverUrl: z.string().optional(),
-		averageScore: z.number().optional(),
-		averagePlaytime: z.number().optional()
+		coverUrl: z.string().optional()
 	})
 	.strict()
 	.readonly();

@@ -10,6 +10,8 @@ import { ListItem } from "../list-items/list-item.model";
 import { ListFollower } from "../list-followers/list-follower.model";
 import { UserGameStatus } from "../user-game-status/user-game-status.model";
 import { Playthrough } from "../playthroughs/playthrough.model";
+import { GameScore } from "../game-scores/game-score.model";
+import { SavedFilter } from "../saved-filters/saved-filter.model";
 
 export function setupAssociations() {
 	gamePlatform();
@@ -20,6 +22,8 @@ export function setupAssociations() {
 	listFollowers();
 	userGameStatus();
 	playthroughs();
+	gameScores();
+	savedFilters();
 }
 
 function gamePlatform() {
@@ -102,4 +106,14 @@ function playthroughs() {
 
 	Platform.hasMany(Playthrough, { foreignKey: "platformId" });
 	Playthrough.belongsTo(Platform, { foreignKey: "platformId" });
+}
+
+function gameScores() {
+	Game.hasMany(GameScore, { foreignKey: "gameId" });
+	GameScore.belongsTo(Game, { foreignKey: "gameId" });
+}
+
+function savedFilters() {
+	User.hasMany(SavedFilter, { foreignKey: "userId" });
+	SavedFilter.belongsTo(User, { foreignKey: "userId" });
 }

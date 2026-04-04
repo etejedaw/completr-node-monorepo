@@ -14,6 +14,8 @@ import "../list-items/list-item.model";
 import "../list-followers/list-follower.model";
 import "../user-game-status/user-game-status.model";
 import "../playthroughs/playthrough.model";
+import "../game-scores/game-score.model";
+import "../saved-filters/saved-filter.model";
 
 export async function databaseInit() {
 	setupAssociations();

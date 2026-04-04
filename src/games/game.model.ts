@@ -9,8 +9,6 @@ class Game extends Model {
 	declare description: string;
 	declare releaseAt?: Date;
 	declare coverUrl?: string;
-	declare averageScore?: number;
-	declare averagePlaytime?: number;
 	declare isActive: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -37,8 +35,6 @@ Game.init(
 		description: DataTypes.STRING,
 		releaseAt: DataTypes.DATE,
 		coverUrl: DataTypes.STRING,
-		averageScore: DataTypes.FLOAT,
-		averagePlaytime: DataTypes.FLOAT,
 		isActive: {
 			type: DataTypes.BOOLEAN,
 			defaultValue: true
