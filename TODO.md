@@ -37,14 +37,14 @@
 ### Modelos de base de datos
 
 - [x] **User**: id (UUID), username, email, password_hash, steam_id (nullable), avatar_url, role, created_at
-- [x] **Game**: id (UUID), title, slug, description (TEXT), cover_url, release_at, is_dlc, parent_game_id (self-reference nullable para DLCs), is_active, created_at — `averageScore` y `averagePlaytime` eliminados, viven en `GameScore`/`GameTime`
+- [x] **Game**: id (UUID), title, slug, description (STRING), cover_url, release_at, is_dlc, parent_game_id (self-reference nullable para DLCs), is_active, created_at — scores y times viven en `GameScore`/`GameTime`
 - [x] **Platform**: id (UUID), name, slug, code
 - [x] **Genre**: id (UUID), name, slug, code
 - [x] **GamePlatform**: game*id, platform_id *(tabla pivote)\_
 - [x] **GameGenre**: game_id, genre_id (tabla pivote)
 - [x] **GameScore**: id (UUID), game_id, source (`metacritic` | `opencritic` | `rawg` | `completr`), score (number), updated_at — Puntajes globales por fuente. Unique index en (game_id, source). Datos en crudo (RAWG usa escala 0-5). Actualizado por cron mensual
 - [x] **GameTime**: id (UUID), game_id, source (`hltb` | `rawg` | `completr`), duration (number), updated_at — Tiempos globales por fuente. Unique index en (game_id, source). Actualizado por cron mensual
-- [x] **GameShelf**: id, user_id, game_id, user_rating (nullable), notes (nullable), acquired_at, score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Registro de qué juegos tiene el usuario + puntaje/duración que eligió usar para su ratio
+- [x] **GameShelf**: id, user_id, game_id, platform_id, is_public, acquired_at, edition, notes — Colección de juegos que el usuario posee. Sin score/duration (esos viven en ListItem)
 - [x] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
 - [x] **ListItem**: id, list_id, game_id, playthrough_id (nullable), position (int), score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Datos de puntaje congelados al añadir a la lista, actualizables manualmente por el usuario
 - [x] **SavedFilter**: id (UUID), user_id, name, filters (JSON), sort_by (nullable), sort_order, created_at — Filtros guardados del backlog. Free: hasta 3, Premium: ilimitados
@@ -113,17 +113,18 @@
 - [x] `GET /games/:id` — Detalle de juego
 - [x] `PATCH /games/:id` — Editar juego
 - [x] `DELETE /games/:id` — Eliminar juego
-- [x] Serializer de juego (expone `ratio = metacritic_score / hltb_duration` calculado en backend)
-- [x] Schemas de validación: `register-game.schema.ts`, `update-game.schema.ts`
+- [x] Serializer de juego con scores[], times[], genres[], platforms[] y ratio canónico (completr score / completr time)
+- [x] Endpoints GET públicos (sin auth, solo rate limit)
+- [x] Schemas de validación: `register-game.schema.ts`, `update-game.schema.ts`, `game-code-params.schema.ts`, `game-id-params.schema.ts`
 
 ### Módulo de Game Shelf (librería del usuario)
 
-- [x] `POST /game-shelf` — Añadir un juego a la librería del usuario
-- [x] `GET /game-shelf/me` — Ver mi librería completa
-- [x] `PATCH /game-shelf/:id` — Actualizar `user_rating`, `real_duration`, `notes`
-- [x] `DELETE /game-shelf/:id` — Quitar juego de la librería
-- [x] Serializers (full, me, tiny) con score, duration, scoreSource, durationSource y ratio calculado (`score / duration`)
-- [x] Serializer con `personal_ratio = GameShelf.score / Playthrough.real_duration` cuando `real_duration` esté disponible (usa el primer playthrough completado)
+- [x] `POST /users/me/game-shelf` — Añadir un juego a la colección
+- [x] `GET /users/me/game-shelf` — Ver mi colección completa
+- [x] `PATCH /users/me/game-shelf/:id` — Actualizar edición, notas, fecha de adquisición
+- [x] `DELETE /users/me/game-shelf/:id` — Quitar juego de la colección (borrado físico)
+- [x] `GET /users/:username/game-shelf` — Ver colección pública de otro usuario (respeta User.isPublic + GameShelf.isPublic)
+- [x] Serializers (full, me, tiny) con datos de colección (sin score/duration, esos viven en ListItem)
 
 ### Módulo de Playthroughs
 
