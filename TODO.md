@@ -84,8 +84,8 @@
 
 ### Seed / datos iniciales
 
-- [ ] Cargar plataformas iniciales via API (`POST /platform`): Steam, PSX, PS2, PS3, PS4, PS5, PSP, PSVita, Xbox, X360, XOne, XSX, NES, SNES, N64, GCN, Wii, WiiU, Switch, Switch 2, GBA, NDS, 3DS, Genesis, Dreamcast, GOG, Epic, Android, iOS
-- [ ] Cargar géneros iniciales via API (`POST /genre`): Action, Adventure, RPG, FPS, TPS, Survival Horror, Platformer, Metroidvania, Puzzle, Strategy, Simulation, Racing, Fighting, Stealth, Roguelike, Souls-like, Visual Novel, Sandbox, Open World, etc.
+- [x] Cargar plataformas iniciales via API (`POST /platform`): 35 plataformas (Sony, Microsoft, Nintendo, Sega, PC stores, mobile)
+- [x] Cargar géneros iniciales via API (`POST /genre`): 38 géneros (Action, RPG, FPS, Survival Horror, Metroidvania, etc.)
 
 ---
 
