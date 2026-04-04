@@ -6,8 +6,7 @@ info:
 http:
     method: GET
     url: "{{BASE_URL}}/games"
-    auth:
-        type: none
+    auth: none
 
 settings:
     encodeUrl: true

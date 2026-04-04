@@ -6,8 +6,7 @@ info:
 http:
     method: DELETE
     url: "{{BASE_URL}}/users/me/deactivate"
-    auth:
-        type: inherit
+    auth: inherit
 
 settings:
     encodeUrl: true

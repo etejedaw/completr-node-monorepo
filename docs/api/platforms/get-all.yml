@@ -6,8 +6,7 @@ info:
 http:
     method: GET
     url: "{{BASE_URL}}/platform"
-    auth:
-        type: inherit
+    auth: inherit
 
 settings:
     encodeUrl: true

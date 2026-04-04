@@ -10,8 +10,7 @@ http:
         - name: genreId
           value: ""
           type: path
-    auth:
-        type: inherit
+    auth: inherit
 
 settings:
     encodeUrl: true

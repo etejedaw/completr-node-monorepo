@@ -10,8 +10,7 @@ http:
         - name: code
           value: metro-exodus
           type: path
-    auth:
-        type: none
+    auth: none
 
 settings:
     encodeUrl: true

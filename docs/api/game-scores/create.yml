@@ -9,8 +9,7 @@ http:
     headers:
         - name: Content-Type
           value: application/json
-    auth:
-        type: inherit
+    auth: inherit
     body:
         type: json
         data: |-
