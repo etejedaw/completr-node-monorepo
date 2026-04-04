@@ -1,7 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 
-export type ScoreSource = "metacritic" | "opencritic" | "backlogr";
+export type ScoreSource = "metacritic" | "opencritic" | "rawg" | "backlogr";
 
 class GameScore extends Model {
 	declare id: string;
@@ -24,7 +24,12 @@ GameScore.init(
 			allowNull: false
 		},
 		source: {
-			type: DataTypes.ENUM("metacritic", "opencritic", "backlogr"),
+			type: DataTypes.ENUM(
+				"metacritic",
+				"opencritic",
+				"rawg",
+				"backlogr"
+			),
 			allowNull: false
 		},
 		score: {
