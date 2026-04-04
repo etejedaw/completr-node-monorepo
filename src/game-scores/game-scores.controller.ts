@@ -13,7 +13,9 @@ export async function postGameScore(request: Request, response: Response) {
 		registerGameScoreDto.source,
 		registerGameScoreDto.score
 	);
-	const data = { gameScore: gameScore.get({ plain: true }) };
+	const gameScorePlain = gameScore.get({ plain: true });
+
+	const data = { gameScore: gameScorePlain };
 	return response.status(201).json({ data });
 }
 
@@ -26,7 +28,9 @@ export async function patchGameScore(request: Request, response: Response) {
 		params.source,
 		updateGameScoreDto.score
 	);
-	const data = { gameScore: gameScore.get({ plain: true }) };
+	const gameScorePlain = gameScore.get({ plain: true });
+
+	const data = { gameScore: gameScorePlain };
 	return response.status(200).json({ data });
 }
 
@@ -34,8 +38,8 @@ export async function getGameScores(request: Request, response: Response) {
 	const params = request.params as GameScoreParams;
 
 	const scores = await gameScoresService.findScoresByGameId(params.gameId);
-	const data = {
-		gameScores: scores.map(s => s.get({ plain: true }))
-	};
+	const scoresPlain = scores.map(score => score.get({ plain: true }));
+
+	const data = { gameScores: scoresPlain };
 	return response.status(200).json({ data });
 }
