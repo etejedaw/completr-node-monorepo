@@ -11,8 +11,7 @@ http:
           value: ""
           type: path
     auth:
-        type: bearer
-        token: "{{token}}"
+        type: inherit
 
 settings:
     encodeUrl: true

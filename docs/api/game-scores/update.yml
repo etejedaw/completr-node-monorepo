@@ -17,8 +17,7 @@ http:
         - name: Content-Type
           value: application/json
     auth:
-        type: bearer
-        token: "{{token}}"
+        type: inherit
     body:
         type: json
         data: |-

@@ -11,8 +11,7 @@ http:
           value: metro-exodus
           type: path
     auth:
-        type: bearer
-        token: "{{token}}"
+        type: none
 
 settings:
     encodeUrl: true

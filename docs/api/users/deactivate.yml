@@ -7,8 +7,7 @@ http:
     method: DELETE
     url: "{{BASE_URL}}/users/me/deactivate"
     auth:
-        type: bearer
-        token: "{{token}}"
+        type: inherit
 
 settings:
     encodeUrl: true

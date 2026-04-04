@@ -7,8 +7,7 @@ http:
     method: GET
     url: "{{BASE_URL}}/genres"
     auth:
-        type: bearer
-        token: "{{token}}"
+        type: inherit
 
 settings:
     encodeUrl: true
