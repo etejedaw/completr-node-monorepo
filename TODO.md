@@ -209,6 +209,13 @@
 - [ ] Ordenamiento y filtrado básico en el frontend
 - [ ] Vista de progreso básico del backlog
 
+### Deploy inicial (VPS)
+
+- [ ] Crear base de datos `completr` en PostgreSQL del VPS
+- [ ] Cambiar default de `PG_DATABASE` a `completr` en `database.config.ts` y en `docker-compose`
+- [ ] Configurar variables de entorno en la instancia del backend
+- [ ] Migrar base de datos desde local al VPS
+
 ---
 
 ## 🟧 FASE 2 — MVP Amigos _(~3–4 semanas)_
