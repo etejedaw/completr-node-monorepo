@@ -5,7 +5,7 @@ info:
 
 http:
     method: POST
-    url: "{{BASE_URL}}/genre"
+    url: "{{BASE_URL}}/genres"
     headers:
         - name: Content-Type
           value: application/json
@@ -26,10 +26,6 @@ docs: |-
     ## Create Genre
 
     Creates a new genre entry.
-
-    > **Note:** This endpoint is NOT registered in the server yet.
-    > The genre router is defined but not imported in `server.ts`.
-    > Additionally, the route path uses `/genre` (singular) instead of `/genres`.
 
     **Authentication:** Bearer token required (role: moderator).
     **Rate Limit:** 50 requests per minute.
