@@ -8,7 +8,6 @@ import { GameShelf } from "../game-shelf/game-shelf.model";
 import { List } from "../lists/list.model";
 import { ListItem } from "../list-items/list-item.model";
 import { ListFollower } from "../list-followers/list-follower.model";
-import { UserGameStatus } from "../user-game-status/user-game-status.model";
 import { Playthrough } from "../playthroughs/playthrough.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
@@ -22,7 +21,6 @@ export function setupAssociations() {
 	lists();
 	listItems();
 	listFollowers();
-	userGameStatus();
 	playthroughs();
 	gameScores();
 	gameTimes();
@@ -95,14 +93,6 @@ function listFollowers() {
 
 	User.hasMany(ListFollower, { foreignKey: "userId" });
 	ListFollower.belongsTo(User, { foreignKey: "userId" });
-}
-
-function userGameStatus() {
-	User.hasMany(UserGameStatus, { foreignKey: "userId" });
-	UserGameStatus.belongsTo(User, { foreignKey: "userId" });
-
-	Game.hasMany(UserGameStatus, { foreignKey: "gameId" });
-	UserGameStatus.belongsTo(Game, { foreignKey: "gameId" });
 }
 
 function playthroughs() {

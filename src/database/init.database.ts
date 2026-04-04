@@ -12,7 +12,6 @@ import "../game-shelf/game-shelf.model";
 import "../lists/list.model";
 import "../list-items/list-item.model";
 import "../list-followers/list-follower.model";
-import "../user-game-status/user-game-status.model";
 import "../playthroughs/playthrough.model";
 import "../game-scores/game-score.model";
 import "../game-times/game-time.model";
