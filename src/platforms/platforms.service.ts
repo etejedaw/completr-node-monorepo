@@ -20,11 +20,11 @@ export async function registerPlatform(
 	}
 }
 
-export async function findPlaformByCode(code: string) {
+export async function findPlatformByCode(code: string) {
 	return await Platform.findOne({ where: { code } });
 }
 
-export async function findPlaformById(id: string) {
+export async function findPlatformById(id: string) {
 	return await Platform.findOne({ where: { id } });
 }
 
@@ -40,25 +40,15 @@ export async function updatePlatform(
 	id: string,
 	updatePlatformDto: UpdatePlatformDto
 ) {
-	const platform = await findPlaformById(id);
+	const platform = await findPlatformById(id);
 	if (!platform) throw platformServiceError.notFoundError();
 
 	await platform.update(updatePlatformDto);
 	return platform;
 }
 
-export async function updateTitle(id: string, title: string) {
-	const platform = await findPlaformById(id);
-	if (!platform) throw platformServiceError.notFoundError();
-
-	const code = titleToSlug(title);
-
-	await platform.update({ title, code });
-	return platform;
-}
-
 export async function removePlatform(id: string) {
-	const platform = await findPlaformById(id);
+	const platform = await findPlatformById(id);
 	if (!platform) return false;
 
 	await Platform.destroy({ where: { id } });

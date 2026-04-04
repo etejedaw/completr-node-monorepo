@@ -12,7 +12,7 @@ export async function getPlatformByCode(request: Request, response: Response) {
 
 	const { code } = param;
 
-	const platform = await platformService.findPlaformByCode(code);
+	const platform = await platformService.findPlatformByCode(code);
 	if (!platform) throw platformDomainError.platformNotFound();
 
 	const platformPlain = platform.get({ plain: true });
