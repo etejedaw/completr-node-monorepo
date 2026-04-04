@@ -15,26 +15,22 @@ import { PlatformIdParamSchema } from "./schemas/platformid-params.schema";
 const router = Router();
 
 router.get(
-	"/platform",
-	[
-		rateLimiterMiddleware(publicLimiter),
-		authMiddleware("user", "premium", "moderator")
-	],
+	"/platforms",
+	[rateLimiterMiddleware(publicLimiter)],
 	platformController.getAllPlatforms
 );
 
 router.get(
-	"/platform/:code",
+	"/platforms/:code",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		authMiddleware("user", "premium", "moderator"),
 		validateSchemaMiddleware(PlatformCodeParamSchema, "params")
 	],
 	platformController.getPlatformByCode
 );
 
 router.post(
-	"/platform",
+	"/platforms",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
@@ -44,17 +40,18 @@ router.post(
 );
 
 router.patch(
-	"/platform/:id",
+	"/platforms/:platformId",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		validateSchemaMiddleware(PlatformIdParamSchema, "params"),
 		validateSchemaMiddleware(UpdatePlatformSchema, "body")
 	],
 	platformController.patchPlatform
 );
 
 router.delete(
-	"/platform/:id",
+	"/platforms/:platformId",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
