@@ -27,7 +27,7 @@ settings:
 docs: |-
     ## Create Game Time
 
-    Creates or updates a game duration for a specific source. If a time already exists for the same game and source, it will be updated.
+    Creates a game duration for a specific source. Returns 409 if a time for this game and source already exists.
 
     **Authentication:** Bearer token required (role: moderator).
     **Rate Limit:** 50 requests per minute.

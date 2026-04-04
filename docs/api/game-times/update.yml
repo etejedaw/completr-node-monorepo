@@ -1,0 +1,67 @@
+info:
+    name: Update Game Time
+    type: http
+    seq: 3
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/game-times/:gameId/:source"
+    params:
+        - name: gameId
+          value: ""
+          type: path
+        - name: source
+          value: hltb
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth:
+        type: bearer
+        token: "{{token}}"
+    body:
+        type: json
+        data: |-
+            {
+              "duration": 18.5
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Update Game Time
+
+    Updates an existing game duration for a specific source. Returns 404 if the time does not exist.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param  | Type   | Required | Description                        |
+    |--------|--------|----------|------------------------------------|
+    | gameId | uuid   | Yes      | The game UUID                      |
+    | source | string | Yes      | Time source: hltb, rawg            |
+
+    ### Request Body
+
+    | Field    | Type   | Required | Description             |
+    |----------|--------|----------|-------------------------|
+    | duration | number | Yes      | The new duration in hours |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "gameTime": {
+          "id": "uuid",
+          "gameId": "uuid",
+          "source": "hltb",
+          "duration": 18.5,
+          "updatedAt": "2025-01-01T00:00:00.000Z"
+        }
+      }
+    }
+    ```
