@@ -52,7 +52,7 @@ El score y la duration dependen de lo que el usuario eligió en su GameShelf (pu
 personal_ratio = GameShelf.score / Playthrough.real_duration
 ```
 
-Se calcula desde el `UserPlaythrough` completado. Si hay múltiples playthroughs completados, se usa el primero o el mejor. Permite comparar la estimación con la experiencia personal.
+Se calcula desde el `Playthrough` completado. Si hay múltiples playthroughs completados, se usa el primero o el mejor. Permite comparar la estimación con la experiencia personal.
 
 ### Filtros guardados
 
@@ -60,54 +60,47 @@ Los usuarios pueden filtrar su backlog libremente (status, género, plataforma, 
 
 ### Estados de un juego
 
-4 estados posibles tanto para `UserGameStatus` (global) como `UserPlaythrough` (individual):
+4 estados posibles en `Playthrough`:
 
-- **No Iniciado** (`not_started`) — en la lista pero sin empezar (solo en `UserGameStatus`)
+- **No Iniciado** (`not_started`) — el usuario quiere jugar este juego pero aún no empezó
 - **Jugando** (`playing`) — en progreso
 - **Completado** (`completed`) — terminado, con fecha de finalización
-- **Abandonado** (`abandoned`) — dejado, opcionalmente con motivo
+- **Abandonado** (`abandoned`) — dejado, opcionalmente con motivo en notas
 
-### Estado global vs Playthroughs (modelo inspirado en Trakt)
+### Playthroughs (modelo inspirado en Trakt)
 
-El estado de un juego para el usuario se maneja en dos niveles:
+`Playthrough` es la tabla central de tracking. Contiene todo el historial del usuario:
 
-**`UserGameStatus`** — Estado global, fuente de verdad:
-
-- Indica si el usuario completó el juego alguna vez
-- Se actualiza automáticamente según el playthrough más reciente
-- Tiene `play_count` para saber cuántas veces se ha jugado
-- Ejemplo: `{ game: RE2, status: completed, play_count: 2 }`
-
-**`UserPlaythrough`** — Historial de partidas individuales:
-
-- Cada vez que el usuario inicia o reinicia un juego, se crea un nuevo playthrough
+- Cada vez que el usuario quiere jugar, inicia o reinicia un juego, se crea un nuevo playthrough
 - Tiene su propio status, fechas, duración real, plataforma y notas
 - Permite comparar experiencias: "lo completé en 8h en PSX, después en 5h en Steam"
-- El `abandon_reason` vive aquí (por partida, no por juego)
+- El estado actual de un juego se deriva del playthrough más reciente
+- El `play_count` se calcula: `COUNT(playthroughs) WHERE gameId AND userId`
 
-**Flujo automático:**
+**Flujo:**
 
-1. Usuario inicia un juego → se crea `UserPlaythrough(#1, playing)` + `UserGameStatus(playing, play_count: 1)`
-2. Lo completa → `UserPlaythrough(#1, completed)` + `UserGameStatus(completed)`
-3. Un año después lo rejuega → `UserPlaythrough(#2, playing)` + `UserGameStatus(playing, play_count: 2)`
-4. Lo completa de nuevo → `UserPlaythrough(#2, completed)` + `UserGameStatus(completed, play_count: 2)`
+1. Usuario quiere jugar RE4 → se crea `Playthrough(#1, not_started)`
+2. Lo empieza → `Playthrough(#1, playing)`
+3. Lo completa → `Playthrough(#1, completed)`
+4. Un año después lo rejuega → se crea `Playthrough(#2, playing)` (play_count ahora es 2)
+5. Lo completa de nuevo → `Playthrough(#2, completed)`
 
 ### Vistas vs Listas
 
 Concepto clave derivado del flujo actual en NocoDB:
 
-**Vistas** = filtros sobre `UserGameStatus` y `UserPlaythrough`. NO son listas separadas:
+**Vistas** = filtros sobre `Playthrough`. NO son listas separadas:
 
-- "Pendientes" → `UserGameStatus` where status = `not_started`
-- "Jugando" → `UserGameStatus` where status = `playing`
-- "Completados" → `UserGameStatus` where status = `completed`
-- "Semestre 2025-S01" → `UserPlaythrough` where `finished_at` entre ene-jun 2025
+- "Pendientes" → `Playthrough` where status = `not_started`
+- "Jugando" → `Playthrough` where status = `playing`
+- "Completados" → `Playthrough` where status = `completed`
+- "Semestre 2025-S01" → `Playthrough` where `finished_at` entre ene-jun 2025
 
 **Listas** = colecciones curadas de juegos. Son entidades propias con dos tipos:
 
 **`collection`** — Lista para organizar juegos:
 
-- Muestra el estado global desde `UserGameStatus`
+- Muestra el estado del juego desde el playthrough más reciente del usuario
 - Si ya completaste un juego, aparece como completado
 - No crea playthroughs nuevos
 - Ejemplos: "Saga Resident Evil", "RPGs favoritos", "TOP 30 para Anbernic RG40XX"
@@ -116,7 +109,7 @@ Concepto clave derivado del flujo actual en NocoDB:
 
 **`challenge`** — Lista con tracking propio desde cero:
 
-- Al añadir un juego, se crea un nuevo `UserPlaythrough` automáticamente
+- Al añadir un juego, se crea un nuevo `Playthrough` automáticamente
 - El progreso es independiente del estado global
 - Tiene `start_date`, `end_date` y `target_count` opcionales
 - Ejemplos: "Semestre 2025-2", "Maratón horror octubre"
@@ -124,13 +117,13 @@ Concepto clave derivado del flujo actual en NocoDB:
 
 ### Semestres
 
-No existe un campo "semestre" en el modelo. El semestre se deriva de `UserPlaythrough.finished_at`: ene-jun = S01, jul-dic = S02. Las vistas semestrales son filtros por rango de fechas.
+No existe un campo "semestre" en el modelo. El semestre se deriva de `Playthrough.finished_at`: ene-jun = S01, jul-dic = S02. Las vistas semestrales son filtros por rango de fechas.
 
 ### Listas públicas y suscripción
 
 Cualquier lista con `is_public: true` puede ser seguida por otros usuarios (`ListFollower`). Cuando un seguidor ve una lista pública:
 
-- Ve todos los juegos de la lista con su propio estado global (`UserGameStatus`)
+- Ve todos los juegos de la lista con su propio estado (derivado de sus playthroughs)
 - Ve su progreso: "18/30 completados"
 - Para cada juego con múltiples playthroughs: ve cuántas veces lo ha completado
 - Estadísticas agregadas: seguidores totales, cuántos la completaron al 100%
@@ -153,15 +146,14 @@ Se implementa como una lista tipo `challenge` con `start_date`, `end_date` y `ta
 | `game-shelf`       | Juegos que **posee** el usuario con datos personales   | Tu estantería física              |
 | `lists`            | Colecciones curadas (`collection` o `challenge`)       | Listas temáticas o sagas          |
 | `list-followers`   | Suscripción a listas públicas de otros usuarios        | "Seguir esta lista"               |
-| `playthroughs`     | Historial de partidas individuales por juego           | Tu diario de gaming               |
-| `user-game-status` | Estado global del juego por usuario + vistas filtradas | "¿Ya lo completé?" + NocoDB views |
+| `playthroughs`     | Historial completo del usuario (quiere jugar, jugando, completado, abandonado) | Tu diario de gaming               |
 
 - Un juego puede estar en `game-shelf` sin estar en ninguna lista
 - Un juego puede estar en múltiples listas
-- `game-shelf` tiene datos personales: `user_rating`, `notes`, `acquired_at`, `edition`
-- `lists` tipo `collection` muestran estado global; tipo `challenge` crean playthroughs
+- `game-shelf` tiene datos de colección: `notes`, `acquired_at`, `edition`
+- `lists` tipo `collection` muestran estado derivado del playthrough más reciente; tipo `challenge` crean playthroughs nuevos
 - `ListItem` tiene `playthrough_id` (nullable): null en collections, apunta a playthrough en challenges
-- Las "vistas" (pendientes, jugando, semestre X) son filtros de API sobre `UserGameStatus`/`UserPlaythrough`, no listas
+- Las "vistas" (pendientes, jugando, semestre X) son filtros de API sobre `Playthrough`, no listas
 
 ### Lista Backlog
 
@@ -224,8 +216,7 @@ src/
 ├── game-genre/        # Tabla pivote juego ↔ género
 ├── saved-filters/     # (pendiente) Filtros guardados del backlog
 ├── lists/             # (pendiente) Listas collection y challenge
-├── playthroughs/      # (pendiente) Historial de partidas
-├── user-game-status/  # (pendiente) Estado global del juego por usuario
+├── playthroughs/      # (pendiente) Historial completo del usuario (not_started, playing, completed, abandoned)
 ├── rawg/              # Provider de RAWG API (géneros, descripción, scores, playtime, covers)
 ├── hltb/              # (pendiente) Provider de HowLongToBeat
 ├── metacritic/        # (pendiente) Provider de Metacritic/OpenCritic
@@ -413,7 +404,7 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - GameScore: endpoints de creación y consulta (sources: metacritic, opencritic, rawg, completr)
 - GameTime: endpoints de creación y consulta (sources: hltb, rawg, completr)
 - GameGenre: service para vincular juegos con géneros
-- Todos los modelos de DB creados: Game, Platform, Genre, GamePlatform, GameGenre, GameShelf, GameScore, GameTime, List, ListItem, ListFollower, UserGameStatus, Playthrough, SavedFilter
+- Todos los modelos de DB creados: Game, Platform, Genre, GamePlatform, GameGenre, GameShelf, GameScore, GameTime, List, ListItem, ListFollower, Playthrough, SavedFilter
 - Error handling completo en todos los módulos (registrados en normalizers globales)
 - Validación UUID (`z.uuid()` de Zod v4) en todos los schemas de params
 - RAWG provider implementado (`RawgProvider` class con searchGame, getGameById, getGameBySlug)
@@ -423,7 +414,7 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 
 ### Pendiente — Fase 1 (Excel Killer, solo yo)
 
-- `UserGameStatus` y `Playthrough` services, controllers y routes (modelos ya existen)
+- `Playthrough` services, controllers y routes (modelo ya existe)
 - Vistas como filtros de API (pendientes, jugando, completados, por semestre/fecha)
 - Módulo de Listas services, controllers y routes (`lists`, `list-items`) con tipos `collection` y `challenge`
 - Transacciones en operaciones multi-paso
