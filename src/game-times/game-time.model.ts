@@ -1,17 +1,17 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 
-export type ScoreSource = "metacritic" | "opencritic" | "backlogr";
+export type TimeSource = "hltb" | "backlogr";
 
-class GameScore extends Model {
+class GameTime extends Model {
 	declare id: string;
 	declare gameId: string;
-	declare source: ScoreSource;
-	declare score: number;
+	declare source: TimeSource;
+	declare duration: number;
 	declare updatedAt: Date;
 }
 
-GameScore.init(
+GameTime.init(
 	{
 		id: {
 			type: DataTypes.UUID,
@@ -24,10 +24,10 @@ GameScore.init(
 			allowNull: false
 		},
 		source: {
-			type: DataTypes.ENUM("metacritic", "opencritic", "backlogr"),
+			type: DataTypes.ENUM("hltb", "backlogr"),
 			allowNull: false
 		},
-		score: {
+		duration: {
 			type: DataTypes.FLOAT,
 			allowNull: false
 		}
@@ -39,4 +39,4 @@ GameScore.init(
 	}
 );
 
-export { GameScore };
+export { GameTime };

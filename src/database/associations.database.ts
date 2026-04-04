@@ -11,6 +11,7 @@ import { ListFollower } from "../list-followers/list-follower.model";
 import { UserGameStatus } from "../user-game-status/user-game-status.model";
 import { Playthrough } from "../playthroughs/playthrough.model";
 import { GameScore } from "../game-scores/game-score.model";
+import { GameTime } from "../game-times/game-time.model";
 import { SavedFilter } from "../saved-filters/saved-filter.model";
 
 export function setupAssociations() {
@@ -23,6 +24,7 @@ export function setupAssociations() {
 	userGameStatus();
 	playthroughs();
 	gameScores();
+	gameTimes();
 	savedFilters();
 }
 
@@ -111,6 +113,11 @@ function playthroughs() {
 function gameScores() {
 	Game.hasMany(GameScore, { foreignKey: "gameId" });
 	GameScore.belongsTo(Game, { foreignKey: "gameId" });
+}
+
+function gameTimes() {
+	Game.hasMany(GameTime, { foreignKey: "gameId" });
+	GameTime.belongsTo(Game, { foreignKey: "gameId" });
 }
 
 function savedFilters() {

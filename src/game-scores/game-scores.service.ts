@@ -3,20 +3,18 @@ import { GameScore, ScoreSource } from "./game-score.model";
 export async function upsertGameScore(
 	gameId: string,
 	source: ScoreSource,
-	score: number | null,
-	duration: number | null,
-	count = 1
+	score: number
 ) {
 	const existing = await GameScore.findOne({
 		where: { gameId, source }
 	});
 
 	if (existing) {
-		await existing.update({ score, duration, count });
+		await existing.update({ score });
 		return existing;
 	}
 
-	return GameScore.create({ gameId, source, score, duration, count });
+	return GameScore.create({ gameId, source, score });
 }
 
 export async function findScoresByGameId(gameId: string) {

@@ -42,7 +42,8 @@
 - [x] **Genre**: id (UUID), name, slug, code
 - [x] **GamePlatform**: game*id, platform_id *(tabla pivote)\_
 - [x] **GameGenre**: game_id, genre_id (tabla pivote)
-- [x] **GameScore**: game_id + source (PK compuesta), score (nullable), duration (nullable), count (int), updated_at — Catálogo global de puntajes y tiempos por fuente. Sources: `metacritic`, `opencritic`, `hltb`, `backlogr`. Actualizado por cron mensual
+- [x] **GameScore**: id (UUID), game_id, source (`metacritic` | `opencritic` | `backlogr`), score (number), updated_at — Puntajes globales por fuente. Unique index en (game_id, source). Actualizado por cron mensual
+- [x] **GameTime**: id (UUID), game_id, source (`hltb` | `backlogr`), duration (number), updated_at — Tiempos globales por fuente. Unique index en (game_id, source). Actualizado por cron mensual
 - [x] **GameShelf**: id, user_id, game_id, user_rating (nullable), notes (nullable), acquired_at, score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Registro de qué juegos tiene el usuario + puntaje/duración que eligió usar para su ratio
 - [x] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
 - [x] **ListItem**: id, list_id, game_id, playthrough_id (nullable), position (int), score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Datos de puntaje congelados al añadir a la lista, actualizables manualmente por el usuario

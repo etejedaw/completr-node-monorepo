@@ -3,20 +3,16 @@ import * as gameScoresService from "./game-scores.service";
 import { ScoreSource } from "./game-score.model";
 
 export async function postGameScore(request: Request, response: Response) {
-	const { gameId, source, score, duration, count } = request.body as {
+	const { gameId, source, score } = request.body as {
 		gameId: string;
 		source: ScoreSource;
-		score: number | null;
-		duration: number | null;
-		count?: number;
+		score: number;
 	};
 
 	const gameScore = await gameScoresService.upsertGameScore(
 		gameId,
 		source,
-		score,
-		duration,
-		count
+		score
 	);
 	const data = { gameScore: gameScore.get({ plain: true }) };
 	return response.status(201).json({ data });
