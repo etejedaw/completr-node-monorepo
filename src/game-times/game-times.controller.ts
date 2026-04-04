@@ -1,27 +1,24 @@
 import { Request, Response } from "express";
 import * as gameTimesService from "./game-times.service";
-import { TimeSource } from "./game-time.model";
+import { RegisterGameTimeDto } from "./dtos/register-game-time.dto";
+import { GameTimeParams } from "./schemas/game-time-params.schema";
 
 export async function postGameTime(request: Request, response: Response) {
-	const { gameId, source, duration } = request.body as {
-		gameId: string;
-		source: TimeSource;
-		duration: number;
-	};
+	const registerGameTimeDto = request.body as RegisterGameTimeDto;
 
 	const gameTime = await gameTimesService.upsertGameTime(
-		gameId,
-		source,
-		duration
+		registerGameTimeDto.gameId,
+		registerGameTimeDto.source,
+		registerGameTimeDto.duration
 	);
 	const data = { gameTime: gameTime.get({ plain: true }) };
 	return response.status(201).json({ data });
 }
 
 export async function getGameTimes(request: Request, response: Response) {
-	const { gameId } = request.params as { gameId: string };
+	const params = request.params as GameTimeParams;
 
-	const times = await gameTimesService.findTimesByGameId(gameId);
+	const times = await gameTimesService.findTimesByGameId(params.gameId);
 	const data = {
 		gameTimes: times.map(t => t.get({ plain: true }))
 	};
