@@ -37,13 +37,13 @@
 ### Modelos de base de datos
 
 - [x] **User**: id (UUID), username, email, password_hash, steam_id (nullable), avatar_url, role, created_at
-- [x] **Game**: id (UUID), title, slug, cover*url, metadata_pending (bool), created_at — *`averageScore` y `averagePlaytime` eliminados, ahora viven en `GameScore`\_
+- [x] **Game**: id (UUID), title, slug, description (TEXT), cover_url, release_at, is_dlc, parent_game_id (self-reference nullable para DLCs), is_active, created_at — `averageScore` y `averagePlaytime` eliminados, viven en `GameScore`/`GameTime`
 - [x] **Platform**: id (UUID), name, slug, code
 - [x] **Genre**: id (UUID), name, slug, code
 - [x] **GamePlatform**: game*id, platform_id *(tabla pivote)\_
 - [x] **GameGenre**: game_id, genre_id (tabla pivote)
-- [x] **GameScore**: id (UUID), game_id, source (`metacritic` | `opencritic` | `backlogr`), score (number), updated_at — Puntajes globales por fuente. Unique index en (game_id, source). Actualizado por cron mensual
-- [x] **GameTime**: id (UUID), game_id, source (`hltb` | `backlogr`), duration (number), updated_at — Tiempos globales por fuente. Unique index en (game_id, source). Actualizado por cron mensual
+- [x] **GameScore**: id (UUID), game_id, source (`metacritic` | `opencritic` | `rawg` | `backlogr`), score (number), updated_at — Puntajes globales por fuente. Unique index en (game_id, source). Datos en crudo (RAWG usa escala 0-5). Actualizado por cron mensual
+- [x] **GameTime**: id (UUID), game_id, source (`hltb` | `rawg` | `backlogr`), duration (number), updated_at — Tiempos globales por fuente. Unique index en (game_id, source). Actualizado por cron mensual
 - [x] **GameShelf**: id, user_id, game_id, user_rating (nullable), notes (nullable), acquired_at, score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Registro de qué juegos tiene el usuario + puntaje/duración que eligió usar para su ratio
 - [x] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
 - [x] **ListItem**: id, list_id, game_id, playthrough_id (nullable), position (int), score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Datos de puntaje congelados al añadir a la lista, actualizables manualmente por el usuario
@@ -82,10 +82,21 @@
 - [x] Mover `password.service.ts` y `token.service.ts` a `src/auth/services/`
 - [x] Actualizar imports en `auth.service.ts` y `auth.middleware.ts`
 
+### Providers
+
+- [x] RAWG provider (`src/rawg/`): clase `RawgProvider` con `searchGame(query, filters)`, `getGameById(id)`, `getGameBySlug(slug)`. Soporta filtros por fecha, plataforma, género, metacritic, ordenamiento y exclusión de DLCs.
+
+### Configuración
+
+- [x] Separar variables de entorno en: `environment.config.ts`, `database.config.ts`, `api-keys.config.ts`
+
 ### Seed / datos iniciales
 
 - [x] Cargar plataformas iniciales via API (`POST /platform`): 35 plataformas (Sony, Microsoft, Nintendo, Sega, PC stores, mobile)
 - [x] Cargar géneros iniciales via API (`POST /genre`): 38 géneros (Action, RPG, FPS, Survival Horror, Metroidvania, etc.)
+- [x] Cargar 517 juegos via API con datos de RAWG: descripciones, covers, fechas de lanzamiento, géneros vinculados, isDlc
+- [x] Cargar scores Metacritic (517) y RAWG (494) via `POST /game-scores`
+- [x] Cargar tiempos HLTB (517) y RAWG (398) via `POST /game-times`
 
 ---
 
@@ -112,7 +123,7 @@
 - [x] `GET /game-shelf/me` — Ver mi librería completa
 - [x] `PATCH /game-shelf/:id` — Actualizar `user_rating`, `real_duration`, `notes`
 - [x] `DELETE /game-shelf/:id` — Quitar juego de la librería
-- [ ] Serializer con `personal_ratio = metacritic_score / real_duration` cuando `real_duration` esté disponible
+- [ ] Serializer con `personal_ratio = GameShelf.score / Playthrough.real_duration` cuando `real_duration` esté disponible
 
 ### Módulo de Playthroughs y estado global
 
@@ -164,9 +175,10 @@
 
 ### Cálculo del Ratio
 
-- [x] Lógica en el Serializer/Service: `ratio = metacritic_score / hltb_duration`
-- [ ] `personal_ratio = metacritic_score / real_duration` (calculado desde el playthrough completado; si hay múltiples, usar el primero o el mejor)
+- [x] Lógica en el Serializer/Service: `ratio = score / duration`
+- [ ] `personal_ratio = GameShelf.score / Playthrough.real_duration` (calculado desde el playthrough completado; si hay múltiples, usar el primero o el mejor)
 - [ ] Ordenamiento de listas por ratio, nota, duración
+- [ ] El score y duration vienen de `GameShelf` (lo que el usuario eligió). En listas vienen de `ListItem` (congelados)
 
 ### Integración automática con HowLongToBeat y Metacritic/OpenCritic
 
