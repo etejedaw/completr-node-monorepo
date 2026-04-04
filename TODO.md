@@ -124,7 +124,7 @@
 - [x] `PATCH /game-shelf/:id` — Actualizar `user_rating`, `real_duration`, `notes`
 - [x] `DELETE /game-shelf/:id` — Quitar juego de la librería
 - [x] Serializers (full, me, tiny) con score, duration, scoreSource, durationSource y ratio calculado (`score / duration`)
-- [ ] Serializer con `personal_ratio = GameShelf.score / Playthrough.real_duration` cuando `real_duration` esté disponible
+- [x] Serializer con `personal_ratio = GameShelf.score / Playthrough.real_duration` cuando `real_duration` esté disponible (usa el primer playthrough completado)
 
 ### Módulo de Playthroughs y estado global
 
