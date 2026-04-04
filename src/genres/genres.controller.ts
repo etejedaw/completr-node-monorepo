@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { GenreCodeParam } from "./schemas/genre-code-params.schema";
 import * as genreService from "./genres.service";
 import * as genreDomainError from "./errors/genres.domain-error";
+import * as gamesService from "../games/games.service";
+import { gameSerializer } from "../games/games.serializer";
 import { RegisterGenreDto } from "./dtos/register-genre.dto";
 import { UpdateGenreDto } from "./dtos/update-genre.dto";
 import { GenreIdParam } from "./schemas/genre-id-params.schema";
@@ -49,6 +51,24 @@ export async function patchGenre(request: Request, response: Response) {
 	const genrePlain = genre.get({ plain: true });
 
 	const data = { genre: genrePlain };
+	return response.status(200).json({ data });
+}
+
+export async function getGamesByGenre(request: Request, response: Response) {
+	const param = request.params as GenreCodeParam;
+
+	const { code } = param;
+
+	const genre = await genreService.findGenreByCode(code);
+	if (!genre) throw genreDomainError.genreNotFound();
+
+	const games = await gamesService.findGamesByGenreCode(code);
+	const gamesPlain = games.map(game => game.get({ plain: true }));
+
+	const data = {
+		genre: genre.get({ plain: true }),
+		games: gamesPlain.map(gameSerializer)
+	};
 	return response.status(200).json({ data });
 }
 

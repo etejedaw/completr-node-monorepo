@@ -33,6 +33,16 @@ router.get(
 	genreController.getGenreByCode
 );
 
+router.get(
+	"/genres/:code/games",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authMiddleware("user", "premium", "moderator"),
+		validateSchemaMiddleware(GenreCodeParamsSchema, "params")
+	],
+	genreController.getGamesByGenre
+);
+
 router.post(
 	"/genres",
 	[
@@ -44,7 +54,7 @@ router.post(
 );
 
 router.patch(
-	"/genre/:genreId",
+	"/genres/:genreId",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
@@ -55,7 +65,7 @@ router.patch(
 );
 
 router.delete(
-	"/genre/:genreId",
+	"/genres/:genreId",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
