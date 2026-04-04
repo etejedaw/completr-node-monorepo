@@ -1,4 +1,4 @@
-# 🎮 Backlogr — Roadmap Unificado
+# 🎮 Completr — Roadmap Unificado
 
 > **Principio arquitectónico clave:** Cada usuario tiene una lista por defecto **imborrable** llamada "Backlog" (tipo `collection`). Las listas son un módulo propio, separado de `game-shelf` (que es el registro de los juegos que posee el usuario). Existen dos tipos de lista: **`collection`** (organizar juegos, muestra estado global) y **`challenge`** (tracking desde cero con meta, cada juego genera un nuevo playthrough). El estado global de un juego para el usuario vive en `UserGameStatus` y se actualiza automáticamente según el playthrough más reciente.
 
@@ -42,8 +42,8 @@
 - [x] **Genre**: id (UUID), name, slug, code
 - [x] **GamePlatform**: game*id, platform_id *(tabla pivote)\_
 - [x] **GameGenre**: game_id, genre_id (tabla pivote)
-- [x] **GameScore**: id (UUID), game_id, source (`metacritic` | `opencritic` | `rawg` | `backlogr`), score (number), updated_at — Puntajes globales por fuente. Unique index en (game_id, source). Datos en crudo (RAWG usa escala 0-5). Actualizado por cron mensual
-- [x] **GameTime**: id (UUID), game_id, source (`hltb` | `rawg` | `backlogr`), duration (number), updated_at — Tiempos globales por fuente. Unique index en (game_id, source). Actualizado por cron mensual
+- [x] **GameScore**: id (UUID), game_id, source (`metacritic` | `opencritic` | `rawg` | `completr`), score (number), updated_at — Puntajes globales por fuente. Unique index en (game_id, source). Datos en crudo (RAWG usa escala 0-5). Actualizado por cron mensual
+- [x] **GameTime**: id (UUID), game_id, source (`hltb` | `rawg` | `completr`), duration (number), updated_at — Tiempos globales por fuente. Unique index en (game_id, source). Actualizado por cron mensual
 - [x] **GameShelf**: id, user_id, game_id, user_rating (nullable), notes (nullable), acquired_at, score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Registro de qué juegos tiene el usuario + puntaje/duración que eligió usar para su ratio
 - [x] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
 - [x] **ListItem**: id, list_id, game_id, playthrough_id (nullable), position (int), score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Datos de puntaje congelados al añadir a la lista, actualizables manualmente por el usuario
@@ -328,7 +328,7 @@
 **Objetivo:** Abrir el registro a todos. Validar retención, onboarding y UX a escala.
 **Condición de éxito:** Usuarios nuevos entienden la app sin ayuda, completan juegos, y vuelven la semana siguiente.
 
-> 🚀 _Backlogr – Public Beta (500+ usuarios). Sin premium. El objetivo es mejorar, corregir y estabilizar._
+> 🚀 _Completr – Public Beta (500+ usuarios). Sin premium. El objetivo es mejorar, corregir y estabilizar._
 
 ### Reviews
 
@@ -405,7 +405,7 @@
 
 **Objetivo:** Construir y lanzar Premium de forma suave y no agresiva. Sin paywalls incómodos.
 
-> 🔥 Filosofía: _"Si te gusta Backlogr, esta versión es para apoyar el proyecto."_ (estilo Trakt)
+> 🔥 Filosofía: _"Si te gusta Completr, esta versión es para apoyar el proyecto."_ (estilo Trakt)
 
 ### Estadísticas avanzadas (premium)
 
@@ -469,7 +469,7 @@
 
 ### Lanzamiento
 
-- [ ] Página "Backlogr Premium" con comparativa FREE vs PREMIUM
+- [ ] Página "Completr Premium" con comparativa FREE vs PREMIUM
 - [ ] Regalo: 1 mes gratis de Premium para todos los usuarios activos al momento del lanzamiento
 - [ ] Banner no intrusivo en la app para usuarios Free
 - [ ] Activar feature flags Premium para suscriptores
@@ -505,7 +505,7 @@
 | **Listas (collection + challenge)**   | ✅ Hasta 5 (Backlog no cuenta) | ✅ Ilimitadas                 |
 | **CSV import**                        | ✅                             | ✅                            |
 | **Ratio y personal ratio**            | ✅                             | ✅ + Fórmula personalizable   |
-| **Fuentes de score**                  | ✅ Backlogr community + manual | ✅ + Metacritic, OpenCritic   |
+| **Fuentes de score**                  | ✅ Completr community + manual | ✅ + Metacritic, OpenCritic   |
 | **Filtros del backlog**               | ✅ Ilimitados                  | ✅ Ilimitados                 |
 | **Filtros guardados**                 | ✅ Hasta 3                     | ✅ Ilimitados                 |
 | **HLTB auto-fetch**                   | ✅                             | ✅ Prioridad en cola          |
@@ -551,7 +551,7 @@ Estas decisiones aplican a **todo el proyecto**, no son una fase:
 - **Lista Backlog por defecto:** Se crea automáticamente al registrar un usuario. `is_default: true`, `type: collection`. No puede eliminarse ni renombrarse. El reto semestral se implementa como una lista `challenge` separada.
 - **`personal_ratio`:** Se calcula desde `UserPlaythrough.real_duration` del playthrough completado. Si hay múltiples playthroughs completados, se usa el primero o el mejor según preferencia.
 - **Sistema de puntajes en 3 niveles:**
-    - `GameScore` — Catálogo global de puntajes/tiempos por fuente (Metacritic, OpenCritic, HLTB, Backlogr community). Actualizado por cron mensual. La ficha del juego muestra todos los disponibles.
+    - `GameScore` — Catálogo global de puntajes/tiempos por fuente (Metacritic, OpenCritic, HLTB, Completr community). Actualizado por cron mensual. La ficha del juego muestra todos los disponibles.
     - `GameShelf` — Puntaje/duración que el usuario eligió para su backlog. Se precarga al añadir un juego, editable manualmente. Determina el ratio en el backlog.
     - `ListItem` — Puntaje/duración congelados al añadir a una lista. No editables manualmente, solo con "actualizar puntajes" o "elegir fuente". Las listas no permiten valores custom, solo fuentes oficiales.
 - **Filtros guardados (`SavedFilter`):** Los usuarios pueden filtrar su backlog libremente (status, género, plataforma, semestre, etc.). Los filtros se pueden guardar con un nombre. Free: hasta 3 guardados. Premium: ilimitados. Los filtros guardados son presets de query params, no listas.
