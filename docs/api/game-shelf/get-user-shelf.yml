@@ -1,0 +1,63 @@
+info:
+    name: Get User Game Shelf
+    type: http
+    seq: 5
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/:username/game-shelf"
+    params:
+        - name: username
+          value: ""
+          type: path
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get User Game Shelf
+
+    Returns the public game collection of a user. Only shows games where `isPublic` is true. Returns 403 if the user's profile is private.
+
+    **Authentication:** None required (public endpoint).
+    **Rate Limit:** 100 requests per minute.
+
+    ### Path Parameters
+
+    | Param    | Type   | Required | Description    |
+    |----------|--------|----------|----------------|
+    | username | string | Yes      | The username   |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "gameShelf": [
+          {
+            "id": "uuid",
+            "acquiredAt": "2024-01-01",
+            "edition": "Deluxe",
+            "notes": "My favorite game",
+            "isPublic": true,
+            "user": {
+              "id": "uuid",
+              "username": "johndoe",
+              "name": "John Doe"
+            },
+            "game": {
+              "id": "uuid",
+              "title": "Resident Evil 4",
+              "code": "resident-evil-4",
+              "genres": [...]
+            },
+            "platform": {
+              "id": "uuid",
+              "name": "Steam",
+              "code": "steam"
+            }
+          }
+        ]
+      }
+    }
+    ```
