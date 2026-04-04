@@ -5,7 +5,7 @@ info:
 
 http:
     method: GET
-    url: "{{baseUrl}}/platform/:code"
+    url: "{{BASE_URL}}/platform/:code"
     params:
         - name: code
           value: playstation-2

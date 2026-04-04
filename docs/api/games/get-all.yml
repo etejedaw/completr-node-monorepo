@@ -5,7 +5,7 @@ info:
 
 http:
     method: GET
-    url: "{{baseUrl}}/games"
+    url: "{{BASE_URL}}/games"
     auth:
         type: bearer
         token: "{{token}}"

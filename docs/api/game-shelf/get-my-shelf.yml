@@ -5,7 +5,7 @@ info:
 
 http:
     method: GET
-    url: "{{baseUrl}}/users/me/game-shelf"
+    url: "{{BASE_URL}}/users/me/game-shelf"
     auth:
         type: bearer
         token: "{{token}}"

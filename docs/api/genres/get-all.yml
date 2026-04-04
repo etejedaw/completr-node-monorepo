@@ -5,7 +5,7 @@ info:
 
 http:
     method: GET
-    url: "{{baseUrl}}/genres"
+    url: "{{BASE_URL}}/genres"
     auth:
         type: bearer
         token: "{{token}}"

@@ -5,7 +5,7 @@ info:
 
 http:
     method: PATCH
-    url: "{{baseUrl}}/users/me/game-shelf/:gameShelfId"
+    url: "{{BASE_URL}}/users/me/game-shelf/:gameShelfId"
     params:
         - name: gameShelfId
           value: ""

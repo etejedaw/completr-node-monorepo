@@ -5,7 +5,7 @@ info:
 
 http:
     method: DELETE
-    url: "{{baseUrl}}/users/me/deactivate"
+    url: "{{BASE_URL}}/users/me/deactivate"
     auth:
         type: bearer
         token: "{{token}}"

@@ -5,7 +5,7 @@ info:
 
 http:
     method: POST
-    url: "{{baseUrl}}/users/me/game-shelf"
+    url: "{{BASE_URL}}/users/me/game-shelf"
     headers:
         - name: Content-Type
           value: application/json

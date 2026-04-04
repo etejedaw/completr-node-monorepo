@@ -5,7 +5,7 @@ info:
 
 http:
     method: PATCH
-    url: "{{baseUrl}}/platform/:id"
+    url: "{{BASE_URL}}/platform/:id"
     params:
         - name: id
           value: ""

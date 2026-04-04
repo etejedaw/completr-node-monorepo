@@ -5,7 +5,7 @@ info:
 
 http:
     method: GET
-    url: "{{baseUrl}}/games/:code"
+    url: "{{BASE_URL}}/games/:code"
     params:
         - name: code
           value: metro-exodus

@@ -5,7 +5,7 @@ info:
 
 http:
     method: PATCH
-    url: "{{baseUrl}}/genre/:genreId"
+    url: "{{BASE_URL}}/genre/:genreId"
     params:
         - name: genreId
           value: ""

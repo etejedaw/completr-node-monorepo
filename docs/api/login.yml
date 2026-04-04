@@ -1,11 +1,11 @@
 info:
-  name: Change Password
+  name: Login
   type: http
   seq: 2
 
 http:
-  method: PATCH
-  url: "{{BASE_URL}}/auth/password"
+  method: POST
+  url: "{{BASE_URL}}/auth/login"
   headers:
     - name: Content-Type
       value: application/json
@@ -13,11 +13,9 @@ http:
     type: json
     data: |-
       {
-        "password": "NewPass1+"
+        "email": "{{process.env.EMAIL}}",
+        "password": "{{process.env.PASSWORD}}"
       }
-  auth:
-    type: bearer
-    token: "{{token}}"
 
 settings:
   encodeUrl: true
@@ -26,19 +24,25 @@ settings:
   maxRedirects: 5
 
 docs: |-
-  ## Change Password
+  ## Login
 
-  Changes the authenticated user's password.
+  Authenticates a user and returns an access token.
 
-  **Authentication:** Bearer token required.
   **Rate Limit:** 5 requests per minute, 15-minute block after exhaustion.
 
   ### Request Body
 
   | Field    | Type   | Required | Description                                        |
   |----------|--------|----------|----------------------------------------------------|
+  | email    | string | Yes      | Valid email format                                  |
   | password | string | Yes      | 8-15 chars, uppercase, lowercase, number, special  |
 
-  ### Response (204)
+  ### Response (200)
 
-  No content.
+  ```json
+  {
+    "data": {
+      "access_token": "jwt_token"
+    }
+  }
+  ```

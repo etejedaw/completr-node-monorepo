@@ -5,7 +5,7 @@ info:
 
 http:
     method: DELETE
-    url: "{{baseUrl}}/games/:id"
+    url: "{{BASE_URL}}/games/:id"
     params:
         - name: id
           value: ""
