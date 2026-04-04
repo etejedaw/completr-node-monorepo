@@ -5,9 +5,9 @@ info:
 
 http:
     method: PATCH
-    url: "{{BASE_URL}}/platform/:id"
+    url: "{{BASE_URL}}/platforms/:platformId"
     params:
-        - name: id
+        - name: platformId
           value: ""
           type: path
     headers:
@@ -41,7 +41,7 @@ docs: |-
 
     | Param | Type   | Required | Description         |
     |-------|--------|----------|---------------------|
-    | id    | string | Yes      | The platform UUID   |
+    | platformId    | string | Yes      | The platform UUID   |
 
     ### Request Body
 

@@ -5,12 +5,11 @@ info:
 
 http:
     method: GET
-    url: "{{BASE_URL}}/platform/:code"
+    url: "{{BASE_URL}}/platforms/:code"
     params:
         - name: code
           value: playstation-2
           type: path
-    auth: inherit
 
 settings:
     encodeUrl: true

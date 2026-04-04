@@ -5,9 +5,9 @@ info:
 
 http:
     method: DELETE
-    url: "{{BASE_URL}}/platform/:id"
+    url: "{{BASE_URL}}/platforms/:platformId"
     params:
-        - name: id
+        - name: platformId
           value: ""
           type: path
     auth: inherit
@@ -27,7 +27,7 @@ docs: |-
 
     | Param | Type   | Required | Description         |
     |-------|--------|----------|---------------------|
-    | id    | string | Yes      | The platform UUID   |
+    | platformId    | string | Yes      | The platform UUID   |
 
     ### Response (204)
 
