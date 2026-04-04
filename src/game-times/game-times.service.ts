@@ -1,6 +1,22 @@
+import { UniqueConstraintError } from "sequelize";
 import { GameTime, TimeSource } from "./game-time.model";
+import * as gameTimeServiceError from "./errors/game-times.service-error";
 
-export async function upsertGameTime(
+export async function createGameTime(
+	gameId: string,
+	source: TimeSource,
+	duration: number
+) {
+	try {
+		return await GameTime.create({ gameId, source, duration });
+	} catch (error) {
+		if (error instanceof UniqueConstraintError)
+			throw gameTimeServiceError.uniqueConstraintError(error);
+		throw error;
+	}
+}
+
+export async function updateGameTime(
 	gameId: string,
 	source: TimeSource,
 	duration: number
@@ -8,13 +24,10 @@ export async function upsertGameTime(
 	const existing = await GameTime.findOne({
 		where: { gameId, source }
 	});
+	if (!existing) throw gameTimeServiceError.notFoundError();
 
-	if (existing) {
-		await existing.update({ duration });
-		return existing;
-	}
-
-	return GameTime.create({ gameId, source, duration });
+	await existing.update({ duration });
+	return existing;
 }
 
 export async function findTimesByGameId(gameId: string) {
