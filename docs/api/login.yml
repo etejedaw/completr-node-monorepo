@@ -1,48 +1,48 @@
 info:
-  name: Login
-  type: http
-  seq: 2
+    name: Login
+    type: http
+    seq: 2
 
 http:
-  method: POST
-  url: "{{BASE_URL}}/auth/login"
-  headers:
-    - name: Content-Type
-      value: application/json
-  body:
-    type: json
-    data: |-
-      {
-        "email": "{{process.env.EMAIL}}",
-        "password": "{{process.env.PASSWORD}}"
-      }
+    method: POST
+    url: "{{BASE_URL}}/auth/login"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "email": "{{process.env.EMAIL}}",
+              "password": "{{process.env.PASSWORD}}"
+            }
 
 settings:
-  encodeUrl: true
-  timeout: 0
-  followRedirects: true
-  maxRedirects: 5
+    encodeUrl: true
+    timeout: 0
+    followRedirects: true
+    maxRedirects: 5
 
 docs: |-
-  ## Login
+    ## Login
 
-  Authenticates a user and returns an access token.
+    Authenticates a user and returns an access token.
 
-  **Rate Limit:** 5 requests per minute, 15-minute block after exhaustion.
+    **Rate Limit:** 5 requests per minute, 15-minute block after exhaustion.
 
-  ### Request Body
+    ### Request Body
 
-  | Field    | Type   | Required | Description                                        |
-  |----------|--------|----------|----------------------------------------------------|
-  | email    | string | Yes      | Valid email format                                  |
-  | password | string | Yes      | 8-15 chars, uppercase, lowercase, number, special  |
+    | Field    | Type   | Required | Description                                        |
+    |----------|--------|----------|----------------------------------------------------|
+    | email    | string | Yes      | Valid email format                                  |
+    | password | string | Yes      | 8-15 chars, uppercase, lowercase, number, special  |
 
-  ### Response (200)
+    ### Response (200)
 
-  ```json
-  {
-    "data": {
-      "access_token": "jwt_token"
+    ```json
+    {
+      "data": {
+        "access_token": "jwt_token"
+      }
     }
-  }
-  ```
+    ```
