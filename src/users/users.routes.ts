@@ -9,6 +9,7 @@ import {
 } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import gameShelfRouter from "../game-shelf/game-shelf.routes";
+import * as gameShelfController from "../game-shelf/game-shelf.controller";
 
 const router = Router();
 
@@ -44,5 +45,14 @@ router.delete(
 );
 
 router.use("/users/me/game-shelf", gameShelfRouter);
+
+router.get(
+	"/users/:username/game-shelf",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(UsernameParamSchema, "params")
+	],
+	gameShelfController.getUserGameShelf
+);
 
 export default router;
