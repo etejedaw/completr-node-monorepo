@@ -39,19 +39,34 @@ export async function registerGame(registerGameDto: RegisterGameDto) {
 export async function findGameByCode(code: string) {
 	return await Game.findOne({
 		where: { code, isActive: true },
-		include: [{ association: "Platforms" }]
+		include: [{ association: "Platforms" }, { association: "Genres" }]
 	});
 }
 
 export async function findGameById(id: string) {
 	return await Game.findOne({
 		where: { id, isActive: true },
-		include: [{ association: "Platforms" }]
+		include: [{ association: "Platforms" }, { association: "Genres" }]
 	});
 }
 
 export async function findAll() {
-	return await Game.findAll({ include: [{ association: "Platforms" }] });
+	return await Game.findAll({
+		include: [{ association: "Platforms" }, { association: "Genres" }]
+	});
+}
+
+export async function findGamesByGenreCode(genreCode: string) {
+	return await Game.findAll({
+		where: { isActive: true },
+		include: [
+			{ association: "Platforms" },
+			{
+				association: "Genres",
+				where: { code: genreCode }
+			}
+		]
+	});
 }
 
 export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
