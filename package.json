@@ -16,7 +16,7 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "node dist/app.js",
-		"start:dev": "node --watch -r ts-node/register ./src/app.ts",
+		"start:dev": "node --watch -r ts-node/register ./src/app.ts --env-file=.env",
 		"start:stg": "node --watch -r ts-node/register --env-file=.env.staging.local ./src/app.ts",
 		"start:prod": "node --watch -r ts-node/register --env-file=.env.production.local ./src/app.ts",
 		"lint": "eslint .",

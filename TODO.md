@@ -396,6 +396,10 @@
 - [ ] Auditoría de seguridad básica (headers, sanitización de inputs, rate limits por endpoint)
 - [ ] Optimizar queries N+1 en Sequelize (eager loading)
 - [ ] Tests de integración para los flujos principales (auth, listas, game-shelf, playthroughs)
+- [ ] Tests unitarios para services y serializers
+- [ ] Configurar test runner con `node:test` nativo + global setup (seed DB de test, levantar server)
+- [ ] DB de test ya configurada en docker-compose (`postgres-test` en puerto 5433, DB `completr_test`)
+- [ ] Estructura de tests: `test/` a la misma altura que `src/`, misma estructura modular (ej: `test/auth/auth.service.test.ts`)
 
 ---
 
