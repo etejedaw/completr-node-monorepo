@@ -5,7 +5,7 @@ info:
 
 http:
     method: DELETE
-    url: "{{BASE_URL}}/playthroughs/:playthroughId"
+    url: "{{BASE_URL}}/users/me/playthroughs/:playthroughId"
     params:
         - name: playthroughId
           value: ""

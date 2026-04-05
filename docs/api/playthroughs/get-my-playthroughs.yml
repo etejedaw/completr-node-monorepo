@@ -5,7 +5,7 @@ info:
 
 http:
     method: GET
-    url: "{{BASE_URL}}/playthroughs"
+    url: "{{BASE_URL}}/users/me/playthroughs"
     auth: inherit
 
 settings:
