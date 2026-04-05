@@ -1,6 +1,9 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 
+export const SORT_ORDERS = ["asc", "desc"] as const;
+export type SortOrder = (typeof SORT_ORDERS)[number];
+
 class SavedFilter extends Model {
 	declare id: string;
 	declare userId: string;
@@ -34,7 +37,7 @@ SavedFilter.init(
 		},
 		sortBy: DataTypes.STRING(50),
 		sortOrder: {
-			type: DataTypes.ENUM("asc", "desc"),
+			type: DataTypes.ENUM(...SORT_ORDERS),
 			allowNull: false,
 			defaultValue: "desc"
 		}
