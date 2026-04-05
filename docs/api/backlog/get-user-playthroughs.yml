@@ -38,7 +38,8 @@ docs: |-
     | started_from  | date   | No       | Filter by startedAt >= date (ISO format: `2025-01-01`)                      |
     | started_to    | date   | No       | Filter by startedAt <= date (ISO format: `2025-06-30`)                      |
     | finished_from | date   | No       | Filter by finishedAt >= date (ISO format: `2025-01-01`)                     |
-    | finished_to   | date   | No       | Filter by finishedAt <= date (ISO format: `2025-06-30`)                     |
+    | finished_to       | date   | No       | Filter by finishedAt <= date (ISO format: `2025-06-30`)                     |
+    | no_finished_date  | bool   | No       | If `true`, returns only entries with no finishedAt date                      |
     | min_score     | number | No       | Filter by score >= value                                                    |
     | max_score     | number | No       | Filter by score <= value                                                    |
     | min_duration  | number | No       | Filter by duration >= value (hours)                                         |
