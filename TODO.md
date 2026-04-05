@@ -161,11 +161,6 @@
 - [x] Filtros almacenados como JSONB — el frontend los lee y los aplica como query params al backlog
 - [x] Error handling completo registrado en normalizers globales (404, 403 forbidden, 403 limit reached, 500)
 
-### Transacciones en operaciones multi-paso
-
-- [ ] Implementar transacciones de Sequelize en operaciones que involucran múltiples modelos (ej: crear challenge + backlog + listItem, importar CSV con múltiples inserts)
-- [ ] Refactorizar `games.service.ts → registerGame` para usar transacción (actualmente crea juego + vincula plataformas sin atomicidad)
-
 ### Módulo de Listas
 
 - [ ] `GET /lists/me` — Ver mis listas
@@ -187,10 +182,11 @@
 
 ### Cálculo del Ratio
 
-- [x] Lógica en el Serializer/Service: `ratio = score / duration`
-- [ ] `personal_ratio = GameShelf.score / Backlog.real_duration` (calculado desde el backlog completado; si hay múltiples, usar el primero o el mejor)
+- [x] `ratio = score / duration` calculado en el serializer de backlog (redondeado a 2 decimales)
+- [x] `score` y `duration` son campos obligatorios y positivos en backlog (precargados al crear, editables por el usuario)
+- [x] Ratio canónico en game serializer (completr score / completr time)
 - [ ] Ordenamiento de listas por ratio, nota, duración
-- [ ] El score y duration vienen de `GameShelf` (lo que el usuario eligió). En listas vienen de `ListItem` (congelados)
+- [ ] El score y duration en listas vienen de `ListItem` (congelados)
 
 ### Integración automática con HowLongToBeat y Metacritic/OpenCritic
 
@@ -199,6 +195,11 @@
     - [ ] Job nocturno: buscar juegos con `metadata_pending: true`, obtener `hltb_duration` de HLTB y `metacritic_score` de Metacritic/OpenCritic, actualizar el registro y setear `metadata_pending: false`
 - [ ] Manejo de errores del scraper: reintentos, logging de fallos, fallback a datos manuales
 - [ ] Evaluar OpenCritic como alternativa/complemento a Metacritic según disponibilidad de API
+
+### Transacciones en operaciones multi-paso
+
+- [ ] Implementar transacciones de Sequelize en operaciones que involucran múltiples modelos (ej: crear challenge + backlog + listItem, importar CSV con múltiples inserts)
+- [ ] Refactorizar `games.service.ts → registerGame` para usar transacción (actualmente crea juego + vincula plataformas sin atomicidad)
 
 ### Importación manual
 
