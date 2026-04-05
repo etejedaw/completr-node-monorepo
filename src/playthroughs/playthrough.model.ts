@@ -19,6 +19,7 @@ class Playthrough extends Model {
 	declare finishedAt?: Date;
 	declare realDuration?: number;
 	declare userRating?: number;
+	declare isPublic: boolean;
 	declare notes?: string;
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -60,6 +61,10 @@ Playthrough.init(
 		finishedAt: DataTypes.DATE,
 		realDuration: DataTypes.FLOAT,
 		userRating: DataTypes.FLOAT,
+		isPublic: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: true
+		},
 		notes: DataTypes.TEXT
 	},
 	{ sequelize }
