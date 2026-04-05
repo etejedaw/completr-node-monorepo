@@ -3,6 +3,8 @@ import { BACKLOG_STATUSES } from "../backlog.model";
 
 const SORT_FIELDS = [
 	"status",
+	"score",
+	"duration",
 	"startedAt",
 	"finishedAt",
 	"realDuration",
@@ -19,6 +21,8 @@ export const BacklogQuerySchema = z
 		started_to: z.iso.date().optional(),
 		finished_from: z.iso.date().optional(),
 		finished_to: z.iso.date().optional(),
+		min_score: z.coerce.number().optional(),
+		max_score: z.coerce.number().optional(),
 		min_duration: z.coerce.number().optional(),
 		max_duration: z.coerce.number().optional(),
 		min_rating: z.coerce.number().optional(),

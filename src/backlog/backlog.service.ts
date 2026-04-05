@@ -61,6 +61,15 @@ function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
 	);
 	if (finishedAt) where.finishedAt = finishedAt;
 
+	const score = buildRangeFilter(filters.min_score, filters.max_score);
+	if (score) where.score = score;
+
+	const duration = buildRangeFilter(
+		filters.min_duration,
+		filters.max_duration
+	);
+	if (duration) where.duration = duration;
+
 	const realDuration = buildRangeFilter(
 		filters.min_duration,
 		filters.max_duration
