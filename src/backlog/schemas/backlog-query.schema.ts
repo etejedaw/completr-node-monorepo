@@ -14,7 +14,11 @@ const SORT_FIELDS = [
 
 export const BacklogQuerySchema = z
 	.object({
-		status: z.enum(BACKLOG_STATUSES).optional(),
+		status: z
+			.string()
+			.transform(val => val.split(","))
+			.pipe(z.enum(BACKLOG_STATUSES).array().min(1))
+			.optional(),
 		game_id: z.uuid().optional(),
 		platform_id: z.uuid().optional(),
 		started_from: z.iso.date().optional(),

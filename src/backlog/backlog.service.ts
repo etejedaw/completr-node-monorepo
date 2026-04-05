@@ -48,7 +48,11 @@ function buildDateFilter(from?: string, to?: string) {
 function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
 	const where: Record<string, unknown> = { ...base };
 
-	if (filters.status) where.status = filters.status;
+	if (filters.status)
+		where.status =
+			filters.status.length === 1
+				? filters.status[0]
+				: { [Op.in]: filters.status };
 	if (filters.game_id) where.gameId = filters.game_id;
 	if (filters.platform_id) where.platformId = filters.platform_id;
 
