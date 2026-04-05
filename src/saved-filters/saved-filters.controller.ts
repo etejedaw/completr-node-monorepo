@@ -6,13 +6,13 @@ import { UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
 import { SavedFilterIdParams } from "./schemas/saved-filter-id-params.schema";
 
 export async function postSavedFilter(request: Request, response: Response) {
-	const dto = request.locals.body as RegisterSavedFilterDto;
+	const registerSavedFilter = request.locals.body as RegisterSavedFilterDto;
 	const user = request.locals.user as RequestUser;
 
 	const filter = await savedFiltersService.createSavedFilter(
 		user.id,
 		user.role,
-		dto
+		registerSavedFilter
 	);
 	const filterPlain = filter.get({ plain: true });
 
@@ -33,14 +33,14 @@ export async function getMeSavedFilters(request: Request, response: Response) {
 
 export async function patchSavedFilter(request: Request, response: Response) {
 	const params = request.locals.params as SavedFilterIdParams;
-	const dto = request.locals.body as UpdateSavedFilterDto;
+	const updateSavedFilter = request.locals.body as UpdateSavedFilterDto;
 	const user = request.locals.user as RequestUser;
 
 	const filter = await savedFiltersService.updateSavedFilter(
 		params.filterId,
 		user.id,
 		user.role,
-		dto
+		updateSavedFilter
 	);
 	const filterPlain = filter.get({ plain: true });
 

@@ -37,11 +37,11 @@ export async function patchChangePassword(
 	request: Request,
 	response: Response
 ) {
-	const body = request.locals.body as ChangePassword;
+	const changePassword = request.locals.body as ChangePassword;
 
 	const user = request.locals.user as RequestUser;
 
-	await authService.changePassword(user.id, body.password);
+	await authService.changePassword(user.id, changePassword.password);
 
 	return response.sendStatus(204);
 }
