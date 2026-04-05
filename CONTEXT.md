@@ -54,9 +54,9 @@ personal_ratio = GameShelf.score / Backlog.real_duration
 
 Se calcula desde el `Backlog` completado. Si hay múltiples backlogs completados, se usa el primero o el mejor. Permite comparar la estimación con la experiencia personal.
 
-### Filtros guardados
+### Filtros y vistas guardadas (SavedFilter)
 
-Los usuarios pueden filtrar su backlog libremente (status, género, plataforma, semestre, ratio, etc.). Los filtros se pueden guardar como presets con un nombre (ej: "Juegos cortos de PS1"). Free: hasta 3 guardados, Premium: ilimitados.
+El backlog soporta filtros completos por: status, game_id, platform_id, rangos de fechas (started_from/to, finished_from/to), rangos numéricos (min/max_duration, min/max_rating) y ordenamiento (sort_by + sort_order). Cualquier combinación de filtros se puede guardar como vista con un nombre (ej: "Completados 2025-S01"). El backend almacena los filtros como JSONB y el frontend los aplica como query params al consultar el backlog. Free: hasta 5 vistas guardadas, Premium: ilimitadas.
 
 ### Estados de un juego
 
@@ -146,7 +146,7 @@ Se implementa como una lista tipo `challenge` con `start_date`, `end_date` y `ta
 | `game-shelf`     | Juegos que **posee** el usuario con datos personales                           | Tu estantería física     |
 | `lists`          | Colecciones curadas (`collection` o `challenge`)                               | Listas temáticas o sagas |
 | `list-followers` | Suscripción a listas públicas de otros usuarios                                | "Seguir esta lista"      |
-| `backlogs`   | Historial completo del usuario (quiere jugar, jugando, completado, abandonado) | Tu diario de gaming      |
+| `backlogs`       | Historial completo del usuario (quiere jugar, jugando, completado, abandonado) | Tu diario de gaming      |
 
 - Un juego puede estar en `game-shelf` sin estar en ninguna lista
 - Un juego puede estar en múltiples listas
@@ -214,7 +214,7 @@ src/
 ├── game-scores/       # Puntajes globales por fuente (Metacritic, OpenCritic, RAWG, Completr)
 ├── game-times/        # Duraciones globales por fuente (HLTB, RAWG, Completr)
 ├── game-genre/        # Tabla pivote juego ↔ género
-├── saved-filters/     # (pendiente) Filtros guardados del backlog
+├── saved-filters/     # Vistas guardadas del backlog (CRUD con límite free/premium)
 ├── lists/             # (pendiente) Listas collection y challenge
 ├── backlogs/      # (pendiente) Historial completo del usuario (not_started, playing, completed, abandoned)
 ├── rawg/              # Provider de RAWG API (géneros, descripción, scores, playtime, covers)
@@ -414,13 +414,15 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 
 ### Pendiente — Fase 1 (Excel Killer, solo yo)
 
-- `Backlog` services, controllers y routes (modelo ya existe)
-- Vistas como filtros de API (pendientes, jugando, completados, por semestre/fecha)
 - Módulo de Listas services, controllers y routes (`lists`, `list-items`) con tipos `collection` y `challenge`
 - Transacciones en operaciones multi-paso
 - HLTB/Metacritic auto-fetch (cron nocturno con providers)
-- Serializer con `personal_ratio`
 - Importación CSV
+
+### Completado recientemente
+
+- Backlog: CRUD completo con filtros avanzados (status, platform, rangos de fechas/duración/rating, ordenamiento), isPublic, userRating (1-10 en pasos de 0.5), endpoints públicos para ver backlog de otros usuarios
+- Saved Filters: CRUD con límite free (5) / premium (ilimitado), almacenamiento JSONB de presets de filtros
 
 ### Pendiente — Fases posteriores
 
