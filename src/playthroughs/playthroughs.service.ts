@@ -10,7 +10,11 @@ export async function createPlaythrough(
 	userId: string,
 	dto: RegisterPlaythroughDto
 ) {
-	return Playthrough.create({ ...dto, userId });
+	const playthrough = await Playthrough.create({ ...dto, userId });
+	await playthrough.reload({
+		include: [{ model: Game }, { model: Platform }]
+	});
+	return playthrough;
 }
 
 export async function findPlaythroughById(id: string) {
