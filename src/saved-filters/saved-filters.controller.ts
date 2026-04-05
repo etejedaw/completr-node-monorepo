@@ -50,8 +50,8 @@ export async function patchSavedFilter(request: Request, response: Response) {
 
 export async function deleteSavedFilter(request: Request, response: Response) {
 	const params = request.locals.params as SavedFilterIdParams;
-	const userId = (request.locals.user as RequestUser as RequestUser).id;
+	const user = request.locals.user as RequestUser;
 
-	await savedFiltersService.removeSavedFilter(params.filterId, userId);
+	await savedFiltersService.removeSavedFilter(params.filterId, user.id);
 	return response.sendStatus(204);
 }

@@ -12,10 +12,10 @@ import { backlogSerializer } from "./backlog.serializer";
 
 export async function postBacklog(request: Request, response: Response) {
 	const registerBacklog = request.locals.body as RegisterBacklogDto;
-	const userId = (request.locals.user as RequestUser as RequestUser).id;
+	const user = request.locals.user as RequestUser;
 
 	const backlogEntry = await backlogService.createBacklog(
-		userId,
+		user.id,
 		registerBacklog
 	);
 	const backlogPlain = backlogEntry.get({ plain: true });
@@ -25,14 +25,16 @@ export async function postBacklog(request: Request, response: Response) {
 }
 
 export async function getMeBacklog(request: Request, response: Response) {
-	const userId = (request.locals.user as RequestUser as RequestUser).id;
+	const user = request.locals.user as RequestUser;
 	const query = request.locals.query as BacklogQuery;
 
 	const backlogEntries = await backlogService.findBacklogByUserId(
-		userId,
+		user.id,
 		query
 	);
-	const backlogPlain = backlogEntries.map(p => p.get({ plain: true }));
+	const backlogPlain = backlogEntries.map(backlog =>
+		backlog.get({ plain: true })
+	);
 
 	const data = { backlog: backlogPlain.map(backlogSerializer) };
 	return response.status(200).json({ data });
@@ -50,7 +52,9 @@ export async function getUserBacklog(request: Request, response: Response) {
 		user.id,
 		query
 	);
-	const backlogPlain = backlogEntries.map(p => p.get({ plain: true }));
+	const backlogPlain = backlogEntries.map(backlog =>
+		backlog.get({ plain: true })
+	);
 
 	const data = { backlog: backlogPlain.map(backlogSerializer) };
 	return response.status(200).json({ data });
@@ -59,11 +63,11 @@ export async function getUserBacklog(request: Request, response: Response) {
 export async function patchBacklog(request: Request, response: Response) {
 	const params = request.locals.params as BacklogIdParams;
 	const dto = request.locals.body as UpdateBacklogDto;
-	const userId = (request.locals.user as RequestUser as RequestUser).id;
+	const user = request.locals.user as RequestUser;
 
 	const backlogEntry = await backlogService.updateBacklog(
 		params.backlogId,
-		userId,
+		user.id,
 		dto
 	);
 	const backlogPlain = backlogEntry!.get({ plain: true });
@@ -74,8 +78,8 @@ export async function patchBacklog(request: Request, response: Response) {
 
 export async function deleteBacklog(request: Request, response: Response) {
 	const params = request.locals.params as BacklogIdParams;
-	const userId = (request.locals.user as RequestUser as RequestUser).id;
+	const user = request.locals.user as RequestUser;
 
-	await backlogService.removeBacklog(params.backlogId, userId);
+	await backlogService.removeBacklog(params.backlogId, user.id);
 	return response.sendStatus(204);
 }

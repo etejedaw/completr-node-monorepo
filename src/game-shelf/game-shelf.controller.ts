@@ -17,10 +17,10 @@ import {
 export async function postGameShelf(request: Request, response: Response) {
 	const registerGameShelfDto = request.locals.body as RegisterGameShelfDto;
 
-	const userId = (request.locals.user as RequestUser as RequestUser).id;
+	const user = request.locals.user as RequestUser;
 
 	const gameShelfRegister = await gameShelfService.registerGameShelf(
-		userId,
+		user.id,
 		registerGameShelfDto
 	);
 	const gameShelfPlain = gameShelfRegister.get({ plain: true });
@@ -30,9 +30,9 @@ export async function postGameShelf(request: Request, response: Response) {
 }
 
 export async function getMeGameShelf(request: Request, response: Response) {
-	const userId = (request.locals.user as RequestUser as RequestUser).id;
+	const user = request.locals.user as RequestUser;
 
-	const gameShelf = await gameShelfService.findGameShelfByUserId(userId);
+	const gameShelf = await gameShelfService.findGameShelfByUserId(user.id);
 	const gameShelfPlain = gameShelf.map(game => game.get({ plain: true }));
 
 	const data = { gameShelf: gameShelfPlain.map(gameShelfMeSerializer) };
@@ -61,11 +61,11 @@ export async function patchGameShelf(request: Request, response: Response) {
 	const params = request.locals.params as GameShelfIdParam;
 
 	const gameShelfId = params.gameShelfId;
-	const userId = (request.locals.user as RequestUser as RequestUser).id;
+	const user = request.locals.user as RequestUser;
 
 	const gameShelfUpdate = await gameShelfService.updateGameShelf(
 		gameShelfId,
-		userId,
+		user.id,
 		updateGameShelfDto
 	);
 
@@ -79,9 +79,9 @@ export async function deleteGameShelf(request: Request, response: Response) {
 	const params = request.locals.params as GameShelfIdParam;
 
 	const gameShelfId = params.gameShelfId;
-	const userId = (request.locals.user as RequestUser as RequestUser).id;
+	const user = request.locals.user as RequestUser;
 
-	await gameShelfService.removeGameShelf(gameShelfId, userId);
+	await gameShelfService.removeGameShelf(gameShelfId, user.id);
 
 	return response.sendStatus(204);
 }
