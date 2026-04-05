@@ -47,7 +47,7 @@
 - [x] **GameShelf**: id, user_id, game_id, platform_id, is_public, acquired_at, edition, notes — Colección de juegos que el usuario posee. Sin score/duration (esos viven en ListItem)
 - [x] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
 - [x] **ListItem**: id, list_id, game_id, backlog_id (nullable), position (int), score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Datos de puntaje congelados al añadir a la lista, actualizables manualmente por el usuario
-- [x] **SavedFilter**: id (UUID), user_id, name, filters (JSON), sort_by (nullable), sort_order, created_at — Filtros guardados del backlog. Free: hasta 5, Premium: ilimitados
+- [x] **SavedFilter**: id (UUID), user_id, name, description (nullable, max 255), filters (JSON), sort_by (nullable), sort_order, created_at — Filtros guardados del backlog. Free: hasta 5, Premium: ilimitados
 - [x] **ListFollower**: id, list*id, user_id, is_visible (bool, default true — controla si el seguimiento aparece en el perfil público del usuario), followed_at — \_Permite a usuarios seguir listas públicas de otros. El progreso se calcula cruzando los juegos de la lista con el `Backlog` del seguidor. Visibilidad: `User.isPublic AND ListFollower.isVisible`*
 - [x] **Backlog**: id (UUID), user_id, game_id, platform_id, status (`not_started` | `playing` | `completed` | `abandoned`), started_at, finished_at (nullable), real_duration (nullable), notes (nullable) — Historial completo del usuario. Incluye juegos que quiere jugar, está jugando, completó o abandonó. El play_count y el estado actual se derivan de esta tabla. El número de backlog se calcula en el serializer ordenando por `started_at`
 - [x] Definir todas las asociaciones en `associations.database.ts` con Foreign Keys explícitamente tipadas como UUID
@@ -160,8 +160,10 @@
 - [x] `GET /users/me/backlog?status=playing` — Vista "Jugando"
 - [x] `GET /users/me/backlog?status=completed` — Vista "Completados"
 - [x] `GET /users/me/backlog?status=abandoned` — Vista "Abandonados"
+- [x] `GET /users/me/backlog?status=completed,abandoned` — Multi-status comma-separated
+- [x] `GET /users/me/backlog?no_finished_date=true` — Filtrar entradas sin fecha de finalización
 - [x] `GET /users/me/backlog?finished_from=2025-01-01&finished_to=2025-06-30` — Vista por semestre
-- [x] Filtros por rango: `min_duration/max_duration`, `min_rating/max_rating`, `started_from/to`, `finished_from/to`
+- [x] Filtros por rango: `min_score/max_score`, `min_duration/max_duration`, `min_rating/max_rating`, `started_from/to`, `finished_from/to`
 - [x] Filtro por plataforma: `?platform_id=uuid`
 - [x] Ordenamiento: `?sort_by=userRating&sort_order=desc`
 - [x] Soportar combinación de cualquier filtro + ordenamiento
@@ -174,6 +176,8 @@
 - [x] `DELETE /users/me/saved-filters/:filterId` — Eliminar vista (solo owner)
 - [x] Límite de 5 vistas para usuarios free, ilimitadas para premium/admin
 - [x] Filtros almacenados como JSONB — el frontend los lee y los aplica como query params al backlog
+- [x] Campo `description` opcional (max 255) para describir la vista
+- [x] Serializer que oculta `createdAt`/`updatedAt` de la respuesta
 - [x] Error handling completo registrado en normalizers globales (404, 403 forbidden, 403 limit reached, 500)
 
 ### Módulo de Listas

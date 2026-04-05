@@ -56,7 +56,7 @@ Se calcula desde el `Backlog` completado. Si hay múltiples backlogs completados
 
 ### Filtros y vistas guardadas (SavedFilter)
 
-El backlog soporta filtros completos por: status, game_id, platform_id, rangos de fechas (started_from/to, finished_from/to), rangos numéricos (min/max_duration, min/max_rating) y ordenamiento (sort_by + sort_order). Cualquier combinación de filtros se puede guardar como vista con un nombre (ej: "Completados 2025-S01"). El backend almacena los filtros como JSONB y el frontend los aplica como query params al consultar el backlog. Free: hasta 5 vistas guardadas, Premium: ilimitadas.
+El backlog soporta filtros completos por: status (uno o varios comma-separated, ej: `completed,abandoned`), game_id, platform_id, rangos de fechas (started_from/to, finished_from/to), no_finished_date (bool, filtra entradas sin fecha de finalización), rangos numéricos (min/max_score, min/max_duration, min/max_rating) y ordenamiento (sort_by + sort_order). Cualquier combinación de filtros se puede guardar como vista con nombre y descripción opcional (ej: "Completados 2025-S01"). El backend almacena los filtros como JSONB y el frontend los aplica como query params al consultar el backlog. Free: hasta 5 vistas guardadas, Premium: ilimitadas. Las vistas son una conveniencia — cualquier usuario puede construir la URL con query params y guardarla como bookmark.
 
 ### Estados de un juego
 
