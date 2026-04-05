@@ -184,19 +184,22 @@
 
 #### CRUD de listas
 
-- [ ] `POST /lists` — Crear lista (nombre, descripción, is_public, score_source, duration_source)
-- [ ] `GET /lists/me` — Ver mis listas (incluye las originales y los forks)
-- [ ] `GET /lists/:id` — Ver detalle de una lista con items, puntajes y ratios
-- [ ] `PATCH /lists/:id` — Editar nombre, descripción, visibilidad, fuente de puntajes (solo owner)
-- [ ] `DELETE /lists/:id` — Eliminar lista (solo owner)
+- [x] `POST /lists` — Crear lista (nombre, descripción, is_public, score_source, duration_source)
+- [x] `GET /lists/me` — Ver mis listas (incluye las originales y los forks)
+- [x] `GET /lists/:id` — Ver detalle de una lista con items, puntajes y ratios
+- [x] `PATCH /lists/:id` — Editar nombre, descripción, visibilidad, fuente de puntajes (solo owner)
+- [x] `DELETE /lists/:id` — Eliminar lista (solo owner)
+- [x] Error handling completo registrado en normalizers globales (404, 403, 409, 400, 500)
 
 #### Items de lista
 
-- [ ] `POST /lists/:id/items` — Añadir juego a una lista. Score/duration se copian desde GameScore/GameTime según la fuente de la lista. Si la fuente no tiene dato → null
-- [ ] `DELETE /lists/:id/items/:itemId` — Quitar juego de una lista
-- [ ] `PATCH /lists/:id/items/:itemId` — Actualizar posición del ítem (reordenar)
+- [x] `POST /lists/:id/items` — Añadir juego a una lista. Score/duration se copian desde GameScore/GameTime según la fuente de la lista. Si la fuente no tiene dato → null
+- [x] `DELETE /lists/:id/items/:itemId` — Quitar juego de una lista
+- [x] `PATCH /lists/:id/items/:itemId` — Actualizar posición del ítem (reordenar)
+- [x] Posición unique dentro de la lista, sin huecos. Se recalcula al eliminar o reordenar
+- [x] Ratio calculado en serializer (`score / duration`)
+- [x] Error handling completo registrado en normalizers globales (404, 403, 409, 500)
 - [ ] `POST /lists/:id/refresh-scores` — Actualizar puntajes de todos los items desde la fuente (solo owner)
-- [ ] Posición unique dentro de la lista, sin huecos. Se recalcula al eliminar o reordenar
 
 #### Seguir una lista (normal)
 

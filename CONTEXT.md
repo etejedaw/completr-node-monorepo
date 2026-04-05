@@ -150,13 +150,14 @@ Cualquier lista con `is_public: true` puede ser seguida por otros usuarios (`Lis
 
 ### `games` vs `game-shelf` vs `lists` vs `backlogs`
 
-| Módulo           | Propósito                                                                      | Analogía                 |
-| ---------------- | ------------------------------------------------------------------------------ | ------------------------ |
-| `games`          | Catálogo global de juegos (admin lo alimenta)                                  | La tienda de juegos      |
-| `game-shelf`     | Juegos que **posee** el usuario con datos personales                           | Tu estantería física     |
-| `lists`          | Colecciones curadas de juegos con puntajes de fuente oficial                   | Listas temáticas o sagas |
-| `list-followers` | Suscripción a listas públicas de otros usuarios                                | "Seguir esta lista"      |
-| `backlogs`       | Historial completo del usuario (quiere jugar, jugando, completado, abandonado) | Tu diario de gaming      |
+| Módulo           | Propósito                                                                      | Analogía                   |
+| ---------------- | ------------------------------------------------------------------------------ | -------------------------- |
+| `games`          | Catálogo global de juegos (admin lo alimenta)                                  | La tienda de juegos        |
+| `game-shelf`     | Juegos que **posee** el usuario con datos personales                           | Tu estantería física       |
+| `lists`          | Colecciones curadas de juegos con puntajes de fuente oficial                   | Listas temáticas o sagas   |
+| `list-items`     | Items de lista con score/duration congelados y posición                        | Juegos dentro de una lista |
+| `list-followers` | Suscripción a listas públicas de otros usuarios                                | "Seguir esta lista"        |
+| `backlogs`       | Historial completo del usuario (quiere jugar, jugando, completado, abandonado) | Tu diario de gaming        |
 
 - Un juego puede estar en `game-shelf` sin estar en ninguna lista
 - Un juego puede estar en múltiples listas
@@ -218,8 +219,10 @@ src/
 ├── game-times/        # Duraciones globales por fuente (HLTB, RAWG, Completr)
 ├── game-genre/        # Tabla pivote juego ↔ género
 ├── saved-filters/     # Vistas guardadas del backlog (CRUD con límite free/premium)
-├── lists/             # (pendiente) Listas collection y challenge
-├── backlogs/      # (pendiente) Historial completo del usuario (not_started, playing, completed, abandoned)
+├── lists/             # Listas curadas de juegos con puntajes de fuente oficial
+├── list-items/        # Items de lista (juego ↔ lista) con score/duration congelados
+├── list-followers/    # (pendiente) Suscripción a listas públicas
+├── backlogs/          # Historial completo del usuario (not_started, playing, completed, abandoned)
 ├── rawg/              # Provider de RAWG API (géneros, descripción, scores, playtime, covers)
 ├── hltb/              # (pendiente) Provider de HowLongToBeat
 ├── metacritic/        # (pendiente) Provider de Metacritic/OpenCritic
@@ -416,9 +419,16 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Infraestructura: error handling, logging, rate limiting, validación, CORS, Helmet
 - Data maestra: 517 juegos enriquecidos con RAWG (descripciones, covers, fechas, géneros, scores RAWG, playtimes RAWG) + scores Metacritic y tiempos HLTB del CSV original
 
+### Completado recientemente (Fase 1)
+
+- Lists: CRUD completo con scoreSource/durationSource global, basedOnId, isFork, slug auto-generado
+- ListItems: CRUD con score/duration congelados desde fuente oficial, posición unique sin huecos, reordenamiento
+- Backlog: CRUD completo con filtros avanzados (multi-status, no_finished_date, rangos), isPublic, userRating
+- Saved Filters: CRUD con límite free/premium, campo description, serializer sin timestamps
+
 ### Pendiente — Fase 1 (Excel Killer, solo yo)
 
-- Módulo de Listas services, controllers y routes (`lists`, `list-items`, `list-followers`) con seguimiento normal y fork
+- Módulo de seguimiento de listas (`list-followers`) con follow normal y fork
 - Transacciones en operaciones multi-paso
 - HLTB/Metacritic auto-fetch (cron nocturno con providers)
 - Importación CSV
