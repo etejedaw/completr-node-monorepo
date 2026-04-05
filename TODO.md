@@ -358,6 +358,17 @@
 - [ ] Cada usuario puede generar N invitaciones
 - [ ] Tracking de quién invitó a quién (útil para badges futuros)
 
+### Badges (manuales)
+
+- [ ] Modelo `Badge`: id, code, name, description, icon_url, type (`manual` | `automatic`), created_at
+- [ ] Modelo `UserBadge`: id, user_id, badge_id, awarded_at — tabla pivote usuario ↔ badge
+- [ ] `GET /users/:username/badges` — Ver badges de un usuario (visible en perfil público)
+- [ ] `POST /badges/:code/award/:username` — Asignar badge a usuario (solo admin)
+- [ ] `DELETE /badges/:code/revoke/:username` — Revocar badge (solo admin)
+- [ ] Badges iniciales: `founder` (primeros N registros), `beta-tester` (usuarios de beta cerrada), `moderator` (rol moderador), `premium-supporter` (suscripción activa)
+- [ ] Mostrar badges en el perfil público del usuario
+- [ ] Los badges automáticos (logros por completar juegos) se implementan en Fase 4
+
 ---
 
 ## 🟩 FASE 4 — Beta Pública _(~2–3 meses)_
