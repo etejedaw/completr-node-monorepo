@@ -8,6 +8,7 @@ class SavedFilter extends Model {
 	declare id: string;
 	declare userId: string;
 	declare name: string;
+	declare description?: string;
 	declare filters: Record<string, unknown>;
 	declare sortBy?: string;
 	declare sortOrder: string;
@@ -31,6 +32,7 @@ SavedFilter.init(
 			type: DataTypes.STRING(100),
 			allowNull: false
 		},
+		description: DataTypes.STRING(255),
 		filters: {
 			type: DataTypes.JSONB,
 			allowNull: false
