@@ -2,10 +2,7 @@ import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { Playthrough } from "./playthrough.model";
 
-export function playthroughSerializer(
-	playthrough: Playthrough,
-	playthroughNumber?: number
-) {
+export function playthroughSerializer(playthrough: Playthrough) {
 	return {
 		id: playthrough.id,
 		status: playthrough.status,
@@ -15,7 +12,6 @@ export function playthroughSerializer(
 		userRating: playthrough.userRating,
 		isPublic: playthrough.isPublic,
 		notes: playthrough.notes,
-		playthroughNumber: playthroughNumber ?? null,
 		createdAt: playthrough.createdAt,
 		game: gameSerializer(playthrough.Game),
 		platform: platformSerializer(playthrough.Platform)
