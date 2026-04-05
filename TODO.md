@@ -126,26 +126,27 @@
 - [x] `GET /users/:username/game-shelf` — Ver colección pública de otro usuario (respeta User.isPublic + GameShelf.isPublic)
 - [x] Serializers (full, me, tiny) con datos de colección (sin score/duration, esos viven en ListItem)
 
-### Módulo de Backlogs
+### Módulo de Backlog
 
-- [ ] `POST /backlogs` — Crear un backlog (status por defecto: `not_started`)
-- [ ] `PATCH /backlogs/:id` — Actualizar un backlog (cambiar status, agregar `real_duration`, `finished_at`, `notes`)
-- [ ] `GET /users/me/backlogs` — Ver historial de backlogs del usuario
-- [ ] `GET /users/me/backlogs?game_id=:id` — Ver backlogs de un juego específico
-- [ ] El estado actual de un juego se deriva del backlog más reciente
-- [ ] El play_count se deriva de `COUNT(backlogs) WHERE gameId = X AND userId = Y`
+- [x] `POST /users/me/backlog` — Crear entrada de backlog (status por defecto: `not_started`)
+- [x] `PATCH /users/me/backlog/:backlogId` — Actualizar status, `realDuration`, `finishedAt`, `userRating`, `isPublic`, `notes`
+- [x] `GET /users/me/backlog` — Ver mi historial con filtros (status, game_id, from, to)
+- [x] `GET /users/:username/backlog` — Ver backlog público de otro usuario (respeta `User.isPublic` + `Backlog.isPublic`)
+- [x] `DELETE /users/me/backlog/:backlogId` — Eliminar entrada (borrado físico, solo owner)
+- [x] `userRating` — Nota personal del 1 al 10 en pasos de 0.5
+- [x] Serializer con game y platform incluidos
+- [x] Error handling completo registrado en normalizers globales (404, 403, 400, 500)
 
-### Vistas (filtros sobre backlogs)
+### Vistas (filtros sobre backlog)
 
 > Las "vistas" no son listas separadas — son query filters sobre `Backlog`. Replican el comportamiento actual de NocoDB donde las vistas son filtros sobre la misma tabla.
 
-- [ ] `GET /users/me/backlogs?status=not_started` — Vista "Pendientes" (juegos sin iniciar)
-- [ ] `GET /users/me/backlogs?status=playing` — Vista "Jugando" (juegos en progreso)
-- [ ] `GET /users/me/backlogs?status=completed` — Vista "Completados" (todos los completados)
-- [ ] `GET /users/me/backlogs?status=abandoned` — Vista "Abandonados"
-- [ ] `GET /users/me/backlogs?from=2025-01-01&to=2025-06-30` — Vista "Semestre 2025-S01" (filtro por rango de fechas de `finished_at`)
-- [ ] Soportar combinación de filtros: `?status=completed&from=2025-07-01&to=2025-12-31` (completados del semestre 2025-S02)
-- [ ] Cada resultado incluye: juego, plataforma, status, play_count (calculado), datos del backlog
+- [x] `GET /users/me/backlog?status=not_started` — Vista "Pendientes"
+- [x] `GET /users/me/backlog?status=playing` — Vista "Jugando"
+- [x] `GET /users/me/backlog?status=completed` — Vista "Completados"
+- [x] `GET /users/me/backlog?status=abandoned` — Vista "Abandonados"
+- [x] `GET /users/me/backlog?from=2025-01-01&to=2025-06-30` — Vista por semestre (filtro por `finishedAt`)
+- [x] Soportar combinación de filtros: `?status=completed&from=2025-07-01&to=2025-12-31`
 
 ### Transacciones en operaciones multi-paso
 
@@ -507,7 +508,7 @@
 
 | Feature                               | Free                           | Premium                       |
 | ------------------------------------- | ------------------------------ | ----------------------------- |
-| **Tracking de juegos y backlogs** | ✅ Completo                    | ✅ Completo                   |
+| **Tracking de juegos y backlogs**     | ✅ Completo                    | ✅ Completo                   |
 | **Vistas/filtros (status, semestre)** | ✅                             | ✅                            |
 | **Listas (collection + challenge)**   | ✅ Hasta 5 (Backlog no cuenta) | ✅ Ilimitadas                 |
 | **CSV import**                        | ✅                             | ✅                            |
