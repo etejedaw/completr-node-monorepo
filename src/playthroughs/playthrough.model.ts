@@ -16,6 +16,7 @@ class Playthrough extends Model {
 	declare startedAt?: Date;
 	declare finishedAt?: Date;
 	declare realDuration?: number;
+	declare userRating?: number;
 	declare notes?: string;
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -54,6 +55,7 @@ Playthrough.init(
 		startedAt: DataTypes.DATE,
 		finishedAt: DataTypes.DATE,
 		realDuration: DataTypes.FLOAT,
+		userRating: DataTypes.FLOAT,
 		notes: DataTypes.TEXT
 	},
 	{ sequelize }
