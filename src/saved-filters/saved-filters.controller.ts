@@ -23,12 +23,13 @@ export async function postSavedFilter(request: Request, response: Response) {
 
 export async function getMeSavedFilters(request: Request, response: Response) {
 	const customRequest = request as CustomRequest;
-	const userId = customRequest.user.id;
+	const { id: userId, role } = customRequest.user;
 
-	const filters = await savedFiltersService.findSavedFiltersByUserId(userId);
+	const { filters, frozen } =
+		await savedFiltersService.findSavedFiltersByUserId(userId, role);
 	const filtersPlain = filters.map(f => f.get({ plain: true }));
 
-	const data = { savedFilters: filtersPlain };
+	const data = { savedFilters: filtersPlain, frozen };
 	return response.status(200).json({ data });
 }
 
@@ -36,11 +37,12 @@ export async function patchSavedFilter(request: Request, response: Response) {
 	const customRequest = request as CustomRequest;
 	const params = request.params as SavedFilterIdParams;
 	const dto = request.body as UpdateSavedFilterDto;
-	const userId = customRequest.user.id;
+	const { id: userId, role } = customRequest.user;
 
 	const filter = await savedFiltersService.updateSavedFilter(
 		params.filterId,
 		userId,
+		role,
 		dto
 	);
 	const filterPlain = filter.get({ plain: true });
