@@ -4,6 +4,7 @@ import * as savedFiltersService from "./saved-filters.service";
 import { RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
 import { UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
 import { SavedFilterIdParams } from "./schemas/saved-filter-id-params.schema";
+import { savedFilterSerializer } from "./saved-filters.serializer";
 
 export async function postSavedFilter(request: Request, response: Response) {
 	const registerSavedFilter = request.locals.body as RegisterSavedFilterDto;
@@ -16,7 +17,7 @@ export async function postSavedFilter(request: Request, response: Response) {
 	);
 	const filterPlain = filter.get({ plain: true });
 
-	const data = { savedFilter: filterPlain };
+	const data = { savedFilter: savedFilterSerializer(filterPlain) };
 	return response.status(201).json({ data });
 }
 
@@ -27,7 +28,10 @@ export async function getMeSavedFilters(request: Request, response: Response) {
 		await savedFiltersService.findSavedFiltersByUserId(user.id, user.role);
 	const filtersPlain = filters.map(filter => filter.get({ plain: true }));
 
-	const data = { savedFilters: filtersPlain, frozen };
+	const data = {
+		savedFilters: filtersPlain.map(savedFilterSerializer),
+		frozen
+	};
 	return response.status(200).json({ data });
 }
 
@@ -44,7 +48,7 @@ export async function patchSavedFilter(request: Request, response: Response) {
 	);
 	const filterPlain = filter.get({ plain: true });
 
-	const data = { savedFilter: filterPlain };
+	const data = { savedFilter: savedFilterSerializer(filterPlain) };
 	return response.status(200).json({ data });
 }
 
