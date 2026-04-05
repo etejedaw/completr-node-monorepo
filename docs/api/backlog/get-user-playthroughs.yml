@@ -1,11 +1,11 @@
 info:
-    name: Get User Playthroughs
+    name: Get User Backlogs
     type: http
     seq: 5
 
 http:
     method: GET
-    url: "{{BASE_URL}}/users/:username/playthroughs"
+    url: "{{BASE_URL}}/users/:username/backlog"
     params:
         - name: username
           value: ""
@@ -15,9 +15,9 @@ settings:
     encodeUrl: true
 
 docs: |-
-    ## Get User Playthroughs
+    ## Get User Backlogs
 
-    Returns the public playthrough history of a user. Returns 403 if the user's profile is private. Supports the same filters as the authenticated endpoint.
+    Returns the public backlog history of a user. Returns 403 if the user's profile is private. Supports the same filters as the authenticated endpoint.
 
     **Authentication:** None required (public endpoint).
     **Rate Limit:** 100 requests per minute.
@@ -42,7 +42,7 @@ docs: |-
     ```json
     {
       "data": {
-        "playthroughs": [
+        "backlogs": [
           {
             "id": "uuid",
             "status": "completed",
@@ -51,7 +51,7 @@ docs: |-
             "realDuration": 12.5,
             "userRating": 8.5,
             "notes": "Great game",
-            "playthroughNumber": 1,
+            "backlogNumber": 1,
             "createdAt": "...",
             "game": { "id": "uuid", "title": "..." },
             "platform": { "id": "uuid", "name": "..." }

@@ -1,30 +1,34 @@
 import { Op } from "sequelize";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
-import { Playthrough } from "./playthrough.model";
-import { RegisterPlaythroughDto } from "./dtos/register-playthrough.dto";
-import { UpdatePlaythroughDto } from "./dtos/update-playthrough.dto";
-import * as playthroughServiceError from "./errors/playthroughs.service-error";
+import { Backlog } from "./backlog.model";
+import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
+import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
+import * as backlogServiceError from "./errors/backlog.service-error";
 
-export async function createPlaythrough(
+export async function createBacklog(
 	userId: string,
-	dto: RegisterPlaythroughDto
+	registerBacklog: RegisterBacklogDto
 ) {
-	const playthrough = await Playthrough.create({ ...dto, userId });
-	await playthrough.reload({
+	const backlogEntry = await Backlog.create({
+		...registerBacklog,
+		userId
+	});
+
+	await backlogEntry.reload({
 		include: [{ model: Game }, { model: Platform }]
 	});
-	return playthrough;
+	return backlogEntry;
 }
 
-export async function findPlaythroughById(id: string) {
-	return Playthrough.findOne({
+export async function findBacklogById(id: string) {
+	return Backlog.findOne({
 		where: { id },
 		include: [{ model: Game }, { model: Platform }]
 	});
 }
 
-export async function findPlaythroughsByUserId(
+export async function findBacklogByUserId(
 	userId: string,
 	filters: {
 		status?: string;
@@ -45,14 +49,14 @@ export async function findPlaythroughsByUserId(
 		where.finishedAt = dateFilter;
 	}
 
-	return Playthrough.findAll({
+	return Backlog.findAll({
 		where,
 		include: [{ model: Game }, { model: Platform }],
 		order: [["createdAt", "DESC"]]
 	});
 }
 
-export async function findPublicPlaythroughsByUserId(
+export async function findPublicBacklogByUserId(
 	userId: string,
 	filters: {
 		status?: string;
@@ -73,40 +77,40 @@ export async function findPublicPlaythroughsByUserId(
 		where.finishedAt = dateFilter;
 	}
 
-	return Playthrough.findAll({
+	return Backlog.findAll({
 		where,
 		include: [{ model: Game }, { model: Platform }],
 		order: [["createdAt", "DESC"]]
 	});
 }
 
-export async function updatePlaythrough(
+export async function updateBacklog(
 	id: string,
 	userId: string,
-	dto: UpdatePlaythroughDto
+	dto: UpdateBacklogDto
 ) {
-	const playthrough = await Playthrough.findOne({ where: { id } });
-	if (!playthrough) throw playthroughServiceError.notFoundError();
-	if (playthrough.userId !== userId)
-		throw playthroughServiceError.forbiddenError();
+	const backlogEntry = await Backlog.findOne({ where: { id } });
+	if (!backlogEntry) throw backlogServiceError.notFoundError();
+	if (backlogEntry.userId !== userId)
+		throw backlogServiceError.forbiddenError();
 
-	await playthrough.update(dto);
-	return findPlaythroughById(id);
+	await backlogEntry.update(dto);
+	return findBacklogById(id);
 }
 
-export async function removePlaythrough(id: string, userId: string) {
-	const playthrough = await Playthrough.findOne({ where: { id } });
-	if (!playthrough) throw playthroughServiceError.notFoundError();
-	if (playthrough.userId !== userId)
-		throw playthroughServiceError.forbiddenError();
+export async function removeBacklog(id: string, userId: string) {
+	const backlogEntry = await Backlog.findOne({ where: { id } });
+	if (!backlogEntry) throw backlogServiceError.notFoundError();
+	if (backlogEntry.userId !== userId)
+		throw backlogServiceError.forbiddenError();
 
-	await Playthrough.destroy({ where: { id } });
+	await Backlog.destroy({ where: { id } });
 	return true;
 }
 
-export async function countPlaythroughsByUserAndGame(
+export async function countBacklogByUserAndGame(
 	userId: string,
 	gameId: string
 ) {
-	return Playthrough.count({ where: { userId, gameId } });
+	return Backlog.count({ where: { userId, gameId } });
 }

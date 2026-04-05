@@ -3,21 +3,21 @@ import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 
-export const PLAYTHROUGH_STATUSES = [
+export const BACKLOG_STATUSES = [
 	"not_started",
 	"playing",
 	"completed",
 	"abandoned"
 ] as const;
 
-export type PlaythroughStatus = (typeof PLAYTHROUGH_STATUSES)[number];
+export type BacklogStatus = (typeof BACKLOG_STATUSES)[number];
 
-class Playthrough extends Model {
+class Backlog extends Model {
 	declare id: string;
 	declare userId: string;
 	declare gameId: string;
 	declare platformId: string;
-	declare status: PlaythroughStatus;
+	declare status: BacklogStatus;
 	declare startedAt?: Date;
 	declare finishedAt?: Date;
 	declare realDuration?: number;
@@ -30,7 +30,7 @@ class Playthrough extends Model {
 	declare Platform: Platform;
 }
 
-Playthrough.init(
+Backlog.init(
 	{
 		id: {
 			type: DataTypes.UUID,
@@ -51,7 +51,7 @@ Playthrough.init(
 			allowNull: false
 		},
 		status: {
-			type: DataTypes.ENUM(...PLAYTHROUGH_STATUSES),
+			type: DataTypes.ENUM(...BACKLOG_STATUSES),
 			allowNull: false,
 			defaultValue: "not_started"
 		},
@@ -63,9 +63,9 @@ Playthrough.init(
 			type: DataTypes.BOOLEAN,
 			defaultValue: true
 		},
-		notes: DataTypes.TEXT
+		notes: DataTypes.STRING
 	},
 	{ sequelize }
 );
 
-export { Playthrough };
+export { Backlog };

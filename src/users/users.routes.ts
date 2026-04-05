@@ -10,8 +10,8 @@ import {
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import gameShelfRouter from "../game-shelf/game-shelf.routes";
 import * as gameShelfController from "../game-shelf/game-shelf.controller";
-import playthroughsRouter from "../playthroughs/playthroughs.routes";
-import * as playthroughsController from "../playthroughs/playthroughs.controller";
+import backlogRouter from "../backlog/backlog.routes";
+import * as backlogController from "../backlog/backlog.controller";
 
 const router = Router();
 
@@ -57,15 +57,15 @@ router.get(
 	gameShelfController.getUserGameShelf
 );
 
-router.use("/users/me/playthroughs", playthroughsRouter);
+router.use("/users/me/backlog", backlogRouter);
 
 router.get(
-	"/users/:username/playthroughs",
+	"/users/:username/backlog",
 	[
 		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
-	playthroughsController.getUserPlaythroughs
+	backlogController.getUserBacklog
 );
 
 export default router;

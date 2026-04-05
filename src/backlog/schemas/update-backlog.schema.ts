@@ -1,9 +1,9 @@
 import z from "zod";
-import { PLAYTHROUGH_STATUSES } from "../playthrough.model";
+import { BACKLOG_STATUSES } from "../backlog.model";
 
-export const UpdatePlaythroughSchema = z
+export const UpdateBacklogSchema = z
 	.object({
-		status: z.enum(PLAYTHROUGH_STATUSES).optional(),
+		status: z.enum(BACKLOG_STATUSES).optional(),
 		startedAt: z.iso.date().optional(),
 		finishedAt: z.iso.date().optional(),
 		realDuration: z.number().positive().optional(),

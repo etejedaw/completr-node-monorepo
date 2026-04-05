@@ -1,15 +1,15 @@
 import { DomainError } from "../../common/errors/domain-error";
 import { ServiceError } from "../../common/errors/service-error";
-import { playthroughsServiceToDomainMapper } from "./playthroughs.service-to-domain.mapper";
+import { backlogServiceToDomainMapper } from "./backlog.service-to-domain.mapper";
 
-export function playthroughsErrorDomainNormalizer(
+export function backlogErrorDomainNormalizer(
 	error: unknown,
 	correlationId: string
 ): DomainError {
 	if (error instanceof DomainError) return error;
 
 	if (error instanceof ServiceError)
-		return playthroughsServiceToDomainMapper(error, correlationId);
+		return backlogServiceToDomainMapper(error, correlationId);
 
 	return new DomainError(
 		"COMMON",

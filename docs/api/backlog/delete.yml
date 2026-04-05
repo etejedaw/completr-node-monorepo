@@ -1,13 +1,13 @@
 info:
-    name: Delete Playthrough
+    name: Delete Backlog
     type: http
     seq: 4
 
 http:
     method: DELETE
-    url: "{{BASE_URL}}/users/me/playthroughs/:playthroughId"
+    url: "{{BASE_URL}}/users/me/backlog/:backlogId"
     params:
-        - name: playthroughId
+        - name: backlogId
           value: ""
           type: path
     auth: inherit
@@ -16,9 +16,9 @@ settings:
     encodeUrl: true
 
 docs: |-
-    ## Delete Playthrough
+    ## Delete Backlog
 
-    Deletes a playthrough (physical delete). Only the owner can delete it.
+    Deletes a backlog (physical delete). Only the owner can delete it.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -27,7 +27,7 @@ docs: |-
 
     | Param          | Type | Required | Description          |
     |----------------|------|----------|----------------------|
-    | playthroughId  | uuid | Yes      | The playthrough UUID |
+    | backlogId  | uuid | Yes      | The backlog UUID |
 
     ### Response (204)
 

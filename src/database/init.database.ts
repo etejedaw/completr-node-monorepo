@@ -12,7 +12,7 @@ import "../game-shelf/game-shelf.model";
 import "../lists/list.model";
 import "../list-items/list-item.model";
 import "../list-followers/list-follower.model";
-import "../playthroughs/playthrough.model";
+import "../backlog/backlog.model";
 import "../game-scores/game-score.model";
 import "../game-times/game-time.model";
 import "../saved-filters/saved-filter.model";

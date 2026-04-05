@@ -1,11 +1,11 @@
 info:
-    name: Create Playthrough
+    name: Create Backlog
     type: http
     seq: 1
 
 http:
     method: POST
-    url: "{{BASE_URL}}/users/me/playthroughs"
+    url: "{{BASE_URL}}/users/me/backlog"
     headers:
         - name: Content-Type
           value: application/json
@@ -22,9 +22,9 @@ settings:
     encodeUrl: true
 
 docs: |-
-    ## Create Playthrough
+    ## Create Backlog
 
-    Creates a new playthrough for the authenticated user. Default status is `not_started`.
+    Creates a new backlog for the authenticated user. Default status is `not_started`.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -47,7 +47,7 @@ docs: |-
     ```json
     {
       "data": {
-        "playthrough": {
+        "backlog": {
           "id": "uuid",
           "status": "not_started",
           "startedAt": null,
@@ -55,7 +55,7 @@ docs: |-
           "realDuration": null,
           "userRating": null,
           "notes": null,
-          "playthroughNumber": null,
+          "backlogNumber": null,
           "createdAt": "...",
           "game": { "id": "uuid", "title": "..." },
           "platform": { "id": "uuid", "name": "..." }

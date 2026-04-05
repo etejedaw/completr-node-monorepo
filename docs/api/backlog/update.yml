@@ -1,13 +1,13 @@
 info:
-    name: Update Playthrough
+    name: Update Backlog
     type: http
     seq: 3
 
 http:
     method: PATCH
-    url: "{{BASE_URL}}/users/me/playthroughs/:playthroughId"
+    url: "{{BASE_URL}}/users/me/backlog/:backlogId"
     params:
-        - name: playthroughId
+        - name: backlogId
           value: ""
           type: path
     headers:
@@ -29,9 +29,9 @@ settings:
     encodeUrl: true
 
 docs: |-
-    ## Update Playthrough
+    ## Update Backlog
 
-    Updates an existing playthrough. Only the owner can update it.
+    Updates an existing backlog. Only the owner can update it.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -40,7 +40,7 @@ docs: |-
 
     | Param          | Type | Required | Description          |
     |----------------|------|----------|----------------------|
-    | playthroughId  | uuid | Yes      | The playthrough UUID |
+    | backlogId  | uuid | Yes      | The backlog UUID |
 
     ### Request Body
 
@@ -58,14 +58,14 @@ docs: |-
     ```json
     {
       "data": {
-        "playthrough": {
+        "backlog": {
           "id": "uuid",
           "status": "completed",
           "finishedAt": "2025-06-15",
           "realDuration": 12.5,
           "userRating": 8.5,
           "notes": "Great game",
-          "playthroughNumber": null,
+          "backlogNumber": null,
           "game": { "id": "uuid", "title": "..." },
           "platform": { "id": "uuid", "name": "..." }
         }

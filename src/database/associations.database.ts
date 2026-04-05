@@ -8,7 +8,7 @@ import { GameShelf } from "../game-shelf/game-shelf.model";
 import { List } from "../lists/list.model";
 import { ListItem } from "../list-items/list-item.model";
 import { ListFollower } from "../list-followers/list-follower.model";
-import { Playthrough } from "../playthroughs/playthrough.model";
+import { Backlog } from "../backlog/backlog.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
 import { SavedFilter } from "../saved-filters/saved-filter.model";
@@ -21,7 +21,7 @@ export function setupAssociations() {
 	lists();
 	listItems();
 	listFollowers();
-	playthroughs();
+	backlog();
 	gameScores();
 	gameTimes();
 	savedFilters();
@@ -83,8 +83,8 @@ function listItems() {
 	Game.hasMany(ListItem, { foreignKey: "gameId" });
 	ListItem.belongsTo(Game, { foreignKey: "gameId" });
 
-	Playthrough.hasMany(ListItem, { foreignKey: "playthroughId" });
-	ListItem.belongsTo(Playthrough, { foreignKey: "playthroughId" });
+	Backlog.hasMany(ListItem, { foreignKey: "backlogId" });
+	ListItem.belongsTo(Backlog, { foreignKey: "backlogId" });
 }
 
 function listFollowers() {
@@ -95,15 +95,15 @@ function listFollowers() {
 	ListFollower.belongsTo(User, { foreignKey: "userId" });
 }
 
-function playthroughs() {
-	User.hasMany(Playthrough, { foreignKey: "userId" });
-	Playthrough.belongsTo(User, { foreignKey: "userId" });
+function backlog() {
+	User.hasMany(Backlog, { foreignKey: "userId" });
+	Backlog.belongsTo(User, { foreignKey: "userId" });
 
-	Game.hasMany(Playthrough, { foreignKey: "gameId" });
-	Playthrough.belongsTo(Game, { foreignKey: "gameId" });
+	Game.hasMany(Backlog, { foreignKey: "gameId" });
+	Backlog.belongsTo(Game, { foreignKey: "gameId" });
 
-	Platform.hasMany(Playthrough, { foreignKey: "platformId" });
-	Playthrough.belongsTo(Platform, { foreignKey: "platformId" });
+	Platform.hasMany(Backlog, { foreignKey: "platformId" });
+	Backlog.belongsTo(Platform, { foreignKey: "platformId" });
 }
 
 function gameScores() {

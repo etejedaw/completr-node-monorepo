@@ -5,7 +5,7 @@ class ListItem extends Model {
 	declare id: string;
 	declare listId: string;
 	declare gameId: string;
-	declare playthroughId?: string;
+	declare backlogId?: string;
 	declare position: number;
 	declare score?: number;
 	declare duration?: number;
@@ -31,7 +31,7 @@ ListItem.init(
 			type: DataTypes.UUID,
 			allowNull: false
 		},
-		playthroughId: {
+		backlogId: {
 			type: DataTypes.UUID,
 			allowNull: true
 		},

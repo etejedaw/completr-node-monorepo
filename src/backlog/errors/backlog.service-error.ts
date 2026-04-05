@@ -1,23 +1,23 @@
 import { ServiceError } from "../../common/errors/service-error";
 
-const BASE_OPTIONS = { service: "Playthrough Service" };
+const BASE_OPTIONS = { service: "Backlog Service" };
 
 export function notFoundError() {
-	return new ServiceError("PLAYTHROUGH_NOT_FOUND", {
+	return new ServiceError("BACKLOG_NOT_FOUND", {
 		...BASE_OPTIONS,
 		raw: undefined
 	});
 }
 
 export function forbiddenError() {
-	return new ServiceError("PLAYTHROUGH_FORBIDDEN", {
+	return new ServiceError("BACKLOG_FORBIDDEN", {
 		...BASE_OPTIONS,
 		raw: undefined
 	});
 }
 
 export function validationError(rawError: unknown) {
-	return new ServiceError("PLAYTHROUGH_VALIDATION_ERROR", {
+	return new ServiceError("BACKLOG_VALIDATION_ERROR", {
 		...BASE_OPTIONS,
 		raw: rawError
 	});
