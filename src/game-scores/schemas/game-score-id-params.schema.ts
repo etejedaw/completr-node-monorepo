@@ -1,9 +1,10 @@
 import z from "zod";
+import { SCORE_SOURCES_API } from "../game-score.model";
 
 export const GameScoreIdParamsSchema = z
 	.object({
 		gameId: z.uuid(),
-		source: z.enum(["metacritic", "opencritic", "rawg"])
+		source: z.enum(SCORE_SOURCES_API)
 	})
 	.strict()
 	.readonly();
