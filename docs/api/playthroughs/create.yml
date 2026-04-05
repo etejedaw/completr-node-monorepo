@@ -1,0 +1,65 @@
+info:
+    name: Create Playthrough
+    type: http
+    seq: 1
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/playthroughs"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "gameId": "",
+              "platformId": ""
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Create Playthrough
+
+    Creates a new playthrough for the authenticated user. Default status is `not_started`.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Request Body
+
+    | Field        | Type   | Required | Description                                      |
+    |--------------|--------|----------|--------------------------------------------------|
+    | gameId       | uuid   | Yes      | The game UUID                                    |
+    | platformId   | uuid   | Yes      | The platform UUID                                |
+    | status       | string | No       | not_started, playing, completed, abandoned       |
+    | startedAt    | date   | No       | ISO date                                         |
+    | finishedAt   | date   | No       | ISO date                                         |
+    | realDuration | number | No       | Duration in hours                                |
+    | userRating   | number | No       | 1-10 in steps of 0.5                             |
+    | notes        | string | No       | Free text                                        |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "playthrough": {
+          "id": "uuid",
+          "status": "not_started",
+          "startedAt": null,
+          "finishedAt": null,
+          "realDuration": null,
+          "userRating": null,
+          "notes": null,
+          "playthroughNumber": null,
+          "createdAt": "...",
+          "game": { "id": "uuid", "title": "..." },
+          "platform": { "id": "uuid", "name": "..." }
+        }
+      }
+    }
+    ```

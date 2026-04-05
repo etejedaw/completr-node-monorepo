@@ -1,0 +1,74 @@
+info:
+    name: Update Playthrough
+    type: http
+    seq: 3
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/playthroughs/:playthroughId"
+    params:
+        - name: playthroughId
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "status": "completed",
+              "finishedAt": "2025-06-15",
+              "realDuration": 12.5,
+              "userRating": 8.5,
+              "notes": "Great game"
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Update Playthrough
+
+    Updates an existing playthrough. Only the owner can update it.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param          | Type | Required | Description          |
+    |----------------|------|----------|----------------------|
+    | playthroughId  | uuid | Yes      | The playthrough UUID |
+
+    ### Request Body
+
+    | Field        | Type   | Required | Description                                |
+    |--------------|--------|----------|--------------------------------------------|
+    | status       | string | No       | not_started, playing, completed, abandoned |
+    | startedAt    | date   | No       | ISO date                                   |
+    | finishedAt   | date   | No       | ISO date                                   |
+    | realDuration | number | No       | Duration in hours                          |
+    | userRating   | number | No       | 1-10 in steps of 0.5                       |
+    | notes        | string | No       | Free text                                  |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "playthrough": {
+          "id": "uuid",
+          "status": "completed",
+          "finishedAt": "2025-06-15",
+          "realDuration": 12.5,
+          "userRating": 8.5,
+          "notes": "Great game",
+          "playthroughNumber": null,
+          "game": { "id": "uuid", "title": "..." },
+          "platform": { "id": "uuid", "name": "..." }
+        }
+      }
+    }
+    ```

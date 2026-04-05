@@ -1,0 +1,34 @@
+info:
+    name: Delete Playthrough
+    type: http
+    seq: 4
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/playthroughs/:playthroughId"
+    params:
+        - name: playthroughId
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Delete Playthrough
+
+    Deletes a playthrough (physical delete). Only the owner can delete it.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param          | Type | Required | Description          |
+    |----------------|------|----------|----------------------|
+    | playthroughId  | uuid | Yes      | The playthrough UUID |
+
+    ### Response (204)
+
+    No content.
