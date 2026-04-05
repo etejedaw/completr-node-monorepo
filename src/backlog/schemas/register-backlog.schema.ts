@@ -9,6 +9,8 @@ export const RegisterBacklogSchema = z
 		startedAt: z.iso.date().optional(),
 		finishedAt: z.iso.date().optional(),
 		realDuration: z.number().positive().optional(),
+		score: z.number().optional(),
+		duration: z.number().positive().optional(),
 		userRating: z
 			.number()
 			.min(1)
