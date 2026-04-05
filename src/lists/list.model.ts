@@ -1,7 +1,8 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 
-export type ListType = "collection" | "challenge";
+export const LIST_TYPES = ["collection", "challenge"] as const;
+export type ListType = (typeof LIST_TYPES)[number];
 
 class List extends Model {
 	declare id: string;
@@ -39,7 +40,7 @@ List.init(
 			allowNull: false
 		},
 		type: {
-			type: DataTypes.ENUM("collection", "challenge"),
+			type: DataTypes.ENUM(...LIST_TYPES),
 			allowNull: false
 		},
 		isDefault: {
