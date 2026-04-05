@@ -3,11 +3,14 @@ import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 
-export type PlaythroughStatus =
-	| "not_started"
-	| "playing"
-	| "completed"
-	| "abandoned";
+export const PLAYTHROUGH_STATUSES = [
+	"not_started",
+	"playing",
+	"completed",
+	"abandoned"
+] as const;
+
+export type PlaythroughStatus = (typeof PLAYTHROUGH_STATUSES)[number];
 
 class Playthrough extends Model {
 	declare id: string;
@@ -48,12 +51,7 @@ Playthrough.init(
 			allowNull: false
 		},
 		status: {
-			type: DataTypes.ENUM(
-				"not_started",
-				"playing",
-				"completed",
-				"abandoned"
-			),
+			type: DataTypes.ENUM(...PLAYTHROUGH_STATUSES),
 			allowNull: false,
 			defaultValue: "not_started"
 		},

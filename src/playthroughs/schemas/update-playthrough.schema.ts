@@ -1,10 +1,9 @@
 import z from "zod";
+import { PLAYTHROUGH_STATUSES } from "../playthrough.model";
 
 export const UpdatePlaythroughSchema = z
 	.object({
-		status: z
-			.enum(["not_started", "playing", "completed", "abandoned"])
-			.optional(),
+		status: z.enum(PLAYTHROUGH_STATUSES).optional(),
 		startedAt: z.iso.date().optional(),
 		finishedAt: z.iso.date().optional(),
 		realDuration: z.number().positive().optional(),
