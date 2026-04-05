@@ -33,8 +33,10 @@ docs: |-
     | no_finished_date  | bool   | No       | If `true`, returns only entries with no finishedAt date                      |
     | min_score     | number | No       | Filter by score >= value                                                    |
     | max_score     | number | No       | Filter by score <= value                                                    |
-    | min_duration  | number | No       | Filter by duration >= value (hours)                                         |
-    | max_duration  | number | No       | Filter by duration <= value (hours)                                         |
+    | min_duration      | number | No       | Filter by duration >= value (hours)                                         |
+    | max_duration      | number | No       | Filter by duration <= value (hours)                                         |
+    | min_real_duration | number | No       | Filter by realDuration >= value (hours)                                     |
+    | max_real_duration | number | No       | Filter by realDuration <= value (hours)                                     |
     | min_rating    | number | No       | Filter by userRating >= value                                               |
     | max_rating    | number | No       | Filter by userRating <= value                                               |
     | sort_by       | string | No       | Sort field: `status`, `score`, `duration`, `startedAt`, `finishedAt`, `realDuration`, `userRating`, `createdAt` (default: `createdAt`) |
