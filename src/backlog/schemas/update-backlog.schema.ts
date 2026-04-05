@@ -1,5 +1,6 @@
 import z from "zod";
 import { BACKLOG_STATUSES } from "../backlog.model";
+import { isStepOfHalf } from "../utils/is-step-of-half.util";
 
 export const UpdateBacklogSchema = z
 	.object({
@@ -13,7 +14,7 @@ export const UpdateBacklogSchema = z
 			.number()
 			.min(1)
 			.max(10)
-			.refine(isMultipleOfFive, {
+			.refine(isStepOfHalf, {
 				message: "userRating must be in steps of 0.5"
 			})
 			.optional(),
@@ -22,7 +23,3 @@ export const UpdateBacklogSchema = z
 	})
 	.strict()
 	.readonly();
-
-function isMultipleOfFive(input: number) {
-	return (input * 10) % 5 == 0;
-}
