@@ -21,6 +21,8 @@ class Backlog extends Model {
 	declare startedAt?: Date;
 	declare finishedAt?: Date;
 	declare realDuration?: number;
+	declare score?: number;
+	declare duration?: number;
 	declare userRating?: number;
 	declare isPublic: boolean;
 	declare notes?: string;
@@ -58,6 +60,8 @@ Backlog.init(
 		startedAt: DataTypes.DATE,
 		finishedAt: DataTypes.DATE,
 		realDuration: DataTypes.FLOAT,
+		score: DataTypes.FLOAT,
+		duration: DataTypes.FLOAT,
 		userRating: DataTypes.FLOAT,
 		isPublic: {
 			type: DataTypes.BOOLEAN,
