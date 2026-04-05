@@ -29,11 +29,8 @@ export async function findBacklogById(id: string) {
 	});
 }
 
-export async function findBacklogByUserId(
-	userId: string,
-	filters: BacklogQuery = {}
-) {
-	const where: Record<string, unknown> = { userId };
+function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
+	const where: Record<string, unknown> = { ...base };
 
 	if (filters.status) where.status = filters.status;
 	if (filters.game_id) where.gameId = filters.game_id;
@@ -45,8 +42,15 @@ export async function findBacklogByUserId(
 		where.finishedAt = dateFilter;
 	}
 
+	return where;
+}
+
+export async function findBacklogByUserId(
+	userId: string,
+	filters: BacklogQuery = {}
+) {
 	return Backlog.findAll({
-		where,
+		where: buildWhere({ userId }, filters),
 		include: [{ model: Game }, { model: Platform }],
 		order: [["createdAt", "DESC"]]
 	});
@@ -56,20 +60,8 @@ export async function findPublicBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}
 ) {
-	const where: Record<string, unknown> = { userId, isPublic: true };
-
-	if (filters.status) where.status = filters.status;
-	if (filters.game_id) where.gameId = filters.game_id;
-
-	if (filters.from || filters.to) {
-		const dateFilter: Record<symbol, Date> = {};
-		if (filters.from) dateFilter[Op.gte] = new Date(filters.from);
-		if (filters.to) dateFilter[Op.lte] = new Date(filters.to);
-		where.finishedAt = dateFilter;
-	}
-
 	return Backlog.findAll({
-		where,
+		where: buildWhere({ userId, isPublic: true }, filters),
 		include: [{ model: Game }, { model: Platform }],
 		order: [["createdAt", "DESC"]]
 	});
