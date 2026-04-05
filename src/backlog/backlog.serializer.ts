@@ -3,9 +3,17 @@ import { Platform } from "../platforms/platform.model";
 import { Backlog } from "./backlog.model";
 
 export function backlogSerializer(backlogEntry: Backlog) {
+	const ratio =
+		backlogEntry.score && backlogEntry.duration
+			? backlogEntry.score / backlogEntry.duration
+			: undefined;
+
 	return {
 		id: backlogEntry.id,
 		status: backlogEntry.status,
+		score: backlogEntry.score,
+		duration: backlogEntry.duration,
+		ratio,
 		startedAt: backlogEntry.startedAt,
 		finishedAt: backlogEntry.finishedAt,
 		realDuration: backlogEntry.realDuration,
