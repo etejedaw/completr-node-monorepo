@@ -1,3 +1,4 @@
+import { Request } from "express";
 import { authDomainToHttpMapper } from "../../auth/errors/auth.domain-to-http.mapper";
 import { usersDomainToHttpMapper } from "../../users/errors/users.domain-to-http.mapper";
 import { gamesDomainToHttpMapper } from "../../games/errors/games.domain-to-http.mapper";
@@ -8,14 +9,14 @@ import { gameScoresDomainToHttpMapper } from "../../game-scores/errors/game-scor
 import { gameTimesDomainToHttpMapper } from "../../game-times/errors/game-times.domain-to-http.mapper";
 import { backlogDomainToHttpMapper } from "../../backlog/errors/backlog.domain-to-http.mapper";
 import { savedFiltersDomainToHttpMapper } from "../../saved-filters/errors/saved-filters.domain-to-http.mapper";
-import { CustomRequest } from "../interfaces/custom-request.interface";
+
 import { commonDomainToHttpMapper } from "./common.domain-to-http.mapper";
 import { DomainError } from "./domain-error";
 import { HttpError } from "./http-error";
 
 export function globalErrorHttpNormalizer(
 	error: DomainError,
-	request: CustomRequest
+	request: Request
 ) {
 	if (error.module === "User Module")
 		return usersDomainToHttpMapper(error, request);
@@ -56,7 +57,7 @@ export function globalErrorHttpNormalizer(
 		status: 500,
 		instance: request.originalUrl,
 		timestamp: new Date(),
-		correlationId: request.correlationId,
+		correlationId: request.locals?.correlationId as string,
 		context: error.context
 	});
 }
