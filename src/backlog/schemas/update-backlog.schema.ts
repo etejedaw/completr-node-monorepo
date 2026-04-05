@@ -11,7 +11,7 @@ export const UpdateBacklogSchema = z
 			.number()
 			.min(1)
 			.max(10)
-			.refine(v => (v * 10) % 5 === 0, {
+			.refine(isMultipleOfFive, {
 				message: "userRating must be in steps of 0.5"
 			})
 			.optional(),
@@ -20,3 +20,7 @@ export const UpdateBacklogSchema = z
 	})
 	.strict()
 	.readonly();
+
+function isMultipleOfFive(input: number) {
+	return (input * 10) % 5 == 0;
+}
