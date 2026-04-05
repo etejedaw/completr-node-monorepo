@@ -9,7 +9,6 @@ import { PlaythroughQuery } from "./schemas/playthrough-query.schema";
 import { UsernameParam } from "../users/schemas/username-params.schema";
 import { playthroughSerializer } from "./playthroughs.serializer";
 import { CustomRequest } from "../common/interfaces/custom-request.interface";
-import { Playthrough } from "./playthrough.model";
 
 export async function postPlaythrough(request: Request, response: Response) {
 	const customRequest = request as CustomRequest;
@@ -26,32 +25,6 @@ export async function postPlaythrough(request: Request, response: Response) {
 	return response.status(201).json({ data });
 }
 
-function buildPlaythroughNumberMap(playthroughs: Playthrough[]) {
-	const sorted = [...playthroughs].sort(
-		(a, b) =>
-			new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-	);
-
-	const numberMap = new Map<string, number>();
-	const gameCounters = new Map<string, number>();
-	for (const p of sorted) {
-		const n = (gameCounters.get(p.gameId) ?? 0) + 1;
-		gameCounters.set(p.gameId, n);
-		numberMap.set(p.id, n);
-	}
-
-	return numberMap;
-}
-
-function serializePlaythroughs(playthroughs: Playthrough[]) {
-	const playthroughsPlain = playthroughs.map(p => p.get({ plain: true }));
-	const numberMap = buildPlaythroughNumberMap(playthroughsPlain);
-
-	return playthroughsPlain.map(p =>
-		playthroughSerializer(p, numberMap.get(p.id))
-	);
-}
-
 export async function getMyPlaythroughs(request: Request, response: Response) {
 	const customRequest = request as CustomRequest;
 	const userId = customRequest.user.id;
@@ -61,8 +34,9 @@ export async function getMyPlaythroughs(request: Request, response: Response) {
 		userId,
 		query
 	);
+	const playthroughsPlain = playthroughs.map(p => p.get({ plain: true }));
 
-	const data = { playthroughs: serializePlaythroughs(playthroughs) };
+	const data = { playthroughs: playthroughsPlain.map(playthroughSerializer) };
 	return response.status(200).json({ data });
 }
 
@@ -82,8 +56,9 @@ export async function getUserPlaythroughs(
 			user.id,
 			query
 		);
+	const playthroughsPlain = playthroughs.map(p => p.get({ plain: true }));
 
-	const data = { playthroughs: serializePlaythroughs(playthroughs) };
+	const data = { playthroughs: playthroughsPlain.map(playthroughSerializer) };
 	return response.status(200).json({ data });
 }
 
