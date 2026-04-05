@@ -28,7 +28,7 @@ router.get(
 		authMiddleware("user", "premium", "moderator"),
 		validateSchemaMiddleware(PlaythroughQuerySchema, "query")
 	],
-	playthroughsController.getMyPlaythroughs
+	playthroughsController.getMePlaythroughs
 );
 
 router.patch(

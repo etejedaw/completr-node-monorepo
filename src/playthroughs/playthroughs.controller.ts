@@ -25,7 +25,7 @@ export async function postPlaythrough(request: Request, response: Response) {
 	return response.status(201).json({ data });
 }
 
-export async function getMyPlaythroughs(request: Request, response: Response) {
+export async function getMePlaythroughs(request: Request, response: Response) {
 	const customRequest = request as CustomRequest;
 	const userId = customRequest.user.id;
 	const query = request.query as unknown as PlaythroughQuery;
