@@ -419,29 +419,26 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Infraestructura: error handling, logging, rate limiting, validación, CORS, Helmet
 - Data maestra: 517 juegos enriquecidos con RAWG (descripciones, covers, fechas, géneros, scores RAWG, playtimes RAWG) + scores Metacritic y tiempos HLTB del CSV original
 
-### Completado recientemente (Fase 1)
+### Completado (Fase 1 — en progreso)
 
-- Lists: CRUD completo con scoreSource/durationSource global, basedOnId, isFork, slug auto-generado
-- ListItems: CRUD con score/duration congelados desde fuente oficial, posición unique sin huecos, reordenamiento
-- Backlog: CRUD completo con filtros avanzados (multi-status, no_finished_date, rangos), isPublic, userRating
-- Saved Filters: CRUD con límite free/premium, campo description, serializer sin timestamps
+- Backlog: CRUD completo con filtros avanzados (multi-status comma-separated, no_finished_date, platform_id, rangos de fechas/score/duration/realDuration/rating, ordenamiento), isPublic, userRating (1-10 en pasos de 0.5), endpoints públicos para ver backlog de otros usuarios
+- Saved Filters: CRUD con límite free (5) / premium (ilimitado), almacenamiento JSONB de presets de filtros, campo description, serializer sin timestamps
+- Lists: CRUD completo con scoreSource/durationSource global, basedOnId (self-reference para forks), isFork, slug auto-generado, description
+- ListItems: CRUD con score/duration congelados desde fuente oficial (GameScore/GameTime), posición unique sin huecos, reordenamiento con recálculo de posiciones, ratio en serializer
 
 ### Pendiente — Fase 1 (Excel Killer, solo yo)
 
-- Módulo de seguimiento de listas (`list-followers`) con follow normal y fork
+- `POST /lists/:id/refresh-scores` — Actualizar puntajes de todos los items desde la fuente
+- Módulo de seguimiento de listas (`list-followers`) con follow normal y fork ("empezar desde 0")
+- Fork: copia lista + crea backlogs para todos los juegos. Independizar fork → lista propia
 - Transacciones en operaciones multi-paso
 - HLTB/Metacritic auto-fetch (cron nocturno con providers)
 - Importación CSV
 
-### Completado recientemente
-
-- Backlog: CRUD completo con filtros avanzados (status, platform, rangos de fechas/duración/rating, ordenamiento), isPublic, userRating (1-10 en pasos de 0.5), endpoints públicos para ver backlog de otros usuarios
-- Saved Filters: CRUD con límite free (5) / premium (ilimitado), almacenamiento JSONB de presets de filtros
-
 ### Pendiente — Fases posteriores
 
 - Fase 2: Perfil público básico, ver juegos de amigos, onboarding, refresh tokens, migraciones DB
-- Fase 3: Follow usuarios, listas públicas con suscripción, privacidad, búsqueda avanzada, sistema de invitación
+- Fase 3: Follow usuarios, listas públicas con suscripción, privacidad, búsqueda avanzada, sistema de invitación, badges manuales (founder, beta-tester, moderator, premium-supporter)
 - Fase 4: Reviews, stats de listas públicas, logros, resumen semestral, comparación social
 - Fase 5: Estabilización (paginación, emails, tests, seguridad)
 - Fase 6: Premium (estadísticas, temas, Steam sync, listas colaborativas, Stripe)
