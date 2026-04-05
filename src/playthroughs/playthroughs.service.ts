@@ -48,6 +48,34 @@ export async function findPlaythroughsByUserId(
 	});
 }
 
+export async function findPublicPlaythroughsByUserId(
+	userId: string,
+	filters: {
+		status?: string;
+		game_id?: string;
+		from?: string;
+		to?: string;
+	} = {}
+) {
+	const where: Record<string, unknown> = { userId, isPublic: true };
+
+	if (filters.status) where.status = filters.status;
+	if (filters.game_id) where.gameId = filters.game_id;
+
+	if (filters.from || filters.to) {
+		const dateFilter: Record<symbol, Date> = {};
+		if (filters.from) dateFilter[Op.gte] = new Date(filters.from);
+		if (filters.to) dateFilter[Op.lte] = new Date(filters.to);
+		where.finishedAt = dateFilter;
+	}
+
+	return Playthrough.findAll({
+		where,
+		include: [{ model: Game }, { model: Platform }],
+		order: [["createdAt", "DESC"]]
+	});
+}
+
 export async function updatePlaythrough(
 	id: string,
 	userId: string,

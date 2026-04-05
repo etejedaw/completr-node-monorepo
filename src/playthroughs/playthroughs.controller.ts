@@ -78,10 +78,11 @@ export async function getUserPlaythroughs(
 	if (!user) throw userDomainError.userNotFound();
 	if (!user.isPublic) throw userDomainError.userPrivate();
 
-	const playthroughs = await playthroughsService.findPlaythroughsByUserId(
-		user.id,
-		query
-	);
+	const playthroughs =
+		await playthroughsService.findPublicPlaythroughsByUserId(
+			user.id,
+			query
+		);
 
 	const data = { playthroughs: serializePlaythroughs(playthroughs) };
 	return response.status(200).json({ data });
