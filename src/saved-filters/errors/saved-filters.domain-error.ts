@@ -20,9 +20,7 @@ export function savedFilterForbidden(context?: Record<string, unknown>) {
 	);
 }
 
-export function savedFilterLimitReached(
-	context?: Record<string, unknown>
-) {
+export function savedFilterLimitReached(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
 		"SAVED_FILTER_LIMIT_REACHED",
