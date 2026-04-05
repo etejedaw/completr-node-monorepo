@@ -14,10 +14,11 @@ export const RegisterPlaythroughSchema = z
 			.number()
 			.min(1)
 			.max(10)
-			.refine((v) => (v * 10) % 5 === 0, {
+			.refine(v => (v * 10) % 5 === 0, {
 				message: "userRating must be in steps of 0.5"
 			})
 			.optional(),
+		isPublic: z.boolean().optional(),
 		notes: z.string().optional()
 	})
 	.strict()
