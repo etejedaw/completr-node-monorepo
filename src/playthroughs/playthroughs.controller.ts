@@ -13,15 +13,14 @@ import { Playthrough } from "./playthrough.model";
 
 export async function postPlaythrough(request: Request, response: Response) {
 	const customRequest = request as CustomRequest;
-	const dto = request.body as RegisterPlaythroughDto;
+	const registerPlaythrough = request.body as RegisterPlaythroughDto;
 	const userId = customRequest.user.id;
 
 	const playthrough = await playthroughsService.createPlaythrough(
 		userId,
-		dto
+		registerPlaythrough
 	);
-	const full = await playthroughsService.findPlaythroughById(playthrough.id);
-	const playthroughPlain = full!.get({ plain: true });
+	const playthroughPlain = playthrough.get({ plain: true });
 
 	const data = { playthrough: playthroughSerializer(playthroughPlain) };
 	return response.status(201).json({ data });
