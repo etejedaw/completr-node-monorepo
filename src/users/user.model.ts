@@ -1,6 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
-import { UserRole } from "./user-role.type";
+import { USER_ROLES, UserRole } from "./user-role.type";
 
 class User extends Model {
 	declare id: string;
@@ -40,7 +40,7 @@ User.init(
 			allowNull: false
 		},
 		role: {
-			type: DataTypes.ENUM("user", "premium", "moderator", "admin"),
+			type: DataTypes.ENUM(...USER_ROLES),
 			allowNull: false,
 			defaultValue: "user"
 		},
