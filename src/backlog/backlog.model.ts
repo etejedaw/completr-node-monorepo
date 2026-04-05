@@ -63,7 +63,7 @@ Backlog.init(
 			type: DataTypes.BOOLEAN,
 			defaultValue: true
 		},
-		notes: DataTypes.STRING
+		notes: DataTypes.TEXT
 	},
 	{ sequelize }
 );
