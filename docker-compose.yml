@@ -8,6 +8,15 @@ services:
             - POSTGRES_USER=root
             - POSTGRES_PASSWORD=toor
             - POSTGRES_DB=postgres
+    postgres-test:
+        image: postgres:bookworm
+        restart: always
+        ports:
+            - 5433:5432
+        environment:
+            - POSTGRES_USER=root
+            - POSTGRES_PASSWORD=toor
+            - POSTGRES_DB=completr_test
     pgadmin:
         image: elestio/pgadmin
         restart: unless-stopped
