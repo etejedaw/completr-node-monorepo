@@ -222,7 +222,7 @@ src/
 ├── metacritic/        # (pendiente) Provider de Metacritic/OpenCritic
 ├── steam/             # (pendiente) Provider de Steam API
 ├── database/          # Conexión, inicialización, asociaciones
-└── common/            # Config, middlewares, errores, logger, utils
+└── common/            # Config, middlewares, errores, logger, utils, types
 ```
 
 ### Estructura interna de un módulo
@@ -377,6 +377,7 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - **Correlation IDs:** Cada request tiene un ID para trazabilidad en logs.
 - **Providers como bridge:** Los servicios externos se abstraen como módulos en `src/` (ej: `src/hltb/`). Exponen interfaz limpia, lanzan `ServiceError` propios, y no contienen lógica de negocio.
 - **Models nunca se importan entre módulos:** Para acceder a datos de otro módulo, se importa su **service** (ej: `games.service.ts` importa `platformsService.findPlatformsByCode()`, nunca `Platform` directamente). Esto mantiene la encapsulación — cada módulo es dueño de su modelo. **Excepción:** módulos de tablas pivote (ej: `game-platform/`, `game-shelf/`) pueden importar el **Model** directamente de otros módulos cuando necesitan referenciarlo en asociaciones o includes de Sequelize (ej: `include: [{ model: Game }, { model: Platform }]`), pero para operaciones de lectura/escritura siguen usando los services respectivos.
+- **`request.locals` (Express 5):** En Express 5 `req.query` es inmutable, por lo que no se puede usar `Object.assign(request.query, data)`. La solución es usar `request.locals` como contenedor de datos validados. Se extiende `Express.Request` mediante declaration merging en `src/common/types/express.d.ts`. Los middlewares escriben en `request.locals` (`body`, `params`, `query`, `user`, `correlationId`) y los controllers leen desde ahí con type assertion (`request.locals.body as Dto`, `request.locals.user as RequestUser`). El `tsconfig.json` usa `"files"` para que ts-node cargue el `.d.ts` correctamente.
 
 ---
 

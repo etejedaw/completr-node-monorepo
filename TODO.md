@@ -85,6 +85,21 @@
 
 - [x] RAWG provider (`src/rawg/`): clase `RawgProvider` con `searchGame(query, filters)`, `getGameById(id)`, `getGameBySlug(slug)`. Soporta filtros por fecha, plataforma, género, metacritic, ordenamiento y exclusión de DLCs.
 
+### Refactor Express 5: `request.locals`
+
+- [x] Reemplazar `CustomRequest` por `request.locals` (declaration merging en `Express.Request`)
+- [x] Crear `src/common/types/express.d.ts` con `declare namespace Express { interface Request { locals: Record<string, unknown> } }`
+- [x] Crear `src/common/interfaces/request-user.interface.ts` (`RequestUser`)
+- [x] Eliminar `src/common/interfaces/custom-request.interface.ts`
+- [x] Actualizar `validate-schema.middleware.ts`: escribe datos validados en `request.locals[requestKey]`
+- [x] Actualizar `auth.middleware.ts`: escribe usuario en `request.locals.user`
+- [x] Actualizar `correlation-id.middleware.ts`, `error-handler.middleware.ts`, `logger.middleware.ts`
+- [x] Actualizar todos los controllers: `request.locals.body`, `request.locals.params`, `request.locals.query`, `request.locals.user as RequestUser`
+- [x] Actualizar todos los domain-to-http mappers: `Request` en vez de `CustomRequest`, `request.locals?.correlationId`
+- [x] Actualizar `global-error-http.normalizer.ts`: parámetro `Request` en vez de `CustomRequest`
+- [x] Agregar `"files": ["src/common/types/express.d.ts"]` en `tsconfig.json` para que ts-node reconozca la declaration merging
+- [x] Probar todos los endpoints con los 4 roles + sin auth (vistas, filtros, CRUD saved-filters, permisos, errores)
+
 ### Configuración
 
 - [x] Separar variables de entorno en: `environment.config.ts`, `database.config.ts`, `api-keys.config.ts`
