@@ -6,6 +6,7 @@ import { genresErrorDomainNormalizer } from "../../genres/errors/genres.error-do
 import { gameShelfErrorDomainNormalizer } from "../../game-shelf/errors/game-shelf.error-domain.normalizer";
 import { gameScoresErrorDomainNormalizer } from "../../game-scores/errors/game-scores.error-domain.normalizer";
 import { gameTimesErrorDomainNormalizer } from "../../game-times/errors/game-times.error-domain.normalizer";
+import { playthroughsErrorDomainNormalizer } from "../../playthroughs/errors/playthroughs.error-domain.normalizer";
 import { DomainError } from "./domain-error";
 import { ServiceError } from "./service-error";
 
@@ -51,6 +52,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "GameTime Service")
 		return gameTimesErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Playthrough Service")
+		return playthroughsErrorDomainNormalizer(error, correlationId);
 
 	return new DomainError("COMMON", "INTERNAL_ERROR", "Unexpected error", {
 		raw: error,
