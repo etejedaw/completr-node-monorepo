@@ -59,11 +59,15 @@ function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
 	const startedAt = buildDateFilter(filters.started_from, filters.started_to);
 	if (startedAt) where.startedAt = startedAt;
 
-	const finishedAt = buildDateFilter(
-		filters.finished_from,
-		filters.finished_to
-	);
-	if (finishedAt) where.finishedAt = finishedAt;
+	if (filters.no_finished_date) {
+		where.finishedAt = { [Op.is]: null };
+	} else {
+		const finishedAt = buildDateFilter(
+			filters.finished_from,
+			filters.finished_to
+		);
+		if (finishedAt) where.finishedAt = finishedAt;
+	}
 
 	const score = buildRangeFilter(filters.min_score, filters.max_score);
 	if (score) where.score = score;
