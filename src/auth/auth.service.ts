@@ -6,7 +6,7 @@ import * as authDomainError from "./errors/auth.domains-error";
 
 export async function register(registerDto: RegisterDto) {
 	const userEmail = await userService.findUserByEmail(registerDto.email);
-	const userName = await userService.findUserByEmail(registerDto.username);
+	const userName = await userService.findUserByUsername(registerDto.username);
 	if (userEmail || userName) throw authDomainError.userAlreadyExists();
 
 	const hashPassword = await passwordService.hashPassword(
