@@ -20,8 +20,11 @@ import "../saved-filters/saved-filter.model";
 export async function initDatabase() {
 	setupAssociations();
 
+	const isTest = environmentConfig.NODE_ENV === "test";
+	const isDev = environmentConfig.NODE_ENV === "dev";
+
 	await sequelize.sync({
-		force: environmentConfig.NODE_ENV === "test",
-		alter: environmentConfig.NODE_ENV === "dev"
+		force: isTest,
+		alter: isDev || isTest
 	});
 }
