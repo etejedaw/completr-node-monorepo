@@ -172,6 +172,8 @@
     - Si la lista es `challenge`: crea ListItem + nuevo Backlog automáticamente
 - [ ] `DELETE /lists/:id/items/:itemId` — Quitar juego de una lista
 - [ ] `PATCH /lists/:id/items/:itemId` — Actualizar posición del ítem
+- [ ] Score y duration en ListItem se copian (congelan) desde el backlog o GameScore/GameTime al añadir a la lista
+- [ ] Ordenamiento de items por ratio, nota, duración
 
 ### Módulo de Usuarios (perfil)
 
@@ -185,8 +187,6 @@
 - [x] `ratio = score / duration` calculado en el serializer de backlog (redondeado a 2 decimales)
 - [x] `score` y `duration` son campos obligatorios y positivos en backlog (precargados al crear, editables por el usuario)
 - [x] Ratio canónico en game serializer (completr score / completr time)
-- [ ] Ordenamiento de listas por ratio, nota, duración
-- [ ] El score y duration en listas vienen de `ListItem` (congelados)
 
 ### Integración automática con HowLongToBeat y Metacritic/OpenCritic
 
