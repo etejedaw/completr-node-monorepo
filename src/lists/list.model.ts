@@ -1,20 +1,19 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
-
-export const LIST_TYPES = ["collection", "challenge"] as const;
-export type ListType = (typeof LIST_TYPES)[number];
+import { SCORE_SOURCES } from "../game-scores/game-score.model";
+import { TIME_SOURCES } from "../game-times/game-time.model";
 
 class List extends Model {
 	declare id: string;
 	declare userId: string;
 	declare name: string;
 	declare slug: string;
-	declare type: ListType;
-	declare isDefault: boolean;
+	declare description?: string;
 	declare isPublic: boolean;
-	declare startDate?: Date;
-	declare endDate?: Date;
-	declare targetCount?: number;
+	declare scoreSource: string;
+	declare durationSource: string;
+	declare basedOnId?: string;
+	declare isFork: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
@@ -39,21 +38,27 @@ List.init(
 			type: DataTypes.STRING(100),
 			allowNull: false
 		},
-		type: {
-			type: DataTypes.ENUM(...LIST_TYPES),
-			allowNull: false
-		},
-		isDefault: {
-			type: DataTypes.BOOLEAN,
-			defaultValue: false
-		},
+		description: DataTypes.TEXT,
 		isPublic: {
 			type: DataTypes.BOOLEAN,
 			defaultValue: false
 		},
-		startDate: DataTypes.DATE,
-		endDate: DataTypes.DATE,
-		targetCount: DataTypes.INTEGER
+		scoreSource: {
+			type: DataTypes.ENUM(...SCORE_SOURCES),
+			allowNull: false
+		},
+		durationSource: {
+			type: DataTypes.ENUM(...TIME_SOURCES),
+			allowNull: false
+		},
+		basedOnId: {
+			type: DataTypes.UUID,
+			allowNull: true
+		},
+		isFork: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: false
+		}
 	},
 	{ sequelize }
 );

@@ -74,6 +74,9 @@ function gameShelf() {
 function lists() {
 	User.hasMany(List, { foreignKey: "userId" });
 	List.belongsTo(User, { foreignKey: "userId" });
+
+	List.hasMany(List, { foreignKey: "basedOnId", as: "Forks" });
+	List.belongsTo(List, { foreignKey: "basedOnId", as: "BasedOn" });
 }
 
 function listItems() {

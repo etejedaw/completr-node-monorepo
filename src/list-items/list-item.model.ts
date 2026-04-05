@@ -1,5 +1,6 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
+import { Game } from "../games/game.model";
 
 class ListItem extends Model {
 	declare id: string;
@@ -13,6 +14,7 @@ class ListItem extends Model {
 	declare durationSource?: string;
 	declare createdAt: Date;
 	declare updatedAt: Date;
+	declare Game: Game;
 }
 
 ListItem.init(
