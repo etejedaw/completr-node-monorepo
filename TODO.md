@@ -1,6 +1,6 @@
 # 🎮 Completr — Roadmap Unificado
 
-> **Principio arquitectónico clave:** Cada usuario tiene una lista por defecto **imborrable** llamada "Backlog" (tipo `collection`). Las listas son un módulo propio, separado de `game-shelf` (que es el registro de los juegos que posee el usuario). Existen dos tipos de lista: **`collection`** (organizar juegos, muestra estado global) y **`challenge`** (tracking desde cero con meta, cada juego genera un nuevo playthrough). El estado global de un juego para el usuario vive en `Playthrough` y se actualiza automáticamente según el playthrough más reciente.
+> **Principio arquitectónico clave:** Cada usuario tiene una lista por defecto **imborrable** llamada "Backlog" (tipo `collection`). Las listas son un módulo propio, separado de `game-shelf` (que es el registro de los juegos que posee el usuario). Existen dos tipos de lista: **`collection`** (organizar juegos, muestra estado global) y **`challenge`** (tracking desde cero con meta, cada juego genera un nuevo backlog). El estado global de un juego para el usuario vive en `Backlog` y se actualiza automáticamente según el backlog más reciente.
 
 ---
 
@@ -46,10 +46,10 @@
 - [x] **GameTime**: id (UUID), game_id, source (`hltb` | `rawg` | `completr`), duration (number), updated_at — Tiempos globales por fuente. Unique index en (game_id, source). Actualizado por cron mensual
 - [x] **GameShelf**: id, user_id, game_id, platform_id, is_public, acquired_at, edition, notes — Colección de juegos que el usuario posee. Sin score/duration (esos viven en ListItem)
 - [x] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
-- [x] **ListItem**: id, list_id, game_id, playthrough_id (nullable), position (int), score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Datos de puntaje congelados al añadir a la lista, actualizables manualmente por el usuario
+- [x] **ListItem**: id, list_id, game_id, backlog_id (nullable), position (int), score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Datos de puntaje congelados al añadir a la lista, actualizables manualmente por el usuario
 - [x] **SavedFilter**: id (UUID), user_id, name, filters (JSON), sort_by (nullable), sort_order, created_at — Filtros guardados del backlog. Free: hasta 3, Premium: ilimitados
-- [x] **ListFollower**: id, list*id, user_id, is_visible (bool, default true — controla si el seguimiento aparece en el perfil público del usuario), followed_at — \_Permite a usuarios seguir listas públicas de otros. El progreso se calcula cruzando los juegos de la lista con el `Playthrough` del seguidor. Visibilidad: `User.isPublic AND ListFollower.isVisible`*
-- [x] **Playthrough**: id (UUID), user_id, game_id, platform_id, status (`not_started` | `playing` | `completed` | `abandoned`), started_at, finished_at (nullable), real_duration (nullable), notes (nullable) — Historial completo del usuario. Incluye juegos que quiere jugar, está jugando, completó o abandonó. El play_count y el estado actual se derivan de esta tabla. El número de playthrough se calcula en el serializer ordenando por `started_at`
+- [x] **ListFollower**: id, list*id, user_id, is_visible (bool, default true — controla si el seguimiento aparece en el perfil público del usuario), followed_at — \_Permite a usuarios seguir listas públicas de otros. El progreso se calcula cruzando los juegos de la lista con el `Backlog` del seguidor. Visibilidad: `User.isPublic AND ListFollower.isVisible`*
+- [x] **Backlog**: id (UUID), user_id, game_id, platform_id, status (`not_started` | `playing` | `completed` | `abandoned`), started_at, finished_at (nullable), real_duration (nullable), notes (nullable) — Historial completo del usuario. Incluye juegos que quiere jugar, está jugando, completó o abandonó. El play_count y el estado actual se derivan de esta tabla. El número de backlog se calcula en el serializer ordenando por `started_at`
 - [x] Definir todas las asociaciones en `associations.database.ts` con Foreign Keys explícitamente tipadas como UUID
 
 ### Auth
@@ -102,7 +102,7 @@
 ## 🟨 FASE 1 — Excel Killer _(~4–6 semanas)_
 
 **Objetivo:** Reemplazar NocoDB/Google Sheets. Importar tus datos, ver ratios calculados, filtrar por status y semestre.
-**Condición de éxito:** Puedes importar tu CSV, ver la lista ordenada por ratio, filtrar por semestre y trackear playthroughs.
+**Condición de éxito:** Puedes importar tu CSV, ver la lista ordenada por ratio, filtrar por semestre y trackear backlogs.
 
 > 👤 _Release interna — solo tú lo usas._
 
@@ -126,42 +126,41 @@
 - [x] `GET /users/:username/game-shelf` — Ver colección pública de otro usuario (respeta User.isPublic + GameShelf.isPublic)
 - [x] Serializers (full, me, tiny) con datos de colección (sin score/duration, esos viven en ListItem)
 
-### Módulo de Playthroughs
+### Módulo de Backlogs
 
-- [ ] `POST /playthroughs` — Crear un playthrough (status por defecto: `not_started`)
-- [ ] `PATCH /playthroughs/:id` — Actualizar un playthrough (cambiar status, agregar `real_duration`, `finished_at`, `notes`)
-- [ ] `GET /users/me/playthroughs` — Ver historial de playthroughs del usuario
-- [ ] `GET /users/me/playthroughs?game_id=:id` — Ver playthroughs de un juego específico
-- [ ] El estado actual de un juego se deriva del playthrough más reciente
-- [ ] El play_count se deriva de `COUNT(playthroughs) WHERE gameId = X AND userId = Y`
+- [ ] `POST /backlogs` — Crear un backlog (status por defecto: `not_started`)
+- [ ] `PATCH /backlogs/:id` — Actualizar un backlog (cambiar status, agregar `real_duration`, `finished_at`, `notes`)
+- [ ] `GET /users/me/backlogs` — Ver historial de backlogs del usuario
+- [ ] `GET /users/me/backlogs?game_id=:id` — Ver backlogs de un juego específico
+- [ ] El estado actual de un juego se deriva del backlog más reciente
+- [ ] El play_count se deriva de `COUNT(backlogs) WHERE gameId = X AND userId = Y`
 
-### Vistas (filtros sobre playthroughs)
+### Vistas (filtros sobre backlogs)
 
-> Las "vistas" no son listas separadas — son query filters sobre `Playthrough`. Replican el comportamiento actual de NocoDB donde las vistas son filtros sobre la misma tabla.
+> Las "vistas" no son listas separadas — son query filters sobre `Backlog`. Replican el comportamiento actual de NocoDB donde las vistas son filtros sobre la misma tabla.
 
-- [ ] `GET /users/me/playthroughs?status=not_started` — Vista "Pendientes" (juegos sin iniciar)
-- [ ] `GET /users/me/playthroughs?status=playing` — Vista "Jugando" (juegos en progreso)
-- [ ] `GET /users/me/playthroughs?status=completed` — Vista "Completados" (todos los completados)
-- [ ] `GET /users/me/playthroughs?status=abandoned` — Vista "Abandonados"
-- [ ] `GET /users/me/playthroughs?from=2025-01-01&to=2025-06-30` — Vista "Semestre 2025-S01" (filtro por rango de fechas de `finished_at`)
+- [ ] `GET /users/me/backlogs?status=not_started` — Vista "Pendientes" (juegos sin iniciar)
+- [ ] `GET /users/me/backlogs?status=playing` — Vista "Jugando" (juegos en progreso)
+- [ ] `GET /users/me/backlogs?status=completed` — Vista "Completados" (todos los completados)
+- [ ] `GET /users/me/backlogs?status=abandoned` — Vista "Abandonados"
+- [ ] `GET /users/me/backlogs?from=2025-01-01&to=2025-06-30` — Vista "Semestre 2025-S01" (filtro por rango de fechas de `finished_at`)
 - [ ] Soportar combinación de filtros: `?status=completed&from=2025-07-01&to=2025-12-31` (completados del semestre 2025-S02)
-- [ ] Cada resultado incluye: juego, plataforma, status, play_count (calculado), datos del playthrough
+- [ ] Cada resultado incluye: juego, plataforma, status, play_count (calculado), datos del backlog
 
 ### Transacciones en operaciones multi-paso
 
-- [ ] Implementar transacciones de Sequelize en operaciones que involucran múltiples modelos (ej: crear challenge + playthrough + listItem, importar CSV con múltiples inserts)
+- [ ] Implementar transacciones de Sequelize en operaciones que involucran múltiples modelos (ej: crear challenge + backlog + listItem, importar CSV con múltiples inserts)
 - [ ] Refactorizar `games.service.ts → registerGame` para usar transacción (actualmente crea juego + vincula plataformas sin atomicidad)
 
 ### Módulo de Listas
 
-- [ ] Al registrarse un usuario, crear automáticamente su lista **"Backlog"** con `is_default: true, type: collection` (no se puede eliminar ni renombrar)
 - [ ] `GET /lists/me` — Ver mis listas
 - [ ] `POST /lists` — Crear lista (el usuario elige `type: collection | challenge`; si es challenge puede definir `start_date`, `end_date`, `target_count`)
 - [ ] `PATCH /lists/:id` — Renombrar lista / cambiar visibilidad pública (no se puede cambiar el `type` después de creada)
 - [ ] `DELETE /lists/:id` — Eliminar lista (bloqueado si `is_default: true`)
 - [ ] `POST /lists/:id/items` — Añadir juego a una lista
-    - Si la lista es `collection`: crea ListItem sin playthrough, el estado se resuelve desde el playthrough más reciente del usuario para ese juego
-    - Si la lista es `challenge`: crea ListItem + nuevo Playthrough automáticamente
+    - Si la lista es `collection`: crea ListItem sin backlog, el estado se resuelve desde el backlog más reciente del usuario para ese juego
+    - Si la lista es `challenge`: crea ListItem + nuevo Backlog automáticamente
 - [ ] `DELETE /lists/:id/items/:itemId` — Quitar juego de una lista
 - [ ] `PATCH /lists/:id/items/:itemId` — Actualizar posición del ítem
 
@@ -175,7 +174,7 @@
 ### Cálculo del Ratio
 
 - [x] Lógica en el Serializer/Service: `ratio = score / duration`
-- [ ] `personal_ratio = GameShelf.score / Playthrough.real_duration` (calculado desde el playthrough completado; si hay múltiples, usar el primero o el mejor)
+- [ ] `personal_ratio = GameShelf.score / Backlog.real_duration` (calculado desde el backlog completado; si hay múltiples, usar el primero o el mejor)
 - [ ] Ordenamiento de listas por ratio, nota, duración
 - [ ] El score y duration vienen de `GameShelf` (lo que el usuario eligió). En listas vienen de `ListItem` (congelados)
 
@@ -195,9 +194,9 @@
 - [ ] Mapeo de cada fila al nuevo modelo:
     - Crear/vincular `Game` en el catálogo
     - Crear `GameShelf` entry (el usuario posee el juego)
-    - Crear `Playthrough` con el status de la fila
-    - Si status es `completed`/`abandoned`/`playing`: crear `Playthrough` con `real_duration`, `finished_at`, `notes`
-    - Derivar semestre desde `finished_at` (ene-jun = S01, jul-dic = S02); filas sin fecha → `Playthrough` con status `not_started`
+    - Crear `Backlog` con el status de la fila
+    - Si status es `completed`/`abandoned`/`playing`: crear `Backlog` con `real_duration`, `finished_at`, `notes`
+    - Derivar semestre desde `finished_at` (ene-jun = S01, jul-dic = S02); filas sin fecha → `Backlog` con status `not_started`
 - [ ] Reporte de filas con errores al importar
 
 ### Pruebas manuales de endpoints
@@ -237,7 +236,7 @@
     - Total abandonados
     - Juegos en progreso
     - Ratio promedio
-    - Total de playthroughs (incluye replays)
+    - Total de backlogs (incluye replays)
 - [ ] Widget "Jugando ahora" en el perfil: muestra los juegos con status `playing`
 - [ ] Listas públicas del usuario visibles en su perfil
 
@@ -299,8 +298,8 @@
 - [ ] Al ver una lista seguida, mostrar el progreso personal del usuario:
     - Cuántos juegos de la lista ha completado: "18/30 completados"
     - Cuáles faltan por completar
-    - Para cada juego: su `Playthrough` (completado, no iniciado, etc.) y `play_count`
-    - Para juegos con múltiples playthroughs: mostrar cuántas veces se ha completado cada uno
+    - Para cada juego: su `Backlog` (completado, no iniciado, etc.) y `play_count`
+    - Para juegos con múltiples backlogs: mostrar cuántas veces se ha completado cada uno
 
 ### Social — Ver actividad de amigos
 
@@ -387,7 +386,7 @@
 ### Funcionalidades de gestión
 
 - [ ] Sistema de tags personalizados por juego/lista
-- [ ] Sistema de "motivo de abandono" al marcar un playthrough como `abandoned` (se usa el campo `notes` del playthrough)
+- [ ] Sistema de "motivo de abandono" al marcar un backlog como `abandoned` (se usa el campo `notes` del backlog)
 - [ ] Exportar listas: `GET /lists/:id/export?format=csv` y `?format=json`
 - [ ] Historial de actividad del usuario por período (semestre/año)
 
@@ -401,7 +400,7 @@
 
 - [ ] Auditoría de seguridad básica (headers, sanitización de inputs, rate limits por endpoint)
 - [ ] Optimizar queries N+1 en Sequelize (eager loading)
-- [ ] Tests de integración para los flujos principales (auth, listas, game-shelf, playthroughs)
+- [ ] Tests de integración para los flujos principales (auth, listas, game-shelf, backlogs)
 - [ ] Tests unitarios para services y serializers
 - [ ] Configurar test runner con `node:test` nativo + global setup (seed DB de test, levantar server)
 - [ ] DB de test ya configurada en docker-compose (`postgres-test` en puerto 5433, DB `completr_test`)
@@ -420,7 +419,7 @@
 - [ ] Gráficos por género (distribución de juegos completados por género)
 - [ ] Gráficos por plataforma
 - [ ] Evolución del backlog por semestre/año
-- [ ] Velocidad de completado (promedio de días entre `started_at` y `finished_at` en `Playthrough`)
+- [ ] Velocidad de completado (promedio de días entre `started_at` y `finished_at` en `Backlog`)
 - [ ] Patrones de abandono (géneros o plataformas con mayor tasa de abandono)
 - [ ] Panel "Insights del Jugador"
 - [ ] Resumen semestral/anual detallado con gráficos (versión premium del Wrapped)
@@ -493,7 +492,7 @@
 - [ ] Recomendaciones: "¿Qué jugar ahora?" basado en ratio, duración disponible y género favorito (sin IA al inicio, algoritmo simple; con IA en versión premium futura)
 - [ ] Análisis automático del período/semestre: resumen generado con IA (premium)
 - [ ] Integración con Xbox/PSN (si APIs lo permiten)
-- [ ] Mapa de calor estilo GitHub de sesiones de juego (usando `started_at`/`finished_at` de `Playthrough`)
+- [ ] Mapa de calor estilo GitHub de sesiones de juego (usando `started_at`/`finished_at` de `Backlog`)
 - [ ] App nativa (React Native o Flutter) solo si el volumen y las necesidades (push notifications nativas, integraciones con hardware) lo justifican. Mientras tanto, la PWA cubre el caso de uso móvil
 - [ ] Tareas inteligentes del backlog: "Juega 2 horas esta semana a X"
 - [ ] Migrar cola de tareas de `node-cron` a BullMQ + Redis si el volumen lo justifica
@@ -508,7 +507,7 @@
 
 | Feature                               | Free                           | Premium                       |
 | ------------------------------------- | ------------------------------ | ----------------------------- |
-| **Tracking de juegos y playthroughs** | ✅ Completo                    | ✅ Completo                   |
+| **Tracking de juegos y backlogs** | ✅ Completo                    | ✅ Completo                   |
 | **Vistas/filtros (status, semestre)** | ✅                             | ✅                            |
 | **Listas (collection + challenge)**   | ✅ Hasta 5 (Backlog no cuenta) | ✅ Ilimitadas                 |
 | **CSV import**                        | ✅                             | ✅                            |
@@ -546,18 +545,18 @@ Estas decisiones aplican a **todo el proyecto**, no son una fase:
 - **Separación `games` vs `game-shelf`:** `games` es el catálogo global (admin lo alimenta). `game-shelf` es la relación usuario↔juego con sus datos personales (`user_rating`, `real_duration`, `notes`). No mezclarlos.
 - **Separación `game-shelf` vs `lists`:** `game-shelf` registra qué juegos tiene el usuario. `lists` y `list-items` gestionan las colecciones organizadas. Un juego puede estar en `game-shelf` sin estar en ninguna lista, y en varias listas a la vez.
 - **Dos tipos de lista (`collection` vs `challenge`):**
-    - `collection`: Lista para organizar juegos (ej: "Juegos de PS1", "RPGs favoritos", el Backlog por defecto). Muestra el estado del juego derivado del playthrough más reciente del usuario. No crea playthroughs.
-    - `challenge`: Lista con tracking propio (ej: "Semestre 2025-2", "Maratón horror"). Al añadir un juego, se crea un nuevo `Playthrough` automáticamente. Tiene `start_date`, `end_date` y `target_count` opcionales. Todo empieza desde cero.
-- **Playthroughs como tabla central:** Todo el historial del usuario vive en `Playthrough` (not_started, playing, completed, abandoned). El estado actual de un juego se deriva del playthrough más reciente. El play_count se calcula contando playthroughs. No existe tabla de estado global separada.
-- **Vistas ≠ Listas:** Las vistas (pendientes, jugando, completados, por semestre) son **filtros sobre `Playthrough`**, no listas separadas. Las listas son colecciones curadas (sagas, temáticas, challenges). Esto replica el modelo mental de NocoDB donde las vistas son filtros sobre la misma tabla.
-- **Semestre = filtro por fecha:** No existe un campo "semestre". El semestre se deriva de `Playthrough.finished_at`: ene-jun = S01, jul-dic = S02. Las vistas semestrales son simplemente filtros por rango de fechas.
-- **Listas públicas y suscripción:** Cualquier lista con `is_public: true` puede ser seguida por otros usuarios. Los seguidores ven su propio progreso contra la lista (cruzando `ListItem.game_id` con sus playthroughs). Las estadísticas de la lista (seguidores, % completado) se calculan en backend.
+    - `collection`: Lista para organizar juegos (ej: "Juegos de PS1", "RPGs favoritos", el Backlog por defecto). Muestra el estado del juego derivado del backlog más reciente del usuario. No crea backlogs.
+    - `challenge`: Lista con tracking propio (ej: "Semestre 2025-2", "Maratón horror"). Al añadir un juego, se crea un nuevo `Backlog` automáticamente. Tiene `start_date`, `end_date` y `target_count` opcionales. Todo empieza desde cero.
+- **Backlogs como tabla central:** Todo el historial del usuario vive en `Backlog` (not_started, playing, completed, abandoned). El estado actual de un juego se deriva del backlog más reciente. El play_count se calcula contando backlogs. No existe tabla de estado global separada.
+- **Vistas ≠ Listas:** Las vistas (pendientes, jugando, completados, por semestre) son **filtros sobre `Backlog`**, no listas separadas. Las listas son colecciones curadas (sagas, temáticas, challenges). Esto replica el modelo mental de NocoDB donde las vistas son filtros sobre la misma tabla.
+- **Semestre = filtro por fecha:** No existe un campo "semestre". El semestre se deriva de `Backlog.finished_at`: ene-jun = S01, jul-dic = S02. Las vistas semestrales son simplemente filtros por rango de fechas.
+- **Listas públicas y suscripción:** Cualquier lista con `is_public: true` puede ser seguida por otros usuarios. Los seguidores ven su propio progreso contra la lista (cruzando `ListItem.game_id` con sus backlogs). Las estadísticas de la lista (seguidores, % completado) se calculan en backend.
 - **Privacidad en dos niveles:** `User.isPublic` controla si el perfil es visible. `ListFollower.isVisible` controla si un seguimiento específico aparece en el perfil público. La regla es: `visible = User.isPublic AND ListFollower.isVisible`. Si el perfil es privado, nada es visible independientemente del `isVisible` de cada lista.
 - **UUIDs en Foreign Keys:** Definir explícitamente el tipo UUID en todas las relaciones de `associations.database.ts` para evitar bugs con Sequelize.
 - **Serializer Pattern:** Toda la lógica de cálculo (ratio, personal_ratio, estadísticas) vive en el backend dentro de los serializers/services. El frontend solo renderiza.
 - **`metadata_pending`:** Cualquier juego creado manualmente nace con `metadata_pending: true`. El worker nocturno se encarga de enriquecerlo con datos de HLTB y Metacritic.
 - **Lista Backlog por defecto:** Se crea automáticamente al registrar un usuario. `is_default: true`, `type: collection`. No puede eliminarse ni renombrarse. El reto semestral se implementa como una lista `challenge` separada.
-- **`personal_ratio`:** Se calcula desde `Playthrough.real_duration` del playthrough completado. Si hay múltiples playthroughs completados, se usa el primero o el mejor según preferencia.
+- **`personal_ratio`:** Se calcula desde `Backlog.real_duration` del backlog completado. Si hay múltiples backlogs completados, se usa el primero o el mejor según preferencia.
 - **Sistema de puntajes en 3 niveles:**
     - `GameScore` — Catálogo global de puntajes/tiempos por fuente (Metacritic, OpenCritic, HLTB, Completr community). Actualizado por cron mensual. La ficha del juego muestra todos los disponibles.
     - `GameShelf` — Puntaje/duración que el usuario eligió para su backlog. Se precarga al añadir un juego, editable manualmente. Determina el ratio en el backlog.
