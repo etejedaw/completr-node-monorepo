@@ -9,10 +9,10 @@ import { UpdatePlaythroughSchema } from "./schemas/update-playthrough.schema";
 import { PlaythroughIdParamsSchema } from "./schemas/playthrough-id-params.schema";
 import { PlaythroughQuerySchema } from "./schemas/playthrough-query.schema";
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.post(
-	"/playthroughs",
+	"/",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
@@ -22,7 +22,7 @@ router.post(
 );
 
 router.get(
-	"/playthroughs",
+	"/",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
@@ -32,7 +32,7 @@ router.get(
 );
 
 router.patch(
-	"/playthroughs/:playthroughId",
+	"/:playthroughId",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
@@ -43,7 +43,7 @@ router.patch(
 );
 
 router.delete(
-	"/playthroughs/:playthroughId",
+	"/:playthroughId",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
