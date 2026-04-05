@@ -200,6 +200,12 @@
     - Derivar semestre desde `finished_at` (ene-jun = S01, jul-dic = S02); filas sin fecha → `Playthrough` con status `not_started`
 - [ ] Reporte de filas con errores al importar
 
+### Pruebas manuales de endpoints
+
+- [ ] Ejecutar pruebas de todos los endpoints con los 4 roles (admin, moderator, premium, user) + sin auth
+- [ ] Verificar: permisos, validaciones, duplicados, not found, soft delete, serializers, datos derivados
+- [ ] Corregir cualquier bug encontrado antes de avanzar al frontend
+
 ### UI básica _(si aplica en esta fase)_
 
 - [ ] Frontend con Angular
