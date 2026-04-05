@@ -6,7 +6,7 @@ import { GameScoreParams } from "./schemas/game-score-params.schema";
 import { GameScoreIdParams } from "./schemas/game-score-id-params.schema";
 
 export async function postGameScore(request: Request, response: Response) {
-	const registerGameScoreDto = request.body as RegisterGameScoreDto;
+	const registerGameScoreDto = request.locals.body as RegisterGameScoreDto;
 
 	const gameScore = await gameScoresService.createGameScore(
 		registerGameScoreDto.gameId,
@@ -20,8 +20,8 @@ export async function postGameScore(request: Request, response: Response) {
 }
 
 export async function patchGameScore(request: Request, response: Response) {
-	const params = request.params as GameScoreIdParams;
-	const updateGameScoreDto = request.body as UpdateGameScoreDto;
+	const params = request.locals.params as GameScoreIdParams;
+	const updateGameScoreDto = request.locals.body as UpdateGameScoreDto;
 
 	const gameScore = await gameScoresService.updateGameScore(
 		params.gameId,
@@ -35,7 +35,7 @@ export async function patchGameScore(request: Request, response: Response) {
 }
 
 export async function getGameScores(request: Request, response: Response) {
-	const params = request.params as GameScoreParams;
+	const params = request.locals.params as GameScoreParams;
 
 	const scores = await gameScoresService.findScoresByGameId(params.gameId);
 	const scoresPlain = scores.map(score => score.get({ plain: true }));

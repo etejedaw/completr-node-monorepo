@@ -1,14 +1,13 @@
+import { RequestUser } from "../common/interfaces/request-user.interface";
 import { Request, Response } from "express";
 import * as savedFiltersService from "./saved-filters.service";
 import { RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
 import { UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
 import { SavedFilterIdParams } from "./schemas/saved-filter-id-params.schema";
-import { CustomRequest } from "../common/interfaces/custom-request.interface";
 
 export async function postSavedFilter(request: Request, response: Response) {
-	const customRequest = request as CustomRequest;
-	const dto = request.body as RegisterSavedFilterDto;
-	const { id: userId, role } = customRequest.user;
+	const dto = request.locals.body as RegisterSavedFilterDto;
+	const { id: userId, role } = request.locals.user as RequestUser;
 
 	const filter = await savedFiltersService.createSavedFilter(
 		userId,
@@ -22,8 +21,7 @@ export async function postSavedFilter(request: Request, response: Response) {
 }
 
 export async function getMeSavedFilters(request: Request, response: Response) {
-	const customRequest = request as CustomRequest;
-	const { id: userId, role } = customRequest.user;
+	const { id: userId, role } = request.locals.user as RequestUser;
 
 	const { filters, frozen } =
 		await savedFiltersService.findSavedFiltersByUserId(userId, role);
@@ -34,10 +32,9 @@ export async function getMeSavedFilters(request: Request, response: Response) {
 }
 
 export async function patchSavedFilter(request: Request, response: Response) {
-	const customRequest = request as CustomRequest;
-	const params = request.params as SavedFilterIdParams;
-	const dto = request.body as UpdateSavedFilterDto;
-	const { id: userId, role } = customRequest.user;
+	const params = request.locals.params as SavedFilterIdParams;
+	const dto = request.locals.body as UpdateSavedFilterDto;
+	const { id: userId, role } = request.locals.user as RequestUser;
 
 	const filter = await savedFiltersService.updateSavedFilter(
 		params.filterId,
@@ -52,9 +49,8 @@ export async function patchSavedFilter(request: Request, response: Response) {
 }
 
 export async function deleteSavedFilter(request: Request, response: Response) {
-	const customRequest = request as CustomRequest;
-	const params = request.params as SavedFilterIdParams;
-	const userId = customRequest.user.id;
+	const params = request.locals.params as SavedFilterIdParams;
+	const userId = (request.locals.user as RequestUser as RequestUser).id;
 
 	await savedFiltersService.removeSavedFilter(params.filterId, userId);
 	return response.sendStatus(204);

@@ -3,11 +3,10 @@ import { LoginDto, RegisterDto } from "./dtos";
 import * as authService from "./auth.service";
 import { userMeSerializer } from "../users";
 import { ChangePassword } from "./schemas";
-import { CustomRequest } from "../common/interfaces/custom-request.interface";
+import { RequestUser } from "../common/interfaces/request-user.interface";
 
 export async function postRegister(request: Request, response: Response) {
-	const customRequest = request as CustomRequest;
-	const registerDto = customRequest.body as RegisterDto;
+	const registerDto = request.locals.body as RegisterDto;
 
 	const userRegister = await authService.register(registerDto);
 
@@ -23,8 +22,7 @@ export async function postRegister(request: Request, response: Response) {
 }
 
 export async function postLogin(request: Request, response: Response) {
-	const customRequest = request as CustomRequest;
-	const loginDto = customRequest.body as LoginDto;
+	const loginDto = request.locals.body as LoginDto;
 
 	const userLogin = await authService.login(loginDto);
 
@@ -39,10 +37,9 @@ export async function patchChangePassword(
 	request: Request,
 	response: Response
 ) {
-	const customRequest = request as CustomRequest;
-	const body = request.body as ChangePassword;
+	const body = request.locals.body as ChangePassword;
 
-	const user = customRequest.user;
+	const user = request.locals.user as RequestUser;
 
 	await authService.changePassword(user.id, body.password);
 

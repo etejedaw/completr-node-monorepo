@@ -1,9 +1,10 @@
+import { RequestUser } from "../common/interfaces/request-user.interface";
 import { Request, Response } from "express";
 import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import * as gameShelfService from "./game-shelf.service";
 import * as usersService from "../users/users.service";
 import * as userDomainError from "../users/errors/users.domain-error";
-import { CustomRequest } from "../common/interfaces/custom-request.interface";
+
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import { GameShelfIdParam } from "./schemas/game-shelf-id-params.schema";
 import { UsernameParam } from "../users/schemas/username-params.schema";
@@ -14,10 +15,9 @@ import {
 } from "./serializers";
 
 export async function postGameShelf(request: Request, response: Response) {
-	const customRequest = request as CustomRequest;
-	const registerGameShelfDto = request.body as RegisterGameShelfDto;
+	const registerGameShelfDto = request.locals.body as RegisterGameShelfDto;
 
-	const userId = customRequest.user.id;
+	const userId = (request.locals.user as RequestUser as RequestUser).id;
 
 	const gameShelfRegister = await gameShelfService.registerGameShelf(
 		userId,
@@ -30,9 +30,7 @@ export async function postGameShelf(request: Request, response: Response) {
 }
 
 export async function getMeGameShelf(request: Request, response: Response) {
-	const customRequest = request as CustomRequest;
-
-	const userId = customRequest.user.id;
+	const userId = (request.locals.user as RequestUser as RequestUser).id;
 
 	const gameShelf = await gameShelfService.findGameShelfByUserId(userId);
 	const gameShelfPlain = gameShelf.map(game => game.get({ plain: true }));
@@ -42,7 +40,7 @@ export async function getMeGameShelf(request: Request, response: Response) {
 }
 
 export async function getUserGameShelf(request: Request, response: Response) {
-	const params = request.params as UsernameParam;
+	const params = request.locals.params as UsernameParam;
 	const { username } = params;
 
 	const user = await usersService.findUserByUsername(username);
@@ -59,12 +57,11 @@ export async function getUserGameShelf(request: Request, response: Response) {
 }
 
 export async function patchGameShelf(request: Request, response: Response) {
-	const customRequest = request as CustomRequest;
-	const updateGameShelfDto = request.body as UpdateGameShelfDto;
-	const params = customRequest.params as GameShelfIdParam;
+	const updateGameShelfDto = request.locals.body as UpdateGameShelfDto;
+	const params = request.locals.params as GameShelfIdParam;
 
 	const gameShelfId = params.gameShelfId;
-	const userId = customRequest.user.id;
+	const userId = (request.locals.user as RequestUser as RequestUser).id;
 
 	const gameShelfUpdate = await gameShelfService.updateGameShelf(
 		gameShelfId,
@@ -79,11 +76,10 @@ export async function patchGameShelf(request: Request, response: Response) {
 }
 
 export async function deleteGameShelf(request: Request, response: Response) {
-	const customRequest = request as CustomRequest;
-	const params = customRequest.params as GameShelfIdParam;
+	const params = request.locals.params as GameShelfIdParam;
 
 	const gameShelfId = params.gameShelfId;
-	const userId = customRequest.user.id;
+	const userId = (request.locals.user as RequestUser as RequestUser).id;
 
 	await gameShelfService.removeGameShelf(gameShelfId, userId);
 

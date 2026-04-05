@@ -6,7 +6,7 @@ import { GameTimeParams } from "./schemas/game-time-params.schema";
 import { GameTimeIdParams } from "./schemas/game-time-id-params.schema";
 
 export async function postGameTime(request: Request, response: Response) {
-	const registerGameTimeDto = request.body as RegisterGameTimeDto;
+	const registerGameTimeDto = request.locals.body as RegisterGameTimeDto;
 
 	const gameTime = await gameTimesService.createGameTime(
 		registerGameTimeDto.gameId,
@@ -18,8 +18,8 @@ export async function postGameTime(request: Request, response: Response) {
 }
 
 export async function patchGameTime(request: Request, response: Response) {
-	const params = request.params as GameTimeIdParams;
-	const updateGameTimeDto = request.body as UpdateGameTimeDto;
+	const params = request.locals.params as GameTimeIdParams;
+	const updateGameTimeDto = request.locals.body as UpdateGameTimeDto;
 
 	const gameTime = await gameTimesService.updateGameTime(
 		params.gameId,
@@ -31,7 +31,7 @@ export async function patchGameTime(request: Request, response: Response) {
 }
 
 export async function getGameTimes(request: Request, response: Response) {
-	const params = request.params as GameTimeParams;
+	const params = request.locals.params as GameTimeParams;
 
 	const times = await gameTimesService.findTimesByGameId(params.gameId);
 	const data = {

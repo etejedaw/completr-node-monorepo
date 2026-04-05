@@ -9,7 +9,7 @@ import { UpdateGenreDto } from "./dtos/update-genre.dto";
 import { GenreIdParam } from "./schemas/genre-id-params.schema";
 
 export async function getGenreByCode(request: Request, response: Response) {
-	const param = request.params as GenreCodeParam;
+	const param = request.locals.params as GenreCodeParam;
 
 	const { code } = param;
 
@@ -31,7 +31,7 @@ export async function getAllGenres(_request: Request, response: Response) {
 }
 
 export async function postGenre(request: Request, response: Response) {
-	const registerGenreDto = request.body as RegisterGenreDto;
+	const registerGenreDto = request.locals.body as RegisterGenreDto;
 
 	const registerGenre = await genreService.registerGenre(registerGenreDto);
 	const genrePlain = registerGenre.get({ plain: true });
@@ -41,8 +41,8 @@ export async function postGenre(request: Request, response: Response) {
 }
 
 export async function patchGenre(request: Request, response: Response) {
-	const updateGenreDto = request.body as UpdateGenreDto;
-	const genreIdParam = request.params as GenreIdParam;
+	const updateGenreDto = request.locals.body as UpdateGenreDto;
+	const genreIdParam = request.locals.params as GenreIdParam;
 
 	const { genreId } = genreIdParam;
 
@@ -55,7 +55,7 @@ export async function patchGenre(request: Request, response: Response) {
 }
 
 export async function getGamesByGenre(request: Request, response: Response) {
-	const param = request.params as GenreCodeParam;
+	const param = request.locals.params as GenreCodeParam;
 
 	const { code } = param;
 
@@ -73,7 +73,7 @@ export async function getGamesByGenre(request: Request, response: Response) {
 }
 
 export async function deleteGenre(request: Request, response: Response) {
-	const genreIdParam = request.params as GenreIdParam;
+	const genreIdParam = request.locals.params as GenreIdParam;
 
 	const { genreId } = genreIdParam;
 

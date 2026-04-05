@@ -8,7 +8,7 @@ import { GameIdParam } from "./schemas/game-id-params.schema";
 import { UpdateGameDto } from "./dtos/update-game.dto";
 
 export async function getGameByCode(request: Request, response: Response) {
-	const params = request.params as GameCodeParam;
+	const params = request.locals.params as GameCodeParam;
 
 	const { code } = params;
 
@@ -31,7 +31,7 @@ export async function getAllGames(_request: Request, response: Response) {
 }
 
 export async function postGame(request: Request, response: Response) {
-	const registerGameDto = request.body as RegisterGameDto;
+	const registerGameDto = request.locals.body as RegisterGameDto;
 
 	const gameRegister = await gameService.registerGame(registerGameDto);
 	const gamePlain = gameRegister.get({ plain: true });
@@ -41,8 +41,8 @@ export async function postGame(request: Request, response: Response) {
 }
 
 export async function patchGame(request: Request, response: Response) {
-	const params = request.params as GameIdParam;
-	const updateGameDto = request.body as UpdateGameDto;
+	const params = request.locals.params as GameIdParam;
+	const updateGameDto = request.locals.body as UpdateGameDto;
 
 	const { id } = params;
 
@@ -54,7 +54,7 @@ export async function patchGame(request: Request, response: Response) {
 }
 
 export async function deleteGame(request: Request, response: Response) {
-	const gameIdParam = request.params as GameIdParam;
+	const gameIdParam = request.locals.params as GameIdParam;
 
 	const { id } = gameIdParam;
 

@@ -8,7 +8,7 @@ import { UpdatePlatformDto } from "./dtos/update-platform.dto";
 import { PlatformIdParam } from "./schemas/platformid-params.schema";
 
 export async function getPlatformByCode(request: Request, response: Response) {
-	const param = request.params as PlatformCodeParam;
+	const param = request.locals.params as PlatformCodeParam;
 
 	const { code } = param;
 
@@ -32,7 +32,7 @@ export async function getAllPlatforms(_request: Request, response: Response) {
 }
 
 export async function postPlatform(request: Request, response: Response) {
-	const registerPlatformDto = request.body as RegisterPlatformDto;
+	const registerPlatformDto = request.locals.body as RegisterPlatformDto;
 
 	const platformRegister =
 		await platformService.registerPlatform(registerPlatformDto);
@@ -44,8 +44,8 @@ export async function postPlatform(request: Request, response: Response) {
 }
 
 export async function patchPlatform(request: Request, response: Response) {
-	const updatePlatformDto = request.body as UpdatePlatformDto;
-	const platformIdParam = request.params as PlatformIdParam;
+	const updatePlatformDto = request.locals.body as UpdatePlatformDto;
+	const platformIdParam = request.locals.params as PlatformIdParam;
 
 	const { platformId } = platformIdParam;
 
@@ -62,7 +62,7 @@ export async function patchPlatform(request: Request, response: Response) {
 }
 
 export async function deletePlatform(request: Request, response: Response) {
-	const platformIdParam = request.params as PlatformIdParam;
+	const platformIdParam = request.locals.params as PlatformIdParam;
 
 	const { platformId } = platformIdParam;
 
