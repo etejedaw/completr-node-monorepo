@@ -45,8 +45,8 @@
 - [x] **GameScore**: id (UUID), game_id, source (`metacritic` | `opencritic` | `rawg` | `completr`), score (number), updated_at — Puntajes globales por fuente. Unique index en (game_id, source). Datos en crudo (RAWG usa escala 0-5). Actualizado por cron mensual
 - [x] **GameTime**: id (UUID), game_id, source (`hltb` | `rawg` | `completr`), duration (number), updated_at — Tiempos globales por fuente. Unique index en (game_id, source). Actualizado por cron mensual
 - [x] **GameShelf**: id, user_id, game_id, platform_id, is_public, acquired_at, edition, notes — Colección de juegos que el usuario posee. Sin score/duration (esos viven en ListItem)
-- [x] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
-- [x] **ListItem**: id, list_id, game_id, backlog_id (nullable), position (int), score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Datos de puntaje congelados al añadir a la lista, actualizables manualmente por el usuario
+- [ ] **List**: id (UUID), user_id, name, slug, description (nullable), is_public (bool), score_source (enum), duration_source (enum), based_on_id (UUID nullable, referencia a lista original), is_fork (bool), created_at — Colecciones curadas de juegos con puntajes de fuente oficial. Los forks son copias independientes con backlogs vinculados
+- [ ] **ListItem**: id, list_id, game_id, backlog_id (nullable, solo en forks), position (int, unique dentro de lista), score (nullable), duration (nullable) — Puntajes congelados desde la fuente oficial de la lista
 - [x] **SavedFilter**: id (UUID), user_id, name, description (nullable, max 255), filters (JSON), sort_by (nullable), sort_order, created_at — Filtros guardados del backlog. Free: hasta 5, Premium: ilimitados
 - [x] **ListFollower**: id, list*id, user_id, is_visible (bool, default true — controla si el seguimiento aparece en el perfil público del usuario), followed_at — \_Permite a usuarios seguir listas públicas de otros. El progreso se calcula cruzando los juegos de la lista con el `Backlog` del seguidor. Visibilidad: `User.isPublic AND ListFollower.isVisible`*
 - [x] **Backlog**: id (UUID), user_id, game_id, platform_id, status (`not_started` | `playing` | `completed` | `abandoned`), started_at, finished_at (nullable), real_duration (nullable), notes (nullable) — Historial completo del usuario. Incluye juegos que quiere jugar, está jugando, completó o abandonó. El play_count y el estado actual se derivan de esta tabla. El número de backlog se calcula en el serializer ordenando por `started_at`
@@ -182,17 +182,46 @@
 
 ### Módulo de Listas
 
-- [ ] `GET /lists/me` — Ver mis listas
-- [ ] `POST /lists` — Crear lista (el usuario elige `type: collection | challenge`; si es challenge puede definir `start_date`, `end_date`, `target_count`)
-- [ ] `PATCH /lists/:id` — Renombrar lista / cambiar visibilidad pública (no se puede cambiar el `type` después de creada)
-- [ ] `DELETE /lists/:id` — Eliminar lista (bloqueado si `is_default: true`)
-- [ ] `POST /lists/:id/items` — Añadir juego a una lista
-    - Si la lista es `collection`: crea ListItem sin backlog, el estado se resuelve desde el backlog más reciente del usuario para ese juego
-    - Si la lista es `challenge`: crea ListItem + nuevo Backlog automáticamente
+#### CRUD de listas
+
+- [ ] `POST /lists` — Crear lista (nombre, descripción, is_public, score_source, duration_source)
+- [ ] `GET /lists/me` — Ver mis listas (incluye las originales y los forks)
+- [ ] `GET /lists/:id` — Ver detalle de una lista con items, puntajes y ratios
+- [ ] `PATCH /lists/:id` — Editar nombre, descripción, visibilidad, fuente de puntajes (solo owner)
+- [ ] `DELETE /lists/:id` — Eliminar lista (solo owner)
+
+#### Items de lista
+
+- [ ] `POST /lists/:id/items` — Añadir juego a una lista. Score/duration se copian desde GameScore/GameTime según la fuente de la lista. Si la fuente no tiene dato → null
 - [ ] `DELETE /lists/:id/items/:itemId` — Quitar juego de una lista
-- [ ] `PATCH /lists/:id/items/:itemId` — Actualizar posición del ítem
-- [ ] Score y duration en ListItem se copian (congelan) desde el backlog o GameScore/GameTime al añadir a la lista
-- [ ] Ordenamiento de items por ratio, nota, duración
+- [ ] `PATCH /lists/:id/items/:itemId` — Actualizar posición del ítem (reordenar)
+- [ ] `POST /lists/:id/refresh-scores` — Actualizar puntajes de todos los items desde la fuente (solo owner)
+- [ ] Posición unique dentro de la lista, sin huecos. Se recalcula al eliminar o reordenar
+
+#### Seguir una lista (normal)
+
+- [ ] `POST /lists/:id/follow` — Seguir una lista pública
+- [ ] `DELETE /lists/:id/follow` — Dejar de seguir
+- [ ] El seguidor ve los puntajes del creador y su propio estado por juego (desde su backlog)
+- [ ] Si el creador edita/refresca la lista, los seguidores ven los cambios
+- [ ] El seguidor puede añadir juegos individuales de la lista a su backlog
+
+#### Fork ("empezar desde 0")
+
+- [ ] `POST /lists/:id/fork` — Crear fork de una lista. Copia todos los items con puntajes congelados + crea backlogs nuevos (not_started) para cada juego
+- [ ] El fork es independiente: ediciones del creador original no lo afectan
+- [ ] El dueño del fork puede editar puntajes, añadir/quitar juegos, reordenar
+- [ ] `POST /lists/:id/refresh-scores` — En forks, solo actualiza los backlogs vinculados a esa lista
+- [ ] El fork muestra "basado en [lista original]" (`based_on_id`)
+- [ ] Público/privado configurable, pero no tiene seguidores propios
+- [ ] Si otro usuario quiere seguir un fork → sigue la lista original
+
+#### Independizar fork
+
+- [ ] `POST /lists/:id/independize` — Convierte un fork en lista independiente
+- [ ] `is_fork` pasa a `false`, puntajes custom se reemplazan por fuente oficial
+- [ ] Mantiene `based_on_id` como crédito ("basado en")
+- [ ] Otros usuarios pueden seguir o forkear esta lista
 
 ### Módulo de Usuarios (perfil)
 
@@ -322,18 +351,16 @@
 - [ ] Feed de actividad pública: "X completó Y", "X añadió Y a su backlog"
 - [ ] `GET /feed` — Endpoint de actividad de usuarios seguidos
 
-### Listas públicas y suscripción
+### Listas públicas — funcionalidades sociales
 
-- [ ] `POST /lists/:id/follow` — Seguir/suscribirse a una lista pública (por defecto `is_visible: true`)
-- [ ] `PATCH /lists/:id/follow` — Cambiar visibilidad del seguimiento (`is_visible: true/false`)
-- [ ] `DELETE /lists/:id/follow` — Dejar de seguir una lista
 - [ ] `GET /lists/:id/followers` — Ver seguidores de una lista (cantidad y usuarios)
 - [ ] `GET /lists/following` — Ver las listas públicas que sigo
+- [ ] `PATCH /lists/:id/follow` — Cambiar visibilidad del seguimiento (`is_visible: true/false`)
+- [ ] Listas públicas del usuario visibles en su perfil
 - [ ] Al ver una lista seguida, mostrar el progreso personal del usuario:
     - Cuántos juegos de la lista ha completado: "18/30 completados"
     - Cuáles faltan por completar
     - Para cada juego: su `Backlog` (completado, no iniciado, etc.) y `play_count`
-    - Para juegos con múltiples backlogs: mostrar cuántas veces se ha completado cada uno
 
 ### Social — Ver actividad de amigos
 
@@ -588,22 +615,23 @@
 Estas decisiones aplican a **todo el proyecto**, no son una fase:
 
 - **Separación `games` vs `game-shelf`:** `games` es el catálogo global (admin lo alimenta). `game-shelf` es la relación usuario↔juego con sus datos personales (`user_rating`, `real_duration`, `notes`). No mezclarlos.
-- **Separación `game-shelf` vs `lists`:** `game-shelf` registra qué juegos tiene el usuario. `lists` y `list-items` gestionan las colecciones organizadas. Un juego puede estar en `game-shelf` sin estar en ninguna lista, y en varias listas a la vez.
-- **Dos tipos de lista (`collection` vs `challenge`):**
-    - `collection`: Lista para organizar juegos (ej: "Juegos de PS1", "RPGs favoritos", el Backlog por defecto). Muestra el estado del juego derivado del backlog más reciente del usuario. No crea backlogs.
-    - `challenge`: Lista con tracking propio (ej: "Semestre 2025-2", "Maratón horror"). Al añadir un juego, se crea un nuevo `Backlog` automáticamente. Tiene `start_date`, `end_date` y `target_count` opcionales. Todo empieza desde cero.
+- **Separación `game-shelf` vs `lists`:** `game-shelf` registra qué juegos tiene el usuario. `lists` y `list-items` gestionan las colecciones curadas. Un juego puede estar en `game-shelf` sin estar en ninguna lista, y en varias listas a la vez.
+- **Listas con puntajes de fuente oficial:** Las listas usan una fuente global de score/duration (metacritic, rawg, hltb, etc.). No permiten valores custom. El ratio se calcula desde estos datos. Si la fuente no tiene dato para un juego → null.
+- **Dos formas de interactuar con una lista ajena:**
+    - Seguir (normal): Ves puntajes del creador + tu estado por juego. Cambios del creador se reflejan. Puedes añadir juegos a tu backlog individualmente.
+    - Fork ("empezar desde 0"): Copia independiente con puntajes congelados. Crea backlogs nuevos para todos los juegos. Independiente del original. Se puede independizar para convertirse en lista propia.
 - **Backlogs como tabla central:** Todo el historial del usuario vive en `Backlog` (not_started, playing, completed, abandoned). El estado actual de un juego se deriva del backlog más reciente. El play_count se calcula contando backlogs. No existe tabla de estado global separada.
-- **Vistas ≠ Listas:** Las vistas (pendientes, jugando, completados, por semestre) son **filtros sobre `Backlog`**, no listas separadas. Las listas son colecciones curadas (sagas, temáticas, challenges). Esto replica el modelo mental de NocoDB donde las vistas son filtros sobre la misma tabla.
+- **Vistas ≠ Listas:** Las vistas (pendientes, jugando, completados, por semestre) son **filtros sobre `Backlog`**, no listas separadas. Las listas son colecciones curadas de juegos con puntajes oficiales (sagas, temáticas, tops). Esto replica el modelo mental de NocoDB donde las vistas son filtros sobre la misma tabla.
 - **Semestre = filtro por fecha:** No existe un campo "semestre". El semestre se deriva de `Backlog.finished_at`: ene-jun = S01, jul-dic = S02. Las vistas semestrales son simplemente filtros por rango de fechas.
-- **Listas públicas y suscripción:** Cualquier lista con `is_public: true` puede ser seguida por otros usuarios. Los seguidores ven su propio progreso contra la lista (cruzando `ListItem.game_id` con sus backlogs). Las estadísticas de la lista (seguidores, % completado) se calculan en backend.
+- **Listas públicas y suscripción:** Cualquier lista con `is_public: true` puede ser seguida o forkeada. Los seguidores ven puntajes del creador + su propio estado. Los forks son copias independientes con backlogs propios. Las estadísticas (seguidores, progreso) se calculan en backend/frontend.
 - **Privacidad en dos niveles:** `User.isPublic` controla si el perfil es visible. `ListFollower.isVisible` controla si un seguimiento específico aparece en el perfil público. La regla es: `visible = User.isPublic AND ListFollower.isVisible`. Si el perfil es privado, nada es visible independientemente del `isVisible` de cada lista.
 - **UUIDs en Foreign Keys:** Definir explícitamente el tipo UUID en todas las relaciones de `associations.database.ts` para evitar bugs con Sequelize.
 - **Serializer Pattern:** Toda la lógica de cálculo (ratio, personal_ratio, estadísticas) vive en el backend dentro de los serializers/services. El frontend solo renderiza.
 - **`metadata_pending`:** Cualquier juego creado manualmente nace con `metadata_pending: true`. El worker nocturno se encarga de enriquecerlo con datos de HLTB y Metacritic.
-- **Lista Backlog por defecto:** Se crea automáticamente al registrar un usuario. `is_default: true`, `type: collection`. No puede eliminarse ni renombrarse. El reto semestral se implementa como una lista `challenge` separada.
+- **No existe lista por defecto:** El `Backlog` como tabla + vistas (SavedFilter) cubre el caso de "juegos que quiero jugar". Las listas son solo colecciones curadas, no reemplazan al backlog.
 - **`personal_ratio`:** Se calcula desde `Backlog.real_duration` del backlog completado. Si hay múltiples backlogs completados, se usa el primero o el mejor según preferencia.
 - **Sistema de puntajes en 3 niveles:**
     - `GameScore` — Catálogo global de puntajes/tiempos por fuente (Metacritic, OpenCritic, HLTB, Completr community). Actualizado por cron mensual. La ficha del juego muestra todos los disponibles.
     - `GameShelf` — Puntaje/duración que el usuario eligió para su backlog. Se precarga al añadir un juego, editable manualmente. Determina el ratio en el backlog.
-    - `ListItem` — Puntaje/duración congelados al añadir a una lista. No editables manualmente, solo con "actualizar puntajes" o "elegir fuente". Las listas no permiten valores custom, solo fuentes oficiales.
+    - `ListItem` — Puntaje/duración congelados desde la fuente oficial de la lista. No editables manualmente en listas originales y seguimientos normales, editables en forks. Actualizables con "actualizar puntajes". Las listas no permiten valores custom, solo fuentes oficiales.
 - **Filtros guardados (`SavedFilter`):** Los usuarios pueden filtrar su backlog libremente (status, género, plataforma, semestre, etc.). Los filtros se pueden guardar con un nombre. Free: hasta 5 guardados. Premium: ilimitados. Los filtros guardados son presets de query params, no listas.

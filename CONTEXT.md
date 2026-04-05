@@ -96,24 +96,39 @@ Concepto clave derivado del flujo actual en NocoDB:
 - "Completados" → `Backlog` where status = `completed`
 - "Semestre 2025-S01" → `Backlog` where `finished_at` entre ene-jun 2025
 
-**Listas** = colecciones curadas de juegos. Son entidades propias con dos tipos:
+**Listas** = colecciones curadas de juegos con puntajes de una fuente oficial (estilo Trakt). Cualquier usuario o Completr (como cuenta oficial) puede crear listas. Ejemplos: "Saga Resident Evil", "Mis TOP 10 favoritos", "RPGs cortos sub-5h".
 
-**`collection`** — Lista para organizar juegos:
+**Datos de una lista:**
 
-- Muestra el estado del juego desde el backlog más reciente del usuario
-- Si ya completaste un juego, aparece como completado
-- No crea backlogs nuevos
-- Ejemplos: "Saga Resident Evil", "RPGs favoritos", "TOP 30 para Anbernic RG40XX"
-- El **Backlog por defecto** es una lista tipo `collection`
-- Puede ser pública y seguida por otros usuarios
+- Nombre, descripción, slug, pública/privada
+- Fuente global de score y duration (metacritic, opencritic, rawg, hltb, etc.) — no valores custom
+- Score/duration de cada juego se copian desde GameScore/GameTime al ListItem
+- Ratio calculado por juego (`score / duration`). Si la fuente no tiene dato → null
+- Posición por juego (unique dentro de la lista, sin huecos, reordenable)
+- Contador de seguidores
+- `based_on_id` (nullable) — referencia a la lista original si nació como fork
 
-**`challenge`** — Lista con tracking propio desde cero:
+**Dos formas de interactuar con una lista ajena:**
 
-- Al añadir un juego, se crea un nuevo `Backlog` automáticamente
-- El progreso es independiente del estado global
-- Tiene `start_date`, `end_date` y `target_count` opcionales
-- Ejemplos: "Semestre 2025-2", "Maratón horror octubre"
-- Implementa el **reto semestral**: crear lista challenge con target_count: 25
+**Seguir (normal):**
+
+- Ves los puntajes y orden del creador (se actualizan si él refresca o edita)
+- Ves tu estado por juego (desde tu backlog)
+- Puedes añadir juegos individuales a tu backlog con cualquier estado
+- Cambios en tu backlog se reflejan al ver la lista
+- Si el creador añade/quita juegos, lo ves
+- Puedes aplicar filtros temporales (no se guardan): "solo las que me faltan", "menos de 5h"
+- Estadísticas visibles: completados, pendientes, abandonados (frontend)
+
+**Fork ("empezar desde 0"):**
+
+- Se crea una copia independiente de la lista con puntajes congelados del momento
+- Se crean backlogs nuevos para todos los juegos (como pendientes, independientes de backlogs existentes)
+- Muestra "basado en [lista original]"
+- El dueño del fork puede: editar puntajes, añadir/quitar juegos, reordenar, "actualizar puntajes" (solo afecta sus backlogs vinculados)
+- Puede ser público o privado, pero no tiene seguidores propios
+- Si otro usuario ve un fork y quiere seguirlo → sigue la lista original
+- **Independizar:** El fork se convierte en lista propia. Pierde el estado de fork, puntajes custom se reemplazan por fuente oficial, otros pueden seguirla/forkearla. Mantiene "basado en" como crédito
 
 ### Semestres
 
@@ -123,16 +138,11 @@ No existe un campo "semestre" en el modelo. El semestre se deriva de `Backlog.fi
 
 Cualquier lista con `is_public: true` puede ser seguida por otros usuarios (`ListFollower`). Cuando un seguidor ve una lista pública:
 
-- Ve todos los juegos de la lista con su propio estado (derivado de sus backlogs)
+- Ve todos los juegos de la lista con los puntajes del creador
+- Ve su propio estado para cada juego (derivado de sus backlogs)
 - Ve su progreso: "18/30 completados"
-- Para cada juego con múltiples backlogs: ve cuántas veces lo ha completado
-- Estadísticas agregadas: seguidores totales, cuántos la completaron al 100%
-
-Ejemplo: Lista pública "Saga Resident Evil" con 15 juegos → un seguidor ve "he completado 8/15, RE4 lo completé 3 veces"
-
-### Reto semestral
-
-Se implementa como una lista tipo `challenge` con `start_date`, `end_date` y `target_count`. No requiere configuración especial del usuario — simplemente crea una lista challenge con su meta.
+- Puede añadir juegos a su backlog o forkear la lista completa
+- Estadísticas: seguidores totales, progreso por juego
 
 ---
 
@@ -144,30 +154,23 @@ Se implementa como una lista tipo `challenge` con `start_date`, `end_date` y `ta
 | ---------------- | ------------------------------------------------------------------------------ | ------------------------ |
 | `games`          | Catálogo global de juegos (admin lo alimenta)                                  | La tienda de juegos      |
 | `game-shelf`     | Juegos que **posee** el usuario con datos personales                           | Tu estantería física     |
-| `lists`          | Colecciones curadas (`collection` o `challenge`)                               | Listas temáticas o sagas |
+| `lists`          | Colecciones curadas de juegos con puntajes de fuente oficial                   | Listas temáticas o sagas |
 | `list-followers` | Suscripción a listas públicas de otros usuarios                                | "Seguir esta lista"      |
 | `backlogs`       | Historial completo del usuario (quiere jugar, jugando, completado, abandonado) | Tu diario de gaming      |
 
 - Un juego puede estar en `game-shelf` sin estar en ninguna lista
 - Un juego puede estar en múltiples listas
 - `game-shelf` tiene datos de colección: `notes`, `acquired_at`, `edition`
-- `lists` tipo `collection` muestran estado derivado del backlog más reciente; tipo `challenge` crean backlogs nuevos
-- `ListItem` tiene `backlog_id` (nullable): null en collections, apunta a backlog en challenges
+- Las listas tienen puntajes de fuente oficial (no custom). Los seguidores ven los puntajes del creador; los forks copian los puntajes al momento de forkear
+- `ListItem` tiene `backlog_id` (nullable): null en listas originales y seguimiento normal, apunta a backlog en forks
 - Las "vistas" (pendientes, jugando, semestre X) son filtros de API sobre `Backlog`, no listas
-
-### Lista Backlog
-
-- Se crea automáticamente al registrar un usuario
-- `is_default: true`, `type: collection` — no se puede eliminar ni renombrar
-- Es la lista general de "juegos que quiero jugar"
-- El reto semestral es una lista `challenge` separada
 
 ### Listas públicas seguibles
 
-- Cualquier lista `is_public: true` se puede seguir (`ListFollower`)
-- Los seguidores ven su propio progreso contra la lista
-- Ejemplo: "TOP 30 para Anbernic RG40XX" → seguidor ve "18/30 completados"
-- Estadísticas: seguidores totales, completados al 100%, juego más/menos completado
+- Cualquier lista `is_public: true` se puede seguir (`ListFollower`) o forkear
+- Los seguidores ven los puntajes del creador y su propio estado por juego
+- Los forks son copias independientes con backlogs propios
+- Ejemplo: Lista "Saga Resident Evil" con 15 juegos → seguidor ve "he completado 8/15"
 
 ### Privacidad en dos niveles
 
@@ -415,7 +418,7 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 
 ### Pendiente — Fase 1 (Excel Killer, solo yo)
 
-- Módulo de Listas services, controllers y routes (`lists`, `list-items`) con tipos `collection` y `challenge`
+- Módulo de Listas services, controllers y routes (`lists`, `list-items`, `list-followers`) con seguimiento normal y fork
 - Transacciones en operaciones multi-paso
 - HLTB/Metacritic auto-fetch (cron nocturno con providers)
 - Importación CSV
