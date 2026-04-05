@@ -115,10 +115,7 @@ export async function updateBacklog(
 	userId: string,
 	updateBacklog: UpdateBacklogDto
 ) {
-	const backlogEntry = await Backlog.findOne({
-		where: { id },
-		include: [{ model: Game }, { model: Platform }]
-	});
+	const backlogEntry = await findBacklogById(id);
 	if (!backlogEntry) throw backlogServiceError.notFoundError();
 	if (backlogEntry.userId !== userId)
 		throw backlogServiceError.forbiddenError();
