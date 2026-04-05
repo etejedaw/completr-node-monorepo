@@ -25,7 +25,7 @@ export async function getMeSavedFilters(request: Request, response: Response) {
 
 	const { filters, frozen } =
 		await savedFiltersService.findSavedFiltersByUserId(userId, role);
-	const filtersPlain = filters.map(f => f.get({ plain: true }));
+	const filtersPlain = filters.map(filter => filter.get({ plain: true }));
 
 	const data = { savedFilters: filtersPlain, frozen };
 	return response.status(200).json({ data });

@@ -35,7 +35,7 @@ export async function getGameTimes(request: Request, response: Response) {
 
 	const times = await gameTimesService.findTimesByGameId(params.gameId);
 	const data = {
-		gameTimes: times.map(t => t.get({ plain: true }))
+		gameTimes: times.map(time => time.get({ plain: true }))
 	};
 	return response.status(200).json({ data });
 }
