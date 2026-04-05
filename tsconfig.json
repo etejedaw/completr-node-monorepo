@@ -40,5 +40,7 @@
 		"noUncheckedSideEffectImports": true,
 		"moduleDetection": "force",
 		"skipLibCheck": true
-	}
+	},
+	"include": ["src"],
+	"files": ["src/common/types/express.d.ts"]
 }
