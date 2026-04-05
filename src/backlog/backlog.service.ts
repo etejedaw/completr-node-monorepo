@@ -115,13 +115,16 @@ export async function updateBacklog(
 	userId: string,
 	updateBacklog: UpdateBacklogDto
 ) {
-	const backlogEntry = await Backlog.findOne({ where: { id } });
+	const backlogEntry = await Backlog.findOne({
+		where: { id },
+		include: [{ model: Game }, { model: Platform }]
+	});
 	if (!backlogEntry) throw backlogServiceError.notFoundError();
 	if (backlogEntry.userId !== userId)
 		throw backlogServiceError.forbiddenError();
 
 	await backlogEntry.update(updateBacklog);
-	return findBacklogById(id);
+	return backlogEntry;
 }
 
 export async function removeBacklog(id: string, userId: string) {
