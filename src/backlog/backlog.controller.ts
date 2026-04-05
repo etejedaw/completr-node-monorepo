@@ -62,15 +62,15 @@ export async function getUserBacklog(request: Request, response: Response) {
 
 export async function patchBacklog(request: Request, response: Response) {
 	const params = request.locals.params as BacklogIdParams;
-	const dto = request.locals.body as UpdateBacklogDto;
+	const updateBacklog = request.locals.body as UpdateBacklogDto;
 	const user = request.locals.user as RequestUser;
 
 	const backlogEntry = await backlogService.updateBacklog(
 		params.backlogId,
 		user.id,
-		dto
+		updateBacklog
 	);
-	const backlogPlain = backlogEntry!.get({ plain: true });
+	const backlogPlain = backlogEntry.get({ plain: true });
 
 	const data = { backlog: backlogSerializer(backlogPlain) };
 	return response.status(200).json({ data });
