@@ -13,6 +13,7 @@ export function playthroughSerializer(
 		finishedAt: playthrough.finishedAt,
 		realDuration: playthrough.realDuration,
 		userRating: playthrough.userRating,
+		isPublic: playthrough.isPublic,
 		notes: playthrough.notes,
 		playthroughNumber: playthroughNumber ?? null,
 		createdAt: playthrough.createdAt,
