@@ -47,7 +47,7 @@
 - [x] **GameShelf**: id, user_id, game_id, platform_id, is_public, acquired_at, edition, notes — Colección de juegos que el usuario posee. Sin score/duration (esos viven en ListItem)
 - [x] **List**: id (UUID), user_id, name, slug, type (`collection` | `challenge`), is_default (bool, para el Backlog imborrable), is_public (bool), start_date (nullable, solo challenges), end_date (nullable, solo challenges), target_count (nullable, ej: "completar 25 de esta lista"), created_at
 - [x] **ListItem**: id, list_id, game_id, backlog_id (nullable), position (int), score (nullable), duration (nullable), score_source (nullable), duration_source (nullable) — Datos de puntaje congelados al añadir a la lista, actualizables manualmente por el usuario
-- [x] **SavedFilter**: id (UUID), user_id, name, filters (JSON), sort_by (nullable), sort_order, created_at — Filtros guardados del backlog. Free: hasta 3, Premium: ilimitados
+- [x] **SavedFilter**: id (UUID), user_id, name, filters (JSON), sort_by (nullable), sort_order, created_at — Filtros guardados del backlog. Free: hasta 5, Premium: ilimitados
 - [x] **ListFollower**: id, list*id, user_id, is_visible (bool, default true — controla si el seguimiento aparece en el perfil público del usuario), followed_at — \_Permite a usuarios seguir listas públicas de otros. El progreso se calcula cruzando los juegos de la lista con el `Backlog` del seguidor. Visibilidad: `User.isPublic AND ListFollower.isVisible`*
 - [x] **Backlog**: id (UUID), user_id, game_id, platform_id, status (`not_started` | `playing` | `completed` | `abandoned`), started_at, finished_at (nullable), real_duration (nullable), notes (nullable) — Historial completo del usuario. Incluye juegos que quiere jugar, está jugando, completó o abandonó. El play_count y el estado actual se derivan de esta tabla. El número de backlog se calcula en el serializer ordenando por `started_at`
 - [x] Definir todas las asociaciones en `associations.database.ts` con Foreign Keys explícitamente tipadas como UUID
@@ -130,7 +130,7 @@
 
 - [x] `POST /users/me/backlog` — Crear entrada de backlog (status por defecto: `not_started`)
 - [x] `PATCH /users/me/backlog/:backlogId` — Actualizar status, `realDuration`, `finishedAt`, `userRating`, `isPublic`, `notes`
-- [x] `GET /users/me/backlog` — Ver mi historial con filtros (status, game_id, from, to)
+- [x] `GET /users/me/backlog` — Ver mi historial con filtros completos (status, game_id, platform_id, rangos de fechas, duración, rating, ordenamiento)
 - [x] `GET /users/:username/backlog` — Ver backlog público de otro usuario (respeta `User.isPublic` + `Backlog.isPublic`)
 - [x] `DELETE /users/me/backlog/:backlogId` — Eliminar entrada (borrado físico, solo owner)
 - [x] `userRating` — Nota personal del 1 al 10 en pasos de 0.5
@@ -145,8 +145,21 @@
 - [x] `GET /users/me/backlog?status=playing` — Vista "Jugando"
 - [x] `GET /users/me/backlog?status=completed` — Vista "Completados"
 - [x] `GET /users/me/backlog?status=abandoned` — Vista "Abandonados"
-- [x] `GET /users/me/backlog?from=2025-01-01&to=2025-06-30` — Vista por semestre (filtro por `finishedAt`)
-- [x] Soportar combinación de filtros: `?status=completed&from=2025-07-01&to=2025-12-31`
+- [x] `GET /users/me/backlog?finished_from=2025-01-01&finished_to=2025-06-30` — Vista por semestre
+- [x] Filtros por rango: `min_duration/max_duration`, `min_rating/max_rating`, `started_from/to`, `finished_from/to`
+- [x] Filtro por plataforma: `?platform_id=uuid`
+- [x] Ordenamiento: `?sort_by=userRating&sort_order=desc`
+- [x] Soportar combinación de cualquier filtro + ordenamiento
+
+### Módulo de Saved Filters (vistas guardadas)
+
+- [x] `POST /users/me/saved-filters` — Crear vista guardada (preset de filtros + ordenamiento)
+- [x] `GET /users/me/saved-filters` — Listar mis vistas guardadas
+- [x] `PATCH /users/me/saved-filters/:filterId` — Actualizar vista (solo owner)
+- [x] `DELETE /users/me/saved-filters/:filterId` — Eliminar vista (solo owner)
+- [x] Límite de 5 vistas para usuarios free, ilimitadas para premium/admin
+- [x] Filtros almacenados como JSONB — el frontend los lee y los aplica como query params al backlog
+- [x] Error handling completo registrado en normalizers globales (404, 403 forbidden, 403 limit reached, 500)
 
 ### Transacciones en operaciones multi-paso
 
@@ -515,7 +528,7 @@
 | **Ratio y personal ratio**            | ✅                             | ✅ + Fórmula personalizable   |
 | **Fuentes de score**                  | ✅ Completr community + manual | ✅ + Metacritic, OpenCritic   |
 | **Filtros del backlog**               | ✅ Ilimitados                  | ✅ Ilimitados                 |
-| **Filtros guardados**                 | ✅ Hasta 3                     | ✅ Ilimitados                 |
+| **Filtros guardados**                 | ✅ Hasta 5                     | ✅ Ilimitados                 |
 | **HLTB auto-fetch**                   | ✅                             | ✅ Prioridad en cola          |
 | **Perfil público**                    | ✅                             | ✅ + URL personalizada        |
 | **Follow usuarios**                   | ✅                             | ✅                            |
@@ -562,4 +575,4 @@ Estas decisiones aplican a **todo el proyecto**, no son una fase:
     - `GameScore` — Catálogo global de puntajes/tiempos por fuente (Metacritic, OpenCritic, HLTB, Completr community). Actualizado por cron mensual. La ficha del juego muestra todos los disponibles.
     - `GameShelf` — Puntaje/duración que el usuario eligió para su backlog. Se precarga al añadir un juego, editable manualmente. Determina el ratio en el backlog.
     - `ListItem` — Puntaje/duración congelados al añadir a una lista. No editables manualmente, solo con "actualizar puntajes" o "elegir fuente". Las listas no permiten valores custom, solo fuentes oficiales.
-- **Filtros guardados (`SavedFilter`):** Los usuarios pueden filtrar su backlog libremente (status, género, plataforma, semestre, etc.). Los filtros se pueden guardar con un nombre. Free: hasta 3 guardados. Premium: ilimitados. Los filtros guardados son presets de query params, no listas.
+- **Filtros guardados (`SavedFilter`):** Los usuarios pueden filtrar su backlog libremente (status, género, plataforma, semestre, etc.). Los filtros se pueden guardar con un nombre. Free: hasta 5 guardados. Premium: ilimitados. Los filtros guardados son presets de query params, no listas.
