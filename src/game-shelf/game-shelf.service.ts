@@ -34,7 +34,8 @@ export async function findPublicGameShelfByUserId(userId: string) {
 		where: { userId, isPublic: true },
 		include: [
 			{ model: Game, include: [{ model: Genre }] },
-			{ model: Platform }
+			{ model: Platform },
+			{ model: User }
 		]
 	});
 }
