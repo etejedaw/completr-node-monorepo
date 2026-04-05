@@ -1,0 +1,64 @@
+info:
+    name: Update Saved Filter
+    type: http
+    seq: 3
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/users/me/saved-filters/:filterId"
+    params:
+        - name: filterId
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "name": "Updated Filter Name"
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Update Saved Filter
+
+    Updates an existing saved filter. Only the owner can update it.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param    | Type | Required | Description           |
+    |----------|------|----------|-----------------------|
+    | filterId | uuid | Yes      | The saved filter UUID |
+
+    ### Request Body
+
+    | Field     | Type   | Required | Description              |
+    |-----------|--------|----------|--------------------------|
+    | name      | string | No       | Filter name (1-100 chars)|
+    | filters   | object | No       | Updated query params     |
+    | sortBy    | string | No       | Sort field               |
+    | sortOrder | string | No       | asc or desc              |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "savedFilter": {
+          "id": "uuid",
+          "name": "Updated Filter Name",
+          "filters": { ... },
+          "sortBy": "...",
+          "sortOrder": "..."
+        }
+      }
+    }
+    ```

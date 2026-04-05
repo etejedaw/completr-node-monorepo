@@ -1,0 +1,34 @@
+info:
+    name: Delete Saved Filter
+    type: http
+    seq: 4
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/users/me/saved-filters/:filterId"
+    params:
+        - name: filterId
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Delete Saved Filter
+
+    Deletes a saved filter. Only the owner can delete it.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param    | Type | Required | Description           |
+    |----------|------|----------|-----------------------|
+    | filterId | uuid | Yes      | The saved filter UUID |
+
+    ### Response (204)
+
+    No content.

@@ -1,0 +1,38 @@
+info:
+    name: Get My Saved Filters
+    type: http
+    seq: 2
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/saved-filters"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get My Saved Filters
+
+    Returns all saved filters for the authenticated user.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "savedFilters": [
+          {
+            "id": "uuid",
+            "name": "Completados 2025-S01",
+            "filters": { ... },
+            "sortBy": "finishedAt",
+            "sortOrder": "desc"
+          }
+        ]
+      }
+    }
+    ```
