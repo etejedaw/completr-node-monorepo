@@ -28,3 +28,12 @@ export function savedFilterLimitReached(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function savedFilterFrozen(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"SAVED_FILTER_FROZEN",
+		"This filter is frozen. Delete filters until you have 5 or less, or upgrade to premium.",
+		context
+	);
+}

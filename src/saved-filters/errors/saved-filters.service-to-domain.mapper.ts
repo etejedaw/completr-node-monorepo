@@ -19,6 +19,9 @@ export function savedFiltersServiceToDomainMapper(
 	if (error.code === "SAVED_FILTER_LIMIT_REACHED")
 		return savedFilterDomainError.savedFilterLimitReached(context);
 
+	if (error.code === "SAVED_FILTER_FROZEN")
+		return savedFilterDomainError.savedFilterFrozen(context);
+
 	return new DomainError(
 		"SavedFilter Module",
 		"SAVED_FILTER_INTERNAL_ERROR",

@@ -22,3 +22,10 @@ export function limitReachedError() {
 		raw: undefined
 	});
 }
+
+export function frozenError() {
+	return new ServiceError("SAVED_FILTER_FROZEN", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}

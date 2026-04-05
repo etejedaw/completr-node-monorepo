@@ -22,7 +22,10 @@ export function savedFiltersDomainToHttpMapper(
 		return new HttpError({ ...baseOptions, status: 403 });
 
 	if (error.code === "SAVED_FILTER_LIMIT_REACHED")
-		return new HttpError({ ...baseOptions, status: 403 });
+		return new HttpError({ ...baseOptions, status: 402 });
+
+	if (error.code === "SAVED_FILTER_FROZEN")
+		return new HttpError({ ...baseOptions, status: 402 });
 
 	return new HttpError({ ...baseOptions, status: 500 });
 }
