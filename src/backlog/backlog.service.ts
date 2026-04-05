@@ -4,6 +4,7 @@ import { Platform } from "../platforms/platform.model";
 import { Backlog } from "./backlog.model";
 import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
+import { BacklogQuery } from "./schemas/backlog-query.schema";
 import * as backlogServiceError from "./errors/backlog.service-error";
 
 export async function createBacklog(
@@ -30,12 +31,7 @@ export async function findBacklogById(id: string) {
 
 export async function findBacklogByUserId(
 	userId: string,
-	filters: {
-		status?: string;
-		game_id?: string;
-		from?: string;
-		to?: string;
-	} = {}
+	filters: BacklogQuery = {}
 ) {
 	const where: Record<string, unknown> = { userId };
 
@@ -58,12 +54,7 @@ export async function findBacklogByUserId(
 
 export async function findPublicBacklogByUserId(
 	userId: string,
-	filters: {
-		status?: string;
-		game_id?: string;
-		from?: string;
-		to?: string;
-	} = {}
+	filters: BacklogQuery = {}
 ) {
 	const where: Record<string, unknown> = { userId, isPublic: true };
 
