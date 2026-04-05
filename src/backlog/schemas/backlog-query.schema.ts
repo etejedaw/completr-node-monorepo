@@ -30,6 +30,8 @@ export const BacklogQuerySchema = z
 		max_score: z.coerce.number().optional(),
 		min_duration: z.coerce.number().optional(),
 		max_duration: z.coerce.number().optional(),
+		min_real_duration: z.coerce.number().optional(),
+		max_real_duration: z.coerce.number().optional(),
 		min_rating: z.coerce.number().optional(),
 		max_rating: z.coerce.number().optional(),
 		sort_by: z.enum(SORT_FIELDS).optional(),

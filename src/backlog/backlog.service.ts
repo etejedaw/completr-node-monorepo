@@ -79,8 +79,8 @@ function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
 	if (duration) where.duration = duration;
 
 	const realDuration = buildRangeFilter(
-		filters.min_duration,
-		filters.max_duration
+		filters.min_real_duration,
+		filters.max_real_duration
 	);
 	if (realDuration) where.realDuration = realDuration;
 
