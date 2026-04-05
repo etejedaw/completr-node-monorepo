@@ -8,6 +8,7 @@ import { gameScoresErrorDomainNormalizer } from "../../game-scores/errors/game-s
 import { gameTimesErrorDomainNormalizer } from "../../game-times/errors/game-times.error-domain.normalizer";
 import { backlogErrorDomainNormalizer } from "../../backlog/errors/backlog.error-domain.normalizer";
 import { savedFiltersErrorDomainNormalizer } from "../../saved-filters/errors/saved-filters.error-domain.normalizer";
+import { listsErrorDomainNormalizer } from "../../lists/errors/lists.error-domain.normalizer";
 import { DomainError } from "./domain-error";
 import { ServiceError } from "./service-error";
 
@@ -59,6 +60,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "SavedFilter Service")
 		return savedFiltersErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "List Service")
+		return listsErrorDomainNormalizer(error, correlationId);
 
 	return new DomainError("COMMON", "INTERNAL_ERROR", "Unexpected error", {
 		raw: error,

@@ -1,0 +1,66 @@
+import { Request, Response } from "express";
+import { RequestUser } from "../common/interfaces/request-user.interface";
+import * as listsService from "./lists.service";
+import { RegisterListDto } from "./dtos/register-list.dto";
+import { UpdateListDto } from "./dtos/update-list.dto";
+import { ListIdParams } from "./schemas/list-id-params.schema";
+import { listSerializer, listSummarySerializer } from "./lists.serializer";
+import * as listDomainError from "./errors/lists.domain-error";
+
+export async function postList(request: Request, response: Response) {
+	const registerList = request.locals.body as RegisterListDto;
+	const user = request.locals.user as RequestUser;
+
+	const list = await listsService.createList(user.id, registerList);
+	const listPlain = list.get({ plain: true });
+
+	const data = { list: listSummarySerializer(listPlain) };
+	return response.status(201).json({ data });
+}
+
+export async function getMeLists(request: Request, response: Response) {
+	const user = request.locals.user as RequestUser;
+
+	const lists = await listsService.findListsByUserId(user.id);
+	const listsPlain = lists.map(list => list.get({ plain: true }));
+
+	const data = { lists: listsPlain.map(listSummarySerializer) };
+	return response.status(200).json({ data });
+}
+
+export async function getListById(request: Request, response: Response) {
+	const params = request.locals.params as ListIdParams;
+
+	const list = await listsService.findListById(params.listId);
+	if (!list) throw listDomainError.listNotFound();
+
+	const listPlain = list.get({ plain: true });
+
+	const data = { list: listSerializer(listPlain) };
+	return response.status(200).json({ data });
+}
+
+export async function patchList(request: Request, response: Response) {
+	const params = request.locals.params as ListIdParams;
+	const updateList = request.locals.body as UpdateListDto;
+	const user = request.locals.user as RequestUser;
+
+	const list = await listsService.updateList(
+		params.listId,
+		user.id,
+		updateList
+	);
+
+	const listPlain = list!.get({ plain: true });
+
+	const data = { list: listSerializer(listPlain) };
+	return response.status(200).json({ data });
+}
+
+export async function deleteList(request: Request, response: Response) {
+	const params = request.locals.params as ListIdParams;
+	const user = request.locals.user as RequestUser;
+
+	await listsService.removeList(params.listId, user.id);
+	return response.sendStatus(204);
+}

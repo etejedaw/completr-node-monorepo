@@ -9,6 +9,7 @@ import { gameScoresDomainToHttpMapper } from "../../game-scores/errors/game-scor
 import { gameTimesDomainToHttpMapper } from "../../game-times/errors/game-times.domain-to-http.mapper";
 import { backlogDomainToHttpMapper } from "../../backlog/errors/backlog.domain-to-http.mapper";
 import { savedFiltersDomainToHttpMapper } from "../../saved-filters/errors/saved-filters.domain-to-http.mapper";
+import { listsDomainToHttpMapper } from "../../lists/errors/lists.domain-to-http.mapper";
 
 import { commonDomainToHttpMapper } from "./common.domain-to-http.mapper";
 import { DomainError } from "./domain-error";
@@ -47,6 +48,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "SavedFilter Module")
 		return savedFiltersDomainToHttpMapper(error, request);
+
+	if (error.module === "List Module")
+		return listsDomainToHttpMapper(error, request);
 
 	if (error.module === "Common Module" || error.module === "COMMON")
 		return commonDomainToHttpMapper(error, request);
