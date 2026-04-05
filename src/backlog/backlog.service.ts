@@ -70,14 +70,14 @@ export async function findPublicBacklogByUserId(
 export async function updateBacklog(
 	id: string,
 	userId: string,
-	dto: UpdateBacklogDto
+	updateBacklog: UpdateBacklogDto
 ) {
 	const backlogEntry = await Backlog.findOne({ where: { id } });
 	if (!backlogEntry) throw backlogServiceError.notFoundError();
 	if (backlogEntry.userId !== userId)
 		throw backlogServiceError.forbiddenError();
 
-	await backlogEntry.update(dto);
+	await backlogEntry.update(updateBacklog);
 	return findBacklogById(id);
 }
 
@@ -89,11 +89,4 @@ export async function removeBacklog(id: string, userId: string) {
 
 	await Backlog.destroy({ where: { id } });
 	return true;
-}
-
-export async function countBacklogByUserAndGame(
-	userId: string,
-	gameId: string
-) {
-	return Backlog.count({ where: { userId, gameId } });
 }
