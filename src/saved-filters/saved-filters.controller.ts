@@ -7,11 +7,11 @@ import { SavedFilterIdParams } from "./schemas/saved-filter-id-params.schema";
 
 export async function postSavedFilter(request: Request, response: Response) {
 	const dto = request.locals.body as RegisterSavedFilterDto;
-	const { id: userId, role } = request.locals.user as RequestUser;
+	const user = request.locals.user as RequestUser;
 
 	const filter = await savedFiltersService.createSavedFilter(
-		userId,
-		role,
+		user.id,
+		user.role,
 		dto
 	);
 	const filterPlain = filter.get({ plain: true });
@@ -21,10 +21,10 @@ export async function postSavedFilter(request: Request, response: Response) {
 }
 
 export async function getMeSavedFilters(request: Request, response: Response) {
-	const { id: userId, role } = request.locals.user as RequestUser;
+	const user = request.locals.user as RequestUser;
 
 	const { filters, frozen } =
-		await savedFiltersService.findSavedFiltersByUserId(userId, role);
+		await savedFiltersService.findSavedFiltersByUserId(user.id, user.role);
 	const filtersPlain = filters.map(filter => filter.get({ plain: true }));
 
 	const data = { savedFilters: filtersPlain, frozen };
@@ -34,12 +34,12 @@ export async function getMeSavedFilters(request: Request, response: Response) {
 export async function patchSavedFilter(request: Request, response: Response) {
 	const params = request.locals.params as SavedFilterIdParams;
 	const dto = request.locals.body as UpdateSavedFilterDto;
-	const { id: userId, role } = request.locals.user as RequestUser;
+	const user = request.locals.user as RequestUser;
 
 	const filter = await savedFiltersService.updateSavedFilter(
 		params.filterId,
-		userId,
-		role,
+		user.id,
+		user.role,
 		dto
 	);
 	const filterPlain = filter.get({ plain: true });
