@@ -1,5 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
+import { Game } from "../games/game.model";
+import { Platform } from "../platforms/platform.model";
 
 export type PlaythroughStatus =
 	| "not_started"
@@ -20,6 +22,8 @@ class Playthrough extends Model {
 	declare notes?: string;
 	declare createdAt: Date;
 	declare updatedAt: Date;
+	declare Game: Game;
+	declare Platform: Platform;
 }
 
 Playthrough.init(
