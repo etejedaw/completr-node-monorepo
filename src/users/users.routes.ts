@@ -12,6 +12,7 @@ import gameShelfRouter from "../game-shelf/game-shelf.routes";
 import * as gameShelfController from "../game-shelf/game-shelf.controller";
 import backlogRouter from "../backlog/backlog.routes";
 import * as backlogController from "../backlog/backlog.controller";
+import savedFiltersRouter from "../saved-filters/saved-filters.routes";
 
 const router = Router();
 
@@ -67,5 +68,7 @@ router.get(
 	],
 	backlogController.getUserBacklog
 );
+
+router.use("/users/me/saved-filters", savedFiltersRouter);
 
 export default router;
