@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { HeaderTokenSchema } from "./schemas";
 import * as tokenService from "./services/token.service";
 import { ZodError } from "zod";
-import { CustomRequest } from "../common/interfaces/custom-request.interface";
 import * as authDomainsErrors from "./errors/auth.domains-error";
 import * as userService from "../users/users.service";
 import { DomainError } from "../common/errors/domain-error";
@@ -14,8 +13,6 @@ export function authMiddleware(...roles: UserRole[]) {
 		_response: Response,
 		next: NextFunction
 	) => {
-		const customRequest = request as CustomRequest;
-
 		try {
 			const headers = HeaderTokenSchema.parse(request.headers);
 
@@ -26,14 +23,16 @@ export function authMiddleware(...roles: UserRole[]) {
 			if (!user || !user.isActive)
 				throw authDomainsErrors.authInvalidToken();
 
-			const customUser = {
-				id: user.id,
-				username: user.username,
-				email: user.email,
-				role: user.role,
-				isActive: user.isActive
+			request.locals = {
+				...request.locals,
+				user: {
+					id: user.id,
+					username: user.username,
+					email: user.email,
+					role: user.role,
+					isActive: user.isActive
+				}
 			};
-			customRequest.user = customUser;
 
 			if (!roles.length) return next();
 			if (user.role === "admin") return next();

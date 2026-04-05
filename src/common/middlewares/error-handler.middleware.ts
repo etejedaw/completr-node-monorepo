@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { CustomRequest } from "../interfaces/custom-request.interface";
 import { globalErrorDomainNormalizer } from "../errors/global-error-domain.normalizer";
 import { globalErrorHttpNormalizer } from "../errors/global-error-http.normalizer";
 
@@ -9,11 +8,10 @@ export function errorHandlerMiddleware(
 	response: Response,
 	_next: NextFunction
 ) {
-	const customRequest = request as CustomRequest;
-	const { correlationId } = customRequest;
+	const correlationId = (request.locals?.correlationId as string) ?? "";
 
 	const domainError = globalErrorDomainNormalizer(error, correlationId);
-	const httpError = globalErrorHttpNormalizer(domainError, customRequest);
+	const httpError = globalErrorHttpNormalizer(domainError, request);
 
 	return response.status(httpError.status).json({
 		correlationId: httpError.correlationId,

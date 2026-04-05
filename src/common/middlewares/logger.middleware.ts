@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express";
-import { CustomRequest } from "../interfaces/custom-request.interface";
 import { PinoLogger } from "../logger/pino.logger";
 
 export function loggerMiddleware(
@@ -7,9 +6,7 @@ export function loggerMiddleware(
 	response: Response,
 	next: NextFunction
 ) {
-	const customRequest = request as CustomRequest;
-
-	const { correlationId } = customRequest;
+	const correlationId = request.locals?.correlationId as string;
 	const startTime = process.hrtime.bigint();
 
 	const log = new PinoLogger("HTTP");
