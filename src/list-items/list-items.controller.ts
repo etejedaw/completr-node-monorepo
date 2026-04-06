@@ -47,3 +47,16 @@ export async function deleteListItem(request: Request, response: Response) {
 	await listItemsService.removeItem(params.listId, params.itemId, user.id);
 	return response.sendStatus(204);
 }
+
+export async function postRefreshScores(request: Request, response: Response) {
+	const params = request.locals.params as ListIdParams;
+	const user = request.locals.user as RequestUser;
+
+	const updatedCount = await listItemsService.refreshScores(
+		params.listId,
+		user.id
+	);
+
+	const data = { updatedItems: updatedCount };
+	return response.status(200).json({ data });
+}

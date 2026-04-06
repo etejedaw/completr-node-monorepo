@@ -126,3 +126,21 @@ export async function removeItem(
 
 	return true;
 }
+
+export async function refreshScores(listId: string, userId: string) {
+	const list = await List.findOne({ where: { id: listId } });
+	if (!list) throw listItemsServiceError.listNotFoundError();
+	if (list.userId !== userId) throw listItemsServiceError.forbiddenError();
+
+	const items = await ListItem.findAll({ where: { listId } });
+
+	const updates = await Promise.all(
+		items.map(async item => {
+			const { score, duration } = await freezeScores(item.gameId, list);
+			await item.update({ score, duration });
+			return item;
+		})
+	);
+
+	return updates.length;
+}

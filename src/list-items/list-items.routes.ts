@@ -43,4 +43,14 @@ router.delete(
 	listItemsController.deleteListItem
 );
 
+router.post(
+	"/lists/:listId/refresh-scores",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator", "admin"),
+		validateSchemaMiddleware(ListIdParamsSchema, "params")
+	],
+	listItemsController.postRefreshScores
+);
+
 export default router;
