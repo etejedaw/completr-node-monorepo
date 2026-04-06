@@ -74,9 +74,6 @@ function gameShelf() {
 function lists() {
 	User.hasMany(List, { foreignKey: "userId" });
 	List.belongsTo(User, { foreignKey: "userId" });
-
-	List.hasMany(List, { foreignKey: "basedOnId", as: "Forks" });
-	List.belongsTo(List, { foreignKey: "basedOnId", as: "BasedOn" });
 }
 
 function listItems() {
@@ -85,9 +82,6 @@ function listItems() {
 
 	Game.hasMany(ListItem, { foreignKey: "gameId" });
 	ListItem.belongsTo(Game, { foreignKey: "gameId" });
-
-	Backlog.hasMany(ListItem, { foreignKey: "backlogId" });
-	ListItem.belongsTo(Backlog, { foreignKey: "backlogId" });
 }
 
 function listFollowers() {

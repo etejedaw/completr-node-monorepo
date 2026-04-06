@@ -12,8 +12,6 @@ class List extends Model {
 	declare isPublic: boolean;
 	declare scoreSource: string;
 	declare durationSource: string;
-	declare basedOnId?: string;
-	declare isFork: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 	declare ListItems?: ListItem[];
@@ -47,14 +45,6 @@ List.init(
 		durationSource: {
 			type: DataTypes.ENUM(...TIME_SOURCES),
 			allowNull: false
-		},
-		basedOnId: {
-			type: DataTypes.UUID,
-			allowNull: true
-		},
-		isFork: {
-			type: DataTypes.BOOLEAN,
-			defaultValue: false
 		}
 	},
 	{ sequelize }
