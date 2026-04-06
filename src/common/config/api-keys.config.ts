@@ -2,7 +2,7 @@ import z from "zod";
 
 const ApiKeysConfigSchema = z
 	.object({
-		RAWG_API_KEY: z.string().default("")
+		RAWG_API_KEY: z.string().min(1)
 	})
 	.readonly();
 
