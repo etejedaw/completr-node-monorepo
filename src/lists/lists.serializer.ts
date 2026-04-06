@@ -1,7 +1,18 @@
 import { listItemSerializer } from "../list-items/list-items.serializer";
 import { List } from "./list.model";
 
-export function listSerializer(list: List) {
+interface ListSerializerOptions {
+	followerCount?: number;
+	isFollowing?: boolean;
+	backlogStatusMap?: Map<string, string>;
+}
+
+export function listSerializer(
+	list: List,
+	options: ListSerializerOptions = {}
+) {
+	const { followerCount, isFollowing, backlogStatusMap } = options;
+
 	return {
 		id: list.id,
 		name: list.name,
@@ -9,9 +20,12 @@ export function listSerializer(list: List) {
 		isPublic: list.isPublic,
 		scoreSource: list.scoreSource,
 		durationSource: list.durationSource,
-		basedOnId: list.basedOnId,
-		isFork: list.isFork,
-		items: list.ListItems?.map(listItemSerializer)
+		followerCount: followerCount ?? 0,
+		isFollowing: isFollowing ?? false,
+		items: list.ListItems?.map(item => ({
+			...listItemSerializer(item),
+			backlogStatus: backlogStatusMap?.get(item.gameId) ?? null
+		}))
 	};
 }
 
@@ -22,8 +36,6 @@ export function listSummarySerializer(list: List) {
 		description: list.description,
 		isPublic: list.isPublic,
 		scoreSource: list.scoreSource,
-		durationSource: list.durationSource,
-		basedOnId: list.basedOnId,
-		isFork: list.isFork
+		durationSource: list.durationSource
 	};
 }

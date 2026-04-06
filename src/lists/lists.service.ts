@@ -1,6 +1,9 @@
+import { Op } from "sequelize";
 import { List } from "./list.model";
 import { ListItem } from "../list-items/list-item.model";
+import { ListFollower } from "../list-followers/list-follower.model";
 import { Game } from "../games/game.model";
+import { Backlog } from "../backlog/backlog.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { RegisterListDto } from "./dtos/register-list.dto";
 import { UpdateListDto } from "./dtos/update-list.dto";
@@ -46,6 +49,37 @@ export async function findListById(id: string) {
 			}
 		]
 	});
+}
+
+export async function getFollowerCount(listId: string) {
+	return ListFollower.count({ where: { listId } });
+}
+
+export async function getIsFollowing(listId: string, userId: string) {
+	const follower = await ListFollower.findOne({
+		where: { listId, userId }
+	});
+	return !!follower;
+}
+
+export async function getBacklogStatusMap(
+	gameIds: string[],
+	userId: string
+): Promise<Map<string, string>> {
+	if (gameIds.length === 0) return new Map();
+
+	const backlogs = await Backlog.findAll({
+		where: { userId, gameId: { [Op.in]: gameIds } },
+		order: [["createdAt", "DESC"]]
+	});
+
+	const statusMap = new Map<string, string>();
+	for (const backlog of backlogs) {
+		if (!statusMap.has(backlog.gameId)) {
+			statusMap.set(backlog.gameId, backlog.status);
+		}
+	}
+	return statusMap;
 }
 
 export async function findListsByUserId(user: RequestUser) {

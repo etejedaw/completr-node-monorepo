@@ -10,6 +10,7 @@ import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.
 import { RegisterListSchema } from "./schemas/register-list.schema";
 import { UpdateListSchema } from "./schemas/update-list.schema";
 import { ListIdParamsSchema } from "./schemas/list-id-params.schema";
+import { authOptionalMiddleware } from "../auth/auth-optional.middleware";
 
 const router = Router();
 
@@ -36,6 +37,7 @@ router.get(
 	"/lists/:listId",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(ListIdParamsSchema, "params")
 	],
 	listsController.getListById
