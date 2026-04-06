@@ -106,43 +106,34 @@ Concepto clave derivado del flujo actual en NocoDB:
 - Ratio calculado por juego (`score / duration`). Si la fuente no tiene dato → null
 - Posición por juego (unique dentro de la lista, sin huecos, reordenable)
 - Contador de seguidores
-- `based_on_id` (nullable) — referencia a la lista original si nació como fork
+- Límite: free hasta 5 listas, premium/admin ilimitado. Si un usuario baja de premium a free con >5 listas, quedan congeladas (no puede crear ni editar) hasta que elimine las sobrantes
 
-**Dos formas de interactuar con una lista ajena:**
+**Interacción con una lista:**
 
-**Seguir (normal):**
+- Al ver una lista autenticado, el backend incluye el estado del juego en tu backlog (`backlogStatus`: completed, playing, not_started, abandoned, o null si no está en tu backlog)
+- El frontend muestra íconos de estado y calcula estadísticas (ej: "has completado 8/15")
+- Para añadir un juego a tu backlog, vas a la ficha del juego y lo añades desde ahí
+- Si el creador edita/refresca la lista, todos ven los cambios
 
-- Ves los puntajes y orden del creador (se actualizan si él refresca o edita)
-- Ves tu estado por juego (desde tu backlog)
-- Puedes añadir juegos individuales a tu backlog con cualquier estado
-- Cambios en tu backlog se reflejan al ver la lista
-- Si el creador añade/quita juegos, lo ves
-- Puedes aplicar filtros temporales (no se guardan): "solo las que me faltan", "menos de 5h"
-- Estadísticas visibles: completados, pendientes, abandonados (frontend)
+**Seguir una lista (bookmark social):**
 
-**Fork ("empezar desde 0"):**
-
-- Se crea una copia independiente de la lista con puntajes congelados del momento
-- Se crean backlogs nuevos para todos los juegos (como pendientes, independientes de backlogs existentes)
-- Muestra "basado en [lista original]"
-- El dueño del fork puede: editar puntajes, añadir/quitar juegos, reordenar, "actualizar puntajes" (solo afecta sus backlogs vinculados)
-- Puede ser público o privado, pero no tiene seguidores propios
-- Si otro usuario ve un fork y quiere seguirlo → sigue la lista original
-- **Independizar:** El fork se convierte en lista propia. Pierde el estado de fork, puntajes custom se reemplazan por fuente oficial, otros pueden seguirla/forkearla. Mantiene "basado en" como crédito
+- `POST /lists/:id/follow` para seguir una lista pública
+- La lista aparece en tu perfil y otros usuarios ven que la sigues
+- `isVisible` controla si el follow aparece en tu perfil público
+- No modifica la lista ni tu backlog — es solo un marcador de acceso rápido y señal social
 
 ### Semestres
 
 No existe un campo "semestre" en el modelo. El semestre se deriva de `Backlog.finished_at`: ene-jun = S01, jul-dic = S02. Las vistas semestrales son filtros por rango de fechas.
 
-### Listas públicas y suscripción
+### Listas públicas y follow
 
-Cualquier lista con `is_public: true` puede ser seguida por otros usuarios (`ListFollower`). Cuando un seguidor ve una lista pública:
+Cualquier lista con `is_public: true` puede ser vista y seguida por otros usuarios (`ListFollower`). Cuando un usuario ve una lista pública:
 
-- Ve todos los juegos de la lista con los puntajes del creador
-- Ve su propio estado para cada juego (derivado de sus backlogs)
-- Ve su progreso: "18/30 completados"
-- Puede añadir juegos a su backlog o forkear la lista completa
-- Estadísticas: seguidores totales, progreso por juego
+- Ve todos los juegos con los puntajes congelados desde la fuente oficial de la lista
+- Si está autenticado, ve su propio estado para cada juego (derivado de sus backlogs)
+- El frontend calcula estadísticas: "has completado 8/15", progreso por juego
+- Puede seguir la lista para acceso rápido desde su perfil
 
 ---
 
@@ -162,16 +153,8 @@ Cualquier lista con `is_public: true` puede ser seguida por otros usuarios (`Lis
 - Un juego puede estar en `game-shelf` sin estar en ninguna lista
 - Un juego puede estar en múltiples listas
 - `game-shelf` tiene datos de colección: `notes`, `acquired_at`, `edition`
-- Las listas tienen puntajes de fuente oficial (no custom). Los seguidores ven los puntajes del creador; los forks copian los puntajes al momento de forkear
-- `ListItem` tiene `backlog_id` (nullable): null en listas originales y seguimiento normal, apunta a backlog en forks
+- Las listas tienen puntajes de fuente oficial (no custom). Todos ven los mismos puntajes congelados desde la fuente elegida por el creador
 - Las "vistas" (pendientes, jugando, semestre X) son filtros de API sobre `Backlog`, no listas
-
-### Listas públicas seguibles
-
-- Cualquier lista `is_public: true` se puede seguir (`ListFollower`) o forkear
-- Los seguidores ven los puntajes del creador y su propio estado por juego
-- Los forks son copias independientes con backlogs propios
-- Ejemplo: Lista "Saga Resident Evil" con 15 juegos → seguidor ve "he completado 8/15"
 
 ### Privacidad en dos niveles
 
@@ -423,10 +406,9 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 
 - Backlog: CRUD completo con filtros avanzados (multi-status comma-separated, no_finished_date, platform_id, rangos de fechas/score/duration/realDuration/rating, ordenamiento), isPublic, userRating (1-10 en pasos de 0.5), endpoints públicos para ver backlog de otros usuarios
 - Saved Filters: CRUD con límite free (5) / premium (ilimitado), almacenamiento JSONB de presets de filtros, campo description, serializer sin timestamps
-- Lists: CRUD completo con scoreSource/durationSource global, basedOnId (self-reference para forks), isFork, description
+- Lists: CRUD completo con scoreSource/durationSource global, límite de 5 para free con frozen state, description
 - ListItems: `PUT /lists/:id/items` reemplaza el array completo de gameIds, congela scores desde fuente oficial, valida existencia de games y duplicados. `POST /lists/:id/refresh-scores` actualiza puntajes desde la fuente. Ratio calculado en serializer
-- Módulo de seguimiento de listas (`list-followers`) con follow normal y fork ("empezar desde 0")
-- Fork: copia lista + crea backlogs para todos los juegos. Independizar fork → lista propia
+- Módulo de seguimiento de listas (`list-followers`) — follow como bookmark social
 - Transacciones en operaciones multi-paso
 - HLTB/Metacritic auto-fetch (cron nocturno con providers)
 - Importación CSV
