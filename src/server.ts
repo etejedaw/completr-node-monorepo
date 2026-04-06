@@ -10,6 +10,7 @@ import gameScoresRouter from "./game-scores/game-scores.routes";
 import gameTimesRouter from "./game-times/game-times.routes";
 import listsRouter from "./lists/lists.routes";
 import listItemsRouter from "./list-items/list-items.routes";
+import listFollowersRouter from "./list-followers/list-followers.routes";
 import { corsConfig } from "./common/config/cors.config";
 import { errorHandlerMiddleware } from "./common/middlewares/error-handler.middleware";
 import { correlationIdMiddleware } from "./common/middlewares/correlation-id.middleware";
@@ -33,6 +34,7 @@ export function server(port: number) {
 	app.use(gameTimesRouter);
 	app.use(listsRouter);
 	app.use(listItemsRouter);
+	app.use(listFollowersRouter);
 	app.use(errorHandlerMiddleware);
 
 	app.listen(port, () => console.log(`Server running on port ${port}`));

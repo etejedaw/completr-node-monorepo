@@ -11,6 +11,7 @@ import { backlogDomainToHttpMapper } from "../../backlog/errors/backlog.domain-t
 import { savedFiltersDomainToHttpMapper } from "../../saved-filters/errors/saved-filters.domain-to-http.mapper";
 import { listsDomainToHttpMapper } from "../../lists/errors/lists.domain-to-http.mapper";
 import { listItemsDomainToHttpMapper } from "../../list-items/errors/list-items.domain-to-http.mapper";
+import { listFollowersDomainToHttpMapper } from "../../list-followers/errors/list-followers.domain-to-http.mapper";
 
 import { commonDomainToHttpMapper } from "./common.domain-to-http.mapper";
 import { DomainError } from "./domain-error";
@@ -55,6 +56,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "ListItem Module")
 		return listItemsDomainToHttpMapper(error, request);
+
+	if (error.module === "ListFollower Module")
+		return listFollowersDomainToHttpMapper(error, request);
 
 	if (error.module === "Common Module" || error.module === "COMMON")
 		return commonDomainToHttpMapper(error, request);
