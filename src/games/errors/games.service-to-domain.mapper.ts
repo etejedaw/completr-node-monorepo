@@ -16,6 +16,9 @@ export function gamesServiceToDomainMapper(
 	if (error.code === "GAME_PLATFORM_NOT_FOUND")
 		return gameDomainError.gamePlatformNotFound(context);
 
+	if (error.code === "GAME_GENRE_NOT_FOUND")
+		return gameDomainError.gameGenreNotFound(context);
+
 	if (error.code === "GAME_UNIQUE_CONSTRAINT")
 		return gameDomainError.gameUniqueConstraint(context);
 

@@ -29,3 +29,10 @@ export function platformNotFoundError() {
 		raw: undefined
 	});
 }
+
+export function genreNotFoundError() {
+	return new ServiceError("GAME_GENRE_NOT_FOUND", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}

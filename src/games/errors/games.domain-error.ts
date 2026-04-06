@@ -20,6 +20,15 @@ export function gamePlatformNotFound(context?: Record<string, unknown>) {
 	);
 }
 
+export function gameGenreNotFound(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_GENRE_NOT_FOUND",
+		"One or more genres not found",
+		context
+	);
+}
+
 export function gameValidation(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
