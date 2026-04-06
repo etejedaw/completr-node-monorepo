@@ -199,7 +199,7 @@
 - [x] Posición unique dentro de la lista, sin huecos. Se recalcula al eliminar o reordenar
 - [x] Ratio calculado en serializer (`score / duration`)
 - [x] Error handling completo registrado en normalizers globales (404, 403, 409, 500)
-- [ ] `POST /lists/:id/refresh-scores` — Actualizar puntajes de todos los items desde la fuente (solo owner)
+- [x] `POST /lists/:id/refresh-scores` — Actualizar puntajes de todos los items desde la fuente (solo owner)
 
 #### Seguir una lista (normal)
 
