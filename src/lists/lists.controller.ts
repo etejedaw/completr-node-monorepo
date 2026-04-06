@@ -51,7 +51,7 @@ export async function patchList(request: Request, response: Response) {
 		updateList
 	);
 
-	const listPlain = list!.get({ plain: true });
+	const listPlain = list.get({ plain: true });
 
 	const data = { list: listSerializer(listPlain) };
 	return response.status(200).json({ data });

@@ -10,17 +10,11 @@ export function listItemsServiceToDomainMapper(
 
 	const context = { ...error.serviceError, correlationId };
 
-	if (error.code === "LIST_ITEM_NOT_FOUND")
-		return listItemDomainError.listItemNotFound(context);
-
 	if (error.code === "LIST_ITEM_LIST_NOT_FOUND")
 		return listItemDomainError.listItemListNotFound(context);
 
 	if (error.code === "LIST_ITEM_FORBIDDEN")
 		return listItemDomainError.listItemForbidden(context);
-
-	if (error.code === "LIST_ITEM_UNIQUE_CONSTRAINT")
-		return listItemDomainError.listItemUniqueConstraint(context);
 
 	return listItemDomainError.listItemInternalError(context);
 }

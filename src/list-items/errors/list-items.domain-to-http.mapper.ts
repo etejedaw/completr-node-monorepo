@@ -15,17 +15,11 @@ export function listItemsDomainToHttpMapper(
 		context: error.context
 	};
 
-	if (error.code === "LIST_ITEM_NOT_FOUND")
-		return new HttpError({ ...baseOptions, status: 404 });
-
 	if (error.code === "LIST_ITEM_LIST_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
 	if (error.code === "LIST_ITEM_FORBIDDEN")
 		return new HttpError({ ...baseOptions, status: 403 });
-
-	if (error.code === "LIST_ITEM_UNIQUE_CONSTRAINT")
-		return new HttpError({ ...baseOptions, status: 409 });
 
 	return new HttpError({ ...baseOptions, status: 500 });
 }

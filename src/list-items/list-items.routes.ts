@@ -5,42 +5,19 @@ import { userLimiter } from "../common/config/rate-limiter.config";
 import { authMiddleware } from "../auth/auth.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { ListIdParamsSchema } from "../lists/schemas/list-id-params.schema";
-import { AddListItemSchema } from "./schemas/add-list-item.schema";
-import { UpdateListItemSchema } from "./schemas/update-list-item.schema";
-import { ListItemIdParamsSchema } from "./schemas/list-item-id-params.schema";
+import { ReplaceListItemsSchema } from "./schemas/replace-list-items.schema";
 
 const router = Router();
 
-router.post(
+router.put(
 	"/lists/:listId/items",
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
 		validateSchemaMiddleware(ListIdParamsSchema, "params"),
-		validateSchemaMiddleware(AddListItemSchema, "body")
+		validateSchemaMiddleware(ReplaceListItemsSchema, "body")
 	],
-	listItemsController.postListItem
-);
-
-router.patch(
-	"/lists/:listId/items/:itemId",
-	[
-		rateLimiterMiddleware(userLimiter),
-		authMiddleware("user", "premium", "moderator", "admin"),
-		validateSchemaMiddleware(ListItemIdParamsSchema, "params"),
-		validateSchemaMiddleware(UpdateListItemSchema, "body")
-	],
-	listItemsController.patchListItem
-);
-
-router.delete(
-	"/lists/:listId/items/:itemId",
-	[
-		rateLimiterMiddleware(userLimiter),
-		authMiddleware("user", "premium", "moderator", "admin"),
-		validateSchemaMiddleware(ListItemIdParamsSchema, "params")
-	],
-	listItemsController.deleteListItem
+	listItemsController.putListItems
 );
 
 router.post(

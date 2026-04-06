@@ -2,12 +2,12 @@ import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { SCORE_SOURCES } from "../game-scores/game-score.model";
 import { TIME_SOURCES } from "../game-times/game-time.model";
+import { ListItem } from "../list-items/list-item.model";
 
 class List extends Model {
 	declare id: string;
 	declare userId: string;
 	declare name: string;
-	declare slug: string;
 	declare description?: string;
 	declare isPublic: boolean;
 	declare scoreSource: string;
@@ -16,6 +16,7 @@ class List extends Model {
 	declare isFork: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
+	declare ListItems?: ListItem[];
 }
 
 List.init(
@@ -31,10 +32,6 @@ List.init(
 			allowNull: false
 		},
 		name: {
-			type: DataTypes.STRING(100),
-			allowNull: false
-		},
-		slug: {
 			type: DataTypes.STRING(100),
 			allowNull: false
 		},

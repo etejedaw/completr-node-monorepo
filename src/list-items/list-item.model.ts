@@ -10,8 +10,6 @@ class ListItem extends Model {
 	declare position: number;
 	declare score?: number;
 	declare duration?: number;
-	declare scoreSource?: string;
-	declare durationSource?: string;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 	declare Game: Game;
@@ -43,9 +41,7 @@ ListItem.init(
 			defaultValue: 0
 		},
 		score: DataTypes.FLOAT,
-		duration: DataTypes.FLOAT,
-		scoreSource: DataTypes.STRING(50),
-		durationSource: DataTypes.STRING(50)
+		duration: DataTypes.FLOAT
 	},
 	{ sequelize }
 );

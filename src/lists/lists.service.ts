@@ -4,18 +4,14 @@ import { Game } from "../games/game.model";
 import { RegisterListDto } from "./dtos/register-list.dto";
 import { UpdateListDto } from "./dtos/update-list.dto";
 import * as listsServiceError from "./errors/lists.service-error";
-import { titleToSlug } from "../common/utils/title-to-slug.util";
 
 export async function createList(
 	userId: string,
 	registerList: RegisterListDto
 ) {
-	const slug = titleToSlug(registerList.name);
-
 	return List.create({
 		...registerList,
-		userId,
-		slug
+		userId
 	});
 }
 
@@ -45,17 +41,11 @@ export async function updateList(
 	userId: string,
 	updateList: UpdateListDto
 ) {
-	const list = await List.findOne({ where: { id } });
+	const list = await findListById(id);
 	if (!list) throw listsServiceError.notFoundError();
 	if (list.userId !== userId) throw listsServiceError.forbiddenError();
 
-	const updates: Record<string, unknown> = { ...updateList };
-	if (updateList.name) {
-		updates.slug = titleToSlug(updateList.name);
-	}
-
-	await list.update(updates);
-	return findListById(id);
+	return list.update(updateList);
 }
 
 export async function removeList(id: string, userId: string) {
