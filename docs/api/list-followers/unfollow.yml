@@ -1,0 +1,32 @@
+info:
+    name: Unfollow List
+    type: http
+    seq: 2
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/lists/:listId/follow"
+    auth: inherit
+    params:
+        - name: listId
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Unfollow List
+
+    Unfollows a list. Removes the social bookmark from the user's profile.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    - 404 `LIST_FOLLOWER_NOT_FOLLOWING` — Not following this list

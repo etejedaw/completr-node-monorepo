@@ -1,0 +1,33 @@
+info:
+    name: Delete List
+    type: http
+    seq: 5
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/lists/:listId"
+    auth: inherit
+    params:
+        - name: listId
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Delete List
+
+    Deletes a list owned by the authenticated user.
+
+    **Authentication:** Bearer token required (owner only).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    - 403 `LIST_FORBIDDEN` — Not the owner
+    - 404 `LIST_NOT_FOUND`

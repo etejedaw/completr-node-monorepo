@@ -1,0 +1,66 @@
+info:
+    name: Get List by ID
+    type: http
+    seq: 3
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/lists/:listId"
+    params:
+        - name: listId
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get List by ID
+
+    Returns a list with all its items, scores, ratios, and follower data. If the user is authenticated, includes `backlogStatus` per item and `isFollowing`.
+
+    **Authentication:** Optional (Bearer token). Unauthenticated users get `backlogStatus: null` and `isFollowing: false`.
+    **Rate Limit:** 100 requests per minute (public).
+
+    ### Path Params
+
+    | Param  | Type | Required | Description |
+    |--------|------|----------|-------------|
+    | listId | uuid | Yes      | List UUID   |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "list": {
+          "id": "uuid",
+          "name": "Saga Resident Evil",
+          "description": "...",
+          "isPublic": true,
+          "scoreSource": "metacritic",
+          "durationSource": "hltb",
+          "followerCount": 12,
+          "isFollowing": true,
+          "items": [
+            {
+              "id": "uuid",
+              "position": 1,
+              "score": 89,
+              "duration": 6,
+              "ratio": 14.83,
+              "game": {
+                "id": "uuid",
+                "title": "Resident Evil 2",
+                "coverUrl": "...",
+                "isDlc": false
+              },
+              "backlogStatus": "completed"
+            }
+          ]
+        }
+      }
+    }
+    ```
+
+    `backlogStatus`: `completed` | `playing` | `not_started` | `abandoned` | `null` (not in backlog)

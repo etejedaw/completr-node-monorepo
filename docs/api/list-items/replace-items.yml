@@ -1,0 +1,65 @@
+info:
+    name: Replace List Items
+    type: http
+    seq: 1
+
+http:
+    method: PUT
+    url: "{{BASE_URL}}/lists/:listId/items"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    params:
+        - name: listId
+          type: path
+          value: ""
+    body:
+        type: json
+        data: |-
+            {
+              "gameIds": ["uuid1", "uuid2", "uuid3"]
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Replace List Items
+
+    Replaces all items in a list with the given gameIds in order. Scores and durations are frozen from the list's configured sources. Accepts an empty array to clear the list.
+
+    **Authentication:** Bearer token required (owner only).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Request Body
+
+    | Field   | Type     | Required | Description                          |
+    |---------|----------|----------|--------------------------------------|
+    | gameIds | uuid[]   | Yes      | Array of game UUIDs (no duplicates)  |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "items": [
+          {
+            "id": "uuid",
+            "position": 1,
+            "score": 89,
+            "duration": 6,
+            "ratio": 14.83,
+            "game": { "id": "uuid", "title": "...", "coverUrl": "...", "isDlc": false }
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 402 `LIST_ITEM_FROZEN` — User has >5 lists (downgraded)
+    - 403 `LIST_ITEM_FORBIDDEN` — Not the owner
+    - 404 `LIST_ITEM_LIST_NOT_FOUND`
+    - 404 `LIST_ITEM_GAMES_NOT_FOUND` — One or more gameIds not found (includes missing IDs in context)

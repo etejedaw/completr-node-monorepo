@@ -207,16 +207,19 @@
 
 #### Seguir una lista (bookmark social)
 
-- [ ] `POST /lists/:id/follow` — Seguir una lista pública (solo listas con `isPublic: true`)
-- [ ] `DELETE /lists/:id/follow` — Dejar de seguir
-- [ ] `isVisible` controla si el follow aparece en el perfil público del usuario
-- [ ] La lista muestra contador de seguidores
-- [ ] No modifica la lista ni el backlog — solo bookmark + señal social
+- [x] `POST /lists/:id/follow` — Seguir una lista pública (solo listas con `isPublic: true`)
+- [x] `DELETE /lists/:id/follow` — Dejar de seguir
+- [x] `isVisible` controla si el follow aparece en el perfil público del usuario
+- [x] La lista muestra contador de seguidores
+- [x] No modifica la lista ni el backlog — solo bookmark + señal social
+- [x] Error handling completo registrado en normalizers globales (404, 403, 409, 500)
 
 #### Backlog status en listas
 
-- [ ] `GET /lists/:id` incluye `backlogStatus` por juego cuando el usuario está autenticado
-- [ ] `backlogStatus`: estado del backlog más reciente del usuario para ese juego (`completed`, `playing`, `not_started`, `abandoned`, o `null` si no está en su backlog)
+- [x] `GET /lists/:id` incluye `backlogStatus` por juego cuando el usuario está autenticado
+- [x] `backlogStatus`: estado del backlog más reciente del usuario para ese juego (`completed`, `playing`, `not_started`, `abandoned`, o `null` si no está en su backlog)
+- [x] `followerCount` y `isFollowing` incluidos en la respuesta
+- [x] Auth opcional: sin token se ve la lista sin backlogStatus ni isFollowing
 
 ### Módulo de Usuarios (perfil)
 

@@ -1,0 +1,49 @@
+info:
+    name: Update List
+    type: http
+    seq: 4
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/lists/:listId"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    params:
+        - name: listId
+          type: path
+          value: ""
+    body:
+        type: json
+        data: |-
+            {
+              "name": "Updated Name"
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Update List
+
+    Updates a list owned by the authenticated user. All fields are optional.
+
+    **Authentication:** Bearer token required (owner only).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Request Body
+
+    | Field          | Type   | Required | Description                                      |
+    |----------------|--------|----------|--------------------------------------------------|
+    | name           | string | No       | 1-100 characters                                 |
+    | description    | string | No       | Max 500 characters                               |
+    | isPublic       | bool   | No       |                                                  |
+    | scoreSource    | string | No       | metacritic, opencritic, rawg, completr           |
+    | durationSource | string | No       | hltb, rawg, completr                             |
+
+    ### Errors
+
+    - 402 `LIST_FROZEN` — User has >5 lists (downgraded), cannot edit
+    - 403 `LIST_FORBIDDEN` — Not the owner
+    - 404 `LIST_NOT_FOUND`

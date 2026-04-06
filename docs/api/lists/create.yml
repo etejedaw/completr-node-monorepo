@@ -1,0 +1,64 @@
+info:
+    name: Create List
+    type: http
+    seq: 1
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/lists"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "name": "Saga Resident Evil",
+              "description": "Todos los RE en orden cronológico",
+              "isPublic": true,
+              "scoreSource": "metacritic",
+              "durationSource": "hltb"
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Create List
+
+    Creates a new list for the authenticated user. Free users can create up to 5 lists.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Request Body
+
+    | Field          | Type   | Required | Description                                      |
+    |----------------|--------|----------|--------------------------------------------------|
+    | name           | string | Yes      | 1-100 characters                                 |
+    | description    | string | No       | Max 500 characters                               |
+    | isPublic       | bool   | No       | Default false                                    |
+    | scoreSource    | string | Yes      | metacritic, opencritic, rawg, completr           |
+    | durationSource | string | Yes      | hltb, rawg, completr                             |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "list": {
+          "id": "uuid",
+          "name": "Saga Resident Evil",
+          "description": "Todos los RE en orden cronológico",
+          "isPublic": true,
+          "scoreSource": "metacritic",
+          "durationSource": "hltb"
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 402 `LIST_LIMIT_REACHED` — Free user reached 5 list limit

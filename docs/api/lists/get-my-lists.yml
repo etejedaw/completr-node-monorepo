@@ -1,0 +1,42 @@
+info:
+    name: Get My Lists
+    type: http
+    seq: 2
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/lists/me"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get My Lists
+
+    Returns all lists owned by the authenticated user with a frozen flag.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "lists": [
+          {
+            "id": "uuid",
+            "name": "Saga Resident Evil",
+            "description": "...",
+            "isPublic": true,
+            "scoreSource": "metacritic",
+            "durationSource": "hltb"
+          }
+        ],
+        "frozen": false
+      }
+    }
+    ```
+
+    `frozen: true` means the user has more than 5 lists (downgraded from premium) and cannot create or edit until they delete the excess.

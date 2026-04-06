@@ -406,9 +406,9 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 
 - Backlog: CRUD completo con filtros avanzados (multi-status comma-separated, no_finished_date, platform_id, rangos de fechas/score/duration/realDuration/rating, ordenamiento), isPublic, userRating (1-10 en pasos de 0.5), endpoints públicos para ver backlog de otros usuarios
 - Saved Filters: CRUD con límite free (5) / premium (ilimitado), almacenamiento JSONB de presets de filtros, campo description, serializer sin timestamps
-- Lists: CRUD completo con scoreSource/durationSource global, límite de 5 para free con frozen state, description
+- Lists: CRUD completo con scoreSource/durationSource global, límite de 5 para free con frozen state, description. `GET /lists/:id` incluye followerCount, isFollowing y backlogStatus por juego (auth opcional)
 - ListItems: `PUT /lists/:id/items` reemplaza el array completo de gameIds, congela scores desde fuente oficial, valida existencia de games y duplicados. `POST /lists/:id/refresh-scores` actualiza puntajes desde la fuente. Ratio calculado en serializer
-- Módulo de seguimiento de listas (`list-followers`) — follow como bookmark social
+- ListFollowers: `POST/DELETE /lists/:id/follow` — follow como bookmark social. Validación de lista pública, duplicado y not-following. Error handling completo
 - Transacciones en operaciones multi-paso
 - HLTB/Metacritic auto-fetch (cron nocturno con providers)
 - Importación CSV

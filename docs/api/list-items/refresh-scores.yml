@@ -1,0 +1,40 @@
+info:
+    name: Refresh Scores
+    type: http
+    seq: 2
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/lists/:listId/refresh-scores"
+    auth: inherit
+    params:
+        - name: listId
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Refresh Scores
+
+    Updates scores and durations for all items in the list from the current source data.
+
+    **Authentication:** Bearer token required (owner only).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "updatedItems": 15
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 402 `LIST_ITEM_FROZEN` — User has >5 lists (downgraded)
+    - 403 `LIST_ITEM_FORBIDDEN` — Not the owner
+    - 404 `LIST_ITEM_LIST_NOT_FOUND`
