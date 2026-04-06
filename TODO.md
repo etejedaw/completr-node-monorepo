@@ -1,6 +1,6 @@
 # 🎮 Completr — Roadmap Unificado
 
-> **Principio arquitectónico clave:** Cada usuario tiene una lista por defecto **imborrable** llamada "Backlog" (tipo `collection`). Las listas son un módulo propio, separado de `game-shelf` (que es el registro de los juegos que posee el usuario). Existen dos tipos de lista: **`collection`** (organizar juegos, muestra estado global) y **`challenge`** (tracking desde cero con meta, cada juego genera un nuevo backlog). El estado global de un juego para el usuario vive en `Backlog` y se actualiza automáticamente según el backlog más reciente.
+> **Principio arquitectónico clave:** `Backlog` es un módulo independiente que almacena todo el historial del usuario (not_started, playing, completed, abandoned). Las "vistas" (pendientes, jugando, completados, por semestre) son filtros sobre `Backlog`, no listas separadas. Las listas (`List`) son colecciones curadas de juegos con puntajes de fuente oficial — sagas, temáticas, tops. Un juego puede estar en `Backlog` sin estar en ninguna lista, y en varias listas a la vez. `game-shelf` registra los juegos que el usuario posee (colección física/digital).
 
 ---
 
@@ -247,7 +247,7 @@
 
 ### Transacciones en operaciones multi-paso
 
-- [ ] Implementar transacciones de Sequelize en operaciones que involucran múltiples modelos (ej: crear challenge + backlog + listItem, importar CSV con múltiples inserts)
+- [ ] Implementar transacciones de Sequelize en operaciones que involucran múltiples modelos (ej: fork de lista + backlogs + listItems, importar CSV con múltiples inserts)
 - [ ] Refactorizar `games.service.ts → registerGame` para usar transacción (actualmente crea juego + vincula plataformas sin atomicidad)
 
 ### Importación manual
@@ -438,7 +438,7 @@
 - [ ] Resumen automático al cierre de semestre: "En 2025-S01 completaste 18 juegos, tu género favorito fue Survival Horror, tu juego más rápido fue Florence (30 min)"
 - [ ] Visible en el perfil y compartible
 
-### Notificación de progreso del challenge (free)
+### Notificación de progreso semestral (free)
 
 - [ ] "Llevas 12/25 del semestre, vas al 48% con 2 meses restantes"
 - [ ] Recordatorios opcionales de progreso
@@ -582,7 +582,7 @@
 | ------------------------------------- | ------------------------------ | ----------------------------- |
 | **Tracking de juegos y backlogs**     | ✅ Completo                    | ✅ Completo                   |
 | **Vistas/filtros (status, semestre)** | ✅                             | ✅                            |
-| **Listas (collection + challenge)**   | ✅ Hasta 5 (Backlog no cuenta) | ✅ Ilimitadas                 |
+| **Listas**                            | ✅ Hasta 5                     | ✅ Ilimitadas                 |
 | **CSV import**                        | ✅                             | ✅                            |
 | **Ratio y personal ratio**            | ✅                             | ✅ + Fórmula personalizable   |
 | **Fuentes de score**                  | ✅ Completr community + manual | ✅ + Metacritic, OpenCritic   |
