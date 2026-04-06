@@ -37,7 +37,7 @@
 ### Modelos de base de datos
 
 - [x] **User**: id (UUID), username, email, password_hash, steam_id (nullable), avatar_url, role, created_at
-- [x] **Game**: id (UUID), title, slug, description (STRING), cover_url, release_at, is_dlc, parent_game_id (self-reference nullable para DLCs), is_active, created_at — scores y times viven en `GameScore`/`GameTime`
+- [x] **Game**: id (UUID), title, slug, description (TEXT), cover_url, release_at, is_dlc, parent_game_id (self-reference nullable para DLCs), is_active, created_at — scores y times viven en `GameScore`/`GameTime`
 - [x] **Platform**: id (UUID), name, slug, code
 - [x] **Genre**: id (UUID), name, slug, code
 - [x] **GamePlatform**: game*id, platform_id *(tabla pivote)\_

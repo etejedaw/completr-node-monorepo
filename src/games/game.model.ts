@@ -40,7 +40,7 @@ Game.init(
 			unique: true,
 			allowNull: false
 		},
-		description: DataTypes.STRING,
+		description: DataTypes.TEXT,
 		releaseAt: DataTypes.DATE,
 		coverUrl: DataTypes.STRING,
 		isDlc: {
