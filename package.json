@@ -16,13 +16,14 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "node dist/app.js",
-		"start:dev": "node --watch -r ts-node/register ./src/app.ts --env-file=.env",
+		"start:dev": "node --watch -r ts-node/register --env-file=.env ./src/app.ts",
 		"start:stg": "node --watch -r ts-node/register --env-file=.env.staging.local ./src/app.ts",
 		"start:prod": "node --watch -r ts-node/register --env-file=.env.production.local ./src/app.ts",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
-		"build": "tsc -p ."
+		"build": "tsc -p .",
+		"typecheck": "tsc -p . --noEmit"
 	},
 	"dependencies": {
 		"bcrypt": "^6.0.0",
