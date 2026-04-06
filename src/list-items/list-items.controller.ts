@@ -12,7 +12,7 @@ export async function putListItems(request: Request, response: Response) {
 
 	const items = await listItemsService.replaceItems(
 		params.listId,
-		user.id,
+		user,
 		replaceListItems.gameIds
 	);
 	const itemsPlain = items.map(item => item.get({ plain: true }));
@@ -27,7 +27,7 @@ export async function postRefreshScores(request: Request, response: Response) {
 
 	const updatedCount = await listItemsService.refreshScores(
 		params.listId,
-		user.id
+		user
 	);
 
 	const data = { updatedItems: updatedCount };

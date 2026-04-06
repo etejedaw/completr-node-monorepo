@@ -11,7 +11,7 @@ export async function postList(request: Request, response: Response) {
 	const registerList = request.locals.body as RegisterListDto;
 	const user = request.locals.user as RequestUser;
 
-	const list = await listsService.createList(user.id, registerList);
+	const list = await listsService.createList(user, registerList);
 	const listPlain = list.get({ plain: true });
 
 	const data = { list: listSummarySerializer(listPlain) };
@@ -21,10 +21,13 @@ export async function postList(request: Request, response: Response) {
 export async function getMeLists(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 
-	const lists = await listsService.findListsByUserId(user.id);
+	const { lists, frozen } = await listsService.findListsByUserId(user);
 	const listsPlain = lists.map(list => list.get({ plain: true }));
 
-	const data = { lists: listsPlain.map(listSummarySerializer) };
+	const data = {
+		lists: listsPlain.map(listSummarySerializer),
+		frozen
+	};
 	return response.status(200).json({ data });
 }
 
@@ -45,11 +48,7 @@ export async function patchList(request: Request, response: Response) {
 	const updateList = request.locals.body as UpdateListDto;
 	const user = request.locals.user as RequestUser;
 
-	const list = await listsService.updateList(
-		params.listId,
-		user.id,
-		updateList
-	);
+	const list = await listsService.updateList(params.listId, user, updateList);
 
 	const listPlain = list.get({ plain: true });
 
@@ -61,6 +60,6 @@ export async function deleteList(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;
 	const user = request.locals.user as RequestUser;
 
-	await listsService.removeList(params.listId, user.id);
+	await listsService.removeList(params.listId, user);
 	return response.sendStatus(204);
 }

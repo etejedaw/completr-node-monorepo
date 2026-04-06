@@ -24,5 +24,8 @@ export function listItemsDomainToHttpMapper(
 	if (error.code === "LIST_ITEM_GAMES_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
+	if (error.code === "LIST_ITEM_FROZEN")
+		return new HttpError({ ...baseOptions, status: 402 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

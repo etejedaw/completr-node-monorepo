@@ -22,5 +22,11 @@ export function listsServiceToDomainMapper(
 	if (error.code === "LIST_VALIDATION_ERROR")
 		return listDomainError.listValidation(context);
 
+	if (error.code === "LIST_LIMIT_REACHED")
+		return listDomainError.listLimitReached(context);
+
+	if (error.code === "LIST_FROZEN")
+		return listDomainError.listFrozen(context);
+
 	return listDomainError.listInternalError(context);
 }

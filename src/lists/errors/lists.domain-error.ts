@@ -38,6 +38,24 @@ export function listUniqueConstraint(context?: Record<string, unknown>) {
 	);
 }
 
+export function listLimitReached(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"LIST_LIMIT_REACHED",
+		"Free users can create up to 5 lists. Upgrade to premium for unlimited.",
+		context
+	);
+}
+
+export function listFrozen(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"LIST_FROZEN",
+		"This list is frozen. Delete lists until you have 5 or less, or upgrade to premium.",
+		context
+	);
+}
+
 export function listInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

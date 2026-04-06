@@ -3,7 +3,20 @@ import { List } from "../lists/list.model";
 import { Game } from "../games/game.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
+import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as listItemsServiceError from "./errors/list-items.service-error";
+
+const FREE_LIST_LIMIT = 5;
+
+function isPremium(role: string) {
+	return role === "premium" || role === "admin";
+}
+
+async function checkFrozen(userId: string, role: string) {
+	if (isPremium(role)) return;
+	const count = await List.count({ where: { userId } });
+	if (count > FREE_LIST_LIMIT) throw listItemsServiceError.frozenError();
+}
 
 async function freezeScores(gameId: string, list: List) {
 	const [gameScore, gameTime] = await Promise.all([
@@ -23,12 +36,13 @@ async function freezeScores(gameId: string, list: List) {
 
 export async function replaceItems(
 	listId: string,
-	userId: string,
+	user: RequestUser,
 	gameIds: string[]
 ) {
 	const list = await List.findOne({ where: { id: listId } });
 	if (!list) throw listItemsServiceError.listNotFoundError();
-	if (list.userId !== userId) throw listItemsServiceError.forbiddenError();
+	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
+	await checkFrozen(user.id, user.role);
 
 	if (gameIds.length === 0) {
 		await ListItem.destroy({ where: { listId } });
@@ -81,10 +95,11 @@ export async function replaceItems(
 	});
 }
 
-export async function refreshScores(listId: string, userId: string) {
+export async function refreshScores(listId: string, user: RequestUser) {
 	const list = await List.findOne({ where: { id: listId } });
 	if (!list) throw listItemsServiceError.listNotFoundError();
-	if (list.userId !== userId) throw listItemsServiceError.forbiddenError();
+	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
+	await checkFrozen(user.id, user.role);
 
 	const items = await ListItem.findAll({ where: { listId } });
 

@@ -29,6 +29,15 @@ export function listItemGamesNotFound(context?: Record<string, unknown>) {
 	);
 }
 
+export function listItemFrozen(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"LIST_ITEM_FROZEN",
+		"This list is frozen. Delete lists until you have 5 or less, or upgrade to premium.",
+		context
+	);
+}
+
 export function listItemInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

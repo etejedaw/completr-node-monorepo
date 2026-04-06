@@ -19,5 +19,8 @@ export function listItemsServiceToDomainMapper(
 	if (error.code === "LIST_ITEM_GAMES_NOT_FOUND")
 		return listItemDomainError.listItemGamesNotFound(context);
 
+	if (error.code === "LIST_ITEM_FROZEN")
+		return listItemDomainError.listItemFrozen(context);
+
 	return listItemDomainError.listItemInternalError(context);
 }

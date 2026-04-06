@@ -29,3 +29,17 @@ export function forbiddenError() {
 		raw: undefined
 	});
 }
+
+export function limitReachedError() {
+	return new ServiceError("LIST_LIMIT_REACHED", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
+export function frozenError() {
+	return new ServiceError("LIST_FROZEN", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}

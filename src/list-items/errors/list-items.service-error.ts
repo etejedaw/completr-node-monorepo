@@ -22,3 +22,10 @@ export function gamesNotFoundError(gameIds: string[]) {
 		raw: { gameIds }
 	});
 }
+
+export function frozenError() {
+	return new ServiceError("LIST_ITEM_FROZEN", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}

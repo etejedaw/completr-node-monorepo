@@ -27,5 +27,11 @@ export function listsDomainToHttpMapper(
 	if (error.code === "LIST_VALIDATION_ERROR")
 		return new HttpError({ ...baseOptions, status: 400 });
 
+	if (error.code === "LIST_LIMIT_REACHED")
+		return new HttpError({ ...baseOptions, status: 402 });
+
+	if (error.code === "LIST_FROZEN")
+		return new HttpError({ ...baseOptions, status: 402 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }
