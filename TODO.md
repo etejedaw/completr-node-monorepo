@@ -193,12 +193,10 @@
 
 #### Items de lista
 
-- [x] `POST /lists/:id/items` — Añadir juego a una lista. Score/duration se copian desde GameScore/GameTime según la fuente de la lista. Si la fuente no tiene dato → null
-- [x] `DELETE /lists/:id/items/:itemId` — Quitar juego de una lista
-- [x] `PATCH /lists/:id/items/:itemId` — Actualizar posición del ítem (reordenar)
-- [x] Posición unique dentro de la lista, sin huecos. Se recalcula al eliminar o reordenar
+- [x] `PUT /lists/:id/items` — Reemplaza el array completo de gameIds en orden. Score/duration se congelan desde GameScore/GameTime según la fuente de la lista. Si la fuente no tiene dato → null. Acepta array vacío para limpiar la lista
+- [x] Validación: gameIds deben existir en DB, no se permiten duplicados
 - [x] Ratio calculado en serializer (`score / duration`)
-- [x] Error handling completo registrado en normalizers globales (404, 403, 409, 500)
+- [x] Error handling completo registrado en normalizers globales (404, 403, 422, 500)
 - [x] `POST /lists/:id/refresh-scores` — Actualizar puntajes de todos los items desde la fuente (solo owner)
 
 #### Seguir una lista (normal)

@@ -15,3 +15,10 @@ export function forbiddenError() {
 		raw: undefined
 	});
 }
+
+export function gamesNotFoundError(gameIds: string[]) {
+	return new ServiceError("LIST_ITEM_GAMES_NOT_FOUND", {
+		...BASE_OPTIONS,
+		raw: { gameIds }
+	});
+}

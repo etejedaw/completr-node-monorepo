@@ -20,6 +20,15 @@ export function listItemForbidden(context?: Record<string, unknown>) {
 	);
 }
 
+export function listItemGamesNotFound(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"LIST_ITEM_GAMES_NOT_FOUND",
+		"One or more games were not found",
+		context
+	);
+}
+
 export function listItemInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

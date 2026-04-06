@@ -100,7 +100,7 @@ Concepto clave derivado del flujo actual en NocoDB:
 
 **Datos de una lista:**
 
-- Nombre, descripción, slug, pública/privada
+- Nombre, descripción, pública/privada
 - Fuente global de score y duration (metacritic, opencritic, rawg, hltb, etc.) — no valores custom
 - Score/duration de cada juego se copian desde GameScore/GameTime al ListItem
 - Ratio calculado por juego (`score / duration`). Si la fuente no tiene dato → null
@@ -423,12 +423,8 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 
 - Backlog: CRUD completo con filtros avanzados (multi-status comma-separated, no_finished_date, platform_id, rangos de fechas/score/duration/realDuration/rating, ordenamiento), isPublic, userRating (1-10 en pasos de 0.5), endpoints públicos para ver backlog de otros usuarios
 - Saved Filters: CRUD con límite free (5) / premium (ilimitado), almacenamiento JSONB de presets de filtros, campo description, serializer sin timestamps
-- Lists: CRUD completo con scoreSource/durationSource global, basedOnId (self-reference para forks), isFork, slug auto-generado, description
-- ListItems: CRUD con score/duration congelados desde fuente oficial (GameScore/GameTime), posición unique sin huecos, reordenamiento con recálculo de posiciones, ratio en serializer
-
-### Pendiente — Fase 1 (Excel Killer, solo yo)
-
-- `POST /lists/:id/refresh-scores` — Actualizar puntajes de todos los items desde la fuente
+- Lists: CRUD completo con scoreSource/durationSource global, basedOnId (self-reference para forks), isFork, description
+- ListItems: `PUT /lists/:id/items` reemplaza el array completo de gameIds, congela scores desde fuente oficial, valida existencia de games y duplicados. `POST /lists/:id/refresh-scores` actualiza puntajes desde la fuente. Ratio calculado en serializer
 - Módulo de seguimiento de listas (`list-followers`) con follow normal y fork ("empezar desde 0")
 - Fork: copia lista + crea backlogs para todos los juegos. Independizar fork → lista propia
 - Transacciones en operaciones multi-paso

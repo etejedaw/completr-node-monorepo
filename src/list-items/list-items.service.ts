@@ -30,6 +30,18 @@ export async function replaceItems(
 	if (!list) throw listItemsServiceError.listNotFoundError();
 	if (list.userId !== userId) throw listItemsServiceError.forbiddenError();
 
+	if (gameIds.length === 0) {
+		await ListItem.destroy({ where: { listId } });
+		return [];
+	}
+
+	const games = await Game.findAll({ where: { id: gameIds } });
+	if (games.length !== gameIds.length) {
+		const foundIds = new Set(games.map(game => game.id));
+		const missing = gameIds.filter(id => !foundIds.has(id));
+		throw listItemsServiceError.gamesNotFoundError(missing);
+	}
+
 	const existingItems = await ListItem.findAll({ where: { listId } });
 	const existingByGameId = new Map(
 		existingItems.map(item => [item.gameId, item])
