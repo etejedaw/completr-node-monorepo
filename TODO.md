@@ -234,31 +234,20 @@
 - [x] `score` y `duration` son campos obligatorios y positivos en backlog (precargados al crear, editables por el usuario)
 - [x] Ratio canónico en game serializer (completr score / completr time)
 
-### Integración automática con HowLongToBeat y Metacritic/OpenCritic
+### Búsqueda con fallback a RAWG
 
-- [ ] Al crear un juego nuevo, marcarlo como `metadata_pending: true`
-- [ ] Implementar cola de tareas con `node-cron` (o BullMQ+Redis si se escala) para scraping nocturno
-    - [ ] Job nocturno: buscar juegos con `metadata_pending: true`, obtener `hltb_duration` de HLTB y `metacritic_score` de Metacritic/OpenCritic, actualizar el registro y setear `metadata_pending: false`
-- [ ] Manejo de errores del scraper: reintentos, logging de fallos, fallback a datos manuales
-- [ ] Evaluar OpenCritic como alternativa/complemento a Metacritic según disponibilidad de API
+- [ ] `GET /games?search=...` — Si la búsqueda local devuelve 0 resultados, hacer fallback a RAWG
+- [ ] Buscar en RAWG con el provider existente (`RawgProvider.searchGame`)
+- [ ] Si RAWG encuentra resultados, crear el juego en DB con todos sus datos (cover, descripción, géneros, scores, playtimes)
+- [ ] Retornar el juego creado como si siempre hubiera existido
+- [ ] Si RAWG tampoco encuentra → retornar array vacío (o 404)
 
 ### Transacciones en operaciones multi-paso
 
 - [ ] Implementar transacciones de Sequelize en operaciones que involucran múltiples modelos (ej: importar CSV con múltiples inserts)
 - [ ] Refactorizar `games.service.ts → registerGame` para usar transacción (actualmente crea juego + vincula plataformas sin atomicidad)
 
-### Importación manual
-
-- [ ] `POST /import/csv` — Endpoint para subir CSV con columnas: `title`, `platform`, `metacritic_score`, `hltb_duration`, `real_duration`, `status`, `finished_at`, `notes`
-- [ ] Servicio de parseo y validación del CSV
-- [ ] Lógica de match con juegos existentes en el catálogo (por título/slug) o creación de juego básico con `metadata_pending: true` si no existe
-- [ ] Mapeo de cada fila al nuevo modelo:
-    - Crear/vincular `Game` en el catálogo
-    - Crear `GameShelf` entry (el usuario posee el juego)
-    - Crear `Backlog` con el status de la fila
-    - Si status es `completed`/`abandoned`/`playing`: crear `Backlog` con `real_duration`, `finished_at`, `notes`
-    - Derivar semestre desde `finished_at` (ene-jun = S01, jul-dic = S02); filas sin fecha → `Backlog` con status `not_started`
-- [ ] Reporte de filas con errores al importar
+### ~~Importación manual~~ _(movido a Premium — Fase 6)_
 
 ### Pruebas manuales de endpoints
 
@@ -466,6 +455,13 @@
 - [ ] Email de recuperación de contraseña (`POST /auth/forgot-password`, `POST /auth/reset-password`)
 - [ ] Integrar proveedor SMTP (Resend, SendGrid o similar)
 
+### Integración automática con HowLongToBeat y Metacritic/OpenCritic
+
+- [ ] Implementar cola de tareas con `node-cron` (o BullMQ+Redis si se escala) para scraping nocturno
+- [ ] Job nocturno: buscar juegos sin scores de HLTB/Metacritic, obtener datos y crear GameScore/GameTime
+- [ ] Manejo de errores del scraper: reintentos, logging de fallos
+- [ ] Evaluar OpenCritic como alternativa/complemento a Metacritic según disponibilidad de API
+
 ### Hardening
 
 - [ ] Auditoría de seguridad básica (headers, sanitización de inputs, rate limits por endpoint)
@@ -524,6 +520,14 @@
     - [ ] Sincronización automática periódica (cron)
     - [ ] Comparar `playtime_forever` de Steam con `hltb_duration` para calcular `personal_ratio` ajustado
 
+### Importación CSV (premium)
+
+- [ ] `POST /import/csv` — Endpoint para subir CSV con columnas: `title`, `platform`, `metacritic_score`, `hltb_duration`, `real_duration`, `status`, `finished_at`, `notes`
+- [ ] Servicio de parseo y validación del CSV
+- [ ] Match con juegos existentes (por título/slug) o creación vía RAWG si no existe
+- [ ] Crear GameShelf + Backlog por cada fila importada
+- [ ] Reporte de filas con errores al importar
+
 ### Conveniencia (premium)
 
 - [ ] Backup automático de listas y shelf a Google Drive (OAuth, ruta configurable por el usuario)
@@ -580,7 +584,7 @@
 | **Tracking de juegos y backlogs**     | ✅ Completo                    | ✅ Completo                   |
 | **Vistas/filtros (status, semestre)** | ✅                             | ✅                            |
 | **Listas**                            | ✅ Hasta 5                     | ✅ Ilimitadas                 |
-| **CSV import**                        | ✅                             | ✅                            |
+| **CSV import**                        | ❌                             | ✅                            |
 | **Ratio y personal ratio**            | ✅                             | ✅ + Fórmula personalizable   |
 | **Fuentes de score**                  | ✅ Completr community + manual | ✅ + Metacritic, OpenCritic   |
 | **Filtros del backlog**               | ✅ Ilimitados                  | ✅ Ilimitados                 |
