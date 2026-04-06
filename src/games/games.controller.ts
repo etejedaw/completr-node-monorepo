@@ -3,6 +3,7 @@ import { RegisterGameDto } from "./dtos/register-game.dto";
 import * as gameService from "./games.service";
 import * as gameDomainError from "./errors/games.domain-error";
 import { GameCodeParam } from "./schemas/game-code-params.schema";
+import { GameSearchQuery } from "./schemas/game-search-query.schema";
 import { gameSerializer } from "./games.serializer";
 import { GameIdParam } from "./schemas/game-id-params.schema";
 import { UpdateGameDto } from "./dtos/update-game.dto";
@@ -24,6 +25,16 @@ export async function getGameByCode(request: Request, response: Response) {
 export async function getAllGames(_request: Request, response: Response) {
 	const games = await gameService.findAll();
 
+	const gamesPlain = games.map(game => game.get({ plain: true }));
+
+	const data = { games: gamesPlain.map(gameSerializer) };
+	return response.status(200).json({ data });
+}
+
+export async function searchGames(request: Request, response: Response) {
+	const query = request.locals.query as GameSearchQuery;
+
+	const games = await gameService.searchGames(query.query);
 	const gamesPlain = games.map(game => game.get({ plain: true }));
 
 	const data = { games: gamesPlain.map(gameSerializer) };
