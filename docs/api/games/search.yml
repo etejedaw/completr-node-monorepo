@@ -1,0 +1,52 @@
+info:
+    name: Search Games
+    type: http
+    seq: 2
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/games/search?query=elden ring"
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Search Games
+
+    Searches for games by title. First searches locally, then falls back to RAWG API if no local results found. If RAWG finds a match, the game is automatically created in the database with scores, times, genres and platforms.
+
+    **Authentication:** Not required.
+    **Rate Limit:** 100 requests per minute (public).
+
+    ### Query Params
+
+    | Param | Type   | Required | Description                   |
+    |-------|--------|----------|-------------------------------|
+    | query | string | Yes      | Search term (1-200 chars)     |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "games": [
+          {
+            "id": "uuid",
+            "title": "Elden Ring",
+            "code": "elden-ring",
+            "description": "...",
+            "releaseAt": "2022-02-25",
+            "coverUrl": "https://...",
+            "isDlc": false,
+            "ratio": null,
+            "platforms": [{ "id": "uuid", "name": "PC", "code": "pc", "abbreviation": "PC" }],
+            "genres": [{ "id": "uuid", "name": "Action", "code": "action" }],
+            "scores": [{ "source": "metacritic", "score": 95 }],
+            "times": [{ "source": "rawg", "duration": 62 }]
+          }
+        ]
+      }
+    }
+    ```
+
+    Returns empty array if no results found locally or in RAWG.

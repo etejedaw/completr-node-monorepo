@@ -16,9 +16,12 @@ http:
             {
               "title": "Metro Exodus",
               "description": "FPS narrativo que mezcla combate, sigilo, exploracion y terror de supervivencia",
-              "platforms": ["steam", "psx"],
+              "platforms": ["steam"],
+              "genres": ["action", "shooter"],
               "releaseAt": "2019-02-14",
-              "coverUrl": "https://example.com/cover.jpg"
+              "coverUrl": "https://example.com/cover.jpg",
+              "scores": [{ "source": "metacritic", "score": 82 }],
+              "times": [{ "source": "hltb", "duration": 15 }]
             }
 
 settings:
@@ -27,20 +30,25 @@ settings:
 docs: |-
     ## Create Game
 
-    Creates a new game entry.
+    Creates a new game entry with optional scores, times and genres.
 
     **Authentication:** Bearer token required (role: moderator).
     **Rate Limit:** 50 requests per minute.
 
     ### Request Body
 
-    | Field       | Type     | Required | Description                           |
-    |-------------|----------|----------|---------------------------------------|
-    | title       | string   | Yes      | Max 200 characters                    |
-    | description | string   | Yes      | Game description                      |
-    | platforms   | string[] | Yes      | Array of platform codes (min 1)       |
-    | releaseAt   | string   | No       | ISO date (e.g. "2019-02-14")          |
-    | coverUrl    | string   | No       | URL to cover image                    |
+    | Field        | Type     | Required | Description                                              |
+    |--------------|----------|----------|----------------------------------------------------------|
+    | title        | string   | Yes      | Max 200 characters                                       |
+    | description  | string   | No       | Game description                                         |
+    | platforms    | string[] | No       | Array of platform codes (default [])                     |
+    | genres       | string[] | No       | Array of genre codes (default [])                        |
+    | releaseAt    | string   | No       | ISO date (e.g. "2019-02-14")                             |
+    | coverUrl     | string   | No       | URL to cover image                                       |
+    | isDlc        | boolean  | No       | Whether this is a DLC                                    |
+    | parentGameId | uuid     | No       | Parent game UUID (for DLCs)                              |
+    | scores       | array    | No       | `[{ source: "metacritic", score: 82 }]`                 |
+    | times        | array    | No       | `[{ source: "hltb", duration: 15 }]`                    |
 
     ### Response (201)
 
@@ -54,18 +62,19 @@ docs: |-
           "description": "FPS narrativo...",
           "releaseAt": "2019-02-14",
           "coverUrl": "https://example.com/cover.jpg",
-          "averageScore": null,
-          "averagePlaytime": null,
-          "updatedAt": "2025-01-01T00:00:00.000Z",
-          "platforms": [
-            {
-              "id": "uuid",
-              "name": "Steam",
-              "code": "steam",
-              "abbreviation": "steam"
-            }
-          ]
+          "isDlc": false,
+          "ratio": null,
+          "platforms": [{ "id": "uuid", "name": "Steam", "code": "steam", "abbreviation": "steam" }],
+          "genres": [{ "id": "uuid", "name": "Action", "code": "action" }],
+          "scores": [{ "source": "metacritic", "score": 82 }],
+          "times": [{ "source": "hltb", "duration": 15 }]
         }
       }
     }
     ```
+
+    ### Errors
+
+    - 404 `GAME_PLATFORM_NOT_FOUND` — One or more platform codes not found
+    - 404 `GAME_GENRE_NOT_FOUND` — One or more genre codes not found
+    - 409 `GAME_UNIQUE_CONSTRAINT` — Game with this title already exists

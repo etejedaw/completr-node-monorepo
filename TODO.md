@@ -236,16 +236,20 @@
 
 ### Búsqueda con fallback a RAWG
 
-- [ ] `GET /games?search=...` — Si la búsqueda local devuelve 0 resultados, hacer fallback a RAWG
-- [ ] Buscar en RAWG con el provider existente (`RawgProvider.searchGame`)
-- [ ] Si RAWG encuentra resultados, crear el juego en DB con todos sus datos (cover, descripción, géneros, scores, playtimes)
-- [ ] Retornar el juego creado como si siempre hubiera existido
-- [ ] Si RAWG tampoco encuentra → retornar array vacío (o 404)
+- [x] `GET /games/search?query=...` — Endpoint de búsqueda separado de `GET /games`
+- [x] Si la búsqueda local devuelve 0 resultados, hacer fallback a RAWG
+- [x] Buscar en RAWG con el provider existente (`RawgProvider.searchGame`)
+- [x] Si RAWG encuentra resultados, crear el juego en DB con todos sus datos (cover, descripción, géneros, scores, playtimes, plataformas)
+- [x] Mapper `rawgToGameMapper` convierte datos de RAWG a `RegisterGameDto` + enrichment
+- [x] Mapeo de plataformas RAWG → Completr (`rawg-platform.map.ts`)
+- [x] Si RAWG tampoco encuentra → retornar array vacío
+- [ ] Crear tabla `GameExternalId` para mapear juegos a sus IDs en plataformas externas (RAWG, IGDB, Steam, HLTB, Metacritic). Permite detectar duplicados por ID externo en vez de slug, y facilita futuras integraciones con cron
+- [ ] Almacenar múltiples resultados de RAWG (no solo el primero) para cubrir variantes de un juego (ej: Resident Evil PSX vs Remake). Requiere GameExternalId para evitar duplicados
 
 ### Transacciones en operaciones multi-paso
 
 - [ ] Implementar transacciones de Sequelize en operaciones que involucran múltiples modelos (ej: importar CSV con múltiples inserts)
-- [ ] Refactorizar `games.service.ts → registerGame` para usar transacción (actualmente crea juego + vincula plataformas sin atomicidad)
+- [ ] Refactorizar `games.service.ts → registerGame` para usar transacción (crea juego + plataformas + scores + times + géneros sin atomicidad)
 
 ### ~~Importación manual~~ _(movido a Premium — Fase 6)_
 

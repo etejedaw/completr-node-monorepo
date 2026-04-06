@@ -409,7 +409,7 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Lists: CRUD completo con scoreSource/durationSource global, límite de 5 para free con frozen state, description. `GET /lists/:id` incluye followerCount, isFollowing y backlogStatus por juego (auth opcional)
 - ListItems: `PUT /lists/:id/items` reemplaza el array completo de gameIds, congela scores desde fuente oficial, valida existencia de games y duplicados. `POST /lists/:id/refresh-scores` actualiza puntajes desde la fuente. Ratio calculado en serializer
 - ListFollowers: `POST/DELETE /lists/:id/follow` — follow como bookmark social. Validación de lista pública, duplicado y not-following. Error handling completo
-- Búsqueda con fallback a RAWG: si la búsqueda local devuelve 0 resultados, busca en RAWG, crea el juego en DB y lo retorna
+- Búsqueda con fallback a RAWG: `GET /games/search?query=` busca localmente, si 0 resultados busca en RAWG, crea el juego en DB con scores/times/genres/plataformas y lo retorna. Mapper `rawgToGameMapper` con mapeo de plataformas RAWG→Completr
 - Transacciones en operaciones multi-paso
 
 ### Pendiente — Fases posteriores
