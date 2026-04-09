@@ -280,9 +280,9 @@
 
 ### Pruebas manuales de endpoints
 
-- [ ] Ejecutar pruebas de todos los endpoints con los 4 roles (admin, moderator, premium, user) + sin auth
-- [ ] Verificar: permisos, validaciones, duplicados, not found, soft delete, serializers, datos derivados
-- [ ] Corregir cualquier bug encontrado antes de avanzar al frontend
+- [x] Ejecutar pruebas de todos los endpoints con los 4 roles (admin, moderator, premium, user) + sin auth
+- [x] Verificar: permisos, validaciones, duplicados, not found, soft delete, serializers, datos derivados
+- [x] Corregir cualquier bug encontrado antes de avanzar al frontend
 
 ### UI básica
 
