@@ -1,4 +1,10 @@
-import { Op, UniqueConstraintError, ValidationError } from "sequelize";
+import {
+	Op,
+	Transaction,
+	UniqueConstraintError,
+	ValidationError
+} from "sequelize";
+import { sequelize } from "../database/sequelize.database";
 import { RegisterGameDto } from "./dtos/register-game.dto";
 import { Game } from "./game.model";
 import { UpdateGameDto } from "./dtos/update-game.dto";
@@ -20,23 +26,29 @@ const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
 const logger = new PinoLogger("GamesService");
 
 export async function registerGame(registerGameDto: RegisterGameDto) {
+	const transaction = await sequelize.transaction();
+
 	try {
 		const code = titleToSlug(registerGameDto.title);
 		const { platforms, scores, times, genres, ...gameDto } =
 			registerGameDto;
 
-		const gameDb = await Game.create({ ...gameDto, code });
+		const gameDb = await Game.create({ ...gameDto, code }, { transaction });
 
-		await linkPlatforms(gameDb.id, platforms);
-		await createScores(gameDb.id, scores);
-		await createTimes(gameDb.id, times);
-		await linkGenres(gameDb.id, genres);
+		await linkPlatforms(gameDb.id, platforms, transaction);
+		await createScores(gameDb.id, scores, transaction);
+		await createTimes(gameDb.id, times, transaction);
+		await linkGenres(gameDb.id, genres, transaction);
+
+		await transaction.commit();
 
 		const gameCreated = await findGameById(gameDb.id);
 		if (!gameCreated) throw gamesServiceError.notFoundError();
 
 		return gameCreated;
 	} catch (error) {
+		await transaction.rollback();
+
 		if (error instanceof UniqueConstraintError)
 			throw gamesServiceError.uniqueConstraintError(error);
 		if (error instanceof ValidationError)
@@ -202,38 +214,66 @@ export async function deactivateGame(id: string) {
 	return true;
 }
 
-async function linkPlatforms(gameId: string, platforms: string[]) {
+async function linkPlatforms(
+	gameId: string,
+	platforms: string[],
+	transaction?: Transaction
+) {
 	if (platforms.length === 0) return;
 	const platformsDb = await platformsService.findPlatformsByCode(platforms);
 	await gamePlatformsService.linkGameToPlatforms(
 		gameId,
-		platformsDb.map(platform => platform.id)
+		platformsDb.map(platform => platform.id),
+		transaction
 	);
 }
 
-async function createScores(gameId: string, scores: RegisterGameDto["scores"]) {
+async function createScores(
+	gameId: string,
+	scores: RegisterGameDto["scores"],
+	transaction?: Transaction
+) {
 	if (!scores) return;
 	const promises = scores.map(score =>
-		gameScoresService.createGameScore(gameId, score.source, score.score)
+		gameScoresService.createGameScore(
+			gameId,
+			score.source,
+			score.score,
+			transaction
+		)
 	);
 	await Promise.all(promises);
 }
 
-async function createTimes(gameId: string, times: RegisterGameDto["times"]) {
+async function createTimes(
+	gameId: string,
+	times: RegisterGameDto["times"],
+	transaction?: Transaction
+) {
 	if (!times) return;
 	const promises = times.map(time =>
-		gameTimesService.createGameTime(gameId, time.source, time.duration)
+		gameTimesService.createGameTime(
+			gameId,
+			time.source,
+			time.duration,
+			transaction
+		)
 	);
 	await Promise.all(promises);
 }
 
-async function linkGenres(gameId: string, genres: string[]) {
+async function linkGenres(
+	gameId: string,
+	genres: string[],
+	transaction?: Transaction
+) {
 	if (genres.length === 0) return;
 	const genreRecords = await genresService.findGenresByCode(genres);
 	if (!genreRecords.length) return;
 	await gameGenresService.linkGameToGenres(
 		gameId,
-		genreRecords.map(g => g.id)
+		genreRecords.map(g => g.id),
+		transaction
 	);
 }
 
