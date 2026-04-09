@@ -315,6 +315,24 @@ Las variables de entorno se dividen en archivos separados en `src/common/config/
 
 Las variables se cargan desde `.env` usando Node 22+ `--env-file=.env`. No se usa `dotenv`.
 
+### Versionado por fase (semver)
+
+| Fase   | Release  | Descripción                                  |
+| ------ | -------- | -------------------------------------------- |
+| Fase 0 | `v0.1.0` | Setup, arquitectura, sin usuarios            |
+| Fase 1 | `v0.2.0` | Excel Killer, solo uso personal              |
+| Fase 2 | `v0.3.0` | MVP Amigos, 5–20 personas                    |
+| Fase 3 | `v0.4.0` | Beta cerrada, 50–200 por invitación          |
+| Fase 4 | `v1.0.0` | Beta pública, primer release abierto (500+)  |
+| Fase 5 | `v1.1.0` | Estabilización y calidad                     |
+| Fase 6 | `v2.0.0` | Premium, cambio de modelo (monetización)     |
+| Fase 7 | `v2.x.x` | Incrementales según features                 |
+
+### Estrategia de branching
+
+- **Fases 0–2:** Todo el desarrollo va directo a `main` (solo developer, sin colaboradores)
+- **Desde Fase 3 en adelante:** Cada fase se desarrolla en `develop` y se mergea a `main` al completarla
+
 ### Convenciones de commits
 
 - Conventional Commits (ej: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`)
