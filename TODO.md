@@ -209,28 +209,28 @@
 
 > La wishlist es una cola priorizada de runs que el usuario quiere jugar. Apunta a `Backlog` (no a `Game`) porque permite runs específicas (ej: RE4 en difícil y en profesional). No es una lista (`List`) — es un módulo independiente.
 
-- [ ] Modelo `Wishlist`: id (UUID), user_id, backlog_id, position (int), added_at — Unique index `(user_id, backlog_id)`
-- [ ] `POST /users/me/wishlist?source=game` — Body: `{ gameId }`. Crea backlog `not_started` + wishlist entry en transacción
-- [ ] `POST /users/me/wishlist?source=backlog` — Body: `{ backlogId }`. Valida ownership, añade a wishlist
-- [ ] `PUT /users/me/wishlist` — Body: `{ backlogIds: [...] }`. Reemplaza array completo, posición por orden del array
-- [ ] `GET /users/me/wishlist` — Mi wishlist ordenada por posición
-- [ ] `GET /users/:username/wishlist` — Wishlist pública (respeta `User.isPublic` + `User.isWishlistPublic`)
-- [ ] Auto-remove: cuando un backlog cambia a `completed` o `abandoned`, eliminarlo de la wishlist automáticamente
-- [ ] Límite: 10 free, ilimitado premium/admin
-- [ ] Error handling completo registrado en normalizers globales
-- [ ] Campo `isWishlistPublic` (boolean, default true) en modelo `User`
+- [x] Modelo `Wishlist`: id (UUID), user_id, backlog_id, position (int), added_at — Unique index `(user_id, backlog_id)`
+- [x] `POST /users/me/wishlist?source=game` — Body: `{ id, platformId }`. Crea backlog `not_started` + wishlist entry en transacción
+- [x] `POST /users/me/wishlist?source=backlog` — Body: `{ id }`. Valida ownership, añade a wishlist
+- [x] `PUT /users/me/wishlist` — Body: `{ backlogIds: [...] }`. Reemplaza array completo, posición por orden del array
+- [x] `GET /users/me/wishlist` — Mi wishlist ordenada por posición
+- [x] `GET /users/:username/wishlist` — Wishlist pública (respeta `User.isPublic` + `User.isWishlistPublic`)
+- [x] Auto-remove: cuando un backlog cambia a `completed` o `abandoned`, eliminarlo de la wishlist automáticamente
+- [x] Límite: 10 free, ilimitado premium/admin
+- [x] Error handling completo registrado en normalizers globales
+- [x] Campo `isWishlistPublic` (boolean, default true) en modelo `User`
 
 ### Módulo de Favorites
 
 > Favorites son juegos que el usuario marca como favoritos. Apunta a `Game` (no requiere backlog). Puedo marcar un juego como favorito sin haberlo jugado. No es una lista (`List`) — es un módulo independiente.
 
-- [ ] Modelo `Favorite`: id (UUID), user_id, game_id, position (int), added_at — Unique index `(user_id, game_id)`
-- [ ] `PUT /users/me/favorites` — Body: `{ gameIds: [...] }`. Reemplaza array completo, posición por orden del array
-- [ ] `GET /users/me/favorites` — Mis favoritos ordenados por posición
-- [ ] `GET /users/:username/favorites` — Favoritos públicos (respeta `User.isPublic` + `User.isFavoritePublic`)
-- [ ] Límite: 10 free, ilimitado premium/admin
-- [ ] Error handling completo registrado en normalizers globales
-- [ ] Campo `isFavoritePublic` (boolean, default true) en modelo `User`
+- [x] Modelo `Favorite`: id (UUID), user_id, game_id, position (int), added_at — Unique index `(user_id, game_id)`
+- [x] `PUT /users/me/favorites` — Body: `{ gameIds: [...] }`. Reemplaza array completo, posición por orden del array
+- [x] `GET /users/me/favorites` — Mis favoritos ordenados por posición
+- [x] `GET /users/:username/favorites` — Favoritos públicos (respeta `User.isPublic` + `User.isFavoritePublic`)
+- [x] Límite: 10 free, ilimitado premium/admin
+- [x] Error handling completo registrado en normalizers globales
+- [x] Campo `isFavoritePublic` (boolean, default true) en modelo `User`
 
 #### Seguir una lista (bookmark social)
 

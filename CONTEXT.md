@@ -454,6 +454,9 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - ListFollowers: `POST/DELETE /lists/:id/follow` — follow como bookmark social. Validación de lista pública, duplicado y not-following. Error handling completo
 - Búsqueda con fallback a RAWG: `GET /games/search?query=` busca localmente, si 0 resultados busca en RAWG, crea el juego en DB con scores/times/genres/plataformas y lo retorna. Mapper `rawgToGameMapper` con mapeo de plataformas RAWG→Completr
 - Transacciones en operaciones multi-paso
+- Wishlist: `POST /users/me/wishlist?source=game|backlog` (crea backlog + wishlist o añade backlog existente), `PUT` replace-all con backlogIds, `GET` me y público. Auto-remove al completar/abandonar backlog. Límite 10 free / ilimitado premium
+- Favorites: `PUT /users/me/favorites` replace-all con gameIds, `GET` me y público. No requiere backlog. Límite 10 free / ilimitado premium
+- Campos `isWishlistPublic` y `isFavoritePublic` en modelo User
 
 ### Pendiente — Fases posteriores
 
