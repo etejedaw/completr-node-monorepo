@@ -1,14 +1,18 @@
-import { UniqueConstraintError } from "sequelize";
+import { Transaction, UniqueConstraintError } from "sequelize";
 import { GameScore, ScoreSource } from "./game-score.model";
 import * as gameScoreServiceError from "./errors/game-scores.service-error";
 
 export async function createGameScore(
 	gameId: string,
 	source: ScoreSource,
-	score: number
+	score: number,
+	transaction?: Transaction
 ) {
 	try {
-		return await GameScore.create({ gameId, source, score });
+		return await GameScore.create(
+			{ gameId, source, score },
+			{ transaction }
+		);
 	} catch (error) {
 		if (error instanceof UniqueConstraintError)
 			throw gameScoreServiceError.uniqueConstraintError(error);
