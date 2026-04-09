@@ -12,6 +12,8 @@ class User extends Model {
 	declare bio?: string;
 	declare avatarUrl?: string;
 	declare isPublic: boolean;
+	declare isWishlistPublic: boolean;
+	declare isFavoritePublic: boolean;
 	declare isActive: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -48,6 +50,14 @@ User.init(
 		bio: DataTypes.STRING(250),
 		avatarUrl: DataTypes.STRING,
 		isPublic: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: true
+		},
+		isWishlistPublic: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: true
+		},
+		isFavoritePublic: {
 			type: DataTypes.BOOLEAN,
 			defaultValue: true
 		},
