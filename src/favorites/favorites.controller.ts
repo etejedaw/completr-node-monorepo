@@ -1,0 +1,44 @@
+import { Request, Response } from "express";
+import { RequestUser } from "../common/interfaces/request-user.interface";
+import * as usersService from "../users/users.service";
+import * as userDomainError from "../users/errors/users.domain-error";
+import * as favoritesService from "./favorites.service";
+import { ReplaceFavoritesBody } from "./schemas/replace-favorites.schema";
+import { UsernameParam } from "../users/schemas/username-params.schema";
+import { favoriteSerializer } from "./favorites.serializer";
+
+export async function putFavorites(request: Request, response: Response) {
+	const body = request.locals.body as ReplaceFavoritesBody;
+	const user = request.locals.user as RequestUser;
+
+	const entries = await favoritesService.replaceFavorites(user, body.gameIds);
+	const entriesPlain = entries.map(e => e.get({ plain: true }));
+
+	const data = { favorites: entriesPlain.map(favoriteSerializer) };
+	return response.status(200).json({ data });
+}
+
+export async function getMeFavorites(request: Request, response: Response) {
+	const user = request.locals.user as RequestUser;
+
+	const entries = await favoritesService.findFavoritesByUserId(user.id);
+	const entriesPlain = entries.map(e => e.get({ plain: true }));
+
+	const data = { favorites: entriesPlain.map(favoriteSerializer) };
+	return response.status(200).json({ data });
+}
+
+export async function getUserFavorites(request: Request, response: Response) {
+	const params = request.locals.params as UsernameParam;
+
+	const user = await usersService.findUserByUsername(params.username);
+	if (!user) throw userDomainError.userNotFound();
+	if (!user.isPublic) throw userDomainError.userPrivate();
+	if (!user.isFavoritePublic) throw userDomainError.userPrivate();
+
+	const entries = await favoritesService.findFavoritesByUserId(user.id);
+	const entriesPlain = entries.map(e => e.get({ plain: true }));
+
+	const data = { favorites: entriesPlain.map(favoriteSerializer) };
+	return response.status(200).json({ data });
+}
