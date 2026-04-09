@@ -14,6 +14,7 @@ import { apiKeysConfig } from "../common/config/api-keys.config";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { rawgToGameMapper } from "./mappers/rawg-to-game.mapper";
 import { PinoLogger } from "../common/logger/pino.logger";
+import * as gameExternalIdsService from "../game-external-ids/game-external-ids.service";
 
 const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
 const logger = new PinoLogger("GamesService");
@@ -104,10 +105,29 @@ async function searchAndCreateFromRawg(query: string) {
 		const firstResult = rawgResults[0];
 		if (!firstResult) return [];
 
+		const rawgId = String(firstResult.id);
+		const existingExternal = await gameExternalIdsService.findByExternalId(
+			"rawg",
+			rawgId
+		);
+		if (existingExternal) {
+			const existingGame = await findGameById(existingExternal.gameId);
+			if (existingGame) return [existingGame];
+		}
+
 		const rawgDetail = await rawg.getGameById(firstResult.id);
 		const mapped = rawgToGameMapper(rawgDetail);
-		const existing = await findGameByCode(titleToSlug(mapped.game.title));
-		if (existing) return [existing];
+		const existingByCode = await findGameByCode(
+			titleToSlug(mapped.game.title)
+		);
+		if (existingByCode) {
+			await gameExternalIdsService.createExternalId(
+				existingByCode.id,
+				"rawg",
+				rawgId
+			);
+			return [existingByCode];
+		}
 
 		const game = await registerGame({
 			...mapped.game,
@@ -115,6 +135,9 @@ async function searchAndCreateFromRawg(query: string) {
 			times: mapped.enrichment.times,
 			genres: mapped.enrichment.genreSlugs ?? []
 		});
+
+		await gameExternalIdsService.createExternalId(game.id, "rawg", rawgId);
+
 		return [game];
 	} catch (error) {
 		logger.warn("searchAndCreateFromRawg", "RAWG fallback failed", error);

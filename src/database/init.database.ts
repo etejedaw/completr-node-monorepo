@@ -18,6 +18,7 @@ import "../game-times/game-time.model";
 import "../saved-filters/saved-filter.model";
 import "../wishlist/wishlist.model";
 import "../favorites/favorite.model";
+import "../game-external-ids/game-external-id.model";
 
 export async function initDatabase() {
 	setupAssociations();
