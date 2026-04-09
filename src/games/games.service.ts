@@ -221,6 +221,8 @@ async function linkPlatforms(
 ) {
 	if (platforms.length === 0) return;
 	const platformsDb = await platformsService.findPlatformsByCode(platforms);
+	if (platformsDb.length !== platforms.length)
+		throw gamesServiceError.platformNotFoundError();
 	await gamePlatformsService.linkGameToPlatforms(
 		gameId,
 		platformsDb.map(platform => platform.id),
@@ -269,7 +271,8 @@ async function linkGenres(
 ) {
 	if (genres.length === 0) return;
 	const genreRecords = await genresService.findGenresByCode(genres);
-	if (!genreRecords.length) return;
+	if (genreRecords.length !== genres.length)
+		throw gamesServiceError.genreNotFoundError();
 	await gameGenresService.linkGameToGenres(
 		gameId,
 		genreRecords.map(g => g.id),
