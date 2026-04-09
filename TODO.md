@@ -6,16 +6,16 @@
 
 ## 📆 Resumen cronológico
 
-| Mes   | Etapa                                               |
-| ----- | --------------------------------------------------- |
-| 1     | Fase 0 — Setup y arquitectura                       |
-| 2–3   | Fase 1 — Excel Killer (solo tú)                     |
-| 3–4   | Fase 2 — MVP Amigos (5–20 personas)                 |
-| 4–6   | Fase 3 — Beta Cerrada (50–200 usuarios, invitación) |
-| 6–9   | Fase 4 — Beta Pública (500+ usuarios)               |
-| 9–10  | Fase 5 — Estabilización y calidad                   |
-| 10–12 | Fase 6 — Premium (desarrollo + lanzamiento)         |
-| 12+   | Fase 7 — Escalamiento continuo                      |
+| Mes   | Etapa                                               | Release  |
+| ----- | --------------------------------------------------- | -------- |
+| 1     | Fase 0 — Setup y arquitectura                       | `v0.1.0` |
+| 2–3   | Fase 1 — Excel Killer (solo tú)                     | `v0.2.0` |
+| 3–4   | Fase 2 — MVP Amigos (5–20 personas)                 | `v0.3.0` |
+| 4–6   | Fase 3 — Beta Cerrada (50–200 usuarios, invitación) | `v0.4.0` |
+| 6–9   | Fase 4 — Beta Pública (500+ usuarios)               | `v1.0.0` |
+| 9–10  | Fase 5 — Estabilización y calidad                   | `v1.1.0` |
+| 10–12 | Fase 6 — Premium (desarrollo + lanzamiento)         | `v2.0.0` |
+| 12+   | Fase 7 — Escalamiento continuo                      | `v2.x.x` |
 
 ---
 
@@ -251,15 +251,13 @@
 - [ ] Implementar transacciones de Sequelize en operaciones que involucran múltiples modelos (ej: importar CSV con múltiples inserts)
 - [ ] Refactorizar `games.service.ts → registerGame` para usar transacción (crea juego + plataformas + scores + times + géneros sin atomicidad)
 
-### ~~Importación manual~~ _(movido a Premium — Fase 6)_
-
 ### Pruebas manuales de endpoints
 
 - [ ] Ejecutar pruebas de todos los endpoints con los 4 roles (admin, moderator, premium, user) + sin auth
 - [ ] Verificar: permisos, validaciones, duplicados, not found, soft delete, serializers, datos derivados
 - [ ] Corregir cualquier bug encontrado antes de avanzar al frontend
 
-### UI básica _(si aplica en esta fase)_
+### UI básica
 
 - [ ] Frontend con Angular
 - [ ] Configurar como PWA (`@angular/pwa`): service worker, manifest, instalable en móvil
