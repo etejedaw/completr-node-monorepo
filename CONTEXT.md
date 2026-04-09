@@ -470,7 +470,7 @@ Inspirada en Trakt:
 - Plan gratuito generoso (funcionalidad completa de backlog)
 - Premium como apoyo, no como paywall agresivo
 - Premium desbloquea: estadísticas avanzadas, temas, listas ilimitadas, sync Steam, listas colaborativas
-- Pricing: ~3 USD/mes o ~20 USD/año
+- Pricing: Early Supporters $3 USD/mes (de por vida), público $5 USD/mes. Plan anual con descuento
 
 ---
 
