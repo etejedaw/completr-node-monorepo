@@ -231,6 +231,7 @@ src/
 ├── backlogs/          # Historial completo del usuario (not_started, playing, completed, abandoned)
 ├── wishlist/          # Cola priorizada de runs (apunta a backlog)
 ├── favorites/         # Juegos marcados como favoritos (apunta a game)
+├── game-external-ids/ # Mapeo de juegos a IDs en plataformas externas (RAWG, IGDB, Steam, etc.)
 ├── rawg/              # Provider de RAWG API (géneros, descripción, scores, playtime, covers)
 ├── hltb/              # (pendiente) Provider de HowLongToBeat
 ├── metacritic/        # (pendiente) Provider de Metacritic/OpenCritic
@@ -457,6 +458,7 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Wishlist: `POST /users/me/wishlist?source=game|backlog` (crea backlog + wishlist o añade backlog existente), `PUT` replace-all con backlogIds, `GET` me y público. Auto-remove al completar/abandonar backlog. Límite 10 free / ilimitado premium
 - Favorites: `PUT /users/me/favorites` replace-all con gameIds, `GET` me y público. No requiere backlog. Límite 10 free / ilimitado premium
 - Campos `isWishlistPublic` y `isFavoritePublic` en modelo User
+- GameExternalId: modelo para mapear juegos a IDs de plataformas externas (RAWG, IGDB, Steam, HLTB, Metacritic, OpenCritic). Sin endpoints — uso interno. Búsqueda con fallback a RAWG ahora verifica por external ID antes de crear duplicados
 
 ### Pendiente — Fases posteriores
 

@@ -270,7 +270,7 @@
 - [x] Mapper `rawgToGameMapper` convierte datos de RAWG a `RegisterGameDto` + enrichment
 - [x] Mapeo de plataformas RAWG → Completr (`rawg-platform.map.ts`)
 - [x] Si RAWG tampoco encuentra → retornar array vacío
-- [ ] Crear tabla `GameExternalId` para mapear juegos a sus IDs en plataformas externas (RAWG, IGDB, Steam, HLTB, Metacritic). Permite detectar duplicados por ID externo en vez de slug, y facilita futuras integraciones con cron
+- [x] Crear tabla `GameExternalId` para mapear juegos a sus IDs en plataformas externas (RAWG, IGDB, Steam, HLTB, Metacritic). Permite detectar duplicados por ID externo en vez de slug, y facilita futuras integraciones con cron
 - [ ] Almacenar múltiples resultados de RAWG (no solo el primero) para cubrir variantes de un juego (ej: Resident Evil PSX vs Remake). Requiere GameExternalId para evitar duplicados
 
 ### Transacciones en operaciones multi-paso
