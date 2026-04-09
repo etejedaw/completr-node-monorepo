@@ -275,7 +275,6 @@
 
 ### Transacciones en operaciones multi-paso
 
-- [ ] Implementar transacciones de Sequelize en operaciones que involucran múltiples modelos (ej: importar CSV con múltiples inserts)
 - [x] Refactorizar `games.service.ts → registerGame` para usar transacción (crea juego + plataformas + scores + times + géneros atómicamente)
 
 ### Pruebas manuales de endpoints
@@ -551,6 +550,7 @@
 ### Hardening
 
 - [ ] Auditoría de seguridad básica (headers, sanitización de inputs, rate limits por endpoint)
+- [ ] Agregar transacciones en operaciones multi-modelo restantes (`replaceItems`, CSV import, etc.)
 - [ ] Optimizar queries N+1 en Sequelize (eager loading)
 - [ ] Tests de integración para los flujos principales (auth, listas, game-shelf, backlogs)
 - [ ] Tests unitarios para services y serializers
