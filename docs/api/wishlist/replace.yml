@@ -1,0 +1,65 @@
+info:
+    name: Replace Wishlist
+    type: http
+    seq: 2
+
+http:
+    method: PUT
+    url: "{{BASE_URL}}/users/me/wishlist"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "backlogIds": ["uuid1", "uuid2", "uuid3"]
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Replace Wishlist
+
+    Replaces the entire wishlist with the given backlogIds in order. Accepts an empty array to clear the wishlist.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Request Body
+
+    | Field      | Type   | Required | Description                            |
+    |------------|--------|----------|----------------------------------------|
+    | backlogIds | uuid[] | Yes      | Array of backlog UUIDs (no duplicates) |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "wishlist": [
+          {
+            "id": "uuid",
+            "position": 1,
+            "backlog": {
+              "id": "uuid",
+              "status": "not_started",
+              "score": 89,
+              "duration": 6,
+              "startedAt": null,
+              "notes": null,
+              "game": { "id": "uuid", "title": "...", "coverUrl": "...", "isDlc": false },
+              "platform": { "id": "uuid", "abbreviation": "..." }
+            }
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 402 `WISHLIST_LIMIT_REACHED` — Free plan limit (10) exceeded
+    - 404 `WISHLIST_BACKLOGS_NOT_FOUND` — One or more backlogIds not found or not owned
