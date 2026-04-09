@@ -444,6 +444,8 @@
 
 - [ ] Comparación de listas entre dos usuarios: juegos en común completados, juegos que uno tiene y otro no
 - [ ] Perfil público ampliado: progreso del backlog (% completado), listas seguidas
+- [ ] Filtrar feed de actividad por tipo: "solo completados", "solo abandonados", etc. (premium)
+- [ ] Duplicar listas: copiar una lista pública a tus propias listas (free)
 
 ### Logros y milestones (free)
 
@@ -628,6 +630,7 @@
 - [ ] Premium gratuito para Early Supporters hasta completar el 1er tercio de features votadas; luego comienza el premium público
 - [ ] 2do tercio votado se lanza como siguientes features premium
 - [ ] 3er tercio se desarrolla sin fecha fija, en paralelo con Fase 7
+- [ ] Página de Patrons: mostrar nombres de Early Supporters y Premium en una página pública
 - [ ] Banner no intrusivo en la app para usuarios Free
 - [ ] Activar feature flags Premium para suscriptores
 
@@ -688,7 +691,9 @@
 | **Franchise tracker**                 | ✅                             | ✅                                 |
 | **Discord bot**                       | ✅                             | ✅                                 |
 | **Calendario de lanzamientos**        | ✅                             | ✅                                 |
+| **Duplicar listas**                   | ✅                             | ✅                                 |
 | **Temas visuales**                    | ✅ Light y dark                | ✅ + Retro, sepia, hacker, minimal |
+| **Filtrar feed por tipo**             | ❌                             | ✅                                 |
 | **Estadísticas avanzadas**            | ❌                             | ✅ Gráficos, trends, patrones      |
 | **CSV import**                        | ❌                             | ✅                                 |
 | **Notificaciones sociales**           | ✅                             | ✅                                 |
