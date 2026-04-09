@@ -11,6 +11,8 @@ import { savedFiltersErrorDomainNormalizer } from "../../saved-filters/errors/sa
 import { listsErrorDomainNormalizer } from "../../lists/errors/lists.error-domain.normalizer";
 import { listItemsErrorDomainNormalizer } from "../../list-items/errors/list-items.error-domain.normalizer";
 import { listFollowersErrorDomainNormalizer } from "../../list-followers/errors/list-followers.error-domain.normalizer";
+import { wishlistErrorDomainNormalizer } from "../../wishlist/errors/wishlist.error-domain.normalizer";
+import { favoritesErrorDomainNormalizer } from "../../favorites/errors/favorites.error-domain.normalizer";
 import { DomainError } from "./domain-error";
 import { ServiceError } from "./service-error";
 
@@ -71,6 +73,12 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "ListFollower Service")
 		return listFollowersErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Wishlist Service")
+		return wishlistErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Favorite Service")
+		return favoritesErrorDomainNormalizer(error, correlationId);
 
 	return new DomainError("COMMON", "INTERNAL_ERROR", "Unexpected error", {
 		raw: error,

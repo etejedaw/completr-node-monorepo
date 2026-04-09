@@ -12,6 +12,8 @@ import { Backlog } from "../backlog/backlog.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
 import { SavedFilter } from "../saved-filters/saved-filter.model";
+import { Wishlist } from "../wishlist/wishlist.model";
+import { Favorite } from "../favorites/favorite.model";
 
 export function setupAssociations() {
 	gameDlc();
@@ -25,6 +27,8 @@ export function setupAssociations() {
 	gameScores();
 	gameTimes();
 	savedFilters();
+	wishlist();
+	favorites();
 }
 
 function gameDlc() {
@@ -116,4 +120,20 @@ function gameTimes() {
 function savedFilters() {
 	User.hasMany(SavedFilter, { foreignKey: "userId" });
 	SavedFilter.belongsTo(User, { foreignKey: "userId" });
+}
+
+function wishlist() {
+	User.hasMany(Wishlist, { foreignKey: "userId" });
+	Wishlist.belongsTo(User, { foreignKey: "userId" });
+
+	Backlog.hasMany(Wishlist, { foreignKey: "backlogId" });
+	Wishlist.belongsTo(Backlog, { foreignKey: "backlogId" });
+}
+
+function favorites() {
+	User.hasMany(Favorite, { foreignKey: "userId" });
+	Favorite.belongsTo(User, { foreignKey: "userId" });
+
+	Game.hasMany(Favorite, { foreignKey: "gameId" });
+	Favorite.belongsTo(Game, { foreignKey: "gameId" });
 }

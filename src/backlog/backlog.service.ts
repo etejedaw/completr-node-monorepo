@@ -2,6 +2,7 @@ import { Op } from "sequelize";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { Backlog } from "./backlog.model";
+import { Wishlist } from "../wishlist/wishlist.model";
 import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import { BacklogQuery } from "./schemas/backlog-query.schema";
@@ -129,6 +130,14 @@ export async function updateBacklog(
 		throw backlogServiceError.forbiddenError();
 
 	await backlogEntry.update(updateBacklog);
+
+	if (
+		updateBacklog.status === "completed" ||
+		updateBacklog.status === "abandoned"
+	) {
+		await Wishlist.destroy({ where: { backlogId: id } });
+	}
+
 	return backlogEntry;
 }
 
