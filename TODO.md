@@ -276,7 +276,7 @@
 ### Transacciones en operaciones multi-paso
 
 - [ ] Implementar transacciones de Sequelize en operaciones que involucran múltiples modelos (ej: importar CSV con múltiples inserts)
-- [ ] Refactorizar `games.service.ts → registerGame` para usar transacción (crea juego + plataformas + scores + times + géneros sin atomicidad)
+- [x] Refactorizar `games.service.ts → registerGame` para usar transacción (crea juego + plataformas + scores + times + géneros atómicamente)
 
 ### Pruebas manuales de endpoints
 
