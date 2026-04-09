@@ -110,8 +110,16 @@ async function searchAndCreateFromRawg(query: string) {
 		const games: Game[] = [];
 
 		for (const result of rawgResults) {
-			const game = await resolveRawgResult(result.id);
-			if (game) games.push(game);
+			try {
+				const game = await resolveRawgResult(result.id);
+				if (game) games.push(game);
+			} catch (error) {
+				logger.warn(
+					"searchAndCreateFromRawg",
+					`Failed to resolve RAWG ID ${result.id}`,
+					error
+				);
+			}
 		}
 
 		return games;
