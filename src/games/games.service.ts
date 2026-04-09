@@ -101,48 +101,59 @@ export async function searchGames(query: string) {
 
 async function searchAndCreateFromRawg(query: string) {
 	try {
-		const rawgResults = await rawg.searchGame(query, { page_size: 5 });
-		const firstResult = rawgResults[0];
-		if (!firstResult) return [];
-
-		const rawgId = String(firstResult.id);
-		const existingExternal = await gameExternalIdsService.findByExternalId(
-			"rawg",
-			rawgId
-		);
-		if (existingExternal) {
-			const existingGame = await findGameById(existingExternal.gameId);
-			if (existingGame) return [existingGame];
-		}
-
-		const rawgDetail = await rawg.getGameById(firstResult.id);
-		const mapped = rawgToGameMapper(rawgDetail);
-		const existingByCode = await findGameByCode(
-			titleToSlug(mapped.game.title)
-		);
-		if (existingByCode) {
-			await gameExternalIdsService.createExternalId(
-				existingByCode.id,
-				"rawg",
-				rawgId
-			);
-			return [existingByCode];
-		}
-
-		const game = await registerGame({
-			...mapped.game,
-			scores: mapped.enrichment.scores,
-			times: mapped.enrichment.times,
-			genres: mapped.enrichment.genreSlugs ?? []
+		const rawgResults = await rawg.searchGame(query, {
+			page_size: 3,
+			exclude_additions: true
 		});
+		if (rawgResults.length === 0) return [];
 
-		await gameExternalIdsService.createExternalId(game.id, "rawg", rawgId);
+		const games: Game[] = [];
 
-		return [game];
+		for (const result of rawgResults) {
+			const game = await resolveRawgResult(result.id);
+			if (game) games.push(game);
+		}
+
+		return games;
 	} catch (error) {
 		logger.warn("searchAndCreateFromRawg", "RAWG fallback failed", error);
 		return [];
 	}
+}
+
+async function resolveRawgResult(rawgNumericId: number) {
+	const rawgId = String(rawgNumericId);
+
+	const existingExternal = await gameExternalIdsService.findByExternalId(
+		"rawg",
+		rawgId
+	);
+	if (existingExternal) {
+		return findGameById(existingExternal.gameId);
+	}
+
+	const rawgDetail = await rawg.getGameById(rawgNumericId);
+	const mapped = rawgToGameMapper(rawgDetail);
+	const existingByCode = await findGameByCode(titleToSlug(mapped.game.title));
+	if (existingByCode) {
+		await gameExternalIdsService.createExternalId(
+			existingByCode.id,
+			"rawg",
+			rawgId
+		);
+		return existingByCode;
+	}
+
+	const game = await registerGame({
+		...mapped.game,
+		scores: mapped.enrichment.scores,
+		times: mapped.enrichment.times,
+		genres: mapped.enrichment.genreSlugs ?? []
+	});
+
+	await gameExternalIdsService.createExternalId(game.id, "rawg", rawgId);
+
+	return game;
 }
 
 export async function findGamesByGenreCode(genreCode: string) {
