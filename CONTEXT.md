@@ -58,6 +58,27 @@ Se calcula desde el `Backlog` completado. Si hay múltiples backlogs completados
 
 El backlog soporta filtros completos por: status (uno o varios comma-separated, ej: `completed,abandoned`), game_id, platform_id, rangos de fechas (started_from/to, finished_from/to), no_finished_date (bool, filtra entradas sin fecha de finalización), rangos numéricos (min/max_score, min/max_duration, min/max_rating) y ordenamiento (sort_by + sort_order). Cualquier combinación de filtros se puede guardar como vista con nombre y descripción opcional (ej: "Completados 2025-S01"). El backend almacena los filtros como JSONB y el frontend los aplica como query params al consultar el backlog. Free: hasta 5 vistas guardadas, Premium: ilimitadas. Las vistas son una conveniencia — cualquier usuario puede construir la URL con query params y guardarla como bookmark.
 
+### Wishlist y Favorites
+
+Dos módulos independientes que reemplazan el concepto original de "listas por defecto". No son listas (`List`) — son marcas personales ligeras sobre juegos.
+
+**Wishlist** — Cola priorizada de juegos que el usuario quiere jugar. Apunta a `Backlog` (no a `Game`) porque es sobre runs específicas. Un juego puede aparecer varias veces (ej: RE4 en difícil y en profesional).
+
+- Modelo: `Wishlist(id, user_id, backlog_id, position, added_at)` — Unique `(user_id, backlog_id)`
+- POST con `?source=game`: crea backlog `not_started` + wishlist entry en transacción
+- POST con `?source=backlog`: añade backlog existente a la wishlist
+- PUT: reemplaza array completo de `backlogIds` (posición por orden)
+- Auto-remove: al cambiar backlog a `completed` o `abandoned`, se elimina de la wishlist
+- Límite: 10 free, ilimitado premium/admin
+
+**Favorites** — Juegos que el usuario marca como favoritos. Apunta a `Game` (no requiere backlog). Puedo marcar un juego como favorito sin haberlo jugado.
+
+- Modelo: `Favorite(id, user_id, game_id, position, added_at)` — Unique `(user_id, game_id)`
+- PUT: reemplaza array completo de `gameIds` (posición por orden)
+- Límite: 10 free, ilimitado premium/admin
+
+**Visibilidad:** Controlada desde `User` con `isWishlistPublic` y `isFavoritePublic` (boolean, default true). No hay flag por entry individual.
+
 ### Estados de un juego
 
 4 estados posibles en `Backlog`:
@@ -149,6 +170,8 @@ Cualquier lista con `is_public: true` puede ser vista y seguida por otros usuari
 | `list-items`     | Items de lista con score/duration congelados y posición                        | Juegos dentro de una lista |
 | `list-followers` | Suscripción a listas públicas de otros usuarios                                | "Seguir esta lista"        |
 | `backlogs`       | Historial completo del usuario (quiere jugar, jugando, completado, abandonado) | Tu diario de gaming        |
+| `wishlist`       | Cola priorizada de runs que el usuario quiere jugar (apunta a backlog)         | Tu lista de "siguiente"    |
+| `favorites`      | Juegos marcados como favoritos (apunta a game, sin backlog requerido)          | Tus juegos favoritos       |
 
 - Un juego puede estar en `game-shelf` sin estar en ninguna lista
 - Un juego puede estar en múltiples listas
@@ -206,6 +229,8 @@ src/
 ├── list-items/        # Items de lista (juego ↔ lista) con score/duration congelados
 ├── list-followers/    # (pendiente) Suscripción a listas públicas
 ├── backlogs/          # Historial completo del usuario (not_started, playing, completed, abandoned)
+├── wishlist/          # Cola priorizada de runs (apunta a backlog)
+├── favorites/         # Juegos marcados como favoritos (apunta a game)
 ├── rawg/              # Provider de RAWG API (géneros, descripción, scores, playtime, covers)
 ├── hltb/              # (pendiente) Provider de HowLongToBeat
 ├── metacritic/        # (pendiente) Provider de Metacritic/OpenCritic
@@ -317,16 +342,16 @@ Las variables se cargan desde `.env` usando Node 22+ `--env-file=.env`. No se us
 
 ### Versionado por fase (semver)
 
-| Fase   | Release  | Descripción                                  |
-| ------ | -------- | -------------------------------------------- |
-| Fase 0 | `v0.1.0` | Setup, arquitectura, sin usuarios            |
-| Fase 1 | `v0.2.0` | Excel Killer, solo uso personal              |
-| Fase 2 | `v0.3.0` | MVP Amigos, 5–20 personas                    |
-| Fase 3 | `v0.4.0` | Beta cerrada, 50–200 por invitación          |
-| Fase 4 | `v1.0.0` | Beta pública, primer release abierto (500+)  |
-| Fase 5 | `v1.1.0` | Estabilización y calidad                     |
-| Fase 6 | `v2.0.0` | Premium, cambio de modelo (monetización)     |
-| Fase 7 | `v2.x.x` | Incrementales según features                 |
+| Fase   | Release  | Descripción                                 |
+| ------ | -------- | ------------------------------------------- |
+| Fase 0 | `v0.1.0` | Setup, arquitectura, sin usuarios           |
+| Fase 1 | `v0.2.0` | Excel Killer, solo uso personal             |
+| Fase 2 | `v0.3.0` | MVP Amigos, 5–20 personas                   |
+| Fase 3 | `v0.4.0` | Beta cerrada, 50–200 por invitación         |
+| Fase 4 | `v1.0.0` | Beta pública, primer release abierto (500+) |
+| Fase 5 | `v1.1.0` | Estabilización y calidad                    |
+| Fase 6 | `v2.0.0` | Premium, cambio de modelo (monetización)    |
+| Fase 7 | `v2.x.x` | Incrementales según features                |
 
 ### Estrategia de branching
 

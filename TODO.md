@@ -205,6 +205,33 @@
 - [x] Frozen state: si un usuario baja de premium con >5 listas, no puede crear ni editar hasta que elimine las sobrantes
 - [x] Error handling: 402 `LIST_LIMIT_REACHED` y `LIST_FROZEN` / `LIST_ITEM_FROZEN`
 
+### Módulo de Wishlist
+
+> La wishlist es una cola priorizada de runs que el usuario quiere jugar. Apunta a `Backlog` (no a `Game`) porque permite runs específicas (ej: RE4 en difícil y en profesional). No es una lista (`List`) — es un módulo independiente.
+
+- [ ] Modelo `Wishlist`: id (UUID), user_id, backlog_id, position (int), added_at — Unique index `(user_id, backlog_id)`
+- [ ] `POST /users/me/wishlist?source=game` — Body: `{ gameId }`. Crea backlog `not_started` + wishlist entry en transacción
+- [ ] `POST /users/me/wishlist?source=backlog` — Body: `{ backlogId }`. Valida ownership, añade a wishlist
+- [ ] `PUT /users/me/wishlist` — Body: `{ backlogIds: [...] }`. Reemplaza array completo, posición por orden del array
+- [ ] `GET /users/me/wishlist` — Mi wishlist ordenada por posición
+- [ ] `GET /users/:username/wishlist` — Wishlist pública (respeta `User.isPublic` + `User.isWishlistPublic`)
+- [ ] Auto-remove: cuando un backlog cambia a `completed` o `abandoned`, eliminarlo de la wishlist automáticamente
+- [ ] Límite: 10 free, ilimitado premium/admin
+- [ ] Error handling completo registrado en normalizers globales
+- [ ] Campo `isWishlistPublic` (boolean, default true) en modelo `User`
+
+### Módulo de Favorites
+
+> Favorites son juegos que el usuario marca como favoritos. Apunta a `Game` (no requiere backlog). Puedo marcar un juego como favorito sin haberlo jugado. No es una lista (`List`) — es un módulo independiente.
+
+- [ ] Modelo `Favorite`: id (UUID), user_id, game_id, position (int), added_at — Unique index `(user_id, game_id)`
+- [ ] `PUT /users/me/favorites` — Body: `{ gameIds: [...] }`. Reemplaza array completo, posición por orden del array
+- [ ] `GET /users/me/favorites` — Mis favoritos ordenados por posición
+- [ ] `GET /users/:username/favorites` — Favoritos públicos (respeta `User.isPublic` + `User.isFavoritePublic`)
+- [ ] Límite: 10 free, ilimitado premium/admin
+- [ ] Error handling completo registrado en normalizers globales
+- [ ] Campo `isFavoritePublic` (boolean, default true) en modelo `User`
+
 #### Seguir una lista (bookmark social)
 
 - [x] `POST /lists/:id/follow` — Seguir una lista pública (solo listas con `isPublic: true`)
@@ -407,11 +434,6 @@
 
 - [ ] Endpoint "¿Qué juego?" que elige un juego aleatorio del backlog del usuario
 - [ ] Filtros opcionales: género, plataforma, duración máxima, mood tags
-
-### Cola "Siguiente"
-
-- [ ] Lista corta y ordenada (5-10 juegos) de lo próximo que el usuario planea jugar
-- [ ] Reordenable, separada del backlog completo — es el plan inmediato
 
 ### Mood tags
 
@@ -679,6 +701,8 @@
 | **Listas**                            | ✅ Hasta 5                                  | ✅ Ilimitadas                      |
 | **Filtros del backlog**               | ✅ Ilimitados                               | ✅ Ilimitados                      |
 | **Filtros guardados**                 | ✅ Hasta 5                                  | ✅ Ilimitados                      |
+| **Wishlist**                          | ✅ Hasta 10                                 | ✅ Ilimitada                       |
+| **Favorites**                         | ✅ Hasta 10                                 | ✅ Ilimitados                      |
 | **Ratio y personal ratio**            | ✅                                          | ✅ + Fórmula personalizable        |
 | **Fuentes de score**                  | ✅ Completr community + manual + OpenCritic | ✅ + Metacritic, RAWG              |
 | **HLTB auto-fetch**                   | ✅                                          | ✅                                 |
@@ -733,7 +757,7 @@ Estas decisiones aplican a **todo el proyecto**, no son una fase:
 - **UUIDs en Foreign Keys:** Definir explícitamente el tipo UUID en todas las relaciones de `associations.database.ts` para evitar bugs con Sequelize.
 - **Serializer Pattern:** Toda la lógica de cálculo (ratio, personal_ratio, estadísticas) vive en el backend dentro de los serializers/services. El frontend solo renderiza.
 - **`metadata_pending`:** Cualquier juego creado manualmente nace con `metadata_pending: true`. El worker nocturno se encarga de enriquecerlo con datos de HLTB y Metacritic.
-- **No existe lista por defecto:** El `Backlog` como tabla + vistas (SavedFilter) cubre el caso de "juegos que quiero jugar". Las listas son solo colecciones curadas, no reemplazan al backlog.
+- **Wishlist y Favorites (no son listas):** En vez de "listas por defecto" dentro del módulo Lists, Wishlist y Favorites son módulos independientes. Wishlist apunta a `Backlog` (runs específicas, con posición y auto-remove al completar/abandonar). Favorites apunta a `Game` (no requiere backlog). Ambos tienen límite 10 free / ilimitado premium. Visibilidad controlada desde `User.isWishlistPublic` y `User.isFavoritePublic`.
 - **`personal_ratio`:** Se calcula desde `Backlog.real_duration` del backlog completado. Si hay múltiples backlogs completados, se usa el primero o el mejor según preferencia.
 - **Sistema de puntajes en 3 niveles:**
     - `GameScore` — Catálogo global de puntajes/tiempos por fuente (Metacritic, OpenCritic, HLTB, Completr community). Actualizado por cron mensual. La ficha del juego muestra todos los disponibles.
