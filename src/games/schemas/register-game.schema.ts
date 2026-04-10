@@ -1,5 +1,5 @@
 import z from "zod";
-import { SCORE_SOURCES } from "../../game-scores/game-score.model";
+import { SCORE_SOURCES } from "../../score-sources/score-source.constants";
 import { TIME_SOURCES } from "../../game-times/game-time.model";
 
 const GameScoreEntrySchema = z.object({

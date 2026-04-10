@@ -1,21 +1,10 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 
-export const SCORE_SOURCES = [
-	"metacritic",
-	"opencritic",
-	"rawg",
-	"completr"
-] as const;
-
-export type ScoreSource = (typeof SCORE_SOURCES)[number];
-
-export const SCORE_SOURCES_API = ["metacritic", "opencritic", "rawg"] as const;
-
 class GameScore extends Model {
 	declare id: string;
 	declare gameId: string;
-	declare source: ScoreSource;
+	declare source: string;
 	declare score: number;
 	declare updatedAt: Date;
 }
@@ -33,7 +22,7 @@ GameScore.init(
 			allowNull: false
 		},
 		source: {
-			type: DataTypes.ENUM(...SCORE_SOURCES),
+			type: DataTypes.STRING(50),
 			allowNull: false
 		},
 		score: {

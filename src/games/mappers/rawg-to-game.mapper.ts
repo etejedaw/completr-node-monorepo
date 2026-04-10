@@ -1,4 +1,4 @@
-import { ScoreSource } from "../../game-scores/game-score.model";
+import { ScoreSourceCode } from "../../score-sources/score-source.constants";
 import { TimeSource } from "../../game-times/game-time.model";
 import { RawgGameDetail } from "../../rawg/rawg.interface";
 import { RegisterGameDto } from "../dtos/register-game.dto";
@@ -6,7 +6,7 @@ import { mapRawgPlatformSlugs } from "./rawg-platform.map";
 import { mapRawgGenreSlugs } from "./rawg-genre.map";
 
 export interface GameScoreEntry {
-	source: ScoreSource;
+	source: ScoreSourceCode;
 	score: number;
 }
 

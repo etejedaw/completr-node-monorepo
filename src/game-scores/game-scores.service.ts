@@ -1,10 +1,10 @@
 import { Transaction, UniqueConstraintError } from "sequelize";
-import { GameScore, ScoreSource } from "./game-score.model";
+import { GameScore } from "./game-score.model";
 import * as gameScoreServiceError from "./errors/game-scores.service-error";
 
 export async function createGameScore(
 	gameId: string,
-	source: ScoreSource,
+	source: string,
 	score: number,
 	transaction?: Transaction
 ) {
@@ -22,7 +22,7 @@ export async function createGameScore(
 
 export async function updateGameScore(
 	gameId: string,
-	source: ScoreSource,
+	source: string,
 	score: number
 ) {
 	const existing = await GameScore.findOne({
