@@ -26,8 +26,8 @@
 			<thead>
 				<tr>
 					<th class="col-cover"></th>
-					<th class="col-title" (click)="sort('createdAt')">
-						Title @if (sortBy() === 'createdAt') {
+					<th class="col-title" (click)="sort('title')">
+						Title @if (sortBy() === 'title') {
 						<span class="sort-arrow"
 							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
 							}}</span
