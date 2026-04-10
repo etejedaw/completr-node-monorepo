@@ -45,8 +45,8 @@ export interface CreateBacklogDto {
 
 export interface UpdateBacklogDto {
 	status?: string;
-	startedAt?: string;
-	finishedAt?: string;
+	startedAt?: string | null;
+	finishedAt?: string | null;
 	realDuration?: number;
 	score?: number;
 	duration?: number;

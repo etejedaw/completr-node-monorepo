@@ -64,8 +64,8 @@ export class BacklogModal implements OnInit {
 			[Validators.required, Validators.min(0.01)]
 		],
 		status: ["not_started"],
-		startedAt: [""],
-		finishedAt: [""],
+		startedAt: [null as string | null],
+		finishedAt: [null as string | null],
 		realDuration: [null as number | null],
 		userRating: [null as number | null],
 		notes: [""]
@@ -98,8 +98,8 @@ export class BacklogModal implements OnInit {
 				score: e.score ?? null,
 				duration: e.duration ?? null,
 				status: e.status,
-				startedAt: e.startedAt ? e.startedAt.split("T")[0] : "",
-				finishedAt: e.finishedAt ? e.finishedAt.split("T")[0] : "",
+				startedAt: e.startedAt ? e.startedAt.split("T")[0] : null,
+				finishedAt: e.finishedAt ? e.finishedAt.split("T")[0] : null,
 				realDuration: e.realDuration ?? null,
 				userRating: e.userRating ?? null,
 				notes: e.notes ?? ""
@@ -137,8 +137,8 @@ export class BacklogModal implements OnInit {
 				status: val.status ?? undefined,
 				score: val.score ?? undefined,
 				duration: val.duration ?? undefined,
-				startedAt: val.startedAt || undefined,
-				finishedAt: val.finishedAt || undefined,
+				startedAt: val.startedAt || null,
+				finishedAt: val.finishedAt || null,
 				realDuration: val.realDuration ?? undefined,
 				userRating: val.userRating ?? undefined,
 				notes: val.notes || undefined
