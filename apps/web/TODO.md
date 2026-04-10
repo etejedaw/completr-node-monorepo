@@ -25,35 +25,36 @@
 
 ### Estructura del proyecto
 
-- [ ] Crear estructura de carpetas: `core/`, `shared/`, `features/`, `environments/`
-- [ ] Configurar `environments/` con `apiUrl` para dev y producción
+- [x] Crear estructura de carpetas: `core/`, `shared/`, `features/`, `environments/`
+- [x] Configurar `environments/` con `apiUrl` para dev y producción
+- [x] Configurar `fileReplacements` en `angular.json` para producción
 
 ### Core services
 
-- [ ] `ApiService` — Wrapper de HttpClient con base URL
-- [ ] `AuthService` — Login, registro, token storage, estado de sesión con signals
-- [ ] `StorageService` — Abstracción sobre localStorage para token
+- [x] `AuthService` — Login, registro, token storage, estado de sesión con signals
+- [x] `StorageService` — Abstracción sobre localStorage para token
 
 ### HTTP
 
-- [ ] Configurar `provideHttpClient()` con interceptors en `app.config.ts`
-- [ ] `authInterceptor` — Agrega Bearer token a cada request autenticada
-- [ ] `errorInterceptor` — Manejo global de errores HTTP (401 → redirect a login, 500 → notificación)
+- [x] Configurar `provideHttpClient()` con interceptors en `app.config.ts`
+- [x] `authInterceptor` — Agrega Bearer token a cada request autenticada
+- [x] `errorInterceptor` — Manejo global de errores HTTP (401 → redirect a login)
 
 ### Auth guard
 
-- [ ] `authGuard` — Protege rutas que requieren login (redirect a `/login`)
-- [ ] `guestGuard` — Protege login/registro si ya estás autenticado (redirect a `/backlog`)
+- [x] `authGuard` — Protege rutas que requieren login (redirect a `/login`)
+- [x] `guestGuard` — Protege login/registro si ya estás autenticado (redirect a `/backlog`)
 
 ### Routing base
 
-- [ ] Configurar lazy loading por feature en `app.routes.ts`
-- [ ] Layout principal con navegación (sidebar o navbar)
-- [ ] Rutas: `/login`, `/register`, `/backlog`, `/game-shelf`, `/lists`, `/wishlist`, `/favorites`, `/profile`
+- [x] Configurar lazy loading por feature en `app.routes.ts`
+- [x] Layout principal con sidebar y navegación
+- [x] Rutas: `/login`, `/register`, `/backlog`, `/game-shelf`, `/lists`, `/wishlist`, `/favorites`, `/profile`
+- [x] Componentes placeholder por feature (todos compilan con lazy loading)
 
 ### Modelos/interfaces
 
-- [ ] Crear interfaces TypeScript que reflejen las respuestas del backend: `Game`, `Platform`, `Genre`, `BacklogEntry`, `List`, `ListItem`, `WishlistEntry`, `FavoriteEntry`, `User`, `SavedFilter`
+- [x] Crear interfaces TypeScript: `Game`, `Platform`, `Genre`, `BacklogEntry`, `List`, `ListItem`, `WishlistEntry`, `FavoriteEntry`, `User`, `SavedFilter`, `GameShelfEntry`
 
 ### PWA
 
