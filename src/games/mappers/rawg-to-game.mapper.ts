@@ -3,6 +3,7 @@ import { TimeSource } from "../../game-times/game-time.model";
 import { RawgGameDetail } from "../../rawg/rawg.interface";
 import { RegisterGameDto } from "../dtos/register-game.dto";
 import { mapRawgPlatformSlugs } from "./rawg-platform.map";
+import { mapRawgGenreSlugs } from "./rawg-genre.map";
 
 export interface GameScoreEntry {
 	source: ScoreSource;
@@ -38,7 +39,7 @@ export function rawgToGameMapper(rawgGame: RawgGameDetail): RawgMappedData {
 		enrichment: {
 			scores: mapScores(rawgGame.metacritic),
 			times: mapTimes(rawgGame.playtime),
-			genreSlugs: rawgGame.genres.map(g => g.slug)
+			genreSlugs: mapRawgGenreSlugs(rawgGame.genres.map(g => g.slug))
 		}
 	};
 }
