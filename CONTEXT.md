@@ -460,6 +460,8 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Favorites: `PUT /users/me/favorites` replace-all con gameIds, `GET` me y público. No requiere backlog. Límite 10 free / ilimitado premium
 - Campos `isWishlistPublic` y `isFavoritePublic` en modelo User
 - GameExternalId: modelo para mapear juegos a IDs de plataformas externas (RAWG, IGDB, Steam, HLTB, Metacritic, OpenCritic). Sin endpoints — uso interno. Búsqueda con fallback a RAWG ahora verifica por external ID antes de crear duplicados
+- `personalRatio` (score / realDuration) agregado al serializer de backlog
+- CORS fix: origin `"*"` ya no se convierte a array (corregido en cors.config.ts)
 
 ### Pendiente — Fases posteriores
 
