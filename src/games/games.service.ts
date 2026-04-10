@@ -153,7 +153,6 @@ async function searchAndCreateFromRawg(query: string) {
 			page_size: 3,
 			exclude_additions: true
 		});
-		if (rawgResults.length === 0) return [];
 
 		const games: Game[] = [];
 
@@ -170,10 +169,26 @@ async function searchAndCreateFromRawg(query: string) {
 			}
 		}
 
+		const slugGame = await resolveRawgBySlug(query);
+		if (slugGame && !games.some(g => g.id === slugGame.id)) {
+			games.unshift(slugGame);
+		}
+
 		return games;
 	} catch (error) {
 		logger.warn("searchAndCreateFromRawg", "RAWG fallback failed", error);
 		return [];
+	}
+}
+
+async function resolveRawgBySlug(query: string) {
+	try {
+		const slug = titleToSlug(query);
+		const detail = await rawg.getGameBySlug(slug);
+		const game = await resolveRawgResult(detail.id);
+		return game;
+	} catch {
+		return null;
 	}
 }
 
