@@ -99,7 +99,7 @@
 						>
 						}
 					</th>
-					<th class="col-notes"></th>
+					<th class="col-notes">Notes</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -135,7 +135,7 @@
 					<td class="col-num">{{ entry.userRating ?? "-" }}</td>
 					<td class="col-date">
 						{{ entry.finishedAt ? (entry.finishedAt |
-						date:'shortDate') : "-" }}
+						date:'yyyy-MM-dd') : "-" }}
 					</td>
 					<td class="col-status">
 						<span
@@ -147,9 +147,7 @@
 					</td>
 					<td class="col-notes">
 						@if (entry.notes) {
-						<span class="notes-icon" [title]="entry.notes"
-							>&#9998;</span
-						>
+						<span class="notes-text">{{ entry.notes }}</span>
 						}
 					</td>
 				</tr>
