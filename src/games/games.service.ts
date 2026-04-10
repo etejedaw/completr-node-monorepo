@@ -111,6 +111,40 @@ export async function searchGames(query: string) {
 	return searchAndCreateFromRawg(query);
 }
 
+export async function rawgLookup(query: string) {
+	const results = await rawg.searchGame(query, {
+		page_size: 10,
+		exclude_additions: true
+	});
+
+	return results.map(r => ({
+		rawgId: r.id,
+		title: r.name,
+		coverUrl: r.background_image,
+		releaseAt: r.released,
+		metacritic: r.metacritic,
+		playtime: r.playtime,
+		platforms: r.platforms.map(p => p.platform.slug),
+		genres: r.genres.map(g => g.slug)
+	}));
+}
+
+export async function rawgDetail(rawgId: number) {
+	const detail = await rawg.getGameById(rawgId);
+	const mapped = rawgToGameMapper(detail);
+	return {
+		rawgId: detail.id,
+		title: detail.name,
+		description: detail.description_raw,
+		coverUrl: detail.background_image,
+		releaseAt: detail.released,
+		platforms: mapped.game.platforms,
+		genres: mapped.enrichment.genreSlugs ?? [],
+		scores: mapped.enrichment.scores ?? [],
+		times: mapped.enrichment.times ?? []
+	};
+}
+
 async function searchAndCreateFromRawg(query: string) {
 	try {
 		const rawgResults = await rawg.searchGame(query, {
@@ -195,12 +229,18 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 	const game = await findGameById(id);
 	if (!game) throw gamesServiceError.notFoundError();
 
-	const { platforms, genres, ...gameDto } = updateGameDto;
+	const { platforms, genres, title, ...gameDto } = updateGameDto;
 
 	if (platforms) await platformsUpdate(game.id, platforms);
 	if (genres) await genresUpdate(game.id, genres);
 
-	await game.update(gameDto);
+	const updateData: Record<string, unknown> = { ...gameDto };
+	if (title) {
+		updateData.title = title;
+		updateData.code = titleToSlug(title);
+	}
+
+	await game.update(updateData);
 
 	const updatedGame = await findGameById(id);
 	return updatedGame as Game;
