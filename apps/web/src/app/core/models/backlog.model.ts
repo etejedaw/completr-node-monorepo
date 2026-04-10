@@ -4,6 +4,7 @@ export interface BacklogEntry {
 	score?: number;
 	duration?: number;
 	ratio?: number;
+	personalRatio?: number;
 	startedAt?: string;
 	finishedAt?: string;
 	realDuration?: number;
