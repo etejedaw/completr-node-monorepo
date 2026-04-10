@@ -355,6 +355,12 @@
 - [ ] Flujo de registro limpio y funcional
 - [ ] Corrección de bugs encontrados en Fase 1
 
+### Panel admin de usuarios
+
+- [ ] `POST /admin/users` — Crear usuario manualmente (solo admin)
+- [ ] Bloquear `POST /auth/register` para usuarios no autenticados (registro solo via admin hasta beta pública)
+- [ ] Vista en frontend para crear usuarios desde el panel admin
+
 ---
 
 ## 🟦 FASE 3 — Beta Cerrada _(~2–3 meses)_
