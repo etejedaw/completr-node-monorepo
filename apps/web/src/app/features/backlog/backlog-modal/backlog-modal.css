@@ -150,27 +150,11 @@
 	background: var(--bg-surface);
 }
 
-.btn-force-search {
-	margin-top: 0.375rem;
-	padding: 0.375rem 0.75rem;
-	background: transparent;
-	border: 1px solid var(--border-hover);
-	color: var(--text-secondary);
-	border-radius: var(--radius);
-	font-size: 0.75rem;
-	cursor: pointer;
-	transition: all var(--transition);
-}
-
-.btn-force-search:hover:not(:disabled) {
-	background: var(--accent-subtle);
+.force-search-option {
+	border-top: 1px solid var(--border);
 	color: var(--accent);
-	border-color: var(--accent);
-}
-
-.btn-force-search:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
+	font-size: 0.8125rem;
+	font-weight: 500;
 }
 
 .result-cover {

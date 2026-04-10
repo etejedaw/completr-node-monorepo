@@ -40,7 +40,7 @@
 					[value]="searchQuery()"
 					(input)="onSearch($event)"
 				/>
-				@if (gameResults().length > 0) {
+				@if (gameResults().length > 0 || searchQuery().length >= 2) {
 				<ul class="search-results">
 					@for (game of gameResults(); track game.id) {
 					<li (click)="selectGame(game)">
@@ -49,17 +49,13 @@
 						}
 						<span>{{ game.title }}</span>
 					</li>
+					} @if (searchQuery().length >= 2) {
+					<li class="force-search-option" (click)="forceSearch()">
+						{{ isForceSearching() ? 'Searching...' : 'Force search
+						for "' + searchQuery() + '"' }}
+					</li>
 					}
 				</ul>
-				} @if (searchQuery().length >= 2) {
-				<button
-					type="button"
-					class="btn-force-search"
-					(click)="forceSearch()"
-					[disabled]="isForceSearching()"
-				>
-					{{ isForceSearching() ? 'Searching...' : 'Force search' }}
-				</button>
 				} }
 			</div>
 			} @else {
