@@ -287,8 +287,15 @@
 
 - [x] Frontend con Angular (repo separado: `completr-node-frontend`)
 - [x] Configurar como PWA (`@angular/pwa`): service worker, manifest, instalable en móvil
-- [x] Vista de tabla del backlog en frontend con todas las columnas (cover, título, plataforma, score, duration, ratio, realDuration, personalRatio, userRating, finishedAt, status, notes)
-- [x] Ordenamiento y filtrado básico en el frontend (status tabs, sort por columnas)
+- [x] Vista de tabla del backlog en frontend con CRUD completo (crear, editar, eliminar via modal)
+- [x] Búsqueda de juegos con fallback a RAWG, force search, precarga de scores/duration
+- [x] Ordenamiento y filtrado básico en el frontend (status tabs, sort por columnas, búsqueda local)
+- [x] ScoreSource: tabla de referencia con escalas por fuente, endpoint `GET /score-sources` público
+- [x] GameScore.source refactorizado de ENUM a STRING con FK a ScoreSource
+- [x] `backgroundUrl` en Game para RAWG images, `coverUrl` reservado para covers reales
+- [x] Registro restringido a admin, hard delete de games con CASCADE
+- [x] RAWG mapper: rating RAWG, expansión pc→tiendas, mapeo de géneros
+- [x] Backlog update nullable: startedAt, finishedAt, realDuration, userRating, notes
 - [ ] Agregar sort_by `title` (campo de Game, requiere order por relación en Sequelize) y `ratio`/`personalRatio` (campos calculados) al backend para soportar saved filters correctamente
 - [ ] Vista de progreso básico del backlog
 

@@ -466,6 +466,16 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - GameExternalId: modelo para mapear juegos a IDs de plataformas externas (RAWG, IGDB, Steam, HLTB, Metacritic, OpenCritic). Sin endpoints — uso interno. Búsqueda con fallback a RAWG ahora verifica por external ID antes de crear duplicados
 - `personalRatio` (score / realDuration) agregado al serializer de backlog
 - CORS fix: origin `"*"` ya no se convierte a array (corregido en cors.config.ts)
+- ScoreSource: tabla de referencia para fuentes de puntaje con escalas (metacritic:100, opencritic:100, rawg:5, completr:10). `GET /score-sources` público, `POST /score-sources` admin. GameScore.source ahora es FK a ScoreSource.code
+- GameScore.source refactorizado de ENUM a STRING con FK a ScoreSource
+- `backgroundUrl` agregado al modelo Game — RAWG `background_image` se guarda en `backgroundUrl`. `coverUrl` reservado para covers reales de otra fuente
+- Búsqueda RAWG: fallback por slug cuando la búsqueda por texto no encuentra, `force_rawg=true` para saltar búsqueda local
+- RAWG mapper: almacena rating RAWG como GameScore(source: 'rawg'), expande `pc` a múltiples tiendas (steam, gog, epic, etc.), mapea géneros con `rawg-genre.map.ts`
+- Hard delete de games: `DELETE /games/:id?hard=true` (solo admin) con CASCADE en todas las asociaciones
+- `PATCH /games/:id` acepta `title` con regeneración de slug
+- RAWG lookup y detail endpoints para admin re-scrape
+- Registro restringido a admin (`POST /auth/register` requiere token admin)
+- Backlog update: `startedAt`, `finishedAt`, `realDuration`, `userRating`, `notes` aceptan `null` para limpiar valores
 
 ### Pendiente — Fases posteriores
 
