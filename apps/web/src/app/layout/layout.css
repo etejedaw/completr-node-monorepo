@@ -6,7 +6,7 @@
 /* === Sidebar === */
 
 .sidebar {
-  width: 240px;
+  width: 280px;
   background: var(--bg-sidebar);
   display: flex;
   flex-direction: column;
