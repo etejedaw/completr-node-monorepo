@@ -139,9 +139,9 @@ export class BacklogModal implements OnInit {
 				duration: val.duration ?? undefined,
 				startedAt: val.startedAt || null,
 				finishedAt: val.finishedAt || null,
-				realDuration: val.realDuration ?? undefined,
-				userRating: val.userRating ?? undefined,
-				notes: val.notes || undefined
+				realDuration: val.realDuration ?? null,
+				userRating: val.userRating ?? null,
+				notes: val.notes || null
 			};
 			this.backlogService.update(this.entry()!.id, dto).subscribe({
 				next: () => this.saved.emit(),

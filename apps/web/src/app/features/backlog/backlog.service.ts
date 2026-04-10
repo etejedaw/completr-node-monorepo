@@ -47,12 +47,12 @@ export interface UpdateBacklogDto {
 	status?: string;
 	startedAt?: string | null;
 	finishedAt?: string | null;
-	realDuration?: number;
+	realDuration?: number | null;
 	score?: number;
 	duration?: number;
-	userRating?: number;
+	userRating?: number | null;
 	isPublic?: boolean;
-	notes?: string;
+	notes?: string | null;
 }
 
 @Injectable({ providedIn: "root" })
