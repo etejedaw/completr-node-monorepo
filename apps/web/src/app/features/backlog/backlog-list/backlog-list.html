@@ -51,7 +51,14 @@
 						>
 						}
 					</th>
-					<th class="col-num">Ratio</th>
+					<th class="col-num" (click)="sort('ratio')">
+						Ratio @if (sortBy() === 'ratio') {
+						<span class="sort-arrow"
+							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
+							}}</span
+						>
+						}
+					</th>
 					<th class="col-num" (click)="sort('realDuration')">
 						Real @if (sortBy() === 'realDuration') {
 						<span class="sort-arrow"
@@ -60,7 +67,14 @@
 						>
 						}
 					</th>
-					<th class="col-num">P. Ratio</th>
+					<th class="col-num" (click)="sort('personalRatio')">
+						P. Ratio @if (sortBy() === 'personalRatio') {
+						<span class="sort-arrow"
+							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
+							}}</span
+						>
+						}
+					</th>
 					<th class="col-num" (click)="sort('userRating')">
 						Rating @if (sortBy() === 'userRating') {
 						<span class="sort-arrow"

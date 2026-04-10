@@ -44,6 +44,8 @@ export class BacklogList implements OnInit {
 		this.loadBacklog();
 	}
 
+	private readonly clientSortFields = new Set(["ratio", "personalRatio"]);
+
 	sort(column: string) {
 		if (this.sortBy() === column) {
 			this.sortOrder.set(this.sortOrder() === "asc" ? "desc" : "asc");
@@ -51,7 +53,23 @@ export class BacklogList implements OnInit {
 			this.sortBy.set(column);
 			this.sortOrder.set("desc");
 		}
-		this.loadBacklog();
+
+		if (this.clientSortFields.has(column)) {
+			this.sortEntriesLocally();
+		} else {
+			this.loadBacklog();
+		}
+	}
+
+	private sortEntriesLocally() {
+		const field = this.sortBy() as keyof BacklogEntry;
+		const order = this.sortOrder();
+		const sorted = [...this.entries()].sort((a, b) => {
+			const aVal = (a[field] as number) ?? 0;
+			const bVal = (b[field] as number) ?? 0;
+			return order === "asc" ? aVal - bVal : bVal - aVal;
+		});
+		this.entries.set(sorted);
 	}
 
 	statusClass(status: BacklogStatus): string {
