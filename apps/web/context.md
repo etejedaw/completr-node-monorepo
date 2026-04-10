@@ -1,0 +1,298 @@
+# Completr Frontend — Contexto del Proyecto
+
+## Visión
+
+Frontend de Completr (Backlogr): aplicación web para gestionar backlogs de videojuegos con ratios de priorización, listas curadas y features sociales. Se conecta al backend Node.js/Express ya implementado.
+
+---
+
+## Stack técnico
+
+| Capa                | Tecnología                            |
+| ------------------- | ------------------------------------- |
+| Framework           | Angular 21 (standalone, sin NgModule) |
+| Lenguaje            | TypeScript 5.9                        |
+| Reactividad         | Signals (Angular Signals API)         |
+| Testing             | Vitest + jsdom                        |
+| Estilos             | CSS (sin preprocesador por ahora)     |
+| PWA                 | `@angular/pwa` (pendiente)            |
+| Build               | `@angular/build:application`          |
+| Package Manager     | npm                                   |
+
+---
+
+## Conexión con el backend
+
+| Config      | Valor                                |
+| ----------- | ------------------------------------ |
+| Base URL    | `http://localhost:3000` (desarrollo) |
+| Auth        | JWT Bearer token en header           |
+| Token store | `localStorage`                       |
+
+---
+
+## Arquitectura
+
+### Estructura de carpetas (feature-based)
+
+Angular moderno recomienda organización por feature, no por tipo. Cada feature agrupa sus componentes, services, guards y routes:
+
+```
+src/
+├── app/
+│   ├── core/                    # Servicios singleton, interceptors, guards globales
+│   │   ├── services/            # AuthService, ApiService, StorageService
+│   │   ├── interceptors/        # auth.interceptor.ts, error.interceptor.ts
+│   │   ├── guards/              # auth.guard.ts
+│   │   └── models/              # Interfaces compartidas (User, Game, etc.)
+│   ├── shared/                  # Componentes reutilizables, pipes, directivas
+│   │   ├── components/          # LoadingSpinner, GameCard, RatioDisplay, etc.
+│   │   └── pipes/               # ratio.pipe.ts, truncate.pipe.ts
+│   ├── features/                # Módulos de funcionalidad (lazy loaded)
+│   │   ├── auth/                # Login, registro
+│   │   ├── backlog/             # Vista principal del backlog, filtros, tabla
+│   │   ├── game-shelf/          # Mi colección de juegos
+│   │   ├── games/               # Búsqueda, detalle de juego
+│   │   ├── lists/               # CRUD de listas, detalle con items
+│   │   ├── wishlist/            # Mi wishlist
+│   │   ├── favorites/           # Mis favoritos
+│   │   ├── profile/             # Perfil propio y público
+│   │   └── saved-filters/       # Gestión de filtros guardados
+│   ├── app.ts                   # Componente raíz
+│   ├── app.config.ts            # Providers globales
+│   └── app.routes.ts            # Rutas principales (lazy loading)
+├── environments/                # Variables de entorno (apiUrl, etc.)
+├── styles.css                   # Estilos globales
+├── index.html
+└── main.ts
+```
+
+### Estructura interna de una feature
+
+Cada feature sigue la misma convención:
+
+```
+features/backlog/
+├── backlog.routes.ts            # Rutas de la feature (lazy loaded)
+├── backlog-list/                # Componente: vista de lista/tabla
+│   ├── backlog-list.ts
+│   ├── backlog-list.html
+│   └── backlog-list.css
+├── backlog-filters/             # Componente: panel de filtros
+│   ├── backlog-filters.ts
+│   ├── backlog-filters.html
+│   └── backlog-filters.css
+└── backlog.service.ts           # Service de la feature (HTTP calls)
+```
+
+---
+
+## Convenciones Angular moderno (v17+)
+
+### Standalone components (sin NgModule)
+
+Todos los componentes son standalone. Cada uno declara sus imports directamente:
+
+```typescript
+@Component({
+  selector: 'app-game-card',
+  imports: [CommonModule, RouterLink],
+  templateUrl: './game-card.html',
+  styleUrl: './game-card.css'
+})
+export class GameCard {
+  game = input.required<Game>();
+}
+```
+
+### Signals para estado reactivo
+
+Angular Signals reemplazan la mayoría de usos de BehaviorSubject/Observable para estado local y compartido:
+
+```typescript
+// Estado local en componentes
+protected readonly isLoading = signal(false);
+protected readonly games = signal<Game[]>([]);
+
+// Valores derivados (computed)
+protected readonly totalGames = computed(() => this.games().length);
+
+// En services (estado compartido)
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private readonly _user = signal<User | null>(null);
+  readonly user = this._user.asReadonly();
+  readonly isLoggedIn = computed(() => this._user() !== null);
+}
+```
+
+**Cuándo usar Signals vs Observables:**
+- **Signals**: estado sincrónico, UI state, datos cacheados, computed values
+- **Observables (RxJS)**: llamadas HTTP, WebSockets, eventos de tiempo (debounce, throttle), operaciones complejas con operadores
+
+### Inyección de dependencias con `inject()`
+
+Usar `inject()` en vez de constructor injection:
+
+```typescript
+export class BacklogService {
+  private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
+}
+```
+
+### Signal inputs y outputs
+
+Inputs y outputs modernos basados en signals:
+
+```typescript
+@Component({ ... })
+export class GameCard {
+  // Input requerido
+  game = input.required<Game>();
+
+  // Input con default
+  showRatio = input(true);
+
+  // Output
+  gameClicked = output<Game>();
+}
+```
+
+### Change Detection con OnPush
+
+Todos los componentes usan `OnPush` para mejor performance. Con signals esto es natural porque Angular detecta automáticamente cuándo un signal cambia:
+
+```typescript
+@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  ...
+})
+```
+
+### HTTP Client con providers
+
+Configurado en `app.config.ts` con interceptors funcionales:
+
+```typescript
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    provideHttpClient(withInterceptors([authInterceptor, errorInterceptor]))
+  ]
+};
+```
+
+### Interceptor funcional (no clase):
+
+```typescript
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const token = inject(AuthService).token();
+  if (token) {
+    req = req.clone({
+      setHeaders: { Authorization: `Bearer ${token}` }
+    });
+  }
+  return next(req);
+};
+```
+
+### Lazy loading por feature
+
+Las rutas cargan features on-demand:
+
+```typescript
+export const routes: Routes = [
+  {
+    path: 'backlog',
+    loadChildren: () => import('./features/backlog/backlog.routes')
+      .then(m => m.BACKLOG_ROUTES)
+  }
+];
+```
+
+### Reactive Forms
+
+Se usan Reactive Forms (no template-driven) para formularios complejos:
+
+```typescript
+export class LoginForm {
+  private readonly fb = inject(FormBuilder);
+
+  form = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(8)]]
+  });
+}
+```
+
+### Guards funcionales
+
+```typescript
+export const authGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  return auth.isLoggedIn() ? true : router.createUrlTree(['/login']);
+};
+```
+
+---
+
+## Patrones clave
+
+- **Feature-based structure**: cada feature tiene sus componentes, service y routes. No hay carpetas globales `components/` o `services/` (salvo `core/` y `shared/`).
+- **Smart vs Dumb components**: los componentes de página (smart) manejan lógica y HTTP. Los componentes reutilizables (dumb) solo reciben inputs y emiten outputs.
+- **El backend calcula todo**: ratios, estadísticas y datos derivados vienen del backend. El frontend solo renderiza.
+- **Toda la lógica HTTP en services**: los componentes nunca llaman a `HttpClient` directamente.
+- **Estado con Signals**: signals para estado local y compartido, observables solo para HTTP y streams.
+
+---
+
+## Versionado por fase (mismo que backend)
+
+| Fase   | Release  | Descripción                                  |
+| ------ | -------- | -------------------------------------------- |
+| Fase 0 | `v0.1.0` | Setup, arquitectura, sin vistas funcionales  |
+| Fase 1 | `v0.2.0` | Excel Killer, solo uso personal              |
+| Fase 2 | `v0.3.0` | MVP Amigos, 5–20 personas                    |
+| Fase 3 | `v0.4.0` | Beta cerrada, 50–200 por invitación          |
+| Fase 4 | `v1.0.0` | Beta pública, primer release abierto (500+)  |
+| Fase 5 | `v1.1.0` | Estabilización y calidad                     |
+| Fase 6 | `v2.0.0` | Premium                                      |
+| Fase 7 | `v2.x.x` | Incrementales según features                 |
+
+---
+
+## Convenciones de código
+
+### Naming
+
+- Componentes: `kebab-case` para archivos (`game-card.ts`), `PascalCase` para clase (`GameCard`)
+- Services: `kebab-case` para archivos (`backlog.service.ts`), `PascalCase` para clase (`BacklogService`)
+- Interfaces/types: `PascalCase` (`Game`, `BacklogEntry`, `User`)
+- Routes: `kebab-case` en URLs (`/game-shelf`, `/saved-filters`)
+
+### Commits
+
+- Conventional Commits (igual que backend): `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`
+- Solo una línea, sin cuerpo ni firma
+
+### Post-edición
+
+- Después de terminar ediciones: ejecutar lint y format
+
+---
+
+## Estado actual
+
+### Completado
+
+- Proyecto Angular 21 generado con CLI
+- Standalone components configurado (default)
+- Vitest configurado como test runner
+- Componente raíz con signal básico
+- Router configurado (rutas vacías)
+
+### Pendiente
+
+- Todo lo demás: core services, interceptors, features, PWA, estilos
