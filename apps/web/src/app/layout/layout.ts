@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 
@@ -8,9 +8,15 @@ import { AuthService } from '../core/services/auth.service';
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
-export class Layout {
+export class Layout implements OnInit {
   private readonly auth = inject(AuthService);
   protected readonly user = this.auth.user;
+
+  ngOnInit() {
+    if (!this.user()) {
+      this.auth.loadUser().subscribe();
+    }
+  }
 
   logout() {
     this.auth.logout();
