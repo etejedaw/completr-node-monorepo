@@ -58,8 +58,8 @@
 
 ### PWA
 
-- [ ] Configurar como PWA (`@angular/pwa`): service worker, manifest, instalable en móvil
-- [ ] Configurar caché de assets estáticos
+- [x] Configurar como PWA (`@angular/pwa`): service worker, manifest, iconos, instalable en móvil
+- [x] Service worker activo solo en producción (`isDevMode()` check)
 
 ---
 
