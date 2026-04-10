@@ -1,7 +1,11 @@
-<div class="auth-container">
+<div class="auth-page">
+  <div class="auth-backdrop"></div>
   <div class="auth-card">
-    <h1>Completr</h1>
-    <p class="subtitle">Sign in to your account</p>
+    <div class="brand">
+      <span class="brand-icon">C</span>
+      <h1>Completr</h1>
+    </div>
+    <p class="subtitle">Track your games. Prioritize your backlog.</p>
 
     @if (error()) {
       <div class="error-message">{{ error() }}</div>
@@ -15,6 +19,7 @@
           type="email"
           formControlName="email"
           placeholder="you@example.com"
+          autocomplete="email"
         />
       </div>
 
@@ -25,16 +30,17 @@
           type="password"
           formControlName="password"
           placeholder="Your password"
+          autocomplete="current-password"
         />
       </div>
 
-      <button type="submit" [disabled]="form.invalid || isLoading()">
+      <button class="btn-primary" type="submit" [disabled]="form.invalid || isLoading()">
         {{ isLoading() ? 'Signing in...' : 'Sign in' }}
       </button>
     </form>
 
     <p class="auth-link">
-      Don't have an account? <a routerLink="/register">Sign up</a>
+      Don't have an account? <a routerLink="/register">Create one</a>
     </p>
   </div>
 </div>
