@@ -79,14 +79,16 @@
 
 ### Feature: Backlog (pantalla principal)
 
-- [ ] Vista de tabla/lista del backlog con columnas: título, plataforma, ratio, duración, score, estado, userRating
-- [ ] Ordenamiento por columna (ratio, score, duration, userRating, status)
-- [ ] Filtros: status (not_started, playing, completed, abandoned), plataforma, rangos de fechas
-- [ ] Multi-status filter (ej: completed + abandoned)
+- [x] Vista de tabla del backlog con columnas: cover, título, plataforma, score, duration, ratio, realDuration, personalRatio, userRating, finishedAt, status, notes
+- [x] Ordenamiento por columna: title, ratio y personalRatio se ordenan en frontend (campos calculados/relación); score, duration, realDuration, userRating, finishedAt y status se ordenan via backend
+- [x] Filtros por status con tabs (All, Not Started, Playing, Completed, Abandoned)
+- [x] Status badges con colores por estado
+- [x] Tabla se mantiene visible al cambiar filtros (sin flicker de loading)
+- [ ] Evaluar sort de title y ratio via backend cuando se implementen saved filters (actualmente local)
+- [ ] Filtros avanzados: plataforma, rangos de fechas, multi-status combinado
 - [ ] Crear nueva entrada de backlog (seleccionar juego, plataforma, score, duration)
 - [ ] Editar entrada (cambiar status, score, duration, userRating, notas)
 - [ ] Eliminar entrada
-- [ ] Indicador visual por status (colores o iconos)
 
 ### Feature: Game Shelf
 
