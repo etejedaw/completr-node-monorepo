@@ -20,9 +20,11 @@ import { BacklogModal } from "../backlog-modal/backlog-modal";
 export class BacklogList implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 
+	private readonly allEntries = signal<BacklogEntry[]>([]);
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly isInitialLoad = signal(true);
+	protected readonly searchQuery = signal("");
 	protected readonly activeStatus = signal<string>("");
 	protected readonly sortBy = signal("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
@@ -46,6 +48,24 @@ export class BacklogList implements OnInit {
 	filterByStatus(status: string) {
 		this.activeStatus.set(status);
 		this.loadBacklog();
+	}
+
+	onSearch(event: Event) {
+		const query = (event.target as HTMLInputElement).value;
+		this.searchQuery.set(query);
+		this.filterEntries();
+	}
+
+	private filterEntries() {
+		const query = this.searchQuery().toLowerCase();
+		if (!query) {
+			this.entries.set(this.allEntries());
+			return;
+		}
+		const filtered = this.allEntries().filter(e =>
+			e.game.title.toLowerCase().includes(query)
+		);
+		this.entries.set(filtered);
 	}
 
 	private readonly clientSortFields = new Set([
@@ -72,7 +92,7 @@ export class BacklogList implements OnInit {
 	private sortEntriesLocally() {
 		const field = this.sortBy();
 		const order = this.sortOrder();
-		const sorted = [...this.entries()].sort((a, b) => {
+		const sorted = [...this.allEntries()].sort((a, b) => {
 			if (field === "title") {
 				const aVal = a.game.title.toLowerCase();
 				const bVal = b.game.title.toLowerCase();
@@ -83,7 +103,8 @@ export class BacklogList implements OnInit {
 			const bVal = (b[field as keyof BacklogEntry] as number) ?? 0;
 			return order === "asc" ? aVal - bVal : bVal - aVal;
 		});
-		this.entries.set(sorted);
+		this.allEntries.set(sorted);
+		this.filterEntries();
 	}
 
 	statusClass(status: BacklogStatus): string {
@@ -143,8 +164,9 @@ export class BacklogList implements OnInit {
 
 		this.backlogService.getMyBacklog(filters).subscribe({
 			next: res => {
-				this.entries.set(res.data.backlog);
+				this.allEntries.set(res.data.backlog);
 				if (isClientSort) this.sortEntriesLocally();
+				this.filterEntries();
 				this.isLoading.set(false);
 				this.isInitialLoad.set(false);
 			},

@@ -36,6 +36,36 @@
 	transition: opacity var(--transition);
 }
 
+/* === Search === */
+
+.search-bar {
+	margin-bottom: 0.75rem;
+}
+
+.search-bar input {
+	width: 100%;
+	max-width: 320px;
+	padding: 0.5rem 0.75rem;
+	background: var(--bg-input);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	color: var(--text-primary);
+	font-size: 0.8125rem;
+	transition:
+		border-color var(--transition),
+		box-shadow var(--transition);
+}
+
+.search-bar input::placeholder {
+	color: var(--text-muted);
+}
+
+.search-bar input:focus {
+	outline: none;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+
 .btn-add:hover {
 	opacity: 0.9;
 }

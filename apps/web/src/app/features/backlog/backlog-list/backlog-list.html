@@ -7,6 +7,15 @@
 		<button class="btn-add" (click)="openCreate()">+ Add Game</button>
 	</div>
 
+	<div class="search-bar">
+		<input
+			type="text"
+			placeholder="Search by title..."
+			[value]="searchQuery()"
+			(input)="onSearch($event)"
+		/>
+	</div>
+
 	<div class="status-tabs">
 		@for (s of statusFilters; track s.value) {
 		<button
