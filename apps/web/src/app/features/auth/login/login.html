@@ -1,0 +1,40 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h1>Completr</h1>
+    <p class="subtitle">Sign in to your account</p>
+
+    @if (error()) {
+      <div class="error-message">{{ error() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="you@example.com"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="Your password"
+        />
+      </div>
+
+      <button type="submit" [disabled]="form.invalid || isLoading()">
+        {{ isLoading() ? 'Signing in...' : 'Sign in' }}
+      </button>
+    </form>
+
+    <p class="auth-link">
+      Don't have an account? <a routerLink="/register">Sign up</a>
+    </p>
+  </div>
+</div>

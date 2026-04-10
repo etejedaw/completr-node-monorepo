@@ -1,0 +1,60 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h1>Completr</h1>
+    <p class="subtitle">Create your account</p>
+
+    @if (error()) {
+      <div class="error-message">{{ error() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          placeholder="your_username"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="Your name"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="you@example.com"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="Min 8 chars, uppercase, number, special"
+        />
+      </div>
+
+      <button type="submit" [disabled]="form.invalid || isLoading()">
+        {{ isLoading() ? 'Creating account...' : 'Create account' }}
+      </button>
+    </form>
+
+    <p class="auth-link">
+      Already have an account? <a routerLink="/login">Sign in</a>
+    </p>
+  </div>
+</div>
