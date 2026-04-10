@@ -134,9 +134,36 @@ export class BacklogModal implements OnInit {
 
 	selectGame(game: Game) {
 		this.selectedGame.set(game);
-		this.form.patchValue({ gameId: game.id, platformId: "" });
+
+		const score = this.pickScore(game);
+		const duration = this.pickDuration(game);
+
+		this.form.patchValue({
+			gameId: game.id,
+			platformId: "",
+			score,
+			duration
+		});
 		this.gameResults.set([]);
 		this.searchQuery.set("");
+	}
+
+	private pickScore(game: Game): number | null {
+		const priority = ["metacritic", "opencritic", "rawg", "completr"];
+		for (const source of priority) {
+			const found = game.scores?.find(s => s.source === source);
+			if (found) return found.score;
+		}
+		return null;
+	}
+
+	private pickDuration(game: Game): number | null {
+		const priority = ["hltb", "rawg", "completr"];
+		for (const source of priority) {
+			const found = game.times?.find(t => t.source === source);
+			if (found) return found.duration;
+		}
+		return null;
 	}
 
 	clearGame() {
