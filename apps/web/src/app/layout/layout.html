@@ -1,0 +1,34 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h2>Completr</h2>
+    </div>
+    <ul class="nav-links">
+      <li>
+        <a routerLink="/backlog" routerLinkActive="active">Backlog</a>
+      </li>
+      <li>
+        <a routerLink="/game-shelf" routerLinkActive="active">Game Shelf</a>
+      </li>
+      <li>
+        <a routerLink="/lists" routerLinkActive="active">Lists</a>
+      </li>
+      <li>
+        <a routerLink="/wishlist" routerLinkActive="active">Wishlist</a>
+      </li>
+      <li>
+        <a routerLink="/favorites" routerLinkActive="active">Favorites</a>
+      </li>
+      <li>
+        <a routerLink="/profile" routerLinkActive="active">Profile</a>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <span class="username">{{ user()?.username }}</span>
+      <button (click)="logout()">Logout</button>
+    </div>
+  </nav>
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>
