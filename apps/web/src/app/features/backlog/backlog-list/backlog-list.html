@@ -1,0 +1,113 @@
+<div class="backlog-page">
+	<div class="page-header">
+		<h1>Backlog</h1>
+		<span class="entry-count">{{ entries().length }} entries</span>
+	</div>
+
+	<div class="status-tabs">
+		@for (s of statusFilters; track s.value) {
+		<button
+			class="tab"
+			[class.active]="activeStatus() === s.value"
+			(click)="filterByStatus(s.value)"
+		>
+			{{ s.label }}
+		</button>
+		}
+	</div>
+
+	@if (isLoading()) {
+	<div class="loading">Loading...</div>
+	} @else if (entries().length === 0) {
+	<div class="empty">No entries found.</div>
+	} @else {
+	<div class="table-wrapper">
+		<table>
+			<thead>
+				<tr>
+					<th class="col-cover"></th>
+					<th class="col-title" (click)="sort('createdAt')">
+						Title @if (sortBy() === 'createdAt') {
+						<span class="sort-arrow"
+							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
+							}}</span
+						>
+						}
+					</th>
+					<th class="col-platform">Platform</th>
+					<th class="col-num" (click)="sort('score')">
+						Score @if (sortBy() === 'score') {
+						<span class="sort-arrow"
+							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
+							}}</span
+						>
+						}
+					</th>
+					<th class="col-num" (click)="sort('duration')">
+						Duration @if (sortBy() === 'duration') {
+						<span class="sort-arrow"
+							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
+							}}</span
+						>
+						}
+					</th>
+					<th class="col-num">Ratio</th>
+					<th class="col-num" (click)="sort('userRating')">
+						Rating @if (sortBy() === 'userRating') {
+						<span class="sort-arrow"
+							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
+							}}</span
+						>
+						}
+					</th>
+					<th class="col-status" (click)="sort('status')">
+						Status @if (sortBy() === 'status') {
+						<span class="sort-arrow"
+							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
+							}}</span
+						>
+						}
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (entry of entries(); track entry.id) {
+				<tr>
+					<td class="col-cover">
+						@if (entry.game.coverUrl) {
+						<img
+							[src]="entry.game.coverUrl"
+							[alt]="entry.game.title"
+							class="cover-img"
+						/>
+						} @else {
+						<div class="cover-placeholder"></div>
+						}
+					</td>
+					<td class="col-title">
+						<span class="game-title">{{ entry.game.title }}</span>
+					</td>
+					<td class="col-platform">
+						{{ entry.platform.abbreviation }}
+					</td>
+					<td class="col-num">{{ entry.score ?? "-" }}</td>
+					<td class="col-num">
+						{{ entry.duration ? entry.duration + "h" : "-" }}
+					</td>
+					<td class="col-num">{{ entry.ratio ?? "-" }}</td>
+					<td class="col-num">{{ entry.userRating ?? "-" }}</td>
+					<td class="col-status">
+						<span
+							class="status-badge"
+							[class]="statusClass(entry.status)"
+						>
+							{{ statusLabel(entry.status) }}
+						</span>
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+	}
+</div>
