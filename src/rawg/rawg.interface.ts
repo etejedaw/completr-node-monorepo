@@ -5,6 +5,7 @@ export interface RawgGameSearchResult {
 	released: string | null;
 	background_image: string | null;
 	metacritic: number | null;
+	rating: number;
 	playtime: number;
 	genres: RawgGenre[];
 	platforms: RawgPlatformWrapper[];

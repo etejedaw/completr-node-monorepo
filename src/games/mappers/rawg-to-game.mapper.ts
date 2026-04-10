@@ -37,16 +37,21 @@ export function rawgToGameMapper(rawgGame: RawgGameDetail): RawgMappedData {
 			genres: []
 		},
 		enrichment: {
-			scores: mapScores(rawgGame.metacritic),
+			scores: mapScores(rawgGame.metacritic, rawgGame.rating),
 			times: mapTimes(rawgGame.playtime),
 			genreSlugs: mapRawgGenreSlugs(rawgGame.genres.map(g => g.slug))
 		}
 	};
 }
 
-function mapScores(metacritic: number | null): GameScoreEntry[] {
-	if (!metacritic) return [];
-	return [{ source: "metacritic", score: metacritic }];
+function mapScores(
+	metacritic: number | null,
+	rawgRating: number
+): GameScoreEntry[] {
+	const scores: GameScoreEntry[] = [];
+	if (metacritic) scores.push({ source: "metacritic", score: metacritic });
+	if (rawgRating > 0) scores.push({ source: "rawg", score: rawgRating });
+	return scores;
 }
 
 function mapTimes(playtime: number): GameTimeEntry[] {
