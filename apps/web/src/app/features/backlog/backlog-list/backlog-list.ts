@@ -94,10 +94,13 @@ export class BacklogList implements OnInit {
 
 	private loadBacklog() {
 		this.isLoading.set(true);
-		const filters: BacklogFilters = {
-			sort_by: this.sortBy(),
-			sort_order: this.sortOrder()
-		};
+		const isClientSort = this.clientSortFields.has(this.sortBy());
+		const filters: BacklogFilters = {};
+
+		if (!isClientSort) {
+			filters.sort_by = this.sortBy();
+			filters.sort_order = this.sortOrder();
+		}
 
 		if (this.activeStatus()) {
 			filters.status = this.activeStatus();
@@ -106,6 +109,7 @@ export class BacklogList implements OnInit {
 		this.backlogService.getMyBacklog(filters).subscribe({
 			next: res => {
 				this.entries.set(res.data.backlog);
+				if (isClientSort) this.sortEntriesLocally();
 				this.isLoading.set(false);
 				this.isInitialLoad.set(false);
 			},
