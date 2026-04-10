@@ -14,6 +14,10 @@ export function backlogSerializer(backlogEntry: Backlog) {
 		score: backlogEntry.score,
 		duration: backlogEntry.duration,
 		ratio: calculateRatio(backlogEntry.score, backlogEntry.duration),
+		personalRatio: calculateRatio(
+			backlogEntry.score,
+			backlogEntry.realDuration
+		),
 		startedAt: backlogEntry.startedAt,
 		finishedAt: backlogEntry.finishedAt,
 		realDuration: backlogEntry.realDuration,
