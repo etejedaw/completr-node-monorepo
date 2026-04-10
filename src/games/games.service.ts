@@ -92,21 +92,23 @@ export async function findAll() {
 	});
 }
 
-export async function searchGames(query: string) {
-	const localResults = await Game.findAll({
-		where: {
-			title: { [Op.iLike]: `%${query}%` },
-			isActive: true
-		},
-		include: [
-			{ association: "Platforms" },
-			{ association: "Genres" },
-			{ association: "GameScores" },
-			{ association: "GameTimes" }
-		]
-	});
+export async function searchGames(query: string, forceRawg = false) {
+	if (!forceRawg) {
+		const localResults = await Game.findAll({
+			where: {
+				title: { [Op.iLike]: `%${query}%` },
+				isActive: true
+			},
+			include: [
+				{ association: "Platforms" },
+				{ association: "Genres" },
+				{ association: "GameScores" },
+				{ association: "GameTimes" }
+			]
+		});
 
-	if (localResults.length > 0) return localResults;
+		if (localResults.length > 0) return localResults;
+	}
 
 	return searchAndCreateFromRawg(query);
 }
