@@ -72,10 +72,10 @@
 
 ### Feature: Auth
 
-- [ ] Pantalla de login (email + password)
-- [ ] Pantalla de registro (username, email, password, name)
-- [ ] Redirect automático post-login a `/backlog`
-- [ ] Logout (limpiar token, redirect a login)
+- [x] Pantalla de login (email + password)
+- [x] Pantalla de registro (username, email, password, name)
+- [x] Redirect automático post-login a `/backlog`
+- [x] Logout (limpiar token, redirect a login)
 
 ### Feature: Backlog (pantalla principal)
 
