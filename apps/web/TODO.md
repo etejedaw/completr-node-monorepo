@@ -181,6 +181,12 @@
 - [ ] Flujo de registro pulido para amigos
 - [ ] Empty states con instrucciones claras ("Agrega tu primer juego")
 
+### Panel admin de usuarios
+
+- [ ] Ruta `/admin/users` protegida por rol admin
+- [ ] Formulario para crear usuarios manualmente (username, email, password, name, role)
+- [ ] Botón de registro público bloqueado (registro solo via admin hasta beta pública)
+
 ---
 
 ## FASE 3 — Beta Cerrada
