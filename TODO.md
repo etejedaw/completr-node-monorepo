@@ -285,8 +285,8 @@
 
 ### UI básica
 
-- [ ] Frontend con Angular
-- [ ] Configurar como PWA (`@angular/pwa`): service worker, manifest, instalable en móvil
+- [x] Frontend con Angular (repo separado: `completr-node-frontend`)
+- [x] Configurar como PWA (`@angular/pwa`): service worker, manifest, instalable en móvil
 - [ ] Vista de lista/tabla del backlog con columnas: título, plataforma, ratio, duración, nota, estado
 - [ ] Ordenamiento y filtrado básico en el frontend
 - [ ] Vista de progreso básico del backlog
