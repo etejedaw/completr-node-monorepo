@@ -1,56 +1,62 @@
 <div class="layout">
-  <nav class="sidebar">
-    <div class="sidebar-brand">
-      <span class="brand-icon">C</span>
-      <span class="brand-name">Completr</span>
-    </div>
+	<nav class="sidebar">
+		<div class="sidebar-brand">
+			<span class="brand-icon">C</span>
+			<span class="brand-name">Completr</span>
+		</div>
 
-    <div class="nav-section">
-      <span class="nav-label">Library</span>
-      <ul class="nav-links">
-        <li>
-          <a routerLink="/backlog" routerLinkActive="active">
-            <span class="nav-icon">&#9654;</span> Backlog
-          </a>
-        </li>
-        <li>
-          <a routerLink="/game-shelf" routerLinkActive="active">
-            <span class="nav-icon">&#9733;</span> Game Shelf
-          </a>
-        </li>
-        <li>
-          <a routerLink="/wishlist" routerLinkActive="active">
-            <span class="nav-icon">&#9829;</span> Wishlist
-          </a>
-        </li>
-        <li>
-          <a routerLink="/favorites" routerLinkActive="active">
-            <span class="nav-icon">&#9733;</span> Favorites
-          </a>
-        </li>
-      </ul>
-    </div>
+		<div class="nav-section">
+			<span class="nav-label">Library</span>
+			<ul class="nav-links">
+				<li>
+					<a routerLink="/backlog" routerLinkActive="active">
+						<span class="nav-icon">&#9654;</span> Backlog
+					</a>
+				</li>
+				<li>
+					<a routerLink="/game-shelf" routerLinkActive="active">
+						<span class="nav-icon">&#9733;</span> Game Shelf
+					</a>
+				</li>
+				<li>
+					<a routerLink="/wishlist" routerLinkActive="active">
+						<span class="nav-icon">&#9829;</span> Wishlist
+					</a>
+				</li>
+				<li>
+					<a routerLink="/favorites" routerLinkActive="active">
+						<span class="nav-icon">&#9733;</span> Favorites
+					</a>
+				</li>
+			</ul>
+		</div>
 
-    <div class="nav-section">
-      <span class="nav-label">Collections</span>
-      <ul class="nav-links">
-        <li>
-          <a routerLink="/lists" routerLinkActive="active">
-            <span class="nav-icon">&#9776;</span> Lists
-          </a>
-        </li>
-      </ul>
-    </div>
+		<div class="nav-section">
+			<span class="nav-label">Collections</span>
+			<ul class="nav-links">
+				<li>
+					<a routerLink="/lists" routerLinkActive="active">
+						<span class="nav-icon">&#9776;</span> Lists
+					</a>
+				</li>
+			</ul>
+		</div>
 
-    <div class="sidebar-footer">
-      <a routerLink="/profile" routerLinkActive="active" class="user-info">
-        <span class="user-avatar">{{ user()?.username?.charAt(0)?.toUpperCase() }}</span>
-        <span class="user-name">{{ user()?.username }}</span>
-      </a>
-      <button class="logout-btn" (click)="logout()">Sign out</button>
-    </div>
-  </nav>
-  <main class="content">
-    <router-outlet />
-  </main>
+		<div class="sidebar-footer">
+			<a
+				routerLink="/profile"
+				routerLinkActive="active"
+				class="user-info"
+			>
+				<span class="user-avatar"
+					>{{ user()?.username?.charAt(0)?.toUpperCase() }}</span
+				>
+				<span class="user-name">{{ user()?.username }}</span>
+			</a>
+			<button class="logout-btn" (click)="logout()">Sign out</button>
+		</div>
+	</nav>
+	<main class="content">
+		<router-outlet />
+	</main>
 </div>
