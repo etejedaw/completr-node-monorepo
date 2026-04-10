@@ -118,9 +118,9 @@
 				@for (entry of entries(); track entry.id) {
 				<tr class="clickable-row" (click)="openEdit(entry)">
 					<td class="col-cover">
-						@if (entry.game.coverUrl) {
+						@if (entry.game.backgroundUrl) {
 						<img
-							[src]="entry.game.coverUrl"
+							[src]="entry.game.backgroundUrl"
 							[alt]="entry.game.title"
 							class="cover-img"
 						/>

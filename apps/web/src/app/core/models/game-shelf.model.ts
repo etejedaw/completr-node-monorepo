@@ -9,7 +9,7 @@ export interface GameShelfEntry {
 	game: {
 		id: string;
 		title: string;
-		coverUrl?: string;
+		backgroundUrl?: string;
 		isDlc: boolean;
 	};
 	platform: {

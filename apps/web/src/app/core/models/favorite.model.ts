@@ -4,7 +4,7 @@ export interface FavoriteEntry {
 	game: {
 		id: string;
 		title: string;
-		coverUrl?: string;
+		backgroundUrl?: string;
 		isDlc: boolean;
 	};
 }

@@ -94,7 +94,7 @@ export class BacklogModal implements OnInit {
 			this.selectedGame.set({
 				id: e.game.id,
 				title: e.game.title,
-				coverUrl: e.game.coverUrl
+				backgroundUrl: e.game.backgroundUrl
 			} as Game);
 			this.form.patchValue({
 				gameId: e.game.id,

@@ -23,6 +23,6 @@ export interface ListItem {
 interface ListItemGame {
 	id: string;
 	title: string;
-	coverUrl?: string;
+	backgroundUrl?: string;
 	isDlc: boolean;
 }

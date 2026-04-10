@@ -4,7 +4,7 @@ export interface Game {
 	code: string;
 	description?: string;
 	releaseAt?: string;
-	coverUrl?: string;
+	backgroundUrl?: string;
 	isDlc: boolean;
 	parentGameId?: string;
 	platforms: Platform[];

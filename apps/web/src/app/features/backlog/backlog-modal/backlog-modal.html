@@ -16,9 +16,9 @@
 				<label>Game</label>
 				@if (selectedGame()) {
 				<div class="selected-game">
-					@if (selectedGame()!.coverUrl) {
+					@if (selectedGame()!.backgroundUrl) {
 					<img
-						[src]="selectedGame()!.coverUrl"
+						[src]="selectedGame()!.backgroundUrl"
 						class="selected-cover"
 					/>
 					}
@@ -44,8 +44,8 @@
 				<ul class="search-results">
 					@for (game of gameResults(); track game.id) {
 					<li (click)="selectGame(game)">
-						@if (game.coverUrl) {
-						<img [src]="game.coverUrl" class="result-cover" />
+						@if (game.backgroundUrl) {
+						<img [src]="game.backgroundUrl" class="result-cover" />
 						}
 						<span>{{ game.title }}</span>
 					</li>
@@ -62,9 +62,9 @@
 			<div class="form-group">
 				<label>Game</label>
 				<div class="selected-game readonly">
-					@if (selectedGame()?.coverUrl) {
+					@if (selectedGame()?.backgroundUrl) {
 					<img
-						[src]="selectedGame()!.coverUrl"
+						[src]="selectedGame()!.backgroundUrl"
 						class="selected-cover"
 					/>
 					}

@@ -14,7 +14,7 @@ interface WishlistBacklog {
 	game: {
 		id: string;
 		title: string;
-		coverUrl?: string;
+		backgroundUrl?: string;
 		isDlc: boolean;
 	};
 	platform?: {
