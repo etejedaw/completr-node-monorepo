@@ -122,7 +122,7 @@ export async function rawgLookup(query: string) {
 	return results.map(r => ({
 		rawgId: r.id,
 		title: r.name,
-		coverUrl: r.background_image,
+		backgroundUrl: r.background_image,
 		releaseAt: r.released,
 		metacritic: r.metacritic,
 		playtime: r.playtime,

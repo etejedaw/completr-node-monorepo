@@ -23,6 +23,7 @@ export const RegisterGameSchema = z
 		genres: z.array(z.string().max(100).nonempty()).optional().default([]),
 		releaseAt: z.iso.date().optional(),
 		coverUrl: z.string().nonempty().optional(),
+		backgroundUrl: z.string().nonempty().optional(),
 		isDlc: z.boolean().optional(),
 		parentGameId: z.uuid().optional(),
 		scores: z.array(GameScoreEntrySchema).optional(),

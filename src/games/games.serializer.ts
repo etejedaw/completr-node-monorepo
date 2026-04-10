@@ -12,6 +12,7 @@ export function gameSerializer(game: Game) {
 		description: game.description,
 		releaseAt: game.releaseAt,
 		coverUrl: game.coverUrl,
+		backgroundUrl: game.backgroundUrl,
 		isDlc: game.isDlc,
 		parentGameId: game.parentGameId,
 		updatedAt: game.updatedAt,

@@ -32,7 +32,7 @@ export function rawgToGameMapper(rawgGame: RawgGameDetail): RawgMappedData {
 			title: rawgGame.name,
 			description: rawgGame.description_raw ?? undefined,
 			releaseAt: rawgGame.released ?? undefined,
-			coverUrl: rawgGame.background_image ?? undefined,
+			backgroundUrl: rawgGame.background_image ?? undefined,
 			platforms: mapPlatforms(rawgGame.platforms),
 			genres: []
 		},
