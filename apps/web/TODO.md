@@ -154,6 +154,14 @@
 
 > 5–20 amigos.
 
+### Panel admin de juegos
+
+- [ ] Ruta `/admin/games` protegida por rol admin/moderator
+- [ ] Tabla de todos los juegos con búsqueda
+- [ ] Modal de edición con todos los campos (título, descripción, cover, plataformas, géneros)
+- [ ] Botón "Re-scrape from RAWG": busca en RAWG, muestra resultados, pre-llena el form sin guardar
+- [ ] El usuario revisa/edita y guarda manualmente
+
 ### Perfil público
 
 - [ ] Vista `/users/:username` con estadísticas: juegos completados, abandonados, en progreso, ratio promedio
