@@ -283,16 +283,55 @@ export const authGuard: CanActivateFn = () => {
 
 ---
 
+### Post-edición
+
+- Después de terminar ediciones: ejecutar `npm run lint:fix` y `npm run format`
+
+---
+
+## Diseño visual
+
+- Tema oscuro inspirado en Discord pero con identidad propia
+- Paleta: fondos oscuros azulados, acento sky blue (#0ea5e9), status con colores semánticos
+- CSS variables globales en `styles.css` (--bg-primary, --bg-sidebar, --accent, --status-*, etc.)
+- Sidebar con secciones agrupadas (Library, Collections), brand icon, avatar de usuario
+- Auth pages con gradiente sutil de fondo y card con sombra profunda
+- Tablas con hover, sort arrows, status badges redondeados
+
+---
+
 ## Estado actual
 
-### Completado
+### Completado (Fase 0)
 
-- Proyecto Angular 21 generado con CLI
-- Standalone components configurado (default)
-- Vitest configurado como test runner
-- Componente raíz con signal básico
-- Router configurado (rutas vacías)
+- Proyecto Angular 21 generado con CLI, standalone components
+- Estructura feature-based: `core/`, `shared/`, `features/`, `environments/`
+- Environments con `apiUrl` para dev y producción, `fileReplacements` en angular.json
+- `AuthService` con signals, `StorageService` para token en localStorage
+- Interceptors funcionales: `authInterceptor` (Bearer token), `errorInterceptor` (401 → logout)
+- Guards funcionales: `authGuard`, `guestGuard`
+- `provideHttpClient` con `withInterceptors` en app.config.ts
+- Lazy loading en todas las rutas con componentes placeholder
+- Layout con sidebar (secciones agrupadas, brand icon, avatar, sign out)
+- 11 interfaces/modelos TypeScript (Game, BacklogEntry, List, etc.)
+- PWA con service worker, manifest e iconos
+- ESLint + Prettier configurados (misma config que backend)
+- Vitest como test runner
 
-### Pendiente
+### Completado (Fase 1 — en progreso)
 
-- Todo lo demás: core services, interceptors, features, PWA, estilos
+- Login y registro funcionales con reactive forms, error handling y redirect
+- Backlog: tabla con todas las columnas (cover, title, platform, score, duration, ratio, realDuration, personalRatio, userRating, finishedAt, status, notes)
+- Sort: title, ratio y personalRatio se ordenan en frontend; el resto via backend
+- Filtros por status con tabs (sin flicker al cambiar)
+- Status badges con colores semánticos
+- Notas visibles como texto inline (max 2 líneas truncadas)
+- Design system con CSS variables, dark theme, gradientes sutiles
+- CORS corregido en backend para permitir localhost:4200
+- `personalRatio` agregado al serializer del backend
+
+### Pendiente (Fase 1)
+
+- Filtros avanzados (plataforma, rangos de fechas, multi-status)
+- CRUD de backlog entries (crear, editar, eliminar desde frontend)
+- Game Shelf, Búsqueda de juegos, Listas, Wishlist, Favorites, Saved Filters, Perfil
