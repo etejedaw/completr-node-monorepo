@@ -13,7 +13,7 @@ function gameSerializer(game: Favorite["Game"]) {
 	return {
 		id: game.id,
 		title: game.title,
-		coverUrl: game.coverUrl,
+		backgroundUrl: game.backgroundUrl,
 		isDlc: game.isDlc
 	};
 }
