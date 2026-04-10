@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	input,
 	OnInit,
@@ -46,6 +47,9 @@ export class BacklogModal implements OnInit {
 	protected readonly gameResults = signal<Game[]>([]);
 	protected readonly selectedGame = signal<Game | null>(null);
 	protected readonly searchQuery = signal("");
+	protected readonly gamePlatforms = computed(
+		() => this.selectedGame()?.platforms ?? []
+	);
 	protected readonly showConfirmDelete = signal(false);
 
 	private readonly searchSubject = new Subject<string>();
@@ -130,7 +134,7 @@ export class BacklogModal implements OnInit {
 
 	selectGame(game: Game) {
 		this.selectedGame.set(game);
-		this.form.patchValue({ gameId: game.id });
+		this.form.patchValue({ gameId: game.id, platformId: "" });
 		this.gameResults.set([]);
 		this.searchQuery.set("");
 	}

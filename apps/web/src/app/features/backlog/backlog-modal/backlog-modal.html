@@ -81,7 +81,7 @@
 				<label for="platformId">Platform</label>
 				<select id="platformId" formControlName="platformId">
 					<option value="">Select platform</option>
-					@for (p of platforms(); track p.id) {
+					@for (p of gamePlatforms(); track p.id) {
 					<option [value]="p.id">{{ p.name }}</option>
 					}
 				</select>
