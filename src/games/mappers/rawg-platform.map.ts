@@ -1,6 +1,5 @@
 /** Maps RAWG platform slugs to Completr platform codes */
-export const RAWG_PLATFORM_MAP: Record<string, string> = {
-	pc: "pc",
+const RAWG_PLATFORM_MAP: Record<string, string> = {
 	playstation5: "playstation-5",
 	playstation4: "playstation-4",
 	playstation3: "playstation-3",
@@ -29,8 +28,27 @@ export const RAWG_PLATFORM_MAP: Record<string, string> = {
 	android: "android"
 };
 
+/** RAWG "pc" expands to all PC store platforms */
+const PC_PLATFORMS = [
+	"steam",
+	"gog",
+	"pc-epic-games",
+	"ea-origin",
+	"origin",
+	"blizzard-battlenet"
+];
+
 export function mapRawgPlatformSlugs(rawgSlugs: string[]): string[] {
-	return rawgSlugs
-		.map(slug => RAWG_PLATFORM_MAP[slug])
-		.filter((code): code is string => !!code);
+	const codes: string[] = [];
+
+	for (const slug of rawgSlugs) {
+		if (slug === "pc") {
+			codes.push(...PC_PLATFORMS);
+		} else {
+			const mapped = RAWG_PLATFORM_MAP[slug];
+			if (mapped) codes.push(mapped);
+		}
+	}
+
+	return [...new Set(codes)];
 }
