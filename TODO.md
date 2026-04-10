@@ -308,6 +308,13 @@
 
 > 👥 _Release privada — 5 a 20 amigos y conocidos._
 
+### Panel admin de juegos
+
+- [x] `PATCH /games/:id` — Permitir editar título (con regeneración de slug)
+- [x] `GET /games/rawg-lookup?query=` — Buscar en RAWG sin crear juegos (solo admin/moderator)
+- [x] `GET /games/rawg-detail/:rawgId` — Obtener detalle de RAWG para previsualizar antes de aplicar
+- [ ] Vista de admin en frontend: tabla de juegos, búsqueda, modal de edición con re-scrape de RAWG
+
 ### Perfil público básico
 
 - [ ] `GET /users/:username` — Página pública con estadísticas básicas:
