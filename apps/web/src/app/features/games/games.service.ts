@@ -16,10 +16,11 @@ interface PlatformsResponse {
 export class GamesService {
 	private readonly http = inject(HttpClient);
 
-	search(query: string) {
+	search(query: string, forceRawg = false) {
+		const params = `query=${encodeURIComponent(query)}${forceRawg ? "&force_rawg=true" : ""}`;
 		return this.http
 			.get<GamesSearchResponse>(
-				`${environment.apiUrl}/games/search?query=${encodeURIComponent(query)}`
+				`${environment.apiUrl}/games/search?${params}`
 			)
 			.pipe(map(res => res.data.games));
 	}

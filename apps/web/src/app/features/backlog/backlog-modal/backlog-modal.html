@@ -51,6 +51,15 @@
 					</li>
 					}
 				</ul>
+				} @if (searchQuery().length >= 2) {
+				<button
+					type="button"
+					class="btn-force-search"
+					(click)="forceSearch()"
+					[disabled]="isForceSearching()"
+				>
+					{{ isForceSearching() ? 'Searching...' : 'Force search' }}
+				</button>
 				} }
 			</div>
 			} @else {

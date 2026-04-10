@@ -107,10 +107,25 @@ export class BacklogModal implements OnInit {
 		}
 	}
 
+	protected readonly isForceSearching = signal(false);
+
 	onSearch(event: Event) {
 		const query = (event.target as HTMLInputElement).value;
 		this.searchQuery.set(query);
 		this.searchSubject.next(query);
+	}
+
+	forceSearch() {
+		const query = this.searchQuery();
+		if (query.length < 2) return;
+		this.isForceSearching.set(true);
+		this.gamesService.search(query, true).subscribe({
+			next: games => {
+				this.gameResults.set(games);
+				this.isForceSearching.set(false);
+			},
+			error: () => this.isForceSearching.set(false)
+		});
 	}
 
 	selectGame(game: Game) {
