@@ -8,10 +8,11 @@ import {
 import { DatePipe } from "@angular/common";
 import { BacklogEntry, BacklogStatus } from "../../../core/models";
 import { BacklogService, BacklogFilters } from "../backlog.service";
+import { BacklogModal } from "../backlog-modal/backlog-modal";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe],
+	imports: [DatePipe, BacklogModal],
 	templateUrl: "./backlog-list.html",
 	styleUrl: "./backlog-list.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -25,6 +26,8 @@ export class BacklogList implements OnInit {
 	protected readonly activeStatus = signal<string>("");
 	protected readonly sortBy = signal("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
+	protected readonly showModal = signal(false);
+	protected readonly editingEntry = signal<BacklogEntry | null>(null);
 
 	private readonly statuses: { label: string; value: string }[] = [
 		{ label: "All", value: "" },
@@ -101,6 +104,27 @@ export class BacklogList implements OnInit {
 			abandoned: "Abandoned"
 		};
 		return map[status] ?? status;
+	}
+
+	openCreate() {
+		this.editingEntry.set(null);
+		this.showModal.set(true);
+	}
+
+	openEdit(entry: BacklogEntry) {
+		this.editingEntry.set(entry);
+		this.showModal.set(true);
+	}
+
+	onModalClosed() {
+		this.showModal.set(false);
+		this.editingEntry.set(null);
+	}
+
+	onModalSaved() {
+		this.showModal.set(false);
+		this.editingEntry.set(null);
+		this.loadBacklog();
 	}
 
 	private loadBacklog() {

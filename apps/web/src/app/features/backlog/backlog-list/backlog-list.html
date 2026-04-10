@@ -1,7 +1,10 @@
 <div class="backlog-page">
 	<div class="page-header">
-		<h1>Backlog</h1>
-		<span class="entry-count">{{ entries().length }} entries</span>
+		<div class="page-header-left">
+			<h1>Backlog</h1>
+			<span class="entry-count">{{ entries().length }} entries</span>
+		</div>
+		<button class="btn-add" (click)="openCreate()">+ Add Game</button>
 	</div>
 
 	<div class="status-tabs">
@@ -104,7 +107,7 @@
 			</thead>
 			<tbody>
 				@for (entry of entries(); track entry.id) {
-				<tr>
+				<tr class="clickable-row" (click)="openEdit(entry)">
 					<td class="col-cover">
 						@if (entry.game.coverUrl) {
 						<img
@@ -157,3 +160,11 @@
 	</div>
 	}
 </div>
+
+@if (showModal()) {
+<app-backlog-modal
+	[entry]="editingEntry()"
+	(closed)="onModalClosed()"
+	(saved)="onModalSaved()"
+/>
+}

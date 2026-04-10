@@ -1,0 +1,219 @@
+<div class="modal-overlay" (click)="onClose()">
+	<div class="modal-card" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>{{ isEdit() ? "Edit Entry" : "Add to Backlog" }}</h2>
+			<button class="close-btn" (click)="onClose()">&times;</button>
+		</div>
+
+		@if (error()) {
+		<div class="error-message">{{ error() }}</div>
+		}
+
+		<form [formGroup]="form" (ngSubmit)="onSubmit()">
+			<!-- Game search (only for create) -->
+			@if (!isEdit()) {
+			<div class="form-group">
+				<label>Game</label>
+				@if (selectedGame()) {
+				<div class="selected-game">
+					@if (selectedGame()!.coverUrl) {
+					<img
+						[src]="selectedGame()!.coverUrl"
+						class="selected-cover"
+					/>
+					}
+					<span class="selected-title"
+						>{{ selectedGame()!.title }}</span
+					>
+					<button
+						type="button"
+						class="clear-btn"
+						(click)="clearGame()"
+					>
+						&times;
+					</button>
+				</div>
+				} @else {
+				<input
+					type="text"
+					placeholder="Search games..."
+					[value]="searchQuery()"
+					(input)="onSearch($event)"
+				/>
+				@if (gameResults().length > 0) {
+				<ul class="search-results">
+					@for (game of gameResults(); track game.id) {
+					<li (click)="selectGame(game)">
+						@if (game.coverUrl) {
+						<img [src]="game.coverUrl" class="result-cover" />
+						}
+						<span>{{ game.title }}</span>
+					</li>
+					}
+				</ul>
+				} }
+			</div>
+			} @else {
+			<div class="form-group">
+				<label>Game</label>
+				<div class="selected-game readonly">
+					@if (selectedGame()?.coverUrl) {
+					<img
+						[src]="selectedGame()!.coverUrl"
+						class="selected-cover"
+					/>
+					}
+					<span class="selected-title"
+						>{{ selectedGame()!.title }}</span
+					>
+				</div>
+			</div>
+			}
+
+			<!-- Platform -->
+			@if (!isEdit()) {
+			<div class="form-group">
+				<label for="platformId">Platform</label>
+				<select id="platformId" formControlName="platformId">
+					<option value="">Select platform</option>
+					@for (p of platforms(); track p.id) {
+					<option [value]="p.id">{{ p.name }}</option>
+					}
+				</select>
+			</div>
+			}
+
+			<!-- Score & Duration row -->
+			<div class="form-row">
+				<div class="form-group">
+					<label for="score">Score</label>
+					<input
+						id="score"
+						type="number"
+						formControlName="score"
+						placeholder="0-100"
+						step="0.1"
+					/>
+				</div>
+				<div class="form-group">
+					<label for="duration">Duration (h)</label>
+					<input
+						id="duration"
+						type="number"
+						formControlName="duration"
+						placeholder="Hours"
+						step="0.5"
+					/>
+				</div>
+			</div>
+
+			<!-- Status -->
+			<div class="form-group">
+				<label for="status">Status</label>
+				<select id="status" formControlName="status">
+					<option value="not_started">Not Started</option>
+					<option value="playing">Playing</option>
+					<option value="completed">Completed</option>
+					<option value="abandoned">Abandoned</option>
+				</select>
+			</div>
+
+			<!-- Dates row -->
+			<div class="form-row">
+				<div class="form-group">
+					<label for="startedAt">Started</label>
+					<input
+						id="startedAt"
+						type="date"
+						formControlName="startedAt"
+					/>
+				</div>
+				<div class="form-group">
+					<label for="finishedAt">Finished</label>
+					<input
+						id="finishedAt"
+						type="date"
+						formControlName="finishedAt"
+					/>
+				</div>
+			</div>
+
+			<!-- Real duration & Rating row -->
+			<div class="form-row">
+				<div class="form-group">
+					<label for="realDuration">Real Duration (h)</label>
+					<input
+						id="realDuration"
+						type="number"
+						formControlName="realDuration"
+						placeholder="Actual hours"
+						step="0.5"
+					/>
+				</div>
+				<div class="form-group">
+					<label for="userRating">Rating</label>
+					<input
+						id="userRating"
+						type="number"
+						formControlName="userRating"
+						placeholder="1-10"
+						step="0.5"
+						min="1"
+						max="10"
+					/>
+				</div>
+			</div>
+
+			<!-- Notes -->
+			<div class="form-group">
+				<label for="notes">Notes</label>
+				<textarea
+					id="notes"
+					formControlName="notes"
+					rows="3"
+					placeholder="Your thoughts..."
+				></textarea>
+			</div>
+
+			<!-- Actions -->
+			<div class="modal-actions">
+				@if (isEdit()) {
+				<div class="delete-area">
+					@if (!showConfirmDelete()) {
+					<button
+						type="button"
+						class="btn-danger-outline"
+						(click)="showConfirmDelete.set(true)"
+					>
+						Delete
+					</button>
+					} @else {
+					<span class="confirm-text">Are you sure?</span>
+					<button
+						type="button"
+						class="btn-danger"
+						(click)="onDelete()"
+					>
+						Yes, delete
+					</button>
+					<button
+						type="button"
+						class="btn-ghost"
+						(click)="showConfirmDelete.set(false)"
+					>
+						Cancel
+					</button>
+					}
+				</div>
+				}
+				<button
+					class="btn-primary"
+					type="submit"
+					[disabled]="form.invalid || isLoading()"
+				>
+					{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Add" }}
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
