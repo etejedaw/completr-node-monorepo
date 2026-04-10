@@ -16,9 +16,9 @@
 		}
 	</div>
 
-	@if (isLoading()) {
+	@if (isInitialLoad() && isLoading()) {
 	<div class="loading">Loading...</div>
-	} @else if (entries().length === 0) {
+	} @else if (!isLoading() && entries().length === 0) {
 	<div class="empty">No entries found.</div>
 	} @else {
 	<div class="table-wrapper">

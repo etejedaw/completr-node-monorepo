@@ -20,6 +20,7 @@ export class BacklogList implements OnInit {
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
+	protected readonly isInitialLoad = signal(true);
 	protected readonly activeStatus = signal<string>("");
 	protected readonly sortBy = signal("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
@@ -88,9 +89,11 @@ export class BacklogList implements OnInit {
 			next: res => {
 				this.entries.set(res.data.backlog);
 				this.isLoading.set(false);
+				this.isInitialLoad.set(false);
 			},
 			error: () => {
 				this.isLoading.set(false);
+				this.isInitialLoad.set(false);
 			}
 		});
 	}
