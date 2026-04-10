@@ -271,6 +271,14 @@ export async function deactivateGame(id: string) {
 	return true;
 }
 
+export async function hardDeleteGame(id: string) {
+	const game = await Game.findOne({ where: { id } });
+	if (!game) throw gamesServiceError.notFoundError();
+
+	await Game.destroy({ where: { id } });
+	return true;
+}
+
 async function linkPlatforms(
 	gameId: string,
 	platforms: string[],

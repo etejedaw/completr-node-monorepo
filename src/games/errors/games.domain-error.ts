@@ -47,6 +47,15 @@ export function gameUniqueConstraint(context?: Record<string, unknown>) {
 	);
 }
 
+export function gameForbidden(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_FORBIDDEN",
+		"You do not have permission to perform this action",
+		context
+	);
+}
+
 export function gameInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

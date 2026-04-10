@@ -48,7 +48,8 @@ function gamePlatform() {
 	Game.belongsToMany(Platform, {
 		through: GamePlatform,
 		foreignKey: "gameId",
-		otherKey: "platformId"
+		otherKey: "platformId",
+		onDelete: "CASCADE"
 	});
 }
 
@@ -62,7 +63,8 @@ function gameGenre() {
 	Game.belongsToMany(Genre, {
 		through: GameGenre,
 		foreignKey: "gameId",
-		otherKey: "genreId"
+		otherKey: "genreId",
+		onDelete: "CASCADE"
 	});
 }
 
@@ -70,7 +72,7 @@ function gameShelf() {
 	User.hasMany(GameShelf, { foreignKey: "userId" });
 	GameShelf.belongsTo(User, { foreignKey: "userId" });
 
-	Game.hasMany(GameShelf, { foreignKey: "gameId" });
+	Game.hasMany(GameShelf, { foreignKey: "gameId", onDelete: "CASCADE" });
 	GameShelf.belongsTo(Game, { foreignKey: "gameId" });
 
 	Platform.hasMany(GameShelf, { foreignKey: "platformId" });
@@ -86,7 +88,7 @@ function listItems() {
 	List.hasMany(ListItem, { foreignKey: "listId" });
 	ListItem.belongsTo(List, { foreignKey: "listId" });
 
-	Game.hasMany(ListItem, { foreignKey: "gameId" });
+	Game.hasMany(ListItem, { foreignKey: "gameId", onDelete: "CASCADE" });
 	ListItem.belongsTo(Game, { foreignKey: "gameId" });
 }
 
@@ -102,7 +104,7 @@ function backlog() {
 	User.hasMany(Backlog, { foreignKey: "userId" });
 	Backlog.belongsTo(User, { foreignKey: "userId" });
 
-	Game.hasMany(Backlog, { foreignKey: "gameId" });
+	Game.hasMany(Backlog, { foreignKey: "gameId", onDelete: "CASCADE" });
 	Backlog.belongsTo(Game, { foreignKey: "gameId" });
 
 	Platform.hasMany(Backlog, { foreignKey: "platformId" });
@@ -110,12 +112,12 @@ function backlog() {
 }
 
 function gameScores() {
-	Game.hasMany(GameScore, { foreignKey: "gameId" });
+	Game.hasMany(GameScore, { foreignKey: "gameId", onDelete: "CASCADE" });
 	GameScore.belongsTo(Game, { foreignKey: "gameId" });
 }
 
 function gameTimes() {
-	Game.hasMany(GameTime, { foreignKey: "gameId" });
+	Game.hasMany(GameTime, { foreignKey: "gameId", onDelete: "CASCADE" });
 	GameTime.belongsTo(Game, { foreignKey: "gameId" });
 }
 
@@ -136,11 +138,11 @@ function favorites() {
 	User.hasMany(Favorite, { foreignKey: "userId" });
 	Favorite.belongsTo(User, { foreignKey: "userId" });
 
-	Game.hasMany(Favorite, { foreignKey: "gameId" });
+	Game.hasMany(Favorite, { foreignKey: "gameId", onDelete: "CASCADE" });
 	Favorite.belongsTo(Game, { foreignKey: "gameId" });
 }
 
 function gameExternalIds() {
-	Game.hasMany(GameExternalId, { foreignKey: "gameId" });
+	Game.hasMany(GameExternalId, { foreignKey: "gameId", onDelete: "CASCADE" });
 	GameExternalId.belongsTo(Game, { foreignKey: "gameId" });
 }

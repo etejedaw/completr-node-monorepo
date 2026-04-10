@@ -8,6 +8,7 @@ import { gameSerializer } from "./games.serializer";
 import { GameIdParam } from "./schemas/game-id-params.schema";
 import { RawgIdParam } from "./schemas/rawg-id-params.schema";
 import { UpdateGameDto } from "./dtos/update-game.dto";
+import { RequestUser } from "../common/interfaces/request-user.interface";
 
 export async function getGameByCode(request: Request, response: Response) {
 	const params = request.locals.params as GameCodeParam;
@@ -79,9 +80,17 @@ export async function getRawgDetail(request: Request, response: Response) {
 
 export async function deleteGame(request: Request, response: Response) {
 	const gameIdParam = request.locals.params as GameIdParam;
-
+	const user = request.locals.user as RequestUser;
 	const { id } = gameIdParam;
 
-	await gameService.deactivateGame(id);
+	const hard = request.query.hard === "true";
+
+	if (hard) {
+		if (user.role !== "admin") throw gameDomainError.gameForbidden();
+		await gameService.hardDeleteGame(id);
+	} else {
+		await gameService.deactivateGame(id);
+	}
+
 	return response.sendStatus(204);
 }
