@@ -320,18 +320,24 @@ export const authGuard: CanActivateFn = () => {
 
 ### Completado (Fase 1 — en progreso)
 
-- Login y registro funcionales con reactive forms, error handling y redirect
-- Backlog: tabla con todas las columnas (cover, title, platform, score, duration, ratio, realDuration, personalRatio, userRating, finishedAt, status, notes)
+- Login funcional con reactive forms y redirect (registro bloqueado, solo admin)
+- Backlog: tabla con todas las columnas (backgroundUrl, title, platform, score, duration, ratio, realDuration, personalRatio, userRating, finishedAt, status, notes)
+- CRUD de backlog: crear (modal con búsqueda de juego + debounce), editar (click en fila), eliminar (con confirmación)
+- Búsqueda de juegos en modal con fallback a RAWG + botón "Force search" dentro del dropdown
+- Precarga automática de score (Metacritic → OpenCritic → RAWG → Completr) y duration (HLTB → RAWG → Completr) al seleccionar juego
+- Selector de plataformas filtrado por plataformas del juego seleccionado
 - Sort: title, ratio y personalRatio se ordenan en frontend; el resto via backend
 - Filtros por status con tabs (sin flicker al cambiar)
+- Búsqueda local por título en la tabla del backlog
 - Status badges con colores semánticos
 - Notas visibles como texto inline (max 2 líneas truncadas)
+- Nullable en update: startedAt, finishedAt, realDuration, userRating, notes se pueden limpiar
 - Design system con CSS variables, dark theme, gradientes sutiles
-- CORS corregido en backend para permitir localhost:4200
+- `backgroundUrl` en vez de `coverUrl` en todas las interfaces y templates
 - `personalRatio` agregado al serializer del backend
 
 ### Pendiente (Fase 1)
 
+- Normalización de scores a escala 1-10 (botón en modal, usa `GET /score-sources` del backend)
 - Filtros avanzados (plataforma, rangos de fechas, multi-status)
-- CRUD de backlog entries (crear, editar, eliminar desde frontend)
-- Game Shelf, Búsqueda de juegos, Listas, Wishlist, Favorites, Saved Filters, Perfil
+- Game Shelf, Listas, Wishlist, Favorites, Saved Filters, Perfil

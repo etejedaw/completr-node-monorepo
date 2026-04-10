@@ -84,11 +84,15 @@
 - [x] Filtros por status con tabs (All, Not Started, Playing, Completed, Abandoned)
 - [x] Status badges con colores por estado
 - [x] Tabla se mantiene visible al cambiar filtros (sin flicker de loading)
+- [x] Crear nueva entrada de backlog (modal con búsqueda de juego, debounce, force search RAWG)
+- [x] Precarga automática de score y duration desde la mejor fuente disponible
+- [x] Selector de plataformas filtrado por plataformas del juego
+- [x] Editar entrada (click en fila, modal precargado, campos nullable para limpiar valores)
+- [x] Eliminar entrada (con confirmación inline)
+- [x] Búsqueda local por título en la tabla
+- [ ] Normalización de scores a escala 1-10 (botón en modal, usa GET /score-sources)
 - [ ] Evaluar sort de title y ratio via backend cuando se implementen saved filters (actualmente local)
 - [ ] Filtros avanzados: plataforma, rangos de fechas, multi-status combinado
-- [ ] Crear nueva entrada de backlog (seleccionar juego, plataforma, score, duration)
-- [ ] Editar entrada (cambiar status, score, duration, userRating, notas)
-- [ ] Eliminar entrada
 
 ### Feature: Game Shelf
 
