@@ -1,0 +1,50 @@
+info:
+    name: RAWG Detail
+    type: http
+    seq: 8
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/games/rawg-detail/:rawgId"
+    params:
+        - name: rawgId
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## RAWG Detail
+
+    Gets full game detail from RAWG by ID. For admin/moderator use (re-scrape workflow). Does not create or modify any game.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param  | Type   | Required | Description    |
+    |--------|--------|----------|----------------|
+    | rawgId | number | Yes      | RAWG game ID   |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "game": {
+          "rawgId": 736255,
+          "title": "Front Mission 1st Remake",
+          "description": "Full description...",
+          "coverUrl": "https://...",
+          "releaseAt": "2022-11-23",
+          "platforms": ["nintendo-switch", "steam", "gog"],
+          "genres": ["strategy", "rpg"],
+          "scores": [{ "source": "metacritic", "score": 72 }],
+          "times": [{ "source": "rawg", "duration": 25 }]
+        }
+      }
+    }
+    ```

@@ -10,6 +10,9 @@ http:
         - name: id
           value: ""
           type: path
+        - name: hard
+          value: ""
+          type: query
     auth: inherit
 
 settings:
@@ -18,9 +21,9 @@ settings:
 docs: |-
     ## Delete Game
 
-    Deactivates a game (soft delete).
+    Deactivates a game (soft delete). With `?hard=true`, performs a physical delete with CASCADE (admin only).
 
-    **Authentication:** Bearer token required (role: moderator).
+    **Authentication:** Bearer token required (role: moderator). Hard delete requires admin.
     **Rate Limit:** 50 requests per minute.
 
     ### Path Parameters
@@ -29,6 +32,25 @@ docs: |-
     |-------|--------|----------|-----------------|
     | id    | string | Yes      | The game UUID   |
 
+    ### Query Parameters
+
+    | Param | Type   | Required | Description                                         |
+    |-------|--------|----------|-----------------------------------------------------|
+    | hard  | string | No       | `true` for physical delete with CASCADE (admin only) |
+
+    ### Soft delete (default)
+
+    Sets `isActive: false`. Related data is preserved.
+
+    ### Hard delete (`?hard=true`)
+
+    Physically deletes the game and all associated data: backlogs, game-shelf, list-items, favorites, scores, times, platforms, genres, external IDs.
+
     ### Response (204)
 
     No content.
+
+    ### Errors
+
+    - 403 `GAME_FORBIDDEN` — Hard delete requires admin role
+    - 404 `GAME_NOT_FOUND`
