@@ -708,51 +708,51 @@
 
 > Filosofía: Free es una experiencia completa para gestionar tu backlog. Premium agrega insights, personalización y conveniencia.
 
-| Feature                               | Free                                        | Premium                            |
-| ------------------------------------- | ------------------------------------------- | ---------------------------------- |
-| **Tracking de juegos y backlogs**     | ✅ Completo                                 | ✅ Completo                        |
-| **Vistas/filtros (status, semestre)** | ✅                                          | ✅                                 |
-| **Listas**                            | ✅ Hasta 5                                  | ✅ Ilimitadas                      |
-| **Filtros del backlog**               | ✅ Ilimitados                               | ✅ Ilimitados                      |
-| **Filtros guardados**                 | ✅ Hasta 5                                  | ✅ Ilimitados                      |
-| **Wishlist**                          | ✅ Hasta 10                                 | ✅ Ilimitada                       |
-| **Favorites**                         | ✅ Hasta 10                                 | ✅ Ilimitados                      |
-| **Ratio y personal ratio**            | ✅                                          | ✅ + Fórmula personalizable        |
-| **Fuentes de score (manual)**         | ✅ Todas las fuentes                        | ✅ Todas las fuentes               |
-| **Actualización masiva de scores**    | ✅ OpenCritic + Completr / HLTB + Completr  | ✅ + Metacritic, RAWG              |
-| **HLTB auto-fetch**                   | ✅                                          | ✅                                 |
-| **Perfil público**                    | ✅                                          | ✅ + URL, portada y avatar custom  |
-| **Follow usuarios**                   | ✅                                          | ✅                                 |
-| **Seguir listas públicas + progreso** | ✅                                          | ✅                                 |
-| **Comparación con amigos**            | ✅                                          | ✅                                 |
-| **Reviews**                           | ✅                                          | ✅                                 |
-| **Búsqueda y ordenamiento**           | ✅                                          | ✅                                 |
-| **Logros/milestones**                 | ✅                                          | ✅                                 |
-| **Resumen semestral**                 | ✅ Básico (texto)                           | ✅ Detallado (gráficos)            |
-| **Notificación de progreso**          | ✅                                          | ✅                                 |
-| **Exportar**                          | ✅ CSV                                      | ✅ CSV + JSON                      |
-| **Backlog randomizer**                | ✅                                          | ✅                                 |
-| **Cola "Siguiente"**                  | ✅                                          | ✅                                 |
-| **Mood tags**                         | ✅                                          | ✅                                 |
-| **"Recomiéndame"**                    | ✅                                          | ✅                                 |
-| **Jugando con (co-op)**               | ✅                                          | ✅                                 |
-| **Dificultad comunitaria**            | ✅                                          | ✅                                 |
-| **Recomendaciones por coincidencia**  | ✅                                          | ✅                                 |
-| **Social cards**                      | ✅                                          | ✅                                 |
-| **Franchise tracker**                 | ✅                                          | ✅                                 |
-| **Discord bot**                       | ✅                                          | ✅                                 |
-| **Calendario de lanzamientos**        | ✅                                          | ✅                                 |
-| **Duplicar listas**                   | ✅                                          | ✅                                 |
-| **Temas visuales**                    | ✅ Light y dark                             | ✅ + Retro, sepia, hacker, minimal |
-| **Filtrar feed por tipo**             | ❌                                          | ✅                                 |
-| **Estadísticas avanzadas**            | ❌                                          | ✅ Gráficos, trends, patrones      |
-| **CSV import**                        | ❌                                          | ✅                                 |
-| **Notificaciones sociales**           | ✅                                          | ✅                                 |
-| **Listas colaborativas**              | ❌                                          | ✅ Roles editor/viewer             |
-| **Sync Steam**                        | ❌                                          | ✅ Auto-import + playtime          |
-| **AI insights**                       | ❌                                          | ✅ Patrones, recomendaciones       |
-| **Game screenshots/momentos**         | ❌                                          | ✅                                 |
-| **Badge Early Supporter**             | ❌                                          | ✅ Exclusivo, irrepetible          |
+| Feature                               | Free                                       | Premium                            |
+| ------------------------------------- | ------------------------------------------ | ---------------------------------- |
+| **Tracking de juegos y backlogs**     | ✅ Completo                                | ✅ Completo                        |
+| **Vistas/filtros (status, semestre)** | ✅                                         | ✅                                 |
+| **Listas**                            | ✅ Hasta 5                                 | ✅ Ilimitadas                      |
+| **Filtros del backlog**               | ✅ Ilimitados                              | ✅ Ilimitados                      |
+| **Filtros guardados**                 | ✅ Hasta 5                                 | ✅ Ilimitados                      |
+| **Wishlist**                          | ✅ Hasta 10                                | ✅ Ilimitada                       |
+| **Favorites**                         | ✅ Hasta 10                                | ✅ Ilimitados                      |
+| **Ratio y personal ratio**            | ✅                                         | ✅ + Fórmula personalizable        |
+| **Fuentes de score (manual)**         | ✅ Todas las fuentes                       | ✅ Todas las fuentes               |
+| **Actualización masiva de scores**    | ✅ OpenCritic + Completr / HLTB + Completr | ✅ + Metacritic, RAWG              |
+| **HLTB auto-fetch**                   | ✅                                         | ✅                                 |
+| **Perfil público**                    | ✅                                         | ✅ + URL, portada y avatar custom  |
+| **Follow usuarios**                   | ✅                                         | ✅                                 |
+| **Seguir listas públicas + progreso** | ✅                                         | ✅                                 |
+| **Comparación con amigos**            | ✅                                         | ✅                                 |
+| **Reviews**                           | ✅                                         | ✅                                 |
+| **Búsqueda y ordenamiento**           | ✅                                         | ✅                                 |
+| **Logros/milestones**                 | ✅                                         | ✅                                 |
+| **Resumen semestral**                 | ✅ Básico (texto)                          | ✅ Detallado (gráficos)            |
+| **Notificación de progreso**          | ✅                                         | ✅                                 |
+| **Exportar**                          | ✅ CSV                                     | ✅ CSV + JSON                      |
+| **Backlog randomizer**                | ✅                                         | ✅                                 |
+| **Cola "Siguiente"**                  | ✅                                         | ✅                                 |
+| **Mood tags**                         | ✅                                         | ✅                                 |
+| **"Recomiéndame"**                    | ✅                                         | ✅                                 |
+| **Jugando con (co-op)**               | ✅                                         | ✅                                 |
+| **Dificultad comunitaria**            | ✅                                         | ✅                                 |
+| **Recomendaciones por coincidencia**  | ✅                                         | ✅                                 |
+| **Social cards**                      | ✅                                         | ✅                                 |
+| **Franchise tracker**                 | ✅                                         | ✅                                 |
+| **Discord bot**                       | ✅                                         | ✅                                 |
+| **Calendario de lanzamientos**        | ✅                                         | ✅                                 |
+| **Duplicar listas**                   | ✅                                         | ✅                                 |
+| **Temas visuales**                    | ✅ Light y dark                            | ✅ + Retro, sepia, hacker, minimal |
+| **Filtrar feed por tipo**             | ❌                                         | ✅                                 |
+| **Estadísticas avanzadas**            | ❌                                         | ✅ Gráficos, trends, patrones      |
+| **CSV import**                        | ❌                                         | ✅                                 |
+| **Notificaciones sociales**           | ✅                                         | ✅                                 |
+| **Listas colaborativas**              | ❌                                         | ✅ Roles editor/viewer             |
+| **Sync Steam**                        | ❌                                         | ✅ Auto-import + playtime          |
+| **AI insights**                       | ❌                                         | ✅ Patrones, recomendaciones       |
+| **Game screenshots/momentos**         | ❌                                         | ✅                                 |
+| **Badge Early Supporter**             | ❌                                         | ✅ Exclusivo, irrepetible          |
 
 ---
 

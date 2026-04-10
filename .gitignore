@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Data files
 docs/lista.csv
+
+# Informes (local only)
+docs/informes/
