@@ -83,6 +83,14 @@
 						>
 						}
 					</th>
+					<th class="col-date" (click)="sort('finishedAt')">
+						Finished @if (sortBy() === 'finishedAt') {
+						<span class="sort-arrow"
+							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
+							}}</span
+						>
+						}
+					</th>
 					<th class="col-status" (click)="sort('status')">
 						Status @if (sortBy() === 'status') {
 						<span class="sort-arrow"
@@ -91,6 +99,7 @@
 						>
 						}
 					</th>
+					<th class="col-notes"></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -124,6 +133,10 @@
 					</td>
 					<td class="col-num">{{ entry.personalRatio ?? "-" }}</td>
 					<td class="col-num">{{ entry.userRating ?? "-" }}</td>
+					<td class="col-date">
+						{{ entry.finishedAt ? (entry.finishedAt |
+						date:'shortDate') : "-" }}
+					</td>
 					<td class="col-status">
 						<span
 							class="status-badge"
@@ -131,6 +144,13 @@
 						>
 							{{ statusLabel(entry.status) }}
 						</span>
+					</td>
+					<td class="col-notes">
+						@if (entry.notes) {
+						<span class="notes-icon" [title]="entry.notes"
+							>&#9998;</span
+						>
+						}
 					</td>
 				</tr>
 				}

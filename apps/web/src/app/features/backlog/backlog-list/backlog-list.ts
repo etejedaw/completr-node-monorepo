@@ -5,12 +5,13 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
+import { DatePipe } from "@angular/common";
 import { BacklogEntry, BacklogStatus } from "../../../core/models";
 import { BacklogService, BacklogFilters } from "../backlog.service";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [],
+	imports: [DatePipe],
 	templateUrl: "./backlog-list.html",
 	styleUrl: "./backlog-list.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
