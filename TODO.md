@@ -287,8 +287,9 @@
 
 - [x] Frontend con Angular (repo separado: `completr-node-frontend`)
 - [x] Configurar como PWA (`@angular/pwa`): service worker, manifest, instalable en móvil
-- [ ] Vista de lista/tabla del backlog con columnas: título, plataforma, ratio, duración, nota, estado
-- [ ] Ordenamiento y filtrado básico en el frontend
+- [x] Vista de tabla del backlog en frontend con todas las columnas (cover, título, plataforma, score, duration, ratio, realDuration, personalRatio, userRating, finishedAt, status, notes)
+- [x] Ordenamiento y filtrado básico en el frontend (status tabs, sort por columnas)
+- [ ] Agregar sort_by `title` (campo de Game, requiere order por relación en Sequelize) y `ratio`/`personalRatio` (campos calculados) al backend para soportar saved filters correctamente
 - [ ] Vista de progreso básico del backlog
 
 ### Deploy inicial (VPS)
