@@ -6,6 +6,7 @@ import { GameCodeParam } from "./schemas/game-code-params.schema";
 import { GameSearchQuery } from "./schemas/game-search-query.schema";
 import { gameSerializer } from "./games.serializer";
 import { GameIdParam } from "./schemas/game-id-params.schema";
+import { RawgIdParam } from "./schemas/rawg-id-params.schema";
 import { UpdateGameDto } from "./dtos/update-game.dto";
 
 export async function getGameByCode(request: Request, response: Response) {
@@ -62,6 +63,18 @@ export async function patchGame(request: Request, response: Response) {
 
 	const data = { game: gameSerializer(gamePlain) };
 	return response.status(200).json({ data });
+}
+
+export async function getRawgLookup(request: Request, response: Response) {
+	const query = request.locals.query as GameSearchQuery;
+	const results = await gameService.rawgLookup(query.query);
+	return response.status(200).json({ data: { results } });
+}
+
+export async function getRawgDetail(request: Request, response: Response) {
+	const params = request.locals.params as RawgIdParam;
+	const detail = await gameService.rawgDetail(params.rawgId);
+	return response.status(200).json({ data: { game: detail } });
 }
 
 export async function deleteGame(request: Request, response: Response) {
