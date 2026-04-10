@@ -15,6 +15,7 @@ import { SavedFilter } from "../saved-filters/saved-filter.model";
 import { Wishlist } from "../wishlist/wishlist.model";
 import { Favorite } from "../favorites/favorite.model";
 import { GameExternalId } from "../game-external-ids/game-external-id.model";
+import { ScoreSource } from "../score-sources/score-source.model";
 
 export function setupAssociations() {
 	gameDlc();
@@ -31,6 +32,7 @@ export function setupAssociations() {
 	wishlist();
 	favorites();
 	gameExternalIds();
+	scoreSources();
 }
 
 function gameDlc() {
@@ -145,4 +147,15 @@ function favorites() {
 function gameExternalIds() {
 	Game.hasMany(GameExternalId, { foreignKey: "gameId", onDelete: "CASCADE" });
 	GameExternalId.belongsTo(Game, { foreignKey: "gameId" });
+}
+
+function scoreSources() {
+	ScoreSource.hasMany(GameScore, {
+		foreignKey: "source",
+		sourceKey: "code"
+	});
+	GameScore.belongsTo(ScoreSource, {
+		foreignKey: "source",
+		targetKey: "code"
+	});
 }

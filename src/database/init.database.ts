@@ -19,6 +19,7 @@ import "../saved-filters/saved-filter.model";
 import "../wishlist/wishlist.model";
 import "../favorites/favorite.model";
 import "../game-external-ids/game-external-id.model";
+import "../score-sources/score-source.model";
 
 export async function initDatabase() {
 	setupAssociations();
