@@ -718,7 +718,8 @@
 | **Wishlist**                          | ✅ Hasta 10                                 | ✅ Ilimitada                       |
 | **Favorites**                         | ✅ Hasta 10                                 | ✅ Ilimitados                      |
 | **Ratio y personal ratio**            | ✅                                          | ✅ + Fórmula personalizable        |
-| **Fuentes de score**                  | ✅ Completr community + manual + OpenCritic | ✅ + Metacritic, RAWG              |
+| **Fuentes de score (manual)**         | ✅ Todas las fuentes                        | ✅ Todas las fuentes               |
+| **Actualización masiva de scores**    | ✅ OpenCritic + Completr / HLTB + Completr  | ✅ + Metacritic, RAWG              |
 | **HLTB auto-fetch**                   | ✅                                          | ✅                                 |
 | **Perfil público**                    | ✅                                          | ✅ + URL, portada y avatar custom  |
 | **Follow usuarios**                   | ✅                                          | ✅                                 |

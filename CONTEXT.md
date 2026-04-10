@@ -36,6 +36,10 @@ Los puntajes y tiempos viven en 3 lugares distintos según el contexto:
 
 `Game` ya NO tiene `averageScore` ni `averagePlaytime` — los puntajes viven en `GameScore` y las duraciones en `GameTime`.
 
+**Precarga de puntajes al crear backlog:** Al seleccionar un juego, el frontend precarga score (Metacritic preferido) y duration (HLTB preferido) desde los GameScore/GameTime del juego. El usuario puede editarlos antes de guardar.
+
+**Regla free vs premium para scores:** Todos los usuarios pueden ver y usar scores de cualquier fuente al crear/editar manualmente. La diferencia es la **actualización masiva**: free solo puede actualizar en lote con OpenCritic + Completr (score) y HLTB + Completr (duration). Premium puede actualizar masivamente con todas las fuentes (Metacritic, RAWG, OpenCritic, HLTB, Completr).
+
 ### Ratio
 
 ```
