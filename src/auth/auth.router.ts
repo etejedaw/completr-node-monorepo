@@ -15,6 +15,7 @@ router.post(
 	"/auth/register",
 	[
 		rateLimiterMiddleware(registerLimiter),
+		authMiddleware("admin"),
 		validateSchemaMiddleware(RegisterSchema, "body")
 	],
 	authController.postRegister
