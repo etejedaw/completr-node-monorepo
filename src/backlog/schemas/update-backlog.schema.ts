@@ -5,8 +5,8 @@ import { isStepOfHalf } from "../utils/is-step-of-half.util";
 export const UpdateBacklogSchema = z
 	.object({
 		status: z.enum(BACKLOG_STATUSES).optional(),
-		startedAt: z.iso.date().optional(),
-		finishedAt: z.iso.date().optional(),
+		startedAt: z.iso.date().nullable().optional(),
+		finishedAt: z.iso.date().nullable().optional(),
 		realDuration: z.number().positive().optional(),
 		score: z.number().positive().optional(),
 		duration: z.number().positive().optional(),
