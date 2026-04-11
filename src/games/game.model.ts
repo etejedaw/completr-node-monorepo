@@ -42,7 +42,7 @@ Game.init(
 			allowNull: false
 		},
 		description: DataTypes.TEXT,
-		releaseAt: DataTypes.DATE,
+		releaseAt: DataTypes.DATEONLY,
 		coverUrl: DataTypes.STRING,
 		backgroundUrl: DataTypes.STRING,
 		isDlc: {
