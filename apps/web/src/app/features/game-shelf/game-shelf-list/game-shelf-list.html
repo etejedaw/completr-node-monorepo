@@ -1,0 +1,80 @@
+<div class="shelf-page">
+	<div class="page-header">
+		<div class="page-header-left">
+			<h1>Game Shelf</h1>
+			<span class="entry-count">{{ entries().length }} games</span>
+		</div>
+		<button class="btn-add" (click)="openCreate()">+ Add Game</button>
+	</div>
+
+	<div class="search-bar">
+		<input
+			type="text"
+			placeholder="Search by title..."
+			[value]="searchQuery()"
+			(input)="onSearch($event)"
+		/>
+	</div>
+
+	@if (isLoading()) {
+	<div class="loading">Loading...</div>
+	} @else if (entries().length === 0) {
+	<div class="empty">No games in your shelf.</div>
+	} @else {
+	<div class="table-wrapper">
+		<table>
+			<thead>
+				<tr>
+					<th class="col-cover"></th>
+					<th class="col-title">Title</th>
+					<th class="col-platform">Platform</th>
+					<th class="col-edition">Edition</th>
+					<th class="col-date">Acquired</th>
+					<th class="col-notes">Notes</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (entry of entries(); track entry.id) {
+				<tr class="clickable-row" (click)="openEdit(entry)">
+					<td class="col-cover">
+						@if (entry.game.backgroundUrl) {
+						<img
+							[src]="entry.game.backgroundUrl"
+							[alt]="entry.game.title"
+							class="cover-img"
+						/>
+						} @else {
+						<div class="cover-placeholder"></div>
+						}
+					</td>
+					<td class="col-title">
+						<span class="game-title">{{ entry.game.title }}</span>
+					</td>
+					<td class="col-platform">
+						{{ entry.platform.abbreviation }}
+					</td>
+					<td class="col-edition">{{ entry.edition ?? "-" }}</td>
+					<td class="col-date">
+						{{ entry.acquiredAt ? (entry.acquiredAt |
+						date:'yyyy-MM-dd') : "-" }}
+					</td>
+					<td class="col-notes">
+						@if (entry.notes) {
+						<span class="notes-text">{{ entry.notes }}</span>
+						}
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+	}
+</div>
+
+@if (showModal()) {
+<app-game-shelf-modal
+	[entry]="editingEntry()"
+	(closed)="onModalClosed()"
+	(saved)="onModalSaved()"
+/>
+}

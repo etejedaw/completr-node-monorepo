@@ -1,0 +1,169 @@
+<div class="modal-overlay" (click)="onClose()">
+	<div class="modal-card" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>{{ isEdit() ? "Edit Entry" : "Add to Shelf" }}</h2>
+			<button class="close-btn" (click)="onClose()">&times;</button>
+		</div>
+
+		@if (error()) {
+		<div class="error-message">{{ error() }}</div>
+		}
+
+		<form [formGroup]="form" (ngSubmit)="onSubmit()">
+			<!-- Game search (only for create) -->
+			@if (!isEdit()) {
+			<div class="form-group">
+				<label>Game <span class="required">*</span></label>
+				@if (selectedGame()) {
+				<div class="selected-game">
+					@if (selectedGame()!.backgroundUrl) {
+					<img
+						[src]="selectedGame()!.backgroundUrl"
+						class="selected-cover"
+					/>
+					}
+					<span class="selected-title"
+						>{{ selectedGame()!.title }}</span
+					>
+					<button
+						type="button"
+						class="clear-btn"
+						(click)="clearGame()"
+					>
+						&times;
+					</button>
+				</div>
+				} @else {
+				<input
+					type="text"
+					placeholder="Search games..."
+					[value]="searchQuery()"
+					(input)="onSearch($event)"
+				/>
+				@if (isSearching() && gameResults().length === 0) {
+				<div class="search-loading">Searching...</div>
+				} @if (gameResults().length > 0 || (!isSearching() &&
+				searchQuery().length >= 2)) {
+				<ul class="search-results">
+					@for (game of gameResults(); track game.id) {
+					<li (click)="selectGame(game)">
+						@if (game.backgroundUrl) {
+						<img [src]="game.backgroundUrl" class="result-cover" />
+						}
+						<span>{{ game.title }}</span>
+					</li>
+					} @if (searchQuery().length >= 2) {
+					<li class="force-search-option" (click)="forceSearch()">
+						{{ isForceSearching() ? 'Searching...' : 'Force search
+						for "' + searchQuery() + '"' }}
+					</li>
+					}
+				</ul>
+				} }
+			</div>
+			} @else {
+			<div class="form-group">
+				<label>Game</label>
+				<div class="selected-game readonly">
+					@if (selectedGame()?.backgroundUrl) {
+					<img
+						[src]="selectedGame()!.backgroundUrl"
+						class="selected-cover"
+					/>
+					}
+					<span class="selected-title"
+						>{{ selectedGame()!.title }}</span
+					>
+				</div>
+			</div>
+			}
+
+			<!-- Platform -->
+			@if (!isEdit()) {
+			<div class="form-group">
+				<label for="platformId"
+					>Platform <span class="required">*</span></label
+				>
+				<select id="platformId" formControlName="platformId">
+					<option value="">Select platform</option>
+					@for (p of gamePlatforms(); track p.id) {
+					<option [value]="p.id">{{ p.name }}</option>
+					}
+				</select>
+			</div>
+			}
+
+			<!-- Edition -->
+			<div class="form-group">
+				<label for="edition">Edition</label>
+				<input
+					id="edition"
+					type="text"
+					formControlName="edition"
+					placeholder="Standard, Deluxe, GOTY..."
+				/>
+			</div>
+
+			<!-- Acquired date -->
+			<div class="form-group">
+				<label for="acquiredAt">Acquired</label>
+				<input
+					id="acquiredAt"
+					type="date"
+					formControlName="acquiredAt"
+				/>
+			</div>
+
+			<!-- Notes -->
+			<div class="form-group">
+				<label for="notes">Notes</label>
+				<textarea
+					id="notes"
+					formControlName="notes"
+					rows="3"
+					placeholder="Your notes..."
+				></textarea>
+			</div>
+
+			<!-- Actions -->
+			<div class="modal-actions">
+				@if (isEdit()) {
+				<div class="delete-area">
+					@if (!showConfirmDelete()) {
+					<button
+						type="button"
+						class="btn-danger-outline"
+						(click)="showConfirmDelete.set(true)"
+					>
+						Delete
+					</button>
+					} @else {
+					<span class="confirm-text">Are you sure?</span>
+					<button
+						type="button"
+						class="btn-danger"
+						(click)="onDelete()"
+					>
+						Yes, delete
+					</button>
+					<button
+						type="button"
+						class="btn-ghost"
+						(click)="showConfirmDelete.set(false)"
+					>
+						Cancel
+					</button>
+					}
+				</div>
+				}
+				<button
+					class="btn-primary"
+					type="submit"
+					[disabled]="form.invalid || isLoading()"
+				>
+					{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Add" }}
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
