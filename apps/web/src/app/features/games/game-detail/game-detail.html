@@ -1,0 +1,151 @@
+@if (isLoading()) {
+<div class="loading">Loading...</div>
+} @else if (!game()) {
+<div class="not-found">Game not found.</div>
+} @else {
+<div class="detail-page">
+	<!-- Banner -->
+	<div class="banner">
+		@if (game()!.backgroundUrl) {
+		<img
+			[src]="game()!.backgroundUrl"
+			[alt]="game()!.title"
+			class="banner-img"
+		/>
+		<div class="banner-overlay"></div>
+		}
+		<div class="banner-content">
+			<h1>{{ game()!.title }}</h1>
+			@if (game()!.releaseAt) {
+			<span class="release-date">{{ game()!.releaseAt }}</span>
+			}
+		</div>
+	</div>
+
+	<!-- Tags -->
+	<div class="tags-row">
+		@for (p of game()!.platforms; track p.id) {
+		<span class="tag platform-tag">{{ p.abbreviation }}</span>
+		} @for (g of game()!.genres; track g.id) {
+		<span class="tag genre-tag">{{ g.name }}</span>
+		} @if (game()!.isDlc) {
+		<span class="tag dlc-tag">DLC</span>
+		}
+	</div>
+
+	<!-- Completr Section -->
+	<div class="stats-section completr-section">
+		<h3 class="stats-section-title">Completr</h3>
+		<div class="stats-row">
+			<div class="stat-card ratio-card">
+				<span class="stat-label">Ratio</span>
+				@if (game()!.ratio) {
+				<span class="stat-value ratio-value">{{ game()!.ratio }}</span>
+				} @else {
+				<span class="stat-insufficient">Not enough data</span>
+				}
+			</div>
+			<div class="stat-card completr-card">
+				<span class="stat-label">Score</span>
+				@if (completrScore) {
+				<app-star-rating
+					[value]="completrScore"
+					[readonly]="true"
+					size="sm"
+				/>
+				@if (completrLabel) {
+				<span class="completr-label">{{ completrLabel }}</span>
+				} } @else {
+				<span class="stat-insufficient">No rating yet</span>
+				}
+			</div>
+			<div class="stat-card">
+				<span class="stat-label">Duration</span>
+				@if (completrTime) {
+				<span class="stat-value">{{ completrTime }}h</span>
+				} @else {
+				<span class="stat-insufficient">No data</span>
+				}
+			</div>
+		</div>
+	</div>
+
+	<!-- Scores & Durations -->
+	@if (otherScores().length > 0 || otherTimes().length > 0) {
+	<div class="stats-columns">
+		@if (otherScores().length > 0) {
+		<div class="stats-section">
+			<h3 class="stats-section-title">Scores</h3>
+			<div class="stats-row">
+				@for (s of otherScores(); track s.source) {
+				<div class="stat-card">
+					<span class="stat-label">{{ s.source }}</span>
+					<span class="stat-value"
+						>{{ s.score }}
+						<span class="stat-scale"
+							>{{ getScaleLabel(s.source) }}</span
+						></span
+					>
+				</div>
+				}
+			</div>
+		</div>
+		} @if (otherTimes().length > 0) {
+		<div class="stats-section">
+			<h3 class="stats-section-title">Durations</h3>
+			<div class="stats-row">
+				@for (t of otherTimes(); track t.source) {
+				<div class="stat-card">
+					<span class="stat-label">{{ t.source }}</span>
+					<span class="stat-value">{{ t.duration }}h</span>
+				</div>
+				}
+			</div>
+		</div>
+		}
+	</div>
+	}
+
+	<!-- Description -->
+	@if (game()!.description) {
+	<div class="description">
+		<h2>Description</h2>
+		<p>{{ game()!.description }}</p>
+	</div>
+	}
+
+	<!-- Lists featuring this game -->
+	<div class="related-section">
+		<h2>Featured in Lists</h2>
+		<p class="section-placeholder">Coming soon...</p>
+	</div>
+
+	<!-- Similar games -->
+	@if (similarGames().length > 0) {
+	<div class="related-section">
+		<h2>Similar Games</h2>
+		<div class="game-grid">
+			@for (g of similarGames(); track g.id) {
+			<a class="game-card" [routerLink]="['/games', g.code]">
+				@if (g.backgroundUrl) {
+				<img
+					[src]="g.backgroundUrl"
+					[alt]="g.title"
+					class="game-cover"
+				/>
+				} @else {
+				<div class="game-cover-placeholder"></div>
+				}
+				<span class="game-card-title">{{ g.title }}</span>
+			</a>
+			}
+		</div>
+	</div>
+	}
+
+	<!-- Actions -->
+	<div class="actions">
+		<a routerLink="/games" class="btn-back">&larr; Back to Games</a>
+	</div>
+</div>
+}

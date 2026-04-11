@@ -1,0 +1,285 @@
+.detail-page {
+	max-width: 800px;
+	margin: 0 auto;
+}
+
+.loading,
+.not-found {
+	text-align: center;
+	padding: 3rem 1rem;
+	color: var(--text-muted);
+	font-size: 0.875rem;
+}
+
+/* === Banner === */
+
+.banner {
+	position: relative;
+	border-radius: var(--radius-lg);
+	overflow: hidden;
+	margin-bottom: 1.5rem;
+	min-height: 200px;
+	background: var(--bg-surface);
+}
+
+.banner-img {
+	width: 100%;
+	height: 250px;
+	object-fit: cover;
+	display: block;
+}
+
+.banner-overlay {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
+}
+
+.banner-content {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	padding: 1.5rem;
+}
+
+.banner-content h1 {
+	margin: 0;
+	font-size: 1.75rem;
+	font-weight: 700;
+	color: #fff;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.release-date {
+	font-size: 0.8125rem;
+	color: rgba(255, 255, 255, 0.7);
+}
+
+/* === Tags === */
+
+.tags-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.375rem;
+	margin-bottom: 1.5rem;
+}
+
+.tag {
+	padding: 0.2rem 0.5rem;
+	border-radius: 999px;
+	font-size: 0.6875rem;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+
+.platform-tag {
+	background: var(--accent-subtle);
+	color: var(--accent);
+}
+
+.genre-tag {
+	background: rgba(148, 163, 184, 0.12);
+	color: var(--text-secondary);
+}
+
+.dlc-tag {
+	background: rgba(245, 158, 11, 0.12);
+	color: var(--status-playing);
+}
+
+/* === Stats === */
+
+.stats-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+}
+
+.stats-columns {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1.5rem;
+	margin-bottom: 1.5rem;
+}
+
+.stats-section {
+	margin-bottom: 0;
+}
+
+.stats-section-title {
+	margin: 0 0 0.5rem;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	color: var(--text-secondary);
+}
+
+.completr-section {
+	background: var(--bg-sidebar);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	padding: 1rem;
+	margin-bottom: 1.5rem;
+}
+
+.completr-section .stats-section-title {
+	color: var(--accent);
+}
+
+.ratio-card {
+	border-color: var(--accent);
+}
+
+.ratio-value {
+	color: var(--accent) !important;
+	font-size: 1.375rem !important;
+}
+
+.stat-card {
+	background: var(--bg-surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	padding: 0.75rem 1rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	min-width: 100px;
+}
+
+.stat-label {
+	font-size: 0.625rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--text-muted);
+}
+
+.stat-value {
+	font-size: 1.125rem;
+	font-weight: 700;
+	color: var(--text-primary);
+}
+
+.stat-insufficient {
+	font-size: 0.6875rem;
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+.stat-value.accent {
+	color: var(--accent);
+}
+
+.stat-scale {
+	font-size: 0.75rem;
+	font-weight: 400;
+	color: var(--text-muted);
+}
+
+.completr-card {
+	gap: 0.375rem;
+}
+
+.completr-label {
+	font-size: 0.625rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: var(--status-playing);
+}
+
+/* === Description === */
+
+.description {
+	margin-bottom: 1.5rem;
+}
+
+.description h2 {
+	margin: 0 0 0.5rem;
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--text-secondary);
+}
+
+.description p {
+	color: var(--text-secondary);
+	font-size: 0.875rem;
+	line-height: 1.6;
+	white-space: pre-line;
+}
+
+/* === Related sections === */
+
+.related-section {
+	margin-bottom: 1.5rem;
+}
+
+.related-section h2 {
+	margin: 0 0 0.75rem;
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--text-secondary);
+}
+
+.section-placeholder {
+	color: var(--text-muted);
+	font-size: 0.8125rem;
+	font-style: italic;
+}
+
+.game-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+	gap: 0.75rem;
+}
+
+.game-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	text-decoration: none;
+	color: inherit;
+}
+
+.game-cover {
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+	border-radius: var(--radius);
+	transition: transform var(--transition);
+}
+
+.game-cover:hover {
+	transform: scale(1.03);
+}
+
+.game-cover-placeholder {
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	background: var(--bg-surface);
+	border-radius: var(--radius);
+}
+
+.game-card-title {
+	font-size: 0.6875rem;
+	font-weight: 500;
+	color: var(--text-secondary);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* === Actions === */
+
+.actions {
+	padding-top: 1rem;
+	border-top: 1px solid var(--border);
+}
+
+.btn-back {
+	font-size: 0.8125rem;
+	color: var(--text-muted);
+}
+
+.btn-back:hover {
+	color: var(--accent);
+}
