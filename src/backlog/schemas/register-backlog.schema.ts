@@ -14,8 +14,8 @@ export const RegisterBacklogSchema = z
 		duration: z.number().positive(),
 		userRating: z
 			.number()
-			.min(1)
-			.max(10)
+			.min(0.5)
+			.max(5)
 			.refine(isStepOfHalf, {
 				message: "userRating must be in steps of 0.5"
 			})
