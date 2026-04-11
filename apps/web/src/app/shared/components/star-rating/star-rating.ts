@@ -27,6 +27,8 @@ const RATING_LABELS: Record<number, string> = {
 })
 export class StarRating {
 	value = input<number | null>(null);
+	readonly = input(false);
+	size = input<"sm" | "md">("md");
 	ratingChange = output<number | null>();
 
 	protected readonly hoverValue = signal<number | null>(null);

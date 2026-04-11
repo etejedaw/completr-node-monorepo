@@ -87,3 +87,24 @@
 	text-transform: uppercase;
 	letter-spacing: 0.03em;
 }
+
+/* Readonly */
+
+.star-rating.readonly .star-wrapper {
+	cursor: default;
+}
+
+/* Small size */
+
+.star-rating.sm .star-wrapper {
+	width: 14px;
+	height: 14px;
+}
+
+.star-rating.sm .star-icon {
+	font-size: 0.75rem;
+}
+
+.star-rating.sm .stars {
+	gap: 1px;
+}

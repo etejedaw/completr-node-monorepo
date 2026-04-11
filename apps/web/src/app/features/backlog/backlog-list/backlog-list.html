@@ -144,7 +144,13 @@
 						}}
 					</td>
 					<td class="col-num">{{ entry.personalRatio ?? "-" }}</td>
-					<td class="col-num">{{ entry.userRating ?? "-" }}</td>
+					<td class="col-rating">
+						<app-star-rating
+							[value]="entry.userRating ?? null"
+							[readonly]="true"
+							size="sm"
+						/>
+					</td>
 					<td class="col-date">
 						{{ entry.finishedAt ? (entry.finishedAt |
 						date:'yyyy-MM-dd') : "-" }}
