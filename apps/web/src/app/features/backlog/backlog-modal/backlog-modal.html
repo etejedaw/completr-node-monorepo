@@ -91,7 +91,22 @@
 			<!-- Score & Duration row -->
 			<div class="form-row">
 				<div class="form-group">
-					<label for="score">Score</label>
+					<div class="label-row">
+						<label for="score">Score</label>
+						@if (scoreSourceLabel()) {
+						<span class="source-label"
+							>{{ scoreSourceLabel() }}</span
+						>
+						} @if (canNormalize()) {
+						<button
+							type="button"
+							class="btn-normalize"
+							(click)="normalizeScore()"
+						>
+							→ 1-10
+						</button>
+						}
+					</div>
 					<input
 						id="score"
 						type="number"
@@ -143,18 +158,8 @@
 				</div>
 			</div>
 
-			<!-- Real duration & Rating row -->
+			<!-- Rating & Real duration row -->
 			<div class="form-row">
-				<div class="form-group">
-					<label for="realDuration">Real Duration (h)</label>
-					<input
-						id="realDuration"
-						type="number"
-						formControlName="realDuration"
-						placeholder="Actual hours"
-						step="0.5"
-					/>
-				</div>
 				<div class="form-group">
 					<label for="userRating">Rating</label>
 					<input
@@ -165,6 +170,16 @@
 						step="0.5"
 						min="1"
 						max="10"
+					/>
+				</div>
+				<div class="form-group">
+					<label for="realDuration">Real Duration (h)</label>
+					<input
+						id="realDuration"
+						type="number"
+						formControlName="realDuration"
+						placeholder="Actual hours"
+						step="0.5"
 					/>
 				</div>
 			</div>

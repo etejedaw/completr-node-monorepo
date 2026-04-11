@@ -17,6 +17,7 @@ import {
 	UpdateBacklogDto
 } from "../backlog.service";
 import { GamesService } from "../../games/games.service";
+import { ScoreSourcesService } from "../../../core/services/score-sources.service";
 import {
 	Subject,
 	debounceTime,
@@ -36,6 +37,7 @@ export class BacklogModal implements OnInit {
 	private readonly fb = inject(FormBuilder);
 	private readonly backlogService = inject(BacklogService);
 	private readonly gamesService = inject(GamesService);
+	private readonly scoreSourcesService = inject(ScoreSourcesService);
 
 	entry = input<BacklogEntry | null>(null);
 	closed = output<void>();
@@ -51,6 +53,18 @@ export class BacklogModal implements OnInit {
 		() => this.selectedGame()?.platforms ?? []
 	);
 	protected readonly showConfirmDelete = signal(false);
+	protected readonly scoreSourceCode = signal("");
+	protected readonly scoreSourceLabel = computed(() => {
+		const code = this.scoreSourceCode();
+		if (!code) return "";
+		const scale = this.scoreSourcesService.getScale(code);
+		return scale ? `${code} (0-${scale})` : code;
+	});
+	protected readonly canNormalize = computed(() => {
+		const code = this.scoreSourceCode();
+		const scale = this.scoreSourcesService.getScale(code);
+		return !!scale && scale !== 10;
+	});
 
 	private readonly searchSubject = new Subject<string>();
 
@@ -77,6 +91,7 @@ export class BacklogModal implements OnInit {
 
 	ngOnInit() {
 		this.gamesService.getPlatforms().subscribe(p => this.platforms.set(p));
+		this.scoreSourcesService.load();
 
 		this.searchSubject
 			.pipe(
@@ -135,8 +150,9 @@ export class BacklogModal implements OnInit {
 	selectGame(game: Game) {
 		this.selectedGame.set(game);
 
-		const score = this.pickScore(game);
+		const { score, source } = this.pickScore(game);
 		const duration = this.pickDuration(game);
+		this.scoreSourceCode.set(source);
 
 		this.form.patchValue({
 			gameId: game.id,
@@ -148,13 +164,22 @@ export class BacklogModal implements OnInit {
 		this.searchQuery.set("");
 	}
 
-	private pickScore(game: Game): number | null {
+	normalizeScore() {
+		const score = this.form.getRawValue().score;
+		const source = this.scoreSourceCode();
+		if (!score || !source) return;
+		const normalized = this.scoreSourcesService.normalize(score, source);
+		this.form.patchValue({ score: normalized });
+		this.scoreSourceCode.set("");
+	}
+
+	private pickScore(game: Game): { score: number | null; source: string } {
 		const priority = ["metacritic", "opencritic", "rawg", "completr"];
 		for (const source of priority) {
 			const found = game.scores?.find(s => s.source === source);
-			if (found) return found.score;
+			if (found) return { score: found.score, source };
 		}
-		return null;
+		return { score: null, source: "" };
 	}
 
 	private pickDuration(game: Game): number | null {
