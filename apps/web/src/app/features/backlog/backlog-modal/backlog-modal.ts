@@ -54,6 +54,7 @@ export class BacklogModal implements OnInit {
 		() => this.selectedGame()?.platforms ?? []
 	);
 	protected readonly showConfirmDelete = signal(false);
+	protected readonly isSearching = signal(false);
 	protected readonly activeScoreSource = signal("");
 	protected readonly activeDurationSource = signal("");
 	protected readonly gameScores = computed(
@@ -94,11 +95,19 @@ export class BacklogModal implements OnInit {
 			.pipe(
 				debounceTime(400),
 				distinctUntilChanged(),
-				switchMap(query =>
-					query.length >= 2 ? this.gamesService.search(query) : of([])
-				)
+				switchMap(query => {
+					if (query.length < 2) {
+						this.isSearching.set(false);
+						return of([]);
+					}
+					this.isSearching.set(true);
+					return this.gamesService.search(query);
+				})
 			)
-			.subscribe(games => this.gameResults.set(games));
+			.subscribe(games => {
+				this.gameResults.set(games);
+				this.isSearching.set(false);
+			});
 
 		const e = this.entry();
 		if (e) {
@@ -128,6 +137,7 @@ export class BacklogModal implements OnInit {
 	onSearch(event: Event) {
 		const query = (event.target as HTMLInputElement).value;
 		this.searchQuery.set(query);
+		if (query.length >= 2) this.isSearching.set(true);
 		this.searchSubject.next(query);
 	}
 
