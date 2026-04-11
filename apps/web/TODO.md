@@ -6,16 +6,17 @@
 
 ## Resumen cronológico
 
-| Fase   | Etapa                                               | Release  |
-| ------ | --------------------------------------------------- | -------- |
-| Fase 0 | Setup y arquitectura base                            | `v0.1.0` |
-| Fase 1 | Excel Killer (solo tú)                               | `v0.2.0` |
-| Fase 2 | MVP Amigos (5–20 personas)                           | `v0.3.0` |
-| Fase 3 | Beta Cerrada (50–200 usuarios, invitación)           | `v0.4.0` |
-| Fase 4 | Beta Pública (500+ usuarios)                         | `v1.0.0` |
-| Fase 5 | Estabilización y calidad                             | `v1.1.0` |
-| Fase 6 | Premium                                              | `v2.0.0` |
-| Fase 7 | Escalamiento continuo                                | `v2.x.x` |
+| Fase     | Etapa                                                 | Release  |
+| -------- | ----------------------------------------------------- | -------- |
+| Fase 0   | Setup y arquitectura base                             | `v0.1.0` |
+| Fase 1   | Excel Killer (solo tú)                                | `v0.2.0` |
+| Fase 1.5 | Beyond the Spreadsheet (mejoras + deploy)             | `v0.2.x` |
+| Fase 2   | MVP Amigos (5–20 personas)                            | `v0.3.0` |
+| Fase 3   | Beta Cerrada (50–200 usuarios, invitación)            | `v0.4.0` |
+| Fase 4   | Beta Pública (500+ usuarios)                          | `v1.0.0` |
+| Fase 5   | Estabilización y calidad                              | `v1.1.0` |
+| Fase 6   | Premium                                               | `v2.0.0` |
+| Fase 7   | Escalamiento continuo                                 | `v2.x.x` |
 
 ---
 
@@ -90,9 +91,21 @@
 - [x] Editar entrada (click en fila, modal precargado, campos nullable para limpiar valores)
 - [x] Eliminar entrada (con confirmación inline)
 - [x] Búsqueda local por título en la tabla
-- [ ] Normalización de scores a escala 1-10 (botón en modal, usa GET /score-sources)
+---
+
+## FASE 1.5 — Beyond the Spreadsheet
+
+**Objetivo:** Mejorar la experiencia más allá del backlog. Agregar las demás vistas, filtros avanzados y deploy.
+**Condición de éxito:** Todas las features de gestión personal funcionan y la app está desplegada en el VPS.
+
+> Sigue siendo solo tú, pero con una experiencia más completa.
+
+### Mejoras al Backlog
+
+- [ ] Normalización de scores a escala Completr (botón en modal, usa GET /score-sources)
 - [ ] Evaluar sort de title y ratio via backend cuando se implementen saved filters (actualmente local)
 - [ ] Filtros avanzados: plataforma, rangos de fechas, multi-status combinado
+- [ ] Vista de progreso básico del backlog
 
 ### Feature: Game Shelf
 
@@ -145,10 +158,10 @@
 - [ ] Vista `/profile` con datos del usuario (username, avatar, bio)
 - [ ] Editar perfil (username, avatar_url)
 
-### Navegación
+### Deploy
 
-- [ ] Sidebar o navbar con links a: Backlog, Game Shelf, Listas, Wishlist, Favoritos, Perfil
-- [ ] Indicador de sección activa
+- [ ] Deploy del frontend al VPS
+- [ ] Configurar proxy/nginx para servir frontend + backend
 
 ---
 

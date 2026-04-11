@@ -250,16 +250,17 @@ export const authGuard: CanActivateFn = () => {
 
 ## Versionado por fase (mismo que backend)
 
-| Fase   | Release  | Descripción                                  |
-| ------ | -------- | -------------------------------------------- |
-| Fase 0 | `v0.1.0` | Setup, arquitectura, sin vistas funcionales  |
-| Fase 1 | `v0.2.0` | Excel Killer, solo uso personal              |
-| Fase 2 | `v0.3.0` | MVP Amigos, 5–20 personas                    |
-| Fase 3 | `v0.4.0` | Beta cerrada, 50–200 por invitación          |
-| Fase 4 | `v1.0.0` | Beta pública, primer release abierto (500+)  |
-| Fase 5 | `v1.1.0` | Estabilización y calidad                     |
-| Fase 6 | `v2.0.0` | Premium                                      |
-| Fase 7 | `v2.x.x` | Incrementales según features                 |
+| Fase     | Release  | Descripción                                    |
+| -------- | -------- | ---------------------------------------------- |
+| Fase 0   | `v0.1.0` | Setup, arquitectura, sin vistas funcionales    |
+| Fase 1   | `v0.2.0` | Excel Killer, solo uso personal                |
+| Fase 1.5 | `v0.2.x` | Beyond the Spreadsheet, mejoras + deploy       |
+| Fase 2   | `v0.3.0` | MVP Amigos, 5–20 personas                      |
+| Fase 3   | `v0.4.0` | Beta cerrada, 50–200 por invitación            |
+| Fase 4   | `v1.0.0` | Beta pública, primer release abierto (500+)    |
+| Fase 5   | `v1.1.0` | Estabilización y calidad                       |
+| Fase 6   | `v2.0.0` | Premium                                        |
+| Fase 7   | `v2.x.x` | Incrementales según features                   |
 
 ---
 
@@ -318,7 +319,7 @@ export const authGuard: CanActivateFn = () => {
 - ESLint + Prettier configurados (misma config que backend)
 - Vitest como test runner
 
-### Completado (Fase 1 — en progreso)
+### Completado (Fase 1 — Excel Killer v0.2.0)
 
 - Login funcional con reactive forms y redirect (registro bloqueado, solo admin)
 - Backlog: tabla con todas las columnas (backgroundUrl, title, platform, score, duration, ratio, realDuration, personalRatio, userRating, finishedAt, status, notes)
@@ -335,9 +336,17 @@ export const authGuard: CanActivateFn = () => {
 - Design system con CSS variables, dark theme, gradientes sutiles
 - `backgroundUrl` en vez de `coverUrl` en todas las interfaces y templates
 - `personalRatio` agregado al serializer del backend
+- Star rating component (0.5-5, half stars, gamer labels: Unplayable→GOAT) en modal y tabla
+- Score source buttons: todas las fuentes disponibles como botones, normalización a escala Completr (0.5-5)
+- Duration source buttons: misma UX que scores
+- Searching indicator en buscador de juegos
+- Required asterisks en campos obligatorios del modal de creación
+- Fechas DATEONLY (sin timezone, sin desfase)
 
-### Pendiente (Fase 1)
+### Pendiente (Fase 1.5 — Beyond the Spreadsheet v0.2.x)
 
-- Normalización de scores a escala 1-10 (botón en modal, usa `GET /score-sources` del backend)
+- Normalización de scores a escala Completr (botón en modal, usa `GET /score-sources` del backend)
 - Filtros avanzados (plataforma, rangos de fechas, multi-status)
 - Game Shelf, Listas, Wishlist, Favorites, Saved Filters, Perfil
+- Vista de progreso básico del backlog
+- Deploy al VPS
