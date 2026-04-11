@@ -18,6 +18,7 @@ import {
 } from "../backlog.service";
 import { GamesService } from "../../games/games.service";
 import { ScoreSourcesService } from "../../../core/services/score-sources.service";
+import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
 	Subject,
 	debounceTime,
@@ -28,7 +29,7 @@ import {
 
 @Component({
 	selector: "app-backlog-modal",
-	imports: [ReactiveFormsModule],
+	imports: [ReactiveFormsModule, StarRating],
 	templateUrl: "./backlog-modal.html",
 	styleUrl: "./backlog-modal.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

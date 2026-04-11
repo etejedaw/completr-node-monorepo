@@ -1,0 +1,26 @@
+<div class="star-rating" (mouseleave)="onLeave()">
+	<div class="stars">
+		@for (star of stars; track star) {
+		<span [class]="getStarClass(star)" class="star-wrapper">
+			<span
+				class="star-half-left"
+				(mouseenter)="onHalf(star)"
+				(click)="onClick(star - 0.5)"
+			></span>
+			<span
+				class="star-half-right"
+				(mouseenter)="onFull(star)"
+				(click)="onClick(star)"
+			></span>
+			<span class="star-icon">&#9733;</span>
+		</span>
+		}
+	</div>
+	<span class="rating-label">
+		@if (displayValue > 0) {
+		<span class="rating-value">{{ displayValue }}</span>
+		} @if (label) {
+		<span class="rating-text">{{ label }}</span>
+		}
+	</span>
+</div>
