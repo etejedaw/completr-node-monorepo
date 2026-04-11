@@ -6,16 +6,17 @@
 
 ## 📆 Resumen cronológico
 
-| Mes   | Etapa                                               | Release  |
-| ----- | --------------------------------------------------- | -------- |
-| 1     | Fase 0 — Setup y arquitectura                       | `v0.1.0` |
-| 2–3   | Fase 1 — Excel Killer (solo tú)                     | `v0.2.0` |
-| 3–4   | Fase 2 — MVP Amigos (5–20 personas)                 | `v0.3.0` |
-| 4–6   | Fase 3 — Beta Cerrada (50–200 usuarios, invitación) | `v0.4.0` |
-| 6–9   | Fase 4 — Beta Pública (500+ usuarios)               | `v1.0.0` |
-| 9–10  | Fase 5 — Estabilización y calidad                   | `v1.1.0` |
-| 10–12 | Fase 6 — Premium (desarrollo + lanzamiento)         | `v2.0.0` |
-| 12+   | Fase 7 — Escalamiento continuo                      | `v2.x.x` |
+| Mes   | Etapa                                                   | Release  |
+| ----- | ------------------------------------------------------- | -------- |
+| 1     | Fase 0 — Setup y arquitectura                           | `v0.1.0` |
+| 2–3   | Fase 1 — Excel Killer (solo tú)                         | `v0.2.0` |
+| 3–4   | Fase 1.5 — Beyond the Spreadsheet (mejoras + deploy)    | `v0.2.x` |
+| 4–5   | Fase 2 — MVP Amigos (5–20 personas)                     | `v0.3.0` |
+| 5–7   | Fase 3 — Beta Cerrada (50–200 usuarios, invitación)     | `v0.4.0` |
+| 7–10  | Fase 4 — Beta Pública (500+ usuarios)                   | `v1.0.0` |
+| 10–11 | Fase 5 — Estabilización y calidad                       | `v1.1.0` |
+| 11–13 | Fase 6 — Premium (desarrollo + lanzamiento)             | `v2.0.0` |
+| 13+   | Fase 7 — Escalamiento continuo                          | `v2.x.x` |
 
 ---
 
@@ -296,7 +297,28 @@
 - [x] Registro restringido a admin, hard delete de games con CASCADE
 - [x] RAWG mapper: rating RAWG, expansión pc→tiendas, mapeo de géneros
 - [x] Backlog update nullable: startedAt, finishedAt, realDuration, userRating, notes
+---
+
+## 🟨 FASE 1.5 — Beyond the Spreadsheet _(~3–4 semanas)_
+
+**Objetivo:** Mejorar la experiencia más allá del backlog. Agregar las demás vistas, filtros avanzados y deploy.
+**Condición de éxito:** Todas las features de gestión personal funcionan y la app está desplegada en el VPS.
+
+> 👤 _Sigue siendo solo tú, pero con una experiencia más completa._
+
+### Backend
+
 - [ ] Agregar sort_by `title` (campo de Game, requiere order por relación en Sequelize) y `ratio`/`personalRatio` (campos calculados) al backend para soportar saved filters correctamente
+
+### Frontend — Vistas pendientes
+
+- [ ] Game Shelf: vista de colección, agregar/editar/quitar juegos
+- [ ] Listas: CRUD, detalle con items, reordenar
+- [ ] Wishlist: vista, agregar, reordenar
+- [ ] Favorites: vista, agregar, reordenar
+- [ ] Saved Filters: guardar/aplicar filtros del backlog
+- [ ] Perfil: vista y edición
+- [ ] Filtros avanzados del backlog: plataforma, rangos de fechas, multi-status combinado
 - [ ] Vista de progreso básico del backlog
 
 ### Deploy inicial (VPS)

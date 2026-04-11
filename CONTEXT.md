@@ -347,16 +347,17 @@ Las variables se cargan desde `.env` usando Node 22+ `--env-file=.env`. No se us
 
 ### Versionado por fase (semver)
 
-| Fase   | Release  | Descripción                                 |
-| ------ | -------- | ------------------------------------------- |
-| Fase 0 | `v0.1.0` | Setup, arquitectura, sin usuarios           |
-| Fase 1 | `v0.2.0` | Excel Killer, solo uso personal             |
-| Fase 2 | `v0.3.0` | MVP Amigos, 5–20 personas                   |
-| Fase 3 | `v0.4.0` | Beta cerrada, 50–200 por invitación         |
-| Fase 4 | `v1.0.0` | Beta pública, primer release abierto (500+) |
-| Fase 5 | `v1.1.0` | Estabilización y calidad                    |
-| Fase 6 | `v2.0.0` | Premium, cambio de modelo (monetización)    |
-| Fase 7 | `v2.x.x` | Incrementales según features                |
+| Fase     | Release  | Descripción                                    |
+| -------- | -------- | ---------------------------------------------- |
+| Fase 0   | `v0.1.0` | Setup, arquitectura, sin usuarios              |
+| Fase 1   | `v0.2.0` | Excel Killer, solo uso personal                |
+| Fase 1.5 | `v0.2.x` | Beyond the Spreadsheet, mejoras + deploy       |
+| Fase 2   | `v0.3.0` | MVP Amigos, 5–20 personas                      |
+| Fase 3   | `v0.4.0` | Beta cerrada, 50–200 por invitación            |
+| Fase 4   | `v1.0.0` | Beta pública, primer release abierto (500+)    |
+| Fase 5   | `v1.1.0` | Estabilización y calidad                       |
+| Fase 6   | `v2.0.0` | Premium, cambio de modelo (monetización)       |
+| Fase 7   | `v2.x.x` | Incrementales según features                   |
 
 ### Estrategia de branching
 
@@ -450,7 +451,7 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Infraestructura: error handling, logging, rate limiting, validación, CORS, Helmet
 - Data maestra: 517 juegos enriquecidos con RAWG (descripciones, covers, fechas, géneros, scores RAWG, playtimes RAWG) + scores Metacritic y tiempos HLTB del CSV original
 
-### Completado (Fase 1 — en progreso)
+### Completado (Fase 1 — Excel Killer v0.2.0)
 
 - Backlog: CRUD completo con filtros avanzados (multi-status comma-separated, no_finished_date, platform_id, rangos de fechas/score/duration/realDuration/rating, ordenamiento), isPublic, userRating (1-10 en pasos de 0.5), endpoints públicos para ver backlog de otros usuarios
 - Saved Filters: CRUD con límite free (5) / premium (ilimitado), almacenamiento JSONB de presets de filtros, campo description, serializer sin timestamps
@@ -476,6 +477,14 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - RAWG lookup y detail endpoints para admin re-scrape
 - Registro restringido a admin (`POST /auth/register` requiere token admin)
 - Backlog update: `startedAt`, `finishedAt`, `realDuration`, `userRating`, `notes` aceptan `null` para limpiar valores
+
+### Pendiente (Fase 1.5 — Beyond the Spreadsheet v0.2.x)
+
+- Backend: sort_by title/ratio/personalRatio para saved filters
+- Frontend: Game Shelf, Listas, Wishlist, Favorites, Saved Filters, Perfil, filtros avanzados del backlog
+- Deploy al VPS: DB, env vars, migrar datos
+- Backlog: startedAt/finishedAt cambiados a DATEONLY (sin timezone)
+- userRating: escala cambiada de 1-10 a 0.5-5
 
 ### Pendiente — Fases posteriores
 
