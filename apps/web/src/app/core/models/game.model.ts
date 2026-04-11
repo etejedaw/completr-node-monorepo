@@ -5,6 +5,7 @@ export interface Game {
 	description?: string;
 	releaseAt?: string;
 	backgroundUrl?: string;
+	ratio?: number;
 	isDlc: boolean;
 	parentGameId?: string;
 	platforms: Platform[];
