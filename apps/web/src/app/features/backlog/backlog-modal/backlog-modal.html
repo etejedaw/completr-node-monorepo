@@ -121,6 +121,7 @@
 						formControlName="score"
 						placeholder="Score"
 						step="0.1"
+						(input)="onScoreManualChange()"
 					/>
 				</div>
 				<div class="form-group">
@@ -145,6 +146,7 @@
 						formControlName="duration"
 						placeholder="Hours"
 						step="0.5"
+						(input)="onDurationManualChange()"
 					/>
 				</div>
 			</div>

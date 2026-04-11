@@ -171,6 +171,14 @@ export class BacklogModal implements OnInit {
 		this.form.patchValue({ duration });
 	}
 
+	onScoreManualChange() {
+		this.activeScoreSource.set("");
+	}
+
+	onDurationManualChange() {
+		this.activeDurationSource.set("");
+	}
+
 	normalizeScore() {
 		const score = this.form.getRawValue().score;
 		const source = this.activeScoreSource();
