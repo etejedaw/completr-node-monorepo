@@ -1,4 +1,4 @@
-import { UniqueConstraintError, ValidationError } from "sequelize";
+import { Sequelize, UniqueConstraintError, ValidationError } from "sequelize";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { RegisterGenreDto } from "./dtos/register-genre.dto";
 import { Genre } from "./genres.model";
@@ -43,6 +43,12 @@ export async function updateGenre(id: string, updateGenreDto: UpdateGenreDto) {
 
 	await genre.update({ name, code });
 	return genre;
+}
+
+export async function findRandomGenre() {
+	return await Genre.findOne({
+		order: Sequelize.literal("RANDOM()")
+	});
 }
 
 export async function removeGenre(id: string) {

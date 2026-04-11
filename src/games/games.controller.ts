@@ -8,6 +8,7 @@ import { gameSerializer } from "./games.serializer";
 import { GameIdParam } from "./schemas/game-id-params.schema";
 import { RawgIdParam } from "./schemas/rawg-id-params.schema";
 import { UpdateGameDto } from "./dtos/update-game.dto";
+import { GamesQuery } from "./schemas/games-query.schema";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 
 export async function getGameByCode(request: Request, response: Response) {
@@ -24,12 +25,18 @@ export async function getGameByCode(request: Request, response: Response) {
 	return response.status(200).json({ data });
 }
 
-export async function getAllGames(_request: Request, response: Response) {
-	const games = await gameService.findAll();
+export async function getAllGames(request: Request, response: Response) {
+	const query = request.locals.query as GamesQuery;
+	const { games, total } = await gameService.findAll(query);
 
 	const gamesPlain = games.map(game => game.get({ plain: true }));
 
-	const data = { games: gamesPlain.map(gameSerializer) };
+	const data = {
+		games: gamesPlain.map(gameSerializer),
+		total,
+		limit: query.limit,
+		offset: query.offset
+	};
 	return response.status(200).json({ data });
 }
 

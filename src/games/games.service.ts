@@ -81,15 +81,50 @@ export async function findGameById(id: string) {
 	});
 }
 
-export async function findAll() {
-	return await Game.findAll({
-		include: [
+export interface GamesQueryOptions {
+	limit?: number;
+	offset?: number;
+	sort_by?: string;
+	sort_order?: string;
+	genre?: string;
+}
+
+export async function findAll(options: GamesQueryOptions = {}) {
+	const {
+		limit = 50,
+		offset = 0,
+		sort_by = "createdAt",
+		sort_order = "desc",
+		genre
+	} = options;
+
+	const where: Record<string, unknown> = { isActive: true };
+	const include: { association: string; where?: Record<string, unknown> }[] =
+		[
 			{ association: "Platforms" },
-			{ association: "Genres" },
 			{ association: "GameScores" },
 			{ association: "GameTimes" }
-		]
+		];
+
+	if (genre) {
+		include.push({
+			association: "Genres",
+			where: { code: genre }
+		});
+	} else {
+		include.push({ association: "Genres" });
+	}
+
+	const { rows, count } = await Game.findAndCountAll({
+		where,
+		include,
+		order: [[sort_by, sort_order.toUpperCase()]],
+		limit,
+		offset,
+		distinct: true
 	});
+
+	return { games: rows, total: count };
 }
 
 export async function searchGames(query: string, forceRawg = false) {

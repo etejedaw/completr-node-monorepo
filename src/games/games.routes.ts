@@ -8,6 +8,7 @@ import { GameIdParamSchema } from "./schemas/game-id-params.schema";
 import { GameCodeParamSchema } from "./schemas/game-code-params.schema";
 import { GameSearchQuerySchema } from "./schemas/game-search-query.schema";
 import { RawgIdParamSchema } from "./schemas/rawg-id-params.schema";
+import { GamesQuerySchema } from "./schemas/games-query.schema";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import {
 	publicLimiter,
@@ -18,7 +19,10 @@ const router = Router();
 
 router.get(
 	"/games",
-	[rateLimiterMiddleware(publicLimiter)],
+	[
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(GamesQuerySchema, "query")
+	],
 	gamesController.getAllGames
 );
 
