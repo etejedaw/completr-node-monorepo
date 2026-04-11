@@ -125,6 +125,20 @@
 				</div>
 				<div class="form-group">
 					<label for="duration">Duration (h)</label>
+					@if (gameTimes().length > 0) {
+					<div class="score-sources">
+						@for (t of gameTimes(); track t.source) {
+						<button
+							type="button"
+							class="btn-source"
+							[class.active]="activeDurationSource() === t.source"
+							(click)="applyDuration(t.source, t.duration)"
+						>
+							{{ t.source }} {{ t.duration }}h
+						</button>
+						}
+					</div>
+					}
 					<input
 						id="duration"
 						type="number"

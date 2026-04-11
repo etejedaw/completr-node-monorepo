@@ -54,8 +54,12 @@ export class BacklogModal implements OnInit {
 	);
 	protected readonly showConfirmDelete = signal(false);
 	protected readonly activeScoreSource = signal("");
+	protected readonly activeDurationSource = signal("");
 	protected readonly gameScores = computed(
 		() => this.selectedGame()?.scores ?? []
+	);
+	protected readonly gameTimes = computed(
+		() => this.selectedGame()?.times ?? []
 	);
 
 	private readonly searchSubject = new Subject<string>();
@@ -145,12 +149,13 @@ export class BacklogModal implements OnInit {
 		const score = this.pickScore(game);
 		const duration = this.pickDuration(game);
 		this.activeScoreSource.set(score.source);
+		this.activeDurationSource.set(duration.source);
 
 		this.form.patchValue({
 			gameId: game.id,
 			platformId: "",
 			score: score.value,
-			duration
+			duration: duration.value
 		});
 		this.gameResults.set([]);
 		this.searchQuery.set("");
@@ -159,6 +164,11 @@ export class BacklogModal implements OnInit {
 	applyScore(source: string, score: number) {
 		this.activeScoreSource.set(source);
 		this.form.patchValue({ score });
+	}
+
+	applyDuration(source: string, duration: number) {
+		this.activeDurationSource.set(source);
+		this.form.patchValue({ duration });
 	}
 
 	normalizeScore() {
@@ -190,13 +200,13 @@ export class BacklogModal implements OnInit {
 		return { value: null, source: "" };
 	}
 
-	private pickDuration(game: Game): number | null {
+	private pickDuration(game: Game): { value: number | null; source: string } {
 		const priority = ["hltb", "rawg", "completr"];
 		for (const source of priority) {
 			const found = game.times?.find(t => t.source === source);
-			if (found) return found.duration;
+			if (found) return { value: found.duration, source };
 		}
-		return null;
+		return { value: null, source: "" };
 	}
 
 	clearGame() {
