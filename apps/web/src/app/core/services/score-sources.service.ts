@@ -32,7 +32,7 @@ export class ScoreSourcesService {
 
 	normalize(score: number, sourceCode: string): number {
 		const scale = this.getScale(sourceCode);
-		if (!scale || scale === 10) return score;
-		return Math.round((score / scale) * 10 * 100) / 100;
+		if (!scale || scale === 5) return score;
+		return Math.round((score / scale) * 5 * 100) / 100;
 	}
 }

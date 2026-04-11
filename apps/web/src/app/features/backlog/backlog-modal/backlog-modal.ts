@@ -183,7 +183,7 @@ export class BacklogModal implements OnInit {
 	canNormalize(): boolean {
 		const source = this.activeScoreSource();
 		const scale = this.scoreSourcesService.getScale(source);
-		return !!scale && scale !== 10;
+		return !!scale && scale !== 5;
 	}
 
 	getScaleLabel(source: string): string {
