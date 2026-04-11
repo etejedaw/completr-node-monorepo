@@ -29,6 +29,20 @@ export const routes: Routes = [
 					)
 			},
 			{
+				path: "games",
+				loadComponent: () =>
+					import("./features/games/games-browse/games-browse").then(
+						m => m.GamesBrowse
+					)
+			},
+			{
+				path: "games/:code",
+				loadComponent: () =>
+					import("./features/games/game-detail/game-detail").then(
+						m => m.GameDetail
+					)
+			},
+			{
 				path: "game-shelf",
 				loadComponent: () =>
 					import("./features/game-shelf/game-shelf-list/game-shelf-list").then(
