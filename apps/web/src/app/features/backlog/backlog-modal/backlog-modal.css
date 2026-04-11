@@ -87,6 +87,11 @@
 	letter-spacing: 0.03em;
 }
 
+.required {
+	color: var(--status-abandoned);
+	font-weight: 700;
+}
+
 .score-sources {
 	display: flex;
 	flex-wrap: wrap;

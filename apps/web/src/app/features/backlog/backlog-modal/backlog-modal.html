@@ -13,7 +13,7 @@
 			<!-- Game search (only for create) -->
 			@if (!isEdit()) {
 			<div class="form-group">
-				<label>Game</label>
+				<label>Game <span class="required">*</span></label>
 				@if (selectedGame()) {
 				<div class="selected-game">
 					@if (selectedGame()!.backgroundUrl) {
@@ -81,7 +81,9 @@
 			<!-- Platform -->
 			@if (!isEdit()) {
 			<div class="form-group">
-				<label for="platformId">Platform</label>
+				<label for="platformId"
+					>Platform <span class="required">*</span></label
+				>
 				<select id="platformId" formControlName="platformId">
 					<option value="">Select platform</option>
 					@for (p of gamePlatforms(); track p.id) {
@@ -94,7 +96,9 @@
 			<!-- Score & Duration row -->
 			<div class="form-row">
 				<div class="form-group">
-					<label for="score">Score</label>
+					<label for="score"
+						>Score <span class="required">*</span></label
+					>
 					@if (gameScores().length > 0) {
 					<div class="score-sources">
 						@for (s of gameScores(); track s.source) {
@@ -128,7 +132,9 @@
 					/>
 				</div>
 				<div class="form-group">
-					<label for="duration">Duration (h)</label>
+					<label for="duration"
+						>Duration (h) <span class="required">*</span></label
+					>
 					@if (gameTimes().length > 0) {
 					<div class="score-sources">
 						@for (t of gameTimes(); track t.source) {
