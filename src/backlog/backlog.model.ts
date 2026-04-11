@@ -57,8 +57,8 @@ Backlog.init(
 			allowNull: false,
 			defaultValue: "not_started"
 		},
-		startedAt: DataTypes.DATE,
-		finishedAt: DataTypes.DATE,
+		startedAt: DataTypes.DATEONLY,
+		finishedAt: DataTypes.DATEONLY,
 		realDuration: DataTypes.FLOAT,
 		score: DataTypes.FLOAT,
 		duration: DataTypes.FLOAT,
