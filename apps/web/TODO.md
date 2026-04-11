@@ -109,10 +109,9 @@
 
 ### Feature: Game Shelf
 
-- [ ] Vista de mi colección de juegos
-- [ ] Agregar juego a la colección (con plataforma)
-- [ ] Editar notas, edición, fecha de adquisición
-- [ ] Quitar juego de la colección
+- [x] Vista de mi colección con tabla, búsqueda local y CRUD modal
+- [ ] Extra: filtro por plataforma (dropdown)
+- [ ] Extra: contador de juegos por plataforma
 
 ### Feature: Búsqueda de juegos
 
