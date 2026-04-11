@@ -38,6 +38,7 @@ function platformSerializer(platform: Platform) {
 		id: platform.id,
 		name: platform.name,
 		code: platform.code,
+		abbreviation: platform.abbreviation,
 		generation: platform.generation,
 		logoUrl: platform.logoUrl,
 		releaseAt: platform.releaseAt
