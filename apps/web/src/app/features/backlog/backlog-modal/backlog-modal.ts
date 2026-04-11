@@ -53,18 +53,10 @@ export class BacklogModal implements OnInit {
 		() => this.selectedGame()?.platforms ?? []
 	);
 	protected readonly showConfirmDelete = signal(false);
-	protected readonly scoreSourceCode = signal("");
-	protected readonly scoreSourceLabel = computed(() => {
-		const code = this.scoreSourceCode();
-		if (!code) return "";
-		const scale = this.scoreSourcesService.getScale(code);
-		return scale ? `${code} (0-${scale})` : code;
-	});
-	protected readonly canNormalize = computed(() => {
-		const code = this.scoreSourceCode();
-		const scale = this.scoreSourcesService.getScale(code);
-		return !!scale && scale !== 10;
-	});
+	protected readonly activeScoreSource = signal("");
+	protected readonly gameScores = computed(
+		() => this.selectedGame()?.scores ?? []
+	);
 
 	private readonly searchSubject = new Subject<string>();
 
@@ -150,36 +142,52 @@ export class BacklogModal implements OnInit {
 	selectGame(game: Game) {
 		this.selectedGame.set(game);
 
-		const { score, source } = this.pickScore(game);
+		const score = this.pickScore(game);
 		const duration = this.pickDuration(game);
-		this.scoreSourceCode.set(source);
+		this.activeScoreSource.set(score.source);
 
 		this.form.patchValue({
 			gameId: game.id,
 			platformId: "",
-			score,
+			score: score.value,
 			duration
 		});
 		this.gameResults.set([]);
 		this.searchQuery.set("");
 	}
 
+	applyScore(source: string, score: number) {
+		this.activeScoreSource.set(source);
+		this.form.patchValue({ score });
+	}
+
 	normalizeScore() {
 		const score = this.form.getRawValue().score;
-		const source = this.scoreSourceCode();
+		const source = this.activeScoreSource();
 		if (!score || !source) return;
 		const normalized = this.scoreSourcesService.normalize(score, source);
 		this.form.patchValue({ score: normalized });
-		this.scoreSourceCode.set("");
+		this.activeScoreSource.set("");
 	}
 
-	private pickScore(game: Game): { score: number | null; source: string } {
+	canNormalize(): boolean {
+		const source = this.activeScoreSource();
+		const scale = this.scoreSourcesService.getScale(source);
+		return !!scale && scale !== 10;
+	}
+
+	getScaleLabel(source: string): string {
+		const scale = this.scoreSourcesService.getScale(source);
+		return scale ? `/${scale}` : "";
+	}
+
+	private pickScore(game: Game): { value: number | null; source: string } {
 		const priority = ["metacritic", "opencritic", "rawg", "completr"];
 		for (const source of priority) {
 			const found = game.scores?.find(s => s.source === source);
-			if (found) return { score: found.score, source };
+			if (found) return { value: found.score, source };
 		}
-		return { score: null, source: "" };
+		return { value: null, source: "" };
 	}
 
 	private pickDuration(game: Game): number | null {

@@ -91,12 +91,19 @@
 			<!-- Score & Duration row -->
 			<div class="form-row">
 				<div class="form-group">
-					<div class="label-row">
-						<label for="score">Score</label>
-						@if (scoreSourceLabel()) {
-						<span class="source-label"
-							>{{ scoreSourceLabel() }}</span
+					<label for="score">Score</label>
+					@if (gameScores().length > 0) {
+					<div class="score-sources">
+						@for (s of gameScores(); track s.source) {
+						<button
+							type="button"
+							class="btn-source"
+							[class.active]="activeScoreSource() === s.source"
+							(click)="applyScore(s.source, s.score)"
 						>
+							{{ s.source }} {{ s.score }}{{
+							getScaleLabel(s.source) }}
+						</button>
 						} @if (canNormalize()) {
 						<button
 							type="button"
@@ -107,11 +114,12 @@
 						</button>
 						}
 					</div>
+					}
 					<input
 						id="score"
 						type="number"
 						formControlName="score"
-						placeholder="0-100"
+						placeholder="Score"
 						step="0.1"
 					/>
 				</div>
