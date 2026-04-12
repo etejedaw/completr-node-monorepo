@@ -343,10 +343,22 @@ export const authGuard: CanActivateFn = () => {
 - Required asterisks en campos obligatorios del modal de creación
 - Fechas DATEONLY (sin timezone, sin desfase)
 
-### Pendiente (Fase 1.5 — Beyond the Spreadsheet v0.2.x)
+### Completado (Fase 1.5 — Beyond the Spreadsheet, en progreso)
 
-- Normalización de scores a escala Completr (botón en modal, usa `GET /score-sources` del backend)
+- Game Shelf: tabla con CRUD modal, búsqueda local, título clickeable a ficha del juego
+- Games Browse: secciones Latest Added, género random, Completr Lists placeholder, Top Rated. Grid de carátulas
+- Game Detail: banner, tags, stats (Completr ratio/score/duration + Scores + Durations), descripción, similar games por género
+- Favorite toggle en banner, action buttons (Add to Backlog/Shelf con modal, Wishlist placeholder)
+- Modals con `preselectedGame` para bloquear campo game desde ficha del juego
+- Community placeholder, Featured in Lists placeholder
+- FavoritesService con toggle (PUT replace-all)
+- Paginación en GET /games (limit/offset/sort_by/genre)
+- Game code en serializers de backlog y game-shelf para links
+
+### Pendiente (Fase 1.5)
+
+- Listas, Wishlist, Favorites, Saved Filters, Perfil
+- Normalización de scores a escala Completr
 - Filtros avanzados (plataforma, rangos de fechas, multi-status)
-- Game Shelf, Listas, Wishlist, Favorites, Saved Filters, Perfil
 - Vista de progreso básico del backlog
 - Deploy al VPS

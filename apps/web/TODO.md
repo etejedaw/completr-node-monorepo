@@ -110,14 +110,23 @@
 ### Feature: Game Shelf
 
 - [x] Vista de mi colección con tabla, búsqueda local y CRUD modal
+- [x] Título del juego clickeable → navega a ficha del juego
 - [ ] Extra: filtro por plataforma (dropdown)
 - [ ] Extra: contador de juegos por plataforma
 
-### Feature: Búsqueda de juegos
+### Feature: Games (Browse + Detail)
 
-- [ ] Barra de búsqueda con debounce (busca en backend, fallback a RAWG automático)
-- [ ] Resultados con cover, título, plataformas, scores
-- [ ] Desde el resultado: agregar a backlog, game-shelf, wishlist o favoritos
+- [x] Vista `/games` con secciones: Latest Added, género random, Completr Lists (placeholder), Top Rated
+- [x] Grid de carátulas clickeables con título
+- [x] Barra de búsqueda con debounce y fallback a RAWG
+- [x] Vista `/games/:code` con banner, tags, stats (Completr section + Scores + Durations), descripción
+- [x] Completr section: ratio (destacado), score con estrellas + label, duration
+- [x] Favorite toggle en banner (estrella dorada)
+- [x] Action buttons: Add to Backlog (modal), Add to Shelf (modal), Add to Wishlist (placeholder)
+- [x] Modals con game precargado y bloqueado (preselectedGame)
+- [x] Similar Games por género
+- [x] Community placeholder, Featured in Lists placeholder
+- [x] Título clickeable en backlog y game-shelf → navega a ficha
 
 ### Feature: Listas
 
