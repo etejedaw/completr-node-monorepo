@@ -48,7 +48,12 @@
 						}
 					</td>
 					<td class="col-title">
-						<span class="game-title">{{ entry.game.title }}</span>
+						<a
+							class="game-title-link"
+							[routerLink]="['/games', entry.game.code]"
+							(click)="$event.stopPropagation()"
+							>{{ entry.game.title }}</a
+						>
 					</td>
 					<td class="col-platform">
 						{{ entry.platform.abbreviation }}

@@ -8,12 +8,13 @@ import {
 import { DatePipe } from "@angular/common";
 import { BacklogEntry, BacklogStatus } from "../../../core/models";
 import { BacklogService, BacklogFilters } from "../backlog.service";
+import { RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, BacklogModal, StarRating],
+	imports: [DatePipe, BacklogModal, StarRating, RouterLink],
 	templateUrl: "./backlog-list.html",
 	styleUrl: "./backlog-list.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

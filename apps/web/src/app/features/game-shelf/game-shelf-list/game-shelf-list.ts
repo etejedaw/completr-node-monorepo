@@ -8,11 +8,12 @@ import {
 import { DatePipe } from "@angular/common";
 import { GameShelfEntry } from "../../../core/models";
 import { GameShelfService } from "../game-shelf.service";
+import { RouterLink } from "@angular/router";
 import { GameShelfModal } from "../game-shelf-modal/game-shelf-modal";
 
 @Component({
 	selector: "app-game-shelf-list",
-	imports: [DatePipe, GameShelfModal],
+	imports: [DatePipe, GameShelfModal, RouterLink],
 	templateUrl: "./game-shelf-list.html",
 	styleUrl: "./game-shelf-list.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

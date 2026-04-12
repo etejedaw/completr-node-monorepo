@@ -192,6 +192,16 @@ tbody td {
 	font-weight: 500;
 }
 
+.game-title-link {
+	font-weight: 500;
+	color: var(--text-primary);
+	text-decoration: none;
+}
+
+.game-title-link:hover {
+	color: var(--accent);
+}
+
 .col-platform {
 	color: var(--text-secondary);
 	white-space: nowrap;
