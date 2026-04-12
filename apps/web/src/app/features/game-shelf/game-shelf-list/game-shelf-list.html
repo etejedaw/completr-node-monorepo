@@ -16,6 +16,27 @@
 		/>
 	</div>
 
+	@if (platformCounts().length > 1) {
+	<div class="platform-filters">
+		<button
+			class="platform-chip"
+			[class.active]="selectedPlatform() === ''"
+			(click)="filterByPlatform('')"
+		>
+			All ({{ allEntries().length }})
+		</button>
+		@for (p of platformCounts(); track p.id) {
+		<button
+			class="platform-chip"
+			[class.active]="selectedPlatform() === p.id"
+			(click)="filterByPlatform(p.id)"
+		>
+			{{ p.abbreviation }} ({{ p.count }})
+		</button>
+		}
+	</div>
+	}
+
 	@if (isLoading()) {
 	<div class="loading">Loading...</div>
 	} @else if (entries().length === 0) {

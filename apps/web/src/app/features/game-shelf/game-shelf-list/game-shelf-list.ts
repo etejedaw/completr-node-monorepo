@@ -11,6 +11,12 @@ import { GameShelfService } from "../game-shelf.service";
 import { RouterLink } from "@angular/router";
 import { GameShelfModal } from "../game-shelf-modal/game-shelf-modal";
 
+interface PlatformCount {
+	id: string;
+	abbreviation: string;
+	count: number;
+}
+
 @Component({
 	selector: "app-game-shelf-list",
 	imports: [DatePipe, GameShelfModal, RouterLink],
@@ -21,10 +27,12 @@ import { GameShelfModal } from "../game-shelf-modal/game-shelf-modal";
 export class GameShelfList implements OnInit {
 	private readonly shelfService = inject(GameShelfService);
 
-	private readonly allEntries = signal<GameShelfEntry[]>([]);
+	protected readonly allEntries = signal<GameShelfEntry[]>([]);
 	protected readonly entries = signal<GameShelfEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
+	protected readonly selectedPlatform = signal("");
+	protected readonly platformCounts = signal<PlatformCount[]>([]);
 	protected readonly showModal = signal(false);
 	protected readonly editingEntry = signal<GameShelfEntry | null>(null);
 
@@ -35,6 +43,11 @@ export class GameShelfList implements OnInit {
 	onSearch(event: Event) {
 		const query = (event.target as HTMLInputElement).value;
 		this.searchQuery.set(query);
+		this.filterEntries();
+	}
+
+	filterByPlatform(platformId: string) {
+		this.selectedPlatform.set(platformId);
 		this.filterEntries();
 	}
 
@@ -64,6 +77,7 @@ export class GameShelfList implements OnInit {
 		this.shelfService.getMyShelf().subscribe({
 			next: entries => {
 				this.allEntries.set(entries);
+				this.buildPlatformCounts(entries);
 				this.filterEntries();
 				this.isLoading.set(false);
 			},
@@ -71,15 +85,39 @@ export class GameShelfList implements OnInit {
 		});
 	}
 
-	private filterEntries() {
-		const query = this.searchQuery().toLowerCase();
-		if (!query) {
-			this.entries.set(this.allEntries());
-			return;
+	private buildPlatformCounts(entries: GameShelfEntry[]) {
+		const map = new Map<string, PlatformCount>();
+		for (const e of entries) {
+			const existing = map.get(e.platform.id);
+			if (existing) {
+				existing.count++;
+			} else {
+				map.set(e.platform.id, {
+					id: e.platform.id,
+					abbreviation: e.platform.abbreviation,
+					count: 1
+				});
+			}
 		}
-		const filtered = this.allEntries().filter(e =>
-			e.game.title.toLowerCase().includes(query)
-		);
+		const sorted = [...map.values()].sort((a, b) => b.count - a.count);
+		this.platformCounts.set(sorted);
+	}
+
+	private filterEntries() {
+		let filtered = this.allEntries();
+
+		const platform = this.selectedPlatform();
+		if (platform) {
+			filtered = filtered.filter(e => e.platform.id === platform);
+		}
+
+		const query = this.searchQuery().toLowerCase();
+		if (query) {
+			filtered = filtered.filter(e =>
+				e.game.title.toLowerCase().includes(query)
+			);
+		}
+
 		this.entries.set(filtered);
 	}
 }
