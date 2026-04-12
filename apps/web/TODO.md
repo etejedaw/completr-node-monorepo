@@ -169,8 +169,9 @@
 
 ### Feature: Perfil
 
-- [ ] Vista `/profile` con datos del usuario (username, avatar, bio)
-- [ ] Editar perfil (username, avatar_url)
+- [x] Vista `/profile` con datos del usuario (avatar, nombre, username, bio, rol, member since, privacy)
+- [x] Editar perfil: modal con name, bio, avatar URL (con preview), isPublic, isWishlistPublic, isFavoritePublic
+- [x] Privacy section: muestra estado de perfil, wishlist y favorites
 
 ### Deploy
 
