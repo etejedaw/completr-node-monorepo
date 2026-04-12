@@ -41,6 +41,7 @@ export class BacklogModal implements OnInit {
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 
 	entry = input<BacklogEntry | null>(null);
+	preselectedGame = input<Game | null>(null);
 	closed = output<void>();
 	saved = output<void>();
 
@@ -129,6 +130,11 @@ export class BacklogModal implements OnInit {
 				userRating: e.userRating ?? null,
 				notes: e.notes ?? ""
 			});
+		}
+
+		const pg = this.preselectedGame();
+		if (pg && !this.isEdit()) {
+			this.selectGame(pg);
 		}
 	}
 

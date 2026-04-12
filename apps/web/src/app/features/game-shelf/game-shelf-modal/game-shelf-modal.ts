@@ -38,6 +38,7 @@ export class GameShelfModal implements OnInit {
 	private readonly gamesService = inject(GamesService);
 
 	entry = input<GameShelfEntry | null>(null);
+	preselectedGame = input<Game | null>(null);
 	closed = output<void>();
 	saved = output<void>();
 
@@ -101,6 +102,11 @@ export class GameShelfModal implements OnInit {
 				acquiredAt: e.acquiredAt ?? null,
 				notes: e.notes ?? ""
 			});
+		}
+
+		const pg = this.preselectedGame();
+		if (pg && !this.isEdit()) {
+			this.selectGame(pg);
 		}
 	}
 
