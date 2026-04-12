@@ -32,6 +32,7 @@ export function backlogSerializer(backlogEntry: Backlog) {
 function gameSerializer(game: Game) {
 	return {
 		id: game.id,
+		code: game.code,
 		title: game.title,
 		backgroundUrl: game.backgroundUrl,
 		isDlc: game.isDlc
