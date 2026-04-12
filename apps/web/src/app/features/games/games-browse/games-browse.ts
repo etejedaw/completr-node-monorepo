@@ -1,13 +1,16 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
 } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { Game, Genre } from "../../../core/models";
 import { GamesService } from "../games.service";
+import { AuthService } from "../../../core/services/auth.service";
+import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import {
 	Subject,
 	debounceTime,
@@ -18,18 +21,24 @@ import {
 
 @Component({
 	selector: "app-games-browse",
-	imports: [RouterLink],
+	imports: [RouterLink, AdminGameEditor],
 	templateUrl: "./games-browse.html",
 	styleUrl: "./games-browse.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GamesBrowse implements OnInit {
 	private readonly gamesService = inject(GamesService);
+	private readonly authService = inject(AuthService);
+	private readonly router = inject(Router);
 	private readonly searchSubject = new Subject<string>();
 
+	protected readonly isAdmin = computed(
+		() => this.authService.user()?.role === "admin"
+	);
 	protected readonly searchQuery = signal("");
 	protected readonly searchResults = signal<Game[]>([]);
 	protected readonly isSearching = signal(false);
+	protected readonly showCreateEditor = signal(false);
 
 	protected readonly latestGames = signal<Game[]>([]);
 	protected readonly topRated = signal<Game[]>([]);
@@ -65,6 +74,11 @@ export class GamesBrowse implements OnInit {
 		this.searchQuery.set(query);
 		if (query.length >= 2) this.isSearching.set(true);
 		this.searchSubject.next(query);
+	}
+
+	onGameCreated(game: Game) {
+		this.showCreateEditor.set(false);
+		this.router.navigate(["/games", game.code]);
 	}
 
 	private loadLatest() {
