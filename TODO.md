@@ -316,13 +316,6 @@
 - [x] Migrar base de datos desde local al VPS
 - [x] Deploy backend y frontend en CapRover (completr-backend.tebita.xyz / completr.tebita.xyz)
 
-### Dominio completr.app (al finalizar Fase 2)
-
-- [ ] Configurar DNS de `completr.app`: `web.completr.app` → app frontend, `api.completr.app` → backend, `completr.app` → landing page
-- [ ] Actualizar `CORS_ORIGIN` del backend a `https://web.completr.app`
-- [ ] Actualizar `environment.production.ts` del frontend a `https://api.completr.app`
-- [ ] Crear landing page en `completr.app` (Astro o similar)
-
 ---
 
 ## 🟧 FASE 2 — MVP Amigos _(~3–4 semanas)_
@@ -395,12 +388,20 @@
 
 - [ ] Flujo de registro limpio y funcional
 - [ ] Corrección de bugs encontrados en Fase 1
+- [ ] Empty states descriptivos en todas las vistas: Backlog, Saved Views, Game Shelf, Wishlist, Favorites, Lists — con texto explicativo de qué hace cada sección y cómo empezar
 
 ### Panel admin de usuarios
 
 - [ ] `POST /admin/users` — Crear usuario manualmente (solo admin)
 - [ ] Bloquear `POST /auth/register` para usuarios no autenticados (registro solo via admin hasta beta pública)
 - [ ] Vista en frontend para crear usuarios desde el panel admin
+
+### Dominio completr.app
+
+- [ ] Configurar DNS de `completr.app`: `web.completr.app` → app frontend, `api.completr.app` → backend, `completr.app` → landing page
+- [ ] Actualizar `CORS_ORIGIN` del backend a `https://web.completr.app`
+- [ ] Actualizar `environment.production.ts` del frontend a `https://api.completr.app`
+- [ ] Crear landing page en `completr.app` (Astro o similar)
 
 ---
 
