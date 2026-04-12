@@ -57,6 +57,13 @@ export const routes: Routes = [
 					)
 			},
 			{
+				path: "lists/:id",
+				loadComponent: () =>
+					import("./features/lists/list-detail/list-detail").then(
+						m => m.ListDetail
+					)
+			},
+			{
 				path: "wishlist",
 				loadComponent: () =>
 					import("./features/wishlist/wishlist-view/wishlist-view").then(

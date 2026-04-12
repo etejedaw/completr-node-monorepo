@@ -1,0 +1,66 @@
+<div class="lists-page">
+	<div class="page-header">
+		<div class="page-header-left">
+			<h1>Lists</h1>
+			<span class="entry-count">{{ lists().length }} lists</span>
+		</div>
+		<button class="btn-add" (click)="openCreate()" [disabled]="frozen()">
+			+ Create List
+		</button>
+	</div>
+
+	@if (frozen()) {
+	<div class="frozen-banner">
+		<span class="material-icons">lock</span>
+		Lists are frozen. Delete lists to go below the free limit (5).
+	</div>
+	} @if (isLoading()) {
+	<div class="loading">Loading...</div>
+	} @else if (lists().length === 0) {
+	<div class="empty">No lists yet. Create your first list.</div>
+	} @else {
+	<div class="lists-grid">
+		@for (list of lists(); track list.id) {
+		<a class="list-card" [routerLink]="['/lists', list.id]">
+			<div class="list-card-header">
+				<h3>{{ list.name }}</h3>
+				<button
+					class="btn-edit"
+					(click)="openEdit(list, $event)"
+					title="Edit"
+				>
+					<span class="material-icons">edit</span>
+				</button>
+			</div>
+			@if (list.description) {
+			<p class="list-desc">{{ list.description }}</p>
+			}
+			<div class="list-meta">
+				<span class="meta-item">
+					<span class="material-icons meta-icon"
+						>{{ list.isPublic ? 'public' : 'lock' }}</span
+					>
+					{{ list.isPublic ? 'Public' : 'Private' }}
+				</span>
+				<span class="meta-item">
+					<span class="material-icons meta-icon">leaderboard</span>
+					{{ list.scoreSource }}
+				</span>
+				<span class="meta-item">
+					<span class="material-icons meta-icon">schedule</span>
+					{{ list.durationSource }}
+				</span>
+			</div>
+		</a>
+		}
+	</div>
+	}
+</div>
+
+@if (showModal()) {
+<app-list-modal
+	[list]="editingList()"
+	(closed)="onModalClosed()"
+	(saved)="onModalSaved()"
+/>
+}

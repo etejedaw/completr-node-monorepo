@@ -1,0 +1,115 @@
+<div class="modal-overlay" (click)="onClose()">
+	<div class="modal-card" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>{{ isEdit() ? "Edit List" : "Create List" }}</h2>
+			<button class="close-btn" (click)="onClose()">&times;</button>
+		</div>
+
+		@if (error()) {
+		<div class="error-message">{{ error() }}</div>
+		}
+
+		<form [formGroup]="form" (ngSubmit)="onSubmit()">
+			<div class="form-group">
+				<label for="name">Name <span class="required">*</span></label>
+				<input
+					id="name"
+					type="text"
+					formControlName="name"
+					placeholder="Saga Resident Evil, Top 10 RPGs..."
+				/>
+			</div>
+
+			<div class="form-group">
+				<label for="description">Description</label>
+				<textarea
+					id="description"
+					formControlName="description"
+					rows="2"
+					placeholder="What's this list about?"
+				></textarea>
+			</div>
+
+			<div class="form-row">
+				<div class="form-group">
+					<label for="scoreSource"
+						>Score Source <span class="required">*</span></label
+					>
+					<select id="scoreSource" formControlName="scoreSource">
+						<option value="metacritic">Metacritic</option>
+						<option value="opencritic">OpenCritic</option>
+						<option value="rawg">RAWG</option>
+						<option value="completr">Completr</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="durationSource"
+						>Duration Source <span class="required">*</span></label
+					>
+					<select
+						id="durationSource"
+						formControlName="durationSource"
+					>
+						<option value="hltb">HLTB</option>
+						<option value="rawg">RAWG</option>
+						<option value="completr">Completr</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="public-toggle">
+				<label class="toggle-label">
+					<input type="checkbox" formControlName="isPublic" />
+					<span class="material-icons toggle-icon"
+						>{{ form.controls.isPublic.value ? 'public' : 'lock'
+						}}</span
+					>
+					<span
+						>{{ form.controls.isPublic.value ? 'Public list' :
+						'Private list' }}</span
+					>
+				</label>
+			</div>
+
+			<div class="modal-actions">
+				@if (isEdit()) {
+				<div class="delete-area">
+					@if (!showConfirmDelete()) {
+					<button
+						type="button"
+						class="btn-danger-outline"
+						(click)="showConfirmDelete.set(true)"
+					>
+						Delete
+					</button>
+					} @else {
+					<span class="confirm-text">Are you sure?</span>
+					<button
+						type="button"
+						class="btn-danger"
+						(click)="onDelete()"
+					>
+						Yes, delete
+					</button>
+					<button
+						type="button"
+						class="btn-ghost"
+						(click)="showConfirmDelete.set(false)"
+					>
+						Cancel
+					</button>
+					}
+				</div>
+				}
+				<button
+					class="btn-primary"
+					type="submit"
+					[disabled]="form.invalid || isLoading()"
+				>
+					{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Create"
+					}}
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
