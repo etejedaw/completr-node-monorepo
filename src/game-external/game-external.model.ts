@@ -12,7 +12,7 @@ export const EXTERNAL_SOURCES = [
 
 export type ExternalSource = (typeof EXTERNAL_SOURCES)[number];
 
-class GameExternalId extends Model {
+class GameExternal extends Model {
 	declare id: string;
 	declare gameId: string;
 	declare source: ExternalSource;
@@ -21,7 +21,7 @@ class GameExternalId extends Model {
 	declare updatedAt: Date;
 }
 
-GameExternalId.init(
+GameExternal.init(
 	{
 		id: {
 			type: DataTypes.UUID,
@@ -44,8 +44,11 @@ GameExternalId.init(
 	},
 	{
 		sequelize,
-		indexes: [{ unique: true, fields: ["source", "externalId"] }]
+		indexes: [
+			{ unique: true, fields: ["source", "externalId"] },
+			{ unique: true, fields: ["gameId", "source"] }
+		]
 	}
 );
 
-export { GameExternalId };
+export { GameExternal };

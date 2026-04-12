@@ -15,12 +15,13 @@ import * as platformsService from "../platforms/platforms.service";
 import * as genresService from "../genres/genres.service";
 import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
+import * as gameExternalService from "../game-external/game-external.service";
 import { RawgProvider } from "../rawg/rawg.provider";
+import { RawgGameDetail } from "../rawg/rawg.interface";
 import { apiKeysConfig } from "../common/config/api-keys.config";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { rawgToGameMapper } from "./mappers/rawg-to-game.mapper";
 import { PinoLogger } from "../common/logger/pino.logger";
-import * as gameExternalIdsService from "../game-external-ids/game-external-ids.service";
 
 const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
 const logger = new PinoLogger("GamesService");
@@ -30,7 +31,7 @@ export async function registerGame(registerGameDto: RegisterGameDto) {
 
 	try {
 		const code = titleToSlug(registerGameDto.title);
-		const { platforms, scores, times, genres, ...gameDto } =
+		const { platforms, scores, times, genres, externalIds, ...gameDto } =
 			registerGameDto;
 
 		const gameDb = await Game.create({ ...gameDto, code }, { transaction });
@@ -41,6 +42,8 @@ export async function registerGame(registerGameDto: RegisterGameDto) {
 		await linkGenres(gameDb.id, genres, transaction);
 
 		await transaction.commit();
+
+		if (externalIds) await upsertExternalIds(gameDb.id, externalIds);
 
 		const gameCreated = await findGameById(gameDb.id);
 		if (!gameCreated) throw gamesServiceError.notFoundError();
@@ -168,6 +171,15 @@ export async function rawgLookup(query: string) {
 
 export async function rawgDetail(rawgId: number) {
 	const detail = await rawg.getGameById(rawgId);
+	return mapRawgDetail(detail);
+}
+
+export async function rawgDetailBySlug(slug: string) {
+	const detail = await rawg.getGameBySlug(slug);
+	return mapRawgDetail(detail);
+}
+
+function mapRawgDetail(detail: RawgGameDetail) {
 	const mapped = rawgToGameMapper(detail);
 	return {
 		rawgId: detail.id,
@@ -230,7 +242,7 @@ async function resolveRawgBySlug(query: string) {
 async function resolveRawgResult(rawgNumericId: number) {
 	const rawgId = String(rawgNumericId);
 
-	const existingExternal = await gameExternalIdsService.findByExternalId(
+	const existingExternal = await gameExternalService.findByExternalId(
 		"rawg",
 		rawgId
 	);
@@ -242,11 +254,7 @@ async function resolveRawgResult(rawgNumericId: number) {
 	const mapped = rawgToGameMapper(rawgDetail);
 	const existingByCode = await findGameByCode(titleToSlug(mapped.game.title));
 	if (existingByCode) {
-		await gameExternalIdsService.createExternalId(
-			existingByCode.id,
-			"rawg",
-			rawgId
-		);
+		await gameExternalService.create(existingByCode.id, "rawg", rawgId);
 		return existingByCode;
 	}
 
@@ -257,7 +265,7 @@ async function resolveRawgResult(rawgNumericId: number) {
 		genres: mapped.enrichment.genreSlugs ?? []
 	});
 
-	await gameExternalIdsService.createExternalId(game.id, "rawg", rawgId);
+	await gameExternalService.create(game.id, "rawg", rawgId);
 
 	return game;
 }
@@ -281,10 +289,11 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 	const game = await findGameById(id);
 	if (!game) throw gamesServiceError.notFoundError();
 
-	const { platforms, genres, title, ...gameDto } = updateGameDto;
+	const { platforms, genres, title, externalIds, ...gameDto } = updateGameDto;
 
 	if (platforms) await platformsUpdate(game.id, platforms);
 	if (genres) await genresUpdate(game.id, genres);
+	if (externalIds) await upsertExternalIds(game.id, externalIds);
 
 	const updateData: Record<string, unknown> = { ...gameDto };
 	if (title) {
@@ -296,6 +305,17 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 
 	const updatedGame = await findGameById(id);
 	return updatedGame as Game;
+}
+
+async function upsertExternalIds(
+	gameId: string,
+	externalIds: UpdateGameDto["externalIds"]
+) {
+	if (!externalIds) return;
+	const promises = externalIds.map(({ source, externalId }) =>
+		gameExternalService.upsert(gameId, source, externalId)
+	);
+	await Promise.all(promises);
 }
 
 export async function deactivateGame(id: string) {
