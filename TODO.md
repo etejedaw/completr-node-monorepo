@@ -309,14 +309,6 @@
 
 > 👤 _Sigue siendo solo tú, pero con una experiencia más completa._
 
-### Backend
-
-- [ ] Agregar sort_by `title` (campo de Game, requiere order por relación en Sequelize) y `ratio`/`personalRatio` (campos calculados) al backend para soportar saved filters correctamente
-
-### Frontend — Vistas pendientes
-
-- [ ] Generar las vistas de los endpoints actuales
-
 ### Deploy inicial (VPS)
 
 - [ ] Crear base de datos `completr` en PostgreSQL del VPS
@@ -588,6 +580,7 @@
 
 - [ ] Rediseño de UI/UX basado en feedback de usuarios de la Beta
 - [ ] Implementar paginación por keyset (cursor-based) en todos los endpoints de listado
+- [ ] Mover sort_by `title`, `ratio`, `personalRatio` del backlog al backend (necesario con paginación)
 - [ ] Mejoras en el buscador (relevancia, typo-tolerance)
 - [ ] Skeleton loaders y estados vacíos en el frontend
 
