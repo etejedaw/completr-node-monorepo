@@ -10,6 +10,7 @@ import { Game } from "../../../core/models";
 import { GamesService } from "../games.service";
 import { ScoreSourcesService } from "../../../core/services/score-sources.service";
 import { FavoritesService } from "../../favorites/favorites.service";
+import { WishlistService } from "../../wishlist/wishlist.service";
 import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
 import { GameShelfModal } from "../../game-shelf/game-shelf-modal/game-shelf-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
@@ -27,11 +28,15 @@ export class GameDetail implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	private readonly favoritesService = inject(FavoritesService);
+	private readonly wishlistService = inject(WishlistService);
 
 	protected readonly game = signal<Game | null>(null);
 	protected readonly isLoading = signal(true);
 	protected readonly similarGames = signal<Game[]>([]);
 	protected readonly isFavorite = signal(false);
+	protected readonly addedToWishlist = signal(false);
+	protected readonly addingToWishlist = signal(false);
+	protected readonly showPlatformPicker = signal(false);
 	protected readonly showBacklogModal = signal(false);
 	protected readonly showShelfModal = signal(false);
 	protected readonly togglingFavorite = signal(false);
@@ -81,6 +86,40 @@ export class GameDetail implements OnInit {
 				this.togglingFavorite.set(false);
 			},
 			error: () => this.togglingFavorite.set(false)
+		});
+	}
+
+	addToWishlist() {
+		const g = this.game();
+		if (!g || this.addingToWishlist() || this.addedToWishlist()) return;
+
+		if (g.platforms.length > 1) {
+			this.showPlatformPicker.set(true);
+			return;
+		}
+
+		const platformId = g.platforms?.[0]?.id;
+		if (!platformId) return;
+		this.doAddToWishlist(g.id, platformId);
+	}
+
+	onWishlistPlatformSelected(event: Event) {
+		const platformId = (event.target as HTMLSelectElement).value;
+		if (!platformId) return;
+		const g = this.game();
+		if (!g) return;
+		this.showPlatformPicker.set(false);
+		this.doAddToWishlist(g.id, platformId);
+	}
+
+	private doAddToWishlist(gameId: string, platformId: string) {
+		this.addingToWishlist.set(true);
+		this.wishlistService.addFromGame(gameId, platformId).subscribe({
+			next: () => {
+				this.addingToWishlist.set(false);
+				this.addedToWishlist.set(true);
+			},
+			error: () => this.addingToWishlist.set(false)
 		});
 	}
 

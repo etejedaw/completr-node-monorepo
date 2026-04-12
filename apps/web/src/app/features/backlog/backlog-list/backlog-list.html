@@ -173,6 +173,15 @@
 						<span class="notes-text">{{ entry.notes }}</span>
 						}
 					</td>
+					<td class="col-wishlist">
+						<button
+							class="btn-wishlist"
+							(click)="addToWishlist(entry); $event.stopPropagation()"
+							title="Add to Wishlist"
+						>
+							&#9829;
+						</button>
+					</td>
 				</tr>
 				}
 			</tbody>

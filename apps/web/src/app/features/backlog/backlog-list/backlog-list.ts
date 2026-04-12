@@ -8,6 +8,7 @@ import {
 import { DatePipe } from "@angular/common";
 import { BacklogEntry, BacklogStatus } from "../../../core/models";
 import { BacklogService, BacklogFilters } from "../backlog.service";
+import { WishlistService } from "../../wishlist/wishlist.service";
 import { RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
@@ -21,6 +22,7 @@ import { StarRating } from "../../../shared/components/star-rating/star-rating";
 })
 export class BacklogList implements OnInit {
 	private readonly backlogService = inject(BacklogService);
+	private readonly wishlistService = inject(WishlistService);
 
 	private readonly allEntries = signal<BacklogEntry[]>([]);
 	protected readonly entries = signal<BacklogEntry[]>([]);
@@ -127,6 +129,10 @@ export class BacklogList implements OnInit {
 			abandoned: "Abandoned"
 		};
 		return map[status] ?? status;
+	}
+
+	addToWishlist(entry: BacklogEntry) {
+		this.wishlistService.addFromBacklog(entry.id).subscribe();
 	}
 
 	openCreate() {

@@ -82,10 +82,30 @@
 					<span class="action-icon">&#9654;</span>
 					Add to Backlog
 				</button>
-				<button class="action-btn" disabled>
-					<span class="action-icon">&#9829;</span>
-					Add to Wishlist
-				</button>
+				<div class="wishlist-action">
+					@if (showPlatformPicker()) {
+					<select
+						class="platform-select"
+						(change)="onWishlistPlatformSelected($event)"
+					>
+						<option value="">Select platform...</option>
+						@for (p of game()!.platforms; track p.id) {
+						<option [value]="p.id">{{ p.name }}</option>
+						}
+					</select>
+					} @else {
+					<button
+						class="action-btn"
+						[class.added]="addedToWishlist()"
+						[disabled]="addingToWishlist()"
+						(click)="addToWishlist()"
+					>
+						<span class="action-icon">&#9829;</span>
+						{{ addedToWishlist() ? 'In Wishlist' :
+						addingToWishlist() ? 'Adding...' : 'Add to Wishlist' }}
+					</button>
+					}
+				</div>
 				<button class="action-btn" (click)="openShelfModal()">
 					<span class="action-icon">&#9733;</span>
 					Add to Shelf

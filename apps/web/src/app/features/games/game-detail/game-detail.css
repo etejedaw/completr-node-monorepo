@@ -165,6 +165,37 @@
 	font-size: 0.75rem;
 }
 
+.action-btn.added {
+	background: var(--accent-subtle);
+	border-color: var(--accent);
+	color: var(--accent);
+	cursor: default;
+}
+
+.wishlist-action {
+	width: 100%;
+}
+
+.wishlist-action .action-btn {
+	width: 100%;
+}
+
+.platform-select {
+	width: 100%;
+	padding: 0.5rem 0.75rem;
+	background: var(--bg-input);
+	border: 1px solid var(--accent);
+	border-radius: var(--radius);
+	color: var(--text-primary);
+	font-size: 0.8125rem;
+	cursor: pointer;
+}
+
+.platform-select:focus {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+
 .stats-section-title {
 	margin: 0 0 0.5rem;
 	font-size: 0.8125rem;

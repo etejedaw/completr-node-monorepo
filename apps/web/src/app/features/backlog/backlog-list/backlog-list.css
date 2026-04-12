@@ -237,6 +237,25 @@ tbody td {
 	line-height: 1.4;
 }
 
+.col-wishlist {
+	width: 32px;
+	text-align: center;
+}
+
+.btn-wishlist {
+	background: transparent;
+	border: none;
+	color: var(--text-muted);
+	font-size: 0.875rem;
+	cursor: pointer;
+	padding: 0.25rem;
+	transition: color var(--transition);
+}
+
+.btn-wishlist:hover {
+	color: var(--status-abandoned);
+}
+
 /* === Status Badge === */
 
 .status-badge {
