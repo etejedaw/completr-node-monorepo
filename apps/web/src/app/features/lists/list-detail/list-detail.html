@@ -102,7 +102,7 @@
 					<th class="col-num">Score</th>
 					<th class="col-num">Duration</th>
 					<th class="col-num">Ratio</th>
-					<th class="col-status">Your Backlog</th>
+					<th class="col-icon-status">Backlog</th>
 					<th class="col-actions"></th>
 				</tr>
 			</thead>
@@ -134,13 +134,12 @@
 						{{ item.duration ? item.duration + "h" : "-" }}
 					</td>
 					<td class="col-num">{{ item.ratio ?? "-" }}</td>
-					<td class="col-status">
-						@if (item.backlogStatus) {
+					<td class="col-icon-status">
 						<span
-							class="status-dot"
-							[class]="statusClass(item.backlogStatus)"
-						></span>
-						} @else { - }
+							class="material-icons status-icon"
+							[class.active]="item.backlogStatus"
+							>list_alt</span
+						>
 					</td>
 					<td class="col-actions">
 						<button

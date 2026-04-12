@@ -260,27 +260,18 @@ tbody td {
 	color: var(--text-secondary);
 }
 
-.col-status {
+.col-icon-status {
 	text-align: center;
+	white-space: nowrap;
 }
 
-.status-dot {
-	display: inline-block;
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
+.status-icon {
+	font-size: 1.125rem;
+	color: var(--border-hover);
 }
 
-.status-not-started {
-	background: var(--status-not-started);
-}
-
-.status-playing {
-	background: var(--status-playing);
-}
-
-.status-completed {
-	background: var(--status-completed);
+.status-icon.active {
+	color: var(--accent);
 }
 
 .status-abandoned {
