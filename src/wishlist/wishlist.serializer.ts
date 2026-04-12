@@ -1,5 +1,10 @@
 import { Wishlist } from "./wishlist.model";
 
+function calculateRatio(score?: number, duration?: number) {
+	if (!score || !duration) return undefined;
+	return Math.round((score / duration) * 100) / 100;
+}
+
 export function wishlistSerializer(entry: Wishlist) {
 	return {
 		id: entry.id,
@@ -15,6 +20,7 @@ function backlogSerializer(backlog: Wishlist["Backlog"]) {
 		status: backlog.status,
 		score: backlog.score,
 		duration: backlog.duration,
+		ratio: calculateRatio(backlog.score, backlog.duration),
 		startedAt: backlog.startedAt,
 		notes: backlog.notes,
 		game: gameSerializer(backlog.Game),
