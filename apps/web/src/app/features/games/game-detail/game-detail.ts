@@ -17,10 +17,11 @@ import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
 import { GameShelfModal } from "../../game-shelf/game-shelf-modal/game-shelf-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../shared/constants/rating-labels";
+import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 
 @Component({
 	selector: "app-game-detail",
-	imports: [RouterLink, StarRating, BacklogModal, GameShelfModal],
+	imports: [RouterLink, StarRating, BacklogModal, GameShelfModal, AdminGameEditor],
 	templateUrl: "./game-detail.html",
 	styleUrl: "./game-detail.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -47,6 +48,7 @@ export class GameDetail implements OnInit {
 		() => this.authService.user()?.role === "admin"
 	);
 	protected readonly showConfirmDeactivate = signal(false);
+	protected readonly showEditor = signal(false);
 	protected readonly deactivating = signal(false);
 	protected readonly togglingFavorite = signal(false);
 
@@ -158,6 +160,12 @@ export class GameDetail implements OnInit {
 	onModalSaved() {
 		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
+	}
+
+	onEditorSaved() {
+		this.showEditor.set(false);
+		const code = this.game()?.code;
+		if (code) this.loadGame(code);
 	}
 
 	protected getScaleLabel(source: string): string {

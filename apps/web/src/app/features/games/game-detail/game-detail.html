@@ -38,6 +38,13 @@
 			<span class="material-icons">admin_panel_settings</span>
 			Admin
 		</span>
+		<button
+			class="btn-admin-edit"
+			(click)="showEditor.set(!showEditor())"
+		>
+			<span class="material-icons">{{ showEditor() ? 'close' : 'edit' }}</span>
+			{{ showEditor() ? 'Close Editor' : 'Edit Game' }}
+		</button>
 		@if (!showConfirmDeactivate()) {
 		<button
 			class="btn-admin-danger"
@@ -60,6 +67,12 @@
 		</button>
 		}
 	</div>
+	@if (showEditor()) {
+	<app-admin-game-editor
+		[game]="game()!"
+		(saved)="onEditorSaved()"
+	/>
+	}
 	}
 
 	<!-- Tags -->
