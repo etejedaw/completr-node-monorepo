@@ -488,13 +488,22 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Favorites serializer: game code agregado
 - List-items serializer: game code agregado
 
-### Pendiente (Fase 1.5)
+### Fase 1.5 completada
 
-- Deploy al VPS: DB, env vars, migrar datos
+- Admin game editor: RAWG fetch por slug, edición completa, create/edit mode, DLC parent game
+- Admin panel en games-browse: crear juegos desde RAWG o vacíos
+- Hard delete y DLCs/parent game en game detail
+- Filtros avanzados del backlog: multi-status, plataforma, fechas, rating con estrellas, sort
+- Saved filters: showInBacklog, isDefault, descripción, página `/saved-views` con modal de edición
+- Game shelf: filtro por plataforma con chips y contador
+- Perfil: vista con avatar, nombre, rol, bio, privacy; modal de edición
+- Force search RAWG en games-browse
+- User serializer: email removido, createdAt y privacy fields agregados
+- Deploy en CapRover (completr-backend.tebita.xyz / completr.tebita.xyz)
 
 ### Pendiente — Fases posteriores
 
-- Fase 2: Perfil público básico, ver juegos de amigos, onboarding, refresh tokens, migraciones DB
+- Fase 2: Perfil público, vistas públicas, panel admin usuarios, reportes de juegos, onboarding, empty states, refresh tokens, migraciones DB, dominio completr.app
 - Fase 3: Follow usuarios, listas públicas con suscripción, privacidad, búsqueda avanzada, sistema de invitación, badges manuales (founder, beta-tester, moderator, premium-supporter)
 - Fase 4: Reviews, stats de listas públicas, logros, resumen semestral, comparación social
 - Fase 5: Estabilización (paginación, emails, tests, seguridad)
