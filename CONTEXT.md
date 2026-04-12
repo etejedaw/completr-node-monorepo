@@ -490,7 +490,6 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 
 ### Pendiente (Fase 1.5)
 
-- Frontend: Perfil (vista + editar), filtro por plataforma en Game Shelf
 - Deploy al VPS: DB, env vars, migrar datos
 
 ### Pendiente — Fases posteriores

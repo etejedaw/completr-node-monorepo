@@ -254,9 +254,9 @@
 ### Módulo de Usuarios (perfil)
 
 - [x] `GET /users/me` — Ver mi perfil
-- [x] `PATCH /users/me` — Editar datos básicos (username, avatar_url)
+- [x] `PATCH /users/me` — Editar datos básicos (name, bio, avatarUrl, isPublic, isWishlistPublic, isFavoritePublic)
 - [x] `PATCH /auth/password` — Cambiar contraseña
-- [x] Serializer de usuario (nunca expone `password_hash`)
+- [x] Serializer de usuario (nunca expone `password_hash` ni `email`). Incluye `createdAt`, `isWishlistPublic`, `isFavoritePublic`
 
 ### Cálculo del Ratio
 
