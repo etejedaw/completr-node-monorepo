@@ -1,6 +1,7 @@
-import { Component, inject, OnInit } from "@angular/core";
-import { RouterLink, RouterLinkActive, RouterOutlet } from "@angular/router";
+import { Component, inject, OnInit, signal } from "@angular/core";
+import { RouterLink, RouterLinkActive, RouterOutlet, Router, NavigationEnd } from "@angular/router";
 import { AuthService } from "../core/services/auth.service";
+import { filter } from "rxjs";
 
 @Component({
 	selector: "app-layout",
@@ -10,12 +11,22 @@ import { AuthService } from "../core/services/auth.service";
 })
 export class Layout implements OnInit {
 	private readonly auth = inject(AuthService);
+	private readonly router = inject(Router);
 	protected readonly user = this.auth.user;
+	protected readonly sidebarOpen = signal(false);
 
 	ngOnInit() {
 		if (!this.user()) {
 			this.auth.loadUser().subscribe();
 		}
+
+		this.router.events
+			.pipe(filter((e) => e instanceof NavigationEnd))
+			.subscribe(() => this.sidebarOpen.set(false));
+	}
+
+	toggleSidebar() {
+		this.sidebarOpen.update((v) => !v);
 	}
 
 	logout() {

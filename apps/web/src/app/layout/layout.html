@@ -1,5 +1,13 @@
 <div class="layout">
-	<nav class="sidebar">
+	<button class="menu-toggle" (click)="toggleSidebar()">
+		<span class="material-icons">menu</span>
+	</button>
+
+	@if (sidebarOpen()) {
+		<div class="sidebar-overlay" (click)="sidebarOpen.set(false)"></div>
+	}
+
+	<nav class="sidebar" [class.open]="sidebarOpen()">
 		<div class="sidebar-brand">
 			<span class="brand-icon">C</span>
 			<span class="brand-name">Completr</span>
