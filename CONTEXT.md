@@ -235,7 +235,7 @@ src/
 ├── backlogs/          # Historial completo del usuario (not_started, playing, completed, abandoned)
 ├── wishlist/          # Cola priorizada de runs (apunta a backlog)
 ├── favorites/         # Juegos marcados como favoritos (apunta a game)
-├── game-external-ids/ # Mapeo de juegos a IDs en plataformas externas (RAWG, IGDB, Steam, etc.)
+├── game-external/     # Mapeo de juegos a IDs en plataformas externas (RAWG, IGDB, Steam, etc.)
 ├── rawg/              # Provider de RAWG API (géneros, descripción, scores, playtime, covers)
 ├── hltb/              # (pendiente) Provider de HowLongToBeat
 ├── metacritic/        # (pendiente) Provider de Metacritic/OpenCritic
@@ -458,13 +458,13 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Lists: CRUD completo con scoreSource/durationSource global, límite de 5 para free con frozen state, description. `GET /lists/:id` incluye followerCount, isFollowing y backlogStatus por juego (auth opcional)
 - ListItems: `PUT /lists/:id/items` reemplaza el array completo de gameIds, congela scores desde fuente oficial, valida existencia de games y duplicados. `POST /lists/:id/refresh-scores` actualiza puntajes desde la fuente. Ratio calculado en serializer
 - ListFollowers: `POST/DELETE /lists/:id/follow` — follow como bookmark social. Validación de lista pública, duplicado y not-following. Error handling completo
-- Búsqueda con fallback a RAWG: `GET /games/search?query=` busca localmente, si 0 resultados busca en RAWG (hasta 3 resultados, `exclude_additions: true`), crea los juegos en DB con scores/times/genres/plataformas y los retorna. Dedup por GameExternalId y slug. Error handling individual por resultado
+- Búsqueda con fallback a RAWG: `GET /games/search?query=` busca localmente, si 0 resultados busca en RAWG (hasta 3 resultados, `exclude_additions: true`), crea los juegos en DB con scores/times/genres/plataformas y los retorna. Dedup por GameExternal y slug. Error handling individual por resultado
 - Transacciones: `registerGame` envuelto en transacción atómica (juego + plataformas + scores + times + géneros). Validación de plataformas y géneros existentes antes de vincular
 - Pruebas manuales completas: todos los endpoints probados con los 4 roles (admin, moderator, premium, user) + sin auth. Verificados permisos, validaciones, duplicados, not found, serializers
 - Wishlist: `POST /users/me/wishlist?source=game|backlog` (crea backlog + wishlist o añade backlog existente), `PUT` replace-all con backlogIds, `GET` me y público. Auto-remove al completar/abandonar backlog. Límite 10 free / ilimitado premium
 - Favorites: `PUT /users/me/favorites` replace-all con gameIds, `GET` me y público. No requiere backlog. Límite 10 free / ilimitado premium
 - Campos `isWishlistPublic` y `isFavoritePublic` en modelo User
-- GameExternalId: modelo para mapear juegos a IDs de plataformas externas (RAWG, IGDB, Steam, HLTB, Metacritic, OpenCritic). Sin endpoints — uso interno. Búsqueda con fallback a RAWG ahora verifica por external ID antes de crear duplicados
+- GameExternal: modelo para mapear juegos a IDs de plataformas externas (RAWG, IGDB, Steam, HLTB, Metacritic, OpenCritic). Unique indexes: `(source, externalId)` y `(gameId, source)`. Endpoint `GET /game-external/rawg/:slug` para fetch de data RAWG por slug. `externalIds` integrado en `PATCH /games/:id` y `POST /games` — se crea/actualiza el mapeo al guardar
 - `personalRatio` (score / realDuration) agregado al serializer de backlog
 - CORS fix: origin `"*"` ya no se convierte a array (corregido en cors.config.ts)
 - ScoreSource: tabla de referencia para fuentes de puntaje con escalas (metacritic:100, opencritic:100, rawg:5, completr:10). `GET /score-sources` público, `POST /score-sources` admin. GameScore.source ahora es FK a ScoreSource.code

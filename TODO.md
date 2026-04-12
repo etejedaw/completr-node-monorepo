@@ -271,8 +271,8 @@
 - [x] Mapper `rawgToGameMapper` convierte datos de RAWG a `RegisterGameDto` + enrichment
 - [x] Mapeo de plataformas RAWG → Completr (`rawg-platform.map.ts`)
 - [x] Si RAWG tampoco encuentra → retornar array vacío
-- [x] Crear tabla `GameExternalId` para mapear juegos a sus IDs en plataformas externas (RAWG, IGDB, Steam, HLTB, Metacritic). Permite detectar duplicados por ID externo en vez de slug, y facilita futuras integraciones con cron
-- [x] Almacenar múltiples resultados de RAWG (hasta 3, con detalle completo, `exclude_additions: true`). Usa GameExternalId para evitar duplicados
+- [x] Crear tabla `GameExternal` para mapear juegos a sus IDs en plataformas externas (RAWG, IGDB, Steam, HLTB, Metacritic). Permite detectar duplicados por ID externo en vez de slug, y facilita futuras integraciones con cron
+- [x] Almacenar múltiples resultados de RAWG (hasta 3, con detalle completo, `exclude_additions: true`). Usa GameExternal para evitar duplicados
 
 ### Transacciones en operaciones multi-paso
 
@@ -336,9 +336,13 @@
 - [x] `PATCH /games/:id` — Permitir editar título (con regeneración de slug)
 - [x] `GET /games/rawg-lookup?query=` — Buscar en RAWG sin crear juegos (solo admin/moderator)
 - [x] `GET /games/rawg-detail/:rawgId` — Obtener detalle de RAWG para previsualizar antes de aplicar
-- [ ] Vista de admin en frontend: tabla de juegos, búsqueda, modal de edición con re-scrape de RAWG
-- [ ] Exponer `GameExternalId` en el serializer de Game para links externos (RAWG, Steam, Metacritic)
-- [ ] Poblar `GameExternalId` para los 517 juegos originales (bulk update con RAWG IDs)
+- [x] Renombrar módulo `game-external-ids` → `game-external` (modelo `GameExternal`, índice único `(gameId, source)`)
+- [x] `GET /game-external/rawg/:slug` — Fetch de data RAWG por slug para admin editor
+- [x] `externalIds` en `PATCH /games/:id` y `POST /games` — crea/actualiza mapeo al guardar
+- [x] Admin editor en game-detail: fetch RAWG por slug, editar todos los campos (título, descripción, plataformas, géneros, scores, times, DLC con parent game), guardar con externalIds
+- [x] Admin editor en games-browse: crear juegos vacíos o desde RAWG, misma interfaz que editar
+- [ ] Exponer `GameExternal` en el serializer de Game para links externos (RAWG, Steam, Metacritic)
+- [ ] Poblar `GameExternal` para los juegos originales (bulk update con RAWG IDs)
 - [ ] Links externos en ficha del juego: RAWG (via slug fallback), Steam y Metacritic (via external IDs)
 
 ### Perfil público básico
