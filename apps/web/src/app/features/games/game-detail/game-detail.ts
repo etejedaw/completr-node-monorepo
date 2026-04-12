@@ -9,6 +9,7 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { Game } from "../../../core/models";
 import { GamesService } from "../games.service";
 import { ScoreSourcesService } from "../../../core/services/score-sources.service";
+import { FavoritesService } from "../../favorites/favorites.service";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../shared/constants/rating-labels";
 
@@ -23,13 +24,17 @@ export class GameDetail implements OnInit {
 	private readonly route = inject(ActivatedRoute);
 	private readonly gamesService = inject(GamesService);
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
+	private readonly favoritesService = inject(FavoritesService);
 
 	protected readonly game = signal<Game | null>(null);
 	protected readonly isLoading = signal(true);
 	protected readonly similarGames = signal<Game[]>([]);
+	protected readonly isFavorite = signal(false);
+	protected readonly togglingFavorite = signal(false);
 
 	ngOnInit() {
 		this.scoreSourcesService.load();
+		this.favoritesService.load().subscribe();
 		this.route.paramMap.subscribe(params => {
 			const code = params.get("code");
 			if (code) this.loadGame(code);
@@ -43,6 +48,7 @@ export class GameDetail implements OnInit {
 		this.gamesService.getByCode(code).subscribe({
 			next: game => {
 				this.game.set(game);
+				this.isFavorite.set(this.favoritesService.isFavorite(game.id));
 				this.isLoading.set(false);
 				this.loadSimilarGames(game);
 			},
@@ -59,6 +65,19 @@ export class GameDetail implements OnInit {
 				const filtered = res.data.games.filter(g => g.id !== game.id);
 				this.similarGames.set(filtered.slice(0, 8));
 			});
+	}
+
+	toggleFavorite() {
+		const gameId = this.game()?.id;
+		if (!gameId || this.togglingFavorite()) return;
+		this.togglingFavorite.set(true);
+		this.favoritesService.toggle(gameId).subscribe({
+			next: () => {
+				this.isFavorite.set(this.favoritesService.isFavorite(gameId));
+				this.togglingFavorite.set(false);
+			},
+			error: () => this.togglingFavorite.set(false)
+		});
 	}
 
 	protected getScaleLabel(source: string): string {

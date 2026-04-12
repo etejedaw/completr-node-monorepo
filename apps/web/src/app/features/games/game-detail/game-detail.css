@@ -35,6 +35,39 @@
 	background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
 }
 
+.fav-btn {
+	position: absolute;
+	top: 0.75rem;
+	right: 0.75rem;
+	z-index: 2;
+	background: rgba(0, 0, 0, 0.5);
+	border: none;
+	color: var(--border-hover);
+	font-size: 1.5rem;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all var(--transition);
+}
+
+.fav-btn:hover {
+	color: var(--status-playing);
+	background: rgba(0, 0, 0, 0.7);
+}
+
+.fav-btn.active {
+	color: var(--status-playing);
+}
+
+.fav-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
 .banner-content {
 	position: absolute;
 	bottom: 0;
@@ -106,6 +139,32 @@
 	margin-bottom: 0;
 }
 
+.action-btn {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.5rem 0.875rem;
+	background: var(--bg-input);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	color: var(--text-secondary);
+	font-size: 0.8125rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all var(--transition);
+	white-space: nowrap;
+}
+
+.action-btn:hover {
+	background: var(--accent-subtle);
+	border-color: var(--accent);
+	color: var(--accent);
+}
+
+.action-icon {
+	font-size: 0.75rem;
+}
+
 .stats-section-title {
 	margin: 0 0 0.5rem;
 	font-size: 0.8125rem;
@@ -119,6 +178,29 @@
 	border-radius: var(--radius-lg);
 	padding: 1rem;
 	margin-bottom: 1.5rem;
+}
+
+.completr-row {
+	display: flex;
+	align-items: stretch;
+	gap: 0.75rem;
+}
+
+.completr-row .stat-card {
+	flex: 1;
+}
+
+.action-divider {
+	width: 1px;
+	align-self: stretch;
+	background: var(--border);
+	margin: 0 0.25rem;
+}
+
+.action-buttons {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
 }
 
 .completr-section .stats-section-title {
