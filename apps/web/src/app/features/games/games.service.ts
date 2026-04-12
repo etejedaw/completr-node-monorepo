@@ -126,6 +126,12 @@ export class GamesService {
 		return this.http.delete(`${environment.apiUrl}/games/${id}`);
 	}
 
+	hardDelete(id: string) {
+		return this.http.delete(
+			`${environment.apiUrl}/games/${id}?hard=true`
+		);
+	}
+
 	updateGame(id: string, dto: UpdateGameDto) {
 		return this.http
 			.patch<{ data: { game: Game } }>(

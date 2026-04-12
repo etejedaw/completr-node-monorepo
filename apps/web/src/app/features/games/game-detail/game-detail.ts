@@ -48,8 +48,10 @@ export class GameDetail implements OnInit {
 		() => this.authService.user()?.role === "admin"
 	);
 	protected readonly showConfirmDeactivate = signal(false);
+	protected readonly showConfirmDelete = signal(false);
 	protected readonly showEditor = signal(false);
 	protected readonly deactivating = signal(false);
+	protected readonly deleting = signal(false);
 	protected readonly togglingFavorite = signal(false);
 
 	ngOnInit() {
@@ -130,6 +132,16 @@ export class GameDetail implements OnInit {
 		this.gamesService.deactivate(g.id).subscribe({
 			next: () => this.router.navigate(["/games"]),
 			error: () => this.deactivating.set(false)
+		});
+	}
+
+	deleteGame() {
+		const g = this.game();
+		if (!g || this.deleting()) return;
+		this.deleting.set(true);
+		this.gamesService.hardDelete(g.id).subscribe({
+			next: () => this.router.navigate(["/games"]),
+			error: () => this.deleting.set(false)
 		});
 	}
 
