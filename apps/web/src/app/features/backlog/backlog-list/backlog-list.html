@@ -153,8 +153,24 @@
 			<button class="btn-icon-action" (click)="applyFilters()" title="Apply filters">
 				<span class="material-icons">search</span>
 			</button>
+			@if (hasActiveFilters()) {
+			<button class="btn-icon-action danger" (click)="clearFilters(); showFilters.set(false)" title="Clear filters">
+				<span class="material-icons">filter_alt_off</span>
+			</button>
+			}
 		</div>
-		@if (!activeFilterId() && hasActiveFilters()) {
+		@if (activeFilterId()) {
+		<div class="view-actions filter-full">
+			<button
+				class="btn-icon-action"
+				(click)="updateCurrentFilter()"
+				[disabled]="savingFilter()"
+				title="Update current view"
+			>
+				<span class="material-icons">save</span>
+			</button>
+		</div>
+		} @else if (hasActiveFilters()) {
 		<div class="view-actions filter-full">
 			<input
 				type="text"

@@ -210,6 +210,28 @@ export class BacklogList implements OnInit {
 		this.loadBacklog();
 	}
 
+	updateCurrentFilter() {
+		const id = this.activeFilterId();
+		if (!id) return;
+
+		this.savingFilter.set(true);
+		const filters = this.buildFiltersObject();
+
+		this.savedFiltersService
+			.update(id, {
+				filters,
+				sortBy: this.sortBy(),
+				sortOrder: this.sortOrder()
+			})
+			.subscribe({
+				next: () => {
+					this.savingFilter.set(false);
+					this.loadSavedFilters();
+				},
+				error: () => this.savingFilter.set(false)
+			});
+	}
+
 	deleteSavedFilter(filter: SavedFilter) {
 		this.savedFiltersService.delete(filter.id).subscribe(() => {
 			this.loadSavedFilters();
