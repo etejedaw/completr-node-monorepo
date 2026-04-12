@@ -25,6 +25,13 @@ export class FavoritesService {
 		return this._favorites().some(f => f.game.id === gameId);
 	}
 
+	replaceFavorites(gameIds: string[]) {
+		return this.http.put<FavoritesResponse>(this.baseUrl, { gameIds }).pipe(
+			tap(res => this._favorites.set(res.data.favorites)),
+			map(res => res.data.favorites)
+		);
+	}
+
 	toggle(gameId: string) {
 		const current = this._favorites();
 		const exists = current.some(f => f.game.id === gameId);
