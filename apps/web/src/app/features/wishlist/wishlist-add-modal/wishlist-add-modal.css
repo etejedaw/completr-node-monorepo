@@ -1,0 +1,153 @@
+.modal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.6);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 100;
+	backdrop-filter: blur(4px);
+}
+
+.modal-card {
+	background: var(--bg-sidebar);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	padding: 1.75rem;
+	width: 100%;
+	max-width: 500px;
+	max-height: 80vh;
+	display: flex;
+	flex-direction: column;
+	box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);
+}
+
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 1rem;
+}
+
+.modal-header h2 {
+	margin: 0;
+	font-size: 1.125rem;
+	font-weight: 700;
+}
+
+.close-btn {
+	background: none;
+	border: none;
+	color: var(--text-muted);
+	font-size: 1.5rem;
+	cursor: pointer;
+	padding: 0 0.25rem;
+	line-height: 1;
+}
+
+.close-btn:hover {
+	color: var(--text-primary);
+}
+
+.search-bar {
+	margin-bottom: 0.75rem;
+}
+
+.search-bar input {
+	width: 100%;
+	padding: 0.5rem 0.75rem;
+	background: var(--bg-input);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	color: var(--text-primary);
+	font-size: 0.8125rem;
+}
+
+.search-bar input:focus {
+	outline: none;
+	border-color: var(--accent);
+}
+
+.search-bar input::placeholder {
+	color: var(--text-muted);
+}
+
+.loading,
+.empty {
+	text-align: center;
+	padding: 2rem 1rem;
+	color: var(--text-muted);
+	font-size: 0.8125rem;
+}
+
+.backlog-list {
+	list-style: none;
+	overflow-y: auto;
+	flex: 1;
+}
+
+.backlog-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.5rem 0;
+	border-bottom: 1px solid var(--border);
+}
+
+.item-info {
+	display: flex;
+	align-items: center;
+	gap: 0.625rem;
+	min-width: 0;
+}
+
+.item-cover {
+	width: 32px;
+	height: 42px;
+	object-fit: cover;
+	border-radius: 3px;
+	flex-shrink: 0;
+}
+
+.item-text {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.item-title {
+	font-size: 0.8125rem;
+	font-weight: 500;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.item-meta {
+	font-size: 0.6875rem;
+	color: var(--text-muted);
+}
+
+.btn-add {
+	padding: 0.25rem 0.625rem;
+	background: var(--accent-subtle);
+	border: 1px solid var(--accent);
+	color: var(--accent);
+	border-radius: var(--radius);
+	font-size: 0.75rem;
+	font-weight: 600;
+	cursor: pointer;
+	white-space: nowrap;
+	transition: all var(--transition);
+	flex-shrink: 0;
+}
+
+.btn-add:hover:not(:disabled) {
+	background: var(--accent);
+	color: #fff;
+}
+
+.btn-add:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}

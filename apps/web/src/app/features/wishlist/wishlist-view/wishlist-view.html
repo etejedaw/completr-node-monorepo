@@ -1,0 +1,102 @@
+<div class="wishlist-page">
+	<div class="page-header">
+		<div class="page-header-left">
+			<h1>Wishlist</h1>
+			<span class="entry-count">{{ entries().length }} games</span>
+		</div>
+		<button class="btn-add" (click)="openAddModal()">
+			+ Add from Backlog
+		</button>
+	</div>
+
+	@if (isLoading()) {
+	<div class="loading">Loading...</div>
+	} @else if (entries().length === 0) {
+	<div class="empty">
+		Your wishlist is empty. Add games from their detail page.
+	</div>
+	} @else {
+	<div class="table-wrapper">
+		<table>
+			<thead>
+				<tr>
+					<th class="col-pos">#</th>
+					<th class="col-cover"></th>
+					<th class="col-title">Title</th>
+					<th class="col-platform">Platform</th>
+					<th class="col-status">Status</th>
+					<th class="col-actions"></th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (entry of entries(); track entry.id; let i = $index) {
+				<tr>
+					<td class="col-pos">{{ entry.position }}</td>
+					<td class="col-cover">
+						@if (entry.backlog.game.backgroundUrl) {
+						<img
+							[src]="entry.backlog.game.backgroundUrl"
+							[alt]="entry.backlog.game.title"
+							class="cover-img"
+						/>
+						} @else {
+						<div class="cover-placeholder"></div>
+						}
+					</td>
+					<td class="col-title">
+						<a
+							class="game-title-link"
+							[routerLink]="['/games', entry.backlog.game.code]"
+							>{{ entry.backlog.game.title }}</a
+						>
+					</td>
+					<td class="col-platform">
+						{{ entry.backlog.platform?.abbreviation ?? "-" }}
+					</td>
+					<td class="col-status">
+						<span
+							class="status-badge"
+							[class]="statusClass(entry.backlog.status)"
+						>
+							{{ statusLabel(entry.backlog.status) }}
+						</span>
+					</td>
+					<td class="col-actions">
+						<button
+							class="btn-move"
+							[disabled]="i === 0"
+							(click)="moveUp(i)"
+							title="Move up"
+						>
+							&#9650;
+						</button>
+						<button
+							class="btn-move"
+							[disabled]="i === entries().length - 1"
+							(click)="moveDown(i)"
+							title="Move down"
+						>
+							&#9660;
+						</button>
+						<button
+							class="btn-remove"
+							(click)="remove(entry)"
+							title="Remove"
+						>
+							&times;
+						</button>
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+	}
+</div>
+
+@if (showAddModal()) {
+<app-wishlist-add-modal
+	(closed)="onAddModalClosed()"
+	(saved)="onAddModalSaved()"
+/>
+}
