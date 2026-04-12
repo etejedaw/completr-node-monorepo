@@ -12,6 +12,7 @@ class SavedFilter extends Model {
 	declare filters: Record<string, unknown>;
 	declare sortBy?: string;
 	declare sortOrder: string;
+	declare showInBacklog: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
@@ -42,6 +43,11 @@ SavedFilter.init(
 			type: DataTypes.ENUM(...SORT_ORDERS),
 			allowNull: false,
 			defaultValue: "desc"
+		},
+		showInBacklog: {
+			type: DataTypes.BOOLEAN,
+			allowNull: false,
+			defaultValue: true
 		}
 	},
 	{ sequelize }

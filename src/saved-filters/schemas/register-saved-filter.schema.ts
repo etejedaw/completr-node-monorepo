@@ -7,7 +7,8 @@ export const RegisterSavedFilterSchema = z
 		description: z.string().max(255).optional(),
 		filters: z.record(z.string(), z.unknown()),
 		sortBy: z.string().max(50).optional(),
-		sortOrder: z.enum(SORT_ORDERS).optional()
+		sortOrder: z.enum(SORT_ORDERS).optional(),
+		showInBacklog: z.boolean().optional()
 	})
 	.strict()
 	.readonly();

@@ -7,6 +7,7 @@ export function savedFilterSerializer(filter: SavedFilter) {
 		description: filter.description,
 		filters: filter.filters,
 		sortBy: filter.sortBy,
-		sortOrder: filter.sortOrder
+		sortOrder: filter.sortOrder,
+		showInBacklog: filter.showInBacklog
 	};
 }
