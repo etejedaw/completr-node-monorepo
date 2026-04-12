@@ -118,6 +118,10 @@
 	color: var(--accent);
 }
 
+.meta-item.default {
+	color: var(--status-playing);
+}
+
 .meta-icon {
 	font-size: 0.875rem;
 }

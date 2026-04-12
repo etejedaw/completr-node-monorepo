@@ -29,6 +29,7 @@ export class SavedFiltersView implements OnInit {
 	protected readonly editName = signal("");
 	protected readonly editDescription = signal("");
 	protected readonly editShowInBacklog = signal(true);
+	protected readonly editIsDefault = signal(false);
 	protected readonly saving = signal(false);
 	protected readonly showConfirmDelete = signal(false);
 	protected readonly deleting = signal(false);
@@ -64,6 +65,7 @@ export class SavedFiltersView implements OnInit {
 		this.editName.set(filter.name);
 		this.editDescription.set(filter.description ?? "");
 		this.editShowInBacklog.set(filter.showInBacklog);
+		this.editIsDefault.set(filter.isDefault);
 		this.showConfirmDelete.set(false);
 		this.showModal.set(true);
 	}
@@ -82,7 +84,8 @@ export class SavedFiltersView implements OnInit {
 			.update(filter.id, {
 				name: this.editName(),
 				description: this.editDescription() || undefined,
-				showInBacklog: this.editShowInBacklog()
+				showInBacklog: this.editShowInBacklog(),
+				isDefault: this.editIsDefault()
 			})
 			.subscribe({
 				next: () => {

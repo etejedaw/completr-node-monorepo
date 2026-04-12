@@ -28,7 +28,12 @@
 					<span class="material-icons meta-icon">tune</span>
 					{{ statusSummary(filter) }}
 				</span>
-				@if (filter.showInBacklog) {
+				@if (filter.isDefault) {
+				<span class="meta-item default">
+					<span class="material-icons meta-icon">star</span>
+					Default
+				</span>
+				} @else if (filter.showInBacklog) {
 				<span class="meta-item pinned">
 					<span class="material-icons meta-icon">push_pin</span>
 					Pinned
@@ -78,6 +83,19 @@
 				Show in Backlog
 			</label>
 			<span class="toggle-hint">Pin this view as a quick filter in the Backlog page</span>
+		</div>
+
+		<div class="form-group">
+			<label class="toggle-label">
+				<input
+					type="checkbox"
+					[ngModel]="editIsDefault()"
+					(ngModelChange)="editIsDefault.set($event)"
+					[disabled]="!editShowInBacklog()"
+				/>
+				Default view
+			</label>
+			<span class="toggle-hint">Auto-apply this view when opening the Backlog</span>
 		</div>
 
 		<div class="modal-actions">
