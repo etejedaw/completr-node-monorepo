@@ -454,7 +454,7 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 ### Completado (Fase 1 — Excel Killer v0.2.0)
 
 - Backlog: CRUD completo con filtros avanzados (multi-status comma-separated, no_finished_date, platform_id, rangos de fechas/score/duration/realDuration/rating, ordenamiento), isPublic, userRating (1-10 en pasos de 0.5), endpoints públicos para ver backlog de otros usuarios
-- Saved Filters: CRUD con límite free (5) / premium (ilimitado), almacenamiento JSONB de presets de filtros, campo description, serializer sin timestamps
+- Saved Filters: CRUD con límite free (5) / premium (ilimitado), almacenamiento JSONB de presets de filtros, campo description, serializer sin timestamps. `showInBacklog` controla si aparece como chip en el backlog. `isDefault` auto-aplica al abrir backlog (solo uno por usuario, requiere showInBacklog). Al setear default se quita el anterior automáticamente
 - Lists: CRUD completo con scoreSource/durationSource global, límite de 5 para free con frozen state, description. `GET /lists/:id` incluye followerCount, isFollowing y backlogStatus por juego (auth opcional)
 - ListItems: `PUT /lists/:id/items` reemplaza el array completo de gameIds, congela scores desde fuente oficial, valida existencia de games y duplicados. `POST /lists/:id/refresh-scores` actualiza puntajes desde la fuente. Ratio calculado en serializer
 - ListFollowers: `POST/DELETE /lists/:id/follow` — follow como bookmark social. Validación de lista pública, duplicado y not-following. Error handling completo
@@ -490,8 +490,7 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 
 ### Pendiente (Fase 1.5)
 
-- Backend: sort_by title/ratio/personalRatio para saved filters
-- Frontend: Saved Filters, Perfil, filtros avanzados
+- Frontend: Perfil (vista + editar), filtro por plataforma en Game Shelf
 - Deploy al VPS: DB, env vars, migrar datos
 
 ### Pendiente — Fases posteriores

@@ -180,6 +180,8 @@
 - [x] Campo `description` opcional (max 255) para describir la vista
 - [x] Serializer que oculta `createdAt`/`updatedAt` de la respuesta
 - [x] Error handling completo registrado en normalizers globales (404, 403 forbidden, 403 limit reached, 500)
+- [x] Campo `showInBacklog` (boolean, default true) — controla si aparece como chip en el backlog
+- [x] Campo `isDefault` (boolean, default false) — auto-aplica al abrir el backlog. Solo uno por usuario, requiere showInBacklog
 
 ### Módulo de Listas
 
