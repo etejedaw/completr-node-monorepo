@@ -12,6 +12,15 @@ export interface Game {
 	genres: Genre[];
 	scores: GameScore[];
 	times: GameTime[];
+	dlcs: GameSummary[];
+	parentGame: GameSummary | null;
+}
+
+export interface GameSummary {
+	id: string;
+	code: string;
+	title: string;
+	backgroundUrl?: string;
 }
 
 export interface Platform {

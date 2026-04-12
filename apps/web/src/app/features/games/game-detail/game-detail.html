@@ -25,7 +25,11 @@
 		</button>
 		<div class="banner-content">
 			<h1>{{ game()!.title }}</h1>
-			@if (game()!.releaseAt) {
+			@if (game()!.parentGame) {
+			<a class="parent-link" [routerLink]="['/games', game()!.parentGame!.code]">
+				DLC of {{ game()!.parentGame!.title }}
+			</a>
+			} @else if (game()!.releaseAt) {
 			<span class="release-date">{{ game()!.releaseAt }}</span>
 			}
 		</div>
@@ -45,7 +49,7 @@
 			<span class="material-icons">{{ showEditor() ? 'close' : 'edit' }}</span>
 			{{ showEditor() ? 'Close Editor' : 'Edit Game' }}
 		</button>
-		@if (!showConfirmDeactivate()) {
+		@if (!showConfirmDeactivate() && !showConfirmDelete()) {
 		<button
 			class="btn-admin-danger"
 			(click)="showConfirmDeactivate.set(true)"
@@ -53,7 +57,14 @@
 			<span class="material-icons">visibility_off</span>
 			Deactivate
 		</button>
-		} @else {
+		<button
+			class="btn-admin-danger"
+			(click)="showConfirmDelete.set(true)"
+		>
+			<span class="material-icons">delete_forever</span>
+			Delete
+		</button>
+		} @else if (showConfirmDeactivate()) {
 		<span class="confirm-text">Deactivate this game?</span>
 		<button
 			class="btn-danger"
@@ -63,6 +74,18 @@
 			{{ deactivating() ? 'Deactivating...' : 'Yes' }}
 		</button>
 		<button class="btn-ghost" (click)="showConfirmDeactivate.set(false)">
+			Cancel
+		</button>
+		} @else if (showConfirmDelete()) {
+		<span class="confirm-text">Permanently delete this game?</span>
+		<button
+			class="btn-danger"
+			(click)="deleteGame()"
+			[disabled]="deleting()"
+		>
+			{{ deleting() ? 'Deleting...' : 'Yes, delete' }}
+		</button>
+		<button class="btn-ghost" (click)="showConfirmDelete.set(false)">
 			Cancel
 		</button>
 		}
@@ -228,6 +251,29 @@
 		<h2>Featured in Lists</h2>
 		<p class="section-placeholder">Coming soon...</p>
 	</div>
+
+	<!-- DLCs -->
+	@if (game()!.dlcs.length > 0) {
+	<div class="related-section">
+		<h2>DLCs</h2>
+		<div class="game-grid">
+			@for (dlc of game()!.dlcs; track dlc.id) {
+			<a class="game-card" [routerLink]="['/games', dlc.code]">
+				@if (dlc.backgroundUrl) {
+				<img
+					[src]="dlc.backgroundUrl"
+					[alt]="dlc.title"
+					class="game-cover"
+				/>
+				} @else {
+				<div class="game-cover-placeholder"></div>
+				}
+				<span class="game-card-title">{{ dlc.title }}</span>
+			</a>
+			}
+		</div>
+	</div>
+	}
 
 	<!-- Similar games -->
 	@if (similarGames().length > 0) {
