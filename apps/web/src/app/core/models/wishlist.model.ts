@@ -13,6 +13,7 @@ interface WishlistBacklog {
 	notes?: string;
 	game: {
 		id: string;
+		code: string;
 		title: string;
 		backgroundUrl?: string;
 		isDlc: boolean;
