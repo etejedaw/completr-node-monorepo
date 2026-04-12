@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { globalErrorDomainNormalizer } from "../errors/global-error-domain.normalizer";
 import { globalErrorHttpNormalizer } from "../errors/global-error-http.normalizer";
+import { environmentConfig } from "../config/environment.config";
 
 export function errorHandlerMiddleware(
 	error: Error,
@@ -21,6 +22,8 @@ export function errorHandlerMiddleware(
 		detail: httpError.detail,
 		instance: httpError.instance,
 		timestamp: httpError.timestamp,
-		context: httpError.context
+		...(environmentConfig.NODE_ENV !== "prd" && {
+			context: httpError.context
+		})
 	});
 }
