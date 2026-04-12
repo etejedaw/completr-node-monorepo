@@ -35,7 +35,16 @@
 	@if (searchQuery().length >= 2) {
 	<section class="game-section">
 		<h2>Search Results</h2>
-		@if (isSearching()) {
+		<div class="search-actions">
+		<button
+			class="btn-search-rawg"
+			(click)="searchRawg()"
+			[disabled]="searchingRawg()"
+		>
+			{{ searchingRawg() ? 'Searching...' : 'Force search' }}
+		</button>
+	</div>
+	@if (isSearching()) {
 		<p class="section-loading">Searching...</p>
 		} @else if (searchResults().length === 0) {
 		<p class="section-empty">No games found.</p>

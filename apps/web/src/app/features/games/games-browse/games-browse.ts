@@ -39,6 +39,7 @@ export class GamesBrowse implements OnInit {
 	protected readonly searchResults = signal<Game[]>([]);
 	protected readonly isSearching = signal(false);
 	protected readonly showCreateEditor = signal(false);
+	protected readonly searchingRawg = signal(false);
 
 	protected readonly latestGames = signal<Game[]>([]);
 	protected readonly topRated = signal<Game[]>([]);
@@ -74,6 +75,16 @@ export class GamesBrowse implements OnInit {
 		this.searchQuery.set(query);
 		if (query.length >= 2) this.isSearching.set(true);
 		this.searchSubject.next(query);
+	}
+
+	searchRawg() {
+		const query = this.searchQuery().trim();
+		if (query.length < 2) return;
+		this.searchingRawg.set(true);
+		this.gamesService.search(query, true).subscribe(games => {
+			this.searchResults.set(games);
+			this.searchingRawg.set(false);
+		});
 	}
 
 	onGameCreated(game: Game) {
