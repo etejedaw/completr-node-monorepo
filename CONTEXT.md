@@ -486,11 +486,12 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Géneros: findRandomGenre service
 - Wishlist serializer: ratio calculado, game code agregado
 - Favorites serializer: game code agregado
+- List-items serializer: game code agregado
 
 ### Pendiente (Fase 1.5)
 
 - Backend: sort_by title/ratio/personalRatio para saved filters
-- Frontend: Listas, Wishlist, Favorites, Saved Filters, Perfil, filtros avanzados
+- Frontend: Saved Filters, Perfil, filtros avanzados
 - Deploy al VPS: DB, env vars, migrar datos
 
 ### Pendiente — Fases posteriores
