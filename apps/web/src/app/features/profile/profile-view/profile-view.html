@@ -1,0 +1,173 @@
+@if (user()) {
+<div class="profile-page">
+	<div class="profile-header">
+		<div class="avatar-section">
+			@if (user()!.avatarUrl) {
+			<img
+				class="avatar"
+				[src]="user()!.avatarUrl"
+				[alt]="user()!.username"
+			/>
+			} @else {
+			<div class="avatar-placeholder">
+				{{ user()!.username.charAt(0).toUpperCase() }}
+			</div>
+			}
+		</div>
+		<div class="header-info">
+			<div class="header-top">
+				<h1>{{ user()!.name || user()!.username }}</h1>
+				<span class="role-badge" [class]="'role-' + user()!.role">
+					{{ roleBadge }}
+				</span>
+			</div>
+			<span class="username">@{{ user()!.username }}</span>
+			@if (user()!.bio) {
+			<p class="bio">{{ user()!.bio }}</p>
+			}
+			<div class="header-meta">
+				<span class="meta-item">
+					<span class="material-icons meta-icon">calendar_today</span>
+					Member since {{ memberSince }}
+				</span>
+				<span class="meta-item">
+					<span class="material-icons meta-icon">
+						{{ user()!.isPublic ? 'public' : 'lock' }}
+					</span>
+					{{ user()!.isPublic ? 'Public profile' : 'Private profile' }}
+				</span>
+			</div>
+		</div>
+		<button class="btn-edit" (click)="openEdit()">
+			<span class="material-icons">edit</span>
+			Edit Profile
+		</button>
+	</div>
+
+	<div class="profile-sections">
+		<div class="section-card">
+			<h3>Privacy</h3>
+			<div class="privacy-row">
+				<span class="material-icons privacy-icon">
+					{{ user()!.isPublic ? 'public' : 'lock' }}
+				</span>
+				<div>
+					<span class="privacy-label">Profile</span>
+					<span class="privacy-value">{{ user()!.isPublic ? 'Public' : 'Private' }}</span>
+				</div>
+			</div>
+			<div class="privacy-row">
+				<span class="material-icons privacy-icon">
+					{{ user()!.isWishlistPublic ? 'visibility' : 'visibility_off' }}
+				</span>
+				<div>
+					<span class="privacy-label">Wishlist</span>
+					<span class="privacy-value">{{ user()!.isWishlistPublic ? 'Visible' : 'Hidden' }}</span>
+				</div>
+			</div>
+			<div class="privacy-row">
+				<span class="material-icons privacy-icon">
+					{{ user()!.isFavoritePublic ? 'visibility' : 'visibility_off' }}
+				</span>
+				<div>
+					<span class="privacy-label">Favorites</span>
+					<span class="privacy-value">{{ user()!.isFavoritePublic ? 'Visible' : 'Hidden' }}</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+}
+
+@if (showModal()) {
+<div class="modal-overlay" (click)="closeModal()">
+	<div class="modal-card" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>Edit Profile</h2>
+			<button class="close-btn" (click)="closeModal()">&times;</button>
+		</div>
+
+		<div class="form-group">
+			<label>Name</label>
+			<input
+				type="text"
+				[ngModel]="editName()"
+				(ngModelChange)="editName.set($event)"
+				placeholder="Your display name"
+			/>
+		</div>
+
+		<div class="form-group">
+			<label>Bio</label>
+			<textarea
+				rows="3"
+				[ngModel]="editBio()"
+				(ngModelChange)="editBio.set($event)"
+				placeholder="Tell something about yourself..."
+			></textarea>
+		</div>
+
+		<div class="form-group">
+			<label>Avatar URL</label>
+			<input
+				type="text"
+				[ngModel]="editAvatarUrl()"
+				(ngModelChange)="editAvatarUrl.set($event)"
+				placeholder="https://..."
+			/>
+		</div>
+
+		@if (editAvatarUrl()) {
+		<div class="avatar-preview">
+			<img [src]="editAvatarUrl()" alt="Preview" />
+		</div>
+		}
+
+		<div class="form-group">
+			<label class="toggle-label">
+				<input
+					type="checkbox"
+					[ngModel]="editIsPublic()"
+					(ngModelChange)="editIsPublic.set($event)"
+				/>
+				Public profile
+			</label>
+			<span class="toggle-hint">Allow other users to see your profile</span>
+		</div>
+
+		<div class="form-group">
+			<label class="toggle-label">
+				<input
+					type="checkbox"
+					[ngModel]="editIsWishlistPublic()"
+					(ngModelChange)="editIsWishlistPublic.set($event)"
+				/>
+				Public wishlist
+			</label>
+			<span class="toggle-hint">Show your wishlist on your public profile</span>
+		</div>
+
+		<div class="form-group">
+			<label class="toggle-label">
+				<input
+					type="checkbox"
+					[ngModel]="editIsFavoritePublic()"
+					(ngModelChange)="editIsFavoritePublic.set($event)"
+				/>
+				Public favorites
+			</label>
+			<span class="toggle-hint">Show your favorites on your public profile</span>
+		</div>
+
+		<div class="modal-actions">
+			<button
+				class="btn-primary"
+				(click)="saveProfile()"
+				[disabled]="saving()"
+			>
+				{{ saving() ? 'Saving...' : 'Save' }}
+			</button>
+		</div>
+	</div>
+</div>
+}
