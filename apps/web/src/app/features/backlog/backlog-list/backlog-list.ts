@@ -12,7 +12,7 @@ import { BacklogService, BacklogFilters } from "../backlog.service";
 import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
 import { WishlistService } from "../../wishlist/wishlist.service";
 import { GamesService } from "../../games/games.service";
-import { RouterLink } from "@angular/router";
+import { ActivatedRoute, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 
@@ -24,6 +24,7 @@ import { StarRating } from "../../../shared/components/star-rating/star-rating";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BacklogList implements OnInit {
+	private readonly route = inject(ActivatedRoute);
 	private readonly backlogService = inject(BacklogService);
 	private readonly savedFiltersService = inject(SavedFiltersService);
 	private readonly wishlistService = inject(WishlistService);
@@ -54,8 +55,9 @@ export class BacklogList implements OnInit {
 
 	// Saved filters
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
+	protected readonly backlogFilters = signal<SavedFilter[]>([]);
 	protected readonly activeFilterId = signal<string | null>(null);
-	protected readonly showSaveInput = signal(false);
+	protected readonly activeFilterDescription = signal("");
 	protected readonly newFilterName = signal("");
 	protected readonly savingFilter = signal(false);
 
@@ -82,12 +84,28 @@ export class BacklogList implements OnInit {
 	protected readonly statusFilters = this.statuses;
 
 	ngOnInit() {
-		this.loadBacklog();
 		this.loadWishlistIds();
-		this.loadSavedFilters();
 		this.gamesService
 			.getPlatforms()
 			.subscribe(p => this.allPlatforms.set(p));
+		this.savedFiltersService.getAll().subscribe(filters => {
+			const sorted = filters.sort((a, b) =>
+				a.name.localeCompare(b.name)
+			);
+			this.savedFilters.set(sorted);
+			this.backlogFilters.set(sorted.filter(f => f.showInBacklog));
+
+			const filterId =
+				this.route.snapshot.queryParamMap.get("savedFilterId");
+			if (filterId) {
+				const match = sorted.find(f => f.id === filterId);
+				if (match) {
+					this.applySavedFilter(match);
+					return;
+				}
+			}
+			this.loadBacklog();
+		});
 	}
 
 	isInWishlist(entry: BacklogEntry): boolean {
@@ -108,6 +126,9 @@ export class BacklogList implements OnInit {
 				a.name.localeCompare(b.name)
 			);
 			this.savedFilters.set(sorted);
+			this.backlogFilters.set(
+				sorted.filter(f => f.showInBacklog)
+			);
 		});
 	}
 
@@ -145,6 +166,7 @@ export class BacklogList implements OnInit {
 		this.maxRating.set(null);
 		this.activeStatuses.set(new Set());
 		this.activeFilterId.set(null);
+		this.activeFilterDescription.set("");
 		this.sortBy.set("createdAt");
 		this.sortOrder.set("desc");
 		this.loadBacklog();
@@ -178,6 +200,7 @@ export class BacklogList implements OnInit {
 			this.sortOrder.set(filter.sortOrder as "asc" | "desc");
 
 		this.activeFilterId.set(filter.id);
+		this.activeFilterDescription.set(filter.description ?? "");
 		this.loadBacklog();
 	}
 
@@ -188,16 +211,6 @@ export class BacklogList implements OnInit {
 				this.activeFilterId.set(null);
 			}
 		});
-	}
-
-	openSaveFilter() {
-		this.showSaveInput.set(true);
-		this.newFilterName.set("");
-	}
-
-	cancelSaveFilter() {
-		this.showSaveInput.set(false);
-		this.newFilterName.set("");
 	}
 
 	saveCurrentFilter() {
@@ -217,7 +230,6 @@ export class BacklogList implements OnInit {
 			.subscribe({
 				next: () => {
 					this.savingFilter.set(false);
-					this.showSaveInput.set(false);
 					this.newFilterName.set("");
 					this.loadSavedFilters();
 				},

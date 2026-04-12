@@ -10,6 +10,7 @@ export interface SavedFilter {
 	filters: Record<string, unknown>;
 	sortBy?: string;
 	sortOrder?: string;
+	showInBacklog: boolean;
 }
 
 interface SavedFiltersResponse {
@@ -26,6 +27,7 @@ export interface CreateSavedFilterDto {
 	filters: Record<string, unknown>;
 	sortBy?: string;
 	sortOrder?: string;
+	showInBacklog?: boolean;
 }
 
 @Injectable({ providedIn: "root" })
@@ -42,6 +44,12 @@ export class SavedFiltersService {
 	create(dto: CreateSavedFilterDto) {
 		return this.http
 			.post<SavedFilterResponse>(this.baseUrl, dto)
+			.pipe(map(res => res.data.savedFilter));
+	}
+
+	update(id: string, dto: Partial<CreateSavedFilterDto>) {
+		return this.http
+			.patch<SavedFilterResponse>(`${this.baseUrl}/${id}`, dto)
 			.pipe(map(res => res.data.savedFilter));
 	}
 

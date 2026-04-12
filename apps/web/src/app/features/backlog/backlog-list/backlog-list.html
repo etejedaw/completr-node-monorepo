@@ -17,10 +17,10 @@
 	</div>
 
 	<div class="filters-bar">
-		<!-- Saved filters -->
-		@if (savedFilters().length > 0) {
+		<!-- Saved filters (only showInBacklog) -->
+		@if (backlogFilters().length > 0) {
 		<div class="saved-filters-row">
-			@for (sf of savedFilters(); track sf.id) {
+			@for (sf of backlogFilters(); track sf.id) {
 			<button
 				class="saved-filter-chip"
 				[class.active]="activeFilterId() === sf.id"
@@ -40,6 +40,10 @@
 			Filters
 		</button>
 	</div>
+
+	@if (activeFilterDescription()) {
+	<p class="active-filter-desc">{{ activeFilterDescription() }}</p>
+	}
 
 	@if (showFilters()) {
 	<div class="filters-panel">
@@ -146,37 +150,31 @@
 			/>
 		</div>
 		<div class="filter-actions">
-			<button class="btn-apply" (click)="applyFilters()">Apply</button>
-			@if (hasActiveFilters()) {
-			<button class="btn-save-filter" (click)="openSaveFilter()">
-				Save view
+			<button class="btn-icon-action" (click)="applyFilters()" title="Apply filters">
+				<span class="material-icons">search</span>
 			</button>
-			}
 		</div>
+		@if (!activeFilterId() && hasActiveFilters()) {
+		<div class="view-actions filter-full">
+			<input
+				type="text"
+				class="edit-filter-name"
+				placeholder="View name..."
+				[ngModel]="newFilterName()"
+				(ngModelChange)="newFilterName.set($event)"
+				(keydown.enter)="saveCurrentFilter()"
+			/>
+			<button
+				class="btn-icon-action"
+				(click)="saveCurrentFilter()"
+				[disabled]="savingFilter() || !newFilterName().trim()"
+				title="Save view"
+			>
+				<span class="material-icons">bookmark_add</span>
+			</button>
+		</div>
+		}
 	</div>
-
-	@if (showSaveInput()) {
-	<div class="save-filter-row">
-		<input
-			type="text"
-			class="save-filter-input"
-			placeholder="Filter name..."
-			[ngModel]="newFilterName()"
-			(ngModelChange)="newFilterName.set($event)"
-			(keydown.enter)="saveCurrentFilter()"
-		/>
-		<button
-			class="btn-apply"
-			(click)="saveCurrentFilter()"
-			[disabled]="savingFilter() || !newFilterName().trim()"
-		>
-			{{ savingFilter() ? '...' : 'Save' }}
-		</button>
-		<button class="btn-clear-filters" (click)="cancelSaveFilter()">
-			Cancel
-		</button>
-	</div>
-	}
 	}
 
 	@if (isInitialLoad() && isLoading()) {
