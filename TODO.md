@@ -380,6 +380,16 @@
 - [ ] Almacenar refresh tokens en DB
 - [ ] Access token corto (15-30 min) + refresh token largo (30 días)
 
+### Reportes de juegos erróneos
+
+- [ ] Tabla `GameReport`: id, gameId, userId, message (TEXT), status (`pending` | `approved` | `rejected`), createdAt, updatedAt
+- [ ] `POST /games/:id/reports` — Crear reporte (usuario autenticado, un reporte activo por usuario/juego)
+- [ ] `GET /admin/game-reports` — Listar reportes pendientes (solo admin)
+- [ ] `PATCH /admin/game-reports/:id` — Cambiar status a approved/rejected (solo admin)
+- [ ] Vista en frontend: botón "Report issue" en game-detail, modal con textarea
+- [ ] Vista admin: lista de reportes pendientes con link al juego
+- [ ] Futuro: contador de reportes aprobados por usuario para insignias
+
 ### Onboarding para amigos
 
 - [ ] Flujo de registro limpio y funcional
@@ -412,6 +422,14 @@
 - [ ] `GET /users/:username/following` — Ver a quién sigo
 - [ ] Feed de actividad pública: "X completó Y", "X añadió Y a su backlog"
 - [ ] `GET /feed` — Endpoint de actividad de usuarios seguidos
+
+### Listas oficiales de Completr
+
+- [ ] Identificar listas oficiales por el rol del creador (admin) — no requiere campo extra en el modelo
+- [ ] Serializer de lista: incluir flag `isOfficial` derivado del rol del owner
+- [ ] Frontend: badge/insignia visual en cards de listas oficiales (logo Completr o icono verificado)
+- [ ] Frontend: destacar listas oficiales en games-browse (sección "Completr Lists")
+- [ ] Frontend: en list-detail, mostrar badge "Official" junto al nombre si es oficial
 
 ### Listas públicas — funcionalidades sociales
 
