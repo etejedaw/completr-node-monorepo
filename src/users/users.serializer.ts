@@ -4,12 +4,14 @@ export function userMeSerializer(user: User) {
 	return {
 		id: user.id,
 		username: user.username,
-		email: user.email,
 		role: user.role,
 		name: user.name,
 		bio: user.bio,
 		avatarUrl: user.avatarUrl,
-		isPublic: user.isPublic
+		isPublic: user.isPublic,
+		isWishlistPublic: user.isWishlistPublic,
+		isFavoritePublic: user.isFavoritePublic,
+		createdAt: user.createdAt
 	};
 }
 
