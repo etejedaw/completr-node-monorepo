@@ -126,18 +126,10 @@ export class ListDetail implements OnInit {
 	}
 
 	openBacklogModal(item: ListItem) {
-		this.backlogPreselectedGame.set({
-			id: item.game.id,
-			code: item.game.code,
-			title: item.game.title,
-			backgroundUrl: item.game.backgroundUrl,
-			isDlc: item.game.isDlc,
-			platforms: [],
-			genres: [],
-			scores: [],
-			times: []
+		this.gamesService.getByCode(item.game.code).subscribe(game => {
+			this.backlogPreselectedGame.set(game);
+			this.showBacklogModal.set(true);
 		});
-		this.showBacklogModal.set(true);
 	}
 
 	onBacklogModalClosed() {
