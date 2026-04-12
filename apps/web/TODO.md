@@ -130,14 +130,17 @@
 
 ### Feature: Listas
 
-- [ ] Vista "Mis listas" con listado
-- [ ] Crear lista (nombre, descripción, pública/privada, fuente de score/duration)
-- [ ] Detalle de lista con items ordenados, scores, ratios
-- [ ] Agregar/quitar juegos de la lista (PUT replace-all)
-- [ ] Reordenar juegos (drag & drop o flechas)
-- [ ] Editar lista (nombre, descripción, visibilidad, fuente)
-- [ ] Eliminar lista
-- [ ] Refresh scores
+- [x] Vista `/lists` con grid de cards (nombre, descripción, público/privado, sources)
+- [x] Crear lista (modal con nombre, descripción, isPublic toggle, scoreSource, durationSource)
+- [x] Detalle `/lists/:id` con items: posición, cover, título (link), score, duration, ratio, backlog icon
+- [x] Agregar juegos via buscador con debounce
+- [x] Reordenar items (flechas arriba/abajo)
+- [x] Quitar items
+- [x] Editar lista (modal desde detalle)
+- [x] Eliminar lista (redirect a /lists)
+- [x] Refresh scores
+- [x] Frozen banner cuando el usuario excede límite free
+- [x] Ícono backlog binario (gris=no está, cyan=está) — clickeable para abrir backlog modal si no está
 
 ### Feature: Wishlist
 

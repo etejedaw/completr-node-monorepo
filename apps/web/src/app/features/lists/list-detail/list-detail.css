@@ -274,6 +274,24 @@ tbody td {
 	color: var(--accent);
 }
 
+.btn-status-icon {
+	background: transparent;
+	border: none;
+	color: var(--border-hover);
+	cursor: pointer;
+	padding: 0;
+	display: inline;
+	transition: color var(--transition);
+}
+
+.btn-status-icon .material-icons {
+	font-size: 1.125rem;
+}
+
+.btn-status-icon:hover {
+	color: var(--accent);
+}
+
 .status-abandoned {
 	background: var(--status-abandoned);
 }

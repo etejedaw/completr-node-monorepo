@@ -135,11 +135,19 @@
 					</td>
 					<td class="col-num">{{ item.ratio ?? "-" }}</td>
 					<td class="col-icon-status">
-						<span
-							class="material-icons status-icon"
-							[class.active]="item.backlogStatus"
+						@if (item.backlogStatus) {
+						<span class="material-icons status-icon active"
 							>list_alt</span
 						>
+						} @else {
+						<button
+							class="btn-status-icon"
+							(click)="openBacklogModal(item)"
+							title="Add to Backlog"
+						>
+							<span class="material-icons">list_alt</span>
+						</button>
+						}
 					</td>
 					<td class="col-actions">
 						<button
@@ -177,5 +185,11 @@
 	(closed)="onEditClosed()"
 	(saved)="onEditSaved()"
 	(deleted)="onEditDeleted()"
+/>
+} @if (showBacklogModal()) {
+<app-backlog-modal
+	[preselectedGame]="backlogPreselectedGame()"
+	(closed)="onBacklogModalClosed()"
+	(saved)="onBacklogModalSaved()"
 />
 }

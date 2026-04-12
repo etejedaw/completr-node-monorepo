@@ -357,10 +357,14 @@ export const authGuard: CanActivateFn = () => {
 - Wishlist: vista tabla con score/duration/ratio, add-from-backlog modal, corazón en backlog tabla y modal
 - Favorites: vista grid de carátulas con remove al hover
 - Ratio en wishlist serializer del backend
+- Listas: overview con grid de cards, create/edit modal (isPublic default true), detalle con items CRUD, buscador, reorder, refresh scores, frozen banner, delete con redirect
+- Ícono backlog binario en listas (gris clickeable → abre backlog modal, cyan → ya está)
+- Material Icons en sidebar, backlog, game detail, listas
+- Game code en list-items serializer
 
 ### Pendiente (Fase 1.5)
 
-- Listas, Saved Filters, Perfil
+- Saved Filters, Perfil
 - Normalización de scores a escala Completr
 - Filtros avanzados (plataforma, rangos de fechas, multi-status)
 - Vista de progreso básico del backlog

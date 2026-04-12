@@ -9,6 +9,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { List, ListItem, Game } from "../../../core/models";
 import { ListsService } from "../lists.service";
 import { ListModal } from "../list-modal/list-modal";
+import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
 import { GamesService } from "../../games/games.service";
 import {
 	Subject,
@@ -20,7 +21,7 @@ import {
 
 @Component({
 	selector: "app-list-detail",
-	imports: [RouterLink, ListModal],
+	imports: [RouterLink, ListModal, BacklogModal],
 	templateUrl: "./list-detail.html",
 	styleUrl: "./list-detail.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -40,6 +41,8 @@ export class ListDetail implements OnInit {
 	protected readonly searchQuery = signal("");
 	protected readonly searchResults = signal<Game[]>([]);
 	protected readonly isSearching = signal(false);
+	protected readonly showBacklogModal = signal(false);
+	protected readonly backlogPreselectedGame = signal<Game | null>(null);
 
 	private listId = "";
 
@@ -120,6 +123,32 @@ export class ListDetail implements OnInit {
 
 	onEditDeleted() {
 		this.router.navigate(["/lists"]);
+	}
+
+	openBacklogModal(item: ListItem) {
+		this.backlogPreselectedGame.set({
+			id: item.game.id,
+			code: item.game.code,
+			title: item.game.title,
+			backgroundUrl: item.game.backgroundUrl,
+			isDlc: item.game.isDlc,
+			platforms: [],
+			genres: [],
+			scores: [],
+			times: []
+		});
+		this.showBacklogModal.set(true);
+	}
+
+	onBacklogModalClosed() {
+		this.showBacklogModal.set(false);
+		this.backlogPreselectedGame.set(null);
+	}
+
+	onBacklogModalSaved() {
+		this.showBacklogModal.set(false);
+		this.backlogPreselectedGame.set(null);
+		this.loadList();
 	}
 
 	refreshScores() {
