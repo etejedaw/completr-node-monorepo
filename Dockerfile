@@ -1,17 +1,17 @@
-FROM node:krypton-alpine as base
-WORKDIR "/usr/app"
+FROM node:krypton-alpine AS deps
+WORKDIR /usr/app
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
-FROM node:krypton-alpine as builder
-WORKDIR "/usr/app"
-COPY --from=base "/usr/app/node_modules" "./node_modules"
+FROM node:krypton-alpine AS builder
+WORKDIR /usr/app
+COPY --from=deps /usr/app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-FROM node:krypton-alpine as runner
-WORKDIR "/usr/app"
+FROM node:krypton-alpine AS runner
+WORKDIR /usr/app
 COPY package*.json ./
-RUN npm install --omit=dev
-COPY --from=builder "/usr/app/dist" "./dist"
+RUN npm ci --omit=dev
+COPY --from=builder /usr/app/dist ./dist
 CMD ["npm", "run", "start"]
