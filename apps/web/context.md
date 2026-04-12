@@ -348,16 +348,19 @@ export const authGuard: CanActivateFn = () => {
 - Game Shelf: tabla con CRUD modal, búsqueda local, título clickeable a ficha del juego
 - Games Browse: secciones Latest Added, género random, Completr Lists placeholder, Top Rated. Grid de carátulas
 - Game Detail: banner, tags, stats (Completr ratio/score/duration + Scores + Durations), descripción, similar games por género
-- Favorite toggle en banner, action buttons (Add to Backlog/Shelf con modal, Wishlist placeholder)
+- Favorite toggle en banner, action buttons (Add to Backlog/Shelf con modal, Wishlist con platform picker)
 - Modals con `preselectedGame` para bloquear campo game desde ficha del juego
 - Community placeholder, Featured in Lists placeholder
-- FavoritesService con toggle (PUT replace-all)
+- FavoritesService con toggle y replaceFavorites (PUT replace-all)
 - Paginación en GET /games (limit/offset/sort_by/genre)
-- Game code en serializers de backlog y game-shelf para links
+- Game code en serializers de backlog, game-shelf, wishlist y favorites para links
+- Wishlist: vista tabla con score/duration/ratio, add-from-backlog modal, corazón en backlog tabla y modal
+- Favorites: vista grid de carátulas con remove al hover
+- Ratio en wishlist serializer del backend
 
 ### Pendiente (Fase 1.5)
 
-- Listas, Wishlist, Favorites, Saved Filters, Perfil
+- Listas, Saved Filters, Perfil
 - Normalización de scores a escala Completr
 - Filtros avanzados (plataforma, rangos de fechas, multi-status)
 - Vista de progreso básico del backlog

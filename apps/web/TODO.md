@@ -141,18 +141,18 @@
 
 ### Feature: Wishlist
 
-- [ ] Vista de mi wishlist ordenada por posición
-- [ ] Agregar desde búsqueda de juegos (source=game, con selección de plataforma)
-- [ ] Agregar desde backlog existente (source=backlog)
-- [ ] Reordenar (PUT replace-all)
-- [ ] Quitar items
+- [x] Vista tabla con posición, imagen, título (link), plataforma, score, duration, ratio, status, reorder (flechas), remove
+- [x] Agregar desde backlog: modal con lista filtrable de backlogs (not_started/playing)
+- [x] Agregar desde game detail: botón con selector de plataforma
+- [x] Agregar desde backlog tabla: botón corazón por fila (rojo si ya está en wishlist)
+- [x] Toggle wishlist en backlog modal (crear y editar)
 - [ ] Indicador visual cuando un item se auto-remueve al completar/abandonar
 
 ### Feature: Favorites
 
-- [ ] Vista de mis favoritos ordenada por posición
-- [ ] Agregar/quitar juegos (PUT replace-all)
-- [ ] Reordenar
+- [x] Vista grid de carátulas con título (link), botón X al hover para quitar
+- [x] Toggle favorito desde game detail (estrella en banner)
+- [x] FavoritesService con toggle y replaceFavorites
 
 ### Feature: Saved Filters
 
