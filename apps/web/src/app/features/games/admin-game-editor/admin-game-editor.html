@@ -1,0 +1,272 @@
+<div class="editor">
+	<!-- RAWG Fetch -->
+	<div class="rawg-section">
+		<h4 class="section-title">RAWG Lookup</h4>
+		<div class="rawg-row">
+			<input
+				type="text"
+				class="rawg-input"
+				placeholder="RAWG slug (e.g. resident-evil-4)"
+				[ngModel]="rawgSlug()"
+				(ngModelChange)="rawgSlug.set($event)"
+				(keydown.enter)="fetchRawg()"
+			/>
+			<button
+				class="btn-fetch"
+				(click)="fetchRawg()"
+				[disabled]="fetchingRawg() || !rawgSlug().trim()"
+			>
+				<span class="material-icons">download</span>
+				{{ fetchingRawg() ? 'Fetching...' : 'Fetch' }}
+			</button>
+		</div>
+		@if (rawgError()) {
+		<span class="rawg-error">{{ rawgError() }}</span>
+		} @if (rawgId()) {
+		<span class="rawg-success">RAWG ID: {{ rawgId() }}</span>
+		}
+	</div>
+
+	<!-- Game fields -->
+	<div class="form-section">
+		<h4 class="section-title">Game Info</h4>
+
+		<div class="form-group">
+			<label>Title</label>
+			<input
+				type="text"
+				[ngModel]="title()"
+				(ngModelChange)="title.set($event)"
+			/>
+		</div>
+
+		<div class="form-group">
+			<label>Description</label>
+			<textarea
+				rows="4"
+				[ngModel]="description()"
+				(ngModelChange)="description.set($event)"
+			></textarea>
+		</div>
+
+		<div class="form-row">
+			<div class="form-group">
+				<label>Release date</label>
+				<input
+					type="date"
+					[ngModel]="releaseAt()"
+					(ngModelChange)="releaseAt.set($event)"
+				/>
+			</div>
+			<div class="form-group">
+				<label>Background URL</label>
+				<input
+					type="text"
+					[ngModel]="backgroundUrl()"
+					(ngModelChange)="backgroundUrl.set($event)"
+					placeholder="https://..."
+				/>
+			</div>
+		</div>
+
+		@if (backgroundUrl()) {
+		<div class="img-preview">
+			<img [src]="backgroundUrl()" alt="Preview" />
+		</div>
+		}
+
+		<div class="form-group">
+			<label class="checkbox-label">
+				<input
+					type="checkbox"
+					[ngModel]="isDlc()"
+					(ngModelChange)="isDlc.set($event)"
+				/>
+				DLC
+			</label>
+		</div>
+
+		@if (isDlc()) {
+		<div class="form-group">
+			<label>Parent Game</label>
+			@if (parentGame()) {
+			<div class="selected-parent">
+				@if (parentGame()!.backgroundUrl) {
+				<img
+					class="parent-cover"
+					[src]="parentGame()!.backgroundUrl"
+					[alt]="parentGame()!.title"
+				/>
+				}
+				<span class="parent-title">{{ parentGame()!.title }}</span>
+				<button class="btn-clear-parent" (click)="clearParentGame()">
+					<span class="material-icons">close</span>
+				</button>
+			</div>
+			} @else {
+			<div class="parent-search-row">
+				<input
+					type="text"
+					[ngModel]="parentSlug()"
+					(ngModelChange)="parentSlug.set($event)"
+					(keydown.enter)="fetchParentGame()"
+					placeholder="Completr slug (e.g. resident-evil-4)"
+				/>
+				<button
+					class="btn-fetch-parent"
+					(click)="fetchParentGame()"
+					[disabled]="fetchingParent() || !parentSlug().trim()"
+				>
+					{{ fetchingParent() ? '...' : 'Search' }}
+				</button>
+			</div>
+			@if (parentError()) {
+			<span class="field-error">{{ parentError() }}</span>
+			}
+			}
+		</div>
+		}
+	</div>
+
+	<!-- Platforms -->
+	<div class="form-section">
+		<h4 class="section-title">Platforms</h4>
+		<div class="chip-grid">
+			@for (p of allPlatforms(); track p.id) {
+			<button
+				class="chip"
+				[class.active]="selectedPlatforms().has(p.code)"
+				(click)="togglePlatform(p.code)"
+			>
+				{{ p.abbreviation }}
+			</button>
+			}
+		</div>
+	</div>
+
+	<!-- Genres -->
+	<div class="form-section">
+		<h4 class="section-title">Genres</h4>
+		<div class="chip-grid">
+			@for (g of allGenres(); track g.id) {
+			<button
+				class="chip"
+				[class.active]="selectedGenres().has(g.code)"
+				(click)="toggleGenre(g.code)"
+			>
+				{{ g.name }}
+			</button>
+			}
+		</div>
+	</div>
+
+	<!-- Scores -->
+	<div class="form-section">
+		<h4 class="section-title">Scores</h4>
+		@for (s of scores(); track s.source; let i = $index) {
+		<div class="entry-row">
+			<span class="entry-label">{{ s.source }}</span>
+			<input
+				type="number"
+				class="entry-input"
+				[ngModel]="s.score"
+				(ngModelChange)="updateScoreValue(i, $event)"
+				step="0.01"
+			/>
+			<button class="btn-remove-entry" (click)="removeScore(i)">
+				<span class="material-icons">close</span>
+			</button>
+		</div>
+		} @if (availableScoreSources.length > 0) {
+		<div class="add-entry-row">
+			<select
+				class="entry-select"
+				[ngModel]="newScoreSource()"
+				(ngModelChange)="newScoreSource.set($event)"
+			>
+				<option value="">Source...</option>
+				@for (src of availableScoreSources; track src) {
+				<option [value]="src">{{ src }}</option>
+				}
+			</select>
+			<input
+				type="number"
+				class="entry-input"
+				placeholder="Value"
+				[ngModel]="newScoreValue()"
+				(ngModelChange)="newScoreValue.set($event)"
+				step="0.01"
+			/>
+			<button
+				class="btn-add-entry"
+				(click)="addScore()"
+				[disabled]="!newScoreSource() || newScoreValue() === null"
+			>
+				<span class="material-icons">add</span>
+			</button>
+		</div>
+		}
+	</div>
+
+	<!-- Times -->
+	<div class="form-section">
+		<h4 class="section-title">Durations</h4>
+		@for (t of times(); track t.source; let i = $index) {
+		<div class="entry-row">
+			<span class="entry-label">{{ t.source }}</span>
+			<input
+				type="number"
+				class="entry-input"
+				[ngModel]="t.duration"
+				(ngModelChange)="updateTimeValue(i, $event)"
+				step="0.1"
+			/>
+			<button class="btn-remove-entry" (click)="removeTime(i)">
+				<span class="material-icons">close</span>
+			</button>
+		</div>
+		} @if (availableTimeSources.length > 0) {
+		<div class="add-entry-row">
+			<select
+				class="entry-select"
+				[ngModel]="newTimeSource()"
+				(ngModelChange)="newTimeSource.set($event)"
+			>
+				<option value="">Source...</option>
+				@for (src of availableTimeSources; track src) {
+				<option [value]="src">{{ src }}</option>
+				}
+			</select>
+			<input
+				type="number"
+				class="entry-input"
+				placeholder="Hours"
+				[ngModel]="newTimeValue()"
+				(ngModelChange)="newTimeValue.set($event)"
+				step="0.1"
+			/>
+			<button
+				class="btn-add-entry"
+				(click)="addTime()"
+				[disabled]="!newTimeSource() || newTimeValue() === null"
+			>
+				<span class="material-icons">add</span>
+			</button>
+		</div>
+		}
+	</div>
+
+	<!-- Save -->
+	@if (saveError()) {
+	<div class="save-error">{{ saveError() }}</div>
+	}
+	<div class="save-row">
+		<button
+			class="btn-save"
+			(click)="save()"
+			[disabled]="saving() || !title().trim()"
+		>
+			{{ saving() ? 'Saving...' : isEditMode() ? 'Save Changes' : 'Create Game' }}
+		</button>
+	</div>
+</div>
