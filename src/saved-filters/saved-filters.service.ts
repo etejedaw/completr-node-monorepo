@@ -26,6 +26,11 @@ export async function createSavedFilter(
 			throw savedFilterServiceError.limitReachedError();
 	}
 
+	if (dto.isDefault) {
+		dto = { ...dto, showInBacklog: true };
+		await clearDefault(userId);
+	}
+
 	return SavedFilter.create({ ...dto, userId });
 }
 
@@ -58,8 +63,24 @@ export async function updateSavedFilter(
 	const frozen = await areFrozen(userId, role);
 	if (frozen) throw savedFilterServiceError.frozenError();
 
+	if (dto.isDefault) {
+		dto = { ...dto, showInBacklog: true };
+		await clearDefault(userId);
+	}
+
+	if (dto.showInBacklog === false && filter.isDefault) {
+		dto = { ...dto, isDefault: false };
+	}
+
 	await filter.update(dto);
 	return filter;
+}
+
+async function clearDefault(userId: string) {
+	await SavedFilter.update(
+		{ isDefault: false },
+		{ where: { userId, isDefault: true } }
+	);
 }
 
 export async function removeSavedFilter(id: string, userId: string) {

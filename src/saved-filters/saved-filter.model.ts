@@ -13,6 +13,7 @@ class SavedFilter extends Model {
 	declare sortBy?: string;
 	declare sortOrder: string;
 	declare showInBacklog: boolean;
+	declare isDefault: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
@@ -48,6 +49,11 @@ SavedFilter.init(
 			type: DataTypes.BOOLEAN,
 			allowNull: false,
 			defaultValue: true
+		},
+		isDefault: {
+			type: DataTypes.BOOLEAN,
+			allowNull: false,
+			defaultValue: false
 		}
 	},
 	{ sequelize }
