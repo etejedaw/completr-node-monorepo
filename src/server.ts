@@ -25,8 +25,8 @@ export function server(port: number) {
 	app.use(express.json());
 	app.use(helmet());
 	app.use(cors(corsConfig));
-	app.use(securityTxtMiddleware);
 
+	app.use(securityTxtMiddleware);
 	app.use(correlationIdMiddleware);
 	app.use(loggerMiddleware);
 	app.use(authRouter);

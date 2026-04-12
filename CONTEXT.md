@@ -500,6 +500,7 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Force search RAWG en games-browse
 - User serializer: email removido, createdAt y privacy fields agregados
 - Deploy en CapRover (completr-backend.tebita.xyz / completr.tebita.xyz)
+- Hardening post-auditoría: error context oculto en prd, security.txt middleware, Sequelize logging desactivado en prd
 
 ### Pendiente — Fases posteriores
 

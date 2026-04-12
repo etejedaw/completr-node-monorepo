@@ -316,6 +316,12 @@
 - [x] Migrar base de datos desde local al VPS
 - [x] Deploy backend y frontend en CapRover (completr-backend.tebita.xyz / completr.tebita.xyz)
 
+### Hardening post-auditoría
+
+- [x] Ocultar `context` de respuestas de error en producción (rate limiter, JWT, etc.)
+- [x] Agregar middleware `security.txt` con contacto de seguridad
+- [x] Desactivar logging de queries Sequelize en producción
+
 ---
 
 ## 🟧 FASE 2 — MVP Amigos _(~3–4 semanas)_
