@@ -484,6 +484,8 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Game releaseAt cambiado a DATEONLY
 - GET /games: paginación con limit/offset/sort_by/genre filter
 - Géneros: findRandomGenre service
+- Wishlist serializer: ratio calculado, game code agregado
+- Favorites serializer: game code agregado
 
 ### Pendiente (Fase 1.5)
 
