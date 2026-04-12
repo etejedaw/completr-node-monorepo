@@ -80,6 +80,19 @@
 			</div>
 			}
 
+			<!-- Wishlist toggle -->
+			<div class="wishlist-toggle">
+				<button
+					type="button"
+					class="btn-wishlist-toggle"
+					[class.active]="addToWishlist()"
+					(click)="addToWishlist.set(!addToWishlist())"
+				>
+					<span class="wishlist-heart">&#9829;</span>
+					{{ addToWishlist() ? 'In Wishlist' : 'Add to Wishlist' }}
+				</button>
+			</div>
+
 			<!-- Platform -->
 			@if (!isEdit()) {
 			<div class="form-group">

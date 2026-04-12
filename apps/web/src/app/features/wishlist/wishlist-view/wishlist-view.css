@@ -119,6 +119,12 @@ tbody td {
 	min-width: 200px;
 }
 
+.col-num {
+	text-align: right;
+	white-space: nowrap;
+	color: var(--text-secondary);
+}
+
 .game-title-link {
 	font-weight: 500;
 	color: var(--text-primary);

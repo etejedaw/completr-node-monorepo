@@ -17,6 +17,7 @@ import {
 	UpdateBacklogDto
 } from "../backlog.service";
 import { GamesService } from "../../games/games.service";
+import { WishlistService } from "../../wishlist/wishlist.service";
 import { ScoreSourcesService } from "../../../core/services/score-sources.service";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
@@ -39,6 +40,7 @@ export class BacklogModal implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly gamesService = inject(GamesService);
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
+	private readonly wishlistService = inject(WishlistService);
 
 	entry = input<BacklogEntry | null>(null);
 	preselectedGame = input<Game | null>(null);
@@ -56,6 +58,8 @@ export class BacklogModal implements OnInit {
 	);
 	protected readonly showConfirmDelete = signal(false);
 	protected readonly isSearching = signal(false);
+	protected readonly addToWishlist = signal(false);
+	protected readonly isInWishlist = signal(false);
 	protected readonly activeScoreSource = signal("");
 	protected readonly activeDurationSource = signal("");
 	protected readonly gameScores = computed(
@@ -129,6 +133,12 @@ export class BacklogModal implements OnInit {
 				realDuration: e.realDuration ?? null,
 				userRating: e.userRating ?? null,
 				notes: e.notes ?? ""
+			});
+
+			this.wishlistService.getMyWishlist().subscribe(wishlist => {
+				const inWishlist = wishlist.some(w => w.backlog.id === e.id);
+				this.isInWishlist.set(inWishlist);
+				this.addToWishlist.set(inWishlist);
 			});
 		}
 
@@ -258,7 +268,9 @@ export class BacklogModal implements OnInit {
 				notes: val.notes || null
 			};
 			this.backlogService.update(this.entry()!.id, dto).subscribe({
-				next: () => this.saved.emit(),
+				next: () => {
+					this.handleWishlistChange(this.entry()!.id);
+				},
 				error: err => {
 					this.isLoading.set(false);
 					this.error.set(err.error?.title ?? "Update failed");
@@ -278,12 +290,42 @@ export class BacklogModal implements OnInit {
 				notes: val.notes || undefined
 			};
 			this.backlogService.create(dto).subscribe({
-				next: () => this.saved.emit(),
+				next: backlog => {
+					if (this.addToWishlist()) {
+						this.wishlistService
+							.addFromBacklog(backlog.id)
+							.subscribe(() => this.saved.emit());
+					} else {
+						this.saved.emit();
+					}
+				},
 				error: err => {
 					this.isLoading.set(false);
 					this.error.set(err.error?.title ?? "Creation failed");
 				}
 			});
+		}
+	}
+
+	private handleWishlistChange(backlogId: string) {
+		const want = this.addToWishlist();
+		const was = this.isInWishlist();
+
+		if (want && !was) {
+			this.wishlistService
+				.addFromBacklog(backlogId)
+				.subscribe(() => this.saved.emit());
+		} else if (!want && was) {
+			this.wishlistService.getMyWishlist().subscribe(wishlist => {
+				const remaining = wishlist
+					.filter(w => w.backlog.id !== backlogId)
+					.map(w => w.backlog.id);
+				this.wishlistService
+					.reorder(remaining)
+					.subscribe(() => this.saved.emit());
+			});
+		} else {
+			this.saved.emit();
 		}
 	}
 

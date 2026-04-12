@@ -246,7 +246,7 @@ tbody td {
 	background: transparent;
 	border: none;
 	color: var(--text-muted);
-	font-size: 0.875rem;
+	font-size: 1.25rem;
 	cursor: pointer;
 	padding: 0.25rem;
 	transition: color var(--transition);
@@ -254,6 +254,11 @@ tbody td {
 
 .btn-wishlist:hover {
 	color: var(--status-abandoned);
+}
+
+.btn-wishlist.active {
+	color: var(--status-abandoned);
+	cursor: default;
 }
 
 /* === Status Badge === */

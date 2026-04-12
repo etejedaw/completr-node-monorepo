@@ -24,6 +24,9 @@
 					<th class="col-cover"></th>
 					<th class="col-title">Title</th>
 					<th class="col-platform">Platform</th>
+					<th class="col-num">Score</th>
+					<th class="col-num">Duration</th>
+					<th class="col-num">Ratio</th>
 					<th class="col-status">Status</th>
 					<th class="col-actions"></th>
 				</tr>
@@ -53,6 +56,12 @@
 					<td class="col-platform">
 						{{ entry.backlog.platform?.abbreviation ?? "-" }}
 					</td>
+					<td class="col-num">{{ entry.backlog.score ?? "-" }}</td>
+					<td class="col-num">
+						{{ entry.backlog.duration ? entry.backlog.duration + "h"
+						: "-" }}
+					</td>
+					<td class="col-num">{{ entry.backlog.ratio ?? "-" }}</td>
 					<td class="col-status">
 						<span
 							class="status-badge"

@@ -9,6 +9,7 @@ interface WishlistBacklog {
 	status: string;
 	score?: number;
 	duration?: number;
+	ratio?: number;
 	startedAt?: string;
 	notes?: string;
 	game: {

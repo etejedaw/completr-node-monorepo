@@ -176,8 +176,9 @@
 					<td class="col-wishlist">
 						<button
 							class="btn-wishlist"
+							[class.active]="isInWishlist(entry)"
 							(click)="addToWishlist(entry); $event.stopPropagation()"
-							title="Add to Wishlist"
+							[title]="isInWishlist(entry) ? 'In Wishlist' : 'Add to Wishlist'"
 						>
 							&#9829;
 						</button>

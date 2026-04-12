@@ -34,6 +34,7 @@ export class BacklogList implements OnInit {
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
 	protected readonly showModal = signal(false);
 	protected readonly editingEntry = signal<BacklogEntry | null>(null);
+	private readonly wishlistBacklogIds = signal<Set<string>>(new Set());
 
 	private readonly statuses: { label: string; value: string }[] = [
 		{ label: "All", value: "" },
@@ -47,6 +48,19 @@ export class BacklogList implements OnInit {
 
 	ngOnInit() {
 		this.loadBacklog();
+		this.loadWishlistIds();
+	}
+
+	isInWishlist(entry: BacklogEntry): boolean {
+		return this.wishlistBacklogIds().has(entry.id);
+	}
+
+	private loadWishlistIds() {
+		this.wishlistService.getMyWishlist().subscribe(entries => {
+			this.wishlistBacklogIds.set(
+				new Set(entries.map(e => e.backlog.id))
+			);
+		});
 	}
 
 	filterByStatus(status: string) {
@@ -132,7 +146,10 @@ export class BacklogList implements OnInit {
 	}
 
 	addToWishlist(entry: BacklogEntry) {
-		this.wishlistService.addFromBacklog(entry.id).subscribe();
+		if (this.isInWishlist(entry)) return;
+		this.wishlistService.addFromBacklog(entry.id).subscribe(() => {
+			this.loadWishlistIds();
+		});
 	}
 
 	openCreate() {
