@@ -111,8 +111,8 @@
 
 - [x] Vista de mi colección con tabla, búsqueda local y CRUD modal
 - [x] Título del juego clickeable → navega a ficha del juego
-- [ ] Extra: filtro por plataforma (dropdown)
-- [ ] Extra: contador de juegos por plataforma
+- [x] Extra: filtro por plataforma (chips con contador)
+- [x] Extra: contador de juegos por plataforma
 
 ### Feature: Games (Browse + Detail)
 
