@@ -104,6 +104,12 @@ export class BacklogList implements OnInit {
 					return;
 				}
 			}
+
+			const defaultFilter = sorted.find(f => f.isDefault);
+			if (defaultFilter) {
+				this.applySavedFilter(defaultFilter);
+				return;
+			}
 			this.loadBacklog();
 		});
 	}

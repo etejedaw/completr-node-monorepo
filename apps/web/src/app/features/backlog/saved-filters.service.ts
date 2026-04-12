@@ -11,6 +11,7 @@ export interface SavedFilter {
 	sortBy?: string;
 	sortOrder?: string;
 	showInBacklog: boolean;
+	isDefault: boolean;
 }
 
 interface SavedFiltersResponse {
@@ -28,6 +29,7 @@ export interface CreateSavedFilterDto {
 	sortBy?: string;
 	sortOrder?: string;
 	showInBacklog?: boolean;
+	isDefault?: boolean;
 }
 
 @Injectable({ providedIn: "root" })
