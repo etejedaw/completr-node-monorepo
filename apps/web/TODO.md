@@ -178,6 +178,11 @@
 - [ ] Deploy del frontend al VPS
 - [ ] Configurar proxy/nginx para servir frontend + backend
 
+### Hardening post-auditoría
+
+- [x] Security headers en nginx (CSP, X-Frame-Options, HSTS, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
+- [x] Sidebar responsive con hamburger menu para móvil
+
 ---
 
 ## FASE 2 — MVP Amigos

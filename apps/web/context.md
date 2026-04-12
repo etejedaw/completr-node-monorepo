@@ -362,10 +362,12 @@ export const authGuard: CanActivateFn = () => {
 - Material Icons en sidebar, backlog, game detail, listas
 - Game code en list-items serializer
 
-### Pendiente (Fase 1.5)
+### Fase 1.5 completada
 
-- Saved Filters, Perfil
-- Normalización de scores a escala Completr
-- Filtros avanzados (plataforma, rangos de fechas, multi-status)
-- Vista de progreso básico del backlog
-- Deploy al VPS
+- Saved filters: showInBacklog, isDefault, descripción, chips en backlog, página `/saved-views` con modal de edición
+- Perfil: vista con avatar, nombre, rol, bio, privacy; modal de edición
+- Normalización de scores a escala Completr (botón en modal)
+- Filtros avanzados del backlog: multi-status, plataforma, fechas, rating con estrellas, sort
+- Admin game editor: RAWG fetch, create/edit mode, DLC parent game
+- Hardening post-auditoría: security headers en nginx (CSP, HSTS, X-Frame-Options, etc.)
+- Sidebar responsive con hamburger menu para móvil
