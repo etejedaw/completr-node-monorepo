@@ -8,6 +8,7 @@ import {
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { List, ListItem, Game } from "../../../core/models";
 import { ListsService } from "../lists.service";
+import { ListModal } from "../list-modal/list-modal";
 import { GamesService } from "../../games/games.service";
 import {
 	Subject,
@@ -19,7 +20,7 @@ import {
 
 @Component({
 	selector: "app-list-detail",
-	imports: [RouterLink],
+	imports: [RouterLink, ListModal],
 	templateUrl: "./list-detail.html",
 	styleUrl: "./list-detail.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -34,6 +35,7 @@ export class ListDetail implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly refreshing = signal(false);
 	protected readonly showAddSearch = signal(false);
+	protected readonly showEditModal = signal(false);
 	protected readonly searchQuery = signal("");
 	protected readonly searchResults = signal<Game[]>([]);
 	protected readonly isSearching = signal(false);
@@ -100,6 +102,19 @@ export class ListDetail implements OnInit {
 		if (index >= items.length - 1) return;
 		[items[index], items[index + 1]] = [items[index + 1], items[index]];
 		this.replaceWithOrder(items);
+	}
+
+	openEdit() {
+		this.showEditModal.set(true);
+	}
+
+	onEditClosed() {
+		this.showEditModal.set(false);
+	}
+
+	onEditSaved() {
+		this.showEditModal.set(false);
+		this.loadList();
 	}
 
 	refreshScores() {

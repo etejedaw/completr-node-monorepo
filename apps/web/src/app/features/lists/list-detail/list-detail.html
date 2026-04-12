@@ -32,6 +32,10 @@
 				<span class="material-icons">refresh</span>
 				{{ refreshing() ? 'Refreshing...' : 'Refresh Scores' }}
 			</button>
+			<button class="btn-secondary" (click)="openEdit()">
+				<span class="material-icons">edit</span>
+				Edit
+			</button>
 		</div>
 	</div>
 
@@ -168,4 +172,10 @@
 	</div>
 	}
 </div>
+} @if (showEditModal()) {
+<app-list-modal
+	[list]="list()"
+	(closed)="onEditClosed()"
+	(saved)="onEditSaved()"
+/>
 }

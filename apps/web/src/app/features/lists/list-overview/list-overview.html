@@ -24,13 +24,6 @@
 		<a class="list-card" [routerLink]="['/lists', list.id]">
 			<div class="list-card-header">
 				<h3>{{ list.name }}</h3>
-				<button
-					class="btn-edit"
-					(click)="openEdit(list, $event)"
-					title="Edit"
-				>
-					<span class="material-icons">edit</span>
-				</button>
 			</div>
 			@if (list.description) {
 			<p class="list-desc">{{ list.description }}</p>
