@@ -184,11 +184,10 @@
 
 ### Panel admin de juegos
 
-- [ ] Ruta `/admin/games` protegida por rol admin/moderator
-- [ ] Tabla de todos los juegos con búsqueda
-- [ ] Modal de edición con todos los campos (título, descripción, cover, plataformas, géneros)
-- [ ] Botón "Re-scrape from RAWG": busca en RAWG, muestra resultados, pre-llena el form sin guardar
-- [ ] El usuario revisa/edita y guarda manualmente
+- [x] Admin editor en game-detail: fetch RAWG por slug, editar todos los campos (título, descripción, plataformas, géneros, scores, times, DLC con parent game por slug), guardar con externalIds
+- [x] Admin editor en games-browse: crear juegos vacíos o desde RAWG fetch, misma interfaz que editar
+- [x] AdminGameEditor component reutilizable en modo crear y editar
+- [ ] Ruta `/admin/games` protegida por rol admin/moderator — tabla de todos los juegos con búsqueda
 
 ### Perfil público
 
