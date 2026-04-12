@@ -311,10 +311,17 @@
 
 ### Deploy inicial (VPS)
 
-- [ ] Crear base de datos `completr` en PostgreSQL del VPS
-- [ ] Cambiar default de `PG_DATABASE` a `completr` en `database.config.ts` y en `docker-compose`
-- [ ] Configurar variables de entorno en la instancia del backend
-- [ ] Migrar base de datos desde local al VPS
+- [x] Crear base de datos `completr` en PostgreSQL del VPS
+- [x] Configurar variables de entorno en la instancia del backend
+- [x] Migrar base de datos desde local al VPS
+- [x] Deploy backend y frontend en CapRover (completr-backend.tebita.xyz / completr.tebita.xyz)
+
+### Dominio completr.app (al finalizar Fase 2)
+
+- [ ] Configurar DNS de `completr.app`: `web.completr.app` → app frontend, `api.completr.app` → backend, `completr.app` → landing page
+- [ ] Actualizar `CORS_ORIGIN` del backend a `https://web.completr.app`
+- [ ] Actualizar `environment.production.ts` del frontend a `https://api.completr.app`
+- [ ] Crear landing page en `completr.app` (Astro o similar)
 
 ---
 
