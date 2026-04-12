@@ -1,4 +1,5 @@
 import z from "zod";
+import { EXTERNAL_SOURCES } from "../../game-external/game-external.model";
 
 export const UpdateGameSchema = z
 	.object({
@@ -10,7 +11,15 @@ export const UpdateGameSchema = z
 		backgroundUrl: z.string().nonempty().optional(),
 		isDlc: z.boolean().optional(),
 		parentGameId: z.uuid().optional(),
-		genres: z.array(z.string().max(100).nonempty()).optional()
+		genres: z.array(z.string().max(100).nonempty()).optional(),
+		externalIds: z
+			.array(
+				z.object({
+					source: z.enum(EXTERNAL_SOURCES),
+					externalId: z.string().nonempty()
+				})
+			)
+			.optional()
 	})
 	.strict()
 	.readonly();

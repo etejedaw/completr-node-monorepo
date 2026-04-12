@@ -1,6 +1,7 @@
 import z from "zod";
 import { SCORE_SOURCES } from "../../score-sources/score-source.constants";
 import { TIME_SOURCES } from "../../game-times/game-time.model";
+import { EXTERNAL_SOURCES } from "../../game-external/game-external.model";
 
 const GameScoreEntrySchema = z.object({
 	source: z.enum(SCORE_SOURCES),
@@ -27,7 +28,15 @@ export const RegisterGameSchema = z
 		isDlc: z.boolean().optional(),
 		parentGameId: z.uuid().optional(),
 		scores: z.array(GameScoreEntrySchema).optional(),
-		times: z.array(GameTimeEntrySchema).optional()
+		times: z.array(GameTimeEntrySchema).optional(),
+		externalIds: z
+			.array(
+				z.object({
+					source: z.enum(EXTERNAL_SOURCES),
+					externalId: z.string().nonempty()
+				})
+			)
+			.optional()
 	})
 	.strict()
 	.readonly();
