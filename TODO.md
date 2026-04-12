@@ -6,17 +6,17 @@
 
 ## 📆 Resumen cronológico
 
-| Mes   | Etapa                                                   | Release  |
-| ----- | ------------------------------------------------------- | -------- |
-| 1     | Fase 0 — Setup y arquitectura                           | `v0.1.0` |
-| 2–3   | Fase 1 — Excel Killer (solo tú)                         | `v0.2.0` |
-| 3–4   | Fase 1.5 — Beyond the Spreadsheet (mejoras + deploy)    | `v0.2.x` |
-| 4–5   | Fase 2 — MVP Amigos (5–20 personas)                     | `v0.3.0` |
-| 5–7   | Fase 3 — Beta Cerrada (50–200 usuarios, invitación)     | `v0.4.0` |
-| 7–10  | Fase 4 — Beta Pública (500+ usuarios)                   | `v1.0.0` |
-| 10–11 | Fase 5 — Estabilización y calidad                       | `v1.1.0` |
-| 11–13 | Fase 6 — Premium (desarrollo + lanzamiento)             | `v2.0.0` |
-| 13+   | Fase 7 — Escalamiento continuo                          | `v2.x.x` |
+| Mes   | Etapa                                                | Release  |
+| ----- | ---------------------------------------------------- | -------- |
+| 1     | Fase 0 — Setup y arquitectura                        | `v0.1.0` |
+| 2–3   | Fase 1 — Excel Killer (solo tú)                      | `v0.2.0` |
+| 3–4   | Fase 1.5 — Beyond the Spreadsheet (mejoras + deploy) | `v0.2.x` |
+| 4–5   | Fase 2 — MVP Amigos (5–20 personas)                  | `v0.3.0` |
+| 5–7   | Fase 3 — Beta Cerrada (50–200 usuarios, invitación)  | `v0.4.0` |
+| 7–10  | Fase 4 — Beta Pública (500+ usuarios)                | `v1.0.0` |
+| 10–11 | Fase 5 — Estabilización y calidad                    | `v1.1.0` |
+| 11–13 | Fase 6 — Premium (desarrollo + lanzamiento)          | `v2.0.0` |
+| 13+   | Fase 7 — Escalamiento continuo                       | `v2.x.x` |
 
 ---
 
@@ -297,6 +297,7 @@
 - [x] Registro restringido a admin, hard delete de games con CASCADE
 - [x] RAWG mapper: rating RAWG, expansión pc→tiendas, mapeo de géneros
 - [x] Backlog update nullable: startedAt, finishedAt, realDuration, userRating, notes
+
 ---
 
 ## 🟨 FASE 1.5 — Beyond the Spreadsheet _(~3–4 semanas)_
@@ -312,14 +313,7 @@
 
 ### Frontend — Vistas pendientes
 
-- [ ] Game Shelf: vista de colección, agregar/editar/quitar juegos
-- [ ] Listas: CRUD, detalle con items, reordenar
-- [ ] Wishlist: vista, agregar, reordenar
-- [ ] Favorites: vista, agregar, reordenar
-- [ ] Saved Filters: guardar/aplicar filtros del backlog
-- [ ] Perfil: vista y edición
-- [ ] Filtros avanzados del backlog: plataforma, rangos de fechas, multi-status combinado
-- [ ] Vista de progreso básico del backlog
+- [ ] Generar las vistas de los endpoints actuales
 
 ### Deploy inicial (VPS)
 
@@ -343,6 +337,9 @@
 - [x] `GET /games/rawg-lookup?query=` — Buscar en RAWG sin crear juegos (solo admin/moderator)
 - [x] `GET /games/rawg-detail/:rawgId` — Obtener detalle de RAWG para previsualizar antes de aplicar
 - [ ] Vista de admin en frontend: tabla de juegos, búsqueda, modal de edición con re-scrape de RAWG
+- [ ] Exponer `GameExternalId` en el serializer de Game para links externos (RAWG, Steam, Metacritic)
+- [ ] Poblar `GameExternalId` para los 517 juegos originales (bulk update con RAWG IDs)
+- [ ] Links externos en ficha del juego: RAWG (via slug fallback), Steam y Metacritic (via external IDs)
 
 ### Perfil público básico
 
