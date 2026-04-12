@@ -22,7 +22,7 @@ export function gameSerializer(game: Game) {
 		scores: game.GameScores?.map(scoreSerializer) ?? [],
 		times: game.GameTimes?.map(timeSerializer) ?? [],
 		dlcs: game.Dlcs?.map(dlcSerializer) ?? [],
-		parentGame: game.ParentGame ? parentGameSerializer(game.ParentGame) : null
+		parentGame: parentGameSerializer(game.ParentGame)
 	};
 }
 
@@ -35,7 +35,8 @@ function dlcSerializer(game: Game) {
 	};
 }
 
-function parentGameSerializer(game: Game) {
+function parentGameSerializer(game?: Game | null) {
+	if (!game) return null;
 	return {
 		id: game.id,
 		code: game.code,
