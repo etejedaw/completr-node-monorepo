@@ -20,6 +20,46 @@ interface GenresResponse {
 	data: { genres: Genre[] };
 }
 
+export interface RawgDetail {
+	rawgId: number;
+	title: string;
+	description: string | null;
+	coverUrl: string | null;
+	releaseAt: string | null;
+	platforms: string[];
+	genres: string[];
+	scores: { source: string; score: number }[];
+	times: { source: string; duration: number }[];
+}
+
+export interface CreateGameDto {
+	title: string;
+	description?: string;
+	platforms?: string[];
+	releaseAt?: string;
+	coverUrl?: string;
+	backgroundUrl?: string;
+	isDlc?: boolean;
+	parentGameId?: string;
+	genres?: string[];
+	scores?: { source: string; score: number }[];
+	times?: { source: string; duration: number }[];
+	externalIds?: { source: string; externalId: string }[];
+}
+
+export interface UpdateGameDto {
+	title?: string;
+	description?: string;
+	platforms?: string[];
+	releaseAt?: string;
+	coverUrl?: string;
+	backgroundUrl?: string;
+	isDlc?: boolean;
+	parentGameId?: string;
+	genres?: string[];
+	externalIds?: { source: string; externalId: string }[];
+}
+
 export interface GamesQuery {
 	limit?: number;
 	offset?: number;
@@ -73,7 +113,63 @@ export class GamesService {
 			.pipe(map(res => res.data.game));
 	}
 
+	createGame(dto: CreateGameDto) {
+		return this.http
+			.post<{ data: { game: Game } }>(
+				`${environment.apiUrl}/games`,
+				dto
+			)
+			.pipe(map(res => res.data.game));
+	}
+
 	deactivate(id: string) {
 		return this.http.delete(`${environment.apiUrl}/games/${id}`);
+	}
+
+	updateGame(id: string, dto: UpdateGameDto) {
+		return this.http
+			.patch<{ data: { game: Game } }>(
+				`${environment.apiUrl}/games/${id}`,
+				dto
+			)
+			.pipe(map(res => res.data.game));
+	}
+
+	rawgBySlug(slug: string) {
+		return this.http
+			.get<{ data: { game: RawgDetail } }>(
+				`${environment.apiUrl}/game-external/rawg/${encodeURIComponent(slug)}`
+			)
+			.pipe(map(res => res.data.game));
+	}
+
+	createScore(gameId: string, source: string, score: number) {
+		return this.http.post(`${environment.apiUrl}/game-scores`, {
+			gameId,
+			source,
+			score
+		});
+	}
+
+	updateScore(gameId: string, source: string, score: number) {
+		return this.http.patch(
+			`${environment.apiUrl}/game-scores/${gameId}/${source}`,
+			{ score }
+		);
+	}
+
+	createTime(gameId: string, source: string, duration: number) {
+		return this.http.post(`${environment.apiUrl}/game-times`, {
+			gameId,
+			source,
+			duration
+		});
+	}
+
+	updateTime(gameId: string, source: string, duration: number) {
+		return this.http.patch(
+			`${environment.apiUrl}/game-times/${gameId}/${source}`,
+			{ duration }
+		);
 	}
 }
