@@ -1,4 +1,4 @@
 export const environment = {
 	production: true,
-	apiUrl: "https://api.completr.app"
+	apiUrl: "https://completr-backend.tebita.xyz"
 };
