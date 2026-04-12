@@ -21,6 +21,7 @@ function gameSerializer(game: Game) {
 	if (!game) return;
 	return {
 		id: game.id,
+		code: game.code,
 		title: game.title,
 		backgroundUrl: game.backgroundUrl,
 		isDlc: game.isDlc
