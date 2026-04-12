@@ -31,6 +31,37 @@
 		</div>
 	</div>
 
+	<!-- Admin panel -->
+	@if (isAdmin()) {
+	<div class="admin-panel">
+		<span class="admin-label">
+			<span class="material-icons">admin_panel_settings</span>
+			Admin
+		</span>
+		@if (!showConfirmDeactivate()) {
+		<button
+			class="btn-admin-danger"
+			(click)="showConfirmDeactivate.set(true)"
+		>
+			<span class="material-icons">visibility_off</span>
+			Deactivate
+		</button>
+		} @else {
+		<span class="confirm-text">Deactivate this game?</span>
+		<button
+			class="btn-danger"
+			(click)="deactivateGame()"
+			[disabled]="deactivating()"
+		>
+			{{ deactivating() ? 'Deactivating...' : 'Yes' }}
+		</button>
+		<button class="btn-ghost" (click)="showConfirmDeactivate.set(false)">
+			Cancel
+		</button>
+		}
+	</div>
+	}
+
 	<!-- Tags -->
 	<div class="tags-row">
 		@for (p of game()!.platforms; track p.id) {

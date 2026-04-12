@@ -72,4 +72,8 @@ export class GamesService {
 			}>(`${environment.apiUrl}/games/${code}`)
 			.pipe(map(res => res.data.game));
 	}
+
+	deactivate(id: string) {
+		return this.http.delete(`${environment.apiUrl}/games/${id}`);
+	}
 }

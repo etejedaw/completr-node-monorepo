@@ -1,14 +1,16 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
 } from "@angular/core";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Game } from "../../../core/models";
 import { GamesService } from "../games.service";
 import { ScoreSourcesService } from "../../../core/services/score-sources.service";
+import { AuthService } from "../../../core/services/auth.service";
 import { FavoritesService } from "../../favorites/favorites.service";
 import { WishlistService } from "../../wishlist/wishlist.service";
 import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
@@ -25,7 +27,9 @@ import { getRatingLabel } from "../../../shared/constants/rating-labels";
 })
 export class GameDetail implements OnInit {
 	private readonly route = inject(ActivatedRoute);
+	private readonly router = inject(Router);
 	private readonly gamesService = inject(GamesService);
+	private readonly authService = inject(AuthService);
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly wishlistService = inject(WishlistService);
@@ -39,6 +43,11 @@ export class GameDetail implements OnInit {
 	protected readonly showPlatformPicker = signal(false);
 	protected readonly showBacklogModal = signal(false);
 	protected readonly showShelfModal = signal(false);
+	protected readonly isAdmin = computed(
+		() => this.authService.user()?.role === "admin"
+	);
+	protected readonly showConfirmDeactivate = signal(false);
+	protected readonly deactivating = signal(false);
 	protected readonly togglingFavorite = signal(false);
 
 	ngOnInit() {
@@ -110,6 +119,16 @@ export class GameDetail implements OnInit {
 		if (!g) return;
 		this.showPlatformPicker.set(false);
 		this.doAddToWishlist(g.id, platformId);
+	}
+
+	deactivateGame() {
+		const g = this.game();
+		if (!g || this.deactivating()) return;
+		this.deactivating.set(true);
+		this.gamesService.deactivate(g.id).subscribe({
+			next: () => this.router.navigate(["/games"]),
+			error: () => this.deactivating.set(false)
+		});
 	}
 
 	private doAddToWishlist(gameId: string, platformId: string) {
