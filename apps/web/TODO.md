@@ -102,7 +102,7 @@
 
 ### Mejoras al Backlog
 
-- [ ] Normalización de scores a escala Completr (botón en modal, usa GET /score-sources)
+- [x] Normalización de scores a escala Completr (botón en modal, usa GET /score-sources)
 - [ ] Evaluar sort de title y ratio via backend cuando se implementen saved filters (actualmente local)
 - [ ] Filtros avanzados: plataforma, rangos de fechas, multi-status combinado
 - [ ] Vista de progreso básico del backlog
