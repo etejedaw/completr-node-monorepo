@@ -25,6 +25,7 @@ export class ListModal implements OnInit {
 	list = input<List | null>(null);
 	closed = output<void>();
 	saved = output<void>();
+	deleted = output<void>();
 
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
@@ -96,7 +97,7 @@ export class ListModal implements OnInit {
 	onDelete() {
 		this.isLoading.set(true);
 		this.listsService.delete(this.list()!.id).subscribe({
-			next: () => this.saved.emit(),
+			next: () => this.deleted.emit(),
 			error: err => {
 				this.isLoading.set(false);
 				this.error.set(err.error?.title ?? "Delete failed");

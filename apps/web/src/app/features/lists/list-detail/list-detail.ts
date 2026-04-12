@@ -5,7 +5,7 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { List, ListItem, Game } from "../../../core/models";
 import { ListsService } from "../lists.service";
 import { ListModal } from "../list-modal/list-modal";
@@ -27,6 +27,7 @@ import {
 })
 export class ListDetail implements OnInit {
 	private readonly route = inject(ActivatedRoute);
+	private readonly router = inject(Router);
 	private readonly listsService = inject(ListsService);
 	private readonly gamesService = inject(GamesService);
 	private readonly searchSubject = new Subject<string>();
@@ -115,6 +116,10 @@ export class ListDetail implements OnInit {
 	onEditSaved() {
 		this.showEditModal.set(false);
 		this.loadList();
+	}
+
+	onEditDeleted() {
+		this.router.navigate(["/lists"]);
 	}
 
 	refreshScores() {
