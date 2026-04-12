@@ -103,9 +103,9 @@
 ### Mejoras al Backlog
 
 - [x] Normalización de scores a escala Completr (botón en modal, usa GET /score-sources)
-- [ ] Evaluar sort de title y ratio via backend cuando se implementen saved filters (actualmente local)
-- [ ] Filtros avanzados: plataforma, rangos de fechas, multi-status combinado
-- [ ] Vista de progreso básico del backlog
+- [x] Filtros avanzados: plataforma, rangos de fechas, multi-status, rating con estrellas, sort
+- [x] Saved filters integrados en panel de filtros (crear, aplicar, actualizar, limpiar)
+- ~~Vista de progreso básico del backlog~~ → movido a listas (Fase 3: progreso personal en listas)
 
 ### Feature: Game Shelf
 
@@ -159,10 +159,13 @@
 
 ### Feature: Saved Filters
 
-- [ ] Guardar combinación actual de filtros del backlog como vista con nombre
-- [ ] Listar mis filtros guardados
-- [ ] Aplicar filtro guardado (carga los query params en el backlog)
-- [ ] Editar y eliminar filtros guardados
+- [x] Guardar combinación actual de filtros del backlog como vista con nombre
+- [x] Listar mis filtros guardados (chips en backlog + página dedicada `/saved-views`)
+- [x] Aplicar filtro guardado (click en chip o desde saved views page → navega a backlog)
+- [x] Editar y eliminar filtros guardados (modal en saved views page)
+- [x] `showInBacklog` toggle — controla si el chip aparece en el backlog
+- [x] `isDefault` toggle — auto-aplica la vista al abrir el backlog
+- [x] Descripción del filtro visible al seleccionarlo en el backlog
 
 ### Feature: Perfil
 
