@@ -23,6 +23,7 @@ export type BacklogStatus =
 
 interface BacklogGame {
 	id: string;
+	code: string;
 	title: string;
 	backgroundUrl?: string;
 	isDlc: boolean;
