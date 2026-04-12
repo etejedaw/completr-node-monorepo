@@ -16,17 +16,168 @@
 		/>
 	</div>
 
-	<div class="status-tabs">
-		@for (s of statusFilters; track s.value) {
-		<button
-			class="tab"
-			[class.active]="activeStatus() === s.value"
-			(click)="filterByStatus(s.value)"
-		>
-			{{ s.label }}
-		</button>
+	<div class="filters-bar">
+		<!-- Saved filters -->
+		@if (savedFilters().length > 0) {
+		<div class="saved-filters-row">
+			@for (sf of savedFilters(); track sf.id) {
+			<button
+				class="saved-filter-chip"
+				[class.active]="activeFilterId() === sf.id"
+				(click)="applySavedFilter(sf)"
+			>
+				{{ sf.name }}
+			</button>
+			}
+		</div>
 		}
+		<button
+			class="btn-toggle-filters"
+			[class.active]="showFilters()"
+			(click)="toggleFilters()"
+		>
+			<span class="material-icons">tune</span>
+			Filters
+		</button>
 	</div>
+
+	@if (showFilters()) {
+	<div class="filters-panel">
+		<div class="filter-group filter-full">
+			<label>Status</label>
+			<div class="status-chips">
+				@for (s of statusFilters; track s.value) {
+				<button
+					class="status-chip"
+					[class.active]="isStatusActive(s.value)"
+					(click)="toggleStatus(s.value)"
+				>
+					{{ s.label }}
+				</button>
+				}
+			</div>
+		</div>
+		<div class="filter-group">
+			<label>Platform</label>
+			<select
+				[ngModel]="selectedPlatform()"
+				(ngModelChange)="selectedPlatform.set($event)"
+			>
+				<option value="">All platforms</option>
+				@for (p of allPlatforms(); track p.id) {
+				<option [value]="p.id">{{ p.name }}</option>
+				}
+			</select>
+		</div>
+		<div class="filter-group">
+			<label>Started from</label>
+			<input
+				type="date"
+				[ngModel]="startedFrom()"
+				(ngModelChange)="startedFrom.set($event)"
+			/>
+		</div>
+		<div class="filter-group">
+			<label>Started to</label>
+			<input
+				type="date"
+				[ngModel]="startedTo()"
+				(ngModelChange)="startedTo.set($event)"
+			/>
+		</div>
+		<div class="filter-group">
+			<label>Finished from</label>
+			<input
+				type="date"
+				[ngModel]="finishedFrom()"
+				(ngModelChange)="finishedFrom.set($event)"
+			/>
+		</div>
+		<div class="filter-group">
+			<label>Finished to</label>
+			<input
+				type="date"
+				[ngModel]="finishedTo()"
+				(ngModelChange)="finishedTo.set($event)"
+			/>
+		</div>
+		<div class="filter-group">
+			<label>Sort by</label>
+			<select
+				[ngModel]="sortBy()"
+				(ngModelChange)="sortBy.set($event)"
+			>
+				<option value="createdAt">Date added</option>
+				<option value="title">Title</option>
+				<option value="score">Score</option>
+				<option value="duration">Duration</option>
+				<option value="ratio">Ratio</option>
+				<option value="realDuration">Real duration</option>
+				<option value="personalRatio">Personal ratio</option>
+				<option value="userRating">Rating</option>
+				<option value="finishedAt">Finished</option>
+				<option value="status">Status</option>
+			</select>
+		</div>
+		<div class="filter-group">
+			<label>Order</label>
+			<select
+				[ngModel]="sortOrder()"
+				(ngModelChange)="sortOrder.set($event)"
+			>
+				<option value="desc">Descending</option>
+				<option value="asc">Ascending</option>
+			</select>
+		</div>
+		<div class="filter-group">
+			<label>Min rating</label>
+			<app-star-rating
+				[value]="minRating()"
+				(ratingChange)="minRating.set($event)"
+				size="sm"
+			/>
+		</div>
+		<div class="filter-group">
+			<label>Max rating</label>
+			<app-star-rating
+				[value]="maxRating()"
+				(ratingChange)="maxRating.set($event)"
+				size="sm"
+			/>
+		</div>
+		<div class="filter-actions">
+			<button class="btn-apply" (click)="applyFilters()">Apply</button>
+			@if (hasActiveFilters()) {
+			<button class="btn-save-filter" (click)="openSaveFilter()">
+				Save view
+			</button>
+			}
+		</div>
+	</div>
+
+	@if (showSaveInput()) {
+	<div class="save-filter-row">
+		<input
+			type="text"
+			class="save-filter-input"
+			placeholder="Filter name..."
+			[ngModel]="newFilterName()"
+			(ngModelChange)="newFilterName.set($event)"
+			(keydown.enter)="saveCurrentFilter()"
+		/>
+		<button
+			class="btn-apply"
+			(click)="saveCurrentFilter()"
+			[disabled]="savingFilter() || !newFilterName().trim()"
+		>
+			{{ savingFilter() ? '...' : 'Save' }}
+		</button>
+		<button class="btn-clear-filters" (click)="cancelSaveFilter()">
+			Cancel
+		</button>
+	</div>
+	}
+	}
 
 	@if (isInitialLoad() && isLoading()) {
 	<div class="loading">Loading...</div>

@@ -6,38 +6,73 @@ import {
 	signal
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
-import { BacklogEntry, BacklogStatus } from "../../../core/models";
+import { FormsModule } from "@angular/forms";
+import { BacklogEntry, BacklogStatus, Platform } from "../../../core/models";
 import { BacklogService, BacklogFilters } from "../backlog.service";
+import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
 import { WishlistService } from "../../wishlist/wishlist.service";
+import { GamesService } from "../../games/games.service";
 import { RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, BacklogModal, StarRating, RouterLink],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink],
 	templateUrl: "./backlog-list.html",
 	styleUrl: "./backlog-list.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BacklogList implements OnInit {
 	private readonly backlogService = inject(BacklogService);
+	private readonly savedFiltersService = inject(SavedFiltersService);
 	private readonly wishlistService = inject(WishlistService);
+	private readonly gamesService = inject(GamesService);
 
 	private readonly allEntries = signal<BacklogEntry[]>([]);
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly isInitialLoad = signal(true);
 	protected readonly searchQuery = signal("");
-	protected readonly activeStatus = signal<string>("");
+	protected readonly activeStatuses = signal<Set<string>>(new Set());
 	protected readonly sortBy = signal("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
 	protected readonly showModal = signal(false);
 	protected readonly editingEntry = signal<BacklogEntry | null>(null);
 	private readonly wishlistBacklogIds = signal<Set<string>>(new Set());
 
+	// Filters
+	protected readonly showFilters = signal(false);
+	protected readonly allPlatforms = signal<Platform[]>([]);
+	protected readonly selectedPlatform = signal("");
+	protected readonly startedFrom = signal("");
+	protected readonly startedTo = signal("");
+	protected readonly finishedFrom = signal("");
+	protected readonly finishedTo = signal("");
+	protected readonly minRating = signal<number | null>(null);
+	protected readonly maxRating = signal<number | null>(null);
+
+	// Saved filters
+	protected readonly savedFilters = signal<SavedFilter[]>([]);
+	protected readonly activeFilterId = signal<string | null>(null);
+	protected readonly showSaveInput = signal(false);
+	protected readonly newFilterName = signal("");
+	protected readonly savingFilter = signal(false);
+
+	protected readonly hasActiveFilters = () => {
+		return (
+			this.selectedPlatform() !== "" ||
+			this.startedFrom() !== "" ||
+			this.startedTo() !== "" ||
+			this.finishedFrom() !== "" ||
+			this.finishedTo() !== "" ||
+			this.minRating() !== null ||
+			this.maxRating() !== null ||
+			this.activeStatuses().size > 0
+		);
+	};
+
 	private readonly statuses: { label: string; value: string }[] = [
-		{ label: "All", value: "" },
 		{ label: "Not Started", value: "not_started" },
 		{ label: "Playing", value: "playing" },
 		{ label: "Completed", value: "completed" },
@@ -49,6 +84,10 @@ export class BacklogList implements OnInit {
 	ngOnInit() {
 		this.loadBacklog();
 		this.loadWishlistIds();
+		this.loadSavedFilters();
+		this.gamesService
+			.getPlatforms()
+			.subscribe(p => this.allPlatforms.set(p));
 	}
 
 	isInWishlist(entry: BacklogEntry): boolean {
@@ -63,9 +102,145 @@ export class BacklogList implements OnInit {
 		});
 	}
 
-	filterByStatus(status: string) {
-		this.activeStatus.set(status);
+	private loadSavedFilters() {
+		this.savedFiltersService.getAll().subscribe(filters => {
+			const sorted = filters.sort((a, b) =>
+				a.name.localeCompare(b.name)
+			);
+			this.savedFilters.set(sorted);
+		});
+	}
+
+	toggleStatus(status: string) {
+		const current = new Set(this.activeStatuses());
+		if (current.has(status)) {
+			current.delete(status);
+		} else {
+			current.add(status);
+		}
+		this.activeStatuses.set(current);
+		this.activeFilterId.set(null);
+	}
+
+	isStatusActive(status: string): boolean {
+		return this.activeStatuses().has(status);
+	}
+
+	toggleFilters() {
+		this.showFilters.set(!this.showFilters());
+	}
+
+	applyFilters() {
+		this.activeFilterId.set(null);
 		this.loadBacklog();
+	}
+
+	clearFilters() {
+		this.selectedPlatform.set("");
+		this.startedFrom.set("");
+		this.startedTo.set("");
+		this.finishedFrom.set("");
+		this.finishedTo.set("");
+		this.minRating.set(null);
+		this.maxRating.set(null);
+		this.activeStatuses.set(new Set());
+		this.activeFilterId.set(null);
+		this.sortBy.set("createdAt");
+		this.sortOrder.set("desc");
+		this.loadBacklog();
+	}
+
+	applySavedFilter(filter: SavedFilter) {
+		if (this.activeFilterId() === filter.id) {
+			this.clearFilters();
+			this.showFilters.set(false);
+			return;
+		}
+
+		const f = filter.filters as Record<string, string>;
+		this.selectedPlatform.set(f["platform_id"] ?? "");
+		this.startedFrom.set(f["started_from"] ?? "");
+		this.startedTo.set(f["started_to"] ?? "");
+		this.finishedFrom.set(f["finished_from"] ?? "");
+		this.finishedTo.set(f["finished_to"] ?? "");
+		this.minRating.set(f["min_rating"] ? Number(f["min_rating"]) : null);
+		this.maxRating.set(f["max_rating"] ? Number(f["max_rating"]) : null);
+
+		const status = f["status"];
+		if (status) {
+			this.activeStatuses.set(new Set(status.split(",")));
+		} else {
+			this.activeStatuses.set(new Set());
+		}
+
+		if (filter.sortBy) this.sortBy.set(filter.sortBy);
+		if (filter.sortOrder)
+			this.sortOrder.set(filter.sortOrder as "asc" | "desc");
+
+		this.activeFilterId.set(filter.id);
+		this.loadBacklog();
+	}
+
+	deleteSavedFilter(filter: SavedFilter) {
+		this.savedFiltersService.delete(filter.id).subscribe(() => {
+			this.loadSavedFilters();
+			if (this.activeFilterId() === filter.id) {
+				this.activeFilterId.set(null);
+			}
+		});
+	}
+
+	openSaveFilter() {
+		this.showSaveInput.set(true);
+		this.newFilterName.set("");
+	}
+
+	cancelSaveFilter() {
+		this.showSaveInput.set(false);
+		this.newFilterName.set("");
+	}
+
+	saveCurrentFilter() {
+		const name = this.newFilterName().trim();
+		if (!name) return;
+
+		this.savingFilter.set(true);
+		const filters = this.buildFiltersObject();
+
+		this.savedFiltersService
+			.create({
+				name,
+				filters,
+				sortBy: this.sortBy(),
+				sortOrder: this.sortOrder()
+			})
+			.subscribe({
+				next: () => {
+					this.savingFilter.set(false);
+					this.showSaveInput.set(false);
+					this.newFilterName.set("");
+					this.loadSavedFilters();
+				},
+				error: () => this.savingFilter.set(false)
+			});
+	}
+
+	private buildFiltersObject(): Record<string, string> {
+		const filters: Record<string, string> = {};
+		const statuses = this.activeStatuses();
+		if (statuses.size > 0) filters["status"] = [...statuses].join(",");
+		if (this.selectedPlatform())
+			filters["platform_id"] = this.selectedPlatform();
+		if (this.startedFrom()) filters["started_from"] = this.startedFrom();
+		if (this.startedTo()) filters["started_to"] = this.startedTo();
+		if (this.finishedFrom())
+			filters["finished_from"] = this.finishedFrom();
+		if (this.finishedTo()) filters["finished_to"] = this.finishedTo();
+		if (this.minRating() !== null)
+			filters["min_rating"] = String(this.minRating());
+		if (this.maxRating() !== null)
+			filters["max_rating"] = String(this.maxRating());
+		return filters;
 	}
 
 	onSearch(event: Event) {
@@ -183,9 +358,20 @@ export class BacklogList implements OnInit {
 			filters.sort_order = this.sortOrder();
 		}
 
-		if (this.activeStatus()) {
-			filters.status = this.activeStatus();
+		const statuses = this.activeStatuses();
+		if (statuses.size > 0) {
+			filters.status = [...statuses].join(",");
 		}
+
+		if (this.selectedPlatform()) {
+			filters.platform_id = this.selectedPlatform();
+		}
+		if (this.startedFrom()) filters.started_from = this.startedFrom();
+		if (this.startedTo()) filters.started_to = this.startedTo();
+		if (this.finishedFrom()) filters.finished_from = this.finishedFrom();
+		if (this.finishedTo()) filters.finished_to = this.finishedTo();
+		if (this.minRating() !== null) filters.min_rating = this.minRating()!;
+		if (this.maxRating() !== null) filters.max_rating = this.maxRating()!;
 
 		this.backlogService.getMyBacklog(filters).subscribe({
 			next: res => {

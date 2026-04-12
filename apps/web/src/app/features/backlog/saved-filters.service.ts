@@ -1,0 +1,51 @@
+import { inject, Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { map } from "rxjs";
+import { environment } from "../../../environments/environment";
+
+export interface SavedFilter {
+	id: string;
+	name: string;
+	description?: string;
+	filters: Record<string, unknown>;
+	sortBy?: string;
+	sortOrder?: string;
+}
+
+interface SavedFiltersResponse {
+	data: { savedFilters: SavedFilter[] };
+}
+
+interface SavedFilterResponse {
+	data: { savedFilter: SavedFilter };
+}
+
+export interface CreateSavedFilterDto {
+	name: string;
+	description?: string;
+	filters: Record<string, unknown>;
+	sortBy?: string;
+	sortOrder?: string;
+}
+
+@Injectable({ providedIn: "root" })
+export class SavedFiltersService {
+	private readonly http = inject(HttpClient);
+	private readonly baseUrl = `${environment.apiUrl}/users/me/saved-filters`;
+
+	getAll() {
+		return this.http
+			.get<SavedFiltersResponse>(this.baseUrl)
+			.pipe(map(res => res.data.savedFilters));
+	}
+
+	create(dto: CreateSavedFilterDto) {
+		return this.http
+			.post<SavedFilterResponse>(this.baseUrl, dto)
+			.pipe(map(res => res.data.savedFilter));
+	}
+
+	delete(id: string) {
+		return this.http.delete(`${this.baseUrl}/${id}`);
+	}
+}
