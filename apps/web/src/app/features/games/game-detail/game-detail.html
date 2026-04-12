@@ -21,7 +21,7 @@
 			(click)="toggleFavorite()"
 			title="{{ isFavorite() ? 'Remove from favorites' : 'Add to favorites' }}"
 		>
-			&#9733;
+			<span class="material-icons">star</span>
 		</button>
 		<div class="banner-content">
 			<h1>{{ game()!.title }}</h1>
@@ -79,7 +79,7 @@
 			<div class="action-divider"></div>
 			<div class="action-buttons">
 				<button class="action-btn" (click)="openBacklogModal()">
-					<span class="action-icon">&#9654;</span>
+					<span class="material-icons action-icon">list_alt</span>
 					Add to Backlog
 				</button>
 				<div class="wishlist-action">
@@ -100,14 +100,14 @@
 						[disabled]="addingToWishlist()"
 						(click)="addToWishlist()"
 					>
-						<span class="action-icon">&#9829;</span>
+						<span class="material-icons action-icon">favorite</span>
 						{{ addedToWishlist() ? 'In Wishlist' :
 						addingToWishlist() ? 'Adding...' : 'Add to Wishlist' }}
 					</button>
 					}
 				</div>
 				<button class="action-btn" (click)="openShelfModal()">
-					<span class="action-icon">&#9733;</span>
+					<span class="material-icons action-icon">shelves</span>
 					Add to Shelf
 				</button>
 			</div>

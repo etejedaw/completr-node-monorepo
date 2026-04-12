@@ -246,10 +246,15 @@ tbody td {
 	background: transparent;
 	border: none;
 	color: var(--text-muted);
-	font-size: 1.25rem;
 	cursor: pointer;
 	padding: 0.25rem;
 	transition: color var(--transition);
+	display: flex;
+	align-items: center;
+}
+
+.btn-wishlist .material-icons {
+	font-size: 1.25rem;
 }
 
 .btn-wishlist:hover {
