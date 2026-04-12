@@ -78,15 +78,15 @@
 			</div>
 			<div class="action-divider"></div>
 			<div class="action-buttons">
-				<button class="action-btn" routerLink="/backlog">
+				<button class="action-btn" (click)="openBacklogModal()">
 					<span class="action-icon">&#9654;</span>
 					Add to Backlog
 				</button>
-				<button class="action-btn" routerLink="/wishlist">
+				<button class="action-btn" disabled>
 					<span class="action-icon">&#9829;</span>
 					Add to Wishlist
 				</button>
-				<button class="action-btn" routerLink="/game-shelf">
+				<button class="action-btn" (click)="openShelfModal()">
 					<span class="action-icon">&#9733;</span>
 					Add to Shelf
 				</button>
@@ -138,6 +138,14 @@
 	</div>
 	}
 
+	<!-- Community -->
+	<div class="related-section">
+		<h2>Community</h2>
+		<p class="section-placeholder">
+			Reviews, ratings and playtimes from other players — Coming soon...
+		</p>
+	</div>
+
 	<!-- Lists featuring this game -->
 	<div class="related-section">
 		<h2>Featured in Lists</h2>
@@ -172,4 +180,16 @@
 		<a routerLink="/games" class="btn-back">&larr; Back to Games</a>
 	</div>
 </div>
+} @if (showBacklogModal()) {
+<app-backlog-modal
+	[preselectedGame]="game()"
+	(closed)="onModalClosed()"
+	(saved)="onModalSaved()"
+/>
+} @if (showShelfModal()) {
+<app-game-shelf-modal
+	[preselectedGame]="game()"
+	(closed)="onModalClosed()"
+	(saved)="onModalSaved()"
+/>
 }

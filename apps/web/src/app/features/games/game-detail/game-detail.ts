@@ -10,12 +10,14 @@ import { Game } from "../../../core/models";
 import { GamesService } from "../games.service";
 import { ScoreSourcesService } from "../../../core/services/score-sources.service";
 import { FavoritesService } from "../../favorites/favorites.service";
+import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
+import { GameShelfModal } from "../../game-shelf/game-shelf-modal/game-shelf-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../shared/constants/rating-labels";
 
 @Component({
 	selector: "app-game-detail",
-	imports: [RouterLink, StarRating],
+	imports: [RouterLink, StarRating, BacklogModal, GameShelfModal],
 	templateUrl: "./game-detail.html",
 	styleUrl: "./game-detail.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -30,6 +32,8 @@ export class GameDetail implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly similarGames = signal<Game[]>([]);
 	protected readonly isFavorite = signal(false);
+	protected readonly showBacklogModal = signal(false);
+	protected readonly showShelfModal = signal(false);
 	protected readonly togglingFavorite = signal(false);
 
 	ngOnInit() {
@@ -78,6 +82,24 @@ export class GameDetail implements OnInit {
 			},
 			error: () => this.togglingFavorite.set(false)
 		});
+	}
+
+	openBacklogModal() {
+		this.showBacklogModal.set(true);
+	}
+
+	openShelfModal() {
+		this.showShelfModal.set(true);
+	}
+
+	onModalClosed() {
+		this.showBacklogModal.set(false);
+		this.showShelfModal.set(false);
+	}
+
+	onModalSaved() {
+		this.showBacklogModal.set(false);
+		this.showShelfModal.set(false);
 	}
 
 	protected getScaleLabel(source: string): string {
