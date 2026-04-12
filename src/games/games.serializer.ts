@@ -20,7 +20,27 @@ export function gameSerializer(game: Game) {
 		platforms: game.Platforms?.map(platformSerializer) ?? [],
 		genres: game.Genres?.map(genreSerializer) ?? [],
 		scores: game.GameScores?.map(scoreSerializer) ?? [],
-		times: game.GameTimes?.map(timeSerializer) ?? []
+		times: game.GameTimes?.map(timeSerializer) ?? [],
+		dlcs: game.Dlcs?.map(dlcSerializer) ?? [],
+		parentGame: game.ParentGame ? parentGameSerializer(game.ParentGame) : null
+	};
+}
+
+function dlcSerializer(game: Game) {
+	return {
+		id: game.id,
+		code: game.code,
+		title: game.title,
+		backgroundUrl: game.backgroundUrl
+	};
+}
+
+function parentGameSerializer(game: Game) {
+	return {
+		id: game.id,
+		code: game.code,
+		title: game.title,
+		backgroundUrl: game.backgroundUrl
 	};
 }
 

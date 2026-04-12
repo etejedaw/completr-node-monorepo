@@ -67,7 +67,13 @@ export async function findGameByCode(code: string) {
 			{ association: "Platforms" },
 			{ association: "Genres" },
 			{ association: "GameScores" },
-			{ association: "GameTimes" }
+			{ association: "GameTimes" },
+			{
+				association: "Dlcs",
+				where: { isActive: true },
+				required: false
+			},
+			{ association: "ParentGame" }
 		]
 	});
 }

@@ -22,6 +22,8 @@ class Game extends Model {
 	declare Genres: Genre[];
 	declare GameScores: GameScore[];
 	declare GameTimes: GameTime[];
+	declare Dlcs: Game[];
+	declare ParentGame: Game | null;
 }
 
 Game.init(
