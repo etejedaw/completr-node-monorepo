@@ -371,3 +371,8 @@ export const authGuard: CanActivateFn = () => {
 - Admin game editor: RAWG fetch, create/edit mode, DLC parent game
 - Hardening post-auditoría: security headers en nginx (CSP, HSTS, X-Frame-Options, etc.)
 - Sidebar responsive con hamburger menu para móvil
+
+### Fase 2 (en progreso)
+
+- Backlog modal: botón "Add to Shelf" (solo en creación) que añade el juego al game-shelf con la misma plataforma seleccionada
+- Game Detail: action buttons (Backlog, Wishlist, Shelf) muestran estado activo (cyan) cuando el juego ya está en cada colección del usuario
