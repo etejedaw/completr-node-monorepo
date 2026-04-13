@@ -26,7 +26,10 @@
 		<div class="banner-content">
 			<h1>{{ game()!.title }}</h1>
 			@if (game()!.parentGame) {
-			<a class="parent-link" [routerLink]="['/games', game()!.parentGame!.code]">
+			<a
+				class="parent-link"
+				[routerLink]="['/games', game()!.parentGame!.code]"
+			>
 				DLC of {{ game()!.parentGame!.title }}
 			</a>
 			} @else if (game()!.releaseAt) {
@@ -42,11 +45,10 @@
 			<span class="material-icons">admin_panel_settings</span>
 			Admin
 		</span>
-		<button
-			class="btn-admin-edit"
-			(click)="showEditor.set(!showEditor())"
-		>
-			<span class="material-icons">{{ showEditor() ? 'close' : 'edit' }}</span>
+		<button class="btn-admin-edit" (click)="showEditor.set(!showEditor())">
+			<span class="material-icons"
+				>{{ showEditor() ? 'close' : 'edit' }}</span
+			>
 			{{ showEditor() ? 'Close Editor' : 'Edit Game' }}
 		</button>
 		@if (!showConfirmDeactivate() && !showConfirmDelete()) {
@@ -57,10 +59,7 @@
 			<span class="material-icons">visibility_off</span>
 			Deactivate
 		</button>
-		<button
-			class="btn-admin-danger"
-			(click)="showConfirmDelete.set(true)"
-		>
+		<button class="btn-admin-danger" (click)="showConfirmDelete.set(true)">
 			<span class="material-icons">delete_forever</span>
 			Delete
 		</button>
@@ -91,12 +90,8 @@
 		}
 	</div>
 	@if (showEditor()) {
-	<app-admin-game-editor
-		[game]="game()!"
-		(saved)="onEditorSaved()"
-	/>
-	}
-	}
+	<app-admin-game-editor [game]="game()!" (saved)="onEditorSaved()" />
+	} }
 
 	<!-- Tags -->
 	<div class="tags-row">
@@ -145,9 +140,13 @@
 			</div>
 			<div class="action-divider"></div>
 			<div class="action-buttons">
-				<button class="action-btn" (click)="openBacklogModal()">
+				<button
+					class="action-btn"
+					[class.added]="isInBacklog()"
+					(click)="openBacklogModal()"
+				>
 					<span class="material-icons action-icon">list_alt</span>
-					Add to Backlog
+					{{ isInBacklog() ? 'In Backlog' : 'Add to Backlog' }}
 				</button>
 				<div class="wishlist-action">
 					@if (showPlatformPicker()) {
@@ -173,9 +172,13 @@
 					</button>
 					}
 				</div>
-				<button class="action-btn" (click)="openShelfModal()">
+				<button
+					class="action-btn"
+					[class.added]="isInShelf()"
+					(click)="openShelfModal()"
+				>
 					<span class="material-icons action-icon">shelves</span>
-					Add to Shelf
+					{{ isInShelf() ? 'In Shelf' : 'Add to Shelf' }}
 				</button>
 			</div>
 		</div>

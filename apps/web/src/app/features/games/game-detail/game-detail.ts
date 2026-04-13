@@ -13,6 +13,8 @@ import { ScoreSourcesService } from "../../../core/services/score-sources.servic
 import { AuthService } from "../../../core/services/auth.service";
 import { FavoritesService } from "../../favorites/favorites.service";
 import { WishlistService } from "../../wishlist/wishlist.service";
+import { BacklogService } from "../../backlog/backlog.service";
+import { GameShelfService } from "../../game-shelf/game-shelf.service";
 import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
 import { GameShelfModal } from "../../game-shelf/game-shelf-modal/game-shelf-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
@@ -21,7 +23,13 @@ import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 
 @Component({
 	selector: "app-game-detail",
-	imports: [RouterLink, StarRating, BacklogModal, GameShelfModal, AdminGameEditor],
+	imports: [
+		RouterLink,
+		StarRating,
+		BacklogModal,
+		GameShelfModal,
+		AdminGameEditor
+	],
 	templateUrl: "./game-detail.html",
 	styleUrl: "./game-detail.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -34,11 +42,16 @@ export class GameDetail implements OnInit {
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly wishlistService = inject(WishlistService);
+	private readonly backlogService = inject(BacklogService);
+	private readonly gameShelfService = inject(GameShelfService);
 
 	protected readonly game = signal<Game | null>(null);
 	protected readonly isLoading = signal(true);
 	protected readonly similarGames = signal<Game[]>([]);
 	protected readonly isFavorite = signal(false);
+	protected readonly isInBacklog = signal(false);
+	protected readonly isInWishlist = signal(false);
+	protected readonly isInShelf = signal(false);
 	protected readonly addedToWishlist = signal(false);
 	protected readonly addingToWishlist = signal(false);
 	protected readonly showPlatformPicker = signal(false);
@@ -73,8 +86,33 @@ export class GameDetail implements OnInit {
 				this.isFavorite.set(this.favoritesService.isFavorite(game.id));
 				this.isLoading.set(false);
 				this.loadSimilarGames(game);
+				this.loadUserStatus(game.id);
 			},
 			error: () => this.isLoading.set(false)
+		});
+	}
+
+	private loadUserStatus(gameId: string) {
+		this.backlogService.getMyBacklog().subscribe({
+			next: res =>
+				this.isInBacklog.set(
+					res.data.backlog.some(b => b.game.id === gameId)
+				)
+		});
+		this.wishlistService.getMyWishlist().subscribe({
+			next: wishlist => {
+				const found = wishlist.some(
+					w => w.backlog.game.id === gameId
+				);
+				this.isInWishlist.set(found);
+				this.addedToWishlist.set(found);
+			}
+		});
+		this.gameShelfService.getMyShelf().subscribe({
+			next: shelf =>
+				this.isInShelf.set(
+					shelf.some(s => s.game.id === gameId)
+				)
 		});
 	}
 
@@ -172,6 +210,8 @@ export class GameDetail implements OnInit {
 	onModalSaved() {
 		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
+		const gameId = this.game()?.id;
+		if (gameId) this.loadUserStatus(gameId);
 	}
 
 	onEditorSaved() {
