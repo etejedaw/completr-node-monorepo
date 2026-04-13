@@ -93,6 +93,21 @@
 				</button>
 			</div>
 
+			<!-- Shelf toggle (create only) -->
+			@if (!isEdit()) {
+			<div class="shelf-toggle">
+				<button
+					type="button"
+					class="btn-shelf-toggle"
+					[class.active]="addToShelf()"
+					(click)="addToShelf.set(!addToShelf())"
+				>
+					<span class="material-icons shelf-icon">shelves</span>
+					{{ addToShelf() ? 'In Shelf' : 'Add to Shelf' }}
+				</button>
+			</div>
+			}
+
 			<!-- Platform -->
 			@if (!isEdit()) {
 			<div class="form-group">

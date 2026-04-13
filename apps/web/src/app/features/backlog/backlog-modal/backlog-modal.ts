@@ -18,6 +18,7 @@ import {
 } from "../backlog.service";
 import { GamesService } from "../../games/games.service";
 import { WishlistService } from "../../wishlist/wishlist.service";
+import { GameShelfService } from "../../game-shelf/game-shelf.service";
 import { ScoreSourcesService } from "../../../core/services/score-sources.service";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
@@ -25,6 +26,7 @@ import {
 	debounceTime,
 	distinctUntilChanged,
 	switchMap,
+	forkJoin,
 	of
 } from "rxjs";
 
@@ -41,6 +43,7 @@ export class BacklogModal implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	private readonly wishlistService = inject(WishlistService);
+	private readonly gameShelfService = inject(GameShelfService);
 
 	entry = input<BacklogEntry | null>(null);
 	preselectedGame = input<Game | null>(null);
@@ -60,6 +63,7 @@ export class BacklogModal implements OnInit {
 	protected readonly isSearching = signal(false);
 	protected readonly addToWishlist = signal(false);
 	protected readonly isInWishlist = signal(false);
+	protected readonly addToShelf = signal(false);
 	protected readonly activeScoreSource = signal("");
 	protected readonly activeDurationSource = signal("");
 	protected readonly gameScores = computed(
@@ -291,10 +295,22 @@ export class BacklogModal implements OnInit {
 			};
 			this.backlogService.create(dto).subscribe({
 				next: backlog => {
+					const extras$ = [];
 					if (this.addToWishlist()) {
-						this.wishlistService
-							.addFromBacklog(backlog.id)
-							.subscribe(() => this.saved.emit());
+						extras$.push(
+							this.wishlistService.addFromBacklog(backlog.id)
+						);
+					}
+					if (this.addToShelf()) {
+						extras$.push(
+							this.gameShelfService.create({
+								gameId: val.gameId!,
+								platformId: val.platformId!
+							})
+						);
+					}
+					if (extras$.length > 0) {
+						forkJoin(extras$).subscribe(() => this.saved.emit());
 					} else {
 						this.saved.emit();
 					}
