@@ -89,9 +89,7 @@ export class BacklogList implements OnInit {
 			.getPlatforms()
 			.subscribe(p => this.allPlatforms.set(p));
 		this.savedFiltersService.getAll().subscribe(filters => {
-			const sorted = filters.sort((a, b) =>
-				a.name.localeCompare(b.name)
-			);
+			const sorted = filters.sort((a, b) => a.name.localeCompare(b.name));
 			this.savedFilters.set(sorted);
 			this.backlogFilters.set(sorted.filter(f => f.showInBacklog));
 
@@ -128,13 +126,9 @@ export class BacklogList implements OnInit {
 
 	private loadSavedFilters() {
 		this.savedFiltersService.getAll().subscribe(filters => {
-			const sorted = filters.sort((a, b) =>
-				a.name.localeCompare(b.name)
-			);
+			const sorted = filters.sort((a, b) => a.name.localeCompare(b.name));
 			this.savedFilters.set(sorted);
-			this.backlogFilters.set(
-				sorted.filter(f => f.showInBacklog)
-			);
+			this.backlogFilters.set(sorted.filter(f => f.showInBacklog));
 		});
 	}
 
@@ -273,8 +267,7 @@ export class BacklogList implements OnInit {
 			filters["platform_id"] = this.selectedPlatform();
 		if (this.startedFrom()) filters["started_from"] = this.startedFrom();
 		if (this.startedTo()) filters["started_to"] = this.startedTo();
-		if (this.finishedFrom())
-			filters["finished_from"] = this.finishedFrom();
+		if (this.finishedFrom()) filters["finished_from"] = this.finishedFrom();
 		if (this.finishedTo()) filters["finished_to"] = this.finishedTo();
 		if (this.minRating() !== null)
 			filters["min_rating"] = String(this.minRating());

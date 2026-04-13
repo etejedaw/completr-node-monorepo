@@ -109,7 +109,7 @@ export class AdminGameEditor implements OnInit {
 		this.parentError.set("");
 
 		this.gamesService.getByCode(slug).subscribe({
-			next: (game) => {
+			next: game => {
 				this.parentGame.set(game);
 				this.fetchingParent.set(false);
 			},
@@ -134,7 +134,7 @@ export class AdminGameEditor implements OnInit {
 		this.rawgError.set("");
 
 		this.gamesService.rawgBySlug(slug).subscribe({
-			next: (detail) => this.applyRawgData(detail),
+			next: detail => this.applyRawgData(detail),
 			error: () => {
 				this.rawgError.set("Game not found on RAWG");
 				this.fetchingRawg.set(false);
@@ -304,7 +304,7 @@ export class AdminGameEditor implements OnInit {
 		}
 
 		this.gamesService.createGame(dto).subscribe({
-			next: (game) => {
+			next: game => {
 				this.saving.set(false);
 				this.created.emit(game);
 			},
@@ -354,11 +354,7 @@ export class AdminGameEditor implements OnInit {
 
 		const scoreOps = this.scores().map(s => {
 			if (existingScores.has(s.source)) {
-				return this.gamesService.updateScore(
-					gameId,
-					s.source,
-					s.score
-				);
+				return this.gamesService.updateScore(gameId, s.source, s.score);
 			}
 			return this.gamesService.createScore(gameId, s.source, s.score);
 		});
@@ -388,9 +384,7 @@ export class AdminGameEditor implements OnInit {
 				this.saved.emit();
 			},
 			error: () => {
-				this.saveError.set(
-					"Game updated but some scores/times failed"
-				);
+				this.saveError.set("Game updated but some scores/times failed");
 				this.saving.set(false);
 			}
 		});

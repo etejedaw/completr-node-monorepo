@@ -9,7 +9,9 @@
 	@if (isLoading()) {
 	<div class="loading">Loading...</div>
 	} @else if (filters().length === 0) {
-	<div class="empty">No saved views yet. Create one from the Backlog filters.</div>
+	<div class="empty">
+		No saved views yet. Create one from the Backlog filters.
+	</div>
 	} @else {
 	<div class="filters-grid">
 		@for (filter of filters(); track filter.id) {
@@ -82,7 +84,9 @@
 				/>
 				Show in Backlog
 			</label>
-			<span class="toggle-hint">Pin this view as a quick filter in the Backlog page</span>
+			<span class="toggle-hint"
+				>Pin this view as a quick filter in the Backlog page</span
+			>
 		</div>
 
 		<div class="form-group">
@@ -95,7 +99,9 @@
 				/>
 				Default view
 			</label>
-			<span class="toggle-hint">Auto-apply this view when opening the Backlog</span>
+			<span class="toggle-hint"
+				>Auto-apply this view when opening the Backlog</span
+			>
 		</div>
 
 		<div class="modal-actions">
@@ -116,7 +122,10 @@
 				>
 					{{ deleting() ? '...' : 'Yes' }}
 				</button>
-				<button class="btn-ghost" (click)="showConfirmDelete.set(false)">
+				<button
+					class="btn-ghost"
+					(click)="showConfirmDelete.set(false)"
+				>
 					Cancel
 				</button>
 				}

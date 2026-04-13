@@ -1,5 +1,11 @@
 import { Component, inject, OnInit, signal } from "@angular/core";
-import { RouterLink, RouterLinkActive, RouterOutlet, Router, NavigationEnd } from "@angular/router";
+import {
+	RouterLink,
+	RouterLinkActive,
+	RouterOutlet,
+	Router,
+	NavigationEnd
+} from "@angular/router";
 import { AuthService } from "../core/services/auth.service";
 import { filter } from "rxjs";
 
@@ -21,12 +27,12 @@ export class Layout implements OnInit {
 		}
 
 		this.router.events
-			.pipe(filter((e) => e instanceof NavigationEnd))
+			.pipe(filter(e => e instanceof NavigationEnd))
 			.subscribe(() => this.sidebarOpen.set(false));
 	}
 
 	toggleSidebar() {
-		this.sidebarOpen.update((v) => !v);
+		this.sidebarOpen.update(v => !v);
 	}
 
 	logout() {

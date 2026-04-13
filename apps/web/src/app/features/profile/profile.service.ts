@@ -19,10 +19,9 @@ export class ProfileService {
 
 	update(dto: UpdateProfileDto) {
 		return this.http
-			.patch<{ data: { user: User } }>(
-				`${environment.apiUrl}/users/me`,
-				dto
-			)
+			.patch<{
+				data: { user: User };
+			}>(`${environment.apiUrl}/users/me`, dto)
 			.pipe(map(res => res.data.user));
 	}
 }

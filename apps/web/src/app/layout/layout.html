@@ -4,7 +4,7 @@
 	</button>
 
 	@if (sidebarOpen()) {
-		<div class="sidebar-overlay" (click)="sidebarOpen.set(false)"></div>
+	<div class="sidebar-overlay" (click)="sidebarOpen.set(false)"></div>
 	}
 
 	<nav class="sidebar" [class.open]="sidebarOpen()">

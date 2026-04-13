@@ -43,9 +43,7 @@
 
 	@if (activeFilterDescription()) {
 	<p class="active-filter-desc">{{ activeFilterDescription() }}</p>
-	}
-
-	@if (showFilters()) {
+	} @if (showFilters()) {
 	<div class="filters-panel">
 		<div class="filter-group filter-full">
 			<label>Status</label>
@@ -107,10 +105,7 @@
 		</div>
 		<div class="filter-group">
 			<label>Sort by</label>
-			<select
-				[ngModel]="sortBy()"
-				(ngModelChange)="sortBy.set($event)"
-			>
+			<select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
 				<option value="createdAt">Date added</option>
 				<option value="title">Title</option>
 				<option value="score">Score</option>
@@ -150,11 +145,19 @@
 			/>
 		</div>
 		<div class="filter-actions">
-			<button class="btn-icon-action" (click)="applyFilters()" title="Apply filters">
+			<button
+				class="btn-icon-action"
+				(click)="applyFilters()"
+				title="Apply filters"
+			>
 				<span class="material-icons">search</span>
 			</button>
 			@if (hasActiveFilters()) {
-			<button class="btn-icon-action danger" (click)="clearFilters(); showFilters.set(false)" title="Clear filters">
+			<button
+				class="btn-icon-action danger"
+				(click)="clearFilters(); showFilters.set(false)"
+				title="Clear filters"
+			>
 				<span class="material-icons">filter_alt_off</span>
 			</button>
 			}
@@ -191,9 +194,7 @@
 		</div>
 		}
 	</div>
-	}
-
-	@if (isInitialLoad() && isLoading()) {
+	} @if (isInitialLoad() && isLoading()) {
 	<div class="loading">Loading...</div>
 	} @else if (!isLoading() && entries().length === 0) {
 	<div class="empty">No entries found.</div>

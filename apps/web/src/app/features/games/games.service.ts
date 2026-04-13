@@ -115,10 +115,7 @@ export class GamesService {
 
 	createGame(dto: CreateGameDto) {
 		return this.http
-			.post<{ data: { game: Game } }>(
-				`${environment.apiUrl}/games`,
-				dto
-			)
+			.post<{ data: { game: Game } }>(`${environment.apiUrl}/games`, dto)
 			.pipe(map(res => res.data.game));
 	}
 
@@ -127,23 +124,22 @@ export class GamesService {
 	}
 
 	hardDelete(id: string) {
-		return this.http.delete(
-			`${environment.apiUrl}/games/${id}?hard=true`
-		);
+		return this.http.delete(`${environment.apiUrl}/games/${id}?hard=true`);
 	}
 
 	updateGame(id: string, dto: UpdateGameDto) {
 		return this.http
-			.patch<{ data: { game: Game } }>(
-				`${environment.apiUrl}/games/${id}`,
-				dto
-			)
+			.patch<{
+				data: { game: Game };
+			}>(`${environment.apiUrl}/games/${id}`, dto)
 			.pipe(map(res => res.data.game));
 	}
 
 	rawgBySlug(slug: string) {
 		return this.http
-			.get<{ data: { game: RawgDetail } }>(
+			.get<{
+				data: { game: RawgDetail };
+			}>(
 				`${environment.apiUrl}/game-external/rawg/${encodeURIComponent(slug)}`
 			)
 			.pipe(map(res => res.data.game));

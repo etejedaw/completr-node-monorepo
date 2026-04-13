@@ -35,9 +35,7 @@
 		</button>
 		}
 	</div>
-	}
-
-	@if (isLoading()) {
+	} @if (isLoading()) {
 	<div class="loading">Loading...</div>
 	} @else if (entries().length === 0) {
 	<div class="empty">No games in your shelf.</div>

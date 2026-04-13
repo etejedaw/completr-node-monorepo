@@ -198,6 +198,11 @@
 - [x] AdminGameEditor component reutilizable en modo crear y editar
 - [ ] Ruta `/admin/games` protegida por rol admin/moderator — tabla de todos los juegos con búsqueda
 
+### Mejoras UX
+
+- [x] Backlog modal: botón "Add to Shelf" (solo en creación) para añadir el juego al game-shelf con la misma plataforma
+- [x] Game Detail: action buttons (Backlog, Wishlist, Shelf) muestran estado activo cuando el juego ya está en la colección del usuario
+
 ### Perfil público
 
 - [ ] Vista `/users/:username` con estadísticas: juegos completados, abandonados, en progreso, ratio promedio

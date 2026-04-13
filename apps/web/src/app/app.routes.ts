@@ -31,9 +31,9 @@ export const routes: Routes = [
 			{
 				path: "saved-views",
 				loadComponent: () =>
-					import(
-						"./features/backlog/saved-filters-view/saved-filters-view"
-					).then(m => m.SavedFiltersView)
+					import("./features/backlog/saved-filters-view/saved-filters-view").then(
+						m => m.SavedFiltersView
+					)
 			},
 			{
 				path: "games",
