@@ -514,6 +514,10 @@
 - [ ] Tus amigos votan cuál de tus juegos pendientes deberías jugar
 - [ ] Mostrar resultados de votación al usuario
 
+### Refactors pendientes
+
+- [ ] Refactor `security.txt`: mover de middleware a ruta simple
+
 ---
 
 ## 🟩 FASE 4 — Beta Pública _(~2–3 meses)_
