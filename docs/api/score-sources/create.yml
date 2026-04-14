@@ -1,0 +1,53 @@
+info:
+    name: Create Score Source
+    type: http
+    seq: 2
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/score-sources"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "code": "igdb",
+              "name": "IGDB",
+              "scale": 100
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Create Score Source
+
+    Creates a new score source definition.
+
+    **Authentication:** Bearer token required (role: admin).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Request Body
+
+    | Field | Type   | Required | Description                          |
+    |-------|--------|----------|--------------------------------------|
+    | code  | string | Yes      | Unique code identifier (1-50 chars)  |
+    | name  | string | Yes      | Display name (1-100 chars)           |
+    | scale | number | Yes      | Maximum score value (positive int)   |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "source": {
+          "code": "igdb",
+          "name": "IGDB",
+          "scale": 100
+        }
+      }
+    }
+    ```

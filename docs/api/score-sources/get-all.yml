@@ -1,0 +1,50 @@
+info:
+    name: Get Score Sources
+    type: http
+    seq: 1
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/score-sources"
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Score Sources
+
+    Returns all available score sources with their scales.
+
+    **Authentication:** None (public endpoint).
+    **Rate Limit:** 100 requests per minute.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "sources": [
+          {
+            "code": "metacritic",
+            "name": "Metacritic",
+            "scale": 100
+          },
+          {
+            "code": "opencritic",
+            "name": "OpenCritic",
+            "scale": 100
+          },
+          {
+            "code": "rawg",
+            "name": "RAWG",
+            "scale": 5
+          },
+          {
+            "code": "completr",
+            "name": "Completr",
+            "scale": 5
+          }
+        ]
+      }
+    }
+    ```
