@@ -214,27 +214,36 @@
 
 ### Perfil público de otro usuario
 
-- [ ] Vista `/users/:username` con backlogs, listas, favoritos, wishlist (máx 5 items + "ver más")
-- [ ] Contador de seguidores/siguiendo
-- [ ] Botón follow/unfollow
+- [x] Vista `/user/:username` (standalone, fuera del layout) con backlogs, game shelf, lists, following lists, favorites, wishlist, recent activity (máx 5-10 items + total count)
+- [x] Contador de seguidores/siguiendo
+- [x] Botón follow/unfollow (oculto en propio perfil)
+- [x] Restaurar sesión al refrescar página de perfil público
+- [x] Perfil privado muestra "This profile is private"
 
 ### Sistema social
 
-- [ ] Follow/unfollow usuarios
-- [ ] Feed de actividad: "X completó Y", "X añadió Y a su backlog"
-- [ ] Ver seguidores/siguiendo en perfil
+- [x] Feed page como ruta default (/feed) con búsqueda global + activity feed
+- [x] Activity feed: targets tipados (game → link, list → link, user → click), botón X para borrar propia actividad
+- [x] Actividad propia mezclada con la de usuarios seguidos
 
 ### Listas públicas — funcionalidades sociales
 
-- [ ] Ver seguidores de una lista
-- [ ] Ver listas que sigo
+- [x] Botón Follow/Unfollow en list-detail (solo no-owner)
+- [x] Ocultar acciones de edición en listas de otros usuarios
 - [ ] Progreso personal en listas seguidas
+- [ ] En la página de Lists, mostrar las listas que el usuario sigue además de las propias
 
-### Búsqueda de usuarios y listas
+### Búsqueda
 
-- [ ] Búsqueda de usuarios por username
-- [ ] Búsqueda de listas por nombre
-- [ ] Barra de búsqueda global o por sección
+- [x] Búsqueda global en feed page (usuarios, juegos local-only, listas) con debounce y dropdown
+- [x] Buscador de listas públicas en lists page
+- [x] Games browse lee query param `q` del feed search
+
+### Pendiente
+
+- [ ] Vistas completas de otro usuario: `/user/:username/backlog`, `/favorites`, `/wishlist`, `/game-shelf`
+- [ ] Páginas 404 y 403
+- [ ] Permisos y roles (auditar frontend)
 
 ---
 
