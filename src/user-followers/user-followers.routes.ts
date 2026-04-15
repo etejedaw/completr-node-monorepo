@@ -35,7 +35,6 @@ router.get(
 	"/users/:username/followers",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		authMiddleware(),
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	controller.getFollowers
@@ -45,7 +44,6 @@ router.get(
 	"/users/:username/following",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		authMiddleware(),
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	controller.getFollowing

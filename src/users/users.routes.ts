@@ -5,6 +5,7 @@ import { UpdateUserSchema, UsernameParamSchema } from "./schemas";
 import { RegisterSchema } from "../auth/schemas";
 import { SearchQuerySchema } from "../common/schemas/search-query.schema";
 import { authMiddleware } from "../auth/auth.middleware";
+import { authOptionalMiddleware } from "../auth/auth-optional.middleware";
 import {
 	publicLimiter,
 	registerLimiter,
@@ -55,7 +56,7 @@ router.get(
 	"/users/:username",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		authMiddleware(),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	usersController.getUserByUsername
@@ -83,7 +84,6 @@ router.get(
 	"/users/:username/game-shelf",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		authMiddleware(),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -96,7 +96,6 @@ router.get(
 	"/users/:username/backlog",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		authMiddleware(),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(BacklogQuerySchema, "query")
 	],
@@ -111,7 +110,6 @@ router.get(
 	"/users/:username/wishlist",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		authMiddleware(),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -124,7 +122,6 @@ router.get(
 	"/users/:username/favorites",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		authMiddleware(),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -135,7 +132,6 @@ router.get(
 	"/users/:username/following-lists",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		authMiddleware(),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
