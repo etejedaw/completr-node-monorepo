@@ -9,6 +9,7 @@ import * as wishlistService from "../wishlist/wishlist.service";
 import * as gameShelfService from "../game-shelf/game-shelf.service";
 import * as activityService from "../activity/activity.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
+import * as listFollowersService from "../list-followers/list-followers.service";
 import { userMeSerializer, userProfileSerializer } from "./users.serializer";
 import { backlogSerializer } from "../backlog/backlog.serializer";
 import { listSummarySerializer } from "../lists/lists.serializer";
@@ -42,6 +43,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 		favorites,
 		wishlist,
 		gameShelf,
+		followingLists,
 		recentActivity,
 		followerCount,
 		followingCount,
@@ -56,6 +58,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 			? wishlistService.findWishlistByUserId(userId)
 			: Promise.resolve([]),
 		gameShelfService.findPublicGameShelfByUserId(userId),
+		listFollowersService.getFollowingLists(userId),
 		user.isFeedPublic
 			? activityService.getUserActivity(userId)
 			: Promise.resolve([]),
@@ -83,6 +86,9 @@ export async function getUserByUsername(request: Request, response: Response) {
 		favorites: favorites.map(favoriteSerializer),
 		wishlist: wishlist.map(wishlistSerializer),
 		gameShelf: gameShelf.map(gameShelfMeSerializer),
+		followingLists: followingLists
+			.filter(f => f.isVisible)
+			.map(f => listSummarySerializer(f.List)),
 		recentActivity: recentActivity.map(activitySerializer)
 	};
 
