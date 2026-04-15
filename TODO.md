@@ -365,8 +365,8 @@
 - [x] `POST /games/:id/reports` — Crear reporte (usuario autenticado, un reporte activo por usuario/juego)
 - [x] `GET /admin/game-reports` — Listar reportes pendientes con Game y User (solo admin)
 - [x] `PATCH /admin/game-reports/:reportId` — Cambiar status a approved/rejected (solo admin)
-- [ ] Vista en frontend: botón "Report issue" en game-detail, modal con textarea
-- [ ] Vista admin: lista de reportes pendientes con link al juego
+- [x] Vista en frontend: botón "Report issue" en game-detail, modal con textarea
+- [x] Vista admin: lista de reportes pendientes con approve/reject y filtro por juego
 
 ### Onboarding para amigos
 
@@ -378,7 +378,8 @@
 
 - [x] `POST /admin/users` — Crear usuario manualmente (solo admin, siempre role "user")
 - [x] `POST /auth/register` bloqueado para no-admin (ya requiere authMiddleware("admin"))
-- [ ] Vista en frontend para crear usuarios desde el panel admin
+- [x] Vista en frontend: `/admin/users`, `/admin/games` (con columna de reportes), `/admin/reports`
+- [x] Sección Admin en sidebar (visible solo para admin) con guard
 
 ### Dominio completr.app
 
