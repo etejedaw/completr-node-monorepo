@@ -31,11 +31,13 @@ export async function getUserByUsername(request: Request, response: Response) {
 
 	const user = await usersService.findUserByUsername(username);
 	if (!user) throw userDomain.userNotFound();
-	if (!user.isPublic) throw userDomain.userPrivate();
-
-	const userId = user.id;
 
 	const currentUser = request.locals.user as RequestUser | undefined;
+	const isSelf = currentUser?.id === user.id;
+
+	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
+
+	const userId = user.id;
 
 	const [
 		backlogResult,
@@ -49,22 +51,31 @@ export async function getUserByUsername(request: Request, response: Response) {
 		followingCount,
 		isFollowing
 	] = await Promise.all([
-		backlogService.findPublicBacklogByUserId(userId),
-		listsService.findPublicListsByUserId(userId),
-		user.isFavoritePublic
+		isSelf
+			? backlogService.findBacklogByUserId(userId)
+			: backlogService.findPublicBacklogByUserId(userId),
+		isSelf
+			? listsService.findListsByUserId(currentUser!).then(r => r.lists)
+			: listsService.findPublicListsByUserId(userId),
+		isSelf || user.isFavoritePublic
 			? favoritesService.findFavoritesByUserId(userId)
 			: Promise.resolve([]),
-		user.isWishlistPublic
+		isSelf || user.isWishlistPublic
 			? wishlistService.findWishlistByUserId(userId)
 			: Promise.resolve([]),
-		gameShelfService.findPublicGameShelfByUserId(userId),
+		isSelf
+			? gameShelfService.findGameShelfByUserId(userId).then(entries => ({
+					rows: entries,
+					total: entries.length
+				}))
+			: gameShelfService.findPublicGameShelfByUserId(userId),
 		listFollowersService.getFollowingLists(userId),
-		user.isFeedPublic
+		isSelf || user.isFeedPublic
 			? activityService.getUserActivity(userId)
 			: Promise.resolve([]),
 		userFollowersService.getFollowerCount(userId),
 		userFollowersService.getFollowingCount(userId),
-		currentUser
+		currentUser && !isSelf
 			? userFollowersService.isFollowing(currentUser.id, userId)
 			: Promise.resolve(false)
 	]);
