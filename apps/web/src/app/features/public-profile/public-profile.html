@@ -83,11 +83,9 @@
 		<div class="section">
 			<div class="section-header">
 				<h2>Recent Backlog</h2>
-				@if (profile()!.backlogs.length > 5) {
 				<span class="view-all"
 					>{{ profile()!.backlogs.length }} total</span
 				>
-				}
 			</div>
 			<div class="game-grid">
 				@for (b of profile()!.backlogs.slice(0, 5); track b.id) {
@@ -130,11 +128,9 @@
 		<div class="section">
 			<div class="section-header">
 				<h2>Favorites</h2>
-				@if (profile()!.favorites.length > 5) {
 				<span class="view-all"
 					>{{ profile()!.favorites.length }} total</span
 				>
-				}
 			</div>
 			<div class="game-grid">
 				@for (f of profile()!.favorites.slice(0, 5); track f.id) {
