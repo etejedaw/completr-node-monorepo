@@ -10,7 +10,11 @@
 	<div class="loading">Loading...</div>
 	} @else if (filters().length === 0) {
 	<div class="empty">
-		No saved views yet. Create one from the Backlog filters.
+		<p class="empty-title">No saved views yet</p>
+		<p class="empty-hint">
+			Save your favorite filter combinations from the Backlog to quickly
+			switch between views like "Completed 2025" or "Playing on Steam".
+		</p>
 	</div>
 	} @else {
 	<div class="filters-grid">

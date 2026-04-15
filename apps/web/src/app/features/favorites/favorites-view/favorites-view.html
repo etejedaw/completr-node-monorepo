@@ -7,7 +7,13 @@
 	@if (isLoading()) {
 	<div class="loading">Loading...</div>
 	} @else if (entries().length === 0) {
-	<div class="empty">No favorites yet. Star a game from its detail page.</div>
+	<div class="empty">
+		<p class="empty-title">No favorites yet</p>
+		<p class="empty-hint">
+			Mark your all-time favorite games. Visit a game's detail page and
+			tap the star to add it here.
+		</p>
+	</div>
 	} @else {
 	<div class="game-grid">
 		@for (entry of entries(); track entry.id) {

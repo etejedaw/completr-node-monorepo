@@ -197,7 +197,13 @@
 	} @if (isInitialLoad() && isLoading()) {
 	<div class="loading">Loading...</div>
 	} @else if (!isLoading() && entries().length === 0) {
-	<div class="empty">No entries found.</div>
+	<div class="empty">
+		<p class="empty-title">Your backlog is empty</p>
+		<p class="empty-hint">
+			Track the games you want to play, are playing, or have completed.
+			Click <strong>+ Add Entry</strong> to get started.
+		</p>
+	</div>
 	} @else {
 	<div class="table-wrapper">
 		<table>
