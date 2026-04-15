@@ -2,9 +2,11 @@ import { Router } from "express";
 import * as usersController from "./users.controller";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { UpdateUserSchema, UsernameParamSchema } from "./schemas";
+import { RegisterSchema } from "../auth/schemas";
 import { authMiddleware } from "../auth/auth.middleware";
 import {
 	publicLimiter,
+	registerLimiter,
 	userLimiter
 } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
@@ -19,6 +21,16 @@ import favoritesRouter from "../favorites/favorites.routes";
 import * as favoritesController from "../favorites/favorites.controller";
 
 const router = Router();
+
+router.post(
+	"/admin/users",
+	[
+		rateLimiterMiddleware(registerLimiter),
+		authMiddleware("admin"),
+		validateSchemaMiddleware(RegisterSchema, "body")
+	],
+	usersController.postAdminCreateUser
+);
 
 router.get(
 	"/users/me",

@@ -1,9 +1,11 @@
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { Request, Response } from "express";
 import * as usersService from "./users.service";
+import * as authService from "../auth/auth.service";
 import { userMeSerializer, userPublicSerializer } from "./users.serializer";
 import { UsernameParam } from "./schemas";
 import { UpdateUserDto } from "./dtos";
+import { RegisterDto } from "../auth/dtos";
 import * as userDomain from "./errors/users.domain-error";
 
 export async function getUserByUsername(request: Request, response: Response) {
@@ -51,4 +53,18 @@ export async function deleteUser(request: Request, response: Response) {
 
 	await usersService.deactivateUser(id);
 	return response.sendStatus(204);
+}
+
+export async function postAdminCreateUser(
+	request: Request,
+	response: Response
+) {
+	const registerDto = request.locals.body as RegisterDto;
+
+	const { user } = await authService.register(registerDto);
+
+	const userPlain = user.get({ plain: true });
+
+	const data = { user: userMeSerializer(userPlain) };
+	return response.status(201).json({ data });
 }
