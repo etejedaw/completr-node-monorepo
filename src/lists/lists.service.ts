@@ -83,6 +83,23 @@ export async function getBacklogStatusMap(
 	return statusMap;
 }
 
+export async function getListProgress(
+	listId: string,
+	userId: string
+): Promise<{ completed: number; total: number }> {
+	const items = await ListItem.findAll({
+		where: { listId },
+		attributes: ["gameId"]
+	});
+	if (items.length === 0) return { completed: 0, total: 0 };
+
+	const gameIds = items.map(i => i.gameId);
+	const completed = await Backlog.count({
+		where: { userId, gameId: { [Op.in]: gameIds }, status: "completed" }
+	});
+	return { completed, total: items.length };
+}
+
 export async function findListsByUserId(user: RequestUser) {
 	const lists = await List.findAll({
 		where: { userId: user.id },

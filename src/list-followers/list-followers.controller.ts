@@ -4,6 +4,7 @@ import { ListIdParams } from "../lists/schemas/list-id-params.schema";
 import { UpdateFollowVisibilityBody } from "./schemas/update-follow-visibility.schema";
 import { listSummarySerializer } from "../lists/lists.serializer";
 import * as listFollowersService from "./list-followers.service";
+import * as listsService from "../lists/lists.service";
 import * as activityService from "../activity/activity.service";
 
 export async function postFollow(request: Request, response: Response) {
@@ -38,10 +39,19 @@ export async function getFollowing(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 
 	const entries = await listFollowersService.getFollowingLists(user.id);
-	const lists = entries.map(e => ({
-		...listSummarySerializer(e.List),
-		isVisible: e.isVisible
-	}));
+	const lists = await Promise.all(
+		entries.map(async e => {
+			const progress = await listsService.getListProgress(
+				e.listId,
+				user.id
+			);
+			return {
+				...listSummarySerializer(e.List),
+				isVisible: e.isVisible,
+				progress
+			};
+		})
+	);
 
 	return response.status(200).json({ data: { lists } });
 }

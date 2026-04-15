@@ -44,6 +44,7 @@ export async function getListById(request: Request, response: Response) {
 
 	let isFollowing = false;
 	let backlogStatusMap = new Map<string, string>();
+	let progress = null;
 
 	if (user) {
 		const gameIds = (list.ListItems ?? []).map(item => item.gameId);
@@ -51,13 +52,15 @@ export async function getListById(request: Request, response: Response) {
 			listsService.getIsFollowing(params.listId, user.id),
 			listsService.getBacklogStatusMap(gameIds, user.id)
 		]);
+		progress = await listsService.getListProgress(params.listId, user.id);
 	}
 
 	const data = {
 		list: listSerializer(listPlain, {
 			followerCount,
 			isFollowing,
-			backlogStatusMap
+			backlogStatusMap,
+			progress
 		})
 	};
 	return response.status(200).json({ data });

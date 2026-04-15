@@ -5,13 +5,14 @@ interface ListSerializerOptions {
 	followerCount?: number;
 	isFollowing?: boolean;
 	backlogStatusMap?: Map<string, string>;
+	progress?: { completed: number; total: number } | null;
 }
 
 export function listSerializer(
 	list: List,
 	options: ListSerializerOptions = {}
 ) {
-	const { followerCount, isFollowing, backlogStatusMap } = options;
+	const { followerCount, isFollowing, backlogStatusMap, progress } = options;
 
 	return {
 		id: list.id,
@@ -23,6 +24,7 @@ export function listSerializer(
 		durationSource: list.durationSource,
 		followerCount: followerCount ?? 0,
 		isFollowing: isFollowing ?? false,
+		progress: progress ?? null,
 		items: list.ListItems?.map(item => ({
 			...listItemSerializer(item),
 			backlogStatus: backlogStatusMap?.get(item.gameId) ?? null
