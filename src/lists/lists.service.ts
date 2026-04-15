@@ -3,6 +3,7 @@ import { List } from "./list.model";
 import { ListItem } from "../list-items/list-item.model";
 import { ListFollower } from "../list-followers/list-follower.model";
 import { Game } from "../games/game.model";
+import { User } from "../users/user.model";
 import { Backlog } from "../backlog/backlog.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { RegisterListDto } from "./dtos/register-list.dto";
@@ -114,6 +115,24 @@ export async function findListsByUserId(user: RequestUser) {
 export async function findPublicListsByUserId(userId: string) {
 	return List.findAll({
 		where: { userId, isPublic: true },
+		order: [["createdAt", "DESC"]]
+	});
+}
+
+export async function findPublicListsByGameId(gameId: string) {
+	return List.findAll({
+		where: { isPublic: true },
+		include: [
+			{
+				model: ListItem,
+				where: { gameId },
+				attributes: []
+			},
+			{
+				model: User,
+				attributes: ["id", "username", "role"]
+			}
+		],
 		order: [["createdAt", "DESC"]]
 	});
 }

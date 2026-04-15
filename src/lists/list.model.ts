@@ -15,6 +15,7 @@ class List extends Model {
 	declare createdAt: Date;
 	declare updatedAt: Date;
 	declare ListItems?: ListItem[];
+	declare User?: { id: string; username: string; role: string };
 }
 
 List.init(

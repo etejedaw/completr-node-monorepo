@@ -101,4 +101,14 @@ router.delete(
 
 router.use("/games/:id/reviews", reviewsRouter);
 
+router.get(
+	"/games/:id/lists",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authMiddleware(),
+		validateSchemaMiddleware(GameIdParamSchema, "params")
+	],
+	gamesController.getGameLists
+);
+
 export default router;

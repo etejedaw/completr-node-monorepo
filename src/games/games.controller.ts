@@ -11,6 +11,7 @@ import { UpdateGameDto } from "./dtos/update-game.dto";
 import { GamesQuery } from "./schemas/games-query.schema";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as auditService from "../audit/audit.service";
+import * as listsService from "../lists/lists.service";
 
 export async function getGameByCode(request: Request, response: Response) {
 	const params = request.locals.params as GameCodeParam;
@@ -111,4 +112,28 @@ export async function deleteGame(request: Request, response: Response) {
 	}
 
 	return response.sendStatus(204);
+}
+
+export async function getGameLists(request: Request, response: Response) {
+	const params = request.locals.params as GameIdParam;
+
+	const lists = await listsService.findPublicListsByGameId(params.id);
+
+	const data = {
+		lists: lists.map(list => ({
+			id: list.id,
+			name: list.name,
+			description: list.description,
+			isOfficial: list.User?.role === "admin",
+			owner: list.User ? { username: list.User.username } : null
+		}))
+	};
+
+	data.lists.sort((a, b) => {
+		if (a.isOfficial && !b.isOfficial) return -1;
+		if (!a.isOfficial && b.isOfficial) return 1;
+		return 0;
+	});
+
+	return response.status(200).json({ data });
 }
