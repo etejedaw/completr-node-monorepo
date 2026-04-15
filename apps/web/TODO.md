@@ -244,7 +244,7 @@
 - [x] Vistas completas de otro usuario: `/user/:username/backlog` (status tabs + paginación), `/favorites`, `/wishlist`, `/game-shelf` — todas con paginación de 50 items
 - [x] Links "View All" clickeables en perfil público (backlog, game-shelf, favorites, wishlist)
 - [ ] Páginas 404 y 403
-- [ ] Permisos y roles (auditar frontend)
+- [x] Permisos y roles: moderatorGuard, sidebar diferenciada por rol, admin-users reescrito con gestión completa, admin-audit nuevo, rutas actualizadas
 
 ---
 

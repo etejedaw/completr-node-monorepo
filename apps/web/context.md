@@ -395,3 +395,7 @@ export const authGuard: CanActivateFn = () => {
 - Progreso personal en listas: barra de progreso (completed/total) en list-detail. Modelo FollowingList con progress
 - List overview: sección "Following" con listas seguidas, barra de progreso mini y porcentaje
 - Profile view (/profile) unificado con perfil público: carga datos desde GET /users/:username, muestra mismas secciones (backlog, game shelf, listas, favorites, wishlist, activity) + Privacy al inicio + Edit Profile con modal
+- ModeratorGuard: permite moderator + admin. Sidebar muestra "Moderator" o "Admin" según rol
+- Admin-users reescrito: listado paginado + crear usuario (modal) + editar usuario (modal con role, password, name, isActive)
+- Admin-audit: tabla paginada del audit log (admin-only). AdminService con listUsers, editUser, getAuditLog
+- Rutas: admin/games y admin/reports con moderatorGuard, admin/users y admin/audit con adminGuard
