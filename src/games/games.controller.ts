@@ -10,6 +10,7 @@ import { RawgIdParam } from "./schemas/rawg-id-params.schema";
 import { UpdateGameDto } from "./dtos/update-game.dto";
 import { GamesQuery } from "./schemas/games-query.schema";
 import { RequestUser } from "../common/interfaces/request-user.interface";
+import * as auditService from "../audit/audit.service";
 
 export async function getGameByCode(request: Request, response: Response) {
 	const params = request.locals.params as GameCodeParam;
@@ -54,8 +55,11 @@ export async function searchGames(request: Request, response: Response) {
 
 export async function postGame(request: Request, response: Response) {
 	const registerGameDto = request.locals.body as RegisterGameDto;
+	const user = request.locals.user as RequestUser;
 
 	const gameRegister = await gameService.registerGame(registerGameDto);
+	auditService.record(user.id, "game_created", "game", gameRegister.id);
+
 	const gamePlain = gameRegister.get({ plain: true });
 
 	const data = { game: gameSerializer(gamePlain) };
@@ -65,10 +69,13 @@ export async function postGame(request: Request, response: Response) {
 export async function patchGame(request: Request, response: Response) {
 	const params = request.locals.params as GameIdParam;
 	const updateGameDto = request.locals.body as UpdateGameDto;
+	const user = request.locals.user as RequestUser;
 
 	const { id } = params;
 
 	const game = await gameService.updateGame(id, updateGameDto);
+	auditService.record(user.id, "game_edited", "game", id);
+
 	const gamePlain = game.get({ plain: true });
 
 	const data = { game: gameSerializer(gamePlain) };
@@ -97,8 +104,10 @@ export async function deleteGame(request: Request, response: Response) {
 	if (hard) {
 		if (user.role !== "admin") throw gameDomainError.gameForbidden();
 		await gameService.hardDeleteGame(id);
+		auditService.record(user.id, "game_deleted", "game", id);
 	} else {
 		await gameService.deactivateGame(id);
+		auditService.record(user.id, "game_deactivated", "game", id);
 	}
 
 	return response.sendStatus(204);
