@@ -512,8 +512,8 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 
 ### Pendiente — Fases posteriores
 
-- Fase 2 (pendiente): poblar GameExternal bulk, links externos en frontend, vistas frontend (admin users/games, perfil público, reportes), onboarding, empty states, dominio completr.app
-- Fase 3: Follow usuarios, listas públicas con suscripción, privacidad, búsqueda avanzada, sistema de invitación, badges manuales (founder, beta-tester, moderator, premium-supporter)
+- Fase 2 (pendiente): sistema social (follow/unfollow, feed), búsqueda de usuarios y listas, listas públicas sociales, perfil público frontend, dominio completr.app
+- Fase 3: Listas oficiales, privacidad avanzada, búsqueda avanzada, sistema de invitación, badges manuales (founder, beta-tester, moderator, premium-supporter)
 - Fase 4: Reviews, stats de listas públicas, logros, resumen semestral, comparación social
 - Fase 5: Estabilización (paginación, emails, tests, seguridad)
 - Fase 6: Premium (estadísticas, temas, Steam sync, listas colaborativas, Stripe)
