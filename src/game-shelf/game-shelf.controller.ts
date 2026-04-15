@@ -42,17 +42,19 @@ export async function getMeGameShelf(request: Request, response: Response) {
 export async function getUserGameShelf(request: Request, response: Response) {
 	const params = request.locals.params as UsernameParam;
 	const { username } = params;
+	const query = request.locals.query ?? {};
 
 	const user = await usersService.findUserByUsername(username);
 	if (!user) throw userDomainError.userNotFound();
 	if (!user.isPublic) throw userDomainError.userPrivate();
 
-	const gameShelf = await gameShelfService.findPublicGameShelfByUserId(
-		user.id
+	const { rows, total } = await gameShelfService.findPublicGameShelfByUserId(
+		user.id,
+		query
 	);
-	const gameShelfPlain = gameShelf.map(item => item.get({ plain: true }));
+	const gameShelfPlain = rows.map(item => item.get({ plain: true }));
 
-	const data = { gameShelf: gameShelfPlain.map(gameShelfSerializer) };
+	const data = { gameShelf: gameShelfPlain.map(gameShelfSerializer), total };
 	return response.status(200).json({ data });
 }
 

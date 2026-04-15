@@ -5,6 +5,7 @@ import { User } from "../users";
 import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import { GameShelf } from "./game-shelf.model";
+import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import * as gameShelfServiceError from "./errors/game-shelf.service-error";
 
 export async function registerGameShelf(
@@ -29,15 +30,23 @@ export async function findGameShelfByUserId(userId: string) {
 	});
 }
 
-export async function findPublicGameShelfByUserId(userId: string) {
-	return await GameShelf.findAll({
+export async function findPublicGameShelfByUserId(
+	userId: string,
+	pagination: PaginationQuery = {}
+) {
+	const query: Record<string, unknown> = {
 		where: { userId, isPublic: true },
 		include: [
 			{ model: Game, include: [{ model: Genre }] },
 			{ model: Platform },
 			{ model: User }
 		]
-	});
+	};
+	if (pagination.limit) query.limit = pagination.limit;
+	if (pagination.offset) query.offset = pagination.offset;
+
+	const { rows, count } = await GameShelf.findAndCountAll(query);
+	return { rows, total: count };
 }
 
 export async function updateGameShelf(

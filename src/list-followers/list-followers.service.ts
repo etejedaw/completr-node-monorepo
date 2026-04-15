@@ -1,6 +1,7 @@
 import { List } from "../lists/list.model";
 import { User } from "../users/user.model";
 import { ListFollower } from "./list-follower.model";
+import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import * as listsService from "../lists/lists.service";
 import * as listFollowersServiceError from "./errors/list-followers.service-error";
 
@@ -48,6 +49,22 @@ export async function getFollowingLists(userId: string) {
 		include: [{ model: List }],
 		order: [["createdAt", "DESC"]]
 	});
+}
+
+export async function getFollowingListsPaginated(
+	userId: string,
+	pagination: PaginationQuery = {}
+) {
+	const query: Record<string, unknown> = {
+		where: { userId },
+		include: [{ model: List }],
+		order: [["createdAt", "DESC"]]
+	};
+	if (pagination.limit) query.limit = pagination.limit;
+	if (pagination.offset) query.offset = pagination.offset;
+
+	const { rows, count } = await ListFollower.findAndCountAll(query);
+	return { rows, total: count };
 }
 
 export async function updateVisibility(

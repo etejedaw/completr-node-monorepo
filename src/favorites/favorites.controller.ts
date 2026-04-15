@@ -43,15 +43,19 @@ export async function getMeFavorites(request: Request, response: Response) {
 
 export async function getUserFavorites(request: Request, response: Response) {
 	const params = request.locals.params as UsernameParam;
+	const query = request.locals.query ?? {};
 
 	const user = await usersService.findUserByUsername(params.username);
 	if (!user) throw userDomainError.userNotFound();
 	if (!user.isPublic) throw userDomainError.userPrivate();
 	if (!user.isFavoritePublic) throw userDomainError.userPrivate();
 
-	const entries = await favoritesService.findFavoritesByUserId(user.id);
-	const entriesPlain = entries.map(e => e.get({ plain: true }));
+	const { rows, total } = await favoritesService.findFavoritesByUserIdPaginated(
+		user.id,
+		query
+	);
+	const entriesPlain = rows.map(e => e.get({ plain: true }));
 
-	const data = { favorites: entriesPlain.map(favoriteSerializer) };
+	const data = { favorites: entriesPlain.map(favoriteSerializer), total };
 	return response.status(200).json({ data });
 }

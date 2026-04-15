@@ -1,6 +1,7 @@
 import { Favorite } from "./favorite.model";
 import { Game } from "../games/game.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
+import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import * as favoritesServiceError from "./errors/favorites.service-error";
 
 const FREE_FAVORITE_LIMIT = 10;
@@ -47,4 +48,20 @@ export async function findFavoritesByUserId(userId: string) {
 		include: [{ model: Game }],
 		order: [["position", "ASC"]]
 	});
+}
+
+export async function findFavoritesByUserIdPaginated(
+	userId: string,
+	pagination: PaginationQuery = {}
+) {
+	const query: Record<string, unknown> = {
+		where: { userId },
+		include: [{ model: Game }],
+		order: [["position", "ASC"]]
+	};
+	if (pagination.limit) query.limit = pagination.limit;
+	if (pagination.offset) query.offset = pagination.offset;
+
+	const { rows, count } = await Favorite.findAndCountAll(query);
+	return { rows, total: count };
 }

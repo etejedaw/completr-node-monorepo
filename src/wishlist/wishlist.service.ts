@@ -4,6 +4,7 @@ import { Backlog } from "../backlog/backlog.model";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
+import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import * as wishlistServiceError from "./errors/wishlist.service-error";
 
 const FREE_WISHLIST_LIMIT = 10;
@@ -140,6 +141,22 @@ export async function findWishlistByUserId(userId: string) {
 		include: BACKLOG_INCLUDE,
 		order: [["position", "ASC"]]
 	});
+}
+
+export async function findWishlistByUserIdPaginated(
+	userId: string,
+	pagination: PaginationQuery = {}
+) {
+	const query: Record<string, unknown> = {
+		where: { userId },
+		include: BACKLOG_INCLUDE,
+		order: [["position", "ASC"]]
+	};
+	if (pagination.limit) query.limit = pagination.limit;
+	if (pagination.offset) query.offset = pagination.offset;
+
+	const { rows, count } = await Wishlist.findAndCountAll(query);
+	return { rows, total: count };
 }
 
 export async function removeByBacklogId(backlogId: string) {

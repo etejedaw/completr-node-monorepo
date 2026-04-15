@@ -60,15 +60,19 @@ export async function getMeWishlist(request: Request, response: Response) {
 
 export async function getUserWishlist(request: Request, response: Response) {
 	const params = request.locals.params as UsernameParam;
+	const query = request.locals.query ?? {};
 
 	const user = await usersService.findUserByUsername(params.username);
 	if (!user) throw userDomainError.userNotFound();
 	if (!user.isPublic) throw userDomainError.userPrivate();
 	if (!user.isWishlistPublic) throw userDomainError.userPrivate();
 
-	const entries = await wishlistService.findWishlistByUserId(user.id);
-	const entriesPlain = entries.map(e => e.get({ plain: true }));
+	const { rows, total } = await wishlistService.findWishlistByUserIdPaginated(
+		user.id,
+		query
+	);
+	const entriesPlain = rows.map(e => e.get({ plain: true }));
 
-	const data = { wishlist: entriesPlain.map(wishlistSerializer) };
+	const data = { wishlist: entriesPlain.map(wishlistSerializer), total };
 	return response.status(200).json({ data });
 }
