@@ -432,11 +432,17 @@
 
 - [x] Auditar todos los endpoints y definir permisos claros por rol:
     - **admin**: acceso total (CRUD juegos, plataformas, géneros, crear usuarios, gestionar reportes, ver/editar cualquier recurso)
-    - **moderator**: CRUD de juegos, plataformas y géneros. No puede crear usuarios ni gestionar reportes
+    - **moderator**: CRUD de juegos (sin delete, solo desactivar), plataformas y géneros. Puede gestionar reportes. No puede crear usuarios ni ver audit log
     - **user / premium**: solo gestiona sus propios recursos (backlog, game-shelf, listas, wishlist, favoritos, perfil, follow, reportar juegos)
 - [x] Proteger endpoints del catálogo (games, platforms, genres, score-sources, lists/search) con authMiddleware — requieren login
 - [x] Perfiles de usuario y colecciones públicas se mantienen accesibles sin auth (con authOptionalMiddleware en perfil) para incentivar registro
 - [x] Verificar que todos los services de escritura validan ownership (userId check)
+- [x] AuditLog: modelo + servicio + endpoint GET /admin/audit (admin-only, paginado). Registra: user_created, user_edited, game_created, game_edited, game_deactivated, game_deleted, report_approved/rejected
+- [x] Moderator puede ver/gestionar reports (antes solo admin), DELETE games restringido a admin
+- [x] Admin user management: GET /admin/users (listado), PATCH /admin/users/:userId (role, password, name, isActive)
+- [ ] Frontend: panel Moderator con Games + Reports (sin Users, sin Audit)
+- [ ] Frontend: panel Admin con Users management + vista Audit
+- [ ] Frontend: moderador no puede eliminar juegos en admin-games, solo desactivar
 
 ### Mejoras UX (frontend)
 

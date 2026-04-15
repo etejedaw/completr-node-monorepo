@@ -522,6 +522,9 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Progreso personal en listas: getListProgress(listId, userId) calcula completed/total cruzando ListItems con Backlog. Incluido en list detail (serializer) y GET /lists/following (controller)
 - Self-view en perfil: GET /users/:username permite que el usuario vea su propio perfil incluso si es privado, mostrando toda su data (backlog completo, game-shelf completo, favorites/wishlist/activity sin restricción de privacy flags)
 - Auth enforcement: catálogo (games, platforms, genres, score-sources, lists/search) requiere authMiddleware(). Perfiles y colecciones de usuario son públicos (sin auth o authOptionalMiddleware) para incentivar registro. Todos los services de escritura validan ownership
+- Moderator: acceso a GET/PATCH game-reports (antes solo admin), CRUD games (excepto DELETE que es admin-only), CRUD platforms/genres
+- Admin user management: GET /admin/users (listado paginado), PATCH /admin/users/:userId (cambiar role, password, name, isActive)
+- AuditLog: modelo con userId, action, targetType, targetId. Registra acciones de admin/moderator (user_created, user_edited, game_created, game_edited, game_deactivated, game_deleted, report_approved/rejected). GET /admin/audit (admin-only, paginado)
 
 ### Pendiente — Fases posteriores
 
