@@ -208,11 +208,23 @@
 	margin-bottom: 2rem;
 }
 
+.section-header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	margin-bottom: 0.75rem;
+}
+
 .section h2 {
-	margin: 0 0 0.75rem;
+	margin: 0;
 	font-size: 1rem;
 	font-weight: 600;
 	color: var(--text-secondary);
+}
+
+.view-all {
+	font-size: 0.75rem;
+	color: var(--text-muted);
 }
 
 .game-grid {
