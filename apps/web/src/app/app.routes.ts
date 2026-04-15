@@ -166,6 +166,14 @@ export const routes: Routes = [
 					)
 			},
 			{
+				path: "admin/jobs",
+				canActivate: [adminGuard],
+				loadComponent: () =>
+					import("./features/admin/admin-jobs/admin-jobs").then(
+						m => m.AdminJobs
+					)
+			},
+			{
 				path: "403",
 				loadComponent: () =>
 					import("./features/error-pages/forbidden").then(

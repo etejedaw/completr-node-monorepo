@@ -101,6 +101,22 @@ export class AdminService {
 			}>(`${environment.apiUrl}/admin/audit`, { params })
 			.pipe(map(res => res.data));
 	}
+
+	getJobs() {
+		return this.http
+			.get<{
+				data: { jobs: JobEntry[] };
+			}>(`${environment.apiUrl}/admin/jobs`)
+			.pipe(map(res => res.data.jobs));
+	}
+
+	startPopulateRawg() {
+		return this.http
+			.post<{
+				data: { job: JobEntry };
+			}>(`${environment.apiUrl}/admin/jobs/populate-rawg`, {})
+			.pipe(map(res => res.data.job));
+	}
 }
 
 export interface AdminUser {
@@ -121,4 +137,13 @@ export interface AuditLogEntry {
 	targetType: string;
 	targetId: string;
 	createdAt: string;
+}
+
+export interface JobEntry {
+	id: string;
+	type: string;
+	status: string;
+	result?: string;
+	createdAt: string;
+	completedAt?: string;
 }

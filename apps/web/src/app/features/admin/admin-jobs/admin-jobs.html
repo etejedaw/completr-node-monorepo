@@ -1,0 +1,58 @@
+<div class="jobs-page">
+	<div class="page-header">
+		<h1>Jobs</h1>
+		<div class="header-actions">
+			<button class="btn-refresh" (click)="refresh()">
+				<span class="material-icons">refresh</span>
+			</button>
+			<button
+				class="btn-action"
+				(click)="startPopulateRawg()"
+				[disabled]="starting()"
+			>
+				{{ starting() ? 'Starting...' : 'Populate RAWG IDs' }}
+			</button>
+		</div>
+	</div>
+
+	@if (isLoading()) {
+	<div class="loading">Loading...</div>
+	} @else if (jobs().length === 0) {
+	<div class="empty">No jobs have been run yet.</div>
+	} @else {
+	<div class="table-wrapper">
+		<table>
+			<thead>
+				<tr>
+					<th>Type</th>
+					<th>Status</th>
+					<th>Result</th>
+					<th>Started</th>
+					<th>Completed</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (job of jobs(); track job.id) {
+				<tr>
+					<td>{{ job.type }}</td>
+					<td>
+						<span
+							class="status-badge"
+							[class]="'status-' + job.status"
+						>
+							{{ job.status }}
+						</span>
+					</td>
+					<td class="col-result">{{ job.result ?? '-' }}</td>
+					<td>{{ job.createdAt | date : "yyyy-MM-dd HH:mm" }}</td>
+					<td>
+						{{ job.completedAt ? (job.completedAt | date :
+						"yyyy-MM-dd HH:mm") : "-" }}
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+	}
+</div>
