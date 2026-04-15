@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
@@ -27,6 +28,9 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly notFound = signal(false);
 	protected readonly username = signal("");
 	protected readonly isLoggedIn = this.authService.isLoggedIn;
+	protected readonly isSelf = computed(
+		() => this.authService.user()?.id === this.profile()?.user.id
+	);
 	protected readonly togglingFollow = signal(false);
 
 	ngOnInit() {

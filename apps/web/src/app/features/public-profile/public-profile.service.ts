@@ -83,6 +83,7 @@ export interface PublicProfile {
 	favorites: PublicFavorite[];
 	wishlist: PublicWishlist[];
 	gameShelf: PublicGameShelf[];
+	followingLists: PublicList[];
 	recentActivity: PublicActivity[];
 }
 

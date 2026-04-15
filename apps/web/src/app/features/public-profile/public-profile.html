@@ -45,7 +45,7 @@
 					<h1>
 						{{ profile()!.user.name || profile()!.user.username }}
 					</h1>
-					@if (isLoggedIn()) {
+					@if (isLoggedIn() && !isSelf()) {
 					<button
 						class="btn-follow"
 						[class.following]="profile()!.isFollowing"
@@ -155,6 +155,25 @@
 							{{ l.followerCount }}
 						</span>
 					</div>
+					@if (l.description) {
+					<p class="list-desc">{{ l.description }}</p>
+					}
+				</a>
+				}
+			</div>
+		</div>
+		} @if (profile()!.followingLists.length > 0) {
+		<div class="section">
+			<div class="section-header">
+				<h2>Following Lists</h2>
+				<span class="view-all"
+					>{{ profile()!.followingLists.length }} total</span
+				>
+			</div>
+			<div class="lists-grid">
+				@for (l of profile()!.followingLists.slice(0, 5); track l.id) {
+				<a class="list-card" [routerLink]="['/lists', l.id]">
+					<span class="list-name">{{ l.name }}</span>
 					@if (l.description) {
 					<p class="list-desc">{{ l.description }}</p>
 					}
