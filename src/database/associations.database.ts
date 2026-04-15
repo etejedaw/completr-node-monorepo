@@ -24,6 +24,7 @@ import { ActivityGame } from "../activity/targets/activity-game.model";
 import { ActivityList } from "../activity/targets/activity-list.model";
 import { ActivityUser } from "../activity/targets/activity-user.model";
 import { AuditLog } from "../audit/audit.model";
+import { Review } from "../reviews/review.model";
 
 export function setupAssociations() {
 	gameDlc();
@@ -46,6 +47,12 @@ export function setupAssociations() {
 	userFollowers();
 	activities();
 	auditLogs();
+	reviews();
+}
+
+function reviews() {
+	Review.belongsTo(User, { foreignKey: "userId" });
+	Review.belongsTo(Game, { foreignKey: "gameId" });
 }
 
 function auditLogs() {

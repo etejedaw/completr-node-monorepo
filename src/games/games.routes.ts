@@ -9,6 +9,7 @@ import { GameCodeParamSchema } from "./schemas/game-code-params.schema";
 import { GameSearchQuerySchema } from "./schemas/game-search-query.schema";
 import { RawgIdParamSchema } from "./schemas/rawg-id-params.schema";
 import { GamesQuerySchema } from "./schemas/games-query.schema";
+import reviewsRouter from "../reviews/reviews.routes";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import {
 	publicLimiter,
@@ -97,5 +98,7 @@ router.delete(
 	],
 	gamesController.deleteGame
 );
+
+router.use("/games/:id/reviews", reviewsRouter);
 
 export default router;

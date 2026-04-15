@@ -13,7 +13,8 @@ export const ACTIVITY_TYPES = [
 	"favorite_added",
 	"list_created",
 	"list_followed",
-	"user_followed"
+	"user_followed",
+	"game_reviewed"
 ] as const;
 
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];

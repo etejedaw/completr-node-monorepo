@@ -13,7 +13,8 @@ const GAME_TYPES: string[] = [
 	"backlog_completed",
 	"backlog_abandoned",
 	"backlog_playing",
-	"favorite_added"
+	"favorite_added",
+	"game_reviewed"
 ];
 const LIST_TYPES: string[] = ["list_created", "list_followed"];
 const USER_TYPES: string[] = ["user_followed"];
