@@ -440,9 +440,10 @@
 - [x] AuditLog: modelo + servicio + endpoint GET /admin/audit (admin-only, paginado). Registra: user_created, user_edited, game_created, game_edited, game_deactivated, game_deleted, report_approved/rejected
 - [x] Moderator puede ver/gestionar reports (antes solo admin), DELETE games restringido a admin
 - [x] Admin user management: GET /admin/users (listado), PATCH /admin/users/:userId (role, password, name, isActive)
-- [ ] Frontend: panel Moderator con Games + Reports (sin Users, sin Audit)
-- [ ] Frontend: panel Admin con Users management + vista Audit
-- [ ] Frontend: moderador no puede eliminar juegos en admin-games, solo desactivar
+- [x] Frontend: sidebar muestra sección "Moderator" (Games + Reports) o "Admin" (+ Users + Audit) según rol
+- [x] Frontend: admin-users reescrito como gestión completa (listado paginado + crear + editar role/password/name/isActive)
+- [x] Frontend: admin-audit con tabla paginada del audit log (admin-only)
+- [x] Frontend: Games y Reports accesibles con moderatorGuard, Users y Audit con adminGuard
 
 ### Mejoras UX (frontend)
 
