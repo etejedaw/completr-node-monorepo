@@ -394,3 +394,4 @@ export const authGuard: CanActivateFn = () => {
 - PublicProfileService: métodos paginados para todas las colecciones + nuevo getUserFollowingLists
 - Progreso personal en listas: barra de progreso (completed/total) en list-detail. Modelo FollowingList con progress
 - List overview: sección "Following" con listas seguidas, barra de progreso mini y porcentaje
+- Profile view (/profile) unificado con perfil público: carga datos desde GET /users/:username, muestra mismas secciones (backlog, game shelf, listas, favorites, wishlist, activity) + Privacy al inicio + Edit Profile con modal
