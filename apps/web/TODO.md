@@ -191,42 +191,50 @@
 
 > 5–20 amigos.
 
-### Panel admin de juegos
+### Auth
 
-- [x] Admin editor en game-detail: fetch RAWG por slug, editar todos los campos (título, descripción, plataformas, géneros, scores, times, DLC con parent game por slug), guardar con externalIds
-- [x] Admin editor en games-browse: crear juegos vacíos o desde RAWG fetch, misma interfaz que editar
-- [x] AdminGameEditor component reutilizable en modo crear y editar
-- [ ] Ruta `/admin/games` protegida por rol admin/moderator — tabla de todos los juegos con búsqueda
+- [x] Refresh token: AuthService guarda ambos tokens, errorInterceptor intenta refresh antes de logout
+- [x] Logout llama `POST /auth/logout` para invalidar refresh token en backend
+
+### Panel admin
+
+- [x] Ruta `/admin/users` — formulario para crear usuarios (solo admin)
+- [x] Ruta `/admin/games` — tabla de juegos con búsqueda, paginación, columna de reportes
+- [x] Ruta `/admin/reports` — lista de reportes pendientes con approve/reject y filtro por juego
+- [x] AdminGuard + sección Admin en sidebar (visible solo para admin)
+- [x] AdminService con createUser, getPendingReports, updateReportStatus
 
 ### Mejoras UX
 
 - [x] Backlog modal: botón "Add to Shelf" (solo en creación) para añadir el juego al game-shelf con la misma plataforma
 - [x] Game Detail: action buttons (Backlog, Wishlist, Shelf) muestran estado activo cuando el juego ya está en la colección del usuario
+- [x] Report issue: botón en game detail con modal, confirmación visual al enviar
+- [x] Empty states descriptivos en: Backlog, Saved Views, Game Shelf, Wishlist, Favorites, Lists
+- [x] Estilos globales reutilizables: modal-overlay, btn-submit, btn-ghost, empty-title, empty-hint
 
-### Perfil público
+### Perfil público de otro usuario
 
-- [ ] Vista `/users/:username` con estadísticas: juegos completados, abandonados, en progreso, ratio promedio
-- [ ] Widget "Jugando ahora" (juegos con status playing)
-- [ ] Listas públicas del usuario
+- [ ] Vista `/users/:username` con backlogs, listas, favoritos, wishlist (máx 5 items + "ver más")
+- [ ] Contador de seguidores/siguiendo
+- [ ] Botón follow/unfollow
 
-### Vistas públicas
+### Sistema social
 
-- [ ] Backlog público de otro usuario (`/users/:username/backlog`)
-- [ ] Game shelf público (`/users/:username/game-shelf`)
-- [ ] Wishlist pública (`/users/:username/wishlist`)
-- [ ] Favoritos públicos (`/users/:username/favorites`)
-- [ ] Listas públicas por URL (`/lists/:id`)
+- [ ] Follow/unfollow usuarios
+- [ ] Feed de actividad: "X completó Y", "X añadió Y a su backlog"
+- [ ] Ver seguidores/siguiendo en perfil
 
-### Onboarding
+### Listas públicas — funcionalidades sociales
 
-- [ ] Flujo de registro pulido para amigos
-- [ ] Empty states con instrucciones claras ("Agrega tu primer juego")
+- [ ] Ver seguidores de una lista
+- [ ] Ver listas que sigo
+- [ ] Progreso personal en listas seguidas
 
-### Panel admin de usuarios
+### Búsqueda de usuarios y listas
 
-- [ ] Ruta `/admin/users` protegida por rol admin
-- [ ] Formulario para crear usuarios manualmente (username, email, password, name, role)
-- [ ] Botón de registro público bloqueado (registro solo via admin hasta beta pública)
+- [ ] Búsqueda de usuarios por username
+- [ ] Búsqueda de listas por nombre
+- [ ] Barra de búsqueda global o por sección
 
 ---
 
@@ -236,12 +244,11 @@
 
 > 50–200 usuarios por invitación.
 
-### Social
+### Listas oficiales de Completr
 
-- [ ] Follow/unfollow usuarios
-- [ ] Feed de actividad: "X completó Y", "X añadió Y a su backlog"
-- [ ] Ver seguidores/siguiendo en perfil
-- [ ] Seguir listas públicas + ver progreso personal
+- [ ] Badge/insignia visual en cards de listas oficiales
+- [ ] Destacar listas oficiales en games-browse (sección "Completr Lists")
+- [ ] Badge "Official" en list-detail
 
 ### Privacidad
 
@@ -251,7 +258,6 @@
 ### Búsqueda avanzada
 
 - [ ] Filtros combinados: género, plataforma, estado, ratio, duración
-- [ ] Búsqueda con debounce y resultados en tiempo real
 
 ### Sistema de invitación
 
@@ -262,14 +268,6 @@
 
 - [ ] Mostrar badges del usuario en su perfil
 - [ ] Iconos/tooltips para cada tipo de badge
-
-### "¿Dónde iba?" (notas de progreso)
-
-- [ ] Notas rápidas visibles al ver un juego en progreso
-
-### Backlog randomizer
-
-- [ ] Botón "¿Qué juego?" con filtros opcionales
 
 ### Landing page
 
