@@ -38,16 +38,20 @@ export async function getFeed(userId: string, limit = 30, offset = 0) {
 		attributes: ["followingId"]
 	});
 
-	const followingIds = following.map(f => f.followingId);
-	if (followingIds.length === 0) return [];
+	const feedUserIds = [userId, ...following.map(f => f.followingId)];
 
 	return Activity.findAll({
-		where: { userId: { [Op.in]: followingIds } },
+		where: { userId: { [Op.in]: feedUserIds } },
 		include: [
 			{
 				model: User,
 				attributes: ["id", "username", "name", "avatarUrl"],
-				where: { isPublic: true, isFeedPublic: true }
+				where: {
+					[Op.or]: [
+						{ id: userId },
+						{ isPublic: true, isFeedPublic: true }
+					]
+				}
 			},
 			{
 				model: Game,
@@ -58,4 +62,13 @@ export async function getFeed(userId: string, limit = 30, offset = 0) {
 		limit,
 		offset
 	});
+}
+
+export async function deleteActivity(activityId: string, userId: string) {
+	const activity = await Activity.findOne({
+		where: { id: activityId, userId }
+	});
+	if (!activity) return false;
+	await activity.destroy();
+	return true;
 }
