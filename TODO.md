@@ -443,6 +443,19 @@
 - [ ] Vista grid: aumentar tamaño de las imágenes
 - [ ] Listas y Wishlist: opción para cambiar entre vista tabla y vista grid
 
+### Reseñas de juegos
+
+- [ ] Modelo `Review`: id, userId, gameId, content (TEXT, nullable), rating (FLOAT, nullable), createdAt, updatedAt — Unique `(userId, gameId)`. Un usuario puede reseñar y/o puntuar una vez cada juego
+- [ ] `POST /games/:id/reviews` — Crear reseña (content y/o rating, al menos uno)
+- [ ] `PATCH /games/:id/reviews` — Editar reseña propia
+- [ ] `DELETE /games/:id/reviews` — Eliminar reseña propia
+- [ ] `GET /games/:id/reviews` — Ver reseñas públicas de un juego
+- [ ] Frontend: al cambiar backlog a `completed` o `abandoned`, mostrar modal opcional para escribir reseña y puntuar
+- [ ] Frontend: sección de reseñas en la ficha del juego (game detail)
+- [ ] Frontend: reseñas visibles en el perfil público del usuario
+- [ ] Registrar actividad `game_reviewed` en el feed
+- [ ] El rating promedio se calculará más adelante con un cron
+
 ### Páginas de error (frontend)
 
 - [ ] Página 404 (not found) para rutas inexistentes
