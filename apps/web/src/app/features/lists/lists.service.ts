@@ -82,7 +82,13 @@ export class ListsService {
 	}
 
 	follow(id: string) {
-		return this.http.post(`${this.baseUrl}/${id}/follow`, {});
+		return this.http.post(
+			`${this.baseUrl}/${id}/follow`,
+			{},
+			{
+				responseType: "text"
+			}
+		);
 	}
 
 	unfollow(id: string) {

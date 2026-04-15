@@ -101,7 +101,8 @@ export class PublicProfileService {
 	follow(username: string) {
 		return this.http.post(
 			`${environment.apiUrl}/users/${username}/follow`,
-			{}
+			{},
+			{ responseType: "text" }
 		);
 	}
 

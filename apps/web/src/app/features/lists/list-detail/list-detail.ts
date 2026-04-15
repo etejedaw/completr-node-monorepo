@@ -172,18 +172,8 @@ export class ListDetail implements OnInit {
 
 		action.subscribe({
 			next: () => {
-				this.list.update(prev =>
-					prev
-						? {
-								...prev,
-								isFollowing: !prev.isFollowing,
-								followerCount:
-									(prev.followerCount ?? 0) +
-									(prev.isFollowing ? -1 : 1)
-							}
-						: prev
-				);
 				this.togglingFollow.set(false);
+				this.loadList();
 			},
 			error: () => this.togglingFollow.set(false)
 		});
