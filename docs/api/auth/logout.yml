@@ -1,0 +1,46 @@
+info:
+    name: Logout
+    type: http
+    seq: 5
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/auth/logout"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "refresh_token": "{{REFRESH_TOKEN}}"
+            }
+
+settings:
+    encodeUrl: true
+    timeout: 0
+    followRedirects: true
+    maxRedirects: 5
+
+docs: |-
+    ## Logout
+
+    Invalidates the provided refresh token. The access token remains valid until it expires naturally.
+
+    **Auth:** None (the refresh token itself identifies the session).
+
+    ### Request Body
+
+    | Field         | Type   | Required | Description                    |
+    |---------------|--------|----------|--------------------------------|
+    | refresh_token | string | Yes      | The refresh token to revoke    |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Code                | Description                        |
+    |--------|---------------------|------------------------------------|
+    | 422    | AUTH_SCHEMA_INVALID | Missing or malformed refresh_token |

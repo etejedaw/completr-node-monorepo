@@ -1,0 +1,65 @@
+info:
+    name: Refresh Token
+    type: http
+    seq: 4
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/auth/refresh"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "refresh_token": "{{REFRESH_TOKEN}}"
+            }
+
+runtime:
+    scripts:
+        - type: after-response
+          code: |-
+              bru.setVar("TOKEN", res.body.data.access_token);
+              bru.setVar("REFRESH_TOKEN", res.body.data.refresh_token);
+
+settings:
+    encodeUrl: true
+    timeout: 0
+    followRedirects: true
+    maxRedirects: 5
+
+docs: |-
+    ## Refresh Token
+
+    Exchanges a valid refresh token for a new access token and a new refresh token (rotation).
+    The old refresh token is invalidated after use.
+
+    **Auth:** None (the refresh token itself authenticates the request).
+
+    **Rate Limit:** 5 requests per minute, 15-minute block after exhaustion.
+
+    ### Request Body
+
+    | Field         | Type   | Required | Description                    |
+    |---------------|--------|----------|--------------------------------|
+    | refresh_token | string | Yes      | The refresh token from login   |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "access_token": "new_jwt_token",
+        "refresh_token": "new_refresh_token"
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code                       | Description                          |
+    |--------|----------------------------|--------------------------------------|
+    | 401    | AUTH_INVALID_REFRESH_TOKEN  | Token is invalid, expired, or used   |
+    | 422    | AUTH_SCHEMA_INVALID         | Missing or malformed refresh_token   |
+    | 429    | AUTH_RATE_LIMITED           | Too many requests                    |
