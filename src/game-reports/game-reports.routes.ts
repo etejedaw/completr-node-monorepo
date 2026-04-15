@@ -24,7 +24,7 @@ router.post(
 
 router.get(
 	"/admin/game-reports",
-	[rateLimiterMiddleware(userLimiter), authMiddleware("admin")],
+	[rateLimiterMiddleware(userLimiter), authMiddleware("moderator")],
 	gameReportsController.getPendingReports
 );
 
@@ -32,7 +32,7 @@ router.patch(
 	"/admin/game-reports/:reportId",
 	[
 		rateLimiterMiddleware(userLimiter),
-		authMiddleware("admin"),
+		authMiddleware("moderator"),
 		validateSchemaMiddleware(ReportIdParamsSchema, "params"),
 		validateSchemaMiddleware(UpdateReportStatusSchema, "body")
 	],

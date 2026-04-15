@@ -92,7 +92,7 @@ router.delete(
 	"/games/:id",
 	[
 		rateLimiterMiddleware(userLimiter),
-		authMiddleware("moderator"),
+		authMiddleware("admin"),
 		validateSchemaMiddleware(GameIdParamSchema, "params")
 	],
 	gamesController.deleteGame
