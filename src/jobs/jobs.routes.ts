@@ -30,4 +30,10 @@ router.post(
 	jobsController.postCalculateDurations
 );
 
+router.delete(
+	"/admin/jobs/:jobId",
+	[rateLimiterMiddleware(userLimiter), authMiddleware("admin")],
+	jobsController.deleteJob
+);
+
 export default router;

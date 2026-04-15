@@ -4,7 +4,7 @@ import { sequelize } from "../database/sequelize.database";
 class Job extends Model {
 	declare id: string;
 	declare type: string;
-	declare status: "pending" | "running" | "completed" | "failed";
+	declare status: "pending" | "running" | "completed" | "failed" | "cancelled";
 	declare result: string | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;

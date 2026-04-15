@@ -38,6 +38,18 @@ async function completeJob(jobId: string, result: string) {
 	);
 }
 
+async function isCancelled(jobId: string) {
+	const job = await Job.findByPk(jobId);
+	return job?.status === "cancelled";
+}
+
+export async function cancelJob(jobId: string) {
+	const job = await Job.findByPk(jobId);
+	if (!job || job.status !== "running") return false;
+	await job.update({ status: "cancelled", completedAt: new Date() });
+	return true;
+}
+
 async function failJob(jobId: string, result: string) {
 	await Job.update(
 		{ status: "failed", result, completedAt: new Date() },
@@ -72,6 +84,13 @@ async function runPopulateRawg(jobId: string, limit?: number) {
 		if (limit) toProcess = toProcess.slice(0, limit);
 
 		for (const game of toProcess) {
+			if (await isCancelled(jobId)) {
+				await completeJob(
+					jobId,
+					`Cancelled after ${processed} processed. Errors: ${errors}`
+				);
+				return;
+			}
 			try {
 				const detail = await rawg.getGameBySlug(game.code);
 				if (detail?.id) {

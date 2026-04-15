@@ -60,3 +60,12 @@ export async function postCalculateDurations(
 
 	return response.status(202).json(startJobResponse(job));
 }
+
+export async function deleteJob(request: Request, response: Response) {
+	const jobId = request.params.jobId as string;
+
+	const cancelled = await jobsService.cancelJob(jobId);
+	if (!cancelled) return response.sendStatus(404);
+
+	return response.sendStatus(204);
+}
