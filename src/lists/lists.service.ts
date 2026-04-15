@@ -62,6 +62,7 @@ export async function getIsFollowing(listId: string, userId: string) {
 	return !!follower;
 }
 
+// TODO: Mejorar este código
 export async function getBacklogStatusMap(
 	gameIds: string[],
 	userId: string
