@@ -6,6 +6,7 @@ const EnvironmentConfigSchema = z
 		PORT: z.coerce.number().default(3000),
 		ACCESS_TOKEN_TTL: z.union([z.string(), z.number()]).default("1d"),
 		ACCESS_TOKEN_SECRET: z.string().default("secret-token"),
+		REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(30),
 		PASSWORD_SALT_ROUNDS: z.coerce.number().default(10),
 		CORS_ORIGIN: z.string().default("*"),
 		CORS_METHODS: z.string().default("*"),

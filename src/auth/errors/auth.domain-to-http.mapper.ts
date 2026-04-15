@@ -57,5 +57,12 @@ export function authDomainToHttpMapper(
 			status: 403
 		});
 
+	if (error.code === "AUTH_INVALID_REFRESH_TOKEN")
+		return new HttpError({
+			...baseOptions,
+			detail: "The refresh token is invalid, expired or has already been used",
+			status: 401
+		});
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

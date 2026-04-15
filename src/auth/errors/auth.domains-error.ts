@@ -55,3 +55,12 @@ export function authForbidden(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function invalidRefreshToken(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"AUTH_INVALID_REFRESH_TOKEN",
+		"Invalid or expired refresh token",
+		context
+	);
+}

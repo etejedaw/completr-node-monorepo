@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { ChangePasswordSchema, LoginSchema, RegisterSchema } from "./schemas";
+import {
+	ChangePasswordSchema,
+	LoginSchema,
+	RegisterSchema,
+	RefreshTokenSchema
+} from "./schemas";
 import * as authController from "./auth.controller";
 import { authMiddleware } from "./auth.middleware";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
@@ -28,6 +33,21 @@ router.post(
 		validateSchemaMiddleware(LoginSchema, "body")
 	],
 	authController.postLogin
+);
+
+router.post(
+	"/auth/refresh",
+	[
+		rateLimiterMiddleware(authLimiter),
+		validateSchemaMiddleware(RefreshTokenSchema, "body")
+	],
+	authController.postRefresh
+);
+
+router.post(
+	"/auth/logout",
+	[validateSchemaMiddleware(RefreshTokenSchema, "body")],
+	authController.postLogout
 );
 
 router.patch(

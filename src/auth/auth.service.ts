@@ -26,8 +26,9 @@ export async function register(registerDto: RegisterDto) {
 		email: user.email
 	};
 	const accessToken = tokenService.signAccessToken(payload);
+	const refreshToken = await tokenService.createRefreshToken(user.id);
 
-	return { user, accessToken };
+	return { user, accessToken, refreshToken };
 }
 
 export async function login(loginDto: LoginDto) {
@@ -46,14 +47,40 @@ export async function login(loginDto: LoginDto) {
 		email: user.email
 	};
 	const accessToken = tokenService.signAccessToken(payload);
+	const refreshToken = await tokenService.createRefreshToken(user.id);
 
-	return { accessToken };
+	return { accessToken, refreshToken };
+}
+
+export async function refresh(rawRefreshToken: string) {
+	const storedToken = await tokenService.verifyRefreshToken(rawRefreshToken);
+	if (!storedToken) throw authDomainError.invalidRefreshToken();
+
+	const user = await userService.findUserById(storedToken.userId);
+	if (!user || !user.isActive) throw authDomainError.invalidRefreshToken();
+
+	await tokenService.deleteRefreshToken(rawRefreshToken);
+
+	const payload = {
+		sub: user.id,
+		username: user.username,
+		email: user.email
+	};
+	const accessToken = tokenService.signAccessToken(payload);
+	const refreshToken = await tokenService.createRefreshToken(user.id);
+
+	return { accessToken, refreshToken };
+}
+
+export async function logout(rawRefreshToken: string) {
+	await tokenService.deleteRefreshToken(rawRefreshToken);
 }
 
 export async function changePassword(userId: string, password: string) {
 	const hashPassword = await passwordService.hashPassword(password);
 
 	await userService.updatePassword(userId, hashPassword);
+	await tokenService.deleteAllUserRefreshTokens(userId);
 
 	return true;
 }
