@@ -1,7 +1,16 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
+import { BacklogEntry } from "../../core/models/backlog.model";
+import { FavoriteEntry } from "../../core/models/favorite.model";
+import { WishlistEntry } from "../../core/models/wishlist.model";
+import { GameShelfEntry } from "../../core/models/game-shelf.model";
+
+export interface PaginatedResult<T> {
+	items: T[];
+	total: number;
+}
 
 export interface PublicUser {
 	id: string;
@@ -116,5 +125,101 @@ export class PublicProfileService {
 		return this.http.delete(
 			`${environment.apiUrl}/users/${username}/follow`
 		);
+	}
+
+	getUserBacklog(
+		username: string,
+		filters: Record<string, string | number> = {}
+	) {
+		let params = new HttpParams();
+		for (const [key, value] of Object.entries(filters)) {
+			if (value !== undefined && value !== null && value !== "")
+				params = params.set(key, String(value));
+		}
+		return this.http
+			.get<{
+				data: { backlog: BacklogEntry[]; total: number };
+			}>(`${environment.apiUrl}/users/${username}/backlog`, { params })
+			.pipe(
+				map(res => ({ items: res.data.backlog, total: res.data.total }))
+			);
+	}
+
+	getUserFavorites(
+		username: string,
+		pagination: { limit?: number; offset?: number } = {}
+	) {
+		let params = new HttpParams();
+		if (pagination.limit) params = params.set("limit", pagination.limit);
+		if (pagination.offset) params = params.set("offset", pagination.offset);
+		return this.http
+			.get<{
+				data: { favorites: FavoriteEntry[]; total: number };
+			}>(`${environment.apiUrl}/users/${username}/favorites`, { params })
+			.pipe(
+				map(res => ({
+					items: res.data.favorites,
+					total: res.data.total
+				}))
+			);
+	}
+
+	getUserWishlist(
+		username: string,
+		pagination: { limit?: number; offset?: number } = {}
+	) {
+		let params = new HttpParams();
+		if (pagination.limit) params = params.set("limit", pagination.limit);
+		if (pagination.offset) params = params.set("offset", pagination.offset);
+		return this.http
+			.get<{
+				data: { wishlist: WishlistEntry[]; total: number };
+			}>(`${environment.apiUrl}/users/${username}/wishlist`, { params })
+			.pipe(
+				map(res => ({
+					items: res.data.wishlist,
+					total: res.data.total
+				}))
+			);
+	}
+
+	getUserGameShelf(
+		username: string,
+		pagination: { limit?: number; offset?: number } = {}
+	) {
+		let params = new HttpParams();
+		if (pagination.limit) params = params.set("limit", pagination.limit);
+		if (pagination.offset) params = params.set("offset", pagination.offset);
+		return this.http
+			.get<{
+				data: { gameShelf: GameShelfEntry[]; total: number };
+			}>(`${environment.apiUrl}/users/${username}/game-shelf`, { params })
+			.pipe(
+				map(res => ({
+					items: res.data.gameShelf,
+					total: res.data.total
+				}))
+			);
+	}
+
+	getUserFollowingLists(
+		username: string,
+		pagination: { limit?: number; offset?: number } = {}
+	) {
+		let params = new HttpParams();
+		if (pagination.limit) params = params.set("limit", pagination.limit);
+		if (pagination.offset) params = params.set("offset", pagination.offset);
+		return this.http
+			.get<{
+				data: { followingLists: PublicList[]; total: number };
+			}>(`${environment.apiUrl}/users/${username}/following-lists`, {
+				params
+			})
+			.pipe(
+				map(res => ({
+					items: res.data.followingLists,
+					total: res.data.total
+				}))
+			);
 	}
 }

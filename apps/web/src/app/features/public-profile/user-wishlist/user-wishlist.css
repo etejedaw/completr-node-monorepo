@@ -1,0 +1,265 @@
+.public-page {
+	max-width: 700px;
+	margin: 0 auto;
+	padding: 1rem 1.5rem;
+}
+
+/* === Top bar === */
+
+.top-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1.5rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid var(--border);
+}
+
+.brand {
+	display: flex;
+	align-items: center;
+	gap: 0.625rem;
+	text-decoration: none;
+}
+
+.brand-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	background: linear-gradient(135deg, var(--accent), #6366f1);
+	border-radius: 8px;
+	font-weight: 800;
+	font-size: 0.875rem;
+	color: #fff;
+}
+
+.brand-name {
+	font-size: 1.125rem;
+	font-weight: 700;
+	color: var(--text-primary);
+}
+
+.btn-login {
+	padding: 0.375rem 0.75rem;
+	background: var(--accent);
+	color: #fff;
+	border-radius: var(--radius);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+/* === Back link === */
+
+.back-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+	color: var(--text-muted);
+	text-decoration: none;
+	font-size: 0.8125rem;
+	margin-bottom: 1.25rem;
+	transition: color var(--transition);
+}
+
+.back-link:hover {
+	color: var(--accent);
+}
+
+.back-link .material-icons {
+	font-size: 1rem;
+}
+
+/* === Page header === */
+
+.page-header {
+	display: flex;
+	align-items: baseline;
+	gap: 0.75rem;
+	margin-bottom: 1.25rem;
+}
+
+.page-header h1 {
+	margin: 0;
+	font-size: 1.375rem;
+	font-weight: 700;
+	letter-spacing: -0.025em;
+}
+
+.entry-count {
+	font-size: 0.8125rem;
+	color: var(--text-muted);
+}
+
+/* === States === */
+
+.state-message {
+	text-align: center;
+	padding: 3rem 1rem;
+	color: var(--text-muted);
+	font-size: 0.875rem;
+}
+
+/* === Table === */
+
+.table-wrapper {
+	overflow-x: auto;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.8125rem;
+}
+
+thead th {
+	text-align: left;
+	padding: 0.625rem 0.75rem;
+	color: var(--text-muted);
+	font-weight: 600;
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	border-bottom: 1px solid var(--border);
+	white-space: nowrap;
+}
+
+tbody tr {
+	border-bottom: 1px solid var(--border);
+	transition: background var(--transition);
+}
+
+tbody tr:hover {
+	background: var(--bg-surface);
+}
+
+tbody td {
+	padding: 0.5rem 0.75rem;
+	color: var(--text-primary);
+	vertical-align: middle;
+}
+
+/* === Columns === */
+
+.col-pos {
+	width: 40px;
+	text-align: center;
+	color: var(--text-muted);
+	font-weight: 600;
+}
+
+.col-cover {
+	width: 40px;
+	padding-right: 0;
+}
+
+.cover-img {
+	width: 36px;
+	height: 48px;
+	object-fit: cover;
+	border-radius: 4px;
+	display: block;
+}
+
+.cover-placeholder {
+	width: 36px;
+	height: 48px;
+	background: var(--bg-surface);
+	border-radius: 4px;
+}
+
+.col-title {
+	min-width: 200px;
+}
+
+.game-title-link {
+	font-weight: 500;
+	color: var(--text-primary);
+	text-decoration: none;
+}
+
+.game-title-link:hover {
+	color: var(--accent);
+}
+
+.col-platform {
+	color: var(--text-secondary);
+	white-space: nowrap;
+}
+
+.col-num {
+	text-align: right;
+	white-space: nowrap;
+	color: var(--text-secondary);
+}
+
+.col-status {
+	white-space: nowrap;
+}
+
+/* === Status Badge === */
+
+.status-badge {
+	display: inline-block;
+	padding: 0.2rem 0.5rem;
+	border-radius: 999px;
+	font-size: 0.6875rem;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+
+.status-not-started {
+	background: rgba(148, 163, 184, 0.12);
+	color: var(--status-not-started);
+}
+
+.status-playing {
+	background: rgba(245, 158, 11, 0.12);
+	color: var(--status-playing);
+}
+
+.status-completed {
+	background: rgba(34, 197, 94, 0.12);
+	color: var(--status-completed);
+}
+
+.status-abandoned {
+	background: rgba(239, 68, 68, 0.12);
+	color: var(--status-abandoned);
+}
+
+/* === Pagination === */
+
+.pagination {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 1rem;
+	margin-top: 1.25rem;
+	padding-top: 1rem;
+	border-top: 1px solid var(--border);
+}
+.pagination button {
+	padding: 0.375rem 0.75rem;
+	background: var(--bg-input);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	color: var(--text-secondary);
+	font-size: 0.8125rem;
+	cursor: pointer;
+	transition: all var(--transition);
+}
+.pagination button:hover:not(:disabled) {
+	border-color: var(--accent);
+	color: var(--accent);
+}
+.pagination button:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+.page-info {
+	font-size: 0.8125rem;
+	color: var(--text-muted);
+}

@@ -24,6 +24,34 @@ export const routes: Routes = [
 			)
 	},
 	{
+		path: "user/:username/backlog",
+		loadComponent: () =>
+			import("./features/public-profile/user-backlog/user-backlog").then(
+				m => m.UserBacklog
+			)
+	},
+	{
+		path: "user/:username/favorites",
+		loadComponent: () =>
+			import("./features/public-profile/user-favorites/user-favorites").then(
+				m => m.UserFavorites
+			)
+	},
+	{
+		path: "user/:username/wishlist",
+		loadComponent: () =>
+			import("./features/public-profile/user-wishlist/user-wishlist").then(
+				m => m.UserWishlist
+			)
+	},
+	{
+		path: "user/:username/game-shelf",
+		loadComponent: () =>
+			import("./features/public-profile/user-game-shelf/user-game-shelf").then(
+				m => m.UserGameShelf
+			)
+	},
+	{
 		path: "",
 		canActivate: [authGuard],
 		loadComponent: () => import("./layout/layout").then(m => m.Layout),

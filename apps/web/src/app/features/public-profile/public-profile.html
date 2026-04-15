@@ -83,8 +83,10 @@
 		<div class="section">
 			<div class="section-header">
 				<h2>Recent Backlog</h2>
-				<span class="view-all"
-					>{{ profile()!.backlogs.length }} total</span
+				<a
+					class="view-all"
+					[routerLink]="['/user', username(), 'backlog']"
+					>{{ profile()!.backlogs.length }} total</a
 				>
 			</div>
 			<div class="game-grid">
@@ -111,8 +113,10 @@
 		<div class="section">
 			<div class="section-header">
 				<h2>Game Shelf</h2>
-				<span class="view-all"
-					>{{ profile()!.gameShelf.length }} total</span
+				<a
+					class="view-all"
+					[routerLink]="['/user', username(), 'game-shelf']"
+					>{{ profile()!.gameShelf.length }} total</a
 				>
 			</div>
 			<div class="game-grid">
@@ -186,8 +190,10 @@
 		<div class="section">
 			<div class="section-header">
 				<h2>Favorites</h2>
-				<span class="view-all"
-					>{{ profile()!.favorites.length }} total</span
+				<a
+					class="view-all"
+					[routerLink]="['/user', username(), 'favorites']"
+					>{{ profile()!.favorites.length }} total</a
 				>
 			</div>
 			<div class="game-grid">
@@ -212,8 +218,10 @@
 		<div class="section">
 			<div class="section-header">
 				<h2>Wishlist</h2>
-				<span class="view-all"
-					>{{ profile()!.wishlist.length }} total</span
+				<a
+					class="view-all"
+					[routerLink]="['/user', username(), 'wishlist']"
+					>{{ profile()!.wishlist.length }} total</a
 				>
 			</div>
 			<div class="game-grid">
