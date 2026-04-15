@@ -23,7 +23,10 @@
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
 		"build": "tsc -p .",
-		"typecheck": "tsc -p . --noEmit"
+		"typecheck": "tsc -p . --noEmit",
+		"migrate": "sequelize-cli db:migrate",
+		"migrate:undo": "sequelize-cli db:migrate:undo",
+		"migrate:create": "sequelize-cli migration:generate --name"
 	},
 	"dependencies": {
 		"bcrypt": "^6.0.0",
@@ -50,6 +53,7 @@
 		"eslint-config-prettier": "^10.1.8",
 		"globals": "^16.5.0",
 		"prettier": "3.7.4",
+		"sequelize-cli": "^6.6.5",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.51.0"

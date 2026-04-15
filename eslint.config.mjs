@@ -6,7 +6,17 @@ import tseslint from "typescript-eslint";
 import eslintConfigPrettier from "eslint-config-prettier";
 
 export default defineConfig(
-	{ ignores: ["dist", "coverage", "node_modules", "logs"] },
+	{
+		ignores: [
+			"dist",
+			"coverage",
+			"node_modules",
+			"logs",
+			"migrations",
+			".sequelizerc",
+			"**/*.migrate.js"
+		]
+	},
 	eslint.configs.recommended,
 	tseslint.configs.recommended,
 	tseslint.configs.strict,
