@@ -24,3 +24,17 @@ export function userPublicSerializer(user: User) {
 		avatarUrl: user.avatarUrl
 	};
 }
+
+export function userProfileSerializer(user: User) {
+	return {
+		id: user.id,
+		username: user.username,
+		role: user.role,
+		name: user.name,
+		bio: user.bio,
+		avatarUrl: user.avatarUrl,
+		isWishlistPublic: user.isWishlistPublic,
+		isFavoritePublic: user.isFavoritePublic,
+		createdAt: user.createdAt
+	};
+}

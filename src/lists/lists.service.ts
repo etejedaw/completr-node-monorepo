@@ -93,6 +93,13 @@ export async function findListsByUserId(user: RequestUser) {
 	return { lists, frozen };
 }
 
+export async function findPublicListsByUserId(userId: string) {
+	return List.findAll({
+		where: { userId, isPublic: true },
+		order: [["createdAt", "DESC"]]
+	});
+}
+
 export async function updateList(
 	id: string,
 	user: RequestUser,
