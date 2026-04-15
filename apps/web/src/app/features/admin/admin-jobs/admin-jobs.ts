@@ -20,20 +20,33 @@ export class AdminJobs implements OnInit {
 
 	protected readonly jobs = signal<JobEntry[]>([]);
 	protected readonly isLoading = signal(true);
-	protected readonly starting = signal(false);
+	protected readonly starting = signal("");
 
 	ngOnInit() {
 		this.loadJobs();
 	}
 
-	startPopulateRawg() {
-		this.starting.set(true);
-		this.adminService.startPopulateRawg().subscribe({
+	startJob(type: string) {
+		this.starting.set(type);
+		const actions: Record<
+			string,
+			() => ReturnType<typeof this.adminService.startPopulateRawg>
+		> = {
+			populate_rawg: () => this.adminService.startPopulateRawg(2),
+			calculate_ratings: () => this.adminService.startCalculateRatings(),
+			calculate_durations: () =>
+				this.adminService.startCalculateDurations()
+		};
+
+		const action = actions[type];
+		if (!action) return;
+
+		action().subscribe({
 			next: () => {
-				this.starting.set(false);
+				this.starting.set("");
 				this.loadJobs();
 			},
-			error: () => this.starting.set(false)
+			error: () => this.starting.set("")
 		});
 	}
 

@@ -110,11 +110,28 @@ export class AdminService {
 			.pipe(map(res => res.data.jobs));
 	}
 
-	startPopulateRawg() {
+	startPopulateRawg(limit?: number) {
+		const url = limit
+			? `${environment.apiUrl}/admin/jobs/populate-rawg?limit=${limit}`
+			: `${environment.apiUrl}/admin/jobs/populate-rawg`;
+		return this.http
+			.post<{ data: { job: JobEntry } }>(url, {})
+			.pipe(map(res => res.data.job));
+	}
+
+	startCalculateRatings() {
 		return this.http
 			.post<{
 				data: { job: JobEntry };
-			}>(`${environment.apiUrl}/admin/jobs/populate-rawg`, {})
+			}>(`${environment.apiUrl}/admin/jobs/calculate-ratings`, {})
+			.pipe(map(res => res.data.job));
+	}
+
+	startCalculateDurations() {
+		return this.http
+			.post<{
+				data: { job: JobEntry };
+			}>(`${environment.apiUrl}/admin/jobs/calculate-durations`, {})
 			.pipe(map(res => res.data.job));
 	}
 }
