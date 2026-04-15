@@ -33,4 +33,8 @@ export class FeedService {
 			}>(`${environment.apiUrl}/feed`)
 			.pipe(map(res => res.data.activities));
 	}
+
+	deleteActivity(id: string) {
+		return this.http.delete(`${environment.apiUrl}/feed/${id}`);
+	}
 }

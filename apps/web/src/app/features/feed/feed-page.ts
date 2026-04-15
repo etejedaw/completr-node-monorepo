@@ -6,6 +6,7 @@ import {
 	signal
 } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
+import { AuthService } from "../../core/services/auth.service";
 import { Subject, debounceTime, switchMap } from "rxjs";
 import { FeedService, FeedActivity } from "./feed.service";
 import {
@@ -23,9 +24,11 @@ import {
 export class FeedPage implements OnInit {
 	private readonly feedService = inject(FeedService);
 	private readonly searchService = inject(GlobalSearchService);
+	private readonly authService = inject(AuthService);
 	private readonly router = inject(Router);
 	private readonly searchSubject = new Subject<string>();
 
+	protected readonly currentUserId = this.authService.user;
 	protected readonly activities = signal<FeedActivity[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
@@ -88,6 +91,17 @@ export class FeedPage implements OnInit {
 		const query = this.searchQuery();
 		this.clearSearch();
 		this.router.navigate(["/games"], { queryParams: { q: query } });
+	}
+
+	deleteActivity(id: string) {
+		this.feedService.deleteActivity(id).subscribe({
+			next: () =>
+				this.activities.update(list => list.filter(a => a.id !== id))
+		});
+	}
+
+	isOwnActivity(activity: FeedActivity): boolean {
+		return activity.user?.id === this.currentUserId()?.id;
 	}
 
 	protected activityLabel(type: string): string {

@@ -113,19 +113,16 @@
 						class="feed-user"
 						(click)="goToUser(activity.user.username)"
 					>
-						{{ activity.user.name || activity.user.username }}
-					</button>
-					}
+						{{ activity.user.name || activity.user.username }}</button
+					>{{ " " }} }
 					<span class="feed-action"
 						>{{ activityLabel(activity.type) }}</span
-					>
-					@if (activity.game) {
+					>{{ " " }} @if (activity.game) {
 					<a
 						class="feed-game"
 						[routerLink]="['/games', activity.game.code]"
+						>{{ activity.game.title }}</a
 					>
-						{{ activity.game.title }}
-					</a>
 					}
 				</div>
 				<span class="feed-time">{{ timeAgo(activity.createdAt) }}</span>
@@ -140,6 +137,10 @@
 					[alt]="activity.game!.title"
 				/>
 			</a>
+			} @if (isOwnActivity(activity)) {
+			<button class="feed-delete" (click)="deleteActivity(activity.id)">
+				<span class="material-icons">close</span>
+			</button>
 			}
 		</div>
 		}

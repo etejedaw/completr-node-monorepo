@@ -250,6 +250,27 @@
 	color: var(--text-muted);
 }
 
+.feed-delete {
+	flex-shrink: 0;
+	background: none;
+	border: none;
+	color: var(--text-muted);
+	cursor: pointer;
+	padding: 0.25rem;
+	line-height: 1;
+	border-radius: var(--radius);
+	transition: all var(--transition);
+}
+
+.feed-delete .material-icons {
+	font-size: 0.875rem;
+}
+
+.feed-delete:hover {
+	color: var(--status-abandoned);
+	background: rgba(239, 68, 68, 0.1);
+}
+
 .feed-cover {
 	flex-shrink: 0;
 }
