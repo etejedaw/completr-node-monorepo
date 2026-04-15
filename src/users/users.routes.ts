@@ -18,6 +18,8 @@ import backlogRouter from "../backlog/backlog.routes";
 import * as backlogController from "../backlog/backlog.controller";
 import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
 import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
+import { UserIdParamSchema } from "./schemas/user-id-params.schema";
+import { AdminUpdateUserSchema } from "./schemas/admin-update-user.schema";
 import savedFiltersRouter from "../saved-filters/saved-filters.routes";
 import wishlistRouter from "../wishlist/wishlist.routes";
 import * as wishlistController from "../wishlist/wishlist.controller";
@@ -34,6 +36,27 @@ router.post(
 		validateSchemaMiddleware(RegisterSchema, "body")
 	],
 	usersController.postAdminCreateUser
+);
+
+router.get(
+	"/admin/users",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("admin"),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
+	],
+	usersController.getAdminUsers
+);
+
+router.patch(
+	"/admin/users/:userId",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("admin"),
+		validateSchemaMiddleware(UserIdParamSchema, "params"),
+		validateSchemaMiddleware(AdminUpdateUserSchema, "body")
+	],
+	usersController.patchAdminUser
 );
 
 router.get(

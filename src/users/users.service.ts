@@ -53,6 +53,14 @@ export async function updateUser(id: string, updateUserDto: UpdateUserDto) {
 	return user;
 }
 
+export async function findAllUsers(limit = 50, offset = 0) {
+	return User.findAndCountAll({
+		order: [["createdAt", "DESC"]],
+		limit,
+		offset
+	});
+}
+
 export async function updatePassword(id: string, hashPassword: string) {
 	const user = await findUserById(id);
 	if (!user) throw usersServiceError.notFoundError();

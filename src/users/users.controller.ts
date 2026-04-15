@@ -21,6 +21,11 @@ import { UsernameParam } from "./schemas";
 import { UpdateUserDto } from "./dtos";
 import { RegisterDto } from "../auth/dtos";
 import { SearchQuery } from "../common/schemas/search-query.schema";
+import { AdminUpdateUserDto } from "./schemas/admin-update-user.schema";
+import { UserIdParam } from "./schemas/user-id-params.schema";
+import { PaginationQuery } from "../common/schemas/pagination-query.schema";
+import * as passwordService from "../auth/services/password.service";
+import * as auditService from "../audit/audit.service";
 import * as userDomain from "./errors/users.domain-error";
 
 // TODO: Mejorar escritura de código
@@ -185,11 +190,77 @@ export async function postAdminCreateUser(
 	response: Response
 ) {
 	const registerDto = request.locals.body as RegisterDto;
+	const admin = request.locals.user as RequestUser;
 
 	const { user } = await authService.register(registerDto);
+	auditService.record(admin.id, "user_created", "user", user.id);
 
 	const userPlain = user.get({ plain: true });
 
 	const data = { user: userMeSerializer(userPlain) };
 	return response.status(201).json({ data });
+}
+
+export async function getAdminUsers(request: Request, response: Response) {
+	const query = (request.locals.query ?? {}) as PaginationQuery;
+
+	const { rows, count } = await usersService.findAllUsers(
+		query.limit ?? 50,
+		query.offset ?? 0
+	);
+
+	const data = {
+		users: rows.map(u => ({
+			id: u.id,
+			username: u.username,
+			email: u.email,
+			name: u.name,
+			role: u.role,
+			isActive: u.isActive,
+			isPublic: u.isPublic,
+			createdAt: u.createdAt
+		})),
+		total: count
+	};
+	return response.status(200).json({ data });
+}
+
+export async function patchAdminUser(request: Request, response: Response) {
+	const params = request.locals.params as UserIdParam;
+	const dto = request.locals.body as AdminUpdateUserDto;
+	const admin = request.locals.user as RequestUser;
+
+	const user = await usersService.findUserById(params.userId);
+	if (!user) throw userDomain.userNotFound();
+
+	if (dto.password) {
+		const hash = await passwordService.hashPassword(dto.password);
+		await usersService.updatePassword(params.userId, hash);
+	}
+
+	const updateData: Record<string, unknown> = {};
+	if (dto.name !== undefined) updateData.name = dto.name;
+	if (dto.role !== undefined) updateData.role = dto.role;
+	if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
+
+	if (Object.keys(updateData).length > 0) {
+		await user.update(updateData);
+	}
+
+	auditService.record(admin.id, "user_edited", "user", params.userId);
+
+	const updated = await usersService.findUserById(params.userId);
+	const data = {
+		user: {
+			id: updated!.id,
+			username: updated!.username,
+			email: updated!.email,
+			name: updated!.name,
+			role: updated!.role,
+			isActive: updated!.isActive,
+			isPublic: updated!.isPublic,
+			createdAt: updated!.createdAt
+		}
+	};
+	return response.status(200).json({ data });
 }
