@@ -1,0 +1,45 @@
+info:
+    name: Search Users
+    type: http
+    seq: 6
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/search?query=john"
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Search Users
+
+    Search users by username. Returns active users (both public and private).
+    Private users appear in results but their profile shows limited info.
+
+    **Auth:** Not required.
+
+    **Rate Limit:** 100 requests per minute.
+
+    ### Query Parameters
+
+    | Param | Type   | Required | Description              |
+    |-------|--------|----------|--------------------------|
+    | query | string | Yes      | Username search term     |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "users": [
+          {
+            "id": "uuid",
+            "username": "johndoe",
+            "name": "John Doe",
+            "avatarUrl": null,
+            "isPublic": true
+          }
+        ]
+      }
+    }
+    ```

@@ -1,0 +1,45 @@
+info:
+    name: Search Lists
+    type: http
+    seq: 6
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/lists/search?query=resident"
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Search Lists
+
+    Search public lists by name.
+
+    **Auth:** Not required.
+
+    **Rate Limit:** 100 requests per minute.
+
+    ### Query Parameters
+
+    | Param | Type   | Required | Description          |
+    |-------|--------|----------|----------------------|
+    | query | string | Yes      | List name search term |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "lists": [
+          {
+            "id": "uuid",
+            "name": "Resident Evil",
+            "description": "The full saga",
+            "isPublic": true,
+            "scoreSource": "metacritic",
+            "durationSource": "hltb"
+          }
+        ]
+      }
+    }
+    ```
