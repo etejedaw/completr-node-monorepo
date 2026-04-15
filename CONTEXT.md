@@ -519,6 +519,7 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - PaginationQuerySchema compartido en common/schemas/ para reutilizar en endpoints paginados
 - Backlog: findAndCountAll con limit/offset en endpoints públicos y privados, retorna { backlog, total }
 - Game-shelf, wishlist, favorites: métodos *Paginated en services, endpoints públicos retornan { ..., total }
+- Progreso personal en listas: getListProgress(listId, userId) calcula completed/total cruzando ListItems con Backlog. Incluido en list detail (serializer) y GET /lists/following (controller)
 
 ### Pendiente — Fases posteriores
 

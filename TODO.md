@@ -400,8 +400,8 @@
 - [x] `PATCH /lists/:id/follow` — Cambiar visibilidad del seguimiento
 - [x] Frontend: botón Follow/Unfollow en list-detail (solo no-owner)
 - [x] Frontend: ocultar acciones de edición en listas de otros usuarios
-- [ ] Al ver una lista seguida, mostrar el progreso personal del usuario
-- [ ] Frontend: en la página de Lists, mostrar las listas que el usuario sigue además de las propias
+- [x] Al ver una lista, mostrar el progreso personal del usuario (barra de progreso con completed/total)
+- [x] Frontend: en la página de Lists, mostrar las listas que el usuario sigue además de las propias (sección "Following" con barra de progreso)
 
 ### Búsqueda de usuarios y listas
 
