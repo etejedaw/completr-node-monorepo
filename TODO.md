@@ -465,7 +465,6 @@
 - [x] Frontend: sección de reseñas en game detail con crear, editar y eliminar
 - [x] Registrar actividad `game_reviewed` en el feed
 - [x] Frontend: reseñas visibles en perfil público y propio (GET /users/:username/reviews)
-- [ ] El rating promedio se calculará más adelante con un cron
 
 ### Páginas de error (frontend)
 
@@ -488,9 +487,14 @@
 
 > 🔒 _Beta por invitación — 50 a 200 usuarios._
 
-### Infraestructura
+### Revisión de performance y código
 
-- [ ] Contratar VPS dedicado para Completr (KVM 1, separado del VPS personal)
+- [ ] Revisión general del código: legibilidad, naming, estructura de módulos
+- [ ] Auditar endpoints: verificar que cada uno tiene validación, auth y rate limiting correcto
+- [ ] Revisar llamadas con Promise.all en el frontend: evaluar si se pueden reducir combinando endpoints en el backend
+- [ ] Optimizar queries N+1 en Sequelize (eager loading)
+- [ ] Revisar que no haya código muerto o imports sin usar
+- [ ] Verificar que los serializers no expongan datos sensibles
 
 ### Migraciones de base de datos
 
@@ -499,22 +503,22 @@
 
 ### Listas oficiales de Completr
 
-- [ ] Identificar listas oficiales por el rol del creador (admin) — no requiere campo extra en el modelo
-- [ ] Serializer de lista: incluir flag `isOfficial` derivado del rol del owner
-- [ ] Frontend: badge/insignia visual en cards de listas oficiales (logo Completr o icono verificado)
+- [x] Identificar listas oficiales por el rol del creador (admin) — isOfficial derivado del rol del owner en GET /games/:id/lists
+- [x] Frontend: badge "Verified Official" en featured lists del game detail, con borde y gradiente diferenciado
 - [ ] Frontend: destacar listas oficiales en games-browse (sección "Completr Lists")
-- [ ] Frontend: en list-detail, mostrar badge "Official" junto al nombre si es oficial
+- [ ] Frontend: badge "Official" en list-detail junto al nombre
+- [ ] Frontend: badge en cards de listas oficiales en list-overview
 
 ### Social — Ver actividad de amigos
 
-- [ ] `GET /lists/:id/progress/:username` — Ver el progreso de un amigo en una lista específica
+- [x] `GET /users/:username/lists/:listId` — Ver el progreso de un amigo en una lista específica (con backlogStatusMap del usuario)
 - [ ] `GET /users/:username/games?game_id=:id` — Ver si un amigo ha jugado un juego específico
 
 ### Privacidad
 
-- [ ] Respetar `User.isPublic` en todos los endpoints de perfil/juegos de otro usuario
-- [ ] `ListFollower.isVisible` para controlar si el seguimiento aparece en el perfil público
-- [ ] Regla: `visible = User.isPublic AND ListFollower.isVisible`
+- [x] Respetar `User.isPublic` en todos los endpoints de perfil/juegos de otro usuario (hecho en auditoría de permisos Fase 2)
+- [x] `ListFollower.isVisible` controla si el seguimiento aparece en el perfil público (implementado en profile y following-lists)
+- [x] Self-view permite ver propio perfil incluso si es privado, con toda la data sin restricciones
 
 ### Búsqueda avanzada
 
@@ -572,14 +576,9 @@
 
 - [ ] Refactor `security.txt`: mover de middleware a ruta simple
 
-### Revisión de performance y código (al finalizar Fase 3)
+### Infraestructura
 
-- [ ] Revisión general del código: legibilidad, naming, estructura de módulos
-- [ ] Auditar endpoints: verificar que cada uno tiene validación, auth y rate limiting correcto
-- [ ] Revisar llamadas con Promise.all en el frontend: evaluar si se pueden reducir combinando endpoints en el backend
-- [ ] Optimizar queries N+1 en Sequelize (eager loading)
-- [ ] Revisar que no haya código muerto o imports sin usar
-- [ ] Verificar que los serializers no expongan datos sensibles
+- [ ] (Opcional) VPS dedicado para Completr — solo si el volumen de la beta cerrada lo justifica. Por ahora corre en VPS compartido
 
 ---
 
@@ -592,19 +591,15 @@
 
 ### Reviews
 
-- [ ] `POST /game-shelf/:id/review` — Crear review de texto de un juego
-- [ ] `PATCH /game-shelf/:id/review` — Editar review
-- [ ] `DELETE /game-shelf/:id/review` — Eliminar review
-- [ ] `GET /games/:id/reviews` — Ver reviews públicas de un juego
+- [x] Reviews ya implementadas en Fase 2 (POST/PATCH/DELETE/GET /games/:id/reviews, sección en game detail, en backlog modal, en perfiles)
 
 ### Estadísticas de listas públicas
 
-- [ ] Estadísticas agregadas de la lista:
-    - Número de seguidores
-    - Número de seguidores que la han completado al 100%
-    - Juego más completado de la lista
-    - Juego menos completado de la lista
-- [ ] Listas públicas que el usuario sigue, con su progreso, visibles en su perfil
+- [x] Número de seguidores (followerCount en list serializer)
+- [x] Progreso personal en listas (barra de progreso completed/total en list-detail, list-overview, perfiles)
+- [x] Listas seguidas con progreso visibles en perfil del usuario
+- [ ] Número de seguidores que han completado la lista al 100%
+- [ ] Juego más/menos completado de la lista
 
 ### Social avanzado
 
@@ -667,6 +662,7 @@
 
 ### Funcionalidades de gestión
 
+- [x] Rating promedio calculado con job async calculate_ratings (10% threshold de usuarios)
 - [ ] Sistema de tags personalizados por juego/lista
 - [ ] Sistema de "motivo de abandono" al marcar un backlog como `abandoned` (se usa el campo `notes` del backlog)
 - [ ] Exportar listas: `GET /lists/:id/export?format=csv` y `?format=json`
