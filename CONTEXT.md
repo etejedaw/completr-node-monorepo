@@ -502,9 +502,17 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Deploy en CapRover (completr-backend.tebita.xyz / completr.tebita.xyz)
 - Hardening post-auditoría: error context oculto en prd, security.txt middleware, Sequelize logging desactivado en prd
 
+### Fase 2 (en progreso)
+
+- Refresh tokens: modelo RefreshToken (SHA-256 hash + expiresAt), POST /auth/refresh con rotation, POST /auth/logout, login/register devuelven ambos tokens, cambiar contraseña invalida todas las sesiones
+- Panel admin: POST /admin/users (solo admin, siempre role "user"), registro público bloqueado
+- Perfil público: GET /users/:username devuelve user + backlogs públicos + listas públicas + favoritos + wishlist (respeta privacy flags)
+- GameExternal en serializer: externalLinks[] expuesto en GET /games/:code
+- Game reports: modelo GameReport (unique gameId+userId), POST /games/:id/reports, GET /admin/game-reports, PATCH /admin/game-reports/:reportId
+
 ### Pendiente — Fases posteriores
 
-- Fase 2: Perfil público, vistas públicas, panel admin usuarios, reportes de juegos, onboarding, empty states, refresh tokens, migraciones DB, dominio completr.app
+- Fase 2 (pendiente): poblar GameExternal bulk, links externos en frontend, vistas frontend (admin users/games, perfil público, reportes), onboarding, empty states, dominio completr.app
 - Fase 3: Follow usuarios, listas públicas con suscripción, privacidad, búsqueda avanzada, sistema de invitación, badges manuales (founder, beta-tester, moderator, premium-supporter)
 - Fase 4: Reviews, stats de listas públicas, logros, resumen semestral, comparación social
 - Fase 5: Estabilización (paginación, emails, tests, seguridad)

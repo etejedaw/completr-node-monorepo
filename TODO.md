@@ -341,54 +341,32 @@
 - [x] `externalIds` en `PATCH /games/:id` y `POST /games` — crea/actualiza mapeo al guardar
 - [x] Admin editor en game-detail: fetch RAWG por slug, editar todos los campos (título, descripción, plataformas, géneros, scores, times, DLC con parent game), guardar con externalIds
 - [x] Admin editor en games-browse: crear juegos vacíos o desde RAWG, misma interfaz que editar
-- [ ] Exponer `GameExternal` en el serializer de Game para links externos (RAWG, Steam, Metacritic)
+- [x] Exponer `GameExternal` en el serializer de Game para links externos (RAWG, Steam, Metacritic)
 - [ ] Poblar `GameExternal` para los juegos originales (bulk update con RAWG IDs)
 - [ ] Links externos en ficha del juego: RAWG (via slug fallback), Steam y Metacritic (via external IDs)
 
-### Perfil público básico
+### Perfil público
 
-- [ ] `GET /users/:username` — Página pública con estadísticas básicas:
-    - Total de juegos completados
-    - Total abandonados
-    - Juegos en progreso
-    - Ratio promedio
-    - Total de backlogs (incluye replays)
-- [ ] Widget "Jugando ahora" en el perfil: muestra los juegos con status `playing`
-- [ ] Listas públicas del usuario visibles en su perfil
-
-### Ver juegos de otro usuario
-
-- [ ] `GET /users/:username/games` — Ver la lista completa de un usuario (juegos públicos)
-- [ ] `GET /users/:username/games?status=playing` — Ver qué está jugando un amigo
-- [ ] `GET /users/:username/games?status=completed&from=...&to=...` — Ver qué jugó en un semestre específico
-
-### Listas públicas (vista básica)
-
-- [ ] `GET /lists/:id/public` — Ver una lista pública por URL
-- [ ] Hacer que las listas con `is_public: true` sean visibles en el perfil del usuario
-- [ ] Al ver la lista de otro usuario, mostrar tu propio estado para cada juego (si aplica)
-
-### Migraciones de base de datos
-
-- [ ] Reemplazar `sequelize.sync()` por migraciones (`sequelize-cli` o `umzug`) antes de que haya usuarios reales
-- [ ] Crear migraciones iniciales para todos los modelos existentes
+- [x] `GET /users/:username` — Perfil público con backlogs, listas públicas, favoritos y wishlist (respeta privacy flags)
+- [x] Listas públicas del usuario visibles en su perfil
+- [x] Favoritos y wishlist incluidos según `isFavoritePublic` / `isWishlistPublic`
 
 ### Auth — Refresh tokens
 
-- [ ] Endpoint de renovación de token (`POST /auth/refresh`)
-- [ ] Endpoint de logout / invalidación de refresh token
-- [ ] Almacenar refresh tokens en DB
-- [ ] Access token corto (15-30 min) + refresh token largo (30 días)
+- [x] Modelo `RefreshToken` con token hasheado (SHA-256) y `expiresAt`
+- [x] `POST /auth/refresh` — Renueva access token con rotation (invalida el viejo, entrega par nuevo)
+- [x] `POST /auth/logout` — Invalida refresh token
+- [x] Login y register devuelven `access_token` + `refresh_token`
+- [x] Cambiar contraseña invalida todos los refresh tokens del usuario
 
 ### Reportes de juegos erróneos
 
-- [ ] Tabla `GameReport`: id, gameId, userId, message (TEXT), status (`pending` | `approved` | `rejected`), createdAt, updatedAt
-- [ ] `POST /games/:id/reports` — Crear reporte (usuario autenticado, un reporte activo por usuario/juego)
-- [ ] `GET /admin/game-reports` — Listar reportes pendientes (solo admin)
-- [ ] `PATCH /admin/game-reports/:id` — Cambiar status a approved/rejected (solo admin)
+- [x] Modelo `GameReport`: id, gameId, userId, message (TEXT), status (`pending` | `approved` | `rejected`), unique (gameId, userId)
+- [x] `POST /games/:id/reports` — Crear reporte (usuario autenticado, un reporte activo por usuario/juego)
+- [x] `GET /admin/game-reports` — Listar reportes pendientes con Game y User (solo admin)
+- [x] `PATCH /admin/game-reports/:reportId` — Cambiar status a approved/rejected (solo admin)
 - [ ] Vista en frontend: botón "Report issue" en game-detail, modal con textarea
 - [ ] Vista admin: lista de reportes pendientes con link al juego
-- [ ] Futuro: contador de reportes aprobados por usuario para insignias
 
 ### Onboarding para amigos
 
@@ -398,8 +376,8 @@
 
 ### Panel admin de usuarios
 
-- [ ] `POST /admin/users` — Crear usuario manualmente (solo admin)
-- [ ] Bloquear `POST /auth/register` para usuarios no autenticados (registro solo via admin hasta beta pública)
+- [x] `POST /admin/users` — Crear usuario manualmente (solo admin, siempre role "user")
+- [x] `POST /auth/register` bloqueado para no-admin (ya requiere authMiddleware("admin"))
 - [ ] Vista en frontend para crear usuarios desde el panel admin
 
 ### Dominio completr.app
@@ -421,6 +399,11 @@
 ### Infraestructura
 
 - [ ] Contratar VPS dedicado para Completr (KVM 1, separado del VPS personal)
+
+### Migraciones de base de datos
+
+- [ ] Reemplazar `sequelize.sync()` por migraciones (`sequelize-cli` o `umzug`)
+- [ ] Crear migraciones iniciales para todos los modelos existentes
 
 ### Sistema social
 
