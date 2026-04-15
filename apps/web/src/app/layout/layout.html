@@ -86,16 +86,20 @@
 			</ul>
 		</div>
 
-		@if (isAdmin()) {
+		@if (isModerator()) {
 		<div class="nav-section">
-			<span class="nav-label">Admin</span>
+			<span class="nav-label"
+				>{{ isAdmin() ? 'Admin' : 'Moderator' }}</span
+			>
 			<ul class="nav-links">
+				@if (isAdmin()) {
 				<li>
 					<a routerLink="/admin/users" routerLinkActive="active">
-						<span class="material-icons nav-icon">person_add</span>
+						<span class="material-icons nav-icon">people</span>
 						Users
 					</a>
 				</li>
+				}
 				<li>
 					<a routerLink="/admin/games" routerLinkActive="active">
 						<span class="material-icons nav-icon"
@@ -110,6 +114,14 @@
 						Reports
 					</a>
 				</li>
+				@if (isAdmin()) {
+				<li>
+					<a routerLink="/admin/audit" routerLinkActive="active">
+						<span class="material-icons nav-icon">history</span>
+						Audit Log
+					</a>
+				</li>
+				}
 			</ul>
 		</div>
 		}

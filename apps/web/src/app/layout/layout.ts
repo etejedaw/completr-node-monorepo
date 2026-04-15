@@ -20,6 +20,10 @@ export class Layout implements OnInit {
 	private readonly router = inject(Router);
 	protected readonly user = this.auth.user;
 	protected readonly isAdmin = computed(() => this.user()?.role === "admin");
+	protected readonly isModerator = computed(() => {
+		const role = this.user()?.role;
+		return role === "moderator" || role === "admin";
+	});
 	protected readonly sidebarOpen = signal(false);
 
 	ngOnInit() {
