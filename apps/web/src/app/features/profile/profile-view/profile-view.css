@@ -105,6 +105,28 @@
 	color: var(--text-muted);
 }
 
+.meta-btn {
+	background: none;
+	border: none;
+	padding: 0;
+	font: inherit;
+	color: var(--text-muted);
+	cursor: pointer;
+	transition: color var(--transition);
+}
+
+.meta-btn:hover {
+	color: var(--accent);
+}
+
+.meta-btn strong {
+	color: var(--text-primary);
+}
+
+.meta-btn:hover strong {
+	color: var(--accent);
+}
+
 .meta-icon {
 	font-size: 0.875rem;
 }

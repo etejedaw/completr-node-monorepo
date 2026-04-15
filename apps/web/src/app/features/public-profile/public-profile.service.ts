@@ -121,6 +121,36 @@ export class PublicProfileService {
 		);
 	}
 
+	getFollowers(username: string) {
+		return this.http
+			.get<{
+				data: {
+					users: {
+						id: string;
+						username: string;
+						name: string;
+						avatarUrl?: string;
+					}[];
+				};
+			}>(`${environment.apiUrl}/users/${username}/followers`)
+			.pipe(map(res => res.data.users));
+	}
+
+	getFollowing(username: string) {
+		return this.http
+			.get<{
+				data: {
+					users: {
+						id: string;
+						username: string;
+						name: string;
+						avatarUrl?: string;
+					}[];
+				};
+			}>(`${environment.apiUrl}/users/${username}/following`)
+			.pipe(map(res => res.data.users));
+	}
+
 	unfollow(username: string) {
 		return this.http.delete(
 			`${environment.apiUrl}/users/${username}/follow`

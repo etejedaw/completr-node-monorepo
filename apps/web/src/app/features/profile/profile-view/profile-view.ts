@@ -13,10 +13,14 @@ import {
 	PublicProfileService,
 	PublicProfile
 } from "../../public-profile/public-profile.service";
+import {
+	UserListModal,
+	type UserSummary
+} from "../../../shared/components/user-list-modal/user-list-modal";
 
 @Component({
 	selector: "app-profile-view",
-	imports: [FormsModule, RouterLink],
+	imports: [FormsModule, RouterLink, UserListModal],
 	templateUrl: "./profile-view.html",
 	styleUrl: "./profile-view.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -29,6 +33,11 @@ export class ProfileView implements OnInit {
 	protected readonly user = this.authService.user;
 	protected readonly profile = signal<PublicProfile | null>(null);
 	protected readonly isLoading = signal(true);
+
+	// User list modal
+	protected readonly showUserListModal = signal(false);
+	protected readonly userListTitle = signal("");
+	protected readonly userListUsers = signal<UserSummary[]>([]);
 
 	// Edit modal
 	protected readonly showModal = signal(false);
@@ -46,6 +55,28 @@ export class ProfileView implements OnInit {
 			next: () => this.loadProfile(),
 			error: () => this.loadProfile()
 		});
+	}
+
+	showFollowers() {
+		const username = this.user()?.username;
+		if (!username) return;
+		this.userListTitle.set("Followers");
+		this.userListUsers.set([]);
+		this.showUserListModal.set(true);
+		this.publicProfileService
+			.getFollowers(username)
+			.subscribe(users => this.userListUsers.set(users));
+	}
+
+	showFollowing() {
+		const username = this.user()?.username;
+		if (!username) return;
+		this.userListTitle.set("Following");
+		this.userListUsers.set([]);
+		this.showUserListModal.set(true);
+		this.publicProfileService
+			.getFollowing(username)
+			.subscribe(users => this.userListUsers.set(users));
 	}
 
 	openEdit() {

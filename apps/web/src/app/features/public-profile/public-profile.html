@@ -61,14 +61,14 @@
 				<p class="bio">{{ profile()!.user.bio }}</p>
 				}
 				<div class="header-meta">
-					<span class="meta-item">
+					<button class="meta-btn" (click)="showFollowers()">
 						<strong>{{ profile()!.followerCount }}</strong>
 						followers
-					</span>
-					<span class="meta-item">
+					</button>
+					<button class="meta-btn" (click)="showFollowing()">
 						<strong>{{ profile()!.followingCount }}</strong>
 						following
-					</span>
+					</button>
 					<span class="meta-item">
 						<span class="material-icons meta-icon"
 							>calendar_today</span
@@ -296,3 +296,11 @@
 	</div>
 	}
 </div>
+
+@if (showUserListModal()) {
+<app-user-list-modal
+	[title]="userListTitle()"
+	[users]="userListUsers()"
+	(closed)="showUserListModal.set(false)"
+/>
+}

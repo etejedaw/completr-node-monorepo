@@ -9,10 +9,14 @@ import {
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
 import { PublicProfileService, PublicProfile } from "./public-profile.service";
+import {
+	UserListModal,
+	UserSummary
+} from "../../shared/components/user-list-modal/user-list-modal";
 
 @Component({
 	selector: "app-public-profile",
-	imports: [RouterLink],
+	imports: [RouterLink, UserListModal],
 	templateUrl: "./public-profile.html",
 	styleUrl: "./public-profile.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -32,6 +36,9 @@ export class PublicProfileComponent implements OnInit {
 		() => this.authService.user()?.id === this.profile()?.user.id
 	);
 	protected readonly togglingFollow = signal(false);
+	protected readonly showUserListModal = signal(false);
+	protected readonly userListTitle = signal("");
+	protected readonly userListUsers = signal<UserSummary[]>([]);
 
 	ngOnInit() {
 		if (this.authService.token() && !this.authService.user()) {
@@ -79,6 +86,24 @@ export class PublicProfileComponent implements OnInit {
 			},
 			error: () => this.togglingFollow.set(false)
 		});
+	}
+
+	showFollowers() {
+		this.userListTitle.set("Followers");
+		this.userListUsers.set([]);
+		this.showUserListModal.set(true);
+		this.profileService
+			.getFollowers(this.username())
+			.subscribe(users => this.userListUsers.set(users));
+	}
+
+	showFollowing() {
+		this.userListTitle.set("Following");
+		this.userListUsers.set([]);
+		this.showUserListModal.set(true);
+		this.profileService
+			.getFollowing(this.username())
+			.subscribe(users => this.userListUsers.set(users));
 	}
 
 	protected activityLabel(type: string): string {

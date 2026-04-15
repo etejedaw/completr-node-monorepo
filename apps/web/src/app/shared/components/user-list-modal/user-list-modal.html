@@ -1,0 +1,42 @@
+<div class="modal-overlay" (click)="closed.emit()">
+	<div class="modal-card" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>{{ title() }}</h2>
+			<button class="close-btn" (click)="closed.emit()">&times;</button>
+		</div>
+
+		@if (users().length === 0) {
+		<p class="empty">No users yet.</p>
+		} @else {
+		<ul class="user-list">
+			@for (user of users(); track user.id) {
+			<li>
+				<a
+					class="user-row"
+					[routerLink]="['/user', user.username]"
+					(click)="closed.emit()"
+				>
+					@if (user.avatarUrl) {
+					<img
+						class="avatar"
+						[src]="user.avatarUrl"
+						[alt]="user.username"
+					/>
+					} @else {
+					<div class="avatar-placeholder">
+						{{ user.username.charAt(0).toUpperCase() }}
+					</div>
+					}
+					<div class="user-info">
+						<span class="user-name"
+							>{{ user.name || user.username }}</span
+						>
+						<span class="user-username">@{{ user.username }}</span>
+					</div>
+				</a>
+			</li>
+			}
+		</ul>
+		}
+	</div>
+</div>
