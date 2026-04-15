@@ -15,6 +15,7 @@ export function listSerializer(
 
 	return {
 		id: list.id,
+		userId: list.userId,
 		name: list.name,
 		description: list.description,
 		isPublic: list.isPublic,
