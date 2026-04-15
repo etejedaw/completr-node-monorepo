@@ -1,16 +1,51 @@
-import { Game } from "../games/game.model";
 import { User } from "../users/user.model";
 import { Activity } from "./activity.model";
 
 export function activitySerializer(activity: Activity) {
+	const target = resolveTarget(activity);
+
 	return {
 		id: activity.id,
 		type: activity.type,
-		metadata: activity.metadata,
 		createdAt: activity.createdAt,
 		user: userSerializer(activity.User),
-		game: gameSerializer(activity.Game)
+		target
 	};
+}
+
+function resolveTarget(activity: Activity) {
+	if (activity.ActivityGame?.Game) {
+		const game = activity.ActivityGame.Game;
+		return {
+			type: "game",
+			id: game.id,
+			name: game.title,
+			code: game.code,
+			backgroundUrl: game.backgroundUrl
+		};
+	}
+
+	if (activity.ActivityList?.List) {
+		const list = activity.ActivityList.List;
+		return {
+			type: "list",
+			id: list.id,
+			name: list.name
+		};
+	}
+
+	if (activity.ActivityUser?.TargetUser) {
+		const targetUser = activity.ActivityUser.TargetUser;
+		return {
+			type: "user",
+			id: targetUser.id,
+			name: targetUser.name || targetUser.username,
+			username: targetUser.username,
+			avatarUrl: targetUser.avatarUrl
+		};
+	}
+
+	return null;
 }
 
 function userSerializer(user?: User) {
@@ -20,15 +55,5 @@ function userSerializer(user?: User) {
 		username: user.username,
 		name: user.name,
 		avatarUrl: user.avatarUrl
-	};
-}
-
-function gameSerializer(game?: Game | null) {
-	if (!game) return null;
-	return {
-		id: game.id,
-		title: game.title,
-		code: game.code,
-		backgroundUrl: game.backgroundUrl
 	};
 }

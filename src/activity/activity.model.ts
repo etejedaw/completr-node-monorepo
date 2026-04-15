@@ -1,7 +1,9 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { User } from "../users/user.model";
-import { Game } from "../games/game.model";
+import { ActivityGame } from "./targets/activity-game.model";
+import { ActivityList } from "./targets/activity-list.model";
+import { ActivityUser } from "./targets/activity-user.model";
 
 export const ACTIVITY_TYPES = [
 	"backlog_added",
@@ -20,12 +22,12 @@ class Activity extends Model {
 	declare id: string;
 	declare userId: string;
 	declare type: ActivityType;
-	declare gameId: string | null;
-	declare metadata: Record<string, unknown> | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 	declare User: User;
-	declare Game: Game | null;
+	declare ActivityGame: ActivityGame | null;
+	declare ActivityList: ActivityList | null;
+	declare ActivityUser: ActivityUser | null;
 }
 
 Activity.init(
@@ -43,14 +45,6 @@ Activity.init(
 		type: {
 			type: DataTypes.STRING,
 			allowNull: false
-		},
-		gameId: {
-			type: DataTypes.UUID,
-			allowNull: true
-		},
-		metadata: {
-			type: DataTypes.JSONB,
-			allowNull: true
 		}
 	},
 	{

@@ -11,9 +11,7 @@ export async function postFollow(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 
 	await listFollowersService.followList(params.listId, user.id);
-	activityService.record(user.id, "list_followed", undefined, {
-		listId: params.listId
-	});
+	activityService.record(user.id, "list_followed", params.listId);
 	return response.sendStatus(201);
 }
 

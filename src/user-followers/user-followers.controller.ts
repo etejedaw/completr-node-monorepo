@@ -8,8 +8,8 @@ export async function postFollow(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;
 	const user = request.locals.user as RequestUser;
 
-	await userFollowersService.follow(user.id, username);
-	activityService.record(user.id, "user_followed", undefined, { username });
+	const follow = await userFollowersService.follow(user.id, username);
+	activityService.record(user.id, "user_followed", follow.followingId);
 	return response.sendStatus(201);
 }
 

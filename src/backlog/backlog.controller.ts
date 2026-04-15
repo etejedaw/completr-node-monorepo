@@ -21,9 +21,7 @@ export async function postBacklog(request: Request, response: Response) {
 	);
 	const backlogPlain = backlogEntry.get({ plain: true });
 
-	activityService.record(user.id, "backlog_added", backlogEntry.gameId, {
-		platform: backlogPlain.platform?.abbreviation
-	});
+	activityService.record(user.id, "backlog_added", backlogEntry.gameId);
 
 	const data = { backlog: backlogSerializer(backlogPlain) };
 	return response.status(201).json({ data });

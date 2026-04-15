@@ -20,6 +20,9 @@ import { RefreshToken } from "../auth/refresh-token.model";
 import { GameReport } from "../game-reports/game-report.model";
 import { UserFollower } from "../user-followers/user-follower.model";
 import { Activity } from "../activity/activity.model";
+import { ActivityGame } from "../activity/targets/activity-game.model";
+import { ActivityList } from "../activity/targets/activity-list.model";
+import { ActivityUser } from "../activity/targets/activity-user.model";
 
 export function setupAssociations() {
 	gameDlc();
@@ -184,8 +187,32 @@ function activities() {
 	User.hasMany(Activity, { foreignKey: "userId" });
 	Activity.belongsTo(User, { foreignKey: "userId" });
 
-	Game.hasMany(Activity, { foreignKey: "gameId", onDelete: "CASCADE" });
-	Activity.belongsTo(Game, { foreignKey: "gameId" });
+	Activity.hasOne(ActivityGame, {
+		foreignKey: "activityId",
+		onDelete: "CASCADE"
+	});
+	ActivityGame.belongsTo(Activity, { foreignKey: "activityId" });
+	Game.hasMany(ActivityGame, { foreignKey: "gameId", onDelete: "CASCADE" });
+	ActivityGame.belongsTo(Game, { foreignKey: "gameId" });
+
+	Activity.hasOne(ActivityList, {
+		foreignKey: "activityId",
+		onDelete: "CASCADE"
+	});
+	ActivityList.belongsTo(Activity, { foreignKey: "activityId" });
+	List.hasMany(ActivityList, { foreignKey: "listId", onDelete: "CASCADE" });
+	ActivityList.belongsTo(List, { foreignKey: "listId" });
+
+	Activity.hasOne(ActivityUser, {
+		foreignKey: "activityId",
+		onDelete: "CASCADE"
+	});
+	ActivityUser.belongsTo(Activity, { foreignKey: "activityId" });
+	User.hasMany(ActivityUser, { foreignKey: "targetUserId" });
+	ActivityUser.belongsTo(User, {
+		foreignKey: "targetUserId",
+		as: "TargetUser"
+	});
 }
 
 function scoreSources() {
