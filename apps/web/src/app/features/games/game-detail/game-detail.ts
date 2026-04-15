@@ -101,18 +101,14 @@ export class GameDetail implements OnInit {
 		});
 		this.wishlistService.getMyWishlist().subscribe({
 			next: wishlist => {
-				const found = wishlist.some(
-					w => w.backlog.game.id === gameId
-				);
+				const found = wishlist.some(w => w.backlog.game.id === gameId);
 				this.isInWishlist.set(found);
 				this.addedToWishlist.set(found);
 			}
 		});
 		this.gameShelfService.getMyShelf().subscribe({
 			next: shelf =>
-				this.isInShelf.set(
-					shelf.some(s => s.game.id === gameId)
-				)
+				this.isInShelf.set(shelf.some(s => s.game.id === gameId))
 		});
 	}
 

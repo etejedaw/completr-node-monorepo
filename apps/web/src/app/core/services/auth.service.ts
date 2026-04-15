@@ -1,12 +1,13 @@
 import { computed, inject, Injectable, signal } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
-import { tap } from "rxjs";
+import { Observable, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { StorageService } from "./storage.service";
 import { User } from "../models";
 
 const TOKEN_KEY = "access_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
 
 interface LoginRequest {
 	email: string;
@@ -21,7 +22,7 @@ interface RegisterRequest {
 }
 
 interface AuthResponse {
-	data: { access_token: string };
+	data: { access_token: string; refresh_token: string };
 }
 
 interface UserResponse {
@@ -42,20 +43,29 @@ export class AuthService {
 		return this.storage.get(TOKEN_KEY);
 	}
 
+	refreshToken(): string | null {
+		return this.storage.get(REFRESH_TOKEN_KEY);
+	}
+
 	login(credentials: LoginRequest) {
 		return this.http
 			.post<AuthResponse>(`${environment.apiUrl}/auth/login`, credentials)
-			.pipe(
-				tap(res => this.storage.set(TOKEN_KEY, res.data.access_token))
-			);
+			.pipe(tap(res => this.saveTokens(res)));
 	}
 
 	register(data: RegisterRequest) {
 		return this.http
 			.post<AuthResponse>(`${environment.apiUrl}/auth/register`, data)
-			.pipe(
-				tap(res => this.storage.set(TOKEN_KEY, res.data.access_token))
-			);
+			.pipe(tap(res => this.saveTokens(res)));
+	}
+
+	refresh(): Observable<AuthResponse> {
+		const token = this.refreshToken();
+		return this.http
+			.post<AuthResponse>(`${environment.apiUrl}/auth/refresh`, {
+				refresh_token: token
+			})
+			.pipe(tap(res => this.saveTokens(res)));
 	}
 
 	loadUser() {
@@ -65,8 +75,26 @@ export class AuthService {
 	}
 
 	logout() {
+		const token = this.refreshToken();
+		if (token) {
+			this.http
+				.post(`${environment.apiUrl}/auth/logout`, {
+					refresh_token: token
+				})
+				.subscribe();
+		}
+		this.clearSession();
+	}
+
+	clearSession() {
 		this.storage.remove(TOKEN_KEY);
+		this.storage.remove(REFRESH_TOKEN_KEY);
 		this._user.set(null);
 		this.router.navigate(["/login"]);
+	}
+
+	private saveTokens(res: AuthResponse) {
+		this.storage.set(TOKEN_KEY, res.data.access_token);
+		this.storage.set(REFRESH_TOKEN_KEY, res.data.refresh_token);
 	}
 }
