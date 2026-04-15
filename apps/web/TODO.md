@@ -230,8 +230,8 @@
 
 - [x] Botón Follow/Unfollow en list-detail (solo no-owner)
 - [x] Ocultar acciones de edición en listas de otros usuarios
-- [ ] Progreso personal en listas seguidas
-- [ ] En la página de Lists, mostrar las listas que el usuario sigue además de las propias
+- [x] Progreso personal en listas: barra de progreso (completed/total) en list-detail para todos los usuarios
+- [x] En la página de Lists, sección "Following" con listas seguidas y barra de progreso mini
 
 ### Búsqueda
 

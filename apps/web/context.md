@@ -392,3 +392,5 @@ export const authGuard: CanActivateFn = () => {
 - Vistas completas de otro usuario: /user/:username/backlog (status tabs, búsqueda local, paginación 50), /favorites (grid, paginación), /wishlist (tabla, paginación), /game-shelf (tabla, búsqueda local, paginación). Todas standalone con top bar y back link
 - Links "View All" clickeables en el perfil público (backlog, game-shelf, favorites, wishlist → navegan a las vistas completas)
 - PublicProfileService: métodos paginados para todas las colecciones + nuevo getUserFollowingLists
+- Progreso personal en listas: barra de progreso (completed/total) en list-detail. Modelo FollowingList con progress
+- List overview: sección "Following" con listas seguidas, barra de progreso mini y porcentaje
