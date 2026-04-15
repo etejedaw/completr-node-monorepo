@@ -17,6 +17,13 @@ export const routes: Routes = [
 			import("./features/auth/register/register").then(m => m.Register)
 	},
 	{
+		path: "user/:username",
+		loadComponent: () =>
+			import("./features/public-profile/public-profile").then(
+				m => m.PublicProfileComponent
+			)
+	},
+	{
 		path: "",
 		canActivate: [authGuard],
 		loadComponent: () => import("./layout/layout").then(m => m.Layout),
@@ -122,13 +129,6 @@ export const routes: Routes = [
 					)
 			}
 		]
-	},
-	{
-		path: "@:username",
-		loadComponent: () =>
-			import("./features/public-profile/public-profile").then(
-				m => m.PublicProfileComponent
-			)
 	},
 	{ path: "**", redirectTo: "" }
 ];

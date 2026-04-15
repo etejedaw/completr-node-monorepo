@@ -2,7 +2,6 @@ import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { forkJoin, map, of } from "rxjs";
 import { environment } from "../../../environments/environment";
-import { Game } from "../models";
 
 interface UserResult {
 	id: string;
@@ -10,6 +9,13 @@ interface UserResult {
 	name: string;
 	avatarUrl: string | null;
 	isPublic: boolean;
+}
+
+interface GameResult {
+	id: string;
+	title: string;
+	code: string;
+	backgroundUrl?: string;
 }
 
 interface ListResult {
@@ -20,7 +26,7 @@ interface ListResult {
 
 export interface SearchResults {
 	users: UserResult[];
-	games: Game[];
+	games: GameResult[];
 	lists: ListResult[];
 }
 
@@ -41,9 +47,9 @@ export class GlobalSearchService {
 				.pipe(map(res => res.data.users)),
 			games: this.http
 				.get<{
-					data: { games: Game[] };
+					data: { games: GameResult[] };
 				}>(
-					`${environment.apiUrl}/games/search?query=${encodeURIComponent(query)}`
+					`${environment.apiUrl}/games/search?query=${encodeURIComponent(query)}&local_only=true`
 				)
 				.pipe(map(res => res.data.games)),
 			lists: this.http

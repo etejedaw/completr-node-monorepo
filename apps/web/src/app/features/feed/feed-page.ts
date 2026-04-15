@@ -71,17 +71,23 @@ export class FeedPage implements OnInit {
 
 	goToUser(username: string) {
 		this.clearSearch();
-		this.router.navigate(["/@" + username]);
+		this.router.navigateByUrl(`/user/${username}`);
 	}
 
 	goToGame(code: string) {
 		this.clearSearch();
-		this.router.navigate(["/games", code]);
+		this.router.navigateByUrl(`/games/${code}`);
 	}
 
 	goToList(id: string) {
 		this.clearSearch();
-		this.router.navigate(["/lists", id]);
+		this.router.navigateByUrl(`/lists/${id}`);
+	}
+
+	searchInGames() {
+		const query = this.searchQuery();
+		this.clearSearch();
+		this.router.navigate(["/games"], { queryParams: { q: query } });
 	}
 
 	protected activityLabel(type: string): string {

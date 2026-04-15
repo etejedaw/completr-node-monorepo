@@ -68,11 +68,14 @@
 				</button>
 				}
 			</div>
-			} @if (searchResults()!.users.length === 0 &&
-			searchResults()!.games.length === 0 && searchResults()!.lists.length
-			=== 0) {
-			<div class="search-empty">No results found</div>
 			}
+
+			<div class="search-actions">
+				<button class="search-action-link" (click)="searchInGames()">
+					<span class="material-icons">sports_esports</span>
+					Search games for "{{ searchQuery() }}"
+				</button>
+			</div>
 		</div>
 		}
 	</div>
