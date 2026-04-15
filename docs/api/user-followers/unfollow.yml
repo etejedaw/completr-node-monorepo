@@ -1,0 +1,39 @@
+info:
+    name: Unfollow User
+    type: http
+    seq: 2
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/users/:username/follow"
+    params:
+        - name: username
+          value: johndoe
+          type: path
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Unfollow User
+
+    Stop following a user.
+
+    **Auth:** Bearer token (any authenticated user).
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Code                            | Description        |
+    |--------|---------------------------------|--------------------|
+    | 404    | USER_FOLLOWER_USER_NOT_FOUND    | User not found     |
+    | 404    | USER_FOLLOWER_NOT_FOLLOWING     | Not following      |

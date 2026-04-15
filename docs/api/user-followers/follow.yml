@@ -1,0 +1,46 @@
+info:
+    name: Follow User
+    type: http
+    seq: 1
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/:username/follow"
+    params:
+        - name: username
+          value: johndoe
+          type: path
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Follow User
+
+    Follow another user. You cannot follow yourself.
+
+    **Auth:** Bearer token (any authenticated user).
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param    | Type   | Required | Description         |
+    |----------|--------|----------|---------------------|
+    | username | string | Yes      | The user to follow  |
+
+    ### Response (201)
+
+    No content.
+
+    ### Errors
+
+    | Status | Code                              | Description                |
+    |--------|-----------------------------------|----------------------------|
+    | 400    | USER_FOLLOWER_CANNOT_FOLLOW_SELF  | Cannot follow yourself     |
+    | 404    | USER_FOLLOWER_USER_NOT_FOUND      | User not found             |
+    | 409    | USER_FOLLOWER_ALREADY_FOLLOWING   | Already following          |
