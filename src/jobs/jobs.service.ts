@@ -131,7 +131,10 @@ async function runCalculateRatings(jobId: string) {
 
 	try {
 		const totalUsers = await User.count({ where: { isActive: true } });
-		const minReviews = Math.max(2, Math.ceil(totalUsers * MIN_THRESHOLD_PERCENT));
+		const minReviews = Math.max(
+			2,
+			Math.ceil(totalUsers * MIN_THRESHOLD_PERCENT)
+		);
 
 		const results = (await Review.findAll({
 			attributes: [
@@ -142,7 +145,11 @@ async function runCalculateRatings(jobId: string) {
 			where: { rating: { [Op.not]: null } },
 			group: ["gameId"],
 			raw: true
-		})) as unknown as { gameId: string; avgRating: number; reviewCount: number }[];
+		})) as unknown as {
+			gameId: string;
+			avgRating: number;
+			reviewCount: number;
+		}[];
 
 		for (const { gameId, avgRating, reviewCount } of results) {
 			if (Number(reviewCount) < minReviews) {
@@ -179,7 +186,10 @@ async function runCalculateDurations(jobId: string) {
 
 	try {
 		const totalUsers = await User.count({ where: { isActive: true } });
-		const minEntries = Math.max(2, Math.ceil(totalUsers * MIN_THRESHOLD_PERCENT));
+		const minEntries = Math.max(
+			2,
+			Math.ceil(totalUsers * MIN_THRESHOLD_PERCENT)
+		);
 
 		const results = (await Backlog.findAll({
 			attributes: [
@@ -196,7 +206,11 @@ async function runCalculateDurations(jobId: string) {
 			where: { realDuration: { [Op.not]: null, [Op.gt]: 0 } },
 			group: ["gameId"],
 			raw: true
-		})) as unknown as { gameId: string; avgDuration: number; entryCount: number }[];
+		})) as unknown as {
+			gameId: string;
+			avgDuration: number;
+			entryCount: number;
+		}[];
 
 		for (const { gameId, avgDuration, entryCount } of results) {
 			if (Number(entryCount) < minEntries) {

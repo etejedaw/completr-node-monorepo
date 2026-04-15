@@ -518,7 +518,7 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - Vistas completas de otro usuario: GET /users/:username/backlog (con BacklogQuerySchema), /game-shelf, /wishlist, /favorites, /following-lists — todos con paginación (PaginationQuerySchema: limit max 50, offset)
 - PaginationQuerySchema compartido en common/schemas/ para reutilizar en endpoints paginados
 - Backlog: findAndCountAll con limit/offset en endpoints públicos y privados, retorna { backlog, total }
-- Game-shelf, wishlist, favorites: métodos *Paginated en services, endpoints públicos retornan { ..., total }
+- Game-shelf, wishlist, favorites: métodos \*Paginated en services, endpoints públicos retornan { ..., total }
 - Progreso personal en listas: getListProgress(listId, userId) calcula completed/total cruzando ListItems con Backlog. Incluido en list detail (serializer) y GET /lists/following (controller)
 - Self-view en perfil: GET /users/:username permite que el usuario vea su propio perfil incluso si es privado, mostrando toda su data (backlog completo, game-shelf completo, favorites/wishlist/activity sin restricción de privacy flags)
 - Auth enforcement: catálogo (games, platforms, genres, score-sources, lists/search) requiere authMiddleware(). Perfiles y colecciones de usuario son públicos (sin auth o authOptionalMiddleware) para incentivar registro. Todos los services de escritura validan ownership

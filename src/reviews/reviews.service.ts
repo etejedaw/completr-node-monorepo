@@ -14,7 +14,12 @@ export async function createReview(
 	const existing = await Review.findOne({ where: { userId, gameId } });
 	if (existing) throw reviewsServiceError.alreadyExistsError();
 
-	return Review.create({ userId, gameId, content: dto.content, rating: dto.rating });
+	return Review.create({
+		userId,
+		gameId,
+		content: dto.content,
+		rating: dto.rating
+	});
 }
 
 export async function findReviewsByGameId(gameId: string) {

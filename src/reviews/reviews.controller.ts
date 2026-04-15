@@ -36,10 +36,17 @@ export async function patchReview(request: Request, response: Response) {
 	const params = request.locals.params as GameIdParam;
 	const body = request.locals.body as UpdateReviewDto;
 
-	const existing = await reviewsService.findReviewByUserAndGame(user.id, params.id);
+	const existing = await reviewsService.findReviewByUserAndGame(
+		user.id,
+		params.id
+	);
 	if (!existing) throw reviewsServiceError.notFoundError();
 
-	const review = await reviewsService.updateReview(existing.id, user.id, body);
+	const review = await reviewsService.updateReview(
+		existing.id,
+		user.id,
+		body
+	);
 
 	const data = { review: reviewSerializer(review.get({ plain: true })) };
 	return response.status(200).json({ data });
@@ -49,7 +56,10 @@ export async function deleteReview(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 	const params = request.locals.params as GameIdParam;
 
-	const existing = await reviewsService.findReviewByUserAndGame(user.id, params.id);
+	const existing = await reviewsService.findReviewByUserAndGame(
+		user.id,
+		params.id
+	);
 	if (!existing) throw reviewsServiceError.notFoundError();
 
 	await reviewsService.deleteReview(existing.id, user.id);
