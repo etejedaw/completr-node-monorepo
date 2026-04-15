@@ -20,6 +20,8 @@ import { GameShelfModal } from "../../game-shelf/game-shelf-modal/game-shelf-mod
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../shared/constants/rating-labels";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
+import { ReviewsService, Review } from "../reviews.service";
+import { FormsModule } from "@angular/forms";
 
 @Component({
 	selector: "app-game-detail",
@@ -28,7 +30,8 @@ import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 		StarRating,
 		BacklogModal,
 		GameShelfModal,
-		AdminGameEditor
+		AdminGameEditor,
+		FormsModule
 	],
 	templateUrl: "./game-detail.html",
 	styleUrl: "./game-detail.css",
@@ -44,6 +47,7 @@ export class GameDetail implements OnInit {
 	private readonly wishlistService = inject(WishlistService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly gameShelfService = inject(GameShelfService);
+	private readonly reviewsService = inject(ReviewsService);
 
 	protected readonly game = signal<Game | null>(null);
 	protected readonly isLoading = signal(true);
@@ -74,6 +78,14 @@ export class GameDetail implements OnInit {
 	protected readonly reportMessage = signal("");
 	protected readonly reportSubmitting = signal(false);
 	protected readonly reportSent = signal(false);
+
+	// Reviews
+	protected readonly reviews = signal<Review[]>([]);
+	protected readonly myReview = signal<Review | null>(null);
+	protected readonly showReviewForm = signal(false);
+	protected readonly reviewContent = signal("");
+	protected readonly reviewRating = signal<number | null>(null);
+	protected readonly reviewSubmitting = signal(false);
 	protected readonly reportError = signal("");
 
 	ngOnInit() {
@@ -96,6 +108,7 @@ export class GameDetail implements OnInit {
 				this.isLoading.set(false);
 				this.loadSimilarGames(game);
 				this.loadUserStatus(game.id);
+				this.loadReviews(game.id);
 			},
 			error: () => this.isLoading.set(false)
 		});
@@ -283,6 +296,64 @@ export class GameDetail implements OnInit {
 					err.error?.detail ||
 						err.error?.title ||
 						"Failed to submit report"
+				);
+			}
+		});
+	}
+
+	// Reviews
+	openReviewForm() {
+		const existing = this.myReview();
+		if (existing) {
+			this.reviewContent.set(existing.content ?? "");
+			this.reviewRating.set(existing.rating ?? null);
+		} else {
+			this.reviewContent.set("");
+			this.reviewRating.set(null);
+		}
+		this.showReviewForm.set(true);
+	}
+
+	submitReview() {
+		const gameId = this.game()?.id;
+		if (!gameId) return;
+
+		const content = this.reviewContent().trim() || undefined;
+		const rating = this.reviewRating() ?? undefined;
+		if (!content && !rating) return;
+
+		this.reviewSubmitting.set(true);
+		const existing = this.myReview();
+		const action = existing
+			? this.reviewsService.updateReview(gameId, { content, rating })
+			: this.reviewsService.createReview(gameId, { content, rating });
+
+		action.subscribe({
+			next: () => {
+				this.reviewSubmitting.set(false);
+				this.showReviewForm.set(false);
+				this.loadReviews(gameId);
+			},
+			error: () => this.reviewSubmitting.set(false)
+		});
+	}
+
+	deleteReview() {
+		const gameId = this.game()?.id;
+		if (!gameId) return;
+		this.reviewsService.deleteReview(gameId).subscribe(() => {
+			this.myReview.set(null);
+			this.loadReviews(gameId);
+		});
+	}
+
+	private loadReviews(gameId: string) {
+		this.reviewsService.getReviews(gameId).subscribe(reviews => {
+			this.reviews.set(reviews);
+			const userId = this.authService.user()?.id;
+			if (userId) {
+				this.myReview.set(
+					reviews.find(r => r.user?.id === userId) ?? null
 				);
 			}
 		});

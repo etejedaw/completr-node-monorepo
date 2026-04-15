@@ -51,8 +51,8 @@
 			>
 			{{ showEditor() ? 'Close Editor' : 'Edit Game' }}
 		</button>
-		@if (isAdmin()) {
-		@if (!showConfirmDeactivate() && !showConfirmDelete()) {
+		@if (isAdmin()) { @if (!showConfirmDeactivate() && !showConfirmDelete())
+		{
 		<button
 			class="btn-admin-danger"
 			(click)="showConfirmDeactivate.set(true)"
@@ -88,8 +88,7 @@
 		<button class="btn-ghost" (click)="showConfirmDelete.set(false)">
 			Cancel
 		</button>
-		}
-		}
+		} }
 	</div>
 	@if (showEditor()) {
 	<app-admin-game-editor [game]="game()!" (saved)="onEditorSaved()" />
@@ -254,12 +253,88 @@
 		}
 	</div>
 
-	<!-- Community -->
+	<!-- Reviews -->
 	<div class="related-section">
-		<h2>Community</h2>
-		<p class="section-placeholder">
-			Reviews, ratings and playtimes from other players — Coming soon...
-		</p>
+		<div class="reviews-header">
+			<h2>Reviews</h2>
+			<button class="btn-review" (click)="openReviewForm()">
+				{{ myReview() ? 'Edit Review' : 'Write Review' }}
+			</button>
+		</div>
+
+		@if (showReviewForm()) {
+		<div class="review-form">
+			<div class="review-form-rating">
+				<span class="form-label">Rating</span>
+				<app-star-rating
+					[value]="reviewRating()"
+					(ratingChange)="reviewRating.set($event)"
+					size="sm"
+				/>
+			</div>
+			<textarea
+				class="review-textarea"
+				rows="4"
+				placeholder="Share your thoughts about this game..."
+				[ngModel]="reviewContent()"
+				(ngModelChange)="reviewContent.set($event)"
+			></textarea>
+			<div class="review-form-actions">
+				@if (myReview()) {
+				<button class="btn-ghost" (click)="deleteReview()">
+					Delete
+				</button>
+				}
+				<button class="btn-ghost" (click)="showReviewForm.set(false)">
+					Cancel
+				</button>
+				<button
+					class="btn-submit"
+					(click)="submitReview()"
+					[disabled]="reviewSubmitting() || (!reviewContent().trim() && !reviewRating())"
+				>
+					{{ reviewSubmitting() ? 'Saving...' : myReview() ? 'Update'
+					: 'Post' }}
+				</button>
+			</div>
+		</div>
+		} @if (reviews().length === 0) {
+		<p class="section-placeholder">No reviews yet. Be the first!</p>
+		} @else { @for (review of reviews(); track review.id) {
+		<div class="review-card">
+			<div class="review-card-header">
+				<a
+					class="review-user"
+					[routerLink]="['/user', review.user?.username]"
+				>
+					@if (review.user?.avatarUrl) {
+					<img
+						class="review-avatar"
+						[src]="review.user!.avatarUrl"
+						[alt]="review.user!.username"
+					/>
+					} @else {
+					<div class="review-avatar-placeholder">
+						{{ review.user?.username?.charAt(0)?.toUpperCase() }}
+					</div>
+					}
+					<span class="review-username"
+						>{{ review.user?.name || review.user?.username }}</span
+					>
+				</a>
+				@if (review.rating) {
+				<app-star-rating
+					[value]="review.rating"
+					[readonly]="true"
+					size="sm"
+				/>
+				}
+			</div>
+			@if (review.content) {
+			<p class="review-content">{{ review.content }}</p>
+			}
+		</div>
+		} }
 	</div>
 
 	<!-- Lists featuring this game -->
