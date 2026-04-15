@@ -87,6 +87,15 @@ export class GameDetail implements OnInit {
 	protected readonly reviewRating = signal<number | null>(null);
 	protected readonly reviewSubmitting = signal(false);
 	protected readonly reportError = signal("");
+	protected readonly featuredLists = signal<
+		{
+			id: string;
+			name: string;
+			description?: string;
+			isOfficial: boolean;
+			owner: { username: string } | null;
+		}[]
+	>([]);
 
 	ngOnInit() {
 		this.scoreSourcesService.load();
@@ -109,6 +118,9 @@ export class GameDetail implements OnInit {
 				this.loadSimilarGames(game);
 				this.loadUserStatus(game.id);
 				this.loadReviews(game.id);
+				this.gamesService
+					.getGameLists(game.id)
+					.subscribe(lists => this.featuredLists.set(lists));
 			},
 			error: () => this.isLoading.set(false)
 		});

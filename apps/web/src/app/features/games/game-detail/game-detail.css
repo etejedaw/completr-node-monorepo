@@ -609,6 +609,78 @@
 	line-height: 1.6;
 }
 
+/* === Featured Lists === */
+
+.featured-lists {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.featured-list-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	padding: 0.75rem 1rem;
+	background: var(--bg-surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	text-decoration: none;
+	transition: border-color var(--transition);
+}
+
+.featured-list-card:hover {
+	border-color: var(--accent);
+}
+
+.featured-list-card.official {
+	border-color: rgba(99, 102, 241, 0.4);
+	background: linear-gradient(
+		135deg,
+		rgba(14, 165, 233, 0.05),
+		rgba(99, 102, 241, 0.05)
+	);
+}
+
+.featured-list-card.official:hover {
+	border-color: var(--accent);
+}
+
+.official-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	font-size: 0.625rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--accent);
+}
+
+.official-badge .material-icons {
+	font-size: 0.875rem;
+}
+
+.featured-list-name {
+	font-size: 0.9375rem;
+	font-weight: 600;
+	color: var(--text-primary);
+}
+
+.featured-list-desc {
+	font-size: 0.8125rem;
+	color: var(--text-muted);
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.featured-list-owner {
+	font-size: 0.6875rem;
+	color: var(--text-muted);
+}
+
 .game-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));

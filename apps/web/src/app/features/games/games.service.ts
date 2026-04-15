@@ -180,4 +180,20 @@ export class GamesService {
 			{ duration }
 		);
 	}
+
+	getGameLists(gameId: string) {
+		return this.http
+			.get<{
+				data: {
+					lists: {
+						id: string;
+						name: string;
+						description?: string;
+						isOfficial: boolean;
+						owner: { username: string } | null;
+					}[];
+				};
+			}>(`${environment.apiUrl}/games/${gameId}/lists`)
+			.pipe(map(res => res.data.lists));
+	}
 }

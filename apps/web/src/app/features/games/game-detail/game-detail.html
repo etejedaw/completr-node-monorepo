@@ -359,10 +359,35 @@
 	</div>
 
 	<!-- Lists featuring this game -->
+	@if (featuredLists().length > 0) {
 	<div class="related-section">
 		<h2>Featured in Lists</h2>
-		<p class="section-placeholder">Coming soon...</p>
+		<div class="featured-lists">
+			@for (list of featuredLists(); track list.id) {
+			<a
+				class="featured-list-card"
+				[class.official]="list.isOfficial"
+				[routerLink]="['/lists', list.id]"
+			>
+				@if (list.isOfficial) {
+				<span class="official-badge">
+					<span class="material-icons">verified</span>
+					Official
+				</span>
+				}
+				<span class="featured-list-name">{{ list.name }}</span>
+				@if (list.description) {
+				<span class="featured-list-desc">{{ list.description }}</span>
+				} @if (list.owner) {
+				<span class="featured-list-owner"
+					>by @{{ list.owner.username }}</span
+				>
+				}
+			</a>
+			}
+		</div>
 	</div>
+	}
 
 	<!-- DLCs -->
 	@if (game()!.dlcs.length > 0) {
