@@ -6,12 +6,16 @@ import * as backlogService from "../backlog/backlog.service";
 import * as listsService from "../lists/lists.service";
 import * as favoritesService from "../favorites/favorites.service";
 import * as wishlistService from "../wishlist/wishlist.service";
+import * as gameShelfService from "../game-shelf/game-shelf.service";
+import * as activityService from "../activity/activity.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import { userMeSerializer, userProfileSerializer } from "./users.serializer";
 import { backlogSerializer } from "../backlog/backlog.serializer";
 import { listSummarySerializer } from "../lists/lists.serializer";
 import { favoriteSerializer } from "../favorites/favorites.serializer";
 import { wishlistSerializer } from "../wishlist/wishlist.serializer";
+import { gameShelfMeSerializer } from "../game-shelf/serializers/game-shelf-me.serializer";
+import { activitySerializer } from "../activity/activity.serializer";
 import { UsernameParam } from "./schemas";
 import { UpdateUserDto } from "./dtos";
 import { RegisterDto } from "../auth/dtos";
@@ -37,6 +41,8 @@ export async function getUserByUsername(request: Request, response: Response) {
 		lists,
 		favorites,
 		wishlist,
+		gameShelf,
+		recentActivity,
 		followerCount,
 		followingCount,
 		isFollowing
@@ -49,6 +55,10 @@ export async function getUserByUsername(request: Request, response: Response) {
 		user.isWishlistPublic
 			? wishlistService.findWishlistByUserId(userId)
 			: Promise.resolve([]),
+		gameShelfService.findPublicGameShelfByUserId(userId),
+		user.isFeedPublic
+			? activityService.getUserActivity(userId)
+			: Promise.resolve([]),
 		userFollowersService.getFollowerCount(userId),
 		userFollowersService.getFollowingCount(userId),
 		currentUser
@@ -56,15 +66,24 @@ export async function getUserByUsername(request: Request, response: Response) {
 			: Promise.resolve(false)
 	]);
 
+	const listsWithFollowers = await Promise.all(
+		lists.map(async list => {
+			const count = await listsService.getFollowerCount(list.id);
+			return { ...listSummarySerializer(list), followerCount: count };
+		})
+	);
+
 	const data = {
 		user: userProfileSerializer(user.get({ plain: true })),
 		followerCount,
 		followingCount,
 		isFollowing,
 		backlogs: backlogs.map(backlogSerializer),
-		lists: lists.map(listSummarySerializer),
+		lists: listsWithFollowers,
 		favorites: favorites.map(favoriteSerializer),
-		wishlist: wishlist.map(wishlistSerializer)
+		wishlist: wishlist.map(wishlistSerializer),
+		gameShelf: gameShelf.map(gameShelfMeSerializer),
+		recentActivity: recentActivity.map(activitySerializer)
 	};
 
 	return response.status(200).json({ data });

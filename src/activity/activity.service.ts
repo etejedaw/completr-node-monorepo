@@ -18,6 +18,20 @@ export async function record(
 	});
 }
 
+export async function getUserActivity(userId: string, limit = 10) {
+	return Activity.findAll({
+		where: { userId },
+		include: [
+			{
+				model: Game,
+				attributes: ["id", "title", "code", "backgroundUrl"]
+			}
+		],
+		order: [["createdAt", "DESC"]],
+		limit
+	});
+}
+
 export async function getFeed(userId: string, limit = 30, offset = 0) {
 	const following = await UserFollower.findAll({
 		where: { followerId: userId },
