@@ -1,85 +1,260 @@
 <div class="admin-page">
-	<h1>Create User</h1>
+	<div class="page-header">
+		<div class="page-header-left">
+			<h1>Users</h1>
+			<span class="entry-count">{{ total() }} total</span>
+		</div>
+		<button class="btn-create" (click)="openCreate()">Create User</button>
+	</div>
 
-	<form class="create-form" [formGroup]="form" (ngSubmit)="onSubmit()">
-		<div class="form-row">
-			<div class="form-group">
-				<label for="username">Username *</label>
-				<input
-					id="username"
-					formControlName="username"
-					placeholder="johndoe"
-				/>
-			</div>
-			<div class="form-group">
-				<label for="name">Name *</label>
-				<input
-					id="name"
-					formControlName="name"
-					placeholder="John Doe"
-				/>
-			</div>
+	@if (isLoading()) {
+	<div class="loading">Loading...</div>
+	} @else if (users().length === 0) {
+	<div class="empty">No users found.</div>
+	} @else {
+	<div class="table-wrapper">
+		<table>
+			<thead>
+				<tr>
+					<th>Username</th>
+					<th>Email</th>
+					<th>Name</th>
+					<th>Role</th>
+					<th>Status</th>
+					<th>Created</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (user of users(); track user.id) {
+				<tr class="clickable-row" (click)="openEdit(user)">
+					<td class="col-username">{{ user.username }}</td>
+					<td class="col-email">{{ user.email }}</td>
+					<td>{{ user.name }}</td>
+					<td>
+						<span class="role-badge role-{{ user.role }}"
+							>{{ user.role }}</span
+						>
+					</td>
+					<td>
+						@if (user.isActive) {
+						<span class="status-badge status-active">Active</span>
+						} @else {
+						<span class="status-badge status-inactive"
+							>Inactive</span
+						>
+						}
+					</td>
+					<td class="col-date">
+						{{ user.createdAt | date: "mediumDate" }}
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+
+	@if (total() > limit) {
+	<div class="pagination">
+		<button [disabled]="offset() === 0" (click)="prevPage()">
+			Previous
+		</button>
+		<span class="page-info">
+			{{ offset() + 1 }}&ndash;{{ Math.min(offset() + limit, total()) }}
+			of {{ total() }}
+		</span>
+		<button [disabled]="offset() + limit >= total()" (click)="nextPage()">
+			Next
+		</button>
+	</div>
+	} }
+</div>
+
+<!-- Create Modal -->
+@if (showCreateModal()) {
+<div class="modal-overlay" (click)="closeCreate()">
+	<div class="modal-card" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>Create User</h2>
+			<button class="close-btn" (click)="closeCreate()">&times;</button>
 		</div>
 
-		<div class="form-row">
-			<div class="form-group">
-				<label for="email">Email *</label>
-				<input
-					id="email"
-					formControlName="email"
-					type="email"
-					placeholder="john@example.com"
-				/>
-			</div>
-			<div class="form-group">
-				<label for="password">Password *</label>
-				<input
-					id="password"
-					formControlName="password"
-					type="password"
-					placeholder="Min 8 chars"
-				/>
-			</div>
-		</div>
-
-		@if (errorMessage()) {
-		<div class="message error">{{ errorMessage() }}</div>
-		} @if (successMessage()) {
-		<div class="message success">{{ successMessage() }}</div>
+		@if (createError()) {
+		<div class="error-message">{{ createError() }}</div>
 		}
 
-		<button
-			type="submit"
-			class="btn-submit"
-			[disabled]="form.invalid || isSubmitting()"
-		>
-			{{ isSubmitting() ? "Creating..." : "Create User" }}
-		</button>
-	</form>
+		<form (ngSubmit)="submitCreate()">
+			<div class="form-row">
+				<div class="form-group">
+					<label for="create-username"
+						>Username <span class="required">*</span></label
+					>
+					<input
+						id="create-username"
+						type="text"
+						[ngModel]="createUsername()"
+						(ngModelChange)="createUsername.set($event)"
+						name="username"
+						placeholder="johndoe"
+						required
+						minlength="4"
+						maxlength="15"
+					/>
+				</div>
+				<div class="form-group">
+					<label for="create-name"
+						>Name <span class="required">*</span></label
+					>
+					<input
+						id="create-name"
+						type="text"
+						[ngModel]="createName()"
+						(ngModelChange)="createName.set($event)"
+						name="name"
+						placeholder="John Doe"
+						required
+						minlength="4"
+						maxlength="80"
+					/>
+				</div>
+			</div>
 
-	@if (createdUsers().length > 0) {
-	<div class="created-section">
-		<h2>Created this session</h2>
-		<div class="table-wrapper">
-			<table>
-				<thead>
-					<tr>
-						<th>Username</th>
-						<th>Name</th>
-						<th>Role</th>
-					</tr>
-				</thead>
-				<tbody>
-					@for (user of createdUsers(); track user.id) {
-					<tr>
-						<td>{{ user.username }}</td>
-						<td>{{ user.name }}</td>
-						<td><span class="role-badge">{{ user.role }}</span></td>
-					</tr>
-					}
-				</tbody>
-			</table>
-		</div>
+			<div class="form-row">
+				<div class="form-group">
+					<label for="create-email"
+						>Email <span class="required">*</span></label
+					>
+					<input
+						id="create-email"
+						type="email"
+						[ngModel]="createEmail()"
+						(ngModelChange)="createEmail.set($event)"
+						name="email"
+						placeholder="john@example.com"
+						required
+					/>
+				</div>
+				<div class="form-group">
+					<label for="create-password"
+						>Password <span class="required">*</span></label
+					>
+					<input
+						id="create-password"
+						type="password"
+						[ngModel]="createPassword()"
+						(ngModelChange)="createPassword.set($event)"
+						name="password"
+						placeholder="Min 8 chars"
+						required
+						minlength="8"
+						maxlength="15"
+					/>
+				</div>
+			</div>
+
+			<div class="modal-actions">
+				<button
+					class="btn-primary"
+					type="submit"
+					[disabled]="
+						!createUsername() ||
+						!createEmail() ||
+						!createPassword() ||
+						!createName() ||
+						isCreating()
+					"
+				>
+					{{ isCreating() ? "Creating..." : "Create User" }}
+				</button>
+			</div>
+		</form>
 	</div>
-	}
 </div>
+}
+
+<!-- Edit Modal -->
+@if (showEditModal() && editingUser()) {
+<div class="modal-overlay" (click)="closeEdit()">
+	<div class="modal-card" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h2>Edit User</h2>
+			<button class="close-btn" (click)="closeEdit()">&times;</button>
+		</div>
+
+		<div class="edit-user-info">
+			<span class="edit-username">{{ editingUser()!.username }}</span>
+			<span class="edit-email">{{ editingUser()!.email }}</span>
+		</div>
+
+		@if (editError()) {
+		<div class="error-message">{{ editError() }}</div>
+		}
+
+		<form (ngSubmit)="submitEdit()">
+			<div class="form-group">
+				<label for="edit-name">Name</label>
+				<input
+					id="edit-name"
+					type="text"
+					[ngModel]="editName()"
+					(ngModelChange)="editName.set($event)"
+					name="name"
+					minlength="4"
+					maxlength="80"
+				/>
+			</div>
+
+			<div class="form-row">
+				<div class="form-group">
+					<label for="edit-role">Role</label>
+					<select
+						id="edit-role"
+						[ngModel]="editRole()"
+						(ngModelChange)="editRole.set($event)"
+						name="role"
+					>
+						<option value="user">User</option>
+						<option value="premium">Premium</option>
+						<option value="moderator">Moderator</option>
+						<option value="admin">Admin</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="edit-password">New Password</label>
+					<input
+						id="edit-password"
+						type="password"
+						[ngModel]="editPassword()"
+						(ngModelChange)="editPassword.set($event)"
+						name="password"
+						placeholder="Leave empty to keep current"
+						minlength="8"
+						maxlength="15"
+					/>
+				</div>
+			</div>
+
+			<div class="toggle-group">
+				<label class="toggle-label">
+					<input
+						type="checkbox"
+						[ngModel]="editIsActive()"
+						(ngModelChange)="editIsActive.set($event)"
+						name="isActive"
+					/>
+					<span>{{ editIsActive() ? "Active" : "Inactive" }}</span>
+				</label>
+			</div>
+
+			<div class="modal-actions">
+				<button
+					class="btn-primary"
+					type="submit"
+					[disabled]="isEditing()"
+				>
+					{{ isEditing() ? "Saving..." : "Save Changes" }}
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
+}
