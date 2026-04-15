@@ -2,6 +2,7 @@ import { Routes } from "@angular/router";
 import { authGuard } from "./core/guards/auth.guard";
 import { guestGuard } from "./core/guards/guest.guard";
 import { adminGuard } from "./core/guards/admin.guard";
+import { moderatorGuard } from "./core/guards/moderator.guard";
 
 export const routes: Routes = [
 	{
@@ -142,7 +143,7 @@ export const routes: Routes = [
 			},
 			{
 				path: "admin/games",
-				canActivate: [adminGuard],
+				canActivate: [moderatorGuard],
 				loadComponent: () =>
 					import("./features/admin/admin-games/admin-games").then(
 						m => m.AdminGames
@@ -150,10 +151,18 @@ export const routes: Routes = [
 			},
 			{
 				path: "admin/reports",
-				canActivate: [adminGuard],
+				canActivate: [moderatorGuard],
 				loadComponent: () =>
 					import("./features/admin/admin-reports/admin-reports").then(
 						m => m.AdminReports
+					)
+			},
+			{
+				path: "admin/audit",
+				canActivate: [adminGuard],
+				loadComponent: () =>
+					import("./features/admin/admin-audit/admin-audit").then(
+						m => m.AdminAudit
 					)
 			}
 		]
