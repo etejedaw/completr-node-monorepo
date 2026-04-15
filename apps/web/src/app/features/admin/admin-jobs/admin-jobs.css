@@ -149,3 +149,24 @@ tbody td {
 	background: rgba(239, 68, 68, 0.12);
 	color: var(--status-abandoned);
 }
+
+.status-cancelled {
+	background: rgba(148, 163, 184, 0.12);
+	color: var(--text-muted);
+}
+
+.btn-cancel {
+	padding: 0.25rem 0.5rem;
+	background: transparent;
+	border: 1px solid rgba(239, 68, 68, 0.3);
+	border-radius: var(--radius);
+	color: var(--status-abandoned);
+	font-size: 0.75rem;
+	font-family: inherit;
+	cursor: pointer;
+	transition: all var(--transition);
+}
+
+.btn-cancel:hover {
+	background: rgba(239, 68, 68, 0.1);
+}

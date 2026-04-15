@@ -47,6 +47,7 @@
 					<th>Result</th>
 					<th>Started</th>
 					<th>Completed</th>
+					<th></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -66,6 +67,13 @@
 					<td>
 						{{ job.completedAt ? (job.completedAt | date :
 						"yyyy-MM-dd HH:mm") : "-" }}
+					</td>
+					<td>
+						@if (job.status === 'running') {
+						<button class="btn-cancel" (click)="cancelJob(job.id)">
+							Cancel
+						</button>
+						}
 					</td>
 				</tr>
 				}

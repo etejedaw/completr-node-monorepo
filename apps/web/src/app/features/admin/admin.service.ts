@@ -134,6 +134,10 @@ export class AdminService {
 			}>(`${environment.apiUrl}/admin/jobs/calculate-durations`, {})
 			.pipe(map(res => res.data.job));
 	}
+
+	cancelJob(jobId: string) {
+		return this.http.delete(`${environment.apiUrl}/admin/jobs/${jobId}`);
+	}
 }
 
 export interface AdminUser {

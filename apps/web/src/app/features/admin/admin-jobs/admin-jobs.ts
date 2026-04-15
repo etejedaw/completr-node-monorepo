@@ -50,6 +50,10 @@ export class AdminJobs implements OnInit {
 		});
 	}
 
+	cancelJob(jobId: string) {
+		this.adminService.cancelJob(jobId).subscribe(() => this.loadJobs());
+	}
+
 	refresh() {
 		this.loadJobs();
 	}
