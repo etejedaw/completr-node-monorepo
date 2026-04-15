@@ -442,7 +442,7 @@
 - [ ] Game Shelf: quitar estilo de link en los títulos de juegos (mismo color que el resto de tablas)
 - [x] Backlog: paginación de 50 entries (endpoints públicos, schema compartido PaginationQuerySchema)
 - [ ] Games Browse: aumentar tamaño de la barra de búsqueda (como en Feed)
-- [ ] Perfil propio (/profile) debe verse igual que el perfil público (/user/:username), con la sección de Privacy adicional
+- [x] Perfil propio (/profile) unificado con perfil público: mismas secciones (backlog, game shelf, listas, favorites, wishlist, activity) + Privacy + Edit Profile. Self-view muestra toda la data sin restricciones de privacidad
 - [ ] Vista grid: aumentar tamaño de las imágenes
 - [ ] Listas y Wishlist: opción para cambiar entre vista tabla y vista grid
 
