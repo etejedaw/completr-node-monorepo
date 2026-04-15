@@ -381,6 +381,34 @@
 - [x] Vista en frontend: `/admin/users`, `/admin/games` (con columna de reportes), `/admin/reports`
 - [x] Sección Admin en sidebar (visible solo para admin) con guard
 
+### Sistema social
+
+- [ ] `POST /users/:username/follow` — Seguir a un usuario
+- [ ] `DELETE /users/:username/follow` — Dejar de seguir
+- [ ] `GET /users/:username/followers` — Ver seguidores
+- [ ] `GET /users/:username/following` — Ver a quién sigo
+- [ ] Feed de actividad pública: "X completó Y", "X añadió Y a su backlog"
+- [ ] `GET /feed` — Endpoint de actividad de usuarios seguidos
+
+### Listas públicas — funcionalidades sociales
+
+- [ ] `GET /lists/:id/followers` — Ver seguidores de una lista (cantidad y usuarios)
+- [ ] `GET /lists/following` — Ver las listas públicas que sigo
+- [ ] `PATCH /lists/:id/follow` — Cambiar visibilidad del seguimiento (`is_visible: true/false`)
+- [ ] Al ver una lista seguida, mostrar el progreso personal del usuario
+
+### Búsqueda de usuarios y listas
+
+- [ ] Búsqueda de usuarios por username
+- [ ] Búsqueda de listas por nombre
+- [ ] Frontend: barra de búsqueda global o por sección
+
+### Perfil público de otro usuario (frontend)
+
+- [ ] Vista `/users/:username` con backlogs, listas, favoritos, wishlist (máx 5 items + "ver más")
+- [ ] Contador de seguidores/siguiendo en perfil
+- [ ] Botón follow/unfollow en perfil
+
 ### Dominio completr.app
 
 - [ ] Configurar DNS de `completr.app`: `web.completr.app` → app frontend, `api.completr.app` → backend, `completr.app` → landing page
@@ -406,15 +434,6 @@
 - [ ] Reemplazar `sequelize.sync()` por migraciones (`sequelize-cli` o `umzug`)
 - [ ] Crear migraciones iniciales para todos los modelos existentes
 
-### Sistema social
-
-- [ ] `POST /users/:username/follow` — Seguir a un usuario
-- [ ] `DELETE /users/:username/follow` — Dejar de seguir
-- [ ] `GET /users/:username/followers` — Ver seguidores
-- [ ] `GET /users/:username/following` — Ver a quién sigo
-- [ ] Feed de actividad pública: "X completó Y", "X añadió Y a su backlog"
-- [ ] `GET /feed` — Endpoint de actividad de usuarios seguidos
-
 ### Listas oficiales de Completr
 
 - [ ] Identificar listas oficiales por el rol del creador (admin) — no requiere campo extra en el modelo
@@ -423,21 +442,10 @@
 - [ ] Frontend: destacar listas oficiales en games-browse (sección "Completr Lists")
 - [ ] Frontend: en list-detail, mostrar badge "Official" junto al nombre si es oficial
 
-### Listas públicas — funcionalidades sociales
-
-- [ ] `GET /lists/:id/followers` — Ver seguidores de una lista (cantidad y usuarios)
-- [ ] `GET /lists/following` — Ver las listas públicas que sigo
-- [ ] `PATCH /lists/:id/follow` — Cambiar visibilidad del seguimiento (`is_visible: true/false`)
-- [ ] Listas públicas del usuario visibles en su perfil
-- [ ] Al ver una lista seguida, mostrar el progreso personal del usuario:
-    - Cuántos juegos de la lista ha completado: "18/30 completados"
-    - Cuáles faltan por completar
-    - Para cada juego: su `Backlog` (completado, no iniciado, etc.) y `play_count`
-
 ### Social — Ver actividad de amigos
 
-- [ ] `GET /lists/:id/progress/:username` — Ver el progreso de un amigo en una lista específica (ej: ver qué juegos de "Resident Evil" ha completado mi amigo, incluyendo cuántas veces completó cada uno)
-- [ ] `GET /users/:username/games?game_id=:id` — Ver si un amigo ha jugado un juego específico (para sugerirle "completémoslo juntos")
+- [ ] `GET /lists/:id/progress/:username` — Ver el progreso de un amigo en una lista específica
+- [ ] `GET /users/:username/games?game_id=:id` — Ver si un amigo ha jugado un juego específico
 
 ### Privacidad
 
@@ -449,7 +457,6 @@
 
 - [ ] Filtros combinados: género, plataforma, estado, ratio mínimo/máximo, duración
 - [ ] Ordenamiento dinámico: rating, duración, ratio, popularidad (nº de usuarios que lo tienen)
-- [ ] Búsqueda por texto con debounce en el frontend
 
 ### Landing page
 
