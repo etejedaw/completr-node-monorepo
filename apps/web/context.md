@@ -376,3 +376,19 @@ export const authGuard: CanActivateFn = () => {
 
 - Backlog modal: botón "Add to Shelf" (solo en creación) que añade el juego al game-shelf con la misma plataforma seleccionada
 - Game Detail: action buttons (Backlog, Wishlist, Shelf) muestran estado activo (cyan) cuando el juego ya está en cada colección del usuario
+- Refresh token: AuthService guarda access_token + refresh_token, errorInterceptor intenta refresh antes de logout, logout invalida token en backend
+- Admin panel: `/admin/users` (crear usuarios), `/admin/games` (tabla con búsqueda y reportes), `/admin/reports` (approve/reject con filtro por juego)
+- AdminGuard + sección Admin en sidebar solo para admin
+- Report issue: botón en game detail con modal y confirmación visual
+- Empty states descriptivos en todas las vistas principales
+- Estilos globales reutilizables: modal-overlay, btn-submit, btn-ghost, empty states
+- CSS budget aumentado a 12kB por componente
+- Feed page como ruta default (/feed): búsqueda global (usuarios, juegos local-only, listas) + activity feed con targets
+- Perfil público: /user/:username (fuera del layout, standalone). Secciones: backlog, game shelf, lists (con followerCount), following lists, favorites, wishlist, recent activity. Follow/unfollow, restaura sesión al refrescar
+- List detail: ownership check (oculta edición en listas ajenas), botón Follow/Unfollow
+- Lists page: buscador de listas públicas
+- Games browse: lee query param `q` del feed search
+- Activity feed: targets tipados (game/list/user), botón X para borrar actividad propia
+- Vistas completas de otro usuario: /user/:username/backlog (status tabs, búsqueda local, paginación 50), /favorites (grid, paginación), /wishlist (tabla, paginación), /game-shelf (tabla, búsqueda local, paginación). Todas standalone con top bar y back link
+- Links "View All" clickeables en el perfil público (backlog, game-shelf, favorites, wishlist → navegan a las vistas completas)
+- PublicProfileService: métodos paginados para todas las colecciones + nuevo getUserFollowingLists
