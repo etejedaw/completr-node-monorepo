@@ -17,3 +17,20 @@ export function reviewSerializer(review: Review) {
 		updatedAt: review.updatedAt
 	};
 }
+
+export function userReviewSerializer(review: Review) {
+	return {
+		id: review.id,
+		content: review.content,
+		rating: review.rating,
+		game: review.Game
+			? {
+					id: review.Game.id,
+					code: review.Game.code,
+					title: review.Game.title
+				}
+			: null,
+		createdAt: review.createdAt,
+		updatedAt: review.updatedAt
+	};
+}

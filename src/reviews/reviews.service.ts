@@ -30,6 +30,14 @@ export async function findReviewsByGameId(gameId: string) {
 	});
 }
 
+export async function findReviewsByUserId(userId: string) {
+	return Review.findAll({
+		where: { userId },
+		include: [{ model: Game }],
+		order: [["createdAt", "DESC"]]
+	});
+}
+
 export async function findReviewByUserAndGame(userId: string, gameId: string) {
 	return Review.findOne({ where: { userId, gameId } });
 }

@@ -161,4 +161,13 @@ router.get(
 	usersController.getUserFollowingLists
 );
 
+router.get(
+	"/users/:username/reviews",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(UsernameParamSchema, "params")
+	],
+	usersController.getUserReviews
+);
+
 export default router;

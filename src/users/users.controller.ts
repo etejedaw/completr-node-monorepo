@@ -26,6 +26,8 @@ import { UserIdParam } from "./schemas/user-id-params.schema";
 import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import * as passwordService from "../auth/services/password.service";
 import * as auditService from "../audit/audit.service";
+import * as reviewsService from "../reviews/reviews.service";
+import { userReviewSerializer } from "../reviews/reviews.serializer";
 import * as userDomain from "./errors/users.domain-error";
 
 // TODO: Mejorar escritura de código
@@ -182,6 +184,20 @@ export async function getUserFollowingLists(
 		.map(f => listSummarySerializer(f.List));
 
 	const data = { followingLists, total };
+	return response.status(200).json({ data });
+}
+
+export async function getUserReviews(request: Request, response: Response) {
+	const params = request.locals.params as UsernameParam;
+
+	const user = await usersService.findUserByUsername(params.username);
+	if (!user) throw userDomain.userNotFound();
+	if (!user.isPublic) throw userDomain.userPrivate();
+
+	const reviews = await reviewsService.findReviewsByUserId(user.id);
+	const reviewsPlain = reviews.map(r => r.get({ plain: true }));
+
+	const data = { reviews: reviewsPlain.map(userReviewSerializer) };
 	return response.status(200).json({ data });
 }
 
