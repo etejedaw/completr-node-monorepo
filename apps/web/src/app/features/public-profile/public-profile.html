@@ -1,0 +1,148 @@
+<div class="public-profile-page">
+	<div class="top-bar">
+		<a routerLink="/" class="brand">
+			<span class="brand-icon">C</span>
+			<span class="brand-name">Completr</span>
+		</a>
+		@if (!isLoggedIn()) {
+		<a routerLink="/login" class="btn-login">Sign in</a>
+		}
+	</div>
+
+	@if (isLoading()) {
+	<div class="state-message">Loading...</div>
+	} @else if (notFound()) {
+	<div class="state-message">User not found.</div>
+	} @else if (isPrivate()) {
+	<div class="private-profile">
+		<div class="private-avatar">
+			<span class="material-icons">lock</span>
+		</div>
+		<h2>@{{ username() }}</h2>
+		<p>This profile is private.</p>
+		@if (!isLoggedIn()) {
+		<a routerLink="/login" class="btn-cta">Sign in to follow this user</a>
+		}
+	</div>
+	} @else if (profile()) {
+	<div class="profile-content">
+		<div class="profile-header">
+			<div class="avatar-section">
+				@if (profile()!.user.avatarUrl) {
+				<img
+					class="avatar"
+					[src]="profile()!.user.avatarUrl"
+					[alt]="profile()!.user.username"
+				/>
+				} @else {
+				<div class="avatar-placeholder">
+					{{ profile()!.user.username.charAt(0).toUpperCase() }}
+				</div>
+				}
+			</div>
+			<div class="header-info">
+				<div class="header-top">
+					<h1>
+						{{ profile()!.user.name || profile()!.user.username }}
+					</h1>
+					@if (isLoggedIn()) {
+					<button
+						class="btn-follow"
+						[class.following]="profile()!.isFollowing"
+						[disabled]="togglingFollow()"
+						(click)="toggleFollow()"
+					>
+						{{ profile()!.isFollowing ? 'Following' : 'Follow' }}
+					</button>
+					}
+				</div>
+				<span class="username">@{{ profile()!.user.username }}</span>
+				@if (profile()!.user.bio) {
+				<p class="bio">{{ profile()!.user.bio }}</p>
+				}
+				<div class="header-meta">
+					<span class="meta-item">
+						<strong>{{ profile()!.followerCount }}</strong>
+						followers
+					</span>
+					<span class="meta-item">
+						<strong>{{ profile()!.followingCount }}</strong>
+						following
+					</span>
+					<span class="meta-item">
+						<span class="material-icons meta-icon"
+							>calendar_today</span
+						>
+						Member since {{ memberSince }}
+					</span>
+				</div>
+			</div>
+		</div>
+
+		@if (profile()!.backlogs.length > 0) {
+		<div class="section">
+			<h2>Recent Backlog</h2>
+			<div class="game-grid">
+				@for (b of profile()!.backlogs.slice(0, 5); track b.id) {
+				<a class="game-card" [routerLink]="['/games', b.game.code]">
+					@if (b.game.backgroundUrl) {
+					<img
+						[src]="b.game.backgroundUrl"
+						[alt]="b.game.title"
+						class="game-cover"
+					/>
+					} @else {
+					<div class="game-cover-placeholder"></div>
+					}
+					<span class="game-card-title">{{ b.game.title }}</span>
+					<span class="game-card-status status-{{ b.status }}"
+						>{{ b.status.replace('_', ' ') }}</span
+					>
+				</a>
+				}
+			</div>
+		</div>
+		} @if (profile()!.lists.length > 0) {
+		<div class="section">
+			<h2>Public Lists</h2>
+			<div class="lists-grid">
+				@for (l of profile()!.lists.slice(0, 5); track l.id) {
+				<a class="list-card" [routerLink]="['/lists', l.id]">
+					<span class="list-name">{{ l.name }}</span>
+					@if (l.description) {
+					<span class="list-desc">{{ l.description }}</span>
+					}
+				</a>
+				}
+			</div>
+		</div>
+		} @if (profile()!.user.isFavoritePublic && profile()!.favorites.length >
+		0) {
+		<div class="section">
+			<h2>Favorites</h2>
+			<div class="game-grid">
+				@for (f of profile()!.favorites.slice(0, 5); track f.id) {
+				<a class="game-card" [routerLink]="['/games', f.game.code]">
+					@if (f.game.backgroundUrl) {
+					<img
+						[src]="f.game.backgroundUrl"
+						[alt]="f.game.title"
+						class="game-cover"
+					/>
+					} @else {
+					<div class="game-cover-placeholder"></div>
+					}
+					<span class="game-card-title">{{ f.game.title }}</span>
+				</a>
+				}
+			</div>
+		</div>
+		} @if (!isLoggedIn()) {
+		<div class="cta-section">
+			<p>Want to track your own games?</p>
+			<a routerLink="/login" class="btn-cta">Sign in to Completr</a>
+		</div>
+		}
+	</div>
+	}
+</div>

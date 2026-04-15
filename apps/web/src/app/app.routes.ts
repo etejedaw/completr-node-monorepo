@@ -118,5 +118,12 @@ export const routes: Routes = [
 			}
 		]
 	},
+	{
+		path: "@:username",
+		loadComponent: () =>
+			import("./features/public-profile/public-profile").then(
+				m => m.PublicProfileComponent
+			)
+	},
 	{ path: "**", redirectTo: "" }
 ];
