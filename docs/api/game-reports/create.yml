@@ -1,0 +1,74 @@
+info:
+    name: Create Game Report
+    type: http
+    seq: 1
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/games/:id/reports"
+    headers:
+        - name: Content-Type
+          value: application/json
+    params:
+        - name: id
+          value: "{{GAME_ID}}"
+          type: path
+    body:
+        type: json
+        data: |-
+            {
+              "message": "The Metacritic score seems incorrect, it shows 91 not 90"
+            }
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Create Game Report
+
+    Reports an issue with a game's data. One active report per user per game.
+
+    **Auth:** Bearer token (any authenticated user).
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | id    | uuid | Yes      | Game ID     |
+
+    ### Request Body
+
+    | Field   | Type   | Required | Description          |
+    |---------|--------|----------|----------------------|
+    | message | string | Yes      | 10-1000 characters   |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "report": {
+          "id": "uuid",
+          "gameId": "uuid",
+          "userId": "uuid",
+          "message": "The score seems incorrect",
+          "status": "pending",
+          "createdAt": "2026-01-01T00:00:00.000Z",
+          "updatedAt": "2026-01-01T00:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code                        | Description                          |
+    |--------|-----------------------------|--------------------------------------|
+    | 404    | GAME_REPORT_GAME_NOT_FOUND  | Game does not exist                  |
+    | 409    | GAME_REPORT_ALREADY_REPORTED| User already has a report for this game |

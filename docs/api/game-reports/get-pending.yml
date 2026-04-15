@@ -1,0 +1,46 @@
+info:
+    name: Get Pending Reports
+    type: http
+    seq: 2
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/admin/game-reports"
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Get Pending Reports
+
+    Lists all game reports with status "pending". Includes game and user info.
+
+    **Auth:** Bearer token (admin only).
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "reports": [
+          {
+            "id": "uuid",
+            "gameId": "uuid",
+            "userId": "uuid",
+            "message": "The score seems incorrect",
+            "status": "pending",
+            "createdAt": "2026-01-01T00:00:00.000Z",
+            "updatedAt": "2026-01-01T00:00:00.000Z",
+            "Game": { "id": "uuid", "title": "Fez", "code": "fez" },
+            "User": { "id": "uuid", "username": "johndoe" }
+          }
+        ]
+      }
+    }
+    ```

@@ -1,0 +1,73 @@
+info:
+    name: Update Report Status
+    type: http
+    seq: 3
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/admin/game-reports/:reportId"
+    headers:
+        - name: Content-Type
+          value: application/json
+    params:
+        - name: reportId
+          value: "{{REPORT_ID}}"
+          type: path
+    body:
+        type: json
+        data: |-
+            {
+              "status": "approved"
+            }
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Update Report Status
+
+    Changes a report's status to approved or rejected.
+
+    **Auth:** Bearer token (admin only).
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param    | Type | Required | Description |
+    |----------|------|----------|-------------|
+    | reportId | uuid | Yes      | Report ID   |
+
+    ### Request Body
+
+    | Field  | Type   | Required | Description                |
+    |--------|--------|----------|----------------------------|
+    | status | string | Yes      | "approved" or "rejected"   |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "report": {
+          "id": "uuid",
+          "gameId": "uuid",
+          "userId": "uuid",
+          "message": "The score seems incorrect",
+          "status": "approved",
+          "createdAt": "2026-01-01T00:00:00.000Z",
+          "updatedAt": "2026-01-01T00:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code                     | Description        |
+    |--------|--------------------------|--------------------|
+    | 404    | GAME_REPORT_NOT_FOUND    | Report not found   |
