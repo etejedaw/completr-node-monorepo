@@ -342,8 +342,8 @@
 - [x] Admin editor en game-detail: fetch RAWG por slug, editar todos los campos (título, descripción, plataformas, géneros, scores, times, DLC con parent game), guardar con externalIds
 - [x] Admin editor en games-browse: crear juegos vacíos o desde RAWG, misma interfaz que editar
 - [x] Exponer `GameExternal` en el serializer de Game para links externos (RAWG, Steam, Metacritic)
-- [ ] Poblar `GameExternal` para los juegos originales (bulk update con RAWG IDs)
-- [ ] Links externos en ficha del juego: RAWG (via slug fallback), Steam y Metacritic (via external IDs)
+- [x] Poblar `GameExternal`: Job async (POST /admin/jobs/populate-rawg) que itera juegos sin RAWG ID y busca via slug. GET /admin/jobs para ver estado
+- [x] Links externos en ficha del juego: RAWG (via slug), Steam y Metacritic (via externalLinks del serializer)
 
 ### Perfil público
 
