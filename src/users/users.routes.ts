@@ -20,6 +20,7 @@ import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
 import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 import { UserIdParamSchema } from "./schemas/user-id-params.schema";
 import { AdminUpdateUserSchema } from "./schemas/admin-update-user.schema";
+import { UsernameListParamsSchema } from "./schemas/username-list-params.schema";
 import savedFiltersRouter from "../saved-filters/saved-filters.routes";
 import wishlistRouter from "../wishlist/wishlist.routes";
 import * as wishlistController from "../wishlist/wishlist.controller";
@@ -168,6 +169,15 @@ router.get(
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	usersController.getUserReviews
+);
+
+router.get(
+	"/users/:username/lists/:listId",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(UsernameListParamsSchema, "params")
+	],
+	usersController.getUserListDetail
 );
 
 export default router;

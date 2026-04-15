@@ -12,7 +12,10 @@ import * as userFollowersService from "../user-followers/user-followers.service"
 import * as listFollowersService from "../list-followers/list-followers.service";
 import { userMeSerializer, userProfileSerializer } from "./users.serializer";
 import { backlogSerializer } from "../backlog/backlog.serializer";
-import { listSummarySerializer } from "../lists/lists.serializer";
+import {
+	listSummarySerializer,
+	listSerializer
+} from "../lists/lists.serializer";
 import { favoriteSerializer } from "../favorites/favorites.serializer";
 import { wishlistSerializer } from "../wishlist/wishlist.serializer";
 import { gameShelfMeSerializer } from "../game-shelf/serializers/game-shelf-me.serializer";
@@ -92,9 +95,28 @@ export async function getUserByUsername(request: Request, response: Response) {
 
 	const listsWithFollowers = await Promise.all(
 		lists.map(async list => {
-			const count = await listsService.getFollowerCount(list.id);
-			return { ...listSummarySerializer(list), followerCount: count };
+			const [count, progress] = await Promise.all([
+				listsService.getFollowerCount(list.id),
+				listsService.getListProgress(list.id, userId)
+			]);
+			return {
+				...listSummarySerializer(list),
+				followerCount: count,
+				progress
+			};
 		})
+	);
+
+	const followingListsWithProgress = await Promise.all(
+		followingLists
+			.filter(f => f.isVisible)
+			.map(async f => {
+				const progress = await listsService.getListProgress(
+					f.listId,
+					userId
+				);
+				return { ...listSummarySerializer(f.List), progress };
+			})
 	);
 
 	const data = {
@@ -107,9 +129,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 		favorites: favorites.map(favoriteSerializer),
 		wishlist: wishlist.map(wishlistSerializer),
 		gameShelf: gameShelf.map(gameShelfMeSerializer),
-		followingLists: followingLists
-			.filter(f => f.isVisible)
-			.map(f => listSummarySerializer(f.List)),
+		followingLists: followingListsWithProgress,
 		recentActivity: recentActivity.map(activitySerializer)
 	};
 
@@ -184,6 +204,41 @@ export async function getUserFollowingLists(
 		.map(f => listSummarySerializer(f.List));
 
 	const data = { followingLists, total };
+	return response.status(200).json({ data });
+}
+
+export async function getUserListDetail(request: Request, response: Response) {
+	const params = request.locals.params as UsernameParam & { listId: string };
+
+	const user = await usersService.findUserByUsername(params.username);
+	if (!user) throw userDomain.userNotFound();
+	if (!user.isPublic) throw userDomain.userPrivate();
+
+	const list = await listsService.findListById(params.listId);
+	if (!list) throw userDomain.userNotFound();
+	if (!list.isPublic) throw userDomain.userNotFound();
+
+	const listPlain = list.get({ plain: true });
+	const [followerCount, backlogStatusMap, progress] = await Promise.all([
+		listsService.getFollowerCount(params.listId),
+		listsService.getBacklogStatusMap(
+			(list.ListItems ?? []).map(i => i.gameId),
+			user.id
+		),
+		listsService.getListProgress(params.listId, user.id)
+	]);
+
+	const data = {
+		list: listSerializer(listPlain, {
+			followerCount,
+			backlogStatusMap,
+			progress
+		}),
+		profileUser: {
+			username: user.username,
+			name: user.name
+		}
+	};
 	return response.status(200).json({ data });
 }
 
