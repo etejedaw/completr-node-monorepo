@@ -116,17 +116,29 @@ export async function deleteGame(request: Request, response: Response) {
 
 export async function getGameLists(request: Request, response: Response) {
 	const params = request.locals.params as GameIdParam;
+	const user = request.locals.user as RequestUser;
 
 	const lists = await listsService.findPublicListsByGameId(params.id);
 
 	const data = {
-		lists: lists.map(list => ({
-			id: list.id,
-			name: list.name,
-			description: list.description,
-			isOfficial: list.User?.role === "admin",
-			owner: list.User ? { username: list.User.username } : null
-		}))
+		lists: await Promise.all(
+			lists.map(async list => {
+				const progress = await listsService.getListProgress(
+					list.id,
+					user.id
+				);
+				return {
+					id: list.id,
+					name: list.name,
+					description: list.description,
+					isOfficial: list.User?.role === "admin",
+					owner: list.User ? { username: list.User.username } : null,
+					completed:
+						progress.total > 0 &&
+						progress.completed === progress.total
+				};
+			})
+		)
 	};
 
 	data.lists.sort((a, b) => {
