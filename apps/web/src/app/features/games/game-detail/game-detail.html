@@ -375,7 +375,11 @@
 					Official
 				</span>
 				}
-				<span class="featured-list-name">{{ list.name }}</span>
+				<span class="featured-list-name">
+					{{ list.name }} @if (list.completed) {
+					<span class="trophy-icon material-icons">emoji_events</span>
+					}
+				</span>
 				@if (list.description) {
 				<span class="featured-list-desc">{{ list.description }}</span>
 				} @if (list.owner) {

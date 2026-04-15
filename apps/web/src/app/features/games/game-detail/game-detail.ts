@@ -93,6 +93,7 @@ export class GameDetail implements OnInit {
 			name: string;
 			description?: string;
 			isOfficial: boolean;
+			completed: boolean;
 			owner: { username: string } | null;
 		}[]
 	>([]);

@@ -662,12 +662,20 @@
 }
 
 .featured-list-name {
+	display: flex;
+	align-items: center;
+	gap: 0.375rem;
 	font-size: 0.8125rem;
 	font-weight: 600;
 	color: var(--text-primary);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+.trophy-icon {
+	font-size: 0.875rem;
+	color: var(--status-playing);
 }
 
 .featured-list-desc {
