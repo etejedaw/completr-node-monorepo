@@ -68,6 +68,7 @@ export async function findGameByCode(code: string) {
 			{ association: "Genres" },
 			{ association: "GameScores" },
 			{ association: "GameTimes" },
+			{ association: "GameExternals" },
 			{
 				association: "Dlcs",
 				where: { isActive: true },

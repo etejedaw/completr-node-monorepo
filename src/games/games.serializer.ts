@@ -1,3 +1,4 @@
+import { GameExternal } from "../game-external/game-external.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
 import { Genre } from "../genres/genres.model";
@@ -22,7 +23,8 @@ export function gameSerializer(game: Game) {
 		scores: game.GameScores?.map(scoreSerializer) ?? [],
 		times: game.GameTimes?.map(timeSerializer) ?? [],
 		dlcs: game.Dlcs?.map(dlcSerializer) ?? [],
-		parentGame: parentGameSerializer(game.ParentGame)
+		parentGame: parentGameSerializer(game.ParentGame),
+		externalLinks: game.GameExternals?.map(externalSerializer) ?? []
 	};
 }
 
@@ -80,5 +82,12 @@ function timeSerializer(gameTime: GameTime) {
 	return {
 		source: gameTime.source,
 		duration: gameTime.duration
+	};
+}
+
+function externalSerializer(external: GameExternal) {
+	return {
+		source: external.source,
+		externalId: external.externalId
 	};
 }

@@ -4,6 +4,7 @@ import { Platform } from "../platforms/platform.model";
 import { Genre } from "../genres/genres.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
+import { GameExternal } from "../game-external/game-external.model";
 
 class Game extends Model {
 	declare id: string;
@@ -22,6 +23,7 @@ class Game extends Model {
 	declare Genres: Genre[];
 	declare GameScores: GameScore[];
 	declare GameTimes: GameTime[];
+	declare GameExternals: GameExternal[];
 	declare Dlcs: Game[];
 	declare ParentGame: Game | null;
 }
