@@ -17,6 +17,7 @@ import gameReportsRouter from "./game-reports/game-reports.routes";
 import userFollowersRouter from "./user-followers/user-followers.routes";
 import activityRouter from "./activity/activity.routes";
 import auditRouter from "./audit/audit.routes";
+import jobsRouter from "./jobs/jobs.routes";
 import { corsConfig } from "./common/config/cors.config";
 import { errorHandlerMiddleware } from "./common/middlewares/error-handler.middleware";
 import { correlationIdMiddleware } from "./common/middlewares/correlation-id.middleware";
@@ -49,6 +50,7 @@ export function server(port: number) {
 	app.use(userFollowersRouter);
 	app.use(activityRouter);
 	app.use(auditRouter);
+	app.use(jobsRouter);
 	app.use(errorHandlerMiddleware);
 
 	app.listen(port, () => console.log(`Server running on port ${port}`));
