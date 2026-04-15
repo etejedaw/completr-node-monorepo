@@ -18,4 +18,16 @@ router.post(
 	jobsController.postPopulateRawg
 );
 
+router.post(
+	"/admin/jobs/calculate-ratings",
+	[rateLimiterMiddleware(userLimiter), authMiddleware("admin")],
+	jobsController.postCalculateRatings
+);
+
+router.post(
+	"/admin/jobs/calculate-durations",
+	[rateLimiterMiddleware(userLimiter), authMiddleware("admin")],
+	jobsController.postCalculateDurations
+);
+
 export default router;

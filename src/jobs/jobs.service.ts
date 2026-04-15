@@ -1,7 +1,12 @@
 import { Op } from "sequelize";
+import { sequelize } from "../database/sequelize.database";
 import { Job } from "./job.model";
 import { Game } from "../games/game.model";
 import { GameExternal } from "../game-external/game-external.model";
+import { GameScore } from "../game-scores/game-score.model";
+import { GameTime } from "../game-times/game-time.model";
+import { Review } from "../reviews/review.model";
+import { Backlog } from "../backlog/backlog.model";
 import { RawgProvider } from "../rawg/rawg.provider";
 import { apiKeysConfig } from "../common/config/api-keys.config";
 
@@ -9,21 +14,41 @@ export async function findAll() {
 	return Job.findAll({ order: [["createdAt", "DESC"]], limit: 20 });
 }
 
-export async function startPopulateRawg() {
+async function startJob(
+	type: string,
+	runner: (jobId: string) => Promise<void>
+) {
 	const existing = await Job.findOne({
-		where: {
-			type: "populate_rawg",
-			status: { [Op.in]: ["pending", "running"] }
-		}
+		where: { type, status: { [Op.in]: ["pending", "running"] } }
 	});
 	if (existing) return existing;
 
-	const job = await Job.create({ type: "populate_rawg", status: "running" });
-	runPopulateRawg(job.id).catch(Function.prototype as () => void);
+	const job = await Job.create({ type, status: "running" });
+	runner(job.id).catch(Function.prototype as () => void);
 	return job;
 }
 
-async function runPopulateRawg(jobId: string) {
+async function completeJob(jobId: string, result: string) {
+	await Job.update(
+		{ status: "completed", result, completedAt: new Date() },
+		{ where: { id: jobId } }
+	);
+}
+
+async function failJob(jobId: string, result: string) {
+	await Job.update(
+		{ status: "failed", result, completedAt: new Date() },
+		{ where: { id: jobId } }
+	);
+}
+
+// --- Populate RAWG IDs ---
+
+export async function startPopulateRawg(limit?: number) {
+	return startJob("populate_rawg", jobId => runPopulateRawg(jobId, limit));
+}
+
+async function runPopulateRawg(jobId: string, limit?: number) {
 	const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
 	let processed = 0;
 	let errors = 0;
@@ -40,7 +65,8 @@ async function runPopulateRawg(jobId: string) {
 			attributes: ["id", "code"]
 		});
 
-		const toProcess = allGames.filter(g => !hasRawg.has(g.id));
+		let toProcess = allGames.filter(g => !hasRawg.has(g.id));
+		if (limit) toProcess = toProcess.slice(0, limit);
 
 		for (const game of toProcess) {
 			try {
@@ -56,26 +82,92 @@ async function runPopulateRawg(jobId: string) {
 			} catch {
 				errors++;
 			}
-			// Rate limit: ~1 req/sec
 			await new Promise(r => setTimeout(r, 1100));
 		}
 
-		await Job.update(
-			{
-				status: "completed",
-				result: `Processed: ${processed}, Errors: ${errors}, Skipped: ${hasRawg.size}`,
-				completedAt: new Date()
-			},
-			{ where: { id: jobId } }
+		await completeJob(
+			jobId,
+			`Processed: ${processed}, Errors: ${errors}, Skipped: ${hasRawg.size}, Total: ${allGames.length}`
 		);
 	} catch {
-		await Job.update(
-			{
-				status: "failed",
-				result: `Failed after ${processed} processed. Errors: ${errors}`,
-				completedAt: new Date()
-			},
-			{ where: { id: jobId } }
+		await failJob(
+			jobId,
+			`Failed after ${processed} processed. Errors: ${errors}`
 		);
+	}
+}
+
+// --- Calculate Ratings (reviews → GameScore completr) ---
+
+export async function startCalculateRatings() {
+	return startJob("calculate_ratings", runCalculateRatings);
+}
+
+async function runCalculateRatings(jobId: string) {
+	let updated = 0;
+
+	try {
+		const results = (await Review.findAll({
+			attributes: [
+				"gameId",
+				[sequelize.fn("AVG", sequelize.col("rating")), "avgRating"]
+			],
+			where: { rating: { [Op.not]: null } },
+			group: ["gameId"],
+			raw: true
+		})) as unknown as { gameId: string; avgRating: number }[];
+
+		for (const { gameId, avgRating } of results) {
+			const rounded = Math.round(avgRating * 100) / 100;
+			await GameScore.upsert({
+				gameId,
+				source: "completr",
+				score: rounded
+			});
+			updated++;
+		}
+
+		await completeJob(jobId, `Updated: ${updated} games`);
+	} catch {
+		await failJob(jobId, `Failed after ${updated} updated`);
+	}
+}
+
+// --- Calculate Durations (backlog realDuration → GameTime completr) ---
+
+export async function startCalculateDurations() {
+	return startJob("calculate_durations", runCalculateDurations);
+}
+
+async function runCalculateDurations(jobId: string) {
+	let updated = 0;
+
+	try {
+		const results = (await Backlog.findAll({
+			attributes: [
+				"gameId",
+				[
+					sequelize.fn("AVG", sequelize.col("realDuration")),
+					"avgDuration"
+				]
+			],
+			where: { realDuration: { [Op.not]: null, [Op.gt]: 0 } },
+			group: ["gameId"],
+			raw: true
+		})) as unknown as { gameId: string; avgDuration: number }[];
+
+		for (const { gameId, avgDuration } of results) {
+			const rounded = Math.round(avgDuration * 100) / 100;
+			await GameTime.upsert({
+				gameId,
+				source: "completr",
+				duration: rounded
+			});
+			updated++;
+		}
+
+		await completeJob(jobId, `Updated: ${updated} games`);
+	} catch {
+		await failJob(jobId, `Failed after ${updated} updated`);
 	}
 }
