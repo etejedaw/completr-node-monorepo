@@ -1,0 +1,53 @@
+info:
+    name: Update Follow Visibility
+    type: http
+    seq: 5
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/lists/:listId/follow"
+    headers:
+        - name: Content-Type
+          value: application/json
+    params:
+        - name: listId
+          value: "{{LIST_ID}}"
+          type: path
+    body:
+        type: json
+        data: |-
+            {
+              "isVisible": false
+            }
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Update Follow Visibility
+
+    Toggle whether this list follow appears on your public profile.
+
+    **Auth:** Bearer token (any authenticated user).
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Request Body
+
+    | Field     | Type    | Required | Description                           |
+    |-----------|---------|----------|---------------------------------------|
+    | isVisible | boolean | Yes      | Show this follow on your public profile |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Code                          | Description    |
+    |--------|-------------------------------|----------------|
+    | 404    | LIST_FOLLOWER_NOT_FOLLOWING    | Not following  |

@@ -1,0 +1,44 @@
+info:
+    name: Get Following Lists
+    type: http
+    seq: 4
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/lists/following"
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Get Following Lists
+
+    Returns lists that the authenticated user is following, with visibility status.
+
+    **Auth:** Bearer token (any authenticated user).
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "lists": [
+          {
+            "id": "uuid",
+            "name": "Resident Evil",
+            "description": "The full saga",
+            "isPublic": true,
+            "scoreSource": "metacritic",
+            "durationSource": "hltb",
+            "isVisible": true
+          }
+        ]
+      }
+    }
+    ```
