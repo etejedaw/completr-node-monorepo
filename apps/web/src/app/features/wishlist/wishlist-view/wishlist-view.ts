@@ -23,6 +23,7 @@ export class WishlistView implements OnInit {
 	protected readonly entries = signal<WishlistEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly showAddModal = signal(false);
+	protected readonly viewMode = signal<"table" | "grid">("table");
 
 	ngOnInit() {
 		this.loadWishlist();

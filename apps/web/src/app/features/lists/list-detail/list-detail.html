@@ -126,6 +126,21 @@
 	@if (list()!.items.length === 0) {
 	<div class="empty">No games in this list yet.</div>
 	} @else {
+	<div class="view-toggle">
+		<button
+			[class.active]="viewMode() === 'table'"
+			(click)="viewMode.set('table')"
+		>
+			<span class="material-icons">view_list</span>
+		</button>
+		<button
+			[class.active]="viewMode() === 'grid'"
+			(click)="viewMode.set('grid')"
+		>
+			<span class="material-icons">grid_view</span>
+		</button>
+	</div>
+	@if (viewMode() === 'table') {
 	<div class="table-wrapper">
 		<table>
 			<thead>
@@ -215,7 +230,24 @@
 			</tbody>
 		</table>
 	</div>
-	}
+	} @if (viewMode() === 'grid') {
+	<div class="game-grid">
+		@for (item of list()!.items; track item.id) {
+		<a class="game-card" [routerLink]="['/games', item.game.code]">
+			@if (item.game.backgroundUrl) {
+			<img
+				[src]="item.game.backgroundUrl"
+				[alt]="item.game.title"
+				class="game-cover"
+			/>
+			} @else {
+			<div class="game-cover-placeholder"></div>
+			}
+			<span class="game-card-title">{{ item.game.title }}</span>
+		</a>
+		}
+	</div>
+	} }
 </div>
 } @if (showEditModal()) {
 <app-list-modal

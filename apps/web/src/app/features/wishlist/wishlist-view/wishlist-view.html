@@ -9,6 +9,21 @@
 		</button>
 	</div>
 
+	<div class="view-toggle">
+		<button
+			[class.active]="viewMode() === 'table'"
+			(click)="viewMode.set('table')"
+		>
+			<span class="material-icons">view_list</span>
+		</button>
+		<button
+			[class.active]="viewMode() === 'grid'"
+			(click)="viewMode.set('grid')"
+		>
+			<span class="material-icons">grid_view</span>
+		</button>
+	</div>
+
 	@if (isLoading()) {
 	<div class="loading">Loading...</div>
 	} @else if (entries().length === 0) {
@@ -19,7 +34,7 @@
 			page or from your backlog.
 		</p>
 	</div>
-	} @else {
+	} @else { @if (viewMode() === 'table') {
 	<div class="table-wrapper">
 		<table>
 			<thead>
@@ -104,7 +119,27 @@
 			</tbody>
 		</table>
 	</div>
-	}
+	} @if (viewMode() === 'grid') {
+	<div class="game-grid">
+		@for (entry of entries(); track entry.id) {
+		<a class="game-card" [routerLink]="['/games', entry.backlog.game.code]">
+			@if (entry.backlog.game.backgroundUrl) {
+			<img
+				[src]="entry.backlog.game.backgroundUrl"
+				[alt]="entry.backlog.game.title"
+				class="game-cover"
+			/>
+			} @else {
+			<div class="game-cover-placeholder"></div>
+			}
+			<span class="game-card-title">{{ entry.backlog.game.title }}</span>
+			<span class="game-card-sub"
+				>{{ entry.backlog.platform?.abbreviation ?? '' }}</span
+			>
+		</a>
+		}
+	</div>
+	} }
 </div>
 
 @if (showAddModal()) {

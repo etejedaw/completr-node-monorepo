@@ -50,6 +50,7 @@ export class ListDetail implements OnInit {
 	protected readonly showBacklogModal = signal(false);
 	protected readonly backlogPreselectedGame = signal<Game | null>(null);
 	protected readonly togglingFollow = signal(false);
+	protected readonly viewMode = signal<"table" | "grid">("table");
 
 	private listId = "";
 
