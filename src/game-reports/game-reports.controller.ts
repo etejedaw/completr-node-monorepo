@@ -37,12 +37,7 @@ export async function patchReportStatus(request: Request, response: Response) {
 		status
 	);
 
-	auditService.record(
-		user.id,
-		`report_${status}`,
-		"report",
-		reportId
-	);
+	auditService.record(user.id, `report_${status}`, "report", reportId);
 
 	return response.status(200).json({ data: { report } });
 }

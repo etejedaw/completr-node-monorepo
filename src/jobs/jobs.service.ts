@@ -11,12 +11,15 @@ export async function findAll() {
 
 export async function startPopulateRawg() {
 	const existing = await Job.findOne({
-		where: { type: "populate_rawg", status: { [Op.in]: ["pending", "running"] } }
+		where: {
+			type: "populate_rawg",
+			status: { [Op.in]: ["pending", "running"] }
+		}
 	});
 	if (existing) return existing;
 
 	const job = await Job.create({ type: "populate_rawg", status: "running" });
-	runPopulateRawg(job.id).catch(() => {});
+	runPopulateRawg(job.id).catch(Function.prototype as () => void);
 	return job;
 }
 

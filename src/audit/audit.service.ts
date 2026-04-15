@@ -7,7 +7,9 @@ export function record(
 	targetType: string,
 	targetId: string
 ) {
-	AuditLog.create({ userId, action, targetType, targetId }).catch(() => {});
+	AuditLog.create({ userId, action, targetType, targetId }).catch(
+		Function.prototype as () => void
+	);
 }
 
 export async function findAll(limit = 50, offset = 0) {

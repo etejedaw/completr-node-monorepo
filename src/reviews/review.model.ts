@@ -9,7 +9,12 @@ class Review extends Model {
 	declare rating: number | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
-	declare User: { id: string; username: string; name: string; avatarUrl: string | null };
+	declare User: {
+		id: string;
+		username: string;
+		name: string;
+		avatarUrl: string | null;
+	};
 	declare Game: { id: string; code: string; title: string };
 }
 

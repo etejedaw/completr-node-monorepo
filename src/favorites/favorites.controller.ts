@@ -50,10 +50,8 @@ export async function getUserFavorites(request: Request, response: Response) {
 	if (!user.isPublic) throw userDomainError.userPrivate();
 	if (!user.isFavoritePublic) throw userDomainError.userPrivate();
 
-	const { rows, total } = await favoritesService.findFavoritesByUserIdPaginated(
-		user.id,
-		query
-	);
+	const { rows, total } =
+		await favoritesService.findFavoritesByUserIdPaginated(user.id, query);
 	const entriesPlain = rows.map(e => e.get({ plain: true }));
 
 	const data = { favorites: entriesPlain.map(favoriteSerializer), total };
