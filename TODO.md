@@ -456,15 +456,15 @@
 
 ### Reseñas de juegos
 
-- [ ] Modelo `Review`: id, userId, gameId, content (TEXT, nullable), rating (FLOAT, nullable), createdAt, updatedAt — Unique `(userId, gameId)`. Un usuario puede reseñar y/o puntuar una vez cada juego
-- [ ] `POST /games/:id/reviews` — Crear reseña (content y/o rating, al menos uno)
-- [ ] `PATCH /games/:id/reviews` — Editar reseña propia
-- [ ] `DELETE /games/:id/reviews` — Eliminar reseña propia
-- [ ] `GET /games/:id/reviews` — Ver reseñas públicas de un juego
-- [ ] Frontend: al cambiar backlog a `completed` o `abandoned`, mostrar modal opcional para escribir reseña y puntuar
-- [ ] Frontend: sección de reseñas en la ficha del juego (game detail)
+- [x] Modelo `Review`: id, userId, gameId, content (TEXT, nullable), rating (FLOAT, nullable), createdAt, updatedAt — Unique `(userId, gameId)`
+- [x] `POST /games/:id/reviews` — Crear reseña (content y/o rating, al menos uno)
+- [x] `PATCH /games/:id/reviews` — Editar reseña propia
+- [x] `DELETE /games/:id/reviews` — Eliminar reseña propia
+- [x] `GET /games/:id/reviews` — Ver reseñas de un juego
+- [x] Frontend: campo de review opcional en backlog modal al completar o abandonar (usa userRating + content)
+- [x] Frontend: sección de reseñas en game detail con crear, editar y eliminar
+- [x] Registrar actividad `game_reviewed` en el feed
 - [ ] Frontend: reseñas visibles en el perfil público del usuario
-- [ ] Registrar actividad `game_reviewed` en el feed
 - [ ] El rating promedio se calculará más adelante con un cron
 
 ### Páginas de error (frontend)
