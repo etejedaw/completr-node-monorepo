@@ -15,6 +15,7 @@ import { wishlistSerializer } from "../wishlist/wishlist.serializer";
 import { UsernameParam } from "./schemas";
 import { UpdateUserDto } from "./dtos";
 import { RegisterDto } from "../auth/dtos";
+import { SearchQuery } from "../common/schemas/search-query.schema";
 import * as userDomain from "./errors/users.domain-error";
 
 // TODO: Mejorar escritura de código
@@ -99,6 +100,23 @@ export async function deleteUser(request: Request, response: Response) {
 
 	await usersService.deactivateUser(id);
 	return response.sendStatus(204);
+}
+
+export async function searchUsers(request: Request, response: Response) {
+	const { query } = request.locals.query as SearchQuery;
+
+	const users = await usersService.searchUsers(query);
+
+	const data = {
+		users: users.map(u => ({
+			id: u.id,
+			username: u.username,
+			name: u.name,
+			avatarUrl: u.avatarUrl,
+			isPublic: u.isPublic
+		}))
+	};
+	return response.status(200).json({ data });
 }
 
 export async function postAdminCreateUser(

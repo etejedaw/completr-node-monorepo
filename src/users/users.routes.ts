@@ -3,6 +3,7 @@ import * as usersController from "./users.controller";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { UpdateUserSchema, UsernameParamSchema } from "./schemas";
 import { RegisterSchema } from "../auth/schemas";
+import { SearchQuerySchema } from "../common/schemas/search-query.schema";
 import { authMiddleware } from "../auth/auth.middleware";
 import { authOptionalMiddleware } from "../auth/auth-optional.middleware";
 import {
@@ -37,6 +38,15 @@ router.get(
 	"/users/me",
 	[rateLimiterMiddleware(userLimiter), authMiddleware()],
 	usersController.getUserMe
+);
+
+router.get(
+	"/users/search",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(SearchQuerySchema, "query")
+	],
+	usersController.searchUsers
 );
 
 router.get(

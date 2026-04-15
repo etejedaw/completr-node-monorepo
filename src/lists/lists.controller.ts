@@ -5,6 +5,7 @@ import { RegisterListDto } from "./dtos/register-list.dto";
 import { UpdateListDto } from "./dtos/update-list.dto";
 import { ListIdParams } from "./schemas/list-id-params.schema";
 import { listSerializer, listSummarySerializer } from "./lists.serializer";
+import { SearchQuery } from "../common/schemas/search-query.schema";
 import * as listDomainError from "./errors/lists.domain-error";
 
 export async function postList(request: Request, response: Response) {
@@ -59,6 +60,16 @@ export async function getListById(request: Request, response: Response) {
 			backlogStatusMap
 		})
 	};
+	return response.status(200).json({ data });
+}
+
+export async function searchLists(request: Request, response: Response) {
+	const { query } = request.locals.query as SearchQuery;
+
+	const lists = await listsService.searchPublicLists(query);
+	const listsPlain = lists.map(list => list.get({ plain: true }));
+
+	const data = { lists: listsPlain.map(listSummarySerializer) };
 	return response.status(200).json({ data });
 }
 

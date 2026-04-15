@@ -1,4 +1,4 @@
-import { UniqueConstraintError, ValidationError } from "sequelize";
+import { Op, UniqueConstraintError, ValidationError } from "sequelize";
 import { CreateUserDto, UpdateUserDto } from "./dtos";
 import { User } from "./user.model";
 import * as usersServiceError from "./errors/users.service-error";
@@ -30,6 +30,18 @@ export async function findUserByUsername(username: string) {
 export async function findUserById(id: string) {
 	return await User.findOne({
 		where: { id, isActive: true }
+	});
+}
+
+export async function searchUsers(query: string, limit = 20) {
+	return User.findAll({
+		where: {
+			username: { [Op.iLike]: `%${query}%` },
+			isActive: true
+		},
+		attributes: ["id", "username", "name", "avatarUrl", "isPublic"],
+		limit,
+		order: [["username", "ASC"]]
 	});
 }
 

@@ -11,6 +11,7 @@ import { RegisterListSchema } from "./schemas/register-list.schema";
 import { UpdateListSchema } from "./schemas/update-list.schema";
 import { ListIdParamsSchema } from "./schemas/list-id-params.schema";
 import { authOptionalMiddleware } from "../auth/auth-optional.middleware";
+import { SearchQuerySchema } from "../common/schemas/search-query.schema";
 
 const router = Router();
 
@@ -31,6 +32,15 @@ router.get(
 		authMiddleware("user", "premium", "moderator", "admin")
 	],
 	listsController.getMeLists
+);
+
+router.get(
+	"/lists/search",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(SearchQuerySchema, "query")
+	],
+	listsController.searchLists
 );
 
 router.get(

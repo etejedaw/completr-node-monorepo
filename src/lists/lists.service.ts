@@ -101,6 +101,17 @@ export async function findPublicListsByUserId(userId: string) {
 	});
 }
 
+export async function searchPublicLists(query: string, limit = 20) {
+	return List.findAll({
+		where: {
+			name: { [Op.iLike]: `%${query}%` },
+			isPublic: true
+		},
+		limit,
+		order: [["name", "ASC"]]
+	});
+}
+
 export async function updateList(
 	id: string,
 	user: RequestUser,
