@@ -243,7 +243,7 @@
 
 - [x] Vistas completas de otro usuario: `/user/:username/backlog` (status tabs + paginación), `/favorites`, `/wishlist`, `/game-shelf` — todas con paginación de 50 items
 - [x] Links "View All" clickeables en perfil público (backlog, game-shelf, favorites, wishlist)
-- [ ] Páginas 404 y 403
+- [x] Páginas 404 y 403
 - [x] Permisos y roles: moderatorGuard, sidebar diferenciada por rol, admin-users reescrito con gestión completa, admin-audit nuevo, rutas actualizadas
 
 ---
@@ -256,14 +256,14 @@
 
 ### Listas oficiales de Completr
 
-- [ ] Badge/insignia visual en cards de listas oficiales
+- [x] Badge "Verified Official" en featured lists del game detail (hecho en Fase 2)
 - [ ] Destacar listas oficiales en games-browse (sección "Completr Lists")
-- [ ] Badge "Official" en list-detail
+- [ ] Badge "Official" en list-detail y list-overview cards
 
 ### Privacidad
 
-- [ ] Respetar `isPublic` en todas las vistas de otros usuarios
-- [ ] Toggle de visibilidad en perfil para wishlist y favoritos
+- [x] Respetar `isPublic` en todas las vistas de otros usuarios (hecho en Fase 2)
+- [x] Toggle de visibilidad en perfil para wishlist y favoritos (modal de edición de perfil)
 
 ### Búsqueda avanzada
 
@@ -293,13 +293,12 @@
 
 ### Reviews
 
-- [ ] Crear/editar/eliminar review de un juego
-- [ ] Ver reviews públicas en ficha del juego
+- [x] Reviews ya implementadas en Fase 2 (CRUD en game detail, campo en backlog modal, sección en perfiles)
 
 ### Estadísticas de listas
 
-- [ ] Número de seguidores, juego más/menos completado
-- [ ] Progreso del usuario en listas seguidas
+- [x] Número de seguidores y progreso del usuario ya implementados en Fase 2
+- [ ] Juego más/menos completado de la lista
 
 ### Logros
 
