@@ -55,8 +55,7 @@
 						</a>
 					</td>
 					<td class="col-platforms">
-						{{ game.platforms.map(p => p.abbreviation ??
-						p.code).join(", ") || "-" }}
+						{{ game.platforms.map(p => p.abbreviation).join(", ") || "-" }}
 					</td>
 					<td class="col-scores">
 						@for (s of game.scores; track s.source) {
