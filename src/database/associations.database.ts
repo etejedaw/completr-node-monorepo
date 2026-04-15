@@ -17,6 +17,7 @@ import { Favorite } from "../favorites/favorite.model";
 import { GameExternal } from "../game-external/game-external.model";
 import { ScoreSource } from "../score-sources/score-source.model";
 import { RefreshToken } from "../auth/refresh-token.model";
+import { GameReport } from "../game-reports/game-report.model";
 
 export function setupAssociations() {
 	gameDlc();
@@ -35,6 +36,7 @@ export function setupAssociations() {
 	gameExternalIds();
 	scoreSources();
 	refreshTokens();
+	gameReports();
 }
 
 function gameDlc() {
@@ -149,6 +151,14 @@ function favorites() {
 function gameExternalIds() {
 	Game.hasMany(GameExternal, { foreignKey: "gameId", onDelete: "CASCADE" });
 	GameExternal.belongsTo(Game, { foreignKey: "gameId" });
+}
+
+function gameReports() {
+	User.hasMany(GameReport, { foreignKey: "userId" });
+	GameReport.belongsTo(User, { foreignKey: "userId" });
+
+	Game.hasMany(GameReport, { foreignKey: "gameId", onDelete: "CASCADE" });
+	GameReport.belongsTo(Game, { foreignKey: "gameId" });
 }
 
 function refreshTokens() {
