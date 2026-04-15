@@ -33,9 +33,10 @@ export class GamesBrowse implements OnInit {
 	private readonly route = inject(ActivatedRoute);
 	private readonly searchSubject = new Subject<string>();
 
-	protected readonly isAdmin = computed(
-		() => this.authService.user()?.role === "admin"
-	);
+	protected readonly isAdmin = computed(() => {
+		const role = this.authService.user()?.role;
+		return role === "moderator" || role === "admin";
+	});
 	protected readonly searchQuery = signal("");
 	protected readonly searchResults = signal<Game[]>([]);
 	protected readonly isSearching = signal(false);

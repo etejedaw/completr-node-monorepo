@@ -57,6 +57,10 @@ export class GameDetail implements OnInit {
 	protected readonly showPlatformPicker = signal(false);
 	protected readonly showBacklogModal = signal(false);
 	protected readonly showShelfModal = signal(false);
+	protected readonly isModerator = computed(() => {
+		const role = this.authService.user()?.role;
+		return role === "moderator" || role === "admin";
+	});
 	protected readonly isAdmin = computed(
 		() => this.authService.user()?.role === "admin"
 	);

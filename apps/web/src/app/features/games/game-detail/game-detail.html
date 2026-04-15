@@ -38,12 +38,12 @@
 		</div>
 	</div>
 
-	<!-- Admin panel -->
-	@if (isAdmin()) {
+	<!-- Moderator/Admin panel -->
+	@if (isModerator()) {
 	<div class="admin-panel">
 		<span class="admin-label">
 			<span class="material-icons">admin_panel_settings</span>
-			Admin
+			{{ isAdmin() ? 'Admin' : 'Moderator' }}
 		</span>
 		<button class="btn-admin-edit" (click)="showEditor.set(!showEditor())">
 			<span class="material-icons"
@@ -51,6 +51,7 @@
 			>
 			{{ showEditor() ? 'Close Editor' : 'Edit Game' }}
 		</button>
+		@if (isAdmin()) {
 		@if (!showConfirmDeactivate() && !showConfirmDelete()) {
 		<button
 			class="btn-admin-danger"
@@ -87,6 +88,7 @@
 		<button class="btn-ghost" (click)="showConfirmDelete.set(false)">
 			Cancel
 		</button>
+		}
 		}
 	</div>
 	@if (showEditor()) {
