@@ -20,6 +20,7 @@ import { GamesService } from "../../games/games.service";
 import { WishlistService } from "../../wishlist/wishlist.service";
 import { GameShelfService } from "../../game-shelf/game-shelf.service";
 import { ScoreSourcesService } from "../../../core/services/score-sources.service";
+import { ReviewsService } from "../../games/reviews.service";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
 	Subject,
@@ -44,6 +45,7 @@ export class BacklogModal implements OnInit {
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	private readonly wishlistService = inject(WishlistService);
 	private readonly gameShelfService = inject(GameShelfService);
+	private readonly reviewsService = inject(ReviewsService);
 
 	entry = input<BacklogEntry | null>(null);
 	preselectedGame = input<Game | null>(null);
@@ -66,6 +68,7 @@ export class BacklogModal implements OnInit {
 	protected readonly addToShelf = signal(false);
 	protected readonly activeScoreSource = signal("");
 	protected readonly activeDurationSource = signal("");
+	protected readonly reviewContent = signal("");
 	protected readonly gameScores = computed(
 		() => this.selectedGame()?.scores ?? []
 	);
@@ -273,6 +276,7 @@ export class BacklogModal implements OnInit {
 			};
 			this.backlogService.update(this.entry()!.id, dto).subscribe({
 				next: () => {
+					this.submitReviewIfNeeded(val.gameId!);
 					this.handleWishlistChange(this.entry()!.id);
 				},
 				error: err => {
@@ -295,6 +299,7 @@ export class BacklogModal implements OnInit {
 			};
 			this.backlogService.create(dto).subscribe({
 				next: backlog => {
+					this.submitReviewIfNeeded(val.gameId!);
 					const extras$ = [];
 					if (this.addToWishlist()) {
 						extras$.push(
@@ -358,5 +363,23 @@ export class BacklogModal implements OnInit {
 
 	onClose() {
 		this.closed.emit();
+	}
+
+	private submitReviewIfNeeded(gameId: string) {
+		const content = this.reviewContent().trim();
+		const rating = this.form.get("userRating")?.value;
+		if (!content && !rating) return;
+
+		const data: { content?: string; rating?: number } = {};
+		if (content) data.content = content;
+		if (rating) data.rating = rating;
+
+		this.reviewsService.createReview(gameId, data).subscribe({
+			error: () => {
+				if (content || rating) {
+					this.reviewsService.updateReview(gameId, data).subscribe();
+				}
+			}
+		});
 	}
 }

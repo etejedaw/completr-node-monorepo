@@ -253,6 +253,20 @@
 				></textarea>
 			</div>
 
+			<!-- Review (only for completed/abandoned) -->
+			@if (form.get('status')?.value === 'completed' ||
+			form.get('status')?.value === 'abandoned') {
+			<div class="review-section">
+				<label>Review (optional)</label>
+				<textarea
+					rows="3"
+					placeholder="Share your review of this game..."
+					[value]="reviewContent()"
+					(input)="reviewContent.set($any($event.target).value)"
+				></textarea>
+			</div>
+			}
+
 			<!-- Actions -->
 			<div class="modal-actions">
 				@if (isEdit()) {
