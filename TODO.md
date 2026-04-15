@@ -464,7 +464,7 @@
 - [x] Frontend: campo de review opcional en backlog modal al completar o abandonar (usa userRating + content)
 - [x] Frontend: sección de reseñas en game detail con crear, editar y eliminar
 - [x] Registrar actividad `game_reviewed` en el feed
-- [ ] Frontend: reseñas visibles en el perfil público del usuario
+- [x] Frontend: reseñas visibles en perfil público y propio (GET /users/:username/reviews)
 - [ ] El rating promedio se calculará más adelante con un cron
 
 ### Páginas de error (frontend)
