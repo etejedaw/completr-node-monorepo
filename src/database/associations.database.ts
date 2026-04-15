@@ -19,6 +19,7 @@ import { ScoreSource } from "../score-sources/score-source.model";
 import { RefreshToken } from "../auth/refresh-token.model";
 import { GameReport } from "../game-reports/game-report.model";
 import { UserFollower } from "../user-followers/user-follower.model";
+import { Activity } from "../activity/activity.model";
 
 export function setupAssociations() {
 	gameDlc();
@@ -39,6 +40,7 @@ export function setupAssociations() {
 	refreshTokens();
 	gameReports();
 	userFollowers();
+	activities();
 }
 
 function gameDlc() {
@@ -176,6 +178,14 @@ function userFollowers() {
 		foreignKey: "followingId",
 		as: "Following"
 	});
+}
+
+function activities() {
+	User.hasMany(Activity, { foreignKey: "userId" });
+	Activity.belongsTo(User, { foreignKey: "userId" });
+
+	Game.hasMany(Activity, { foreignKey: "gameId", onDelete: "CASCADE" });
+	Activity.belongsTo(Game, { foreignKey: "gameId" });
 }
 
 function scoreSources() {

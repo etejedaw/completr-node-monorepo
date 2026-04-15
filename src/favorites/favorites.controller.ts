@@ -6,13 +6,26 @@ import * as favoritesService from "./favorites.service";
 import { ReplaceFavoritesBody } from "./schemas/replace-favorites.schema";
 import { UsernameParam } from "../users/schemas/username-params.schema";
 import { favoriteSerializer } from "./favorites.serializer";
+import * as activityService from "../activity/activity.service";
 
 export async function putFavorites(request: Request, response: Response) {
 	const body = request.locals.body as ReplaceFavoritesBody;
 	const user = request.locals.user as RequestUser;
 
+	const currentIds = new Set(
+		(await favoritesService.findFavoritesByUserId(user.id)).map(
+			e => e.Game.id
+		)
+	);
+
 	const entries = await favoritesService.replaceFavorites(user, body.gameIds);
 	const entriesPlain = entries.map(e => e.get({ plain: true }));
+
+	for (const gameId of body.gameIds) {
+		if (!currentIds.has(gameId)) {
+			activityService.record(user.id, "favorite_added", gameId);
+		}
+	}
 
 	const data = { favorites: entriesPlain.map(favoriteSerializer) };
 	return response.status(200).json({ data });

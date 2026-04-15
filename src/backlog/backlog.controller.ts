@@ -9,6 +9,7 @@ import { BacklogIdParams } from "./schemas/backlog-id-params.schema";
 import { BacklogQuery } from "./schemas/backlog-query.schema";
 import { UsernameParam } from "../users/schemas/username-params.schema";
 import { backlogSerializer } from "./backlog.serializer";
+import * as activityService from "../activity/activity.service";
 
 export async function postBacklog(request: Request, response: Response) {
 	const registerBacklog = request.locals.body as RegisterBacklogDto;
@@ -19,6 +20,10 @@ export async function postBacklog(request: Request, response: Response) {
 		registerBacklog
 	);
 	const backlogPlain = backlogEntry.get({ plain: true });
+
+	activityService.record(user.id, "backlog_added", backlogEntry.gameId, {
+		platform: backlogPlain.platform?.abbreviation
+	});
 
 	const data = { backlog: backlogSerializer(backlogPlain) };
 	return response.status(201).json({ data });
@@ -71,6 +76,16 @@ export async function patchBacklog(request: Request, response: Response) {
 		updateBacklog
 	);
 	const backlogPlain = backlogEntry.get({ plain: true });
+
+	if (updateBacklog.status) {
+		activityService.record(
+			user.id,
+			`backlog_${updateBacklog.status}` as Parameters<
+				typeof activityService.record
+			>[1],
+			backlogEntry.gameId
+		);
+	}
 
 	const data = { backlog: backlogSerializer(backlogPlain) };
 	return response.status(200).json({ data });
