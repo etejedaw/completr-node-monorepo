@@ -91,6 +91,16 @@ function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
 	return where;
 }
 
+function buildIncludes(filters: BacklogQuery) {
+	const gameInclude: Record<string, unknown> = { model: Game };
+	if (filters.search) {
+		gameInclude.where = {
+			title: { [Op.iLike]: `%${filters.search}%` }
+		};
+	}
+	return [gameInclude, { model: Platform }];
+}
+
 function buildOrder(filters: BacklogQuery): [string, string][] {
 	const sortBy = filters.sort_by ?? "createdAt";
 	const sortOrder = filters.sort_order ?? "DESC";
@@ -101,22 +111,32 @@ export async function findBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}
 ) {
-	return Backlog.findAll({
+	const query: Record<string, unknown> = {
 		where: buildWhere({ userId }, filters),
-		include: [{ model: Game }, { model: Platform }],
+		include: buildIncludes(filters),
 		order: buildOrder(filters)
-	});
+	};
+	if (filters.limit) query.limit = filters.limit;
+	if (filters.offset) query.offset = filters.offset;
+
+	const { rows, count } = await Backlog.findAndCountAll(query);
+	return { rows, total: count };
 }
 
 export async function findPublicBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}
 ) {
-	return Backlog.findAll({
+	const query: Record<string, unknown> = {
 		where: buildWhere({ userId, isPublic: true }, filters),
-		include: [{ model: Game }, { model: Platform }],
+		include: buildIncludes(filters),
 		order: buildOrder(filters)
-	});
+	};
+	if (filters.limit) query.limit = filters.limit;
+	if (filters.offset) query.offset = filters.offset;
+
+	const { rows, count } = await Backlog.findAndCountAll(query);
+	return { rows, total: count };
 }
 
 export async function updateBacklog(

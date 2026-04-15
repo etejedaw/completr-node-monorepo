@@ -31,15 +31,13 @@ export async function getMeBacklog(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 	const query = request.locals.query as BacklogQuery;
 
-	const backlogEntries = await backlogService.findBacklogByUserId(
+	const { rows, total } = await backlogService.findBacklogByUserId(
 		user.id,
 		query
 	);
-	const backlogPlain = backlogEntries.map(backlog =>
-		backlog.get({ plain: true })
-	);
+	const backlogPlain = rows.map(backlog => backlog.get({ plain: true }));
 
-	const data = { backlog: backlogPlain.map(backlogSerializer) };
+	const data = { backlog: backlogPlain.map(backlogSerializer), total };
 	return response.status(200).json({ data });
 }
 
@@ -51,15 +49,13 @@ export async function getUserBacklog(request: Request, response: Response) {
 	if (!user) throw userDomainError.userNotFound();
 	if (!user.isPublic) throw userDomainError.userPrivate();
 
-	const backlogEntries = await backlogService.findPublicBacklogByUserId(
+	const { rows, total } = await backlogService.findPublicBacklogByUserId(
 		user.id,
 		query
 	);
-	const backlogPlain = backlogEntries.map(backlog =>
-		backlog.get({ plain: true })
-	);
+	const backlogPlain = rows.map(backlog => backlog.get({ plain: true }));
 
-	const data = { backlog: backlogPlain.map(backlogSerializer) };
+	const data = { backlog: backlogPlain.map(backlogSerializer), total };
 	return response.status(200).json({ data });
 }
 
