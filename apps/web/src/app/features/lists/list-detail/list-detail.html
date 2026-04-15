@@ -56,11 +56,19 @@
 			<span class="material-icons meta-icon">schedule</span>
 			{{ list()!.durationSource }}
 		</span>
-		@if (list()!.followerCount) {
 		<span class="meta-item">
 			<span class="material-icons meta-icon">people</span>
-			{{ list()!.followerCount }} followers
+			{{ list()!.followerCount ?? 0 }} followers
 		</span>
+		@if (!isOwner() && list()!.isPublic) {
+		<button
+			class="btn-follow-list"
+			[class.following]="list()!.isFollowing"
+			[disabled]="togglingFollow()"
+			(click)="toggleFollow()"
+		>
+			{{ list()!.isFollowing ? 'Following' : 'Follow' }}
+		</button>
 		}
 	</div>
 

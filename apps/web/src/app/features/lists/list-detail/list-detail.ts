@@ -49,6 +49,7 @@ export class ListDetail implements OnInit {
 	protected readonly isSearching = signal(false);
 	protected readonly showBacklogModal = signal(false);
 	protected readonly backlogPreselectedGame = signal<Game | null>(null);
+	protected readonly togglingFollow = signal(false);
 
 	private listId = "";
 
@@ -157,6 +158,34 @@ export class ListDetail implements OnInit {
 				this.loadList();
 			},
 			error: () => this.refreshing.set(false)
+		});
+	}
+
+	toggleFollow() {
+		const l = this.list();
+		if (!l || this.togglingFollow()) return;
+
+		this.togglingFollow.set(true);
+		const action = l.isFollowing
+			? this.listsService.unfollow(this.listId)
+			: this.listsService.follow(this.listId);
+
+		action.subscribe({
+			next: () => {
+				this.list.update(prev =>
+					prev
+						? {
+								...prev,
+								isFollowing: !prev.isFollowing,
+								followerCount:
+									(prev.followerCount ?? 0) +
+									(prev.isFollowing ? -1 : 1)
+							}
+						: prev
+				);
+				this.togglingFollow.set(false);
+			},
+			error: () => this.togglingFollow.set(false)
 		});
 	}
 

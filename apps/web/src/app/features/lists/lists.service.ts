@@ -80,4 +80,12 @@ export class ListsService {
 			.post<RefreshResponse>(`${this.baseUrl}/${id}/refresh-scores`, {})
 			.pipe(map(res => res.data.updatedItems));
 	}
+
+	follow(id: string) {
+		return this.http.post(`${this.baseUrl}/${id}/follow`, {});
+	}
+
+	unfollow(id: string) {
+		return this.http.delete(`${this.baseUrl}/${id}/follow`);
+	}
 }
