@@ -430,12 +430,13 @@
 
 ### Permisos y roles
 
-- [ ] Auditar todos los endpoints y definir permisos claros por rol:
+- [x] Auditar todos los endpoints y definir permisos claros por rol:
     - **admin**: acceso total (CRUD juegos, plataformas, géneros, crear usuarios, gestionar reportes, ver/editar cualquier recurso)
     - **moderator**: CRUD de juegos, plataformas y géneros. No puede crear usuarios ni gestionar reportes
     - **user / premium**: solo gestiona sus propios recursos (backlog, game-shelf, listas, wishlist, favoritos, perfil, follow, reportar juegos)
-- [ ] Quitar endpoints públicos sin auth (juegos, plataformas, géneros, perfil de usuario) — todo requiere al menos estar autenticado
-- [ ] Verificar que ningún endpoint permita a un usuario modificar recursos de otro usuario
+- [x] Proteger endpoints del catálogo (games, platforms, genres, score-sources, lists/search) con authMiddleware — requieren login
+- [x] Perfiles de usuario y colecciones públicas se mantienen accesibles sin auth (con authOptionalMiddleware en perfil) para incentivar registro
+- [x] Verificar que todos los services de escritura validan ownership (userId check)
 
 ### Mejoras UX (frontend)
 
