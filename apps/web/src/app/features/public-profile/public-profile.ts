@@ -30,6 +30,17 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly togglingFollow = signal(false);
 
 	ngOnInit() {
+		if (this.authService.token() && !this.authService.user()) {
+			this.authService.loadUser().subscribe({
+				next: () => this.init(),
+				error: () => this.init()
+			});
+		} else {
+			this.init();
+		}
+	}
+
+	private init() {
 		this.route.paramMap.subscribe(params => {
 			const raw = params.get("username") ?? "";
 			this.username.set(raw);
