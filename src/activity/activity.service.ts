@@ -32,7 +32,8 @@ export async function getFeed(userId: string, limit = 30, offset = 0) {
 		include: [
 			{
 				model: User,
-				attributes: ["id", "username", "name", "avatarUrl"]
+				attributes: ["id", "username", "name", "avatarUrl"],
+				where: { isPublic: true, isFeedPublic: true }
 			},
 			{
 				model: Game,

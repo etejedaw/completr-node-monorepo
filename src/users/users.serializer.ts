@@ -11,6 +11,7 @@ export function userMeSerializer(user: User) {
 		isPublic: user.isPublic,
 		isWishlistPublic: user.isWishlistPublic,
 		isFavoritePublic: user.isFavoritePublic,
+		isFeedPublic: user.isFeedPublic,
 		createdAt: user.createdAt
 	};
 }
@@ -35,6 +36,7 @@ export function userProfileSerializer(user: User) {
 		avatarUrl: user.avatarUrl,
 		isWishlistPublic: user.isWishlistPublic,
 		isFavoritePublic: user.isFavoritePublic,
+		isFeedPublic: user.isFeedPublic,
 		createdAt: user.createdAt
 	};
 }
