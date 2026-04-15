@@ -370,8 +370,8 @@
 
 ### Onboarding para amigos
 
-- [ ] Flujo de registro limpio y funcional
-- [ ] Corrección de bugs encontrados en Fase 1
+- [x] Flujo de registro: solo admin crea usuarios desde /admin/users (panel completo con listado + edición)
+- [ ] Corrección de bugs encontrados en Fase 1 (pendiente feedback de amigos)
 - [x] Empty states descriptivos en todas las vistas: Backlog, Saved Views, Game Shelf, Wishlist, Favorites, Lists
 
 ### Panel admin de usuarios
