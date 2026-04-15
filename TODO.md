@@ -434,6 +434,15 @@
 - [ ] Quitar endpoints públicos sin auth (juegos, plataformas, géneros, perfil de usuario) — todo requiere al menos estar autenticado
 - [ ] Verificar que ningún endpoint permita a un usuario modificar recursos de otro usuario
 
+### Mejoras UX (frontend)
+
+- [ ] Game Shelf: quitar estilo de link en los títulos de juegos (mismo color que el resto de tablas)
+- [ ] Backlog: paginación de 50 o 100 entries
+- [ ] Games Browse: aumentar tamaño de la barra de búsqueda (como en Feed)
+- [ ] Perfil propio (/profile) debe verse igual que el perfil público (/user/:username), con la sección de Privacy adicional
+- [ ] Vista grid: aumentar tamaño de las imágenes
+- [ ] Listas y Wishlist: opción para cambiar entre vista tabla y vista grid
+
 ### Páginas de error (frontend)
 
 - [ ] Página 404 (not found) para rutas inexistentes
@@ -538,6 +547,15 @@
 ### Refactors pendientes
 
 - [ ] Refactor `security.txt`: mover de middleware a ruta simple
+
+### Revisión de performance y código (al finalizar Fase 3)
+
+- [ ] Revisión general del código: legibilidad, naming, estructura de módulos
+- [ ] Auditar endpoints: verificar que cada uno tiene validación, auth y rate limiting correcto
+- [ ] Revisar llamadas con Promise.all en el frontend: evaluar si se pueden reducir combinando endpoints en el backend
+- [ ] Optimizar queries N+1 en Sequelize (eager loading)
+- [ ] Revisar que no haya código muerto o imports sin usar
+- [ ] Verificar que los serializers no expongan datos sensibles
 
 ---
 
