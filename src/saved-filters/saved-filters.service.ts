@@ -6,7 +6,7 @@ import * as savedFilterServiceError from "./errors/saved-filters.service-error";
 const FREE_FILTER_LIMIT = 5;
 
 function isPremium(role: string) {
-	return role === "premium" || role === "admin";
+	return role === "premium" || role === "moderator" || role === "admin";
 }
 
 async function areFrozen(userId: string, role: string) {

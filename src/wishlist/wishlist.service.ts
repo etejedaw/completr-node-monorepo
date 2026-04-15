@@ -10,7 +10,7 @@ import * as wishlistServiceError from "./errors/wishlist.service-error";
 const FREE_WISHLIST_LIMIT = 10;
 
 function isPremium(role: string) {
-	return role === "premium" || role === "admin";
+	return role === "premium" || role === "moderator" || role === "admin";
 }
 
 async function checkLimit(userId: string, role: string) {

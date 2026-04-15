@@ -12,7 +12,7 @@ import * as listsServiceError from "./errors/lists.service-error";
 const FREE_LIST_LIMIT = 5;
 
 function isPremium(role: string) {
-	return role === "premium" || role === "admin";
+	return role === "premium" || role === "moderator" || role === "admin";
 }
 
 async function areFrozen(userId: string, role: string) {

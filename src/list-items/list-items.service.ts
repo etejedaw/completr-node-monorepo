@@ -9,7 +9,7 @@ import * as listItemsServiceError from "./errors/list-items.service-error";
 const FREE_LIST_LIMIT = 5;
 
 function isPremium(role: string) {
-	return role === "premium" || role === "admin";
+	return role === "premium" || role === "moderator" || role === "admin";
 }
 
 async function checkFrozen(userId: string, role: string) {

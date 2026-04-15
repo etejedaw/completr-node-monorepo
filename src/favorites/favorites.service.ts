@@ -7,7 +7,7 @@ import * as favoritesServiceError from "./errors/favorites.service-error";
 const FREE_FAVORITE_LIMIT = 10;
 
 function isPremium(role: string) {
-	return role === "premium" || role === "admin";
+	return role === "premium" || role === "moderator" || role === "admin";
 }
 
 export async function replaceFavorites(user: RequestUser, gameIds: string[]) {
