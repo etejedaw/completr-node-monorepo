@@ -508,6 +508,7 @@
 - [ ] Frontend: destacar listas oficiales en games-browse (sección "Completr Lists")
 - [ ] Frontend: badge "Official" en list-detail junto al nombre
 - [ ] Frontend: badge en cards de listas oficiales en list-overview
+- [ ] Algunas listas oficiales otorgan un badge/trofeo al usuario que las complete al 100% (configurable por lista)
 
 ### Social — Ver actividad de amigos
 
