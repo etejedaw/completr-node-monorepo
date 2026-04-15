@@ -6,6 +6,7 @@ import * as backlogService from "../backlog/backlog.service";
 import * as listsService from "../lists/lists.service";
 import * as favoritesService from "../favorites/favorites.service";
 import * as wishlistService from "../wishlist/wishlist.service";
+import * as userFollowersService from "../user-followers/user-followers.service";
 import { userMeSerializer, userProfileSerializer } from "./users.serializer";
 import { backlogSerializer } from "../backlog/backlog.serializer";
 import { listSummarySerializer } from "../lists/lists.serializer";
@@ -28,7 +29,17 @@ export async function getUserByUsername(request: Request, response: Response) {
 
 	const userId = user.id;
 
-	const [backlogs, lists, favorites, wishlist] = await Promise.all([
+	const currentUser = request.locals.user as RequestUser | undefined;
+
+	const [
+		backlogs,
+		lists,
+		favorites,
+		wishlist,
+		followerCount,
+		followingCount,
+		isFollowing
+	] = await Promise.all([
 		backlogService.findPublicBacklogByUserId(userId),
 		listsService.findPublicListsByUserId(userId),
 		user.isFavoritePublic
@@ -36,11 +47,19 @@ export async function getUserByUsername(request: Request, response: Response) {
 			: Promise.resolve([]),
 		user.isWishlistPublic
 			? wishlistService.findWishlistByUserId(userId)
-			: Promise.resolve([])
+			: Promise.resolve([]),
+		userFollowersService.getFollowerCount(userId),
+		userFollowersService.getFollowingCount(userId),
+		currentUser
+			? userFollowersService.isFollowing(currentUser.id, userId)
+			: Promise.resolve(false)
 	]);
 
 	const data = {
 		user: userProfileSerializer(user.get({ plain: true })),
+		followerCount,
+		followingCount,
+		isFollowing,
 		backlogs: backlogs.map(backlogSerializer),
 		lists: lists.map(listSummarySerializer),
 		favorites: favorites.map(favoriteSerializer),

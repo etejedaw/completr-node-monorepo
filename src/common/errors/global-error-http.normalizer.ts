@@ -15,6 +15,7 @@ import { listFollowersDomainToHttpMapper } from "../../list-followers/errors/lis
 import { wishlistDomainToHttpMapper } from "../../wishlist/errors/wishlist.domain-to-http.mapper";
 import { favoritesDomainToHttpMapper } from "../../favorites/errors/favorites.domain-to-http.mapper";
 import { gameReportsDomainToHttpMapper } from "../../game-reports/errors/game-reports.domain-to-http.mapper";
+import { userFollowersDomainToHttpMapper } from "../../user-followers/errors/user-followers.domain-to-http.mapper";
 
 import { commonDomainToHttpMapper } from "./common.domain-to-http.mapper";
 import { DomainError } from "./domain-error";
@@ -71,6 +72,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "GameReport Module")
 		return gameReportsDomainToHttpMapper(error, request);
+
+	if (error.module === "UserFollower Module")
+		return userFollowersDomainToHttpMapper(error, request);
 
 	if (error.module === "Common Module" || error.module === "COMMON")
 		return commonDomainToHttpMapper(error, request);

@@ -4,6 +4,7 @@ import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.
 import { UpdateUserSchema, UsernameParamSchema } from "./schemas";
 import { RegisterSchema } from "../auth/schemas";
 import { authMiddleware } from "../auth/auth.middleware";
+import { authOptionalMiddleware } from "../auth/auth-optional.middleware";
 import {
 	publicLimiter,
 	registerLimiter,
@@ -42,6 +43,7 @@ router.get(
 	"/users/:username",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	usersController.getUserByUsername

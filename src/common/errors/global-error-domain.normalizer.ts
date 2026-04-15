@@ -14,6 +14,7 @@ import { listFollowersErrorDomainNormalizer } from "../../list-followers/errors/
 import { wishlistErrorDomainNormalizer } from "../../wishlist/errors/wishlist.error-domain.normalizer";
 import { favoritesErrorDomainNormalizer } from "../../favorites/errors/favorites.error-domain.normalizer";
 import { gameReportsErrorDomainNormalizer } from "../../game-reports/errors/game-reports.error-domain.normalizer";
+import { userFollowersErrorDomainNormalizer } from "../../user-followers/errors/user-followers.error-domain.normalizer";
 import { DomainError } from "./domain-error";
 import { ServiceError } from "./service-error";
 
@@ -83,6 +84,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "GameReport Service")
 		return gameReportsErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "UserFollower Service")
+		return userFollowersErrorDomainNormalizer(error, correlationId);
 
 	return new DomainError("COMMON", "INTERNAL_ERROR", "Unexpected error", {
 		raw: error,
