@@ -506,13 +506,19 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 
 - Refresh tokens: modelo RefreshToken (SHA-256 hash + expiresAt), POST /auth/refresh con rotation, POST /auth/logout, login/register devuelven ambos tokens, cambiar contraseña invalida todas las sesiones
 - Panel admin: POST /admin/users (solo admin, siempre role "user"), registro público bloqueado
-- Perfil público: GET /users/:username devuelve user + backlogs públicos + listas públicas + favoritos + wishlist (respeta privacy flags)
+- Perfil público: GET /users/:username devuelve user + backlogs + listas (con followerCount) + favoritos + wishlist + gameShelf + followingLists + recentActivity (respeta privacy flags). Auth opcional para isFollowing
 - GameExternal en serializer: externalLinks[] expuesto en GET /games/:code
 - Game reports: modelo GameReport (unique gameId+userId), POST /games/:id/reports, GET /admin/game-reports, PATCH /admin/game-reports/:reportId
+- User followers: POST/DELETE /users/:username/follow, GET followers/following, followerCount/followingCount/isFollowing en perfil
+- Activity feed: modelo Activity con sub-modelos ActivityGame/ActivityList/ActivityUser (FKs propias). GET /feed (propia + seguidos), DELETE /feed/:activityId. Registra backlog, favoritos, follow user, follow list
+- isFeedPublic agregado al modelo User y perfil
+- List followers: GET /lists/:id/followers, GET /lists/following, PATCH /lists/:id/follow (visibility)
+- userId agregado al serializer de List para ownership check en frontend
+- Búsqueda: GET /users/search, GET /lists/search, GET /games/search?local_only=true
 
 ### Pendiente — Fases posteriores
 
-- Fase 2 (pendiente): sistema social (follow/unfollow, feed), búsqueda de usuarios y listas, listas públicas sociales, perfil público frontend, dominio completr.app
+- Fase 2 (pendiente): progreso personal en listas seguidas, vistas completas de otro usuario, listas seguidas en page de listas, permisos y roles, páginas 404/403, dominio completr.app
 - Fase 3: Listas oficiales, privacidad avanzada, búsqueda avanzada, sistema de invitación, badges manuales (founder, beta-tester, moderator, premium-supporter)
 - Fase 4: Reviews, stats de listas públicas, logros, resumen semestral, comparación social
 - Fase 5: Estabilización (paginación, emails, tests, seguridad)

@@ -401,6 +401,7 @@
 - [x] Frontend: botón Follow/Unfollow en list-detail (solo no-owner)
 - [x] Frontend: ocultar acciones de edición en listas de otros usuarios
 - [ ] Al ver una lista seguida, mostrar el progreso personal del usuario
+- [ ] Frontend: en la página de Lists, mostrar las listas que el usuario sigue además de las propias
 
 ### Búsqueda de usuarios y listas
 
