@@ -447,12 +447,12 @@
 
 ### Mejoras UX (frontend)
 
-- [ ] Game Shelf: quitar estilo de link en los títulos de juegos (mismo color que el resto de tablas)
+- [x] Game Shelf: quitar estilo de link en los títulos de juegos (sin hover azul)
 - [x] Backlog: paginación de 50 entries (endpoints públicos, schema compartido PaginationQuerySchema)
-- [ ] Games Browse: aumentar tamaño de la barra de búsqueda (como en Feed)
+- [x] Games Browse: barra de búsqueda más grande (font-size 1rem, padding 0.75rem)
 - [x] Perfil propio (/profile) unificado con perfil público: mismas secciones (backlog, game shelf, listas, favorites, wishlist, activity) + Privacy + Edit Profile. Self-view muestra toda la data sin restricciones de privacidad
-- [ ] Vista grid: aumentar tamaño de las imágenes
-- [ ] Listas y Wishlist: opción para cambiar entre vista tabla y vista grid
+- [x] Vista grid: imágenes más grandes (minmax 170px en games-browse y favorites)
+- [x] Listas y Wishlist: toggle tabla/grid con botones view_list/grid_view
 
 ### Reseñas de juegos
 
@@ -469,8 +469,8 @@
 
 ### Páginas de error (frontend)
 
-- [ ] Página 404 (not found) para rutas inexistentes
-- [ ] Página 403 (no autorizado) para acceso denegado
+- [x] Página 404 (not found) para rutas inexistentes (wildcard catch-all)
+- [x] Página 403 (no autorizado) para acceso denegado (guards redirigen a /403)
 
 ### Dominio completr.app
 
