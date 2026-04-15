@@ -11,6 +11,7 @@ export interface UpdateProfileDto {
 	isPublic?: boolean;
 	isWishlistPublic?: boolean;
 	isFavoritePublic?: boolean;
+	isFeedPublic?: boolean;
 }
 
 @Injectable({ providedIn: "root" })

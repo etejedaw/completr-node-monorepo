@@ -85,6 +85,17 @@
 					>
 				</div>
 			</div>
+			<div class="privacy-row">
+				<span class="material-icons privacy-icon">
+					{{ user()!.isFeedPublic ? 'visibility' : 'visibility_off' }}
+				</span>
+				<div>
+					<span class="privacy-label">Activity Feed</span>
+					<span class="privacy-value"
+						>{{ user()!.isFeedPublic ? 'Visible' : 'Hidden' }}</span
+					>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
@@ -171,6 +182,20 @@
 			</label>
 			<span class="toggle-hint"
 				>Show your favorites on your public profile</span
+			>
+		</div>
+
+		<div class="form-group">
+			<label class="toggle-label">
+				<input
+					type="checkbox"
+					[ngModel]="editIsFeedPublic()"
+					(ngModelChange)="editIsFeedPublic.set($event)"
+				/>
+				Public activity feed
+			</label>
+			<span class="toggle-hint"
+				>Show your activity in your followers' feeds</span
 			>
 		</div>
 

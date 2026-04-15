@@ -30,6 +30,7 @@ export class ProfileView implements OnInit {
 	protected readonly editIsPublic = signal(true);
 	protected readonly editIsWishlistPublic = signal(true);
 	protected readonly editIsFavoritePublic = signal(true);
+	protected readonly editIsFeedPublic = signal(true);
 	protected readonly saving = signal(false);
 
 	ngOnInit() {
@@ -45,6 +46,7 @@ export class ProfileView implements OnInit {
 		this.editIsPublic.set(u.isPublic);
 		this.editIsWishlistPublic.set(u.isWishlistPublic);
 		this.editIsFavoritePublic.set(u.isFavoritePublic);
+		this.editIsFeedPublic.set(u.isFeedPublic);
 		this.showModal.set(true);
 	}
 
@@ -60,7 +62,8 @@ export class ProfileView implements OnInit {
 			avatarUrl: this.editAvatarUrl() || undefined,
 			isPublic: this.editIsPublic(),
 			isWishlistPublic: this.editIsWishlistPublic(),
-			isFavoritePublic: this.editIsFavoritePublic()
+			isFavoritePublic: this.editIsFavoritePublic(),
+			isFeedPublic: this.editIsFeedPublic()
 		};
 
 		this.profileService.update(dto).subscribe({

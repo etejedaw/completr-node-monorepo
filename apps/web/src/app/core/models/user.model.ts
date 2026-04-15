@@ -9,6 +9,7 @@ export interface User {
 	isPublic: boolean;
 	isWishlistPublic: boolean;
 	isFavoritePublic: boolean;
+	isFeedPublic: boolean;
 	isActive: boolean;
 	createdAt: string;
 }
