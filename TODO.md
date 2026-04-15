@@ -419,6 +419,11 @@
 - [ ] Quitar endpoints públicos sin auth (juegos, plataformas, géneros, perfil de usuario) — todo requiere al menos estar autenticado
 - [ ] Verificar que ningún endpoint permita a un usuario modificar recursos de otro usuario
 
+### Páginas de error (frontend)
+
+- [ ] Página 404 (not found) para rutas inexistentes
+- [ ] Página 403 (no autorizado) para acceso denegado
+
 ### Dominio completr.app
 
 - [ ] Configurar DNS de `completr.app`: `web.completr.app` → app frontend, `api.completr.app` → backend, `completr.app` → landing page
