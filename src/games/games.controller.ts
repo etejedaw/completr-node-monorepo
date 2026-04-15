@@ -43,7 +43,9 @@ export async function getAllGames(request: Request, response: Response) {
 export async function searchGames(request: Request, response: Response) {
 	const query = request.locals.query as GameSearchQuery;
 
-	const games = await gameService.searchGames(query.query, query.force_rawg);
+	const games = query.local_only
+		? await gameService.searchGamesLocal(query.query)
+		: await gameService.searchGames(query.query, query.force_rawg);
 	const gamesPlain = games.map(game => game.get({ plain: true }));
 
 	const data = { games: gamesPlain.map(gameSerializer) };

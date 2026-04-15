@@ -137,6 +137,22 @@ export async function findAll(options: GamesQueryOptions = {}) {
 	return { games: rows, total: count };
 }
 
+export async function searchGamesLocal(query: string) {
+	return Game.findAll({
+		where: {
+			title: { [Op.iLike]: `%${query}%` },
+			isActive: true
+		},
+		include: [
+			{ association: "Platforms" },
+			{ association: "Genres" },
+			{ association: "GameScores" },
+			{ association: "GameTimes" }
+		],
+		limit: 10
+	});
+}
+
 export async function searchGames(query: string, forceRawg = false) {
 	if (!forceRawg) {
 		const localResults = await Game.findAll({
