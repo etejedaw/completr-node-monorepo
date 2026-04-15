@@ -53,6 +53,10 @@ export async function updateUser(id: string, updateUserDto: UpdateUserDto) {
 	return user;
 }
 
+export async function findUserByIdUnfiltered(id: string) {
+	return User.findOne({ where: { id } });
+}
+
 export async function findAllUsers(limit = 50, offset = 0) {
 	return User.findAndCountAll({
 		order: [["createdAt", "DESC"]],

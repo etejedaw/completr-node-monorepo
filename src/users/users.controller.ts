@@ -230,12 +230,12 @@ export async function patchAdminUser(request: Request, response: Response) {
 	const dto = request.locals.body as AdminUpdateUserDto;
 	const admin = request.locals.user as RequestUser;
 
-	const user = await usersService.findUserById(params.userId);
+	const user = await usersService.findUserByIdUnfiltered(params.userId);
 	if (!user) throw userDomain.userNotFound();
 
 	if (dto.password) {
 		const hash = await passwordService.hashPassword(dto.password);
-		await usersService.updatePassword(params.userId, hash);
+		await user.update({ password: hash });
 	}
 
 	const updateData: Record<string, unknown> = {};
@@ -249,17 +249,17 @@ export async function patchAdminUser(request: Request, response: Response) {
 
 	auditService.record(admin.id, "user_edited", "user", params.userId);
 
-	const updated = await usersService.findUserById(params.userId);
+	await user.reload();
 	const data = {
 		user: {
-			id: updated!.id,
-			username: updated!.username,
-			email: updated!.email,
-			name: updated!.name,
-			role: updated!.role,
-			isActive: updated!.isActive,
-			isPublic: updated!.isPublic,
-			createdAt: updated!.createdAt
+			id: user.id,
+			username: user.username,
+			email: user.email,
+			name: user.name,
+			role: user.role,
+			isActive: user.isActive,
+			isPublic: user.isPublic,
+			createdAt: user.createdAt
 		}
 	};
 	return response.status(200).json({ data });
