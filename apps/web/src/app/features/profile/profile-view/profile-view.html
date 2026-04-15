@@ -263,6 +263,35 @@
 			}
 		</div>
 	</div>
+	} @if (userReviews().length > 0) {
+	<div class="section">
+		<div class="section-header">
+			<h2>Reviews</h2>
+			<span class="view-all">{{ userReviews().length }} total</span>
+		</div>
+		@for (r of userReviews().slice(0, 5); track r.id) {
+		<div class="review-card">
+			<div class="review-card-header">
+				@if (r.game) {
+				<a
+					class="review-game-link"
+					[routerLink]="['/games', r.game.code]"
+					>{{ r.game.title }}</a
+				>
+				} @if (r.rating) {
+				<app-star-rating
+					[value]="r.rating"
+					[readonly]="true"
+					size="sm"
+				/>
+				}
+			</div>
+			@if (r.content) {
+			<p class="review-text">{{ r.content }}</p>
+			}
+		</div>
+		}
+	</div>
 	} @if (profile()!.recentActivity.length > 0) {
 	<div class="section">
 		<div class="section-header">

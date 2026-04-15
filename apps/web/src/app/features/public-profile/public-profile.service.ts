@@ -252,4 +252,24 @@ export class PublicProfileService {
 				}))
 			);
 	}
+
+	getUserReviews(username: string) {
+		return this.http
+			.get<{
+				data: {
+					reviews: {
+						id: string;
+						content?: string;
+						rating?: number;
+						game: {
+							id: string;
+							code: string;
+							title: string;
+						} | null;
+						createdAt: string;
+					}[];
+				};
+			}>(`${environment.apiUrl}/users/${username}/reviews`)
+			.pipe(map(res => res.data.reviews));
+	}
 }

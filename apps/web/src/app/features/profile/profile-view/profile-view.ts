@@ -17,10 +17,11 @@ import {
 	UserListModal,
 	type UserSummary
 } from "../../../shared/components/user-list-modal/user-list-modal";
+import { StarRating } from "../../../shared/components/star-rating/star-rating";
 
 @Component({
 	selector: "app-profile-view",
-	imports: [FormsModule, RouterLink, UserListModal],
+	imports: [FormsModule, RouterLink, UserListModal, StarRating],
 	templateUrl: "./profile-view.html",
 	styleUrl: "./profile-view.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -33,6 +34,15 @@ export class ProfileView implements OnInit {
 	protected readonly user = this.authService.user;
 	protected readonly profile = signal<PublicProfile | null>(null);
 	protected readonly isLoading = signal(true);
+	protected readonly userReviews = signal<
+		{
+			id: string;
+			content?: string;
+			rating?: number;
+			game: { id: string; code: string; title: string } | null;
+			createdAt: string;
+		}[]
+	>([]);
 
 	// User list modal
 	protected readonly showUserListModal = signal(false);
@@ -172,6 +182,9 @@ export class ProfileView implements OnInit {
 			next: data => {
 				this.profile.set(data);
 				this.isLoading.set(false);
+				this.publicProfileService
+					.getUserReviews(username)
+					.subscribe(r => this.userReviews.set(r));
 			},
 			error: () => this.isLoading.set(false)
 		});

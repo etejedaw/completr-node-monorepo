@@ -13,10 +13,11 @@ import {
 	UserListModal,
 	UserSummary
 } from "../../shared/components/user-list-modal/user-list-modal";
+import { StarRating } from "../../shared/components/star-rating/star-rating";
 
 @Component({
 	selector: "app-public-profile",
-	imports: [RouterLink, UserListModal],
+	imports: [RouterLink, UserListModal, StarRating],
 	templateUrl: "./public-profile.html",
 	styleUrl: "./public-profile.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -36,6 +37,15 @@ export class PublicProfileComponent implements OnInit {
 		() => this.authService.user()?.id === this.profile()?.user.id
 	);
 	protected readonly togglingFollow = signal(false);
+	protected readonly userReviews = signal<
+		{
+			id: string;
+			content?: string;
+			rating?: number;
+			game: { id: string; code: string; title: string } | null;
+			createdAt: string;
+		}[]
+	>([]);
 	protected readonly showUserListModal = signal(false);
 	protected readonly userListTitle = signal("");
 	protected readonly userListUsers = signal<UserSummary[]>([]);
@@ -151,6 +161,9 @@ export class PublicProfileComponent implements OnInit {
 			next: data => {
 				this.profile.set(data);
 				this.isLoading.set(false);
+				this.profileService
+					.getUserReviews(username)
+					.subscribe(r => this.userReviews.set(r));
 			},
 			error: err => {
 				if (err.status === 403) this.isPrivate.set(true);
