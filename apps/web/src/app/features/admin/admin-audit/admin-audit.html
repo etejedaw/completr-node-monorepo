@@ -1,0 +1,60 @@
+<div class="audit-page">
+	<div class="page-header">
+		<h1>Audit Log</h1>
+		<span class="entry-count">{{ total() }} entries</span>
+	</div>
+
+	@if (isLoading()) {
+	<div class="loading">Loading...</div>
+	} @else if (logs().length === 0) {
+	<div class="empty">No audit entries yet.</div>
+	} @else {
+	<div class="table-wrapper">
+		<table>
+			<thead>
+				<tr>
+					<th>User</th>
+					<th>Action</th>
+					<th>Target</th>
+					<th>Date</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (log of logs(); track log.id) {
+				<tr>
+					<td class="col-user">
+						{{ log.user?.username ?? 'Unknown' }}
+					</td>
+					<td class="col-action">
+						<span class="action-badge">{{ log.action }}</span>
+					</td>
+					<td class="col-target">
+						{{ log.targetType }}
+						<span class="target-id"
+							>{{ log.targetId.slice(0, 8) }}...</span
+						>
+					</td>
+					<td class="col-date">
+						{{ log.createdAt | date:'yyyy-MM-dd HH:mm' }}
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+
+	@if (total() > limit) {
+	<div class="pagination">
+		<button [disabled]="offset() === 0" (click)="prevPage()">
+			Previous
+		</button>
+		<span class="page-info"
+			>{{ offset() + 1 }}–{{ Math.min(offset() + limit, total()) }} of {{
+			total() }}</span
+		>
+		<button [disabled]="offset() + limit >= total()" (click)="nextPage()">
+			Next
+		</button>
+	</div>
+	} }
+</div>

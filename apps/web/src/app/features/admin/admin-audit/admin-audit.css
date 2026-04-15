@@ -1,0 +1,144 @@
+.audit-page {
+	max-width: 100%;
+}
+
+.audit-page h1 {
+	font-size: 1.375rem;
+	font-weight: 700;
+	letter-spacing: -0.025em;
+	margin: 0;
+}
+
+.page-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1.25rem;
+}
+
+.entry-count {
+	font-size: 0.8125rem;
+	color: var(--text-muted);
+}
+
+/* === Table === */
+
+.table-wrapper {
+	overflow-x: auto;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.8125rem;
+}
+
+thead th {
+	text-align: left;
+	padding: 0.625rem 0.75rem;
+	color: var(--text-muted);
+	font-weight: 600;
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	border-bottom: 1px solid var(--border);
+	white-space: nowrap;
+}
+
+tbody tr {
+	border-bottom: 1px solid var(--border);
+	transition: background var(--transition);
+}
+
+tbody tr:hover {
+	background: var(--bg-surface);
+}
+
+tbody td {
+	padding: 0.5rem 0.75rem;
+	color: var(--text-primary);
+	vertical-align: middle;
+}
+
+.col-user {
+	font-weight: 500;
+}
+
+.col-action {
+	white-space: nowrap;
+}
+
+.action-badge {
+	display: inline-block;
+	padding: 0.125rem 0.5rem;
+	background: var(--bg-surface);
+	border-radius: 999px;
+	font-size: 0.6875rem;
+	font-weight: 600;
+	color: var(--text-secondary);
+}
+
+.col-target {
+	color: var(--text-secondary);
+	font-size: 0.8125rem;
+}
+
+.target-id {
+	font-family: monospace;
+	color: var(--text-muted);
+	font-size: 0.75rem;
+}
+
+.col-date {
+	white-space: nowrap;
+	color: var(--text-muted);
+	font-size: 0.75rem;
+}
+
+/* === Pagination === */
+
+.pagination {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 1rem;
+	margin-top: 1.25rem;
+	padding-top: 1rem;
+	border-top: 1px solid var(--border);
+}
+
+.pagination button {
+	padding: 0.375rem 0.75rem;
+	background: var(--bg-input);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	color: var(--text-secondary);
+	font-size: 0.8125rem;
+	cursor: pointer;
+	transition: all var(--transition);
+}
+
+.pagination button:hover:not(:disabled) {
+	border-color: var(--accent);
+	color: var(--accent);
+}
+
+.pagination button:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.page-info {
+	font-size: 0.8125rem;
+	color: var(--text-muted);
+}
+
+/* === States === */
+
+.loading,
+.empty {
+	text-align: center;
+	padding: 3rem 1rem;
+	color: var(--text-muted);
+	font-size: 0.875rem;
+}
