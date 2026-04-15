@@ -6,12 +6,17 @@ import {
 	signal
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import { ProfileService, UpdateProfileDto } from "../profile.service";
+import {
+	PublicProfileService,
+	PublicProfile
+} from "../../public-profile/public-profile.service";
 
 @Component({
 	selector: "app-profile-view",
-	imports: [FormsModule],
+	imports: [FormsModule, RouterLink],
 	templateUrl: "./profile-view.html",
 	styleUrl: "./profile-view.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -19,8 +24,11 @@ import { ProfileService, UpdateProfileDto } from "../profile.service";
 export class ProfileView implements OnInit {
 	private readonly authService = inject(AuthService);
 	private readonly profileService = inject(ProfileService);
+	private readonly publicProfileService = inject(PublicProfileService);
 
 	protected readonly user = this.authService.user;
+	protected readonly profile = signal<PublicProfile | null>(null);
+	protected readonly isLoading = signal(true);
 
 	// Edit modal
 	protected readonly showModal = signal(false);
@@ -34,7 +42,10 @@ export class ProfileView implements OnInit {
 	protected readonly saving = signal(false);
 
 	ngOnInit() {
-		this.authService.loadUser().subscribe();
+		this.authService.loadUser().subscribe({
+			next: () => this.loadProfile(),
+			error: () => this.loadProfile()
+		});
 	}
 
 	openEdit() {
@@ -70,16 +81,41 @@ export class ProfileView implements OnInit {
 			next: () => {
 				this.saving.set(false);
 				this.showModal.set(false);
-				this.authService.loadUser().subscribe();
+				this.authService.loadUser().subscribe(() => this.loadProfile());
 			},
 			error: () => this.saving.set(false)
 		});
 	}
 
+	protected activityLabel(type: string): string {
+		const labels: Record<string, string> = {
+			backlog_added: "added to backlog",
+			backlog_playing: "started playing",
+			backlog_completed: "completed",
+			backlog_abandoned: "abandoned",
+			favorite_added: "added to favorites",
+			list_created: "created a list",
+			list_followed: "followed a list",
+			user_followed: "followed a user"
+		};
+		return labels[type] ?? type;
+	}
+
+	protected timeAgo(date: string): string {
+		const diff = Date.now() - new Date(date).getTime();
+		const minutes = Math.floor(diff / 60000);
+		if (minutes < 1) return "just now";
+		if (minutes < 60) return `${minutes}m ago`;
+		const hours = Math.floor(minutes / 60);
+		if (hours < 24) return `${hours}h ago`;
+		const days = Math.floor(hours / 24);
+		return `${days}d ago`;
+	}
+
 	protected get memberSince(): string {
-		const u = this.user();
-		if (!u?.createdAt) return "";
-		return new Date(u.createdAt).toLocaleDateString("en-US", {
+		const date = this.profile()?.user.createdAt;
+		if (!date) return "";
+		return new Date(date).toLocaleDateString("en-US", {
 			year: "numeric",
 			month: "long"
 		});
@@ -93,5 +129,19 @@ export class ProfileView implements OnInit {
 			user: "Free"
 		};
 		return map[this.user()?.role ?? "user"] ?? "Free";
+	}
+
+	private loadProfile() {
+		const username = this.user()?.username;
+		if (!username) return;
+
+		this.isLoading.set(true);
+		this.publicProfileService.getProfile(username).subscribe({
+			next: data => {
+				this.profile.set(data);
+				this.isLoading.set(false);
+			},
+			error: () => this.isLoading.set(false)
+		});
 	}
 }

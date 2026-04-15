@@ -1,41 +1,44 @@
-@if (user()) {
+@if (isLoading()) {
+<div class="loading">Loading...</div>
+} @else if (profile()) {
 <div class="profile-page">
 	<div class="profile-header">
 		<div class="avatar-section">
-			@if (user()!.avatarUrl) {
+			@if (profile()!.user.avatarUrl) {
 			<img
 				class="avatar"
-				[src]="user()!.avatarUrl"
-				[alt]="user()!.username"
+				[src]="profile()!.user.avatarUrl"
+				[alt]="profile()!.user.username"
 			/>
 			} @else {
 			<div class="avatar-placeholder">
-				{{ user()!.username.charAt(0).toUpperCase() }}
+				{{ profile()!.user.username.charAt(0).toUpperCase() }}
 			</div>
 			}
 		</div>
 		<div class="header-info">
 			<div class="header-top">
-				<h1>{{ user()!.name || user()!.username }}</h1>
+				<h1>{{ profile()!.user.name || profile()!.user.username }}</h1>
 				<span class="role-badge" [class]="'role-' + user()!.role">
 					{{ roleBadge }}
 				</span>
 			</div>
-			<span class="username">@{{ user()!.username }}</span>
-			@if (user()!.bio) {
-			<p class="bio">{{ user()!.bio }}</p>
+			<span class="username">@{{ profile()!.user.username }}</span>
+			@if (profile()!.user.bio) {
+			<p class="bio">{{ profile()!.user.bio }}</p>
 			}
 			<div class="header-meta">
 				<span class="meta-item">
-					<span class="material-icons meta-icon">calendar_today</span>
-					Member since {{ memberSince }}
+					<strong>{{ profile()!.followerCount }}</strong>
+					followers
 				</span>
 				<span class="meta-item">
-					<span class="material-icons meta-icon">
-						{{ user()!.isPublic ? 'public' : 'lock' }}
-					</span>
-					{{ user()!.isPublic ? 'Public profile' : 'Private profile'
-					}}
+					<strong>{{ profile()!.followingCount }}</strong>
+					following
+				</span>
+				<span class="meta-item">
+					<span class="material-icons meta-icon">calendar_today</span>
+					Member since {{ memberSince }}
 				</span>
 			</div>
 		</div>
@@ -45,7 +48,8 @@
 		</button>
 	</div>
 
-	<div class="profile-sections">
+	<!-- Privacy -->
+	<div class="section">
 		<div class="section-card">
 			<h3>Privacy</h3>
 			<div class="privacy-row">
@@ -55,7 +59,7 @@
 				<div>
 					<span class="privacy-label">Profile</span>
 					<span class="privacy-value"
-						>{{ user()!.isPublic ? 'Public' : 'Private' }}</span
+						>{{ user()!.isPublic ? "Public" : "Private" }}</span
 					>
 				</div>
 			</div>
@@ -67,7 +71,7 @@
 				<div>
 					<span class="privacy-label">Wishlist</span>
 					<span class="privacy-value"
-						>{{ user()!.isWishlistPublic ? 'Visible' : 'Hidden'
+						>{{ user()!.isWishlistPublic ? "Visible" : "Hidden"
 						}}</span
 					>
 				</div>
@@ -80,7 +84,7 @@
 				<div>
 					<span class="privacy-label">Favorites</span>
 					<span class="privacy-value"
-						>{{ user()!.isFavoritePublic ? 'Visible' : 'Hidden'
+						>{{ user()!.isFavoritePublic ? "Visible" : "Hidden"
 						}}</span
 					>
 				</div>
@@ -92,12 +96,209 @@
 				<div>
 					<span class="privacy-label">Activity Feed</span>
 					<span class="privacy-value"
-						>{{ user()!.isFeedPublic ? 'Visible' : 'Hidden' }}</span
+						>{{ user()!.isFeedPublic ? "Visible" : "Hidden" }}</span
 					>
 				</div>
 			</div>
 		</div>
 	</div>
+
+	<!-- Sections -->
+	@if (profile()!.backlogs.length > 0) {
+	<div class="section">
+		<div class="section-header">
+			<h2>Recent Backlog</h2>
+			<a
+				class="view-all"
+				[routerLink]="['/user', profile()!.user.username, 'backlog']"
+				>{{ profile()!.backlogs.length }} total</a
+			>
+		</div>
+		<div class="game-grid">
+			@for (b of profile()!.backlogs.slice(0, 5); track b.id) {
+			<a class="game-card" [routerLink]="['/games', b.game.code]">
+				@if (b.game.backgroundUrl) {
+				<img
+					[src]="b.game.backgroundUrl"
+					[alt]="b.game.title"
+					class="game-cover"
+				/>
+				} @else {
+				<div class="game-cover-placeholder"></div>
+				}
+				<span class="game-card-title">{{ b.game.title }}</span>
+				<span class="game-card-status status-{{ b.status }}"
+					>{{ b.status.replace("_", " ") }}</span
+				>
+			</a>
+			}
+		</div>
+	</div>
+	} @if (profile()!.gameShelf.length > 0) {
+	<div class="section">
+		<div class="section-header">
+			<h2>Game Shelf</h2>
+			<a
+				class="view-all"
+				[routerLink]="['/user', profile()!.user.username, 'game-shelf']"
+				>{{ profile()!.gameShelf.length }} total</a
+			>
+		</div>
+		<div class="game-grid">
+			@for (s of profile()!.gameShelf.slice(0, 5); track s.id) {
+			<a class="game-card" [routerLink]="['/games', s.game.code]">
+				@if (s.game.backgroundUrl) {
+				<img
+					[src]="s.game.backgroundUrl"
+					[alt]="s.game.title"
+					class="game-cover"
+				/>
+				} @else {
+				<div class="game-cover-placeholder"></div>
+				}
+				<span class="game-card-title">{{ s.game.title }}</span>
+				<span class="game-card-sub">{{ s.platform.abbreviation }}</span>
+			</a>
+			}
+		</div>
+	</div>
+	} @if (profile()!.lists.length > 0) {
+	<div class="section">
+		<div class="section-header">
+			<h2>Lists</h2>
+			<span class="view-all">{{ profile()!.lists.length }} total</span>
+		</div>
+		<div class="lists-grid">
+			@for (l of profile()!.lists.slice(0, 5); track l.id) {
+			<a class="list-card" [routerLink]="['/lists', l.id]">
+				<div class="list-card-header">
+					<span class="list-name">{{ l.name }}</span>
+					<span class="list-followers">
+						<span class="material-icons list-followers-icon"
+							>group</span
+						>
+						{{ l.followerCount }}
+					</span>
+				</div>
+				@if (l.description) {
+				<p class="list-desc">{{ l.description }}</p>
+				}
+			</a>
+			}
+		</div>
+	</div>
+	} @if (profile()!.followingLists.length > 0) {
+	<div class="section">
+		<div class="section-header">
+			<h2>Following Lists</h2>
+			<span class="view-all"
+				>{{ profile()!.followingLists.length }} total</span
+			>
+		</div>
+		<div class="lists-grid">
+			@for (l of profile()!.followingLists.slice(0, 5); track l.id) {
+			<a class="list-card" [routerLink]="['/lists', l.id]">
+				<span class="list-name">{{ l.name }}</span>
+				@if (l.description) {
+				<p class="list-desc">{{ l.description }}</p>
+				}
+			</a>
+			}
+		</div>
+	</div>
+	} @if (profile()!.favorites.length > 0) {
+	<div class="section">
+		<div class="section-header">
+			<h2>Favorites</h2>
+			<a
+				class="view-all"
+				[routerLink]="['/user', profile()!.user.username, 'favorites']"
+				>{{ profile()!.favorites.length }} total</a
+			>
+		</div>
+		<div class="game-grid">
+			@for (f of profile()!.favorites.slice(0, 5); track f.id) {
+			<a class="game-card" [routerLink]="['/games', f.game.code]">
+				@if (f.game.backgroundUrl) {
+				<img
+					[src]="f.game.backgroundUrl"
+					[alt]="f.game.title"
+					class="game-cover"
+				/>
+				} @else {
+				<div class="game-cover-placeholder"></div>
+				}
+				<span class="game-card-title">{{ f.game.title }}</span>
+			</a>
+			}
+		</div>
+	</div>
+	} @if (profile()!.wishlist.length > 0) {
+	<div class="section">
+		<div class="section-header">
+			<h2>Wishlist</h2>
+			<a
+				class="view-all"
+				[routerLink]="['/user', profile()!.user.username, 'wishlist']"
+				>{{ profile()!.wishlist.length }} total</a
+			>
+		</div>
+		<div class="game-grid">
+			@for (w of profile()!.wishlist.slice(0, 5); track w.id) {
+			<a class="game-card" [routerLink]="['/games', w.backlog.game.code]">
+				@if (w.backlog.game.backgroundUrl) {
+				<img
+					[src]="w.backlog.game.backgroundUrl"
+					[alt]="w.backlog.game.title"
+					class="game-cover"
+				/>
+				} @else {
+				<div class="game-cover-placeholder"></div>
+				}
+				<span class="game-card-title">{{ w.backlog.game.title }}</span>
+				<span class="game-card-sub"
+					>{{ w.backlog.platform.abbreviation }}</span
+				>
+			</a>
+			}
+		</div>
+	</div>
+	} @if (profile()!.recentActivity.length > 0) {
+	<div class="section">
+		<div class="section-header">
+			<h2>Recent Activity</h2>
+		</div>
+		<div class="activity-list">
+			@for (a of profile()!.recentActivity.slice(0, 10); track a.id) {
+			<div class="activity-item">
+				<span class="activity-text">
+					{{ activityLabel(a.type) }}{{ " " }} @if (a.target?.type ===
+					'game') {
+					<a
+						class="activity-game"
+						[routerLink]="['/games', a.target!.code]"
+						>{{ a.target!.name }}</a
+					>
+					} @else if (a.target?.type === 'list') {
+					<a
+						class="activity-game"
+						[routerLink]="['/lists', a.target!.id]"
+						>{{ a.target!.name }}</a
+					>
+					} @else if (a.target?.type === 'user') {
+					<a
+						class="activity-game"
+						[routerLink]="['/user', a.target!.username]"
+						>{{ a.target!.name }}</a
+					>
+					}
+				</span>
+				<span class="activity-time">{{ timeAgo(a.createdAt) }}</span>
+			</div>
+			}
+		</div>
+	</div>
+	}
 </div>
 } @if (showModal()) {
 <div class="modal-overlay" (click)="closeModal()">
