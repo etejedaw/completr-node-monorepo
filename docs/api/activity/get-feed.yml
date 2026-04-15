@@ -1,0 +1,64 @@
+info:
+    name: Get Feed
+    type: http
+    seq: 1
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/feed"
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Get Feed
+
+    Returns recent activity from users you follow. Activities include adding games to backlog, completing games, adding favorites, etc.
+
+    **Auth:** Bearer token (any authenticated user).
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "activities": [
+          {
+            "id": "uuid",
+            "type": "backlog_added",
+            "metadata": { "platform": "Steam" },
+            "createdAt": "2026-01-01T00:00:00.000Z",
+            "user": {
+              "id": "uuid",
+              "username": "johndoe",
+              "name": "John Doe",
+              "avatarUrl": null
+            },
+            "game": {
+              "id": "uuid",
+              "title": "Fez",
+              "code": "fez",
+              "backgroundUrl": "https://..."
+            }
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Activity Types
+
+    | Type               | Description                    |
+    |--------------------|--------------------------------|
+    | backlog_added      | Added a game to backlog        |
+    | backlog_playing    | Started playing a game         |
+    | backlog_completed  | Completed a game               |
+    | backlog_abandoned  | Abandoned a game               |
+    | favorite_added     | Added a game to favorites      |
+    | list_created       | Created a new list             |
