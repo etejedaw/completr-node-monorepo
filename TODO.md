@@ -372,7 +372,7 @@
 
 - [ ] Flujo de registro limpio y funcional
 - [ ] Corrección de bugs encontrados en Fase 1
-- [ ] Empty states descriptivos en todas las vistas: Backlog, Saved Views, Game Shelf, Wishlist, Favorites, Lists — con texto explicativo de qué hace cada sección y cómo empezar
+- [x] Empty states descriptivos en todas las vistas: Backlog, Saved Views, Game Shelf, Wishlist, Favorites, Lists
 
 ### Panel admin de usuarios
 
