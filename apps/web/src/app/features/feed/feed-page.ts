@@ -1,0 +1,121 @@
+import {
+	ChangeDetectionStrategy,
+	Component,
+	inject,
+	OnInit,
+	signal
+} from "@angular/core";
+import { Router, RouterLink } from "@angular/router";
+import { Subject, debounceTime, switchMap } from "rxjs";
+import { FeedService, FeedActivity } from "./feed.service";
+import {
+	GlobalSearchService,
+	SearchResults
+} from "../../core/services/global-search.service";
+
+@Component({
+	selector: "app-feed-page",
+	imports: [RouterLink],
+	templateUrl: "./feed-page.html",
+	styleUrl: "./feed-page.css",
+	changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class FeedPage implements OnInit {
+	private readonly feedService = inject(FeedService);
+	private readonly searchService = inject(GlobalSearchService);
+	private readonly router = inject(Router);
+	private readonly searchSubject = new Subject<string>();
+
+	protected readonly activities = signal<FeedActivity[]>([]);
+	protected readonly isLoading = signal(true);
+	protected readonly searchQuery = signal("");
+	protected readonly searchResults = signal<SearchResults | null>(null);
+	protected readonly isSearching = signal(false);
+
+	ngOnInit() {
+		this.loadFeed();
+
+		this.searchSubject
+			.pipe(
+				debounceTime(300),
+				switchMap(query => {
+					if (query.length < 2) {
+						this.searchResults.set(null);
+						this.isSearching.set(false);
+						return [];
+					}
+					this.isSearching.set(true);
+					return this.searchService.search(query);
+				})
+			)
+			.subscribe(results => {
+				this.searchResults.set(results);
+				this.isSearching.set(false);
+			});
+	}
+
+	onSearch(event: Event) {
+		const query = (event.target as HTMLInputElement).value;
+		this.searchQuery.set(query);
+		if (query.length < 2) {
+			this.searchResults.set(null);
+			return;
+		}
+		this.searchSubject.next(query);
+	}
+
+	clearSearch() {
+		this.searchQuery.set("");
+		this.searchResults.set(null);
+	}
+
+	goToUser(username: string) {
+		this.clearSearch();
+		this.router.navigate(["/@" + username]);
+	}
+
+	goToGame(code: string) {
+		this.clearSearch();
+		this.router.navigate(["/games", code]);
+	}
+
+	goToList(id: string) {
+		this.clearSearch();
+		this.router.navigate(["/lists", id]);
+	}
+
+	protected activityLabel(type: string): string {
+		const labels: Record<string, string> = {
+			backlog_added: "added to backlog",
+			backlog_playing: "started playing",
+			backlog_completed: "completed",
+			backlog_abandoned: "abandoned",
+			backlog_not_started: "wants to play",
+			favorite_added: "added to favorites",
+			list_created: "created a list"
+		};
+		return labels[type] ?? type;
+	}
+
+	protected timeAgo(date: string): string {
+		const diff = Date.now() - new Date(date).getTime();
+		const minutes = Math.floor(diff / 60000);
+		if (minutes < 1) return "just now";
+		if (minutes < 60) return `${minutes}m ago`;
+		const hours = Math.floor(minutes / 60);
+		if (hours < 24) return `${hours}h ago`;
+		const days = Math.floor(hours / 24);
+		return `${days}d ago`;
+	}
+
+	private loadFeed() {
+		this.isLoading.set(true);
+		this.feedService.getFeed().subscribe({
+			next: activities => {
+				this.activities.set(activities);
+				this.isLoading.set(false);
+			},
+			error: () => this.isLoading.set(false)
+		});
+	}
+}

@@ -21,7 +21,12 @@ export const routes: Routes = [
 		canActivate: [authGuard],
 		loadComponent: () => import("./layout/layout").then(m => m.Layout),
 		children: [
-			{ path: "", redirectTo: "backlog", pathMatch: "full" },
+			{ path: "", redirectTo: "feed", pathMatch: "full" },
+			{
+				path: "feed",
+				loadComponent: () =>
+					import("./features/feed/feed-page").then(m => m.FeedPage)
+			},
 			{
 				path: "backlog",
 				loadComponent: () =>

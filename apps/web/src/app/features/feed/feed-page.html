@@ -1,0 +1,145 @@
+<div class="feed-page">
+	<div class="search-section">
+		<div class="search-wrapper">
+			<span class="material-icons search-icon">search</span>
+			<input
+				type="text"
+				class="search-input"
+				placeholder="Search users, games or lists..."
+				[value]="searchQuery()"
+				(input)="onSearch($event)"
+			/>
+			@if (searchQuery()) {
+			<button class="search-clear" (click)="clearSearch()">
+				<span class="material-icons">close</span>
+			</button>
+			}
+		</div>
+
+		@if (searchResults()) {
+		<div class="search-dropdown">
+			@if (searchResults()!.users.length > 0) {
+			<div class="search-group">
+				<span class="search-group-label">Users</span>
+				@for (user of searchResults()!.users; track user.id) {
+				<button class="search-item" (click)="goToUser(user.username)">
+					<span class="material-icons search-item-icon">person</span>
+					<div class="search-item-info">
+						<span class="search-item-name"
+							>{{ user.name || user.username }}</span
+						>
+						<span class="search-item-sub"
+							>@{{ user.username }}</span
+						>
+					</div>
+					@if (!user.isPublic) {
+					<span class="material-icons search-item-lock">lock</span>
+					}
+				</button>
+				}
+			</div>
+			} @if (searchResults()!.games.length > 0) {
+			<div class="search-group">
+				<span class="search-group-label">Games</span>
+				@for (game of searchResults()!.games.slice(0, 5); track game.id)
+				{
+				<button class="search-item" (click)="goToGame(game.code)">
+					<span class="material-icons search-item-icon"
+						>sports_esports</span
+					>
+					<div class="search-item-info">
+						<span class="search-item-name">{{ game.title }}</span>
+					</div>
+				</button>
+				}
+			</div>
+			} @if (searchResults()!.lists.length > 0) {
+			<div class="search-group">
+				<span class="search-group-label">Lists</span>
+				@for (list of searchResults()!.lists.slice(0, 5); track list.id)
+				{
+				<button class="search-item" (click)="goToList(list.id)">
+					<span class="material-icons search-item-icon"
+						>format_list_bulleted</span
+					>
+					<div class="search-item-info">
+						<span class="search-item-name">{{ list.name }}</span>
+					</div>
+				</button>
+				}
+			</div>
+			} @if (searchResults()!.users.length === 0 &&
+			searchResults()!.games.length === 0 && searchResults()!.lists.length
+			=== 0) {
+			<div class="search-empty">No results found</div>
+			}
+		</div>
+		}
+	</div>
+
+	<h2 class="feed-title">Activity Feed</h2>
+
+	@if (isLoading()) {
+	<div class="loading">Loading...</div>
+	} @else if (activities().length === 0) {
+	<div class="empty">
+		<p class="empty-title">Your feed is empty</p>
+		<p class="empty-hint">
+			Follow other users to see their activity here. Use the search bar
+			above to find friends.
+		</p>
+	</div>
+	} @else {
+	<div class="feed-list">
+		@for (activity of activities(); track activity.id) {
+		<div class="feed-item">
+			<div class="feed-avatar">
+				@if (activity.user) {
+				<button
+					class="avatar-btn"
+					(click)="goToUser(activity.user.username)"
+				>
+					{{ activity.user.username.charAt(0).toUpperCase() }}
+				</button>
+				}
+			</div>
+			<div class="feed-content">
+				<div class="feed-text">
+					@if (activity.user) {
+					<button
+						class="feed-user"
+						(click)="goToUser(activity.user.username)"
+					>
+						{{ activity.user.name || activity.user.username }}
+					</button>
+					}
+					<span class="feed-action"
+						>{{ activityLabel(activity.type) }}</span
+					>
+					@if (activity.game) {
+					<a
+						class="feed-game"
+						[routerLink]="['/games', activity.game.code]"
+					>
+						{{ activity.game.title }}
+					</a>
+					}
+				</div>
+				<span class="feed-time">{{ timeAgo(activity.createdAt) }}</span>
+			</div>
+			@if (activity.game?.backgroundUrl) {
+			<a
+				[routerLink]="['/games', activity.game!.code]"
+				class="feed-cover"
+			>
+				<img
+					[src]="activity.game!.backgroundUrl"
+					[alt]="activity.game!.title"
+				/>
+			</a>
+			}
+		</div>
+		}
+	</div>
+	}
+</div>
