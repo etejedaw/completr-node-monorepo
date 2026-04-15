@@ -383,10 +383,11 @@
 
 ### Sistema social
 
-- [ ] `POST /users/:username/follow` — Seguir a un usuario
-- [ ] `DELETE /users/:username/follow` — Dejar de seguir
-- [ ] `GET /users/:username/followers` — Ver seguidores
-- [ ] `GET /users/:username/following` — Ver a quién sigo
+- [x] `POST /users/:username/follow` — Seguir a un usuario
+- [x] `DELETE /users/:username/follow` — Dejar de seguir
+- [x] `GET /users/:username/followers` — Ver seguidores
+- [x] `GET /users/:username/following` — Ver a quién sigo
+- [x] `followerCount`, `followingCount`, `isFollowing` en perfil público (auth opcional)
 - [ ] Feed de actividad pública: "X completó Y", "X añadió Y a su backlog"
 - [ ] `GET /feed` — Endpoint de actividad de usuarios seguidos
 
@@ -408,6 +409,15 @@
 - [ ] Vista `/users/:username` con backlogs, listas, favoritos, wishlist (máx 5 items + "ver más")
 - [ ] Contador de seguidores/siguiendo en perfil
 - [ ] Botón follow/unfollow en perfil
+
+### Permisos y roles
+
+- [ ] Auditar todos los endpoints y definir permisos claros por rol:
+    - **admin**: acceso total (CRUD juegos, plataformas, géneros, crear usuarios, gestionar reportes, ver/editar cualquier recurso)
+    - **moderator**: CRUD de juegos, plataformas y géneros. No puede crear usuarios ni gestionar reportes
+    - **user / premium**: solo gestiona sus propios recursos (backlog, game-shelf, listas, wishlist, favoritos, perfil, follow, reportar juegos)
+- [ ] Quitar endpoints públicos sin auth (juegos, plataformas, géneros, perfil de usuario) — todo requiere al menos estar autenticado
+- [ ] Verificar que ningún endpoint permita a un usuario modificar recursos de otro usuario
 
 ### Dominio completr.app
 
