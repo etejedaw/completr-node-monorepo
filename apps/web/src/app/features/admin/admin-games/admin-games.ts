@@ -1,0 +1,102 @@
+import {
+	ChangeDetectionStrategy,
+	Component,
+	inject,
+	OnInit,
+	signal
+} from "@angular/core";
+import { Router, RouterLink } from "@angular/router";
+import { Game } from "../../../core/models";
+import { GamesService } from "../../games/games.service";
+import { AdminService, GameReport } from "../admin.service";
+
+@Component({
+	selector: "app-admin-games",
+	imports: [RouterLink],
+	templateUrl: "./admin-games.html",
+	styleUrl: "./admin-games.css",
+	changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class AdminGames implements OnInit {
+	private readonly gamesService = inject(GamesService);
+	private readonly adminService = inject(AdminService);
+	private readonly router = inject(Router);
+
+	protected readonly Math = Math;
+	protected readonly games = signal<Game[]>([]);
+	protected readonly reportedGameIds = signal<Set<string>>(new Set());
+	protected readonly total = signal(0);
+	protected readonly isLoading = signal(true);
+	protected readonly searchQuery = signal("");
+	protected readonly offset = signal(0);
+	protected readonly limit = 50;
+
+	ngOnInit() {
+		this.loadGames();
+		this.loadReports();
+	}
+
+	goToGameReport(gameId: string) {
+		this.router.navigate(["/admin/reports"], {
+			queryParams: { gameId }
+		});
+	}
+
+	onSearch(event: Event) {
+		const query = (event.target as HTMLInputElement).value;
+		this.searchQuery.set(query);
+		this.offset.set(0);
+
+		if (query.length >= 2) {
+			this.isLoading.set(true);
+			this.gamesService.search(query).subscribe({
+				next: games => {
+					this.games.set(games);
+					this.total.set(games.length);
+					this.isLoading.set(false);
+				},
+				error: () => this.isLoading.set(false)
+			});
+		} else if (query.length === 0) {
+			this.loadGames();
+		}
+	}
+
+	nextPage() {
+		this.offset.update(o => o + this.limit);
+		this.loadGames();
+	}
+
+	prevPage() {
+		this.offset.update(o => Math.max(0, o - this.limit));
+		this.loadGames();
+	}
+
+	private loadReports() {
+		this.adminService.getPendingReports().subscribe({
+			next: reports => {
+				const ids = new Set(reports.map(r => r.gameId));
+				this.reportedGameIds.set(ids);
+			}
+		});
+	}
+
+	private loadGames() {
+		this.isLoading.set(true);
+		this.gamesService
+			.getGames({
+				limit: this.limit,
+				offset: this.offset(),
+				sort_by: "createdAt",
+				sort_order: "desc"
+			})
+			.subscribe({
+				next: res => {
+					this.games.set(res.data.games);
+					this.total.set(res.data.total);
+					this.isLoading.set(false);
+				},
+				error: () => this.isLoading.set(false)
+			});
+	}
+}

@@ -1,0 +1,85 @@
+<div class="admin-page">
+	<h1>Create User</h1>
+
+	<form class="create-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+		<div class="form-row">
+			<div class="form-group">
+				<label for="username">Username *</label>
+				<input
+					id="username"
+					formControlName="username"
+					placeholder="johndoe"
+				/>
+			</div>
+			<div class="form-group">
+				<label for="name">Name *</label>
+				<input
+					id="name"
+					formControlName="name"
+					placeholder="John Doe"
+				/>
+			</div>
+		</div>
+
+		<div class="form-row">
+			<div class="form-group">
+				<label for="email">Email *</label>
+				<input
+					id="email"
+					formControlName="email"
+					type="email"
+					placeholder="john@example.com"
+				/>
+			</div>
+			<div class="form-group">
+				<label for="password">Password *</label>
+				<input
+					id="password"
+					formControlName="password"
+					type="password"
+					placeholder="Min 8 chars"
+				/>
+			</div>
+		</div>
+
+		@if (errorMessage()) {
+		<div class="message error">{{ errorMessage() }}</div>
+		} @if (successMessage()) {
+		<div class="message success">{{ successMessage() }}</div>
+		}
+
+		<button
+			type="submit"
+			class="btn-submit"
+			[disabled]="form.invalid || isSubmitting()"
+		>
+			{{ isSubmitting() ? "Creating..." : "Create User" }}
+		</button>
+	</form>
+
+	@if (createdUsers().length > 0) {
+	<div class="created-section">
+		<h2>Created this session</h2>
+		<div class="table-wrapper">
+			<table>
+				<thead>
+					<tr>
+						<th>Username</th>
+						<th>Name</th>
+						<th>Role</th>
+					</tr>
+				</thead>
+				<tbody>
+					@for (user of createdUsers(); track user.id) {
+					<tr>
+						<td>{{ user.username }}</td>
+						<td>{{ user.name }}</td>
+						<td><span class="role-badge">{{ user.role }}</span></td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	}
+</div>

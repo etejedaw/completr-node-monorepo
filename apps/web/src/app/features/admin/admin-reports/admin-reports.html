@@ -1,0 +1,44 @@
+<div class="admin-page">
+	<h1>Pending Reports</h1>
+
+	@if (filterGameId()) {
+	<div class="filter-bar">
+		<span class="filter-label">Filtered by game</span>
+		<button class="btn-clear-filter" (click)="clearFilter()">
+			Show all
+		</button>
+	</div>
+	} @if (isLoading()) {
+	<div class="loading">Loading...</div>
+	} @else if (reports().length === 0) {
+	<div class="empty">No pending reports.</div>
+	} @else {
+	<div class="reports-list">
+		@for (report of reports(); track report.id) {
+		<div class="report-card">
+			<div class="report-header">
+				<a
+					class="game-link"
+					[routerLink]="['/games', report.Game.code]"
+				>
+					{{ report.Game.title }}
+				</a>
+				<span class="report-meta">
+					by {{ report.User.username }} &middot; {{ report.createdAt |
+					date : "yyyy-MM-dd" }}
+				</span>
+			</div>
+			<p class="report-message">{{ report.message }}</p>
+			<div class="report-actions">
+				<button class="btn-approve" (click)="approve(report)">
+					Approve
+				</button>
+				<button class="btn-reject" (click)="reject(report)">
+					Reject
+				</button>
+			</div>
+		</div>
+		}
+	</div>
+	}
+</div>

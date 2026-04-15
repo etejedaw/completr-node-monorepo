@@ -73,6 +73,34 @@
 			</ul>
 		</div>
 
+		@if (isAdmin()) {
+		<div class="nav-section">
+			<span class="nav-label">Admin</span>
+			<ul class="nav-links">
+				<li>
+					<a routerLink="/admin/users" routerLinkActive="active">
+						<span class="material-icons nav-icon">person_add</span>
+						Users
+					</a>
+				</li>
+				<li>
+					<a routerLink="/admin/games" routerLinkActive="active">
+						<span class="material-icons nav-icon"
+							>videogame_asset</span
+						>
+						Games
+					</a>
+				</li>
+				<li>
+					<a routerLink="/admin/reports" routerLinkActive="active">
+						<span class="material-icons nav-icon">flag</span>
+						Reports
+					</a>
+				</li>
+			</ul>
+		</div>
+		}
+
 		<div class="sidebar-footer">
 			<a
 				routerLink="/profile"

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from "@angular/core";
+import { Component, computed, inject, OnInit, signal } from "@angular/core";
 import {
 	RouterLink,
 	RouterLinkActive,
@@ -19,6 +19,7 @@ export class Layout implements OnInit {
 	private readonly auth = inject(AuthService);
 	private readonly router = inject(Router);
 	protected readonly user = this.auth.user;
+	protected readonly isAdmin = computed(() => this.user()?.role === "admin");
 	protected readonly sidebarOpen = signal(false);
 
 	ngOnInit() {
