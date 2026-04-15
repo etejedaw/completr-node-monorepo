@@ -39,9 +39,9 @@ export function server(port: number) {
 	app.use(genreRouter);
 	app.use(gameScoresRouter);
 	app.use(gameTimesRouter);
+	app.use(listFollowersRouter);
 	app.use(listsRouter);
 	app.use(listItemsRouter);
-	app.use(listFollowersRouter);
 	app.use(scoreSourcesRouter);
 	app.use(gameExternalRouter);
 	app.use(gameReportsRouter);

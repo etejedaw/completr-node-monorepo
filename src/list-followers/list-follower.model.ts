@@ -1,5 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
+import { User } from "../users/user.model";
+import { List } from "../lists/list.model";
 
 class ListFollower extends Model {
 	declare id: string;
@@ -8,6 +10,8 @@ class ListFollower extends Model {
 	declare isVisible: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
+	declare User: User;
+	declare List: List;
 }
 
 ListFollower.init(
