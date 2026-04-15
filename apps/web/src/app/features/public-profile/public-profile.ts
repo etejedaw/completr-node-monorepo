@@ -84,7 +84,9 @@ export class PublicProfileComponent implements OnInit {
 			backlog_completed: "completed",
 			backlog_abandoned: "abandoned",
 			favorite_added: "added to favorites",
-			list_created: "created a list"
+			list_created: "created a list",
+			list_followed: "followed a list",
+			user_followed: "followed a user"
 		};
 		return labels[type] ?? type;
 	}

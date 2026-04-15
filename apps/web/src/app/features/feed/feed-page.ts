@@ -98,7 +98,9 @@ export class FeedPage implements OnInit {
 			backlog_abandoned: "abandoned",
 			backlog_not_started: "wants to play",
 			favorite_added: "added to favorites",
-			list_created: "created a list"
+			list_created: "created a list",
+			list_followed: "followed a list",
+			user_followed: "followed a user"
 		};
 		return labels[type] ?? type;
 	}
