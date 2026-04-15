@@ -240,9 +240,19 @@
 	color: var(--text-muted);
 }
 
-.feed-game {
+.feed-target {
 	font-weight: 600;
 	color: var(--accent);
+}
+
+.feed-target-btn {
+	font-weight: 600;
+	color: var(--accent);
+	background: none;
+	border: none;
+	font-size: inherit;
+	cursor: pointer;
+	padding: 0;
 }
 
 .feed-time {

@@ -251,11 +251,24 @@
 				@for (a of profile()!.recentActivity.slice(0, 10); track a.id) {
 				<div class="activity-item">
 					<span class="activity-text">
-						{{ activityLabel(a.type) }} @if (a.game) {
+						{{ activityLabel(a.type) }}{{ " " }} @if (a.target?.type
+						=== 'game') {
 						<a
 							class="activity-game"
-							[routerLink]="['/games', a.game.code]"
-							>{{ a.game.title }}</a
+							[routerLink]="['/games', a.target!.code]"
+							>{{ a.target!.name }}</a
+						>
+						} @else if (a.target?.type === 'list') {
+						<a
+							class="activity-game"
+							[routerLink]="['/lists', a.target!.id]"
+							>{{ a.target!.name }}</a
+						>
+						} @else if (a.target?.type === 'user') {
+						<a
+							class="activity-game"
+							[routerLink]="['/user', a.target!.username]"
+							>{{ a.target!.name }}</a
 						>
 						}
 					</span>

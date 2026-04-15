@@ -6,6 +6,7 @@ import {
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { Subject, debounceTime, switchMap, of } from "rxjs";
 import { List } from "../../../core/models";
 import { ListsService } from "../lists.service";
 import { ListModal } from "../list-modal/list-modal";
@@ -19,15 +20,43 @@ import { ListModal } from "../list-modal/list-modal";
 })
 export class ListOverview implements OnInit {
 	private readonly listsService = inject(ListsService);
+	private readonly searchSubject = new Subject<string>();
 
 	protected readonly lists = signal<List[]>([]);
 	protected readonly frozen = signal(false);
 	protected readonly isLoading = signal(true);
 	protected readonly showModal = signal(false);
 	protected readonly editingList = signal<List | null>(null);
+	protected readonly searchQuery = signal("");
+	protected readonly searchResults = signal<List[]>([]);
+	protected readonly isSearching = signal(false);
 
 	ngOnInit() {
 		this.loadLists();
+
+		this.searchSubject
+			.pipe(
+				debounceTime(400),
+				switchMap(query => {
+					if (query.length < 2) {
+						this.isSearching.set(false);
+						return of([]);
+					}
+					this.isSearching.set(true);
+					return this.listsService.search(query);
+				})
+			)
+			.subscribe(lists => {
+				this.searchResults.set(lists);
+				this.isSearching.set(false);
+			});
+	}
+
+	onSearch(event: Event) {
+		const query = (event.target as HTMLInputElement).value;
+		this.searchQuery.set(query);
+		if (query.length >= 2) this.isSearching.set(true);
+		this.searchSubject.next(query);
 	}
 
 	openCreate() {

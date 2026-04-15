@@ -117,24 +117,39 @@
 					>{{ " " }} }
 					<span class="feed-action"
 						>{{ activityLabel(activity.type) }}</span
-					>{{ " " }} @if (activity.game) {
+					>{{ " " }} @if (activity.target) { @if (activity.target.type
+					=== 'game') {
 					<a
-						class="feed-game"
-						[routerLink]="['/games', activity.game.code]"
-						>{{ activity.game.title }}</a
+						class="feed-target"
+						[routerLink]="['/games', activity.target.code]"
+						>{{ activity.target.name }}</a
 					>
-					}
+					} @else if (activity.target.type === 'list') {
+					<a
+						class="feed-target"
+						[routerLink]="['/lists', activity.target.id]"
+						>{{ activity.target.name }}</a
+					>
+					} @else if (activity.target.type === 'user') {
+					<button
+						class="feed-target-btn"
+						(click)="goToUser(activity.target.username!)"
+					>
+						{{ activity.target.name }}
+					</button>
+					} }
 				</div>
 				<span class="feed-time">{{ timeAgo(activity.createdAt) }}</span>
 			</div>
-			@if (activity.game?.backgroundUrl) {
+			@if (activity.target?.type === 'game' &&
+			activity.target?.backgroundUrl) {
 			<a
-				[routerLink]="['/games', activity.game!.code]"
+				[routerLink]="['/games', activity.target!.code]"
 				class="feed-cover"
 			>
 				<img
-					[src]="activity.game!.backgroundUrl"
-					[alt]="activity.game!.title"
+					[src]="activity.target!.backgroundUrl!"
+					[alt]="activity.target!.name"
 				/>
 			</a>
 			} @if (isOwnActivity(activity)) {

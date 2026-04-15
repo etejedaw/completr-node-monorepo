@@ -3,10 +3,19 @@ import { HttpClient } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
 
+export interface ActivityTarget {
+	type: "game" | "list" | "user";
+	id: string;
+	name: string;
+	code?: string;
+	username?: string;
+	backgroundUrl?: string;
+	avatarUrl?: string;
+}
+
 export interface FeedActivity {
 	id: string;
 	type: string;
-	metadata: Record<string, unknown> | null;
 	createdAt: string;
 	user: {
 		id: string;
@@ -14,12 +23,7 @@ export interface FeedActivity {
 		name: string;
 		avatarUrl: string | null;
 	} | null;
-	game: {
-		id: string;
-		title: string;
-		code: string;
-		backgroundUrl: string | null;
-	} | null;
+	target: ActivityTarget | null;
 }
 
 @Injectable({ providedIn: "root" })

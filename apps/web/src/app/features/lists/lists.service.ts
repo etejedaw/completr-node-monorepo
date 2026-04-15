@@ -94,4 +94,12 @@ export class ListsService {
 	unfollow(id: string) {
 		return this.http.delete(`${this.baseUrl}/${id}/follow`);
 	}
+
+	search(query: string) {
+		return this.http
+			.get<{
+				data: { lists: List[] };
+			}>(`${this.baseUrl}/search?query=${encodeURIComponent(query)}`)
+			.pipe(map(res => res.data.lists));
+	}
 }

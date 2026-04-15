@@ -68,9 +68,14 @@ export interface PublicGameShelf {
 export interface PublicActivity {
 	id: string;
 	type: string;
-	metadata: Record<string, unknown> | null;
 	createdAt: string;
-	game: GameSummary | null;
+	target: {
+		type: "game" | "list" | "user";
+		id: string;
+		name: string;
+		code?: string;
+		username?: string;
+	} | null;
 }
 
 export interface PublicProfile {
