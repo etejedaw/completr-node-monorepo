@@ -38,11 +38,11 @@ export async function getUserByUsername(request: Request, response: Response) {
 	const currentUser = request.locals.user as RequestUser | undefined;
 
 	const [
-		backlogs,
+		backlogResult,
 		lists,
 		favorites,
 		wishlist,
-		gameShelf,
+		gameShelfResult,
 		followingLists,
 		recentActivity,
 		followerCount,
@@ -68,6 +68,9 @@ export async function getUserByUsername(request: Request, response: Response) {
 			? userFollowersService.isFollowing(currentUser.id, userId)
 			: Promise.resolve(false)
 	]);
+
+	const backlogs = backlogResult.rows.map(b => b.get({ plain: true }));
+	const gameShelf = gameShelfResult.rows.map(g => g.get({ plain: true }));
 
 	const listsWithFollowers = await Promise.all(
 		lists.map(async list => {
@@ -141,6 +144,28 @@ export async function searchUsers(request: Request, response: Response) {
 			isPublic: u.isPublic
 		}))
 	};
+	return response.status(200).json({ data });
+}
+
+export async function getUserFollowingLists(
+	request: Request,
+	response: Response
+) {
+	const params = request.locals.params as UsernameParam;
+	const query = request.locals.query ?? {};
+
+	const user = await usersService.findUserByUsername(params.username);
+	if (!user) throw userDomain.userNotFound();
+	if (!user.isPublic) throw userDomain.userPrivate();
+
+	const { rows, total } =
+		await listFollowersService.getFollowingListsPaginated(user.id, query);
+
+	const followingLists = rows
+		.filter(f => f.isVisible)
+		.map(f => listSummarySerializer(f.List));
+
+	const data = { followingLists, total };
 	return response.status(200).json({ data });
 }
 

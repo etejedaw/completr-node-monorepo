@@ -16,6 +16,8 @@ import gameShelfRouter from "../game-shelf/game-shelf.routes";
 import * as gameShelfController from "../game-shelf/game-shelf.controller";
 import backlogRouter from "../backlog/backlog.routes";
 import * as backlogController from "../backlog/backlog.controller";
+import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
+import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 import savedFiltersRouter from "../saved-filters/saved-filters.routes";
 import wishlistRouter from "../wishlist/wishlist.routes";
 import * as wishlistController from "../wishlist/wishlist.controller";
@@ -81,7 +83,8 @@ router.get(
 	"/users/:username/game-shelf",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		validateSchemaMiddleware(UsernameParamSchema, "params")
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	gameShelfController.getUserGameShelf
 );
@@ -92,7 +95,8 @@ router.get(
 	"/users/:username/backlog",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		validateSchemaMiddleware(UsernameParamSchema, "params")
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(BacklogQuerySchema, "query")
 	],
 	backlogController.getUserBacklog
 );
@@ -105,7 +109,8 @@ router.get(
 	"/users/:username/wishlist",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		validateSchemaMiddleware(UsernameParamSchema, "params")
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	wishlistController.getUserWishlist
 );
@@ -116,9 +121,20 @@ router.get(
 	"/users/:username/favorites",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		validateSchemaMiddleware(UsernameParamSchema, "params")
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	favoritesController.getUserFavorites
+);
+
+router.get(
+	"/users/:username/following-lists",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
+	],
+	usersController.getUserFollowingLists
 );
 
 export default router;
