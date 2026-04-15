@@ -2,7 +2,7 @@ import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
-import { List } from "../../core/models";
+import { List, FollowingList } from "../../core/models";
 
 interface ListsResponse {
 	data: { lists: List[]; frozen: boolean };
@@ -100,6 +100,14 @@ export class ListsService {
 			.get<{
 				data: { lists: List[] };
 			}>(`${this.baseUrl}/search?query=${encodeURIComponent(query)}`)
+			.pipe(map(res => res.data.lists));
+	}
+
+	getFollowing() {
+		return this.http
+			.get<{
+				data: { lists: FollowingList[] };
+			}>(`${this.baseUrl}/following`)
 			.pipe(map(res => res.data.lists));
 	}
 }

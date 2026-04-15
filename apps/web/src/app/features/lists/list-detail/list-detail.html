@@ -72,6 +72,30 @@
 		}
 	</div>
 
+	@if (list()!.progress) {
+	<div class="progress-section">
+		<div class="progress-header">
+			<span class="progress-label">Your progress</span>
+			<span class="progress-count"
+				>{{ list()!.progress!.completed }}/{{ list()!.progress!.total
+				}}</span
+			>
+		</div>
+		<div class="progress-bar">
+			<div
+				class="progress-fill"
+				[style.width.%]="
+					list()!.progress!.total > 0
+						? (list()!.progress!.completed /
+								list()!.progress!.total) *
+							100
+						: 0
+				"
+			></div>
+		</div>
+	</div>
+	}
+
 	<!-- Add game search -->
 	@if (isOwner() && showAddSearch()) {
 	<div class="add-search">

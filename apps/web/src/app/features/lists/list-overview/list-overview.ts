@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { Subject, debounceTime, switchMap, of } from "rxjs";
-import { List } from "../../../core/models";
+import { List, FollowingList } from "../../../core/models";
 import { ListsService } from "../lists.service";
 import { ListModal } from "../list-modal/list-modal";
 
@@ -23,6 +23,7 @@ export class ListOverview implements OnInit {
 	private readonly searchSubject = new Subject<string>();
 
 	protected readonly lists = signal<List[]>([]);
+	protected readonly followingLists = signal<FollowingList[]>([]);
 	protected readonly frozen = signal(false);
 	protected readonly isLoading = signal(true);
 	protected readonly showModal = signal(false);
@@ -33,6 +34,7 @@ export class ListOverview implements OnInit {
 
 	ngOnInit() {
 		this.loadLists();
+		this.loadFollowing();
 
 		this.searchSubject
 			.pipe(
@@ -81,6 +83,10 @@ export class ListOverview implements OnInit {
 		this.loadLists();
 	}
 
+	progressPercent(p: { completed: number; total: number }): number {
+		return p.total > 0 ? Math.round((p.completed / p.total) * 100) : 0;
+	}
+
 	private loadLists() {
 		this.isLoading.set(true);
 		this.listsService.getMyLists().subscribe({
@@ -90,6 +96,12 @@ export class ListOverview implements OnInit {
 				this.isLoading.set(false);
 			},
 			error: () => this.isLoading.set(false)
+		});
+	}
+
+	private loadFollowing() {
+		this.listsService.getFollowing().subscribe({
+			next: lists => this.followingLists.set(lists)
 		});
 	}
 }

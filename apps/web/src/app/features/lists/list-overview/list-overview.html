@@ -84,6 +84,34 @@
 		</a>
 		}
 	</div>
+	} @if (followingLists().length > 0) {
+	<div class="following-section">
+		<h2>Following</h2>
+		<div class="lists-grid">
+			@for (list of followingLists(); track list.id) {
+			<a class="list-card" [routerLink]="['/lists', list.id]">
+				<div class="list-card-header">
+					<h3>{{ list.name }}</h3>
+				</div>
+				@if (list.description) {
+				<p class="list-desc">{{ list.description }}</p>
+				}
+				<div class="progress-mini">
+					<div class="progress-bar-mini">
+						<div
+							class="progress-fill-mini"
+							[style.width.%]="progressPercent(list.progress)"
+						></div>
+					</div>
+					<span class="progress-text"
+						>{{ list.progress.completed }}/{{ list.progress.total }}
+						completed</span
+					>
+				</div>
+			</a>
+			}
+		</div>
+	</div>
 	}
 </div>
 

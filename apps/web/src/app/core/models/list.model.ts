@@ -9,6 +9,18 @@ export interface List {
 	items: ListItem[];
 	followerCount?: number;
 	isFollowing?: boolean;
+	progress?: { completed: number; total: number } | null;
+}
+
+export interface FollowingList {
+	id: string;
+	name: string;
+	description?: string;
+	isPublic: boolean;
+	scoreSource: string;
+	durationSource: string;
+	isVisible: boolean;
+	progress: { completed: number; total: number };
 }
 
 export interface ListItem {
