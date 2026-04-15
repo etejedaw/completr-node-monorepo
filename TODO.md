@@ -406,9 +406,17 @@
 
 ### Perfil público de otro usuario (frontend)
 
-- [ ] Vista `/users/:username` con backlogs, listas, favoritos, wishlist (máx 5 items + "ver más")
-- [ ] Contador de seguidores/siguiendo en perfil
-- [ ] Botón follow/unfollow en perfil
+- [x] Vista `/user/:username` con backlogs, listas, favoritos, wishlist (máx 5 items + total count)
+- [x] Contador de seguidores/siguiendo en perfil
+- [x] Botón follow/unfollow en perfil
+- [x] Restaurar sesión al refrescar página de perfil público
+
+### Vistas completas de otro usuario (frontend)
+
+- [ ] Vista `/user/:username/backlog` — backlog completo de otro usuario (tabla)
+- [ ] Vista `/user/:username/favorites` — favoritos completos de otro usuario (grid)
+- [ ] Vista `/user/:username/wishlist` — wishlist completa de otro usuario (tabla)
+- [ ] Vista `/user/:username/game-shelf` — game shelf completo de otro usuario (tabla)
 
 ### Permisos y roles
 
