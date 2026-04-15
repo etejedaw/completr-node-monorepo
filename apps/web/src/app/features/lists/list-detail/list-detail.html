@@ -16,6 +16,7 @@
 				}
 			</div>
 		</div>
+		@if (isOwner()) {
 		<div class="header-actions">
 			<button
 				class="btn-secondary"
@@ -37,6 +38,7 @@
 				Edit
 			</button>
 		</div>
+		}
 	</div>
 
 	<div class="list-meta-row">
@@ -63,7 +65,7 @@
 	</div>
 
 	<!-- Add game search -->
-	@if (showAddSearch()) {
+	@if (isOwner() && showAddSearch()) {
 	<div class="add-search">
 		<input
 			type="text"
@@ -103,7 +105,9 @@
 					<th class="col-num">Duration</th>
 					<th class="col-num">Ratio</th>
 					<th class="col-icon-status">Backlog</th>
+					@if (isOwner()) {
 					<th class="col-actions"></th>
+					}
 				</tr>
 			</thead>
 			<tbody>
@@ -149,6 +153,7 @@
 						</button>
 						}
 					</td>
+					@if (isOwner()) {
 					<td class="col-actions">
 						<button
 							class="btn-move"
@@ -172,6 +177,7 @@
 							<span class="material-icons">close</span>
 						</button>
 					</td>
+					}
 				</tr>
 				}
 			</tbody>

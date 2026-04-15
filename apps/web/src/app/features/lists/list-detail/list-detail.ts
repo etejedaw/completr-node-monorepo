@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
@@ -8,6 +9,7 @@ import {
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { List, ListItem, Game } from "../../../core/models";
 import { ListsService } from "../lists.service";
+import { AuthService } from "../../../core/services/auth.service";
 import { ListModal } from "../list-modal/list-modal";
 import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
 import { GamesService } from "../../games/games.service";
@@ -31,9 +33,13 @@ export class ListDetail implements OnInit {
 	private readonly router = inject(Router);
 	private readonly listsService = inject(ListsService);
 	private readonly gamesService = inject(GamesService);
+	private readonly authService = inject(AuthService);
 	private readonly searchSubject = new Subject<string>();
 
 	protected readonly list = signal<List | null>(null);
+	protected readonly isOwner = computed(
+		() => this.list()?.userId === this.authService.user()?.id
+	);
 	protected readonly isLoading = signal(true);
 	protected readonly refreshing = signal(false);
 	protected readonly showAddSearch = signal(false);
