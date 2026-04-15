@@ -6,7 +6,7 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { Router, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Game, Genre } from "../../../core/models";
 import { GamesService } from "../games.service";
 import { AuthService } from "../../../core/services/auth.service";
@@ -30,6 +30,7 @@ export class GamesBrowse implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly authService = inject(AuthService);
 	private readonly router = inject(Router);
+	private readonly route = inject(ActivatedRoute);
 	private readonly searchSubject = new Subject<string>();
 
 	protected readonly isAdmin = computed(
@@ -68,6 +69,12 @@ export class GamesBrowse implements OnInit {
 		this.loadLatest();
 		this.loadTopRated();
 		this.loadRandomGenre();
+
+		const q = this.route.snapshot.queryParamMap.get("q");
+		if (q) {
+			this.searchQuery.set(q);
+			this.searchSubject.next(q);
+		}
 	}
 
 	onSearch(event: Event) {
