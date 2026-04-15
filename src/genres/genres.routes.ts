@@ -16,7 +16,7 @@ const router = Router();
 
 router.get(
 	"/genres",
-	[rateLimiterMiddleware(publicLimiter)],
+	[rateLimiterMiddleware(publicLimiter), authMiddleware()],
 	genreController.getAllGenres
 );
 
@@ -24,6 +24,7 @@ router.get(
 	"/genres/:code",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authMiddleware(),
 		validateSchemaMiddleware(GenreCodeParamsSchema, "params")
 	],
 	genreController.getGenreByCode
@@ -33,6 +34,7 @@ router.get(
 	"/genres/:code/games",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authMiddleware(),
 		validateSchemaMiddleware(GenreCodeParamsSchema, "params")
 	],
 	genreController.getGamesByGenre

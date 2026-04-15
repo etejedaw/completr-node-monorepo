@@ -13,7 +13,7 @@ const router = Router();
 
 router.get(
 	"/score-sources",
-	[rateLimiterMiddleware(publicLimiter)],
+	[rateLimiterMiddleware(publicLimiter), authMiddleware()],
 	scoreSourcesController.getScoreSources
 );
 

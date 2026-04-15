@@ -32,8 +32,8 @@ export async function getUserByUsername(request: Request, response: Response) {
 	const user = await usersService.findUserByUsername(username);
 	if (!user) throw userDomain.userNotFound();
 
-	const currentUser = request.locals.user as RequestUser | undefined;
-	const isSelf = currentUser?.id === user.id;
+	const currentUser = request.locals.user as RequestUser;
+	const isSelf = currentUser.id === user.id;
 
 	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
 
@@ -55,7 +55,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 			? backlogService.findBacklogByUserId(userId)
 			: backlogService.findPublicBacklogByUserId(userId),
 		isSelf
-			? listsService.findListsByUserId(currentUser!).then(r => r.lists)
+			? listsService.findListsByUserId(currentUser).then(r => r.lists)
 			: listsService.findPublicListsByUserId(userId),
 		isSelf || user.isFavoritePublic
 			? favoritesService.findFavoritesByUserId(userId)
@@ -75,7 +75,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 			: Promise.resolve([]),
 		userFollowersService.getFollowerCount(userId),
 		userFollowersService.getFollowingCount(userId),
-		currentUser && !isSelf
+		!isSelf
 			? userFollowersService.isFollowing(currentUser.id, userId)
 			: Promise.resolve(false)
 	]);

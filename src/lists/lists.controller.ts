@@ -34,26 +34,21 @@ export async function getMeLists(request: Request, response: Response) {
 
 export async function getListById(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;
-	const user = request.locals.user as RequestUser | undefined;
+	const user = request.locals.user as RequestUser;
 
 	const list = await listsService.findListById(params.listId);
 	if (!list) throw listDomainError.listNotFound();
 
 	const listPlain = list.get({ plain: true });
-	const followerCount = await listsService.getFollowerCount(params.listId);
+	const gameIds = (list.ListItems ?? []).map(item => item.gameId);
 
-	let isFollowing = false;
-	let backlogStatusMap = new Map<string, string>();
-	let progress = null;
-
-	if (user) {
-		const gameIds = (list.ListItems ?? []).map(item => item.gameId);
-		[isFollowing, backlogStatusMap] = await Promise.all([
+	const [followerCount, isFollowing, backlogStatusMap, progress] =
+		await Promise.all([
+			listsService.getFollowerCount(params.listId),
 			listsService.getIsFollowing(params.listId, user.id),
-			listsService.getBacklogStatusMap(gameIds, user.id)
+			listsService.getBacklogStatusMap(gameIds, user.id),
+			listsService.getListProgress(params.listId, user.id)
 		]);
-		progress = await listsService.getListProgress(params.listId, user.id);
-	}
 
 	const data = {
 		list: listSerializer(listPlain, {

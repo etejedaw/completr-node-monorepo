@@ -36,6 +36,7 @@ router.get(
 	"/lists/:listId/followers",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authMiddleware(),
 		validateSchemaMiddleware(ListIdParamsSchema, "params")
 	],
 	listFollowersController.getFollowers

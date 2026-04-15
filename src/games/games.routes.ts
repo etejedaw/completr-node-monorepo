@@ -21,6 +21,7 @@ router.get(
 	"/games",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authMiddleware(),
 		validateSchemaMiddleware(GamesQuerySchema, "query")
 	],
 	gamesController.getAllGames
@@ -30,6 +31,7 @@ router.get(
 	"/games/search",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authMiddleware(),
 		validateSchemaMiddleware(GameSearchQuerySchema, "query")
 	],
 	gamesController.searchGames
@@ -59,6 +61,7 @@ router.get(
 	"/games/:code",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authMiddleware(),
 		validateSchemaMiddleware(GameCodeParamSchema, "params")
 	],
 	gamesController.getGameByCode

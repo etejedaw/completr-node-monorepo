@@ -16,7 +16,7 @@ const router = Router();
 
 router.get(
 	"/platforms",
-	[rateLimiterMiddleware(publicLimiter)],
+	[rateLimiterMiddleware(publicLimiter), authMiddleware()],
 	platformController.getAllPlatforms
 );
 
@@ -24,6 +24,7 @@ router.get(
 	"/platforms/:code",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authMiddleware(),
 		validateSchemaMiddleware(PlatformCodeParamSchema, "params")
 	],
 	platformController.getPlatformByCode
