@@ -127,7 +127,8 @@ export class ProfileView implements OnInit {
 			favorite_added: "added to favorites",
 			list_created: "created a list",
 			list_followed: "followed a list",
-			user_followed: "followed a user"
+			user_followed: "followed a user",
+			game_reviewed: "reviewed"
 		};
 		return labels[type] ?? type;
 	}
