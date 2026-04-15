@@ -164,8 +164,26 @@ export const routes: Routes = [
 					import("./features/admin/admin-audit/admin-audit").then(
 						m => m.AdminAudit
 					)
+			},
+			{
+				path: "403",
+				loadComponent: () =>
+					import("./features/error-pages/forbidden").then(
+						m => m.Forbidden
+					)
+			},
+			{
+				path: "404",
+				loadComponent: () =>
+					import("./features/error-pages/not-found").then(
+						m => m.NotFound
+					)
 			}
 		]
 	},
-	{ path: "**", redirectTo: "" }
+	{
+		path: "**",
+		loadComponent: () =>
+			import("./features/error-pages/not-found").then(m => m.NotFound)
+	}
 ];

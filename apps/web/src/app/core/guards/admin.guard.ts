@@ -9,10 +9,10 @@ export const adminGuard: CanActivateFn = () => {
 
 	const user = auth.user();
 	if (user) {
-		return user.role === "admin" || router.createUrlTree(["/"]);
+		return user.role === "admin" || router.createUrlTree(["/403"]);
 	}
 
-	if (!auth.token()) return router.createUrlTree(["/"]);
+	if (!auth.token()) return router.createUrlTree(["/403"]);
 
 	return auth
 		.loadUser()
@@ -20,7 +20,7 @@ export const adminGuard: CanActivateFn = () => {
 			map(() =>
 				auth.user()?.role === "admin"
 					? true
-					: router.createUrlTree(["/"])
+					: router.createUrlTree(["/403"])
 			)
 		);
 };
