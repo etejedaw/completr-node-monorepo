@@ -23,6 +23,7 @@ import { Activity } from "../activity/activity.model";
 import { ActivityGame } from "../activity/targets/activity-game.model";
 import { ActivityList } from "../activity/targets/activity-list.model";
 import { ActivityUser } from "../activity/targets/activity-user.model";
+import { AuditLog } from "../audit/audit.model";
 
 export function setupAssociations() {
 	gameDlc();
@@ -44,6 +45,11 @@ export function setupAssociations() {
 	gameReports();
 	userFollowers();
 	activities();
+	auditLogs();
+}
+
+function auditLogs() {
+	AuditLog.belongsTo(User, { foreignKey: "userId" });
 }
 
 function gameDlc() {
