@@ -128,50 +128,41 @@
 	font-size: 1rem;
 }
 
-.btn-admin-edit {
-	display: flex;
-	align-items: center;
-	gap: 0.375rem;
-	padding: 0.375rem 0.75rem;
-	background: transparent;
-	border: 1px solid var(--accent);
-	border-radius: var(--radius);
-	color: var(--accent);
-	font-size: 0.75rem;
-	font-family: inherit;
-	cursor: pointer;
-	transition: all var(--transition);
-}
-
-.btn-admin-edit:hover {
-	background: var(--accent-subtle);
-}
-
-.btn-admin-edit .material-icons {
-	font-size: 0.875rem;
-}
-
+.btn-admin-edit,
 .btn-admin-danger {
 	display: flex;
 	align-items: center;
 	gap: 0.375rem;
 	padding: 0.375rem 0.75rem;
 	background: transparent;
-	border: 1px solid rgba(239, 68, 68, 0.3);
 	border-radius: var(--radius);
-	color: var(--status-abandoned);
 	font-size: 0.75rem;
 	font-family: inherit;
 	cursor: pointer;
 	transition: all var(--transition);
 }
 
-.btn-admin-danger:hover {
-	background: rgba(239, 68, 68, 0.1);
-}
-
+.btn-admin-edit .material-icons,
 .btn-admin-danger .material-icons {
 	font-size: 0.875rem;
+}
+
+.btn-admin-edit {
+	border: 1px solid var(--accent);
+	color: var(--accent);
+}
+
+.btn-admin-edit:hover {
+	background: var(--accent-subtle);
+}
+
+.btn-admin-danger {
+	border: 1px solid rgba(239, 68, 68, 0.3);
+	color: var(--status-abandoned);
+}
+
+.btn-admin-danger:hover {
+	background: rgba(239, 68, 68, 0.1);
 }
 
 .confirm-text {
@@ -194,21 +185,6 @@
 .btn-danger:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
-}
-
-.btn-ghost {
-	padding: 0.375rem 0.75rem;
-	background: transparent;
-	border: none;
-	color: var(--text-muted);
-	border-radius: var(--radius);
-	font-size: 0.75rem;
-	font-family: inherit;
-	cursor: pointer;
-}
-
-.btn-ghost:hover {
-	color: var(--text-primary);
 }
 
 /* === Tags === */
@@ -461,8 +437,9 @@
 	margin-bottom: 1.5rem;
 }
 
-.description h2 {
-	margin: 0 0 0.5rem;
+.description h2,
+.related-section h2 {
+	margin: 0 0 0.625rem;
 	font-size: 1rem;
 	font-weight: 600;
 	color: var(--text-secondary);
@@ -479,13 +456,6 @@
 
 .related-section {
 	margin-bottom: 1.5rem;
-}
-
-.related-section h2 {
-	margin: 0 0 0.75rem;
-	font-size: 1rem;
-	font-weight: 600;
-	color: var(--text-secondary);
 }
 
 .section-placeholder {
@@ -550,4 +520,76 @@
 
 .btn-back:hover {
 	color: var(--accent);
+}
+
+/* === Report === */
+
+.report-link {
+	cursor: pointer;
+}
+
+.report-sent {
+	display: flex;
+	align-items: center;
+	gap: 0.375rem;
+	font-size: 0.75rem;
+	color: var(--status-completed);
+}
+
+.report-sent .material-icons {
+	font-size: 0.875rem;
+}
+
+.report-modal {
+	background: var(--bg-sidebar);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	padding: 1.5rem;
+	width: 90%;
+	max-width: 480px;
+}
+
+.report-modal h3 {
+	margin: 0 0 1rem;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.report-textarea {
+	width: 100%;
+	padding: 0.5rem 0.75rem;
+	background: var(--bg-input);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	color: var(--text-primary);
+	font-size: 0.8125rem;
+	font-family: inherit;
+	resize: vertical;
+}
+
+.report-textarea:focus {
+	outline: none;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+
+.report-textarea::placeholder {
+	color: var(--text-muted);
+}
+
+.report-error {
+	margin-top: 0.5rem;
+	padding: 0.375rem 0.75rem;
+	background: rgba(239, 68, 68, 0.1);
+	border: 1px solid rgba(239, 68, 68, 0.2);
+	border-radius: var(--radius);
+	color: var(--status-abandoned);
+	font-size: 0.75rem;
+}
+
+.report-modal-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.5rem;
+	margin-top: 1rem;
 }

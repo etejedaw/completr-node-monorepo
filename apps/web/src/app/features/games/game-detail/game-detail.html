@@ -239,6 +239,17 @@
 			<span class="material-icons">open_in_new</span>
 			RAWG
 		</a>
+		@if (!reportSent()) {
+		<button class="external-link report-link" (click)="openReportModal()">
+			<span class="material-icons">flag</span>
+			Report issue
+		</button>
+		} @else {
+		<span class="report-sent">
+			<span class="material-icons">check</span>
+			Report sent
+		</span>
+		}
 	</div>
 
 	<!-- Community -->
@@ -318,4 +329,32 @@
 	(closed)="onModalClosed()"
 	(saved)="onModalSaved()"
 />
+} @if (showReportModal()) {
+<div class="modal-overlay" (click)="showReportModal.set(false)">
+	<div class="report-modal" (click)="$event.stopPropagation()">
+		<h3>Report issue with {{ game()!.title }}</h3>
+		<textarea
+			class="report-textarea"
+			placeholder="Describe the issue (min 10 characters)..."
+			[value]="reportMessage()"
+			(input)="reportMessage.set($any($event.target).value)"
+			rows="4"
+		></textarea>
+		@if (reportError()) {
+		<div class="report-error">{{ reportError() }}</div>
+		}
+		<div class="report-modal-actions">
+			<button class="btn-ghost" (click)="showReportModal.set(false)">
+				Cancel
+			</button>
+			<button
+				class="btn-submit"
+				[disabled]="reportMessage().length < 10 || reportSubmitting()"
+				(click)="submitReport()"
+			>
+				{{ reportSubmitting() ? "Sending..." : "Send Report" }}
+			</button>
+		</div>
+	</div>
+</div>
 }

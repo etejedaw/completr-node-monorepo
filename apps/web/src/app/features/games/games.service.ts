@@ -145,6 +145,12 @@ export class GamesService {
 			.pipe(map(res => res.data.game));
 	}
 
+	reportGame(gameId: string, message: string) {
+		return this.http.post(`${environment.apiUrl}/games/${gameId}/reports`, {
+			message
+		});
+	}
+
 	createScore(gameId: string, source: string, score: number) {
 		return this.http.post(`${environment.apiUrl}/game-scores`, {
 			gameId,

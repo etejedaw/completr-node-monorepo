@@ -66,6 +66,11 @@ export class GameDetail implements OnInit {
 	protected readonly deactivating = signal(false);
 	protected readonly deleting = signal(false);
 	protected readonly togglingFavorite = signal(false);
+	protected readonly showReportModal = signal(false);
+	protected readonly reportMessage = signal("");
+	protected readonly reportSubmitting = signal(false);
+	protected readonly reportSent = signal(false);
+	protected readonly reportError = signal("");
 
 	ngOnInit() {
 		this.scoreSourcesService.load();
@@ -241,5 +246,41 @@ export class GameDetail implements OnInit {
 
 	protected otherTimes() {
 		return this.game()?.times?.filter(t => t.source !== "completr") ?? [];
+	}
+
+	openReportModal() {
+		this.showReportModal.set(true);
+		this.reportMessage.set("");
+		this.reportError.set("");
+	}
+
+	submitReport() {
+		const gameId = this.game()?.id;
+		const message = this.reportMessage();
+		if (
+			!gameId ||
+			!message ||
+			message.length < 10 ||
+			this.reportSubmitting()
+		)
+			return;
+
+		this.reportSubmitting.set(true);
+		this.reportError.set("");
+		this.gamesService.reportGame(gameId, message).subscribe({
+			next: () => {
+				this.reportSubmitting.set(false);
+				this.showReportModal.set(false);
+				this.reportSent.set(true);
+			},
+			error: err => {
+				this.reportSubmitting.set(false);
+				this.reportError.set(
+					err.error?.detail ||
+						err.error?.title ||
+						"Failed to submit report"
+				);
+			}
+		});
 	}
 }
