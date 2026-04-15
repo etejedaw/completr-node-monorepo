@@ -7,8 +7,11 @@ import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
 import { Review } from "../reviews/review.model";
 import { Backlog } from "../backlog/backlog.model";
+import { User } from "../users/user.model";
 import { RawgProvider } from "../rawg/rawg.provider";
 import { apiKeysConfig } from "../common/config/api-keys.config";
+
+const MIN_THRESHOLD_PERCENT = 0.1;
 
 export async function findAll() {
 	return Job.findAll({ order: [["createdAt", "DESC"]], limit: 20 });
@@ -105,19 +108,28 @@ export async function startCalculateRatings() {
 
 async function runCalculateRatings(jobId: string) {
 	let updated = 0;
+	let skipped = 0;
 
 	try {
+		const totalUsers = await User.count({ where: { isActive: true } });
+		const minReviews = Math.max(2, Math.ceil(totalUsers * MIN_THRESHOLD_PERCENT));
+
 		const results = (await Review.findAll({
 			attributes: [
 				"gameId",
-				[sequelize.fn("AVG", sequelize.col("rating")), "avgRating"]
+				[sequelize.fn("AVG", sequelize.col("rating")), "avgRating"],
+				[sequelize.fn("COUNT", sequelize.col("rating")), "reviewCount"]
 			],
 			where: { rating: { [Op.not]: null } },
 			group: ["gameId"],
 			raw: true
-		})) as unknown as { gameId: string; avgRating: number }[];
+		})) as unknown as { gameId: string; avgRating: number; reviewCount: number }[];
 
-		for (const { gameId, avgRating } of results) {
+		for (const { gameId, avgRating, reviewCount } of results) {
+			if (Number(reviewCount) < minReviews) {
+				skipped++;
+				continue;
+			}
 			const rounded = Math.round(avgRating * 100) / 100;
 			await GameScore.upsert({
 				gameId,
@@ -127,7 +139,10 @@ async function runCalculateRatings(jobId: string) {
 			updated++;
 		}
 
-		await completeJob(jobId, `Updated: ${updated} games`);
+		await completeJob(
+			jobId,
+			`Updated: ${updated}, Skipped: ${skipped} (min ${minReviews} reviews, ${totalUsers} users)`
+		);
 	} catch {
 		await failJob(jobId, `Failed after ${updated} updated`);
 	}
@@ -141,22 +156,34 @@ export async function startCalculateDurations() {
 
 async function runCalculateDurations(jobId: string) {
 	let updated = 0;
+	let skipped = 0;
 
 	try {
+		const totalUsers = await User.count({ where: { isActive: true } });
+		const minEntries = Math.max(2, Math.ceil(totalUsers * MIN_THRESHOLD_PERCENT));
+
 		const results = (await Backlog.findAll({
 			attributes: [
 				"gameId",
 				[
 					sequelize.fn("AVG", sequelize.col("realDuration")),
 					"avgDuration"
+				],
+				[
+					sequelize.fn("COUNT", sequelize.col("realDuration")),
+					"entryCount"
 				]
 			],
 			where: { realDuration: { [Op.not]: null, [Op.gt]: 0 } },
 			group: ["gameId"],
 			raw: true
-		})) as unknown as { gameId: string; avgDuration: number }[];
+		})) as unknown as { gameId: string; avgDuration: number; entryCount: number }[];
 
-		for (const { gameId, avgDuration } of results) {
+		for (const { gameId, avgDuration, entryCount } of results) {
+			if (Number(entryCount) < minEntries) {
+				skipped++;
+				continue;
+			}
 			const rounded = Math.round(avgDuration * 100) / 100;
 			await GameTime.upsert({
 				gameId,
@@ -166,7 +193,10 @@ async function runCalculateDurations(jobId: string) {
 			updated++;
 		}
 
-		await completeJob(jobId, `Updated: ${updated} games`);
+		await completeJob(
+			jobId,
+			`Updated: ${updated}, Skipped: ${skipped} (min ${minEntries} entries, ${totalUsers} users)`
+		);
 	} catch {
 		await failJob(jobId, `Failed after ${updated} updated`);
 	}
