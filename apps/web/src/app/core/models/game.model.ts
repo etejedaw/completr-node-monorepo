@@ -14,6 +14,12 @@ export interface Game {
 	times: GameTime[];
 	dlcs: GameSummary[];
 	parentGame: GameSummary | null;
+	externalLinks: ExternalLink[];
+}
+
+export interface ExternalLink {
+	source: string;
+	externalId: string;
 }
 
 export interface GameSummary {

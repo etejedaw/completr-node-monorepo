@@ -240,7 +240,28 @@
 			<span class="material-icons">open_in_new</span>
 			RAWG
 		</a>
-		@if (!reportSent()) {
+		@for (link of game()!.externalLinks; track link.source) { @if
+		(link.source === 'steam') {
+		<a
+			class="external-link"
+			[href]="'https://store.steampowered.com/app/' + link.externalId"
+			target="_blank"
+			rel="noopener"
+		>
+			<span class="material-icons">open_in_new</span>
+			Steam
+		</a>
+		} @else if (link.source === 'metacritic') {
+		<a
+			class="external-link"
+			[href]="'https://www.metacritic.com/game/' + link.externalId"
+			target="_blank"
+			rel="noopener"
+		>
+			<span class="material-icons">open_in_new</span>
+			Metacritic
+		</a>
+		} } @if (!reportSent()) {
 		<button class="external-link report-link" (click)="openReportModal()">
 			<span class="material-icons">flag</span>
 			Report issue
