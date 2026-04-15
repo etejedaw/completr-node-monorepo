@@ -515,10 +515,14 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 - List followers: GET /lists/:id/followers, GET /lists/following, PATCH /lists/:id/follow (visibility)
 - userId agregado al serializer de List para ownership check en frontend
 - Búsqueda: GET /users/search, GET /lists/search, GET /games/search?local_only=true
+- Vistas completas de otro usuario: GET /users/:username/backlog (con BacklogQuerySchema), /game-shelf, /wishlist, /favorites, /following-lists — todos con paginación (PaginationQuerySchema: limit max 50, offset)
+- PaginationQuerySchema compartido en common/schemas/ para reutilizar en endpoints paginados
+- Backlog: findAndCountAll con limit/offset en endpoints públicos y privados, retorna { backlog, total }
+- Game-shelf, wishlist, favorites: métodos *Paginated en services, endpoints públicos retornan { ..., total }
 
 ### Pendiente — Fases posteriores
 
-- Fase 2 (pendiente): progreso personal en listas seguidas, vistas completas de otro usuario, listas seguidas en page de listas, permisos y roles, páginas 404/403, dominio completr.app
+- Fase 2 (pendiente): progreso personal en listas seguidas, listas seguidas en page de listas, permisos y roles, reseñas de juegos, páginas 404/403, dominio completr.app, mejoras UX
 - Fase 3: Listas oficiales, privacidad avanzada, búsqueda avanzada, sistema de invitación, badges manuales (founder, beta-tester, moderator, premium-supporter)
 - Fase 4: Reviews, stats de listas públicas, logros, resumen semestral, comparación social
 - Fase 5: Estabilización (paginación, emails, tests, seguridad)

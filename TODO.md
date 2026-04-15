@@ -420,10 +420,13 @@
 
 ### Vistas completas de otro usuario (frontend)
 
-- [ ] Vista `/user/:username/backlog` — backlog completo de otro usuario (tabla)
-- [ ] Vista `/user/:username/favorites` — favoritos completos de otro usuario (grid)
-- [ ] Vista `/user/:username/wishlist` — wishlist completa de otro usuario (tabla)
-- [ ] Vista `/user/:username/game-shelf` — game shelf completo de otro usuario (tabla)
+- [x] Vista `/user/:username/backlog` — backlog completo de otro usuario (tabla con status tabs y paginación)
+- [x] Vista `/user/:username/favorites` — favoritos completos de otro usuario (grid con paginación)
+- [x] Vista `/user/:username/wishlist` — wishlist completa de otro usuario (tabla con paginación)
+- [x] Vista `/user/:username/game-shelf` — game shelf completo de otro usuario (tabla con paginación)
+- [x] Endpoint `GET /users/:username/following-lists` con paginación
+- [x] Paginación (limit/offset, max 50) en todos los endpoints públicos de colecciones
+- [x] Links "View All" en el perfil público (backlog, game-shelf, favorites, wishlist)
 
 ### Permisos y roles
 
@@ -437,7 +440,7 @@
 ### Mejoras UX (frontend)
 
 - [ ] Game Shelf: quitar estilo de link en los títulos de juegos (mismo color que el resto de tablas)
-- [ ] Backlog: paginación de 50 o 100 entries
+- [x] Backlog: paginación de 50 entries (endpoints públicos, schema compartido PaginationQuerySchema)
 - [ ] Games Browse: aumentar tamaño de la barra de búsqueda (como en Feed)
 - [ ] Perfil propio (/profile) debe verse igual que el perfil público (/user/:username), con la sección de Privacy adicional
 - [ ] Vista grid: aumentar tamaño de las imágenes
