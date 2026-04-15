@@ -1,0 +1,109 @@
+<div class="public-page">
+	<div class="top-bar">
+		<a routerLink="/" class="brand">
+			<span class="brand-icon">C</span>
+			<span class="brand-name">Completr</span>
+		</a>
+		@if (!isLoggedIn()) {
+		<a routerLink="/login" class="btn-login">Sign in</a>
+		}
+	</div>
+
+	<a class="back-link" [routerLink]="['/user', username()]">
+		<span class="material-icons">arrow_back</span>
+		@{{ username() }}'s profile
+	</a>
+
+	@if (isLoading()) {
+	<div class="state-message">Loading...</div>
+	} @else if (error() === 'not_found') {
+	<div class="state-message">List not found.</div>
+	} @else if (error() === 'private') {
+	<div class="state-message">This profile is private.</div>
+	} @else if (list()) {
+	<div class="page-header">
+		<div>
+			<h1>{{ list()!.name }}</h1>
+			@if (list()!.description) {
+			<p class="list-desc">{{ list()!.description }}</p>
+			}
+		</div>
+	</div>
+
+	<div class="progress-section">
+		<div class="progress-header">
+			<span class="progress-label"
+				>{{ profileUserName() }}'s progress</span
+			>
+			<span class="progress-count"
+				>{{ list()!.progress!.completed ?? 0 }}/{{
+				list()!.progress!.total ?? 0 }}</span
+			>
+		</div>
+		<div class="progress-bar">
+			<div class="progress-fill" [style.width.%]="progressPercent"></div>
+		</div>
+	</div>
+
+	@if (list()!.items.length === 0) {
+	<div class="state-message">No games in this list.</div>
+	} @else {
+	<div class="table-wrapper">
+		<table>
+			<thead>
+				<tr>
+					<th class="col-pos">#</th>
+					<th class="col-cover"></th>
+					<th class="col-title">Title</th>
+					<th class="col-num">Score</th>
+					<th class="col-num">Duration</th>
+					<th class="col-num">Ratio</th>
+					<th class="col-status">Status</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (item of list()!.items; track item.id) {
+				<tr>
+					<td class="col-pos">{{ item.position }}</td>
+					<td class="col-cover">
+						@if (item.game.backgroundUrl) {
+						<img
+							[src]="item.game.backgroundUrl"
+							[alt]="item.game.title"
+							class="cover-img"
+						/>
+						} @else {
+						<div class="cover-placeholder"></div>
+						}
+					</td>
+					<td class="col-title">
+						<a
+							class="game-title-link"
+							[routerLink]="['/games', item.game.code]"
+							>{{ item.game.title }}</a
+						>
+					</td>
+					<td class="col-num">{{ item.score ?? "-" }}</td>
+					<td class="col-num">
+						{{ item.duration ? item.duration + "h" : "-" }}
+					</td>
+					<td class="col-num">{{ item.ratio ?? "-" }}</td>
+					<td class="col-status">
+						@if (item.backlogStatus) {
+						<span
+							class="status-badge"
+							[class]="'status-' + item.backlogStatus.replace('_', '-')"
+						>
+							{{ item.backlogStatus.replace("_", " ") }}
+						</span>
+						} @else {
+						<span class="status-none">-</span>
+						}
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+	} }
+</div>

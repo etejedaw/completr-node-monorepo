@@ -182,6 +182,21 @@
 				</div>
 				@if (l.description) {
 				<p class="list-desc">{{ l.description }}</p>
+				} @if (l.progress && l.progress.total > 0) {
+				<div class="progress-mini">
+					<div class="progress-bar-mini">
+						<div
+							class="progress-fill-mini"
+							[style.width.%]="
+								(l.progress.completed / l.progress.total) * 100
+							"
+						></div>
+					</div>
+					<span class="progress-text"
+						>{{ l.progress.completed }}/{{ l.progress.total }}
+						completed</span
+					>
+				</div>
 				}
 			</a>
 			}
@@ -201,6 +216,21 @@
 				<span class="list-name">{{ l.name }}</span>
 				@if (l.description) {
 				<p class="list-desc">{{ l.description }}</p>
+				} @if (l.progress && l.progress.total > 0) {
+				<div class="progress-mini">
+					<div class="progress-bar-mini">
+						<div
+							class="progress-fill-mini"
+							[style.width.%]="
+								(l.progress.completed / l.progress.total) * 100
+							"
+						></div>
+					</div>
+					<span class="progress-text"
+						>{{ l.progress.completed }}/{{ l.progress.total }}
+						completed</span
+					>
+				</div>
 				}
 			</a>
 			}

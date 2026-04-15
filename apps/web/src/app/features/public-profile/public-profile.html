@@ -149,7 +149,10 @@
 			</div>
 			<div class="lists-grid">
 				@for (l of profile()!.lists.slice(0, 5); track l.id) {
-				<a class="list-card" [routerLink]="['/lists', l.id]">
+				<a
+					class="list-card"
+					[routerLink]="['/user', username(), 'lists', l.id]"
+				>
 					<div class="list-card-header">
 						<span class="list-name">{{ l.name }}</span>
 						<span class="list-followers">
@@ -161,6 +164,22 @@
 					</div>
 					@if (l.description) {
 					<p class="list-desc">{{ l.description }}</p>
+					} @if (l.progress && l.progress.total > 0) {
+					<div class="progress-mini">
+						<div class="progress-bar-mini">
+							<div
+								class="progress-fill-mini"
+								[style.width.%]="
+									(l.progress.completed / l.progress.total) *
+									100
+								"
+							></div>
+						</div>
+						<span class="progress-text"
+							>{{ l.progress.completed }}/{{ l.progress.total }}
+							completed</span
+						>
+					</div>
 					}
 				</a>
 				}
@@ -176,10 +195,29 @@
 			</div>
 			<div class="lists-grid">
 				@for (l of profile()!.followingLists.slice(0, 5); track l.id) {
-				<a class="list-card" [routerLink]="['/lists', l.id]">
+				<a
+					class="list-card"
+					[routerLink]="['/user', username(), 'lists', l.id]"
+				>
 					<span class="list-name">{{ l.name }}</span>
 					@if (l.description) {
 					<p class="list-desc">{{ l.description }}</p>
+					} @if (l.progress && l.progress.total > 0) {
+					<div class="progress-mini">
+						<div class="progress-bar-mini">
+							<div
+								class="progress-fill-mini"
+								[style.width.%]="
+									(l.progress.completed / l.progress.total) *
+									100
+								"
+							></div>
+						</div>
+						<span class="progress-text"
+							>{{ l.progress.completed }}/{{ l.progress.total }}
+							completed</span
+						>
+					</div>
 					}
 				</a>
 				}
