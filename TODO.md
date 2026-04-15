@@ -388,21 +388,27 @@
 - [x] `GET /users/:username/followers` — Ver seguidores
 - [x] `GET /users/:username/following` — Ver a quién sigo
 - [x] `followerCount`, `followingCount`, `isFollowing` en perfil público (auth opcional)
-- [ ] Feed de actividad pública: "X completó Y", "X añadió Y a su backlog"
-- [ ] `GET /feed` — Endpoint de actividad de usuarios seguidos
+- [x] Feed de actividad: sub-modelos ActivityGame/ActivityList/ActivityUser con FKs, targets resueltos en serializer
+- [x] `GET /feed` — Actividad propia + usuarios seguidos, con targets (juegos, listas, usuarios)
+- [x] `DELETE /feed/:activityId` — Borrar actividad propia
+- [x] Frontend: feed page como ruta default con búsqueda global y botón X para borrar actividad propia
 
 ### Listas públicas — funcionalidades sociales
 
-- [ ] `GET /lists/:id/followers` — Ver seguidores de una lista (cantidad y usuarios)
-- [ ] `GET /lists/following` — Ver las listas públicas que sigo
-- [ ] `PATCH /lists/:id/follow` — Cambiar visibilidad del seguimiento (`is_visible: true/false`)
+- [x] `GET /lists/:id/followers` — Ver seguidores de una lista
+- [x] `GET /lists/following` — Ver las listas públicas que sigo
+- [x] `PATCH /lists/:id/follow` — Cambiar visibilidad del seguimiento
+- [x] Frontend: botón Follow/Unfollow en list-detail (solo no-owner)
+- [x] Frontend: ocultar acciones de edición en listas de otros usuarios
 - [ ] Al ver una lista seguida, mostrar el progreso personal del usuario
 
 ### Búsqueda de usuarios y listas
 
-- [ ] Búsqueda de usuarios por username
-- [ ] Búsqueda de listas por nombre
-- [ ] Frontend: barra de búsqueda global o por sección
+- [x] `GET /users/search?query=` — Búsqueda de usuarios por username
+- [x] `GET /lists/search?query=` — Búsqueda de listas públicas por nombre
+- [x] `GET /games/search?local_only=true` — Búsqueda local de juegos sin RAWG
+- [x] Frontend: búsqueda global en feed page (usuarios, juegos, listas)
+- [x] Frontend: buscador de listas en lists page
 
 ### Perfil público de otro usuario (frontend)
 
