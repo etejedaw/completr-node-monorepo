@@ -4,12 +4,16 @@ import { ListIdParams } from "../lists/schemas/list-id-params.schema";
 import { UpdateFollowVisibilityBody } from "./schemas/update-follow-visibility.schema";
 import { listSummarySerializer } from "../lists/lists.serializer";
 import * as listFollowersService from "./list-followers.service";
+import * as activityService from "../activity/activity.service";
 
 export async function postFollow(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;
 	const user = request.locals.user as RequestUser;
 
 	await listFollowersService.followList(params.listId, user.id);
+	activityService.record(user.id, "list_followed", undefined, {
+		listId: params.listId
+	});
 	return response.sendStatus(201);
 }
 

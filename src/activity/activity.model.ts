@@ -9,7 +9,9 @@ export const ACTIVITY_TYPES = [
 	"backlog_abandoned",
 	"backlog_playing",
 	"favorite_added",
-	"list_created"
+	"list_created",
+	"list_followed",
+	"user_followed"
 ] as const;
 
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];

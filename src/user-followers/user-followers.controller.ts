@@ -2,12 +2,14 @@ import { Request, Response } from "express";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { UsernameParam } from "../users/schemas/username-params.schema";
 import * as userFollowersService from "./user-followers.service";
+import * as activityService from "../activity/activity.service";
 
 export async function postFollow(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;
 	const user = request.locals.user as RequestUser;
 
 	await userFollowersService.follow(user.id, username);
+	activityService.record(user.id, "user_followed", undefined, { username });
 	return response.sendStatus(201);
 }
 
