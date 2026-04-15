@@ -1,0 +1,76 @@
+info:
+    name: Admin Create User
+    type: http
+    seq: 5
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/users"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "username": "newfriend",
+              "email": "newfriend@example.com",
+              "password": "Friend123+",
+              "name": "New Friend"
+            }
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Admin Create User
+
+    Creates a new user account with role "user". Only accessible by admin.
+
+    **Auth:** Bearer token (admin only).
+
+    **Rate Limit:** 3 requests per minute.
+
+    ### Request Body
+
+    | Field     | Type   | Required | Description                                       |
+    |-----------|--------|----------|---------------------------------------------------|
+    | username  | string | Yes      | 4-15 characters, converted to lowercase           |
+    | email     | string | Yes      | Valid email, converted to lowercase                |
+    | password  | string | Yes      | 8-15 chars, uppercase, lowercase, number, special |
+    | name      | string | Yes      | 4-80 characters                                   |
+    | bio       | string | No       | Max 250 characters                                |
+    | avatarUrl | string | No       | Valid URL                                          |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "user": {
+          "id": "uuid",
+          "username": "newfriend",
+          "role": "user",
+          "name": "New Friend",
+          "bio": null,
+          "avatarUrl": null,
+          "isPublic": true,
+          "isWishlistPublic": true,
+          "isFavoritePublic": true,
+          "createdAt": "2026-04-15T00:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code                     | Description                          |
+    |--------|--------------------------|--------------------------------------|
+    | 403    | AUTH_FORBIDDEN            | Not admin                            |
+    | 409    | AUTH_USER_ALREADY_EXISTS  | Username or email already registered |
+    | 422    | COMMON_SCHEMA_INVALID    | Invalid request body                 |
