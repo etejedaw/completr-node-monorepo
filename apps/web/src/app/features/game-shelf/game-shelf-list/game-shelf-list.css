@@ -225,6 +225,12 @@ tbody td {
 	font-weight: 500;
 }
 
+.game-title-link {
+	font-weight: 500;
+	color: var(--text-primary);
+	text-decoration: none;
+}
+
 .col-platform {
 	color: var(--text-secondary);
 	white-space: nowrap;
