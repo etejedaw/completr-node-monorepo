@@ -107,17 +107,56 @@
 				}
 			</div>
 		</div>
+		} @if (profile()!.gameShelf.length > 0) {
+		<div class="section">
+			<div class="section-header">
+				<h2>Game Shelf</h2>
+				<span class="view-all"
+					>{{ profile()!.gameShelf.length }} total</span
+				>
+			</div>
+			<div class="game-grid">
+				@for (s of profile()!.gameShelf.slice(0, 5); track s.id) {
+				<a class="game-card" [routerLink]="['/games', s.game.code]">
+					@if (s.game.backgroundUrl) {
+					<img
+						[src]="s.game.backgroundUrl"
+						[alt]="s.game.title"
+						class="game-cover"
+					/>
+					} @else {
+					<div class="game-cover-placeholder"></div>
+					}
+					<span class="game-card-title">{{ s.game.title }}</span>
+					<span class="game-card-sub"
+						>{{ s.platform.abbreviation }}</span
+					>
+				</a>
+				}
+			</div>
+		</div>
 		} @if (profile()!.lists.length > 0) {
 		<div class="section">
 			<div class="section-header">
 				<h2>Public Lists</h2>
+				<span class="view-all"
+					>{{ profile()!.lists.length }} total</span
+				>
 			</div>
 			<div class="lists-grid">
 				@for (l of profile()!.lists.slice(0, 5); track l.id) {
 				<a class="list-card" [routerLink]="['/lists', l.id]">
-					<span class="list-name">{{ l.name }}</span>
+					<div class="list-card-header">
+						<span class="list-name">{{ l.name }}</span>
+						<span class="list-followers">
+							<span class="material-icons list-followers-icon"
+								>group</span
+							>
+							{{ l.followerCount }}
+						</span>
+					</div>
 					@if (l.description) {
-					<span class="list-desc">{{ l.description }}</span>
+					<p class="list-desc">{{ l.description }}</p>
 					}
 				</a>
 				}
@@ -146,6 +185,65 @@
 					}
 					<span class="game-card-title">{{ f.game.title }}</span>
 				</a>
+				}
+			</div>
+		</div>
+		} @if (profile()!.user.isWishlistPublic && profile()!.wishlist.length >
+		0) {
+		<div class="section">
+			<div class="section-header">
+				<h2>Wishlist</h2>
+				<span class="view-all"
+					>{{ profile()!.wishlist.length }} total</span
+				>
+			</div>
+			<div class="game-grid">
+				@for (w of profile()!.wishlist.slice(0, 5); track w.id) {
+				<a
+					class="game-card"
+					[routerLink]="['/games', w.backlog.game.code]"
+				>
+					@if (w.backlog.game.backgroundUrl) {
+					<img
+						[src]="w.backlog.game.backgroundUrl"
+						[alt]="w.backlog.game.title"
+						class="game-cover"
+					/>
+					} @else {
+					<div class="game-cover-placeholder"></div>
+					}
+					<span class="game-card-title"
+						>{{ w.backlog.game.title }}</span
+					>
+					<span class="game-card-sub"
+						>{{ w.backlog.platform.abbreviation }}</span
+					>
+				</a>
+				}
+			</div>
+		</div>
+		} @if (profile()!.user.isFeedPublic && profile()!.recentActivity.length
+		> 0) {
+		<div class="section">
+			<div class="section-header">
+				<h2>Recent Activity</h2>
+			</div>
+			<div class="activity-list">
+				@for (a of profile()!.recentActivity.slice(0, 10); track a.id) {
+				<div class="activity-item">
+					<span class="activity-text">
+						{{ activityLabel(a.type) }} @if (a.game) {
+						<a
+							class="activity-game"
+							[routerLink]="['/games', a.game.code]"
+							>{{ a.game.title }}</a
+						>
+						}
+					</span>
+					<span class="activity-time"
+						>{{ timeAgo(a.createdAt) }}</span
+					>
+				</div>
 				}
 			</div>
 		</div>

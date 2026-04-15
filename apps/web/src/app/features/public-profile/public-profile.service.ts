@@ -16,13 +16,20 @@ export interface PublicUser {
 	createdAt: string;
 }
 
+interface GameSummary {
+	id: string;
+	code: string;
+	title: string;
+	backgroundUrl?: string;
+}
+
 export interface PublicBacklog {
 	id: string;
 	status: string;
 	score?: number;
 	duration?: number;
 	ratio?: number;
-	game: { id: string; code: string; title: string; backgroundUrl?: string };
+	game: GameSummary;
 	platform: { id: string; abbreviation: string };
 }
 
@@ -32,12 +39,38 @@ export interface PublicList {
 	description?: string;
 	scoreSource: string;
 	durationSource: string;
+	followerCount: number;
 }
 
 export interface PublicFavorite {
 	id: string;
 	position: number;
-	game: { id: string; code: string; title: string; backgroundUrl?: string };
+	game: GameSummary;
+}
+
+export interface PublicWishlist {
+	id: string;
+	position: number;
+	backlog: {
+		id: string;
+		status: string;
+		game: GameSummary;
+		platform: { id: string; abbreviation: string };
+	};
+}
+
+export interface PublicGameShelf {
+	id: string;
+	game: GameSummary & { description?: string };
+	platform: { id: string; abbreviation: string };
+}
+
+export interface PublicActivity {
+	id: string;
+	type: string;
+	metadata: Record<string, unknown> | null;
+	createdAt: string;
+	game: GameSummary | null;
 }
 
 export interface PublicProfile {
@@ -48,7 +81,9 @@ export interface PublicProfile {
 	backlogs: PublicBacklog[];
 	lists: PublicList[];
 	favorites: PublicFavorite[];
-	wishlist: unknown[];
+	wishlist: PublicWishlist[];
+	gameShelf: PublicGameShelf[];
+	recentActivity: PublicActivity[];
 }
 
 @Injectable({ providedIn: "root" })
