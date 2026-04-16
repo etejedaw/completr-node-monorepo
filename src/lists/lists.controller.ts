@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as listsService from "./lists.service";
+import * as activityService from "../activity/activity.service";
 import { RegisterListDto } from "./dtos/register-list.dto";
 import { UpdateListDto } from "./dtos/update-list.dto";
 import { ListIdParams } from "./schemas/list-id-params.schema";
@@ -14,6 +15,10 @@ export async function postList(request: Request, response: Response) {
 
 	const list = await listsService.createList(user, registerList);
 	const listPlain = list.get({ plain: true });
+
+	if (list.isPublic) {
+		activityService.record(user.id, "list_created", list.id);
+	}
 
 	const data = { list: listSummarySerializer(listPlain) };
 	return response.status(201).json({ data });
