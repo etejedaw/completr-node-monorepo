@@ -595,6 +595,25 @@
 
 - [x] Reviews ya implementadas en Fase 2 (POST/PATCH/DELETE/GET /games/:id/reviews, sección en game detail, en backlog modal, en perfiles)
 
+### Sistema de notificaciones
+
+- [ ] Modelo `Notification`: id, userId (destinatario), type (enum: `user_followed`, `list_followed`, `coop_tagged`, `friend_completed_list_game`, `friend_added_to_followed_list`, `achievement_unlocked`), actorId (quién disparó, nullable para system), targetType (`user` | `game` | `list` | `achievement`, nullable), targetId (nullable), isRead (bool, default false), createdAt. Unique index razonable para evitar duplicados (ej: `(userId, type, actorId, targetId)`)
+- [ ] `NotificationsService` con `create(userId, type, actorId, targetType?, targetId?)` invocable desde otros módulos
+- [ ] Triggers iniciales:
+    - `user_followed` cuando otro usuario te sigue (desde user-followers)
+    - `list_followed` cuando alguien sigue tu lista (desde list-followers)
+    - `coop_tagged` cuando un amigo te etiqueta en un backlog co-op (requiere feature de Fase 3)
+    - `friend_completed_list_game` cuando un seguido completa un juego de una lista que sigues
+    - `friend_added_to_followed_list` cuando el creador de una lista que sigues añade un juego
+    - `achievement_unlocked` al desbloquear un logro (ver sección Logros)
+- [ ] `GET /users/me/notifications?unread=true&limit=50&offset=0` — listado paginado con filtro opcional por leídas/no leídas, incluye actor y target resueltos en el serializer
+- [ ] `GET /users/me/notifications/unread-count` — conteo de no leídas para el badge
+- [ ] `PATCH /users/me/notifications/:id/read` — marcar una como leída
+- [ ] `POST /users/me/notifications/read-all` — marcar todas como leídas
+- [ ] `DELETE /users/me/notifications/:id` — eliminar una notificación
+- [ ] Preferencias de usuario: toggles en perfil para activar/desactivar cada tipo de notificación (`User.notificationPrefs` JSONB o tabla `NotificationPreference`)
+- [ ] (Opcional, Fase 5+) Web Push con VAPID + service worker para notificaciones cuando la app está cerrada
+
 ### Estadísticas de listas públicas
 
 - [x] Número de seguidores (followerCount en list serializer)
@@ -765,10 +784,6 @@
 - [ ] Análisis de patrones de juego: "Abandonás más los RPGs largos", "Tu género más completado es Survival Horror"
 - [ ] Recomendaciones personalizadas basadas en historial: "Basado en lo que jugaste, probá estos 10"
 - [ ] Sugerencias semestrales: "Para el próximo semestre te recomiendo estos 20 juegos de tu backlog"
-
-### Notificaciones sociales (free)
-
-- [ ] Notificaciones: "Tu amigo X completó un juego de tu lista", "Nuevo juego añadido a la lista que sigues"
 
 ### Conveniencia (premium)
 
