@@ -10,6 +10,6 @@ export const sequelize = new Sequelize(
 		dialect: "postgres",
 		host: databaseConfig.PG_HOST,
 		port: databaseConfig.PG_PORT,
-		logging: environmentConfig.NODE_ENV !== "prd"
+		logging: environmentConfig.NODE_ENV !== "prd" ? console.log : false
 	}
 );
