@@ -473,10 +473,11 @@
 
 ### Dominio completr.app
 
-- [ ] Configurar DNS de `completr.app`: `web.completr.app` → app frontend, `api.completr.app` → backend, `completr.app` → landing page
+- [ ] Renombrar frontend de `completr.tebita.xyz` a `completr-frontend.tebita.xyz`
+- [ ] Configurar DNS de `completr.app`: `web.completr.app` → `completr-frontend.tebita.xyz`, `api.completr.app` → backend, `completr.app` → landing page
 - [ ] Actualizar `CORS_ORIGIN` del backend a `https://web.completr.app`
 - [ ] Actualizar `environment.production.ts` del frontend a `https://api.completr.app`
-- [ ] Crear landing page en `completr.app` (Astro o similar)
+- [ ] (Opcional hoy, requerido en Fase 3) Landing page mínima en `completr.app` (Astro): descripción + screenshots + botón "Sign in" + formulario "Request access"
 
 ---
 
