@@ -1,6 +1,6 @@
 {
-  "name": "completr",
-  "short_name": "completr",
+  "name": "Completr",
+  "short_name": "Completr",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
