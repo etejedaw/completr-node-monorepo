@@ -1,5 +1,3 @@
-import { environmentConfig } from "../common/config/environment.config";
-import { sequelize } from "./sequelize.database";
 import { setupAssociations } from "./associations.database";
 
 import "../users/user.model";
@@ -20,15 +18,17 @@ import "../wishlist/wishlist.model";
 import "../favorites/favorite.model";
 import "../game-external/game-external.model";
 import "../score-sources/score-source.model";
+import "../auth/refresh-token.model";
+import "../game-reports/game-report.model";
+import "../user-followers/user-follower.model";
+import "../activity/activity.model";
+import "../activity/targets/activity-game.model";
+import "../activity/targets/activity-list.model";
+import "../activity/targets/activity-user.model";
+import "../audit/audit.model";
+import "../reviews/review.model";
+import "../jobs/job.model";
 
 export async function initDatabase() {
 	setupAssociations();
-
-	const isTest = environmentConfig.NODE_ENV === "test";
-	const isDev = environmentConfig.NODE_ENV === "dev";
-
-	await sequelize.sync({
-		force: isTest,
-		alter: isDev || isTest
-	});
 }
