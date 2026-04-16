@@ -26,7 +26,8 @@
 		"typecheck": "tsc -p . --noEmit",
 		"migrate": "sequelize-cli db:migrate",
 		"migrate:undo": "sequelize-cli db:migrate:undo",
-		"migrate:create": "sequelize-cli migration:generate --name"
+		"migrate:create": "sequelize-cli migration:generate --name",
+		"migrate:status": "sequelize-cli db:migrate:status"
 	},
 	"dependencies": {
 		"bcrypt": "^6.0.0",
