@@ -4,12 +4,44 @@
 module.exports = {
 	async up(queryInterface) {
 		await queryInterface.sequelize.query(`
+			DO $$ BEGIN
+				CREATE TYPE "enum_Users_role" AS ENUM ('user', 'premium', 'moderator', 'admin');
+			EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+			DO $$ BEGIN
+				CREATE TYPE "enum_GameTimes_source" AS ENUM ('hltb', 'rawg', 'completr');
+			EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+			DO $$ BEGIN
+				CREATE TYPE "enum_GameExternals_source" AS ENUM ('rawg', 'igdb', 'steam', 'hltb', 'metacritic', 'opencritic');
+			EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+			DO $$ BEGIN
+				CREATE TYPE "enum_Backlogs_status" AS ENUM ('not_started', 'playing', 'completed', 'abandoned');
+			EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+			DO $$ BEGIN
+				CREATE TYPE "enum_Lists_scoreSource" AS ENUM ('metacritic', 'opencritic', 'rawg', 'completr');
+			EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+			DO $$ BEGIN
+				CREATE TYPE "enum_Lists_durationSource" AS ENUM ('hltb', 'rawg', 'completr');
+			EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+			DO $$ BEGIN
+				CREATE TYPE "enum_SavedFilters_sortOrder" AS ENUM ('asc', 'desc');
+			EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+			DO $$ BEGIN
+				CREATE TYPE "enum_GameReports_status" AS ENUM ('pending', 'approved', 'rejected');
+			EXCEPTION WHEN duplicate_object THEN null; END $$;
+
 			CREATE TABLE IF NOT EXISTS "Users" (
 				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				username VARCHAR(15) UNIQUE NOT NULL,
 				email VARCHAR(255) UNIQUE NOT NULL,
 				password VARCHAR(255) NOT NULL,
-				role VARCHAR(50) DEFAULT 'user' NOT NULL,
+				role "enum_Users_role" DEFAULT 'user' NOT NULL,
 				name VARCHAR(80),
 				bio VARCHAR(250),
 				"avatarUrl" VARCHAR(255),
@@ -90,7 +122,7 @@ module.exports = {
 			CREATE TABLE IF NOT EXISTS "GameTimes" (
 				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				"gameId" UUID NOT NULL REFERENCES "Games"(id),
-				source VARCHAR(50) NOT NULL,
+				source "enum_GameTimes_source" NOT NULL,
 				duration FLOAT NOT NULL,
 				"updatedAt" TIMESTAMPTZ NOT NULL,
 				UNIQUE ("gameId", source)
@@ -99,7 +131,7 @@ module.exports = {
 			CREATE TABLE IF NOT EXISTS "GameExternals" (
 				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				"gameId" UUID NOT NULL REFERENCES "Games"(id),
-				source VARCHAR(50) NOT NULL,
+				source "enum_GameExternals_source" NOT NULL,
 				"externalId" VARCHAR(255) NOT NULL,
 				"createdAt" TIMESTAMPTZ NOT NULL,
 				"updatedAt" TIMESTAMPTZ NOT NULL,
@@ -125,7 +157,7 @@ module.exports = {
 				"userId" UUID NOT NULL REFERENCES "Users"(id),
 				"gameId" UUID NOT NULL REFERENCES "Games"(id),
 				"platformId" UUID NOT NULL REFERENCES "Platforms"(id),
-				status VARCHAR(50) DEFAULT 'not_started' NOT NULL,
+				status "enum_Backlogs_status" DEFAULT 'not_started' NOT NULL,
 				"startedAt" DATE,
 				"finishedAt" DATE,
 				"realDuration" FLOAT,
@@ -164,8 +196,8 @@ module.exports = {
 				name VARCHAR(100) NOT NULL,
 				description TEXT,
 				"isPublic" BOOLEAN DEFAULT false,
-				"scoreSource" VARCHAR(50) NOT NULL,
-				"durationSource" VARCHAR(50) NOT NULL,
+				"scoreSource" "enum_Lists_scoreSource" NOT NULL,
+				"durationSource" "enum_Lists_durationSource" NOT NULL,
 				"createdAt" TIMESTAMPTZ NOT NULL,
 				"updatedAt" TIMESTAMPTZ NOT NULL
 			);
@@ -198,7 +230,7 @@ module.exports = {
 				description VARCHAR(255),
 				filters JSONB NOT NULL,
 				"sortBy" VARCHAR(50),
-				"sortOrder" VARCHAR(10) DEFAULT 'desc' NOT NULL,
+				"sortOrder" "enum_SavedFilters_sortOrder" DEFAULT 'desc' NOT NULL,
 				"showInBacklog" BOOLEAN DEFAULT true NOT NULL,
 				"isDefault" BOOLEAN DEFAULT false NOT NULL,
 				"createdAt" TIMESTAMPTZ NOT NULL,
@@ -209,7 +241,7 @@ module.exports = {
 				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				"userId" UUID NOT NULL REFERENCES "Users"(id),
 				token VARCHAR(255) UNIQUE NOT NULL,
-				"expiresAt" DATE NOT NULL,
+				"expiresAt" TIMESTAMPTZ NOT NULL,
 				"createdAt" TIMESTAMPTZ NOT NULL,
 				"updatedAt" TIMESTAMPTZ NOT NULL
 			);
@@ -219,7 +251,7 @@ module.exports = {
 				"gameId" UUID NOT NULL REFERENCES "Games"(id),
 				"userId" UUID NOT NULL REFERENCES "Users"(id),
 				message TEXT NOT NULL,
-				status VARCHAR(20) DEFAULT 'pending' NOT NULL,
+				status "enum_GameReports_status" DEFAULT 'pending' NOT NULL,
 				"createdAt" TIMESTAMPTZ NOT NULL,
 				"updatedAt" TIMESTAMPTZ NOT NULL,
 				UNIQUE ("gameId", "userId")
@@ -241,6 +273,8 @@ module.exports = {
 				"createdAt" TIMESTAMPTZ NOT NULL,
 				"updatedAt" TIMESTAMPTZ NOT NULL
 			);
+
+			CREATE INDEX IF NOT EXISTS "activities_userid_createdat_idx" ON "Activities" ("userId", "createdAt");
 
 			CREATE TABLE IF NOT EXISTS "ActivityGames" (
 				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -322,6 +356,15 @@ module.exports = {
 			DROP TABLE IF EXISTS "Genres";
 			DROP TABLE IF EXISTS "Platforms";
 			DROP TABLE IF EXISTS "Users";
+
+			DROP TYPE IF EXISTS "enum_GameReports_status";
+			DROP TYPE IF EXISTS "enum_SavedFilters_sortOrder";
+			DROP TYPE IF EXISTS "enum_Lists_durationSource";
+			DROP TYPE IF EXISTS "enum_Lists_scoreSource";
+			DROP TYPE IF EXISTS "enum_Backlogs_status";
+			DROP TYPE IF EXISTS "enum_GameExternals_source";
+			DROP TYPE IF EXISTS "enum_GameTimes_source";
+			DROP TYPE IF EXISTS "enum_Users_role";
 		`);
 	}
 };
