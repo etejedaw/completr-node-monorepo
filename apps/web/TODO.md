@@ -295,6 +295,17 @@
 
 - [x] Reviews ya implementadas en Fase 2 (CRUD en game detail, campo en backlog modal, sección en perfiles)
 
+### Notificaciones
+
+- [ ] `NotificationsService` con signals para `unreadCount` y lista paginada
+- [ ] Bell icon en sidebar/topbar con badge de no leídas (polling cada 30-60s o refresh on focus)
+- [ ] Dropdown de notificaciones recientes (últimas 10) con link a vista completa
+- [ ] Página `/notifications` con tabs All / Unread, paginación, marcar como leída al click, "Mark all as read"
+- [ ] Render por tipo: `user_followed` (link al perfil), `list_followed` (link a lista), `coop_tagged` (link a juego), `friend_completed_list_game` (link a lista + juego), `achievement_unlocked` (link a logro)
+- [ ] Eliminar notificación con botón X
+- [ ] Sección de preferencias en perfil para activar/desactivar tipos
+- [ ] (Opcional, Fase 5+) Web Push: pedir permiso, registrar suscripción, recibir push con la PWA cerrada
+
 ### Estadísticas de listas
 
 - [x] Número de seguidores y progreso del usuario ya implementados en Fase 2
