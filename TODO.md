@@ -371,7 +371,7 @@
 ### Onboarding para amigos
 
 - [x] Flujo de registro: solo admin crea usuarios desde /admin/users (panel completo con listado + edición)
-- [ ] Corrección de bugs encontrados en Fase 1 (pendiente feedback de amigos)
+- [ ] Corrección de bugs por feedback de usuarios (ver docs/feedback/fase-2.md)
 - [x] Empty states descriptivos en todas las vistas: Backlog, Saved Views, Game Shelf, Wishlist, Favorites, Lists
 
 ### Panel admin de usuarios
@@ -477,7 +477,6 @@
 - [x] Configurar DNS de `completr.app`: `web.completr.app` → `completr-frontend.tebita.xyz`, `api.completr.app` → backend, `completr.app` → landing page
 - [x] Actualizar `CORS_ORIGIN` del backend a `https://web.completr.app`
 - [x] Actualizar `environment.production.ts` del frontend a `https://api.completr.app`
-- [ ] (Opcional hoy, requerido en Fase 3) Landing page mínima en `completr.app` (Astro): descripción + screenshots + botón "Sign in" + formulario "Request access"
 
 ---
 
@@ -581,6 +580,8 @@
 ### Infraestructura
 
 - [ ] (Opcional) VPS dedicado para Completr — solo si el volumen de la beta cerrada lo justifica. Por ahora corre en VPS compartido
+
+- Landing page mínima en `completr.app` (Astro): descripción + screenshots + botón "Sign in" + formulario "Request access"
 
 ---
 
