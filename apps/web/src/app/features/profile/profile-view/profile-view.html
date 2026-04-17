@@ -19,9 +19,11 @@
 		<div class="header-info">
 			<div class="header-top">
 				<h1>{{ profile()!.user.name || profile()!.user.username }}</h1>
+				@if (user()!.role !== 'user') {
 				<span class="role-badge" [class]="'role-' + user()!.role">
 					{{ roleBadge }}
 				</span>
+				}
 			</div>
 			<span class="username">@{{ profile()!.user.username }}</span>
 			@if (profile()!.user.bio) {
