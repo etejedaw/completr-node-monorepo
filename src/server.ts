@@ -22,12 +22,14 @@ import { corsConfig } from "./common/config/cors.config";
 import { errorHandlerMiddleware } from "./common/middlewares/error-handler.middleware";
 import { correlationIdMiddleware } from "./common/middlewares/correlation-id.middleware";
 import { loggerMiddleware } from "./common/middlewares/logger.middleware";
+import { xss } from "express-xss-sanitizer";
 import { securityTxtMiddleware } from "./common/middlewares/security-txt.middleware";
 
 export function server(port: number) {
 	const app = express();
 
 	app.use(express.json());
+	app.use(xss());
 	app.use(helmet());
 	app.use(cors(corsConfig));
 
