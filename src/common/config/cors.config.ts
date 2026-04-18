@@ -5,6 +5,7 @@ function validateOrigin(
 	requestOrigin: string | undefined,
 	callback: (err: Error | null, origin?: boolean) => void
 ) {
+	if (environmentConfig.CORS_ORIGIN === "*") return callback(null, true);
 	const allowedOrigins = environmentConfig.CORS_ORIGIN.split(",");
 	if (!requestOrigin || allowedOrigins.includes(requestOrigin))
 		return callback(null, true);
