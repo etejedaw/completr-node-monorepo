@@ -64,5 +64,12 @@ export function authDomainToHttpMapper(
 			status: 401
 		});
 
+	if (error.code === "AUTH_ROUTE_NOT_FOUND")
+		return new HttpError({
+			...baseOptions,
+			detail: "The requested resource was not found",
+			status: 404
+		});
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

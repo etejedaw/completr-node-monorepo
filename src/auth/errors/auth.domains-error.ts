@@ -64,3 +64,12 @@ export function invalidRefreshToken(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function authRouteNotFound(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"AUTH_ROUTE_NOT_FOUND",
+		"Not Found",
+		context
+	);
+}

@@ -6,6 +6,7 @@ import { ReportIdParamsSchema } from "./schemas/report-id-params.schema";
 import { UpdateReportStatusSchema } from "./schemas/update-report-status.schema";
 import * as gameReportsController from "./game-reports.controller";
 import { authMiddleware } from "../auth/auth.middleware";
+import { hiddenRouteMiddleware } from "../auth/hidden-route.middleware";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { userLimiter } from "../common/config/rate-limiter.config";
 
@@ -24,7 +25,7 @@ router.post(
 
 router.get(
 	"/admin/game-reports",
-	[rateLimiterMiddleware(userLimiter), authMiddleware("moderator")],
+	[rateLimiterMiddleware(userLimiter), hiddenRouteMiddleware("moderator")],
 	gameReportsController.getPendingReports
 );
 
@@ -32,7 +33,7 @@ router.patch(
 	"/admin/game-reports/:reportId",
 	[
 		rateLimiterMiddleware(userLimiter),
-		authMiddleware("moderator"),
+		hiddenRouteMiddleware("moderator"),
 		validateSchemaMiddleware(ReportIdParamsSchema, "params"),
 		validateSchemaMiddleware(UpdateReportStatusSchema, "body")
 	],

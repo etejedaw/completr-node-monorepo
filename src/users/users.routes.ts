@@ -6,6 +6,7 @@ import { RegisterSchema } from "../auth/schemas";
 import { SearchQuerySchema } from "../common/schemas/search-query.schema";
 import { authMiddleware } from "../auth/auth.middleware";
 import { authOptionalMiddleware } from "../auth/auth-optional.middleware";
+import { hiddenRouteMiddleware } from "../auth/hidden-route.middleware";
 import {
 	publicLimiter,
 	registerLimiter,
@@ -33,7 +34,7 @@ router.post(
 	"/admin/users",
 	[
 		rateLimiterMiddleware(registerLimiter),
-		authMiddleware("admin"),
+		hiddenRouteMiddleware(),
 		validateSchemaMiddleware(RegisterSchema, "body")
 	],
 	usersController.postAdminCreateUser
@@ -43,7 +44,7 @@ router.get(
 	"/admin/users",
 	[
 		rateLimiterMiddleware(userLimiter),
-		authMiddleware("admin"),
+		hiddenRouteMiddleware(),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	usersController.getAdminUsers
@@ -53,7 +54,7 @@ router.patch(
 	"/admin/users/:userId",
 	[
 		rateLimiterMiddleware(userLimiter),
-		authMiddleware("admin"),
+		hiddenRouteMiddleware(),
 		validateSchemaMiddleware(UserIdParamSchema, "params"),
 		validateSchemaMiddleware(AdminUpdateUserSchema, "body")
 	],
