@@ -6,6 +6,7 @@ info:
 http:
     method: GET
     url: "{{BASE_URL}}/score-sources"
+    auth: inherit
 
 settings:
     encodeUrl: true
@@ -15,8 +16,8 @@ docs: |-
 
     Returns all available score sources with their scales.
 
-    **Authentication:** None (public endpoint).
-    **Rate Limit:** 100 requests per minute.
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
 
     ### Response (200)
 

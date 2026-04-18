@@ -35,6 +35,8 @@ docs: |-
     |--------------|--------|----------|--------------------------------------------------|
     | gameId       | uuid   | Yes      | The game UUID                                    |
     | platformId   | uuid   | Yes      | The platform UUID                                |
+    | score        | number | Yes      | Average score for the game                       |
+    | duration     | number | Yes      | Average duration in hours                        |
     | status       | string | No       | not_started, playing, completed, abandoned       |
     | startedAt    | date   | No       | ISO date                                         |
     | finishedAt   | date   | No       | ISO date                                         |

@@ -6,6 +6,7 @@ info:
 http:
     method: GET
     url: "{{BASE_URL}}/lists/:listId/followers"
+    auth: inherit
     params:
         - name: listId
           value: "{{LIST_ID}}"
@@ -19,9 +20,9 @@ docs: |-
 
     Returns users who follow this list.
 
-    **Auth:** Not required.
+    **Auth:** Bearer token required.
 
-    **Rate Limit:** 100 requests per minute.
+    **Rate Limit:** 50 requests per minute.
 
     ### Response (200)
 

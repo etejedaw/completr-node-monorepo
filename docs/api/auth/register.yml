@@ -9,6 +9,7 @@ http:
     headers:
         - name: Content-Type
           value: application/json
+    auth: inherit
     body:
         type: json
         data: |-
@@ -29,6 +30,7 @@ docs: |-
 
     Creates a new user account.
 
+    **Authentication:** Bearer token required (admin only).
     **Rate Limit:** 3 requests per minute.
 
     ### Request Body

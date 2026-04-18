@@ -6,6 +6,7 @@ info:
 http:
     method: GET
     url: "{{BASE_URL}}/users/search?query=john"
+    auth: inherit
 
 settings:
     encodeUrl: true
@@ -16,9 +17,9 @@ docs: |-
     Search users by username. Returns active users (both public and private).
     Private users appear in results but their profile shows limited info.
 
-    **Auth:** Not required.
+    **Auth:** Bearer token required.
 
-    **Rate Limit:** 100 requests per minute.
+    **Rate Limit:** 50 requests per minute.
 
     ### Query Parameters
 

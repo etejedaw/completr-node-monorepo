@@ -6,6 +6,7 @@ info:
 http:
     method: GET
     url: "{{BASE_URL}}/games/search?query=elden ring"
+    auth: inherit
 
 settings:
     encodeUrl: true
@@ -15,8 +16,8 @@ docs: |-
 
     Searches for games by title. First searches locally, then falls back to RAWG API if no local results found. If RAWG finds a match, the game is automatically created in the database with scores, times, genres and platforms.
 
-    **Authentication:** Not required.
-    **Rate Limit:** 100 requests per minute (public).
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
 
     ### Query Params
 
