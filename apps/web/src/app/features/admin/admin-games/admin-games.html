@@ -15,6 +15,30 @@
 		/>
 	</div>
 
+	<div class="filter-chips">
+		<button
+			class="filter-chip"
+			[class.active]="noScores()"
+			(click)="toggleFilter('noScores')"
+		>
+			No Scores
+		</button>
+		<button
+			class="filter-chip"
+			[class.active]="noTimes()"
+			(click)="toggleFilter('noTimes')"
+		>
+			No Times
+		</button>
+		<button
+			class="filter-chip"
+			[class.active]="noPlatforms()"
+			(click)="toggleFilter('noPlatforms')"
+		>
+			No Platforms
+		</button>
+	</div>
+
 	@if (isLoading()) {
 	<div class="loading">Loading...</div>
 	} @else if (games().length === 0) {
@@ -26,8 +50,10 @@
 				<tr>
 					<th class="col-cover"></th>
 					<th class="col-title">Title</th>
+					<th class="col-code">Code</th>
 					<th class="col-platforms">Platforms</th>
 					<th class="col-scores">Scores</th>
+					<th class="col-times">Times</th>
 					<th class="col-dlc">DLC</th>
 					<th class="col-reports"></th>
 				</tr>
@@ -54,6 +80,7 @@
 							{{ game.title }}
 						</a>
 					</td>
+					<td class="col-code">{{ game.code }}</td>
 					<td class="col-platforms">
 						{{ game.platforms.map(p => p.abbreviation).join(", ") ||
 						"-" }}
@@ -62,6 +89,13 @@
 						@for (s of game.scores; track s.source) {
 						<span class="score-tag"
 							>{{ s.source }}: {{ s.score }}</span
+						>
+						}
+					</td>
+					<td class="col-times">
+						@for (t of game.times; track t.source) {
+						<span class="time-tag"
+							>{{ t.source }}: {{ t.duration }}h</span
 						>
 						}
 					</td>
