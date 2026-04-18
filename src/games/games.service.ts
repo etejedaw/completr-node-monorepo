@@ -97,6 +97,9 @@ export interface GamesQueryOptions {
 	sort_by?: string;
 	sort_order?: string;
 	genre?: string;
+	no_scores?: boolean;
+	no_times?: boolean;
+	no_platforms?: boolean;
 }
 
 export async function findAll(options: GamesQueryOptions = {}) {
@@ -105,10 +108,14 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		offset = 0,
 		sort_by = "createdAt",
 		sort_order = "desc",
-		genre
+		genre,
+		no_scores,
+		no_times,
+		no_platforms
 	} = options;
 
 	const where: Record<string, unknown> = { isActive: true };
+	const andConditions: object[] = [];
 	const include: { association: string; where?: Record<string, unknown> }[] =
 		[
 			{ association: "Platforms" },
@@ -123,6 +130,40 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		});
 	} else {
 		include.push({ association: "Genres" });
+	}
+
+	if (no_scores) {
+		andConditions.push({
+			id: {
+				[Op.notIn]: sequelize.literal(
+					'(SELECT DISTINCT "gameId" FROM "GameScores")'
+				)
+			}
+		});
+	}
+
+	if (no_times) {
+		andConditions.push({
+			id: {
+				[Op.notIn]: sequelize.literal(
+					'(SELECT DISTINCT "gameId" FROM "GameTimes")'
+				)
+			}
+		});
+	}
+
+	if (no_platforms) {
+		andConditions.push({
+			id: {
+				[Op.notIn]: sequelize.literal(
+					'(SELECT DISTINCT "gameId" FROM "GamePlatforms")'
+				)
+			}
+		});
+	}
+
+	if (andConditions.length > 0) {
+		where[Op.and as unknown as string] = andConditions;
 	}
 
 	const { rows, count } = await Game.findAndCountAll({

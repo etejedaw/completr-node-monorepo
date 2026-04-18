@@ -8,7 +8,10 @@ export const GamesQuerySchema = z
 			.enum(["createdAt", "title", "releaseAt"])
 			.default("createdAt"),
 		sort_order: z.enum(["asc", "desc"]).default("desc"),
-		genre: z.string().optional()
+		genre: z.string().optional(),
+		no_scores: z.stringbool().optional(),
+		no_times: z.stringbool().optional(),
+		no_platforms: z.stringbool().optional()
 	})
 	.strict()
 	.readonly();
