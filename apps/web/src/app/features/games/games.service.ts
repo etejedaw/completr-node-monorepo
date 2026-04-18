@@ -66,6 +66,9 @@ export interface GamesQuery {
 	sort_by?: string;
 	sort_order?: string;
 	genre?: string;
+	no_scores?: boolean;
+	no_times?: boolean;
+	no_platforms?: boolean;
 }
 
 @Injectable({ providedIn: "root" })

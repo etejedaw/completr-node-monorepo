@@ -8,7 +8,7 @@ import {
 import { Router, RouterLink } from "@angular/router";
 import { Game } from "../../../core/models";
 import { GamesService } from "../../games/games.service";
-import { AdminService, GameReport } from "../admin.service";
+import { AdminService } from "../admin.service";
 
 @Component({
 	selector: "app-admin-games",
@@ -30,10 +30,19 @@ export class AdminGames implements OnInit {
 	protected readonly searchQuery = signal("");
 	protected readonly offset = signal(0);
 	protected readonly limit = 50;
+	protected readonly noScores = signal(false);
+	protected readonly noTimes = signal(false);
+	protected readonly noPlatforms = signal(false);
 
 	ngOnInit() {
 		this.loadGames();
 		this.loadReports();
+	}
+
+	toggleFilter(filter: "noScores" | "noTimes" | "noPlatforms") {
+		this[filter].update(v => !v);
+		this.offset.set(0);
+		this.loadGames();
 	}
 
 	goToGameReport(gameId: string) {
@@ -83,20 +92,22 @@ export class AdminGames implements OnInit {
 
 	private loadGames() {
 		this.isLoading.set(true);
-		this.gamesService
-			.getGames({
-				limit: this.limit,
-				offset: this.offset(),
-				sort_by: "createdAt",
-				sort_order: "desc"
-			})
-			.subscribe({
-				next: res => {
-					this.games.set(res.data.games);
-					this.total.set(res.data.total);
-					this.isLoading.set(false);
-				},
-				error: () => this.isLoading.set(false)
-			});
+		const query: Record<string, unknown> = {
+			limit: this.limit,
+			offset: this.offset(),
+			sort_by: "createdAt",
+			sort_order: "desc"
+		};
+		if (this.noScores()) query["no_scores"] = true;
+		if (this.noTimes()) query["no_times"] = true;
+		if (this.noPlatforms()) query["no_platforms"] = true;
+		this.gamesService.getGames(query).subscribe({
+			next: res => {
+				this.games.set(res.data.games);
+				this.total.set(res.data.total);
+				this.isLoading.set(false);
+			},
+			error: () => this.isLoading.set(false)
+		});
 	}
 }
