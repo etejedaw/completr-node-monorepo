@@ -123,3 +123,35 @@ Formato por item:
 - **Estado:** pendiente
 - **Descripcion:** Las vistas de listas propias (GET /lists/me) y saved views (GET /users/me/saved-filters) cargan todos los registros sin paginacion. Aunque es poco probable que un usuario tenga muchas entradas (free tiene limite de 5), conviene tener paginacion por consistencia y para usuarios premium con listas ilimitadas.
 - **Solucion propuesta:** Agregar paginacion con limit 25 a lists y saved views. Agregar controles de paginacion en el frontend de ambas vistas.
+
+### [FB-012] Notas del backlog visibles en perfil publico de otro usuario
+
+- **Fecha:** 2026-04-19
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Descripcion:** La columna de notas del backlog es visible cuando un usuario ve el perfil o backlog publico de otro usuario. Las notas son personales y pueden contener comentarios privados que el usuario no espera que otros vean.
+- **Solucion propuesta:** Ocultar la columna de notas en el backlog publico. En el backend, excluir el campo notes del serializer cuando se consulta el backlog de otro usuario (GET /users/:username/backlog). En el frontend, no mostrar la columna de notas en las vistas publicas de backlog.
+
+### [FB-013] Login no redirige a la URL original despues de autenticarse
+
+- **Fecha:** 2026-04-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** Si un usuario no logueado accede a una URL protegida (ej: https://web.completr.app/games/chrono-trigger), el authGuard lo redirige al login. Pero al iniciar sesion, lo manda al feed (ruta por defecto) en vez de a la pagina que intento visitar originalmente. Esto obliga al usuario a navegar de nuevo a donde queria ir.
+- **Solucion propuesta:** Guardar la URL original en un query param (ej: /login?returnUrl=/games/chrono-trigger) o en el state del router al momento de redirigir desde el authGuard. Despues del login exitoso, redirigir a esa URL en vez de al feed.
+
+### [FB-014] Progreso de listas solo cuenta completados, no abandonados
+
+- **Fecha:** 2026-04-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** La barra de progreso en listas (getListProgress) solo cuenta backlogs con status "completed". Los juegos abandonados no se contabilizan, pero deberian contar como progreso ya que el usuario ya paso por ese juego (lo jugo y decidio dejarlo).
+- **Solucion propuesta:** Modificar getListProgress en lists.service.ts para contar backlogs con status "completed" o "abandoned" (usar Op.in con ambos valores). Actualizar el frontend si es necesario para reflejar el cambio en el label (ej: "played" en vez de "completed").
+
+### [FB-015] No existe opcion "PC" generica al agregar juego al backlog o shelf
+
+- **Fecha:** 2026-04-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** Al agregar un juego al backlog o al game shelf, el selector de plataformas solo muestra las tiendas especificas (Steam, GOG, Epic, etc.) pero no hay una opcion "PC" generica. Hay juegos antiguos que no estan disponibles en ninguna tienda digital (ej: Wolfenstein 2009 que fue removido de venta) y el usuario los tiene como ISOs o copias fisicas de PC. Sin la opcion PC generica no hay forma de registrarlos con la plataforma correcta.
+- **Solucion propuesta:** Verificar si la plataforma "PC" existe en la tabla de plataformas. Si no existe, crearla. Asegurar que los juegos que tienen plataformas de PC (Steam, GOG, Epic, etc.) tambien tengan vinculada la plataforma "PC" generica, o permitir que el usuario seleccione "PC" manualmente aunque el juego no la tenga asociada.
