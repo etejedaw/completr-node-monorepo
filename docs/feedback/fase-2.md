@@ -107,3 +107,19 @@ Formato por item:
 - **Estado:** pendiente
 - **Descripcion:** Cuando un usuario A sigue a un usuario B, el usuario B no tiene ninguna forma de enterarse. El sistema de notificaciones esta planeado para Fase 4 y no es prioridad ahora, pero mientras tanto los usuarios no tienen visibilidad de nuevos seguidores.
 - **Solucion propuesta:** Como solucion temporal antes del sistema de notificaciones, registrar una actividad en el feed del usuario B cuando alguien lo sigue (ej: "Usuario A started following you"). Esto reutiliza la infraestructura de Activity que ya existe sin necesidad de implementar notificaciones completas.
+
+### [FB-010] Backlog propio no tiene paginacion y carga demasiados registros
+
+- **Fecha:** 2026-04-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** El backlog propio (GET /users/me/backlog) carga todos los registros de una vez, lo que se vuelve lento cuando un usuario tiene muchos juegos. El backlog publico de otro usuario ya tiene paginacion con limit/offset (max 50), pero el propio no. Con usuarios que tienen 100+ entradas la tabla se siente pesada.
+- **Solucion propuesta:** Agregar paginacion al backlog propio usando el mismo PaginationQuerySchema pero con un limit mas alto (100) para que el usuario vea mas registros por pagina que en la vista publica. Aplicar la misma paginacion con limit 100 a game-shelf, wishlist y favorites propios. Agregar controles de paginacion en el frontend de todas estas vistas.
+
+### [FB-011] Lists y saved views sin paginacion
+
+- **Fecha:** 2026-04-19
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Descripcion:** Las vistas de listas propias (GET /lists/me) y saved views (GET /users/me/saved-filters) cargan todos los registros sin paginacion. Aunque es poco probable que un usuario tenga muchas entradas (free tiene limite de 5), conviene tener paginacion por consistencia y para usuarios premium con listas ilimitadas.
+- **Solucion propuesta:** Agregar paginacion con limit 25 a lists y saved views. Agregar controles de paginacion en el frontend de ambas vistas.
