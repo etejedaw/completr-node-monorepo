@@ -195,3 +195,35 @@ Formato por item:
 - **Estado:** pendiente
 - **Descripcion:** La estrella de favoritos en el banner del game detail no se nota lo suficiente. Los usuarios no se dan cuenta de que desde ahi pueden agregar un juego a favoritos. El icono se pierde sobre la imagen de fondo y no transmite que es interactivo.
 - **Solucion propuesta:** Hacer la estrella mas visible: aumentar tamano, agregar sombra o fondo semitransparente detras del icono para que contraste con el banner, o agregar un tooltip "Add to favorites". Tambien considerar un efecto hover mas evidente para que se note que es clickeable.
+
+### [FB-021] Flujo de creacion de juego desde RAWG no incluye externalIds en el DTO
+
+- **Fecha:** 2026-04-20
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Descripcion:** Cuando se crea un juego via busqueda con fallback a RAWG, el RAWG ID se guarda con una llamada separada a gameExternalService.create() en vez de pasarlo como parte del externalIds del registerGame DTO. Esto es inconsistente con el flujo de PATCH /games/:id que si acepta externalIds. Ademas, no hay forma de agregar el Steam ID u otros sources al momento de crear el juego desde el frontend ni desde el endpoint de busqueda.
+- **Solucion propuesta:** Incluir externalIds en el flujo de creacion desde RAWG (pasar rawgId como parte del DTO en vez de llamar a gameExternalService aparte). En el frontend del admin game editor, tanto en creacion como en edicion, agregar campos para IDs externos (RAWG, Steam, etc.) que se envien como externalIds en el body del request.
+
+### [FB-022] Busqueda de juegos demasiado literal
+
+- **Fecha:** 2026-04-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** La busqueda de juegos es demasiado literal y no tolera variaciones comunes. Por ejemplo, buscar "fear" no encuentra "F.E.A.R." porque el titulo tiene puntos entre las letras. Lo mismo puede pasar con caracteres especiales, acentos, numeros romanos vs arabigos, etc. Esto afecta tanto la busqueda local como la experiencia del usuario al agregar juegos.
+- **Solucion propuesta:** Mejorar la busqueda local para que sea mas tolerante: normalizar el query y los titulos removiendo puntos, caracteres especiales y acentos antes de comparar. Considerar usar ILIKE con wildcards o funciones de similitud de PostgreSQL (pg_trgm, unaccent). En RAWG el problema es menor porque su API ya maneja fuzzy matching.
+
+### [FB-023] RAWG agrupa juegos que deberian ser registros separados
+
+- **Fecha:** 2026-04-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** En RAWG algunos juegos aparecen agrupados como un solo registro cuando en realidad son juegos distintos. Por ejemplo, Pokemon Perla y Pokemon Diamante son dos juegos diferentes, pero en RAWG aparecen como "Pokemon Perla/Diamante" en un solo entry. Esto causa problemas porque en Completr cada juego deberia ser un registro independiente. Ademas, con la regla de unique constraint en GameExternal (un solo externalId por source+game), no se puede mapear el mismo registro de RAWG a dos juegos distintos. Tambien afecta al backlog: si un usuario quiere trackear ambos juegos por separado no puede porque solo existe uno en la DB.
+- **Solucion propuesta:** Buscar alternativas para manejar este caso. Opciones a evaluar: (1) permitir crear juegos manualmente sin RAWG y vincularlos como variantes, (2) agregar un campo "variant" o "edition" al juego para diferenciar versiones del mismo registro RAWG, (3) permitir multiples juegos con el mismo externalId de RAWG (relajar el unique constraint), (4) usar otra fuente (IGDB, Steam) como fuente primaria para estos casos.
+
+### [FB-024] Faltan filtros por fuente de datos en el panel admin de games
+
+- **Fecha:** 2026-04-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** En el panel admin de games no hay filtros para identificar juegos que les faltan datos de fuentes especificas. Por ejemplo, no se puede filtrar para ver juegos que no tienen score de RAWG o Metacritic, ni los que no tienen duracion de HLTB. Esto dificulta la tarea de enriquecer el catalogo ya que no hay forma de saber cuales juegos necesitan datos.
+- **Solucion propuesta:** Agregar filtros al panel admin de games (y al endpoint GET /games) para filtrar por ausencia de scores o times de fuentes especificas. Ej: no_scores=rawg,metacritic (juegos sin score de esas fuentes), no_times=hltb (juegos sin duracion HLTB). Esto permite al admin identificar y completar datos faltantes.
