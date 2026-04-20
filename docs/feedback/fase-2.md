@@ -187,3 +187,11 @@ Formato por item:
 - **Estado:** pendiente
 - **Descripcion:** El feed de actividad (GET /feed) carga todas las actividades de una vez. Si un usuario sigue a mucha gente, el feed crece rapidamente y carga demasiada informacion innecesaria. No tiene sentido mostrar todo el historial de actividad de golpe.
 - **Solucion propuesta:** Agregar paginacion al feed con limit/offset y un limit de 25 actividades por pagina. Agregar controles de paginacion o scroll infinito en el frontend.
+
+### [FB-020] Boton de favoritos en game detail poco visible
+
+- **Fecha:** 2026-04-20
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Descripcion:** La estrella de favoritos en el banner del game detail no se nota lo suficiente. Los usuarios no se dan cuenta de que desde ahi pueden agregar un juego a favoritos. El icono se pierde sobre la imagen de fondo y no transmite que es interactivo.
+- **Solucion propuesta:** Hacer la estrella mas visible: aumentar tamano, agregar sombra o fondo semitransparente detras del icono para que contraste con el banner, o agregar un tooltip "Add to favorites". Tambien considerar un efecto hover mas evidente para que se note que es clickeable.
