@@ -155,3 +155,35 @@ Formato por item:
 - **Estado:** pendiente
 - **Descripcion:** Al agregar un juego al backlog o al game shelf, el selector de plataformas solo muestra las tiendas especificas (Steam, GOG, Epic, etc.) pero no hay una opcion "PC" generica. Hay juegos antiguos que no estan disponibles en ninguna tienda digital (ej: Wolfenstein 2009 que fue removido de venta) y el usuario los tiene como ISOs o copias fisicas de PC. Sin la opcion PC generica no hay forma de registrarlos con la plataforma correcta.
 - **Solucion propuesta:** Verificar si la plataforma "PC" existe en la tabla de plataformas. Si no existe, crearla. Asegurar que los juegos que tienen plataformas de PC (Steam, GOG, Epic, etc.) tambien tengan vinculada la plataforma "PC" generica, o permitir que el usuario seleccione "PC" manualmente aunque el juego no la tenga asociada.
+
+### [FB-016] Seccion "Latest Completr Lists" en games-browse sigue mostrando placeholder
+
+- **Fecha:** 2026-04-20
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Descripcion:** En la pagina de games (/games), la seccion "Latest Completr Lists" todavia muestra el placeholder "Coming soon..." a pesar de que el sistema de listas ya esta implementado y hay listas creadas. Los usuarios ven una seccion vacia que deberia estar mostrando contenido real.
+- **Solucion propuesta:** Reemplazar el placeholder con listas reales. Mostrar las listas oficiales (creadas por admin) o las listas publicas mas recientes/populares. Requiere un endpoint o reutilizar GET /lists/search para obtener listas destacadas.
+
+### [FB-017] Flash de placeholders al cargar games-browse
+
+- **Fecha:** 2026-04-20
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Descripcion:** Al entrar a la pagina de games (/games), se muestra brevemente el placeholder "Coming soon..." y los textos estaticos antes de que carguen los datos reales (secciones Latest Added, Top Rated, etc.). Se produce un flash visible donde la pagina se ve incompleta por un instante antes de renderizar el contenido.
+- **Solucion propuesta:** Agregar skeleton loaders o un estado de carga que reemplace los placeholders mientras se obtienen los datos. Alternativamente, ocultar las secciones hasta que los datos esten listos para evitar el flash.
+
+### [FB-018] No hay forma de reportar bugs generales ni ver estado de reportes
+
+- **Fecha:** 2026-04-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** Los usuarios solo pueden reportar errores en juegos (GameReport), pero no tienen forma de reportar bugs generales de la app (ej: un boton que no funciona, un error de UI, una feature rota). Ademas, no pueden ver el estado de los reportes que ya enviaron (ni de juegos ni generales), asi que no saben si su reporte fue recibido, aprobado o rechazado.
+- **Solucion propuesta:** Crear un sistema de reportes generales (BugReport o similar) con campos como titulo, descripcion y categoria (bug, sugerencia, etc.). Agregar una vista donde el usuario pueda ver todos sus reportes (tanto de juegos como generales) con su estado actual (pendiente/aprobado/rechazado). Panel admin para gestionar los reportes generales igual que los de juegos.
+
+### [FB-019] Feed de actividad sin paginacion
+
+- **Fecha:** 2026-04-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** El feed de actividad (GET /feed) carga todas las actividades de una vez. Si un usuario sigue a mucha gente, el feed crece rapidamente y carga demasiada informacion innecesaria. No tiene sentido mostrar todo el historial de actividad de golpe.
+- **Solucion propuesta:** Agregar paginacion al feed con limit/offset y un limit de 25 actividades por pagina. Agregar controles de paginacion o scroll infinito en el frontend.
