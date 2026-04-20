@@ -576,6 +576,7 @@
 ### Refactors pendientes
 
 - [ ] Refactor `security.txt`: mover de middleware a ruta simple
+- [ ] Refactorizar `activityService.record` a EventEmitter: crear eventBus centralizado en `src/common/events/`, controllers emiten eventos y listeners procesan actividad en segundo plano. Desacopla controllers de efectos secundarios y prepara la base para notificaciones (Fase 4) y emails (Fase 5)
 
 ### Infraestructura
 
