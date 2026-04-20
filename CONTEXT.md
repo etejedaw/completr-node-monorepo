@@ -8,22 +8,6 @@ Nace de la necesidad de reemplazar una hoja de cálculo de Google donde el cread
 
 ---
 
-## Problema que resuelve
-
-El usuario mantiene un Excel semestral con columnas: juego, plataforma, puntuación Metacritic, duración HLTB, ratio (puntuación/duración), estado (No Iniciado, Jugando, Completado, Abandonado, Mal Optimizado), duración real, ratio real y notas.
-
-**Dolor principal:** todo es manual — buscar datos, calcular ratios, ordenar, hacer seguimiento.
-
-**Completr automatiza:**
-
-- Carga de datos de HLTB y Metacritic/OpenCritic
-- Cálculo del ratio y ratio personal (con duración real)
-- Ordenamiento inteligente (premia juegos cortos con buena nota)
-- Seguimiento de progreso por semestre
-- Compartir listas con amigos (aspecto social opcional)
-
----
-
 ## Conceptos clave del dominio
 
 ### Sistema de puntajes (3 niveles)
@@ -150,15 +134,6 @@ Concepto clave derivado del flujo actual en NocoDB:
 ### Semestres
 
 No existe un campo "semestre" en el modelo. El semestre se deriva de `Backlog.finished_at`: ene-jun = S01, jul-dic = S02. Las vistas semestrales son filtros por rango de fechas.
-
-### Listas públicas y follow
-
-Cualquier lista con `is_public: true` puede ser vista y seguida por otros usuarios (`ListFollower`). Cuando un usuario ve una lista pública:
-
-- Ve todos los juegos con los puntajes congelados desde la fuente oficial de la lista
-- Si está autenticado, ve su propio estado para cada juego (derivado de sus backlogs)
-- El frontend calcula estadísticas: "has completado 8/15", progreso por juego
-- Puede seguir la lista para acceso rápido desde su perfil
 
 ---
 
@@ -430,113 +405,6 @@ Cada módulo tiene sus propios mappers para convertir entre capas. Los providers
 
 ---
 
-## Estado actual de implementación
-
-### Completado (Fase 0)
-
-- Auth: registro, login, cambio de contraseña
-- Users: perfil, actualización, desactivación
-- Games: CRUD completo con vinculación a plataformas y géneros. Campos: isDlc, parentGameId (self-reference para DLCs). description es TEXT en DB.
-- Platforms: CRUD completo (35 plataformas cargadas)
-- Genres: CRUD completo (38 géneros cargados)
-- GameShelf: CRUD completo con campos de score/duration/scoreSource/durationSource
-- GameScore: endpoints de creación y consulta (sources: metacritic, opencritic, rawg, completr)
-- GameTime: endpoints de creación y consulta (sources: hltb, rawg, completr)
-- GameGenre: service para vincular juegos con géneros
-- Todos los modelos de DB creados: Game, Platform, Genre, GamePlatform, GameGenre, GameShelf, GameScore, GameTime, List, ListItem, ListFollower, Backlog, SavedFilter
-- Error handling completo en todos los módulos (registrados en normalizers globales)
-- Validación UUID (`z.uuid()` de Zod v4) en todos los schemas de params
-- RAWG provider implementado (`RawgProvider` class con searchGame, getGameById, getGameBySlug)
-- Config separada: environment.config.ts, database.config.ts, api-keys.config.ts
-- Infraestructura: error handling, logging, rate limiting, validación, CORS, Helmet
-- Data maestra: 517 juegos enriquecidos con RAWG (descripciones, covers, fechas, géneros, scores RAWG, playtimes RAWG) + scores Metacritic y tiempos HLTB del CSV original
-
-### Completado (Fase 1 — Excel Killer v0.2.0)
-
-- Backlog: CRUD completo con filtros avanzados (multi-status comma-separated, no_finished_date, platform_id, rangos de fechas/score/duration/realDuration/rating, ordenamiento), isPublic, userRating (1-10 en pasos de 0.5), endpoints públicos para ver backlog de otros usuarios
-- Saved Filters: CRUD con límite free (5) / premium (ilimitado), almacenamiento JSONB de presets de filtros, campo description, serializer sin timestamps. `showInBacklog` controla si aparece como chip en el backlog. `isDefault` auto-aplica al abrir backlog (solo uno por usuario, requiere showInBacklog). Al setear default se quita el anterior automáticamente
-- Lists: CRUD completo con scoreSource/durationSource global, límite de 5 para free con frozen state, description. `GET /lists/:id` incluye followerCount, isFollowing y backlogStatus por juego (auth opcional)
-- ListItems: `PUT /lists/:id/items` reemplaza el array completo de gameIds, congela scores desde fuente oficial, valida existencia de games y duplicados. `POST /lists/:id/refresh-scores` actualiza puntajes desde la fuente. Ratio calculado en serializer
-- ListFollowers: `POST/DELETE /lists/:id/follow` — follow como bookmark social. Validación de lista pública, duplicado y not-following. Error handling completo
-- Búsqueda con fallback a RAWG: `GET /games/search?query=` busca localmente, si 0 resultados busca en RAWG (hasta 3 resultados, `exclude_additions: true`), crea los juegos en DB con scores/times/genres/plataformas y los retorna. Dedup por GameExternal y slug. Error handling individual por resultado
-- Transacciones: `registerGame` envuelto en transacción atómica (juego + plataformas + scores + times + géneros). Validación de plataformas y géneros existentes antes de vincular
-- Pruebas manuales completas: todos los endpoints probados con los 4 roles (admin, moderator, premium, user) + sin auth. Verificados permisos, validaciones, duplicados, not found, serializers
-- Wishlist: `POST /users/me/wishlist?source=game|backlog` (crea backlog + wishlist o añade backlog existente), `PUT` replace-all con backlogIds, `GET` me y público. Auto-remove al completar/abandonar backlog. Límite 10 free / ilimitado premium
-- Favorites: `PUT /users/me/favorites` replace-all con gameIds, `GET` me y público. No requiere backlog. Límite 10 free / ilimitado premium
-- Campos `isWishlistPublic` y `isFavoritePublic` en modelo User
-- GameExternal: modelo para mapear juegos a IDs de plataformas externas (RAWG, IGDB, Steam, HLTB, Metacritic, OpenCritic). Unique indexes: `(source, externalId)` y `(gameId, source)`. Endpoint `GET /game-external/rawg/:slug` para fetch de data RAWG por slug. `externalIds` integrado en `PATCH /games/:id` y `POST /games` — se crea/actualiza el mapeo al guardar
-- `personalRatio` (score / realDuration) agregado al serializer de backlog
-- CORS fix: origin `"*"` ya no se convierte a array (corregido en cors.config.ts)
-- ScoreSource: tabla de referencia para fuentes de puntaje con escalas (metacritic:100, opencritic:100, rawg:5, completr:10). `GET /score-sources` público, `POST /score-sources` admin. GameScore.source ahora es FK a ScoreSource.code
-- GameScore.source refactorizado de ENUM a STRING con FK a ScoreSource
-- `backgroundUrl` agregado al modelo Game — RAWG `background_image` se guarda en `backgroundUrl`. `coverUrl` reservado para covers reales de otra fuente
-- Búsqueda RAWG: fallback por slug cuando la búsqueda por texto no encuentra, `force_rawg=true` para saltar búsqueda local
-- RAWG mapper: almacena rating RAWG como GameScore(source: 'rawg'), expande `pc` a múltiples tiendas (steam, gog, epic, etc.), mapea géneros con `rawg-genre.map.ts`
-- Hard delete de games: `DELETE /games/:id?hard=true` (solo admin) con CASCADE en todas las asociaciones
-- `PATCH /games/:id` acepta `title` con regeneración de slug
-- RAWG lookup y detail endpoints para admin re-scrape
-- Registro restringido a admin (`POST /auth/register` requiere token admin)
-- Backlog update: `startedAt`, `finishedAt`, `realDuration`, `userRating`, `notes` aceptan `null` para limpiar valores
-
-### Completado (Fase 1.5 — Beyond the Spreadsheet, en progreso)
-
-- Backlog: startedAt/finishedAt cambiados a DATEONLY, userRating escala 0.5-5, game code en serializer
-- Game releaseAt cambiado a DATEONLY
-- GET /games: paginación con limit/offset/sort_by/genre filter
-- Géneros: findRandomGenre service
-- Wishlist serializer: ratio calculado, game code agregado
-- Favorites serializer: game code agregado
-- List-items serializer: game code agregado
-
-### Fase 1.5 completada
-
-- Admin game editor: RAWG fetch por slug, edición completa, create/edit mode, DLC parent game
-- Admin panel en games-browse: crear juegos desde RAWG o vacíos
-- Hard delete y DLCs/parent game en game detail
-- Filtros avanzados del backlog: multi-status, plataforma, fechas, rating con estrellas, sort
-- Saved filters: showInBacklog, isDefault, descripción, página `/saved-views` con modal de edición
-- Game shelf: filtro por plataforma con chips y contador
-- Perfil: vista con avatar, nombre, rol, bio, privacy; modal de edición
-- Force search RAWG en games-browse
-- User serializer: email removido, createdAt y privacy fields agregados
-- Deploy en CapRover (completr-backend.tebita.xyz / completr.tebita.xyz)
-- Hardening post-auditoría: error context oculto en prd, security.txt middleware, Sequelize logging desactivado en prd
-
-### Fase 2 (en progreso)
-
-- Refresh tokens: modelo RefreshToken (SHA-256 hash + expiresAt), POST /auth/refresh con rotation, POST /auth/logout, login/register devuelven ambos tokens, cambiar contraseña invalida todas las sesiones
-- Panel admin: POST /admin/users (solo admin, siempre role "user"), registro público bloqueado
-- Perfil público: GET /users/:username devuelve user + backlogs + listas (con followerCount) + favoritos + wishlist + gameShelf + followingLists + recentActivity (respeta privacy flags). Auth opcional para isFollowing
-- GameExternal en serializer: externalLinks[] expuesto en GET /games/:code
-- Game reports: modelo GameReport (unique gameId+userId), POST /games/:id/reports, GET /admin/game-reports, PATCH /admin/game-reports/:reportId
-- User followers: POST/DELETE /users/:username/follow, GET followers/following, followerCount/followingCount/isFollowing en perfil
-- Activity feed: modelo Activity con sub-modelos ActivityGame/ActivityList/ActivityUser (FKs propias). GET /feed (propia + seguidos), DELETE /feed/:activityId. Registra backlog, favoritos, follow user, follow list
-- isFeedPublic agregado al modelo User y perfil
-- List followers: GET /lists/:id/followers, GET /lists/following, PATCH /lists/:id/follow (visibility)
-- userId agregado al serializer de List para ownership check en frontend
-- Búsqueda: GET /users/search, GET /lists/search, GET /games/search?local_only=true
-- Vistas completas de otro usuario: GET /users/:username/backlog (con BacklogQuerySchema), /game-shelf, /wishlist, /favorites, /following-lists — todos con paginación (PaginationQuerySchema: limit max 50, offset)
-- PaginationQuerySchema compartido en common/schemas/ para reutilizar en endpoints paginados
-- Backlog: findAndCountAll con limit/offset en endpoints públicos y privados, retorna { backlog, total }
-- Game-shelf, wishlist, favorites: métodos \*Paginated en services, endpoints públicos retornan { ..., total }
-- Progreso personal en listas: getListProgress(listId, userId) calcula completed/total cruzando ListItems con Backlog. Incluido en list detail (serializer) y GET /lists/following (controller)
-- Self-view en perfil: GET /users/:username permite que el usuario vea su propio perfil incluso si es privado, mostrando toda su data (backlog completo, game-shelf completo, favorites/wishlist/activity sin restricción de privacy flags)
-- Auth enforcement: catálogo (games, platforms, genres, score-sources, lists/search) requiere authMiddleware(). Perfiles y colecciones de usuario son públicos (sin auth o authOptionalMiddleware) para incentivar registro. Todos los services de escritura validan ownership
-- Moderator: acceso a GET/PATCH game-reports (antes solo admin), CRUD games (excepto DELETE que es admin-only), CRUD platforms/genres
-- Admin user management: GET /admin/users (listado paginado), PATCH /admin/users/:userId (cambiar role, password, name, isActive)
-- AuditLog: modelo con userId, action, targetType, targetId. Registra acciones de admin/moderator (user_created, user_edited, game_created, game_edited, game_deactivated, game_deleted, report_approved/rejected). GET /admin/audit (admin-only, paginado)
-
-### Pendiente — Fases posteriores
-
-- Fase 2 (pendiente): progreso personal en listas seguidas, listas seguidas en page de listas, permisos y roles, reseñas de juegos, páginas 404/403, dominio completr.app, mejoras UX
-- Fase 3: Listas oficiales, privacidad avanzada, búsqueda avanzada, sistema de invitación, badges manuales (founder, beta-tester, moderator, premium-supporter)
-- Fase 4: Reviews, stats de listas públicas, logros, resumen semestral, comparación social
-- Fase 5: Estabilización (paginación, emails, tests, seguridad)
-- Fase 6: Premium (estadísticas, temas, Steam sync, listas colaborativas, Stripe)
-- Fase 7: Recomendaciones, Xbox/PSN, app móvil, i18n
-
----
-
 ## Público objetivo
 
 ### Fase inicial
@@ -581,18 +449,3 @@ Inspirada en Trakt:
 | Stripe/LemonSqueezy    | Pagos Premium                                     | Fase 6       |
 | SMTP (Resend/SendGrid) | Emails transaccionales                            | Fase 5       |
 
----
-
-## Ejemplo de datos del usuario
-
-Así se ve la lista actual en Excel (extracto):
-
-| N   | Juego                        | Plataforma | MC  | Duración | Ratio | Status      |
-| --- | ---------------------------- | ---------- | --- | -------: | ----: | ----------- |
-| 1   | Florence                     | Steam      | 82  |       1h | 82.00 | Completado  |
-| 2   | Journey                      | Steam      | 92  |       2h | 46.00 | Completado  |
-| 5   | Brothers: A Tale of Two Sons | Steam      | 86  |       3h | 28.67 | No Iniciado |
-| 22  | Resident Evil 2              | PSX        | 89  |       6h | 14.83 | No Iniciado |
-| 29  | Crash Bandicoot              | PSX        | 82  |       6h | 13.67 | Abandonado  |
-
-**Resumen semestral:** 13 completados, 7 abandonados, 4 jugando, 3 mal optimizados = 27 total
