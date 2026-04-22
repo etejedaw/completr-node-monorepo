@@ -1,46 +1,57 @@
 <div class="auth-page">
 	<div class="auth-backdrop"></div>
-	<div class="auth-card">
-		<div class="brand">
-			<span class="brand-icon">C</span>
-			<h1>Completr</h1>
+	<div class="auth-wrapper">
+		<div class="auth-card">
+			<div class="brand">
+				<span class="brand-icon">C</span>
+				<h1>Completr</h1>
+			</div>
+			<p class="subtitle">Track your games. Prioritize your backlog.</p>
+
+			@if (error()) {
+			<div class="error-message">{{ error() }}</div>
+			}
+
+			<form [formGroup]="form" (ngSubmit)="onSubmit()">
+				<div class="form-group">
+					<label for="email">Email</label>
+					<input
+						id="email"
+						type="email"
+						formControlName="email"
+						placeholder="you@example.com"
+						autocomplete="email"
+					/>
+				</div>
+
+				<div class="form-group">
+					<label for="password">Password</label>
+					<input
+						id="password"
+						type="password"
+						formControlName="password"
+						placeholder="Your password"
+						autocomplete="current-password"
+					/>
+				</div>
+
+				<button
+					class="btn-primary"
+					type="submit"
+					[disabled]="form.invalid || isLoading()"
+				>
+					{{ isLoading() ? 'Signing in...' : 'Sign in' }}
+				</button>
+			</form>
 		</div>
-		<p class="subtitle">Track your games. Prioritize your backlog.</p>
-
-		@if (error()) {
-		<div class="error-message">{{ error() }}</div>
-		}
-
-		<form [formGroup]="form" (ngSubmit)="onSubmit()">
-			<div class="form-group">
-				<label for="email">Email</label>
-				<input
-					id="email"
-					type="email"
-					formControlName="email"
-					placeholder="you@example.com"
-					autocomplete="email"
-				/>
-			</div>
-
-			<div class="form-group">
-				<label for="password">Password</label>
-				<input
-					id="password"
-					type="password"
-					formControlName="password"
-					placeholder="Your password"
-					autocomplete="current-password"
-				/>
-			</div>
-
-			<button
-				class="btn-primary"
-				type="submit"
-				[disabled]="form.invalid || isLoading()"
+		<div class="auth-credit">
+			Made with ♥ by
+			<a
+				href="https://www.etejeda.dev"
+				target="_blank"
+				rel="noopener noreferrer"
+				>Esteban Tejeda</a
 			>
-				{{ isLoading() ? 'Signing in...' : 'Sign in' }}
-			</button>
-		</form>
+		</div>
 	</div>
 </div>
