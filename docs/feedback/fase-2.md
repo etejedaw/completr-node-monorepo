@@ -227,3 +227,84 @@ Formato por item:
 - **Estado:** pendiente
 - **Descripcion:** En el panel admin de games no hay filtros para identificar juegos que les faltan datos de fuentes especificas. Por ejemplo, no se puede filtrar para ver juegos que no tienen score de RAWG o Metacritic, ni los que no tienen duracion de HLTB. Esto dificulta la tarea de enriquecer el catalogo ya que no hay forma de saber cuales juegos necesitan datos.
 - **Solucion propuesta:** Agregar filtros al panel admin de games (y al endpoint GET /games) para filtrar por ausencia de scores o times de fuentes especificas. Ej: no_scores=rawg,metacritic (juegos sin score de esas fuentes), no_times=hltb (juegos sin duracion HLTB). Esto permite al admin identificar y completar datos faltantes.
+
+### [FB-025] No existe plataforma "Browser" para juegos de navegador
+
+- **Fecha:** 2026-04-22
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** Hay juegos que son exclusivos de navegador web (ej: DragonFable) y no existe una plataforma "Browser" o "Web" en la lista de plataformas disponibles. Los usuarios no pueden registrar estos juegos con la plataforma correcta porque ninguna de las opciones existentes (Steam, GOG, consolas, etc.) aplica.
+- **Solucion propuesta:** Crear la plataforma "Web Browser" via POST /platform con un code como "web-browser" y manufacturer "Web". Tambien actualizar el mapeo de plataformas RAWG (rawg-platform.map.ts) para mapear el slug "web" de RAWG a esta nueva plataforma, de modo que juegos de navegador importados desde RAWG se vinculen automaticamente.
+
+### [FB-026] Campo Edition en Game Shelf deberia ofrecer opciones predefinidas
+
+- **Fecha:** 2026-04-22
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** El campo "Edition" en Game Shelf es un cuadro de texto libre. Los usuarios esperan opciones predefinidas porque con texto libre cada persona escribe lo mismo de formas distintas (ej: "estandar", "stander", "ESTANDARD", "Standard"). A mayor escala de usuarios esto genera un millon de variantes para el mismo valor, haciendo el campo inutil para filtrar o agrupar.
+- **Solucion propuesta:** Mantener el campo como texto libre pero agregar botones de sugerencia con las ediciones mas comunes (ej: "Standard", "Deluxe", "GOTY", "Collector's", "Digital", "Physical"), similar a como funcionan los botones de precarga de scores de distintas fuentes. El usuario puede clickear una sugerencia para rellenar el campo o escribir un valor custom si ninguna aplica. No cambiar el tipo de dato en el backend — sigue siendo string, solo cambia la UX en el frontend.
+
+### [FB-027] Usuarios confunden Wishlist con la wishlist de Steam/tiendas
+
+- **Fecha:** 2026-04-22
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Descripcion:** Los usuarios asocian "Wishlist" con el concepto de tienda (Steam, PSN, etc.): juegos que quieren comprar. La wishlist actual de Completr es una cola priorizada de juegos del backlog que el usuario quiere jugar pronto, un concepto completamente distinto. Esto genera confusion y preguntas como "la wishlist se puede conectar con la API de Steam?". El nombre actual no comunica la funcion real del feature.
+- **Solucion propuesta:** Dos cambios: (1) Renombrar la wishlist actual a un nombre que refleje su funcion de cola de juego. Nombre elegido: "Queue". El rename implica cambios en backend (modelo, rutas, serializers, campo isWishlistPublic en User), frontend (componentes, servicios, sidebar, rutas) y documentacion. (2) Crear un nuevo modulo "Wishlist" real que represente juegos que el usuario quiere comprar/obtener. Este nuevo wishlist apuntaria a Game (no a Backlog, porque el usuario aun no tiene el juego). Modelo similar a Favorites: Wishlist(id, user_id, game_id, position, added_at). A futuro podria conectarse con APIs de tiendas (Steam, PSN, eShop) para notificar al usuario cuando un juego de su wishlist este en oferta.
+
+### [FB-028] Boton "Add Game" en backlog se confunde con crear un juego
+
+- **Fecha:** 2026-04-22
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** El boton "Add Game" en la vista del backlog confunde a los usuarios porque suena a crear un juego nuevo en el catalogo, no a agregarlo al backlog. Ademas, el boton esta en la pantalla de backlog y no en la de games, lo que refuerza la confusion ("por que Add Game no esta en Games?"). La accion real es agregar un juego existente al backlog del usuario.
+- **Solucion propuesta:** Cambiar el texto del boton a algo que refleje la accion real, como "Add to Backlog" o "Track Game". Esto deja claro que se esta agregando un juego al backlog, no creandolo.
+
+### [FB-029] Busqueda de juegos no muestra indicador de carga al buscar en RAWG
+
+- **Fecha:** 2026-04-22
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Descripcion:** Cuando el usuario busca un juego que no esta en la base de datos local, la busqueda hace fallback a RAWG para traer resultados externos. Durante ese tiempo de espera no hay ningun indicador visual de que la app sigue buscando. El usuario ve los resultados locales y luego el dropdown se queda quieto hasta que de repente se actualiza con los resultados de RAWG. Ejemplo: al buscar "RE9", primero aparecen los otros RE locales, pero al escribir el "9" la lista se queda congelada un rato hasta que RAWG responde. El usuario no sabe si la app se colgo o si esta cargando.
+- **Solucion propuesta:** Mostrar un indicador de carga (spinner o texto "Searching online...") en el dropdown mientras se espera la respuesta de RAWG. El indicador deberia aparecer despues de que la busqueda local no encuentre resultados exactos y se dispare el fallback. Verificar si el indicador "Searching..." que ya existe en el buscador del backlog modal cubre este caso o si solo aplica a la busqueda local.
+
+### [FB-030] Resultados de busqueda no distinguen DLCs de juegos base
+
+- **Fecha:** 2026-04-22
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Descripcion:** Cuando el usuario busca un juego en el dropdown (backlog modal, game shelf, etc.), los resultados no diferencian visualmente entre juegos base y DLCs. Si un juego tiene DLCs con nombres similares al base, el usuario puede seleccionar el DLC por error sin darse cuenta.
+- **Solucion propuesta:** Agregar un tag o badge "DLC" junto al titulo del juego en los resultados del dropdown de busqueda. El backend ya tiene el campo isDlc en el modelo Game, solo hace falta que el endpoint de busqueda lo incluya en la respuesta y que el frontend lo renderice como un tag visual en cada resultado.
+
+### [FB-031] Orden del sidebar no refleja el flujo logico del usuario
+
+- **Fecha:** 2026-04-22
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Descripcion:** El orden actual de las secciones en el sidebar no sigue una progresion logica. Un usuario sugirio reordenar Game Shelf, Backlog y Wishlist para reflejar la relacion del usuario con un juego: "tengo y jugue" (Game Shelf), "tengo y no jugue" (Backlog), "no tengo y quiero" (Wishlist). Este orden cuenta una historia natural de la coleccion del usuario.
+- **Solucion propuesta:** Reordenar las secciones del sidebar en el frontend: Game Shelf → Backlog → Queue (ex-Wishlist) → Wishlist (nueva, juegos que quiero comprar). Cambio solo de frontend, no afecta backend ni rutas.
+
+### [FB-032] Busqueda de usuarios limitada y sin vista dedicada
+
+- **Fecha:** 2026-04-22
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** La busqueda de usuarios solo existe dentro del buscador global del feed y es muy basica (solo busca por username). No hay una vista dedicada para descubrir usuarios. Si alguien quiere encontrar a un amigo pero no sabe su username exacto, no tiene forma de buscarlo por nombre o correo. Tampoco hay forma de descubrir usuarios nuevos de la comunidad.
+- **Nota adicional:** Un usuario pregunto "en el feed debo poner su nombre de usuario, no? cual es?" — ni siquiera sabia cual era el username de la persona que queria buscar. Esto refuerza la necesidad de una forma mas accesible de encontrar usuarios y tambien sugiere que el username propio no es lo suficientemente visible en la app para que los usuarios lo compartan facilmente.
+- **Solucion propuesta:** Crear una vista dedicada de usuarios (/users o /community) con: (1) seccion de usuarios destacados o aleatorios para descubrir gente nueva, (2) buscador que permita buscar por username, nombre o email. En el backend, ampliar GET /users/search para aceptar busqueda por name ademas de username. No buscar por email directamente por privacidad — en su lugar, permitir busqueda exacta de email (match completo, no parcial) como forma de encontrar a alguien que te compartio su correo.
+
+### [FB-033] Ports con experiencias muy diferentes se tratan como el mismo juego
+
+- **Fecha:** 2026-04-22
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Descripcion:** Algunos ports de juegos son experiencias considerablemente diferentes del original (ej: RE2 en N64 fue una hazaña tecnica con diferencias notables vs la version de PS1, Starcraft en consola es un RTS con control de gamepad). RAWG y otras fuentes tratan estos ports como un solo registro, pero si un usuario hace una review, su experiencia puede ser completamente distinta segun la plataforma en la que jugo. Actualmente las reviews son por juego (unique userId+gameId), no por plataforma. El backlog si permite trackear el mismo juego en distintas plataformas, pero la review y el rating no distinguen en cual se jugo.
+- **Solucion propuesta:** No es urgente. A futuro considerar: (1) permitir reviews por plataforma en vez de por juego (o agregar campo plataforma a la review para contextualizar), (2) dentro de la ficha del juego, mostrar una seccion de "versiones" o "ports" que agrupe las plataformas con sus diferencias. Esto no requiere separar el juego en multiples registros — el juego sigue siendo uno, pero las experiencias por plataforma se pueden diferenciar. Relacionado con FB-023 (RAWG agrupa juegos que deberian ser separados).
+
+### [FB-034] Usuarios quieren editar datos de juegos con aprobacion de moderador
+
+- **Fecha:** 2026-04-22
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** Mantener el catalogo de juegos actualizado (datos faltantes, correcciones, plataformas, scores) es demasiado trabajo para un solo admin o moderador. Algunos usuarios quieren contribuir editando datos de juegos ellos mismos. Actualmente solo admin/moderator pueden editar juegos, asi que los usuarios solo pueden reportar errores (GameReport) y esperar a que alguien los corrija.
+- **Solucion propuesta:** Implementar un sistema de ediciones comunitarias con aprobacion. El usuario propone una edicion (titulo, descripcion, plataformas, scores, etc.) que se guarda como solicitud pendiente. Un moderador o admin revisa y aprueba/rechaza la solicitud. Si se aprueba, los cambios se aplican al juego. Modelo tipo GameEditRequest(id, userId, gameId, changes JSONB, status pending/approved/rejected, reviewedBy, createdAt). Vista admin/moderator para revisar solicitudes pendientes con diff de cambios. A futuro, usuarios con muchas ediciones aprobadas podrian ganar un badge de "contribuidor" o incluso permisos de edicion directa (trusted editor).
