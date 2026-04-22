@@ -119,6 +119,22 @@
 	justify-content: space-between;
 }
 
+.sidebar-credit {
+	padding: 0.25rem 1rem 0.5rem;
+	font-size: 0.7rem;
+	color: var(--text-muted);
+	text-align: center;
+}
+
+.sidebar-credit a {
+	color: var(--text-secondary);
+	text-decoration: none;
+}
+
+.sidebar-credit a:hover {
+	color: var(--accent);
+}
+
 .user-info {
 	display: flex;
 	align-items: center;
