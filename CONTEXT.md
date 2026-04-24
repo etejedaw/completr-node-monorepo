@@ -328,6 +328,7 @@ Las variables se cargan desde `.env` usando Node 22+ `--env-file=.env`. No se us
 | Fase 1   | `v0.2.0` | Excel Killer, solo uso personal             |
 | Fase 1.5 | `v0.2.x` | Beyond the Spreadsheet, mejoras + deploy    |
 | Fase 2   | `v0.3.0` | MVP Amigos, 5–20 personas                   |
+| Fase 2.5 | `v0.3.x` | Pulido y UX, feedback + visual              |
 | Fase 3   | `v0.4.0` | Beta cerrada, 50–200 por invitación         |
 | Fase 4   | `v1.0.0` | Beta pública, primer release abierto (500+) |
 | Fase 5   | `v1.1.0` | Estabilización y calidad                    |
