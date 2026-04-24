@@ -11,6 +11,14 @@
     "lint:fix": "ng lint --fix",
     "format": "prettier --write \"src/**/*.{ts,html,css}\""
   },
+  "description": "Frontend for Completr, a game backlog tracker with ratio-based prioritization",
+  "author": "Esteban Tejeda <etejedaw@hotmail.com> (https://etejeda.dev)",
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/etejedaw/completr-node-frontend.git"
+  },
+  "homepage": "https://completr.app",
   "private": true,
   "packageManager": "npm@11.11.0",
   "dependencies": {
