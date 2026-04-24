@@ -2,7 +2,7 @@
 
 ## Visión
 
-Frontend de Completr (Backlogr): aplicación web para gestionar backlogs de videojuegos con ratios de priorización, listas curadas y features sociales. Se conecta al backend Node.js/Express ya implementado.
+Frontend de Completr: aplicación web para gestionar backlogs de videojuegos con ratios de priorización, listas curadas y features sociales. Se conecta al backend Node.js/Express ya implementado.
 
 ---
 

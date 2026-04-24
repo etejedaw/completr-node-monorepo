@@ -254,6 +254,35 @@
 
 > 50–200 usuarios por invitación.
 
+### Migración a Angular Primitives (ng-primitives)
+
+Migrar todo el frontend para que use ng-primitives como base de componentes UI. Ganamos accesibilidad (keyboard nav, ARIA), comportamiento robusto y una base sólida para las features que vienen.
+
+- [ ] Instalar ng-primitives (`ng add ng-primitives`)
+- [ ] Migrar modals/dialogs a Dialog primitive
+- [ ] Migrar tabs (backlog status tabs) a Tabs primitive
+- [ ] Migrar dropdowns/selects a Select/Combobox primitives
+- [ ] Migrar buscadores (game search, global search) a Search/Combobox primitives
+- [ ] Migrar tooltips a Tooltip primitive
+- [ ] Migrar barras de progreso (listas) a Progress primitive
+- [ ] Migrar toggles/switches (isPublic, showInBacklog, etc.) a Switch primitive
+- [ ] Migrar inputs, textareas y form fields a Input/Textarea/Form Field primitives
+- [ ] Migrar menus (sidebar, context menu) a Menu/Navigation Menu primitives
+- [ ] Migrar botones a Button primitive
+- [ ] Migrar radio buttons (score source, duration source) a Radio primitive
+- [ ] Migrar checkboxes a Checkbox primitive
+- [ ] Migrar star rating a Slider/Range Slider primitive
+- [ ] Migrar paginación a Pagination primitive
+- [ ] Migrar tablas (backlog, game-shelf, wishlist, admin) a Table primitive
+- [ ] Migrar separadores visuales a Separator primitive
+- [ ] Migrar avatares (perfil, sidebar) a Avatar primitive
+- [ ] Migrar toasts/notificaciones a Toast primitive
+- [ ] Verificar accesibilidad (keyboard nav, ARIA) en todos los componentes migrados
+
+### Corrección de bugs por feedback de usuarios
+
+- [ ] Revisar y corregir bugs reportados (ver docs/feedback/fase-2.md)
+
 ### Listas oficiales de Completr
 
 - [x] Badge "Verified Official" en featured lists del game detail (hecho en Fase 2)
