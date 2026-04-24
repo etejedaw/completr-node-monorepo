@@ -359,7 +359,7 @@ Formato por item:
 - **Estado:** pendiente
 - **Reportado por:** Tami
 - **Descripcion:** Al usar una funcion que muestra preview de imagen (probablemente el avatar URL en el modal de edicion de perfil), la preview no carga o se muestra rota. No se especifico exactamente en que pantalla ocurre, pero es probable que sea en el modal de editar perfil donde se ingresa un avatar URL y se muestra un preview.
-- **Solucion propuesta:** Investigar en que formularios hay preview de imagen (editar perfil, admin game editor) y verificar que el tag img maneje correctamente URLs invalidas o que no cargan (evento onerror, fallback a placeholder). Probar en Brave por si el navegador bloquea imagenes externas por politica de privacidad.
+- **Solucion propuesta:** El problema probablemente viene del nginx que bloquea o no proxea correctamente imagenes externas. Montar un servicio de almacenamiento (MinIO/S3) para fotos de perfil es demasiado para esta fase. Solucion intermedia: crear un pool de avatares predefinidos generados con IA (estilo Netflix) para que los usuarios elijan uno. Esto evita el problema de URLs externas, da una experiencia visual consistente y a futuro cuando se implemente upload real, los avatares predefinidos quedan como opcion por defecto.
 
 ### [FB-041] Sidebar desaparece al entrar a perfil publico o detalle de juego
 
