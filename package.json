@@ -1,8 +1,8 @@
 {
 	"name": "completr-node-backend",
 	"version": "1.0.0",
-	"description": "",
-	"homepage": "https://github.com/etejedaw/completr-node-backend#readme",
+	"description": "Backend for Completr, a game backlog tracker with ratio-based prioritization",
+	"homepage": "https://completr.app",
 	"bugs": {
 		"url": "https://github.com/etejedaw/completr-node-backend/issues"
 	},
@@ -10,8 +10,8 @@
 		"type": "git",
 		"url": "git+https://github.com/etejedaw/completr-node-backend.git"
 	},
-	"license": "ISC",
-	"author": "",
+	"license": "AGPL-3.0",
+	"author": "Esteban Tejeda <etejedaw@hotmail.com> (https://etejeda.dev)",
 	"type": "commonjs",
 	"main": "index.js",
 	"scripts": {
