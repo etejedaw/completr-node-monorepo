@@ -331,8 +331,8 @@ Formato por item:
 - **Severidad:** medio
 - **Estado:** pendiente
 - **Reportado por:** Tami (Brave, Ubuntu, modo oscuro)
-- **Descripcion:** Los elementos de la interfaz (texto, botones, tablas) se sienten demasiado pequenos en pantallas de escritorio. El usuario siente que todo esta "muy chico" en general. Puede estar relacionado con que la app fue disenada mobile-first y los tamanos no escalan lo suficiente en pantallas grandes.
-- **Solucion propuesta:** Revisar los tamanos base de fuentes, botones y espaciado en las media queries de escritorio. Considerar aumentar el font-size base o usar rem/em que escalen mejor. Evaluar si el layout necesita breakpoints mas agresivos para pantallas grandes (>1440px). Relacionado con FB-039 y FB-043.
+- **Descripcion:** Los elementos de la interfaz (texto, botones, tablas) se sienten demasiado pequenos en pantallas de escritorio. El usuario siente que todo esta "muy chico" en general. La app fue disenada desktop-first, por lo que el problema no es de responsive sino de tamanos base insuficientes en los estilos globales.
+- **Solucion propuesta:** Revisar los tamanos base en styles.css y CSS variables globales: font-size del body, padding de botones, alto de filas de tabla, tamano de iconos. Aumentar el font-size base (actualmente puede estar en 14px o menos, deberia ser al menos 16px). Revisar que los componentes usen rem/em en vez de px fijos para que escalen con el base. Relacionado con FB-039 y FB-043.
 
 ### [FB-038] Login con Google (OAuth)
 
@@ -385,8 +385,8 @@ Formato por item:
 - **Severidad:** medio
 - **Estado:** pendiente
 - **Reportado por:** Tami
-- **Descripcion:** El contenido de varias vistas (feed, perfil, listas, backlog) ocupa una fraccion pequena del ancho disponible en pantalla de escritorio. El feed por ejemplo usa aproximadamente un cuarto de la pantalla, dejando grandes areas vacias. Esto se siente como desperdicio de espacio y hace que la app parezca vacia.
-- **Solucion propuesta:** Revisar los max-width de los contenedores principales y ampliarlos para pantallas grandes. Considerar layouts de multiples columnas en escritorio (ej: feed + sidebar de sugerencias, backlog a ancho completo). Aplicar breakpoints que aprovechen el espacio a partir de 1280px+. Relacionado con FB-037 y FB-039.
+- **Descripcion:** El contenido de varias vistas (feed, perfil, listas, backlog) ocupa una fraccion pequena del ancho disponible en pantalla de escritorio. El feed por ejemplo usa aproximadamente un cuarto de la pantalla, dejando grandes areas vacias. La app fue disenada desktop-first, por lo que el problema es que los contenedores principales tienen max-width demasiado restrictivos o el layout no aprovecha el espacio disponible.
+- **Solucion propuesta:** Auditar los max-width de los contenedores principales en cada vista. Ampliarlos o eliminarlos donde no sean necesarios. Para vistas de contenido central (feed, perfil), considerar layouts de multiples columnas que ocupen el ancho disponible (ej: feed + sidebar de sugerencias). Para vistas de tabla (backlog, game-shelf), usar ancho completo del area de contenido. Relacionado con FB-037 y FB-039.
 
 ### [FB-044] Icono de calendario casi invisible en modo oscuro
 
