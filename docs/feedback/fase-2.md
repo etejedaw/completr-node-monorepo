@@ -585,3 +585,11 @@ Formato por item:
 - **Reportado por:** Tebi
 - **Descripcion:** Existen dos rutas para ver una lista: /lists/:id (que si tiene boton Follow/Unfollow) y /user/:username/lists/:id (que no lo tiene). Cuando un usuario entra al perfil de otro y hace click en una de sus listas, llega a la ruta /user/:username/lists/:id donde no hay forma de seguir la lista. Esta es la ruta natural para descubrir listas de otros usuarios, por lo que el Follow esta efectivamente roto para el flujo mas comun. Esto explica por que Tami no pudo seguir una lista (FB-063).
 - **Solucion propuesta:** Agregar el boton Follow/Unfollow en la vista /user/:username/lists/:id. Idealmente ambas rutas deberian compartir el mismo componente de detalle de lista o al menos las mismas funcionalidades. Evaluar si tiene sentido unificar ambas rutas en una sola (/lists/:id) y que el contexto del usuario se resuelva internamente.
+
+### [FB-066] Indicador visual cuando un item de wishlist se auto-remueve
+
+- **Fecha:** 2026-04-24
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Descripcion:** Cuando un backlog cambia a status "completed" o "abandoned", el sistema auto-remueve el juego de la wishlist. No hay ningun indicador visual en el frontend que le comunique al usuario que esto paso. El juego simplemente desaparece de la wishlist sin explicacion.
+- **Solucion propuesta:** Mostrar un toast o notificacion temporal cuando un juego se auto-remueve de la wishlist al completar o abandonar un backlog (ej: "Removed from Wishlist: RE4"). Alternativa: mostrar un mensaje inline en la wishlist indicando que el juego fue removido automaticamente.

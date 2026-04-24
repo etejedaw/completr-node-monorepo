@@ -12,6 +12,7 @@
 | 2–3   | Fase 1 — Excel Killer (solo tú)                      | `v0.2.0` |
 | 3–4   | Fase 1.5 — Beyond the Spreadsheet (mejoras + deploy) | `v0.2.x` |
 | 4–5   | Fase 2 — MVP Amigos (5–20 personas)                  | `v0.3.0` |
+| 5     | Fase 2.5 — Pulido y UX (feedback + visual)           | `v0.3.x` |
 | 5–7   | Fase 3 — Beta Cerrada (50–200 usuarios, invitación)  | `v0.4.0` |
 | 7–10  | Fase 4 — Beta Pública (500+ usuarios)                | `v1.0.0` |
 | 10–11 | Fase 5 — Estabilización y calidad                    | `v1.1.0` |
@@ -371,7 +372,6 @@
 ### Onboarding para amigos
 
 - [x] Flujo de registro: solo admin crea usuarios desde /admin/users (panel completo con listado + edición)
-- [ ] Corrección de bugs por feedback de usuarios (ver docs/feedback/fase-2.md)
 - [x] Empty states descriptivos en todas las vistas: Backlog, Saved Views, Game Shelf, Wishlist, Favorites, Lists
 
 ### Panel admin de usuarios
@@ -477,6 +477,19 @@
 - [x] Configurar DNS de `completr.app`: `web.completr.app` → `completr-frontend.tebita.xyz`, `api.completr.app` → backend, `completr.app` → landing page
 - [x] Actualizar `CORS_ORIGIN` del backend a `https://web.completr.app`
 - [x] Actualizar `environment.production.ts` del frontend a `https://api.completr.app`
+
+---
+
+## 🟧 FASE 2.5 — Pulido y UX _(~2–3 semanas)_
+
+**Objetivo:** Corregir bugs reportados por usuarios y mejorar la base visual del frontend antes de escalar.
+**Condición de éxito:** Todos los bugs de feedback de Fase 2 están resueltos y el frontend usa ng-primitives como base de componentes UI.
+
+> 🔧 _Pulido post-MVP — mismos 5–20 usuarios, mejor experiencia._
+
+### Corrección de bugs por feedback de usuarios
+
+- [ ] Corrección de bugs por feedback de usuarios (ver docs/feedback/fase-2.md)
 
 ---
 
