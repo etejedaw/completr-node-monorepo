@@ -308,3 +308,19 @@ Formato por item:
 - **Estado:** pendiente
 - **Descripcion:** Mantener el catalogo de juegos actualizado (datos faltantes, correcciones, plataformas, scores) es demasiado trabajo para un solo admin o moderador. Algunos usuarios quieren contribuir editando datos de juegos ellos mismos. Actualmente solo admin/moderator pueden editar juegos, asi que los usuarios solo pueden reportar errores (GameReport) y esperar a que alguien los corrija.
 - **Solucion propuesta:** Implementar un sistema de ediciones comunitarias con aprobacion. El usuario propone una edicion (titulo, descripcion, plataformas, scores, etc.) que se guarda como solicitud pendiente. Un moderador o admin revisa y aprueba/rechaza la solicitud. Si se aprueba, los cambios se aplican al juego. Modelo tipo GameEditRequest(id, userId, gameId, changes JSONB, status pending/approved/rejected, reviewedBy, createdAt). Vista admin/moderator para revisar solicitudes pendientes con diff de cambios. A futuro, usuarios con muchas ediciones aprobadas podrian ganar un badge de "contribuidor" o incluso permisos de edicion directa (trusted editor).
+
+### [FB-035] Usuarios tienen que iniciar sesion cada dia
+
+- **Fecha:** 2026-04-23
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Descripcion:** Varios usuarios reportan que tienen que iniciar sesion todos los dias. La sesion no persiste entre dias, lo que sugiere que el refresh token no esta funcionando correctamente o esta mal implementado en el frontend. Posibles causas: el token no se renueva antes de expirar, no se persiste correctamente en el almacenamiento del navegador, o el interceptor HTTP del frontend no ejecuta el flujo de refresh cuando el access token expira.
+- **Solucion propuesta:** Investigar el flujo completo de refresh token. En el backend: verificar la expiracion del refresh token y que el endpoint de refresh funcione correctamente. En el frontend: revisar el interceptor HTTP para asegurar que detecta respuestas 401, ejecuta el refresh automaticamente, y reintenta el request original con el nuevo access token. Tambien verificar que el refresh token se almacena correctamente (localStorage/cookie) y que no se pierde al cerrar el navegador.
+
+### [FB-036] Boton de RAWG en game detail redirige con slug incorrecto
+
+- **Fecha:** 2026-04-23
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** En la vista de detalle de un juego hay un boton que enlaza a la pagina del juego en RAWG. El problema es que el link usa el slug propio de Completr para construir la URL de RAWG (ej: rawg.io/games/{slug-completr}), pero el slug de Completr no tiene por que coincidir con el de RAWG, lo que provoca que la redireccion falle o lleve a un juego equivocado. La tabla GameExternal almacena el ID numerico de RAWG, no el slug.
+- **Solucion propuesta:** Cambiar el boton para que use el ID numerico de RAWG en vez del slug. La URL de RAWG acepta IDs numericos (rawg.io/games/{id}), asi que se puede construir el link con el externalId que ya esta almacenado en GameExternal. Alternativa: almacenar el slug de RAWG en GameExternal al momento de importar el juego y usarlo para el link.
