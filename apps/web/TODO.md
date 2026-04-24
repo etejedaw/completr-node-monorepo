@@ -12,6 +12,7 @@
 | Fase 1   | Excel Killer (solo tú)                                | `v0.2.0` |
 | Fase 1.5 | Beyond the Spreadsheet (mejoras + deploy)             | `v0.2.x` |
 | Fase 2   | MVP Amigos (5–20 personas)                            | `v0.3.0` |
+| Fase 2.5 | Pulido y UX (feedback + visual)                       | `v0.3.x` |
 | Fase 3   | Beta Cerrada (50–200 usuarios, invitación)            | `v0.4.0` |
 | Fase 4   | Beta Pública (500+ usuarios)                          | `v1.0.0` |
 | Fase 5   | Estabilización y calidad                              | `v1.1.0` |
@@ -149,7 +150,7 @@
 - [x] Agregar desde game detail: botón con selector de plataforma
 - [x] Agregar desde backlog tabla: botón corazón por fila (rojo si ya está en wishlist)
 - [x] Toggle wishlist en backlog modal (crear y editar)
-- [ ] Indicador visual cuando un item se auto-remueve al completar/abandonar
+- ~~Indicador visual cuando un item se auto-remueve al completar/abandonar~~ → movido a feedback (FB-066)
 
 ### Feature: Favorites
 
@@ -248,11 +249,11 @@
 
 ---
 
-## FASE 3 — Beta Cerrada
+## FASE 2.5 — Pulido y UX
 
-**Objetivo:** Validar que la app genera interés fuera del círculo cercano. Sistema de invitación.
+**Objetivo:** Corregir bugs reportados por usuarios y mejorar la base visual del frontend antes de escalar.
 
-> 50–200 usuarios por invitación.
+> Mismos 5–20 usuarios, mejor experiencia.
 
 ### Migración a Angular Primitives (ng-primitives)
 
@@ -282,6 +283,14 @@ Migrar todo el frontend para que use ng-primitives como base de componentes UI. 
 ### Corrección de bugs por feedback de usuarios
 
 - [ ] Revisar y corregir bugs reportados (ver docs/feedback/fase-2.md)
+
+---
+
+## FASE 3 — Beta Cerrada
+
+**Objetivo:** Validar que la app genera interés fuera del círculo cercano. Sistema de invitación.
+
+> 50–200 usuarios por invitación.
 
 ### Listas oficiales de Completr
 
