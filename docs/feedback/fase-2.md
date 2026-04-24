@@ -565,7 +565,7 @@ Formato por item:
 - **Severidad:** alto
 - **Estado:** pendiente
 - **Reportado por:** Tami
-- **Descripcion:** Un usuario entro al perfil de otro usuario para seguir una de sus listas y no encontro el boton de Follow. El boton de Follow/Unfollow existe en la vista de detalle de la lista (list-detail), pero el usuario lo busco desde el perfil donde solo se muestran las listas como cards sin opcion de seguir. Esto sugiere que: (1) el boton no es lo suficientemente visible en list-detail, o (2) los usuarios esperan poder seguir desde la card de la lista en el perfil, sin tener que entrar al detalle.
+- **Descripcion:** Un usuario entro al perfil de otro usuario para seguir una de sus listas y no encontro el boton de Follow. La causa real es que la ruta /user/:username/lists/:id no tiene boton de Follow (ver FB-065). Ademas, las cards de listas en el perfil tampoco tienen opcion de seguir directamente.
 - **Solucion propuesta:** Dos mejoras: (1) hacer el boton Follow mas visible en list-detail (aumentar tamano, usar color de acento, moverlo a una posicion mas prominente). (2) Agregar un boton Follow en las cards de listas cuando se ven desde el perfil de otro usuario, permitiendo seguir sin entrar al detalle. Tambien agregar un indicador visual en las cards de listas que el usuario ya sigue.
 
 ### [FB-064] Usuarios no entienden que son Score y Duration ni por que son obligatorios
@@ -576,3 +576,12 @@ Formato por item:
 - **Reportado por:** Tami
 - **Descripcion:** Cuando el campo Score viene vacio (sin datos de ninguna fuente), el usuario no entiende que debe buscarlo manualmente en otra plataforma (Metacritic, OpenCritic, etc.) para rellenarlo. No sabe que estos campos alimentan el ratio, que es la feature diferenciadora de Completr para priorizar que jugar. Si el juego no tiene datos en ninguna fuente, deberia saber que puede reportar el juego para que un admin lo complete. Relacionado con FB-001 y FB-049.
 - **Solucion propuesta:** Mejorar el onboarding del usuario respecto al ratio: (1) agregar texto de ayuda en el modal de backlog explicando que Score y Duration son datos de referencia que alimentan el ratio, y que si estan vacios debe buscarlos en Metacritic/HLTB. (2) Si no encuentra el dato, mostrar un link o sugerencia para reportar el juego. (3) Considerar un tooltip o seccion en el modal que explique brevemente que es el ratio y por que importa. (4) En la tabla del backlog, hacer el ratio mas prominente para que el usuario entienda que es el valor central de la app.
+
+### [FB-065] Vista de lista desde perfil de usuario no tiene boton de Follow
+
+- **Fecha:** 2026-04-24
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Tebi
+- **Descripcion:** Existen dos rutas para ver una lista: /lists/:id (que si tiene boton Follow/Unfollow) y /user/:username/lists/:id (que no lo tiene). Cuando un usuario entra al perfil de otro y hace click en una de sus listas, llega a la ruta /user/:username/lists/:id donde no hay forma de seguir la lista. Esta es la ruta natural para descubrir listas de otros usuarios, por lo que el Follow esta efectivamente roto para el flujo mas comun. Esto explica por que Tami no pudo seguir una lista (FB-063).
+- **Solucion propuesta:** Agregar el boton Follow/Unfollow en la vista /user/:username/lists/:id. Idealmente ambas rutas deberian compartir el mismo componente de detalle de lista o al menos las mismas funcionalidades. Evaluar si tiene sentido unificar ambas rutas en una sola (/lists/:id) y que el contexto del usuario se resuelva internamente.
