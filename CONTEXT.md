@@ -449,4 +449,3 @@ Inspirada en Trakt:
 | Steam API              | Sincronización de librería                        | Fase 6       |
 | Stripe/LemonSqueezy    | Pagos Premium                                     | Fase 6       |
 | SMTP (Resend/SendGrid) | Emails transaccionales                            | Fase 5       |
-
