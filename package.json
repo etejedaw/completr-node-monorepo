@@ -27,7 +27,8 @@
 		"migrate": "node --env-file=.env node_modules/.bin/sequelize-cli db:migrate",
 		"migrate:undo": "node --env-file=.env node_modules/.bin/sequelize-cli db:migrate:undo",
 		"migrate:create": "node --env-file=.env node_modules/.bin/sequelize-cli migration:generate --name",
-		"migrate:status": "node --env-file=.env node_modules/.bin/sequelize-cli db:migrate:status"
+		"migrate:status": "node --env-file=.env node_modules/.bin/sequelize-cli db:migrate:status",
+		"prepare": "husky"
 	},
 	"dependencies": {
 		"bcrypt": "^6.0.0",
@@ -55,10 +56,21 @@
 		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
 		"globals": "^16.5.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.4.0",
 		"prettier": "3.7.4",
 		"sequelize-cli": "^6.6.5",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.51.0"
+	},
+	"lint-staged": {
+		"*.{ts,js}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{json,md,yml,yaml}": [
+			"prettier --write"
+		]
 	}
 }
