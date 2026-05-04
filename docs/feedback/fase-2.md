@@ -593,3 +593,12 @@ Formato por item:
 - **Estado:** pendiente
 - **Descripcion:** Cuando un backlog cambia a status "completed" o "abandoned", el sistema auto-remueve el juego de la wishlist. No hay ningun indicador visual en el frontend que le comunique al usuario que esto paso. El juego simplemente desaparece de la wishlist sin explicacion.
 - **Solucion propuesta:** Mostrar un toast o notificacion temporal cuando un juego se auto-remueve de la wishlist al completar o abandonar un backlog (ej: "Removed from Wishlist: RE4"). Alternativa: mostrar un mensaje inline en la wishlist indicando que el juego fue removido automaticamente.
+
+### [FB-067] Titulos con caracteres especiales se guardan HTML-encodeados
+
+- **Fecha:** 2026-05-04
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al crear o editar un juego desde el panel admin con un titulo que contiene caracteres especiales (ej: "Beyond Good & Evil - 20th Anniversary Edition"), el valor se persiste HTML-encodeado en la DB ("Beyond Good &amp; Evil - 20th Anniversary Edition"). Esto corrompe el dato almacenado, rompe la busqueda (un query con "&" no matchea "&amp;") y filtra entidades HTML al codigo y a las vistas que esperan texto crudo. Probablemente afecta tambien a otros caracteres como `<`, `>`, `'`, `"`.
+- **Solucion propuesta:** Identificar donde se aplica el escaping en el flujo de creacion/edicion de games (controller, service, schema de Zod, hook de Sequelize, o el frontend del admin antes de enviar el request). El encoding HTML es una preocupacion de la capa de presentacion, no de persistencia — hay que removerlo del path de guardado y aplicarlo solo al renderizar HTML donde sea necesario. Auditar otros endpoints (lists, reviews, notes, profile) por el mismo patron. Una vez arreglado, hacer un script de limpieza para des-encodear los registros existentes que ya esten corruptos.
