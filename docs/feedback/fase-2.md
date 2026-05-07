@@ -602,3 +602,30 @@ Formato por item:
 - **Reportado por:** Esteban
 - **Descripcion:** Al crear o editar un juego desde el panel admin con un titulo que contiene caracteres especiales (ej: "Beyond Good & Evil - 20th Anniversary Edition"), el valor se persiste HTML-encodeado en la DB ("Beyond Good &amp; Evil - 20th Anniversary Edition"). Esto corrompe el dato almacenado, rompe la busqueda (un query con "&" no matchea "&amp;") y filtra entidades HTML al codigo y a las vistas que esperan texto crudo. Probablemente afecta tambien a otros caracteres como `<`, `>`, `'`, `"`.
 - **Solucion propuesta:** Identificar donde se aplica el escaping en el flujo de creacion/edicion de games (controller, service, schema de Zod, hook de Sequelize, o el frontend del admin antes de enviar el request). El encoding HTML es una preocupacion de la capa de presentacion, no de persistencia — hay que removerlo del path de guardado y aplicarlo solo al renderizar HTML donde sea necesario. Auditar otros endpoints (lists, reviews, notes, profile) por el mismo patron. Una vez arreglado, hacer un script de limpieza para des-encodear los registros existentes que ya esten corruptos.
+
+### [FB-068] Sesion se cierra al usar la app desde varios dispositivos
+
+- **Fecha:** 2026-05-07
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al tener la sesion abierta en mas de un dispositivo simultaneamente (ej: PC y celular), la sesion se cierra inesperadamente en alguno de ellos. Probablemente el backend invalida el refresh token anterior cuando se emite uno nuevo (rotacion single-token por usuario), por lo que el dispositivo que pidio refresh primero deja sin token valido al otro dispositivo. Apenas el segundo dispositivo intenta renovar, recibe 401 y termina deslogueando al usuario. Posiblemente relacionado con FB-035 (sesion no persiste) — si la rotacion de refresh tokens no soporta multiples sesiones, ambos sintomas pueden tener la misma causa raiz.
+- **Solucion propuesta:** Soportar multiples refresh tokens activos por usuario, uno por sesion/dispositivo. Modelar una tabla RefreshToken(id, userId, tokenHash, deviceInfo, createdAt, expiresAt, revokedAt) en vez de guardar un unico token por usuario. Al hacer refresh, rotar solo el token de esa sesion especifica (no invalidar los de otros dispositivos). Agregar endpoint para listar y revocar sesiones activas (util para "cerrar sesion en todos los dispositivos"). Verificar primero el comportamiento actual del backend revisando el modulo de auth — si ya soporta multi-sesion, el bug podria estar en el frontend (interceptor compartiendo estado o pisandose entre tabs).
+
+### [FB-069] Feed muestra "wants to play" sin indicar el juego
+
+- **Fecha:** 2026-05-07
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En el feed aparecen actividades como "Esteban Tejeda wants to play" sin mencionar a que juego se refiere. El item queda vacio de contexto y no se puede clickear para llegar al juego. Probablemente el evento se genera con gameId nulo o el render del feed no esta resolviendo/mostrando el titulo del juego para ese tipo de actividad (wishlist add). Puede afectar tambien a otros tipos de eventos del feed.
+- **Solucion propuesta:** Revisar el endpoint del feed para confirmar si el payload incluye el juego asociado a la actividad (gameId, titulo, slug). Si el backend ya lo envia, arreglar el template del feed item para renderizar el titulo y enlazar a la pagina del juego. Si el backend no lo incluye, agregar el join correspondiente en el query del feed. Auditar todos los tipos de actividad (added to backlog, completed, wants to play, followed list, etc.) para asegurar que cada uno muestre el contexto completo (juego, lista, usuario segun corresponda).
+
+### [FB-070] No se puede actualizar score/duration desde el backlog cambiando de fuente
+
+- **Fecha:** 2026-05-07
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al editar un item del backlog, los valores actuales de score y duration se ven correctamente, pero no se puede actualizarlos cambiando la fuente que los provee. Ejemplo: un juego quedo registrado con la duration de RAWG y el usuario ahora quiere reemplazarla por la de HLTB — el modal no ofrece la opcion de re-fetchear ni elegir entre las fuentes ya existentes (Metacritic, OpenCritic, RAWG, HLTB) para tomar el valor mas actualizado o preferido. Para cambiar la fuente hoy hay que ir al panel admin de games, lo cual no es accesible para usuarios normales.
+- **Solucion propuesta:** Permitir desde el modal de backlog (o desde la vista de detalle del juego) actualizar el score/duration eligiendo entre las fuentes existentes. Opciones: (1) mostrar un selector con las fuentes disponibles (Metacritic, OpenCritic, RAWG, HLTB) y el valor que cada una reporta, dejando elegir cual usar como valor activo del juego; (2) un boton "Refresh from sources" que vuelva a consultar las APIs externas y actualice los valores. Definir si esta accion afecta el game compartido (todos los usuarios ven el cambio) o solo el backlog personal — si es lo primero, podria requerir moderacion o limitarse a ciertos roles. Relacionado con FB-005 (admin no puede borrar scores/durations), ambos apuntan a que el flujo de edicion de scores/durations esta incompleto.
