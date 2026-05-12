@@ -638,3 +638,53 @@ Formato por item:
 - **Reportado por:** Esteban
 - **Descripcion:** En la wishlist se puede reordenar manualmente arrastrando los juegos, pero no hay forma de ordenar la lista por las columnas score, duration o ratio. Si el usuario quisiera priorizar la wishlist por ratio (la feature diferenciadora de Completr), tiene que comparar valores a ojo y arrastrar uno por uno. Ademas, despues de un sort por columna no hay opcion de "fijar" ese orden como la posicion guardada de los items, perdiendo el resultado al refrescar.
 - **Solucion propuesta:** (1) Hacer las columnas score, duration y ratio clickeables para ordenar asc/desc, igual que en backlog. (2) Despues de aplicar un sort por columna, ofrecer un boton "Save this order" que persista las posiciones actuales como el orden manual de la wishlist (sobreescribe el campo de posicion/sortOrder de cada item). Asi el usuario puede usar el sort como herramienta de priorizacion y luego congelarlo. Considerar si el sort por columna es solo visual (no toca DB) hasta que se confirme con el boton, para evitar mutaciones accidentales.
+
+### [FB-072] Listas no muestran si el juego esta completado o abandonado
+
+- **Fecha:** 2026-05-07
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al ver una lista de juegos (propia o de otro usuario), se muestra el progreso general de la lista, pero en cada item solo se indica si el juego esta o no en mi backlog. No se distingue si ya lo complete, lo abandone o sigue en progreso. Esto obliga a entrar al detalle del juego o a mi backlog para saber el estado real, perdiendo contexto util al recorrer la lista.
+- **Solucion propuesta:** Mostrar el estado del juego (completado, abandonado, en progreso, en backlog) en cada item de la lista. Opciones: (1) variar el color/iconografia del marcador actual de "en backlog" segun el estado (ej: verde completado, gris abandonado, amarillo en progreso, azul en backlog); (2) agregar una columna o badge dedicado al estado, especialmente util en vista tabular. Verificar si el endpoint que devuelve los items de una lista ya incluye el estado del backlog del usuario actual para cada juego — si no, agregar el join correspondiente. Aplica tanto a listas propias como ajenas (cuando ves la lista de otro usuario, los iconos deben reflejar TU estado, no el del dueno de la lista).
+
+### [FB-073] Compilados remastered (varios juegos en un solo titulo) distorsionan duracion y ratio
+
+- **Fecha:** 2026-05-12
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Algunos titulos son "compilados/colecciones" que empaquetan varios juegos completos en uno solo. Ejemplos: "Tomb Raider I-II-III Remastered" (TR1+TR2+TR3), "Mass Effect Legendary Edition" (ME1+ME2+ME3), "Mega Man X Legacy Collection" (MMX1-4), "Halo: The Master Chief Collection", "Crash Bandicoot N. Sane Trilogy", "Spyro Reignited Trilogy", "Kingdom Hearts HD 1.5+2.5 ReMIX", etc. Agregar el compilado al backlog como un unico juego distorsiona el promedio de finalizacion / duration estimado y el ratio score/duration, porque en la practica son varios juegos en uno. Ademas, completar el titulo entero implica terminar todos los incluidos, lo que alarga la duracion real y hace dificil trackear progreso (puedes haber terminado ME1 pero no ME2 ni ME3). Tambien afecta el feed/social (un "completed" en el compilado no es comparable a un "completed" en un juego individual).
+- **Solucion propuesta:** Explorar varias opciones, no excluyentes:
+    - (1) Modelar el compilado como un "bundle/collection" en RAWG/DB con relacion padre-hijos a los juegos individuales. Al agregarlo al backlog, ofrecer al usuario elegir entre agregar el bundle completo o solo los juegos individuales que le interesen. Si elige bundle, el progreso del bundle se calcula como agregado de los hijos.
+    - (2) Permitir marcar un backlog item como "parcial" o trackear sub-juegos dentro de un mismo item (checklist interno con score/duration por sub-juego). El score/duration del padre se promedia o suma a partir de los hijos.
+    - (3) Excluir los compilados del calculo de promedios globales de la app (flag `isCompilation` en el juego), de modo que no contaminen estadisticas agregadas, pero permitir agregarlos como cualquier otro titulo.
+    - (4) Dejarlo como esta pero documentar la convencion: tratar el compilado como un juego mas, asumiendo que el usuario que lo agrega quiere terminarlo entero. Es la opcion mas simple pero la que peor refleja la realidad.
+    - Decision pendiente: definir si Completr quiere modelar bundles como entidad de primera clase (opcion 1, mas trabajo, mas correcto) o resolverlo con un flag simple (opcion 3). Validar tambien si RAWG ya expone esta relacion para poder importarla.
+
+### [FB-074] RAWG agrupa juegos distintos en un mismo registro (Pokemon Sun/Moon)
+
+- **Fecha:** 2026-05-12
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** RAWG a veces consolida varios juegos distintos en un unico registro. Ejemplo: "Pokemon Sun" y "Pokemon Moon" aparecen como un solo juego en RAWG, siendo que son titulos diferentes (con dex y exclusivos distintos). Lo mismo suele pasar con otras parejas de Pokemon (Sword/Shield, Scarlet/Violet) y con remakes/versiones. Como en la BBDD de Completr hay una constraint de unicidad por `rawgId` (un registro por juego de RAWG), no se pueden crear entradas separadas para cada version. El usuario que tiene solo una de las dos versiones queda forzado a usar el registro consolidado, lo que distorsiona el backlog, los promedios y el feed.
+- **Solucion propuesta:** Romper la asuncion "1 juego en Completr = 1 juego en RAWG". Opciones:
+    - (1) Quitar la constraint UNIQUE sobre `rawgId` y permitir varios juegos en Completr apuntando al mismo `rawgId`. Diferenciarlos por `name`/`slug` propio de Completr. Implica revisar todos los lugares donde se asume unicidad por rawgId (sync, import, busquedas).
+    - (2) Modelar una tabla intermedia `game_variant` donde el "juego RAWG" es padre y cada variante (Sun, Moon) es hijo con datos propios (cover, descripcion, score, duration). El backlog apunta a la variante, no al padre.
+    - (3) Permitir que un admin "desconsolide" manualmente un registro de RAWG en N registros de Completr, manteniendo el rawgId como referencia opcional. Mas pragmatico mientras no haya muchos casos.
+    - Cambio de BBDD requerido en cualquiera de las opciones. Evaluar volumen de casos antes de decidir (cuantos registros RAWG conocidos consolidan juegos distintos).
+
+### [FB-075] Link a RAWG usa el slug de Completr en vez del slug real de RAWG
+
+- **Fecha:** 2026-05-12
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En la BBDD de Completr se almacena el `rawgId` (numerico) del juego, pero no su `slug` (el "code" que RAWG usa en sus URLs, ej: `the-witcher-3-wild-hunt`). Cuando la UI construye el link "Ver en RAWG", usa el slug propio de Completr asumiendo que coincide con el de RAWG, lo cual no siempre es cierto (Completr puede haber generado un slug distinto, o RAWG puede haberlo cambiado). Resultado: links rotos o que apuntan a un juego incorrecto en rawg.io.
+- **Solucion propuesta:** Almacenar tambien el `slug` original de RAWG en el modelo `Game` (campo aparte, ej: `rawgSlug`). Al construir el link externo, usar `rawgSlug` en lugar del slug interno. Cambios requeridos:
+    - Migracion para agregar `rawgSlug` (nullable inicialmente).
+    - Actualizar el sync/import desde RAWG para popular el campo en nuevos juegos.
+    - Backfill: recorrer juegos existentes y completar `rawgSlug` consultando la API de RAWG por `rawgId`. Considerar rate limits.
+    - Actualizar el frontend para usar `rawgSlug` en el link externo, con fallback al slug interno si todavia esta vacio.
+    - Cambio grande en BBDD, revisar con mas detalle antes de implementar (volumen de juegos, costo del backfill, si RAWG expone el slug en el endpoint de detalle).
