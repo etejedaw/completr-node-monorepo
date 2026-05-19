@@ -4,7 +4,7 @@ import * as passwordService from "./services/password.service";
 import * as tokenService from "./services/token.service";
 import * as authDomainError from "./errors/auth.domains-error";
 
-export async function register(registerDto: RegisterDto) {
+export async function register(registerDto: RegisterDto, deviceInfo?: string) {
 	const userEmail = await userService.findUserByEmail(registerDto.email);
 	const userName = await userService.findUserByUsername(registerDto.username);
 	if (userEmail || userName) throw authDomainError.userAlreadyExists();
@@ -26,12 +26,13 @@ export async function register(registerDto: RegisterDto) {
 		email: user.email
 	};
 	const accessToken = tokenService.signAccessToken(payload);
-	const refreshToken = await tokenService.createRefreshToken(user.id);
+	const { rawToken: refreshToken, sessionId } =
+		await tokenService.createRefreshToken(user.id, deviceInfo);
 
-	return { user, accessToken, refreshToken };
+	return { user, accessToken, refreshToken, sessionId };
 }
 
-export async function login(loginDto: LoginDto) {
+export async function login(loginDto: LoginDto, deviceInfo?: string) {
 	const user = await userService.findUserByEmail(loginDto.email);
 	if (!user) throw authDomainError.invalidCredentials();
 
@@ -47,18 +48,20 @@ export async function login(loginDto: LoginDto) {
 		email: user.email
 	};
 	const accessToken = tokenService.signAccessToken(payload);
-	const refreshToken = await tokenService.createRefreshToken(user.id);
+	const { rawToken: refreshToken, sessionId } =
+		await tokenService.createRefreshToken(user.id, deviceInfo);
 
-	return { accessToken, refreshToken };
+	return { accessToken, refreshToken, sessionId };
 }
 
-export async function refresh(rawRefreshToken: string) {
+export async function refresh(rawRefreshToken: string, deviceInfo?: string) {
 	const storedToken = await tokenService.verifyRefreshToken(rawRefreshToken);
 	if (!storedToken) throw authDomainError.invalidRefreshToken();
 
 	const user = await userService.findUserById(storedToken.userId);
 	if (!user || !user.isActive) throw authDomainError.invalidRefreshToken();
 
+	const previousDeviceInfo = storedToken.deviceInfo;
 	await tokenService.deleteRefreshToken(rawRefreshToken);
 
 	const payload = {
@@ -67,9 +70,13 @@ export async function refresh(rawRefreshToken: string) {
 		email: user.email
 	};
 	const accessToken = tokenService.signAccessToken(payload);
-	const refreshToken = await tokenService.createRefreshToken(user.id);
+	const { rawToken: refreshToken, sessionId } =
+		await tokenService.createRefreshToken(
+			user.id,
+			deviceInfo ?? previousDeviceInfo ?? undefined
+		);
 
-	return { accessToken, refreshToken };
+	return { accessToken, refreshToken, sessionId };
 }
 
 export async function logout(rawRefreshToken: string) {
@@ -83,4 +90,23 @@ export async function changePassword(userId: string, password: string) {
 	await tokenService.deleteAllUserRefreshTokens(userId);
 
 	return true;
+}
+
+export async function listSessions(
+	userId: string,
+	options?: { limit?: number; offset?: number }
+) {
+	return tokenService.findUserSessions(userId, options);
+}
+
+export async function revokeSession(sessionId: string, userId: string) {
+	const ok = await tokenService.deleteRefreshTokenById(sessionId, userId);
+	if (!ok) throw authDomainError.invalidRefreshToken();
+}
+
+export async function revokeOtherSessions(
+	userId: string,
+	currentSessionId: string
+) {
+	return tokenService.deleteOtherUserRefreshTokens(userId, currentSessionId);
 }

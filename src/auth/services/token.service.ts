@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import { literal, Op } from "sequelize";
 import { environmentConfig } from "../../common/config/environment.config";
 import type { StringValue } from "ms";
 import { JwtPayload } from "../../common/interfaces/jwt-payload.interface";
@@ -18,7 +19,10 @@ export function verifyAccessToken(token: string): JwtPayload {
 	) as JwtPayload;
 }
 
-export async function createRefreshToken(userId: string): Promise<string> {
+export async function createRefreshToken(
+	userId: string,
+	deviceInfo?: string
+): Promise<{ rawToken: string; sessionId: string }> {
 	const rawToken = crypto.randomBytes(64).toString("hex");
 	const hashedToken = hashToken(rawToken);
 
@@ -27,13 +31,15 @@ export async function createRefreshToken(userId: string): Promise<string> {
 		expiresAt.getDate() + environmentConfig.REFRESH_TOKEN_TTL_DAYS
 	);
 
-	await RefreshToken.create({
+	const created = await RefreshToken.create({
 		userId,
 		token: hashedToken,
-		expiresAt
+		expiresAt,
+		deviceInfo: deviceInfo ?? null,
+		lastUsedAt: new Date()
 	});
 
-	return rawToken;
+	return { rawToken, sessionId: created.id };
 }
 
 export async function verifyRefreshToken(
@@ -52,6 +58,43 @@ export async function verifyRefreshToken(
 	}
 
 	return refreshToken;
+}
+
+export async function findUserSessions(
+	userId: string,
+	options?: { limit?: number; offset?: number }
+) {
+	const { rows, count } = await RefreshToken.findAndCountAll({
+		where: { userId },
+		order: literal('"lastUsedAt" DESC NULLS LAST'),
+		attributes: [
+			"id",
+			"deviceInfo",
+			"lastUsedAt",
+			"createdAt",
+			"expiresAt"
+		],
+		limit: options?.limit,
+		offset: options?.offset
+	});
+	return { sessions: rows, total: count };
+}
+
+export async function deleteOtherUserRefreshTokens(
+	userId: string,
+	exceptSessionId: string
+): Promise<number> {
+	return RefreshToken.destroy({
+		where: { userId, id: { [Op.ne]: exceptSessionId } }
+	});
+}
+
+export async function deleteRefreshTokenById(
+	id: string,
+	userId: string
+): Promise<boolean> {
+	const deleted = await RefreshToken.destroy({ where: { id, userId } });
+	return deleted > 0;
 }
 
 export async function deleteRefreshToken(rawToken: string): Promise<void> {

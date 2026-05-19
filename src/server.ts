@@ -1,6 +1,7 @@
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import usersRoute from "./users/users.routes";
 import authRouter from "./auth/auth.router";
 import gamesRouter from "./games/games.routes";
@@ -29,6 +30,7 @@ export function server(port: number) {
 	const app = express();
 
 	app.use(express.json());
+	app.use(cookieParser());
 	app.use(xss());
 	app.use(helmet());
 	app.use(cors(corsConfig));

@@ -8,10 +8,13 @@ const EnvironmentConfigSchema = z
 		ACCESS_TOKEN_SECRET: z.string().default("secret-token"),
 		REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(30),
 		PASSWORD_SALT_ROUNDS: z.coerce.number().default(10),
-		CORS_ORIGIN: z.string().default("*"),
-		CORS_METHODS: z.string().default("*"),
-		CORS_ALLOWED_HEADERS: z.string().default("*"),
-		CORS_CREDENTIALS: z.stringbool().default(false)
+		CORS_ORIGIN: z.string().default("http://localhost:4200"),
+		CORS_METHODS: z.string().default("GET,POST,PATCH,PUT,DELETE,OPTIONS"),
+		CORS_ALLOWED_HEADERS: z.string().default("Content-Type,Authorization"),
+		CORS_CREDENTIALS: z.stringbool().default(true),
+		COOKIE_DOMAIN: z.string().optional(),
+		COOKIE_SECURE: z.stringbool().default(false),
+		COOKIE_SAME_SITE: z.enum(["strict", "lax", "none"]).default("lax")
 	})
 	.readonly();
 

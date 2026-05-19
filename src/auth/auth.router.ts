@@ -6,6 +6,8 @@ import {
 	RegisterSchema,
 	RefreshTokenSchema
 } from "./schemas";
+import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
+import { SessionIdParamsSchema } from "./schemas/session-id-params.schema";
 import * as authController from "./auth.controller";
 import { authMiddleware } from "./auth.middleware";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
@@ -58,6 +60,33 @@ router.patch(
 		validateSchemaMiddleware(ChangePasswordSchema, "body")
 	],
 	authController.patchChangePassword
+);
+
+router.get(
+	"/auth/sessions",
+	[
+		authMiddleware(),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
+	],
+	authController.getSessions
+);
+
+router.delete(
+	"/auth/sessions/others/:sessionId",
+	[
+		authMiddleware(),
+		validateSchemaMiddleware(SessionIdParamsSchema, "params")
+	],
+	authController.deleteOtherSessions
+);
+
+router.delete(
+	"/auth/sessions/:sessionId",
+	[
+		authMiddleware(),
+		validateSchemaMiddleware(SessionIdParamsSchema, "params")
+	],
+	authController.deleteSession
 );
 
 export default router;
