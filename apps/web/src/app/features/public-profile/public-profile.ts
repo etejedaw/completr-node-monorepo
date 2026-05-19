@@ -14,10 +14,11 @@ import {
 	UserSummary
 } from "../../shared/components/user-list-modal/user-list-modal";
 import { StarRating } from "../../shared/components/star-rating/star-rating";
+import { UiButton } from "../../shared/ui";
 
 @Component({
 	selector: "app-public-profile",
-	imports: [RouterLink, UserListModal, StarRating],
+	imports: [RouterLink, UserListModal, StarRating, UiButton],
 	templateUrl: "./public-profile.html",
 	styleUrl: "./public-profile.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

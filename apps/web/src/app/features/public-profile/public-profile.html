@@ -47,6 +47,9 @@
 					</h1>
 					@if (isLoggedIn() && !isSelf()) {
 					<button
+						uiButton
+						[variant]="profile()!.isFollowing ? 'ghost' : 'primary'"
+						size="sm"
 						class="btn-follow"
 						[class.following]="profile()!.isFollowing"
 						[disabled]="togglingFollow()"
@@ -61,11 +64,11 @@
 				<p class="bio">{{ profile()!.user.bio }}</p>
 				}
 				<div class="header-meta">
-					<button class="meta-btn" (click)="showFollowers()">
+					<button uiButton variant="ghost" size="sm" class="meta-btn" (click)="showFollowers()">
 						<strong>{{ profile()!.followerCount }}</strong>
 						followers
 					</button>
-					<button class="meta-btn" (click)="showFollowing()">
+					<button uiButton variant="ghost" size="sm" class="meta-btn" (click)="showFollowing()">
 						<strong>{{ profile()!.followingCount }}</strong>
 						following
 					</button>

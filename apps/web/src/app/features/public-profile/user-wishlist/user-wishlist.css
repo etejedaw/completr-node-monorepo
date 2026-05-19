@@ -28,7 +28,7 @@
 	justify-content: center;
 	width: 32px;
 	height: 32px;
-	background: linear-gradient(135deg, var(--accent), #6366f1);
+	background: linear-gradient(135deg, var(--accent), var(--accent-deep));
 	border-radius: 8px;
 	font-weight: 800;
 	font-size: 0.875rem;
@@ -221,7 +221,7 @@ tbody td {
 }
 
 .status-completed {
-	background: rgba(34, 197, 94, 0.12);
+	background: rgba(139, 92, 246, 0.12);
 	color: var(--status-completed);
 }
 

@@ -18,10 +18,11 @@ import {
 	type UserSummary
 } from "../../../shared/components/user-list-modal/user-list-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { UiButton, UiIconButton, UiInput } from "../../../shared/ui";
 
 @Component({
 	selector: "app-profile-view",
-	imports: [FormsModule, RouterLink, UserListModal, StarRating],
+	imports: [FormsModule, RouterLink, UserListModal, StarRating, UiButton, UiIconButton, UiInput],
 	templateUrl: "./profile-view.html",
 	styleUrl: "./profile-view.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

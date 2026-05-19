@@ -30,11 +30,11 @@
 			<p class="bio">{{ profile()!.user.bio }}</p>
 			}
 			<div class="header-meta">
-				<button class="meta-btn" (click)="showFollowers()">
+				<button uiButton variant="ghost" size="sm" class="meta-btn" (click)="showFollowers()">
 					<strong>{{ profile()!.followerCount }}</strong>
 					followers
 				</button>
-				<button class="meta-btn" (click)="showFollowing()">
+				<button uiButton variant="ghost" size="sm" class="meta-btn" (click)="showFollowing()">
 					<strong>{{ profile()!.followingCount }}</strong>
 					following
 				</button>
@@ -44,7 +44,7 @@
 				</span>
 			</div>
 		</div>
-		<button class="btn-edit" (click)="openEdit()">
+		<button uiButton variant="secondary" size="sm" class="btn-edit" (click)="openEdit()">
 			<span class="material-icons">edit</span>
 			Edit Profile
 		</button>
@@ -366,12 +366,13 @@
 	<div class="modal-card" (click)="$event.stopPropagation()">
 		<div class="modal-header">
 			<h2>Edit Profile</h2>
-			<button class="close-btn" (click)="closeModal()">&times;</button>
+			<button uiIconButton size="sm" class="close-btn" (click)="closeModal()">&times;</button>
 		</div>
 
 		<div class="form-group">
 			<label>Name</label>
 			<input
+				uiInput
 				type="text"
 				[ngModel]="editName()"
 				(ngModelChange)="editName.set($event)"
@@ -382,6 +383,7 @@
 		<div class="form-group">
 			<label>Bio</label>
 			<textarea
+				uiInput
 				rows="3"
 				[ngModel]="editBio()"
 				(ngModelChange)="editBio.set($event)"
@@ -392,6 +394,7 @@
 		<div class="form-group">
 			<label>Avatar URL</label>
 			<input
+				uiInput
 				type="text"
 				[ngModel]="editAvatarUrl()"
 				(ngModelChange)="editAvatarUrl.set($event)"
@@ -463,7 +466,8 @@
 
 		<div class="modal-actions">
 			<button
-				class="btn-primary"
+				uiButton
+				variant="primary"
 				(click)="saveProfile()"
 				[disabled]="saving()"
 			>
