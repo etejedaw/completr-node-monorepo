@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 import * as authDomainsErrors from "../../auth/errors/auth.domains-error";
+import { RequestUser } from "../interfaces/request-user.interface";
 
 const PRIVILEGED_ROLES = new Set(["admin", "moderator"]);
 
@@ -11,10 +12,8 @@ export function rateLimiterMiddleware(limiter: RateLimiterMemory) {
 		next: NextFunction
 	) => {
 		try {
-			if (
-				request.locals?.user &&
-				PRIVILEGED_ROLES.has(request.locals.user.role)
-			) {
+			const user = request.locals?.user as RequestUser | undefined;
+			if (user && PRIVILEGED_ROLES.has(user.role)) {
 				return next();
 			}
 
