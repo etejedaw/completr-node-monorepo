@@ -706,3 +706,21 @@ Formato por item:
 - **Reportado por:** Esteban
 - **Descripcion:** En el detalle de un juego (Games) deberia mostrarse una seccion "Latest Completr Lists" con las listas publicas mas recientes que incluyen ese juego. La seccion nunca aparece, ni siquiera para juegos que sabemos que estan en varias listas publicas. Puede ser que el endpoint no devuelva resultados, que el frontend este filtrando mal, o que la query no este matcheando los juegos correctamente con sus listas.
 - **Solucion propuesta:** Diagnosticar el flujo end-to-end: (1) verificar que el endpoint que devuelve "ultimas listas que incluyen este juego" exista y este siendo llamado desde el detalle del juego; (2) revisar la query en backend (joins entre lists, list_items y games, filtros por visibilidad publica y orden por fecha); (3) revisar el frontend (si los datos llegan, comprobar que la seccion se renderice y no este oculta por un guard tipo `if (lists.length === 0)` que falle por shape). Si el endpoint no existe todavia, crearlo: GET /games/:id/lists?limit=N&order=recent devolviendo solo listas publicas. Considerar paginacion futura.
+
+### [FB-078] Real Duration en diary view del backlog no se destaca lo suficiente
+
+- **Fecha:** 2026-05-19
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En la vista diary del backlog, el tiempo de juego real que ingresa el jugador (realDuration) aparece como un texto mas dentro de la fila de metadatos ("Real Xh") al lado del score y la duracion estimada. Visualmente queda diluido entre los otros datos cuando en realidad es uno de los valores mas importantes que el usuario aporta personalmente — refleja su experiencia real con el juego y alimenta el ratio personal.
+- **Solucion propuesta:** Destacar visualmente el realDuration en la diary card. Opciones: (1) moverlo a la columna derecha junto al Ratio y Personal Ratio con su propio bloque grande y label, (2) usar un color de acento (warning o brand) y peso mayor en el texto, (3) agregar un icono de reloj o cronometro al lado del valor para diferenciarlo de la duration estimada. Considerar que solo aparece cuando hay un valor, asi que no afecta filas sin realDuration. Tener en cuenta la consistencia con el Personal Ratio que ya esta destacado en la columna derecha.
+
+### [FB-079] "No sources. Report missing" aparece al editar un backlog ya existente
+
+- **Fecha:** 2026-05-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al abrir el modal de edicion de un backlog ya creado (que tiene score y duration completados manualmente o desde una fuente), aparece debajo de los campos Critic Score y Duration el mensaje "No sources. Report missing" como si faltaran fuentes. El usuario ya tiene el dato ingresado, por lo que el aviso esta fuera de lugar y sugiere accion sobre algo que no es necesario.
+- **Solucion propuesta:** En el modal de backlog, el mensaje "No sources" se muestra cuando `gameScores().length === 0` o `gameTimes().length === 0` (juego sin fuentes en el catalogo). El bug es que en modo edicion, el `selectedGame` se setea con un objeto minimal `{id, title, backgroundUrl}` sin las arrays de scores/times, por lo que siempre evalua a 0 y muestra el mensaje aunque el campo del form tenga valor. Soluciones: (1) en modo edit, cargar el juego completo con sus scores/times via gamesService.getByCode antes de pintar el modal, asi `gameScores()` refleja la realidad; (2) ocultar el bloque "No sources" en modo edit (`@if (!isEdit() && selectedGame() && gameScores().length === 0)`), ya que en edit el dato ya esta y no aplica reportar como missing. Opcion (2) es la mas simple y suficiente.
