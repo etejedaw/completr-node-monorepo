@@ -225,6 +225,7 @@ export class BacklogModal implements OnInit {
 			this.isEdit.set(true);
 			this.selectedGame.set({
 				id: e.game.id,
+				code: e.game.code,
 				title: e.game.title,
 				backgroundUrl: e.game.backgroundUrl
 			} as Game);
