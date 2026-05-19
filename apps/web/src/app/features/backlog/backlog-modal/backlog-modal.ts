@@ -93,7 +93,8 @@ export class BacklogModal implements OnInit {
 				: "Missing duration estimate for this game.";
 		this.http
 			.post(`${environment.apiUrl}/games/${game.id}/reports`, {
-				message
+				message,
+				category
 			})
 			.subscribe({
 				next: () => {
