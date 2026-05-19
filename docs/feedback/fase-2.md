@@ -256,9 +256,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-22
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** El boton "Add Game" en la vista del backlog confunde a los usuarios porque suena a crear un juego nuevo en el catalogo, no a agregarlo al backlog. Ademas, el boton esta en la pantalla de backlog y no en la de games, lo que refuerza la confusion ("por que Add Game no esta en Games?"). La accion real es agregar un juego existente al backlog del usuario.
-- **Solucion propuesta:** Cambiar el texto del boton a algo que refleje la accion real, como "Add to Backlog" o "Track Game". Esto deja claro que se esta agregando un juego al backlog, no creandolo.
+- **Solucion:** Renombrado el botón en `backlog-list.html` de "+ Add Game" a "+ Add to Backlog". Por consistencia, el equivalente en `game-shelf-list.html` también se renombró a "+ Add to Shelf".
 
 ### [FB-029] Busqueda de juegos no muestra indicador de carga al buscar en RAWG
 
@@ -280,9 +280,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-22
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** El orden actual de las secciones en el sidebar no sigue una progresion logica. Un usuario sugirio reordenar Game Shelf, Backlog y Wishlist para reflejar la relacion del usuario con un juego: "tengo y jugue" (Game Shelf), "tengo y no jugue" (Backlog), "no tengo y quiero" (Wishlist). Este orden cuenta una historia natural de la coleccion del usuario.
-- **Solucion propuesta:** Reordenar las secciones del sidebar en el frontend: Game Shelf → Backlog → Queue (ex-Wishlist) → Wishlist (nueva, juegos que quiero comprar). Cambio solo de frontend, no afecta backend ni rutas.
+- **Solucion:** Sidebar reorganizado en dos grupos con headers sutiles: "My collection" (Backlog → Game Shelf → Wishlist) y "Personal lists" (Favorites → Saved Views → Lists). Sin renombrar Wishlist (FB-027 pendiente). Además, rediseño visual completo: ribbon vertical brand como indicador activo, padding cómodo, sección de perfil integrada al flow (sin card pegada).
 
 ### [FB-032] Busqueda de usuarios limitada y sin vista dedicada
 
@@ -313,9 +313,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-23
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Varios usuarios reportan que tienen que iniciar sesion todos los dias. La sesion no persiste entre dias, lo que sugiere que el refresh token no esta funcionando correctamente o esta mal implementado en el frontend. Posibles causas: el token no se renueva antes de expirar, no se persiste correctamente en el almacenamiento del navegador, o el interceptor HTTP del frontend no ejecuta el flujo de refresh cuando el access token expira.
 - **Solucion propuesta:** Investigar el flujo completo de refresh token. En el backend: verificar la expiracion del refresh token y que el endpoint de refresh funcione correctamente. En el frontend: revisar el interceptor HTTP para asegurar que detecta respuestas 401, ejecuta el refresh automaticamente, y reintenta el request original con el nuevo access token. Tambien verificar que el refresh token se almacena correctamente (localStorage/cookie) y que no se pierde al cerrar el navegador.
+- **Resolucion:** Causa raiz: el interceptor HTTP del frontend tenia race condition — multiples 401 concurrentes ejecutaban `clearSession()` aunque el refresh estaba en curso. Reemplazado por una cola con `BehaviorSubject<string|null>` que retiene las peticiones hasta que termina el refresh. Adicionalmente, el refresh token migro a cookie HttpOnly (Secure, SameSite=Lax, Path=/auth, 30d) para evitar exfiltracion via XSS — ya no se guarda en localStorage. Multi-sesion soportado por backend (un RefreshToken por dispositivo con deviceInfo).
 
 ### [FB-036] Boton de RAWG en game detail redirige con slug incorrecto
 
@@ -392,10 +393,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami (Brave, Ubuntu, modo oscuro)
 - **Descripcion:** Al seleccionar un juego en el Game Shelf, el icono del calendario en el campo "Acquired" (fecha de adquisicion) es casi invisible. El icono no tiene suficiente contraste contra el fondo oscuro del input. Puede ser un problema especifico de Brave en Linux o del tema oscuro del navegador que afecta inputs nativos de tipo date.
-- **Solucion propuesta:** Estilizar el input de fecha para que el icono del calendario tenga suficiente contraste en modo oscuro. Usar CSS para colorear el icono nativo (::-webkit-calendar-picker-indicator) o reemplazarlo con un icono propio. Probar en Brave Linux para confirmar que el fix funciona en ese navegador.
+- **Solucion:** Agregado `color-scheme: dark` en el `body` de `styles.css`. Esto hace que el browser renderice automáticamente los controles nativos (input date, time, color picker, scrollbar) en variante dark, dándole contraste correcto al ícono del calendario sin necesidad de CSS específico para `::-webkit-calendar-picker-indicator`.
 
 ### [FB-045] Faltan juegos de Nintendo Switch (ej: Pokemon Scarlet)
 
@@ -428,10 +429,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Al agregar un juego al backlog o game shelf, el selector de plataformas muestra todas las plataformas del juego. Si el juego solo tiene una plataforma disponible, el usuario tiene que seleccionarla manualmente. Seria mas comodo que se seleccionara automaticamente.
-- **Solucion propuesta:** En el frontend, al cargar las plataformas de un juego en el modal de backlog/shelf, si solo hay una plataforma disponible, preseleccionarla automaticamente en el dropdown. Cambio solo de frontend.
+- **Solucion:** En `selectGame` de `backlog-modal` y `game-shelf-modal`, si `game.platforms.length === 1` se preselecciona automáticamente esa única plataforma en el form. Si hay 0 o más de 1, queda vacío como antes para que el usuario elija.
 
 ### [FB-049] Confusion entre Score y Rating en el backlog
 
@@ -482,19 +483,19 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Los botones para abrir el panel de filtros avanzados y para limpiar los filtros aplicados en el backlog no son lo suficientemente obvios. El usuario no los identifica facilmente, lo que dificulta el uso de filtros avanzados y la vuelta al estado sin filtros.
-- **Solucion propuesta:** Hacer los botones de filtro mas prominentes: aumentar tamano, usar un icono de filtro (funnel) mas visible, agregar texto descriptivo ("Filters" en vez de solo icono). Para limpiar filtros, mostrar un boton "Clear all filters" mas grande y con color de acento cuando hay filtros activos. Considerar mostrar un indicador visible de cuantos filtros estan activos (badge con numero).
+- **Solucion:** Botón **Filters** rediseñado: tamaño y padding mayores, color brand cuando hay filtros activos, badge circular con el número de filtros activos. Botón **"Clear all"** prominente aparece al lado cuando hay filtros activos. Además, rediseño del panel de filtros como off-canvas drawer lateral derecho con secciones agrupadas (Status, Platform, Started, Finished, Rating range, Sort) y footer fijo con Clear/Apply.
 
 ### [FB-055] Logo del sidebar deberia navegar al feed
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** El logo de Completr en el sidebar no es clickeable o no navega al feed. Los usuarios esperan que hacer click en el logo los lleve a la pagina principal (feed), como en la mayoria de aplicaciones web.
-- **Solucion propuesta:** Hacer el logo del sidebar clickeable con navegacion a /feed (o la ruta principal de la app). Cambio simple de frontend: envolver el logo en un routerLink.
+- **Solucion:** Logo (ícono "C" + texto "Completr") envuelto en `<a routerLink="/feed">` en `layout.html`. Click navega al feed.
 
 ### [FB-056] Agregar juego a una lista desde el game detail
 
@@ -607,10 +608,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-07
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al tener la sesion abierta en mas de un dispositivo simultaneamente (ej: PC y celular), la sesion se cierra inesperadamente en alguno de ellos. Probablemente el backend invalida el refresh token anterior cuando se emite uno nuevo (rotacion single-token por usuario), por lo que el dispositivo que pidio refresh primero deja sin token valido al otro dispositivo. Apenas el segundo dispositivo intenta renovar, recibe 401 y termina deslogueando al usuario. Posiblemente relacionado con FB-035 (sesion no persiste) — si la rotacion de refresh tokens no soporta multiples sesiones, ambos sintomas pueden tener la misma causa raiz.
 - **Solucion propuesta:** Soportar multiples refresh tokens activos por usuario, uno por sesion/dispositivo. Modelar una tabla RefreshToken(id, userId, tokenHash, deviceInfo, createdAt, expiresAt, revokedAt) en vez de guardar un unico token por usuario. Al hacer refresh, rotar solo el token de esa sesion especifica (no invalidar los de otros dispositivos). Agregar endpoint para listar y revocar sesiones activas (util para "cerrar sesion en todos los dispositivos"). Verificar primero el comportamiento actual del backend revisando el modulo de auth — si ya soporta multi-sesion, el bug podria estar en el frontend (interceptor compartiendo estado o pisandose entre tabs).
+- **Resolucion:** El backend ya soportaba multi-sesion (un RefreshToken por dispositivo). Se agregaron columnas `deviceInfo` y `lastUsedAt` a la tabla RefreshTokens via migracion. Nuevos endpoints `GET /auth/sessions`, `DELETE /auth/sessions/:sessionId` y `DELETE /auth/sessions/others/:sessionId`. Login/register/refresh devuelven `session_id` para identificar el dispositivo actual. UI en `/settings/security` lista sesiones paginadas, marca "This device" y permite revocar individualmente o cerrar sesion en otros dispositivos. La race condition del interceptor (FB-035) era la causa raiz comun.
 
 ### [FB-069] Feed muestra "wants to play" sin indicar el juego
 
@@ -693,10 +695,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-19
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En la wishlist, al cambiar a la vista en modo grilla, no se muestra el numero de posicion de cada juego dentro de la lista. La wishlist esta ordenada por prioridad (manual o por columna, ver FB-071), por lo que la posicion es informacion relevante: saber si un juego es el #3 o el #27 cambia la lectura. En el modo tabla la posicion se infiere por la fila, pero en grilla se pierde esa referencia.
-- **Solucion propuesta:** Mostrar el numero de posicion en cada card del modo grilla de la wishlist. Opciones de UI: (1) badge en una esquina de la card (ej: esquina superior izquierda con "#3"); (2) prefijo en el titulo del juego ("3. The Witcher 3"). Asegurar que el numero se actualice al reordenar (drag & drop) o al aplicar un sort por columna.
+- **Solucion:** Agregado badge `#N` en la esquina superior izquierda de cada card del modo grilla, con `bg-black/70 backdrop-blur-sm`. Considera la paginación (`offset + i + 1`) para mostrar la posición correcta.
 
 ### [FB-077] Seccion "Latest Completr Lists" nunca aparece en la pagina de un juego
 
