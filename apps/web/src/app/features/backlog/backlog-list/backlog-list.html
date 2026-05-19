@@ -4,11 +4,12 @@
 			<h1>Backlog</h1>
 			<span class="entry-count">{{ entries().length }} entries</span>
 		</div>
-		<button class="btn-add" (click)="openCreate()">+ Add Game</button>
+		<button uiButton variant="primary" (click)="openCreate()">+ Add Game</button>
 	</div>
 
 	<div class="search-bar">
 		<input
+			uiInput
 			type="text"
 			placeholder="Search by title..."
 			[value]="searchQuery()"
@@ -176,6 +177,7 @@
 		} @else if (hasActiveFilters()) {
 		<div class="view-actions filter-full">
 			<input
+				uiInput
 				type="text"
 				class="edit-filter-name"
 				placeholder="View name..."

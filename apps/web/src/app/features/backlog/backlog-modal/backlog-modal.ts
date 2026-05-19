@@ -30,10 +30,11 @@ import {
 	forkJoin,
 	of
 } from "rxjs";
+import { UiButton, UiIconButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-backlog-modal",
-	imports: [ReactiveFormsModule, StarRating],
+	imports: [ReactiveFormsModule, StarRating, UiButton, UiIconButton],
 	templateUrl: "./backlog-modal.html",
 	styleUrl: "./backlog-modal.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

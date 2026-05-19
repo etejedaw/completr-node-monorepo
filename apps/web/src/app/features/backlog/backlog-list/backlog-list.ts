@@ -15,10 +15,11 @@ import { GamesService } from "../../games/games.service";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { UiButton, UiInput } from "../../../shared/ui";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink, UiButton, UiInput],
 	templateUrl: "./backlog-list.html",
 	styleUrl: "./backlog-list.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
