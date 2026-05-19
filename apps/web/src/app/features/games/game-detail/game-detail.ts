@@ -37,7 +37,6 @@ import { UiButton, UiInput } from "../../../shared/ui";
 		UiInput
 	],
 	templateUrl: "./game-detail.html",
-	styleUrl: "./game-detail.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GameDetail implements OnInit {

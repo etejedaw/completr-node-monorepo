@@ -1,67 +1,69 @@
-<div class="editor">
-	<!-- RAWG Fetch -->
-	<div class="rawg-section">
-		<h4 class="section-title">RAWG Lookup</h4>
-		<div class="rawg-row">
+<div class="bg-sidebar border border-line rounded-card p-5 mb-6">
+	<div class="mb-5 pb-5 border-b border-line">
+		<h4 class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider">RAWG Lookup</h4>
+		<div class="flex gap-2">
 			<input
 				type="text"
-				class="rawg-input"
+				class="flex-1 py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				placeholder="RAWG slug (e.g. resident-evil-4)"
 				[ngModel]="rawgSlug()"
 				(ngModelChange)="rawgSlug.set($event)"
 				(keydown.enter)="fetchRawg()"
 			/>
 			<button
-				class="btn-fetch"
+				class="flex items-center gap-1.5 py-2 px-3.5 bg-brand-subtle border border-brand rounded text-brand text-[0.8125rem] font-semibold cursor-pointer whitespace-nowrap transition hover:bg-brand hover:text-white disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-subtle disabled:hover:text-brand"
 				(click)="fetchRawg()"
 				[disabled]="fetchingRawg() || !rawgSlug().trim()"
 			>
-				<span class="material-icons">download</span>
+				<span class="material-icons text-base">download</span>
 				{{ fetchingRawg() ? 'Fetching...' : 'Fetch' }}
 			</button>
 		</div>
 		@if (rawgError()) {
-		<span class="rawg-error">{{ rawgError() }}</span>
+		<span class="block mt-1.5 text-xs text-danger">{{ rawgError() }}</span>
 		} @if (rawgId()) {
-		<span class="rawg-success">RAWG ID: {{ rawgId() }}</span>
+		<span class="block mt-1.5 text-xs text-brand">RAWG ID: {{ rawgId() }}</span>
 		}
 	</div>
 
-	<!-- Game fields -->
-	<div class="form-section">
-		<h4 class="section-title">Game Info</h4>
+	<div class="mb-5">
+		<h4 class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider">Game Info</h4>
 
-		<div class="form-group">
-			<label>Title</label>
+		<div class="mb-3">
+			<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Title</label>
 			<input
 				type="text"
+				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				[ngModel]="title()"
 				(ngModelChange)="title.set($event)"
 			/>
 		</div>
 
-		<div class="form-group">
-			<label>Description</label>
+		<div class="mb-3">
+			<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Description</label>
 			<textarea
 				rows="4"
+				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition resize-y focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				[ngModel]="description()"
 				(ngModelChange)="description.set($event)"
 			></textarea>
 		</div>
 
-		<div class="form-row">
-			<div class="form-group">
-				<label>Release date</label>
+		<div class="grid grid-cols-2 gap-3">
+			<div class="mb-3">
+				<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Release date</label>
 				<input
 					type="date"
+					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 					[ngModel]="releaseAt()"
 					(ngModelChange)="releaseAt.set($event)"
 				/>
 			</div>
-			<div class="form-group">
-				<label>Background URL</label>
+			<div class="mb-3">
+				<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Background URL</label>
 				<input
 					type="text"
+					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 					[ngModel]="backgroundUrl()"
 					(ngModelChange)="backgroundUrl.set($event)"
 					placeholder="https://..."
@@ -70,15 +72,16 @@
 		</div>
 
 		@if (backgroundUrl()) {
-		<div class="img-preview">
-			<img [src]="backgroundUrl()" alt="Preview" />
+		<div class="mb-3 rounded overflow-hidden max-h-[120px]">
+			<img class="w-full h-[120px] object-cover block" [src]="backgroundUrl()" alt="Preview" />
 		</div>
 		}
 
-		<div class="form-group">
-			<label class="checkbox-label">
+		<div class="mb-3">
+			<label class="flex items-center gap-2 cursor-pointer">
 				<input
 					type="checkbox"
+					class="w-auto"
 					[ngModel]="isDlc()"
 					(ngModelChange)="isDlc.set($event)"
 				/>
@@ -87,33 +90,34 @@
 		</div>
 
 		@if (isDlc()) {
-		<div class="form-group">
-			<label>Parent Game</label>
+		<div class="mb-3">
+			<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Parent Game</label>
 			@if (parentGame()) {
-			<div class="selected-parent">
+			<div class="flex items-center gap-2.5 py-2 px-3 bg-input-bg border border-line rounded">
 				@if (parentGame()!.backgroundUrl) {
 				<img
-					class="parent-cover"
+					class="w-7 h-7 object-cover rounded-[3px] shrink-0"
 					[src]="parentGame()!.backgroundUrl"
 					[alt]="parentGame()!.title"
 				/>
 				}
-				<span class="parent-title">{{ parentGame()!.title }}</span>
-				<button class="btn-clear-parent" (click)="clearParentGame()">
-					<span class="material-icons">close</span>
+				<span class="flex-1 text-[0.8125rem] font-medium">{{ parentGame()!.title }}</span>
+				<button class="bg-none border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="clearParentGame()">
+					<span class="material-icons text-base">close</span>
 				</button>
 			</div>
 			} @else {
-			<div class="parent-search-row">
+			<div class="flex gap-2">
 				<input
 					type="text"
+					class="flex-1 py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 					[ngModel]="parentSlug()"
 					(ngModelChange)="parentSlug.set($event)"
 					(keydown.enter)="fetchParentGame()"
 					placeholder="Completr slug (e.g. resident-evil-4)"
 				/>
 				<button
-					class="btn-fetch-parent"
+					class="py-2 px-3 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer whitespace-nowrap transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed"
 					(click)="fetchParentGame()"
 					[disabled]="fetchingParent() || !parentSlug().trim()"
 				>
@@ -121,20 +125,26 @@
 				</button>
 			</div>
 			@if (parentError()) {
-			<span class="field-error">{{ parentError() }}</span>
+			<span class="block mt-1 text-xs text-danger">{{ parentError() }}</span>
 			} }
 		</div>
 		}
 	</div>
 
-	<!-- Platforms -->
-	<div class="form-section">
-		<h4 class="section-title">Platforms</h4>
-		<div class="chip-grid">
+	<div class="mb-5">
+		<h4 class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider">Platforms</h4>
+		<div class="flex flex-wrap gap-1">
 			@for (p of allPlatforms(); track p.id) {
 			<button
-				class="chip"
-				[class.active]="selectedPlatforms().has(p.code)"
+				class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold cursor-pointer transition border"
+				[class.bg-brand-subtle]="selectedPlatforms().has(p.code)"
+				[class.border-brand]="selectedPlatforms().has(p.code)"
+				[class.text-brand]="selectedPlatforms().has(p.code)"
+				[class.bg-input-bg]="!selectedPlatforms().has(p.code)"
+				[class.border-line]="!selectedPlatforms().has(p.code)"
+				[class.text-fg-muted]="!selectedPlatforms().has(p.code)"
+				[class.hover:border-line-hover]="!selectedPlatforms().has(p.code)"
+				[class.hover:text-fg]="!selectedPlatforms().has(p.code)"
 				(click)="togglePlatform(p.code)"
 			>
 				{{ p.abbreviation }}
@@ -143,14 +153,20 @@
 		</div>
 	</div>
 
-	<!-- Genres -->
-	<div class="form-section">
-		<h4 class="section-title">Genres</h4>
-		<div class="chip-grid">
+	<div class="mb-5">
+		<h4 class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider">Genres</h4>
+		<div class="flex flex-wrap gap-1">
 			@for (g of allGenres(); track g.id) {
 			<button
-				class="chip"
-				[class.active]="selectedGenres().has(g.code)"
+				class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold cursor-pointer transition border"
+				[class.bg-brand-subtle]="selectedGenres().has(g.code)"
+				[class.border-brand]="selectedGenres().has(g.code)"
+				[class.text-brand]="selectedGenres().has(g.code)"
+				[class.bg-input-bg]="!selectedGenres().has(g.code)"
+				[class.border-line]="!selectedGenres().has(g.code)"
+				[class.text-fg-muted]="!selectedGenres().has(g.code)"
+				[class.hover:border-line-hover]="!selectedGenres().has(g.code)"
+				[class.hover:text-fg]="!selectedGenres().has(g.code)"
 				(click)="toggleGenre(g.code)"
 			>
 				{{ g.name }}
@@ -159,27 +175,26 @@
 		</div>
 	</div>
 
-	<!-- Scores -->
-	<div class="form-section">
-		<h4 class="section-title">Scores</h4>
+	<div class="mb-5">
+		<h4 class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider">Scores</h4>
 		@for (s of scores(); track s.source; let i = $index) {
-		<div class="entry-row">
-			<span class="entry-label">{{ s.source }}</span>
+		<div class="flex items-center gap-2 mb-1.5">
+			<span class="min-w-[80px] text-xs font-semibold text-fg-secondary uppercase">{{ s.source }}</span>
 			<input
 				type="number"
-				class="entry-input"
+				class="w-[100px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
 				[ngModel]="s.score"
 				(ngModelChange)="updateScoreValue(i, $event)"
 				step="0.01"
 			/>
-			<button class="btn-remove-entry" (click)="removeScore(i)">
-				<span class="material-icons">close</span>
+			<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-danger" (click)="removeScore(i)">
+				<span class="material-icons text-sm">close</span>
 			</button>
 		</div>
 		} @if (availableScoreSources.length > 0) {
-		<div class="add-entry-row">
+		<div class="flex items-center gap-2 mt-2">
 			<select
-				class="entry-select"
+				class="min-w-[80px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-xs cursor-pointer"
 				[ngModel]="newScoreSource()"
 				(ngModelChange)="newScoreSource.set($event)"
 			>
@@ -190,44 +205,43 @@
 			</select>
 			<input
 				type="number"
-				class="entry-input"
+				class="w-[100px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
 				placeholder="Value"
 				[ngModel]="newScoreValue()"
 				(ngModelChange)="newScoreValue.set($event)"
 				step="0.01"
 			/>
 			<button
-				class="btn-add-entry"
+				class="bg-transparent border border-line text-fg-muted cursor-pointer p-1 rounded flex transition hover:border-brand hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
 				(click)="addScore()"
 				[disabled]="!newScoreSource() || newScoreValue() === null"
 			>
-				<span class="material-icons">add</span>
+				<span class="material-icons text-sm">add</span>
 			</button>
 		</div>
 		}
 	</div>
 
-	<!-- Times -->
-	<div class="form-section">
-		<h4 class="section-title">Durations</h4>
+	<div class="mb-5">
+		<h4 class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider">Durations</h4>
 		@for (t of times(); track t.source; let i = $index) {
-		<div class="entry-row">
-			<span class="entry-label">{{ t.source }}</span>
+		<div class="flex items-center gap-2 mb-1.5">
+			<span class="min-w-[80px] text-xs font-semibold text-fg-secondary uppercase">{{ t.source }}</span>
 			<input
 				type="number"
-				class="entry-input"
+				class="w-[100px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
 				[ngModel]="t.duration"
 				(ngModelChange)="updateTimeValue(i, $event)"
 				step="0.1"
 			/>
-			<button class="btn-remove-entry" (click)="removeTime(i)">
-				<span class="material-icons">close</span>
+			<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-danger" (click)="removeTime(i)">
+				<span class="material-icons text-sm">close</span>
 			</button>
 		</div>
 		} @if (availableTimeSources.length > 0) {
-		<div class="add-entry-row">
+		<div class="flex items-center gap-2 mt-2">
 			<select
-				class="entry-select"
+				class="min-w-[80px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-xs cursor-pointer"
 				[ngModel]="newTimeSource()"
 				(ngModelChange)="newTimeSource.set($event)"
 			>
@@ -238,30 +252,30 @@
 			</select>
 			<input
 				type="number"
-				class="entry-input"
+				class="w-[100px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
 				placeholder="Hours"
 				[ngModel]="newTimeValue()"
 				(ngModelChange)="newTimeValue.set($event)"
 				step="0.1"
 			/>
 			<button
-				class="btn-add-entry"
+				class="bg-transparent border border-line text-fg-muted cursor-pointer p-1 rounded flex transition hover:border-brand hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
 				(click)="addTime()"
 				[disabled]="!newTimeSource() || newTimeValue() === null"
 			>
-				<span class="material-icons">add</span>
+				<span class="material-icons text-sm">add</span>
 			</button>
 		</div>
 		}
 	</div>
 
-	<!-- Save -->
 	@if (saveError()) {
-	<div class="save-error">{{ saveError() }}</div>
+	<div class="bg-danger/[0.08] border border-danger/20 text-red-300 py-2 px-3 rounded mb-3 text-[0.8125rem]">{{ saveError() }}</div>
 	}
-	<div class="save-row">
+	<div class="flex justify-end pt-4 border-t border-line">
 		<button
-			class="btn-save"
+			class="py-2 px-5 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+			style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
 			(click)="save()"
 			[disabled]="saving() || !title().trim()"
 		>

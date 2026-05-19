@@ -24,7 +24,6 @@ import { UiButton, UiInput } from "../../../shared/ui";
 	selector: "app-games-browse",
 	imports: [RouterLink, AdminGameEditor, UiButton, UiInput],
 	templateUrl: "./games-browse.html",
-	styleUrl: "./games-browse.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GamesBrowse implements OnInit {

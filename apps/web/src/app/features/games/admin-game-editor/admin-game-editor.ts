@@ -22,7 +22,6 @@ import { forkJoin } from "rxjs";
 	selector: "app-admin-game-editor",
 	imports: [FormsModule],
 	templateUrl: "./admin-game-editor.html",
-	styleUrl: "./admin-game-editor.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminGameEditor implements OnInit {
