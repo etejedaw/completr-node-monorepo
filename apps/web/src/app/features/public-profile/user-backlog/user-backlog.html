@@ -108,8 +108,25 @@
 								size="sm"
 							/>
 
-							@if (entry.notes) {
-								<p class="text-xs text-fg-muted line-clamp-2 leading-snug m-0 mt-auto">{{ entry.notes }}</p>
+							@if (entry.review; as review) {
+								@if (review.content) {
+									<div class="flex items-start gap-1.5 mt-auto text-xs text-fg-muted leading-snug">
+										<span class="material-icons text-[0.875rem] mt-0.5 text-brand">format_quote</span>
+										<div class="flex-1 min-w-0">
+											<p
+												class="m-0"
+												[class.line-clamp-3]="!isReviewExpanded(entry.id)"
+											>{{ review.content }}</p>
+											@if (needsReviewToggle(review.content)) {
+												<button
+													type="button"
+													class="bg-none border-0 p-0 mt-1 text-[0.6875rem] font-medium text-brand cursor-pointer hover:underline"
+													(click)="toggleReview(entry.id)"
+												>{{ isReviewExpanded(entry.id) ? 'Show less' : 'Read more' }}</button>
+											}
+										</div>
+									</div>
+								}
 							}
 						</div>
 

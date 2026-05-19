@@ -49,6 +49,26 @@ export class UserBacklog implements OnInit {
 		{ label: "Abandoned", value: "abandoned" }
 	];
 
+	protected readonly expandedReviews = signal<Set<string>>(new Set());
+
+	toggleReview(id: string) {
+		const next = new Set(this.expandedReviews());
+		if (next.has(id)) {
+			next.delete(id);
+		} else {
+			next.add(id);
+		}
+		this.expandedReviews.set(next);
+	}
+
+	isReviewExpanded(id: string): boolean {
+		return this.expandedReviews().has(id);
+	}
+
+	needsReviewToggle(content: string | null | undefined): boolean {
+		return !!content && content.length > 180;
+	}
+
 	ngOnInit() {
 		this.searchSubject
 			.pipe(debounceTime(300), distinctUntilChanged())
