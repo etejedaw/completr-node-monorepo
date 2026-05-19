@@ -347,7 +347,7 @@
 				<table class="w-full border-collapse text-sm">
 					<thead>
 						<tr>
-							<th class="sticky top-0 bg-canvas z-[1] text-left py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap w-[60px]"></th>
+							<th class="sticky top-0 bg-canvas z-[1] text-left py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap w-[60px] min-w-[60px]"></th>
 							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap min-w-[200px] hover:text-fg-secondary" (click)="sort('title')">
 								Title @if (sortBy() === 'title') {
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
@@ -400,12 +400,14 @@
 					<tbody>
 						@for (entry of entries(); track entry.id) {
 							<tr class="cursor-pointer border-b border-line transition hover:bg-surface" (click)="openEdit(entry)">
-								<td class="pl-4 pr-2 py-3 align-middle w-[60px]">
-									@if (entry.game.backgroundUrl) {
-										<img [src]="entry.game.backgroundUrl" [alt]="entry.game.title" class="w-11 h-14 object-cover rounded-md block" />
-									} @else {
-										<div class="w-11 h-14 bg-surface rounded-md"></div>
-									}
+								<td class="pl-4 pr-2 py-3 align-middle w-[60px] min-w-[60px]">
+									<div class="w-11 h-14 shrink-0">
+										@if (entry.game.backgroundUrl) {
+											<img [src]="entry.game.backgroundUrl" [alt]="entry.game.title" class="w-full h-full object-cover rounded-md block" />
+										} @else {
+											<div class="w-full h-full bg-surface rounded-md"></div>
+										}
+									</div>
 								</td>
 								<td class="px-4 py-3 align-middle min-w-[200px]">
 									<a class="font-medium text-fg no-underline hover:text-brand" [routerLink]="['/games', entry.game.code]" (click)="$event.stopPropagation()">{{ entry.game.title }}</a>
