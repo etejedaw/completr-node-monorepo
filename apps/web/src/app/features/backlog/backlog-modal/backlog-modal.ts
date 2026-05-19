@@ -9,6 +9,7 @@ import {
 	signal
 } from "@angular/core";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import { RouterLink } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { BacklogEntry } from "../../../core/models";
 import { Game, Platform } from "../../../core/models";
@@ -38,7 +39,7 @@ import { UiButton, UiIconButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-backlog-modal",
-	imports: [ReactiveFormsModule, StarRating, UiButton, UiIconButton],
+	imports: [ReactiveFormsModule, RouterLink, StarRating, UiButton, UiIconButton],
 	templateUrl: "./backlog-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -186,6 +187,17 @@ export class BacklogModal implements OnInit {
 		() => this.statusValue() !== "not_started"
 	);
 
+	protected readonly isReviewableStatus = computed(() => {
+		const s = this.statusValue();
+		return s === "completed" || s === "abandoned";
+	});
+
+	protected readonly isFirstReviewableTransition = computed(() => {
+		if (!this.isReviewableStatus()) return false;
+		const previous = this.entry()?.status;
+		return previous !== "completed" && previous !== "abandoned";
+	});
+
 	ngOnInit() {
 		this.gamesService.getPlatforms().subscribe(p => this.platforms.set(p));
 		this.scoreSourcesService.load();
@@ -213,6 +225,7 @@ export class BacklogModal implements OnInit {
 			this.isEdit.set(true);
 			this.selectedGame.set({
 				id: e.game.id,
+				code: e.game.code,
 				title: e.game.title,
 				backgroundUrl: e.game.backgroundUrl
 			} as Game);
@@ -276,9 +289,10 @@ export class BacklogModal implements OnInit {
 		this.activeScoreSource.set(score.source);
 		this.activeDurationSource.set(duration.source);
 
+		const platforms = game.platforms ?? [];
 		this.form.patchValue({
 			gameId: game.id,
-			platformId: "",
+			platformId: platforms.length === 1 ? platforms[0].id : "",
 			score: score.value,
 			duration: duration.value
 		});
@@ -457,6 +471,8 @@ export class BacklogModal implements OnInit {
 	}
 
 	private submitReviewIfNeeded(gameId: string) {
+		if (!this.isFirstReviewableTransition()) return;
+
 		const content = this.reviewContent().trim();
 		const rating = this.form.get("userRating")?.value;
 		if (!content && !rating) return;
@@ -467,9 +483,7 @@ export class BacklogModal implements OnInit {
 
 		this.reviewsService.createReview(gameId, data).subscribe({
 			error: () => {
-				if (content || rating) {
-					this.reviewsService.updateReview(gameId, data).subscribe();
-				}
+				this.reviewsService.updateReview(gameId, data).subscribe();
 			}
 		});
 	}

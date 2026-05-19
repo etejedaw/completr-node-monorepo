@@ -14,6 +14,7 @@ interface BacklogSingleResponse {
 
 export interface BacklogFilters {
 	status?: string;
+	game_id?: string;
 	platform_id?: string;
 	sort_by?: string;
 	sort_order?: string;

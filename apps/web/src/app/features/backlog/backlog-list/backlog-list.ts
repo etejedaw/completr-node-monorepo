@@ -15,12 +15,12 @@ import { GamesService } from "../../games/games.service";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
-import { UiButton, UiInput, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiIconButton, UiInput, UiPagination, UiSearchBar } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink, UiButton, UiInput, UiPagination, UiSearchBar],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink, UiButton, UiIconButton, UiInput, UiPagination, UiSearchBar],
 	templateUrl: "./backlog-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -74,17 +74,16 @@ export class BacklogList implements OnInit {
 	protected readonly newFilterName = signal("");
 	protected readonly savingFilter = signal(false);
 
-	protected readonly hasActiveFilters = () => {
-		return (
-			this.selectedPlatform() !== "" ||
-			this.startedFrom() !== "" ||
-			this.startedTo() !== "" ||
-			this.finishedFrom() !== "" ||
-			this.finishedTo() !== "" ||
-			this.minRating() !== null ||
-			this.maxRating() !== null ||
-			this.activeStatuses().size > 0
-		);
+	protected readonly hasActiveFilters = () => this.activeFiltersCount() > 0;
+
+	protected readonly activeFiltersCount = () => {
+		let count = 0;
+		if (this.selectedPlatform() !== "") count++;
+		if (this.startedFrom() !== "" || this.startedTo() !== "") count++;
+		if (this.finishedFrom() !== "" || this.finishedTo() !== "") count++;
+		if (this.minRating() !== null || this.maxRating() !== null) count++;
+		if (this.activeStatuses().size > 0) count++;
+		return count;
 	};
 
 	private readonly statuses: { label: string; value: string }[] = [
@@ -316,12 +315,6 @@ export class BacklogList implements OnInit {
 			});
 	}
 
-	private readonly clientSortFields = new Set([
-		"title",
-		"ratio",
-		"personalRatio"
-	]);
-
 	sort(column: string) {
 		if (this.sortBy() === column) {
 			this.sortOrder.set(this.sortOrder() === "asc" ? "desc" : "asc");
@@ -329,29 +322,8 @@ export class BacklogList implements OnInit {
 			this.sortBy.set(column);
 			this.sortOrder.set("desc");
 		}
-
-		if (this.clientSortFields.has(column)) {
-			this.sortEntriesLocally();
-		} else {
-			this.loadBacklog();
-		}
-	}
-
-	private sortEntriesLocally() {
-		const field = this.sortBy();
-		const order = this.sortOrder();
-		const sorted = [...this.entries()].sort((a, b) => {
-			if (field === "title") {
-				const aVal = a.game.title.toLowerCase();
-				const bVal = b.game.title.toLowerCase();
-				const cmp = aVal.localeCompare(bVal);
-				return order === "asc" ? cmp : -cmp;
-			}
-			const aVal = (a[field as keyof BacklogEntry] as number) ?? 0;
-			const bVal = (b[field as keyof BacklogEntry] as number) ?? 0;
-			return order === "asc" ? aVal - bVal : bVal - aVal;
-		});
-		this.entries.set(sorted);
+		this.offset.set(0);
+		this.loadBacklog();
 	}
 
 	statusClass(status: BacklogStatus): string {
@@ -413,16 +385,12 @@ export class BacklogList implements OnInit {
 
 	private loadBacklog() {
 		this.isLoading.set(true);
-		const isClientSort = this.clientSortFields.has(this.sortBy());
 		const filters: BacklogFilters = {
 			limit: this.limit,
-			offset: this.offset()
+			offset: this.offset(),
+			sort_by: this.sortBy(),
+			sort_order: this.sortOrder()
 		};
-
-		if (!isClientSort) {
-			filters.sort_by = this.sortBy();
-			filters.sort_order = this.sortOrder();
-		}
 
 		const statuses = this.activeStatuses();
 		if (statuses.size > 0) {
@@ -444,7 +412,6 @@ export class BacklogList implements OnInit {
 			next: res => {
 				this.entries.set(res.data.backlog);
 				this.total.set(res.data.total);
-				if (isClientSort) this.sortEntriesLocally();
 				this.isLoading.set(false);
 				this.isInitialLoad.set(false);
 			},

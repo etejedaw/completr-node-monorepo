@@ -11,6 +11,7 @@ export interface BacklogEntry {
 	userRating?: number;
 	isPublic: boolean;
 	notes?: string;
+	review?: { content: string | null; rating: number | null } | null;
 	game: BacklogGame;
 	platform: BacklogPlatform;
 }

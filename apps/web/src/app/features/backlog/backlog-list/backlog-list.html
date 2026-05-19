@@ -4,7 +4,7 @@
 			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Backlog</h1>
 			<span class="text-sm text-fg-muted">{{ total() }} entries</span>
 		</div>
-		<button uiButton variant="primary" (click)="openCreate()">+ Add Game</button>
+		<button uiButton variant="primary" (click)="openCreate()">+ Add to Backlog</button>
 	</div>
 
 	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
@@ -25,184 +25,235 @@
 			}
 		</div>
 		}
-		<button
-			class="ml-auto bg-transparent border border-line text-fg-muted px-2.5 py-1.5 rounded text-xs font-medium font-sans whitespace-nowrap cursor-pointer flex items-center gap-1 transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="showFilters()"
-			[class.!border-brand]="showFilters()"
-			[class.!text-brand]="showFilters()"
-			(click)="toggleFilters()"
-		>
-			<span class="material-icons text-base">tune</span>
-			Filters
-		</button>
+		<div class="ml-auto flex items-center gap-2">
+			@if (hasActiveFilters()) {
+				<button
+					class="bg-transparent border border-line text-fg-muted px-2.5 py-1.5 rounded text-xs font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1 transition hover:border-danger/50 hover:text-danger"
+					(click)="clearFilters()"
+				>
+					<span class="material-icons text-sm">filter_alt_off</span>
+					Clear all
+				</button>
+			}
+			<button
+				class="bg-transparent border text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded transition"
+				[class.border-line]="!showFilters() && !hasActiveFilters()"
+				[class.text-fg-secondary]="!showFilters() && !hasActiveFilters()"
+				[class.hover:border-brand]="!showFilters()"
+				[class.hover:text-brand]="!showFilters()"
+				[class.border-brand]="showFilters() || hasActiveFilters()"
+				[class.text-brand]="showFilters() || hasActiveFilters()"
+				[class.bg-brand-subtle]="showFilters()"
+				(click)="toggleFilters()"
+			>
+				<span class="material-icons text-base">tune</span>
+				Filters
+				@if (activeFiltersCount() > 0) {
+					<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none">{{ activeFiltersCount() }}</span>
+				}
+			</button>
+		</div>
 	</div>
 
 	@if (activeFilterDescription()) {
 	<p class="-mt-2 mb-3 text-xs text-fg-muted italic">{{ activeFilterDescription() }}</p>
 	} @if (showFilters()) {
-	<div class="flex flex-wrap gap-3 items-end p-3.5 bg-sidebar border border-line rounded mb-5">
-		<div class="flex flex-col gap-1 basis-full">
-			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Status</label>
-			<div class="flex gap-1">
-				@for (s of statusFilters; track s.value) {
-				<button
-					class="bg-input-bg border border-line text-fg-secondary text-xs font-medium px-2.5 py-1 rounded cursor-pointer font-sans transition hover:border-fg-muted hover:text-fg"
-					[class.!bg-brand-subtle]="isStatusActive(s.value)"
-					[class.!border-brand]="isStatusActive(s.value)"
-					[class.!text-brand]="isStatusActive(s.value)"
-					(click)="toggleStatus(s.value)"
+	<div
+		class="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm"
+		(click)="showFilters.set(false)"
+	></div>
+	<aside
+		class="fixed top-0 right-0 h-screen w-full sm:w-[420px] z-[90] bg-sidebar border-l border-line shadow-[0_0_60px_-12px_rgba(0,0,0,0.7)] flex flex-col"
+	>
+		<header class="flex items-center justify-between px-5 py-4 border-b border-line shrink-0">
+			<h2 class="font-display text-lg font-bold m-0 flex items-center gap-2">
+				<span class="material-icons text-brand">tune</span>
+				Filters
+				@if (activeFiltersCount() > 0) {
+					<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none">{{ activeFiltersCount() }}</span>
+				}
+			</h2>
+			<button uiIconButton size="sm" (click)="showFilters.set(false)" aria-label="Close">
+				<span class="material-icons">close</span>
+			</button>
+		</header>
+
+		<div class="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-6">
+			<section>
+				<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Status</h3>
+				<div class="flex flex-wrap gap-1.5">
+					@for (s of statusFilters; track s.value) {
+						<button
+							class="bg-input-bg border border-line text-fg-secondary text-xs font-medium px-3 py-1.5 rounded-full cursor-pointer font-sans transition hover:border-fg-muted hover:text-fg"
+							[class.!bg-brand-subtle]="isStatusActive(s.value)"
+							[class.!border-brand]="isStatusActive(s.value)"
+							[class.!text-brand]="isStatusActive(s.value)"
+							(click)="toggleStatus(s.value)"
+						>
+							{{ s.label }}
+						</button>
+					}
+				</div>
+			</section>
+
+			<section>
+				<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Platform</h3>
+				<select
+					class="w-full cursor-pointer px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
+					[ngModel]="selectedPlatform()"
+					(ngModelChange)="selectedPlatform.set($event)"
 				>
-					{{ s.label }}
-				</button>
-				}
-			</div>
-		</div>
-		<div class="flex flex-col gap-1">
-			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Platform</label>
-			<select
-				class="min-w-[140px] cursor-pointer px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-				[ngModel]="selectedPlatform()"
-				(ngModelChange)="selectedPlatform.set($event)"
-			>
-				<option value="">All platforms</option>
-				@for (p of allPlatforms(); track p.id) {
-				<option [value]="p.id">{{ p.name }}</option>
-				}
-			</select>
-		</div>
-		<div class="flex flex-col gap-1">
-			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Started from</label>
-			<input
-				type="date"
-				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-				[ngModel]="startedFrom()"
-				(ngModelChange)="startedFrom.set($event)"
-			/>
-		</div>
-		<div class="flex flex-col gap-1">
-			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Started to</label>
-			<input
-				type="date"
-				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-				[ngModel]="startedTo()"
-				(ngModelChange)="startedTo.set($event)"
-			/>
-		</div>
-		<div class="flex flex-col gap-1">
-			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Finished from</label>
-			<input
-				type="date"
-				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-				[ngModel]="finishedFrom()"
-				(ngModelChange)="finishedFrom.set($event)"
-			/>
-		</div>
-		<div class="flex flex-col gap-1">
-			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Finished to</label>
-			<input
-				type="date"
-				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-				[ngModel]="finishedTo()"
-				(ngModelChange)="finishedTo.set($event)"
-			/>
-		</div>
-		<div class="flex flex-col gap-1">
-			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Sort by</label>
-			<select
-				class="min-w-[140px] cursor-pointer px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-				[ngModel]="sortBy()"
-				(ngModelChange)="sortBy.set($event)"
-			>
-				<option value="createdAt">Date added</option>
-				<option value="title">Title</option>
-				<option value="score">Score</option>
-				<option value="duration">Duration</option>
-				<option value="ratio">Ratio</option>
-				<option value="realDuration">Real duration</option>
-				<option value="personalRatio">Personal ratio</option>
-				<option value="userRating">Rating</option>
-				<option value="finishedAt">Finished</option>
-				<option value="status">Status</option>
-			</select>
-		</div>
-		<div class="flex flex-col gap-1">
-			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Order</label>
-			<select
-				class="min-w-[140px] cursor-pointer px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-				[ngModel]="sortOrder()"
-				(ngModelChange)="sortOrder.set($event)"
-			>
-				<option value="desc">Descending</option>
-				<option value="asc">Ascending</option>
-			</select>
-		</div>
-		<div class="flex flex-col gap-1">
-			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Min rating</label>
-			<app-star-rating
-				[value]="minRating()"
-				(ratingChange)="minRating.set($event)"
-				size="sm"
-			/>
-		</div>
-		<div class="flex flex-col gap-1">
-			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Max rating</label>
-			<app-star-rating
-				[value]="maxRating()"
-				(ratingChange)="maxRating.set($event)"
-				size="sm"
-			/>
-		</div>
-		<div class="flex gap-1.5 items-end">
-			<button
-				class="bg-transparent border border-line text-fg-muted w-[30px] h-[30px] rounded cursor-pointer flex items-center justify-center shrink-0 transition hover:border-brand hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
-				(click)="applyFilters()"
-				title="Apply filters"
-			>
-				<span class="material-icons text-base">search</span>
-			</button>
-			@if (hasActiveFilters()) {
-			<button
-				class="bg-transparent border border-line text-fg-muted w-[30px] h-[30px] rounded cursor-pointer flex items-center justify-center shrink-0 transition hover:border-danger/50 hover:text-danger disabled:opacity-30 disabled:cursor-not-allowed"
-				(click)="clearFilters(); showFilters.set(false)"
-				title="Clear filters"
-			>
-				<span class="material-icons text-base">filter_alt_off</span>
-			</button>
+					<option value="">All platforms</option>
+					@for (p of allPlatforms(); track p.id) {
+						<option [value]="p.id">{{ p.name }}</option>
+					}
+				</select>
+			</section>
+
+			<section>
+				<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Started</h3>
+				<div class="grid grid-cols-2 gap-2">
+					<input
+						type="date"
+						placeholder="From"
+						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
+						[ngModel]="startedFrom()"
+						(ngModelChange)="startedFrom.set($event)"
+					/>
+					<input
+						type="date"
+						placeholder="To"
+						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
+						[ngModel]="startedTo()"
+						(ngModelChange)="startedTo.set($event)"
+					/>
+				</div>
+			</section>
+
+			<section>
+				<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Finished</h3>
+				<div class="grid grid-cols-2 gap-2">
+					<input
+						type="date"
+						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
+						[ngModel]="finishedFrom()"
+						(ngModelChange)="finishedFrom.set($event)"
+					/>
+					<input
+						type="date"
+						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
+						[ngModel]="finishedTo()"
+						(ngModelChange)="finishedTo.set($event)"
+					/>
+				</div>
+			</section>
+
+			<section>
+				<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Rating range</h3>
+				<div class="grid grid-cols-2 gap-3">
+					<div>
+						<label class="block text-[0.625rem] text-fg-muted mb-1">Min</label>
+						<app-star-rating
+							[value]="minRating()"
+							(ratingChange)="minRating.set($event)"
+							size="sm"
+						/>
+					</div>
+					<div>
+						<label class="block text-[0.625rem] text-fg-muted mb-1">Max</label>
+						<app-star-rating
+							[value]="maxRating()"
+							(ratingChange)="maxRating.set($event)"
+							size="sm"
+						/>
+					</div>
+				</div>
+			</section>
+
+			<section>
+				<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Sort</h3>
+				<div class="grid grid-cols-2 gap-2">
+					<select
+						class="w-full cursor-pointer px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
+						[ngModel]="sortBy()"
+						(ngModelChange)="sortBy.set($event)"
+					>
+						<option value="createdAt">Date added</option>
+						<option value="title">Title</option>
+						<option value="score">Score</option>
+						<option value="duration">Duration</option>
+						<option value="ratio">Ratio</option>
+						<option value="realDuration">Real duration</option>
+						<option value="personalRatio">Personal ratio</option>
+						<option value="userRating">Rating</option>
+						<option value="finishedAt">Finished</option>
+						<option value="status">Status</option>
+					</select>
+					<select
+						class="w-full cursor-pointer px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
+						[ngModel]="sortOrder()"
+						(ngModelChange)="sortOrder.set($event)"
+					>
+						<option value="desc">Descending</option>
+						<option value="asc">Ascending</option>
+					</select>
+				</div>
+			</section>
+
+			@if (activeFilterId()) {
+				<section class="pt-3 border-t border-line">
+					<button
+						class="w-full bg-transparent border border-line text-fg-secondary text-sm font-medium px-3 py-2 rounded cursor-pointer inline-flex items-center justify-center gap-2 transition hover:border-brand hover:text-brand disabled:opacity-30"
+						(click)="updateCurrentFilter()"
+						[disabled]="savingFilter()"
+					>
+						<span class="material-icons text-base">save</span>
+						Update current view
+					</button>
+				</section>
+			} @else if (hasActiveFilters()) {
+				<section class="pt-3 border-t border-line">
+					<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Save as view</h3>
+					<div class="flex items-center gap-2">
+						<input
+							uiInput
+							type="text"
+							class="!flex-1 !text-sm"
+							placeholder="View name..."
+							[ngModel]="newFilterName()"
+							(ngModelChange)="newFilterName.set($event)"
+							(keydown.enter)="saveCurrentFilter()"
+						/>
+						<button
+							class="bg-transparent border border-line text-fg-muted w-9 h-9 rounded cursor-pointer inline-flex items-center justify-center shrink-0 transition hover:border-brand hover:text-brand disabled:opacity-30"
+							(click)="saveCurrentFilter()"
+							[disabled]="savingFilter() || !newFilterName().trim()"
+							title="Save view"
+						>
+							<span class="material-icons text-base">bookmark_add</span>
+						</button>
+					</div>
+				</section>
 			}
 		</div>
-		@if (activeFilterId()) {
-		<div class="flex items-center gap-1.5 pt-3 border-t border-line basis-full">
-			<button
-				class="bg-transparent border border-line text-fg-muted w-[30px] h-[30px] rounded cursor-pointer flex items-center justify-center shrink-0 transition hover:border-brand hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
-				(click)="updateCurrentFilter()"
-				[disabled]="savingFilter()"
-				title="Update current view"
-			>
-				<span class="material-icons text-base">save</span>
+
+		<footer class="flex items-center justify-between gap-2 px-5 py-3 border-t border-line shrink-0">
+			@if (hasActiveFilters()) {
+				<button
+					class="bg-transparent border-0 text-fg-muted text-sm font-medium px-2 py-1.5 cursor-pointer inline-flex items-center gap-1 transition hover:text-danger"
+					(click)="clearFilters()"
+				>
+					<span class="material-icons text-base">filter_alt_off</span>
+					Clear all
+				</button>
+			} @else {
+				<span></span>
+			}
+			<button uiButton variant="primary" (click)="applyFilters(); showFilters.set(false)">
+				Apply
 			</button>
-		</div>
-		} @else if (hasActiveFilters()) {
-		<div class="flex items-center gap-1.5 pt-3 border-t border-line basis-full">
-			<input
-				uiInput
-				type="text"
-				class="!w-[140px] !text-xs"
-				placeholder="View name..."
-				[ngModel]="newFilterName()"
-				(ngModelChange)="newFilterName.set($event)"
-				(keydown.enter)="saveCurrentFilter()"
-			/>
-			<button
-				class="bg-transparent border border-line text-fg-muted w-[30px] h-[30px] rounded cursor-pointer flex items-center justify-center shrink-0 transition hover:border-brand hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
-				(click)="saveCurrentFilter()"
-				[disabled]="savingFilter() || !newFilterName().trim()"
-				title="Save view"
-			>
-				<span class="material-icons text-base">bookmark_add</span>
-			</button>
-		</div>
-		}
-	</div>
+		</footer>
+	</aside>
 	} @if (isInitialLoad() && isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (!isLoading() && entries().length === 0) {
@@ -263,11 +314,19 @@
 						</a>
 
 						<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
-							<a
-								class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
-								[routerLink]="['/games', entry.game.code]"
-								(click)="$event.stopPropagation()"
-							>{{ entry.game.title }}</a>
+							<div class="flex items-center gap-2 flex-wrap">
+								<a
+									class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
+									[routerLink]="['/games', entry.game.code]"
+									(click)="$event.stopPropagation()"
+								>{{ entry.game.title }}</a>
+								@if (entry.realDuration) {
+									<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line">
+										<span class="material-icons text-[0.75rem]">schedule</span>
+										Real {{ entry.realDuration }}h
+									</span>
+								}
+							</div>
 
 							<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
 								<span
@@ -283,23 +342,17 @@
 									<span class="text-fg-muted">·</span>
 									<span class="text-fg-muted">{{ entry.duration }}h</span>
 								}
-								@if (entry.realDuration) {
-									<span class="text-fg-muted">·</span>
-									<span class="text-fg-muted">Real {{ entry.realDuration }}h</span>
-								}
 								@if (entry.finishedAt) {
 									<span class="text-fg-muted">·</span>
 									<span class="text-fg-muted">{{ entry.finishedAt | date:'yyyy-MM-dd' }}</span>
 								}
 							</div>
 
-							@if (entry.userRating) {
-								<app-star-rating
-									[value]="entry.userRating"
-									[readonly]="true"
-									size="sm"
-								/>
-							}
+							<app-star-rating
+								[value]="entry.userRating ?? null"
+								[readonly]="true"
+								size="sm"
+							/>
 
 							@if (entry.notes) {
 								<p class="text-xs text-fg-muted line-clamp-2 leading-snug m-0 mt-auto">{{ entry.notes }}</p>

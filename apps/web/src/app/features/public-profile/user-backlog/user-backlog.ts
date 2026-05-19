@@ -49,6 +49,26 @@ export class UserBacklog implements OnInit {
 		{ label: "Abandoned", value: "abandoned" }
 	];
 
+	protected readonly expandedReviews = signal<Set<string>>(new Set());
+
+	toggleReview(id: string) {
+		const next = new Set(this.expandedReviews());
+		if (next.has(id)) {
+			next.delete(id);
+		} else {
+			next.add(id);
+		}
+		this.expandedReviews.set(next);
+	}
+
+	isReviewExpanded(id: string): boolean {
+		return this.expandedReviews().has(id);
+	}
+
+	needsReviewToggle(content: string | null | undefined): boolean {
+		return !!content && content.length > 180;
+	}
+
 	ngOnInit() {
 		this.searchSubject
 			.pipe(debounceTime(300), distinctUntilChanged())
@@ -114,13 +134,31 @@ export class UserBacklog implements OnInit {
 		return map[status] ?? status;
 	}
 
+	private defaultSortForStatus(status: string): {
+		sort_by: string;
+		sort_order: string;
+	} {
+		switch (status) {
+			case "playing":
+				return { sort_by: "startedAt", sort_order: "desc" };
+			case "completed":
+			case "abandoned":
+				return { sort_by: "finishedAt", sort_order: "desc" };
+			default:
+				return { sort_by: "createdAt", sort_order: "desc" };
+		}
+	}
+
 	private load() {
 		this.isLoading.set(true);
 		this.error.set(null);
 
+		const sort = this.defaultSortForStatus(this.activeStatus());
 		const filters: Record<string, string | number> = {
 			limit: this.limit,
-			offset: this.offset()
+			offset: this.offset(),
+			sort_by: sort.sort_by,
+			sort_order: sort.sort_order
 		};
 		if (this.activeStatus()) filters["status"] = this.activeStatus();
 		if (this.searchQuery()) filters["search"] = this.searchQuery();

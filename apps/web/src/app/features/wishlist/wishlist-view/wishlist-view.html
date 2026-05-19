@@ -127,17 +127,20 @@
 		</div>
 	} @if (viewMode() === 'grid') {
 	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-		@for (entry of filteredEntries(); track entry.id) {
+		@for (entry of filteredEntries(); track entry.id; let i = $index) {
 		<a class="flex flex-col gap-1.5 text-inherit no-underline group" [routerLink]="['/games', entry.backlog.game.code]">
-			@if (entry.backlog.game.backgroundUrl) {
-			<img
-				[src]="entry.backlog.game.backgroundUrl"
-				[alt]="entry.backlog.game.title"
-				class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40-md transition-transform hover:scale-[1.03]"
-			/>
-			} @else {
-			<div class="w-full aspect-[3/4] bg-surface rounded-lg-md"></div>
-			}
+			<div class="relative">
+				@if (entry.backlog.game.backgroundUrl) {
+				<img
+					[src]="entry.backlog.game.backgroundUrl"
+					[alt]="entry.backlog.game.title"
+					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40-md transition-transform hover:scale-[1.03]"
+				/>
+				} @else {
+				<div class="w-full aspect-[3/4] bg-surface rounded-lg-md"></div>
+				}
+				<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm">#{{ offset() + i + 1 }}</span>
+			</div>
 			<span class="text-xs font-medium text-fg-secondary truncate">{{ entry.backlog.game.title }}</span>
 			<span class="text-[0.625rem] text-fg-muted">{{ entry.backlog.platform?.abbreviation ?? '' }}</span>
 		</a>
