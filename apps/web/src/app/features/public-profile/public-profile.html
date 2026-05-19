@@ -90,7 +90,7 @@
 					[routerLink]="['/user', username(), 'backlog']"
 				>{{ profile()!.backlogs.length }} total</a>
 			</div>
-			<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+			<div class="grid grid-cols-3 md:grid-cols-6 gap-4">
 				@for (b of profile()!.backlogs.slice(0, 6); track b.id) {
 				<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', b.game.code]">
 					@if (b.game.backgroundUrl) {
@@ -125,7 +125,7 @@
 					[routerLink]="['/user', username(), 'game-shelf']"
 				>{{ profile()!.gameShelf.length }} total</a>
 			</div>
-			<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+			<div class="grid grid-cols-3 md:grid-cols-6 gap-4">
 				@for (s of profile()!.gameShelf.slice(0, 6); track s.id) {
 				<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', s.game.code]">
 					@if (s.game.backgroundUrl) {
@@ -220,7 +220,7 @@
 					[routerLink]="['/user', username(), 'favorites']"
 				>{{ profile()!.favorites.length }} total</a>
 			</div>
-			<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+			<div class="grid grid-cols-3 md:grid-cols-6 gap-4">
 				@for (f of profile()!.favorites.slice(0, 6); track f.id) {
 				<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', f.game.code]">
 					@if (f.game.backgroundUrl) {
@@ -246,7 +246,7 @@
 					[routerLink]="['/user', username(), 'wishlist']"
 				>{{ profile()!.wishlist.length }} total</a>
 			</div>
-			<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+			<div class="grid grid-cols-3 md:grid-cols-6 gap-4">
 				@for (w of profile()!.wishlist.slice(0, 6); track w.id) {
 				<a
 					class="flex flex-col gap-1 no-underline text-inherit group"
