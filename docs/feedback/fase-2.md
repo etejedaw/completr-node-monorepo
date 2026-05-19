@@ -72,9 +72,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-18
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Al editar un juego en el panel admin, si el usuario agrega un valor en scores o durations por error y guarda, al volver a editar el juego e intentar borrar ese registro (dejarlo vacio o eliminarlo), el cambio no se persiste al guardar. El score o duration agregado por error queda permanente y no se puede eliminar desde el editor. Probablemente afecta tanto a scores como a durations ya que usan el mismo patron de guardado.
-- **Solucion propuesta:** Revisar el flujo de guardado del admin game editor para que soporte eliminacion de scores y durations existentes. Verificar si el PATCH /games/:id acepta enviar un score/duration con valor null o sin el registro para que el backend lo elimine. Si el backend no soporta borrar scores/durations desde el PATCH, considerar agregar endpoints DELETE o aceptar valores vacios como señal de borrado.
+- **Solucion:** Agregados endpoints `DELETE /game-scores/:gameId/:source` y `DELETE /game-times/:gameId/:source` (auth moderator, devuelven 204 o 404 si no existe). El admin game editor compara las sources que tenia el juego al cargar contra las sources que quedan al guardar y dispara los DELETEs correspondientes dentro del mismo `forkJoin` del save. La UI ya tenia botones remove en cada entry; ahora la accion se propaga al backend.
 
 ### [FB-006] Rate limit demasiado bajo para uso normal
 
