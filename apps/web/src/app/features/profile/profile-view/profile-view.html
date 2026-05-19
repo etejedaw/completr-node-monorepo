@@ -103,7 +103,7 @@
 	@if (profile()!.backlogs.length > 0) {
 	<div class="mb-8">
 		<div class="flex items-baseline justify-between mb-3">
-			<h2 class="font-display m-0 text-base font-semibold text-fg-secondary">Recent Backlog</h2>
+			<h2 class="font-display m-0 text-xl font-bold text-fg">Recent Backlog</h2>
 			<a
 				class="text-xs text-fg-muted no-underline hover:text-brand"
 				[routerLink]="['/user', profile()!.user.username, 'backlog']"
@@ -138,7 +138,7 @@
 	} @if (profile()!.gameShelf.length > 0) {
 	<div class="mb-8">
 		<div class="flex items-baseline justify-between mb-3">
-			<h2 class="font-display m-0 text-base font-semibold text-fg-secondary">Game Shelf</h2>
+			<h2 class="font-display m-0 text-xl font-bold text-fg">Game Shelf</h2>
 			<a
 				class="text-xs text-fg-muted no-underline hover:text-brand"
 				[routerLink]="['/user', profile()!.user.username, 'game-shelf']"
@@ -165,7 +165,7 @@
 	} @if (profile()!.lists.length > 0) {
 	<div class="mb-8">
 		<div class="flex items-baseline justify-between mb-3">
-			<h2 class="font-display m-0 text-base font-semibold text-fg-secondary">Lists</h2>
+			<h2 class="font-display m-0 text-xl font-bold text-fg">Lists</h2>
 			<span class="text-xs text-fg-muted">{{ profile()!.lists.length }} total</span>
 		</div>
 		<div class="flex flex-col gap-2">
@@ -199,7 +199,7 @@
 	} @if (profile()!.followingLists.length > 0) {
 	<div class="mb-8">
 		<div class="flex items-baseline justify-between mb-3">
-			<h2 class="font-display m-0 text-base font-semibold text-fg-secondary">Following Lists</h2>
+			<h2 class="font-display m-0 text-xl font-bold text-fg">Following Lists</h2>
 			<span class="text-xs text-fg-muted">{{ profile()!.followingLists.length }} total</span>
 		</div>
 		<div class="flex flex-col gap-2">
@@ -227,7 +227,7 @@
 	} @if (profile()!.favorites.length > 0) {
 	<div class="mb-8">
 		<div class="flex items-baseline justify-between mb-3">
-			<h2 class="font-display m-0 text-base font-semibold text-fg-secondary">Favorites</h2>
+			<h2 class="font-display m-0 text-xl font-bold text-fg">Favorites</h2>
 			<a
 				class="text-xs text-fg-muted no-underline hover:text-brand"
 				[routerLink]="['/user', profile()!.user.username, 'favorites']"
@@ -253,7 +253,7 @@
 	} @if (profile()!.wishlist.length > 0) {
 	<div class="mb-8">
 		<div class="flex items-baseline justify-between mb-3">
-			<h2 class="font-display m-0 text-base font-semibold text-fg-secondary">Wishlist</h2>
+			<h2 class="font-display m-0 text-xl font-bold text-fg">Wishlist</h2>
 			<a
 				class="text-xs text-fg-muted no-underline hover:text-brand"
 				[routerLink]="['/user', profile()!.user.username, 'wishlist']"
@@ -280,7 +280,7 @@
 	} @if (userReviews().length > 0) {
 	<div class="mb-8">
 		<div class="flex items-baseline justify-between mb-3">
-			<h2 class="font-display m-0 text-base font-semibold text-fg-secondary">Reviews</h2>
+			<h2 class="font-display m-0 text-xl font-bold text-fg">Reviews</h2>
 			<span class="text-xs text-fg-muted">{{ userReviews().length }} total</span>
 		</div>
 		@for (r of userReviews().slice(0, 5); track r.id) {
@@ -304,7 +304,7 @@
 	} @if (profile()!.recentActivity.length > 0) {
 	<div class="mb-8">
 		<div class="flex items-baseline justify-between mb-3">
-			<h2 class="font-display m-0 text-base font-semibold text-fg-secondary">Recent Activity</h2>
+			<h2 class="font-display m-0 text-xl font-bold text-fg">Recent Activity</h2>
 		</div>
 		<div class="flex flex-col">
 			@for (a of profile()!.recentActivity.slice(0, 10); track a.id) {
