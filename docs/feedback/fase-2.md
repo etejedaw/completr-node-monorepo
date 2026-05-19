@@ -112,17 +112,17 @@ Formato por item:
 
 - **Fecha:** 2026-04-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** El backlog propio (GET /users/me/backlog) carga todos los registros de una vez, lo que se vuelve lento cuando un usuario tiene muchos juegos. El backlog publico de otro usuario ya tiene paginacion con limit/offset (max 50), pero el propio no. Con usuarios que tienen 100+ entradas la tabla se siente pesada.
-- **Solucion propuesta:** Agregar paginacion al backlog propio usando el mismo PaginationQuerySchema pero con un limit mas alto (100) para que el usuario vea mas registros por pagina que en la vista publica. Aplicar la misma paginacion con limit 100 a game-shelf, wishlist y favorites propios. Agregar controles de paginacion en el frontend de todas estas vistas.
+- **Solucion:** Paginacion aplicada a backlog, game-shelf, wishlist y favorites propios (limit 100). PaginationQuerySchema global subido de max 50 a max 100. Servicios devuelven `{ rows, total }`, controllers exponen `total` en el payload. Frontend: componente compartido `<ui-pagination>` en `shared/ui/pagination/` con botones prev/next, contador "X–Y of N". Aplicado en backlog-list, game-shelf-list, wishlist-view y favorites-view.
 
 ### [FB-011] Lists y saved views sin paginacion
 
 - **Fecha:** 2026-04-19
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Las vistas de listas propias (GET /lists/me) y saved views (GET /users/me/saved-filters) cargan todos los registros sin paginacion. Aunque es poco probable que un usuario tenga muchas entradas (free tiene limite de 5), conviene tener paginacion por consistencia y para usuarios premium con listas ilimitadas.
-- **Solucion propuesta:** Agregar paginacion con limit 25 a lists y saved views. Agregar controles de paginacion en el frontend de ambas vistas.
+- **Solucion:** Paginacion con limit 25 aplicada a GET /lists/me y GET /users/me/saved-filters (backend acepta limit/offset, devuelve total). Frontend: `<ui-pagination>` en list-overview y saved-filters-view.
 
 ### [FB-012] Notas del backlog visibles en perfil publico de otro usuario
 
@@ -184,9 +184,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** El feed de actividad (GET /feed) carga todas las actividades de una vez. Si un usuario sigue a mucha gente, el feed crece rapidamente y carga demasiada informacion innecesaria. No tiene sentido mostrar todo el historial de actividad de golpe.
-- **Solucion propuesta:** Agregar paginacion al feed con limit/offset y un limit de 25 actividades por pagina. Agregar controles de paginacion o scroll infinito en el frontend.
+- **Solucion:** Paginacion con limit 25 aplicada a GET /feed. `activityService.getFeed` ahora devuelve `{ rows, total }` con findAndCountAll. Frontend: `<ui-pagination>` en feed-page con prev/next.
 
 ### [FB-020] Boton de favoritos en game detail poco visible
 
