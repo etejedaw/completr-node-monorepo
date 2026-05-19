@@ -2,7 +2,7 @@
 	<div class="modal-card" (click)="$event.stopPropagation()">
 		<div class="modal-header">
 			<h2>Add to Wishlist</h2>
-			<button class="close-btn" (click)="onClose()">&times;</button>
+			<button uiIconButton size="sm" class="close-btn" (click)="onClose()">&times;</button>
 		</div>
 
 		<div class="search-bar">
@@ -35,6 +35,9 @@
 					</div>
 				</div>
 				<button
+					uiButton
+					variant="primary"
+					size="sm"
 					class="btn-add"
 					(click)="addToWishlist(entry)"
 					[disabled]="adding() === entry.id"

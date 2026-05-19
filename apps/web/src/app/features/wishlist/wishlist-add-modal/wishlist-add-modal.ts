@@ -9,9 +9,11 @@ import {
 import { BacklogEntry } from "../../../core/models";
 import { BacklogService } from "../../backlog/backlog.service";
 import { WishlistService } from "../wishlist.service";
+import { UiButton, UiIconButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-wishlist-add-modal",
+	imports: [UiButton, UiIconButton],
 	templateUrl: "./wishlist-add-modal.html",
 	styleUrl: "./wishlist-add-modal.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

@@ -4,7 +4,7 @@
 			<h1>Wishlist</h1>
 			<span class="entry-count">{{ entries().length }} games</span>
 		</div>
-		<button class="btn-add" (click)="openAddModal()">
+		<button uiButton variant="primary" (click)="openAddModal()">
 			+ Add from Backlog
 		</button>
 	</div>
@@ -91,7 +91,7 @@
 					</td>
 					<td class="col-actions">
 						<button
-							class="btn-move"
+							uiIconButton size="sm" class="btn-move"
 							[disabled]="i === 0"
 							(click)="moveUp(i)"
 							title="Move up"
@@ -99,7 +99,7 @@
 							&#9650;
 						</button>
 						<button
-							class="btn-move"
+							uiIconButton size="sm" class="btn-move"
 							[disabled]="i === entries().length - 1"
 							(click)="moveDown(i)"
 							title="Move down"
@@ -107,7 +107,7 @@
 							&#9660;
 						</button>
 						<button
-							class="btn-remove"
+							uiIconButton size="sm" tone="danger" class="btn-remove"
 							(click)="remove(entry)"
 							title="Remove"
 						>

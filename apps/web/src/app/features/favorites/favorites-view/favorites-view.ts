@@ -8,10 +8,11 @@ import {
 import { RouterLink } from "@angular/router";
 import { FavoriteEntry } from "../../../core/models";
 import { FavoritesService } from "../favorites.service";
+import { UiIconButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-favorites-view",
-	imports: [RouterLink],
+	imports: [RouterLink, UiIconButton],
 	templateUrl: "./favorites-view.html",
 	styleUrl: "./favorites-view.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

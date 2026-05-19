@@ -9,10 +9,11 @@ import { RouterLink } from "@angular/router";
 import { WishlistEntry } from "../../../core/models";
 import { WishlistService } from "../wishlist.service";
 import { WishlistAddModal } from "../wishlist-add-modal/wishlist-add-modal";
+import { UiButton, UiIconButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-wishlist-view",
-	imports: [RouterLink, WishlistAddModal],
+	imports: [RouterLink, WishlistAddModal, UiButton, UiIconButton],
 	templateUrl: "./wishlist-view.html",
 	styleUrl: "./wishlist-view.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
