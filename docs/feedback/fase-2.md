@@ -128,9 +128,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-19
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** La columna de notas del backlog es visible cuando un usuario ve el perfil o backlog publico de otro usuario. Las notas son personales y pueden contener comentarios privados que el usuario no espera que otros vean.
-- **Solucion propuesta:** Ocultar la columna de notas en el backlog publico. En el backend, excluir el campo notes del serializer cuando se consulta el backlog de otro usuario (GET /users/:username/backlog). En el frontend, no mostrar la columna de notas en las vistas publicas de backlog.
+- **Solucion:** Decisión: las notas son siempre privadas (no hay toggle de público). Agregado `backlogPublicSerializer` que omite `notes`. `getUserBacklog` y `usersController.getProfile` (cuando no es self) usan el serializer público. El frontend ya tenía guard `@if (entry.notes)` así que la columna desaparece automáticamente al venir undefined desde el backend.
 
 ### [FB-013] Login no redirige a la URL original despues de autenticarse
 
