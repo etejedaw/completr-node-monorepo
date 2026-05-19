@@ -12,9 +12,11 @@ export function listItemSerializer(item: ListItem) {
 	};
 }
 
+const RATIO_SCALE = 20;
+
 function calculateRatio(score?: number, duration?: number) {
 	if (!score || !duration) return undefined;
-	return Math.round((score / duration) * 100) / 100;
+	return Math.round((score / duration) * RATIO_SCALE * 100) / 100;
 }
 
 function gameSerializer(game: Game) {
