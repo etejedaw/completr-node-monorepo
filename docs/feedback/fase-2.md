@@ -160,9 +160,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** En la pagina de games (/games), la seccion "Latest Completr Lists" todavia muestra el placeholder "Coming soon..." a pesar de que el sistema de listas ya esta implementado y hay listas creadas. Los usuarios ven una seccion vacia que deberia estar mostrando contenido real.
-- **Solucion propuesta:** Reemplazar el placeholder con listas reales. Mostrar las listas oficiales (creadas por admin) o las listas publicas mas recientes/populares. Requiere un endpoint o reutilizar GET /lists/search para obtener listas destacadas.
+- **Solucion:** Resuelto en commits posteriores al reporte. `games-browse` tiene dos secciones reales: "Completr Official" (alimentada por `GET /lists/official`, listas creadas por admin) y "Latest Lists" (`GET /lists/recent`, listas públicas de usuarios). Ambas se renderizan solo si hay datos, sin placeholder.
 
 ### [FB-017] Flash de placeholders al cargar games-browse
 
