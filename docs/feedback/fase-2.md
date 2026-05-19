@@ -136,9 +136,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Si un usuario no logueado accede a una URL protegida (ej: https://web.completr.app/games/chrono-trigger), el authGuard lo redirige al login. Pero al iniciar sesion, lo manda al feed (ruta por defecto) en vez de a la pagina que intento visitar originalmente. Esto obliga al usuario a navegar de nuevo a donde queria ir.
-- **Solucion propuesta:** Guardar la URL original en un query param (ej: /login?returnUrl=/games/chrono-trigger) o en el state del router al momento de redirigir desde el authGuard. Despues del login exitoso, redirigir a esa URL en vez de al feed.
+- **Solucion:** `authGuard` ahora redirige a `/login?returnUrl=<URL original>` (state.url). `Login` lee el query param y `navigateByUrl(returnUrl)` tras login exitoso. Se valida que `returnUrl` empiece con `/` y no con `//` para evitar open redirects a dominios externos; fallback a `/backlog`.
 
 ### [FB-014] Progreso de listas solo cuenta completados, no abandonados
 
