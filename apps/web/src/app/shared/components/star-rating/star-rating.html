@@ -1,22 +1,7 @@
-<div
-	class="flex items-center gap-2.5"
-	(mouseleave)="onLeave()"
->
-	<div
-		class="flex"
-		[class.gap-px]="size() === 'sm'"
-		[class.gap-0.5]="size() !== 'sm'"
-	>
+<div class="flex items-center gap-2.5" (mouseleave)="onLeave()">
+	<div class="flex" [class]="listGap()">
 		@for (star of stars; track star) {
-			<span
-				class="relative inline-block"
-				[class.cursor-pointer]="!readonly()"
-				[class.cursor-default]="readonly()"
-				[class.w-6]="size() !== 'sm'"
-				[class.h-6]="size() !== 'sm'"
-				[class.w-3.5]="size() === 'sm'"
-				[class.h-3.5]="size() === 'sm'"
-			>
+			<span [class]="wrapperClasses()">
 				@if (!readonly()) {
 					<span
 						class="absolute top-0 left-0 w-1/2 h-full z-10"
@@ -30,15 +15,11 @@
 					></span>
 				}
 				<span
-					class="absolute inset-0 flex items-center justify-center pointer-events-none transition-colors leading-none"
-					[class.text-xl]="size() !== 'sm'"
-					[class.text-sm]="size() === 'sm'"
-					[class.text-warning]="starState(star) === 'full'"
-					[class.text-line-hover]="starState(star) === 'empty'"
-					[style.background]="starState(star) === 'half' ? 'linear-gradient(90deg, var(--color-warning) 50%, var(--color-line-hover) 50%)' : null"
-					[style.-webkit-background-clip]="starState(star) === 'half' ? 'text' : null"
-					[style.background-clip]="starState(star) === 'half' ? 'text' : null"
-					[style.-webkit-text-fill-color]="starState(star) === 'half' ? 'transparent' : null"
+					[class]="iconClasses(star)"
+					[style.background]="isHalf(star) ? 'linear-gradient(90deg, var(--color-warning) 50%, var(--color-fg-muted) 50%)' : null"
+					[style.-webkit-background-clip]="isHalf(star) ? 'text' : null"
+					[style.background-clip]="isHalf(star) ? 'text' : null"
+					[style.-webkit-text-fill-color]="isHalf(star) ? 'transparent' : null"
 				>&#9733;</span>
 			</span>
 		}

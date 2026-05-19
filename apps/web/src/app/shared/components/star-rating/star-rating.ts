@@ -30,11 +30,34 @@ export class StarRating {
 		getRatingLabel(this.hoverValue() ?? this.value())
 	);
 
+	protected readonly wrapperClasses = computed(() => {
+		const dims = this.size() === "sm" ? "w-4 h-4" : "w-6 h-6";
+		const cursor = this.readonly() ? "cursor-default" : "cursor-pointer";
+		return `relative inline-block shrink-0 ${dims} ${cursor}`;
+	});
+
+	protected readonly listGap = computed(() =>
+		this.size() === "sm" ? "gap-0.5" : "gap-1"
+	);
+
 	protected starState(star: number): StarState {
 		const val = this.displayValue();
 		if (val >= star) return "full";
 		if (val >= star - 0.5) return "half";
 		return "empty";
+	}
+
+	protected iconClasses(star: number): string {
+		const sizeText = this.size() === "sm" ? "text-base" : "text-2xl";
+		const state = this.starState(star);
+		let color = "";
+		if (state === "full") color = "text-warning";
+		else if (state === "empty") color = "text-fg-muted/40";
+		return `absolute inset-0 flex items-center justify-center pointer-events-none transition-colors leading-none ${sizeText} ${color}`;
+	}
+
+	protected isHalf(star: number): boolean {
+		return this.starState(star) === "half";
 	}
 
 	protected onHalf(star: number) {
