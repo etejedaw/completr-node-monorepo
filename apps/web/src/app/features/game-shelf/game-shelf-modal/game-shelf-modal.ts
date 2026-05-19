@@ -132,7 +132,11 @@ export class GameShelfModal implements OnInit {
 
 	selectGame(game: Game) {
 		this.selectedGame.set(game);
-		this.form.patchValue({ gameId: game.id, platformId: "" });
+		const platforms = game.platforms ?? [];
+		this.form.patchValue({
+			gameId: game.id,
+			platformId: platforms.length === 1 ? platforms[0].id : ""
+		});
 		this.gameResults.set([]);
 		this.searchQuery.set("");
 	}

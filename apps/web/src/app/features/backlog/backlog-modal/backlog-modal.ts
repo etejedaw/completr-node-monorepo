@@ -289,9 +289,10 @@ export class BacklogModal implements OnInit {
 		this.activeScoreSource.set(score.source);
 		this.activeDurationSource.set(duration.source);
 
+		const platforms = game.platforms ?? [];
 		this.form.patchValue({
 			gameId: game.id,
-			platformId: "",
+			platformId: platforms.length === 1 ? platforms[0].id : "",
 			score: score.value,
 			duration: duration.value
 		});
