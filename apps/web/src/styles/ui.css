@@ -366,6 +366,10 @@ textarea.ui-input {
 	display: block;
 }
 
+.ui-tab-panel:not([data-active]) {
+	display: none;
+}
+
 /* Dialog */
 .ui-dialog__trigger-host {
 	display: contents;
