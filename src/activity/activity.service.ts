@@ -15,11 +15,12 @@ const GAME_TYPES: string[] = [
 	"backlog_playing",
 	"backlog_not_started",
 	"wishlist_added",
+	"shelf_added",
 	"favorite_added",
 	"game_reviewed"
 ];
 const LIST_TYPES: string[] = ["list_created", "list_followed"];
-const USER_TYPES: string[] = ["user_followed"];
+const USER_TYPES: string[] = ["user_followed", "user_followed_by"];
 
 export async function record(
 	userId: string,

@@ -10,6 +10,7 @@ export async function postFollow(request: Request, response: Response) {
 
 	const follow = await userFollowersService.follow(user.id, username);
 	activityService.record(user.id, "user_followed", follow.followingId);
+	activityService.record(follow.followingId, "user_followed_by", user.id);
 	return response.sendStatus(201);
 }
 

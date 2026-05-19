@@ -4,6 +4,7 @@ import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import * as gameShelfService from "./game-shelf.service";
 import * as usersService from "../users/users.service";
 import * as userDomainError from "../users/errors/users.domain-error";
+import * as activityService from "../activity/activity.service";
 
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import { GameShelfIdParam } from "./schemas/game-shelf-id-params.schema";
@@ -24,6 +25,8 @@ export async function postGameShelf(request: Request, response: Response) {
 		registerGameShelfDto
 	);
 	const gameShelfPlain = gameShelfRegister.get({ plain: true });
+
+	activityService.record(user.id, "shelf_added", registerGameShelfDto.gameId);
 
 	const data = { gameShelf: gameShelfPlain };
 	return response.status(201).json({ data });
