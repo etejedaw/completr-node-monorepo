@@ -157,91 +157,99 @@
 		</button>
 	</div>
 	@if (viewMode() === 'table') {
-	<div class="overflow-x-auto">
-		<table class="w-full border-collapse text-[0.8125rem]">
-			<thead>
-				<tr>
-					<th class="w-10 text-center text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line px-3 py-2.5 whitespace-nowrap">#</th>
-					<th class="w-10 pr-0 border-b border-line px-3 py-2.5"></th>
-					<th class="min-w-[200px] text-left text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line px-3 py-2.5 whitespace-nowrap">Title</th>
-					<th class="text-right text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line px-3 py-2.5 whitespace-nowrap">Score</th>
-					<th class="text-right text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line px-3 py-2.5 whitespace-nowrap">Duration</th>
-					<th class="text-right text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line px-3 py-2.5 whitespace-nowrap">Ratio</th>
-					<th class="text-center text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line px-3 py-2.5 whitespace-nowrap">Backlog</th>
-					@if (isOwner()) {
-					<th class="text-right border-b border-line px-3 py-2.5 whitespace-nowrap"></th>
-					}
-				</tr>
-			</thead>
-			<tbody>
-				@for (item of list()!.items; track item.id; let i = $index) {
-				<tr class="border-b border-line transition hover:bg-surface">
-					<td class="w-10 text-center text-fg-muted font-semibold align-middle px-3 py-2">{{ item.position }}</td>
-					<td class="w-10 pr-0 align-middle px-3 py-2">
+		<div class="flex flex-col gap-3">
+			@for (item of list()!.items; track item.id; let i = $index) {
+				<div class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line transition hover:border-brand/40">
+					<div class="shrink-0 flex items-center justify-center w-10 text-3xl font-bold text-fg-muted">
+						{{ item.position }}
+					</div>
+
+					<a
+						[routerLink]="['/games', item.game.code]"
+						class="shrink-0"
+					>
 						@if (item.game.backgroundUrl) {
-						<img
-							[src]="item.game.backgroundUrl"
-							[alt]="item.game.title"
-							class="w-9 h-12 object-cover rounded block"
-						/>
+							<img
+								[src]="item.game.backgroundUrl"
+								[alt]="item.game.title"
+								class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
+							/>
 						} @else {
-						<div class="w-9 h-12 bg-surface rounded"></div>
+							<div class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"></div>
 						}
-					</td>
-					<td class="min-w-[200px] text-fg align-middle px-3 py-2">
+					</a>
+
+					<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
 						<a
-							class="font-medium text-fg no-underline hover:text-brand"
+							class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
 							[routerLink]="['/games', item.game.code]"
-						>
-							{{ item.game.title }}
-						</a>
-					</td>
-					<td class="text-right whitespace-nowrap text-fg-secondary align-middle px-3 py-2">{{ item.score ?? "-" }}</td>
-					<td class="text-right whitespace-nowrap text-fg-secondary align-middle px-3 py-2">
-						{{ item.duration ? item.duration + "h" : "-" }}
-					</td>
-					<td class="text-right whitespace-nowrap text-fg-secondary align-middle px-3 py-2">{{ item.ratio ?? "-" }}</td>
-					<td class="text-center whitespace-nowrap align-middle px-3 py-2">
-						@if (item.backlogStatus) {
-						<span class="material-icons text-[1.125rem] text-brand"
-							>list_alt</span
-						>
-						} @else {
-						<button
-							uiIconButton size="sm" tone="accent"
-							(click)="openBacklogModal(item)"
-							title="Add to Backlog"
-						>
-							<span class="material-icons">list_alt</span>
-						</button>
+						>{{ item.game.title }}</a>
+
+						<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
+							@if (item.score) {
+								<span class="text-fg-muted">Score {{ item.score }}</span>
+							}
+							@if (item.duration) {
+								<span class="text-fg-muted">·</span>
+								<span class="text-fg-muted">{{ item.duration }}h</span>
+							}
+							@if (item.backlogStatus) {
+								<span class="text-fg-muted">·</span>
+								<span class="flex items-center gap-1 text-brand">
+									<span class="material-icons text-sm">list_alt</span>
+									In Backlog
+								</span>
+							} @else {
+								<span class="text-fg-muted">·</span>
+								<button
+									class="flex items-center gap-1 text-fg-muted hover:text-brand transition cursor-pointer bg-transparent border-0 p-0 text-xs"
+									(click)="openBacklogModal(item)"
+									title="Add to Backlog"
+								>
+									<span class="material-icons text-sm">add</span>
+									Add to Backlog
+								</button>
+							}
+						</div>
+					</div>
+
+					<div class="hidden sm:flex flex-col items-end justify-center shrink-0 min-w-[70px] text-right">
+						@if (item.ratio) {
+							<span class="text-3xl font-bold text-brand leading-none">{{ item.ratio }}</span>
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
 						}
-					</td>
+					</div>
+
 					@if (isOwner()) {
-					<td class="text-right whitespace-nowrap align-middle px-3 py-2">
-						<button
-							uiIconButton size="sm"
-							[disabled]="i === 0"
-							(click)="moveUp(i)"
-						>
-							<span class="material-icons">keyboard_arrow_up</span>
-						</button>
-						<button
-							uiIconButton size="sm"
-							[disabled]="i === list()!.items.length - 1"
-							(click)="moveDown(i)"
-						>
-							<span class="material-icons">keyboard_arrow_down</span>
-						</button>
-						<button uiIconButton size="sm" tone="danger" (click)="removeItem(item)">
-							<span class="material-icons">close</span>
-						</button>
-					</td>
+						<div class="flex flex-col items-center justify-center gap-1 shrink-0">
+							<button
+								uiIconButton size="sm"
+								[disabled]="i === 0"
+								(click)="moveUp(i)"
+								title="Move up"
+							>
+								<span class="material-icons text-lg">keyboard_arrow_up</span>
+							</button>
+							<button
+								uiIconButton size="sm"
+								[disabled]="i === list()!.items.length - 1"
+								(click)="moveDown(i)"
+								title="Move down"
+							>
+								<span class="material-icons text-lg">keyboard_arrow_down</span>
+							</button>
+							<button
+								uiIconButton size="sm" tone="danger"
+								(click)="removeItem(item)"
+								title="Remove"
+							>
+								<span class="material-icons text-lg">close</span>
+							</button>
+						</div>
 					}
-				</tr>
-				}
-			</tbody>
-		</table>
-	</div>
+				</div>
+			}
+		</div>
 	} @if (viewMode() === 'grid') {
 	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 		@for (item of list()!.items; track item.id) {
