@@ -117,6 +117,7 @@ export class GameDetail implements OnInit {
 		const shouldOpen =
 			this.route.snapshot.queryParamMap.get("review") === "open";
 		if (shouldOpen) {
+			this.activeTab.set("reviews");
 			this.openReviewForm();
 		}
 	}
