@@ -1,513 +1,509 @@
 @if (isLoading()) {
-<div class="text-center py-12 px-4 text-fg-muted text-sm">Loading...</div>
+	<div class="text-center py-12 px-4 text-fg-muted text-sm">Loading...</div>
 } @else if (!game()) {
-<div class="text-center py-12 px-4 text-fg-muted text-sm">Game not found.</div>
+	<div class="text-center py-12 px-4 text-fg-muted text-sm">Game not found.</div>
 } @else {
-<div class="max-w-5xl mx-auto">
-	<div class="relative rounded-card overflow-hidden mb-8 min-h-[280px] bg-surface ring-1 ring-line">
-		@if (game()!.backgroundUrl) {
-		<img
-			[src]="game()!.backgroundUrl"
-			[alt]="game()!.title"
-			class="w-full h-[280px] md:h-[420px] object-cover block"
-		/>
-		<div class="absolute inset-0" style="background: linear-gradient(to top, rgba(10, 10, 12, 0.95) 0%, rgba(10, 10, 12, 0.4) 45%, transparent 70%);"></div>
-		<div class="absolute inset-x-0 top-0 h-32" style="background: linear-gradient(to bottom, rgba(10, 10, 12, 0.4) 0%, transparent 100%);"></div>
-		}
-		<button
-			class="absolute top-4 right-4 z-[2] border-0 text-2xl w-11 h-11 rounded-full cursor-pointer flex items-center justify-center transition backdrop-blur-md disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
-			[class.text-warning]="isFavorite()"
-			[class.text-white]="!isFavorite()"
-			style="background: rgba(0, 0, 0, 0.5);"
-			[disabled]="togglingFavorite()"
-			(click)="toggleFavorite()"
-			title="{{ isFavorite() ? 'Remove from favorites' : 'Add to favorites' }}"
-		>
-			<span class="material-icons">star</span>
-		</button>
-		<div class="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-			<h1 class="font-display m-0 text-3xl md:text-5xl font-bold text-white tracking-tight" style="text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);">{{ game()!.title }}</h1>
-			<div class="mt-2 flex items-center gap-3 flex-wrap">
-				@if (game()!.parentGame) {
-				<a
-					class="text-sm text-warning no-underline transition hover:text-white"
-					[routerLink]="['/games', game()!.parentGame!.code]"
-				>
-					DLC of {{ game()!.parentGame!.title }}
-				</a>
-				} @else if (game()!.releaseAt) {
-				<span class="text-sm text-white/80">{{ game()!.releaseAt }}</span>
+	<div>
+		<div class="relative -mx-6 lg:-mx-8 max-md:-mx-4 -mt-6 lg:-mt-8 max-md:-mt-4 mb-8 overflow-hidden">
+			<div class="relative h-[55vh] min-h-[420px] max-h-[640px]">
+				@if (game()!.backgroundUrl) {
+					<img
+						[src]="game()!.backgroundUrl"
+						[alt]="game()!.title"
+						class="absolute inset-0 w-full h-full object-cover"
+					/>
+					<div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(10,10,12,0.15) 0%, rgba(10,10,12,0.4) 50%, rgba(10,10,12,0.95) 100%);"></div>
+					<div class="absolute inset-0" style="background: linear-gradient(90deg, rgba(10,10,12,0.5) 0%, transparent 60%);"></div>
+				} @else {
+					<div class="absolute inset-0 bg-surface"></div>
 				}
+
+				<button
+					class="absolute top-4 right-6 lg:right-8 max-md:right-4 z-[2] border-0 text-2xl w-11 h-11 rounded-full cursor-pointer flex items-center justify-center transition backdrop-blur-md disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
+					[class.text-warning]="isFavorite()"
+					[class.text-white]="!isFavorite()"
+					style="background: rgba(0, 0, 0, 0.5);"
+					[disabled]="togglingFavorite()"
+					(click)="toggleFavorite()"
+					[title]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+				>
+					<span class="material-icons">star</span>
+				</button>
+
+				<div class="absolute inset-x-0 bottom-0 px-6 lg:px-8 max-md:px-4 pb-10 max-w-4xl">
+					<div class="flex flex-wrap items-center gap-1.5 mb-3">
+						@for (p of game()!.platforms; track p.id) {
+							<span class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/15 text-white backdrop-blur-sm">{{ p.abbreviation }}</span>
+						}
+						@for (g of game()!.genres.slice(0, 3); track g.id) {
+							<span class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/10 text-white/85 backdrop-blur-sm">{{ g.name }}</span>
+						}
+						@if (game()!.isDlc) {
+							<span class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-warning/30 text-warning backdrop-blur-sm">DLC</span>
+						}
+					</div>
+					<h1 class="font-display m-0 text-4xl md:text-6xl font-bold text-white tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] line-clamp-2">{{ game()!.title }}</h1>
+					<div class="mt-3 flex items-center gap-4 flex-wrap">
+						@if (game()!.parentGame) {
+							<a class="text-sm text-warning no-underline transition hover:text-white" [routerLink]="['/games', game()!.parentGame!.code]">
+								DLC of {{ game()!.parentGame!.title }}
+							</a>
+						} @else if (game()!.releaseAt) {
+							<span class="text-sm text-white/75">Released {{ game()!.releaseAt }}</span>
+						}
+					</div>
+				</div>
 			</div>
 		</div>
-	</div>
 
-	@if (isModerator()) {
-	<div class="flex items-center gap-3 py-2.5 px-3.5 bg-danger/[0.05] border border-danger/[0.15] rounded mb-4">
-		<span class="flex items-center gap-1.5 text-xs font-semibold text-danger uppercase tracking-wider mr-auto">
-			<span class="material-icons text-base">admin_panel_settings</span>
-			{{ isAdmin() ? 'Admin' : 'Moderator' }}
-		</span>
-		<button uiButton variant="secondary" size="sm" (click)="showEditor.set(!showEditor())">
-			<span class="material-icons text-sm"
-				>{{ showEditor() ? 'close' : 'edit' }}</span
-			>
-			{{ showEditor() ? 'Close Editor' : 'Edit Game' }}
-		</button>
-		@if (isAdmin()) { @if (!showConfirmDeactivate() && !showConfirmDelete())
-		{
-		<button
-			uiButton variant="danger" size="sm"
-			(click)="showConfirmDeactivate.set(true)"
-		>
-			<span class="material-icons text-sm">visibility_off</span>
-			Deactivate
-		</button>
-		<button uiButton variant="danger" size="sm" (click)="showConfirmDelete.set(true)">
-			<span class="material-icons text-sm">delete_forever</span>
-			Delete
-		</button>
-		} @else if (showConfirmDeactivate()) {
-		<span class="text-[0.8125rem] text-danger">Deactivate this game?</span>
-		<button
-			uiButton variant="danger" size="sm"
-			(click)="deactivateGame()"
-			[disabled]="deactivating()"
-		>
-			{{ deactivating() ? 'Deactivating...' : 'Yes' }}
-		</button>
-		<button uiButton variant="ghost" size="sm" (click)="showConfirmDeactivate.set(false)">
-			Cancel
-		</button>
-		} @else if (showConfirmDelete()) {
-		<span class="text-[0.8125rem] text-danger">Permanently delete this game?</span>
-		<button
-			uiButton variant="danger" size="sm"
-			(click)="deleteGame()"
-			[disabled]="deleting()"
-		>
-			{{ deleting() ? 'Deleting...' : 'Yes, delete' }}
-		</button>
-		<button uiButton variant="ghost" size="sm" (click)="showConfirmDelete.set(false)">
-			Cancel
-		</button>
-		} }
-	</div>
-	@if (showEditor()) {
-	<app-admin-game-editor [game]="game()!" (saved)="onEditorSaved()" />
-	} }
-
-	<div class="flex flex-wrap gap-1.5 mb-6">
-		@for (p of game()!.platforms; track p.id) {
-		<span class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold tracking-wider bg-brand-subtle text-brand">{{ p.abbreviation }}</span>
-		} @for (g of game()!.genres; track g.id) {
-		<span class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold tracking-wider text-fg-secondary" style="background: rgba(148, 163, 184, 0.12);">{{ g.name }}</span>
-		} @if (game()!.isDlc) {
-		<span class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold tracking-wider text-warning" style="background: rgba(245, 158, 11, 0.12);">DLC</span>
-		}
-	</div>
-
-	<div class="bg-sidebar border border-line rounded-card p-4 mb-6">
-		<h3 class="font-display m-0 mb-2 text-[0.8125rem] font-semibold text-brand">Completr</h3>
-		<div class="flex items-stretch gap-3">
-			<div class="flex-1 bg-surface border border-brand rounded p-3 px-4 flex flex-col gap-1 min-w-[100px]">
-				<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">Ratio</span>
-				@if (game()!.ratio) {
-				<span class="text-[1.375rem] font-bold text-brand">{{ game()!.ratio }}</span>
-				} @else {
-				<span class="text-[0.6875rem] text-fg-muted italic">Not enough data</span>
-				}
-			</div>
-			<div class="flex-1 bg-surface border border-line rounded p-3 px-4 flex flex-col gap-1.5 min-w-[100px]">
-				<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">Score</span>
-				@if (completrScore) {
-				<app-star-rating
-					[value]="completrScore"
-					[readonly]="true"
-					size="sm"
-				/>
-				@if (completrLabel) {
-				<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-warning">{{ completrLabel }}</span>
-				} } @else {
-				<span class="text-[0.6875rem] text-fg-muted italic">No rating yet</span>
-				}
-			</div>
-			<div class="flex-1 bg-surface border border-line rounded p-3 px-4 flex flex-col gap-1 min-w-[100px]">
-				<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">Duration</span>
-				@if (completrTime) {
-				<span class="text-lg font-bold text-fg">{{ completrTime }}h</span>
-				} @else {
-				<span class="text-[0.6875rem] text-fg-muted italic">No data</span>
-				}
-			</div>
-			<div class="w-px self-stretch bg-line mx-1"></div>
-			<div class="flex flex-col gap-2">
-				<button
-					class="flex items-center gap-2 py-2 px-3.5 border rounded text-[0.8125rem] font-medium cursor-pointer transition whitespace-nowrap"
-					[class.bg-brand-subtle]="isInBacklog()"
-					[class.border-brand]="isInBacklog()"
-					[class.text-brand]="isInBacklog()"
-					[class.cursor-default]="isInBacklog()"
-					[class.bg-input-bg]="!isInBacklog()"
-					[class.border-line]="!isInBacklog()"
-					[class.text-fg-secondary]="!isInBacklog()"
-					[class.hover:bg-brand-subtle]="!isInBacklog()"
-					[class.hover:border-brand]="!isInBacklog()"
-					[class.hover:text-brand]="!isInBacklog()"
-					(click)="openBacklogModal()"
-				>
-					<span class="material-icons text-lg">list_alt</span>
-					{{ isInBacklog() ? 'In Backlog' : 'Add to Backlog' }}
+		@if (isModerator()) {
+			<div class="flex items-center gap-3 py-2.5 px-3.5 bg-danger/[0.05] border border-danger/[0.15] rounded mb-4 flex-wrap">
+				<span class="flex items-center gap-1.5 text-xs font-semibold text-danger uppercase tracking-wider mr-auto">
+					<span class="material-icons text-base">admin_panel_settings</span>
+					{{ isAdmin() ? 'Admin' : 'Moderator' }}
+				</span>
+				<button uiButton variant="secondary" size="sm" (click)="showEditor.set(!showEditor())">
+					<span class="material-icons text-sm">{{ showEditor() ? 'close' : 'edit' }}</span>
+					{{ showEditor() ? 'Close Editor' : 'Edit Game' }}
 				</button>
-				<div class="w-full">
-					@if (showPlatformPicker()) {
-					<select
-						class="w-full py-2 px-3 bg-input-bg border border-brand rounded text-fg text-[0.8125rem] cursor-pointer outline-none focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
-						(change)="onWishlistPlatformSelected($event)"
-					>
-						<option value="">Select platform...</option>
-						@for (p of game()!.platforms; track p.id) {
-						<option [value]="p.id">{{ p.name }}</option>
+				@if (isAdmin()) {
+					@if (!showConfirmDeactivate() && !showConfirmDelete()) {
+						<button uiButton variant="danger" size="sm" (click)="showConfirmDeactivate.set(true)">
+							<span class="material-icons text-sm">visibility_off</span>
+							Deactivate
+						</button>
+						<button uiButton variant="danger" size="sm" (click)="showConfirmDelete.set(true)">
+							<span class="material-icons text-sm">delete_forever</span>
+							Delete
+						</button>
+					} @else if (showConfirmDeactivate()) {
+						<span class="text-[0.8125rem] text-danger">Deactivate this game?</span>
+						<button uiButton variant="danger" size="sm" (click)="deactivateGame()" [disabled]="deactivating()">
+							{{ deactivating() ? 'Deactivating...' : 'Yes' }}
+						</button>
+						<button uiButton variant="ghost" size="sm" (click)="showConfirmDeactivate.set(false)">Cancel</button>
+					} @else if (showConfirmDelete()) {
+						<span class="text-[0.8125rem] text-danger">Permanently delete this game?</span>
+						<button uiButton variant="danger" size="sm" (click)="deleteGame()" [disabled]="deleting()">
+							{{ deleting() ? 'Deleting...' : 'Yes, delete' }}
+						</button>
+						<button uiButton variant="ghost" size="sm" (click)="showConfirmDelete.set(false)">Cancel</button>
+					}
+				}
+			</div>
+			@if (showEditor()) {
+				<app-admin-game-editor [game]="game()!" (saved)="onEditorSaved()" />
+			}
+		}
+
+		<div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 lg:gap-8">
+			<aside class="md:sticky md:top-6 md:self-start flex flex-col gap-4">
+				<div class="relative rounded-card p-5 border-2 border-brand overflow-hidden" style="background: linear-gradient(160deg, var(--color-brand-subtle), transparent 60%), var(--color-surface);">
+					<div class="flex items-center gap-2 mb-3">
+						<span class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-[0.6875rem] text-white" style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));">C</span>
+						<span class="text-[0.625rem] font-bold uppercase tracking-wider text-brand">Completr Score</span>
+					</div>
+
+					<div class="flex items-baseline gap-2 mb-1">
+						@if (game()!.ratio) {
+							<span class="text-6xl font-bold text-brand leading-none">{{ game()!.ratio }}</span>
+							<span class="text-xs uppercase tracking-wider text-fg-muted">Ratio</span>
+						} @else {
+							<span class="text-3xl font-bold text-fg-muted leading-none">—</span>
+							<span class="text-xs uppercase tracking-wider text-fg-muted">Ratio</span>
 						}
-					</select>
-					} @else {
+					</div>
+					<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">score relative to time invested by the community</p>
+
+					<div class="mt-4 pt-4 border-t border-line/60 flex flex-col gap-2.5">
+						<div class="flex items-center justify-between">
+							<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">Rating</span>
+							@if (completrScore) {
+								<div class="flex items-center gap-2">
+									<app-star-rating [value]="completrScore" [readonly]="true" size="sm" />
+									@if (completrLabel) {
+										<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-warning">{{ completrLabel }}</span>
+									}
+								</div>
+							} @else {
+								<span class="text-xs text-fg-muted italic">No data</span>
+							}
+						</div>
+						<div class="flex items-center justify-between">
+							<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">Duration</span>
+							@if (completrTime) {
+								<span class="text-sm font-semibold text-fg">{{ completrTime }}h <span class="text-[0.625rem] font-normal text-fg-muted">avg</span></span>
+							} @else {
+								<span class="text-xs text-fg-muted italic">No data</span>
+							}
+						</div>
+					</div>
+				</div>
+
+				<div class="bg-sidebar border border-line rounded-card p-4 flex flex-col gap-2">
+					<h3 class="font-display m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Your activity</h3>
 					<button
-						class="w-full flex items-center gap-2 py-2 px-3.5 border rounded text-[0.8125rem] font-medium cursor-pointer transition whitespace-nowrap"
-						[class.bg-brand-subtle]="addedToWishlist()"
-						[class.border-brand]="addedToWishlist()"
-						[class.text-brand]="addedToWishlist()"
-						[class.cursor-default]="addedToWishlist()"
-						[class.bg-input-bg]="!addedToWishlist()"
-						[class.border-line]="!addedToWishlist()"
-						[class.text-fg-secondary]="!addedToWishlist()"
-						[class.hover:bg-brand-subtle]="!addedToWishlist()"
-						[class.hover:border-brand]="!addedToWishlist()"
-						[class.hover:text-brand]="!addedToWishlist()"
-						[disabled]="addingToWishlist()"
-						(click)="addToWishlist()"
+						class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
+						[class.bg-brand-subtle]="isInBacklog()"
+						[class.border-brand]="isInBacklog()"
+						[class.text-brand]="isInBacklog()"
+						[class.cursor-default]="isInBacklog()"
+						[class.bg-input-bg]="!isInBacklog()"
+						[class.border-line]="!isInBacklog()"
+						[class.text-fg-secondary]="!isInBacklog()"
+						[class.hover:bg-brand-subtle]="!isInBacklog()"
+						[class.hover:border-brand]="!isInBacklog()"
+						[class.hover:text-brand]="!isInBacklog()"
+						(click)="openBacklogModal()"
 					>
-						<span class="material-icons text-lg">favorite</span>
-						{{ addedToWishlist() ? 'In Wishlist' :
-						addingToWishlist() ? 'Adding...' : 'Add to Wishlist' }}
+						<span class="material-icons text-lg">list_alt</span>
+						{{ isInBacklog() ? 'In Backlog' : 'Add to Backlog' }}
 					</button>
+
+					@if (showPlatformPicker()) {
+						<select
+							class="w-full py-2.5 px-3 bg-input-bg border border-brand rounded text-fg text-sm cursor-pointer outline-none focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
+							(change)="onWishlistPlatformSelected($event)"
+						>
+							<option value="">Select platform...</option>
+							@for (p of game()!.platforms; track p.id) {
+								<option [value]="p.id">{{ p.name }}</option>
+							}
+						</select>
+					} @else {
+						<button
+							class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
+							[class.bg-brand-subtle]="addedToWishlist()"
+							[class.border-brand]="addedToWishlist()"
+							[class.text-brand]="addedToWishlist()"
+							[class.cursor-default]="addedToWishlist()"
+							[class.bg-input-bg]="!addedToWishlist()"
+							[class.border-line]="!addedToWishlist()"
+							[class.text-fg-secondary]="!addedToWishlist()"
+							[class.hover:bg-brand-subtle]="!addedToWishlist()"
+							[class.hover:border-brand]="!addedToWishlist()"
+							[class.hover:text-brand]="!addedToWishlist()"
+							[disabled]="addingToWishlist()"
+							(click)="addToWishlist()"
+						>
+							<span class="material-icons text-lg">favorite</span>
+							{{ addedToWishlist() ? 'In Wishlist' : addingToWishlist() ? 'Adding...' : 'Add to Wishlist' }}
+						</button>
+					}
+
+					<button
+						class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
+						[class.bg-brand-subtle]="isInShelf()"
+						[class.border-brand]="isInShelf()"
+						[class.text-brand]="isInShelf()"
+						[class.cursor-default]="isInShelf()"
+						[class.bg-input-bg]="!isInShelf()"
+						[class.border-line]="!isInShelf()"
+						[class.text-fg-secondary]="!isInShelf()"
+						[class.hover:bg-brand-subtle]="!isInShelf()"
+						[class.hover:border-brand]="!isInShelf()"
+						[class.hover:text-brand]="!isInShelf()"
+						(click)="openShelfModal()"
+					>
+						<span class="material-icons text-lg">shelves</span>
+						{{ isInShelf() ? 'In Shelf' : 'Add to Shelf' }}
+					</button>
+				</div>
+
+				<div class="bg-surface border border-line rounded-card divide-y divide-line">
+					<div class="flex items-center justify-between px-4 py-3">
+						<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">Reviews</span>
+						<span class="text-sm font-semibold text-fg">{{ reviews().length }}</span>
+					</div>
+					<div class="flex items-center justify-between px-4 py-3">
+						<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">In Lists</span>
+						<span class="text-sm font-semibold text-fg">{{ featuredLists().length }}</span>
+					</div>
+				</div>
+
+				<div class="flex gap-2 flex-wrap">
+					<a
+						class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium no-underline transition hover:border-brand hover:text-brand"
+						[href]="'https://rawg.io/games/' + game()!.code"
+						target="_blank"
+						rel="noopener"
+					>
+						<span class="material-icons text-sm">open_in_new</span>
+						RAWG
+					</a>
+					@for (link of game()!.externalLinks; track link.source) {
+						@if (link.source === 'steam') {
+							<a class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium no-underline transition hover:border-brand hover:text-brand"
+								[href]="'https://store.steampowered.com/app/' + link.externalId" target="_blank" rel="noopener">
+								<span class="material-icons text-sm">open_in_new</span>
+								Steam
+							</a>
+						} @else if (link.source === 'metacritic') {
+							<a class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium no-underline transition hover:border-brand hover:text-brand"
+								[href]="'https://www.metacritic.com/game/' + link.externalId" target="_blank" rel="noopener">
+								<span class="material-icons text-sm">open_in_new</span>
+								Metacritic
+							</a>
+						}
+					}
+					@if (!reportSent()) {
+						<button class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand" (click)="openReportModal()">
+							<span class="material-icons text-sm">flag</span>
+							Report
+						</button>
+					} @else {
+						<span class="flex items-center gap-1.5 text-xs text-success">
+							<span class="material-icons text-sm">check</span>
+							Reported
+						</span>
 					}
 				</div>
-				<button
-					class="flex items-center gap-2 py-2 px-3.5 border rounded text-[0.8125rem] font-medium cursor-pointer transition whitespace-nowrap"
-					[class.bg-brand-subtle]="isInShelf()"
-					[class.border-brand]="isInShelf()"
-					[class.text-brand]="isInShelf()"
-					[class.cursor-default]="isInShelf()"
-					[class.bg-input-bg]="!isInShelf()"
-					[class.border-line]="!isInShelf()"
-					[class.text-fg-secondary]="!isInShelf()"
-					[class.hover:bg-brand-subtle]="!isInShelf()"
-					[class.hover:border-brand]="!isInShelf()"
-					[class.hover:text-brand]="!isInShelf()"
-					(click)="openShelfModal()"
-				>
-					<span class="material-icons text-lg">shelves</span>
-					{{ isInShelf() ? 'In Shelf' : 'Add to Shelf' }}
-				</button>
+			</aside>
+
+			<div class="min-w-0">
+				<ui-tabs [(value)]="activeTab">
+					<ui-tab-list class="!mb-6 !overflow-x-auto !overflow-y-hidden !flex-nowrap">
+						<button uiTab value="overview" class="!whitespace-nowrap">
+							<span class="material-icons text-base mr-1.5 align-middle">info</span>
+							Overview
+						</button>
+						<button uiTab value="reviews" class="!whitespace-nowrap">
+							<span class="material-icons text-base mr-1.5 align-middle">rate_review</span>
+							Reviews
+							<span class="ml-1 text-xs text-fg-muted">{{ reviews().length }}</span>
+						</button>
+						@if (featuredLists().length > 0) {
+							<button uiTab value="lists" class="!whitespace-nowrap">
+								<span class="material-icons text-base mr-1.5 align-middle">format_list_bulleted</span>
+								Lists
+								<span class="ml-1 text-xs text-fg-muted">{{ featuredLists().length }}</span>
+							</button>
+						}
+						@if (game()!.dlcs.length > 0) {
+							<button uiTab value="dlcs" class="!whitespace-nowrap">
+								<span class="material-icons text-base mr-1.5 align-middle">extension</span>
+								DLCs
+								<span class="ml-1 text-xs text-fg-muted">{{ game()!.dlcs.length }}</span>
+							</button>
+						}
+						@if (similarGames().length > 0) {
+							<button uiTab value="similar" class="!whitespace-nowrap">
+								<span class="material-icons text-base mr-1.5 align-middle">apps</span>
+								Similar
+							</button>
+						}
+					</ui-tab-list>
+
+					<div uiTabPanel value="overview">
+						@if (game()!.description) {
+							<div class="mb-6">
+								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Description</h3>
+								<p class="text-fg-secondary text-sm leading-relaxed whitespace-pre-line m-0">{{ game()!.description }}</p>
+							</div>
+						}
+
+						@if (otherScores().length > 0) {
+							<div class="mb-6">
+								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">External Scores</h3>
+								<div class="flex flex-wrap gap-2">
+									@for (s of otherScores(); track s.source) {
+										<div class="bg-surface border border-line rounded p-3 px-4 flex flex-col gap-1 min-w-[110px]">
+											<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">{{ s.source }}</span>
+											<span class="text-lg font-bold text-fg">{{ s.score }}<span class="text-xs font-normal text-fg-muted ml-1">{{ getScaleLabel(s.source) }}</span></span>
+										</div>
+									}
+								</div>
+							</div>
+						}
+
+						@if (otherTimes().length > 0) {
+							<div class="mb-6">
+								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Durations by Source</h3>
+								<div class="flex flex-wrap gap-2">
+									@for (t of otherTimes(); track t.source) {
+										<div class="bg-surface border border-line rounded p-3 px-4 flex flex-col gap-1 min-w-[110px]">
+											<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">{{ t.source }}</span>
+											<span class="text-lg font-bold text-fg">{{ t.duration }}h</span>
+										</div>
+									}
+								</div>
+							</div>
+						}
+
+						@if (!game()!.description && otherScores().length === 0 && otherTimes().length === 0) {
+							<p class="text-center py-12 text-fg-muted text-sm">No additional info available.</p>
+						}
+					</div>
+
+					<div uiTabPanel value="reviews">
+						<div class="flex items-center justify-between mb-4">
+							<h3 class="font-display m-0 text-base font-semibold text-fg">Community Reviews</h3>
+							<button uiButton variant="primary" size="sm" (click)="openReviewForm()">
+								{{ myReview() ? 'Edit Review' : 'Write Review' }}
+							</button>
+						</div>
+
+						@if (showReviewForm()) {
+							<div class="bg-surface border border-line rounded p-4 mb-5">
+								<div class="flex items-center gap-3 mb-3">
+									<span class="text-xs font-semibold text-fg-muted uppercase tracking-wider">Rating</span>
+									<app-star-rating [value]="reviewRating()" (ratingChange)="reviewRating.set($event)" size="sm" />
+								</div>
+								<textarea
+									uiInput
+									class="!w-full !resize-y"
+									rows="4"
+									placeholder="Share your thoughts about this game..."
+									[ngModel]="reviewContent()"
+									(ngModelChange)="reviewContent.set($event)"
+								></textarea>
+								<div class="flex justify-end gap-2 mt-3">
+									@if (myReview()) {
+										<button uiButton variant="ghost" size="sm" (click)="deleteReview()">Delete</button>
+									}
+									<button uiButton variant="ghost" size="sm" (click)="showReviewForm.set(false)">Cancel</button>
+									<button uiButton variant="primary" size="sm"
+										(click)="submitReview()"
+										[disabled]="reviewSubmitting() || (!reviewContent().trim() && !reviewRating())"
+									>
+										{{ reviewSubmitting() ? 'Saving...' : myReview() ? 'Update' : 'Post' }}
+									</button>
+								</div>
+							</div>
+						}
+
+						@if (reviews().length === 0) {
+							<p class="text-center py-12 text-fg-muted text-sm">No reviews yet. Be the first!</p>
+						} @else {
+							@for (review of reviews(); track review.id) {
+								<div class="py-4 border-b border-line last:border-b-0">
+									<div class="flex items-center justify-between mb-2">
+										<a class="flex items-center gap-2 no-underline text-inherit group" [routerLink]="['/user', review.user?.username]">
+											@if (review.user?.avatarUrl) {
+												<img class="w-7 h-7 rounded-full object-cover" [src]="review.user!.avatarUrl" [alt]="review.user!.username" />
+											} @else {
+												<div class="w-7 h-7 rounded-full bg-surface flex items-center justify-center text-[0.6875rem] font-bold text-brand">
+													{{ review.user?.username?.charAt(0)?.toUpperCase() }}
+												</div>
+											}
+											<span class="text-[0.8125rem] font-semibold text-fg transition group-hover:text-brand">{{ review.user?.name || review.user?.username }}</span>
+										</a>
+										@if (review.rating) {
+											<app-star-rating [value]="review.rating" [readonly]="true" size="sm" />
+										}
+									</div>
+									@if (review.content) {
+										<p class="m-0 text-sm text-fg-secondary leading-relaxed">{{ review.content }}</p>
+									}
+								</div>
+							}
+						}
+					</div>
+
+					@if (featuredLists().length > 0) {
+						<div uiTabPanel value="lists">
+							<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+								@for (list of featuredLists(); track list.id) {
+									<a
+										class="flex flex-col gap-1 py-2.5 px-3.5 bg-surface border rounded no-underline transition-colors hover:border-brand"
+										[class.border-brand]="list.isOfficial"
+										[class.border-line]="!list.isOfficial"
+										[style.background]="list.isOfficial ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.06), transparent)' : ''"
+										[routerLink]="['/lists', list.id]"
+									>
+										@if (list.isOfficial) {
+											<span class="inline-flex items-center gap-1 text-[0.625rem] font-bold uppercase tracking-wider text-brand">
+												<span class="material-icons text-sm">verified</span>
+												Official
+											</span>
+										}
+										<span class="flex items-center gap-1.5 text-[0.875rem] font-semibold text-fg overflow-hidden text-ellipsis whitespace-nowrap">
+											{{ list.name }}
+											@if (list.completed) {
+												<span class="text-sm text-warning material-icons">emoji_events</span>
+											}
+										</span>
+										@if (list.description) {
+											<span class="text-[0.6875rem] text-fg-muted overflow-hidden text-ellipsis whitespace-nowrap">{{ list.description }}</span>
+										}
+										@if (list.owner) {
+											<span class="text-[0.625rem] text-fg-muted">by &#64;{{ list.owner.username }}</span>
+										}
+									</a>
+								}
+							</div>
+						</div>
+					}
+
+					@if (game()!.dlcs.length > 0) {
+						<div uiTabPanel value="dlcs">
+							<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+								@for (dlc of game()!.dlcs; track dlc.id) {
+									<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', dlc.code]">
+										@if (dlc.backgroundUrl) {
+											<img [src]="dlc.backgroundUrl" [alt]="dlc.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+										} @else {
+											<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+										}
+										<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ dlc.title }}</span>
+									</a>
+								}
+							</div>
+						</div>
+					}
+
+					@if (similarGames().length > 0) {
+						<div uiTabPanel value="similar">
+							<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+								@for (g of similarGames(); track g.id) {
+									<a class="flex flex-col gap-2 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', g.code]">
+										@if (g.backgroundUrl) {
+											<img [src]="g.backgroundUrl" [alt]="g.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+										} @else {
+											<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+										}
+										<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ g.title }}</span>
+									</a>
+								}
+							</div>
+						</div>
+					}
+				</ui-tabs>
 			</div>
 		</div>
 	</div>
+}
 
-	@if (otherScores().length > 0 || otherTimes().length > 0) {
-	<div class="grid grid-cols-2 gap-6 mb-6">
-		@if (otherScores().length > 0) {
-		<div>
-			<h3 class="font-display m-0 mb-2 text-[0.8125rem] font-semibold text-fg-secondary">Scores</h3>
-			<div class="flex flex-wrap gap-3">
-				@for (s of otherScores(); track s.source) {
-				<div class="bg-surface border border-line rounded p-3 px-4 flex flex-col gap-1 min-w-[100px]">
-					<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">{{ s.source }}</span>
-					<span class="text-lg font-bold text-fg"
-						>{{ s.score }}
-						<span class="text-xs font-normal text-fg-muted"
-							>{{ getScaleLabel(s.source) }}</span
-						></span
-					>
-				</div>
-				}
-			</div>
-		</div>
-		} @if (otherTimes().length > 0) {
-		<div>
-			<h3 class="font-display m-0 mb-2 text-[0.8125rem] font-semibold text-fg-secondary">Durations</h3>
-			<div class="flex flex-wrap gap-3">
-				@for (t of otherTimes(); track t.source) {
-				<div class="bg-surface border border-line rounded p-3 px-4 flex flex-col gap-1 min-w-[100px]">
-					<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">{{ t.source }}</span>
-					<span class="text-lg font-bold text-fg">{{ t.duration }}h</span>
-				</div>
-				}
-			</div>
-		</div>
-		}
-	</div>
-	}
-
-	@if (game()!.description) {
-	<div class="mb-6">
-		<h2 class="font-display m-0 mb-2.5 text-base font-semibold text-fg-secondary">Description</h2>
-		<p class="text-fg-secondary text-sm leading-relaxed whitespace-pre-line">{{ game()!.description }}</p>
-	</div>
-	}
-
-	<div class="flex gap-2 mb-6 flex-wrap">
-		<a
-			class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium no-underline transition hover:border-brand hover:text-brand"
-			[href]="'https://rawg.io/games/' + game()!.code"
-			target="_blank"
-			rel="noopener"
-		>
-			<span class="material-icons text-sm">open_in_new</span>
-			RAWG
-		</a>
-		@for (link of game()!.externalLinks; track link.source) { @if
-		(link.source === 'steam') {
-		<a
-			class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium no-underline transition hover:border-brand hover:text-brand"
-			[href]="'https://store.steampowered.com/app/' + link.externalId"
-			target="_blank"
-			rel="noopener"
-		>
-			<span class="material-icons text-sm">open_in_new</span>
-			Steam
-		</a>
-		} @else if (link.source === 'metacritic') {
-		<a
-			class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium no-underline transition hover:border-brand hover:text-brand"
-			[href]="'https://www.metacritic.com/game/' + link.externalId"
-			target="_blank"
-			rel="noopener"
-		>
-			<span class="material-icons text-sm">open_in_new</span>
-			Metacritic
-		</a>
-		} } @if (!reportSent()) {
-		<button class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand" (click)="openReportModal()">
-			<span class="material-icons text-sm">flag</span>
-			Report issue
-		</button>
-		} @else {
-		<span class="flex items-center gap-1.5 text-xs text-success">
-			<span class="material-icons text-sm">check</span>
-			Report sent
-		</span>
-		}
-	</div>
-
-	<div class="mb-6">
-		<div class="flex items-center justify-between mb-4">
-			<h2 class="font-display m-0 text-xl font-bold text-fg">Reviews</h2>
-			<button uiButton variant="primary" size="sm" (click)="openReviewForm()">
-				{{ myReview() ? 'Edit Review' : 'Write Review' }}
-			</button>
-		</div>
-
-		@if (showReviewForm()) {
-		<div class="bg-surface border border-line rounded p-4 mb-5">
-			<div class="flex items-center gap-3 mb-3">
-				<span class="text-xs font-semibold text-fg-muted uppercase tracking-wider">Rating</span>
-				<app-star-rating
-					[value]="reviewRating()"
-					(ratingChange)="reviewRating.set($event)"
-					size="sm"
-				/>
-			</div>
+@if (showBacklogModal()) {
+	<app-backlog-modal [preselectedGame]="game()" (closed)="onModalClosed()" (saved)="onModalSaved()" />
+}
+@if (showShelfModal()) {
+	<app-game-shelf-modal [preselectedGame]="game()" (closed)="onModalClosed()" (saved)="onModalSaved()" />
+}
+@if (showReportModal()) {
+	<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]" (click)="showReportModal.set(false)">
+		<div class="bg-sidebar border border-line rounded-card p-6 w-[90%] max-w-[480px]" (click)="$event.stopPropagation()">
+			<h3 class="font-display m-0 mb-4 text-base font-semibold">Report issue with {{ game()!.title }}</h3>
 			<textarea
 				uiInput
 				class="!w-full !resize-y"
+				placeholder="Describe the issue (min 10 characters)..."
+				[value]="reportMessage()"
+				(input)="reportMessage.set($any($event.target).value)"
 				rows="4"
-				placeholder="Share your thoughts about this game..."
-				[ngModel]="reviewContent()"
-				(ngModelChange)="reviewContent.set($event)"
 			></textarea>
-			<div class="flex justify-end gap-2 mt-3">
-				@if (myReview()) {
-				<button uiButton variant="ghost" size="sm" (click)="deleteReview()">
-					Delete
-				</button>
-				}
-				<button uiButton variant="ghost" size="sm" (click)="showReviewForm.set(false)">
-					Cancel
-				</button>
-				<button
-					uiButton variant="primary" size="sm"
-					(click)="submitReview()"
-					[disabled]="reviewSubmitting() || (!reviewContent().trim() && !reviewRating())"
+			@if (reportError()) {
+				<div class="mt-2 py-1.5 px-3 bg-danger/10 border border-danger/20 rounded text-danger text-xs">{{ reportError() }}</div>
+			}
+			<div class="flex justify-end gap-2 mt-4">
+				<button uiButton variant="ghost" size="sm" (click)="showReportModal.set(false)">Cancel</button>
+				<button uiButton variant="primary" size="sm"
+					[disabled]="reportMessage().length < 10 || reportSubmitting()"
+					(click)="submitReport()"
 				>
-					{{ reviewSubmitting() ? 'Saving...' : myReview() ? 'Update'
-					: 'Post' }}
+					{{ reportSubmitting() ? "Sending..." : "Send Report" }}
 				</button>
 			</div>
 		</div>
-		} @if (reviews().length === 0) {
-		<p class="text-fg-muted text-[0.8125rem] italic">No reviews yet. Be the first!</p>
-		} @else { @for (review of reviews(); track review.id) {
-		<div class="py-4 border-b border-line last:border-b-0">
-			<div class="flex items-center justify-between mb-2">
-				<a
-					class="flex items-center gap-2 no-underline text-inherit group"
-					[routerLink]="['/user', review.user?.username]"
-				>
-					@if (review.user?.avatarUrl) {
-					<img
-						class="w-7 h-7 rounded-full object-cover"
-						[src]="review.user!.avatarUrl"
-						[alt]="review.user!.username"
-					/>
-					} @else {
-					<div class="w-7 h-7 rounded-full bg-surface flex items-center justify-center text-[0.6875rem] font-bold text-brand">
-						{{ review.user?.username?.charAt(0)?.toUpperCase() }}
-					</div>
-					}
-					<span class="text-[0.8125rem] font-semibold text-fg transition group-hover:text-brand"
-						>{{ review.user?.name || review.user?.username }}</span
-					>
-				</a>
-				@if (review.rating) {
-				<app-star-rating
-					[value]="review.rating"
-					[readonly]="true"
-					size="sm"
-				/>
-				}
-			</div>
-			@if (review.content) {
-			<p class="m-0 text-sm text-fg-secondary leading-relaxed">{{ review.content }}</p>
-			}
-		</div>
-		} }
 	</div>
-
-	@if (featuredLists().length > 0) {
-	<div class="mb-6">
-		<h2 class="font-display m-0 mb-2.5 text-base font-semibold text-fg-secondary">Featured in Lists</h2>
-		<div class="grid grid-cols-3 gap-2">
-			@for (list of featuredLists(); track list.id) {
-			<a
-				class="flex flex-col gap-1 py-2 px-3 bg-surface border rounded no-underline transition-colors hover:border-brand"
-				[class.border-brand]="list.isOfficial"
-				[class.border-line]="!list.isOfficial"
-				[style.background]="list.isOfficial ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(139, 92, 246, 0.05))' : ''"
-				[routerLink]="['/lists', list.id]"
-			>
-				@if (list.isOfficial) {
-				<span class="inline-flex items-center gap-1 text-[0.625rem] font-bold uppercase tracking-wider text-brand">
-					<span class="material-icons text-sm">verified</span>
-					Official
-				</span>
-				}
-				<span class="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-fg overflow-hidden text-ellipsis whitespace-nowrap">
-					{{ list.name }} @if (list.completed) {
-					<span class="text-sm text-warning material-icons">emoji_events</span>
-					}
-				</span>
-				@if (list.description) {
-				<span class="text-[0.6875rem] text-fg-muted overflow-hidden text-ellipsis whitespace-nowrap">{{ list.description }}</span>
-				} @if (list.owner) {
-				<span class="text-[0.625rem] text-fg-muted"
-					>by @{{ list.owner.username }}</span
-				>
-				}
-			</a>
-			}
-		</div>
-	</div>
-	}
-
-	@if (game()!.dlcs.length > 0) {
-	<div class="mb-6">
-		<h2 class="font-display m-0 mb-2.5 text-base font-semibold text-fg-secondary">DLCs</h2>
-		<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
-			@for (dlc of game()!.dlcs; track dlc.id) {
-			<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', dlc.code]">
-				@if (dlc.backgroundUrl) {
-				<img
-					[src]="dlc.backgroundUrl"
-					[alt]="dlc.title"
-					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
-				/>
-				} @else {
-				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-				}
-				<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ dlc.title }}</span>
-			</a>
-			}
-		</div>
-	</div>
-	}
-
-	@if (similarGames().length > 0) {
-	<section class="mb-12">
-		<h2 class="font-display m-0 mb-4 text-xl md:text-2xl font-bold flex items-center gap-3">
-			<span class="inline-block w-1 h-6 bg-brand rounded-full"></span>
-			Similar Games
-		</h2>
-		<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
-			@for (g of similarGames(); track g.id) {
-			<a class="flex flex-col gap-2 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', g.code]">
-				@if (g.backgroundUrl) {
-				<img
-					[src]="g.backgroundUrl"
-					[alt]="g.title"
-					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
-				/>
-				} @else {
-				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-				}
-				<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ g.title }}</span>
-			</a>
-			}
-		</div>
-	</section>
-	}
-
-	<div class="pt-4 border-t border-line">
-		<a uiButton variant="ghost" size="sm" routerLink="/games">&larr; Back to Games</a>
-	</div>
-</div>
-} @if (showBacklogModal()) {
-<app-backlog-modal
-	[preselectedGame]="game()"
-	(closed)="onModalClosed()"
-	(saved)="onModalSaved()"
-/>
-} @if (showShelfModal()) {
-<app-game-shelf-modal
-	[preselectedGame]="game()"
-	(closed)="onModalClosed()"
-	(saved)="onModalSaved()"
-/>
-} @if (showReportModal()) {
-<div class="modal-overlay" (click)="showReportModal.set(false)">
-	<div class="bg-sidebar border border-line rounded-card p-6 w-[90%] max-w-[480px]" (click)="$event.stopPropagation()">
-		<h3 class="font-display m-0 mb-4 text-base font-semibold">Report issue with {{ game()!.title }}</h3>
-		<textarea
-			uiInput
-			class="!w-full !resize-y"
-			placeholder="Describe the issue (min 10 characters)..."
-			[value]="reportMessage()"
-			(input)="reportMessage.set($any($event.target).value)"
-			rows="4"
-		></textarea>
-		@if (reportError()) {
-		<div class="mt-2 py-1.5 px-3 bg-danger/10 border border-danger/20 rounded text-danger text-xs">{{ reportError() }}</div>
-		}
-		<div class="flex justify-end gap-2 mt-4">
-			<button uiButton variant="ghost" size="sm" (click)="showReportModal.set(false)">
-				Cancel
-			</button>
-			<button uiButton variant="primary" size="sm"
-				[disabled]="reportMessage().length < 10 || reportSubmitting()"
-				(click)="submitReport()"
-			>
-				{{ reportSubmitting() ? "Sending..." : "Send Report" }}
-			</button>
-		</div>
-	</div>
-</div>
 }

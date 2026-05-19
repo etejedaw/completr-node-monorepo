@@ -22,7 +22,7 @@ import { getRatingLabel } from "../../../shared/constants/rating-labels";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { ReviewsService, Review } from "../reviews.service";
 import { FormsModule } from "@angular/forms";
-import { UiButton, UiInput } from "../../../shared/ui";
+import { UiButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
 
 @Component({
 	selector: "app-game-detail",
@@ -34,7 +34,11 @@ import { UiButton, UiInput } from "../../../shared/ui";
 		AdminGameEditor,
 		FormsModule,
 		UiButton,
-		UiInput
+		UiInput,
+		UiTabs,
+		UiTabList,
+		UiTab,
+		UiTabPanel
 	],
 	templateUrl: "./game-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -89,6 +93,7 @@ export class GameDetail implements OnInit {
 	protected readonly reviewRating = signal<number | null>(null);
 	protected readonly reviewSubmitting = signal(false);
 	protected readonly reportError = signal("");
+	protected readonly activeTab = signal("overview");
 	protected readonly featuredLists = signal<
 		{
 			id: string;
