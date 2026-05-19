@@ -4,11 +4,12 @@
 			<h1>Game Shelf</h1>
 			<span class="entry-count">{{ entries().length }} games</span>
 		</div>
-		<button class="btn-add" (click)="openCreate()">+ Add Game</button>
+		<button uiButton variant="primary" (click)="openCreate()">+ Add Game</button>
 	</div>
 
 	<div class="search-bar">
 		<input
+			uiInput
 			type="text"
 			placeholder="Search by title..."
 			[value]="searchQuery()"

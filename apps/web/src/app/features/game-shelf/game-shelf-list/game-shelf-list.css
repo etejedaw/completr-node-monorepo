@@ -26,7 +26,7 @@
 
 .btn-add {
 	padding: 0.5rem 1rem;
-	background: linear-gradient(135deg, var(--accent), #0284c7);
+	background: linear-gradient(135deg, var(--accent), var(--accent-deep));
 	color: #fff;
 	border: none;
 	border-radius: var(--radius);
@@ -63,7 +63,7 @@
 .search-bar input:focus {
 	outline: none;
 	border-color: var(--accent);
-	box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+	box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 .btn-add:hover {
@@ -288,7 +288,7 @@ tbody td {
 }
 
 .status-completed {
-	background: rgba(34, 197, 94, 0.12);
+	background: rgba(139, 92, 246, 0.12);
 	color: var(--status-completed);
 }
 
