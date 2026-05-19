@@ -26,7 +26,6 @@ import { UiButton, UiIconButton, UiInput } from "../../../shared/ui";
 	selector: "app-list-detail",
 	imports: [RouterLink, ListModal, BacklogModal, UiButton, UiIconButton, UiInput],
 	templateUrl: "./list-detail.html",
-	styleUrl: "./list-detail.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListDetail implements OnInit {

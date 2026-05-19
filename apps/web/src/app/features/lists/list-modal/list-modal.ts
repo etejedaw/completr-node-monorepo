@@ -10,13 +10,12 @@ import {
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { List } from "../../../core/models";
 import { ListsService, CreateListDto, UpdateListDto } from "../lists.service";
-import { UiButton, UiIconButton } from "../../../shared/ui";
+import { UiButton, UiIconButton, UiInput } from "../../../shared/ui";
 
 @Component({
 	selector: "app-list-modal",
-	imports: [ReactiveFormsModule, UiButton, UiIconButton],
+	imports: [ReactiveFormsModule, UiButton, UiIconButton, UiInput],
 	templateUrl: "./list-modal.html",
-	styleUrl: "./list-modal.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListModal implements OnInit {

@@ -1,18 +1,19 @@
-<div class="lists-page">
-	<div class="page-header">
-		<div class="page-header-left">
-			<h1>Lists</h1>
-			<span class="entry-count">{{ lists().length }} lists</span>
+<div class="max-w-full">
+	<div class="flex items-center justify-between mb-5">
+		<div class="flex items-baseline gap-3">
+			<h1 class="font-display m-0 text-[1.375rem] font-bold tracking-tight">Lists</h1>
+			<span class="text-[0.8125rem] text-fg-muted">{{ lists().length }} lists</span>
 		</div>
 		<button uiButton variant="primary" (click)="openCreate()" [disabled]="frozen()">
 			+ Create List
 		</button>
 	</div>
 
-	<div class="search-bar">
+	<div class="mb-4">
 		<input
 			uiInput
 			type="text"
+			class="!max-w-[320px]"
 			placeholder="Search public lists..."
 			[value]="searchQuery()"
 			(input)="onSearch($event)"
@@ -20,21 +21,24 @@
 	</div>
 
 	@if (searchQuery().length >= 2) {
-	<div class="search-section">
-		<h2>Search Results</h2>
+	<div class="mb-6 pb-6 border-b border-line">
+		<h2 class="font-display m-0 mb-3 text-sm font-semibold text-fg-secondary">Search Results</h2>
 		@if (isSearching()) {
-		<div class="loading">Searching...</div>
+		<div class="text-center py-12 text-fg-muted text-sm">Searching...</div>
 		} @else if (searchResults().length === 0) {
-		<div class="empty-inline">No public lists found.</div>
+		<div class="text-fg-muted text-[0.8125rem]">No public lists found.</div>
 		} @else {
-		<div class="lists-grid">
+		<div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
 			@for (list of searchResults(); track list.id) {
-			<a class="list-card" [routerLink]="['/lists', list.id]">
-				<div class="list-card-header">
-					<h3>{{ list.name }}</h3>
+			<a
+				class="flex flex-col gap-2 bg-surface border border-line rounded-lg p-5 no-underline text-inherit transition hover:border-brand"
+				[routerLink]="['/lists', list.id]"
+			>
+				<div class="flex justify-between items-start">
+					<h3 class="m-0 text-base font-semibold">{{ list.name }}</h3>
 				</div>
 				@if (list.description) {
-				<p class="list-desc">{{ list.description }}</p>
+				<p class="m-0 text-[0.8125rem] text-fg-secondary line-clamp-2">{{ list.description }}</p>
 				}
 			</a>
 			}
@@ -42,14 +46,16 @@
 		}
 	</div>
 	} @if (frozen()) {
-	<div class="frozen-banner">
-		<span class="material-icons">lock</span>
+	<div
+		class="flex items-center gap-2 px-3.5 py-2.5 bg-warning/10 border border-warning/25 text-warning rounded-card text-[0.8125rem] mb-5"
+	>
+		<span class="material-icons text-base">lock</span>
 		Lists are frozen. Delete lists to go below the free limit (5).
 	</div>
 	} @if (isLoading()) {
-	<div class="loading">Loading...</div>
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (lists().length === 0) {
-	<div class="empty">
+	<div class="text-center py-12 text-fg-muted text-sm">
 		<p class="empty-title">No lists yet</p>
 		<p class="empty-hint">
 			Create curated collections of games — sagas, top picks, or themed
@@ -57,28 +63,31 @@
 		</p>
 	</div>
 	} @else {
-	<div class="lists-grid">
+	<div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
 		@for (list of lists(); track list.id) {
-		<a class="list-card" [routerLink]="['/lists', list.id]">
-			<div class="list-card-header">
-				<h3>{{ list.name }}</h3>
+		<a
+			class="flex flex-col gap-2 bg-surface border border-line rounded-lg p-5 no-underline text-inherit transition hover:border-brand"
+			[routerLink]="['/lists', list.id]"
+		>
+			<div class="flex justify-between items-start">
+				<h3 class="m-0 text-base font-semibold">{{ list.name }}</h3>
 			</div>
 			@if (list.description) {
-			<p class="list-desc">{{ list.description }}</p>
+			<p class="m-0 text-[0.8125rem] text-fg-secondary line-clamp-2">{{ list.description }}</p>
 			}
-			<div class="list-meta">
-				<span class="meta-item">
-					<span class="material-icons meta-icon"
+			<div class="flex gap-3 mt-auto">
+				<span class="flex items-center gap-1 text-[0.6875rem] text-fg-muted uppercase tracking-wider">
+					<span class="material-icons text-[0.875rem]"
 						>{{ list.isPublic ? 'public' : 'lock' }}</span
 					>
 					{{ list.isPublic ? 'Public' : 'Private' }}
 				</span>
-				<span class="meta-item">
-					<span class="material-icons meta-icon">leaderboard</span>
+				<span class="flex items-center gap-1 text-[0.6875rem] text-fg-muted uppercase tracking-wider">
+					<span class="material-icons text-[0.875rem]">leaderboard</span>
 					{{ list.scoreSource }}
 				</span>
-				<span class="meta-item">
-					<span class="material-icons meta-icon">schedule</span>
+				<span class="flex items-center gap-1 text-[0.6875rem] text-fg-muted uppercase tracking-wider">
+					<span class="material-icons text-[0.875rem]">schedule</span>
 					{{ list.durationSource }}
 				</span>
 			</div>
@@ -86,25 +95,29 @@
 		}
 	</div>
 	} @if (followingLists().length > 0) {
-	<div class="following-section">
-		<h2>Following</h2>
-		<div class="lists-grid">
+	<div class="mt-8 pt-6 border-t border-line">
+		<h2 class="font-display m-0 mb-4 text-base font-semibold text-fg-secondary">Following</h2>
+		<div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
 			@for (list of followingLists(); track list.id) {
-			<a class="list-card" [routerLink]="['/lists', list.id]">
-				<div class="list-card-header">
-					<h3>{{ list.name }}</h3>
+			<a
+				class="flex flex-col gap-2 bg-surface border border-line rounded-lg p-5 no-underline text-inherit transition hover:border-brand"
+				[routerLink]="['/lists', list.id]"
+			>
+				<div class="flex justify-between items-start">
+					<h3 class="m-0 text-base font-semibold">{{ list.name }}</h3>
 				</div>
 				@if (list.description) {
-				<p class="list-desc">{{ list.description }}</p>
+				<p class="m-0 text-[0.8125rem] text-fg-secondary line-clamp-2">{{ list.description }}</p>
 				}
-				<div class="progress-mini">
-					<div class="progress-bar-mini">
+				<div class="flex flex-col gap-1.5 mt-auto">
+					<div class="h-1 bg-input-bg rounded-[2px] overflow-hidden">
 						<div
-							class="progress-fill-mini"
+							class="h-full rounded-[2px] transition-[width] duration-300 ease-out"
+							style="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
 							[style.width.%]="progressPercent(list.progress)"
 						></div>
 					</div>
-					<span class="progress-text"
+					<span class="text-[0.6875rem] text-fg-muted"
 						>{{ list.progress.completed }}/{{ list.progress.total }}
 						completed</span
 					>

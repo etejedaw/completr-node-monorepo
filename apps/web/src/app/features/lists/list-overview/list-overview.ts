@@ -16,7 +16,6 @@ import { UiButton, UiInput } from "../../../shared/ui";
 	selector: "app-list-overview",
 	imports: [RouterLink, ListModal, UiButton, UiInput],
 	templateUrl: "./list-overview.html",
-	styleUrl: "./list-overview.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListOverview implements OnInit {
