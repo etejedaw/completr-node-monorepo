@@ -58,8 +58,8 @@ export class BacklogModal implements OnInit {
 	protected readonly openTooltip = signal<string | null>(null);
 
 	private static readonly TOOLTIP_TEXTS: Record<string, string> = {
-		ratio: "Ratio = Critic Score ÷ Duration. Higher means short and well-rated — useful to prioritize what to play next.",
-		score: "Average score from critics (Metacritic, OpenCritic, RAWG). Normalized to a 0–5 scale in Completr.",
+		ratio: "Ratio = (Critic Score ÷ Duration) × 20, scaled to 0–100. Higher means short and well-rated — useful to prioritize what to play next.",
+		score: "Average score from critics (Metacritic, OpenCritic, RAWG). Stored on a 0–5 scale — clicking a source button auto-normalizes the value for you.",
 		duration: "Estimated playtime from HowLongToBeat or RAWG. Not your real playtime — that goes in Real Duration below.",
 		rating: "Your personal rating (0.5–5 stars). Independent of critic score.",
 		realDuration: "Hours you actually spent. Used to calculate your Personal Ratio."
