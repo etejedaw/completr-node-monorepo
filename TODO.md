@@ -490,6 +490,8 @@
 ### Corrección de bugs por feedback de usuarios
 
 - [ ] Corrección de bugs por feedback de usuarios (ver docs/feedback/fase-2.md)
+- [ ] Diseñar el docs/architecture.md
+- [ ] Crear aviso de privacidad
 
 ---
 
