@@ -308,3 +308,401 @@ Formato por item:
 - **Estado:** pendiente
 - **Descripcion:** Mantener el catalogo de juegos actualizado (datos faltantes, correcciones, plataformas, scores) es demasiado trabajo para un solo admin o moderador. Algunos usuarios quieren contribuir editando datos de juegos ellos mismos. Actualmente solo admin/moderator pueden editar juegos, asi que los usuarios solo pueden reportar errores (GameReport) y esperar a que alguien los corrija.
 - **Solucion propuesta:** Implementar un sistema de ediciones comunitarias con aprobacion. El usuario propone una edicion (titulo, descripcion, plataformas, scores, etc.) que se guarda como solicitud pendiente. Un moderador o admin revisa y aprueba/rechaza la solicitud. Si se aprueba, los cambios se aplican al juego. Modelo tipo GameEditRequest(id, userId, gameId, changes JSONB, status pending/approved/rejected, reviewedBy, createdAt). Vista admin/moderator para revisar solicitudes pendientes con diff de cambios. A futuro, usuarios con muchas ediciones aprobadas podrian ganar un badge de "contribuidor" o incluso permisos de edicion directa (trusted editor).
+
+### [FB-035] Usuarios tienen que iniciar sesion cada dia
+
+- **Fecha:** 2026-04-23
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Descripcion:** Varios usuarios reportan que tienen que iniciar sesion todos los dias. La sesion no persiste entre dias, lo que sugiere que el refresh token no esta funcionando correctamente o esta mal implementado en el frontend. Posibles causas: el token no se renueva antes de expirar, no se persiste correctamente en el almacenamiento del navegador, o el interceptor HTTP del frontend no ejecuta el flujo de refresh cuando el access token expira.
+- **Solucion propuesta:** Investigar el flujo completo de refresh token. En el backend: verificar la expiracion del refresh token y que el endpoint de refresh funcione correctamente. En el frontend: revisar el interceptor HTTP para asegurar que detecta respuestas 401, ejecuta el refresh automaticamente, y reintenta el request original con el nuevo access token. Tambien verificar que el refresh token se almacena correctamente (localStorage/cookie) y que no se pierde al cerrar el navegador.
+
+### [FB-036] Boton de RAWG en game detail redirige con slug incorrecto
+
+- **Fecha:** 2026-04-23
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Descripcion:** En la vista de detalle de un juego hay un boton que enlaza a la pagina del juego en RAWG. El problema es que el link usa el slug propio de Completr para construir la URL de RAWG (ej: rawg.io/games/{slug-completr}), pero el slug de Completr no tiene por que coincidir con el de RAWG, lo que provoca que la redireccion falle o lleve a un juego equivocado. La tabla GameExternal almacena el ID numerico de RAWG, no el slug.
+- **Solucion propuesta:** Cambiar el boton para que use el ID numerico de RAWG en vez del slug. La URL de RAWG acepta IDs numericos (rawg.io/games/{id}), asi que se puede construir el link con el externalId que ya esta almacenado en GameExternal. Alternativa: almacenar el slug de RAWG en GameExternal al momento de importar el juego y usarlo para el link.
+
+### [FB-037] UI general se siente muy chica
+
+- **Fecha:** 2026-04-24
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Tami (Brave, Ubuntu, modo oscuro)
+- **Descripcion:** Los elementos de la interfaz (texto, botones, tablas) se sienten demasiado pequenos en pantallas de escritorio. El usuario siente que todo esta "muy chico" en general. La app fue disenada desktop-first, por lo que el problema no es de responsive sino de tamanos base insuficientes en los estilos globales.
+- **Solucion propuesta:** Revisar los tamanos base en styles.css y CSS variables globales: font-size del body, padding de botones, alto de filas de tabla, tamano de iconos. Aumentar el font-size base (actualmente puede estar en 14px o menos, deberia ser al menos 16px). Revisar que los componentes usen rem/em en vez de px fijos para que escalen con el base. Relacionado con FB-039 y FB-043.
+
+### [FB-038] Login con Google (OAuth)
+
+- **Fecha:** 2026-04-24
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Un usuario sugiere que seria util poder iniciar sesion con Google en vez de solo email/password. Esto reduce friccion en el registro y login, especialmente para usuarios que ya tienen muchas credenciales.
+- **Solucion propuesta:** Implementar OAuth con Google como metodo de login alternativo. Requiere: registrar la app en Google Cloud Console, implementar el flujo OAuth en el backend (passport-google o similar), y agregar boton "Sign in with Google" en el frontend. Considerar si se permite vincular una cuenta existente con Google o solo registro nuevo. Feature para Fase 3 o posterior.
+
+### [FB-039] Pantalla de perfil usa solo la mitad del ancho de la pagina
+
+- **Fecha:** 2026-04-24
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** La vista de perfil (/profile y /user/:username) no aprovecha el ancho completo de la pantalla en escritorio. El contenido se ve comprimido en la mitad izquierda o centro, dejando grandes espacios vacios a los lados. Esto se siente especialmente raro en monitores anchos.
+- **Solucion propuesta:** Revisar el max-width del contenedor del perfil y ampliarlo para aprovechar mejor el espacio en escritorio. Considerar un layout de dos columnas en pantallas grandes (info del usuario a la izquierda, contenido a la derecha). Relacionado con FB-037 y FB-043.
+
+### [FB-040] Preview de imagen rota en algun formulario
+
+- **Fecha:** 2026-04-24
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Al usar una funcion que muestra preview de imagen (probablemente el avatar URL en el modal de edicion de perfil), la preview no carga o se muestra rota. No se especifico exactamente en que pantalla ocurre, pero es probable que sea en el modal de editar perfil donde se ingresa un avatar URL y se muestra un preview.
+- **Solucion propuesta:** El problema probablemente viene del nginx que bloquea o no proxea correctamente imagenes externas. Montar un servicio de almacenamiento (MinIO/S3) para fotos de perfil es demasiado para esta fase. Solucion intermedia: crear un pool de avatares predefinidos generados con IA (estilo Netflix) para que los usuarios elijan uno. Esto evita el problema de URLs externas, da una experiencia visual consistente y a futuro cuando se implemente upload real, los avatares predefinidos quedan como opcion por defecto.
+
+### [FB-041] Sidebar desaparece al entrar a perfil publico o detalle de juego
+
+- **Fecha:** 2026-04-24
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Cuando el usuario busca a alguien en el feed y entra a su perfil publico (/user/:username), el sidebar desaparece porque el perfil publico es un componente standalone fuera del layout principal. Lo mismo pasa con el game detail. El usuario lo percibe como raro porque pierde la navegacion. Relacionado con FB-046 (barra de busqueda deberia ser permanente).
+- **Solucion propuesta:** Evaluar si el perfil publico y el game detail deberian vivir dentro del layout principal (con sidebar) en vez de ser standalone. Alternativa: agregar una barra de navegacion superior en las vistas standalone con al menos un boton de "back" y acceso a busqueda. Considerar que la experiencia no-logueada si necesita ser standalone pero la logueada podria mantener el sidebar.
+
+### [FB-042] Multiples backlogs del mismo juego confunde a usuarios nuevos
+
+- **Fecha:** 2026-04-24
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Un usuario ve que otro tiene el mismo juego dos veces en su backlog y lo encuentra raro. No entiende que es intencional — el sistema permite multiples backlogs del mismo juego para trackear re-plays o distintas plataformas (ej: RE4 completado en PS2, despues re-jugado en PC). El concepto de play_count y multiples runs no es obvio para usuarios nuevos.
+- **Solucion propuesta:** Agregar indicadores visuales en el backlog para diferenciar multiples runs del mismo juego: mostrar un numero de run o "play #2" junto al titulo, o agrupar visualmente las entradas del mismo juego. En el perfil publico, considerar mostrar un tooltip o explicacion de por que un juego aparece multiples veces. Tambien evaluar agregar una seccion de ayuda o onboarding que explique el concepto de multiples backlogs.
+
+### [FB-043] Layout general usa muy poco espacio en pantalla de escritorio
+
+- **Fecha:** 2026-04-24
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** El contenido de varias vistas (feed, perfil, listas, backlog) ocupa una fraccion pequena del ancho disponible en pantalla de escritorio. El feed por ejemplo usa aproximadamente un cuarto de la pantalla, dejando grandes areas vacias. La app fue disenada desktop-first, por lo que el problema es que los contenedores principales tienen max-width demasiado restrictivos o el layout no aprovecha el espacio disponible.
+- **Solucion propuesta:** Auditar los max-width de los contenedores principales en cada vista. Ampliarlos o eliminarlos donde no sean necesarios. Para vistas de contenido central (feed, perfil), considerar layouts de multiples columnas que ocupen el ancho disponible (ej: feed + sidebar de sugerencias). Para vistas de tabla (backlog, game-shelf), usar ancho completo del area de contenido. Relacionado con FB-037 y FB-039.
+
+### [FB-044] Icono de calendario casi invisible en modo oscuro
+
+- **Fecha:** 2026-04-24
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Tami (Brave, Ubuntu, modo oscuro)
+- **Descripcion:** Al seleccionar un juego en el Game Shelf, el icono del calendario en el campo "Acquired" (fecha de adquisicion) es casi invisible. El icono no tiene suficiente contraste contra el fondo oscuro del input. Puede ser un problema especifico de Brave en Linux o del tema oscuro del navegador que afecta inputs nativos de tipo date.
+- **Solucion propuesta:** Estilizar el input de fecha para que el icono del calendario tenga suficiente contraste en modo oscuro. Usar CSS para colorear el icono nativo (::-webkit-calendar-picker-indicator) o reemplazarlo con un icono propio. Probar en Brave Linux para confirmar que el fix funciona en ese navegador.
+
+### [FB-045] Faltan juegos de Nintendo Switch (ej: Pokemon Scarlet)
+
+- **Fecha:** 2026-04-24
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Un usuario quiso agregar Pokemon Scarlet y no lo encontro. La busqueda con fallback a RAWG deberia traer juegos de Switch, pero puede ser que el juego tenga un nombre distinto en RAWG (ej: "Pokemon Scarlet and Violet") o que el mapeo de plataformas de RAWG no incluya Switch correctamente.
+- **Solucion propuesta:** Verificar que la plataforma Nintendo Switch esta en la tabla de plataformas y en el mapeo de RAWG (rawg-platform.map.ts). Buscar "Pokemon Scarlet" en RAWG directamente para ver si existe y con que nombre. Si RAWG lo agrupa con Violet (como un solo registro), es una instancia del problema descrito en FB-023.
+
+### [FB-046] Barra de busqueda deberia ser permanente en el sidebar
+
+- **Fecha:** 2026-04-24
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** La barra de busqueda global solo esta disponible en el feed. Al navegar a un juego, perfil u otra seccion, desaparece. El usuario tiene que volver al feed para buscar algo. Seria mas practico tener la busqueda siempre accesible desde el sidebar o un header global.
+- **Solucion propuesta:** Mover la barra de busqueda global al sidebar (debajo del logo o arriba de la navegacion) para que este disponible en todas las vistas. Alternativa: agregar un header/topbar con la busqueda que persista en todas las paginas dentro del layout. Relacionado con FB-041.
+
+### [FB-047] Agregar a wishlist o lista desde la grilla de juegos
+
+- **Fecha:** 2026-04-24
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** En las vistas de grilla de juegos (games-browse, resultados de busqueda, similar games), las miniaturas no tienen acciones rapidas. El usuario tiene que entrar al detalle del juego para poder agregarlo a una lista, wishlist o backlog. Seria mas eficiente tener botones de accion rapida directamente en las cards de la grilla.
+- **Solucion propuesta:** Agregar un overlay al hover en las cards de la grilla con botones de accion rapida: "Add to Backlog", "Add to Wishlist", "Add to List" (con selector de lista). Mantener el click en la card para ir al detalle. En movil, considerar un menu contextual al hacer long-press o un icono de tres puntos.
+
+### [FB-048] Auto-seleccionar plataforma cuando solo hay una disponible
+
+- **Fecha:** 2026-04-24
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Al agregar un juego al backlog o game shelf, el selector de plataformas muestra todas las plataformas del juego. Si el juego solo tiene una plataforma disponible, el usuario tiene que seleccionarla manualmente. Seria mas comodo que se seleccionara automaticamente.
+- **Solucion propuesta:** En el frontend, al cargar las plataformas de un juego en el modal de backlog/shelf, si solo hay una plataforma disponible, preseleccionarla automaticamente en el dropdown. Cambio solo de frontend.
+
+### [FB-049] Confusion entre Score y Rating en el backlog
+
+- **Fecha:** 2026-04-24
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** El usuario no entiende la diferencia entre "Score" y "Rating" en el backlog. Score es el puntaje promedio de criticas (Metacritic, OpenCritic, etc.) y Rating es la nota personal del usuario (userRating, de 1 a 10). El hecho de que ambos sean numeros y esten en la misma tabla sin explicacion clara genera confusion. El usuario pregunta: "si son lo mismo, uno esta demas". Relacionado con FB-001 (campos score/duration confusos).
+- **Solucion propuesta:** Renombrar "Score" a "Critic Score" o "Avg. Score" para dejar claro que es de criticas. Renombrar "Rating" a "My Rating" o "Personal Rating". Agregar tooltips explicativos en ambos campos. En la tabla del backlog, considerar usar iconos distintos (ej: estrella para rating personal, medalla para score de criticas). Tambien evaluar si la escala de ambos deberia ser mas distinta visualmente (score es 0-100 o escala Completr, rating es 1-10 con estrellas).
+
+### [FB-050] Juego de RAWG falla al cargar y boton Add queda deshabilitado
+
+- **Fecha:** 2026-04-24
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Al buscar "Tomodachi Life: Living the Dream" (probablemente un juego traido desde RAWG), la foto no cargo y se mostro un error. Posteriormente, al intentar agregar el juego al backlog, el boton "Add" quedo en estado disabled a pesar de que los campos obligatorios estaban llenos. El usuario no pudo agregar el juego. Es probable que el error al cargar los datos del juego (foto, scores, etc.) deje el formulario en un estado invalido que impide el submit.
+- **Solucion propuesta:** Investigar que pasa cuando un juego de RAWG falla al cargar datos parciales (imagen, scores, duration). Asegurar que el boton de submit se habilite basandose solo en los campos requeridos del formulario (game, platform) y no en datos opcionales como la imagen. Agregar manejo de error graceful cuando la imagen no carga (mostrar placeholder en vez de error). Verificar que el formulario no quede en estado inconsistente despues de un error parcial.
+
+### [FB-051] Add to Shelf desde backlog modal muestra exito falso
+
+- **Fecha:** 2026-04-24
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Al agregar un juego al backlog, el usuario uso el boton "Add to Shelf" dentro del modal de backlog. El boton indico que el juego fue agregado al shelf (feedback visual de exito), pero al ir al Game Shelf el juego no estaba ahi. Es un falso positivo — el frontend reporta exito sin que la operacion se haya completado realmente. Puede ser un error de HTTP no manejado, un problema de timing, o que el request nunca se envio.
+- **Solucion propuesta:** Revisar el flujo de "Add to Shelf" desde el backlog modal. Verificar que el request HTTP se envia correctamente y que los errores se manejan (mostrar error si falla en vez de exito). Probar el flujo completo: crear backlog + add to shelf en la misma transaccion o como requests separados, y asegurar que ambos completen antes de mostrar confirmacion.
+
+### [FB-052] Miniaturas de juegos usan capturas de pantalla en vez de arte oficial
+
+- **Fecha:** 2026-04-24
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Las miniaturas de algunos juegos (ej: Hello Kitty Island Adventure) muestran capturas de pantalla (screenshots) en vez de arte oficial o portada del juego. Esto pasa porque RAWG usa el campo "background_image" que a menudo es un screenshot, no un cover art. La app usa backgroundUrl para las imagenes y coverUrl esta reservado para covers reales pero aun no se implementa.
+- **Solucion propuesta:** A largo plazo, implementar una fuente de covers reales (SteamGridDB, IGDB) y usar coverUrl para arte oficial. A corto plazo, no hay mucho que hacer porque RAWG no provee covers oficiales de forma consistente. Considerar agregar un campo en el admin editor para subir o linkear una imagen de cover manualmente para juegos donde el background de RAWG no sea adecuado.
+
+### [FB-053] Descripcion de juego en idiomas mezclados y demasiado larga
+
+- **Fecha:** 2026-04-24
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** La descripcion del juego Hello Kitty Island Adventure esta mitad en ingles y mitad en aleman (u otro idioma). Esto viene de RAWG que a veces devuelve descripciones en multiples idiomas concatenadas. Ademas, la descripcion es muy larga y no tiene scroll propio, haciendo que la pagina de detalle se extienda demasiado.
+- **Solucion propuesta:** Para el problema de idiomas: al importar de RAWG, usar el campo description_raw o parsear la descripcion para quedarse solo con la version en ingles (RAWG suele separar idiomas con un salto de linea doble o un tag de idioma). Para el largo: agregar un "Read more / Read less" que muestre las primeras 3-4 lineas con un boton para expandir, o un contenedor con max-height y overflow scroll.
+
+### [FB-054] Botones de filtrar y limpiar filtros poco visibles en backlog
+
+- **Fecha:** 2026-04-24
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Los botones para abrir el panel de filtros avanzados y para limpiar los filtros aplicados en el backlog no son lo suficientemente obvios. El usuario no los identifica facilmente, lo que dificulta el uso de filtros avanzados y la vuelta al estado sin filtros.
+- **Solucion propuesta:** Hacer los botones de filtro mas prominentes: aumentar tamano, usar un icono de filtro (funnel) mas visible, agregar texto descriptivo ("Filters" en vez de solo icono). Para limpiar filtros, mostrar un boton "Clear all filters" mas grande y con color de acento cuando hay filtros activos. Considerar mostrar un indicador visible de cuantos filtros estan activos (badge con numero).
+
+### [FB-055] Logo del sidebar deberia navegar al feed
+
+- **Fecha:** 2026-04-24
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** El logo de Completr en el sidebar no es clickeable o no navega al feed. Los usuarios esperan que hacer click en el logo los lleve a la pagina principal (feed), como en la mayoria de aplicaciones web.
+- **Solucion propuesta:** Hacer el logo del sidebar clickeable con navegacion a /feed (o la ruta principal de la app). Cambio simple de frontend: envolver el logo en un routerLink.
+
+### [FB-056] Agregar juego a una lista desde el game detail
+
+- **Fecha:** 2026-04-24
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Desde la pagina de detalle de un juego no se puede agregar el juego a una lista. Actualmente para agregar un juego a una lista, el usuario tiene que ir a la lista, abrir el buscador de la lista, buscar el juego y agregarlo. Seria mas natural poder agregar el juego a cualquier lista desde su propia pagina de detalle.
+- **Solucion propuesta:** Agregar un boton "Add to List" en el game detail que abra un dropdown o modal con las listas del usuario. Al seleccionar una lista, agregar el juego a esa lista. Requiere un endpoint o reutilizar el PUT /lists/:id/items agregando el juego al array existente. En el frontend, usar un componente reutilizable de selector de listas.
+
+### [FB-057] Busqueda de juegos retorna cantidad inconsistente de resultados
+
+- **Fecha:** 2026-04-24
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** El usuario nota que a veces la misma busqueda retorna mas juegos que otras veces. Esto probablemente se debe al fallback a RAWG: la primera vez que se busca un juego que no esta en la DB local, RAWG lo importa y la proxima vez aparecen mas resultados porque ya estan en la DB. No es un bug sino comportamiento esperado, pero el usuario lo percibe como inconsistente.
+- **Solucion propuesta:** Agregar un indicador visual que diferencie resultados locales de resultados importados de RAWG (ej: badge "New" o "From RAWG" en resultados recien importados). Esto ayuda al usuario a entender por que los resultados cambian entre busquedas. Tambien considerar mostrar un mensaje tipo "Found X new games from RAWG" cuando el fallback importa juegos nuevos.
+
+### [FB-058] Sin indicador de que un juego ya esta en una lista
+
+- **Fecha:** 2026-04-24
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Al buscar juegos para agregar a una lista, o al navegar por la grilla de juegos, no hay indicador visual de que un juego ya esta en alguna de las listas del usuario. Tampoco en la ficha del juego. Esto puede llevar a agregar duplicados o a no saber si ya se incluyo un juego.
+- **Solucion propuesta:** En el buscador de la lista, mostrar un indicador (checkmark, badge "In list") junto a juegos que ya estan en esa lista especifica. En el game detail, mostrar una seccion "In your lists" con las listas del usuario que contienen ese juego. Requiere que el backend incluya esa informacion en la respuesta o un endpoint adicional.
+
+### [FB-059] Listas del usuario deberian ser expandibles en el sidebar
+
+- **Fecha:** 2026-04-24
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** La seccion "Lists" del sidebar solo muestra un link a la pagina de listas. El usuario sugiere que deberia poder expandirse para mostrar las listas creadas (o las favoritas) directamente en el sidebar, permitiendo acceso rapido sin pasar por la pagina de listas.
+- **Solucion propuesta:** Agregar un icono de expandir/colapsar junto a "Lists" en el sidebar. Al expandir, mostrar las listas del usuario (primeras 5-10) como sub-items clickeables que lleven al detalle de la lista. Considerar un endpoint ligero que devuelva solo nombre e ID de las listas del usuario para no cargar datos innecesarios. Feature de conveniencia, no urgente.
+
+### [FB-060] Lista con fuente Metacritic muestra score null aunque el juego tiene Metacritic
+
+- **Fecha:** 2026-04-24
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** El juego Rhythm Heaven tiene pagina y puntaje de Metacritic (verificable externamente), pero una lista configurada con score_source "metacritic" muestra que no tiene score para ese juego. Esto puede significar que: (1) el GameScore de tipo metacritic no fue importado para ese juego, (2) el juego se importo desde RAWG y solo tiene score de RAWG, o (3) el mapeo entre fuentes no esta funcionando correctamente.
+- **Solucion propuesta:** Verificar en la DB si Rhythm Heaven tiene un registro en GameScore con source "metacritic". Si no lo tiene, el score de Metacritic no fue importado — es un problema de datos, no de codigo. A corto plazo, el admin puede agregar el score manualmente. A largo plazo, el cron de Metacritic/OpenCritic (Fase 5) se encargara de poblar estos datos automaticamente.
+
+### [FB-061] Badge de fuente de score desalinea input en backlog modal
+
+- **Fecha:** 2026-04-24
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Al abrir el modal de backlog desde una lista (ej: Rhythm Heaven), el campo Score muestra un badge indicando la fuente del score precargado (ej: "RAWG"). Este badge agrega altura extra al campo y lo desalinea visualmente con el campo Duration que no tiene badge. Los inputs quedan a alturas diferentes, rompiendo la alineacion del formulario.
+- **Solucion propuesta:** Ajustar el layout del modal para que el badge de fuente no afecte la altura del campo. Opciones: (1) mover el badge fuera del input (ej: como tooltip o texto debajo), (2) agregar padding equivalente al campo Duration para mantener alineacion, (3) usar position absolute para el badge sin afectar el flow del layout.
+
+### [FB-062] Editar backlog desde la vista de detalle de lista
+
+- **Fecha:** 2026-04-24
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Al ver una lista con sus juegos, el usuario quiere poder editar su backlog (cambiar status, agregar notas, etc.) directamente desde la vista de la lista sin tener que navegar al backlog. Actualmente el icono de backlog en la lista solo indica si el juego esta en el backlog del usuario, pero no permite editarlo.
+- **Solucion propuesta:** Hacer clickeable el icono de backlog en los items de la lista para abrir el modal de edicion de backlog del juego. Si el juego ya esta en el backlog, abrir el modal de edicion precargado. Si no esta, abrir el modal de creacion. Reutilizar el componente de modal de backlog que ya existe en la vista de backlog.
+
+### [FB-063] Boton de seguir lista no visible o no intuitivo
+
+- **Fecha:** 2026-04-24
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Un usuario entro al perfil de otro usuario para seguir una de sus listas y no encontro el boton de Follow. La causa real es que la ruta /user/:username/lists/:id no tiene boton de Follow (ver FB-065). Ademas, las cards de listas en el perfil tampoco tienen opcion de seguir directamente.
+- **Solucion propuesta:** Dos mejoras: (1) hacer el boton Follow mas visible en list-detail (aumentar tamano, usar color de acento, moverlo a una posicion mas prominente). (2) Agregar un boton Follow en las cards de listas cuando se ven desde el perfil de otro usuario, permitiendo seguir sin entrar al detalle. Tambien agregar un indicador visual en las cards de listas que el usuario ya sigue.
+
+### [FB-064] Usuarios no entienden que son Score y Duration ni por que son obligatorios
+
+- **Fecha:** 2026-04-24
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Tami
+- **Descripcion:** Cuando el campo Score viene vacio (sin datos de ninguna fuente), el usuario no entiende que debe buscarlo manualmente en otra plataforma (Metacritic, OpenCritic, etc.) para rellenarlo. No sabe que estos campos alimentan el ratio, que es la feature diferenciadora de Completr para priorizar que jugar. Si el juego no tiene datos en ninguna fuente, deberia saber que puede reportar el juego para que un admin lo complete. Relacionado con FB-001 y FB-049.
+- **Solucion propuesta:** Mejorar el onboarding del usuario respecto al ratio: (1) agregar texto de ayuda en el modal de backlog explicando que Score y Duration son datos de referencia que alimentan el ratio, y que si estan vacios debe buscarlos en Metacritic/HLTB. (2) Si no encuentra el dato, mostrar un link o sugerencia para reportar el juego. (3) Considerar un tooltip o seccion en el modal que explique brevemente que es el ratio y por que importa. (4) En la tabla del backlog, hacer el ratio mas prominente para que el usuario entienda que es el valor central de la app.
+
+### [FB-065] Vista de lista desde perfil de usuario no tiene boton de Follow
+
+- **Fecha:** 2026-04-24
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Tebi
+- **Descripcion:** Existen dos rutas para ver una lista: /lists/:id (que si tiene boton Follow/Unfollow) y /user/:username/lists/:id (que no lo tiene). Cuando un usuario entra al perfil de otro y hace click en una de sus listas, llega a la ruta /user/:username/lists/:id donde no hay forma de seguir la lista. Esta es la ruta natural para descubrir listas de otros usuarios, por lo que el Follow esta efectivamente roto para el flujo mas comun. Esto explica por que Tami no pudo seguir una lista (FB-063).
+- **Solucion propuesta:** Agregar el boton Follow/Unfollow en la vista /user/:username/lists/:id. Idealmente ambas rutas deberian compartir el mismo componente de detalle de lista o al menos las mismas funcionalidades. Evaluar si tiene sentido unificar ambas rutas en una sola (/lists/:id) y que el contexto del usuario se resuelva internamente.
+
+### [FB-066] Indicador visual cuando un item de wishlist se auto-remueve
+
+- **Fecha:** 2026-04-24
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Descripcion:** Cuando un backlog cambia a status "completed" o "abandoned", el sistema auto-remueve el juego de la wishlist. No hay ningun indicador visual en el frontend que le comunique al usuario que esto paso. El juego simplemente desaparece de la wishlist sin explicacion.
+- **Solucion propuesta:** Mostrar un toast o notificacion temporal cuando un juego se auto-remueve de la wishlist al completar o abandonar un backlog (ej: "Removed from Wishlist: RE4"). Alternativa: mostrar un mensaje inline en la wishlist indicando que el juego fue removido automaticamente.
+
+### [FB-067] Titulos con caracteres especiales se guardan HTML-encodeados
+
+- **Fecha:** 2026-05-04
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al crear o editar un juego desde el panel admin con un titulo que contiene caracteres especiales (ej: "Beyond Good & Evil - 20th Anniversary Edition"), el valor se persiste HTML-encodeado en la DB ("Beyond Good &amp; Evil - 20th Anniversary Edition"). Esto corrompe el dato almacenado, rompe la busqueda (un query con "&" no matchea "&amp;") y filtra entidades HTML al codigo y a las vistas que esperan texto crudo. Probablemente afecta tambien a otros caracteres como `<`, `>`, `'`, `"`.
+- **Solucion propuesta:** Identificar donde se aplica el escaping en el flujo de creacion/edicion de games (controller, service, schema de Zod, hook de Sequelize, o el frontend del admin antes de enviar el request). El encoding HTML es una preocupacion de la capa de presentacion, no de persistencia — hay que removerlo del path de guardado y aplicarlo solo al renderizar HTML donde sea necesario. Auditar otros endpoints (lists, reviews, notes, profile) por el mismo patron. Una vez arreglado, hacer un script de limpieza para des-encodear los registros existentes que ya esten corruptos.
+
+### [FB-068] Sesion se cierra al usar la app desde varios dispositivos
+
+- **Fecha:** 2026-05-07
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al tener la sesion abierta en mas de un dispositivo simultaneamente (ej: PC y celular), la sesion se cierra inesperadamente en alguno de ellos. Probablemente el backend invalida el refresh token anterior cuando se emite uno nuevo (rotacion single-token por usuario), por lo que el dispositivo que pidio refresh primero deja sin token valido al otro dispositivo. Apenas el segundo dispositivo intenta renovar, recibe 401 y termina deslogueando al usuario. Posiblemente relacionado con FB-035 (sesion no persiste) — si la rotacion de refresh tokens no soporta multiples sesiones, ambos sintomas pueden tener la misma causa raiz.
+- **Solucion propuesta:** Soportar multiples refresh tokens activos por usuario, uno por sesion/dispositivo. Modelar una tabla RefreshToken(id, userId, tokenHash, deviceInfo, createdAt, expiresAt, revokedAt) en vez de guardar un unico token por usuario. Al hacer refresh, rotar solo el token de esa sesion especifica (no invalidar los de otros dispositivos). Agregar endpoint para listar y revocar sesiones activas (util para "cerrar sesion en todos los dispositivos"). Verificar primero el comportamiento actual del backend revisando el modulo de auth — si ya soporta multi-sesion, el bug podria estar en el frontend (interceptor compartiendo estado o pisandose entre tabs).
+
+### [FB-069] Feed muestra "wants to play" sin indicar el juego
+
+- **Fecha:** 2026-05-07
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En el feed aparecen actividades como "Esteban Tejeda wants to play" sin mencionar a que juego se refiere. El item queda vacio de contexto y no se puede clickear para llegar al juego. Probablemente el evento se genera con gameId nulo o el render del feed no esta resolviendo/mostrando el titulo del juego para ese tipo de actividad (wishlist add). Puede afectar tambien a otros tipos de eventos del feed.
+- **Solucion propuesta:** Revisar el endpoint del feed para confirmar si el payload incluye el juego asociado a la actividad (gameId, titulo, slug). Si el backend ya lo envia, arreglar el template del feed item para renderizar el titulo y enlazar a la pagina del juego. Si el backend no lo incluye, agregar el join correspondiente en el query del feed. Auditar todos los tipos de actividad (added to backlog, completed, wants to play, followed list, etc.) para asegurar que cada uno muestre el contexto completo (juego, lista, usuario segun corresponda).
+
+### [FB-070] No se puede actualizar score/duration desde el backlog cambiando de fuente
+
+- **Fecha:** 2026-05-07
+- **Severidad:** alto
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al editar un item del backlog, los valores actuales de score y duration se ven correctamente, pero no se puede actualizarlos cambiando la fuente que los provee. Ejemplo: un juego quedo registrado con la duration de RAWG y el usuario ahora quiere reemplazarla por la de HLTB — el modal no ofrece la opcion de re-fetchear ni elegir entre las fuentes ya existentes (Metacritic, OpenCritic, RAWG, HLTB) para tomar el valor mas actualizado o preferido. Para cambiar la fuente hoy hay que ir al panel admin de games, lo cual no es accesible para usuarios normales.
+- **Solucion propuesta:** Permitir desde el modal de backlog (o desde la vista de detalle del juego) actualizar el score/duration eligiendo entre las fuentes existentes. Opciones: (1) mostrar un selector con las fuentes disponibles (Metacritic, OpenCritic, RAWG, HLTB) y el valor que cada una reporta, dejando elegir cual usar como valor activo del juego; (2) un boton "Refresh from sources" que vuelva a consultar las APIs externas y actualice los valores. Definir si esta accion afecta el game compartido (todos los usuarios ven el cambio) o solo el backlog personal — si es lo primero, podria requerir moderacion o limitarse a ciertos roles. Relacionado con FB-005 (admin no puede borrar scores/durations), ambos apuntan a que el flujo de edicion de scores/durations esta incompleto.
+
+### [FB-071] Wishlist no permite ordenar por columnas ni persistir el orden resultante
+
+- **Fecha:** 2026-05-07
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En la wishlist se puede reordenar manualmente arrastrando los juegos, pero no hay forma de ordenar la lista por las columnas score, duration o ratio. Si el usuario quisiera priorizar la wishlist por ratio (la feature diferenciadora de Completr), tiene que comparar valores a ojo y arrastrar uno por uno. Ademas, despues de un sort por columna no hay opcion de "fijar" ese orden como la posicion guardada de los items, perdiendo el resultado al refrescar.
+- **Solucion propuesta:** (1) Hacer las columnas score, duration y ratio clickeables para ordenar asc/desc, igual que en backlog. (2) Despues de aplicar un sort por columna, ofrecer un boton "Save this order" que persista las posiciones actuales como el orden manual de la wishlist (sobreescribe el campo de posicion/sortOrder de cada item). Asi el usuario puede usar el sort como herramienta de priorizacion y luego congelarlo. Considerar si el sort por columna es solo visual (no toca DB) hasta que se confirme con el boton, para evitar mutaciones accidentales.
+
+### [FB-072] Listas no muestran si el juego esta completado o abandonado
+
+- **Fecha:** 2026-05-07
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al ver una lista de juegos (propia o de otro usuario), se muestra el progreso general de la lista, pero en cada item solo se indica si el juego esta o no en mi backlog. No se distingue si ya lo complete, lo abandone o sigue en progreso. Esto obliga a entrar al detalle del juego o a mi backlog para saber el estado real, perdiendo contexto util al recorrer la lista.
+- **Solucion propuesta:** Mostrar el estado del juego (completado, abandonado, en progreso, en backlog) en cada item de la lista. Opciones: (1) variar el color/iconografia del marcador actual de "en backlog" segun el estado (ej: verde completado, gris abandonado, amarillo en progreso, azul en backlog); (2) agregar una columna o badge dedicado al estado, especialmente util en vista tabular. Verificar si el endpoint que devuelve los items de una lista ya incluye el estado del backlog del usuario actual para cada juego — si no, agregar el join correspondiente. Aplica tanto a listas propias como ajenas (cuando ves la lista de otro usuario, los iconos deben reflejar TU estado, no el del dueno de la lista).
+
+### [FB-073] Compilados remastered (varios juegos en un solo titulo) distorsionan duracion y ratio
+
+- **Fecha:** 2026-05-12
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Algunos titulos son "compilados/colecciones" que empaquetan varios juegos completos en uno solo. Ejemplos: "Tomb Raider I-II-III Remastered" (TR1+TR2+TR3), "Mass Effect Legendary Edition" (ME1+ME2+ME3), "Mega Man X Legacy Collection" (MMX1-4), "Halo: The Master Chief Collection", "Crash Bandicoot N. Sane Trilogy", "Spyro Reignited Trilogy", "Kingdom Hearts HD 1.5+2.5 ReMIX", etc. Agregar el compilado al backlog como un unico juego distorsiona el promedio de finalizacion / duration estimado y el ratio score/duration, porque en la practica son varios juegos en uno. Ademas, completar el titulo entero implica terminar todos los incluidos, lo que alarga la duracion real y hace dificil trackear progreso (puedes haber terminado ME1 pero no ME2 ni ME3). Tambien afecta el feed/social (un "completed" en el compilado no es comparable a un "completed" en un juego individual).
+- **Solucion propuesta:** Explorar varias opciones, no excluyentes:
+    - (1) Modelar el compilado como un "bundle/collection" en RAWG/DB con relacion padre-hijos a los juegos individuales. Al agregarlo al backlog, ofrecer al usuario elegir entre agregar el bundle completo o solo los juegos individuales que le interesen. Si elige bundle, el progreso del bundle se calcula como agregado de los hijos.
+    - (2) Permitir marcar un backlog item como "parcial" o trackear sub-juegos dentro de un mismo item (checklist interno con score/duration por sub-juego). El score/duration del padre se promedia o suma a partir de los hijos.
+    - (3) Excluir los compilados del calculo de promedios globales de la app (flag `isCompilation` en el juego), de modo que no contaminen estadisticas agregadas, pero permitir agregarlos como cualquier otro titulo.
+    - (4) Dejarlo como esta pero documentar la convencion: tratar el compilado como un juego mas, asumiendo que el usuario que lo agrega quiere terminarlo entero. Es la opcion mas simple pero la que peor refleja la realidad.
+    - Decision pendiente: definir si Completr quiere modelar bundles como entidad de primera clase (opcion 1, mas trabajo, mas correcto) o resolverlo con un flag simple (opcion 3). Validar tambien si RAWG ya expone esta relacion para poder importarla.
+
+### [FB-074] RAWG agrupa juegos distintos en un mismo registro (Pokemon Sun/Moon)
+
+- **Fecha:** 2026-05-12
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** RAWG a veces consolida varios juegos distintos en un unico registro. Ejemplo: "Pokemon Sun" y "Pokemon Moon" aparecen como un solo juego en RAWG, siendo que son titulos diferentes (con dex y exclusivos distintos). Lo mismo suele pasar con otras parejas de Pokemon (Sword/Shield, Scarlet/Violet) y con remakes/versiones. Como en la BBDD de Completr hay una constraint de unicidad por `rawgId` (un registro por juego de RAWG), no se pueden crear entradas separadas para cada version. El usuario que tiene solo una de las dos versiones queda forzado a usar el registro consolidado, lo que distorsiona el backlog, los promedios y el feed.
+- **Solucion propuesta:** Romper la asuncion "1 juego en Completr = 1 juego en RAWG". Opciones:
+    - (1) Quitar la constraint UNIQUE sobre `rawgId` y permitir varios juegos en Completr apuntando al mismo `rawgId`. Diferenciarlos por `name`/`slug` propio de Completr. Implica revisar todos los lugares donde se asume unicidad por rawgId (sync, import, busquedas).
+    - (2) Modelar una tabla intermedia `game_variant` donde el "juego RAWG" es padre y cada variante (Sun, Moon) es hijo con datos propios (cover, descripcion, score, duration). El backlog apunta a la variante, no al padre.
+    - (3) Permitir que un admin "desconsolide" manualmente un registro de RAWG en N registros de Completr, manteniendo el rawgId como referencia opcional. Mas pragmatico mientras no haya muchos casos.
+    - Cambio de BBDD requerido en cualquiera de las opciones. Evaluar volumen de casos antes de decidir (cuantos registros RAWG conocidos consolidan juegos distintos).
+
+### [FB-075] Link a RAWG usa el slug de Completr en vez del slug real de RAWG
+
+- **Fecha:** 2026-05-12
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En la BBDD de Completr se almacena el `rawgId` (numerico) del juego, pero no su `slug` (el "code" que RAWG usa en sus URLs, ej: `the-witcher-3-wild-hunt`). Cuando la UI construye el link "Ver en RAWG", usa el slug propio de Completr asumiendo que coincide con el de RAWG, lo cual no siempre es cierto (Completr puede haber generado un slug distinto, o RAWG puede haberlo cambiado). Resultado: links rotos o que apuntan a un juego incorrecto en rawg.io.
+- **Solucion propuesta:** Almacenar tambien el `slug` original de RAWG en el modelo `Game` (campo aparte, ej: `rawgSlug`). Al construir el link externo, usar `rawgSlug` en lugar del slug interno. Cambios requeridos:
+    - Migracion para agregar `rawgSlug` (nullable inicialmente).
+    - Actualizar el sync/import desde RAWG para popular el campo en nuevos juegos.
+    - Backfill: recorrer juegos existentes y completar `rawgSlug` consultando la API de RAWG por `rawgId`. Considerar rate limits.
+    - Actualizar el frontend para usar `rawgSlug` en el link externo, con fallback al slug interno si todavia esta vacio.
+    - Cambio grande en BBDD, revisar con mas detalle antes de implementar (volumen de juegos, costo del backfill, si RAWG expone el slug en el endpoint de detalle).
+
+### [FB-076] Wishlist en modo grilla no muestra el numero de posicion
+
+- **Fecha:** 2026-05-19
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En la wishlist, al cambiar a la vista en modo grilla, no se muestra el numero de posicion de cada juego dentro de la lista. La wishlist esta ordenada por prioridad (manual o por columna, ver FB-071), por lo que la posicion es informacion relevante: saber si un juego es el #3 o el #27 cambia la lectura. En el modo tabla la posicion se infiere por la fila, pero en grilla se pierde esa referencia.
+- **Solucion propuesta:** Mostrar el numero de posicion en cada card del modo grilla de la wishlist. Opciones de UI: (1) badge en una esquina de la card (ej: esquina superior izquierda con "#3"); (2) prefijo en el titulo del juego ("3. The Witcher 3"). Asegurar que el numero se actualice al reordenar (drag & drop) o al aplicar un sort por columna.
+
+### [FB-077] Seccion "Latest Completr Lists" nunca aparece en la pagina de un juego
+
+- **Fecha:** 2026-05-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En el detalle de un juego (Games) deberia mostrarse una seccion "Latest Completr Lists" con las listas publicas mas recientes que incluyen ese juego. La seccion nunca aparece, ni siquiera para juegos que sabemos que estan en varias listas publicas. Puede ser que el endpoint no devuelva resultados, que el frontend este filtrando mal, o que la query no este matcheando los juegos correctamente con sus listas.
+- **Solucion propuesta:** Diagnosticar el flujo end-to-end: (1) verificar que el endpoint que devuelve "ultimas listas que incluyen este juego" exista y este siendo llamado desde el detalle del juego; (2) revisar la query en backend (joins entre lists, list_items y games, filtros por visibilidad publica y orden por fecha); (3) revisar el frontend (si los datos llegan, comprobar que la seccion se renderice y no este oculta por un guard tipo `if (lists.length === 0)` que falle por shape). Si el endpoint no existe todavia, crearlo: GET /games/:id/lists?limit=N&order=recent devolviendo solo listas publicas. Considerar paginacion futura.

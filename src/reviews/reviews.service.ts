@@ -1,3 +1,4 @@
+import { fn, col } from "sequelize";
 import { Review } from "./review.model";
 import { Game } from "../games/game.model";
 import { User } from "../users/user.model";
@@ -45,6 +46,18 @@ export async function findReviewsByUserId(userId: string) {
 
 export async function findReviewByUserAndGame(userId: string, gameId: string) {
 	return Review.findOne({ where: { userId, gameId } });
+}
+
+export async function findLatestReviewedGameIds(limit = 16) {
+	const rows = (await Review.findAll({
+		attributes: ["gameId", [fn("MAX", col("createdAt")), "lastReviewedAt"]],
+		group: ["gameId"],
+		order: [[fn("MAX", col("createdAt")), "DESC"]],
+		limit,
+		raw: true
+	})) as unknown as { gameId: string }[];
+
+	return rows.map(r => r.gameId);
 }
 
 export async function updateReview(

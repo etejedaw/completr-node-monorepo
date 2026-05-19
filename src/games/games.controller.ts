@@ -42,6 +42,18 @@ export async function getAllGames(request: Request, response: Response) {
 	return response.status(200).json({ data });
 }
 
+export async function getLatestReviewedGames(
+	request: Request,
+	response: Response
+) {
+	const limit = Number(request.query.limit ?? 16);
+	const games = await gameService.findLatestReviewed(limit);
+	const gamesPlain = games.map(game => game.get({ plain: true }));
+
+	const data = { games: gamesPlain.map(gameSerializer) };
+	return response.status(200).json({ data });
+}
+
 export async function searchGames(request: Request, response: Response) {
 	const query = request.locals.query as GameSearchQuery;
 

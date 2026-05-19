@@ -9,7 +9,7 @@ export function validateSchemaMiddleware(
 	return (request: Request, _response: Response, next: NextFunction) => {
 		try {
 			const data = zodSchema.parse(request[requestKey]);
-			request.locals = { ...request.locals, [requestKey]: data };
+			request.locals = { ...(request.locals || {}), [requestKey]: data };
 			next();
 		} catch (error) {
 			if (error instanceof ZodError)

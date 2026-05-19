@@ -34,6 +34,18 @@ router.get(
 );
 
 router.get(
+	"/lists/official",
+	[rateLimiterMiddleware(publicLimiter), authMiddleware()],
+	listsController.getOfficialLists
+);
+
+router.get(
+	"/lists/recent",
+	[rateLimiterMiddleware(publicLimiter), authMiddleware()],
+	listsController.getRecentLists
+);
+
+router.get(
 	"/lists/search",
 	[
 		rateLimiterMiddleware(publicLimiter),

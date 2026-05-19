@@ -1,9 +1,35 @@
 import { List } from "../lists/list.model";
+import { ListItem } from "../list-items/list-item.model";
+import { Game } from "../games/game.model";
 import { User } from "../users/user.model";
 import { ListFollower } from "./list-follower.model";
 import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import * as listsService from "../lists/lists.service";
 import * as listFollowersServiceError from "./errors/list-followers.service-error";
+
+const FOLLOWED_LIST_PREVIEW_INCLUDE = {
+	model: List,
+	include: [
+		{
+			model: ListItem,
+			separate: true,
+			limit: 1,
+			order: [["position", "ASC"]] as [string, string][],
+			include: [
+				{
+					model: Game,
+					attributes: [
+						"id",
+						"code",
+						"title",
+						"backgroundUrl",
+						"isDlc"
+					]
+				}
+			]
+		}
+	]
+};
 
 export async function followList(listId: string, userId: string) {
 	const list = await listsService.findListById(listId);
@@ -46,7 +72,7 @@ export async function getListFollowers(listId: string) {
 export async function getFollowingLists(userId: string) {
 	return ListFollower.findAll({
 		where: { userId },
-		include: [{ model: List }],
+		include: [FOLLOWED_LIST_PREVIEW_INCLUDE],
 		order: [["createdAt", "DESC"]]
 	});
 }
@@ -57,7 +83,7 @@ export async function getFollowingListsPaginated(
 ) {
 	const query: Record<string, unknown> = {
 		where: { userId },
-		include: [{ model: List }],
+		include: [FOLLOWED_LIST_PREVIEW_INCLUDE],
 		order: [["createdAt", "DESC"]]
 	};
 	if (pagination.limit) query.limit = pagination.limit;
