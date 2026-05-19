@@ -126,3 +126,21 @@ a:hover {
 	justify-content: center;
 	z-index: 1000;
 }
+
+@layer components {
+	.empty-title {
+		font-family: var(--font-display);
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: var(--color-fg-secondary);
+		margin-bottom: 0.5rem;
+	}
+
+	.empty-hint {
+		font-size: 0.875rem;
+		color: var(--color-fg-muted);
+		max-width: 420px;
+		margin: 0 auto;
+		line-height: 1.6;
+	}
+}
