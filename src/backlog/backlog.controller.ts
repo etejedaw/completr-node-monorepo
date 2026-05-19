@@ -64,6 +64,9 @@ export async function patchBacklog(request: Request, response: Response) {
 	const updateBacklog = request.locals.body as UpdateBacklogDto;
 	const user = request.locals.user as RequestUser;
 
+	const previous = await backlogService.findBacklogById(params.backlogId);
+	const previousStatus = previous?.status;
+
 	const backlogEntry = await backlogService.updateBacklog(
 		params.backlogId,
 		user.id,
@@ -71,7 +74,7 @@ export async function patchBacklog(request: Request, response: Response) {
 	);
 	const backlogPlain = backlogEntry.get({ plain: true });
 
-	if (updateBacklog.status) {
+	if (updateBacklog.status && updateBacklog.status !== previousStatus) {
 		activityService.record(
 			user.id,
 			`backlog_${updateBacklog.status}` as Parameters<
