@@ -29,6 +29,12 @@ export function backlogSerializer(backlogEntry: Backlog) {
 	};
 }
 
+export function backlogPublicSerializer(backlogEntry: Backlog) {
+	const full = backlogSerializer(backlogEntry);
+	const { notes: _notes, ...publicEntry } = full;
+	return publicEntry;
+}
+
 function gameSerializer(game: Game) {
 	return {
 		id: game.id,

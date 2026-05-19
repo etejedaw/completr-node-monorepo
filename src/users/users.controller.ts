@@ -11,7 +11,10 @@ import * as activityService from "../activity/activity.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import * as listFollowersService from "../list-followers/list-followers.service";
 import { userMeSerializer, userProfileSerializer } from "./users.serializer";
-import { backlogSerializer } from "../backlog/backlog.serializer";
+import {
+	backlogSerializer,
+	backlogPublicSerializer
+} from "../backlog/backlog.serializer";
 import {
 	listSummarySerializer,
 	listSerializer
@@ -124,7 +127,9 @@ export async function getUserByUsername(request: Request, response: Response) {
 		followerCount,
 		followingCount,
 		isFollowing,
-		backlogs: backlogs.map(backlogSerializer),
+		backlogs: backlogs.map(
+			isSelf ? backlogSerializer : backlogPublicSerializer
+		),
 		lists: listsWithFollowers,
 		favorites: favorites.map(favoriteSerializer),
 		wishlist: wishlist.map(wishlistSerializer),
