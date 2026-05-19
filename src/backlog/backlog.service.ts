@@ -101,6 +101,15 @@ function buildIncludes(filters: BacklogQuery) {
 	return [gameInclude, { model: Platform }];
 }
 
+const NULLABLE_SORT_FIELDS = new Set([
+	"startedAt",
+	"finishedAt",
+	"realDuration",
+	"userRating",
+	"score",
+	"duration"
+]);
+
 function buildOrder(filters: BacklogQuery): Order {
 	const sortBy = filters.sort_by ?? "createdAt";
 	const sortOrder = (filters.sort_order ?? "desc").toUpperCase() as
@@ -123,6 +132,9 @@ function buildOrder(filters: BacklogQuery): Order {
 				`("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) ${sortOrder} NULLS LAST`
 			)
 		];
+	}
+	if (NULLABLE_SORT_FIELDS.has(sortBy)) {
+		return [literal(`"Backlog"."${sortBy}" ${sortOrder} NULLS LAST`)];
 	}
 	return [[sortBy, sortOrder]];
 }
