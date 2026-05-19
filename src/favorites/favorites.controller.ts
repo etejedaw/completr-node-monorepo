@@ -33,11 +33,13 @@ export async function putFavorites(request: Request, response: Response) {
 
 export async function getMeFavorites(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
+	const query = request.locals.query ?? {};
 
-	const entries = await favoritesService.findFavoritesByUserId(user.id);
-	const entriesPlain = entries.map(e => e.get({ plain: true }));
+	const { rows, total } =
+		await favoritesService.findFavoritesByUserIdPaginated(user.id, query);
+	const entriesPlain = rows.map(e => e.get({ plain: true }));
 
-	const data = { favorites: entriesPlain.map(favoriteSerializer) };
+	const data = { favorites: entriesPlain.map(favoriteSerializer), total };
 	return response.status(200).json({ data });
 }
 

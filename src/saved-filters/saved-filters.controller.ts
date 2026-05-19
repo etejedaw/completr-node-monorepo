@@ -23,13 +23,19 @@ export async function postSavedFilter(request: Request, response: Response) {
 
 export async function getMeSavedFilters(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
+	const query = request.locals.query ?? {};
 
-	const { filters, frozen } =
-		await savedFiltersService.findSavedFiltersByUserId(user.id, user.role);
+	const { filters, total, frozen } =
+		await savedFiltersService.findSavedFiltersByUserId(
+			user.id,
+			user.role,
+			query
+		);
 	const filtersPlain = filters.map(filter => filter.get({ plain: true }));
 
 	const data = {
 		savedFilters: filtersPlain.map(savedFilterSerializer),
+		total,
 		frozen
 	};
 	return response.status(200).json({ data });

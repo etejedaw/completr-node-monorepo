@@ -5,10 +5,21 @@ import { activitySerializer } from "./activity.serializer";
 
 export async function getFeed(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
+	const query = request.locals.query as {
+		limit?: number;
+		offset?: number;
+	};
 
-	const activities = await activityService.getFeed(user.id);
+	const { rows, total } = await activityService.getFeed(
+		user.id,
+		query?.limit ?? 25,
+		query?.offset ?? 0
+	);
 
-	const data = { activities: activities.map(activitySerializer) };
+	const data = {
+		activities: rows.map(activitySerializer),
+		total
+	};
 	return response.status(200).json({ data });
 }
 

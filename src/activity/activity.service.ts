@@ -86,7 +86,7 @@ export async function getUserActivity(userId: string, limit = 10) {
 	});
 }
 
-export async function getFeed(userId: string, limit = 30, offset = 0) {
+export async function getFeed(userId: string, limit = 25, offset = 0) {
 	const following = await UserFollower.findAll({
 		where: { followerId: userId },
 		attributes: ["followingId"]
@@ -94,7 +94,7 @@ export async function getFeed(userId: string, limit = 30, offset = 0) {
 
 	const feedUserIds = [userId, ...following.map(f => f.followingId)];
 
-	return Activity.findAll({
+	const { rows, count } = await Activity.findAndCountAll({
 		where: { userId: { [Op.in]: feedUserIds } },
 		include: [
 			{
@@ -113,6 +113,8 @@ export async function getFeed(userId: string, limit = 30, offset = 0) {
 		limit,
 		offset
 	});
+
+	return { rows, total: count };
 }
 
 export async function deleteActivity(activityId: string, userId: string) {

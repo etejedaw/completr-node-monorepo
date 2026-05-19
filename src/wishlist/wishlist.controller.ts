@@ -56,11 +56,15 @@ export async function putWishlist(request: Request, response: Response) {
 
 export async function getMeWishlist(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
+	const query = request.locals.query ?? {};
 
-	const entries = await wishlistService.findWishlistByUserId(user.id);
-	const entriesPlain = entries.map(e => e.get({ plain: true }));
+	const { rows, total } = await wishlistService.findWishlistByUserIdPaginated(
+		user.id,
+		query
+	);
+	const entriesPlain = rows.map(e => e.get({ plain: true }));
 
-	const data = { wishlist: entriesPlain.map(wishlistSerializer) };
+	const data = { wishlist: entriesPlain.map(wishlistSerializer), total };
 	return response.status(200).json({ data });
 }
 
