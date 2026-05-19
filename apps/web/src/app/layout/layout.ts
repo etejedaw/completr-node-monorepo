@@ -8,10 +8,11 @@ import {
 } from "@angular/router";
 import { AuthService } from "../core/services/auth.service";
 import { filter } from "rxjs";
+import { UiButton, UiIconButton } from "../shared/ui";
 
 @Component({
 	selector: "app-layout",
-	imports: [RouterOutlet, RouterLink, RouterLinkActive],
+	imports: [RouterOutlet, RouterLink, RouterLinkActive, UiButton, UiIconButton],
 	templateUrl: "./layout.html",
 	styleUrl: "./layout.css"
 })

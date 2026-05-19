@@ -1,5 +1,5 @@
 <div class="layout">
-	<button class="menu-toggle" (click)="toggleSidebar()">
+	<button uiIconButton class="menu-toggle" (click)="toggleSidebar()">
 		<span class="material-icons">menu</span>
 	</button>
 
@@ -143,7 +143,7 @@
 				>
 				<span class="user-name">{{ user()?.username }}</span>
 			</a>
-			<button class="logout-btn" (click)="logout()">Sign out</button>
+			<button uiButton variant="ghost" size="sm" (click)="logout()">Sign out</button>
 		</div>
 		<div class="sidebar-credit">
 			Made with ♥ by
