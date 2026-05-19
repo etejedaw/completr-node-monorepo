@@ -104,6 +104,26 @@ export async function getListProgress(
 export async function findListsByUserId(user: RequestUser) {
 	const lists = await List.findAll({
 		where: { userId: user.id },
+		include: [
+			{
+				model: ListItem,
+				separate: true,
+				limit: 1,
+				order: [["position", "ASC"]] as [string, string][],
+				include: [
+					{
+						model: Game,
+						attributes: [
+							"id",
+							"code",
+							"title",
+							"backgroundUrl",
+							"isDlc"
+						]
+					}
+				]
+			}
+		],
 		order: [["createdAt", "DESC"]]
 	});
 

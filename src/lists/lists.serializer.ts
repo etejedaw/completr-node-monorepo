@@ -39,6 +39,18 @@ export function listSummarySerializer(list: List) {
 		description: list.description,
 		isPublic: list.isPublic,
 		scoreSource: list.scoreSource,
-		durationSource: list.durationSource
+		durationSource: list.durationSource,
+		previewItems:
+			list.ListItems?.map(item => ({
+				id: item.id,
+				game: item.Game
+					? {
+							id: item.Game.id,
+							code: item.Game.code,
+							title: item.Game.title,
+							backgroundUrl: item.Game.backgroundUrl
+						}
+					: null
+			})) ?? []
 	};
 }
