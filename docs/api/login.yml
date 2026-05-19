@@ -22,7 +22,7 @@ runtime:
         - type: after-response
           code: |-
               bru.setVar("TOKEN", res.body.data.access_token);
-              bru.setVar("REFRESH_TOKEN", res.body.data.refresh_token);
+              bru.setVar("SESSION_ID", res.body.data.session_id);
 
 settings:
     encodeUrl: true
@@ -33,7 +33,7 @@ settings:
 docs: |-
     ## Login
 
-    Authenticates a user and returns an access token and a refresh token.
+    Authenticates a user and returns an access token. The refresh token is set as an HttpOnly cookie.
 
     **Rate Limit:** 5 requests per minute, 15-minute block after exhaustion.
 
@@ -46,11 +46,15 @@ docs: |-
 
     ### Response (200)
 
+    Sets cookie `refresh_token` with attributes `HttpOnly; SameSite=Lax; Path=/auth; Max-Age=30d` (and `Secure; Domain=.completr.app` in production).
+
     ```json
     {
       "data": {
         "access_token": "jwt_token",
-        "refresh_token": "opaque_token"
+        "session_id": "uuid"
       }
     }
     ```
+
+    `session_id` identifies the current device session — used by the frontend to mark "this device" in the session list and to call `DELETE /auth/sessions/others/:sessionId`.
