@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, Order, literal } from "sequelize";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { Backlog } from "./backlog.model";
@@ -101,10 +101,36 @@ function buildIncludes(filters: BacklogQuery) {
 	return [gameInclude, { model: Platform }];
 }
 
-function buildOrder(filters: BacklogQuery): [string, string][] {
+function buildOrder(filters: BacklogQuery): Order {
 	const sortBy = filters.sort_by ?? "createdAt";
-	const sortOrder = filters.sort_order ?? "DESC";
-	return [[sortBy, sortOrder.toUpperCase()]];
+	const sortOrder = (filters.sort_order ?? "desc").toUpperCase() as
+		| "ASC"
+		| "DESC";
+
+	if (sortBy === "title") {
+		return [[Game, "title", sortOrder]];
+	}
+	if (sortBy === "ratio") {
+		return [
+			[
+				literal(
+					`("Backlog"."score" / NULLIF("Backlog"."duration", 0)) ${sortOrder} NULLS LAST`
+				),
+				""
+			]
+		];
+	}
+	if (sortBy === "personalRatio") {
+		return [
+			[
+				literal(
+					`("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) ${sortOrder} NULLS LAST`
+				),
+				""
+			]
+		];
+	}
+	return [[sortBy, sortOrder]];
 }
 
 export async function findBacklogByUserId(

@@ -9,7 +9,10 @@ const SORT_FIELDS = [
 	"finishedAt",
 	"realDuration",
 	"userRating",
-	"createdAt"
+	"createdAt",
+	"title",
+	"ratio",
+	"personalRatio"
 ] as const;
 
 export const BacklogQuerySchema = z
