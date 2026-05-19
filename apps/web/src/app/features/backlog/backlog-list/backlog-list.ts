@@ -42,6 +42,16 @@ export class BacklogList implements OnInit {
 	protected readonly editingEntry = signal<BacklogEntry | null>(null);
 	private readonly wishlistBacklogIds = signal<Set<string>>(new Set());
 
+	protected readonly viewMode = signal<"diary" | "hardcore">(
+		(localStorage.getItem("completr.backlog.viewMode") as "diary" | "hardcore") ||
+			"diary"
+	);
+
+	setViewMode(mode: "diary" | "hardcore") {
+		this.viewMode.set(mode);
+		localStorage.setItem("completr.backlog.viewMode", mode);
+	}
+
 	// Filters
 	protected readonly showFilters = signal(false);
 	protected readonly allPlatforms = signal<Platform[]>([]);

@@ -223,99 +223,228 @@
 		</p>
 	</div>
 	} @else {
-		<div class="flex flex-col gap-3">
-			@for (entry of entries(); track entry.id) {
-				<div
-					class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line cursor-pointer transition hover:border-brand/40"
-					(click)="openEdit(entry)"
+		<div class="flex justify-end mb-3">
+			<div class="flex gap-1 bg-input-bg border border-line rounded-md p-1">
+				<button
+					class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+					[class.!bg-surface-hover]="viewMode() === 'diary'"
+					[class.!text-fg]="viewMode() === 'diary'"
+					(click)="setViewMode('diary')"
+					title="Diary view"
 				>
-					<a
-						[routerLink]="['/games', entry.game.code]"
-						(click)="$event.stopPropagation()"
-						class="shrink-0"
-					>
-						@if (entry.game.backgroundUrl) {
-							<img
-								[src]="entry.game.backgroundUrl"
-								[alt]="entry.game.title"
-								class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
-							/>
-						} @else {
-							<div class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"></div>
-						}
-					</a>
+					<span class="material-icons text-base">view_agenda</span>
+					Diary
+				</button>
+				<button
+					class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+					[class.!bg-surface-hover]="viewMode() === 'hardcore'"
+					[class.!text-fg]="viewMode() === 'hardcore'"
+					(click)="setViewMode('hardcore')"
+					title="Hardcore (table) view"
+				>
+					<span class="material-icons text-base">table_rows</span>
+					Hardcore
+				</button>
+			</div>
+		</div>
 
-					<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
+		@if (viewMode() === 'diary') {
+			<div class="flex flex-col gap-3">
+				@for (entry of entries(); track entry.id) {
+					<div
+						class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line cursor-pointer transition hover:border-brand/40"
+						(click)="openEdit(entry)"
+					>
 						<a
-							class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
 							[routerLink]="['/games', entry.game.code]"
 							(click)="$event.stopPropagation()"
-						>{{ entry.game.title }}</a>
+							class="shrink-0"
+						>
+							@if (entry.game.backgroundUrl) {
+								<img
+									[src]="entry.game.backgroundUrl"
+									[alt]="entry.game.title"
+									class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
+								/>
+							} @else {
+								<div class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"></div>
+							}
+						</a>
 
-						<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
-							<span
-								class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
-								[class]="statusClass(entry.status)"
-							>{{ statusLabel(entry.status) }}</span>
-							<span class="text-fg-muted">{{ entry.platform.abbreviation }}</span>
-							@if (entry.score) {
-								<span class="text-fg-muted">·</span>
-								<span class="text-fg-muted">Score {{ entry.score }}</span>
+						<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
+							<a
+								class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
+								[routerLink]="['/games', entry.game.code]"
+								(click)="$event.stopPropagation()"
+							>{{ entry.game.title }}</a>
+
+							<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
+								<span
+									class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
+									[class]="statusClass(entry.status)"
+								>{{ statusLabel(entry.status) }}</span>
+								<span class="text-fg-muted">{{ entry.platform.abbreviation }}</span>
+								@if (entry.score) {
+									<span class="text-fg-muted">·</span>
+									<span class="text-fg-muted">Score {{ entry.score }}</span>
+								}
+								@if (entry.duration) {
+									<span class="text-fg-muted">·</span>
+									<span class="text-fg-muted">{{ entry.duration }}h</span>
+								}
+								@if (entry.realDuration) {
+									<span class="text-fg-muted">·</span>
+									<span class="text-fg-muted">Real {{ entry.realDuration }}h</span>
+								}
+								@if (entry.finishedAt) {
+									<span class="text-fg-muted">·</span>
+									<span class="text-fg-muted">{{ entry.finishedAt | date:'yyyy-MM-dd' }}</span>
+								}
+							</div>
+
+							@if (entry.userRating) {
+								<app-star-rating
+									[value]="entry.userRating"
+									[readonly]="true"
+									size="sm"
+								/>
 							}
-							@if (entry.duration) {
-								<span class="text-fg-muted">·</span>
-								<span class="text-fg-muted">{{ entry.duration }}h</span>
-							}
-							@if (entry.realDuration) {
-								<span class="text-fg-muted">·</span>
-								<span class="text-fg-muted">Real {{ entry.realDuration }}h</span>
-							}
-							@if (entry.finishedAt) {
-								<span class="text-fg-muted">·</span>
-								<span class="text-fg-muted">{{ entry.finishedAt | date:'yyyy-MM-dd' }}</span>
+
+							@if (entry.notes) {
+								<p class="text-xs text-fg-muted line-clamp-2 leading-snug m-0 mt-auto">{{ entry.notes }}</p>
 							}
 						</div>
 
-						@if (entry.userRating) {
-							<app-star-rating
-								[value]="entry.userRating"
-								[readonly]="true"
-								size="sm"
-							/>
-						}
+						<div class="hidden sm:flex flex-col items-end justify-center gap-3 shrink-0 min-w-[80px] text-right">
+							@if (entry.ratio) {
+								<div class="flex flex-col items-end leading-none">
+									<span class="text-3xl font-bold text-brand">{{ entry.ratio }}</span>
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
+								</div>
+							}
+							@if (entry.personalRatio) {
+								<div class="flex flex-col items-end leading-none">
+									<span class="text-lg font-semibold text-warning">{{ entry.personalRatio }}</span>
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Personal</span>
+								</div>
+							}
+						</div>
 
-						@if (entry.notes) {
-							<p class="text-xs text-fg-muted line-clamp-2 leading-snug m-0 mt-auto">{{ entry.notes }}</p>
-						}
+						<button
+							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 transition flex items-center self-center hover:text-danger"
+							[class.!text-danger]="isInWishlist(entry)"
+							[class.!cursor-default]="isInWishlist(entry)"
+							(click)="addToWishlist(entry); $event.stopPropagation()"
+							[title]="isInWishlist(entry) ? 'In Wishlist' : 'Add to Wishlist'"
+						>
+							<span class="material-icons text-xl">favorite</span>
+						</button>
 					</div>
-
-					<div class="hidden sm:flex flex-col items-end justify-center gap-3 shrink-0 min-w-[80px] text-right">
-						@if (entry.ratio) {
-							<div class="flex flex-col items-end leading-none">
-								<span class="text-3xl font-bold text-brand">{{ entry.ratio }}</span>
-								<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
-							</div>
+				}
+			</div>
+		} @else {
+			<div class="overflow-auto max-h-[calc(100vh-260px)]">
+				<table class="w-full border-collapse text-sm">
+					<thead>
+						<tr>
+							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap w-10 pr-0 hover:text-fg-secondary"></th>
+							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap min-w-[200px] hover:text-fg-secondary" (click)="sort('title')">
+								Title @if (sortBy() === 'title') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary">Platform</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('score')">
+								Score @if (sortBy() === 'score') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('duration')">
+								Duration @if (sortBy() === 'duration') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('ratio')">
+								Ratio @if (sortBy() === 'ratio') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('realDuration')">
+								Real @if (sortBy() === 'realDuration') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('personalRatio')">
+								P. Ratio @if (sortBy() === 'personalRatio') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('userRating')">
+								Rating @if (sortBy() === 'userRating') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('finishedAt')">
+								Finished @if (sortBy() === 'finishedAt') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('status')">
+								Status @if (sortBy() === 'status') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap max-w-[200px] hover:text-fg-secondary">Notes</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (entry of entries(); track entry.id) {
+							<tr class="cursor-pointer border-b border-line transition hover:bg-surface" (click)="openEdit(entry)">
+								<td class="px-4 py-3 text-fg align-middle w-10 pr-0">
+									@if (entry.game.backgroundUrl) {
+										<img [src]="entry.game.backgroundUrl" [alt]="entry.game.title" class="w-11 h-14 object-cover rounded-md block" />
+									} @else {
+										<div class="w-11 h-14 bg-surface rounded-md"></div>
+									}
+								</td>
+								<td class="px-4 py-3 align-middle min-w-[200px]">
+									<a class="font-medium text-fg no-underline hover:text-brand" [routerLink]="['/games', entry.game.code]" (click)="$event.stopPropagation()">{{ entry.game.title }}</a>
+								</td>
+								<td class="px-4 py-3 align-middle text-fg-secondary whitespace-nowrap">{{ entry.platform.abbreviation }}</td>
+								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.score ?? "-" }}</td>
+								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.duration ? entry.duration + "h" : "-" }}</td>
+								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.ratio ?? "-" }}</td>
+								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.realDuration ? entry.realDuration + "h" : "-" }}</td>
+								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.personalRatio ?? "-" }}</td>
+								<td class="px-4 py-3 align-middle">
+									<app-star-rating [value]="entry.userRating" [readonly]="true" size="sm" />
+								</td>
+								<td class="px-4 py-3 align-middle whitespace-nowrap text-fg-secondary text-sm">{{ entry.finishedAt ? (entry.finishedAt | date:'yyyy-MM-dd') : "-" }}</td>
+								<td class="px-4 py-3 align-middle whitespace-nowrap">
+									<span class="inline-block px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide" [class]="statusClass(entry.status)">{{ statusLabel(entry.status) }}</span>
+								</td>
+								<td class="px-4 py-3 align-middle max-w-[200px]">
+									@if (entry.notes) {
+										<span class="text-fg-muted text-xs leading-tight line-clamp-2">{{ entry.notes }}</span>
+									}
+								</td>
+								<td class="px-4 py-3 align-middle w-8 text-center">
+									<button
+										class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 transition flex items-center hover:text-danger"
+										[class.!text-danger]="isInWishlist(entry)"
+										[class.!cursor-default]="isInWishlist(entry)"
+										(click)="addToWishlist(entry); $event.stopPropagation()"
+										[title]="isInWishlist(entry) ? 'In Wishlist' : 'Add to Wishlist'"
+									>
+										<span class="material-icons text-xl">favorite</span>
+									</button>
+								</td>
+							</tr>
 						}
-						@if (entry.personalRatio) {
-							<div class="flex flex-col items-end leading-none">
-								<span class="text-lg font-semibold text-warning">{{ entry.personalRatio }}</span>
-								<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Personal</span>
-							</div>
-						}
-					</div>
-
-					<button
-						class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 transition flex items-center self-center hover:text-danger"
-						[class.!text-danger]="isInWishlist(entry)"
-						[class.!cursor-default]="isInWishlist(entry)"
-						(click)="addToWishlist(entry); $event.stopPropagation()"
-						[title]="isInWishlist(entry) ? 'In Wishlist' : 'Add to Wishlist'"
-					>
-						<span class="material-icons text-xl">favorite</span>
-					</button>
-				</div>
-			}
-		</div>
+					</tbody>
+				</table>
+			</div>
+		}
 	}
 </div>
 
