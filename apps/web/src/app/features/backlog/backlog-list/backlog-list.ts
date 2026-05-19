@@ -74,17 +74,16 @@ export class BacklogList implements OnInit {
 	protected readonly newFilterName = signal("");
 	protected readonly savingFilter = signal(false);
 
-	protected readonly hasActiveFilters = () => {
-		return (
-			this.selectedPlatform() !== "" ||
-			this.startedFrom() !== "" ||
-			this.startedTo() !== "" ||
-			this.finishedFrom() !== "" ||
-			this.finishedTo() !== "" ||
-			this.minRating() !== null ||
-			this.maxRating() !== null ||
-			this.activeStatuses().size > 0
-		);
+	protected readonly hasActiveFilters = () => this.activeFiltersCount() > 0;
+
+	protected readonly activeFiltersCount = () => {
+		let count = 0;
+		if (this.selectedPlatform() !== "") count++;
+		if (this.startedFrom() !== "" || this.startedTo() !== "") count++;
+		if (this.finishedFrom() !== "" || this.finishedTo() !== "") count++;
+		if (this.minRating() !== null || this.maxRating() !== null) count++;
+		if (this.activeStatuses().size > 0) count++;
+		return count;
 	};
 
 	private readonly statuses: { label: string; value: string }[] = [

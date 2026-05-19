@@ -25,16 +25,34 @@
 			}
 		</div>
 		}
-		<button
-			class="ml-auto bg-transparent border border-line text-fg-muted px-2.5 py-1.5 rounded text-xs font-medium font-sans whitespace-nowrap cursor-pointer flex items-center gap-1 transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="showFilters()"
-			[class.!border-brand]="showFilters()"
-			[class.!text-brand]="showFilters()"
-			(click)="toggleFilters()"
-		>
-			<span class="material-icons text-base">tune</span>
-			Filters
-		</button>
+		<div class="ml-auto flex items-center gap-2">
+			@if (hasActiveFilters()) {
+				<button
+					class="bg-transparent border border-line text-fg-muted px-2.5 py-1.5 rounded text-xs font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1 transition hover:border-danger/50 hover:text-danger"
+					(click)="clearFilters()"
+				>
+					<span class="material-icons text-sm">filter_alt_off</span>
+					Clear all
+				</button>
+			}
+			<button
+				class="bg-transparent border text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded transition"
+				[class.border-line]="!showFilters() && !hasActiveFilters()"
+				[class.text-fg-secondary]="!showFilters() && !hasActiveFilters()"
+				[class.hover:border-brand]="!showFilters()"
+				[class.hover:text-brand]="!showFilters()"
+				[class.border-brand]="showFilters() || hasActiveFilters()"
+				[class.text-brand]="showFilters() || hasActiveFilters()"
+				[class.bg-brand-subtle]="showFilters()"
+				(click)="toggleFilters()"
+			>
+				<span class="material-icons text-base">tune</span>
+				Filters
+				@if (activeFiltersCount() > 0) {
+					<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none">{{ activeFiltersCount() }}</span>
+				}
+			</button>
+		</div>
 	</div>
 
 	@if (activeFilterDescription()) {
