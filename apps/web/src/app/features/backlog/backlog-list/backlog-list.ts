@@ -103,14 +103,21 @@ export class BacklogList implements OnInit {
 			this.savedFilters.set(sorted);
 			this.backlogFilters.set(sorted.filter(f => f.showInBacklog));
 
-			const filterId =
-				this.route.snapshot.queryParamMap.get("savedFilterId");
+			const params = this.route.snapshot.queryParamMap;
+			const filterId = params.get("savedFilterId");
 			if (filterId) {
 				const match = sorted.find(f => f.id === filterId);
 				if (match) {
 					this.applySavedFilter(match);
 					return;
 				}
+			}
+
+			const statusParam = params.get("status");
+			if (statusParam) {
+				this.activeStatuses.set(new Set(statusParam.split(",")));
+				this.loadBacklog();
+				return;
 			}
 
 			const defaultFilter = sorted.find(f => f.isDefault);
