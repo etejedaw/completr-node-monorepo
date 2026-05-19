@@ -157,6 +157,72 @@ export async function findPublicListsByGameId(gameId: string) {
 	});
 }
 
+export async function findRecentUserLists(limit = 12) {
+	return List.findAll({
+		where: { isPublic: true },
+		include: [
+			{
+				model: User,
+				where: { role: { [Op.ne]: "admin" } },
+				attributes: ["id", "username", "role"]
+			},
+			{
+				model: ListItem,
+				separate: true,
+				limit: 1,
+				order: [["position", "ASC"]] as [string, string][],
+				include: [
+					{
+						model: Game,
+						attributes: [
+							"id",
+							"code",
+							"title",
+							"backgroundUrl",
+							"isDlc"
+						]
+					}
+				]
+			}
+		],
+		limit,
+		order: [["createdAt", "DESC"]]
+	});
+}
+
+export async function findOfficialLists(limit = 12) {
+	return List.findAll({
+		where: { isPublic: true },
+		include: [
+			{
+				model: User,
+				where: { role: "admin" },
+				attributes: ["id", "username", "role"]
+			},
+			{
+				model: ListItem,
+				separate: true,
+				limit: 1,
+				order: [["position", "ASC"]] as [string, string][],
+				include: [
+					{
+						model: Game,
+						attributes: [
+							"id",
+							"code",
+							"title",
+							"backgroundUrl",
+							"isDlc"
+						]
+					}
+				]
+			}
+		],
+		limit,
+		order: [["createdAt", "DESC"]]
+	});
+}
+
 export async function searchPublicLists(query: string, limit = 20) {
 	return List.findAll({
 		where: {

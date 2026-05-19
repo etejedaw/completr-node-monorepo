@@ -66,6 +66,24 @@ export async function getListById(request: Request, response: Response) {
 	return response.status(200).json({ data });
 }
 
+export async function getRecentLists(request: Request, response: Response) {
+	const limit = Number(request.query.limit ?? 12);
+	const lists = await listsService.findRecentUserLists(limit);
+	const listsPlain = lists.map(list => list.get({ plain: true }));
+
+	const data = { lists: listsPlain.map(listSummarySerializer) };
+	return response.status(200).json({ data });
+}
+
+export async function getOfficialLists(request: Request, response: Response) {
+	const limit = Number(request.query.limit ?? 12);
+	const lists = await listsService.findOfficialLists(limit);
+	const listsPlain = lists.map(list => list.get({ plain: true }));
+
+	const data = { lists: listsPlain.map(listSummarySerializer) };
+	return response.status(200).json({ data });
+}
+
 export async function searchLists(request: Request, response: Response) {
 	const { query } = request.locals.query as SearchQuery;
 
