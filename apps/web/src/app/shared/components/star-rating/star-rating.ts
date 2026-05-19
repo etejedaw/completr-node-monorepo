@@ -1,36 +1,19 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	input,
 	output,
 	signal
 } from "@angular/core";
 import { getRatingLabel } from "../../constants/rating-labels";
 
+type StarState = "empty" | "half" | "full";
+
 @Component({
 	selector: "app-star-rating",
 	templateUrl: "./star-rating.html",
-	changeDetection: ChangeDetectionStrategy.OnPush,
-	styles: [
-		`
-			.star.empty .star-icon {
-				color: var(--color-line-hover);
-			}
-			.star.full .star-icon {
-				color: var(--color-warning);
-			}
-			.star.half .star-icon {
-				background: linear-gradient(
-					90deg,
-					var(--color-warning) 50%,
-					var(--color-line-hover) 50%
-				);
-				-webkit-background-clip: text;
-				background-clip: text;
-				-webkit-text-fill-color: transparent;
-			}
-		`
-	]
+	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class StarRating {
 	value = input<number | null>(null);
@@ -38,23 +21,20 @@ export class StarRating {
 	size = input<"sm" | "md">("md");
 	ratingChange = output<number | null>();
 
+	protected readonly stars: readonly number[] = [1, 2, 3, 4, 5];
 	protected readonly hoverValue = signal<number | null>(null);
-	protected readonly stars = [1, 2, 3, 4, 5];
+	protected readonly displayValue = computed(
+		() => this.hoverValue() ?? this.value() ?? 0
+	);
+	protected readonly label = computed(() =>
+		getRatingLabel(this.hoverValue() ?? this.value())
+	);
 
-	protected get displayValue(): number {
-		return this.hoverValue() ?? this.value() ?? 0;
-	}
-
-	protected get label(): string {
-		const v = this.hoverValue() ?? this.value();
-		return getRatingLabel(v);
-	}
-
-	protected getStarClass(star: number): string {
-		const val = this.displayValue;
-		if (val >= star) return "star full";
-		if (val >= star - 0.5) return "star half";
-		return "star empty";
+	protected starState(star: number): StarState {
+		const val = this.displayValue();
+		if (val >= star) return "full";
+		if (val >= star - 0.5) return "half";
+		return "empty";
 	}
 
 	protected onHalf(star: number) {

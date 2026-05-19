@@ -1,6 +1,5 @@
 <div
 	class="flex items-center gap-2.5"
-	[class.readonly]="readonly()"
 	(mouseleave)="onLeave()"
 >
 	<div
@@ -10,13 +9,13 @@
 	>
 		@for (star of stars; track star) {
 			<span
-				[class]="getStarClass(star)"
-				class="relative inline-block cursor-pointer"
+				class="relative inline-block"
+				[class.cursor-pointer]="!readonly()"
+				[class.cursor-default]="readonly()"
 				[class.w-6]="size() !== 'sm'"
 				[class.h-6]="size() !== 'sm'"
 				[class.w-3.5]="size() === 'sm'"
 				[class.h-3.5]="size() === 'sm'"
-				[class.cursor-default]="readonly()"
 			>
 				@if (!readonly()) {
 					<span
@@ -31,20 +30,26 @@
 					></span>
 				}
 				<span
-					class="star-icon absolute inset-0 flex items-center justify-center pointer-events-none transition-colors"
+					class="absolute inset-0 flex items-center justify-center pointer-events-none transition-colors leading-none"
 					[class.text-xl]="size() !== 'sm'"
-					[class.text-xs]="size() === 'sm'"
+					[class.text-sm]="size() === 'sm'"
+					[class.text-warning]="starState(star) === 'full'"
+					[class.text-line-hover]="starState(star) === 'empty'"
+					[style.background]="starState(star) === 'half' ? 'linear-gradient(90deg, var(--color-warning) 50%, var(--color-line-hover) 50%)' : null"
+					[style.-webkit-background-clip]="starState(star) === 'half' ? 'text' : null"
+					[style.background-clip]="starState(star) === 'half' ? 'text' : null"
+					[style.-webkit-text-fill-color]="starState(star) === 'half' ? 'transparent' : null"
 				>&#9733;</span>
 			</span>
 		}
 	</div>
 	@if (!readonly()) {
 		<span class="flex items-center gap-1.5 min-w-[80px]">
-			@if (displayValue > 0) {
-				<span class="text-[0.8125rem] font-semibold text-warning">{{ displayValue }}</span>
+			@if (displayValue() > 0) {
+				<span class="text-[0.8125rem] font-semibold text-warning">{{ displayValue() }}</span>
 			}
-			@if (label) {
-				<span class="text-[0.6875rem] text-fg-muted uppercase tracking-wider">{{ label }}</span>
+			@if (label()) {
+				<span class="text-[0.6875rem] text-fg-muted uppercase tracking-wider">{{ label() }}</span>
 			}
 		</span>
 	}
