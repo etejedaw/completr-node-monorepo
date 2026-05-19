@@ -48,17 +48,17 @@ Formato por item:
 
 - **Fecha:** 2026-04-16
 - **Severidad:** alto
-- **Estado:** medio
+- **Estado:** resuelto
 - **Descripcion:** Si un usuario ingresa una password que no cumple las reglas de formato (ej: sin mayuscula, sin numero, muy corta), Zod rechaza el schema antes de que llegue al servicio de login. El usuario ve "Invalid request schema" en la pantalla de login, un mensaje tecnico que no le dice nada. Deberia ver "Invalid email or password". En login no importa si la password cumple reglas o no — solo importa si las credenciales son correctas.
-- **Solucion propuesta:** Crear un schema separado para login que solo valide que email y password no estan vacios (sin reglas de formato de password). Las reglas de password (mayuscula, numero, largo minimo, etc.) solo aplican en registro y cambio de password. Alternativa: en el login schema usar z.string().min(1) para password en vez del schema con reglas.
+- **Solucion:** Resuelto en frontend. Quitados los Validators.email y Validators.minLength del form de login (cualquier valor no vacio se envia). El handler de error mapea status 400/401/422 a "Invalid email or password.", y cualquier otro error a "Login failed. Please try again." Backend intacto: el schema sigue siendo el mismo, pero el usuario nunca ve el mensaje tecnico.
 
 ### [FB-003] Login muestra "Invalid request schema" con email sin TLD
 
 - **Fecha:** 2026-04-16
 - **Severidad:** alto
-- **Estado:** bajo
+- **Estado:** resuelto
 - **Descripcion:** Si un usuario ingresa un email tipo "name@domain" (sin .com o similar), Zod rechaza el schema y el usuario ve "Invalid request schema". El mensaje no le dice nada util. Deberia mostrar algo como "Email no valido" o "Invalid email format".
-- **Solucion propuesta:** Mejorar el manejo de errores de validacion en el frontend para login. En vez de mostrar el mensaje generico del backend ("Invalid request schema"), parsear los errores de Zod y mostrar mensajes especificos por campo (ej: "Email no valido"). Alternativamente, validar formato de email en el frontend antes de enviar el request. Esto aplica a login — en registro ya deberia haber validacion client-side.
+- **Solucion:** Resuelto junto con FB-002. Cualquier error de validacion (422) o credenciales (401) en login muestra "Invalid email or password." en lugar del mensaje tecnico de Zod.
 
 ### [FB-004] Admin game editor muestra exito falso al alcanzar rate limit
 
