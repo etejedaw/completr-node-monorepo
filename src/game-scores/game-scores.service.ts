@@ -37,3 +37,10 @@ export async function updateGameScore(
 export async function findScoresByGameId(gameId: string) {
 	return GameScore.findAll({ where: { gameId } });
 }
+
+export async function deleteGameScore(gameId: string, source: string) {
+	const existing = await GameScore.findOne({ where: { gameId, source } });
+	if (!existing) throw gameScoreServiceError.notFoundError();
+
+	await existing.destroy();
+}

@@ -37,3 +37,10 @@ export async function updateGameTime(
 export async function findTimesByGameId(gameId: string) {
 	return GameTime.findAll({ where: { gameId } });
 }
+
+export async function deleteGameTime(gameId: string, source: TimeSource) {
+	const existing = await GameTime.findOne({ where: { gameId, source } });
+	if (!existing) throw gameTimeServiceError.notFoundError();
+
+	await existing.destroy();
+}

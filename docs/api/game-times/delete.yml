@@ -1,0 +1,44 @@
+info:
+    name: Delete Game Time
+    type: http
+    seq: 4
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/game-times/:gameId/:source"
+    params:
+        - name: gameId
+          value: ""
+          type: path
+        - name: source
+          value: hltb
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Delete Game Time
+
+    Removes a game time for a specific source. Returns 404 if the time does not exist.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 300 requests per minute (admin/moderator exempt).
+
+    ### Path Parameters
+
+    | Param  | Type   | Required | Description                       |
+    |--------|--------|----------|-----------------------------------|
+    | gameId | uuid   | Yes      | The game UUID                     |
+    | source | string | Yes      | Time source: hltb, rawg, completr |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Code                | Description                  |
+    |--------|---------------------|------------------------------|
+    | 404    | GAME_TIME_NOT_FOUND | Time for given source        |

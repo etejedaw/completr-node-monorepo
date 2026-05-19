@@ -42,4 +42,14 @@ router.get(
 	gameScoresController.getGameScores
 );
 
+router.delete(
+	"/game-scores/:gameId/:source",
+	[
+		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
+		validateSchemaMiddleware(GameScoreIdParamsSchema, "params")
+	],
+	gameScoresController.deleteGameScore
+);
+
 export default router;

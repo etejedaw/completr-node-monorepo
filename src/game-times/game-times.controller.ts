@@ -39,3 +39,11 @@ export async function getGameTimes(request: Request, response: Response) {
 	};
 	return response.status(200).json({ data });
 }
+
+export async function deleteGameTime(request: Request, response: Response) {
+	const params = request.locals.params as GameTimeIdParams;
+
+	await gameTimesService.deleteGameTime(params.gameId, params.source);
+
+	return response.sendStatus(204);
+}
