@@ -42,4 +42,14 @@ router.get(
 	gameTimesController.getGameTimes
 );
 
+router.delete(
+	"/game-times/:gameId/:source",
+	[
+		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
+		validateSchemaMiddleware(GameTimeIdParamsSchema, "params")
+	],
+	gameTimesController.deleteGameTime
+);
+
 export default router;

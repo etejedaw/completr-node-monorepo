@@ -7,6 +7,7 @@ import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.
 import { RegisterSavedFilterSchema } from "./schemas/register-saved-filter.schema";
 import { UpdateSavedFilterSchema } from "./schemas/update-saved-filter.schema";
 import { SavedFilterIdParamsSchema } from "./schemas/saved-filter-id-params.schema";
+import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
 
 const router = Router({ mergeParams: true });
 
@@ -24,7 +25,8 @@ router.get(
 	"/",
 	[
 		rateLimiterMiddleware(userLimiter),
-		authMiddleware("user", "premium", "moderator")
+		authMiddleware("user", "premium", "moderator"),
+		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	savedFiltersController.getMeSavedFilters
 );

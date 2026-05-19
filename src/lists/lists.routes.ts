@@ -11,6 +11,7 @@ import { RegisterListSchema } from "./schemas/register-list.schema";
 import { UpdateListSchema } from "./schemas/update-list.schema";
 import { ListIdParamsSchema } from "./schemas/list-id-params.schema";
 import { SearchQuerySchema } from "../common/schemas/search-query.schema";
+import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 
 const router = Router();
 
@@ -28,7 +29,8 @@ router.get(
 	"/lists/me",
 	[
 		rateLimiterMiddleware(userLimiter),
-		authMiddleware("user", "premium", "moderator", "admin")
+		authMiddleware("user", "premium", "moderator", "admin"),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	listsController.getMeLists
 );

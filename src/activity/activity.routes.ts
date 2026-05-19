@@ -4,13 +4,18 @@ import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middle
 import { userLimiter } from "../common/config/rate-limiter.config";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { ActivityIdParamsSchema } from "./schemas/activity-id-params.schema";
+import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 import * as activityController from "./activity.controller";
 
 const router = Router();
 
 router.get(
 	"/feed",
-	[rateLimiterMiddleware(userLimiter), authMiddleware()],
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware(),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
+	],
 	activityController.getFeed
 );
 

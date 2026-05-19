@@ -14,11 +14,11 @@ export const registerLimiter = new RateLimiterMemory({
 });
 
 export const publicLimiter = new RateLimiterMemory({
-	points: 100,
+	points: 300,
 	duration: 60
 });
 
 export const userLimiter = new RateLimiterMemory({
-	points: 50,
+	points: 300,
 	duration: 60
 });

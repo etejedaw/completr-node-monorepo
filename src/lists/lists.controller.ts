@@ -26,12 +26,17 @@ export async function postList(request: Request, response: Response) {
 
 export async function getMeLists(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
+	const query = request.locals.query ?? {};
 
-	const { lists, frozen } = await listsService.findListsByUserId(user);
+	const { lists, total, frozen } = await listsService.findListsByUserId(
+		user,
+		query
+	);
 	const listsPlain = lists.map(list => list.get({ plain: true }));
 
 	const data = {
 		lists: listsPlain.map(listSummarySerializer),
+		total,
 		frozen
 	};
 	return response.status(200).json({ data });

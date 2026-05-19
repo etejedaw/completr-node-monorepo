@@ -7,6 +7,7 @@ import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.
 import { AddWishlistBodySchema } from "./schemas/add-wishlist-body.schema";
 import { AddWishlistQuerySchema } from "./schemas/add-wishlist-query.schema";
 import { ReplaceWishlistSchema } from "./schemas/replace-wishlist.schema";
+import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
 
 const router = Router({ mergeParams: true });
 
@@ -35,7 +36,8 @@ router.get(
 	"/",
 	[
 		rateLimiterMiddleware(userLimiter),
-		authMiddleware("user", "premium", "moderator")
+		authMiddleware("user", "premium", "moderator"),
+		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	wishlistController.getMeWishlist
 );

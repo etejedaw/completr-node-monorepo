@@ -4,6 +4,7 @@ import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import * as gameShelfService from "./game-shelf.service";
 import * as usersService from "../users/users.service";
 import * as userDomainError from "../users/errors/users.domain-error";
+import * as activityService from "../activity/activity.service";
 
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import { GameShelfIdParam } from "./schemas/game-shelf-id-params.schema";
@@ -25,17 +26,24 @@ export async function postGameShelf(request: Request, response: Response) {
 	);
 	const gameShelfPlain = gameShelfRegister.get({ plain: true });
 
+	activityService.record(user.id, "shelf_added", registerGameShelfDto.gameId);
+
 	const data = { gameShelf: gameShelfPlain };
 	return response.status(201).json({ data });
 }
 
 export async function getMeGameShelf(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
+	const query = request.locals.query ?? {};
 
-	const gameShelf = await gameShelfService.findGameShelfByUserId(user.id);
-	const gameShelfPlain = gameShelf.map(game => game.get({ plain: true }));
+	const { rows, total } =
+		await gameShelfService.findGameShelfByUserIdPaginated(user.id, query);
+	const gameShelfPlain = rows.map(game => game.get({ plain: true }));
 
-	const data = { gameShelf: gameShelfPlain.map(gameShelfMeSerializer) };
+	const data = {
+		gameShelf: gameShelfPlain.map(gameShelfMeSerializer),
+		total
+	};
 	return response.status(200).json({ data });
 }
 

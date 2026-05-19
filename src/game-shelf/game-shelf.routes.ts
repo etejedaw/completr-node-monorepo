@@ -7,6 +7,7 @@ import { RegisterGameShelfSchema } from "./schemas/register-game-shelf.schema";
 import * as gameShelfController from "./game-shelf.controller";
 import { GameShelfIdParamSchema } from "./schemas/game-shelf-id-params.schema";
 import { UpdateGameShelfSchema } from "./schemas/update-game-shelf.schema";
+import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
 
 const router = Router({ mergeParams: true });
 
@@ -24,7 +25,8 @@ router.get(
 	"/",
 	[
 		rateLimiterMiddleware(userLimiter),
-		authMiddleware("user", "premium", "moderator")
+		authMiddleware("user", "premium", "moderator"),
+		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	gameShelfController.getMeGameShelf
 );

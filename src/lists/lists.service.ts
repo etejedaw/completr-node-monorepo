@@ -96,13 +96,20 @@ export async function getListProgress(
 
 	const gameIds = items.map(i => i.gameId);
 	const completed = await Backlog.count({
-		where: { userId, gameId: { [Op.in]: gameIds }, status: "completed" }
+		where: {
+			userId,
+			gameId: { [Op.in]: gameIds },
+			status: { [Op.in]: ["completed", "abandoned"] }
+		}
 	});
 	return { completed, total: items.length };
 }
 
-export async function findListsByUserId(user: RequestUser) {
-	const lists = await List.findAll({
+export async function findListsByUserId(
+	user: RequestUser,
+	pagination: { limit?: number; offset?: number } = {}
+) {
+	const query: Record<string, unknown> = {
 		where: { userId: user.id },
 		include: [
 			{
@@ -125,11 +132,14 @@ export async function findListsByUserId(user: RequestUser) {
 			}
 		],
 		order: [["createdAt", "DESC"]]
-	});
+	};
+	if (pagination.limit) query.limit = pagination.limit;
+	if (pagination.offset) query.offset = pagination.offset;
 
+	const { rows, count } = await List.findAndCountAll(query);
 	const frozen = await areFrozen(user.id, user.role);
 
-	return { lists, frozen };
+	return { lists: rows, total: count, frozen };
 }
 
 export async function findPublicListsByUserId(userId: string) {

@@ -1,7 +1,8 @@
+import { Op } from "sequelize";
 import { Favorite } from "./favorite.model";
 import { Game } from "../games/game.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
-import { PaginationQuery } from "../common/schemas/pagination-query.schema";
+import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as favoritesServiceError from "./errors/favorites.service-error";
 
 const FREE_FAVORITE_LIMIT = 10;
@@ -52,11 +53,19 @@ export async function findFavoritesByUserId(userId: string) {
 
 export async function findFavoritesByUserIdPaginated(
 	userId: string,
-	pagination: PaginationQuery = {}
+	pagination: PaginatedSearchQuery = {}
 ) {
+	const gameInclude: Record<string, unknown> = { model: Game };
+	if (pagination.search) {
+		gameInclude.where = {
+			title: { [Op.iLike]: `%${pagination.search}%` }
+		};
+		gameInclude.required = true;
+	}
+
 	const query: Record<string, unknown> = {
 		where: { userId },
-		include: [{ model: Game }],
+		include: [gameInclude],
 		order: [["position", "ASC"]]
 	};
 	if (pagination.limit) query.limit = pagination.limit;

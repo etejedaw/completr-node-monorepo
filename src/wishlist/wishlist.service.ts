@@ -1,10 +1,11 @@
+import { Op } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { Wishlist } from "./wishlist.model";
 import { Backlog } from "../backlog/backlog.model";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
-import { PaginationQuery } from "../common/schemas/pagination-query.schema";
+import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as wishlistServiceError from "./errors/wishlist.service-error";
 
 const FREE_WISHLIST_LIMIT = 10;
@@ -145,11 +146,30 @@ export async function findWishlistByUserId(userId: string) {
 
 export async function findWishlistByUserIdPaginated(
 	userId: string,
-	pagination: PaginationQuery = {}
+	pagination: PaginatedSearchQuery = {}
 ) {
+	const include = pagination.search
+		? [
+				{
+					model: Backlog,
+					required: true,
+					include: [
+						{
+							model: Game,
+							required: true,
+							where: {
+								title: { [Op.iLike]: `%${pagination.search}%` }
+							}
+						},
+						{ model: Platform }
+					]
+				}
+			]
+		: BACKLOG_INCLUDE;
+
 	const query: Record<string, unknown> = {
 		where: { userId },
-		include: BACKLOG_INCLUDE,
+		include,
 		order: [["position", "ASC"]]
 	};
 	if (pagination.limit) query.limit = pagination.limit;

@@ -1,0 +1,44 @@
+info:
+    name: Delete Game Score
+    type: http
+    seq: 4
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/game-scores/:gameId/:source"
+    params:
+        - name: gameId
+          value: ""
+          type: path
+        - name: source
+          value: metacritic
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Delete Game Score
+
+    Removes a game score for a specific source. Returns 404 if the score does not exist.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 300 requests per minute (admin/moderator exempt).
+
+    ### Path Parameters
+
+    | Param  | Type   | Required | Description                                  |
+    |--------|--------|----------|----------------------------------------------|
+    | gameId | uuid   | Yes      | The game UUID                                |
+    | source | string | Yes      | Score source: metacritic, opencritic, rawg   |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Code                  | Description                  |
+    |--------|-----------------------|------------------------------|
+    | 404    | GAME_SCORE_NOT_FOUND  | Score for given source       |

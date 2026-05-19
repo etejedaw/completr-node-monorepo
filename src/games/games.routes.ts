@@ -21,8 +21,8 @@ const router = Router();
 router.get(
 	"/games",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(GamesQuerySchema, "query")
 	],
 	gamesController.getAllGames
@@ -31,8 +31,8 @@ router.get(
 router.get(
 	"/games/search",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(GameSearchQuerySchema, "query")
 	],
 	gamesController.searchGames
@@ -40,15 +40,15 @@ router.get(
 
 router.get(
 	"/games/latest-reviewed",
-	[rateLimiterMiddleware(publicLimiter), authMiddleware()],
+	[authMiddleware(), rateLimiterMiddleware(publicLimiter)],
 	gamesController.getLatestReviewedGames
 );
 
 router.get(
 	"/games/rawg-lookup",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameSearchQuerySchema, "query")
 	],
 	gamesController.getRawgLookup
@@ -57,8 +57,8 @@ router.get(
 router.get(
 	"/games/rawg-detail/:rawgId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RawgIdParamSchema, "params")
 	],
 	gamesController.getRawgDetail
@@ -67,8 +67,8 @@ router.get(
 router.get(
 	"/games/:code",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(GameCodeParamSchema, "params")
 	],
 	gamesController.getGameByCode
@@ -77,8 +77,8 @@ router.get(
 router.post(
 	"/games",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RegisterGameSchema, "body")
 	],
 	gamesController.postGame
@@ -87,8 +87,8 @@ router.post(
 router.patch(
 	"/games/:id",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameIdParamSchema, "params"),
 		validateSchemaMiddleware(UpdateGameSchema, "body")
 	],
@@ -98,8 +98,8 @@ router.patch(
 router.delete(
 	"/games/:id",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameIdParamSchema, "params")
 	],
 	gamesController.deleteGame
@@ -110,8 +110,8 @@ router.use("/games/:id/reviews", reviewsRouter);
 router.get(
 	"/games/:id/lists",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(GameIdParamSchema, "params")
 	],
 	gamesController.getGameLists

@@ -8,7 +8,10 @@ import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import { BacklogIdParams } from "./schemas/backlog-id-params.schema";
 import { BacklogQuery } from "./schemas/backlog-query.schema";
 import { UsernameParam } from "../users/schemas/username-params.schema";
-import { backlogSerializer } from "./backlog.serializer";
+import {
+	backlogSerializer,
+	backlogPublicSerializer
+} from "./backlog.serializer";
 import * as activityService from "../activity/activity.service";
 
 export async function postBacklog(request: Request, response: Response) {
@@ -55,7 +58,10 @@ export async function getUserBacklog(request: Request, response: Response) {
 	);
 	const backlogPlain = rows.map(backlog => backlog.get({ plain: true }));
 
-	const data = { backlog: backlogPlain.map(backlogSerializer), total };
+	const data = {
+		backlog: backlogPlain.map(backlogPublicSerializer),
+		total
+	};
 	return response.status(200).json({ data });
 }
 
@@ -64,6 +70,9 @@ export async function patchBacklog(request: Request, response: Response) {
 	const updateBacklog = request.locals.body as UpdateBacklogDto;
 	const user = request.locals.user as RequestUser;
 
+	const previous = await backlogService.findBacklogById(params.backlogId);
+	const previousStatus = previous?.status;
+
 	const backlogEntry = await backlogService.updateBacklog(
 		params.backlogId,
 		user.id,
@@ -71,7 +80,7 @@ export async function patchBacklog(request: Request, response: Response) {
 	);
 	const backlogPlain = backlogEntry.get({ plain: true });
 
-	if (updateBacklog.status) {
+	if (updateBacklog.status && updateBacklog.status !== previousStatus) {
 		activityService.record(
 			user.id,
 			`backlog_${updateBacklog.status}` as Parameters<

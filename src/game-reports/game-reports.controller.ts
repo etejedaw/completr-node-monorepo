@@ -9,13 +9,14 @@ import * as auditService from "../audit/audit.service";
 
 export async function postReport(request: Request, response: Response) {
 	const { id: gameId } = request.locals.params as GameIdParam;
-	const { message } = request.locals.body as CreateReportBody;
+	const { message, category } = request.locals.body as CreateReportBody;
 	const user = request.locals.user as RequestUser;
 
 	const report = await gameReportsService.createReport(
 		gameId,
 		user.id,
-		message
+		message,
+		category
 	);
 
 	return response.status(201).json({ data: { report } });

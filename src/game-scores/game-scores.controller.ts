@@ -43,3 +43,11 @@ export async function getGameScores(request: Request, response: Response) {
 	const data = { gameScores: scoresPlain };
 	return response.status(200).json({ data });
 }
+
+export async function deleteGameScore(request: Request, response: Response) {
+	const params = request.locals.params as GameScoreIdParams;
+
+	await gameScoresService.deleteGameScore(params.gameId, params.source);
+
+	return response.sendStatus(204);
+}
