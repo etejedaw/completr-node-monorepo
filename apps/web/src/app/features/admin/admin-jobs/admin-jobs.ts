@@ -7,10 +7,11 @@ import {
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
 import { AdminService, type JobEntry } from "../admin.service";
+import { UiButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-admin-jobs",
-	imports: [DatePipe],
+	imports: [DatePipe, UiButton],
 	templateUrl: "./admin-jobs.html",
 	styleUrl: "./admin-jobs.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

@@ -23,7 +23,7 @@
 
 .btn-action {
 	padding: 0.5rem 1rem;
-	background: linear-gradient(135deg, var(--accent), #0284c7);
+	background: linear-gradient(135deg, var(--accent), var(--accent-deep));
 	color: #fff;
 	border: none;
 	border-radius: var(--radius);
@@ -141,7 +141,7 @@ tbody td {
 }
 
 .status-completed {
-	background: rgba(34, 197, 94, 0.12);
+	background: rgba(139, 92, 246, 0.12);
 	color: var(--status-completed);
 }
 

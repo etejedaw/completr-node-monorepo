@@ -4,7 +4,7 @@
 			<h1>Users</h1>
 			<span class="entry-count">{{ total() }} total</span>
 		</div>
-		<button class="btn-create" (click)="openCreate()">Create User</button>
+		<button uiButton variant="primary" class="btn-create" (click)="openCreate()">Create User</button>
 	</div>
 
 	@if (isLoading()) {
@@ -75,7 +75,7 @@
 	<div class="modal-card" (click)="$event.stopPropagation()">
 		<div class="modal-header">
 			<h2>Create User</h2>
-			<button class="close-btn" (click)="closeCreate()">&times;</button>
+			<button uiIconButton size="sm" class="close-btn" (click)="closeCreate()">&times;</button>
 		</div>
 
 		@if (createError()) {
@@ -90,6 +90,7 @@
 					>
 					<input
 						id="create-username"
+						uiInput
 						type="text"
 						[ngModel]="createUsername()"
 						(ngModelChange)="createUsername.set($event)"
@@ -106,6 +107,7 @@
 					>
 					<input
 						id="create-name"
+						uiInput
 						type="text"
 						[ngModel]="createName()"
 						(ngModelChange)="createName.set($event)"
@@ -125,6 +127,7 @@
 					>
 					<input
 						id="create-email"
+						uiInput
 						type="email"
 						[ngModel]="createEmail()"
 						(ngModelChange)="createEmail.set($event)"
@@ -139,6 +142,7 @@
 					>
 					<input
 						id="create-password"
+						uiInput
 						type="password"
 						[ngModel]="createPassword()"
 						(ngModelChange)="createPassword.set($event)"
@@ -152,7 +156,7 @@
 			</div>
 
 			<div class="modal-actions">
-				<button
+				<button uiButton variant="primary"
 					class="btn-primary"
 					type="submit"
 					[disabled]="
@@ -177,7 +181,7 @@
 	<div class="modal-card" (click)="$event.stopPropagation()">
 		<div class="modal-header">
 			<h2>Edit User</h2>
-			<button class="close-btn" (click)="closeEdit()">&times;</button>
+			<button uiIconButton size="sm" class="close-btn" (click)="closeEdit()">&times;</button>
 		</div>
 
 		<div class="edit-user-info">
@@ -194,6 +198,7 @@
 				<label for="edit-name">Name</label>
 				<input
 					id="edit-name"
+					uiInput
 					type="text"
 					[ngModel]="editName()"
 					(ngModelChange)="editName.set($event)"
@@ -222,6 +227,7 @@
 					<label for="edit-password">New Password</label>
 					<input
 						id="edit-password"
+						uiInput
 						type="password"
 						[ngModel]="editPassword()"
 						(ngModelChange)="editPassword.set($event)"
@@ -246,7 +252,7 @@
 			</div>
 
 			<div class="modal-actions">
-				<button
+				<button uiButton variant="primary"
 					class="btn-primary"
 					type="submit"
 					[disabled]="isEditing()"

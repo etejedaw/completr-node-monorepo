@@ -8,6 +8,7 @@ import {
 import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { AdminService, AdminUser } from "../admin.service";
+import { UiButton, UiIconButton, UiInput } from "../../../shared/ui";
 
 interface CreateUserRequest {
 	username: string;
@@ -18,7 +19,7 @@ interface CreateUserRequest {
 
 @Component({
 	selector: "app-admin-users",
-	imports: [DatePipe, FormsModule],
+	imports: [DatePipe, FormsModule, UiButton, UiIconButton, UiInput],
 	templateUrl: "./admin-users.html",
 	styleUrl: "./admin-users.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

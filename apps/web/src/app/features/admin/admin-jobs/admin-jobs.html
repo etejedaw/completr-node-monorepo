@@ -1,7 +1,7 @@
 <div class="jobs-page">
 	<div class="page-header">
 		<h1>Jobs</h1>
-		<button class="btn-refresh" (click)="refresh()">
+		<button uiButton variant="secondary" size="sm" class="btn-refresh" (click)="refresh()">
 			<span class="material-icons">refresh</span>
 		</button>
 	</div>
@@ -70,7 +70,7 @@
 					</td>
 					<td>
 						@if (job.status === 'running') {
-						<button class="btn-cancel" (click)="cancelJob(job.id)">
+						<button uiButton variant="danger" size="sm" class="btn-cancel" (click)="cancelJob(job.id)">
 							Cancel
 						</button>
 						}

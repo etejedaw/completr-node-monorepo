@@ -4,7 +4,7 @@
 	@if (filterGameId()) {
 	<div class="filter-bar">
 		<span class="filter-label">Filtered by game</span>
-		<button class="btn-clear-filter" (click)="clearFilter()">
+		<button uiButton variant="ghost" size="sm" class="btn-clear-filter" (click)="clearFilter()">
 			Show all
 		</button>
 	</div>
@@ -30,10 +30,10 @@
 			</div>
 			<p class="report-message">{{ report.message }}</p>
 			<div class="report-actions">
-				<button class="btn-approve" (click)="approve(report)">
+				<button uiButton variant="primary" size="sm" class="btn-approve" (click)="approve(report)">
 					Approve
 				</button>
-				<button class="btn-reject" (click)="reject(report)">
+				<button uiButton variant="danger" size="sm" class="btn-reject" (click)="reject(report)">
 					Reject
 				</button>
 			</div>
