@@ -1,42 +1,41 @@
 @import "material-icons/iconfont/material-icons.css";
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@import "./styles/ui.css";
 
-/* === Completr Design System === */
+/* === Completr Design System — Refined Dark === */
 
 :root {
-	/* Backgrounds */
-	--bg-primary: #0b0f19;
-	--bg-sidebar: #111827;
-	--bg-surface: #1e293b;
-	--bg-surface-hover: #263548;
-	--bg-input: #0f172a;
+	--bg-primary: #0a0a0c;
+	--bg-sidebar: #0e0e11;
+	--bg-surface: #131318;
+	--bg-surface-hover: #1a1a20;
+	--bg-input: #0c0c0f;
 
-	/* Text */
-	--text-primary: #e2e8f0;
-	--text-secondary: #94a3b8;
-	--text-muted: #64748b;
+	--text-primary: #f5f5f7;
+	--text-secondary: #a1a1aa;
+	--text-muted: #71717a;
 
-	/* Accent */
-	--accent: #0ea5e9;
-	--accent-hover: #0284c7;
-	--accent-subtle: rgba(14, 165, 233, 0.12);
+	--accent: #8b5cf6;
+	--accent-hover: #a78bfa;
+	--accent-deep: #7c3aed;
+	--accent-subtle: rgba(139, 92, 246, 0.1);
+	--accent-glow: rgba(139, 92, 246, 0.25);
 
-	/* Status */
-	--status-completed: #22c55e;
+	--status-completed: #10b981;
 	--status-playing: #f59e0b;
-	--status-not-started: #94a3b8;
+	--status-not-started: #71717a;
 	--status-abandoned: #ef4444;
 
-	/* Borders */
-	--border: #1e293b;
-	--border-hover: #334155;
+	--border: rgba(255, 255, 255, 0.06);
+	--border-hover: rgba(255, 255, 255, 0.12);
 
-	/* Misc */
 	--radius: 6px;
 	--radius-lg: 10px;
 	--transition: 150ms ease;
-}
 
-/* === Reset & Base === */
+	--font-display: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--font-body: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
 
 *,
 *::before,
@@ -51,12 +50,17 @@ body {
 	height: 100%;
 	background: var(--bg-primary);
 	color: var(--text-primary);
-	font-family:
-		-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-		Arial, sans-serif;
+	font-family: var(--font-body);
 	font-size: 14px;
 	line-height: 1.5;
+	letter-spacing: -0.005em;
 	-webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: var(--font-display);
+	font-weight: 600;
+	letter-spacing: -0.02em;
 }
 
 a {
@@ -68,8 +72,6 @@ a {
 a:hover {
 	color: var(--accent-hover);
 }
-
-/* === Scrollbar === */
 
 ::-webkit-scrollbar {
 	width: 6px;
@@ -88,8 +90,6 @@ a:hover {
 	background: var(--text-muted);
 }
 
-/* === Utility classes === */
-
 .text-muted {
 	color: var(--text-muted);
 }
@@ -98,38 +98,37 @@ a:hover {
 	color: var(--text-secondary);
 }
 
-/* === Modal === */
-
 .modal-overlay {
 	position: fixed;
 	inset: 0;
-	background: rgba(0, 0, 0, 0.6);
+	background: rgba(0, 0, 0, 0.7);
+	backdrop-filter: blur(8px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	z-index: 1000;
 }
 
-/* === Buttons === */
-
 .btn-submit {
 	padding: 0.5rem 1rem;
-	background: linear-gradient(135deg, var(--accent), #0284c7);
+	background: var(--accent);
 	color: #fff;
 	border: none;
 	border-radius: var(--radius);
+	font-family: inherit;
 	font-size: 0.8125rem;
-	font-weight: 600;
+	font-weight: 500;
+	letter-spacing: 0.01em;
 	cursor: pointer;
-	transition: opacity var(--transition);
+	transition: background var(--transition), opacity var(--transition);
 }
 
 .btn-submit:hover:not(:disabled) {
-	opacity: 0.9;
+	background: var(--accent-hover);
 }
 
 .btn-submit:disabled {
-	opacity: 0.5;
+	opacity: 0.4;
 	cursor: not-allowed;
 }
 
@@ -142,15 +141,15 @@ a:hover {
 	font-size: 0.75rem;
 	font-family: inherit;
 	cursor: pointer;
+	transition: color var(--transition);
 }
 
 .btn-ghost:hover {
 	color: var(--text-primary);
 }
 
-/* === Empty states === */
-
 .empty-title {
+	font-family: var(--font-display);
 	font-size: 1rem;
 	font-weight: 600;
 	color: var(--text-secondary);
