@@ -90,7 +90,7 @@ Formato por item:
 - **Severidad:** medio
 - **Estado:** resuelto
 - **Descripcion:** Cuando un usuario agrega un juego a su wishlist, la actividad en el feed muestra solo "Pricila Badilla wants to play" sin indicar que juego. Falta el nombre del juego en el mensaje, dejando la actividad sin contexto util para quien la lee.
-- **Solucion:** El "wants to play" en realidad venía de actividades `backlog_not_started` (PATCH de backlog a not_started), no de wishlist. El bug raíz: el tipo `backlog_not_started` no estaba en la lista `GAME_TYPES` del activity.service, así que la Activity se creaba pero nunca se asociaba al ActivityGame. Agregado a `ACTIVITY_TYPES` enum y a `GAME_TYPES`. Ahora la actividad incluye el target del juego con su nombre y link.
+- **Solucion:** Dos cambios complementarios: (1) la wishlist nunca registraba actividad — agregado tipo `wishlist_added` y `activityService.record` en `wishlist.controller.postWishlist`, con el `gameId` extraído del Backlog asociado. (2) Las actividades `backlog_not_started` (PATCH de backlog a not_started) tampoco creaban target porque el tipo faltaba en `GAME_TYPES` del activity.service — agregado al enum y a la lista. Ahora ambas actividades incluyen el nombre del juego y link.
 
 ### [FB-008] Recent activity muestra slug en vez de accion legible y omite nombre del juego
 
