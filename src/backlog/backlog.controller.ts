@@ -79,11 +79,12 @@ export async function patchBacklog(request: Request, response: Response) {
 	const previous = await backlogService.findBacklogById(params.backlogId);
 	const previousStatus = previous?.status;
 
-	const backlogEntry = await backlogService.updateBacklog(
-		params.backlogId,
-		user.id,
-		updateBacklog
-	);
+	const { backlog: backlogEntry, wishlistRemoved } =
+		await backlogService.updateBacklog(
+			params.backlogId,
+			user.id,
+			updateBacklog
+		);
 	const backlogPlain = backlogEntry.get({ plain: true });
 
 	if (updateBacklog.status && updateBacklog.status !== previousStatus) {
@@ -96,7 +97,10 @@ export async function patchBacklog(request: Request, response: Response) {
 		);
 	}
 
-	const data = { backlog: backlogSerializer(backlogPlain) };
+	const data = {
+		backlog: backlogSerializer(backlogPlain),
+		wishlistRemoved
+	};
 	return response.status(200).json({ data });
 }
 
