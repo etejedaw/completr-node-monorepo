@@ -2,9 +2,11 @@ import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { Backlog } from "./backlog.model";
 
+const RATIO_SCALE = 20;
+
 function calculateRatio(score?: number, duration?: number) {
 	if (!score || !duration) return undefined;
-	return Math.round((score / duration) * 100) / 100;
+	return Math.round((score / duration) * RATIO_SCALE * 100) / 100;
 }
 
 export function backlogSerializer(backlogEntry: Backlog) {

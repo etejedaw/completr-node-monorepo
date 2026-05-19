@@ -3,6 +3,7 @@ import { List } from "../lists/list.model";
 import { Game } from "../games/game.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
+import { ScoreSource } from "../score-sources/score-source.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as listItemsServiceError from "./errors/list-items.service-error";
 
@@ -19,17 +20,23 @@ async function checkFrozen(userId: string, role: string) {
 }
 
 async function freezeScores(gameId: string, list: List) {
-	const [gameScore, gameTime] = await Promise.all([
+	const [gameScore, gameTime, scoreSource] = await Promise.all([
 		GameScore.findOne({
 			where: { gameId, source: list.scoreSource }
 		}),
 		GameTime.findOne({
 			where: { gameId, source: list.durationSource }
-		})
+		}),
+		ScoreSource.findOne({ where: { code: list.scoreSource } })
 	]);
 
+	const normalizedScore =
+		gameScore && scoreSource && scoreSource.scale !== 5
+			? (gameScore.score / scoreSource.scale) * 5
+			: (gameScore?.score ?? null);
+
 	return {
-		score: gameScore?.score ?? null,
+		score: normalizedScore,
 		duration: gameTime?.duration ?? null
 	};
 }
