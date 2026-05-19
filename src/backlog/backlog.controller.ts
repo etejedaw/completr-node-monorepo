@@ -13,6 +13,7 @@ import {
 	backlogPublicSerializer
 } from "./backlog.serializer";
 import * as activityService from "../activity/activity.service";
+import * as reviewsService from "../reviews/reviews.service";
 
 export async function postBacklog(request: Request, response: Response) {
 	const registerBacklog = request.locals.body as RegisterBacklogDto;
@@ -58,8 +59,13 @@ export async function getUserBacklog(request: Request, response: Response) {
 	);
 	const backlogPlain = rows.map(backlog => backlog.get({ plain: true }));
 
+	const reviews = await reviewsService.findReviewsByUserId(user.id);
+	const reviewByGameId = new Map(reviews.map(r => [r.gameId, r]));
+
 	const data = {
-		backlog: backlogPlain.map(backlogPublicSerializer),
+		backlog: backlogPlain.map(entry =>
+			backlogPublicSerializer(entry, reviewByGameId.get(entry.gameId))
+		),
 		total
 	};
 	return response.status(200).json({ data });

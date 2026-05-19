@@ -29,10 +29,18 @@ export function backlogSerializer(backlogEntry: Backlog) {
 	};
 }
 
-export function backlogPublicSerializer(backlogEntry: Backlog) {
+export function backlogPublicSerializer(
+	backlogEntry: Backlog,
+	review?: { content: string | null; rating: number | null } | null
+) {
 	const full = backlogSerializer(backlogEntry);
 	const { notes: _notes, ...publicEntry } = full;
-	return publicEntry;
+	return {
+		...publicEntry,
+		review: review
+			? { content: review.content, rating: review.rating }
+			: null
+	};
 }
 
 function gameSerializer(game: Game) {

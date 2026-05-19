@@ -127,8 +127,8 @@ export async function getUserByUsername(request: Request, response: Response) {
 		followerCount,
 		followingCount,
 		isFollowing,
-		backlogs: backlogs.map(
-			isSelf ? backlogSerializer : backlogPublicSerializer
+		backlogs: backlogs.map(b =>
+			isSelf ? backlogSerializer(b) : backlogPublicSerializer(b)
 		),
 		lists: listsWithFollowers,
 		favorites: favorites.map(favoriteSerializer),
