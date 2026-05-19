@@ -18,10 +18,11 @@ import {
 	switchMap,
 	of
 } from "rxjs";
+import { UiButton, UiInput } from "../../../shared/ui";
 
 @Component({
 	selector: "app-games-browse",
-	imports: [RouterLink, AdminGameEditor],
+	imports: [RouterLink, AdminGameEditor, UiButton, UiInput],
 	templateUrl: "./games-browse.html",
 	styleUrl: "./games-browse.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

@@ -45,7 +45,7 @@
 			<span class="material-icons">admin_panel_settings</span>
 			{{ isAdmin() ? 'Admin' : 'Moderator' }}
 		</span>
-		<button class="btn-admin-edit" (click)="showEditor.set(!showEditor())">
+		<button uiButton variant="secondary" size="sm" class="btn-admin-edit" (click)="showEditor.set(!showEditor())">
 			<span class="material-icons"
 				>{{ showEditor() ? 'close' : 'edit' }}</span
 			>
@@ -54,38 +54,38 @@
 		@if (isAdmin()) { @if (!showConfirmDeactivate() && !showConfirmDelete())
 		{
 		<button
-			class="btn-admin-danger"
+			uiButton variant="danger" size="sm" class="btn-admin-danger"
 			(click)="showConfirmDeactivate.set(true)"
 		>
 			<span class="material-icons">visibility_off</span>
 			Deactivate
 		</button>
-		<button class="btn-admin-danger" (click)="showConfirmDelete.set(true)">
+		<button uiButton variant="danger" size="sm" class="btn-admin-danger" (click)="showConfirmDelete.set(true)">
 			<span class="material-icons">delete_forever</span>
 			Delete
 		</button>
 		} @else if (showConfirmDeactivate()) {
 		<span class="confirm-text">Deactivate this game?</span>
 		<button
-			class="btn-danger"
+			uiButton variant="danger" size="sm" class="btn-danger"
 			(click)="deactivateGame()"
 			[disabled]="deactivating()"
 		>
 			{{ deactivating() ? 'Deactivating...' : 'Yes' }}
 		</button>
-		<button class="btn-ghost" (click)="showConfirmDeactivate.set(false)">
+		<button uiButton variant="ghost" size="sm" class="btn-ghost" (click)="showConfirmDeactivate.set(false)">
 			Cancel
 		</button>
 		} @else if (showConfirmDelete()) {
 		<span class="confirm-text">Permanently delete this game?</span>
 		<button
-			class="btn-danger"
+			uiButton variant="danger" size="sm" class="btn-danger"
 			(click)="deleteGame()"
 			[disabled]="deleting()"
 		>
 			{{ deleting() ? 'Deleting...' : 'Yes, delete' }}
 		</button>
-		<button class="btn-ghost" (click)="showConfirmDelete.set(false)">
+		<button uiButton variant="ghost" size="sm" class="btn-ghost" (click)="showConfirmDelete.set(false)">
 			Cancel
 		</button>
 		} }
@@ -278,7 +278,7 @@
 	<div class="related-section">
 		<div class="reviews-header">
 			<h2>Reviews</h2>
-			<button class="btn-review" (click)="openReviewForm()">
+			<button uiButton variant="primary" size="sm" class="btn-review" (click)="openReviewForm()">
 				{{ myReview() ? 'Edit Review' : 'Write Review' }}
 			</button>
 		</div>
@@ -294,6 +294,7 @@
 				/>
 			</div>
 			<textarea
+				uiInput
 				class="review-textarea"
 				rows="4"
 				placeholder="Share your thoughts about this game..."
@@ -302,15 +303,15 @@
 			></textarea>
 			<div class="review-form-actions">
 				@if (myReview()) {
-				<button class="btn-ghost" (click)="deleteReview()">
+				<button uiButton variant="ghost" size="sm" class="btn-ghost" (click)="deleteReview()">
 					Delete
 				</button>
 				}
-				<button class="btn-ghost" (click)="showReviewForm.set(false)">
+				<button uiButton variant="ghost" size="sm" class="btn-ghost" (click)="showReviewForm.set(false)">
 					Cancel
 				</button>
 				<button
-					class="btn-submit"
+					uiButton variant="primary" size="sm" class="btn-submit"
 					(click)="submitReview()"
 					[disabled]="reviewSubmitting() || (!reviewContent().trim() && !reviewRating())"
 				>
@@ -441,7 +442,7 @@
 
 	<!-- Actions -->
 	<div class="actions">
-		<a routerLink="/games" class="btn-back">&larr; Back to Games</a>
+		<a uiButton variant="ghost" size="sm" routerLink="/games" class="btn-back">&larr; Back to Games</a>
 	</div>
 </div>
 } @if (showBacklogModal()) {
@@ -461,6 +462,7 @@
 	<div class="report-modal" (click)="$event.stopPropagation()">
 		<h3>Report issue with {{ game()!.title }}</h3>
 		<textarea
+			uiInput
 			class="report-textarea"
 			placeholder="Describe the issue (min 10 characters)..."
 			[value]="reportMessage()"
@@ -471,11 +473,11 @@
 		<div class="report-error">{{ reportError() }}</div>
 		}
 		<div class="report-modal-actions">
-			<button class="btn-ghost" (click)="showReportModal.set(false)">
+			<button uiButton variant="ghost" size="sm" class="btn-ghost" (click)="showReportModal.set(false)">
 				Cancel
 			</button>
 			<button
-				class="btn-submit"
+				uiButton variant="primary" size="sm" class="btn-submit"
 				[disabled]="reportMessage().length < 10 || reportSubmitting()"
 				(click)="submitReport()"
 			>

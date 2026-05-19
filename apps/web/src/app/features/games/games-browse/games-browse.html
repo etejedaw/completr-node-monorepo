@@ -5,6 +5,7 @@
 
 	<div class="search-bar">
 		<input
+			uiInput
 			type="text"
 			placeholder="Search games..."
 			[value]="searchQuery()"
@@ -19,7 +20,9 @@
 			Admin
 		</span>
 		<button
-			class="btn-admin-edit"
+			uiButton
+			variant="secondary"
+			size="sm"
 			(click)="showCreateEditor.set(!showCreateEditor())"
 		>
 			<span class="material-icons"
@@ -38,7 +41,9 @@
 		<h2>Search Results</h2>
 		<div class="search-actions">
 			<button
-				class="btn-search-rawg"
+				uiButton
+				variant="ghost"
+				size="sm"
 				(click)="searchRawg()"
 				[disabled]="searchingRawg()"
 			>

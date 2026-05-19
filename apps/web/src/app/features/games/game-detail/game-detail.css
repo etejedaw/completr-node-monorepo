@@ -324,7 +324,7 @@
 
 .platform-select:focus {
 	outline: none;
-	box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+	box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 .stats-section-title {
@@ -533,7 +533,7 @@
 .review-textarea:focus {
 	outline: none;
 	border-color: var(--accent);
-	box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+	box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 .review-textarea::placeholder {
@@ -634,11 +634,11 @@
 }
 
 .featured-list-card.official {
-	border-color: rgba(99, 102, 241, 0.4);
+	border-color: rgba(139, 92, 246, 0.4);
 	background: linear-gradient(
 		135deg,
-		rgba(14, 165, 233, 0.05),
-		rgba(99, 102, 241, 0.05)
+		rgba(139, 92, 246, 0.05),
+		rgba(139, 92, 246, 0.05)
 	);
 }
 
@@ -797,7 +797,7 @@
 .report-textarea:focus {
 	outline: none;
 	border-color: var(--accent);
-	box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+	box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 .report-textarea::placeholder {

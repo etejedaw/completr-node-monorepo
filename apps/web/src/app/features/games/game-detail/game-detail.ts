@@ -22,6 +22,7 @@ import { getRatingLabel } from "../../../shared/constants/rating-labels";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { ReviewsService, Review } from "../reviews.service";
 import { FormsModule } from "@angular/forms";
+import { UiButton, UiInput } from "../../../shared/ui";
 
 @Component({
 	selector: "app-game-detail",
@@ -31,7 +32,9 @@ import { FormsModule } from "@angular/forms";
 		BacklogModal,
 		GameShelfModal,
 		AdminGameEditor,
-		FormsModule
+		FormsModule,
+		UiButton,
+		UiInput
 	],
 	templateUrl: "./game-detail.html",
 	styleUrl: "./game-detail.css",

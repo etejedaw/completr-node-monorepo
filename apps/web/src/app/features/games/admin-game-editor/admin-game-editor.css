@@ -47,7 +47,7 @@
 .rawg-input:focus {
 	outline: none;
 	border-color: var(--accent);
-	box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+	box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 .rawg-input::placeholder {
@@ -138,7 +138,7 @@
 .form-group textarea:focus {
 	outline: none;
 	border-color: var(--accent);
-	box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+	box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 .form-group input::placeholder,
@@ -183,7 +183,7 @@
 .parent-search-row input:focus {
 	outline: none;
 	border-color: var(--accent);
-	box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+	box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 .parent-search-row input::placeholder {
@@ -421,7 +421,7 @@
 
 .btn-save {
 	padding: 0.5rem 1.25rem;
-	background: linear-gradient(135deg, var(--accent), #0284c7);
+	background: linear-gradient(135deg, var(--accent), var(--accent-deep));
 	color: #fff;
 	border: none;
 	border-radius: var(--radius);
