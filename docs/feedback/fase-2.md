@@ -545,10 +545,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Al abrir el modal de backlog desde una lista (ej: Rhythm Heaven), el campo Score muestra un badge indicando la fuente del score precargado (ej: "RAWG"). Este badge agrega altura extra al campo y lo desalinea visualmente con el campo Duration que no tiene badge. Los inputs quedan a alturas diferentes, rompiendo la alineacion del formulario.
-- **Solucion propuesta:** Ajustar el layout del modal para que el badge de fuente no afecte la altura del campo. Opciones: (1) mover el badge fuera del input (ej: como tooltip o texto debajo), (2) agregar padding equivalente al campo Duration para mantener alineacion, (3) usar position absolute para el badge sin afectar el flow del layout.
+- **Solucion:** Resuelto sin cambios adicionales como efecto secundario del rediseño hecho en FB-001. El modal ahora reserva un slot de `min-h-[26px]` para los source buttons en ambos campos (Critic Score y Duration); si un lado tiene badge y el otro no, el slot vacío mantiene el espacio y los inputs quedan alineados.
 
 ### [FB-062] Editar backlog desde la vista de detalle de lista
 
