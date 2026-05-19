@@ -4,7 +4,7 @@
 			<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Game Shelf</h1>
 			<span class="text-sm text-fg-muted">{{ total() }} games</span>
 		</div>
-		<button uiButton variant="primary" (click)="openCreate()">+ Add Game</button>
+		<button uiButton variant="primary" (click)="openCreate()">+ Add to Shelf</button>
 	</div>
 
 	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
@@ -39,7 +39,7 @@
 		<p class="empty-title">Your game shelf is empty</p>
 		<p class="empty-hint">
 			Keep track of games you own, whether physical or digital. Click
-			<strong>+ Add Game</strong> to start building your collection.
+			<strong>+ Add to Shelf</strong> to start building your collection.
 		</p>
 	</div>
 	} @else {
