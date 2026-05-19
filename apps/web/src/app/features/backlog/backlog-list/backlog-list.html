@@ -263,11 +263,19 @@
 						</a>
 
 						<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
-							<a
-								class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
-								[routerLink]="['/games', entry.game.code]"
-								(click)="$event.stopPropagation()"
-							>{{ entry.game.title }}</a>
+							<div class="flex items-center gap-2 flex-wrap">
+								<a
+									class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
+									[routerLink]="['/games', entry.game.code]"
+									(click)="$event.stopPropagation()"
+								>{{ entry.game.title }}</a>
+								@if (entry.realDuration) {
+									<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line">
+										<span class="material-icons text-[0.75rem]">schedule</span>
+										Real {{ entry.realDuration }}h
+									</span>
+								}
+							</div>
 
 							<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
 								<span
@@ -302,27 +310,17 @@
 							}
 						</div>
 
-						<div class="hidden sm:flex flex-col items-end justify-center gap-2 shrink-0 min-w-[80px] text-right">
+						<div class="hidden sm:flex flex-col items-end justify-center gap-3 shrink-0 min-w-[80px] text-right">
 							@if (entry.ratio) {
 								<div class="flex flex-col items-end leading-none">
 									<span class="text-3xl font-bold text-brand">{{ entry.ratio }}</span>
 									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
 								</div>
 							}
-							@if (entry.personalRatio || entry.realDuration) {
-								<div class="flex items-start gap-3">
-									@if (entry.realDuration) {
-										<div class="flex flex-col items-end leading-none">
-											<span class="text-base font-semibold text-fg">{{ entry.realDuration }}h</span>
-											<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-0.5">Real</span>
-										</div>
-									}
-									@if (entry.personalRatio) {
-										<div class="flex flex-col items-end leading-none">
-											<span class="text-base font-semibold text-warning">{{ entry.personalRatio }}</span>
-											<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-0.5">Personal</span>
-										</div>
-									}
+							@if (entry.personalRatio) {
+								<div class="flex flex-col items-end leading-none">
+									<span class="text-lg font-semibold text-warning">{{ entry.personalRatio }}</span>
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Personal</span>
 								</div>
 							}
 						</div>
