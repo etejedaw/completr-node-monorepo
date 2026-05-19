@@ -183,14 +183,18 @@ export async function updateBacklog(
 
 	await backlogEntry.update(updateBacklog);
 
+	let wishlistRemoved = false;
 	if (
 		updateBacklog.status === "completed" ||
 		updateBacklog.status === "abandoned"
 	) {
-		await Wishlist.destroy({ where: { backlogId: id } });
+		const deletedCount = await Wishlist.destroy({
+			where: { backlogId: id }
+		});
+		wishlistRemoved = deletedCount > 0;
 	}
 
-	return backlogEntry;
+	return { backlog: backlogEntry, wishlistRemoved };
 }
 
 export async function removeBacklog(id: string, userId: string) {

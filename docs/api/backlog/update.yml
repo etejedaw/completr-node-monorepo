@@ -68,7 +68,10 @@ docs: |-
           "backlogNumber": null,
           "game": { "id": "uuid", "title": "..." },
           "platform": { "id": "uuid", "name": "..." }
-        }
+        },
+        "wishlistRemoved": true
       }
     }
     ```
+
+    `wishlistRemoved` is `true` when transitioning the backlog to `completed` or `abandoned` triggered an auto-removal from the user's Queue (wishlist). `false` otherwise. The frontend uses this flag to surface a toast like "Removed from your Queue: <title> — completed".
