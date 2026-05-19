@@ -3,6 +3,7 @@ export type { UiButtonVariant, UiButtonSize } from "./button/ui-button";
 export { UiIconButton } from "./icon-button/ui-icon-button";
 export type { UiIconButtonSize, UiIconButtonTone } from "./icon-button/ui-icon-button";
 export { UiInput } from "./input/ui-input";
+export { UiSearchBar } from "./search-bar/ui-search-bar";
 export { UiSwitch } from "./switch/ui-switch";
 export { UiCheckbox } from "./checkbox/ui-checkbox";
 export { UiTooltipContent } from "./tooltip/ui-tooltip";
