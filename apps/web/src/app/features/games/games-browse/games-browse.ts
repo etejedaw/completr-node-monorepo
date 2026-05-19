@@ -56,6 +56,7 @@ export class GamesBrowse implements OnInit, OnDestroy {
 	protected readonly latestReviewed = signal<Game[]>([]);
 	protected readonly officialLists = signal<List[]>([]);
 	protected readonly recentLists = signal<List[]>([]);
+	protected readonly isInitialLoad = signal(true);
 
 	protected readonly featuredIndex = signal(0);
 	protected readonly featuredGames = computed(() =>
@@ -141,7 +142,13 @@ export class GamesBrowse implements OnInit, OnDestroy {
 	private loadLatest() {
 		this.gamesService
 			.getGames({ limit: 16, sort_by: "createdAt", sort_order: "desc" })
-			.subscribe(res => this.latestGames.set(res.data.games));
+			.subscribe({
+				next: res => {
+					this.latestGames.set(res.data.games);
+					this.isInitialLoad.set(false);
+				},
+				error: () => this.isInitialLoad.set(false)
+			});
 	}
 
 	private loadTopRated() {
