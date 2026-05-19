@@ -12,6 +12,6 @@ RUN npm run build
 FROM node:krypton-alpine AS runner
 WORKDIR /usr/app
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 COPY --from=builder /usr/app/dist ./dist
 CMD ["npm", "run", "start"]
