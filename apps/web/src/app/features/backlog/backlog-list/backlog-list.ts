@@ -381,7 +381,11 @@ export class BacklogList implements OnInit {
 		this.showModal.set(true);
 	}
 
-	openEdit(entry: BacklogEntry) {
+	openEdit(entry: BacklogEntry, event?: MouseEvent) {
+		if (event) {
+			const target = event.target as HTMLElement;
+			if (target.closest("a") || target.closest("button")) return;
+		}
 		this.editingEntry.set(entry);
 		this.showModal.set(true);
 	}

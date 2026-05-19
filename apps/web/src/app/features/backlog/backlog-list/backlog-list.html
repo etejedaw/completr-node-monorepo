@@ -244,7 +244,7 @@
 				@for (entry of entries(); track entry.id) {
 					<div
 						class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line cursor-pointer transition hover:border-brand/40"
-						(click)="openEdit(entry)"
+						(click)="openEdit(entry, $event)"
 					>
 						<a
 							[routerLink]="['/games', entry.game.code]"
@@ -322,13 +322,13 @@
 						</div>
 
 						<button
-							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 transition flex items-center self-center hover:text-danger"
+							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center transition hover:text-danger"
 							[class.!text-danger]="isInWishlist(entry)"
 							[class.!cursor-default]="isInWishlist(entry)"
 							(click)="addToWishlist(entry); $event.stopPropagation()"
 							[title]="isInWishlist(entry) ? 'In Wishlist' : 'Add to Wishlist'"
 						>
-							<span class="material-icons text-xl">favorite</span>
+							<span class="material-icons text-lg leading-none">{{ isInWishlist(entry) ? 'favorite' : 'favorite_border' }}</span>
 						</button>
 					</div>
 				}
@@ -389,7 +389,7 @@
 					</thead>
 					<tbody>
 						@for (entry of entries(); track entry.id) {
-							<tr class="cursor-pointer border-b border-line transition hover:bg-surface" (click)="openEdit(entry)">
+							<tr class="cursor-pointer border-b border-line transition hover:bg-surface" (click)="openEdit(entry, $event)">
 								<td class="px-4 py-3 align-middle min-w-[200px]">
 									<a class="font-medium text-fg no-underline hover:text-brand" [routerLink]="['/games', entry.game.code]" (click)="$event.stopPropagation()">{{ entry.game.title }}</a>
 								</td>
@@ -411,15 +411,15 @@
 										<span class="text-fg-muted text-xs leading-tight line-clamp-2">{{ entry.notes }}</span>
 									}
 								</td>
-								<td class="px-4 py-3 align-middle w-8 text-center">
+								<td class="px-2 py-3 align-middle w-9 text-center">
 									<button
-										class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 transition flex items-center hover:text-danger"
+										class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-danger"
 										[class.!text-danger]="isInWishlist(entry)"
 										[class.!cursor-default]="isInWishlist(entry)"
 										(click)="addToWishlist(entry); $event.stopPropagation()"
 										[title]="isInWishlist(entry) ? 'In Wishlist' : 'Add to Wishlist'"
 									>
-										<span class="material-icons text-xl">favorite</span>
+										<span class="material-icons text-base leading-none">{{ isInWishlist(entry) ? 'favorite' : 'favorite_border' }}</span>
 									</button>
 								</td>
 							</tr>
