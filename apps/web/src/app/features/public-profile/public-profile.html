@@ -45,7 +45,7 @@
 			</div>
 			<div class="flex-1">
 				<div class="flex items-center gap-3 mb-1">
-					<h1 class="font-display m-0 text-[1.375rem] font-bold">
+					<h1 class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight">
 						{{ profile()!.user.name || profile()!.user.username }}
 					</h1>
 					@if (isLoggedIn() && !isSelf()) {
