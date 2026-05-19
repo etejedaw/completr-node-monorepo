@@ -9,13 +9,14 @@
 			<p class="subtitle">Track your games. Prioritize your backlog.</p>
 
 			@if (error()) {
-			<div class="error-message">{{ error() }}</div>
+				<div class="error-message">{{ error() }}</div>
 			}
 
 			<form [formGroup]="form" (ngSubmit)="onSubmit()">
 				<div class="form-group">
 					<label for="email">Email</label>
 					<input
+						uiInput
 						id="email"
 						type="email"
 						formControlName="email"
@@ -27,6 +28,7 @@
 				<div class="form-group">
 					<label for="password">Password</label>
 					<input
+						uiInput
 						id="password"
 						type="password"
 						formControlName="password"
@@ -36,7 +38,10 @@
 				</div>
 
 				<button
-					class="btn-primary"
+					uiButton
+					variant="primary"
+					size="lg"
+					[block]="true"
 					type="submit"
 					[disabled]="form.invalid || isLoading()"
 				>
