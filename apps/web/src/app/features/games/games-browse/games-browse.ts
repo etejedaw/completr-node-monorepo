@@ -102,13 +102,13 @@ export class GamesBrowse implements OnInit {
 
 	private loadLatest() {
 		this.gamesService
-			.getGames({ limit: 10, sort_by: "createdAt", sort_order: "desc" })
+			.getGames({ limit: 12, sort_by: "createdAt", sort_order: "desc" })
 			.subscribe(res => this.latestGames.set(res.data.games));
 	}
 
 	private loadTopRated() {
 		this.gamesService
-			.getGames({ limit: 10, sort_by: "title", sort_order: "asc" })
+			.getGames({ limit: 12, sort_by: "title", sort_order: "asc" })
 			.subscribe(res => this.topRated.set(res.data.games));
 	}
 
@@ -118,7 +118,7 @@ export class GamesBrowse implements OnInit {
 			const random = genres[Math.floor(Math.random() * genres.length)];
 			this.randomGenre.set(random);
 			this.gamesService
-				.getGames({ limit: 10, genre: random.code })
+				.getGames({ limit: 12, genre: random.code })
 				.subscribe(res => this.genreGames.set(res.data.games));
 		});
 	}
