@@ -297,13 +297,11 @@
 								}
 							</div>
 
-							@if (entry.userRating) {
-								<app-star-rating
-									[value]="entry.userRating"
-									[readonly]="true"
-									size="sm"
-								/>
-							}
+							<app-star-rating
+								[value]="entry.userRating ?? null"
+								[readonly]="true"
+								size="sm"
+							/>
 
 							@if (entry.notes) {
 								<p class="text-xs text-fg-muted line-clamp-2 leading-snug m-0 mt-auto">{{ entry.notes }}</p>
