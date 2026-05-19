@@ -52,10 +52,10 @@
 				</span>
 			</div>
 		</div>
-		<button uiButton variant="secondary" size="sm" (click)="openEdit()" class="!shrink-0">
-			<span class="material-icons text-base">edit</span>
-			Edit Profile
-		</button>
+		<a uiButton variant="secondary" size="sm" routerLink="/settings/profile" class="!shrink-0">
+			<span class="material-icons text-base">settings</span>
+			Settings
+		</a>
 	</div>
 
 	<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
@@ -89,77 +89,35 @@
 		</div>
 	</div>
 
-	<div class="mb-8">
-		<div class="bg-surface border border-line rounded-card p-5">
-			<h3 class="font-display m-0 mb-3 text-sm font-semibold text-fg-secondary">Privacy</h3>
-			<div class="flex items-center gap-3 py-2">
-				<span class="material-icons text-lg text-fg-muted">
-					{{ user()!.isPublic ? 'public' : 'lock' }}
-				</span>
-				<div>
-					<span class="block text-sm font-medium text-fg">Profile</span>
-					<span class="block text-xs text-fg-muted">{{ user()!.isPublic ? "Public" : "Private" }}</span>
-				</div>
-			</div>
-			<div class="flex items-center gap-3 py-2 border-t border-line">
-				<span class="material-icons text-lg text-fg-muted">
-					{{ user()!.isWishlistPublic ? 'visibility' : 'visibility_off' }}
-				</span>
-				<div>
-					<span class="block text-sm font-medium text-fg">Wishlist</span>
-					<span class="block text-xs text-fg-muted">{{ user()!.isWishlistPublic ? "Visible" : "Hidden" }}</span>
-				</div>
-			</div>
-			<div class="flex items-center gap-3 py-2 border-t border-line">
-				<span class="material-icons text-lg text-fg-muted">
-					{{ user()!.isFavoritePublic ? 'visibility' : 'visibility_off' }}
-				</span>
-				<div>
-					<span class="block text-sm font-medium text-fg">Favorites</span>
-					<span class="block text-xs text-fg-muted">{{ user()!.isFavoritePublic ? "Visible" : "Hidden" }}</span>
-				</div>
-			</div>
-			<div class="flex items-center gap-3 py-2 border-t border-line">
-				<span class="material-icons text-lg text-fg-muted">
-					{{ user()!.isFeedPublic ? 'visibility' : 'visibility_off' }}
-				</span>
-				<div>
-					<span class="block text-sm font-medium text-fg">Activity Feed</span>
-					<span class="block text-xs text-fg-muted">{{ user()!.isFeedPublic ? "Visible" : "Hidden" }}</span>
-				</div>
-			</div>
-		</div>
-	</div>
-
 	<ui-tabs [(value)]="activeTab">
-		<ui-tab-list class="!mb-6 !overflow-x-auto !overflow-y-hidden !flex-nowrap">
-			<button uiTab value="backlog" class="!whitespace-nowrap">
-				<span class="material-icons text-base mr-1.5 align-middle">list_alt</span>
-				Backlog
+		<ui-tab-list class="!mb-6 !flex-wrap">
+			<button uiTab value="backlog" class="!whitespace-nowrap" aria-label="Backlog" title="Backlog">
+				<span class="material-icons text-base md:mr-1.5 align-middle">list_alt</span>
+				<span class="hidden md:inline">Backlog</span>
 			</button>
-			<button uiTab value="shelf" class="!whitespace-nowrap">
-				<span class="material-icons text-base mr-1.5 align-middle">shelves</span>
-				Shelf
+			<button uiTab value="shelf" class="!whitespace-nowrap" aria-label="Shelf" title="Shelf">
+				<span class="material-icons text-base md:mr-1.5 align-middle">shelves</span>
+				<span class="hidden md:inline">Shelf</span>
 			</button>
-			<button uiTab value="lists" class="!whitespace-nowrap">
-				<span class="material-icons text-base mr-1.5 align-middle">format_list_bulleted</span>
-				Lists
+			<button uiTab value="lists" class="!whitespace-nowrap" aria-label="Lists" title="Lists">
+				<span class="material-icons text-base md:mr-1.5 align-middle">format_list_bulleted</span>
+				<span class="hidden md:inline">Lists</span>
 			</button>
-			<button uiTab value="favorites" class="!whitespace-nowrap">
-				<span class="material-icons text-base mr-1.5 align-middle">star</span>
-				Favorites
+			<button uiTab value="favorites" class="!whitespace-nowrap" aria-label="Favorites" title="Favorites">
+				<span class="material-icons text-base md:mr-1.5 align-middle">star</span>
+				<span class="hidden md:inline">Favorites</span>
 			</button>
-			<button uiTab value="wishlist" class="!whitespace-nowrap">
-				<span class="material-icons text-base mr-1.5 align-middle">favorite_border</span>
-				Wishlist
+			<button uiTab value="wishlist" class="!whitespace-nowrap" aria-label="Wishlist" title="Wishlist">
+				<span class="material-icons text-base md:mr-1.5 align-middle">favorite_border</span>
+				<span class="hidden md:inline">Wishlist</span>
 			</button>
-			<button uiTab value="reviews" class="!whitespace-nowrap">
-				<span class="material-icons text-base mr-1.5 align-middle">rate_review</span>
-				Reviews
+			<button uiTab value="reviews" class="!whitespace-nowrap" aria-label="Reviews" title="Reviews">
+				<span class="material-icons text-base md:mr-1.5 align-middle">rate_review</span>
+				<span class="hidden md:inline">Reviews</span>
 			</button>
-			<button uiTab value="activity" class="!whitespace-nowrap">
-				<span class="material-icons text-base mr-1.5 align-middle">dynamic_feed</span>
-				Activity
+			<button uiTab value="activity" class="!whitespace-nowrap" aria-label="Activity" title="Activity">
+				<span class="material-icons text-base md:mr-1.5 align-middle">dynamic_feed</span>
+				<span class="hidden md:inline">Activity</span>
 			</button>
 		</ui-tab-list>
 
@@ -412,117 +370,6 @@
 			}
 		</div>
 	</ui-tabs>
-</div>
-} @if (showModal()) {
-<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]" (click)="closeModal()">
-	<div
-		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[440px]"
-		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
-		(click)="$event.stopPropagation()"
-	>
-		<div class="flex justify-between items-center mb-5">
-			<h2 class="font-display m-0 text-lg font-bold">Edit Profile</h2>
-			<button uiIconButton size="sm" (click)="closeModal()">&times;</button>
-		</div>
-
-		<div class="mb-4">
-			<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Name</label>
-			<input
-				uiInput
-				type="text"
-				[ngModel]="editName()"
-				(ngModelChange)="editName.set($event)"
-				placeholder="Your display name"
-			/>
-		</div>
-
-		<div class="mb-4">
-			<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Bio</label>
-			<textarea
-				uiInput
-				rows="3"
-				[ngModel]="editBio()"
-				(ngModelChange)="editBio.set($event)"
-				placeholder="Tell something about yourself..."
-			></textarea>
-		</div>
-
-		<div class="mb-4">
-			<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Avatar URL</label>
-			<input
-				uiInput
-				type="text"
-				[ngModel]="editAvatarUrl()"
-				(ngModelChange)="editAvatarUrl.set($event)"
-				placeholder="https://..."
-			/>
-		</div>
-
-		@if (editAvatarUrl()) {
-		<div class="mb-4 text-center">
-			<img [src]="editAvatarUrl()" alt="Preview" class="w-16 h-16 rounded-full object-cover inline-block" />
-		</div>
-		}
-
-		<div class="mb-4">
-			<label class="flex items-center gap-2 cursor-pointer">
-				<input
-					type="checkbox"
-					[ngModel]="editIsPublic()"
-					(ngModelChange)="editIsPublic.set($event)"
-				/>
-				<span class="text-sm text-fg">Public profile</span>
-			</label>
-			<span class="block mt-1 text-[0.6875rem] text-fg-muted">Allow other users to see your profile</span>
-		</div>
-
-		<div class="mb-4">
-			<label class="flex items-center gap-2 cursor-pointer">
-				<input
-					type="checkbox"
-					[ngModel]="editIsWishlistPublic()"
-					(ngModelChange)="editIsWishlistPublic.set($event)"
-				/>
-				<span class="text-sm text-fg">Public wishlist</span>
-			</label>
-			<span class="block mt-1 text-[0.6875rem] text-fg-muted">Show your wishlist on your public profile</span>
-		</div>
-
-		<div class="mb-4">
-			<label class="flex items-center gap-2 cursor-pointer">
-				<input
-					type="checkbox"
-					[ngModel]="editIsFavoritePublic()"
-					(ngModelChange)="editIsFavoritePublic.set($event)"
-				/>
-				<span class="text-sm text-fg">Public favorites</span>
-			</label>
-			<span class="block mt-1 text-[0.6875rem] text-fg-muted">Show your favorites on your public profile</span>
-		</div>
-
-		<div class="mb-4">
-			<label class="flex items-center gap-2 cursor-pointer">
-				<input
-					type="checkbox"
-					[ngModel]="editIsFeedPublic()"
-					(ngModelChange)="editIsFeedPublic.set($event)"
-				/>
-				<span class="text-sm text-fg">Public activity feed</span>
-			</label>
-			<span class="block mt-1 text-[0.6875rem] text-fg-muted">Show your activity in your followers' feeds</span>
-		</div>
-
-		<div class="flex justify-end mt-5 pt-4 border-t border-line">
-			<button
-				uiButton
-				variant="primary"
-				(click)="saveProfile()"
-				[disabled]="saving()"
-			>
-				{{ saving() ? 'Saving...' : 'Save' }}
-			</button>
-		</div>
-	</div>
 </div>
 } @if (showUserListModal()) {
 <app-user-list-modal

@@ -1,0 +1,66 @@
+<div class="bg-surface border border-line rounded-card p-6">
+	<h2 class="font-display m-0 mb-1 text-lg font-bold">Privacy</h2>
+	<p class="text-xs text-fg-muted mb-5">Control what other users can see on your profile.</p>
+
+	@if (user()) {
+		<div class="flex flex-col gap-4 max-w-xl">
+			<label class="flex items-start gap-3 cursor-pointer py-2">
+				<input
+					type="checkbox"
+					class="mt-1"
+					[ngModel]="isPublic()"
+					(ngModelChange)="isPublic.set($event)"
+				/>
+				<div>
+					<span class="block text-sm font-medium text-fg">Public profile</span>
+					<span class="block text-xs text-fg-muted">Allow other users to see your profile.</span>
+				</div>
+			</label>
+
+			<label class="flex items-start gap-3 cursor-pointer py-2 border-t border-line">
+				<input
+					type="checkbox"
+					class="mt-1"
+					[ngModel]="isWishlistPublic()"
+					(ngModelChange)="isWishlistPublic.set($event)"
+				/>
+				<div>
+					<span class="block text-sm font-medium text-fg">Public wishlist</span>
+					<span class="block text-xs text-fg-muted">Show your wishlist on your public profile.</span>
+				</div>
+			</label>
+
+			<label class="flex items-start gap-3 cursor-pointer py-2 border-t border-line">
+				<input
+					type="checkbox"
+					class="mt-1"
+					[ngModel]="isFavoritePublic()"
+					(ngModelChange)="isFavoritePublic.set($event)"
+				/>
+				<div>
+					<span class="block text-sm font-medium text-fg">Public favorites</span>
+					<span class="block text-xs text-fg-muted">Show your favorites on your public profile.</span>
+				</div>
+			</label>
+
+			<label class="flex items-start gap-3 cursor-pointer py-2 border-t border-line">
+				<input
+					type="checkbox"
+					class="mt-1"
+					[ngModel]="isFeedPublic()"
+					(ngModelChange)="isFeedPublic.set($event)"
+				/>
+				<div>
+					<span class="block text-sm font-medium text-fg">Public activity feed</span>
+					<span class="block text-xs text-fg-muted">Show your activity in your followers' feeds.</span>
+				</div>
+			</label>
+
+			<div class="flex justify-end pt-4 border-t border-line">
+				<button uiButton variant="primary" (click)="save()" [disabled]="saving()">
+					{{ saving() ? 'Saving...' : 'Save' }}
+				</button>
+			</div>
+		</div>
+	}
+</div>

@@ -1,13 +1,13 @@
 import { computed, inject, Injectable, signal } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { Router } from "@angular/router";
-import { Observable, tap } from "rxjs";
+import { map, Observable, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { StorageService } from "./storage.service";
 import { User } from "../models";
 
 const TOKEN_KEY = "access_token";
-const REFRESH_TOKEN_KEY = "refresh_token";
+const SESSION_ID_KEY = "session_id";
 
 interface LoginRequest {
 	email: string;
@@ -22,11 +22,22 @@ interface RegisterRequest {
 }
 
 interface AuthResponse {
-	data: { access_token: string; refresh_token: string };
+	data: {
+		access_token: string;
+		session_id: string;
+	};
 }
 
 interface UserResponse {
 	data: { user: User };
+}
+
+export interface AuthSession {
+	id: string;
+	deviceInfo: string | null;
+	lastUsedAt: string | null;
+	createdAt: string;
+	expiresAt: string;
 }
 
 @Injectable({ providedIn: "root" })
@@ -43,28 +54,33 @@ export class AuthService {
 		return this.storage.get(TOKEN_KEY);
 	}
 
-	refreshToken(): string | null {
-		return this.storage.get(REFRESH_TOKEN_KEY);
+	sessionId(): string | null {
+		return this.storage.get(SESSION_ID_KEY);
 	}
 
 	login(credentials: LoginRequest) {
 		return this.http
-			.post<AuthResponse>(`${environment.apiUrl}/auth/login`, credentials)
+			.post<AuthResponse>(`${environment.apiUrl}/auth/login`, credentials, {
+				withCredentials: true
+			})
 			.pipe(tap(res => this.saveTokens(res)));
 	}
 
 	register(data: RegisterRequest) {
 		return this.http
-			.post<AuthResponse>(`${environment.apiUrl}/auth/register`, data)
+			.post<AuthResponse>(`${environment.apiUrl}/auth/register`, data, {
+				withCredentials: true
+			})
 			.pipe(tap(res => this.saveTokens(res)));
 	}
 
 	refresh(): Observable<AuthResponse> {
-		const token = this.refreshToken();
 		return this.http
-			.post<AuthResponse>(`${environment.apiUrl}/auth/refresh`, {
-				refresh_token: token
-			})
+			.post<AuthResponse>(
+				`${environment.apiUrl}/auth/refresh`,
+				{},
+				{ withCredentials: true }
+			)
 			.pipe(tap(res => this.saveTokens(res)));
 	}
 
@@ -75,26 +91,51 @@ export class AuthService {
 	}
 
 	logout() {
-		const token = this.refreshToken();
-		if (token) {
-			this.http
-				.post(`${environment.apiUrl}/auth/logout`, {
-					refresh_token: token
-				})
-				.subscribe();
-		}
+		this.http
+			.post(
+				`${environment.apiUrl}/auth/logout`,
+				{},
+				{ withCredentials: true }
+			)
+			.subscribe();
 		this.clearSession();
 	}
 
 	clearSession() {
 		this.storage.remove(TOKEN_KEY);
-		this.storage.remove(REFRESH_TOKEN_KEY);
+		this.storage.remove(SESSION_ID_KEY);
 		this._user.set(null);
 		this.router.navigate(["/login"]);
 	}
 
+	getSessions(params?: { limit?: number; offset?: number }) {
+		let query = new HttpParams();
+		if (params?.limit != null) query = query.set("limit", params.limit);
+		if (params?.offset != null) query = query.set("offset", params.offset);
+		return this.http
+			.get<{
+				data: { sessions: AuthSession[]; total: number };
+			}>(`${environment.apiUrl}/auth/sessions`, { params: query })
+			.pipe(map(res => res.data));
+	}
+
+	revokeSession(sessionId: string) {
+		return this.http.delete(
+			`${environment.apiUrl}/auth/sessions/${sessionId}`,
+			{ responseType: "text" }
+		);
+	}
+
+	revokeOtherSessions(currentSessionId: string) {
+		return this.http
+			.delete<{ data: { revoked: number } }>(
+				`${environment.apiUrl}/auth/sessions/others/${currentSessionId}`
+			)
+			.pipe(map(res => res.data.revoked));
+	}
+
 	private saveTokens(res: AuthResponse) {
 		this.storage.set(TOKEN_KEY, res.data.access_token);
-		this.storage.set(REFRESH_TOKEN_KEY, res.data.refresh_token);
+		this.storage.set(SESSION_ID_KEY, res.data.session_id);
 	}
 }

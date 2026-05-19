@@ -37,7 +37,6 @@ export class Layout implements OnInit {
 		return role === "moderator" || role === "admin";
 	});
 	protected readonly sidebarOpen = signal(false);
-	protected readonly showUserMenu = signal(false);
 	protected readonly showAddModal = signal(false);
 
 	protected readonly completedCount = signal(0);
@@ -73,7 +72,6 @@ export class Layout implements OnInit {
 			.pipe(filter(e => e instanceof NavigationEnd))
 			.subscribe(() => {
 				this.sidebarOpen.set(false);
-				this.showUserMenu.set(false);
 			});
 	}
 
@@ -94,13 +92,7 @@ export class Layout implements OnInit {
 		this.loadStats();
 	}
 
-	toggleUserMenu(event: Event) {
-		event.stopPropagation();
-		this.showUserMenu.update(v => !v);
-	}
-
 	logout() {
-		this.showUserMenu.set(false);
 		this.auth.logout();
 	}
 

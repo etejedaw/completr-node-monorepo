@@ -141,6 +141,37 @@ export const routes: Routes = [
 					)
 			},
 			{
+				path: "settings",
+				loadComponent: () =>
+					import("./features/settings/settings-shell/settings-shell").then(
+						m => m.SettingsShell
+					),
+				children: [
+					{ path: "", redirectTo: "profile", pathMatch: "full" },
+					{
+						path: "profile",
+						loadComponent: () =>
+							import(
+								"./features/settings/settings-profile/settings-profile"
+							).then(m => m.SettingsProfile)
+					},
+					{
+						path: "privacy",
+						loadComponent: () =>
+							import(
+								"./features/settings/settings-privacy/settings-privacy"
+							).then(m => m.SettingsPrivacy)
+					},
+					{
+						path: "security",
+						loadComponent: () =>
+							import(
+								"./features/settings/settings-security/settings-security"
+							).then(m => m.SettingsSecurity)
+					}
+				]
+			},
+			{
 				path: "admin/users",
 				canActivate: [adminGuard],
 				loadComponent: () =>

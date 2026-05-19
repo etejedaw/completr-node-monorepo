@@ -1,0 +1,53 @@
+<div class="bg-surface border border-line rounded-card p-6">
+	<h2 class="font-display m-0 mb-1 text-lg font-bold">Profile</h2>
+	<p class="text-xs text-fg-muted mb-5">Public information shown on your profile page.</p>
+
+	@if (user()) {
+		<div class="flex flex-col gap-4 max-w-xl">
+			<div>
+				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Name</label>
+				<input
+					uiInput
+					type="text"
+					[ngModel]="name()"
+					(ngModelChange)="name.set($event)"
+					placeholder="Your display name"
+				/>
+			</div>
+
+			<div>
+				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Bio</label>
+				<textarea
+					uiInput
+					rows="3"
+					[ngModel]="bio()"
+					(ngModelChange)="bio.set($event)"
+					placeholder="Tell something about yourself..."
+				></textarea>
+			</div>
+
+			<div>
+				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Avatar URL</label>
+				<input
+					uiInput
+					type="text"
+					[ngModel]="avatarUrl()"
+					(ngModelChange)="avatarUrl.set($event)"
+					placeholder="https://..."
+				/>
+			</div>
+
+			@if (avatarUrl()) {
+				<div class="text-center">
+					<img [src]="avatarUrl()" alt="Preview" class="w-16 h-16 rounded-full object-cover inline-block" />
+				</div>
+			}
+
+			<div class="flex justify-end pt-4 border-t border-line">
+				<button uiButton variant="primary" (click)="save()" [disabled]="saving()">
+					{{ saving() ? 'Saving...' : 'Save' }}
+				</button>
+			</div>
+		</div>
+	}
+</div>
