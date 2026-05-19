@@ -112,22 +112,16 @@ function buildOrder(filters: BacklogQuery): Order {
 	}
 	if (sortBy === "ratio") {
 		return [
-			[
-				literal(
-					`("Backlog"."score" / NULLIF("Backlog"."duration", 0)) ${sortOrder} NULLS LAST`
-				),
-				""
-			]
+			literal(
+				`("Backlog"."score" / NULLIF("Backlog"."duration", 0)) ${sortOrder} NULLS LAST`
+			)
 		];
 	}
 	if (sortBy === "personalRatio") {
 		return [
-			[
-				literal(
-					`("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) ${sortOrder} NULLS LAST`
-				),
-				""
-			]
+			literal(
+				`("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) ${sortOrder} NULLS LAST`
+			)
 		];
 	}
 	return [[sortBy, sortOrder]];
