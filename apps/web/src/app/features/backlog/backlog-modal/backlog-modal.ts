@@ -176,7 +176,7 @@ export class BacklogModal implements OnInit {
 		const s = this.scoreValue();
 		const d = this.durationValue();
 		if (s === null || s === undefined || !d || d <= 0) return null;
-		return Math.round((s / d) * 100) / 100;
+		return Math.round((s / d) * 20 * 100) / 100;
 	});
 
 	private readonly statusValue = toSignal(
@@ -302,7 +302,8 @@ export class BacklogModal implements OnInit {
 
 	applyScore(source: string, score: number) {
 		this.activeScoreSource.set(source);
-		this.form.patchValue({ score });
+		const normalized = this.scoreSourcesService.normalize(score, source);
+		this.form.patchValue({ score: normalized });
 	}
 
 	applyDuration(source: string, duration: number) {
@@ -318,21 +319,6 @@ export class BacklogModal implements OnInit {
 		this.activeDurationSource.set("");
 	}
 
-	normalizeScore() {
-		const score = this.form.getRawValue().score;
-		const source = this.activeScoreSource();
-		if (!score || !source) return;
-		const normalized = this.scoreSourcesService.normalize(score, source);
-		this.form.patchValue({ score: normalized });
-		this.activeScoreSource.set("");
-	}
-
-	canNormalize(): boolean {
-		const source = this.activeScoreSource();
-		const scale = this.scoreSourcesService.getScale(source);
-		return !!scale && scale !== 5;
-	}
-
 	getScaleLabel(source: string): string {
 		const scale = this.scoreSourcesService.getScale(source);
 		return scale ? `/${scale}` : "";
@@ -342,7 +328,15 @@ export class BacklogModal implements OnInit {
 		const priority = ["metacritic", "opencritic", "rawg", "completr"];
 		for (const source of priority) {
 			const found = game.scores?.find(s => s.source === source);
-			if (found) return { value: found.score, source };
+			if (found) {
+				return {
+					value: this.scoreSourcesService.normalize(
+						found.score,
+						source
+					),
+					source
+				};
+			}
 		}
 		return { value: null, source: "" };
 	}

@@ -171,15 +171,6 @@
 									{{ s.source }} {{ s.score }}{{ getScaleLabel(s.source) }}
 								</button>
 								}
-								@if (canNormalize()) {
-								<button
-									type="button"
-									class="bg-brand-subtle border-0 text-brand text-[0.625rem] font-semibold px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:bg-brand hover:text-white"
-									(click)="normalizeScore()"
-								>
-									Normalize
-								</button>
-								}
 							} @else {
 								<span class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted">
 									<span class="material-icons text-[0.75rem]">help_outline</span>
