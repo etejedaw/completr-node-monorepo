@@ -41,7 +41,7 @@ import { RouterLink } from "@angular/router";
 		}
 		.btn-back {
 			padding: 0.5rem 1.25rem;
-			background: linear-gradient(135deg, var(--accent), #6366f1);
+			background: linear-gradient(135deg, var(--accent), var(--accent-deep));
 			color: #fff;
 			border-radius: var(--radius);
 			font-size: 0.875rem;
