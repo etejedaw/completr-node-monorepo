@@ -104,9 +104,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Cuando un usuario A sigue a un usuario B, el usuario B no tiene ninguna forma de enterarse. El sistema de notificaciones esta planeado para Fase 4 y no es prioridad ahora, pero mientras tanto los usuarios no tienen visibilidad de nuevos seguidores.
-- **Solucion propuesta:** Como solucion temporal antes del sistema de notificaciones, registrar una actividad en el feed del usuario B cuando alguien lo sigue (ej: "Usuario A started following you"). Esto reutiliza la infraestructura de Activity que ya existe sin necesidad de implementar notificaciones completas.
+- **Solucion:** Agregado tipo `user_followed_by` en `ACTIVITY_TYPES` y `USER_TYPES`. Cuando A sigue a B, `user-followers.controller` ahora registra dos actividades: `user_followed` para A (existente) y `user_followed_by` para B con target=A (nueva). B la ve en su feed como "A started following you" con link al perfil de A. Reusa la infra de Activity sin tablas nuevas — solución intermedia hasta el sistema de notificaciones de Fase 4.
 
 ### [FB-010] Backlog propio no tiene paginacion y carga demasiados registros
 
