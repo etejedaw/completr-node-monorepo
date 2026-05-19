@@ -17,7 +17,8 @@ http:
         type: json
         data: |-
             {
-              "message": "The Metacritic score seems incorrect, it shows 91 not 90"
+              "message": "The Metacritic score seems incorrect, it shows 91 not 90",
+              "category": "general"
             }
 
 settings:
@@ -30,7 +31,7 @@ auth:
 docs: |-
     ## Create Game Report
 
-    Reports an issue with a game's data. One active report per user per game.
+    Reports an issue with a game's data. One active report per user per game per category.
 
     **Auth:** Bearer token (any authenticated user).
 
@@ -44,9 +45,10 @@ docs: |-
 
     ### Request Body
 
-    | Field   | Type   | Required | Description          |
-    |---------|--------|----------|----------------------|
-    | message | string | Yes      | 10-1000 characters   |
+    | Field    | Type   | Required | Description                                                                    |
+    |----------|--------|----------|--------------------------------------------------------------------------------|
+    | message  | string | Yes      | 10-1000 characters                                                             |
+    | category | enum   | No       | `general` (default), `missing_score`, `missing_duration`                       |
 
     ### Response (201)
 
@@ -59,6 +61,7 @@ docs: |-
           "userId": "uuid",
           "message": "The score seems incorrect",
           "status": "pending",
+          "category": "general",
           "createdAt": "2026-01-01T00:00:00.000Z",
           "updatedAt": "2026-01-01T00:00:00.000Z"
         }
@@ -68,7 +71,7 @@ docs: |-
 
     ### Errors
 
-    | Status | Code                        | Description                          |
-    |--------|-----------------------------|--------------------------------------|
-    | 404    | GAME_REPORT_GAME_NOT_FOUND  | Game does not exist                  |
-    | 409    | GAME_REPORT_ALREADY_REPORTED| User already has a report for this game |
+    | Status | Code                        | Description                                                |
+    |--------|-----------------------------|------------------------------------------------------------|
+    | 404    | GAME_REPORT_GAME_NOT_FOUND  | Game does not exist                                        |
+    | 409    | GAME_REPORT_ALREADY_REPORTED| User already has a report for this game with this category |
