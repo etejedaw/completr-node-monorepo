@@ -1,0 +1,18 @@
+<div class="fixed bottom-4 right-4 z-[300] flex flex-col gap-2 max-w-[380px] w-[calc(100vw-2rem)] pointer-events-none">
+	@for (t of toasts(); track t.id) {
+		<div
+			class="pointer-events-auto flex items-start gap-2.5 px-3.5 py-2.5 rounded-md border backdrop-blur-md shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] animate-[slideIn_0.18s_ease-out]"
+			[class]="classesFor(t.variant)"
+		>
+			<span class="material-icons text-base mt-0.5">{{ iconFor(t.variant) }}</span>
+			<span class="flex-1 text-[0.8125rem] leading-snug text-fg">{{ t.message }}</span>
+			<button
+				class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 leading-none hover:text-fg"
+				(click)="dismiss(t.id)"
+				aria-label="Dismiss"
+			>
+				<span class="material-icons text-base">close</span>
+			</button>
+		</div>
+	}
+</div>
