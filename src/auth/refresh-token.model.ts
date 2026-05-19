@@ -6,6 +6,8 @@ class RefreshToken extends Model {
 	declare userId: string;
 	declare token: string;
 	declare expiresAt: Date;
+	declare deviceInfo: string | null;
+	declare lastUsedAt: Date | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
@@ -29,6 +31,14 @@ RefreshToken.init(
 		expiresAt: {
 			type: DataTypes.DATE,
 			allowNull: false
+		},
+		deviceInfo: {
+			type: DataTypes.TEXT,
+			allowNull: true
+		},
+		lastUsedAt: {
+			type: DataTypes.DATE,
+			allowNull: true
 		}
 	},
 	{
