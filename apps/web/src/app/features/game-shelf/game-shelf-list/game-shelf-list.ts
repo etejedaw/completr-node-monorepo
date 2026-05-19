@@ -22,7 +22,6 @@ interface PlatformCount {
 	selector: "app-game-shelf-list",
 	imports: [DatePipe, GameShelfModal, RouterLink, UiButton, UiInput],
 	templateUrl: "./game-shelf-list.html",
-	styleUrl: "./game-shelf-list.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GameShelfList implements OnInit {

@@ -30,7 +30,6 @@ import { UiButton, UiIconButton } from "../../../shared/ui";
 	selector: "app-game-shelf-modal",
 	imports: [ReactiveFormsModule, UiButton, UiIconButton],
 	templateUrl: "./game-shelf-modal.html",
-	styleUrl: "./game-shelf-modal.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GameShelfModal implements OnInit {

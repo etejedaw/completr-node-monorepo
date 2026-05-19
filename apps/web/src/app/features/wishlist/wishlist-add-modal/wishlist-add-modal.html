@@ -1,13 +1,18 @@
 <div class="modal-overlay" (click)="onClose()">
-	<div class="modal-card" (click)="$event.stopPropagation()">
-		<div class="modal-header">
-			<h2>Add to Wishlist</h2>
-			<button uiIconButton size="sm" class="close-btn" (click)="onClose()">&times;</button>
+	<div
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[500px] max-h-[80vh] flex flex-col"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
+		(click)="$event.stopPropagation()"
+	>
+		<div class="flex items-center justify-between mb-4">
+			<h2 class="m-0 text-lg font-bold font-display">Add to Wishlist</h2>
+			<button uiIconButton size="sm" (click)="onClose()">&times;</button>
 		</div>
 
-		<div class="search-bar">
+		<div class="mb-3">
 			<input
 				type="text"
+				class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-[0.8125rem] transition placeholder:text-fg-muted focus:outline-none focus:border-brand"
 				placeholder="Filter by title..."
 				[value]="searchQuery()"
 				(input)="onSearch($event)"
@@ -15,20 +20,20 @@
 		</div>
 
 		@if (isLoading()) {
-		<div class="loading">Loading backlog...</div>
+		<div class="text-center py-8 text-fg-muted text-[0.8125rem]">Loading backlog...</div>
 		} @else if (filteredEntries().length === 0) {
-		<div class="empty">No backlog entries available.</div>
+		<div class="text-center py-8 text-fg-muted text-[0.8125rem]">No backlog entries available.</div>
 		} @else {
-		<ul class="backlog-list">
+		<ul class="list-none overflow-y-auto flex-1">
 			@for (entry of filteredEntries(); track entry.id) {
-			<li class="backlog-item">
-				<div class="item-info">
+			<li class="flex items-center justify-between py-2 border-b border-line">
+				<div class="flex items-center gap-2.5 min-w-0">
 					@if (entry.game.backgroundUrl) {
-					<img [src]="entry.game.backgroundUrl" class="item-cover" />
+					<img [src]="entry.game.backgroundUrl" class="w-8 h-[42px] object-cover rounded-sm shrink-0" />
 					}
-					<div class="item-text">
-						<span class="item-title">{{ entry.game.title }}</span>
-						<span class="item-meta"
+					<div class="flex flex-col min-w-0">
+						<span class="text-[0.8125rem] font-medium truncate">{{ entry.game.title }}</span>
+						<span class="text-[0.6875rem] text-fg-muted"
 							>{{ entry.platform.abbreviation }} · {{ entry.status
 							}}</span
 						>
@@ -38,7 +43,6 @@
 					uiButton
 					variant="primary"
 					size="sm"
-					class="btn-add"
 					(click)="addToWishlist(entry)"
 					[disabled]="adding() === entry.id"
 				>

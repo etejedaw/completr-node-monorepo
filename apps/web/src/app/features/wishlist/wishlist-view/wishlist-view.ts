@@ -15,7 +15,6 @@ import { UiButton, UiIconButton } from "../../../shared/ui";
 	selector: "app-wishlist-view",
 	imports: [RouterLink, WishlistAddModal, UiButton, UiIconButton],
 	templateUrl: "./wishlist-view.html",
-	styleUrl: "./wishlist-view.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WishlistView implements OnInit {
@@ -77,10 +76,10 @@ export class WishlistView implements OnInit {
 
 	statusClass(status: string): string {
 		const map: Record<string, string> = {
-			not_started: "status-not-started",
-			playing: "status-playing",
-			completed: "status-completed",
-			abandoned: "status-abandoned"
+			not_started: "bg-fg-muted/10 text-fg-muted",
+			playing: "bg-warning/10 text-warning",
+			completed: "bg-brand-subtle text-brand",
+			abandoned: "bg-danger/10 text-danger"
 		};
 		return map[status] ?? "";
 	}

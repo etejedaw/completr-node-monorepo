@@ -1,16 +1,17 @@
-<div class="shelf-page">
-	<div class="page-header">
-		<div class="page-header-left">
-			<h1>Game Shelf</h1>
-			<span class="entry-count">{{ entries().length }} games</span>
+<div>
+	<div class="flex items-center justify-between mb-5">
+		<div class="flex items-baseline gap-3">
+			<h1 class="text-[1.375rem] font-bold tracking-tight font-display">Game Shelf</h1>
+			<span class="text-sm text-fg-muted">{{ entries().length }} games</span>
 		</div>
 		<button uiButton variant="primary" (click)="openCreate()">+ Add Game</button>
 	</div>
 
-	<div class="search-bar">
+	<div class="mb-3">
 		<input
 			uiInput
 			type="text"
+			class="!max-w-[320px]"
 			placeholder="Search by title..."
 			[value]="searchQuery()"
 			(input)="onSearch($event)"
@@ -18,18 +19,22 @@
 	</div>
 
 	@if (platformCounts().length > 1) {
-	<div class="platform-filters">
+	<div class="flex flex-wrap gap-1 mb-4">
 		<button
-			class="platform-chip"
-			[class.active]="selectedPlatform() === ''"
+			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="selectedPlatform() === ''"
+			[class.!border-brand]="selectedPlatform() === ''"
+			[class.!text-brand]="selectedPlatform() === ''"
 			(click)="filterByPlatform('')"
 		>
 			All ({{ allEntries().length }})
 		</button>
 		@for (p of platformCounts(); track p.id) {
 		<button
-			class="platform-chip"
-			[class.active]="selectedPlatform() === p.id"
+			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="selectedPlatform() === p.id"
+			[class.!border-brand]="selectedPlatform() === p.id"
+			[class.!text-brand]="selectedPlatform() === p.id"
 			(click)="filterByPlatform(p.id)"
 		>
 			{{ p.abbreviation }} ({{ p.count }})
@@ -37,9 +42,9 @@
 		}
 	</div>
 	} @if (isLoading()) {
-	<div class="loading">Loading...</div>
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (entries().length === 0) {
-	<div class="empty">
+	<div class="text-center py-12">
 		<p class="empty-title">Your game shelf is empty</p>
 		<p class="empty-hint">
 			Keep track of games you own, whether physical or digital. Click
@@ -47,51 +52,51 @@
 		</p>
 	</div>
 	} @else {
-	<div class="table-wrapper">
-		<table>
+	<div class="overflow-x-auto">
+		<table class="w-full border-collapse text-[0.8125rem]">
 			<thead>
 				<tr>
-					<th class="col-cover"></th>
-					<th class="col-title">Title</th>
-					<th class="col-platform">Platform</th>
-					<th class="col-edition">Edition</th>
-					<th class="col-date">Acquired</th>
-					<th class="col-notes">Notes</th>
+					<th class="w-10 pr-0 text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"></th>
+					<th class="min-w-[200px] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Title</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Platform</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Edition</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Acquired</th>
+					<th class="max-w-[200px] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Notes</th>
 				</tr>
 			</thead>
 			<tbody>
 				@for (entry of entries(); track entry.id) {
-				<tr class="clickable-row" (click)="openEdit(entry)">
-					<td class="col-cover">
+				<tr class="border-b border-line transition cursor-pointer hover:bg-surface" (click)="openEdit(entry)">
+					<td class="w-10 pr-0 px-3 py-2 text-fg align-middle">
 						@if (entry.game.backgroundUrl) {
 						<img
 							[src]="entry.game.backgroundUrl"
 							[alt]="entry.game.title"
-							class="cover-img"
+							class="w-9 h-12 object-cover rounded block"
 						/>
 						} @else {
-						<div class="cover-placeholder"></div>
+						<div class="w-9 h-12 bg-surface rounded"></div>
 						}
 					</td>
-					<td class="col-title">
+					<td class="min-w-[200px] px-3 py-2 align-middle">
 						<a
-							class="game-title-link"
+							class="font-medium text-fg no-underline"
 							[routerLink]="['/games', entry.game.code]"
 							(click)="$event.stopPropagation()"
 							>{{ entry.game.title }}</a
 						>
 					</td>
-					<td class="col-platform">
+					<td class="px-3 py-2 text-fg-secondary whitespace-nowrap align-middle">
 						{{ entry.platform.abbreviation }}
 					</td>
-					<td class="col-edition">{{ entry.edition ?? "-" }}</td>
-					<td class="col-date">
+					<td class="px-3 py-2 text-fg align-middle">{{ entry.edition ?? "-" }}</td>
+					<td class="px-3 py-2 text-fg-secondary whitespace-nowrap align-middle">
 						{{ entry.acquiredAt ? (entry.acquiredAt |
 						date:'yyyy-MM-dd') : "-" }}
 					</td>
-					<td class="col-notes">
+					<td class="max-w-[200px] px-3 py-2 align-middle">
 						@if (entry.notes) {
-						<span class="notes-text">{{ entry.notes }}</span>
+						<span class="text-fg-muted text-xs leading-snug line-clamp-2">{{ entry.notes }}</span>
 						}
 					</td>
 				</tr>

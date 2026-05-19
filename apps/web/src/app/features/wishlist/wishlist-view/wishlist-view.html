@@ -1,33 +1,39 @@
-<div class="wishlist-page">
-	<div class="page-header">
-		<div class="page-header-left">
-			<h1>Wishlist</h1>
-			<span class="entry-count">{{ entries().length }} games</span>
+<div>
+	<div class="flex items-center justify-between mb-5">
+		<div class="flex items-baseline gap-3">
+			<h1 class="text-[1.375rem] font-bold tracking-tight font-display">Wishlist</h1>
+			<span class="text-sm text-fg-muted">{{ entries().length }} games</span>
 		</div>
 		<button uiButton variant="primary" (click)="openAddModal()">
 			+ Add from Backlog
 		</button>
 	</div>
 
-	<div class="view-toggle">
+	<div class="flex gap-1 mb-4">
 		<button
-			[class.active]="viewMode() === 'table'"
+			class="flex bg-input-bg border border-line rounded-md text-fg-muted p-1.5 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="viewMode() === 'table'"
+			[class.!border-brand]="viewMode() === 'table'"
+			[class.!text-brand]="viewMode() === 'table'"
 			(click)="viewMode.set('table')"
 		>
-			<span class="material-icons">view_list</span>
+			<span class="material-icons text-lg">view_list</span>
 		</button>
 		<button
-			[class.active]="viewMode() === 'grid'"
+			class="flex bg-input-bg border border-line rounded-md text-fg-muted p-1.5 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="viewMode() === 'grid'"
+			[class.!border-brand]="viewMode() === 'grid'"
+			[class.!text-brand]="viewMode() === 'grid'"
 			(click)="viewMode.set('grid')"
 		>
-			<span class="material-icons">grid_view</span>
+			<span class="material-icons text-lg">grid_view</span>
 		</button>
 	</div>
 
 	@if (isLoading()) {
-	<div class="loading">Loading...</div>
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (entries().length === 0) {
-	<div class="empty">
+	<div class="text-center py-12">
 		<p class="empty-title">Your wishlist is empty</p>
 		<p class="empty-hint">
 			Prioritize which games to play next. Add games from their detail
@@ -35,63 +41,63 @@
 		</p>
 	</div>
 	} @else { @if (viewMode() === 'table') {
-	<div class="table-wrapper">
-		<table>
+	<div class="overflow-x-auto">
+		<table class="w-full border-collapse text-[0.8125rem]">
 			<thead>
 				<tr>
-					<th class="col-pos">#</th>
-					<th class="col-cover"></th>
-					<th class="col-title">Title</th>
-					<th class="col-platform">Platform</th>
-					<th class="col-num">Score</th>
-					<th class="col-num">Duration</th>
-					<th class="col-num">Ratio</th>
-					<th class="col-status">Status</th>
-					<th class="col-actions"></th>
+					<th class="w-10 text-center px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">#</th>
+					<th class="w-10 pr-0 text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"></th>
+					<th class="min-w-[200px] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Title</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Platform</th>
+					<th class="text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Score</th>
+					<th class="text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Duration</th>
+					<th class="text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Ratio</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Status</th>
+					<th class="text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"></th>
 				</tr>
 			</thead>
 			<tbody>
 				@for (entry of entries(); track entry.id; let i = $index) {
-				<tr>
-					<td class="col-pos">{{ entry.position }}</td>
-					<td class="col-cover">
+				<tr class="border-b border-line transition hover:bg-surface">
+					<td class="w-10 text-center px-3 py-2 text-fg-muted font-semibold align-middle">{{ entry.position }}</td>
+					<td class="w-10 pr-0 px-3 py-2 align-middle">
 						@if (entry.backlog.game.backgroundUrl) {
 						<img
 							[src]="entry.backlog.game.backgroundUrl"
 							[alt]="entry.backlog.game.title"
-							class="cover-img"
+							class="w-9 h-12 object-cover rounded block"
 						/>
 						} @else {
-						<div class="cover-placeholder"></div>
+						<div class="w-9 h-12 bg-surface rounded"></div>
 						}
 					</td>
-					<td class="col-title">
+					<td class="min-w-[200px] px-3 py-2 align-middle">
 						<a
-							class="game-title-link"
+							class="font-medium text-fg no-underline hover:text-brand"
 							[routerLink]="['/games', entry.backlog.game.code]"
 							>{{ entry.backlog.game.title }}</a
 						>
 					</td>
-					<td class="col-platform">
+					<td class="px-3 py-2 text-fg-secondary whitespace-nowrap align-middle">
 						{{ entry.backlog.platform?.abbreviation ?? "-" }}
 					</td>
-					<td class="col-num">{{ entry.backlog.score ?? "-" }}</td>
-					<td class="col-num">
+					<td class="text-right px-3 py-2 text-fg-secondary whitespace-nowrap align-middle">{{ entry.backlog.score ?? "-" }}</td>
+					<td class="text-right px-3 py-2 text-fg-secondary whitespace-nowrap align-middle">
 						{{ entry.backlog.duration ? entry.backlog.duration + "h"
 						: "-" }}
 					</td>
-					<td class="col-num">{{ entry.backlog.ratio ?? "-" }}</td>
-					<td class="col-status">
+					<td class="text-right px-3 py-2 text-fg-secondary whitespace-nowrap align-middle">{{ entry.backlog.ratio ?? "-" }}</td>
+					<td class="px-3 py-2 whitespace-nowrap align-middle">
 						<span
-							class="status-badge"
+							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
 							[class]="statusClass(entry.backlog.status)"
 						>
 							{{ statusLabel(entry.backlog.status) }}
 						</span>
 					</td>
-					<td class="col-actions">
+					<td class="text-right whitespace-nowrap px-3 py-2 align-middle">
 						<button
-							uiIconButton size="sm" class="btn-move"
+							uiIconButton size="sm"
 							[disabled]="i === 0"
 							(click)="moveUp(i)"
 							title="Move up"
@@ -99,7 +105,7 @@
 							&#9650;
 						</button>
 						<button
-							uiIconButton size="sm" class="btn-move"
+							uiIconButton size="sm"
 							[disabled]="i === entries().length - 1"
 							(click)="moveDown(i)"
 							title="Move down"
@@ -107,7 +113,7 @@
 							&#9660;
 						</button>
 						<button
-							uiIconButton size="sm" tone="danger" class="btn-remove"
+							uiIconButton size="sm" tone="danger"
 							(click)="remove(entry)"
 							title="Remove"
 						>
@@ -120,22 +126,20 @@
 		</table>
 	</div>
 	} @if (viewMode() === 'grid') {
-	<div class="game-grid">
+	<div class="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-4">
 		@for (entry of entries(); track entry.id) {
-		<a class="game-card" [routerLink]="['/games', entry.backlog.game.code]">
+		<a class="flex flex-col gap-1.5 text-inherit no-underline" [routerLink]="['/games', entry.backlog.game.code]">
 			@if (entry.backlog.game.backgroundUrl) {
 			<img
 				[src]="entry.backlog.game.backgroundUrl"
 				[alt]="entry.backlog.game.title"
-				class="game-cover"
+				class="w-full aspect-video object-cover rounded-md transition-transform hover:scale-[1.03]"
 			/>
 			} @else {
-			<div class="game-cover-placeholder"></div>
+			<div class="w-full aspect-video bg-surface rounded-md"></div>
 			}
-			<span class="game-card-title">{{ entry.backlog.game.title }}</span>
-			<span class="game-card-sub"
-				>{{ entry.backlog.platform?.abbreviation ?? '' }}</span
-			>
+			<span class="text-xs font-medium text-fg-secondary truncate">{{ entry.backlog.game.title }}</span>
+			<span class="text-[0.625rem] text-fg-muted">{{ entry.backlog.platform?.abbreviation ?? '' }}</span>
 		</a>
 		}
 	</div>
