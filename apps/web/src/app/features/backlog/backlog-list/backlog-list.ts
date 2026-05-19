@@ -15,12 +15,12 @@ import { GamesService } from "../../games/games.service";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
-import { UiButton, UiInput, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiIconButton, UiInput, UiPagination, UiSearchBar } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink, UiButton, UiInput, UiPagination, UiSearchBar],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink, UiButton, UiIconButton, UiInput, UiPagination, UiSearchBar],
 	templateUrl: "./backlog-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
