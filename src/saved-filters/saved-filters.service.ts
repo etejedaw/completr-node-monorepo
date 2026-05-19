@@ -1,6 +1,8 @@
+import { Op } from "sequelize";
 import { SavedFilter } from "./saved-filter.model";
 import { RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
 import { UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
+import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as savedFilterServiceError from "./errors/saved-filters.service-error";
 
 const FREE_FILTER_LIMIT = 5;
@@ -34,15 +36,30 @@ export async function createSavedFilter(
 	return SavedFilter.create({ ...dto, userId });
 }
 
-export async function findSavedFiltersByUserId(userId: string, role: string) {
-	const filters = await SavedFilter.findAll({
-		where: { userId },
-		order: [["createdAt", "DESC"]]
-	});
+export async function findSavedFiltersByUserId(
+	userId: string,
+	role: string,
+	pagination: PaginatedSearchQuery = {}
+) {
+	const where: Record<string, unknown> = { userId };
+	if (pagination.search) {
+		where[Op.or as unknown as string] = [
+			{ name: { [Op.iLike]: `%${pagination.search}%` } },
+			{ description: { [Op.iLike]: `%${pagination.search}%` } }
+		];
+	}
 
+	const query: Record<string, unknown> = {
+		where,
+		order: [["createdAt", "DESC"]]
+	};
+	if (pagination.limit) query.limit = pagination.limit;
+	if (pagination.offset) query.offset = pagination.offset;
+
+	const { rows, count } = await SavedFilter.findAndCountAll(query);
 	const frozen = await areFrozen(userId, role);
 
-	return { filters, frozen };
+	return { filters: rows, total: count, frozen };
 }
 
 export async function findSavedFilterById(id: string) {
