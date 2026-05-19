@@ -1,0 +1,19 @@
+@if (total() > limit()) {
+	<div class="flex items-center justify-center gap-4 mt-5 pt-4 border-t border-line">
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
+			[disabled]="!hasPrev()"
+			(click)="prev()"
+		>
+			Previous
+		</button>
+		<span class="text-[0.8125rem] text-fg-muted">{{ start() }}–{{ end() }} of {{ total() }}</span>
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
+			[disabled]="!hasNext()"
+			(click)="next()"
+		>
+			Next
+		</button>
+	</div>
+}
