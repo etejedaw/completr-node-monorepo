@@ -24,8 +24,8 @@ export class Login {
 	protected readonly error = signal("");
 
 	form = this.fb.group({
-		email: ["", [Validators.required, Validators.email]],
-		password: ["", [Validators.required, Validators.minLength(8)]]
+		email: ["", [Validators.required]],
+		password: ["", [Validators.required]]
 	});
 
 	onSubmit() {
@@ -44,8 +44,19 @@ export class Login {
 			},
 			error: err => {
 				this.isLoading.set(false);
-				this.error.set(err.error?.title ?? "Login failed");
+				this.error.set(this.messageFor(err));
 			}
 		});
+	}
+
+	private messageFor(err: { status?: number }): string {
+		if (
+			err.status === 400 ||
+			err.status === 401 ||
+			err.status === 422
+		) {
+			return "Invalid email or password.";
+		}
+		return "Login failed. Please try again.";
 	}
 }
