@@ -364,6 +364,8 @@ export class AdminGameEditor implements OnInit {
 		const g = this.game()!;
 		const existingScores = new Set(g.scores.map(s => s.source));
 		const existingTimes = new Set(g.times.map(t => t.source));
+		const currentScoreSources = new Set(this.scores().map(s => s.source));
+		const currentTimeSources = new Set(this.times().map(t => t.source));
 
 		const scoreOps = this.scores().map(s => {
 			if (existingScores.has(s.source)) {
@@ -383,7 +385,20 @@ export class AdminGameEditor implements OnInit {
 			return this.gamesService.createTime(gameId, t.source, t.duration);
 		});
 
-		const allOps = [...scoreOps, ...timeOps];
+		const scoreDeleteOps = [...existingScores]
+			.filter(source => !currentScoreSources.has(source))
+			.map(source => this.gamesService.deleteScore(gameId, source));
+
+		const timeDeleteOps = [...existingTimes]
+			.filter(source => !currentTimeSources.has(source))
+			.map(source => this.gamesService.deleteTime(gameId, source));
+
+		const allOps = [
+			...scoreOps,
+			...timeOps,
+			...scoreDeleteOps,
+			...timeDeleteOps
+		];
 
 		if (allOps.length === 0) {
 			this.saving.set(false);

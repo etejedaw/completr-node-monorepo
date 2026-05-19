@@ -192,6 +192,20 @@ export class GamesService {
 		);
 	}
 
+	deleteScore(gameId: string, source: string) {
+		return this.http.delete(
+			`${environment.apiUrl}/game-scores/${gameId}/${source}`,
+			{ responseType: "text" }
+		);
+	}
+
+	deleteTime(gameId: string, source: string) {
+		return this.http.delete(
+			`${environment.apiUrl}/game-times/${gameId}/${source}`,
+			{ responseType: "text" }
+		);
+	}
+
 	getGameLists(gameId: string) {
 		return this.http
 			.get<{
