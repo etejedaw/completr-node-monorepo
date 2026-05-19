@@ -30,6 +30,9 @@
 		"migrate:status": "node --env-file=.env node_modules/.bin/sequelize-cli db:migrate:status",
 		"prepare": "husky"
 	},
+	"overrides": {
+		"sanitize-html": "^2.17.4"
+	},
 	"dependencies": {
 		"bcrypt": "^6.0.0",
 		"cors": "^2.8.5",
