@@ -136,27 +136,6 @@
 	@if (list()!.items.length === 0) {
 	<div class="text-center py-12 text-fg-muted text-sm">No games in this list yet.</div>
 	} @else {
-	<div class="flex gap-1 mb-4">
-		<button
-			class="flex p-1.5 bg-input-bg border border-line rounded-card text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="viewMode() === 'table'"
-			[class.!border-brand]="viewMode() === 'table'"
-			[class.!text-brand]="viewMode() === 'table'"
-			(click)="viewMode.set('table')"
-		>
-			<span class="material-icons text-[1.125rem]">view_list</span>
-		</button>
-		<button
-			class="flex p-1.5 bg-input-bg border border-line rounded-card text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="viewMode() === 'grid'"
-			[class.!border-brand]="viewMode() === 'grid'"
-			[class.!text-brand]="viewMode() === 'grid'"
-			(click)="viewMode.set('grid')"
-		>
-			<span class="material-icons text-[1.125rem]">grid_view</span>
-		</button>
-	</div>
-	@if (viewMode() === 'table') {
 		<div class="flex flex-col gap-3">
 			@for (item of list()!.items; track item.id; let i = $index) {
 				<div class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line transition hover:border-brand/40">
@@ -250,24 +229,7 @@
 				</div>
 			}
 		</div>
-	} @if (viewMode() === 'grid') {
-	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-		@for (item of list()!.items; track item.id) {
-		<a class="flex flex-col gap-1.5 no-underline text-inherit group" [routerLink]="['/games', item.game.code]">
-			@if (item.game.backgroundUrl) {
-			<img
-				[src]="item.game.backgroundUrl"
-				[alt]="item.game.title"
-				class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40-card transition hover:scale-[1.03]"
-			/>
-			} @else {
-			<div class="w-full aspect-[3/4] bg-surface rounded-lg-card"></div>
-			}
-			<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ item.game.title }}</span>
-		</a>
-		}
-	</div>
-	} }
+	}
 </div>
 } @if (showEditModal()) {
 <app-list-modal
