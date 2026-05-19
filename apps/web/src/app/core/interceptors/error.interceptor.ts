@@ -1,10 +1,19 @@
 import { HttpHandlerFn, HttpRequest } from "@angular/common/http";
 import { inject } from "@angular/core";
-import { catchError, switchMap, throwError } from "rxjs";
+import {
+	BehaviorSubject,
+	catchError,
+	filter,
+	finalize,
+	switchMap,
+	take,
+	throwError
+} from "rxjs";
 import { AuthService } from "../services/auth.service";
 import { ToastService } from "../services/toast.service";
 
 let isRefreshing = false;
+const refreshSubject = new BehaviorSubject<string | null>(null);
 
 export function errorInterceptor(
 	req: HttpRequest<unknown>,
@@ -31,32 +40,47 @@ export function errorInterceptor(
 				return throwError(() => error);
 			}
 
-			if (
-				error.status !== 401 ||
-				isRefreshing ||
-				isAuthRequest(req.url)
-			) {
-				if (error.status === 401) auth.clearSession();
+			if (error.status !== 401 || isAuthRequest(req.url)) {
 				return throwError(() => error);
 			}
 
+			if (isRefreshing) {
+				return refreshSubject.pipe(
+					filter(token => token !== null),
+					take(1),
+					switchMap(token => {
+						const retryReq = req.clone({
+							headers: req.headers.set(
+								"Authorization",
+								`Bearer ${token}`
+							)
+						});
+						return next(retryReq);
+					})
+				);
+			}
+
 			isRefreshing = true;
+			refreshSubject.next(null);
 
 			return auth.refresh().pipe(
 				switchMap(() => {
-					isRefreshing = false;
+					const newToken = auth.token();
+					refreshSubject.next(newToken);
 					const retryReq = req.clone({
 						headers: req.headers.set(
 							"Authorization",
-							`Bearer ${auth.token()}`
+							`Bearer ${newToken}`
 						)
 					});
 					return next(retryReq);
 				}),
 				catchError(refreshError => {
-					isRefreshing = false;
 					auth.clearSession();
 					return throwError(() => refreshError);
+				}),
+				finalize(() => {
+					isRefreshing = false;
 				})
 			);
 		})
