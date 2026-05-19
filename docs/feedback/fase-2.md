@@ -711,16 +711,16 @@ Formato por item:
 
 - **Fecha:** 2026-05-19
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En la vista diary del backlog, el tiempo de juego real que ingresa el jugador (realDuration) aparece como un texto mas dentro de la fila de metadatos ("Real Xh") al lado del score y la duracion estimada. Visualmente queda diluido entre los otros datos cuando en realidad es uno de los valores mas importantes que el usuario aporta personalmente — refleja su experiencia real con el juego y alimenta el ratio personal.
-- **Solucion propuesta:** Destacar visualmente el realDuration en la diary card. Opciones: (1) moverlo a la columna derecha junto al Ratio y Personal Ratio con su propio bloque grande y label, (2) usar un color de acento (warning o brand) y peso mayor en el texto, (3) agregar un icono de reloj o cronometro al lado del valor para diferenciarlo de la duration estimada. Considerar que solo aparece cuando hay un valor, asi que no afecta filas sin realDuration. Tener en cuenta la consistencia con el Personal Ratio que ya esta destacado en la columna derecha.
+- **Solucion:** Removido "Real Xh" de la fila de metadata y agregado como tercer bloque en la columna derecha de la diary card, junto al Ratio (brand grande) y Personal Ratio (warning mediano). Estilo: text-base + font-semibold + label "Real" en mayúsculas tracking-wider — mismo patrón visual que los otros indicadores derivados del usuario.
 
 ### [FB-079] "No sources. Report missing" aparece al editar un backlog ya existente
 
 - **Fecha:** 2026-05-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al abrir el modal de edicion de un backlog ya creado (que tiene score y duration completados manualmente o desde una fuente), aparece debajo de los campos Critic Score y Duration el mensaje "No sources. Report missing" como si faltaran fuentes. El usuario ya tiene el dato ingresado, por lo que el aviso esta fuera de lugar y sugiere accion sobre algo que no es necesario.
-- **Solucion propuesta:** En el modal de backlog, el mensaje "No sources" se muestra cuando `gameScores().length === 0` o `gameTimes().length === 0` (juego sin fuentes en el catalogo). El bug es que en modo edicion, el `selectedGame` se setea con un objeto minimal `{id, title, backgroundUrl}` sin las arrays de scores/times, por lo que siempre evalua a 0 y muestra el mensaje aunque el campo del form tenga valor. Soluciones: (1) en modo edit, cargar el juego completo con sus scores/times via gamesService.getByCode antes de pintar el modal, asi `gameScores()` refleja la realidad; (2) ocultar el bloque "No sources" en modo edit (`@if (!isEdit() && selectedGame() && gameScores().length === 0)`), ya que en edit el dato ya esta y no aplica reportar como missing. Opcion (2) es la mas simple y suficiente.
+- **Solucion:** En `backlog-modal.html`, el branch `@else if (selectedGame())` que renderiza el aviso "No sources. Report missing" ahora también requiere `!isEdit()`. En modo edición el dato ya está cargado en el form, por lo que el mensaje queda oculto. Sigue activo en creación cuando un juego seleccionado realmente no tiene sources.
