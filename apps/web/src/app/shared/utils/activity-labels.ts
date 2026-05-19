@@ -5,10 +5,12 @@ const ACTIVITY_LABELS: Record<string, string> = {
 	backlog_completed: "completed",
 	backlog_abandoned: "abandoned",
 	wishlist_added: "added to wishlist",
+	shelf_added: "added to shelf",
 	favorite_added: "added to favorites",
 	list_created: "created a list",
 	list_followed: "followed a list",
 	user_followed: "followed a user",
+	user_followed_by: "started following you",
 	game_reviewed: "reviewed"
 };
 
@@ -19,10 +21,12 @@ const ACTIVITY_ICONS: Record<string, string> = {
 	backlog_completed: "check_circle",
 	backlog_abandoned: "cancel",
 	wishlist_added: "favorite",
+	shelf_added: "shelves",
 	favorite_added: "star",
 	list_created: "format_list_bulleted",
 	list_followed: "bookmark",
 	user_followed: "person_add",
+	user_followed_by: "person",
 	game_reviewed: "rate_review"
 };
 
@@ -33,10 +37,12 @@ const ACTIVITY_DOT_CLASSES: Record<string, string> = {
 	backlog_completed: "bg-success/10 text-success",
 	backlog_abandoned: "bg-danger/10 text-danger",
 	wishlist_added: "bg-danger/10 text-danger",
+	shelf_added: "bg-brand-subtle text-brand",
 	favorite_added: "bg-warning/10 text-warning",
 	list_created: "bg-brand-subtle text-brand",
 	list_followed: "bg-brand-subtle text-brand",
 	user_followed: "bg-brand-subtle text-brand",
+	user_followed_by: "bg-brand-subtle text-brand",
 	game_reviewed: "bg-success/10 text-success"
 };
 
