@@ -15,12 +15,12 @@ import { GamesService } from "../../games/games.service";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { UiButton, UiInput, UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink, UiButton, UiInput, UiSearchBar],
 	templateUrl: "./backlog-list.html",
-	styleUrl: "./backlog-list.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BacklogList implements OnInit {
@@ -41,6 +41,16 @@ export class BacklogList implements OnInit {
 	protected readonly showModal = signal(false);
 	protected readonly editingEntry = signal<BacklogEntry | null>(null);
 	private readonly wishlistBacklogIds = signal<Set<string>>(new Set());
+
+	protected readonly viewMode = signal<"diary" | "hardcore">(
+		(localStorage.getItem("completr.backlog.viewMode") as "diary" | "hardcore") ||
+			"diary"
+	);
+
+	setViewMode(mode: "diary" | "hardcore") {
+		this.viewMode.set(mode);
+		localStorage.setItem("completr.backlog.viewMode", mode);
+	}
 
 	// Filters
 	protected readonly showFilters = signal(false);
@@ -93,14 +103,21 @@ export class BacklogList implements OnInit {
 			this.savedFilters.set(sorted);
 			this.backlogFilters.set(sorted.filter(f => f.showInBacklog));
 
-			const filterId =
-				this.route.snapshot.queryParamMap.get("savedFilterId");
+			const params = this.route.snapshot.queryParamMap;
+			const filterId = params.get("savedFilterId");
 			if (filterId) {
 				const match = sorted.find(f => f.id === filterId);
 				if (match) {
 					this.applySavedFilter(match);
 					return;
 				}
+			}
+
+			const statusParam = params.get("status");
+			if (statusParam) {
+				this.activeStatuses.set(new Set(statusParam.split(",")));
+				this.loadBacklog();
+				return;
 			}
 
 			const defaultFilter = sorted.find(f => f.isDefault);
@@ -276,8 +293,7 @@ export class BacklogList implements OnInit {
 		return filters;
 	}
 
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
+	onSearch(query: string) {
 		this.searchQuery.set(query);
 		this.filterEntries();
 	}
@@ -335,10 +351,10 @@ export class BacklogList implements OnInit {
 
 	statusClass(status: BacklogStatus): string {
 		const map: Record<BacklogStatus, string> = {
-			not_started: "status-not-started",
-			playing: "status-playing",
-			completed: "status-completed",
-			abandoned: "status-abandoned"
+			not_started: "bg-fg-muted/10 text-fg-muted",
+			playing: "bg-warning/10 text-warning",
+			completed: "bg-success/10 text-success",
+			abandoned: "bg-danger/10 text-danger"
 		};
 		return map[status] ?? "";
 	}

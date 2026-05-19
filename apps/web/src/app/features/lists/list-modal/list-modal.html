@@ -1,18 +1,28 @@
-<div class="modal-overlay" (click)="onClose()">
-	<div class="modal-card" (click)="$event.stopPropagation()">
-		<div class="modal-header">
-			<h2>{{ isEdit() ? "Edit List" : "Create List" }}</h2>
-			<button class="close-btn" (click)="onClose()">&times;</button>
+<div
+	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-sm"
+	(click)="onClose()"
+>
+	<div
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
+		(click)="$event.stopPropagation()"
+	>
+		<div class="flex justify-between items-center mb-5">
+			<h2 class="font-display m-0 text-[1.125rem] font-bold">{{ isEdit() ? "Edit List" : "Create List" }}</h2>
+			<button uiIconButton size="sm" (click)="onClose()">&times;</button>
 		</div>
 
 		@if (error()) {
-		<div class="error-message">{{ error() }}</div>
+		<div class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded-card mb-4 text-[0.8125rem]">{{ error() }}</div>
 		}
 
 		<form [formGroup]="form" (ngSubmit)="onSubmit()">
-			<div class="form-group">
-				<label for="name">Name <span class="required">*</span></label>
+			<div class="mb-4">
+				<label for="name" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+					>Name <span class="text-danger font-bold">*</span></label
+				>
 				<input
+					uiInput
 					id="name"
 					type="text"
 					formControlName="name"
@@ -20,9 +30,10 @@
 				/>
 			</div>
 
-			<div class="form-group">
-				<label for="description">Description</label>
+			<div class="mb-4">
+				<label for="description" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Description</label>
 				<textarea
+					uiInput
 					id="description"
 					formControlName="description"
 					rows="2"
@@ -30,25 +41,30 @@
 				></textarea>
 			</div>
 
-			<div class="form-row">
-				<div class="form-group">
-					<label for="scoreSource"
-						>Score Source <span class="required">*</span></label
+			<div class="grid grid-cols-2 gap-3">
+				<div class="mb-4">
+					<label for="scoreSource" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						>Score Source <span class="text-danger font-bold">*</span></label
 					>
-					<select id="scoreSource" formControlName="scoreSource">
+					<select
+						id="scoreSource"
+						formControlName="scoreSource"
+						class="w-full px-3 py-2 bg-input-bg border border-line rounded-card text-fg text-sm cursor-pointer transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
+					>
 						<option value="metacritic">Metacritic</option>
 						<option value="opencritic">OpenCritic</option>
 						<option value="rawg">RAWG</option>
 						<option value="completr">Completr</option>
 					</select>
 				</div>
-				<div class="form-group">
-					<label for="durationSource"
-						>Duration Source <span class="required">*</span></label
+				<div class="mb-4">
+					<label for="durationSource" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						>Duration Source <span class="text-danger font-bold">*</span></label
 					>
 					<select
 						id="durationSource"
 						formControlName="durationSource"
+						class="w-full px-3 py-2 bg-input-bg border border-line rounded-card text-fg text-sm cursor-pointer transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 					>
 						<option value="hltb">HLTB</option>
 						<option value="rawg">RAWG</option>
@@ -57,10 +73,14 @@
 				</div>
 			</div>
 
-			<div class="public-toggle">
-				<label class="toggle-label">
-					<input type="checkbox" formControlName="isPublic" />
-					<span class="material-icons toggle-icon"
+			<div class="mb-4">
+				<label class="flex items-center gap-2 cursor-pointer text-[0.8125rem] text-fg-secondary px-3 py-2 bg-input-bg border border-line rounded-card">
+					<input
+						type="checkbox"
+						formControlName="isPublic"
+						class="w-4 h-4 cursor-pointer accent-[var(--color-brand)]"
+					/>
+					<span class="material-icons text-base"
 						>{{ form.controls.isPublic.value ? 'public' : 'lock'
 						}}</span
 					>
@@ -71,29 +91,27 @@
 				</label>
 			</div>
 
-			<div class="modal-actions">
+			<div class="flex justify-between items-center mt-5 pt-4 border-t border-line">
 				@if (isEdit()) {
-				<div class="delete-area">
+				<div class="flex items-center gap-2">
 					@if (!showConfirmDelete()) {
 					<button
+						uiButton variant="danger" size="sm"
 						type="button"
-						class="btn-danger-outline"
 						(click)="showConfirmDelete.set(true)"
 					>
 						Delete
 					</button>
 					} @else {
-					<span class="confirm-text">Are you sure?</span>
-					<button
+					<span class="text-[0.8125rem] text-danger">Are you sure?</span>
+					<button uiButton variant="danger" size="sm"
 						type="button"
-						class="btn-danger"
 						(click)="onDelete()"
 					>
 						Yes, delete
 					</button>
-					<button
+					<button uiButton variant="ghost" size="sm"
 						type="button"
-						class="btn-ghost"
 						(click)="showConfirmDelete.set(false)"
 					>
 						Cancel
@@ -101,9 +119,9 @@
 					}
 				</div>
 				}
-				<button
-					class="btn-primary"
+				<button uiButton variant="primary" size="sm"
 					type="submit"
+					class="!ml-auto"
 					[disabled]="form.invalid || isLoading()"
 				>
 					{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Create"

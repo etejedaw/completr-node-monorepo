@@ -7,12 +7,12 @@ import {
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
+import { UiButton, UiInput } from "../../../shared/ui";
 
 @Component({
 	selector: "app-login",
-	imports: [ReactiveFormsModule],
+	imports: [ReactiveFormsModule, UiButton, UiInput],
 	templateUrl: "./login.html",
-	styleUrl: "./login.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Login {

@@ -20,12 +20,12 @@ import {
 	switchMap,
 	of
 } from "rxjs";
+import { UiButton, UiIconButton, UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-list-detail",
-	imports: [RouterLink, ListModal, BacklogModal],
+	imports: [RouterLink, ListModal, BacklogModal, UiButton, UiIconButton, UiSearchBar],
 	templateUrl: "./list-detail.html",
-	styleUrl: "./list-detail.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListDetail implements OnInit {
@@ -50,7 +50,6 @@ export class ListDetail implements OnInit {
 	protected readonly showBacklogModal = signal(false);
 	protected readonly backlogPreselectedGame = signal<Game | null>(null);
 	protected readonly togglingFollow = signal(false);
-	protected readonly viewMode = signal<"table" | "grid">("table");
 
 	private listId = "";
 
@@ -77,8 +76,7 @@ export class ListDetail implements OnInit {
 			});
 	}
 
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
+	onSearch(query: string) {
 		this.searchQuery.set(query);
 		if (query.length >= 2) this.isSearching.set(true);
 		this.searchSubject.next(query);

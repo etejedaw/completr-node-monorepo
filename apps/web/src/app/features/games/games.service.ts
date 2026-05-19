@@ -96,6 +96,14 @@ export class GamesService {
 			.pipe(map(res => res.data.games));
 	}
 
+	getLatestReviewed(limit = 16) {
+		return this.http
+			.get<GamesSearchResponse>(
+				`${environment.apiUrl}/games/latest-reviewed?limit=${limit}`
+			)
+			.pipe(map(res => res.data.games));
+	}
+
 	getPlatforms() {
 		return this.http
 			.get<PlatformsResponse>(`${environment.apiUrl}/platforms`)

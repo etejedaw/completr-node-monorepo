@@ -16,7 +16,6 @@ const PAGE_SIZE = 50;
 	selector: "app-user-wishlist",
 	imports: [RouterLink],
 	templateUrl: "./user-wishlist.html",
-	styleUrl: "./user-wishlist.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserWishlist implements OnInit {

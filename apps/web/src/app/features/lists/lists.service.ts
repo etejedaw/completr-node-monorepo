@@ -45,6 +45,18 @@ export class ListsService {
 		return this.http.get<ListsResponse>(`${this.baseUrl}/me`);
 	}
 
+	getOfficial(limit = 12) {
+		return this.http
+			.get<{ data: { lists: List[] } }>(`${this.baseUrl}/official?limit=${limit}`)
+			.pipe(map(res => res.data.lists));
+	}
+
+	getRecent(limit = 12) {
+		return this.http
+			.get<{ data: { lists: List[] } }>(`${this.baseUrl}/recent?limit=${limit}`)
+			.pipe(map(res => res.data.lists));
+	}
+
 	getById(id: string) {
 		return this.http
 			.get<ListSingleResponse>(`${this.baseUrl}/${id}`)

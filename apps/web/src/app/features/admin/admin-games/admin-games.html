@@ -1,38 +1,37 @@
-<div class="admin-page">
-	<div class="page-header">
-		<div class="page-header-left">
-			<h1>Games</h1>
-			<span class="entry-count">{{ total() }} total</span>
+<div>
+	<div class="flex items-center justify-between mb-5">
+		<div class="flex items-baseline gap-3">
+			<h1 class="font-display text-3xl md:text-4xl font-bold tracking-tight m-0">Games</h1>
+			<span class="text-[0.8125rem] text-fg-muted">{{ total() }} total</span>
 		</div>
 	</div>
 
-	<div class="search-bar">
-		<input
-			type="text"
-			placeholder="Search games..."
-			[value]="searchQuery()"
-			(input)="onSearch($event)"
-		/>
-	</div>
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search games..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
-	<div class="filter-chips">
+	<div class="flex gap-2 mb-4">
 		<button
-			class="filter-chip"
-			[class.active]="noScores()"
+			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="noScores()"
+			[class.!border-brand]="noScores()"
+			[class.!text-brand]="noScores()"
 			(click)="toggleFilter('noScores')"
 		>
 			No Scores
 		</button>
 		<button
-			class="filter-chip"
-			[class.active]="noTimes()"
+			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="noTimes()"
+			[class.!border-brand]="noTimes()"
+			[class.!text-brand]="noTimes()"
 			(click)="toggleFilter('noTimes')"
 		>
 			No Times
 		</button>
 		<button
-			class="filter-chip"
-			[class.active]="noPlatforms()"
+			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="noPlatforms()"
+			[class.!border-brand]="noPlatforms()"
+			[class.!text-brand]="noPlatforms()"
 			(click)="toggleFilter('noPlatforms')"
 		>
 			No Platforms
@@ -40,77 +39,72 @@
 	</div>
 
 	@if (isLoading()) {
-	<div class="loading">Loading...</div>
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (games().length === 0) {
-	<div class="empty">No games found.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">No games found.</div>
 	} @else {
-	<div class="table-wrapper">
-		<table>
+	<div class="overflow-x-auto">
+		<table class="w-full border-collapse text-[0.8125rem]">
 			<thead>
 				<tr>
-					<th class="col-cover"></th>
-					<th class="col-title">Title</th>
-					<th class="col-code">Code</th>
-					<th class="col-platforms">Platforms</th>
-					<th class="col-scores">Scores</th>
-					<th class="col-times">Times</th>
-					<th class="col-dlc">DLC</th>
-					<th class="col-reports"></th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 pr-0"></th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap min-w-[200px]">Title</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Code</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Platforms</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Scores</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Times</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">DLC</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 text-center"></th>
 				</tr>
 			</thead>
 			<tbody>
 				@for (game of games(); track game.id) {
-				<tr>
-					<td class="col-cover">
+				<tr class="border-b border-line transition hover:bg-surface">
+					<td class="px-3 py-2 align-middle w-10 pr-0">
 						@if (game.backgroundUrl) {
 						<img
 							[src]="game.backgroundUrl"
 							[alt]="game.title"
-							class="cover-img"
+							class="w-9 h-12 object-cover rounded block"
 						/>
 						} @else {
-						<div class="cover-placeholder"></div>
+						<div class="w-9 h-12 bg-surface rounded"></div>
 						}
 					</td>
-					<td class="col-title">
+					<td class="px-3 py-2 align-middle min-w-[200px]">
 						<a
-							class="game-title-link"
+							class="text-fg font-medium no-underline transition hover:text-brand"
 							[routerLink]="['/games', game.code]"
 						>
 							{{ game.title }}
 						</a>
 					</td>
-					<td class="col-code">{{ game.code }}</td>
-					<td class="col-platforms">
-						{{ game.platforms.map(p => p.abbreviation).join(", ") ||
-						"-" }}
+					<td class="px-3 py-2 align-middle text-fg-muted text-xs whitespace-nowrap">{{ game.code }}</td>
+					<td class="px-3 py-2 align-middle text-fg-secondary text-xs max-w-[200px]">
+						{{ game.platforms.map(p => p.abbreviation).join(", ") || "-" }}
 					</td>
-					<td class="col-scores">
+					<td class="px-3 py-2 align-middle whitespace-nowrap">
 						@for (s of game.scores; track s.source) {
-						<span class="score-tag"
-							>{{ s.source }}: {{ s.score }}</span
-						>
+						<span class="inline-block px-1.5 py-0.5 bg-surface rounded text-[0.6875rem] text-fg-secondary mr-1">{{ s.source }}: {{ s.score }}</span>
 						}
 					</td>
-					<td class="col-times">
+					<td class="px-3 py-2 align-middle whitespace-nowrap">
 						@for (t of game.times; track t.source) {
-						<span class="time-tag"
-							>{{ t.source }}: {{ t.duration }}h</span
-						>
+						<span class="inline-block px-1.5 py-0.5 bg-surface rounded text-[0.6875rem] text-fg-secondary mr-1">{{ t.source }}: {{ t.duration }}h</span>
 						}
 					</td>
-					<td class="col-dlc">
+					<td class="px-3 py-2 align-middle">
 						@if (game.isDlc) {
-						<span class="dlc-badge">DLC</span>
+						<span class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning">DLC</span>
 						}
 					</td>
-					<td class="col-reports">
+					<td class="px-3 py-2 align-middle w-10 text-center">
 						@if (reportedGameIds().has(game.id)) {
 						<button
-							class="report-badge"
+							class="bg-danger/10 border border-danger/20 rounded text-danger cursor-pointer p-1 leading-none transition hover:bg-danger/20"
 							(click)="goToGameReport(game.id)"
 						>
-							<span class="material-icons">flag</span>
+							<span class="material-icons text-base">flag</span>
 						</button>
 						}
 					</td>
@@ -121,15 +115,22 @@
 	</div>
 
 	@if (!searchQuery() && total() > limit) {
-	<div class="pagination">
-		<button [disabled]="offset() === 0" (click)="prevPage()">
+	<div class="flex items-center justify-center gap-4 mt-5 pt-4 border-t border-line">
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition hover:enabled:border-brand hover:enabled:text-brand disabled:opacity-40 disabled:cursor-not-allowed"
+			[disabled]="offset() === 0"
+			(click)="prevPage()"
+		>
 			Previous
 		</button>
-		<span class="page-info">
-			{{ offset() + 1 }}–{{ Math.min(offset() + limit, total()) }} of {{
-			total() }}
+		<span class="text-[0.8125rem] text-fg-muted">
+			{{ offset() + 1 }}–{{ Math.min(offset() + limit, total()) }} of {{ total() }}
 		</span>
-		<button [disabled]="offset() + limit >= total()" (click)="nextPage()">
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition hover:enabled:border-brand hover:enabled:text-brand disabled:opacity-40 disabled:cursor-not-allowed"
+			[disabled]="offset() + limit >= total()"
+			(click)="nextPage()"
+		>
 			Next
 		</button>
 	</div>

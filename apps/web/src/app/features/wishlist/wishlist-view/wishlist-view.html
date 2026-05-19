@@ -1,33 +1,41 @@
-<div class="wishlist-page">
-	<div class="page-header">
-		<div class="page-header-left">
-			<h1>Wishlist</h1>
-			<span class="entry-count">{{ entries().length }} games</span>
+<div>
+	<div class="flex items-center justify-between mb-5">
+		<div class="flex items-baseline gap-3">
+			<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Wishlist</h1>
+			<span class="text-sm text-fg-muted">{{ entries().length }} games</span>
 		</div>
-		<button class="btn-add" (click)="openAddModal()">
+		<button uiButton variant="primary" (click)="openAddModal()">
 			+ Add from Backlog
 		</button>
 	</div>
 
-	<div class="view-toggle">
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [(value)]="searchQuery" />
+
+	<div class="flex gap-1 mb-4">
 		<button
-			[class.active]="viewMode() === 'table'"
+			class="flex bg-input-bg border border-line rounded-md text-fg-muted p-1.5 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="viewMode() === 'table'"
+			[class.!border-brand]="viewMode() === 'table'"
+			[class.!text-brand]="viewMode() === 'table'"
 			(click)="viewMode.set('table')"
 		>
-			<span class="material-icons">view_list</span>
+			<span class="material-icons text-lg">view_list</span>
 		</button>
 		<button
-			[class.active]="viewMode() === 'grid'"
+			class="flex bg-input-bg border border-line rounded-md text-fg-muted p-1.5 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="viewMode() === 'grid'"
+			[class.!border-brand]="viewMode() === 'grid'"
+			[class.!text-brand]="viewMode() === 'grid'"
 			(click)="viewMode.set('grid')"
 		>
-			<span class="material-icons">grid_view</span>
+			<span class="material-icons text-lg">grid_view</span>
 		</button>
 	</div>
 
 	@if (isLoading()) {
-	<div class="loading">Loading...</div>
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (entries().length === 0) {
-	<div class="empty">
+	<div class="text-center py-12">
 		<p class="empty-title">Your wishlist is empty</p>
 		<p class="empty-hint">
 			Prioritize which games to play next. Add games from their detail
@@ -35,107 +43,103 @@
 		</p>
 	</div>
 	} @else { @if (viewMode() === 'table') {
-	<div class="table-wrapper">
-		<table>
-			<thead>
-				<tr>
-					<th class="col-pos">#</th>
-					<th class="col-cover"></th>
-					<th class="col-title">Title</th>
-					<th class="col-platform">Platform</th>
-					<th class="col-num">Score</th>
-					<th class="col-num">Duration</th>
-					<th class="col-num">Ratio</th>
-					<th class="col-status">Status</th>
-					<th class="col-actions"></th>
-				</tr>
-			</thead>
-			<tbody>
-				@for (entry of entries(); track entry.id; let i = $index) {
-				<tr>
-					<td class="col-pos">{{ entry.position }}</td>
-					<td class="col-cover">
+		<div class="flex flex-col gap-3">
+			@for (entry of filteredEntries(); track entry.id; let i = $index) {
+				<div class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line transition hover:border-brand/40">
+					<div class="shrink-0 flex items-center justify-center w-10 text-3xl font-bold text-fg-muted">
+						{{ entry.position }}
+					</div>
+
+					<a
+						[routerLink]="['/games', entry.backlog.game.code]"
+						class="shrink-0"
+					>
 						@if (entry.backlog.game.backgroundUrl) {
-						<img
-							[src]="entry.backlog.game.backgroundUrl"
-							[alt]="entry.backlog.game.title"
-							class="cover-img"
-						/>
+							<img
+								[src]="entry.backlog.game.backgroundUrl"
+								[alt]="entry.backlog.game.title"
+								class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
+							/>
 						} @else {
-						<div class="cover-placeholder"></div>
+							<div class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"></div>
 						}
-					</td>
-					<td class="col-title">
+					</a>
+
+					<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
 						<a
-							class="game-title-link"
+							class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
 							[routerLink]="['/games', entry.backlog.game.code]"
-							>{{ entry.backlog.game.title }}</a
-						>
-					</td>
-					<td class="col-platform">
-						{{ entry.backlog.platform?.abbreviation ?? "-" }}
-					</td>
-					<td class="col-num">{{ entry.backlog.score ?? "-" }}</td>
-					<td class="col-num">
-						{{ entry.backlog.duration ? entry.backlog.duration + "h"
-						: "-" }}
-					</td>
-					<td class="col-num">{{ entry.backlog.ratio ?? "-" }}</td>
-					<td class="col-status">
-						<span
-							class="status-badge"
-							[class]="statusClass(entry.backlog.status)"
-						>
-							{{ statusLabel(entry.backlog.status) }}
-						</span>
-					</td>
-					<td class="col-actions">
+						>{{ entry.backlog.game.title }}</a>
+
+						<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
+							<span
+								class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
+								[class]="statusClass(entry.backlog.status)"
+							>{{ statusLabel(entry.backlog.status) }}</span>
+							@if (entry.backlog.platform) {
+								<span class="text-fg-muted">{{ entry.backlog.platform.abbreviation }}</span>
+							}
+							@if (entry.backlog.score) {
+								<span class="text-fg-muted">·</span>
+								<span class="text-fg-muted">Score {{ entry.backlog.score }}</span>
+							}
+							@if (entry.backlog.duration) {
+								<span class="text-fg-muted">·</span>
+								<span class="text-fg-muted">{{ entry.backlog.duration }}h</span>
+							}
+						</div>
+					</div>
+
+					<div class="hidden sm:flex flex-col items-end justify-center shrink-0 min-w-[70px] text-right">
+						@if (entry.backlog.ratio) {
+							<span class="text-3xl font-bold text-brand leading-none">{{ entry.backlog.ratio }}</span>
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
+						}
+					</div>
+
+					<div class="flex flex-col items-center justify-center gap-1 shrink-0">
 						<button
-							class="btn-move"
+							uiIconButton size="sm"
 							[disabled]="i === 0"
 							(click)="moveUp(i)"
 							title="Move up"
 						>
-							&#9650;
+							<span class="material-icons text-lg">keyboard_arrow_up</span>
 						</button>
 						<button
-							class="btn-move"
-							[disabled]="i === entries().length - 1"
+							uiIconButton size="sm"
+							[disabled]="i === filteredEntries().length - 1"
 							(click)="moveDown(i)"
 							title="Move down"
 						>
-							&#9660;
+							<span class="material-icons text-lg">keyboard_arrow_down</span>
 						</button>
 						<button
-							class="btn-remove"
+							uiIconButton size="sm" tone="danger"
 							(click)="remove(entry)"
 							title="Remove"
 						>
-							&times;
+							<span class="material-icons text-lg">close</span>
 						</button>
-					</td>
-				</tr>
-				}
-			</tbody>
-		</table>
-	</div>
+					</div>
+				</div>
+			}
+		</div>
 	} @if (viewMode() === 'grid') {
-	<div class="game-grid">
-		@for (entry of entries(); track entry.id) {
-		<a class="game-card" [routerLink]="['/games', entry.backlog.game.code]">
+	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+		@for (entry of filteredEntries(); track entry.id) {
+		<a class="flex flex-col gap-1.5 text-inherit no-underline group" [routerLink]="['/games', entry.backlog.game.code]">
 			@if (entry.backlog.game.backgroundUrl) {
 			<img
 				[src]="entry.backlog.game.backgroundUrl"
 				[alt]="entry.backlog.game.title"
-				class="game-cover"
+				class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40-md transition-transform hover:scale-[1.03]"
 			/>
 			} @else {
-			<div class="game-cover-placeholder"></div>
+			<div class="w-full aspect-[3/4] bg-surface rounded-lg-md"></div>
 			}
-			<span class="game-card-title">{{ entry.backlog.game.title }}</span>
-			<span class="game-card-sub"
-				>{{ entry.backlog.platform?.abbreviation ?? '' }}</span
-			>
+			<span class="text-xs font-medium text-fg-secondary truncate">{{ entry.backlog.game.title }}</span>
+			<span class="text-[0.625rem] text-fg-muted">{{ entry.backlog.platform?.abbreviation ?? '' }}</span>
 		</a>
 		}
 	</div>

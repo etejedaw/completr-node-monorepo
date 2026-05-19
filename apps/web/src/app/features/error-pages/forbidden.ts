@@ -1,53 +1,17 @@
 import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { UiButton } from "../../shared/ui";
 
 @Component({
 	selector: "app-forbidden",
-	imports: [RouterLink],
+	imports: [RouterLink, UiButton],
 	template: `
-		<div class="error-page">
-			<span class="error-code">403</span>
-			<h1>Access denied</h1>
-			<p>You don't have permission to view this page.</p>
-			<a routerLink="/" class="btn-back">Go to Feed</a>
+		<div class="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
+			<span class="text-6xl font-extrabold text-danger leading-none mb-2">403</span>
+			<h1 class="font-display text-2xl font-bold mb-2">Access denied</h1>
+			<p class="text-fg-muted text-sm mb-6">You don't have permission to view this page.</p>
+			<a uiButton variant="primary" routerLink="/">Go to Feed</a>
 		</div>
-	`,
-	styles: `
-		.error-page {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			min-height: 60vh;
-			text-align: center;
-			padding: 2rem;
-		}
-		.error-code {
-			font-size: 4rem;
-			font-weight: 800;
-			color: var(--status-abandoned);
-			line-height: 1;
-			margin-bottom: 0.5rem;
-		}
-		h1 {
-			margin: 0 0 0.5rem;
-			font-size: 1.5rem;
-			font-weight: 700;
-		}
-		p {
-			color: var(--text-muted);
-			font-size: 0.875rem;
-			margin: 0 0 1.5rem;
-		}
-		.btn-back {
-			padding: 0.5rem 1.25rem;
-			background: linear-gradient(135deg, var(--accent), #6366f1);
-			color: #fff;
-			border-radius: var(--radius);
-			font-size: 0.875rem;
-			font-weight: 600;
-			text-decoration: none;
-		}
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

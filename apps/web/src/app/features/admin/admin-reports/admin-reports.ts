@@ -8,12 +8,12 @@ import {
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { DatePipe } from "@angular/common";
 import { AdminService, GameReport } from "../admin.service";
+import { UiButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-admin-reports",
-	imports: [RouterLink, DatePipe],
+	imports: [RouterLink, DatePipe, UiButton],
 	templateUrl: "./admin-reports.html",
-	styleUrl: "./admin-reports.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminReports implements OnInit {

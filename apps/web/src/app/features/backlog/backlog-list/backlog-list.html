@@ -1,29 +1,23 @@
-<div class="backlog-page">
-	<div class="page-header">
-		<div class="page-header-left">
-			<h1>Backlog</h1>
-			<span class="entry-count">{{ entries().length }} entries</span>
+<div class="max-w-full">
+	<div class="flex items-center justify-between mb-5">
+		<div class="flex items-baseline gap-3">
+			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Backlog</h1>
+			<span class="text-sm text-fg-muted">{{ entries().length }} entries</span>
 		</div>
-		<button class="btn-add" (click)="openCreate()">+ Add Game</button>
+		<button uiButton variant="primary" (click)="openCreate()">+ Add Game</button>
 	</div>
 
-	<div class="search-bar">
-		<input
-			type="text"
-			placeholder="Search by title..."
-			[value]="searchQuery()"
-			(input)="onSearch($event)"
-		/>
-	</div>
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
-	<div class="filters-bar">
-		<!-- Saved filters (only showInBacklog) -->
+	<div class="flex items-center gap-2 mb-4">
 		@if (backlogFilters().length > 0) {
-		<div class="saved-filters-row">
+		<div class="flex flex-wrap gap-1.5">
 			@for (sf of backlogFilters(); track sf.id) {
 			<button
-				class="saved-filter-chip"
-				[class.active]="activeFilterId() === sf.id"
+				class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+				[class.!bg-brand-subtle]="activeFilterId() === sf.id"
+				[class.!border-brand]="activeFilterId() === sf.id"
+				[class.!text-brand]="activeFilterId() === sf.id"
 				(click)="applySavedFilter(sf)"
 			>
 				{{ sf.name }}
@@ -32,26 +26,30 @@
 		</div>
 		}
 		<button
-			class="btn-toggle-filters"
-			[class.active]="showFilters()"
+			class="ml-auto bg-transparent border border-line text-fg-muted px-2.5 py-1.5 rounded text-xs font-medium font-sans whitespace-nowrap cursor-pointer flex items-center gap-1 transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="showFilters()"
+			[class.!border-brand]="showFilters()"
+			[class.!text-brand]="showFilters()"
 			(click)="toggleFilters()"
 		>
-			<span class="material-icons">tune</span>
+			<span class="material-icons text-base">tune</span>
 			Filters
 		</button>
 	</div>
 
 	@if (activeFilterDescription()) {
-	<p class="active-filter-desc">{{ activeFilterDescription() }}</p>
+	<p class="-mt-2 mb-3 text-xs text-fg-muted italic">{{ activeFilterDescription() }}</p>
 	} @if (showFilters()) {
-	<div class="filters-panel">
-		<div class="filter-group filter-full">
-			<label>Status</label>
-			<div class="status-chips">
+	<div class="flex flex-wrap gap-3 items-end p-3.5 bg-sidebar border border-line rounded mb-5">
+		<div class="flex flex-col gap-1 basis-full">
+			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Status</label>
+			<div class="flex gap-1">
 				@for (s of statusFilters; track s.value) {
 				<button
-					class="status-chip"
-					[class.active]="isStatusActive(s.value)"
+					class="bg-input-bg border border-line text-fg-secondary text-xs font-medium px-2.5 py-1 rounded cursor-pointer font-sans transition hover:border-fg-muted hover:text-fg"
+					[class.!bg-brand-subtle]="isStatusActive(s.value)"
+					[class.!border-brand]="isStatusActive(s.value)"
+					[class.!text-brand]="isStatusActive(s.value)"
 					(click)="toggleStatus(s.value)"
 				>
 					{{ s.label }}
@@ -59,9 +57,10 @@
 				}
 			</div>
 		</div>
-		<div class="filter-group">
-			<label>Platform</label>
+		<div class="flex flex-col gap-1">
+			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Platform</label>
 			<select
+				class="min-w-[140px] cursor-pointer px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="selectedPlatform()"
 				(ngModelChange)="selectedPlatform.set($event)"
 			>
@@ -71,41 +70,49 @@
 				}
 			</select>
 		</div>
-		<div class="filter-group">
-			<label>Started from</label>
+		<div class="flex flex-col gap-1">
+			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Started from</label>
 			<input
 				type="date"
+				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="startedFrom()"
 				(ngModelChange)="startedFrom.set($event)"
 			/>
 		</div>
-		<div class="filter-group">
-			<label>Started to</label>
+		<div class="flex flex-col gap-1">
+			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Started to</label>
 			<input
 				type="date"
+				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="startedTo()"
 				(ngModelChange)="startedTo.set($event)"
 			/>
 		</div>
-		<div class="filter-group">
-			<label>Finished from</label>
+		<div class="flex flex-col gap-1">
+			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Finished from</label>
 			<input
 				type="date"
+				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="finishedFrom()"
 				(ngModelChange)="finishedFrom.set($event)"
 			/>
 		</div>
-		<div class="filter-group">
-			<label>Finished to</label>
+		<div class="flex flex-col gap-1">
+			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Finished to</label>
 			<input
 				type="date"
+				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="finishedTo()"
 				(ngModelChange)="finishedTo.set($event)"
 			/>
 		</div>
-		<div class="filter-group">
-			<label>Sort by</label>
-			<select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+		<div class="flex flex-col gap-1">
+			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Sort by</label>
+			<select
+				class="min-w-[140px] cursor-pointer px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
+				[ngModel]="sortBy()"
+				(ngModelChange)="sortBy.set($event)"
+			>
 				<option value="createdAt">Date added</option>
 				<option value="title">Title</option>
 				<option value="score">Score</option>
@@ -118,9 +125,10 @@
 				<option value="status">Status</option>
 			</select>
 		</div>
-		<div class="filter-group">
-			<label>Order</label>
+		<div class="flex flex-col gap-1">
+			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Order</label>
 			<select
+				class="min-w-[140px] cursor-pointer px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="sortOrder()"
 				(ngModelChange)="sortOrder.set($event)"
 			>
@@ -128,76 +136,77 @@
 				<option value="asc">Ascending</option>
 			</select>
 		</div>
-		<div class="filter-group">
-			<label>Min rating</label>
+		<div class="flex flex-col gap-1">
+			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Min rating</label>
 			<app-star-rating
 				[value]="minRating()"
 				(ratingChange)="minRating.set($event)"
 				size="sm"
 			/>
 		</div>
-		<div class="filter-group">
-			<label>Max rating</label>
+		<div class="flex flex-col gap-1">
+			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Max rating</label>
 			<app-star-rating
 				[value]="maxRating()"
 				(ratingChange)="maxRating.set($event)"
 				size="sm"
 			/>
 		</div>
-		<div class="filter-actions">
+		<div class="flex gap-1.5 items-end">
 			<button
-				class="btn-icon-action"
+				class="bg-transparent border border-line text-fg-muted w-[30px] h-[30px] rounded cursor-pointer flex items-center justify-center shrink-0 transition hover:border-brand hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
 				(click)="applyFilters()"
 				title="Apply filters"
 			>
-				<span class="material-icons">search</span>
+				<span class="material-icons text-base">search</span>
 			</button>
 			@if (hasActiveFilters()) {
 			<button
-				class="btn-icon-action danger"
+				class="bg-transparent border border-line text-fg-muted w-[30px] h-[30px] rounded cursor-pointer flex items-center justify-center shrink-0 transition hover:border-danger/50 hover:text-danger disabled:opacity-30 disabled:cursor-not-allowed"
 				(click)="clearFilters(); showFilters.set(false)"
 				title="Clear filters"
 			>
-				<span class="material-icons">filter_alt_off</span>
+				<span class="material-icons text-base">filter_alt_off</span>
 			</button>
 			}
 		</div>
 		@if (activeFilterId()) {
-		<div class="view-actions filter-full">
+		<div class="flex items-center gap-1.5 pt-3 border-t border-line basis-full">
 			<button
-				class="btn-icon-action"
+				class="bg-transparent border border-line text-fg-muted w-[30px] h-[30px] rounded cursor-pointer flex items-center justify-center shrink-0 transition hover:border-brand hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
 				(click)="updateCurrentFilter()"
 				[disabled]="savingFilter()"
 				title="Update current view"
 			>
-				<span class="material-icons">save</span>
+				<span class="material-icons text-base">save</span>
 			</button>
 		</div>
 		} @else if (hasActiveFilters()) {
-		<div class="view-actions filter-full">
+		<div class="flex items-center gap-1.5 pt-3 border-t border-line basis-full">
 			<input
+				uiInput
 				type="text"
-				class="edit-filter-name"
+				class="!w-[140px] !text-xs"
 				placeholder="View name..."
 				[ngModel]="newFilterName()"
 				(ngModelChange)="newFilterName.set($event)"
 				(keydown.enter)="saveCurrentFilter()"
 			/>
 			<button
-				class="btn-icon-action"
+				class="bg-transparent border border-line text-fg-muted w-[30px] h-[30px] rounded cursor-pointer flex items-center justify-center shrink-0 transition hover:border-brand hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
 				(click)="saveCurrentFilter()"
 				[disabled]="savingFilter() || !newFilterName().trim()"
 				title="Save view"
 			>
-				<span class="material-icons">bookmark_add</span>
+				<span class="material-icons text-base">bookmark_add</span>
 			</button>
 		</div>
 		}
 	</div>
 	} @if (isInitialLoad() && isLoading()) {
-	<div class="loading">Loading...</div>
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (!isLoading() && entries().length === 0) {
-	<div class="empty">
+	<div class="text-center py-12">
 		<p class="empty-title">Your backlog is empty</p>
 		<p class="empty-hint">
 			Track the games you want to play, are playing, or have completed.
@@ -205,161 +214,220 @@
 		</p>
 	</div>
 	} @else {
-	<div class="table-wrapper">
-		<table>
-			<thead>
-				<tr>
-					<th class="col-cover"></th>
-					<th class="col-title" (click)="sort('title')">
-						Title @if (sortBy() === 'title') {
-						<span class="sort-arrow"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
-						>
-						}
-					</th>
-					<th class="col-platform">Platform</th>
-					<th class="col-num" (click)="sort('score')">
-						Score @if (sortBy() === 'score') {
-						<span class="sort-arrow"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
-						>
-						}
-					</th>
-					<th class="col-num" (click)="sort('duration')">
-						Duration @if (sortBy() === 'duration') {
-						<span class="sort-arrow"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
-						>
-						}
-					</th>
-					<th class="col-num" (click)="sort('ratio')">
-						Ratio @if (sortBy() === 'ratio') {
-						<span class="sort-arrow"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
-						>
-						}
-					</th>
-					<th class="col-num" (click)="sort('realDuration')">
-						Real @if (sortBy() === 'realDuration') {
-						<span class="sort-arrow"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
-						>
-						}
-					</th>
-					<th class="col-num" (click)="sort('personalRatio')">
-						P. Ratio @if (sortBy() === 'personalRatio') {
-						<span class="sort-arrow"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
-						>
-						}
-					</th>
-					<th class="col-num" (click)="sort('userRating')">
-						Rating @if (sortBy() === 'userRating') {
-						<span class="sort-arrow"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
-						>
-						}
-					</th>
-					<th class="col-date" (click)="sort('finishedAt')">
-						Finished @if (sortBy() === 'finishedAt') {
-						<span class="sort-arrow"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
-						>
-						}
-					</th>
-					<th class="col-status" (click)="sort('status')">
-						Status @if (sortBy() === 'status') {
-						<span class="sort-arrow"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
-						>
-						}
-					</th>
-					<th class="col-notes">Notes</th>
-				</tr>
-			</thead>
-			<tbody>
+		<div class="flex justify-end mb-3">
+			<div class="flex gap-1 bg-input-bg border border-line rounded-md p-1">
+				<button
+					class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+					[class.!bg-surface-hover]="viewMode() === 'diary'"
+					[class.!text-fg]="viewMode() === 'diary'"
+					(click)="setViewMode('diary')"
+					title="Diary view"
+				>
+					<span class="material-icons text-base">view_agenda</span>
+					Diary
+				</button>
+				<button
+					class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+					[class.!bg-surface-hover]="viewMode() === 'hardcore'"
+					[class.!text-fg]="viewMode() === 'hardcore'"
+					(click)="setViewMode('hardcore')"
+					title="Hardcore (table) view"
+				>
+					<span class="material-icons text-base">table_rows</span>
+					Hardcore
+				</button>
+			</div>
+		</div>
+
+		@if (viewMode() === 'diary') {
+			<div class="flex flex-col gap-3">
 				@for (entry of entries(); track entry.id) {
-				<tr class="clickable-row" (click)="openEdit(entry)">
-					<td class="col-cover">
-						@if (entry.game.backgroundUrl) {
-						<img
-							[src]="entry.game.backgroundUrl"
-							[alt]="entry.game.title"
-							class="cover-img"
-						/>
-						} @else {
-						<div class="cover-placeholder"></div>
-						}
-					</td>
-					<td class="col-title">
+					<div
+						class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line cursor-pointer transition hover:border-brand/40"
+						(click)="openEdit(entry)"
+					>
 						<a
-							class="game-title-link"
 							[routerLink]="['/games', entry.game.code]"
 							(click)="$event.stopPropagation()"
-							>{{ entry.game.title }}</a
+							class="shrink-0"
 						>
-					</td>
-					<td class="col-platform">
-						{{ entry.platform.abbreviation }}
-					</td>
-					<td class="col-num">{{ entry.score ?? "-" }}</td>
-					<td class="col-num">
-						{{ entry.duration ? entry.duration + "h" : "-" }}
-					</td>
-					<td class="col-num">{{ entry.ratio ?? "-" }}</td>
-					<td class="col-num">
-						{{ entry.realDuration ? entry.realDuration + "h" : "-"
-						}}
-					</td>
-					<td class="col-num">{{ entry.personalRatio ?? "-" }}</td>
-					<td class="col-rating">
-						<app-star-rating
-							[value]="entry.userRating ?? null"
-							[readonly]="true"
-							size="sm"
-						/>
-					</td>
-					<td class="col-date">
-						{{ entry.finishedAt ? (entry.finishedAt |
-						date:'yyyy-MM-dd') : "-" }}
-					</td>
-					<td class="col-status">
-						<span
-							class="status-badge"
-							[class]="statusClass(entry.status)"
-						>
-							{{ statusLabel(entry.status) }}
-						</span>
-					</td>
-					<td class="col-notes">
-						@if (entry.notes) {
-						<span class="notes-text">{{ entry.notes }}</span>
-						}
-					</td>
-					<td class="col-wishlist">
+							@if (entry.game.backgroundUrl) {
+								<img
+									[src]="entry.game.backgroundUrl"
+									[alt]="entry.game.title"
+									class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
+								/>
+							} @else {
+								<div class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"></div>
+							}
+						</a>
+
+						<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
+							<a
+								class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
+								[routerLink]="['/games', entry.game.code]"
+								(click)="$event.stopPropagation()"
+							>{{ entry.game.title }}</a>
+
+							<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
+								<span
+									class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
+									[class]="statusClass(entry.status)"
+								>{{ statusLabel(entry.status) }}</span>
+								<span class="text-fg-muted">{{ entry.platform.abbreviation }}</span>
+								@if (entry.score) {
+									<span class="text-fg-muted">·</span>
+									<span class="text-fg-muted">Score {{ entry.score }}</span>
+								}
+								@if (entry.duration) {
+									<span class="text-fg-muted">·</span>
+									<span class="text-fg-muted">{{ entry.duration }}h</span>
+								}
+								@if (entry.realDuration) {
+									<span class="text-fg-muted">·</span>
+									<span class="text-fg-muted">Real {{ entry.realDuration }}h</span>
+								}
+								@if (entry.finishedAt) {
+									<span class="text-fg-muted">·</span>
+									<span class="text-fg-muted">{{ entry.finishedAt | date:'yyyy-MM-dd' }}</span>
+								}
+							</div>
+
+							@if (entry.userRating) {
+								<app-star-rating
+									[value]="entry.userRating"
+									[readonly]="true"
+									size="sm"
+								/>
+							}
+
+							@if (entry.notes) {
+								<p class="text-xs text-fg-muted line-clamp-2 leading-snug m-0 mt-auto">{{ entry.notes }}</p>
+							}
+						</div>
+
+						<div class="hidden sm:flex flex-col items-end justify-center gap-3 shrink-0 min-w-[80px] text-right">
+							@if (entry.ratio) {
+								<div class="flex flex-col items-end leading-none">
+									<span class="text-3xl font-bold text-brand">{{ entry.ratio }}</span>
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
+								</div>
+							}
+							@if (entry.personalRatio) {
+								<div class="flex flex-col items-end leading-none">
+									<span class="text-lg font-semibold text-warning">{{ entry.personalRatio }}</span>
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Personal</span>
+								</div>
+							}
+						</div>
+
 						<button
-							class="btn-wishlist"
-							[class.active]="isInWishlist(entry)"
+							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 transition flex items-center self-center hover:text-danger"
+							[class.!text-danger]="isInWishlist(entry)"
+							[class.!cursor-default]="isInWishlist(entry)"
 							(click)="addToWishlist(entry); $event.stopPropagation()"
 							[title]="isInWishlist(entry) ? 'In Wishlist' : 'Add to Wishlist'"
 						>
-							<span class="material-icons">favorite</span>
+							<span class="material-icons text-xl">favorite</span>
 						</button>
-					</td>
-				</tr>
+					</div>
 				}
-			</tbody>
-		</table>
-	</div>
+			</div>
+		} @else {
+			<div class="overflow-x-auto max-h-[calc(100vh-260px)] overflow-y-auto">
+				<table class="w-full border-collapse text-sm">
+					<thead>
+						<tr>
+							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap min-w-[200px] hover:text-fg-secondary" (click)="sort('title')">
+								Title @if (sortBy() === 'title') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary">Platform</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('score')">
+								Score @if (sortBy() === 'score') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('duration')">
+								Duration @if (sortBy() === 'duration') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('ratio')">
+								Ratio @if (sortBy() === 'ratio') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('realDuration')">
+								Real @if (sortBy() === 'realDuration') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('personalRatio')">
+								P. Ratio @if (sortBy() === 'personalRatio') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('userRating')">
+								Rating @if (sortBy() === 'userRating') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('finishedAt')">
+								Finished @if (sortBy() === 'finishedAt') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('status')">
+								Status @if (sortBy() === 'status') {
+									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
+								}
+							</th>
+							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap max-w-[200px] hover:text-fg-secondary">Notes</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (entry of entries(); track entry.id) {
+							<tr class="cursor-pointer border-b border-line transition hover:bg-surface" (click)="openEdit(entry)">
+								<td class="px-4 py-3 align-middle min-w-[200px]">
+									<a class="font-medium text-fg no-underline hover:text-brand" [routerLink]="['/games', entry.game.code]" (click)="$event.stopPropagation()">{{ entry.game.title }}</a>
+								</td>
+								<td class="px-4 py-3 align-middle text-fg-secondary whitespace-nowrap">{{ entry.platform.abbreviation }}</td>
+								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.score ?? "-" }}</td>
+								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.duration ? entry.duration + "h" : "-" }}</td>
+								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.ratio ?? "-" }}</td>
+								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.realDuration ? entry.realDuration + "h" : "-" }}</td>
+								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.personalRatio ?? "-" }}</td>
+								<td class="px-4 py-3 align-middle">
+									<app-star-rating [value]="entry.userRating ?? null" [readonly]="true" size="sm" />
+								</td>
+								<td class="px-4 py-3 align-middle whitespace-nowrap text-fg-secondary text-sm">{{ entry.finishedAt ? (entry.finishedAt | date:'yyyy-MM-dd') : "-" }}</td>
+								<td class="px-4 py-3 align-middle whitespace-nowrap">
+									<span class="inline-block px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide" [class]="statusClass(entry.status)">{{ statusLabel(entry.status) }}</span>
+								</td>
+								<td class="px-4 py-3 align-middle max-w-[200px]">
+									@if (entry.notes) {
+										<span class="text-fg-muted text-xs leading-tight line-clamp-2">{{ entry.notes }}</span>
+									}
+								</td>
+								<td class="px-4 py-3 align-middle w-8 text-center">
+									<button
+										class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 transition flex items-center hover:text-danger"
+										[class.!text-danger]="isInWishlist(entry)"
+										[class.!cursor-default]="isInWishlist(entry)"
+										(click)="addToWishlist(entry); $event.stopPropagation()"
+										[title]="isInWishlist(entry) ? 'In Wishlist' : 'Add to Wishlist'"
+									>
+										<span class="material-icons text-xl">favorite</span>
+									</button>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
 	}
 </div>
 

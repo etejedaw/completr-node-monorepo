@@ -7,12 +7,12 @@ import {
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
+import { UiButton, UiInput } from "../../../shared/ui";
 
 @Component({
 	selector: "app-register",
-	imports: [ReactiveFormsModule, RouterLink],
+	imports: [ReactiveFormsModule, RouterLink, UiButton, UiInput],
 	templateUrl: "./register.html",
-	styleUrl: "./register.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Register {

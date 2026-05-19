@@ -10,14 +10,14 @@ import { DatePipe } from "@angular/common";
 import { AuthService } from "../../../core/services/auth.service";
 import { PublicProfileService } from "../public-profile.service";
 import { GameShelfEntry } from "../../../core/models";
+import { UiSearchBar } from "../../../shared/ui";
 
 const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-game-shelf",
-	imports: [RouterLink, DatePipe],
+	imports: [RouterLink, DatePipe, UiSearchBar],
 	templateUrl: "./user-game-shelf.html",
-	styleUrl: "./user-game-shelf.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserGameShelf implements OnInit {
@@ -54,8 +54,7 @@ export class UserGameShelf implements OnInit {
 		this.load(username);
 	}
 
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
+	onSearch(query: string) {
 		this.searchQuery.set(query);
 		this.filterEntries();
 	}

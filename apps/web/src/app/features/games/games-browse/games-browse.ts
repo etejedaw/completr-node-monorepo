@@ -4,34 +4,40 @@ import {
 	computed,
 	inject,
 	OnInit,
+	OnDestroy,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Game, Genre } from "../../../core/models";
+import { Game, Genre, List } from "../../../core/models";
 import { GamesService } from "../games.service";
+import { ListsService } from "../../lists/lists.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import {
 	Subject,
+	Subscription,
 	debounceTime,
 	distinctUntilChanged,
+	interval,
 	switchMap,
 	of
 } from "rxjs";
+import { UiButton, UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-games-browse",
-	imports: [RouterLink, AdminGameEditor],
+	imports: [RouterLink, AdminGameEditor, UiButton, UiSearchBar],
 	templateUrl: "./games-browse.html",
-	styleUrl: "./games-browse.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class GamesBrowse implements OnInit {
+export class GamesBrowse implements OnInit, OnDestroy {
 	private readonly gamesService = inject(GamesService);
+	private readonly listsService = inject(ListsService);
 	private readonly authService = inject(AuthService);
 	private readonly router = inject(Router);
 	private readonly route = inject(ActivatedRoute);
 	private readonly searchSubject = new Subject<string>();
+	private rotateSub?: Subscription;
 
 	protected readonly isAdmin = computed(() => {
 		const role = this.authService.user()?.role;
@@ -47,6 +53,21 @@ export class GamesBrowse implements OnInit {
 	protected readonly topRated = signal<Game[]>([]);
 	protected readonly randomGenre = signal<Genre | null>(null);
 	protected readonly genreGames = signal<Game[]>([]);
+	protected readonly latestReviewed = signal<Game[]>([]);
+	protected readonly officialLists = signal<List[]>([]);
+	protected readonly recentLists = signal<List[]>([]);
+
+	protected readonly featuredIndex = signal(0);
+	protected readonly featuredGames = computed(() =>
+		this.latestGames()
+			.filter(g => !!g.backgroundUrl)
+			.slice(0, 5)
+	);
+	protected readonly featured = computed(() => {
+		const games = this.featuredGames();
+		if (games.length === 0) return null;
+		return games[this.featuredIndex() % games.length];
+	});
 
 	ngOnInit() {
 		this.searchSubject
@@ -70,6 +91,16 @@ export class GamesBrowse implements OnInit {
 		this.loadLatest();
 		this.loadTopRated();
 		this.loadRandomGenre();
+		this.loadLatestReviewed();
+		this.loadOfficialLists();
+		this.loadRecentLists();
+
+		this.rotateSub = interval(7000).subscribe(() => {
+			const total = this.featuredGames().length;
+			if (total > 1 && this.searchQuery().length < 2) {
+				this.featuredIndex.update(i => (i + 1) % total);
+			}
+		});
 
 		const q = this.route.snapshot.queryParamMap.get("q");
 		if (q) {
@@ -78,8 +109,11 @@ export class GamesBrowse implements OnInit {
 		}
 	}
 
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
+	ngOnDestroy() {
+		this.rotateSub?.unsubscribe();
+	}
+
+	onSearch(query: string) {
 		this.searchQuery.set(query);
 		if (query.length >= 2) this.isSearching.set(true);
 		this.searchSubject.next(query);
@@ -100,26 +134,62 @@ export class GamesBrowse implements OnInit {
 		this.router.navigate(["/games", game.code]);
 	}
 
+	setFeatured(index: number) {
+		this.featuredIndex.set(index);
+	}
+
 	private loadLatest() {
 		this.gamesService
-			.getGames({ limit: 10, sort_by: "createdAt", sort_order: "desc" })
+			.getGames({ limit: 16, sort_by: "createdAt", sort_order: "desc" })
 			.subscribe(res => this.latestGames.set(res.data.games));
 	}
 
 	private loadTopRated() {
 		this.gamesService
-			.getGames({ limit: 10, sort_by: "title", sort_order: "asc" })
+			.getGames({ limit: 16, sort_by: "title", sort_order: "asc" })
 			.subscribe(res => this.topRated.set(res.data.games));
 	}
 
 	private loadRandomGenre() {
 		this.gamesService.getGenres().subscribe(genres => {
 			if (genres.length === 0) return;
-			const random = genres[Math.floor(Math.random() * genres.length)];
-			this.randomGenre.set(random);
-			this.gamesService
-				.getGames({ limit: 10, genre: random.code })
-				.subscribe(res => this.genreGames.set(res.data.games));
+			this.tryGenre([...genres], 5);
 		});
+	}
+
+	private tryGenre(pool: Genre[], attemptsLeft: number) {
+		if (pool.length === 0 || attemptsLeft <= 0) return;
+		const idx = Math.floor(Math.random() * pool.length);
+		const candidate = pool[idx];
+		pool.splice(idx, 1);
+
+		this.gamesService
+			.getGames({ limit: 16, genre: candidate.code })
+			.subscribe(res => {
+				if (res.data.games.length > 0) {
+					this.randomGenre.set(candidate);
+					this.genreGames.set(res.data.games);
+				} else {
+					this.tryGenre(pool, attemptsLeft - 1);
+				}
+			});
+	}
+
+	private loadLatestReviewed() {
+		this.gamesService
+			.getLatestReviewed(16)
+			.subscribe(games => this.latestReviewed.set(games));
+	}
+
+	private loadOfficialLists() {
+		this.listsService
+			.getOfficial(12)
+			.subscribe(lists => this.officialLists.set(lists));
+	}
+
+	private loadRecentLists() {
+		this.listsService
+			.getRecent(12)
+			.subscribe(lists => this.recentLists.set(lists));
 	}
 }

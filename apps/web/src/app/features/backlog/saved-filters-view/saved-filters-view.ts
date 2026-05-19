@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
@@ -8,12 +9,12 @@ import {
 import { Router } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
+import { UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-saved-filters-view",
-	imports: [FormsModule],
+	imports: [FormsModule, UiSearchBar],
 	templateUrl: "./saved-filters-view.html",
-	styleUrl: "./saved-filters-view.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SavedFiltersView implements OnInit {
@@ -22,6 +23,17 @@ export class SavedFiltersView implements OnInit {
 
 	protected readonly filters = signal<SavedFilter[]>([]);
 	protected readonly isLoading = signal(true);
+	protected readonly searchQuery = signal("");
+
+	protected readonly filteredFilters = computed(() => {
+		const q = this.searchQuery().trim().toLowerCase();
+		if (!q) return this.filters();
+		return this.filters().filter(
+			f =>
+				f.name.toLowerCase().includes(q) ||
+				(f.description ?? "").toLowerCase().includes(q)
+		);
+	});
 
 	// Edit modal
 	protected readonly showModal = signal(false);
@@ -123,5 +135,90 @@ export class SavedFiltersView implements OnInit {
 		if (f["finished_from"] || f["finished_to"]) parts.push("finished date");
 		if (f["min_rating"] || f["max_rating"]) parts.push("rating");
 		return parts.join(" · ") || "No filters";
+	}
+
+	filterChips(
+		filter: SavedFilter
+	): { label: string; icon: string; classes: string }[] {
+		const f = filter.filters as Record<string, string>;
+		const chips: { label: string; icon: string; classes: string }[] = [];
+
+		if (f["status"]) {
+			for (const status of f["status"].split(",")) {
+				chips.push({
+					label: this.statusLabel(status),
+					icon: this.statusIcon(status),
+					classes: this.statusChipClass(status)
+				});
+			}
+		}
+		if (f["platform_id"]) {
+			chips.push({
+				label: "Platform",
+				icon: "devices",
+				classes: "bg-brand-subtle text-brand"
+			});
+		}
+		if (f["started_from"] || f["started_to"]) {
+			chips.push({
+				label: "Started",
+				icon: "play_arrow",
+				classes: "bg-input-bg text-fg-secondary border border-line"
+			});
+		}
+		if (f["finished_from"] || f["finished_to"]) {
+			chips.push({
+				label: "Finished",
+				icon: "flag",
+				classes: "bg-input-bg text-fg-secondary border border-line"
+			});
+		}
+		if (f["min_rating"] || f["max_rating"]) {
+			chips.push({
+				label: "Rating",
+				icon: "star",
+				classes: "bg-warning/10 text-warning"
+			});
+		}
+		if (filter.sortBy && filter.sortBy !== "createdAt") {
+			const order = filter.sortOrder === "asc" ? "↑" : "↓";
+			chips.push({
+				label: `${filter.sortBy} ${order}`,
+				icon: "sort",
+				classes: "bg-input-bg text-fg-secondary border border-line"
+			});
+		}
+
+		return chips;
+	}
+
+	private statusLabel(status: string): string {
+		const map: Record<string, string> = {
+			not_started: "Not Started",
+			playing: "Playing",
+			completed: "Completed",
+			abandoned: "Abandoned"
+		};
+		return map[status] ?? status;
+	}
+
+	private statusIcon(status: string): string {
+		const map: Record<string, string> = {
+			not_started: "radio_button_unchecked",
+			playing: "play_arrow",
+			completed: "check_circle",
+			abandoned: "cancel"
+		};
+		return map[status] ?? "circle";
+	}
+
+	private statusChipClass(status: string): string {
+		const map: Record<string, string> = {
+			not_started: "bg-fg-muted/10 text-fg-muted",
+			playing: "bg-warning/10 text-warning",
+			completed: "bg-success/10 text-success",
+			abandoned: "bg-danger/10 text-danger"
+		};
+		return map[status] ?? "bg-input-bg text-fg-secondary";
 	}
 }

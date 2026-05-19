@@ -1,34 +1,39 @@
 <div class="modal-overlay" (click)="onClose()">
-	<div class="modal-card" (click)="$event.stopPropagation()">
-		<div class="modal-header">
-			<h2>{{ isEdit() ? "Edit Entry" : "Add to Shelf" }}</h2>
-			<button class="close-btn" (click)="onClose()">&times;</button>
+	<div
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
+		(click)="$event.stopPropagation()"
+	>
+		<div class="flex items-center justify-between mb-5">
+			<h2 class="m-0 text-lg font-bold font-display">{{ isEdit() ? "Edit Entry" : "Add to Shelf" }}</h2>
+			<button uiIconButton size="sm" (click)="onClose()">&times;</button>
 		</div>
 
 		@if (error()) {
-		<div class="error-message">{{ error() }}</div>
+		<div class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded-md mb-4 text-[0.8125rem]">{{ error() }}</div>
 		}
 
 		<form [formGroup]="form" (ngSubmit)="onSubmit()">
 			<!-- Game search (only for create) -->
 			@if (!isEdit()) {
-			<div class="form-group">
-				<label>Game <span class="required">*</span></label>
+			<div class="mb-4">
+				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Game <span class="text-danger font-bold">*</span></label>
 				@if (selectedGame()) {
-				<div class="selected-game" [class.readonly]="preselectedGame()">
+				<div
+					class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded-md"
+					[class.opacity-70]="preselectedGame()"
+				>
 					@if (selectedGame()!.backgroundUrl) {
 					<img
 						[src]="selectedGame()!.backgroundUrl"
-						class="selected-cover"
+						class="w-7 h-[38px] object-cover rounded-sm shrink-0"
 					/>
 					}
-					<span class="selected-title"
-						>{{ selectedGame()!.title }}</span
-					>
+					<span class="flex-1 text-sm font-medium">{{ selectedGame()!.title }}</span>
 					@if (!preselectedGame()) {
 					<button
 						type="button"
-						class="clear-btn"
+						class="bg-none border-0 text-fg-muted text-xl cursor-pointer px-1 leading-none hover:text-fg"
 						(click)="clearGame()"
 					>
 						&times;
@@ -38,24 +43,31 @@
 				} @else {
 				<input
 					type="text"
+					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] transition placeholder:text-fg-muted focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 					placeholder="Search games..."
 					[value]="searchQuery()"
 					(input)="onSearch($event)"
 				/>
 				@if (isSearching() && gameResults().length === 0) {
-				<div class="search-loading">Searching...</div>
+				<div class="mt-1 px-3 py-2.5 text-[0.8125rem] text-fg-muted bg-input-bg border border-line rounded-md">Searching...</div>
 				} @if (gameResults().length > 0 || (!isSearching() &&
 				searchQuery().length >= 2)) {
-				<ul class="search-results">
+				<ul class="list-none bg-input-bg border border-line rounded-md mt-1 max-h-[200px] overflow-y-auto">
 					@for (game of gameResults(); track game.id) {
-					<li (click)="selectGame(game)">
+					<li
+						class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] transition hover:bg-surface"
+						(click)="selectGame(game)"
+					>
 						@if (game.backgroundUrl) {
-						<img [src]="game.backgroundUrl" class="result-cover" />
+						<img [src]="game.backgroundUrl" class="w-7 h-[38px] object-cover rounded-sm shrink-0" />
 						}
 						<span>{{ game.title }}</span>
 					</li>
 					} @if (searchQuery().length >= 2) {
-					<li class="force-search-option" (click)="forceSearch()">
+					<li
+						class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] font-medium text-brand border-t border-line transition hover:bg-surface"
+						(click)="forceSearch()"
+					>
 						{{ isForceSearching() ? 'Searching...' : 'Force search
 						for "' + searchQuery() + '"' }}
 					</li>
@@ -64,29 +76,29 @@
 				} }
 			</div>
 			} @else {
-			<div class="form-group">
-				<label>Game</label>
-				<div class="selected-game readonly">
+			<div class="mb-4">
+				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Game</label>
+				<div class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded-md opacity-70">
 					@if (selectedGame()?.backgroundUrl) {
 					<img
 						[src]="selectedGame()!.backgroundUrl"
-						class="selected-cover"
+						class="w-7 h-[38px] object-cover rounded-sm shrink-0"
 					/>
 					}
-					<span class="selected-title"
-						>{{ selectedGame()!.title }}</span
-					>
+					<span class="flex-1 text-sm font-medium">{{ selectedGame()!.title }}</span>
 				</div>
 			</div>
 			}
 
 			<!-- Platform -->
 			@if (!isEdit()) {
-			<div class="form-group">
-				<label for="platformId"
-					>Platform <span class="required">*</span></label
+			<div class="mb-4">
+				<label for="platformId" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Platform <span class="text-danger font-bold">*</span></label>
+				<select
+					id="platformId"
+					formControlName="platformId"
+					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] cursor-pointer transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 				>
-				<select id="platformId" formControlName="platformId">
 					<option value="">Select platform</option>
 					@for (p of gamePlatforms(); track p.id) {
 					<option [value]="p.id">{{ p.name }}</option>
@@ -96,61 +108,62 @@
 			}
 
 			<!-- Edition -->
-			<div class="form-group">
-				<label for="edition">Edition</label>
+			<div class="mb-4">
+				<label for="edition" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Edition</label>
 				<input
 					id="edition"
 					type="text"
 					formControlName="edition"
 					placeholder="Standard, Deluxe, GOTY..."
+					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] transition placeholder:text-fg-muted focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 				/>
 			</div>
 
 			<!-- Acquired date -->
-			<div class="form-group">
-				<label for="acquiredAt">Acquired</label>
+			<div class="mb-4">
+				<label for="acquiredAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Acquired</label>
 				<input
 					id="acquiredAt"
 					type="date"
 					formControlName="acquiredAt"
+					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 				/>
 			</div>
 
 			<!-- Notes -->
-			<div class="form-group">
-				<label for="notes">Notes</label>
+			<div class="mb-4">
+				<label for="notes" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Notes</label>
 				<textarea
 					id="notes"
 					formControlName="notes"
 					rows="3"
 					placeholder="Your notes..."
+					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] resize-y transition placeholder:text-fg-muted focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 				></textarea>
 			</div>
 
 			<!-- Actions -->
-			<div class="modal-actions">
+			<div class="flex justify-between items-center mt-5 pt-4 border-t border-line">
 				@if (isEdit()) {
-				<div class="delete-area">
+				<div class="flex items-center gap-2">
 					@if (!showConfirmDelete()) {
 					<button
 						type="button"
-						class="btn-danger-outline"
+						class="px-3 py-1.5 bg-transparent border border-danger/30 text-danger rounded-md text-xs cursor-pointer transition hover:bg-danger/10"
 						(click)="showConfirmDelete.set(true)"
 					>
 						Delete
 					</button>
 					} @else {
-					<span class="confirm-text">Are you sure?</span>
-					<button
+					<span class="text-[0.8125rem] text-danger">Are you sure?</span>
+					<button uiButton variant="danger" size="sm"
 						type="button"
-						class="btn-danger"
 						(click)="onDelete()"
 					>
 						Yes, delete
 					</button>
-					<button
+					<button uiButton variant="ghost" size="sm"
 						type="button"
-						class="btn-ghost"
 						(click)="showConfirmDelete.set(false)"
 					>
 						Cancel
@@ -158,8 +171,7 @@
 					}
 				</div>
 				}
-				<button
-					class="btn-primary"
+				<button uiButton variant="primary" size="sm" class="ml-auto"
 					type="submit"
 					[disabled]="form.invalid || isLoading()"
 				>

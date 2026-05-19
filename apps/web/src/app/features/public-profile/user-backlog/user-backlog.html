@@ -1,151 +1,155 @@
-<div class="public-page">
-	<div class="top-bar">
-		<a routerLink="/" class="brand">
-			<span class="brand-icon">C</span>
-			<span class="brand-name">Completr</span>
+<div class="max-w-7xl mx-auto p-6 lg:p-8 max-md:px-4">
+	<div class="flex items-center justify-between mb-6 pb-4 border-b border-line">
+		<a routerLink="/" class="flex items-center gap-2.5 no-underline">
+			<span
+				class="flex items-center justify-center w-8 h-8 rounded-lg font-display font-extrabold text-sm text-white"
+				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+			>C</span>
+			<span class="text-lg font-bold text-fg">Completr</span>
 		</a>
 		@if (!isLoggedIn()) {
-		<a routerLink="/login" class="btn-login">Sign in</a>
+			<a routerLink="/login" class="px-3 py-1.5 bg-brand text-white rounded text-[0.8125rem] font-semibold no-underline">Sign in</a>
 		}
 	</div>
 
-	<a class="back-link" [routerLink]="['/user', username()]">
-		<span class="material-icons">arrow_back</span>
-		@{{ username() }}'s profile
+	<a class="inline-flex items-center gap-1.5 text-fg-muted no-underline text-[0.8125rem] mb-5 hover:text-brand" [routerLink]="['/user', username()]">
+		<span class="material-icons text-base">arrow_back</span>
+		{{ '@' + username() }}'s profile
 	</a>
 
 	@if (error() === 'not_found') {
-	<div class="state-message">User not found.</div>
+		<div class="text-center py-12 text-fg-muted text-sm">User not found.</div>
 	} @else if (error() === 'private') {
-	<div class="state-message">This profile is private.</div>
+		<div class="text-center py-12 text-fg-muted text-sm">This profile is private.</div>
 	} @else {
-	<div class="page-header">
-		<div class="page-header-left">
-			<h1>Backlog</h1>
-			<span class="entry-count">{{ total() }} entries</span>
+		<div class="flex items-baseline gap-3 mb-5">
+			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Backlog</h1>
+			<span class="text-sm text-fg-muted">{{ total() }} entries</span>
 		</div>
-	</div>
 
-	<div class="status-tabs">
-		@for (tab of statusTabs; track tab.value) {
-		<button
-			class="tab"
-			[class.active]="activeStatus() === tab.value"
-			(click)="filterByStatus(tab.value)"
-		>
-			{{ tab.label }}
-		</button>
-		}
-	</div>
+		<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
-	<div class="search-bar">
-		<input
-			type="text"
-			placeholder="Search by title..."
-			[value]="searchQuery()"
-			(input)="onSearch($event)"
-		/>
-	</div>
+		<div class="flex flex-wrap gap-1.5 mb-5">
+			@for (tab of statusTabs; track tab.value) {
+				<button
+					class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+					[class.!bg-brand-subtle]="activeStatus() === tab.value"
+					[class.!border-brand]="activeStatus() === tab.value"
+					[class.!text-brand]="activeStatus() === tab.value"
+					(click)="filterByStatus(tab.value)"
+				>
+					{{ tab.label }}
+				</button>
+			}
+		</div>
 
-	@if (isLoading()) {
-	<div class="state-message">Loading...</div>
-	} @else if (entries().length === 0) {
-	<div class="state-message">No public backlog entries.</div>
-	} @else {
-	<div class="table-wrapper">
-		<table>
-			<thead>
-				<tr>
-					<th class="col-cover"></th>
-					<th class="col-title">Title</th>
-					<th class="col-platform">Platform</th>
-					<th class="col-num">Score</th>
-					<th class="col-num">Duration</th>
-					<th class="col-num">Ratio</th>
-					<th class="col-num">Real</th>
-					<th class="col-num">P. Ratio</th>
-					<th class="col-num">Rating</th>
-					<th class="col-date">Finished</th>
-					<th class="col-status">Status</th>
-					<th class="col-notes">Notes</th>
-				</tr>
-			</thead>
-			<tbody>
+		@if (isLoading()) {
+			<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
+		} @else if (entries().length === 0) {
+			<div class="text-center py-12 text-fg-muted text-sm">No public backlog entries.</div>
+		} @else {
+			<div class="flex flex-col gap-3">
 				@for (entry of entries(); track entry.id) {
-				<tr>
-					<td class="col-cover">
-						@if (entry.game.backgroundUrl) {
-						<img
-							[src]="entry.game.backgroundUrl"
-							[alt]="entry.game.title"
-							class="cover-img"
-						/>
-						} @else {
-						<div class="cover-placeholder"></div>
-						}
-					</td>
-					<td class="col-title">
-						<a
-							class="game-title-link"
-							[routerLink]="['/games', entry.game.code]"
-							>{{ entry.game.title }}</a
-						>
-					</td>
-					<td class="col-platform">
-						{{ entry.platform.abbreviation }}
-					</td>
-					<td class="col-num">{{ entry.score ?? "-" }}</td>
-					<td class="col-num">
-						{{ entry.duration ? entry.duration + "h" : "-" }}
-					</td>
-					<td class="col-num">{{ entry.ratio ?? "-" }}</td>
-					<td class="col-num">
-						{{ entry.realDuration ? entry.realDuration + "h" : "-"
-						}}
-					</td>
-					<td class="col-num">{{ entry.personalRatio ?? "-" }}</td>
-					<td class="col-rating">
-						<app-star-rating
-							[value]="entry.userRating ?? null"
-							[readonly]="true"
-							size="sm"
-						/>
-					</td>
-					<td class="col-date">
-						{{ entry.finishedAt ? (entry.finishedAt |
-						date:'yyyy-MM-dd') : "-" }}
-					</td>
-					<td class="col-status">
-						<span
-							class="status-badge"
-							[class]="statusClass(entry.status)"
-						>
-							{{ statusLabel(entry.status) }}
-						</span>
-					</td>
-					<td class="col-notes">
-						@if (entry.notes) {
-						<span class="notes-text">{{ entry.notes }}</span>
-						}
-					</td>
-				</tr>
-				}
-			</tbody>
-		</table>
-	</div>
+					<div class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line transition hover:border-brand/40">
+						<a [routerLink]="['/games', entry.game.code]" class="shrink-0">
+							@if (entry.game.backgroundUrl) {
+								<img
+									[src]="entry.game.backgroundUrl"
+									[alt]="entry.game.title"
+									class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
+								/>
+							} @else {
+								<div class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"></div>
+							}
+						</a>
 
-	@if (total() > limit) {
-	<div class="pagination">
-		<button [disabled]="offset() === 0" (click)="prevPage()">
-			Previous
-		</button>
-		<span class="page-info">
-			{{ offset() + 1 }}–{{ Math.min(offset() + limit, total()) }} of {{
-			total() }}
-		</span>
-		<button [disabled]="offset() + limit >= total()" (click)="nextPage()">
-			Next
-		</button>
-	</div>
-	} } }
+						<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
+							<a
+								class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
+								[routerLink]="['/games', entry.game.code]"
+							>{{ entry.game.title }}</a>
+
+							<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
+								<span
+									class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
+									[class]="
+										entry.status === 'completed' ? 'bg-success/10 text-success' :
+										entry.status === 'playing' ? 'bg-warning/10 text-warning' :
+										entry.status === 'abandoned' ? 'bg-danger/10 text-danger' :
+										'bg-[rgba(148,163,184,0.12)] text-fg-muted'
+									"
+								>{{ statusLabel(entry.status) }}</span>
+								<span class="text-fg-muted">{{ entry.platform.abbreviation }}</span>
+								@if (entry.score) {
+									<span class="text-fg-muted">·</span>
+									<span class="text-fg-muted">Score {{ entry.score }}</span>
+								}
+								@if (entry.duration) {
+									<span class="text-fg-muted">·</span>
+									<span class="text-fg-muted">{{ entry.duration }}h</span>
+								}
+								@if (entry.realDuration) {
+									<span class="text-fg-muted">·</span>
+									<span class="text-fg-muted">Real {{ entry.realDuration }}h</span>
+								}
+								@if (entry.finishedAt) {
+									<span class="text-fg-muted">·</span>
+									<span class="text-fg-muted">{{ entry.finishedAt | date:'yyyy-MM-dd' }}</span>
+								}
+							</div>
+
+							@if (entry.userRating) {
+								<app-star-rating
+									[value]="entry.userRating"
+									[readonly]="true"
+									size="sm"
+								/>
+							}
+
+							@if (entry.notes) {
+								<p class="text-xs text-fg-muted line-clamp-2 leading-snug m-0 mt-auto">{{ entry.notes }}</p>
+							}
+						</div>
+
+						<div class="hidden sm:flex flex-col items-end justify-center gap-3 shrink-0 min-w-[80px] text-right">
+							@if (entry.ratio) {
+								<div class="flex flex-col items-end leading-none">
+									<span class="text-3xl font-bold text-brand">{{ entry.ratio }}</span>
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
+								</div>
+							}
+							@if (entry.personalRatio) {
+								<div class="flex flex-col items-end leading-none">
+									<span class="text-lg font-semibold text-warning">{{ entry.personalRatio }}</span>
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Personal</span>
+								</div>
+							}
+						</div>
+					</div>
+				}
+			</div>
+
+			@if (total() > limit) {
+				<div class="flex items-center justify-center gap-4 mt-5 pt-4 border-t border-line">
+					<button
+						class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
+						[disabled]="offset() === 0"
+						(click)="prevPage()"
+					>
+						Previous
+					</button>
+					<span class="text-[0.8125rem] text-fg-muted">
+						{{ offset() + 1 }}–{{ Math.min(offset() + limit, total()) }} of {{ total() }}
+					</span>
+					<button
+						class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
+						[disabled]="offset() + limit >= total()"
+						(click)="nextPage()"
+					>
+						Next
+					</button>
+				</div>
+			}
+		}
+	}
 </div>

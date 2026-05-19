@@ -22,6 +22,7 @@ import { getRatingLabel } from "../../../shared/constants/rating-labels";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { ReviewsService, Review } from "../reviews.service";
 import { FormsModule } from "@angular/forms";
+import { UiButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
 
 @Component({
 	selector: "app-game-detail",
@@ -31,10 +32,15 @@ import { FormsModule } from "@angular/forms";
 		BacklogModal,
 		GameShelfModal,
 		AdminGameEditor,
-		FormsModule
+		FormsModule,
+		UiButton,
+		UiInput,
+		UiTabs,
+		UiTabList,
+		UiTab,
+		UiTabPanel
 	],
 	templateUrl: "./game-detail.html",
-	styleUrl: "./game-detail.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GameDetail implements OnInit {
@@ -87,6 +93,7 @@ export class GameDetail implements OnInit {
 	protected readonly reviewRating = signal<number | null>(null);
 	protected readonly reviewSubmitting = signal(false);
 	protected readonly reportError = signal("");
+	protected readonly activeTab = signal("overview");
 	protected readonly featuredLists = signal<
 		{
 			id: string;
@@ -154,7 +161,7 @@ export class GameDetail implements OnInit {
 			.getGames({ limit: 10, genre: genre.code })
 			.subscribe(res => {
 				const filtered = res.data.games.filter(g => g.id !== game.id);
-				this.similarGames.set(filtered.slice(0, 8));
+				this.similarGames.set(filtered.slice(0, 6));
 			});
 	}
 

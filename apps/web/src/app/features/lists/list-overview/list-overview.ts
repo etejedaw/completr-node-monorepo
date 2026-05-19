@@ -10,12 +10,12 @@ import { Subject, debounceTime, switchMap, of } from "rxjs";
 import { List, FollowingList } from "../../../core/models";
 import { ListsService } from "../lists.service";
 import { ListModal } from "../list-modal/list-modal";
+import { UiButton, UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-list-overview",
-	imports: [RouterLink, ListModal],
+	imports: [RouterLink, ListModal, UiButton, UiSearchBar],
 	templateUrl: "./list-overview.html",
-	styleUrl: "./list-overview.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListOverview implements OnInit {
@@ -54,8 +54,7 @@ export class ListOverview implements OnInit {
 			});
 	}
 
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
+	onSearch(query: string) {
 		this.searchQuery.set(query);
 		if (query.length >= 2) this.isSearching.set(true);
 		this.searchSubject.next(query);

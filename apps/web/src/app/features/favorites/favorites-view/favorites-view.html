@@ -1,44 +1,52 @@
-<div class="favorites-page">
-	<div class="page-header">
-		<h1>Favorites</h1>
-		<span class="entry-count">{{ entries().length }} games</span>
+<div>
+	<div class="flex items-baseline gap-3 mb-5">
+		<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Favorites</h1>
+		<span class="text-sm text-fg-muted">{{ entries().length }} games</span>
 	</div>
 
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [(value)]="searchQuery" />
+
 	@if (isLoading()) {
-	<div class="loading">Loading...</div>
+		<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (entries().length === 0) {
-	<div class="empty">
-		<p class="empty-title">No favorites yet</p>
-		<p class="empty-hint">
-			Mark your all-time favorite games. Visit a game's detail page and
-			tap the star to add it here.
-		</p>
-	</div>
-	} @else {
-	<div class="game-grid">
-		@for (entry of entries(); track entry.id) {
-		<div class="game-card">
-			<a [routerLink]="['/games', entry.game.code]" class="card-link">
-				@if (entry.game.backgroundUrl) {
-				<img
-					[src]="entry.game.backgroundUrl"
-					[alt]="entry.game.title"
-					class="game-cover"
-				/>
-				} @else {
-				<div class="game-cover-placeholder"></div>
-				}
-				<span class="game-card-title">{{ entry.game.title }}</span>
-			</a>
-			<button
-				class="btn-unfav"
-				(click)="remove(entry)"
-				title="Remove from favorites"
-			>
-				&times;
-			</button>
+		<div class="text-center py-12">
+			<p class="empty-title">No favorites yet</p>
+			<p class="empty-hint">
+				Mark your all-time favorite games. Visit a game's detail page and
+				tap the star to add it here.
+			</p>
 		</div>
-		}
-	</div>
+	} @else {
+		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+			@for (entry of filteredEntries(); track entry.id) {
+				<div class="relative group">
+					<a
+						[routerLink]="['/games', entry.game.code]"
+						class="flex flex-col gap-1.5 text-inherit no-underline group"
+					>
+						@if (entry.game.backgroundUrl) {
+							<img
+								[src]="entry.game.backgroundUrl"
+								[alt]="entry.game.title"
+								class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40-md transition-transform hover:scale-[1.03]"
+							/>
+						} @else {
+							<div class="w-full aspect-[3/4] bg-surface rounded-lg-md"></div>
+						}
+						<span class="text-xs font-medium text-fg-secondary truncate">{{ entry.game.title }}</span>
+					</a>
+					<button
+						uiIconButton
+						size="sm"
+						tone="danger"
+						class="!absolute !top-1 !right-1 !bg-black/60 hover:!bg-black/80 opacity-0 group-hover:opacity-100"
+						(click)="remove(entry)"
+						title="Remove from favorites"
+					>
+						&times;
+					</button>
+				</div>
+			}
+		</div>
 	}
 </div>

@@ -13,7 +13,6 @@ import { AdminService } from "../admin.service";
 	selector: "app-admin-audit",
 	imports: [DatePipe],
 	templateUrl: "./admin-audit.html",
-	styleUrl: "./admin-audit.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminAudit implements OnInit {

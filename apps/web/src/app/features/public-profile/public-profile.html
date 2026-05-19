@@ -1,373 +1,426 @@
-<div class="public-profile-page">
-	<div class="top-bar">
-		<a routerLink="/" class="brand">
-			<span class="brand-icon">C</span>
-			<span class="brand-name">Completr</span>
+<div class="max-w-7xl mx-auto p-6 lg:p-8 max-md:px-4">
+	<div class="flex items-center justify-between mb-8 pb-4 border-b border-line">
+		<a routerLink="/" class="flex items-center gap-2.5 no-underline">
+			<span
+				class="flex items-center justify-center w-8 h-8 rounded-lg font-display font-extrabold text-sm text-white"
+				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+			>C</span>
+			<span class="text-lg font-bold text-fg">Completr</span>
 		</a>
 		@if (!isLoggedIn()) {
-		<a routerLink="/login" class="btn-login">Sign in</a>
+			<a routerLink="/login" class="px-3 py-1.5 bg-brand text-white rounded text-[0.8125rem] font-semibold no-underline">Sign in</a>
 		}
 	</div>
 
 	@if (isLoading()) {
-	<div class="state-message">Loading...</div>
+		<div class="text-center py-16 text-fg-muted text-sm">Loading...</div>
 	} @else if (notFound()) {
-	<div class="state-message">User not found.</div>
+		<div class="text-center py-16 text-fg-muted text-sm">User not found.</div>
 	} @else if (isPrivate()) {
-	<div class="private-profile">
-		<div class="private-avatar">
-			<span class="material-icons">lock</span>
+		<div class="text-center py-16">
+			<div class="flex items-center justify-center w-16 h-16 bg-surface rounded-full mx-auto mb-4">
+				<span class="material-icons text-2xl text-fg-muted">lock</span>
+			</div>
+			<h2 class="font-display m-0 mb-2 text-fg">{{ '@' + username() }}</h2>
+			<p class="text-fg-muted mb-6">This profile is private.</p>
+			@if (!isLoggedIn()) {
+				<a routerLink="/login" class="inline-block px-5 py-2 text-white rounded text-sm font-semibold no-underline" style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));">Sign in to follow this user</a>
+			}
 		</div>
-		<h2>@{{ username() }}</h2>
-		<p>This profile is private.</p>
-		@if (!isLoggedIn()) {
-		<a routerLink="/login" class="btn-cta">Sign in to follow this user</a>
-		}
-	</div>
 	} @else if (profile()) {
-	<div class="profile-content">
-		<div class="profile-header">
-			<div class="avatar-section">
+		<div class="flex flex-col items-center text-center gap-5 mb-10 md:flex-row md:items-start md:text-left md:gap-6">
+			<div class="shrink-0">
 				@if (profile()!.user.avatarUrl) {
-				<img
-					class="avatar"
-					[src]="profile()!.user.avatarUrl"
-					[alt]="profile()!.user.username"
-				/>
+					<img
+						class="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover ring-1 ring-line"
+						[src]="profile()!.user.avatarUrl"
+						[alt]="profile()!.user.username"
+					/>
 				} @else {
-				<div class="avatar-placeholder">
-					{{ profile()!.user.username.charAt(0).toUpperCase() }}
-				</div>
+					<div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-4xl font-bold ring-1 ring-line">
+						{{ profile()!.user.username.charAt(0).toUpperCase() }}
+					</div>
 				}
 			</div>
-			<div class="header-info">
-				<div class="header-top">
-					<h1>
-						{{ profile()!.user.name || profile()!.user.username }}
-					</h1>
-					@if (isLoggedIn() && !isSelf()) {
-					<button
-						class="btn-follow"
-						[class.following]="profile()!.isFollowing"
-						[disabled]="togglingFollow()"
-						(click)="toggleFollow()"
-					>
-						{{ profile()!.isFollowing ? 'Following' : 'Follow' }}
-					</button>
-					}
+			<div class="flex-1 min-w-0">
+				<div class="flex items-center justify-center md:justify-start gap-2.5 mb-0.5 flex-wrap">
+					<h1 class="font-display text-2xl md:text-3xl font-bold tracking-tight m-0">{{ profile()!.user.name || profile()!.user.username }}</h1>
 				</div>
-				<span class="username">@{{ profile()!.user.username }}</span>
+				<span class="text-sm text-fg-muted">{{ '@' + profile()!.user.username }}</span>
 				@if (profile()!.user.bio) {
-				<p class="bio">{{ profile()!.user.bio }}</p>
+					<p class="mt-3 mb-0 text-sm text-fg-secondary leading-relaxed max-w-2xl mx-auto md:mx-0">{{ profile()!.user.bio }}</p>
 				}
-				<div class="header-meta">
-					<button class="meta-btn" (click)="showFollowers()">
-						<strong>{{ profile()!.followerCount }}</strong>
-						followers
+				<div class="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-4">
+					<button uiButton variant="ghost" size="sm" (click)="showFollowers()">
+						<strong class="text-fg">{{ profile()!.followerCount }}</strong>
+						<span class="text-fg-muted ml-1">followers</span>
 					</button>
-					<button class="meta-btn" (click)="showFollowing()">
-						<strong>{{ profile()!.followingCount }}</strong>
-						following
+					<button uiButton variant="ghost" size="sm" (click)="showFollowing()">
+						<strong class="text-fg">{{ profile()!.followingCount }}</strong>
+						<span class="text-fg-muted ml-1">following</span>
 					</button>
-					<span class="meta-item">
-						<span class="material-icons meta-icon"
-							>calendar_today</span
-						>
+					<span class="flex items-center gap-1 text-xs text-fg-muted">
+						<span class="material-icons text-sm">calendar_today</span>
 						Member since {{ memberSince }}
 					</span>
 				</div>
 			</div>
-		</div>
-
-		@if (profile()!.backlogs.length > 0) {
-		<div class="section">
-			<div class="section-header">
-				<h2>Recent Backlog</h2>
-				<a
-					class="view-all"
-					[routerLink]="['/user', username(), 'backlog']"
-					>{{ profile()!.backlogs.length }} total</a
+			@if (isLoggedIn() && !isSelf()) {
+				<button
+					uiButton
+					[variant]="profile()!.isFollowing ? 'ghost' : 'primary'"
+					size="sm"
+					[disabled]="togglingFollow()"
+					(click)="toggleFollow()"
+					class="!shrink-0"
 				>
-			</div>
-			<div class="game-grid">
-				@for (b of profile()!.backlogs.slice(0, 5); track b.id) {
-				<a class="game-card" [routerLink]="['/games', b.game.code]">
-					@if (b.game.backgroundUrl) {
-					<img
-						[src]="b.game.backgroundUrl"
-						[alt]="b.game.title"
-						class="game-cover"
-					/>
-					} @else {
-					<div class="game-cover-placeholder"></div>
-					}
-					<span class="game-card-title">{{ b.game.title }}</span>
-					<span class="game-card-status status-{{ b.status }}"
-						>{{ b.status.replace('_', ' ') }}</span
-					>
-				</a>
-				}
-			</div>
-		</div>
-		} @if (profile()!.gameShelf.length > 0) {
-		<div class="section">
-			<div class="section-header">
-				<h2>Game Shelf</h2>
-				<a
-					class="view-all"
-					[routerLink]="['/user', username(), 'game-shelf']"
-					>{{ profile()!.gameShelf.length }} total</a
-				>
-			</div>
-			<div class="game-grid">
-				@for (s of profile()!.gameShelf.slice(0, 5); track s.id) {
-				<a class="game-card" [routerLink]="['/games', s.game.code]">
-					@if (s.game.backgroundUrl) {
-					<img
-						[src]="s.game.backgroundUrl"
-						[alt]="s.game.title"
-						class="game-cover"
-					/>
-					} @else {
-					<div class="game-cover-placeholder"></div>
-					}
-					<span class="game-card-title">{{ s.game.title }}</span>
-					<span class="game-card-sub"
-						>{{ s.platform.abbreviation }}</span
-					>
-				</a>
-				}
-			</div>
-		</div>
-		} @if (profile()!.lists.length > 0) {
-		<div class="section">
-			<div class="section-header">
-				<h2>Public Lists</h2>
-				<span class="view-all"
-					>{{ profile()!.lists.length }} total</span
-				>
-			</div>
-			<div class="lists-grid">
-				@for (l of profile()!.lists.slice(0, 5); track l.id) {
-				<a
-					class="list-card"
-					[routerLink]="['/user', username(), 'lists', l.id]"
-				>
-					<div class="list-card-header">
-						<span class="list-name">{{ l.name }}</span>
-						<span class="list-followers">
-							<span class="material-icons list-followers-icon"
-								>group</span
-							>
-							{{ l.followerCount }}
-						</span>
-					</div>
-					@if (l.description) {
-					<p class="list-desc">{{ l.description }}</p>
-					} @if (l.progress && l.progress.total > 0) {
-					<div class="progress-mini">
-						<div class="progress-bar-mini">
-							<div
-								class="progress-fill-mini"
-								[style.width.%]="
-									(l.progress.completed / l.progress.total) *
-									100
-								"
-							></div>
-						</div>
-						<span class="progress-text"
-							>{{ l.progress.completed }}/{{ l.progress.total }}
-							completed</span
-						>
-					</div>
-					}
-				</a>
-				}
-			</div>
-		</div>
-		} @if (profile()!.followingLists.length > 0) {
-		<div class="section">
-			<div class="section-header">
-				<h2>Following Lists</h2>
-				<span class="view-all"
-					>{{ profile()!.followingLists.length }} total</span
-				>
-			</div>
-			<div class="lists-grid">
-				@for (l of profile()!.followingLists.slice(0, 5); track l.id) {
-				<a
-					class="list-card"
-					[routerLink]="['/user', username(), 'lists', l.id]"
-				>
-					<span class="list-name">{{ l.name }}</span>
-					@if (l.description) {
-					<p class="list-desc">{{ l.description }}</p>
-					} @if (l.progress && l.progress.total > 0) {
-					<div class="progress-mini">
-						<div class="progress-bar-mini">
-							<div
-								class="progress-fill-mini"
-								[style.width.%]="
-									(l.progress.completed / l.progress.total) *
-									100
-								"
-							></div>
-						</div>
-						<span class="progress-text"
-							>{{ l.progress.completed }}/{{ l.progress.total }}
-							completed</span
-						>
-					</div>
-					}
-				</a>
-				}
-			</div>
-		</div>
-		} @if (profile()!.user.isFavoritePublic && profile()!.favorites.length >
-		0) {
-		<div class="section">
-			<div class="section-header">
-				<h2>Favorites</h2>
-				<a
-					class="view-all"
-					[routerLink]="['/user', username(), 'favorites']"
-					>{{ profile()!.favorites.length }} total</a
-				>
-			</div>
-			<div class="game-grid">
-				@for (f of profile()!.favorites.slice(0, 5); track f.id) {
-				<a class="game-card" [routerLink]="['/games', f.game.code]">
-					@if (f.game.backgroundUrl) {
-					<img
-						[src]="f.game.backgroundUrl"
-						[alt]="f.game.title"
-						class="game-cover"
-					/>
-					} @else {
-					<div class="game-cover-placeholder"></div>
-					}
-					<span class="game-card-title">{{ f.game.title }}</span>
-				</a>
-				}
-			</div>
-		</div>
-		} @if (profile()!.user.isWishlistPublic && profile()!.wishlist.length >
-		0) {
-		<div class="section">
-			<div class="section-header">
-				<h2>Wishlist</h2>
-				<a
-					class="view-all"
-					[routerLink]="['/user', username(), 'wishlist']"
-					>{{ profile()!.wishlist.length }} total</a
-				>
-			</div>
-			<div class="game-grid">
-				@for (w of profile()!.wishlist.slice(0, 5); track w.id) {
-				<a
-					class="game-card"
-					[routerLink]="['/games', w.backlog.game.code]"
-				>
-					@if (w.backlog.game.backgroundUrl) {
-					<img
-						[src]="w.backlog.game.backgroundUrl"
-						[alt]="w.backlog.game.title"
-						class="game-cover"
-					/>
-					} @else {
-					<div class="game-cover-placeholder"></div>
-					}
-					<span class="game-card-title"
-						>{{ w.backlog.game.title }}</span
-					>
-					<span class="game-card-sub"
-						>{{ w.backlog.platform.abbreviation }}</span
-					>
-				</a>
-				}
-			</div>
-		</div>
-		} @if (userReviews().length > 0) {
-		<div class="section">
-			<div class="section-header">
-				<h2>Reviews</h2>
-				<span class="view-all">{{ userReviews().length }} total</span>
-			</div>
-			@for (r of userReviews().slice(0, 5); track r.id) {
-			<div class="review-card">
-				<div class="review-card-header">
-					@if (r.game) {
-					<a
-						class="review-game-link"
-						[routerLink]="['/games', r.game.code]"
-						>{{ r.game.title }}</a
-					>
-					} @if (r.rating) {
-					<app-star-rating
-						[value]="r.rating"
-						[readonly]="true"
-						size="sm"
-					/>
-					}
-				</div>
-				@if (r.content) {
-				<p class="review-text">{{ r.content }}</p>
-				}
-			</div>
+					{{ profile()!.isFollowing ? 'Following' : 'Follow' }}
+				</button>
 			}
 		</div>
-		} @if (profile()!.user.isFeedPublic && profile()!.recentActivity.length
-		> 0) {
-		<div class="section">
-			<div class="section-header">
-				<h2>Recent Activity</h2>
-			</div>
-			<div class="activity-list">
-				@for (a of profile()!.recentActivity.slice(0, 10); track a.id) {
-				<div class="activity-item">
-					<span class="activity-text">
-						{{ activityLabel(a.type) }}{{ " " }} @if (a.target?.type
-						=== 'game') {
-						<a
-							class="activity-game"
-							[routerLink]="['/games', a.target!.code]"
-							>{{ a.target!.name }}</a
-						>
-						} @else if (a.target?.type === 'list') {
-						<a
-							class="activity-game"
-							[routerLink]="['/lists', a.target!.id]"
-							>{{ a.target!.name }}</a
-						>
-						} @else if (a.target?.type === 'user') {
-						<a
-							class="activity-game"
-							[routerLink]="['/user', a.target!.username]"
-							>{{ a.target!.name }}</a
-						>
-						}
-					</span>
-					<span class="activity-time"
-						>{{ timeAgo(a.createdAt) }}</span
-					>
+
+		<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+			<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1">
+				<div class="flex items-center gap-2 text-xs uppercase tracking-wider text-fg-muted">
+					<span class="material-icons text-base text-success">check_circle</span>
+					Completed
 				</div>
+				<span class="text-3xl font-bold text-fg leading-none mt-1">{{ stats().completed }}</span>
+			</div>
+			<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1">
+				<div class="flex items-center gap-2 text-xs uppercase tracking-wider text-fg-muted">
+					<span class="material-icons text-base text-warning">play_arrow</span>
+					Playing
+				</div>
+				<span class="text-3xl font-bold text-fg leading-none mt-1">{{ stats().playing }}</span>
+			</div>
+			<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1">
+				<div class="flex items-center gap-2 text-xs uppercase tracking-wider text-fg-muted">
+					<span class="material-icons text-base text-brand">format_list_bulleted</span>
+					Lists
+				</div>
+				<span class="text-3xl font-bold text-fg leading-none mt-1">{{ stats().lists }}</span>
+			</div>
+			<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1">
+				<div class="flex items-center gap-2 text-xs uppercase tracking-wider text-fg-muted">
+					<span class="material-icons text-base text-fg-secondary">rate_review</span>
+					Reviews
+				</div>
+				<span class="text-3xl font-bold text-fg leading-none mt-1">{{ stats().reviews }}</span>
+			</div>
+		</div>
+
+		<ui-tabs [(value)]="activeTab">
+			<ui-tab-list class="!mb-6 !overflow-x-auto !overflow-y-hidden !flex-nowrap">
+				<button uiTab value="backlog" class="!whitespace-nowrap">
+					<span class="material-icons text-base mr-1.5 align-middle">list_alt</span>
+					Backlog
+				</button>
+				<button uiTab value="shelf" class="!whitespace-nowrap">
+					<span class="material-icons text-base mr-1.5 align-middle">shelves</span>
+					Shelf
+				</button>
+				<button uiTab value="lists" class="!whitespace-nowrap">
+					<span class="material-icons text-base mr-1.5 align-middle">format_list_bulleted</span>
+					Lists
+				</button>
+				@if (profile()!.user.isFavoritePublic) {
+					<button uiTab value="favorites" class="!whitespace-nowrap">
+						<span class="material-icons text-base mr-1.5 align-middle">star</span>
+						Favorites
+					</button>
+				}
+				@if (profile()!.user.isWishlistPublic) {
+					<button uiTab value="wishlist" class="!whitespace-nowrap">
+						<span class="material-icons text-base mr-1.5 align-middle">favorite_border</span>
+						Wishlist
+					</button>
+				}
+				<button uiTab value="reviews" class="!whitespace-nowrap">
+					<span class="material-icons text-base mr-1.5 align-middle">rate_review</span>
+					Reviews
+				</button>
+				@if (profile()!.user.isFeedPublic) {
+					<button uiTab value="activity" class="!whitespace-nowrap">
+						<span class="material-icons text-base mr-1.5 align-middle">dynamic_feed</span>
+						Activity
+					</button>
+				}
+			</ui-tab-list>
+
+			<div uiTabPanel value="backlog">
+				<div class="flex items-baseline justify-between mb-3">
+					<h2 class="font-display m-0 text-xl font-bold text-fg">Recent Backlog</h2>
+					<a
+						class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
+						[routerLink]="['/user', username(), 'backlog']"
+					>
+						See all {{ profile()!.backlogs.length }}
+						<span class="material-icons text-sm">arrow_forward</span>
+					</a>
+				</div>
+				@if (profile()!.backlogs.length === 0) {
+					<p class="text-center py-12 text-fg-muted text-sm">No backlog entries yet.</p>
+				} @else {
+					<div class="grid grid-cols-3 md:grid-cols-6 gap-4">
+						@for (b of profile()!.backlogs.slice(0, 6); track b.id) {
+							<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', b.game.code]">
+								@if (b.game.backgroundUrl) {
+									<img
+										[src]="b.game.backgroundUrl"
+										[alt]="b.game.title"
+										class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
+									/>
+								} @else {
+									<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+								}
+								<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ b.game.title }}</span>
+								<span
+									class="text-[0.625rem] font-semibold capitalize"
+									[class]="
+										b.status === 'completed' ? 'text-success' :
+										b.status === 'playing' ? 'text-warning' :
+										b.status === 'abandoned' ? 'text-danger' :
+										'text-fg-muted'
+									"
+								>{{ b.status.replace('_', ' ') }}</span>
+							</a>
+						}
+					</div>
 				}
 			</div>
-		</div>
-		} @if (!isLoggedIn()) {
-		<div class="cta-section">
-			<p>Want to track your own games?</p>
-			<a routerLink="/login" class="btn-cta">Sign in to Completr</a>
-		</div>
+
+			<div uiTabPanel value="shelf">
+				<div class="flex items-baseline justify-between mb-3">
+					<h2 class="font-display m-0 text-xl font-bold text-fg">Game Shelf</h2>
+					<a
+						class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
+						[routerLink]="['/user', username(), 'game-shelf']"
+					>
+						See all {{ profile()!.gameShelf.length }}
+						<span class="material-icons text-sm">arrow_forward</span>
+					</a>
+				</div>
+				@if (profile()!.gameShelf.length === 0) {
+					<p class="text-center py-12 text-fg-muted text-sm">Shelf is empty.</p>
+				} @else {
+					<div class="grid grid-cols-3 md:grid-cols-6 gap-4">
+						@for (s of profile()!.gameShelf.slice(0, 6); track s.id) {
+							<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', s.game.code]">
+								@if (s.game.backgroundUrl) {
+									<img [src]="s.game.backgroundUrl" [alt]="s.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+								} @else {
+									<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+								}
+								<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ s.game.title }}</span>
+								<span class="text-[0.625rem] text-fg-muted">{{ s.platform.abbreviation }}</span>
+							</a>
+						}
+					</div>
+				}
+			</div>
+
+			<div uiTabPanel value="lists">
+				@if (profile()!.lists.length === 0 && profile()!.followingLists.length === 0) {
+					<p class="text-center py-12 text-fg-muted text-sm">No lists yet.</p>
+				} @else {
+					@if (profile()!.lists.length > 0) {
+						<div class="mb-6">
+							<div class="flex items-baseline justify-between mb-3">
+								<h2 class="font-display m-0 text-xl font-bold text-fg">Public Lists</h2>
+								<span class="text-xs text-fg-muted">{{ profile()!.lists.length }} total</span>
+							</div>
+							<div class="flex flex-col gap-2">
+								@for (l of profile()!.lists.slice(0, 6); track l.id) {
+									<a class="flex flex-col gap-1 px-4 py-3 bg-surface border border-line rounded no-underline transition hover:border-brand" [routerLink]="['/user', username(), 'lists', l.id]">
+										<div class="flex items-center justify-between">
+											<span class="text-[0.9375rem] font-semibold text-fg">{{ l.name }}</span>
+											<span class="flex items-center gap-1 text-xs text-fg-muted">
+												<span class="material-icons text-sm">group</span>
+												{{ l.followerCount }}
+											</span>
+										</div>
+										@if (l.description) {
+											<p class="text-[0.8125rem] text-fg-muted leading-snug m-0">{{ l.description }}</p>
+										}
+										@if (l.progress && l.progress.total > 0) {
+											<div class="flex flex-col gap-1 mt-1.5">
+												<div class="h-[3px] bg-input-bg rounded-sm overflow-hidden">
+													<div class="h-full rounded-sm" style="background: linear-gradient(135deg, var(--color-brand), var(--color-success));" [style.width.%]="(l.progress.completed / l.progress.total) * 100"></div>
+												</div>
+												<span class="text-[0.625rem] text-fg-muted">{{ l.progress.completed }}/{{ l.progress.total }} completed</span>
+											</div>
+										}
+									</a>
+								}
+							</div>
+						</div>
+					}
+					@if (profile()!.followingLists.length > 0) {
+						<div>
+							<div class="flex items-baseline justify-between mb-3">
+								<h2 class="font-display m-0 text-xl font-bold text-fg">Following Lists</h2>
+								<span class="text-xs text-fg-muted">{{ profile()!.followingLists.length }} total</span>
+							</div>
+							<div class="flex flex-col gap-2">
+								@for (l of profile()!.followingLists.slice(0, 6); track l.id) {
+									<a class="flex flex-col gap-1 px-4 py-3 bg-surface border border-line rounded no-underline transition hover:border-brand" [routerLink]="['/user', username(), 'lists', l.id]">
+										<span class="text-[0.9375rem] font-semibold text-fg">{{ l.name }}</span>
+										@if (l.description) {
+											<p class="text-[0.8125rem] text-fg-muted leading-snug m-0">{{ l.description }}</p>
+										}
+										@if (l.progress && l.progress.total > 0) {
+											<div class="flex flex-col gap-1 mt-1.5">
+												<div class="h-[3px] bg-input-bg rounded-sm overflow-hidden">
+													<div class="h-full rounded-sm" style="background: linear-gradient(135deg, var(--color-brand), var(--color-success));" [style.width.%]="(l.progress.completed / l.progress.total) * 100"></div>
+												</div>
+												<span class="text-[0.625rem] text-fg-muted">{{ l.progress.completed }}/{{ l.progress.total }} completed</span>
+											</div>
+										}
+									</a>
+								}
+							</div>
+						</div>
+					}
+				}
+			</div>
+
+			@if (profile()!.user.isFavoritePublic) {
+				<div uiTabPanel value="favorites">
+					<div class="flex items-baseline justify-between mb-3">
+						<h2 class="font-display m-0 text-xl font-bold text-fg">Favorites</h2>
+						<a
+							class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
+							[routerLink]="['/user', username(), 'favorites']"
+						>
+							See all {{ profile()!.favorites.length }}
+							<span class="material-icons text-sm">arrow_forward</span>
+						</a>
+					</div>
+					@if (profile()!.favorites.length === 0) {
+						<p class="text-center py-12 text-fg-muted text-sm">No favorites yet.</p>
+					} @else {
+						<div class="grid grid-cols-3 md:grid-cols-6 gap-4">
+							@for (f of profile()!.favorites.slice(0, 6); track f.id) {
+								<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', f.game.code]">
+									@if (f.game.backgroundUrl) {
+										<img [src]="f.game.backgroundUrl" [alt]="f.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+									} @else {
+										<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+									}
+									<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ f.game.title }}</span>
+								</a>
+							}
+						</div>
+					}
+				</div>
+			}
+
+			@if (profile()!.user.isWishlistPublic) {
+				<div uiTabPanel value="wishlist">
+					<div class="flex items-baseline justify-between mb-3">
+						<h2 class="font-display m-0 text-xl font-bold text-fg">Wishlist</h2>
+						<a
+							class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
+							[routerLink]="['/user', username(), 'wishlist']"
+						>
+							See all {{ profile()!.wishlist.length }}
+							<span class="material-icons text-sm">arrow_forward</span>
+						</a>
+					</div>
+					@if (profile()!.wishlist.length === 0) {
+						<p class="text-center py-12 text-fg-muted text-sm">No wishlist items yet.</p>
+					} @else {
+						<div class="grid grid-cols-3 md:grid-cols-6 gap-4">
+							@for (w of profile()!.wishlist.slice(0, 6); track w.id) {
+								<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', w.backlog.game.code]">
+									@if (w.backlog.game.backgroundUrl) {
+										<img [src]="w.backlog.game.backgroundUrl" [alt]="w.backlog.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+									} @else {
+										<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+									}
+									<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ w.backlog.game.title }}</span>
+									<span class="text-[0.625rem] text-fg-muted">{{ w.backlog.platform.abbreviation }}</span>
+								</a>
+							}
+						</div>
+					}
+				</div>
+			}
+
+			<div uiTabPanel value="reviews">
+				<div class="flex items-baseline justify-between mb-3">
+					<h2 class="font-display m-0 text-xl font-bold text-fg">Reviews</h2>
+					<span class="text-xs text-fg-muted">{{ userReviews().length }} total</span>
+				</div>
+				@if (userReviews().length === 0) {
+					<p class="text-center py-12 text-fg-muted text-sm">No reviews yet.</p>
+				} @else {
+					@for (r of userReviews().slice(0, 6); track r.id) {
+						<div class="py-3 border-b border-line last:border-b-0">
+							<div class="flex items-center justify-between mb-1.5">
+								@if (r.game) {
+									<a class="text-sm font-semibold text-fg no-underline hover:text-brand" [routerLink]="['/games', r.game.code]">{{ r.game.title }}</a>
+								}
+								@if (r.rating) {
+									<app-star-rating [value]="r.rating" [readonly]="true" size="sm" />
+								}
+							</div>
+							@if (r.content) {
+								<p class="m-0 text-[0.8125rem] text-fg-secondary leading-relaxed overflow-hidden" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">{{ r.content }}</p>
+							}
+						</div>
+					}
+				}
+			</div>
+
+			@if (profile()!.user.isFeedPublic) {
+				<div uiTabPanel value="activity">
+					<div class="flex items-baseline justify-between mb-3">
+						<h2 class="font-display m-0 text-xl font-bold text-fg">Recent Activity</h2>
+					</div>
+					@if (profile()!.recentActivity.length === 0) {
+						<p class="text-center py-12 text-fg-muted text-sm">No recent activity.</p>
+					} @else {
+						<div class="flex flex-col">
+							@for (a of profile()!.recentActivity.slice(0, 10); track a.id) {
+								<div class="flex items-center justify-between py-2 border-b border-line">
+									<span class="text-[0.8125rem] text-fg-secondary capitalize">
+										{{ activityLabel(a.type) }}{{ " " }}
+										@if (a.target?.type === 'game') {
+											<a class="font-semibold text-brand" [routerLink]="['/games', a.target!.code]">{{ a.target!.name }}</a>
+										} @else if (a.target?.type === 'list') {
+											<a class="font-semibold text-brand" [routerLink]="['/lists', a.target!.id]">{{ a.target!.name }}</a>
+										} @else if (a.target?.type === 'user') {
+											<a class="font-semibold text-brand" [routerLink]="['/user', a.target!.username]">{{ a.target!.name }}</a>
+										}
+									</span>
+									<span class="text-[0.6875rem] text-fg-muted whitespace-nowrap ml-4">{{ timeAgo(a.createdAt) }}</span>
+								</div>
+							}
+						</div>
+					}
+				</div>
+			}
+		</ui-tabs>
+
+		@if (!isLoggedIn()) {
+			<div class="text-center py-8 px-4 border-t border-line mt-8">
+				<p class="text-fg-muted text-sm mb-3">Want to track your own games?</p>
+				<a
+					routerLink="/login"
+					class="inline-block px-5 py-2 text-white rounded text-sm font-semibold no-underline"
+					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+				>Sign in to Completr</a>
+			</div>
 		}
-	</div>
 	}
 </div>
 
 @if (showUserListModal()) {
-<app-user-list-modal
-	[title]="userListTitle()"
-	[users]="userListUsers()"
-	(closed)="showUserListModal.set(false)"
-/>
+	<app-user-list-modal
+		[title]="userListTitle()"
+		[users]="userListUsers()"
+		(closed)="showUserListModal.set(false)"
+	/>
 }

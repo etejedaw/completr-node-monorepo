@@ -1,69 +1,73 @@
 @if (isLoading()) {
-<div class="loading">Loading...</div>
+<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 } @else if (!list()) {
-<div class="not-found">List not found.</div>
+<div class="text-center py-12 text-fg-muted text-sm">List not found.</div>
 } @else {
-<div class="detail-page">
-	<div class="page-header">
-		<div class="page-header-left">
-			<a routerLink="/lists" class="btn-back">
+<div class="max-w-full">
+	<div class="flex justify-between items-start mb-4 gap-4">
+		<div class="flex items-start gap-3">
+			<a
+				routerLink="/lists"
+				class="flex p-1 mt-0.5 text-fg-muted hover:text-brand"
+			>
 				<span class="material-icons">arrow_back</span>
 			</a>
 			<div>
-				<h1>{{ list()!.name }}</h1>
+				<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">{{ list()!.name }}</h1>
 				@if (list()!.description) {
-				<p class="list-desc">{{ list()!.description }}</p>
+				<p class="mt-1 mb-0 text-[0.8125rem] text-fg-secondary">{{ list()!.description }}</p>
 				}
 			</div>
 		</div>
 		@if (isOwner()) {
-		<div class="header-actions">
+		<div class="flex gap-2 shrink-0">
 			<button
-				class="btn-secondary"
+				uiButton variant="secondary" size="sm"
 				(click)="showAddSearch.set(!showAddSearch())"
 			>
-				<span class="material-icons">add</span>
+				<span class="material-icons text-base">add</span>
 				Add Game
 			</button>
 			<button
-				class="btn-secondary"
+				uiButton variant="secondary" size="sm"
 				(click)="refreshScores()"
 				[disabled]="refreshing()"
 			>
-				<span class="material-icons">refresh</span>
+				<span class="material-icons text-base">refresh</span>
 				{{ refreshing() ? 'Refreshing...' : 'Refresh Scores' }}
 			</button>
-			<button class="btn-secondary" (click)="openEdit()">
-				<span class="material-icons">edit</span>
+			<button uiButton variant="secondary" size="sm" (click)="openEdit()">
+				<span class="material-icons text-base">edit</span>
 				Edit
 			</button>
 		</div>
 		}
 	</div>
 
-	<div class="list-meta-row">
-		<span class="meta-item">
-			<span class="material-icons meta-icon"
+	<div class="flex gap-4 mb-5 items-center">
+		<span class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider">
+			<span class="material-icons text-[0.875rem]"
 				>{{ list()!.isPublic ? 'public' : 'lock' }}</span
 			>
 			{{ list()!.isPublic ? 'Public' : 'Private' }}
 		</span>
-		<span class="meta-item">
-			<span class="material-icons meta-icon">leaderboard</span>
+		<span class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider">
+			<span class="material-icons text-[0.875rem]">leaderboard</span>
 			{{ list()!.scoreSource }}
 		</span>
-		<span class="meta-item">
-			<span class="material-icons meta-icon">schedule</span>
+		<span class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider">
+			<span class="material-icons text-[0.875rem]">schedule</span>
 			{{ list()!.durationSource }}
 		</span>
-		<span class="meta-item">
-			<span class="material-icons meta-icon">people</span>
+		<span class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider">
+			<span class="material-icons text-[0.875rem]">people</span>
 			{{ list()!.followerCount ?? 0 }} followers
 		</span>
 		@if (!isOwner() && list()!.isPublic) {
 		<button
-			class="btn-follow-list"
-			[class.following]="list()!.isFollowing"
+			uiButton
+			[variant]="list()!.isFollowing ? 'ghost' : 'primary'"
+			size="sm"
 			[disabled]="togglingFollow()"
 			(click)="toggleFollow()"
 		>
@@ -73,17 +77,18 @@
 	</div>
 
 	@if (list()!.progress) {
-	<div class="progress-section">
-		<div class="progress-header">
-			<span class="progress-label">Your progress</span>
-			<span class="progress-count"
+	<div class="mb-5 px-4 py-3 bg-surface border border-line rounded-card">
+		<div class="flex items-center justify-between mb-2">
+			<span class="text-xs font-semibold text-fg-secondary uppercase tracking-wider">Your progress</span>
+			<span class="text-[0.8125rem] font-semibold text-fg"
 				>{{ list()!.progress!.completed }}/{{ list()!.progress!.total
 				}}</span
 			>
 		</div>
-		<div class="progress-bar">
+		<div class="h-1.5 bg-input-bg rounded-[3px] overflow-hidden">
 			<div
-				class="progress-fill"
+				class="h-full rounded-[3px] transition-[width] duration-300 ease-out"
+				style="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
 				[style.width.%]="
 					list()!.progress!.total > 0
 						? (list()!.progress!.completed /
@@ -96,23 +101,23 @@
 	</div>
 	}
 
-	<!-- Add game search -->
 	@if (isOwner() && showAddSearch()) {
-	<div class="add-search">
-		<input
-			type="text"
-			placeholder="Search games to add..."
-			[value]="searchQuery()"
-			(input)="onSearch($event)"
-		/>
+	<div class="mb-5 max-w-2xl">
+		<ui-search-bar placeholder="Search games to add..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 		@if (isSearching()) {
-		<div class="search-loading">Searching...</div>
+		<div class="px-3 py-2 text-[0.8125rem] text-fg-muted">Searching...</div>
 		} @if (searchResults().length > 0) {
-		<ul class="search-results">
+		<ul class="list-none bg-input-bg border border-line rounded-card mt-1 max-h-[200px] overflow-y-auto p-0">
 			@for (game of searchResults(); track game.id) {
-			<li (click)="addGame(game)">
+			<li
+				class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] transition hover:bg-surface"
+				(click)="addGame(game)"
+			>
 				@if (game.backgroundUrl) {
-				<img [src]="game.backgroundUrl" class="result-cover" />
+				<img
+					[src]="game.backgroundUrl"
+					class="w-7 h-[38px] object-cover rounded-[3px] shrink-0"
+				/>
 				}
 				<span>{{ game.title }}</span>
 			</li>
@@ -122,132 +127,103 @@
 	</div>
 	}
 
-	<!-- Items table -->
 	@if (list()!.items.length === 0) {
-	<div class="empty">No games in this list yet.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">No games in this list yet.</div>
 	} @else {
-	<div class="view-toggle">
-		<button
-			[class.active]="viewMode() === 'table'"
-			(click)="viewMode.set('table')"
-		>
-			<span class="material-icons">view_list</span>
-		</button>
-		<button
-			[class.active]="viewMode() === 'grid'"
-			(click)="viewMode.set('grid')"
-		>
-			<span class="material-icons">grid_view</span>
-		</button>
-	</div>
-	@if (viewMode() === 'table') {
-	<div class="table-wrapper">
-		<table>
-			<thead>
-				<tr>
-					<th class="col-pos">#</th>
-					<th class="col-cover"></th>
-					<th class="col-title">Title</th>
-					<th class="col-num">Score</th>
-					<th class="col-num">Duration</th>
-					<th class="col-num">Ratio</th>
-					<th class="col-icon-status">Backlog</th>
-					@if (isOwner()) {
-					<th class="col-actions"></th>
-					}
-				</tr>
-			</thead>
-			<tbody>
-				@for (item of list()!.items; track item.id; let i = $index) {
-				<tr>
-					<td class="col-pos">{{ item.position }}</td>
-					<td class="col-cover">
+		<div class="flex flex-col gap-3">
+			@for (item of list()!.items; track item.id; let i = $index) {
+				<div class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line transition hover:border-brand/40">
+					<div class="shrink-0 flex items-center justify-center w-10 text-3xl font-bold text-fg-muted">
+						{{ item.position }}
+					</div>
+
+					<a
+						[routerLink]="['/games', item.game.code]"
+						class="shrink-0"
+					>
 						@if (item.game.backgroundUrl) {
-						<img
-							[src]="item.game.backgroundUrl"
-							[alt]="item.game.title"
-							class="cover-img"
-						/>
+							<img
+								[src]="item.game.backgroundUrl"
+								[alt]="item.game.title"
+								class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
+							/>
 						} @else {
-						<div class="cover-placeholder"></div>
+							<div class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"></div>
 						}
-					</td>
-					<td class="col-title">
+					</a>
+
+					<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
 						<a
-							class="game-title-link"
+							class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
 							[routerLink]="['/games', item.game.code]"
-						>
-							{{ item.game.title }}
-						</a>
-					</td>
-					<td class="col-num">{{ item.score ?? "-" }}</td>
-					<td class="col-num">
-						{{ item.duration ? item.duration + "h" : "-" }}
-					</td>
-					<td class="col-num">{{ item.ratio ?? "-" }}</td>
-					<td class="col-icon-status">
-						@if (item.backlogStatus) {
-						<span class="material-icons status-icon active"
-							>list_alt</span
-						>
-						} @else {
-						<button
-							class="btn-status-icon"
-							(click)="openBacklogModal(item)"
-							title="Add to Backlog"
-						>
-							<span class="material-icons">list_alt</span>
-						</button>
+						>{{ item.game.title }}</a>
+
+						<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
+							@if (item.score) {
+								<span class="text-fg-muted">Score {{ item.score }}</span>
+							}
+							@if (item.duration) {
+								<span class="text-fg-muted">·</span>
+								<span class="text-fg-muted">{{ item.duration }}h</span>
+							}
+							@if (item.backlogStatus) {
+								<span class="text-fg-muted">·</span>
+								<span class="flex items-center gap-1 text-brand">
+									<span class="material-icons text-sm">list_alt</span>
+									In Backlog
+								</span>
+							} @else {
+								<span class="text-fg-muted">·</span>
+								<button
+									class="flex items-center gap-1 text-fg-muted hover:text-brand transition cursor-pointer bg-transparent border-0 p-0 text-xs"
+									(click)="openBacklogModal(item)"
+									title="Add to Backlog"
+								>
+									<span class="material-icons text-sm">add</span>
+									Add to Backlog
+								</button>
+							}
+						</div>
+					</div>
+
+					<div class="hidden sm:flex flex-col items-end justify-center shrink-0 min-w-[70px] text-right">
+						@if (item.ratio) {
+							<span class="text-3xl font-bold text-brand leading-none">{{ item.ratio }}</span>
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
 						}
-					</td>
+					</div>
+
 					@if (isOwner()) {
-					<td class="col-actions">
-						<button
-							class="btn-move"
-							[disabled]="i === 0"
-							(click)="moveUp(i)"
-						>
-							<span class="material-icons"
-								>keyboard_arrow_up</span
+						<div class="flex flex-col items-center justify-center gap-1 shrink-0">
+							<button
+								uiIconButton size="sm"
+								[disabled]="i === 0"
+								(click)="moveUp(i)"
+								title="Move up"
 							>
-						</button>
-						<button
-							class="btn-move"
-							[disabled]="i === list()!.items.length - 1"
-							(click)="moveDown(i)"
-						>
-							<span class="material-icons"
-								>keyboard_arrow_down</span
+								<span class="material-icons text-lg">keyboard_arrow_up</span>
+							</button>
+							<button
+								uiIconButton size="sm"
+								[disabled]="i === list()!.items.length - 1"
+								(click)="moveDown(i)"
+								title="Move down"
 							>
-						</button>
-						<button class="btn-remove" (click)="removeItem(item)">
-							<span class="material-icons">close</span>
-						</button>
-					</td>
+								<span class="material-icons text-lg">keyboard_arrow_down</span>
+							</button>
+							<button
+								uiIconButton size="sm" tone="danger"
+								(click)="removeItem(item)"
+								title="Remove"
+							>
+								<span class="material-icons text-lg">close</span>
+							</button>
+						</div>
 					}
-				</tr>
-				}
-			</tbody>
-		</table>
-	</div>
-	} @if (viewMode() === 'grid') {
-	<div class="game-grid">
-		@for (item of list()!.items; track item.id) {
-		<a class="game-card" [routerLink]="['/games', item.game.code]">
-			@if (item.game.backgroundUrl) {
-			<img
-				[src]="item.game.backgroundUrl"
-				[alt]="item.game.title"
-				class="game-cover"
-			/>
-			} @else {
-			<div class="game-cover-placeholder"></div>
+				</div>
 			}
-			<span class="game-card-title">{{ item.game.title }}</span>
-		</a>
-		}
-	</div>
-	} }
+		</div>
+	}
 </div>
 } @if (showEditModal()) {
 <app-list-modal
