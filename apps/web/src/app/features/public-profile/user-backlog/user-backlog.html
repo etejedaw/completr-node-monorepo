@@ -41,15 +41,7 @@
 		}
 	</div>
 
-	<div class="mb-4">
-		<input
-			type="text"
-			class="w-full max-w-[320px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-			placeholder="Search by title..."
-			[value]="searchQuery()"
-			(input)="onSearch($event)"
-		/>
-	</div>
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
 	@if (isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>

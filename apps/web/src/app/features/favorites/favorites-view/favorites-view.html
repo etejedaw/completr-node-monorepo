@@ -4,6 +4,8 @@
 		<span class="text-sm text-fg-muted">{{ entries().length }} games</span>
 	</div>
 
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [(value)]="searchQuery" />
+
 	@if (isLoading()) {
 		<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (entries().length === 0) {
@@ -16,7 +18,7 @@
 		</div>
 	} @else {
 		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-			@for (entry of entries(); track entry.id) {
+			@for (entry of filteredEntries(); track entry.id) {
 				<div class="relative group">
 					<a
 						[routerLink]="['/games', entry.game.code]"

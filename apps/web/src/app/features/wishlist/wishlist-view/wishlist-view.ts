@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
@@ -9,11 +10,11 @@ import { RouterLink } from "@angular/router";
 import { WishlistEntry } from "../../../core/models";
 import { WishlistService } from "../wishlist.service";
 import { WishlistAddModal } from "../wishlist-add-modal/wishlist-add-modal";
-import { UiButton, UiIconButton } from "../../../shared/ui";
+import { UiButton, UiIconButton, UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-wishlist-view",
-	imports: [RouterLink, WishlistAddModal, UiButton, UiIconButton],
+	imports: [RouterLink, WishlistAddModal, UiButton, UiIconButton, UiSearchBar],
 	templateUrl: "./wishlist-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -24,6 +25,15 @@ export class WishlistView implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly showAddModal = signal(false);
 	protected readonly viewMode = signal<"table" | "grid">("table");
+	protected readonly searchQuery = signal("");
+
+	protected readonly filteredEntries = computed(() => {
+		const q = this.searchQuery().trim().toLowerCase();
+		if (!q) return this.entries();
+		return this.entries().filter(e =>
+			e.backlog.game.title.toLowerCase().includes(q)
+		);
+	});
 
 	ngOnInit() {
 		this.loadWishlist();

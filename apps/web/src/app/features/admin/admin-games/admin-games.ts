@@ -9,10 +9,11 @@ import { Router, RouterLink } from "@angular/router";
 import { Game } from "../../../core/models";
 import { GamesService } from "../../games/games.service";
 import { AdminService } from "../admin.service";
+import { UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-admin-games",
-	imports: [RouterLink],
+	imports: [RouterLink, UiSearchBar],
 	templateUrl: "./admin-games.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -50,8 +51,7 @@ export class AdminGames implements OnInit {
 		});
 	}
 
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
+	onSearch(query: string) {
 		this.searchQuery.set(query);
 		this.offset.set(0);
 

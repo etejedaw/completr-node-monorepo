@@ -102,14 +102,8 @@
 	}
 
 	@if (isOwner() && showAddSearch()) {
-	<div class="mb-5">
-		<input
-			uiInput
-			type="text"
-			placeholder="Search games to add..."
-			[value]="searchQuery()"
-			(input)="onSearch($event)"
-		/>
+	<div class="mb-5 max-w-2xl">
+		<ui-search-bar placeholder="Search games to add..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 		@if (isSearching()) {
 		<div class="px-3 py-2 text-[0.8125rem] text-fg-muted">Searching...</div>
 		} @if (searchResults().length > 0) {

@@ -4,16 +4,7 @@
 		<p class="text-fg-muted text-sm mt-1">Discover and search the catalog.</p>
 	</div>
 
-	<div class="flex gap-2 items-center mb-8">
-		<input
-			uiInput
-			type="text"
-			class="!w-full !py-3 !px-4 !text-base"
-			placeholder="Search games..."
-			[value]="searchQuery()"
-			(input)="onSearch($event)"
-		/>
-	</div>
+	<ui-search-bar class="block mb-8 max-w-2xl" placeholder="Search games..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
 	@if (isAdmin()) {
 		<div class="flex items-center gap-3 py-2.5 px-3.5 bg-danger/[0.05] border border-danger/[0.15] rounded mb-6">

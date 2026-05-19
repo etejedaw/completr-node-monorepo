@@ -20,11 +20,11 @@ import {
 	switchMap,
 	of
 } from "rxjs";
-import { UiButton, UiIconButton, UiInput } from "../../../shared/ui";
+import { UiButton, UiIconButton, UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-list-detail",
-	imports: [RouterLink, ListModal, BacklogModal, UiButton, UiIconButton, UiInput],
+	imports: [RouterLink, ListModal, BacklogModal, UiButton, UiIconButton, UiSearchBar],
 	templateUrl: "./list-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -76,8 +76,7 @@ export class ListDetail implements OnInit {
 			});
 	}
 
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
+	onSearch(query: string) {
 		this.searchQuery.set(query);
 		if (query.length >= 2) this.isSearching.set(true);
 		this.searchSubject.next(query);

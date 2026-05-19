@@ -10,7 +10,7 @@ import { GameShelfEntry } from "../../../core/models";
 import { GameShelfService } from "../game-shelf.service";
 import { RouterLink } from "@angular/router";
 import { GameShelfModal } from "../game-shelf-modal/game-shelf-modal";
-import { UiButton, UiInput } from "../../../shared/ui";
+import { UiButton, UiSearchBar } from "../../../shared/ui";
 
 interface PlatformCount {
 	id: string;
@@ -20,7 +20,7 @@ interface PlatformCount {
 
 @Component({
 	selector: "app-game-shelf-list",
-	imports: [DatePipe, GameShelfModal, RouterLink, UiButton, UiInput],
+	imports: [DatePipe, GameShelfModal, RouterLink, UiButton, UiSearchBar],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -40,8 +40,7 @@ export class GameShelfList implements OnInit {
 		this.loadShelf();
 	}
 
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
+	onSearch(query: string) {
 		this.searchQuery.set(query);
 		this.filterEntries();
 	}

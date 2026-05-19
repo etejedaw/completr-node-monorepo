@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
@@ -8,11 +9,11 @@ import {
 import { RouterLink } from "@angular/router";
 import { FavoriteEntry } from "../../../core/models";
 import { FavoritesService } from "../favorites.service";
-import { UiIconButton } from "../../../shared/ui";
+import { UiIconButton, UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-favorites-view",
-	imports: [RouterLink, UiIconButton],
+	imports: [RouterLink, UiIconButton, UiSearchBar],
 	templateUrl: "./favorites-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -21,6 +22,13 @@ export class FavoritesView implements OnInit {
 
 	protected readonly entries = signal<FavoriteEntry[]>([]);
 	protected readonly isLoading = signal(true);
+	protected readonly searchQuery = signal("");
+
+	protected readonly filteredEntries = computed(() => {
+		const q = this.searchQuery().trim().toLowerCase();
+		if (!q) return this.entries();
+		return this.entries().filter(e => e.game.title.toLowerCase().includes(q));
+	});
 
 	ngOnInit() {
 		this.loadFavorites();

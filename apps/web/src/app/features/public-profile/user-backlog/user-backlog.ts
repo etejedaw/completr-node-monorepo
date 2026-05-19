@@ -12,12 +12,13 @@ import { AuthService } from "../../../core/services/auth.service";
 import { PublicProfileService } from "../public-profile.service";
 import { BacklogEntry, BacklogStatus } from "../../../core/models";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { UiSearchBar } from "../../../shared/ui";
 
 const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-backlog",
-	imports: [RouterLink, DatePipe, StarRating],
+	imports: [RouterLink, DatePipe, StarRating, UiSearchBar],
 	templateUrl: "./user-backlog.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -73,8 +74,8 @@ export class UserBacklog implements OnInit {
 		this.load();
 	}
 
-	onSearch(event: Event) {
-		this.searchSubject.next((event.target as HTMLInputElement).value);
+	onSearch(query: string) {
+		this.searchSubject.next(query);
 	}
 
 	filterByStatus(status: string) {

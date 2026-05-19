@@ -9,6 +9,8 @@
 		</button>
 	</div>
 
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [(value)]="searchQuery" />
+
 	<div class="flex gap-1 mb-4">
 		<button
 			class="flex bg-input-bg border border-line rounded-md text-fg-muted p-1.5 cursor-pointer transition hover:border-brand hover:text-brand"
@@ -42,7 +44,7 @@
 	</div>
 	} @else { @if (viewMode() === 'table') {
 		<div class="flex flex-col gap-3">
-			@for (entry of entries(); track entry.id; let i = $index) {
+			@for (entry of filteredEntries(); track entry.id; let i = $index) {
 				<div class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line transition hover:border-brand/40">
 					<div class="shrink-0 flex items-center justify-center w-10 text-3xl font-bold text-fg-muted">
 						{{ entry.position }}
@@ -106,7 +108,7 @@
 						</button>
 						<button
 							uiIconButton size="sm"
-							[disabled]="i === entries().length - 1"
+							[disabled]="i === filteredEntries().length - 1"
 							(click)="moveDown(i)"
 							title="Move down"
 						>
@@ -125,7 +127,7 @@
 		</div>
 	} @if (viewMode() === 'grid') {
 	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-		@for (entry of entries(); track entry.id) {
+		@for (entry of filteredEntries(); track entry.id) {
 		<a class="flex flex-col gap-1.5 text-inherit no-underline group" [routerLink]="['/games', entry.backlog.game.code]">
 			@if (entry.backlog.game.backgroundUrl) {
 			<img

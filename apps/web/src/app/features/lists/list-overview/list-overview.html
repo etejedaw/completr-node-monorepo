@@ -9,16 +9,7 @@
 		</button>
 	</div>
 
-	<div class="mb-4">
-		<input
-			uiInput
-			type="text"
-			class="!max-w-[320px]"
-			placeholder="Search public lists..."
-			[value]="searchQuery()"
-			(input)="onSearch($event)"
-		/>
-	</div>
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search public lists..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
 	@if (searchQuery().length >= 2) {
 		<div class="mb-6 pb-6 border-b border-line">

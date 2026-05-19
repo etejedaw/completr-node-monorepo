@@ -18,11 +18,11 @@ import {
 	switchMap,
 	of
 } from "rxjs";
-import { UiButton, UiInput } from "../../../shared/ui";
+import { UiButton, UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-games-browse",
-	imports: [RouterLink, AdminGameEditor, UiButton, UiInput],
+	imports: [RouterLink, AdminGameEditor, UiButton, UiSearchBar],
 	templateUrl: "./games-browse.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -78,8 +78,7 @@ export class GamesBrowse implements OnInit {
 		}
 	}
 
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
+	onSearch(query: string) {
 		this.searchQuery.set(query);
 		if (query.length >= 2) this.isSearching.set(true);
 		this.searchSubject.next(query);

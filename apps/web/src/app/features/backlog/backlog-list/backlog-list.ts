@@ -15,11 +15,11 @@ import { GamesService } from "../../games/games.service";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
-import { UiButton, UiInput } from "../../../shared/ui";
+import { UiButton, UiInput, UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink, UiButton, UiInput],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink, UiButton, UiInput, UiSearchBar],
 	templateUrl: "./backlog-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -286,8 +286,7 @@ export class BacklogList implements OnInit {
 		return filters;
 	}
 
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
+	onSearch(query: string) {
 		this.searchQuery.set(query);
 		this.filterEntries();
 	}

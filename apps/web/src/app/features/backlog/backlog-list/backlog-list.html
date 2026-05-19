@@ -7,16 +7,7 @@
 		<button uiButton variant="primary" (click)="openCreate()">+ Add Game</button>
 	</div>
 
-	<div class="mb-3">
-		<input
-			uiInput
-			type="text"
-			class="!max-w-[320px]"
-			placeholder="Search by title..."
-			[value]="searchQuery()"
-			(input)="onSearch($event)"
-		/>
-	</div>
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
 	<div class="flex items-center gap-2 mb-4">
 		@if (backlogFilters().length > 0) {
