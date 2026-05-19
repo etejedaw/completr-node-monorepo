@@ -5,7 +5,7 @@ import {
 	signal
 } from "@angular/core";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import { UiButton, UiInput } from "../../../shared/ui";
 
@@ -19,6 +19,7 @@ export class Login {
 	private readonly fb = inject(FormBuilder);
 	private readonly auth = inject(AuthService);
 	private readonly router = inject(Router);
+	private readonly route = inject(ActivatedRoute);
 
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
@@ -37,9 +38,10 @@ export class Login {
 		const { email, password } = this.form.getRawValue();
 		this.auth.login({ email: email!, password: password! }).subscribe({
 			next: () => {
+				const target = this.resolveReturnUrl();
 				this.auth.loadUser().subscribe({
-					next: () => this.router.navigate(["/backlog"]),
-					error: () => this.router.navigate(["/backlog"])
+					next: () => this.router.navigateByUrl(target),
+					error: () => this.router.navigateByUrl(target)
 				});
 			},
 			error: err => {
@@ -47,6 +49,14 @@ export class Login {
 				this.error.set(this.messageFor(err));
 			}
 		});
+	}
+
+	private resolveReturnUrl(): string {
+		const raw = this.route.snapshot.queryParamMap.get("returnUrl");
+		if (raw && raw.startsWith("/") && !raw.startsWith("//")) {
+			return raw;
+		}
+		return "/backlog";
 	}
 
 	private messageFor(err: { status?: number }): string {
