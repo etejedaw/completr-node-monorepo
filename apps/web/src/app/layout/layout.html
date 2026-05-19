@@ -18,13 +18,13 @@
 		class="w-60 bg-sidebar flex flex-col border-r border-line shrink-0 h-screen sticky top-0 overflow-y-auto max-md:fixed max-md:left-0 max-md:top-0 max-md:z-[100] max-md:-translate-x-full max-md:transition-transform max-md:duration-200"
 		[class.max-md:!translate-x-0]="sidebarOpen()"
 	>
-		<div class="flex items-center gap-2 px-5 pt-4 pb-3">
+		<a routerLink="/feed" class="flex items-center gap-2 px-5 pt-4 pb-3 no-underline hover:opacity-90">
 			<span
 				class="flex items-center justify-center w-7 h-7 rounded-md font-display font-bold text-sm text-white"
 				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 4px 14px -4px var(--color-brand-glow);"
 			>C</span>
 			<span class="text-base font-bold text-fg tracking-tight font-display">Completr</span>
-		</div>
+		</a>
 
 		<div class="px-3 py-1">
 			<ul class="list-none">
