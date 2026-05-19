@@ -20,16 +20,16 @@
 				<div class="relative group">
 					<a
 						[routerLink]="['/games', entry.game.code]"
-						class="flex flex-col gap-1.5 text-inherit no-underline"
+						class="flex flex-col gap-1.5 text-inherit no-underline group"
 					>
 						@if (entry.game.backgroundUrl) {
 							<img
 								[src]="entry.game.backgroundUrl"
 								[alt]="entry.game.title"
-								class="w-full aspect-video object-cover rounded-md transition-transform hover:scale-[1.03]"
+								class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40-md transition-transform hover:scale-[1.03]"
 							/>
 						} @else {
-							<div class="w-full aspect-video bg-surface rounded-md"></div>
+							<div class="w-full aspect-[3/4] bg-surface rounded-lg-md"></div>
 						}
 						<span class="text-xs font-medium text-fg-secondary truncate">{{ entry.game.title }}</span>
 					</a>

@@ -111,15 +111,15 @@
 		</div>
 		<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
 			@for (b of profile()!.backlogs.slice(0, 5); track b.id) {
-			<a class="flex flex-col gap-1 no-underline text-inherit" [routerLink]="['/games', b.game.code]">
+			<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', b.game.code]">
 				@if (b.game.backgroundUrl) {
 				<img
 					[src]="b.game.backgroundUrl"
 					[alt]="b.game.title"
-					class="w-full aspect-video object-cover rounded transition-transform hover:scale-[1.03]"
+					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
 				/>
 				} @else {
-				<div class="w-full aspect-video bg-surface rounded"></div>
+				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
 				}
 				<span class="text-[0.6875rem] font-medium text-fg-secondary overflow-hidden text-ellipsis whitespace-nowrap">{{ b.game.title }}</span>
 				<span
@@ -146,15 +146,15 @@
 		</div>
 		<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
 			@for (s of profile()!.gameShelf.slice(0, 5); track s.id) {
-			<a class="flex flex-col gap-1 no-underline text-inherit" [routerLink]="['/games', s.game.code]">
+			<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', s.game.code]">
 				@if (s.game.backgroundUrl) {
 				<img
 					[src]="s.game.backgroundUrl"
 					[alt]="s.game.title"
-					class="w-full aspect-video object-cover rounded transition-transform hover:scale-[1.03]"
+					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
 				/>
 				} @else {
-				<div class="w-full aspect-video bg-surface rounded"></div>
+				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
 				}
 				<span class="text-[0.6875rem] font-medium text-fg-secondary overflow-hidden text-ellipsis whitespace-nowrap">{{ s.game.title }}</span>
 				<span class="text-[0.625rem] text-fg-muted">{{ s.platform.abbreviation }}</span>
@@ -235,15 +235,15 @@
 		</div>
 		<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
 			@for (f of profile()!.favorites.slice(0, 5); track f.id) {
-			<a class="flex flex-col gap-1 no-underline text-inherit" [routerLink]="['/games', f.game.code]">
+			<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', f.game.code]">
 				@if (f.game.backgroundUrl) {
 				<img
 					[src]="f.game.backgroundUrl"
 					[alt]="f.game.title"
-					class="w-full aspect-video object-cover rounded transition-transform hover:scale-[1.03]"
+					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
 				/>
 				} @else {
-				<div class="w-full aspect-video bg-surface rounded"></div>
+				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
 				}
 				<span class="text-[0.6875rem] font-medium text-fg-secondary overflow-hidden text-ellipsis whitespace-nowrap">{{ f.game.title }}</span>
 			</a>
@@ -261,15 +261,15 @@
 		</div>
 		<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
 			@for (w of profile()!.wishlist.slice(0, 5); track w.id) {
-			<a class="flex flex-col gap-1 no-underline text-inherit" [routerLink]="['/games', w.backlog.game.code]">
+			<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', w.backlog.game.code]">
 				@if (w.backlog.game.backgroundUrl) {
 				<img
 					[src]="w.backlog.game.backgroundUrl"
 					[alt]="w.backlog.game.title"
-					class="w-full aspect-video object-cover rounded transition-transform hover:scale-[1.03]"
+					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
 				/>
 				} @else {
-				<div class="w-full aspect-video bg-surface rounded"></div>
+				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
 				}
 				<span class="text-[0.6875rem] font-medium text-fg-secondary overflow-hidden text-ellipsis whitespace-nowrap">{{ w.backlog.game.title }}</span>
 				<span class="text-[0.625rem] text-fg-muted">{{ w.backlog.platform.abbreviation }}</span>

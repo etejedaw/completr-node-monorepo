@@ -34,15 +34,15 @@
 	} @else {
 	<div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));">
 		@for (entry of entries(); track entry.id) {
-		<a class="flex flex-col gap-1.5 no-underline text-inherit" [routerLink]="['/games', entry.game.code]">
+		<a class="flex flex-col gap-1.5 no-underline text-inherit group" [routerLink]="['/games', entry.game.code]">
 			@if (entry.game.backgroundUrl) {
 			<img
 				[src]="entry.game.backgroundUrl"
 				[alt]="entry.game.title"
-				class="w-full aspect-video object-cover rounded transition-transform hover:scale-[1.03]"
+				class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
 			/>
 			} @else {
-			<div class="w-full aspect-video bg-surface rounded"></div>
+			<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
 			}
 			<span class="text-xs font-medium text-fg-secondary overflow-hidden text-ellipsis whitespace-nowrap">{{ entry.game.title }}</span>
 		</a>
