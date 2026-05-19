@@ -12,6 +12,10 @@ interface BacklogSingleResponse {
 	data: { backlog: BacklogEntry };
 }
 
+interface BacklogUpdateResponse {
+	data: { backlog: BacklogEntry; wishlistRemoved: boolean };
+}
+
 export interface BacklogFilters {
 	status?: string;
 	game_id?: string;
@@ -84,8 +88,8 @@ export class BacklogService {
 
 	update(id: string, dto: UpdateBacklogDto) {
 		return this.http
-			.patch<BacklogSingleResponse>(`${this.baseUrl}/${id}`, dto)
-			.pipe(map(res => res.data.backlog));
+			.patch<BacklogUpdateResponse>(`${this.baseUrl}/${id}`, dto)
+			.pipe(map(res => res.data));
 	}
 
 	delete(id: string) {

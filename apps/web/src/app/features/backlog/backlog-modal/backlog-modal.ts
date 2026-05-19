@@ -374,8 +374,16 @@ export class BacklogModal implements OnInit {
 				notes: val.notes || null
 			};
 			this.backlogService.update(this.entry()!.id, dto).subscribe({
-				next: () => {
+				next: res => {
 					this.submitReviewIfNeeded(val.gameId!);
+					if (res.wishlistRemoved) {
+						const title = this.entry()!.game.title;
+						const reason =
+							dto.status === "completed" ? "completed" : "abandoned";
+						this.toast.info(`Removed from your Queue: ${title} — ${reason}`);
+						this.isInWishlist.set(false);
+						this.addToWishlist.set(false);
+					}
 					this.handleWishlistChange(this.entry()!.id);
 				},
 				error: err => {
