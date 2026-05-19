@@ -176,9 +176,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** diferido
 - **Descripcion:** Los usuarios solo pueden reportar errores en juegos (GameReport), pero no tienen forma de reportar bugs generales de la app (ej: un boton que no funciona, un error de UI, una feature rota). Ademas, no pueden ver el estado de los reportes que ya enviaron (ni de juegos ni generales), asi que no saben si su reporte fue recibido, aprobado o rechazado.
-- **Solucion propuesta:** Crear un sistema de reportes generales (BugReport o similar) con campos como titulo, descripcion y categoria (bug, sugerencia, etc.). Agregar una vista donde el usuario pueda ver todos sus reportes (tanto de juegos como generales) con su estado actual (pendiente/aprobado/rechazado). Panel admin para gestionar los reportes generales igual que los de juegos.
+- **Decisión (2026-05-19):** Postergado a Fase 3+. La parte de "ver estado de reportes" se cubrirá naturalmente cuando entre el sistema de notificaciones (Fase 4) — admin puede notificar al user cuando se resuelve su reporte. Para reportes generales (no de juegos) sigue pendiente; mientras tanto el flujo actual de GameReport ya cubre el caso más común (datos de juegos).
 
 ### [FB-019] Feed de actividad sin paginacion
 
@@ -192,9 +192,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** La estrella de favoritos en el banner del game detail no se nota lo suficiente. Los usuarios no se dan cuenta de que desde ahi pueden agregar un juego a favoritos. El icono se pierde sobre la imagen de fondo y no transmite que es interactivo.
-- **Solucion propuesta:** Hacer la estrella mas visible: aumentar tamano, agregar sombra o fondo semitransparente detras del icono para que contraste con el banner, o agregar un tooltip "Add to favorites". Tambien considerar un efecto hover mas evidente para que se note que es clickeable.
+- **Solucion:** El botón ahora es más prominente: tamaño 56×56 (antes 44×44), borde visible blanco/40 (warning cuando favorita), fondo más opaco (0.65), sombra externa, ícono más grande con `drop-shadow`, y `star_border` outline cuando no está marcada vs `star` filled cuando sí. El cambio entre outline/filled comunica claramente el estado y hace evidente que es interactivo.
 
 ### [FB-021] Flujo de creacion de juego desde RAWG no incluye externalIds en el DTO
 
