@@ -88,17 +88,17 @@ Formato por item:
 
 - **Fecha:** 2026-04-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Cuando un usuario agrega un juego a su wishlist, la actividad en el feed muestra solo "Pricila Badilla wants to play" sin indicar que juego. Falta el nombre del juego en el mensaje, dejando la actividad sin contexto util para quien la lee.
-- **Solucion propuesta:** Revisar el serializer o la creacion de la actividad de wishlist para asegurar que incluya el target del juego (game name). Verificar si el problema es que no se esta guardando el target en el modelo Activity o si el serializer no lo esta resolviendo al armar el mensaje del feed.
+- **Solucion:** El "wants to play" en realidad venía de actividades `backlog_not_started` (PATCH de backlog a not_started), no de wishlist. El bug raíz: el tipo `backlog_not_started` no estaba en la lista `GAME_TYPES` del activity.service, así que la Activity se creaba pero nunca se asociaba al ActivityGame. Agregado a `ACTIVITY_TYPES` enum y a `GAME_TYPES`. Ahora la actividad incluye el target del juego con su nombre y link.
 
 ### [FB-008] Recent activity muestra slug en vez de accion legible y omite nombre del juego
 
 - **Fecha:** 2026-04-19
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** En la seccion "Recent Activity" del perfil de un usuario, algunas actividades muestran el slug crudo del tipo de accion (ej: "backlog_not_started") en vez de un texto legible (ej: "wants to play" o "added to backlog"). Ademas, en esas mismas entradas no aparece el nombre del juego, quedando la actividad sin contexto. Otras entradas si muestran correctamente "added to backlog Stray", lo que sugiere que el problema es inconsistente y depende del tipo de actividad o de como se creo el registro.
-- **Solucion propuesta:** Revisar el frontend para asegurar que todos los tipos de actividad (backlog_not_started, backlog_playing, backlog_completed, backlog_abandoned, wishlist_added, etc.) se mapean a textos legibles y no se muestran como slugs crudos. Tambien verificar que el target (juego) se este resolviendo correctamente en el serializer del backend para todos los tipos de actividad.
+- **Solucion:** Mapping de actividades centralizado en `shared/utils/activity-labels.ts` (label, icon, dotClass) y aplicado desde feed, public-profile y profile-view. Agregado mapeo de `backlog_not_started` y fallback legible "did something" para tipos desconocidos (en lugar del slug crudo). El target del juego ahora se crea correctamente desde el backend (ver FB-007).
 
 ### [FB-009] No hay forma de saber cuando alguien te sigue
 
@@ -616,10 +616,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-07
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En el feed aparecen actividades como "Esteban Tejeda wants to play" sin mencionar a que juego se refiere. El item queda vacio de contexto y no se puede clickear para llegar al juego. Probablemente el evento se genera con gameId nulo o el render del feed no esta resolviendo/mostrando el titulo del juego para ese tipo de actividad (wishlist add). Puede afectar tambien a otros tipos de eventos del feed.
-- **Solucion propuesta:** Revisar el endpoint del feed para confirmar si el payload incluye el juego asociado a la actividad (gameId, titulo, slug). Si el backend ya lo envia, arreglar el template del feed item para renderizar el titulo y enlazar a la pagina del juego. Si el backend no lo incluye, agregar el join correspondiente en el query del feed. Auditar todos los tipos de actividad (added to backlog, completed, wants to play, followed list, etc.) para asegurar que cada uno muestre el contexto completo (juego, lista, usuario segun corresponda).
+- **Solucion:** Resuelto junto con FB-007 y FB-008. Causa raíz: `backlog_not_started` no estaba en `GAME_TYPES` del activity.service, por lo que las actividades de ese tipo no asociaban un ActivityGame. Agregado al enum + GAME_TYPES. El template del feed ya renderiza el link al juego cuando hay target — ahora lo recibe correctamente.
 
 ### [FB-070] No se puede actualizar score/duration desde el backlog cambiando de fuente
 
