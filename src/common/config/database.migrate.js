@@ -4,7 +4,7 @@ module.exports = {
 		port: process.env.PG_PORT || 5432,
 		username: process.env.PG_USER || "root",
 		password: process.env.PG_PASSWORD || "toor",
-		database: process.env.PG_DATABASE || "postgres",
+		database: process.env.PG_DATABASE || "completr",
 		dialect: "postgres"
 	},
 	stg: {

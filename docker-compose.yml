@@ -7,7 +7,7 @@ services:
         environment:
             - POSTGRES_USER=root
             - POSTGRES_PASSWORD=toor
-            - POSTGRES_DB=postgres
+            - POSTGRES_DB=completr
     postgres-test:
         image: postgres:bookworm
         restart: always
