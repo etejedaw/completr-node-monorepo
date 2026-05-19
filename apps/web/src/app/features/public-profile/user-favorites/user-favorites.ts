@@ -16,7 +16,6 @@ const PAGE_SIZE = 50;
 	selector: "app-user-favorites",
 	imports: [RouterLink],
 	templateUrl: "./user-favorites.html",
-	styleUrl: "./user-favorites.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserFavorites implements OnInit {

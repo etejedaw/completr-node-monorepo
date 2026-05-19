@@ -19,7 +19,6 @@ const PAGE_SIZE = 50;
 	selector: "app-user-backlog",
 	imports: [RouterLink, DatePipe, StarRating],
 	templateUrl: "./user-backlog.html",
-	styleUrl: "./user-backlog.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserBacklog implements OnInit {

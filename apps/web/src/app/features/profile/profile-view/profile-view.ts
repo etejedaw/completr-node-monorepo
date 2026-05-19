@@ -24,7 +24,6 @@ import { UiButton, UiIconButton, UiInput } from "../../../shared/ui";
 	selector: "app-profile-view",
 	imports: [FormsModule, RouterLink, UserListModal, StarRating, UiButton, UiIconButton, UiInput],
 	templateUrl: "./profile-view.html",
-	styleUrl: "./profile-view.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProfileView implements OnInit {

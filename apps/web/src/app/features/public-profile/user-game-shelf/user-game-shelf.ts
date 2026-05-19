@@ -17,7 +17,6 @@ const PAGE_SIZE = 50;
 	selector: "app-user-game-shelf",
 	imports: [RouterLink, DatePipe],
 	templateUrl: "./user-game-shelf.html",
-	styleUrl: "./user-game-shelf.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserGameShelf implements OnInit {

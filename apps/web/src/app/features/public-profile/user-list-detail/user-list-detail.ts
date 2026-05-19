@@ -14,7 +14,6 @@ import { List } from "../../../core/models";
 	selector: "app-user-list-detail",
 	imports: [RouterLink],
 	templateUrl: "./user-list-detail.html",
-	styleUrl: "./user-list-detail.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserListDetail implements OnInit {

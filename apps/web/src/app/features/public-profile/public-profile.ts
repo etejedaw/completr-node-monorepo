@@ -20,7 +20,6 @@ import { UiButton } from "../../shared/ui";
 	selector: "app-public-profile",
 	imports: [RouterLink, UserListModal, StarRating, UiButton],
 	templateUrl: "./public-profile.html",
-	styleUrl: "./public-profile.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PublicProfileComponent implements OnInit {

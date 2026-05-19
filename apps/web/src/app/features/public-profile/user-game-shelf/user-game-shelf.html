@@ -1,32 +1,36 @@
-<div class="public-page">
-	<div class="top-bar">
-		<a routerLink="/" class="brand">
-			<span class="brand-icon">C</span>
-			<span class="brand-name">Completr</span>
+<div class="max-w-2xl mx-auto px-6 py-4">
+	<div class="flex items-center justify-between mb-6 pb-4 border-b border-line">
+		<a routerLink="/" class="flex items-center gap-2.5 no-underline">
+			<span
+				class="flex items-center justify-center w-8 h-8 rounded-lg font-display font-extrabold text-sm text-white"
+				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+			>C</span>
+			<span class="text-lg font-bold text-fg">Completr</span>
 		</a>
 		@if (!isLoggedIn()) {
-		<a routerLink="/login" class="btn-login">Sign in</a>
+		<a routerLink="/login" class="px-3 py-1.5 bg-brand text-white rounded text-[0.8125rem] font-semibold no-underline">Sign in</a>
 		}
 	</div>
 
-	<a class="back-link" [routerLink]="['/user', username()]">
-		<span class="material-icons">arrow_back</span>
-		@{{ username() }}'s profile
+	<a class="inline-flex items-center gap-1.5 text-fg-muted no-underline text-[0.8125rem] mb-5 hover:text-brand" [routerLink]="['/user', username()]">
+		<span class="material-icons text-base">arrow_back</span>
+		{{ '@' + username() }}'s profile
 	</a>
 
 	@if (error() === 'not_found') {
-	<div class="state-message">User not found.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">User not found.</div>
 	} @else if (error() === 'private') {
-	<div class="state-message">This profile is private.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">This profile is private.</div>
 	} @else {
-	<div class="page-header">
-		<h1>Game Shelf</h1>
-		<span class="entry-count">{{ total() }} games</span>
+	<div class="flex items-baseline gap-3 mb-4">
+		<h1 class="font-display m-0 text-[1.375rem] font-bold tracking-tight">Game Shelf</h1>
+		<span class="text-[0.8125rem] text-fg-muted">{{ total() }} games</span>
 	</div>
 
-	<div class="search-bar">
+	<div class="mb-4">
 		<input
 			type="text"
+			class="w-full max-w-[320px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 			placeholder="Search by title..."
 			[value]="searchQuery()"
 			(input)="onSearch($event)"
@@ -34,56 +38,54 @@
 	</div>
 
 	@if (isLoading()) {
-	<div class="state-message">Loading...</div>
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (entries().length === 0 && !searchQuery()) {
-	<div class="state-message">No public games on the shelf.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">No public games on the shelf.</div>
 	} @else if (entries().length === 0 && searchQuery()) {
-	<div class="state-message">No results found.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">No results found.</div>
 	} @else {
-	<div class="table-wrapper">
-		<table>
+	<div class="overflow-x-auto">
+		<table class="w-full border-collapse text-[0.8125rem]">
 			<thead>
 				<tr>
-					<th class="col-cover"></th>
-					<th class="col-title">Title</th>
-					<th class="col-platform">Platform</th>
-					<th class="col-edition">Edition</th>
-					<th class="col-date">Acquired</th>
-					<th class="col-notes">Notes</th>
+					<th class="text-left py-2.5 px-3 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 pr-0"></th>
+					<th class="text-left py-2.5 px-3 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap min-w-[200px]">Title</th>
+					<th class="text-left py-2.5 px-3 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Platform</th>
+					<th class="text-left py-2.5 px-3 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Edition</th>
+					<th class="text-left py-2.5 px-3 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Acquired</th>
+					<th class="text-left py-2.5 px-3 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap max-w-[200px]">Notes</th>
 				</tr>
 			</thead>
 			<tbody>
 				@for (entry of entries(); track entry.id) {
-				<tr>
-					<td class="col-cover">
+				<tr class="border-b border-line transition hover:bg-surface">
+					<td class="py-2 px-3 align-middle w-10 pr-0">
 						@if (entry.game.backgroundUrl) {
 						<img
 							[src]="entry.game.backgroundUrl"
 							[alt]="entry.game.title"
-							class="cover-img"
+							class="w-9 h-12 object-cover rounded-[4px] block"
 						/>
 						} @else {
-						<div class="cover-placeholder"></div>
+						<div class="w-9 h-12 bg-surface rounded-[4px]"></div>
 						}
 					</td>
-					<td class="col-title">
+					<td class="py-2 px-3 align-middle min-w-[200px]">
 						<a
-							class="game-title-link"
+							class="font-medium text-fg no-underline hover:text-brand"
 							[routerLink]="['/games', entry.game.code]"
-							>{{ entry.game.title }}</a
-						>
+						>{{ entry.game.title }}</a>
 					</td>
-					<td class="col-platform">
+					<td class="py-2 px-3 align-middle text-fg-secondary whitespace-nowrap">
 						{{ entry.platform.abbreviation }}
 					</td>
-					<td class="col-edition">{{ entry.edition ?? "-" }}</td>
-					<td class="col-date">
-						{{ entry.acquiredAt ? (entry.acquiredAt |
-						date:'yyyy-MM-dd') : "-" }}
+					<td class="py-2 px-3 align-middle text-fg-secondary">{{ entry.edition ?? "-" }}</td>
+					<td class="py-2 px-3 align-middle whitespace-nowrap text-fg-secondary text-[0.8125rem]">
+						{{ entry.acquiredAt ? (entry.acquiredAt | date:'yyyy-MM-dd') : "-" }}
 					</td>
-					<td class="col-notes">
+					<td class="py-2 px-3 align-middle max-w-[200px]">
 						@if (entry.notes) {
-						<span class="notes-text">{{ entry.notes }}</span>
+						<span class="text-fg-muted text-xs leading-snug overflow-hidden" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">{{ entry.notes }}</span>
 						}
 					</td>
 				</tr>
@@ -93,15 +95,20 @@
 	</div>
 
 	@if (total() > limit) {
-	<div class="pagination">
-		<button [disabled]="offset() === 0" (click)="prevPage()">
+	<div class="flex items-center justify-center gap-4 mt-5 pt-4 border-t border-line">
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
+			[disabled]="offset() === 0"
+			(click)="prevPage()"
+		>
 			Previous
 		</button>
-		<span class="page-info"
-			>{{ offset() + 1 }}–{{ Math.min(offset() + limit, total()) }} of {{
-			total() }}</span
+		<span class="text-[0.8125rem] text-fg-muted">{{ offset() + 1 }}–{{ Math.min(offset() + limit, total()) }} of {{ total() }}</span>
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
+			[disabled]="offset() + limit >= total()"
+			(click)="nextPage()"
 		>
-		<button [disabled]="offset() + limit >= total()" (click)="nextPage()">
 			Next
 		</button>
 	</div>
