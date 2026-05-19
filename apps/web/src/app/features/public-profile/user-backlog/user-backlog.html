@@ -64,10 +64,18 @@
 						</a>
 
 						<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
-							<a
-								class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
-								[routerLink]="['/games', entry.game.code]"
-							>{{ entry.game.title }}</a>
+							<div class="flex items-center gap-2 flex-wrap">
+								<a
+									class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
+									[routerLink]="['/games', entry.game.code]"
+								>{{ entry.game.title }}</a>
+								@if (entry.realDuration) {
+									<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line">
+										<span class="material-icons text-[0.75rem]">schedule</span>
+										Real {{ entry.realDuration }}h
+									</span>
+								}
+							</div>
 
 							<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
 								<span
@@ -87,10 +95,6 @@
 								@if (entry.duration) {
 									<span class="text-fg-muted">·</span>
 									<span class="text-fg-muted">{{ entry.duration }}h</span>
-								}
-								@if (entry.realDuration) {
-									<span class="text-fg-muted">·</span>
-									<span class="text-fg-muted">Real {{ entry.realDuration }}h</span>
 								}
 								@if (entry.finishedAt) {
 									<span class="text-fg-muted">·</span>
