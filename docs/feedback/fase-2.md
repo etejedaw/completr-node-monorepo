@@ -144,9 +144,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** La barra de progreso en listas (getListProgress) solo cuenta backlogs con status "completed". Los juegos abandonados no se contabilizan, pero deberian contar como progreso ya que el usuario ya paso por ese juego (lo jugo y decidio dejarlo).
-- **Solucion propuesta:** Modificar getListProgress en lists.service.ts para contar backlogs con status "completed" o "abandoned" (usar Op.in con ambos valores). Actualizar el frontend si es necesario para reflejar el cambio en el label (ej: "played" en vez de "completed").
+- **Solucion:** `getListProgress` en `lists.service.ts` ahora cuenta backlogs con status `completed` o `abandoned` usando `Op.in`. Frontend sin cambios: el label "completed/total" sigue siendo válido y los abandoned suman al numerador.
 
 ### [FB-015] No existe opcion "PC" generica al agregar juego al backlog o shelf
 
