@@ -7,6 +7,7 @@ export interface List {
 	scoreSource: string;
 	durationSource: string;
 	items: ListItem[];
+	previewItems?: ListPreviewItem[];
 	followerCount?: number;
 	isFollowing?: boolean;
 	progress?: { completed: number; total: number } | null;
@@ -21,6 +22,17 @@ export interface FollowingList {
 	durationSource: string;
 	isVisible: boolean;
 	progress: { completed: number; total: number };
+	previewItems?: ListPreviewItem[];
+}
+
+export interface ListPreviewItem {
+	id: string;
+	game: {
+		id: string;
+		code: string;
+		title: string;
+		backgroundUrl?: string;
+	} | null;
 }
 
 export interface ListItem {
