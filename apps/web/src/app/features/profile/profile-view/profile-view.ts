@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
@@ -18,11 +19,11 @@ import {
 	type UserSummary
 } from "../../../shared/components/user-list-modal/user-list-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
-import { UiButton, UiIconButton, UiInput } from "../../../shared/ui";
+import { UiButton, UiIconButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
 
 @Component({
 	selector: "app-profile-view",
-	imports: [FormsModule, RouterLink, UserListModal, StarRating, UiButton, UiIconButton, UiInput],
+	imports: [FormsModule, RouterLink, UserListModal, StarRating, UiButton, UiIconButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel],
 	templateUrl: "./profile-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -34,6 +35,20 @@ export class ProfileView implements OnInit {
 	protected readonly user = this.authService.user;
 	protected readonly profile = signal<PublicProfile | null>(null);
 	protected readonly isLoading = signal(true);
+	protected readonly activeTab = signal("backlog");
+
+	protected readonly stats = computed(() => {
+		const p = this.profile();
+		if (!p) return { completed: 0, playing: 0, lists: 0, reviews: 0 };
+		const completed = p.backlogs.filter(b => b.status === "completed").length;
+		const playing = p.backlogs.filter(b => b.status === "playing").length;
+		return {
+			completed,
+			playing,
+			lists: p.lists.length,
+			reviews: this.userReviews().length
+		};
+	});
 	protected readonly userReviews = signal<
 		{
 			id: string;
