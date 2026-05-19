@@ -11,6 +11,7 @@ import { BacklogService } from "../features/backlog/backlog.service";
 import { BacklogModal } from "../features/backlog/backlog-modal/backlog-modal";
 import { filter } from "rxjs";
 import { UiIconButton } from "../shared/ui";
+import { ToastContainer } from "../shared/components/toast-container/toast-container";
 
 @Component({
 	selector: "app-layout",
@@ -19,7 +20,8 @@ import { UiIconButton } from "../shared/ui";
 		RouterLink,
 		RouterLinkActive,
 		UiIconButton,
-		BacklogModal
+		BacklogModal,
+		ToastContainer
 	],
 	templateUrl: "./layout.html"
 })

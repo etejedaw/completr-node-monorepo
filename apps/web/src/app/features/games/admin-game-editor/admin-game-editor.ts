@@ -17,6 +17,7 @@ import {
 	UpdateGameDto
 } from "../games.service";
 import { forkJoin } from "rxjs";
+import { ToastService } from "../../../core/services/toast.service";
 
 @Component({
 	selector: "app-admin-game-editor",
@@ -32,6 +33,7 @@ export class AdminGameEditor implements OnInit {
 	protected readonly isEditMode = computed(() => !!this.game());
 
 	private readonly gamesService = inject(GamesService);
+	private readonly toast = inject(ToastService);
 
 	protected readonly allPlatforms = signal<Platform[]>([]);
 	protected readonly allGenres = signal<Genre[]>([]);
@@ -307,9 +309,15 @@ export class AdminGameEditor implements OnInit {
 				this.saving.set(false);
 				this.created.emit(game);
 			},
-			error: () => {
-				this.saveError.set("Failed to create game");
+			error: err => {
 				this.saving.set(false);
+				if (err.status === 429) {
+					this.saveError.set(
+						"Rate limit reached. Game was NOT created. Try again in a moment."
+					);
+				} else {
+					this.saveError.set("Failed to create game.");
+				}
 			}
 		});
 	}
@@ -339,9 +347,15 @@ export class AdminGameEditor implements OnInit {
 
 		this.gamesService.updateGame(g.id, dto).subscribe({
 			next: () => this.saveScoresAndTimes(g.id),
-			error: () => {
-				this.saveError.set("Failed to update game");
+			error: err => {
 				this.saving.set(false);
+				if (err.status === 429) {
+					this.saveError.set(
+						"Rate limit reached. Changes were NOT saved. Try again in a moment."
+					);
+				} else {
+					this.saveError.set("Failed to update game.");
+				}
 			}
 		});
 	}
@@ -350,6 +364,8 @@ export class AdminGameEditor implements OnInit {
 		const g = this.game()!;
 		const existingScores = new Set(g.scores.map(s => s.source));
 		const existingTimes = new Set(g.times.map(t => t.source));
+		const currentScoreSources = new Set(this.scores().map(s => s.source));
+		const currentTimeSources = new Set(this.times().map(t => t.source));
 
 		const scoreOps = this.scores().map(s => {
 			if (existingScores.has(s.source)) {
@@ -369,7 +385,20 @@ export class AdminGameEditor implements OnInit {
 			return this.gamesService.createTime(gameId, t.source, t.duration);
 		});
 
-		const allOps = [...scoreOps, ...timeOps];
+		const scoreDeleteOps = [...existingScores]
+			.filter(source => !currentScoreSources.has(source))
+			.map(source => this.gamesService.deleteScore(gameId, source));
+
+		const timeDeleteOps = [...existingTimes]
+			.filter(source => !currentTimeSources.has(source))
+			.map(source => this.gamesService.deleteTime(gameId, source));
+
+		const allOps = [
+			...scoreOps,
+			...timeOps,
+			...scoreDeleteOps,
+			...timeDeleteOps
+		];
 
 		if (allOps.length === 0) {
 			this.saving.set(false);
@@ -380,11 +409,20 @@ export class AdminGameEditor implements OnInit {
 		forkJoin(allOps).subscribe({
 			next: () => {
 				this.saving.set(false);
+				this.toast.success("Game saved.");
 				this.saved.emit();
 			},
-			error: () => {
-				this.saveError.set("Game updated but some scores/times failed");
+			error: err => {
 				this.saving.set(false);
+				if (err.status === 429) {
+					this.saveError.set(
+						"Game info saved but scores/times hit the rate limit. Reopen the editor and try those again."
+					);
+				} else {
+					this.saveError.set(
+						"Game updated but some scores/times failed to save."
+					);
+				}
 			}
 		});
 	}

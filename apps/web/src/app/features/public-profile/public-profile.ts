@@ -15,6 +15,7 @@ import {
 } from "../../shared/components/user-list-modal/user-list-modal";
 import { StarRating } from "../../shared/components/star-rating/star-rating";
 import { UiButton, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../shared/ui";
+import { activityLabel } from "../../shared/utils/activity-labels";
 
 @Component({
 	selector: "app-public-profile",
@@ -129,20 +130,7 @@ export class PublicProfileComponent implements OnInit {
 			.subscribe(users => this.userListUsers.set(users));
 	}
 
-	protected activityLabel(type: string): string {
-		const labels: Record<string, string> = {
-			backlog_added: "added to backlog",
-			backlog_playing: "started playing",
-			backlog_completed: "completed",
-			backlog_abandoned: "abandoned",
-			favorite_added: "added to favorites",
-			list_created: "created a list",
-			list_followed: "followed a list",
-			user_followed: "followed a user",
-			game_reviewed: "reviewed"
-		};
-		return labels[type] ?? type;
-	}
+	protected activityLabel = activityLabel;
 
 	protected timeAgo(date: string): string {
 		const diff = Date.now() - new Date(date).getTime();

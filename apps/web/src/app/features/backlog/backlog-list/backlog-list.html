@@ -2,7 +2,7 @@
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
 			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Backlog</h1>
-			<span class="text-sm text-fg-muted">{{ entries().length }} entries</span>
+			<span class="text-sm text-fg-muted">{{ total() }} entries</span>
 		</div>
 		<button uiButton variant="primary" (click)="openCreate()">+ Add Game</button>
 	</div>
@@ -244,7 +244,7 @@
 				@for (entry of entries(); track entry.id) {
 					<div
 						class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line cursor-pointer transition hover:border-brand/40"
-						(click)="openEdit(entry)"
+						(click)="openEdit(entry, $event)"
 					>
 						<a
 							[routerLink]="['/games', entry.game.code]"
@@ -322,13 +322,13 @@
 						</div>
 
 						<button
-							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 transition flex items-center self-center hover:text-danger"
+							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center transition hover:text-danger"
 							[class.!text-danger]="isInWishlist(entry)"
 							[class.!cursor-default]="isInWishlist(entry)"
 							(click)="addToWishlist(entry); $event.stopPropagation()"
 							[title]="isInWishlist(entry) ? 'In Wishlist' : 'Add to Wishlist'"
 						>
-							<span class="material-icons text-xl">favorite</span>
+							<span class="material-icons text-lg leading-none">{{ isInWishlist(entry) ? 'favorite' : 'favorite_border' }}</span>
 						</button>
 					</div>
 				}
@@ -354,7 +354,7 @@
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
 							</th>
-							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('ratio')">
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-brand font-bold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-brand-deep" (click)="sort('ratio')">
 								Ratio @if (sortBy() === 'ratio') {
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
@@ -389,14 +389,14 @@
 					</thead>
 					<tbody>
 						@for (entry of entries(); track entry.id) {
-							<tr class="cursor-pointer border-b border-line transition hover:bg-surface" (click)="openEdit(entry)">
+							<tr class="cursor-pointer border-b border-line transition hover:bg-surface" (click)="openEdit(entry, $event)">
 								<td class="px-4 py-3 align-middle min-w-[200px]">
 									<a class="font-medium text-fg no-underline hover:text-brand" [routerLink]="['/games', entry.game.code]" (click)="$event.stopPropagation()">{{ entry.game.title }}</a>
 								</td>
 								<td class="px-4 py-3 align-middle text-fg-secondary whitespace-nowrap">{{ entry.platform.abbreviation }}</td>
 								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.score ?? "-" }}</td>
 								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.duration ? entry.duration + "h" : "-" }}</td>
-								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.ratio ?? "-" }}</td>
+								<td class="px-4 py-3 align-middle text-right whitespace-nowrap font-display text-base font-bold tabular-nums" [class.text-brand]="entry.ratio !== null && entry.ratio !== undefined" [class.text-fg-muted]="entry.ratio === null || entry.ratio === undefined">{{ entry.ratio ?? "—" }}</td>
 								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.realDuration ? entry.realDuration + "h" : "-" }}</td>
 								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.personalRatio ?? "-" }}</td>
 								<td class="px-4 py-3 align-middle">
@@ -411,15 +411,15 @@
 										<span class="text-fg-muted text-xs leading-tight line-clamp-2">{{ entry.notes }}</span>
 									}
 								</td>
-								<td class="px-4 py-3 align-middle w-8 text-center">
+								<td class="px-2 py-3 align-middle w-9 text-center">
 									<button
-										class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 transition flex items-center hover:text-danger"
+										class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-danger"
 										[class.!text-danger]="isInWishlist(entry)"
 										[class.!cursor-default]="isInWishlist(entry)"
 										(click)="addToWishlist(entry); $event.stopPropagation()"
 										[title]="isInWishlist(entry) ? 'In Wishlist' : 'Add to Wishlist'"
 									>
-										<span class="material-icons text-xl">favorite</span>
+										<span class="material-icons text-base leading-none">{{ isInWishlist(entry) ? 'favorite' : 'favorite_border' }}</span>
 									</button>
 								</td>
 							</tr>
@@ -429,6 +429,13 @@
 			</div>
 		}
 	}
+
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="total()"
+		(offsetChange)="onOffsetChange($event)"
+	/>
 </div>
 
 @if (showModal()) {

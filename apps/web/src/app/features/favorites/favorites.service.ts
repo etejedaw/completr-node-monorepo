@@ -1,11 +1,17 @@
 import { inject, Injectable, signal } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { map, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { FavoriteEntry } from "../../core/models";
 
 interface FavoritesResponse {
-	data: { favorites: FavoriteEntry[] };
+	data: { favorites: FavoriteEntry[]; total?: number };
+}
+
+export interface FavoritesPagination {
+	limit?: number;
+	offset?: number;
+	search?: string;
 }
 
 @Injectable({ providedIn: "root" })
@@ -15,9 +21,15 @@ export class FavoritesService {
 	private readonly _favorites = signal<FavoriteEntry[]>([]);
 	readonly favorites = this._favorites.asReadonly();
 
-	load() {
+	load(pagination: FavoritesPagination = {}) {
+		let params = new HttpParams();
+		if (pagination.limit !== undefined)
+			params = params.set("limit", String(pagination.limit));
+		if (pagination.offset !== undefined)
+			params = params.set("offset", String(pagination.offset));
+		if (pagination.search) params = params.set("search", pagination.search);
 		return this.http
-			.get<FavoritesResponse>(this.baseUrl)
+			.get<FavoritesResponse>(this.baseUrl, { params })
 			.pipe(tap(res => this._favorites.set(res.data.favorites)));
 	}
 

@@ -2,11 +2,11 @@
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
 			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Saved Views</h1>
-			<span class="text-[0.8125rem] text-fg-muted">{{ filters().length }} views</span>
+			<span class="text-[0.8125rem] text-fg-muted">{{ total() }} views</span>
 		</div>
 	</div>
 
-	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search saved views..." [(value)]="searchQuery" />
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search saved views..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
 	@if (isLoading()) {
 		<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
@@ -72,6 +72,13 @@
 			}
 		</div>
 	}
+
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="total()"
+		(offsetChange)="onOffsetChange($event)"
+	/>
 </div>
 
 @if (showModal()) {

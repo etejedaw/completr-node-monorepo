@@ -1,15 +1,21 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { WishlistEntry } from "../../core/models";
 
 interface WishlistListResponse {
-	data: { wishlist: WishlistEntry[] };
+	data: { wishlist: WishlistEntry[]; total?: number };
 }
 
 interface WishlistSingleResponse {
 	data: { wishlist: WishlistEntry };
+}
+
+export interface WishlistPagination {
+	limit?: number;
+	offset?: number;
+	search?: string;
 }
 
 @Injectable({ providedIn: "root" })
@@ -17,10 +23,26 @@ export class WishlistService {
 	private readonly http = inject(HttpClient);
 	private readonly baseUrl = `${environment.apiUrl}/users/me/wishlist`;
 
-	getMyWishlist() {
+	getMyWishlist(pagination: WishlistPagination = {}) {
+		let params = new HttpParams();
+		if (pagination.limit !== undefined)
+			params = params.set("limit", String(pagination.limit));
+		if (pagination.offset !== undefined)
+			params = params.set("offset", String(pagination.offset));
+		if (pagination.search) params = params.set("search", pagination.search);
 		return this.http
-			.get<WishlistListResponse>(this.baseUrl)
+			.get<WishlistListResponse>(this.baseUrl, { params })
 			.pipe(map(res => res.data.wishlist));
+	}
+
+	getMyWishlistPaged(pagination: WishlistPagination = {}) {
+		let params = new HttpParams();
+		if (pagination.limit !== undefined)
+			params = params.set("limit", String(pagination.limit));
+		if (pagination.offset !== undefined)
+			params = params.set("offset", String(pagination.offset));
+		if (pagination.search) params = params.set("search", pagination.search);
+		return this.http.get<WishlistListResponse>(this.baseUrl, { params });
 	}
 
 	addFromGame(gameId: string, platformId: string) {

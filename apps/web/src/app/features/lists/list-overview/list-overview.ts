@@ -10,11 +10,11 @@ import { Subject, debounceTime, switchMap, of } from "rxjs";
 import { List, FollowingList } from "../../../core/models";
 import { ListsService } from "../lists.service";
 import { ListModal } from "../list-modal/list-modal";
-import { UiButton, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-list-overview",
-	imports: [RouterLink, ListModal, UiButton, UiSearchBar],
+	imports: [RouterLink, ListModal, UiButton, UiPagination, UiSearchBar],
 	templateUrl: "./list-overview.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -31,6 +31,14 @@ export class ListOverview implements OnInit {
 	protected readonly searchQuery = signal("");
 	protected readonly searchResults = signal<List[]>([]);
 	protected readonly isSearching = signal(false);
+	protected readonly total = signal(0);
+	protected readonly offset = signal(0);
+	protected readonly limit = 25;
+
+	onOffsetChange(offset: number) {
+		this.offset.set(offset);
+		this.loadLists();
+	}
 
 	ngOnInit() {
 		this.loadLists();
@@ -88,14 +96,17 @@ export class ListOverview implements OnInit {
 
 	private loadLists() {
 		this.isLoading.set(true);
-		this.listsService.getMyLists().subscribe({
-			next: res => {
-				this.lists.set(res.data.lists);
-				this.frozen.set(res.data.frozen);
-				this.isLoading.set(false);
-			},
-			error: () => this.isLoading.set(false)
-		});
+		this.listsService
+			.getMyLists({ limit: this.limit, offset: this.offset() })
+			.subscribe({
+				next: res => {
+					this.lists.set(res.data.lists);
+					this.total.set(res.data.total ?? res.data.lists.length);
+					this.frozen.set(res.data.frozen);
+					this.isLoading.set(false);
+				},
+				error: () => this.isLoading.set(false)
+			});
 	}
 
 	private loadFollowing() {

@@ -166,5 +166,12 @@
 				</div>
 			}
 		</div>
+
+		<ui-pagination
+			[offset]="offset()"
+			[limit]="limit"
+			[total]="total()"
+			(offsetChange)="onOffsetChange($event)"
+		/>
 	}
 </div>

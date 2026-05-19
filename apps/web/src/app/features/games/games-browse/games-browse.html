@@ -51,6 +51,8 @@
 				</div>
 			}
 		</section>
+	} @else if (isInitialLoad()) {
+		<div class="text-center py-20 text-fg-muted text-sm">Loading games...</div>
 	} @else {
 		@if (featured(); as hero) {
 			<section class="relative -mx-6 lg:-mx-8 max-md:-mx-4 mb-12 overflow-hidden">

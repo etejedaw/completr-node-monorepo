@@ -1,5 +1,5 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
 
@@ -15,7 +15,13 @@ export interface SavedFilter {
 }
 
 interface SavedFiltersResponse {
-	data: { savedFilters: SavedFilter[] };
+	data: { savedFilters: SavedFilter[]; total?: number };
+}
+
+export interface SavedFiltersPagination {
+	limit?: number;
+	offset?: number;
+	search?: string;
 }
 
 interface SavedFilterResponse {
@@ -41,6 +47,16 @@ export class SavedFiltersService {
 		return this.http
 			.get<SavedFiltersResponse>(this.baseUrl)
 			.pipe(map(res => res.data.savedFilters));
+	}
+
+	getPaged(pagination: SavedFiltersPagination = {}) {
+		let params = new HttpParams();
+		if (pagination.limit !== undefined)
+			params = params.set("limit", String(pagination.limit));
+		if (pagination.offset !== undefined)
+			params = params.set("offset", String(pagination.offset));
+		if (pagination.search) params = params.set("search", pagination.search);
+		return this.http.get<SavedFiltersResponse>(this.baseUrl, { params });
 	}
 
 	create(dto: CreateSavedFilterDto) {

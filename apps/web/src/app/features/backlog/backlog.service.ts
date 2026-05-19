@@ -5,7 +5,7 @@ import { environment } from "../../../environments/environment";
 import { BacklogEntry } from "../../core/models";
 
 interface BacklogListResponse {
-	data: { backlog: BacklogEntry[] };
+	data: { backlog: BacklogEntry[]; total: number };
 }
 
 interface BacklogSingleResponse {
@@ -27,6 +27,9 @@ export interface BacklogFilters {
 	max_duration?: number;
 	min_rating?: number;
 	max_rating?: number;
+	search?: string;
+	limit?: number;
+	offset?: number;
 }
 
 export interface CreateBacklogDto {

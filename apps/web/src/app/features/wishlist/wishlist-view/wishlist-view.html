@@ -2,14 +2,14 @@
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
 			<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Wishlist</h1>
-			<span class="text-sm text-fg-muted">{{ entries().length }} games</span>
+			<span class="text-sm text-fg-muted">{{ total() }} games</span>
 		</div>
 		<button uiButton variant="primary" (click)="openAddModal()">
 			+ Add from Backlog
 		</button>
 	</div>
 
-	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [(value)]="searchQuery" />
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
 	<div class="flex gap-1 mb-4">
 		<button
@@ -144,6 +144,13 @@
 		}
 	</div>
 	} }
+
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="total()"
+		(offsetChange)="onOffsetChange($event)"
+	/>
 </div>
 
 @if (showAddModal()) {
