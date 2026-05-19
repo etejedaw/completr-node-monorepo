@@ -152,9 +152,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Al agregar un juego al backlog o al game shelf, el selector de plataformas solo muestra las tiendas especificas (Steam, GOG, Epic, etc.) pero no hay una opcion "PC" generica. Hay juegos antiguos que no estan disponibles en ninguna tienda digital (ej: Wolfenstein 2009 que fue removido de venta) y el usuario los tiene como ISOs o copias fisicas de PC. Sin la opcion PC generica no hay forma de registrarlos con la plataforma correcta.
-- **Solucion propuesta:** Verificar si la plataforma "PC" existe en la tabla de plataformas. Si no existe, crearla. Asegurar que los juegos que tienen plataformas de PC (Steam, GOG, Epic, etc.) tambien tengan vinculada la plataforma "PC" generica, o permitir que el usuario seleccione "PC" manualmente aunque el juego no la tenga asociada.
+- **Solucion:** Migración `20260519145351-seed-pc-platform` crea la plataforma `pc` (name "PC", abbreviation "PC", manufacturer "Generic"). Backfill: a todo juego con una store PC (Steam/GOG/Epic/EA/Origin/Battle.net) se le agrega también el vínculo a "PC" en GamePlatforms. `rawg-platform.map.ts` ahora incluye `pc` al expandir el slug RAWG `pc`, así juegos nuevos importados quedan con la plataforma genérica además de las tiendas.
 
 ### [FB-016] Seccion "Latest Completr Lists" en games-browse sigue mostrando placeholder
 
