@@ -545,10 +545,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Al abrir el modal de backlog desde una lista (ej: Rhythm Heaven), el campo Score muestra un badge indicando la fuente del score precargado (ej: "RAWG"). Este badge agrega altura extra al campo y lo desalinea visualmente con el campo Duration que no tiene badge. Los inputs quedan a alturas diferentes, rompiendo la alineacion del formulario.
-- **Solucion propuesta:** Ajustar el layout del modal para que el badge de fuente no afecte la altura del campo. Opciones: (1) mover el badge fuera del input (ej: como tooltip o texto debajo), (2) agregar padding equivalente al campo Duration para mantener alineacion, (3) usar position absolute para el badge sin afectar el flow del layout.
+- **Solucion:** Resuelto sin cambios adicionales como efecto secundario del rediseño hecho en FB-001. El modal ahora reserva un slot de `min-h-[26px]` para los source buttons en ambos campos (Critic Score y Duration); si un lado tiene badge y el otro no, el slot vacío mantiene el espacio y los inputs quedan alineados.
 
 ### [FB-062] Editar backlog desde la vista de detalle de lista
 
@@ -706,3 +706,21 @@ Formato por item:
 - **Reportado por:** Esteban
 - **Descripcion:** En el detalle de un juego (Games) deberia mostrarse una seccion "Latest Completr Lists" con las listas publicas mas recientes que incluyen ese juego. La seccion nunca aparece, ni siquiera para juegos que sabemos que estan en varias listas publicas. Puede ser que el endpoint no devuelva resultados, que el frontend este filtrando mal, o que la query no este matcheando los juegos correctamente con sus listas.
 - **Solucion propuesta:** Diagnosticar el flujo end-to-end: (1) verificar que el endpoint que devuelve "ultimas listas que incluyen este juego" exista y este siendo llamado desde el detalle del juego; (2) revisar la query en backend (joins entre lists, list_items y games, filtros por visibilidad publica y orden por fecha); (3) revisar el frontend (si los datos llegan, comprobar que la seccion se renderice y no este oculta por un guard tipo `if (lists.length === 0)` que falle por shape). Si el endpoint no existe todavia, crearlo: GET /games/:id/lists?limit=N&order=recent devolviendo solo listas publicas. Considerar paginacion futura.
+
+### [FB-078] Real Duration en diary view del backlog no se destaca lo suficiente
+
+- **Fecha:** 2026-05-19
+- **Severidad:** bajo
+- **Estado:** resuelto
+- **Reportado por:** Esteban
+- **Descripcion:** En la vista diary del backlog, el tiempo de juego real que ingresa el jugador (realDuration) aparece como un texto mas dentro de la fila de metadatos ("Real Xh") al lado del score y la duracion estimada. Visualmente queda diluido entre los otros datos cuando en realidad es uno de los valores mas importantes que el usuario aporta personalmente — refleja su experiencia real con el juego y alimenta el ratio personal.
+- **Solucion:** Removido "Real Xh" de la fila de metadata y agregado como tercer bloque en la columna derecha de la diary card, junto al Ratio (brand grande) y Personal Ratio (warning mediano). Estilo: text-base + font-semibold + label "Real" en mayúsculas tracking-wider — mismo patrón visual que los otros indicadores derivados del usuario.
+
+### [FB-079] "No sources. Report missing" aparece al editar un backlog ya existente
+
+- **Fecha:** 2026-05-19
+- **Severidad:** medio
+- **Estado:** resuelto
+- **Reportado por:** Esteban
+- **Descripcion:** Al abrir el modal de edicion de un backlog ya creado (que tiene score y duration completados manualmente o desde una fuente), aparece debajo de los campos Critic Score y Duration el mensaje "No sources. Report missing" como si faltaran fuentes. El usuario ya tiene el dato ingresado, por lo que el aviso esta fuera de lugar y sugiere accion sobre algo que no es necesario.
+- **Solucion:** En `backlog-modal.html`, el branch `@else if (selectedGame())` que renderiza el aviso "No sources. Report missing" ahora también requiere `!isEdit()`. En modo edición el dato ya está cargado en el form, por lo que el mensaje queda oculto. Sigue activo en creación cuando un juego seleccionado realmente no tiene sources.
