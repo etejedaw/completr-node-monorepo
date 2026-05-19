@@ -3,6 +3,7 @@
 		<div class="search-wrapper">
 			<span class="material-icons search-icon">search</span>
 			<input
+				uiInput
 				type="text"
 				class="search-input"
 				placeholder="Search users, games or lists..."
@@ -10,7 +11,7 @@
 				(input)="onSearch($event)"
 			/>
 			@if (searchQuery()) {
-			<button class="search-clear" (click)="clearSearch()">
+			<button uiIconButton size="sm" class="search-clear" (click)="clearSearch()">
 				<span class="material-icons">close</span>
 			</button>
 			}
@@ -153,7 +154,7 @@
 				/>
 			</a>
 			} @if (isOwnActivity(activity)) {
-			<button class="feed-delete" (click)="deleteActivity(activity.id)">
+			<button uiIconButton size="sm" tone="danger" class="feed-delete" (click)="deleteActivity(activity.id)">
 				<span class="material-icons">close</span>
 			</button>
 			}

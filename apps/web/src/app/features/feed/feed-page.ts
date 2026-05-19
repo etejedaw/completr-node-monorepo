@@ -14,9 +14,11 @@ import {
 	SearchResults
 } from "../../core/services/global-search.service";
 
+import { UiIconButton, UiInput } from "../../shared/ui";
+
 @Component({
 	selector: "app-feed-page",
-	imports: [RouterLink],
+	imports: [RouterLink, UiInput, UiIconButton],
 	templateUrl: "./feed-page.html",
 	styleUrl: "./feed-page.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
