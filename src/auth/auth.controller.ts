@@ -5,18 +5,43 @@ import { userMeSerializer } from "../users";
 import { ChangePassword } from "./schemas";
 import { RefreshTokenBody } from "./schemas/refresh-token.schema";
 import { RequestUser } from "../common/interfaces/request-user.interface";
+import {
+	REFRESH_COOKIE_NAME,
+	clearRefreshCookie,
+	setRefreshCookie
+} from "./utils/refresh-cookie.util";
+import * as authDomainError from "./errors/auth.domains-error";
+
+function getDeviceInfo(request: Request): string {
+	return (request.headers["user-agent"] ?? "Unknown device").slice(0, 500);
+}
+
+function getRefreshToken(request: Request): string {
+	const fromCookie = request.cookies?.[REFRESH_COOKIE_NAME] as
+		| string
+		| undefined;
+	const fromBody = (request.locals.body as RefreshTokenBody)?.refresh_token;
+	const token = fromCookie ?? fromBody;
+	if (!token) throw authDomainError.invalidRefreshToken();
+	return token;
+}
 
 export async function postRegister(request: Request, response: Response) {
 	const registerDto = request.locals.body as RegisterDto;
 
-	const userRegister = await authService.register(registerDto);
+	const userRegister = await authService.register(
+		registerDto,
+		getDeviceInfo(request)
+	);
 
 	const userPlain = userRegister.user.get({ plain: true });
+
+	setRefreshCookie(response, userRegister.refreshToken);
 
 	const data = {
 		user: userMeSerializer(userPlain),
 		access_token: userRegister.accessToken,
-		refresh_token: userRegister.refreshToken
+		session_id: userRegister.sessionId
 	};
 
 	return response.status(201).json({ data });
@@ -25,33 +50,46 @@ export async function postRegister(request: Request, response: Response) {
 export async function postLogin(request: Request, response: Response) {
 	const loginDto = request.locals.body as LoginDto;
 
-	const userLogin = await authService.login(loginDto);
+	const userLogin = await authService.login(loginDto, getDeviceInfo(request));
+
+	setRefreshCookie(response, userLogin.refreshToken);
 
 	const data = {
 		access_token: userLogin.accessToken,
-		refresh_token: userLogin.refreshToken
+		session_id: userLogin.sessionId
 	};
 
 	return response.status(200).json({ data });
 }
 
 export async function postRefresh(request: Request, response: Response) {
-	const { refresh_token } = request.locals.body as RefreshTokenBody;
+	const refreshToken = getRefreshToken(request);
 
-	const tokens = await authService.refresh(refresh_token);
+	const tokens = await authService.refresh(
+		refreshToken,
+		getDeviceInfo(request)
+	);
+
+	setRefreshCookie(response, tokens.refreshToken);
 
 	const data = {
 		access_token: tokens.accessToken,
-		refresh_token: tokens.refreshToken
+		session_id: tokens.sessionId
 	};
 
 	return response.status(200).json({ data });
 }
 
 export async function postLogout(request: Request, response: Response) {
-	const { refresh_token } = request.locals.body as RefreshTokenBody;
+	const fromCookie = request.cookies?.[REFRESH_COOKIE_NAME] as
+		| string
+		| undefined;
+	const fromBody = (request.locals.body as RefreshTokenBody)?.refresh_token;
+	const refreshToken = fromCookie ?? fromBody;
 
-	await authService.logout(refresh_token);
+	if (refreshToken) await authService.logout(refreshToken);
+
+	clearRefreshCookie(response);
 
 	return response.sendStatus(204);
 }
@@ -67,4 +105,48 @@ export async function patchChangePassword(
 	await authService.changePassword(user.id, changePassword.password);
 
 	return response.sendStatus(204);
+}
+
+export async function getSessions(request: Request, response: Response) {
+	const user = request.locals.user as RequestUser;
+	const query = request.locals.query as { limit?: number; offset?: number };
+
+	const { sessions, total } = await authService.listSessions(user.id, {
+		limit: query.limit,
+		offset: query.offset
+	});
+
+	const data = {
+		sessions: sessions.map(s => ({
+			id: s.id,
+			deviceInfo: s.deviceInfo,
+			lastUsedAt: s.lastUsedAt,
+			createdAt: s.createdAt,
+			expiresAt: s.expiresAt
+		})),
+		total
+	};
+
+	return response.status(200).json({ data });
+}
+
+export async function deleteSession(request: Request, response: Response) {
+	const user = request.locals.user as RequestUser;
+	const { sessionId } = request.locals.params as { sessionId: string };
+
+	await authService.revokeSession(sessionId, user.id);
+
+	return response.sendStatus(204);
+}
+
+export async function deleteOtherSessions(
+	request: Request,
+	response: Response
+) {
+	const user = request.locals.user as RequestUser;
+	const { sessionId } = request.locals.params as { sessionId: string };
+
+	const revoked = await authService.revokeOtherSessions(user.id, sessionId);
+
+	return response.status(200).json({ data: { revoked } });
 }

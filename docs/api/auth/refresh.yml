@@ -12,16 +12,14 @@ http:
     body:
         type: json
         data: |-
-            {
-              "refresh_token": "{{REFRESH_TOKEN}}"
-            }
+            {}
 
 runtime:
     scripts:
         - type: after-response
           code: |-
               bru.setVar("TOKEN", res.body.data.access_token);
-              bru.setVar("REFRESH_TOKEN", res.body.data.refresh_token);
+              bru.setVar("SESSION_ID", res.body.data.session_id);
 
 settings:
     encodeUrl: true
@@ -32,34 +30,34 @@ settings:
 docs: |-
     ## Refresh Token
 
-    Exchanges a valid refresh token for a new access token and a new refresh token (rotation).
-    The old refresh token is invalidated after use.
+    Exchanges the refresh token (sent automatically via cookie) for a new access token and a new refresh token (rotation). The old refresh token is invalidated after use.
 
-    **Auth:** None (the refresh token itself authenticates the request).
+    **Auth:** None (the refresh token cookie itself authenticates the request).
 
     **Rate Limit:** 5 requests per minute, 15-minute block after exhaustion.
 
-    ### Request Body
+    ### Request
 
-    | Field         | Type   | Required | Description                    |
-    |---------------|--------|----------|--------------------------------|
-    | refresh_token | string | Yes      | The refresh token from login   |
+    The refresh token is read from the `refresh_token` cookie set during login/register. Bruno's cookie jar attaches it automatically.
+
+    For non-browser clients that can't use cookies, the request body may include `{ "refresh_token": "..." }` as a fallback. The cookie takes precedence when both are present.
 
     ### Response (200)
+
+    Sets a new rotating `refresh_token` cookie (same attributes as login).
 
     ```json
     {
       "data": {
         "access_token": "new_jwt_token",
-        "refresh_token": "new_refresh_token"
+        "session_id": "uuid"
       }
     }
     ```
 
     ### Errors
 
-    | Status | Code                       | Description                          |
-    |--------|----------------------------|--------------------------------------|
-    | 401    | AUTH_INVALID_REFRESH_TOKEN  | Token is invalid, expired, or used   |
-    | 422    | AUTH_SCHEMA_INVALID         | Missing or malformed refresh_token   |
-    | 429    | AUTH_RATE_LIMITED           | Too many requests                    |
+    | Status | Code                        | Description                                |
+    |--------|-----------------------------|--------------------------------------------|
+    | 401    | AUTH_INVALID_REFRESH_TOKEN  | Token is missing, invalid, expired or used |
+    | 429    | AUTH_RATE_LIMITED           | Too many requests                          |

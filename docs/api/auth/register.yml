@@ -28,7 +28,7 @@ settings:
 docs: |-
     ## Register User
 
-    Creates a new user account.
+    Creates a new user account. The new session's refresh token is set as an HttpOnly cookie.
 
     **Authentication:** Bearer token required (admin only).
     **Rate Limit:** 3 requests per minute.
@@ -46,6 +46,8 @@ docs: |-
 
     ### Response (201)
 
+    Sets cookie `refresh_token` with `HttpOnly; SameSite=Lax; Path=/auth; Max-Age=30d` (and `Secure; Domain=.completr.app` in production).
+
     ```json
     {
       "data": {
@@ -59,7 +61,7 @@ docs: |-
           "avatarUrl": "https://example.com/avatar.png"
         },
         "access_token": "jwt_token",
-        "refresh_token": "opaque_token"
+        "session_id": "uuid"
       }
     }
     ```

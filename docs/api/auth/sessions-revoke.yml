@@ -1,0 +1,37 @@
+info:
+    name: Revoke Session
+    type: http
+    seq: 7
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/auth/sessions/{{SESSION_ID}}"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+    timeout: 0
+    followRedirects: true
+
+docs: |-
+    ## Revoke Session
+
+    Revokes a single refresh-token session belonging to the authenticated user. The associated device will be signed out as soon as its access token expires (next refresh attempt fails).
+
+    **Auth:** Bearer token required.
+
+    ### URL Params
+
+    | Field     | Type | Required | Description                          |
+    |-----------|------|----------|--------------------------------------|
+    | sessionId | uuid | Yes      | ID returned by `GET /auth/sessions`  |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Code                        | Description                       |
+    |--------|-----------------------------|-----------------------------------|
+    | 401    | AUTH_INVALID_REFRESH_TOKEN  | Session not found for this user   |

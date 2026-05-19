@@ -1,0 +1,39 @@
+info:
+    name: Revoke Other Sessions
+    type: http
+    seq: 8
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/auth/sessions/others/{{SESSION_ID}}"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+    timeout: 0
+    followRedirects: true
+
+docs: |-
+    ## Revoke Other Sessions
+
+    Revokes every refresh-token session for the authenticated user **except** the one whose ID is in the URL. Intended as a "sign out from other devices" action; the current session is preserved.
+
+    **Auth:** Bearer token required.
+
+    ### URL Params
+
+    | Field     | Type | Required | Description                                            |
+    |-----------|------|----------|--------------------------------------------------------|
+    | sessionId | uuid | Yes      | The current session ID (the one to keep alive)         |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "revoked": 3
+      }
+    }
+    ```
+
+    `revoked` is the number of sessions actually destroyed (0 if no others existed).

@@ -12,9 +12,7 @@ http:
     body:
         type: json
         data: |-
-            {
-              "refresh_token": "{{REFRESH_TOKEN}}"
-            }
+            {}
 
 settings:
     encodeUrl: true
@@ -25,22 +23,14 @@ settings:
 docs: |-
     ## Logout
 
-    Invalidates the provided refresh token. The access token remains valid until it expires naturally.
+    Invalidates the current refresh token (taken from the `refresh_token` cookie) and clears the cookie. The access token remains valid until it expires naturally.
 
-    **Auth:** None (the refresh token itself identifies the session).
+    **Auth:** None (the refresh token cookie identifies the session).
 
-    ### Request Body
+    ### Request
 
-    | Field         | Type   | Required | Description                    |
-    |---------------|--------|----------|--------------------------------|
-    | refresh_token | string | Yes      | The refresh token to revoke    |
+    The refresh token is read from the `refresh_token` cookie. For non-browser clients, `{ "refresh_token": "..." }` in the body is accepted as fallback.
 
     ### Response (204)
 
-    No content.
-
-    ### Errors
-
-    | Status | Code                | Description                        |
-    |--------|---------------------|------------------------------------|
-    | 422    | AUTH_SCHEMA_INVALID | Missing or malformed refresh_token |
+    No content. The `refresh_token` cookie is cleared.

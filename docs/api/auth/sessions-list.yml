@@ -1,0 +1,54 @@
+info:
+    name: List Sessions
+    type: http
+    seq: 6
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/auth/sessions?limit=10&offset=0"
+    auth: inherit
+    params:
+        - name: limit
+          value: "10"
+        - name: offset
+          value: "0"
+
+settings:
+    encodeUrl: true
+    timeout: 0
+    followRedirects: true
+
+docs: |-
+    ## List Sessions
+
+    Lists the authenticated user's active refresh-token sessions, ordered by `lastUsedAt DESC`.
+
+    **Auth:** Bearer token required.
+
+    ### Query Params
+
+    | Field  | Type   | Required | Description                |
+    |--------|--------|----------|----------------------------|
+    | limit  | number | No       | Page size (1-100)          |
+    | offset | number | No       | Items to skip (>= 0)       |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "sessions": [
+          {
+            "id": "uuid",
+            "deviceInfo": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...",
+            "lastUsedAt": "2026-05-19T22:30:23.000Z",
+            "createdAt": "2026-05-19T22:30:12.000Z",
+            "expiresAt": "2026-06-18T22:30:12.000Z"
+          }
+        ],
+        "total": 1
+      }
+    }
+    ```
+
+    The frontend matches the session whose `id` equals the `session_id` returned by login/register/refresh to flag the "current device".
