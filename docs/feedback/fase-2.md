@@ -40,9 +40,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-16
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Al agregar un juego al backlog, si el juego no tiene score o duration precargados (de Metacritic/HLTB/RAWG), los usuarios no entienden que esos campos son el puntaje promedio de critica y la duracion estimada del juego. Los confunden con su puntaje personal o su tiempo de juego. Esto pasa especialmente con usuarios nuevos que no conocen la app.
-- **Solucion propuesta:** Agregar placeholders descriptivos en los inputs (ej: "Metacritic/OpenCritic avg." y "HowLongToBeat estimate (hrs)"). Tambien agregar tooltips o texto de ayuda debajo de los campos explicando que son datos de referencia, no personales. El puntaje personal se registra despues en userRating y el tiempo real en realDuration.
+- **Solucion:** Modal rediseñado con dos secciones explicitas: "Reference data" (Critic Score + Duration con placeholders descriptivos y tooltips info clickeables) y "Your tracking" (My Rating + Real Duration + Status + Notes). Ratio computed en vivo visible en el header de Reference data con tooltip explicando la formula. Botón "Report missing" cuando el juego no tiene sources, que crea un GameReport con category `missing_score` o `missing_duration`.
 
 ### [FB-002] Login muestra error de schema en vez de "invalid credentials"
 
@@ -437,10 +437,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** El usuario no entiende la diferencia entre "Score" y "Rating" en el backlog. Score es el puntaje promedio de criticas (Metacritic, OpenCritic, etc.) y Rating es la nota personal del usuario (userRating, de 1 a 10). El hecho de que ambos sean numeros y esten en la misma tabla sin explicacion clara genera confusion. El usuario pregunta: "si son lo mismo, uno esta demas". Relacionado con FB-001 (campos score/duration confusos).
-- **Solucion propuesta:** Renombrar "Score" a "Critic Score" o "Avg. Score" para dejar claro que es de criticas. Renombrar "Rating" a "My Rating" o "Personal Rating". Agregar tooltips explicativos en ambos campos. En la tabla del backlog, considerar usar iconos distintos (ej: estrella para rating personal, medalla para score de criticas). Tambien evaluar si la escala de ambos deberia ser mas distinta visualmente (score es 0-100 o escala Completr, rating es 1-10 con estrellas).
+- **Solucion:** Resuelto junto con FB-001. Renombrado "Score" a "Critic Score" y "Rating" a "My Rating" en modal y header de tabla. Tooltips info clickeables en ambos campos explicando la diferencia. Visualmente separados: Critic Score como input numerico en "Reference data", My Rating como estrellas en "Your tracking".
 
 ### [FB-050] Juego de RAWG falla al cargar y boton Add queda deshabilitado
 
@@ -572,10 +572,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Cuando el campo Score viene vacio (sin datos de ninguna fuente), el usuario no entiende que debe buscarlo manualmente en otra plataforma (Metacritic, OpenCritic, etc.) para rellenarlo. No sabe que estos campos alimentan el ratio, que es la feature diferenciadora de Completr para priorizar que jugar. Si el juego no tiene datos en ninguna fuente, deberia saber que puede reportar el juego para que un admin lo complete. Relacionado con FB-001 y FB-049.
-- **Solucion propuesta:** Mejorar el onboarding del usuario respecto al ratio: (1) agregar texto de ayuda en el modal de backlog explicando que Score y Duration son datos de referencia que alimentan el ratio, y que si estan vacios debe buscarlos en Metacritic/HLTB. (2) Si no encuentra el dato, mostrar un link o sugerencia para reportar el juego. (3) Considerar un tooltip o seccion en el modal que explique brevemente que es el ratio y por que importa. (4) En la tabla del backlog, hacer el ratio mas prominente para que el usuario entienda que es el valor central de la app.
+- **Solucion:** Resuelto junto con FB-001 y FB-049. (1) Texto de ayuda en el modal: subtitulo "used to calculate ratio" y explainer corto en cada seccion. (2) Botón "Report missing" inline cuando faltan sources, conectado a GameReport con category. (3) Ratio computed en vivo visible en el header de Reference data con tooltip explicando la formula. (4) Columna Ratio prominente en la tabla hardcore del backlog (font-display bold, color brand).
 
 ### [FB-065] Vista de lista desde perfil de usuario no tiene boton de Follow
 
