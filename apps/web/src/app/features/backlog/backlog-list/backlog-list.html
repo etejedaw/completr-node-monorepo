@@ -283,10 +283,6 @@
 									<span class="text-fg-muted">·</span>
 									<span class="text-fg-muted">{{ entry.duration }}h</span>
 								}
-								@if (entry.realDuration) {
-									<span class="text-fg-muted">·</span>
-									<span class="text-fg-muted">Real {{ entry.realDuration }}h</span>
-								}
 								@if (entry.finishedAt) {
 									<span class="text-fg-muted">·</span>
 									<span class="text-fg-muted">{{ entry.finishedAt | date:'yyyy-MM-dd' }}</span>
@@ -306,17 +302,27 @@
 							}
 						</div>
 
-						<div class="hidden sm:flex flex-col items-end justify-center gap-3 shrink-0 min-w-[80px] text-right">
+						<div class="hidden sm:flex flex-col items-end justify-center gap-2 shrink-0 min-w-[80px] text-right">
 							@if (entry.ratio) {
 								<div class="flex flex-col items-end leading-none">
 									<span class="text-3xl font-bold text-brand">{{ entry.ratio }}</span>
 									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
 								</div>
 							}
-							@if (entry.personalRatio) {
-								<div class="flex flex-col items-end leading-none">
-									<span class="text-lg font-semibold text-warning">{{ entry.personalRatio }}</span>
-									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Personal</span>
+							@if (entry.personalRatio || entry.realDuration) {
+								<div class="flex items-start gap-3">
+									@if (entry.realDuration) {
+										<div class="flex flex-col items-end leading-none">
+											<span class="text-base font-semibold text-fg">{{ entry.realDuration }}h</span>
+											<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-0.5">Real</span>
+										</div>
+									}
+									@if (entry.personalRatio) {
+										<div class="flex flex-col items-end leading-none">
+											<span class="text-base font-semibold text-warning">{{ entry.personalRatio }}</span>
+											<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-0.5">Personal</span>
+										</div>
+									}
 								</div>
 							}
 						</div>
