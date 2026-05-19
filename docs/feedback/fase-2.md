@@ -64,9 +64,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-18
 - **Severidad:** alto
-- **Estado:** medio
+- **Estado:** resuelto
 - **Descripcion:** Al editar un juego en el panel admin de games, si el usuario alcanza el rate limit del backend (429 Too Many Requests), el frontend muestra feedback como si el guardado hubiera sido exitoso, pero en realidad no se guardo nada. El usuario cree que sus cambios se aplicaron cuando no fue asi. Esto puede pasar al hacer varias ediciones seguidas o al hacer fetch de RAWG repetidamente.
-- **Solucion propuesta:** Manejar el error HTTP 429 en el frontend del admin game editor. Mostrar un mensaje claro al usuario indicando que alcanzo el limite de requests (ej: "Rate limit reached, try again in a moment"). Asegurarse de que el flujo de guardado no muestre confirmacion de exito si el request fallo por cualquier motivo, incluyendo rate limit.
+- **Solucion:** Manejo explicito de 429 en los tres handlers de error del admin game editor (create, update, save scores/times). Mensaje inline claro "Rate limit reached. Changes were NOT saved. Try again in a moment." que reemplaza al genérico. Toast global de 429 desde el interceptor sigue activo. Toast de éxito agregado solo en el path 2xx.
 
 ### [FB-005] Admin game editor no permite borrar un score agregado por error
 
@@ -80,9 +80,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-18
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Varios usuarios reportan que les salta el rate limit durante uso normal de la app. Como administrador tambien se alcanza el limite rapidamente al editar juegos o navegar entre vistas. Los limites actuales parecen estar calibrados demasiado bajos para el flujo real de uso, especialmente en sesiones activas donde se hacen varias acciones seguidas (editar, buscar, navegar).
-- **Solucion propuesta:** Revisar los limites configurados en rate-limiter-flexible y aumentarlos. Evaluar si admin/moderator deberian tener limites mas altos o estar exentos del rate limit. Considerar diferenciar limites por tipo de endpoint (lectura vs escritura) si no se hace ya.
+- **Solucion:** Subidos `userLimiter` y `publicLimiter` de 50/100 a 300 requests/min cada uno. `authLimiter` y `registerLimiter` se mantienen (anti brute-force). El middleware ahora exenta a `admin` y `moderator` cuando `request.locals.user` está presente; routes de games reordenadas para que `authMiddleware` corra antes del `rateLimiterMiddleware` y la exención tome efecto en los endpoints sensibles del panel admin.
 
 ### [FB-007] Actividad de wishlist no muestra el nombre del juego
 
