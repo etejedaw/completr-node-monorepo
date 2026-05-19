@@ -1,6 +1,12 @@
-@import "material-icons/iconfont/material-icons.css";
 @import "tailwindcss";
+@import "material-icons/iconfont/material-icons.css" layer(base);
 @import "./styles/ui.css";
+
+/* Allow material-icons to align cleanly with text */
+.material-icons {
+	line-height: 1;
+	vertical-align: middle;
+}
 
 /* === Completr Design System — Refined Dark === */
 
