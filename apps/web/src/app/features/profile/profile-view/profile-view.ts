@@ -6,10 +6,8 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { FormsModule } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
-import { ProfileService, UpdateProfileDto } from "../profile.service";
 import {
 	PublicProfileService,
 	PublicProfile
@@ -19,18 +17,23 @@ import {
 	type UserSummary
 } from "../../../shared/components/user-list-modal/user-list-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
-import { UiButton, UiIconButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
+import {
+	UiButton,
+	UiTabs,
+	UiTabList,
+	UiTab,
+	UiTabPanel
+} from "../../../shared/ui";
 import { activityLabel } from "../../../shared/utils/activity-labels";
 
 @Component({
 	selector: "app-profile-view",
-	imports: [FormsModule, RouterLink, UserListModal, StarRating, UiButton, UiIconButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel],
+	imports: [RouterLink, UserListModal, StarRating, UiButton, UiTabs, UiTabList, UiTab, UiTabPanel],
 	templateUrl: "./profile-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProfileView implements OnInit {
 	private readonly authService = inject(AuthService);
-	private readonly profileService = inject(ProfileService);
 	private readonly publicProfileService = inject(PublicProfileService);
 
 	protected readonly user = this.authService.user;
@@ -60,21 +63,9 @@ export class ProfileView implements OnInit {
 		}[]
 	>([]);
 
-	// User list modal
 	protected readonly showUserListModal = signal(false);
 	protected readonly userListTitle = signal("");
 	protected readonly userListUsers = signal<UserSummary[]>([]);
-
-	// Edit modal
-	protected readonly showModal = signal(false);
-	protected readonly editName = signal("");
-	protected readonly editBio = signal("");
-	protected readonly editAvatarUrl = signal("");
-	protected readonly editIsPublic = signal(true);
-	protected readonly editIsWishlistPublic = signal(true);
-	protected readonly editIsFavoritePublic = signal(true);
-	protected readonly editIsFeedPublic = signal(true);
-	protected readonly saving = signal(false);
 
 	ngOnInit() {
 		this.authService.loadUser().subscribe({
@@ -103,45 +94,6 @@ export class ProfileView implements OnInit {
 		this.publicProfileService
 			.getFollowing(username)
 			.subscribe(users => this.userListUsers.set(users));
-	}
-
-	openEdit() {
-		const u = this.user();
-		if (!u) return;
-		this.editName.set(u.name ?? "");
-		this.editBio.set(u.bio ?? "");
-		this.editAvatarUrl.set(u.avatarUrl ?? "");
-		this.editIsPublic.set(u.isPublic);
-		this.editIsWishlistPublic.set(u.isWishlistPublic);
-		this.editIsFavoritePublic.set(u.isFavoritePublic);
-		this.editIsFeedPublic.set(u.isFeedPublic);
-		this.showModal.set(true);
-	}
-
-	closeModal() {
-		this.showModal.set(false);
-	}
-
-	saveProfile() {
-		this.saving.set(true);
-		const dto: UpdateProfileDto = {
-			name: this.editName() || undefined,
-			bio: this.editBio() || undefined,
-			avatarUrl: this.editAvatarUrl() || undefined,
-			isPublic: this.editIsPublic(),
-			isWishlistPublic: this.editIsWishlistPublic(),
-			isFavoritePublic: this.editIsFavoritePublic(),
-			isFeedPublic: this.editIsFeedPublic()
-		};
-
-		this.profileService.update(dto).subscribe({
-			next: () => {
-				this.saving.set(false);
-				this.showModal.set(false);
-				this.authService.loadUser().subscribe(() => this.loadProfile());
-			},
-			error: () => this.saving.set(false)
-		});
 	}
 
 	protected activityLabel = activityLabel;
