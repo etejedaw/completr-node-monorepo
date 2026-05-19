@@ -19,6 +19,7 @@
 		@if (isOwner()) {
 		<div class="header-actions">
 			<button
+				uiButton variant="secondary" size="sm"
 				class="btn-secondary"
 				(click)="showAddSearch.set(!showAddSearch())"
 			>
@@ -26,6 +27,7 @@
 				Add Game
 			</button>
 			<button
+				uiButton variant="secondary" size="sm"
 				class="btn-secondary"
 				(click)="refreshScores()"
 				[disabled]="refreshing()"
@@ -33,7 +35,7 @@
 				<span class="material-icons">refresh</span>
 				{{ refreshing() ? 'Refreshing...' : 'Refresh Scores' }}
 			</button>
-			<button class="btn-secondary" (click)="openEdit()">
+			<button uiButton variant="secondary" size="sm" class="btn-secondary" (click)="openEdit()">
 				<span class="material-icons">edit</span>
 				Edit
 			</button>
@@ -62,6 +64,9 @@
 		</span>
 		@if (!isOwner() && list()!.isPublic) {
 		<button
+			uiButton
+			[variant]="list()!.isFollowing ? 'ghost' : 'primary'"
+			size="sm"
 			class="btn-follow-list"
 			[class.following]="list()!.isFollowing"
 			[disabled]="togglingFollow()"
@@ -100,6 +105,7 @@
 	@if (isOwner() && showAddSearch()) {
 	<div class="add-search">
 		<input
+			uiInput
 			type="text"
 			placeholder="Search games to add..."
 			[value]="searchQuery()"
@@ -192,7 +198,7 @@
 						>
 						} @else {
 						<button
-							class="btn-status-icon"
+							uiIconButton size="sm" tone="accent" class="btn-status-icon"
 							(click)="openBacklogModal(item)"
 							title="Add to Backlog"
 						>
@@ -203,7 +209,7 @@
 					@if (isOwner()) {
 					<td class="col-actions">
 						<button
-							class="btn-move"
+							uiIconButton size="sm" class="btn-move"
 							[disabled]="i === 0"
 							(click)="moveUp(i)"
 						>
@@ -212,7 +218,7 @@
 							>
 						</button>
 						<button
-							class="btn-move"
+							uiIconButton size="sm" class="btn-move"
 							[disabled]="i === list()!.items.length - 1"
 							(click)="moveDown(i)"
 						>
@@ -220,7 +226,7 @@
 								>keyboard_arrow_down</span
 							>
 						</button>
-						<button class="btn-remove" (click)="removeItem(item)">
+						<button uiIconButton size="sm" tone="danger" class="btn-remove" (click)="removeItem(item)">
 							<span class="material-icons">close</span>
 						</button>
 					</td>

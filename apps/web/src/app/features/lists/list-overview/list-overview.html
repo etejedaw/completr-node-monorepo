@@ -4,13 +4,14 @@
 			<h1>Lists</h1>
 			<span class="entry-count">{{ lists().length }} lists</span>
 		</div>
-		<button class="btn-add" (click)="openCreate()" [disabled]="frozen()">
+		<button uiButton variant="primary" (click)="openCreate()" [disabled]="frozen()">
 			+ Create List
 		</button>
 	</div>
 
 	<div class="search-bar">
 		<input
+			uiInput
 			type="text"
 			placeholder="Search public lists..."
 			[value]="searchQuery()"

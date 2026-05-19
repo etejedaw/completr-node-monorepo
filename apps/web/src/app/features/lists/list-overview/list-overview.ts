@@ -10,10 +10,11 @@ import { Subject, debounceTime, switchMap, of } from "rxjs";
 import { List, FollowingList } from "../../../core/models";
 import { ListsService } from "../lists.service";
 import { ListModal } from "../list-modal/list-modal";
+import { UiButton, UiInput } from "../../../shared/ui";
 
 @Component({
 	selector: "app-list-overview",
-	imports: [RouterLink, ListModal],
+	imports: [RouterLink, ListModal, UiButton, UiInput],
 	templateUrl: "./list-overview.html",
 	styleUrl: "./list-overview.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

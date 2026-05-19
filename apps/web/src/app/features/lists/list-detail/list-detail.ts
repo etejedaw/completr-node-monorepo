@@ -20,10 +20,11 @@ import {
 	switchMap,
 	of
 } from "rxjs";
+import { UiButton, UiIconButton, UiInput } from "../../../shared/ui";
 
 @Component({
 	selector: "app-list-detail",
-	imports: [RouterLink, ListModal, BacklogModal],
+	imports: [RouterLink, ListModal, BacklogModal, UiButton, UiIconButton, UiInput],
 	templateUrl: "./list-detail.html",
 	styleUrl: "./list-detail.css",
 	changeDetection: ChangeDetectionStrategy.OnPush

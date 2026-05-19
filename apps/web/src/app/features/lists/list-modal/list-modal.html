@@ -2,7 +2,7 @@
 	<div class="modal-card" (click)="$event.stopPropagation()">
 		<div class="modal-header">
 			<h2>{{ isEdit() ? "Edit List" : "Create List" }}</h2>
-			<button class="close-btn" (click)="onClose()">&times;</button>
+			<button uiIconButton size="sm" class="close-btn" (click)="onClose()">&times;</button>
 		</div>
 
 		@if (error()) {
@@ -84,14 +84,14 @@
 					</button>
 					} @else {
 					<span class="confirm-text">Are you sure?</span>
-					<button
+					<button uiButton variant="danger" size="sm"
 						type="button"
 						class="btn-danger"
 						(click)="onDelete()"
 					>
 						Yes, delete
 					</button>
-					<button
+					<button uiButton variant="ghost" size="sm"
 						type="button"
 						class="btn-ghost"
 						(click)="showConfirmDelete.set(false)"
@@ -101,8 +101,7 @@
 					}
 				</div>
 				}
-				<button
-					class="btn-primary"
+				<button uiButton variant="primary" size="sm" class="btn-primary"
 					type="submit"
 					[disabled]="form.invalid || isLoading()"
 				>
