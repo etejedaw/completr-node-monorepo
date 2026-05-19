@@ -402,10 +402,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** diferido
 - **Reportado por:** Tami
 - **Descripcion:** Un usuario quiso agregar Pokemon Scarlet y no lo encontro. La busqueda con fallback a RAWG deberia traer juegos de Switch, pero puede ser que el juego tenga un nombre distinto en RAWG (ej: "Pokemon Scarlet and Violet") o que el mapeo de plataformas de RAWG no incluya Switch correctamente.
-- **Solucion propuesta:** Verificar que la plataforma Nintendo Switch esta en la tabla de plataformas y en el mapeo de RAWG (rawg-platform.map.ts). Buscar "Pokemon Scarlet" en RAWG directamente para ver si existe y con que nombre. Si RAWG lo agrupa con Violet (como un solo registro), es una instancia del problema descrito en FB-023.
+- **Decision (2026-05-19):** A revisar despues. Pendiente de diagnostico: reproducir busqueda, contrastar contra la API de RAWG, y comprobar `rawg-platform.map.ts`. Si la causa raiz resulta ser la consolidacion Scarlet/Violet en RAWG, queda como duplicado de FB-074 y se resuelve junto con ese.
 
 ### [FB-046] Barra de busqueda deberia ser permanente en el sidebar
 
@@ -465,19 +465,19 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Tami
 - **Descripcion:** Las miniaturas de algunos juegos (ej: Hello Kitty Island Adventure) muestran capturas de pantalla (screenshots) en vez de arte oficial o portada del juego. Esto pasa porque RAWG usa el campo "background_image" que a menudo es un screenshot, no un cover art. La app usa backgroundUrl para las imagenes y coverUrl esta reservado para covers reales pero aun no se implementa.
-- **Solucion propuesta:** A largo plazo, implementar una fuente de covers reales (SteamGridDB, IGDB) y usar coverUrl para arte oficial. A corto plazo, no hay mucho que hacer porque RAWG no provee covers oficiales de forma consistente. Considerar agregar un campo en el admin editor para subir o linkear una imagen de cover manualmente para juegos donde el background de RAWG no sea adecuado.
+- **Decision (2026-05-19):** Descartado en Fase 2. RAWG no provee covers oficiales consistentes y la integracion con SteamGridDB/IGDB es trabajo grande para una mejora cosmetica. Se reevalua en Fase 5+ como integracion formal de un provider de covers (SteamGridDB).
 
 ### [FB-053] Descripcion de juego en idiomas mezclados y demasiado larga
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** diferido
 - **Reportado por:** Tami
 - **Descripcion:** La descripcion del juego Hello Kitty Island Adventure esta mitad en ingles y mitad en aleman (u otro idioma). Esto viene de RAWG que a veces devuelve descripciones en multiples idiomas concatenadas. Ademas, la descripcion es muy larga y no tiene scroll propio, haciendo que la pagina de detalle se extienda demasiado.
-- **Solucion propuesta:** Para el problema de idiomas: al importar de RAWG, usar el campo description_raw o parsear la descripcion para quedarse solo con la version en ingles (RAWG suele separar idiomas con un salto de linea doble o un tag de idioma). Para el largo: agregar un "Read more / Read less" que muestre las primeras 3-4 lineas con un boton para expandir, o un contenedor con max-height y overflow scroll.
+- **Decision (2026-05-19):** Movido a Fase 3. Requiere parser de idiomas en el import desde RAWG + script de backfill + "Read more / Read less" en la UI. No bloquea uso normal; se aborda junto con otras mejoras de calidad de datos de catalogo en Fase 3.
 
 ### [FB-054] Botones de filtrar y limpiar filtros poco visibles en backlog
 
@@ -591,9 +591,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Cuando un backlog cambia a status "completed" o "abandoned", el sistema auto-remueve el juego de la wishlist. No hay ningun indicador visual en el frontend que le comunique al usuario que esto paso. El juego simplemente desaparece de la wishlist sin explicacion.
-- **Solucion propuesta:** Mostrar un toast o notificacion temporal cuando un juego se auto-remueve de la wishlist al completar o abandonar un backlog (ej: "Removed from Wishlist: RE4"). Alternativa: mostrar un mensaje inline en la wishlist indicando que el juego fue removido automaticamente.
+- **Solucion:** Backend: `backlog.service.updateBacklog` ahora devuelve `{ backlog, wishlistRemoved }`. `wishlistRemoved` es `true` solo si la transicion a completed/abandoned efectivamente borro filas de Wishlist (`Wishlist.destroy` devuelve >0). El controller expone el flag en `data.wishlistRemoved` del PATCH `/users/me/backlog/:id`. Frontend: el modal de backlog dispara `toast.info("Removed from your Queue: <title> — completed/abandoned")` cuando la respuesta trae `wishlistRemoved: true`, y sincroniza los signals `isInWishlist`/`addToWishlist` para evitar re-add accidental.
 
 ### [FB-067] Titulos con caracteres especiales se guardan HTML-encodeados
 
@@ -725,4 +725,5 @@ Formato por item:
 - **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al abrir el modal de edicion de un backlog ya creado (que tiene score y duration completados manualmente o desde una fuente), aparece debajo de los campos Critic Score y Duration el mensaje "No sources. Report missing" como si faltaran fuentes. El usuario ya tiene el dato ingresado, por lo que el aviso esta fuera de lugar y sugiere accion sobre algo que no es necesario.
+- **Solucion:** El bloque de sources en `backlog-modal.html` ya estaba condicionado con `gameScores().length > 0 || (selectedGame() && !isEdit())` (idem para `gameTimes`). En modo edit el wrapper no se renderiza, asi que el aviso "No sources. Report missing" solo aparece en flujo de creacion cuando el juego del catalogo realmente no tiene fuentes.
 - **Solucion:** En `backlog-modal.html`, el branch `@else if (selectedGame())` que renderiza el aviso "No sources. Report missing" ahora también requiere `!isEdit()`. En modo edición el dato ya está cargado en el form, por lo que el mensaje queda oculto. Sigue activo en creación cuando un juego seleccionado realmente no tiene sources.
