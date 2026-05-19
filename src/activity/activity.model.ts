@@ -11,6 +11,7 @@ export const ACTIVITY_TYPES = [
 	"backlog_abandoned",
 	"backlog_playing",
 	"backlog_not_started",
+	"wishlist_added",
 	"favorite_added",
 	"list_created",
 	"list_followed",

@@ -4,6 +4,7 @@ import * as usersService from "../users/users.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import * as wishlistService from "./wishlist.service";
 import * as wishlistDomainError from "./errors/wishlist.domain-error";
+import * as activityService from "../activity/activity.service";
 import { AddWishlistBody } from "./schemas/add-wishlist-body.schema";
 import { AddWishlistQuery } from "./schemas/add-wishlist-query.schema";
 import { ReplaceWishlistBody } from "./schemas/replace-wishlist.schema";
@@ -30,6 +31,11 @@ export async function postWishlist(request: Request, response: Response) {
 	}
 
 	const entryPlain = entry!.get({ plain: true });
+	const gameId = entryPlain.Backlog?.gameId;
+	if (gameId) {
+		activityService.record(user.id, "wishlist_added", gameId);
+	}
+
 	const data = { wishlist: wishlistSerializer(entryPlain) };
 	return response.status(201).json({ data });
 }

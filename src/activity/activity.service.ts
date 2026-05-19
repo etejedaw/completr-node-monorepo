@@ -14,6 +14,7 @@ const GAME_TYPES: string[] = [
 	"backlog_abandoned",
 	"backlog_playing",
 	"backlog_not_started",
+	"wishlist_added",
 	"favorite_added",
 	"game_reviewed"
 ];
