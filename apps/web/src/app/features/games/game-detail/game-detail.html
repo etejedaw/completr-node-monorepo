@@ -160,36 +160,23 @@
 						{{ isInBacklog() ? 'In Backlog' : 'Add to Backlog' }}
 					</button>
 
-					@if (showPlatformPicker()) {
-						<select
-							class="w-full py-2.5 px-3 bg-input-bg border border-brand rounded text-fg text-sm cursor-pointer outline-none focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
-							(change)="onWishlistPlatformSelected($event)"
-						>
-							<option value="">Select platform...</option>
-							@for (p of game()!.platforms; track p.id) {
-								<option [value]="p.id">{{ p.name }}</option>
-							}
-						</select>
-					} @else {
-						<button
-							class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
-							[class.bg-brand-subtle]="addedToWishlist()"
-							[class.border-brand]="addedToWishlist()"
-							[class.text-brand]="addedToWishlist()"
-							[class.cursor-default]="addedToWishlist()"
-							[class.bg-input-bg]="!addedToWishlist()"
-							[class.border-line]="!addedToWishlist()"
-							[class.text-fg-secondary]="!addedToWishlist()"
-							[class.hover:bg-brand-subtle]="!addedToWishlist()"
-							[class.hover:border-brand]="!addedToWishlist()"
-							[class.hover:text-brand]="!addedToWishlist()"
-							[disabled]="addingToWishlist()"
-							(click)="addToWishlist()"
-						>
-							<span class="material-icons text-lg">favorite</span>
-							{{ addedToWishlist() ? 'In Wishlist' : addingToWishlist() ? 'Adding...' : 'Add to Wishlist' }}
-						</button>
-					}
+					<button
+						class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
+						[class.bg-brand-subtle]="addedToWishlist()"
+						[class.border-brand]="addedToWishlist()"
+						[class.text-brand]="addedToWishlist()"
+						[class.cursor-default]="addedToWishlist()"
+						[class.bg-input-bg]="!addedToWishlist()"
+						[class.border-line]="!addedToWishlist()"
+						[class.text-fg-secondary]="!addedToWishlist()"
+						[class.hover:bg-brand-subtle]="!addedToWishlist()"
+						[class.hover:border-brand]="!addedToWishlist()"
+						[class.hover:text-brand]="!addedToWishlist()"
+						(click)="addToWishlist()"
+					>
+						<span class="material-icons text-lg">favorite</span>
+						{{ addedToWishlist() ? 'In Wishlist' : 'Add to Wishlist' }}
+					</button>
 
 					<button
 						class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
@@ -475,7 +462,12 @@
 }
 
 @if (showBacklogModal()) {
-	<app-backlog-modal [preselectedGame]="game()" (closed)="onModalClosed()" (saved)="onModalSaved()" />
+	<app-backlog-modal
+		[preselectedGame]="game()"
+		[preselectAddToWishlist]="backlogModalPreselectWishlist()"
+		(closed)="onModalClosed()"
+		(saved)="onModalSaved()"
+	/>
 }
 @if (showShelfModal()) {
 	<app-game-shelf-modal [preselectedGame]="game()" (closed)="onModalClosed()" (saved)="onModalSaved()" />

@@ -63,9 +63,8 @@ export class GameDetail implements OnInit {
 	protected readonly isInWishlist = signal(false);
 	protected readonly isInShelf = signal(false);
 	protected readonly addedToWishlist = signal(false);
-	protected readonly addingToWishlist = signal(false);
-	protected readonly showPlatformPicker = signal(false);
 	protected readonly showBacklogModal = signal(false);
+	protected readonly backlogModalPreselectWishlist = signal(false);
 	protected readonly showShelfModal = signal(false);
 	protected readonly isModerator = computed(() => {
 		const role = this.authService.user()?.role;
@@ -148,9 +147,11 @@ export class GameDetail implements OnInit {
 				this.addedToWishlist.set(found);
 			}
 		});
-		this.gameShelfService.getMyShelf().subscribe({
-			next: shelf =>
-				this.isInShelf.set(shelf.some(s => s.game.id === gameId))
+		this.gameShelfService.getMyShelf({ limit: 100 }).subscribe({
+			next: res =>
+				this.isInShelf.set(
+					res.data.gameShelf.some(s => s.game.id === gameId)
+				)
 		});
 	}
 
@@ -180,25 +181,9 @@ export class GameDetail implements OnInit {
 
 	addToWishlist() {
 		const g = this.game();
-		if (!g || this.addingToWishlist() || this.addedToWishlist()) return;
-
-		if (g.platforms.length > 1) {
-			this.showPlatformPicker.set(true);
-			return;
-		}
-
-		const platformId = g.platforms?.[0]?.id;
-		if (!platformId) return;
-		this.doAddToWishlist(g.id, platformId);
-	}
-
-	onWishlistPlatformSelected(event: Event) {
-		const platformId = (event.target as HTMLSelectElement).value;
-		if (!platformId) return;
-		const g = this.game();
-		if (!g) return;
-		this.showPlatformPicker.set(false);
-		this.doAddToWishlist(g.id, platformId);
+		if (!g || this.addedToWishlist()) return;
+		this.backlogModalPreselectWishlist.set(true);
+		this.showBacklogModal.set(true);
 	}
 
 	deactivateGame() {
@@ -221,18 +206,8 @@ export class GameDetail implements OnInit {
 		});
 	}
 
-	private doAddToWishlist(gameId: string, platformId: string) {
-		this.addingToWishlist.set(true);
-		this.wishlistService.addFromGame(gameId, platformId).subscribe({
-			next: () => {
-				this.addingToWishlist.set(false);
-				this.addedToWishlist.set(true);
-			},
-			error: () => this.addingToWishlist.set(false)
-		});
-	}
-
 	openBacklogModal() {
+		this.backlogModalPreselectWishlist.set(false);
 		this.showBacklogModal.set(true);
 	}
 
@@ -243,11 +218,13 @@ export class GameDetail implements OnInit {
 	onModalClosed() {
 		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
+		this.backlogModalPreselectWishlist.set(false);
 	}
 
 	onModalSaved() {
 		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
+		this.backlogModalPreselectWishlist.set(false);
 		const gameId = this.game()?.id;
 		if (gameId) this.loadUserStatus(gameId);
 	}

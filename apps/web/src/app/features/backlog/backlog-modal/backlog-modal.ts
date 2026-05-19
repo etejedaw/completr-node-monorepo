@@ -113,6 +113,7 @@ export class BacklogModal implements OnInit {
 
 	entry = input<BacklogEntry | null>(null);
 	preselectedGame = input<Game | null>(null);
+	preselectAddToWishlist = input<boolean>(false);
 	closed = output<void>();
 	saved = output<void>();
 
@@ -238,6 +239,10 @@ export class BacklogModal implements OnInit {
 		const pg = this.preselectedGame();
 		if (pg && !this.isEdit()) {
 			this.selectGame(pg);
+		}
+
+		if (this.preselectAddToWishlist() && !this.isEdit()) {
+			this.addToWishlist.set(true);
 		}
 	}
 
