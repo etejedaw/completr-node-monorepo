@@ -156,6 +156,7 @@
 								<span class="material-icons text-sm">info</span>
 							</button>
 						</label>
+						@if (gameScores().length > 0 || (selectedGame() && !isEdit())) {
 						<div class="min-h-[26px] mb-1.5 flex flex-wrap items-center gap-1">
 							@if (gameScores().length > 0) {
 								@for (s of gameScores(); track s.source) {
@@ -179,7 +180,7 @@
 									Normalize
 								</button>
 								}
-							} @else if (selectedGame()) {
+							} @else {
 								<span class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted">
 									<span class="material-icons text-[0.75rem]">help_outline</span>
 									No sources.
@@ -191,6 +192,7 @@
 								</span>
 							}
 						</div>
+						}
 						<input
 							id="score"
 							type="number"
@@ -213,6 +215,7 @@
 								<span class="material-icons text-sm">info</span>
 							</button>
 						</label>
+						@if (gameTimes().length > 0 || (selectedGame() && !isEdit())) {
 						<div class="min-h-[26px] mb-1.5 flex flex-wrap items-center gap-1">
 							@if (gameTimes().length > 0) {
 								@for (t of gameTimes(); track t.source) {
@@ -227,7 +230,7 @@
 									{{ t.source }} {{ t.duration }}h
 								</button>
 								}
-							} @else if (selectedGame()) {
+							} @else {
 								<span class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted">
 									<span class="material-icons text-[0.75rem]">help_outline</span>
 									No sources.
@@ -239,6 +242,7 @@
 								</span>
 							}
 						</div>
+						}
 						<input
 							id="duration"
 							type="number"
