@@ -1,9 +1,10 @@
-<div class="max-w-full">
-	<div class="mb-5">
-		<h1 class="font-display m-0 text-[1.375rem] font-bold tracking-tight">Games</h1>
+<div>
+	<div class="mb-6">
+		<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Games</h1>
+		<p class="text-fg-muted text-sm mt-1">Discover and search the catalog.</p>
 	</div>
 
-	<div class="flex gap-2 items-center mb-6">
+	<div class="flex gap-2 items-center mb-8">
 		<input
 			uiInput
 			type="text"
@@ -15,134 +16,137 @@
 	</div>
 
 	@if (isAdmin()) {
-	<div class="flex items-center gap-3 py-2.5 px-3.5 bg-danger/[0.05] border border-danger/[0.15] rounded mb-4">
-		<span class="flex items-center gap-1.5 text-xs font-semibold text-danger uppercase tracking-wider mr-auto">
-			<span class="material-icons text-base">admin_panel_settings</span>
-			Admin
-		</span>
-		<button
-			uiButton
-			variant="secondary"
-			size="sm"
-			(click)="showCreateEditor.set(!showCreateEditor())"
-		>
-			<span class="material-icons"
-				>{{ showCreateEditor() ? 'close' : 'add' }}</span
-			>
-			{{ showCreateEditor() ? 'Close' : 'Add Game' }}
-		</button>
-	</div>
-	@if (showCreateEditor()) {
-	<app-admin-game-editor (created)="onGameCreated($event)" />
-	} }
-
-	@if (searchQuery().length >= 2) {
-	<section class="mb-8">
-		<h2 class="font-display m-0 mb-3 text-base font-semibold text-fg-secondary">Search Results</h2>
-		<div class="mb-3">
-			<button
-				uiButton
-				variant="ghost"
-				size="sm"
-				(click)="searchRawg()"
-				[disabled]="searchingRawg()"
-			>
-				{{ searchingRawg() ? 'Searching...' : 'Force search' }}
+		<div class="flex items-center gap-3 py-2.5 px-3.5 bg-danger/[0.05] border border-danger/[0.15] rounded mb-6">
+			<span class="flex items-center gap-1.5 text-xs font-semibold text-danger uppercase tracking-wider mr-auto">
+				<span class="material-icons text-base">admin_panel_settings</span>
+				Admin
+			</span>
+			<button uiButton variant="secondary" size="sm" (click)="showCreateEditor.set(!showCreateEditor())">
+				<span class="material-icons">{{ showCreateEditor() ? 'close' : 'add' }}</span>
+				{{ showCreateEditor() ? 'Close' : 'Add Game' }}
 			</button>
 		</div>
-		@if (isSearching()) {
-		<p class="text-fg-muted text-[0.8125rem]">Searching...</p>
-		} @else if (searchResults().length === 0) {
-		<p class="text-fg-muted text-[0.8125rem]">No games found.</p>
-		} @else {
-		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-			@for (game of searchResults(); track game.id) {
-			<a class="flex flex-col gap-1.5 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
-				@if (game.backgroundUrl) {
-				<img
-					[src]="game.backgroundUrl"
-					[alt]="game.title"
-					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
-				/>
-				} @else {
-				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-				}
-				<span class="text-xs font-medium text-fg-secondary overflow-hidden text-ellipsis whitespace-nowrap">{{ game.title }}</span>
-			</a>
-			}
-		</div>
+		@if (showCreateEditor()) {
+			<app-admin-game-editor (created)="onGameCreated($event)" />
 		}
-	</section>
+	}
+
+	@if (searchQuery().length >= 2) {
+		<section class="mb-12">
+			<div class="flex items-center justify-between mb-4">
+				<h2 class="font-display m-0 text-xl md:text-2xl font-bold flex items-center gap-3">
+					<span class="inline-block w-1 h-6 bg-brand rounded-full"></span>
+					Search Results
+				</h2>
+				<button uiButton variant="ghost" size="sm" (click)="searchRawg()" [disabled]="searchingRawg()">
+					{{ searchingRawg() ? 'Searching...' : 'Force search' }}
+				</button>
+			</div>
+			@if (isSearching()) {
+				<p class="text-fg-muted text-sm">Searching...</p>
+			} @else if (searchResults().length === 0) {
+				<p class="text-fg-muted text-sm">No games found.</p>
+			} @else {
+				<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+					@for (game of searchResults(); track game.id) {
+						<a class="flex flex-col gap-2 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
+							@if (game.backgroundUrl) {
+								<img
+									[src]="game.backgroundUrl"
+									[alt]="game.title"
+									class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
+								/>
+							} @else {
+								<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+							}
+							<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ game.title }}</span>
+						</a>
+					}
+				</div>
+			}
+		</section>
 	} @else {
+		@if (latestGames().length > 0) {
+			<section class="mb-12">
+				<h2 class="font-display m-0 mb-4 text-xl md:text-2xl font-bold flex items-center gap-3">
+					<span class="inline-block w-1 h-6 bg-brand rounded-full"></span>
+					Latest Added
+				</h2>
+				<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+					@for (game of latestGames(); track game.id) {
+						<a class="flex flex-col gap-2 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
+							@if (game.backgroundUrl) {
+								<img
+									[src]="game.backgroundUrl"
+									[alt]="game.title"
+									class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
+								/>
+							} @else {
+								<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+							}
+							<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ game.title }}</span>
+						</a>
+					}
+				</div>
+			</section>
+		}
 
-	@if (latestGames().length > 0) {
-	<section class="mb-8">
-		<h2 class="font-display m-0 mb-3 text-base font-semibold text-fg-secondary">Latest Added</h2>
-		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-			@for (game of latestGames(); track game.id) {
-			<a class="flex flex-col gap-1.5 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
-				@if (game.backgroundUrl) {
-				<img
-					[src]="game.backgroundUrl"
-					[alt]="game.title"
-					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
-				/>
-				} @else {
-				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-				}
-				<span class="text-xs font-medium text-fg-secondary overflow-hidden text-ellipsis whitespace-nowrap">{{ game.title }}</span>
-			</a>
-			}
-		</div>
-	</section>
+		@if (randomGenre() && genreGames().length > 0) {
+			<section class="mb-12">
+				<h2 class="font-display m-0 mb-4 text-xl md:text-2xl font-bold flex items-center gap-3">
+					<span class="inline-block w-1 h-6 bg-brand rounded-full"></span>
+					{{ randomGenre()!.name }}
+				</h2>
+				<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+					@for (game of genreGames(); track game.id) {
+						<a class="flex flex-col gap-2 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
+							@if (game.backgroundUrl) {
+								<img
+									[src]="game.backgroundUrl"
+									[alt]="game.title"
+									class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
+								/>
+							} @else {
+								<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+							}
+							<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ game.title }}</span>
+						</a>
+					}
+				</div>
+			</section>
+		}
+
+		<section class="mb-12">
+			<h2 class="font-display m-0 mb-4 text-xl md:text-2xl font-bold flex items-center gap-3">
+				<span class="inline-block w-1 h-6 bg-brand rounded-full"></span>
+				Latest Completr Lists
+			</h2>
+			<p class="text-fg-muted text-sm">Coming soon...</p>
+		</section>
+
+		@if (topRated().length > 0) {
+			<section class="mb-12">
+				<h2 class="font-display m-0 mb-4 text-xl md:text-2xl font-bold flex items-center gap-3">
+					<span class="inline-block w-1 h-6 bg-brand rounded-full"></span>
+					Top Rated
+				</h2>
+				<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+					@for (game of topRated(); track game.id) {
+						<a class="flex flex-col gap-2 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
+							@if (game.backgroundUrl) {
+								<img
+									[src]="game.backgroundUrl"
+									[alt]="game.title"
+									class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
+								/>
+							} @else {
+								<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+							}
+							<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ game.title }}</span>
+						</a>
+					}
+				</div>
+			</section>
+		}
 	}
-
-	@if (randomGenre() && genreGames().length > 0) {
-	<section class="mb-8">
-		<h2 class="font-display m-0 mb-3 text-base font-semibold text-fg-secondary">{{ randomGenre()!.name }}</h2>
-		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-			@for (game of genreGames(); track game.id) {
-			<a class="flex flex-col gap-1.5 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
-				@if (game.backgroundUrl) {
-				<img
-					[src]="game.backgroundUrl"
-					[alt]="game.title"
-					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
-				/>
-				} @else {
-				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-				}
-				<span class="text-xs font-medium text-fg-secondary overflow-hidden text-ellipsis whitespace-nowrap">{{ game.title }}</span>
-			</a>
-			}
-		</div>
-	</section>
-	}
-
-	<section class="mb-8">
-		<h2 class="font-display m-0 mb-3 text-base font-semibold text-fg-secondary">Latest Completr Lists</h2>
-		<p class="text-fg-muted text-[0.8125rem]">Coming soon...</p>
-	</section>
-
-	@if (topRated().length > 0) {
-	<section class="mb-8">
-		<h2 class="font-display m-0 mb-3 text-base font-semibold text-fg-secondary">Top Rated</h2>
-		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-			@for (game of topRated(); track game.id) {
-			<a class="flex flex-col gap-1.5 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
-				@if (game.backgroundUrl) {
-				<img
-					[src]="game.backgroundUrl"
-					[alt]="game.title"
-					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
-				/>
-				} @else {
-				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-				}
-				<span class="text-xs font-medium text-fg-secondary overflow-hidden text-ellipsis whitespace-nowrap">{{ game.title }}</span>
-			</a>
-			}
-		</div>
-	</section>
-	} }
 </div>
