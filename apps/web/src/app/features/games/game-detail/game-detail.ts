@@ -156,7 +156,7 @@ export class GameDetail implements OnInit {
 			.getGames({ limit: 10, genre: genre.code })
 			.subscribe(res => {
 				const filtered = res.data.games.filter(g => g.id !== game.id);
-				this.similarGames.set(filtered.slice(0, 8));
+				this.similarGames.set(filtered.slice(0, 6));
 			});
 	}
 
