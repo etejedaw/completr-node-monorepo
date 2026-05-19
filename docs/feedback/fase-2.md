@@ -688,3 +688,21 @@ Formato por item:
     - Backfill: recorrer juegos existentes y completar `rawgSlug` consultando la API de RAWG por `rawgId`. Considerar rate limits.
     - Actualizar el frontend para usar `rawgSlug` en el link externo, con fallback al slug interno si todavia esta vacio.
     - Cambio grande en BBDD, revisar con mas detalle antes de implementar (volumen de juegos, costo del backfill, si RAWG expone el slug en el endpoint de detalle).
+
+### [FB-076] Wishlist en modo grilla no muestra el numero de posicion
+
+- **Fecha:** 2026-05-19
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En la wishlist, al cambiar a la vista en modo grilla, no se muestra el numero de posicion de cada juego dentro de la lista. La wishlist esta ordenada por prioridad (manual o por columna, ver FB-071), por lo que la posicion es informacion relevante: saber si un juego es el #3 o el #27 cambia la lectura. En el modo tabla la posicion se infiere por la fila, pero en grilla se pierde esa referencia.
+- **Solucion propuesta:** Mostrar el numero de posicion en cada card del modo grilla de la wishlist. Opciones de UI: (1) badge en una esquina de la card (ej: esquina superior izquierda con "#3"); (2) prefijo en el titulo del juego ("3. The Witcher 3"). Asegurar que el numero se actualice al reordenar (drag & drop) o al aplicar un sort por columna.
+
+### [FB-077] Seccion "Latest Completr Lists" nunca aparece en la pagina de un juego
+
+- **Fecha:** 2026-05-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En el detalle de un juego (Games) deberia mostrarse una seccion "Latest Completr Lists" con las listas publicas mas recientes que incluyen ese juego. La seccion nunca aparece, ni siquiera para juegos que sabemos que estan en varias listas publicas. Puede ser que el endpoint no devuelva resultados, que el frontend este filtrando mal, o que la query no este matcheando los juegos correctamente con sus listas.
+- **Solucion propuesta:** Diagnosticar el flujo end-to-end: (1) verificar que el endpoint que devuelve "ultimas listas que incluyen este juego" exista y este siendo llamado desde el detalle del juego; (2) revisar la query en backend (joins entre lists, list_items y games, filtros por visibilidad publica y orden por fecha); (3) revisar el frontend (si los datos llegan, comprobar que la seccion se renderice y no este oculta por un guard tipo `if (lists.length === 0)` que falle por shape). Si el endpoint no existe todavia, crearlo: GET /games/:id/lists?limit=N&order=recent devolviendo solo listas publicas. Considerar paginacion futura.
