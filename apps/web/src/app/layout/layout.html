@@ -31,8 +31,8 @@
 				<li>
 					<a
 						routerLink="/feed"
-						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:text-brand"
-						class="flex items-center gap-2.5 px-2.5 py-1.5 text-fg-secondary rounded-md text-[0.875rem] font-medium transition hover:bg-surface hover:text-fg"
+						routerLinkActive="!border-brand !text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">dynamic_feed</span>
 						Feed
@@ -41,8 +41,8 @@
 				<li>
 					<a
 						routerLink="/games"
-						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:text-brand"
-						class="flex items-center gap-2.5 px-2.5 py-1.5 text-fg-secondary rounded-md text-[0.875rem] font-medium transition hover:bg-surface hover:text-fg"
+						routerLinkActive="!border-brand !text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">sports_esports</span>
 						Games
@@ -54,23 +54,13 @@
 		<div class="mx-3 my-1 h-px bg-line"></div>
 
 		<div class="px-3 py-1">
-			<span class="block px-2.5 mb-0.5 text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">My collection</span>
+			<span class="block px-3 mb-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted/70">My collection</span>
 			<ul class="list-none">
 				<li>
 					<a
-						routerLink="/game-shelf"
-						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:text-brand"
-						class="flex items-center gap-2.5 px-2.5 py-1.5 text-fg-secondary rounded-md text-[0.875rem] font-medium transition hover:bg-surface hover:text-fg"
-					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">shelves</span>
-						Game Shelf
-					</a>
-				</li>
-				<li>
-					<a
 						routerLink="/backlog"
-						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:text-brand"
-						class="flex items-center gap-2.5 px-2.5 py-1.5 text-fg-secondary rounded-md text-[0.875rem] font-medium transition hover:bg-surface hover:text-fg"
+						routerLinkActive="!border-brand !text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">list_alt</span>
 						Backlog
@@ -78,9 +68,19 @@
 				</li>
 				<li>
 					<a
+						routerLink="/game-shelf"
+						routerLinkActive="!border-brand !text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:text-fg"
+					>
+						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">shelves</span>
+						Game Shelf
+					</a>
+				</li>
+				<li>
+					<a
 						routerLink="/wishlist"
-						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:text-brand"
-						class="flex items-center gap-2.5 px-2.5 py-1.5 text-fg-secondary rounded-md text-[0.875rem] font-medium transition hover:bg-surface hover:text-fg"
+						routerLinkActive="!border-brand !text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">favorite_border</span>
 						Wishlist
@@ -92,13 +92,13 @@
 		<div class="mx-3 my-1 h-px bg-line"></div>
 
 		<div class="px-3 py-1">
-			<span class="block px-2.5 mb-0.5 text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">Personal lists</span>
+			<span class="block px-3 mb-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted/70">Personal lists</span>
 			<ul class="list-none">
 				<li>
 					<a
 						routerLink="/favorites"
-						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:text-brand"
-						class="flex items-center gap-2.5 px-2.5 py-1.5 text-fg-secondary rounded-md text-[0.875rem] font-medium transition hover:bg-surface hover:text-fg"
+						routerLinkActive="!border-brand !text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">star</span>
 						Favorites
@@ -107,8 +107,8 @@
 				<li>
 					<a
 						routerLink="/saved-views"
-						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:text-brand"
-						class="flex items-center gap-2.5 px-2.5 py-1.5 text-fg-secondary rounded-md text-[0.875rem] font-medium transition hover:bg-surface hover:text-fg"
+						routerLinkActive="!border-brand !text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">bookmark</span>
 						Saved Views
@@ -117,8 +117,8 @@
 				<li>
 					<a
 						routerLink="/lists"
-						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:text-brand"
-						class="flex items-center gap-2.5 px-2.5 py-1.5 text-fg-secondary rounded-md text-[0.875rem] font-medium transition hover:bg-surface hover:text-fg"
+						routerLinkActive="!border-brand !text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">format_list_bulleted</span>
 						Lists
@@ -130,7 +130,7 @@
 		@if (isModerator()) {
 			<div class="mx-3 my-1 h-px bg-line"></div>
 			<div class="px-3 py-1">
-				<span class="block px-2.5 mb-0.5 text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">{{ isAdmin() ? 'Admin' : 'Moderator' }}</span>
+				<span class="block px-3 mb-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted/70">{{ isAdmin() ? 'Admin' : 'Moderator' }}</span>
 				<ul class="list-none">
 					@if (isAdmin()) {
 						<li>
@@ -147,8 +147,8 @@
 					<li>
 						<a
 							routerLink="/admin/games"
-							routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:text-brand"
-							class="flex items-center gap-2.5 px-2.5 py-1.5 text-fg-secondary rounded-md text-[0.875rem] font-medium transition hover:bg-surface hover:text-fg"
+							routerLinkActive="!border-brand !text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+							class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:text-fg"
 						>
 							<span class="material-icons nav-icon text-base w-5 text-center opacity-70">videogame_asset</span>
 							Games
@@ -157,8 +157,8 @@
 					<li>
 						<a
 							routerLink="/admin/reports"
-							routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:text-brand"
-							class="flex items-center gap-2.5 px-2.5 py-1.5 text-fg-secondary rounded-md text-[0.875rem] font-medium transition hover:bg-surface hover:text-fg"
+							routerLinkActive="!border-brand !text-brand [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+							class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:text-fg"
 						>
 							<span class="material-icons nav-icon text-base w-5 text-center opacity-70">flag</span>
 							Reports
@@ -191,7 +191,8 @@
 		}
 
 		<div class="mt-auto relative">
-			<div class="mx-3 mb-2 p-3 rounded-card bg-surface border border-line">
+			<div class="mx-3 my-1 h-px bg-line"></div>
+			<div class="px-3 py-3">
 				<div class="flex items-center gap-2.5 mb-3">
 					<a
 						routerLink="/profile"
@@ -208,25 +209,25 @@
 						<span class="inline-block mt-0.5 px-1.5 py-0.5 rounded-full text-[0.5625rem] font-bold uppercase tracking-wider" [class]="roleBadgeClass()">{{ roleBadge() }}</span>
 					</div>
 					<button
-						class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-transparent border-0 text-fg-muted cursor-pointer transition hover:bg-input-bg hover:text-fg"
+						class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg"
 						(click)="toggleUserMenu($event)"
 						title="Settings"
 					>
 						<span class="material-icons text-base">settings</span>
 					</button>
 				</div>
-				<div class="grid grid-cols-3 gap-1.5">
-					<a routerLink="/backlog" [queryParams]="{ status: 'completed' }" class="flex flex-col items-center gap-0.5 py-1.5 rounded bg-input-bg no-underline transition hover:bg-brand-subtle">
+				<div class="grid grid-cols-3 gap-2">
+					<a routerLink="/backlog" [queryParams]="{ status: 'completed' }" class="flex flex-col items-center gap-0.5 py-1.5 no-underline transition hover:text-brand">
 						<span class="material-icons text-sm text-success">check_circle</span>
 						<span class="text-sm font-bold text-fg leading-none">{{ completedCount() }}</span>
 						<span class="text-[0.5625rem] uppercase tracking-wider text-fg-muted">Done</span>
 					</a>
-					<a routerLink="/backlog" [queryParams]="{ status: 'playing' }" class="flex flex-col items-center gap-0.5 py-1.5 rounded bg-input-bg no-underline transition hover:bg-brand-subtle">
+					<a routerLink="/backlog" [queryParams]="{ status: 'playing' }" class="flex flex-col items-center gap-0.5 py-1.5 no-underline transition hover:text-brand">
 						<span class="material-icons text-sm text-warning">play_arrow</span>
 						<span class="text-sm font-bold text-fg leading-none">{{ playingCount() }}</span>
 						<span class="text-[0.5625rem] uppercase tracking-wider text-fg-muted">Play</span>
 					</a>
-					<a routerLink="/backlog" class="flex flex-col items-center gap-0.5 py-1.5 rounded bg-input-bg no-underline transition hover:bg-brand-subtle">
+					<a routerLink="/backlog" class="flex flex-col items-center gap-0.5 py-1.5 no-underline transition hover:text-brand">
 						<span class="material-icons text-sm text-brand">list_alt</span>
 						<span class="text-sm font-bold text-fg leading-none">{{ backlogCount() }}</span>
 						<span class="text-[0.5625rem] uppercase tracking-wider text-fg-muted">Total</span>
