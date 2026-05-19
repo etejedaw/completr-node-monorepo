@@ -168,9 +168,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Al entrar a la pagina de games (/games), se muestra brevemente el placeholder "Coming soon..." y los textos estaticos antes de que carguen los datos reales (secciones Latest Added, Top Rated, etc.). Se produce un flash visible donde la pagina se ve incompleta por un instante antes de renderizar el contenido.
-- **Solucion propuesta:** Agregar skeleton loaders o un estado de carga que reemplace los placeholders mientras se obtienen los datos. Alternativamente, ocultar las secciones hasta que los datos esten listos para evitar el flash.
+- **Solucion:** Los placeholders "Coming soon" ya habían sido removidos en commits posteriores; secciones ahora condicionadas con `@if (data.length > 0)`. Agregado `isInitialLoad` signal en `games-browse` que muestra "Loading games..." mientras se carga la primera petición (`loadLatest`). Cuando termina, las secciones reales aparecen sin flash de página vacía.
 
 ### [FB-018] No hay forma de reportar bugs generales ni ver estado de reportes
 
