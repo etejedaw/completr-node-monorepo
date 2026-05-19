@@ -91,7 +91,7 @@
 				>{{ profile()!.backlogs.length }} total</a>
 			</div>
 			<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
-				@for (b of profile()!.backlogs.slice(0, 5); track b.id) {
+				@for (b of profile()!.backlogs.slice(0, 6); track b.id) {
 				<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', b.game.code]">
 					@if (b.game.backgroundUrl) {
 					<img
@@ -126,7 +126,7 @@
 				>{{ profile()!.gameShelf.length }} total</a>
 			</div>
 			<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
-				@for (s of profile()!.gameShelf.slice(0, 5); track s.id) {
+				@for (s of profile()!.gameShelf.slice(0, 6); track s.id) {
 				<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', s.game.code]">
 					@if (s.game.backgroundUrl) {
 					<img
@@ -150,7 +150,7 @@
 				<span class="text-xs text-fg-muted">{{ profile()!.lists.length }} total</span>
 			</div>
 			<div class="flex flex-col gap-2">
-				@for (l of profile()!.lists.slice(0, 5); track l.id) {
+				@for (l of profile()!.lists.slice(0, 6); track l.id) {
 				<a
 					class="flex flex-col gap-1 px-4 py-3 bg-surface border border-line rounded no-underline transition hover:border-brand"
 					[routerLink]="['/user', username(), 'lists', l.id]"
@@ -187,7 +187,7 @@
 				<span class="text-xs text-fg-muted">{{ profile()!.followingLists.length }} total</span>
 			</div>
 			<div class="flex flex-col gap-2">
-				@for (l of profile()!.followingLists.slice(0, 5); track l.id) {
+				@for (l of profile()!.followingLists.slice(0, 6); track l.id) {
 				<a
 					class="flex flex-col gap-1 px-4 py-3 bg-surface border border-line rounded no-underline transition hover:border-brand"
 					[routerLink]="['/user', username(), 'lists', l.id]"
@@ -221,7 +221,7 @@
 				>{{ profile()!.favorites.length }} total</a>
 			</div>
 			<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
-				@for (f of profile()!.favorites.slice(0, 5); track f.id) {
+				@for (f of profile()!.favorites.slice(0, 6); track f.id) {
 				<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', f.game.code]">
 					@if (f.game.backgroundUrl) {
 					<img
@@ -247,7 +247,7 @@
 				>{{ profile()!.wishlist.length }} total</a>
 			</div>
 			<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
-				@for (w of profile()!.wishlist.slice(0, 5); track w.id) {
+				@for (w of profile()!.wishlist.slice(0, 6); track w.id) {
 				<a
 					class="flex flex-col gap-1 no-underline text-inherit group"
 					[routerLink]="['/games', w.backlog.game.code]"
@@ -273,7 +273,7 @@
 				<h2 class="font-display m-0 text-xl font-bold text-fg">Reviews</h2>
 				<span class="text-xs text-fg-muted">{{ userReviews().length }} total</span>
 			</div>
-			@for (r of userReviews().slice(0, 5); track r.id) {
+			@for (r of userReviews().slice(0, 6); track r.id) {
 			<div class="py-3 border-b border-line last:border-b-0">
 				<div class="flex items-center justify-between mb-1.5">
 					@if (r.game) {
