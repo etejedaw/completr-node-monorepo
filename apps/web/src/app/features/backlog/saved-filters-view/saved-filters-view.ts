@@ -13,7 +13,6 @@ import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
 	selector: "app-saved-filters-view",
 	imports: [FormsModule],
 	templateUrl: "./saved-filters-view.html",
-	styleUrl: "./saved-filters-view.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SavedFiltersView implements OnInit {

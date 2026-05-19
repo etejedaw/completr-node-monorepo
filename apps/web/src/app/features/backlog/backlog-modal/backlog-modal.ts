@@ -36,7 +36,6 @@ import { UiButton, UiIconButton } from "../../../shared/ui";
 	selector: "app-backlog-modal",
 	imports: [ReactiveFormsModule, StarRating, UiButton, UiIconButton],
 	templateUrl: "./backlog-modal.html",
-	styleUrl: "./backlog-modal.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BacklogModal implements OnInit {

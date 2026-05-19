@@ -1,15 +1,15 @@
-<div class="filters-page">
-	<div class="page-header">
-		<div class="page-header-left">
-			<h1>Saved Views</h1>
-			<span class="entry-count">{{ filters().length }} views</span>
+<div class="max-w-full">
+	<div class="flex items-center justify-between mb-5">
+		<div class="flex items-baseline gap-3">
+			<h1 class="font-display m-0 text-[1.375rem] font-bold tracking-tight">Saved Views</h1>
+			<span class="text-[0.8125rem] text-fg-muted">{{ filters().length }} views</span>
 		</div>
 	</div>
 
 	@if (isLoading()) {
-	<div class="loading">Loading...</div>
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (filters().length === 0) {
-	<div class="empty">
+	<div class="text-center py-12">
 		<p class="empty-title">No saved views yet</p>
 		<p class="empty-hint">
 			Save your favorite filter combinations from the Backlog to quickly
@@ -17,31 +17,31 @@
 		</p>
 	</div>
 	} @else {
-	<div class="filters-grid">
+	<div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
 		@for (filter of filters(); track filter.id) {
-		<div class="filter-card" (click)="applyFilter(filter)">
-			<div class="filter-card-header">
-				<h3>{{ filter.name }}</h3>
-				<button class="btn-edit" (click)="openEdit(filter, $event)">
-					<span class="material-icons">edit</span>
+		<div class="group bg-surface border border-line rounded-card p-5 cursor-pointer transition-colors flex flex-col gap-2 hover:border-brand" (click)="applyFilter(filter)">
+			<div class="flex justify-between items-start">
+				<h3 class="font-display m-0 text-base font-semibold">{{ filter.name }}</h3>
+				<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0.5 transition flex hover:text-brand" (click)="openEdit(filter, $event)">
+					<span class="material-icons text-base">edit</span>
 				</button>
 			</div>
 			@if (filter.description) {
-			<p class="filter-desc">{{ filter.description }}</p>
+			<p class="m-0 text-[0.8125rem] text-fg-secondary line-clamp-2">{{ filter.description }}</p>
 			}
-			<div class="filter-meta">
-				<span class="meta-item">
-					<span class="material-icons meta-icon">tune</span>
+			<div class="flex gap-3 mt-auto">
+				<span class="flex items-center gap-1 text-[0.6875rem] text-fg-muted tracking-wide">
+					<span class="material-icons text-[0.875rem]">tune</span>
 					{{ statusSummary(filter) }}
 				</span>
 				@if (filter.isDefault) {
-				<span class="meta-item default">
-					<span class="material-icons meta-icon">star</span>
+				<span class="flex items-center gap-1 text-[0.6875rem] text-warning tracking-wide">
+					<span class="material-icons text-[0.875rem]">star</span>
 					Default
 				</span>
 				} @else if (filter.showInBacklog) {
-				<span class="meta-item pinned">
-					<span class="material-icons meta-icon">push_pin</span>
+				<span class="flex items-center gap-1 text-[0.6875rem] text-brand tracking-wide">
+					<span class="material-icons text-[0.875rem]">push_pin</span>
 					Pinned
 				</span>
 				}
@@ -53,81 +53,85 @@
 </div>
 
 @if (showModal()) {
-<div class="modal-overlay" (click)="closeModal()">
-	<div class="modal-card" (click)="$event.stopPropagation()">
-		<div class="modal-header">
-			<h2>Edit View</h2>
-			<button class="close-btn" (click)="closeModal()">&times;</button>
+<div class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]" (click)="closeModal()">
+	<div class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[440px] shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]" (click)="$event.stopPropagation()">
+		<div class="flex justify-between items-center mb-5">
+			<h2 class="font-display m-0 text-lg font-bold">Edit View</h2>
+			<button class="bg-none border-0 text-fg-muted text-2xl cursor-pointer px-1 leading-none transition hover:text-fg" (click)="closeModal()">&times;</button>
 		</div>
 
-		<div class="form-group">
-			<label>Name</label>
+		<div class="mb-4">
+			<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Name</label>
 			<input
 				type="text"
+				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 				[ngModel]="editName()"
 				(ngModelChange)="editName.set($event)"
 			/>
 		</div>
 
-		<div class="form-group">
-			<label>Description</label>
+		<div class="mb-4">
+			<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Description</label>
 			<textarea
 				rows="3"
+				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				[ngModel]="editDescription()"
 				(ngModelChange)="editDescription.set($event)"
 				placeholder="Optional description..."
 			></textarea>
 		</div>
 
-		<div class="form-group">
-			<label class="toggle-label">
+		<div class="mb-4">
+			<label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-fg-secondary uppercase tracking-wider">
 				<input
 					type="checkbox"
+					class="w-auto"
 					[ngModel]="editShowInBacklog()"
 					(ngModelChange)="editShowInBacklog.set($event)"
 				/>
 				Show in Backlog
 			</label>
-			<span class="toggle-hint"
+			<span class="block mt-1 text-[0.6875rem] text-fg-muted"
 				>Pin this view as a quick filter in the Backlog page</span
 			>
 		</div>
 
-		<div class="form-group">
-			<label class="toggle-label">
+		<div class="mb-4">
+			<label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-fg-secondary uppercase tracking-wider">
 				<input
 					type="checkbox"
+					class="w-auto"
 					[ngModel]="editIsDefault()"
 					(ngModelChange)="editIsDefault.set($event)"
 					[disabled]="!editShowInBacklog()"
 				/>
 				Default view
 			</label>
-			<span class="toggle-hint"
+			<span class="block mt-1 text-[0.6875rem] text-fg-muted"
 				>Auto-apply this view when opening the Backlog</span
 			>
 		</div>
 
-		<div class="modal-actions">
-			<div class="delete-area">
+		<div class="flex justify-between items-center mt-5 pt-4 border-t border-line">
+			<div class="flex items-center gap-2">
 				@if (!showConfirmDelete()) {
 				<button
-					class="btn-danger-outline"
+					class="px-3 py-1.5 bg-transparent border border-danger/30 text-danger rounded text-xs cursor-pointer transition hover:bg-danger/10"
 					(click)="showConfirmDelete.set(true)"
 				>
 					Delete
 				</button>
 				} @else {
-				<span class="confirm-text">Delete this view?</span>
+				<span class="text-[0.8125rem] text-danger">Delete this view?</span>
 				<button
-					class="btn-danger"
+					class="px-3 py-1.5 bg-danger border-0 text-white rounded text-xs font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
 					(click)="deleteFilter()"
 					[disabled]="deleting()"
 				>
 					{{ deleting() ? '...' : 'Yes' }}
 				</button>
 				<button
-					class="btn-ghost"
+					class="px-3 py-1.5 bg-transparent border-0 text-fg-muted rounded text-xs cursor-pointer hover:text-fg"
 					(click)="showConfirmDelete.set(false)"
 				>
 					Cancel
@@ -135,7 +139,8 @@
 				}
 			</div>
 			<button
-				class="btn-primary"
+				class="px-5 py-2 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer ml-auto transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
 				(click)="saveEdit()"
 				[disabled]="saving() || !editName().trim()"
 			>

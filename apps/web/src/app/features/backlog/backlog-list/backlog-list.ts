@@ -21,7 +21,6 @@ import { UiButton, UiInput } from "../../../shared/ui";
 	selector: "app-backlog-list",
 	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink, UiButton, UiInput],
 	templateUrl: "./backlog-list.html",
-	styleUrl: "./backlog-list.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BacklogList implements OnInit {
@@ -336,10 +335,10 @@ export class BacklogList implements OnInit {
 
 	statusClass(status: BacklogStatus): string {
 		const map: Record<BacklogStatus, string> = {
-			not_started: "status-not-started",
-			playing: "status-playing",
-			completed: "status-completed",
-			abandoned: "status-abandoned"
+			not_started: "bg-fg-muted/10 text-fg-muted",
+			playing: "bg-warning/10 text-warning",
+			completed: "bg-success/10 text-success",
+			abandoned: "bg-danger/10 text-danger"
 		};
 		return map[status] ?? "";
 	}
