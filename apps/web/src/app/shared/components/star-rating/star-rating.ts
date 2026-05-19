@@ -10,8 +10,27 @@ import { getRatingLabel } from "../../constants/rating-labels";
 @Component({
 	selector: "app-star-rating",
 	templateUrl: "./star-rating.html",
-	styleUrl: "./star-rating.css",
-	changeDetection: ChangeDetectionStrategy.OnPush
+	changeDetection: ChangeDetectionStrategy.OnPush,
+	styles: [
+		`
+			.star.empty .star-icon {
+				color: var(--color-line-hover);
+			}
+			.star.full .star-icon {
+				color: var(--color-warning);
+			}
+			.star.half .star-icon {
+				background: linear-gradient(
+					90deg,
+					var(--color-warning) 50%,
+					var(--color-line-hover) 50%
+				);
+				-webkit-background-clip: text;
+				background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+		`
+	]
 })
 export class StarRating {
 	value = input<number | null>(null);
