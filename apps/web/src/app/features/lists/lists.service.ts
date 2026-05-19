@@ -1,11 +1,16 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { List, FollowingList } from "../../core/models";
 
 interface ListsResponse {
-	data: { lists: List[]; frozen: boolean };
+	data: { lists: List[]; total?: number; frozen: boolean };
+}
+
+export interface ListsPagination {
+	limit?: number;
+	offset?: number;
 }
 
 interface ListSingleResponse {
@@ -41,8 +46,13 @@ export class ListsService {
 	private readonly http = inject(HttpClient);
 	private readonly baseUrl = `${environment.apiUrl}/lists`;
 
-	getMyLists() {
-		return this.http.get<ListsResponse>(`${this.baseUrl}/me`);
+	getMyLists(pagination: ListsPagination = {}) {
+		let params = new HttpParams();
+		if (pagination.limit !== undefined)
+			params = params.set("limit", String(pagination.limit));
+		if (pagination.offset !== undefined)
+			params = params.set("offset", String(pagination.offset));
+		return this.http.get<ListsResponse>(`${this.baseUrl}/me`, { params });
 	}
 
 	getOfficial(limit = 12) {

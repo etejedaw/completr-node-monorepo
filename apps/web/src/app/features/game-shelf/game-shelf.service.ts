@@ -1,11 +1,17 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { GameShelfEntry } from "../../core/models";
 
 interface GameShelfListResponse {
-	data: { gameShelf: GameShelfEntry[] };
+	data: { gameShelf: GameShelfEntry[]; total: number };
+}
+
+export interface GameShelfPagination {
+	limit?: number;
+	offset?: number;
+	search?: string;
 }
 
 interface GameShelfSingleResponse {
@@ -31,10 +37,14 @@ export class GameShelfService {
 	private readonly http = inject(HttpClient);
 	private readonly baseUrl = `${environment.apiUrl}/users/me/game-shelf`;
 
-	getMyShelf() {
-		return this.http
-			.get<GameShelfListResponse>(this.baseUrl)
-			.pipe(map(res => res.data.gameShelf));
+	getMyShelf(pagination: GameShelfPagination = {}) {
+		let params = new HttpParams();
+		if (pagination.limit !== undefined)
+			params = params.set("limit", String(pagination.limit));
+		if (pagination.offset !== undefined)
+			params = params.set("offset", String(pagination.offset));
+		if (pagination.search) params = params.set("search", pagination.search);
+		return this.http.get<GameShelfListResponse>(this.baseUrl, { params });
 	}
 
 	create(dto: CreateGameShelfDto) {

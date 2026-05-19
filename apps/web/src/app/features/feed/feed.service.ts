@@ -1,6 +1,5 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { map } from "rxjs";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { environment } from "../../../environments/environment";
 
 export interface ActivityTarget {
@@ -26,16 +25,24 @@ export interface FeedActivity {
 	target: ActivityTarget | null;
 }
 
+export interface FeedPagination {
+	limit?: number;
+	offset?: number;
+}
+
 @Injectable({ providedIn: "root" })
 export class FeedService {
 	private readonly http = inject(HttpClient);
 
-	getFeed() {
-		return this.http
-			.get<{
-				data: { activities: FeedActivity[] };
-			}>(`${environment.apiUrl}/feed`)
-			.pipe(map(res => res.data.activities));
+	getFeed(pagination: FeedPagination = {}) {
+		let params = new HttpParams();
+		if (pagination.limit !== undefined)
+			params = params.set("limit", String(pagination.limit));
+		if (pagination.offset !== undefined)
+			params = params.set("offset", String(pagination.offset));
+		return this.http.get<{
+			data: { activities: FeedActivity[]; total: number };
+		}>(`${environment.apiUrl}/feed`, { params });
 	}
 
 	deleteActivity(id: string) {
