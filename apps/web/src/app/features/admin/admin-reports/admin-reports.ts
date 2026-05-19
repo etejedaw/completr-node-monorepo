@@ -14,7 +14,6 @@ import { UiButton } from "../../../shared/ui";
 	selector: "app-admin-reports",
 	imports: [RouterLink, DatePipe, UiButton],
 	templateUrl: "./admin-reports.html",
-	styleUrl: "./admin-reports.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminReports implements OnInit {

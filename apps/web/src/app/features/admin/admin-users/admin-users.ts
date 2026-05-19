@@ -21,7 +21,6 @@ interface CreateUserRequest {
 	selector: "app-admin-users",
 	imports: [DatePipe, FormsModule, UiButton, UiIconButton, UiInput],
 	templateUrl: "./admin-users.html",
-	styleUrl: "./admin-users.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminUsers implements OnInit {

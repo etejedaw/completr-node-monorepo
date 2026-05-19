@@ -1,50 +1,60 @@
-<div class="admin-page">
-	<div class="page-header">
-		<div class="page-header-left">
-			<h1>Users</h1>
-			<span class="entry-count">{{ total() }} total</span>
+<div>
+	<div class="flex items-center justify-between mb-5">
+		<div class="flex items-baseline gap-3">
+			<h1 class="font-display text-[1.375rem] font-bold tracking-tight m-0">Users</h1>
+			<span class="text-[0.8125rem] text-fg-muted">{{ total() }} total</span>
 		</div>
-		<button uiButton variant="primary" class="btn-create" (click)="openCreate()">Create User</button>
+		<button
+			uiButton
+			variant="primary"
+			class="!text-white !border-0"
+			style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+			(click)="openCreate()"
+		>Create User</button>
 	</div>
 
 	@if (isLoading()) {
-	<div class="loading">Loading...</div>
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (users().length === 0) {
-	<div class="empty">No users found.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">No users found.</div>
 	} @else {
-	<div class="table-wrapper">
-		<table>
+	<div class="overflow-x-auto">
+		<table class="w-full border-collapse text-[0.8125rem]">
 			<thead>
 				<tr>
-					<th>Username</th>
-					<th>Email</th>
-					<th>Name</th>
-					<th>Role</th>
-					<th>Status</th>
-					<th>Created</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Username</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Email</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Name</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Role</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Status</th>
+					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Created</th>
 				</tr>
 			</thead>
 			<tbody>
 				@for (user of users(); track user.id) {
-				<tr class="clickable-row" (click)="openEdit(user)">
-					<td class="col-username">{{ user.username }}</td>
-					<td class="col-email">{{ user.email }}</td>
-					<td>{{ user.name }}</td>
-					<td>
-						<span class="role-badge role-{{ user.role }}"
-							>{{ user.role }}</span
-						>
-					</td>
-					<td>
-						@if (user.isActive) {
-						<span class="status-badge status-active">Active</span>
+				<tr class="border-b border-line transition hover:bg-surface cursor-pointer" (click)="openEdit(user)">
+					<td class="px-3 py-2 text-fg align-middle font-medium">{{ user.username }}</td>
+					<td class="px-3 py-2 text-fg-secondary align-middle">{{ user.email }}</td>
+					<td class="px-3 py-2 text-fg align-middle">{{ user.name }}</td>
+					<td class="px-3 py-2 align-middle">
+						@if (user.role === 'admin') {
+						<span class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-danger/10 text-danger">{{ user.role }}</span>
+						} @else if (user.role === 'moderator') {
+						<span class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-[rgba(168,85,247,0.12)] text-[#a855f7]">{{ user.role }}</span>
+						} @else if (user.role === 'premium') {
+						<span class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-warning/10 text-warning">{{ user.role }}</span>
 						} @else {
-						<span class="status-badge status-inactive"
-							>Inactive</span
-						>
+						<span class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-fg-muted/10 text-fg-muted">{{ user.role }}</span>
 						}
 					</td>
-					<td class="col-date">
+					<td class="px-3 py-2 align-middle">
+						@if (user.isActive) {
+						<span class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold bg-success/10 text-success">Active</span>
+						} @else {
+						<span class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold bg-danger/10 text-danger">Inactive</span>
+						}
+					</td>
+					<td class="px-3 py-2 text-fg-muted text-xs whitespace-nowrap align-middle">
 						{{ user.createdAt | date: "mediumDate" }}
 					</td>
 				</tr>
@@ -54,15 +64,23 @@
 	</div>
 
 	@if (total() > limit) {
-	<div class="pagination">
-		<button [disabled]="offset() === 0" (click)="prevPage()">
+	<div class="flex items-center justify-center gap-4 mt-5 pt-4 border-t border-line">
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition hover:enabled:border-brand hover:enabled:text-brand disabled:opacity-40 disabled:cursor-not-allowed"
+			[disabled]="offset() === 0"
+			(click)="prevPage()"
+		>
 			Previous
 		</button>
-		<span class="page-info">
+		<span class="text-[0.8125rem] text-fg-muted">
 			{{ offset() + 1 }}&ndash;{{ Math.min(offset() + limit, total()) }}
 			of {{ total() }}
 		</span>
-		<button [disabled]="offset() + limit >= total()" (click)="nextPage()">
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition hover:enabled:border-brand hover:enabled:text-brand disabled:opacity-40 disabled:cursor-not-allowed"
+			[disabled]="offset() + limit >= total()"
+			(click)="nextPage()"
+		>
 			Next
 		</button>
 	</div>
@@ -72,22 +90,26 @@
 <!-- Create Modal -->
 @if (showCreateModal()) {
 <div class="modal-overlay" (click)="closeCreate()">
-	<div class="modal-card" (click)="$event.stopPropagation()">
-		<div class="modal-header">
-			<h2>Create User</h2>
-			<button uiIconButton size="sm" class="close-btn" (click)="closeCreate()">&times;</button>
+	<div
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
+		(click)="$event.stopPropagation()"
+	>
+		<div class="flex justify-between items-center mb-5">
+			<h2 class="font-display m-0 text-lg font-bold">Create User</h2>
+			<button uiIconButton size="sm" (click)="closeCreate()">&times;</button>
 		</div>
 
 		@if (createError()) {
-		<div class="error-message">{{ createError() }}</div>
+		<div class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem]">{{ createError() }}</div>
 		}
 
 		<form (ngSubmit)="submitCreate()">
-			<div class="form-row">
-				<div class="form-group">
-					<label for="create-username"
-						>Username <span class="required">*</span></label
-					>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+				<div>
+					<label for="create-username" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
+						Username <span class="text-danger font-bold">*</span>
+					</label>
 					<input
 						id="create-username"
 						uiInput
@@ -101,10 +123,10 @@
 						maxlength="15"
 					/>
 				</div>
-				<div class="form-group">
-					<label for="create-name"
-						>Name <span class="required">*</span></label
-					>
+				<div>
+					<label for="create-name" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
+						Name <span class="text-danger font-bold">*</span>
+					</label>
 					<input
 						id="create-name"
 						uiInput
@@ -120,11 +142,11 @@
 				</div>
 			</div>
 
-			<div class="form-row">
-				<div class="form-group">
-					<label for="create-email"
-						>Email <span class="required">*</span></label
-					>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+				<div>
+					<label for="create-email" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
+						Email <span class="text-danger font-bold">*</span>
+					</label>
 					<input
 						id="create-email"
 						uiInput
@@ -136,10 +158,10 @@
 						required
 					/>
 				</div>
-				<div class="form-group">
-					<label for="create-password"
-						>Password <span class="required">*</span></label
-					>
+				<div>
+					<label for="create-password" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
+						Password <span class="text-danger font-bold">*</span>
+					</label>
 					<input
 						id="create-password"
 						uiInput
@@ -155,9 +177,12 @@
 				</div>
 			</div>
 
-			<div class="modal-actions">
-				<button uiButton variant="primary"
-					class="btn-primary"
+			<div class="flex justify-end mt-5 pt-4 border-t border-line">
+				<button
+					uiButton
+					variant="primary"
+					class="!text-white !border-0"
+					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
 					type="submit"
 					[disabled]="
 						!createUsername() ||
@@ -178,24 +203,28 @@
 <!-- Edit Modal -->
 @if (showEditModal() && editingUser()) {
 <div class="modal-overlay" (click)="closeEdit()">
-	<div class="modal-card" (click)="$event.stopPropagation()">
-		<div class="modal-header">
-			<h2>Edit User</h2>
-			<button uiIconButton size="sm" class="close-btn" (click)="closeEdit()">&times;</button>
+	<div
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
+		(click)="$event.stopPropagation()"
+	>
+		<div class="flex justify-between items-center mb-5">
+			<h2 class="font-display m-0 text-lg font-bold">Edit User</h2>
+			<button uiIconButton size="sm" (click)="closeEdit()">&times;</button>
 		</div>
 
-		<div class="edit-user-info">
-			<span class="edit-username">{{ editingUser()!.username }}</span>
-			<span class="edit-email">{{ editingUser()!.email }}</span>
+		<div class="flex items-baseline gap-3 mb-5 pb-4 border-b border-line">
+			<span class="font-semibold text-[0.9375rem]">{{ editingUser()!.username }}</span>
+			<span class="text-[0.8125rem] text-fg-muted">{{ editingUser()!.email }}</span>
 		</div>
 
 		@if (editError()) {
-		<div class="error-message">{{ editError() }}</div>
+		<div class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem]">{{ editError() }}</div>
 		}
 
 		<form (ngSubmit)="submitEdit()">
-			<div class="form-group">
-				<label for="edit-name">Name</label>
+			<div class="mb-4">
+				<label for="edit-name" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Name</label>
 				<input
 					id="edit-name"
 					uiInput
@@ -208,11 +237,12 @@
 				/>
 			</div>
 
-			<div class="form-row">
-				<div class="form-group">
-					<label for="edit-role">Role</label>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+				<div>
+					<label for="edit-role" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Role</label>
 					<select
 						id="edit-role"
+						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm cursor-pointer transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 						[ngModel]="editRole()"
 						(ngModelChange)="editRole.set($event)"
 						name="role"
@@ -223,8 +253,8 @@
 						<option value="admin">Admin</option>
 					</select>
 				</div>
-				<div class="form-group">
-					<label for="edit-password">New Password</label>
+				<div>
+					<label for="edit-password" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">New Password</label>
 					<input
 						id="edit-password"
 						uiInput
@@ -239,10 +269,11 @@
 				</div>
 			</div>
 
-			<div class="toggle-group">
-				<label class="toggle-label">
+			<div class="mb-4">
+				<label class="flex items-center gap-2 cursor-pointer text-[0.8125rem] text-fg-secondary px-3 py-2 bg-input-bg border border-line rounded">
 					<input
 						type="checkbox"
+						class="w-4 h-4 cursor-pointer accent-brand"
 						[ngModel]="editIsActive()"
 						(ngModelChange)="editIsActive.set($event)"
 						name="isActive"
@@ -251,9 +282,12 @@
 				</label>
 			</div>
 
-			<div class="modal-actions">
-				<button uiButton variant="primary"
-					class="btn-primary"
+			<div class="flex justify-end mt-5 pt-4 border-t border-line">
+				<button
+					uiButton
+					variant="primary"
+					class="!text-white !border-0"
+					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
 					type="submit"
 					[disabled]="isEditing()"
 				>

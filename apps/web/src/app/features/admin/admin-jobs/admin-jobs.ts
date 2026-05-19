@@ -13,7 +13,6 @@ import { UiButton } from "../../../shared/ui";
 	selector: "app-admin-jobs",
 	imports: [DatePipe, UiButton],
 	templateUrl: "./admin-jobs.html",
-	styleUrl: "./admin-jobs.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminJobs implements OnInit {

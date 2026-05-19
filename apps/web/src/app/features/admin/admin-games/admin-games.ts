@@ -14,7 +14,6 @@ import { AdminService } from "../admin.service";
 	selector: "app-admin-games",
 	imports: [RouterLink],
 	templateUrl: "./admin-games.html",
-	styleUrl: "./admin-games.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminGames implements OnInit {
