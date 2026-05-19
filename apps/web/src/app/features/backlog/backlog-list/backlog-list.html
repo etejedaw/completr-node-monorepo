@@ -2,7 +2,7 @@
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
 			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Backlog</h1>
-			<span class="text-[0.8125rem] text-fg-muted">{{ entries().length }} entries</span>
+			<span class="text-sm text-fg-muted">{{ entries().length }} entries</span>
 		</div>
 		<button uiButton variant="primary" (click)="openCreate()">+ Add Game</button>
 	</div>
@@ -69,7 +69,7 @@
 		<div class="flex flex-col gap-1">
 			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Platform</label>
 			<select
-				class="min-w-[140px] cursor-pointer px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans focus:outline-none focus:border-brand"
+				class="min-w-[140px] cursor-pointer px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="selectedPlatform()"
 				(ngModelChange)="selectedPlatform.set($event)"
 			>
@@ -83,7 +83,7 @@
 			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Started from</label>
 			<input
 				type="date"
-				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans focus:outline-none focus:border-brand"
+				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="startedFrom()"
 				(ngModelChange)="startedFrom.set($event)"
 			/>
@@ -92,7 +92,7 @@
 			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Started to</label>
 			<input
 				type="date"
-				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans focus:outline-none focus:border-brand"
+				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="startedTo()"
 				(ngModelChange)="startedTo.set($event)"
 			/>
@@ -101,7 +101,7 @@
 			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Finished from</label>
 			<input
 				type="date"
-				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans focus:outline-none focus:border-brand"
+				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="finishedFrom()"
 				(ngModelChange)="finishedFrom.set($event)"
 			/>
@@ -110,7 +110,7 @@
 			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Finished to</label>
 			<input
 				type="date"
-				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans focus:outline-none focus:border-brand"
+				class="px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="finishedTo()"
 				(ngModelChange)="finishedTo.set($event)"
 			/>
@@ -118,7 +118,7 @@
 		<div class="flex flex-col gap-1">
 			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Sort by</label>
 			<select
-				class="min-w-[140px] cursor-pointer px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans focus:outline-none focus:border-brand"
+				class="min-w-[140px] cursor-pointer px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="sortBy()"
 				(ngModelChange)="sortBy.set($event)"
 			>
@@ -137,7 +137,7 @@
 		<div class="flex flex-col gap-1">
 			<label class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">Order</label>
 			<select
-				class="min-w-[140px] cursor-pointer px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans focus:outline-none focus:border-brand"
+				class="min-w-[140px] cursor-pointer px-2 py-1.5 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
 				[ngModel]="sortOrder()"
 				(ngModelChange)="sortOrder.set($event)"
 			>
@@ -224,7 +224,7 @@
 	</div>
 	} @else {
 	<div class="overflow-auto max-h-[calc(100vh-200px)]">
-		<table class="w-full border-collapse text-[0.8125rem]">
+		<table class="w-full border-collapse text-sm">
 			<thead>
 				<tr>
 					<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap w-10 pr-0 hover:text-fg-secondary"></th>
@@ -307,18 +307,18 @@
 			<tbody>
 				@for (entry of entries(); track entry.id) {
 				<tr class="cursor-pointer border-b border-line transition hover:bg-surface" (click)="openEdit(entry)">
-					<td class="px-3 py-2 text-fg align-middle w-10 pr-0">
+					<td class="px-4 py-3 text-fg align-middle w-10 pr-0">
 						@if (entry.game.backgroundUrl) {
 						<img
 							[src]="entry.game.backgroundUrl"
 							[alt]="entry.game.title"
-							class="w-9 h-12 object-cover rounded-[4px] block"
+							class="w-11 h-14 object-cover rounded-md block"
 						/>
 						} @else {
-						<div class="w-9 h-12 bg-surface rounded-[4px]"></div>
+						<div class="w-11 h-14 bg-surface rounded-md"></div>
 						}
 					</td>
-					<td class="px-3 py-2 align-middle min-w-[200px]">
+					<td class="px-4 py-3 align-middle min-w-[200px]">
 						<a
 							class="font-medium text-fg no-underline hover:text-brand"
 							[routerLink]="['/games', entry.game.code]"
@@ -326,31 +326,31 @@
 							>{{ entry.game.title }}</a
 						>
 					</td>
-					<td class="px-3 py-2 align-middle text-fg-secondary whitespace-nowrap">
+					<td class="px-4 py-3 align-middle text-fg-secondary whitespace-nowrap">
 						{{ entry.platform.abbreviation }}
 					</td>
-					<td class="px-3 py-2 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.score ?? "-" }}</td>
-					<td class="px-3 py-2 align-middle text-right whitespace-nowrap text-fg-secondary">
+					<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.score ?? "-" }}</td>
+					<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">
 						{{ entry.duration ? entry.duration + "h" : "-" }}
 					</td>
-					<td class="px-3 py-2 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.ratio ?? "-" }}</td>
-					<td class="px-3 py-2 align-middle text-right whitespace-nowrap text-fg-secondary">
+					<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.ratio ?? "-" }}</td>
+					<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">
 						{{ entry.realDuration ? entry.realDuration + "h" : "-"
 						}}
 					</td>
-					<td class="px-3 py-2 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.personalRatio ?? "-" }}</td>
-					<td class="px-3 py-2 align-middle">
+					<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.personalRatio ?? "-" }}</td>
+					<td class="px-4 py-3 align-middle">
 						<app-star-rating
 							[value]="entry.userRating ?? null"
 							[readonly]="true"
 							size="sm"
 						/>
 					</td>
-					<td class="px-3 py-2 align-middle whitespace-nowrap text-fg-secondary text-[0.8125rem]">
+					<td class="px-4 py-3 align-middle whitespace-nowrap text-fg-secondary text-sm">
 						{{ entry.finishedAt ? (entry.finishedAt |
 						date:'yyyy-MM-dd') : "-" }}
 					</td>
-					<td class="px-3 py-2 align-middle whitespace-nowrap">
+					<td class="px-4 py-3 align-middle whitespace-nowrap">
 						<span
 							class="inline-block px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide"
 							[class]="statusClass(entry.status)"
@@ -358,12 +358,12 @@
 							{{ statusLabel(entry.status) }}
 						</span>
 					</td>
-					<td class="px-3 py-2 align-middle max-w-[200px]">
+					<td class="px-4 py-3 align-middle max-w-[200px]">
 						@if (entry.notes) {
 						<span class="text-fg-muted text-xs leading-tight line-clamp-2">{{ entry.notes }}</span>
 						}
 					</td>
-					<td class="px-3 py-2 align-middle w-8 text-center">
+					<td class="px-4 py-3 align-middle w-8 text-center">
 						<button
 							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 transition flex items-center hover:text-danger"
 							[class.!text-danger]="isInWishlist(entry)"

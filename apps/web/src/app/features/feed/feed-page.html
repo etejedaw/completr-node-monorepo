@@ -100,11 +100,11 @@
 	} @else {
 		<div class="flex flex-col">
 			@for (activity of activities(); track activity.id) {
-				<div class="flex gap-3 py-3 border-b border-line">
+				<div class="flex gap-4 py-5 border-b border-line">
 					<div class="shrink-0">
 						@if (activity.user) {
 							<button
-								class="w-9 h-9 rounded-full bg-surface border-0 text-brand text-sm font-bold cursor-pointer transition hover:bg-brand-subtle"
+								class="w-10 h-10 rounded-full bg-surface border-0 text-brand text-sm font-bold cursor-pointer transition hover:bg-brand-subtle"
 								(click)="goToUser(activity.user.username)"
 							>
 								{{ activity.user.username.charAt(0).toUpperCase() }}
@@ -112,7 +112,7 @@
 						}
 					</div>
 					<div class="flex-1 min-w-0">
-						<div class="text-sm leading-relaxed text-fg-secondary">
+						<div class="text-[15px] leading-relaxed text-fg-secondary">
 							@if (activity.user) {
 								<button
 									class="bg-none border-0 text-fg font-semibold text-[inherit] cursor-pointer p-0 hover:text-brand"
@@ -151,7 +151,7 @@
 							<img
 								[src]="activity.target!.backgroundUrl!"
 								[alt]="activity.target!.name"
-								class="w-12 h-9 object-cover rounded"
+								class="w-16 h-12 object-cover rounded-md"
 							/>
 						</a>
 					}
