@@ -316,12 +316,6 @@ export class BacklogList implements OnInit {
 			});
 	}
 
-	private readonly clientSortFields = new Set([
-		"title",
-		"ratio",
-		"personalRatio"
-	]);
-
 	sort(column: string) {
 		if (this.sortBy() === column) {
 			this.sortOrder.set(this.sortOrder() === "asc" ? "desc" : "asc");
@@ -329,29 +323,8 @@ export class BacklogList implements OnInit {
 			this.sortBy.set(column);
 			this.sortOrder.set("desc");
 		}
-
-		if (this.clientSortFields.has(column)) {
-			this.sortEntriesLocally();
-		} else {
-			this.loadBacklog();
-		}
-	}
-
-	private sortEntriesLocally() {
-		const field = this.sortBy();
-		const order = this.sortOrder();
-		const sorted = [...this.entries()].sort((a, b) => {
-			if (field === "title") {
-				const aVal = a.game.title.toLowerCase();
-				const bVal = b.game.title.toLowerCase();
-				const cmp = aVal.localeCompare(bVal);
-				return order === "asc" ? cmp : -cmp;
-			}
-			const aVal = (a[field as keyof BacklogEntry] as number) ?? 0;
-			const bVal = (b[field as keyof BacklogEntry] as number) ?? 0;
-			return order === "asc" ? aVal - bVal : bVal - aVal;
-		});
-		this.entries.set(sorted);
+		this.offset.set(0);
+		this.loadBacklog();
 	}
 
 	statusClass(status: BacklogStatus): string {
@@ -413,16 +386,12 @@ export class BacklogList implements OnInit {
 
 	private loadBacklog() {
 		this.isLoading.set(true);
-		const isClientSort = this.clientSortFields.has(this.sortBy());
 		const filters: BacklogFilters = {
 			limit: this.limit,
-			offset: this.offset()
+			offset: this.offset(),
+			sort_by: this.sortBy(),
+			sort_order: this.sortOrder()
 		};
-
-		if (!isClientSort) {
-			filters.sort_by = this.sortBy();
-			filters.sort_order = this.sortOrder();
-		}
 
 		const statuses = this.activeStatuses();
 		if (statuses.size > 0) {
@@ -444,7 +413,6 @@ export class BacklogList implements OnInit {
 			next: res => {
 				this.entries.set(res.data.backlog);
 				this.total.set(res.data.total);
-				if (isClientSort) this.sortEntriesLocally();
 				this.isLoading.set(false);
 				this.isInitialLoad.set(false);
 			},
