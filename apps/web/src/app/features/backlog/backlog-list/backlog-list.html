@@ -354,7 +354,7 @@
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
 							</th>
-							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('ratio')">
+							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-brand font-bold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-brand-deep" (click)="sort('ratio')">
 								Ratio @if (sortBy() === 'ratio') {
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
@@ -396,7 +396,7 @@
 								<td class="px-4 py-3 align-middle text-fg-secondary whitespace-nowrap">{{ entry.platform.abbreviation }}</td>
 								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.score ?? "-" }}</td>
 								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.duration ? entry.duration + "h" : "-" }}</td>
-								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.ratio ?? "-" }}</td>
+								<td class="px-4 py-3 align-middle text-right whitespace-nowrap font-display text-base font-bold tabular-nums" [class.text-brand]="entry.ratio !== null && entry.ratio !== undefined" [class.text-fg-muted]="entry.ratio === null || entry.ratio === undefined">{{ entry.ratio ?? "—" }}</td>
 								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.realDuration ? entry.realDuration + "h" : "-" }}</td>
 								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.personalRatio ?? "-" }}</td>
 								<td class="px-4 py-3 align-middle">
