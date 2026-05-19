@@ -96,7 +96,11 @@ export async function getListProgress(
 
 	const gameIds = items.map(i => i.gameId);
 	const completed = await Backlog.count({
-		where: { userId, gameId: { [Op.in]: gameIds }, status: "completed" }
+		where: {
+			userId,
+			gameId: { [Op.in]: gameIds },
+			status: { [Op.in]: ["completed", "abandoned"] }
+		}
 	});
 	return { completed, total: items.length };
 }
