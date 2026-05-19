@@ -19,11 +19,11 @@ import {
 	activityDotClass
 } from "../../shared/utils/activity-labels";
 
-import { UiIconButton, UiInput } from "../../shared/ui";
+import { UiIconButton, UiInput, UiPagination } from "../../shared/ui";
 
 @Component({
 	selector: "app-feed-page",
-	imports: [RouterLink, UiInput, UiIconButton],
+	imports: [RouterLink, UiInput, UiIconButton, UiPagination],
 	templateUrl: "./feed-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -40,6 +40,14 @@ export class FeedPage implements OnInit {
 	protected readonly searchQuery = signal("");
 	protected readonly searchResults = signal<SearchResults | null>(null);
 	protected readonly isSearching = signal(false);
+	protected readonly total = signal(0);
+	protected readonly offset = signal(0);
+	protected readonly limit = 25;
+
+	onOffsetChange(offset: number) {
+		this.offset.set(offset);
+		this.loadFeed();
+	}
 
 	ngOnInit() {
 		this.loadFeed();
@@ -127,12 +135,15 @@ export class FeedPage implements OnInit {
 
 	private loadFeed() {
 		this.isLoading.set(true);
-		this.feedService.getFeed().subscribe({
-			next: activities => {
-				this.activities.set(activities);
-				this.isLoading.set(false);
-			},
-			error: () => this.isLoading.set(false)
-		});
+		this.feedService
+			.getFeed({ limit: this.limit, offset: this.offset() })
+			.subscribe({
+				next: res => {
+					this.activities.set(res.data.activities);
+					this.total.set(res.data.total);
+					this.isLoading.set(false);
+				},
+				error: () => this.isLoading.set(false)
+			});
 	}
 }

@@ -9,11 +9,12 @@ import {
 import { Router } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
-import { UiSearchBar } from "../../../shared/ui";
+import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-saved-filters-view",
-	imports: [FormsModule, UiSearchBar],
+	imports: [FormsModule, UiPagination, UiSearchBar],
 	templateUrl: "./saved-filters-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -24,16 +25,23 @@ export class SavedFiltersView implements OnInit {
 	protected readonly filters = signal<SavedFilter[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
+	protected readonly total = signal(0);
+	protected readonly offset = signal(0);
+	protected readonly limit = 25;
 
-	protected readonly filteredFilters = computed(() => {
-		const q = this.searchQuery().trim().toLowerCase();
-		if (!q) return this.filters();
-		return this.filters().filter(
-			f =>
-				f.name.toLowerCase().includes(q) ||
-				(f.description ?? "").toLowerCase().includes(q)
-		);
-	});
+	onOffsetChange(offset: number) {
+		this.offset.set(offset);
+		this.loadFilters();
+	}
+
+	protected readonly filteredFilters = computed(() => this.filters());
+
+	private readonly searchSubject = new Subject<string>();
+
+	onSearch(query: string) {
+		this.searchQuery.set(query);
+		this.searchSubject.next(query);
+	}
 
 	// Edit modal
 	protected readonly showModal = signal(false);
@@ -47,20 +55,37 @@ export class SavedFiltersView implements OnInit {
 	protected readonly deleting = signal(false);
 
 	ngOnInit() {
+		this.searchSubject
+			.pipe(debounceTime(300), distinctUntilChanged())
+			.subscribe(() => {
+				this.offset.set(0);
+				this.loadFilters();
+			});
 		this.loadFilters();
 	}
 
 	private loadFilters() {
 		this.isLoading.set(true);
-		this.savedFiltersService.getAll().subscribe({
-			next: filters => {
-				this.filters.set(
-					filters.sort((a, b) => a.name.localeCompare(b.name))
-				);
-				this.isLoading.set(false);
-			},
-			error: () => this.isLoading.set(false)
-		});
+		this.savedFiltersService
+			.getPaged({
+				limit: this.limit,
+				offset: this.offset(),
+				search: this.searchQuery().trim() || undefined
+			})
+			.subscribe({
+				next: res => {
+					this.filters.set(
+						res.data.savedFilters.sort((a, b) =>
+							a.name.localeCompare(b.name)
+						)
+					);
+					this.total.set(
+						res.data.total ?? res.data.savedFilters.length
+					);
+					this.isLoading.set(false);
+				},
+				error: () => this.isLoading.set(false)
+			});
 	}
 
 	applyFilter(filter: SavedFilter) {

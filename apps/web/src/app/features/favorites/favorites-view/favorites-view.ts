@@ -1,7 +1,6 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
-	computed,
 	inject,
 	OnInit,
 	signal
@@ -9,11 +8,12 @@ import {
 import { RouterLink } from "@angular/router";
 import { FavoriteEntry } from "../../../core/models";
 import { FavoritesService } from "../favorites.service";
-import { UiIconButton, UiSearchBar } from "../../../shared/ui";
+import { UiIconButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-favorites-view",
-	imports: [RouterLink, UiIconButton, UiSearchBar],
+	imports: [RouterLink, UiIconButton, UiPagination, UiSearchBar],
 	templateUrl: "./favorites-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -23,15 +23,30 @@ export class FavoritesView implements OnInit {
 	protected readonly entries = signal<FavoriteEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
+	protected readonly total = signal(0);
+	protected readonly offset = signal(0);
+	protected readonly limit = 100;
 
-	protected readonly filteredEntries = computed(() => {
-		const q = this.searchQuery().trim().toLowerCase();
-		if (!q) return this.entries();
-		return this.entries().filter(e => e.game.title.toLowerCase().includes(q));
-	});
+	onOffsetChange(offset: number) {
+		this.offset.set(offset);
+		this.loadFavorites();
+	}
+
+	private readonly searchSubject = new Subject<string>();
 
 	ngOnInit() {
+		this.searchSubject
+			.pipe(debounceTime(300), distinctUntilChanged())
+			.subscribe(() => {
+				this.offset.set(0);
+				this.loadFavorites();
+			});
 		this.loadFavorites();
+	}
+
+	onSearch(query: string) {
+		this.searchQuery.set(query);
+		this.searchSubject.next(query);
 	}
 
 	remove(entry: FavoriteEntry) {
@@ -45,12 +60,19 @@ export class FavoritesView implements OnInit {
 
 	private loadFavorites() {
 		this.isLoading.set(true);
-		this.favoritesService.load().subscribe({
-			next: res => {
-				this.entries.set(res.data.favorites);
-				this.isLoading.set(false);
-			},
-			error: () => this.isLoading.set(false)
-		});
+		this.favoritesService
+			.load({
+				limit: this.limit,
+				offset: this.offset(),
+				search: this.searchQuery().trim() || undefined
+			})
+			.subscribe({
+				next: res => {
+					this.entries.set(res.data.favorites);
+					this.total.set(res.data.total ?? res.data.favorites.length);
+					this.isLoading.set(false);
+				},
+				error: () => this.isLoading.set(false)
+			});
 	}
 }

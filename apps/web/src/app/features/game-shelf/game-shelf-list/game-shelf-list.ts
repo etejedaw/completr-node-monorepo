@@ -10,7 +10,8 @@ import { GameShelfEntry } from "../../../core/models";
 import { GameShelfService } from "../game-shelf.service";
 import { RouterLink } from "@angular/router";
 import { GameShelfModal } from "../game-shelf-modal/game-shelf-modal";
-import { UiButton, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 interface PlatformCount {
 	id: string;
@@ -20,7 +21,7 @@ interface PlatformCount {
 
 @Component({
 	selector: "app-game-shelf-list",
-	imports: [DatePipe, GameShelfModal, RouterLink, UiButton, UiSearchBar],
+	imports: [DatePipe, GameShelfModal, RouterLink, UiButton, UiPagination, UiSearchBar],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -35,14 +36,25 @@ export class GameShelfList implements OnInit {
 	protected readonly platformCounts = signal<PlatformCount[]>([]);
 	protected readonly showModal = signal(false);
 	protected readonly editingEntry = signal<GameShelfEntry | null>(null);
+	protected readonly total = signal(0);
+	protected readonly offset = signal(0);
+	protected readonly limit = 100;
+
+	private readonly searchSubject = new Subject<string>();
 
 	ngOnInit() {
+		this.searchSubject
+			.pipe(debounceTime(300), distinctUntilChanged())
+			.subscribe(() => {
+				this.offset.set(0);
+				this.loadShelf();
+			});
 		this.loadShelf();
 	}
 
 	onSearch(query: string) {
 		this.searchQuery.set(query);
-		this.filterEntries();
+		this.searchSubject.next(query);
 	}
 
 	filterByPlatform(platformId: string) {
@@ -71,17 +83,30 @@ export class GameShelfList implements OnInit {
 		this.loadShelf();
 	}
 
+	onOffsetChange(offset: number) {
+		this.offset.set(offset);
+		this.loadShelf();
+	}
+
 	private loadShelf() {
 		this.isLoading.set(true);
-		this.shelfService.getMyShelf().subscribe({
-			next: entries => {
-				this.allEntries.set(entries);
-				this.buildPlatformCounts(entries);
-				this.filterEntries();
-				this.isLoading.set(false);
-			},
-			error: () => this.isLoading.set(false)
-		});
+		this.shelfService
+			.getMyShelf({
+				limit: this.limit,
+				offset: this.offset(),
+				search: this.searchQuery().trim() || undefined
+			})
+			.subscribe({
+				next: res => {
+					const entries = res.data.gameShelf;
+					this.allEntries.set(entries);
+					this.total.set(res.data.total);
+					this.buildPlatformCounts(entries);
+					this.filterEntries();
+					this.isLoading.set(false);
+				},
+				error: () => this.isLoading.set(false)
+			});
 	}
 
 	private buildPlatformCounts(entries: GameShelfEntry[]) {
@@ -108,13 +133,6 @@ export class GameShelfList implements OnInit {
 		const platform = this.selectedPlatform();
 		if (platform) {
 			filtered = filtered.filter(e => e.platform.id === platform);
-		}
-
-		const query = this.searchQuery().toLowerCase();
-		if (query) {
-			filtered = filtered.filter(e =>
-				e.game.title.toLowerCase().includes(query)
-			);
 		}
 
 		this.entries.set(filtered);

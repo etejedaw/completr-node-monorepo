@@ -15,11 +15,12 @@ import { GamesService } from "../../games/games.service";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
-import { UiButton, UiInput, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiInput, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink, UiButton, UiInput, UiSearchBar],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink, UiButton, UiInput, UiPagination, UiSearchBar],
 	templateUrl: "./backlog-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -30,11 +31,13 @@ export class BacklogList implements OnInit {
 	private readonly wishlistService = inject(WishlistService);
 	private readonly gamesService = inject(GamesService);
 
-	private readonly allEntries = signal<BacklogEntry[]>([]);
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly isInitialLoad = signal(true);
 	protected readonly searchQuery = signal("");
+	protected readonly total = signal(0);
+	protected readonly offset = signal(0);
+	protected readonly limit = 100;
 	protected readonly activeStatuses = signal<Set<string>>(new Set());
 	protected readonly sortBy = signal("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
@@ -94,6 +97,7 @@ export class BacklogList implements OnInit {
 	protected readonly statusFilters = this.statuses;
 
 	ngOnInit() {
+		this.setupSearch();
 		this.loadWishlistIds();
 		this.gamesService
 			.getPlatforms()
@@ -170,6 +174,7 @@ export class BacklogList implements OnInit {
 
 	applyFilters() {
 		this.activeFilterId.set(null);
+		this.offset.set(0);
 		this.loadBacklog();
 	}
 
@@ -186,6 +191,7 @@ export class BacklogList implements OnInit {
 		this.activeFilterDescription.set("");
 		this.sortBy.set("createdAt");
 		this.sortOrder.set("desc");
+		this.offset.set(0);
 		this.loadBacklog();
 	}
 
@@ -218,6 +224,7 @@ export class BacklogList implements OnInit {
 
 		this.activeFilterId.set(filter.id);
 		this.activeFilterDescription.set(filter.description ?? "");
+		this.offset.set(0);
 		this.loadBacklog();
 	}
 
@@ -293,21 +300,20 @@ export class BacklogList implements OnInit {
 		return filters;
 	}
 
+	private readonly searchSubject = new Subject<string>();
+
 	onSearch(query: string) {
 		this.searchQuery.set(query);
-		this.filterEntries();
+		this.searchSubject.next(query);
 	}
 
-	private filterEntries() {
-		const query = this.searchQuery().toLowerCase();
-		if (!query) {
-			this.entries.set(this.allEntries());
-			return;
-		}
-		const filtered = this.allEntries().filter(e =>
-			e.game.title.toLowerCase().includes(query)
-		);
-		this.entries.set(filtered);
+	private setupSearch() {
+		this.searchSubject
+			.pipe(debounceTime(300), distinctUntilChanged())
+			.subscribe(() => {
+				this.offset.set(0);
+				this.loadBacklog();
+			});
 	}
 
 	private readonly clientSortFields = new Set([
@@ -334,7 +340,7 @@ export class BacklogList implements OnInit {
 	private sortEntriesLocally() {
 		const field = this.sortBy();
 		const order = this.sortOrder();
-		const sorted = [...this.allEntries()].sort((a, b) => {
+		const sorted = [...this.entries()].sort((a, b) => {
 			if (field === "title") {
 				const aVal = a.game.title.toLowerCase();
 				const bVal = b.game.title.toLowerCase();
@@ -345,8 +351,7 @@ export class BacklogList implements OnInit {
 			const bVal = (b[field as keyof BacklogEntry] as number) ?? 0;
 			return order === "asc" ? aVal - bVal : bVal - aVal;
 		});
-		this.allEntries.set(sorted);
-		this.filterEntries();
+		this.entries.set(sorted);
 	}
 
 	statusClass(status: BacklogStatus): string {
@@ -401,10 +406,18 @@ export class BacklogList implements OnInit {
 		this.loadBacklog();
 	}
 
+	onOffsetChange(offset: number) {
+		this.offset.set(offset);
+		this.loadBacklog();
+	}
+
 	private loadBacklog() {
 		this.isLoading.set(true);
 		const isClientSort = this.clientSortFields.has(this.sortBy());
-		const filters: BacklogFilters = {};
+		const filters: BacklogFilters = {
+			limit: this.limit,
+			offset: this.offset()
+		};
 
 		if (!isClientSort) {
 			filters.sort_by = this.sortBy();
@@ -425,12 +438,13 @@ export class BacklogList implements OnInit {
 		if (this.finishedTo()) filters.finished_to = this.finishedTo();
 		if (this.minRating() !== null) filters.min_rating = this.minRating()!;
 		if (this.maxRating() !== null) filters.max_rating = this.maxRating()!;
+		if (this.searchQuery().trim()) filters.search = this.searchQuery().trim();
 
 		this.backlogService.getMyBacklog(filters).subscribe({
 			next: res => {
-				this.allEntries.set(res.data.backlog);
+				this.entries.set(res.data.backlog);
+				this.total.set(res.data.total);
 				if (isClientSort) this.sortEntriesLocally();
-				this.filterEntries();
 				this.isLoading.set(false);
 				this.isInitialLoad.set(false);
 			},

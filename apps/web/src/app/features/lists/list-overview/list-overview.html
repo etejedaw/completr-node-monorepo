@@ -2,7 +2,7 @@
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
 			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Lists</h1>
-			<span class="text-[0.8125rem] text-fg-muted">{{ lists().length }} lists</span>
+			<span class="text-[0.8125rem] text-fg-muted">{{ total() }} lists</span>
 		</div>
 		<button uiButton variant="primary" (click)="openCreate()" [disabled]="frozen()">
 			+ Create List
@@ -180,6 +180,13 @@
 			</div>
 		</div>
 	}
+
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="total()"
+		(offsetChange)="onOffsetChange($event)"
+	/>
 </div>
 
 @if (showModal()) {

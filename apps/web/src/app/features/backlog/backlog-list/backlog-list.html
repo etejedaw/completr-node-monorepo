@@ -2,7 +2,7 @@
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
 			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Backlog</h1>
-			<span class="text-sm text-fg-muted">{{ entries().length }} entries</span>
+			<span class="text-sm text-fg-muted">{{ total() }} entries</span>
 		</div>
 		<button uiButton variant="primary" (click)="openCreate()">+ Add Game</button>
 	</div>
@@ -429,6 +429,13 @@
 			</div>
 		}
 	}
+
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="total()"
+		(offsetChange)="onOffsetChange($event)"
+	/>
 </div>
 
 @if (showModal()) {
