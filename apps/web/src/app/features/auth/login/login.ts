@@ -13,7 +13,6 @@ import { UiButton, UiInput } from "../../../shared/ui";
 	selector: "app-login",
 	imports: [ReactiveFormsModule, UiButton, UiInput],
 	templateUrl: "./login.html",
-	styleUrl: "./login.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Login {

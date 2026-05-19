@@ -1,165 +1,167 @@
-<div class="feed-page">
-	<div class="search-section">
-		<div class="search-wrapper">
-			<span class="material-icons search-icon">search</span>
+<div class="max-w-2xl mx-auto">
+	<div class="relative mb-6">
+		<div class="flex items-center bg-input-bg border border-line rounded-card px-4 transition focus-within:border-brand focus-within:shadow-[0_0_0_3px_var(--color-brand-subtle)]">
+			<span class="material-icons text-xl text-fg-muted">search</span>
 			<input
 				uiInput
 				type="text"
-				class="search-input"
+				class="!flex-1 !bg-transparent !border-0 !px-2.5 !py-3 !text-base !outline-none focus:!shadow-none focus:!border-transparent"
 				placeholder="Search users, games or lists..."
 				[value]="searchQuery()"
 				(input)="onSearch($event)"
 			/>
 			@if (searchQuery()) {
-			<button uiIconButton size="sm" class="search-clear" (click)="clearSearch()">
-				<span class="material-icons">close</span>
-			</button>
+				<button uiIconButton size="sm" (click)="clearSearch()">
+					<span class="material-icons">close</span>
+				</button>
 			}
 		</div>
 
 		@if (searchResults()) {
-		<div class="search-dropdown">
-			@if (searchResults()!.users.length > 0) {
-			<div class="search-group">
-				<span class="search-group-label">Users</span>
-				@for (user of searchResults()!.users; track user.id) {
-				<button class="search-item" (click)="goToUser(user.username)">
-					<span class="material-icons search-item-icon">person</span>
-					<div class="search-item-info">
-						<span class="search-item-name"
-							>{{ user.name || user.username }}</span
-						>
-						<span class="search-item-sub"
-							>@{{ user.username }}</span
-						>
+			<div class="absolute top-full left-0 right-0 mt-1 bg-sidebar border border-line rounded-md shadow-2xl z-50 max-h-96 overflow-y-auto">
+				@if (searchResults()!.users.length > 0) {
+					<div class="py-1.5">
+						<span class="block px-3 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-fg-muted">Users</span>
+						@for (user of searchResults()!.users; track user.id) {
+							<button
+								class="flex items-center gap-2.5 w-full px-3 py-2 bg-none border-0 text-fg text-sm text-left transition hover:bg-surface cursor-pointer"
+								(click)="goToUser(user.username)"
+							>
+								<span class="material-icons text-base text-fg-muted">person</span>
+								<div class="flex-1 flex flex-col">
+									<span class="font-medium">{{ user.name || user.username }}</span>
+									<span class="text-xs text-fg-muted">{{ '@' + user.username }}</span>
+								</div>
+								@if (!user.isPublic) {
+									<span class="material-icons text-sm text-fg-muted">lock</span>
+								}
+							</button>
+						}
 					</div>
-					@if (!user.isPublic) {
-					<span class="material-icons search-item-lock">lock</span>
-					}
-				</button>
 				}
-			</div>
-			} @if (searchResults()!.games.length > 0) {
-			<div class="search-group">
-				<span class="search-group-label">Games</span>
-				@for (game of searchResults()!.games.slice(0, 5); track game.id)
-				{
-				<button class="search-item" (click)="goToGame(game.code)">
-					<span class="material-icons search-item-icon"
-						>sports_esports</span
-					>
-					<div class="search-item-info">
-						<span class="search-item-name">{{ game.title }}</span>
+				@if (searchResults()!.games.length > 0) {
+					<div class="py-1.5">
+						<span class="block px-3 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-fg-muted">Games</span>
+						@for (game of searchResults()!.games.slice(0, 5); track game.id) {
+							<button
+								class="flex items-center gap-2.5 w-full px-3 py-2 bg-none border-0 text-fg text-sm text-left transition hover:bg-surface cursor-pointer"
+								(click)="goToGame(game.code)"
+							>
+								<span class="material-icons text-base text-fg-muted">sports_esports</span>
+								<div class="flex-1 flex flex-col">
+									<span class="font-medium">{{ game.title }}</span>
+								</div>
+							</button>
+						}
 					</div>
-				</button>
 				}
-			</div>
-			} @if (searchResults()!.lists.length > 0) {
-			<div class="search-group">
-				<span class="search-group-label">Lists</span>
-				@for (list of searchResults()!.lists.slice(0, 5); track list.id)
-				{
-				<button class="search-item" (click)="goToList(list.id)">
-					<span class="material-icons search-item-icon"
-						>format_list_bulleted</span
-					>
-					<div class="search-item-info">
-						<span class="search-item-name">{{ list.name }}</span>
+				@if (searchResults()!.lists.length > 0) {
+					<div class="py-1.5">
+						<span class="block px-3 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-fg-muted">Lists</span>
+						@for (list of searchResults()!.lists.slice(0, 5); track list.id) {
+							<button
+								class="flex items-center gap-2.5 w-full px-3 py-2 bg-none border-0 text-fg text-sm text-left transition hover:bg-surface cursor-pointer"
+								(click)="goToList(list.id)"
+							>
+								<span class="material-icons text-base text-fg-muted">format_list_bulleted</span>
+								<div class="flex-1 flex flex-col">
+									<span class="font-medium">{{ list.name }}</span>
+								</div>
+							</button>
+						}
 					</div>
-				</button>
 				}
-			</div>
-			}
 
-			<div class="search-actions">
-				<button class="search-action-link" (click)="searchInGames()">
-					<span class="material-icons">sports_esports</span>
-					Search games for "{{ searchQuery() }}"
-				</button>
+				<div class="border-t border-line py-1.5">
+					<button
+						class="flex items-center gap-2 w-full px-3 py-2 bg-none border-0 text-brand text-sm font-medium text-left transition hover:bg-brand-subtle cursor-pointer"
+						(click)="searchInGames()"
+					>
+						<span class="material-icons text-base">sports_esports</span>
+						Search games for "{{ searchQuery() }}"
+					</button>
+				</div>
 			</div>
-		</div>
 		}
 	</div>
 
-	<h2 class="feed-title">Activity Feed</h2>
+	<h2 class="font-display mb-4 text-base font-semibold text-fg-secondary">Activity Feed</h2>
 
 	@if (isLoading()) {
-	<div class="loading">Loading...</div>
+		<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (activities().length === 0) {
-	<div class="empty">
-		<p class="empty-title">Your feed is empty</p>
-		<p class="empty-hint">
-			Follow other users to see their activity here. Use the search bar
-			above to find friends.
-		</p>
-	</div>
+		<div class="text-center py-12">
+			<p class="empty-title">Your feed is empty</p>
+			<p class="empty-hint">
+				Follow other users to see their activity here. Use the search bar
+				above to find friends.
+			</p>
+		</div>
 	} @else {
-	<div class="feed-list">
-		@for (activity of activities(); track activity.id) {
-		<div class="feed-item">
-			<div class="feed-avatar">
-				@if (activity.user) {
-				<button
-					class="avatar-btn"
-					(click)="goToUser(activity.user.username)"
-				>
-					{{ activity.user.username.charAt(0).toUpperCase() }}
-				</button>
-				}
-			</div>
-			<div class="feed-content">
-				<div class="feed-text">
-					@if (activity.user) {
-					<button
-						class="feed-user"
-						(click)="goToUser(activity.user.username)"
-					>
-						{{ activity.user.name || activity.user.username }}</button
-					>{{ " " }} }
-					<span class="feed-action"
-						>{{ activityLabel(activity.type) }}</span
-					>{{ " " }} @if (activity.target) { @if (activity.target.type
-					=== 'game') {
-					<a
-						class="feed-target"
-						[routerLink]="['/games', activity.target.code]"
-						>{{ activity.target.name }}</a
-					>
-					} @else if (activity.target.type === 'list') {
-					<a
-						class="feed-target"
-						[routerLink]="['/lists', activity.target.id]"
-						>{{ activity.target.name }}</a
-					>
-					} @else if (activity.target.type === 'user') {
-					<button
-						class="feed-target-btn"
-						(click)="goToUser(activity.target.username!)"
-					>
-						{{ activity.target.name }}
-					</button>
-					} }
+		<div class="flex flex-col">
+			@for (activity of activities(); track activity.id) {
+				<div class="flex gap-3 py-3 border-b border-line">
+					<div class="shrink-0">
+						@if (activity.user) {
+							<button
+								class="w-9 h-9 rounded-full bg-surface border-0 text-brand text-sm font-bold cursor-pointer transition hover:bg-brand-subtle"
+								(click)="goToUser(activity.user.username)"
+							>
+								{{ activity.user.username.charAt(0).toUpperCase() }}
+							</button>
+						}
+					</div>
+					<div class="flex-1 min-w-0">
+						<div class="text-sm leading-relaxed text-fg-secondary">
+							@if (activity.user) {
+								<button
+									class="bg-none border-0 text-fg font-semibold text-[inherit] cursor-pointer p-0 hover:text-brand"
+									(click)="goToUser(activity.user.username)"
+								>{{ activity.user.name || activity.user.username }}</button>{{ " " }}
+							}
+							<span class="text-fg-muted">{{ activityLabel(activity.type) }}</span>{{ " " }}
+							@if (activity.target) {
+								@if (activity.target.type === 'game') {
+									<a
+										class="font-semibold text-brand"
+										[routerLink]="['/games', activity.target.code]"
+									>{{ activity.target.name }}</a>
+								} @else if (activity.target.type === 'list') {
+									<a
+										class="font-semibold text-brand"
+										[routerLink]="['/lists', activity.target.id]"
+									>{{ activity.target.name }}</a>
+								} @else if (activity.target.type === 'user') {
+									<button
+										class="font-semibold text-brand bg-none border-0 text-[inherit] cursor-pointer p-0"
+										(click)="goToUser(activity.target.username!)"
+									>
+										{{ activity.target.name }}
+									</button>
+								}
+							}
+						</div>
+						<span class="text-[0.6875rem] text-fg-muted">{{ timeAgo(activity.createdAt) }}</span>
+					</div>
+					@if (activity.target?.type === 'game' && activity.target?.backgroundUrl) {
+						<a
+							[routerLink]="['/games', activity.target!.code]"
+							class="shrink-0"
+						>
+							<img
+								[src]="activity.target!.backgroundUrl!"
+								[alt]="activity.target!.name"
+								class="w-12 h-9 object-cover rounded"
+							/>
+						</a>
+					}
+					@if (isOwnActivity(activity)) {
+						<button uiIconButton size="sm" tone="danger" (click)="deleteActivity(activity.id)">
+							<span class="material-icons">close</span>
+						</button>
+					}
 				</div>
-				<span class="feed-time">{{ timeAgo(activity.createdAt) }}</span>
-			</div>
-			@if (activity.target?.type === 'game' &&
-			activity.target?.backgroundUrl) {
-			<a
-				[routerLink]="['/games', activity.target!.code]"
-				class="feed-cover"
-			>
-				<img
-					[src]="activity.target!.backgroundUrl!"
-					[alt]="activity.target!.name"
-				/>
-			</a>
-			} @if (isOwnActivity(activity)) {
-			<button uiIconButton size="sm" tone="danger" class="feed-delete" (click)="deleteActivity(activity.id)">
-				<span class="material-icons">close</span>
-			</button>
 			}
 		</div>
-		}
-	</div>
 	}
 </div>

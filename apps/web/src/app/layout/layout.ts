@@ -13,8 +13,7 @@ import { UiButton, UiIconButton } from "../shared/ui";
 @Component({
 	selector: "app-layout",
 	imports: [RouterOutlet, RouterLink, RouterLinkActive, UiButton, UiIconButton],
-	templateUrl: "./layout.html",
-	styleUrl: "./layout.css"
+	templateUrl: "./layout.html"
 })
 export class Layout implements OnInit {
 	private readonly auth = inject(AuthService);

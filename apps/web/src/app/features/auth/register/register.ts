@@ -13,7 +13,6 @@ import { UiButton, UiInput } from "../../../shared/ui";
 	selector: "app-register",
 	imports: [ReactiveFormsModule, RouterLink, UiButton, UiInput],
 	templateUrl: "./register.html",
-	styleUrl: "./register.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Register {

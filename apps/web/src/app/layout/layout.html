@@ -1,85 +1,122 @@
-<div class="layout">
-	<button uiIconButton class="menu-toggle" (click)="toggleSidebar()">
+<div class="flex h-screen">
+	<button
+		uiIconButton
+		class="!hidden max-md:!fixed max-md:!top-3 max-md:!left-3 max-md:!z-[200] max-md:!flex max-md:!bg-sidebar max-md:!border max-md:!border-line"
+		(click)="toggleSidebar()"
+	>
 		<span class="material-icons">menu</span>
 	</button>
 
 	@if (sidebarOpen()) {
-	<div class="sidebar-overlay" (click)="sidebarOpen.set(false)"></div>
+		<div
+			class="hidden max-md:block fixed inset-0 z-[99] bg-black/50"
+			(click)="sidebarOpen.set(false)"
+		></div>
 	}
 
-	<nav class="sidebar" [class.open]="sidebarOpen()">
-		<div class="sidebar-brand">
-			<span class="brand-icon">C</span>
-			<span class="brand-name">Completr</span>
+	<nav
+		class="w-60 bg-sidebar flex flex-col border-r border-line shrink-0 h-screen sticky top-0 overflow-y-auto max-md:fixed max-md:left-0 max-md:top-0 max-md:z-[100] max-md:-translate-x-full max-md:transition-transform max-md:duration-200"
+		[class.max-md:!translate-x-0]="sidebarOpen()"
+	>
+		<div class="flex items-center gap-2.5 px-5 pt-5 pb-4">
+			<span
+				class="flex items-center justify-center w-8 h-8 rounded-lg font-display font-bold text-[0.9375rem] text-white"
+				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 4px 14px -4px var(--color-brand-glow);"
+			>C</span>
+			<span class="text-lg font-bold text-fg tracking-tight font-display">Completr</span>
 		</div>
 
-		<div class="nav-section">
-			<ul class="nav-links">
-				<li>
-					<a routerLink="/feed" routerLinkActive="active">
-						<span class="material-icons nav-icon"
-							>dynamic_feed</span
-						>
+		<div class="px-3 py-2">
+			<ul class="list-none">
+				<li class="mb-px">
+					<a
+						routerLink="/feed"
+						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+						class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
+					>
+						<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">dynamic_feed</span>
 						Feed
 					</a>
 				</li>
 			</ul>
 		</div>
 
-		<div class="nav-section">
-			<span class="nav-label">Library</span>
-			<ul class="nav-links">
-				<li>
-					<a routerLink="/games" routerLinkActive="active">
-						<span class="material-icons nav-icon"
-							>sports_esports</span
-						>
+		<div class="px-3 py-2">
+			<span class="block px-2 mb-1.5 text-xs font-semibold uppercase tracking-wider text-fg-muted">Library</span>
+			<ul class="list-none">
+				<li class="mb-px">
+					<a
+						routerLink="/games"
+						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+						class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
+					>
+						<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">sports_esports</span>
 						Games
 					</a>
 				</li>
-				<li>
-					<a routerLink="/backlog" routerLinkActive="active">
-						<span class="material-icons nav-icon">list_alt</span>
+				<li class="mb-px">
+					<a
+						routerLink="/backlog"
+						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+						class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
+					>
+						<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">list_alt</span>
 						Backlog
 					</a>
 				</li>
-				<li>
-					<a routerLink="/saved-views" routerLinkActive="active">
-						<span class="material-icons nav-icon">bookmark</span>
+				<li class="mb-px">
+					<a
+						routerLink="/saved-views"
+						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+						class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
+					>
+						<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">bookmark</span>
 						Saved Views
 					</a>
 				</li>
-				<li>
-					<a routerLink="/game-shelf" routerLinkActive="active">
-						<span class="material-icons nav-icon">shelves</span>
+				<li class="mb-px">
+					<a
+						routerLink="/game-shelf"
+						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+						class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
+					>
+						<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">shelves</span>
 						Game Shelf
 					</a>
 				</li>
-				<li>
-					<a routerLink="/wishlist" routerLinkActive="active">
-						<span class="material-icons nav-icon"
-							>favorite_border</span
-						>
+				<li class="mb-px">
+					<a
+						routerLink="/wishlist"
+						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+						class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
+					>
+						<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">favorite_border</span>
 						Wishlist
 					</a>
 				</li>
-				<li>
-					<a routerLink="/favorites" routerLinkActive="active">
-						<span class="material-icons nav-icon">star</span>
+				<li class="mb-px">
+					<a
+						routerLink="/favorites"
+						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+						class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
+					>
+						<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">star</span>
 						Favorites
 					</a>
 				</li>
 			</ul>
 		</div>
 
-		<div class="nav-section">
-			<span class="nav-label">Collections</span>
-			<ul class="nav-links">
-				<li>
-					<a routerLink="/lists" routerLinkActive="active">
-						<span class="material-icons nav-icon"
-							>format_list_bulleted</span
-						>
+		<div class="px-3 py-2">
+			<span class="block px-2 mb-1.5 text-xs font-semibold uppercase tracking-wider text-fg-muted">Collections</span>
+			<ul class="list-none">
+				<li class="mb-px">
+					<a
+						routerLink="/lists"
+						routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+						class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
+					>
+						<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">format_list_bulleted</span>
 						Lists
 					</a>
 				</li>
@@ -87,75 +124,92 @@
 		</div>
 
 		@if (isModerator()) {
-		<div class="nav-section">
-			<span class="nav-label"
-				>{{ isAdmin() ? 'Admin' : 'Moderator' }}</span
-			>
-			<ul class="nav-links">
-				@if (isAdmin()) {
-				<li>
-					<a routerLink="/admin/users" routerLinkActive="active">
-						<span class="material-icons nav-icon">people</span>
-						Users
-					</a>
-				</li>
-				}
-				<li>
-					<a routerLink="/admin/games" routerLinkActive="active">
-						<span class="material-icons nav-icon"
-							>videogame_asset</span
+			<div class="px-3 py-2">
+				<span class="block px-2 mb-1.5 text-xs font-semibold uppercase tracking-wider text-fg-muted">{{ isAdmin() ? 'Admin' : 'Moderator' }}</span>
+				<ul class="list-none">
+					@if (isAdmin()) {
+						<li class="mb-px">
+							<a
+								routerLink="/admin/users"
+								routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+								class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
+							>
+								<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">people</span>
+								Users
+							</a>
+						</li>
+					}
+					<li class="mb-px">
+						<a
+							routerLink="/admin/games"
+							routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+							class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
 						>
-						Games
-					</a>
-				</li>
-				<li>
-					<a routerLink="/admin/reports" routerLinkActive="active">
-						<span class="material-icons nav-icon">flag</span>
-						Reports
-					</a>
-				</li>
-				@if (isAdmin()) {
-				<li>
-					<a routerLink="/admin/audit" routerLinkActive="active">
-						<span class="material-icons nav-icon">history</span>
-						Audit Log
-					</a>
-				</li>
-				<li>
-					<a routerLink="/admin/jobs" routerLinkActive="active">
-						<span class="material-icons nav-icon">sync</span>
-						Jobs
-					</a>
-				</li>
-				}
-			</ul>
-		</div>
+							<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">videogame_asset</span>
+							Games
+						</a>
+					</li>
+					<li class="mb-px">
+						<a
+							routerLink="/admin/reports"
+							routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+							class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
+						>
+							<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">flag</span>
+							Reports
+						</a>
+					</li>
+					@if (isAdmin()) {
+						<li class="mb-px">
+							<a
+								routerLink="/admin/audit"
+								routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+								class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
+							>
+								<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">history</span>
+								Audit Log
+							</a>
+						</li>
+						<li class="mb-px">
+							<a
+								routerLink="/admin/jobs"
+								routerLinkActive="bg-brand-subtle text-brand [&_.nav-icon]:opacity-100"
+								class="flex items-center gap-2.5 px-2.5 py-2 text-fg-secondary rounded-md text-[0.9375rem] font-medium transition hover:bg-surface hover:text-fg"
+							>
+								<span class="material-icons nav-icon text-lg w-5 text-center opacity-70">sync</span>
+								Jobs
+							</a>
+						</li>
+					}
+				</ul>
+			</div>
 		}
 
-		<div class="sidebar-footer">
+		<div class="mt-auto p-4 border-t border-line flex items-center justify-between">
 			<a
 				routerLink="/profile"
-				routerLinkActive="active"
-				class="user-info"
+				routerLinkActive="bg-surface text-fg"
+				class="flex items-center gap-2.5 text-fg-secondary rounded-md px-2 py-1.5 transition hover:bg-surface hover:text-fg no-underline"
 			>
-				<span class="user-avatar"
-					>{{ user()?.username?.charAt(0)?.toUpperCase() }}</span
-				>
-				<span class="user-name">{{ user()?.username }}</span>
+				<span class="flex items-center justify-center w-9 h-9 bg-surface rounded-full text-sm font-bold text-brand">
+					{{ user()?.username?.charAt(0)?.toUpperCase() }}
+				</span>
+				<span class="text-[0.9375rem] font-medium">{{ user()?.username }}</span>
 			</a>
 			<button uiButton variant="ghost" size="sm" (click)="logout()">Sign out</button>
 		</div>
-		<div class="sidebar-credit">
+		<div class="px-4 pt-1 pb-2 text-[0.7rem] text-fg-muted text-center">
 			Made with ♥ by
 			<a
 				href="https://www.etejeda.dev"
 				target="_blank"
 				rel="noopener noreferrer"
+				class="text-fg-secondary no-underline hover:text-brand"
 				>Esteban Tejeda</a
 			>
 		</div>
 	</nav>
-	<main class="content">
+	<main class="flex-1 p-6 md:px-8 bg-canvas overflow-y-auto max-md:pt-14 max-md:px-4">
 		<router-outlet />
 	</main>
 </div>

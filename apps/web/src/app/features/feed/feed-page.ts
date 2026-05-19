@@ -20,7 +20,6 @@ import { UiIconButton, UiInput } from "../../shared/ui";
 	selector: "app-feed-page",
 	imports: [RouterLink, UiInput, UiIconButton],
 	templateUrl: "./feed-page.html",
-	styleUrl: "./feed-page.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FeedPage implements OnInit {

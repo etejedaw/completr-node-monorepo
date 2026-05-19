@@ -14,7 +14,6 @@ import { UiIconButton } from "../../../shared/ui";
 	selector: "app-favorites-view",
 	imports: [RouterLink, UiIconButton],
 	templateUrl: "./favorites-view.html",
-	styleUrl: "./favorites-view.css",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FavoritesView implements OnInit {
