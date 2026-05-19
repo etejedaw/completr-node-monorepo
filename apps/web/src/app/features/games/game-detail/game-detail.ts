@@ -116,10 +116,34 @@ export class GameDetail implements OnInit {
 	private autoOpenReviewIfRequested() {
 		const shouldOpen =
 			this.route.snapshot.queryParamMap.get("review") === "open";
-		if (shouldOpen) {
-			this.activeTab.set("reviews");
+		if (!shouldOpen) return;
+
+		this.activeTab.set("reviews");
+
+		if (this.myReview()) {
 			this.openReviewForm();
+			return;
 		}
+
+		const gameId = this.game()?.id;
+		if (!gameId) {
+			this.openReviewForm();
+			return;
+		}
+
+		this.backlogService.getMyBacklog({ game_id: gameId }).subscribe({
+			next: res => {
+				const entry = res.data.backlog[0];
+				if (entry) {
+					this.reviewRating.set(entry.userRating ?? null);
+					this.reviewContent.set(entry.notes ?? "");
+					this.showReviewForm.set(true);
+				} else {
+					this.openReviewForm();
+				}
+			},
+			error: () => this.openReviewForm()
+		});
 	}
 
 	private loadGame(code: string) {
