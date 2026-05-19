@@ -39,6 +39,12 @@ router.get(
 );
 
 router.get(
+	"/games/latest-reviewed",
+	[rateLimiterMiddleware(publicLimiter), authMiddleware()],
+	gamesController.getLatestReviewedGames
+);
+
+router.get(
 	"/games/rawg-lookup",
 	[
 		rateLimiterMiddleware(userLimiter),

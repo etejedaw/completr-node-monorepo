@@ -16,6 +16,7 @@ import * as genresService from "../genres/genres.service";
 import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
 import * as gameExternalService from "../game-external/game-external.service";
+import * as reviewsService from "../reviews/reviews.service";
 import { RawgProvider } from "../rawg/rawg.provider";
 import { RawgGameDetail } from "../rawg/rawg.interface";
 import { apiKeysConfig } from "../common/config/api-keys.config";
@@ -176,6 +177,26 @@ export async function findAll(options: GamesQueryOptions = {}) {
 	});
 
 	return { games: rows, total: count };
+}
+
+export async function findLatestReviewed(limit = 16) {
+	const gameIds = await reviewsService.findLatestReviewedGameIds(limit);
+	if (gameIds.length === 0) return [];
+
+	const games = await Game.findAll({
+		where: { id: { [Op.in]: gameIds }, isActive: true },
+		include: [
+			{ association: "Platforms" },
+			{ association: "GameScores" },
+			{ association: "GameTimes" },
+			{ association: "Genres" }
+		]
+	});
+
+	const gameMap = new Map(games.map(g => [g.id, g]));
+	return gameIds
+		.map(id => gameMap.get(id))
+		.filter((g): g is Game => g !== undefined);
 }
 
 export async function searchGamesLocal(query: string) {
