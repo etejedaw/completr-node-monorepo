@@ -121,6 +121,38 @@ export class FeedPage implements OnInit {
 		return labels[type] ?? type;
 	}
 
+	protected activityIcon(type: string): string {
+		const icons: Record<string, string> = {
+			backlog_added: "list_alt",
+			backlog_playing: "play_arrow",
+			backlog_completed: "check_circle",
+			backlog_abandoned: "cancel",
+			backlog_not_started: "radio_button_unchecked",
+			favorite_added: "star",
+			list_created: "format_list_bulleted",
+			list_followed: "bookmark",
+			user_followed: "person_add",
+			game_reviewed: "rate_review"
+		};
+		return icons[type] ?? "circle";
+	}
+
+	protected activityDotClass(type: string): string {
+		const classes: Record<string, string> = {
+			backlog_added: "bg-brand-subtle text-brand",
+			backlog_playing: "bg-warning/10 text-warning",
+			backlog_completed: "bg-success/10 text-success",
+			backlog_abandoned: "bg-danger/10 text-danger",
+			backlog_not_started: "bg-fg-muted/10 text-fg-muted",
+			favorite_added: "bg-warning/10 text-warning",
+			list_created: "bg-brand-subtle text-brand",
+			list_followed: "bg-brand-subtle text-brand",
+			user_followed: "bg-brand-subtle text-brand",
+			game_reviewed: "bg-success/10 text-success"
+		};
+		return classes[type] ?? "bg-surface text-fg-muted";
+	}
+
 	protected timeAgo(date: string): string {
 		const diff = Date.now() - new Date(date).getTime();
 		const minutes = Math.floor(diff / 60000);

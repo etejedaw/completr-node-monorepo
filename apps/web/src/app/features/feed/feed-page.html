@@ -98,51 +98,53 @@
 			</p>
 		</div>
 	} @else {
-		<div class="flex flex-col">
+		<div class="relative">
+			<div class="absolute left-4 top-4 bottom-4 w-px bg-line" aria-hidden="true"></div>
+
 			@for (activity of activities(); track activity.id) {
-				<div class="flex items-center gap-4 py-5 border-b border-line">
-					<div class="shrink-0">
-						@if (activity.user) {
-							<button
-								class="w-10 h-10 rounded-full bg-surface border-0 text-brand text-sm font-bold cursor-pointer transition hover:bg-brand-subtle"
-								(click)="goToUser(activity.user.username)"
-							>
-								{{ activity.user.username.charAt(0).toUpperCase() }}
-							</button>
-						}
+				<div class="relative flex items-start gap-4 pb-6 last:pb-0">
+					<div
+						class="relative z-[1] shrink-0 flex items-center justify-center w-8 h-8 rounded-full ring-4 ring-canvas"
+						[class]="activityDotClass(activity.type)"
+					>
+						<span class="material-icons text-[1.125rem]">{{ activityIcon(activity.type) }}</span>
 					</div>
-					<div class="flex-1 min-w-0">
-						<div class="text-[15px] leading-relaxed text-fg-secondary">
+
+					<div class="flex-1 min-w-0 pt-1">
+						<div class="text-[15px] leading-snug text-fg-secondary">
 							@if (activity.user) {
 								<button
 									class="bg-none border-0 text-fg font-semibold text-[inherit] cursor-pointer p-0 hover:text-brand"
 									(click)="goToUser(activity.user.username)"
 								>{{ activity.user.name || activity.user.username }}</button>{{ " " }}
 							}
-							<span class="text-fg-muted">{{ activityLabel(activity.type) }}</span>{{ " " }}
+							<span class="text-fg-muted">{{ activityLabel(activity.type) }}</span>
 							@if (activity.target) {
+								{{ " " }}
 								@if (activity.target.type === 'game') {
 									<a
-										class="font-semibold text-brand"
+										class="font-semibold text-brand hover:text-brand-hover"
 										[routerLink]="['/games', activity.target.code]"
 									>{{ activity.target.name }}</a>
 								} @else if (activity.target.type === 'list') {
 									<a
-										class="font-semibold text-brand"
+										class="font-semibold text-brand hover:text-brand-hover"
 										[routerLink]="['/lists', activity.target.id]"
 									>{{ activity.target.name }}</a>
 								} @else if (activity.target.type === 'user') {
 									<button
-										class="font-semibold text-brand bg-none border-0 text-[inherit] cursor-pointer p-0"
+										class="font-semibold text-brand bg-none border-0 text-[inherit] cursor-pointer p-0 hover:text-brand-hover"
 										(click)="goToUser(activity.target.username!)"
-									>
-										{{ activity.target.name }}
-									</button>
+									>{{ activity.target.name }}</button>
 								}
 							}
 						</div>
-						<span class="text-[0.6875rem] text-fg-muted">{{ timeAgo(activity.createdAt) }}</span>
+						<div class="flex items-center gap-1 mt-1 text-[0.6875rem] text-fg-muted">
+							<span class="material-icons text-[0.75rem]">schedule</span>
+							{{ timeAgo(activity.createdAt) }}
+						</div>
 					</div>
+
 					@if (activity.target?.type === 'game' && activity.target?.backgroundUrl) {
 						<a
 							[routerLink]="['/games', activity.target!.code]"
@@ -151,12 +153,13 @@
 							<img
 								[src]="activity.target!.backgroundUrl!"
 								[alt]="activity.target!.name"
-								class="w-28 h-20 object-cover rounded-md shadow-md shadow-black/30"
+								class="w-14 h-[72px] object-cover rounded-md shadow-md shadow-black/30 ring-1 ring-line"
 							/>
 						</a>
 					}
+
 					@if (isOwnActivity(activity)) {
-						<button uiIconButton size="sm" tone="danger" (click)="deleteActivity(activity.id)">
+						<button uiIconButton size="sm" tone="danger" (click)="deleteActivity(activity.id)" class="shrink-0">
 							<span class="material-icons">close</span>
 						</button>
 					}
