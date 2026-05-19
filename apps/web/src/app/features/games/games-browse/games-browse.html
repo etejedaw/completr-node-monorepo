@@ -55,7 +55,7 @@
 		} @else if (searchResults().length === 0) {
 		<p class="text-fg-muted text-[0.8125rem]">No games found.</p>
 		} @else {
-		<div class="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-4">
+		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 			@for (game of searchResults(); track game.id) {
 			<a class="flex flex-col gap-1.5 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
 				@if (game.backgroundUrl) {
@@ -78,7 +78,7 @@
 	@if (latestGames().length > 0) {
 	<section class="mb-8">
 		<h2 class="font-display m-0 mb-3 text-base font-semibold text-fg-secondary">Latest Added</h2>
-		<div class="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-4">
+		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 			@for (game of latestGames(); track game.id) {
 			<a class="flex flex-col gap-1.5 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
 				@if (game.backgroundUrl) {
@@ -100,7 +100,7 @@
 	@if (randomGenre() && genreGames().length > 0) {
 	<section class="mb-8">
 		<h2 class="font-display m-0 mb-3 text-base font-semibold text-fg-secondary">{{ randomGenre()!.name }}</h2>
-		<div class="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-4">
+		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 			@for (game of genreGames(); track game.id) {
 			<a class="flex flex-col gap-1.5 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
 				@if (game.backgroundUrl) {
@@ -127,7 +127,7 @@
 	@if (topRated().length > 0) {
 	<section class="mb-8">
 		<h2 class="font-display m-0 mb-3 text-base font-semibold text-fg-secondary">Top Rated</h2>
-		<div class="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-4">
+		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 			@for (game of topRated(); track game.id) {
 			<a class="flex flex-col gap-1.5 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
 				@if (game.backgroundUrl) {

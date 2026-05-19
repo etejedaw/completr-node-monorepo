@@ -243,7 +243,7 @@
 		</table>
 	</div>
 	} @if (viewMode() === 'grid') {
-	<div class="grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-4">
+	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 		@for (item of list()!.items; track item.id) {
 		<a class="flex flex-col gap-1.5 no-underline text-inherit" [routerLink]="['/games', item.game.code]">
 			@if (item.game.backgroundUrl) {

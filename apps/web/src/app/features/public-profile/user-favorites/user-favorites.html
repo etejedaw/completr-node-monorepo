@@ -32,7 +32,7 @@
 	} @else if (entries().length === 0) {
 	<div class="text-center py-12 text-fg-muted text-sm">No favorites yet.</div>
 	} @else {
-	<div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));">
+	<div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));">
 		@for (entry of entries(); track entry.id) {
 		<a class="flex flex-col gap-1.5 no-underline text-inherit" [routerLink]="['/games', entry.game.code]">
 			@if (entry.game.backgroundUrl) {
