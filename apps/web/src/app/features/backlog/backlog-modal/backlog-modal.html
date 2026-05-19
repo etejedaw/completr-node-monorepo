@@ -1,5 +1,5 @@
 <div class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]" (click)="onClose()">
-	<div class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]" (click)="$event.stopPropagation()">
+	<div class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[560px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]" (click)="$event.stopPropagation()">
 		<div class="flex justify-between items-center mb-5">
 			<h2 class="font-display m-0 text-lg font-bold">{{ isEdit() ? "Edit Entry" : "Add to Backlog" }}</h2>
 			<button uiIconButton size="sm" (click)="onClose()">&times;</button>
@@ -83,26 +83,20 @@
 			</div>
 			}
 
-			<div class="flex justify-center mb-3">
+			<div class="flex gap-2 mb-3">
 				<button
 					type="button"
-					class="flex items-center justify-center gap-2 w-full px-5 py-2.5 bg-input-bg border border-line-hover rounded text-fg-muted text-sm font-medium font-sans cursor-pointer transition hover:border-danger hover:text-danger"
-					[class.!bg-danger]="addToWishlist()"
-					[class.!bg-opacity-10]="addToWishlist()"
-					[class.!border-danger]="addToWishlist()"
-					[class.!text-danger]="addToWishlist()"
+					class="flex-1 flex items-center justify-center gap-2 px-3 py-2 border rounded text-xs font-medium font-sans cursor-pointer transition"
+					[class]="addToWishlist() ? 'bg-danger/10 border-danger text-danger' : 'bg-input-bg border-line-hover text-fg-muted hover:border-danger hover:text-danger'"
 					(click)="addToWishlist.set(!addToWishlist())"
 				>
-					<span class="material-icons text-base">favorite</span>
+					<span class="material-icons text-base">{{ addToWishlist() ? 'favorite' : 'favorite_border' }}</span>
 					{{ addToWishlist() ? 'In Wishlist' : 'Add to Wishlist' }}
 				</button>
-			</div>
-
-			@if (!isEdit()) {
-			<div class="flex justify-center mb-3">
+				@if (!isEdit()) {
 				<button
 					type="button"
-					class="flex items-center justify-center gap-2 w-full px-5 py-2.5 bg-input-bg border border-line-hover rounded text-fg-muted text-sm font-medium font-sans cursor-pointer transition hover:border-brand hover:text-brand"
+					class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-input-bg border border-line-hover rounded text-fg-muted text-xs font-medium font-sans cursor-pointer transition hover:border-brand hover:text-brand"
 					[class.!bg-brand-subtle]="addToShelf()"
 					[class.!border-brand]="addToShelf()"
 					[class.!text-brand]="addToShelf()"
@@ -111,8 +105,8 @@
 					<span class="material-icons text-base">shelves</span>
 					{{ addToShelf() ? 'In Shelf' : 'Add to Shelf' }}
 				</button>
+				}
 			</div>
-			}
 
 			@if (!isEdit()) {
 			<div class="mb-4">
@@ -129,155 +123,251 @@
 			</div>
 			}
 
-			<div class="grid grid-cols-2 gap-3">
-				<div class="mb-4">
-					<label for="score" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-						>Score <span class="text-danger font-bold">*</span></label
-					>
-					@if (gameScores().length > 0) {
-					<div class="flex flex-wrap gap-1 mb-1.5">
-						@for (s of gameScores(); track s.source) {
+			<section class="mb-5 pt-3 border-t border-line">
+				<div class="flex items-center justify-between gap-3 mb-1">
+					<h3 class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider">Reference data</h3>
+					<div class="flex items-center gap-1.5">
+						<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Ratio</span>
+						<span class="font-display text-base font-bold tabular-nums" [class.text-brand]="ratio() !== null" [class.text-fg-muted]="ratio() === null">{{ ratio() ?? '—' }}</span>
 						<button
 							type="button"
-							class="bg-input-bg border border-line text-fg-secondary text-[0.625rem] font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
-							[class.!bg-brand-subtle]="activeScoreSource() === s.source"
-							[class.!border-brand]="activeScoreSource() === s.source"
-							[class.!text-brand]="activeScoreSource() === s.source"
-							(click)="applyScore(s.source, s.score)"
+							class="bg-none border-0 p-0 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+							(click)="toggleTooltip('ratio')"
+							aria-label="What is the ratio?"
 						>
-							{{ s.source }} {{ s.score }}{{
-							getScaleLabel(s.source) }}
+							<span class="material-icons text-sm">info</span>
 						</button>
-						} @if (canNormalize()) {
-						<button
-							type="button"
-							class="bg-brand-subtle border-0 text-brand text-[0.625rem] font-semibold px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:bg-brand hover:text-white"
-							(click)="normalizeScore()"
-						>
-							Normalize
-						</button>
-						}
 					</div>
-					}
-					<input
-						id="score"
-						type="number"
-						formControlName="score"
-						placeholder="Score"
-						step="0.1"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-						(input)="onScoreManualChange()"
-					/>
 				</div>
-				<div class="mb-4">
-					<label for="duration" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-						>Duration (h) <span class="text-danger font-bold">*</span></label
-					>
-					@if (gameTimes().length > 0) {
-					<div class="flex flex-wrap gap-1 mb-1.5">
-						@for (t of gameTimes(); track t.source) {
-						<button
-							type="button"
-							class="bg-input-bg border border-line text-fg-secondary text-[0.625rem] font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
-							[class.!bg-brand-subtle]="activeDurationSource() === t.source"
-							[class.!border-brand]="activeDurationSource() === t.source"
-							[class.!text-brand]="activeDurationSource() === t.source"
-							(click)="applyDuration(t.source, t.duration)"
-						>
-							{{ t.source }} {{ t.duration }}h
-						</button>
-						}
+				<p class="text-[0.75rem] text-fg-muted m-0 mb-3 leading-snug">
+					Critic score and estimated duration from external sources. Your personal rating and real playtime go below.
+				</p>
+
+				<div class="grid grid-cols-2 gap-3">
+					<div>
+						<label for="score" class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+							>Critic Score <span class="text-danger font-bold">*</span>
+							<button
+								type="button"
+								class="bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+								(click)="toggleTooltip('score')"
+								aria-label="Info"
+							>
+								<span class="material-icons text-sm">info</span>
+							</button>
+						</label>
+						<div class="min-h-[26px] mb-1.5 flex flex-wrap items-center gap-1">
+							@if (gameScores().length > 0) {
+								@for (s of gameScores(); track s.source) {
+								<button
+									type="button"
+									class="bg-input-bg border border-line text-fg-secondary text-[0.625rem] font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
+									[class.!bg-brand-subtle]="activeScoreSource() === s.source"
+									[class.!border-brand]="activeScoreSource() === s.source"
+									[class.!text-brand]="activeScoreSource() === s.source"
+									(click)="applyScore(s.source, s.score)"
+								>
+									{{ s.source }} {{ s.score }}{{ getScaleLabel(s.source) }}
+								</button>
+								}
+								@if (canNormalize()) {
+								<button
+									type="button"
+									class="bg-brand-subtle border-0 text-brand text-[0.625rem] font-semibold px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:bg-brand hover:text-white"
+									(click)="normalizeScore()"
+								>
+									Normalize
+								</button>
+								}
+							} @else if (selectedGame()) {
+								<span class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted">
+									<span class="material-icons text-[0.75rem]">help_outline</span>
+									No sources.
+									<button
+										type="button"
+										class="bg-none border-0 p-0 text-brand cursor-pointer hover:underline"
+										(click)="reportMissing('missing_score')"
+									>Report missing</button>
+								</span>
+							}
+						</div>
+						<input
+							id="score"
+							type="number"
+							formControlName="score"
+							placeholder="Metacritic/OpenCritic avg."
+							step="0.1"
+							class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							(input)="onScoreManualChange()"
+						/>
 					</div>
-					}
-					<input
-						id="duration"
-						type="number"
-						formControlName="duration"
-						placeholder="Hours"
-						step="0.5"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-						(input)="onDurationManualChange()"
-					/>
+					<div>
+						<label for="duration" class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+							>Duration (h) <span class="text-danger font-bold">*</span>
+							<button
+								type="button"
+								class="bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+								(click)="toggleTooltip('duration')"
+								aria-label="Info"
+							>
+								<span class="material-icons text-sm">info</span>
+							</button>
+						</label>
+						<div class="min-h-[26px] mb-1.5 flex flex-wrap items-center gap-1">
+							@if (gameTimes().length > 0) {
+								@for (t of gameTimes(); track t.source) {
+								<button
+									type="button"
+									class="bg-input-bg border border-line text-fg-secondary text-[0.625rem] font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
+									[class.!bg-brand-subtle]="activeDurationSource() === t.source"
+									[class.!border-brand]="activeDurationSource() === t.source"
+									[class.!text-brand]="activeDurationSource() === t.source"
+									(click)="applyDuration(t.source, t.duration)"
+								>
+									{{ t.source }} {{ t.duration }}h
+								</button>
+								}
+							} @else if (selectedGame()) {
+								<span class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted">
+									<span class="material-icons text-[0.75rem]">help_outline</span>
+									No sources.
+									<button
+										type="button"
+										class="bg-none border-0 p-0 text-brand cursor-pointer hover:underline"
+										(click)="reportMissing('missing_duration')"
+									>Report missing</button>
+								</span>
+							}
+						</div>
+						<input
+							id="duration"
+							type="number"
+							formControlName="duration"
+							placeholder="HowLongToBeat estimate"
+							step="0.5"
+							class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							(input)="onDurationManualChange()"
+						/>
+					</div>
 				</div>
-			</div>
+				@if (referenceTooltipText()) {
+				<p class="mt-3 mb-0 text-[0.75rem] text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug">{{ referenceTooltipText() }}</p>
+				}
+				@if (reportFeedback()) {
+				<p class="mt-2 mb-0 text-[0.75rem] text-success">{{ reportFeedback() }}</p>
+				}
+			</section>
 
-			<div class="mb-4">
-				<label for="status" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Status</label>
-				<select id="status" formControlName="status"
-					class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans cursor-pointer transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]">
-					<option value="not_started">Not Started</option>
-					<option value="playing">Playing</option>
-					<option value="completed">Completed</option>
-					<option value="abandoned">Abandoned</option>
-				</select>
-			</div>
+			<section class="mb-4 pt-3 border-t border-line">
+				<div class="flex items-baseline justify-between mb-3">
+					<h3 class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider">Your tracking</h3>
+					<span class="text-[0.6875rem] text-fg-muted italic">personal data</span>
+				</div>
 
-			<div class="grid grid-cols-2 gap-3">
 				<div class="mb-4">
-					<label for="startedAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Started</label>
-					<input
-						id="startedAt"
-						type="date"
-						formControlName="startedAt"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					/>
+					<label for="status" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Status</label>
+					<select id="status" formControlName="status"
+						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans cursor-pointer transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]">
+						<option value="not_started">Not Started</option>
+						<option value="playing">Playing</option>
+						<option value="completed">Completed</option>
+						<option value="abandoned">Abandoned</option>
+					</select>
 				</div>
-				<div class="mb-4">
-					<label for="finishedAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Finished</label>
-					<input
-						id="finishedAt"
-						type="date"
-						formControlName="finishedAt"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					/>
-				</div>
-			</div>
 
-			<div class="grid grid-cols-2 gap-3">
-				<div class="mb-4">
-					<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Rating</label>
-					<app-star-rating
-						[value]="form.controls.userRating.value"
-						(ratingChange)="form.controls.userRating.setValue($event)"
-					/>
+				@if (showTrackingDetails()) {
+				<div class="grid grid-cols-2 gap-3">
+					<div class="mb-4">
+						<label for="startedAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Started</label>
+						<input
+							id="startedAt"
+							type="date"
+							formControlName="startedAt"
+							class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+						/>
+					</div>
+					<div class="mb-4">
+						<label for="finishedAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Finished</label>
+						<input
+							id="finishedAt"
+							type="date"
+							formControlName="finishedAt"
+							class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+						/>
+					</div>
 				</div>
-				<div class="mb-4">
-					<label for="realDuration" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Real Duration (h)</label>
-					<input
-						id="realDuration"
-						type="number"
-						formControlName="realDuration"
-						placeholder="Actual hours"
-						step="0.5"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					/>
+
+				<div class="grid grid-cols-2 gap-3">
+					<div class="mb-4">
+						<label class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
+							My Rating
+							<button
+								type="button"
+								class="bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+								(click)="toggleTooltip('rating')"
+								aria-label="Info"
+							>
+								<span class="material-icons text-sm">info</span>
+							</button>
+						</label>
+						<app-star-rating
+							[value]="form.controls.userRating.value"
+							(ratingChange)="form.controls.userRating.setValue($event)"
+						/>
+					</div>
+					<div class="mb-4">
+						<label for="realDuration" class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+							>Real Duration (h)
+							<button
+								type="button"
+								class="bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+								(click)="toggleTooltip('realDuration')"
+								aria-label="Info"
+							>
+								<span class="material-icons text-sm">info</span>
+							</button>
+						</label>
+						<input
+							id="realDuration"
+							type="number"
+							formControlName="realDuration"
+							placeholder="Actual hours"
+							step="0.5"
+							class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+						/>
+					</div>
 				</div>
-			</div>
+				}
 
-			<div class="mb-4">
-				<label for="notes" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Notes</label>
-				<textarea
-					id="notes"
-					formControlName="notes"
-					rows="3"
-					placeholder="Your thoughts..."
-					class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-				></textarea>
-			</div>
+				@if (trackingTooltipText()) {
+				<p class="mt-1 mb-4 text-[0.75rem] text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug">{{ trackingTooltipText() }}</p>
+				}
 
-			@if (form.get('status')?.value === 'completed' ||
-			form.get('status')?.value === 'abandoned') {
-			<div class="mt-3 pt-3 border-t border-line">
-				<label class="block mb-1.5 text-xs font-medium text-fg-muted uppercase tracking-wider">Review (optional)</label>
-				<textarea
-					rows="3"
-					placeholder="Share your review of this game..."
-					class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					[value]="reviewContent()"
-					(input)="reviewContent.set($any($event.target).value)"
-				></textarea>
-			</div>
-			}
+				<div class="mb-4">
+					<label for="notes" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Notes</label>
+					<textarea
+						id="notes"
+						formControlName="notes"
+						rows="3"
+						placeholder="Your thoughts..."
+						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+					></textarea>
+				</div>
+
+				@if (form.get('status')?.value === 'completed' ||
+				form.get('status')?.value === 'abandoned') {
+				<div class="mt-3 pt-3 border-t border-line">
+					<label class="block mb-1.5 text-xs font-medium text-fg-muted uppercase tracking-wider">Review (optional)</label>
+					<textarea
+						rows="3"
+						placeholder="Share your review of this game..."
+						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+						[value]="reviewContent()"
+						(input)="reviewContent.set($any($event.target).value)"
+					></textarea>
+				</div>
+				}
+			</section>
 
 			<div class="flex justify-between items-center mt-5 pt-4 border-t border-line">
 				@if (isEdit()) {
