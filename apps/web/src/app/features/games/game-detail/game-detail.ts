@@ -113,6 +113,14 @@ export class GameDetail implements OnInit {
 		});
 	}
 
+	private autoOpenReviewIfRequested() {
+		const shouldOpen =
+			this.route.snapshot.queryParamMap.get("review") === "open";
+		if (shouldOpen) {
+			this.openReviewForm();
+		}
+	}
+
 	private loadGame(code: string) {
 		this.isLoading.set(true);
 		this.game.set(null);
@@ -353,6 +361,7 @@ export class GameDetail implements OnInit {
 					reviews.find(r => r.user?.id === userId) ?? null
 				);
 			}
+			this.autoOpenReviewIfRequested();
 		});
 	}
 }
