@@ -741,10 +741,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** La vista de Game Shelf muestra un juego por fila ocupando todo el ancho disponible. En escritorio queda mucho espacio horizontal vacio a la derecha de cada entrada y la lista se vuelve larga rapidamente. Otras vistas con cards (favorites, wishlist en grid) aprovechan mejor el ancho mostrando 2+ columnas. La unica entrada por fila no aporta densidad de informacion ni mejora la legibilidad.
-- **Solucion propuesta:** Cambiar el layout de la grilla del Game Shelf a 2 columnas en escritorio (md+), manteniendo 1 columna en mobile. Evaluar si tambien conviene una vista en modo "card" que aproveche aun mas el ancho (como wishlist grid). Considerar dejar la vista de tabla actual como opcion alternativa con un toggle list/grid, similar al patron usado en wishlist.
+- **Solucion:** Toggle de 3 view modes en `/game-shelf` con persistencia en localStorage (`completr.shelf.viewMode`). (1) **Cards** (default, icono `view_agenda`): el card actual pero ahora en `grid grid-cols-1 md:grid-cols-2` — 2 columnas en escritorio, 1 en mobile. (2) **Grid** (icono `grid_view`): grid de caratulas estilo wishlist (`grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6`) con plataforma como badge superior izquierdo. Click en card abre modal de edicion, click en titulo navega a ficha del juego. (3) **Table** (icono `view_list`): tabla compacta con cover thumb 8x10 + title + platform badge + edition + acquired + notes — maxima densidad. Click en fila abre modal, click en titulo navega. Patron de toggle identico al de wishlist.
 
 ### [FB-082] Wishlist tiene mucho espacio sobrante, podria ofrecer drag-and-drop
 
