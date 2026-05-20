@@ -456,10 +456,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Al agregar un juego al backlog, el usuario uso el boton "Add to Shelf" dentro del modal de backlog. El boton indico que el juego fue agregado al shelf (feedback visual de exito), pero al ir al Game Shelf el juego no estaba ahi. Es un falso positivo — el frontend reporta exito sin que la operacion se haya completado realmente. Puede ser un error de HTTP no manejado, un problema de timing, o que el request nunca se envio.
-- **Solucion propuesta:** Revisar el flujo de "Add to Shelf" desde el backlog modal. Verificar que el request HTTP se envia correctamente y que los errores se manejan (mostrar error si falla en vez de exito). Probar el flujo completo: crear backlog + add to shelf en la misma transaccion o como requests separados, y asegurar que ambos completen antes de mostrar confirmacion.
+- **Solucion:** Bug ya no se reproduce. Probablemente fixeado en uno de los refactors posteriores al reporte (`fd60a97d` redesign del modal con secciones reference/tracking, o `60d79995` migracion a ng-primitives). El flujo actual en `backlog-modal.ts` (createSubmit branch): crea el backlog primero, luego en `next:` arma `extras$ = [...wishlist, ...shelf]` y hace `forkJoin(extras$).subscribe(() => saved.emit())`. El evento `saved` solo se emite cuando todas las creaciones extras completan exitosamente — si el shelf falla, `forkJoin` errea y `saved` no emite, el modal queda abierto. No hay falso positivo posible en este flujo.
 
 ### [FB-052] Miniaturas de juegos usan capturas de pantalla en vez de arte oficial
 
@@ -732,10 +732,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-19
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** El boton mas a la derecha del header/topbar para crear un backlog se siente innecesario. Ya existe un boton "+ Add to Backlog" dentro de la vista de backlog y el flujo natural para agregar un juego empieza desde la ficha del juego o desde la vista de backlog. El boton flotante en la esquina no se descubre, no acompana ningun flujo y agrega ruido visual al header.
-- **Solucion propuesta:** Eliminarlo. Si en algun momento se vuelve necesario un atajo global para crear backlog, considerar un FAB (floating action button) flotante en la esquina inferior derecha en lugar de un boton en el header — pero por ahora se quita sin reemplazo.
+- **Solucion:** FAB eliminado de `layout.html` junto con el `BacklogModal` y los handlers asociados (`openAddModal`, `onAddModalClosed`, `onAddModalSaved`, signal `showAddModal`). Los puntos de entrada para crear backlog quedan: "+ Add to Backlog" en `/backlog` y action buttons en game detail. Se evaluo y descarto convertirlo en un menu multi-opcion.
 
 ### [FB-081] Game shelf usa demasiado espacio vertical con un juego por fila
 
@@ -777,10 +777,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En la vista de backlog hay un icono de corazon para agregar la entrada a la wishlist. Al presionarlo, el backlog se agrega correctamente, pero al presionarlo de nuevo (esperando que actue como toggle) no se remueve. El usuario queda sin forma de sacar el item desde el backlog y tiene que ir a la vista de wishlist para eliminarlo, lo que rompe la expectativa de un control toggle.
-- **Solucion propuesta:** Hacer que el corazon funcione como toggle real. Si el backlog ya esta en la wishlist, el click debe llamar al endpoint de remover de wishlist en vez de no hacer nada (o reintentar el add). El estado visual del corazon (relleno vs vacio) debe reflejar la pertenencia actual a la wishlist y actualizarse inmediatamente tras el toggle. Verificar que el listado de backlog ya devuelve el flag de wishlist por entrada; si no, exponerlo en el serializer para que el frontend sepa que estado renderizar.
+- **Solucion:** Corazon funciona como toggle con confirmacion en dos pasos para evitar remociones accidentales que rompen prioridades manuales. (1) `WishlistService.removeByBacklogId(backlogId)` agregado en frontend (hace `GET` + `PUT` con backlogIds restantes; backend no tiene DELETE asi que se reusa el endpoint de reorder, mismo patron que `wishlist-view.remove`). (2) `addToWishlist` reemplazado por `toggleWishlist` en `backlog-list.ts`. Estados: corazon vacio → click → agrega; corazon lleno → click → entra a estado confirm (icono `heart_broken`, fondo `bg-danger/15`, tooltip "Click again to remove"), auto-resetea en 3s; segundo click dentro de 3s → remueve. Aplica en vista diary y vista tabla (hardcore).
 
 ### [FB-086] El modal de backlog abre directo en modo edicion, sin vista resumen
 
@@ -813,10 +813,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban (reportado por usuarios)
 - **Descripcion:** Los usuarios reportan que la paleta de colores no esta bien resuelta. El ejemplo concreto es el navbar: todos los items se renderizan con el mismo color, sin diferenciar visualmente el item activo (la ruta actual). El color de "destacado" deberia estar reservado para el item seleccionado, no aplicarse a todos por igual. Esto rompe el feedback visual basico de navegacion — el usuario no sabe en que seccion esta sin leer el texto. El reporte sugiere que el problema es mas amplio que el navbar y conviene auditar la paleta completa.
-- **Solucion propuesta:** (1) Fix puntual del navbar: items inactivos en color neutro (text-muted o similar), item activo en el color de marca (brand/primary). Hover en un tono intermedio. Aplicar al navbar superior y al navbar lateral si existe. (2) Auditoria general de paleta: revisar el sistema de tokens de color en `styles.scss`/tailwind config, identificar usos donde el color de marca se aplica indiscriminadamente y restringirlo a estados activos/CTAs principales. Definir reglas claras de jerarquia: brand (CTA principal y estado activo), accent (secundario), muted (texto secundario), neutral (default). (3) Validar contraste WCAG AA en todos los pares texto/fondo. Considerar pasar la paleta por una herramienta como Realtime Colors o coolors antes de comprometerse a cambios grandes. Este item puede coincidir con la adopcion de ng-primitives ya planificada en Fase 2.5 — buen momento para alinear tokens.
+- **Solucion:** Fix del item activo en sidebar. `layout.html` con estilos `routerLinkActive` unificados (antes habia dos patrones, ahora todos los items usan triple indicador visual: `!border-brand` borde izquierdo 3px + `!text-brand` texto purpura + `!bg-brand-subtle` fondo brand 10%). Hover de inactivos suma `bg-surface/60`. `settings-shell.html` ya tenia el patron. Accesibilidad: agregado `ariaCurrentWhenActive="page"` en todos los `routerLinkActive`. Se evaluo y descarto darle color semantico a los iconos por seccion (wishlist=danger, favorites=warning, saved-views=sky) — preferencia por mantener iconos neutros. Audit del resto del codebase: usos altos de `text-brand` en backlog-list (22), games-browse (14) y public-profile (10) son intencionales (ratios destacados, CTAs, tabs activas) y no se modificaron.
 
 ### [FB-090] Permitir al usuario elegir tema (refined-dark vs twilight-arcade)
 
@@ -860,10 +860,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En la vista del backlog, cuando un saved view tiene descripcion/comentario, ese texto se renderiza encima de la lista y empuja todos los juegos hacia abajo. Al alternar entre vistas con y sin descripcion, el layout salta y la lista cambia de posicion en pantalla. La interfaz deberia mantenerse estable: alternar vistas no deberia mover la lista de juegos.
-- **Solucion propuesta:** Reservar el espacio de la descripcion en el layout independientemente de si la vista tiene comentario o no. Opciones: (1) Reservar una altura minima fija para el contenedor de la descripcion (ej: `min-height: 3rem`), de forma que vacio o con texto ocupe lo mismo. (2) Mover la descripcion a un componente colapsable/popover que no afecte el flujo (ej: tooltip sobre el nombre de la vista, o un icono `info` que abre la descripcion en un popover). (3) Posicionar la descripcion como overlay/absolute sobre el header, sin afectar el flujo de la lista. La opcion (2) es la mas limpia porque tampoco gasta espacio vertical sin razon en vistas sin descripcion. Evaluar tambien si la descripcion realmente aporta valor estando siempre visible — quiza solo deba aparecer al pasar el mouse o al hacer click en el nombre de la vista.
+- **Solucion:** En `backlog-list.html` se removio el `@if (activeFilterDescription())` que envolvia el `<p>` de descripcion. Ahora el parrafo siempre se renderiza con `min-h-[1.25rem]`, asi reserva el espacio independiente de si la vista actual tiene descripcion o no. Al alternar entre vistas con y sin descripcion el resto del layout (lista de juegos) ya no se mueve.
 
 ### [FB-095] Paginacion solo tiene Previous/Next, no permite saltar a otra pagina
 
@@ -906,21 +906,21 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En la pagina de Security (listado de sesiones activas) la sesion del propio dispositivo muestra "Last used 15h" cuando el usuario la esta usando en ese mismo momento. El campo no refleja la actividad real — siempre muestra un timestamp viejo aunque haya tráfico reciente desde esa sesion.
-- **Causa tecnica:** En `src/auth/services/token.service.ts:39`, `lastUsedAt` se setea solo al crear el `RefreshToken` (`createRefreshToken`). No hay ninguna ruta que actualice ese campo cuando el refresh token se vuelve a usar (por ejemplo en el endpoint `POST /auth/refresh`). Resultado: `lastUsedAt` queda congelado en la fecha de creacion de la sesion (es decir, el ultimo login completo del usuario). El frontend lo etiqueta como "Last used" cuando en realidad es "Last logged in" / "Session started".
-- **Solucion propuesta:** (1) En el flujo de refresh de access token (donde se llama `verifyRefreshToken`), actualizar `lastUsedAt = new Date()` despues de validar exitosamente el token. Hacerlo con `RefreshToken.update({ lastUsedAt: new Date() }, { where: { id: refreshToken.id } })` para evitar reload del model completo. (2) Considerar tambien actualizarlo en cada request autenticado (no solo refresh), pero esto es costoso — implicaria un write por request. Mejor mantenerlo en el refresh (que ocurre cada ~15min segun el TTL del access token) y aceptar que la granularidad es la frecuencia de refresh. (3) Si el frontend lo necesita mas en tiempo real (ej: para "ultima actividad"), considerar una tabla `UserActivity(userId, lastSeenAt)` actualizada async desde un middleware con debounce/throttle para no martillar la DB. Empezar por (1) que cubre el caso reportado con minima complejidad.
+- **Causa real:** El refresh ya rota tokens (delete + create) y el nuevo `RefreshToken` tiene `lastUsedAt: new Date()` desde `createRefreshToken`. Pero `lastUsedAt` solo se actualiza cuando el access token expira y dispara refresh — con `ACCESS_TOKEN_TTL=15m` esto deberia ser frecuente, pero entre refreshes el campo queda igual al ultimo refresh, no a la ultima actividad real. Si el usuario abre /settings/security justo despues de un periodo idle largo seguido de un refresh reciente, el campo se ve "fresco" — pero el feedback reflejaba la percepcion de que no se actualizaba en tiempo real.
+- **Solucion:** Update on refresh (opcion 1 elegida), implementado via JWT `sid` claim + middleware throttled. (1) `JwtPayload` extendido con campo opcional `sid` (sessionId del refresh token asociado). (2) `auth.service.login/register/refresh` reordenados: primero `createRefreshToken` (para obtener `sessionId`), luego `signAccessToken` con `sid` incluido en payload. (3) Nueva funcion `tokenService.touchSessionLastUsed(sessionId)` con cache in-memory (`Map<sessionId, lastUpdateMs>`) y throttle de 60s — actualiza `RefreshToken.lastUsedAt` solo si paso mas de un minuto desde el ultimo update de esa sesion (evita write-per-request manteniendo granularidad util). (4) `authMiddleware` llama a `touchSessionLastUsed(payload.sid)` fire-and-forget despues de verificar el access token (`.catch(() => {})` para no romper la request si DB falla). Resultado: "Last used" refleja actividad real con granularidad de 1 minuto. Tokens emitidos pre-cambio no tienen `sid` y seguiran sin actualizar `lastUsedAt` hasta que el usuario haga refresh (max ~15min por TTL del access token).
 
 ### [FB-100] Los shortcuts de status en el navbar cambian la URL pero no refrescan el backlog
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** El navbar tiene tres shortcuts (Done, Play, Total) que llevan al backlog con un filtro de status preaplicado. Si el usuario esta en otra pagina y presiona uno, navega al backlog correctamente y se aplica el filtro. Pero si despues presiona otro shortcut (estando ya en el backlog), la URL cambia pero la vista no se actualiza — sigue mostrando el filtro anterior. Solo refrescando el navegador (F5) los cambios toman efecto. Mismo problema si el usuario ya esta en el backlog y presiona cualquiera de los shortcuts: el filtro no se aplica hasta refrescar.
-- **Causa tecnica probable:** El componente del backlog lee los `queryParams` solo en `ngOnInit` (snapshot) en vez de suscribirse a `route.queryParamMap` como observable/signal. Cuando Angular Router reusa la misma instancia del componente (porque la ruta base no cambia, solo los query params), `ngOnInit` no se vuelve a ejecutar y la vista queda con el estado viejo. Tambien puede ocurrir si el routerLink del navbar no fuerza un re-fetch o si la signal de filtros no se reactiva a cambios en la URL.
-- **Solucion propuesta:** (1) En el componente del backlog, reemplazar el `route.snapshot.queryParamMap` por una suscripcion reactiva: `toSignal(route.queryParamMap)` o `route.queryParamMap.subscribe(...)`. Cada vez que cambian los query params, recalcular los filtros y disparar el fetch al backend. (2) Verificar que el `routerLink` del navbar usa `queryParams` (no string concatenado) y `queryParamsHandling: 'merge'` o `'replace'` segun convenga, para que Angular detecte el cambio como una navegacion real. (3) Si se usa `RouteReuseStrategy` custom, asegurarse de que el backlog se invalide cuando cambian sus query params. (4) Como verificacion rapida: agregar un `effect()` en el componente que loguee los queryParams — si no dispara al cambiar la URL, el problema es la suscripcion; si dispara pero la vista no cambia, el problema es que el fetch no se re-ejecuta.
+- **Causa tecnica:** `BacklogList.ngOnInit` leia los query params via `route.snapshot.queryParamMap` (snapshot, no reactivo). Cuando el Router reusa la misma instancia del componente al navegar entre `/backlog?status=X` y `/backlog?status=Y`, `ngOnInit` no se vuelve a ejecutar y los filtros quedan congelados.
+- **Solucion:** Refactor a patron reactivo con signals (Angular 21 idiomatico). (1) Reemplazado `route.snapshot.queryParamMap` por `toSignal(this.route.queryParamMap)` en `backlog-list.ts`. (2) Agregada `savedFiltersLoaded` signal para sincronizar con la carga inicial de saved filters. (3) `effect()` que observa `queryParamMap` + `savedFiltersLoaded` y llama a `applyFiltersFromUrl(params)` cada vez que cambian los query params. (4) Extraidos metodos `applyFiltersFromUrl`, `applySavedFilterFromUrl` y `resetFilterState` para separar la logica reactiva de la logica de UI (la `applySavedFilter` original mantiene el comportamiento de toggle para clicks en chips, mientras que `applySavedFilterFromUrl` solo aplica sin togglear, lo correcto para navegacion). (5) `ngOnInit` queda mas chico: solo carga datos, no aplica filtros — el effect se encarga. Probado: al alternar shortcuts Done/Play/Total estando en `/backlog`, la vista refresca sin F5.
 
 ### [FB-101] Evaluar si la app deberia tener enlaces a la landing/webpage publica
 
