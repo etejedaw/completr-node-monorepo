@@ -152,7 +152,7 @@ export class BacklogModal implements OnInit {
 		platformId: ["", Validators.required],
 		score: [
 			null as number | null,
-			[Validators.required, Validators.min(0.01)]
+			[Validators.required, Validators.min(0.01), Validators.max(5)]
 		],
 		duration: [
 			null as number | null,
@@ -326,6 +326,10 @@ export class BacklogModal implements OnInit {
 
 	onScoreManualChange() {
 		this.activeScoreSource.set("");
+		const current = this.form.controls.score.value;
+		if (current !== null && current !== undefined && current > 5) {
+			this.form.controls.score.setValue(5);
+		}
 	}
 
 	onDurationManualChange() {

@@ -55,9 +55,8 @@
 		</div>
 	</div>
 
-	@if (activeFilterDescription()) {
-	<p class="-mt-2 mb-3 text-xs text-fg-muted italic">{{ activeFilterDescription() }}</p>
-	} @if (showFilters()) {
+	<p class="-mt-2 mb-3 text-xs text-fg-muted italic min-h-[1.25rem]">{{ activeFilterDescription() }}</p>
+	@if (showFilters()) {
 	<div
 		class="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm"
 		(click)="showFilters.set(false)"
@@ -377,11 +376,12 @@
 						<button
 							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center transition hover:text-danger"
 							[class.!text-danger]="isInWishlist(entry)"
-							[class.!cursor-default]="isInWishlist(entry)"
-							(click)="addToWishlist(entry); $event.stopPropagation()"
-							[title]="isInWishlist(entry) ? 'In Wishlist' : 'Add to Wishlist'"
+							[class.!bg-danger\/15]="wishlistConfirmId() === entry.id"
+							[class.rounded-full]="wishlistConfirmId() === entry.id"
+							(click)="toggleWishlist(entry); $event.stopPropagation()"
+							[title]="wishlistConfirmId() === entry.id ? 'Click again to remove' : (isInWishlist(entry) ? 'Remove from Wishlist' : 'Add to Wishlist')"
 						>
-							<span class="material-icons text-lg leading-none">{{ isInWishlist(entry) ? 'favorite' : 'favorite_border' }}</span>
+							<span class="material-icons text-lg leading-none">{{ wishlistConfirmId() === entry.id ? 'heart_broken' : (isInWishlist(entry) ? 'favorite' : 'favorite_border') }}</span>
 						</button>
 					</div>
 				}
@@ -468,11 +468,12 @@
 									<button
 										class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-danger"
 										[class.!text-danger]="isInWishlist(entry)"
-										[class.!cursor-default]="isInWishlist(entry)"
-										(click)="addToWishlist(entry); $event.stopPropagation()"
-										[title]="isInWishlist(entry) ? 'In Wishlist' : 'Add to Wishlist'"
+										[class.!bg-danger\/15]="wishlistConfirmId() === entry.id"
+										[class.rounded-full]="wishlistConfirmId() === entry.id"
+										(click)="toggleWishlist(entry); $event.stopPropagation()"
+										[title]="wishlistConfirmId() === entry.id ? 'Click again to remove' : (isInWishlist(entry) ? 'Remove from Wishlist' : 'Add to Wishlist')"
 									>
-										<span class="material-icons text-base leading-none">{{ isInWishlist(entry) ? 'favorite' : 'favorite_border' }}</span>
+										<span class="material-icons text-base leading-none">{{ wishlistConfirmId() === entry.id ? 'heart_broken' : (isInWishlist(entry) ? 'favorite' : 'favorite_border') }}</span>
 									</button>
 								</td>
 							</tr>

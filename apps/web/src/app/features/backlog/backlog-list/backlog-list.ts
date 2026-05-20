@@ -1,10 +1,12 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	effect,
 	inject,
 	OnInit,
 	signal
 } from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { BacklogEntry, BacklogStatus, Platform } from "../../../core/models";
@@ -12,7 +14,7 @@ import { BacklogService, BacklogFilters } from "../backlog.service";
 import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
 import { WishlistService } from "../../wishlist/wishlist.service";
 import { GamesService } from "../../games/games.service";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute, ParamMap, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { UiButton, UiIconButton, UiInput, UiPagination, UiSearchBar } from "../../../shared/ui";
@@ -44,6 +46,18 @@ export class BacklogList implements OnInit {
 	protected readonly showModal = signal(false);
 	protected readonly editingEntry = signal<BacklogEntry | null>(null);
 	private readonly wishlistBacklogIds = signal<Set<string>>(new Set());
+	protected readonly wishlistConfirmId = signal<string | null>(null);
+	private wishlistConfirmTimer: ReturnType<typeof setTimeout> | null = null;
+
+	private readonly queryParamMap = toSignal(this.route.queryParamMap);
+	private readonly savedFiltersLoaded = signal(false);
+
+	private readonly applyFromUrlEffect = effect(() => {
+		if (!this.savedFiltersLoaded()) return;
+		const params = this.queryParamMap();
+		if (!params) return;
+		this.applyFiltersFromUrl(params);
+	});
 
 	protected readonly viewMode = signal<"diary" | "hardcore">(
 		(localStorage.getItem("completr.backlog.viewMode") as "diary" | "hardcore") ||
@@ -105,31 +119,77 @@ export class BacklogList implements OnInit {
 			const sorted = filters.sort((a, b) => a.name.localeCompare(b.name));
 			this.savedFilters.set(sorted);
 			this.backlogFilters.set(sorted.filter(f => f.showInBacklog));
-
-			const params = this.route.snapshot.queryParamMap;
-			const filterId = params.get("savedFilterId");
-			if (filterId) {
-				const match = sorted.find(f => f.id === filterId);
-				if (match) {
-					this.applySavedFilter(match);
-					return;
-				}
-			}
-
-			const statusParam = params.get("status");
-			if (statusParam) {
-				this.activeStatuses.set(new Set(statusParam.split(",")));
-				this.loadBacklog();
-				return;
-			}
-
-			const defaultFilter = sorted.find(f => f.isDefault);
-			if (defaultFilter) {
-				this.applySavedFilter(defaultFilter);
-				return;
-			}
-			this.loadBacklog();
+			this.savedFiltersLoaded.set(true);
 		});
+	}
+
+	private applyFiltersFromUrl(params: ParamMap) {
+		const filterId = params.get("savedFilterId");
+		if (filterId) {
+			const match = this.savedFilters().find(f => f.id === filterId);
+			if (match) {
+				this.applySavedFilterFromUrl(match);
+				return;
+			}
+		}
+
+		const statusParam = params.get("status");
+		if (statusParam) {
+			this.resetFilterState();
+			this.activeStatuses.set(new Set(statusParam.split(",")));
+			this.offset.set(0);
+			this.loadBacklog();
+			return;
+		}
+
+		const defaultFilter = this.savedFilters().find(f => f.isDefault);
+		if (defaultFilter && this.activeFilterId() !== defaultFilter.id) {
+			this.applySavedFilterFromUrl(defaultFilter);
+			return;
+		}
+
+		if (!defaultFilter) {
+			this.resetFilterState();
+			this.loadBacklog();
+		}
+	}
+
+	private applySavedFilterFromUrl(filter: SavedFilter) {
+		const f = filter.filters as Record<string, string>;
+		this.selectedPlatform.set(f["platform_id"] ?? "");
+		this.startedFrom.set(f["started_from"] ?? "");
+		this.startedTo.set(f["started_to"] ?? "");
+		this.finishedFrom.set(f["finished_from"] ?? "");
+		this.finishedTo.set(f["finished_to"] ?? "");
+		this.minRating.set(f["min_rating"] ? Number(f["min_rating"]) : null);
+		this.maxRating.set(f["max_rating"] ? Number(f["max_rating"]) : null);
+
+		const status = f["status"];
+		this.activeStatuses.set(status ? new Set(status.split(",")) : new Set());
+
+		if (filter.sortBy) this.sortBy.set(filter.sortBy);
+		if (filter.sortOrder)
+			this.sortOrder.set(filter.sortOrder as "asc" | "desc");
+
+		this.activeFilterId.set(filter.id);
+		this.activeFilterDescription.set(filter.description ?? "");
+		this.offset.set(0);
+		this.loadBacklog();
+	}
+
+	private resetFilterState() {
+		this.selectedPlatform.set("");
+		this.startedFrom.set("");
+		this.startedTo.set("");
+		this.finishedFrom.set("");
+		this.finishedTo.set("");
+		this.minRating.set(null);
+		this.maxRating.set(null);
+		this.activeStatuses.set(new Set());
+		this.activeFilterId.set(null);
+		this.activeFilterDescription.set("");
+		this.sortBy.set("createdAt");
+		this.sortOrder.set("desc");
 	}
 
 	isInWishlist(entry: BacklogEntry): boolean {
@@ -346,9 +406,28 @@ export class BacklogList implements OnInit {
 		return map[status] ?? status;
 	}
 
-	addToWishlist(entry: BacklogEntry) {
-		if (this.isInWishlist(entry)) return;
-		this.wishlistService.addFromBacklog(entry.id).subscribe(() => {
+	toggleWishlist(entry: BacklogEntry) {
+		if (!this.isInWishlist(entry)) {
+			this.wishlistService.addFromBacklog(entry.id).subscribe(() => {
+				this.loadWishlistIds();
+			});
+			return;
+		}
+		if (this.wishlistConfirmId() !== entry.id) {
+			this.wishlistConfirmId.set(entry.id);
+			if (this.wishlistConfirmTimer) clearTimeout(this.wishlistConfirmTimer);
+			this.wishlistConfirmTimer = setTimeout(() => {
+				this.wishlistConfirmId.set(null);
+				this.wishlistConfirmTimer = null;
+			}, 3000);
+			return;
+		}
+		if (this.wishlistConfirmTimer) {
+			clearTimeout(this.wishlistConfirmTimer);
+			this.wishlistConfirmTimer = null;
+		}
+		this.wishlistConfirmId.set(null);
+		this.wishlistService.removeByBacklogId(entry.id).subscribe(() => {
 			this.loadWishlistIds();
 		});
 	}

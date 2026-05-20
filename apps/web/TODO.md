@@ -321,6 +321,10 @@ Migrar todo el frontend para que use ng-primitives como base de componentes UI. 
 
 - [ ] Crear landing con descripción de Completr y formulario de solicitar invitación (Astro, separado)
 
+### Revisión de paleta de colores
+
+- [ ] Auditoría general de la paleta: definir jerarquía clara (brand para CTA y estado activo, accent secundario, muted para texto secundario, neutral default), revisar usos indiscriminados de `text-brand`, validar contraste WCAG AA en pares texto/fondo. Considerar variedad de color por sección en el sidebar (estilo Discord) — descartado en Fase 2 por preferencia, reevaluar con feedback de más usuarios. Relacionado con FB-089.
+
 ---
 
 ## FASE 4 — Beta Pública
@@ -449,6 +453,7 @@ Migrar todo el frontend para que use ng-primitives como base de componentes UI. 
 - [ ] Play Along: playthroughs sincronizados con amigos
 - [ ] App nativa (solo si PWA no es suficiente)
 - [ ] i18n (internacionalización)
+- [ ] Backlog modal — selector de escala junto al input de Critic Score (`/5`, `/10`, `/100`) para que el usuario pueda ingresar una nota propia (ej. la que le dio un amigo) en la escala que más le acomode y la app la normalice al 0–5 con la misma lógica que los botones de fuente. Hoy se mitigó con `max="5"` + sufijo `/5` + placeholder explícito, suficiente mientras no aparezca en feedback. Si se prioriza: agregar signal `manualScoreScale` con default `5`, reusar `ScoreSourcesService.normalize` (o equivalente local) al cambiar la escala, mantener el valor escrito y solo reinterpretarlo
 
 ---
 
