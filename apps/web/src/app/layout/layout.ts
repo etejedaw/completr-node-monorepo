@@ -8,7 +8,6 @@ import {
 } from "@angular/router";
 import { AuthService } from "../core/services/auth.service";
 import { BacklogService } from "../features/backlog/backlog.service";
-import { BacklogModal } from "../features/backlog/backlog-modal/backlog-modal";
 import { filter } from "rxjs";
 import { UiIconButton } from "../shared/ui";
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
@@ -20,7 +19,6 @@ import { ToastContainer } from "../shared/components/toast-container/toast-conta
 		RouterLink,
 		RouterLinkActive,
 		UiIconButton,
-		BacklogModal,
 		ToastContainer
 	],
 	templateUrl: "./layout.html"
@@ -37,7 +35,6 @@ export class Layout implements OnInit {
 		return role === "moderator" || role === "admin";
 	});
 	protected readonly sidebarOpen = signal(false);
-	protected readonly showAddModal = signal(false);
 
 	protected readonly completedCount = signal(0);
 	protected readonly playingCount = signal(0);
@@ -77,19 +74,6 @@ export class Layout implements OnInit {
 
 	toggleSidebar() {
 		this.sidebarOpen.update(v => !v);
-	}
-
-	openAddModal() {
-		this.showAddModal.set(true);
-	}
-
-	onAddModalClosed() {
-		this.showAddModal.set(false);
-	}
-
-	onAddModalSaved() {
-		this.showAddModal.set(false);
-		this.loadStats();
 	}
 
 	logout() {
