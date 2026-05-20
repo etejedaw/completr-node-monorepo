@@ -240,9 +240,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-22
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** El campo "Edition" en Game Shelf es un cuadro de texto libre. Los usuarios esperan opciones predefinidas porque con texto libre cada persona escribe lo mismo de formas distintas (ej: "estandar", "stander", "ESTANDARD", "Standard"). A mayor escala de usuarios esto genera un millon de variantes para el mismo valor, haciendo el campo inutil para filtrar o agrupar.
-- **Solucion propuesta:** Mantener el campo como texto libre pero agregar botones de sugerencia con las ediciones mas comunes (ej: "Standard", "Deluxe", "GOTY", "Collector's", "Digital", "Physical"), similar a como funcionan los botones de precarga de scores de distintas fuentes. El usuario puede clickear una sugerencia para rellenar el campo o escribir un valor custom si ninguna aplica. No cambiar el tipo de dato en el backend — sigue siendo string, solo cambia la UX en el frontend.
+- **Solucion:** Solo frontend. En `game-shelf-modal` se agregaron chips de sugerencia debajo del input Edition con los valores canonicos: Standard, Deluxe, GOTY, Collector's, Definitive, Complete, Digital, Physical. Click rellena el input con el valor exacto y resalta el chip activo (`bg-brand/15 border-brand text-brand`). El input sigue aceptando texto libre — los chips son solo una conveniencia. Backend intacto: el campo sigue siendo string sin restriccion.
 
 ### [FB-027] Usuarios confunden Wishlist con la wishlist de Steam/tiendas
 
@@ -264,17 +264,17 @@ Formato por item:
 
 - **Fecha:** 2026-04-22
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Cuando el usuario busca un juego que no esta en la base de datos local, la busqueda hace fallback a RAWG para traer resultados externos. Durante ese tiempo de espera no hay ningun indicador visual de que la app sigue buscando. El usuario ve los resultados locales y luego el dropdown se queda quieto hasta que de repente se actualiza con los resultados de RAWG. Ejemplo: al buscar "RE9", primero aparecen los otros RE locales, pero al escribir el "9" la lista se queda congelada un rato hasta que RAWG responde. El usuario no sabe si la app se colgo o si esta cargando.
-- **Solucion propuesta:** Mostrar un indicador de carga (spinner o texto "Searching online...") en el dropdown mientras se espera la respuesta de RAWG. El indicador deberia aparecer despues de que la busqueda local no encuentre resultados exactos y se dispare el fallback. Verificar si el indicador "Searching..." que ya existe en el buscador del backlog modal cubre este caso o si solo aplica a la busqueda local.
+- **Solucion:** Busqueda en dos etapas en los cuatro lugares con fallback a RAWG (backlog-modal, game-shelf-modal, list-detail, games-browse). Frontend: nuevo metodo `gamesService.searchLocal()` que pega a `/games/search?local_only=true`. El observable primero pide local — instantaneo, muestra "Searching..."; si retorna 0 resultados, dispara una segunda llamada al endpoint normal (que cae a RAWG en el backend) y cambia el indicador a "Searching online..." con icono `autorenew` animado en color brand. El global-search del topbar usa `local_only=true` por diseno (no cae a RAWG), por lo que no necesita el indicador. Backend no requirio cambios — el schema ya soportaba `local_only`.
 
 ### [FB-030] Resultados de busqueda no distinguen DLCs de juegos base
 
 - **Fecha:** 2026-04-22
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Cuando el usuario busca un juego en el dropdown (backlog modal, game shelf, etc.), los resultados no diferencian visualmente entre juegos base y DLCs. Si un juego tiene DLCs con nombres similares al base, el usuario puede seleccionar el DLC por error sin darse cuenta.
-- **Solucion propuesta:** Agregar un tag o badge "DLC" junto al titulo del juego en los resultados del dropdown de busqueda. El backend ya tiene el campo isDlc en el modelo Game, solo hace falta que el endpoint de busqueda lo incluya en la respuesta y que el frontend lo renderice como un tag visual en cada resultado.
+- **Solucion:** El backend ya exponia `isDlc` en `gameSerializer`. En los tres dropdowns de busqueda de juego (backlog-modal, game-shelf-modal, list-detail) se renderiza un badge `DLC` inline al lado del titulo con estilo `bg-warning/15 text-warning` cuando `game.isDlc` es true. Se probo agregar tambien un toggle "Hide DLCs" pero se descarto por preferencia de UX — solo queda el badge. Backend sin cambios.
 
 ### [FB-031] Orden del sidebar no refleja el flujo logico del usuario
 
@@ -330,10 +330,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami (Brave, Ubuntu, modo oscuro)
 - **Descripcion:** Los elementos de la interfaz (texto, botones, tablas) se sienten demasiado pequenos en pantallas de escritorio. El usuario siente que todo esta "muy chico" en general. La app fue disenada desktop-first, por lo que el problema no es de responsive sino de tamanos base insuficientes en los estilos globales.
-- **Solucion propuesta:** Revisar los tamanos base en styles.css y CSS variables globales: font-size del body, padding de botones, alto de filas de tabla, tamano de iconos. Aumentar el font-size base (actualmente puede estar en 14px o menos, deberia ser al menos 16px). Revisar que los componentes usen rem/em en vez de px fijos para que escalen con el base. Relacionado con FB-039 y FB-043.
+- **Solucion:** Resuelto por el rediseno de estilos posterior al reporte (nuevo design system con tamanos base ajustados y nuevo layout). No requiere accion adicional.
 
 ### [FB-038] Login con Google (OAuth)
 
@@ -348,10 +348,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** La vista de perfil (/profile y /user/:username) no aprovecha el ancho completo de la pantalla en escritorio. El contenido se ve comprimido en la mitad izquierda o centro, dejando grandes espacios vacios a los lados. Esto se siente especialmente raro en monitores anchos.
-- **Solucion propuesta:** Revisar el max-width del contenedor del perfil y ampliarlo para aprovechar mejor el espacio en escritorio. Considerar un layout de dos columnas en pantallas grandes (info del usuario a la izquierda, contenido a la derecha). Relacionado con FB-037 y FB-043.
+- **Solucion:** Resuelto por el rediseno de estilos posterior al reporte (nuevo layout que aprovecha el ancho disponible). No requiere accion adicional.
 
 ### [FB-040] Preview de imagen rota en algun formulario
 
@@ -375,19 +375,19 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Tami
 - **Descripcion:** Un usuario ve que otro tiene el mismo juego dos veces en su backlog y lo encuentra raro. No entiende que es intencional — el sistema permite multiples backlogs del mismo juego para trackear re-plays o distintas plataformas (ej: RE4 completado en PS2, despues re-jugado en PC). El concepto de play_count y multiples runs no es obvio para usuarios nuevos.
-- **Solucion propuesta:** Agregar indicadores visuales en el backlog para diferenciar multiples runs del mismo juego: mostrar un numero de run o "play #2" junto al titulo, o agrupar visualmente las entradas del mismo juego. En el perfil publico, considerar mostrar un tooltip o explicacion de por que un juego aparece multiples veces. Tambien evaluar agregar una seccion de ayuda o onboarding que explique el concepto de multiples backlogs.
+- **Decision (2026-05-19):** Descartado. Se deja el comportamiento actual sin indicadores adicionales — usuarios entienden el concepto cuando interactuan mas con la app.
 
 ### [FB-043] Layout general usa muy poco espacio en pantalla de escritorio
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** El contenido de varias vistas (feed, perfil, listas, backlog) ocupa una fraccion pequena del ancho disponible en pantalla de escritorio. El feed por ejemplo usa aproximadamente un cuarto de la pantalla, dejando grandes areas vacias. La app fue disenada desktop-first, por lo que el problema es que los contenedores principales tienen max-width demasiado restrictivos o el layout no aprovecha el espacio disponible.
-- **Solucion propuesta:** Auditar los max-width de los contenedores principales en cada vista. Ampliarlos o eliminarlos donde no sean necesarios. Para vistas de contenido central (feed, perfil), considerar layouts de multiples columnas que ocupen el ancho disponible (ej: feed + sidebar de sugerencias). Para vistas de tabla (backlog, game-shelf), usar ancho completo del area de contenido. Relacionado con FB-037 y FB-039.
+- **Solucion:** Resuelto por el rediseno de estilos posterior al reporte (nuevo layout que aprovecha el ancho disponible). No requiere accion adicional.
 
 ### [FB-044] Icono de calendario casi invisible en modo oscuro
 
@@ -528,10 +528,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Tami
 - **Descripcion:** La seccion "Lists" del sidebar solo muestra un link a la pagina de listas. El usuario sugiere que deberia poder expandirse para mostrar las listas creadas (o las favoritas) directamente en el sidebar, permitiendo acceso rapido sin pasar por la pagina de listas.
-- **Solucion propuesta:** Agregar un icono de expandir/colapsar junto a "Lists" en el sidebar. Al expandir, mostrar las listas del usuario (primeras 5-10) como sub-items clickeables que lleven al detalle de la lista. Considerar un endpoint ligero que devuelva solo nombre e ID de las listas del usuario para no cargar datos innecesarios. Feature de conveniencia, no urgente.
+- **Decision (2026-05-19):** Descartado. El flujo actual (click en "Lists" → /lists/me → seleccionar lista) no se considera friccion suficiente para justificar la complejidad del sidebar expandible.
 
 ### [FB-060] Lista con fuente Metacritic muestra score null aunque el juego tiene Metacritic
 
