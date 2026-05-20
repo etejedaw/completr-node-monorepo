@@ -493,6 +493,99 @@
 - [ ] Diseñar el docs/architecture.md
 - [ ] Crear aviso de privacidad
 
+### Aggregate Score (provisional hasta tener comunidad)
+
+**Problema:** El Completr Score es la métrica distintiva de cada game page, pero hasta tener masa crítica de reseñas (`max(2, ceil(usuarios_activos * 10%))`) casi ningún juego lo tendrá. La página se ve vacía y la propuesta de valor no se entiende.
+
+**Solución (A.2):** Mientras un juego no califique para Completr Score, el slot muestra un **Aggregate Score** explícito derivado de Metacritic + HLTB. Label, escala y subtítulo distintos. Cuando el juego alcanza el umbral, el job comunitario crea su `GameScore(source=completr)` y el slot pasa automáticamente a "Completr Score". Cada graduación queda registrada para que el admin la mencione en un changelog post (sin esperar olas — la transición de label es automática per-game).
+
+**Convenciones de escala:**
+
+- `aggregate` score = `metacritic` score crudo (0-100). NO se normaliza.
+- `aggregate` duration = `hltb` duration cruda (horas).
+- `completr` score sigue siendo 1-5 (promedio de `Review.rating`).
+- Los labels distintos hacen explícita la diferencia de escala al usuario.
+
+#### Backend — Schema
+
+- [ ] Añadir `"aggregate"` al array `TIME_SOURCES` en `src/game-times/game-time.model.ts`
+- [ ] Migración: `ALTER TYPE` del enum de `GameTime.source` para incluir `aggregate` (DDL idempotente)
+- [ ] `GameScore.source` ya es `STRING(50)` con FK a `ScoreSource` — basta con insertar la fila `("aggregate", "Aggregate", scale_max=100)` en `score_sources` vía migración
+- [ ] Migración: crear tabla `ScoreGraduation` con `id (UUID)`, `gameId (UUID, FK games)`, `graduatedAt (timestamp)`, unique index en `gameId`
+- [ ] Modelo `ScoreGraduation` + service mínimo (`record(gameId)`, `listSince(date)`)
+
+#### Backend — Cómputo del aggregate
+
+- [ ] Crear `src/games/aggregate-score.service.ts` con `computeAggregateForGame(gameId)`:
+    - Lee `GameScore(source=metacritic)` y `GameTime(source=hltb)` del juego
+    - Si **ambos** existen y el juego NO tiene `GameScore(source=completr)`:
+        - `upsert GameScore(gameId, source=aggregate, score=metacritic.score)`
+        - `upsert GameTime(gameId, source=aggregate, duration=hltb.duration)`
+    - Si falta cualquiera de los dos → no hace nada (el slot queda en CTA "reportar")
+    - Si ya existe `completr` → no hace nada (no pisar comunidad)
+- [ ] Crear `src/games/aggregate-score.service.ts → computeAggregateForAllGames()`: itera juegos sin `completr` y llama `computeAggregateForGame` para cada uno. Retorna `{processed, skipped, created}`.
+
+#### Backend — Triggers automáticos
+
+- [ ] En el job/scraper que actualice `GameScore(source=metacritic)`: al terminar cada juego, llamar `computeAggregateForGame(gameId)`
+- [ ] En el job/scraper que actualice `GameTime(source=hltb)`: idem
+- [ ] En `runCalculateRatings` (`src/jobs/jobs.service.ts`), justo después del `GameScore.upsert({source:"completr"})` exitoso: verificar si el juego tenía `aggregate` previamente; si sí, llamar `ScoreGraduation.record(gameId)` (idempotente por unique index)
+- [ ] (Opcional) En el mismo punto: borrar la fila `GameScore(source=aggregate)` y `GameTime(source=aggregate)` del juego graduado para evitar confusión. Decisión a tomar al implementar — yo dejaría las filas para poder mostrar "antes era 8.2 aggregate, ahora 4.3 community" en stats internos.
+
+#### Backend — Job admin para backfill
+
+- [ ] Endpoint `POST /admin/jobs/calculate-aggregate-scores` que dispara `computeAggregateForAllGames` como job async (mismo patrón que `populate-rawg`)
+- [ ] Visible en el panel admin de jobs existente
+- [ ] Documentar en `docs/api/admin/jobs/calculate-aggregate-scores.yml`
+
+#### Backend — Serializer del game con fallback
+
+- [ ] En el game serializer, el "ratio canónico" debe preferir `completr` y caer a `aggregate`:
+    - `scoreType: "completr" | "aggregate" | null` — qué fuente está alimentando el slot canónico
+    - `canonicalScore: number | null` — el valor (1-5 si completr, 0-100 si aggregate)
+    - `canonicalDuration: number | null` — duración correspondiente
+    - `canonicalRatio: number | null` — `canonicalScore / canonicalDuration`, calculado en backend
+    - `communityReviewCount: number` — solo si `scoreType="completr"`, para el subtítulo
+- [ ] Aplicar la misma lógica donde sea que hoy se exponga "completr score / completr time / ratio canónico" (game detail, game cards, games-browse, etc.)
+
+#### Backend — Reporte de usuario
+
+- [ ] No requiere cambios — `GameReport.category = "missing_score"` ya existe y se puede usar tal cual
+- [ ] (Opcional) Aceptar reportes solo si el juego NO tiene ya `completr` — evita ruido
+
+#### Backend — Endpoint para el post de graduación
+
+- [ ] `GET /admin/score-graduations?since=YYYY-MM-DD` — lista juegos graduados desde una fecha, ordenados por `graduatedAt desc`, incluye `game.title` y `game.slug`. Solo admin.
+- [ ] Documentar en `docs/api/admin/score-graduations/get-all.yml`
+
+#### Frontend — Render del slot canónico
+
+- [ ] Componente del slot (esquina superior derecha del game detail) decide según `scoreType`:
+    - `"completr"`: badge "Completr Score", número en escala 1-5, subtítulo "Basado en {{communityReviewCount}} reseñas"
+    - `"aggregate"`: badge "Aggregate Score" (estilo visible distinto — color/borde), número en escala 0-100, subtítulo "Provisional — basado en Metacritic + HLTB hasta tener suficientes reseñas"
+    - `null`: estado vacío con CTA "Sé el primero en reseñarlo" + botón "Reportar score faltante"
+- [ ] Aplicar el mismo patrón en game cards, listas y games-browse donde aparezca el score canónico
+- [ ] El botón "Reportar score faltante" llama `POST /games/:id/reports` con `category: "missing_score"`
+
+#### Documentación
+
+- [ ] Actualizar `CONTEXT.md` sección "Sistema de puntajes": documentar la fuente `aggregate`, la regla de fallback `completr → aggregate`, y la graduación automática
+- [ ] Documentar el flujo en `docs/architecture.md` cuando se cree
+
+### Hardening de logs en produccion
+
+- [ ] Reducir logs de Sequelize en produccion. El gate `NODE_ENV === "prd"` en `src/database/sequelize.database.ts:13` ya silencia el logging de queries, pero el usuario reporta que sigue viendo demasiados logs. Verificar en orden:
+    - Que `NODE_ENV=prd` este efectivamente seteado en el contenedor/CapRover de produccion (no `production` ni vacio)
+    - Que no haya `sequelize.sync({ logging: ... })` u otros lugares que pasen `console.log` directamente
+    - Logs de connection/init: pasarlos por Pino con nivel `info` en prd
+    - Considerar enrutar `Sequelize.logging` a `PinoLogger.debug` para que respete el nivel global de Pino (`LOG_LEVEL` env) en vez de un boolean
+
+### Mejoras a reseñas
+
+- [ ] Mostrar tiempo de finalización en cada reseña: chip con la `realDuration` del `Backlog` completado del autor para ese juego (estilo similar al chip de duración en la vista diary). Si el usuario tiene múltiples backlogs completados, usar el más reciente. Si no tiene backlog completado con `realDuration`, no mostrar chip.
+    - Backend: incluir `playthroughDuration` en el serializer de `Review` (`GET /games/:id/reviews` y `GET /users/:username/reviews`)
+    - Frontend: renderizar chip junto a usuario + rating en game detail y perfil
+
 ---
 
 ## 🟦 FASE 3 — Beta Cerrada _(~2–3 meses)_
@@ -855,6 +948,8 @@
 - [ ] Play Along: playthroughs sincronizados con amigos, comparan progreso, discuten sin spoilers (la app sabe hasta dónde llegó cada uno)
 - [ ] AI Sommelier contextual: recomendación con contexto emocional ("Acabas de terminar un RPG de 60h, necesitas un palate cleanser — aquí hay 3 juegos cortos de tu backlog") (premium)
 - [ ] Detector de co-op: auto-detectar juegos que tú y un amigo tienen en el backlog y ninguno ha jugado, sugerir jugarlos juntos
+- [ ] Evaluar migrar la búsqueda a Meilisearch (self-hosted en CapRover). Hoy `searchGames` usa `ILIKE %query%` sobre `title` — suficiente con `pg_trgm` + tokenización para el problema actual de tolerancia a puntuación/espacios. Meilisearch se justifica cuando: (a) el catálogo crezca a decenas de miles de juegos y el `ILIKE`/trigram se vuelva lento, (b) se necesite faceting pesado (género + plataforma + status + rangos en simultáneo) o (c) se quiera typo-tolerance y ranking inteligente como producto. Costos: otro contenedor, pipeline de sincronización catálogo → índice (probablemente con hooks de Sequelize o un job periódico), y mantenimiento. Decidir en base a métricas reales, no anticipadamente
+- [ ] Perfil personalizable (estilo Steam Showcases). Permitir al usuario armar su perfil público con bloques/widgets a su gusto: "Juegos favoritos destacados" (grid 5/10 con cover grande), "Reseñas destacadas" (selección manual de las que el usuario quiere mostrar), "Trofeos/Logros", "Estadísticas del año", "Lista pinneada", "Texto libre/bio extendida", "Captura/screenshot favorita", etc. El usuario decide qué bloques agregar, en qué orden, y con qué contenido específico. Implementación sugerida: modelo `ProfileBlock` (id, userId, type, position, config JSONB) — cada tipo de bloque define su propio shape de config. Frontend: vista de edición del perfil con drag-and-drop para reordenar y CRUD de bloques. Probable feature premium (consistente con la sección "Perfil público" de la tabla FREE vs PREMIUM que ya menciona "URL, portada y avatar custom" como premium). Decidir alcance MVP: empezar con 3-4 tipos de bloques fijos antes de abrir a un sistema completamente extensible
 
 ---
 

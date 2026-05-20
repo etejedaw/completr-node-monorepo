@@ -34,6 +34,12 @@ export function authMiddleware(...roles: UserRole[]) {
 				}
 			};
 
+			if (payload.sid) {
+				tokenService.touchSessionLastUsed(payload.sid).catch(error => {
+					console.warn("touchSessionLastUsed failed", error);
+				});
+			}
+
 			if (!roles.length) return next();
 			if (user.role === "admin") return next();
 			if (!roles.includes(user.role))

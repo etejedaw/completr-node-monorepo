@@ -322,9 +322,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-23
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** En la vista de detalle de un juego hay un boton que enlaza a la pagina del juego en RAWG. El problema es que el link usa el slug propio de Completr para construir la URL de RAWG (ej: rawg.io/games/{slug-completr}), pero el slug de Completr no tiene por que coincidir con el de RAWG, lo que provoca que la redireccion falle o lleve a un juego equivocado. La tabla GameExternal almacena el ID numerico de RAWG, no el slug.
-- **Solucion propuesta:** Cambiar el boton para que use el ID numerico de RAWG en vez del slug. La URL de RAWG acepta IDs numericos (rawg.io/games/{id}), asi que se puede construir el link con el externalId que ya esta almacenado en GameExternal. Alternativa: almacenar el slug de RAWG en GameExternal al momento de importar el juego y usarlo para el link.
+- **Solucion:** Resuelto junto con FB-075. En `game-detail.html`, el `<a>` hardcoded `'https://rawg.io/games/' + game()!.code` (que usaba el slug de Completr) se movio dentro del bucle de `externalLinks` junto con Steam y Metacritic, usando ahora `'https://rawg.io/games/' + link.externalId` (rawgId numerico de `GameExternal`). Verificado que `rawg.io/games/{id}` funciona — RAWG resuelve IDs numericos y los redirige al slug correcto (ej: `rawg.io/games/3328` → The Witcher 3). El backend serializer ya exponia `externalLinks` con `source` y `externalId`. Si un juego no tiene `GameExternal` de RAWG, el link simplemente no se renderiza (en lugar de mostrar un link roto).
 
 ### [FB-037] UI general se siente muy chica
 
@@ -456,10 +456,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Al agregar un juego al backlog, el usuario uso el boton "Add to Shelf" dentro del modal de backlog. El boton indico que el juego fue agregado al shelf (feedback visual de exito), pero al ir al Game Shelf el juego no estaba ahi. Es un falso positivo — el frontend reporta exito sin que la operacion se haya completado realmente. Puede ser un error de HTTP no manejado, un problema de timing, o que el request nunca se envio.
-- **Solucion propuesta:** Revisar el flujo de "Add to Shelf" desde el backlog modal. Verificar que el request HTTP se envia correctamente y que los errores se manejan (mostrar error si falla en vez de exito). Probar el flujo completo: crear backlog + add to shelf en la misma transaccion o como requests separados, y asegurar que ambos completen antes de mostrar confirmacion.
+- **Solucion:** Bug ya no se reproduce. Probablemente fixeado en uno de los refactors posteriores al reporte (`fd60a97d` redesign del modal con secciones reference/tracking, o `60d79995` migracion a ng-primitives). El flujo actual en `backlog-modal.ts` (createSubmit branch): crea el backlog primero, luego en `next:` arma `extras$ = [...wishlist, ...shelf]` y hace `forkJoin(extras$).subscribe(() => saved.emit())`. El evento `saved` solo se emite cuando todas las creaciones extras completan exitosamente — si el shelf falla, `forkJoin` errea y `saved` no emite, el modal queda abierto. No hay falso positivo posible en este flujo.
 
 ### [FB-052] Miniaturas de juegos usan capturas de pantalla en vez de arte oficial
 
@@ -681,15 +681,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-12
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En la BBDD de Completr se almacena el `rawgId` (numerico) del juego, pero no su `slug` (el "code" que RAWG usa en sus URLs, ej: `the-witcher-3-wild-hunt`). Cuando la UI construye el link "Ver en RAWG", usa el slug propio de Completr asumiendo que coincide con el de RAWG, lo cual no siempre es cierto (Completr puede haber generado un slug distinto, o RAWG puede haberlo cambiado). Resultado: links rotos o que apuntan a un juego incorrecto en rawg.io.
-- **Solucion propuesta:** Almacenar tambien el `slug` original de RAWG en el modelo `Game` (campo aparte, ej: `rawgSlug`). Al construir el link externo, usar `rawgSlug` en lugar del slug interno. Cambios requeridos:
-    - Migracion para agregar `rawgSlug` (nullable inicialmente).
-    - Actualizar el sync/import desde RAWG para popular el campo en nuevos juegos.
-    - Backfill: recorrer juegos existentes y completar `rawgSlug` consultando la API de RAWG por `rawgId`. Considerar rate limits.
-    - Actualizar el frontend para usar `rawgSlug` en el link externo, con fallback al slug interno si todavia esta vacio.
-    - Cambio grande en BBDD, revisar con mas detalle antes de implementar (volumen de juegos, costo del backfill, si RAWG expone el slug en el endpoint de detalle).
+- **Solucion:** Resuelto junto con FB-036. En vez de almacenar `rawgSlug` (que requeria migracion + backfill respetando rate limits de RAWG), se opto por usar el `rawgId` numerico que ya existe en `GameExternal`. Verificado que `rawg.io/games/{id}` funciona (RAWG redirige al slug correcto). Frontend ahora usa `'https://rawg.io/games/' + link.externalId` cuando `link.source === 'rawg'`. Sin cambios de BBDD ni backfill necesarios.
 
 ### [FB-076] Wishlist en modo grilla no muestra el numero de posicion
 
@@ -727,3 +722,212 @@ Formato por item:
 - **Descripcion:** Al abrir el modal de edicion de un backlog ya creado (que tiene score y duration completados manualmente o desde una fuente), aparece debajo de los campos Critic Score y Duration el mensaje "No sources. Report missing" como si faltaran fuentes. El usuario ya tiene el dato ingresado, por lo que el aviso esta fuera de lugar y sugiere accion sobre algo que no es necesario.
 - **Solucion:** El bloque de sources en `backlog-modal.html` ya estaba condicionado con `gameScores().length > 0 || (selectedGame() && !isEdit())` (idem para `gameTimes`). En modo edit el wrapper no se renderiza, asi que el aviso "No sources. Report missing" solo aparece en flujo de creacion cuando el juego del catalogo realmente no tiene fuentes.
 - **Solucion:** En `backlog-modal.html`, el branch `@else if (selectedGame())` que renderiza el aviso "No sources. Report missing" ahora también requiere `!isEdit()`. En modo edición el dato ya está cargado en el form, por lo que el mensaje queda oculto. Sigue activo en creación cuando un juego seleccionado realmente no tiene sources.
+
+### [FB-080] Boton de crear backlog en la esquina derecha no aporta valor
+
+- **Fecha:** 2026-05-19
+- **Severidad:** bajo
+- **Estado:** resuelto
+- **Reportado por:** Esteban
+- **Descripcion:** El boton mas a la derecha del header/topbar para crear un backlog se siente innecesario. Ya existe un boton "+ Add to Backlog" dentro de la vista de backlog y el flujo natural para agregar un juego empieza desde la ficha del juego o desde la vista de backlog. El boton flotante en la esquina no se descubre, no acompana ningun flujo y agrega ruido visual al header.
+- **Solucion:** FAB eliminado de `layout.html` junto con el `BacklogModal` y los handlers asociados (`openAddModal`, `onAddModalClosed`, `onAddModalSaved`, signal `showAddModal`). Los puntos de entrada para crear backlog quedan: "+ Add to Backlog" en `/backlog` y action buttons en game detail. Se evaluo y descarto convertirlo en un menu multi-opcion.
+
+### [FB-081] Game shelf usa demasiado espacio vertical con un juego por fila
+
+- **Fecha:** 2026-05-19
+- **Severidad:** medio
+- **Estado:** resuelto
+- **Reportado por:** Esteban
+- **Descripcion:** La vista de Game Shelf muestra un juego por fila ocupando todo el ancho disponible. En escritorio queda mucho espacio horizontal vacio a la derecha de cada entrada y la lista se vuelve larga rapidamente. Otras vistas con cards (favorites, wishlist en grid) aprovechan mejor el ancho mostrando 2+ columnas. La unica entrada por fila no aporta densidad de informacion ni mejora la legibilidad.
+- **Solucion:** Toggle de 3 view modes en `/game-shelf` con persistencia en localStorage (`completr.shelf.viewMode`). (1) **Cards** (default, icono `view_agenda`): el card actual pero ahora en `grid grid-cols-1 md:grid-cols-2` — 2 columnas en escritorio, 1 en mobile. (2) **Grid** (icono `grid_view`): grid de caratulas estilo wishlist (`grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6`) con plataforma como badge superior izquierdo. Click en card abre modal de edicion, click en titulo navega a ficha del juego. (3) **Table** (icono `view_list`): tabla compacta con cover thumb 8x10 + title + platform badge + edition + acquired + notes — maxima densidad. Click en fila abre modal, click en titulo navega. Patron de toggle identico al de wishlist.
+
+### [FB-082] Wishlist tiene mucho espacio sobrante, podria ofrecer drag-and-drop
+
+- **Fecha:** 2026-05-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** La vista de Wishlist (en modo tabla y grilla) deja bastante espacio vertical/horizontal sobrante por fila. Mas alla del badge de posicion ya agregado (FB-076), la priorizacion manual hoy se hace con flechas arriba/abajo que son lentas para reordenar varios items. Una experiencia drag-and-drop seria mucho mas fluida para acomodar el orden y aprovecharia el espacio sobrante como "zona de drop".
+- **Solucion propuesta:** Implementar drag-and-drop con Angular CDK DragDropModule en el listado de wishlist. Cada fila/card es draggable; al soltarse, se llama al PUT existente con el nuevo array de backlogIds reordenado. Mostrar feedback visual claro durante el drag (sombra, opacidad, indicador de drop position). Mantener las flechas como fallback accesible. Aprovechar para evaluar si la card actual se puede compactar o si conviene una vista mas densa con menos padding entre items.
+
+### [FB-083] Perfil de jugador solo muestra ultimas reviews, falta ver todas
+
+- **Fecha:** 2026-05-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al entrar al perfil publico de otro jugador (/user/:username), la seccion de reviews muestra solo las ultimas N (probablemente 3-5). No hay forma de ver el resto de las reviews que el usuario ha escrito. Si me interesa la opinion de alguien sobre varios juegos, no tengo manera de revisarlas todas sin entrar juego por juego.
+- **Solucion propuesta:** Agregar boton "See all" debajo de la lista de reviews en el perfil publico que lleve a una vista dedicada `/user/:username/reviews` con paginacion (limit 25). Backend: nuevo endpoint `GET /users/:username/reviews?limit&offset` que devuelve las reviews del usuario con `game` populado, ordenadas por fecha desc, paginadas con `{ rows, total }`. Frontend: vista nueva con `<ui-pagination>` reutilizando el patron ya usado en feed, backlog, wishlist, etc.
+
+### [FB-084] Plataformas duplicadas: Origin y EA (Origin) son la misma
+
+- **Fecha:** 2026-05-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En el listado de plataformas aparecen dos entradas que representan la misma tienda: "Origin" y "EA (Origin)". EA renombro Origin a EA App en 2022, pero ambos siguen siendo el mismo cliente y libreria. Tener dos plataformas distintas para lo mismo fragmenta los datos — un juego se asigna a una u otra segun como vino de RAWG, y los filtros/busquedas por plataforma quedan inconsistentes. El usuario al agregar un juego ve dos opciones equivalentes y no sabe cual elegir.
+- **Solucion propuesta:** Consolidar en una sola plataforma canonica. Pasos: (1) decidir el nombre canonico ("EA App" probablemente, o mantener "Origin" si se prefiere la marca historica). (2) migracion que mueva todos los `game_platforms` que apuntan a la duplicada hacia la canonica, evitando duplicados (ON CONFLICT DO NOTHING). (3) eliminar la fila duplicada de `platforms`. (4) actualizar `rawg-platform.map.ts` para que ambos slugs RAWG (`ea-origin` y `origin`) mapeen al codigo canonico. Auditar tambien si hay otras plataformas duplicadas (ej: PS Network vs PS Store, Xbox vs Xbox Live).
+
+### [FB-085] El corazon de wishlist en el backlog no permite remover
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** resuelto
+- **Reportado por:** Esteban
+- **Descripcion:** En la vista de backlog hay un icono de corazon para agregar la entrada a la wishlist. Al presionarlo, el backlog se agrega correctamente, pero al presionarlo de nuevo (esperando que actue como toggle) no se remueve. El usuario queda sin forma de sacar el item desde el backlog y tiene que ir a la vista de wishlist para eliminarlo, lo que rompe la expectativa de un control toggle.
+- **Solucion:** Corazon funciona como toggle con confirmacion en dos pasos para evitar remociones accidentales que rompen prioridades manuales. (1) `WishlistService.removeByBacklogId(backlogId)` agregado en frontend (hace `GET` + `PUT` con backlogIds restantes; backend no tiene DELETE asi que se reusa el endpoint de reorder, mismo patron que `wishlist-view.remove`). (2) `addToWishlist` reemplazado por `toggleWishlist` en `backlog-list.ts`. Estados: corazon vacio → click → agrega; corazon lleno → click → entra a estado confirm (icono `heart_broken`, fondo `bg-danger/15`, tooltip "Click again to remove"), auto-resetea en 3s; segundo click dentro de 3s → remueve. Aplica en vista diary y vista tabla (hardcore).
+
+### [FB-086] El modal de backlog abre directo en modo edicion, sin vista resumen
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al abrir el modal de una entrada del backlog ya existente, el formulario de edicion aparece inmediatamente con todos los campos editables. No hay un paso intermedio que muestre de forma estatica la informacion que el usuario ya ingreso (score, duracion, fechas, plataforma, reseña, etc.). El usuario que solo quiere consultar los datos tiene que escanear los inputs de un formulario en vez de leer una vista resumen limpia. Tambien implica que un click accidental en un input ya cambia algo, cuando la intencion era solo mirar.
+- **Solucion propuesta:** Convertir el modal de backlog en dos estados: (1) **Vista resumen** (default al abrir): muestra los datos ya ingresados en formato de solo lectura, con tipografia y layout pensados para lectura — score, duracion estimada, real duration, fechas, plataforma, notas, etc. Si el usuario tiene reseña para ese juego, incluirla en la vista resumen (texto + rating + chip de duracion segun FB de mejoras a reseñas). Boton primario "Editar" que cambia al estado de edicion. (2) **Vista edicion**: el formulario actual con todos los inputs, ahi mantener el cuadro "Editar reseña" como esta hoy (redirige al flujo de editar reseña). Boton "Volver" o "Cancelar" que regresa a la vista resumen sin guardar cambios. Para entradas nuevas (crear backlog) seguir abriendo directo en modo edicion porque no hay datos previos que resumir.
+
+### [FB-087] En el backlog, si la entrada no tiene nota pero hay reseña, mostrar la reseña
+
+- **Fecha:** 2026-05-20
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En la vista del backlog, el cuadro de texto que muestra la nota personal (`Backlog.notes`) queda vacio cuando el usuario no escribio una. Sin embargo, si el usuario si tiene una reseña publicada del juego (`Review.content`), ese cuadro podria usarse para mostrar el texto de la reseña en lugar de quedar vacio. La reseña ya es texto del usuario sobre el juego y aporta mas contexto que un espacio en blanco — evita repetir el contenido en dos lugares cuando el usuario solo escribio la reseña.
+- **Solucion propuesta:** En la vista del backlog (diary cards y tabla), si `Backlog.notes` esta vacio o null y existe `Review.content` del mismo usuario para ese juego, renderizar el contenido de la reseña en ese cuadro con un label visible que aclare la fuente (ej: "Reseña" en vez de "Nota") para no confundir al usuario sobre que esta viendo. Si ambos existen, mostrar la nota (prioridad al campo especifico del backlog). Backend: incluir `reviewContent` (o el objeto review completo) en el serializer del backlog, asi el frontend tiene el dato sin pedirlo aparte.
+
+### [FB-088] Falta indicador visual de que el usuario ya escribio reseña en un juego
+
+- **Fecha:** 2026-05-20
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Cuando un usuario ya escribio una reseña de un juego, no hay un indicador rapido en la UI que se lo recuerde. Tiene que entrar a la ficha del juego y bajar a la seccion de reseñas para confirmar si ya escribio una. Esto es especialmente confuso cuando aparecen CTAs tipo "Sé el primero en reseñar" o "Escribe tu reseña" en otras partes de la app — el usuario no sabe si ya tiene una guardada.
+- **Solucion propuesta:** Agregar un indicador visible (icono pequeño o chip) que aparezca junto al juego en los contextos donde el usuario lo ve: cards de juego, diary cards del backlog, vista de game-shelf, listas, etc. Cuando el usuario tiene reseña propia para ese juego, se muestra el indicador (ej: icono `rate_review` o un badge "Reseñada"). Backend: exponer un flag `hasUserReview` (o similar) en el serializer de game cuando hay usuario autenticado en el contexto, evaluando si existe un `Review` con ese `userId` + `gameId`. Reutilizar el patron de `backlogStatus` que ya inyecta data del usuario autenticado en los serializers de game. Frontend: renderizar el icono/chip en los componentes de card de juego y diary card. Tambien sirve como atajo: click en el indicador podria llevar a la reseña existente o abrir el editor.
+
+### [FB-089] Paleta de colores: navbar no diferencia item activo, falta revision general
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** resuelto
+- **Reportado por:** Esteban (reportado por usuarios)
+- **Descripcion:** Los usuarios reportan que la paleta de colores no esta bien resuelta. El ejemplo concreto es el navbar: todos los items se renderizan con el mismo color, sin diferenciar visualmente el item activo (la ruta actual). El color de "destacado" deberia estar reservado para el item seleccionado, no aplicarse a todos por igual. Esto rompe el feedback visual basico de navegacion — el usuario no sabe en que seccion esta sin leer el texto. El reporte sugiere que el problema es mas amplio que el navbar y conviene auditar la paleta completa.
+- **Solucion:** Fix del item activo en sidebar. `layout.html` con estilos `routerLinkActive` unificados (antes habia dos patrones, ahora todos los items usan triple indicador visual: `!border-brand` borde izquierdo 3px + `!text-brand` texto purpura + `!bg-brand-subtle` fondo brand 10%). Hover de inactivos suma `bg-surface/60`. `settings-shell.html` ya tenia el patron. Accesibilidad: agregado `ariaCurrentWhenActive="page"` en todos los `routerLinkActive`. Se evaluo y descarto darle color semantico a los iconos por seccion (wishlist=danger, favorites=warning, saved-views=sky) — preferencia por mantener iconos neutros. Audit del resto del codebase: usos altos de `text-brand` en backlog-list (22), games-browse (14) y public-profile (10) son intencionales (ratios destacados, CTAs, tabs activas) y no se modificaron.
+
+### [FB-090] Permitir al usuario elegir tema (refined-dark vs twilight-arcade)
+
+- **Fecha:** 2026-05-20
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** El frontend ya tiene dos temas completos en `src/styles/themes/` (`refined-dark` y `twilight-arcade`), pero el cambio entre ellos es manual: hay que copiar los archivos del tema sobre `styles.css` y `styles/ui.css` y rebuild. Los usuarios no pueden elegir tema desde la app. Dado que el trabajo de tokens y variantes ya esta hecho, exponerlo como preferencia por usuario tiene poco costo y agrega personalizacion. Tambien sirve como hedge ante FB-089 (revision de paleta): si a algunos usuarios no les gusta el tema activo, pueden cambiar.
+- **Solucion propuesta:** (1) Refactor: dejar de sobreescribir `styles.css` con la copia del tema. En vez de eso, importar ambos temas como bloques CSS scopeados a un atributo (ej: `[data-theme="refined-dark"] { ... }` y `[data-theme="twilight-arcade"] { ... }`) o usar CSS variables intercambiables. El `<html>` lleva `data-theme="..."` y los estilos resuelven en runtime. Actualizar el README de `themes/` para reflejar el nuevo flujo. (2) Backend: agregar campo `theme` a `User` (enum: `refined-dark` | `twilight-arcade`, default `refined-dark`). Exponer en `GET /users/me` y aceptar en `PATCH /users/me`. (3) Frontend: opcion en la pagina de Settings (o Profile) con selector de tema. Al cambiar, llamar al PATCH y actualizar `data-theme` del DOM inmediatamente. Persistir tambien en localStorage para aplicar el tema antes de que cargue el perfil del usuario (evita flash). (4) Actualizar el `<meta name="theme-color">` dinamicamente segun el tema activo. (5) Para usuarios no autenticados, leer/escribir solo en localStorage. Considerar dejar este feature como premium solo si se justifica — por ahora libre para todos parece razonable.
+
+### [FB-091] Busqueda no tolera espacios extra ni puntuacion del titulo
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** El cuadro de busqueda hace match literal contra el titulo. Si el usuario escribe `terminator ` (con espacio al final), encuentra "Terminator Resistance Annihilation Line" pero NO "Terminator: Resistance", porque en este ultimo despues de "Terminator" viene `:` y no un espacio. Lo mismo pasa con otros separadores (guiones, dos puntos, comas) y con espacios iniciales/finales del query. El comportamiento esperado es que la busqueda sea tolerante a puntuacion y espacios sobrantes.
+- **Causa tecnica:** En `src/games/games.service.ts:205` y `:222` la query se construye como `{ title: { [Op.iLike]: `%${query}%` } }`. No hay normalizacion del input ni del campo comparado.
+- **Solucion propuesta:** (1) Quick win: hacer `trim()` y colapsar espacios multiples del query antes de la comparacion. (2) Tokenizacion: dividir el query por whitespace y aplicar AND de varios `ILIKE %token%` — asi `"terminator resistance"` matchea independiente de si entre ambas palabras hay `:`, `-` o espacio. (3) Normalizar puntuacion: tanto en el query como en el lado del titulo, comparar contra una version sin puntuacion (regex `[^a-z0-9 ]` → eliminado). Opciones: agregar columna generada `title_normalized` indexada, o usar `regexp_replace` en la query (mas lento pero sin migracion). (4) Robusto a largo plazo: activar extension `pg_trgm` y usar similarity para fuzzy match con ranking — soporta tipos, abreviaciones y orden distinto de palabras. Empezar por (1)+(2)+(3) que cubren el caso reportado; dejar (4) para cuando el catalogo crezca.
+
+### [FB-092] "Similar" siempre muestra los mismos juegos y recomienda mal
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En la ficha del juego, el tab "Similar" siempre devuelve los mismos juegos (independiente del juego en el que estes) y las recomendaciones no son buenas. El usuario espera ver juegos relacionados al que esta viendo (mismo genero principal, plataformas similares, tematica parecida), pero recibe lo que parece un listado generico.
+- **Causa tecnica:** En `completr-node-frontend/src/app/features/games/game-detail/game-detail.ts:191`, `loadSimilarGames(game)` toma solo `game.genres?.[0]` (el primer genero) y llama `getGames({ limit: 10, genre: genre.code })`. La query del backend ordena por defecto (probablemente `createdAt desc` o algun orden estable), por lo que para cualquier juego cuyo primer genero coincida, devuelve siempre los mismos 6 juegos (los primeros 10 menos el actual, slice a 6). No hay aleatoriedad ni se consideran los demas generos, plataformas o etiquetas del juego.
+- **Solucion propuesta:** (1) Quick fix: en lugar de tomar solo `genres[0]`, pasar todos los generos del juego al backend y matchear por interseccion (al menos uno en comun) con ranking por cantidad de generos compartidos. (2) Aleatorizar dentro del pool: traer 30-50 candidatos y elegir 6 aleatorios para que el tab no se vea repetitivo cuando uno navega entre juegos del mismo genero. (3) Endpoint dedicado en backend `GET /games/:id/similar` que encapsule la logica: matchear por generos compartidos, sumar score por plataformas comunes, opcionalmente penalizar juegos muy distintos en duracion o decada, y devolver el top N con randomizacion estable (seed por gameId + dia para que no cambie en cada refresh). (4) Largo plazo: aprovechar `tags` de RAWG (cuando se ingesten) que son mas granulares que generos y mejoran la similaridad notablemente. Considerar tambien co-ocurrencia: "usuarios que tienen X en su backlog tambien tienen Y" — esto requiere masa critica de usuarios.
+
+### [FB-093] Falta glosario/ayuda que explique los campos del backlog (ratio, personal, real, etc.)
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Cada entrada del backlog muestra varios valores numericos: score, duracion estimada, real duration, ratio, personal ratio, status, etc. Los nombres son cortos y para un usuario nuevo no es obvio que significa cada uno (que es "personal" vs "real", como se calcula el ratio, por que hay dos ratios distintos). Hoy no existe en la app un lugar donde se explique. El usuario tiene que inferir el significado o preguntar. Esto sube la barrera de entrada y diluye el valor de los datos que el propio usuario ingreso.
+- **Solucion propuesta:** Combinar dos enfoques. (1) **Pagina de ayuda** dedicada en `/help` (o `/guide`) con secciones por concepto: "Backlog", "Ratio y Personal Ratio", "Completr Score vs Aggregate Score", "Estados (no_started, playing, completed, abandoned)", "Wishlist vs Favorites vs Listas". Cada seccion con definicion, ejemplo numerico (ej: Florence 82 pts / 1h = ratio 82), y screenshot anotado. Link en el footer y en el menu de usuario. Implementacion: paginas estaticas en Angular (no contenido CMS por ahora). (2) **Tooltips contextuales**: en la vista diary y en el modal de backlog, agregar `?` clickeables junto a cada label (Ratio, Personal, Real, etc.) que abran un popover con la definicion corta y un link "Ver mas" que lleve a la seccion correspondiente de `/help`. (3) Considerar onboarding ligero para usuarios nuevos: un solo tour de 3-5 pasos la primera vez que abren el backlog, que apunte a los conceptos mas importantes (ratio + personal ratio + real duration). Saltable y solo se muestra una vez (`User.hasSeenBacklogTour` o flag en localStorage). El onboarding NO reemplaza la pagina de ayuda — es complemento para descubrir que existen los conceptos.
+
+### [FB-094] La descripcion del saved view empuja la lista del backlog hacia abajo
+
+- **Fecha:** 2026-05-20
+- **Severidad:** bajo
+- **Estado:** resuelto
+- **Reportado por:** Esteban
+- **Descripcion:** En la vista del backlog, cuando un saved view tiene descripcion/comentario, ese texto se renderiza encima de la lista y empuja todos los juegos hacia abajo. Al alternar entre vistas con y sin descripcion, el layout salta y la lista cambia de posicion en pantalla. La interfaz deberia mantenerse estable: alternar vistas no deberia mover la lista de juegos.
+- **Solucion:** En `backlog-list.html` se removio el `@if (activeFilterDescription())` que envolvia el `<p>` de descripcion. Ahora el parrafo siempre se renderiza con `min-h-[1.25rem]`, asi reserva el espacio independiente de si la vista actual tiene descripcion o no. Al alternar entre vistas con y sin descripcion el resto del layout (lista de juegos) ya no se mueve.
+
+### [FB-095] Paginacion solo tiene Previous/Next, no permite saltar a otra pagina
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** El componente `ui-pagination` actual (usado en backlog, wishlist, feed, etc.) solo expone botones "Previous" / "Next" y la leyenda `X-Y of Z`. Para ir a la ultima pagina de una lista de 500 items con limit 100, el usuario tiene que hacer click 4 veces en Next. No hay forma de saltar a una pagina especifica ni de ir directo al inicio/final. El patron actual fue suficiente para listas chicas pero deja de escalar cuando el backlog crece.
+- **Causa tecnica:** `completr-node-frontend/src/app/shared/ui/pagination/ui-pagination.html` solo renderiza dos botones (`prev()`, `next()`) y un label con el rango. No hay logica de numeros de pagina ni de salto.
+- **Solucion propuesta:** Extender `ui-pagination` con numeros de pagina visibles + botones de salto. Patron estandar: `« 1 ... 4 [5] 6 ... 20 »`. Reglas: (1) Siempre mostrar primera y ultima pagina. (2) Mostrar la pagina actual + 1-2 vecinos a cada lado. (3) Insertar `...` cuando hay un gap. (4) Botones `«` (primera) y `»` (ultima) explicitos. (5) En mobile, reducir el numero de vecinos visibles para no romper el layout — o reemplazar por input "Go to page N". El componente debe exponer un metodo `goToPage(n)` ademas de `prev`/`next` existentes y emitir el mismo evento que ya consumen las vistas. Como es un componente compartido, el fix beneficia automaticamente a todas las vistas paginadas (backlog, wishlist, feed, list-detail, etc.).
+
+### [FB-096] En el perfil de otro usuario, la actividad deberia aparecer primero
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al entrar al perfil publico de otro usuario (`/user/:username`), las secciones aparecen en un orden que no refleja lo que el visitante quiere ver primero. Lo mas valioso al visitar a otra persona suele ser "que ha estado haciendo ultimamente" — completados recientes, abandonos, reseñas, juegos agregados — y eso hoy queda mas abajo o disperso entre otras secciones (backlog, listas, favoritos, wishlist). El comportamiento esperado se acerca a Trakt/Letterboxd, donde la actividad reciente es el hero del perfil.
+- **Solucion propuesta:** (1) Reordenar la pagina `public-profile` para que la seccion de actividad reciente sea la primera bajo el header del usuario (avatar + bio + stats). Las demas secciones (backlog, listas seguidas, favoritos, wishlist, reseñas) quedan debajo. (2) Reutilizar el componente del feed de actividad para renderizar las actividades del usuario con el mismo formato (mismas cards, mismos iconos por tipo de evento, mismo agrupamiento por dia si aplica). Backend: ya existe registro de actividad (`game_reviewed`, `game_completed`, etc.) — exponer `GET /users/:username/activity` con paginacion si no existe ya. Frontend: el componente del feed debe aceptar como input la fuente de datos (mi feed vs feed de otro usuario) para reutilizar la UI sin duplicar. (3) Limitar la actividad mostrada en el perfil a las ultimas N (ej: 10-15) con un boton "Ver toda la actividad" que lleve a `/user/:username/activity` con paginacion completa, mismo patron que reseñas (FB-083). (4) En el self-view propio mantener el orden actual o aplicar el mismo cambio — decidir si la actividad propia tambien debe ir primero o si en self-view el backlog es mas util arriba.
+
+### [FB-097] Tabs del perfil obligan a hacer scroll horizontal en pantallas pequeñas
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En el perfil del usuario (propio y publico) la fila de pestañas (Backlog, Listas, Favoritos, Wishlist, Reseñas, Actividad, etc.) se sale del ancho de la pantalla cuando el viewport es pequeño (mobile o ventana de escritorio angosta). El usuario tiene que hacer scroll horizontal para ver las pestañas ocultas, y muchas veces ni se da cuenta de que existen porque no hay indicador visual de que hay mas. La experiencia mobile se degrada y oculta secciones importantes.
+- **Solucion propuesta:** (1) **Tabs colapsadas con scroll horizontal indicado**: mantener la fila scrollable pero agregar gradiente lateral (fade right) que indique visualmente que hay mas contenido a la derecha. Auto-scroll a la tab activa al cargar para que siempre sea visible. (2) **Overflow menu**: cuando las tabs no caben, mostrar las primeras N y un boton "Mas" (`···`) que abre dropdown con el resto. Patron usado por Material y Bootstrap. (3) **Cambio a selector en mobile**: bajo un breakpoint (ej: `sm`), reemplazar la fila de tabs por un `<select>` o dropdown con la lista de secciones. Patron usado en Github en mobile. (4) **Iconos en lugar de texto en mobile**: si los labels son cortos, dejar solo el icono representativo de cada tab para ahorrar ancho. Tooltip al tocar/hover para el label completo. La opcion (3) suele dar mejor UX en mobile pequeño, (1) o (2) en tablet/desktop angosto. Considerar aplicar la misma solucion en otras vistas con tabs (game detail tiene tabs de Overview/Reviews/Similar/Lists/etc. que pueden tener el mismo problema).
+
+### [FB-098] En pantallas grandes el perfil de otros usuarios se ve pequeño y vacio
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En desktop con viewports anchos, el perfil de otro usuario (`/user/:username`) se ve subutilizado: el contenido ocupa solo el centro y queda mucho espacio horizontal vacio a los lados. Sumado a la decision de FB-096 (que la actividad sea lo primero que se vea), la pagina puede aprovechar el ancho disponible para mostrar mas informacion sin scroll vertical. Hoy se siente "vacio" — falta densidad visual en pantallas grandes.
+- **Solucion propuesta:** Layout de dos columnas en desktop (>= `lg` o `xl`): **columna izquierda fija (~30-40%)** con el feed de actividad del usuario (paginado o con scroll propio); **columna derecha (~60-70%)** con las pestañas seleccionables (Backlog, Listas, Favoritos, Wishlist, Reseñas, etc.). Detalles: (1) Si la actividad del usuario es privada (porque `User.isPublic = false` y no eres tu mismo, o por un futuro flag mas granular como `isActivityPublic`), la columna izquierda muestra un mensaje "Actividad privada" o se oculta y la derecha ocupa todo el ancho. Decidir entre mensaje vs colapso al implementar — mensaje informativo es mas honesto, colapso aprovecha mas el ancho. (2) En mobile y tablet, mantener layout de una sola columna con la actividad arriba (segun FB-096) y las pestañas debajo. (3) Reusar el componente del feed con input para el username (igual que en FB-096). (4) La columna izquierda con `position: sticky` para que la actividad acompañe el scroll cuando el usuario explora las pestañas de la derecha — sensacion de "dashboard" en vez de listado lineal.
+
+### [FB-099] La seccion de Security muestra "Last used" desactualizado para la sesion activa
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** resuelto
+- **Reportado por:** Esteban
+- **Descripcion:** En la pagina de Security (listado de sesiones activas) la sesion del propio dispositivo muestra "Last used 15h" cuando el usuario la esta usando en ese mismo momento. El campo no refleja la actividad real — siempre muestra un timestamp viejo aunque haya tráfico reciente desde esa sesion.
+- **Causa real:** El refresh ya rota tokens (delete + create) y el nuevo `RefreshToken` tiene `lastUsedAt: new Date()` desde `createRefreshToken`. Pero `lastUsedAt` solo se actualiza cuando el access token expira y dispara refresh — con `ACCESS_TOKEN_TTL=15m` esto deberia ser frecuente, pero entre refreshes el campo queda igual al ultimo refresh, no a la ultima actividad real. Si el usuario abre /settings/security justo despues de un periodo idle largo seguido de un refresh reciente, el campo se ve "fresco" — pero el feedback reflejaba la percepcion de que no se actualizaba en tiempo real.
+- **Solucion:** Update on refresh (opcion 1 elegida), implementado via JWT `sid` claim + middleware throttled. (1) `JwtPayload` extendido con campo opcional `sid` (sessionId del refresh token asociado). (2) `auth.service.login/register/refresh` reordenados: primero `createRefreshToken` (para obtener `sessionId`), luego `signAccessToken` con `sid` incluido en payload. (3) Nueva funcion `tokenService.touchSessionLastUsed(sessionId)` con cache in-memory (`Map<sessionId, lastUpdateMs>`) y throttle de 60s — actualiza `RefreshToken.lastUsedAt` solo si paso mas de un minuto desde el ultimo update de esa sesion (evita write-per-request manteniendo granularidad util). (4) `authMiddleware` llama a `touchSessionLastUsed(payload.sid)` fire-and-forget despues de verificar el access token (`.catch(() => {})` para no romper la request si DB falla). Resultado: "Last used" refleja actividad real con granularidad de 1 minuto. Tokens emitidos pre-cambio no tienen `sid` y seguiran sin actualizar `lastUsedAt` hasta que el usuario haga refresh (max ~15min por TTL del access token).
+
+### [FB-100] Los shortcuts de status en el navbar cambian la URL pero no refrescan el backlog
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** resuelto
+- **Reportado por:** Esteban
+- **Descripcion:** El navbar tiene tres shortcuts (Done, Play, Total) que llevan al backlog con un filtro de status preaplicado. Si el usuario esta en otra pagina y presiona uno, navega al backlog correctamente y se aplica el filtro. Pero si despues presiona otro shortcut (estando ya en el backlog), la URL cambia pero la vista no se actualiza — sigue mostrando el filtro anterior. Solo refrescando el navegador (F5) los cambios toman efecto. Mismo problema si el usuario ya esta en el backlog y presiona cualquiera de los shortcuts: el filtro no se aplica hasta refrescar.
+- **Causa tecnica:** `BacklogList.ngOnInit` leia los query params via `route.snapshot.queryParamMap` (snapshot, no reactivo). Cuando el Router reusa la misma instancia del componente al navegar entre `/backlog?status=X` y `/backlog?status=Y`, `ngOnInit` no se vuelve a ejecutar y los filtros quedan congelados.
+- **Solucion:** Refactor a patron reactivo con signals (Angular 21 idiomatico). (1) Reemplazado `route.snapshot.queryParamMap` por `toSignal(this.route.queryParamMap)` en `backlog-list.ts`. (2) Agregada `savedFiltersLoaded` signal para sincronizar con la carga inicial de saved filters. (3) `effect()` que observa `queryParamMap` + `savedFiltersLoaded` y llama a `applyFiltersFromUrl(params)` cada vez que cambian los query params. (4) Extraidos metodos `applyFiltersFromUrl`, `applySavedFilterFromUrl` y `resetFilterState` para separar la logica reactiva de la logica de UI (la `applySavedFilter` original mantiene el comportamiento de toggle para clicks en chips, mientras que `applySavedFilterFromUrl` solo aplica sin togglear, lo correcto para navegacion). (5) `ngOnInit` queda mas chico: solo carga datos, no aplica filtros — el effect se encarga. Probado: al alternar shortcuts Done/Play/Total estando en `/backlog`, la vista refresca sin F5.
+
+### [FB-101] Evaluar si la app deberia tener enlaces a la landing/webpage publica
+
+- **Fecha:** 2026-05-20
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Hoy `completr.app` (landing) y `web.completr.app` (app autenticada) son dos sitios separados, y desde la app no hay forma directa de volver a la landing. La pregunta es si conviene exponer enlaces desde la app hacia la web publica — y para que casos especificos. Sin esto, el usuario que entra a la app no tiene punto de retorno al material publico (about, changelog, pricing, blog, etc.) salvo cambiando la URL manualmente.
+- **Casos de uso donde tendria sentido:**
+    - **Footer global**: enlaces a About, Changelog, Pricing, Privacy, Terms — todos viven en la landing.
+    - **Pre-auth pages (login, register)**: link al landing para que un visitante curioso entienda que es Completr antes de registrarse.
+    - **Upgrade a Premium**: el flujo "Hazte premium" probablemente vive en la landing (pricing + Stripe/checkout). Desde Settings / banner premium, link directo.
+    - **Logo del navbar**: hoy probablemente lleva al home de la app. Decidir si en estados especiales (no autenticado, error 404) deberia llevar a la landing.
+    - **Changelog**: si las release notes viven en la landing (`completr.app/changelog`), tener un link en Settings o en un menu del navbar.
+- **Solucion propuesta:** No es un fix puntual, es una decision de IA: definir el "mapa" de cuando la app linkea a la landing y vice versa. Pasos: (1) Listar todas las paginas/secciones de la landing que existen o se planean (about, changelog, pricing, privacy, terms, blog). (2) Decidir cuales son alcanzables desde dentro de la app y desde donde (footer global vs settings vs banners contextuales). (3) Asegurarse que los links abren en la misma pestaña si es navegacion natural (footer → about) y en pestaña nueva si interrumpe el flujo del usuario (ej: leer terms mientras edita perfil). (4) En la direccion inversa, la landing deberia tener CTAs claros para que el visitante anonimo entre a la app (`web.completr.app/register`, `/login`). Algunos de estos puntos ya estan en FASE 3 (landing + changelog), pero conviene incluir el "pegado" entre los dos sitios como parte de ese trabajo, no como afterthought.
