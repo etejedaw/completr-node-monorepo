@@ -4,7 +4,8 @@ import {
 	effect,
 	inject,
 	OnInit,
-	signal
+	signal,
+	untracked
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { DatePipe } from "@angular/common";
@@ -56,7 +57,7 @@ export class BacklogList implements OnInit {
 		if (!this.savedFiltersLoaded()) return;
 		const params = this.queryParamMap();
 		if (!params) return;
-		this.applyFiltersFromUrl(params);
+		untracked(() => this.applyFiltersFromUrl(params));
 	});
 
 	protected readonly viewMode = signal<"diary" | "hardcore">(
