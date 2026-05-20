@@ -48,7 +48,8 @@ export async function findGameShelfByUserIdPaginated(
 
 	const query: Record<string, unknown> = {
 		where: { userId },
-		include: [gameInclude, { model: Platform }, { model: User }]
+		include: [gameInclude, { model: Platform }, { model: User }],
+		distinct: true
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
@@ -67,7 +68,8 @@ export async function findPublicGameShelfByUserId(
 			{ model: Game, include: [{ model: Genre }] },
 			{ model: Platform },
 			{ model: User }
-		]
+		],
+		distinct: true
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
