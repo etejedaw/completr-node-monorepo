@@ -931,3 +931,21 @@ Formato por item:
     - **Logo del navbar**: hoy probablemente lleva al home de la app. Decidir si en estados especiales (no autenticado, error 404) deberia llevar a la landing.
     - **Changelog**: si las release notes viven en la landing (`completr.app/changelog`), tener un link en Settings o en un menu del navbar.
 - **Solucion propuesta:** No es un fix puntual, es una decision de IA: definir el "mapa" de cuando la app linkea a la landing y vice versa. Pasos: (1) Listar todas las paginas/secciones de la landing que existen o se planean (about, changelog, pricing, privacy, terms, blog). (2) Decidir cuales son alcanzables desde dentro de la app y desde donde (footer global vs settings vs banners contextuales). (3) Asegurarse que los links abren en la misma pestaña si es navegacion natural (footer → about) y en pestaña nueva si interrumpe el flujo del usuario (ej: leer terms mientras edita perfil). (4) En la direccion inversa, la landing deberia tener CTAs claros para que el visitante anonimo entre a la app (`web.completr.app/register`, `/login`). Algunos de estos puntos ya estan en FASE 3 (landing + changelog), pero conviene incluir el "pegado" entre los dos sitios como parte de ese trabajo, no como afterthought.
+
+### [FB-102] Falta busqueda avanzada de juegos por genero, año de lanzamiento y otros campos
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** La busqueda actual de juegos solo matchea por titulo (ILIKE sobre `game.title`). No hay forma de filtrar por genero, año de lanzamiento, plataforma, rango de score/duracion, tags u otros atributos del juego. Esto es limitante: si un usuario quiere descubrir RPGs de los 2010s, o juegos cortos de plataformas que tiene, no tiene como armar esa query desde la UI. Tambien afecta admin (no puede listar juegos por genero para enriquecer datos) y descubrimiento social (no se puede compartir links a busquedas filtradas). Relacionado con FB-024 (filtros por fuente de datos en admin).
+- **Solucion propuesta:** (1) Backend: extender `GET /games` para aceptar filtros adicionales: `genres` (lista de codes/ids), `platforms`, `release_year_from`, `release_year_to`, `min_score`, `max_score`, `min_duration`, `max_duration`, `is_dlc` (bool). Mantener `search` por titulo como ya esta. Validar combinaciones (ej: rangos coherentes). (2) Frontend: vista `/games` con panel de filtros avanzados (drawer lateral igual que backlog filters) — selector multi de generos, selector multi de plataformas, range pickers para año/score/duration, toggle DLC. Persistir filtros en query params para que sean compartibles via URL. Mostrar resultados en grid con paginacion. (3) Considerar guardar busquedas avanzadas como "saved searches" (similar a saved filters del backlog) — feature premium o no, evaluar. (4) Cuando entren tags de RAWG (Fase 3+), agregarlos como filtro tambien — son mas granulares que generos.
+
+### [FB-103] Game shelf de otros usuarios no necesita los tres view modes
+
+- **Fecha:** 2026-05-20
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En FB-081 se agregaron tres view modes (cards, grid, table) tanto al `/game-shelf` propio como al `/user/:username/game-shelf` publico. Para el shelf ajeno los tres modos son overkill — la mayoria de usuarios solo quiere echar un vistazo a la coleccion, no compararla por columnas ni alternar entre densidades. Mantener los tres modos en una vista de consumo agrega ruido visual al toggle sin aportar valor real.
+- **Solucion propuesta:** En `user-game-shelf.html`, quitar el toggle de view modes y dejar solo el modo "cards" (diary-like) que es el mas legible para una vista de perfil ajeno. Quitar tambien el signal `viewMode` y `setViewMode` de `user-game-shelf.ts` (o reutilizar si en el futuro se decide reintroducir un modo alternativo). El shelf propio (`/game-shelf`) mantiene los tres modos — alli el usuario gestiona su coleccion y la densidad importa.
