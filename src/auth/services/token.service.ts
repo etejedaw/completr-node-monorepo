@@ -60,6 +60,20 @@ export async function verifyRefreshToken(
 	return refreshToken;
 }
 
+const lastUsedUpdateCache = new Map<string, number>();
+const LAST_USED_THROTTLE_MS = 60_000;
+
+export async function touchSessionLastUsed(sessionId: string): Promise<void> {
+	const now = Date.now();
+	const lastUpdate = lastUsedUpdateCache.get(sessionId);
+	if (lastUpdate && now - lastUpdate < LAST_USED_THROTTLE_MS) return;
+	lastUsedUpdateCache.set(sessionId, now);
+	await RefreshToken.update(
+		{ lastUsedAt: new Date() },
+		{ where: { id: sessionId } }
+	);
+}
+
 export async function findUserSessions(
 	userId: string,
 	options?: { limit?: number; offset?: number }

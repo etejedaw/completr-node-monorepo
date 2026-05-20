@@ -20,14 +20,14 @@ export async function register(registerDto: RegisterDto, deviceInfo?: string) {
 
 	const user = await userService.createUser(userData);
 
-	const payload = {
-		sub: user.id,
-		username: user.username,
-		email: user.email
-	};
-	const accessToken = tokenService.signAccessToken(payload);
 	const { rawToken: refreshToken, sessionId } =
 		await tokenService.createRefreshToken(user.id, deviceInfo);
+	const accessToken = tokenService.signAccessToken({
+		sub: user.id,
+		username: user.username,
+		email: user.email,
+		sid: sessionId
+	});
 
 	return { user, accessToken, refreshToken, sessionId };
 }
@@ -42,14 +42,14 @@ export async function login(loginDto: LoginDto, deviceInfo?: string) {
 	);
 	if (!comparePassword) throw authDomainError.invalidCredentials();
 
-	const payload = {
-		sub: user.id,
-		username: user.username,
-		email: user.email
-	};
-	const accessToken = tokenService.signAccessToken(payload);
 	const { rawToken: refreshToken, sessionId } =
 		await tokenService.createRefreshToken(user.id, deviceInfo);
+	const accessToken = tokenService.signAccessToken({
+		sub: user.id,
+		username: user.username,
+		email: user.email,
+		sid: sessionId
+	});
 
 	return { accessToken, refreshToken, sessionId };
 }
@@ -64,17 +64,17 @@ export async function refresh(rawRefreshToken: string, deviceInfo?: string) {
 	const previousDeviceInfo = storedToken.deviceInfo;
 	await tokenService.deleteRefreshToken(rawRefreshToken);
 
-	const payload = {
-		sub: user.id,
-		username: user.username,
-		email: user.email
-	};
-	const accessToken = tokenService.signAccessToken(payload);
 	const { rawToken: refreshToken, sessionId } =
 		await tokenService.createRefreshToken(
 			user.id,
 			deviceInfo ?? previousDeviceInfo ?? undefined
 		);
+	const accessToken = tokenService.signAccessToken({
+		sub: user.id,
+		username: user.username,
+		email: user.email,
+		sid: sessionId
+	});
 
 	return { accessToken, refreshToken, sessionId };
 }
