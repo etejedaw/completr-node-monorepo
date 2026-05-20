@@ -763,3 +763,12 @@ Formato por item:
 - **Reportado por:** Esteban
 - **Descripcion:** Al entrar al perfil publico de otro jugador (/user/:username), la seccion de reviews muestra solo las ultimas N (probablemente 3-5). No hay forma de ver el resto de las reviews que el usuario ha escrito. Si me interesa la opinion de alguien sobre varios juegos, no tengo manera de revisarlas todas sin entrar juego por juego.
 - **Solucion propuesta:** Agregar boton "See all" debajo de la lista de reviews en el perfil publico que lleve a una vista dedicada `/user/:username/reviews` con paginacion (limit 25). Backend: nuevo endpoint `GET /users/:username/reviews?limit&offset` que devuelve las reviews del usuario con `game` populado, ordenadas por fecha desc, paginadas con `{ rows, total }`. Frontend: vista nueva con `<ui-pagination>` reutilizando el patron ya usado en feed, backlog, wishlist, etc.
+
+### [FB-084] Plataformas duplicadas: Origin y EA (Origin) son la misma
+
+- **Fecha:** 2026-05-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En el listado de plataformas aparecen dos entradas que representan la misma tienda: "Origin" y "EA (Origin)". EA renombro Origin a EA App en 2022, pero ambos siguen siendo el mismo cliente y libreria. Tener dos plataformas distintas para lo mismo fragmenta los datos — un juego se asigna a una u otra segun como vino de RAWG, y los filtros/busquedas por plataforma quedan inconsistentes. El usuario al agregar un juego ve dos opciones equivalentes y no sabe cual elegir.
+- **Solucion propuesta:** Consolidar en una sola plataforma canonica. Pasos: (1) decidir el nombre canonico ("EA App" probablemente, o mantener "Origin" si se prefiere la marca historica). (2) migracion que mueva todos los `game_platforms` que apuntan a la duplicada hacia la canonica, evitando duplicados (ON CONFLICT DO NOTHING). (3) eliminar la fila duplicada de `platforms`. (4) actualizar `rawg-platform.map.ts` para que ambos slugs RAWG (`ea-origin` y `origin`) mapeen al codigo canonico. Auditar tambien si hay otras plataformas duplicadas (ej: PS Network vs PS Store, Xbox vs Xbox Live).
