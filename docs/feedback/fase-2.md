@@ -322,9 +322,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-23
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** En la vista de detalle de un juego hay un boton que enlaza a la pagina del juego en RAWG. El problema es que el link usa el slug propio de Completr para construir la URL de RAWG (ej: rawg.io/games/{slug-completr}), pero el slug de Completr no tiene por que coincidir con el de RAWG, lo que provoca que la redireccion falle o lleve a un juego equivocado. La tabla GameExternal almacena el ID numerico de RAWG, no el slug.
-- **Solucion propuesta:** Cambiar el boton para que use el ID numerico de RAWG en vez del slug. La URL de RAWG acepta IDs numericos (rawg.io/games/{id}), asi que se puede construir el link con el externalId que ya esta almacenado en GameExternal. Alternativa: almacenar el slug de RAWG en GameExternal al momento de importar el juego y usarlo para el link.
+- **Solucion:** Resuelto junto con FB-075. En `game-detail.html`, el `<a>` hardcoded `'https://rawg.io/games/' + game()!.code` (que usaba el slug de Completr) se movio dentro del bucle de `externalLinks` junto con Steam y Metacritic, usando ahora `'https://rawg.io/games/' + link.externalId` (rawgId numerico de `GameExternal`). Verificado que `rawg.io/games/{id}` funciona — RAWG resuelve IDs numericos y los redirige al slug correcto (ej: `rawg.io/games/3328` → The Witcher 3). El backend serializer ya exponia `externalLinks` con `source` y `externalId`. Si un juego no tiene `GameExternal` de RAWG, el link simplemente no se renderiza (en lugar de mostrar un link roto).
 
 ### [FB-037] UI general se siente muy chica
 
@@ -681,15 +681,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-12
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En la BBDD de Completr se almacena el `rawgId` (numerico) del juego, pero no su `slug` (el "code" que RAWG usa en sus URLs, ej: `the-witcher-3-wild-hunt`). Cuando la UI construye el link "Ver en RAWG", usa el slug propio de Completr asumiendo que coincide con el de RAWG, lo cual no siempre es cierto (Completr puede haber generado un slug distinto, o RAWG puede haberlo cambiado). Resultado: links rotos o que apuntan a un juego incorrecto en rawg.io.
-- **Solucion propuesta:** Almacenar tambien el `slug` original de RAWG en el modelo `Game` (campo aparte, ej: `rawgSlug`). Al construir el link externo, usar `rawgSlug` en lugar del slug interno. Cambios requeridos:
-    - Migracion para agregar `rawgSlug` (nullable inicialmente).
-    - Actualizar el sync/import desde RAWG para popular el campo en nuevos juegos.
-    - Backfill: recorrer juegos existentes y completar `rawgSlug` consultando la API de RAWG por `rawgId`. Considerar rate limits.
-    - Actualizar el frontend para usar `rawgSlug` en el link externo, con fallback al slug interno si todavia esta vacio.
-    - Cambio grande en BBDD, revisar con mas detalle antes de implementar (volumen de juegos, costo del backfill, si RAWG expone el slug en el endpoint de detalle).
+- **Solucion:** Resuelto junto con FB-036. En vez de almacenar `rawgSlug` (que requeria migracion + backfill respetando rate limits de RAWG), se opto por usar el `rawgId` numerico que ya existe en `GameExternal`. Verificado que `rawg.io/games/{id}` funciona (RAWG redirige al slug correcto). Frontend ahora usa `'https://rawg.io/games/' + link.externalId` cuando `link.source === 'rawg'`. Sin cambios de BBDD ni backfill necesarios.
 
 ### [FB-076] Wishlist en modo grilla no muestra el numero de posicion
 
