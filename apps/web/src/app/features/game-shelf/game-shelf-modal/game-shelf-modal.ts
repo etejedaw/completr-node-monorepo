@@ -67,6 +67,21 @@ export class GameShelfModal implements OnInit {
 		notes: [""]
 	});
 
+	protected readonly editionSuggestions = [
+		"Standard",
+		"Deluxe",
+		"GOTY",
+		"Collector's",
+		"Definitive",
+		"Complete",
+		"Digital",
+		"Physical"
+	];
+
+	applyEditionSuggestion(value: string) {
+		this.form.patchValue({ edition: value });
+	}
+
 	ngOnInit() {
 		this.gamesService.getPlatforms().subscribe(p => this.platforms.set(p));
 

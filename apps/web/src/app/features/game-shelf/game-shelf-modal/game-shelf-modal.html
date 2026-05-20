@@ -125,6 +125,18 @@
 					placeholder="Standard, Deluxe, GOTY..."
 					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] transition placeholder:text-fg-muted focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 				/>
+				<div class="flex flex-wrap gap-1.5 mt-2">
+					@for (suggestion of editionSuggestions; track suggestion) {
+					<button
+						type="button"
+						class="px-2 py-1 text-[0.7rem] font-medium rounded-md border transition cursor-pointer"
+						[class]="form.value.edition === suggestion ? 'bg-brand/15 border-brand text-brand' : 'bg-input-bg border-line text-fg-muted hover:border-brand hover:text-brand'"
+						(click)="applyEditionSuggestion(suggestion)"
+					>
+						{{ suggestion }}
+					</button>
+					}
+				</div>
 			</div>
 
 			<!-- Acquired date -->
