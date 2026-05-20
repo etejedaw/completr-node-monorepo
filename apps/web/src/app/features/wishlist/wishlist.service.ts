@@ -1,6 +1,6 @@
 import { inject, Injectable } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { map } from "rxjs";
+import { map, switchMap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { WishlistEntry } from "../../core/models";
 
@@ -66,5 +66,20 @@ export class WishlistService {
 		return this.http
 			.put<WishlistListResponse>(this.baseUrl, { backlogIds })
 			.pipe(map(res => res.data.wishlist));
+	}
+
+	removeByBacklogId(backlogId: string) {
+		return this.getMyWishlist().pipe(
+			map(entries =>
+				entries
+					.filter(e => e.backlog.id !== backlogId)
+					.map(e => e.backlog.id)
+			),
+			switchMap(remaining =>
+				this.http
+					.put<WishlistListResponse>(this.baseUrl, { backlogIds: remaining })
+					.pipe(map(res => res.data.wishlist))
+			)
+		);
 	}
 }
