@@ -727,3 +727,39 @@ Formato por item:
 - **Descripcion:** Al abrir el modal de edicion de un backlog ya creado (que tiene score y duration completados manualmente o desde una fuente), aparece debajo de los campos Critic Score y Duration el mensaje "No sources. Report missing" como si faltaran fuentes. El usuario ya tiene el dato ingresado, por lo que el aviso esta fuera de lugar y sugiere accion sobre algo que no es necesario.
 - **Solucion:** El bloque de sources en `backlog-modal.html` ya estaba condicionado con `gameScores().length > 0 || (selectedGame() && !isEdit())` (idem para `gameTimes`). En modo edit el wrapper no se renderiza, asi que el aviso "No sources. Report missing" solo aparece en flujo de creacion cuando el juego del catalogo realmente no tiene fuentes.
 - **Solucion:** En `backlog-modal.html`, el branch `@else if (selectedGame())` que renderiza el aviso "No sources. Report missing" ahora también requiere `!isEdit()`. En modo edición el dato ya está cargado en el form, por lo que el mensaje queda oculto. Sigue activo en creación cuando un juego seleccionado realmente no tiene sources.
+
+### [FB-080] Boton de crear backlog en la esquina derecha no aporta valor
+
+- **Fecha:** 2026-05-19
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** El boton mas a la derecha del header/topbar para crear un backlog se siente innecesario. Ya existe un boton "+ Add to Backlog" dentro de la vista de backlog y el flujo natural para agregar un juego empieza desde la ficha del juego o desde la vista de backlog. El boton flotante en la esquina no se descubre, no acompana ningun flujo y agrega ruido visual al header.
+- **Solucion propuesta:** Eliminarlo. Si en algun momento se vuelve necesario un atajo global para crear backlog, considerar un FAB (floating action button) flotante en la esquina inferior derecha en lugar de un boton en el header — pero por ahora se quita sin reemplazo.
+
+### [FB-081] Game shelf usa demasiado espacio vertical con un juego por fila
+
+- **Fecha:** 2026-05-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** La vista de Game Shelf muestra un juego por fila ocupando todo el ancho disponible. En escritorio queda mucho espacio horizontal vacio a la derecha de cada entrada y la lista se vuelve larga rapidamente. Otras vistas con cards (favorites, wishlist en grid) aprovechan mejor el ancho mostrando 2+ columnas. La unica entrada por fila no aporta densidad de informacion ni mejora la legibilidad.
+- **Solucion propuesta:** Cambiar el layout de la grilla del Game Shelf a 2 columnas en escritorio (md+), manteniendo 1 columna en mobile. Evaluar si tambien conviene una vista en modo "card" que aproveche aun mas el ancho (como wishlist grid). Considerar dejar la vista de tabla actual como opcion alternativa con un toggle list/grid, similar al patron usado en wishlist.
+
+### [FB-082] Wishlist tiene mucho espacio sobrante, podria ofrecer drag-and-drop
+
+- **Fecha:** 2026-05-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** La vista de Wishlist (en modo tabla y grilla) deja bastante espacio vertical/horizontal sobrante por fila. Mas alla del badge de posicion ya agregado (FB-076), la priorizacion manual hoy se hace con flechas arriba/abajo que son lentas para reordenar varios items. Una experiencia drag-and-drop seria mucho mas fluida para acomodar el orden y aprovecharia el espacio sobrante como "zona de drop".
+- **Solucion propuesta:** Implementar drag-and-drop con Angular CDK DragDropModule en el listado de wishlist. Cada fila/card es draggable; al soltarse, se llama al PUT existente con el nuevo array de backlogIds reordenado. Mostrar feedback visual claro durante el drag (sombra, opacidad, indicador de drop position). Mantener las flechas como fallback accesible. Aprovechar para evaluar si la card actual se puede compactar o si conviene una vista mas densa con menos padding entre items.
+
+### [FB-083] Perfil de jugador solo muestra ultimas reviews, falta ver todas
+
+- **Fecha:** 2026-05-19
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al entrar al perfil publico de otro jugador (/user/:username), la seccion de reviews muestra solo las ultimas N (probablemente 3-5). No hay forma de ver el resto de las reviews que el usuario ha escrito. Si me interesa la opinion de alguien sobre varios juegos, no tengo manera de revisarlas todas sin entrar juego por juego.
+- **Solucion propuesta:** Agregar boton "See all" debajo de la lista de reviews en el perfil publico que lleve a una vista dedicada `/user/:username/reviews` con paginacion (limit 25). Backend: nuevo endpoint `GET /users/:username/reviews?limit&offset` que devuelve las reviews del usuario con `game` populado, ordenadas por fecha desc, paginadas con `{ rows, total }`. Frontend: vista nueva con `<ui-pagination>` reutilizando el patron ya usado en feed, backlog, wishlist, etc.
