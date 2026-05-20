@@ -96,6 +96,15 @@ export class GamesService {
 			.pipe(map(res => res.data.games));
 	}
 
+	searchLocal(query: string) {
+		const params = `query=${encodeURIComponent(query)}&local_only=true`;
+		return this.http
+			.get<GamesSearchResponse>(
+				`${environment.apiUrl}/games/search?${params}`
+			)
+			.pipe(map(res => res.data.games));
+	}
+
 	getLatestReviewed(limit = 16) {
 		return this.http
 			.get<GamesSearchResponse>(

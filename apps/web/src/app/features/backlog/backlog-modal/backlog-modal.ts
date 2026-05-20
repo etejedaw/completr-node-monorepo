@@ -129,6 +129,7 @@ export class BacklogModal implements OnInit {
 	);
 	protected readonly showConfirmDelete = signal(false);
 	protected readonly isSearching = signal(false);
+	protected readonly isSearchingOnline = signal(false);
 	protected readonly addToWishlist = signal(false);
 	protected readonly isInWishlist = signal(false);
 	protected readonly addToShelf = signal(false);
@@ -209,15 +210,27 @@ export class BacklogModal implements OnInit {
 				switchMap(query => {
 					if (query.length < 2) {
 						this.isSearching.set(false);
+						this.isSearchingOnline.set(false);
 						return of([]);
 					}
 					this.isSearching.set(true);
-					return this.gamesService.search(query);
+					this.isSearchingOnline.set(false);
+					return this.gamesService.searchLocal(query).pipe(
+						switchMap(localResults => {
+							if (localResults.length > 0) {
+								return of(localResults);
+							}
+							this.isSearching.set(false);
+							this.isSearchingOnline.set(true);
+							return this.gamesService.search(query);
+						})
+					);
 				})
 			)
 			.subscribe(games => {
 				this.gameResults.set(games);
 				this.isSearching.set(false);
+				this.isSearchingOnline.set(false);
 			});
 
 		const e = this.entry();

@@ -50,7 +50,12 @@
 				/>
 				@if (isSearching() && gameResults().length === 0) {
 				<div class="mt-1 px-3 py-2.5 text-[0.8125rem] text-fg-muted bg-input-bg border border-line rounded-md">Searching...</div>
-				} @if (gameResults().length > 0 || (!isSearching() &&
+				} @if (isSearchingOnline()) {
+				<div class="mt-1 px-3 py-2.5 text-[0.8125rem] text-brand bg-input-bg border border-line rounded-md flex items-center gap-2">
+					<span class="material-icons text-base animate-spin">autorenew</span>
+					Searching online...
+				</div>
+				} @if (gameResults().length > 0 || (!isSearching() && !isSearchingOnline() &&
 				searchQuery().length >= 2)) {
 				<ul class="list-none bg-input-bg border border-line rounded-md mt-1 max-h-[200px] overflow-y-auto">
 					@for (game of gameResults(); track game.id) {
@@ -61,7 +66,10 @@
 						@if (game.backgroundUrl) {
 						<img [src]="game.backgroundUrl" class="w-7 h-[38px] object-cover rounded-sm shrink-0" />
 						}
-						<span>{{ game.title }}</span>
+						<span class="flex-1">{{ game.title }}</span>
+						@if (game.isDlc) {
+						<span class="px-1.5 py-0.5 bg-warning/15 text-warning text-[0.65rem] font-semibold uppercase tracking-wider rounded">DLC</span>
+						}
 					</li>
 					} @if (searchQuery().length >= 2) {
 					<li

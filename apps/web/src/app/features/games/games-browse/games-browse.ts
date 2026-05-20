@@ -46,6 +46,7 @@ export class GamesBrowse implements OnInit, OnDestroy {
 	protected readonly searchQuery = signal("");
 	protected readonly searchResults = signal<Game[]>([]);
 	protected readonly isSearching = signal(false);
+	protected readonly isSearchingOnline = signal(false);
 	protected readonly showCreateEditor = signal(false);
 	protected readonly searchingRawg = signal(false);
 
@@ -78,15 +79,27 @@ export class GamesBrowse implements OnInit, OnDestroy {
 				switchMap(query => {
 					if (query.length < 2) {
 						this.isSearching.set(false);
+						this.isSearchingOnline.set(false);
 						return of([]);
 					}
 					this.isSearching.set(true);
-					return this.gamesService.search(query);
+					this.isSearchingOnline.set(false);
+					return this.gamesService.searchLocal(query).pipe(
+						switchMap(localResults => {
+							if (localResults.length > 0) {
+								return of(localResults);
+							}
+							this.isSearching.set(false);
+							this.isSearchingOnline.set(true);
+							return this.gamesService.search(query);
+						})
+					);
 				})
 			)
 			.subscribe(games => {
 				this.searchResults.set(games);
 				this.isSearching.set(false);
+				this.isSearchingOnline.set(false);
 			});
 
 		this.loadLatest();
