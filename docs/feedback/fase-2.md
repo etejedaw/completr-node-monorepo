@@ -931,3 +931,40 @@ Formato por item:
     - **Logo del navbar**: hoy probablemente lleva al home de la app. Decidir si en estados especiales (no autenticado, error 404) deberia llevar a la landing.
     - **Changelog**: si las release notes viven en la landing (`completr.app/changelog`), tener un link en Settings o en un menu del navbar.
 - **Solucion propuesta:** No es un fix puntual, es una decision de IA: definir el "mapa" de cuando la app linkea a la landing y vice versa. Pasos: (1) Listar todas las paginas/secciones de la landing que existen o se planean (about, changelog, pricing, privacy, terms, blog). (2) Decidir cuales son alcanzables desde dentro de la app y desde donde (footer global vs settings vs banners contextuales). (3) Asegurarse que los links abren en la misma pestaña si es navegacion natural (footer → about) y en pestaña nueva si interrumpe el flujo del usuario (ej: leer terms mientras edita perfil). (4) En la direccion inversa, la landing deberia tener CTAs claros para que el visitante anonimo entre a la app (`web.completr.app/register`, `/login`). Algunos de estos puntos ya estan en FASE 3 (landing + changelog), pero conviene incluir el "pegado" entre los dos sitios como parte de ese trabajo, no como afterthought.
+
+### [FB-102] Falta busqueda avanzada de juegos por genero, año de lanzamiento y otros campos
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** La busqueda actual de juegos solo matchea por titulo (ILIKE sobre `game.title`). No hay forma de filtrar por genero, año de lanzamiento, plataforma, rango de score/duracion, tags u otros atributos del juego. Esto es limitante: si un usuario quiere descubrir RPGs de los 2010s, o juegos cortos de plataformas que tiene, no tiene como armar esa query desde la UI. Tambien afecta admin (no puede listar juegos por genero para enriquecer datos) y descubrimiento social (no se puede compartir links a busquedas filtradas). Relacionado con FB-024 (filtros por fuente de datos en admin).
+- **Solucion propuesta:** (1) Backend: extender `GET /games` para aceptar filtros adicionales: `genres` (lista de codes/ids), `platforms`, `release_year_from`, `release_year_to`, `min_score`, `max_score`, `min_duration`, `max_duration`, `is_dlc` (bool). Mantener `search` por titulo como ya esta. Validar combinaciones (ej: rangos coherentes). (2) Frontend: vista `/games` con panel de filtros avanzados (drawer lateral igual que backlog filters) — selector multi de generos, selector multi de plataformas, range pickers para año/score/duration, toggle DLC. Persistir filtros en query params para que sean compartibles via URL. Mostrar resultados en grid con paginacion. (3) Considerar guardar busquedas avanzadas como "saved searches" (similar a saved filters del backlog) — feature premium o no, evaluar. (4) Cuando entren tags de RAWG (Fase 3+), agregarlos como filtro tambien — son mas granulares que generos.
+
+### [FB-103] Game shelf de otros usuarios no necesita los tres view modes
+
+- **Fecha:** 2026-05-20
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** En FB-081 se agregaron tres view modes (cards, grid, table) tanto al `/game-shelf` propio como al `/user/:username/game-shelf` publico. Para el shelf ajeno los tres modos son overkill — la mayoria de usuarios solo quiere echar un vistazo a la coleccion, no compararla por columnas ni alternar entre densidades. Mantener los tres modos en una vista de consumo agrega ruido visual al toggle sin aportar valor real.
+- **Solucion propuesta:** En `user-game-shelf.html`, quitar el toggle de view modes y dejar solo el modo "cards" (diary-like) que es el mas legible para una vista de perfil ajeno. Quitar tambien el signal `viewMode` y `setViewMode` de `user-game-shelf.ts` (o reutilizar si en el futuro se decide reintroducir un modo alternativo). El shelf propio (`/game-shelf`) mantiene los tres modos — alli el usuario gestiona su coleccion y la densidad importa.
+
+### [FB-104] Perfil ajeno: aplicar paginacion consistente con maximo 50 por pagina en todas las secciones
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Al ver el perfil publico de un usuario (`/user/:username`), las secciones de resumen muestran listas truncadas (5-10 items) con link "View All" a vistas dedicadas paginadas. Las vistas dedicadas (`/user/:username/backlog`, `/favorites`, `/wishlist`, `/game-shelf`) ya tienen `PAGE_SIZE = 50`. El problema es la inconsistencia: en la pagina del perfil mismo no hay paginacion — son snippets cortados con un boton "View All" que cambia de pantalla. La experiencia esperada (estilo Letterboxd/Trakt) es poder paginar in-place sin perder contexto.
+- **Solucion propuesta:** (1) Decidir el patron: dejar los snippets actuales pero agregar paginacion in-place a cada seccion (Backlog, Game Shelf, Favorites, Wishlist, Reviews, Following Lists, Activity) con limit=50 — el "View All" pasa a ser opcional o se elimina. (2) Reutilizar `<ui-pagination>` ya existente en cada seccion del perfil. (3) Verificar que todos los endpoints `GET /users/:username/<seccion>` aceptan `limit` y `offset` y devuelven `total`. (4) Si alguna seccion no esta paginada en backend, agregar paginacion (limit max 50). (5) Considerar performance: cargar primero solo la primera pagina de cada seccion, no las 50 completas. Relacionado con FB-096 (orden de secciones en perfil ajeno) y FB-098 (layout dos columnas en desktop).
+
+### [FB-105] Total de juegos en el shelf publico no coincide con el real
+
+- **Fecha:** 2026-05-20
+- **Severidad:** medio
+- **Estado:** resuelto
+- **Reportado por:** Esteban
+- **Descripcion:** Al ver el game shelf de otro usuario (`/user/:username/game-shelf`), el contador "X games" en el header muestra un numero distinto al numero real de juegos visibles/disponibles. Probablemente el backend devuelve un `total` que incluye entries no visibles (ej: filtrados por privacidad/visibilidad), o el frontend cuenta diferente. Tambien puede ser que el endpoint paginado devuelva `total` correcto pero el filtro post-fetch en frontend reste items, dejando el contador desalineado con la cantidad mostrada.
+- **Causa tecnica:** `findPublicGameShelfByUserId` (y tambien `findGameShelfByUserIdPaginated` del propio shelf) usaban `findAndCountAll` con `include: [{ model: Game, include: [{ model: Genre }] }, Platform, User]`. Como `Game hasMany Genre` (via tabla pivote `game_genre`), el JOIN duplica las filas de GameShelf una vez por cada Genre del juego. Sequelize `count` cuenta filas joinadas, no GameShelfs distintos — por eso el total venia inflado (ej: shelf real de 12 juegos podia reportar 30+ si los juegos tenian ~3 generos en promedio).
+- **Solucion:** Agregado `distinct: true` al `findAndCountAll` de ambas funciones en `game-shelf.service.ts`. Sequelize ahora cuenta GameShelf.id distintos, ignorando la duplicacion por JOIN. Auditados los otros services paginados — wishlist, favorites y backlog tienen includes solo 1:1 (belongsTo Game/Platform/User sin nested hasMany), por lo que no necesitan `distinct`. Games ya tenia `distinct: true` desde antes.
