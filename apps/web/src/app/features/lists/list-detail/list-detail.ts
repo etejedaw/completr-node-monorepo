@@ -47,6 +47,7 @@ export class ListDetail implements OnInit {
 	protected readonly searchQuery = signal("");
 	protected readonly searchResults = signal<Game[]>([]);
 	protected readonly isSearching = signal(false);
+	protected readonly isSearchingOnline = signal(false);
 	protected readonly showBacklogModal = signal(false);
 	protected readonly backlogPreselectedGame = signal<Game | null>(null);
 	protected readonly togglingFollow = signal(false);
@@ -64,15 +65,27 @@ export class ListDetail implements OnInit {
 				switchMap(query => {
 					if (query.length < 2) {
 						this.isSearching.set(false);
+						this.isSearchingOnline.set(false);
 						return of([]);
 					}
 					this.isSearching.set(true);
-					return this.gamesService.search(query);
+					this.isSearchingOnline.set(false);
+					return this.gamesService.searchLocal(query).pipe(
+						switchMap(localResults => {
+							if (localResults.length > 0) {
+								return of(localResults);
+							}
+							this.isSearching.set(false);
+							this.isSearchingOnline.set(true);
+							return this.gamesService.search(query);
+						})
+					);
 				})
 			)
 			.subscribe(games => {
 				this.searchResults.set(games);
 				this.isSearching.set(false);
+				this.isSearchingOnline.set(false);
 			});
 	}
 

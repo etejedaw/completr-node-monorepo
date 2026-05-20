@@ -106,6 +106,11 @@
 		<ui-search-bar placeholder="Search games to add..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 		@if (isSearching()) {
 		<div class="px-3 py-2 text-[0.8125rem] text-fg-muted">Searching...</div>
+		} @if (isSearchingOnline()) {
+		<div class="px-3 py-2 text-[0.8125rem] text-brand flex items-center gap-2">
+			<span class="material-icons text-base animate-spin">autorenew</span>
+			Searching online...
+		</div>
 		} @if (searchResults().length > 0) {
 		<ul class="list-none bg-input-bg border border-line rounded-card mt-1 max-h-[200px] overflow-y-auto p-0">
 			@for (game of searchResults(); track game.id) {
@@ -119,7 +124,10 @@
 					class="w-7 h-[38px] object-cover rounded-[3px] shrink-0"
 				/>
 				}
-				<span>{{ game.title }}</span>
+				<span class="flex-1">{{ game.title }}</span>
+				@if (game.isDlc) {
+				<span class="px-1.5 py-0.5 bg-warning/15 text-warning text-[0.65rem] font-semibold uppercase tracking-wider rounded">DLC</span>
+				}
 			</li>
 			}
 		</ul>

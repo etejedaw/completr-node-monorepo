@@ -30,21 +30,31 @@
 			</div>
 			@if (isSearching()) {
 				<p class="text-fg-muted text-sm">Searching...</p>
+			} @else if (isSearchingOnline()) {
+				<p class="text-brand text-sm flex items-center gap-2">
+					<span class="material-icons text-base animate-spin">autorenew</span>
+					Searching online...
+				</p>
 			} @else if (searchResults().length === 0) {
 				<p class="text-fg-muted text-sm">No games found.</p>
 			} @else {
 				<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 					@for (game of searchResults(); track game.id) {
 						<a class="flex flex-col gap-2 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', game.code]">
-							@if (game.backgroundUrl) {
-								<img
-									[src]="game.backgroundUrl"
-									[alt]="game.title"
-									class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
-								/>
-							} @else {
-								<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-							}
+							<div class="relative">
+								@if (game.backgroundUrl) {
+									<img
+										[src]="game.backgroundUrl"
+										[alt]="game.title"
+										class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
+									/>
+								} @else {
+									<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+								}
+								@if (game.isDlc) {
+									<span class="absolute top-2 left-2 px-1.5 py-0.5 bg-warning/85 text-black text-[0.65rem] font-semibold uppercase tracking-wider rounded backdrop-blur-sm shadow">DLC</span>
+								}
+							</div>
 							<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ game.title }}</span>
 						</a>
 					}
