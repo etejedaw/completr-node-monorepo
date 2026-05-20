@@ -321,6 +321,10 @@ Migrar todo el frontend para que use ng-primitives como base de componentes UI. 
 
 - [ ] Crear landing con descripción de Completr y formulario de solicitar invitación (Astro, separado)
 
+### Revisión de paleta de colores
+
+- [ ] Auditoría general de la paleta: definir jerarquía clara (brand para CTA y estado activo, accent secundario, muted para texto secundario, neutral default), revisar usos indiscriminados de `text-brand`, validar contraste WCAG AA en pares texto/fondo. Considerar variedad de color por sección en el sidebar (estilo Discord) — descartado en Fase 2 por preferencia, reevaluar con feedback de más usuarios. Relacionado con FB-089.
+
 ---
 
 ## FASE 4 — Beta Pública
