@@ -208,9 +208,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** La busqueda de juegos es demasiado literal y no tolera variaciones comunes. Por ejemplo, buscar "fear" no encuentra "F.E.A.R." porque el titulo tiene puntos entre las letras. Lo mismo puede pasar con caracteres especiales, acentos, numeros romanos vs arabigos, etc. Esto afecta tanto la busqueda local como la experiencia del usuario al agregar juegos.
-- **Solucion propuesta:** Mejorar la busqueda local para que sea mas tolerante: normalizar el query y los titulos removiendo puntos, caracteres especiales y acentos antes de comparar. Considerar usar ILIKE con wildcards o funciones de similitud de PostgreSQL (pg_trgm, unaccent). En RAWG el problema es menor porque su API ya maneja fuzzy matching.
+- **Solucion:** Resuelto junto con FB-091. Nuevo helper `buildTitleSearchWhere(query)` en `games.service.ts`. Ver FB-091 para detalles.
 
 ### [FB-023] RAWG agrupa juegos que deberian ser registros separados
 
@@ -826,11 +826,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** El cuadro de busqueda hace match literal contra el titulo. Si el usuario escribe `terminator ` (con espacio al final), encuentra "Terminator Resistance Annihilation Line" pero NO "Terminator: Resistance", porque en este ultimo despues de "Terminator" viene `:` y no un espacio. Lo mismo pasa con otros separadores (guiones, dos puntos, comas) y con espacios iniciales/finales del query. El comportamiento esperado es que la busqueda sea tolerante a puntuacion y espacios sobrantes.
 - **Causa tecnica:** En `src/games/games.service.ts:205` y `:222` la query se construye como `{ title: { [Op.iLike]: `%${query}%` } }`. No hay normalizacion del input ni del campo comparado.
-- **Solucion propuesta:** (1) Quick win: hacer `trim()` y colapsar espacios multiples del query antes de la comparacion. (2) Tokenizacion: dividir el query por whitespace y aplicar AND de varios `ILIKE %token%` — asi `"terminator resistance"` matchea independiente de si entre ambas palabras hay `:`, `-` o espacio. (3) Normalizar puntuacion: tanto en el query como en el lado del titulo, comparar contra una version sin puntuacion (regex `[^a-z0-9 ]` → eliminado). Opciones: agregar columna generada `title_normalized` indexada, o usar `regexp_replace` en la query (mas lento pero sin migracion). (4) Robusto a largo plazo: activar extension `pg_trgm` y usar similarity para fuzzy match con ranking — soporta tipos, abreviaciones y orden distinto de palabras. Empezar por (1)+(2)+(3) que cubren el caso reportado; dejar (4) para cuando el catalogo crezca.
+- **Solucion:** Nuevo helper `buildTitleSearchWhere(query)` en `games.service.ts` que: (1) normaliza el query — trim, lowercase, reemplaza puntuacion por espacios, colapsa espacios, divide en tokens y strip de cualquier no-alfanumerico por token; (2) construye un WHERE con `Op.and` de `whereFn` por cada token contra `regexp_replace(lower(title), '[^a-z0-9]', '', 'g')` con `Op.like '%token%'`. El titulo se normaliza completamente sin espacios ni puntuacion, lo que cubre los 3 casos del FB en una sola estrategia: (a) "terminator " (espacio sobrante) → match `Terminator: Resistance`. (b) "terminator resistance" → match ambos titulos con `:` y sin. (c) "resistance terminator" (orden invertido) → match ambos via AND de tokens. (d) "fear" → matchea `F.E.A.R.` (titulo normalizado = "fear"). `searchGamesLocal` y `searchGames` reescritos para usar el helper. Si el query normalizado resulta vacio (todo puntuacion), retorna sin resultados.
 
 ### [FB-092] "Similar" siempre muestra los mismos juegos y recomienda mal
 

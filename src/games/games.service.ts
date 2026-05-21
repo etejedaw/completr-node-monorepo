@@ -2,7 +2,11 @@ import {
 	Op,
 	Transaction,
 	UniqueConstraintError,
-	ValidationError
+	ValidationError,
+	WhereOptions,
+	fn,
+	col,
+	where as whereFn
 } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { RegisterGameDto } from "./dtos/register-game.dto";
@@ -199,11 +203,40 @@ export async function findLatestReviewed(limit = 16) {
 		.filter((g): g is Game => g !== undefined);
 }
 
+function buildTitleSearchWhere(query: string): WhereOptions | null {
+	const normalized = query
+		.trim()
+		.toLowerCase()
+		.replace(/[^a-z0-9\s]/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+	if (!normalized) return null;
+	const tokens = normalized
+		.split(" ")
+		.map(t => t.replace(/[^a-z0-9]/g, ""))
+		.filter(t => t.length > 0);
+	if (tokens.length === 0) return null;
+	const normalizedTitle = fn(
+		"regexp_replace",
+		fn("lower", col("title")),
+		"[^a-z0-9]",
+		"",
+		"g"
+	);
+	return {
+		[Op.and]: tokens.map(token =>
+			whereFn(normalizedTitle, Op.like, `%${token}%`)
+		)
+	};
+}
+
 export async function searchGamesLocal(query: string) {
+	const titleWhere = buildTitleSearchWhere(query);
+	if (!titleWhere) return [];
 	return Game.findAll({
 		where: {
-			title: { [Op.iLike]: `%${query}%` },
-			isActive: true
+			isActive: true,
+			...titleWhere
 		},
 		include: [
 			{ association: "Platforms" },
@@ -217,21 +250,24 @@ export async function searchGamesLocal(query: string) {
 
 export async function searchGames(query: string, forceRawg = false) {
 	if (!forceRawg) {
-		const localResults = await Game.findAll({
-			where: {
-				title: { [Op.iLike]: `%${query}%` },
-				isActive: true
-			},
-			include: [
-				{ association: "Platforms" },
-				{ association: "Genres" },
-				{ association: "GameScores" },
-				{ association: "GameTimes" }
-			]
-		});
+		const titleWhere = buildTitleSearchWhere(query);
+		if (titleWhere) {
+			const localResults = await Game.findAll({
+				where: {
+					isActive: true,
+					...titleWhere
+				},
+				include: [
+					{ association: "Platforms" },
+					{ association: "Genres" },
+					{ association: "GameScores" },
+					{ association: "GameTimes" }
+				]
+			});
 
-		if (localResults.length > 0) {
-			return { games: localResults, importedIds: new Set<string>() };
+			if (localResults.length > 0) {
+				return { games: localResults, importedIds: new Set<string>() };
+			}
 		}
 	}
 
