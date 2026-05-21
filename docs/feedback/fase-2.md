@@ -699,10 +699,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En el detalle de un juego (Games) deberia mostrarse una seccion "Latest Completr Lists" con las listas publicas mas recientes que incluyen ese juego. La seccion nunca aparece, ni siquiera para juegos que sabemos que estan en varias listas publicas. Puede ser que el endpoint no devuelva resultados, que el frontend este filtrando mal, o que la query no este matcheando los juegos correctamente con sus listas.
-- **Solucion propuesta:** Diagnosticar el flujo end-to-end: (1) verificar que el endpoint que devuelve "ultimas listas que incluyen este juego" exista y este siendo llamado desde el detalle del juego; (2) revisar la query en backend (joins entre lists, list_items y games, filtros por visibilidad publica y orden por fecha); (3) revisar el frontend (si los datos llegan, comprobar que la seccion se renderice y no este oculta por un guard tipo `if (lists.length === 0)` que falle por shape). Si el endpoint no existe todavia, crearlo: GET /games/:id/lists?limit=N&order=recent devolviendo solo listas publicas. Considerar paginacion futura.
+- **Solucion:** El FB describe un placeholder de la UI anterior. El rediseño posterior de `game-detail` reemplazo la seccion estatica "Latest Completr Lists" por un tab "Lists" alimentado por `GET /games/:id/lists` (`gamesController.getGameLists` → `listsService.findPublicListsByGameId`). La query filtra `isPublic: true` y hace join con `ListItem` por `gameId`, incluyendo `User` para distinguir listas oficiales (`role === 'admin'`). El tab se renderiza condicional a `featuredLists().length > 0` y muestra cards con badge "Official" para listas admin + nombre + descripcion + owner. Sidebar derecho del game detail muestra el contador "In Lists". No requiere accion adicional.
 
 ### [FB-078] Real Duration en diary view del backlog no se destaca lo suficiente
 
