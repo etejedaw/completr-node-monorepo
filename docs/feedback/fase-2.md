@@ -510,10 +510,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** El usuario nota que a veces la misma busqueda retorna mas juegos que otras veces. Esto probablemente se debe al fallback a RAWG: la primera vez que se busca un juego que no esta en la DB local, RAWG lo importa y la proxima vez aparecen mas resultados porque ya estan en la DB. No es un bug sino comportamiento esperado, pero el usuario lo percibe como inconsistente.
-- **Solucion propuesta:** Agregar un indicador visual que diferencie resultados locales de resultados importados de RAWG (ej: badge "New" o "From RAWG" en resultados recien importados). Esto ayuda al usuario a entender por que los resultados cambian entre busquedas. Tambien considerar mostrar un mensaje tipo "Found X new games from RAWG" cuando el fallback importa juegos nuevos.
+- **Solucion:** Backend: `resolveRawgResult` ahora devuelve `{ game, justImported }` (true cuando el `registerGame` recien creo el registro, false cuando el juego ya existia en DB o se mapeo por slug). `searchAndCreateFromRawg` agrupa los IDs recien creados en un `Set<string>`. `searchGames` (controller) pasa el flag al `gameSerializer` por game para exponer `justImported: boolean`. Frontend: badge "RAWG" con icono `cloud_download` (bg-info/15 text-info) en los 4 puntos donde aparece busqueda con fallback: `backlog-modal` dropdown, `game-shelf-modal` dropdown, `list-detail` add-game dropdown, y la grilla de "Search Results" en `games-browse` (overlay top-right en la cover). El badge convive con el badge DLC sin pisarlo. Tooltip "Just imported from RAWG".
 
 ### [FB-058] Sin indicador de que un juego ya esta en una lista
 
