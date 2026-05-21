@@ -11,6 +11,57 @@
 
 	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
+	<div class="flex items-center gap-2 mb-4 flex-wrap">
+		<span class="text-xs text-fg-muted mr-1">Sort by:</span>
+		<button
+			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="sortBy() === 'manual'"
+			[class.!border-brand]="sortBy() === 'manual'"
+			[class.!text-brand]="sortBy() === 'manual'"
+			(click)="setSort('manual')"
+		>
+			Manual
+		</button>
+		<button
+			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="sortBy() === 'ratio'"
+			[class.!border-brand]="sortBy() === 'ratio'"
+			[class.!text-brand]="sortBy() === 'ratio'"
+			(click)="setSort('ratio')"
+		>
+			Ratio
+		</button>
+		<button
+			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="sortBy() === 'score'"
+			[class.!border-brand]="sortBy() === 'score'"
+			[class.!text-brand]="sortBy() === 'score'"
+			(click)="setSort('score')"
+		>
+			Score
+		</button>
+		<button
+			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="sortBy() === 'duration'"
+			[class.!border-brand]="sortBy() === 'duration'"
+			[class.!text-brand]="sortBy() === 'duration'"
+			(click)="setSort('duration')"
+		>
+			Duration
+		</button>
+		@if (sortBy() !== 'manual') {
+			<button
+				class="ml-auto bg-brand-subtle border border-brand text-brand text-xs font-medium px-3 py-1.5 rounded cursor-pointer inline-flex items-center gap-1.5 transition hover:bg-brand hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+				[disabled]="savingOrder()"
+				(click)="saveCurrentOrder()"
+				title="Persist this order as the new manual priority"
+			>
+				<span class="material-icons text-sm">save</span>
+				{{ savingOrder() ? 'Saving...' : 'Save this order' }}
+			</button>
+		}
+	</div>
+
 	@if (isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (entries().length === 0) {
@@ -33,8 +84,8 @@
 				}"
 				[position]="offset() + i + 1"
 				[showActions]="true"
-				[isFirst]="i === 0"
-				[isLast]="i === filteredEntries().length - 1"
+				[isFirst]="sortBy() !== 'manual' || i === 0"
+				[isLast]="sortBy() !== 'manual' || i === filteredEntries().length - 1"
 				(moveUp)="moveUp(i)"
 				(moveDown)="moveDown(i)"
 				(remove)="remove(entry)"

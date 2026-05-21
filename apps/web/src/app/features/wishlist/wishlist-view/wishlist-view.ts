@@ -29,13 +29,56 @@ export class WishlistView implements OnInit {
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
+	protected readonly sortBy = signal<
+		"manual" | "ratio" | "score" | "duration"
+	>("manual");
+	protected readonly savingOrder = signal(false);
 
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadWishlist();
 	}
 
-	protected readonly filteredEntries = computed(() => this.entries());
+	setSort(sort: "manual" | "ratio" | "score" | "duration") {
+		this.sortBy.set(sort);
+	}
+
+	protected readonly filteredEntries = computed(() => {
+		const sort = this.sortBy();
+		const list = this.entries();
+		if (sort === "manual") return list;
+		const sorted = [...list];
+		if (sort === "ratio") {
+			sorted.sort(
+				(a, b) => (b.backlog.ratio ?? -1) - (a.backlog.ratio ?? -1)
+			);
+		} else if (sort === "score") {
+			sorted.sort(
+				(a, b) => (b.backlog.score ?? -1) - (a.backlog.score ?? -1)
+			);
+		} else if (sort === "duration") {
+			sorted.sort(
+				(a, b) =>
+					(a.backlog.duration ?? Number.POSITIVE_INFINITY) -
+					(b.backlog.duration ?? Number.POSITIVE_INFINITY)
+			);
+		}
+		return sorted;
+	});
+
+	saveCurrentOrder() {
+		if (this.sortBy() === "manual" || this.savingOrder()) return;
+		this.savingOrder.set(true);
+		const backlogIds = this.filteredEntries().map(e => e.backlog.id);
+		this.wishlistService.reorder(backlogIds).subscribe({
+			next: updated => {
+				this.entries.set(updated);
+				this.sortBy.set("manual");
+				this.savingOrder.set(false);
+			},
+			error: () => this.savingOrder.set(false)
+		});
+	}
 
 	private readonly searchSubject = new Subject<string>();
 
