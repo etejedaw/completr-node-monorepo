@@ -1,0 +1,36 @@
+info:
+    name: Remove Item from List
+    type: http
+    seq: 3
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/lists/:listId/items/:gameId"
+    auth: inherit
+    params:
+        - name: listId
+          type: path
+          value: ""
+        - name: gameId
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Remove Item from List
+
+    Remove a single game from the list by gameId. Idempotent — returns 204 even if the game wasn't in the list.
+
+    **Authentication:** Bearer token required (list owner only).
+    **Rate Limit:** 300 requests per minute (user).
+
+    Returns 403 if the user isn't the list owner. Returns 204 on success.
+
+    ### Path Params
+
+    | Param  | Type | Required | Description |
+    |--------|------|----------|-------------|
+    | listId | uuid | Yes      | List UUID   |
+    | gameId | uuid | Yes      | Game UUID   |
