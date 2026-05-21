@@ -176,15 +176,17 @@
 							}
 							@if (item.backlogStatus) {
 								<span class="text-fg-muted">·</span>
-								<span
-									class="flex items-center gap-1 capitalize"
+								<button
+									type="button"
+									class="flex items-center gap-1 capitalize cursor-pointer bg-transparent border-0 p-0 text-xs hover:opacity-80 transition"
 									[class]="
 										item.backlogStatus === 'completed' ? 'text-success' :
 										item.backlogStatus === 'playing' ? 'text-warning' :
 										item.backlogStatus === 'abandoned' ? 'text-danger' :
 										'text-brand'
 									"
-									[title]="item.backlogStatus.replace('_', ' ')"
+									title="Edit your backlog"
+									(click)="openEditBacklog(item)"
 								>
 									<span class="material-icons text-sm">
 										{{
@@ -195,7 +197,7 @@
 										}}
 									</span>
 									{{ item.backlogStatus.replace('_', ' ') }}
-								</span>
+								</button>
 							} @else {
 								<span class="text-fg-muted">·</span>
 								<button
@@ -259,6 +261,7 @@
 } @if (showBacklogModal()) {
 <app-backlog-modal
 	[preselectedGame]="backlogPreselectedGame()"
+	[entry]="backlogEditingEntry()"
 	(closed)="onBacklogModalClosed()"
 	(saved)="onBacklogModalSaved()"
 />

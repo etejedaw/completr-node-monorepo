@@ -7,11 +7,12 @@ import {
 	signal
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { List, ListItem, Game } from "../../../core/models";
+import { List, ListItem, Game, BacklogEntry } from "../../../core/models";
 import { ListsService } from "../lists.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { ListModal } from "../list-modal/list-modal";
 import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
+import { BacklogService } from "../../backlog/backlog.service";
 import { GamesService } from "../../games/games.service";
 import {
 	Subject,
@@ -33,6 +34,7 @@ export class ListDetail implements OnInit {
 	private readonly router = inject(Router);
 	private readonly listsService = inject(ListsService);
 	private readonly gamesService = inject(GamesService);
+	private readonly backlogService = inject(BacklogService);
 	private readonly authService = inject(AuthService);
 	private readonly searchSubject = new Subject<string>();
 
@@ -50,6 +52,7 @@ export class ListDetail implements OnInit {
 	protected readonly isSearchingOnline = signal(false);
 	protected readonly showBacklogModal = signal(false);
 	protected readonly backlogPreselectedGame = signal<Game | null>(null);
+	protected readonly backlogEditingEntry = signal<BacklogEntry | null>(null);
 	protected readonly togglingFollow = signal(false);
 
 	private listId = "";
@@ -151,14 +154,31 @@ export class ListDetail implements OnInit {
 		});
 	}
 
+	openEditBacklog(item: ListItem) {
+		this.backlogService.getMyBacklog({ game_id: item.game.id }).subscribe({
+			next: res => {
+				const entry = res.data.backlog[0];
+				if (!entry) {
+					this.openBacklogModal(item);
+					return;
+				}
+				this.backlogEditingEntry.set(entry);
+				this.showBacklogModal.set(true);
+			},
+			error: () => this.openBacklogModal(item)
+		});
+	}
+
 	onBacklogModalClosed() {
 		this.showBacklogModal.set(false);
 		this.backlogPreselectedGame.set(null);
+		this.backlogEditingEntry.set(null);
 	}
 
 	onBacklogModalSaved() {
 		this.showBacklogModal.set(false);
 		this.backlogPreselectedGame.set(null);
+		this.backlogEditingEntry.set(null);
 		this.loadList();
 	}
 

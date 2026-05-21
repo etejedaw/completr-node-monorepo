@@ -91,17 +91,20 @@
 					<td class="py-2 px-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ item.ratio ?? "-" }}</td>
 					<td class="py-2 px-3 align-middle whitespace-nowrap capitalize">
 						@if (item.backlogStatus) {
-						<span
-							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
+						<button
+							type="button"
+							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide cursor-pointer border-0 hover:opacity-80 transition"
 							[class]="
 								item.backlogStatus === 'completed' ? 'bg-[rgba(139,92,246,0.12)] text-success' :
 								item.backlogStatus === 'playing' ? 'bg-warning/10 text-warning' :
 								item.backlogStatus === 'abandoned' ? 'bg-danger/10 text-danger' :
 								'bg-[rgba(148,163,184,0.12)] text-fg-muted'
 							"
+							title="Edit your backlog"
+							(click)="openEditBacklog(item)"
 						>
 							{{ item.backlogStatus.replace("_", " ") }}
-						</span>
+						</button>
 						} @else {
 						<span class="text-fg-muted">-</span>
 						}
@@ -113,3 +116,11 @@
 	</div>
 	} }
 </div>
+
+@if (showBacklogModal()) {
+<app-backlog-modal
+	[entry]="backlogEditingEntry()"
+	(closed)="onBacklogModalClosed()"
+	(saved)="onBacklogModalSaved()"
+/>
+}

@@ -8,17 +8,20 @@ import {
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import { PublicProfileService } from "../public-profile.service";
-import { List } from "../../../core/models";
+import { BacklogService } from "../../backlog/backlog.service";
+import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
+import { BacklogEntry, List, ListItem } from "../../../core/models";
 
 @Component({
 	selector: "app-user-list-detail",
-	imports: [RouterLink],
+	imports: [RouterLink, BacklogModal],
 	templateUrl: "./user-list-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserListDetail implements OnInit {
 	private readonly route = inject(ActivatedRoute);
 	private readonly profileService = inject(PublicProfileService);
+	private readonly backlogService = inject(BacklogService);
 	private readonly authService = inject(AuthService);
 
 	protected readonly username = signal("");
@@ -27,6 +30,8 @@ export class UserListDetail implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly error = signal<"not_found" | "private" | null>(null);
 	protected readonly isLoggedIn = this.authService.isLoggedIn;
+	protected readonly showBacklogModal = signal(false);
+	protected readonly backlogEditingEntry = signal<BacklogEntry | null>(null);
 
 	ngOnInit() {
 		if (this.authService.token() && !this.authService.user()) {
@@ -69,5 +74,28 @@ export class UserListDetail implements OnInit {
 				this.isLoading.set(false);
 			}
 		});
+	}
+
+	openEditBacklog(item: ListItem) {
+		this.backlogService.getMyBacklog({ game_id: item.game.id }).subscribe({
+			next: res => {
+				const entry = res.data.backlog[0];
+				if (!entry) return;
+				this.backlogEditingEntry.set(entry);
+				this.showBacklogModal.set(true);
+			}
+		});
+	}
+
+	onBacklogModalClosed() {
+		this.showBacklogModal.set(false);
+		this.backlogEditingEntry.set(null);
+	}
+
+	onBacklogModalSaved() {
+		this.showBacklogModal.set(false);
+		this.backlogEditingEntry.set(null);
+		const listId = this.route.snapshot.paramMap.get("id") ?? "";
+		this.load(this.username(), listId);
 	}
 }
