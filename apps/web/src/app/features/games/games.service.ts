@@ -125,6 +125,22 @@ export class GamesService {
 			.pipe(map(res => res.data.genres));
 	}
 
+	getGenreGames(
+		code: string,
+		opts: { limit?: number; offset?: number } = {}
+	) {
+		let params = new HttpParams();
+		if (opts.limit !== undefined)
+			params = params.set("limit", String(opts.limit));
+		if (opts.offset !== undefined)
+			params = params.set("offset", String(opts.offset));
+		return this.http
+			.get<{
+				data: { genre: Genre; games: Game[]; hasMore: boolean };
+			}>(`${environment.apiUrl}/genres/${code}/games`, { params })
+			.pipe(map(res => res.data));
+	}
+
 	getByCode(code: string) {
 		return this.http
 			.get<{
@@ -165,9 +181,14 @@ export class GamesService {
 			.pipe(map(res => res.data.game));
 	}
 
-	reportGame(gameId: string, message: string) {
+	reportGame(
+		gameId: string,
+		message: string,
+		category: "general" | "missing_score" | "missing_duration" = "general"
+	) {
 		return this.http.post(`${environment.apiUrl}/games/${gameId}/reports`, {
-			message
+			message,
+			category
 		});
 	}
 

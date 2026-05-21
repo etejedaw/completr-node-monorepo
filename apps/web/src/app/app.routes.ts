@@ -97,6 +97,13 @@ export const routes: Routes = [
 					)
 			},
 			{
+				path: "genres/:code",
+				loadComponent: () =>
+					import("./features/games/genre-detail/genre-detail").then(
+						m => m.GenreDetail
+					)
+			},
+			{
 				path: "games/:code",
 				loadComponent: () =>
 					import("./features/games/game-detail/game-detail").then(

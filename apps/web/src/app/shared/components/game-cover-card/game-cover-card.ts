@@ -50,6 +50,16 @@ export interface GameCoverCardGame {
 					{{ topLeftBadge() }}
 				</span>
 			}
+			@if (ratio() != null || duration() != null) {
+				<div class="absolute top-2 right-2 flex flex-col items-end gap-1">
+					@if (ratio() != null) {
+						<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-brand/85 backdrop-blur-sm">{{ ratio() }}</span>
+					}
+					@if (duration() != null) {
+						<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-white bg-black/70 backdrop-blur-sm">{{ duration() }}h</span>
+					}
+				</div>
+			}
 			@if (acquiredAt()) {
 				<span class="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-white bg-black/70 backdrop-blur-sm">
 					<span class="material-icons text-[0.75rem]">event</span>
@@ -73,6 +83,8 @@ export interface GameCoverCardGame {
 export class GameCoverCard {
 	game = input.required<GameCoverCardGame>();
 	topLeftBadge = input<string | undefined>();
+	ratio = input<number | null | undefined>();
+	duration = input<number | null | undefined>();
 	subtitle = input<string | undefined>();
 	acquiredAt = input<string | Date | null | undefined>();
 	clickable = input<boolean>(false);
