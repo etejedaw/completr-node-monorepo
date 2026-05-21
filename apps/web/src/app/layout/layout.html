@@ -243,14 +243,6 @@
 						<a routerLink="/profile" class="block text-[0.8125rem] font-semibold text-fg no-underline hover:text-brand truncate">{{ user()?.username }}</a>
 						<span class="inline-block mt-0.5 px-1.5 py-0.5 rounded-full text-[0.5625rem] font-bold uppercase tracking-wider" [class]="roleBadgeClass()">{{ roleBadge() }}</span>
 					</div>
-					<a
-						routerLink="/help"
-						class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md text-fg-muted no-underline transition hover:text-fg"
-						title="Help & glossary"
-						aria-label="Help & glossary"
-					>
-						<span class="material-icons text-base">help_outline</span>
-					</a>
 					<button
 						class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg"
 						(click)="logout()"
@@ -274,13 +266,18 @@
 						<span class="text-[0.5625rem] uppercase tracking-wider text-fg-muted">Total</span>
 					</a>
 				</div>
-			</div>
-
-			<div class="px-4 pb-3 text-center">
-				<a href="https://www.etejeda.dev" target="_blank" rel="noopener noreferrer" class="text-[0.6875rem] text-fg-muted no-underline hover:text-brand">
-					Made with ♥ by Esteban
+				<div class="mx-2 mt-2 h-px bg-line"></div>
+				<a
+					routerLink="/help"
+					routerLinkActive="!text-brand"
+					class="mt-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-fg-muted no-underline transition hover:text-brand"
+					title="Help & glossary"
+				>
+					<span class="material-icons text-base">help_outline</span>
+					<span class="text-[0.6875rem] uppercase tracking-wider">Help</span>
 				</a>
 			</div>
+
 		</div>
 	</nav>
 	<main class="flex-1 bg-canvas overflow-y-auto relative">
