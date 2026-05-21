@@ -36,7 +36,7 @@
 				</span>
 			</div>
 			<div class="flex flex-wrap gap-2 mt-2">
-				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-brand/85 text-white">Ratio 1640</span>
+				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-brand/85 text-white">Ratio 82</span>
 				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-black/70 text-white">1h</span>
 				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-input-bg border border-line text-fg-secondary">Score 82</span>
 				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning">Personal 92</span>
@@ -50,26 +50,29 @@
 		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
 			Completr's signature metric. The <strong>Ratio</strong> tells you how much score a game delivers per hour, so you can prioritize what to play next. Higher = more value per hour.
 		</p>
-		<div class="bg-input-bg border border-line rounded-md p-4 font-mono text-sm mb-4">
-			Ratio = (score / duration) &times; 20
+		<div class="bg-input-bg border border-line rounded-md p-4 font-mono text-sm mb-2">
+			Ratio = (score<sub class="text-fg-muted">norm</sub> / duration) &times; 20
 		</div>
+		<p class="text-[0.75rem] text-fg-muted mb-4">
+			<em>score<sub>norm</sub></em> is the public score normalized to a 0–5 scale (so 82/100 → 4.1, 8.2/10 → 4.1, etc.). With this normalization, the practical max ratio is around <strong>100</strong>.
+		</p>
 
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			<div class="bg-input-bg border border-line rounded-card p-4 relative">
-				<span class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-brand/85 text-white">Ratio 1640</span>
+				<span class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-brand/85 text-white">Ratio 82</span>
 				<div class="text-sm font-semibold text-fg">Florence</div>
-				<div class="text-[0.6875rem] text-fg-muted mb-3">Score 82 · 1h</div>
+				<div class="text-[0.6875rem] text-fg-muted mb-3">Score 82 · 1h · (4.1/5 × 20)</div>
 				<p class="text-[0.75rem] text-fg-secondary leading-snug">
 					Tiny game, big punch. Lots of score per hour.
 				</p>
 			</div>
 
 			<div class="bg-input-bg border border-line rounded-card p-4 relative">
-				<span class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-brand/85 text-white">Ratio 16.4</span>
+				<span class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-brand/85 text-white">Ratio 0.82</span>
 				<div class="text-sm font-semibold text-fg">Big JRPG</div>
-				<div class="text-[0.6875rem] text-fg-muted mb-3">Score 82 · 100h</div>
+				<div class="text-[0.6875rem] text-fg-muted mb-3">Score 82 · 100h · (4.1/5 × 20 ÷ 100)</div>
 				<p class="text-[0.75rem] text-fg-secondary leading-snug">
-					Same score, but spread over 100h. Lower ratio.
+					Same score, but spread over 100h. Much lower ratio.
 				</p>
 			</div>
 		</div>
