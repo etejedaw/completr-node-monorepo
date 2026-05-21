@@ -359,10 +359,11 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Al usar una funcion que muestra preview de imagen (probablemente el avatar URL en el modal de edicion de perfil), la preview no carga o se muestra rota. No se especifico exactamente en que pantalla ocurre, pero es probable que sea en el modal de editar perfil donde se ingresa un avatar URL y se muestra un preview.
 - **Solucion propuesta:** El problema probablemente viene del nginx que bloquea o no proxea correctamente imagenes externas. Montar un servicio de almacenamiento (MinIO/S3) para fotos de perfil es demasiado para esta fase. Solucion intermedia: crear un pool de avatares predefinidos generados con IA (estilo Netflix) para que los usuarios elijan uno. Esto evita el problema de URLs externas, da una experiencia visual consistente y a futuro cuando se implemente upload real, los avatares predefinidos quedan como opcion por defecto.
+- **Resolucion:** Pool de 10 avatares generados con Gemini (parodias originales de arquetipos de videojuegos para evitar derechos de autor) servidos como assets estaticos en `frontend/public/avatars/completr_profile_01..10.png`. En `settings-profile` se reemplazo el input de URL por un grid 5x2 de previews seleccionables: click sobre uno setea el avatarUrl al path local, con indicador visual (border + check icon) en el seleccionado y opcion "Remove" para volver al default. Se evita asi el problema de URLs externas (hotlink blocking, CSP, CDN cambiando) y se mantiene consistencia visual. Pendiente generar 4 avatares mas para llegar a 14 originales y considerar upload real en una fase futura.
 
 ### [FB-041] Sidebar desaparece al entrar a perfil publico o detalle de juego
 
@@ -1012,7 +1013,7 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** diferido a Fase 3/4
 - **Reportado por:** Esteban
 - **Descripcion:** Hoy todos los iconos del sidebar son del mismo color neutro (`opacity-70` sobre el color del texto). Visualmente se ven planos y cuesta diferenciar secciones de un vistazo. Una asignacion de color por seccion ayudaria al reconocimiento rapido (estilo Discord/Slack) y daria identidad visual a cada feature. Esta idea ya fue probada en una sesion previa (en el contexto de FB-089) — se aplicaron colores semanticos a Queue (danger/rojo), Favorites (warning/amarillo) y Saved Views (sky/cyan) — y se revirtio porque el usuario prefirio iconos neutros en ese momento. Ahora se vuelve a abrir para evaluar la idea con mas variedad de colores y aplicada a TODOS los items, no solo tres.
 - **Solucion propuesta:** Definir una paleta de colores fija por seccion en el sidebar (inactivo). Cuando el item esta activo, el color cambia a brand como ya esta hoy. Propuesta inicial: Feed (sky/cyan, `dynamic_feed`), Games (emerald/verde, `sports_esports`), Backlog (brand/morado, `list_alt`), Game Shelf (amber/naranja, `shelves`), Queue (rose/rojo, `favorite_border`), Favorites (yellow/dorado, `star`), Saved Views (purple/violeta, `bookmark`), Lists (teal, `format_list_bulleted`), Admin section (con tono mas tenue para no robar protagonismo). Ajustar opacity para que no sature visualmente. Cuando un item esta activo, el `routerLinkActive` ya aplica `[&_.nav-icon]:!text-brand`, asi que el color semantico se sobreescribe — el estado activo sigue siendo claramente identificable. Validar con usuarios reales (no solo Esteban): si hay rechazo, descartar.
