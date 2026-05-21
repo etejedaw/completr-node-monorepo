@@ -25,7 +25,6 @@ export class WishlistView implements OnInit {
 	protected readonly entries = signal<WishlistEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly showAddModal = signal(false);
-	protected readonly viewMode = signal<"table" | "grid">("table");
 	protected readonly searchQuery = signal("");
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
@@ -88,26 +87,6 @@ export class WishlistView implements OnInit {
 		const list = [...this.entries()];
 		[list[index], list[index + 1]] = [list[index + 1], list[index]];
 		this.reorder(list);
-	}
-
-	statusLabel(status: string): string {
-		const map: Record<string, string> = {
-			not_started: "Not Started",
-			playing: "Playing",
-			completed: "Completed",
-			abandoned: "Abandoned"
-		};
-		return map[status] ?? status;
-	}
-
-	statusClass(status: string): string {
-		const map: Record<string, string> = {
-			not_started: "bg-fg-muted/10 text-fg-muted",
-			playing: "bg-warning/10 text-warning",
-			completed: "bg-brand-subtle text-brand",
-			abandoned: "bg-danger/10 text-danger"
-		};
-		return map[status] ?? "";
 	}
 
 	private loadWishlist() {
