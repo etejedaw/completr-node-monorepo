@@ -50,3 +50,10 @@ export function splitInvalidError() {
 		raw: undefined
 	});
 }
+
+export function compilationInvalidError() {
+	return new ServiceError("GAME_COMPILATION_INVALID", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}

@@ -74,6 +74,15 @@ export function gameSplitInvalid(context?: Record<string, unknown>) {
 	);
 }
 
+export function gameCompilationInvalid(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_COMPILATION_INVALID",
+		"Compilation update is invalid",
+		context
+	);
+}
+
 export function gameInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

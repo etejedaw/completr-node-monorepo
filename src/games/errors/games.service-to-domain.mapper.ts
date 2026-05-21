@@ -31,5 +31,8 @@ export function gamesServiceToDomainMapper(
 	if (error.code === "GAME_SPLIT_INVALID")
 		return gameDomainError.gameSplitInvalid(context);
 
+	if (error.code === "GAME_COMPILATION_INVALID")
+		return gameDomainError.gameCompilationInvalid(context);
+
 	return gameDomainError.gameInternalError(context);
 }

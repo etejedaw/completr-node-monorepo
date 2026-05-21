@@ -122,6 +122,45 @@ export async function getRawgDetail(request: Request, response: Response) {
 	return response.status(200).json({ data: { game: detail } });
 }
 
+export async function putCompilationItems(
+	request: Request,
+	response: Response
+) {
+	const params = request.locals.params as GameIdParam;
+	const body = request.locals.body as {
+		items: (
+			| { mode: "link"; gameId: string }
+			| { mode: "create"; title: string }
+		)[];
+	};
+	const user = request.locals.user as RequestUser;
+
+	const items = await gameService.setCompilationItems(params.id, body.items);
+	auditService.record(user.id, "game_compilation_set", "game", params.id);
+
+	const data = {
+		items: items.map(i => ({
+			id: i.id,
+			position: i.position,
+			childGameId: i.childGameId,
+			childGame: i.ChildGame
+				? gameSerializer(i.ChildGame.get({ plain: true }))
+				: null
+		}))
+	};
+	return response.status(200).json({ data });
+}
+
+export async function deleteCompilation(request: Request, response: Response) {
+	const params = request.locals.params as GameIdParam;
+	const user = request.locals.user as RequestUser;
+
+	await gameService.clearCompilation(params.id);
+	auditService.record(user.id, "game_compilation_cleared", "game", params.id);
+
+	return response.sendStatus(204);
+}
+
 export async function postSplitGame(request: Request, response: Response) {
 	const params = request.locals.params as GameIdParam;
 	const body = request.locals.body as {

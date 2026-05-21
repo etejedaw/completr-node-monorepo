@@ -39,5 +39,8 @@ export function gamesDomainToHttpMapper(
 	if (error.code === "GAME_SPLIT_INVALID")
 		return new HttpError({ ...baseOptions, status: 400 });
 
+	if (error.code === "GAME_COMPILATION_INVALID")
+		return new HttpError({ ...baseOptions, status: 400 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

@@ -22,6 +22,7 @@ import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
 import * as gameExternalService from "../game-external/game-external.service";
 import { GameExternal } from "../game-external/game-external.model";
+import { CompilationItem } from "../compilation-items/compilation-item.model";
 import * as reviewsService from "../reviews/reviews.service";
 import { RawgProvider } from "../rawg/rawg.provider";
 import { RawgGameDetail } from "../rawg/rawg.interface";
@@ -89,8 +90,29 @@ export async function findGameByCode(code: string) {
 				where: { isActive: true },
 				required: false
 			},
-			{ association: "ParentGame" }
-		]
+			{ association: "ParentGame" },
+			{
+				association: "CompilationItems",
+				include: [
+					{
+						association: "ChildGame",
+						where: { isActive: true },
+						required: false
+					}
+				]
+			},
+			{
+				association: "PartOfCompilations",
+				include: [
+					{
+						association: "ParentGame",
+						where: { isActive: true },
+						required: true
+					}
+				]
+			}
+		],
+		order: [[sequelize.literal('"CompilationItems"."position"'), "ASC"]]
 	});
 }
 
@@ -122,6 +144,8 @@ export interface GamesQueryOptions {
 	min_duration?: number;
 	max_duration?: number;
 	is_dlc?: boolean;
+	is_compilation?: boolean;
+	exclude_compilations?: boolean;
 	include_inactive?: boolean;
 	only_inactive?: boolean;
 	no_scores?: boolean;
@@ -148,6 +172,8 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		min_duration,
 		max_duration,
 		is_dlc,
+		is_compilation,
+		exclude_compilations,
 		include_inactive,
 		only_inactive,
 		no_scores,
@@ -177,6 +203,12 @@ export async function findAll(options: GamesQueryOptions = {}) {
 
 	if (is_dlc !== undefined) {
 		where["isDlc"] = is_dlc;
+	}
+
+	if (is_compilation !== undefined) {
+		where["isCompilation"] = is_compilation;
+	} else if (exclude_compilations) {
+		where["isCompilation"] = false;
 	}
 
 	if (release_year_from !== undefined || release_year_to !== undefined) {
@@ -777,6 +809,206 @@ export async function splitGame(
 			throw gamesServiceError.validationError(error);
 		throw error;
 	}
+}
+
+export type SetCompilationItemInput =
+	| { mode: "link"; gameId: string }
+	| { mode: "create"; title: string };
+
+export async function setCompilationItems(
+	parentGameId: string,
+	items: readonly SetCompilationItemInput[]
+) {
+	const parent = await Game.findOne({
+		where: { id: parentGameId, isActive: true },
+		include: [
+			{ association: "Platforms" },
+			{ association: "Genres" },
+			{ association: "GameScores" },
+			{ association: "GameTimes" }
+		]
+	});
+	if (!parent) throw gamesServiceError.notFoundError();
+
+	const inheritedPlatformIds = parent.Platforms?.map(p => p.id) ?? [];
+	const inheritedGenreIds = parent.Genres?.map(g => g.id) ?? [];
+	const inheritedScores =
+		parent.GameScores?.map(s => ({ source: s.source, score: s.score })) ??
+		[];
+	const inheritedTimes =
+		parent.GameTimes?.map(t => ({
+			source: t.source,
+			duration: t.duration
+		})) ?? [];
+
+	for (const item of items) {
+		if (item.mode === "link" && item.gameId === parentGameId) {
+			throw gamesServiceError.compilationInvalidError();
+		}
+	}
+
+	const linkedIds = items
+		.filter(i => i.mode === "link")
+		.map(i => (i as { gameId: string }).gameId);
+	if (new Set(linkedIds).size !== linkedIds.length) {
+		throw gamesServiceError.compilationInvalidError();
+	}
+
+	const createdSlugs = items
+		.filter(i => i.mode === "create")
+		.map(i => titleToSlug((i as { title: string }).title));
+	if (new Set(createdSlugs).size !== createdSlugs.length) {
+		throw gamesServiceError.compilationInvalidError();
+	}
+
+	if (linkedIds.length > 0) {
+		const found = await Game.findAll({
+			where: { id: linkedIds, isActive: true }
+		});
+		if (found.length !== linkedIds.length) {
+			throw gamesServiceError.notFoundError();
+		}
+	}
+
+	const transaction = await sequelize.transaction();
+	try {
+		await CompilationItem.destroy({
+			where: { parentGameId },
+			transaction
+		});
+
+		const resolvedChildIds: string[] = [];
+		for (const item of items) {
+			if (item.mode === "link") {
+				resolvedChildIds.push(item.gameId);
+			} else {
+				const child = await Game.create(
+					{
+						title: item.title,
+						code: titleToSlug(item.title),
+						description: parent.description,
+						releaseAt: parent.releaseAt,
+						coverUrl: parent.coverUrl,
+						backgroundUrl: parent.backgroundUrl,
+						isDlc: false,
+						isCompilation: false
+					},
+					{ transaction }
+				);
+				if (inheritedPlatformIds.length > 0) {
+					await gamePlatformsService.linkGameToPlatforms(
+						child.id,
+						inheritedPlatformIds,
+						transaction
+					);
+				}
+				if (inheritedGenreIds.length > 0) {
+					await gameGenresService.linkGameToGenres(
+						child.id,
+						inheritedGenreIds,
+						transaction
+					);
+				}
+				for (const s of inheritedScores) {
+					await gameScoresService.createGameScore(
+						child.id,
+						s.source,
+						s.score,
+						transaction
+					);
+				}
+				for (const t of inheritedTimes) {
+					await gameTimesService.createGameTime(
+						child.id,
+						t.source,
+						t.duration,
+						transaction
+					);
+				}
+				resolvedChildIds.push(child.id);
+			}
+		}
+
+		if (new Set(resolvedChildIds).size !== resolvedChildIds.length) {
+			throw gamesServiceError.compilationInvalidError();
+		}
+
+		for (let i = 0; i < resolvedChildIds.length; i++) {
+			await CompilationItem.create(
+				{
+					parentGameId,
+					childGameId: resolvedChildIds[i],
+					position: i
+				},
+				{ transaction }
+			);
+		}
+
+		await parent.update({ isCompilation: true }, { transaction });
+
+		await transaction.commit();
+
+		return await findCompilationItemsByParent(parentGameId);
+	} catch (error) {
+		await transaction.rollback();
+		if (error instanceof UniqueConstraintError)
+			throw gamesServiceError.uniqueConstraintError(error);
+		if (error instanceof ValidationError)
+			throw gamesServiceError.validationError(error);
+		throw error;
+	}
+}
+
+export async function clearCompilation(parentGameId: string) {
+	const parent = await Game.findOne({
+		where: { id: parentGameId, isActive: true }
+	});
+	if (!parent) throw gamesServiceError.notFoundError();
+
+	const transaction = await sequelize.transaction();
+	try {
+		await CompilationItem.destroy({
+			where: { parentGameId },
+			transaction
+		});
+		await parent.update({ isCompilation: false }, { transaction });
+		await transaction.commit();
+	} catch (error) {
+		await transaction.rollback();
+		throw error;
+	}
+}
+
+export async function findCompilationItemsByParent(parentGameId: string) {
+	return CompilationItem.findAll({
+		where: { parentGameId },
+		include: [
+			{
+				association: "ChildGame",
+				include: [
+					{ association: "Platforms" },
+					{ association: "GameScores" },
+					{ association: "GameTimes" },
+					{ association: "Genres" }
+				]
+			}
+		],
+		order: [["position", "ASC"]]
+	});
+}
+
+export async function findCompilationParentsForChild(childGameId: string) {
+	return CompilationItem.findAll({
+		where: { childGameId },
+		include: [
+			{
+				association: "ParentGame",
+				where: { isActive: true },
+				required: true
+			}
+		],
+		order: [["createdAt", "ASC"]]
+	});
 }
 
 export async function deactivateGame(id: string) {
