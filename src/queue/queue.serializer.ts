@@ -1,4 +1,4 @@
-import { Wishlist } from "./wishlist.model";
+import { Queue } from "./queue.model";
 
 const RATIO_SCALE = 20;
 
@@ -7,7 +7,7 @@ function calculateRatio(score?: number, duration?: number) {
 	return Math.round((score / duration) * RATIO_SCALE * 100) / 100;
 }
 
-export function wishlistSerializer(entry: Wishlist) {
+export function queueSerializer(entry: Queue) {
 	return {
 		id: entry.id,
 		position: entry.position,
@@ -15,7 +15,7 @@ export function wishlistSerializer(entry: Wishlist) {
 	};
 }
 
-function backlogSerializer(backlog: Wishlist["Backlog"]) {
+function backlogSerializer(backlog: Queue["Backlog"]) {
 	if (!backlog) return undefined;
 	return {
 		id: backlog.id,
@@ -30,7 +30,7 @@ function backlogSerializer(backlog: Wishlist["Backlog"]) {
 	};
 }
 
-function gameSerializer(game: Wishlist["Backlog"]["Game"]) {
+function gameSerializer(game: Queue["Backlog"]["Game"]) {
 	if (!game) return undefined;
 	return {
 		id: game.id,
@@ -41,7 +41,7 @@ function gameSerializer(game: Wishlist["Backlog"]["Game"]) {
 	};
 }
 
-function platformSerializer(platform: Wishlist["Backlog"]["Platform"]) {
+function platformSerializer(platform: Queue["Backlog"]["Platform"]) {
 	if (!platform) return undefined;
 	return {
 		id: platform.id,

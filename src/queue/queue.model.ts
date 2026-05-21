@@ -9,7 +9,7 @@ interface BacklogWithIncludes extends Backlog {
 	Platform: Platform;
 }
 
-class Wishlist extends Model {
+class Queue extends Model {
 	declare id: string;
 	declare userId: string;
 	declare backlogId: string;
@@ -19,7 +19,7 @@ class Wishlist extends Model {
 	declare Backlog: BacklogWithIncludes;
 }
 
-Wishlist.init(
+Queue.init(
 	{
 		id: {
 			type: DataTypes.UUID,
@@ -46,4 +46,4 @@ Wishlist.init(
 	}
 );
 
-export { Wishlist };
+export { Queue };

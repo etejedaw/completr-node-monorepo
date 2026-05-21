@@ -1,14 +1,14 @@
 import { Op } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
-import { Wishlist } from "./wishlist.model";
+import { Queue } from "./queue.model";
 import { Backlog } from "../backlog/backlog.model";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
-import * as wishlistServiceError from "./errors/wishlist.service-error";
+import * as queueServiceError from "./errors/queue.service-error";
 
-const FREE_WISHLIST_LIMIT = 10;
+const FREE_QUEUE_LIMIT = 10;
 
 function isPremium(role: string) {
 	return role === "premium" || role === "moderator" || role === "admin";
@@ -16,9 +16,8 @@ function isPremium(role: string) {
 
 async function checkLimit(userId: string, role: string) {
 	if (isPremium(role)) return;
-	const count = await Wishlist.count({ where: { userId } });
-	if (count >= FREE_WISHLIST_LIMIT)
-		throw wishlistServiceError.limitReachedError();
+	const count = await Queue.count({ where: { userId } });
+	if (count >= FREE_QUEUE_LIMIT) throw queueServiceError.limitReachedError();
 }
 
 const BACKLOG_INCLUDE = [
@@ -33,10 +32,10 @@ export async function addFromGame(
 	await checkLimit(user.id, user.role);
 
 	const game = await Game.findOne({ where: { id: gameId } });
-	if (!game) throw wishlistServiceError.gameNotFoundError();
+	if (!game) throw queueServiceError.gameNotFoundError();
 
 	const platform = await Platform.findOne({ where: { id: platformId } });
-	if (!platform) throw wishlistServiceError.platformNotFoundError();
+	if (!platform) throw queueServiceError.platformNotFoundError();
 
 	const transaction = await sequelize.transaction();
 
@@ -52,9 +51,9 @@ export async function addFromGame(
 		);
 
 		const position =
-			(await Wishlist.count({ where: { userId: user.id } })) + 1;
+			(await Queue.count({ where: { userId: user.id } })) + 1;
 
-		await Wishlist.create(
+		await Queue.create(
 			{
 				userId: user.id,
 				backlogId: backlogEntry.id,
@@ -65,7 +64,7 @@ export async function addFromGame(
 
 		await transaction.commit();
 
-		return Wishlist.findOne({
+		return Queue.findOne({
 			where: { backlogId: backlogEntry.id, userId: user.id },
 			include: BACKLOG_INCLUDE
 		});
@@ -79,37 +78,37 @@ export async function addFromBacklog(backlogId: string, user: RequestUser) {
 	await checkLimit(user.id, user.role);
 
 	const backlog = await Backlog.findOne({ where: { id: backlogId } });
-	if (!backlog) throw wishlistServiceError.backlogNotFoundError();
+	if (!backlog) throw queueServiceError.backlogNotFoundError();
 	if (backlog.userId !== user.id)
-		throw wishlistServiceError.backlogNotOwnedError();
+		throw queueServiceError.backlogNotOwnedError();
 
-	const existing = await Wishlist.findOne({
+	const existing = await Queue.findOne({
 		where: { userId: user.id, backlogId }
 	});
-	if (existing) throw wishlistServiceError.alreadyInWishlistError();
+	if (existing) throw queueServiceError.alreadyInQueueError();
 
-	const position = (await Wishlist.count({ where: { userId: user.id } })) + 1;
+	const position = (await Queue.count({ where: { userId: user.id } })) + 1;
 
-	await Wishlist.create({
+	await Queue.create({
 		userId: user.id,
 		backlogId,
 		position
 	});
 
-	return Wishlist.findOne({
+	return Queue.findOne({
 		where: { backlogId, userId: user.id },
 		include: BACKLOG_INCLUDE
 	});
 }
 
-export async function replaceWishlist(user: RequestUser, backlogIds: string[]) {
+export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 	if (backlogIds.length === 0) {
-		await Wishlist.destroy({ where: { userId: user.id } });
+		await Queue.destroy({ where: { userId: user.id } });
 		return [];
 	}
 
-	if (!isPremium(user.role) && backlogIds.length > FREE_WISHLIST_LIMIT)
-		throw wishlistServiceError.limitReachedError();
+	if (!isPremium(user.role) && backlogIds.length > FREE_QUEUE_LIMIT)
+		throw queueServiceError.limitReachedError();
 
 	const backlogs = await Backlog.findAll({
 		where: { id: backlogIds, userId: user.id }
@@ -117,34 +116,34 @@ export async function replaceWishlist(user: RequestUser, backlogIds: string[]) {
 	if (backlogs.length !== backlogIds.length) {
 		const foundIds = new Set(backlogs.map(b => b.id));
 		const missing = backlogIds.filter(id => !foundIds.has(id));
-		throw wishlistServiceError.backlogsNotFoundError(missing);
+		throw queueServiceError.backlogsNotFoundError(missing);
 	}
 
-	await Wishlist.destroy({ where: { userId: user.id } });
+	await Queue.destroy({ where: { userId: user.id } });
 
 	const entries = backlogIds.map((backlogId, index) => ({
 		userId: user.id,
 		backlogId,
 		position: index + 1
 	}));
-	await Wishlist.bulkCreate(entries);
+	await Queue.bulkCreate(entries);
 
-	return Wishlist.findAll({
+	return Queue.findAll({
 		where: { userId: user.id },
 		include: BACKLOG_INCLUDE,
 		order: [["position", "ASC"]]
 	});
 }
 
-export async function findWishlistByUserId(userId: string) {
-	return Wishlist.findAll({
+export async function findQueueByUserId(userId: string) {
+	return Queue.findAll({
 		where: { userId },
 		include: BACKLOG_INCLUDE,
 		order: [["position", "ASC"]]
 	});
 }
 
-export async function findWishlistByUserIdPaginated(
+export async function findQueueByUserIdPaginated(
 	userId: string,
 	pagination: PaginatedSearchQuery = {}
 ) {
@@ -175,10 +174,10 @@ export async function findWishlistByUserIdPaginated(
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
 
-	const { rows, count } = await Wishlist.findAndCountAll(query);
+	const { rows, count } = await Queue.findAndCountAll(query);
 	return { rows, total: count };
 }
 
 export async function removeByBacklogId(backlogId: string) {
-	await Wishlist.destroy({ where: { backlogId } });
+	await Queue.destroy({ where: { backlogId } });
 }

@@ -6,7 +6,7 @@ export const UpdateUserSchema = z
 		bio: z.string().min(1).max(250).nonempty().optional(),
 		avatarUrl: z.string().nonempty().optional(),
 		isPublic: z.boolean().optional(),
-		isWishlistPublic: z.boolean().optional(),
+		isQueuePublic: z.boolean().optional(),
 		isFavoritePublic: z.boolean().optional(),
 		isFeedPublic: z.boolean().optional()
 	})

@@ -1,20 +1,20 @@
 info:
-    name: Get My Wishlist
+    name: Get My Queue
     type: http
     seq: 3
 
 http:
     method: GET
-    url: "{{BASE_URL}}/users/me/wishlist"
+    url: "{{BASE_URL}}/users/me/queue"
     auth: inherit
 
 settings:
     encodeUrl: true
 
 docs: |-
-    ## Get My Wishlist
+    ## Get My Queue
 
-    Returns the authenticated user's wishlist ordered by position.
+    Returns the authenticated user's play queue ordered by position.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -24,7 +24,7 @@ docs: |-
     ```json
     {
       "data": {
-        "wishlist": [
+        "queue": [
           {
             "id": "uuid",
             "position": 1,

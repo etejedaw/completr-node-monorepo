@@ -1,11 +1,11 @@
 info:
-    name: Get User Wishlist
+    name: Get User Queue
     type: http
     seq: 4
 
 http:
     method: GET
-    url: "{{BASE_URL}}/users/:username/wishlist"
+    url: "{{BASE_URL}}/users/:username/queue"
     params:
         - name: username
           type: path
@@ -15,18 +15,18 @@ settings:
     encodeUrl: true
 
 docs: |-
-    ## Get User Wishlist
+    ## Get User Queue
 
-    Returns a user's public wishlist. Requires `User.isPublic` and `User.isWishlistPublic` to be true.
+    Returns a user's public play queue. Requires `User.isPublic` and `User.isQueuePublic` to be true.
 
     **Authentication:** Not required.
     **Rate Limit:** 100 requests per minute.
 
     ### Response (200)
 
-    Same shape as Get My Wishlist.
+    Same shape as Get My Queue.
 
     ### Errors
 
     - 404 `USER_NOT_FOUND`
-    - 403 `USER_PRIVATE` — Profile or wishlist is private
+    - 403 `USER_PRIVATE` — Profile or queue is private

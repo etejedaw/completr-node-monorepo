@@ -9,7 +9,7 @@ export function userMeSerializer(user: User) {
 		bio: user.bio,
 		avatarUrl: user.avatarUrl,
 		isPublic: user.isPublic,
-		isWishlistPublic: user.isWishlistPublic,
+		isQueuePublic: user.isQueuePublic,
 		isFavoritePublic: user.isFavoritePublic,
 		isFeedPublic: user.isFeedPublic,
 		createdAt: user.createdAt
@@ -34,7 +34,7 @@ export function userProfileSerializer(user: User) {
 		name: user.name,
 		bio: user.bio,
 		avatarUrl: user.avatarUrl,
-		isWishlistPublic: user.isWishlistPublic,
+		isQueuePublic: user.isQueuePublic,
 		isFavoritePublic: user.isFavoritePublic,
 		isFeedPublic: user.isFeedPublic,
 		createdAt: user.createdAt

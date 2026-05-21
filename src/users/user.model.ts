@@ -12,7 +12,7 @@ class User extends Model {
 	declare bio?: string;
 	declare avatarUrl?: string;
 	declare isPublic: boolean;
-	declare isWishlistPublic: boolean;
+	declare isQueuePublic: boolean;
 	declare isFavoritePublic: boolean;
 	declare isFeedPublic: boolean;
 	declare isActive: boolean;
@@ -54,7 +54,7 @@ User.init(
 			type: DataTypes.BOOLEAN,
 			defaultValue: true
 		},
-		isWishlistPublic: {
+		isQueuePublic: {
 			type: DataTypes.BOOLEAN,
 			defaultValue: true
 		},

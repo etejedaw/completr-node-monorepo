@@ -24,8 +24,8 @@ import { UserIdParamSchema } from "./schemas/user-id-params.schema";
 import { AdminUpdateUserSchema } from "./schemas/admin-update-user.schema";
 import { UsernameListParamsSchema } from "./schemas/username-list-params.schema";
 import savedFiltersRouter from "../saved-filters/saved-filters.routes";
-import wishlistRouter from "../wishlist/wishlist.routes";
-import * as wishlistController from "../wishlist/wishlist.controller";
+import queueRouter from "../queue/queue.routes";
+import * as queueController from "../queue/queue.controller";
 import favoritesRouter from "../favorites/favorites.routes";
 import * as favoritesController from "../favorites/favorites.controller";
 
@@ -140,16 +140,16 @@ router.get(
 
 router.use("/users/me/saved-filters", savedFiltersRouter);
 
-router.use("/users/me/wishlist", wishlistRouter);
+router.use("/users/me/queue", queueRouter);
 
 router.get(
-	"/users/:username/wishlist",
+	"/users/:username/queue",
 	[
 		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
-	wishlistController.getUserWishlist
+	queueController.getUserQueue
 );
 
 router.use("/users/me/favorites", favoritesRouter);

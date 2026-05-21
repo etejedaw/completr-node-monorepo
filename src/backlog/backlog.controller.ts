@@ -93,7 +93,7 @@ export async function patchBacklog(request: Request, response: Response) {
 	const previous = await backlogService.findBacklogById(params.backlogId);
 	const previousStatus = previous?.status;
 
-	const { backlog: backlogEntry, wishlistRemoved } =
+	const { backlog: backlogEntry, queueRemoved } =
 		await backlogService.updateBacklog(
 			params.backlogId,
 			user.id,
@@ -113,7 +113,7 @@ export async function patchBacklog(request: Request, response: Response) {
 
 	const data = {
 		backlog: backlogSerializer(backlogPlain),
-		wishlistRemoved
+		queueRemoved
 	};
 	return response.status(200).json({ data });
 }

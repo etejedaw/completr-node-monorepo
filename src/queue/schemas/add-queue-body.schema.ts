@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const AddWishlistBodySchema = z
+export const AddQueueBodySchema = z
 	.object({
 		id: z.uuid(),
 		platformId: z.uuid().optional()
@@ -8,4 +8,4 @@ export const AddWishlistBodySchema = z
 	.strict()
 	.readonly();
 
-export type AddWishlistBody = z.infer<typeof AddWishlistBodySchema>;
+export type AddQueueBody = z.infer<typeof AddQueueBodySchema>;

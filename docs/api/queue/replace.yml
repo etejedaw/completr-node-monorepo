@@ -1,11 +1,11 @@
 info:
-    name: Replace Wishlist
+    name: Replace Queue
     type: http
     seq: 2
 
 http:
     method: PUT
-    url: "{{BASE_URL}}/users/me/wishlist"
+    url: "{{BASE_URL}}/users/me/queue"
     headers:
         - name: Content-Type
           value: application/json
@@ -21,9 +21,9 @@ settings:
     encodeUrl: true
 
 docs: |-
-    ## Replace Wishlist
+    ## Replace Queue
 
-    Replaces the entire wishlist with the given backlogIds in order. Accepts an empty array to clear the wishlist.
+    Replaces the entire queue with the given backlogIds in order. Accepts an empty array to clear the queue.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -39,7 +39,7 @@ docs: |-
     ```json
     {
       "data": {
-        "wishlist": [
+        "queue": [
           {
             "id": "uuid",
             "position": 1,
@@ -61,5 +61,5 @@ docs: |-
 
     ### Errors
 
-    - 402 `WISHLIST_LIMIT_REACHED` — Free plan limit (10) exceeded
-    - 404 `WISHLIST_BACKLOGS_NOT_FOUND` — One or more backlogIds not found or not owned
+    - 402 `QUEUE_LIMIT_REACHED` — Free plan limit (10) exceeded
+    - 404 `QUEUE_BACKLOGS_NOT_FOUND` — One or more backlogIds not found or not owned

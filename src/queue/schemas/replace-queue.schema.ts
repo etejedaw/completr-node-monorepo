@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const ReplaceWishlistSchema = z
+export const ReplaceQueueSchema = z
 	.object({
 		backlogIds: z
 			.uuid()
@@ -12,4 +12,4 @@ export const ReplaceWishlistSchema = z
 	.strict()
 	.readonly();
 
-export type ReplaceWishlistBody = z.infer<typeof ReplaceWishlistSchema>;
+export type ReplaceQueueBody = z.infer<typeof ReplaceQueueSchema>;

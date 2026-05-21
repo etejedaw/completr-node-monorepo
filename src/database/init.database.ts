@@ -14,7 +14,7 @@ import "../backlog/backlog.model";
 import "../game-scores/game-score.model";
 import "../game-times/game-time.model";
 import "../saved-filters/saved-filter.model";
-import "../wishlist/wishlist.model";
+import "../queue/queue.model";
 import "../favorites/favorite.model";
 import "../game-external/game-external.model";
 import "../score-sources/score-source.model";

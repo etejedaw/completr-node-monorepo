@@ -1,11 +1,11 @@
 info:
-    name: Add to Wishlist
+    name: Add to Queue
     type: http
     seq: 1
 
 http:
     method: POST
-    url: "{{BASE_URL}}/users/me/wishlist?source=game"
+    url: "{{BASE_URL}}/users/me/queue?source=game"
     headers:
         - name: Content-Type
           value: application/json
@@ -26,9 +26,9 @@ settings:
     encodeUrl: true
 
 docs: |-
-    ## Add to Wishlist
+    ## Add to Queue
 
-    Adds a game or backlog entry to the user's wishlist.
+    Adds a game or backlog entry to the user's play queue (games they want to play soon).
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -51,7 +51,7 @@ docs: |-
     ```json
     {
       "data": {
-        "wishlist": {
+        "queue": {
           "id": "uuid",
           "position": 1,
           "backlog": {
@@ -71,10 +71,10 @@ docs: |-
 
     ### Errors
 
-    - 400 `WISHLIST_SOURCE_MISMATCH` — platformId missing when source=game
-    - 402 `WISHLIST_LIMIT_REACHED` — Free plan limit (10) reached
-    - 404 `WISHLIST_GAME_NOT_FOUND`
-    - 404 `WISHLIST_PLATFORM_NOT_FOUND`
-    - 404 `WISHLIST_BACKLOG_NOT_FOUND`
-    - 403 `WISHLIST_BACKLOG_NOT_OWNED`
-    - 409 `WISHLIST_ALREADY_EXISTS`
+    - 400 `QUEUE_SOURCE_MISMATCH` — platformId missing when source=game
+    - 402 `QUEUE_LIMIT_REACHED` — Free plan limit (10) reached
+    - 404 `QUEUE_GAME_NOT_FOUND`
+    - 404 `QUEUE_PLATFORM_NOT_FOUND`
+    - 404 `QUEUE_BACKLOG_NOT_FOUND`
+    - 403 `QUEUE_BACKLOG_NOT_OWNED`
+    - 409 `QUEUE_ALREADY_EXISTS`
