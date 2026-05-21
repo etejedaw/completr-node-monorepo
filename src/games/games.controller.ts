@@ -147,7 +147,7 @@ export async function getGameLists(request: Request, response: Response) {
 
 	const [publicLists, myLists] = await Promise.all([
 		listsService.findPublicListsByGameId(params.id),
-		listsService.findUserListsByGameId(params.id, user.id)
+		listsService.findUserListsWithGameFlag(user.id, params.id)
 	]);
 
 	const data = {
@@ -169,11 +169,7 @@ export async function getGameLists(request: Request, response: Response) {
 				};
 			})
 		),
-		myLists: myLists.map(list => ({
-			id: list.id,
-			name: list.name,
-			isPublic: list.isPublic
-		}))
+		myLists
 	};
 
 	data.lists.sort((a, b) => {

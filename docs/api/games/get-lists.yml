@@ -20,7 +20,7 @@ docs: |-
 
     Returns lists relevant to the viewer for the given game:
     - `lists`: public lists from any user that include this game (sorted: official admin lists first, then by recency).
-    - `myLists`: viewer's own lists that include this game (public or private). Used to indicate "in your lists" in the game detail.
+    - `myLists`: ALL viewer's own lists with a `contains` boolean indicating whether this game is in each list. Used both for the "In your lists" section (filter `contains === true`) and for the "Add to Lists" modal in game detail (full checkbox state).
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 100 requests per minute (public).
@@ -47,8 +47,8 @@ docs: |-
           }
         ],
         "myLists": [
-          { "id": "uuid", "name": "My RPGs", "isPublic": true },
-          { "id": "uuid", "name": "Hidden gems", "isPublic": false }
+          { "id": "uuid", "name": "My RPGs", "isPublic": true, "contains": true },
+          { "id": "uuid", "name": "Hidden gems", "isPublic": false, "contains": false }
         ]
       }
     }

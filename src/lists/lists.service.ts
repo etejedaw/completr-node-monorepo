@@ -220,6 +220,42 @@ export async function findUserListsByGameId(gameId: string, userId: string) {
 	});
 }
 
+export async function findUserListsWithGameFlag(
+	userId: string,
+	gameId: string
+) {
+	const [allLists, containingIds] = await Promise.all([
+		List.findAll({
+			where: { userId },
+			attributes: ["id", "name", "isPublic"],
+			order: [["createdAt", "DESC"]]
+		}),
+		ListItem.findAll({
+			where: { gameId },
+			attributes: ["listId"],
+			include: [
+				{
+					model: List,
+					where: { userId },
+					attributes: []
+				}
+			],
+			raw: true
+		})
+	]);
+
+	const containsSet = new Set(
+		(containingIds as unknown as { listId: string }[]).map(r => r.listId)
+	);
+
+	return allLists.map(l => ({
+		id: l.id,
+		name: l.name,
+		isPublic: l.isPublic,
+		contains: containsSet.has(l.id)
+	}));
+}
+
 export async function findRecentUserLists(limit = 12) {
 	return List.findAll({
 		where: { isPublic: true },
