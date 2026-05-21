@@ -5,7 +5,7 @@ info:
 
 http:
     method: GET
-    url: "{{BASE_URL}}/users/search?query=john"
+    url: "{{BASE_URL}}/users/search?q=john"
     auth: inherit
 
 settings:
@@ -14,8 +14,9 @@ settings:
 docs: |-
     ## Search Users
 
-    Search users by username. Returns active users (both public and private).
-    Private users appear in results but their profile shows limited info.
+    Search users by username/name (partial, case-insensitive) or by exact email.
+    Returns active users (both public and private). Private users appear in results
+    but their profile shows limited info.
 
     **Auth:** Bearer token required.
 
@@ -23,9 +24,13 @@ docs: |-
 
     ### Query Parameters
 
-    | Param | Type   | Required | Description              |
-    |-------|--------|----------|--------------------------|
-    | query | string | Yes      | Username search term     |
+    At least one of `q` or `email` is required.
+
+    | Param | Type    | Required | Description                                |
+    |-------|---------|----------|--------------------------------------------|
+    | q     | string  | No       | Partial match on username or name (ILIKE)  |
+    | email | string  | No       | Exact email match (case-insensitive)       |
+    | limit | integer | No       | Max results (1-50, default 20)             |
 
     ### Response (200)
 
