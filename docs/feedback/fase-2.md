@@ -921,8 +921,9 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** diferido
 - **Reportado por:** Esteban
+- **Decision (2026-05-20):** Diferido a Fase 3. La landing (`completr.app`) todavia no existe en produccion (esta planificada para Fase 3). Agregar links a paginas inexistentes (About, Pricing, Privacy, Terms, Changelog) es prematuro. Cuando se construya la landing, este FB se incluye como parte de ese trabajo: footer global con enlaces, link en login/register, CTA de Premium, etc.
 - **Descripcion:** Hoy `completr.app` (landing) y `web.completr.app` (app autenticada) son dos sitios separados, y desde la app no hay forma directa de volver a la landing. La pregunta es si conviene exponer enlaces desde la app hacia la web publica — y para que casos especificos. Sin esto, el usuario que entra a la app no tiene punto de retorno al material publico (about, changelog, pricing, blog, etc.) salvo cambiando la URL manualmente.
 - **Casos de uso donde tendria sentido:**
     - **Footer global**: enlaces a About, Changelog, Pricing, Privacy, Terms — todos viven en la landing.
