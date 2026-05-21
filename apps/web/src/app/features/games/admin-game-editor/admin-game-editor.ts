@@ -29,6 +29,7 @@ export class AdminGameEditor implements OnInit {
 	game = input<Game | null>(null);
 	saved = output<void>();
 	created = output<Game>();
+	split = output<Game>();
 
 	protected readonly isEditMode = computed(() => !!this.game());
 
@@ -50,6 +51,7 @@ export class AdminGameEditor implements OnInit {
 	protected readonly releaseAt = signal("");
 	protected readonly backgroundUrl = signal("");
 	protected readonly isDlc = signal(false);
+	protected readonly variant = signal("");
 	protected readonly parentSlug = signal("");
 	protected readonly parentGame = signal<Game | null>(null);
 	protected readonly fetchingParent = signal(false);
@@ -64,6 +66,17 @@ export class AdminGameEditor implements OnInit {
 	// State
 	protected readonly saving = signal(false);
 	protected readonly saveError = signal("");
+
+	// Split modal
+	protected readonly splitOpen = signal(false);
+	protected readonly splitting = signal(false);
+	protected readonly splitError = signal("");
+	protected readonly splitVariants = signal<
+		{ title: string; variant: string }[]
+	>([
+		{ title: "", variant: "" },
+		{ title: "", variant: "" }
+	]);
 
 	// Score/time add
 	protected readonly newScoreSource = signal("");
@@ -96,6 +109,7 @@ export class AdminGameEditor implements OnInit {
 		this.releaseAt.set(g.releaseAt ?? "");
 		this.backgroundUrl.set(g.backgroundUrl ?? "");
 		this.isDlc.set(g.isDlc);
+		this.variant.set(g.variant ?? "");
 		this.selectedPlatforms.set(new Set(g.platforms.map(p => p.code)));
 		this.selectedGenres.set(new Set(g.genres.map(ge => ge.code)));
 		this.scores.set(g.scores.map(s => ({ ...s })));
@@ -281,12 +295,14 @@ export class AdminGameEditor implements OnInit {
 	}
 
 	private doCreate() {
+		const variantValue = this.variant().trim();
 		const dto: CreateGameDto = {
 			title: this.title(),
 			description: this.description() || undefined,
 			releaseAt: this.releaseAt() || undefined,
 			backgroundUrl: this.backgroundUrl() || undefined,
 			isDlc: this.isDlc(),
+			variant: variantValue || undefined,
 			platforms: [...this.selectedPlatforms()],
 			genres: [...this.selectedGenres()],
 			scores: this.scores(),
@@ -315,6 +331,10 @@ export class AdminGameEditor implements OnInit {
 					this.saveError.set(
 						"Rate limit reached. Game was NOT created. Try again in a moment."
 					);
+				} else if (err?.error?.type === "GAME_VARIANT_REQUIRED") {
+					this.saveError.set(
+						"Another game shares this external id. Set a variant label on both games."
+					);
 				} else {
 					this.saveError.set("Failed to create game.");
 				}
@@ -324,12 +344,14 @@ export class AdminGameEditor implements OnInit {
 
 	private doUpdate() {
 		const g = this.game()!;
+		const variantTrim = this.variant().trim();
 		const dto: UpdateGameDto = {
 			title: this.title(),
 			description: this.description() || undefined,
 			releaseAt: this.releaseAt() || undefined,
 			backgroundUrl: this.backgroundUrl() || undefined,
 			isDlc: this.isDlc(),
+			variant: variantTrim ? variantTrim : null,
 			platforms: [...this.selectedPlatforms()],
 			genres: [...this.selectedGenres()]
 		};
@@ -352,6 +374,10 @@ export class AdminGameEditor implements OnInit {
 				if (err.status === 429) {
 					this.saveError.set(
 						"Rate limit reached. Changes were NOT saved. Try again in a moment."
+					);
+				} else if (err?.error?.type === "GAME_VARIANT_REQUIRED") {
+					this.saveError.set(
+						"Another game shares this external id. Set a variant label on both games."
 					);
 				} else {
 					this.saveError.set("Failed to update game.");
@@ -422,6 +448,94 @@ export class AdminGameEditor implements OnInit {
 					this.saveError.set(
 						"Game updated but some scores/times failed to save."
 					);
+				}
+			}
+		});
+	}
+
+	openSplitModal() {
+		const g = this.game();
+		if (!g) return;
+		this.splitError.set("");
+		this.splitVariants.set([
+			{ title: g.title, variant: g.variant ?? "" },
+			{ title: "", variant: "" }
+		]);
+		this.splitOpen.set(true);
+	}
+
+	closeSplitModal() {
+		if (this.splitting()) return;
+		this.splitOpen.set(false);
+	}
+
+	addSplitVariant() {
+		if (this.splitVariants().length >= 10) return;
+		this.splitVariants.update(arr => [...arr, { title: "", variant: "" }]);
+	}
+
+	removeSplitVariant(index: number) {
+		if (this.splitVariants().length <= 2) return;
+		this.splitVariants.update(arr => arr.filter((_, i) => i !== index));
+	}
+
+	updateSplitVariantTitle(index: number, value: string) {
+		this.splitVariants.update(arr =>
+			arr.map((v, i) => (i === index ? { ...v, title: value } : v))
+		);
+	}
+
+	updateSplitVariantLabel(index: number, value: string) {
+		this.splitVariants.update(arr =>
+			arr.map((v, i) => (i === index ? { ...v, variant: value } : v))
+		);
+	}
+
+	submitSplit() {
+		const g = this.game();
+		if (!g) return;
+		const cleaned = this.splitVariants().map(v => ({
+			title: v.title.trim(),
+			variant: v.variant.trim()
+		}));
+		if (cleaned.some(v => !v.title || !v.variant)) {
+			this.splitError.set("All variants need a title and a variant label.");
+			return;
+		}
+		const titles = new Set(cleaned.map(v => v.title.toLowerCase()));
+		if (titles.size !== cleaned.length) {
+			this.splitError.set("Variant titles must be unique.");
+			return;
+		}
+
+		this.splitting.set(true);
+		this.splitError.set("");
+
+		this.gamesService.splitGame(g.id, { variants: cleaned }).subscribe({
+			next: games => {
+				this.splitting.set(false);
+				this.splitOpen.set(false);
+				if (games.length > 0) {
+					this.toast.success(
+						`Split into ${games.length} variants.`
+					);
+					this.split.emit(games[0]);
+				}
+			},
+			error: err => {
+				this.splitting.set(false);
+				if (err.status === 429) {
+					this.splitError.set(
+						"Rate limit reached. Split was NOT applied. Try again in a moment."
+					);
+				} else if (err?.error?.type === "GAME_UNIQUE_CONSTRAINT") {
+					this.splitError.set(
+						"A target title collides with an existing game. Use unique titles."
+					);
+				} else if (err?.error?.type === "GAME_SPLIT_INVALID") {
+					this.splitError.set("Invalid split request.");
+				} else {
+					this.splitError.set("Failed to split the game.");
 				}
 			}
 		});

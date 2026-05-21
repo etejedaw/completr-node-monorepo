@@ -41,6 +41,7 @@ export interface CreateGameDto {
 	backgroundUrl?: string;
 	isDlc?: boolean;
 	parentGameId?: string;
+	variant?: string;
 	genres?: string[];
 	scores?: { source: string; score: number }[];
 	times?: { source: string; duration: number }[];
@@ -56,8 +57,13 @@ export interface UpdateGameDto {
 	backgroundUrl?: string;
 	isDlc?: boolean;
 	parentGameId?: string;
+	variant?: string | null;
 	genres?: string[];
 	externalIds?: { source: string; externalId: string }[];
+}
+
+export interface SplitGameDto {
+	variants: { title: string; variant: string }[];
 }
 
 export interface GamesQuery {
@@ -179,6 +185,14 @@ export class GamesService {
 				data: { game: Game };
 			}>(`${environment.apiUrl}/games/${id}`, dto)
 			.pipe(map(res => res.data.game));
+	}
+
+	splitGame(id: string, dto: SplitGameDto) {
+		return this.http
+			.post<{
+				data: { games: Game[] };
+			}>(`${environment.apiUrl}/games/${id}/split`, dto)
+			.pipe(map(res => res.data.games));
 	}
 
 	rawgBySlug(slug: string) {

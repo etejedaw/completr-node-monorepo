@@ -9,6 +9,7 @@ export interface Game {
 	isDlc: boolean;
 	justImported?: boolean;
 	parentGameId?: string;
+	variant?: string | null;
 	platforms: Platform[];
 	genres: Genre[];
 	scores: GameScore[];

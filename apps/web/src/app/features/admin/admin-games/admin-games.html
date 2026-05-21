@@ -129,6 +129,9 @@
 						>
 							{{ game.title }}
 						</a>
+						@if (game.variant) {
+							<span class="ml-1.5 inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-brand/15 text-brand">{{ game.variant }}</span>
+						}
 					</td>
 					<td class="px-3 py-2 align-middle text-fg-muted text-xs whitespace-nowrap">{{ game.code }}</td>
 					<td class="px-3 py-2 align-middle text-fg-secondary text-xs max-w-[200px]">

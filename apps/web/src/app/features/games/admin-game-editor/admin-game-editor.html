@@ -89,6 +89,18 @@
 			</label>
 		</div>
 
+		<div class="mb-3">
+			<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Variant label</label>
+			<input
+				type="text"
+				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+				placeholder="e.g. Pearl (required when siblings share an external id)"
+				[ngModel]="variant()"
+				(ngModelChange)="variant.set($event)"
+				maxlength="100"
+			/>
+		</div>
+
 		@if (isDlc()) {
 		<div class="mb-3">
 			<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Parent Game</label>
@@ -272,7 +284,20 @@
 	@if (saveError()) {
 	<div class="bg-danger/[0.08] border border-danger/20 text-red-300 py-2 px-3 rounded mb-3 text-[0.8125rem]">{{ saveError() }}</div>
 	}
-	<div class="flex justify-end pt-4 border-t border-line">
+	<div class="flex justify-between items-center pt-4 border-t border-line gap-2">
+		@if (isEditMode()) {
+		<button
+			class="flex items-center gap-1.5 py-2 px-3.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] font-semibold cursor-pointer transition hover:border-warning hover:text-warning"
+			(click)="openSplitModal()"
+			[disabled]="saving()"
+			title="Split this game into multiple variants (e.g. Pokemon Pearl/Diamond → Pearl + Diamond)"
+		>
+			<span class="material-icons text-base">call_split</span>
+			Split game
+		</button>
+		} @else {
+		<span></span>
+		}
 		<button
 			class="py-2 px-5 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
 			style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
@@ -284,3 +309,89 @@
 		</button>
 	</div>
 </div>
+
+@if (splitOpen()) {
+<div class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]" (click)="closeSplitModal()">
+	<div class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[640px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]" (click)="$event.stopPropagation()">
+		<div class="flex justify-between items-center mb-3">
+			<h2 class="font-display m-0 text-lg font-bold">Split game into variants</h2>
+			<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="closeSplitModal()">
+				<span class="material-icons">close</span>
+			</button>
+		</div>
+		<p class="text-[0.8125rem] text-fg-secondary mb-4">
+			Use this when an external source (e.g. RAWG) bundles distinct titles in one record. The first variant overwrites the current game; the rest are created as new games sharing platforms, genres, scores, times and external ids.
+		</p>
+
+		@if (splitError()) {
+		<div class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded mb-3 text-[0.8125rem]">{{ splitError() }}</div>
+		}
+
+		<div class="flex flex-col gap-2 mb-4">
+			@for (v of splitVariants(); track $index; let i = $index) {
+			<div class="flex items-start gap-2">
+				<div class="flex-1 grid grid-cols-[2fr_1fr] gap-2">
+					<div>
+						<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Title #{{ i + 1 }}</label>
+						<input
+							type="text"
+							class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							placeholder="e.g. Pokemon Pearl"
+							[ngModel]="v.title"
+							(ngModelChange)="updateSplitVariantTitle(i, $event)"
+							maxlength="200"
+						/>
+					</div>
+					<div>
+						<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Variant label</label>
+						<input
+							type="text"
+							class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							placeholder="Pearl"
+							[ngModel]="v.variant"
+							(ngModelChange)="updateSplitVariantLabel(i, $event)"
+							maxlength="100"
+						/>
+					</div>
+				</div>
+				<button
+					class="mt-[22px] bg-transparent border border-line rounded p-1.5 text-fg-muted cursor-pointer transition hover:border-danger hover:text-danger disabled:opacity-30 disabled:cursor-not-allowed"
+					(click)="removeSplitVariant(i)"
+					[disabled]="splitVariants().length <= 2"
+					title="Remove this variant"
+				>
+					<span class="material-icons text-sm">close</span>
+				</button>
+			</div>
+			}
+		</div>
+
+		<button
+			class="flex items-center gap-1.5 py-1.5 px-3 bg-input-bg border border-line rounded text-fg-secondary text-xs font-semibold cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed mb-5"
+			(click)="addSplitVariant()"
+			[disabled]="splitVariants().length >= 10"
+		>
+			<span class="material-icons text-sm">add</span>
+			Add variant
+		</button>
+
+		<div class="flex justify-end gap-2 pt-4 border-t border-line">
+			<button
+				class="py-2 px-4 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] font-semibold cursor-pointer transition hover:border-line-hover hover:text-fg disabled:opacity-40 disabled:cursor-not-allowed"
+				(click)="closeSplitModal()"
+				[disabled]="splitting()"
+			>
+				Cancel
+			</button>
+			<button
+				class="py-2 px-5 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+				(click)="submitSplit()"
+				[disabled]="splitting()"
+			>
+				{{ splitting() ? 'Splitting...' : 'Split' }}
+			</button>
+		</div>
+	</div>
+</div>
+}

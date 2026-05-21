@@ -319,6 +319,11 @@ export class GameDetail implements OnInit {
 		if (code) this.loadGame(code);
 	}
 
+	onEditorSplit(firstVariant: { code: string }) {
+		this.showEditor.set(false);
+		this.router.navigate(["/games", firstVariant.code]);
+	}
+
 	protected getScaleLabel(source: string): string {
 		const scale = this.scoreSourcesService.getScale(source);
 		return scale ? `/ ${scale}` : "";
