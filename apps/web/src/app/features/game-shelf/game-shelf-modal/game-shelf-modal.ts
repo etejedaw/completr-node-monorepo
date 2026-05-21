@@ -8,6 +8,7 @@ import {
 	output,
 	signal
 } from "@angular/core";
+import { DatePipe } from "@angular/common";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { GameShelfEntry } from "../../../core/models";
 import { Game, Platform } from "../../../core/models";
@@ -28,7 +29,7 @@ import { UiButton, UiIconButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-game-shelf-modal",
-	imports: [ReactiveFormsModule, UiButton, UiIconButton],
+	imports: [DatePipe, ReactiveFormsModule, UiButton, UiIconButton],
 	templateUrl: "./game-shelf-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
