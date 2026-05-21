@@ -564,10 +564,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Un usuario entro al perfil de otro usuario para seguir una de sus listas y no encontro el boton de Follow. La causa real es que la ruta /user/:username/lists/:id no tiene boton de Follow (ver FB-065). Ademas, las cards de listas en el perfil tampoco tienen opcion de seguir directamente.
-- **Solucion propuesta:** Dos mejoras: (1) hacer el boton Follow mas visible en list-detail (aumentar tamano, usar color de acento, moverlo a una posicion mas prominente). (2) Agregar un boton Follow en las cards de listas cuando se ven desde el perfil de otro usuario, permitiendo seguir sin entrar al detalle. Tambien agregar un indicador visual en las cards de listas que el usuario ya sigue.
+- **Solucion:** Resuelto junto con FB-065 unificando las rutas. La ruta `/user/:username/lists/:id` ahora redirige a `/lists/:id?from=:username` via `redirectTo` funcional (Angular 21). `list-detail` ya tenia el boton Follow visible para no-owners — ahora tambien cubre el flujo del perfil ajeno automaticamente. La parte de "Follow inline en cards" se descarta por scope; el flujo de un click extra al detalle se considera friccion aceptable.
 
 ### [FB-064] Usuarios no entienden que son Score y Duration ni por que son obligatorios
 
@@ -582,10 +582,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tebi
 - **Descripcion:** Existen dos rutas para ver una lista: /lists/:id (que si tiene boton Follow/Unfollow) y /user/:username/lists/:id (que no lo tiene). Cuando un usuario entra al perfil de otro y hace click en una de sus listas, llega a la ruta /user/:username/lists/:id donde no hay forma de seguir la lista. Esta es la ruta natural para descubrir listas de otros usuarios, por lo que el Follow esta efectivamente roto para el flujo mas comun. Esto explica por que Tami no pudo seguir una lista (FB-063).
-- **Solucion propuesta:** Agregar el boton Follow/Unfollow en la vista /user/:username/lists/:id. Idealmente ambas rutas deberian compartir el mismo componente de detalle de lista o al menos las mismas funcionalidades. Evaluar si tiene sentido unificar ambas rutas en una sola (/lists/:id) y que el contexto del usuario se resuelva internamente.
+- **Solucion:** Unificacion de rutas. Cambios: (1) `app.routes.ts`: la ruta `user/:username/lists/:id` ahora es un `redirectTo` funcional (Angular 21) que apunta a `/lists/:id?from=:username` — preserva el username via query param sin requerir un componente. (2) `list-detail` lee `?from=` y muestra un sub-link "from @username" debajo del titulo + cambia el back arrow para volver al perfil ajeno (en vez de a `/lists`). (3) Los links del perfil publico (`public-profile.html`) actualizados para apuntar directo a `/lists/:id` con `[queryParams]` (evita la redireccion doble). (4) Eliminado el componente `UserListDetail` y el metodo `PublicProfileService.getUserListDetail` (ya no usados). El endpoint backend `/users/:username/lists/:listId` queda como dead code pero se mantiene por si terceros lo consumen — limpieza diferida.
 
 ### [FB-066] Indicador visual cuando un item de wishlist se auto-remueve
 
