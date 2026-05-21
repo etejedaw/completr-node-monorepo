@@ -16,6 +16,14 @@ export interface BacklogEntry {
 	review?: { content: string | null; rating: number | null } | null;
 	game: BacklogGame;
 	platform: BacklogPlatform;
+	compilationGame?: BacklogCompilationGame | null;
+}
+
+export interface BacklogCompilationGame {
+	id: string;
+	code: string;
+	title: string;
+	backgroundUrl?: string;
 }
 
 export type BacklogStatus =

@@ -619,63 +619,12 @@
 
 @if (showBacklogModal()) {
 	<app-backlog-modal
-		[preselectedGame]="backlogModalGame() ?? game()"
+		[preselectedGame]="backlogModalGame()"
+		[preselectedCompilationParent]="backlogModalCompilationParent()"
 		[preselectAddToQueue]="backlogModalPreselectQueue()"
 		(closed)="onModalClosed()"
 		(saved)="onModalSaved()"
 	/>
-}
-
-@if (compilationPickerOpen() && game()) {
-	<div class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]" (click)="closeCompilationPicker()">
-		<div class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]" (click)="$event.stopPropagation()">
-			<div class="flex justify-between items-center mb-2">
-				<h2 class="font-display m-0 text-lg font-bold">Which one are you playing?</h2>
-				<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="closeCompilationPicker()">
-					<span class="material-icons">close</span>
-				</button>
-			</div>
-			<p class="text-[0.8125rem] text-fg-secondary mb-4">{{ game()!.title }} is a compilation. Pick the title you're playing now, or track the whole bundle as a single entry.</p>
-
-			<div class="flex flex-col gap-2 mb-4">
-				@for (item of game()!.compilationItems!; track item.id) {
-					@if (item.game) {
-						<button
-							class="flex items-center gap-3 p-3 bg-input-bg border border-line rounded text-left cursor-pointer transition hover:border-brand hover:bg-brand-subtle"
-							(click)="pickCompilationChild(item.game)"
-						>
-							@if (item.game.backgroundUrl) {
-								<img [src]="item.game.backgroundUrl" [alt]="item.game.title" class="w-12 h-12 object-cover rounded shrink-0" />
-							} @else {
-								<div class="w-12 h-12 bg-surface rounded flex items-center justify-center shrink-0 text-fg-muted">
-									<span class="material-icons text-sm">videogame_asset</span>
-								</div>
-							}
-							<div class="flex-1 min-w-0">
-								<div class="text-sm font-medium text-fg">{{ item.game.title }}</div>
-								<div class="text-xs text-fg-muted">{{ item.game.code }}</div>
-							</div>
-							<span class="material-icons text-fg-muted">chevron_right</span>
-						</button>
-					}
-				}
-			</div>
-
-			<button
-				class="w-full flex items-center gap-3 p-3 bg-transparent border border-dashed border-line rounded text-left cursor-pointer transition hover:border-brand hover:bg-brand-subtle"
-				(click)="pickCompilationWhole()"
-			>
-				<div class="w-12 h-12 bg-surface rounded flex items-center justify-center shrink-0 text-fg-muted">
-					<span class="material-icons">library_books</span>
-				</div>
-				<div class="flex-1 min-w-0">
-					<div class="text-sm font-medium text-fg">The whole compilation</div>
-					<div class="text-xs text-fg-muted">Track {{ game()!.title }} as a single backlog entry</div>
-				</div>
-				<span class="material-icons text-fg-muted">chevron_right</span>
-			</button>
-		</div>
-	</div>
 }
 @if (showShelfModal()) {
 	<app-game-shelf-modal [preselectedGame]="game()" (closed)="onModalClosed()" (saved)="onModalSaved()" />

@@ -74,7 +74,7 @@ export class GameDetail implements OnInit {
 	protected readonly showBacklogModal = signal(false);
 	protected readonly backlogModalPreselectQueue = signal(false);
 	protected readonly backlogModalGame = signal<Game | null>(null);
-	protected readonly compilationPickerOpen = signal(false);
+	protected readonly backlogModalCompilationParent = signal<Game | null>(null);
 	protected readonly showShelfModal = signal(false);
 	protected readonly isModerator = computed(() => {
 		const role = this.authService.user()?.role;
@@ -190,13 +190,6 @@ export class GameDetail implements OnInit {
 					this.featuredLists.set(data.lists);
 					this.myLists.set(data.myLists);
 				});
-				if (
-					this.route.snapshot.queryParamMap.get("addToBacklog") === "1"
-				) {
-					this.backlogModalGame.set(game);
-					this.backlogModalPreselectQueue.set(false);
-					this.showBacklogModal.set(true);
-				}
 			},
 			error: () => this.isLoading.set(false)
 		});
@@ -276,6 +269,14 @@ export class GameDetail implements OnInit {
 		const g = this.game();
 		if (!g || this.addedToQueue()) return;
 		this.backlogModalPreselectQueue.set(true);
+		const items = g.compilationItems ?? [];
+		if (g.isCompilation && items.length > 0) {
+			this.backlogModalCompilationParent.set(g);
+			this.backlogModalGame.set(null);
+		} else {
+			this.backlogModalCompilationParent.set(null);
+			this.backlogModalGame.set(g);
+		}
 		this.showBacklogModal.set(true);
 	}
 
@@ -305,28 +306,12 @@ export class GameDetail implements OnInit {
 		this.backlogModalPreselectQueue.set(false);
 		const items = g.compilationItems ?? [];
 		if (g.isCompilation && items.length > 0) {
-			this.compilationPickerOpen.set(true);
+			this.backlogModalCompilationParent.set(g);
+			this.backlogModalGame.set(null);
+			this.showBacklogModal.set(true);
 			return;
 		}
-		this.backlogModalGame.set(g);
-		this.showBacklogModal.set(true);
-	}
-
-	closeCompilationPicker() {
-		this.compilationPickerOpen.set(false);
-	}
-
-	pickCompilationChild(child: { code: string; id: string }) {
-		this.compilationPickerOpen.set(false);
-		this.router.navigate(["/games", child.code], {
-			queryParams: { addToBacklog: "1" }
-		});
-	}
-
-	pickCompilationWhole() {
-		const g = this.game();
-		if (!g) return;
-		this.compilationPickerOpen.set(false);
+		this.backlogModalCompilationParent.set(null);
 		this.backlogModalGame.set(g);
 		this.showBacklogModal.set(true);
 	}
@@ -340,6 +325,7 @@ export class GameDetail implements OnInit {
 		this.showShelfModal.set(false);
 		this.backlogModalPreselectQueue.set(false);
 		this.backlogModalGame.set(null);
+		this.backlogModalCompilationParent.set(null);
 	}
 
 	onModalSaved() {
@@ -347,6 +333,7 @@ export class GameDetail implements OnInit {
 		this.showShelfModal.set(false);
 		this.backlogModalPreselectQueue.set(false);
 		this.backlogModalGame.set(null);
+		this.backlogModalCompilationParent.set(null);
 		const gameId = this.game()?.id;
 		if (gameId) this.loadUserStatus(gameId);
 	}

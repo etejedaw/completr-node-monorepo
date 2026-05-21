@@ -114,6 +114,7 @@ export class BacklogModal implements OnInit {
 
 	entry = input<BacklogEntry | null>(null);
 	preselectedGame = input<Game | null>(null);
+	preselectedCompilationParent = input<Game | null>(null);
 	preselectAddToQueue = input<boolean>(false);
 	closed = output<void>();
 	saved = output<void>();
@@ -133,6 +134,10 @@ export class BacklogModal implements OnInit {
 	protected readonly addToQueue = signal(false);
 	protected readonly isInQueue = signal(false);
 	protected readonly addToShelf = signal(false);
+	protected readonly compilationParent = signal<Game | null>(null);
+	protected readonly availableCompilationParents = signal<
+		{ id: string; title: string; code: string }[]
+	>([]);
 	protected readonly activeScoreSource = signal("");
 	protected readonly activeDurationSource = signal("");
 	protected readonly reviewContent = signal("");
@@ -268,8 +273,19 @@ export class BacklogModal implements OnInit {
 				title: e.game.title,
 				backgroundUrl: e.game.backgroundUrl
 			} as Game);
+			if (e.compilationGame) {
+				this.compilationParent.set({
+					id: e.compilationGame.id,
+					code: e.compilationGame.code,
+					title: e.compilationGame.title,
+					backgroundUrl: e.compilationGame.backgroundUrl
+				} as Game);
+			}
 			this.gamesService.getByCode(e.game.code).subscribe({
-				next: full => this.selectedGame.set(full)
+				next: full => {
+					this.selectedGame.set(full);
+					this.refreshAvailableCompilationParents(full);
+				}
 			});
 			this.form.patchValue({
 				gameId: e.game.id,
@@ -291,6 +307,11 @@ export class BacklogModal implements OnInit {
 			});
 		}
 
+		const parentPreset = this.preselectedCompilationParent();
+		if (parentPreset && !this.isEdit()) {
+			this.compilationParent.set(parentPreset);
+		}
+
 		const pg = this.preselectedGame();
 		if (pg && !this.isEdit()) {
 			this.selectGame(pg);
@@ -299,6 +320,78 @@ export class BacklogModal implements OnInit {
 		if (this.preselectAddToQueue() && !this.isEdit()) {
 			this.addToQueue.set(true);
 		}
+	}
+
+	private refreshAvailableCompilationParents(game: Game) {
+		const parents =
+			game.partOfCompilations?.map(link => ({
+				id: link.parentGame.id,
+				title: link.parentGame.title,
+				code: link.parentGame.code
+			})) ?? [];
+		this.availableCompilationParents.set(parents);
+	}
+
+	pickCompilationChild(child: { id: string; code: string; title: string }) {
+		this.gamesService.getByCode(child.code).subscribe({
+			next: game => this.selectGame(game)
+		});
+	}
+
+	selectWholeCompilation() {
+		const parent = this.compilationParent();
+		if (!parent) return;
+		this.gamesService.getByCode(parent.code).subscribe({
+			next: game => {
+				this.compilationParent.set(null);
+				this.applyGameSelection(game);
+			}
+		});
+	}
+
+	private applyGameSelection(game: Game) {
+		this.selectedGame.set(game);
+		this.refreshAvailableCompilationParents(game);
+
+		const score = this.pickScore(game);
+		const duration = this.pickDuration(game);
+		this.activeScoreSource.set(score.source);
+		this.activeDurationSource.set(duration.source);
+
+		const platforms = game.platforms ?? [];
+		this.form.patchValue({
+			gameId: game.id,
+			platformId: platforms.length === 1 ? platforms[0].id : "",
+			score: score.value,
+			duration: duration.value
+		});
+		this.gameResults.set([]);
+		this.searchQuery.set("");
+	}
+
+	clearCompilationChild() {
+		this.selectedGame.set(null);
+		this.form.patchValue({ gameId: "", platformId: "" });
+	}
+
+	clearCompilationParent() {
+		this.compilationParent.set(null);
+	}
+
+	onCompilationParentChange(parentId: string) {
+		if (!parentId) {
+			this.compilationParent.set(null);
+			return;
+		}
+		const match = this.availableCompilationParents().find(
+			p => p.id === parentId
+		);
+		if (!match) return;
+		this.compilationParent.set({
+			id: match.id,
+			code: match.code,
+			title: match.title
+		} as Game);
 	}
 
 	protected readonly isForceSearching = signal(false);
@@ -324,22 +417,25 @@ export class BacklogModal implements OnInit {
 	}
 
 	selectGame(game: Game) {
-		this.selectedGame.set(game);
+		if (game.isCompilation && !this.isEdit()) {
+			this.gameResults.set([]);
+			this.searchQuery.set("");
+			this.selectedGame.set(null);
+			this.form.patchValue({ gameId: "", platformId: "" });
+			if (
+				game.compilationItems !== undefined &&
+				game.compilationItems.length > 0
+			) {
+				this.compilationParent.set(game);
+			} else {
+				this.gamesService.getByCode(game.code).subscribe({
+					next: full => this.compilationParent.set(full)
+				});
+			}
+			return;
+		}
 
-		const score = this.pickScore(game);
-		const duration = this.pickDuration(game);
-		this.activeScoreSource.set(score.source);
-		this.activeDurationSource.set(duration.source);
-
-		const platforms = game.platforms ?? [];
-		this.form.patchValue({
-			gameId: game.id,
-			platformId: platforms.length === 1 ? platforms[0].id : "",
-			score: score.value,
-			duration: duration.value
-		});
-		this.gameResults.set([]);
-		this.searchQuery.set("");
+		this.applyGameSelection(game);
 	}
 
 	applyScore(source: string, score: number) {
@@ -417,7 +513,8 @@ export class BacklogModal implements OnInit {
 				finishedAt: val.finishedAt || null,
 				realDuration: val.realDuration ?? null,
 				userRating: val.userRating ?? null,
-				notes: val.notes || null
+				notes: val.notes || null,
+				compilationGameId: this.compilationParent()?.id ?? null
 			};
 			this.backlogService.update(this.entry()!.id, dto).subscribe({
 				next: res => {
@@ -448,7 +545,8 @@ export class BacklogModal implements OnInit {
 				finishedAt: val.finishedAt || undefined,
 				realDuration: val.realDuration ?? undefined,
 				userRating: val.userRating ?? undefined,
-				notes: val.notes || undefined
+				notes: val.notes || undefined,
+				compilationGameId: this.compilationParent()?.id ?? undefined
 			};
 			this.backlogService.create(dto).subscribe({
 				next: backlog => {

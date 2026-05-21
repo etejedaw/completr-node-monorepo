@@ -22,6 +22,17 @@
 				<div class="flex-1 min-w-0 flex flex-col gap-1.5">
 					<span class="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide" [class]="statusClass(e.status)">{{ statusLabel(e.status) }}</span>
 					<div class="text-[0.8125rem] text-fg-secondary">{{ e.platform.abbreviation }}</div>
+					@if (e.compilationGame) {
+						<a
+							class="inline-flex items-center gap-1 w-fit px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand/10 border border-brand/30 no-underline hover:bg-brand/20"
+							[routerLink]="['/games', e.compilationGame.code]"
+							(click)="onClose()"
+							[title]="'Part of ' + e.compilationGame.title"
+						>
+							<span class="material-icons text-[0.75rem]">library_books</span>
+							in {{ e.compilationGame.title }}
+						</a>
+					}
 					<div class="flex items-center gap-2 mt-auto">
 						<app-star-rating [value]="e.userRating ?? null" [readonly]="true" size="sm" />
 					</div>
@@ -99,6 +110,57 @@
 			</div>
 		} @else {
 		<form [formGroup]="form" (ngSubmit)="onSubmit()">
+			@if (compilationParent()) {
+			<div class="mb-4 p-3 bg-brand-subtle/40 border border-brand/30 rounded">
+				<div class="flex items-center gap-2 mb-2">
+					<span class="material-icons text-brand text-base">library_books</span>
+					<span class="text-xs font-semibold text-brand uppercase tracking-wider">Compilation</span>
+					<span class="flex-1 text-sm font-medium text-fg">{{ compilationParent()!.title }}</span>
+					@if (!preselectedCompilationParent() && !isEdit()) {
+					<button
+						type="button"
+						class="bg-none border-0 text-fg-muted text-base cursor-pointer leading-none hover:text-fg"
+						(click)="clearCompilationParent()"
+						title="Remove compilation context"
+					>
+						<span class="material-icons text-base">close</span>
+					</button>
+					}
+				</div>
+				@if (!selectedGame() && (compilationParent()!.compilationItems?.length ?? 0) > 0) {
+				<div>
+					<div class="text-xs text-fg-secondary mb-2">Which game are you playing?</div>
+					<div class="grid grid-cols-2 gap-2">
+						@for (item of compilationParent()!.compilationItems!; track item.id) {
+							@if (item.game) {
+								<button
+									type="button"
+									class="flex items-center gap-2 p-2 bg-input-bg border border-line rounded text-left cursor-pointer transition hover:border-brand hover:bg-brand-subtle"
+									(click)="pickCompilationChild(item.game)"
+								>
+									@if (item.game.backgroundUrl) {
+										<img [src]="item.game.backgroundUrl" [alt]="item.game.title" class="w-8 h-10 object-cover rounded shrink-0" />
+									} @else {
+										<div class="w-8 h-10 bg-surface rounded shrink-0"></div>
+									}
+									<span class="flex-1 text-xs font-medium text-fg line-clamp-2 leading-tight">{{ item.game.title }}</span>
+								</button>
+							}
+						}
+					</div>
+					<button
+						type="button"
+						class="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 bg-transparent border border-dashed border-line rounded text-xs text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand"
+						(click)="selectWholeCompilation()"
+					>
+						<span class="material-icons text-base">layers</span>
+						Track whole compilation as one entry
+					</button>
+				</div>
+				}
+			</div>
+			}
+
 			@if (!isEdit()) {
 			<div class="mb-4">
 				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Game <span class="text-danger font-bold">*</span></label>
@@ -125,6 +187,10 @@
 						&times;
 					</button>
 					}
+				</div>
+				} @else if (compilationParent()) {
+				<div class="px-3 py-2 bg-input-bg border border-dashed border-line rounded text-xs text-fg-muted">
+					Pick a game from the compilation above.
 				</div>
 				} @else {
 				<input
@@ -183,6 +249,21 @@
 						>{{ selectedGame()!.title }}</span
 					>
 				</div>
+			</div>
+			}
+
+			@if (selectedGame() && !compilationParent() && availableCompilationParents().length > 0) {
+			<div class="mb-4">
+				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Part of compilation <span class="text-fg-muted font-normal normal-case">(optional)</span></label>
+				<select
+					class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans cursor-pointer focus:outline-none focus:border-brand"
+					(change)="onCompilationParentChange($any($event.target).value)"
+				>
+					<option value="">None — track as standalone</option>
+					@for (parent of availableCompilationParents(); track parent.id) {
+						<option [value]="parent.id">{{ parent.title }}</option>
+					}
+				</select>
 			</div>
 			}
 
