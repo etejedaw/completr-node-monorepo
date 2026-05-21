@@ -73,6 +73,8 @@ export class GameDetail implements OnInit {
 	protected readonly addedToQueue = signal(false);
 	protected readonly showBacklogModal = signal(false);
 	protected readonly backlogModalPreselectQueue = signal(false);
+	protected readonly backlogModalGame = signal<Game | null>(null);
+	protected readonly backlogModalCompilationParent = signal<Game | null>(null);
 	protected readonly showShelfModal = signal(false);
 	protected readonly isModerator = computed(() => {
 		const role = this.authService.user()?.role;
@@ -267,6 +269,14 @@ export class GameDetail implements OnInit {
 		const g = this.game();
 		if (!g || this.addedToQueue()) return;
 		this.backlogModalPreselectQueue.set(true);
+		const items = g.compilationItems ?? [];
+		if (g.isCompilation && items.length > 0) {
+			this.backlogModalCompilationParent.set(g);
+			this.backlogModalGame.set(null);
+		} else {
+			this.backlogModalCompilationParent.set(null);
+			this.backlogModalGame.set(g);
+		}
 		this.showBacklogModal.set(true);
 	}
 
@@ -291,7 +301,18 @@ export class GameDetail implements OnInit {
 	}
 
 	openBacklogModal() {
+		const g = this.game();
+		if (!g) return;
 		this.backlogModalPreselectQueue.set(false);
+		const items = g.compilationItems ?? [];
+		if (g.isCompilation && items.length > 0) {
+			this.backlogModalCompilationParent.set(g);
+			this.backlogModalGame.set(null);
+			this.showBacklogModal.set(true);
+			return;
+		}
+		this.backlogModalCompilationParent.set(null);
+		this.backlogModalGame.set(g);
 		this.showBacklogModal.set(true);
 	}
 
@@ -303,12 +324,16 @@ export class GameDetail implements OnInit {
 		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
 		this.backlogModalPreselectQueue.set(false);
+		this.backlogModalGame.set(null);
+		this.backlogModalCompilationParent.set(null);
 	}
 
 	onModalSaved() {
 		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
 		this.backlogModalPreselectQueue.set(false);
+		this.backlogModalGame.set(null);
+		this.backlogModalCompilationParent.set(null);
 		const gameId = this.game()?.id;
 		if (gameId) this.loadUserStatus(gameId);
 	}
@@ -317,6 +342,11 @@ export class GameDetail implements OnInit {
 		this.showEditor.set(false);
 		const code = this.game()?.code;
 		if (code) this.loadGame(code);
+	}
+
+	onEditorSplit(firstVariant: { code: string }) {
+		this.showEditor.set(false);
+		this.router.navigate(["/games", firstVariant.code]);
 	}
 
 	protected getScaleLabel(source: string): string {

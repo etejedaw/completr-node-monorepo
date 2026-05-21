@@ -91,10 +91,16 @@ export class AdminService {
 			.pipe(map(res => res.data.user));
 	}
 
-	getAuditLog(limit = 50, offset = 0) {
-		const params = new HttpParams()
+	getAuditLog(
+		limit = 50,
+		offset = 0,
+		filters: { action?: string; targetType?: string } = {}
+	) {
+		let params = new HttpParams()
 			.set("limit", limit)
 			.set("offset", offset);
+		if (filters.action) params = params.set("action", filters.action);
+		if (filters.targetType) params = params.set("targetType", filters.targetType);
 		return this.http
 			.get<{
 				data: { logs: AuditLogEntry[]; total: number };
@@ -157,6 +163,13 @@ export interface AuditLogEntry {
 	action: string;
 	targetType: string;
 	targetId: string;
+	target?: {
+		type: string;
+		id: string;
+		label: string;
+		code?: string;
+		username?: string;
+	};
 	createdAt: string;
 }
 

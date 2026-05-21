@@ -9,6 +9,8 @@ export interface Game {
 	isDlc: boolean;
 	justImported?: boolean;
 	parentGameId?: string;
+	variant?: string | null;
+	isCompilation?: boolean;
 	platforms: Platform[];
 	genres: Genre[];
 	scores: GameScore[];
@@ -16,6 +18,19 @@ export interface Game {
 	dlcs: GameSummary[];
 	parentGame: GameSummary | null;
 	externalLinks: ExternalLink[];
+	compilationItems?: CompilationItem[];
+	partOfCompilations?: PartOfCompilation[];
+}
+
+export interface CompilationItem {
+	id: string;
+	position: number;
+	game: GameSummary | null;
+}
+
+export interface PartOfCompilation {
+	id: string;
+	parentGame: GameSummary;
 }
 
 export interface ExternalLink {

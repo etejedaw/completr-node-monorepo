@@ -317,6 +317,17 @@
 									[routerLink]="['/games', entry.game.code]"
 									(click)="$event.stopPropagation()"
 								>{{ entry.game.title }}</a>
+								@if (entry.compilationGame) {
+									<a
+										class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand/10 border border-brand/30 no-underline hover:bg-brand/20"
+										[routerLink]="['/games', entry.compilationGame.code]"
+										(click)="$event.stopPropagation()"
+										[title]="'Part of ' + entry.compilationGame.title"
+									>
+										<span class="material-icons text-[0.75rem]">library_books</span>
+										in {{ entry.compilationGame.title }}
+									</a>
+								}
 								@if (entry.realDuration) {
 									<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line">
 										<span class="material-icons text-[0.75rem]">schedule</span>
@@ -462,6 +473,12 @@
 							<tr class="cursor-pointer border-b border-line transition hover:bg-surface" (click)="openEdit(entry, $event)">
 								<td class="px-4 py-3 align-middle min-w-[200px]">
 									<a class="font-medium text-fg no-underline hover:text-brand" [routerLink]="['/games', entry.game.code]" (click)="$event.stopPropagation()">{{ entry.game.title }}</a>
+									@if (entry.compilationGame) {
+										<span class="ml-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[0.625rem] font-medium text-brand bg-brand/10 border border-brand/30" [title]="'Part of ' + entry.compilationGame.title">
+											<span class="material-icons text-[0.625rem]">library_books</span>
+											{{ entry.compilationGame.title }}
+										</span>
+									}
 								</td>
 								<td class="px-4 py-3 align-middle text-fg-secondary whitespace-nowrap">{{ entry.platform.abbreviation }}</td>
 								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.score ?? "-" }}</td>

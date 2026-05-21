@@ -49,6 +49,7 @@ export interface CreateBacklogDto {
 	userRating?: number;
 	isPublic?: boolean;
 	notes?: string;
+	compilationGameId?: string;
 }
 
 export interface UpdateBacklogDto {
@@ -61,6 +62,7 @@ export interface UpdateBacklogDto {
 	userRating?: number | null;
 	isPublic?: boolean;
 	notes?: string | null;
+	compilationGameId?: string | null;
 }
 
 @Injectable({ providedIn: "root" })

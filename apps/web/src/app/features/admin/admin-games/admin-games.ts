@@ -35,6 +35,9 @@ export class AdminGames implements OnInit {
 	protected readonly noPlatforms = signal(false);
 	protected readonly noScoreSources = signal<Set<string>>(new Set());
 	protected readonly noTimeSources = signal<Set<string>>(new Set());
+	protected readonly activeFilter = signal<"active" | "inactive" | "all">(
+		"active"
+	);
 
 	protected readonly SCORE_SOURCES = ["metacritic", "opencritic", "rawg"];
 	protected readonly TIME_SOURCES = ["hltb", "rawg"];
@@ -46,6 +49,12 @@ export class AdminGames implements OnInit {
 
 	toggleFilter(filter: "noScores" | "noTimes" | "noPlatforms") {
 		this[filter].update(v => !v);
+		this.offset.set(0);
+		this.loadGames();
+	}
+
+	setActiveFilter(value: "active" | "inactive" | "all") {
+		this.activeFilter.set(value);
 		this.offset.set(0);
 		this.loadGames();
 	}
@@ -77,20 +86,7 @@ export class AdminGames implements OnInit {
 	onSearch(query: string) {
 		this.searchQuery.set(query);
 		this.offset.set(0);
-
-		if (query.length >= 2) {
-			this.isLoading.set(true);
-			this.gamesService.search(query).subscribe({
-				next: games => {
-					this.games.set(games);
-					this.total.set(games.length);
-					this.isLoading.set(false);
-				},
-				error: () => this.isLoading.set(false)
-			});
-		} else if (query.length === 0) {
-			this.loadGames();
-		}
+		this.loadGames();
 	}
 
 	goToOffset(offset: number) {
@@ -115,9 +111,13 @@ export class AdminGames implements OnInit {
 			sort_by: "createdAt",
 			sort_order: "desc"
 		};
+		const search = this.searchQuery().trim();
+		if (search.length > 0) query["search"] = search;
 		if (this.noScores()) query["no_scores"] = true;
 		if (this.noTimes()) query["no_times"] = true;
 		if (this.noPlatforms()) query["no_platforms"] = true;
+		if (this.activeFilter() === "all") query["include_inactive"] = true;
+		if (this.activeFilter() === "inactive") query["only_inactive"] = true;
 		const scoreSources = Array.from(this.noScoreSources());
 		if (scoreSources.length > 0) query["no_score_source"] = scoreSources.join(",");
 		const timeSources = Array.from(this.noTimeSources());

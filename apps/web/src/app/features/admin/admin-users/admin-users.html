@@ -147,18 +147,29 @@
 					<label for="create-password" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
 						Password <span class="text-danger font-bold">*</span>
 					</label>
+					<div class="relative">
 					<input
 						id="create-password"
 						uiInput
-						type="password"
+						[type]="showCreatePassword() ? 'text' : 'password'"
 						[ngModel]="createPassword()"
 						(ngModelChange)="createPassword.set($event)"
 						name="password"
 						placeholder="Min 8 chars"
 						required
+						class="!pr-10"
 						minlength="8"
 						maxlength="15"
 					/>
+					<button
+						type="button"
+						class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-transparent border-0 cursor-pointer text-fg-muted hover:text-fg transition"
+						(click)="toggleShowCreatePassword()"
+						[title]="showCreatePassword() ? 'Hide password' : 'Show password'"
+					>
+						<span class="material-icons text-base">{{ showCreatePassword() ? 'visibility_off' : 'visibility' }}</span>
+					</button>
+					</div>
 				</div>
 			</div>
 
@@ -240,17 +251,28 @@
 				</div>
 				<div>
 					<label for="edit-password" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">New Password</label>
-					<input
-						id="edit-password"
-						uiInput
-						type="password"
-						[ngModel]="editPassword()"
-						(ngModelChange)="editPassword.set($event)"
-						name="password"
-						placeholder="Leave empty to keep current"
-						minlength="8"
-						maxlength="15"
-					/>
+					<div class="relative">
+						<input
+							id="edit-password"
+							uiInput
+							[type]="showEditPassword() ? 'text' : 'password'"
+							[ngModel]="editPassword()"
+							(ngModelChange)="editPassword.set($event)"
+							name="password"
+							placeholder="Leave empty to keep current"
+							class="!pr-10"
+							minlength="8"
+							maxlength="15"
+						/>
+						<button
+							type="button"
+							class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-transparent border-0 cursor-pointer text-fg-muted hover:text-fg transition"
+							(click)="toggleShowEditPassword()"
+							[title]="showEditPassword() ? 'Hide password' : 'Show password'"
+						>
+							<span class="material-icons text-base">{{ showEditPassword() ? 'visibility_off' : 'visibility' }}</span>
+						</button>
+					</div>
 				</div>
 			</div>
 

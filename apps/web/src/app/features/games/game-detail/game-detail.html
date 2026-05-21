@@ -21,19 +21,6 @@
 				<div class="absolute top-4 right-6 lg:right-8 max-md:right-4 z-[2] flex gap-2">
 					<button
 						class="border border-white/40 w-14 h-14 rounded-full cursor-pointer inline-flex items-center justify-center transition backdrop-blur-md disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
-						[class.text-danger]="isInWishlist()"
-						[class.text-white]="!isInWishlist()"
-						[class.!border-danger]="isInWishlist()"
-						style="background: rgba(0, 0, 0, 0.65); box-shadow: 0 6px 18px -4px rgba(0,0,0,0.6);"
-						[disabled]="togglingWishlist()"
-						(click)="toggleWishlist()"
-						[title]="isInWishlist() ? 'Remove from wishlist' : 'Add to wishlist'"
-						[attr.aria-label]="isInWishlist() ? 'Remove from wishlist' : 'Add to wishlist'"
-					>
-						<span class="material-icons text-[1.75rem] drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">{{ isInWishlist() ? 'favorite' : 'favorite_border' }}</span>
-					</button>
-					<button
-						class="border border-white/40 w-14 h-14 rounded-full cursor-pointer inline-flex items-center justify-center transition backdrop-blur-md disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
 						[class.text-warning]="isFavorite()"
 						[class.text-white]="!isFavorite()"
 						[class.!border-warning]="isFavorite()"
@@ -112,7 +99,7 @@
 				}
 			</div>
 			@if (showEditor()) {
-				<app-admin-game-editor [game]="game()!" (saved)="onEditorSaved()" />
+				<app-admin-game-editor [game]="game()!" (saved)="onEditorSaved()" (split)="onEditorSplit($event)" />
 			}
 		}
 
@@ -391,6 +378,13 @@
 								<span class="ml-1 text-xs text-fg-muted">{{ game()!.dlcs.length }}</span>
 							</button>
 						}
+						@if (game()!.isCompilation && (game()!.compilationItems?.length ?? 0) > 0) {
+							<button uiTab value="compilation" class="!whitespace-nowrap">
+								<span class="material-icons text-base mr-1.5 align-middle">library_books</span>
+								Compilation
+								<span class="ml-1 text-xs text-fg-muted">{{ game()!.compilationItems!.length }}</span>
+							</button>
+						}
 						@if (similarGames().length > 0) {
 							<button uiTab value="similar" class="!whitespace-nowrap">
 								<span class="material-icons text-base mr-1.5 align-middle">apps</span>
@@ -400,6 +394,20 @@
 					</ui-tab-list>
 
 					<div uiTabPanel value="overview">
+						@if ((game()!.partOfCompilations?.length ?? 0) > 0) {
+							<div class="mb-6">
+								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Part of</h3>
+								<div class="flex flex-wrap gap-2">
+									@for (link of game()!.partOfCompilations!; track link.id) {
+										<a class="flex items-center gap-2 py-1.5 px-3 bg-surface border border-line rounded-full text-sm text-fg no-underline transition hover:border-brand hover:text-brand" [routerLink]="['/games', link.parentGame.code]">
+											<span class="material-icons text-base">library_books</span>
+											{{ link.parentGame.title }}
+										</a>
+									}
+								</div>
+							</div>
+						}
+
 						@if (game()!.description) {
 							<div class="mb-6">
 								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Description</h3>
@@ -565,6 +573,28 @@
 						</div>
 					}
 
+					@if (game()!.isCompilation && (game()!.compilationItems?.length ?? 0) > 0) {
+						<div uiTabPanel value="compilation">
+							<p class="text-fg-secondary text-sm mb-4">This is a compilation that bundles the following games. Add the one you're playing to your backlog.</p>
+							<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+								@for (item of game()!.compilationItems!; track item.id) {
+									@if (item.game) {
+										<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', item.game.code]">
+											@if (item.game.backgroundUrl) {
+												<img [src]="item.game.backgroundUrl" [alt]="item.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+											} @else {
+												<div class="w-full aspect-[3/4] bg-surface rounded-lg flex items-center justify-center text-fg-muted">
+													<span class="material-icons">videogame_asset</span>
+												</div>
+											}
+											<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ item.game.title }}</span>
+										</a>
+									}
+								}
+							</div>
+						</div>
+					}
+
 					@if (similarGames().length > 0) {
 						<div uiTabPanel value="similar">
 							<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -589,7 +619,8 @@
 
 @if (showBacklogModal()) {
 	<app-backlog-modal
-		[preselectedGame]="game()"
+		[preselectedGame]="backlogModalGame()"
+		[preselectedCompilationParent]="backlogModalCompilationParent()"
 		[preselectAddToQueue]="backlogModalPreselectQueue()"
 		(closed)="onModalClosed()"
 		(saved)="onModalSaved()"
