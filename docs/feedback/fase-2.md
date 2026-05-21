@@ -790,19 +790,19 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En la vista del backlog, el cuadro de texto que muestra la nota personal (`Backlog.notes`) queda vacio cuando el usuario no escribio una. Sin embargo, si el usuario si tiene una reseña publicada del juego (`Review.content`), ese cuadro podria usarse para mostrar el texto de la reseña en lugar de quedar vacio. La reseña ya es texto del usuario sobre el juego y aporta mas contexto que un espacio en blanco — evita repetir el contenido en dos lugares cuando el usuario solo escribio la reseña.
-- **Solucion propuesta:** En la vista del backlog (diary cards y tabla), si `Backlog.notes` esta vacio o null y existe `Review.content` del mismo usuario para ese juego, renderizar el contenido de la reseña en ese cuadro con un label visible que aclare la fuente (ej: "Reseña" en vez de "Nota") para no confundir al usuario sobre que esta viendo. Si ambos existen, mostrar la nota (prioridad al campo especifico del backlog). Backend: incluir `reviewContent` (o el objeto review completo) en el serializer del backlog, asi el frontend tiene el dato sin pedirlo aparte.
+- **Solucion:** Resuelto junto con FB-088. Backend: `backlogSerializer` ahora acepta un parametro opcional `review` y expone `reviewContent` en la respuesta. `getMeBacklog` arma un Map por gameId via nuevo `reviewsService.findReviewContentByUserAndGameIds(userId, gameIds)` — una sola query con `WHERE userId AND gameId IN (...)` y solo `attributes: ["gameId", "content"]`, sin JOIN (evita N+1 y overhead innecesario). Frontend: en `backlog-list.html` (diary cards + tabla) el cuadro de notes ahora prioriza la nota cuando existe y, si tambien hay review, el icono `rate_review` al lado del star rating se vuelve un toggle (brand = mostrando nota, gris = mostrando review). Click en el icono alterna la visibilidad del cuadro entre nota y review (prefijada con `format_quote` brand). Estado per-entry en `reviewExpandedIds: Set<string>`. Si solo hay review (sin nota), se renderiza el contenido siempre y el icono queda como indicador no-toggleable.
 
 ### [FB-088] Falta indicador visual de que el usuario ya escribio reseña en un juego
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Cuando un usuario ya escribio una reseña de un juego, no hay un indicador rapido en la UI que se lo recuerde. Tiene que entrar a la ficha del juego y bajar a la seccion de reseñas para confirmar si ya escribio una. Esto es especialmente confuso cuando aparecen CTAs tipo "Sé el primero en reseñar" o "Escribe tu reseña" en otras partes de la app — el usuario no sabe si ya tiene una guardada.
-- **Solucion propuesta:** Agregar un indicador visible (icono pequeño o chip) que aparezca junto al juego en los contextos donde el usuario lo ve: cards de juego, diary cards del backlog, vista de game-shelf, listas, etc. Cuando el usuario tiene reseña propia para ese juego, se muestra el indicador (ej: icono `rate_review` o un badge "Reseñada"). Backend: exponer un flag `hasUserReview` (o similar) en el serializer de game cuando hay usuario autenticado en el contexto, evaluando si existe un `Review` con ese `userId` + `gameId`. Reutilizar el patron de `backlogStatus` que ya inyecta data del usuario autenticado en los serializers de game. Frontend: renderizar el icono/chip en los componentes de card de juego y diary card. Tambien sirve como atajo: click en el indicador podria llevar a la reseña existente o abrir el editor.
+- **Solucion:** Alcance acotado al backlog (donde mas se siente la confusion). Backend: `backlogSerializer` expone `hasReview: boolean` ademas de `reviewContent`. `getMeBacklog` arma un Map de reviews del usuario por gameId y lo pasa al serializer. Frontend: en `backlog-list.html` se renderiza un icono `rate_review` (material-icons, text-brand) al final de la fila del rating en diary cards y al lado de las estrellas en la columna Rating de la tabla, con `title="You reviewed this game"`. Se eligio esta ubicacion (en vez del titulo o el bloque de tiempo) para conectarlo conceptualmente con "tu opinion del juego": rating + review en la misma linea. Si en el futuro se justifica extenderlo a game-shelf/listas/games-browse, conviene refactorizar reusando el patron de `backlogStatus` (inyectar al serializer de Game cuando hay user autenticado).
 
 ### [FB-089] Paleta de colores: navbar no diferencia item activo, falta revision general
 
