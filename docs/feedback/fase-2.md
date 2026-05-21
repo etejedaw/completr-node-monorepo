@@ -420,10 +420,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Tami
 - **Descripcion:** En las vistas de grilla de juegos (games-browse, resultados de busqueda, similar games), las miniaturas no tienen acciones rapidas. El usuario tiene que entrar al detalle del juego para poder agregarlo a una lista, wishlist o backlog. Seria mas eficiente tener botones de accion rapida directamente en las cards de la grilla.
-- **Solucion propuesta:** Agregar un overlay al hover en las cards de la grilla con botones de accion rapida: "Add to Backlog", "Add to Wishlist", "Add to List" (con selector de lista). Mantener el click en la card para ir al detalle. En movil, considerar un menu contextual al hacer long-press o un icono de tres puntos.
+- **Decision (2026-05-20):** Descartado. El flujo actual (click en card → detalle → action button) no es friccion suficiente para justificar el overlay con acciones rapidas. Se prefiere mantener las cards limpias y sin layer extra al hover.
 
 ### [FB-048] Auto-seleccionar plataforma cuando solo hay una disponible
 
