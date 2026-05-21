@@ -582,9 +582,7 @@
 
 ### Mejoras a reseñas
 
-- [ ] Mostrar tiempo de finalización en cada reseña: chip con la `realDuration` del `Backlog` completado del autor para ese juego (estilo similar al chip de duración en la vista diary). Si el usuario tiene múltiples backlogs completados, usar el más reciente. Si no tiene backlog completado con `realDuration`, no mostrar chip.
-    - Backend: incluir `playthroughDuration` en el serializer de `Review` (`GET /games/:id/reviews` y `GET /users/:username/reviews`)
-    - Frontend: renderizar chip junto a usuario + rating en game detail y perfil
+- [x] Mostrar tiempo de finalización en cada reseña: chip con la `realDuration` del `Backlog` completado del autor para ese juego. Backend: nueva funcion `backlogService.findLatestCompletedDurations(pairs)` con `DISTINCT ON ("userId", "gameId")` raw SQL en batch para evitar N+1; `reviewSerializer` y `userReviewSerializer` aceptan `playthroughDuration` opcional; controllers en `reviews.controller.getReviews` y `users.controller.getUserReviews` arman pairs + Map + pasan al serializer. Frontend: chip `schedule + Xh` (mismo estilo que diary) al lado del autor en `game-detail` y al lado del titulo del juego en `public-profile`, `profile-view`, `user-reviews`.
 
 ---
 
@@ -597,6 +595,7 @@
 
 ### Revisión de performance y código
 
+- [ ] Revisar si endpoints tienen underfetching u overfetching (ajustar payloads a lo que realmente consume el frontend)
 - [ ] Revisión general del código: legibilidad, naming, estructura de módulos
 - [ ] Auditar endpoints: verificar que cada uno tiene validación, auth y rate limiting correcto
 - [ ] Revisar llamadas con Promise.all en el frontend: evaluar si se pueden reducir combinando endpoints en el backend
