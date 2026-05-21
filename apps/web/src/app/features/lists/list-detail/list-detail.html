@@ -176,9 +176,25 @@
 							}
 							@if (item.backlogStatus) {
 								<span class="text-fg-muted">·</span>
-								<span class="flex items-center gap-1 text-brand">
-									<span class="material-icons text-sm">list_alt</span>
-									In Backlog
+								<span
+									class="flex items-center gap-1 capitalize"
+									[class]="
+										item.backlogStatus === 'completed' ? 'text-success' :
+										item.backlogStatus === 'playing' ? 'text-warning' :
+										item.backlogStatus === 'abandoned' ? 'text-danger' :
+										'text-brand'
+									"
+									[title]="item.backlogStatus.replace('_', ' ')"
+								>
+									<span class="material-icons text-sm">
+										{{
+											item.backlogStatus === 'completed' ? 'check_circle' :
+											item.backlogStatus === 'playing' ? 'play_circle' :
+											item.backlogStatus === 'abandoned' ? 'cancel' :
+											'schedule'
+										}}
+									</span>
+									{{ item.backlogStatus.replace('_', ' ') }}
 								</span>
 							} @else {
 								<span class="text-fg-muted">·</span>
