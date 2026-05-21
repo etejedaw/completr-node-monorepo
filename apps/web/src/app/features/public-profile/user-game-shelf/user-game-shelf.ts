@@ -37,18 +37,6 @@ export class UserGameShelf implements OnInit {
 	protected readonly isLoggedIn = this.authService.isLoggedIn;
 	protected readonly searchQuery = signal("");
 
-	protected readonly viewMode = signal<"cards" | "grid" | "table">(
-		(localStorage.getItem("completr.shelf.viewMode") as
-			| "cards"
-			| "grid"
-			| "table") || "cards"
-	);
-
-	setViewMode(mode: "cards" | "grid" | "table") {
-		this.viewMode.set(mode);
-		localStorage.setItem("completr.shelf.viewMode", mode);
-	}
-
 	ngOnInit() {
 		if (this.authService.token() && !this.authService.user()) {
 			this.authService.loadUser().subscribe({
