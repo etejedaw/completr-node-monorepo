@@ -763,10 +763,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Esteban
 - **Descripcion:** En el listado de plataformas aparecen dos entradas que representan la misma tienda: "Origin" y "EA (Origin)". EA renombro Origin a EA App en 2022, pero ambos siguen siendo el mismo cliente y libreria. Tener dos plataformas distintas para lo mismo fragmenta los datos — un juego se asigna a una u otra segun como vino de RAWG, y los filtros/busquedas por plataforma quedan inconsistentes. El usuario al agregar un juego ve dos opciones equivalentes y no sabe cual elegir.
-- **Solucion propuesta:** Consolidar en una sola plataforma canonica. Pasos: (1) decidir el nombre canonico ("EA App" probablemente, o mantener "Origin" si se prefiere la marca historica). (2) migracion que mueva todos los `game_platforms` que apuntan a la duplicada hacia la canonica, evitando duplicados (ON CONFLICT DO NOTHING). (3) eliminar la fila duplicada de `platforms`. (4) actualizar `rawg-platform.map.ts` para que ambos slugs RAWG (`ea-origin` y `origin`) mapeen al codigo canonico. Auditar tambien si hay otras plataformas duplicadas (ej: PS Network vs PS Store, Xbox vs Xbox Live).
+- **Decision (2026-05-20):** Descartado. La duplicacion solo existe en el entorno local del developer; en produccion no se materializo el problema. No vale la pena gastar una migracion para esto. Si reaparece (en local o prd) se reabre.
 
 ### [FB-085] El corazon de wishlist en el backlog no permite remover
 
