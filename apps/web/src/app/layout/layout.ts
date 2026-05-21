@@ -7,7 +7,6 @@ import {
 	NavigationEnd
 } from "@angular/router";
 import { AuthService } from "../core/services/auth.service";
-import { BacklogService } from "../features/backlog/backlog.service";
 import { filter } from "rxjs";
 import { UiIconButton } from "../shared/ui";
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
@@ -26,7 +25,6 @@ import { ToastContainer } from "../shared/components/toast-container/toast-conta
 export class Layout implements OnInit {
 	private readonly auth = inject(AuthService);
 	private readonly router = inject(Router);
-	private readonly backlogService = inject(BacklogService);
 
 	protected readonly user = this.auth.user;
 	protected readonly isAdmin = computed(() => this.user()?.role === "admin");
@@ -35,10 +33,6 @@ export class Layout implements OnInit {
 		return role === "moderator" || role === "admin";
 	});
 	protected readonly sidebarOpen = signal(false);
-
-	protected readonly completedCount = signal(0);
-	protected readonly playingCount = signal(0);
-	protected readonly backlogCount = signal(0);
 
 	protected readonly roleBadge = computed(() => {
 		const map: Record<string, string> = {
@@ -60,9 +54,7 @@ export class Layout implements OnInit {
 
 	ngOnInit() {
 		if (!this.user()) {
-			this.auth.loadUser().subscribe(() => this.loadStats());
-		} else {
-			this.loadStats();
+			this.auth.loadUser().subscribe();
 		}
 
 		this.router.events
@@ -78,18 +70,5 @@ export class Layout implements OnInit {
 
 	logout() {
 		this.auth.logout();
-	}
-
-	private loadStats() {
-		this.backlogService.getMyBacklog().subscribe(res => {
-			const entries = res.data.backlog;
-			this.completedCount.set(
-				entries.filter(e => e.status === "completed").length
-			);
-			this.playingCount.set(
-				entries.filter(e => e.status === "playing").length
-			);
-			this.backlogCount.set(entries.length);
-		});
 	}
 }

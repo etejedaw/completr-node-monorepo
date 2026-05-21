@@ -56,10 +56,12 @@ export class PublicProfileComponent implements OnInit {
 			id: string;
 			content?: string;
 			rating?: number;
+			playthroughDuration?: number | null;
 			game: { id: string; code: string; title: string } | null;
 			createdAt: string;
 		}[]
 	>([]);
+	protected readonly userReviewsTotal = signal(0);
 	protected readonly showUserListModal = signal(false);
 	protected readonly userListTitle = signal("");
 	protected readonly userListUsers = signal<UserSummary[]>([]);
@@ -163,8 +165,11 @@ export class PublicProfileComponent implements OnInit {
 				this.profile.set(data);
 				this.isLoading.set(false);
 				this.profileService
-					.getUserReviews(username)
-					.subscribe(r => this.userReviews.set(r));
+					.getUserReviews(username, { limit: 5 })
+					.subscribe(r => {
+						this.userReviews.set(r.reviews);
+						this.userReviewsTotal.set(r.total);
+					});
 			},
 			error: err => {
 				if (err.status === 403) this.isPrivate.set(true);

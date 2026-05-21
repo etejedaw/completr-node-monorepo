@@ -21,6 +21,8 @@ import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../shared/constants/rating-labels";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { ReviewsService, Review } from "../reviews.service";
+import { ListsService } from "../../lists/lists.service";
+import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
 import { FormsModule } from "@angular/forms";
 import { UiButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
 
@@ -54,6 +56,7 @@ export class GameDetail implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly gameShelfService = inject(GameShelfService);
 	private readonly reviewsService = inject(ReviewsService);
+	private readonly listsService = inject(ListsService);
 
 	protected readonly game = signal<Game | null>(null);
 	protected readonly isLoading = signal(true);
@@ -103,6 +106,20 @@ export class GameDetail implements OnInit {
 			owner: { username: string } | null;
 		}[]
 	>([]);
+	protected readonly myLists = signal<
+		{ id: string; name: string; isPublic: boolean; contains: boolean }[]
+	>([]);
+	protected readonly showAddToListModal = signal(false);
+	protected readonly addToListSaving = signal(false);
+	protected readonly addToListSelection = signal<Map<string, boolean>>(
+		new Map()
+	);
+	protected readonly newListName = signal("");
+	protected readonly creatingNewList = signal(false);
+	protected readonly newListError = signal("");
+	protected readonly myListsInGame = computed(() =>
+		this.myLists().filter(l => l.contains)
+	);
 
 	ngOnInit() {
 		this.scoreSourcesService.load();
@@ -158,20 +175,18 @@ export class GameDetail implements OnInit {
 				this.loadSimilarGames(game);
 				this.loadUserStatus(game.id);
 				this.loadReviews(game.id);
-				this.gamesService
-					.getGameLists(game.id)
-					.subscribe(lists => this.featuredLists.set(lists));
+				this.gamesService.getGameLists(game.id).subscribe(data => {
+					this.featuredLists.set(data.lists);
+					this.myLists.set(data.myLists);
+				});
 			},
 			error: () => this.isLoading.set(false)
 		});
 	}
 
 	private loadUserStatus(gameId: string) {
-		this.backlogService.getMyBacklog().subscribe({
-			next: res =>
-				this.isInBacklog.set(
-					res.data.backlog.some(b => b.game.id === gameId)
-				)
+		this.backlogService.getMyBacklog({ game_id: gameId }).subscribe({
+			next: res => this.isInBacklog.set(res.data.backlog.length > 0)
 		});
 		this.wishlistService.getMyWishlist().subscribe({
 			next: wishlist => {
@@ -192,10 +207,10 @@ export class GameDetail implements OnInit {
 		const genre = game.genres?.[0];
 		if (!genre) return;
 		this.gamesService
-			.getGames({ limit: 10, genre: genre.code })
+			.getGames({ limit: 30, genre: genre.code, sort_by: "random" })
 			.subscribe(res => {
 				const filtered = res.data.games.filter(g => g.id !== game.id);
-				this.similarGames.set(filtered.slice(0, 6));
+				this.similarGames.set(filtered.slice(0, 8));
 			});
 	}
 
@@ -273,18 +288,14 @@ export class GameDetail implements OnInit {
 		return scale ? `/ ${scale}` : "";
 	}
 
-	protected get completrScore(): number | null {
-		const score = this.game()?.scores?.find(s => s.source === "completr");
-		return score?.score ?? null;
+	protected get canonicalScore() {
+		return pickCanonicalScore(this.game());
 	}
 
-	protected get completrLabel(): string {
-		return getRatingLabel(this.completrScore);
-	}
-
-	protected get completrTime(): number | null {
-		const time = this.game()?.times?.find(t => t.source === "completr");
-		return time?.duration ?? null;
+	protected get canonicalRatingLabel(): string {
+		const cs = this.canonicalScore;
+		if (cs.type !== "completr" || cs.score == null) return "";
+		return getRatingLabel(cs.score);
 	}
 
 	protected otherScores() {
@@ -295,10 +306,155 @@ export class GameDetail implements OnInit {
 		return this.game()?.times?.filter(t => t.source !== "completr") ?? [];
 	}
 
+	openAddToListModal() {
+		const selection = new Map<string, boolean>();
+		for (const list of this.myLists()) {
+			selection.set(list.id, list.contains);
+		}
+		this.addToListSelection.set(selection);
+		this.newListName.set("");
+		this.newListError.set("");
+		this.showAddToListModal.set(true);
+	}
+
+	closeAddToListModal() {
+		this.showAddToListModal.set(false);
+	}
+
+	createNewList() {
+		const name = this.newListName().trim();
+		if (!name || this.creatingNewList()) return;
+		const gameId = this.game()?.id;
+		if (!gameId) return;
+
+		this.creatingNewList.set(true);
+		this.newListError.set("");
+		this.listsService
+			.create({
+				name,
+				isPublic: true,
+				scoreSource: "metacritic",
+				durationSource: "hltb"
+			})
+			.subscribe({
+				next: list => {
+					this.listsService.addItem(list.id, gameId).subscribe({
+						next: () => {
+							this.gamesService
+								.getGameLists(gameId)
+								.subscribe(data => {
+									this.featuredLists.set(data.lists);
+									this.myLists.set(data.myLists);
+									const selection = new Map(
+										this.addToListSelection()
+									);
+									for (const l of data.myLists) {
+										if (!selection.has(l.id))
+											selection.set(l.id, l.contains);
+									}
+									this.addToListSelection.set(selection);
+									this.newListName.set("");
+									this.creatingNewList.set(false);
+								});
+						},
+						error: () => {
+							this.newListError.set(
+								"List created but failed to add game"
+							);
+							this.creatingNewList.set(false);
+						}
+					});
+				},
+				error: () => {
+					this.newListError.set("Failed to create list");
+					this.creatingNewList.set(false);
+				}
+			});
+	}
+
+	toggleAddToListSelection(listId: string) {
+		const next = new Map(this.addToListSelection());
+		next.set(listId, !next.get(listId));
+		this.addToListSelection.set(next);
+	}
+
+	isAddToListChecked(listId: string): boolean {
+		return this.addToListSelection().get(listId) ?? false;
+	}
+
+	saveAddToList() {
+		const gameId = this.game()?.id;
+		if (!gameId) return;
+
+		const ops: Promise<unknown>[] = [];
+		for (const list of this.myLists()) {
+			const newState = this.addToListSelection().get(list.id) ?? false;
+			if (newState === list.contains) continue;
+			if (newState) {
+				ops.push(
+					new Promise((resolve, reject) =>
+						this.listsService
+							.addItem(list.id, gameId)
+							.subscribe({ next: resolve, error: reject })
+					)
+				);
+			} else {
+				ops.push(
+					new Promise((resolve, reject) =>
+						this.listsService
+							.removeItem(list.id, gameId)
+							.subscribe({ next: resolve, error: reject })
+					)
+				);
+			}
+		}
+
+		if (ops.length === 0) {
+			this.closeAddToListModal();
+			return;
+		}
+
+		this.addToListSaving.set(true);
+		Promise.all(ops)
+			.then(() => {
+				this.gamesService.getGameLists(gameId).subscribe(data => {
+					this.featuredLists.set(data.lists);
+					this.myLists.set(data.myLists);
+					this.addToListSaving.set(false);
+					this.closeAddToListModal();
+				});
+			})
+			.catch(() => {
+				this.addToListSaving.set(false);
+			});
+	}
+
 	openReportModal() {
 		this.showReportModal.set(true);
 		this.reportMessage.set("");
 		this.reportError.set("");
+	}
+
+	reportMissingData() {
+		const gameId = this.game()?.id;
+		if (!gameId || this.reportSubmitting()) return;
+		this.reportSubmitting.set(true);
+		this.gamesService
+			.reportGame(
+				gameId,
+				"Missing data for Completr Score (auto-reported from aggregate slot)",
+				"missing_score"
+			)
+			.subscribe({
+				next: () => {
+					this.reportSubmitting.set(false);
+					this.reportSent.set(true);
+				},
+				error: err => {
+					this.reportSubmitting.set(false);
+					if (err.status === 409) this.reportSent.set(true);
+				}
+			});
 	}
 
 	submitReport() {

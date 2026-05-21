@@ -11,6 +11,7 @@ import { GameShelfService } from "../game-shelf.service";
 import { RouterLink } from "@angular/router";
 import { GameShelfModal } from "../game-shelf-modal/game-shelf-modal";
 import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 interface PlatformCount {
@@ -21,7 +22,7 @@ interface PlatformCount {
 
 @Component({
 	selector: "app-game-shelf-list",
-	imports: [DatePipe, GameShelfModal, RouterLink, UiButton, UiPagination, UiSearchBar],
+	imports: [DatePipe, GameShelfModal, RouterLink, UiButton, UiPagination, UiSearchBar, GameCoverCard],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -40,14 +41,14 @@ export class GameShelfList implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
 
-	protected readonly viewMode = signal<"cards" | "grid" | "table">(
-		(localStorage.getItem("completr.shelf.viewMode") as
-			| "cards"
-			| "grid"
-			| "table") || "cards"
+	protected readonly viewMode = signal<"grid" | "table">(
+		((): "grid" | "table" => {
+			const saved = localStorage.getItem("completr.shelf.viewMode");
+			return saved === "table" ? "table" : "grid";
+		})()
 	);
 
-	setViewMode(mode: "cards" | "grid" | "table") {
+	setViewMode(mode: "grid" | "table") {
 		this.viewMode.set(mode);
 		localStorage.setItem("completr.shelf.viewMode", mode);
 	}

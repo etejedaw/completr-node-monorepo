@@ -5,15 +5,15 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { RouterLink } from "@angular/router";
 import { FavoriteEntry } from "../../../core/models";
 import { FavoritesService } from "../favorites.service";
-import { UiIconButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-favorites-view",
-	imports: [RouterLink, UiIconButton, UiPagination, UiSearchBar],
+	imports: [UiPagination, UiSearchBar, GameCoverCard],
 	templateUrl: "./favorites-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

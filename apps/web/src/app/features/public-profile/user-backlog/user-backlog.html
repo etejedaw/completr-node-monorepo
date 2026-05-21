@@ -137,38 +137,20 @@
 									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
 								</div>
 							}
-							@if (entry.personalRatio) {
-								<div class="flex flex-col items-end leading-none">
-									<span class="text-lg font-semibold text-warning">{{ entry.personalRatio }}</span>
-									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Personal</span>
-								</div>
-							}
+							<app-personal-stats
+								[personalRatio]="entry.personalRatio"
+							/>
 						</div>
 					</div>
 				}
 			</div>
 
-			@if (total() > limit) {
-				<div class="flex items-center justify-center gap-4 mt-5 pt-4 border-t border-line">
-					<button
-						class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
-						[disabled]="offset() === 0"
-						(click)="prevPage()"
-					>
-						Previous
-					</button>
-					<span class="text-[0.8125rem] text-fg-muted">
-						{{ offset() + 1 }}–{{ Math.min(offset() + limit, total()) }} of {{ total() }}
-					</span>
-					<button
-						class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
-						[disabled]="offset() + limit >= total()"
-						(click)="nextPage()"
-					>
-						Next
-					</button>
-				</div>
-			}
+			<ui-pagination
+				[offset]="offset()"
+				[limit]="limit"
+				[total]="total()"
+				(offsetChange)="goToOffset($event)"
+			/>
 		}
 	}
 </div>

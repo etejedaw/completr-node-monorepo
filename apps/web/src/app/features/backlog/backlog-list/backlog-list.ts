@@ -18,12 +18,13 @@ import { GamesService } from "../../games/games.service";
 import { ActivatedRoute, ParamMap, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 import { UiButton, UiIconButton, UiInput, UiPagination, UiSearchBar } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, RouterLink, UiButton, UiIconButton, UiInput, UiPagination, UiSearchBar],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiIconButton, UiInput, UiPagination, UiSearchBar],
 	templateUrl: "./backlog-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -48,6 +49,7 @@ export class BacklogList implements OnInit {
 	protected readonly editingEntry = signal<BacklogEntry | null>(null);
 	private readonly wishlistBacklogIds = signal<Set<string>>(new Set());
 	protected readonly wishlistConfirmId = signal<string | null>(null);
+	protected readonly reviewExpandedIds = signal<Set<string>>(new Set());
 	private wishlistConfirmTimer: ReturnType<typeof setTimeout> | null = null;
 
 	private readonly queryParamMap = toSignal(this.route.queryParamMap);
@@ -431,6 +433,19 @@ export class BacklogList implements OnInit {
 		this.wishlistService.removeByBacklogId(entry.id).subscribe(() => {
 			this.loadWishlistIds();
 		});
+	}
+
+	isReviewExpanded(entryId: string) {
+		return this.reviewExpandedIds().has(entryId);
+	}
+
+	toggleReview(entry: BacklogEntry, event: Event) {
+		event.stopPropagation();
+		if (!entry.hasReview || !entry.notes) return;
+		const next = new Set(this.reviewExpandedIds());
+		if (next.has(entry.id)) next.delete(entry.id);
+		else next.add(entry.id);
+		this.reviewExpandedIds.set(next);
 	}
 
 	openCreate() {

@@ -254,7 +254,15 @@ export class PublicProfileService {
 			);
 	}
 
-	getUserReviews(username: string) {
+	getUserReviews(
+		username: string,
+		opts: { limit?: number; offset?: number } = {}
+	) {
+		let params = new HttpParams();
+		if (opts.limit !== undefined)
+			params = params.set("limit", String(opts.limit));
+		if (opts.offset !== undefined)
+			params = params.set("offset", String(opts.offset));
 		return this.http
 			.get<{
 				data: {
@@ -262,6 +270,7 @@ export class PublicProfileService {
 						id: string;
 						content?: string;
 						rating?: number;
+						playthroughDuration?: number | null;
 						game: {
 							id: string;
 							code: string;
@@ -269,19 +278,10 @@ export class PublicProfileService {
 						} | null;
 						createdAt: string;
 					}[];
+					total: number;
 				};
-			}>(`${environment.apiUrl}/users/${username}/reviews`)
-			.pipe(map(res => res.data.reviews));
-	}
-
-	getUserListDetail(username: string, listId: string) {
-		return this.http
-			.get<{
-				data: {
-					list: import("../../core/models").List;
-					profileUser: { username: string; name: string };
-				};
-			}>(`${environment.apiUrl}/users/${username}/lists/${listId}`)
+			}>(`${environment.apiUrl}/users/${username}/reviews`, { params })
 			.pipe(map(res => res.data));
 	}
+
 }

@@ -9,6 +9,29 @@
 
 	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
+	<div class="flex gap-1 bg-input-bg border border-line rounded-md p-1 mb-4 w-fit">
+		<button
+			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+			[class.!bg-surface-hover]="viewMode() === 'diary'"
+			[class.!text-fg]="viewMode() === 'diary'"
+			(click)="setViewMode('diary')"
+			title="Diary view"
+		>
+			<span class="material-icons text-base">view_agenda</span>
+			Diary
+		</button>
+		<button
+			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+			[class.!bg-surface-hover]="viewMode() === 'hardcore'"
+			[class.!text-fg]="viewMode() === 'hardcore'"
+			(click)="setViewMode('hardcore')"
+			title="Hardcore (table) view"
+		>
+			<span class="material-icons text-base">table_rows</span>
+			Hardcore
+		</button>
+	</div>
+
 	<div class="flex items-center gap-2 mb-4">
 		@if (backlogFilters().length > 0) {
 		<div class="flex flex-wrap gap-1.5">
@@ -264,31 +287,6 @@
 		</p>
 	</div>
 	} @else {
-		<div class="flex justify-end mb-3">
-			<div class="flex gap-1 bg-input-bg border border-line rounded-md p-1">
-				<button
-					class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
-					[class.!bg-surface-hover]="viewMode() === 'diary'"
-					[class.!text-fg]="viewMode() === 'diary'"
-					(click)="setViewMode('diary')"
-					title="Diary view"
-				>
-					<span class="material-icons text-base">view_agenda</span>
-					Diary
-				</button>
-				<button
-					class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
-					[class.!bg-surface-hover]="viewMode() === 'hardcore'"
-					[class.!text-fg]="viewMode() === 'hardcore'"
-					(click)="setViewMode('hardcore')"
-					title="Hardcore (table) view"
-				>
-					<span class="material-icons text-base">table_rows</span>
-					Hardcore
-				</button>
-			</div>
-		</div>
-
 		@if (viewMode() === 'diary') {
 			<div class="flex flex-col gap-3">
 				@for (entry of entries(); track entry.id) {
@@ -347,14 +345,38 @@
 								}
 							</div>
 
-							<app-star-rating
-								[value]="entry.userRating ?? null"
-								[readonly]="true"
-								size="sm"
-							/>
+							<div class="flex items-center gap-2">
+								<app-star-rating
+									[value]="entry.userRating ?? null"
+									[readonly]="true"
+									size="sm"
+								/>
+								@if (entry.hasReview) {
+									@if (entry.notes) {
+										<button
+											type="button"
+											class="material-icons text-base bg-transparent border-0 p-0 cursor-pointer transition"
+											[class.text-brand]="isReviewExpanded(entry.id)"
+											[class.text-fg-muted]="!isReviewExpanded(entry.id)"
+											[title]="isReviewExpanded(entry.id) ? 'Show your note' : 'Show your review'"
+											(click)="toggleReview(entry, $event)"
+										>rate_review</button>
+									} @else {
+										<span
+											class="material-icons text-base text-brand"
+											title="You reviewed this game"
+										>rate_review</span>
+									}
+								}
+							</div>
 
-							@if (entry.notes) {
+							@if (entry.notes && (!entry.hasReview || !isReviewExpanded(entry.id))) {
 								<p class="text-xs text-fg-muted line-clamp-2 leading-snug m-0 mt-auto">{{ entry.notes }}</p>
+							} @else if (entry.reviewContent) {
+								<div class="flex items-start gap-1.5 mt-auto text-xs text-fg-muted leading-snug">
+									<span class="material-icons text-[0.875rem] mt-0.5 text-brand">format_quote</span>
+									<p class="m-0 line-clamp-2">{{ entry.reviewContent }}</p>
+								</div>
 							}
 						</div>
 
@@ -365,12 +387,9 @@
 									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
 								</div>
 							}
-							@if (entry.personalRatio) {
-								<div class="flex flex-col items-end leading-none">
-									<span class="text-lg font-semibold text-warning">{{ entry.personalRatio }}</span>
-									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Personal</span>
-								</div>
-							}
+							<app-personal-stats
+								[personalRatio]="entry.personalRatio"
+							/>
 						</div>
 
 						<button
@@ -453,15 +472,39 @@
 								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.realDuration ? entry.realDuration + "h" : "-" }}</td>
 								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.personalRatio ?? "-" }}</td>
 								<td class="px-4 py-3 align-middle">
-									<app-star-rating [value]="entry.userRating ?? null" [readonly]="true" size="sm" />
+									<div class="flex items-center gap-1.5">
+										<app-star-rating [value]="entry.userRating ?? null" [readonly]="true" size="sm" />
+										@if (entry.hasReview) {
+											@if (entry.notes) {
+												<button
+													type="button"
+													class="material-icons text-sm bg-transparent border-0 p-0 cursor-pointer transition"
+													[class.text-brand]="isReviewExpanded(entry.id)"
+													[class.text-fg-muted]="!isReviewExpanded(entry.id)"
+													[title]="isReviewExpanded(entry.id) ? 'Show your note' : 'Show your review'"
+													(click)="toggleReview(entry, $event)"
+												>rate_review</button>
+											} @else {
+												<span
+													class="material-icons text-sm text-brand"
+													title="You reviewed this game"
+												>rate_review</span>
+											}
+										}
+									</div>
 								</td>
 								<td class="px-4 py-3 align-middle whitespace-nowrap text-fg-secondary text-sm">{{ entry.finishedAt ? (entry.finishedAt | date:'yyyy-MM-dd') : "-" }}</td>
 								<td class="px-4 py-3 align-middle whitespace-nowrap">
 									<span class="inline-block px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide" [class]="statusClass(entry.status)">{{ statusLabel(entry.status) }}</span>
 								</td>
 								<td class="px-4 py-3 align-middle max-w-[200px]">
-									@if (entry.notes) {
+									@if (entry.notes && (!entry.hasReview || !isReviewExpanded(entry.id))) {
 										<span class="text-fg-muted text-xs leading-tight line-clamp-2">{{ entry.notes }}</span>
+									} @else if (entry.reviewContent) {
+										<div class="flex items-start gap-1.5 text-fg-muted text-xs leading-tight">
+											<span class="material-icons text-[0.875rem] mt-0.5 text-brand">format_quote</span>
+											<span class="line-clamp-2">{{ entry.reviewContent }}</span>
+										</div>
 									}
 								</td>
 								<td class="px-2 py-3 align-middle w-9 text-center">

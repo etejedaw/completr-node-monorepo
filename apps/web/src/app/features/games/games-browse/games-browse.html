@@ -54,6 +54,12 @@
 								@if (game.isDlc) {
 									<span class="absolute top-2 left-2 px-1.5 py-0.5 bg-warning/85 text-black text-[0.65rem] font-semibold uppercase tracking-wider rounded backdrop-blur-sm shadow">DLC</span>
 								}
+								@if (game.justImported) {
+									<span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/85 text-white text-[0.65rem] font-semibold uppercase tracking-wider rounded backdrop-blur-sm shadow" title="Just imported from RAWG">
+										<span class="material-icons text-[0.75rem]">cloud_download</span>
+										RAWG
+									</span>
+								}
 							</div>
 							<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ game.title }}</span>
 						</a>
@@ -270,41 +276,6 @@
 									<p class="m-0 text-xs text-white/75 line-clamp-2 leading-snug">{{ list.description }}</p>
 								}
 							</div>
-						</a>
-					}
-				</div>
-			</section>
-		}
-
-		@if (topRated().length > 0) {
-			<section class="mb-10">
-				<div class="flex items-center justify-between mb-4">
-					<h2 class="font-display m-0 text-xl md:text-2xl font-bold flex items-center gap-3">
-						<span class="inline-block w-1 h-6 bg-brand rounded-full"></span>
-						Top Rated
-					</h2>
-					<div class="flex items-center gap-1">
-						<button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-line text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand" (click)="topShelf.scrollBy({left: -600, behavior: 'smooth'})">
-							<span class="material-icons text-lg">chevron_left</span>
-						</button>
-						<button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-line text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand" (click)="topShelf.scrollBy({left: 600, behavior: 'smooth'})">
-							<span class="material-icons text-lg">chevron_right</span>
-						</button>
-					</div>
-				</div>
-				<div #topShelf class="flex gap-4 overflow-x-auto scroll-smooth pb-2" style="scrollbar-width: none;">
-					@for (game of topRated(); track game.id) {
-						<a class="shrink-0 w-40 sm:w-44 md:w-48 flex flex-col gap-2 no-underline text-inherit group" [routerLink]="['/games', game.code]">
-							@if (game.backgroundUrl) {
-								<img
-									[src]="game.backgroundUrl"
-									[alt]="game.title"
-									class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
-								/>
-							} @else {
-								<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-							}
-							<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ game.title }}</span>
 						</a>
 					}
 				</div>

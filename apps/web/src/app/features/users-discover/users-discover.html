@@ -1,0 +1,86 @@
+<div class="max-w-full">
+	<div class="flex items-baseline gap-3 mb-5">
+		<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Users</h1>
+		<span class="text-[0.8125rem] text-fg-muted">Find people to follow</span>
+	</div>
+
+	<ui-search-bar
+		class="block mb-6 max-w-2xl"
+		placeholder="Search by username, name or email..."
+		[value]="searchQuery()"
+		(valueChange)="onSearch($event)"
+	/>
+
+	@if (searchQuery().trim().length >= 2) {
+		<div class="mb-8 pb-6 border-b border-line">
+			<h2 class="font-display m-0 mb-3 text-sm font-semibold text-fg-secondary">Search Results</h2>
+			@if (isSearching()) {
+				<div class="text-center py-12 text-fg-muted text-sm">Searching...</div>
+			} @else if (searchResults().length === 0) {
+				<div class="text-fg-muted text-[0.8125rem]">No users found.</div>
+			} @else {
+				<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+					@for (user of searchResults(); track user.id) {
+						<a
+							class="flex items-center gap-3 p-3 rounded-card border border-line bg-card no-underline text-inherit transition hover:border-brand/50"
+							[routerLink]="['/user', user.username]"
+						>
+							@if (user.avatarUrl) {
+								<img
+									class="w-12 h-12 rounded-full object-cover ring-1 ring-line shrink-0"
+									[src]="user.avatarUrl"
+									[alt]="user.username"
+								/>
+							} @else {
+								<div class="w-12 h-12 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-lg font-bold ring-1 ring-line shrink-0">
+									{{ user.username.charAt(0).toUpperCase() }}
+								</div>
+							}
+							<div class="min-w-0 flex-1">
+								<div class="font-semibold text-fg truncate">{{ user.name || user.username }}</div>
+								<div class="text-[0.8125rem] text-fg-muted truncate">{{ '@' + user.username }}</div>
+							</div>
+							@if (!user.isPublic) {
+								<span class="material-icons text-fg-muted text-base shrink-0" title="Private profile">lock</span>
+							}
+						</a>
+					}
+				</div>
+			}
+		</div>
+	}
+
+	<div>
+		<h2 class="font-display m-0 mb-3 text-sm font-semibold text-fg-secondary">Discover</h2>
+		@if (isLoadingDiscover()) {
+			<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
+		} @else if (discoverUsers().length === 0) {
+			<div class="text-fg-muted text-[0.8125rem]">No public users yet.</div>
+		} @else {
+			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+				@for (user of discoverUsers(); track user.id) {
+					<a
+						class="flex items-center gap-3 p-3 rounded-card border border-line bg-card no-underline text-inherit transition hover:border-brand/50"
+						[routerLink]="['/user', user.username]"
+					>
+						@if (user.avatarUrl) {
+							<img
+								class="w-12 h-12 rounded-full object-cover ring-1 ring-line shrink-0"
+								[src]="user.avatarUrl"
+								[alt]="user.username"
+							/>
+						} @else {
+							<div class="w-12 h-12 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-lg font-bold ring-1 ring-line shrink-0">
+								{{ user.username.charAt(0).toUpperCase() }}
+							</div>
+						}
+						<div class="min-w-0 flex-1">
+							<div class="font-semibold text-fg truncate">{{ user.name || user.username }}</div>
+							<div class="text-[0.8125rem] text-fg-muted truncate">{{ '@' + user.username }}</div>
+						</div>
+					</a>
+				}
+			</div>
+		}
+	</div>
+</div>

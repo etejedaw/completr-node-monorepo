@@ -43,6 +43,8 @@ export interface ListItem {
 	ratio?: number;
 	game: ListItemGame;
 	backlogStatus?: string;
+	realDuration?: number | null;
+	personalRatio?: number | null;
 }
 
 interface ListItemGame {

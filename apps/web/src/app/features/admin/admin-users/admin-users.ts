@@ -8,7 +8,7 @@ import {
 import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { AdminService, AdminUser } from "../admin.service";
-import { UiButton, UiIconButton, UiInput } from "../../../shared/ui";
+import { UiButton, UiIconButton, UiInput, UiPagination } from "../../../shared/ui";
 
 interface CreateUserRequest {
 	username: string;
@@ -19,7 +19,7 @@ interface CreateUserRequest {
 
 @Component({
 	selector: "app-admin-users",
-	imports: [DatePipe, FormsModule, UiButton, UiIconButton, UiInput],
+	imports: [DatePipe, FormsModule, UiButton, UiIconButton, UiInput, UiPagination],
 	templateUrl: "./admin-users.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -177,13 +177,8 @@ export class AdminUsers implements OnInit {
 
 	// === Pagination ===
 
-	nextPage() {
-		this.offset.update(o => o + this.limit);
-		this.loadUsers();
-	}
-
-	prevPage() {
-		this.offset.update(o => Math.max(0, o - this.limit));
+	goToOffset(offset: number) {
+		this.offset.set(offset);
 		this.loadUsers();
 	}
 }

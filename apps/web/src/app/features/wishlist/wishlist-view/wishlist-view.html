@@ -11,25 +11,55 @@
 
 	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
-	<div class="flex gap-1 mb-4">
+	<div class="flex items-center gap-2 mb-4 flex-wrap">
+		<span class="text-xs text-fg-muted mr-1">Sort by:</span>
 		<button
-			class="flex bg-input-bg border border-line rounded-md text-fg-muted p-1.5 cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="viewMode() === 'table'"
-			[class.!border-brand]="viewMode() === 'table'"
-			[class.!text-brand]="viewMode() === 'table'"
-			(click)="viewMode.set('table')"
+			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="sortBy() === 'manual'"
+			[class.!border-brand]="sortBy() === 'manual'"
+			[class.!text-brand]="sortBy() === 'manual'"
+			(click)="setSort('manual')"
 		>
-			<span class="material-icons text-lg">view_list</span>
+			Manual
 		</button>
 		<button
-			class="flex bg-input-bg border border-line rounded-md text-fg-muted p-1.5 cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="viewMode() === 'grid'"
-			[class.!border-brand]="viewMode() === 'grid'"
-			[class.!text-brand]="viewMode() === 'grid'"
-			(click)="viewMode.set('grid')"
+			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="sortBy() === 'ratio'"
+			[class.!border-brand]="sortBy() === 'ratio'"
+			[class.!text-brand]="sortBy() === 'ratio'"
+			(click)="setSort('ratio')"
 		>
-			<span class="material-icons text-lg">grid_view</span>
+			Ratio
 		</button>
+		<button
+			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="sortBy() === 'score'"
+			[class.!border-brand]="sortBy() === 'score'"
+			[class.!text-brand]="sortBy() === 'score'"
+			(click)="setSort('score')"
+		>
+			Score
+		</button>
+		<button
+			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="sortBy() === 'duration'"
+			[class.!border-brand]="sortBy() === 'duration'"
+			[class.!text-brand]="sortBy() === 'duration'"
+			(click)="setSort('duration')"
+		>
+			Duration
+		</button>
+		@if (sortBy() !== 'manual') {
+			<button
+				class="ml-auto bg-brand-subtle border border-brand text-brand text-xs font-medium px-3 py-1.5 rounded cursor-pointer inline-flex items-center gap-1.5 transition hover:bg-brand hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+				[disabled]="savingOrder()"
+				(click)="saveCurrentOrder()"
+				title="Persist this order as the new manual priority"
+			>
+				<span class="material-icons text-sm">save</span>
+				{{ savingOrder() ? 'Saving...' : 'Save this order' }}
+			</button>
+		}
 	</div>
 
 	@if (isLoading()) {
@@ -42,111 +72,27 @@
 			page or from your backlog.
 		</p>
 	</div>
-	} @else { @if (viewMode() === 'table') {
-		<div class="flex flex-col gap-3">
-			@for (entry of filteredEntries(); track entry.id; let i = $index) {
-				<div class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line transition hover:border-brand/40">
-					<div class="shrink-0 flex items-center justify-center w-10 text-3xl font-bold text-fg-muted">
-						{{ entry.position }}
-					</div>
-
-					<a
-						[routerLink]="['/games', entry.backlog.game.code]"
-						class="shrink-0"
-					>
-						@if (entry.backlog.game.backgroundUrl) {
-							<img
-								[src]="entry.backlog.game.backgroundUrl"
-								[alt]="entry.backlog.game.title"
-								class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
-							/>
-						} @else {
-							<div class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"></div>
-						}
-					</a>
-
-					<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
-						<a
-							class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
-							[routerLink]="['/games', entry.backlog.game.code]"
-						>{{ entry.backlog.game.title }}</a>
-
-						<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
-							<span
-								class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
-								[class]="statusClass(entry.backlog.status)"
-							>{{ statusLabel(entry.backlog.status) }}</span>
-							@if (entry.backlog.platform) {
-								<span class="text-fg-muted">{{ entry.backlog.platform.abbreviation }}</span>
-							}
-							@if (entry.backlog.score) {
-								<span class="text-fg-muted">·</span>
-								<span class="text-fg-muted">Score {{ entry.backlog.score }}</span>
-							}
-							@if (entry.backlog.duration) {
-								<span class="text-fg-muted">·</span>
-								<span class="text-fg-muted">{{ entry.backlog.duration }}h</span>
-							}
-						</div>
-					</div>
-
-					<div class="hidden sm:flex flex-col items-end justify-center shrink-0 min-w-[70px] text-right">
-						@if (entry.backlog.ratio) {
-							<span class="text-3xl font-bold text-brand leading-none">{{ entry.backlog.ratio }}</span>
-							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
-						}
-					</div>
-
-					<div class="flex flex-col items-center justify-center gap-1 shrink-0">
-						<button
-							uiIconButton size="sm"
-							[disabled]="i === 0"
-							(click)="moveUp(i)"
-							title="Move up"
-						>
-							<span class="material-icons text-lg">keyboard_arrow_up</span>
-						</button>
-						<button
-							uiIconButton size="sm"
-							[disabled]="i === filteredEntries().length - 1"
-							(click)="moveDown(i)"
-							title="Move down"
-						>
-							<span class="material-icons text-lg">keyboard_arrow_down</span>
-						</button>
-						<button
-							uiIconButton size="sm" tone="danger"
-							(click)="remove(entry)"
-							title="Remove"
-						>
-							<span class="material-icons text-lg">close</span>
-						</button>
-					</div>
-				</div>
-			}
-		</div>
-	} @if (viewMode() === 'grid') {
+	} @else {
 	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 		@for (entry of filteredEntries(); track entry.id; let i = $index) {
-		<a class="flex flex-col gap-1.5 text-inherit no-underline group" [routerLink]="['/games', entry.backlog.game.code]">
-			<div class="relative">
-				@if (entry.backlog.game.backgroundUrl) {
-				<img
-					[src]="entry.backlog.game.backgroundUrl"
-					[alt]="entry.backlog.game.title"
-					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40-md transition-transform hover:scale-[1.03]"
-				/>
-				} @else {
-				<div class="w-full aspect-[3/4] bg-surface rounded-lg-md"></div>
-				}
-				<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm">#{{ offset() + i + 1 }}</span>
-			</div>
-			<span class="text-xs font-medium text-fg-secondary truncate">{{ entry.backlog.game.title }}</span>
-			<span class="text-[0.625rem] text-fg-muted">{{ entry.backlog.platform?.abbreviation ?? '' }}</span>
-		</a>
+			<app-wishlist-grid-card
+				[entry]="{
+					game: entry.backlog.game,
+					platformAbbreviation: entry.backlog.platform?.abbreviation,
+					ratio: entry.backlog.ratio,
+					duration: entry.backlog.duration
+				}"
+				[position]="offset() + i + 1"
+				[showActions]="true"
+				[isFirst]="sortBy() !== 'manual' || i === 0"
+				[isLast]="sortBy() !== 'manual' || i === filteredEntries().length - 1"
+				(moveUp)="moveUp(i)"
+				(moveDown)="moveDown(i)"
+				(remove)="remove(entry)"
+			/>
 		}
 	</div>
-	} }
+	}
 
 	<ui-pagination
 		[offset]="offset()"

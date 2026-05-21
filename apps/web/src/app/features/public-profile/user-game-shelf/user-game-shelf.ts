@@ -6,17 +6,17 @@ import {
 	signal
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { DatePipe } from "@angular/common";
 import { AuthService } from "../../../core/services/auth.service";
 import { PublicProfileService } from "../public-profile.service";
 import { GameShelfEntry } from "../../../core/models";
-import { UiSearchBar } from "../../../shared/ui";
+import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 
 const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-game-shelf",
-	imports: [RouterLink, DatePipe, UiSearchBar],
+	imports: [RouterLink, UiPagination, UiSearchBar, GameCoverCard],
 	templateUrl: "./user-game-shelf.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -36,18 +36,6 @@ export class UserGameShelf implements OnInit {
 	protected readonly error = signal<"not_found" | "private" | null>(null);
 	protected readonly isLoggedIn = this.authService.isLoggedIn;
 	protected readonly searchQuery = signal("");
-
-	protected readonly viewMode = signal<"cards" | "grid" | "table">(
-		(localStorage.getItem("completr.shelf.viewMode") as
-			| "cards"
-			| "grid"
-			| "table") || "cards"
-	);
-
-	setViewMode(mode: "cards" | "grid" | "table") {
-		this.viewMode.set(mode);
-		localStorage.setItem("completr.shelf.viewMode", mode);
-	}
 
 	ngOnInit() {
 		if (this.authService.token() && !this.authService.user()) {
@@ -84,14 +72,8 @@ export class UserGameShelf implements OnInit {
 		);
 	}
 
-	prevPage() {
-		this.offset.update(o => Math.max(0, o - this.limit));
-		this.searchQuery.set("");
-		this.load(this.username());
-	}
-
-	nextPage() {
-		this.offset.update(o => o + this.limit);
+	goToOffset(offset: number) {
+		this.offset.set(offset);
 		this.searchQuery.set("");
 		this.load(this.username());
 	}

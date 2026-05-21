@@ -6,16 +6,16 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { RouterLink } from "@angular/router";
 import { WishlistEntry } from "../../../core/models";
 import { WishlistService } from "../wishlist.service";
 import { WishlistAddModal } from "../wishlist-add-modal/wishlist-add-modal";
-import { UiButton, UiIconButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { WishlistGridCard } from "../../../shared/components/wishlist-grid-card/wishlist-grid-card";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-wishlist-view",
-	imports: [RouterLink, WishlistAddModal, UiButton, UiIconButton, UiPagination, UiSearchBar],
+	imports: [WishlistAddModal, UiButton, UiPagination, UiSearchBar, WishlistGridCard],
 	templateUrl: "./wishlist-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -25,18 +25,60 @@ export class WishlistView implements OnInit {
 	protected readonly entries = signal<WishlistEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly showAddModal = signal(false);
-	protected readonly viewMode = signal<"table" | "grid">("table");
 	protected readonly searchQuery = signal("");
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
+	protected readonly sortBy = signal<
+		"manual" | "ratio" | "score" | "duration"
+	>("manual");
+	protected readonly savingOrder = signal(false);
 
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadWishlist();
 	}
 
-	protected readonly filteredEntries = computed(() => this.entries());
+	setSort(sort: "manual" | "ratio" | "score" | "duration") {
+		this.sortBy.set(sort);
+	}
+
+	protected readonly filteredEntries = computed(() => {
+		const sort = this.sortBy();
+		const list = this.entries();
+		if (sort === "manual") return list;
+		const sorted = [...list];
+		if (sort === "ratio") {
+			sorted.sort(
+				(a, b) => (b.backlog.ratio ?? -1) - (a.backlog.ratio ?? -1)
+			);
+		} else if (sort === "score") {
+			sorted.sort(
+				(a, b) => (b.backlog.score ?? -1) - (a.backlog.score ?? -1)
+			);
+		} else if (sort === "duration") {
+			sorted.sort(
+				(a, b) =>
+					(a.backlog.duration ?? Number.POSITIVE_INFINITY) -
+					(b.backlog.duration ?? Number.POSITIVE_INFINITY)
+			);
+		}
+		return sorted;
+	});
+
+	saveCurrentOrder() {
+		if (this.sortBy() === "manual" || this.savingOrder()) return;
+		this.savingOrder.set(true);
+		const backlogIds = this.filteredEntries().map(e => e.backlog.id);
+		this.wishlistService.reorder(backlogIds).subscribe({
+			next: updated => {
+				this.entries.set(updated);
+				this.sortBy.set("manual");
+				this.savingOrder.set(false);
+			},
+			error: () => this.savingOrder.set(false)
+		});
+	}
 
 	private readonly searchSubject = new Subject<string>();
 
@@ -88,26 +130,6 @@ export class WishlistView implements OnInit {
 		const list = [...this.entries()];
 		[list[index], list[index + 1]] = [list[index + 1], list[index]];
 		this.reorder(list);
-	}
-
-	statusLabel(status: string): string {
-		const map: Record<string, string> = {
-			not_started: "Not Started",
-			playing: "Playing",
-			completed: "Completed",
-			abandoned: "Abandoned"
-		};
-		return map[status] ?? status;
-	}
-
-	statusClass(status: string): string {
-		const map: Record<string, string> = {
-			not_started: "bg-fg-muted/10 text-fg-muted",
-			playing: "bg-warning/10 text-warning",
-			completed: "bg-brand-subtle text-brand",
-			abandoned: "bg-danger/10 text-danger"
-		};
-		return map[status] ?? "";
 	}
 
 	private loadWishlist() {

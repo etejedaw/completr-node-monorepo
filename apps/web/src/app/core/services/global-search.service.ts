@@ -42,7 +42,7 @@ export class GlobalSearchService {
 				.get<{
 					data: { users: UserResult[] };
 				}>(
-					`${environment.apiUrl}/users/search?query=${encodeURIComponent(query)}`
+					`${environment.apiUrl}/users/search?q=${encodeURIComponent(query)}`
 				)
 				.pipe(map(res => res.data.users)),
 			games: this.http

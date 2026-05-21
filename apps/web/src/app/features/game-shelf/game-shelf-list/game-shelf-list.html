@@ -9,39 +9,26 @@
 
 	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
-	<div class="flex gap-1 mb-4">
+	<div class="flex gap-1 bg-input-bg border border-line rounded-md p-1 mb-4 w-fit">
 		<button
-			class="flex bg-input-bg border border-line rounded-md text-fg-muted p-1.5 cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="viewMode() === 'cards'"
-			[class.!border-brand]="viewMode() === 'cards'"
-			[class.!text-brand]="viewMode() === 'cards'"
-			(click)="setViewMode('cards')"
-			title="Cards view"
-			aria-label="Cards view"
-		>
-			<span class="material-icons text-lg">view_agenda</span>
-		</button>
-		<button
-			class="flex bg-input-bg border border-line rounded-md text-fg-muted p-1.5 cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="viewMode() === 'grid'"
-			[class.!border-brand]="viewMode() === 'grid'"
-			[class.!text-brand]="viewMode() === 'grid'"
+			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+			[class.!bg-surface-hover]="viewMode() === 'grid'"
+			[class.!text-fg]="viewMode() === 'grid'"
 			(click)="setViewMode('grid')"
 			title="Grid view"
-			aria-label="Grid view"
 		>
-			<span class="material-icons text-lg">grid_view</span>
+			<span class="material-icons text-base">grid_view</span>
+			Grid
 		</button>
 		<button
-			class="flex bg-input-bg border border-line rounded-md text-fg-muted p-1.5 cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="viewMode() === 'table'"
-			[class.!border-brand]="viewMode() === 'table'"
-			[class.!text-brand]="viewMode() === 'table'"
+			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+			[class.!bg-surface-hover]="viewMode() === 'table'"
+			[class.!text-fg]="viewMode() === 'table'"
 			(click)="setViewMode('table')"
-			title="Table view"
-			aria-label="Table view"
+			title="Hardcore (table) view"
 		>
-			<span class="material-icons text-lg">view_list</span>
+			<span class="material-icons text-base">table_rows</span>
+			Hardcore
 		</button>
 	</div>
 
@@ -78,83 +65,17 @@
 			<strong>+ Add to Shelf</strong> to start building your collection.
 		</p>
 	</div>
-	} @else if (viewMode() === 'cards') {
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-			@for (entry of entries(); track entry.id) {
-				<div
-					class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line cursor-pointer transition hover:border-brand/40"
-					(click)="openEdit(entry)"
-				>
-					<a
-						[routerLink]="['/games', entry.game.code]"
-						(click)="$event.stopPropagation()"
-						class="shrink-0"
-					>
-						@if (entry.game.backgroundUrl) {
-							<img
-								[src]="entry.game.backgroundUrl"
-								[alt]="entry.game.title"
-								class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
-							/>
-						} @else {
-							<div class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"></div>
-						}
-					</a>
-
-					<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
-						<a
-							class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
-							[routerLink]="['/games', entry.game.code]"
-							(click)="$event.stopPropagation()"
-						>{{ entry.game.title }}</a>
-
-						<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
-							<span class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide bg-brand-subtle text-brand">{{ entry.platform.abbreviation }}</span>
-							@if (entry.edition) {
-								<span class="text-fg-muted">·</span>
-								<span class="text-fg-secondary">{{ entry.edition }}</span>
-							}
-							@if (entry.acquiredAt) {
-								<span class="text-fg-muted">·</span>
-								<span class="text-fg-muted">Acquired {{ entry.acquiredAt | date:'yyyy-MM-dd' }}</span>
-							}
-						</div>
-
-						@if (entry.notes) {
-							<p class="text-xs text-fg-muted line-clamp-2 leading-snug m-0 mt-auto">{{ entry.notes }}</p>
-						}
-					</div>
-				</div>
-			}
-		</div>
 	} @else if (viewMode() === 'grid') {
 		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 			@for (entry of entries(); track entry.id) {
-				<div
-					class="flex flex-col gap-1.5 text-inherit cursor-pointer group"
-					(click)="openEdit(entry)"
-				>
-					<div class="relative">
-						@if (entry.game.backgroundUrl) {
-							<img
-								[src]="entry.game.backgroundUrl"
-								[alt]="entry.game.title"
-								class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40-md transition-transform group-hover:scale-[1.03]"
-							/>
-						} @else {
-							<div class="w-full aspect-[3/4] bg-surface rounded-lg-md"></div>
-						}
-						<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm">{{ entry.platform.abbreviation }}</span>
-					</div>
-					<a
-						class="text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand"
-						[routerLink]="['/games', entry.game.code]"
-						(click)="$event.stopPropagation()"
-					>{{ entry.game.title }}</a>
-					@if (entry.edition) {
-						<span class="text-[0.625rem] text-fg-muted truncate">{{ entry.edition }}</span>
-					}
-				</div>
+				<app-game-cover-card
+					[game]="entry.game"
+					[topLeftBadge]="entry.platform.abbreviation"
+					[subtitle]="entry.edition"
+					[acquiredAt]="entry.acquiredAt"
+					[clickable]="true"
+					(cardClick)="openEdit(entry)"
+				/>
 			}
 		</div>
 	} @else {

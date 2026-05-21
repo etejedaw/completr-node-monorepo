@@ -54,9 +54,14 @@ export const routes: Routes = [
 	},
 	{
 		path: "user/:username/lists/:id",
+		redirectTo: ({ params }) =>
+			`/lists/${params["id"]}?from=${params["username"]}`
+	},
+	{
+		path: "user/:username/reviews",
 		loadComponent: () =>
-			import("./features/public-profile/user-list-detail/user-list-detail").then(
-				m => m.UserListDetail
+			import("./features/public-profile/user-reviews/user-reviews").then(
+				m => m.UserReviews
 			)
 	},
 	{
@@ -89,6 +94,20 @@ export const routes: Routes = [
 				loadComponent: () =>
 					import("./features/games/games-browse/games-browse").then(
 						m => m.GamesBrowse
+					)
+			},
+			{
+				path: "users",
+				loadComponent: () =>
+					import("./features/users-discover/users-discover").then(
+						m => m.UsersDiscover
+					)
+			},
+			{
+				path: "genres/:code",
+				loadComponent: () =>
+					import("./features/games/genre-detail/genre-detail").then(
+						m => m.GenreDetail
 					)
 			},
 			{

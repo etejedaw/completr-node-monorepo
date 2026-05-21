@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
@@ -9,12 +10,14 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import { PublicProfileService } from "../public-profile.service";
 import { WishlistEntry } from "../../../core/models";
+import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { WishlistGridCard } from "../../../shared/components/wishlist-grid-card/wishlist-grid-card";
 
 const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-wishlist",
-	imports: [RouterLink],
+	imports: [RouterLink, UiPagination, UiSearchBar, WishlistGridCard],
 	templateUrl: "./user-wishlist.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -32,6 +35,14 @@ export class UserWishlist implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly error = signal<"not_found" | "private" | null>(null);
 	protected readonly isLoggedIn = this.authService.isLoggedIn;
+	protected readonly searchQuery = signal("");
+	protected readonly filteredEntries = computed(() => {
+		const q = this.searchQuery().toLowerCase().trim();
+		if (!q) return this.entries();
+		return this.entries().filter(e =>
+			e.backlog.game.title.toLowerCase().includes(q)
+		);
+	});
 
 	ngOnInit() {
 		if (this.authService.token() && !this.authService.user()) {
@@ -50,33 +61,8 @@ export class UserWishlist implements OnInit {
 		this.load(username);
 	}
 
-	statusClass(status: string): string {
-		const map: Record<string, string> = {
-			not_started: "status-not-started",
-			playing: "status-playing",
-			completed: "status-completed",
-			abandoned: "status-abandoned"
-		};
-		return map[status] ?? "";
-	}
-
-	statusLabel(status: string): string {
-		const map: Record<string, string> = {
-			not_started: "Not Started",
-			playing: "Playing",
-			completed: "Completed",
-			abandoned: "Abandoned"
-		};
-		return map[status] ?? status;
-	}
-
-	prevPage() {
-		this.offset.update(o => Math.max(0, o - this.limit));
-		this.load(this.username());
-	}
-
-	nextPage() {
-		this.offset.update(o => o + this.limit);
+	goToOffset(offset: number) {
+		this.offset.set(offset);
 		this.load(this.username());
 	}
 

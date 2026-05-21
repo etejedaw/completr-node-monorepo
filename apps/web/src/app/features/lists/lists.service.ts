@@ -97,6 +97,14 @@ export class ListsService {
 			.pipe(map(res => res.data.items));
 	}
 
+	addItem(listId: string, gameId: string) {
+		return this.http.post(`${this.baseUrl}/${listId}/items`, { gameId });
+	}
+
+	removeItem(listId: string, gameId: string) {
+		return this.http.delete(`${this.baseUrl}/${listId}/items/${gameId}`);
+	}
+
 	refreshScores(id: string) {
 		return this.http
 			.post<RefreshResponse>(`${this.baseUrl}/${id}/refresh-scores`, {})

@@ -19,33 +19,11 @@
 	} @else {
 		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 			@for (entry of entries(); track entry.id) {
-				<div class="relative group">
-					<a
-						[routerLink]="['/games', entry.game.code]"
-						class="flex flex-col gap-1.5 text-inherit no-underline group"
-					>
-						@if (entry.game.backgroundUrl) {
-							<img
-								[src]="entry.game.backgroundUrl"
-								[alt]="entry.game.title"
-								class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40-md transition-transform hover:scale-[1.03]"
-							/>
-						} @else {
-							<div class="w-full aspect-[3/4] bg-surface rounded-lg-md"></div>
-						}
-						<span class="text-xs font-medium text-fg-secondary truncate">{{ entry.game.title }}</span>
-					</a>
-					<button
-						uiIconButton
-						size="sm"
-						tone="danger"
-						class="!absolute !top-1 !right-1 !bg-black/60 hover:!bg-black/80 opacity-0 group-hover:opacity-100"
-						(click)="remove(entry)"
-						title="Remove from favorites"
-					>
-						&times;
-					</button>
-				</div>
+				<app-game-cover-card
+					[game]="entry.game"
+					[showRemove]="true"
+					(remove)="remove(entry)"
+				/>
 			}
 		</div>
 	}

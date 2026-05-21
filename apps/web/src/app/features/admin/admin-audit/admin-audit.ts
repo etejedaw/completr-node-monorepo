@@ -8,10 +8,11 @@ import {
 import { DatePipe } from "@angular/common";
 import type { AuditLogEntry } from "../admin.service";
 import { AdminService } from "../admin.service";
+import { UiPagination } from "../../../shared/ui";
 
 @Component({
 	selector: "app-admin-audit",
-	imports: [DatePipe],
+	imports: [DatePipe, UiPagination],
 	templateUrl: "./admin-audit.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -29,13 +30,8 @@ export class AdminAudit implements OnInit {
 		this.loadLogs();
 	}
 
-	nextPage() {
-		this.offset.update(o => o + this.limit);
-		this.loadLogs();
-	}
-
-	prevPage() {
-		this.offset.update(o => Math.max(0, o - this.limit));
+	goToOffset(offset: number) {
+		this.offset.set(offset);
 		this.loadLogs();
 	}
 

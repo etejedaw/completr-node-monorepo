@@ -22,50 +22,31 @@
 	} @else if (error() === 'private') {
 	<div class="text-center py-12 text-fg-muted text-sm">This content is private.</div>
 	} @else {
-	<div class="flex items-baseline gap-3 mb-5">
+	<div class="flex items-baseline gap-3 mb-4">
 		<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Favorites</h1>
 		<span class="text-[0.8125rem] text-fg-muted">{{ total() }} games</span>
 	</div>
+
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="searchQuery.set($event)" />
 
 	@if (isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (entries().length === 0) {
 	<div class="text-center py-12 text-fg-muted text-sm">No favorites yet.</div>
+	} @else if (filteredEntries().length === 0) {
+	<div class="text-center py-12 text-fg-muted text-sm">No results found.</div>
 	} @else {
-	<div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));">
-		@for (entry of entries(); track entry.id) {
-		<a class="flex flex-col gap-1.5 no-underline text-inherit group" [routerLink]="['/games', entry.game.code]">
-			@if (entry.game.backgroundUrl) {
-			<img
-				[src]="entry.game.backgroundUrl"
-				[alt]="entry.game.title"
-				class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
-			/>
-			} @else {
-			<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-			}
-			<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ entry.game.title }}</span>
-		</a>
+	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+		@for (entry of filteredEntries(); track entry.id) {
+			<app-game-cover-card [game]="entry.game" />
 		}
 	</div>
 
-	@if (total() > limit) {
-	<div class="flex items-center justify-center gap-4 mt-5 pt-4 border-t border-line">
-		<button
-			class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
-			[disabled]="offset() === 0"
-			(click)="prevPage()"
-		>
-			Previous
-		</button>
-		<span class="text-[0.8125rem] text-fg-muted">{{ offset() + 1 }}–{{ Math.min(offset() + limit, total()) }} of {{ total() }}</span>
-		<button
-			class="px-3 py-1.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
-			[disabled]="offset() + limit >= total()"
-			(click)="nextPage()"
-		>
-			Next
-		</button>
-	</div>
-	} } }
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="total()"
+		(offsetChange)="goToOffset($event)"
+	/>
+	} }
 </div>

@@ -51,7 +51,6 @@ export class GamesBrowse implements OnInit, OnDestroy {
 	protected readonly searchingRawg = signal(false);
 
 	protected readonly latestGames = signal<Game[]>([]);
-	protected readonly topRated = signal<Game[]>([]);
 	protected readonly randomGenre = signal<Genre | null>(null);
 	protected readonly genreGames = signal<Game[]>([]);
 	protected readonly latestReviewed = signal<Game[]>([]);
@@ -103,7 +102,6 @@ export class GamesBrowse implements OnInit, OnDestroy {
 			});
 
 		this.loadLatest();
-		this.loadTopRated();
 		this.loadRandomGenre();
 		this.loadLatestReviewed();
 		this.loadOfficialLists();
@@ -164,12 +162,6 @@ export class GamesBrowse implements OnInit, OnDestroy {
 			});
 	}
 
-	private loadTopRated() {
-		this.gamesService
-			.getGames({ limit: 16, sort_by: "title", sort_order: "asc" })
-			.subscribe(res => this.topRated.set(res.data.games));
-	}
-
 	private loadRandomGenre() {
 		this.gamesService.getGenres().subscribe(genres => {
 			if (genres.length === 0) return;
@@ -184,7 +176,7 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		pool.splice(idx, 1);
 
 		this.gamesService
-			.getGames({ limit: 16, genre: candidate.code })
+			.getGames({ limit: 16, genre: candidate.code, sort_by: "random" })
 			.subscribe(res => {
 				if (res.data.games.length > 0) {
 					this.randomGenre.set(candidate);
