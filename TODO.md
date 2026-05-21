@@ -504,7 +504,7 @@
 
 ### Corrección de bugs por feedback de usuarios
 
-- [x] Corrección de bugs por feedback de usuarios (ver docs/feedback/fase-2.md) — 87 resueltos, 13 descartados, 5 diferidos, 4 pendientes
+- [x] Corrección de bugs por feedback de usuarios (ver docs/feedback/fase-2.md) — 89 resueltos, 13 descartados, 6 diferidos, 1 pendiente
 - [ ] Diseñar el docs/architecture.md
 - [ ] Crear aviso de privacidad
 
@@ -747,6 +747,31 @@
 - [ ] `DELETE /users/me/notifications/:id` — eliminar una notificación
 - [ ] Preferencias de usuario: toggles en perfil para activar/desactivar cada tipo de notificación (`User.notificationPrefs` JSONB o tabla `NotificationPreference`)
 - [ ] (Opcional, Fase 5+) Web Push con VAPID + service worker para notificaciones cuando la app está cerrada
+
+### Ediciones comunitarias del catálogo (deferido desde Fase 2 — FB-034)
+
+**Contexto:** Mantener al día el catálogo de juegos (datos faltantes, plataformas, scores, descripciones) es trabajo para una sola persona. Algunos usuarios quieren contribuir editando datos ellos mismos. Hoy solo admin/moderator pueden editar y los users tienen `GameReport` como único canal — señala problemas pero no propone correcciones concretas. Se posterga a Fase 4 porque la pieza "avisar al user cuando su edición se aprueba/rechaza" depende del sistema de notificaciones de esta misma fase.
+
+**Opciones a evaluar al implementar:**
+
+1. **`GameEditRequest` formal** — nueva tabla `(id, userId, gameId, changes JSONB, status pending/approved/rejected, reviewedBy, reviewedAt, comment, createdAt)`. Panel admin dedicado con preview del diff. Modelo limpio, mayor inversión.
+2. **Extender `GameReport` con `proposedChanges` JSONB** — el usuario reporta el problema _y opcionalmente_ propone los valores corregidos. Reusa lifecycle/lista/notificaciones del módulo de reports. Costo menor, acopla "reportar" y "editar" en el mismo modelo.
+3. **Trusted editors** — usuarios con N edits aprobadas ganan permiso de edición directa sobre campos low-risk (plataformas, géneros, links). Cambios high-risk siguen requiriendo aprobación. Sistema de reputación + dos buckets de campos.
+4. **Wiki-style con revert** — cualquier user logueado edita; mods revisan en panel "Recent edits" con botón "Revert" + opción de banear editor. Optimista, requiere vigilancia constante.
+5. **Submit-only form + notificación al admin** — form "Suggest correction" que solo envía email/Slack/notif interna; admin aplica manualmente. Cero modelo nuevo, no escala.
+
+**Recomendación de partida:** opción (2) — extender `GameReport` con `proposedChanges`. Reusa infra y permite aplicar el patch desde el panel actual de `/admin/reports` con un botón "Approve & apply". Si en Fase 5+ el volumen crece, migrar a (1) reutilizando el JSONB ya capturado.
+
+**Tareas (a definir al arrancar):**
+
+- [ ] Decidir entre (1)-(5) según volumen estimado de contribuyentes
+- [ ] Migración + modelo (o extensión de GameReport)
+- [ ] Endpoint `POST /games/:id/edit-requests` (user) y endpoints de revisión (mod)
+- [ ] UI usuario: botón "Suggest changes" en game detail con form prerellenado
+- [ ] UI moderator: panel de revisión con diff visual + Approve/Reject
+- [ ] Triggers de notificaciones: `edit_request_approved`, `edit_request_rejected`
+- [ ] Audit log: registrar quién aplicó qué cambio (atribución al user original)
+- [ ] (Opcional Fase 5+) Badge "Contributor" al alcanzar N edits aprobadas
 
 ### Estadísticas de listas públicas
 
