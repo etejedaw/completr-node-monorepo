@@ -32,7 +32,7 @@ async function freezeScores(gameId: string, list: List) {
 
 	const normalizedScore =
 		gameScore && scoreSource && scoreSource.scale !== 5
-			? (gameScore.score / scoreSource.scale) * 5
+			? Math.round((gameScore.score / scoreSource.scale) * 5 * 100) / 100
 			: (gameScore?.score ?? null);
 
 	return {
