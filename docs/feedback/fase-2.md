@@ -232,9 +232,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-22
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Descripcion:** Hay juegos que son exclusivos de navegador web (ej: DragonFable) y no existe una plataforma "Browser" o "Web" en la lista de plataformas disponibles. Los usuarios no pueden registrar estos juegos con la plataforma correcta porque ninguna de las opciones existentes (Steam, GOG, consolas, etc.) aplica.
-- **Solucion propuesta:** Crear la plataforma "Web Browser" via POST /platform con un code como "web-browser" y manufacturer "Web". Tambien actualizar el mapeo de plataformas RAWG (rawg-platform.map.ts) para mapear el slug "web" de RAWG a esta nueva plataforma, de modo que juegos de navegador importados desde RAWG se vinculen automaticamente.
+- **Decision (2026-05-20):** Descartado por ahora. Caso de uso muy minoritario (juegos exclusivos de navegador son una fraccion pequena del catalogo). La plataforma generica "PC" agregada en FB-015 cubre suficientes casos. Si en el futuro suben los reportes de juegos browser-only se reabre.
 
 ### [FB-026] Campo Edition en Game Shelf deberia ofrecer opciones predefinidas
 
