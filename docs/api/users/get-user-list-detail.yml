@@ -1,12 +1,15 @@
 info:
-    name: Get List by ID
+    name: Get User List Detail
     type: http
-    seq: 3
+    seq: 6
 
 http:
     method: GET
-    url: "{{BASE_URL}}/lists/:listId"
+    url: "{{BASE_URL}}/users/:username/lists/:listId"
     params:
+        - name: username
+          type: path
+          value: ""
         - name: listId
           type: path
           value: ""
@@ -15,18 +18,21 @@ settings:
     encodeUrl: true
 
 docs: |-
-    ## Get List by ID
+    ## Get User's Public List Detail
 
-    Returns a list with all its items, scores, ratios, and follower data. If the user is authenticated, includes `backlogStatus` per item and `isFollowing`.
+    Returns a public list owned by `:username` with all its items. Per-item `backlogStatus`, `realDuration`, and `personalRatio` reflect the **viewer's** backlog (not the list owner's) when the request is authenticated. If unauthenticated, these reflect the list owner's backlog instead.
 
-    **Authentication:** Optional (Bearer token). Unauthenticated users get `backlogStatus: null` and `isFollowing: false`.
+    **Authentication:** Optional (Bearer token). If provided, viewer-specific data is populated.
     **Rate Limit:** 100 requests per minute (public).
+
+    Returns 403 if the profile is private. Returns 404 if user/list not found or list is private.
 
     ### Path Params
 
-    | Param  | Type | Required | Description |
-    |--------|------|----------|-------------|
-    | listId | uuid | Yes      | List UUID   |
+    | Param    | Type   | Required | Description       |
+    |----------|--------|----------|-------------------|
+    | username | string | Yes      | Profile username  |
+    | listId   | uuid   | Yes      | List UUID         |
 
     ### Response (200)
 
@@ -41,7 +47,7 @@ docs: |-
           "scoreSource": "metacritic",
           "durationSource": "hltb",
           "followerCount": 12,
-          "isFollowing": true,
+          "progress": { "completed": 8, "total": 15 },
           "items": [
             {
               "id": "uuid",
@@ -60,11 +66,11 @@ docs: |-
               "personalRatio": 122.76
             }
           ]
+        },
+        "profileUser": {
+          "username": "andres",
+          "name": "Andres"
         }
       }
     }
     ```
-
-    `backlogStatus`: `completed` | `playing` | `not_started` | `abandoned` | `null` (not in backlog)
-
-    `realDuration` and `personalRatio` are taken from the viewer's most recent backlog entry for the game. `personalRatio = (score / realDuration) * 20`. Both are `null` when missing.

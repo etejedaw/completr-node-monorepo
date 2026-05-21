@@ -175,6 +175,7 @@ router.get(
 router.get(
 	"/users/:username/lists/:listId",
 	[
+		authOptionalMiddleware,
 		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameListParamsSchema, "params")
 	],

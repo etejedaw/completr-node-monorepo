@@ -1,4 +1,5 @@
-import { Op } from "sequelize";
+import { Op, QueryTypes } from "sequelize";
+import { sequelize } from "../database/sequelize.database";
 import { List } from "./list.model";
 import { ListItem } from "../list-items/list-item.model";
 import { ListFollower } from "../list-followers/list-follower.model";
@@ -63,25 +64,60 @@ export async function getIsFollowing(listId: string, userId: string) {
 	return !!follower;
 }
 
-// TODO: Mejorar este código
-export async function getBacklogStatusMap(
+export interface BacklogSummary {
+	status: string;
+	realDuration: number | null;
+	personalRatio: number | null;
+}
+
+const RATIO_SCALE = 20;
+
+function calculatePersonalRatio(
+	score: number | null | undefined,
+	realDuration: number | null | undefined
+): number | null {
+	if (!score || !realDuration) return null;
+	return Math.round((score / realDuration) * RATIO_SCALE * 100) / 100;
+}
+
+export async function getBacklogSummaryMap(
 	gameIds: string[],
 	userId: string
-): Promise<Map<string, string>> {
+): Promise<Map<string, BacklogSummary>> {
 	if (gameIds.length === 0) return new Map();
 
-	const backlogs = await Backlog.findAll({
-		where: { userId, gameId: { [Op.in]: gameIds } },
-		order: [["createdAt", "DESC"]]
-	});
-
-	const statusMap = new Map<string, string>();
-	for (const backlog of backlogs) {
-		if (!statusMap.has(backlog.gameId)) {
-			statusMap.set(backlog.gameId, backlog.status);
+	const rows = await sequelize.query<{
+		gameId: string;
+		status: string;
+		score: number | null;
+		realDuration: number | null;
+	}>(
+		`SELECT DISTINCT ON ("gameId") "gameId", status, score, "realDuration"
+		 FROM "Backlogs"
+		 WHERE "userId" = :userId AND "gameId" IN (:gameIds)
+		 ORDER BY "gameId",
+		   CASE status
+		     WHEN 'completed' THEN 1
+		     WHEN 'playing' THEN 2
+		     WHEN 'abandoned' THEN 3
+		     WHEN 'not_started' THEN 4
+		   END,
+		   "createdAt" DESC`,
+		{
+			replacements: { userId, gameIds },
+			type: QueryTypes.SELECT
 		}
+	);
+
+	const map = new Map<string, BacklogSummary>();
+	for (const row of rows) {
+		map.set(row.gameId, {
+			status: row.status,
+			realDuration: row.realDuration,
+			personalRatio: calculatePersonalRatio(row.score, row.realDuration)
+		});
 	}
-	return statusMap;
+	return map;
 }
 
 export async function getListProgress(
@@ -100,7 +136,9 @@ export async function getListProgress(
 			userId,
 			gameId: { [Op.in]: gameIds },
 			status: { [Op.in]: ["completed", "abandoned"] }
-		}
+		},
+		distinct: true,
+		col: "gameId"
 	});
 	return { completed, total: items.length };
 }

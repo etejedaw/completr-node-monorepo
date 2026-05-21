@@ -224,19 +224,21 @@ export async function getUserListDetail(request: Request, response: Response) {
 	if (!list.isPublic) throw userDomain.userNotFound();
 
 	const listPlain = list.get({ plain: true });
-	const [followerCount, backlogStatusMap, progress] = await Promise.all([
+	const viewer = request.locals.user as RequestUser | undefined;
+	const viewerId = viewer?.id ?? user.id;
+	const [followerCount, backlogSummaryMap, progress] = await Promise.all([
 		listsService.getFollowerCount(params.listId),
-		listsService.getBacklogStatusMap(
+		listsService.getBacklogSummaryMap(
 			(list.ListItems ?? []).map(i => i.gameId),
-			user.id
+			viewerId
 		),
-		listsService.getListProgress(params.listId, user.id)
+		listsService.getListProgress(params.listId, viewerId)
 	]);
 
 	const data = {
 		list: listSerializer(listPlain, {
 			followerCount,
-			backlogStatusMap,
+			backlogSummaryMap,
 			progress
 		}),
 		profileUser: {
