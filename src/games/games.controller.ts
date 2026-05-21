@@ -145,11 +145,14 @@ export async function getGameLists(request: Request, response: Response) {
 	const params = request.locals.params as GameIdParam;
 	const user = request.locals.user as RequestUser;
 
-	const lists = await listsService.findPublicListsByGameId(params.id);
+	const [publicLists, myLists] = await Promise.all([
+		listsService.findPublicListsByGameId(params.id),
+		listsService.findUserListsByGameId(params.id, user.id)
+	]);
 
 	const data = {
 		lists: await Promise.all(
-			lists.map(async list => {
+			publicLists.map(async list => {
 				const progress = await listsService.getListProgress(
 					list.id,
 					user.id
@@ -165,7 +168,12 @@ export async function getGameLists(request: Request, response: Response) {
 						progress.completed === progress.total
 				};
 			})
-		)
+		),
+		myLists: myLists.map(list => ({
+			id: list.id,
+			name: list.name,
+			isPublic: list.isPublic
+		}))
 	};
 
 	data.lists.sort((a, b) => {

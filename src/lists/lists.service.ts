@@ -205,6 +205,21 @@ export async function findPublicListsByGameId(gameId: string) {
 	});
 }
 
+export async function findUserListsByGameId(gameId: string, userId: string) {
+	return List.findAll({
+		where: { userId },
+		attributes: ["id", "name", "isPublic"],
+		include: [
+			{
+				model: ListItem,
+				where: { gameId },
+				attributes: []
+			}
+		],
+		order: [["createdAt", "DESC"]]
+	});
+}
+
 export async function findRecentUserLists(limit = 12) {
 	return List.findAll({
 		where: { isPublic: true },
