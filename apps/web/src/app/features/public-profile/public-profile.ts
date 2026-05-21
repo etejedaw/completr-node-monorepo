@@ -39,6 +39,7 @@ export class PublicProfileComponent implements OnInit {
 		() => this.authService.user()?.id === this.profile()?.user.id
 	);
 	protected readonly togglingFollow = signal(false);
+	protected readonly isWide = signal(false);
 	protected readonly activeTab = signal("activity");
 	protected readonly stats = computed(() => {
 		const p = this.profile();
@@ -68,6 +69,23 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly userListUsers = signal<UserSummary[]>([]);
 
 	ngOnInit() {
+		if (typeof window !== "undefined" && window.matchMedia) {
+			const mql = window.matchMedia("(min-width: 1024px)");
+			this.isWide.set(mql.matches);
+			if (mql.matches) this.activeTab.set("backlog");
+			mql.addEventListener("change", e => {
+				this.isWide.set(e.matches);
+				if (e.matches && this.activeTab() === "activity") {
+					this.activeTab.set("backlog");
+				} else if (
+					!e.matches &&
+					this.profile()?.user.isFeedPublic &&
+					this.activeTab() === "backlog"
+				) {
+					this.activeTab.set("activity");
+				}
+			});
+		}
 		if (this.authService.token() && !this.authService.user()) {
 			this.authService.loadUser().subscribe({
 				next: () => this.init(),
@@ -164,7 +182,8 @@ export class PublicProfileComponent implements OnInit {
 		this.profileService.getProfile(username).subscribe({
 			next: data => {
 				this.profile.set(data);
-				if (!data.user.isFeedPublic) this.activeTab.set("backlog");
+				if (this.isWide() || !data.user.isFeedPublic)
+					this.activeTab.set("backlog");
 				this.isLoading.set(false);
 				this.profileService
 					.getUserReviews(username, { limit: 5 })
