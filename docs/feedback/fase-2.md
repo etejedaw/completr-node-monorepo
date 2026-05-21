@@ -200,9 +200,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Descripcion:** Cuando se crea un juego via busqueda con fallback a RAWG, el RAWG ID se guarda con una llamada separada a gameExternalService.create() en vez de pasarlo como parte del externalIds del registerGame DTO. Esto es inconsistente con el flujo de PATCH /games/:id que si acepta externalIds. Ademas, no hay forma de agregar el Steam ID u otros sources al momento de crear el juego desde el frontend ni desde el endpoint de busqueda.
-- **Solucion propuesta:** Incluir externalIds en el flujo de creacion desde RAWG (pasar rawgId como parte del DTO en vez de llamar a gameExternalService aparte). En el frontend del admin game editor, tanto en creacion como en edicion, agregar campos para IDs externos (RAWG, Steam, etc.) que se envien como externalIds en el body del request.
+- **Decision (2026-05-21):** Descartado. Es refactor interno sin impacto user-visible. La inconsistencia entre el flujo de creacion automatica (1 transaccion para game + 1 para externalId) y el PATCH (un solo body con externalIds) no afecta el comportamiento. Se puede unificar en el futuro si se hace una limpieza del modulo games.
 
 ### [FB-022] Busqueda de juegos demasiado literal
 
@@ -224,9 +224,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** En el panel admin de games no hay filtros para identificar juegos que les faltan datos de fuentes especificas. Por ejemplo, no se puede filtrar para ver juegos que no tienen score de RAWG o Metacritic, ni los que no tienen duracion de HLTB. Esto dificulta la tarea de enriquecer el catalogo ya que no hay forma de saber cuales juegos necesitan datos.
-- **Solucion propuesta:** Agregar filtros al panel admin de games (y al endpoint GET /games) para filtrar por ausencia de scores o times de fuentes especificas. Ej: no_scores=rawg,metacritic (juegos sin score de esas fuentes), no_times=hltb (juegos sin duracion HLTB). Esto permite al admin identificar y completar datos faltantes.
+- **Solucion:** Backend: schema `GamesQuerySchema` extendido con `no_score_source` y `no_time_source` (comma-separated). El service `findAll` arma WHERE con `NOT IN (SELECT "gameId" FROM "GameScores" WHERE source IN (...))` (idem times) — escapado con `sequelize.escape` para evitar SQL injection. Permite combinar varias fuentes (ej: `no_score_source=metacritic,opencritic` = juegos sin ninguno de los dos). Frontend admin-games: chips por fuente (`No metacritic score`, `No opencritic score`, `No rawg score`, `No hltb time`, `No rawg time`) que se combinan con los globales (`No Scores` / `No Times` / `No Platforms`) y permiten al admin identificar exactamente que datos faltan.
 
 ### [FB-025] No existe plataforma "Browser" para juegos de navegador
 
