@@ -114,9 +114,14 @@
 		} @if (searchResults().length > 0) {
 		<ul class="list-none bg-input-bg border border-line rounded-card mt-1 max-h-[200px] overflow-y-auto p-0">
 			@for (game of searchResults(); track game.id) {
+			@let alreadyInList = isGameInList(game.id);
 			<li
-				class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] transition hover:bg-surface"
-				(click)="addGame(game)"
+				class="flex items-center gap-2.5 px-3 py-2 text-[0.8125rem] transition"
+				[class.cursor-pointer]="!alreadyInList"
+				[class.hover:bg-surface]="!alreadyInList"
+				[class.opacity-60]="alreadyInList"
+				[class.cursor-not-allowed]="alreadyInList"
+				(click)="!alreadyInList && addGame(game)"
 			>
 				@if (game.backgroundUrl) {
 				<img
@@ -125,6 +130,12 @@
 				/>
 				}
 				<span class="flex-1">{{ game.title }}</span>
+				@if (alreadyInList) {
+				<span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-success/15 text-success text-[0.65rem] font-semibold uppercase tracking-wider rounded" title="Already in this list">
+					<span class="material-icons text-[0.75rem]">check</span>
+					In list
+				</span>
+				}
 				@if (game.justImported) {
 				<span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/15 text-info text-[0.65rem] font-semibold uppercase tracking-wider rounded" title="Just imported from RAWG">
 					<span class="material-icons text-[0.75rem]">cloud_download</span>

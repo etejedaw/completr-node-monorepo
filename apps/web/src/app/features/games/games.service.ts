@@ -227,8 +227,13 @@ export class GamesService {
 						completed: boolean;
 						owner: { username: string } | null;
 					}[];
+					myLists: {
+						id: string;
+						name: string;
+						isPublic: boolean;
+					}[];
 				};
 			}>(`${environment.apiUrl}/games/${gameId}/lists`)
-			.pipe(map(res => res.data.lists));
+			.pipe(map(res => res.data));
 	}
 }

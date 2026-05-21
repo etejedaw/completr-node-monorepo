@@ -103,6 +103,9 @@ export class GameDetail implements OnInit {
 			owner: { username: string } | null;
 		}[]
 	>([]);
+	protected readonly myLists = signal<
+		{ id: string; name: string; isPublic: boolean }[]
+	>([]);
 
 	ngOnInit() {
 		this.scoreSourcesService.load();
@@ -158,9 +161,10 @@ export class GameDetail implements OnInit {
 				this.loadSimilarGames(game);
 				this.loadUserStatus(game.id);
 				this.loadReviews(game.id);
-				this.gamesService
-					.getGameLists(game.id)
-					.subscribe(lists => this.featuredLists.set(lists));
+				this.gamesService.getGameLists(game.id).subscribe(data => {
+					this.featuredLists.set(data.lists);
+					this.myLists.set(data.myLists);
+				});
 			},
 			error: () => this.isLoading.set(false)
 		});

@@ -115,6 +115,10 @@ export class ListDetail implements OnInit {
 			.subscribe(() => this.loadList());
 	}
 
+	isGameInList(gameId: string): boolean {
+		return this.list()?.items?.some(i => i.game.id === gameId) ?? false;
+	}
+
 	removeItem(item: ListItem) {
 		const remaining =
 			this.list()

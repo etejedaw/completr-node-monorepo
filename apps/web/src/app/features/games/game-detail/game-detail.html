@@ -210,6 +210,26 @@
 					</div>
 				</div>
 
+				@if (myLists().length > 0) {
+					<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-2">
+						<h3 class="font-display m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-fg-secondary">In your lists</h3>
+						@for (list of myLists(); track list.id) {
+							<a
+								class="flex items-center justify-between gap-2 py-1.5 px-2 -mx-2 rounded text-sm text-fg no-underline transition hover:bg-input-bg hover:text-brand"
+								[routerLink]="['/lists', list.id]"
+							>
+								<span class="flex items-center gap-1.5 min-w-0">
+									<span class="material-icons text-sm text-brand shrink-0">check_circle</span>
+									<span class="truncate">{{ list.name }}</span>
+								</span>
+								@if (!list.isPublic) {
+									<span class="material-icons text-sm text-fg-muted shrink-0" title="Private">lock</span>
+								}
+							</a>
+						}
+					</div>
+				}
+
 				<div class="flex gap-2 flex-wrap">
 					@for (link of game()!.externalLinks; track link.source) {
 						@if (link.source === 'rawg') {
