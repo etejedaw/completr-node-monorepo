@@ -184,7 +184,7 @@
 						class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 						[routerLink]="['/user', username(), 'backlog']"
 					>
-						See all {{ profile()!.backlogs.length }}
+						See all
 						<span class="material-icons text-sm">arrow_forward</span>
 					</a>
 				</div>
@@ -226,7 +226,7 @@
 						class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 						[routerLink]="['/user', username(), 'game-shelf']"
 					>
-						See all {{ profile()!.gameShelf.length }}
+						See all
 						<span class="material-icons text-sm">arrow_forward</span>
 					</a>
 				</div>
@@ -322,7 +322,7 @@
 							class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 							[routerLink]="['/user', username(), 'favorites']"
 						>
-							See all {{ profile()!.favorites.length }}
+							See all
 							<span class="material-icons text-sm">arrow_forward</span>
 						</a>
 					</div>
@@ -353,7 +353,7 @@
 							class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 							[routerLink]="['/user', username(), 'queue']"
 						>
-							See all {{ profile()!.queue.length }}
+							See all
 							<span class="material-icons text-sm">arrow_forward</span>
 						</a>
 					</div>
@@ -385,7 +385,7 @@
 							class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 							[routerLink]="['/user', username(), 'wishlist']"
 						>
-							See all {{ profile()!.wishlist.length }}
+							See all
 							<span class="material-icons text-sm">arrow_forward</span>
 						</a>
 					</div>
@@ -442,7 +442,7 @@
 					@if (userReviewsTotal() > userReviews().length) {
 						<div class="text-center pt-4">
 							<a class="text-sm font-semibold text-brand no-underline hover:underline" [routerLink]="['/user', username(), 'reviews']">
-								See all {{ userReviewsTotal() }} reviews →
+								See all reviews →
 							</a>
 						</div>
 					}

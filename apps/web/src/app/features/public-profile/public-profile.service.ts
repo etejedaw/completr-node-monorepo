@@ -90,12 +90,22 @@ export interface PublicActivity {
 	} | null;
 }
 
+export interface BacklogStats {
+	not_started: number;
+	playing: number;
+	completed: number;
+	abandoned: number;
+	total: number;
+}
+
 export interface PublicProfile {
 	user: PublicUser;
 	followerCount: number;
 	followingCount: number;
 	isFollowing: boolean;
 	backlogs: PublicBacklog[];
+	backlogTotal: number;
+	backlogStats: BacklogStats;
 	lists: PublicList[];
 	favorites: PublicFavorite[];
 	queue: PublicQueue[];
