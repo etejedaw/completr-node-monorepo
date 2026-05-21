@@ -1,221 +1,278 @@
-<div class="max-w-4xl">
-	<div class="mb-8">
-		<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Help & glossary</h1>
-		<p class="text-fg-muted mt-2 text-sm">Learn how Completr works by example. Each card below shows what the real UI looks like.</p>
+<div class="max-w-3xl mx-auto">
+	<div class="flex items-center justify-between mb-6">
+		<div>
+			<h1 class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight">Quick Tutorial</h1>
+			<p class="text-fg-muted mt-1 text-xs">Step {{ step() + 1 }} of {{ total }}</p>
+		</div>
+		<a routerLink="/feed" class="text-xs text-fg-muted no-underline hover:text-fg">Skip →</a>
 	</div>
 
-	<!-- BACKLOG ============================ -->
-	<section id="backlog" class="mb-12 scroll-mt-24">
-		<h2 class="font-display text-2xl font-bold tracking-tight m-0 mb-2">Backlog</h2>
-		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
-			The Backlog is the list of <strong>runs</strong> you track. One game can have several runs (e.g. one on PS5 and another on Switch). Each row looks like this:
-		</p>
+	<div class="w-full h-1 bg-input-bg rounded-full overflow-hidden mb-6">
+		<div class="h-full bg-brand transition-all duration-300 ease-out" [style.width.%]="progress()"></div>
+	</div>
 
-		<div class="bg-input-bg border border-line rounded-card p-4">
-			<div class="flex items-center gap-3 mb-2">
-				<div class="w-10 h-[52px] rounded-sm bg-gradient-to-br from-pink-300 to-purple-500 shrink-0"></div>
-				<div class="flex-1 min-w-0">
-					<div class="text-sm font-semibold text-fg">Florence</div>
-					<div class="text-[0.6875rem] text-fg-muted">PC · Indie</div>
+	<div class="bg-sidebar border border-line rounded-card p-6 md:p-8 min-h-[420px]">
+
+		@switch (current()) {
+			@case ('backlog') {
+				<div class="flex items-center gap-3 mb-3">
+					<span class="material-icons text-3xl text-brand">list_alt</span>
+					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">The Backlog</h2>
 				</div>
-				<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-success/10 text-success">
-					<span class="material-icons text-[0.75rem]">check_circle</span>
-					Completed
-				</span>
-			</div>
-			<div class="flex flex-wrap gap-2 mt-2">
-				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-brand/85 text-white">Ratio 82</span>
-				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-black/70 text-white">1h</span>
-				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-input-bg border border-line text-fg-secondary">Score 82</span>
-				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning">Personal 92</span>
-			</div>
-		</div>
-	</section>
-
-	<!-- RATIO ============================ -->
-	<section id="ratio" class="mb-12 scroll-mt-24">
-		<h2 class="font-display text-2xl font-bold tracking-tight m-0 mb-2">Ratio & Personal Ratio</h2>
-		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
-			Completr's signature metric. The <strong>Ratio</strong> tells you how much score a game delivers per hour, so you can prioritize what to play next. Higher = more value per hour.
-		</p>
-		<div class="bg-input-bg border border-line rounded-md p-4 font-mono text-sm mb-2">
-			Ratio = (score<sub class="text-fg-muted">norm</sub> / duration) &times; 20
-		</div>
-		<p class="text-[0.75rem] text-fg-muted mb-4">
-			<em>score<sub>norm</sub></em> is the public score normalized to a 0–5 scale (so 82/100 → 4.1, 8.2/10 → 4.1, etc.). With this normalization, the practical max ratio is around <strong>100</strong>.
-		</p>
-
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-			<div class="bg-input-bg border border-line rounded-card p-4 relative">
-				<span class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-brand/85 text-white">Ratio 82</span>
-				<div class="text-sm font-semibold text-fg">Florence</div>
-				<div class="text-[0.6875rem] text-fg-muted mb-3">Score 82 · 1h · (4.1/5 × 20)</div>
-				<p class="text-[0.75rem] text-fg-secondary leading-snug">
-					Tiny game, big punch. Lots of score per hour.
+				<p class="text-fg-secondary leading-relaxed text-sm mb-5">
+					Your <strong>runs</strong> — playthroughs you're tracking. One game can have several
+					runs (PS5 + Switch, restart, etc). Each row looks like this:
 				</p>
-			</div>
-
-			<div class="bg-input-bg border border-line rounded-card p-4 relative">
-				<span class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-brand/85 text-white">Ratio 0.82</span>
-				<div class="text-sm font-semibold text-fg">Big JRPG</div>
-				<div class="text-[0.6875rem] text-fg-muted mb-3">Score 82 · 100h · (4.1/5 × 20 ÷ 100)</div>
-				<p class="text-[0.75rem] text-fg-secondary leading-snug">
-					Same score, but spread over 100h. Much lower ratio.
-				</p>
-			</div>
-		</div>
-
-		<div class="mt-4 bg-brand/5 border border-brand/30 rounded-card p-4">
-			<div class="flex items-center gap-2 mb-1">
-				<span class="material-icons text-base text-brand">tips_and_updates</span>
-				<strong class="text-sm">Personal Ratio</strong>
-			</div>
-			<p class="text-[0.8125rem] text-fg-secondary leading-relaxed">
-				Same formula, but using <em>your</em> rating and <em>your</em> real duration (not the estimate).
-				The honest, after-the-fact version. Only appears once you complete a run.
-			</p>
-		</div>
-	</section>
-
-	<!-- SCORES ============================ -->
-	<section id="scores" class="mb-12 scroll-mt-24">
-		<h2 class="font-display text-2xl font-bold tracking-tight m-0 mb-2">Aggregate Score vs Completr Score</h2>
-		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
-			Two different scores you'll see across the app.
-		</p>
-
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-			<div class="bg-input-bg border border-line rounded-card p-4">
-				<div class="flex items-center justify-between mb-2">
-					<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">Aggregate Score</span>
-					<span class="text-2xl font-bold text-brand">82</span>
-				</div>
-				<p class="text-[0.75rem] text-fg-secondary leading-snug">
-					The canonical public score for a game. Picked from external sources (Metacritic, OpenCritic, RAWG) — Completr chooses the most reputable one available.
-				</p>
-			</div>
-
-			<div class="bg-input-bg border border-line rounded-card p-4 opacity-70">
-				<div class="flex items-center justify-between mb-2">
-					<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">Completr Score</span>
-					<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.625rem] font-bold bg-warning/15 text-warning">Soon</span>
-				</div>
-				<p class="text-[0.75rem] text-fg-secondary leading-snug">
-					Future. Will aggregate the ratings of Completr users who actually completed the game, weighted by reputation.
-				</p>
-			</div>
-		</div>
-	</section>
-
-	<!-- STATUSES ============================ -->
-	<section id="statuses" class="mb-12 scroll-mt-24">
-		<h2 class="font-display text-2xl font-bold tracking-tight m-0 mb-2">Statuses</h2>
-		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
-			Every backlog run has one of four statuses. These are the actual badges you'll see in the app:
-		</p>
-
-		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-			<div class="bg-input-bg border border-line rounded-card p-4 flex items-center gap-3">
-				<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-fg-muted/10 text-fg-muted shrink-0">
-					<span class="material-icons text-[0.75rem]">radio_button_unchecked</span>
-					Not started
-				</span>
-				<span class="text-[0.75rem] text-fg-secondary">You own it, haven't played yet.</span>
-			</div>
-			<div class="bg-input-bg border border-line rounded-card p-4 flex items-center gap-3">
-				<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning shrink-0">
-					<span class="material-icons text-[0.75rem]">play_arrow</span>
-					Playing
-				</span>
-				<span class="text-[0.75rem] text-fg-secondary">Currently in progress.</span>
-			</div>
-			<div class="bg-input-bg border border-line rounded-card p-4 flex items-center gap-3">
-				<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-success/10 text-success shrink-0">
-					<span class="material-icons text-[0.75rem]">check_circle</span>
-					Completed
-				</span>
-				<span class="text-[0.75rem] text-fg-secondary">Finished. Unlocks Personal Ratio and reviews.</span>
-			</div>
-			<div class="bg-input-bg border border-line rounded-card p-4 flex items-center gap-3">
-				<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-danger/10 text-danger shrink-0">
-					<span class="material-icons text-[0.75rem]">cancel</span>
-					Abandoned
-				</span>
-				<span class="text-[0.75rem] text-fg-secondary">Dropped, won't finish it.</span>
-			</div>
-		</div>
-	</section>
-
-	<!-- MODULES ============================ -->
-	<section id="modules" class="mb-12 scroll-mt-24">
-		<h2 class="font-display text-2xl font-bold tracking-tight m-0 mb-2">Queue, Wishlist, Favorites, Lists</h2>
-		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
-			Four modules, four different purposes. Their sidebar icons are shown below:
-		</p>
-
-		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-			<div class="bg-input-bg border border-line rounded-card p-4">
-				<div class="flex items-center gap-2 mb-2">
-					<span class="material-icons text-brand">playlist_play</span>
-					<strong class="text-sm">Queue</strong>
-				</div>
-				<p class="text-[0.75rem] text-fg-secondary leading-snug">
-					Runs you <strong>want to play soon</strong>, picked from your own Backlog. Priority ranking of games you already own. Auto-removed when a run is completed or abandoned.
-				</p>
-			</div>
-
-			<div class="bg-input-bg border border-line rounded-card p-4">
-				<div class="flex items-center gap-2 mb-2">
-					<span class="material-icons text-danger">favorite_border</span>
-					<strong class="text-sm">Wishlist</strong>
-				</div>
-				<p class="text-[0.75rem] text-fg-secondary leading-snug">
-					Games you <strong>want to obtain or buy</strong> — you don't have them yet. Optional platform tag for the version you want.
-				</p>
-			</div>
-
-			<div class="bg-input-bg border border-line rounded-card p-4">
-				<div class="flex items-center gap-2 mb-2">
-					<span class="material-icons text-warning">star</span>
-					<strong class="text-sm">Favorites</strong>
-				</div>
-				<p class="text-[0.75rem] text-fg-secondary leading-snug">
-					Your <strong>all-time favorite games</strong>. No backlog required — you can favorite something you've never played.
-				</p>
-			</div>
-
-			<div class="bg-input-bg border border-line rounded-card p-4">
-				<div class="flex items-center gap-2 mb-2">
-					<span class="material-icons text-brand">format_list_bulleted</span>
-					<strong class="text-sm">Lists</strong>
-				</div>
-				<p class="text-[0.75rem] text-fg-secondary leading-snug">
-					Curated collections you build and (optionally) share. Sagas, top picks, themed sets — other users can follow your lists.
-				</p>
-			</div>
-		</div>
-	</section>
-
-	<!-- PRIVACY ============================ -->
-	<section id="privacy" class="mb-12 scroll-mt-24">
-		<h2 class="font-display text-2xl font-bold tracking-tight m-0 mb-2">Privacy</h2>
-		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
-			Each section of your profile has its own visibility toggle. This is what the toggles look like in
-			<a routerLink="/settings/privacy" class="text-brand no-underline hover:underline">Settings → Privacy</a>:
-		</p>
-
-		<div class="bg-input-bg border border-line rounded-card p-4 flex flex-col gap-3 max-w-xl">
-			@for (item of ['Public profile', 'Public queue', 'Public wishlist', 'Public favorites', 'Public activity feed']; track item) {
-				<div class="flex items-center justify-between">
-					<span class="text-sm text-fg">{{ item }}</span>
-					<span class="relative inline-block w-9 h-5 rounded-full bg-brand">
-						<span class="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-white"></span>
-					</span>
+				<div class="bg-input-bg border border-line rounded-card p-4">
+					<div class="flex items-center gap-3 mb-2">
+						<div class="w-10 h-[52px] rounded-sm bg-gradient-to-br from-pink-300 to-purple-500 shrink-0"></div>
+						<div class="flex-1 min-w-0">
+							<div class="text-sm font-semibold text-fg">Florence</div>
+							<div class="text-[0.6875rem] text-fg-muted">PC · Indie</div>
+						</div>
+						<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-success/10 text-success">
+							<span class="material-icons text-[0.75rem]">check_circle</span>
+							Completed
+						</span>
+					</div>
+					<div class="flex flex-wrap gap-2 mt-2">
+						<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-brand/85 text-white">Ratio 82</span>
+						<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-black/70 text-white">1h</span>
+						<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-input-bg border border-line text-fg-secondary">Score 82</span>
+						<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning">Personal 92</span>
+					</div>
 				</div>
 			}
+
+			@case ('ratio') {
+				<div class="flex items-center gap-3 mb-3">
+					<span class="material-icons text-3xl text-brand">trending_up</span>
+					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Ratio & Personal Ratio</h2>
+				</div>
+				<p class="text-fg-secondary leading-relaxed text-sm mb-3">
+					Completr's signature metric. How much score a game delivers per hour. <strong>Higher = better value</strong>.
+				</p>
+				<div class="bg-input-bg border border-line rounded-md p-3 font-mono text-sm mb-2">
+					Ratio = (score<sub class="text-fg-muted">norm</sub> / duration) &times; 20
+				</div>
+				<p class="text-[0.75rem] text-fg-muted mb-4">
+					<em>score<sub>norm</sub></em> = public score normalized to 0–5 (so 82/100 → 4.1). Practical max ratio: ~100.
+				</p>
+
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+					<div class="bg-input-bg border border-line rounded-card p-3 relative">
+						<span class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-brand/85 text-white">Ratio 82</span>
+						<div class="text-sm font-semibold text-fg">Florence</div>
+						<div class="text-[0.6875rem] text-fg-muted">82 · 1h</div>
+					</div>
+					<div class="bg-input-bg border border-line rounded-card p-3 relative">
+						<span class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-brand/85 text-white">Ratio 0.82</span>
+						<div class="text-sm font-semibold text-fg">Big JRPG</div>
+						<div class="text-[0.6875rem] text-fg-muted">82 · 100h</div>
+					</div>
+				</div>
+
+				<div class="bg-brand/5 border border-brand/30 rounded-card p-3">
+					<div class="flex items-center gap-2 mb-1">
+						<span class="material-icons text-base text-brand">tips_and_updates</span>
+						<strong class="text-sm">Personal Ratio</strong>
+					</div>
+					<p class="text-[0.8125rem] text-fg-secondary leading-relaxed">
+						Same formula, but using <em>your</em> rating and <em>your</em> real duration. Unlocks once you complete a run.
+					</p>
+				</div>
+			}
+
+			@case ('scores') {
+				<div class="flex items-center gap-3 mb-3">
+					<span class="material-icons text-3xl text-brand">leaderboard</span>
+					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Aggregate vs Completr Score</h2>
+				</div>
+				<p class="text-fg-secondary leading-relaxed text-sm mb-5">
+					Two different scores you'll see across the app.
+				</p>
+
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+					<div class="bg-input-bg border border-line rounded-card p-4">
+						<div class="flex items-center justify-between mb-2">
+							<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">Aggregate</span>
+							<span class="text-2xl font-bold text-brand">82</span>
+						</div>
+						<p class="text-[0.75rem] text-fg-secondary leading-snug">
+							Canonical public score, picked from external sources (Metacritic, OpenCritic, RAWG). Completr chooses the most reputable available.
+						</p>
+					</div>
+					<div class="bg-input-bg border border-line rounded-card p-4 opacity-70">
+						<div class="flex items-center justify-between mb-2">
+							<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">Completr</span>
+							<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.625rem] font-bold bg-warning/15 text-warning">Soon</span>
+						</div>
+						<p class="text-[0.75rem] text-fg-secondary leading-snug">
+							Future: aggregate of Completr users' ratings weighted by reputation. Not live yet.
+						</p>
+					</div>
+				</div>
+			}
+
+			@case ('statuses') {
+				<div class="flex items-center gap-3 mb-3">
+					<span class="material-icons text-3xl text-brand">flag</span>
+					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Statuses</h2>
+				</div>
+				<p class="text-fg-secondary leading-relaxed text-sm mb-5">
+					Every backlog run has one of four statuses:
+				</p>
+
+				<div class="flex flex-col gap-2">
+					<div class="bg-input-bg border border-line rounded-card p-3 flex items-center gap-3">
+						<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-fg-muted/10 text-fg-muted shrink-0">
+							<span class="material-icons text-[0.75rem]">radio_button_unchecked</span>
+							Not started
+						</span>
+						<span class="text-[0.75rem] text-fg-secondary">You own it, haven't played yet.</span>
+					</div>
+					<div class="bg-input-bg border border-line rounded-card p-3 flex items-center gap-3">
+						<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning shrink-0">
+							<span class="material-icons text-[0.75rem]">play_arrow</span>
+							Playing
+						</span>
+						<span class="text-[0.75rem] text-fg-secondary">Currently in progress.</span>
+					</div>
+					<div class="bg-input-bg border border-line rounded-card p-3 flex items-center gap-3">
+						<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-success/10 text-success shrink-0">
+							<span class="material-icons text-[0.75rem]">check_circle</span>
+							Completed
+						</span>
+						<span class="text-[0.75rem] text-fg-secondary">Finished. Unlocks Personal Ratio and reviews.</span>
+					</div>
+					<div class="bg-input-bg border border-line rounded-card p-3 flex items-center gap-3">
+						<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-danger/10 text-danger shrink-0">
+							<span class="material-icons text-[0.75rem]">cancel</span>
+							Abandoned
+						</span>
+						<span class="text-[0.75rem] text-fg-secondary">Dropped, won't finish it.</span>
+					</div>
+				</div>
+			}
+
+			@case ('modules') {
+				<div class="flex items-center gap-3 mb-3">
+					<span class="material-icons text-3xl text-brand">apps</span>
+					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Queue, Wishlist, Favorites, Lists</h2>
+				</div>
+				<p class="text-fg-secondary leading-relaxed text-sm mb-5">
+					Four modules, four purposes:
+				</p>
+
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+					<div class="bg-input-bg border border-line rounded-card p-4">
+						<div class="flex items-center gap-2 mb-2">
+							<span class="material-icons text-brand">playlist_play</span>
+							<strong class="text-sm">Queue</strong>
+						</div>
+						<p class="text-[0.75rem] text-fg-secondary leading-snug">
+							Runs you <strong>want to play soon</strong>, from your own backlog. Auto-removes on complete/abandon.
+						</p>
+					</div>
+					<div class="bg-input-bg border border-line rounded-card p-4">
+						<div class="flex items-center gap-2 mb-2">
+							<span class="material-icons text-danger">favorite_border</span>
+							<strong class="text-sm">Wishlist</strong>
+						</div>
+						<p class="text-[0.75rem] text-fg-secondary leading-snug">
+							Games you <strong>want to obtain or buy</strong> — you don't own them yet. Optional platform tag.
+						</p>
+					</div>
+					<div class="bg-input-bg border border-line rounded-card p-4">
+						<div class="flex items-center gap-2 mb-2">
+							<span class="material-icons text-warning">star</span>
+							<strong class="text-sm">Favorites</strong>
+						</div>
+						<p class="text-[0.75rem] text-fg-secondary leading-snug">
+							Your <strong>all-time favorites</strong>. No backlog needed — you can favorite anything.
+						</p>
+					</div>
+					<div class="bg-input-bg border border-line rounded-card p-4">
+						<div class="flex items-center gap-2 mb-2">
+							<span class="material-icons text-brand">format_list_bulleted</span>
+							<strong class="text-sm">Lists</strong>
+						</div>
+						<p class="text-[0.75rem] text-fg-secondary leading-snug">
+							Curated collections you build and (optionally) share. Others can follow your lists.
+						</p>
+					</div>
+				</div>
+			}
+
+			@case ('privacy') {
+				<div class="flex items-center gap-3 mb-3">
+					<span class="material-icons text-3xl text-brand">shield</span>
+					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Privacy</h2>
+				</div>
+				<p class="text-fg-secondary leading-relaxed text-sm mb-5">
+					Every section of your profile has an independent visibility toggle in
+					<a routerLink="/settings/privacy" class="text-brand no-underline hover:underline">Settings → Privacy</a>.
+				</p>
+
+				<div class="bg-input-bg border border-line rounded-card p-4 flex flex-col gap-3 max-w-md mx-auto">
+					@for (item of ['Public profile', 'Public queue', 'Public wishlist', 'Public favorites', 'Public activity feed']; track item) {
+						<div class="flex items-center justify-between">
+							<span class="text-sm text-fg">{{ item }}</span>
+							<span class="relative inline-block w-9 h-5 rounded-full bg-brand">
+								<span class="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-white"></span>
+							</span>
+						</div>
+					}
+				</div>
+				<p class="text-[0.75rem] text-fg-muted mt-3 text-center">
+					Hidden sections don't appear on your public profile at all.
+				</p>
+			}
+		}
+
+	</div>
+
+	<div class="flex items-center justify-between mt-6">
+		<button
+			type="button"
+			class="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium border border-line bg-input-bg text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-line disabled:hover:text-fg-secondary"
+			(click)="prev()"
+			[disabled]="!canPrev()"
+		>
+			<span class="material-icons text-base">chevron_left</span>
+			Previous
+		</button>
+
+		<div class="flex items-center gap-1.5">
+			@for (s of steps; track s; let i = $index) {
+				<button
+					type="button"
+					class="w-2 h-2 rounded-full bg-transparent border-0 cursor-pointer transition"
+					[class.!bg-brand]="i === step()"
+					[class.!bg-line]="i !== step()"
+					[attr.aria-label]="'Go to step ' + (i + 1)"
+					(click)="goTo(i)"
+				></button>
+			}
 		</div>
-		<p class="text-[0.75rem] text-fg-muted mt-3">
-			Hidden sections don't appear at all on your public profile.
-		</p>
-	</section>
+
+		@if (canNext()) {
+			<button
+				type="button"
+				class="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium bg-brand text-white border-0 cursor-pointer transition hover:opacity-90"
+				(click)="next()"
+			>
+				Next
+				<span class="material-icons text-base">chevron_right</span>
+			</button>
+		} @else {
+			<a
+				routerLink="/feed"
+				class="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium bg-success text-white no-underline transition hover:opacity-90"
+			>
+				Done
+				<span class="material-icons text-base">check</span>
+			</a>
+		}
+	</div>
 </div>
