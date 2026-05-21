@@ -2,7 +2,7 @@
 	"name": "completr-node-backend",
 	"version": "0.3.0",
 	"description": "Backend for Completr, a game backlog tracker with ratio-based prioritization",
-	"homepage": "https://completr.app",
+	"homepage": "https://www.completr.app",
 	"bugs": {
 		"url": "https://github.com/etejedaw/completr-node-backend/issues"
 	},
