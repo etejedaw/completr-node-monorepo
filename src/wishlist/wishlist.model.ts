@@ -1,15 +1,18 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
+import { Platform } from "../platforms/platform.model";
 
 class Wishlist extends Model {
 	declare id: string;
 	declare userId: string;
 	declare gameId: string;
+	declare platformId: string | null;
 	declare position: number;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 	declare Game: Game;
+	declare Platform: Platform | null;
 }
 
 Wishlist.init(
@@ -27,6 +30,10 @@ Wishlist.init(
 		gameId: {
 			type: DataTypes.UUID,
 			allowNull: false
+		},
+		platformId: {
+			type: DataTypes.UUID,
+			allowNull: true
 		},
 		position: {
 			type: DataTypes.INTEGER,

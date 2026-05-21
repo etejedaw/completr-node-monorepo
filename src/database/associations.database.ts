@@ -168,6 +168,9 @@ function wishlist() {
 
 	Game.hasMany(Wishlist, { foreignKey: "gameId", onDelete: "CASCADE" });
 	Wishlist.belongsTo(Game, { foreignKey: "gameId" });
+
+	Platform.hasMany(Wishlist, { foreignKey: "platformId" });
+	Wishlist.belongsTo(Platform, { foreignKey: "platformId" });
 }
 
 function favorites() {

@@ -29,3 +29,10 @@ export function notFoundError() {
 		raw: undefined
 	});
 }
+
+export function platformNotFoundError() {
+	return new ServiceError("WISHLIST_PLATFORM_NOT_FOUND", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}

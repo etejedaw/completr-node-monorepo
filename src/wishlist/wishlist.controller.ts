@@ -35,7 +35,11 @@ export async function postWishlist(request: Request, response: Response) {
 	const body = request.locals.body as AddWishlistBody;
 	const user = request.locals.user as RequestUser;
 
-	const entry = await wishlistService.addToWishlist(user, body.gameId);
+	const entry = await wishlistService.addToWishlist(
+		user,
+		body.gameId,
+		body.platformId
+	);
 	const entryPlain = entry!.get({ plain: true });
 
 	activityService.record(user.id, "wishlist_added", body.gameId);
