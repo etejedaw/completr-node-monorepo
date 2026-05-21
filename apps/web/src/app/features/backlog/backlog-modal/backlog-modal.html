@@ -26,10 +26,20 @@
 						<app-star-rating [value]="e.userRating ?? null" [readonly]="true" size="sm" />
 					</div>
 				</div>
-				@if (e.ratio != null) {
-					<div class="flex flex-col items-end justify-center text-right shrink-0 min-w-[80px]">
-						<span class="text-3xl font-bold text-brand leading-none">{{ e.ratio }}</span>
-						<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
+				@if (e.ratio != null || e.personalRatio != null) {
+					<div class="flex items-center gap-4 shrink-0">
+						@if (e.ratio != null) {
+							<div class="flex flex-col items-end justify-center text-right min-w-[60px]">
+								<span class="text-3xl font-bold text-brand leading-none">{{ e.ratio }}</span>
+								<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
+							</div>
+						}
+						@if (e.personalRatio != null) {
+							<div class="flex flex-col items-end justify-center text-right min-w-[60px]">
+								<span class="text-3xl font-bold text-warning leading-none">{{ e.personalRatio }}</span>
+								<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Personal</span>
+							</div>
+						}
 					</div>
 				}
 			</div>
@@ -47,12 +57,6 @@
 					<div class="bg-input-bg border border-line rounded-card p-3">
 						<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Real duration</div>
 						<div class="text-fg">{{ e.realDuration }}h</div>
-					</div>
-				}
-				@if (e.personalRatio != null) {
-					<div class="bg-input-bg border border-line rounded-card p-3">
-						<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Personal ratio</div>
-						<div class="text-fg">{{ e.personalRatio }}</div>
 					</div>
 				}
 				@if (e.startedAt) {
