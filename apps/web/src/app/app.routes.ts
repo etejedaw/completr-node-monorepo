@@ -201,6 +201,13 @@ export const routes: Routes = [
 							).then(m => m.SettingsPrivacy)
 					},
 					{
+						path: "appearance",
+						loadComponent: () =>
+							import(
+								"./features/settings/settings-appearance/settings-appearance"
+							).then(m => m.SettingsAppearance)
+					},
+					{
 						path: "security",
 						loadComponent: () =>
 							import(

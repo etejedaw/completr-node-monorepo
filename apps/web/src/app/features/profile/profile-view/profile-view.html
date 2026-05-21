@@ -353,7 +353,7 @@
 		<div uiTabPanel value="reviews">
 			<div class="flex items-baseline justify-between mb-3">
 				<h2 class="font-display m-0 text-xl font-bold text-fg">Reviews</h2>
-				<span class="text-xs text-fg-muted">{{ userReviewsTotal() }} total</span>
+				<a class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all" [routerLink]="['/user', profile()!.user.username, 'reviews']">See all<span class="material-icons text-sm">arrow_forward</span></a>
 			</div>
 			@if (userReviews().length === 0) {
 				<p class="text-center py-12 text-fg-muted text-sm">No reviews yet.</p>
