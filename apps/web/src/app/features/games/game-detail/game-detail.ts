@@ -14,6 +14,7 @@ import { AuthService } from "../../../core/services/auth.service";
 import { FavoritesService } from "../../favorites/favorites.service";
 import { QueueService } from "../../queue/queue.service";
 import { WishlistService } from "../../wishlist/wishlist.service";
+import { WishlistPlatformModal } from "../../wishlist/wishlist-platform-modal/wishlist-platform-modal";
 import { BacklogService } from "../../backlog/backlog.service";
 import { GameShelfService } from "../../game-shelf/game-shelf.service";
 import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
@@ -34,6 +35,7 @@ import { UiButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../.
 		StarRating,
 		BacklogModal,
 		GameShelfModal,
+		WishlistPlatformModal,
 		AdminGameEditor,
 		FormsModule,
 		UiButton,
@@ -86,6 +88,7 @@ export class GameDetail implements OnInit {
 	protected readonly deleting = signal(false);
 	protected readonly togglingFavorite = signal(false);
 	protected readonly togglingWishlist = signal(false);
+	protected readonly showWishlistPlatformModal = signal(false);
 	protected readonly showReportModal = signal(false);
 	protected readonly reportMessage = signal("");
 	protected readonly reportSubmitting = signal(false);
@@ -234,16 +237,30 @@ export class GameDetail implements OnInit {
 	}
 
 	toggleWishlist() {
+		const g = this.game();
+		if (!g || this.togglingWishlist()) return;
+		if (this.isInWishlist()) {
+			this.togglingWishlist.set(true);
+			this.wishlistService.remove(g.id).subscribe({
+				next: () => {
+					this.isInWishlist.set(false);
+					this.togglingWishlist.set(false);
+				},
+				error: () => this.togglingWishlist.set(false)
+			});
+		} else {
+			this.showWishlistPlatformModal.set(true);
+		}
+	}
+
+	onWishlistPlatformModalClosed() {
+		this.showWishlistPlatformModal.set(false);
+	}
+
+	onWishlistPlatformModalSaved() {
+		this.showWishlistPlatformModal.set(false);
 		const gameId = this.game()?.id;
-		if (!gameId || this.togglingWishlist()) return;
-		this.togglingWishlist.set(true);
-		this.wishlistService.toggle(gameId).subscribe({
-			next: () => {
-				this.isInWishlist.set(this.wishlistService.isInWishlist(gameId));
-				this.togglingWishlist.set(false);
-			},
-			error: () => this.togglingWishlist.set(false)
-		});
+		if (gameId) this.isInWishlist.set(this.wishlistService.isInWishlist(gameId));
 	}
 
 	addToQueue() {

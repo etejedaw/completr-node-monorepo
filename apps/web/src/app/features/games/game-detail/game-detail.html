@@ -598,6 +598,15 @@
 @if (showShelfModal()) {
 	<app-game-shelf-modal [preselectedGame]="game()" (closed)="onModalClosed()" (saved)="onModalSaved()" />
 }
+@if (showWishlistPlatformModal()) {
+	<app-wishlist-platform-modal
+		[gameId]="game()!.id"
+		[gameTitle]="game()!.title"
+		[platforms]="game()!.platforms"
+		(closed)="onWishlistPlatformModalClosed()"
+		(saved)="onWishlistPlatformModalSaved()"
+	/>
+}
 @if (showAddToListModal()) {
 	<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]" (click)="closeAddToListModal()">
 		<div class="bg-sidebar border border-line rounded-card p-6 w-[90%] max-w-[480px] max-h-[80vh] flex flex-col" (click)="$event.stopPropagation()">

@@ -5,15 +5,16 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
+import { RouterLink } from "@angular/router";
 import { WishlistEntry } from "../../../core/models";
 import { WishlistService } from "../wishlist.service";
-import { UiPagination, UiSearchBar } from "../../../shared/ui";
-import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { WishlistAddModal } from "../wishlist-add-modal/wishlist-add-modal";
+import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-wishlist-view",
-	imports: [UiPagination, UiSearchBar, GameCoverCard],
+	imports: [RouterLink, UiButton, UiPagination, UiSearchBar, WishlistAddModal],
 	templateUrl: "./wishlist-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -26,6 +27,7 @@ export class WishlistView implements OnInit {
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
+	protected readonly showAddModal = signal(false);
 
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
@@ -54,6 +56,19 @@ export class WishlistView implements OnInit {
 			this.entries.set(this.entries().filter(e => e.id !== entry.id));
 			this.total.set(this.total() - 1);
 		});
+	}
+
+	openAddModal() {
+		this.showAddModal.set(true);
+	}
+
+	onAddModalClosed() {
+		this.showAddModal.set(false);
+	}
+
+	onAddModalSaved() {
+		this.showAddModal.set(false);
+		this.loadWishlist();
 	}
 
 	private loadWishlist() {

@@ -41,9 +41,11 @@ export class WishlistService {
 		return this._wishlist().some(w => w.game.id === gameId);
 	}
 
-	add(gameId: string) {
+	add(gameId: string, platformId?: string) {
+		const body: Record<string, string> = { gameId };
+		if (platformId) body["platformId"] = platformId;
 		return this.http
-			.post<WishlistAddResponse>(this.baseUrl, { gameId })
+			.post<WishlistAddResponse>(this.baseUrl, body)
 			.pipe(
 				tap(res =>
 					this._wishlist.set([...this._wishlist(), res.data.wishlist])

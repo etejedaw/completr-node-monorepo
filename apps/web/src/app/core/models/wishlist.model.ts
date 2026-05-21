@@ -8,4 +8,9 @@ export interface WishlistEntry {
 		backgroundUrl?: string;
 		isDlc: boolean;
 	};
+	platform: {
+		id: string;
+		name: string;
+		abbreviation: string;
+	} | null;
 }
