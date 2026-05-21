@@ -358,10 +358,18 @@
 				} @else {
 					@for (r of userReviews(); track r.id) {
 						<div class="py-3 border-b border-line last:border-b-0">
-							<div class="flex items-center justify-between mb-1.5">
-								@if (r.game) {
-									<a class="text-sm font-semibold text-fg no-underline hover:text-brand" [routerLink]="['/games', r.game.code]">{{ r.game.title }}</a>
-								}
+							<div class="flex items-center justify-between mb-1.5 gap-2">
+								<div class="flex items-center gap-2 min-w-0">
+									@if (r.game) {
+										<a class="text-sm font-semibold text-fg no-underline hover:text-brand truncate" [routerLink]="['/games', r.game.code]">{{ r.game.title }}</a>
+									}
+									@if (r.playthroughDuration) {
+										<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line" title="Real playtime">
+											<span class="material-icons text-[0.75rem]">schedule</span>
+											{{ r.playthroughDuration }}h
+										</span>
+									}
+								</div>
 								@if (r.rating) {
 									<app-star-rating [value]="r.rating" [readonly]="true" size="sm" />
 								}

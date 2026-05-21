@@ -17,6 +17,7 @@ interface UserReview {
 	id: string;
 	content?: string;
 	rating?: number;
+	playthroughDuration?: number | null;
 	game: { id: string; code: string; title: string } | null;
 	createdAt: string;
 }

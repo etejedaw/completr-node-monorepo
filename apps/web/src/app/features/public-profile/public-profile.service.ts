@@ -270,6 +270,7 @@ export class PublicProfileService {
 						id: string;
 						content?: string;
 						rating?: number;
+						playthroughDuration?: number | null;
 						game: {
 							id: string;
 							code: string;

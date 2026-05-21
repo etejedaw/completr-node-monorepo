@@ -404,17 +404,25 @@
 						} @else {
 							@for (review of reviews(); track review.id) {
 								<div class="py-4 border-b border-line last:border-b-0">
-									<div class="flex items-center justify-between mb-2">
-										<a class="flex items-center gap-2 no-underline text-inherit group" [routerLink]="['/user', review.user?.username]">
-											@if (review.user?.avatarUrl) {
-												<img class="w-7 h-7 rounded-full object-cover" [src]="review.user!.avatarUrl" [alt]="review.user!.username" />
-											} @else {
-												<div class="w-7 h-7 rounded-full bg-surface flex items-center justify-center text-[0.6875rem] font-bold text-brand">
-													{{ review.user?.username?.charAt(0)?.toUpperCase() }}
-												</div>
+									<div class="flex items-center justify-between mb-2 gap-2">
+										<div class="flex items-center gap-2 min-w-0">
+											<a class="flex items-center gap-2 no-underline text-inherit group" [routerLink]="['/user', review.user?.username]">
+												@if (review.user?.avatarUrl) {
+													<img class="w-7 h-7 rounded-full object-cover" [src]="review.user!.avatarUrl" [alt]="review.user!.username" />
+												} @else {
+													<div class="w-7 h-7 rounded-full bg-surface flex items-center justify-center text-[0.6875rem] font-bold text-brand">
+														{{ review.user?.username?.charAt(0)?.toUpperCase() }}
+													</div>
+												}
+												<span class="text-[0.8125rem] font-semibold text-fg transition group-hover:text-brand">{{ review.user?.name || review.user?.username }}</span>
+											</a>
+											@if (review.playthroughDuration) {
+												<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line" title="Author's real playtime">
+													<span class="material-icons text-[0.75rem]">schedule</span>
+													{{ review.playthroughDuration }}h
+												</span>
 											}
-											<span class="text-[0.8125rem] font-semibold text-fg transition group-hover:text-brand">{{ review.user?.name || review.user?.username }}</span>
-										</a>
+										</div>
 										@if (review.rating) {
 											<app-star-rating [value]="review.rating" [readonly]="true" size="sm" />
 										}
