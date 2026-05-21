@@ -754,10 +754,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al entrar al perfil publico de otro jugador (/user/:username), la seccion de reviews muestra solo las ultimas N (probablemente 3-5). No hay forma de ver el resto de las reviews que el usuario ha escrito. Si me interesa la opinion de alguien sobre varios juegos, no tengo manera de revisarlas todas sin entrar juego por juego.
-- **Solucion propuesta:** Agregar boton "See all" debajo de la lista de reviews en el perfil publico que lleve a una vista dedicada `/user/:username/reviews` con paginacion (limit 25). Backend: nuevo endpoint `GET /users/:username/reviews?limit&offset` que devuelve las reviews del usuario con `game` populado, ordenadas por fecha desc, paginadas con `{ rows, total }`. Frontend: vista nueva con `<ui-pagination>` reutilizando el patron ya usado en feed, backlog, wishlist, etc.
+- **Solucion:** Backend: nueva funcion `reviewsService.findReviewsByUserIdPaginated(userId, {limit, offset})` con `findAndCountAll` + `distinct: true`. El endpoint `GET /users/:username/reviews` ahora acepta `PaginationQuerySchema` y devuelve `{ reviews, total }`. Frontend: `getUserReviews(username, { limit, offset })` retorna `{ reviews, total }`. En el perfil (publico y propio) la seccion ahora carga limit 5 + muestra contador real desde `total` + link "See all N reviews →" cuando hay mas que las cargadas. Nueva vista standalone `/user/:username/reviews` (componente `UserReviews` en `features/public-profile/user-reviews/`) con paginacion 50 reusando `<ui-pagination>`. Maneja errors 403/404 igual que las demas vistas de perfil ajeno. Nuevo doc Bruno en `docs/api/users/get-user-reviews.yml`.
 
 ### [FB-084] Plataformas duplicadas: Origin y EA (Origin) son la misma
 
