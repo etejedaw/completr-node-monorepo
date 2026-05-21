@@ -504,7 +504,7 @@
 
 ### Corrección de bugs por feedback de usuarios
 
-- [ ] Corrección de bugs por feedback de usuarios (ver docs/feedback/fase-2.md)
+- [x] Corrección de bugs por feedback de usuarios (ver docs/feedback/fase-2.md) — 87 resueltos, 13 descartados, 5 diferidos, 4 pendientes
 - [ ] Diseñar el docs/architecture.md
 - [ ] Crear aviso de privacidad
 
@@ -655,7 +655,7 @@
 
 ### Búsqueda avanzada
 
-- [ ] Filtros combinados: género, plataforma, estado, ratio mínimo/máximo, duración
+- [x] Filtros combinados: género, plataforma, año, score mínimo/máximo, duración, DLC toggle. Backend `GET /games` extendido en FB-102; frontend con panel de filtros + chips + URL persistente
 - [ ] Ordenamiento dinámico: rating, duración, ratio, popularidad (nº de usuarios que lo tienen)
 
 ### Landing page
@@ -974,6 +974,16 @@
 - [ ] Detector de co-op: auto-detectar juegos que tú y un amigo tienen en el backlog y ninguno ha jugado, sugerir jugarlos juntos
 - [ ] Evaluar migrar la búsqueda a Meilisearch (self-hosted en CapRover). Hoy `searchGames` usa `ILIKE %query%` sobre `title` — suficiente con `pg_trgm` + tokenización para el problema actual de tolerancia a puntuación/espacios. Meilisearch se justifica cuando: (a) el catálogo crezca a decenas de miles de juegos y el `ILIKE`/trigram se vuelva lento, (b) se necesite faceting pesado (género + plataforma + status + rangos en simultáneo) o (c) se quiera typo-tolerance y ranking inteligente como producto. Costos: otro contenedor, pipeline de sincronización catálogo → índice (probablemente con hooks de Sequelize o un job periódico), y mantenimiento. Decidir en base a métricas reales, no anticipadamente
 - [ ] Perfil personalizable (estilo Steam Showcases). Permitir al usuario armar su perfil público con bloques/widgets a su gusto: "Juegos favoritos destacados" (grid 5/10 con cover grande), "Reseñas destacadas" (selección manual de las que el usuario quiere mostrar), "Trofeos/Logros", "Estadísticas del año", "Lista pinneada", "Texto libre/bio extendida", "Captura/screenshot favorita", etc. El usuario decide qué bloques agregar, en qué orden, y con qué contenido específico. Implementación sugerida: modelo `ProfileBlock` (id, userId, type, position, config JSONB) — cada tipo de bloque define su propio shape de config. Frontend: vista de edición del perfil con drag-and-drop para reordenar y CRUD de bloques. Probable feature premium (consistente con la sección "Perfil público" de la tabla FREE vs PREMIUM que ya menciona "URL, portada y avatar custom" como premium). Decidir alcance MVP: empezar con 3-4 tipos de bloques fijos antes de abrir a un sistema completamente extensible
+
+### Feedback diferido de Fase 2
+
+> Items reportados por beta testers en Fase 2 que se difirieron por ser nice-to-haves o cambios de data que requieren design previo. Aterrizar cuando haya bandwidth.
+
+- [ ] **Bug reports generales del usuario** (no asociados a un juego): tabla `BugReport(id, userId, content, screenshot?, status)` + panel admin para revisarlos. Hoy solo existen `GameReport` que son específicos de catálogo
+- [ ] **Faltan juegos de Nintendo Switch** (ej: Pokemon Scarlet). RAWG no los tiene o están en otra ID. Evaluar IGDB como fuente complementaria
+- [ ] **Descripción de juego en idiomas mezclados y demasiado larga**. Truncar + traducir/normalizar al inglés o español dependiendo del usuario
+- [ ] **Enlaces a la landing/webpage pública** (completr.app) desde dentro de la app — footer, settings, o un link en help
+- [ ] **Color semántico por icono del sidebar**: paleta fija (Feed=sky, Games=emerald, Backlog=brand, Game Shelf=amber, Wishlist=rose, Favorites=yellow, Saved Views=purple, Lists=teal). Inactivo usa color semántico, activo cambia a brand. Validar con usuarios
 
 ---
 
