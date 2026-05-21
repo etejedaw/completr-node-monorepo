@@ -1,0 +1,34 @@
+info:
+    name: Get My Backlog Stats
+    type: http
+    seq: 3
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/backlog/stats"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get My Backlog Stats
+
+    Returns aggregate counts of the authenticated user's backlog grouped by status. Cheaper than fetching the full backlog just to count locally — uses a single `GROUP BY status` query.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 300 requests per minute (user).
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "total": 142,
+        "not_started": 73,
+        "playing": 4,
+        "completed": 58,
+        "abandoned": 7
+      }
+    }
+    ```

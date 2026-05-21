@@ -147,10 +147,10 @@ export async function findBacklogByUserId(
 	const query: Record<string, unknown> = {
 		where: buildWhere({ userId }, filters),
 		include: buildIncludes(filters),
-		order: buildOrder(filters)
+		order: buildOrder(filters),
+		limit: filters.limit ?? 100,
+		offset: filters.offset ?? 0
 	};
-	if (filters.limit) query.limit = filters.limit;
-	if (filters.offset) query.offset = filters.offset;
 
 	const { rows, count } = await Backlog.findAndCountAll(query);
 	return { rows, total: count };
@@ -163,10 +163,10 @@ export async function findPublicBacklogByUserId(
 	const query: Record<string, unknown> = {
 		where: buildWhere({ userId, isPublic: true }, filters),
 		include: buildIncludes(filters),
-		order: buildOrder(filters)
+		order: buildOrder(filters),
+		limit: filters.limit ?? 100,
+		offset: filters.offset ?? 0
 	};
-	if (filters.limit) query.limit = filters.limit;
-	if (filters.offset) query.offset = filters.offset;
 
 	const { rows, count } = await Backlog.findAndCountAll(query);
 	return { rows, total: count };
@@ -196,6 +196,34 @@ export async function updateBacklog(
 	}
 
 	return { backlog: backlogEntry, wishlistRemoved };
+}
+
+export async function getBacklogStats(userId: string) {
+	const rows = (await Backlog.findAll({
+		attributes: [
+			"status",
+			[sequelize.fn("COUNT", sequelize.col("id")), "count"]
+		],
+		where: { userId },
+		group: ["status"],
+		raw: true
+	})) as unknown as { status: string; count: string }[];
+
+	const stats = {
+		total: 0,
+		not_started: 0,
+		playing: 0,
+		completed: 0,
+		abandoned: 0
+	};
+	for (const row of rows) {
+		const n = Number(row.count);
+		stats.total += n;
+		if (row.status in stats) {
+			(stats as Record<string, number>)[row.status] = n;
+		}
+	}
+	return stats;
 }
 
 export async function findLatestCompletedDurations(
