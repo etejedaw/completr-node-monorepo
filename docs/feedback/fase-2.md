@@ -970,10 +970,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Esteban
 - **Descripcion:** Al ver el perfil publico de un usuario (`/user/:username`), las secciones de resumen muestran listas truncadas (5-10 items) con link "View All" a vistas dedicadas paginadas. Las vistas dedicadas (`/user/:username/backlog`, `/favorites`, `/queue`, `/game-shelf`) ya tienen `PAGE_SIZE = 50`. El problema es la inconsistencia: en la pagina del perfil mismo no hay paginacion — son snippets cortados con un boton "View All" que cambia de pantalla. La experiencia esperada (estilo Letterboxd/Trakt) es poder paginar in-place sin perder contexto.
 - **Solucion propuesta:** (1) Decidir el patron: dejar los snippets actuales pero agregar paginacion in-place a cada seccion (Backlog, Game Shelf, Favorites, Queue, Reviews, Following Lists, Activity) con limit=50 — el "View All" pasa a ser opcional o se elimina. (2) Reutilizar `<ui-pagination>` ya existente en cada seccion del perfil. (3) Verificar que todos los endpoints `GET /users/:username/<seccion>` aceptan `limit` y `offset` y devuelven `total`. (4) Si alguna seccion no esta paginada en backend, agregar paginacion (limit max 50). (5) Considerar performance: cargar primero solo la primera pagina de cada seccion, no las 50 completas. Relacionado con FB-096 (orden de secciones en perfil ajeno) y FB-098 (layout dos columnas en desktop).
+- **Razon de descarte:** Las vistas dedicadas (`/user/:username/backlog`, `/queue`, `/wishlist`, `/favorites`, `/game-shelf`, `/reviews`) ya estan paginadas con `PAGE_SIZE = 50`. La transicion "snippet en perfil → vista dedicada" no rompe UX y mantiene la pagina del perfil ligera. Costo alto vs beneficio bajo: paginar in-place cada seccion implicaria estado independiente + endpoint check + 8 paginadores en una sola pagina.
 
 ### [FB-105] Total de juegos en el shelf publico no coincide con el real
 
