@@ -16,6 +16,7 @@ class Game extends Model {
 	declare backgroundUrl?: string;
 	declare isDlc: boolean;
 	declare parentGameId?: string;
+	declare variant?: string | null;
 	declare isActive: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -55,6 +56,10 @@ Game.init(
 		},
 		parentGameId: {
 			type: DataTypes.UUID,
+			allowNull: true
+		},
+		variant: {
+			type: DataTypes.STRING(100),
 			allowNull: true
 		},
 		isActive: {

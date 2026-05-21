@@ -19,6 +19,7 @@ export function gameSerializer(
 		backgroundUrl: game.backgroundUrl,
 		isDlc: game.isDlc,
 		parentGameId: game.parentGameId,
+		variant: game.variant ?? null,
 		updatedAt: game.updatedAt,
 		ratio: calculateRatio(game.GameScores, game.GameTimes),
 		justImported: options.justImported ?? false,
