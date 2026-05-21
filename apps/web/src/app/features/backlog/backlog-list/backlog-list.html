@@ -358,8 +358,8 @@
 										<button
 											type="button"
 											class="material-icons text-base bg-transparent border-0 p-0 cursor-pointer transition"
-											[class.text-brand]="!isReviewExpanded(entry.id)"
-											[class.text-fg-muted]="isReviewExpanded(entry.id)"
+											[class.text-brand]="isReviewExpanded(entry.id)"
+											[class.text-fg-muted]="!isReviewExpanded(entry.id)"
 											[title]="isReviewExpanded(entry.id) ? 'Show your note' : 'Show your review'"
 											(click)="toggleReview(entry, $event)"
 										>rate_review</button>
@@ -484,8 +484,8 @@
 												<button
 													type="button"
 													class="material-icons text-sm bg-transparent border-0 p-0 cursor-pointer transition"
-													[class.text-brand]="!isReviewExpanded(entry.id)"
-													[class.text-fg-muted]="isReviewExpanded(entry.id)"
+													[class.text-brand]="isReviewExpanded(entry.id)"
+													[class.text-fg-muted]="!isReviewExpanded(entry.id)"
 													[title]="isReviewExpanded(entry.id) ? 'Show your note' : 'Show your review'"
 													(click)="toggleReview(entry, $event)"
 												>rate_review</button>
