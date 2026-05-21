@@ -505,89 +505,10 @@
 ### Corrección de bugs por feedback de usuarios
 
 - [x] Corrección de bugs por feedback de usuarios — 90 resueltos, 13 descartados, 6 diferidos a Fase 3/4, 0 pendientes
-- [ ] Diseñar el docs/architecture.md
-- [ ] Crear aviso de privacidad
 
 ### Aggregate Score (provisional hasta tener comunidad)
 
-**Problema:** El Completr Score es la métrica distintiva de cada game page, pero hasta tener masa crítica de reseñas (`max(2, ceil(usuarios_activos * 10%))`) casi ningún juego lo tendrá. La página se ve vacía y la propuesta de valor no se entiende.
-
-**Solución (implementada — versión simplificada):** Backend sin cambios. El game ya devuelve `scores[]` y `times[]` con todas las fuentes. Frontend tiene un helper `pickCanonicalScore(game)` en `shared/utils/canonical-score.ts` que decide por prioridad: si hay `completr` (score + duration) → tipo `completr` con escala 1-5; si no, fallback a `metacritic` + `hltb` → tipo `aggregate` con escala 0-100; si no, tipo `null`. La sección de Completr Score en game-detail renderiza tres variantes visuales según el tipo: brand fill (completr), info dashed (aggregate, con subtítulo provisional + breakdown metacritic/hltb), o estado vacío con CTA "Report missing data". Si en el futuro se quiere persistir el aggregate en DB, registrar graduaciones, o trigger automático desde scrapers, los puntos detallados abajo siguen siendo el plan; por ahora la versión client-side cubre el caso de uso.
-
-**Solución original (A.2):** Mientras un juego no califique para Completr Score, el slot muestra un **Aggregate Score** explícito derivado de Metacritic + HLTB. Label, escala y subtítulo distintos. Cuando el juego alcanza el umbral, el job comunitario crea su `GameScore(source=completr)` y el slot pasa automáticamente a "Completr Score". Cada graduación queda registrada para que el admin la mencione en un changelog post (sin esperar olas — la transición de label es automática per-game).
-
-**Convenciones de escala:**
-
-- `aggregate` score = `metacritic` score crudo (0-100). NO se normaliza.
-- `aggregate` duration = `hltb` duration cruda (horas).
-- `completr` score sigue siendo 1-5 (promedio de `Review.rating`).
-- Los labels distintos hacen explícita la diferencia de escala al usuario.
-
-#### Backend — Schema
-
-- [ ] Añadir `"aggregate"` al array `TIME_SOURCES` en `src/game-times/game-time.model.ts`
-- [ ] Migración: `ALTER TYPE` del enum de `GameTime.source` para incluir `aggregate` (DDL idempotente)
-- [ ] `GameScore.source` ya es `STRING(50)` con FK a `ScoreSource` — basta con insertar la fila `("aggregate", "Aggregate", scale_max=100)` en `score_sources` vía migración
-- [ ] Migración: crear tabla `ScoreGraduation` con `id (UUID)`, `gameId (UUID, FK games)`, `graduatedAt (timestamp)`, unique index en `gameId`
-- [ ] Modelo `ScoreGraduation` + service mínimo (`record(gameId)`, `listSince(date)`)
-
-#### Backend — Cómputo del aggregate
-
-- [ ] Crear `src/games/aggregate-score.service.ts` con `computeAggregateForGame(gameId)`:
-    - Lee `GameScore(source=metacritic)` y `GameTime(source=hltb)` del juego
-    - Si **ambos** existen y el juego NO tiene `GameScore(source=completr)`:
-        - `upsert GameScore(gameId, source=aggregate, score=metacritic.score)`
-        - `upsert GameTime(gameId, source=aggregate, duration=hltb.duration)`
-    - Si falta cualquiera de los dos → no hace nada (el slot queda en CTA "reportar")
-    - Si ya existe `completr` → no hace nada (no pisar comunidad)
-- [ ] Crear `src/games/aggregate-score.service.ts → computeAggregateForAllGames()`: itera juegos sin `completr` y llama `computeAggregateForGame` para cada uno. Retorna `{processed, skipped, created}`.
-
-#### Backend — Triggers automáticos
-
-- [ ] En el job/scraper que actualice `GameScore(source=metacritic)`: al terminar cada juego, llamar `computeAggregateForGame(gameId)`
-- [ ] En el job/scraper que actualice `GameTime(source=hltb)`: idem
-- [ ] En `runCalculateRatings` (`src/jobs/jobs.service.ts`), justo después del `GameScore.upsert({source:"completr"})` exitoso: verificar si el juego tenía `aggregate` previamente; si sí, llamar `ScoreGraduation.record(gameId)` (idempotente por unique index)
-- [ ] (Opcional) En el mismo punto: borrar la fila `GameScore(source=aggregate)` y `GameTime(source=aggregate)` del juego graduado para evitar confusión. Decisión a tomar al implementar — yo dejaría las filas para poder mostrar "antes era 8.2 aggregate, ahora 4.3 community" en stats internos.
-
-#### Backend — Job admin para backfill
-
-- [ ] Endpoint `POST /admin/jobs/calculate-aggregate-scores` que dispara `computeAggregateForAllGames` como job async (mismo patrón que `populate-rawg`)
-- [ ] Visible en el panel admin de jobs existente
-- [ ] Documentar en `docs/api/admin/jobs/calculate-aggregate-scores.yml`
-
-#### Backend — Serializer del game con fallback
-
-- [ ] En el game serializer, el "ratio canónico" debe preferir `completr` y caer a `aggregate`:
-    - `scoreType: "completr" | "aggregate" | null` — qué fuente está alimentando el slot canónico
-    - `canonicalScore: number | null` — el valor (1-5 si completr, 0-100 si aggregate)
-    - `canonicalDuration: number | null` — duración correspondiente
-    - `canonicalRatio: number | null` — `canonicalScore / canonicalDuration`, calculado en backend
-    - `communityReviewCount: number` — solo si `scoreType="completr"`, para el subtítulo
-- [ ] Aplicar la misma lógica donde sea que hoy se exponga "completr score / completr time / ratio canónico" (game detail, game cards, games-browse, etc.)
-
-#### Backend — Reporte de usuario
-
-- [ ] No requiere cambios — `GameReport.category = "missing_score"` ya existe y se puede usar tal cual
-- [ ] (Opcional) Aceptar reportes solo si el juego NO tiene ya `completr` — evita ruido
-
-#### Backend — Endpoint para el post de graduación
-
-- [ ] `GET /admin/score-graduations?since=YYYY-MM-DD` — lista juegos graduados desde una fecha, ordenados por `graduatedAt desc`, incluye `game.title` y `game.slug`. Solo admin.
-- [ ] Documentar en `docs/api/admin/score-graduations/get-all.yml`
-
-#### Frontend — Render del slot canónico
-
-- [ ] Componente del slot (esquina superior derecha del game detail) decide según `scoreType`:
-    - `"completr"`: badge "Completr Score", número en escala 1-5, subtítulo "Basado en {{communityReviewCount}} reseñas"
-    - `"aggregate"`: badge "Aggregate Score" (estilo visible distinto — color/borde), número en escala 0-100, subtítulo "Provisional — basado en Metacritic + HLTB hasta tener suficientes reseñas"
-    - `null`: estado vacío con CTA "Sé el primero en reseñarlo" + botón "Reportar score faltante"
-- [ ] Aplicar el mismo patrón en game cards, listas y games-browse donde aparezca el score canónico
-- [ ] El botón "Reportar score faltante" llama `POST /games/:id/reports` con `category: "missing_score"`
-
-#### Documentación
-
-- [ ] Actualizar `CONTEXT.md` sección "Sistema de puntajes": documentar la fuente `aggregate`, la regla de fallback `completr → aggregate`, y la graduación automática
-- [ ] Documentar el flujo en `docs/architecture.md` cuando se cree
+- [x] **Versión simplificada implementada (frontend-only).** Helper `pickCanonicalScore(game)` en `shared/utils/canonical-score.ts` decide por prioridad: `completr` (score + duration, escala 1-5) → fallback `metacritic` + `hltb` (escala 0-100) → estado vacío con CTA "Report missing data". La sección de Completr Score en game-detail renderiza tres variantes visuales segun el tipo. Sin cambios en backend.
 
 ### Mejoras a reseñas
 
@@ -601,6 +522,13 @@
 **Condición de éxito:** Usuarios que no conoces usan la app regularmente y completan juegos.
 
 > 🔒 _Beta por invitación — 50 a 200 usuarios._
+
+### Legal / compliance
+
+- [ ] Crear aviso de privacidad
+- [ ] Crear Terms of Service (equivalente web a EULA: uso aceptable, propiedad del contenido del usuario, suspensión de cuentas, cambios al servicio, jurisdicción)
+- [ ] (Si se suman analytics o cookies de terceros) política de cookies; mientras solo haya la cookie HttpOnly del refresh token alcanza con mencionarla en el aviso de privacidad
+- [ ] (Diferible a Fase 4) Política DMCA / takedown — cuando la beta sea pública y crezca el volumen de contenido user-generated (covers, reviews, listas con nombres comerciales)
 
 ### Reparación de datos HTML-encoded (legado pre-fix FB-067)
 
