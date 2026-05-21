@@ -54,6 +54,12 @@
 								@if (game.isDlc) {
 									<span class="absolute top-2 left-2 px-1.5 py-0.5 bg-warning/85 text-black text-[0.65rem] font-semibold uppercase tracking-wider rounded backdrop-blur-sm shadow">DLC</span>
 								}
+								@if (game.justImported) {
+									<span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/85 text-white text-[0.65rem] font-semibold uppercase tracking-wider rounded backdrop-blur-sm shadow" title="Just imported from RAWG">
+										<span class="material-icons text-[0.75rem]">cloud_download</span>
+										RAWG
+									</span>
+								}
 							</div>
 							<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ game.title }}</span>
 						</a>

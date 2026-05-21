@@ -7,6 +7,7 @@ export interface Game {
 	backgroundUrl?: string;
 	ratio?: number;
 	isDlc: boolean;
+	justImported?: boolean;
 	parentGameId?: string;
 	platforms: Platform[];
 	genres: Genre[];

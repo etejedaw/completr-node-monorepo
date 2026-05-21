@@ -61,6 +61,12 @@
 						<img [src]="game.backgroundUrl" class="w-7 h-[38px] object-cover rounded-[3px] shrink-0" />
 						}
 						<span class="flex-1">{{ game.title }}</span>
+						@if (game.justImported) {
+						<span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/15 text-info text-[0.65rem] font-semibold uppercase tracking-wider rounded" title="Just imported from RAWG">
+							<span class="material-icons text-[0.75rem]">cloud_download</span>
+							RAWG
+						</span>
+						}
 						@if (game.isDlc) {
 						<span class="px-1.5 py-0.5 bg-warning/15 text-warning text-[0.65rem] font-semibold uppercase tracking-wider rounded">DLC</span>
 						}
