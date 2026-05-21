@@ -140,6 +140,36 @@ function buildOrder(filters: BacklogQuery): Order {
 	return [[sortBy, sortOrder]];
 }
 
+export async function countBacklogByStatus(userId: string, publicOnly = false) {
+	const where: Record<string, unknown> = { userId };
+	if (publicOnly) where.isPublic = true;
+	const rows = (await Backlog.findAll({
+		where,
+		attributes: [
+			"status",
+			[sequelize.fn("COUNT", sequelize.col("id")), "count"]
+		],
+		group: ["status"],
+		raw: true
+	})) as unknown as { status: string; count: string }[];
+
+	const result = {
+		not_started: 0,
+		playing: 0,
+		completed: 0,
+		abandoned: 0,
+		total: 0
+	};
+	for (const row of rows) {
+		const n = Number(row.count);
+		if (row.status in result) {
+			result[row.status as keyof typeof result] = n;
+		}
+		result.total += n;
+	}
+	return result;
+}
+
 export async function findBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}
