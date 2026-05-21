@@ -1,7 +1,7 @@
 <div class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]" (click)="onClose()">
 	<div class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[560px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]" (click)="$event.stopPropagation()">
 		<div class="flex justify-between items-center mb-5">
-			<h2 class="font-display m-0 text-lg font-bold">{{ isEdit() ? "Edit Entry" : "Add to Backlog" }}</h2>
+			<h2 class="font-display m-0 text-lg font-bold">{{ isEdit() ? (viewMode() === 'summary' ? entry()!.game.title : "Edit Entry") : "Add to Backlog" }}</h2>
 			<button uiIconButton size="sm" (click)="onClose()">&times;</button>
 		</div>
 
@@ -9,6 +9,91 @@
 		<div class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem]">{{ error() }}</div>
 		}
 
+		@if (isEdit() && viewMode() === 'summary') {
+			@let e = entry()!;
+			<div class="flex items-stretch gap-4 mb-5">
+				<div class="shrink-0">
+					@if (e.game.backgroundUrl) {
+						<img [src]="e.game.backgroundUrl" [alt]="e.game.title" class="w-20 h-28 object-cover rounded-md shadow-md shadow-black/40" />
+					} @else {
+						<div class="w-20 h-28 bg-input-bg rounded-md"></div>
+					}
+				</div>
+				<div class="flex-1 min-w-0 flex flex-col gap-1.5">
+					<span class="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide" [class]="statusClass(e.status)">{{ statusLabel(e.status) }}</span>
+					<div class="text-[0.8125rem] text-fg-secondary">{{ e.platform.abbreviation }}</div>
+					<div class="flex items-center gap-2 mt-auto">
+						<app-star-rating [value]="e.userRating ?? null" [readonly]="true" size="sm" />
+					</div>
+				</div>
+				@if (e.ratio != null) {
+					<div class="flex flex-col items-end justify-center text-right shrink-0 min-w-[80px]">
+						<span class="text-3xl font-bold text-brand leading-none">{{ e.ratio }}</span>
+						<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
+					</div>
+				}
+			</div>
+
+			<div class="grid grid-cols-2 gap-3 text-[0.8125rem]">
+				<div class="bg-input-bg border border-line rounded-card p-3">
+					<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Score</div>
+					<div class="text-fg">{{ e.score ?? '—' }}</div>
+				</div>
+				<div class="bg-input-bg border border-line rounded-card p-3">
+					<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Duration</div>
+					<div class="text-fg">{{ e.duration ? e.duration + 'h' : '—' }}</div>
+				</div>
+				@if (e.realDuration != null) {
+					<div class="bg-input-bg border border-line rounded-card p-3">
+						<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Real duration</div>
+						<div class="text-fg">{{ e.realDuration }}h</div>
+					</div>
+				}
+				@if (e.personalRatio != null) {
+					<div class="bg-input-bg border border-line rounded-card p-3">
+						<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Personal ratio</div>
+						<div class="text-fg">{{ e.personalRatio }}</div>
+					</div>
+				}
+				@if (e.startedAt) {
+					<div class="bg-input-bg border border-line rounded-card p-3">
+						<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Started</div>
+						<div class="text-fg">{{ e.startedAt }}</div>
+					</div>
+				}
+				@if (e.finishedAt) {
+					<div class="bg-input-bg border border-line rounded-card p-3">
+						<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Finished</div>
+						<div class="text-fg">{{ e.finishedAt }}</div>
+					</div>
+				}
+			</div>
+
+			@if (e.notes) {
+				<div class="mt-3 bg-input-bg border border-line rounded-card p-3">
+					<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Notes</div>
+					<p class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap">{{ e.notes }}</p>
+				</div>
+			}
+
+			@if (e.hasReview && e.reviewContent) {
+				<div class="mt-3 bg-brand/5 border border-brand/30 rounded-card p-3">
+					<div class="flex items-center gap-2 mb-1">
+						<span class="material-icons text-base text-brand">rate_review</span>
+						<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-brand">Review</span>
+					</div>
+					<p class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap">{{ e.reviewContent }}</p>
+				</div>
+			}
+
+			<div class="flex justify-end gap-2 mt-5 pt-4 border-t border-line">
+				<button uiButton variant="ghost" type="button" (click)="onClose()">Close</button>
+				<button uiButton variant="primary" type="button" (click)="switchToEdit()">
+					<span class="material-icons text-base mr-1">edit</span>
+					Edit
+				</button>
+			</div>
+		} @else {
 		<form [formGroup]="form" (ngSubmit)="onSubmit()">
 			@if (!isEdit()) {
 			<div class="mb-4">
@@ -430,5 +515,6 @@
 				</button>
 			</div>
 		</form>
+		}
 	</div>
 </div>

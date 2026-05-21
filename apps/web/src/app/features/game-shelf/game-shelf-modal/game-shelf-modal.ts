@@ -58,6 +58,11 @@ export class GameShelfModal implements OnInit {
 
 	private readonly searchSubject = new Subject<string>();
 	protected readonly isEdit = signal(false);
+	protected readonly viewMode = signal<"summary" | "edit">("edit");
+
+	switchToEdit() {
+		this.viewMode.set("edit");
+	}
 
 	form = this.fb.group({
 		gameId: ["", Validators.required],
@@ -118,6 +123,7 @@ export class GameShelfModal implements OnInit {
 		const e = this.entry();
 		if (e) {
 			this.isEdit.set(true);
+			this.viewMode.set("summary");
 			this.selectedGame.set({
 				id: e.game.id,
 				title: e.game.title,
