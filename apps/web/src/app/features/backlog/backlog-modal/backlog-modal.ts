@@ -242,6 +242,9 @@ export class BacklogModal implements OnInit {
 				title: e.game.title,
 				backgroundUrl: e.game.backgroundUrl
 			} as Game);
+			this.gamesService.getByCode(e.game.code).subscribe({
+				next: full => this.selectedGame.set(full)
+			});
 			this.form.patchValue({
 				gameId: e.game.id,
 				platformId: e.platform.id,
