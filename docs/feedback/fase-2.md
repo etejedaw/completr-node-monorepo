@@ -537,10 +537,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Tami
 - **Descripcion:** El juego Rhythm Heaven tiene pagina y puntaje de Metacritic (verificable externamente), pero una lista configurada con score_source "metacritic" muestra que no tiene score para ese juego. Esto puede significar que: (1) el GameScore de tipo metacritic no fue importado para ese juego, (2) el juego se importo desde RAWG y solo tiene score de RAWG, o (3) el mapeo entre fuentes no esta funcionando correctamente.
-- **Solucion propuesta:** Verificar en la DB si Rhythm Heaven tiene un registro en GameScore con source "metacritic". Si no lo tiene, el score de Metacritic no fue importado — es un problema de datos, no de codigo. A corto plazo, el admin puede agregar el score manualmente. A largo plazo, el cron de Metacritic/OpenCritic (Fase 5) se encargara de poblar estos datos automaticamente.
+- **Decision (2026-05-20):** Descartado. No es un bug del codigo — el comportamiento de mostrar null cuando falta el `GameScore(source=metacritic)` es el esperado. Es un caso aislado de datos faltantes. El cron oficial de Metacritic/OpenCritic vive en Fase 5; mientras tanto el admin puede completar manualmente cualquier juego puntual desde el panel.
 
 ### [FB-061] Badge de fuente de score desalinea input en backlog modal
 
