@@ -497,7 +497,9 @@
 
 **Problema:** El Completr Score es la métrica distintiva de cada game page, pero hasta tener masa crítica de reseñas (`max(2, ceil(usuarios_activos * 10%))`) casi ningún juego lo tendrá. La página se ve vacía y la propuesta de valor no se entiende.
 
-**Solución (A.2):** Mientras un juego no califique para Completr Score, el slot muestra un **Aggregate Score** explícito derivado de Metacritic + HLTB. Label, escala y subtítulo distintos. Cuando el juego alcanza el umbral, el job comunitario crea su `GameScore(source=completr)` y el slot pasa automáticamente a "Completr Score". Cada graduación queda registrada para que el admin la mencione en un changelog post (sin esperar olas — la transición de label es automática per-game).
+**Solución (implementada — versión simplificada):** Backend sin cambios. El game ya devuelve `scores[]` y `times[]` con todas las fuentes. Frontend tiene un helper `pickCanonicalScore(game)` en `shared/utils/canonical-score.ts` que decide por prioridad: si hay `completr` (score + duration) → tipo `completr` con escala 1-5; si no, fallback a `metacritic` + `hltb` → tipo `aggregate` con escala 0-100; si no, tipo `null`. La sección de Completr Score en game-detail renderiza tres variantes visuales según el tipo: brand fill (completr), info dashed (aggregate, con subtítulo provisional + breakdown metacritic/hltb), o estado vacío con CTA "Report missing data". Si en el futuro se quiere persistir el aggregate en DB, registrar graduaciones, o trigger automático desde scrapers, los puntos detallados abajo siguen siendo el plan; por ahora la versión client-side cubre el caso de uso.
+
+**Solución original (A.2):** Mientras un juego no califique para Completr Score, el slot muestra un **Aggregate Score** explícito derivado de Metacritic + HLTB. Label, escala y subtítulo distintos. Cuando el juego alcanza el umbral, el job comunitario crea su `GameScore(source=completr)` y el slot pasa automáticamente a "Completr Score". Cada graduación queda registrada para que el admin la mencione en un changelog post (sin esperar olas — la transición de label es automática per-game).
 
 **Convenciones de escala:**
 
@@ -571,14 +573,6 @@
 
 - [ ] Actualizar `CONTEXT.md` sección "Sistema de puntajes": documentar la fuente `aggregate`, la regla de fallback `completr → aggregate`, y la graduación automática
 - [ ] Documentar el flujo en `docs/architecture.md` cuando se cree
-
-### Hardening de logs en produccion
-
-- [ ] Reducir logs de Sequelize en produccion. El gate `NODE_ENV === "prd"` en `src/database/sequelize.database.ts:13` ya silencia el logging de queries, pero el usuario reporta que sigue viendo demasiados logs. Verificar en orden:
-    - Que `NODE_ENV=prd` este efectivamente seteado en el contenedor/CapRover de produccion (no `production` ni vacio)
-    - Que no haya `sequelize.sync({ logging: ... })` u otros lugares que pasen `console.log` directamente
-    - Logs de connection/init: pasarlos por Pino con nivel `info` en prd
-    - Considerar enrutar `Sequelize.logging` a `PinoLogger.debug` para que respete el nivel global de Pino (`LOG_LEVEL` env) en vez de un boolean
 
 ### Mejoras a reseñas
 
