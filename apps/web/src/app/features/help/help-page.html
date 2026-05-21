@@ -1,0 +1,230 @@
+<div class="max-w-4xl">
+	<div class="mb-8">
+		<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Help & glossary</h1>
+		<p class="text-fg-muted mt-2 text-sm">Learn how Completr works by example. Each card below shows what the real UI looks like.</p>
+	</div>
+
+	<nav class="bg-sidebar border border-line rounded-card p-4 mb-8 text-sm">
+		<span class="block text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-2">Sections</span>
+		<ul class="list-none flex flex-wrap gap-x-4 gap-y-1.5 m-0 p-0">
+			<li><a href="#backlog" class="text-brand no-underline hover:underline">Backlog</a></li>
+			<li><a href="#ratio" class="text-brand no-underline hover:underline">Ratio & Personal Ratio</a></li>
+			<li><a href="#scores" class="text-brand no-underline hover:underline">Aggregate Score</a></li>
+			<li><a href="#statuses" class="text-brand no-underline hover:underline">Statuses</a></li>
+			<li><a href="#modules" class="text-brand no-underline hover:underline">Queue, Wishlist, Favorites, Lists</a></li>
+			<li><a href="#privacy" class="text-brand no-underline hover:underline">Privacy</a></li>
+		</ul>
+	</nav>
+
+	<!-- BACKLOG ============================ -->
+	<section id="backlog" class="mb-12 scroll-mt-24">
+		<h2 class="font-display text-2xl font-bold tracking-tight m-0 mb-2">Backlog</h2>
+		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
+			The Backlog is the list of <strong>runs</strong> you track. One game can have several runs (e.g. one on PS5 and another on Switch). Each row looks like this:
+		</p>
+
+		<div class="bg-input-bg border border-line rounded-card p-4">
+			<div class="flex items-center gap-3 mb-2">
+				<div class="w-10 h-[52px] rounded-sm bg-gradient-to-br from-pink-300 to-purple-500 shrink-0"></div>
+				<div class="flex-1 min-w-0">
+					<div class="text-sm font-semibold text-fg">Florence</div>
+					<div class="text-[0.6875rem] text-fg-muted">PC · Indie</div>
+				</div>
+				<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-success/10 text-success">
+					<span class="material-icons text-[0.75rem]">check_circle</span>
+					Completed
+				</span>
+			</div>
+			<div class="flex flex-wrap gap-2 mt-2">
+				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-brand/85 text-white">Ratio 1640</span>
+				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-black/70 text-white">1h</span>
+				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-input-bg border border-line text-fg-secondary">Score 82</span>
+				<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning">Personal 92</span>
+			</div>
+		</div>
+	</section>
+
+	<!-- RATIO ============================ -->
+	<section id="ratio" class="mb-12 scroll-mt-24">
+		<h2 class="font-display text-2xl font-bold tracking-tight m-0 mb-2">Ratio & Personal Ratio</h2>
+		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
+			Completr's signature metric. The <strong>Ratio</strong> tells you how much score a game delivers per hour, so you can prioritize what to play next. Higher = more value per hour.
+		</p>
+		<div class="bg-input-bg border border-line rounded-md p-4 font-mono text-sm mb-4">
+			Ratio = (score / duration) &times; 20
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div class="bg-input-bg border border-line rounded-card p-4 relative">
+				<span class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-brand/85 text-white">Ratio 1640</span>
+				<div class="text-sm font-semibold text-fg">Florence</div>
+				<div class="text-[0.6875rem] text-fg-muted mb-3">Score 82 · 1h</div>
+				<p class="text-[0.75rem] text-fg-secondary leading-snug">
+					Tiny game, big punch. Lots of score per hour.
+				</p>
+			</div>
+
+			<div class="bg-input-bg border border-line rounded-card p-4 relative">
+				<span class="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-brand/85 text-white">Ratio 16.4</span>
+				<div class="text-sm font-semibold text-fg">Big JRPG</div>
+				<div class="text-[0.6875rem] text-fg-muted mb-3">Score 82 · 100h</div>
+				<p class="text-[0.75rem] text-fg-secondary leading-snug">
+					Same score, but spread over 100h. Lower ratio.
+				</p>
+			</div>
+		</div>
+
+		<div class="mt-4 bg-brand/5 border border-brand/30 rounded-card p-4">
+			<div class="flex items-center gap-2 mb-1">
+				<span class="material-icons text-base text-brand">tips_and_updates</span>
+				<strong class="text-sm">Personal Ratio</strong>
+			</div>
+			<p class="text-[0.8125rem] text-fg-secondary leading-relaxed">
+				Same formula, but using <em>your</em> rating and <em>your</em> real duration (not the estimate).
+				The honest, after-the-fact version. Only appears once you complete a run.
+			</p>
+		</div>
+	</section>
+
+	<!-- SCORES ============================ -->
+	<section id="scores" class="mb-12 scroll-mt-24">
+		<h2 class="font-display text-2xl font-bold tracking-tight m-0 mb-2">Aggregate Score vs Completr Score</h2>
+		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
+			Two different scores you'll see across the app.
+		</p>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div class="bg-input-bg border border-line rounded-card p-4">
+				<div class="flex items-center justify-between mb-2">
+					<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">Aggregate Score</span>
+					<span class="text-2xl font-bold text-brand">82</span>
+				</div>
+				<p class="text-[0.75rem] text-fg-secondary leading-snug">
+					The canonical public score for a game. Picked from external sources (Metacritic, OpenCritic, RAWG) — Completr chooses the most reputable one available.
+				</p>
+			</div>
+
+			<div class="bg-input-bg border border-line rounded-card p-4 opacity-70">
+				<div class="flex items-center justify-between mb-2">
+					<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">Completr Score</span>
+					<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.625rem] font-bold bg-warning/15 text-warning">Soon</span>
+				</div>
+				<p class="text-[0.75rem] text-fg-secondary leading-snug">
+					Future. Will aggregate the ratings of Completr users who actually completed the game, weighted by reputation.
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- STATUSES ============================ -->
+	<section id="statuses" class="mb-12 scroll-mt-24">
+		<h2 class="font-display text-2xl font-bold tracking-tight m-0 mb-2">Statuses</h2>
+		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
+			Every backlog run has one of four statuses. These are the actual badges you'll see in the app:
+		</p>
+
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+			<div class="bg-input-bg border border-line rounded-card p-4 flex items-center gap-3">
+				<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-fg-muted/10 text-fg-muted shrink-0">
+					<span class="material-icons text-[0.75rem]">radio_button_unchecked</span>
+					Not started
+				</span>
+				<span class="text-[0.75rem] text-fg-secondary">You own it, haven't played yet.</span>
+			</div>
+			<div class="bg-input-bg border border-line rounded-card p-4 flex items-center gap-3">
+				<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning shrink-0">
+					<span class="material-icons text-[0.75rem]">play_arrow</span>
+					Playing
+				</span>
+				<span class="text-[0.75rem] text-fg-secondary">Currently in progress.</span>
+			</div>
+			<div class="bg-input-bg border border-line rounded-card p-4 flex items-center gap-3">
+				<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-success/10 text-success shrink-0">
+					<span class="material-icons text-[0.75rem]">check_circle</span>
+					Completed
+				</span>
+				<span class="text-[0.75rem] text-fg-secondary">Finished. Unlocks Personal Ratio and reviews.</span>
+			</div>
+			<div class="bg-input-bg border border-line rounded-card p-4 flex items-center gap-3">
+				<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-danger/10 text-danger shrink-0">
+					<span class="material-icons text-[0.75rem]">cancel</span>
+					Abandoned
+				</span>
+				<span class="text-[0.75rem] text-fg-secondary">Dropped, won't finish it.</span>
+			</div>
+		</div>
+	</section>
+
+	<!-- MODULES ============================ -->
+	<section id="modules" class="mb-12 scroll-mt-24">
+		<h2 class="font-display text-2xl font-bold tracking-tight m-0 mb-2">Queue, Wishlist, Favorites, Lists</h2>
+		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
+			Four modules, four different purposes. Their sidebar icons are shown below:
+		</p>
+
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+			<div class="bg-input-bg border border-line rounded-card p-4">
+				<div class="flex items-center gap-2 mb-2">
+					<span class="material-icons text-brand">playlist_play</span>
+					<strong class="text-sm">Queue</strong>
+				</div>
+				<p class="text-[0.75rem] text-fg-secondary leading-snug">
+					Runs you <strong>want to play soon</strong>, picked from your own Backlog. Priority ranking of games you already own. Auto-removed when a run is completed or abandoned.
+				</p>
+			</div>
+
+			<div class="bg-input-bg border border-line rounded-card p-4">
+				<div class="flex items-center gap-2 mb-2">
+					<span class="material-icons text-danger">favorite_border</span>
+					<strong class="text-sm">Wishlist</strong>
+				</div>
+				<p class="text-[0.75rem] text-fg-secondary leading-snug">
+					Games you <strong>want to obtain or buy</strong> — you don't have them yet. Optional platform tag for the version you want.
+				</p>
+			</div>
+
+			<div class="bg-input-bg border border-line rounded-card p-4">
+				<div class="flex items-center gap-2 mb-2">
+					<span class="material-icons text-warning">star</span>
+					<strong class="text-sm">Favorites</strong>
+				</div>
+				<p class="text-[0.75rem] text-fg-secondary leading-snug">
+					Your <strong>all-time favorite games</strong>. No backlog required — you can favorite something you've never played.
+				</p>
+			</div>
+
+			<div class="bg-input-bg border border-line rounded-card p-4">
+				<div class="flex items-center gap-2 mb-2">
+					<span class="material-icons text-brand">format_list_bulleted</span>
+					<strong class="text-sm">Lists</strong>
+				</div>
+				<p class="text-[0.75rem] text-fg-secondary leading-snug">
+					Curated collections you build and (optionally) share. Sagas, top picks, themed sets — other users can follow your lists.
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- PRIVACY ============================ -->
+	<section id="privacy" class="mb-12 scroll-mt-24">
+		<h2 class="font-display text-2xl font-bold tracking-tight m-0 mb-2">Privacy</h2>
+		<p class="text-fg-secondary leading-relaxed text-sm mb-4">
+			Each section of your profile has its own visibility toggle. This is what the toggles look like in
+			<a routerLink="/settings/privacy" class="text-brand no-underline hover:underline">Settings → Privacy</a>:
+		</p>
+
+		<div class="bg-input-bg border border-line rounded-card p-4 flex flex-col gap-3 max-w-xl">
+			@for (item of ['Public profile', 'Public queue', 'Public wishlist', 'Public favorites', 'Public activity feed']; track item) {
+				<div class="flex items-center justify-between">
+					<span class="text-sm text-fg">{{ item }}</span>
+					<span class="relative inline-block w-9 h-5 rounded-full bg-brand">
+						<span class="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-white"></span>
+					</span>
+				</div>
+			}
+		</div>
+		<p class="text-[0.75rem] text-fg-muted mt-3">
+			Hidden sections don't appear at all on your public profile.
+		</p>
+	</section>
+</div>

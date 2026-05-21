@@ -86,6 +86,9 @@
 			}
 		</div>
 
+		<a routerLink="/help" class="hidden md:inline-flex items-center gap-1 px-2 py-2 rounded text-fg-muted text-sm font-medium no-underline hover:bg-surface hover:text-fg transition shrink-0" title="Help">
+			<span class="material-icons text-base">help_outline</span>
+		</a>
 		@if (isLoggedIn()) {
 			<a routerLink="/feed" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded text-fg-secondary text-sm font-medium no-underline hover:bg-surface hover:text-fg transition shrink-0">
 				<span class="material-icons text-base">home</span>

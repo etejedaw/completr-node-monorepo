@@ -243,6 +243,14 @@
 						<a routerLink="/profile" class="block text-[0.8125rem] font-semibold text-fg no-underline hover:text-brand truncate">{{ user()?.username }}</a>
 						<span class="inline-block mt-0.5 px-1.5 py-0.5 rounded-full text-[0.5625rem] font-bold uppercase tracking-wider" [class]="roleBadgeClass()">{{ roleBadge() }}</span>
 					</div>
+					<a
+						routerLink="/help"
+						class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md text-fg-muted no-underline transition hover:text-fg"
+						title="Help & glossary"
+						aria-label="Help & glossary"
+					>
+						<span class="material-icons text-base">help_outline</span>
+					</a>
 					<button
 						class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg"
 						(click)="logout()"
