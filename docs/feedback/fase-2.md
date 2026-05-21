@@ -945,10 +945,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En FB-081 se agregaron tres view modes (cards, grid, table) tanto al `/game-shelf` propio como al `/user/:username/game-shelf` publico. Para el shelf ajeno los tres modos son overkill — la mayoria de usuarios solo quiere echar un vistazo a la coleccion, no compararla por columnas ni alternar entre densidades. Mantener los tres modos en una vista de consumo agrega ruido visual al toggle sin aportar valor real.
-- **Solucion propuesta:** En `user-game-shelf.html`, quitar el toggle de view modes y dejar solo el modo "cards" (diary-like) que es el mas legible para una vista de perfil ajeno. Quitar tambien el signal `viewMode` y `setViewMode` de `user-game-shelf.ts` (o reutilizar si en el futuro se decide reintroducir un modo alternativo). El shelf propio (`/game-shelf`) mantiene los tres modos — alli el usuario gestiona su coleccion y la densidad importa.
+- **Solucion:** En `user-game-shelf.html` quitado el toggle de view modes y los bloques `grid` + `table`; queda solo el render de cards (diary-like, 1 col mobile / 2 cols md). En `user-game-shelf.ts` removidos el signal `viewMode`, el method `setViewMode` y la lectura/escritura de localStorage. Tambien se movio el `<ui-pagination>` fuera del antiguo branch del table (antes solo aparecia en modo tabla — bug colateral).
 
 ### [FB-104] Perfil ajeno: aplicar paginacion consistente con maximo 50 por pagina en todas las secciones
 
@@ -982,19 +982,19 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** La wishlist hoy tiene dos modos (tabla y grid). La tabla repite informacion (score, duration, ratio en columnas) que para una cola de priorizacion es mucho mas de lo que se necesita — el ratio es la unica metrica que importa para decidir que jugar despues. El modo grid es mas limpio visualmente pero hoy no muestra el ratio. Posicion ya se mostro en el badge (`#N`, FB-076). Falta la forma de mover items entre posiciones dentro del grid; en tabla hay flechas arriba/abajo.
-- **Solucion propuesta:** (1) Eliminar el toggle de modo en la wishlist y dejar solo grid de caratulas (manteniendo el badge `#N` ya implementado). (2) Agregar el ratio como un badge sutil en cada card del grid (ej: esquina inferior izquierda o sobre la caratula, `bg-brand/80 text-white text-xs font-bold` con prefijo "R" o solo el numero). Si la entrada no tiene ratio (sin score o sin duration), no mostrar nada. (3) Para reordenar dentro del grid: mejor camino es drag-and-drop con Angular CDK DragDropModule (ya en backlog en FB-082 pendiente — implementar ambos juntos). Alternativa intermedia: en el hover de cada card mostrar dos flechas pequenas (arriba/abajo) que llaman a `moveUp`/`moveDown` ya existentes en `wishlist-view.ts`. (4) Removed: signal `viewMode`, toggle buttons, render condicional `@if viewMode === 'table'`. Mantener el resto del template con la version grid limpia. Relacionado con FB-082 (drag-and-drop wishlist) — al implementar uno conviene resolver el otro.
+- **Solucion:** En `wishlist-view.html` se quito el toggle de modo y todo el branch de tabla. Queda solo el grid (`grid-cols-2 sm:3 md:4 lg:5 xl:6 gap-5`). Cada card ahora tiene: badge `#N` (top-left, ya existia), columna top-right con dos badges apilados — `ratio` (top, `bg-brand/85 text-white font-bold`) y `duration` (`{{N}}h`, `bg-black/70 text-white font-semibold`) — para diferenciar "ratio alto porque dura poco" vs "ratio alto porque es excelente largo"; titulo (link); plataforma + fila con `moveUp`/`moveDown`/`remove` (`uiIconButton` size sm con opacity-60 que sube a 100 en hover). En `wishlist-view.ts` removidos el signal `viewMode` y los helpers `statusLabel`/`statusClass` (eran solo del modo tabla). Drag-and-drop queda pendiente en FB-082; los botones flecha son el mecanismo intermedio.
 
 ### [FB-108] Game shelf puede prescindir de la vista cards y dejar solo grid + table
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En FB-081 se agregaron tres view modes al `/game-shelf` propio: cards, grid y table. El modo "cards" (default — un card grande por juego con cover + metadata, dos por fila en md+) ocupa demasiado espacio vertical para el valor que aporta. La vista grid (caratulas densas) cubre mejor el caso de "ver mi coleccion" y la vista table (tabla compacta con cover thumb + columnas) cubre el caso de "buscar/filtrar/comparar". Cards queda en el medio sin ventaja clara sobre las otras dos.
-- **Solucion propuesta:** Eliminar el modo cards y dejar solo grid + table. (1) En `game-shelf-list.ts`, cambiar el tipo del signal `viewMode` de `"cards" | "grid" | "table"` a `"grid" | "table"`, y cambiar el default. Considerar migrar valores guardados en localStorage `completr.shelf.viewMode = "cards"` → `"grid"` al leer. (2) En `game-shelf-list.html`, quitar el branch `@else if (viewMode() === 'cards')` y el boton del toggle correspondiente. (3) Si en algun momento se decide reintroducir cards (ej: por feedback de usuarios), queda facil agregarlo de vuelta — el codigo del template puede vivir en git history. Relacionado con FB-103 (shelf ajeno simplificar a una vista): si se decide tambien quitar cards del ajeno, FB-103 podria cerrarse junto con este.
+- **Solucion:** En `game-shelf-list.ts` el signal `viewMode` paso de `"cards" | "grid" | "table"` a `"grid" | "table"`. El default ahora es `"grid"`, y el lector de localStorage migra valores `"cards"` guardados (cualquier valor que no sea `"table"` cae a `"grid"`). En `game-shelf-list.html` se quito el boton `view_agenda` del toggle y el branch `@else if (viewMode() === 'cards')`. Cards queda disponible en git history si se necesita reintroducir.
 
 ### [FB-109] Asignar color semantico a cada icono del sidebar
 
