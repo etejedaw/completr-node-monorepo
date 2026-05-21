@@ -106,6 +106,8 @@ export interface GamesQueryOptions {
 	no_scores?: boolean;
 	no_times?: boolean;
 	no_platforms?: boolean;
+	no_score_source?: readonly string[];
+	no_time_source?: readonly string[];
 }
 
 export async function findAll(options: GamesQueryOptions = {}) {
@@ -117,7 +119,9 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		genre,
 		no_scores,
 		no_times,
-		no_platforms
+		no_platforms,
+		no_score_source,
+		no_time_source
 	} = options;
 
 	const where: Record<string, unknown> = { isActive: true };
@@ -163,6 +167,30 @@ export async function findAll(options: GamesQueryOptions = {}) {
 			id: {
 				[Op.notIn]: sequelize.literal(
 					'(SELECT DISTINCT "gameId" FROM "GamePlatforms")'
+				)
+			}
+		});
+	}
+
+	if (no_score_source && no_score_source.length > 0) {
+		const escaped = no_score_source
+			.map(s => sequelize.escape(s))
+			.join(", ");
+		andConditions.push({
+			id: {
+				[Op.notIn]: sequelize.literal(
+					`(SELECT DISTINCT "gameId" FROM "GameScores" WHERE source IN (${escaped}))`
+				)
+			}
+		});
+	}
+
+	if (no_time_source && no_time_source.length > 0) {
+		const escaped = no_time_source.map(s => sequelize.escape(s)).join(", ");
+		andConditions.push({
+			id: {
+				[Op.notIn]: sequelize.literal(
+					`(SELECT DISTINCT "gameId" FROM "GameTimes" WHERE source IN (${escaped}))`
 				)
 			}
 		});

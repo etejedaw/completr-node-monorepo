@@ -11,7 +11,17 @@ export const GamesQuerySchema = z
 		genre: z.string().optional(),
 		no_scores: z.stringbool().optional(),
 		no_times: z.stringbool().optional(),
-		no_platforms: z.stringbool().optional()
+		no_platforms: z.stringbool().optional(),
+		no_score_source: z
+			.string()
+			.transform(val => val.split(",").filter(Boolean))
+			.pipe(z.string().array().min(1))
+			.optional(),
+		no_time_source: z
+			.string()
+			.transform(val => val.split(",").filter(Boolean))
+			.pipe(z.string().array().min(1))
+			.optional()
 	})
 	.strict()
 	.readonly();
