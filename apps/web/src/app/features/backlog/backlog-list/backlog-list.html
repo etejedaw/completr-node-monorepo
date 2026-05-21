@@ -395,12 +395,10 @@
 						<button
 							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center transition hover:text-danger"
 							[class.!text-danger]="isInQueue(entry)"
-							[class.!bg-danger\/15]="queueConfirmId() === entry.id"
-							[class.rounded-full]="queueConfirmId() === entry.id"
 							(click)="toggleQueue(entry); $event.stopPropagation()"
-							[title]="queueConfirmId() === entry.id ? 'Click again to remove' : (isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue')"
+							[title]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
 						>
-							<span class="material-icons text-lg leading-none">{{ queueConfirmId() === entry.id ? 'playlist_remove' : (isInQueue(entry) ? 'playlist_add_check' : 'playlist_play') }}</span>
+							<span class="material-icons text-lg leading-none">{{ isInQueue(entry) ? 'playlist_add_check' : 'playlist_play' }}</span>
 						</button>
 					</div>
 				}
@@ -511,12 +509,10 @@
 									<button
 										class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-danger"
 										[class.!text-danger]="isInQueue(entry)"
-										[class.!bg-danger\/15]="queueConfirmId() === entry.id"
-										[class.rounded-full]="queueConfirmId() === entry.id"
 										(click)="toggleQueue(entry); $event.stopPropagation()"
-										[title]="queueConfirmId() === entry.id ? 'Click again to remove' : (isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue')"
+										[title]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
 									>
-										<span class="material-icons text-base leading-none">{{ queueConfirmId() === entry.id ? 'playlist_remove' : (isInQueue(entry) ? 'playlist_add_check' : 'playlist_play') }}</span>
+										<span class="material-icons text-base leading-none">{{ isInQueue(entry) ? 'playlist_add_check' : 'playlist_play' }}</span>
 									</button>
 								</td>
 							</tr>
