@@ -368,10 +368,11 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Cuando el usuario busca a alguien en el feed y entra a su perfil publico (/user/:username), el sidebar desaparece porque el perfil publico es un componente standalone fuera del layout principal. Lo mismo pasa con el game detail. El usuario lo percibe como raro porque pierde la navegacion. Relacionado con FB-046 (barra de busqueda deberia ser permanente).
 - **Solucion propuesta:** Evaluar si el perfil publico y el game detail deberian vivir dentro del layout principal (con sidebar) en vez de ser standalone. Alternativa: agregar una barra de navegacion superior en las vistas standalone con al menos un boton de "back" y acceso a busqueda. Considerar que la experiencia no-logueada si necesita ser standalone pero la logueada podria mantener el sidebar.
+- **Resolucion:** Nuevo componente compartido `shared/components/public-topbar` con boton back, logo, search bar global (reutilizando `GlobalSearchService` con dropdown de usuarios/juegos/listas), y enlace contextual segun auth (Sign in para anonimos, "My feed" para logueados). Aplicado en las 7 vistas standalone bajo `/user/:username/*`: public-profile, user-backlog, user-favorites, user-game-shelf, user-queue, user-wishlist, user-reviews. Resuelve la perdida de contexto sin reestructurar rutas. (Game detail ya vive dentro del Layout principal — no aplica.) FB-046 (search bar permanente en sidebar) queda absorbido para los flujos standalone; el search global ya es accesible desde todas las vistas.
 
 ### [FB-042] Multiples backlogs del mismo juego confunde a usuarios nuevos
 
