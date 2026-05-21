@@ -231,6 +231,7 @@ export class GamesService {
 						id: string;
 						name: string;
 						isPublic: boolean;
+						contains: boolean;
 					}[];
 				};
 			}>(`${environment.apiUrl}/games/${gameId}/lists`)

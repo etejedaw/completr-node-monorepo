@@ -197,6 +197,27 @@
 						<span class="material-icons text-lg">shelves</span>
 						{{ isInShelf() ? 'In Shelf' : 'Add to Shelf' }}
 					</button>
+
+					<button
+						class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
+						[class.bg-brand-subtle]="myListsInGame().length > 0"
+						[class.border-brand]="myListsInGame().length > 0"
+						[class.text-brand]="myListsInGame().length > 0"
+						[class.bg-input-bg]="myListsInGame().length === 0"
+						[class.border-line]="myListsInGame().length === 0"
+						[class.text-fg-secondary]="myListsInGame().length === 0"
+						[class.hover:bg-brand-subtle]="myListsInGame().length === 0"
+						[class.hover:border-brand]="myListsInGame().length === 0"
+						[class.hover:text-brand]="myListsInGame().length === 0"
+						(click)="openAddToListModal()"
+					>
+						<span class="material-icons text-lg">format_list_bulleted_add</span>
+						@if (myListsInGame().length > 0) {
+							In {{ myListsInGame().length }} {{ myListsInGame().length === 1 ? 'list' : 'lists' }}
+						} @else {
+							Add to List
+						}
+					</button>
 				</div>
 
 				<div class="bg-surface border border-line rounded-card divide-y divide-line">
@@ -210,10 +231,10 @@
 					</div>
 				</div>
 
-				@if (myLists().length > 0) {
+				@if (myListsInGame().length > 0) {
 					<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-2">
 						<h3 class="font-display m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-fg-secondary">In your lists</h3>
-						@for (list of myLists(); track list.id) {
+						@for (list of myListsInGame(); track list.id) {
 							<a
 								class="flex items-center justify-between gap-2 py-1.5 px-2 -mx-2 rounded text-sm text-fg no-underline transition hover:bg-input-bg hover:text-brand"
 								[routerLink]="['/lists', list.id]"
@@ -490,6 +511,70 @@
 }
 @if (showShelfModal()) {
 	<app-game-shelf-modal [preselectedGame]="game()" (closed)="onModalClosed()" (saved)="onModalSaved()" />
+}
+@if (showAddToListModal()) {
+	<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]" (click)="closeAddToListModal()">
+		<div class="bg-sidebar border border-line rounded-card p-6 w-[90%] max-w-[480px] max-h-[80vh] flex flex-col" (click)="$event.stopPropagation()">
+			<h3 class="font-display m-0 mb-1 text-base font-semibold">Add to your lists</h3>
+			<p class="m-0 mb-4 text-xs text-fg-muted">Toggle to add or remove {{ game()!.title }} from each list.</p>
+			@if (myLists().length === 0) {
+				<div class="py-6 text-center text-fg-muted text-sm">
+					You don't have any lists yet. Use the input below to create one.
+				</div>
+			} @else {
+				<div class="flex-1 overflow-y-auto -mx-2 px-2">
+					@for (list of myLists(); track list.id) {
+						<label class="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded cursor-pointer transition hover:bg-input-bg">
+							<input
+								type="checkbox"
+								class="w-4 h-4 cursor-pointer accent-brand"
+								[checked]="isAddToListChecked(list.id)"
+								(change)="toggleAddToListSelection(list.id)"
+							/>
+							<span class="flex-1 text-sm text-fg truncate">{{ list.name }}</span>
+							@if (!list.isPublic) {
+								<span class="material-icons text-sm text-fg-muted shrink-0" title="Private">lock</span>
+							}
+						</label>
+					}
+				</div>
+			}
+			<div class="mt-4 pt-3 border-t border-line">
+				<label class="block text-[0.6875rem] uppercase tracking-wider text-fg-muted mb-1.5">Or create a new list</label>
+				<div class="flex gap-2">
+					<input
+						uiInput
+						class="!flex-1"
+						type="text"
+						placeholder="New list name..."
+						[value]="newListName()"
+						(input)="newListName.set($any($event.target).value)"
+						(keydown.enter)="createNewList()"
+						[disabled]="creatingNewList()"
+					/>
+					<button uiButton variant="ghost" size="sm"
+						[disabled]="!newListName().trim() || creatingNewList()"
+						(click)="createNewList()"
+					>
+						{{ creatingNewList() ? "Creating..." : "Create" }}
+					</button>
+				</div>
+				<p class="m-0 mt-1.5 text-[0.6875rem] text-fg-muted">Public list with Metacritic + HowLongToBeat as sources.</p>
+				@if (newListError()) {
+					<div class="mt-2 py-1.5 px-3 bg-danger/10 border border-danger/20 rounded text-danger text-xs">{{ newListError() }}</div>
+				}
+			</div>
+			<div class="flex justify-end gap-2 mt-4 pt-3 border-t border-line">
+				<button uiButton variant="ghost" size="sm" (click)="closeAddToListModal()" [disabled]="addToListSaving()">Cancel</button>
+				<button uiButton variant="primary" size="sm"
+					[disabled]="addToListSaving() || myLists().length === 0"
+					(click)="saveAddToList()"
+				>
+					{{ addToListSaving() ? "Saving..." : "Save" }}
+				</button>
+			</div>
+		</div>
+	</div>
 }
 @if (showReportModal()) {
 	<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]" (click)="showReportModal.set(false)">

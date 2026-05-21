@@ -21,6 +21,7 @@ import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../shared/constants/rating-labels";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { ReviewsService, Review } from "../reviews.service";
+import { ListsService } from "../../lists/lists.service";
 import { FormsModule } from "@angular/forms";
 import { UiButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
 
@@ -54,6 +55,7 @@ export class GameDetail implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly gameShelfService = inject(GameShelfService);
 	private readonly reviewsService = inject(ReviewsService);
+	private readonly listsService = inject(ListsService);
 
 	protected readonly game = signal<Game | null>(null);
 	protected readonly isLoading = signal(true);
@@ -104,8 +106,19 @@ export class GameDetail implements OnInit {
 		}[]
 	>([]);
 	protected readonly myLists = signal<
-		{ id: string; name: string; isPublic: boolean }[]
+		{ id: string; name: string; isPublic: boolean; contains: boolean }[]
 	>([]);
+	protected readonly showAddToListModal = signal(false);
+	protected readonly addToListSaving = signal(false);
+	protected readonly addToListSelection = signal<Map<string, boolean>>(
+		new Map()
+	);
+	protected readonly newListName = signal("");
+	protected readonly creatingNewList = signal(false);
+	protected readonly newListError = signal("");
+	protected readonly myListsInGame = computed(() =>
+		this.myLists().filter(l => l.contains)
+	);
 
 	ngOnInit() {
 		this.scoreSourcesService.load();
@@ -297,6 +310,129 @@ export class GameDetail implements OnInit {
 
 	protected otherTimes() {
 		return this.game()?.times?.filter(t => t.source !== "completr") ?? [];
+	}
+
+	openAddToListModal() {
+		const selection = new Map<string, boolean>();
+		for (const list of this.myLists()) {
+			selection.set(list.id, list.contains);
+		}
+		this.addToListSelection.set(selection);
+		this.newListName.set("");
+		this.newListError.set("");
+		this.showAddToListModal.set(true);
+	}
+
+	closeAddToListModal() {
+		this.showAddToListModal.set(false);
+	}
+
+	createNewList() {
+		const name = this.newListName().trim();
+		if (!name || this.creatingNewList()) return;
+		const gameId = this.game()?.id;
+		if (!gameId) return;
+
+		this.creatingNewList.set(true);
+		this.newListError.set("");
+		this.listsService
+			.create({
+				name,
+				isPublic: true,
+				scoreSource: "metacritic",
+				durationSource: "hltb"
+			})
+			.subscribe({
+				next: list => {
+					this.listsService.addItem(list.id, gameId).subscribe({
+						next: () => {
+							this.gamesService
+								.getGameLists(gameId)
+								.subscribe(data => {
+									this.featuredLists.set(data.lists);
+									this.myLists.set(data.myLists);
+									const selection = new Map(
+										this.addToListSelection()
+									);
+									for (const l of data.myLists) {
+										if (!selection.has(l.id))
+											selection.set(l.id, l.contains);
+									}
+									this.addToListSelection.set(selection);
+									this.newListName.set("");
+									this.creatingNewList.set(false);
+								});
+						},
+						error: () => {
+							this.newListError.set(
+								"List created but failed to add game"
+							);
+							this.creatingNewList.set(false);
+						}
+					});
+				},
+				error: () => {
+					this.newListError.set("Failed to create list");
+					this.creatingNewList.set(false);
+				}
+			});
+	}
+
+	toggleAddToListSelection(listId: string) {
+		const next = new Map(this.addToListSelection());
+		next.set(listId, !next.get(listId));
+		this.addToListSelection.set(next);
+	}
+
+	isAddToListChecked(listId: string): boolean {
+		return this.addToListSelection().get(listId) ?? false;
+	}
+
+	saveAddToList() {
+		const gameId = this.game()?.id;
+		if (!gameId) return;
+
+		const ops: Promise<unknown>[] = [];
+		for (const list of this.myLists()) {
+			const newState = this.addToListSelection().get(list.id) ?? false;
+			if (newState === list.contains) continue;
+			if (newState) {
+				ops.push(
+					new Promise((resolve, reject) =>
+						this.listsService
+							.addItem(list.id, gameId)
+							.subscribe({ next: resolve, error: reject })
+					)
+				);
+			} else {
+				ops.push(
+					new Promise((resolve, reject) =>
+						this.listsService
+							.removeItem(list.id, gameId)
+							.subscribe({ next: resolve, error: reject })
+					)
+				);
+			}
+		}
+
+		if (ops.length === 0) {
+			this.closeAddToListModal();
+			return;
+		}
+
+		this.addToListSaving.set(true);
+		Promise.all(ops)
+			.then(() => {
+				this.gamesService.getGameLists(gameId).subscribe(data => {
+					this.featuredLists.set(data.lists);
+					this.myLists.set(data.myLists);
+					this.addToListSaving.set(false);
+					this.closeAddToListModal();
+				});
+			})
+			.catch(() => {
+				this.addToListSaving.set(false);
+			});
 	}
 
 	openReportModal() {
