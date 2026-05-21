@@ -21,6 +21,7 @@ import * as genresService from "../genres/genres.service";
 import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
 import * as gameExternalService from "../game-external/game-external.service";
+import { GameExternal } from "../game-external/game-external.model";
 import * as reviewsService from "../reviews/reviews.service";
 import { RawgProvider } from "../rawg/rawg.provider";
 import { RawgGameDetail } from "../rawg/rawg.interface";
@@ -33,6 +34,14 @@ const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
 const logger = new PinoLogger("GamesService");
 
 export async function registerGame(registerGameDto: RegisterGameDto) {
+	if (registerGameDto.externalIds && registerGameDto.externalIds.length > 0) {
+		await assertVariantConsistency(
+			registerGameDto.externalIds,
+			registerGameDto.variant ?? null,
+			null
+		);
+	}
+
 	const transaction = await sequelize.transaction();
 
 	try {
@@ -560,6 +569,24 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 
 	const { platforms, genres, title, externalIds, ...gameDto } = updateGameDto;
 
+	const externalsForCheck =
+		externalIds ??
+		(await gameExternalService.findByGameId(game.id)).map(e => ({
+			source: e.source,
+			externalId: e.externalId
+		}));
+	const variantForCheck =
+		updateGameDto.variant !== undefined
+			? updateGameDto.variant
+			: (game.variant ?? null);
+	if (externalsForCheck.length > 0) {
+		await assertVariantConsistency(
+			externalsForCheck,
+			variantForCheck,
+			game.id
+		);
+	}
+
 	if (platforms) await platformsUpdate(game.id, platforms);
 	if (genres) await genresUpdate(game.id, genres);
 	if (externalIds) await upsertExternalIds(game.id, externalIds);
@@ -576,6 +603,33 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 	return updatedGame as Game;
 }
 
+async function assertVariantConsistency(
+	externalIds: readonly { source: string; externalId: string }[],
+	variant: string | null,
+	currentGameId: string | null
+) {
+	for (const { source, externalId } of externalIds) {
+		const siblings = await GameExternal.findAll({
+			where: { source, externalId },
+			include: [{ association: "Game" }]
+		});
+		const otherSiblings = siblings.filter(s => s.gameId !== currentGameId);
+		if (otherSiblings.length === 0) continue;
+		if (!variant || variant.trim().length === 0) {
+			throw gamesServiceError.variantRequiredError();
+		}
+		for (const sibling of otherSiblings) {
+			const siblingGame = await Game.findByPk(sibling.gameId);
+			if (
+				!siblingGame?.variant ||
+				siblingGame.variant.trim().length === 0
+			) {
+				throw gamesServiceError.variantRequiredError();
+			}
+		}
+	}
+}
+
 async function upsertExternalIds(
 	gameId: string,
 	externalIds: UpdateGameDto["externalIds"]
@@ -585,6 +639,144 @@ async function upsertExternalIds(
 		gameExternalService.upsert(gameId, source, externalId)
 	);
 	await Promise.all(promises);
+}
+
+export interface SplitVariantInput {
+	title: string;
+	variant: string;
+}
+
+export async function splitGame(
+	gameId: string,
+	variants: readonly SplitVariantInput[]
+) {
+	const original = await Game.findOne({
+		where: { id: gameId, isActive: true },
+		include: [
+			{ association: "Platforms" },
+			{ association: "Genres" },
+			{ association: "GameScores" },
+			{ association: "GameTimes" },
+			{ association: "GameExternals" }
+		]
+	});
+	if (!original) throw gamesServiceError.notFoundError();
+
+	const codes = new Set<string>();
+	for (const v of variants) {
+		const code = titleToSlug(v.title);
+		if (codes.has(code)) throw gamesServiceError.splitInvalidError();
+		codes.add(code);
+	}
+
+	const platformIds = original.Platforms.map(p => p.id);
+	const genreIds = original.Genres.map(g => g.id);
+	const scores = original.GameScores.map(s => ({
+		source: s.source,
+		score: s.score
+	}));
+	const times = original.GameTimes.map(t => ({
+		source: t.source,
+		duration: t.duration
+	}));
+	const externals = original.GameExternals.map(e => ({
+		source: e.source,
+		externalId: e.externalId
+	}));
+
+	if (variants.length < 2) throw gamesServiceError.splitInvalidError();
+	const [firstVariant, ...restVariants] = variants as [
+		SplitVariantInput,
+		...SplitVariantInput[]
+	];
+
+	const transaction = await sequelize.transaction();
+	try {
+		await original.update(
+			{
+				title: firstVariant.title,
+				code: titleToSlug(firstVariant.title),
+				variant: firstVariant.variant
+			},
+			{ transaction }
+		);
+
+		const createdIds: string[] = [original.id];
+
+		for (const v of restVariants) {
+			const newGame = await Game.create(
+				{
+					title: v.title,
+					code: titleToSlug(v.title),
+					description: original.description,
+					releaseAt: original.releaseAt,
+					coverUrl: original.coverUrl,
+					backgroundUrl: original.backgroundUrl,
+					isDlc: original.isDlc,
+					parentGameId: original.parentGameId,
+					variant: v.variant
+				},
+				{ transaction }
+			);
+
+			if (platformIds.length > 0) {
+				await gamePlatformsService.linkGameToPlatforms(
+					newGame.id,
+					platformIds,
+					transaction
+				);
+			}
+			if (genreIds.length > 0) {
+				await gameGenresService.linkGameToGenres(
+					newGame.id,
+					genreIds,
+					transaction
+				);
+			}
+			for (const s of scores) {
+				await gameScoresService.createGameScore(
+					newGame.id,
+					s.source,
+					s.score,
+					transaction
+				);
+			}
+			for (const t of times) {
+				await gameTimesService.createGameTime(
+					newGame.id,
+					t.source,
+					t.duration,
+					transaction
+				);
+			}
+			for (const e of externals) {
+				await GameExternal.create(
+					{
+						gameId: newGame.id,
+						source: e.source,
+						externalId: e.externalId
+					},
+					{ transaction }
+				);
+			}
+
+			createdIds.push(newGame.id);
+		}
+
+		await transaction.commit();
+
+		const refreshed = await Promise.all(
+			createdIds.map(id => findGameById(id))
+		);
+		return refreshed.filter((g): g is Game => g !== null);
+	} catch (error) {
+		await transaction.rollback();
+		if (error instanceof UniqueConstraintError)
+			throw gamesServiceError.uniqueConstraintError(error);
+		if (error instanceof ValidationError)
+			throw gamesServiceError.validationError(error);
+		throw error;
+	}
 }
 
 export async function deactivateGame(id: string) {

@@ -56,6 +56,24 @@ export function gameForbidden(context?: Record<string, unknown>) {
 	);
 }
 
+export function gameVariantRequired(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_VARIANT_REQUIRED",
+		"Variant label is required when multiple games share the same external id",
+		context
+	);
+}
+
+export function gameSplitInvalid(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_SPLIT_INVALID",
+		"Split request is invalid",
+		context
+	);
+}
+
 export function gameInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

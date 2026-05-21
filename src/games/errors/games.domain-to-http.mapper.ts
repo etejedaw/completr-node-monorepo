@@ -33,5 +33,11 @@ export function gamesDomainToHttpMapper(
 	if (error.code === "GAME_FORBIDDEN")
 		return new HttpError({ ...baseOptions, status: 403 });
 
+	if (error.code === "GAME_VARIANT_REQUIRED")
+		return new HttpError({ ...baseOptions, status: 422 });
+
+	if (error.code === "GAME_SPLIT_INVALID")
+		return new HttpError({ ...baseOptions, status: 400 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

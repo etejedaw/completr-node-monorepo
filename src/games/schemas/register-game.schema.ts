@@ -27,6 +27,7 @@ export const RegisterGameSchema = z
 		backgroundUrl: z.string().nonempty().optional(),
 		isDlc: z.boolean().optional(),
 		parentGameId: z.uuid().optional(),
+		variant: z.string().max(100).nonempty().optional(),
 		scores: z.array(GameScoreEntrySchema).optional(),
 		times: z.array(GameTimeEntrySchema).optional(),
 		externalIds: z
