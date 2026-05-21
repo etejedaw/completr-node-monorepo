@@ -1,7 +1,12 @@
 <div>
-	<div class="flex items-baseline gap-3 mb-5">
-		<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Wishlist</h1>
-		<span class="text-sm text-fg-muted">{{ total() }} games</span>
+	<div class="flex items-center justify-between mb-5">
+		<div class="flex items-baseline gap-3">
+			<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Wishlist</h1>
+			<span class="text-sm text-fg-muted">{{ total() }} games</span>
+		</div>
+		<button uiButton variant="primary" (click)="openAddModal()">
+			+ Add Game
+		</button>
 	</div>
 
 	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
@@ -12,18 +17,42 @@
 		<div class="text-center py-12">
 			<p class="empty-title">Your wishlist is empty</p>
 			<p class="empty-hint">
-				Games you want to obtain. Add them from the game's detail page —
-				they live here until you actually have them.
+				Games you want to obtain. Click <strong>+ Add Game</strong> or
+				add them from a game's detail page.
 			</p>
 		</div>
 	} @else {
 		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 			@for (entry of entries(); track entry.id) {
-				<app-game-cover-card
-					[game]="entry.game"
-					[showRemove]="true"
-					(remove)="remove(entry)"
-				/>
+				<div class="flex flex-col gap-1.5 text-inherit group">
+					<a class="block relative" [routerLink]="['/games', entry.game.code]">
+						@if (entry.game.backgroundUrl) {
+							<img
+								[src]="entry.game.backgroundUrl"
+								[alt]="entry.game.title"
+								class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition-transform group-hover:scale-[1.03]"
+							/>
+						} @else {
+							<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+						}
+						@if (entry.platform) {
+							<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm">
+								{{ entry.platform.abbreviation }}
+							</span>
+						}
+						<button
+							class="absolute top-1 right-1 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 cursor-pointer border-0 flex items-center justify-center transition"
+							(click)="$event.preventDefault(); $event.stopPropagation(); remove(entry)"
+							title="Remove"
+						>
+							<span class="material-icons text-base">close</span>
+						</button>
+					</a>
+					<a class="text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand" [routerLink]="['/games', entry.game.code]">{{ entry.game.title }}</a>
+					@if (entry.platform) {
+						<span class="text-[0.625rem] text-fg-muted truncate">{{ entry.platform.name }}</span>
+					}
+				</div>
 			}
 		</div>
 	}
@@ -35,3 +64,7 @@
 		(offsetChange)="onOffsetChange($event)"
 	/>
 </div>
+
+@if (showAddModal()) {
+	<app-wishlist-add-modal (closed)="onAddModalClosed()" (saved)="onAddModalSaved()" />
+}
