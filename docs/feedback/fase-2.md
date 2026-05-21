@@ -308,8 +308,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-22
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** diferido
 - **Descripcion:** Mantener el catalogo de juegos actualizado (datos faltantes, correcciones, plataformas, scores) es demasiado trabajo para un solo admin o moderador. Algunos usuarios quieren contribuir editando datos de juegos ellos mismos. Actualmente solo admin/moderator pueden editar juegos, asi que los usuarios solo pueden reportar errores (GameReport) y esperar a que alguien los corrija.
+- **Decision (2026-05-21):** Diferido a Fase 3/4. Mientras tanto el flujo `GameReport` cubre el caso minimo (los users senalan problemas y un mod corrige). Se evaluara junto con el sistema de notificaciones (Fase 4) porque "aviso al user cuando su edicion se aprueba" depende de esa infra. Opciones a retomar entonces: (1) modelo `GameEditRequest` dedicado, (2) extender `GameReport` con `proposedChanges` JSONB, (3) trusted editors con permisos directos en campos low-risk.
 - **Solucion propuesta:** Implementar un sistema de ediciones comunitarias con aprobacion. El usuario propone una edicion (titulo, descripcion, plataformas, scores, etc.) que se guarda como solicitud pendiente. Un moderador o admin revisa y aprueba/rechaza la solicitud. Si se aprueba, los cambios se aplican al juego. Modelo tipo GameEditRequest(id, userId, gameId, changes JSONB, status pending/approved/rejected, reviewedBy, createdAt). Vista admin/moderator para revisar solicitudes pendientes con diff de cambios. A futuro, usuarios con muchas ediciones aprobadas podrian ganar un badge de "contribuidor" o incluso permisos de edicion directa (trusted editor).
 
 ### [FB-035] Usuarios tienen que iniciar sesion cada dia
