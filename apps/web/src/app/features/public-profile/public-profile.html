@@ -99,46 +99,46 @@
 		</div>
 
 		<ui-tabs [(value)]="activeTab">
-			<ui-tab-list class="!mb-6 !overflow-x-auto !overflow-y-hidden !flex-nowrap">
+			<ui-tab-list class="!mb-6 !flex-wrap">
 				@if (profile()!.user.isFeedPublic) {
-					<button uiTab value="activity" class="!whitespace-nowrap">
-						<span class="material-icons text-base mr-1.5 align-middle">dynamic_feed</span>
-						Activity
+					<button uiTab value="activity" class="!whitespace-nowrap" aria-label="Activity" title="Activity">
+						<span class="material-icons text-base md:mr-1.5 align-middle">dynamic_feed</span>
+						<span class="hidden md:inline">Activity</span>
 					</button>
 				}
-				<button uiTab value="backlog" class="!whitespace-nowrap">
-					<span class="material-icons text-base mr-1.5 align-middle">list_alt</span>
-					Backlog
+				<button uiTab value="backlog" class="!whitespace-nowrap" aria-label="Backlog" title="Backlog">
+					<span class="material-icons text-base md:mr-1.5 align-middle">list_alt</span>
+					<span class="hidden md:inline">Backlog</span>
 				</button>
-				<button uiTab value="shelf" class="!whitespace-nowrap">
-					<span class="material-icons text-base mr-1.5 align-middle">shelves</span>
-					Shelf
+				<button uiTab value="shelf" class="!whitespace-nowrap" aria-label="Shelf" title="Shelf">
+					<span class="material-icons text-base md:mr-1.5 align-middle">shelves</span>
+					<span class="hidden md:inline">Shelf</span>
 				</button>
-				<button uiTab value="lists" class="!whitespace-nowrap">
-					<span class="material-icons text-base mr-1.5 align-middle">format_list_bulleted</span>
-					Lists
+				<button uiTab value="lists" class="!whitespace-nowrap" aria-label="Lists" title="Lists">
+					<span class="material-icons text-base md:mr-1.5 align-middle">format_list_bulleted</span>
+					<span class="hidden md:inline">Lists</span>
 				</button>
 				@if (profile()!.user.isFavoritePublic) {
-					<button uiTab value="favorites" class="!whitespace-nowrap">
-						<span class="material-icons text-base mr-1.5 align-middle">star</span>
-						Favorites
+					<button uiTab value="favorites" class="!whitespace-nowrap" aria-label="Favorites" title="Favorites">
+						<span class="material-icons text-base md:mr-1.5 align-middle">star</span>
+						<span class="hidden md:inline">Favorites</span>
 					</button>
 				}
 				@if (profile()!.user.isQueuePublic) {
-					<button uiTab value="queue" class="!whitespace-nowrap">
-						<span class="material-icons text-base mr-1.5 align-middle">playlist_play</span>
-						Queue
+					<button uiTab value="queue" class="!whitespace-nowrap" aria-label="Queue" title="Queue">
+						<span class="material-icons text-base md:mr-1.5 align-middle">playlist_play</span>
+						<span class="hidden md:inline">Queue</span>
 					</button>
 				}
 				@if (profile()!.user.isWishlistPublic) {
-					<button uiTab value="wishlist" class="!whitespace-nowrap">
-						<span class="material-icons text-base mr-1.5 align-middle">favorite_border</span>
-						Wishlist
+					<button uiTab value="wishlist" class="!whitespace-nowrap" aria-label="Wishlist" title="Wishlist">
+						<span class="material-icons text-base md:mr-1.5 align-middle">favorite_border</span>
+						<span class="hidden md:inline">Wishlist</span>
 					</button>
 				}
-				<button uiTab value="reviews" class="!whitespace-nowrap">
-					<span class="material-icons text-base mr-1.5 align-middle">rate_review</span>
-					Reviews
+				<button uiTab value="reviews" class="!whitespace-nowrap" aria-label="Reviews" title="Reviews">
+					<span class="material-icons text-base md:mr-1.5 align-middle">rate_review</span>
+					<span class="hidden md:inline">Reviews</span>
 				</button>
 			</ui-tab-list>
 
