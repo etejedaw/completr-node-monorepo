@@ -86,20 +86,7 @@ export class AdminGames implements OnInit {
 	onSearch(query: string) {
 		this.searchQuery.set(query);
 		this.offset.set(0);
-
-		if (query.length >= 2) {
-			this.isLoading.set(true);
-			this.gamesService.search(query).subscribe({
-				next: games => {
-					this.games.set(games);
-					this.total.set(games.length);
-					this.isLoading.set(false);
-				},
-				error: () => this.isLoading.set(false)
-			});
-		} else if (query.length === 0) {
-			this.loadGames();
-		}
+		this.loadGames();
 	}
 
 	goToOffset(offset: number) {
@@ -124,6 +111,8 @@ export class AdminGames implements OnInit {
 			sort_by: "createdAt",
 			sort_order: "desc"
 		};
+		const search = this.searchQuery().trim();
+		if (search.length > 0) query["search"] = search;
 		if (this.noScores()) query["no_scores"] = true;
 		if (this.noTimes()) query["no_times"] = true;
 		if (this.noPlatforms()) query["no_platforms"] = true;
