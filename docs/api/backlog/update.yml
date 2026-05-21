@@ -65,6 +65,8 @@ docs: |-
           "realDuration": 12.5,
           "userRating": 8.5,
           "notes": "Great game",
+          "hasReview": false,
+          "reviewContent": null,
           "backlogNumber": null,
           "game": { "id": "uuid", "title": "..." },
           "platform": { "id": "uuid", "name": "..." }

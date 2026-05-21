@@ -41,7 +41,21 @@ export async function getMeBacklog(request: Request, response: Response) {
 	);
 	const backlogPlain = rows.map(backlog => backlog.get({ plain: true }));
 
-	const data = { backlog: backlogPlain.map(backlogSerializer), total };
+	const gameIds = backlogPlain.map(entry => entry.gameId);
+	const reviewByGameId =
+		gameIds.length > 0
+			? await reviewsService.findReviewContentByUserAndGameIds(
+					user.id,
+					gameIds
+				)
+			: new Map<string, { content: string | null }>();
+
+	const data = {
+		backlog: backlogPlain.map(entry =>
+			backlogSerializer(entry, reviewByGameId.get(entry.gameId))
+		),
+		total
+	};
 	return response.status(200).json({ data });
 }
 

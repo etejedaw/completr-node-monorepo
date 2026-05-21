@@ -62,6 +62,8 @@ docs: |-
             "userRating": 8.5,
             "isPublic": true,
             "notes": "Great game",
+            "hasReview": true,
+            "reviewContent": "A surreal puzzle gem with a hidden depth.",
             "game": { "id": "uuid", "title": "Fez", "coverUrl": "https://...", "isDlc": false },
             "platform": { "id": "uuid", "abbreviation": "Steam" }
           }

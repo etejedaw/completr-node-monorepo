@@ -57,6 +57,8 @@ docs: |-
           "realDuration": null,
           "userRating": null,
           "notes": null,
+          "hasReview": false,
+          "reviewContent": null,
           "backlogNumber": null,
           "createdAt": "...",
           "game": { "id": "uuid", "title": "..." },
