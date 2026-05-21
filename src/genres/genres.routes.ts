@@ -11,6 +11,7 @@ import { GenreCodeParamsSchema } from "./schemas/genre-code-params.schema";
 import { RegisterGenreSchema } from "./schemas/register-genre.schema";
 import { UpdateGenreSchema } from "./schemas/update-genre.schema";
 import { GenreIdParamSchema } from "./schemas/genre-id-params.schema";
+import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 
 const router = Router();
 
@@ -35,7 +36,8 @@ router.get(
 	[
 		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
-		validateSchemaMiddleware(GenreCodeParamsSchema, "params")
+		validateSchemaMiddleware(GenreCodeParamsSchema, "params"),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	genreController.getGamesByGenre
 );

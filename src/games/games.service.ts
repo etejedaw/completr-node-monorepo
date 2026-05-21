@@ -402,8 +402,12 @@ async function resolveRawgResult(
 	return { game, justImported: true };
 }
 
-export async function findGamesByGenreCode(genreCode: string) {
-	return await Game.findAll({
+export async function findGamesByGenreCode(
+	genreCode: string,
+	options: { limit?: number; offset?: number } = {}
+) {
+	const { limit = 50, offset = 0 } = options;
+	const rows = await Game.findAll({
 		where: { isActive: true },
 		include: [
 			{ association: "Platforms" },
@@ -413,8 +417,12 @@ export async function findGamesByGenreCode(genreCode: string) {
 			},
 			{ association: "GameScores" },
 			{ association: "GameTimes" }
-		]
+		],
+		limit: limit + 1,
+		offset
 	});
+	const hasMore = rows.length > limit;
+	return { rows: hasMore ? rows.slice(0, limit) : rows, hasMore };
 }
 
 export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
