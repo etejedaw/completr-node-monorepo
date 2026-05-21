@@ -13,7 +13,7 @@ interface BacklogSingleResponse {
 }
 
 interface BacklogUpdateResponse {
-	data: { backlog: BacklogEntry; wishlistRemoved: boolean };
+	data: { backlog: BacklogEntry; queueRemoved: boolean };
 }
 
 export interface BacklogFilters {

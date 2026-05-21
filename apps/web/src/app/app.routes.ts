@@ -39,6 +39,13 @@ export const routes: Routes = [
 			)
 	},
 	{
+		path: "user/:username/queue",
+		loadComponent: () =>
+			import("./features/public-profile/user-queue/user-queue").then(
+				m => m.UserQueue
+			)
+	},
+	{
 		path: "user/:username/wishlist",
 		loadComponent: () =>
 			import("./features/public-profile/user-wishlist/user-wishlist").then(
@@ -136,6 +143,13 @@ export const routes: Routes = [
 				loadComponent: () =>
 					import("./features/lists/list-detail/list-detail").then(
 						m => m.ListDetail
+					)
+			},
+			{
+				path: "queue",
+				loadComponent: () =>
+					import("./features/queue/queue-view/queue-view").then(
+						m => m.QueueView
 					)
 			},
 			{

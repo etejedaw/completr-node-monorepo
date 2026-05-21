@@ -8,7 +8,7 @@
 			<span class="text-lg font-bold text-fg">Completr</span>
 		</a>
 		@if (!isLoggedIn()) {
-			<a routerLink="/login" class="px-3 py-1.5 bg-brand text-white rounded text-[0.8125rem] font-semibold no-underline">Sign in</a>
+		<a routerLink="/login" class="px-3 py-1.5 bg-brand text-white rounded text-[0.8125rem] font-semibold no-underline">Sign in</a>
 		}
 	</div>
 
@@ -18,44 +18,35 @@
 	</a>
 
 	@if (error() === 'not_found') {
-		<div class="text-center py-12 text-fg-muted text-sm">User not found.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">User not found.</div>
 	} @else if (error() === 'private') {
-		<div class="text-center py-12 text-fg-muted text-sm">This content is private.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">This content is private.</div>
 	} @else {
-		<div class="flex items-baseline gap-3 mb-4">
-			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Wishlist</h1>
-			<span class="text-sm text-fg-muted">{{ total() }} games</span>
-		</div>
+	<div class="flex items-baseline gap-3 mb-4">
+		<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Wishlist</h1>
+		<span class="text-[0.8125rem] text-fg-muted">{{ total() }} games</span>
+	</div>
 
-		<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="searchQuery.set($event)" />
+	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="searchQuery.set($event)" />
 
-		@if (isLoading()) {
-			<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
-		} @else if (entries().length === 0) {
-			<div class="text-center py-12 text-fg-muted text-sm">No wishlist entries.</div>
-		} @else if (filteredEntries().length === 0) {
-			<div class="text-center py-12 text-fg-muted text-sm">No results found.</div>
-		} @else {
-			<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-				@for (entry of filteredEntries(); track entry.id; let i = $index) {
-					<app-wishlist-grid-card
-						[entry]="{
-							game: entry.backlog.game,
-							platformAbbreviation: entry.backlog.platform?.abbreviation,
-							ratio: entry.backlog.ratio,
-							duration: entry.backlog.duration
-						}"
-						[position]="offset() + i + 1"
-					/>
-				}
-			</div>
-
-			<ui-pagination
-				[offset]="offset()"
-				[limit]="limit"
-				[total]="total()"
-				(offsetChange)="goToOffset($event)"
-			/>
+	@if (isLoading()) {
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
+	} @else if (entries().length === 0) {
+	<div class="text-center py-12 text-fg-muted text-sm">Wishlist is empty.</div>
+	} @else if (filteredEntries().length === 0) {
+	<div class="text-center py-12 text-fg-muted text-sm">No results found.</div>
+	} @else {
+	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+		@for (entry of filteredEntries(); track entry.id) {
+			<app-game-cover-card [game]="entry.game" />
 		}
-	}
+	</div>
+
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="total()"
+		(offsetChange)="goToOffset($event)"
+	/>
+	} }
 </div>

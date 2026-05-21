@@ -19,7 +19,7 @@ import {
 	UpdateBacklogDto
 } from "../backlog.service";
 import { GamesService } from "../../games/games.service";
-import { WishlistService } from "../../wishlist/wishlist.service";
+import { QueueService } from "../../queue/queue.service";
 import { GameShelfService } from "../../game-shelf/game-shelf.service";
 import { ScoreSourcesService } from "../../../core/services/score-sources.service";
 import { ReviewsService } from "../../games/reviews.service";
@@ -48,7 +48,7 @@ export class BacklogModal implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly gamesService = inject(GamesService);
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
-	private readonly wishlistService = inject(WishlistService);
+	private readonly queueService = inject(QueueService);
 	private readonly gameShelfService = inject(GameShelfService);
 	private readonly reviewsService = inject(ReviewsService);
 	private readonly toast = inject(ToastService);
@@ -114,7 +114,7 @@ export class BacklogModal implements OnInit {
 
 	entry = input<BacklogEntry | null>(null);
 	preselectedGame = input<Game | null>(null);
-	preselectAddToWishlist = input<boolean>(false);
+	preselectAddToQueue = input<boolean>(false);
 	closed = output<void>();
 	saved = output<void>();
 
@@ -130,8 +130,8 @@ export class BacklogModal implements OnInit {
 	protected readonly showConfirmDelete = signal(false);
 	protected readonly isSearching = signal(false);
 	protected readonly isSearchingOnline = signal(false);
-	protected readonly addToWishlist = signal(false);
-	protected readonly isInWishlist = signal(false);
+	protected readonly addToQueue = signal(false);
+	protected readonly isInQueue = signal(false);
 	protected readonly addToShelf = signal(false);
 	protected readonly activeScoreSource = signal("");
 	protected readonly activeDurationSource = signal("");
@@ -258,10 +258,10 @@ export class BacklogModal implements OnInit {
 				notes: e.notes ?? ""
 			});
 
-			this.wishlistService.getMyWishlist().subscribe(wishlist => {
-				const inWishlist = wishlist.some(w => w.backlog.id === e.id);
-				this.isInWishlist.set(inWishlist);
-				this.addToWishlist.set(inWishlist);
+			this.queueService.getMyQueue().subscribe(queue => {
+				const inQueue = queue.some(w => w.backlog.id === e.id);
+				this.isInQueue.set(inQueue);
+				this.addToQueue.set(inQueue);
 			});
 		}
 
@@ -270,8 +270,8 @@ export class BacklogModal implements OnInit {
 			this.selectGame(pg);
 		}
 
-		if (this.preselectAddToWishlist() && !this.isEdit()) {
-			this.addToWishlist.set(true);
+		if (this.preselectAddToQueue() && !this.isEdit()) {
+			this.addToQueue.set(true);
 		}
 	}
 
@@ -396,15 +396,15 @@ export class BacklogModal implements OnInit {
 			this.backlogService.update(this.entry()!.id, dto).subscribe({
 				next: res => {
 					this.submitReviewIfNeeded(val.gameId!);
-					if (res.wishlistRemoved) {
+					if (res.queueRemoved) {
 						const title = this.entry()!.game.title;
 						const reason =
 							dto.status === "completed" ? "completed" : "abandoned";
 						this.toast.info(`Removed from your Queue: ${title} — ${reason}`);
-						this.isInWishlist.set(false);
-						this.addToWishlist.set(false);
+						this.isInQueue.set(false);
+						this.addToQueue.set(false);
 					}
-					this.handleWishlistChange(this.entry()!.id);
+					this.handleQueueChange(this.entry()!.id);
 				},
 				error: err => {
 					this.isLoading.set(false);
@@ -428,9 +428,9 @@ export class BacklogModal implements OnInit {
 				next: backlog => {
 					this.submitReviewIfNeeded(val.gameId!);
 					const extras$ = [];
-					if (this.addToWishlist()) {
+					if (this.addToQueue()) {
 						extras$.push(
-							this.wishlistService.addFromBacklog(backlog.id)
+							this.queueService.addFromBacklog(backlog.id)
 						);
 					}
 					if (this.addToShelf()) {
@@ -455,20 +455,20 @@ export class BacklogModal implements OnInit {
 		}
 	}
 
-	private handleWishlistChange(backlogId: string) {
-		const want = this.addToWishlist();
-		const was = this.isInWishlist();
+	private handleQueueChange(backlogId: string) {
+		const want = this.addToQueue();
+		const was = this.isInQueue();
 
 		if (want && !was) {
-			this.wishlistService
+			this.queueService
 				.addFromBacklog(backlogId)
 				.subscribe(() => this.saved.emit());
 		} else if (!want && was) {
-			this.wishlistService.getMyWishlist().subscribe(wishlist => {
-				const remaining = wishlist
+			this.queueService.getMyQueue().subscribe(queue => {
+				const remaining = queue
 					.filter(w => w.backlog.id !== backlogId)
 					.map(w => w.backlog.id);
-				this.wishlistService
+				this.queueService
 					.reorder(remaining)
 					.subscribe(() => this.saved.emit());
 			});

@@ -13,7 +13,7 @@ import { FormsModule } from "@angular/forms";
 import { BacklogEntry, BacklogStatus, Platform } from "../../../core/models";
 import { BacklogService, BacklogFilters } from "../backlog.service";
 import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
-import { WishlistService } from "../../wishlist/wishlist.service";
+import { QueueService } from "../../queue/queue.service";
 import { GamesService } from "../../games/games.service";
 import { ActivatedRoute, ParamMap, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
@@ -32,7 +32,7 @@ export class BacklogList implements OnInit {
 	private readonly route = inject(ActivatedRoute);
 	private readonly backlogService = inject(BacklogService);
 	private readonly savedFiltersService = inject(SavedFiltersService);
-	private readonly wishlistService = inject(WishlistService);
+	private readonly queueService = inject(QueueService);
 	private readonly gamesService = inject(GamesService);
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
@@ -47,10 +47,10 @@ export class BacklogList implements OnInit {
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
 	protected readonly showModal = signal(false);
 	protected readonly editingEntry = signal<BacklogEntry | null>(null);
-	private readonly wishlistBacklogIds = signal<Set<string>>(new Set());
-	protected readonly wishlistConfirmId = signal<string | null>(null);
+	private readonly queueBacklogIds = signal<Set<string>>(new Set());
+	protected readonly queueConfirmId = signal<string | null>(null);
 	protected readonly reviewExpandedIds = signal<Set<string>>(new Set());
-	private wishlistConfirmTimer: ReturnType<typeof setTimeout> | null = null;
+	private queueConfirmTimer: ReturnType<typeof setTimeout> | null = null;
 
 	private readonly queryParamMap = toSignal(this.route.queryParamMap);
 	private readonly savedFiltersLoaded = signal(false);
@@ -114,7 +114,7 @@ export class BacklogList implements OnInit {
 
 	ngOnInit() {
 		this.setupSearch();
-		this.loadWishlistIds();
+		this.loadQueueIds();
 		this.gamesService
 			.getPlatforms()
 			.subscribe(p => this.allPlatforms.set(p));
@@ -195,13 +195,13 @@ export class BacklogList implements OnInit {
 		this.sortOrder.set("desc");
 	}
 
-	isInWishlist(entry: BacklogEntry): boolean {
-		return this.wishlistBacklogIds().has(entry.id);
+	isInQueue(entry: BacklogEntry): boolean {
+		return this.queueBacklogIds().has(entry.id);
 	}
 
-	private loadWishlistIds() {
-		this.wishlistService.getMyWishlist().subscribe(entries => {
-			this.wishlistBacklogIds.set(
+	private loadQueueIds() {
+		this.queueService.getMyQueue().subscribe(entries => {
+			this.queueBacklogIds.set(
 				new Set(entries.map(e => e.backlog.id))
 			);
 		});
@@ -409,29 +409,29 @@ export class BacklogList implements OnInit {
 		return map[status] ?? status;
 	}
 
-	toggleWishlist(entry: BacklogEntry) {
-		if (!this.isInWishlist(entry)) {
-			this.wishlistService.addFromBacklog(entry.id).subscribe(() => {
-				this.loadWishlistIds();
+	toggleQueue(entry: BacklogEntry) {
+		if (!this.isInQueue(entry)) {
+			this.queueService.addFromBacklog(entry.id).subscribe(() => {
+				this.loadQueueIds();
 			});
 			return;
 		}
-		if (this.wishlistConfirmId() !== entry.id) {
-			this.wishlistConfirmId.set(entry.id);
-			if (this.wishlistConfirmTimer) clearTimeout(this.wishlistConfirmTimer);
-			this.wishlistConfirmTimer = setTimeout(() => {
-				this.wishlistConfirmId.set(null);
-				this.wishlistConfirmTimer = null;
+		if (this.queueConfirmId() !== entry.id) {
+			this.queueConfirmId.set(entry.id);
+			if (this.queueConfirmTimer) clearTimeout(this.queueConfirmTimer);
+			this.queueConfirmTimer = setTimeout(() => {
+				this.queueConfirmId.set(null);
+				this.queueConfirmTimer = null;
 			}, 3000);
 			return;
 		}
-		if (this.wishlistConfirmTimer) {
-			clearTimeout(this.wishlistConfirmTimer);
-			this.wishlistConfirmTimer = null;
+		if (this.queueConfirmTimer) {
+			clearTimeout(this.queueConfirmTimer);
+			this.queueConfirmTimer = null;
 		}
-		this.wishlistConfirmId.set(null);
-		this.wishlistService.removeByBacklogId(entry.id).subscribe(() => {
-			this.loadWishlistIds();
+		this.queueConfirmId.set(null);
+		this.queueService.removeByBacklogId(entry.id).subscribe(() => {
+			this.loadQueueIds();
 		});
 	}
 

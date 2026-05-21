@@ -5,7 +5,7 @@
 		(click)="$event.stopPropagation()"
 	>
 		<div class="flex items-center justify-between mb-4">
-			<h2 class="m-0 text-lg font-bold font-display">Add to Wishlist</h2>
+			<h2 class="m-0 text-lg font-bold font-display">Add to Queue</h2>
 			<button uiIconButton size="sm" (click)="onClose()">&times;</button>
 		</div>
 
@@ -43,7 +43,7 @@
 					uiButton
 					variant="primary"
 					size="sm"
-					(click)="addToWishlist(entry)"
+					(click)="addToQueue(entry)"
 					[disabled]="adding() === entry.id"
 				>
 					{{ adding() === entry.id ? '...' : '+ Add' }}

@@ -9,25 +9,25 @@ import {
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import { PublicProfileService } from "../public-profile.service";
-import { WishlistEntry } from "../../../core/models";
+import { QueueEntry } from "../../../core/models";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
-import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { QueueGridCard } from "../../../shared/components/queue-grid-card/queue-grid-card";
 
 const PAGE_SIZE = 50;
 
 @Component({
-	selector: "app-user-wishlist",
-	imports: [RouterLink, UiPagination, UiSearchBar, GameCoverCard],
-	templateUrl: "./user-wishlist.html",
+	selector: "app-user-queue",
+	imports: [RouterLink, UiPagination, UiSearchBar, QueueGridCard],
+	templateUrl: "./user-queue.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class UserWishlist implements OnInit {
+export class UserQueue implements OnInit {
 	private readonly route = inject(ActivatedRoute);
 	private readonly profileService = inject(PublicProfileService);
 	private readonly authService = inject(AuthService);
 
 	protected readonly username = signal("");
-	protected readonly entries = signal<WishlistEntry[]>([]);
+	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = PAGE_SIZE;
@@ -40,7 +40,7 @@ export class UserWishlist implements OnInit {
 		const q = this.searchQuery().toLowerCase().trim();
 		if (!q) return this.entries();
 		return this.entries().filter(e =>
-			e.game.title.toLowerCase().includes(q)
+			e.backlog.game.title.toLowerCase().includes(q)
 		);
 	});
 
@@ -61,11 +61,16 @@ export class UserWishlist implements OnInit {
 		this.load(username);
 	}
 
+	goToOffset(offset: number) {
+		this.offset.set(offset);
+		this.load(this.username());
+	}
+
 	private load(username: string) {
 		this.isLoading.set(true);
 		this.error.set(null);
 		this.profileService
-			.getUserWishlist(username, {
+			.getUserQueue(username, {
 				limit: this.limit,
 				offset: this.offset()
 			})
@@ -81,10 +86,5 @@ export class UserWishlist implements OnInit {
 					this.isLoading.set(false);
 				}
 			});
-	}
-
-	protected goToOffset(offset: number) {
-		this.offset.set(offset);
-		this.load(this.username());
 	}
 }

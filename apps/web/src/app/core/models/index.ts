@@ -2,6 +2,7 @@ export * from "./user.model";
 export * from "./game.model";
 export * from "./backlog.model";
 export * from "./list.model";
+export * from "./queue.model";
 export * from "./wishlist.model";
 export * from "./favorite.model";
 export * from "./saved-filter.model";

@@ -12,6 +12,7 @@ import { GamesService } from "../games.service";
 import { ScoreSourcesService } from "../../../core/services/score-sources.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { FavoritesService } from "../../favorites/favorites.service";
+import { QueueService } from "../../queue/queue.service";
 import { WishlistService } from "../../wishlist/wishlist.service";
 import { BacklogService } from "../../backlog/backlog.service";
 import { GameShelfService } from "../../game-shelf/game-shelf.service";
@@ -52,6 +53,7 @@ export class GameDetail implements OnInit {
 	private readonly authService = inject(AuthService);
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	private readonly favoritesService = inject(FavoritesService);
+	private readonly queueService = inject(QueueService);
 	private readonly wishlistService = inject(WishlistService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly gameShelfService = inject(GameShelfService);
@@ -62,12 +64,13 @@ export class GameDetail implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly similarGames = signal<Game[]>([]);
 	protected readonly isFavorite = signal(false);
-	protected readonly isInBacklog = signal(false);
 	protected readonly isInWishlist = signal(false);
+	protected readonly isInBacklog = signal(false);
+	protected readonly isInQueue = signal(false);
 	protected readonly isInShelf = signal(false);
-	protected readonly addedToWishlist = signal(false);
+	protected readonly addedToQueue = signal(false);
 	protected readonly showBacklogModal = signal(false);
-	protected readonly backlogModalPreselectWishlist = signal(false);
+	protected readonly backlogModalPreselectQueue = signal(false);
 	protected readonly showShelfModal = signal(false);
 	protected readonly isModerator = computed(() => {
 		const role = this.authService.user()?.role;
@@ -82,6 +85,7 @@ export class GameDetail implements OnInit {
 	protected readonly deactivating = signal(false);
 	protected readonly deleting = signal(false);
 	protected readonly togglingFavorite = signal(false);
+	protected readonly togglingWishlist = signal(false);
 	protected readonly showReportModal = signal(false);
 	protected readonly reportMessage = signal("");
 	protected readonly reportSubmitting = signal(false);
@@ -124,6 +128,7 @@ export class GameDetail implements OnInit {
 	ngOnInit() {
 		this.scoreSourcesService.load();
 		this.favoritesService.load().subscribe();
+		this.wishlistService.load().subscribe();
 		this.route.paramMap.subscribe(params => {
 			const code = params.get("code");
 			if (code) this.loadGame(code);
@@ -171,6 +176,7 @@ export class GameDetail implements OnInit {
 			next: game => {
 				this.game.set(game);
 				this.isFavorite.set(this.favoritesService.isFavorite(game.id));
+				this.isInWishlist.set(this.wishlistService.isInWishlist(game.id));
 				this.isLoading.set(false);
 				this.loadSimilarGames(game);
 				this.loadUserStatus(game.id);
@@ -188,11 +194,11 @@ export class GameDetail implements OnInit {
 		this.backlogService.getMyBacklog({ game_id: gameId }).subscribe({
 			next: res => this.isInBacklog.set(res.data.backlog.length > 0)
 		});
-		this.wishlistService.getMyWishlist().subscribe({
-			next: wishlist => {
-				const found = wishlist.some(w => w.backlog.game.id === gameId);
-				this.isInWishlist.set(found);
-				this.addedToWishlist.set(found);
+		this.queueService.getMyQueue().subscribe({
+			next: queue => {
+				const found = queue.some(w => w.backlog.game.id === gameId);
+				this.isInQueue.set(found);
+				this.addedToQueue.set(found);
 			}
 		});
 		this.gameShelfService.getMyShelf({ limit: 100 }).subscribe({
@@ -227,10 +233,23 @@ export class GameDetail implements OnInit {
 		});
 	}
 
-	addToWishlist() {
+	toggleWishlist() {
+		const gameId = this.game()?.id;
+		if (!gameId || this.togglingWishlist()) return;
+		this.togglingWishlist.set(true);
+		this.wishlistService.toggle(gameId).subscribe({
+			next: () => {
+				this.isInWishlist.set(this.wishlistService.isInWishlist(gameId));
+				this.togglingWishlist.set(false);
+			},
+			error: () => this.togglingWishlist.set(false)
+		});
+	}
+
+	addToQueue() {
 		const g = this.game();
-		if (!g || this.addedToWishlist()) return;
-		this.backlogModalPreselectWishlist.set(true);
+		if (!g || this.addedToQueue()) return;
+		this.backlogModalPreselectQueue.set(true);
 		this.showBacklogModal.set(true);
 	}
 
@@ -255,7 +274,7 @@ export class GameDetail implements OnInit {
 	}
 
 	openBacklogModal() {
-		this.backlogModalPreselectWishlist.set(false);
+		this.backlogModalPreselectQueue.set(false);
 		this.showBacklogModal.set(true);
 	}
 
@@ -266,13 +285,13 @@ export class GameDetail implements OnInit {
 	onModalClosed() {
 		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
-		this.backlogModalPreselectWishlist.set(false);
+		this.backlogModalPreselectQueue.set(false);
 	}
 
 	onModalSaved() {
 		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
-		this.backlogModalPreselectWishlist.set(false);
+		this.backlogModalPreselectQueue.set(false);
 		const gameId = this.game()?.id;
 		if (gameId) this.loadUserStatus(gameId);
 	}

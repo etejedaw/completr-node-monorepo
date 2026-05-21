@@ -1,14 +1,14 @@
-import { inject, Injectable } from "@angular/core";
+import { inject, Injectable, signal } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { map, switchMap } from "rxjs";
+import { map, Observable, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { WishlistEntry } from "../../core/models";
 
-interface WishlistListResponse {
+interface WishlistResponse {
 	data: { wishlist: WishlistEntry[]; total?: number };
 }
 
-interface WishlistSingleResponse {
+interface WishlistAddResponse {
 	data: { wishlist: WishlistEntry };
 }
 
@@ -22,8 +22,10 @@ export interface WishlistPagination {
 export class WishlistService {
 	private readonly http = inject(HttpClient);
 	private readonly baseUrl = `${environment.apiUrl}/users/me/wishlist`;
+	private readonly _wishlist = signal<WishlistEntry[]>([]);
+	readonly wishlist = this._wishlist.asReadonly();
 
-	getMyWishlist(pagination: WishlistPagination = {}) {
+	load(pagination: WishlistPagination = {}) {
 		let params = new HttpParams();
 		if (pagination.limit !== undefined)
 			params = params.set("limit", String(pagination.limit));
@@ -31,55 +33,47 @@ export class WishlistService {
 			params = params.set("offset", String(pagination.offset));
 		if (pagination.search) params = params.set("search", pagination.search);
 		return this.http
-			.get<WishlistListResponse>(this.baseUrl, { params })
-			.pipe(map(res => res.data.wishlist));
+			.get<WishlistResponse>(this.baseUrl, { params })
+			.pipe(tap(res => this._wishlist.set(res.data.wishlist)));
 	}
 
-	getMyWishlistPaged(pagination: WishlistPagination = {}) {
-		let params = new HttpParams();
-		if (pagination.limit !== undefined)
-			params = params.set("limit", String(pagination.limit));
-		if (pagination.offset !== undefined)
-			params = params.set("offset", String(pagination.offset));
-		if (pagination.search) params = params.set("search", pagination.search);
-		return this.http.get<WishlistListResponse>(this.baseUrl, { params });
+	isInWishlist(gameId: string): boolean {
+		return this._wishlist().some(w => w.game.id === gameId);
 	}
 
-	addFromGame(gameId: string, platformId: string) {
+	add(gameId: string) {
 		return this.http
-			.post<WishlistSingleResponse>(`${this.baseUrl}?source=game`, {
-				id: gameId,
-				platformId
-			})
-			.pipe(map(res => res.data.wishlist));
+			.post<WishlistAddResponse>(this.baseUrl, { gameId })
+			.pipe(
+				tap(res =>
+					this._wishlist.set([...this._wishlist(), res.data.wishlist])
+				),
+				map(res => res.data.wishlist)
+			);
 	}
 
-	addFromBacklog(backlogId: string) {
-		return this.http
-			.post<WishlistSingleResponse>(`${this.baseUrl}?source=backlog`, {
-				id: backlogId
-			})
-			.pipe(map(res => res.data.wishlist));
-	}
-
-	reorder(backlogIds: string[]) {
-		return this.http
-			.put<WishlistListResponse>(this.baseUrl, { backlogIds })
-			.pipe(map(res => res.data.wishlist));
-	}
-
-	removeByBacklogId(backlogId: string) {
-		return this.getMyWishlist().pipe(
-			map(entries =>
-				entries
-					.filter(e => e.backlog.id !== backlogId)
-					.map(e => e.backlog.id)
-			),
-			switchMap(remaining =>
-				this.http
-					.put<WishlistListResponse>(this.baseUrl, { backlogIds: remaining })
-					.pipe(map(res => res.data.wishlist))
+	remove(gameId: string) {
+		return this.http.delete<void>(`${this.baseUrl}/${gameId}`).pipe(
+			tap(() =>
+				this._wishlist.set(
+					this._wishlist().filter(w => w.game.id !== gameId)
+				)
 			)
 		);
+	}
+
+	toggle(gameId: string): Observable<void> {
+		return this.isInWishlist(gameId)
+			? this.remove(gameId)
+			: this.add(gameId).pipe(map(() => undefined));
+	}
+
+	replaceWishlist(gameIds: string[]) {
+		return this.http
+			.put<WishlistResponse>(this.baseUrl, { gameIds })
+			.pipe(
+				tap(res => this._wishlist.set(res.data.wishlist)),
+				map(res => res.data.wishlist)
+			);
 	}
 }

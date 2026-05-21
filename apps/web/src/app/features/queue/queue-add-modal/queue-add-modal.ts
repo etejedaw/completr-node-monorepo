@@ -8,18 +8,18 @@ import {
 } from "@angular/core";
 import { BacklogEntry } from "../../../core/models";
 import { BacklogService } from "../../backlog/backlog.service";
-import { WishlistService } from "../wishlist.service";
+import { QueueService } from "../queue.service";
 import { UiButton, UiIconButton } from "../../../shared/ui";
 
 @Component({
-	selector: "app-wishlist-add-modal",
+	selector: "app-queue-add-modal",
 	imports: [UiButton, UiIconButton],
-	templateUrl: "./wishlist-add-modal.html",
+	templateUrl: "./queue-add-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class WishlistAddModal implements OnInit {
+export class QueueAddModal implements OnInit {
 	private readonly backlogService = inject(BacklogService);
-	private readonly wishlistService = inject(WishlistService);
+	private readonly queueService = inject(QueueService);
 
 	closed = output<void>();
 	saved = output<void>();
@@ -53,10 +53,10 @@ export class WishlistAddModal implements OnInit {
 		this.searchQuery.set((event.target as HTMLInputElement).value);
 	}
 
-	addToWishlist(entry: BacklogEntry) {
+	addToQueue(entry: BacklogEntry) {
 		if (this.adding()) return;
 		this.adding.set(entry.id);
-		this.wishlistService.addFromBacklog(entry.id).subscribe({
+		this.queueService.addFromBacklog(entry.id).subscribe({
 			next: () => {
 				this.adding.set(null);
 				this.entries.set(this.entries().filter(e => e.id !== entry.id));
