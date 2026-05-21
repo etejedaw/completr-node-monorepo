@@ -12,6 +12,7 @@ import { listsErrorDomainNormalizer } from "../../lists/errors/lists.error-domai
 import { listItemsErrorDomainNormalizer } from "../../list-items/errors/list-items.error-domain.normalizer";
 import { listFollowersErrorDomainNormalizer } from "../../list-followers/errors/list-followers.error-domain.normalizer";
 import { queueErrorDomainNormalizer } from "../../queue/errors/queue.error-domain.normalizer";
+import { wishlistErrorDomainNormalizer } from "../../wishlist/errors/wishlist.error-domain.normalizer";
 import { favoritesErrorDomainNormalizer } from "../../favorites/errors/favorites.error-domain.normalizer";
 import { gameReportsErrorDomainNormalizer } from "../../game-reports/errors/game-reports.error-domain.normalizer";
 import { userFollowersErrorDomainNormalizer } from "../../user-followers/errors/user-followers.error-domain.normalizer";
@@ -79,6 +80,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "Queue Service")
 		return queueErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Wishlist Service")
+		return wishlistErrorDomainNormalizer(error, correlationId);
 
 	if (error.serviceError.service === "Favorite Service")
 		return favoritesErrorDomainNormalizer(error, correlationId);

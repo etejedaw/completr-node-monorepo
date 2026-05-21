@@ -1,0 +1,56 @@
+info:
+    name: Add to Wishlist
+    type: http
+    seq: 1
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/wishlist"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "gameId": "game-uuid"
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Add to Wishlist
+
+    Adds a game the user wants to obtain/buy. Independent of the backlog —
+    the user does not own this game yet.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Request Body
+
+    | Field  | Type | Required | Description |
+    |--------|------|----------|-------------|
+    | gameId | uuid | Yes      | Game UUID   |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "wishlist": {
+          "id": "uuid",
+          "position": 1,
+          "game": { "id": "uuid", "code": "...", "title": "...", "backgroundUrl": "...", "isDlc": false }
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 402 `WISHLIST_LIMIT_REACHED` — Free plan limit (20) reached
+    - 404 `WISHLIST_GAMES_NOT_FOUND` — Game not found
+    - 409 `WISHLIST_ALREADY_EXISTS` — Game already in wishlist

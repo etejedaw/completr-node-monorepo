@@ -17,9 +17,9 @@ settings:
 docs: |-
     ## Get User by Username
 
-    Returns the public profile of a user by their username, including their public backlogs, lists, favorites and queue.
+    Returns the public profile of a user by their username, including their public backlogs, lists, favorites, queue and wishlist.
     The user must have `isPublic` set to `true` to be visible.
-    Favorites and queue are only included if the user has `isFavoritePublic` / `isQueuePublic` set to `true`.
+    Favorites, queue and wishlist are only included if the user has `isFavoritePublic` / `isQueuePublic` / `isWishlistPublic` set to `true`.
 
     **Authentication:** Not required.
     **Rate Limit:** 100 requests per minute.
@@ -43,13 +43,15 @@ docs: |-
           "bio": "Gamer since 1990",
           "avatarUrl": "https://example.com/avatar.png",
           "isQueuePublic": true,
+          "isWishlistPublic": true,
           "isFavoritePublic": true,
           "createdAt": "2026-01-01T00:00:00.000Z"
         },
         "backlogs": [],
         "lists": [],
         "favorites": [],
-        "queue": []
+        "queue": [],
+        "wishlist": []
       }
     }
     ```

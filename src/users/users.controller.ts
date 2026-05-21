@@ -6,6 +6,7 @@ import * as backlogService from "../backlog/backlog.service";
 import * as listsService from "../lists/lists.service";
 import * as favoritesService from "../favorites/favorites.service";
 import * as queueService from "../queue/queue.service";
+import * as wishlistService from "../wishlist/wishlist.service";
 import * as gameShelfService from "../game-shelf/game-shelf.service";
 import * as activityService from "../activity/activity.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
@@ -21,6 +22,7 @@ import {
 } from "../lists/lists.serializer";
 import { favoriteSerializer } from "../favorites/favorites.serializer";
 import { queueSerializer } from "../queue/queue.serializer";
+import { wishlistSerializer } from "../wishlist/wishlist.serializer";
 import { gameShelfMeSerializer } from "../game-shelf/serializers/game-shelf-me.serializer";
 import { activitySerializer } from "../activity/activity.serializer";
 import { UsernameParam } from "./schemas";
@@ -58,6 +60,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 		lists,
 		favorites,
 		queue,
+		wishlist,
 		gameShelfResult,
 		followingLists,
 		recentActivity,
@@ -76,6 +79,9 @@ export async function getUserByUsername(request: Request, response: Response) {
 			: Promise.resolve([]),
 		isSelf || user.isQueuePublic
 			? queueService.findQueueByUserId(userId)
+			: Promise.resolve([]),
+		isSelf || user.isWishlistPublic
+			? wishlistService.findWishlistByUserId(userId)
 			: Promise.resolve([]),
 		isSelf
 			? gameShelfService.findGameShelfByUserId(userId).then(entries => ({
@@ -134,6 +140,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 		lists: listsWithFollowers,
 		favorites: favorites.map(favoriteSerializer),
 		queue: queue.map(queueSerializer),
+		wishlist: wishlist.map(wishlistSerializer),
 		gameShelf: gameShelf.map(gameShelfMeSerializer),
 		followingLists: followingListsWithProgress,
 		recentActivity: recentActivity.map(activitySerializer)

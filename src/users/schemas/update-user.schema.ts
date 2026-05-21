@@ -7,6 +7,7 @@ export const UpdateUserSchema = z
 		avatarUrl: z.string().nonempty().optional(),
 		isPublic: z.boolean().optional(),
 		isQueuePublic: z.boolean().optional(),
+		isWishlistPublic: z.boolean().optional(),
 		isFavoritePublic: z.boolean().optional(),
 		isFeedPublic: z.boolean().optional()
 	})

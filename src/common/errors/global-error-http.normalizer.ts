@@ -13,6 +13,7 @@ import { listsDomainToHttpMapper } from "../../lists/errors/lists.domain-to-http
 import { listItemsDomainToHttpMapper } from "../../list-items/errors/list-items.domain-to-http.mapper";
 import { listFollowersDomainToHttpMapper } from "../../list-followers/errors/list-followers.domain-to-http.mapper";
 import { queueDomainToHttpMapper } from "../../queue/errors/queue.domain-to-http.mapper";
+import { wishlistDomainToHttpMapper } from "../../wishlist/errors/wishlist.domain-to-http.mapper";
 import { favoritesDomainToHttpMapper } from "../../favorites/errors/favorites.domain-to-http.mapper";
 import { gameReportsDomainToHttpMapper } from "../../game-reports/errors/game-reports.domain-to-http.mapper";
 import { userFollowersDomainToHttpMapper } from "../../user-followers/errors/user-followers.domain-to-http.mapper";
@@ -67,6 +68,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "Queue Module")
 		return queueDomainToHttpMapper(error, request);
+
+	if (error.module === "Wishlist Module")
+		return wishlistDomainToHttpMapper(error, request);
 
 	if (error.module === "Favorite Module")
 		return favoritesDomainToHttpMapper(error, request);

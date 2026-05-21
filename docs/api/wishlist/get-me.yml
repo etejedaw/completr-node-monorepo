@@ -1,0 +1,37 @@
+info:
+    name: Get My Wishlist
+    type: http
+    seq: 4
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/wishlist"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get My Wishlist
+
+    Returns the authenticated user's wishlist (games they want to obtain) ordered by position.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "wishlist": [
+          {
+            "id": "uuid",
+            "position": 1,
+            "game": { "id": "uuid", "title": "...", "code": "...", "backgroundUrl": "...", "isDlc": false }
+          }
+        ],
+        "total": 1
+      }
+    }
+    ```

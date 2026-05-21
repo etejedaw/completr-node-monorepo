@@ -1,0 +1,56 @@
+info:
+    name: Replace Wishlist
+    type: http
+    seq: 3
+
+http:
+    method: PUT
+    url: "{{BASE_URL}}/users/me/wishlist"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "gameIds": ["uuid1", "uuid2"]
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Replace Wishlist
+
+    Replaces the entire wishlist with the given gameIds in order. Accepts an empty array to clear it.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Request Body
+
+    | Field   | Type   | Required | Description                         |
+    |---------|--------|----------|-------------------------------------|
+    | gameIds | uuid[] | Yes      | Array of game UUIDs (no duplicates) |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "wishlist": [
+          {
+            "id": "uuid",
+            "position": 1,
+            "game": { "id": "uuid", "title": "...", "code": "..." }
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 402 `WISHLIST_LIMIT_REACHED` — Free plan limit (20) exceeded
+    - 404 `WISHLIST_GAMES_NOT_FOUND` — One or more games not found

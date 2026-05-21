@@ -13,6 +13,7 @@ import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
 import { SavedFilter } from "../saved-filters/saved-filter.model";
 import { Queue } from "../queue/queue.model";
+import { Wishlist } from "../wishlist/wishlist.model";
 import { Favorite } from "../favorites/favorite.model";
 import { GameExternal } from "../game-external/game-external.model";
 import { ScoreSource } from "../score-sources/score-source.model";
@@ -39,6 +40,7 @@ export function setupAssociations() {
 	gameTimes();
 	savedFilters();
 	queue();
+	wishlist();
 	favorites();
 	gameExternalIds();
 	scoreSources();
@@ -158,6 +160,14 @@ function queue() {
 
 	Backlog.hasMany(Queue, { foreignKey: "backlogId" });
 	Queue.belongsTo(Backlog, { foreignKey: "backlogId" });
+}
+
+function wishlist() {
+	User.hasMany(Wishlist, { foreignKey: "userId" });
+	Wishlist.belongsTo(User, { foreignKey: "userId" });
+
+	Game.hasMany(Wishlist, { foreignKey: "gameId", onDelete: "CASCADE" });
+	Wishlist.belongsTo(Game, { foreignKey: "gameId" });
 }
 
 function favorites() {
