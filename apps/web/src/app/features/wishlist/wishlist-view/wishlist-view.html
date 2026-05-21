@@ -49,9 +49,6 @@
 						</button>
 					</a>
 					<a class="text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand" [routerLink]="['/games', entry.game.code]">{{ entry.game.title }}</a>
-					@if (entry.platform) {
-						<span class="text-[0.625rem] text-fg-muted truncate">{{ entry.platform.name }}</span>
-					}
 				</div>
 			}
 		</div>
