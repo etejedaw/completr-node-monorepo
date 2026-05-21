@@ -587,6 +587,22 @@
 
 > 🔒 _Beta por invitación — 50 a 200 usuarios._
 
+### Reparación de datos HTML-encoded (legado pre-fix FB-067)
+
+**Contexto:** Hasta el commit del fix de FB-067, el middleware `express-xss-sanitizer` corría sobre todos los `req.body`, HTML-encodeando `&`, `<`, `>`, `"`, `'` antes de persistirse. Eso dejó datos viejos con `&amp;` y similares en cualquier campo `string` que pasó por POST/PATCH (titles, descriptions, notes, names, bios, content, edition, etc.). Slugs derivados de titles con `&` quedaron con `andamp` embebido.
+
+- [ ] Crear helper `decodeHtmlEntities(input)` que decodifica `&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`, `&#39;`, `&#34;`, `&nbsp;`
+- [ ] Script de backfill (one-off, sin migración persistente — patrón usado en FB-067 con `npm run migrate` contra prd y luego borrar archivo):
+    - `Games.title` y `Games.description` → decode
+    - `Games.code` → regenerar con `titleToSlug(decodedTitle)` cuando el slug actual contenga `andamp` o `andlt` o similares (URLs viejas dejarán de funcionar — aceptable en Fase 2/3 sin SEO crítico)
+    - `Lists.name`, `Lists.description` → decode
+    - `Reviews.content` → decode
+    - `Backlogs.notes` → decode
+    - `Users.name`, `Users.bio` → decode
+    - `GameShelf.notes`, `GameShelf.edition` → decode
+- [ ] Ejecutar en local + en `env.production.local`, luego borrar el archivo de migración (mismo patrón que el round-list-item-scores)
+- [ ] (Opcional) Tabla `slug_redirects(old_code, new_code, gameId)` + middleware en game-detail que resuelva 404 contra esa tabla, para no romper bookmarks externos
+
 ### Revisión de performance y código
 
 - [ ] Revisar si endpoints tienen underfetching u overfetching (ajustar payloads a lo que realmente consume el frontend)

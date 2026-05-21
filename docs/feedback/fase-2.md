@@ -599,10 +599,12 @@ Formato por item:
 
 - **Fecha:** 2026-05-04
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al crear o editar un juego desde el panel admin con un titulo que contiene caracteres especiales (ej: "Beyond Good & Evil - 20th Anniversary Edition"), el valor se persiste HTML-encodeado en la DB ("Beyond Good &amp; Evil - 20th Anniversary Edition"). Esto corrompe el dato almacenado, rompe la busqueda (un query con "&" no matchea "&amp;") y filtra entidades HTML al codigo y a las vistas que esperan texto crudo. Probablemente afecta tambien a otros caracteres como `<`, `>`, `'`, `"`.
-- **Solucion propuesta:** Identificar donde se aplica el escaping en el flujo de creacion/edicion de games (controller, service, schema de Zod, hook de Sequelize, o el frontend del admin antes de enviar el request). El encoding HTML es una preocupacion de la capa de presentacion, no de persistencia — hay que removerlo del path de guardado y aplicarlo solo al renderizar HTML donde sea necesario. Auditar otros endpoints (lists, reviews, notes, profile) por el mismo patron. Una vez arreglado, hacer un script de limpieza para des-encodear los registros existentes que ya esten corruptos.
+- **Causa raiz:** Middleware global `xss()` de `express-xss-sanitizer` aplicado en `server.ts:34`. Corre sobre todos los `req.body` antes de llegar a los controllers, HTML-encodeando cualquier `&`, `<`, `>`, `"`, `'`. Anti-patron en stack con Angular: el framework ya escapa automaticamente todo `{{ }}` y no usamos `[innerHTML]` con user input, por lo que el sanitizer solo corrompe los datos almacenados.
+- **Solucion (going forward):** Removido `app.use(xss())` y el import en `server.ts`. Desinstaladas dependencias `express-xss-sanitizer` y `@types/express-xss-sanitizer`. Nuevos juegos/edits ya guardan los strings con sus caracteres especiales tal cual. La proteccion XSS la cubre Angular en render (escapado automatico de `{{ }}`).
+- **Backfill diferido:** Los datos viejos quedan con `&amp;` y similares; los slugs corruptos (ej: `beyond-good-andamp-evil-20th-anniversary-edition`) tambien. Decision del user: no reparar lo existente, solo prevenir nuevos casos. Plan completo de backfill (decode + regenerar slugs + auditar todos los modelos) queda documentado en `TODO.md` seccion Fase 3 ("Reparacion de datos HTML-encoded").
 
 ### [FB-068] Sesion se cierra al usar la app desde varios dispositivos
 
