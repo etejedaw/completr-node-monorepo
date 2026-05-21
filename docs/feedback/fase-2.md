@@ -414,10 +414,11 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** La barra de busqueda global solo esta disponible en el feed. Al navegar a un juego, perfil u otra seccion, desaparece. El usuario tiene que volver al feed para buscar algo. Seria mas practico tener la busqueda siempre accesible desde el sidebar o un header global.
 - **Solucion propuesta:** Mover la barra de busqueda global al sidebar (debajo del logo o arriba de la navegacion) para que este disponible en todas las vistas. Alternativa: agregar un header/topbar con la busqueda que persista en todas las paginas dentro del layout. Relacionado con FB-041.
+- **Resolucion:** Resuelto por la combinacion de FB-041 (search global en el `public-topbar` para vistas standalone bajo `/user/:username/*`) y los search bars locales que ya existen en cada vista logueada (feed con global search; backlog, queue, wishlist, favorites, lists, game-shelf, saved-views con `ui-search-bar` para filtrar la propia vista). El usuario ya tiene acceso a search desde cualquier seccion.
 
 ### [FB-047] Agregar a queue o lista desde la grilla de juegos
 
@@ -852,10 +853,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Cada entrada del backlog muestra varios valores numericos: score, duracion estimada, real duration, ratio, personal ratio, status, etc. Los nombres son cortos y para un usuario nuevo no es obvio que significa cada uno (que es "personal" vs "real", como se calcula el ratio, por que hay dos ratios distintos). Hoy no existe en la app un lugar donde se explique. El usuario tiene que inferir el significado o preguntar. Esto sube la barrera de entrada y diluye el valor de los datos que el propio usuario ingreso.
 - **Solucion propuesta:** Combinar dos enfoques. (1) **Pagina de ayuda** dedicada en `/help` (o `/guide`) con secciones por concepto: "Backlog", "Ratio y Personal Ratio", "Completr Score vs Aggregate Score", "Estados (no_started, playing, completed, abandoned)", "Queue vs Favorites vs Listas". Cada seccion con definicion, ejemplo numerico (ej: Florence 82 pts / 1h = ratio 82), y screenshot anotado. Link en el footer y en el menu de usuario. Implementacion: paginas estaticas en Angular (no contenido CMS por ahora). (2) **Tooltips contextuales**: en la vista diary y en el modal de backlog, agregar `?` clickeables junto a cada label (Ratio, Personal, Real, etc.) que abran un popover con la definicion corta y un link "Ver mas" que lleve a la seccion correspondiente de `/help`. (3) Considerar onboarding ligero para usuarios nuevos: un solo tour de 3-5 pasos la primera vez que abren el backlog, que apunte a los conceptos mas importantes (ratio + personal ratio + real duration). Saltable y solo se muestra una vez (`User.hasSeenBacklogTour` o flag en localStorage). El onboarding NO reemplaza la pagina de ayuda — es complemento para descubrir que existen los conceptos.
+- **Resolucion:** Nueva pagina `/help` con navegacion por anclas y secciones: Backlog, Ratio & Personal Ratio (formula y ejemplo de Florence), Aggregate Score vs Completr Score, Statuses (con iconos por estado), Queue/Wishlist/Favorites/Lists, Privacy. Linkeada desde el sidebar (item Help con `help_outline`) y desde el `public-topbar` (icono de ayuda). Tooltips contextuales y onboarding quedaron diferidos para una iteracion posterior.
 
 ### [FB-094] La descripcion del saved view empuja la lista del backlog hacia abajo
 
