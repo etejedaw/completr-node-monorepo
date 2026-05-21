@@ -53,6 +53,11 @@ docs: |-
     | coverUrl        | string   | No       | URL to cover image             |
     | averageScore    | number   | No       | Average game score             |
     | averagePlaytime | number   | No       | Average playtime in minutes    |
+    | variant         | string   | No       | Variant label (e.g. "Pearl"). Required when multiple games share the same external id. Send `null` to clear. |
+
+    ### Errors
+
+    - 422 `GAME_VARIANT_REQUIRED` — Another game shares the same external id and a variant label is required on all siblings.
 
     ### Response (200)
 

@@ -1,0 +1,90 @@
+info:
+    name: Split Game
+    type: http
+    seq: 10
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/games/:id/split"
+    params:
+        - name: id
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "variants": [
+                { "title": "Pokemon Pearl", "variant": "Pearl" },
+                { "title": "Pokemon Diamond", "variant": "Diamond" }
+              ]
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Split Game
+
+    Splits a consolidated game (typically one whose RAWG record bundles multiple
+    distinct titles, e.g. Pokemon Pearl/Diamond) into N variants. The original
+    game becomes the first variant; the remaining variants are created as new
+    games that share the same external ids (e.g. `rawgId`), platforms, genres,
+    scores, times, cover and description.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 300 requests per minute (admin/moderator exempt).
+
+    ### Path Parameters
+
+    | Param | Type | Required | Description                  |
+    |-------|------|----------|------------------------------|
+    | id    | uuid | Yes      | The original game UUID       |
+
+    ### Request Body
+
+    | Field    | Type  | Required | Description                                                |
+    |----------|-------|----------|------------------------------------------------------------|
+    | variants | array | Yes      | 2 to 10 variants. Each entry: `{ title, variant }`.        |
+
+    Each variant requires:
+    - `title` (string, max 200) — full title of the resulting game.
+    - `variant` (string, max 100) — label distinguishing siblings (e.g. "Pearl").
+
+    The first variant overwrites the original game's `title`, `code` and
+    `variant`. Each subsequent variant is created as a new `Game` row sharing
+    cover, description, releaseAt, isDlc, parentGameId, platforms, genres,
+    scores, times and external ids with the original.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "games": [
+          {
+            "id": "uuid-original",
+            "title": "Pokemon Pearl",
+            "code": "pokemon-pearl",
+            "variant": "Pearl"
+          },
+          {
+            "id": "uuid-new",
+            "title": "Pokemon Diamond",
+            "code": "pokemon-diamond",
+            "variant": "Diamond"
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 400 `GAME_SPLIT_INVALID` — Duplicate codes among the variants, or fewer than 2 variants.
+    - 404 `GAME_NOT_FOUND` — Original game does not exist or is inactive.
+    - 409 `GAME_UNIQUE_CONSTRAINT` — A target title collides with an existing game code.
