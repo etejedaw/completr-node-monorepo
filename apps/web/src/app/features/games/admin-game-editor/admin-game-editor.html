@@ -286,15 +286,26 @@
 	}
 	<div class="flex justify-between items-center pt-4 border-t border-line gap-2">
 		@if (isEditMode()) {
-		<button
-			class="flex items-center gap-1.5 py-2 px-3.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] font-semibold cursor-pointer transition hover:border-warning hover:text-warning"
-			(click)="openSplitModal()"
-			[disabled]="saving()"
-			title="Split this game into multiple variants (e.g. Pokemon Pearl/Diamond → Pearl + Diamond)"
-		>
-			<span class="material-icons text-base">call_split</span>
-			Split game
-		</button>
+		<div class="flex items-center gap-2 flex-wrap">
+			<button
+				class="flex items-center gap-1.5 py-2 px-3.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] font-semibold cursor-pointer transition hover:border-warning hover:text-warning"
+				(click)="openSplitModal()"
+				[disabled]="saving()"
+				title="Split this game into multiple variants (e.g. Pokemon Pearl/Diamond → Pearl + Diamond)"
+			>
+				<span class="material-icons text-base">call_split</span>
+				Split game
+			</button>
+			<button
+				class="flex items-center gap-1.5 py-2 px-3.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] font-semibold cursor-pointer transition hover:border-brand hover:text-brand"
+				(click)="openCompilationModal()"
+				[disabled]="saving()"
+				title="Mark this game as a compilation that bundles other games (e.g. Mass Effect Legendary Edition)"
+			>
+				<span class="material-icons text-base">library_books</span>
+				{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as compilation' }}
+			</button>
+		</div>
 		} @else {
 		<span></span>
 		}
@@ -391,6 +402,164 @@
 			>
 				{{ splitting() ? 'Splitting...' : 'Split' }}
 			</button>
+		</div>
+	</div>
+</div>
+}
+
+@if (compilationOpen()) {
+<div class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]" (click)="closeCompilationModal()">
+	<div class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[720px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]" (click)="$event.stopPropagation()">
+		<div class="flex justify-between items-center mb-3">
+			<h2 class="font-display m-0 text-lg font-bold">{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as compilation' }}</h2>
+			<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="closeCompilationModal()">
+				<span class="material-icons">close</span>
+			</button>
+		</div>
+		<p class="text-[0.8125rem] text-fg-secondary mb-4">
+			Define the games that this compilation contains. Use <strong>Link existing</strong> when the title is already in the catalog (e.g. classic Mass Effect 1 inside Mass Effect Trilogy). Use <strong>Create new</strong> when the bundled title doesn't exist standalone (e.g. Mass Effect 1 Legendary Edition inside MEL) — a new game page will be created, inheriting cover/description from this compilation, editable later.
+		</p>
+
+		@if (compilationError()) {
+		<div class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded mb-3 text-[0.8125rem]">{{ compilationError() }}</div>
+		}
+
+		<div class="flex flex-col gap-3 mb-4">
+			@for (row of compilationRows(); track $index; let i = $index) {
+			<div class="border border-line rounded p-3 bg-input-bg/40">
+				<div class="flex items-center gap-2 mb-2">
+					<span class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">#{{ i + 1 }}</span>
+					<div class="flex gap-1 ml-1">
+						<button
+							class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold cursor-pointer transition border"
+							[class.bg-brand-subtle]="row.mode === 'link'"
+							[class.border-brand]="row.mode === 'link'"
+							[class.text-brand]="row.mode === 'link'"
+							[class.bg-transparent]="row.mode !== 'link'"
+							[class.border-line]="row.mode !== 'link'"
+							[class.text-fg-muted]="row.mode !== 'link'"
+							(click)="setCompilationRowMode(i, 'link')"
+						>Link existing</button>
+						<button
+							class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold cursor-pointer transition border"
+							[class.bg-brand-subtle]="row.mode === 'create'"
+							[class.border-brand]="row.mode === 'create'"
+							[class.text-brand]="row.mode === 'create'"
+							[class.bg-transparent]="row.mode !== 'create'"
+							[class.border-line]="row.mode !== 'create'"
+							[class.text-fg-muted]="row.mode !== 'create'"
+							(click)="setCompilationRowMode(i, 'create')"
+						>Create new</button>
+					</div>
+					<button
+						class="ml-auto bg-transparent border border-line rounded p-1 text-fg-muted cursor-pointer transition hover:border-danger hover:text-danger disabled:opacity-30 disabled:cursor-not-allowed"
+						(click)="removeCompilationRow(i)"
+						[disabled]="compilationRows().length <= 1"
+						title="Remove this item"
+					>
+						<span class="material-icons text-sm">close</span>
+					</button>
+				</div>
+
+				@if (row.mode === 'link') {
+					@if (row.linkedGame) {
+					<div class="flex items-center gap-2.5 py-2 px-3 bg-input-bg border border-line rounded">
+						@if (row.linkedGame.backgroundUrl) {
+						<img class="w-9 h-9 object-cover rounded-[3px] shrink-0" [src]="row.linkedGame.backgroundUrl" [alt]="row.linkedGame.title" />
+						}
+						<span class="flex-1 text-[0.8125rem] font-medium">{{ row.linkedGame.title }}</span>
+						<span class="text-xs text-fg-muted">{{ row.linkedGame.code }}</span>
+						<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="clearCompilationRowGame(i)">
+							<span class="material-icons text-base">close</span>
+						</button>
+					</div>
+					} @else {
+					<input
+						type="text"
+						class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+						placeholder="Search existing game..."
+						[ngModel]="row.searchQuery"
+						(ngModelChange)="updateCompilationRowQuery(i, $event)"
+					/>
+					@if (row.searching) {
+					<div class="text-xs text-fg-muted mt-1">Searching...</div>
+					}
+					@if (row.searchResults.length > 0) {
+					<div class="border border-line rounded mt-1 max-h-[180px] overflow-y-auto bg-input-bg">
+						@for (g of row.searchResults; track g.id) {
+						<button
+							class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-brand-subtle transition border-0 cursor-pointer bg-transparent"
+							(click)="pickCompilationRowGame(i, g)"
+						>
+							@if (g.backgroundUrl) {
+							<img class="w-7 h-7 object-cover rounded-[3px] shrink-0" [src]="g.backgroundUrl" [alt]="g.title" />
+							}
+							<span class="flex-1 text-[0.8125rem]">{{ g.title }}</span>
+							<span class="text-[0.6875rem] text-fg-muted">{{ g.code }}</span>
+						</button>
+						}
+					</div>
+					}
+					}
+				} @else {
+				<div>
+					<input
+						type="text"
+						class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+						placeholder="Title for the new game (e.g. Mass Effect 1 Legendary Edition)"
+						[ngModel]="row.title"
+						(ngModelChange)="updateCompilationRowTitle(i, $event)"
+						maxlength="200"
+					/>
+					@if (row.title.trim()) {
+					<div class="text-xs text-fg-muted mt-1">
+						slug → <span class="text-fg-secondary">{{ previewCompilationSlug(row.title) }}</span>
+					</div>
+					}
+				</div>
+				}
+			</div>
+			}
+		</div>
+
+		<button
+			class="flex items-center gap-1.5 py-1.5 px-3 bg-input-bg border border-line rounded text-fg-secondary text-xs font-semibold cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed mb-5"
+			(click)="addCompilationRow()"
+			[disabled]="compilationRows().length >= 50"
+		>
+			<span class="material-icons text-sm">add</span>
+			Add item
+		</button>
+
+		<div class="flex justify-between items-center pt-4 border-t border-line gap-2">
+			@if (game()?.isCompilation) {
+			<button
+				class="py-2 px-4 bg-transparent border border-danger/40 rounded text-danger text-[0.8125rem] font-semibold cursor-pointer transition hover:bg-danger/10 disabled:opacity-40 disabled:cursor-not-allowed"
+				(click)="clearCompilation()"
+				[disabled]="compilationSaving() || compilationClearing()"
+			>
+				{{ compilationClearing() ? 'Clearing...' : 'Clear compilation' }}
+			</button>
+			} @else {
+			<span></span>
+			}
+			<div class="flex gap-2">
+				<button
+					class="py-2 px-4 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] font-semibold cursor-pointer transition hover:border-line-hover hover:text-fg disabled:opacity-40 disabled:cursor-not-allowed"
+					(click)="closeCompilationModal()"
+					[disabled]="compilationSaving() || compilationClearing()"
+				>
+					Cancel
+				</button>
+				<button
+					class="py-2 px-5 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+					(click)="submitCompilation()"
+					[disabled]="compilationSaving() || compilationClearing()"
+				>
+					{{ compilationSaving() ? 'Saving...' : 'Save' }}
+				</button>
+			</div>
 		</div>
 	</div>
 </div>

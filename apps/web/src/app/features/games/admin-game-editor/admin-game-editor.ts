@@ -11,6 +11,7 @@ import {
 import { FormsModule } from "@angular/forms";
 import { Game, Genre, Platform } from "../../../core/models";
 import {
+	CompilationItemInput,
 	CreateGameDto,
 	GamesService,
 	RawgDetail,
@@ -18,6 +19,17 @@ import {
 } from "../games.service";
 import { forkJoin } from "rxjs";
 import { ToastService } from "../../../core/services/toast.service";
+
+type CompilationRowMode = "link" | "create";
+
+interface CompilationRow {
+	mode: CompilationRowMode;
+	title: string;
+	linkedGame: Game | null;
+	searchQuery: string;
+	searching: boolean;
+	searchResults: Game[];
+}
 
 @Component({
 	selector: "app-admin-game-editor",
@@ -77,6 +89,13 @@ export class AdminGameEditor implements OnInit {
 		{ title: "", variant: "" },
 		{ title: "", variant: "" }
 	]);
+
+	// Compilation modal
+	protected readonly compilationOpen = signal(false);
+	protected readonly compilationSaving = signal(false);
+	protected readonly compilationClearing = signal(false);
+	protected readonly compilationError = signal("");
+	protected readonly compilationRows = signal<CompilationRow[]>([]);
 
 	// Score/time add
 	protected readonly newScoreSource = signal("");
@@ -537,6 +556,265 @@ export class AdminGameEditor implements OnInit {
 				} else {
 					this.splitError.set("Failed to split the game.");
 				}
+			}
+		});
+	}
+
+	openCompilationModal() {
+		const g = this.game();
+		if (!g) return;
+		this.compilationError.set("");
+		const existing = (g.compilationItems ?? [])
+			.filter(item => item.game)
+			.map(item => ({
+				mode: "link" as CompilationRowMode,
+				title: "",
+				linkedGame: {
+					id: item.game!.id,
+					title: item.game!.title,
+					code: item.game!.code,
+					backgroundUrl: item.game!.backgroundUrl
+				} as Game,
+				searchQuery: "",
+				searching: false,
+				searchResults: []
+			}));
+		this.compilationRows.set(
+			existing.length > 0
+				? existing
+				: [
+						this.makeEmptyCompilationRow("link"),
+						this.makeEmptyCompilationRow("link")
+					]
+		);
+		this.compilationOpen.set(true);
+	}
+
+	closeCompilationModal() {
+		if (this.compilationSaving() || this.compilationClearing()) return;
+		this.compilationOpen.set(false);
+	}
+
+	private makeEmptyCompilationRow(mode: CompilationRowMode): CompilationRow {
+		return {
+			mode,
+			title: "",
+			linkedGame: null,
+			searchQuery: "",
+			searching: false,
+			searchResults: []
+		};
+	}
+
+	addCompilationRow() {
+		if (this.compilationRows().length >= 50) return;
+		this.compilationRows.update(rows => [
+			...rows,
+			this.makeEmptyCompilationRow("link")
+		]);
+	}
+
+	removeCompilationRow(index: number) {
+		if (this.compilationRows().length <= 1) return;
+		this.compilationRows.update(rows => rows.filter((_, i) => i !== index));
+	}
+
+	setCompilationRowMode(index: number, mode: CompilationRowMode) {
+		this.compilationRows.update(rows =>
+			rows.map((r, i) =>
+				i === index
+					? {
+							...r,
+							mode,
+							title: "",
+							linkedGame: null,
+							searchQuery: "",
+							searchResults: []
+						}
+					: r
+			)
+		);
+	}
+
+	updateCompilationRowTitle(index: number, value: string) {
+		this.compilationRows.update(rows =>
+			rows.map((r, i) => (i === index ? { ...r, title: value } : r))
+		);
+	}
+
+	updateCompilationRowQuery(index: number, value: string) {
+		this.compilationRows.update(rows =>
+			rows.map((r, i) =>
+				i === index ? { ...r, searchQuery: value, linkedGame: null } : r
+			)
+		);
+		const trimmed = value.trim();
+		if (trimmed.length < 2) {
+			this.compilationRows.update(rows =>
+				rows.map((r, i) =>
+					i === index
+						? { ...r, searchResults: [], searching: false }
+						: r
+				)
+			);
+			return;
+		}
+		this.compilationRows.update(rows =>
+			rows.map((r, i) => (i === index ? { ...r, searching: true } : r))
+		);
+		this.gamesService.searchLocal(trimmed).subscribe({
+			next: games => {
+				this.compilationRows.update(rows =>
+					rows.map((r, i) =>
+						i === index
+							? {
+									...r,
+									searching: false,
+									searchResults: games.slice(0, 8)
+								}
+							: r
+					)
+				);
+			},
+			error: () => {
+				this.compilationRows.update(rows =>
+					rows.map((r, i) =>
+						i === index
+							? { ...r, searching: false, searchResults: [] }
+							: r
+					)
+				);
+			}
+		});
+	}
+
+	pickCompilationRowGame(index: number, picked: Game) {
+		this.compilationRows.update(rows =>
+			rows.map((r, i) =>
+				i === index
+					? {
+							...r,
+							linkedGame: picked,
+							searchQuery: picked.title,
+							searchResults: []
+						}
+					: r
+			)
+		);
+	}
+
+	clearCompilationRowGame(index: number) {
+		this.compilationRows.update(rows =>
+			rows.map((r, i) =>
+				i === index
+					? {
+							...r,
+							linkedGame: null,
+							searchQuery: "",
+							searchResults: []
+						}
+					: r
+			)
+		);
+	}
+
+	previewCompilationSlug(title: string): string {
+		return title
+			.toLowerCase()
+			.trim()
+			.replace(/[^a-z0-9]+/g, "-")
+			.replace(/^-+|-+$/g, "");
+	}
+
+	submitCompilation() {
+		const g = this.game();
+		if (!g) return;
+		const rows = this.compilationRows();
+		const items: CompilationItemInput[] = [];
+		for (const row of rows) {
+			if (row.mode === "link") {
+				if (!row.linkedGame) {
+					this.compilationError.set(
+						"All linked rows must have a selected game."
+					);
+					return;
+				}
+				items.push({ mode: "link", gameId: row.linkedGame.id });
+			} else {
+				const title = row.title.trim();
+				if (!title) {
+					this.compilationError.set(
+						"All create rows must have a title."
+					);
+					return;
+				}
+				items.push({ mode: "create", title });
+			}
+		}
+		const linkedIds = items
+			.filter(i => i.mode === "link")
+			.map(i => (i as { gameId: string }).gameId);
+		if (new Set(linkedIds).size !== linkedIds.length) {
+			this.compilationError.set("Linked games must be unique.");
+			return;
+		}
+		const createSlugs = items
+			.filter(i => i.mode === "create")
+			.map(i => this.previewCompilationSlug((i as { title: string }).title));
+		if (new Set(createSlugs).size !== createSlugs.length) {
+			this.compilationError.set("Created titles must produce unique slugs.");
+			return;
+		}
+
+		this.compilationSaving.set(true);
+		this.compilationError.set("");
+
+		this.gamesService.setCompilationItems(g.id, { items }).subscribe({
+			next: () => {
+				this.compilationSaving.set(false);
+				this.compilationOpen.set(false);
+				this.toast.success("Compilation saved.");
+				this.saved.emit();
+			},
+			error: err => {
+				this.compilationSaving.set(false);
+				if (err.status === 429) {
+					this.compilationError.set(
+						"Rate limit reached. Compilation was NOT saved. Try again in a moment."
+					);
+				} else if (err?.error?.type === "GAME_UNIQUE_CONSTRAINT") {
+					this.compilationError.set(
+						"A new title collides with an existing game code."
+					);
+				} else if (err?.error?.type === "GAME_COMPILATION_INVALID") {
+					this.compilationError.set(
+						"Invalid compilation: duplicates or self-reference."
+					);
+				} else if (err?.error?.type === "GAME_NOT_FOUND") {
+					this.compilationError.set("Parent or a linked game not found.");
+				} else {
+					this.compilationError.set("Failed to save compilation.");
+				}
+			}
+		});
+	}
+
+	clearCompilation() {
+		const g = this.game();
+		if (!g) return;
+		if (this.compilationClearing()) return;
+		this.compilationClearing.set(true);
+		this.compilationError.set("");
+		this.gamesService.clearCompilation(g.id).subscribe({
+			next: () => {
+				this.compilationClearing.set(false);
+				this.compilationOpen.set(false);
+				this.toast.success("Compilation cleared.");
+				this.saved.emit();
+			},
+			error: () => {
+				this.compilationClearing.set(false);
+				this.compilationError.set("Failed to clear compilation.");
 			}
 		});
 	}
