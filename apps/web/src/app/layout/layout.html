@@ -231,19 +231,16 @@
 					</button>
 				</div>
 				<div class="grid grid-cols-3 gap-2">
-					<a routerLink="/backlog" [queryParams]="{ status: 'completed' }" class="flex flex-col items-center gap-0.5 py-1.5 no-underline transition hover:text-brand">
-						<span class="material-icons text-sm text-success">check_circle</span>
-						<span class="text-sm font-bold text-fg leading-none">{{ completedCount() }}</span>
+					<a routerLink="/backlog" [queryParams]="{ status: 'completed' }" class="flex flex-col items-center gap-1 py-2 no-underline transition hover:text-brand">
+						<span class="material-icons text-base text-success">check_circle</span>
 						<span class="text-[0.5625rem] uppercase tracking-wider text-fg-muted">Done</span>
 					</a>
-					<a routerLink="/backlog" [queryParams]="{ status: 'playing' }" class="flex flex-col items-center gap-0.5 py-1.5 no-underline transition hover:text-brand">
-						<span class="material-icons text-sm text-warning">play_arrow</span>
-						<span class="text-sm font-bold text-fg leading-none">{{ playingCount() }}</span>
+					<a routerLink="/backlog" [queryParams]="{ status: 'playing' }" class="flex flex-col items-center gap-1 py-2 no-underline transition hover:text-brand">
+						<span class="material-icons text-base text-warning">play_arrow</span>
 						<span class="text-[0.5625rem] uppercase tracking-wider text-fg-muted">Play</span>
 					</a>
-					<a routerLink="/backlog" class="flex flex-col items-center gap-0.5 py-1.5 no-underline transition hover:text-brand">
-						<span class="material-icons text-sm text-brand">list_alt</span>
-						<span class="text-sm font-bold text-fg leading-none">{{ backlogCount() }}</span>
+					<a routerLink="/backlog" class="flex flex-col items-center gap-1 py-2 no-underline transition hover:text-brand">
+						<span class="material-icons text-base text-brand">list_alt</span>
 						<span class="text-[0.5625rem] uppercase tracking-wider text-fg-muted">Total</span>
 					</a>
 				</div>
