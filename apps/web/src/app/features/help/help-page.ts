@@ -20,6 +20,7 @@ export class HelpPage {
 		"scores",
 		"statuses",
 		"modules",
+		"saved-views",
 		"privacy"
 	] as const;
 

@@ -219,19 +219,10 @@
 					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Your collection modules</h2>
 				</div>
 				<p class="text-fg-secondary leading-relaxed text-sm mb-5">
-					Six modules, each with a specific purpose:
+					Beyond the backlog, five more modules to organize your collection:
 				</p>
 
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-					<div class="bg-input-bg border border-line rounded-card p-4">
-						<div class="flex items-center gap-2 mb-2">
-							<span class="material-icons text-brand">list_alt</span>
-							<strong class="text-sm">Backlog</strong>
-						</div>
-						<p class="text-[0.75rem] text-fg-secondary leading-snug">
-							Your <strong>runs</strong> — games you're playing, completed, abandoned or own but haven't started. The heart of Completr.
-						</p>
-					</div>
 					<div class="bg-input-bg border border-line rounded-card p-4">
 						<div class="flex items-center gap-2 mb-2">
 							<span class="material-icons text-brand">shelves</span>
@@ -268,15 +259,6 @@
 							Your <strong>all-time favorites</strong>. No backlog needed — you can favorite anything.
 						</p>
 					</div>
-					<div class="bg-input-bg border border-line rounded-card p-4">
-						<div class="flex items-center gap-2 mb-2">
-							<span class="material-icons text-brand">bookmark</span>
-							<strong class="text-sm">Saved Views</strong>
-						</div>
-						<p class="text-[0.75rem] text-fg-secondary leading-snug">
-							Filters of your backlog you reuse often (e.g. "Playing on PC", "Completed in 2025"). Save once, recall anytime.
-						</p>
-					</div>
 					<div class="bg-input-bg border border-line rounded-card p-4 sm:col-span-2">
 						<div class="flex items-center gap-2 mb-2">
 							<span class="material-icons text-brand">format_list_bulleted</span>
@@ -285,6 +267,77 @@
 						<p class="text-[0.75rem] text-fg-secondary leading-snug">
 							Curated collections of games you build and (optionally) share — sagas, top picks, tournaments. Other users can follow your lists.
 						</p>
+					</div>
+				</div>
+			}
+
+			@case ('saved-views') {
+				<div class="flex items-center gap-3 mb-3">
+					<span class="material-icons text-3xl text-brand">bookmark</span>
+					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Saved Views</h2>
+				</div>
+				<p class="text-fg-secondary leading-relaxed text-sm mb-4">
+					Filter combinations of your backlog you reuse often. Save status, platform, dates and rating as a named view — recall it from <strong>/saved-views</strong> or pin it as a tab on your backlog.
+				</p>
+
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+					<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-3">
+						<div class="flex justify-between items-start gap-2">
+							<div class="flex items-center gap-2 min-w-0 flex-1">
+								<h3 class="font-display m-0 text-sm font-semibold text-fg line-clamp-1">Playing on Steam</h3>
+								<span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/15 text-warning">
+									<span class="material-icons text-[0.75rem]">star</span>
+									Default
+								</span>
+							</div>
+							<span class="material-icons text-base text-fg-muted">edit</span>
+						</div>
+						<div class="flex flex-wrap gap-1.5 mt-auto">
+							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-warning/10 text-warning">
+								<span class="material-icons text-[0.875rem]">play_arrow</span>
+								Playing
+							</span>
+							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-input-bg border border-line text-fg-secondary">
+								<span class="material-icons text-[0.875rem]">devices</span>
+								PC
+							</span>
+						</div>
+					</div>
+
+					<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-3">
+						<div class="flex justify-between items-start gap-2">
+							<div class="flex items-center gap-2 min-w-0 flex-1">
+								<h3 class="font-display m-0 text-sm font-semibold text-fg line-clamp-1">Completed in 2025</h3>
+								<span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand-subtle text-brand">
+									<span class="material-icons text-[0.75rem]">push_pin</span>
+									Pinned
+								</span>
+							</div>
+							<span class="material-icons text-base text-fg-muted">edit</span>
+						</div>
+						<div class="flex flex-wrap gap-1.5 mt-auto">
+							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-success/10 text-success">
+								<span class="material-icons text-[0.875rem]">check_circle</span>
+								Completed
+							</span>
+							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-input-bg border border-line text-fg-secondary">
+								<span class="material-icons text-[0.875rem]">event</span>
+								2025
+							</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="bg-brand/5 border border-brand/30 rounded-card p-3">
+					<div class="flex items-center gap-2 mb-1">
+						<span class="material-icons text-base text-warning">star</span>
+						<strong class="text-sm">Default</strong>
+						<span class="text-fg-muted text-xs">— opens automatically when you visit /backlog.</span>
+					</div>
+					<div class="flex items-center gap-2 mt-1.5">
+						<span class="material-icons text-base text-brand">push_pin</span>
+						<strong class="text-sm">Pinned</strong>
+						<span class="text-fg-muted text-xs">— shown as a tab on the backlog page for one-click switching.</span>
 					</div>
 				</div>
 			}
