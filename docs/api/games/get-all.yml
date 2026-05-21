@@ -13,10 +13,35 @@ settings:
 docs: |-
     ## Get All Games
 
-    Returns a list of all games.
+    Returns a paginated list of games with optional advanced filters.
 
     **Authentication:** Bearer token required (roles: user, premium, moderator).
     **Rate Limit:** 100 requests per minute.
+
+    ### Query Parameters
+
+    | Param              | Type    | Description                                              |
+    |--------------------|---------|----------------------------------------------------------|
+    | limit              | int     | 1-100, default 50                                        |
+    | offset             | int     | default 0                                                |
+    | sort_by            | enum    | createdAt, title, releaseAt, random — default createdAt  |
+    | sort_order         | enum    | asc, desc — default desc                                 |
+    | search             | string  | Partial title match (ILIKE)                              |
+    | genre              | string  | Single genre code (legacy, kept for compat)              |
+    | genres             | csv     | Multiple genre codes (comma-separated)                   |
+    | platforms          | csv     | Multiple platform codes (comma-separated)                |
+    | release_year_from  | int     | Inclusive lower bound                                    |
+    | release_year_to    | int     | Inclusive upper bound                                    |
+    | min_score          | float   | 0-5 (normalized 0-5 scale)                               |
+    | max_score          | float   | 0-5                                                      |
+    | min_duration       | float   | hours                                                    |
+    | max_duration       | float   | hours                                                    |
+    | is_dlc             | bool    | true / false to filter DLCs vs games                     |
+    | no_scores          | bool    | Admin: games without any score                           |
+    | no_times           | bool    | Admin: games without any duration                        |
+    | no_platforms       | bool    | Admin: games without platforms                           |
+    | no_score_source    | csv     | Admin: games missing these score sources                 |
+    | no_time_source     | csv     | Admin: games missing these time sources                  |
 
     ### Response (200)
 
@@ -28,22 +53,17 @@ docs: |-
             "id": "uuid",
             "title": "Metro Exodus",
             "code": "metro-exodus",
-            "description": "FPS game...",
+            "description": "...",
             "releaseAt": "2019-02-14",
-            "coverUrl": null,
-            "averageScore": null,
-            "averagePlaytime": null,
-            "updatedAt": "2025-01-01T00:00:00.000Z",
-            "platforms": [
-              {
-                "id": "uuid",
-                "name": "Steam",
-                "code": "steam",
-                "abbreviation": "steam"
-              }
-            ]
+            "platforms": [{ "id": "...", "abbreviation": "steam" }],
+            "genres": [{ "id": "...", "code": "shooter", "name": "Shooter" }],
+            "scores": [{ "source": "metacritic", "score": 4.1 }],
+            "times": [{ "source": "hltb", "duration": 12 }]
           }
-        ]
+        ],
+        "total": 1,
+        "limit": 50,
+        "offset": 0
       }
     }
     ```

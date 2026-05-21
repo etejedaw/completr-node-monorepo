@@ -102,7 +102,17 @@ export interface GamesQueryOptions {
 	offset?: number;
 	sort_by?: string;
 	sort_order?: string;
+	search?: string;
 	genre?: string;
+	genres?: readonly string[];
+	platforms?: readonly string[];
+	release_year_from?: number;
+	release_year_to?: number;
+	min_score?: number;
+	max_score?: number;
+	min_duration?: number;
+	max_duration?: number;
+	is_dlc?: boolean;
 	no_scores?: boolean;
 	no_times?: boolean;
 	no_platforms?: boolean;
@@ -116,7 +126,17 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		offset = 0,
 		sort_by = "createdAt",
 		sort_order = "desc",
+		search,
 		genre,
+		genres,
+		platforms,
+		release_year_from,
+		release_year_to,
+		min_score,
+		max_score,
+		min_duration,
+		max_duration,
+		is_dlc,
 		no_scores,
 		no_times,
 		no_platforms,
@@ -133,14 +153,80 @@ export async function findAll(options: GamesQueryOptions = {}) {
 			{ association: "GameTimes" }
 		];
 
-	if (genre) {
-		include.push({
-			association: "Genres",
-			where: { code: genre }
-		});
-	} else {
-		include.push({ association: "Genres" });
+	if (search) {
+		where["title"] = { [Op.iLike]: `%${search}%` };
 	}
+
+	if (is_dlc !== undefined) {
+		where["isDlc"] = is_dlc;
+	}
+
+	if (release_year_from !== undefined || release_year_to !== undefined) {
+		const range: Record<symbol, Date> = {};
+		if (release_year_from !== undefined) {
+			range[Op.gte] = new Date(`${release_year_from}-01-01`);
+		}
+		if (release_year_to !== undefined) {
+			range[Op.lte] = new Date(`${release_year_to}-12-31`);
+		}
+		where["releaseAt"] = range;
+	}
+
+	const genreCodes =
+		genres && genres.length > 0 ? genres : genre ? [genre] : null;
+	if (genreCodes) {
+		const escaped = genreCodes.map(g => sequelize.escape(g)).join(", ");
+		andConditions.push({
+			id: {
+				[Op.in]: sequelize.literal(
+					`(SELECT DISTINCT gg."gameId" FROM "GameGenres" gg JOIN "Genres" g ON g.id = gg."genreId" WHERE g.code IN (${escaped}))`
+				)
+			}
+		});
+	}
+
+	if (platforms && platforms.length > 0) {
+		const escaped = platforms.map(p => sequelize.escape(p)).join(", ");
+		andConditions.push({
+			id: {
+				[Op.in]: sequelize.literal(
+					`(SELECT DISTINCT gp."gameId" FROM "GamePlatforms" gp JOIN "Platforms" p ON p.id = gp."platformId" WHERE p.code IN (${escaped}))`
+				)
+			}
+		});
+	}
+
+	if (min_score !== undefined || max_score !== undefined) {
+		const conditions: string[] = [];
+		if (min_score !== undefined)
+			conditions.push(`AVG(score) >= ${min_score}`);
+		if (max_score !== undefined)
+			conditions.push(`AVG(score) <= ${max_score}`);
+		andConditions.push({
+			id: {
+				[Op.in]: sequelize.literal(
+					`(SELECT "gameId" FROM "GameScores" GROUP BY "gameId" HAVING ${conditions.join(" AND ")})`
+				)
+			}
+		});
+	}
+
+	if (min_duration !== undefined || max_duration !== undefined) {
+		const conditions: string[] = [];
+		if (min_duration !== undefined)
+			conditions.push(`AVG(duration) >= ${min_duration}`);
+		if (max_duration !== undefined)
+			conditions.push(`AVG(duration) <= ${max_duration}`);
+		andConditions.push({
+			id: {
+				[Op.in]: sequelize.literal(
+					`(SELECT "gameId" FROM "GameTimes" GROUP BY "gameId" HAVING ${conditions.join(" AND ")})`
+				)
+			}
+		});
+	}
+
+	include.push({ association: "Genres" });
 
 	if (no_scores) {
 		andConditions.push({
