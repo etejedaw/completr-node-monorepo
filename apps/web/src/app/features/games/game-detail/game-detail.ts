@@ -210,10 +210,10 @@ export class GameDetail implements OnInit {
 		const genre = game.genres?.[0];
 		if (!genre) return;
 		this.gamesService
-			.getGames({ limit: 10, genre: genre.code })
+			.getGames({ limit: 12, genre: genre.code })
 			.subscribe(res => {
 				const filtered = res.data.games.filter(g => g.id !== game.id);
-				this.similarGames.set(filtered.slice(0, 6));
+				this.similarGames.set(filtered.slice(0, 8));
 			});
 	}
 
