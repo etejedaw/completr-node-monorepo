@@ -230,7 +230,9 @@ export async function searchGames(query: string, forceRawg = false) {
 			]
 		});
 
-		if (localResults.length > 0) return localResults;
+		if (localResults.length > 0) {
+			return { games: localResults, importedIds: new Set<string>() };
+		}
 	}
 
 	return searchAndCreateFromRawg(query);
@@ -280,6 +282,7 @@ function mapRawgDetail(detail: RawgGameDetail) {
 }
 
 async function searchAndCreateFromRawg(query: string) {
+	const importedIds = new Set<string>();
 	try {
 		const rawgResults = await rawg.searchGame(query, {
 			page_size: 3,
@@ -290,8 +293,12 @@ async function searchAndCreateFromRawg(query: string) {
 
 		for (const result of rawgResults) {
 			try {
-				const game = await resolveRawgResult(result.id);
-				if (game) games.push(game);
+				const resolved = await resolveRawgResult(result.id);
+				if (resolved) {
+					games.push(resolved.game);
+					if (resolved.justImported)
+						importedIds.add(resolved.game.id);
+				}
 			} catch (error) {
 				logger.warn(
 					"searchAndCreateFromRawg",
@@ -301,15 +308,17 @@ async function searchAndCreateFromRawg(query: string) {
 			}
 		}
 
-		const slugGame = await resolveRawgBySlug(query);
-		if (slugGame && !games.some(g => g.id === slugGame.id)) {
-			games.unshift(slugGame);
+		const slugResolved = await resolveRawgBySlug(query);
+		if (slugResolved && !games.some(g => g.id === slugResolved.game.id)) {
+			games.unshift(slugResolved.game);
+			if (slugResolved.justImported)
+				importedIds.add(slugResolved.game.id);
 		}
 
-		return games;
+		return { games, importedIds };
 	} catch (error) {
 		logger.warn("searchAndCreateFromRawg", "RAWG fallback failed", error);
-		return [];
+		return { games: [], importedIds };
 	}
 }
 
@@ -317,14 +326,15 @@ async function resolveRawgBySlug(query: string) {
 	try {
 		const slug = titleToSlug(query);
 		const detail = await rawg.getGameBySlug(slug);
-		const game = await resolveRawgResult(detail.id);
-		return game;
+		return await resolveRawgResult(detail.id);
 	} catch {
 		return null;
 	}
 }
 
-async function resolveRawgResult(rawgNumericId: number) {
+async function resolveRawgResult(
+	rawgNumericId: number
+): Promise<{ game: Game; justImported: boolean } | null> {
 	const rawgId = String(rawgNumericId);
 
 	const existingExternal = await gameExternalService.findByExternalId(
@@ -332,7 +342,8 @@ async function resolveRawgResult(rawgNumericId: number) {
 		rawgId
 	);
 	if (existingExternal) {
-		return findGameById(existingExternal.gameId);
+		const game = await findGameById(existingExternal.gameId);
+		return game ? { game, justImported: false } : null;
 	}
 
 	const rawgDetail = await rawg.getGameById(rawgNumericId);
@@ -340,7 +351,7 @@ async function resolveRawgResult(rawgNumericId: number) {
 	const existingByCode = await findGameByCode(titleToSlug(mapped.game.title));
 	if (existingByCode) {
 		await gameExternalService.create(existingByCode.id, "rawg", rawgId);
-		return existingByCode;
+		return { game: existingByCode, justImported: false };
 	}
 
 	const game = await registerGame({
@@ -352,7 +363,7 @@ async function resolveRawgResult(rawgNumericId: number) {
 
 	await gameExternalService.create(game.id, "rawg", rawgId);
 
-	return game;
+	return { game, justImported: true };
 }
 
 export async function findGamesByGenreCode(genreCode: string) {

@@ -67,7 +67,7 @@ export async function getGamesByGenre(request: Request, response: Response) {
 
 	const data = {
 		genre: genre.get({ plain: true }),
-		games: gamesPlain.map(gameSerializer)
+		games: gamesPlain.map(g => gameSerializer(g))
 	};
 	return response.status(200).json({ data });
 }

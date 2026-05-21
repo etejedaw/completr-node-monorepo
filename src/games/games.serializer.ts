@@ -5,7 +5,10 @@ import { Genre } from "../genres/genres.model";
 import { Platform } from "../platforms/platform.model";
 import { Game } from "./game.model";
 
-export function gameSerializer(game: Game) {
+export function gameSerializer(
+	game: Game,
+	options: { justImported?: boolean } = {}
+) {
 	return {
 		id: game.id,
 		title: game.title,
@@ -18,6 +21,7 @@ export function gameSerializer(game: Game) {
 		parentGameId: game.parentGameId,
 		updatedAt: game.updatedAt,
 		ratio: calculateRatio(game.GameScores, game.GameTimes),
+		justImported: options.justImported ?? false,
 		platforms: game.Platforms?.map(platformSerializer) ?? [],
 		genres: game.Genres?.map(genreSerializer) ?? [],
 		scores: game.GameScores?.map(scoreSerializer) ?? [],
