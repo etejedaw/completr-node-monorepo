@@ -3,7 +3,7 @@ import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { Backlog } from "./backlog.model";
-import { Wishlist } from "../wishlist/wishlist.model";
+import { Queue } from "../queue/queue.model";
 import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import { BacklogQuery } from "./schemas/backlog-query.schema";
@@ -184,18 +184,18 @@ export async function updateBacklog(
 
 	await backlogEntry.update(updateBacklog);
 
-	let wishlistRemoved = false;
+	let queueRemoved = false;
 	if (
 		updateBacklog.status === "completed" ||
 		updateBacklog.status === "abandoned"
 	) {
-		const deletedCount = await Wishlist.destroy({
+		const deletedCount = await Queue.destroy({
 			where: { backlogId: id }
 		});
-		wishlistRemoved = deletedCount > 0;
+		queueRemoved = deletedCount > 0;
 	}
 
-	return { backlog: backlogEntry, wishlistRemoved };
+	return { backlog: backlogEntry, queueRemoved };
 }
 
 export async function findLatestCompletedDurations(

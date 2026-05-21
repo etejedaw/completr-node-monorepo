@@ -1,18 +1,25 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
+import { Backlog } from "../backlog/backlog.model";
 import { Game } from "../games/game.model";
+import { Platform } from "../platforms/platform.model";
 
-class Wishlist extends Model {
+interface BacklogWithIncludes extends Backlog {
+	Game: Game;
+	Platform: Platform;
+}
+
+class Queue extends Model {
 	declare id: string;
 	declare userId: string;
-	declare gameId: string;
+	declare backlogId: string;
 	declare position: number;
 	declare createdAt: Date;
 	declare updatedAt: Date;
-	declare Game: Game;
+	declare Backlog: BacklogWithIncludes;
 }
 
-Wishlist.init(
+Queue.init(
 	{
 		id: {
 			type: DataTypes.UUID,
@@ -24,7 +31,7 @@ Wishlist.init(
 			type: DataTypes.UUID,
 			allowNull: false
 		},
-		gameId: {
+		backlogId: {
 			type: DataTypes.UUID,
 			allowNull: false
 		},
@@ -35,8 +42,8 @@ Wishlist.init(
 	},
 	{
 		sequelize,
-		indexes: [{ unique: true, fields: ["userId", "gameId"] }]
+		indexes: [{ unique: true, fields: ["userId", "backlogId"] }]
 	}
 );
 
-export { Wishlist };
+export { Queue };

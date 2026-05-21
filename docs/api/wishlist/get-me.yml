@@ -1,7 +1,7 @@
 info:
     name: Get My Wishlist
     type: http
-    seq: 3
+    seq: 4
 
 http:
     method: GET
@@ -14,7 +14,7 @@ settings:
 docs: |-
     ## Get My Wishlist
 
-    Returns the authenticated user's wishlist ordered by position.
+    Returns the authenticated user's wishlist (games they want to obtain) ordered by position.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -28,18 +28,10 @@ docs: |-
           {
             "id": "uuid",
             "position": 1,
-            "backlog": {
-              "id": "uuid",
-              "status": "not_started",
-              "score": 89,
-              "duration": 6,
-              "startedAt": null,
-              "notes": null,
-              "game": { "id": "uuid", "title": "...", "coverUrl": "...", "isDlc": false },
-              "platform": { "id": "uuid", "abbreviation": "..." }
-            }
+            "game": { "id": "uuid", "title": "...", "code": "...", "backgroundUrl": "...", "isDlc": false }
           }
-        ]
+        ],
+        "total": 1
       }
     }
     ```

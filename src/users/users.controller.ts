@@ -5,6 +5,7 @@ import * as authService from "../auth/auth.service";
 import * as backlogService from "../backlog/backlog.service";
 import * as listsService from "../lists/lists.service";
 import * as favoritesService from "../favorites/favorites.service";
+import * as queueService from "../queue/queue.service";
 import * as wishlistService from "../wishlist/wishlist.service";
 import * as gameShelfService from "../game-shelf/game-shelf.service";
 import * as activityService from "../activity/activity.service";
@@ -20,6 +21,7 @@ import {
 	listSerializer
 } from "../lists/lists.serializer";
 import { favoriteSerializer } from "../favorites/favorites.serializer";
+import { queueSerializer } from "../queue/queue.serializer";
 import { wishlistSerializer } from "../wishlist/wishlist.serializer";
 import { gameShelfMeSerializer } from "../game-shelf/serializers/game-shelf-me.serializer";
 import { activitySerializer } from "../activity/activity.serializer";
@@ -57,6 +59,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 		backlogResult,
 		lists,
 		favorites,
+		queue,
 		wishlist,
 		gameShelfResult,
 		followingLists,
@@ -73,6 +76,9 @@ export async function getUserByUsername(request: Request, response: Response) {
 			: listsService.findPublicListsByUserId(userId),
 		isSelf || user.isFavoritePublic
 			? favoritesService.findFavoritesByUserId(userId)
+			: Promise.resolve([]),
+		isSelf || user.isQueuePublic
+			? queueService.findQueueByUserId(userId)
 			: Promise.resolve([]),
 		isSelf || user.isWishlistPublic
 			? wishlistService.findWishlistByUserId(userId)
@@ -133,6 +139,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 		),
 		lists: listsWithFollowers,
 		favorites: favorites.map(favoriteSerializer),
+		queue: queue.map(queueSerializer),
 		wishlist: wishlist.map(wishlistSerializer),
 		gameShelf: gameShelf.map(gameShelfMeSerializer),
 		followingLists: followingListsWithProgress,

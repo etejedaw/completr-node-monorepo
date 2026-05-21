@@ -15,29 +15,17 @@ export function wishlistDomainToHttpMapper(
 		context: error.context
 	};
 
-	if (error.code === "WISHLIST_BACKLOG_NOT_FOUND")
-		return new HttpError({ ...baseOptions, status: 404 });
+	if (error.code === "WISHLIST_LIMIT_REACHED")
+		return new HttpError({ ...baseOptions, status: 402 });
 
-	if (error.code === "WISHLIST_BACKLOG_NOT_OWNED")
-		return new HttpError({ ...baseOptions, status: 403 });
-
-	if (error.code === "WISHLIST_GAME_NOT_FOUND")
-		return new HttpError({ ...baseOptions, status: 404 });
-
-	if (error.code === "WISHLIST_PLATFORM_NOT_FOUND")
+	if (error.code === "WISHLIST_GAMES_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
 	if (error.code === "WISHLIST_ALREADY_EXISTS")
 		return new HttpError({ ...baseOptions, status: 409 });
 
-	if (error.code === "WISHLIST_LIMIT_REACHED")
-		return new HttpError({ ...baseOptions, status: 402 });
-
-	if (error.code === "WISHLIST_BACKLOGS_NOT_FOUND")
+	if (error.code === "WISHLIST_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
-
-	if (error.code === "WISHLIST_SOURCE_MISMATCH")
-		return new HttpError({ ...baseOptions, status: 400 });
 
 	return new HttpError({ ...baseOptions, status: 500 });
 }

@@ -59,6 +59,7 @@ docs: |-
           "bio": null,
           "avatarUrl": null,
           "isPublic": true,
+          "isQueuePublic": true,
           "isWishlistPublic": true,
           "isFavoritePublic": true,
           "createdAt": "2026-04-15T00:00:00.000Z"

@@ -1,0 +1,80 @@
+info:
+    name: Add to Queue
+    type: http
+    seq: 1
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/queue?source=game"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    params:
+        - name: source
+          type: query
+          value: game
+    body:
+        type: json
+        data: |-
+            {
+              "id": "game-uuid",
+              "platformId": "platform-uuid"
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Add to Queue
+
+    Adds a game or backlog entry to the user's play queue (games they want to play soon).
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Query Params
+
+    | Param  | Type   | Required | Description                                     |
+    |--------|--------|----------|-------------------------------------------------|
+    | source | string | Yes      | `game` (creates backlog) or `backlog` (existing) |
+
+    ### Request Body
+
+    | Field      | Type | Required               | Description                        |
+    |------------|------|------------------------|------------------------------------|
+    | id         | uuid | Yes                    | Game ID (source=game) or Backlog ID (source=backlog) |
+    | platformId | uuid | Yes (source=game only) | Platform for the new backlog entry |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "queue": {
+          "id": "uuid",
+          "position": 1,
+          "backlog": {
+            "id": "uuid",
+            "status": "not_started",
+            "score": null,
+            "duration": null,
+            "startedAt": null,
+            "notes": null,
+            "game": { "id": "uuid", "title": "...", "coverUrl": "...", "isDlc": false },
+            "platform": { "id": "uuid", "abbreviation": "..." }
+          }
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 400 `QUEUE_SOURCE_MISMATCH` — platformId missing when source=game
+    - 402 `QUEUE_LIMIT_REACHED` — Free plan limit (10) reached
+    - 404 `QUEUE_GAME_NOT_FOUND`
+    - 404 `QUEUE_PLATFORM_NOT_FOUND`
+    - 404 `QUEUE_BACKLOG_NOT_FOUND`
+    - 403 `QUEUE_BACKLOG_NOT_OWNED`
+    - 409 `QUEUE_ALREADY_EXISTS`

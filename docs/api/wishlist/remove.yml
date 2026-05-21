@@ -1,0 +1,32 @@
+info:
+    name: Remove from Wishlist
+    type: http
+    seq: 2
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/users/me/wishlist/:gameId"
+    auth: inherit
+    params:
+        - name: gameId
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Remove from Wishlist
+
+    Removes a game from the user's wishlist by gameId.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response
+
+    - 204 No Content on success.
+
+    ### Errors
+
+    - 404 `WISHLIST_NOT_FOUND` — Game is not in wishlist.

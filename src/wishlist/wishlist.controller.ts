@@ -3,55 +3,53 @@ import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as usersService from "../users/users.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import * as wishlistService from "./wishlist.service";
-import * as wishlistDomainError from "./errors/wishlist.domain-error";
 import * as activityService from "../activity/activity.service";
-import { AddWishlistBody } from "./schemas/add-wishlist-body.schema";
-import { AddWishlistQuery } from "./schemas/add-wishlist-query.schema";
 import { ReplaceWishlistBody } from "./schemas/replace-wishlist.schema";
+import { AddWishlistBody } from "./schemas/add-wishlist.schema";
+import { WishlistGameParams } from "./schemas/wishlist-game-params.schema";
 import { UsernameParam } from "../users/schemas/username-params.schema";
 import { wishlistSerializer } from "./wishlist.serializer";
-
-export async function postWishlist(request: Request, response: Response) {
-	const body = request.locals.body as AddWishlistBody;
-	const query = request.locals.query as AddWishlistQuery;
-	const user = request.locals.user as RequestUser;
-
-	let entry;
-
-	if (query.source === "game") {
-		if (!body.platformId)
-			throw wishlistDomainError.wishlistSourceMismatch();
-		entry = await wishlistService.addFromGame(
-			body.id,
-			body.platformId,
-			user
-		);
-	} else {
-		entry = await wishlistService.addFromBacklog(body.id, user);
-	}
-
-	const entryPlain = entry!.get({ plain: true });
-	const gameId = entryPlain.Backlog?.gameId;
-	if (gameId) {
-		activityService.record(user.id, "wishlist_added", gameId);
-	}
-
-	const data = { wishlist: wishlistSerializer(entryPlain) };
-	return response.status(201).json({ data });
-}
 
 export async function putWishlist(request: Request, response: Response) {
 	const body = request.locals.body as ReplaceWishlistBody;
 	const user = request.locals.user as RequestUser;
 
-	const entries = await wishlistService.replaceWishlist(
-		user,
-		body.backlogIds
+	const currentIds = new Set(
+		(await wishlistService.findWishlistByUserId(user.id)).map(e => e.gameId)
 	);
+
+	const entries = await wishlistService.replaceWishlist(user, body.gameIds);
 	const entriesPlain = entries.map(e => e.get({ plain: true }));
+
+	for (const gameId of body.gameIds) {
+		if (!currentIds.has(gameId)) {
+			activityService.record(user.id, "wishlist_added", gameId);
+		}
+	}
 
 	const data = { wishlist: entriesPlain.map(wishlistSerializer) };
 	return response.status(200).json({ data });
+}
+
+export async function postWishlist(request: Request, response: Response) {
+	const body = request.locals.body as AddWishlistBody;
+	const user = request.locals.user as RequestUser;
+
+	const entry = await wishlistService.addToWishlist(user, body.gameId);
+	const entryPlain = entry!.get({ plain: true });
+
+	activityService.record(user.id, "wishlist_added", body.gameId);
+
+	const data = { wishlist: wishlistSerializer(entryPlain) };
+	return response.status(201).json({ data });
+}
+
+export async function deleteWishlistItem(request: Request, response: Response) {
+	const params = request.locals.params as WishlistGameParams;
+	const user = request.locals.user as RequestUser;
+
+	await wishlistService.removeFromWishlist(user, params.gameId);
+	return response.sendStatus(204);
 }
 
 export async function getMeWishlist(request: Request, response: Response) {
