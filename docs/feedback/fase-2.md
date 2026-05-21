@@ -629,10 +629,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-07
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al editar un item del backlog, los valores actuales de score y duration se ven correctamente, pero no se puede actualizarlos cambiando la fuente que los provee. Ejemplo: un juego quedo registrado con la duration de RAWG y el usuario ahora quiere reemplazarla por la de HLTB — el modal no ofrece la opcion de re-fetchear ni elegir entre las fuentes ya existentes (Metacritic, OpenCritic, RAWG, HLTB) para tomar el valor mas actualizado o preferido. Para cambiar la fuente hoy hay que ir al panel admin de games, lo cual no es accesible para usuarios normales.
-- **Solucion propuesta:** Permitir desde el modal de backlog (o desde la vista de detalle del juego) actualizar el score/duration eligiendo entre las fuentes existentes. Opciones: (1) mostrar un selector con las fuentes disponibles (Metacritic, OpenCritic, RAWG, HLTB) y el valor que cada una reporta, dejando elegir cual usar como valor activo del juego; (2) un boton "Refresh from sources" que vuelva a consultar las APIs externas y actualice los valores. Definir si esta accion afecta el game compartido (todos los usuarios ven el cambio) o solo el backlog personal — si es lo primero, podria requerir moderacion o limitarse a ciertos roles. Relacionado con FB-005 (admin no puede borrar scores/durations), ambos apuntan a que el flujo de edicion de scores/durations esta incompleto.
+- **Causa raiz:** El `backlog-modal` ya tenia los source buttons (Metacritic, HLTB, etc.) implementados — pero en modo edit, el `selectedGame` se seteaba con `{id, code, title, backgroundUrl}` solamente, sin `scores` ni `times`. El computed `gameScores()` devolvia `[]` → el wrapper de source buttons no renderizaba (la condicion era `gameScores().length > 0`).
+- **Solucion:** En `backlog-modal.ngOnInit`, cuando hay `entry()` (modo edit), se sigue seteando el `selectedGame` parcial inmediatamente (para que el form se inicialice), pero ademas se dispara `gamesService.getByCode(e.game.code)` y se actualiza `selectedGame` con el shape completo (incluyendo scores y times). Una vez resuelto, los source buttons aparecen al lado de los campos Critic Score y Duration. Click en cualquiera actualiza el form (via `applyScore`/`applyDuration` que ya existian). El cambio solo afecta el backlog del usuario; el game compartido no se toca.
 
 ### [FB-071] Wishlist no permite ordenar por columnas ni persistir el orden resultante
 
