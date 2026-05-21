@@ -636,10 +636,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-07
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En la wishlist se puede reordenar manualmente arrastrando los juegos, pero no hay forma de ordenar la lista por las columnas score, duration o ratio. Si el usuario quisiera priorizar la wishlist por ratio (la feature diferenciadora de Completr), tiene que comparar valores a ojo y arrastrar uno por uno. Ademas, despues de un sort por columna no hay opcion de "fijar" ese orden como la posicion guardada de los items, perdiendo el resultado al refrescar.
-- **Solucion propuesta:** (1) Hacer las columnas score, duration y ratio clickeables para ordenar asc/desc, igual que en backlog. (2) Despues de aplicar un sort por columna, ofrecer un boton "Save this order" que persista las posiciones actuales como el orden manual de la wishlist (sobreescribe el campo de posicion/sortOrder de cada item). Asi el usuario puede usar el sort como herramienta de priorizacion y luego congelarlo. Considerar si el sort por columna es solo visual (no toca DB) hasta que se confirme con el boton, para evitar mutaciones accidentales.
+- **Solucion:** Adaptado al nuevo contexto de wishlist (solo vista grid post-FB-107). Agregado "Sort by" en el toolbar con chips estilo backlog/shelf: `Manual` (default, respeta posiciones persistidas), `Ratio`, `Score`, `Duration`. El ordenamiento es puramente visual (computed signal `filteredEntries`) hasta que el usuario lo congela. Cuando `sortBy !== 'manual'`, aparece un boton secundario "Save this order" (bg-brand-subtle text-brand) que persiste el orden actual via `wishlistService.reorder(backlogIds)` y resetea sortBy a manual. Mientras hay un sort activo, las flechas reorder de las cards se deshabilitan (forzando `isFirst`/`isLast` a true) para evitar reorders accidentales sobre un orden no-persistido — el boton remove sigue activo.
 
 ### [FB-072] Listas no muestran si el juego esta completado o abandonado
 
