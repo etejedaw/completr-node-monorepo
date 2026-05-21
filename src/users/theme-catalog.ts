@@ -7,6 +7,7 @@ export interface ThemeEntry {
 
 export const THEME_CATALOG: ThemeEntry[] = [
 	{ id: "refined-dark", tier: "free" },
+	{ id: "midnight-cyan", tier: "free" },
 	{ id: "twilight-arcade", tier: "free" }
 ];
 
