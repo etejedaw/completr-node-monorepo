@@ -50,8 +50,17 @@ docs: |-
               "code": "steam",
               "abbreviation": "steam"
             }
-          ]
+          ],
+          "isCompilation": false,
+          "compilationItems": [],
+          "partOfCompilations": []
         }
       }
     }
     ```
+
+    ### Compilation fields
+
+    - `isCompilation` — true when this game bundles other games (e.g. Mass Effect Legendary Edition).
+    - `compilationItems` — children of this compilation, ordered by `position`. Each entry: `{ id, position, game: { id, title, code, ... } }`.
+    - `partOfCompilations` — list of compilations that include this game as a child. Each entry: `{ id, parentGame: { id, title, code, ... } }`.

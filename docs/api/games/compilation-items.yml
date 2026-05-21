@@ -1,0 +1,91 @@
+info:
+    name: Set Compilation Items
+    type: http
+    seq: 11
+
+http:
+    method: PUT
+    url: "{{BASE_URL}}/games/:id/compilation-items"
+    params:
+        - name: id
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "items": [
+                { "mode": "link",   "gameId": "uuid-of-mass-effect-1-classic" },
+                { "mode": "link",   "gameId": "uuid-of-mass-effect-2-classic" },
+                { "mode": "create", "title":  "Mass Effect 3 Legendary Edition" }
+              ]
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Set Compilation Items
+
+    Replaces the full list of children for a compilation game. Marks the parent
+    as `isCompilation=true`. Each item is either:
+
+    - `mode: "link"` — `gameId` references an existing game (Case B: contents
+      already exist standalone, e.g. Mass Effect Trilogy linking classic ME1/ME2/ME3).
+    - `mode: "create"` — `title` is used to spawn a new child game that inherits
+      `description`, `releaseAt`, `coverUrl`, `backgroundUrl` from the parent
+      (Case A: contents only exist inside the bundle, e.g. Mass Effect Legendary
+      Edition's remastered titles).
+
+    Existing rows in `CompilationItems` for the parent are deleted before the new
+    list is written. Position is taken from the index in the request body.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 300 requests per minute (admin/moderator exempt).
+
+    ### Path Parameters
+
+    | Param | Type | Required | Description                       |
+    |-------|------|----------|-----------------------------------|
+    | id    | uuid | Yes      | The parent (compilation) game UUID |
+
+    ### Request Body
+
+    | Field | Type  | Required | Description                                       |
+    |-------|-------|----------|---------------------------------------------------|
+    | items | array | Yes      | 1 to 50 items, each `{mode: "link"|"create", ...}` |
+
+    Per-item shape:
+
+    | Field   | Type   | Required when                  |
+    |---------|--------|--------------------------------|
+    | mode    | string | always (`"link"` or `"create"`) |
+    | gameId  | uuid   | when `mode = "link"`            |
+    | title   | string | when `mode = "create"` (max 200) |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "items": [
+          {
+            "id": "uuid-row",
+            "position": 0,
+            "childGameId": "uuid-child",
+            "childGame": { "id": "...", "title": "Mass Effect", "code": "mass-effect", ... }
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 400 `GAME_COMPILATION_INVALID` — duplicate childGameId, duplicate generated slug, or parent referenced as its own child
+    - 404 `GAME_NOT_FOUND` — parent or one of the linked children does not exist / is inactive
+    - 409 `GAME_UNIQUE_CONSTRAINT` — a target title collides with an existing game code
