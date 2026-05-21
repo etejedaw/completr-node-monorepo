@@ -438,6 +438,28 @@ export class GameDetail implements OnInit {
 		this.reportError.set("");
 	}
 
+	reportMissingData() {
+		const gameId = this.game()?.id;
+		if (!gameId || this.reportSubmitting()) return;
+		this.reportSubmitting.set(true);
+		this.gamesService
+			.reportGame(
+				gameId,
+				"Missing data for Completr Score (auto-reported from aggregate slot)",
+				"missing_score"
+			)
+			.subscribe({
+				next: () => {
+					this.reportSubmitting.set(false);
+					this.reportSent.set(true);
+				},
+				error: err => {
+					this.reportSubmitting.set(false);
+					if (err.status === 409) this.reportSent.set(true);
+				}
+			});
+	}
+
 	submitReport() {
 		const gameId = this.game()?.id;
 		const message = this.reportMessage();

@@ -38,7 +38,10 @@
 							<span class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/15 text-white backdrop-blur-sm">{{ p.abbreviation }}</span>
 						}
 						@for (g of game()!.genres.slice(0, 3); track g.id) {
-							<span class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/10 text-white/85 backdrop-blur-sm">{{ g.name }}</span>
+							<a
+								class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25"
+								[routerLink]="['/genres', g.code]"
+							>{{ g.name }}</a>
 						}
 						@if (game()!.isDlc) {
 							<span class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-warning/30 text-warning backdrop-blur-sm">DLC</span>
@@ -165,14 +168,22 @@
 							<span class="text-3xl font-bold text-fg-muted leading-none">—</span>
 							<span class="text-xs uppercase tracking-wider text-fg-muted">No data</span>
 						</div>
-						<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">Be the first to review this game, or report missing scores.</p>
-						<button
-							class="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-input-bg border border-line rounded text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand"
-							(click)="openReportModal()"
-						>
-							<span class="material-icons text-sm">flag</span>
-							Report missing data
-						</button>
+						<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">Be the first to review this game, or let us know.</p>
+						@if (reportSent()) {
+							<div class="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-success/10 border border-success/30 rounded text-xs font-medium text-success">
+								<span class="material-icons text-sm">check_circle</span>
+								Thanks — reported
+							</div>
+						} @else {
+							<button
+								class="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-input-bg border border-line rounded text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-60"
+								[disabled]="reportSubmitting()"
+								(click)="reportMissingData()"
+							>
+								<span class="material-icons text-sm">flag</span>
+								{{ reportSubmitting() ? "Reporting..." : "Report missing data" }}
+							</button>
+						}
 					</div>
 				}
 
