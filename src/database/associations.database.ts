@@ -26,6 +26,7 @@ import { ActivityList } from "../activity/targets/activity-list.model";
 import { ActivityUser } from "../activity/targets/activity-user.model";
 import { AuditLog } from "../audit/audit.model";
 import { Review } from "../reviews/review.model";
+import { CompilationItem } from "../compilation-items/compilation-item.model";
 
 export function setupAssociations() {
 	gameDlc();
@@ -50,6 +51,26 @@ export function setupAssociations() {
 	activities();
 	auditLogs();
 	reviews();
+	compilations();
+}
+
+function compilations() {
+	Game.hasMany(CompilationItem, {
+		foreignKey: "parentGameId",
+		as: "CompilationItems"
+	});
+	Game.hasMany(CompilationItem, {
+		foreignKey: "childGameId",
+		as: "PartOfCompilations"
+	});
+	CompilationItem.belongsTo(Game, {
+		foreignKey: "parentGameId",
+		as: "ParentGame"
+	});
+	CompilationItem.belongsTo(Game, {
+		foreignKey: "childGameId",
+		as: "ChildGame"
+	});
 }
 
 function reviews() {
