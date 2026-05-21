@@ -378,6 +378,13 @@
 								<span class="ml-1 text-xs text-fg-muted">{{ game()!.dlcs.length }}</span>
 							</button>
 						}
+						@if (game()!.isCompilation && (game()!.compilationItems?.length ?? 0) > 0) {
+							<button uiTab value="compilation" class="!whitespace-nowrap">
+								<span class="material-icons text-base mr-1.5 align-middle">library_books</span>
+								Compilation
+								<span class="ml-1 text-xs text-fg-muted">{{ game()!.compilationItems!.length }}</span>
+							</button>
+						}
 						@if (similarGames().length > 0) {
 							<button uiTab value="similar" class="!whitespace-nowrap">
 								<span class="material-icons text-base mr-1.5 align-middle">apps</span>
@@ -387,6 +394,20 @@
 					</ui-tab-list>
 
 					<div uiTabPanel value="overview">
+						@if ((game()!.partOfCompilations?.length ?? 0) > 0) {
+							<div class="mb-6">
+								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Part of</h3>
+								<div class="flex flex-wrap gap-2">
+									@for (link of game()!.partOfCompilations!; track link.id) {
+										<a class="flex items-center gap-2 py-1.5 px-3 bg-surface border border-line rounded-full text-sm text-fg no-underline transition hover:border-brand hover:text-brand" [routerLink]="['/games', link.parentGame.code]">
+											<span class="material-icons text-base">library_books</span>
+											{{ link.parentGame.title }}
+										</a>
+									}
+								</div>
+							</div>
+						}
+
 						@if (game()!.description) {
 							<div class="mb-6">
 								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Description</h3>
@@ -552,6 +573,28 @@
 						</div>
 					}
 
+					@if (game()!.isCompilation && (game()!.compilationItems?.length ?? 0) > 0) {
+						<div uiTabPanel value="compilation">
+							<p class="text-fg-secondary text-sm mb-4">This is a compilation that bundles the following games. Add the one you're playing to your backlog.</p>
+							<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+								@for (item of game()!.compilationItems!; track item.id) {
+									@if (item.game) {
+										<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', item.game.code]">
+											@if (item.game.backgroundUrl) {
+												<img [src]="item.game.backgroundUrl" [alt]="item.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+											} @else {
+												<div class="w-full aspect-[3/4] bg-surface rounded-lg flex items-center justify-center text-fg-muted">
+													<span class="material-icons">videogame_asset</span>
+												</div>
+											}
+											<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ item.game.title }}</span>
+										</a>
+									}
+								}
+							</div>
+						</div>
+					}
+
 					@if (similarGames().length > 0) {
 						<div uiTabPanel value="similar">
 							<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -576,11 +619,63 @@
 
 @if (showBacklogModal()) {
 	<app-backlog-modal
-		[preselectedGame]="game()"
+		[preselectedGame]="backlogModalGame() ?? game()"
 		[preselectAddToQueue]="backlogModalPreselectQueue()"
 		(closed)="onModalClosed()"
 		(saved)="onModalSaved()"
 	/>
+}
+
+@if (compilationPickerOpen() && game()) {
+	<div class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]" (click)="closeCompilationPicker()">
+		<div class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]" (click)="$event.stopPropagation()">
+			<div class="flex justify-between items-center mb-2">
+				<h2 class="font-display m-0 text-lg font-bold">Which one are you playing?</h2>
+				<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="closeCompilationPicker()">
+					<span class="material-icons">close</span>
+				</button>
+			</div>
+			<p class="text-[0.8125rem] text-fg-secondary mb-4">{{ game()!.title }} is a compilation. Pick the title you're playing now, or track the whole bundle as a single entry.</p>
+
+			<div class="flex flex-col gap-2 mb-4">
+				@for (item of game()!.compilationItems!; track item.id) {
+					@if (item.game) {
+						<button
+							class="flex items-center gap-3 p-3 bg-input-bg border border-line rounded text-left cursor-pointer transition hover:border-brand hover:bg-brand-subtle"
+							(click)="pickCompilationChild(item.game)"
+						>
+							@if (item.game.backgroundUrl) {
+								<img [src]="item.game.backgroundUrl" [alt]="item.game.title" class="w-12 h-12 object-cover rounded shrink-0" />
+							} @else {
+								<div class="w-12 h-12 bg-surface rounded flex items-center justify-center shrink-0 text-fg-muted">
+									<span class="material-icons text-sm">videogame_asset</span>
+								</div>
+							}
+							<div class="flex-1 min-w-0">
+								<div class="text-sm font-medium text-fg">{{ item.game.title }}</div>
+								<div class="text-xs text-fg-muted">{{ item.game.code }}</div>
+							</div>
+							<span class="material-icons text-fg-muted">chevron_right</span>
+						</button>
+					}
+				}
+			</div>
+
+			<button
+				class="w-full flex items-center gap-3 p-3 bg-transparent border border-dashed border-line rounded text-left cursor-pointer transition hover:border-brand hover:bg-brand-subtle"
+				(click)="pickCompilationWhole()"
+			>
+				<div class="w-12 h-12 bg-surface rounded flex items-center justify-center shrink-0 text-fg-muted">
+					<span class="material-icons">library_books</span>
+				</div>
+				<div class="flex-1 min-w-0">
+					<div class="text-sm font-medium text-fg">The whole compilation</div>
+					<div class="text-xs text-fg-muted">Track {{ game()!.title }} as a single backlog entry</div>
+				</div>
+				<span class="material-icons text-fg-muted">chevron_right</span>
+			</button>
+		</div>
+	</div>
 }
 @if (showShelfModal()) {
 	<app-game-shelf-modal [preselectedGame]="game()" (closed)="onModalClosed()" (saved)="onModalSaved()" />

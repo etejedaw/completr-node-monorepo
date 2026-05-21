@@ -73,6 +73,8 @@ export class GameDetail implements OnInit {
 	protected readonly addedToQueue = signal(false);
 	protected readonly showBacklogModal = signal(false);
 	protected readonly backlogModalPreselectQueue = signal(false);
+	protected readonly backlogModalGame = signal<Game | null>(null);
+	protected readonly compilationPickerOpen = signal(false);
 	protected readonly showShelfModal = signal(false);
 	protected readonly isModerator = computed(() => {
 		const role = this.authService.user()?.role;
@@ -188,6 +190,13 @@ export class GameDetail implements OnInit {
 					this.featuredLists.set(data.lists);
 					this.myLists.set(data.myLists);
 				});
+				if (
+					this.route.snapshot.queryParamMap.get("addToBacklog") === "1"
+				) {
+					this.backlogModalGame.set(game);
+					this.backlogModalPreselectQueue.set(false);
+					this.showBacklogModal.set(true);
+				}
 			},
 			error: () => this.isLoading.set(false)
 		});
@@ -291,7 +300,34 @@ export class GameDetail implements OnInit {
 	}
 
 	openBacklogModal() {
+		const g = this.game();
+		if (!g) return;
 		this.backlogModalPreselectQueue.set(false);
+		const items = g.compilationItems ?? [];
+		if (g.isCompilation && items.length > 0) {
+			this.compilationPickerOpen.set(true);
+			return;
+		}
+		this.backlogModalGame.set(g);
+		this.showBacklogModal.set(true);
+	}
+
+	closeCompilationPicker() {
+		this.compilationPickerOpen.set(false);
+	}
+
+	pickCompilationChild(child: { code: string; id: string }) {
+		this.compilationPickerOpen.set(false);
+		this.router.navigate(["/games", child.code], {
+			queryParams: { addToBacklog: "1" }
+		});
+	}
+
+	pickCompilationWhole() {
+		const g = this.game();
+		if (!g) return;
+		this.compilationPickerOpen.set(false);
+		this.backlogModalGame.set(g);
 		this.showBacklogModal.set(true);
 	}
 
@@ -303,12 +339,14 @@ export class GameDetail implements OnInit {
 		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
 		this.backlogModalPreselectQueue.set(false);
+		this.backlogModalGame.set(null);
 	}
 
 	onModalSaved() {
 		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
 		this.backlogModalPreselectQueue.set(false);
+		this.backlogModalGame.set(null);
 		const gameId = this.game()?.id;
 		if (gameId) this.loadUserStatus(gameId);
 	}
