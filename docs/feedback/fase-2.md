@@ -447,10 +447,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Tami
 - **Descripcion:** Al buscar "Tomodachi Life: Living the Dream" (probablemente un juego traido desde RAWG), la foto no cargo y se mostro un error. Posteriormente, al intentar agregar el juego al backlog, el boton "Add" quedo en estado disabled a pesar de que los campos obligatorios estaban llenos. El usuario no pudo agregar el juego. Es probable que el error al cargar los datos del juego (foto, scores, etc.) deje el formulario en un estado invalido que impide el submit.
-- **Solucion propuesta:** Investigar que pasa cuando un juego de RAWG falla al cargar datos parciales (imagen, scores, duration). Asegurar que el boton de submit se habilite basandose solo en los campos requeridos del formulario (game, platform) y no en datos opcionales como la imagen. Agregar manejo de error graceful cuando la imagen no carga (mostrar placeholder en vez de error). Verificar que el formulario no quede en estado inconsistente despues de un error parcial.
+- **Decision (2026-05-21):** Descartado. La raiz del problema esta en RAWG (datos incompletos/faltantes para ciertos juegos como Tomodachi Life), no en el frontend. El form requiere score y duration porque son campos centrales para el calculo de ratio, y mantenerlos required es intencional para la calidad de datos. Cuando un juego viene de RAWG sin esos datos, el flujo es: el usuario los completa manualmente o reporta la falta.
 
 ### [FB-051] Add to Shelf desde backlog modal muestra exito falso
 
