@@ -48,6 +48,7 @@ export class BacklogList implements OnInit {
 	protected readonly editingEntry = signal<BacklogEntry | null>(null);
 	private readonly wishlistBacklogIds = signal<Set<string>>(new Set());
 	protected readonly wishlistConfirmId = signal<string | null>(null);
+	protected readonly reviewExpandedIds = signal<Set<string>>(new Set());
 	private wishlistConfirmTimer: ReturnType<typeof setTimeout> | null = null;
 
 	private readonly queryParamMap = toSignal(this.route.queryParamMap);
@@ -431,6 +432,19 @@ export class BacklogList implements OnInit {
 		this.wishlistService.removeByBacklogId(entry.id).subscribe(() => {
 			this.loadWishlistIds();
 		});
+	}
+
+	isReviewExpanded(entryId: string) {
+		return this.reviewExpandedIds().has(entryId);
+	}
+
+	toggleReview(entry: BacklogEntry, event: Event) {
+		event.stopPropagation();
+		if (!entry.hasReview || !entry.notes) return;
+		const next = new Set(this.reviewExpandedIds());
+		if (next.has(entry.id)) next.delete(entry.id);
+		else next.add(entry.id);
+		this.reviewExpandedIds.set(next);
 	}
 
 	openCreate() {
