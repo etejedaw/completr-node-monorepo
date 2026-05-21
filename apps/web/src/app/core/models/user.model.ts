@@ -11,6 +11,7 @@ export interface User {
 	isWishlistPublic: boolean;
 	isFavoritePublic: boolean;
 	isFeedPublic: boolean;
+	theme?: string;
 	isActive: boolean;
 	createdAt: string;
 }

@@ -146,6 +146,31 @@ export class BacklogModal implements OnInit {
 	private readonly searchSubject = new Subject<string>();
 
 	protected readonly isEdit = signal(false);
+	protected readonly viewMode = signal<"summary" | "edit">("edit");
+
+	switchToEdit() {
+		this.viewMode.set("edit");
+	}
+
+	statusLabel(status?: string): string {
+		const map: Record<string, string> = {
+			not_started: "Not Started",
+			playing: "Playing",
+			completed: "Completed",
+			abandoned: "Abandoned"
+		};
+		return status ? (map[status] ?? status) : "";
+	}
+
+	statusClass(status?: string): string {
+		const map: Record<string, string> = {
+			not_started: "bg-fg-muted/10 text-fg-muted",
+			playing: "bg-warning/10 text-warning",
+			completed: "bg-success/10 text-success",
+			abandoned: "bg-danger/10 text-danger"
+		};
+		return status ? (map[status] ?? "") : "";
+	}
 
 	form = this.fb.group({
 		gameId: ["", Validators.required],
@@ -236,6 +261,7 @@ export class BacklogModal implements OnInit {
 		const e = this.entry();
 		if (e) {
 			this.isEdit.set(true);
+			this.viewMode.set("summary");
 			this.selectedGame.set({
 				id: e.game.id,
 				code: e.game.code,

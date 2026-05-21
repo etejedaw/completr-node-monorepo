@@ -44,11 +44,9 @@ export class ProfileView implements OnInit {
 	protected readonly stats = computed(() => {
 		const p = this.profile();
 		if (!p) return { completed: 0, playing: 0, lists: 0, reviews: 0 };
-		const completed = p.backlogs.filter(b => b.status === "completed").length;
-		const playing = p.backlogs.filter(b => b.status === "playing").length;
 		return {
-			completed,
-			playing,
+			completed: p.backlogStats?.completed ?? 0,
+			playing: p.backlogStats?.playing ?? 0,
 			lists: p.lists.length,
 			reviews: this.userReviewsTotal()
 		};

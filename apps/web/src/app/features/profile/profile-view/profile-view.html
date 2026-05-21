@@ -132,7 +132,7 @@
 					class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 					[routerLink]="['/user', profile()!.user.username, 'backlog']"
 				>
-					See all {{ profile()!.backlogs.length }}
+					See all
 					<span class="material-icons text-sm">arrow_forward</span>
 				</a>
 			</div>
@@ -174,7 +174,7 @@
 					class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 					[routerLink]="['/user', profile()!.user.username, 'game-shelf']"
 				>
-					See all {{ profile()!.gameShelf.length }}
+					See all
 					<span class="material-icons text-sm">arrow_forward</span>
 				</a>
 			</div>
@@ -269,7 +269,7 @@
 					class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 					[routerLink]="['/user', profile()!.user.username, 'favorites']"
 				>
-					See all {{ profile()!.favorites.length }}
+					See all
 					<span class="material-icons text-sm">arrow_forward</span>
 				</a>
 			</div>
@@ -298,7 +298,7 @@
 					class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 					[routerLink]="['/user', profile()!.user.username, 'queue']"
 				>
-					See all {{ profile()!.queue.length }}
+					See all
 					<span class="material-icons text-sm">arrow_forward</span>
 				</a>
 			</div>
@@ -328,7 +328,7 @@
 					class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 					[routerLink]="['/user', profile()!.user.username, 'wishlist']"
 				>
-					See all {{ profile()!.wishlist.length }}
+					See all
 					<span class="material-icons text-sm">arrow_forward</span>
 				</a>
 			</div>
@@ -353,7 +353,7 @@
 		<div uiTabPanel value="reviews">
 			<div class="flex items-baseline justify-between mb-3">
 				<h2 class="font-display m-0 text-xl font-bold text-fg">Reviews</h2>
-				<span class="text-xs text-fg-muted">{{ userReviewsTotal() }} total</span>
+				<a class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all" [routerLink]="['/user', profile()!.user.username, 'reviews']">See all<span class="material-icons text-sm">arrow_forward</span></a>
 			</div>
 			@if (userReviews().length === 0) {
 				<p class="text-center py-12 text-fg-muted text-sm">No reviews yet.</p>
@@ -384,7 +384,7 @@
 				@if (userReviewsTotal() > userReviews().length) {
 					<div class="text-center pt-4">
 						<a class="text-sm font-semibold text-brand no-underline hover:underline" [routerLink]="['/user', profile()!.user.username, 'reviews']">
-							See all {{ userReviewsTotal() }} reviews →
+							See all reviews →
 						</a>
 					</div>
 				}

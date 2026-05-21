@@ -4,6 +4,7 @@ import { Router } from "@angular/router";
 import { map, Observable, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { StorageService } from "./storage.service";
+import { ThemeService, ThemeId } from "./theme.service";
 import { User } from "../models";
 
 const TOKEN_KEY = "access_token";
@@ -45,6 +46,7 @@ export class AuthService {
 	private readonly http = inject(HttpClient);
 	private readonly storage = inject(StorageService);
 	private readonly router = inject(Router);
+	private readonly themeService = inject(ThemeService);
 
 	private readonly _user = signal<User | null>(null);
 	readonly user = this._user.asReadonly();
@@ -87,7 +89,14 @@ export class AuthService {
 	loadUser() {
 		return this.http
 			.get<UserResponse>(`${environment.apiUrl}/users/me`)
-			.pipe(tap(res => this._user.set(res.data.user)));
+			.pipe(
+				tap(res => {
+					this._user.set(res.data.user);
+					if (res.data.user.theme) {
+						this.themeService.setLocal(res.data.user.theme as ThemeId);
+					}
+				})
+			);
 	}
 
 	logout() {

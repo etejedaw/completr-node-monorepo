@@ -111,6 +111,11 @@ export const routes: Routes = [
 					)
 			},
 			{
+				path: "help",
+				loadComponent: () =>
+					import("./features/help/help-page").then(m => m.HelpPage)
+			},
+			{
 				path: "genres/:code",
 				loadComponent: () =>
 					import("./features/games/genre-detail/genre-detail").then(
@@ -194,6 +199,13 @@ export const routes: Routes = [
 							import(
 								"./features/settings/settings-privacy/settings-privacy"
 							).then(m => m.SettingsPrivacy)
+					},
+					{
+						path: "appearance",
+						loadComponent: () =>
+							import(
+								"./features/settings/settings-appearance/settings-appearance"
+							).then(m => m.SettingsAppearance)
 					},
 					{
 						path: "security",

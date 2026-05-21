@@ -8,6 +8,7 @@ import {
 	output,
 	signal
 } from "@angular/core";
+import { DatePipe } from "@angular/common";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { GameShelfEntry } from "../../../core/models";
 import { Game, Platform } from "../../../core/models";
@@ -28,7 +29,7 @@ import { UiButton, UiIconButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-game-shelf-modal",
-	imports: [ReactiveFormsModule, UiButton, UiIconButton],
+	imports: [DatePipe, ReactiveFormsModule, UiButton, UiIconButton],
 	templateUrl: "./game-shelf-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -58,6 +59,11 @@ export class GameShelfModal implements OnInit {
 
 	private readonly searchSubject = new Subject<string>();
 	protected readonly isEdit = signal(false);
+	protected readonly viewMode = signal<"summary" | "edit">("edit");
+
+	switchToEdit() {
+		this.viewMode.set("edit");
+	}
 
 	form = this.fb.group({
 		gameId: ["", Validators.required],
@@ -118,6 +124,7 @@ export class GameShelfModal implements OnInit {
 		const e = this.entry();
 		if (e) {
 			this.isEdit.set(true);
+			this.viewMode.set("summary");
 			this.selectedGame.set({
 				id: e.game.id,
 				title: e.game.title,
@@ -127,7 +134,7 @@ export class GameShelfModal implements OnInit {
 				gameId: e.game.id,
 				platformId: e.platform.id,
 				edition: e.edition ?? "",
-				acquiredAt: e.acquiredAt ?? null,
+				acquiredAt: e.acquiredAt ? e.acquiredAt.substring(0, 10) : null,
 				notes: e.notes ?? ""
 			});
 		}

@@ -65,7 +65,17 @@ export interface GamesQuery {
 	offset?: number;
 	sort_by?: string;
 	sort_order?: string;
+	search?: string;
 	genre?: string;
+	genres?: string;
+	platforms?: string;
+	release_year_from?: number;
+	release_year_to?: number;
+	min_score?: number;
+	max_score?: number;
+	min_duration?: number;
+	max_duration?: number;
+	is_dlc?: boolean;
 	no_scores?: boolean;
 	no_times?: boolean;
 	no_platforms?: boolean;

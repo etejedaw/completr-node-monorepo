@@ -48,9 +48,7 @@ export class BacklogList implements OnInit {
 	protected readonly showModal = signal(false);
 	protected readonly editingEntry = signal<BacklogEntry | null>(null);
 	private readonly queueBacklogIds = signal<Set<string>>(new Set());
-	protected readonly queueConfirmId = signal<string | null>(null);
 	protected readonly reviewExpandedIds = signal<Set<string>>(new Set());
-	private queueConfirmTimer: ReturnType<typeof setTimeout> | null = null;
 
 	private readonly queryParamMap = toSignal(this.route.queryParamMap);
 	private readonly savedFiltersLoaded = signal(false);
@@ -416,20 +414,6 @@ export class BacklogList implements OnInit {
 			});
 			return;
 		}
-		if (this.queueConfirmId() !== entry.id) {
-			this.queueConfirmId.set(entry.id);
-			if (this.queueConfirmTimer) clearTimeout(this.queueConfirmTimer);
-			this.queueConfirmTimer = setTimeout(() => {
-				this.queueConfirmId.set(null);
-				this.queueConfirmTimer = null;
-			}, 3000);
-			return;
-		}
-		if (this.queueConfirmTimer) {
-			clearTimeout(this.queueConfirmTimer);
-			this.queueConfirmTimer = null;
-		}
-		this.queueConfirmId.set(null);
 		this.queueService.removeByBacklogId(entry.id).subscribe(() => {
 			this.loadQueueIds();
 		});
