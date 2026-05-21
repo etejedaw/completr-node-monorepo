@@ -618,6 +618,22 @@
 - [ ] Ejecutar en local + en `env.production.local`, luego borrar el archivo de migración (mismo patrón que el round-list-item-scores)
 - [ ] (Opcional) Tabla `slug_redirects(old_code, new_code, gameId)` + middleware en game-detail que resuelva 404 contra esa tabla, para no romper bookmarks externos
 
+### Limpieza de descripciones multi-idioma (deferido desde Fase 2 — FB-053)
+
+**Contexto:** RAWG a veces devuelve descripciones concatenando varios idiomas (ej: Hello Kitty Island Adventure mezcla inglés + alemán). Además son muy largas y no tienen scroll propio en la ficha del juego.
+
+- [ ] Detección de idioma en `rawg-to-game.mapper.ts`: parsear la descripción y conservar solo el bloque en inglés (o el primero de la lista priorizada en/es). Considerar librería `franc` o regex sobre delimitadores que RAWG suele usar
+- [ ] Script de backfill one-off: aplicar el parser a todas las descripciones existentes con campos mixtos
+- [ ] Frontend: "Read more / Read less" en descripciones largas (>500 chars) en game-detail con clamp inicial
+
+### Diagnóstico búsqueda Nintendo Switch (deferido desde Fase 2 — FB-045)
+
+**Contexto:** Un usuario reportó que no podía encontrar Pokemon Scarlet. Posible duplicado de FB-074 (ya resuelto via split): RAWG consolida Scarlet/Violet en un solo registro. Re-verificar después del fix para confirmar que el flujo split lo cubre.
+
+- [ ] Reproducir búsqueda "Pokemon Scarlet" en producción tras el merge de FB-074
+- [ ] Si la causa raíz es la consolidación Scarlet/Violet, splittear el registro RAWG con el endpoint `/games/:id/split` y cerrar el FB
+- [ ] Si no es ese caso, contrastar contra la API de RAWG y revisar `rawg-platform.map.ts` para confirmar que `nintendo-switch` está mapeado correctamente
+
 ### Revisión de performance y código
 
 - [ ] Revisar si endpoints tienen underfetching u overfetching (ajustar payloads a lo que realmente consume el frontend)
@@ -662,6 +678,7 @@
 
 - [ ] Crear landing page con Astro: descripción de Completr, screenshots y formulario de "solicitar invitación"
 - [ ] Sección `/changelog` con novedades de cada release (Astro + Content Collections, posts en markdown)
+- [ ] **Pegado app ↔ landing** (deferido desde Fase 2 — FB-101): definir mapa de enlaces entre `completr.app` (landing) y `web.completr.app` (app autenticada). Footer global con links a About/Changelog/Pricing/Privacy/Terms; links en login/register hacia landing para visitantes; CTA "Hazte premium" desde Settings → landing pricing; comportamiento del logo del navbar en estados no autenticados / error 404. Definir cuándo abrir en misma pestaña vs. nueva (footer → about: misma; leer terms mientras editás perfil: nueva). En sentido inverso, CTAs claros en landing a `web.completr.app/register` y `/login`.
 
 ### Sistema de invitación
 
@@ -705,6 +722,10 @@
 - [ ] Tus amigos votan cuál de tus juegos pendientes deberías jugar
 - [ ] Mostrar resultados de votación al usuario
 
+### UX exploratorio
+
+- [ ] **Colores semánticos por icono en el sidebar** (deferido desde Fase 2 — FB-109): asignar paleta fija por sección (inactivo) para reconocimiento rápido, estilo Discord/Slack. Propuesta inicial: Feed (sky/cyan, `dynamic_feed`), Games (emerald, `sports_esports`), Backlog (brand/morado, `list_alt`), Game Shelf (amber, `shelves`), Queue (rose, `favorite_border`), Favorites (yellow/dorado, `star`), Saved Views (purple, `bookmark`), Lists (teal, `format_list_bulleted`), Admin section (tonos tenues). El estado activo ya aplica `[&_.nav-icon]:!text-brand`, no se pisa. Intento previo se revirtió por preferencia de iconos neutros — esta vez validar con usuarios reales (no solo Esteban) antes de mergear; si hay rechazo, descartar.
+
 ### Refactors pendientes
 
 - [ ] Refactor `security.txt`: mover de middleware a ruta simple
@@ -747,6 +768,17 @@
 - [ ] `DELETE /users/me/notifications/:id` — eliminar una notificación
 - [ ] Preferencias de usuario: toggles en perfil para activar/desactivar cada tipo de notificación (`User.notificationPrefs` JSONB o tabla `NotificationPreference`)
 - [ ] (Opcional, Fase 5+) Web Push con VAPID + service worker para notificaciones cuando la app está cerrada
+
+### Reportar bugs generales + visibilidad de estado de reportes (deferido desde Fase 2 — FB-018)
+
+**Contexto:** Los usuarios hoy solo pueden reportar errores en datos de juegos (`GameReport`). Falta canal para bugs generales de la app (botón roto, UI rota, feature caída) y forma de ver el estado de los reportes que ya enviaron (¿aprobado? ¿rechazado? ¿en curso?). La parte de "ver estado" se resuelve naturalmente con el sistema de notificaciones de esta misma fase.
+
+- [ ] Decidir modelo: nuevo `AppBugReport(id, userId, message, route, userAgent, status, createdAt)` o extender `GameReport` con `category="app_bug"` y `gameId` nullable. La opción de extender suma menos código.
+- [ ] Form "Report a bug" accesible desde footer/menú del user (no atado a un juego concreto)
+- [ ] Captura automática de `route` actual y `userAgent` al enviar
+- [ ] Panel admin: lista de reportes con filtro por `category` (app_bug vs game data)
+- [ ] Trigger de notificación `report_resolved` al user cuando el admin marca su reporte como aprobado/rechazado, con link al detalle
+- [ ] Vista "My reports" en el perfil del user: lista paginada de reportes propios con estado y comentario del moderador
 
 ### Ediciones comunitarias del catálogo (deferido desde Fase 2 — FB-034)
 
