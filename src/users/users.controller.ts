@@ -263,8 +263,21 @@ export async function getUserReviews(request: Request, response: Response) {
 	);
 	const reviewsPlain = rows.map(r => r.get({ plain: true }));
 
+	const pairs = reviewsPlain
+		.filter(r => r.Game)
+		.map(r => ({ userId: user.id, gameId: r.Game.id }));
+	const durationMap =
+		await backlogService.findLatestCompletedDurations(pairs);
+
 	const data = {
-		reviews: reviewsPlain.map(userReviewSerializer),
+		reviews: reviewsPlain.map(r =>
+			userReviewSerializer(
+				r,
+				r.Game
+					? (durationMap.get(`${user.id}:${r.Game.id}`) ?? null)
+					: null
+			)
+		),
 		total: count
 	};
 	return response.status(200).json({ data });

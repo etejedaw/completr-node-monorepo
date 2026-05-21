@@ -6,6 +6,7 @@ import { UpdateReviewDto } from "./schemas/update-review.schema";
 import * as reviewsService from "./reviews.service";
 import * as reviewsServiceError from "./errors/reviews.service-error";
 import * as activityService from "../activity/activity.service";
+import * as backlogService from "../backlog/backlog.service";
 import { reviewSerializer } from "./reviews.serializer";
 
 export async function postReview(request: Request, response: Response) {
@@ -27,7 +28,22 @@ export async function getReviews(request: Request, response: Response) {
 	const reviews = await reviewsService.findReviewsByGameId(params.id);
 	const reviewsPlain = reviews.map(r => r.get({ plain: true }));
 
-	const data = { reviews: reviewsPlain.map(reviewSerializer) };
+	const pairs = reviewsPlain
+		.filter(r => r.User)
+		.map(r => ({ userId: r.User.id, gameId: params.id }));
+	const durationMap =
+		await backlogService.findLatestCompletedDurations(pairs);
+
+	const data = {
+		reviews: reviewsPlain.map(r =>
+			reviewSerializer(
+				r,
+				r.User
+					? (durationMap.get(`${r.User.id}:${params.id}`) ?? null)
+					: null
+			)
+		)
+	};
 	return response.status(200).json({ data });
 }
 

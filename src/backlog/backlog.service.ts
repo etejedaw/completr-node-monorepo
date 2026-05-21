@@ -1,4 +1,5 @@
-import { Op, Order, literal } from "sequelize";
+import { Op, Order, literal, QueryTypes } from "sequelize";
+import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { Backlog } from "./backlog.model";
@@ -195,6 +196,39 @@ export async function updateBacklog(
 	}
 
 	return { backlog: backlogEntry, wishlistRemoved };
+}
+
+export async function findLatestCompletedDurations(
+	pairs: { userId: string; gameId: string }[]
+): Promise<Map<string, number>> {
+	if (pairs.length === 0) return new Map();
+
+	const userIds = Array.from(new Set(pairs.map(p => p.userId)));
+	const gameIds = Array.from(new Set(pairs.map(p => p.gameId)));
+
+	const rows = await sequelize.query<{
+		userId: string;
+		gameId: string;
+		realDuration: number;
+	}>(
+		`SELECT DISTINCT ON ("userId", "gameId") "userId", "gameId", "realDuration"
+		 FROM "Backlogs"
+		 WHERE "userId" IN (:userIds)
+		   AND "gameId" IN (:gameIds)
+		   AND status = 'completed'
+		   AND "realDuration" IS NOT NULL
+		 ORDER BY "userId", "gameId", "createdAt" DESC`,
+		{
+			replacements: { userIds, gameIds },
+			type: QueryTypes.SELECT
+		}
+	);
+
+	const map = new Map<string, number>();
+	for (const row of rows) {
+		map.set(`${row.userId}:${row.gameId}`, row.realDuration);
+	}
+	return map;
 }
 
 export async function removeBacklog(id: string, userId: string) {

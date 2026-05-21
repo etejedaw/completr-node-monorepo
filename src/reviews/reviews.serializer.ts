@@ -1,10 +1,14 @@
 import { Review } from "./review.model";
 
-export function reviewSerializer(review: Review) {
+export function reviewSerializer(
+	review: Review,
+	playthroughDuration: number | null = null
+) {
 	return {
 		id: review.id,
 		content: review.content,
 		rating: review.rating,
+		playthroughDuration,
 		user: review.User
 			? {
 					id: review.User.id,
@@ -18,11 +22,15 @@ export function reviewSerializer(review: Review) {
 	};
 }
 
-export function userReviewSerializer(review: Review) {
+export function userReviewSerializer(
+	review: Review,
+	playthroughDuration: number | null = null
+) {
 	return {
 		id: review.id,
 		content: review.content,
 		rating: review.rating,
+		playthroughDuration,
 		game: review.Game
 			? {
 					id: review.Game.id,
