@@ -198,34 +198,6 @@ export async function updateBacklog(
 	return { backlog: backlogEntry, wishlistRemoved };
 }
 
-export async function getBacklogStats(userId: string) {
-	const rows = (await Backlog.findAll({
-		attributes: [
-			"status",
-			[sequelize.fn("COUNT", sequelize.col("id")), "count"]
-		],
-		where: { userId },
-		group: ["status"],
-		raw: true
-	})) as unknown as { status: string; count: string }[];
-
-	const stats = {
-		total: 0,
-		not_started: 0,
-		playing: 0,
-		completed: 0,
-		abandoned: 0
-	};
-	for (const row of rows) {
-		const n = Number(row.count);
-		stats.total += n;
-		if (row.status in stats) {
-			(stats as Record<string, number>)[row.status] = n;
-		}
-	}
-	return stats;
-}
-
 export async function findLatestCompletedDurations(
 	pairs: { userId: string; gameId: string }[]
 ): Promise<Map<string, number>> {

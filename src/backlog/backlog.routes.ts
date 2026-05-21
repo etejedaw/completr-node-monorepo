@@ -31,15 +31,6 @@ router.get(
 	backlogController.getMeBacklog
 );
 
-router.get(
-	"/stats",
-	[
-		rateLimiterMiddleware(userLimiter),
-		authMiddleware("user", "premium", "moderator")
-	],
-	backlogController.getMeBacklogStats
-);
-
 router.patch(
 	"/:backlogId",
 	[

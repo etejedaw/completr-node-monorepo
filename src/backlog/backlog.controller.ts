@@ -59,12 +59,6 @@ export async function getMeBacklog(request: Request, response: Response) {
 	return response.status(200).json({ data });
 }
 
-export async function getMeBacklogStats(request: Request, response: Response) {
-	const user = request.locals.user as RequestUser;
-	const stats = await backlogService.getBacklogStats(user.id);
-	return response.status(200).json({ data: stats });
-}
-
 export async function getUserBacklog(request: Request, response: Response) {
 	const params = request.locals.params as UsernameParam;
 	const query = request.locals.query as BacklogQuery;
