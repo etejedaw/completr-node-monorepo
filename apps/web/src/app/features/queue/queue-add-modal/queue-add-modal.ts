@@ -69,4 +69,24 @@ export class QueueAddModal implements OnInit {
 	onClose() {
 		this.closed.emit();
 	}
+
+	statusLabel(status?: string): string {
+		const map: Record<string, string> = {
+			not_started: "Not Started",
+			playing: "Playing",
+			completed: "Completed",
+			abandoned: "Abandoned"
+		};
+		return status ? (map[status] ?? status) : "";
+	}
+
+	statusClass(status?: string): string {
+		const map: Record<string, string> = {
+			not_started: "bg-fg-muted/10 text-fg-muted",
+			playing: "bg-warning/10 text-warning",
+			completed: "bg-success/10 text-success",
+			abandoned: "bg-danger/10 text-danger"
+		};
+		return status ? (map[status] ?? "") : "";
+	}
 }
