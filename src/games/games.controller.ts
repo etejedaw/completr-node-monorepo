@@ -122,6 +122,22 @@ export async function getRawgDetail(request: Request, response: Response) {
 	return response.status(200).json({ data: { game: detail } });
 }
 
+export async function postSplitGame(request: Request, response: Response) {
+	const params = request.locals.params as GameIdParam;
+	const body = request.locals.body as {
+		variants: { title: string; variant: string }[];
+	};
+	const user = request.locals.user as RequestUser;
+
+	const games = await gameService.splitGame(params.id, body.variants);
+	auditService.record(user.id, "game_split", "game", params.id);
+
+	const data = {
+		games: games.map(g => gameSerializer(g.get({ plain: true })))
+	};
+	return response.status(200).json({ data });
+}
+
 export async function deleteGame(request: Request, response: Response) {
 	const gameIdParam = request.locals.params as GameIdParam;
 	const user = request.locals.user as RequestUser;
