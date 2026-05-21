@@ -22,6 +22,7 @@ import { getRatingLabel } from "../../../shared/constants/rating-labels";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { ReviewsService, Review } from "../reviews.service";
 import { ListsService } from "../../lists/lists.service";
+import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
 import { FormsModule } from "@angular/forms";
 import { UiButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
 
@@ -290,18 +291,14 @@ export class GameDetail implements OnInit {
 		return scale ? `/ ${scale}` : "";
 	}
 
-	protected get completrScore(): number | null {
-		const score = this.game()?.scores?.find(s => s.source === "completr");
-		return score?.score ?? null;
+	protected get canonicalScore() {
+		return pickCanonicalScore(this.game());
 	}
 
-	protected get completrLabel(): string {
-		return getRatingLabel(this.completrScore);
-	}
-
-	protected get completrTime(): number | null {
-		const time = this.game()?.times?.find(t => t.source === "completr");
-		return time?.duration ?? null;
+	protected get canonicalRatingLabel(): string {
+		const cs = this.canonicalScore;
+		if (cs.type !== "completr" || cs.score == null) return "";
+		return getRatingLabel(cs.score);
 	}
 
 	protected otherScores() {

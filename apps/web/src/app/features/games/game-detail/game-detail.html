@@ -100,47 +100,81 @@
 
 		<div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 lg:gap-8">
 			<aside class="md:sticky md:top-6 md:self-start flex flex-col gap-4">
-				<div class="relative rounded-card p-5 border-2 border-brand overflow-hidden" style="background: linear-gradient(160deg, var(--color-brand-subtle), transparent 60%), var(--color-surface);">
-					<div class="flex items-center gap-2 mb-3">
-						<span class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-[0.6875rem] text-white" style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));">C</span>
-						<span class="text-[0.625rem] font-bold uppercase tracking-wider text-brand">Completr Score</span>
-					</div>
+				@let cs = canonicalScore;
+				@if (cs.type === 'completr') {
+					<div class="relative rounded-card p-5 border-2 border-brand overflow-hidden" style="background: linear-gradient(160deg, var(--color-brand-subtle), transparent 60%), var(--color-surface);">
+						<div class="flex items-center gap-2 mb-3">
+							<span class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-[0.6875rem] text-white" style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));">C</span>
+							<span class="text-[0.625rem] font-bold uppercase tracking-wider text-brand">Completr Score</span>
+						</div>
 
-					<div class="flex items-baseline gap-2 mb-1">
-						@if (game()!.ratio) {
-							<span class="text-6xl font-bold text-brand leading-none">{{ game()!.ratio }}</span>
+						<div class="flex items-baseline gap-2 mb-1">
+							<span class="text-6xl font-bold text-brand leading-none">{{ cs.ratio }}</span>
 							<span class="text-xs uppercase tracking-wider text-fg-muted">Ratio</span>
-						} @else {
-							<span class="text-3xl font-bold text-fg-muted leading-none">—</span>
-							<span class="text-xs uppercase tracking-wider text-fg-muted">Ratio</span>
-						}
-					</div>
-					<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">score relative to time invested by the community</p>
+						</div>
+						<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">score relative to time invested by the community</p>
 
-					<div class="mt-4 pt-4 border-t border-line/60 flex flex-col gap-2.5">
-						<div class="flex items-center justify-between">
-							<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">Rating</span>
-							@if (completrScore) {
+						<div class="mt-4 pt-4 border-t border-line/60 flex flex-col gap-2.5">
+							<div class="flex items-center justify-between">
+								<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">Rating</span>
 								<div class="flex items-center gap-2">
-									<app-star-rating [value]="completrScore" [readonly]="true" size="sm" />
-									@if (completrLabel) {
-										<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-warning">{{ completrLabel }}</span>
+									<app-star-rating [value]="cs.score" [readonly]="true" size="sm" />
+									@if (canonicalRatingLabel) {
+										<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-warning">{{ canonicalRatingLabel }}</span>
 									}
 								</div>
-							} @else {
-								<span class="text-xs text-fg-muted italic">No data</span>
-							}
-						</div>
-						<div class="flex items-center justify-between">
-							<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">Duration</span>
-							@if (completrTime) {
-								<span class="text-sm font-semibold text-fg">{{ completrTime }}h <span class="text-[0.625rem] font-normal text-fg-muted">avg</span></span>
-							} @else {
-								<span class="text-xs text-fg-muted italic">No data</span>
-							}
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">Duration</span>
+								<span class="text-sm font-semibold text-fg">{{ cs.duration }}h <span class="text-[0.625rem] font-normal text-fg-muted">avg</span></span>
+							</div>
 						</div>
 					</div>
-				</div>
+				} @else if (cs.type === 'aggregate') {
+					<div class="relative rounded-card p-5 border-2 border-dashed border-info/60 overflow-hidden" style="background: linear-gradient(160deg, rgba(56, 189, 248, 0.08), transparent 60%), var(--color-surface);">
+						<div class="flex items-center gap-2 mb-3">
+							<span class="material-icons text-info text-base">auto_awesome</span>
+							<span class="text-[0.625rem] font-bold uppercase tracking-wider text-info">Aggregate Score</span>
+						</div>
+
+						<div class="flex items-baseline gap-2 mb-1">
+							<span class="text-6xl font-bold text-info leading-none">{{ cs.ratio }}</span>
+							<span class="text-xs uppercase tracking-wider text-fg-muted">Ratio</span>
+						</div>
+						<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">Provisional — based on Metacritic + HowLongToBeat until Completr has community data</p>
+
+						<div class="mt-4 pt-4 border-t border-line/60 flex flex-col gap-2.5">
+							<div class="flex items-center justify-between">
+								<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">Metacritic</span>
+								<span class="text-sm font-semibold text-fg">{{ cs.score }}<span class="text-[0.625rem] font-normal text-fg-muted">/100</span></span>
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">HLTB Duration</span>
+								<span class="text-sm font-semibold text-fg">{{ cs.duration }}h</span>
+							</div>
+						</div>
+					</div>
+				} @else {
+					<div class="relative rounded-card p-5 border-2 border-dashed border-line overflow-hidden bg-surface">
+						<div class="flex items-center gap-2 mb-3">
+							<span class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-[0.6875rem] text-white" style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));">C</span>
+							<span class="text-[0.625rem] font-bold uppercase tracking-wider text-fg-muted">Completr Score</span>
+						</div>
+
+						<div class="flex items-baseline gap-2 mb-1">
+							<span class="text-3xl font-bold text-fg-muted leading-none">—</span>
+							<span class="text-xs uppercase tracking-wider text-fg-muted">No data</span>
+						</div>
+						<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">Be the first to review this game, or report missing scores.</p>
+						<button
+							class="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-input-bg border border-line rounded text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand"
+							(click)="openReportModal()"
+						>
+							<span class="material-icons text-sm">flag</span>
+							Report missing data
+						</button>
+					</div>
+				}
 
 				<div class="bg-sidebar border border-line rounded-card p-4 flex flex-col gap-2">
 					<h3 class="font-display m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Your activity</h3>
