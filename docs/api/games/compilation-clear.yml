@@ -1,0 +1,41 @@
+info:
+    name: Clear Compilation
+    type: http
+    seq: 12
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/games/:id/compilation-items"
+    params:
+        - name: id
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Clear Compilation
+
+    Removes all `CompilationItems` rows for a parent game and sets
+    `isCompilation = false`. Child games are NOT deleted — they keep existing
+    as standalone games. Use this to undo a compilation marking without
+    losing the catalog entries that were created via `mode: "create"`.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 300 requests per minute (admin/moderator exempt).
+
+    ### Path Parameters
+
+    | Param | Type | Required | Description                       |
+    |-------|------|----------|-----------------------------------|
+    | id    | uuid | Yes      | The parent (compilation) game UUID |
+
+    ### Response
+
+    `204 No Content`
+
+    ### Errors
+
+    - 404 `GAME_NOT_FOUND` — parent does not exist or is inactive

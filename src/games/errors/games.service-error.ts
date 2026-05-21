@@ -36,3 +36,24 @@ export function genreNotFoundError() {
 		raw: undefined
 	});
 }
+
+export function variantRequiredError() {
+	return new ServiceError("GAME_VARIANT_REQUIRED", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
+export function splitInvalidError() {
+	return new ServiceError("GAME_SPLIT_INVALID", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
+export function compilationInvalidError() {
+	return new ServiceError("GAME_COMPILATION_INVALID", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}

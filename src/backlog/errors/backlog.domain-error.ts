@@ -29,6 +29,17 @@ export function backlogValidation(context?: Record<string, unknown>) {
 	);
 }
 
+export function backlogCompilationContextInvalid(
+	context?: Record<string, unknown>
+) {
+	return new DomainError(
+		MODULE_NAME,
+		"BACKLOG_COMPILATION_CONTEXT_INVALID",
+		"Compilation context is invalid",
+		context
+	);
+}
+
 export function backlogInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

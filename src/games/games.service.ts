@@ -21,6 +21,8 @@ import * as genresService from "../genres/genres.service";
 import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
 import * as gameExternalService from "../game-external/game-external.service";
+import { GameExternal } from "../game-external/game-external.model";
+import { CompilationItem } from "../compilation-items/compilation-item.model";
 import * as reviewsService from "../reviews/reviews.service";
 import { RawgProvider } from "../rawg/rawg.provider";
 import { RawgGameDetail } from "../rawg/rawg.interface";
@@ -33,6 +35,14 @@ const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
 const logger = new PinoLogger("GamesService");
 
 export async function registerGame(registerGameDto: RegisterGameDto) {
+	if (registerGameDto.externalIds && registerGameDto.externalIds.length > 0) {
+		await assertVariantConsistency(
+			registerGameDto.externalIds,
+			registerGameDto.variant ?? null,
+			null
+		);
+	}
+
 	const transaction = await sequelize.transaction();
 
 	try {
@@ -80,8 +90,29 @@ export async function findGameByCode(code: string) {
 				where: { isActive: true },
 				required: false
 			},
-			{ association: "ParentGame" }
-		]
+			{ association: "ParentGame" },
+			{
+				association: "CompilationItems",
+				include: [
+					{
+						association: "ChildGame",
+						where: { isActive: true },
+						required: false
+					}
+				]
+			},
+			{
+				association: "PartOfCompilations",
+				include: [
+					{
+						association: "ParentGame",
+						where: { isActive: true },
+						required: true
+					}
+				]
+			}
+		],
+		order: [[sequelize.literal('"CompilationItems"."position"'), "ASC"]]
 	});
 }
 
@@ -113,6 +144,10 @@ export interface GamesQueryOptions {
 	min_duration?: number;
 	max_duration?: number;
 	is_dlc?: boolean;
+	is_compilation?: boolean;
+	exclude_compilations?: boolean;
+	include_inactive?: boolean;
+	only_inactive?: boolean;
 	no_scores?: boolean;
 	no_times?: boolean;
 	no_platforms?: boolean;
@@ -137,6 +172,10 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		min_duration,
 		max_duration,
 		is_dlc,
+		is_compilation,
+		exclude_compilations,
+		include_inactive,
+		only_inactive,
 		no_scores,
 		no_times,
 		no_platforms,
@@ -144,7 +183,12 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		no_time_source
 	} = options;
 
-	const where: Record<string, unknown> = { isActive: true };
+	const where: Record<string, unknown> = {};
+	if (only_inactive) {
+		where["isActive"] = false;
+	} else if (!include_inactive) {
+		where["isActive"] = true;
+	}
 	const andConditions: object[] = [];
 	const include: { association: string; where?: Record<string, unknown> }[] =
 		[
@@ -159,6 +203,12 @@ export async function findAll(options: GamesQueryOptions = {}) {
 
 	if (is_dlc !== undefined) {
 		where["isDlc"] = is_dlc;
+	}
+
+	if (is_compilation !== undefined) {
+		where["isCompilation"] = is_compilation;
+	} else if (exclude_compilations) {
+		where["isCompilation"] = false;
 	}
 
 	if (release_year_from !== undefined || release_year_to !== undefined) {
@@ -551,6 +601,24 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 
 	const { platforms, genres, title, externalIds, ...gameDto } = updateGameDto;
 
+	const externalsForCheck =
+		externalIds ??
+		(await gameExternalService.findByGameId(game.id)).map(e => ({
+			source: e.source,
+			externalId: e.externalId
+		}));
+	const variantForCheck =
+		updateGameDto.variant !== undefined
+			? updateGameDto.variant
+			: (game.variant ?? null);
+	if (externalsForCheck.length > 0) {
+		await assertVariantConsistency(
+			externalsForCheck,
+			variantForCheck,
+			game.id
+		);
+	}
+
 	if (platforms) await platformsUpdate(game.id, platforms);
 	if (genres) await genresUpdate(game.id, genres);
 	if (externalIds) await upsertExternalIds(game.id, externalIds);
@@ -567,6 +635,33 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 	return updatedGame as Game;
 }
 
+async function assertVariantConsistency(
+	externalIds: readonly { source: string; externalId: string }[],
+	variant: string | null,
+	currentGameId: string | null
+) {
+	for (const { source, externalId } of externalIds) {
+		const siblings = await GameExternal.findAll({
+			where: { source, externalId },
+			include: [{ association: "Game" }]
+		});
+		const otherSiblings = siblings.filter(s => s.gameId !== currentGameId);
+		if (otherSiblings.length === 0) continue;
+		if (!variant || variant.trim().length === 0) {
+			throw gamesServiceError.variantRequiredError();
+		}
+		for (const sibling of otherSiblings) {
+			const siblingGame = await Game.findByPk(sibling.gameId);
+			if (
+				!siblingGame?.variant ||
+				siblingGame.variant.trim().length === 0
+			) {
+				throw gamesServiceError.variantRequiredError();
+			}
+		}
+	}
+}
+
 async function upsertExternalIds(
 	gameId: string,
 	externalIds: UpdateGameDto["externalIds"]
@@ -576,6 +671,344 @@ async function upsertExternalIds(
 		gameExternalService.upsert(gameId, source, externalId)
 	);
 	await Promise.all(promises);
+}
+
+export interface SplitVariantInput {
+	title: string;
+	variant: string;
+}
+
+export async function splitGame(
+	gameId: string,
+	variants: readonly SplitVariantInput[]
+) {
+	const original = await Game.findOne({
+		where: { id: gameId, isActive: true },
+		include: [
+			{ association: "Platforms" },
+			{ association: "Genres" },
+			{ association: "GameScores" },
+			{ association: "GameTimes" },
+			{ association: "GameExternals" }
+		]
+	});
+	if (!original) throw gamesServiceError.notFoundError();
+
+	const codes = new Set<string>();
+	for (const v of variants) {
+		const code = titleToSlug(v.title);
+		if (codes.has(code)) throw gamesServiceError.splitInvalidError();
+		codes.add(code);
+	}
+
+	const platformIds = original.Platforms.map(p => p.id);
+	const genreIds = original.Genres.map(g => g.id);
+	const scores = original.GameScores.map(s => ({
+		source: s.source,
+		score: s.score
+	}));
+	const times = original.GameTimes.map(t => ({
+		source: t.source,
+		duration: t.duration
+	}));
+	const externals = original.GameExternals.map(e => ({
+		source: e.source,
+		externalId: e.externalId
+	}));
+
+	if (variants.length < 2) throw gamesServiceError.splitInvalidError();
+	const [firstVariant, ...restVariants] = variants as [
+		SplitVariantInput,
+		...SplitVariantInput[]
+	];
+
+	const transaction = await sequelize.transaction();
+	try {
+		await original.update(
+			{
+				title: firstVariant.title,
+				code: titleToSlug(firstVariant.title),
+				variant: firstVariant.variant
+			},
+			{ transaction }
+		);
+
+		const createdIds: string[] = [original.id];
+
+		for (const v of restVariants) {
+			const newGame = await Game.create(
+				{
+					title: v.title,
+					code: titleToSlug(v.title),
+					description: original.description,
+					releaseAt: original.releaseAt,
+					coverUrl: original.coverUrl,
+					backgroundUrl: original.backgroundUrl,
+					isDlc: original.isDlc,
+					parentGameId: original.parentGameId,
+					variant: v.variant
+				},
+				{ transaction }
+			);
+
+			if (platformIds.length > 0) {
+				await gamePlatformsService.linkGameToPlatforms(
+					newGame.id,
+					platformIds,
+					transaction
+				);
+			}
+			if (genreIds.length > 0) {
+				await gameGenresService.linkGameToGenres(
+					newGame.id,
+					genreIds,
+					transaction
+				);
+			}
+			for (const s of scores) {
+				await gameScoresService.createGameScore(
+					newGame.id,
+					s.source,
+					s.score,
+					transaction
+				);
+			}
+			for (const t of times) {
+				await gameTimesService.createGameTime(
+					newGame.id,
+					t.source,
+					t.duration,
+					transaction
+				);
+			}
+			for (const e of externals) {
+				await GameExternal.create(
+					{
+						gameId: newGame.id,
+						source: e.source,
+						externalId: e.externalId
+					},
+					{ transaction }
+				);
+			}
+
+			createdIds.push(newGame.id);
+		}
+
+		await transaction.commit();
+
+		const refreshed = await Promise.all(
+			createdIds.map(id => findGameById(id))
+		);
+		return refreshed.filter((g): g is Game => g !== null);
+	} catch (error) {
+		await transaction.rollback();
+		if (error instanceof UniqueConstraintError)
+			throw gamesServiceError.uniqueConstraintError(error);
+		if (error instanceof ValidationError)
+			throw gamesServiceError.validationError(error);
+		throw error;
+	}
+}
+
+export type SetCompilationItemInput =
+	| { mode: "link"; gameId: string }
+	| { mode: "create"; title: string };
+
+export async function setCompilationItems(
+	parentGameId: string,
+	items: readonly SetCompilationItemInput[]
+) {
+	const parent = await Game.findOne({
+		where: { id: parentGameId, isActive: true },
+		include: [
+			{ association: "Platforms" },
+			{ association: "Genres" },
+			{ association: "GameScores" },
+			{ association: "GameTimes" }
+		]
+	});
+	if (!parent) throw gamesServiceError.notFoundError();
+
+	const inheritedPlatformIds = parent.Platforms?.map(p => p.id) ?? [];
+	const inheritedGenreIds = parent.Genres?.map(g => g.id) ?? [];
+	const inheritedScores =
+		parent.GameScores?.map(s => ({ source: s.source, score: s.score })) ??
+		[];
+	const inheritedTimes =
+		parent.GameTimes?.map(t => ({
+			source: t.source,
+			duration: t.duration
+		})) ?? [];
+
+	for (const item of items) {
+		if (item.mode === "link" && item.gameId === parentGameId) {
+			throw gamesServiceError.compilationInvalidError();
+		}
+	}
+
+	const linkedIds = items
+		.filter(i => i.mode === "link")
+		.map(i => (i as { gameId: string }).gameId);
+	if (new Set(linkedIds).size !== linkedIds.length) {
+		throw gamesServiceError.compilationInvalidError();
+	}
+
+	const createdSlugs = items
+		.filter(i => i.mode === "create")
+		.map(i => titleToSlug((i as { title: string }).title));
+	if (new Set(createdSlugs).size !== createdSlugs.length) {
+		throw gamesServiceError.compilationInvalidError();
+	}
+
+	if (linkedIds.length > 0) {
+		const found = await Game.findAll({
+			where: { id: linkedIds, isActive: true }
+		});
+		if (found.length !== linkedIds.length) {
+			throw gamesServiceError.notFoundError();
+		}
+	}
+
+	const transaction = await sequelize.transaction();
+	try {
+		await CompilationItem.destroy({
+			where: { parentGameId },
+			transaction
+		});
+
+		const resolvedChildIds: string[] = [];
+		for (const item of items) {
+			if (item.mode === "link") {
+				resolvedChildIds.push(item.gameId);
+			} else {
+				const child = await Game.create(
+					{
+						title: item.title,
+						code: titleToSlug(item.title),
+						description: parent.description,
+						releaseAt: parent.releaseAt,
+						coverUrl: parent.coverUrl,
+						backgroundUrl: parent.backgroundUrl,
+						isDlc: false,
+						isCompilation: false
+					},
+					{ transaction }
+				);
+				if (inheritedPlatformIds.length > 0) {
+					await gamePlatformsService.linkGameToPlatforms(
+						child.id,
+						inheritedPlatformIds,
+						transaction
+					);
+				}
+				if (inheritedGenreIds.length > 0) {
+					await gameGenresService.linkGameToGenres(
+						child.id,
+						inheritedGenreIds,
+						transaction
+					);
+				}
+				for (const s of inheritedScores) {
+					await gameScoresService.createGameScore(
+						child.id,
+						s.source,
+						s.score,
+						transaction
+					);
+				}
+				for (const t of inheritedTimes) {
+					await gameTimesService.createGameTime(
+						child.id,
+						t.source,
+						t.duration,
+						transaction
+					);
+				}
+				resolvedChildIds.push(child.id);
+			}
+		}
+
+		if (new Set(resolvedChildIds).size !== resolvedChildIds.length) {
+			throw gamesServiceError.compilationInvalidError();
+		}
+
+		for (let i = 0; i < resolvedChildIds.length; i++) {
+			await CompilationItem.create(
+				{
+					parentGameId,
+					childGameId: resolvedChildIds[i],
+					position: i
+				},
+				{ transaction }
+			);
+		}
+
+		await parent.update({ isCompilation: true }, { transaction });
+
+		await transaction.commit();
+
+		return await findCompilationItemsByParent(parentGameId);
+	} catch (error) {
+		await transaction.rollback();
+		if (error instanceof UniqueConstraintError)
+			throw gamesServiceError.uniqueConstraintError(error);
+		if (error instanceof ValidationError)
+			throw gamesServiceError.validationError(error);
+		throw error;
+	}
+}
+
+export async function clearCompilation(parentGameId: string) {
+	const parent = await Game.findOne({
+		where: { id: parentGameId, isActive: true }
+	});
+	if (!parent) throw gamesServiceError.notFoundError();
+
+	const transaction = await sequelize.transaction();
+	try {
+		await CompilationItem.destroy({
+			where: { parentGameId },
+			transaction
+		});
+		await parent.update({ isCompilation: false }, { transaction });
+		await transaction.commit();
+	} catch (error) {
+		await transaction.rollback();
+		throw error;
+	}
+}
+
+export async function findCompilationItemsByParent(parentGameId: string) {
+	return CompilationItem.findAll({
+		where: { parentGameId },
+		include: [
+			{
+				association: "ChildGame",
+				include: [
+					{ association: "Platforms" },
+					{ association: "GameScores" },
+					{ association: "GameTimes" },
+					{ association: "Genres" }
+				]
+			}
+		],
+		order: [["position", "ASC"]]
+	});
+}
+
+export async function findCompilationParentsForChild(childGameId: string) {
+	return CompilationItem.findAll({
+		where: { childGameId },
+		include: [
+			{
+				association: "ParentGame",
+				where: { isActive: true },
+				required: true
+			}
+		],
+		order: [["createdAt", "ASC"]]
+	});
 }
 
 export async function deactivateGame(id: string) {

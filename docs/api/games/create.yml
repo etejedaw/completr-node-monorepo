@@ -47,6 +47,7 @@ docs: |-
     | coverUrl     | string   | No       | URL to cover image                                       |
     | isDlc        | boolean  | No       | Whether this is a DLC                                    |
     | parentGameId | uuid     | No       | Parent game UUID (for DLCs)                              |
+    | variant      | string   | No       | Variant label (e.g. "Pearl"). Required when this game shares an external id with another game. |
     | scores       | array    | No       | `[{ source: "metacritic", score: 82 }]`                 |
     | times        | array    | No       | `[{ source: "hltb", duration: 15 }]`                    |
 
@@ -78,3 +79,4 @@ docs: |-
     - 404 `GAME_PLATFORM_NOT_FOUND` — One or more platform codes not found
     - 404 `GAME_GENRE_NOT_FOUND` — One or more genre codes not found
     - 409 `GAME_UNIQUE_CONSTRAINT` — Game with this title already exists
+    - 422 `GAME_VARIANT_REQUIRED` — Another game shares the same external id and a variant label is required

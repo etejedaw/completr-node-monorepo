@@ -24,5 +24,8 @@ export function backlogDomainToHttpMapper(
 	if (error.code === "BACKLOG_VALIDATION_ERROR")
 		return new HttpError({ ...baseOptions, status: 400 });
 
+	if (error.code === "BACKLOG_COMPILATION_CONTEXT_INVALID")
+		return new HttpError({ ...baseOptions, status: 400 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

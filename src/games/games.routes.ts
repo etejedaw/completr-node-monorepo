@@ -9,6 +9,8 @@ import { GameCodeParamSchema } from "./schemas/game-code-params.schema";
 import { GameSearchQuerySchema } from "./schemas/game-search-query.schema";
 import { RawgIdParamSchema } from "./schemas/rawg-id-params.schema";
 import { GamesQuerySchema } from "./schemas/games-query.schema";
+import { SplitGameSchema } from "./schemas/split-game.schema";
+import { MarkCompilationSchema } from "./schemas/mark-compilation.schema";
 import reviewsRouter from "../reviews/reviews.routes";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import {
@@ -93,6 +95,38 @@ router.patch(
 		validateSchemaMiddleware(UpdateGameSchema, "body")
 	],
 	gamesController.patchGame
+);
+
+router.post(
+	"/games/:id/split",
+	[
+		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
+		validateSchemaMiddleware(GameIdParamSchema, "params"),
+		validateSchemaMiddleware(SplitGameSchema, "body")
+	],
+	gamesController.postSplitGame
+);
+
+router.put(
+	"/games/:id/compilation-items",
+	[
+		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
+		validateSchemaMiddleware(GameIdParamSchema, "params"),
+		validateSchemaMiddleware(MarkCompilationSchema, "body")
+	],
+	gamesController.putCompilationItems
+);
+
+router.delete(
+	"/games/:id/compilation-items",
+	[
+		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
+		validateSchemaMiddleware(GameIdParamSchema, "params")
+	],
+	gamesController.deleteCompilation
 );
 
 router.delete(

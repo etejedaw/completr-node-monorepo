@@ -216,9 +216,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** En RAWG algunos juegos aparecen agrupados como un solo registro cuando en realidad son juegos distintos. Por ejemplo, Pokemon Perla y Pokemon Diamante son dos juegos diferentes, pero en RAWG aparecen como "Pokemon Perla/Diamante" en un solo entry. Esto causa problemas porque en Completr cada juego deberia ser un registro independiente. Ademas, con la regla de unique constraint en GameExternal (un solo externalId por source+game), no se puede mapear el mismo registro de RAWG a dos juegos distintos. Tambien afecta al backlog: si un usuario quiere trackear ambos juegos por separado no puede porque solo existe uno en la DB.
-- **Solucion propuesta:** Buscar alternativas para manejar este caso. Opciones a evaluar: (1) permitir crear juegos manualmente sin RAWG y vincularlos como variantes, (2) agregar un campo "variant" o "edition" al juego para diferenciar versiones del mismo registro RAWG, (3) permitir multiples juegos con el mismo externalId de RAWG (relajar el unique constraint), (4) usar otra fuente (IGDB, Steam) como fuente primaria para estos casos.
+- **Solucion:** Combinacion de opciones (2) + (5) (split admin action). Backend: nueva columna `Games.variant` (string nullable), se relaja el unique `(source, externalId)` en `GameExternals` (se mantiene `(gameId, source)` y se agrega indice no unico sobre `(source, externalId)` para lookup). Validacion service-level: si un `externalId` ya pertenece a otros juegos, todos deben tener `variant` no vacio (`GAME_VARIANT_REQUIRED` 422). Endpoint nuevo `POST /games/:id/split` (auth moderator) que toma `{ variants: [{ title, variant }, ...] }` (2-10): el juego original se convierte en la primera variante y se crean N-1 nuevos clonando platforms, genres, scores, times, externals + cover/desc/release/parent/isDlc. Audit registra `game_split`. Frontend: input "Variant label" en el editor admin, boton "Split game" (solo edit) que abre modal con N filas (title + variant), navega al primer variant al exito. Tambien resuelve FB-074.
 
 ### [FB-024] Faltan filtros por fuente de datos en el panel admin de games
 
@@ -299,7 +299,8 @@ Formato por item:
 
 - **Fecha:** 2026-04-22
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** descartado
+- **Razon de descarte:** Caso edge — la mayoria de usuarios juega cada titulo en una sola plataforma. El sintoma real (ports muy diferentes) se ataca mejor desde FB-073 (mostrar versiones/ports en la ficha del juego) que cambiando el modelo de Review.
 - **Descripcion:** Algunos ports de juegos son experiencias considerablemente diferentes del original (ej: RE2 en N64 fue una hazaña tecnica con diferencias notables vs la version de PS1, Starcraft en consola es un RTS con control de gamepad). RAWG y otras fuentes tratan estos ports como un solo registro, pero si un usuario hace una review, su experiencia puede ser completamente distinta segun la plataforma en la que jugo. Actualmente las reviews son por juego (unique userId+gameId), no por plataforma. El backlog si permite trackear el mismo juego en distintas plataformas, pero la review y el rating no distinguen en cual se jugo.
 - **Solucion propuesta:** No es urgente. A futuro considerar: (1) permitir reviews por plataforma en vez de por juego (o agregar campo plataforma a la review para contextualizar), (2) dentro de la ficha del juego, mostrar una seccion de "versiones" o "ports" que agrupe las plataformas con sus diferencias. Esto no requiere separar el juego en multiples registros — el juego sigue siendo uno, pero las experiencias por plataforma se pueden diferenciar. Relacionado con FB-023 (RAWG agrupa juegos que deberian ser separados).
 
@@ -307,8 +308,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-22
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** diferido
 - **Descripcion:** Mantener el catalogo de juegos actualizado (datos faltantes, correcciones, plataformas, scores) es demasiado trabajo para un solo admin o moderador. Algunos usuarios quieren contribuir editando datos de juegos ellos mismos. Actualmente solo admin/moderator pueden editar juegos, asi que los usuarios solo pueden reportar errores (GameReport) y esperar a que alguien los corrija.
+- **Decision (2026-05-21):** Diferido a Fase 3/4. Mientras tanto el flujo `GameReport` cubre el caso minimo (los users senalan problemas y un mod corrige). Se evaluara junto con el sistema de notificaciones (Fase 4) porque "aviso al user cuando su edicion se aprueba" depende de esa infra. Opciones a retomar entonces: (1) modelo `GameEditRequest` dedicado, (2) extender `GameReport` con `proposedChanges` JSONB, (3) trusted editors con permisos directos en campos low-risk.
 - **Solucion propuesta:** Implementar un sistema de ediciones comunitarias con aprobacion. El usuario propone una edicion (titulo, descripcion, plataformas, scores, etc.) que se guarda como solicitud pendiente. Un moderador o admin revisa y aprueba/rechaza la solicitud. Si se aprueba, los cambios se aplican al juego. Modelo tipo GameEditRequest(id, userId, gameId, changes JSONB, status pending/approved/rejected, reviewedBy, createdAt). Vista admin/moderator para revisar solicitudes pendientes con diff de cambios. A futuro, usuarios con muchas ediciones aprobadas podrian ganar un badge de "contribuidor" o incluso permisos de edicion directa (trusted editor).
 
 ### [FB-035] Usuarios tienen que iniciar sesion cada dia
@@ -341,10 +343,11 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Tami
 - **Descripcion:** Un usuario sugiere que seria util poder iniciar sesion con Google en vez de solo email/password. Esto reduce friccion en el registro y login, especialmente para usuarios que ya tienen muchas credenciales.
 - **Solucion propuesta:** Implementar OAuth con Google como metodo de login alternativo. Requiere: registrar la app en Google Cloud Console, implementar el flujo OAuth en el backend (passport-google o similar), y agregar boton "Sign in with Google" en el frontend. Considerar si se permite vincular una cuenta existente con Google o solo registro nuevo. Feature para Fase 3 o posterior.
+- **Razon de descarte:** Trabajo grande (passport-google + OAuth flow + frontend UI + linking con cuentas existentes) para una mejora de friccion de severidad baja. El email/password actual con refresh token funciona bien. Se reconsiderara si hay demanda fuerte en futuras fases.
 
 ### [FB-039] Pantalla de perfil usa solo la mitad del ancho de la pagina
 
@@ -662,28 +665,19 @@ Formato por item:
 
 - **Fecha:** 2026-05-12
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Algunos titulos son "compilados/colecciones" que empaquetan varios juegos completos en uno solo. Ejemplos: "Tomb Raider I-II-III Remastered" (TR1+TR2+TR3), "Mass Effect Legendary Edition" (ME1+ME2+ME3), "Mega Man X Legacy Collection" (MMX1-4), "Halo: The Master Chief Collection", "Crash Bandicoot N. Sane Trilogy", "Spyro Reignited Trilogy", "Kingdom Hearts HD 1.5+2.5 ReMIX", etc. Agregar el compilado al backlog como un unico juego distorsiona el promedio de finalizacion / duration estimado y el ratio score/duration, porque en la practica son varios juegos en uno. Ademas, completar el titulo entero implica terminar todos los incluidos, lo que alarga la duracion real y hace dificil trackear progreso (puedes haber terminado ME1 pero no ME2 ni ME3). Tambien afecta el feed/social (un "completed" en el compilado no es comparable a un "completed" en un juego individual).
-- **Solucion propuesta:** Explorar varias opciones, no excluyentes:
-    - (1) Modelar el compilado como un "bundle/collection" en RAWG/DB con relacion padre-hijos a los juegos individuales. Al agregarlo al backlog, ofrecer al usuario elegir entre agregar el bundle completo o solo los juegos individuales que le interesen. Si elige bundle, el progreso del bundle se calcula como agregado de los hijos.
-    - (2) Permitir marcar un backlog item como "parcial" o trackear sub-juegos dentro de un mismo item (checklist interno con score/duration por sub-juego). El score/duration del padre se promedia o suma a partir de los hijos.
-    - (3) Excluir los compilados del calculo de promedios globales de la app (flag `isCompilation` en el juego), de modo que no contaminen estadisticas agregadas, pero permitir agregarlos como cualquier otro titulo.
-    - (4) Dejarlo como esta pero documentar la convencion: tratar el compilado como un juego mas, asumiendo que el usuario que lo agrega quiere terminarlo entero. Es la opcion mas simple pero la que peor refleja la realidad.
-    - Decision pendiente: definir si Completr quiere modelar bundles como entidad de primera clase (opcion 1, mas trabajo, mas correcto) o resolverlo con un flag simple (opcion 3). Validar tambien si RAWG ya expone esta relacion para poder importarla.
+- **Solucion:** Combinacion de (1) + (3). Backend: nueva columna `Games.isCompilation` y tabla `CompilationItems(parentGameId, childGameId, position)` many-to-many (un juego puede pertenecer a multiples compilaciones, ej. Mega Man X en colecciones Steam y PS2). Endpoint admin `PUT /games/:id/compilation-items` que reemplaza la lista completa con items en dos modos: `link` (referencia un Game existente, caso Mass Effect Trilogy con clasicos preexistentes) o `create` (crea un Game hijo nuevo, caso Mass Effect Legendary Edition donde los remasterizados no existen standalone). Los hijos creados heredan description, releaseAt, coverUrl, backgroundUrl, platforms, genres, scores y times del padre (editables despues por el moderator). `DELETE /games/:id/compilation-items` limpia la relacion sin borrar los hijos. Frontend: editor admin con modal "Mark as compilation" + autocomplete para link + slug preview para create + boton "Clear compilation". Game-detail muestra tab "Compilation" con grilla de hijos clickeables y seccion "Part of" cuando el juego pertenece a uno o mas compilados. Al click "Add to Backlog" en un compilado, picker modal con los hijos (cada uno navega a su page con `?addToBacklog=1` que auto-abre el modal) + opcion "The whole compilation" para trackear como entrada unica. Cada juego (padre o hijo) mantiene su Backlog independiente — la trazabilidad temporal se preserva via el modelo de runs existente, sin campos nuevos. Query filters `is_compilation`/`exclude_compilations` para que la UI de discovery pueda esconder compilados cuando convenga. Multi-padre soportado nativamente por la unique constraint `(parentGameId, childGameId)`.
 
 ### [FB-074] RAWG agrupa juegos distintos en un mismo registro (Pokemon Sun/Moon)
 
 - **Fecha:** 2026-05-12
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** RAWG a veces consolida varios juegos distintos en un unico registro. Ejemplo: "Pokemon Sun" y "Pokemon Moon" aparecen como un solo juego en RAWG, siendo que son titulos diferentes (con dex y exclusivos distintos). Lo mismo suele pasar con otras parejas de Pokemon (Sword/Shield, Scarlet/Violet) y con remakes/versiones. Como en la BBDD de Completr hay una constraint de unicidad por `rawgId` (un registro por juego de RAWG), no se pueden crear entradas separadas para cada version. El usuario que tiene solo una de las dos versiones queda forzado a usar el registro consolidado, lo que distorsiona el backlog, los promedios y el feed.
-- **Solucion propuesta:** Romper la asuncion "1 juego en Completr = 1 juego en RAWG". Opciones:
-    - (1) Quitar la constraint UNIQUE sobre `rawgId` y permitir varios juegos en Completr apuntando al mismo `rawgId`. Diferenciarlos por `name`/`slug` propio de Completr. Implica revisar todos los lugares donde se asume unicidad por rawgId (sync, import, busquedas).
-    - (2) Modelar una tabla intermedia `game_variant` donde el "juego RAWG" es padre y cada variante (Sun, Moon) es hijo con datos propios (cover, descripcion, score, duration). El backlog apunta a la variante, no al padre.
-    - (3) Permitir que un admin "desconsolide" manualmente un registro de RAWG en N registros de Completr, manteniendo el rawgId como referencia opcional. Mas pragmatico mientras no haya muchos casos.
-    - Cambio de BBDD requerido en cualquiera de las opciones. Evaluar volumen de casos antes de decidir (cuantos registros RAWG conocidos consolidan juegos distintos).
+- **Solucion:** Resuelto en conjunto con FB-023. Se relajo el unique de `GameExternals` y se agrego `Games.variant` para diferenciar siblings con mismo `rawgId`. El endpoint admin `POST /games/:id/split` permite romper un registro consolidado en N juegos compartiendo externals + datos clonables. Ver FB-023 para detalles completos.
 
 ### [FB-075] Link a RAWG usa el slug de Completr en vez del slug real de RAWG
 

@@ -3,6 +3,7 @@ import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
 import { Genre } from "../genres/genres.model";
 import { Platform } from "../platforms/platform.model";
+import { CompilationItem } from "../compilation-items/compilation-item.model";
 import { Game } from "./game.model";
 
 export function gameSerializer(
@@ -19,6 +20,8 @@ export function gameSerializer(
 		backgroundUrl: game.backgroundUrl,
 		isDlc: game.isDlc,
 		parentGameId: game.parentGameId,
+		variant: game.variant ?? null,
+		isCompilation: game.isCompilation ?? false,
 		updatedAt: game.updatedAt,
 		ratio: calculateRatio(game.GameScores, game.GameTimes),
 		justImported: options.justImported ?? false,
@@ -28,7 +31,47 @@ export function gameSerializer(
 		times: game.GameTimes?.map(timeSerializer) ?? [],
 		dlcs: game.Dlcs?.map(dlcSerializer) ?? [],
 		parentGame: parentGameSerializer(game.ParentGame),
-		externalLinks: game.GameExternals?.map(externalSerializer) ?? []
+		externalLinks: game.GameExternals?.map(externalSerializer) ?? [],
+		compilationItems:
+			(
+				game as Game & { CompilationItems?: CompilationItem[] }
+			).CompilationItems?.map(compilationChildSerializer) ?? [],
+		partOfCompilations:
+			(
+				game as Game & { PartOfCompilations?: CompilationItem[] }
+			).PartOfCompilations?.map(compilationParentSerializer) ?? []
+	};
+}
+
+function compilationChildSerializer(item: CompilationItem) {
+	const child = item.ChildGame;
+	return {
+		id: item.id,
+		position: item.position,
+		game: child
+			? {
+					id: child.id,
+					title: child.title,
+					code: child.code,
+					backgroundUrl: child.backgroundUrl,
+					coverUrl: child.coverUrl
+				}
+			: null
+	};
+}
+
+function compilationParentSerializer(item: CompilationItem) {
+	const parent = item.ParentGame;
+	if (!parent) return null;
+	return {
+		id: item.id,
+		parentGame: {
+			id: parent.id,
+			title: parent.title,
+			code: parent.code,
+			backgroundUrl: parent.backgroundUrl,
+			coverUrl: parent.coverUrl
+		}
 	};
 }
 

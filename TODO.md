@@ -504,7 +504,7 @@
 
 ### Corrección de bugs por feedback de usuarios
 
-- [ ] Corrección de bugs por feedback de usuarios (ver docs/feedback/fase-2.md)
+- [x] Corrección de bugs por feedback de usuarios (ver docs/feedback/fase-2.md) — 90 resueltos, 13 descartados, 6 diferidos, 0 pendientes
 - [ ] Diseñar el docs/architecture.md
 - [ ] Crear aviso de privacidad
 
@@ -618,6 +618,22 @@
 - [ ] Ejecutar en local + en `env.production.local`, luego borrar el archivo de migración (mismo patrón que el round-list-item-scores)
 - [ ] (Opcional) Tabla `slug_redirects(old_code, new_code, gameId)` + middleware en game-detail que resuelva 404 contra esa tabla, para no romper bookmarks externos
 
+### Limpieza de descripciones multi-idioma (deferido desde Fase 2 — FB-053)
+
+**Contexto:** RAWG a veces devuelve descripciones concatenando varios idiomas (ej: Hello Kitty Island Adventure mezcla inglés + alemán). Además son muy largas y no tienen scroll propio en la ficha del juego.
+
+- [ ] Detección de idioma en `rawg-to-game.mapper.ts`: parsear la descripción y conservar solo el bloque en inglés (o el primero de la lista priorizada en/es). Considerar librería `franc` o regex sobre delimitadores que RAWG suele usar
+- [ ] Script de backfill one-off: aplicar el parser a todas las descripciones existentes con campos mixtos
+- [ ] Frontend: "Read more / Read less" en descripciones largas (>500 chars) en game-detail con clamp inicial
+
+### Diagnóstico búsqueda Nintendo Switch (deferido desde Fase 2 — FB-045)
+
+**Contexto:** Un usuario reportó que no podía encontrar Pokemon Scarlet. Posible duplicado de FB-074 (ya resuelto via split): RAWG consolida Scarlet/Violet en un solo registro. Re-verificar después del fix para confirmar que el flujo split lo cubre.
+
+- [ ] Reproducir búsqueda "Pokemon Scarlet" en producción tras el merge de FB-074
+- [ ] Si la causa raíz es la consolidación Scarlet/Violet, splittear el registro RAWG con el endpoint `/games/:id/split` y cerrar el FB
+- [ ] Si no es ese caso, contrastar contra la API de RAWG y revisar `rawg-platform.map.ts` para confirmar que `nintendo-switch` está mapeado correctamente
+
 ### Revisión de performance y código
 
 - [ ] Revisar si endpoints tienen underfetching u overfetching (ajustar payloads a lo que realmente consume el frontend)
@@ -655,13 +671,14 @@
 
 ### Búsqueda avanzada
 
-- [ ] Filtros combinados: género, plataforma, estado, ratio mínimo/máximo, duración
+- [x] Filtros combinados: género, plataforma, año, score mínimo/máximo, duración, DLC toggle. Backend `GET /games` extendido en FB-102; frontend con panel de filtros + chips + URL persistente
 - [ ] Ordenamiento dinámico: rating, duración, ratio, popularidad (nº de usuarios que lo tienen)
 
 ### Landing page
 
 - [ ] Crear landing page con Astro: descripción de Completr, screenshots y formulario de "solicitar invitación"
 - [ ] Sección `/changelog` con novedades de cada release (Astro + Content Collections, posts en markdown)
+- [ ] **Pegado app ↔ landing** (deferido desde Fase 2 — FB-101): definir mapa de enlaces entre `completr.app` (landing) y `web.completr.app` (app autenticada). Footer global con links a About/Changelog/Pricing/Privacy/Terms; links en login/register hacia landing para visitantes; CTA "Hazte premium" desde Settings → landing pricing; comportamiento del logo del navbar en estados no autenticados / error 404. Definir cuándo abrir en misma pestaña vs. nueva (footer → about: misma; leer terms mientras editás perfil: nueva). En sentido inverso, CTAs claros en landing a `web.completr.app/register` y `/login`.
 
 ### Sistema de invitación
 
@@ -705,6 +722,10 @@
 - [ ] Tus amigos votan cuál de tus juegos pendientes deberías jugar
 - [ ] Mostrar resultados de votación al usuario
 
+### UX exploratorio
+
+- [ ] **Colores semánticos por icono en el sidebar** (deferido desde Fase 2 — FB-109): asignar paleta fija por sección (inactivo) para reconocimiento rápido, estilo Discord/Slack. Propuesta inicial: Feed (sky/cyan, `dynamic_feed`), Games (emerald, `sports_esports`), Backlog (brand/morado, `list_alt`), Game Shelf (amber, `shelves`), Queue (rose, `favorite_border`), Favorites (yellow/dorado, `star`), Saved Views (purple, `bookmark`), Lists (teal, `format_list_bulleted`), Admin section (tonos tenues). El estado activo ya aplica `[&_.nav-icon]:!text-brand`, no se pisa. Intento previo se revirtió por preferencia de iconos neutros — esta vez validar con usuarios reales (no solo Esteban) antes de mergear; si hay rechazo, descartar.
+
 ### Refactors pendientes
 
 - [ ] Refactor `security.txt`: mover de middleware a ruta simple
@@ -747,6 +768,42 @@
 - [ ] `DELETE /users/me/notifications/:id` — eliminar una notificación
 - [ ] Preferencias de usuario: toggles en perfil para activar/desactivar cada tipo de notificación (`User.notificationPrefs` JSONB o tabla `NotificationPreference`)
 - [ ] (Opcional, Fase 5+) Web Push con VAPID + service worker para notificaciones cuando la app está cerrada
+
+### Reportar bugs generales + visibilidad de estado de reportes (deferido desde Fase 2 — FB-018)
+
+**Contexto:** Los usuarios hoy solo pueden reportar errores en datos de juegos (`GameReport`). Falta canal para bugs generales de la app (botón roto, UI rota, feature caída) y forma de ver el estado de los reportes que ya enviaron (¿aprobado? ¿rechazado? ¿en curso?). La parte de "ver estado" se resuelve naturalmente con el sistema de notificaciones de esta misma fase.
+
+- [ ] Decidir modelo: nuevo `AppBugReport(id, userId, message, route, userAgent, status, createdAt)` o extender `GameReport` con `category="app_bug"` y `gameId` nullable. La opción de extender suma menos código.
+- [ ] Form "Report a bug" accesible desde footer/menú del user (no atado a un juego concreto)
+- [ ] Captura automática de `route` actual y `userAgent` al enviar
+- [ ] Panel admin: lista de reportes con filtro por `category` (app_bug vs game data)
+- [ ] Trigger de notificación `report_resolved` al user cuando el admin marca su reporte como aprobado/rechazado, con link al detalle
+- [ ] Vista "My reports" en el perfil del user: lista paginada de reportes propios con estado y comentario del moderador
+
+### Ediciones comunitarias del catálogo (deferido desde Fase 2 — FB-034)
+
+**Contexto:** Mantener al día el catálogo de juegos (datos faltantes, plataformas, scores, descripciones) es trabajo para una sola persona. Algunos usuarios quieren contribuir editando datos ellos mismos. Hoy solo admin/moderator pueden editar y los users tienen `GameReport` como único canal — señala problemas pero no propone correcciones concretas. Se posterga a Fase 4 porque la pieza "avisar al user cuando su edición se aprueba/rechaza" depende del sistema de notificaciones de esta misma fase.
+
+**Opciones a evaluar al implementar:**
+
+1. **`GameEditRequest` formal** — nueva tabla `(id, userId, gameId, changes JSONB, status pending/approved/rejected, reviewedBy, reviewedAt, comment, createdAt)`. Panel admin dedicado con preview del diff. Modelo limpio, mayor inversión.
+2. **Extender `GameReport` con `proposedChanges` JSONB** — el usuario reporta el problema _y opcionalmente_ propone los valores corregidos. Reusa lifecycle/lista/notificaciones del módulo de reports. Costo menor, acopla "reportar" y "editar" en el mismo modelo.
+3. **Trusted editors** — usuarios con N edits aprobadas ganan permiso de edición directa sobre campos low-risk (plataformas, géneros, links). Cambios high-risk siguen requiriendo aprobación. Sistema de reputación + dos buckets de campos.
+4. **Wiki-style con revert** — cualquier user logueado edita; mods revisan en panel "Recent edits" con botón "Revert" + opción de banear editor. Optimista, requiere vigilancia constante.
+5. **Submit-only form + notificación al admin** — form "Suggest correction" que solo envía email/Slack/notif interna; admin aplica manualmente. Cero modelo nuevo, no escala.
+
+**Recomendación de partida:** opción (2) — extender `GameReport` con `proposedChanges`. Reusa infra y permite aplicar el patch desde el panel actual de `/admin/reports` con un botón "Approve & apply". Si en Fase 5+ el volumen crece, migrar a (1) reutilizando el JSONB ya capturado.
+
+**Tareas (a definir al arrancar):**
+
+- [ ] Decidir entre (1)-(5) según volumen estimado de contribuyentes
+- [ ] Migración + modelo (o extensión de GameReport)
+- [ ] Endpoint `POST /games/:id/edit-requests` (user) y endpoints de revisión (mod)
+- [ ] UI usuario: botón "Suggest changes" en game detail con form prerellenado
+- [ ] UI moderator: panel de revisión con diff visual + Approve/Reject
+- [ ] Triggers de notificaciones: `edit_request_approved`, `edit_request_rejected`
+- [ ] Audit log: registrar quién aplicó qué cambio (atribución al user original)
+- [ ] (Opcional Fase 5+) Badge "Contributor" al alcanzar N edits aprobadas
 
 ### Estadísticas de listas públicas
 
@@ -974,6 +1031,16 @@
 - [ ] Detector de co-op: auto-detectar juegos que tú y un amigo tienen en el backlog y ninguno ha jugado, sugerir jugarlos juntos
 - [ ] Evaluar migrar la búsqueda a Meilisearch (self-hosted en CapRover). Hoy `searchGames` usa `ILIKE %query%` sobre `title` — suficiente con `pg_trgm` + tokenización para el problema actual de tolerancia a puntuación/espacios. Meilisearch se justifica cuando: (a) el catálogo crezca a decenas de miles de juegos y el `ILIKE`/trigram se vuelva lento, (b) se necesite faceting pesado (género + plataforma + status + rangos en simultáneo) o (c) se quiera typo-tolerance y ranking inteligente como producto. Costos: otro contenedor, pipeline de sincronización catálogo → índice (probablemente con hooks de Sequelize o un job periódico), y mantenimiento. Decidir en base a métricas reales, no anticipadamente
 - [ ] Perfil personalizable (estilo Steam Showcases). Permitir al usuario armar su perfil público con bloques/widgets a su gusto: "Juegos favoritos destacados" (grid 5/10 con cover grande), "Reseñas destacadas" (selección manual de las que el usuario quiere mostrar), "Trofeos/Logros", "Estadísticas del año", "Lista pinneada", "Texto libre/bio extendida", "Captura/screenshot favorita", etc. El usuario decide qué bloques agregar, en qué orden, y con qué contenido específico. Implementación sugerida: modelo `ProfileBlock` (id, userId, type, position, config JSONB) — cada tipo de bloque define su propio shape de config. Frontend: vista de edición del perfil con drag-and-drop para reordenar y CRUD de bloques. Probable feature premium (consistente con la sección "Perfil público" de la tabla FREE vs PREMIUM que ya menciona "URL, portada y avatar custom" como premium). Decidir alcance MVP: empezar con 3-4 tipos de bloques fijos antes de abrir a un sistema completamente extensible
+
+### Feedback diferido de Fase 2
+
+> Items reportados por beta testers en Fase 2 que se difirieron por ser nice-to-haves o cambios de data que requieren design previo. Aterrizar cuando haya bandwidth.
+
+- [ ] **Bug reports generales del usuario** (no asociados a un juego): tabla `BugReport(id, userId, content, screenshot?, status)` + panel admin para revisarlos. Hoy solo existen `GameReport` que son específicos de catálogo
+- [ ] **Faltan juegos de Nintendo Switch** (ej: Pokemon Scarlet). RAWG no los tiene o están en otra ID. Evaluar IGDB como fuente complementaria
+- [ ] **Descripción de juego en idiomas mezclados y demasiado larga**. Truncar + traducir/normalizar al inglés o español dependiendo del usuario
+- [ ] **Enlaces a la landing/webpage pública** (completr.app) desde dentro de la app — footer, settings, o un link en help
+- [ ] **Color semántico por icono del sidebar**: paleta fija (Feed=sky, Games=emerald, Backlog=brand, Game Shelf=amber, Wishlist=rose, Favorites=yellow, Saved Views=purple, Lists=teal). Inactivo usa color semántico, activo cambia a brand. Validar con usuarios
 
 ---
 

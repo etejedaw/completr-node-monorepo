@@ -26,10 +26,12 @@ class Backlog extends Model {
 	declare userRating?: number;
 	declare isPublic: boolean;
 	declare notes?: string;
+	declare compilationGameId?: string | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 	declare Game: Game;
 	declare Platform: Platform;
+	declare CompilationGame?: Game | null;
 }
 
 Backlog.init(
@@ -67,7 +69,11 @@ Backlog.init(
 			type: DataTypes.BOOLEAN,
 			defaultValue: true
 		},
-		notes: DataTypes.TEXT
+		notes: DataTypes.TEXT,
+		compilationGameId: {
+			type: DataTypes.UUID,
+			allowNull: true
+		}
 	},
 	{ sequelize }
 );

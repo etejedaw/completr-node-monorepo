@@ -45,8 +45,8 @@ GameExternal.init(
 	{
 		sequelize,
 		indexes: [
-			{ unique: true, fields: ["source", "externalId"] },
-			{ unique: true, fields: ["gameId", "source"] }
+			{ unique: true, fields: ["gameId", "source"] },
+			{ fields: ["source", "externalId"] }
 		]
 	}
 );

@@ -4,30 +4,58 @@ import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { Backlog } from "./backlog.model";
 import { Queue } from "../queue/queue.model";
+import { CompilationItem } from "../compilation-items/compilation-item.model";
 import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import { BacklogQuery } from "./schemas/backlog-query.schema";
 import * as backlogServiceError from "./errors/backlog.service-error";
 
+const backlogInclude = [
+	{ model: Game },
+	{ model: Platform },
+	{ model: Game, as: "CompilationGame", required: false }
+];
+
+async function assertCompilationContext(
+	gameId: string,
+	compilationGameId: string
+) {
+	const compilationGame = await Game.findOne({
+		where: { id: compilationGameId, isActive: true, isCompilation: true }
+	});
+	if (!compilationGame)
+		throw backlogServiceError.compilationContextInvalidError();
+
+	const link = await CompilationItem.findOne({
+		where: { parentGameId: compilationGameId, childGameId: gameId }
+	});
+	if (!link) throw backlogServiceError.compilationContextInvalidError();
+}
+
 export async function createBacklog(
 	userId: string,
 	registerBacklog: RegisterBacklogDto
 ) {
+	if (registerBacklog.compilationGameId) {
+		await assertCompilationContext(
+			registerBacklog.gameId,
+			registerBacklog.compilationGameId
+		);
+	}
+
 	const backlogEntry = await Backlog.create({
 		...registerBacklog,
 		userId
 	});
 
-	await backlogEntry.reload({
-		include: [{ model: Game }, { model: Platform }]
-	});
+	await backlogEntry.reload({ include: backlogInclude });
 	return backlogEntry;
 }
 
 export async function findBacklogById(id: string) {
 	return Backlog.findOne({
 		where: { id },
-		include: [{ model: Game }, { model: Platform }]
+		include: backlogInclude
 	});
 }
 
@@ -99,7 +127,11 @@ function buildIncludes(filters: BacklogQuery) {
 			title: { [Op.iLike]: `%${filters.search}%` }
 		};
 	}
-	return [gameInclude, { model: Platform }];
+	return [
+		gameInclude,
+		{ model: Platform },
+		{ model: Game, as: "CompilationGame", required: false }
+	];
 }
 
 const NULLABLE_SORT_FIELDS = new Set([
@@ -211,6 +243,16 @@ export async function updateBacklog(
 	if (!backlogEntry) throw backlogServiceError.notFoundError();
 	if (backlogEntry.userId !== userId)
 		throw backlogServiceError.forbiddenError();
+
+	if (
+		updateBacklog.compilationGameId !== undefined &&
+		updateBacklog.compilationGameId !== null
+	) {
+		await assertCompilationContext(
+			backlogEntry.gameId,
+			updateBacklog.compilationGameId
+		);
+	}
 
 	await backlogEntry.update(updateBacklog);
 

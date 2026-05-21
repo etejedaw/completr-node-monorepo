@@ -32,7 +32,19 @@ export function backlogSerializer(
 		hasReview: !!review,
 		reviewContent: review?.content ?? null,
 		game: gameSerializer(backlogEntry.Game),
-		platform: platformSerializer(backlogEntry.Platform)
+		platform: platformSerializer(backlogEntry.Platform),
+		compilationGame: backlogEntry.CompilationGame
+			? gameSummarySerializer(backlogEntry.CompilationGame)
+			: null
+	};
+}
+
+function gameSummarySerializer(game: Game) {
+	return {
+		id: game.id,
+		code: game.code,
+		title: game.title,
+		backgroundUrl: game.backgroundUrl
 	};
 }
 

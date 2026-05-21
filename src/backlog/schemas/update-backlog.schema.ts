@@ -20,7 +20,8 @@ export const UpdateBacklogSchema = z
 			.nullable()
 			.optional(),
 		isPublic: z.boolean().optional(),
-		notes: z.string().nullable().optional()
+		notes: z.string().nullable().optional(),
+		compilationGameId: z.uuid().nullable().optional()
 	})
 	.strict()
 	.readonly();
