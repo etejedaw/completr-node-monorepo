@@ -753,8 +753,9 @@ Formato por item:
 
 - **Fecha:** 2026-05-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Esteban
+- **Razon de descarte:** El "espacio sobrante" ya se resolvio con FB-107 (queue simplificada a grid-only compacto con chips de ratio/duration). El reorder con flechas ⬆⬇ es funcional para el uso real (raras veces se reordenan muchos items). Drag-and-drop con Angular CDK queda como nice-to-have de baja prioridad.
 - **Descripcion:** La vista de Queue (en modo tabla y grilla) deja bastante espacio vertical/horizontal sobrante por fila. Mas alla del badge de posicion ya agregado (FB-076), la priorizacion manual hoy se hace con flechas arriba/abajo que son lentas para reordenar varios items. Una experiencia drag-and-drop seria mucho mas fluida para acomodar el orden y aprovecharia el espacio sobrante como "zona de drop".
 - **Solucion propuesta:** Implementar drag-and-drop con Angular CDK DragDropModule en el listado de queue. Cada fila/card es draggable; al soltarse, se llama al PUT existente con el nuevo array de backlogIds reordenado. Mostrar feedback visual claro durante el drag (sombra, opacidad, indicador de drop position). Mantener las flechas como fallback accesible. Aprovechar para evaluar si la card actual se puede compactar o si conviene una vista mas densa con menos padding entre items.
 
@@ -789,10 +790,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al abrir el modal de una entrada del backlog ya existente, el formulario de edicion aparece inmediatamente con todos los campos editables. No hay un paso intermedio que muestre de forma estatica la informacion que el usuario ya ingreso (score, duracion, fechas, plataforma, reseña, etc.). El usuario que solo quiere consultar los datos tiene que escanear los inputs de un formulario en vez de leer una vista resumen limpia. Tambien implica que un click accidental en un input ya cambia algo, cuando la intencion era solo mirar.
 - **Solucion propuesta:** Convertir el modal de backlog en dos estados: (1) **Vista resumen** (default al abrir): muestra los datos ya ingresados en formato de solo lectura, con tipografia y layout pensados para lectura — score, duracion estimada, real duration, fechas, plataforma, notas, etc. Si el usuario tiene reseña para ese juego, incluirla en la vista resumen (texto + rating + chip de duracion segun FB de mejoras a reseñas). Boton primario "Editar" que cambia al estado de edicion. (2) **Vista edicion**: el formulario actual con todos los inputs, ahi mantener el cuadro "Editar reseña" como esta hoy (redirige al flujo de editar reseña). Boton "Volver" o "Cancelar" que regresa a la vista resumen sin guardar cambios. Para entradas nuevas (crear backlog) seguir abriendo directo en modo edicion porque no hay datos previos que resumir.
+- **Resolucion:** Modal de backlog y modal de game-shelf ahora tienen dos estados via signal `viewMode = 'summary' | 'edit'`. Al abrir una entrada existente (`entry` input no null), se abre en `summary`. En el summary se muestra cover, status badge (con color), plataforma, rating estrellas, ratio (grande a la derecha), tarjetas con Score/Duration/Real Duration/Personal Ratio/Started/Finished segun aplique, notas y reseña (si hay). Boton "Editar" abajo cambia a `edit` (form actual). Para entradas nuevas se abre directo en `edit`. Game shelf hace lo mismo con su data (edition, acquiredAt, notes). Sin riesgo de editar por accidente.
 
 ### [FB-087] En el backlog, si la entrada no tiene nota pero hay reseña, mostrar la reseña
 
