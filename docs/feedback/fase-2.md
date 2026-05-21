@@ -299,7 +299,8 @@ Formato por item:
 
 - **Fecha:** 2026-04-22
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** descartado
+- **Razon de descarte:** Caso edge — la mayoria de usuarios juega cada titulo en una sola plataforma. El sintoma real (ports muy diferentes) se ataca mejor desde FB-073 (mostrar versiones/ports en la ficha del juego) que cambiando el modelo de Review.
 - **Descripcion:** Algunos ports de juegos son experiencias considerablemente diferentes del original (ej: RE2 en N64 fue una hazaña tecnica con diferencias notables vs la version de PS1, Starcraft en consola es un RTS con control de gamepad). RAWG y otras fuentes tratan estos ports como un solo registro, pero si un usuario hace una review, su experiencia puede ser completamente distinta segun la plataforma en la que jugo. Actualmente las reviews son por juego (unique userId+gameId), no por plataforma. El backlog si permite trackear el mismo juego en distintas plataformas, pero la review y el rating no distinguen en cual se jugo.
 - **Solucion propuesta:** No es urgente. A futuro considerar: (1) permitir reviews por plataforma en vez de por juego (o agregar campo plataforma a la review para contextualizar), (2) dentro de la ficha del juego, mostrar una seccion de "versiones" o "ports" que agrupe las plataformas con sus diferencias. Esto no requiere separar el juego en multiples registros — el juego sigue siendo uno, pero las experiencias por plataforma se pueden diferenciar. Relacionado con FB-023 (RAWG agrupa juegos que deberian ser separados).
 
@@ -341,10 +342,11 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Tami
 - **Descripcion:** Un usuario sugiere que seria util poder iniciar sesion con Google en vez de solo email/password. Esto reduce friccion en el registro y login, especialmente para usuarios que ya tienen muchas credenciales.
 - **Solucion propuesta:** Implementar OAuth con Google como metodo de login alternativo. Requiere: registrar la app en Google Cloud Console, implementar el flujo OAuth en el backend (passport-google o similar), y agregar boton "Sign in with Google" en el frontend. Considerar si se permite vincular una cuenta existente con Google o solo registro nuevo. Feature para Fase 3 o posterior.
+- **Razon de descarte:** Trabajo grande (passport-google + OAuth flow + frontend UI + linking con cuentas existentes) para una mejora de friccion de severidad baja. El email/password actual con refresh token funciona bien. Se reconsiderara si hay demanda fuerte en futuras fases.
 
 ### [FB-039] Pantalla de perfil usa solo la mitad del ancho de la pagina
 

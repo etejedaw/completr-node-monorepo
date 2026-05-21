@@ -113,6 +113,8 @@ export interface GamesQueryOptions {
 	min_duration?: number;
 	max_duration?: number;
 	is_dlc?: boolean;
+	include_inactive?: boolean;
+	only_inactive?: boolean;
 	no_scores?: boolean;
 	no_times?: boolean;
 	no_platforms?: boolean;
@@ -137,6 +139,8 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		min_duration,
 		max_duration,
 		is_dlc,
+		include_inactive,
+		only_inactive,
 		no_scores,
 		no_times,
 		no_platforms,
@@ -144,7 +148,12 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		no_time_source
 	} = options;
 
-	const where: Record<string, unknown> = { isActive: true };
+	const where: Record<string, unknown> = {};
+	if (only_inactive) {
+		where["isActive"] = false;
+	} else if (!include_inactive) {
+		where["isActive"] = true;
+	}
 	const andConditions: object[] = [];
 	const include: { association: string; where?: Record<string, unknown> }[] =
 		[
