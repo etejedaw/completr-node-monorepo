@@ -254,7 +254,15 @@ export class PublicProfileService {
 			);
 	}
 
-	getUserReviews(username: string) {
+	getUserReviews(
+		username: string,
+		opts: { limit?: number; offset?: number } = {}
+	) {
+		let params = new HttpParams();
+		if (opts.limit !== undefined)
+			params = params.set("limit", String(opts.limit));
+		if (opts.offset !== undefined)
+			params = params.set("offset", String(opts.offset));
 		return this.http
 			.get<{
 				data: {
@@ -269,9 +277,10 @@ export class PublicProfileService {
 						} | null;
 						createdAt: string;
 					}[];
+					total: number;
 				};
-			}>(`${environment.apiUrl}/users/${username}/reviews`)
-			.pipe(map(res => res.data.reviews));
+			}>(`${environment.apiUrl}/users/${username}/reviews`, { params })
+			.pipe(map(res => res.data));
 	}
 
 }

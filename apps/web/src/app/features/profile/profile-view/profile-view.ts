@@ -50,7 +50,7 @@ export class ProfileView implements OnInit {
 			completed,
 			playing,
 			lists: p.lists.length,
-			reviews: this.userReviews().length
+			reviews: this.userReviewsTotal()
 		};
 	});
 	protected readonly userReviews = signal<
@@ -62,6 +62,7 @@ export class ProfileView implements OnInit {
 			createdAt: string;
 		}[]
 	>([]);
+	protected readonly userReviewsTotal = signal(0);
 
 	protected readonly showUserListModal = signal(false);
 	protected readonly userListTitle = signal("");
@@ -138,8 +139,11 @@ export class ProfileView implements OnInit {
 				this.profile.set(data);
 				this.isLoading.set(false);
 				this.publicProfileService
-					.getUserReviews(username)
-					.subscribe(r => this.userReviews.set(r));
+					.getUserReviews(username, { limit: 5 })
+					.subscribe(r => {
+						this.userReviews.set(r.reviews);
+						this.userReviewsTotal.set(r.total);
+					});
 			},
 			error: () => this.isLoading.set(false)
 		});

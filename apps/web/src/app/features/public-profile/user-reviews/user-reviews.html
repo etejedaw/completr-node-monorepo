@@ -1,0 +1,61 @@
+<div class="max-w-3xl mx-auto p-6 lg:p-8 max-md:px-4">
+	<div class="flex items-center justify-between mb-6 pb-4 border-b border-line">
+		<a routerLink="/" class="flex items-center gap-2.5 no-underline">
+			<span
+				class="flex items-center justify-center w-8 h-8 rounded-lg font-display font-extrabold text-sm text-white"
+				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+			>C</span>
+			<span class="text-lg font-bold text-fg">Completr</span>
+		</a>
+		@if (!isLoggedIn()) {
+			<a routerLink="/login" class="px-3 py-1.5 bg-brand text-white rounded text-[0.8125rem] font-semibold no-underline">Sign in</a>
+		}
+	</div>
+
+	<a class="inline-flex items-center gap-1.5 text-fg-muted no-underline text-[0.8125rem] mb-5 hover:text-brand" [routerLink]="['/user', username()]">
+		<span class="material-icons text-base">arrow_back</span>
+		{{ '@' + username() }}'s profile
+	</a>
+
+	@if (error() === 'not_found') {
+		<div class="text-center py-12 text-fg-muted text-sm">User not found.</div>
+	} @else if (error() === 'private') {
+		<div class="text-center py-12 text-fg-muted text-sm">This content is private.</div>
+	} @else {
+		<div class="flex items-baseline gap-3 mb-5">
+			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Reviews</h1>
+			<span class="text-sm text-fg-muted">{{ total() }} total</span>
+		</div>
+
+		@if (isLoading()) {
+			<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
+		} @else if (reviews().length === 0) {
+			<div class="text-center py-12 text-fg-muted text-sm">No reviews yet.</div>
+		} @else {
+			<div class="flex flex-col">
+				@for (r of reviews(); track r.id) {
+					<div class="py-4 border-b border-line last:border-b-0">
+						<div class="flex items-center justify-between mb-2">
+							@if (r.game) {
+								<a class="text-base font-semibold text-fg no-underline hover:text-brand" [routerLink]="['/games', r.game.code]">{{ r.game.title }}</a>
+							}
+							@if (r.rating) {
+								<app-star-rating [value]="r.rating" [readonly]="true" size="sm" />
+							}
+						</div>
+						@if (r.content) {
+							<p class="m-0 text-sm text-fg-secondary leading-relaxed">{{ r.content }}</p>
+						}
+					</div>
+				}
+			</div>
+
+			<ui-pagination
+				[offset]="offset()"
+				[limit]="limit"
+				[total]="total()"
+				(offsetChange)="goToOffset($event)"
+			/>
+		}
+	}
+</div>

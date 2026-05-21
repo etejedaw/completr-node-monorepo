@@ -58,6 +58,13 @@ export const routes: Routes = [
 			`/lists/${params["id"]}?from=${params["username"]}`
 	},
 	{
+		path: "user/:username/reviews",
+		loadComponent: () =>
+			import("./features/public-profile/user-reviews/user-reviews").then(
+				m => m.UserReviews
+			)
+	},
+	{
 		path: "",
 		canActivate: [authGuard],
 		loadComponent: () => import("./layout/layout").then(m => m.Layout),
