@@ -1,10 +1,10 @@
-export interface WishlistEntry {
+export interface QueueEntry {
 	id: string;
 	position: number;
-	backlog: WishlistBacklog;
+	backlog: QueueBacklog;
 }
 
-interface WishlistBacklog {
+interface QueueBacklog {
 	id: string;
 	status: string;
 	score?: number;

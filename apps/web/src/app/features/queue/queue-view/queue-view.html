@@ -1,7 +1,7 @@
 <div>
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
-			<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Wishlist</h1>
+			<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Queue</h1>
 			<span class="text-sm text-fg-muted">{{ total() }} games</span>
 		</div>
 		<button uiButton variant="primary" (click)="openAddModal()">
@@ -66,7 +66,7 @@
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (entries().length === 0) {
 	<div class="text-center py-12">
-		<p class="empty-title">Your wishlist is empty</p>
+		<p class="empty-title">Your queue is empty</p>
 		<p class="empty-hint">
 			Prioritize which games to play next. Add games from their detail
 			page or from your backlog.
@@ -75,7 +75,7 @@
 	} @else {
 	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 		@for (entry of filteredEntries(); track entry.id; let i = $index) {
-			<app-wishlist-grid-card
+			<app-queue-grid-card
 				[entry]="{
 					game: entry.backlog.game,
 					platformAbbreviation: entry.backlog.platform?.abbreviation,
@@ -103,7 +103,7 @@
 </div>
 
 @if (showAddModal()) {
-<app-wishlist-add-modal
+<app-queue-add-modal
 	(closed)="onAddModalClosed()"
 	(saved)="onAddModalSaved()"
 />

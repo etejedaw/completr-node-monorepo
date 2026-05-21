@@ -2,28 +2,28 @@ import { inject, Injectable } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { map, switchMap } from "rxjs";
 import { environment } from "../../../environments/environment";
-import { WishlistEntry } from "../../core/models";
+import { QueueEntry } from "../../core/models";
 
-interface WishlistListResponse {
-	data: { wishlist: WishlistEntry[]; total?: number };
+interface QueueListResponse {
+	data: { queue: QueueEntry[]; total?: number };
 }
 
-interface WishlistSingleResponse {
-	data: { wishlist: WishlistEntry };
+interface QueueSingleResponse {
+	data: { queue: QueueEntry };
 }
 
-export interface WishlistPagination {
+export interface QueuePagination {
 	limit?: number;
 	offset?: number;
 	search?: string;
 }
 
 @Injectable({ providedIn: "root" })
-export class WishlistService {
+export class QueueService {
 	private readonly http = inject(HttpClient);
-	private readonly baseUrl = `${environment.apiUrl}/users/me/wishlist`;
+	private readonly baseUrl = `${environment.apiUrl}/users/me/queue`;
 
-	getMyWishlist(pagination: WishlistPagination = {}) {
+	getMyQueue(pagination: QueuePagination = {}) {
 		let params = new HttpParams();
 		if (pagination.limit !== undefined)
 			params = params.set("limit", String(pagination.limit));
@@ -31,45 +31,45 @@ export class WishlistService {
 			params = params.set("offset", String(pagination.offset));
 		if (pagination.search) params = params.set("search", pagination.search);
 		return this.http
-			.get<WishlistListResponse>(this.baseUrl, { params })
-			.pipe(map(res => res.data.wishlist));
+			.get<QueueListResponse>(this.baseUrl, { params })
+			.pipe(map(res => res.data.queue));
 	}
 
-	getMyWishlistPaged(pagination: WishlistPagination = {}) {
+	getMyQueuePaged(pagination: QueuePagination = {}) {
 		let params = new HttpParams();
 		if (pagination.limit !== undefined)
 			params = params.set("limit", String(pagination.limit));
 		if (pagination.offset !== undefined)
 			params = params.set("offset", String(pagination.offset));
 		if (pagination.search) params = params.set("search", pagination.search);
-		return this.http.get<WishlistListResponse>(this.baseUrl, { params });
+		return this.http.get<QueueListResponse>(this.baseUrl, { params });
 	}
 
 	addFromGame(gameId: string, platformId: string) {
 		return this.http
-			.post<WishlistSingleResponse>(`${this.baseUrl}?source=game`, {
+			.post<QueueSingleResponse>(`${this.baseUrl}?source=game`, {
 				id: gameId,
 				platformId
 			})
-			.pipe(map(res => res.data.wishlist));
+			.pipe(map(res => res.data.queue));
 	}
 
 	addFromBacklog(backlogId: string) {
 		return this.http
-			.post<WishlistSingleResponse>(`${this.baseUrl}?source=backlog`, {
+			.post<QueueSingleResponse>(`${this.baseUrl}?source=backlog`, {
 				id: backlogId
 			})
-			.pipe(map(res => res.data.wishlist));
+			.pipe(map(res => res.data.queue));
 	}
 
 	reorder(backlogIds: string[]) {
 		return this.http
-			.put<WishlistListResponse>(this.baseUrl, { backlogIds })
-			.pipe(map(res => res.data.wishlist));
+			.put<QueueListResponse>(this.baseUrl, { backlogIds })
+			.pipe(map(res => res.data.queue));
 	}
 
 	removeByBacklogId(backlogId: string) {
-		return this.getMyWishlist().pipe(
+		return this.getMyQueue().pipe(
 			map(entries =>
 				entries
 					.filter(e => e.backlog.id !== backlogId)
@@ -77,8 +77,8 @@ export class WishlistService {
 			),
 			switchMap(remaining =>
 				this.http
-					.put<WishlistListResponse>(this.baseUrl, { backlogIds: remaining })
-					.pipe(map(res => res.data.wishlist))
+					.put<QueueListResponse>(this.baseUrl, { backlogIds: remaining })
+					.pipe(map(res => res.data.queue))
 			)
 		);
 	}

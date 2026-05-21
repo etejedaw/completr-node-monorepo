@@ -39,10 +39,10 @@ export const routes: Routes = [
 			)
 	},
 	{
-		path: "user/:username/wishlist",
+		path: "user/:username/queue",
 		loadComponent: () =>
-			import("./features/public-profile/user-wishlist/user-wishlist").then(
-				m => m.UserWishlist
+			import("./features/public-profile/user-queue/user-queue").then(
+				m => m.UserQueue
 			)
 	},
 	{
@@ -139,10 +139,10 @@ export const routes: Routes = [
 					)
 			},
 			{
-				path: "wishlist",
+				path: "queue",
 				loadComponent: () =>
-					import("./features/wishlist/wishlist-view/wishlist-view").then(
-						m => m.WishlistView
+					import("./features/queue/queue-view/queue-view").then(
+						m => m.QueueView
 					)
 			},
 			{

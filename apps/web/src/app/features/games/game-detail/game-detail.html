@@ -209,20 +209,20 @@
 
 					<button
 						class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
-						[class.bg-brand-subtle]="addedToWishlist()"
-						[class.border-brand]="addedToWishlist()"
-						[class.text-brand]="addedToWishlist()"
-						[class.cursor-default]="addedToWishlist()"
-						[class.bg-input-bg]="!addedToWishlist()"
-						[class.border-line]="!addedToWishlist()"
-						[class.text-fg-secondary]="!addedToWishlist()"
-						[class.hover:bg-brand-subtle]="!addedToWishlist()"
-						[class.hover:border-brand]="!addedToWishlist()"
-						[class.hover:text-brand]="!addedToWishlist()"
-						(click)="addToWishlist()"
+						[class.bg-brand-subtle]="addedToQueue()"
+						[class.border-brand]="addedToQueue()"
+						[class.text-brand]="addedToQueue()"
+						[class.cursor-default]="addedToQueue()"
+						[class.bg-input-bg]="!addedToQueue()"
+						[class.border-line]="!addedToQueue()"
+						[class.text-fg-secondary]="!addedToQueue()"
+						[class.hover:bg-brand-subtle]="!addedToQueue()"
+						[class.hover:border-brand]="!addedToQueue()"
+						[class.hover:text-brand]="!addedToQueue()"
+						(click)="addToQueue()"
 					>
 						<span class="material-icons text-lg">favorite</span>
-						{{ addedToWishlist() ? 'In Wishlist' : 'Add to Wishlist' }}
+						{{ addedToQueue() ? 'In Queue' : 'Add to Queue' }}
 					</button>
 
 					<button
@@ -557,7 +557,7 @@
 @if (showBacklogModal()) {
 	<app-backlog-modal
 		[preselectedGame]="game()"
-		[preselectAddToWishlist]="backlogModalPreselectWishlist()"
+		[preselectAddToQueue]="backlogModalPreselectQueue()"
 		(closed)="onModalClosed()"
 		(saved)="onModalSaved()"
 	/>

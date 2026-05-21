@@ -7,21 +7,21 @@ import {
 import { RouterLink } from "@angular/router";
 import { UiIconButton } from "../../ui";
 
-export interface WishlistGridGame {
+export interface QueueGridGame {
 	code: string;
 	title: string;
 	backgroundUrl?: string;
 }
 
-export interface WishlistGridEntry {
-	game: WishlistGridGame;
+export interface QueueGridEntry {
+	game: QueueGridGame;
 	platformAbbreviation?: string;
 	ratio?: number | null;
 	duration?: number | null;
 }
 
 @Component({
-	selector: "app-wishlist-grid-card",
+	selector: "app-queue-grid-card",
 	standalone: true,
 	imports: [RouterLink, UiIconButton],
 	template: `
@@ -92,8 +92,8 @@ export interface WishlistGridEntry {
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class WishlistGridCard {
-	entry = input.required<WishlistGridEntry>();
+export class QueueGridCard {
+	entry = input.required<QueueGridEntry>();
 	position = input.required<number>();
 	showActions = input<boolean>(false);
 	isFirst = input<boolean>(false);

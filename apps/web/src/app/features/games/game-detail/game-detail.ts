@@ -12,7 +12,7 @@ import { GamesService } from "../games.service";
 import { ScoreSourcesService } from "../../../core/services/score-sources.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { FavoritesService } from "../../favorites/favorites.service";
-import { WishlistService } from "../../wishlist/wishlist.service";
+import { QueueService } from "../../queue/queue.service";
 import { BacklogService } from "../../backlog/backlog.service";
 import { GameShelfService } from "../../game-shelf/game-shelf.service";
 import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
@@ -52,7 +52,7 @@ export class GameDetail implements OnInit {
 	private readonly authService = inject(AuthService);
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	private readonly favoritesService = inject(FavoritesService);
-	private readonly wishlistService = inject(WishlistService);
+	private readonly queueService = inject(QueueService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly gameShelfService = inject(GameShelfService);
 	private readonly reviewsService = inject(ReviewsService);
@@ -63,11 +63,11 @@ export class GameDetail implements OnInit {
 	protected readonly similarGames = signal<Game[]>([]);
 	protected readonly isFavorite = signal(false);
 	protected readonly isInBacklog = signal(false);
-	protected readonly isInWishlist = signal(false);
+	protected readonly isInQueue = signal(false);
 	protected readonly isInShelf = signal(false);
-	protected readonly addedToWishlist = signal(false);
+	protected readonly addedToQueue = signal(false);
 	protected readonly showBacklogModal = signal(false);
-	protected readonly backlogModalPreselectWishlist = signal(false);
+	protected readonly backlogModalPreselectQueue = signal(false);
 	protected readonly showShelfModal = signal(false);
 	protected readonly isModerator = computed(() => {
 		const role = this.authService.user()?.role;
@@ -188,11 +188,11 @@ export class GameDetail implements OnInit {
 		this.backlogService.getMyBacklog({ game_id: gameId }).subscribe({
 			next: res => this.isInBacklog.set(res.data.backlog.length > 0)
 		});
-		this.wishlistService.getMyWishlist().subscribe({
-			next: wishlist => {
-				const found = wishlist.some(w => w.backlog.game.id === gameId);
-				this.isInWishlist.set(found);
-				this.addedToWishlist.set(found);
+		this.queueService.getMyQueue().subscribe({
+			next: queue => {
+				const found = queue.some(w => w.backlog.game.id === gameId);
+				this.isInQueue.set(found);
+				this.addedToQueue.set(found);
 			}
 		});
 		this.gameShelfService.getMyShelf({ limit: 100 }).subscribe({
@@ -227,10 +227,10 @@ export class GameDetail implements OnInit {
 		});
 	}
 
-	addToWishlist() {
+	addToQueue() {
 		const g = this.game();
-		if (!g || this.addedToWishlist()) return;
-		this.backlogModalPreselectWishlist.set(true);
+		if (!g || this.addedToQueue()) return;
+		this.backlogModalPreselectQueue.set(true);
 		this.showBacklogModal.set(true);
 	}
 
@@ -255,7 +255,7 @@ export class GameDetail implements OnInit {
 	}
 
 	openBacklogModal() {
-		this.backlogModalPreselectWishlist.set(false);
+		this.backlogModalPreselectQueue.set(false);
 		this.showBacklogModal.set(true);
 	}
 
@@ -266,13 +266,13 @@ export class GameDetail implements OnInit {
 	onModalClosed() {
 		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
-		this.backlogModalPreselectWishlist.set(false);
+		this.backlogModalPreselectQueue.set(false);
 	}
 
 	onModalSaved() {
 		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
-		this.backlogModalPreselectWishlist.set(false);
+		this.backlogModalPreselectQueue.set(false);
 		const gameId = this.game()?.id;
 		if (gameId) this.loadUserStatus(gameId);
 	}

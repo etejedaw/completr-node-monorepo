@@ -394,13 +394,13 @@
 
 						<button
 							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center transition hover:text-danger"
-							[class.!text-danger]="isInWishlist(entry)"
-							[class.!bg-danger\/15]="wishlistConfirmId() === entry.id"
-							[class.rounded-full]="wishlistConfirmId() === entry.id"
-							(click)="toggleWishlist(entry); $event.stopPropagation()"
-							[title]="wishlistConfirmId() === entry.id ? 'Click again to remove' : (isInWishlist(entry) ? 'Remove from Wishlist' : 'Add to Wishlist')"
+							[class.!text-danger]="isInQueue(entry)"
+							[class.!bg-danger\/15]="queueConfirmId() === entry.id"
+							[class.rounded-full]="queueConfirmId() === entry.id"
+							(click)="toggleQueue(entry); $event.stopPropagation()"
+							[title]="queueConfirmId() === entry.id ? 'Click again to remove' : (isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue')"
 						>
-							<span class="material-icons text-lg leading-none">{{ wishlistConfirmId() === entry.id ? 'heart_broken' : (isInWishlist(entry) ? 'favorite' : 'favorite_border') }}</span>
+							<span class="material-icons text-lg leading-none">{{ queueConfirmId() === entry.id ? 'playlist_remove' : (isInQueue(entry) ? 'playlist_add_check' : 'playlist_play') }}</span>
 						</button>
 					</div>
 				}
@@ -510,13 +510,13 @@
 								<td class="px-2 py-3 align-middle w-9 text-center">
 									<button
 										class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-danger"
-										[class.!text-danger]="isInWishlist(entry)"
-										[class.!bg-danger\/15]="wishlistConfirmId() === entry.id"
-										[class.rounded-full]="wishlistConfirmId() === entry.id"
-										(click)="toggleWishlist(entry); $event.stopPropagation()"
-										[title]="wishlistConfirmId() === entry.id ? 'Click again to remove' : (isInWishlist(entry) ? 'Remove from Wishlist' : 'Add to Wishlist')"
+										[class.!text-danger]="isInQueue(entry)"
+										[class.!bg-danger\/15]="queueConfirmId() === entry.id"
+										[class.rounded-full]="queueConfirmId() === entry.id"
+										(click)="toggleQueue(entry); $event.stopPropagation()"
+										[title]="queueConfirmId() === entry.id ? 'Click again to remove' : (isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue')"
 									>
-										<span class="material-icons text-base leading-none">{{ wishlistConfirmId() === entry.id ? 'heart_broken' : (isInWishlist(entry) ? 'favorite' : 'favorite_border') }}</span>
+										<span class="material-icons text-base leading-none">{{ queueConfirmId() === entry.id ? 'playlist_remove' : (isInQueue(entry) ? 'playlist_add_check' : 'playlist_play') }}</span>
 									</button>
 								</td>
 							</tr>

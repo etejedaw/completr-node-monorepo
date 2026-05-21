@@ -23,7 +23,7 @@
 		<div class="text-center py-12 text-fg-muted text-sm">This content is private.</div>
 	} @else {
 		<div class="flex items-baseline gap-3 mb-4">
-			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Wishlist</h1>
+			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Queue</h1>
 			<span class="text-sm text-fg-muted">{{ total() }} games</span>
 		</div>
 
@@ -32,13 +32,13 @@
 		@if (isLoading()) {
 			<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 		} @else if (entries().length === 0) {
-			<div class="text-center py-12 text-fg-muted text-sm">No wishlist entries.</div>
+			<div class="text-center py-12 text-fg-muted text-sm">No queue entries.</div>
 		} @else if (filteredEntries().length === 0) {
 			<div class="text-center py-12 text-fg-muted text-sm">No results found.</div>
 		} @else {
 			<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 				@for (entry of filteredEntries(); track entry.id; let i = $index) {
-					<app-wishlist-grid-card
+					<app-queue-grid-card
 						[entry]="{
 							game: entry.backlog.game,
 							platformAbbreviation: entry.backlog.platform?.abbreviation,

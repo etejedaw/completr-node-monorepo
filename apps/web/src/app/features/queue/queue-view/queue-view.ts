@@ -6,23 +6,23 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { WishlistEntry } from "../../../core/models";
-import { WishlistService } from "../wishlist.service";
-import { WishlistAddModal } from "../wishlist-add-modal/wishlist-add-modal";
+import { QueueEntry } from "../../../core/models";
+import { QueueService } from "../queue.service";
+import { QueueAddModal } from "../queue-add-modal/queue-add-modal";
 import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
-import { WishlistGridCard } from "../../../shared/components/wishlist-grid-card/wishlist-grid-card";
+import { QueueGridCard } from "../../../shared/components/queue-grid-card/queue-grid-card";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
-	selector: "app-wishlist-view",
-	imports: [WishlistAddModal, UiButton, UiPagination, UiSearchBar, WishlistGridCard],
-	templateUrl: "./wishlist-view.html",
+	selector: "app-queue-view",
+	imports: [QueueAddModal, UiButton, UiPagination, UiSearchBar, QueueGridCard],
+	templateUrl: "./queue-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class WishlistView implements OnInit {
-	private readonly wishlistService = inject(WishlistService);
+export class QueueView implements OnInit {
+	private readonly queueService = inject(QueueService);
 
-	protected readonly entries = signal<WishlistEntry[]>([]);
+	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly showAddModal = signal(false);
 	protected readonly searchQuery = signal("");
@@ -36,7 +36,7 @@ export class WishlistView implements OnInit {
 
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
-		this.loadWishlist();
+		this.loadQueue();
 	}
 
 	setSort(sort: "manual" | "ratio" | "score" | "duration") {
@@ -70,7 +70,7 @@ export class WishlistView implements OnInit {
 		if (this.sortBy() === "manual" || this.savingOrder()) return;
 		this.savingOrder.set(true);
 		const backlogIds = this.filteredEntries().map(e => e.backlog.id);
-		this.wishlistService.reorder(backlogIds).subscribe({
+		this.queueService.reorder(backlogIds).subscribe({
 			next: updated => {
 				this.entries.set(updated);
 				this.sortBy.set("manual");
@@ -87,9 +87,9 @@ export class WishlistView implements OnInit {
 			.pipe(debounceTime(300), distinctUntilChanged())
 			.subscribe(() => {
 				this.offset.set(0);
-				this.loadWishlist();
+				this.loadQueue();
 			});
-		this.loadWishlist();
+		this.loadQueue();
 	}
 
 	onSearch(query: string) {
@@ -106,14 +106,14 @@ export class WishlistView implements OnInit {
 	}
 
 	onAddModalSaved() {
-		this.loadWishlist();
+		this.loadQueue();
 	}
 
-	remove(entry: WishlistEntry) {
+	remove(entry: QueueEntry) {
 		const remaining = this.entries()
 			.filter(e => e.id !== entry.id)
 			.map(e => e.backlog.id);
-		this.wishlistService.reorder(remaining).subscribe(updated => {
+		this.queueService.reorder(remaining).subscribe(updated => {
 			this.entries.set(updated);
 		});
 	}
@@ -132,27 +132,27 @@ export class WishlistView implements OnInit {
 		this.reorder(list);
 	}
 
-	private loadWishlist() {
+	private loadQueue() {
 		this.isLoading.set(true);
-		this.wishlistService
-			.getMyWishlistPaged({
+		this.queueService
+			.getMyQueuePaged({
 				limit: this.limit,
 				offset: this.offset(),
 				search: this.searchQuery().trim() || undefined
 			})
 			.subscribe({
 				next: res => {
-					this.entries.set(res.data.wishlist);
-					this.total.set(res.data.total ?? res.data.wishlist.length);
+					this.entries.set(res.data.queue);
+					this.total.set(res.data.total ?? res.data.queue.length);
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
 			});
 	}
 
-	private reorder(list: WishlistEntry[]) {
+	private reorder(list: QueueEntry[]) {
 		const backlogIds = list.map(e => e.backlog.id);
-		this.wishlistService.reorder(backlogIds).subscribe(updated => {
+		this.queueService.reorder(backlogIds).subscribe(updated => {
 			this.entries.set(updated);
 		});
 	}

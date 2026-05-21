@@ -101,11 +101,11 @@
 				<button
 					type="button"
 					class="flex-1 flex items-center justify-center gap-2 px-3 py-2 border rounded text-xs font-medium font-sans cursor-pointer transition"
-					[class]="addToWishlist() ? 'bg-danger/10 border-danger text-danger' : 'bg-input-bg border-line-hover text-fg-muted hover:border-danger hover:text-danger'"
-					(click)="addToWishlist.set(!addToWishlist())"
+					[class]="addToQueue() ? 'bg-brand/10 border-brand text-brand' : 'bg-input-bg border-line-hover text-fg-muted hover:border-brand hover:text-brand'"
+					(click)="addToQueue.set(!addToQueue())"
 				>
-					<span class="material-icons text-base">{{ addToWishlist() ? 'favorite' : 'favorite_border' }}</span>
-					{{ addToWishlist() ? 'In Wishlist' : 'Add to Wishlist' }}
+					<span class="material-icons text-base">{{ addToQueue() ? 'playlist_add_check' : 'playlist_play' }}</span>
+					{{ addToQueue() ? 'In Queue' : 'Add to Queue' }}
 				</button>
 				@if (!isEdit()) {
 				<button
