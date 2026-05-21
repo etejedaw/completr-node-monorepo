@@ -209,18 +209,33 @@
 - [x] Frozen state: si un usuario baja de premium con >5 listas, no puede crear ni editar hasta que elimine las sobrantes
 - [x] Error handling: 402 `LIST_LIMIT_REACHED` y `LIST_FROZEN` / `LIST_ITEM_FROZEN`
 
-### Módulo de Wishlist
+### Módulo de Queue (juegos que quiere jugar pronto)
 
-> La wishlist es una cola priorizada de runs que el usuario quiere jugar. Apunta a `Backlog` (no a `Game`) porque permite runs específicas (ej: RE4 en difícil y en profesional). No es una lista (`List`) — es un módulo independiente.
+> La queue es una cola priorizada de runs que el usuario quiere jugar pronto. Apunta a `Backlog` (no a `Game`) porque permite runs específicas (ej: RE4 en difícil y en profesional). No es una lista (`List`) — es un módulo independiente.
 
-- [x] Modelo `Wishlist`: id (UUID), user_id, backlog_id, position (int), added_at — Unique index `(user_id, backlog_id)`
-- [x] `POST /users/me/wishlist?source=game` — Body: `{ id, platformId }`. Crea backlog `not_started` + wishlist entry en transacción
-- [x] `POST /users/me/wishlist?source=backlog` — Body: `{ id }`. Valida ownership, añade a wishlist
-- [x] `PUT /users/me/wishlist` — Body: `{ backlogIds: [...] }`. Reemplaza array completo, posición por orden del array
+- [x] Modelo `Queue`: id (UUID), user_id, backlog_id, position (int), added_at — Unique index `(user_id, backlog_id)`
+- [x] `POST /users/me/queue?source=game` — Body: `{ id, platformId }`. Crea backlog `not_started` + queue entry en transacción
+- [x] `POST /users/me/queue?source=backlog` — Body: `{ id }`. Valida ownership, añade a queue
+- [x] `PUT /users/me/queue` — Body: `{ backlogIds: [...] }`. Reemplaza array completo, posición por orden del array
+- [x] `GET /users/me/queue` — Mi queue ordenada por posición
+- [x] `GET /users/:username/queue` — Queue pública (respeta `User.isPublic` + `User.isQueuePublic`)
+- [x] Auto-remove: cuando un backlog cambia a `completed` o `abandoned`, eliminarlo de la queue automáticamente
+- [x] Límite: 10 free, ilimitado premium/admin
+- [x] Error handling completo registrado en normalizers globales
+- [x] Campo `isQueuePublic` (boolean, default true) en modelo `User`
+
+### Módulo de Wishlist (lista de compras)
+
+> Wishlist son juegos que el usuario quiere obtener/comprar pero aún no tiene. Apunta a `Game` (no a `Backlog` porque todavía no posee el juego). A futuro se puede conectar con APIs de tiendas (Steam, PSN, eShop) para notificar ofertas. No es una lista (`List`) — es un módulo independiente.
+
+- [x] Modelo `Wishlist`: id (UUID), user_id, game_id, position (int), added_at — Unique index `(user_id, game_id)`
+- [x] `POST /users/me/wishlist` — Body: `{ gameId }`. Añade un juego a la wishlist
+- [x] `DELETE /users/me/wishlist/:gameId` — Quita un juego de la wishlist
+- [x] `PUT /users/me/wishlist` — Body: `{ gameIds: [...] }`. Reemplaza array completo, posición por orden del array
 - [x] `GET /users/me/wishlist` — Mi wishlist ordenada por posición
 - [x] `GET /users/:username/wishlist` — Wishlist pública (respeta `User.isPublic` + `User.isWishlistPublic`)
-- [x] Auto-remove: cuando un backlog cambia a `completed` o `abandoned`, eliminarlo de la wishlist automáticamente
-- [x] Límite: 10 free, ilimitado premium/admin
+- [x] Límite: 20 free, ilimitado premium/admin
+- [x] Activity feed: registra `wishlist_added` al añadir un juego
 - [x] Error handling completo registrado en normalizers globales
 - [x] Campo `isWishlistPublic` (boolean, default true) en modelo `User`
 
@@ -255,9 +270,9 @@
 ### Módulo de Usuarios (perfil)
 
 - [x] `GET /users/me` — Ver mi perfil
-- [x] `PATCH /users/me` — Editar datos básicos (name, bio, avatarUrl, isPublic, isWishlistPublic, isFavoritePublic)
+- [x] `PATCH /users/me` — Editar datos básicos (name, bio, avatarUrl, isPublic, isQueuePublic, isWishlistPublic, isFavoritePublic)
 - [x] `PATCH /auth/password` — Cambiar contraseña
-- [x] Serializer de usuario (nunca expone `password_hash` ni `email`). Incluye `createdAt`, `isWishlistPublic`, `isFavoritePublic`
+- [x] Serializer de usuario (nunca expone `password_hash` ni `email`). Incluye `createdAt`, `isQueuePublic`, `isWishlistPublic`, `isFavoritePublic`
 
 ### Cálculo del Ratio
 
@@ -348,9 +363,9 @@
 
 ### Perfil público
 
-- [x] `GET /users/:username` — Perfil público con backlogs, listas públicas, favoritos y wishlist (respeta privacy flags)
+- [x] `GET /users/:username` — Perfil público con backlogs, listas públicas, favoritos, queue y wishlist (respeta privacy flags)
 - [x] Listas públicas del usuario visibles en su perfil
-- [x] Favoritos y wishlist incluidos según `isFavoritePublic` / `isWishlistPublic`
+- [x] Favoritos, queue y wishlist incluidos según `isFavoritePublic` / `isQueuePublic` / `isWishlistPublic`
 
 ### Auth — Refresh tokens
 
@@ -372,7 +387,7 @@
 ### Onboarding para amigos
 
 - [x] Flujo de registro: solo admin crea usuarios desde /admin/users (panel completo con listado + edición)
-- [x] Empty states descriptivos en todas las vistas: Backlog, Saved Views, Game Shelf, Wishlist, Favorites, Lists
+- [x] Empty states descriptivos en todas las vistas: Backlog, Saved Views, Game Shelf, Queue, Wishlist, Favorites, Lists
 
 ### Panel admin de usuarios
 
@@ -413,7 +428,7 @@
 
 ### Perfil público de otro usuario (frontend)
 
-- [x] Vista `/user/:username` con backlogs, listas, favoritos, wishlist (máx 5 items + total count)
+- [x] Vista `/user/:username` con backlogs, listas, favoritos, queue, wishlist (máx 5 items + total count)
 - [x] Contador de seguidores/siguiendo en perfil
 - [x] Botón follow/unfollow en perfil
 - [x] Restaurar sesión al refrescar página de perfil público
@@ -422,18 +437,18 @@
 
 - [x] Vista `/user/:username/backlog` — backlog completo de otro usuario (tabla con status tabs y paginación)
 - [x] Vista `/user/:username/favorites` — favoritos completos de otro usuario (grid con paginación)
-- [x] Vista `/user/:username/wishlist` — wishlist completa de otro usuario (tabla con paginación)
+- [x] Vista `/user/:username/queue` — queue completa de otro usuario (tabla con paginación)
 - [x] Vista `/user/:username/game-shelf` — game shelf completo de otro usuario (tabla con paginación)
 - [x] Endpoint `GET /users/:username/following-lists` con paginación
 - [x] Paginación (limit/offset, max 50) en todos los endpoints públicos de colecciones
-- [x] Links "View All" en el perfil público (backlog, game-shelf, favorites, wishlist)
+- [x] Links "View All" en el perfil público (backlog, game-shelf, favorites, queue, wishlist)
 
 ### Permisos y roles
 
 - [x] Auditar todos los endpoints y definir permisos claros por rol:
     - **admin**: acceso total (CRUD juegos, plataformas, géneros, crear usuarios, gestionar reportes, ver/editar cualquier recurso)
     - **moderator**: CRUD de juegos (sin delete, solo desactivar), plataformas y géneros. Puede gestionar reportes. No puede crear usuarios ni ver audit log
-    - **user / premium**: solo gestiona sus propios recursos (backlog, game-shelf, listas, wishlist, favoritos, perfil, follow, reportar juegos)
+    - **user / premium**: solo gestiona sus propios recursos (backlog, game-shelf, listas, queue, wishlist, favoritos, perfil, follow, reportar juegos)
 - [x] Proteger endpoints del catálogo (games, platforms, genres, score-sources, lists/search) con authMiddleware — requieren login
 - [x] Perfiles de usuario y colecciones públicas se mantienen accesibles sin auth (con authOptionalMiddleware en perfil) para incentivar registro
 - [x] Verificar que todos los services de escritura validan ownership (userId check)
@@ -450,9 +465,9 @@
 - [x] Game Shelf: quitar estilo de link en los títulos de juegos (sin hover azul)
 - [x] Backlog: paginación de 50 entries (endpoints públicos, schema compartido PaginationQuerySchema)
 - [x] Games Browse: barra de búsqueda más grande (font-size 1rem, padding 0.75rem)
-- [x] Perfil propio (/profile) unificado con perfil público: mismas secciones (backlog, game shelf, listas, favorites, wishlist, activity) + Privacy + Edit Profile. Self-view muestra toda la data sin restricciones de privacidad
+- [x] Perfil propio (/profile) unificado con perfil público: mismas secciones (backlog, game shelf, listas, favorites, queue, wishlist, activity) + Privacy + Edit Profile. Self-view muestra toda la data sin restricciones de privacidad
 - [x] Vista grid: imágenes más grandes (minmax 170px en games-browse y favorites)
-- [x] Listas y Wishlist: toggle tabla/grid con botones view_list/grid_view
+- [x] Listas y Queue: toggle tabla/grid con botones view_list/grid_view
 
 ### Reseñas de juegos
 
@@ -973,7 +988,8 @@
 | **Listas**                            | ✅ Hasta 5                                 | ✅ Ilimitadas                      |
 | **Filtros del backlog**               | ✅ Ilimitados                              | ✅ Ilimitados                      |
 | **Filtros guardados**                 | ✅ Hasta 5                                 | ✅ Ilimitados                      |
-| **Wishlist**                          | ✅ Hasta 10                                | ✅ Ilimitada                       |
+| **Queue**                             | ✅ Hasta 10                                | ✅ Ilimitada                       |
+| **Wishlist**                          | ✅ Hasta 20                                | ✅ Ilimitada                       |
 | **Favorites**                         | ✅ Hasta 10                                | ✅ Ilimitados                      |
 | **Ratio y personal ratio**            | ✅                                         | ✅ + Fórmula personalizable        |
 | **Fuentes de score (manual)**         | ✅ Todas las fuentes                       | ✅ Todas las fuentes               |
@@ -1030,7 +1046,7 @@ Estas decisiones aplican a **todo el proyecto**, no son una fase:
 - **UUIDs en Foreign Keys:** Definir explícitamente el tipo UUID en todas las relaciones de `associations.database.ts` para evitar bugs con Sequelize.
 - **Serializer Pattern:** Toda la lógica de cálculo (ratio, personal_ratio, estadísticas) vive en el backend dentro de los serializers/services. El frontend solo renderiza.
 - **`metadata_pending`:** Cualquier juego creado manualmente nace con `metadata_pending: true`. El worker nocturno se encarga de enriquecerlo con datos de HLTB y Metacritic.
-- **Wishlist y Favorites (no son listas):** En vez de "listas por defecto" dentro del módulo Lists, Wishlist y Favorites son módulos independientes. Wishlist apunta a `Backlog` (runs específicas, con posición y auto-remove al completar/abandonar). Favorites apunta a `Game` (no requiere backlog). Ambos tienen límite 10 free / ilimitado premium. Visibilidad controlada desde `User.isWishlistPublic` y `User.isFavoritePublic`.
+- **Queue, Wishlist y Favorites (no son listas):** En vez de "listas por defecto" dentro del módulo Lists, son módulos independientes. **Queue** apunta a `Backlog` (runs específicas que el usuario quiere jugar pronto, con posición y auto-remove al completar/abandonar). **Wishlist** apunta a `Game` (juegos que el usuario quiere obtener/comprar, no requiere backlog porque aún no lo tiene). **Favorites** apunta a `Game` (no requiere backlog). Los tres tienen límite free / ilimitado premium. Visibilidad controlada desde `User.isQueuePublic`, `User.isWishlistPublic` y `User.isFavoritePublic`.
 - **`personal_ratio`:** Se calcula desde `Backlog.real_duration` del backlog completado. Si hay múltiples backlogs completados, se usa el primero o el mejor según preferencia.
 - **Sistema de puntajes en 3 niveles:**
     - `GameScore` — Catálogo global de puntajes/tiempos por fuente (Metacritic, OpenCritic, HLTB, Completr community). Actualizado por cron mensual. La ficha del juego muestra todos los disponibles.
