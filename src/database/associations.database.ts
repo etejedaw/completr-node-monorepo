@@ -158,6 +158,11 @@ function backlog() {
 
 	Platform.hasMany(Backlog, { foreignKey: "platformId" });
 	Backlog.belongsTo(Platform, { foreignKey: "platformId" });
+
+	Backlog.belongsTo(Game, {
+		foreignKey: "compilationGameId",
+		as: "CompilationGame"
+	});
 }
 
 function gameScores() {

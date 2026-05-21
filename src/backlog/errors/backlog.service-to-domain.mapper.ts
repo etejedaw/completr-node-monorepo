@@ -19,5 +19,8 @@ export function backlogServiceToDomainMapper(
 	if (error.code === "BACKLOG_VALIDATION_ERROR")
 		return backlogDomainError.backlogValidation(context);
 
+	if (error.code === "BACKLOG_COMPILATION_CONTEXT_INVALID")
+		return backlogDomainError.backlogCompilationContextInvalid(context);
+
 	return backlogDomainError.backlogInternalError(context);
 }

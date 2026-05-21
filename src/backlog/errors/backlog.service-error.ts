@@ -22,3 +22,10 @@ export function validationError(rawError: unknown) {
 		raw: rawError
 	});
 }
+
+export function compilationContextInvalidError() {
+	return new ServiceError("BACKLOG_COMPILATION_CONTEXT_INVALID", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}

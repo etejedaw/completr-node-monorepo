@@ -21,7 +21,8 @@ export const RegisterBacklogSchema = z
 			})
 			.optional(),
 		isPublic: z.boolean().optional(),
-		notes: z.string().optional()
+		notes: z.string().optional(),
+		compilationGameId: z.uuid().optional()
 	})
 	.strict()
 	.readonly();
