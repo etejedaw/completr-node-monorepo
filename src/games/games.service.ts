@@ -1,5 +1,6 @@
 import {
 	Op,
+	Order,
 	Transaction,
 	UniqueConstraintError,
 	ValidationError,
@@ -171,10 +172,15 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		where[Op.and as unknown as string] = andConditions;
 	}
 
+	const order: Order =
+		sort_by === "random"
+			? [sequelize.literal("RANDOM()")]
+			: [[sort_by, sort_order.toUpperCase()]];
+
 	const { rows, count } = await Game.findAndCountAll({
 		where,
 		include,
-		order: [[sort_by, sort_order.toUpperCase()]],
+		order,
 		limit,
 		offset,
 		distinct: true
