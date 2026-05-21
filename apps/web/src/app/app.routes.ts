@@ -97,6 +97,13 @@ export const routes: Routes = [
 					)
 			},
 			{
+				path: "users",
+				loadComponent: () =>
+					import("./features/users-discover/users-discover").then(
+						m => m.UsersDiscover
+					)
+			},
+			{
 				path: "genres/:code",
 				loadComponent: () =>
 					import("./features/games/genre-detail/genre-detail").then(
