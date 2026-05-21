@@ -80,6 +80,20 @@ export class BacklogService {
 		return this.http.get<BacklogListResponse>(this.baseUrl, { params });
 	}
 
+	getMyStats() {
+		return this.http
+			.get<{
+				data: {
+					total: number;
+					not_started: number;
+					playing: number;
+					completed: number;
+					abandoned: number;
+				};
+			}>(`${this.baseUrl}/stats`)
+			.pipe(map(res => res.data));
+	}
+
 	create(dto: CreateBacklogDto) {
 		return this.http
 			.post<BacklogSingleResponse>(this.baseUrl, dto)

@@ -185,11 +185,8 @@ export class GameDetail implements OnInit {
 	}
 
 	private loadUserStatus(gameId: string) {
-		this.backlogService.getMyBacklog().subscribe({
-			next: res =>
-				this.isInBacklog.set(
-					res.data.backlog.some(b => b.game.id === gameId)
-				)
+		this.backlogService.getMyBacklog({ game_id: gameId }).subscribe({
+			next: res => this.isInBacklog.set(res.data.backlog.length > 0)
 		});
 		this.wishlistService.getMyWishlist().subscribe({
 			next: wishlist => {

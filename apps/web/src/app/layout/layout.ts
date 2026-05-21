@@ -81,15 +81,10 @@ export class Layout implements OnInit {
 	}
 
 	private loadStats() {
-		this.backlogService.getMyBacklog().subscribe(res => {
-			const entries = res.data.backlog;
-			this.completedCount.set(
-				entries.filter(e => e.status === "completed").length
-			);
-			this.playingCount.set(
-				entries.filter(e => e.status === "playing").length
-			);
-			this.backlogCount.set(entries.length);
+		this.backlogService.getMyStats().subscribe(stats => {
+			this.completedCount.set(stats.completed);
+			this.playingCount.set(stats.playing);
+			this.backlogCount.set(stats.total);
 		});
 	}
 }
