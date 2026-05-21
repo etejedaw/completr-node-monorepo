@@ -645,10 +645,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-07
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al ver una lista de juegos (propia o de otro usuario), se muestra el progreso general de la lista, pero en cada item solo se indica si el juego esta o no en mi backlog. No se distingue si ya lo complete, lo abandone o sigue en progreso. Esto obliga a entrar al detalle del juego o a mi backlog para saber el estado real, perdiendo contexto util al recorrer la lista.
-- **Solucion propuesta:** Mostrar el estado del juego (completado, abandonado, en progreso, en backlog) en cada item de la lista. Opciones: (1) variar el color/iconografia del marcador actual de "en backlog" segun el estado (ej: verde completado, gris abandonado, amarillo en progreso, azul en backlog); (2) agregar una columna o badge dedicado al estado, especialmente util en vista tabular. Verificar si el endpoint que devuelve los items de una lista ya incluye el estado del backlog del usuario actual para cada juego — si no, agregar el join correspondiente. Aplica tanto a listas propias como ajenas (cuando ves la lista de otro usuario, los iconos deben reflejar TU estado, no el del dueno de la lista).
+- **Solucion:** El backend ya exponia `backlogStatus` por item (calculado contra el backlog del viewer, no del dueno). La vista publica `/user/:username/lists/:id` (`user-list-detail.html`) ya renderizaba un badge con color por status. La vista del owner `/lists/:id` (`list-detail.html`) solo mostraba "In Backlog" genérico — reemplazado por marcador con icono + color semantico segun status: `check_circle` + text-success (completed), `play_circle` + text-warning (playing), `cancel` + text-danger (abandoned), `schedule` + text-brand (not_started). Tooltip con el nombre del estado. Mismo patron de colores que el resto del codebase (backlog-list, saved-filters).
 
 ### [FB-073] Compilados remastered (varios juegos en un solo titulo) distorsionan duracion y ratio
 
