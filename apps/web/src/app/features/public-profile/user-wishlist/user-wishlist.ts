@@ -9,12 +9,13 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import { PublicProfileService } from "../public-profile.service";
 import { WishlistEntry } from "../../../core/models";
+import { UiPagination } from "../../../shared/ui";
 
 const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-wishlist",
-	imports: [RouterLink],
+	imports: [RouterLink, UiPagination],
 	templateUrl: "./user-wishlist.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -70,13 +71,8 @@ export class UserWishlist implements OnInit {
 		return map[status] ?? status;
 	}
 
-	prevPage() {
-		this.offset.update(o => Math.max(0, o - this.limit));
-		this.load(this.username());
-	}
-
-	nextPage() {
-		this.offset.update(o => o + this.limit);
+	goToOffset(offset: number) {
+		this.offset.set(offset);
 		this.load(this.username());
 	}
 

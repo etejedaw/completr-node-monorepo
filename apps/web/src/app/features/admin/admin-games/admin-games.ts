@@ -9,11 +9,11 @@ import { Router, RouterLink } from "@angular/router";
 import { Game } from "../../../core/models";
 import { GamesService } from "../../games/games.service";
 import { AdminService } from "../admin.service";
-import { UiSearchBar } from "../../../shared/ui";
+import { UiPagination, UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-admin-games",
-	imports: [RouterLink, UiSearchBar],
+	imports: [RouterLink, UiSearchBar, UiPagination],
 	templateUrl: "./admin-games.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -70,13 +70,8 @@ export class AdminGames implements OnInit {
 		}
 	}
 
-	nextPage() {
-		this.offset.update(o => o + this.limit);
-		this.loadGames();
-	}
-
-	prevPage() {
-		this.offset.update(o => Math.max(0, o - this.limit));
+	goToOffset(offset: number) {
+		this.offset.set(offset);
 		this.loadGames();
 	}
 

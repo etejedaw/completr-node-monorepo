@@ -13,13 +13,13 @@ import { PublicProfileService } from "../public-profile.service";
 import { BacklogEntry, BacklogStatus } from "../../../core/models";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
-import { UiSearchBar } from "../../../shared/ui";
+import { UiPagination, UiSearchBar } from "../../../shared/ui";
 
 const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-backlog",
-	imports: [RouterLink, DatePipe, StarRating, PersonalStats, UiSearchBar],
+	imports: [RouterLink, DatePipe, StarRating, PersonalStats, UiPagination, UiSearchBar],
 	templateUrl: "./user-backlog.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -105,13 +105,8 @@ export class UserBacklog implements OnInit {
 		this.load();
 	}
 
-	prevPage() {
-		this.offset.set(Math.max(0, this.offset() - this.limit));
-		this.load();
-	}
-
-	nextPage() {
-		this.offset.set(this.offset() + this.limit);
+	goToOffset(offset: number) {
+		this.offset.set(offset);
 		this.load();
 	}
 
