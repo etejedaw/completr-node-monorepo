@@ -38,6 +38,15 @@ export function userPrivate(context?: Record<string, unknown>) {
 	);
 }
 
+export function userThemeForbidden(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"USER_THEME_FORBIDDEN",
+		"This theme requires a premium account",
+		context
+	);
+}
+
 export function userInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

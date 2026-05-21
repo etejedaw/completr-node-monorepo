@@ -1,4 +1,5 @@
 import z from "zod";
+import { THEME_IDS } from "../theme-catalog";
 
 export const UpdateUserSchema = z
 	.object({
@@ -9,7 +10,8 @@ export const UpdateUserSchema = z
 		isQueuePublic: z.boolean().optional(),
 		isWishlistPublic: z.boolean().optional(),
 		isFavoritePublic: z.boolean().optional(),
-		isFeedPublic: z.boolean().optional()
+		isFeedPublic: z.boolean().optional(),
+		theme: z.enum(THEME_IDS as [string, ...string[]]).optional()
 	})
 	.strict()
 	.readonly();

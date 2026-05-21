@@ -2,6 +2,7 @@ import { Op, UniqueConstraintError, ValidationError } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { CreateUserDto, UpdateUserDto } from "./dtos";
 import { User } from "./user.model";
+import { canUseTheme } from "./theme-catalog";
 import * as usersServiceError from "./errors/users.service-error";
 
 export async function createUser(createUserDto: CreateUserDto) {
@@ -79,6 +80,10 @@ export async function findRandomPublicUsers(
 export async function updateUser(id: string, updateUserDto: UpdateUserDto) {
 	const user = await findUserById(id);
 	if (!user) throw usersServiceError.notFoundError();
+
+	if (updateUserDto.theme && !canUseTheme(updateUserDto.theme, user.role)) {
+		throw usersServiceError.themeForbiddenError();
+	}
 
 	await user.update(updateUserDto);
 	return user;

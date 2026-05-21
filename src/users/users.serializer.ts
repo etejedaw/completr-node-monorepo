@@ -13,6 +13,7 @@ export function userMeSerializer(user: User) {
 		isWishlistPublic: user.isWishlistPublic,
 		isFavoritePublic: user.isFavoritePublic,
 		isFeedPublic: user.isFeedPublic,
+		theme: user.theme,
 		createdAt: user.createdAt
 	};
 }
