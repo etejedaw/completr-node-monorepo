@@ -79,16 +79,31 @@
 						}
 					</td>
 					<td class="py-2 px-3 align-middle min-w-[200px]">
-						<a
-							class="font-medium text-fg no-underline hover:text-brand"
-							[routerLink]="['/games', item.game.code]"
-						>{{ item.game.title }}</a>
+						<div class="flex items-center gap-2 flex-wrap">
+							<a
+								class="font-medium text-fg no-underline hover:text-brand"
+								[routerLink]="['/games', item.game.code]"
+							>{{ item.game.title }}</a>
+							@if (item.backlogStatus === 'completed' && item.realDuration) {
+								<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line">
+									<span class="material-icons text-[0.75rem]">schedule</span>
+									Real {{ item.realDuration }}h
+								</span>
+							}
+						</div>
 					</td>
 					<td class="py-2 px-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ item.score ?? "-" }}</td>
 					<td class="py-2 px-3 align-middle text-right whitespace-nowrap text-fg-secondary">
 						{{ item.duration ? item.duration + "h" : "-" }}
 					</td>
-					<td class="py-2 px-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ item.ratio ?? "-" }}</td>
+					<td class="py-2 px-3 align-middle text-right whitespace-nowrap">
+						<div class="flex flex-col items-end leading-none gap-1">
+							<span class="text-fg-secondary">{{ item.ratio ?? "-" }}</span>
+							@if (item.backlogStatus === 'completed' && item.personalRatio) {
+								<span class="text-[0.6875rem] font-semibold text-warning">{{ item.personalRatio }}</span>
+							}
+						</div>
+					</td>
 					<td class="py-2 px-3 align-middle whitespace-nowrap capitalize">
 						@if (item.backlogStatus) {
 						<button

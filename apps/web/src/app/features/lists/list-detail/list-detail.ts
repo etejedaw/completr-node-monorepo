@@ -22,10 +22,19 @@ import {
 	of
 } from "rxjs";
 import { UiButton, UiIconButton, UiSearchBar } from "../../../shared/ui";
+import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 
 @Component({
 	selector: "app-list-detail",
-	imports: [RouterLink, ListModal, BacklogModal, UiButton, UiIconButton, UiSearchBar],
+	imports: [
+		RouterLink,
+		ListModal,
+		BacklogModal,
+		UiButton,
+		UiIconButton,
+		UiSearchBar,
+		PersonalStats
+	],
 	templateUrl: "./list-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
