@@ -2,7 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../../environments/environment";
 
-export type ThemeId = "refined-dark" | "twilight-arcade";
+export type ThemeId = "refined-dark" | "midnight-cyan" | "twilight-arcade";
 export type ThemeTier = "free" | "premium";
 
 export interface ThemeOption {
@@ -25,6 +25,14 @@ export const THEME_CATALOG: ThemeOption[] = [
 		tier: "free",
 		swatches: ["#0a0a0c", "#131318", "#8b5cf6", "#f5f5f7"],
 		metaColor: "#0a0a0c"
+	},
+	{
+		id: "midnight-cyan",
+		name: "Midnight Cyan",
+		description: "Original Completr palette — navy slate with cyan accent.",
+		tier: "free",
+		swatches: ["#0b0f19", "#1e293b", "#0ea5e9", "#e2e8f0"],
+		metaColor: "#0b0f19"
 	},
 	{
 		id: "twilight-arcade",

@@ -71,6 +71,33 @@
 	--color-line-hover: rgba(255, 255, 255, 0.12);
 }
 
+/* Midnight Cyan — classic Completr palette */
+:root[data-theme="midnight-cyan"] {
+	--color-canvas: #0b0f19;
+	--color-sidebar: #111827;
+	--color-surface: #1e293b;
+	--color-surface-hover: #263548;
+	--color-input-bg: #0f172a;
+
+	--color-fg: #e2e8f0;
+	--color-fg-secondary: #94a3b8;
+	--color-fg-muted: #64748b;
+
+	--color-brand: #0ea5e9;
+	--color-brand-hover: #0284c7;
+	--color-brand-deep: #0369a1;
+	--color-brand-subtle: rgba(14, 165, 233, 0.12);
+	--color-brand-glow: rgba(14, 165, 233, 0.25);
+
+	--color-success: #22c55e;
+	--color-warning: #f59e0b;
+	--color-danger: #ef4444;
+	--color-info: #38bdf8;
+
+	--color-line: rgba(148, 163, 184, 0.12);
+	--color-line-hover: rgba(148, 163, 184, 0.24);
+}
+
 /* Twilight Arcade */
 :root[data-theme="twilight-arcade"] {
 	--color-canvas: #181028;
