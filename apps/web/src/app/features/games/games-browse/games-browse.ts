@@ -176,7 +176,7 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		pool.splice(idx, 1);
 
 		this.gamesService
-			.getGames({ limit: 16, genre: candidate.code })
+			.getGames({ limit: 16, genre: candidate.code, sort_by: "random" })
 			.subscribe(res => {
 				if (res.data.games.length > 0) {
 					this.randomGenre.set(candidate);
