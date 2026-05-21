@@ -504,7 +504,7 @@
 
 ### Corrección de bugs por feedback de usuarios
 
-- [x] Corrección de bugs por feedback de usuarios (ver docs/feedback/fase-2.md) — 89 resueltos, 13 descartados, 6 diferidos, 1 pendiente
+- [x] Corrección de bugs por feedback de usuarios (ver docs/feedback/fase-2.md) — 90 resueltos, 13 descartados, 6 diferidos, 0 pendientes
 - [ ] Diseñar el docs/architecture.md
 - [ ] Crear aviso de privacidad
 
