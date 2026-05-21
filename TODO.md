@@ -497,7 +497,9 @@
 
 **Problema:** El Completr Score es la métrica distintiva de cada game page, pero hasta tener masa crítica de reseñas (`max(2, ceil(usuarios_activos * 10%))`) casi ningún juego lo tendrá. La página se ve vacía y la propuesta de valor no se entiende.
 
-**Solución (A.2):** Mientras un juego no califique para Completr Score, el slot muestra un **Aggregate Score** explícito derivado de Metacritic + HLTB. Label, escala y subtítulo distintos. Cuando el juego alcanza el umbral, el job comunitario crea su `GameScore(source=completr)` y el slot pasa automáticamente a "Completr Score". Cada graduación queda registrada para que el admin la mencione en un changelog post (sin esperar olas — la transición de label es automática per-game).
+**Solución (implementada — versión simplificada):** Backend sin cambios. El game ya devuelve `scores[]` y `times[]` con todas las fuentes. Frontend tiene un helper `pickCanonicalScore(game)` en `shared/utils/canonical-score.ts` que decide por prioridad: si hay `completr` (score + duration) → tipo `completr` con escala 1-5; si no, fallback a `metacritic` + `hltb` → tipo `aggregate` con escala 0-100; si no, tipo `null`. La sección de Completr Score en game-detail renderiza tres variantes visuales según el tipo: brand fill (completr), info dashed (aggregate, con subtítulo provisional + breakdown metacritic/hltb), o estado vacío con CTA "Report missing data". Si en el futuro se quiere persistir el aggregate en DB, registrar graduaciones, o trigger automático desde scrapers, los puntos detallados abajo siguen siendo el plan; por ahora la versión client-side cubre el caso de uso.
+
+**Solución original (A.2):** Mientras un juego no califique para Completr Score, el slot muestra un **Aggregate Score** explícito derivado de Metacritic + HLTB. Label, escala y subtítulo distintos. Cuando el juego alcanza el umbral, el job comunitario crea su `GameScore(source=completr)` y el slot pasa automáticamente a "Completr Score". Cada graduación queda registrada para que el admin la mencione en un changelog post (sin esperar olas — la transición de label es automática per-game).
 
 **Convenciones de escala:**
 
@@ -572,19 +574,9 @@
 - [ ] Actualizar `CONTEXT.md` sección "Sistema de puntajes": documentar la fuente `aggregate`, la regla de fallback `completr → aggregate`, y la graduación automática
 - [ ] Documentar el flujo en `docs/architecture.md` cuando se cree
 
-### Hardening de logs en produccion
-
-- [ ] Reducir logs de Sequelize en produccion. El gate `NODE_ENV === "prd"` en `src/database/sequelize.database.ts:13` ya silencia el logging de queries, pero el usuario reporta que sigue viendo demasiados logs. Verificar en orden:
-    - Que `NODE_ENV=prd` este efectivamente seteado en el contenedor/CapRover de produccion (no `production` ni vacio)
-    - Que no haya `sequelize.sync({ logging: ... })` u otros lugares que pasen `console.log` directamente
-    - Logs de connection/init: pasarlos por Pino con nivel `info` en prd
-    - Considerar enrutar `Sequelize.logging` a `PinoLogger.debug` para que respete el nivel global de Pino (`LOG_LEVEL` env) en vez de un boolean
-
 ### Mejoras a reseñas
 
-- [ ] Mostrar tiempo de finalización en cada reseña: chip con la `realDuration` del `Backlog` completado del autor para ese juego (estilo similar al chip de duración en la vista diary). Si el usuario tiene múltiples backlogs completados, usar el más reciente. Si no tiene backlog completado con `realDuration`, no mostrar chip.
-    - Backend: incluir `playthroughDuration` en el serializer de `Review` (`GET /games/:id/reviews` y `GET /users/:username/reviews`)
-    - Frontend: renderizar chip junto a usuario + rating en game detail y perfil
+- [x] Mostrar tiempo de finalización en cada reseña: chip con la `realDuration` del `Backlog` completado del autor para ese juego. Backend: nueva funcion `backlogService.findLatestCompletedDurations(pairs)` con `DISTINCT ON ("userId", "gameId")` raw SQL en batch para evitar N+1; `reviewSerializer` y `userReviewSerializer` aceptan `playthroughDuration` opcional; controllers en `reviews.controller.getReviews` y `users.controller.getUserReviews` arman pairs + Map + pasan al serializer. Frontend: chip `schedule + Xh` (mismo estilo que diary) al lado del autor en `game-detail` y al lado del titulo del juego en `public-profile`, `profile-view`, `user-reviews`.
 
 ---
 
@@ -595,8 +587,25 @@
 
 > 🔒 _Beta por invitación — 50 a 200 usuarios._
 
+### Reparación de datos HTML-encoded (legado pre-fix FB-067)
+
+**Contexto:** Hasta el commit del fix de FB-067, el middleware `express-xss-sanitizer` corría sobre todos los `req.body`, HTML-encodeando `&`, `<`, `>`, `"`, `'` antes de persistirse. Eso dejó datos viejos con `&amp;` y similares en cualquier campo `string` que pasó por POST/PATCH (titles, descriptions, notes, names, bios, content, edition, etc.). Slugs derivados de titles con `&` quedaron con `andamp` embebido.
+
+- [ ] Crear helper `decodeHtmlEntities(input)` que decodifica `&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`, `&#39;`, `&#34;`, `&nbsp;`
+- [ ] Script de backfill (one-off, sin migración persistente — patrón usado en FB-067 con `npm run migrate` contra prd y luego borrar archivo):
+    - `Games.title` y `Games.description` → decode
+    - `Games.code` → regenerar con `titleToSlug(decodedTitle)` cuando el slug actual contenga `andamp` o `andlt` o similares (URLs viejas dejarán de funcionar — aceptable en Fase 2/3 sin SEO crítico)
+    - `Lists.name`, `Lists.description` → decode
+    - `Reviews.content` → decode
+    - `Backlogs.notes` → decode
+    - `Users.name`, `Users.bio` → decode
+    - `GameShelf.notes`, `GameShelf.edition` → decode
+- [ ] Ejecutar en local + en `env.production.local`, luego borrar el archivo de migración (mismo patrón que el round-list-item-scores)
+- [ ] (Opcional) Tabla `slug_redirects(old_code, new_code, gameId)` + middleware en game-detail que resuelva 404 contra esa tabla, para no romper bookmarks externos
+
 ### Revisión de performance y código
 
+- [ ] Revisar si endpoints tienen underfetching u overfetching (ajustar payloads a lo que realmente consume el frontend)
 - [ ] Revisión general del código: legibilidad, naming, estructura de módulos
 - [ ] Auditar endpoints: verificar que cada uno tiene validación, auth y rate limiting correcto
 - [ ] Revisar llamadas con Promise.all en el frontend: evaluar si se pueden reducir combinando endpoints en el backend

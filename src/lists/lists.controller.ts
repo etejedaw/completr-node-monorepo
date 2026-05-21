@@ -52,11 +52,11 @@ export async function getListById(request: Request, response: Response) {
 	const listPlain = list.get({ plain: true });
 	const gameIds = (list.ListItems ?? []).map(item => item.gameId);
 
-	const [followerCount, isFollowing, backlogStatusMap, progress] =
+	const [followerCount, isFollowing, backlogSummaryMap, progress] =
 		await Promise.all([
 			listsService.getFollowerCount(params.listId),
 			listsService.getIsFollowing(params.listId, user.id),
-			listsService.getBacklogStatusMap(gameIds, user.id),
+			listsService.getBacklogSummaryMap(gameIds, user.id),
 			listsService.getListProgress(params.listId, user.id)
 		]);
 
@@ -64,7 +64,7 @@ export async function getListById(request: Request, response: Response) {
 		list: listSerializer(listPlain, {
 			followerCount,
 			isFollowing,
-			backlogStatusMap,
+			backlogSummaryMap,
 			progress
 		})
 	};

@@ -34,7 +34,7 @@ export async function getAllGames(request: Request, response: Response) {
 	const gamesPlain = games.map(game => game.get({ plain: true }));
 
 	const data = {
-		games: gamesPlain.map(gameSerializer),
+		games: gamesPlain.map(g => gameSerializer(g)),
 		total,
 		limit: query.limit,
 		offset: query.offset
@@ -50,19 +50,34 @@ export async function getLatestReviewedGames(
 	const games = await gameService.findLatestReviewed(limit);
 	const gamesPlain = games.map(game => game.get({ plain: true }));
 
-	const data = { games: gamesPlain.map(gameSerializer) };
+	const data = { games: gamesPlain.map(g => gameSerializer(g)) };
 	return response.status(200).json({ data });
 }
 
 export async function searchGames(request: Request, response: Response) {
 	const query = request.locals.query as GameSearchQuery;
 
-	const games = query.local_only
-		? await gameService.searchGamesLocal(query.query)
-		: await gameService.searchGames(query.query, query.force_rawg);
-	const gamesPlain = games.map(game => game.get({ plain: true }));
+	if (query.local_only) {
+		const games = await gameService.searchGamesLocal(query.query);
+		const data = {
+			games: games
+				.map(g => g.get({ plain: true }))
+				.map(g => gameSerializer(g))
+		};
+		return response.status(200).json({ data });
+	}
 
-	const data = { games: gamesPlain.map(gameSerializer) };
+	const { games, importedIds } = await gameService.searchGames(
+		query.query,
+		query.force_rawg
+	);
+	const data = {
+		games: games
+			.map(g => g.get({ plain: true }))
+			.map(g =>
+				gameSerializer(g, { justImported: importedIds.has(g.id) })
+			)
+	};
 	return response.status(200).json({ data });
 }
 
@@ -130,11 +145,14 @@ export async function getGameLists(request: Request, response: Response) {
 	const params = request.locals.params as GameIdParam;
 	const user = request.locals.user as RequestUser;
 
-	const lists = await listsService.findPublicListsByGameId(params.id);
+	const [publicLists, myLists] = await Promise.all([
+		listsService.findPublicListsByGameId(params.id),
+		listsService.findUserListsWithGameFlag(user.id, params.id)
+	]);
 
 	const data = {
 		lists: await Promise.all(
-			lists.map(async list => {
+			publicLists.map(async list => {
 				const progress = await listsService.getListProgress(
 					list.id,
 					user.id
@@ -150,7 +168,8 @@ export async function getGameLists(request: Request, response: Response) {
 						progress.completed === progress.total
 				};
 			})
-		)
+		),
+		myLists
 	};
 
 	data.lists.sort((a, b) => {

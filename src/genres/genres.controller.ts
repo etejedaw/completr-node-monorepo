@@ -7,6 +7,7 @@ import { gameSerializer } from "../games/games.serializer";
 import { RegisterGenreDto } from "./dtos/register-genre.dto";
 import { UpdateGenreDto } from "./dtos/update-genre.dto";
 import { GenreIdParam } from "./schemas/genre-id-params.schema";
+import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 
 export async function getGenreByCode(request: Request, response: Response) {
 	const param = request.locals.params as GenreCodeParam;
@@ -56,18 +57,23 @@ export async function patchGenre(request: Request, response: Response) {
 
 export async function getGamesByGenre(request: Request, response: Response) {
 	const param = request.locals.params as GenreCodeParam;
+	const query = request.locals.query as PaginationQuery;
 
 	const { code } = param;
 
 	const genre = await genreService.findGenreByCode(code);
 	if (!genre) throw genreDomainError.genreNotFound();
 
-	const games = await gamesService.findGamesByGenreCode(code);
-	const gamesPlain = games.map(game => game.get({ plain: true }));
+	const { rows, hasMore } = await gamesService.findGamesByGenreCode(code, {
+		limit: query.limit,
+		offset: query.offset
+	});
+	const gamesPlain = rows.map(game => game.get({ plain: true }));
 
 	const data = {
 		genre: genre.get({ plain: true }),
-		games: gamesPlain.map(gameSerializer)
+		games: gamesPlain.map(g => gameSerializer(g)),
+		hasMore
 	};
 	return response.status(200).json({ data });
 }

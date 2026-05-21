@@ -26,7 +26,8 @@ import { activitySerializer } from "../activity/activity.serializer";
 import { UsernameParam } from "./schemas";
 import { UpdateUserDto } from "./dtos";
 import { RegisterDto } from "../auth/dtos";
-import { SearchQuery } from "../common/schemas/search-query.schema";
+import { UserSearchQuery } from "./schemas/user-search-query.schema";
+import { UserDiscoverQuery } from "./schemas/user-discover-query.schema";
 import { AdminUpdateUserDto } from "./schemas/admin-update-user.schema";
 import { UserIdParam } from "./schemas/user-id-params.schema";
 import { PaginationQuery } from "../common/schemas/pagination-query.schema";
@@ -174,9 +175,32 @@ export async function deleteUser(request: Request, response: Response) {
 }
 
 export async function searchUsers(request: Request, response: Response) {
-	const { query } = request.locals.query as SearchQuery;
+	const { q, email, limit } = request.locals.query as UserSearchQuery;
 
-	const users = await usersService.searchUsers(query);
+	const users = email
+		? await usersService.findUserByExactEmail(email)
+		: await usersService.searchUsers(q!, limit);
+
+	const data = {
+		users: users.map(u => ({
+			id: u.id,
+			username: u.username,
+			name: u.name,
+			avatarUrl: u.avatarUrl,
+			isPublic: u.isPublic
+		}))
+	};
+	return response.status(200).json({ data });
+}
+
+export async function getDiscoverUsers(request: Request, response: Response) {
+	const { limit } = request.locals.query as UserDiscoverQuery;
+	const currentUser = request.locals.user as RequestUser | undefined;
+
+	const users = await usersService.findRandomPublicUsers(
+		limit ?? 12,
+		currentUser?.id
+	);
 
 	const data = {
 		users: users.map(u => ({
@@ -224,19 +248,21 @@ export async function getUserListDetail(request: Request, response: Response) {
 	if (!list.isPublic) throw userDomain.userNotFound();
 
 	const listPlain = list.get({ plain: true });
-	const [followerCount, backlogStatusMap, progress] = await Promise.all([
+	const viewer = request.locals.user as RequestUser | undefined;
+	const viewerId = viewer?.id ?? user.id;
+	const [followerCount, backlogSummaryMap, progress] = await Promise.all([
 		listsService.getFollowerCount(params.listId),
-		listsService.getBacklogStatusMap(
+		listsService.getBacklogSummaryMap(
 			(list.ListItems ?? []).map(i => i.gameId),
-			user.id
+			viewerId
 		),
-		listsService.getListProgress(params.listId, user.id)
+		listsService.getListProgress(params.listId, viewerId)
 	]);
 
 	const data = {
 		list: listSerializer(listPlain, {
 			followerCount,
-			backlogStatusMap,
+			backlogSummaryMap,
 			progress
 		}),
 		profileUser: {
@@ -249,15 +275,35 @@ export async function getUserListDetail(request: Request, response: Response) {
 
 export async function getUserReviews(request: Request, response: Response) {
 	const params = request.locals.params as UsernameParam;
+	const query = request.locals.query as PaginationQuery;
 
 	const user = await usersService.findUserByUsername(params.username);
 	if (!user) throw userDomain.userNotFound();
 	if (!user.isPublic) throw userDomain.userPrivate();
 
-	const reviews = await reviewsService.findReviewsByUserId(user.id);
-	const reviewsPlain = reviews.map(r => r.get({ plain: true }));
+	const { rows, count } = await reviewsService.findReviewsByUserIdPaginated(
+		user.id,
+		{ limit: query.limit, offset: query.offset }
+	);
+	const reviewsPlain = rows.map(r => r.get({ plain: true }));
 
-	const data = { reviews: reviewsPlain.map(userReviewSerializer) };
+	const pairs = reviewsPlain
+		.filter(r => r.Game)
+		.map(r => ({ userId: user.id, gameId: r.Game.id }));
+	const durationMap =
+		await backlogService.findLatestCompletedDurations(pairs);
+
+	const data = {
+		reviews: reviewsPlain.map(r =>
+			userReviewSerializer(
+				r,
+				r.Game
+					? (durationMap.get(`${user.id}:${r.Game.id}`) ?? null)
+					: null
+			)
+		),
+		total: count
+	};
 	return response.status(200).json({ data });
 }
 

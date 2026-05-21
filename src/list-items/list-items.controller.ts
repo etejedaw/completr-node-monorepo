@@ -21,6 +21,30 @@ export async function putListItems(request: Request, response: Response) {
 	return response.status(200).json({ data });
 }
 
+export async function postListItem(request: Request, response: Response) {
+	const params = request.locals.params as ListIdParams;
+	const body = request.locals.body as { gameId: string };
+	const user = request.locals.user as RequestUser;
+
+	const item = await listItemsService.addItem(
+		params.listId,
+		user,
+		body.gameId
+	);
+	const itemPlain = item.get({ plain: true });
+
+	const data = { item: listItemSerializer(itemPlain) };
+	return response.status(201).json({ data });
+}
+
+export async function deleteListItem(request: Request, response: Response) {
+	const params = request.locals.params as ListIdParams & { gameId: string };
+	const user = request.locals.user as RequestUser;
+
+	await listItemsService.removeItem(params.listId, user, params.gameId);
+	return response.sendStatus(204);
+}
+
 export async function postRefreshScores(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;
 	const user = request.locals.user as RequestUser;

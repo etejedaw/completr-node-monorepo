@@ -32,7 +32,7 @@ async function freezeScores(gameId: string, list: List) {
 
 	const normalizedScore =
 		gameScore && scoreSource && scoreSource.scale !== 5
-			? (gameScore.score / scoreSource.scale) * 5
+			? Math.round((gameScore.score / scoreSource.scale) * 5 * 100) / 100
 			: (gameScore?.score ?? null);
 
 	return {
@@ -100,6 +100,49 @@ export async function replaceItems(
 		include: [{ model: Game }],
 		order: [["position", "ASC"]]
 	});
+}
+
+export async function addItem(
+	listId: string,
+	user: RequestUser,
+	gameId: string
+) {
+	const list = await List.findOne({ where: { id: listId } });
+	if (!list) throw listItemsServiceError.listNotFoundError();
+	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
+	await checkFrozen(user.id, user.role);
+
+	const existing = await ListItem.findOne({ where: { listId, gameId } });
+	if (existing) return existing;
+
+	const game = await Game.findOne({ where: { id: gameId } });
+	if (!game) throw listItemsServiceError.gamesNotFoundError([gameId]);
+
+	const max = (await ListItem.max("position", { where: { listId } })) as
+		| number
+		| null;
+	const nextPosition = (max ?? 0) + 1;
+
+	const { score, duration } = await freezeScores(gameId, list);
+	return ListItem.create({
+		listId,
+		gameId,
+		position: nextPosition,
+		score,
+		duration
+	});
+}
+
+export async function removeItem(
+	listId: string,
+	user: RequestUser,
+	gameId: string
+) {
+	const list = await List.findOne({ where: { id: listId } });
+	if (!list) throw listItemsServiceError.listNotFoundError();
+	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
+
+	await ListItem.destroy({ where: { listId, gameId } });
 }
 
 export async function refreshScores(listId: string, user: RequestUser) {

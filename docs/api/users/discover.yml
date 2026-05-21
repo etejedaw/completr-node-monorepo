@@ -1,0 +1,46 @@
+info:
+    name: Discover Users
+    type: http
+    seq: 7
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/discover?limit=12"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Discover Users
+
+    Returns a random list of public users to support discovery on the /users page.
+    Excludes the authenticated user (if any).
+
+    **Auth:** Optional Bearer token (excludes self when present).
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Query Parameters
+
+    | Param | Type    | Required | Description                          |
+    |-------|---------|----------|--------------------------------------|
+    | limit | integer | No       | Max results (1-50, default 12)       |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "users": [
+          {
+            "id": "uuid",
+            "username": "johndoe",
+            "name": "John Doe",
+            "avatarUrl": null,
+            "isPublic": true
+          }
+        ]
+      }
+    }
+    ```

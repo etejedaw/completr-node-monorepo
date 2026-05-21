@@ -9,7 +9,10 @@ function calculateRatio(score?: number, duration?: number) {
 	return Math.round((score / duration) * RATIO_SCALE * 100) / 100;
 }
 
-export function backlogSerializer(backlogEntry: Backlog) {
+export function backlogSerializer(
+	backlogEntry: Backlog,
+	review?: { content: string | null } | null
+) {
 	return {
 		id: backlogEntry.id,
 		status: backlogEntry.status,
@@ -26,6 +29,8 @@ export function backlogSerializer(backlogEntry: Backlog) {
 		userRating: backlogEntry.userRating,
 		isPublic: backlogEntry.isPublic,
 		notes: backlogEntry.notes,
+		hasReview: !!review,
+		reviewContent: review?.content ?? null,
 		game: gameSerializer(backlogEntry.Game),
 		platform: platformSerializer(backlogEntry.Platform)
 	};
@@ -35,7 +40,7 @@ export function backlogPublicSerializer(
 	backlogEntry: Backlog,
 	review?: { content: string | null; rating: number | null } | null
 ) {
-	const full = backlogSerializer(backlogEntry);
+	const full = backlogSerializer(backlogEntry, review);
 	const { notes: _notes, ...publicEntry } = full;
 	return {
 		...publicEntry,

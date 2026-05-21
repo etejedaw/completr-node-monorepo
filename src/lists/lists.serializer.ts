@@ -1,10 +1,11 @@
 import { listItemSerializer } from "../list-items/list-items.serializer";
 import { List } from "./list.model";
+import { BacklogSummary } from "./lists.service";
 
 interface ListSerializerOptions {
 	followerCount?: number;
 	isFollowing?: boolean;
-	backlogStatusMap?: Map<string, string>;
+	backlogSummaryMap?: Map<string, BacklogSummary>;
 	progress?: { completed: number; total: number } | null;
 }
 
@@ -12,7 +13,7 @@ export function listSerializer(
 	list: List,
 	options: ListSerializerOptions = {}
 ) {
-	const { followerCount, isFollowing, backlogStatusMap, progress } = options;
+	const { followerCount, isFollowing, backlogSummaryMap, progress } = options;
 
 	return {
 		id: list.id,
@@ -25,10 +26,15 @@ export function listSerializer(
 		followerCount: followerCount ?? 0,
 		isFollowing: isFollowing ?? false,
 		progress: progress ?? null,
-		items: list.ListItems?.map(item => ({
-			...listItemSerializer(item),
-			backlogStatus: backlogStatusMap?.get(item.gameId) ?? null
-		}))
+		items: list.ListItems?.map(item => {
+			const summary = backlogSummaryMap?.get(item.gameId) ?? null;
+			return {
+				...listItemSerializer(item),
+				backlogStatus: summary?.status ?? null,
+				realDuration: summary?.realDuration ?? null,
+				personalRatio: summary?.personalRatio ?? null
+			};
+		})
 	};
 }
 

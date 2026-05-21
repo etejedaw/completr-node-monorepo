@@ -1,0 +1,57 @@
+info:
+    name: Get User Reviews
+    type: http
+    seq: 7
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/:username/reviews"
+    params:
+        - name: username
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get User Reviews
+
+    Returns the reviews written by `:username`, paginated by createdAt desc. Used by the public profile reviews tab (limit 5) and the dedicated `/user/:username/reviews` page (limit 50).
+
+    **Authentication:** Not required (public).
+    **Rate Limit:** 100 requests per minute (public).
+
+    Returns 403 if the profile is private. Returns 404 if user not found.
+
+    ### Path Params
+
+    | Param    | Type   | Required | Description       |
+    |----------|--------|----------|-------------------|
+    | username | string | Yes      | Profile username  |
+
+    ### Query Params
+
+    | Param  | Type | Required | Description                       |
+    |--------|------|----------|-----------------------------------|
+    | limit  | int  | No       | Max items per page (1–100)        |
+    | offset | int  | No       | Items to skip (>= 0)              |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "reviews": [
+          {
+            "id": "uuid",
+            "content": "Loved the puzzle design.",
+            "rating": 4.5,
+            "game": { "id": "uuid", "code": "fez", "title": "Fez" },
+            "createdAt": "2026-04-12T10:24:00.000Z"
+          }
+        ],
+        "total": 23
+      }
+    }
+    ```

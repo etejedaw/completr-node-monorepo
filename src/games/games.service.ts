@@ -1,8 +1,13 @@
 import {
 	Op,
+	Order,
 	Transaction,
 	UniqueConstraintError,
-	ValidationError
+	ValidationError,
+	WhereOptions,
+	fn,
+	col,
+	where as whereFn
 } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { RegisterGameDto } from "./dtos/register-game.dto";
@@ -101,6 +106,8 @@ export interface GamesQueryOptions {
 	no_scores?: boolean;
 	no_times?: boolean;
 	no_platforms?: boolean;
+	no_score_source?: readonly string[];
+	no_time_source?: readonly string[];
 }
 
 export async function findAll(options: GamesQueryOptions = {}) {
@@ -112,7 +119,9 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		genre,
 		no_scores,
 		no_times,
-		no_platforms
+		no_platforms,
+		no_score_source,
+		no_time_source
 	} = options;
 
 	const where: Record<string, unknown> = { isActive: true };
@@ -163,14 +172,43 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		});
 	}
 
+	if (no_score_source && no_score_source.length > 0) {
+		const escaped = no_score_source
+			.map(s => sequelize.escape(s))
+			.join(", ");
+		andConditions.push({
+			id: {
+				[Op.notIn]: sequelize.literal(
+					`(SELECT DISTINCT "gameId" FROM "GameScores" WHERE source IN (${escaped}))`
+				)
+			}
+		});
+	}
+
+	if (no_time_source && no_time_source.length > 0) {
+		const escaped = no_time_source.map(s => sequelize.escape(s)).join(", ");
+		andConditions.push({
+			id: {
+				[Op.notIn]: sequelize.literal(
+					`(SELECT DISTINCT "gameId" FROM "GameTimes" WHERE source IN (${escaped}))`
+				)
+			}
+		});
+	}
+
 	if (andConditions.length > 0) {
 		where[Op.and as unknown as string] = andConditions;
 	}
 
+	const order: Order =
+		sort_by === "random"
+			? [sequelize.literal("RANDOM()")]
+			: [[sort_by, sort_order.toUpperCase()]];
+
 	const { rows, count } = await Game.findAndCountAll({
 		where,
 		include,
-		order: [[sort_by, sort_order.toUpperCase()]],
+		order,
 		limit,
 		offset,
 		distinct: true
@@ -199,11 +237,40 @@ export async function findLatestReviewed(limit = 16) {
 		.filter((g): g is Game => g !== undefined);
 }
 
+function buildTitleSearchWhere(query: string): WhereOptions | null {
+	const normalized = query
+		.trim()
+		.toLowerCase()
+		.replace(/[^a-z0-9\s]/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+	if (!normalized) return null;
+	const tokens = normalized
+		.split(" ")
+		.map(t => t.replace(/[^a-z0-9]/g, ""))
+		.filter(t => t.length > 0);
+	if (tokens.length === 0) return null;
+	const normalizedTitle = fn(
+		"regexp_replace",
+		fn("lower", col("title")),
+		"[^a-z0-9]",
+		"",
+		"g"
+	);
+	return {
+		[Op.and]: tokens.map(token =>
+			whereFn(normalizedTitle, Op.like, `%${token}%`)
+		)
+	};
+}
+
 export async function searchGamesLocal(query: string) {
+	const titleWhere = buildTitleSearchWhere(query);
+	if (!titleWhere) return [];
 	return Game.findAll({
 		where: {
-			title: { [Op.iLike]: `%${query}%` },
-			isActive: true
+			isActive: true,
+			...titleWhere
 		},
 		include: [
 			{ association: "Platforms" },
@@ -217,20 +284,25 @@ export async function searchGamesLocal(query: string) {
 
 export async function searchGames(query: string, forceRawg = false) {
 	if (!forceRawg) {
-		const localResults = await Game.findAll({
-			where: {
-				title: { [Op.iLike]: `%${query}%` },
-				isActive: true
-			},
-			include: [
-				{ association: "Platforms" },
-				{ association: "Genres" },
-				{ association: "GameScores" },
-				{ association: "GameTimes" }
-			]
-		});
+		const titleWhere = buildTitleSearchWhere(query);
+		if (titleWhere) {
+			const localResults = await Game.findAll({
+				where: {
+					isActive: true,
+					...titleWhere
+				},
+				include: [
+					{ association: "Platforms" },
+					{ association: "Genres" },
+					{ association: "GameScores" },
+					{ association: "GameTimes" }
+				]
+			});
 
-		if (localResults.length > 0) return localResults;
+			if (localResults.length > 0) {
+				return { games: localResults, importedIds: new Set<string>() };
+			}
+		}
 	}
 
 	return searchAndCreateFromRawg(query);
@@ -280,6 +352,7 @@ function mapRawgDetail(detail: RawgGameDetail) {
 }
 
 async function searchAndCreateFromRawg(query: string) {
+	const importedIds = new Set<string>();
 	try {
 		const rawgResults = await rawg.searchGame(query, {
 			page_size: 3,
@@ -290,8 +363,12 @@ async function searchAndCreateFromRawg(query: string) {
 
 		for (const result of rawgResults) {
 			try {
-				const game = await resolveRawgResult(result.id);
-				if (game) games.push(game);
+				const resolved = await resolveRawgResult(result.id);
+				if (resolved) {
+					games.push(resolved.game);
+					if (resolved.justImported)
+						importedIds.add(resolved.game.id);
+				}
 			} catch (error) {
 				logger.warn(
 					"searchAndCreateFromRawg",
@@ -301,15 +378,17 @@ async function searchAndCreateFromRawg(query: string) {
 			}
 		}
 
-		const slugGame = await resolveRawgBySlug(query);
-		if (slugGame && !games.some(g => g.id === slugGame.id)) {
-			games.unshift(slugGame);
+		const slugResolved = await resolveRawgBySlug(query);
+		if (slugResolved && !games.some(g => g.id === slugResolved.game.id)) {
+			games.unshift(slugResolved.game);
+			if (slugResolved.justImported)
+				importedIds.add(slugResolved.game.id);
 		}
 
-		return games;
+		return { games, importedIds };
 	} catch (error) {
 		logger.warn("searchAndCreateFromRawg", "RAWG fallback failed", error);
-		return [];
+		return { games: [], importedIds };
 	}
 }
 
@@ -317,14 +396,15 @@ async function resolveRawgBySlug(query: string) {
 	try {
 		const slug = titleToSlug(query);
 		const detail = await rawg.getGameBySlug(slug);
-		const game = await resolveRawgResult(detail.id);
-		return game;
+		return await resolveRawgResult(detail.id);
 	} catch {
 		return null;
 	}
 }
 
-async function resolveRawgResult(rawgNumericId: number) {
+async function resolveRawgResult(
+	rawgNumericId: number
+): Promise<{ game: Game; justImported: boolean } | null> {
 	const rawgId = String(rawgNumericId);
 
 	const existingExternal = await gameExternalService.findByExternalId(
@@ -332,7 +412,8 @@ async function resolveRawgResult(rawgNumericId: number) {
 		rawgId
 	);
 	if (existingExternal) {
-		return findGameById(existingExternal.gameId);
+		const game = await findGameById(existingExternal.gameId);
+		return game ? { game, justImported: false } : null;
 	}
 
 	const rawgDetail = await rawg.getGameById(rawgNumericId);
@@ -340,7 +421,7 @@ async function resolveRawgResult(rawgNumericId: number) {
 	const existingByCode = await findGameByCode(titleToSlug(mapped.game.title));
 	if (existingByCode) {
 		await gameExternalService.create(existingByCode.id, "rawg", rawgId);
-		return existingByCode;
+		return { game: existingByCode, justImported: false };
 	}
 
 	const game = await registerGame({
@@ -352,11 +433,15 @@ async function resolveRawgResult(rawgNumericId: number) {
 
 	await gameExternalService.create(game.id, "rawg", rawgId);
 
-	return game;
+	return { game, justImported: true };
 }
 
-export async function findGamesByGenreCode(genreCode: string) {
-	return await Game.findAll({
+export async function findGamesByGenreCode(
+	genreCode: string,
+	options: { limit?: number; offset?: number } = {}
+) {
+	const { limit = 50, offset = 0 } = options;
+	const rows = await Game.findAll({
 		where: { isActive: true },
 		include: [
 			{ association: "Platforms" },
@@ -366,8 +451,12 @@ export async function findGamesByGenreCode(genreCode: string) {
 			},
 			{ association: "GameScores" },
 			{ association: "GameTimes" }
-		]
+		],
+		limit: limit + 1,
+		offset
 	});
+	const hasMore = rows.length > limit;
+	return { rows: hasMore ? rows.slice(0, limit) : rows, hasMore };
 }
 
 export async function updateGame(id: string, updateGameDto: UpdateGameDto) {

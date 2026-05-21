@@ -1,4 +1,5 @@
 import { Op, UniqueConstraintError, ValidationError } from "sequelize";
+import { sequelize } from "../database/sequelize.database";
 import { CreateUserDto, UpdateUserDto } from "./dtos";
 import { User } from "./user.model";
 import * as usersServiceError from "./errors/users.service-error";
@@ -36,12 +37,42 @@ export async function findUserById(id: string) {
 export async function searchUsers(query: string, limit = 20) {
 	return User.findAll({
 		where: {
-			username: { [Op.iLike]: `%${query}%` },
-			isActive: true
+			isActive: true,
+			[Op.or]: [
+				{ username: { [Op.iLike]: `%${query}%` } },
+				{ name: { [Op.iLike]: `%${query}%` } }
+			]
 		},
 		attributes: ["id", "username", "name", "avatarUrl", "isPublic"],
 		limit,
 		order: [["username", "ASC"]]
+	});
+}
+
+export async function findUserByExactEmail(email: string) {
+	const user = await User.findOne({
+		where: { email: email.toLowerCase(), isActive: true },
+		attributes: ["id", "username", "name", "avatarUrl", "isPublic"]
+	});
+	return user ? [user] : [];
+}
+
+export async function findRandomPublicUsers(
+	limit = 12,
+	excludeUserId?: string
+) {
+	const where: Record<string, unknown> = {
+		isActive: true,
+		isPublic: true
+	};
+	if (excludeUserId) {
+		where.id = { [Op.ne]: excludeUserId };
+	}
+	return User.findAll({
+		where,
+		attributes: ["id", "username", "name", "avatarUrl", "isPublic"],
+		order: sequelize.literal("RANDOM()"),
+		limit
 	});
 }
 

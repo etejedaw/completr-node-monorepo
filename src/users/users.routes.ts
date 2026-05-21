@@ -3,7 +3,8 @@ import * as usersController from "./users.controller";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { UpdateUserSchema, UsernameParamSchema } from "./schemas";
 import { RegisterSchema } from "../auth/schemas";
-import { SearchQuerySchema } from "../common/schemas/search-query.schema";
+import { UserSearchQuerySchema } from "./schemas/user-search-query.schema";
+import { UserDiscoverQuerySchema } from "./schemas/user-discover-query.schema";
 import { authMiddleware } from "../auth/auth.middleware";
 import { authOptionalMiddleware } from "../auth/auth-optional.middleware";
 import { hiddenRouteMiddleware } from "../auth/hidden-route.middleware";
@@ -72,9 +73,19 @@ router.get(
 	[
 		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
-		validateSchemaMiddleware(SearchQuerySchema, "query")
+		validateSchemaMiddleware(UserSearchQuerySchema, "query")
 	],
 	usersController.searchUsers
+);
+
+router.get(
+	"/users/discover",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
+		validateSchemaMiddleware(UserDiscoverQuerySchema, "query")
+	],
+	usersController.getDiscoverUsers
 );
 
 router.get(
@@ -167,7 +178,8 @@ router.get(
 	"/users/:username/reviews",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		validateSchemaMiddleware(UsernameParamSchema, "params")
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	usersController.getUserReviews
 );
@@ -175,6 +187,7 @@ router.get(
 router.get(
 	"/users/:username/lists/:listId",
 	[
+		authOptionalMiddleware,
 		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameListParamsSchema, "params")
 	],

@@ -1,4 +1,4 @@
-import { fn, col } from "sequelize";
+import { fn, col, Op } from "sequelize";
 import { Review } from "./review.model";
 import { Game } from "../games/game.model";
 import { User } from "../users/user.model";
@@ -44,8 +44,35 @@ export async function findReviewsByUserId(userId: string) {
 	});
 }
 
+export async function findReviewsByUserIdPaginated(
+	userId: string,
+	options: { limit?: number; offset?: number } = {}
+) {
+	const { limit = 50, offset = 0 } = options;
+	return Review.findAndCountAll({
+		where: { userId },
+		include: [{ model: Game }],
+		order: [["createdAt", "DESC"]],
+		limit,
+		offset,
+		distinct: true
+	});
+}
+
 export async function findReviewByUserAndGame(userId: string, gameId: string) {
 	return Review.findOne({ where: { userId, gameId } });
+}
+
+export async function findReviewContentByUserAndGameIds(
+	userId: string,
+	gameIds: string[]
+) {
+	const rows = (await Review.findAll({
+		where: { userId, gameId: { [Op.in]: gameIds } },
+		attributes: ["gameId", "content"],
+		raw: true
+	})) as unknown as { gameId: string; content: string | null }[];
+	return new Map(rows.map(r => [r.gameId, { content: r.content }]));
 }
 
 export async function findLatestReviewedGameIds(limit = 16) {

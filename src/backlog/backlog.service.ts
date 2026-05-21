@@ -1,4 +1,5 @@
-import { Op, Order, literal } from "sequelize";
+import { Op, Order, literal, QueryTypes } from "sequelize";
+import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { Backlog } from "./backlog.model";
@@ -146,10 +147,10 @@ export async function findBacklogByUserId(
 	const query: Record<string, unknown> = {
 		where: buildWhere({ userId }, filters),
 		include: buildIncludes(filters),
-		order: buildOrder(filters)
+		order: buildOrder(filters),
+		limit: filters.limit ?? 100,
+		offset: filters.offset ?? 0
 	};
-	if (filters.limit) query.limit = filters.limit;
-	if (filters.offset) query.offset = filters.offset;
 
 	const { rows, count } = await Backlog.findAndCountAll(query);
 	return { rows, total: count };
@@ -162,10 +163,10 @@ export async function findPublicBacklogByUserId(
 	const query: Record<string, unknown> = {
 		where: buildWhere({ userId, isPublic: true }, filters),
 		include: buildIncludes(filters),
-		order: buildOrder(filters)
+		order: buildOrder(filters),
+		limit: filters.limit ?? 100,
+		offset: filters.offset ?? 0
 	};
-	if (filters.limit) query.limit = filters.limit;
-	if (filters.offset) query.offset = filters.offset;
 
 	const { rows, count } = await Backlog.findAndCountAll(query);
 	return { rows, total: count };
@@ -195,6 +196,39 @@ export async function updateBacklog(
 	}
 
 	return { backlog: backlogEntry, wishlistRemoved };
+}
+
+export async function findLatestCompletedDurations(
+	pairs: { userId: string; gameId: string }[]
+): Promise<Map<string, number>> {
+	if (pairs.length === 0) return new Map();
+
+	const userIds = Array.from(new Set(pairs.map(p => p.userId)));
+	const gameIds = Array.from(new Set(pairs.map(p => p.gameId)));
+
+	const rows = await sequelize.query<{
+		userId: string;
+		gameId: string;
+		realDuration: number;
+	}>(
+		`SELECT DISTINCT ON ("userId", "gameId") "userId", "gameId", "realDuration"
+		 FROM "Backlogs"
+		 WHERE "userId" IN (:userIds)
+		   AND "gameId" IN (:gameIds)
+		   AND status = 'completed'
+		   AND "realDuration" IS NOT NULL
+		 ORDER BY "userId", "gameId", "createdAt" DESC`,
+		{
+			replacements: { userIds, gameIds },
+			type: QueryTypes.SELECT
+		}
+	);
+
+	const map = new Map<string, number>();
+	for (const row of rows) {
+		map.set(`${row.userId}:${row.gameId}`, row.realDuration);
+	}
+	return map;
 }
 
 export async function removeBacklog(id: string, userId: string) {

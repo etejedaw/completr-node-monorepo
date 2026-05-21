@@ -200,17 +200,17 @@ Formato por item:
 
 - **Fecha:** 2026-04-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Descripcion:** Cuando se crea un juego via busqueda con fallback a RAWG, el RAWG ID se guarda con una llamada separada a gameExternalService.create() en vez de pasarlo como parte del externalIds del registerGame DTO. Esto es inconsistente con el flujo de PATCH /games/:id que si acepta externalIds. Ademas, no hay forma de agregar el Steam ID u otros sources al momento de crear el juego desde el frontend ni desde el endpoint de busqueda.
-- **Solucion propuesta:** Incluir externalIds en el flujo de creacion desde RAWG (pasar rawgId como parte del DTO en vez de llamar a gameExternalService aparte). En el frontend del admin game editor, tanto en creacion como en edicion, agregar campos para IDs externos (RAWG, Steam, etc.) que se envien como externalIds en el body del request.
+- **Decision (2026-05-21):** Descartado. Es refactor interno sin impacto user-visible. La inconsistencia entre el flujo de creacion automatica (1 transaccion para game + 1 para externalId) y el PATCH (un solo body con externalIds) no afecta el comportamiento. Se puede unificar en el futuro si se hace una limpieza del modulo games.
 
 ### [FB-022] Busqueda de juegos demasiado literal
 
 - **Fecha:** 2026-04-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** La busqueda de juegos es demasiado literal y no tolera variaciones comunes. Por ejemplo, buscar "fear" no encuentra "F.E.A.R." porque el titulo tiene puntos entre las letras. Lo mismo puede pasar con caracteres especiales, acentos, numeros romanos vs arabigos, etc. Esto afecta tanto la busqueda local como la experiencia del usuario al agregar juegos.
-- **Solucion propuesta:** Mejorar la busqueda local para que sea mas tolerante: normalizar el query y los titulos removiendo puntos, caracteres especiales y acentos antes de comparar. Considerar usar ILIKE con wildcards o funciones de similitud de PostgreSQL (pg_trgm, unaccent). En RAWG el problema es menor porque su API ya maneja fuzzy matching.
+- **Solucion:** Resuelto junto con FB-091. Nuevo helper `buildTitleSearchWhere(query)` en `games.service.ts`. Ver FB-091 para detalles.
 
 ### [FB-023] RAWG agrupa juegos que deberian ser registros separados
 
@@ -224,17 +224,17 @@ Formato por item:
 
 - **Fecha:** 2026-04-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** En el panel admin de games no hay filtros para identificar juegos que les faltan datos de fuentes especificas. Por ejemplo, no se puede filtrar para ver juegos que no tienen score de RAWG o Metacritic, ni los que no tienen duracion de HLTB. Esto dificulta la tarea de enriquecer el catalogo ya que no hay forma de saber cuales juegos necesitan datos.
-- **Solucion propuesta:** Agregar filtros al panel admin de games (y al endpoint GET /games) para filtrar por ausencia de scores o times de fuentes especificas. Ej: no_scores=rawg,metacritic (juegos sin score de esas fuentes), no_times=hltb (juegos sin duracion HLTB). Esto permite al admin identificar y completar datos faltantes.
+- **Solucion:** Backend: schema `GamesQuerySchema` extendido con `no_score_source` y `no_time_source` (comma-separated). El service `findAll` arma WHERE con `NOT IN (SELECT "gameId" FROM "GameScores" WHERE source IN (...))` (idem times) — escapado con `sequelize.escape` para evitar SQL injection. Permite combinar varias fuentes (ej: `no_score_source=metacritic,opencritic` = juegos sin ninguno de los dos). Frontend admin-games: chips por fuente (`No metacritic score`, `No opencritic score`, `No rawg score`, `No hltb time`, `No rawg time`) que se combinan con los globales (`No Scores` / `No Times` / `No Platforms`) y permiten al admin identificar exactamente que datos faltan.
 
 ### [FB-025] No existe plataforma "Browser" para juegos de navegador
 
 - **Fecha:** 2026-04-22
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Descripcion:** Hay juegos que son exclusivos de navegador web (ej: DragonFable) y no existe una plataforma "Browser" o "Web" en la lista de plataformas disponibles. Los usuarios no pueden registrar estos juegos con la plataforma correcta porque ninguna de las opciones existentes (Steam, GOG, consolas, etc.) aplica.
-- **Solucion propuesta:** Crear la plataforma "Web Browser" via POST /platform con un code como "web-browser" y manufacturer "Web". Tambien actualizar el mapeo de plataformas RAWG (rawg-platform.map.ts) para mapear el slug "web" de RAWG a esta nueva plataforma, de modo que juegos de navegador importados desde RAWG se vinculen automaticamente.
+- **Decision (2026-05-20):** Descartado por ahora. Caso de uso muy minoritario (juegos exclusivos de navegador son una fraccion pequena del catalogo). La plataforma generica "PC" agregada en FB-015 cubre suficientes casos. Si en el futuro suben los reportes de juegos browser-only se reabre.
 
 ### [FB-026] Campo Edition en Game Shelf deberia ofrecer opciones predefinidas
 
@@ -288,10 +288,11 @@ Formato por item:
 
 - **Fecha:** 2026-04-22
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** La busqueda de usuarios solo existe dentro del buscador global del feed y es muy basica (solo busca por username). No hay una vista dedicada para descubrir usuarios. Si alguien quiere encontrar a un amigo pero no sabe su username exacto, no tiene forma de buscarlo por nombre o correo. Tampoco hay forma de descubrir usuarios nuevos de la comunidad.
 - **Nota adicional:** Un usuario pregunto "en el feed debo poner su nombre de usuario, no? cual es?" — ni siquiera sabia cual era el username de la persona que queria buscar. Esto refuerza la necesidad de una forma mas accesible de encontrar usuarios y tambien sugiere que el username propio no es lo suficientemente visible en la app para que los usuarios lo compartan facilmente.
 - **Solucion propuesta:** Crear una vista dedicada de usuarios (/users o /community) con: (1) seccion de usuarios destacados o aleatorios para descubrir gente nueva, (2) buscador que permita buscar por username, nombre o email. En el backend, ampliar GET /users/search para aceptar busqueda por name ademas de username. No buscar por email directamente por privacidad — en su lugar, permitir busqueda exacta de email (match completo, no parcial) como forma de encontrar a alguien que te compartio su correo.
+- **Resolucion:** Backend: `GET /users/search` ahora acepta `q` (ILIKE parcial sobre username OR name) o `email` (match exacto, case-insensitive) — uno de los dos requerido. Nuevo endpoint `GET /users/discover` retorna usuarios publicos al azar (excluyendo al propio user). Frontend: nueva vista `/users` con seccion Discover y search bar que detecta automaticamente si el termino es email o texto libre, ademas de entrada en el sidebar. El global search del feed sigue funcionando (migrado al nuevo parametro `q`).
 
 ### [FB-033] Ports con experiencias muy diferentes se tratan como el mismo juego
 
@@ -420,10 +421,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Tami
 - **Descripcion:** En las vistas de grilla de juegos (games-browse, resultados de busqueda, similar games), las miniaturas no tienen acciones rapidas. El usuario tiene que entrar al detalle del juego para poder agregarlo a una lista, wishlist o backlog. Seria mas eficiente tener botones de accion rapida directamente en las cards de la grilla.
-- **Solucion propuesta:** Agregar un overlay al hover en las cards de la grilla con botones de accion rapida: "Add to Backlog", "Add to Wishlist", "Add to List" (con selector de lista). Mantener el click en la card para ir al detalle. En movil, considerar un menu contextual al hacer long-press o un icono de tres puntos.
+- **Decision (2026-05-20):** Descartado. El flujo actual (click en card → detalle → action button) no es friccion suficiente para justificar el overlay con acciones rapidas. Se prefiere mantener las cards limpias y sin layer extra al hover.
 
 ### [FB-048] Auto-seleccionar plataforma cuando solo hay una disponible
 
@@ -447,10 +448,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Tami
 - **Descripcion:** Al buscar "Tomodachi Life: Living the Dream" (probablemente un juego traido desde RAWG), la foto no cargo y se mostro un error. Posteriormente, al intentar agregar el juego al backlog, el boton "Add" quedo en estado disabled a pesar de que los campos obligatorios estaban llenos. El usuario no pudo agregar el juego. Es probable que el error al cargar los datos del juego (foto, scores, etc.) deje el formulario en un estado invalido que impide el submit.
-- **Solucion propuesta:** Investigar que pasa cuando un juego de RAWG falla al cargar datos parciales (imagen, scores, duration). Asegurar que el boton de submit se habilite basandose solo en los campos requeridos del formulario (game, platform) y no en datos opcionales como la imagen. Agregar manejo de error graceful cuando la imagen no carga (mostrar placeholder en vez de error). Verificar que el formulario no quede en estado inconsistente despues de un error parcial.
+- **Decision (2026-05-21):** Descartado. La raiz del problema esta en RAWG (datos incompletos/faltantes para ciertos juegos como Tomodachi Life), no en el frontend. El form requiere score y duration porque son campos centrales para el calculo de ratio, y mantenerlos required es intencional para la calidad de datos. Cuando un juego viene de RAWG sin esos datos, el flujo es: el usuario los completa manualmente o reporta la falta.
 
 ### [FB-051] Add to Shelf desde backlog modal muestra exito falso
 
@@ -501,28 +502,28 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Desde la pagina de detalle de un juego no se puede agregar el juego a una lista. Actualmente para agregar un juego a una lista, el usuario tiene que ir a la lista, abrir el buscador de la lista, buscar el juego y agregarlo. Seria mas natural poder agregar el juego a cualquier lista desde su propia pagina de detalle.
-- **Solucion propuesta:** Agregar un boton "Add to List" en el game detail que abra un dropdown o modal con las listas del usuario. Al seleccionar una lista, agregar el juego a esa lista. Requiere un endpoint o reutilizar el PUT /lists/:id/items agregando el juego al array existente. En el frontend, usar un componente reutilizable de selector de listas.
+- **Solucion:** Nuevo boton "Add to List" / "In N lists" en la columna "Your Activity" del game detail (junto a Backlog/Wishlist/Shelf). Click abre modal con checkboxes de TODAS las listas del viewer; click en Save aplica el diff (add a los nuevos, remove de los desmarcados). Backend: (1) `listsService.findUserListsWithGameFlag(userId, gameId)` reemplaza a `findUserListsByGameId` y devuelve todas las listas del user con `contains: boolean` (dos queries paralelas, una a `List.findAll(userId)` y otra a `ListItem.findAll(gameId)` con join filtrado por userId — sin overfetch). El endpoint `GET /games/:id/lists` reutiliza este shape; el front filtra `contains === true` para la seccion "In your lists" del sidebar. (2) Nuevos endpoints `POST /lists/:listId/items { gameId }` (agrega un solo juego, idempotente — devuelve el existente si ya esta) y `DELETE /lists/:listId/items/:gameId` (idempotente, 204). Reglas de owner + frozen check heredadas de `replaceItems`. Schemas en `list-items/schemas/add-list-item.schema.ts` y `list-item-game-params.schema.ts`. Frontend: `listsService.addItem/removeItem`, modal en `game-detail.html` con checkboxes pre-cargados desde `myLists`, save dispara el diff via `Promise.all`, recarga `myLists` para actualizar la seccion "In your lists" y el contador del boton. Extra: input "Or create a new list" al fondo del modal — crea la lista (publica, scoreSource `metacritic`, durationSource `hltb`) y agrega el juego en una sola accion, dejando la nueva lista pre-marcada en los checkboxes (proximo TODO: cambiar default a `completr` cuando esten poblados los scores propios). Nuevos docs Bruno en `docs/api/list-items/add-item.yml` y `remove-item.yml`.
 
 ### [FB-057] Busqueda de juegos retorna cantidad inconsistente de resultados
 
 - **Fecha:** 2026-04-24
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** El usuario nota que a veces la misma busqueda retorna mas juegos que otras veces. Esto probablemente se debe al fallback a RAWG: la primera vez que se busca un juego que no esta en la DB local, RAWG lo importa y la proxima vez aparecen mas resultados porque ya estan en la DB. No es un bug sino comportamiento esperado, pero el usuario lo percibe como inconsistente.
-- **Solucion propuesta:** Agregar un indicador visual que diferencie resultados locales de resultados importados de RAWG (ej: badge "New" o "From RAWG" en resultados recien importados). Esto ayuda al usuario a entender por que los resultados cambian entre busquedas. Tambien considerar mostrar un mensaje tipo "Found X new games from RAWG" cuando el fallback importa juegos nuevos.
+- **Solucion:** Backend: `resolveRawgResult` ahora devuelve `{ game, justImported }` (true cuando el `registerGame` recien creo el registro, false cuando el juego ya existia en DB o se mapeo por slug). `searchAndCreateFromRawg` agrupa los IDs recien creados en un `Set<string>`. `searchGames` (controller) pasa el flag al `gameSerializer` por game para exponer `justImported: boolean`. Frontend: badge "RAWG" con icono `cloud_download` (bg-info/15 text-info) en los 4 puntos donde aparece busqueda con fallback: `backlog-modal` dropdown, `game-shelf-modal` dropdown, `list-detail` add-game dropdown, y la grilla de "Search Results" en `games-browse` (overlay top-right en la cover). El badge convive con el badge DLC sin pisarlo. Tooltip "Just imported from RAWG".
 
 ### [FB-058] Sin indicador de que un juego ya esta en una lista
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Al buscar juegos para agregar a una lista, o al navegar por la grilla de juegos, no hay indicador visual de que un juego ya esta en alguna de las listas del usuario. Tampoco en la ficha del juego. Esto puede llevar a agregar duplicados o a no saber si ya se incluyo un juego.
-- **Solucion propuesta:** En el buscador de la lista, mostrar un indicador (checkmark, badge "In list") junto a juegos que ya estan en esa lista especifica. En el game detail, mostrar una seccion "In your lists" con las listas del usuario que contienen ese juego. Requiere que el backend incluya esa informacion en la respuesta o un endpoint adicional.
+- **Solucion:** Doble: (1) En `list-detail.html` (add-game dropdown), los resultados que ya estan en la lista actual se renderizan con badge "In list" (check + bg-success/15 text-success), opacidad reducida y click bloqueado para evitar re-add. Helper `isGameInList(gameId)` consulta el array de items ya cargado en el front. (2) En `game-detail.html`, nueva seccion en el sidebar derecho "In your lists" que aparece solo si el viewer tiene listas que contienen ese juego, con cada lista como link al detalle + icono `lock` cuando es privada. Backend: nueva funcion `listsService.findUserListsByGameId(gameId, userId)` (query acotada con `attributes: ['id', 'name', 'isPublic']` y join filtrando por ListItem.gameId, sin overfetching). El endpoint `GET /games/:id/lists` ahora devuelve `{ lists, myLists }` en paralelo via `Promise.all` — sin requests adicionales. Nuevo doc en `docs/api/games/get-lists.yml`.
 
 ### [FB-059] Listas del usuario deberian ser expandibles en el sidebar
 
@@ -537,10 +538,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Tami
 - **Descripcion:** El juego Rhythm Heaven tiene pagina y puntaje de Metacritic (verificable externamente), pero una lista configurada con score_source "metacritic" muestra que no tiene score para ese juego. Esto puede significar que: (1) el GameScore de tipo metacritic no fue importado para ese juego, (2) el juego se importo desde RAWG y solo tiene score de RAWG, o (3) el mapeo entre fuentes no esta funcionando correctamente.
-- **Solucion propuesta:** Verificar en la DB si Rhythm Heaven tiene un registro en GameScore con source "metacritic". Si no lo tiene, el score de Metacritic no fue importado — es un problema de datos, no de codigo. A corto plazo, el admin puede agregar el score manualmente. A largo plazo, el cron de Metacritic/OpenCritic (Fase 5) se encargara de poblar estos datos automaticamente.
+- **Decision (2026-05-20):** Descartado. No es un bug del codigo — el comportamiento de mostrar null cuando falta el `GameScore(source=metacritic)` es el esperado. Es un caso aislado de datos faltantes. El cron oficial de Metacritic/OpenCritic vive en Fase 5; mientras tanto el admin puede completar manualmente cualquier juego puntual desde el panel.
 
 ### [FB-061] Badge de fuente de score desalinea input en backlog modal
 
@@ -555,19 +556,19 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Al ver una lista con sus juegos, el usuario quiere poder editar su backlog (cambiar status, agregar notas, etc.) directamente desde la vista de la lista sin tener que navegar al backlog. Actualmente el icono de backlog en la lista solo indica si el juego esta en el backlog del usuario, pero no permite editarlo.
-- **Solucion propuesta:** Hacer clickeable el icono de backlog en los items de la lista para abrir el modal de edicion de backlog del juego. Si el juego ya esta en el backlog, abrir el modal de edicion precargado. Si no esta, abrir el modal de creacion. Reutilizar el componente de modal de backlog que ya existe en la vista de backlog.
+- **Solucion:** El indicador semantico de status del backlog (introducido en FB-072) se vuelve clickeable. (1) `list-detail.html` (owner view): el marcador con icono+color del status ahora es un `<button>` que llama a `openEditBacklog(item)`. Si el juego esta en mi backlog, hace `backlogService.getMyBacklog({ game_id })` (filtrado server-side, sin overfetching) y abre `BacklogModal` con `[entry]` precargado. Si no esta, cae a `openBacklogModal(item)` que abre el modal en modo creacion. (2) `user-list-detail.html` (vista publica de listas ajenas): se aplico el mismo patron sobre el badge de status. (3) Extension: cuando `backlogStatus === 'completed'` se muestra inline despues del marcador un bloque "Real Xh · P. Ratio X" con los datos personales del viewer — encapsulado en componente reusable `<app-personal-stats>` (en `shared/components/personal-stats/`) que tambien se uso en backlog-list y user-backlog para reducir duplicacion del bloque vertical de Personal Ratio. Backend: `getBacklogStatusMap` reescrito como `getBacklogSummaryMap` devolviendo `Map<gameId, {status, realDuration, personalRatio}>`. Optimizado a nivel DB con raw SQL `SELECT DISTINCT ON ("gameId") ...` ordenado por prioridad de status (`completed` > `playing` > `abandoned` > `not_started`) y luego `createdAt DESC`. Esto evita que un replay reciente (`not_started`/`playing`) pise un completado historico — si el usuario completo el juego alguna vez, el indicador y los datos personales reflejan ese completado (estilo Trakt: completed es sticky). Fix complementario en `getListProgress`: agregado `distinct: true, col: 'gameId'` al `Backlog.count` para evitar doble-conteo cuando hay multiples backlogs del mismo juego en estado completed/abandoned. Bug fix de paso: `/users/:username/lists/:listId` ahora usa `authOptionalMiddleware` y prioriza el viewer's id sobre el profile owner's id para calcular `backlogStatus`/`progress` (antes mostraba erroneamente el status del dueno). Nuevo doc en `docs/api/users/get-user-list-detail.yml`.
 
 ### [FB-063] Boton de seguir lista no visible o no intuitivo
 
 - **Fecha:** 2026-04-24
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Un usuario entro al perfil de otro usuario para seguir una de sus listas y no encontro el boton de Follow. La causa real es que la ruta /user/:username/lists/:id no tiene boton de Follow (ver FB-065). Ademas, las cards de listas en el perfil tampoco tienen opcion de seguir directamente.
-- **Solucion propuesta:** Dos mejoras: (1) hacer el boton Follow mas visible en list-detail (aumentar tamano, usar color de acento, moverlo a una posicion mas prominente). (2) Agregar un boton Follow en las cards de listas cuando se ven desde el perfil de otro usuario, permitiendo seguir sin entrar al detalle. Tambien agregar un indicador visual en las cards de listas que el usuario ya sigue.
+- **Solucion:** Resuelto junto con FB-065 unificando las rutas. La ruta `/user/:username/lists/:id` ahora redirige a `/lists/:id?from=:username` via `redirectTo` funcional (Angular 21). `list-detail` ya tenia el boton Follow visible para no-owners — ahora tambien cubre el flujo del perfil ajeno automaticamente. La parte de "Follow inline en cards" se descarta por scope; el flujo de un click extra al detalle se considera friccion aceptable.
 
 ### [FB-064] Usuarios no entienden que son Score y Duration ni por que son obligatorios
 
@@ -582,10 +583,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tebi
 - **Descripcion:** Existen dos rutas para ver una lista: /lists/:id (que si tiene boton Follow/Unfollow) y /user/:username/lists/:id (que no lo tiene). Cuando un usuario entra al perfil de otro y hace click en una de sus listas, llega a la ruta /user/:username/lists/:id donde no hay forma de seguir la lista. Esta es la ruta natural para descubrir listas de otros usuarios, por lo que el Follow esta efectivamente roto para el flujo mas comun. Esto explica por que Tami no pudo seguir una lista (FB-063).
-- **Solucion propuesta:** Agregar el boton Follow/Unfollow en la vista /user/:username/lists/:id. Idealmente ambas rutas deberian compartir el mismo componente de detalle de lista o al menos las mismas funcionalidades. Evaluar si tiene sentido unificar ambas rutas en una sola (/lists/:id) y que el contexto del usuario se resuelva internamente.
+- **Solucion:** Unificacion de rutas. Cambios: (1) `app.routes.ts`: la ruta `user/:username/lists/:id` ahora es un `redirectTo` funcional (Angular 21) que apunta a `/lists/:id?from=:username` — preserva el username via query param sin requerir un componente. (2) `list-detail` lee `?from=` y muestra un sub-link "from @username" debajo del titulo + cambia el back arrow para volver al perfil ajeno (en vez de a `/lists`). (3) Los links del perfil publico (`public-profile.html`) actualizados para apuntar directo a `/lists/:id` con `[queryParams]` (evita la redireccion doble). (4) Eliminado el componente `UserListDetail` y el metodo `PublicProfileService.getUserListDetail` (ya no usados). El endpoint backend `/users/:username/lists/:listId` queda como dead code pero se mantiene por si terceros lo consumen — limpieza diferida.
 
 ### [FB-066] Indicador visual cuando un item de wishlist se auto-remueve
 
@@ -599,10 +600,12 @@ Formato por item:
 
 - **Fecha:** 2026-05-04
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al crear o editar un juego desde el panel admin con un titulo que contiene caracteres especiales (ej: "Beyond Good & Evil - 20th Anniversary Edition"), el valor se persiste HTML-encodeado en la DB ("Beyond Good &amp; Evil - 20th Anniversary Edition"). Esto corrompe el dato almacenado, rompe la busqueda (un query con "&" no matchea "&amp;") y filtra entidades HTML al codigo y a las vistas que esperan texto crudo. Probablemente afecta tambien a otros caracteres como `<`, `>`, `'`, `"`.
-- **Solucion propuesta:** Identificar donde se aplica el escaping en el flujo de creacion/edicion de games (controller, service, schema de Zod, hook de Sequelize, o el frontend del admin antes de enviar el request). El encoding HTML es una preocupacion de la capa de presentacion, no de persistencia — hay que removerlo del path de guardado y aplicarlo solo al renderizar HTML donde sea necesario. Auditar otros endpoints (lists, reviews, notes, profile) por el mismo patron. Una vez arreglado, hacer un script de limpieza para des-encodear los registros existentes que ya esten corruptos.
+- **Causa raiz:** Middleware global `xss()` de `express-xss-sanitizer` aplicado en `server.ts:34`. Corre sobre todos los `req.body` antes de llegar a los controllers, HTML-encodeando cualquier `&`, `<`, `>`, `"`, `'`. Anti-patron en stack con Angular: el framework ya escapa automaticamente todo `{{ }}` y no usamos `[innerHTML]` con user input, por lo que el sanitizer solo corrompe los datos almacenados.
+- **Solucion (going forward):** Removido `app.use(xss())` y el import en `server.ts`. Desinstaladas dependencias `express-xss-sanitizer` y `@types/express-xss-sanitizer`. Nuevos juegos/edits ya guardan los strings con sus caracteres especiales tal cual. La proteccion XSS la cubre Angular en render (escapado automatico de `{{ }}`).
+- **Backfill diferido:** Los datos viejos quedan con `&amp;` y similares; los slugs corruptos (ej: `beyond-good-andamp-evil-20th-anniversary-edition`) tambien. Decision del user: no reparar lo existente, solo prevenir nuevos casos. Plan completo de backfill (decode + regenerar slugs + auditar todos los modelos) queda documentado en `TODO.md` seccion Fase 3 ("Reparacion de datos HTML-encoded").
 
 ### [FB-068] Sesion se cierra al usar la app desde varios dispositivos
 
@@ -627,28 +630,29 @@ Formato por item:
 
 - **Fecha:** 2026-05-07
 - **Severidad:** alto
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al editar un item del backlog, los valores actuales de score y duration se ven correctamente, pero no se puede actualizarlos cambiando la fuente que los provee. Ejemplo: un juego quedo registrado con la duration de RAWG y el usuario ahora quiere reemplazarla por la de HLTB — el modal no ofrece la opcion de re-fetchear ni elegir entre las fuentes ya existentes (Metacritic, OpenCritic, RAWG, HLTB) para tomar el valor mas actualizado o preferido. Para cambiar la fuente hoy hay que ir al panel admin de games, lo cual no es accesible para usuarios normales.
-- **Solucion propuesta:** Permitir desde el modal de backlog (o desde la vista de detalle del juego) actualizar el score/duration eligiendo entre las fuentes existentes. Opciones: (1) mostrar un selector con las fuentes disponibles (Metacritic, OpenCritic, RAWG, HLTB) y el valor que cada una reporta, dejando elegir cual usar como valor activo del juego; (2) un boton "Refresh from sources" que vuelva a consultar las APIs externas y actualice los valores. Definir si esta accion afecta el game compartido (todos los usuarios ven el cambio) o solo el backlog personal — si es lo primero, podria requerir moderacion o limitarse a ciertos roles. Relacionado con FB-005 (admin no puede borrar scores/durations), ambos apuntan a que el flujo de edicion de scores/durations esta incompleto.
+- **Causa raiz:** El `backlog-modal` ya tenia los source buttons (Metacritic, HLTB, etc.) implementados — pero en modo edit, el `selectedGame` se seteaba con `{id, code, title, backgroundUrl}` solamente, sin `scores` ni `times`. El computed `gameScores()` devolvia `[]` → el wrapper de source buttons no renderizaba (la condicion era `gameScores().length > 0`).
+- **Solucion:** En `backlog-modal.ngOnInit`, cuando hay `entry()` (modo edit), se sigue seteando el `selectedGame` parcial inmediatamente (para que el form se inicialice), pero ademas se dispara `gamesService.getByCode(e.game.code)` y se actualiza `selectedGame` con el shape completo (incluyendo scores y times). Una vez resuelto, los source buttons aparecen al lado de los campos Critic Score y Duration. Click en cualquiera actualiza el form (via `applyScore`/`applyDuration` que ya existian). El cambio solo afecta el backlog del usuario; el game compartido no se toca.
 
 ### [FB-071] Wishlist no permite ordenar por columnas ni persistir el orden resultante
 
 - **Fecha:** 2026-05-07
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En la wishlist se puede reordenar manualmente arrastrando los juegos, pero no hay forma de ordenar la lista por las columnas score, duration o ratio. Si el usuario quisiera priorizar la wishlist por ratio (la feature diferenciadora de Completr), tiene que comparar valores a ojo y arrastrar uno por uno. Ademas, despues de un sort por columna no hay opcion de "fijar" ese orden como la posicion guardada de los items, perdiendo el resultado al refrescar.
-- **Solucion propuesta:** (1) Hacer las columnas score, duration y ratio clickeables para ordenar asc/desc, igual que en backlog. (2) Despues de aplicar un sort por columna, ofrecer un boton "Save this order" que persista las posiciones actuales como el orden manual de la wishlist (sobreescribe el campo de posicion/sortOrder de cada item). Asi el usuario puede usar el sort como herramienta de priorizacion y luego congelarlo. Considerar si el sort por columna es solo visual (no toca DB) hasta que se confirme con el boton, para evitar mutaciones accidentales.
+- **Solucion:** Adaptado al nuevo contexto de wishlist (solo vista grid post-FB-107). Agregado "Sort by" en el toolbar con chips estilo backlog/shelf: `Manual` (default, respeta posiciones persistidas), `Ratio`, `Score`, `Duration`. El ordenamiento es puramente visual (computed signal `filteredEntries`) hasta que el usuario lo congela. Cuando `sortBy !== 'manual'`, aparece un boton secundario "Save this order" (bg-brand-subtle text-brand) que persiste el orden actual via `wishlistService.reorder(backlogIds)` y resetea sortBy a manual. Mientras hay un sort activo, las flechas reorder de las cards se deshabilitan (forzando `isFirst`/`isLast` a true) para evitar reorders accidentales sobre un orden no-persistido — el boton remove sigue activo.
 
 ### [FB-072] Listas no muestran si el juego esta completado o abandonado
 
 - **Fecha:** 2026-05-07
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al ver una lista de juegos (propia o de otro usuario), se muestra el progreso general de la lista, pero en cada item solo se indica si el juego esta o no en mi backlog. No se distingue si ya lo complete, lo abandone o sigue en progreso. Esto obliga a entrar al detalle del juego o a mi backlog para saber el estado real, perdiendo contexto util al recorrer la lista.
-- **Solucion propuesta:** Mostrar el estado del juego (completado, abandonado, en progreso, en backlog) en cada item de la lista. Opciones: (1) variar el color/iconografia del marcador actual de "en backlog" segun el estado (ej: verde completado, gris abandonado, amarillo en progreso, azul en backlog); (2) agregar una columna o badge dedicado al estado, especialmente util en vista tabular. Verificar si el endpoint que devuelve los items de una lista ya incluye el estado del backlog del usuario actual para cada juego — si no, agregar el join correspondiente. Aplica tanto a listas propias como ajenas (cuando ves la lista de otro usuario, los iconos deben reflejar TU estado, no el del dueno de la lista).
+- **Solucion:** El backend ya exponia `backlogStatus` por item (en `/lists/:id` calculado contra el viewer; en `/users/:username/lists/:id` originalmente calculado contra el profile owner — bug corregido en FB-062). La vista publica `/user/:username/lists/:id` (`user-list-detail.html`) ya renderizaba un badge con color por status. La vista del owner `/lists/:id` (`list-detail.html`) solo mostraba "In Backlog" genérico — reemplazado por marcador con icono + color semantico segun status: `check_circle` + text-success (completed), `play_circle` + text-warning (playing), `cancel` + text-danger (abandoned), `schedule` + text-brand (not_started). Tooltip con el nombre del estado. Mismo patron de colores que el resto del codebase (backlog-list, saved-filters).
 
 ### [FB-073] Compilados remastered (varios juegos en un solo titulo) distorsionan duracion y ratio
 
@@ -699,10 +703,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En el detalle de un juego (Games) deberia mostrarse una seccion "Latest Completr Lists" con las listas publicas mas recientes que incluyen ese juego. La seccion nunca aparece, ni siquiera para juegos que sabemos que estan en varias listas publicas. Puede ser que el endpoint no devuelva resultados, que el frontend este filtrando mal, o que la query no este matcheando los juegos correctamente con sus listas.
-- **Solucion propuesta:** Diagnosticar el flujo end-to-end: (1) verificar que el endpoint que devuelve "ultimas listas que incluyen este juego" exista y este siendo llamado desde el detalle del juego; (2) revisar la query en backend (joins entre lists, list_items y games, filtros por visibilidad publica y orden por fecha); (3) revisar el frontend (si los datos llegan, comprobar que la seccion se renderice y no este oculta por un guard tipo `if (lists.length === 0)` que falle por shape). Si el endpoint no existe todavia, crearlo: GET /games/:id/lists?limit=N&order=recent devolviendo solo listas publicas. Considerar paginacion futura.
+- **Solucion:** El FB describe un placeholder de la UI anterior. El rediseño posterior de `game-detail` reemplazo la seccion estatica "Latest Completr Lists" por un tab "Lists" alimentado por `GET /games/:id/lists` (`gamesController.getGameLists` → `listsService.findPublicListsByGameId`). La query filtra `isPublic: true` y hace join con `ListItem` por `gameId`, incluyendo `User` para distinguir listas oficiales (`role === 'admin'`). El tab se renderiza condicional a `featuredLists().length > 0` y muestra cards con badge "Official" para listas admin + nombre + descripcion + owner. Sidebar derecho del game detail muestra el contador "In Lists". No requiere accion adicional.
 
 ### [FB-078] Real Duration en diary view del backlog no se destaca lo suficiente
 
@@ -754,19 +758,19 @@ Formato por item:
 
 - **Fecha:** 2026-05-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al entrar al perfil publico de otro jugador (/user/:username), la seccion de reviews muestra solo las ultimas N (probablemente 3-5). No hay forma de ver el resto de las reviews que el usuario ha escrito. Si me interesa la opinion de alguien sobre varios juegos, no tengo manera de revisarlas todas sin entrar juego por juego.
-- **Solucion propuesta:** Agregar boton "See all" debajo de la lista de reviews en el perfil publico que lleve a una vista dedicada `/user/:username/reviews` con paginacion (limit 25). Backend: nuevo endpoint `GET /users/:username/reviews?limit&offset` que devuelve las reviews del usuario con `game` populado, ordenadas por fecha desc, paginadas con `{ rows, total }`. Frontend: vista nueva con `<ui-pagination>` reutilizando el patron ya usado en feed, backlog, wishlist, etc.
+- **Solucion:** Backend: nueva funcion `reviewsService.findReviewsByUserIdPaginated(userId, {limit, offset})` con `findAndCountAll` + `distinct: true`. El endpoint `GET /users/:username/reviews` ahora acepta `PaginationQuerySchema` y devuelve `{ reviews, total }`. Frontend: `getUserReviews(username, { limit, offset })` retorna `{ reviews, total }`. En el perfil (publico y propio) la seccion ahora carga limit 5 + muestra contador real desde `total` + link "See all N reviews →" cuando hay mas que las cargadas. Nueva vista standalone `/user/:username/reviews` (componente `UserReviews` en `features/public-profile/user-reviews/`) con paginacion 50 reusando `<ui-pagination>`. Maneja errors 403/404 igual que las demas vistas de perfil ajeno. Nuevo doc Bruno en `docs/api/users/get-user-reviews.yml`.
 
 ### [FB-084] Plataformas duplicadas: Origin y EA (Origin) son la misma
 
 - **Fecha:** 2026-05-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Esteban
 - **Descripcion:** En el listado de plataformas aparecen dos entradas que representan la misma tienda: "Origin" y "EA (Origin)". EA renombro Origin a EA App en 2022, pero ambos siguen siendo el mismo cliente y libreria. Tener dos plataformas distintas para lo mismo fragmenta los datos — un juego se asigna a una u otra segun como vino de RAWG, y los filtros/busquedas por plataforma quedan inconsistentes. El usuario al agregar un juego ve dos opciones equivalentes y no sabe cual elegir.
-- **Solucion propuesta:** Consolidar en una sola plataforma canonica. Pasos: (1) decidir el nombre canonico ("EA App" probablemente, o mantener "Origin" si se prefiere la marca historica). (2) migracion que mueva todos los `game_platforms` que apuntan a la duplicada hacia la canonica, evitando duplicados (ON CONFLICT DO NOTHING). (3) eliminar la fila duplicada de `platforms`. (4) actualizar `rawg-platform.map.ts` para que ambos slugs RAWG (`ea-origin` y `origin`) mapeen al codigo canonico. Auditar tambien si hay otras plataformas duplicadas (ej: PS Network vs PS Store, Xbox vs Xbox Live).
+- **Decision (2026-05-20):** Descartado. La duplicacion solo existe en el entorno local del developer; en produccion no se materializo el problema. No vale la pena gastar una migracion para esto. Si reaparece (en local o prd) se reabre.
 
 ### [FB-085] El corazon de wishlist en el backlog no permite remover
 
@@ -790,19 +794,19 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En la vista del backlog, el cuadro de texto que muestra la nota personal (`Backlog.notes`) queda vacio cuando el usuario no escribio una. Sin embargo, si el usuario si tiene una reseña publicada del juego (`Review.content`), ese cuadro podria usarse para mostrar el texto de la reseña en lugar de quedar vacio. La reseña ya es texto del usuario sobre el juego y aporta mas contexto que un espacio en blanco — evita repetir el contenido en dos lugares cuando el usuario solo escribio la reseña.
-- **Solucion propuesta:** En la vista del backlog (diary cards y tabla), si `Backlog.notes` esta vacio o null y existe `Review.content` del mismo usuario para ese juego, renderizar el contenido de la reseña en ese cuadro con un label visible que aclare la fuente (ej: "Reseña" en vez de "Nota") para no confundir al usuario sobre que esta viendo. Si ambos existen, mostrar la nota (prioridad al campo especifico del backlog). Backend: incluir `reviewContent` (o el objeto review completo) en el serializer del backlog, asi el frontend tiene el dato sin pedirlo aparte.
+- **Solucion:** Resuelto junto con FB-088. Backend: `backlogSerializer` ahora acepta un parametro opcional `review` y expone `reviewContent` en la respuesta. `getMeBacklog` arma un Map por gameId via nuevo `reviewsService.findReviewContentByUserAndGameIds(userId, gameIds)` — una sola query con `WHERE userId AND gameId IN (...)` y solo `attributes: ["gameId", "content"]`, sin JOIN (evita N+1 y overhead innecesario). Frontend: en `backlog-list.html` (diary cards + tabla) el cuadro de notes ahora prioriza la nota cuando existe y, si tambien hay review, el icono `rate_review` al lado del star rating se vuelve un toggle (brand = mostrando nota, gris = mostrando review). Click en el icono alterna la visibilidad del cuadro entre nota y review (prefijada con `format_quote` brand). Estado per-entry en `reviewExpandedIds: Set<string>`. Si solo hay review (sin nota), se renderiza el contenido siempre y el icono queda como indicador no-toggleable.
 
 ### [FB-088] Falta indicador visual de que el usuario ya escribio reseña en un juego
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Cuando un usuario ya escribio una reseña de un juego, no hay un indicador rapido en la UI que se lo recuerde. Tiene que entrar a la ficha del juego y bajar a la seccion de reseñas para confirmar si ya escribio una. Esto es especialmente confuso cuando aparecen CTAs tipo "Sé el primero en reseñar" o "Escribe tu reseña" en otras partes de la app — el usuario no sabe si ya tiene una guardada.
-- **Solucion propuesta:** Agregar un indicador visible (icono pequeño o chip) que aparezca junto al juego en los contextos donde el usuario lo ve: cards de juego, diary cards del backlog, vista de game-shelf, listas, etc. Cuando el usuario tiene reseña propia para ese juego, se muestra el indicador (ej: icono `rate_review` o un badge "Reseñada"). Backend: exponer un flag `hasUserReview` (o similar) en el serializer de game cuando hay usuario autenticado en el contexto, evaluando si existe un `Review` con ese `userId` + `gameId`. Reutilizar el patron de `backlogStatus` que ya inyecta data del usuario autenticado en los serializers de game. Frontend: renderizar el icono/chip en los componentes de card de juego y diary card. Tambien sirve como atajo: click en el indicador podria llevar a la reseña existente o abrir el editor.
+- **Solucion:** Alcance acotado al backlog (donde mas se siente la confusion). Backend: `backlogSerializer` expone `hasReview: boolean` ademas de `reviewContent`. `getMeBacklog` arma un Map de reviews del usuario por gameId y lo pasa al serializer. Frontend: en `backlog-list.html` se renderiza un icono `rate_review` (material-icons, text-brand) al final de la fila del rating en diary cards y al lado de las estrellas en la columna Rating de la tabla, con `title="You reviewed this game"`. Se eligio esta ubicacion (en vez del titulo o el bloque de tiempo) para conectarlo conceptualmente con "tu opinion del juego": rating + review en la misma linea. Si en el futuro se justifica extenderlo a game-shelf/listas/games-browse, conviene refactorizar reusando el patron de `backlogStatus` (inyectar al serializer de Game cuando hay user autenticado).
 
 ### [FB-089] Paleta de colores: navbar no diferencia item activo, falta revision general
 
@@ -826,21 +830,21 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** El cuadro de busqueda hace match literal contra el titulo. Si el usuario escribe `terminator ` (con espacio al final), encuentra "Terminator Resistance Annihilation Line" pero NO "Terminator: Resistance", porque en este ultimo despues de "Terminator" viene `:` y no un espacio. Lo mismo pasa con otros separadores (guiones, dos puntos, comas) y con espacios iniciales/finales del query. El comportamiento esperado es que la busqueda sea tolerante a puntuacion y espacios sobrantes.
 - **Causa tecnica:** En `src/games/games.service.ts:205` y `:222` la query se construye como `{ title: { [Op.iLike]: `%${query}%` } }`. No hay normalizacion del input ni del campo comparado.
-- **Solucion propuesta:** (1) Quick win: hacer `trim()` y colapsar espacios multiples del query antes de la comparacion. (2) Tokenizacion: dividir el query por whitespace y aplicar AND de varios `ILIKE %token%` — asi `"terminator resistance"` matchea independiente de si entre ambas palabras hay `:`, `-` o espacio. (3) Normalizar puntuacion: tanto en el query como en el lado del titulo, comparar contra una version sin puntuacion (regex `[^a-z0-9 ]` → eliminado). Opciones: agregar columna generada `title_normalized` indexada, o usar `regexp_replace` en la query (mas lento pero sin migracion). (4) Robusto a largo plazo: activar extension `pg_trgm` y usar similarity para fuzzy match con ranking — soporta tipos, abreviaciones y orden distinto de palabras. Empezar por (1)+(2)+(3) que cubren el caso reportado; dejar (4) para cuando el catalogo crezca.
+- **Solucion:** Nuevo helper `buildTitleSearchWhere(query)` en `games.service.ts` que: (1) normaliza el query — trim, lowercase, reemplaza puntuacion por espacios, colapsa espacios, divide en tokens y strip de cualquier no-alfanumerico por token; (2) construye un WHERE con `Op.and` de `whereFn` por cada token contra `regexp_replace(lower(title), '[^a-z0-9]', '', 'g')` con `Op.like '%token%'`. El titulo se normaliza completamente sin espacios ni puntuacion, lo que cubre los 3 casos del FB en una sola estrategia: (a) "terminator " (espacio sobrante) → match `Terminator: Resistance`. (b) "terminator resistance" → match ambos titulos con `:` y sin. (c) "resistance terminator" (orden invertido) → match ambos via AND de tokens. (d) "fear" → matchea `F.E.A.R.` (titulo normalizado = "fear"). `searchGamesLocal` y `searchGames` reescritos para usar el helper. Si el query normalizado resulta vacio (todo puntuacion), retorna sin resultados.
 
 ### [FB-092] "Similar" siempre muestra los mismos juegos y recomienda mal
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En la ficha del juego, el tab "Similar" siempre devuelve los mismos juegos (independiente del juego en el que estes) y las recomendaciones no son buenas. El usuario espera ver juegos relacionados al que esta viendo (mismo genero principal, plataformas similares, tematica parecida), pero recibe lo que parece un listado generico.
-- **Causa tecnica:** En `completr-node-frontend/src/app/features/games/game-detail/game-detail.ts:191`, `loadSimilarGames(game)` toma solo `game.genres?.[0]` (el primer genero) y llama `getGames({ limit: 10, genre: genre.code })`. La query del backend ordena por defecto (probablemente `createdAt desc` o algun orden estable), por lo que para cualquier juego cuyo primer genero coincida, devuelve siempre los mismos 6 juegos (los primeros 10 menos el actual, slice a 6). No hay aleatoriedad ni se consideran los demas generos, plataformas o etiquetas del juego.
-- **Solucion propuesta:** (1) Quick fix: en lugar de tomar solo `genres[0]`, pasar todos los generos del juego al backend y matchear por interseccion (al menos uno en comun) con ranking por cantidad de generos compartidos. (2) Aleatorizar dentro del pool: traer 30-50 candidatos y elegir 6 aleatorios para que el tab no se vea repetitivo cuando uno navega entre juegos del mismo genero. (3) Endpoint dedicado en backend `GET /games/:id/similar` que encapsule la logica: matchear por generos compartidos, sumar score por plataformas comunes, opcionalmente penalizar juegos muy distintos en duracion o decada, y devolver el top N con randomizacion estable (seed por gameId + dia para que no cambie en cada refresh). (4) Largo plazo: aprovechar `tags` de RAWG (cuando se ingesten) que son mas granulares que generos y mejoran la similaridad notablemente. Considerar tambien co-ocurrencia: "usuarios que tienen X en su backlog tambien tienen Y" — esto requiere masa critica de usuarios.
+- **Causa tecnica:** En `completr-node-frontend/src/app/features/games/game-detail/game-detail.ts`, `loadSimilarGames(game)` tomaba el primer genero y llamaba `getGames({ limit, genre })` que el backend ordenaba por `createdAt desc` por default → mismos juegos siempre.
+- **Solucion:** Quick fix con randomizacion. `loadSimilarGames` ahora pide `getGames({ limit: 30, genre: code, sort_by: "random" })` y slice a 8. Cada visita al detalle muestra un set distinto dentro del pool del primer genero, gracias al sort_by=random ya implementado en `games.service.findAll`. No mejora la calidad de similitud (sigue siendo "primer genero"), pero elimina la repetitividad. Mejoras posibles (no implementadas): interseccion de TODOS los generos (multi-genre matching), endpoint dedicado `/games/:id/similar` con ranking, o tags de RAWG cuando se ingesten.
 
 ### [FB-093] Falta glosario/ayuda que explique los campos del backlog (ratio, personal, real, etc.)
 
@@ -864,11 +868,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** El componente `ui-pagination` actual (usado en backlog, wishlist, feed, etc.) solo expone botones "Previous" / "Next" y la leyenda `X-Y of Z`. Para ir a la ultima pagina de una lista de 500 items con limit 100, el usuario tiene que hacer click 4 veces en Next. No hay forma de saltar a una pagina especifica ni de ir directo al inicio/final. El patron actual fue suficiente para listas chicas pero deja de escalar cuando el backlog crece.
 - **Causa tecnica:** `completr-node-frontend/src/app/shared/ui/pagination/ui-pagination.html` solo renderiza dos botones (`prev()`, `next()`) y un label con el rango. No hay logica de numeros de pagina ni de salto.
-- **Solucion propuesta:** Extender `ui-pagination` con numeros de pagina visibles + botones de salto. Patron estandar: `« 1 ... 4 [5] 6 ... 20 »`. Reglas: (1) Siempre mostrar primera y ultima pagina. (2) Mostrar la pagina actual + 1-2 vecinos a cada lado. (3) Insertar `...` cuando hay un gap. (4) Botones `«` (primera) y `»` (ultima) explicitos. (5) En mobile, reducir el numero de vecinos visibles para no romper el layout — o reemplazar por input "Go to page N". El componente debe exponer un metodo `goToPage(n)` ademas de `prev`/`next` existentes y emitir el mismo evento que ya consumen las vistas. Como es un componente compartido, el fix beneficia automaticamente a todas las vistas paginadas (backlog, wishlist, feed, list-detail, etc.).
+- **Solucion:** `ui-pagination` extendido con: (1) botones `first_page` / `chevron_left` / `chevron_right` / `last_page` siempre presentes. (2) Numeros de pagina con ellipsis (`1 ... 4 [5] 6 ... 20`) computados en `pages()` signal — primera y ultima siempre visibles, pagina actual + 1 vecino a cada lado, `...` en gaps. (3) En mobile (`sm:hidden`) los numeros se reemplazan por `currentPage / totalPages` para no romper el layout. (4) Nuevos metodos `first()`, `last()`, `goToPage(n)` (con clamp). El rango `X–Y of Z` se mantiene como label informativo. Como es componente compartido, el fix beneficia automaticamente a todas las vistas que ya lo usaban (backlog, wishlist, favorites, lists, feed, game-shelf, saved-filters, settings-security). Adicionalmente, migradas 7 vistas que aun tenian paginacion inline con solo Previous/Next al componente compartido: `user-backlog`, `user-game-shelf`, `user-wishlist`, `user-favorites` (perfil publico), y `admin-users`, `admin-games`, `admin-audit` (admin). Cada una reemplaza sus metodos `prevPage`/`nextPage` por un unico `goToOffset(offset)` que consume el `(offsetChange)` del componente.
 
 ### [FB-096] En el perfil de otro usuario, la actividad deberia aparecer primero
 
@@ -921,8 +925,9 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** diferido
 - **Reportado por:** Esteban
+- **Decision (2026-05-20):** Diferido a Fase 3. La landing (`completr.app`) todavia no existe en produccion (esta planificada para Fase 3). Agregar links a paginas inexistentes (About, Pricing, Privacy, Terms, Changelog) es prematuro. Cuando se construya la landing, este FB se incluye como parte de ese trabajo: footer global con enlaces, link en login/register, CTA de Premium, etc.
 - **Descripcion:** Hoy `completr.app` (landing) y `web.completr.app` (app autenticada) son dos sitios separados, y desde la app no hay forma directa de volver a la landing. La pregunta es si conviene exponer enlaces desde la app hacia la web publica — y para que casos especificos. Sin esto, el usuario que entra a la app no tiene punto de retorno al material publico (about, changelog, pricing, blog, etc.) salvo cambiando la URL manualmente.
 - **Casos de uso donde tendria sentido:**
     - **Footer global**: enlaces a About, Changelog, Pricing, Privacy, Terms — todos viven en la landing.
@@ -945,10 +950,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En FB-081 se agregaron tres view modes (cards, grid, table) tanto al `/game-shelf` propio como al `/user/:username/game-shelf` publico. Para el shelf ajeno los tres modos son overkill — la mayoria de usuarios solo quiere echar un vistazo a la coleccion, no compararla por columnas ni alternar entre densidades. Mantener los tres modos en una vista de consumo agrega ruido visual al toggle sin aportar valor real.
-- **Solucion propuesta:** En `user-game-shelf.html`, quitar el toggle de view modes y dejar solo el modo "cards" (diary-like) que es el mas legible para una vista de perfil ajeno. Quitar tambien el signal `viewMode` y `setViewMode` de `user-game-shelf.ts` (o reutilizar si en el futuro se decide reintroducir un modo alternativo). El shelf propio (`/game-shelf`) mantiene los tres modos — alli el usuario gestiona su coleccion y la densidad importa.
+- **Solucion:** En `user-game-shelf.html` quitado el toggle de view modes y los bloques `grid` + `table`; queda solo el render de cards (diary-like, 1 col mobile / 2 cols md). En `user-game-shelf.ts` removidos el signal `viewMode`, el method `setViewMode` y la lectura/escritura de localStorage. Tambien se movio el `<ui-pagination>` fuera del antiguo branch del table (antes solo aparecia en modo tabla — bug colateral).
 
 ### [FB-104] Perfil ajeno: aplicar paginacion consistente con maximo 50 por pagina en todas las secciones
 
@@ -968,3 +973,39 @@ Formato por item:
 - **Descripcion:** Al ver el game shelf de otro usuario (`/user/:username/game-shelf`), el contador "X games" en el header muestra un numero distinto al numero real de juegos visibles/disponibles. Probablemente el backend devuelve un `total` que incluye entries no visibles (ej: filtrados por privacidad/visibilidad), o el frontend cuenta diferente. Tambien puede ser que el endpoint paginado devuelva `total` correcto pero el filtro post-fetch en frontend reste items, dejando el contador desalineado con la cantidad mostrada.
 - **Causa tecnica:** `findPublicGameShelfByUserId` (y tambien `findGameShelfByUserIdPaginated` del propio shelf) usaban `findAndCountAll` con `include: [{ model: Game, include: [{ model: Genre }] }, Platform, User]`. Como `Game hasMany Genre` (via tabla pivote `game_genre`), el JOIN duplica las filas de GameShelf una vez por cada Genre del juego. Sequelize `count` cuenta filas joinadas, no GameShelfs distintos — por eso el total venia inflado (ej: shelf real de 12 juegos podia reportar 30+ si los juegos tenian ~3 generos en promedio).
 - **Solucion:** Agregado `distinct: true` al `findAndCountAll` de ambas funciones en `game-shelf.service.ts`. Sequelize ahora cuenta GameShelf.id distintos, ignorando la duplicacion por JOIN. Auditados los otros services paginados — wishlist, favorites y backlog tienen includes solo 1:1 (belongsTo Game/Platform/User sin nested hasMany), por lo que no necesitan `distinct`. Games ya tenia `distinct: true` desde antes.
+
+### [FB-106] Falta boton de limpiar texto (X) en la barra de busqueda
+
+- **Fecha:** 2026-05-20
+- **Severidad:** bajo
+- **Estado:** resuelto
+- **Reportado por:** Esteban
+- **Descripcion:** La barra de busqueda (`ui-search-bar`, usada en backlog, game-shelf, wishlist, lists, games, feed) no tiene boton para limpiar el texto. Si el usuario quiere borrar la query y volver al estado sin filtro, tiene que seleccionar todo y borrar manualmente con Backspace/Delete. Es un pattern estandar que casi todas las apps modernas tienen (icono "X" o "close" al lado derecho del input que aparece cuando hay texto).
+- **Solucion:** Agregado boton X dentro de `ui-search-bar` (`shared/ui/search-bar/ui-search-bar.ts`). Icono `close` (`material-icons text-lg text-fg-muted hover:text-fg`) visible solo cuando `value()` tiene contenido. Click → limpia el campo y re-enfoca el input. Bonus: tecla `Escape` tambien limpia (`(keydown.escape)="clear()"`). Como es componente compartido, el fix aplica automaticamente a todas las vistas que lo usan (backlog, game-shelf, wishlist, lists, games, feed). Accesibilidad: `aria-label="Clear search"`.
+
+### [FB-107] Wishlist puede prescindir de la vista tabla y dejar solo grid con ratio + reorder
+
+- **Fecha:** 2026-05-20
+- **Severidad:** bajo
+- **Estado:** resuelto
+- **Reportado por:** Esteban
+- **Descripcion:** La wishlist hoy tiene dos modos (tabla y grid). La tabla repite informacion (score, duration, ratio en columnas) que para una cola de priorizacion es mucho mas de lo que se necesita — el ratio es la unica metrica que importa para decidir que jugar despues. El modo grid es mas limpio visualmente pero hoy no muestra el ratio. Posicion ya se mostro en el badge (`#N`, FB-076). Falta la forma de mover items entre posiciones dentro del grid; en tabla hay flechas arriba/abajo.
+- **Solucion:** En `wishlist-view.html` se quito el toggle de modo y todo el branch de tabla. Queda solo el grid (`grid-cols-2 sm:3 md:4 lg:5 xl:6 gap-5`). Cada card ahora tiene: badge `#N` (top-left, ya existia), columna top-right con dos badges apilados — `ratio` (top, `bg-brand/85 text-white font-bold`) y `duration` (`{{N}}h`, `bg-black/70 text-white font-semibold`) — para diferenciar "ratio alto porque dura poco" vs "ratio alto porque es excelente largo"; titulo (link); plataforma + fila con `moveUp`/`moveDown`/`remove` (`uiIconButton` size sm con opacity-60 que sube a 100 en hover). En `wishlist-view.ts` removidos el signal `viewMode` y los helpers `statusLabel`/`statusClass` (eran solo del modo tabla). Drag-and-drop queda pendiente en FB-082; los botones flecha son el mecanismo intermedio.
+
+### [FB-108] Game shelf puede prescindir de la vista cards y dejar solo grid + table
+
+- **Fecha:** 2026-05-20
+- **Severidad:** bajo
+- **Estado:** resuelto
+- **Reportado por:** Esteban
+- **Descripcion:** En FB-081 se agregaron tres view modes al `/game-shelf` propio: cards, grid y table. El modo "cards" (default — un card grande por juego con cover + metadata, dos por fila en md+) ocupa demasiado espacio vertical para el valor que aporta. La vista grid (caratulas densas) cubre mejor el caso de "ver mi coleccion" y la vista table (tabla compacta con cover thumb + columnas) cubre el caso de "buscar/filtrar/comparar". Cards queda en el medio sin ventaja clara sobre las otras dos.
+- **Solucion:** En `game-shelf-list.ts` el signal `viewMode` paso de `"cards" | "grid" | "table"` a `"grid" | "table"`. El default ahora es `"grid"`, y el lector de localStorage migra valores `"cards"` guardados (cualquier valor que no sea `"table"` cae a `"grid"`). En `game-shelf-list.html` se quito el boton `view_agenda` del toggle y el branch `@else if (viewMode() === 'cards')`. Cards queda disponible en git history si se necesita reintroducir.
+
+### [FB-109] Asignar color semantico a cada icono del sidebar
+
+- **Fecha:** 2026-05-20
+- **Severidad:** bajo
+- **Estado:** pendiente
+- **Reportado por:** Esteban
+- **Descripcion:** Hoy todos los iconos del sidebar son del mismo color neutro (`opacity-70` sobre el color del texto). Visualmente se ven planos y cuesta diferenciar secciones de un vistazo. Una asignacion de color por seccion ayudaria al reconocimiento rapido (estilo Discord/Slack) y daria identidad visual a cada feature. Esta idea ya fue probada en una sesion previa (en el contexto de FB-089) — se aplicaron colores semanticos a Wishlist (danger/rojo), Favorites (warning/amarillo) y Saved Views (sky/cyan) — y se revirtio porque el usuario prefirio iconos neutros en ese momento. Ahora se vuelve a abrir para evaluar la idea con mas variedad de colores y aplicada a TODOS los items, no solo tres.
+- **Solucion propuesta:** Definir una paleta de colores fija por seccion en el sidebar (inactivo). Cuando el item esta activo, el color cambia a brand como ya esta hoy. Propuesta inicial: Feed (sky/cyan, `dynamic_feed`), Games (emerald/verde, `sports_esports`), Backlog (brand/morado, `list_alt`), Game Shelf (amber/naranja, `shelves`), Wishlist (rose/rojo, `favorite_border`), Favorites (yellow/dorado, `star`), Saved Views (purple/violeta, `bookmark`), Lists (teal, `format_list_bulleted`), Admin section (con tono mas tenue para no robar protagonismo). Ajustar opacity para que no sature visualmente. Cuando un item esta activo, el `routerLinkActive` ya aplica `[&_.nav-icon]:!text-brand`, asi que el color semantico se sobreescribe — el estado activo sigue siendo claramente identificable. Validar con usuarios reales (no solo Esteban): si hay rechazo, descartar.

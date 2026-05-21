@@ -1,0 +1,61 @@
+info:
+    name: Add Item to List
+    type: http
+    seq: 2
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/lists/:listId/items"
+    auth: inherit
+    body:
+        type: json
+        content: |
+            {
+              "gameId": ""
+            }
+    params:
+        - name: listId
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Add Item to List
+
+    Append a single game to the end of the list. If the game is already in the list, returns the existing item without error.
+
+    **Authentication:** Bearer token required (list owner only).
+    **Rate Limit:** 300 requests per minute (user).
+
+    Returns 403 if the user isn't the list owner. Returns 423 if the user exceeded the free-tier list limit (frozen).
+
+    ### Path Params
+
+    | Param  | Type | Required | Description |
+    |--------|------|----------|-------------|
+    | listId | uuid | Yes      | List UUID   |
+
+    ### Body
+
+    | Field  | Type | Required | Description |
+    |--------|------|----------|-------------|
+    | gameId | uuid | Yes      | Game UUID   |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "item": {
+          "id": "uuid",
+          "position": 7,
+          "score": 4.5,
+          "duration": 12,
+          "ratio": 7.5,
+          "game": { "id": "uuid", "title": "...", "code": "..." }
+        }
+      }
+    }
+    ```
