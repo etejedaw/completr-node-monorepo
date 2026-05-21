@@ -519,10 +519,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Al buscar juegos para agregar a una lista, o al navegar por la grilla de juegos, no hay indicador visual de que un juego ya esta en alguna de las listas del usuario. Tampoco en la ficha del juego. Esto puede llevar a agregar duplicados o a no saber si ya se incluyo un juego.
-- **Solucion propuesta:** En el buscador de la lista, mostrar un indicador (checkmark, badge "In list") junto a juegos que ya estan en esa lista especifica. En el game detail, mostrar una seccion "In your lists" con las listas del usuario que contienen ese juego. Requiere que el backend incluya esa informacion en la respuesta o un endpoint adicional.
+- **Solucion:** Doble: (1) En `list-detail.html` (add-game dropdown), los resultados que ya estan en la lista actual se renderizan con badge "In list" (check + bg-success/15 text-success), opacidad reducida y click bloqueado para evitar re-add. Helper `isGameInList(gameId)` consulta el array de items ya cargado en el front. (2) En `game-detail.html`, nueva seccion en el sidebar derecho "In your lists" que aparece solo si el viewer tiene listas que contienen ese juego, con cada lista como link al detalle + icono `lock` cuando es privada. Backend: nueva funcion `listsService.findUserListsByGameId(gameId, userId)` (query acotada con `attributes: ['id', 'name', 'isPublic']` y join filtrando por ListItem.gameId, sin overfetching). El endpoint `GET /games/:id/lists` ahora devuelve `{ lists, myLists }` en paralelo via `Promise.all` — sin requests adicionales. Nuevo doc en `docs/api/games/get-lists.yml`.
 
 ### [FB-059] Listas del usuario deberian ser expandibles en el sidebar
 
