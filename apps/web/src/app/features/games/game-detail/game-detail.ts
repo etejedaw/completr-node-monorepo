@@ -207,7 +207,7 @@ export class GameDetail implements OnInit {
 		const genre = game.genres?.[0];
 		if (!genre) return;
 		this.gamesService
-			.getGames({ limit: 12, genre: genre.code })
+			.getGames({ limit: 30, genre: genre.code, sort_by: "random" })
 			.subscribe(res => {
 				const filtered = res.data.games.filter(g => g.id !== game.id);
 				this.similarGames.set(filtered.slice(0, 8));
