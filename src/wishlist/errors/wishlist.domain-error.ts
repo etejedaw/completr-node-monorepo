@@ -38,6 +38,15 @@ export function wishlistNotFound(context?: Record<string, unknown>) {
 	);
 }
 
+export function wishlistPlatformNotFound(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"WISHLIST_PLATFORM_NOT_FOUND",
+		"Platform not found",
+		context
+	);
+}
+
 export function wishlistInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

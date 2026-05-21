@@ -14,7 +14,8 @@ http:
         type: json
         data: |-
             {
-              "gameId": "game-uuid"
+              "gameId": "game-uuid",
+              "platformId": "platform-uuid"
             }
 
 settings:
@@ -31,9 +32,10 @@ docs: |-
 
     ### Request Body
 
-    | Field  | Type | Required | Description |
-    |--------|------|----------|-------------|
-    | gameId | uuid | Yes      | Game UUID   |
+    | Field      | Type | Required | Description                                  |
+    |------------|------|----------|----------------------------------------------|
+    | gameId     | uuid | Yes      | Game UUID                                    |
+    | platformId | uuid | No       | Platform on which the user plans to buy it   |
 
     ### Response (201)
 
@@ -43,7 +45,8 @@ docs: |-
         "wishlist": {
           "id": "uuid",
           "position": 1,
-          "game": { "id": "uuid", "code": "...", "title": "...", "backgroundUrl": "...", "isDlc": false }
+          "game": { "id": "uuid", "code": "...", "title": "...", "backgroundUrl": "...", "isDlc": false },
+          "platform": { "id": "uuid", "name": "...", "abbreviation": "..." } | null
         }
       }
     }
@@ -53,4 +56,5 @@ docs: |-
 
     - 402 `WISHLIST_LIMIT_REACHED` — Free plan limit (20) reached
     - 404 `WISHLIST_GAMES_NOT_FOUND` — Game not found
+    - 404 `WISHLIST_PLATFORM_NOT_FOUND` — Platform not found
     - 409 `WISHLIST_ALREADY_EXISTS` — Game already in wishlist

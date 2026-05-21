@@ -27,5 +27,8 @@ export function wishlistDomainToHttpMapper(
 	if (error.code === "WISHLIST_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
+	if (error.code === "WISHLIST_PLATFORM_NOT_FOUND")
+		return new HttpError({ ...baseOptions, status: 404 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

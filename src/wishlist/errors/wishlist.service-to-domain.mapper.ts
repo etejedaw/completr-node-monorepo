@@ -22,5 +22,8 @@ export function wishlistServiceToDomainMapper(
 	if (error.code === "WISHLIST_NOT_FOUND")
 		return wishlistDomainError.wishlistNotFound(context);
 
+	if (error.code === "WISHLIST_PLATFORM_NOT_FOUND")
+		return wishlistDomainError.wishlistPlatformNotFound(context);
+
 	return wishlistDomainError.wishlistInternalError(context);
 }

@@ -1,11 +1,13 @@
 import { Op } from "sequelize";
 import { Wishlist } from "./wishlist.model";
 import { Game } from "../games/game.model";
+import { Platform } from "../platforms/platform.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as wishlistServiceError from "./errors/wishlist.service-error";
 
 const FREE_WISHLIST_LIMIT = 20;
+const INCLUDE = [{ model: Game }, { model: Platform }];
 
 function isPremium(role: string) {
 	return role === "premium" || role === "moderator" || role === "admin";
@@ -38,14 +40,23 @@ export async function replaceWishlist(user: RequestUser, gameIds: string[]) {
 
 	return Wishlist.findAll({
 		where: { userId: user.id },
-		include: [{ model: Game }],
+		include: INCLUDE,
 		order: [["position", "ASC"]]
 	});
 }
 
-export async function addToWishlist(user: RequestUser, gameId: string) {
+export async function addToWishlist(
+	user: RequestUser,
+	gameId: string,
+	platformId?: string
+) {
 	const game = await Game.findOne({ where: { id: gameId } });
 	if (!game) throw wishlistServiceError.gamesNotFoundError([gameId]);
+
+	if (platformId) {
+		const platform = await Platform.findOne({ where: { id: platformId } });
+		if (!platform) throw wishlistServiceError.platformNotFoundError();
+	}
 
 	const existing = await Wishlist.findOne({
 		where: { userId: user.id, gameId }
@@ -59,12 +70,13 @@ export async function addToWishlist(user: RequestUser, gameId: string) {
 	await Wishlist.create({
 		userId: user.id,
 		gameId,
+		platformId: platformId ?? null,
 		position: count + 1
 	});
 
 	return Wishlist.findOne({
 		where: { userId: user.id, gameId },
-		include: [{ model: Game }]
+		include: INCLUDE
 	});
 }
 
@@ -78,7 +90,7 @@ export async function removeFromWishlist(user: RequestUser, gameId: string) {
 export async function findWishlistByUserId(userId: string) {
 	return Wishlist.findAll({
 		where: { userId },
-		include: [{ model: Game }],
+		include: INCLUDE,
 		order: [["position", "ASC"]]
 	});
 }
@@ -97,7 +109,7 @@ export async function findWishlistByUserIdPaginated(
 
 	const query: Record<string, unknown> = {
 		where: { userId },
-		include: [gameInclude],
+		include: [gameInclude, { model: Platform }],
 		order: [["position", "ASC"]]
 	};
 	if (pagination.limit) query.limit = pagination.limit;
