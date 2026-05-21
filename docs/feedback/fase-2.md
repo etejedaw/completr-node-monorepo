@@ -555,10 +555,10 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Al ver una lista con sus juegos, el usuario quiere poder editar su backlog (cambiar status, agregar notas, etc.) directamente desde la vista de la lista sin tener que navegar al backlog. Actualmente el icono de backlog en la lista solo indica si el juego esta en el backlog del usuario, pero no permite editarlo.
-- **Solucion propuesta:** Hacer clickeable el icono de backlog en los items de la lista para abrir el modal de edicion de backlog del juego. Si el juego ya esta en el backlog, abrir el modal de edicion precargado. Si no esta, abrir el modal de creacion. Reutilizar el componente de modal de backlog que ya existe en la vista de backlog.
+- **Solucion:** El indicador semantico de status del backlog (introducido en FB-072) se vuelve clickeable. (1) `list-detail.html` (owner view): el marcador con icono+color del status ahora es un `<button>` que llama a `openEditBacklog(item)`. Si el juego esta en mi backlog, hace `backlogService.getMyBacklog({ game_id })` (filtrado server-side, sin overfetching) y abre `BacklogModal` con `[entry]` precargado. Si no esta, cae a `openBacklogModal(item)` que abre el modal en modo creacion. (2) `user-list-detail.html` (vista publica de listas ajenas): se aplico el mismo patron sobre el badge de status. En ambas, el `BacklogModal` ya aceptaba `entry` como input — solo se agrego el handler de carga + signal `backlogEditingEntry`. Sin cambios de backend.
 
 ### [FB-063] Boton de seguir lista no visible o no intuitivo
 
