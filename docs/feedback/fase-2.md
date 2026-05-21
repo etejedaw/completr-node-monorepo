@@ -902,10 +902,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En desktop con viewports anchos, el perfil de otro usuario (`/user/:username`) se ve subutilizado: el contenido ocupa solo el centro y queda mucho espacio horizontal vacio a los lados. Sumado a la decision de FB-096 (que la actividad sea lo primero que se vea), la pagina puede aprovechar el ancho disponible para mostrar mas informacion sin scroll vertical. Hoy se siente "vacio" — falta densidad visual en pantallas grandes.
 - **Solucion propuesta:** Layout de dos columnas en desktop (>= `lg` o `xl`): **columna izquierda fija (~30-40%)** con el feed de actividad del usuario (paginado o con scroll propio); **columna derecha (~60-70%)** con las pestañas seleccionables (Backlog, Listas, Favoritos, Queue, Reseñas, etc.). Detalles: (1) Si la actividad del usuario es privada (porque `User.isPublic = false` y no eres tu mismo, o por un futuro flag mas granular como `isActivityPublic`), la columna izquierda muestra un mensaje "Actividad privada" o se oculta y la derecha ocupa todo el ancho. Decidir entre mensaje vs colapso al implementar — mensaje informativo es mas honesto, colapso aprovecha mas el ancho. (2) En mobile y tablet, mantener layout de una sola columna con la actividad arriba (segun FB-096) y las pestañas debajo. (3) Reusar el componente del feed con input para el username (igual que en FB-096). (4) La columna izquierda con `position: sticky` para que la actividad acompañe el scroll cuando el usuario explora las pestañas de la derecha — sensacion de "dashboard" en vez de listado lineal.
+- **Resolucion:** En `public-profile.html` se agrego un `aside` sticky a la izquierda (`hidden lg:block lg:sticky lg:top-6`) con el feed de actividad reciente (15 items, formato compacto). El contenedor se hace `lg:grid lg:grid-cols-[320px_1fr]` solo cuando el usuario tiene `isFeedPublic = true`; sino se mantiene full width. El tab Activity se oculta en `lg+` (`lg:!hidden`) ya que la actividad esta en el sidebar permanente. `public-profile.ts` detecta el viewport con `matchMedia('(min-width: 1024px)')` al cargar y en resize: en wide el default tab es `backlog`, en narrow es `activity` (si `isFeedPublic`).
 
 ### [FB-099] La seccion de Security muestra "Last used" desactualizado para la sesion activa
 
