@@ -26,7 +26,8 @@ import { activitySerializer } from "../activity/activity.serializer";
 import { UsernameParam } from "./schemas";
 import { UpdateUserDto } from "./dtos";
 import { RegisterDto } from "../auth/dtos";
-import { SearchQuery } from "../common/schemas/search-query.schema";
+import { UserSearchQuery } from "./schemas/user-search-query.schema";
+import { UserDiscoverQuery } from "./schemas/user-discover-query.schema";
 import { AdminUpdateUserDto } from "./schemas/admin-update-user.schema";
 import { UserIdParam } from "./schemas/user-id-params.schema";
 import { PaginationQuery } from "../common/schemas/pagination-query.schema";
@@ -174,9 +175,32 @@ export async function deleteUser(request: Request, response: Response) {
 }
 
 export async function searchUsers(request: Request, response: Response) {
-	const { query } = request.locals.query as SearchQuery;
+	const { q, email, limit } = request.locals.query as UserSearchQuery;
 
-	const users = await usersService.searchUsers(query);
+	const users = email
+		? await usersService.findUserByExactEmail(email)
+		: await usersService.searchUsers(q!, limit);
+
+	const data = {
+		users: users.map(u => ({
+			id: u.id,
+			username: u.username,
+			name: u.name,
+			avatarUrl: u.avatarUrl,
+			isPublic: u.isPublic
+		}))
+	};
+	return response.status(200).json({ data });
+}
+
+export async function getDiscoverUsers(request: Request, response: Response) {
+	const { limit } = request.locals.query as UserDiscoverQuery;
+	const currentUser = request.locals.user as RequestUser | undefined;
+
+	const users = await usersService.findRandomPublicUsers(
+		limit ?? 12,
+		currentUser?.id
+	);
 
 	const data = {
 		users: users.map(u => ({
