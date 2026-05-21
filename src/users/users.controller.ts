@@ -57,6 +57,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 
 	const [
 		backlogResult,
+		backlogStats,
 		lists,
 		favorites,
 		queue,
@@ -71,6 +72,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 		isSelf
 			? backlogService.findBacklogByUserId(userId)
 			: backlogService.findPublicBacklogByUserId(userId),
+		backlogService.countBacklogByStatus(userId, !isSelf),
 		isSelf
 			? listsService.findListsByUserId(currentUser!).then(r => r.lists)
 			: listsService.findPublicListsByUserId(userId),
@@ -137,6 +139,8 @@ export async function getUserByUsername(request: Request, response: Response) {
 		backlogs: backlogs.map(b =>
 			isSelf ? backlogSerializer(b) : backlogPublicSerializer(b)
 		),
+		backlogTotal: backlogResult.total,
+		backlogStats,
 		lists: listsWithFollowers,
 		favorites: favorites.map(favoriteSerializer),
 		queue: queue.map(queueSerializer),

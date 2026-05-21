@@ -16,6 +16,7 @@ class User extends Model {
 	declare isWishlistPublic: boolean;
 	declare isFavoritePublic: boolean;
 	declare isFeedPublic: boolean;
+	declare theme: string;
 	declare isActive: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
@@ -70,6 +71,10 @@ User.init(
 		isFeedPublic: {
 			type: DataTypes.BOOLEAN,
 			defaultValue: true
+		},
+		theme: {
+			type: DataTypes.STRING(50),
+			defaultValue: "refined-dark"
 		},
 		isActive: {
 			type: DataTypes.BOOLEAN,

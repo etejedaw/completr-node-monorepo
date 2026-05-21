@@ -359,19 +359,21 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Al usar una funcion que muestra preview de imagen (probablemente el avatar URL en el modal de edicion de perfil), la preview no carga o se muestra rota. No se especifico exactamente en que pantalla ocurre, pero es probable que sea en el modal de editar perfil donde se ingresa un avatar URL y se muestra un preview.
 - **Solucion propuesta:** El problema probablemente viene del nginx que bloquea o no proxea correctamente imagenes externas. Montar un servicio de almacenamiento (MinIO/S3) para fotos de perfil es demasiado para esta fase. Solucion intermedia: crear un pool de avatares predefinidos generados con IA (estilo Netflix) para que los usuarios elijan uno. Esto evita el problema de URLs externas, da una experiencia visual consistente y a futuro cuando se implemente upload real, los avatares predefinidos quedan como opcion por defecto.
+- **Resolucion:** Pool de 10 avatares generados con Gemini (parodias originales de arquetipos de videojuegos para evitar derechos de autor) servidos como assets estaticos en `frontend/public/avatars/completr_profile_01..10.png`. En `settings-profile` se reemplazo el input de URL por un grid 5x2 de previews seleccionables: click sobre uno setea el avatarUrl al path local, con indicador visual (border + check icon) en el seleccionado y opcion "Remove" para volver al default. Se evita asi el problema de URLs externas (hotlink blocking, CSP, CDN cambiando) y se mantiene consistencia visual. Pendiente generar 4 avatares mas para llegar a 14 originales y considerar upload real en una fase futura.
 
 ### [FB-041] Sidebar desaparece al entrar a perfil publico o detalle de juego
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** Cuando el usuario busca a alguien en el feed y entra a su perfil publico (/user/:username), el sidebar desaparece porque el perfil publico es un componente standalone fuera del layout principal. Lo mismo pasa con el game detail. El usuario lo percibe como raro porque pierde la navegacion. Relacionado con FB-046 (barra de busqueda deberia ser permanente).
 - **Solucion propuesta:** Evaluar si el perfil publico y el game detail deberian vivir dentro del layout principal (con sidebar) en vez de ser standalone. Alternativa: agregar una barra de navegacion superior en las vistas standalone con al menos un boton de "back" y acceso a busqueda. Considerar que la experiencia no-logueada si necesita ser standalone pero la logueada podria mantener el sidebar.
+- **Resolucion:** Nuevo componente compartido `shared/components/public-topbar` con boton back, logo, search bar global (reutilizando `GlobalSearchService` con dropdown de usuarios/juegos/listas), y enlace contextual segun auth (Sign in para anonimos, "My feed" para logueados). Aplicado en las 7 vistas standalone bajo `/user/:username/*`: public-profile, user-backlog, user-favorites, user-game-shelf, user-queue, user-wishlist, user-reviews. Resuelve la perdida de contexto sin reestructurar rutas. (Game detail ya vive dentro del Layout principal — no aplica.) FB-046 (search bar permanente en sidebar) queda absorbido para los flujos standalone; el search global ya es accesible desde todas las vistas.
 
 ### [FB-042] Multiples backlogs del mismo juego confunde a usuarios nuevos
 
@@ -413,10 +415,11 @@ Formato por item:
 
 - **Fecha:** 2026-04-24
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Tami
 - **Descripcion:** La barra de busqueda global solo esta disponible en el feed. Al navegar a un juego, perfil u otra seccion, desaparece. El usuario tiene que volver al feed para buscar algo. Seria mas practico tener la busqueda siempre accesible desde el sidebar o un header global.
 - **Solucion propuesta:** Mover la barra de busqueda global al sidebar (debajo del logo o arriba de la navegacion) para que este disponible en todas las vistas. Alternativa: agregar un header/topbar con la busqueda que persista en todas las paginas dentro del layout. Relacionado con FB-041.
+- **Resolucion:** Resuelto por la combinacion de FB-041 (search global en el `public-topbar` para vistas standalone bajo `/user/:username/*`) y los search bars locales que ya existen en cada vista logueada (feed con global search; backlog, queue, wishlist, favorites, lists, game-shelf, saved-views con `ui-search-bar` para filtrar la propia vista). El usuario ya tiene acceso a search desde cualquier seccion.
 
 ### [FB-047] Agregar a queue o lista desde la grilla de juegos
 
@@ -750,8 +753,9 @@ Formato por item:
 
 - **Fecha:** 2026-05-19
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Esteban
+- **Razon de descarte:** El "espacio sobrante" ya se resolvio con FB-107 (queue simplificada a grid-only compacto con chips de ratio/duration). El reorder con flechas ⬆⬇ es funcional para el uso real (raras veces se reordenan muchos items). Drag-and-drop con Angular CDK queda como nice-to-have de baja prioridad.
 - **Descripcion:** La vista de Queue (en modo tabla y grilla) deja bastante espacio vertical/horizontal sobrante por fila. Mas alla del badge de posicion ya agregado (FB-076), la priorizacion manual hoy se hace con flechas arriba/abajo que son lentas para reordenar varios items. Una experiencia drag-and-drop seria mucho mas fluida para acomodar el orden y aprovecharia el espacio sobrante como "zona de drop".
 - **Solucion propuesta:** Implementar drag-and-drop con Angular CDK DragDropModule en el listado de queue. Cada fila/card es draggable; al soltarse, se llama al PUT existente con el nuevo array de backlogIds reordenado. Mostrar feedback visual claro durante el drag (sombra, opacidad, indicador de drop position). Mantener las flechas como fallback accesible. Aprovechar para evaluar si la card actual se puede compactar o si conviene una vista mas densa con menos padding entre items.
 
@@ -786,10 +790,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al abrir el modal de una entrada del backlog ya existente, el formulario de edicion aparece inmediatamente con todos los campos editables. No hay un paso intermedio que muestre de forma estatica la informacion que el usuario ya ingreso (score, duracion, fechas, plataforma, reseña, etc.). El usuario que solo quiere consultar los datos tiene que escanear los inputs de un formulario en vez de leer una vista resumen limpia. Tambien implica que un click accidental en un input ya cambia algo, cuando la intencion era solo mirar.
 - **Solucion propuesta:** Convertir el modal de backlog en dos estados: (1) **Vista resumen** (default al abrir): muestra los datos ya ingresados en formato de solo lectura, con tipografia y layout pensados para lectura — score, duracion estimada, real duration, fechas, plataforma, notas, etc. Si el usuario tiene reseña para ese juego, incluirla en la vista resumen (texto + rating + chip de duracion segun FB de mejoras a reseñas). Boton primario "Editar" que cambia al estado de edicion. (2) **Vista edicion**: el formulario actual con todos los inputs, ahi mantener el cuadro "Editar reseña" como esta hoy (redirige al flujo de editar reseña). Boton "Volver" o "Cancelar" que regresa a la vista resumen sin guardar cambios. Para entradas nuevas (crear backlog) seguir abriendo directo en modo edicion porque no hay datos previos que resumir.
+- **Resolucion:** Modal de backlog y modal de game-shelf ahora tienen dos estados via signal `viewMode = 'summary' | 'edit'`. Al abrir una entrada existente (`entry` input no null), se abre en `summary`. En el summary se muestra cover, status badge (con color), plataforma, rating estrellas, ratio (grande a la derecha), tarjetas con Score/Duration/Real Duration/Personal Ratio/Started/Finished segun aplique, notas y reseña (si hay). Boton "Editar" abajo cambia a `edit` (form actual). Para entradas nuevas se abre directo en `edit`. Game shelf hace lo mismo con su data (edition, acquiredAt, notes). Sin riesgo de editar por accidente.
 
 ### [FB-087] En el backlog, si la entrada no tiene nota pero hay reseña, mostrar la reseña
 
@@ -822,10 +827,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** El frontend ya tiene dos temas completos en `src/styles/themes/` (`refined-dark` y `twilight-arcade`), pero el cambio entre ellos es manual: hay que copiar los archivos del tema sobre `styles.css` y `styles/ui.css` y rebuild. Los usuarios no pueden elegir tema desde la app. Dado que el trabajo de tokens y variantes ya esta hecho, exponerlo como preferencia por usuario tiene poco costo y agrega personalizacion. Tambien sirve como hedge ante FB-089 (revision de paleta): si a algunos usuarios no les gusta el tema activo, pueden cambiar.
 - **Solucion propuesta:** (1) Refactor: dejar de sobreescribir `styles.css` con la copia del tema. En vez de eso, importar ambos temas como bloques CSS scopeados a un atributo (ej: `[data-theme="refined-dark"] { ... }` y `[data-theme="twilight-arcade"] { ... }`) o usar CSS variables intercambiables. El `<html>` lleva `data-theme="..."` y los estilos resuelven en runtime. Actualizar el README de `themes/` para reflejar el nuevo flujo. (2) Backend: agregar campo `theme` a `User` (enum: `refined-dark` | `twilight-arcade`, default `refined-dark`). Exponer en `GET /users/me` y aceptar en `PATCH /users/me`. (3) Frontend: opcion en la pagina de Settings (o Profile) con selector de tema. Al cambiar, llamar al PATCH y actualizar `data-theme` del DOM inmediatamente. Persistir tambien en localStorage para aplicar el tema antes de que cargue el perfil del usuario (evita flash). (4) Actualizar el `<meta name="theme-color">` dinamicamente segun el tema activo. (5) Para usuarios no autenticados, leer/escribir solo en localStorage. Considerar dejar este feature como premium solo si se justifica — por ahora libre para todos parece razonable.
+- **Resolucion:** (1) `styles.css` refactorizado: ambos temas viven en bloques `:root[data-theme="..."]` que sobrescriben las CSS vars declaradas en `@theme`. Tailwind utilities siguen funcionando porque ambos definen las mismas vars `--color-*`. (2) Backend: columna `User.theme` (varchar, default `refined-dark`) via migracion `20260521040830-add-theme-to-users`; `THEME_CATALOG` en `users/theme-catalog.ts` con `tier: 'free' | 'premium'` y helper `canUseTheme(theme, role)`. `update-user.schema.ts` valida que sea un id conocido; `usersService.updateUser` valida tier vs role y devuelve 403 `USER_THEME_FORBIDDEN` si no aplica. Theme se incluye en `userMeSerializer`. (3) Frontend: `ThemeService` con catalogo (incluye `tier`), aplica `data-theme` y actualiza `<meta name=theme-color>`; persiste en localStorage y sincroniza con backend via PATCH /users/me. `main.ts` llama `applyInitialTheme()` antes del bootstrap para evitar flash. `AuthService.loadUser` reaplica el tema del backend al iniciar sesion. Nueva vista `/settings/appearance` con grid de 2 cards (swatches + descripcion + badge Premium / check de seleccion / aviso "Upgrade to Premium" para los locked). Premium se architectó pero los dos temas actuales son ambos `free`.
 
 ### [FB-091] Busqueda no tolera espacios extra ni puntuacion del titulo
 
@@ -851,10 +857,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Cada entrada del backlog muestra varios valores numericos: score, duracion estimada, real duration, ratio, personal ratio, status, etc. Los nombres son cortos y para un usuario nuevo no es obvio que significa cada uno (que es "personal" vs "real", como se calcula el ratio, por que hay dos ratios distintos). Hoy no existe en la app un lugar donde se explique. El usuario tiene que inferir el significado o preguntar. Esto sube la barrera de entrada y diluye el valor de los datos que el propio usuario ingreso.
 - **Solucion propuesta:** Combinar dos enfoques. (1) **Pagina de ayuda** dedicada en `/help` (o `/guide`) con secciones por concepto: "Backlog", "Ratio y Personal Ratio", "Completr Score vs Aggregate Score", "Estados (no_started, playing, completed, abandoned)", "Queue vs Favorites vs Listas". Cada seccion con definicion, ejemplo numerico (ej: Florence 82 pts / 1h = ratio 82), y screenshot anotado. Link en el footer y en el menu de usuario. Implementacion: paginas estaticas en Angular (no contenido CMS por ahora). (2) **Tooltips contextuales**: en la vista diary y en el modal de backlog, agregar `?` clickeables junto a cada label (Ratio, Personal, Real, etc.) que abran un popover con la definicion corta y un link "Ver mas" que lleve a la seccion correspondiente de `/help`. (3) Considerar onboarding ligero para usuarios nuevos: un solo tour de 3-5 pasos la primera vez que abren el backlog, que apunte a los conceptos mas importantes (ratio + personal ratio + real duration). Saltable y solo se muestra una vez (`User.hasSeenBacklogTour` o flag en localStorage). El onboarding NO reemplaza la pagina de ayuda — es complemento para descubrir que existen los conceptos.
+- **Resolucion:** Nueva pagina `/help` con navegacion por anclas y secciones: Backlog, Ratio & Personal Ratio (formula y ejemplo de Florence), Aggregate Score vs Completr Score, Statuses (con iconos por estado), Queue/Wishlist/Favorites/Lists, Privacy. Linkeada desde el sidebar (item Help con `help_outline`) y desde el `public-topbar` (icono de ayuda). Tooltips contextuales y onboarding quedaron diferidos para una iteracion posterior.
 
 ### [FB-094] La descripcion del saved view empuja la lista del backlog hacia abajo
 
@@ -879,28 +886,31 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** Al entrar al perfil publico de otro usuario (`/user/:username`), las secciones aparecen en un orden que no refleja lo que el visitante quiere ver primero. Lo mas valioso al visitar a otra persona suele ser "que ha estado haciendo ultimamente" — completados recientes, abandonos, reseñas, juegos agregados — y eso hoy queda mas abajo o disperso entre otras secciones (backlog, listas, favoritos, queue). El comportamiento esperado se acerca a Trakt/Letterboxd, donde la actividad reciente es el hero del perfil.
 - **Solucion propuesta:** (1) Reordenar la pagina `public-profile` para que la seccion de actividad reciente sea la primera bajo el header del usuario (avatar + bio + stats). Las demas secciones (backlog, listas seguidas, favoritos, queue, reseñas) quedan debajo. (2) Reutilizar el componente del feed de actividad para renderizar las actividades del usuario con el mismo formato (mismas cards, mismos iconos por tipo de evento, mismo agrupamiento por dia si aplica). Backend: ya existe registro de actividad (`game_reviewed`, `game_completed`, etc.) — exponer `GET /users/:username/activity` con paginacion si no existe ya. Frontend: el componente del feed debe aceptar como input la fuente de datos (mi feed vs feed de otro usuario) para reutilizar la UI sin duplicar. (3) Limitar la actividad mostrada en el perfil a las ultimas N (ej: 10-15) con un boton "Ver toda la actividad" que lleve a `/user/:username/activity` con paginacion completa, mismo patron que reseñas (FB-083). (4) En el self-view propio mantener el orden actual o aplicar el mismo cambio — decidir si la actividad propia tambien debe ir primero o si en self-view el backlog es mas util arriba.
+- **Resolucion:** Reorder simple en `public-profile`: el tab Activity (cuando `isFeedPublic`) se movio al primer lugar y se hizo el default al cargar el perfil (`activeTab = "activity"`). Si el usuario tiene `isFeedPublic = false`, el default cae a `backlog`. Endpoint paginado y vista dedicada de actividad se difieren para una segunda iteracion.
 
 ### [FB-097] Tabs del perfil obligan a hacer scroll horizontal en pantallas pequeñas
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En el perfil del usuario (propio y publico) la fila de pestañas (Backlog, Listas, Favoritos, Queue, Reseñas, Actividad, etc.) se sale del ancho de la pantalla cuando el viewport es pequeño (mobile o ventana de escritorio angosta). El usuario tiene que hacer scroll horizontal para ver las pestañas ocultas, y muchas veces ni se da cuenta de que existen porque no hay indicador visual de que hay mas. La experiencia mobile se degrada y oculta secciones importantes.
+- **Resolucion:** Aplicado en `public-profile.html` el mismo patron que `profile-view.html`: labels ocultos en mobile (`hidden md:inline`), iconos siempre visibles con `aria-label` + `title` para tooltips. El `ui-tab-list` cambio de `overflow-x-auto !flex-nowrap` a `!flex-wrap` para que las tabs hagan wrap a la siguiente linea cuando no caben. Cero scroll horizontal en mobile.
 - **Solucion propuesta:** (1) **Tabs colapsadas con scroll horizontal indicado**: mantener la fila scrollable pero agregar gradiente lateral (fade right) que indique visualmente que hay mas contenido a la derecha. Auto-scroll a la tab activa al cargar para que siempre sea visible. (2) **Overflow menu**: cuando las tabs no caben, mostrar las primeras N y un boton "Mas" (`···`) que abre dropdown con el resto. Patron usado por Material y Bootstrap. (3) **Cambio a selector en mobile**: bajo un breakpoint (ej: `sm`), reemplazar la fila de tabs por un `<select>` o dropdown con la lista de secciones. Patron usado en Github en mobile. (4) **Iconos en lugar de texto en mobile**: si los labels son cortos, dejar solo el icono representativo de cada tab para ahorrar ancho. Tooltip al tocar/hover para el label completo. La opcion (3) suele dar mejor UX en mobile pequeño, (1) o (2) en tablet/desktop angosto. Considerar aplicar la misma solucion en otras vistas con tabs (game detail tiene tabs de Overview/Reviews/Similar/Lists/etc. que pueden tener el mismo problema).
 
 ### [FB-098] En pantallas grandes el perfil de otros usuarios se ve pequeño y vacio
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** En desktop con viewports anchos, el perfil de otro usuario (`/user/:username`) se ve subutilizado: el contenido ocupa solo el centro y queda mucho espacio horizontal vacio a los lados. Sumado a la decision de FB-096 (que la actividad sea lo primero que se vea), la pagina puede aprovechar el ancho disponible para mostrar mas informacion sin scroll vertical. Hoy se siente "vacio" — falta densidad visual en pantallas grandes.
 - **Solucion propuesta:** Layout de dos columnas en desktop (>= `lg` o `xl`): **columna izquierda fija (~30-40%)** con el feed de actividad del usuario (paginado o con scroll propio); **columna derecha (~60-70%)** con las pestañas seleccionables (Backlog, Listas, Favoritos, Queue, Reseñas, etc.). Detalles: (1) Si la actividad del usuario es privada (porque `User.isPublic = false` y no eres tu mismo, o por un futuro flag mas granular como `isActivityPublic`), la columna izquierda muestra un mensaje "Actividad privada" o se oculta y la derecha ocupa todo el ancho. Decidir entre mensaje vs colapso al implementar — mensaje informativo es mas honesto, colapso aprovecha mas el ancho. (2) En mobile y tablet, mantener layout de una sola columna con la actividad arriba (segun FB-096) y las pestañas debajo. (3) Reusar el componente del feed con input para el username (igual que en FB-096). (4) La columna izquierda con `position: sticky` para que la actividad acompañe el scroll cuando el usuario explora las pestañas de la derecha — sensacion de "dashboard" en vez de listado lineal.
+- **Resolucion:** En `public-profile.html` se agrego un `aside` sticky a la izquierda (`hidden lg:block lg:sticky lg:top-6`) con el feed de actividad reciente (15 items, formato compacto). El contenedor se hace `lg:grid lg:grid-cols-[320px_1fr]` solo cuando el usuario tiene `isFeedPublic = true`; sino se mantiene full width. El tab Activity se oculta en `lg+` (`lg:!hidden`) ya que la actividad esta en el sidebar permanente. `public-profile.ts` detecta el viewport con `matchMedia('(min-width: 1024px)')` al cargar y en resize: en wide el default tab es `backlog`, en narrow es `activity` (si `isFeedPublic`).
 
 ### [FB-099] La seccion de Security muestra "Last used" desactualizado para la sesion activa
 
@@ -942,10 +952,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** La busqueda actual de juegos solo matchea por titulo (ILIKE sobre `game.title`). No hay forma de filtrar por genero, año de lanzamiento, plataforma, rango de score/duracion, tags u otros atributos del juego. Esto es limitante: si un usuario quiere descubrir RPGs de los 2010s, o juegos cortos de plataformas que tiene, no tiene como armar esa query desde la UI. Tambien afecta admin (no puede listar juegos por genero para enriquecer datos) y descubrimiento social (no se puede compartir links a busquedas filtradas). Relacionado con FB-024 (filtros por fuente de datos en admin).
 - **Solucion propuesta:** (1) Backend: extender `GET /games` para aceptar filtros adicionales: `genres` (lista de codes/ids), `platforms`, `release_year_from`, `release_year_to`, `min_score`, `max_score`, `min_duration`, `max_duration`, `is_dlc` (bool). Mantener `search` por titulo como ya esta. Validar combinaciones (ej: rangos coherentes). (2) Frontend: vista `/games` con panel de filtros avanzados (drawer lateral igual que backlog filters) — selector multi de generos, selector multi de plataformas, range pickers para año/score/duration, toggle DLC. Persistir filtros en query params para que sean compartibles via URL. Mostrar resultados en grid con paginacion. (3) Considerar guardar busquedas avanzadas como "saved searches" (similar a saved filters del backlog) — feature premium o no, evaluar. (4) Cuando entren tags de RAWG (Fase 3+), agregarlos como filtro tambien — son mas granulares que generos.
+- **Resolucion:** Backend: `GamesQuerySchema` extendido con `search`, `genres` (csv), `platforms` (csv), `release_year_from/to`, `min_score/max_score`, `min_duration/max_duration`, `is_dlc`. `games.service.findAll` aplica los filtros via subqueries (Op.in con JOIN a Genres/Platforms y HAVING para rangos sobre AVG en GameScores/GameTimes). Bruno docs actualizados (`docs/api/games/get-all.yml`). Frontend: `/games` ahora tiene boton `Filters` con badge de filtros activos. Panel colapsable con chips multi-select de Genres + Platforms, inputs numericos para year/score/duration ranges, y toggle All/Games/DLC. Filtros se persisten en query params (URLs compartibles). Cuando hay filtros activos se muestra grid paginado de resultados en vez del hub de discovery (latest/featured/etc.). Saved searches y tags de RAWG quedan diferidos.
 
 ### [FB-103] Game shelf de otros usuarios no necesita los tres view modes
 
@@ -960,10 +971,11 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** descartado
 - **Reportado por:** Esteban
 - **Descripcion:** Al ver el perfil publico de un usuario (`/user/:username`), las secciones de resumen muestran listas truncadas (5-10 items) con link "View All" a vistas dedicadas paginadas. Las vistas dedicadas (`/user/:username/backlog`, `/favorites`, `/queue`, `/game-shelf`) ya tienen `PAGE_SIZE = 50`. El problema es la inconsistencia: en la pagina del perfil mismo no hay paginacion — son snippets cortados con un boton "View All" que cambia de pantalla. La experiencia esperada (estilo Letterboxd/Trakt) es poder paginar in-place sin perder contexto.
 - **Solucion propuesta:** (1) Decidir el patron: dejar los snippets actuales pero agregar paginacion in-place a cada seccion (Backlog, Game Shelf, Favorites, Queue, Reviews, Following Lists, Activity) con limit=50 — el "View All" pasa a ser opcional o se elimina. (2) Reutilizar `<ui-pagination>` ya existente en cada seccion del perfil. (3) Verificar que todos los endpoints `GET /users/:username/<seccion>` aceptan `limit` y `offset` y devuelven `total`. (4) Si alguna seccion no esta paginada en backend, agregar paginacion (limit max 50). (5) Considerar performance: cargar primero solo la primera pagina de cada seccion, no las 50 completas. Relacionado con FB-096 (orden de secciones en perfil ajeno) y FB-098 (layout dos columnas en desktop).
+- **Razon de descarte:** Las vistas dedicadas (`/user/:username/backlog`, `/queue`, `/wishlist`, `/favorites`, `/game-shelf`, `/reviews`) ya estan paginadas con `PAGE_SIZE = 50`. La transicion "snippet en perfil → vista dedicada" no rompe UX y mantiene la pagina del perfil ligera. Costo alto vs beneficio bajo: paginar in-place cada seccion implicaria estado independiente + endpoint check + 8 paginadores en una sola pagina.
 
 ### [FB-105] Total de juegos en el shelf publico no coincide con el real
 
@@ -1006,7 +1018,7 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** diferido a Fase 3/4
 - **Reportado por:** Esteban
 - **Descripcion:** Hoy todos los iconos del sidebar son del mismo color neutro (`opacity-70` sobre el color del texto). Visualmente se ven planos y cuesta diferenciar secciones de un vistazo. Una asignacion de color por seccion ayudaria al reconocimiento rapido (estilo Discord/Slack) y daria identidad visual a cada feature. Esta idea ya fue probada en una sesion previa (en el contexto de FB-089) — se aplicaron colores semanticos a Queue (danger/rojo), Favorites (warning/amarillo) y Saved Views (sky/cyan) — y se revirtio porque el usuario prefirio iconos neutros en ese momento. Ahora se vuelve a abrir para evaluar la idea con mas variedad de colores y aplicada a TODOS los items, no solo tres.
 - **Solucion propuesta:** Definir una paleta de colores fija por seccion en el sidebar (inactivo). Cuando el item esta activo, el color cambia a brand como ya esta hoy. Propuesta inicial: Feed (sky/cyan, `dynamic_feed`), Games (emerald/verde, `sports_esports`), Backlog (brand/morado, `list_alt`), Game Shelf (amber/naranja, `shelves`), Queue (rose/rojo, `favorite_border`), Favorites (yellow/dorado, `star`), Saved Views (purple/violeta, `bookmark`), Lists (teal, `format_list_bulleted`), Admin section (con tono mas tenue para no robar protagonismo). Ajustar opacity para que no sature visualmente. Cuando un item esta activo, el `routerLinkActive` ya aplica `[&_.nav-icon]:!text-brand`, asi que el color semantico se sobreescribe — el estado activo sigue siendo claramente identificable. Validar con usuarios reales (no solo Esteban): si hay rechazo, descartar.

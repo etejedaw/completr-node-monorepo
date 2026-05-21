@@ -22,3 +22,10 @@ export function uniqueConstraintError(rawError: unknown) {
 		raw: rawError
 	});
 }
+
+export function themeForbiddenError() {
+	return new ServiceError("USER_THEME_FORBIDDEN", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}

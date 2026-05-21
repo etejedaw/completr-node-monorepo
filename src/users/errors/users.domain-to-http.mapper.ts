@@ -24,5 +24,11 @@ export function usersDomainToHttpMapper(
 	if (error.code === "USER_PRIVATE")
 		return new HttpError({ ...baseOptions, status: 403 });
 
+	if (error.code === "USER_THEME_FORBIDDEN")
+		return new HttpError({ ...baseOptions, status: 403 });
+
+	if (error.code === "USER_ALREADY_EXISTS")
+		return new HttpError({ ...baseOptions, status: 409 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

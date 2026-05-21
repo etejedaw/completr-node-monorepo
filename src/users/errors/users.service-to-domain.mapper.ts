@@ -19,5 +19,8 @@ export function usersServiceToDomainMapper(
 	if (error.code === "USER_NOT_FOUND")
 		return userDomainError.userNotFound(context);
 
+	if (error.code === "USER_THEME_FORBIDDEN")
+		return userDomainError.userThemeForbidden(context);
+
 	return userDomainError.userInternalError(context);
 }
