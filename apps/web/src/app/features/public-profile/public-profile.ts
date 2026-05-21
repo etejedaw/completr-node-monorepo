@@ -39,7 +39,7 @@ export class PublicProfileComponent implements OnInit {
 		() => this.authService.user()?.id === this.profile()?.user.id
 	);
 	protected readonly togglingFollow = signal(false);
-	protected readonly activeTab = signal("backlog");
+	protected readonly activeTab = signal("activity");
 	protected readonly stats = computed(() => {
 		const p = this.profile();
 		if (!p) return { completed: 0, playing: 0, lists: 0, reviews: 0 };
@@ -164,6 +164,7 @@ export class PublicProfileComponent implements OnInit {
 		this.profileService.getProfile(username).subscribe({
 			next: data => {
 				this.profile.set(data);
+				if (!data.user.isFeedPublic) this.activeTab.set("backlog");
 				this.isLoading.set(false);
 				this.profileService
 					.getUserReviews(username, { limit: 5 })

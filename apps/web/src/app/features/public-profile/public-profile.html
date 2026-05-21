@@ -100,6 +100,12 @@
 
 		<ui-tabs [(value)]="activeTab">
 			<ui-tab-list class="!mb-6 !overflow-x-auto !overflow-y-hidden !flex-nowrap">
+				@if (profile()!.user.isFeedPublic) {
+					<button uiTab value="activity" class="!whitespace-nowrap">
+						<span class="material-icons text-base mr-1.5 align-middle">dynamic_feed</span>
+						Activity
+					</button>
+				}
 				<button uiTab value="backlog" class="!whitespace-nowrap">
 					<span class="material-icons text-base mr-1.5 align-middle">list_alt</span>
 					Backlog
@@ -134,12 +140,6 @@
 					<span class="material-icons text-base mr-1.5 align-middle">rate_review</span>
 					Reviews
 				</button>
-				@if (profile()!.user.isFeedPublic) {
-					<button uiTab value="activity" class="!whitespace-nowrap">
-						<span class="material-icons text-base mr-1.5 align-middle">dynamic_feed</span>
-						Activity
-					</button>
-				}
 			</ui-tab-list>
 
 			<div uiTabPanel value="backlog">
