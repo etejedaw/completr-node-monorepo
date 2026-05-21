@@ -24,57 +24,21 @@
 	} @else {
 	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 		@for (entry of filteredEntries(); track entry.id; let i = $index) {
-		<div class="flex flex-col gap-1.5 group">
-			<a class="block relative" [routerLink]="['/games', entry.backlog.game.code]">
-				@if (entry.backlog.game.backgroundUrl) {
-				<img
-					[src]="entry.backlog.game.backgroundUrl"
-					[alt]="entry.backlog.game.title"
-					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition-transform group-hover:scale-[1.03]"
-				/>
-				} @else {
-				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-				}
-				<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm">#{{ offset() + i + 1 }}</span>
-				<div class="absolute top-2 right-2 flex flex-col items-end gap-1">
-					@if (entry.backlog.ratio) {
-						<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-brand/85 backdrop-blur-sm">{{ entry.backlog.ratio }}</span>
-					}
-					@if (entry.backlog.duration) {
-						<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-white bg-black/70 backdrop-blur-sm">{{ entry.backlog.duration }}h</span>
-					}
-				</div>
-			</a>
-			<a class="text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand" [routerLink]="['/games', entry.backlog.game.code]">{{ entry.backlog.game.title }}</a>
-			<div class="flex items-center justify-between gap-1">
-				<span class="text-[0.625rem] text-fg-muted truncate">{{ entry.backlog.platform?.abbreviation ?? '' }}</span>
-				<div class="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition">
-					<button
-						uiIconButton size="sm"
-						[disabled]="i === 0"
-						(click)="moveUp(i)"
-						title="Move up"
-					>
-						<span class="material-icons text-base">keyboard_arrow_up</span>
-					</button>
-					<button
-						uiIconButton size="sm"
-						[disabled]="i === filteredEntries().length - 1"
-						(click)="moveDown(i)"
-						title="Move down"
-					>
-						<span class="material-icons text-base">keyboard_arrow_down</span>
-					</button>
-					<button
-						uiIconButton size="sm" tone="danger"
-						(click)="remove(entry)"
-						title="Remove"
-					>
-						<span class="material-icons text-base">close</span>
-					</button>
-				</div>
-			</div>
-		</div>
+			<app-wishlist-grid-card
+				[entry]="{
+					game: entry.backlog.game,
+					platformAbbreviation: entry.backlog.platform?.abbreviation,
+					ratio: entry.backlog.ratio,
+					duration: entry.backlog.duration
+				}"
+				[position]="offset() + i + 1"
+				[showActions]="true"
+				[isFirst]="i === 0"
+				[isLast]="i === filteredEntries().length - 1"
+				(moveUp)="moveUp(i)"
+				(moveDown)="moveDown(i)"
+				(remove)="remove(entry)"
+			/>
 		}
 	</div>
 	}

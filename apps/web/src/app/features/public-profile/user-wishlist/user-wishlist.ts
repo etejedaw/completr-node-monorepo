@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
@@ -9,13 +10,14 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import { PublicProfileService } from "../public-profile.service";
 import { WishlistEntry } from "../../../core/models";
-import { UiPagination } from "../../../shared/ui";
+import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { WishlistGridCard } from "../../../shared/components/wishlist-grid-card/wishlist-grid-card";
 
 const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-wishlist",
-	imports: [RouterLink, UiPagination],
+	imports: [RouterLink, UiPagination, UiSearchBar, WishlistGridCard],
 	templateUrl: "./user-wishlist.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -33,6 +35,14 @@ export class UserWishlist implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly error = signal<"not_found" | "private" | null>(null);
 	protected readonly isLoggedIn = this.authService.isLoggedIn;
+	protected readonly searchQuery = signal("");
+	protected readonly filteredEntries = computed(() => {
+		const q = this.searchQuery().toLowerCase().trim();
+		if (!q) return this.entries();
+		return this.entries().filter(e =>
+			e.backlog.game.title.toLowerCase().includes(q)
+		);
+	});
 
 	ngOnInit() {
 		if (this.authService.token() && !this.authService.user()) {
@@ -49,26 +59,6 @@ export class UserWishlist implements OnInit {
 		const username = this.route.snapshot.paramMap.get("username") ?? "";
 		this.username.set(username);
 		this.load(username);
-	}
-
-	statusClass(status: string): string {
-		const map: Record<string, string> = {
-			not_started: "status-not-started",
-			playing: "status-playing",
-			completed: "status-completed",
-			abandoned: "status-abandoned"
-		};
-		return map[status] ?? "";
-	}
-
-	statusLabel(status: string): string {
-		const map: Record<string, string> = {
-			not_started: "Not Started",
-			playing: "Playing",
-			completed: "Completed",
-			abandoned: "Abandoned"
-		};
-		return map[status] ?? status;
 	}
 
 	goToOffset(offset: number) {

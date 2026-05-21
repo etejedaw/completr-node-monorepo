@@ -70,31 +70,14 @@
 	} @else if (viewMode() === 'grid') {
 		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 			@for (entry of entries(); track entry.id) {
-				<div
-					class="flex flex-col gap-1.5 text-inherit cursor-pointer group"
-					(click)="openEdit(entry)"
-				>
-					<div class="relative">
-						@if (entry.game.backgroundUrl) {
-							<img
-								[src]="entry.game.backgroundUrl"
-								[alt]="entry.game.title"
-								class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40-md transition-transform group-hover:scale-[1.03]"
-							/>
-						} @else {
-							<div class="w-full aspect-[3/4] bg-surface rounded-lg-md"></div>
-						}
-						<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm">{{ entry.platform.abbreviation }}</span>
-					</div>
-					<a
-						class="text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand"
-						[routerLink]="['/games', entry.game.code]"
-						(click)="$event.stopPropagation()"
-					>{{ entry.game.title }}</a>
-					@if (entry.edition) {
-						<span class="text-[0.625rem] text-fg-muted truncate">{{ entry.edition }}</span>
-					}
-				</div>
+				<app-game-cover-card
+					[game]="entry.game"
+					[topLeftBadge]="entry.platform.abbreviation"
+					[subtitle]="entry.edition"
+					[acquiredAt]="entry.acquiredAt"
+					[clickable]="true"
+					(cardClick)="openEdit(entry)"
+				/>
 			}
 		</div>
 	} @else {

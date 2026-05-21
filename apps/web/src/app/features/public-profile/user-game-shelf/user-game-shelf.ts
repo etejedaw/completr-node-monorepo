@@ -6,17 +6,17 @@ import {
 	signal
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { DatePipe } from "@angular/common";
 import { AuthService } from "../../../core/services/auth.service";
 import { PublicProfileService } from "../public-profile.service";
 import { GameShelfEntry } from "../../../core/models";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 
 const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-game-shelf",
-	imports: [RouterLink, DatePipe, UiPagination, UiSearchBar],
+	imports: [RouterLink, UiPagination, UiSearchBar, GameCoverCard],
 	templateUrl: "./user-game-shelf.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

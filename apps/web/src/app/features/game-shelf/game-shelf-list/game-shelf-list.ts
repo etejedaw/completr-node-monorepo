@@ -11,6 +11,7 @@ import { GameShelfService } from "../game-shelf.service";
 import { RouterLink } from "@angular/router";
 import { GameShelfModal } from "../game-shelf-modal/game-shelf-modal";
 import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 interface PlatformCount {
@@ -21,7 +22,7 @@ interface PlatformCount {
 
 @Component({
 	selector: "app-game-shelf-list",
-	imports: [DatePipe, GameShelfModal, RouterLink, UiButton, UiPagination, UiSearchBar],
+	imports: [DatePipe, GameShelfModal, RouterLink, UiButton, UiPagination, UiSearchBar, GameCoverCard],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

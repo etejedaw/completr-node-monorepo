@@ -6,16 +6,16 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { RouterLink } from "@angular/router";
 import { WishlistEntry } from "../../../core/models";
 import { WishlistService } from "../wishlist.service";
 import { WishlistAddModal } from "../wishlist-add-modal/wishlist-add-modal";
-import { UiButton, UiIconButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { WishlistGridCard } from "../../../shared/components/wishlist-grid-card/wishlist-grid-card";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-wishlist-view",
-	imports: [RouterLink, WishlistAddModal, UiButton, UiIconButton, UiPagination, UiSearchBar],
+	imports: [WishlistAddModal, UiButton, UiPagination, UiSearchBar, WishlistGridCard],
 	templateUrl: "./wishlist-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

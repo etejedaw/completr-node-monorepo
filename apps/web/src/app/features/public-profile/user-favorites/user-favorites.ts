@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
@@ -9,13 +10,14 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import { PublicProfileService } from "../public-profile.service";
 import { FavoriteEntry } from "../../../core/models";
-import { UiPagination } from "../../../shared/ui";
+import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 
 const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-favorites",
-	imports: [RouterLink, UiPagination],
+	imports: [RouterLink, UiPagination, UiSearchBar, GameCoverCard],
 	templateUrl: "./user-favorites.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -33,6 +35,14 @@ export class UserFavorites implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly error = signal<"not_found" | "private" | null>(null);
 	protected readonly isLoggedIn = this.authService.isLoggedIn;
+	protected readonly searchQuery = signal("");
+	protected readonly filteredEntries = computed(() => {
+		const q = this.searchQuery().toLowerCase().trim();
+		if (!q) return this.entries();
+		return this.entries().filter(e =>
+			e.game.title.toLowerCase().includes(q)
+		);
+	});
 
 	ngOnInit() {
 		if (this.authService.token() && !this.authService.user()) {
