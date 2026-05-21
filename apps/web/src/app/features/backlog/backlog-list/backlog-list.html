@@ -9,6 +9,29 @@
 
 	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
+	<div class="flex gap-1 bg-input-bg border border-line rounded-md p-1 mb-4 w-fit">
+		<button
+			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+			[class.!bg-surface-hover]="viewMode() === 'diary'"
+			[class.!text-fg]="viewMode() === 'diary'"
+			(click)="setViewMode('diary')"
+			title="Diary view"
+		>
+			<span class="material-icons text-base">view_agenda</span>
+			Diary
+		</button>
+		<button
+			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+			[class.!bg-surface-hover]="viewMode() === 'hardcore'"
+			[class.!text-fg]="viewMode() === 'hardcore'"
+			(click)="setViewMode('hardcore')"
+			title="Hardcore (table) view"
+		>
+			<span class="material-icons text-base">table_rows</span>
+			Hardcore
+		</button>
+	</div>
+
 	<div class="flex items-center gap-2 mb-4">
 		@if (backlogFilters().length > 0) {
 		<div class="flex flex-wrap gap-1.5">
@@ -264,31 +287,6 @@
 		</p>
 	</div>
 	} @else {
-		<div class="flex justify-end mb-3">
-			<div class="flex gap-1 bg-input-bg border border-line rounded-md p-1">
-				<button
-					class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
-					[class.!bg-surface-hover]="viewMode() === 'diary'"
-					[class.!text-fg]="viewMode() === 'diary'"
-					(click)="setViewMode('diary')"
-					title="Diary view"
-				>
-					<span class="material-icons text-base">view_agenda</span>
-					Diary
-				</button>
-				<button
-					class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
-					[class.!bg-surface-hover]="viewMode() === 'hardcore'"
-					[class.!text-fg]="viewMode() === 'hardcore'"
-					(click)="setViewMode('hardcore')"
-					title="Hardcore (table) view"
-				>
-					<span class="material-icons text-base">table_rows</span>
-					Hardcore
-				</button>
-			</div>
-		</div>
-
 		@if (viewMode() === 'diary') {
 			<div class="flex flex-col gap-3">
 				@for (entry of entries(); track entry.id) {

@@ -9,28 +9,26 @@
 
 	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
-	<div class="flex gap-1 mb-4">
+	<div class="flex gap-1 bg-input-bg border border-line rounded-md p-1 mb-4 w-fit">
 		<button
-			class="flex bg-input-bg border border-line rounded-md text-fg-muted p-1.5 cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="viewMode() === 'grid'"
-			[class.!border-brand]="viewMode() === 'grid'"
-			[class.!text-brand]="viewMode() === 'grid'"
+			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+			[class.!bg-surface-hover]="viewMode() === 'grid'"
+			[class.!text-fg]="viewMode() === 'grid'"
 			(click)="setViewMode('grid')"
 			title="Grid view"
-			aria-label="Grid view"
 		>
-			<span class="material-icons text-lg">grid_view</span>
+			<span class="material-icons text-base">grid_view</span>
+			Grid
 		</button>
 		<button
-			class="flex bg-input-bg border border-line rounded-md text-fg-muted p-1.5 cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="viewMode() === 'table'"
-			[class.!border-brand]="viewMode() === 'table'"
-			[class.!text-brand]="viewMode() === 'table'"
+			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+			[class.!bg-surface-hover]="viewMode() === 'table'"
+			[class.!text-fg]="viewMode() === 'table'"
 			(click)="setViewMode('table')"
-			title="Table view"
-			aria-label="Table view"
+			title="Hardcore (table) view"
 		>
-			<span class="material-icons text-lg">view_list</span>
+			<span class="material-icons text-base">table_rows</span>
+			Hardcore
 		</button>
 	</div>
 
