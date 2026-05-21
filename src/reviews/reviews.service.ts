@@ -44,6 +44,21 @@ export async function findReviewsByUserId(userId: string) {
 	});
 }
 
+export async function findReviewsByUserIdPaginated(
+	userId: string,
+	options: { limit?: number; offset?: number } = {}
+) {
+	const { limit = 50, offset = 0 } = options;
+	return Review.findAndCountAll({
+		where: { userId },
+		include: [{ model: Game }],
+		order: [["createdAt", "DESC"]],
+		limit,
+		offset,
+		distinct: true
+	});
+}
+
 export async function findReviewByUserAndGame(userId: string, gameId: string) {
 	return Review.findOne({ where: { userId, gameId } });
 }

@@ -167,7 +167,8 @@ router.get(
 	"/users/:username/reviews",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		validateSchemaMiddleware(UsernameParamSchema, "params")
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	usersController.getUserReviews
 );

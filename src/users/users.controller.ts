@@ -251,15 +251,22 @@ export async function getUserListDetail(request: Request, response: Response) {
 
 export async function getUserReviews(request: Request, response: Response) {
 	const params = request.locals.params as UsernameParam;
+	const query = request.locals.query as PaginationQuery;
 
 	const user = await usersService.findUserByUsername(params.username);
 	if (!user) throw userDomain.userNotFound();
 	if (!user.isPublic) throw userDomain.userPrivate();
 
-	const reviews = await reviewsService.findReviewsByUserId(user.id);
-	const reviewsPlain = reviews.map(r => r.get({ plain: true }));
+	const { rows, count } = await reviewsService.findReviewsByUserIdPaginated(
+		user.id,
+		{ limit: query.limit, offset: query.offset }
+	);
+	const reviewsPlain = rows.map(r => r.get({ plain: true }));
 
-	const data = { reviews: reviewsPlain.map(userReviewSerializer) };
+	const data = {
+		reviews: reviewsPlain.map(userReviewSerializer),
+		total: count
+	};
 	return response.status(200).json({ data });
 }
 
