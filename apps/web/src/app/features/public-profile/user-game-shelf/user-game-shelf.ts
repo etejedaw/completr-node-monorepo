@@ -12,11 +12,12 @@ import { GameShelfEntry } from "../../../core/models";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 
+import { PublicTopbar } from "../../../shared/components/public-topbar/public-topbar";
 const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-game-shelf",
-	imports: [RouterLink, UiPagination, UiSearchBar, GameCoverCard],
+	imports: [RouterLink, UiPagination, UiSearchBar, GameCoverCard, PublicTopbar],
 	templateUrl: "./user-game-shelf.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -1,17 +1,5 @@
+<app-public-topbar />
 <div class="max-w-7xl mx-auto p-6 lg:p-8 max-md:px-4">
-	<div class="flex items-center justify-between mb-8 pb-4 border-b border-line">
-		<a routerLink="/" class="flex items-center gap-2.5 no-underline">
-			<span
-				class="flex items-center justify-center w-8 h-8 rounded-lg font-display font-extrabold text-sm text-white"
-				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
-			>C</span>
-			<span class="text-lg font-bold text-fg">Completr</span>
-		</a>
-		@if (!isLoggedIn()) {
-			<a routerLink="/login" class="px-3 py-1.5 bg-brand text-white rounded text-[0.8125rem] font-semibold no-underline">Sign in</a>
-		}
-	</div>
-
 	@if (isLoading()) {
 		<div class="text-center py-16 text-fg-muted text-sm">Loading...</div>
 	} @else if (notFound()) {

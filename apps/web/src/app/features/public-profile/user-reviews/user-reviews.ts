@@ -11,6 +11,7 @@ import { PublicProfileService } from "../public-profile.service";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { UiPagination } from "../../../shared/ui";
 
+import { PublicTopbar } from "../../../shared/components/public-topbar/public-topbar";
 const PAGE_SIZE = 50;
 
 interface UserReview {
@@ -24,7 +25,7 @@ interface UserReview {
 
 @Component({
 	selector: "app-user-reviews",
-	imports: [RouterLink, StarRating, UiPagination],
+	imports: [RouterLink, StarRating, UiPagination, PublicTopbar],
 	templateUrl: "./user-reviews.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

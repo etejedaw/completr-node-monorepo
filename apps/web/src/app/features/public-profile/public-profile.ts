@@ -17,9 +17,10 @@ import { StarRating } from "../../shared/components/star-rating/star-rating";
 import { UiButton, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../shared/ui";
 import { activityLabel } from "../../shared/utils/activity-labels";
 
+import { PublicTopbar } from "../../shared/components/public-topbar/public-topbar";
 @Component({
 	selector: "app-public-profile",
-	imports: [RouterLink, UserListModal, StarRating, UiButton, UiTabs, UiTabList, UiTab, UiTabPanel],
+	imports: [RouterLink, UserListModal, StarRating, UiButton, UiTabs, UiTabList, UiTab, UiTabPanel, PublicTopbar],
 	templateUrl: "./public-profile.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
