@@ -65,9 +65,11 @@ export class ListDetail implements OnInit {
 	protected readonly togglingFollow = signal(false);
 
 	private listId = "";
+	protected readonly fromUsername = signal<string | null>(null);
 
 	ngOnInit() {
 		this.listId = this.route.snapshot.paramMap.get("id") ?? "";
+		this.fromUsername.set(this.route.snapshot.queryParamMap.get("from"));
 		if (this.listId) this.loadList();
 
 		this.searchSubject

@@ -54,10 +54,8 @@ export const routes: Routes = [
 	},
 	{
 		path: "user/:username/lists/:id",
-		loadComponent: () =>
-			import("./features/public-profile/user-list-detail/user-list-detail").then(
-				m => m.UserListDetail
-			)
+		redirectTo: ({ params }) =>
+			`/lists/${params["id"]}?from=${params["username"]}`
 	},
 	{
 		path: "",

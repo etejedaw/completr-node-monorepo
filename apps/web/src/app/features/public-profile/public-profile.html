@@ -232,7 +232,7 @@
 							</div>
 							<div class="flex flex-col gap-2">
 								@for (l of profile()!.lists.slice(0, 6); track l.id) {
-									<a class="flex flex-col gap-1 px-4 py-3 bg-surface border border-line rounded no-underline transition hover:border-brand" [routerLink]="['/user', username(), 'lists', l.id]">
+									<a class="flex flex-col gap-1 px-4 py-3 bg-surface border border-line rounded no-underline transition hover:border-brand" [routerLink]="['/lists', l.id]" [queryParams]="{ from: username() }">
 										<div class="flex items-center justify-between">
 											<span class="text-[0.9375rem] font-semibold text-fg">{{ l.name }}</span>
 											<span class="flex items-center gap-1 text-xs text-fg-muted">
@@ -264,7 +264,7 @@
 							</div>
 							<div class="flex flex-col gap-2">
 								@for (l of profile()!.followingLists.slice(0, 6); track l.id) {
-									<a class="flex flex-col gap-1 px-4 py-3 bg-surface border border-line rounded no-underline transition hover:border-brand" [routerLink]="['/user', username(), 'lists', l.id]">
+									<a class="flex flex-col gap-1 px-4 py-3 bg-surface border border-line rounded no-underline transition hover:border-brand" [routerLink]="['/lists', l.id]" [queryParams]="{ from: username() }">
 										<span class="text-[0.9375rem] font-semibold text-fg">{{ l.name }}</span>
 										@if (l.description) {
 											<p class="text-[0.8125rem] text-fg-muted leading-snug m-0">{{ l.description }}</p>

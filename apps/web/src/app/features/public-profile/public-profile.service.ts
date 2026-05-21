@@ -274,14 +274,4 @@ export class PublicProfileService {
 			.pipe(map(res => res.data.reviews));
 	}
 
-	getUserListDetail(username: string, listId: string) {
-		return this.http
-			.get<{
-				data: {
-					list: import("../../core/models").List;
-					profileUser: { username: string; name: string };
-				};
-			}>(`${environment.apiUrl}/users/${username}/lists/${listId}`)
-			.pipe(map(res => res.data));
-	}
 }

@@ -6,16 +6,35 @@
 <div class="max-w-full">
 	<div class="flex justify-between items-start mb-4 gap-4">
 		<div class="flex items-start gap-3">
-			<a
-				routerLink="/lists"
-				class="flex p-1 mt-0.5 text-fg-muted hover:text-brand"
-			>
-				<span class="material-icons">arrow_back</span>
-			</a>
+			@if (fromUsername(); as username) {
+				<a
+					[routerLink]="['/user', username]"
+					class="flex p-1 mt-0.5 text-fg-muted hover:text-brand"
+					[title]="'@' + username + ' profile'"
+				>
+					<span class="material-icons">arrow_back</span>
+				</a>
+			} @else {
+				<a
+					routerLink="/lists"
+					class="flex p-1 mt-0.5 text-fg-muted hover:text-brand"
+				>
+					<span class="material-icons">arrow_back</span>
+				</a>
+			}
 			<div>
 				<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">{{ list()!.name }}</h1>
 				@if (list()!.description) {
 				<p class="mt-1 mb-0 text-[0.8125rem] text-fg-secondary">{{ list()!.description }}</p>
+				}
+				@if (fromUsername(); as username) {
+					<a
+						[routerLink]="['/user', username]"
+						class="inline-flex items-center gap-1 mt-1 text-[0.6875rem] text-fg-muted no-underline hover:text-brand"
+					>
+						<span class="material-icons text-sm">person</span>
+						from &#64;{{ username }}
+					</a>
 				}
 			</div>
 		</div>
