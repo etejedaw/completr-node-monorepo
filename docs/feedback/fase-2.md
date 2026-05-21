@@ -216,9 +216,9 @@ Formato por item:
 
 - **Fecha:** 2026-04-20
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** En RAWG algunos juegos aparecen agrupados como un solo registro cuando en realidad son juegos distintos. Por ejemplo, Pokemon Perla y Pokemon Diamante son dos juegos diferentes, pero en RAWG aparecen como "Pokemon Perla/Diamante" en un solo entry. Esto causa problemas porque en Completr cada juego deberia ser un registro independiente. Ademas, con la regla de unique constraint en GameExternal (un solo externalId por source+game), no se puede mapear el mismo registro de RAWG a dos juegos distintos. Tambien afecta al backlog: si un usuario quiere trackear ambos juegos por separado no puede porque solo existe uno en la DB.
-- **Solucion propuesta:** Buscar alternativas para manejar este caso. Opciones a evaluar: (1) permitir crear juegos manualmente sin RAWG y vincularlos como variantes, (2) agregar un campo "variant" o "edition" al juego para diferenciar versiones del mismo registro RAWG, (3) permitir multiples juegos con el mismo externalId de RAWG (relajar el unique constraint), (4) usar otra fuente (IGDB, Steam) como fuente primaria para estos casos.
+- **Solucion:** Combinacion de opciones (2) + (5) (split admin action). Backend: nueva columna `Games.variant` (string nullable), se relaja el unique `(source, externalId)` en `GameExternals` (se mantiene `(gameId, source)` y se agrega indice no unico sobre `(source, externalId)` para lookup). Validacion service-level: si un `externalId` ya pertenece a otros juegos, todos deben tener `variant` no vacio (`GAME_VARIANT_REQUIRED` 422). Endpoint nuevo `POST /games/:id/split` (auth moderator) que toma `{ variants: [{ title, variant }, ...] }` (2-10): el juego original se convierte en la primera variante y se crean N-1 nuevos clonando platforms, genres, scores, times, externals + cover/desc/release/parent/isDlc. Audit registra `game_split`. Frontend: input "Variant label" en el editor admin, boton "Split game" (solo edit) que abre modal con N filas (title + variant), navega al primer variant al exito. Tambien resuelve FB-074.
 
 ### [FB-024] Faltan filtros por fuente de datos en el panel admin de games
 
@@ -678,14 +678,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-12
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** RAWG a veces consolida varios juegos distintos en un unico registro. Ejemplo: "Pokemon Sun" y "Pokemon Moon" aparecen como un solo juego en RAWG, siendo que son titulos diferentes (con dex y exclusivos distintos). Lo mismo suele pasar con otras parejas de Pokemon (Sword/Shield, Scarlet/Violet) y con remakes/versiones. Como en la BBDD de Completr hay una constraint de unicidad por `rawgId` (un registro por juego de RAWG), no se pueden crear entradas separadas para cada version. El usuario que tiene solo una de las dos versiones queda forzado a usar el registro consolidado, lo que distorsiona el backlog, los promedios y el feed.
-- **Solucion propuesta:** Romper la asuncion "1 juego en Completr = 1 juego en RAWG". Opciones:
-    - (1) Quitar la constraint UNIQUE sobre `rawgId` y permitir varios juegos en Completr apuntando al mismo `rawgId`. Diferenciarlos por `name`/`slug` propio de Completr. Implica revisar todos los lugares donde se asume unicidad por rawgId (sync, import, busquedas).
-    - (2) Modelar una tabla intermedia `game_variant` donde el "juego RAWG" es padre y cada variante (Sun, Moon) es hijo con datos propios (cover, descripcion, score, duration). El backlog apunta a la variante, no al padre.
-    - (3) Permitir que un admin "desconsolide" manualmente un registro de RAWG en N registros de Completr, manteniendo el rawgId como referencia opcional. Mas pragmatico mientras no haya muchos casos.
-    - Cambio de BBDD requerido en cualquiera de las opciones. Evaluar volumen de casos antes de decidir (cuantos registros RAWG conocidos consolidan juegos distintos).
+- **Solucion:** Resuelto en conjunto con FB-023. Se relajo el unique de `GameExternals` y se agrego `Games.variant` para diferenciar siblings con mismo `rawgId`. El endpoint admin `POST /games/:id/split` permite romper un registro consolidado en N juegos compartiendo externals + datos clonables. Ver FB-023 para detalles completos.
 
 ### [FB-075] Link a RAWG usa el slug de Completr en vez del slug real de RAWG
 
