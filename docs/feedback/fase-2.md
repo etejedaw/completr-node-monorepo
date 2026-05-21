@@ -288,10 +288,11 @@ Formato por item:
 
 - **Fecha:** 2026-04-22
 - **Severidad:** medio
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** La busqueda de usuarios solo existe dentro del buscador global del feed y es muy basica (solo busca por username). No hay una vista dedicada para descubrir usuarios. Si alguien quiere encontrar a un amigo pero no sabe su username exacto, no tiene forma de buscarlo por nombre o correo. Tampoco hay forma de descubrir usuarios nuevos de la comunidad.
 - **Nota adicional:** Un usuario pregunto "en el feed debo poner su nombre de usuario, no? cual es?" — ni siquiera sabia cual era el username de la persona que queria buscar. Esto refuerza la necesidad de una forma mas accesible de encontrar usuarios y tambien sugiere que el username propio no es lo suficientemente visible en la app para que los usuarios lo compartan facilmente.
 - **Solucion propuesta:** Crear una vista dedicada de usuarios (/users o /community) con: (1) seccion de usuarios destacados o aleatorios para descubrir gente nueva, (2) buscador que permita buscar por username, nombre o email. En el backend, ampliar GET /users/search para aceptar busqueda por name ademas de username. No buscar por email directamente por privacidad — en su lugar, permitir busqueda exacta de email (match completo, no parcial) como forma de encontrar a alguien que te compartio su correo.
+- **Resolucion:** Backend: `GET /users/search` ahora acepta `q` (ILIKE parcial sobre username OR name) o `email` (match exacto, case-insensitive) — uno de los dos requerido. Nuevo endpoint `GET /users/discover` retorna usuarios publicos al azar (excluyendo al propio user). Frontend: nueva vista `/users` con seccion Discover y search bar que detecta automaticamente si el termino es email o texto libre, ademas de entrada en el sidebar. El global search del feed sigue funcionando (migrado al nuevo parametro `q`).
 
 ### [FB-033] Ports con experiencias muy diferentes se tratan como el mismo juego
 
