@@ -30,6 +30,8 @@ export const GamesQuerySchema = z
 		min_duration: z.coerce.number().min(0).optional(),
 		max_duration: z.coerce.number().min(0).optional(),
 		is_dlc: z.stringbool().optional(),
+		is_compilation: z.stringbool().optional(),
+		exclude_compilations: z.stringbool().optional(),
 		include_inactive: z.stringbool().optional(),
 		only_inactive: z.stringbool().optional(),
 		no_scores: z.stringbool().optional(),
