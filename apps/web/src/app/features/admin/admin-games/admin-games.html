@@ -8,7 +8,7 @@
 
 	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search games..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 
-	<div class="flex gap-2 mb-4">
+	<div class="flex flex-wrap gap-2 mb-4">
 		<button
 			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
 			[class.!bg-brand-subtle]="noScores()"
@@ -36,6 +36,29 @@
 		>
 			No Platforms
 		</button>
+		<span class="self-center text-fg-muted text-xs">|</span>
+		@for (src of SCORE_SOURCES; track src) {
+			<button
+				class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
+				[class.!bg-brand-subtle]="noScoreSources().has(src)"
+				[class.!border-brand]="noScoreSources().has(src)"
+				[class.!text-brand]="noScoreSources().has(src)"
+				(click)="toggleScoreSource(src)"
+			>
+				No {{ src }} score
+			</button>
+		}
+		@for (src of TIME_SOURCES; track src) {
+			<button
+				class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
+				[class.!bg-brand-subtle]="noTimeSources().has(src)"
+				[class.!border-brand]="noTimeSources().has(src)"
+				[class.!text-brand]="noTimeSources().has(src)"
+				(click)="toggleTimeSource(src)"
+			>
+				No {{ src }} time
+			</button>
+		}
 	</div>
 
 	@if (isLoading()) {

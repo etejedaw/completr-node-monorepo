@@ -33,6 +33,11 @@ export class AdminGames implements OnInit {
 	protected readonly noScores = signal(false);
 	protected readonly noTimes = signal(false);
 	protected readonly noPlatforms = signal(false);
+	protected readonly noScoreSources = signal<Set<string>>(new Set());
+	protected readonly noTimeSources = signal<Set<string>>(new Set());
+
+	protected readonly SCORE_SOURCES = ["metacritic", "opencritic", "rawg"];
+	protected readonly TIME_SOURCES = ["hltb", "rawg"];
 
 	ngOnInit() {
 		this.loadGames();
@@ -41,6 +46,24 @@ export class AdminGames implements OnInit {
 
 	toggleFilter(filter: "noScores" | "noTimes" | "noPlatforms") {
 		this[filter].update(v => !v);
+		this.offset.set(0);
+		this.loadGames();
+	}
+
+	toggleScoreSource(source: string) {
+		const next = new Set(this.noScoreSources());
+		if (next.has(source)) next.delete(source);
+		else next.add(source);
+		this.noScoreSources.set(next);
+		this.offset.set(0);
+		this.loadGames();
+	}
+
+	toggleTimeSource(source: string) {
+		const next = new Set(this.noTimeSources());
+		if (next.has(source)) next.delete(source);
+		else next.add(source);
+		this.noTimeSources.set(next);
 		this.offset.set(0);
 		this.loadGames();
 	}
@@ -95,6 +118,10 @@ export class AdminGames implements OnInit {
 		if (this.noScores()) query["no_scores"] = true;
 		if (this.noTimes()) query["no_times"] = true;
 		if (this.noPlatforms()) query["no_platforms"] = true;
+		const scoreSources = Array.from(this.noScoreSources());
+		if (scoreSources.length > 0) query["no_score_source"] = scoreSources.join(",");
+		const timeSources = Array.from(this.noTimeSources());
+		if (timeSources.length > 0) query["no_time_source"] = timeSources.join(",");
 		this.gamesService.getGames(query).subscribe({
 			next: res => {
 				this.games.set(res.data.games);
