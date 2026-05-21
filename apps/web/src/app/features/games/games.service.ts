@@ -66,6 +66,21 @@ export interface SplitGameDto {
 	variants: { title: string; variant: string }[];
 }
 
+export type CompilationItemInput =
+	| { mode: "link"; gameId: string }
+	| { mode: "create"; title: string };
+
+export interface SetCompilationItemsDto {
+	items: CompilationItemInput[];
+}
+
+export interface CompilationItemResponse {
+	id: string;
+	position: number;
+	childGameId: string;
+	childGame: Game | null;
+}
+
 export interface GamesQuery {
 	limit?: number;
 	offset?: number;
@@ -193,6 +208,21 @@ export class GamesService {
 				data: { games: Game[] };
 			}>(`${environment.apiUrl}/games/${id}/split`, dto)
 			.pipe(map(res => res.data.games));
+	}
+
+	setCompilationItems(id: string, dto: SetCompilationItemsDto) {
+		return this.http
+			.put<{
+				data: { items: CompilationItemResponse[] };
+			}>(`${environment.apiUrl}/games/${id}/compilation-items`, dto)
+			.pipe(map(res => res.data.items));
+	}
+
+	clearCompilation(id: string) {
+		return this.http.delete(
+			`${environment.apiUrl}/games/${id}/compilation-items`,
+			{ responseType: "text" }
+		);
 	}
 
 	rawgBySlug(slug: string) {
