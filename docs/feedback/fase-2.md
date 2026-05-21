@@ -973,10 +973,10 @@ Formato por item:
 
 - **Fecha:** 2026-05-20
 - **Severidad:** bajo
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Reportado por:** Esteban
 - **Descripcion:** La barra de busqueda (`ui-search-bar`, usada en backlog, game-shelf, wishlist, lists, games, feed) no tiene boton para limpiar el texto. Si el usuario quiere borrar la query y volver al estado sin filtro, tiene que seleccionar todo y borrar manualmente con Backspace/Delete. Es un pattern estandar que casi todas las apps modernas tienen (icono "X" o "close" al lado derecho del input que aparece cuando hay texto).
-- **Solucion propuesta:** Agregar un boton X dentro del componente `ui-search-bar` (probablemente en `shared/ui/search-bar/`). Estilo: icono `close` o `cancel` pequeno (`material-icons text-base text-fg-muted hover:text-fg`), posicionado absoluto al lado derecho del input, visible solo cuando `value` tiene contenido. Click → emite `valueChange('')` y limpia el campo. Como es un componente compartido, el fix se aplica a todas las vistas que lo usan. Considerar tambien atajo de teclado Escape para limpiar (UX bonus).
+- **Solucion:** Agregado boton X dentro de `ui-search-bar` (`shared/ui/search-bar/ui-search-bar.ts`). Icono `close` (`material-icons text-lg text-fg-muted hover:text-fg`) visible solo cuando `value()` tiene contenido. Click → limpia el campo y re-enfoca el input. Bonus: tecla `Escape` tambien limpia (`(keydown.escape)="clear()"`). Como es componente compartido, el fix aplica automaticamente a todas las vistas que lo usan (backlog, game-shelf, wishlist, lists, games, feed). Accesibilidad: `aria-label="Clear search"`.
 
 ### [FB-107] Wishlist puede prescindir de la vista tabla y dejar solo grid con ratio + reorder
 
