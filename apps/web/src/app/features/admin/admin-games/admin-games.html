@@ -11,6 +11,34 @@
 	<div class="flex flex-wrap gap-2 mb-4">
 		<button
 			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="activeFilter() === 'active'"
+			[class.!border-brand]="activeFilter() === 'active'"
+			[class.!text-brand]="activeFilter() === 'active'"
+			(click)="setActiveFilter('active')"
+		>
+			Active
+		</button>
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="activeFilter() === 'inactive'"
+			[class.!border-brand]="activeFilter() === 'inactive'"
+			[class.!text-brand]="activeFilter() === 'inactive'"
+			(click)="setActiveFilter('inactive')"
+		>
+			Deactivated
+		</button>
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="activeFilter() === 'all'"
+			[class.!border-brand]="activeFilter() === 'all'"
+			[class.!text-brand]="activeFilter() === 'all'"
+			(click)="setActiveFilter('all')"
+		>
+			All
+		</button>
+		<span class="self-center text-fg-muted text-xs">|</span>
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
 			[class.!bg-brand-subtle]="noScores()"
 			[class.!border-brand]="noScores()"
 			[class.!text-brand]="noScores()"

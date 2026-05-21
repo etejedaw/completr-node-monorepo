@@ -41,6 +41,11 @@ export class AdminUsers implements OnInit {
 	protected readonly createName = signal("");
 	protected readonly isCreating = signal(false);
 	protected readonly createError = signal("");
+	protected readonly showCreatePassword = signal(false);
+
+	toggleShowCreatePassword() {
+		this.showCreatePassword.update(v => !v);
+	}
 
 	// Edit modal
 	protected readonly showEditModal = signal(false);
@@ -51,6 +56,11 @@ export class AdminUsers implements OnInit {
 	protected readonly editIsActive = signal(true);
 	protected readonly isEditing = signal(false);
 	protected readonly editError = signal("");
+	protected readonly showEditPassword = signal(false);
+
+	toggleShowEditPassword() {
+		this.showEditPassword.update(v => !v);
+	}
 
 	ngOnInit() {
 		this.loadUsers();

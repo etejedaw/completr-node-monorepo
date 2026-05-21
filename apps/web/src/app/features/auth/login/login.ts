@@ -23,6 +23,11 @@ export class Login {
 
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
+	protected readonly showPassword = signal(false);
+
+	toggleShowPassword() {
+		this.showPassword.update(v => !v);
+	}
 
 	form = this.fb.group({
 		email: ["", [Validators.required]],
