@@ -40,14 +40,14 @@ export class GameShelfList implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
 
-	protected readonly viewMode = signal<"cards" | "grid" | "table">(
-		(localStorage.getItem("completr.shelf.viewMode") as
-			| "cards"
-			| "grid"
-			| "table") || "cards"
+	protected readonly viewMode = signal<"grid" | "table">(
+		((): "grid" | "table" => {
+			const saved = localStorage.getItem("completr.shelf.viewMode");
+			return saved === "table" ? "table" : "grid";
+		})()
 	);
 
-	setViewMode(mode: "cards" | "grid" | "table") {
+	setViewMode(mode: "grid" | "table") {
 		this.viewMode.set(mode);
 		localStorage.setItem("completr.shelf.viewMode", mode);
 	}
