@@ -8,6 +8,7 @@ export interface User {
 	avatarUrl?: string;
 	isPublic: boolean;
 	isQueuePublic: boolean;
+	isWishlistPublic: boolean;
 	isFavoritePublic: boolean;
 	isFeedPublic: boolean;
 	isActive: boolean;

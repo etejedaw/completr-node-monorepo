@@ -5,6 +5,7 @@ import { environment } from "../../../environments/environment";
 import { BacklogEntry } from "../../core/models/backlog.model";
 import { FavoriteEntry } from "../../core/models/favorite.model";
 import { QueueEntry } from "../../core/models/queue.model";
+import { WishlistEntry } from "../../core/models/wishlist.model";
 import { GameShelfEntry } from "../../core/models/game-shelf.model";
 
 export interface PaginatedResult<T> {
@@ -20,6 +21,7 @@ export interface PublicUser {
 	bio?: string;
 	avatarUrl?: string;
 	isQueuePublic: boolean;
+	isWishlistPublic: boolean;
 	isFavoritePublic: boolean;
 	isFeedPublic: boolean;
 	createdAt: string;
@@ -97,6 +99,7 @@ export interface PublicProfile {
 	lists: PublicList[];
 	favorites: PublicFavorite[];
 	queue: PublicQueue[];
+	wishlist: { id: string; position: number; game: GameSummary }[];
 	gameShelf: PublicGameShelf[];
 	followingLists: PublicList[];
 	recentActivity: PublicActivity[];
@@ -209,6 +212,25 @@ export class PublicProfileService {
 			.pipe(
 				map(res => ({
 					items: res.data.queue,
+					total: res.data.total
+				}))
+			);
+	}
+
+	getUserWishlist(
+		username: string,
+		pagination: { limit?: number; offset?: number } = {}
+	) {
+		let params = new HttpParams();
+		if (pagination.limit) params = params.set("limit", pagination.limit);
+		if (pagination.offset) params = params.set("offset", pagination.offset);
+		return this.http
+			.get<{
+				data: { wishlist: WishlistEntry[]; total: number };
+			}>(`${environment.apiUrl}/users/${username}/wishlist`, { params })
+			.pipe(
+				map(res => ({
+					items: res.data.wishlist,
 					total: res.data.total
 				}))
 			);

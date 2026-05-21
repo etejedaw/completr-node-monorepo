@@ -34,6 +34,19 @@
 				<input
 					type="checkbox"
 					class="mt-1"
+					[ngModel]="isWishlistPublic()"
+					(ngModelChange)="isWishlistPublic.set($event)"
+				/>
+				<div>
+					<span class="block text-sm font-medium text-fg">Public wishlist</span>
+					<span class="block text-xs text-fg-muted">Show your wishlist on your public profile.</span>
+				</div>
+			</label>
+
+			<label class="flex items-start gap-3 cursor-pointer py-2 border-t border-line">
+				<input
+					type="checkbox"
+					class="mt-1"
 					[ngModel]="isFavoritePublic()"
 					(ngModelChange)="isFavoritePublic.set($event)"
 				/>

@@ -46,6 +46,13 @@ export const routes: Routes = [
 			)
 	},
 	{
+		path: "user/:username/wishlist",
+		loadComponent: () =>
+			import("./features/public-profile/user-wishlist/user-wishlist").then(
+				m => m.UserWishlist
+			)
+	},
+	{
 		path: "user/:username/game-shelf",
 		loadComponent: () =>
 			import("./features/public-profile/user-game-shelf/user-game-shelf").then(
@@ -143,6 +150,13 @@ export const routes: Routes = [
 				loadComponent: () =>
 					import("./features/queue/queue-view/queue-view").then(
 						m => m.QueueView
+					)
+			},
+			{
+				path: "wishlist",
+				loadComponent: () =>
+					import("./features/wishlist/wishlist-view/wishlist-view").then(
+						m => m.WishlistView
 					)
 			},
 			{

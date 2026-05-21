@@ -10,6 +10,7 @@ export interface UpdateProfileDto {
 	avatarUrl?: string;
 	isPublic?: boolean;
 	isQueuePublic?: boolean;
+	isWishlistPublic?: boolean;
 	isFavoritePublic?: boolean;
 	isFeedPublic?: boolean;
 }

@@ -13,6 +13,7 @@ import { ScoreSourcesService } from "../../../core/services/score-sources.servic
 import { AuthService } from "../../../core/services/auth.service";
 import { FavoritesService } from "../../favorites/favorites.service";
 import { QueueService } from "../../queue/queue.service";
+import { WishlistService } from "../../wishlist/wishlist.service";
 import { BacklogService } from "../../backlog/backlog.service";
 import { GameShelfService } from "../../game-shelf/game-shelf.service";
 import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
@@ -53,6 +54,7 @@ export class GameDetail implements OnInit {
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly queueService = inject(QueueService);
+	private readonly wishlistService = inject(WishlistService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly gameShelfService = inject(GameShelfService);
 	private readonly reviewsService = inject(ReviewsService);
@@ -62,6 +64,7 @@ export class GameDetail implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly similarGames = signal<Game[]>([]);
 	protected readonly isFavorite = signal(false);
+	protected readonly isInWishlist = signal(false);
 	protected readonly isInBacklog = signal(false);
 	protected readonly isInQueue = signal(false);
 	protected readonly isInShelf = signal(false);
@@ -82,6 +85,7 @@ export class GameDetail implements OnInit {
 	protected readonly deactivating = signal(false);
 	protected readonly deleting = signal(false);
 	protected readonly togglingFavorite = signal(false);
+	protected readonly togglingWishlist = signal(false);
 	protected readonly showReportModal = signal(false);
 	protected readonly reportMessage = signal("");
 	protected readonly reportSubmitting = signal(false);
@@ -124,6 +128,7 @@ export class GameDetail implements OnInit {
 	ngOnInit() {
 		this.scoreSourcesService.load();
 		this.favoritesService.load().subscribe();
+		this.wishlistService.load().subscribe();
 		this.route.paramMap.subscribe(params => {
 			const code = params.get("code");
 			if (code) this.loadGame(code);
@@ -171,6 +176,7 @@ export class GameDetail implements OnInit {
 			next: game => {
 				this.game.set(game);
 				this.isFavorite.set(this.favoritesService.isFavorite(game.id));
+				this.isInWishlist.set(this.wishlistService.isInWishlist(game.id));
 				this.isLoading.set(false);
 				this.loadSimilarGames(game);
 				this.loadUserStatus(game.id);
@@ -224,6 +230,19 @@ export class GameDetail implements OnInit {
 				this.togglingFavorite.set(false);
 			},
 			error: () => this.togglingFavorite.set(false)
+		});
+	}
+
+	toggleWishlist() {
+		const gameId = this.game()?.id;
+		if (!gameId || this.togglingWishlist()) return;
+		this.togglingWishlist.set(true);
+		this.wishlistService.toggle(gameId).subscribe({
+			next: () => {
+				this.isInWishlist.set(this.wishlistService.isInWishlist(gameId));
+				this.togglingWishlist.set(false);
+			},
+			error: () => this.togglingWishlist.set(false)
 		});
 	}
 
