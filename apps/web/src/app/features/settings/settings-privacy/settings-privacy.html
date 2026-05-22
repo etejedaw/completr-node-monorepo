@@ -1,153 +1,159 @@
 <div class="bg-surface border border-line rounded-card p-6">
 	<h2 class="font-display m-0 mb-1 text-lg font-bold">Privacy</h2>
-	<p class="text-xs text-fg-muted mb-5">Control what other users can see on your profile.</p>
+	<p class="text-xs text-fg-muted mb-5">Choose who sees your profile.</p>
 
 	@if (user()) {
-		<div class="flex flex-col gap-4 max-w-xl">
-			<label class="flex items-start gap-3 cursor-pointer py-2">
-				<input
-					type="checkbox"
-					class="mt-1"
-					[ngModel]="isPublic()"
-					(ngModelChange)="isPublic.set($event)"
-				/>
-				<div>
-					<span class="block text-sm font-medium text-fg">Public profile</span>
-					<span class="block text-xs text-fg-muted">Allow other users to see your profile.</span>
-				</div>
-			</label>
+		<div class="flex flex-col gap-6 max-w-2xl">
+			<div class="grid grid-cols-3 gap-3">
+				<button
+					type="button"
+					class="flex flex-col items-center text-center gap-1.5 p-4 bg-input-bg border rounded-card transition cursor-pointer hover:border-brand"
+					[class.!border-brand]="mode() === 'custom'"
+					[class.!bg-brand-subtle]="mode() === 'custom'"
+					[class.border-line]="mode() !== 'custom'"
+					(click)="selectPreset('custom')"
+				>
+					<span class="material-icons text-2xl" [class.text-brand]="mode() === 'custom'" [class.text-fg-muted]="mode() !== 'custom'">tune</span>
+					<span class="block text-sm font-semibold text-fg">Custom</span>
+					<span class="block text-[0.6875rem] text-fg-muted leading-tight">Pick which sections are visible.</span>
+				</button>
 
-			@if (!isPublic()) {
-				<p class="text-xs text-fg-muted bg-input-bg border border-line rounded px-3 py-2">
-					These options have no effect while your profile is private.
-				</p>
+				<button
+					type="button"
+					class="flex flex-col items-center text-center gap-1.5 p-4 bg-input-bg border rounded-card transition cursor-pointer hover:border-brand"
+					[class.!border-brand]="mode() === 'private'"
+					[class.!bg-brand-subtle]="mode() === 'private'"
+					[class.border-line]="mode() !== 'private'"
+					(click)="selectPreset('private')"
+				>
+					<span class="material-icons text-2xl" [class.text-brand]="mode() === 'private'" [class.text-fg-muted]="mode() !== 'private'">lock</span>
+					<span class="block text-sm font-semibold text-fg">Private</span>
+					<span class="block text-[0.6875rem] text-fg-muted leading-tight">Only you can see your profile.</span>
+				</button>
+
+				<button
+					type="button"
+					class="flex flex-col items-center text-center gap-1.5 p-4 bg-input-bg border rounded-card transition cursor-pointer hover:border-brand"
+					[class.!border-brand]="mode() === 'open'"
+					[class.!bg-brand-subtle]="mode() === 'open'"
+					[class.border-line]="mode() !== 'open'"
+					(click)="selectPreset('open')"
+				>
+					<span class="material-icons text-2xl" [class.text-brand]="mode() === 'open'" [class.text-fg-muted]="mode() !== 'open'">public</span>
+					<span class="block text-sm font-semibold text-fg">Open</span>
+					<span class="block text-[0.6875rem] text-fg-muted leading-tight">Everyone can see your profile.</span>
+				</button>
+			</div>
+
+			@if (showCustomPanel()) {
+				<div class="flex flex-col gap-5 pt-2 border-t border-line">
+					<label class="flex items-center justify-between gap-3 cursor-pointer">
+						<div>
+							<span class="block text-sm font-medium text-fg">Public profile</span>
+							<span class="block text-xs text-fg-muted">Master switch — everything below requires this on.</span>
+						</div>
+						<ui-switch
+							[checked]="isPublic()"
+							(checkedChange)="isPublic.set($event); onSectionFlagChange()"
+						/>
+					</label>
+
+					@if (!isPublic()) {
+						<p class="text-xs text-fg-muted bg-input-bg border border-line rounded px-3 py-2">
+							Sub-options have no effect while your profile is private.
+						</p>
+					}
+
+					<div class="flex flex-col gap-3" [class.opacity-50]="!isPublic()">
+						<h3 class="text-xs font-bold uppercase tracking-wider text-fg-muted m-0">Library</h3>
+						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
+							<div>
+								<span class="block text-sm font-medium text-fg">Backlog</span>
+								<span class="block text-xs text-fg-muted">Show your backlog on your public profile.</span>
+							</div>
+							<ui-switch
+								[checked]="isBacklogPublic()"
+								[disabled]="!isPublic()"
+								(checkedChange)="isBacklogPublic.set($event); onSectionFlagChange()"
+							/>
+						</label>
+						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
+							<div>
+								<span class="block text-sm font-medium text-fg">Game shelf</span>
+								<span class="block text-xs text-fg-muted">Show your game shelf on your public profile.</span>
+							</div>
+							<ui-switch
+								[checked]="isShelfPublic()"
+								[disabled]="!isPublic()"
+								(checkedChange)="isShelfPublic.set($event); onSectionFlagChange()"
+							/>
+						</label>
+					</div>
+
+					<div class="flex flex-col gap-3" [class.opacity-50]="!isPublic()">
+						<h3 class="text-xs font-bold uppercase tracking-wider text-fg-muted m-0">Curation</h3>
+						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
+							<div>
+								<span class="block text-sm font-medium text-fg">Lists</span>
+								<span class="block text-xs text-fg-muted">Show your lists section on your public profile.</span>
+							</div>
+							<ui-switch
+								[checked]="isListPublic()"
+								[disabled]="!isPublic()"
+								(checkedChange)="isListPublic.set($event); onSectionFlagChange()"
+							/>
+						</label>
+						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
+							<div>
+								<span class="block text-sm font-medium text-fg">Queue</span>
+								<span class="block text-xs text-fg-muted">Show your queue on your public profile.</span>
+							</div>
+							<ui-switch
+								[checked]="isQueuePublic()"
+								[disabled]="!isPublic()"
+								(checkedChange)="isQueuePublic.set($event); onSectionFlagChange()"
+							/>
+						</label>
+						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
+							<div>
+								<span class="block text-sm font-medium text-fg">Wishlist</span>
+								<span class="block text-xs text-fg-muted">Show your wishlist on your public profile.</span>
+							</div>
+							<ui-switch
+								[checked]="isWishlistPublic()"
+								[disabled]="!isPublic()"
+								(checkedChange)="isWishlistPublic.set($event); onSectionFlagChange()"
+							/>
+						</label>
+						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
+							<div>
+								<span class="block text-sm font-medium text-fg">Favorites</span>
+								<span class="block text-xs text-fg-muted">Show your favorites on your public profile.</span>
+							</div>
+							<ui-switch
+								[checked]="isFavoritePublic()"
+								[disabled]="!isPublic()"
+								(checkedChange)="isFavoritePublic.set($event); onSectionFlagChange()"
+							/>
+						</label>
+					</div>
+
+					<div class="flex flex-col gap-3" [class.opacity-50]="!isPublic()">
+						<h3 class="text-xs font-bold uppercase tracking-wider text-fg-muted m-0">Social</h3>
+						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
+							<div>
+								<span class="block text-sm font-medium text-fg">Activity feed</span>
+								<span class="block text-xs text-fg-muted">Show your activity in your followers' feeds.</span>
+							</div>
+							<ui-switch
+								[checked]="isFeedPublic()"
+								[disabled]="!isPublic()"
+								(checkedChange)="isFeedPublic.set($event); onSectionFlagChange()"
+							/>
+						</label>
+					</div>
+				</div>
 			}
-
-			<label
-				class="flex items-start gap-3 py-2 border-t border-line"
-				[class.cursor-pointer]="isPublic()"
-				[class.opacity-50]="!isPublic()"
-			>
-				<input
-					type="checkbox"
-					class="mt-1"
-					[ngModel]="isBacklogPublic()"
-					(ngModelChange)="isBacklogPublic.set($event)"
-					[disabled]="!isPublic()"
-				/>
-				<div>
-					<span class="block text-sm font-medium text-fg">Public backlog</span>
-					<span class="block text-xs text-fg-muted">Show your backlog on your public profile.</span>
-				</div>
-			</label>
-
-			<label
-				class="flex items-start gap-3 py-2 border-t border-line"
-				[class.cursor-pointer]="isPublic()"
-				[class.opacity-50]="!isPublic()"
-			>
-				<input
-					type="checkbox"
-					class="mt-1"
-					[ngModel]="isShelfPublic()"
-					(ngModelChange)="isShelfPublic.set($event)"
-					[disabled]="!isPublic()"
-				/>
-				<div>
-					<span class="block text-sm font-medium text-fg">Public game shelf</span>
-					<span class="block text-xs text-fg-muted">Show your game shelf on your public profile.</span>
-				</div>
-			</label>
-
-			<label
-				class="flex items-start gap-3 py-2 border-t border-line"
-				[class.cursor-pointer]="isPublic()"
-				[class.opacity-50]="!isPublic()"
-			>
-				<input
-					type="checkbox"
-					class="mt-1"
-					[ngModel]="isListPublic()"
-					(ngModelChange)="isListPublic.set($event)"
-					[disabled]="!isPublic()"
-				/>
-				<div>
-					<span class="block text-sm font-medium text-fg">Public lists</span>
-					<span class="block text-xs text-fg-muted">Show your lists section on your public profile.</span>
-				</div>
-			</label>
-
-			<label
-				class="flex items-start gap-3 py-2 border-t border-line"
-				[class.cursor-pointer]="isPublic()"
-				[class.opacity-50]="!isPublic()"
-			>
-				<input
-					type="checkbox"
-					class="mt-1"
-					[ngModel]="isQueuePublic()"
-					(ngModelChange)="isQueuePublic.set($event)"
-					[disabled]="!isPublic()"
-				/>
-				<div>
-					<span class="block text-sm font-medium text-fg">Public queue</span>
-					<span class="block text-xs text-fg-muted">Show your queue on your public profile.</span>
-				</div>
-			</label>
-
-			<label
-				class="flex items-start gap-3 py-2 border-t border-line"
-				[class.cursor-pointer]="isPublic()"
-				[class.opacity-50]="!isPublic()"
-			>
-				<input
-					type="checkbox"
-					class="mt-1"
-					[ngModel]="isWishlistPublic()"
-					(ngModelChange)="isWishlistPublic.set($event)"
-					[disabled]="!isPublic()"
-				/>
-				<div>
-					<span class="block text-sm font-medium text-fg">Public wishlist</span>
-					<span class="block text-xs text-fg-muted">Show your wishlist on your public profile.</span>
-				</div>
-			</label>
-
-			<label
-				class="flex items-start gap-3 py-2 border-t border-line"
-				[class.cursor-pointer]="isPublic()"
-				[class.opacity-50]="!isPublic()"
-			>
-				<input
-					type="checkbox"
-					class="mt-1"
-					[ngModel]="isFavoritePublic()"
-					(ngModelChange)="isFavoritePublic.set($event)"
-					[disabled]="!isPublic()"
-				/>
-				<div>
-					<span class="block text-sm font-medium text-fg">Public favorites</span>
-					<span class="block text-xs text-fg-muted">Show your favorites on your public profile.</span>
-				</div>
-			</label>
-
-			<label
-				class="flex items-start gap-3 py-2 border-t border-line"
-				[class.cursor-pointer]="isPublic()"
-				[class.opacity-50]="!isPublic()"
-			>
-				<input
-					type="checkbox"
-					class="mt-1"
-					[ngModel]="isFeedPublic()"
-					(ngModelChange)="isFeedPublic.set($event)"
-					[disabled]="!isPublic()"
-				/>
-				<div>
-					<span class="block text-sm font-medium text-fg">Public activity feed</span>
-					<span class="block text-xs text-fg-muted">Show your activity in your followers' feeds.</span>
-				</div>
-			</label>
 
 			<div class="flex justify-end pt-4 border-t border-line">
 				<button uiButton variant="primary" (click)="save()" [disabled]="saving()">

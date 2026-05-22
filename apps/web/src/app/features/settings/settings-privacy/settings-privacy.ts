@@ -1,22 +1,24 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
 } from "@angular/core";
-import { FormsModule } from "@angular/forms";
 import { AuthService } from "../../../core/services/auth.service";
 import {
 	ProfileService,
 	UpdateProfileDto
 } from "../../profile/profile.service";
 import { ToastService } from "../../../core/services/toast.service";
-import { UiButton } from "../../../shared/ui";
+import { UiButton, UiSwitch } from "../../../shared/ui";
+
+type PrivacyMode = "private" | "custom" | "open";
 
 @Component({
 	selector: "app-settings-privacy",
-	imports: [FormsModule, UiButton],
+	imports: [UiButton, UiSwitch],
 	templateUrl: "./settings-privacy.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -35,6 +37,9 @@ export class SettingsPrivacy implements OnInit {
 	protected readonly isFavoritePublic = signal(true);
 	protected readonly isFeedPublic = signal(true);
 	protected readonly saving = signal(false);
+	protected readonly mode = signal<PrivacyMode>("open");
+
+	protected readonly showCustomPanel = computed(() => this.mode() === "custom");
 
 	ngOnInit() {
 		this.authService.loadUser().subscribe(() => this.hydrate());
@@ -52,6 +57,45 @@ export class SettingsPrivacy implements OnInit {
 		this.isWishlistPublic.set(u.isWishlistPublic);
 		this.isFavoritePublic.set(u.isFavoritePublic);
 		this.isFeedPublic.set(u.isFeedPublic);
+		this.mode.set(this.deriveMode());
+	}
+
+	private deriveMode(): PrivacyMode {
+		if (!this.isPublic()) return "private";
+		const allOn =
+			this.isBacklogPublic() &&
+			this.isShelfPublic() &&
+			this.isListPublic() &&
+			this.isQueuePublic() &&
+			this.isWishlistPublic() &&
+			this.isFavoritePublic() &&
+			this.isFeedPublic();
+		return allOn ? "open" : "custom";
+	}
+
+	selectPreset(mode: PrivacyMode) {
+		this.mode.set(mode);
+		if (mode === "private") {
+			this.isPublic.set(false);
+			this.setSectionFlags(false);
+		} else if (mode === "open") {
+			this.isPublic.set(true);
+			this.setSectionFlags(true);
+		}
+	}
+
+	onSectionFlagChange() {
+		this.mode.set(this.deriveMode());
+	}
+
+	private setSectionFlags(value: boolean) {
+		this.isBacklogPublic.set(value);
+		this.isShelfPublic.set(value);
+		this.isListPublic.set(value);
+		this.isQueuePublic.set(value);
+		this.isWishlistPublic.set(value);
+		this.isFavoritePublic.set(value);
+		this.isFeedPublic.set(value);
 	}
 
 	save() {
