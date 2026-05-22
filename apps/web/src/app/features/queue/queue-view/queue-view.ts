@@ -40,6 +40,15 @@ export class QueueView implements OnInit {
 	protected readonly savingOrder = signal(false);
 	protected readonly updatingStatusIds = signal<Set<string>>(new Set());
 	protected readonly pendingPlayEntry = signal<QueueEntry | null>(null);
+	protected readonly pendingPlayStartedAt = signal<string>("");
+
+	private today(): string {
+		const now = new Date();
+		const y = now.getFullYear();
+		const m = String(now.getMonth() + 1).padStart(2, "0");
+		const d = String(now.getDate()).padStart(2, "0");
+		return `${y}-${m}-${d}`;
+	}
 
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
@@ -122,8 +131,13 @@ export class QueueView implements OnInit {
 
 	requestStatusChange(entry: QueueEntry, status: QueueStatusChange) {
 		if (status === "playing") {
+			this.pendingPlayStartedAt.set(this.today());
 			this.pendingPlayEntry.set(entry);
 		}
+	}
+
+	onPendingPlayStartedAtChange(value: string) {
+		this.pendingPlayStartedAt.set(value);
 	}
 
 	cancelPlayConfirmation() {
@@ -133,11 +147,16 @@ export class QueueView implements OnInit {
 	confirmPlay() {
 		const entry = this.pendingPlayEntry();
 		if (!entry) return;
+		const startedAt = this.pendingPlayStartedAt() || null;
 		this.pendingPlayEntry.set(null);
-		this.applyStatusChange(entry, "playing");
+		this.applyStatusChange(entry, "playing", startedAt);
 	}
 
-	private applyStatusChange(entry: QueueEntry, status: QueueStatusChange) {
+	private applyStatusChange(
+		entry: QueueEntry,
+		status: QueueStatusChange,
+		startedAt: string | null = null
+	) {
 		const backlogId = entry.backlog.id;
 		if (this.updatingStatusIds().has(backlogId)) return;
 
@@ -151,7 +170,10 @@ export class QueueView implements OnInit {
 			this.updatingStatusIds.set(next);
 		};
 
-		this.backlogService.update(backlogId, { status }).subscribe({
+		const payload: { status: string; startedAt?: string } = { status };
+		if (startedAt) payload.startedAt = startedAt;
+
+		this.backlogService.update(backlogId, payload).subscribe({
 			next: ({ queueRemoved }) => {
 				if (queueRemoved) {
 					this.entries.set(
