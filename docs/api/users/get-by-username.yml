@@ -18,10 +18,14 @@ docs: |-
     ## Get User by Username
 
     Returns the public profile of a user by their username, including their public backlogs, lists, favorites, queue and wishlist.
-    The user must have `isPublic` set to `true` to be visible.
-    Favorites, queue and wishlist are only included if the user has `isFavoritePublic` / `isQueuePublic` / `isWishlistPublic` set to `true`.
 
-    **Authentication:** Not required.
+    If the user's `isPublic` is `false` and the requester is not the user themselves, the response returns a minimal payload with `isPrivate: true` plus `user` (id, username, name, bio, avatarUrl), `followerCount`, `followingCount`, and `isFollowing` — so the avatar can still be displayed.
+
+    When the authenticated requester is the same as the requested user (self view), all data is returned regardless of `isPublic` and per-section visibility flags.
+
+    Favorites, queue and wishlist are only included if `isFavoritePublic` / `isQueuePublic` / `isWishlistPublic` are `true` (or the requester is self).
+
+    **Authentication:** Optional (used to detect self).
     **Rate Limit:** 100 requests per minute.
 
     ### Path Parameters
@@ -56,9 +60,28 @@ docs: |-
     }
     ```
 
+    ### Response (200, private profile)
+
+    ```json
+    {
+      "data": {
+        "user": {
+          "id": "uuid",
+          "username": "johndoe",
+          "name": "John Doe",
+          "bio": "Gamer since 1990",
+          "avatarUrl": "https://example.com/avatar.png"
+        },
+        "isPrivate": true,
+        "followerCount": 12,
+        "followingCount": 8,
+        "isFollowing": false
+      }
+    }
+    ```
+
     ### Errors
 
     | Status | Code          | Description               |
     |--------|---------------|---------------------------|
     | 404    | USER_NOT_FOUND| User does not exist       |
-    | 403    | USER_PRIVATE  | User profile is private   |
