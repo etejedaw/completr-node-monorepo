@@ -1,22 +1,12 @@
 import { Routes } from "@angular/router";
 import { authGuard } from "./core/guards/auth.guard";
 import { guestGuard } from "./core/guards/guest.guard";
+import { guestMatch } from "./core/guards/guest.match";
+import { selfProfileRedirect } from "./core/guards/self-profile-redirect.guard";
 import { adminGuard } from "./core/guards/admin.guard";
 import { moderatorGuard } from "./core/guards/moderator.guard";
 
-export const routes: Routes = [
-	{
-		path: "login",
-		canActivate: [guestGuard],
-		loadComponent: () =>
-			import("./features/auth/login/login").then(m => m.Login)
-	},
-	{
-		path: "register",
-		canActivate: [guestGuard],
-		loadComponent: () =>
-			import("./features/auth/register/register").then(m => m.Register)
-	},
+const publicProfileRoutes: Routes = [
 	{
 		path: "user/:username",
 		loadComponent: () =>
@@ -60,23 +50,40 @@ export const routes: Routes = [
 			)
 	},
 	{
-		path: "user/:username/lists/:id",
-		redirectTo: ({ params }) =>
-			`/lists/${params["id"]}?from=${params["username"]}`
-	},
-	{
 		path: "user/:username/reviews",
 		loadComponent: () =>
 			import("./features/public-profile/user-reviews/user-reviews").then(
 				m => m.UserReviews
 			)
+	}
+];
+
+export const routes: Routes = [
+	{
+		path: "login",
+		canActivate: [guestGuard],
+		loadComponent: () =>
+			import("./features/auth/login/login").then(m => m.Login)
 	},
+	{
+		path: "register",
+		canActivate: [guestGuard],
+		loadComponent: () =>
+			import("./features/auth/register/register").then(m => m.Register)
+	},
+	{
+		path: "user/:username/lists/:id",
+		redirectTo: ({ params }) =>
+			`/lists/${params["id"]}?from=${params["username"]}`
+	},
+	...publicProfileRoutes.map(route => ({ ...route, canMatch: [guestMatch] })),
 	{
 		path: "",
 		canActivate: [authGuard],
 		loadComponent: () => import("./layout/layout").then(m => m.Layout),
 		children: [
 			{ path: "", redirectTo: "feed", pathMatch: "full" },
+			...publicProfileRoutes,
 			{
 				path: "feed",
 				loadComponent: () =>
@@ -173,10 +180,8 @@ export const routes: Routes = [
 			},
 			{
 				path: "profile",
-				loadComponent: () =>
-					import("./features/profile/profile-view/profile-view").then(
-						m => m.ProfileView
-					)
+				canActivate: [selfProfileRedirect],
+				children: []
 			},
 			{
 				path: "settings",
