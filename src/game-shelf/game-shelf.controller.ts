@@ -54,12 +54,15 @@ export async function getUserGameShelf(request: Request, response: Response) {
 
 	const user = await usersService.findUserByUsername(username);
 	if (!user) throw userDomainError.userNotFound();
-	if (!user.isPublic) throw userDomainError.userPrivate();
 
-	const { rows, total } = await gameShelfService.findPublicGameShelfByUserId(
-		user.id,
-		query
-	);
+	const currentUser = request.locals.user as RequestUser | undefined;
+	const isSelf = currentUser?.id === user.id;
+
+	if (!user.isPublic && !isSelf) throw userDomainError.userPrivate();
+
+	const { rows, total } = isSelf
+		? await gameShelfService.findGameShelfByUserIdPaginated(user.id, query)
+		: await gameShelfService.findPublicGameShelfByUserId(user.id, query);
 	const gameShelfPlain = rows.map(item => item.get({ plain: true }));
 
 	const data = { gameShelf: gameShelfPlain.map(gameShelfSerializer), total };

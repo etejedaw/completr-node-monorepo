@@ -49,8 +49,12 @@ export async function getUserFavorites(request: Request, response: Response) {
 
 	const user = await usersService.findUserByUsername(params.username);
 	if (!user) throw userDomainError.userNotFound();
-	if (!user.isPublic) throw userDomainError.userPrivate();
-	if (!user.isFavoritePublic) throw userDomainError.userPrivate();
+
+	const currentUser = request.locals.user as RequestUser | undefined;
+	const isSelf = currentUser?.id === user.id;
+
+	if (!user.isPublic && !isSelf) throw userDomainError.userPrivate();
+	if (!user.isFavoritePublic && !isSelf) throw userDomainError.userPrivate();
 
 	const { rows, total } =
 		await favoritesService.findFavoritesByUserIdPaginated(user.id, query);

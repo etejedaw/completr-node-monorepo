@@ -66,8 +66,12 @@ export async function getUserQueue(request: Request, response: Response) {
 
 	const user = await usersService.findUserByUsername(params.username);
 	if (!user) throw userDomainError.userNotFound();
-	if (!user.isPublic) throw userDomainError.userPrivate();
-	if (!user.isQueuePublic) throw userDomainError.userPrivate();
+
+	const currentUser = request.locals.user as RequestUser | undefined;
+	const isSelf = currentUser?.id === user.id;
+
+	if (!user.isPublic && !isSelf) throw userDomainError.userPrivate();
+	if (!user.isQueuePublic && !isSelf) throw userDomainError.userPrivate();
 
 	const { rows, total } = await queueService.findQueueByUserIdPaginated(
 		user.id,
