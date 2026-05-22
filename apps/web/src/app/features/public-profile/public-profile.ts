@@ -38,6 +38,7 @@ export class PublicProfileComponent implements OnInit {
 		() => this.authService.user()?.id === this.profile()?.user.id
 	);
 	protected readonly togglingFollow = signal(false);
+	protected readonly showUnfollowConfirm = signal(false);
 	protected readonly isWide = signal(false);
 	protected readonly activeTab = signal("activity");
 	protected readonly roleBadge = computed(() => {
@@ -119,7 +120,21 @@ export class PublicProfileComponent implements OnInit {
 		});
 	}
 
-	toggleFollow() {
+	onFollowButtonClick() {
+		const p = this.profile();
+		if (!p || this.togglingFollow()) return;
+		if (p.isFollowing) {
+			this.showUnfollowConfirm.set(true);
+			return;
+		}
+		this.toggleFollow();
+	}
+
+	confirmUnfollow() {
+		this.toggleFollow();
+	}
+
+	private toggleFollow() {
 		const p = this.profile();
 		const u = this.username();
 		if (!p || this.togglingFollow()) return;
@@ -143,6 +158,7 @@ export class PublicProfileComponent implements OnInit {
 						: prev
 				);
 				this.togglingFollow.set(false);
+				this.showUnfollowConfirm.set(false);
 			},
 			error: () => this.togglingFollow.set(false)
 		});
