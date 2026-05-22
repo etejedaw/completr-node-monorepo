@@ -86,9 +86,11 @@
 				[showActions]="true"
 				[isFirst]="sortBy() !== 'manual' || i === 0"
 				[isLast]="sortBy() !== 'manual' || i === filteredEntries().length - 1"
+				[statusUpdating]="isUpdatingStatus(entry)"
 				(moveUp)="moveUp(i)"
 				(moveDown)="moveDown(i)"
 				(remove)="remove(entry)"
+				(statusChange)="onStatusChange(entry, $event)"
 			/>
 		}
 	</div>

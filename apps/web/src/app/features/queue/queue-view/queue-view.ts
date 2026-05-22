@@ -8,9 +8,13 @@ import {
 } from "@angular/core";
 import { QueueEntry } from "../../../core/models";
 import { QueueService } from "../queue.service";
+import { BacklogService } from "../../backlog/backlog.service";
 import { QueueAddModal } from "../queue-add-modal/queue-add-modal";
 import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
-import { QueueGridCard } from "../../../shared/components/queue-grid-card/queue-grid-card";
+import {
+	QueueGridCard,
+	QueueStatusChange
+} from "../../../shared/components/queue-grid-card/queue-grid-card";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
@@ -21,6 +25,7 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 })
 export class QueueView implements OnInit {
 	private readonly queueService = inject(QueueService);
+	private readonly backlogService = inject(BacklogService);
 
 	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -33,6 +38,7 @@ export class QueueView implements OnInit {
 		"manual" | "ratio" | "score" | "duration"
 	>("manual");
 	protected readonly savingOrder = signal(false);
+	protected readonly updatingStatusIds = signal<Set<string>>(new Set());
 
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
@@ -107,6 +113,38 @@ export class QueueView implements OnInit {
 
 	onAddModalSaved() {
 		this.loadQueue();
+	}
+
+	isUpdatingStatus(entry: QueueEntry): boolean {
+		return this.updatingStatusIds().has(entry.backlog.id);
+	}
+
+	onStatusChange(entry: QueueEntry, status: QueueStatusChange) {
+		const backlogId = entry.backlog.id;
+		if (this.updatingStatusIds().has(backlogId)) return;
+
+		const updating = new Set(this.updatingStatusIds());
+		updating.add(backlogId);
+		this.updatingStatusIds.set(updating);
+
+		const clearUpdating = () => {
+			const next = new Set(this.updatingStatusIds());
+			next.delete(backlogId);
+			this.updatingStatusIds.set(next);
+		};
+
+		this.backlogService.update(backlogId, { status }).subscribe({
+			next: ({ queueRemoved }) => {
+				if (queueRemoved) {
+					this.entries.set(
+						this.entries().filter(e => e.backlog.id !== backlogId)
+					);
+					this.total.set(Math.max(0, this.total() - 1));
+				}
+				clearUpdating();
+			},
+			error: clearUpdating
+		});
 	}
 
 	remove(entry: QueueEntry) {

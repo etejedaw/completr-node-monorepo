@@ -20,26 +20,30 @@ export interface QueueGridEntry {
 	duration?: number | null;
 }
 
+export type QueueStatusChange = "playing";
+
 @Component({
 	selector: "app-queue-grid-card",
 	standalone: true,
 	imports: [RouterLink, UiIconButton],
 	template: `
 		<div class="flex flex-col gap-1.5 group">
-			<a class="block relative" [routerLink]="['/games', entry().game.code]">
-				@if (entry().game.backgroundUrl) {
-					<img
-						[src]="entry().game.backgroundUrl"
-						[alt]="entry().game.title"
-						class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition-transform group-hover:scale-[1.03]"
-					/>
-				} @else {
-					<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-				}
-				<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm">
+			<div class="block relative">
+				<a [routerLink]="['/games', entry().game.code]" class="block">
+					@if (entry().game.backgroundUrl) {
+						<img
+							[src]="entry().game.backgroundUrl"
+							[alt]="entry().game.title"
+							class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition-transform group-hover:scale-[1.03]"
+						/>
+					} @else {
+						<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+					}
+				</a>
+				<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm pointer-events-none">
 					#{{ position() }}
 				</span>
-				<div class="absolute top-2 right-2 flex flex-col items-end gap-1">
+				<div class="absolute top-2 right-2 flex flex-col items-end gap-1 pointer-events-none">
 					@if (entry().ratio) {
 						<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-brand/85 backdrop-blur-sm">
 							{{ entry().ratio }}
@@ -51,7 +55,22 @@ export interface QueueGridEntry {
 						</span>
 					}
 				</div>
-			</a>
+				@if (showActions()) {
+					<div
+						class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition pointer-events-none group-hover:pointer-events-auto"
+					>
+						<button
+							uiIconButton size="sm"
+							class="hover:!text-warning"
+							(click)="statusChange.emit('playing')"
+							[disabled]="statusUpdating()"
+							title="Mark as playing"
+						>
+							<span class="material-icons text-base">play_arrow</span>
+						</button>
+					</div>
+				}
+			</div>
 			<a
 				class="text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand"
 				[routerLink]="['/games', entry().game.code]"
@@ -98,8 +117,10 @@ export class QueueGridCard {
 	showActions = input<boolean>(false);
 	isFirst = input<boolean>(false);
 	isLast = input<boolean>(false);
+	statusUpdating = input<boolean>(false);
 
 	moveUp = output<void>();
 	moveDown = output<void>();
 	remove = output<void>();
+	statusChange = output<QueueStatusChange>();
 }
