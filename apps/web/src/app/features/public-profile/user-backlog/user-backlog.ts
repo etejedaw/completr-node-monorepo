@@ -92,6 +92,8 @@ export class UserBacklog implements OnInit {
 	private init() {
 		const username = this.route.snapshot.paramMap.get("username") ?? "";
 		this.username.set(username);
+		const status = this.route.snapshot.queryParamMap.get("status") ?? "";
+		this.activeStatus.set(status);
 		this.load();
 	}
 

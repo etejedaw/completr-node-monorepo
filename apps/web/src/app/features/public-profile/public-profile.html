@@ -89,34 +89,49 @@
 		</div>
 
 		<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-			<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1">
+			<a
+				[routerLink]="['/user', username(), 'backlog']"
+				[queryParams]="{ status: 'completed' }"
+				class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1 no-underline text-inherit transition hover:border-brand"
+			>
 				<div class="flex items-center gap-2 text-xs uppercase tracking-wider text-fg-muted">
 					<span class="material-icons text-base text-success">check_circle</span>
 					Completed
 				</div>
 				<span class="text-3xl font-bold text-fg leading-none mt-1">{{ stats().completed }}</span>
-			</div>
-			<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1">
+			</a>
+			<a
+				[routerLink]="['/user', username(), 'backlog']"
+				[queryParams]="{ status: 'playing' }"
+				class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1 no-underline text-inherit transition hover:border-brand"
+			>
 				<div class="flex items-center gap-2 text-xs uppercase tracking-wider text-fg-muted">
 					<span class="material-icons text-base text-warning">play_arrow</span>
 					Playing
 				</div>
 				<span class="text-3xl font-bold text-fg leading-none mt-1">{{ stats().playing }}</span>
-			</div>
-			<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1">
+			</a>
+			<button
+				type="button"
+				(click)="activeTab.set('lists')"
+				class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1 text-left cursor-pointer transition hover:border-brand"
+			>
 				<div class="flex items-center gap-2 text-xs uppercase tracking-wider text-fg-muted">
 					<span class="material-icons text-base text-brand">format_list_bulleted</span>
 					Lists
 				</div>
 				<span class="text-3xl font-bold text-fg leading-none mt-1">{{ stats().lists }}</span>
-			</div>
-			<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1">
+			</button>
+			<a
+				[routerLink]="['/user', username(), 'reviews']"
+				class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1 no-underline text-inherit transition hover:border-brand"
+			>
 				<div class="flex items-center gap-2 text-xs uppercase tracking-wider text-fg-muted">
 					<span class="material-icons text-base text-fg-secondary">rate_review</span>
 					Reviews
 				</div>
 				<span class="text-3xl font-bold text-fg leading-none mt-1">{{ stats().reviews }}</span>
-			</div>
+			</a>
 		</div>
 
 		<div [class]="profile()!.user.isFeedPublic ? 'lg:grid lg:grid-cols-[320px_1fr] lg:gap-8 lg:items-start' : ''">
