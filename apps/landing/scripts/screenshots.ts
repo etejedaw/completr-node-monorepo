@@ -45,6 +45,12 @@ async function main() {
 	await capture(page, "/games", "games");
 	await capture(page, "/backlog", "backlog");
 	await capture(page, "/profile", "profile");
+	await capture(page, "/games/resident-evil-requiem", "game-detail");
+	await capture(
+		page,
+		"/lists/8c6039e9-03a4-4535-b573-caac76d033aa",
+		"list-detail"
+	);
 
 	await browser.close();
 }
