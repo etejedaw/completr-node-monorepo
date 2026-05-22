@@ -85,3 +85,68 @@
 - Evaluar si el endpoint actual (`PUT /users/me/favorites` con array completo de IDs) es suficiente para uso intensivo, o si conviene agregar `POST /users/me/favorites/:gameId` y `DELETE /users/me/favorites/:gameId` para acciones atómicas
 
 **Estado:** pendiente
+
+## FB-007 — Reviews puntuables (helpful votes)
+
+**Reporte:** "quizás sería bueno poder puntuar las reviews de los juegos, para que algunas tengan menos peso que otras"
+
+**Target:** Fase 4-5 (necesita masa crítica de reviews antes de que tenga sentido)
+
+**Alcance:**
+
+- Modelo `ReviewVote(id, reviewId, userId, vote: 'up' | 'down', createdAt)` con unique `(reviewId, userId)`
+- Endpoints `POST /reviews/:id/vote`, `DELETE /reviews/:id/vote`
+- Serializar reviews con `upvotes`, `downvotes`, `myVote`
+- Ordenar reviews por relevancia (votos netos) por defecto en la ficha del juego
+- Posible: usar el ratio de votos como peso para el `community score` agregado
+
+**Estado:** pendiente
+
+## FB-008 — Recomendaciones de juegos según reviews del usuario
+
+**Reporte:** "Probablemente mucho leseo, pero me gustaría que en el feed me recomendara juegos que me podrían gustar según mis reviews"
+
+**Target:** Fase 6+ (necesita data y algoritmo)
+
+**Alcance:**
+
+- Algoritmo inicial sencillo: collaborative filtering basado en juegos co-completados por usuarios con gustos similares (jaccard sobre completados/favoritos)
+- Alternativa: content-based usando géneros + plataformas + rangos de score que el usuario tiende a valorar bien
+- Endpoint `GET /games/recommendations` paginado
+- Integrar en el feed como sección "Recommended for you" (no se mezcla con activity stream)
+- Premium-only o gratis: decidir según interés
+
+**Estado:** pendiente
+
+## FB-009 — Performance de la pantalla de Games con muchos usuarios
+
+**Reporte:** "Si la pantalla de Games cambia según todos los usuarios, me imagino que al tener muchos debe ser un horror"
+
+**Target:** Fase 5 (estabilización y calidad)
+
+**Contexto:** Hoy `/games` carga "Latest games", "Latest reviewed", "Random genre", "Official lists", "Recent lists". Cada uno es una query separada. Con muchos usuarios y muchos juegos, "Latest reviewed" en particular puede pegarle a los índices y `findAll` con includes anidados.
+
+**Alcance:**
+
+- Cachear las secciones que no son user-specific (latest games, official lists, random genre del día) con TTL corto (5-15 min)
+- Revisar índices sobre `Reviews.createdAt`, `GameGenres`, `GamePlatforms` para garantizar uso de índice en las queries del browse
+- Considerar paginación o lazy-load de secciones secundarias al hacer scroll en vez de cargar todas al inicio
+
+**Estado:** pendiente
+
+## FB-010 — Diseño del logo
+
+**Reporte:** "logo feo, pero lo ignoro porque no creo que lo hayas hecho todavía"
+
+**Target:** Fase 3 o cuando haya bandwidth de diseño
+
+**Contexto:** El logo actual es un placeholder (cuadrado "C" con gradient brand). El user reconoce que es provisorio. Diferir hasta tener identidad visual definida.
+
+**Alcance:**
+
+- Definir identidad visual del producto (paleta, tono, target audience visual)
+- Encargar/diseñar logo + variantes (icon-only, full lockup, dark/light)
+- Actualizar favicons, PWA icons, og:image, social cards
+- Reemplazar el placeholder en `layout.html` (esquina superior izquierda del sidebar)
+
+**Estado:** pendiente
