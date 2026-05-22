@@ -43,9 +43,8 @@ export function mapRawgPlatformSlugs(rawgSlugs: string[]): string[] {
 	const codes: string[] = [];
 
 	for (const slug of rawgSlugs) {
-		if (slug === "pc") {
-			codes.push(...PC_PLATFORMS);
-		} else {
+		if (slug === "pc") codes.push(...PC_PLATFORMS);
+		else {
 			const mapped = RAWG_PLATFORM_MAP[slug];
 			if (mapped) codes.push(mapped);
 		}
