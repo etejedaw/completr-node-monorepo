@@ -50,7 +50,9 @@ export class AuthService {
 
 	private readonly _user = signal<User | null>(null);
 	readonly user = this._user.asReadonly();
-	readonly isLoggedIn = computed(() => this._user() !== null);
+	readonly isLoggedIn = computed(
+		() => this._user() !== null || this.storage.get(TOKEN_KEY) !== null
+	);
 
 	token(): string | null {
 		return this.storage.get(TOKEN_KEY);
