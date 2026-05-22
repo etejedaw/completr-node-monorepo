@@ -11,7 +11,11 @@ import * as gameShelfService from "../game-shelf/game-shelf.service";
 import * as activityService from "../activity/activity.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import * as listFollowersService from "../list-followers/list-followers.service";
-import { userMeSerializer, userProfileSerializer } from "./users.serializer";
+import {
+	userMeSerializer,
+	userProfileSerializer,
+	userPublicSerializer
+} from "./users.serializer";
 import {
 	backlogSerializer,
 	backlogPublicSerializer
@@ -51,7 +55,24 @@ export async function getUserByUsername(request: Request, response: Response) {
 	const currentUser = request.locals.user as RequestUser | undefined;
 	const isSelf = currentUser?.id === user.id;
 
-	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
+	if (!user.isPublic && !isSelf) {
+		const [followerCount, followingCount, isFollowing] = await Promise.all([
+			userFollowersService.getFollowerCount(user.id),
+			userFollowersService.getFollowingCount(user.id),
+			currentUser
+				? userFollowersService.isFollowing(currentUser.id, user.id)
+				: Promise.resolve(false)
+		]);
+
+		const data = {
+			user: userPublicSerializer(user.get({ plain: true })),
+			isPrivate: true,
+			followerCount,
+			followingCount,
+			isFollowing
+		};
+		return response.status(200).json({ data });
+	}
 
 	const userId = user.id;
 
@@ -234,7 +255,11 @@ export async function getUserFollowingLists(
 
 	const user = await usersService.findUserByUsername(params.username);
 	if (!user) throw userDomain.userNotFound();
-	if (!user.isPublic) throw userDomain.userPrivate();
+
+	const currentUser = request.locals.user as RequestUser | undefined;
+	const isSelf = currentUser?.id === user.id;
+
+	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
 
 	const { rows, total } =
 		await listFollowersService.getFollowingListsPaginated(user.id, query);
@@ -252,7 +277,11 @@ export async function getUserListDetail(request: Request, response: Response) {
 
 	const user = await usersService.findUserByUsername(params.username);
 	if (!user) throw userDomain.userNotFound();
-	if (!user.isPublic) throw userDomain.userPrivate();
+
+	const currentUser = request.locals.user as RequestUser | undefined;
+	const isSelf = currentUser?.id === user.id;
+
+	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
 
 	const list = await listsService.findListById(params.listId);
 	if (!list) throw userDomain.userNotFound();
@@ -290,7 +319,11 @@ export async function getUserReviews(request: Request, response: Response) {
 
 	const user = await usersService.findUserByUsername(params.username);
 	if (!user) throw userDomain.userNotFound();
-	if (!user.isPublic) throw userDomain.userPrivate();
+
+	const currentUser = request.locals.user as RequestUser | undefined;
+	const isSelf = currentUser?.id === user.id;
+
+	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
 
 	const { rows, count } = await reviewsService.findReviewsByUserIdPaginated(
 		user.id,

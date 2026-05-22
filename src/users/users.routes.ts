@@ -122,6 +122,7 @@ router.get(
 	"/users/:username/game-shelf",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -134,6 +135,7 @@ router.get(
 	"/users/:username/backlog",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(BacklogQuerySchema, "query")
 	],
@@ -148,6 +150,7 @@ router.get(
 	"/users/:username/queue",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -160,6 +163,7 @@ router.get(
 	"/users/:username/wishlist",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -172,6 +176,7 @@ router.get(
 	"/users/:username/favorites",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -182,6 +187,7 @@ router.get(
 	"/users/:username/following-lists",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -192,6 +198,7 @@ router.get(
 	"/users/:username/reviews",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],

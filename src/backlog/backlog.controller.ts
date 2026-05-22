@@ -65,12 +65,15 @@ export async function getUserBacklog(request: Request, response: Response) {
 
 	const user = await usersService.findUserByUsername(params.username);
 	if (!user) throw userDomainError.userNotFound();
-	if (!user.isPublic) throw userDomainError.userPrivate();
 
-	const { rows, total } = await backlogService.findPublicBacklogByUserId(
-		user.id,
-		query
-	);
+	const currentUser = request.locals.user as RequestUser | undefined;
+	const isSelf = currentUser?.id === user.id;
+
+	if (!user.isPublic && !isSelf) throw userDomainError.userPrivate();
+
+	const { rows, total } = isSelf
+		? await backlogService.findBacklogByUserId(user.id, query)
+		: await backlogService.findPublicBacklogByUserId(user.id, query);
 	const backlogPlain = rows.map(backlog => backlog.get({ plain: true }));
 
 	const reviews = await reviewsService.findReviewsByUserId(user.id);
@@ -78,7 +81,12 @@ export async function getUserBacklog(request: Request, response: Response) {
 
 	const data = {
 		backlog: backlogPlain.map(entry =>
-			backlogPublicSerializer(entry, reviewByGameId.get(entry.gameId))
+			isSelf
+				? backlogSerializer(entry, reviewByGameId.get(entry.gameId))
+				: backlogPublicSerializer(
+						entry,
+						reviewByGameId.get(entry.gameId)
+					)
 		),
 		total
 	};
