@@ -40,6 +40,24 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly togglingFollow = signal(false);
 	protected readonly isWide = signal(false);
 	protected readonly activeTab = signal("activity");
+	protected readonly roleBadge = computed(() => {
+		const role = this.profile()?.user.role;
+		if (!role || role === "user") return null;
+		const map: Record<string, string> = {
+			admin: "Admin",
+			moderator: "Mod",
+			premium: "Premium"
+		};
+		return map[role] ?? null;
+	});
+	protected readonly roleBadgeClass = computed(() => {
+		const role = this.profile()?.user.role;
+		if (role === "admin") return "bg-danger/15 text-danger";
+		if (role === "moderator")
+			return "bg-[rgba(168,85,247,0.15)] text-[#a855f7]";
+		if (role === "premium") return "bg-warning/15 text-warning";
+		return "bg-[rgba(148,163,184,0.15)] text-fg-muted";
+	});
 	protected readonly stats = computed(() => {
 		const p = this.profile();
 		if (!p) return { completed: 0, playing: 0, lists: 0, reviews: 0 };

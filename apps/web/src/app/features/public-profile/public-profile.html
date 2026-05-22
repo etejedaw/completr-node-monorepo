@@ -54,6 +54,9 @@
 			<div class="flex-1 min-w-0">
 				<div class="flex items-center justify-center md:justify-start gap-2.5 mb-0.5 flex-wrap">
 					<h1 class="font-display text-2xl md:text-3xl font-bold tracking-tight m-0">{{ profile()!.user.name || profile()!.user.username }}</h1>
+					@if (roleBadge(); as badge) {
+						<span class="inline-block px-1.5 py-0.5 rounded-full text-[0.5625rem] font-bold uppercase tracking-wider" [class]="roleBadgeClass()">{{ badge }}</span>
+					}
 				</div>
 				<span class="text-sm text-fg-muted">{{ '@' + profile()!.user.username }}</span>
 				@if (profile()!.user.bio) {
