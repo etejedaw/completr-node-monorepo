@@ -13,6 +13,9 @@ export function userMeSerializer(user: User) {
 		isWishlistPublic: user.isWishlistPublic,
 		isFavoritePublic: user.isFavoritePublic,
 		isFeedPublic: user.isFeedPublic,
+		isBacklogPublic: user.isBacklogPublic,
+		isShelfPublic: user.isShelfPublic,
+		isListPublic: user.isListPublic,
 		theme: user.theme,
 		createdAt: user.createdAt
 	};
@@ -40,6 +43,9 @@ export function userProfileSerializer(user: User) {
 		isWishlistPublic: user.isWishlistPublic,
 		isFavoritePublic: user.isFavoritePublic,
 		isFeedPublic: user.isFeedPublic,
+		isBacklogPublic: user.isBacklogPublic,
+		isShelfPublic: user.isShelfPublic,
+		isListPublic: user.isListPublic,
 		createdAt: user.createdAt
 	};
 }

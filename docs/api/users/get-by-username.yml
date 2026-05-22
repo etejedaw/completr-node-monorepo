@@ -23,7 +23,7 @@ docs: |-
 
     When the authenticated requester is the same as the requested user (self view), all data is returned regardless of `isPublic` and per-section visibility flags.
 
-    Favorites, queue and wishlist are only included if `isFavoritePublic` / `isQueuePublic` / `isWishlistPublic` are `true` (or the requester is self).
+    Favorites, queue and wishlist are only included if `isFavoritePublic` / `isQueuePublic` / `isWishlistPublic` are `true` (or the requester is self). Backlog, game shelf and lists are only included if `isBacklogPublic` / `isShelfPublic` / `isListPublic` are `true` (or the requester is self).
 
     **Authentication:** Optional (used to detect self).
     **Rate Limit:** 100 requests per minute.
@@ -49,6 +49,9 @@ docs: |-
           "isQueuePublic": true,
           "isWishlistPublic": true,
           "isFavoritePublic": true,
+          "isBacklogPublic": true,
+          "isShelfPublic": true,
+          "isListPublic": true,
           "createdAt": "2026-01-01T00:00:00.000Z"
         },
         "backlogs": [],

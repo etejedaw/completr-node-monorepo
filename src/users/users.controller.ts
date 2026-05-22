@@ -92,11 +92,23 @@ export async function getUserByUsername(request: Request, response: Response) {
 	] = await Promise.all([
 		isSelf
 			? backlogService.findBacklogByUserId(userId)
-			: backlogService.findPublicBacklogByUserId(userId),
-		backlogService.countBacklogByStatus(userId, !isSelf),
+			: user.isBacklogPublic
+				? backlogService.findPublicBacklogByUserId(userId)
+				: Promise.resolve({ rows: [], total: 0 }),
+		isSelf || user.isBacklogPublic
+			? backlogService.countBacklogByStatus(userId, !isSelf)
+			: Promise.resolve({
+					not_started: 0,
+					playing: 0,
+					completed: 0,
+					abandoned: 0,
+					total: 0
+				}),
 		isSelf
 			? listsService.findListsByUserId(currentUser!).then(r => r.lists)
-			: listsService.findPublicListsByUserId(userId),
+			: user.isListPublic
+				? listsService.findPublicListsByUserId(userId)
+				: Promise.resolve([]),
 		isSelf || user.isFavoritePublic
 			? favoritesService.findFavoritesByUserId(userId)
 			: Promise.resolve([]),
@@ -111,7 +123,9 @@ export async function getUserByUsername(request: Request, response: Response) {
 					rows: entries,
 					total: entries.length
 				}))
-			: gameShelfService.findPublicGameShelfByUserId(userId),
+			: user.isShelfPublic
+				? gameShelfService.findPublicGameShelfByUserId(userId)
+				: Promise.resolve({ rows: [], total: 0 }),
 		listFollowersService.getFollowingLists(userId),
 		isSelf || user.isFeedPublic
 			? activityService.getUserActivity(userId)

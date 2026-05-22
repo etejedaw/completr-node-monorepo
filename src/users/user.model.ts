@@ -16,6 +16,9 @@ class User extends Model {
 	declare isWishlistPublic: boolean;
 	declare isFavoritePublic: boolean;
 	declare isFeedPublic: boolean;
+	declare isBacklogPublic: boolean;
+	declare isShelfPublic: boolean;
+	declare isListPublic: boolean;
 	declare theme: string;
 	declare isActive: boolean;
 	declare createdAt: Date;
@@ -69,6 +72,18 @@ User.init(
 			defaultValue: true
 		},
 		isFeedPublic: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: true
+		},
+		isBacklogPublic: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: true
+		},
+		isShelfPublic: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: true
+		},
+		isListPublic: {
 			type: DataTypes.BOOLEAN,
 			defaultValue: true
 		},

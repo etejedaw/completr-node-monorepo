@@ -11,6 +11,9 @@ export const UpdateUserSchema = z
 		isWishlistPublic: z.boolean().optional(),
 		isFavoritePublic: z.boolean().optional(),
 		isFeedPublic: z.boolean().optional(),
+		isBacklogPublic: z.boolean().optional(),
+		isShelfPublic: z.boolean().optional(),
+		isListPublic: z.boolean().optional(),
 		theme: z.enum(THEME_IDS as [string, ...string[]]).optional()
 	})
 	.strict()

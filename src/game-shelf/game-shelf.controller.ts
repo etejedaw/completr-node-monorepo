@@ -59,6 +59,7 @@ export async function getUserGameShelf(request: Request, response: Response) {
 	const isSelf = currentUser?.id === user.id;
 
 	if (!user.isPublic && !isSelf) throw userDomainError.userPrivate();
+	if (!isSelf && !user.isShelfPublic) throw userDomainError.userPrivate();
 
 	const { rows, total } = isSelf
 		? await gameShelfService.findGameShelfByUserIdPaginated(user.id, query)

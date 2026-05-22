@@ -70,6 +70,7 @@ export async function getUserBacklog(request: Request, response: Response) {
 	const isSelf = currentUser?.id === user.id;
 
 	if (!user.isPublic && !isSelf) throw userDomainError.userPrivate();
+	if (!isSelf && !user.isBacklogPublic) throw userDomainError.userPrivate();
 
 	const { rows, total } = isSelf
 		? await backlogService.findBacklogByUserId(user.id, query)
