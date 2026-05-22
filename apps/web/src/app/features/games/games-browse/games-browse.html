@@ -129,7 +129,17 @@
 			@if (isLoadingFiltered()) {
 				<p class="text-fg-muted text-sm">Loading...</p>
 			} @else if (filteredGames().length === 0) {
-				<p class="text-fg-muted text-sm">No games match the filters.</p>
+				<div class="flex flex-col items-center text-center py-16 px-4 bg-surface border border-line rounded-card">
+					<div class="flex items-center justify-center w-14 h-14 bg-input-bg rounded-full mb-4">
+						<span class="material-icons text-3xl text-fg-muted">search_off</span>
+					</div>
+					<h3 class="font-display m-0 mb-1 text-fg text-lg">No games match these filters</h3>
+					<p class="text-fg-muted text-sm mb-4 max-w-md">Try removing some filters or use the search above to find a specific game.</p>
+					<button uiButton variant="secondary" size="sm" (click)="clearFilters()">
+						<span class="material-icons">close</span>
+						Clear filters
+					</button>
+				</div>
 			} @else {
 				<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 					@for (game of filteredGames(); track game.id) {
