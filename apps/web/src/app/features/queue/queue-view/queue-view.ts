@@ -39,6 +39,7 @@ export class QueueView implements OnInit {
 	>("manual");
 	protected readonly savingOrder = signal(false);
 	protected readonly updatingStatusIds = signal<Set<string>>(new Set());
+	protected readonly pendingPlayEntry = signal<QueueEntry | null>(null);
 
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
@@ -119,7 +120,24 @@ export class QueueView implements OnInit {
 		return this.updatingStatusIds().has(entry.backlog.id);
 	}
 
-	onStatusChange(entry: QueueEntry, status: QueueStatusChange) {
+	requestStatusChange(entry: QueueEntry, status: QueueStatusChange) {
+		if (status === "playing") {
+			this.pendingPlayEntry.set(entry);
+		}
+	}
+
+	cancelPlayConfirmation() {
+		this.pendingPlayEntry.set(null);
+	}
+
+	confirmPlay() {
+		const entry = this.pendingPlayEntry();
+		if (!entry) return;
+		this.pendingPlayEntry.set(null);
+		this.applyStatusChange(entry, "playing");
+	}
+
+	private applyStatusChange(entry: QueueEntry, status: QueueStatusChange) {
 		const backlogId = entry.backlog.id;
 		if (this.updatingStatusIds().has(backlogId)) return;
 

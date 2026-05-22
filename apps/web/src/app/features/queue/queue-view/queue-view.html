@@ -90,7 +90,7 @@
 				(moveUp)="moveUp(i)"
 				(moveDown)="moveDown(i)"
 				(remove)="remove(entry)"
-				(statusChange)="onStatusChange(entry, $event)"
+				(statusChange)="requestStatusChange(entry, $event)"
 			/>
 		}
 	</div>
@@ -109,4 +109,30 @@
 	(closed)="onAddModalClosed()"
 	(saved)="onAddModalSaved()"
 />
+}
+
+@if (pendingPlayEntry(); as pending) {
+<div class="modal-overlay" (click)="cancelPlayConfirmation()">
+	<div
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[420px] flex flex-col gap-4"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
+		(click)="$event.stopPropagation()"
+	>
+		<h2 class="m-0 text-lg font-bold font-display">Start playing this game?</h2>
+		<p class="text-sm text-fg-secondary leading-relaxed">
+			<strong>{{ pending.backlog.game.title }}</strong> will be marked as
+			<span class="text-warning font-medium">playing</span>. Since the Queue
+			only tracks games you haven't started yet, it will be removed from
+			your Queue.
+		</p>
+		<div class="flex items-center justify-end gap-2">
+			<button uiButton variant="ghost" (click)="cancelPlayConfirmation()">
+				Cancel
+			</button>
+			<button uiButton variant="primary" (click)="confirmPlay()">
+				Start playing
+			</button>
+		</div>
+	</div>
+</div>
 }
