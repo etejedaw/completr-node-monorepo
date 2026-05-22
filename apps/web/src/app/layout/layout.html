@@ -241,8 +241,18 @@
 					</a>
 					<div class="flex-1 min-w-0">
 						<a routerLink="/profile" class="block text-[0.8125rem] font-semibold text-fg no-underline hover:text-brand truncate">{{ user()?.username }}</a>
-						<span class="inline-block mt-0.5 px-1.5 py-0.5 rounded-full text-[0.5625rem] font-bold uppercase tracking-wider" [class]="roleBadgeClass()">{{ roleBadge() }}</span>
+						@if (user()?.role && user()?.role !== 'user') {
+							<span class="inline-block mt-0.5 px-1.5 py-0.5 rounded-full text-[0.5625rem] font-bold uppercase tracking-wider" [class]="roleBadgeClass()">{{ roleBadge() }}</span>
+						}
 					</div>
+					<a
+						routerLink="/settings"
+						class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md text-fg-muted no-underline transition hover:text-fg"
+						title="Settings"
+						aria-label="Settings"
+					>
+						<span class="material-icons text-base">settings</span>
+					</a>
 					<button
 						class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg"
 						(click)="logout()"
