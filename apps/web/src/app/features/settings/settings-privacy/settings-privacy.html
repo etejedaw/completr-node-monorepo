@@ -31,6 +31,60 @@
 				<input
 					type="checkbox"
 					class="mt-1"
+					[ngModel]="isBacklogPublic()"
+					(ngModelChange)="isBacklogPublic.set($event)"
+					[disabled]="!isPublic()"
+				/>
+				<div>
+					<span class="block text-sm font-medium text-fg">Public backlog</span>
+					<span class="block text-xs text-fg-muted">Show your backlog on your public profile.</span>
+				</div>
+			</label>
+
+			<label
+				class="flex items-start gap-3 py-2 border-t border-line"
+				[class.cursor-pointer]="isPublic()"
+				[class.opacity-50]="!isPublic()"
+			>
+				<input
+					type="checkbox"
+					class="mt-1"
+					[ngModel]="isShelfPublic()"
+					(ngModelChange)="isShelfPublic.set($event)"
+					[disabled]="!isPublic()"
+				/>
+				<div>
+					<span class="block text-sm font-medium text-fg">Public game shelf</span>
+					<span class="block text-xs text-fg-muted">Show your game shelf on your public profile.</span>
+				</div>
+			</label>
+
+			<label
+				class="flex items-start gap-3 py-2 border-t border-line"
+				[class.cursor-pointer]="isPublic()"
+				[class.opacity-50]="!isPublic()"
+			>
+				<input
+					type="checkbox"
+					class="mt-1"
+					[ngModel]="isListPublic()"
+					(ngModelChange)="isListPublic.set($event)"
+					[disabled]="!isPublic()"
+				/>
+				<div>
+					<span class="block text-sm font-medium text-fg">Public lists</span>
+					<span class="block text-xs text-fg-muted">Show your lists section on your public profile.</span>
+				</div>
+			</label>
+
+			<label
+				class="flex items-start gap-3 py-2 border-t border-line"
+				[class.cursor-pointer]="isPublic()"
+				[class.opacity-50]="!isPublic()"
+			>
+				<input
+					type="checkbox"
+					class="mt-1"
 					[ngModel]="isQueuePublic()"
 					(ngModelChange)="isQueuePublic.set($event)"
 					[disabled]="!isPublic()"

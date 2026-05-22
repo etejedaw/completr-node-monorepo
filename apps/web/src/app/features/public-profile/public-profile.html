@@ -183,18 +183,24 @@
 						<span class="hidden md:inline">Activity</span>
 					</button>
 				}
-				<button uiTab value="backlog" class="!whitespace-nowrap" aria-label="Backlog" title="Backlog">
-					<span class="material-icons text-base md:mr-1.5 align-middle">list_alt</span>
-					<span class="hidden md:inline">Backlog</span>
-				</button>
-				<button uiTab value="shelf" class="!whitespace-nowrap" aria-label="Shelf" title="Shelf">
-					<span class="material-icons text-base md:mr-1.5 align-middle">shelves</span>
-					<span class="hidden md:inline">Shelf</span>
-				</button>
-				<button uiTab value="lists" class="!whitespace-nowrap" aria-label="Lists" title="Lists">
-					<span class="material-icons text-base md:mr-1.5 align-middle">format_list_bulleted</span>
-					<span class="hidden md:inline">Lists</span>
-				</button>
+				@if (profile()!.user.isBacklogPublic) {
+					<button uiTab value="backlog" class="!whitespace-nowrap" aria-label="Backlog" title="Backlog">
+						<span class="material-icons text-base md:mr-1.5 align-middle">list_alt</span>
+						<span class="hidden md:inline">Backlog</span>
+					</button>
+				}
+				@if (profile()!.user.isShelfPublic) {
+					<button uiTab value="shelf" class="!whitespace-nowrap" aria-label="Shelf" title="Shelf">
+						<span class="material-icons text-base md:mr-1.5 align-middle">shelves</span>
+						<span class="hidden md:inline">Shelf</span>
+					</button>
+				}
+				@if (profile()!.user.isListPublic) {
+					<button uiTab value="lists" class="!whitespace-nowrap" aria-label="Lists" title="Lists">
+						<span class="material-icons text-base md:mr-1.5 align-middle">format_list_bulleted</span>
+						<span class="hidden md:inline">Lists</span>
+					</button>
+				}
 				@if (profile()!.user.isFavoritePublic) {
 					<button uiTab value="favorites" class="!whitespace-nowrap" aria-label="Favorites" title="Favorites">
 						<span class="material-icons text-base md:mr-1.5 align-middle">star</span>
@@ -219,6 +225,7 @@
 				</button>
 			</ui-tab-list>
 
+			@if (profile()!.user.isBacklogPublic) {
 			<div uiTabPanel value="backlog">
 				<div class="flex items-baseline justify-between mb-3">
 					<h2 class="font-display m-0 text-xl font-bold text-fg">Recent Backlog</h2>
@@ -261,6 +268,9 @@
 				}
 			</div>
 
+			}
+
+			@if (profile()!.user.isShelfPublic) {
 			<div uiTabPanel value="shelf">
 				<div class="flex items-baseline justify-between mb-3">
 					<h2 class="font-display m-0 text-xl font-bold text-fg">Game Shelf</h2>
@@ -291,6 +301,9 @@
 				}
 			</div>
 
+			}
+
+			@if (profile()!.user.isListPublic) {
 			<div uiTabPanel value="lists">
 				@if (profile()!.lists.length === 0 && profile()!.followingLists.length === 0) {
 					<p class="text-center py-12 text-fg-muted text-sm">No lists yet.</p>
@@ -355,6 +368,7 @@
 					}
 				}
 			</div>
+			}
 
 			@if (profile()!.user.isFavoritePublic) {
 				<div uiTabPanel value="favorites">

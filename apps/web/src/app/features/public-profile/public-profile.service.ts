@@ -24,6 +24,9 @@ export interface PublicUser {
 	isWishlistPublic: boolean;
 	isFavoritePublic: boolean;
 	isFeedPublic: boolean;
+	isBacklogPublic: boolean;
+	isShelfPublic: boolean;
+	isListPublic: boolean;
 	createdAt: string;
 }
 

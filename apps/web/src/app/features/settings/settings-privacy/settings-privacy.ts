@@ -27,6 +27,9 @@ export class SettingsPrivacy implements OnInit {
 
 	protected readonly user = this.authService.user;
 	protected readonly isPublic = signal(true);
+	protected readonly isBacklogPublic = signal(true);
+	protected readonly isShelfPublic = signal(true);
+	protected readonly isListPublic = signal(true);
 	protected readonly isQueuePublic = signal(true);
 	protected readonly isWishlistPublic = signal(true);
 	protected readonly isFavoritePublic = signal(true);
@@ -42,6 +45,9 @@ export class SettingsPrivacy implements OnInit {
 		const u = this.user();
 		if (!u) return;
 		this.isPublic.set(u.isPublic);
+		this.isBacklogPublic.set(u.isBacklogPublic);
+		this.isShelfPublic.set(u.isShelfPublic);
+		this.isListPublic.set(u.isListPublic);
 		this.isQueuePublic.set(u.isQueuePublic);
 		this.isWishlistPublic.set(u.isWishlistPublic);
 		this.isFavoritePublic.set(u.isFavoritePublic);
@@ -52,6 +58,9 @@ export class SettingsPrivacy implements OnInit {
 		this.saving.set(true);
 		const dto: UpdateProfileDto = {
 			isPublic: this.isPublic(),
+			isBacklogPublic: this.isBacklogPublic(),
+			isShelfPublic: this.isShelfPublic(),
+			isListPublic: this.isListPublic(),
 			isQueuePublic: this.isQueuePublic(),
 			isWishlistPublic: this.isWishlistPublic(),
 			isFavoritePublic: this.isFavoritePublic(),
