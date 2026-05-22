@@ -41,3 +41,16 @@
 - Reglas: la "amistad" se define como follow mutuo
 
 **Estado:** pendiente
+
+## FB-004 — Promover tags relevantes de RAWG a géneros
+
+**Reporte:** Filtrar por género "Point and Click" en `/games` no devuelve nada, aunque RAWG tiene juegos taggeados así. Hoy el provider mapea solo los `genres` mayores de RAWG (Action, Adventure, RPG, Shooter…) e ignora las `tags`. Como mitigación inmediata el frontend muestra un empty state amistoso con botón "Clear filters" cuando una combinación de filtros devuelve 0 juegos.
+
+**Alcance:**
+
+- Curar lista de RAWG tags que se promueven a géneros locales (point-and-click, roguelike, metroidvania, soulslike, visual-novel, deck-building, etc.)
+- Modificar `RawgProvider` para mapear esas tags además de los genres
+- Script one-off de backfill que re-procesa los juegos existentes y agrega los géneros faltantes (sin re-importar el resto de campos)
+- Confirmar con búsqueda manual: tras el backfill, filtrar por "Point and Click" debe devolver Hidden Through Time, Thimbleweed Park, etc.
+
+**Estado:** pendiente
