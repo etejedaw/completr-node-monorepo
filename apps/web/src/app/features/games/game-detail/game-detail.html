@@ -285,18 +285,7 @@
 					</button>
 				</div>
 
-				<div class="bg-surface border border-line rounded-card divide-y divide-line">
-					<div class="flex items-center justify-between px-4 py-3">
-						<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">Reviews</span>
-						<span class="text-sm font-semibold text-fg">{{ reviews().length }}</span>
-					</div>
-					<div class="flex items-center justify-between px-4 py-3">
-						<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">In Lists</span>
-						<span class="text-sm font-semibold text-fg">{{ featuredLists().length }}</span>
-					</div>
-				</div>
-
-				@if (myListsInGame().length > 0) {
+@if (myListsInGame().length > 0) {
 					<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-2">
 						<h3 class="font-display m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-fg-secondary">In your lists</h3>
 						@for (list of myListsInGame(); track list.id) {
