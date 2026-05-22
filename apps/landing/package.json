@@ -13,14 +13,12 @@
     "screenshots": "tsx scripts/screenshots.ts",
     "og": "node scripts/og.mjs"
   },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.3.0",
-    "astro": "^6.3.5",
-    "tailwindcss": "^4.3.0"
-  },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
+    "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^25.9.1",
-    "playwright": "^1.60.0"
+    "astro": "^6.3.5",
+    "playwright": "^1.60.0",
+    "tailwindcss": "^4.3.0"
   }
 }
