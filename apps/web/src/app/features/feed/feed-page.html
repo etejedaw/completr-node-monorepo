@@ -115,12 +115,10 @@
 								{{ (activity.user?.username || '?').charAt(0).toUpperCase() }}
 							</div>
 						}
-						<div
-							class="absolute -bottom-1 -right-1 flex items-center justify-center w-5 h-5 rounded-full ring-2 ring-canvas"
-							[class]="activityDotClass(activity.type)"
-						>
-							<span class="material-icons text-[0.75rem]">{{ activityIcon(activity.type) }}</span>
-						</div>
+						<span
+							class="material-icons absolute -bottom-1 -right-1 text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
+							[class]="activityIconColorClass(activity.type)"
+						>{{ activityIcon(activity.type) }}</span>
 					</div>
 
 					<div class="flex-1 min-w-0 pt-1">

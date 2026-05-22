@@ -32,21 +32,21 @@ const ACTIVITY_ICONS: Record<string, string> = {
 	game_reviewed: "rate_review"
 };
 
-const ACTIVITY_DOT_CLASSES: Record<string, string> = {
-	backlog_added: "bg-brand-subtle text-brand",
-	backlog_not_started: "bg-fg-muted/10 text-fg-muted",
-	backlog_playing: "bg-warning/10 text-warning",
-	backlog_completed: "bg-success/10 text-success",
-	backlog_abandoned: "bg-danger/10 text-danger",
-	queue_added: "bg-brand-subtle text-brand",
-	wishlist_added: "bg-danger/10 text-danger",
-	shelf_added: "bg-brand-subtle text-brand",
-	favorite_added: "bg-warning/10 text-warning",
-	list_created: "bg-brand-subtle text-brand",
-	list_followed: "bg-brand-subtle text-brand",
-	user_followed: "bg-brand-subtle text-brand",
-	user_followed_by: "bg-brand-subtle text-brand",
-	game_reviewed: "bg-success/10 text-success"
+const ACTIVITY_ICON_COLOR_CLASSES: Record<string, string> = {
+	backlog_added: "text-brand",
+	backlog_not_started: "text-fg-muted",
+	backlog_playing: "text-warning",
+	backlog_completed: "text-success",
+	backlog_abandoned: "text-danger",
+	queue_added: "text-brand",
+	wishlist_added: "text-danger",
+	shelf_added: "text-brand",
+	favorite_added: "text-warning",
+	list_created: "text-brand",
+	list_followed: "text-brand",
+	user_followed: "text-brand",
+	user_followed_by: "text-brand",
+	game_reviewed: "text-success"
 };
 
 export function activityLabel(type: string): string {
@@ -57,6 +57,6 @@ export function activityIcon(type: string): string {
 	return ACTIVITY_ICONS[type] ?? "circle";
 }
 
-export function activityDotClass(type: string): string {
-	return ACTIVITY_DOT_CLASSES[type] ?? "bg-surface text-fg-muted";
+export function activityIconColorClass(type: string): string {
+	return ACTIVITY_ICON_COLOR_CLASSES[type] ?? "text-fg-muted";
 }

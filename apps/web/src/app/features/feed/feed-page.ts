@@ -16,7 +16,7 @@ import {
 import {
 	activityLabel,
 	activityIcon,
-	activityDotClass
+	activityIconColorClass
 } from "../../shared/utils/activity-labels";
 
 import { UiIconButton, UiInput, UiPagination } from "../../shared/ui";
@@ -120,7 +120,7 @@ export class FeedPage implements OnInit {
 
 	protected activityLabel = activityLabel;
 	protected activityIcon = activityIcon;
-	protected activityDotClass = activityDotClass;
+	protected activityIconColorClass = activityIconColorClass;
 
 	protected timeAgo(date: string): string {
 		const diff = Date.now() - new Date(date).getTime();
