@@ -54,3 +54,18 @@
 - Confirmar con búsqueda manual: tras el backfill, filtrar por "Point and Click" debe devolver Hidden Through Time, Thimbleweed Park, etc.
 
 **Estado:** pendiente
+
+## FB-005 — Soporte para Nintendo Switch 2 (RAWG no la distingue)
+
+**Reporte:** "La plataforma de NSW2 no siempre existe, así que el Pokopia dice que está para NSW que no es verdad."
+
+**Contexto:** Verificado contra `https://api.rawg.io/api/platforms` y `https://api.rawg.io/api/games?search=pokemon+pokopia`. RAWG solo tiene `nintendo-switch` (id 7). No existe slug ni id para Switch 2. Juegos exclusivos de Switch 2 (Pokémon Pokopia, etc.) vienen marcados como Nintendo Switch a secas. Nuestro mapper `rawg-platform.map.ts` no es el problema — RAWG nunca emite el slug `nintendo-switch-2`.
+
+**Alcance:**
+
+- Evaluar IGDB (sí distingue Switch 2) como fuente secundaria solo para platforms. Requiere OAuth via Twitch.
+- Alternativa más liviana: mantener una lista curada local de juegos Switch 2 exclusivos y aplicarla durante el import.
+- Mientras tanto: el admin/moderador puede corregir manualmente desde `/admin/games` y los usuarios reportar errores vía game-reports.
+- Re-evaluar periódicamente: cuando RAWG agregue Switch 2 (como hicieron con PS5 en su momento), este FB se puede resolver con una entrada en el mapper.
+
+**Estado:** pendiente
