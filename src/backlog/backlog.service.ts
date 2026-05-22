@@ -258,6 +258,7 @@ export async function updateBacklog(
 
 	let queueRemoved = false;
 	if (
+		updateBacklog.status === "playing" ||
 		updateBacklog.status === "completed" ||
 		updateBacklog.status === "abandoned"
 	) {

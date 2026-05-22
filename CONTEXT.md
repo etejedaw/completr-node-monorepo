@@ -56,7 +56,7 @@ Dos módulos independientes que reemplazan el concepto original de "listas por d
 - POST con `?source=game`: crea backlog `not_started` + wishlist entry en transacción
 - POST con `?source=backlog`: añade backlog existente a la wishlist
 - PUT: reemplaza array completo de `backlogIds` (posición por orden)
-- Auto-remove: al cambiar backlog a `completed` o `abandoned`, se elimina de la wishlist
+- Auto-remove: al cambiar backlog a `playing`, `completed` o `abandoned`, se elimina de la wishlist (el Queue solo contiene runs en estado `not_started`)
 - Límite: 10 free, ilimitado premium/admin
 
 **Favorites** — Juegos que el usuario marca como favoritos. Apunta a `Game` (no requiere backlog). Puedo marcar un juego como favorito sin haberlo jugado.
