@@ -69,3 +69,19 @@
 - Re-evaluar periódicamente: cuando RAWG agregue Switch 2 (como hicieron con PS5 en su momento), este FB se puede resolver con una entrada en el mapper.
 
 **Estado:** pendiente
+
+## FB-006 — Botón de favorito en backlog, game-shelf y queue
+
+**Reporte:** "Me gustaría poder agregar juegos a favoritos desde el backlog, gameshelf y queue."
+
+**Contexto:** Hoy el único lugar para marcar favorito es la ficha del juego (`/games/:code`, estrella arriba a la derecha). Desde las vistas de lista no hay acceso rápido. `FavoritesService.toggle(gameId)` ya existe en el frontend.
+
+**Alcance:**
+
+- Estrella inline en cada card/row de `backlog-list`, `game-shelf-list`, `queue-view` (y opcionalmente `wishlist-view`)
+- Importar `FavoritesService` en cada componente, exponer `isFavorite(gameId)` y `toggleFavorite(gameId)`
+- UX: toggle optimista, ícono `star` (amarillo) vs `star_border` (gris)
+- Considerar también si extender el patrón a las cards públicas del perfil de otro user (`user-backlog`, `user-favorites`, etc.) cuando el viewer está logueado
+- Evaluar si el endpoint actual (`PUT /users/me/favorites` con array completo de IDs) es suficiente para uso intensivo, o si conviene agregar `POST /users/me/favorites/:gameId` y `DELETE /users/me/favorites/:gameId` para acciones atómicas
+
+**Estado:** pendiente
