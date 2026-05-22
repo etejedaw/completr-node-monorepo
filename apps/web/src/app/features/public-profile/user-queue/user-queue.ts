@@ -13,12 +13,11 @@ import { QueueEntry } from "../../../core/models";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
 import { QueueGridCard } from "../../../shared/components/queue-grid-card/queue-grid-card";
 
-import { PublicTopbar } from "../../../shared/components/public-topbar/public-topbar";
 const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-queue",
-	imports: [RouterLink, UiPagination, UiSearchBar, QueueGridCard, PublicTopbar],
+	imports: [RouterLink, UiPagination, UiSearchBar, QueueGridCard],
 	templateUrl: "./user-queue.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

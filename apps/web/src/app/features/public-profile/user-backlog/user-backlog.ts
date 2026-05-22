@@ -15,12 +15,11 @@ import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
 
-import { PublicTopbar } from "../../../shared/components/public-topbar/public-topbar";
 const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-backlog",
-	imports: [RouterLink, DatePipe, StarRating, PersonalStats, UiPagination, UiSearchBar, PublicTopbar],
+	imports: [RouterLink, DatePipe, StarRating, PersonalStats, UiPagination, UiSearchBar],
 	templateUrl: "./user-backlog.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
