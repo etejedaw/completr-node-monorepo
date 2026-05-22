@@ -17,12 +17,23 @@
 				</div>
 			</label>
 
-			<label class="flex items-start gap-3 cursor-pointer py-2 border-t border-line">
+			@if (!isPublic()) {
+				<p class="text-xs text-fg-muted bg-input-bg border border-line rounded px-3 py-2">
+					These options have no effect while your profile is private.
+				</p>
+			}
+
+			<label
+				class="flex items-start gap-3 py-2 border-t border-line"
+				[class.cursor-pointer]="isPublic()"
+				[class.opacity-50]="!isPublic()"
+			>
 				<input
 					type="checkbox"
 					class="mt-1"
 					[ngModel]="isQueuePublic()"
 					(ngModelChange)="isQueuePublic.set($event)"
+					[disabled]="!isPublic()"
 				/>
 				<div>
 					<span class="block text-sm font-medium text-fg">Public queue</span>
@@ -30,12 +41,17 @@
 				</div>
 			</label>
 
-			<label class="flex items-start gap-3 cursor-pointer py-2 border-t border-line">
+			<label
+				class="flex items-start gap-3 py-2 border-t border-line"
+				[class.cursor-pointer]="isPublic()"
+				[class.opacity-50]="!isPublic()"
+			>
 				<input
 					type="checkbox"
 					class="mt-1"
 					[ngModel]="isWishlistPublic()"
 					(ngModelChange)="isWishlistPublic.set($event)"
+					[disabled]="!isPublic()"
 				/>
 				<div>
 					<span class="block text-sm font-medium text-fg">Public wishlist</span>
@@ -43,12 +59,17 @@
 				</div>
 			</label>
 
-			<label class="flex items-start gap-3 cursor-pointer py-2 border-t border-line">
+			<label
+				class="flex items-start gap-3 py-2 border-t border-line"
+				[class.cursor-pointer]="isPublic()"
+				[class.opacity-50]="!isPublic()"
+			>
 				<input
 					type="checkbox"
 					class="mt-1"
 					[ngModel]="isFavoritePublic()"
 					(ngModelChange)="isFavoritePublic.set($event)"
+					[disabled]="!isPublic()"
 				/>
 				<div>
 					<span class="block text-sm font-medium text-fg">Public favorites</span>
@@ -56,12 +77,17 @@
 				</div>
 			</label>
 
-			<label class="flex items-start gap-3 cursor-pointer py-2 border-t border-line">
+			<label
+				class="flex items-start gap-3 py-2 border-t border-line"
+				[class.cursor-pointer]="isPublic()"
+				[class.opacity-50]="!isPublic()"
+			>
 				<input
 					type="checkbox"
 					class="mt-1"
 					[ngModel]="isFeedPublic()"
 					(ngModelChange)="isFeedPublic.set($event)"
+					[disabled]="!isPublic()"
 				/>
 				<div>
 					<span class="block text-sm font-medium text-fg">Public activity feed</span>
