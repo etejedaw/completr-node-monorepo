@@ -198,7 +198,8 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		];
 
 	if (search) {
-		where["title"] = { [Op.iLike]: `%${search}%` };
+		const titleWhere = buildTitleSearchWhere(search);
+		if (titleWhere) andConditions.push(titleWhere);
 	}
 
 	if (is_dlc !== undefined) {
@@ -375,6 +376,8 @@ export async function findLatestReviewed(limit = 16) {
 
 function buildTitleSearchWhere(query: string): WhereOptions | null {
 	const normalized = query
+		.normalize("NFD")
+		.replace(/[\u0300-\u036f]/g, "")
 		.trim()
 		.toLowerCase()
 		.replace(/[^a-z0-9\s]/g, " ")
@@ -388,7 +391,7 @@ function buildTitleSearchWhere(query: string): WhereOptions | null {
 	if (tokens.length === 0) return null;
 	const normalizedTitle = fn(
 		"regexp_replace",
-		fn("lower", col("title")),
+		fn("lower", fn("unaccent", col("title"))),
 		"[^a-z0-9]",
 		"",
 		"g"
