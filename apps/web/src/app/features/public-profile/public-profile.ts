@@ -17,10 +17,9 @@ import { StarRating } from "../../shared/components/star-rating/star-rating";
 import { UiButton, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../shared/ui";
 import { activityLabel } from "../../shared/utils/activity-labels";
 
-import { PublicTopbar } from "../../shared/components/public-topbar/public-topbar";
 @Component({
 	selector: "app-public-profile",
-	imports: [RouterLink, UserListModal, StarRating, UiButton, UiTabs, UiTabList, UiTab, UiTabPanel, PublicTopbar],
+	imports: [RouterLink, UserListModal, StarRating, UiButton, UiTabs, UiTabList, UiTab, UiTabPanel],
 	templateUrl: "./public-profile.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -180,6 +179,11 @@ export class PublicProfileComponent implements OnInit {
 		this.profileService.getProfile(username).subscribe({
 			next: data => {
 				this.profile.set(data);
+				if (data.isPrivate) {
+					this.isPrivate.set(true);
+					this.isLoading.set(false);
+					return;
+				}
 				if (this.isWide() || !data.user.isFeedPublic)
 					this.activeTab.set("backlog");
 				this.isLoading.set(false);
@@ -191,8 +195,7 @@ export class PublicProfileComponent implements OnInit {
 					});
 			},
 			error: err => {
-				if (err.status === 403) this.isPrivate.set(true);
-				else if (err.status === 404) this.notFound.set(true);
+				if (err.status === 404) this.notFound.set(true);
 				this.isLoading.set(false);
 			}
 		});

@@ -100,6 +100,7 @@ export interface BacklogStats {
 
 export interface PublicProfile {
 	user: PublicUser;
+	isPrivate?: boolean;
 	followerCount: number;
 	followingCount: number;
 	isFollowing: boolean;
