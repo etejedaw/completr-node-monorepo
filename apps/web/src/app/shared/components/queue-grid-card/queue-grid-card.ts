@@ -57,7 +57,7 @@ export type QueueStatusChange = "playing";
 				</div>
 				@if (showActions()) {
 					<div
-						class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition pointer-events-none group-hover:pointer-events-auto"
+						class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition pointer-events-none group-hover:pointer-events-auto pointer-coarse:pointer-events-auto"
 					>
 						<button
 							uiIconButton size="sm"
@@ -80,7 +80,7 @@ export type QueueStatusChange = "playing";
 					{{ entry().platformAbbreviation ?? '' }}
 				</span>
 				@if (showActions()) {
-					<div class="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition">
+					<div class="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 pointer-coarse:opacity-100 transition">
 						<button
 							uiIconButton size="sm"
 							[disabled]="isFirst()"
