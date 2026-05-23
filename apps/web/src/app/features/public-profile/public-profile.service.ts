@@ -70,7 +70,7 @@ export interface PublicQueue {
 		id: string;
 		status: string;
 		game: GameSummary;
-		platform: { id: string; abbreviation: string };
+		platform?: { id: string; abbreviation: string };
 	};
 }
 
@@ -110,12 +110,7 @@ export interface PublicProfile {
 	backlogs: PublicBacklog[];
 	backlogTotal: number;
 	backlogStats: BacklogStats;
-	lists: PublicList[];
-	favorites: PublicFavorite[];
-	queue: PublicQueue[];
-	wishlist: { id: string; position: number; game: GameSummary }[];
-	gameShelf: PublicGameShelf[];
-	followingLists: PublicList[];
+	listsTotal: number;
 	recentActivity: PublicActivity[];
 }
 
@@ -266,6 +261,16 @@ export class PublicProfileService {
 					items: res.data.gameShelf,
 					total: res.data.total
 				}))
+			);
+	}
+
+	getUserLists(username: string) {
+		return this.http
+			.get<{
+				data: { lists: PublicList[]; total: number };
+			}>(`${environment.apiUrl}/users/${username}/lists`)
+			.pipe(
+				map(res => ({ items: res.data.lists, total: res.data.total }))
 			);
 	}
 

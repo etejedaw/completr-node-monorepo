@@ -2,24 +2,39 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	effect,
 	inject,
 	OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
-import { PublicProfileService, PublicProfile } from "./public-profile.service";
+import {
+	PublicProfileService,
+	PublicProfile,
+	PublicList,
+	PublicFavorite,
+	PublicQueue,
+	PublicGameShelf
+} from "./public-profile.service";
 import {
 	UserListModal,
 	UserSummary
 } from "../../shared/components/user-list-modal/user-list-modal";
 import { StarRating } from "../../shared/components/star-rating/star-rating";
-import { UiButton, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../shared/ui";
+import {
+	UiButton,
+	UiSkeleton,
+	UiTab,
+	UiTabList,
+	UiTabPanel,
+	UiTabs
+} from "../../shared/ui";
 import { activityLabel } from "../../shared/utils/activity-labels";
 
 @Component({
 	selector: "app-public-profile",
-	imports: [RouterLink, UserListModal, StarRating, UiButton, UiTabs, UiTabList, UiTab, UiTabPanel],
+	imports: [RouterLink, UserListModal, StarRating, UiButton, UiSkeleton, UiTabs, UiTabList, UiTab, UiTabPanel],
 	templateUrl: "./public-profile.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -65,10 +80,105 @@ export class PublicProfileComponent implements OnInit {
 		return {
 			completed: p.backlogStats?.completed ?? 0,
 			playing: p.backlogStats?.playing ?? 0,
-			lists: p.lists.length,
+			lists: p.listsTotal ?? 0,
 			reviews: this.userReviews().length
 		};
 	});
+
+	protected readonly listsData = signal<PublicList[] | null>(null);
+	protected readonly favoritesData = signal<PublicFavorite[] | null>(null);
+	protected readonly queueData = signal<PublicQueue[] | null>(null);
+	protected readonly wishlistData = signal<
+		{ id: string; position: number; game: { id: string; code: string; title: string; backgroundUrl?: string } }[] | null
+	>(null);
+	protected readonly gameShelfData = signal<PublicGameShelf[] | null>(null);
+	protected readonly followingListsData = signal<PublicList[] | null>(null);
+	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
+
+	private readonly lazyLoadEffect = effect(() => {
+		const tab = this.activeTab();
+		const p = this.profile();
+		const u = this.username();
+		if (!p || p.isPrivate || !u) return;
+		if (tab === "lists") this.ensureListsLoaded(u);
+		else if (tab === "favorites") this.ensureFavoritesLoaded(u);
+		else if (tab === "queue") this.ensureQueueLoaded(u);
+		else if (tab === "wishlist") this.ensureWishlistLoaded(u);
+		else if (tab === "shelf") this.ensureGameShelfLoaded(u);
+	});
+
+	private ensureListsLoaded(username: string) {
+		if (this.listsData() !== null) return;
+		this.profileService.getUserLists(username).subscribe({
+			next: res => this.listsData.set(res.items),
+			error: () => this.listsData.set([])
+		});
+		this.profileService.getUserFollowingLists(username).subscribe({
+			next: res => this.followingListsData.set(res.items),
+			error: () => this.followingListsData.set([])
+		});
+	}
+
+	private ensureFavoritesLoaded(username: string) {
+		if (this.favoritesData() !== null) return;
+		this.profileService.getUserFavorites(username, { limit: 6 }).subscribe({
+			next: res =>
+				this.favoritesData.set(
+					res.items.map(e => ({ id: e.id, position: e.position, game: e.game }))
+				),
+			error: () => this.favoritesData.set([])
+		});
+	}
+
+	private ensureQueueLoaded(username: string) {
+		if (this.queueData() !== null) return;
+		this.profileService.getUserQueue(username, { limit: 6 }).subscribe({
+			next: res =>
+				this.queueData.set(
+					res.items.map(e => ({
+						id: e.id,
+						position: e.position,
+						backlog: {
+							id: e.backlog.id,
+							status: e.backlog.status,
+							game: e.backlog.game,
+							platform: e.backlog.platform
+						}
+					}))
+				),
+			error: () => this.queueData.set([])
+		});
+	}
+
+	private ensureWishlistLoaded(username: string) {
+		if (this.wishlistData() !== null) return;
+		this.profileService.getUserWishlist(username, { limit: 6 }).subscribe({
+			next: res =>
+				this.wishlistData.set(
+					res.items.map(e => ({
+						id: e.id,
+						position: e.position,
+						game: e.game
+					}))
+				),
+			error: () => this.wishlistData.set([])
+		});
+	}
+
+	private ensureGameShelfLoaded(username: string) {
+		if (this.gameShelfData() !== null) return;
+		this.profileService.getUserGameShelf(username, { limit: 6 }).subscribe({
+			next: res =>
+				this.gameShelfData.set(
+					res.items.map(e => ({
+						id: e.id,
+						game: e.game,
+						platform: e.platform
+					}))
+				),
+			error: () => this.gameShelfData.set([])
+		});
+	}
 	protected readonly userReviews = signal<
 		{
 			id: string;
