@@ -151,17 +151,22 @@
 
 **Estado:** pendiente
 
-## FB-011 — Renombrar "Backlog"
+## FB-011 — Sobrecarga de terminología (Backlog vs Queue vs Wishlist vs Shelf vs Favorites)
 
 **Reporte:** "esto se me hace confuso, creo que debería tener otro nombre" (refiriéndose al nombre "backlog")
 
-**Contexto:** El término "backlog" es estándar en círculos gamer (HowLongToBeat, IGN, foros) pero puede confundir a usuarios casuales o no-anglo. Convive con "Queue" (cola priorizada) y "Wishlist" (juegos que quiero comprar/probar), lo cual amplifica la ambigüedad. Hoy el nombre aparece en sidebar, ficha de juego (Add to Backlog), URLs (`/backlog`, `/user/:username/backlog`), backend (`Backlog` model, `backlog.service`, etc.) y endpoints.
+**Contexto:** El término "backlog" es estándar en círculos gamer (HowLongToBeat, IGN, foros) pero puede confundir a usuarios casuales o no-anglo. Es la punta del iceberg: la app expone 5 entidades user-facing con nombres parecidos que un usuario no-power confunde — Backlog (historial completo), Queue (cola priorizada de `not_started`), Wishlist (juegos que quiero conseguir, apunta a Game), Game Shelf (lo poseo) y Favorites (marca personal). Tres dimensiones reales (qué jugué/quiero jugar, qué tengo, qué amo) mapeadas a 5 entidades con límites borrosos:
 
-**Alcance:**
+- Queue vs Wishlist: ambas se leen como "pendientes" para el casual.
+- Backlog vs Game Shelf: si lo poseo y no lo jugué, ¿cuál es?
+- Wishlist vs Favorites: "me encantaría jugar esto algún día" cabe en cualquiera.
 
-- Brainstorming de alternativas: "My Games", "Library", "Tracker", "My Journey", "Collection" — cada una con tradeoffs (Library choca con Game Shelf, Tracker es genérico, Collection ambiguo)
-- Validar con beta testers cuál término entienden sin explicación
-- Si se decide renombrar: cambio frontend-only (label/URL) vs backend (modelo + tabla + endpoints). Lo razonable es renombrar solo en UI manteniendo `Backlog` como nombre técnico interno
-- Coordinación con FB-010 (identidad visual) — el rename puede acompañar el rebrand
+**Posibles soluciones:**
+
+1. **Rename frontend-only (mínima):** renombrar solo en UI sin tocar backend. Ej: Backlog → "My Games" o "Library"; Queue → "Up Next" / "Playing Soon"; Wishlist → "Want to Get"; Shelf y Favorites se mantienen. URLs opcionalmente también. Cero migración, reversible, permite A/B con beta testers. Drift mínimo entre interno/externo.
+2. **Consolidar entidades (estructural):** colapsar Wishlist como sub-estado de Backlog (nuevo status `wanted`). Universo de conceptos baja de 5 a 4: Backlog (5 estados), Queue (cola priorizada sobre `wanted`+`not_started`), Game Shelf (poseído), Favorites. Requiere migration de filas y refactor de serializers, controllers, frontend.
+3. **Fix de IA/jerarquía visual (no toca modelo ni naming):** reagrupar sidebar en secciones contextuales (LIBRARY: My Games, Up Next, My Shelf | DISCOVERY: Browse, Lists, Wishlist, Favorites) + tooltips explicativos. Mejora discoverability sin resolver ambigüedad de fondo.
+
+**Recomendación:** empezar por opción 1, validar con beta testers cuáles términos pegan. Si la confusión Wishlist↔Queue persiste, escalar a opción 2. La opción 3 es complementaria — útil en cualquier escenario y la más barata. Coordinar con FB-010 (identidad visual) si se aborda el rename junto al rebrand.
 
 **Estado:** pendiente
