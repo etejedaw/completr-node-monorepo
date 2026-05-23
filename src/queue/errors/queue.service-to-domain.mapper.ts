@@ -37,5 +37,8 @@ export function queueServiceToDomainMapper(
 	)
 		return queueDomainError.queueSourceMismatch(context);
 
+	if (error.code === "QUEUE_BACKLOG_NOT_STARTED")
+		return queueDomainError.queueBacklogNotStarted(context);
+
 	return queueDomainError.queueInternalError(context);
 }

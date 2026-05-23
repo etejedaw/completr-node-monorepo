@@ -39,5 +39,8 @@ export function queueDomainToHttpMapper(
 	if (error.code === "QUEUE_SOURCE_MISMATCH")
 		return new HttpError({ ...baseOptions, status: 400 });
 
+	if (error.code === "QUEUE_BACKLOG_NOT_STARTED")
+		return new HttpError({ ...baseOptions, status: 409 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

@@ -64,3 +64,10 @@ export function sourceBacklogMismatchError() {
 		raw: undefined
 	});
 }
+
+export function backlogNotStartedError(backlogIds?: string[]) {
+	return new ServiceError("QUEUE_BACKLOG_NOT_STARTED", {
+		...BASE_OPTIONS,
+		raw: backlogIds ? { backlogIds } : undefined
+	});
+}

@@ -74,6 +74,15 @@ export function queueSourceMismatch(context?: Record<string, unknown>) {
 	);
 }
 
+export function queueBacklogNotStarted(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"QUEUE_BACKLOG_NOT_STARTED",
+		"Only backlogs in 'not_started' status can be added to the queue",
+		context
+	);
+}
+
 export function queueInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

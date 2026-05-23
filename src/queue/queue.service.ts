@@ -81,6 +81,8 @@ export async function addFromBacklog(backlogId: string, user: RequestUser) {
 	if (!backlog) throw queueServiceError.backlogNotFoundError();
 	if (backlog.userId !== user.id)
 		throw queueServiceError.backlogNotOwnedError();
+	if (backlog.status !== "not_started")
+		throw queueServiceError.backlogNotStartedError([backlogId]);
 
 	const existing = await Queue.findOne({
 		where: { userId: user.id, backlogId }
@@ -118,6 +120,11 @@ export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 		const missing = backlogIds.filter(id => !foundIds.has(id));
 		throw queueServiceError.backlogsNotFoundError(missing);
 	}
+	const invalid = backlogs
+		.filter(b => b.status !== "not_started")
+		.map(b => b.id);
+	if (invalid.length > 0)
+		throw queueServiceError.backlogNotStartedError(invalid);
 
 	await Queue.destroy({ where: { userId: user.id } });
 

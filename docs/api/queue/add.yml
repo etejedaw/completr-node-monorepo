@@ -78,3 +78,4 @@ docs: |-
     - 404 `QUEUE_BACKLOG_NOT_FOUND`
     - 403 `QUEUE_BACKLOG_NOT_OWNED`
     - 409 `QUEUE_ALREADY_EXISTS`
+    - 409 `QUEUE_BACKLOG_NOT_STARTED` — backlog status must be `not_started`
