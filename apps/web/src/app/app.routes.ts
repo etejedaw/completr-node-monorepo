@@ -1,3 +1,4 @@
+import { inject } from "@angular/core";
 import { Routes } from "@angular/router";
 import { authGuard } from "./core/guards/auth.guard";
 import { guestGuard } from "./core/guards/guest.guard";
@@ -5,6 +6,7 @@ import { guestMatch } from "./core/guards/guest.match";
 import { selfProfileRedirect } from "./core/guards/self-profile-redirect.guard";
 import { adminGuard } from "./core/guards/admin.guard";
 import { moderatorGuard } from "./core/guards/moderator.guard";
+import { AuthService } from "./core/services/auth.service";
 
 const ATTR = { showAttribution: true };
 
@@ -88,8 +90,7 @@ export const routes: Routes = [
 	{
 		path: "",
 		pathMatch: "full",
-		canMatch: [guestMatch],
-		redirectTo: "login"
+		redirectTo: () => (inject(AuthService).token() ? "/feed" : "/login")
 	},
 	{
 		path: "",
