@@ -1,3 +1,7 @@
+---
+import BetaSignupForm from "./BetaSignupForm.astro";
+---
+
 <section
 	class="relative min-h-screen flex flex-col items-center justify-center px-6 text-center"
 >
@@ -29,7 +33,7 @@
 			<span
 				class="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)] animate-pulse"
 			></span>
-			Beta privada
+			Beta cerrada
 		</span>
 
 		<h1
@@ -48,10 +52,14 @@
 		>
 			Tu backlog crece más rápido que tu tiempo libre. Completr ordena lo
 			que tienes pendiente y te dice qué vale la pena jugar a
-			continuación. Próximamente abrimos <strong
-				class="text-[var(--color-fg)]">beta cerrada</strong
-			>.
+			continuación. Déjame tu correo y te aviso en cuanto abramos cupos de
+			la
+			<strong class="text-[var(--color-fg)]">beta cerrada</strong>.
 		</p>
+
+		<div class="w-full">
+			<BetaSignupForm />
+		</div>
 	</div>
 
 	<a

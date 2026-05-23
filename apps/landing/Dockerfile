@@ -5,6 +5,8 @@ RUN npm ci
 
 FROM node:krypton-alpine AS builder
 WORKDIR /app
+ARG PUBLIC_CONTACT_ENDPOINT
+ENV PUBLIC_CONTACT_ENDPOINT=$PUBLIC_CONTACT_ENDPOINT
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
