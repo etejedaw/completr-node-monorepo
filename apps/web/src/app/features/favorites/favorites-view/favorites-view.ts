@@ -8,13 +8,13 @@ import {
 import { FavoriteEntry } from "../../../core/models";
 import { FavoritesService } from "../favorites.service";
 import { ToastService } from "../../../core/services/toast.service";
-import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiPagination, UiSearchBar, UiSkeleton } from "../../../shared/ui";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-favorites-view",
-	imports: [UiPagination, UiSearchBar, GameCoverCard],
+	imports: [UiPagination, UiSearchBar, UiSkeleton, GameCoverCard],
 	templateUrl: "./favorites-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -24,6 +24,7 @@ export class FavoritesView implements OnInit {
 
 	protected readonly entries = signal<FavoriteEntry[]>([]);
 	protected readonly isLoading = signal(true);
+	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);
 	protected readonly searchQuery = signal("");
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);

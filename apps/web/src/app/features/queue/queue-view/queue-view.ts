@@ -11,7 +11,7 @@ import { QueueService } from "../queue.service";
 import { BacklogService } from "../../backlog/backlog.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { QueueAddModal } from "../queue-add-modal/queue-add-modal";
-import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiPagination, UiSearchBar, UiSkeleton } from "../../../shared/ui";
 import {
 	QueueGridCard,
 	QueueStatusChange
@@ -20,7 +20,7 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-queue-view",
-	imports: [QueueAddModal, UiButton, UiPagination, UiSearchBar, QueueGridCard],
+	imports: [QueueAddModal, UiButton, UiPagination, UiSearchBar, UiSkeleton, QueueGridCard],
 	templateUrl: "./queue-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -31,6 +31,7 @@ export class QueueView implements OnInit {
 
 	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);
+	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);
 	protected readonly showAddModal = signal(false);
 	protected readonly searchQuery = signal("");
 	protected readonly total = signal(0);
