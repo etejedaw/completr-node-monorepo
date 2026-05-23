@@ -1,5 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from "@angular/core";
 import {
+	ActivatedRoute,
 	RouterLink,
 	RouterLinkActive,
 	RouterOutlet,
@@ -10,6 +11,7 @@ import { AuthService } from "../core/services/auth.service";
 import { filter } from "rxjs";
 import { UiIconButton } from "../shared/ui";
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
+import { AttributionFooter } from "../shared/components/attribution-footer/attribution-footer";
 
 @Component({
 	selector: "app-layout",
@@ -18,15 +20,18 @@ import { ToastContainer } from "../shared/components/toast-container/toast-conta
 		RouterLink,
 		RouterLinkActive,
 		UiIconButton,
-		ToastContainer
+		ToastContainer,
+		AttributionFooter
 	],
 	templateUrl: "./layout.html"
 })
 export class Layout implements OnInit {
 	private readonly auth = inject(AuthService);
 	private readonly router = inject(Router);
+	private readonly route = inject(ActivatedRoute);
 
 	protected readonly user = this.auth.user;
+	protected readonly showAttribution = signal(false);
 	protected readonly isAdmin = computed(() => this.user()?.role === "admin");
 	protected readonly isModerator = computed(() => {
 		const role = this.user()?.role;
@@ -61,7 +66,16 @@ export class Layout implements OnInit {
 			.pipe(filter(e => e instanceof NavigationEnd))
 			.subscribe(() => {
 				this.sidebarOpen.set(false);
+				this.showAttribution.set(this.computeShowAttribution());
 			});
+
+		this.showAttribution.set(this.computeShowAttribution());
+	}
+
+	private computeShowAttribution(): boolean {
+		let route = this.route;
+		while (route.firstChild) route = route.firstChild;
+		return route.snapshot.data?.["showAttribution"] === true;
 	}
 
 	toggleSidebar() {
