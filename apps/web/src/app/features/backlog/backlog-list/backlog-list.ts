@@ -2,6 +2,7 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	effect,
+	HostListener,
 	inject,
 	OnInit,
 	signal,
@@ -48,6 +49,14 @@ export class BacklogList implements OnInit {
 	protected readonly showModal = signal(false);
 	protected readonly editingEntry = signal<BacklogEntry | null>(null);
 	private readonly queueBacklogIds = signal<Set<string>>(new Set());
+	protected readonly statusMenuOpenId = signal<string | null>(null);
+	protected readonly pendingStatusChange = signal<{
+		entry: BacklogEntry;
+		status: BacklogStatus;
+	} | null>(null);
+	protected readonly pendingStatusStartedAt = signal<string>("");
+	protected readonly pendingStatusFinishedAt = signal<string>("");
+	protected readonly updatingStatusIds = signal<Set<string>>(new Set());
 	protected readonly reviewExpandedIds = signal<Set<string>>(new Set());
 
 	private readonly queryParamMap = toSignal(this.route.queryParamMap);
@@ -405,6 +414,95 @@ export class BacklogList implements OnInit {
 			abandoned: "Abandoned"
 		};
 		return map[status] ?? status;
+	}
+
+	statusIcon(status: BacklogStatus): string {
+		const map: Record<BacklogStatus, string> = {
+			not_started: "schedule",
+			playing: "play_circle",
+			completed: "check_circle",
+			abandoned: "cancel"
+		};
+		return map[status] ?? "schedule";
+	}
+
+	canChangeStatus(status: BacklogStatus): boolean {
+		return status === "not_started" || status === "playing";
+	}
+
+	@HostListener("document:click")
+	onDocumentClick() {
+		this.statusMenuOpenId.set(null);
+	}
+
+	toggleStatusMenu(entry: BacklogEntry, event: Event) {
+		event.stopPropagation();
+		const current = this.statusMenuOpenId();
+		this.statusMenuOpenId.set(current === entry.id ? null : entry.id);
+	}
+
+	isStatusUpdating(entry: BacklogEntry): boolean {
+		return this.updatingStatusIds().has(entry.id);
+	}
+
+	selectNewStatus(entry: BacklogEntry, status: string, event: Event) {
+		event.stopPropagation();
+		this.statusMenuOpenId.set(null);
+		const newStatus = status as BacklogStatus;
+		if (newStatus === entry.status) return;
+		const today = this.todayDateString();
+		this.pendingStatusStartedAt.set(newStatus === "playing" ? today : "");
+		this.pendingStatusFinishedAt.set(newStatus === "completed" ? today : "");
+		this.pendingStatusChange.set({ entry, status: newStatus });
+	}
+
+	cancelStatusChange() {
+		this.pendingStatusChange.set(null);
+	}
+
+	confirmStatusChange() {
+		const pending = this.pendingStatusChange();
+		if (!pending) return;
+		const { entry, status } = pending;
+		const payload: {
+			status: BacklogStatus;
+			startedAt?: string;
+			finishedAt?: string;
+		} = { status };
+		if (status === "playing" && this.pendingStatusStartedAt())
+			payload.startedAt = this.pendingStatusStartedAt();
+		if (status === "completed" && this.pendingStatusFinishedAt())
+			payload.finishedAt = this.pendingStatusFinishedAt();
+		this.pendingStatusChange.set(null);
+
+		const updating = new Set(this.updatingStatusIds());
+		updating.add(entry.id);
+		this.updatingStatusIds.set(updating);
+
+		const clearUpdating = () => {
+			const next = new Set(this.updatingStatusIds());
+			next.delete(entry.id);
+			this.updatingStatusIds.set(next);
+		};
+
+		this.backlogService.update(entry.id, payload).subscribe({
+			next: ({ backlog, queueRemoved }) => {
+				this.entries.set(
+					this.entries().map(e => (e.id === entry.id ? backlog : e))
+				);
+				if (queueRemoved) this.loadQueueIds();
+				clearUpdating();
+			},
+			error: clearUpdating
+		});
+	}
+
+	private todayDateString(): string {
+		const now = new Date();
+		const y = now.getFullYear();
+		const m = String(now.getMonth() + 1).padStart(2, "0");
+		const d = String(now.getDate()).padStart(2, "0");
+		return `${y}-${m}-${d}`;
 	}
 
 	toggleQueue(entry: BacklogEntry) {

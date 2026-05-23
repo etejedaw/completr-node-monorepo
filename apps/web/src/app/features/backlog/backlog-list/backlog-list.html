@@ -337,10 +337,44 @@
 							</div>
 
 							<div class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap">
-								<span
-									class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
-									[class]="statusClass(entry.status)"
-								>{{ statusLabel(entry.status) }}</span>
+								@if (canChangeStatus(entry.status)) {
+									<div class="relative inline-block">
+										<button
+											type="button"
+											class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+											[class]="statusClass(entry.status)"
+											[disabled]="isStatusUpdating(entry)"
+											(click)="toggleStatusMenu(entry, $event)"
+										>
+											<span class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
+											{{ statusLabel(entry.status) }}
+											<span class="material-icons text-[0.875rem]">arrow_drop_down</span>
+										</button>
+										@if (statusMenuOpenId() === entry.id) {
+											<div
+												class="absolute left-0 top-full mt-1 z-20 bg-sidebar border border-line rounded shadow-lg py-1 min-w-[160px]"
+												(click)="$event.stopPropagation()"
+											>
+												@for (s of statusFilters; track s.value) {
+													<button
+														type="button"
+														class="flex items-center gap-1.5 w-full text-left px-3 py-1.5 text-xs hover:bg-input-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+														[disabled]="s.value === entry.status"
+														(click)="selectNewStatus(entry, s.value, $event)"
+													>
+														<span class="material-icons text-sm">{{ statusIcon($any(s.value)) }}</span>
+														{{ s.label }}
+													</button>
+												}
+											</div>
+										}
+									</div>
+								} @else {
+									<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide" [class]="statusClass(entry.status)">
+										<span class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
+										{{ statusLabel(entry.status) }}
+									</span>
+								}
 								<span class="text-fg-muted">{{ entry.platform.abbreviation }}</span>
 								@if (entry.score) {
 									<span class="text-fg-muted">·</span>
@@ -510,7 +544,44 @@
 								</td>
 								<td class="px-4 py-3 align-middle whitespace-nowrap text-fg-secondary text-sm">{{ entry.finishedAt ? (entry.finishedAt | date:'yyyy-MM-dd') : "-" }}</td>
 								<td class="px-4 py-3 align-middle whitespace-nowrap">
-									<span class="inline-block px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide" [class]="statusClass(entry.status)">{{ statusLabel(entry.status) }}</span>
+									@if (canChangeStatus(entry.status)) {
+										<div class="relative inline-block">
+											<button
+												type="button"
+												class="inline-flex items-center gap-1 px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+												[class]="statusClass(entry.status)"
+												[disabled]="isStatusUpdating(entry)"
+												(click)="toggleStatusMenu(entry, $event)"
+											>
+												<span class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
+												{{ statusLabel(entry.status) }}
+												<span class="material-icons text-[0.875rem]">arrow_drop_down</span>
+											</button>
+											@if (statusMenuOpenId() === entry.id) {
+												<div
+													class="absolute left-0 top-full mt-1 z-20 bg-sidebar border border-line rounded shadow-lg py-1 min-w-[160px]"
+													(click)="$event.stopPropagation()"
+												>
+													@for (s of statusFilters; track s.value) {
+														<button
+															type="button"
+															class="flex items-center gap-1.5 w-full text-left px-3 py-1.5 text-xs hover:bg-input-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+															[disabled]="s.value === entry.status"
+															(click)="selectNewStatus(entry, s.value, $event)"
+														>
+															<span class="material-icons text-sm">{{ statusIcon($any(s.value)) }}</span>
+															{{ s.label }}
+														</button>
+													}
+												</div>
+											}
+										</div>
+									} @else {
+										<span class="inline-flex items-center gap-1 px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide" [class]="statusClass(entry.status)">
+											<span class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
+											{{ statusLabel(entry.status) }}
+										</span>
+									}
 								</td>
 								<td class="px-4 py-3 align-middle max-w-[200px]">
 									@if (entry.notes && (!entry.hasReview || !isReviewExpanded(entry.id))) {
@@ -554,4 +625,55 @@
 	(closed)="onModalClosed()"
 	(saved)="onModalSaved()"
 />
+}
+
+@if (pendingStatusChange(); as pending) {
+<div class="modal-overlay" (click)="cancelStatusChange()">
+	<div
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[420px] flex flex-col gap-4"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
+		(click)="$event.stopPropagation()"
+	>
+		<h2 class="m-0 text-lg font-bold font-display flex items-center gap-2">
+			<span class="material-icons text-xl" [class.text-warning]="pending.status === 'playing'" [class.text-success]="pending.status === 'completed'" [class.text-danger]="pending.status === 'abandoned'" [class.text-fg-muted]="pending.status === 'not_started'">{{ statusIcon(pending.status) }}</span>
+			Change status to {{ statusLabel(pending.status) }}?
+		</h2>
+		<p class="text-sm text-fg-secondary leading-relaxed">
+			<strong>{{ pending.entry.game.title }}</strong> will be marked as
+			<span class="font-medium" [class.text-warning]="pending.status === 'playing'" [class.text-success]="pending.status === 'completed'" [class.text-danger]="pending.status === 'abandoned'" [class.text-fg-muted]="pending.status === 'not_started'">
+				{{ statusLabel(pending.status) }}</span>.
+			@if (isInQueue(pending.entry) && pending.status !== 'not_started') {
+				It will be removed from your Queue.
+			}
+		</p>
+		@if (pending.status === 'playing') {
+			<div>
+				<label for="pendingStatusStartedAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Started on</label>
+				<input
+					id="pendingStatusStartedAt"
+					type="date"
+					class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+					[value]="pendingStatusStartedAt()"
+					(input)="pendingStatusStartedAt.set($any($event.target).value)"
+				/>
+			</div>
+		}
+		@if (pending.status === 'completed') {
+			<div>
+				<label for="pendingStatusFinishedAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Finished on</label>
+				<input
+					id="pendingStatusFinishedAt"
+					type="date"
+					class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+					[value]="pendingStatusFinishedAt()"
+					(input)="pendingStatusFinishedAt.set($any($event.target).value)"
+				/>
+			</div>
+		}
+		<div class="flex items-center justify-end gap-2">
+			<button uiButton variant="ghost" (click)="cancelStatusChange()">Cancel</button>
+			<button uiButton variant="primary" (click)="confirmStatusChange()">Confirm</button>
+		</div>
+	</div>
+</div>
 }
