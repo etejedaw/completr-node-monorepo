@@ -33,7 +33,7 @@
 			<li class="flex items-center justify-between py-2 border-b border-line">
 				<div class="flex items-center gap-2.5 min-w-0">
 					@if (game.backgroundUrl) {
-					<img [src]="game.backgroundUrl" class="w-8 h-[42px] object-cover rounded-sm shrink-0" />
+					<img [src]="game.backgroundUrl" class="w-8 h-[42px] object-cover rounded-sm shrink-0" loading="lazy" />
 					}
 					<div class="flex flex-col min-w-0">
 						<span class="text-[0.8125rem] font-medium truncate">{{ game.title }}</span>
@@ -52,7 +52,7 @@
 		} @else {
 			<div class="mb-3 flex items-center gap-2.5">
 				@if (selectedGame()!.backgroundUrl) {
-					<img [src]="selectedGame()!.backgroundUrl" class="w-10 h-[52px] object-cover rounded-sm shrink-0" />
+					<img [src]="selectedGame()!.backgroundUrl" class="w-10 h-[52px] object-cover rounded-sm shrink-0" loading="lazy" />
 				}
 				<div class="flex flex-col min-w-0 flex-1">
 					<span class="text-sm font-semibold truncate">{{ selectedGame()!.title }}</span>

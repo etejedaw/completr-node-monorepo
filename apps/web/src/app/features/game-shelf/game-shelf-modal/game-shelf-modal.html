@@ -18,7 +18,7 @@
 			<div class="flex items-stretch gap-4 mb-5">
 				<div class="shrink-0">
 					@if (e.game.backgroundUrl) {
-						<img [src]="e.game.backgroundUrl" [alt]="e.game.title" class="w-20 h-28 object-cover rounded-md shadow-md shadow-black/40" />
+						<img [src]="e.game.backgroundUrl" [alt]="e.game.title" class="w-20 h-28 object-cover rounded-md shadow-md shadow-black/40" loading="lazy" />
 					} @else {
 						<div class="w-20 h-28 bg-input-bg rounded-md"></div>
 					}
@@ -68,7 +68,7 @@
 					@if (selectedGame()!.backgroundUrl) {
 					<img
 						[src]="selectedGame()!.backgroundUrl"
-						class="w-7 h-[38px] object-cover rounded-sm shrink-0"
+						class="w-7 h-[38px] object-cover rounded-sm shrink-0" loading="lazy"
 					/>
 					}
 					<span class="flex-1 text-sm font-medium">{{ selectedGame()!.title }}</span>
@@ -106,7 +106,7 @@
 						(click)="selectGame(game)"
 					>
 						@if (game.backgroundUrl) {
-						<img [src]="game.backgroundUrl" class="w-7 h-[38px] object-cover rounded-sm shrink-0" />
+						<img [src]="game.backgroundUrl" class="w-7 h-[38px] object-cover rounded-sm shrink-0" loading="lazy" />
 						}
 						<span class="flex-1">{{ game.title }}</span>
 						@if (game.justImported) {
@@ -138,7 +138,7 @@
 					@if (selectedGame()?.backgroundUrl) {
 					<img
 						[src]="selectedGame()!.backgroundUrl"
-						class="w-7 h-[38px] object-cover rounded-sm shrink-0"
+						class="w-7 h-[38px] object-cover rounded-sm shrink-0" loading="lazy"
 					/>
 					}
 					<span class="flex-1 text-sm font-medium">{{ selectedGame()!.title }}</span>

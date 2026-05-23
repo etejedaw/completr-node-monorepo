@@ -151,7 +151,7 @@
 				@if (game.backgroundUrl) {
 				<img
 					[src]="game.backgroundUrl"
-					class="w-7 h-[38px] object-cover rounded-[3px] shrink-0"
+					class="w-7 h-[38px] object-cover rounded-[3px] shrink-0" loading="lazy"
 				/>
 				}
 				<span class="flex-1">{{ game.title }}</span>
@@ -195,7 +195,7 @@
 							<img
 								[src]="item.game.backgroundUrl"
 								[alt]="item.game.title"
-								class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
+								class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40" loading="lazy"
 							/>
 						} @else {
 							<div class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"></div>

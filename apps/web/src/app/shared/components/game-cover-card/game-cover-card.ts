@@ -40,7 +40,7 @@ export interface GameCoverCardGame {
 				<img
 					[src]="game().backgroundUrl"
 					[alt]="game().title"
-					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition-transform group-hover:scale-[1.03]"
+					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition-transform group-hover:scale-[1.03]" loading="lazy"
 				/>
 			} @else {
 				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>

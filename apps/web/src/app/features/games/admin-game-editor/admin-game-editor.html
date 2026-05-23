@@ -73,7 +73,7 @@
 
 		@if (backgroundUrl()) {
 		<div class="mb-3 rounded overflow-hidden max-h-[120px]">
-			<img class="w-full h-[120px] object-cover block" [src]="backgroundUrl()" alt="Preview" />
+			<img class="w-full h-[120px] object-cover block" [src]="backgroundUrl()" alt="Preview" loading="lazy" />
 		</div>
 		}
 
@@ -110,7 +110,7 @@
 				<img
 					class="w-7 h-7 object-cover rounded-[3px] shrink-0"
 					[src]="parentGame()!.backgroundUrl"
-					[alt]="parentGame()!.title"
+					[alt]="parentGame()!.title" loading="lazy"
 				/>
 				}
 				<span class="flex-1 text-[0.8125rem] font-medium">{{ parentGame()!.title }}</span>
@@ -465,7 +465,7 @@
 					@if (row.linkedGame) {
 					<div class="flex items-center gap-2.5 py-2 px-3 bg-input-bg border border-line rounded">
 						@if (row.linkedGame.backgroundUrl) {
-						<img class="w-9 h-9 object-cover rounded-[3px] shrink-0" [src]="row.linkedGame.backgroundUrl" [alt]="row.linkedGame.title" />
+						<img class="w-9 h-9 object-cover rounded-[3px] shrink-0" [src]="row.linkedGame.backgroundUrl" [alt]="row.linkedGame.title" loading="lazy" />
 						}
 						<span class="flex-1 text-[0.8125rem] font-medium">{{ row.linkedGame.title }}</span>
 						<span class="text-xs text-fg-muted">{{ row.linkedGame.code }}</span>
@@ -492,7 +492,7 @@
 							(click)="pickCompilationRowGame(i, g)"
 						>
 							@if (g.backgroundUrl) {
-							<img class="w-7 h-7 object-cover rounded-[3px] shrink-0" [src]="g.backgroundUrl" [alt]="g.title" />
+							<img class="w-7 h-7 object-cover rounded-[3px] shrink-0" [src]="g.backgroundUrl" [alt]="g.title" loading="lazy" />
 							}
 							<span class="flex-1 text-[0.8125rem]">{{ g.title }}</span>
 							<span class="text-[0.6875rem] text-fg-muted">{{ g.code }}</span>

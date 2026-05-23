@@ -29,7 +29,7 @@
 								<img
 									class="w-12 h-12 rounded-full object-cover ring-1 ring-line shrink-0"
 									[src]="user.avatarUrl"
-									[alt]="user.username"
+									[alt]="user.username" loading="lazy"
 								/>
 							} @else {
 								<div class="w-12 h-12 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-lg font-bold ring-1 ring-line shrink-0">
@@ -67,7 +67,7 @@
 							<img
 								class="w-12 h-12 rounded-full object-cover ring-1 ring-line shrink-0"
 								[src]="user.avatarUrl"
-								[alt]="user.username"
+								[alt]="user.username" loading="lazy"
 							/>
 						} @else {
 							<div class="w-12 h-12 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-lg font-bold ring-1 ring-line shrink-0">

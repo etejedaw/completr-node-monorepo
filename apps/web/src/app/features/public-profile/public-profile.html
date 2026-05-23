@@ -247,7 +247,7 @@
 									<img
 										[src]="b.game.backgroundUrl"
 										[alt]="b.game.title"
-										class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
+										class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" loading="lazy"
 									/>
 								} @else {
 									<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
@@ -289,7 +289,7 @@
 						@for (s of profile()!.gameShelf.slice(0, 6); track s.id) {
 							<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', s.game.code]">
 								@if (s.game.backgroundUrl) {
-									<img [src]="s.game.backgroundUrl" [alt]="s.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+									<img [src]="s.game.backgroundUrl" [alt]="s.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" loading="lazy" />
 								} @else {
 									<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
 								}
@@ -389,7 +389,7 @@
 							@for (f of profile()!.favorites.slice(0, 6); track f.id) {
 								<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', f.game.code]">
 									@if (f.game.backgroundUrl) {
-										<img [src]="f.game.backgroundUrl" [alt]="f.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+										<img [src]="f.game.backgroundUrl" [alt]="f.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" loading="lazy" />
 									} @else {
 										<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
 									}
@@ -420,7 +420,7 @@
 							@for (w of profile()!.queue.slice(0, 6); track w.id) {
 								<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', w.backlog.game.code]">
 									@if (w.backlog.game.backgroundUrl) {
-										<img [src]="w.backlog.game.backgroundUrl" [alt]="w.backlog.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+										<img [src]="w.backlog.game.backgroundUrl" [alt]="w.backlog.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" loading="lazy" />
 									} @else {
 										<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
 									}
@@ -452,7 +452,7 @@
 							@for (w of profile()!.wishlist.slice(0, 6); track w.id) {
 								<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', w.game.code]">
 									@if (w.game.backgroundUrl) {
-										<img [src]="w.game.backgroundUrl" [alt]="w.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+										<img [src]="w.game.backgroundUrl" [alt]="w.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" loading="lazy" />
 									} @else {
 										<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
 									}

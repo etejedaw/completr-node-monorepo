@@ -29,7 +29,7 @@
 			<li class="flex items-center justify-between py-2 border-b border-line">
 				<div class="flex items-center gap-2.5 min-w-0">
 					@if (entry.game.backgroundUrl) {
-					<img [src]="entry.game.backgroundUrl" class="w-8 h-[42px] object-cover rounded-sm shrink-0" />
+					<img [src]="entry.game.backgroundUrl" class="w-8 h-[42px] object-cover rounded-sm shrink-0" loading="lazy" />
 					}
 					<div class="flex flex-col min-w-0 gap-1">
 						<span class="text-[0.8125rem] font-medium truncate">{{ entry.game.title }}</span>

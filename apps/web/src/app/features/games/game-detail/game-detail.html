@@ -483,7 +483,7 @@
 										<div class="flex items-center gap-2 min-w-0">
 											<a class="flex items-center gap-2 no-underline text-inherit group" [routerLink]="['/user', review.user?.username]">
 												@if (review.user?.avatarUrl) {
-													<img class="w-7 h-7 rounded-full object-cover" [src]="review.user!.avatarUrl" [alt]="review.user!.username" />
+													<img class="w-7 h-7 rounded-full object-cover" [src]="review.user!.avatarUrl" [alt]="review.user!.username" loading="lazy" />
 												} @else {
 													<div class="w-7 h-7 rounded-full bg-surface flex items-center justify-center text-[0.6875rem] font-bold text-brand">
 														{{ review.user?.username?.charAt(0)?.toUpperCase() }}
@@ -551,7 +551,7 @@
 								@for (dlc of game()!.dlcs; track dlc.id) {
 									<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', dlc.code]">
 										@if (dlc.backgroundUrl) {
-											<img [src]="dlc.backgroundUrl" [alt]="dlc.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+											<img [src]="dlc.backgroundUrl" [alt]="dlc.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" loading="lazy" />
 										} @else {
 											<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
 										}
@@ -570,7 +570,7 @@
 									@if (item.game) {
 										<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', item.game.code]">
 											@if (item.game.backgroundUrl) {
-												<img [src]="item.game.backgroundUrl" [alt]="item.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+												<img [src]="item.game.backgroundUrl" [alt]="item.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" loading="lazy" />
 											} @else {
 												<div class="w-full aspect-[3/4] bg-surface rounded-lg flex items-center justify-center text-fg-muted">
 													<span class="material-icons">videogame_asset</span>
@@ -590,7 +590,7 @@
 								@for (g of similarGames(); track g.id) {
 									<a class="flex flex-col gap-2 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', g.code]">
 										@if (g.backgroundUrl) {
-											<img [src]="g.backgroundUrl" [alt]="g.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" />
+											<img [src]="g.backgroundUrl" [alt]="g.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" loading="lazy" />
 										} @else {
 											<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
 										}
