@@ -187,6 +187,12 @@ export async function findPublicListsByUserId(userId: string) {
 	});
 }
 
+export async function countListsByUserId(userId: string, publicOnly = false) {
+	const where: Record<string, unknown> = { userId };
+	if (publicOnly) where["isPublic"] = true;
+	return List.count({ where });
+}
+
 export async function findPublicListsByGameId(gameId: string) {
 	return List.findAll({
 		where: { isPublic: true },

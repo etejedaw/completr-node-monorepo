@@ -184,6 +184,16 @@ router.get(
 );
 
 router.get(
+	"/users/:username/lists",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
+		validateSchemaMiddleware(UsernameParamSchema, "params")
+	],
+	usersController.getUserLists
+);
+
+router.get(
 	"/users/:username/following-lists",
 	[
 		rateLimiterMiddleware(publicLimiter),
