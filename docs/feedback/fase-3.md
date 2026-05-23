@@ -150,3 +150,18 @@
 - Reemplazar el placeholder en `layout.html` (esquina superior izquierda del sidebar)
 
 **Estado:** pendiente
+
+## FB-011 — Renombrar "Backlog"
+
+**Reporte:** "esto se me hace confuso, creo que debería tener otro nombre" (refiriéndose al nombre "backlog")
+
+**Contexto:** El término "backlog" es estándar en círculos gamer (HowLongToBeat, IGN, foros) pero puede confundir a usuarios casuales o no-anglo. Convive con "Queue" (cola priorizada) y "Wishlist" (juegos que quiero comprar/probar), lo cual amplifica la ambigüedad. Hoy el nombre aparece en sidebar, ficha de juego (Add to Backlog), URLs (`/backlog`, `/user/:username/backlog`), backend (`Backlog` model, `backlog.service`, etc.) y endpoints.
+
+**Alcance:**
+
+- Brainstorming de alternativas: "My Games", "Library", "Tracker", "My Journey", "Collection" — cada una con tradeoffs (Library choca con Game Shelf, Tracker es genérico, Collection ambiguo)
+- Validar con beta testers cuál término entienden sin explicación
+- Si se decide renombrar: cambio frontend-only (label/URL) vs backend (modelo + tabla + endpoints). Lo razonable es renombrar solo en UI manteniendo `Backlog` como nombre técnico interno
+- Coordinación con FB-010 (identidad visual) — el rename puede acompañar el rebrand
+
+**Estado:** pendiente
