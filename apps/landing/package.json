@@ -7,9 +7,10 @@
 	},
 	"scripts": {
 		"dev": "astro dev",
-		"build": "astro build",
+		"build": "astro check && astro build",
 		"preview": "astro preview",
 		"astro": "astro",
+		"check": "astro check",
 		"lint": "eslint . --fix",
 		"format": "prettier --write .",
 		"prepare": "husky"
@@ -19,6 +20,8 @@
 		"*.{js,mjs,cjs,ts,astro,css,json,md}": "prettier --write"
 	},
 	"devDependencies": {
+		"@astrojs/check": "^0.9.9",
+		"@astrojs/sitemap": "^3.7.2",
 		"@playwright/test": "^1.60.0",
 		"@tailwindcss/vite": "^4.3.0",
 		"@types/node": "^25.9.1",
@@ -31,6 +34,7 @@
 		"prettier": "3.8.3",
 		"prettier-plugin-astro": "0.14.1",
 		"tailwindcss": "^4.3.0",
+		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.59.4"
 	}
 }
