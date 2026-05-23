@@ -618,6 +618,7 @@ export class BacklogModal implements OnInit {
 
 	private submitReviewIfNeeded(gameId: string) {
 		if (!this.isFirstReviewableTransition()) return;
+		if (this.entry()?.hasReview) return;
 
 		const content = this.reviewContent().trim();
 		const rating = this.form.get("userRating")?.value;
@@ -627,9 +628,6 @@ export class BacklogModal implements OnInit {
 		if (content) data.content = content;
 		if (rating) data.rating = rating;
 
-		const call$ = this.entry()?.hasReview
-			? this.reviewsService.updateReview(gameId, data)
-			: this.reviewsService.createReview(gameId, data);
-		call$.subscribe();
+		this.reviewsService.createReview(gameId, data).subscribe();
 	}
 }
