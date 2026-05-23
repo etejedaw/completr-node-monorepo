@@ -1,0 +1,95 @@
+---
+const features = [
+	{
+		icon: "📋",
+		title: "Backlog con Ratio",
+		description:
+			"Organiza tus runs, marca estatus (jugando, completado, abandonado) y prioriza con el Ratio. Guarda vistas filtradas para encontrar todo en segundos."
+	},
+	{
+		icon: "🗄️",
+		title: "Game Shelf",
+		description:
+			"Registra los juegos que tienes (físicos o digitales) con plataforma, edición y fecha de adquisición."
+	},
+	{
+		icon: "⏭️",
+		title: "Queue y Wishlist",
+		description:
+			"Cola priorizada de qué jugar a continuación, separada de los juegos que aún quieres comprar. Sin mezclar lo que tienes con lo que falta."
+	},
+	{
+		icon: "📝",
+		title: "Reviews honestas",
+		description:
+			"Escribe reseñas con rating, contenido y las horas reales que te tomó. Lee opiniones reales sin influencer-speak."
+	},
+	{
+		icon: "📚",
+		title: "Listas curadas",
+		description:
+			"Crea listas temáticas, sigue las de otros y mira tu progreso en cada una. Sagas, géneros, tops personales: todo en un mismo lugar."
+	},
+	{
+		icon: "👥",
+		title: "Social",
+		description:
+			"Sigue a otros jugadores, descubre qué están jugando y comparte tu progreso en un feed de actividad con privacidad granular."
+	}
+];
+---
+
+<section
+	id="features-grid"
+	class="relative py-24 px-6 border-t border-[var(--color-line)]"
+>
+	<div class="max-w-6xl mx-auto">
+		<div class="text-center mb-14 max-w-2xl mx-auto">
+			<span
+				class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-brand)]"
+				>Qué trae Completr</span
+			>
+			<h2
+				class="font-[var(--font-display)] mt-3 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight"
+			>
+				Para
+				<span
+					class="bg-clip-text text-transparent"
+					style="background-image: linear-gradient(135deg, var(--color-brand), #c4a8ff);"
+					>disfrutar</span
+				> cada juego que empiezas y poder
+				<span
+					class="bg-clip-text text-transparent"
+					style="background-image: linear-gradient(135deg, var(--color-brand), #c4a8ff);"
+					>terminarlo</span
+				>.
+			</h2>
+			<p class="m-0 text-[var(--color-fg-secondary)]">
+				Las herramientas para organizar tu backlog, encontrar tu próximo
+				juego y compartir lo que te importa.
+			</p>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+			{
+				features.map(f => (
+					<div class="group relative p-6 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-line)] hover:border-[var(--color-brand)]/50 transition-colors overflow-hidden">
+						<div
+							class="absolute -top-12 -right-12 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none"
+							style="background: var(--color-brand);"
+						/>
+						<div class="relative">
+							<span class="text-3xl block mb-3">{f.icon}</span>
+							<h3 class="font-[var(--font-display)] m-0 mb-2 text-lg font-bold text-[var(--color-fg)]">
+								{f.title}
+							</h3>
+							<p class="m-0 text-sm text-[var(--color-fg-secondary)] leading-relaxed">
+								{f.description}
+							</p>
+						</div>
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>

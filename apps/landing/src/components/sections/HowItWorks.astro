@@ -1,0 +1,67 @@
+---
+const steps = [
+	{
+		number: "1",
+		title: "Agrega un juego",
+		description:
+			"Busca en el catálogo, elige plataforma y la fuente de score con la que quieres priorizarlo (Metacritic, OpenCritic, HLTB y más)."
+	},
+	{
+		number: "2",
+		title: "Mira el Ratio",
+		description:
+			"Completr combina score y duración promedio en una sola métrica que premia los juegos que dan más por cada hora invertida."
+	},
+	{
+		number: "3",
+		title: "Decide qué jugar",
+		description:
+			"Ordena tu backlog por Ratio o la vista que prefieras. Encuentra esa joya corta y bien valorada que llevas meses postergando."
+	}
+];
+---
+
+<section
+	id="how-it-works"
+	class="relative py-24 px-6 border-t border-[var(--color-line)]"
+>
+	<div class="max-w-6xl mx-auto">
+		<div class="text-center mb-14 max-w-2xl mx-auto">
+			<span
+				class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-brand)]"
+				>Cómo funciona</span
+			>
+			<h2
+				class="font-[var(--font-display)] mt-3 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight"
+			>
+				De backlog caótico a
+				<span
+					class="bg-clip-text text-transparent"
+					style="background-image: linear-gradient(135deg, var(--color-brand), #c4a8ff);"
+					>siguiente juego</span
+				> en 3 pasos.
+			</h2>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+			{
+				steps.map(step => (
+					<div class="relative p-6 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-line)]">
+						<span
+							class="absolute -top-4 left-6 flex items-center justify-center w-9 h-9 rounded-full font-display font-extrabold text-base text-white"
+							style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 6px 18px -4px var(--color-brand-glow);"
+						>
+							{step.number}
+						</span>
+						<h3 class="font-[var(--font-display)] mt-4 mb-2 text-lg font-bold text-[var(--color-fg)]">
+							{step.title}
+						</h3>
+						<p class="m-0 text-sm text-[var(--color-fg-secondary)] leading-relaxed">
+							{step.description}
+						</p>
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>

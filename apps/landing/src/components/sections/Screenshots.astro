@@ -1,0 +1,152 @@
+---
+const screenshots = [
+	{
+		src: "/screenshots/feed.png",
+		alt: "Feed de actividad",
+		caption: "Feed: la actividad de quienes sigues"
+	},
+	{
+		src: "/screenshots/games.png",
+		alt: "Página de juegos",
+		caption: "Games: descubre con shelves y juegos destacados"
+	},
+	{
+		src: "/screenshots/backlog.png",
+		alt: "Backlog con ratios",
+		caption: "Backlog: tus pendientes con el ratio destacado"
+	},
+	{
+		src: "/screenshots/profile.png",
+		alt: "Perfil con stats",
+		caption: "Perfil: stats, listas, reseñas y actividad"
+	},
+	{
+		src: "/screenshots/game-detail.png",
+		alt: "Ficha de un juego",
+		caption: "Ficha del juego: ratio, scores, reseñas y listas"
+	},
+	{
+		src: "/screenshots/list-detail.png",
+		alt: "Detalle de una lista curada",
+		caption: "Listas: curadas con tu progreso destacado"
+	}
+];
+---
+
+<section class="relative py-24 px-6 border-t border-[var(--color-line)]">
+	<div class="max-w-6xl mx-auto">
+		<div class="text-center mb-14 max-w-2xl mx-auto">
+			<span
+				class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-brand)]"
+				>Sneak peek</span
+			>
+			<h2
+				class="font-[var(--font-display)] mt-3 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight"
+			>
+				Así se ve por dentro.
+			</h2>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+			{
+				screenshots.map(s => (
+					<figure class="m-0 group">
+						<button
+							type="button"
+							data-lightbox-src={s.src}
+							data-lightbox-alt={s.alt}
+							class="block w-full p-0 bg-transparent border-0 cursor-zoom-in text-left"
+						>
+							<div
+								class="rounded-2xl overflow-hidden border-2 border-[var(--color-line)] bg-[#1a1a23] transition-all duration-300 group-hover:border-[var(--color-brand)]/50 group-hover:-translate-y-1"
+								style="box-shadow: 0 24px 60px -24px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.03) inset;"
+							>
+								<div class="flex items-center gap-1.5 px-3 py-2.5 border-b border-[var(--color-line)] bg-[#0f0f15]">
+									<span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
+									<span class="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
+									<span class="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
+								</div>
+								<img
+									src={s.src}
+									alt={s.alt}
+									loading="lazy"
+									decoding="async"
+									class="w-full h-auto block"
+								/>
+							</div>
+						</button>
+						<figcaption class="mt-3 text-sm text-[var(--color-fg-muted)] text-center">
+							{s.caption}
+						</figcaption>
+					</figure>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<div
+	id="lightbox"
+	class="hidden fixed inset-0 z-[1000] bg-black/85 backdrop-blur-sm items-center justify-center p-4 md:p-10 cursor-zoom-out"
+	role="dialog"
+	aria-modal="true"
+	aria-label="Vista ampliada"
+>
+	<img
+		id="lightbox-img"
+		src=""
+		alt=""
+		class="max-w-full max-h-full w-auto h-auto rounded-lg shadow-2xl"
+	/>
+	<button
+		type="button"
+		id="lightbox-close"
+		class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white border-0 cursor-pointer flex items-center justify-center text-xl backdrop-blur-md"
+		aria-label="Cerrar"
+	>
+		✕
+	</button>
+</div>
+
+<script>
+	const lightbox = document.getElementById("lightbox") as HTMLDivElement;
+	const lightboxImg = document.getElementById(
+		"lightbox-img"
+	) as HTMLImageElement;
+	const closeBtn = document.getElementById("lightbox-close");
+
+	function open(src: string, alt: string) {
+		lightboxImg.src = src;
+		lightboxImg.alt = alt;
+		lightbox.classList.remove("hidden");
+		lightbox.classList.add("flex");
+		document.body.style.overflow = "hidden";
+	}
+
+	function close() {
+		lightbox.classList.add("hidden");
+		lightbox.classList.remove("flex");
+		lightboxImg.src = "";
+		document.body.style.overflow = "";
+	}
+
+	document
+		.querySelectorAll<HTMLButtonElement>("[data-lightbox-src]")
+		.forEach(btn => {
+			btn.addEventListener("click", () => {
+				open(
+					btn.dataset.lightboxSrc ?? "",
+					btn.dataset.lightboxAlt ?? ""
+				);
+			});
+		});
+
+	lightbox?.addEventListener("click", e => {
+		if (e.target === lightbox) close();
+	});
+	closeBtn?.addEventListener("click", close);
+	document.addEventListener("keydown", e => {
+		if (e.key === "Escape" && !lightbox.classList.contains("hidden"))
+			close();
+	});
+</script>
