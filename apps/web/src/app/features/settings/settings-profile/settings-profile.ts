@@ -31,7 +31,7 @@ export class SettingsProfile implements OnInit {
 	protected readonly avatarUrl = signal("");
 	protected readonly saving = signal(false);
 
-	protected readonly AVATARS = Array.from({ length: 10 }, (_, i) => {
+	protected readonly AVATARS = Array.from({ length: 15 }, (_, i) => {
 		const n = String(i + 1).padStart(2, "0");
 		return `/avatars/completr_profile_${n}.png`;
 	});
