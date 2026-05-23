@@ -16,6 +16,14 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 		aria-label="Correo electrónico"
 		class="beta-signup-email flex-1 px-4 py-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-line)] text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] focus:outline-none focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/30 transition-colors w-full"
 	/>
+	<input
+		type="text"
+		name="website"
+		tabindex="-1"
+		autocomplete="off"
+		aria-hidden="true"
+		class="beta-signup-hp absolute left-[-9999px] w-px h-px opacity-0 pointer-events-none"
+	/>
 	<button
 		type="submit"
 		class="px-6 py-3 rounded-xl font-semibold text-white border-0 cursor-pointer transition-transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
@@ -24,6 +32,19 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 		Inscribirme
 	</button>
 </form>
+
+<noscript>
+	<p
+		class="m-0 mt-3 text-sm text-center text-[var(--color-fg-muted)] max-w-xl mx-auto"
+	>
+		El formulario necesita JavaScript. Si lo tienes desactivado, escríbeme a
+		<a
+			href="mailto:completr@etejeda.dev"
+			class="text-[var(--color-brand)] hover:underline"
+			>completr@etejeda.dev</a
+		> y te aviso del acceso.
+	</p>
+</noscript>
 
 <p
 	class="beta-signup-status m-0 mt-3 min-h-[1.25rem] text-sm text-center"
@@ -35,7 +56,7 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 <p class="m-0 mt-2 text-xs text-[var(--color-fg-muted)] text-center">
 	Solo lo uso para avisarte del acceso. <a
 		href="/privacy"
-		class="text-[var(--color-fg-secondary)] hover:text-[var(--color-brand)] transition-colors"
+		class="text-[var(--color-fg-secondary)] underline underline-offset-2 decoration-[var(--color-fg-muted)] hover:text-[var(--color-brand)] hover:decoration-[var(--color-brand)] transition-colors"
 		>Cómo manejo tu correo</a
 	>.
 </p>
@@ -63,12 +84,26 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 			);
 			const emailInput =
 				form.querySelector<HTMLInputElement>(".beta-signup-email");
-			const status = form.nextElementSibling as HTMLElement | null;
+			const honeypot =
+				form.querySelector<HTMLInputElement>(".beta-signup-hp");
+			const status = form.parentElement?.querySelector<HTMLElement>(
+				".beta-signup-status"
+			);
 
 			if (!submitBtn || !emailInput || !status) return;
 
 			form.addEventListener("submit", async event => {
 				event.preventDefault();
+
+				if (honeypot && honeypot.value) {
+					form.reset();
+					setStatus(
+						status,
+						"¡Listo! Te avisamos en cuanto abramos cupos.",
+						"success"
+					);
+					return;
+				}
 
 				const endpoint = form.dataset.endpoint;
 				if (!endpoint) {
