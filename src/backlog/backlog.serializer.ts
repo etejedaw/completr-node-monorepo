@@ -29,7 +29,7 @@ export function backlogSerializer(
 		userRating: backlogEntry.userRating,
 		isPublic: backlogEntry.isPublic,
 		notes: backlogEntry.notes,
-		hasReview: !!review,
+		hasReview: !!review?.content?.trim(),
 		reviewContent: review?.content ?? null,
 		game: gameSerializer(backlogEntry.Game),
 		platform: platformSerializer(backlogEntry.Platform),

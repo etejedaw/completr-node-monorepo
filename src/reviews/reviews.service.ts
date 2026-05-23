@@ -1,8 +1,10 @@
-import { fn, col, Op } from "sequelize";
+import { fn, col, Op, literal } from "sequelize";
 import { Review } from "./review.model";
 import { Game } from "../games/game.model";
 import { User } from "../users/user.model";
 import * as reviewsServiceError from "./errors/reviews.service-error";
+
+const hasContent = literal(`"content" IS NOT NULL AND btrim("content") <> ''`);
 
 export async function createReview(
 	userId: string,
@@ -13,7 +15,15 @@ export async function createReview(
 	if (!game) throw reviewsServiceError.gameNotFoundError();
 
 	const existing = await Review.findOne({ where: { userId, gameId } });
-	if (existing) throw reviewsServiceError.alreadyExistsError();
+	if (existing) {
+		if (existing.content && existing.content.trim() !== "") {
+			throw reviewsServiceError.alreadyExistsError();
+		}
+		return existing.update({
+			content: dto.content,
+			rating: dto.rating ?? existing.rating
+		});
+	}
 
 	return Review.create({
 		userId,
@@ -25,7 +35,7 @@ export async function createReview(
 
 export async function findReviewsByGameId(gameId: string) {
 	return Review.findAll({
-		where: { gameId },
+		where: { gameId, [Op.and]: hasContent },
 		include: [
 			{
 				model: User,
@@ -38,7 +48,7 @@ export async function findReviewsByGameId(gameId: string) {
 
 export async function findReviewsByUserId(userId: string) {
 	return Review.findAll({
-		where: { userId },
+		where: { userId, [Op.and]: hasContent },
 		include: [{ model: Game }],
 		order: [["createdAt", "DESC"]]
 	});
@@ -50,7 +60,7 @@ export async function findReviewsByUserIdPaginated(
 ) {
 	const { limit = 50, offset = 0 } = options;
 	return Review.findAndCountAll({
-		where: { userId },
+		where: { userId, [Op.and]: hasContent },
 		include: [{ model: Game }],
 		order: [["createdAt", "DESC"]],
 		limit,
@@ -68,7 +78,11 @@ export async function findReviewContentByUserAndGameIds(
 	gameIds: string[]
 ) {
 	const rows = (await Review.findAll({
-		where: { userId, gameId: { [Op.in]: gameIds } },
+		where: {
+			userId,
+			gameId: { [Op.in]: gameIds },
+			[Op.and]: hasContent
+		},
 		attributes: ["gameId", "content"],
 		raw: true
 	})) as unknown as { gameId: string; content: string | null }[];
@@ -77,6 +91,7 @@ export async function findReviewContentByUserAndGameIds(
 
 export async function findLatestReviewedGameIds(limit = 16) {
 	const rows = (await Review.findAll({
+		where: { [Op.and]: hasContent },
 		attributes: ["gameId", [fn("MAX", col("createdAt")), "lastReviewedAt"]],
 		group: ["gameId"],
 		order: [[fn("MAX", col("createdAt")), "DESC"]],
