@@ -190,6 +190,13 @@ export class GamesService {
 		return this.http.delete(`${environment.apiUrl}/games/${id}`);
 	}
 
+	reactivate(id: string) {
+		return this.http.post(
+			`${environment.apiUrl}/games/${id}/reactivate`,
+			{}
+		);
+	}
+
 	hardDelete(id: string) {
 		return this.http.delete(`${environment.apiUrl}/games/${id}?hard=true`);
 	}

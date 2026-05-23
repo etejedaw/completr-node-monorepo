@@ -123,12 +123,17 @@
 						}
 					</td>
 					<td class="px-3 py-2 align-middle min-w-[200px]">
-						<a
-							class="text-fg font-medium no-underline transition hover:text-brand"
-							[routerLink]="['/games', game.code]"
-						>
-							{{ game.title }}
-						</a>
+						@if (game.isActive === false) {
+							<span class="text-fg-muted font-medium" [title]="game.title">{{ game.title }}</span>
+							<span class="ml-1.5 inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-danger/10 text-danger">Deactivated</span>
+						} @else {
+							<a
+								class="text-fg font-medium no-underline transition hover:text-brand"
+								[routerLink]="['/games', game.code]"
+							>
+								{{ game.title }}
+							</a>
+						}
 						@if (game.variant) {
 							<span class="ml-1.5 inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-brand/15 text-brand">{{ game.variant }}</span>
 						}
@@ -152,15 +157,28 @@
 						<span class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning">DLC</span>
 						}
 					</td>
-					<td class="px-3 py-2 align-middle w-10 text-center">
-						@if (reportedGameIds().has(game.id)) {
-						<button
-							class="bg-danger/10 border border-danger/20 rounded text-danger cursor-pointer p-1 leading-none transition hover:bg-danger/20"
-							(click)="goToGameReport(game.id)"
-						>
-							<span class="material-icons text-base">flag</span>
-						</button>
-						}
+					<td class="px-3 py-2 align-middle whitespace-nowrap text-center">
+						<div class="flex items-center justify-center gap-1">
+							@if (reportedGameIds().has(game.id)) {
+								<button
+									class="bg-danger/10 border border-danger/20 rounded text-danger cursor-pointer p-1 leading-none transition hover:bg-danger/20"
+									(click)="goToGameReport(game.id)"
+									title="View report"
+								>
+									<span class="material-icons text-base">flag</span>
+								</button>
+							}
+							@if (game.isActive === false) {
+								<button
+									class="bg-success/10 border border-success/20 rounded text-success cursor-pointer p-1 leading-none transition hover:bg-success/20 disabled:opacity-50 disabled:cursor-not-allowed"
+									(click)="reactivate(game)"
+									[disabled]="isReactivating(game.id)"
+									title="Reactivate game"
+								>
+									<span class="material-icons text-base">restore_from_trash</span>
+								</button>
+							}
+						</div>
 					</td>
 				</tr>
 				}

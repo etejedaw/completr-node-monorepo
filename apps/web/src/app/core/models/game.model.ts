@@ -11,6 +11,7 @@ export interface Game {
 	parentGameId?: string;
 	variant?: string | null;
 	isCompilation?: boolean;
+	isActive?: boolean;
 	platforms: Platform[];
 	genres: Genre[];
 	scores: GameScore[];

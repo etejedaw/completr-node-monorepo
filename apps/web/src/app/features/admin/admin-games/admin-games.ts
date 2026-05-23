@@ -9,6 +9,7 @@ import { Router, RouterLink } from "@angular/router";
 import { Game } from "../../../core/models";
 import { GamesService } from "../../games/games.service";
 import { AdminService } from "../admin.service";
+import { ToastService } from "../../../core/services/toast.service";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
 
 @Component({
@@ -21,6 +22,7 @@ export class AdminGames implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly adminService = inject(AdminService);
 	private readonly router = inject(Router);
+	private readonly toast = inject(ToastService);
 
 	protected readonly Math = Math;
 	protected readonly games = signal<Game[]>([]);
@@ -38,6 +40,7 @@ export class AdminGames implements OnInit {
 	protected readonly activeFilter = signal<"active" | "inactive" | "all">(
 		"active"
 	);
+	protected readonly reactivatingIds = signal<Set<string>>(new Set());
 
 	protected readonly SCORE_SOURCES = ["metacritic", "opencritic", "rawg"];
 	protected readonly TIME_SOURCES = ["hltb", "rawg"];
@@ -75,6 +78,37 @@ export class AdminGames implements OnInit {
 		this.noTimeSources.set(next);
 		this.offset.set(0);
 		this.loadGames();
+	}
+
+	isReactivating(gameId: string): boolean {
+		return this.reactivatingIds().has(gameId);
+	}
+
+	reactivate(game: Game) {
+		if (this.isReactivating(game.id)) return;
+		const updating = new Set(this.reactivatingIds());
+		updating.add(game.id);
+		this.reactivatingIds.set(updating);
+		this.gamesService.reactivate(game.id).subscribe({
+			next: () => {
+				this.games.set(
+					this.games().map(g =>
+						g.id === game.id ? { ...g, isActive: true } : g
+					)
+				);
+				const next = new Set(this.reactivatingIds());
+				next.delete(game.id);
+				this.reactivatingIds.set(next);
+				this.toast.success(`Reactivated "${game.title}"`);
+				if (this.activeFilter() === "inactive") this.loadGames();
+			},
+			error: () => {
+				const next = new Set(this.reactivatingIds());
+				next.delete(game.id);
+				this.reactivatingIds.set(next);
+				this.toast.warning("Could not reactivate game.");
+			}
+		});
 	}
 
 	goToGameReport(gameId: string) {
