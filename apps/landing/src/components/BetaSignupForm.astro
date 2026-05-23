@@ -97,11 +97,7 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 
 				if (honeypot && honeypot.value) {
 					form.reset();
-					setStatus(
-						status,
-						"¡Listo! Te avisamos en cuanto abramos cupos.",
-						"success"
-					);
+					window.location.assign("/gracias");
 					return;
 				}
 
@@ -137,11 +133,8 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 
 					if (response.ok) {
 						form.reset();
-						setStatus(
-							status,
-							"¡Listo! Te avisamos en cuanto abramos cupos.",
-							"success"
-						);
+						window.location.assign("/gracias");
+						return;
 					} else if (response.status === 429) {
 						setStatus(
 							status,
