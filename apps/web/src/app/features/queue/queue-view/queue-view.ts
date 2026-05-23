@@ -113,6 +113,11 @@ export class QueueView implements OnInit {
 
 	onSearch(query: string) {
 		this.searchQuery.set(query);
+		if (!query.trim()) {
+			this.offset.set(0);
+			this.loadQueue();
+			return;
+		}
 		this.searchSubject.next(query);
 	}
 

@@ -16,13 +16,23 @@
 			}
 		</div>
 	} @else if (entries().length === 0) {
-		<ui-empty-state
-			icon="star"
-			title="No favorites yet"
-			hint="Mark your all-time favorite games. Visit a game's detail page and tap the star to add it here."
-		>
-			<a uiButton variant="primary" routerLink="/games">Browse games</a>
-		</ui-empty-state>
+		@if (searchQuery().trim()) {
+			<ui-empty-state
+				icon="search_off"
+				title="No matches found"
+				hint="No favorites match your search."
+			>
+				<button uiButton variant="secondary" (click)="onSearch('')">Clear search</button>
+			</ui-empty-state>
+		} @else {
+			<ui-empty-state
+				icon="star"
+				title="No favorites yet"
+				hint="Mark your all-time favorite games. Visit a game's detail page and tap the star to add it here."
+			>
+				<a uiButton variant="primary" routerLink="/games">Browse games</a>
+			</ui-empty-state>
+		}
 	} @else {
 		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 			@for (entry of entries(); track entry.id) {

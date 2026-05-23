@@ -60,13 +60,23 @@
 	} @if (isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (entries().length === 0) {
-	<ui-empty-state
-		icon="shelves"
-		title="Your game shelf is empty"
-		hint="Keep track of games you own, whether physical or digital."
-	>
-		<button uiButton variant="primary" (click)="openCreate()">+ Add to Shelf</button>
-	</ui-empty-state>
+		@if (searchQuery().trim() || selectedPlatform()) {
+			<ui-empty-state
+				icon="search_off"
+				title="No matches found"
+				hint="No shelf entries match your current search or filter."
+			>
+				<button uiButton variant="secondary" (click)="clearSearchAndFilter()">Clear search & filter</button>
+			</ui-empty-state>
+		} @else {
+			<ui-empty-state
+				icon="shelves"
+				title="Your game shelf is empty"
+				hint="Keep track of games you own, whether physical or digital."
+			>
+				<button uiButton variant="primary" (click)="openCreate()">+ Add to Shelf</button>
+			</ui-empty-state>
+		}
 	} @else if (viewMode() === 'grid') {
 		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 			@for (entry of entries(); track entry.id) {

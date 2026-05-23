@@ -67,12 +67,24 @@ export class GameShelfList implements OnInit {
 
 	onSearch(query: string) {
 		this.searchQuery.set(query);
+		if (!query.trim()) {
+			this.offset.set(0);
+			this.loadShelf();
+			return;
+		}
 		this.searchSubject.next(query);
 	}
 
 	filterByPlatform(platformId: string) {
 		this.selectedPlatform.set(platformId);
 		this.filterEntries();
+	}
+
+	clearSearchAndFilter() {
+		this.searchQuery.set("");
+		this.selectedPlatform.set("");
+		this.offset.set(0);
+		this.loadShelf();
 	}
 
 	openCreate() {
