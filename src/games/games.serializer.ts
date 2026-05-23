@@ -4,6 +4,7 @@ import { GameTime } from "../game-times/game-time.model";
 import { Genre } from "../genres/genres.model";
 import { Platform } from "../platforms/platform.model";
 import { CompilationItem } from "../compilation-items/compilation-item.model";
+import { calculateRatio as calculateRatioUtil } from "../common/utils/calculate-ratio.util";
 import { Game } from "./game.model";
 
 export function gameSerializer(
@@ -98,8 +99,7 @@ function parentGameSerializer(game?: Game | null) {
 function calculateRatio(scores?: GameScore[], times?: GameTime[]) {
 	const score = scores?.find(s => s.source === "completr")?.score;
 	const duration = times?.find(t => t.source === "completr")?.duration;
-	if (!score || !duration) return undefined;
-	return Math.round((score / duration) * 100) / 100;
+	return calculateRatioUtil(score, duration);
 }
 
 function platformSerializer(platform: Platform) {

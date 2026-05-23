@@ -1,11 +1,5 @@
+import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { Queue } from "./queue.model";
-
-const RATIO_SCALE = 20;
-
-function calculateRatio(score?: number, duration?: number) {
-	if (!score || !duration) return undefined;
-	return Math.round((score / duration) * RATIO_SCALE * 100) / 100;
-}
 
 export function queueSerializer(entry: Queue) {
 	return {

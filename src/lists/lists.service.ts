@@ -7,6 +7,7 @@ import { Game } from "../games/game.model";
 import { User } from "../users/user.model";
 import { Backlog } from "../backlog/backlog.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
+import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { RegisterListDto } from "./dtos/register-list.dto";
 import { UpdateListDto } from "./dtos/update-list.dto";
 import * as listsServiceError from "./errors/lists.service-error";
@@ -70,16 +71,6 @@ export interface BacklogSummary {
 	personalRatio: number | null;
 }
 
-const RATIO_SCALE = 20;
-
-function calculatePersonalRatio(
-	score: number | null | undefined,
-	realDuration: number | null | undefined
-): number | null {
-	if (!score || !realDuration) return null;
-	return Math.round((score / realDuration) * RATIO_SCALE * 100) / 100;
-}
-
 export async function getBacklogSummaryMap(
 	gameIds: string[],
 	userId: string
@@ -114,7 +105,7 @@ export async function getBacklogSummaryMap(
 		map.set(row.gameId, {
 			status: row.status,
 			realDuration: row.realDuration,
-			personalRatio: calculatePersonalRatio(row.score, row.realDuration)
+			personalRatio: calculateRatio(row.score, row.realDuration) ?? null
 		});
 	}
 	return map;
