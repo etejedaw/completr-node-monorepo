@@ -170,3 +170,22 @@
 **Recomendación:** empezar por opción 1, validar con beta testers cuáles términos pegan. Si la confusión Wishlist↔Queue persiste, escalar a opción 2. La opción 3 es complementaria — útil en cualquier escenario y la más barata. Coordinar con FB-010 (identidad visual) si se aborda el rename junto al rebrand.
 
 **Estado:** pendiente
+
+## FB-012 — Onboarding/discoverability: usuario no entiende para qué sirve cada categoría
+
+**Reporte:**
+
+- "No sabía cómo usarlo, me confunden tantas categorías"
+- "Entre Backlog, Queue, Shelf… no entendía bien para qué era cada una"
+
+**Contexto:** Segundo reporte independiente que refuerza FB-011 (sobrecarga de terminología). A diferencia de FB-011 — que apunta al naming en sí — este apunta a la **falta de onboarding y explicación de propósito**: aunque los nombres fueran perfectos, hoy no hay nada en la UI que le diga al usuario nuevo qué hace cada sección ni cuándo usarla. El usuario llega, ve 5 ítems en el sidebar con nombres parecidos y no sabe por dónde empezar.
+
+**Alcance:**
+
+- Onboarding inicial al crear cuenta: tour guiado de 3-4 pasos explicando las secciones principales (Backlog = historial, Queue = qué jugar ahora, Shelf = lo que poseo).
+- Empty states informativos: cada sección vacía debería explicar su propósito + acción sugerida (ej. Queue vacío → "Tu cola de juegos por jugar. Agrega juegos desde tu backlog marcándolos como 'Quiero Jugar'").
+- Tooltips/hints en los ítems del sidebar (hover o icono `?`) con descripción de 1 línea.
+- Posible: página `/help` o `/guide` con explicación detallada de cada concepto.
+- Coordinar con FB-011: si se hace rename, validar onboarding contra los nombres nuevos.
+
+**Estado:** pendiente
