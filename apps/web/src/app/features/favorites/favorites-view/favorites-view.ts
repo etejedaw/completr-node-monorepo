@@ -7,6 +7,7 @@ import {
 } from "@angular/core";
 import { FavoriteEntry } from "../../../core/models";
 import { FavoritesService } from "../favorites.service";
+import { ToastService } from "../../../core/services/toast.service";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
@@ -19,6 +20,7 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 })
 export class FavoritesView implements OnInit {
 	private readonly favoritesService = inject(FavoritesService);
+	private readonly toast = inject(ToastService);
 
 	protected readonly entries = signal<FavoriteEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -50,12 +52,22 @@ export class FavoritesView implements OnInit {
 	}
 
 	remove(entry: FavoriteEntry) {
-		const remaining = this.entries()
-			.filter(e => e.id !== entry.id)
-			.map(e => e.game.id);
-		this.favoritesService
-			.replaceFavorites(remaining)
-			.subscribe(updated => this.entries.set(updated));
+		this.entries.set(this.entries().filter(e => e.id !== entry.id));
+		this.total.set(Math.max(0, this.total() - 1));
+		this.toast.pending({
+			message: `Removed ${entry.game.title} from favorites`,
+			onCommit: () => {
+				const ids = this.entries().map(e => e.game.id);
+				this.favoritesService.replaceFavorites(ids).subscribe();
+			},
+			onUndo: () => {
+				const restored = [...this.entries(), entry].sort(
+					(a, b) => a.position - b.position
+				);
+				this.entries.set(restored);
+				this.total.set(this.total() + 1);
+			}
+		});
 	}
 
 	private loadFavorites() {

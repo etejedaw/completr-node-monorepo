@@ -14,6 +14,10 @@ export class ToastContainer {
 		this.toastService.dismiss(id);
 	}
 
+	undo(id: number) {
+		this.toastService.undo(id);
+	}
+
 	iconFor(variant: string): string {
 		switch (variant) {
 			case "success":

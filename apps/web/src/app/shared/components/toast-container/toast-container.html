@@ -6,6 +6,28 @@
 		>
 			<span class="material-icons text-base mt-0.5">{{ iconFor(t.variant) }}</span>
 			<span class="flex-1 text-[0.8125rem] leading-snug text-fg">{{ t.message }}</span>
+			@if (t.undoLabel) {
+				<button
+					class="bg-transparent border-0 text-fg font-semibold text-[0.75rem] uppercase tracking-wider cursor-pointer pl-1 pr-2 py-0.5 rounded hover:bg-fg/10 transition shrink-0 inline-flex items-center gap-1.5"
+					(click)="undo(t.id)"
+				>
+					<span class="relative inline-flex items-center justify-center w-4 h-4">
+						<svg class="absolute inset-0 -rotate-90" viewBox="0 0 36 36">
+							<circle cx="18" cy="18" r="16" fill="none" stroke-width="4" class="stroke-current opacity-25" />
+							<circle
+								cx="18" cy="18" r="16" fill="none" stroke-width="4"
+								class="stroke-current"
+								stroke-linecap="round"
+								pathLength="100"
+								stroke-dasharray="100"
+								stroke-dashoffset="0"
+								[style.animation]="'toastCountdown ' + (t.durationMs ?? 5000) + 'ms linear forwards'"
+							/>
+						</svg>
+					</span>
+					{{ t.undoLabel }}
+				</button>
+			}
 			<button
 				class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 leading-none hover:text-fg"
 				(click)="dismiss(t.id)"

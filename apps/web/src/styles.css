@@ -230,3 +230,8 @@ a:hover {
 		line-height: 1.6;
 	}
 }
+
+@keyframes toastCountdown {
+	from { stroke-dashoffset: 0; }
+	to { stroke-dashoffset: 100; }
+}

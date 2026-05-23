@@ -9,6 +9,7 @@ import {
 import { QueueEntry } from "../../../core/models";
 import { QueueService } from "../queue.service";
 import { BacklogService } from "../../backlog/backlog.service";
+import { ToastService } from "../../../core/services/toast.service";
 import { QueueAddModal } from "../queue-add-modal/queue-add-modal";
 import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
 import {
@@ -26,6 +27,7 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 export class QueueView implements OnInit {
 	private readonly queueService = inject(QueueService);
 	private readonly backlogService = inject(BacklogService);
+	private readonly toast = inject(ToastService);
 
 	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -188,11 +190,21 @@ export class QueueView implements OnInit {
 	}
 
 	remove(entry: QueueEntry) {
-		const remaining = this.entries()
-			.filter(e => e.id !== entry.id)
-			.map(e => e.backlog.id);
-		this.queueService.reorder(remaining).subscribe(updated => {
-			this.entries.set(updated);
+		this.entries.set(this.entries().filter(e => e.id !== entry.id));
+		this.total.set(Math.max(0, this.total() - 1));
+		this.toast.pending({
+			message: `Removed ${entry.backlog.game.title} from queue`,
+			onCommit: () => {
+				const ids = this.entries().map(e => e.backlog.id);
+				this.queueService.reorder(ids).subscribe();
+			},
+			onUndo: () => {
+				const restored = [...this.entries(), entry].sort(
+					(a, b) => a.position - b.position
+				);
+				this.entries.set(restored);
+				this.total.set(this.total() + 1);
+			}
 		});
 	}
 
