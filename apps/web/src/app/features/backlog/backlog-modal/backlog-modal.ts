@@ -627,10 +627,9 @@ export class BacklogModal implements OnInit {
 		if (content) data.content = content;
 		if (rating) data.rating = rating;
 
-		this.reviewsService.createReview(gameId, data).subscribe({
-			error: () => {
-				this.reviewsService.updateReview(gameId, data).subscribe();
-			}
-		});
+		const call$ = this.entry()?.hasReview
+			? this.reviewsService.updateReview(gameId, data)
+			: this.reviewsService.createReview(gameId, data);
+		call$.subscribe();
 	}
 }

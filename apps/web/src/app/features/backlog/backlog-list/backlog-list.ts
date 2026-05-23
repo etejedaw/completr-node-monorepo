@@ -449,13 +449,10 @@ export class BacklogList implements OnInit {
 		this.backlogService
 			.update(entry.id, { userRating: rating })
 			.subscribe();
-		this.reviewsService.createReview(entry.game.id, { rating }).subscribe({
-			error: () => {
-				this.reviewsService
-					.updateReview(entry.game.id, { rating })
-					.subscribe();
-			}
-		});
+		const call$ = entry.hasReview
+			? this.reviewsService.updateReview(entry.game.id, { rating })
+			: this.reviewsService.createReview(entry.game.id, { rating });
+		call$.subscribe();
 	}
 
 	@HostListener("document:click")
