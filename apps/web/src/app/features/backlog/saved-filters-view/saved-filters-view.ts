@@ -6,15 +6,15 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { Router } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
-import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-saved-filters-view",
-	imports: [FormsModule, UiPagination, UiSearchBar],
+	imports: [FormsModule, RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar],
 	templateUrl: "./saved-filters-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

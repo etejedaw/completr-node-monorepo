@@ -9,12 +9,12 @@ import { RouterLink } from "@angular/router";
 import { WishlistEntry } from "../../../core/models";
 import { WishlistService } from "../wishlist.service";
 import { WishlistAddModal } from "../wishlist-add-modal/wishlist-add-modal";
-import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-wishlist-view",
-	imports: [RouterLink, UiButton, UiPagination, UiSearchBar, WishlistAddModal],
+	imports: [RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar, WishlistAddModal],
 	templateUrl: "./wishlist-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

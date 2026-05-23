@@ -11,13 +11,13 @@
 	@if (isLoading()) {
 		<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (filters().length === 0) {
-		<div class="text-center py-12">
-			<p class="empty-title">No saved views yet</p>
-			<p class="empty-hint">
-				Save your favorite filter combinations from the Backlog to quickly
-				switch between views like "Completed 2025" or "Playing on Steam".
-			</p>
-		</div>
+		<ui-empty-state
+			icon="bookmarks"
+			title="No saved views yet"
+			hint='Save your favorite filter combinations from the Backlog to quickly switch between views like "Completed 2025" or "Playing on Steam".'
+		>
+			<a uiButton variant="primary" routerLink="/backlog">Go to Backlog</a>
+		</ui-empty-state>
 	} @else {
 		<div class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
 			@for (filter of filteredFilters(); track filter.id) {

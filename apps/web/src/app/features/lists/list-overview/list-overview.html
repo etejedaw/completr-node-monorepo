@@ -65,13 +65,13 @@
 	@if (isLoading()) {
 		<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (lists().length === 0) {
-		<div class="text-center py-12 text-fg-muted text-sm">
-			<p class="empty-title">No lists yet</p>
-			<p class="empty-hint">
-				Create curated collections of games — sagas, top picks, or themed
-				lists. Click <strong>+ Create List</strong> to start.
-			</p>
-		</div>
+		<ui-empty-state
+			icon="format_list_bulleted"
+			title="No lists yet"
+			hint="Create curated collections of games — sagas, top picks, or themed lists."
+		>
+			<button uiButton variant="primary" (click)="openCreate()">+ Create List</button>
+		</ui-empty-state>
 	} @else {
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 			@for (list of lists(); track list.id) {

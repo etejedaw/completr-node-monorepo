@@ -90,13 +90,13 @@
 	@if (isLoading()) {
 		<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (activities().length === 0) {
-		<div class="text-center py-12">
-			<p class="empty-title">Your feed is empty</p>
-			<p class="empty-hint">
-				Follow other users to see their activity here. Use the search bar
-				above to find friends.
-			</p>
-		</div>
+		<ui-empty-state
+			icon="dynamic_feed"
+			title="Your feed is empty"
+			hint="Follow other users to see their activity here. Use the search bar above to find friends."
+		>
+			<a uiButton variant="primary" routerLink="/users">Discover users</a>
+		</ui-empty-state>
 	} @else {
 		<div class="relative">
 			<div class="absolute left-[22px] top-6 bottom-6 w-px bg-line" aria-hidden="true"></div>

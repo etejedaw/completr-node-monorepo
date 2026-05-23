@@ -73,13 +73,15 @@
 		}
 	</div>
 	} @else if (entries().length === 0) {
-	<div class="text-center py-12">
-		<p class="empty-title">Your queue is empty</p>
-		<p class="empty-hint">
-			Prioritize which games to play next. Add games from their detail
-			page or from your backlog.
-		</p>
-	</div>
+	<ui-empty-state
+		icon="playlist_play"
+		title="Your queue is empty"
+		hint="Prioritize which games to play next. Add games from their detail page or from your backlog."
+	>
+		<button uiButton variant="primary" (click)="openAddModal()">
+			+ Add from Backlog
+		</button>
+	</ui-empty-state>
 	} @else {
 	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
 		@for (entry of filteredEntries(); track entry.id; let i = $index) {

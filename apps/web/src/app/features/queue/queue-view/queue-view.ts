@@ -11,7 +11,7 @@ import { QueueService } from "../queue.service";
 import { BacklogService } from "../../backlog/backlog.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { QueueAddModal } from "../queue-add-modal/queue-add-modal";
-import { UiButton, UiPagination, UiSearchBar, UiSkeleton } from "../../../shared/ui";
+import { UiButton, UiEmptyState, UiPagination, UiSearchBar, UiSkeleton } from "../../../shared/ui";
 import {
 	QueueGridCard,
 	QueueStatusChange
@@ -20,7 +20,7 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-queue-view",
-	imports: [QueueAddModal, UiButton, UiPagination, UiSearchBar, UiSkeleton, QueueGridCard],
+	imports: [QueueAddModal, UiButton, UiEmptyState, UiPagination, UiSearchBar, UiSkeleton, QueueGridCard],
 	templateUrl: "./queue-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

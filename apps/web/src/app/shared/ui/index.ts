@@ -12,3 +12,4 @@ export { UiDialog, UiDialogTitle, UiDialogDescription } from "./dialog/ui-dialog
 export { UiPagination } from "./pagination/ui-pagination";
 export { UiSkeleton } from "./skeleton/ui-skeleton";
 export type { UiSkeletonVariant } from "./skeleton/ui-skeleton";
+export { UiEmptyState } from "./empty-state/ui-empty-state";
