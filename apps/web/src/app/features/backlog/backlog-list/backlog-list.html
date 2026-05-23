@@ -390,11 +390,12 @@
 								}
 							</div>
 
-							<div class="flex items-center gap-2">
+							<div class="flex items-center gap-2" (click)="$event.stopPropagation()">
 								<app-star-rating
 									[value]="entry.userRating ?? null"
-									[readonly]="true"
+									[readonly]="!canQuickRate(entry)"
 									size="sm"
+									(ratingChange)="onQuickRate(entry, $event)"
 								/>
 								@if (entry.hasReview) {
 									@if (entry.notes) {
@@ -522,7 +523,14 @@
 								<td class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary">{{ entry.personalRatio ?? "-" }}</td>
 								<td class="px-4 py-3 align-middle">
 									<div class="flex items-center gap-1.5">
-										<app-star-rating [value]="entry.userRating ?? null" [readonly]="true" size="sm" />
+										<span (click)="$event.stopPropagation()">
+										<app-star-rating
+											[value]="entry.userRating ?? null"
+											[readonly]="!canQuickRate(entry)"
+											size="sm"
+											(ratingChange)="onQuickRate(entry, $event)"
+										/>
+									</span>
 										@if (entry.hasReview) {
 											@if (entry.notes) {
 												<button
