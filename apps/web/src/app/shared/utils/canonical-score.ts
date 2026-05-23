@@ -65,7 +65,7 @@ export function pickCanonicalScore(game: GameWithSources | null | undefined): Ca
 			score: rawgScore,
 			scoreScale: 5,
 			duration: rawgTime,
-			ratio: round2(rawgScore / rawgTime)
+			ratio: round2((rawgScore * 20) / rawgTime)
 		};
 	}
 
