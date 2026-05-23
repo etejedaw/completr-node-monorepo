@@ -196,6 +196,18 @@ export async function deleteGame(request: Request, response: Response) {
 	return response.sendStatus(204);
 }
 
+export async function reactivateGame(request: Request, response: Response) {
+	const gameIdParam = request.locals.params as GameIdParam;
+	const user = request.locals.user as RequestUser;
+	const { id } = gameIdParam;
+
+	const ok = await gameService.reactivateGame(id);
+	if (!ok) throw gameDomainError.gameNotFound();
+
+	auditService.record(user.id, "game_reactivated", "game", id);
+	return response.sendStatus(204);
+}
+
 export async function getGameLists(request: Request, response: Response) {
 	const params = request.locals.params as GameIdParam;
 	const user = request.locals.user as RequestUser;

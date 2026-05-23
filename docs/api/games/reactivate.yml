@@ -1,0 +1,38 @@
+info:
+    name: Reactivate Game
+    type: http
+    seq: 13
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/games/:id/reactivate"
+    params:
+        - name: id
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Reactivate Game
+
+    Reverts a soft-deleted game by setting `isActive: true`. Admin only.
+
+    **Authentication:** Bearer token required (role: admin).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param | Type   | Required | Description     |
+    |-------|--------|----------|-----------------|
+    | id    | string | Yes      | The game UUID   |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    - 404 `GAME_NOT_FOUND` — Game does not exist

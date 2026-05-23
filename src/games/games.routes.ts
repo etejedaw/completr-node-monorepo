@@ -139,6 +139,16 @@ router.delete(
 	gamesController.deleteGame
 );
 
+router.post(
+	"/games/:id/reactivate",
+	[
+		authMiddleware("admin"),
+		rateLimiterMiddleware(userLimiter),
+		validateSchemaMiddleware(GameIdParamSchema, "params")
+	],
+	gamesController.reactivateGame
+);
+
 router.use("/games/:id/reviews", reviewsRouter);
 
 router.get(
