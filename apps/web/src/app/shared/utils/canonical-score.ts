@@ -1,6 +1,6 @@
 import { GameScore, GameTime } from "../../core/models/game.model";
 
-export type CanonicalScoreType = "completr" | "aggregate" | null;
+export type CanonicalScoreType = "completr" | "aggregate" | "rawg" | null;
 
 export interface CanonicalScore {
 	type: CanonicalScoreType;
@@ -53,6 +53,19 @@ export function pickCanonicalScore(game: GameWithSources | null | undefined): Ca
 			scoreScale: 100,
 			duration: hltb,
 			ratio: round2(metacritic / hltb)
+		};
+	}
+
+	const rawgScore = game.scores?.find(s => s.source === "rawg")?.score;
+	const rawgTime = game.times?.find(t => t.source === "rawg")?.duration;
+
+	if (rawgScore != null && rawgTime != null && rawgTime > 0) {
+		return {
+			type: "rawg",
+			score: rawgScore,
+			scoreScale: 5,
+			duration: rawgTime,
+			ratio: round2(rawgScore / rawgTime)
 		};
 	}
 
