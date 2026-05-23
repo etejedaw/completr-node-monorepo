@@ -23,7 +23,7 @@ import { corsConfig } from "./common/config/cors.config";
 import { errorHandlerMiddleware } from "./common/middlewares/error-handler.middleware";
 import { correlationIdMiddleware } from "./common/middlewares/correlation-id.middleware";
 import { loggerMiddleware } from "./common/middlewares/logger.middleware";
-import { securityTxtMiddleware } from "./common/middlewares/security-txt.middleware";
+import wellKnownRouter from "./well-known/well-known.routes";
 
 export function server(port: number) {
 	const app = express();
@@ -33,7 +33,7 @@ export function server(port: number) {
 	app.use(helmet());
 	app.use(cors(corsConfig));
 
-	app.use(securityTxtMiddleware);
+	app.use(wellKnownRouter);
 	app.use(correlationIdMiddleware);
 	app.use(loggerMiddleware);
 	app.use(authRouter);
