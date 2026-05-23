@@ -31,7 +31,7 @@ export class QueueAddModal implements OnInit {
 
 	ngOnInit() {
 		this.backlogService
-			.getMyBacklog({ status: "not_started,playing" })
+			.getMyBacklog({ status: "not_started" })
 			.subscribe({
 				next: res => {
 					this.entries.set(res.data.backlog);
