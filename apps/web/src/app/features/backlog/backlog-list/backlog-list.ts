@@ -452,7 +452,9 @@ export class BacklogList implements OnInit {
 		if (newStatus === entry.status) return;
 		const today = this.todayDateString();
 		this.pendingStatusStartedAt.set(newStatus === "playing" ? today : "");
-		this.pendingStatusFinishedAt.set(newStatus === "completed" ? today : "");
+		this.pendingStatusFinishedAt.set(
+			newStatus === "completed" || newStatus === "abandoned" ? today : ""
+		);
 		this.pendingStatusChange.set({ entry, status: newStatus });
 	}
 
@@ -471,7 +473,10 @@ export class BacklogList implements OnInit {
 		} = { status };
 		if (status === "playing" && this.pendingStatusStartedAt())
 			payload.startedAt = this.pendingStatusStartedAt();
-		if (status === "completed" && this.pendingStatusFinishedAt())
+		if (
+			(status === "completed" || status === "abandoned") &&
+			this.pendingStatusFinishedAt()
+		)
 			payload.finishedAt = this.pendingStatusFinishedAt();
 		this.pendingStatusChange.set(null);
 

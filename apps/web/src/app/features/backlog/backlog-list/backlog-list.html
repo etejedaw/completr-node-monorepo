@@ -658,9 +658,11 @@
 				/>
 			</div>
 		}
-		@if (pending.status === 'completed') {
+		@if (pending.status === 'completed' || pending.status === 'abandoned') {
 			<div>
-				<label for="pendingStatusFinishedAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Finished on</label>
+				<label for="pendingStatusFinishedAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
+					{{ pending.status === 'abandoned' ? 'Abandoned on' : 'Finished on' }}
+				</label>
 				<input
 					id="pendingStatusFinishedAt"
 					type="date"
