@@ -87,6 +87,12 @@ export const routes: Routes = [
 	},
 	{
 		path: "",
+		pathMatch: "full",
+		canMatch: [guestMatch],
+		redirectTo: "login"
+	},
+	{
+		path: "",
 		canMatch: [guestMatch],
 		loadComponent: () =>
 			import("./layout/guest-shell/guest-shell").then(m => m.GuestShell),
