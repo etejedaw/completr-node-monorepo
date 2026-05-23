@@ -292,13 +292,23 @@
 		}
 	</div>
 	} @else if (!isLoading() && entries().length === 0) {
-	<ui-empty-state
-		icon="library_books"
-		title="Your backlog is empty"
-		hint="Track the games you want to play, are playing, or have completed."
-	>
-		<button uiButton variant="primary" (click)="openCreate()">+ Add Entry</button>
-	</ui-empty-state>
+		@if (searchQuery().trim() || hasActiveFilters()) {
+			<ui-empty-state
+				icon="search_off"
+				title="No matches found"
+				hint="No backlog entries match your current search or filters."
+			>
+				<button uiButton variant="secondary" (click)="clearFilters()">Clear search & filters</button>
+			</ui-empty-state>
+		} @else {
+			<ui-empty-state
+				icon="library_books"
+				title="Your backlog is empty"
+				hint="Track the games you want to play, are playing, or have completed."
+			>
+				<button uiButton variant="primary" (click)="openCreate()">+ Add Entry</button>
+			</ui-empty-state>
+		}
 	} @else {
 		@if (viewMode() === 'diary') {
 			<div class="flex flex-col gap-3">

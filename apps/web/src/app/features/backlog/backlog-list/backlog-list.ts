@@ -15,7 +15,6 @@ import { BacklogEntry, BacklogStatus, Platform } from "../../../core/models";
 import { BacklogService, BacklogFilters } from "../backlog.service";
 import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
 import { QueueService } from "../../queue/queue.service";
-import { ReviewsService } from "../../games/reviews.service";
 import { GamesService } from "../../games/games.service";
 import { ActivatedRoute, ParamMap, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
@@ -35,7 +34,6 @@ export class BacklogList implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly savedFiltersService = inject(SavedFiltersService);
 	private readonly queueService = inject(QueueService);
-	private readonly reviewsService = inject(ReviewsService);
 	private readonly gamesService = inject(GamesService);
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
@@ -251,6 +249,7 @@ export class BacklogList implements OnInit {
 	}
 
 	clearFilters() {
+		this.searchQuery.set("");
 		this.selectedPlatform.set("");
 		this.startedFrom.set("");
 		this.startedTo.set("");
@@ -376,6 +375,11 @@ export class BacklogList implements OnInit {
 
 	onSearch(query: string) {
 		this.searchQuery.set(query);
+		if (!query.trim()) {
+			this.offset.set(0);
+			this.loadBacklog();
+			return;
+		}
 		this.searchSubject.next(query);
 	}
 
@@ -434,25 +438,19 @@ export class BacklogList implements OnInit {
 	}
 
 	canQuickRate(entry: BacklogEntry): boolean {
-		return entry.userRating == null;
+		return entry.status !== "not_started" && entry.userRating == null;
 	}
 
 	onQuickRate(entry: BacklogEntry, rating: number | null) {
 		if (rating == null) return;
 		this.entries.set(
 			this.entries().map(e =>
-				e.id === entry.id
-					? { ...e, userRating: rating, hasReview: true }
-					: e
+				e.id === entry.id ? { ...e, userRating: rating } : e
 			)
 		);
 		this.backlogService
 			.update(entry.id, { userRating: rating })
 			.subscribe();
-		const call$ = entry.hasReview
-			? this.reviewsService.updateReview(entry.game.id, { rating })
-			: this.reviewsService.createReview(entry.game.id, { rating });
-		call$.subscribe();
 	}
 
 	@HostListener("document:click")
