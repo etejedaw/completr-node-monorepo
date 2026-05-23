@@ -665,6 +665,10 @@
 
 - Landing page mínima en `completr.app` (Astro): descripción + screenshots + botón "Sign in" + formulario "Request access"
 
+### Feed
+
+- [ ] **TTL/cleanup job para `Activities`**: la tabla crece infinitamente (cada acción del usuario genera una row y nunca se borran). Antes de que el feed se ponga lento, agregar job programado que borre activities >90 días. Considerar índice sobre `createdAt` para que el cleanup sea barato. Revisar tamaño de tabla periódicamente para ajustar la ventana.
+
 ---
 
 ## 🟩 FASE 4 — Beta Pública _(~2–3 meses)_
