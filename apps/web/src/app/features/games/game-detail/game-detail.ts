@@ -25,6 +25,7 @@ import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { ReviewsService, Review } from "../reviews.service";
 import { ListsService } from "../../lists/lists.service";
 import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
+import { metascoreColorClass } from "../../../shared/utils/metascore-color";
 import { FormsModule } from "@angular/forms";
 import { UiButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
 
@@ -49,6 +50,8 @@ import { UiButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../.
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GameDetail implements OnInit {
+	protected readonly metascoreColorClass = metascoreColorClass;
+
 	private readonly route = inject(ActivatedRoute);
 	private readonly router = inject(Router);
 	private readonly gamesService = inject(GamesService);
