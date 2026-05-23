@@ -530,6 +530,28 @@
 - [ ] (Si se suman analytics o cookies de terceros) política de cookies; mientras solo haya la cookie HttpOnly del refresh token alcanza con mencionarla en el aviso de privacidad
 - [ ] (Diferible a Fase 4) Política DMCA / takedown — cuando la beta sea pública y crezca el volumen de contenido user-generated (covers, reviews, listas con nombres comerciales)
 
+### Cumplimiento de términos RAWG
+
+**Contexto:** RAWG free permite uso comercial hasta 100k MAU / 500k pageviews/mes y 20.000 requests/mes. Atribución por página ya cubierta (footer global + créditos en /help). Endpoints ya requieren auth y `robots.txt` bloquea crawlers. Falta el monitoreo de cuota para evitar bloqueo de la API key.
+
+- [ ] Crear modelo `RawgApiUsage(month, count, updatedAt)` — una fila por mes (YYYY-MM)
+- [ ] Instrumentar `RawgProvider` para incrementar el contador en cada fetch
+- [ ] Widget en `/admin/jobs` mostrando `X / 20.000` consumido del mes actual
+- [ ] Alerta en log (warning) al superar 80% de la cuota mensual
+- [ ] Optimizar cron de scores/durations: solo refrescar registros con `updatedAt > 30 días`
+- [ ] Plan de migración: evaluar IGDB (free sin cap mensual, sin paywall) vs upgrade a RAWG Business ($149/mes) antes de Fase 4
+
+### Plan de migración a IGDB (nota mental, evaluar antes de Fase 4)
+
+**Contexto:** IGDB tiene política más permisiva que RAWG (sin cap mensual, sin badge obligatorio, mirror local fomentado con webhooks, sin paywall hasta acuerdo comercial via partner@igdb.com). Migrar conserva `Game.id` y FK; solo se reemplazan campos derivados de RAWG (descripción, backgroundUrl, GameScore/GameTime/GameExternal con `source='rawg'`).
+
+- [ ] Crear `src/igdb/` como provider espejo del rawg/ con auth Twitch OAuth
+- [ ] Job de enriquecimiento por juego: match por título+año o cross-id, llenar `description`, `backgroundUrl`, `GameScore` y `GameTime` con `source='igdb'`, `GameExternal` con `provider='igdb'`
+- [ ] Webhook handler para eventos create/update/delete de IGDB
+- [ ] Migrar fuente preferida de `GameShelf` (rawg → igdb donde aplique)
+- [ ] Borrar filas `source='rawg'` confirmadas como reemplazadas
+- [ ] Enviar email a partner@igdb.com solicitando acuerdo comercial antes de lanzamiento Fase 4
+
 ### Reparación de datos HTML-encoded (legado pre-fix FB-067)
 
 **Contexto:** Hasta el commit del fix de FB-067, el middleware `express-xss-sanitizer` corría sobre todos los `req.body`, HTML-encodeando `&`, `<`, `>`, `"`, `'` antes de persistirse. Eso dejó datos viejos con `&amp;` y similares en cualquier campo `string` que pasó por POST/PATCH (titles, descriptions, notes, names, bios, content, edition, etc.). Slugs derivados de titles con `&` quedaron con `andamp` embebido.
