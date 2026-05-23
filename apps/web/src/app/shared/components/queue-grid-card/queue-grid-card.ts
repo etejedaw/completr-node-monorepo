@@ -60,13 +60,13 @@ export type QueueStatusChange = "playing";
 						class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition pointer-events-none group-hover:pointer-events-auto pointer-coarse:pointer-events-auto"
 					>
 						<button
-							uiIconButton size="sm"
-							class="hover:!text-warning"
+							type="button"
+							class="flex items-center justify-center w-10 h-10 rounded-full bg-warning text-white shadow-lg shadow-warning/40 ring-2 ring-white/20 hover:scale-110 hover:bg-warning hover:shadow-warning/60 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
 							(click)="statusChange.emit('playing')"
 							[disabled]="statusUpdating()"
 							title="Mark as playing"
 						>
-							<span class="material-icons text-base">play_arrow</span>
+							<span class="material-icons text-xl">play_arrow</span>
 						</button>
 					</div>
 				}
