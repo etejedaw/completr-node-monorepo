@@ -4,9 +4,11 @@
 			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Lists</h1>
 			<span class="text-[0.8125rem] text-fg-muted">{{ total() }} lists</span>
 		</div>
-		<button uiButton variant="primary" (click)="openCreate()" [disabled]="frozen()">
-			+ Create List
-		</button>
+		@if (isLoading() || lists().length > 0) {
+			<button uiButton variant="primary" (click)="openCreate()" [disabled]="frozen()">
+				+ Create List
+			</button>
+		}
 	</div>
 
 	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search public lists..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
