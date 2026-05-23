@@ -322,18 +322,19 @@ Las variables se cargan desde `.env` usando Node 22+ `--env-file=.env`. No se us
 
 ### Versionado por fase (semver)
 
-| Fase     | Release  | Descripción                                 |
-| -------- | -------- | ------------------------------------------- |
-| Fase 0   | `v0.1.0` | Setup, arquitectura, sin usuarios           |
-| Fase 1   | `v0.2.0` | Excel Killer, solo uso personal             |
-| Fase 1.5 | `v0.2.x` | Beyond the Spreadsheet, mejoras + deploy    |
-| Fase 2   | `v0.3.0` | MVP Amigos, 5–20 personas                   |
-| Fase 2.5 | `v0.3.x` | Pulido y UX, feedback + visual              |
-| Fase 3   | `v0.4.0` | Beta cerrada, 50–200 por invitación         |
-| Fase 4   | `v1.0.0` | Beta pública, primer release abierto (500+) |
-| Fase 5   | `v1.1.0` | Estabilización y calidad                    |
-| Fase 6   | `v2.0.0` | Premium, cambio de modelo (monetización)    |
-| Fase 7   | `v2.x.x` | Incrementales según features                |
+| Fase     | Release  | Descripción                                          |
+| -------- | -------- | ---------------------------------------------------- |
+| Fase 0   | `v0.1.0` | Setup, arquitectura, sin usuarios                    |
+| Fase 1   | `v0.2.0` | Excel Killer, solo uso personal                      |
+| Fase 1.5 | `v0.2.x` | Beyond the Spreadsheet, mejoras + deploy             |
+| Fase 2   | `v0.3.0` | MVP Amigos, 5–20 personas                            |
+| Fase 2.5 | `v0.3.x` | Pulido y UX, feedback + visual                       |
+| Fase 3   | `v0.4.0` | Beta cerrada, 50–200 por invitación                  |
+| Fase 4   | `v1.0.0` | Beta pública, primer release abierto (500+)          |
+| Fase 5   | `v1.1.0` | Estabilización y calidad                             |
+| Fase 5.5 | `v1.1.x` | Cumplimiento legal de fuentes externas (pre-Premium) |
+| Fase 6   | `v2.0.0` | Premium, cambio de modelo (monetización)             |
+| Fase 7   | `v2.x.x` | Incrementales según features                         |
 
 ### Estrategia de branching
 

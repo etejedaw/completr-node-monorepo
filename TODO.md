@@ -16,6 +16,7 @@
 | 5–7   | Fase 3 — Beta Cerrada (50–200 usuarios, invitación)  | `v0.4.0` |
 | 7–10  | Fase 4 — Beta Pública (500+ usuarios)                | `v1.0.0` |
 | 10–11 | Fase 5 — Estabilización y calidad                    | `v1.1.0` |
+| 11    | Fase 5.5 — Cumplimiento legal de fuentes externas    | `v1.1.x` |
 | 11–13 | Fase 6 — Premium (desarrollo + lanzamiento)          | `v2.0.0` |
 | 13+   | Fase 7 — Escalamiento continuo                       | `v2.x.x` |
 
@@ -867,6 +868,76 @@
 - [ ] Premium gratuito para Early Supporters hasta que se complete el primer tercio de las features votadas; a partir de ahí, comienza el premium público (pago)
 - [ ] El segundo tercio votado se lanza como siguientes features premium
 - [ ] El último tercio se desarrolla sin fecha fija, en paralelo con Fase 7, a medida que haya tiempo
+
+---
+
+## 🟪 FASE 5.5 — Cumplimiento legal de fuentes externas _(~3–4 semanas, pre-Premium)_
+
+**Objetivo:** Antes de cobrar a usuarios Premium, asegurar que todas las fuentes externas estén bajo licencia compatible con uso comercial o reemplazadas. Pasar de "operando bajo tolerancia" a "operando con permiso o sin necesidad de él".
+
+**Condición de éxito:** Ningún dato de terceros mostrado en producción está en violación explícita de ToS al momento del lanzamiento Premium.
+
+**Contexto:** RAWG, Metacritic y HLTB prohíben uso comercial en su tier gratis. Cobrar Premium activa esas cláusulas. Mejor resolverlo antes de que el dinero fluya — pedir permisos siendo "free hobby project" tiene mejor reception que post-monetización.
+
+### Migrar Metacritic → OpenCritic
+
+**Por qué:** Metacritic (Fandom) no tiene tier free comercial; única licencia es Fabric Data (enterprise pricing). OpenCritic tiene API pública gratuita compatible con uso comercial.
+
+- [ ] Implementar `src/opencritic/` provider con `searchGame`, `getGameById`, `getGameScore`
+- [ ] Extender `SCORE_SOURCES_API` para incluir `opencritic` (ya está en `SCORE_SOURCES`)
+- [ ] Job de migración: por cada `GameScore` con `source='metacritic'`, fetchear equivalente en OpenCritic y crear `GameScore` con `source='opencritic'`
+- [ ] Reemplazar la fuente preferida de `GameShelf` y `List` (metacritic → opencritic) donde aplique
+- [ ] Borrar entradas `source='metacritic'` confirmadas como reemplazadas
+- [ ] Frontend: actualizar `metascore-color.ts` para usar branding OpenCritic (o brand-agnostic)
+- [ ] Eliminar el label "Metascore" y mention de Metacritic en game-detail, help-page y attribution-footer
+- [ ] Atribución per-juego: link a la página de OpenCritic del juego
+
+### HLTB: pedir permiso o reemplazar
+
+**Por qué:** Ziff Davis (owner HLTB) prohíbe "any commercial purposes" en ToU + robots.txt. Sin permiso escrito, cobrar Premium es violación. Pero tienen buzón `licensing@ziffdavis.com` que acepta acuerdos informales.
+
+- [ ] Enviar email a `licensing@ziffdavis.com` solicitando permiso para uso comercial con atribución y datos entrados manualmente (sin scraping)
+- [ ] Documentar respuesta en `docs/legal/hltb-permission.md` (si conceden por escrito) o cerrar el tema (si deniegan)
+- [ ] **Plan A (permiso concedido):** mantener `source='hltb'` en `GameTime` con atribución per-juego (link a `howlongtobeat.com/game/<id>`)
+- [ ] **Plan B (permiso denegado o sin respuesta):** dropear datos HLTB del frontend, dejar solo `source='rawg'` y `source='completr'` como fuentes de duration. Para Fase 5.5 ya debería haber masa crítica de usuarios completando juegos (50+) para que `calculate_durations` genere `source='completr'` con confianza
+- [ ] Frontend: ajustar `canonical-score.ts` y el aggregate score card para no asumir disponibilidad de HLTB
+
+### RAWG: vigilar cap y preparar migración a IGDB
+
+**Por qué:** RAWG free permite uso comercial hasta 100k MAU / 500k pageviews/mes. Sobre eso, Business $149/mes o Enterprise. Cobrar Premium no cambia el cap, pero el lanzamiento aumenta el riesgo de cruzarlo.
+
+- [ ] Implementar monitoreo de cuota RAWG (tarea diferida desde Fase 3: `RawgApiUsage` + widget admin + alerta 80%)
+- [ ] Instrumentar analytics básicos (PostHog, Plausible, o similar) para tracking de MAU y pageviews mensuales
+- [ ] **Trigger de migración a IGDB:** cuando ocurra cualquiera de
+    - RAWG llega a 80% del cap mensual de requests
+    - Completr supera 50k MAU (o 250k pageviews/mes) — buffer del 50% antes del cap
+    - RAWG comunica cambio de pricing o políticas
+- [ ] **De todas formas, migrar a IGDB es inevitable a mediano plazo:** sin cap mensual, sin paywall, mirror local con webhooks, política más permisiva. La pregunta es solo cuándo, no si
+
+### Migración a IGDB (preparación, ejecución en Fase 6 o cuando se trigger)
+
+- [ ] Crear `src/igdb/` provider con auth Twitch OAuth (Client ID + Secret en `api-keys.config.ts`)
+- [ ] Endpoint `/admin/jobs/enrich-from-igdb` que itere games y por cada uno: match por título+año o cross-id, llenar `description`, `backgroundUrl`, `GameScore` y `GameTime` con `source='igdb'`, `GameExternal` con `source='igdb'`
+- [ ] Webhook handler para eventos create/update/delete de IGDB (sync incremental)
+- [ ] Enviar email a `partner@igdb.com` solicitando acuerdo comercial informal (free + atribución)
+- [ ] Documentar respuesta en `docs/legal/igdb-agreement.md`
+- [ ] Mantener `GameExternal` con `source='rawg'` como histórico, pero dejar de consultar la API de RAWG
+- [ ] Borrar `description`/`backgroundUrl` RAWG cuando IGDB tenga reemplazo confirmado
+
+### Decisión sobre datasets propios
+
+**Contexto:** En Fase 5.5 esperamos tener 50+ usuarios activos completando juegos, lo que da masa crítica para que `calculate_ratings` y `calculate_durations` produzcan `GameScore`/`GameTime` con `source='completr'` confiables.
+
+- [ ] Verificar threshold del job `calculate_durations` (actualmente `Math.ceil(totalUsers * 0.1)` con mínimo 2) — ajustar si hace falta más rigor para datos públicos
+- [ ] Documentar en help-page que ciertos datos son "Completr community" cuando no haya fuente externa
+- [ ] Ajustar UI del aggregate score card para mostrar "Completr community" como fallback prioritario sobre RAWG cuando haya suficientes datos
+
+### Términos de servicio Completr — actualizar
+
+- [ ] Mencionar en ToU que datos de terceros (cuando aplique) están bajo sus respectivas licencias
+- [ ] Agregar sección "Data Sources" en /help listando proveedores actuales y enlaces a sus ToU
+- [ ] Si HLTB deniega y se dropea: actualizar attribution-footer para remover mención
+- [ ] Si Metacritic se reemplaza por OpenCritic: actualizar attribution-footer
 
 ---
 
