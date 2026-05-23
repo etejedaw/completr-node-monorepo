@@ -1,24 +1,36 @@
 {
-  "name": "completr-page-astro",
-  "type": "module",
-  "version": "0.0.1",
-  "engines": {
-    "node": ">=22.12.0"
-  },
-  "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro",
-    "screenshots": "tsx scripts/screenshots.ts",
-    "og": "node scripts/og.mjs"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.60.0",
-    "@tailwindcss/vite": "^4.3.0",
-    "@types/node": "^25.9.1",
-    "astro": "^6.3.5",
-    "playwright": "^1.60.0",
-    "tailwindcss": "^4.3.0"
-  }
+	"name": "completr-page-astro",
+	"type": "module",
+	"version": "0.0.1",
+	"engines": {
+		"node": ">=22.12.0"
+	},
+	"scripts": {
+		"dev": "astro dev",
+		"build": "astro build",
+		"preview": "astro preview",
+		"astro": "astro",
+		"lint": "eslint . --fix",
+		"format": "prettier --write .",
+		"prepare": "husky"
+	},
+	"lint-staged": {
+		"*.{js,mjs,cjs,ts,astro}": "eslint --fix",
+		"*.{js,mjs,cjs,ts,astro,css,json,md}": "prettier --write"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.60.0",
+		"@tailwindcss/vite": "^4.3.0",
+		"@types/node": "^25.9.1",
+		"astro": "^6.3.5",
+		"eslint": "^10.4.0",
+		"eslint-plugin-astro": "^1.7.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^17.0.5",
+		"playwright": "^1.60.0",
+		"prettier": "3.8.3",
+		"prettier-plugin-astro": "0.14.1",
+		"tailwindcss": "^4.3.0",
+		"typescript-eslint": "^8.59.4"
+	}
 }
