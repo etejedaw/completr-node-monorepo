@@ -107,7 +107,9 @@ const screenshots = [
 			>
 			</div>
 
-			<div class="relative z-10 max-w-2xl flex flex-col items-center gap-6">
+			<div
+				class="relative z-10 max-w-2xl flex flex-col items-center gap-6"
+			>
 				<div class="flex items-center gap-3">
 					<span
 						class="flex items-center justify-center w-12 h-12 rounded-xl font-display font-extrabold text-xl text-white"
@@ -145,9 +147,9 @@ const screenshots = [
 				<p
 					class="m-0 text-base md:text-lg text-[var(--color-fg-secondary)] leading-relaxed max-w-xl"
 				>
-					Tu backlog crece más rápido que tu tiempo libre. Completr ordena
-					lo que tienes pendiente y te dice qué vale la pena jugar a
-					continuación. Próximamente abrimos <strong
+					Tu backlog crece más rápido que tu tiempo libre. Completr
+					ordena lo que tienes pendiente y te dice qué vale la pena
+					jugar a continuación. Próximamente abrimos <strong
 						class="text-[var(--color-fg)]">beta cerrada</strong
 					>.
 				</p>
@@ -158,7 +160,8 @@ const screenshots = [
 				class="absolute bottom-10 z-10 text-[var(--color-fg-muted)] hover:text-[var(--color-brand)] transition-colors flex flex-col items-center gap-1 no-underline"
 				aria-label="Ver más"
 			>
-				<span class="text-xs uppercase tracking-wider">Conocer más</span>
+				<span class="text-xs uppercase tracking-wider">Conocer más</span
+				>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="20"
@@ -209,18 +212,20 @@ const screenshots = [
 						class="m-0 text-[var(--color-fg-secondary)] leading-relaxed mb-3"
 					>
 						El <strong class="text-[var(--color-fg)]">Ratio</strong> responde
-						la pregunta que abre tu backlog cada noche: <em>¿qué juego ahora?</em>
+						la pregunta que abre tu backlog cada noche: <em
+							>¿qué juego ahora?</em
+						>
 						Combina la calificación de la comunidad con el tiempo promedio
-						para terminarlo, en una sola métrica que premia los juegos que te
-						dan más por cada hora que les inviertes.
+						para terminarlo, en una sola métrica que premia los juegos
+						que te dan más por cada hora que les inviertes.
 					</p>
 					<p
 						class="m-0 text-[var(--color-fg-secondary)] leading-relaxed"
 					>
-						Un 95 de 12 horas no pesa igual que un 95 de 80 horas. Uno cabe
-						en una semana; el otro te pide medio mes. El Ratio te lo deja
-						claro de un vistazo para que ordenes tu backlog según tu tiempo
-						real, no según el hype.
+						Un 95 de 12 horas no pesa igual que un 95 de 80 horas.
+						Uno cabe en una semana; el otro te pide medio mes. El
+						Ratio te lo deja claro de un vistazo para que ordenes tu
+						backlog según tu tiempo real, no según el hype.
 					</p>
 				</div>
 
@@ -242,14 +247,18 @@ const screenshots = [
 						</div>
 
 						<div class="flex items-baseline gap-2 mb-1">
-							<span class="text-6xl font-bold text-[var(--color-brand)] leading-none"
+							<span
+								class="text-6xl font-bold text-[var(--color-brand)] leading-none"
 								>87.5</span
 							>
-							<span class="text-xs uppercase tracking-wider text-[var(--color-fg-muted)]"
+							<span
+								class="text-xs uppercase tracking-wider text-[var(--color-fg-muted)]"
 								>Ratio</span
 							>
 						</div>
-						<p class="m-0 mt-1 text-[0.6875rem] text-[var(--color-fg-muted)] leading-snug">
+						<p
+							class="m-0 mt-1 text-[0.6875rem] text-[var(--color-fg-muted)] leading-snug"
+						>
 							score relative to time invested by the community
 						</p>
 
@@ -262,8 +271,12 @@ const screenshots = [
 									>Rating</span
 								>
 								<div class="flex items-center gap-1">
-									<span class="text-[var(--color-brand)]">★★★★</span>
-									<span class="text-[var(--color-fg-muted)]">★</span>
+									<span class="text-[var(--color-brand)]"
+										>★★★★</span
+									>
+									<span class="text-[var(--color-fg-muted)]"
+										>★</span
+									>
 								</div>
 							</div>
 							<div class="flex items-center justify-between">
@@ -271,8 +284,12 @@ const screenshots = [
 									class="text-[0.6875rem] uppercase tracking-wider text-[var(--color-fg-muted)]"
 									>Duration</span
 								>
-								<span class="text-sm font-semibold text-[var(--color-fg)]"
-									>18h <span class="text-[0.625rem] font-normal text-[var(--color-fg-muted)]">avg</span></span
+								<span
+									class="text-sm font-semibold text-[var(--color-fg)]"
+									>18h <span
+										class="text-[0.625rem] font-normal text-[var(--color-fg-muted)]"
+										>avg</span
+									></span
 								>
 							</div>
 						</div>
@@ -357,7 +374,9 @@ const screenshots = [
 					</p>
 				</div>
 
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+				<div
+					class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+				>
 					{
 						features.map(f => (
 							<div class="group relative p-6 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-line)] hover:border-[var(--color-brand)]/50 transition-colors overflow-hidden">
@@ -366,7 +385,9 @@ const screenshots = [
 									style="background: var(--color-brand);"
 								/>
 								<div class="relative">
-									<span class="text-3xl block mb-3">{f.icon}</span>
+									<span class="text-3xl block mb-3">
+										{f.icon}
+									</span>
 									<h3 class="font-[var(--font-display)] m-0 mb-2 text-lg font-bold text-[var(--color-fg)]">
 										{f.title}
 									</h3>
@@ -446,11 +467,12 @@ const screenshots = [
 				<p
 					class="mt-4 m-0 text-[var(--color-fg-secondary)] leading-relaxed"
 				>
-					Completr empezó como un Excel donde anotaba mis juegos para no
-					perder el hilo. Con el tiempo se volvió una app que armé solo para
-					mí, y ahora la estoy abriendo a mis amigos y gente cercana para
-					probarla y juntar feedback. Sin promesas grandes, sin roadmap
-					inflado. Es solo el tracker que me hubiera gustado tener.
+					Completr empezó como un Excel donde anotaba mis juegos para
+					no perder el hilo. Con el tiempo se volvió una app que armé
+					solo para mí, y ahora la estoy abriendo a mis amigos y gente
+					cercana para probarla y juntar feedback. Sin promesas
+					grandes, sin roadmap inflado. Es solo el tracker que me
+					hubiera gustado tener.
 				</p>
 				<p
 					class="mt-4 m-0 text-[var(--color-fg-secondary)] leading-relaxed font-semibold"
@@ -525,7 +547,9 @@ const screenshots = [
 
 <script>
 	const lightbox = document.getElementById("lightbox") as HTMLDivElement;
-	const lightboxImg = document.getElementById("lightbox-img") as HTMLImageElement;
+	const lightboxImg = document.getElementById(
+		"lightbox-img"
+	) as HTMLImageElement;
 	const closeBtn = document.getElementById("lightbox-close");
 
 	function open(src: string, alt: string) {
@@ -543,17 +567,23 @@ const screenshots = [
 		document.body.style.overflow = "";
 	}
 
-	document.querySelectorAll<HTMLButtonElement>("[data-lightbox-src]").forEach(btn => {
-		btn.addEventListener("click", () => {
-			open(btn.dataset.lightboxSrc ?? "", btn.dataset.lightboxAlt ?? "");
+	document
+		.querySelectorAll<HTMLButtonElement>("[data-lightbox-src]")
+		.forEach(btn => {
+			btn.addEventListener("click", () => {
+				open(
+					btn.dataset.lightboxSrc ?? "",
+					btn.dataset.lightboxAlt ?? ""
+				);
+			});
 		});
-	});
 
 	lightbox?.addEventListener("click", e => {
 		if (e.target === lightbox) close();
 	});
 	closeBtn?.addEventListener("click", close);
 	document.addEventListener("keydown", e => {
-		if (e.key === "Escape" && !lightbox.classList.contains("hidden")) close();
+		if (e.key === "Escape" && !lightbox.classList.contains("hidden"))
+			close();
 	});
 </script>
