@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "material-icons/iconfont/material-icons.css" layer(base);
+@import "../public/fonts/space-grotesk.css";
 @import "./styles/ui.css";
 
 .material-icons {
