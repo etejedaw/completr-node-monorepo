@@ -702,18 +702,20 @@
 					(input)="pendingStatusFinishedAt.set($any($event.target).value)"
 				/>
 			</div>
-			<div>
-				<label for="pendingRealDuration" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Real duration (hours)</label>
-				<input
-					id="pendingRealDuration"
-					type="number"
-					min="0"
-					step="0.5"
-					class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					[value]="pendingRealDuration()"
-					(input)="pendingRealDuration.set($any($event.target).value)"
-				/>
-			</div>
+			@if (pending.status === 'completed') {
+				<div>
+					<label for="pendingRealDuration" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Real duration (hours)</label>
+					<input
+						id="pendingRealDuration"
+						type="number"
+						min="0"
+						step="0.5"
+						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+						[value]="pendingRealDuration()"
+						(input)="pendingRealDuration.set($any($event.target).value)"
+					/>
+				</div>
+			}
 			<div>
 				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Your rating</label>
 				<app-star-rating

@@ -520,13 +520,15 @@ export class BacklogList implements OnInit {
 			payload.startedAt = this.pendingStatusStartedAt();
 		if (isFinished && this.pendingStatusFinishedAt())
 			payload.finishedAt = this.pendingStatusFinishedAt();
-		if (isFinished) {
+		if (status === "completed") {
 			const realDurationRaw = this.pendingRealDuration().trim();
 			if (realDurationRaw) {
 				const parsed = Number(realDurationRaw);
 				if (!Number.isNaN(parsed) && parsed > 0)
 					payload.realDuration = parsed;
 			}
+		}
+		if (isFinished) {
 			const rating = this.pendingRating();
 			if (rating != null && !this.pendingReviewToggle()) {
 				payload.userRating = rating;
