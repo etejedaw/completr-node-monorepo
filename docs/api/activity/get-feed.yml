@@ -62,3 +62,4 @@ docs: |-
     | backlog_abandoned  | Abandoned a game               |
     | favorite_added     | Added a game to favorites      |
     | list_created       | Created a new list             |
+    | game_reviewed      | Reviewed a game                |
