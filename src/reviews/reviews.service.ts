@@ -15,15 +15,7 @@ export async function createReview(
 	if (!game) throw reviewsServiceError.gameNotFoundError();
 
 	const existing = await Review.findOne({ where: { userId, gameId } });
-	if (existing) {
-		if (existing.content && existing.content.trim() !== "") {
-			throw reviewsServiceError.alreadyExistsError();
-		}
-		return existing.update({
-			content: dto.content,
-			rating: dto.rating ?? existing.rating
-		});
-	}
+	if (existing) throw reviewsServiceError.alreadyExistsError();
 
 	return Review.create({
 		userId,
@@ -35,7 +27,7 @@ export async function createReview(
 
 export async function findReviewsByGameId(gameId: string) {
 	return Review.findAll({
-		where: { gameId, [Op.and]: hasContent },
+		where: { gameId },
 		include: [
 			{
 				model: User,

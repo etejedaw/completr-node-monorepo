@@ -64,6 +64,8 @@ export async function patchReview(request: Request, response: Response) {
 		body
 	);
 
+	activityService.record(user.id, "game_reviewed", params.id);
+
 	const data = { review: reviewSerializer(review.get({ plain: true })) };
 	return response.status(200).json({ data });
 }
