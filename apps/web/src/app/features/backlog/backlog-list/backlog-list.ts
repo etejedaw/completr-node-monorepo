@@ -16,7 +16,7 @@ import { BacklogService, BacklogFilters } from "../backlog.service";
 import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
 import { QueueService } from "../../queue/queue.service";
 import { GamesService } from "../../games/games.service";
-import { ActivatedRoute, ParamMap, RouterLink } from "@angular/router";
+import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
@@ -32,6 +32,7 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 })
 export class BacklogList implements OnInit {
 	private readonly route = inject(ActivatedRoute);
+	private readonly router = inject(Router);
 	private readonly backlogService = inject(BacklogService);
 	private readonly savedFiltersService = inject(SavedFiltersService);
 	private readonly queueService = inject(QueueService);
@@ -490,8 +491,8 @@ export class BacklogList implements OnInit {
 		this.pendingRating.set(
 			entry.review?.rating ?? entry.userRating ?? null
 		);
-		this.pendingReviewToggle.set(!!entry.hasReview);
-		this.pendingReviewContent.set(entry.review?.content ?? "");
+		this.pendingReviewToggle.set(false);
+		this.pendingReviewContent.set("");
 		this.pendingStatusChange.set({ entry, status: newStatus });
 	}
 
@@ -501,6 +502,17 @@ export class BacklogList implements OnInit {
 		this.pendingRating.set(null);
 		this.pendingReviewToggle.set(false);
 		this.pendingReviewContent.set("");
+	}
+
+	saveAndOpenReview() {
+		const pending = this.pendingStatusChange();
+		if (!pending) return;
+		const gameCode = pending.entry.game.code;
+		this.pendingReviewToggle.set(false);
+		this.confirmStatusChange();
+		this.router.navigate(["/games", gameCode], {
+			queryParams: { review: "open" }
+		});
 	}
 
 	confirmStatusChange() {
@@ -530,7 +542,7 @@ export class BacklogList implements OnInit {
 		}
 		if (isFinished) {
 			const rating = this.pendingRating();
-			if (rating != null && !this.pendingReviewToggle()) {
+			if (rating != null) {
 				payload.userRating = rating;
 			}
 		}
@@ -569,7 +581,7 @@ export class BacklogList implements OnInit {
 					return;
 				}
 
-				const reviewAction = entry.hasReview
+				const reviewAction = entry.review
 					? this.reviewsService.updateReview(entry.game.id, {
 							content: reviewContent ?? null,
 							rating: reviewRating ?? null
