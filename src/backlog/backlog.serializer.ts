@@ -5,7 +5,7 @@ import { Backlog } from "./backlog.model";
 
 export function backlogSerializer(
 	backlogEntry: Backlog,
-	review?: { content: string | null } | null
+	review?: { content: string | null; rating: number | null } | null
 ) {
 	return {
 		id: backlogEntry.id,
@@ -25,6 +25,9 @@ export function backlogSerializer(
 		notes: backlogEntry.notes,
 		hasReview: !!review?.content?.trim(),
 		reviewContent: review?.content ?? null,
+		review: review
+			? { content: review.content, rating: review.rating }
+			: null,
 		game: gameSerializer(backlogEntry.Game),
 		platform: platformSerializer(backlogEntry.Platform),
 		compilationGame: backlogEntry.CompilationGame
@@ -48,12 +51,7 @@ export function backlogPublicSerializer(
 ) {
 	const full = backlogSerializer(backlogEntry, review);
 	const { notes: _notes, ...publicEntry } = full;
-	return {
-		...publicEntry,
-		review: review
-			? { content: review.content, rating: review.rating }
-			: null
-	};
+	return publicEntry;
 }
 
 function gameSerializer(game: Game) {

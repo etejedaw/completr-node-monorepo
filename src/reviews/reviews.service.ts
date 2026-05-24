@@ -72,13 +72,18 @@ export async function findReviewContentByUserAndGameIds(
 	const rows = (await Review.findAll({
 		where: {
 			userId,
-			gameId: { [Op.in]: gameIds },
-			[Op.and]: hasContent
+			gameId: { [Op.in]: gameIds }
 		},
-		attributes: ["gameId", "content"],
+		attributes: ["gameId", "content", "rating"],
 		raw: true
-	})) as unknown as { gameId: string; content: string | null }[];
-	return new Map(rows.map(r => [r.gameId, { content: r.content }]));
+	})) as unknown as {
+		gameId: string;
+		content: string | null;
+		rating: number | null;
+	}[];
+	return new Map(
+		rows.map(r => [r.gameId, { content: r.content, rating: r.rating }])
+	);
 }
 
 export async function findLatestReviewedGameIds(limit = 16) {

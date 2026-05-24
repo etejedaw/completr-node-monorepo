@@ -48,7 +48,10 @@ export async function getMeBacklog(request: Request, response: Response) {
 					user.id,
 					gameIds
 				)
-			: new Map<string, { content: string | null }>();
+			: new Map<
+					string,
+					{ content: string | null; rating: number | null }
+				>();
 
 	const data = {
 		backlog: backlogPlain.map(entry =>
