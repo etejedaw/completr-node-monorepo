@@ -22,7 +22,8 @@ import { GamesService } from "../../games/games.service";
 import { QueueService } from "../../queue/queue.service";
 import { GameShelfService } from "../../game-shelf/game-shelf.service";
 import { ScoreSourcesService } from "../../../core/services/score-sources.service";
-import { ReviewsService } from "../../games/reviews.service";
+import { Review, ReviewsService } from "../../games/reviews.service";
+import { AuthService } from "../../../core/services/auth.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../../../environments/environment";
@@ -51,6 +52,7 @@ export class BacklogModal implements OnInit {
 	private readonly queueService = inject(QueueService);
 	private readonly gameShelfService = inject(GameShelfService);
 	private readonly reviewsService = inject(ReviewsService);
+	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
 	private readonly http = inject(HttpClient);
 
@@ -229,6 +231,12 @@ export class BacklogModal implements OnInit {
 		return previous !== "completed" && previous !== "abandoned";
 	});
 
+	protected readonly existingReview = signal<Review | null>(null);
+
+	protected readonly hasExistingReview = computed(
+		() => !!this.entry()?.review || !!this.existingReview()
+	);
+
 	ngOnInit() {
 		this.gamesService.getPlatforms().subscribe(p => this.platforms.set(p));
 		this.scoreSourcesService.load();
@@ -352,6 +360,7 @@ export class BacklogModal implements OnInit {
 	private applyGameSelection(game: Game) {
 		this.selectedGame.set(game);
 		this.refreshAvailableCompilationParents(game);
+		this.fetchExistingReview(game.id);
 
 		const score = this.pickScore(game);
 		const duration = this.pickDuration(game);
@@ -371,7 +380,23 @@ export class BacklogModal implements OnInit {
 
 	clearCompilationChild() {
 		this.selectedGame.set(null);
+		this.existingReview.set(null);
 		this.form.patchValue({ gameId: "", platformId: "" });
+	}
+
+	private fetchExistingReview(gameId: string) {
+		const userId = this.authService.user()?.id;
+		if (!userId) {
+			this.existingReview.set(null);
+			return;
+		}
+		this.reviewsService.getReviews(gameId).subscribe({
+			next: reviews => {
+				const mine = reviews.find(r => r.user?.id === userId);
+				this.existingReview.set(mine ?? null);
+			},
+			error: () => this.existingReview.set(null)
+		});
 	}
 
 	clearCompilationParent() {
@@ -618,7 +643,7 @@ export class BacklogModal implements OnInit {
 
 	private submitReviewIfNeeded(gameId: string) {
 		if (!this.isFirstReviewableTransition()) return;
-		if (this.entry()?.hasReview) return;
+		if (this.hasExistingReview()) return;
 
 		const content = this.reviewContent().trim();
 		const rating = this.form.get("userRating")?.value;
