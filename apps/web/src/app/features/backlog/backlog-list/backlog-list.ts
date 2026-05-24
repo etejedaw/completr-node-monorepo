@@ -20,12 +20,13 @@ import { ActivatedRoute, ParamMap, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
-import { UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSkeleton } from "../../../shared/ui";
+import { ReviewsService } from "../../games/reviews.service";
+import { UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSkeleton, UiSwitch } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSkeleton],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSkeleton, UiSwitch],
 	templateUrl: "./backlog-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -35,6 +36,7 @@ export class BacklogList implements OnInit {
 	private readonly savedFiltersService = inject(SavedFiltersService);
 	private readonly queueService = inject(QueueService);
 	private readonly gamesService = inject(GamesService);
+	private readonly reviewsService = inject(ReviewsService);
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -57,6 +59,10 @@ export class BacklogList implements OnInit {
 	} | null>(null);
 	protected readonly pendingStatusStartedAt = signal<string>("");
 	protected readonly pendingStatusFinishedAt = signal<string>("");
+	protected readonly pendingRealDuration = signal<string>("");
+	protected readonly pendingRating = signal<number | null>(null);
+	protected readonly pendingReviewToggle = signal(false);
+	protected readonly pendingReviewContent = signal<string>("");
 	protected readonly updatingStatusIds = signal<Set<string>>(new Set());
 	protected readonly reviewExpandedIds = signal<Set<string>>(new Set());
 
@@ -478,30 +484,66 @@ export class BacklogList implements OnInit {
 		this.pendingStatusFinishedAt.set(
 			newStatus === "completed" || newStatus === "abandoned" ? today : ""
 		);
+		this.pendingRealDuration.set(
+			entry.realDuration != null ? String(entry.realDuration) : ""
+		);
+		this.pendingRating.set(
+			entry.review?.rating ?? entry.userRating ?? null
+		);
+		this.pendingReviewToggle.set(!!entry.hasReview);
+		this.pendingReviewContent.set(entry.review?.content ?? "");
 		this.pendingStatusChange.set({ entry, status: newStatus });
 	}
 
 	cancelStatusChange() {
 		this.pendingStatusChange.set(null);
+		this.pendingRealDuration.set("");
+		this.pendingRating.set(null);
+		this.pendingReviewToggle.set(false);
+		this.pendingReviewContent.set("");
 	}
 
 	confirmStatusChange() {
 		const pending = this.pendingStatusChange();
 		if (!pending) return;
 		const { entry, status } = pending;
+		const isFinished = status === "completed" || status === "abandoned";
+
 		const payload: {
 			status: BacklogStatus;
 			startedAt?: string;
 			finishedAt?: string;
+			realDuration?: number;
+			userRating?: number | null;
 		} = { status };
 		if (status === "playing" && this.pendingStatusStartedAt())
 			payload.startedAt = this.pendingStatusStartedAt();
-		if (
-			(status === "completed" || status === "abandoned") &&
-			this.pendingStatusFinishedAt()
-		)
+		if (isFinished && this.pendingStatusFinishedAt())
 			payload.finishedAt = this.pendingStatusFinishedAt();
+		if (isFinished) {
+			const realDurationRaw = this.pendingRealDuration().trim();
+			if (realDurationRaw) {
+				const parsed = Number(realDurationRaw);
+				if (!Number.isNaN(parsed) && parsed > 0)
+					payload.realDuration = parsed;
+			}
+			const rating = this.pendingRating();
+			if (rating != null && !this.pendingReviewToggle()) {
+				payload.userRating = rating;
+			}
+		}
+
+		const reviewSubmit = isFinished && this.pendingReviewToggle();
+		const reviewRating = this.pendingRating() ?? undefined;
+		const reviewContent = this.pendingReviewContent().trim() || undefined;
+		const shouldSubmitReview =
+			reviewSubmit && (reviewRating !== undefined || reviewContent);
+
 		this.pendingStatusChange.set(null);
+		this.pendingRealDuration.set("");
+		this.pendingRating.set(null);
+		this.pendingReviewToggle.set(false);
+		this.pendingReviewContent.set("");
 
 		const updating = new Set(this.updatingStatusIds());
 		updating.add(entry.id);
@@ -519,7 +561,26 @@ export class BacklogList implements OnInit {
 					this.entries().map(e => (e.id === entry.id ? backlog : e))
 				);
 				if (queueRemoved) this.loadQueueIds();
-				clearUpdating();
+
+				if (!shouldSubmitReview) {
+					clearUpdating();
+					return;
+				}
+
+				const reviewAction = entry.hasReview
+					? this.reviewsService.updateReview(entry.game.id, {
+							content: reviewContent ?? null,
+							rating: reviewRating ?? null
+						})
+					: this.reviewsService.createReview(entry.game.id, {
+							content: reviewContent,
+							rating: reviewRating
+						});
+
+				reviewAction.subscribe({
+					next: () => clearUpdating(),
+					error: clearUpdating
+				});
 			},
 			error: clearUpdating
 		});
