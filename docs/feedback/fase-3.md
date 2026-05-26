@@ -1,191 +1,120 @@
-# Feedback Fase 3
+# Feedback de usuarios — Fase 3
 
-## FB-001 — Más avatares predefinidos (sin uploads custom)
+> Feedback recopilado de amigos y beta testers usando la app en produccion (web.completr.app).
+> Convenciones de formato, estados y severidades documentadas en [`CONTEXT.md`](./CONTEXT.md).
 
-**Reporte:** "que locura los avatares ajhsdgjhgsd igual echo de menos poner mi foto"
+---
 
-**Decisión:** No se permitirán uploads de imágenes custom. En su lugar:
+## Feedback
 
-- Ampliar el catálogo de avatares predefinidos
-- Crear sets especiales para eventos (Halloween, navidad, lanzamientos, etc.)
-- Sets exclusivos para usuarios premium
+### [FB-001] Mas avatares predefinidos (sin uploads custom)
 
-**Estado:** pendiente
+- **Estado:** pendiente
+- **Descripcion:** "que locura los avatares ajhsdgjhgsd igual echo de menos poner mi foto". Los usuarios echan de menos poder subir su propia foto de perfil, pero los uploads custom abren toda una superficie de moderacion y storage que no queremos asumir todavia.
+- **Solucion propuesta:** No se permitiran uploads de imagenes custom. En su lugar: (1) ampliar el catalogo de avatares predefinidos, (2) crear sets especiales para eventos (Halloween, navidad, lanzamientos, etc.), (3) sets exclusivos para usuarios premium.
 
-## FB-002 — Follow requests para perfiles privados
+### [FB-002] Follow requests para perfiles privados
 
-**Reporte:** Permitir que usuarios con perfil privado puedan elegir si reciben solicitudes de seguimiento.
+- **Estado:** pendiente
+- **Descripcion:** Permitir que usuarios con perfil privado puedan elegir si reciben solicitudes de seguimiento.
+- **Solucion propuesta:** Setting nuevo en `User`: `acceptFollowRequests` (bool, default true). Si el perfil es privado y `acceptFollowRequests = true`, el follow no es automatico: queda en estado `pending` y el dueno aprueba/rechaza. Nuevo modelo `UserFollowRequest` (o estado `pending` en `UserFollower`). Endpoints: listar requests pendientes, aprobar, rechazar. Notificacion al dueno cuando llega una request. Si `acceptFollowRequests = false`, el boton Follow no aparece en perfiles privados.
 
-**Alcance:**
+### [FB-003] Visibilidad granular por seccion (solo yo / amigos / todos)
 
-- Setting nuevo en `User`: `acceptFollowRequests` (bool, default true)
-- Si perfil es privado y `acceptFollowRequests = true`, el follow no es automático: queda en estado `pending` y el dueño aprueba/rechaza
-- Nuevo modelo `UserFollowRequest` (o estado `pending` en `UserFollower`)
-- Endpoints: listar requests pendientes, aprobar, rechazar
-- Notificación al dueño cuando llega una request
-- Si `acceptFollowRequests = false`, el botón Follow no aparece en perfiles privados
+- **Estado:** pendiente
+- **Descripcion:** Que un usuario privado pueda permitir a sus seguidores ver ciertos menus (backlog, shelf, etc.) sin abrir todo el perfil.
+- **Solucion propuesta:** Reemplazar los flags booleanos `isQueuePublic`, `isWishlistPublic`, `isFavoritePublic`, `isFeedPublic` por enums con 3 niveles: `private` (solo yo), `friends` (seguidos+seguidores mutuos), `public` (todos). Agregar el mismo enum a backlog y game-shelf (que hoy heredan de `isPublic`). Backend: middleware/helper para resolver visibilidad — necesita conocer relacion de following mutuo (amistad). Migration con default = equivalente al estado actual (true → public, false → private). Frontend: settings de privacidad con dropdowns por seccion + explicacion del nivel "amigos". La "amistad" se define como follow mutuo.
 
-**Estado:** pendiente
+### [FB-004] Promover tags relevantes de RAWG a generos
 
-## FB-003 — Visibilidad granular por sección (solo yo / amigos / todos)
+- **Estado:** pendiente
+- **Descripcion:** Filtrar por genero "Point and Click" en `/games` no devuelve nada, aunque RAWG tiene juegos taggeados asi. Hoy el provider mapea solo los `genres` mayores de RAWG (Action, Adventure, RPG, Shooter...) e ignora las `tags`. Como mitigacion inmediata el frontend muestra un empty state amistoso con boton "Clear filters" cuando una combinacion de filtros devuelve 0 juegos.
+- **Solucion propuesta:** Curar lista de RAWG tags que se promueven a generos locales (point-and-click, roguelike, metroidvania, soulslike, visual-novel, deck-building, etc.). Modificar `RawgProvider` para mapear esas tags ademas de los genres. Script one-off de backfill que re-procesa los juegos existentes y agrega los generos faltantes (sin re-importar el resto de campos). Confirmar con busqueda manual: tras el backfill, filtrar por "Point and Click" debe devolver Hidden Through Time, Thimbleweed Park, etc.
 
-**Reporte:** Que un usuario privado pueda permitir a sus seguidores ver ciertos menús (backlog, shelf, etc.) sin abrir todo el perfil.
+### [FB-005] Soporte para Nintendo Switch 2 (RAWG no la distingue)
 
-**Alcance:**
+- **Estado:** pendiente
+- **Descripcion:** "La plataforma de NSW2 no siempre existe, asi que el Pokopia dice que esta para NSW que no es verdad."
+- **Contexto:** Verificado contra `https://api.rawg.io/api/platforms` y `https://api.rawg.io/api/games?search=pokemon+pokopia`. RAWG solo tiene `nintendo-switch` (id 7). No existe slug ni id para Switch 2. Juegos exclusivos de Switch 2 (Pokemon Pokopia, etc.) vienen marcados como Nintendo Switch a secas. Nuestro mapper `rawg-platform.map.ts` no es el problema — RAWG nunca emite el slug `nintendo-switch-2`.
+- **Solucion propuesta:** Evaluar IGDB (si distingue Switch 2) como fuente secundaria solo para platforms. Requiere OAuth via Twitch. Alternativa mas liviana: mantener una lista curada local de juegos Switch 2 exclusivos y aplicarla durante el import. Mientras tanto: el admin/moderador puede corregir manualmente desde `/admin/games` y los usuarios reportar errores via game-reports. Re-evaluar periodicamente: cuando RAWG agregue Switch 2 (como hicieron con PS5 en su momento), este FB se puede resolver con una entrada en el mapper.
 
-- Reemplazar los flags booleanos `isQueuePublic`, `isWishlistPublic`, `isFavoritePublic`, `isFeedPublic` por enums con 3 niveles: `private` (solo yo), `friends` (seguidos+seguidores mutuos), `public` (todos)
-- Agregar el mismo enum a backlog y game-shelf (que hoy heredan de `isPublic`)
-- Backend: middleware/helper para resolver visibilidad — necesita conocer relación de following mutuo (amistad)
-- Migration con default = equivalente al estado actual (true → public, false → private)
-- Frontend: settings de privacidad con dropdowns por sección + explicación del nivel "amigos"
-- Reglas: la "amistad" se define como follow mutuo
+### [FB-006] Boton de favorito en backlog, game-shelf y queue
 
-**Estado:** pendiente
+- **Estado:** pendiente
+- **Descripcion:** "Me gustaria poder agregar juegos a favoritos desde el backlog, gameshelf y queue."
+- **Contexto:** Hoy el unico lugar para marcar favorito es la ficha del juego (`/games/:code`, estrella arriba a la derecha). Desde las vistas de lista no hay acceso rapido. `FavoritesService.toggle(gameId)` ya existe en el frontend.
+- **Solucion propuesta:** Estrella inline en cada card/row de `backlog-list`, `game-shelf-list`, `queue-view` (y opcionalmente `wishlist-view`). Importar `FavoritesService` en cada componente, exponer `isFavorite(gameId)` y `toggleFavorite(gameId)`. UX: toggle optimista, icono `star` (amarillo) vs `star_border` (gris). Considerar tambien si extender el patron a las cards publicas del perfil de otro user (`user-backlog`, `user-favorites`, etc.) cuando el viewer esta logueado. Evaluar si el endpoint actual (`PUT /users/me/favorites` con array completo de IDs) es suficiente para uso intensivo, o si conviene agregar `POST /users/me/favorites/:gameId` y `DELETE /users/me/favorites/:gameId` para acciones atomicas.
 
-## FB-004 — Promover tags relevantes de RAWG a géneros
+### [FB-007] Reviews puntuables (helpful votes)
 
-**Reporte:** Filtrar por género "Point and Click" en `/games` no devuelve nada, aunque RAWG tiene juegos taggeados así. Hoy el provider mapea solo los `genres` mayores de RAWG (Action, Adventure, RPG, Shooter…) e ignora las `tags`. Como mitigación inmediata el frontend muestra un empty state amistoso con botón "Clear filters" cuando una combinación de filtros devuelve 0 juegos.
+- **Estado:** diferido
+- **Descripcion:** "quizas seria bueno poder puntuar las reviews de los juegos, para que algunas tengan menos peso que otras".
+- **Decision:** Diferido a Fase 4-5. Necesita masa critica de reviews antes de que tenga sentido implementarlo — si solo hay 1-2 reviews por juego, votar no aporta.
+- **Solucion propuesta:** Modelo `ReviewVote(id, reviewId, userId, vote: 'up' | 'down', createdAt)` con unique `(reviewId, userId)`. Endpoints `POST /reviews/:id/vote`, `DELETE /reviews/:id/vote`. Serializar reviews con `upvotes`, `downvotes`, `myVote`. Ordenar reviews por relevancia (votos netos) por defecto en la ficha del juego. Posible: usar el ratio de votos como peso para el `community score` agregado.
 
-**Alcance:**
+### [FB-008] Recomendaciones de juegos segun reviews del usuario
 
-- Curar lista de RAWG tags que se promueven a géneros locales (point-and-click, roguelike, metroidvania, soulslike, visual-novel, deck-building, etc.)
-- Modificar `RawgProvider` para mapear esas tags además de los genres
-- Script one-off de backfill que re-procesa los juegos existentes y agrega los géneros faltantes (sin re-importar el resto de campos)
-- Confirmar con búsqueda manual: tras el backfill, filtrar por "Point and Click" debe devolver Hidden Through Time, Thimbleweed Park, etc.
+- **Estado:** diferido
+- **Descripcion:** "Probablemente mucho leseo, pero me gustaria que en el feed me recomendara juegos que me podrian gustar segun mis reviews".
+- **Decision:** Diferido a Fase 6+. Necesita data critica (varios juegos completados/reviewed por user) y un algoritmo de recomendacion no trivial. Sin masa critica de usuarios y juegos co-completados, las recomendaciones serian pobres.
+- **Solucion propuesta:** Algoritmo inicial sencillo: collaborative filtering basado en juegos co-completados por usuarios con gustos similares (jaccard sobre completados/favoritos). Alternativa: content-based usando generos + plataformas + rangos de score que el usuario tiende a valorar bien. Endpoint `GET /games/recommendations` paginado. Integrar en el feed como seccion "Recommended for you" (no se mezcla con activity stream). Premium-only o gratis: decidir segun interes.
 
-**Estado:** pendiente
+### [FB-009] Performance de la pantalla de Games con muchos usuarios
 
-## FB-005 — Soporte para Nintendo Switch 2 (RAWG no la distingue)
+- **Estado:** diferido
+- **Descripcion:** "Si la pantalla de Games cambia segun todos los usuarios, me imagino que al tener muchos debe ser un horror".
+- **Decision:** Diferido a Fase 5 (estabilizacion y calidad). Hoy con pocos usuarios no es problema; conviene atacarlo cuando haya datos reales de carga para no optimizar prematuramente.
+- **Contexto:** Hoy `/games` carga "Latest games", "Latest reviewed", "Random genre", "Official lists", "Recent lists". Cada uno es una query separada. Con muchos usuarios y muchos juegos, "Latest reviewed" en particular puede pegarle a los indices y `findAll` con includes anidados.
+- **Solucion propuesta:** Cachear las secciones que no son user-specific (latest games, official lists, random genre del dia) con TTL corto (5-15 min). Revisar indices sobre `Reviews.createdAt`, `GameGenres`, `GamePlatforms` para garantizar uso de indice en las queries del browse. Considerar paginacion o lazy-load de secciones secundarias al hacer scroll en vez de cargar todas al inicio.
 
-**Reporte:** "La plataforma de NSW2 no siempre existe, así que el Pokopia dice que está para NSW que no es verdad."
+### [FB-010] Diseno del logo
 
-**Contexto:** Verificado contra `https://api.rawg.io/api/platforms` y `https://api.rawg.io/api/games?search=pokemon+pokopia`. RAWG solo tiene `nintendo-switch` (id 7). No existe slug ni id para Switch 2. Juegos exclusivos de Switch 2 (Pokémon Pokopia, etc.) vienen marcados como Nintendo Switch a secas. Nuestro mapper `rawg-platform.map.ts` no es el problema — RAWG nunca emite el slug `nintendo-switch-2`.
+- **Estado:** pendiente
+- **Descripcion:** "logo feo, pero lo ignoro porque no creo que lo hayas hecho todavia".
+- **Contexto:** El logo actual es un placeholder (cuadrado "C" con gradient brand). El user reconoce que es provisorio. Diferir hasta tener identidad visual definida.
+- **Solucion propuesta:** Definir identidad visual del producto (paleta, tono, target audience visual). Encargar/disenar logo + variantes (icon-only, full lockup, dark/light). Actualizar favicons, PWA icons, og:image, social cards. Reemplazar el placeholder en `layout.html` (esquina superior izquierda del sidebar).
 
-**Alcance:**
+### [FB-011] Sobrecarga de terminologia (Backlog vs Queue vs Wishlist vs Shelf vs Favorites)
 
-- Evaluar IGDB (sí distingue Switch 2) como fuente secundaria solo para platforms. Requiere OAuth via Twitch.
-- Alternativa más liviana: mantener una lista curada local de juegos Switch 2 exclusivos y aplicarla durante el import.
-- Mientras tanto: el admin/moderador puede corregir manualmente desde `/admin/games` y los usuarios reportar errores vía game-reports.
-- Re-evaluar periódicamente: cuando RAWG agregue Switch 2 (como hicieron con PS5 en su momento), este FB se puede resolver con una entrada en el mapper.
+- **Estado:** pendiente
+- **Descripcion:** "esto se me hace confuso, creo que deberia tener otro nombre" (refiriendose al nombre "backlog"). El termino "backlog" es estandar en circulos gamer (HowLongToBeat, IGN, foros) pero puede confundir a usuarios casuales o no-anglo.
+- **Contexto:** Es la punta del iceberg: la app expone 5 entidades user-facing con nombres parecidos que un usuario no-power confunde — Backlog (historial completo), Queue (cola priorizada de `not_started`), Wishlist (juegos que quiero conseguir, apunta a Game), Game Shelf (lo poseo) y Favorites (marca personal). Tres dimensiones reales (que jugue/quiero jugar, que tengo, que amo) mapeadas a 5 entidades con limites borrosos: Queue vs Wishlist (ambas se leen como "pendientes" para el casual), Backlog vs Game Shelf (si lo poseo y no lo jugue, cual es?), Wishlist vs Favorites ("me encantaria jugar esto algun dia" cabe en cualquiera).
+- **Solucion propuesta:** Tres opciones: (1) **Rename frontend-only (minima):** renombrar solo en UI sin tocar backend. Ej: Backlog → "My Games" o "Library"; Queue → "Up Next" / "Playing Soon"; Wishlist → "Want to Get"; Shelf y Favorites se mantienen. URLs opcionalmente tambien. Cero migracion, reversible, permite A/B con beta testers. Drift minimo entre interno/externo. (2) **Consolidar entidades (estructural):** colapsar Wishlist como sub-estado de Backlog (nuevo status `wanted`). Universo de conceptos baja de 5 a 4: Backlog (5 estados), Queue (cola priorizada sobre `wanted`+`not_started`), Game Shelf (poseido), Favorites. Requiere migration de filas y refactor de serializers, controllers, frontend. (3) **Fix de IA/jerarquia visual (no toca modelo ni naming):** reagrupar sidebar en secciones contextuales (LIBRARY: My Games, Up Next, My Shelf | DISCOVERY: Browse, Lists, Wishlist, Favorites) + tooltips explicativos. Mejora discoverability sin resolver ambiguedad de fondo. **Recomendacion:** empezar por opcion 1, validar con beta testers cuales terminos pegan. Si la confusion Wishlist↔Queue persiste, escalar a opcion 2. La opcion 3 es complementaria — util en cualquier escenario y la mas barata. Coordinar con FB-010 (identidad visual) si se aborda el rename junto al rebrand.
 
-**Estado:** pendiente
+### [FB-012] Onboarding/discoverability: usuario no entiende para que sirve cada categoria
 
-## FB-006 — Botón de favorito en backlog, game-shelf y queue
+- **Estado:** pendiente
+- **Descripcion:** "No sabia como usarlo, me confunden tantas categorias" y "Entre Backlog, Queue, Shelf... no entendia bien para que era cada una". Segundo reporte independiente que refuerza FB-011 (sobrecarga de terminologia).
+- **Contexto:** A diferencia de FB-011 — que apunta al naming en si — este apunta a la falta de onboarding y explicacion de proposito: aunque los nombres fueran perfectos, hoy no hay nada en la UI que le diga al usuario nuevo que hace cada seccion ni cuando usarla. El usuario llega, ve 5 items en el sidebar con nombres parecidos y no sabe por donde empezar.
+- **Solucion propuesta:** Onboarding inicial al crear cuenta: tour guiado de 3-4 pasos explicando las secciones principales (Backlog = historial, Queue = que jugar ahora, Shelf = lo que poseo). Empty states informativos: cada seccion vacia deberia explicar su proposito + accion sugerida (ej. Queue vacio → "Tu cola de juegos por jugar. Agrega juegos desde tu backlog marcandolos como 'Quiero Jugar'"). Tooltips/hints en los items del sidebar (hover o icono `?`) con descripcion de 1 linea. Posible: pagina `/help` o `/guide` con explicacion detallada de cada concepto. Coordinar con FB-011: si se hace rename, validar onboarding contra los nombres nuevos.
 
-**Reporte:** "Me gustaría poder agregar juegos a favoritos desde el backlog, gameshelf y queue."
+### [FB-013] Boton undo al borrar entradas del feed
 
-**Contexto:** Hoy el único lugar para marcar favorito es la ficha del juego (`/games/:code`, estrella arriba a la derecha). Desde las vistas de lista no hay acceso rápido. `FavoritesService.toggle(gameId)` ya existe en el frontend.
+- **Estado:** pendiente
+- **Descripcion:** "Boton undo al borrar feed". Hoy borrar una entrada de actividad del feed es destructivo e inmediato. Si el usuario se equivoca, no hay vuelta atras. El patron de "deshacer" via snackbar/toast es estandar en apps modernas (Gmail, Material).
+- **Solucion propuesta:** Frontend: al borrar una activity, mostrar snackbar con accion "Deshacer" (timeout 5-10s). Backend: soft-delete con flag `deletedAt` en lugar de hard-delete inmediato, o mantener la fila en memoria/cliente y solo enviar el DELETE al expirar el snackbar. Job de limpieza periodico que purga las activities con `deletedAt` antiguo (>24h). Aplicar el mismo patron a otras acciones destructivas reversibles si aplica (borrar review, quitar de backlog, etc.).
 
-**Alcance:**
+### [FB-014] Unificar filtros de busqueda entre `/games` y backlog
 
-- Estrella inline en cada card/row de `backlog-list`, `game-shelf-list`, `queue-view` (y opcionalmente `wishlist-view`)
-- Importar `FavoritesService` en cada componente, exponer `isFavorite(gameId)` y `toggleFavorite(gameId)`
-- UX: toggle optimista, ícono `star` (amarillo) vs `star_border` (gris)
-- Considerar también si extender el patrón a las cards públicas del perfil de otro user (`user-backlog`, `user-favorites`, etc.) cuando el viewer está logueado
-- Evaluar si el endpoint actual (`PUT /users/me/favorites` con array completo de IDs) es suficiente para uso intensivo, o si conviene agregar `POST /users/me/favorites/:gameId` y `DELETE /users/me/favorites/:gameId` para acciones atómicas
+- **Estado:** pendiente
+- **Descripcion:** "Los filtros de busqueda por juego son superiores a los filtros de busqueda en backlog. Unificar". La pantalla `/games` tiene filtros mas ricos (genero, plataforma, ano, etc.) que la vista de backlog. Hoy son dos implementaciones distintas con UX inconsistente. El usuario espera la misma experiencia de filtrado en ambos lados.
+- **Solucion propuesta:** Auditar filtros disponibles en `/games` vs backlog: identificar gaps (generos, plataformas, ano, score, etc.). Extraer el componente de filtros a uno compartido (`game-filters` reutilizable). Backend: revisar que el endpoint de backlog acepte los mismos query params que el de games (genre, platform, year, etc.). Considerar aplicar el mismo unified-filter a queue, wishlist, game-shelf y favoritos para consistencia total. Coordinar con FB-009 (performance): los nuevos filtros deben aprovechar los mismos indices.
 
-**Estado:** pendiente
+### [FB-015] Mostrar cantidad de runs en la ficha del juego
 
-## FB-007 — Reviews puntuables (helpful votes)
+- **Estado:** pendiente
+- **Descripcion:** "Cuando vea un game, que me muestre en una lista la cantidad de runs que se han realizado".
+- **Contexto:** Un "run" es una pasada/playthrough de un usuario sobre un juego (entrada en backlog con su status, score, horas, etc.). Hoy en la ficha del juego (`/games/:code`) no hay visibilidad de cuanta gente lo esta jugando o lo ha terminado. Es una metrica social util (signal de popularidad) y tambien un proxy del community score.
+- **Solucion propuesta:** Endpoint o serializacion del game con counts agregados: total runs, runs por status (playing, completed, dropped, on-hold, not_started). Frontend: seccion en la ficha del juego con esos counts (ej. "1.234 personas lo han jugado · 567 lo completaron · 89 lo dejaron"). Posible: drill-down clickable que abre la lista de usuarios con esa run (respetando privacidad de cada perfil — ver FB-003). Cachear el agregado con TTL corto para no pegarle a la DB en cada visita.
 
-**Reporte:** "quizás sería bueno poder puntuar las reviews de los juegos, para que algunas tengan menos peso que otras"
+### [FB-016] Bug al hacer un split en los juegos
 
-**Target:** Fase 4-5 (necesita masa crítica de reviews antes de que tenga sentido)
+- **Estado:** pendiente
+- **Descripcion:** "Bug al hacer un split en los juegos". Falta detalle reproducible. El feature de split permite separar un game compilation en sus juegos individuales. Pedir al reporter pasos para reproducir antes de empezar a investigar.
+- **Solucion propuesta:** Pedir reproduccion: que juego, que pasos, que error visible (mensaje, comportamiento inesperado). Revisar logs del backend en el momento del intento. Una vez reproducido, abrir issue con stack trace y caso de prueba.
 
-**Alcance:**
+### [FB-017] Mostrar slug debajo del juego en el split (como en compilation)
 
-- Modelo `ReviewVote(id, reviewId, userId, vote: 'up' | 'down', createdAt)` con unique `(reviewId, userId)`
-- Endpoints `POST /reviews/:id/vote`, `DELETE /reviews/:id/vote`
-- Serializar reviews con `upvotes`, `downvotes`, `myVote`
-- Ordenar reviews por relevancia (votos netos) por defecto en la ficha del juego
-- Posible: usar el ratio de votos como peso para el `community score` agregado
-
-**Estado:** pendiente
-
-## FB-008 — Recomendaciones de juegos según reviews del usuario
-
-**Reporte:** "Probablemente mucho leseo, pero me gustaría que en el feed me recomendara juegos que me podrían gustar según mis reviews"
-
-**Target:** Fase 6+ (necesita data y algoritmo)
-
-**Alcance:**
-
-- Algoritmo inicial sencillo: collaborative filtering basado en juegos co-completados por usuarios con gustos similares (jaccard sobre completados/favoritos)
-- Alternativa: content-based usando géneros + plataformas + rangos de score que el usuario tiende a valorar bien
-- Endpoint `GET /games/recommendations` paginado
-- Integrar en el feed como sección "Recommended for you" (no se mezcla con activity stream)
-- Premium-only o gratis: decidir según interés
-
-**Estado:** pendiente
-
-## FB-009 — Performance de la pantalla de Games con muchos usuarios
-
-**Reporte:** "Si la pantalla de Games cambia según todos los usuarios, me imagino que al tener muchos debe ser un horror"
-
-**Target:** Fase 5 (estabilización y calidad)
-
-**Contexto:** Hoy `/games` carga "Latest games", "Latest reviewed", "Random genre", "Official lists", "Recent lists". Cada uno es una query separada. Con muchos usuarios y muchos juegos, "Latest reviewed" en particular puede pegarle a los índices y `findAll` con includes anidados.
-
-**Alcance:**
-
-- Cachear las secciones que no son user-specific (latest games, official lists, random genre del día) con TTL corto (5-15 min)
-- Revisar índices sobre `Reviews.createdAt`, `GameGenres`, `GamePlatforms` para garantizar uso de índice en las queries del browse
-- Considerar paginación o lazy-load de secciones secundarias al hacer scroll en vez de cargar todas al inicio
-
-**Estado:** pendiente
-
-## FB-010 — Diseño del logo
-
-**Reporte:** "logo feo, pero lo ignoro porque no creo que lo hayas hecho todavía"
-
-**Target:** Fase 3 o cuando haya bandwidth de diseño
-
-**Contexto:** El logo actual es un placeholder (cuadrado "C" con gradient brand). El user reconoce que es provisorio. Diferir hasta tener identidad visual definida.
-
-**Alcance:**
-
-- Definir identidad visual del producto (paleta, tono, target audience visual)
-- Encargar/diseñar logo + variantes (icon-only, full lockup, dark/light)
-- Actualizar favicons, PWA icons, og:image, social cards
-- Reemplazar el placeholder en `layout.html` (esquina superior izquierda del sidebar)
-
-**Estado:** pendiente
-
-## FB-011 — Sobrecarga de terminología (Backlog vs Queue vs Wishlist vs Shelf vs Favorites)
-
-**Reporte:** "esto se me hace confuso, creo que debería tener otro nombre" (refiriéndose al nombre "backlog")
-
-**Contexto:** El término "backlog" es estándar en círculos gamer (HowLongToBeat, IGN, foros) pero puede confundir a usuarios casuales o no-anglo. Es la punta del iceberg: la app expone 5 entidades user-facing con nombres parecidos que un usuario no-power confunde — Backlog (historial completo), Queue (cola priorizada de `not_started`), Wishlist (juegos que quiero conseguir, apunta a Game), Game Shelf (lo poseo) y Favorites (marca personal). Tres dimensiones reales (qué jugué/quiero jugar, qué tengo, qué amo) mapeadas a 5 entidades con límites borrosos:
-
-- Queue vs Wishlist: ambas se leen como "pendientes" para el casual.
-- Backlog vs Game Shelf: si lo poseo y no lo jugué, ¿cuál es?
-- Wishlist vs Favorites: "me encantaría jugar esto algún día" cabe en cualquiera.
-
-**Posibles soluciones:**
-
-1. **Rename frontend-only (mínima):** renombrar solo en UI sin tocar backend. Ej: Backlog → "My Games" o "Library"; Queue → "Up Next" / "Playing Soon"; Wishlist → "Want to Get"; Shelf y Favorites se mantienen. URLs opcionalmente también. Cero migración, reversible, permite A/B con beta testers. Drift mínimo entre interno/externo.
-2. **Consolidar entidades (estructural):** colapsar Wishlist como sub-estado de Backlog (nuevo status `wanted`). Universo de conceptos baja de 5 a 4: Backlog (5 estados), Queue (cola priorizada sobre `wanted`+`not_started`), Game Shelf (poseído), Favorites. Requiere migration de filas y refactor de serializers, controllers, frontend.
-3. **Fix de IA/jerarquía visual (no toca modelo ni naming):** reagrupar sidebar en secciones contextuales (LIBRARY: My Games, Up Next, My Shelf | DISCOVERY: Browse, Lists, Wishlist, Favorites) + tooltips explicativos. Mejora discoverability sin resolver ambigüedad de fondo.
-
-**Recomendación:** empezar por opción 1, validar con beta testers cuáles términos pegan. Si la confusión Wishlist↔Queue persiste, escalar a opción 2. La opción 3 es complementaria — útil en cualquier escenario y la más barata. Coordinar con FB-010 (identidad visual) si se aborda el rename junto al rebrand.
-
-**Estado:** pendiente
-
-## FB-012 — Onboarding/discoverability: usuario no entiende para qué sirve cada categoría
-
-**Reporte:**
-
-- "No sabía cómo usarlo, me confunden tantas categorías"
-- "Entre Backlog, Queue, Shelf… no entendía bien para qué era cada una"
-
-**Contexto:** Segundo reporte independiente que refuerza FB-011 (sobrecarga de terminología). A diferencia de FB-011 — que apunta al naming en sí — este apunta a la **falta de onboarding y explicación de propósito**: aunque los nombres fueran perfectos, hoy no hay nada en la UI que le diga al usuario nuevo qué hace cada sección ni cuándo usarla. El usuario llega, ve 5 ítems en el sidebar con nombres parecidos y no sabe por dónde empezar.
-
-**Alcance:**
-
-- Onboarding inicial al crear cuenta: tour guiado de 3-4 pasos explicando las secciones principales (Backlog = historial, Queue = qué jugar ahora, Shelf = lo que poseo).
-- Empty states informativos: cada sección vacía debería explicar su propósito + acción sugerida (ej. Queue vacío → "Tu cola de juegos por jugar. Agrega juegos desde tu backlog marcándolos como 'Quiero Jugar'").
-- Tooltips/hints en los ítems del sidebar (hover o icono `?`) con descripción de 1 línea.
-- Posible: página `/help` o `/guide` con explicación detallada de cada concepto.
-- Coordinar con FB-011: si se hace rename, validar onboarding contra los nombres nuevos.
-
-**Estado:** pendiente
+- **Estado:** pendiente
+- **Descripcion:** "En el split, tambien deberia mostrar debajo el slug, tal como lo hace con la compilation". En la vista de compilation, debajo de cada juego se muestra su slug, lo que ayuda a desambiguar juegos con nombres similares. La vista de split no incluye ese detalle, generando inconsistencia entre flujos parecidos.
+- **Solucion propuesta:** En el componente/vista del split, mostrar el `slug` debajo del nombre del juego en el listado de resultados. Reutilizar el mismo sub-componente que ya usa compilation para mantener consistencia visual. Bonus: si hay otros lugares donde se muestran juegos en listas de seleccion (ej. anadir a lista, mover, etc.), auditar que todos muestren slug.
