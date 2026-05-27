@@ -118,3 +118,39 @@
 - **Estado:** pendiente
 - **Descripcion:** "En el split, tambien deberia mostrar debajo el slug, tal como lo hace con la compilation". En la vista de compilation, debajo de cada juego se muestra su slug, lo que ayuda a desambiguar juegos con nombres similares. La vista de split no incluye ese detalle, generando inconsistencia entre flujos parecidos.
 - **Solucion propuesta:** En el componente/vista del split, mostrar el `slug` debajo del nombre del juego en el listado de resultados. Reutilizar el mismo sub-componente que ya usa compilation para mantener consistencia visual. Bonus: si hay otros lugares donde se muestran juegos en listas de seleccion (ej. anadir a lista, mover, etc.), auditar que todos muestren slug.
+
+### [FB-018] Conservar barra de busqueda de games al entrar a la ficha de un juego
+
+- **Estado:** pendiente
+- **Descripcion:** "Conservar barra de busqueda de games cuando se ve un juego especifico". Al estar navegando `/games` con una busqueda activa y entrar a la ficha de un juego, la barra de busqueda y los filtros se pierden. Al volver atras se obliga al usuario a re-aplicar la busqueda desde cero.
+- **Solucion propuesta:** Persistir el estado de busqueda y filtros del browse de games al navegar entre la lista y las fichas individuales (via query params en la URL, state del router o servicio compartido). Al volver con el back del navegador o un boton "Volver a resultados", restaurar la query, filtros y posicion de scroll. Considerar tambien aplicar el patron a las vistas con filtros (backlog, queue, etc.) — coordinar con FB-014.
+
+### [FB-019] Secciones de "ultimos completados" / "completados este mes" en el perfil
+
+- **Estado:** pendiente
+- **Descripcion:** "En la pestana de un usuario, ver algo asi como 'ultimos completados' (que sea por la fecha de finished) o 'completados este mes', algo asi". Hoy el perfil de usuario muestra el backlog general pero no destaca actividad reciente de completados, que es uno de los hitos mas interesantes socialmente.
+- **Solucion propuesta:** Secciones nuevas en el perfil publico: "Ultimos completados" (ordenado por `finishedAt` desc, top N), "Completados este mes" (filtro por mes calendario actual), posiblemente "Completados este ano". Backend: query sobre backlog con status `completed` ordenado/filtrado por `finishedAt`. Respetar la visibilidad del backlog (ver FB-003). Frontend: cards con poster del juego, fecha de finalizacion y score si existe. Posible: extender a otros highlights (mas jugado del mes, mejor puntuado del mes).
+
+### [FB-020] Filtros y orden por ratio, tiempo promedio y tiempo de completado en backlog
+
+- **Estado:** pendiente
+- **Descripcion:** "En los filtros de busqueda del backlog, anadir filtros para ordenar juegos por ratio personal/general, tiempo promedio, tiempo que tomo completar, etc". Faltan ordenes y filtros sobre metricas cuantitativas que el usuario ya esta tracking.
+- **Solucion propuesta:** Agregar opciones de orden en el backlog: ratio personal (score del usuario / horas jugadas), ratio general (community score / tiempo promedio), tiempo promedio del juego (HLTB-style), tiempo real que le tomo al usuario completarlo (`completedAt - startedAt` o `hoursPlayed` si esta cargado). Filtros equivalentes (rango de horas, rango de ratio). Backend: revisar que las queries usen indices y que los campos existan en el modelo (`hoursPlayed`, `startedAt`, `finishedAt`). Coordinar con FB-014 (unificar filtros entre games y backlog) — los nuevos filtros se aplican al backlog principalmente, pero el ratio general podria ser util tambien en `/games`.
+
+### [FB-021] Mostrar amigos (follow mutuo) que han jugado un juego en su ficha
+
+- **Estado:** pendiente
+- **Descripcion:** "Al ver un juego, deberia tener la opcion de revisar que amigos (amigo=follow mutuo) han jugado ese juego. Revisar si ver todas sus runs o la ultima run o solo que diga que lo ha jugado". Hoy en la ficha del juego no hay senal social personalizada — no se ve cuales de mis contactos lo jugaron.
+- **Solucion propuesta:** Seccion en la ficha del juego "Amigos que lo jugaron" visible solo a usuarios logueados, donde "amigo" = follow mutuo (ver FB-003 que ya introduce el concepto). Backend: endpoint que cruza follows mutuos del viewer con backlog entries del game. Decidir granularidad: (a) solo nombre + avatar con badge de status (jugado/completado/dropped), (b) ultima run con score/horas/finishedAt, (c) todas las runs si el amigo tiene multiples. Empezar por la opcion (a) — mas barata y suficiente como senal social. Respetar visibilidad de cada perfil (FB-003): si el amigo tiene el backlog en `private`, no aparece; en `friends`, aparece. Coordinar con FB-015 (counts agregados en la ficha) y FB-022 (random users con el juego en backlog).
+
+### [FB-022] Mostrar usuarios random que tienen el juego en backlog
+
+- **Estado:** pendiente
+- **Descripcion:** "Al ver la ventana de un game, que aparezca al azar usuarios que lo tienen en su backlog". Complementa FB-021 (amigos) con descubrimiento social: ver gente fuera de mi circulo que tambien juega o quiere jugar el mismo juego.
+- **Solucion propuesta:** Seccion "Otros jugadores" en la ficha del juego con un sample random de N usuarios (5-10) que tienen el juego en su backlog. Backend: query `ORDER BY RANDOM()` con LIMIT, cacheable con TTL corto (ej. 10 min por juego) para no pegarle a la DB en cada visita. Respetar visibilidad de perfil/backlog (ver FB-003): si el perfil es `private` no aparece, si es `friends` solo aparece para amigos. Posible: filtros para sesgar el random (mismo pais, misma plataforma favorita, mismo genero predominante) si llega a haber demasiada gente. Coordinar con FB-015 (counts agregados) y FB-021 (amigos en la ficha).
+
+### [FB-023] Clasificacion para juegos sin estado natural de "completado"
+
+- **Estado:** pendiente
+- **Descripcion:** "Hay varios juegos que no se pueden 'completar' como tal, ej: timberman. Que clasificacion podria darle a esos juegos? Hasta ahora dejarlos como 'completado' o 'abandonado' es lo mas sensato, pero no es lo mejor". Juegos infinitos/arcade/casual (Timberman, Tetris, Vampire Survivors, roguelikes sin ending, juegos competitivos) no tienen un estado de fin natural. Forzar `completed` o `dropped` distorsiona las metricas (completion rate, ratio personal, "completados este mes" de FB-019).
+- **Solucion propuesta:** Evaluar opciones: (1) Nuevo status en backlog: `ongoing` / `endless` / `played` — marca el juego como jugado sin un ending. Excluirlo de metricas de "completados" pero contarlo como activity. (2) Flag en el modelo `Game`: `isEndless` (bool) que el admin marca y que cambia la UX del backlog para ese juego (oculta el boton "Completar", expone solo "Marcar como jugado"). (3) Heuristica automatica via tags de RAWG (endless, arcade, roguelite sin final, etc.) que pre-marca `isEndless` y el admin confirma. Frontend: empty states y wording adaptado segun el tipo de juego. Coordinar con FB-019 (las metricas mensuales deberian respetar este status nuevo) y FB-020 (los ratios por tiempo no aplican igual a juegos endless).
