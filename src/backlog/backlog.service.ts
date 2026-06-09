@@ -248,6 +248,43 @@ export async function findFriendsActivityForGame(
 	});
 }
 
+// Games that both `viewerId` and `targetId` have completed, deduped per game.
+// Only the target's public completed entries count (privacy).
+export async function findCommonCompletedGames(
+	viewerId: string,
+	targetId: string
+) {
+	const viewerCompleted = await Backlog.findAll({
+		where: { userId: viewerId, status: "completed" },
+		attributes: ["gameId"]
+	});
+	const viewerGameIds = [...new Set(viewerCompleted.map(row => row.gameId))];
+	if (viewerGameIds.length === 0) return [];
+
+	const targetCompleted = await Backlog.findAll({
+		where: {
+			userId: targetId,
+			status: "completed",
+			isPublic: true,
+			gameId: { [Op.in]: viewerGameIds }
+		},
+		include: [
+			{
+				model: Game,
+				attributes: ["id", "code", "title", "backgroundUrl"]
+			}
+		],
+		order: [["finishedAt", "DESC"]]
+	});
+
+	const seen = new Set<string>();
+	return targetCompleted.filter(row => {
+		if (seen.has(row.gameId)) return false;
+		seen.add(row.gameId);
+		return true;
+	});
+}
+
 export async function findPublicBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}
