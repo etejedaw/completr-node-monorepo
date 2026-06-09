@@ -45,6 +45,10 @@ export async function findListById(id: string) {
 		where: { id },
 		include: [
 			{
+				model: User,
+				attributes: ["id", "username", "role"]
+			},
+			{
 				model: ListItem,
 				include: [{ model: Game }],
 				separate: true,
@@ -141,6 +145,10 @@ export async function findListsByUserId(
 	const query: Record<string, unknown> = {
 		where: { userId: user.id },
 		include: [
+			{
+				model: User,
+				attributes: ["id", "username", "role"]
+			},
 			{
 				model: ListItem,
 				separate: true,
@@ -325,6 +333,12 @@ export async function searchPublicLists(query: string, limit = 20) {
 			name: { [Op.iLike]: `%${query}%` },
 			isPublic: true
 		},
+		include: [
+			{
+				model: User,
+				attributes: ["id", "username", "role"]
+			}
+		],
 		limit,
 		order: [["name", "ASC"]]
 	});
