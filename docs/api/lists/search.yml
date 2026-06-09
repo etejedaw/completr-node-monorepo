@@ -37,6 +37,7 @@ docs: |-
             "name": "Resident Evil",
             "description": "The full saga",
             "isPublic": true,
+            "isOfficial": false,
             "scoreSource": "metacritic",
             "durationSource": "hltb"
           }
