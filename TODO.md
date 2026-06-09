@@ -604,9 +604,9 @@
 
 - [x] Identificar listas oficiales por el rol del creador (admin) — isOfficial derivado del rol del owner en GET /games/:id/lists
 - [x] Frontend: badge "Verified Official" en featured lists del game detail, con borde y gradiente diferenciado
-- [ ] Frontend: destacar listas oficiales en games-browse (sección "Completr Lists")
-- [ ] Frontend: badge "Official" en list-detail junto al nombre
-- [ ] Frontend: badge en cards de listas oficiales en list-overview
+- [x] Frontend: destacar listas oficiales en games-browse (sección "Completr Lists")
+- [x] Frontend: badge "Official" en list-detail junto al nombre
+- [x] Frontend: badge en cards de listas oficiales en list-overview
 - [ ] Algunas listas oficiales otorgan un badge/trofeo al usuario que las complete al 100% (configurable por lista)
 
 ### Social — Ver actividad de amigos
@@ -679,7 +679,7 @@
 
 ### Refactors pendientes
 
-- [ ] Refactor `security.txt`: mover de middleware a ruta simple
+- [x] Refactor `security.txt`: mover de middleware a ruta simple
 - [ ] Refactorizar `activityService.record` a EventEmitter: crear eventBus centralizado en `src/common/events/`, controllers emiten eventos y listeners procesan actividad en segundo plano. Desacopla controllers de efectos secundarios y prepara la base para notificaciones (Fase 4) y emails (Fase 5)
 
 ### Infraestructura
