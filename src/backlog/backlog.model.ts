@@ -32,6 +32,12 @@ class Backlog extends Model {
 	declare Game: Game;
 	declare Platform: Platform;
 	declare CompilationGame?: Game | null;
+	declare User?: {
+		id: string;
+		username: string;
+		name: string;
+		avatarUrl?: string;
+	};
 }
 
 Backlog.init(

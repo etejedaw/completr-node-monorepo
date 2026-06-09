@@ -70,6 +70,14 @@ export async function getFollowingCount(userId: string) {
 	return UserFollower.count({ where: { followerId: userId } });
 }
 
+export async function getFollowingIds(userId: string) {
+	const rows = await UserFollower.findAll({
+		where: { followerId: userId },
+		attributes: ["followingId"]
+	});
+	return rows.map(row => row.followingId);
+}
+
 export async function isFollowing(followerId: string, followingId: string) {
 	const existing = await UserFollower.findOne({
 		where: { followerId, followingId }

@@ -2,6 +2,7 @@ import { Op, Order, literal, QueryTypes } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
+import { User } from "../users/user.model";
 import { Backlog } from "./backlog.model";
 import { Queue } from "../queue/queue.model";
 import { CompilationItem } from "../compilation-items/compilation-item.model";
@@ -216,6 +217,35 @@ export async function findBacklogByUserId(
 
 	const { rows, count } = await Backlog.findAndCountAll(query);
 	return { rows, total: count };
+}
+
+// Friends (users the viewer follows) who have this game in their backlog.
+// Returns one entry per friend — the most recent — respecting privacy
+// (public profile + public backlog + public entry).
+export async function findFriendsActivityForGame(
+	friendIds: string[],
+	gameId: string
+) {
+	if (friendIds.length === 0) return [];
+
+	const rows = await Backlog.findAll({
+		where: { gameId, isPublic: true, userId: { [Op.in]: friendIds } },
+		include: [
+			{
+				model: User,
+				where: { isPublic: true, isBacklogPublic: true },
+				attributes: ["id", "username", "name", "avatarUrl"]
+			}
+		],
+		order: [["createdAt", "DESC"]]
+	});
+
+	const seen = new Set<string>();
+	return rows.filter(row => {
+		if (seen.has(row.userId)) return false;
+		seen.add(row.userId);
+		return true;
+	});
 }
 
 export async function findPublicBacklogByUserId(
