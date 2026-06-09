@@ -612,7 +612,7 @@
 ### Social — Ver actividad de amigos
 
 - [x] `GET /users/:username/lists/:listId` — Ver el progreso de un amigo en una lista específica (con backlogStatusMap del usuario)
-- [ ] `GET /users/:username/games?game_id=:id` — Ver si un amigo ha jugado un juego específico
+- [x] Ver si un amigo ha jugado un juego específico — cubierto en 3 frentes: **(B)** ya existía vía `GET /users/:username/backlog?game_id=:id`; **(A)** panel "Played by Friends" en game-detail (`GET /games/:id/friends-activity` cruza a quién sigues con sus backlogs públicos); **(C)** sección "Games in Common" en el perfil público (`GET /users/:username/games-in-common`, juegos completados por ambos)
 
 ### Privacidad
 
@@ -770,7 +770,7 @@
 
 ### Social avanzado
 
-- [ ] Comparación de listas entre dos usuarios: juegos en común completados, juegos que uno tiene y otro no
+- [ ] Comparación de listas entre dos usuarios: juegos en común completados, juegos que uno tiene y otro no _(parcial: "juegos en común completados" ya adelantado en Fase 3 vía `GET /users/:username/games-in-common` + sección en perfil; falta "juegos que uno tiene y otro no")_
 - [ ] Perfil público ampliado: progreso del backlog (% completado), listas seguidas
 - [ ] Filtrar feed de actividad por tipo: "solo completados", "solo abandonados", etc. (premium)
 - [ ] Duplicar listas: copiar una lista pública a tus propias listas (free)
