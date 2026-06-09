@@ -23,7 +23,13 @@
 				</a>
 			}
 			<div>
-				<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">{{ list()!.name }}</h1>
+				@if (list()!.isOfficial) {
+						<span class="inline-flex items-center gap-1 mb-1 text-[0.625rem] font-bold uppercase tracking-wider text-brand">
+							<span class="material-icons text-sm">verified</span>
+							Official
+						</span>
+					}
+					<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">{{ list()!.name }}</h1>
 				@if (list()!.description) {
 				<p class="mt-1 mb-0 text-[0.8125rem] text-fg-secondary">{{ list()!.description }}</p>
 				}
