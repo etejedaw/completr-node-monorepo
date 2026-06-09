@@ -93,6 +93,9 @@ export class PublicProfileComponent implements OnInit {
 	>(null);
 	protected readonly gameShelfData = signal<PublicGameShelf[] | null>(null);
 	protected readonly followingListsData = signal<PublicList[] | null>(null);
+	protected readonly gamesInCommon = signal<
+		{ id: string; code: string; title: string; backgroundUrl: string | null }[]
+	>([]);
 	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
 
 	private readonly lazyLoadEffect = effect(() => {
@@ -337,6 +340,12 @@ export class PublicProfileComponent implements OnInit {
 						this.userReviews.set(r.reviews);
 						this.userReviewsTotal.set(r.total);
 					});
+				this.gamesInCommon.set([]);
+				if (this.isLoggedIn() && !this.isSelf()) {
+					this.profileService
+						.getGamesInCommon(username)
+						.subscribe(d => this.gamesInCommon.set(d.games));
+				}
 			},
 			error: err => {
 				if (err.status === 404) this.notFound.set(true);

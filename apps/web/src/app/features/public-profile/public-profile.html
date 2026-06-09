@@ -140,6 +140,31 @@
 			</a>
 		</div>
 
+		@if (gamesInCommon().length > 0) {
+			<section class="mb-8">
+				<div class="flex items-baseline gap-2 mb-3">
+					<h2 class="font-display m-0 text-xl font-bold text-fg">Games in Common</h2>
+					<span class="text-sm text-fg-muted">{{ gamesInCommon().length }}</span>
+				</div>
+				<div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width: none;">
+					@for (game of gamesInCommon(); track game.id) {
+						<a [routerLink]="['/games', game.code]" class="shrink-0 w-28 group no-underline text-inherit">
+							<div class="relative aspect-[3/4] rounded-card overflow-hidden border border-line bg-surface transition group-hover:border-brand/60">
+								@if (game.backgroundUrl) {
+									<img [src]="game.backgroundUrl" [alt]="game.title" class="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-[1.04]" loading="lazy" />
+								} @else {
+									<div class="absolute inset-0 flex items-center justify-center">
+										<span class="material-icons text-fg-muted/30 text-3xl">videogame_asset</span>
+									</div>
+								}
+							</div>
+							<span class="block mt-1.5 text-xs font-medium text-fg line-clamp-2 leading-snug">{{ game.title }}</span>
+						</a>
+					}
+				</div>
+			</section>
+		}
+
 		<div [class]="profile()!.user.isFeedPublic ? 'lg:grid lg:grid-cols-[320px_1fr] lg:gap-8 lg:items-start' : ''">
 
 		@if (profile()!.user.isFeedPublic) {

@@ -325,4 +325,19 @@ export class PublicProfileService {
 			.pipe(map(res => res.data));
 	}
 
+	getGamesInCommon(username: string) {
+		return this.http
+			.get<{
+				data: {
+					games: {
+						id: string;
+						code: string;
+						title: string;
+						backgroundUrl: string | null;
+					}[];
+					total: number;
+				};
+			}>(`${environment.apiUrl}/users/${username}/games-in-common`)
+			.pipe(map(res => res.data));
+	}
 }
