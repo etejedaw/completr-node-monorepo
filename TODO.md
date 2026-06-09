@@ -575,7 +575,7 @@
 
 - [ ] Detección de idioma en `rawg-to-game.mapper.ts`: parsear la descripción y conservar solo el bloque en inglés (o el primero de la lista priorizada en/es). Considerar librería `franc` o regex sobre delimitadores que RAWG suele usar
 - [ ] Script de backfill one-off: aplicar el parser a todas las descripciones existentes con campos mixtos
-- [ ] Frontend: "Read more / Read less" en descripciones largas (>500 chars) en game-detail con clamp inicial
+- [~] ~~Frontend: "Read more / Read less" en descripciones largas (>500 chars) en game-detail con clamp inicial~~ — **descartado:** no aporta valor suficiente; el problema de fondo es el idioma/contenido, no la presentación
 
 ### Diagnóstico búsqueda Nintendo Switch (deferido desde Fase 2 — FB-045)
 
