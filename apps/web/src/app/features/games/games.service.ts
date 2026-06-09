@@ -319,4 +319,21 @@ export class GamesService {
 			}>(`${environment.apiUrl}/games/${gameId}/lists`)
 			.pipe(map(res => res.data));
 	}
+
+	getFriendsActivity(gameId: string) {
+		return this.http
+			.get<{
+				data: {
+					friends: {
+						username: string;
+						name: string;
+						avatarUrl: string | null;
+						status: string;
+						finishedAt: string | null;
+						userRating: number | null;
+					}[];
+				};
+			}>(`${environment.apiUrl}/games/${gameId}/friends-activity`)
+			.pipe(map(res => res.data.friends));
+	}
 }
