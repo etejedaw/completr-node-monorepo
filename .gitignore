@@ -152,6 +152,7 @@ docs/informes/
 CLAUDE.md
 **/.DS_Store
 scripts/
+tmp/
 
 # Claude local settings (keep skills tracked)
 .claude/settings.local.json
