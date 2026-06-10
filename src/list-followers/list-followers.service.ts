@@ -11,6 +11,10 @@ const FOLLOWED_LIST_PREVIEW_INCLUDE = {
 	model: List,
 	include: [
 		{
+			model: User,
+			attributes: ["id", "username", "role"]
+		},
+		{
 			model: ListItem,
 			separate: true,
 			limit: 1,

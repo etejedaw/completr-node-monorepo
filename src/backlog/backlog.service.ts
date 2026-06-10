@@ -2,6 +2,7 @@ import { Op, Order, literal, QueryTypes } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
+import { User } from "../users/user.model";
 import { Backlog } from "./backlog.model";
 import { Queue } from "../queue/queue.model";
 import { CompilationItem } from "../compilation-items/compilation-item.model";
@@ -216,6 +217,72 @@ export async function findBacklogByUserId(
 
 	const { rows, count } = await Backlog.findAndCountAll(query);
 	return { rows, total: count };
+}
+
+// Friends (users the viewer follows) who have this game in their backlog.
+// Returns one entry per friend — the most recent — respecting privacy
+// (public profile + public backlog + public entry).
+export async function findFriendsActivityForGame(
+	friendIds: string[],
+	gameId: string
+) {
+	if (friendIds.length === 0) return [];
+
+	const rows = await Backlog.findAll({
+		where: { gameId, isPublic: true, userId: { [Op.in]: friendIds } },
+		include: [
+			{
+				model: User,
+				where: { isPublic: true, isBacklogPublic: true },
+				attributes: ["id", "username", "name", "avatarUrl"]
+			}
+		],
+		order: [["createdAt", "DESC"]]
+	});
+
+	const seen = new Set<string>();
+	return rows.filter(row => {
+		if (seen.has(row.userId)) return false;
+		seen.add(row.userId);
+		return true;
+	});
+}
+
+// Games that both `viewerId` and `targetId` have completed, deduped per game.
+// Only the target's public completed entries count (privacy).
+export async function findCommonCompletedGames(
+	viewerId: string,
+	targetId: string
+) {
+	const viewerCompleted = await Backlog.findAll({
+		where: { userId: viewerId, status: "completed" },
+		attributes: ["gameId"]
+	});
+	const viewerGameIds = [...new Set(viewerCompleted.map(row => row.gameId))];
+	if (viewerGameIds.length === 0) return [];
+
+	const targetCompleted = await Backlog.findAll({
+		where: {
+			userId: targetId,
+			status: "completed",
+			isPublic: true,
+			gameId: { [Op.in]: viewerGameIds }
+		},
+		include: [
+			{
+				model: Game,
+				attributes: ["id", "code", "title", "backgroundUrl"]
+			}
+		],
+		order: [["finishedAt", "DESC"]]
+	});
+
+	const seen = new Set<string>();
+	return targetCompleted.filter(row => {
+		if (seen.has(row.gameId)) return false;
+		seen.add(row.gameId);
+		return true;
+	});
 }
 
 export async function findPublicBacklogByUserId(

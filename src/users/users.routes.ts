@@ -225,4 +225,14 @@ router.get(
 	usersController.getUserListDetail
 );
 
+router.get(
+	"/users/:username/games-in-common",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authMiddleware(),
+		validateSchemaMiddleware(UsernameParamSchema, "params")
+	],
+	usersController.getUserGamesInCommon
+);
+
 export default router;

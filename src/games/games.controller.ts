@@ -12,6 +12,8 @@ import { GamesQuery } from "./schemas/games-query.schema";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as auditService from "../audit/audit.service";
 import * as listsService from "../lists/lists.service";
+import * as backlogService from "../backlog/backlog.service";
+import * as userFollowersService from "../user-followers/user-followers.service";
 
 export async function getGameByCode(request: Request, response: Response) {
 	const params = request.locals.params as GameCodeParam;
@@ -245,5 +247,31 @@ export async function getGameLists(request: Request, response: Response) {
 		return 0;
 	});
 
+	return response.status(200).json({ data });
+}
+
+export async function getGameFriendsActivity(
+	request: Request,
+	response: Response
+) {
+	const params = request.locals.params as GameIdParam;
+	const user = request.locals.user as RequestUser;
+
+	const friendIds = await userFollowersService.getFollowingIds(user.id);
+	const entries = await backlogService.findFriendsActivityForGame(
+		friendIds,
+		params.id
+	);
+
+	const data = {
+		friends: entries.map(entry => ({
+			username: entry.User!.username,
+			name: entry.User!.name,
+			avatarUrl: entry.User!.avatarUrl ?? null,
+			status: entry.status,
+			finishedAt: entry.finishedAt ?? null,
+			userRating: entry.userRating ?? null
+		}))
+	};
 	return response.status(200).json({ data });
 }

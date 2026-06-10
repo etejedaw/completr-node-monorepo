@@ -38,6 +38,7 @@ docs: |-
           "name": "Saga Resident Evil",
           "description": "...",
           "isPublic": true,
+          "isOfficial": false,
           "scoreSource": "metacritic",
           "durationSource": "hltb",
           "followerCount": 12,

@@ -557,7 +557,7 @@
 
 **Contexto:** Hasta el commit del fix de FB-067, el middleware `express-xss-sanitizer` corría sobre todos los `req.body`, HTML-encodeando `&`, `<`, `>`, `"`, `'` antes de persistirse. Eso dejó datos viejos con `&amp;` y similares en cualquier campo `string` que pasó por POST/PATCH (titles, descriptions, notes, names, bios, content, edition, etc.). Slugs derivados de titles con `&` quedaron con `andamp` embebido.
 
-- [ ] Crear helper `decodeHtmlEntities(input)` que decodifica `&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`, `&#39;`, `&#34;`, `&nbsp;`
+- [x] Crear helper `decodeHtmlEntities(input)` que decodifica `&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`, `&#39;`, `&#34;`, `&nbsp;`
 - [ ] Script de backfill (one-off, sin migración persistente — patrón usado en FB-067 con `npm run migrate` contra prd y luego borrar archivo):
     - `Games.title` y `Games.description` → decode
     - `Games.code` → regenerar con `titleToSlug(decodedTitle)` cuando el slug actual contenga `andamp` o `andlt` o similares (URLs viejas dejarán de funcionar — aceptable en Fase 2/3 sin SEO crítico)
@@ -575,7 +575,7 @@
 
 - [ ] Detección de idioma en `rawg-to-game.mapper.ts`: parsear la descripción y conservar solo el bloque en inglés (o el primero de la lista priorizada en/es). Considerar librería `franc` o regex sobre delimitadores que RAWG suele usar
 - [ ] Script de backfill one-off: aplicar el parser a todas las descripciones existentes con campos mixtos
-- [ ] Frontend: "Read more / Read less" en descripciones largas (>500 chars) en game-detail con clamp inicial
+- [~] ~~Frontend: "Read more / Read less" en descripciones largas (>500 chars) en game-detail con clamp inicial~~ — **descartado:** no aporta valor suficiente; el problema de fondo es el idioma/contenido, no la presentación
 
 ### Diagnóstico búsqueda Nintendo Switch (deferido desde Fase 2 — FB-045)
 
@@ -604,15 +604,15 @@
 
 - [x] Identificar listas oficiales por el rol del creador (admin) — isOfficial derivado del rol del owner en GET /games/:id/lists
 - [x] Frontend: badge "Verified Official" en featured lists del game detail, con borde y gradiente diferenciado
-- [ ] Frontend: destacar listas oficiales en games-browse (sección "Completr Lists")
-- [ ] Frontend: badge "Official" en list-detail junto al nombre
-- [ ] Frontend: badge en cards de listas oficiales en list-overview
+- [x] Frontend: destacar listas oficiales en games-browse (sección "Completr Lists")
+- [x] Frontend: badge "Official" en list-detail junto al nombre
+- [x] Frontend: badge en cards de listas oficiales en list-overview
 - [ ] Algunas listas oficiales otorgan un badge/trofeo al usuario que las complete al 100% (configurable por lista)
 
 ### Social — Ver actividad de amigos
 
 - [x] `GET /users/:username/lists/:listId` — Ver el progreso de un amigo en una lista específica (con backlogStatusMap del usuario)
-- [ ] `GET /users/:username/games?game_id=:id` — Ver si un amigo ha jugado un juego específico
+- [x] Ver si un amigo ha jugado un juego específico — cubierto en 3 frentes: **(B)** ya existía vía `GET /users/:username/backlog?game_id=:id`; **(A)** panel "Played by Friends" en game-detail (`GET /games/:id/friends-activity` cruza a quién sigues con sus backlogs públicos); **(C)** sección "Games in Common" en el perfil público (`GET /users/:username/games-in-common`, juegos completados por ambos)
 
 ### Privacidad
 
@@ -679,7 +679,7 @@
 
 ### Refactors pendientes
 
-- [ ] Refactor `security.txt`: mover de middleware a ruta simple
+- [x] Refactor `security.txt`: mover de middleware a ruta simple
 - [ ] Refactorizar `activityService.record` a EventEmitter: crear eventBus centralizado en `src/common/events/`, controllers emiten eventos y listeners procesan actividad en segundo plano. Desacopla controllers de efectos secundarios y prepara la base para notificaciones (Fase 4) y emails (Fase 5)
 
 ### Infraestructura
@@ -770,7 +770,7 @@
 
 ### Social avanzado
 
-- [ ] Comparación de listas entre dos usuarios: juegos en común completados, juegos que uno tiene y otro no
+- [ ] Comparación de listas entre dos usuarios: juegos en común completados, juegos que uno tiene y otro no _(parcial: "juegos en común completados" ya adelantado en Fase 3 vía `GET /users/:username/games-in-common` + sección en perfil; falta "juegos que uno tiene y otro no")_
 - [ ] Perfil público ampliado: progreso del backlog (% completado), listas seguidas
 - [ ] Filtrar feed de actividad por tipo: "solo completados", "solo abandonados", etc. (premium)
 - [ ] Duplicar listas: copiar una lista pública a tus propias listas (free)

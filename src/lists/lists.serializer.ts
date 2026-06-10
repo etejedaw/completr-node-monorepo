@@ -21,6 +21,7 @@ export function listSerializer(
 		name: list.name,
 		description: list.description,
 		isPublic: list.isPublic,
+		isOfficial: list.User?.role === "admin",
 		scoreSource: list.scoreSource,
 		durationSource: list.durationSource,
 		followerCount: followerCount ?? 0,
@@ -44,6 +45,7 @@ export function listSummarySerializer(list: List) {
 		name: list.name,
 		description: list.description,
 		isPublic: list.isPublic,
+		isOfficial: list.User?.role === "admin",
 		scoreSource: list.scoreSource,
 		durationSource: list.durationSource,
 		previewItems:

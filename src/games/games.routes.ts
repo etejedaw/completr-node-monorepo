@@ -161,4 +161,14 @@ router.get(
 	gamesController.getGameLists
 );
 
+router.get(
+	"/games/:id/friends-activity",
+	[
+		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(GameIdParamSchema, "params")
+	],
+	gamesController.getGameFriendsActivity
+);
+
 export default router;

@@ -299,6 +299,35 @@ export async function getUserListDetail(request: Request, response: Response) {
 	return response.status(200).json({ data });
 }
 
+export async function getUserGamesInCommon(
+	request: Request,
+	response: Response
+) {
+	const params = request.locals.params as UsernameParam;
+	const currentUser = request.locals.user as RequestUser;
+
+	const user = await usersService.findUserByUsername(params.username);
+	if (!user) throw userDomain.userNotFound();
+
+	if (user.id === currentUser.id) {
+		return response.status(200).json({ data: { games: [], total: 0 } });
+	}
+	if (!user.isPublic || !user.isBacklogPublic) throw userDomain.userPrivate();
+
+	const entries = await backlogService.findCommonCompletedGames(
+		currentUser.id,
+		user.id
+	);
+	const games = entries.map(entry => ({
+		id: entry.Game.id,
+		code: entry.Game.code,
+		title: entry.Game.title,
+		backgroundUrl: entry.Game.backgroundUrl
+	}));
+
+	return response.status(200).json({ data: { games, total: games.length } });
+}
+
 export async function getUserReviews(request: Request, response: Response) {
 	const params = request.locals.params as UsernameParam;
 	const query = request.locals.query as PaginationQuery;

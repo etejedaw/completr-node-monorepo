@@ -1,0 +1,60 @@
+info:
+    name: Get Friends Activity For Game
+    type: http
+    seq: 14
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/games/:id/friends-activity"
+    auth: inherit
+    params:
+        - name: id
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Friends Activity For Game
+
+    Returns the users the authenticated viewer follows who have this game in their backlog, with their current status. One entry per friend — the most recent. Only friends whose profile **and** backlog are public, and whose backlog entry itself is public, are included. Powers the "Played by Friends" panel in game detail.
+
+    Returns an empty `friends` array when none of the followed users have public activity for the game (no 404 for unknown game ids).
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 100 requests per minute (public).
+
+    ### Path Params
+
+    | Param | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | id    | uuid | Yes      | Game UUID   |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "friends": [
+          {
+            "username": "andres",
+            "name": "Andres",
+            "avatarUrl": "https://example.com/avatar.png",
+            "status": "completed",
+            "finishedAt": "2026-02-14",
+            "userRating": 9
+          }
+        ]
+      }
+    }
+    ```
+
+    `status` is one of `not_started | playing | completed | abandoned`. `avatarUrl`, `finishedAt`, and `userRating` may be `null`.
+
+    ### Errors
+
+    | Status | Code                  | Description                          |
+    |--------|-----------------------|--------------------------------------|
+    | 401    | UNAUTHORIZED          | Missing or invalid Bearer token      |
+    | 422    | COMMON_SCHEMA_INVALID | `id` is not a valid uuid             |
