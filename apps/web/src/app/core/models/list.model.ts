@@ -4,6 +4,7 @@ export interface List {
 	name: string;
 	description?: string;
 	isPublic: boolean;
+	isOfficial?: boolean;
 	scoreSource: string;
 	durationSource: string;
 	items: ListItem[];
@@ -18,6 +19,7 @@ export interface FollowingList {
 	name: string;
 	description?: string;
 	isPublic: boolean;
+	isOfficial?: boolean;
 	scoreSource: string;
 	durationSource: string;
 	isVisible: boolean;

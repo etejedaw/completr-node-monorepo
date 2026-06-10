@@ -44,6 +44,15 @@
 								style="background: linear-gradient(to top, rgba(10, 10, 12, 0.98) 0%, rgba(10, 10, 12, 0.85) 35%, rgba(10, 10, 12, 0.55) 65%, rgba(10, 10, 12, 0.25) 100%);"
 							></div>
 
+							@if (list.isOfficial) {
+								<div class="absolute top-3 left-3 flex gap-2">
+									<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider">
+										<span class="material-icons text-[0.875rem]">verified</span>
+										Official
+									</span>
+								</div>
+							}
+
 							<div class="relative h-full flex flex-col justify-end p-4 gap-1">
 								<h3 class="m-0 text-lg font-bold text-white line-clamp-1" style="text-shadow: 0 2px 8px rgba(0,0,0,0.6);">{{ list.name }}</h3>
 								@if (list.description) {
@@ -99,6 +108,12 @@
 					></div>
 
 					<div class="absolute top-3 left-3 flex gap-2">
+						@if (list.isOfficial) {
+							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider">
+								<span class="material-icons text-[0.875rem]">verified</span>
+								Official
+							</span>
+						}
 						<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider">
 							<span class="material-icons text-[0.875rem]">{{ list.isPublic ? 'public' : 'lock' }}</span>
 							{{ list.isPublic ? 'Public' : 'Private' }}
@@ -153,7 +168,13 @@
 						></div>
 
 						<div class="absolute top-3 left-3 flex gap-2">
-							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider">
+							@if (list.isOfficial) {
+								<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider">
+									<span class="material-icons text-[0.875rem]">verified</span>
+									Official
+								</span>
+							}
+							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider">
 								<span class="material-icons text-[0.875rem]">bookmark</span>
 								Following
 							</span>

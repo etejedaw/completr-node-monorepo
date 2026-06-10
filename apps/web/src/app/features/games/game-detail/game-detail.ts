@@ -121,6 +121,16 @@ export class GameDetail implements OnInit {
 	protected readonly myLists = signal<
 		{ id: string; name: string; isPublic: boolean; contains: boolean }[]
 	>([]);
+	protected readonly friendsActivity = signal<
+		{
+			username: string;
+			name: string;
+			avatarUrl: string | null;
+			status: string;
+			finishedAt: string | null;
+			userRating: number | null;
+		}[]
+	>([]);
 	protected readonly showAddToListModal = signal(false);
 	protected readonly addToListSaving = signal(false);
 	protected readonly addToListSelection = signal<Map<string, boolean>>(
@@ -193,6 +203,12 @@ export class GameDetail implements OnInit {
 					this.featuredLists.set(data.lists);
 					this.myLists.set(data.myLists);
 				});
+				this.friendsActivity.set([]);
+				if (this.authService.isLoggedIn()) {
+					this.gamesService
+						.getFriendsActivity(game.id)
+						.subscribe(friends => this.friendsActivity.set(friends));
+				}
 			},
 			error: () => this.isLoading.set(false)
 		});
@@ -355,6 +371,19 @@ export class GameDetail implements OnInit {
 	protected getScaleLabel(source: string): string {
 		const scale = this.scoreSourcesService.getScale(source);
 		return scale ? `/ ${scale}` : "";
+	}
+
+	protected friendStatusMeta(status: string): { label: string; classes: string } {
+		switch (status) {
+			case "completed":
+				return { label: "Completed", classes: "bg-success/15 text-success" };
+			case "playing":
+				return { label: "Playing", classes: "bg-brand/15 text-brand" };
+			case "abandoned":
+				return { label: "Abandoned", classes: "bg-warning/15 text-warning" };
+			default:
+				return { label: "Backlog", classes: "bg-input-bg text-fg-muted" };
+		}
 	}
 
 	protected get canonicalScore() {
