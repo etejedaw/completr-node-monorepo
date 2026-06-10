@@ -8,6 +8,10 @@ Punto de entrada para entender cómo está organizado este backend. Cada archivo
 
 - [`architecture.md`](./architecture.md) — Vista panorámica: stack, capas, cómo fluye un request, decisiones de diseño y dónde vive cada cosa. **Empieza aquí si nunca has visto el proyecto.**
 
+### Reglas del dominio
+
+- [`business-rules.md`](./business-rules.md) — Reglas atómicas que el backend hace cumplir: límites, estados, validaciones, privacidad, comportamientos automáticos. Para los conceptos detrás, ver `CONTEXT.md` en la raíz.
+
 ### Contexto detallado (`context/`)
 
 - [`context/conventions.md`](./context/conventions.md) — Reglas de código y trabajo. Estilo, nombres, commits, qué hacer después de editar, cuándo comentar (casi nunca), Clean Code aplicado a este repo.
@@ -25,4 +29,5 @@ Punto de entrada para entender cómo está organizado este backend. Cada archivo
 - ¿Vas a tocar un módulo existente? Lee `architecture.md` + `context/modules.md`.
 - ¿Vas a crear un módulo nuevo? Lee `context/modules.md` y `context/errors.md`.
 - ¿Vas a integrar un servicio externo? Lee `context/providers.md`.
+- ¿Necesitas saber un límite, una validación o cuándo dispara un comportamiento? `business-rules.md`.
 - ¿Vas a abrir un PR? Revisa `context/conventions.md` antes de commitear.
