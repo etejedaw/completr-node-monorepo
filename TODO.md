@@ -558,7 +558,7 @@
 **Contexto:** Hasta el commit del fix de FB-067, el middleware `express-xss-sanitizer` corría sobre todos los `req.body`, HTML-encodeando `&`, `<`, `>`, `"`, `'` antes de persistirse. Eso dejó datos viejos con `&amp;` y similares en cualquier campo `string` que pasó por POST/PATCH (titles, descriptions, notes, names, bios, content, edition, etc.). Slugs derivados de titles con `&` quedaron con `andamp` embebido.
 
 - [x] Crear helper `decodeHtmlEntities(input)` que decodifica `&amp;`, `&lt;`, `&gt;`, `&quot;`, `&apos;`, `&#39;`, `&#34;`, `&nbsp;`
-- [ ] Script de backfill (one-off, sin migración persistente — patrón usado en FB-067 con `npm run migrate` contra prd y luego borrar archivo):
+- [x] Script de backfill (one-off, sin migración persistente — patrón usado en FB-067 con `npm run migrate` contra prd y luego borrar archivo) → `migrations/20260609153000-backfill-decode-html-entities.js`:
     - `Games.title` y `Games.description` → decode
     - `Games.code` → regenerar con `titleToSlug(decodedTitle)` cuando el slug actual contenga `andamp` o `andlt` o similares (URLs viejas dejarán de funcionar — aceptable en Fase 2/3 sin SEO crítico)
     - `Lists.name`, `Lists.description` → decode
