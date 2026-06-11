@@ -22,6 +22,7 @@ export function listSerializer(
 		description: list.description,
 		isPublic: list.isPublic,
 		isOfficial: list.User?.role === "admin",
+		owner: list.User ? { username: list.User.username } : null,
 		scoreSource: list.scoreSource,
 		durationSource: list.durationSource,
 		followerCount: followerCount ?? 0,
