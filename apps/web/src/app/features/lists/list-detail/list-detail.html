@@ -33,13 +33,13 @@
 				@if (list()!.description) {
 				<p class="mt-1 mb-0 text-[0.8125rem] text-fg-secondary">{{ list()!.description }}</p>
 				}
-				@if (fromUsername(); as username) {
+				@if (!isOwner() && list()!.owner; as owner) {
 					<a
-						[routerLink]="['/user', username]"
+						[routerLink]="['/user', owner.username]"
 						class="inline-flex items-center gap-1 mt-1 text-[0.6875rem] text-fg-muted no-underline hover:text-brand"
 					>
 						<span class="material-icons text-sm">person</span>
-						from &#64;{{ username }}
+						by &#64;{{ owner.username }}
 					</a>
 				}
 			</div>

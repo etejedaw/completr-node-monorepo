@@ -5,6 +5,7 @@ export interface List {
 	description?: string;
 	isPublic: boolean;
 	isOfficial?: boolean;
+	owner?: { username: string } | null;
 	scoreSource: string;
 	durationSource: string;
 	items: ListItem[];
