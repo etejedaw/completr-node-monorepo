@@ -238,7 +238,11 @@ export class ListDetail implements OnInit {
 	}
 
 	private loadList() {
-		this.listsService.getById(this.listId).subscribe({
+		const from = this.fromUsername();
+		const request$ = from
+			? this.listsService.getByIdForUser(from, this.listId)
+			: this.listsService.getById(this.listId);
+		request$.subscribe({
 			next: list => {
 				this.list.set(list);
 				this.isLoading.set(false);
