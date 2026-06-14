@@ -20,9 +20,11 @@ settings:
 docs: |-
     ## Get User's Public List Detail
 
-    Returns a public list owned by `:username` with all its items. Per-item `backlogStatus`, `realDuration`, and `personalRatio` reflect the **viewer's** backlog (not the list owner's) when the request is authenticated. If unauthenticated, these reflect the list owner's backlog instead.
+    Returns a public list with all its items, showing **`:username`'s progress** on it — this is the "see how @username has progressed through this list" view (used when opening a list from a user's profile). Per-item `backlogStatus`, `realDuration`, `personalRatio` and the list `progress` reflect the **profile user's** backlog, not the viewer's.
 
-    **Authentication:** Optional (Bearer token). If provided, viewer-specific data is populated.
+    Privacy: the profile user's progress is only included when their backlog is public (`isBacklogPublic`) or you are them; for other users only their **public** backlog entries are counted. When their backlog is private, the list is still returned but without progress data (`progress: null`, no per-item `backlogStatus`).
+
+    **Authentication:** Optional (Bearer token). The viewer identity is only used to detect self-view.
     **Rate Limit:** 100 requests per minute (public).
 
     Returns 403 if the profile is private. Returns 404 if user/list not found or list is private.
@@ -45,6 +47,7 @@ docs: |-
           "description": "...",
           "isPublic": true,
           "isOfficial": false,
+          "owner": { "username": "andres" },
           "scoreSource": "metacritic",
           "durationSource": "hltb",
           "followerCount": 12,

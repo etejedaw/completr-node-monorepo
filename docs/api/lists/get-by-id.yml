@@ -39,6 +39,7 @@ docs: |-
           "description": "...",
           "isPublic": true,
           "isOfficial": false,
+          "owner": { "username": "andres" },
           "scoreSource": "metacritic",
           "durationSource": "hltb",
           "followerCount": 12,
