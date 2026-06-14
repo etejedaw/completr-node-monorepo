@@ -77,7 +77,8 @@ export interface BacklogSummary {
 
 export async function getBacklogSummaryMap(
 	gameIds: string[],
-	userId: string
+	userId: string,
+	publicOnly = false
 ): Promise<Map<string, BacklogSummary>> {
 	if (gameIds.length === 0) return new Map();
 
@@ -89,7 +90,9 @@ export async function getBacklogSummaryMap(
 	}>(
 		`SELECT DISTINCT ON ("gameId") "gameId", status, score, "realDuration"
 		 FROM "Backlogs"
-		 WHERE "userId" = :userId AND "gameId" IN (:gameIds)
+		 WHERE "userId" = :userId AND "gameId" IN (:gameIds)${
+				publicOnly ? ` AND "isPublic" = true` : ""
+			}
 		 ORDER BY "gameId",
 		   CASE status
 		     WHEN 'completed' THEN 1
@@ -117,7 +120,8 @@ export async function getBacklogSummaryMap(
 
 export async function getListProgress(
 	listId: string,
-	userId: string
+	userId: string,
+	publicOnly = false
 ): Promise<{ completed: number; total: number }> {
 	const items = await ListItem.findAll({
 		where: { listId },
@@ -130,7 +134,8 @@ export async function getListProgress(
 		where: {
 			userId,
 			gameId: { [Op.in]: gameIds },
-			status: { [Op.in]: ["completed", "abandoned"] }
+			status: { [Op.in]: ["completed", "abandoned"] },
+			...(publicOnly ? { isPublic: true } : {})
 		},
 		distinct: true,
 		col: "gameId"
