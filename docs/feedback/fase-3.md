@@ -154,3 +154,21 @@
 - **Estado:** pendiente
 - **Descripcion:** "Hay varios juegos que no se pueden 'completar' como tal, ej: timberman. Que clasificacion podria darle a esos juegos? Hasta ahora dejarlos como 'completado' o 'abandonado' es lo mas sensato, pero no es lo mejor". Juegos infinitos/arcade/casual (Timberman, Tetris, Vampire Survivors, roguelikes sin ending, juegos competitivos) no tienen un estado de fin natural. Forzar `completed` o `dropped` distorsiona las metricas (completion rate, ratio personal, "completados este mes" de FB-019).
 - **Solucion propuesta:** Evaluar opciones: (1) Nuevo status en backlog: `ongoing` / `endless` / `played` — marca el juego como jugado sin un ending. Excluirlo de metricas de "completados" pero contarlo como activity. (2) Flag en el modelo `Game`: `isEndless` (bool) que el admin marca y que cambia la UX del backlog para ese juego (oculta el boton "Completar", expone solo "Marcar como jugado"). (3) Heuristica automatica via tags de RAWG (endless, arcade, roguelite sin final, etc.) que pre-marca `isEndless` y el admin confirma. Frontend: empty states y wording adaptado segun el tipo de juego. Coordinar con FB-019 (las metricas mensuales deberian respetar este status nuevo) y FB-020 (los ratios por tiempo no aplican igual a juegos endless).
+
+### [FB-024] Errores de validacion sin detalle en admin/users (y resto del frontend)
+
+- **Estado:** pendiente
+- **Descripcion:** Al intentar crear un usuario en `/admin/users`, la llamada de red devuelve un error generico sin indicar que campo fallo ni por que:
+    ```json
+    {
+    	"correlationId": "87d3403d-e57c-4661-bb61-a6e88ca460fd",
+    	"type": "COMMON_SCHEMA_INVALID",
+    	"title": "Invalid request schema",
+    	"status": 422,
+    	"instance": "/admin/users",
+    	"timestamp": "2026-06-14T15:24:07.463Z"
+    }
+    ```
+    El frontend no informa si la contrasena era invalida, si falta algun campo, o cual es el formato esperado. El usuario queda sin pistas para corregir el formulario.
+- **Contexto:** El backend ya valida con Zod y conoce los issues exactos (campo, regla violada, mensaje), pero el error `COMMON_SCHEMA_INVALID` se serializa sin el detalle de los issues — solo titulo generico. El frontend, por su parte, no sabe mapear errores 422 a mensajes inline por campo en el formulario de admin/users. Es probable que el mismo problema afecte a otros formularios del frontend que dependen de validacion del backend.
+- **Solucion propuesta:** Backend: enriquecer el payload de `COMMON_SCHEMA_INVALID` (RFC 7807) con un campo `errors` o `issues` que liste `{ path, code, message }` por cada issue de Zod. Mantener el `type`/`title` actuales para compatibilidad. Frontend: en el form de `/admin/users` (y resto), interceptar respuestas 422 con `type === COMMON_SCHEMA_INVALID` y mapear los issues a errores inline por campo (matchear `path` con el control del form). Fallback: si no se puede mapear a un campo concreto, mostrar snackbar con la lista de mensajes. Auditar otros formularios del frontend que hacen POST/PUT/PATCH para aplicar el mismo patron de manejo de 422. Coordinar con la convencion existente de errores (ver `*.error.ts` y `*.error-mapper.ts`).
