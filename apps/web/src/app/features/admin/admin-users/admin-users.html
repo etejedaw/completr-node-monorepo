@@ -107,6 +107,9 @@
 						minlength="4"
 						maxlength="15"
 					/>
+					@if (createFieldErrors()['username']; as msg) {
+						<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
+					}
 				</div>
 				<div>
 					<label for="create-name" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
@@ -124,6 +127,9 @@
 						minlength="4"
 						maxlength="80"
 					/>
+					@if (createFieldErrors()['name']; as msg) {
+						<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
+					}
 				</div>
 			</div>
 
@@ -142,6 +148,9 @@
 						placeholder="john@example.com"
 						required
 					/>
+					@if (createFieldErrors()['email']; as msg) {
+						<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
+					}
 				</div>
 				<div>
 					<label for="create-password" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
@@ -170,6 +179,9 @@
 						<span class="material-icons text-base">{{ showCreatePassword() ? 'visibility_off' : 'visibility' }}</span>
 					</button>
 					</div>
+					@if (createFieldErrors()['password']; as msg) {
+						<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
+					}
 				</div>
 			</div>
 
@@ -231,6 +243,9 @@
 					minlength="4"
 					maxlength="80"
 				/>
+				@if (editFieldErrors()['name']; as msg) {
+					<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
+				}
 			</div>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
@@ -273,6 +288,9 @@
 							<span class="material-icons text-base">{{ showEditPassword() ? 'visibility_off' : 'visibility' }}</span>
 						</button>
 					</div>
+					@if (editFieldErrors()['password']; as msg) {
+						<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
+					}
 				</div>
 			</div>
 
