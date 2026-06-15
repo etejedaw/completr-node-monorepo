@@ -25,5 +25,10 @@ services:
         environment:
             - PGADMIN_DEFAULT_EMAIL=root@postgres.com
             - PGADMIN_DEFAULT_PASSWORD=toor
+            - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+        volumes:
+            - ./.docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
+            - ./.docker/pgadmin/pgpass:/pgpass:ro
         depends_on:
             - postgres
+            - postgres-test
