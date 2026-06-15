@@ -274,9 +274,6 @@ export async function getUserListDetail(request: Request, response: Response) {
 	if (!list.isPublic) throw userDomain.userNotFound();
 
 	const listPlain = list.get({ plain: true });
-	// Progress reflects the PROFILE user's backlog (not the viewer's) — this view
-	// is "see @username's progress on this list". Respect their backlog privacy:
-	// only when public (or self), and only counting public entries for others.
 	const canSeeProgress = isSelf || user.isBacklogPublic;
 	const publicOnly = !isSelf;
 	const gameIds = (list.ListItems ?? []).map(i => i.gameId);
