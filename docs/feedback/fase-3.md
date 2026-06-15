@@ -157,7 +157,7 @@
 
 ### [FB-024] Errores de validacion sin detalle en admin/users (y resto del frontend)
 
-- **Estado:** pendiente
+- **Estado:** resuelto parcialmente — backend enriquece `COMMON_SCHEMA_INVALID` con `issues: [{ path, code, message }]` (expuesto en prod, fuera de `context`); helper `shared/utils/validation-errors.ts` + mapeo inline aplicado en `admin/users`. Pendiente: cablear el resto de formularios del frontend.
 - **Descripcion:** Al intentar crear un usuario en `/admin/users`, la llamada de red devuelve un error generico sin indicar que campo fallo ni por que:
     ```json
     {
