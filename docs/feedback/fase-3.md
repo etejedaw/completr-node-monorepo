@@ -99,9 +99,10 @@
 
 ### [FB-014] Unificar filtros de busqueda entre `/games` y backlog
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Los filtros de busqueda por juego son superiores a los filtros de busqueda en backlog. Unificar". La pantalla `/games` tiene filtros mas ricos (genero, plataforma, ano, etc.) que la vista de backlog. Hoy son dos implementaciones distintas con UX inconsistente. El usuario espera la misma experiencia de filtrado en ambos lados.
 - **Solucion propuesta:** Auditar filtros disponibles en `/games` vs backlog: identificar gaps (generos, plataformas, ano, score, etc.). Extraer el componente de filtros a uno compartido (`game-filters` reutilizable). Backend: revisar que el endpoint de backlog acepte los mismos query params que el de games (genre, platform, year, etc.). Considerar aplicar el mismo unified-filter a queue, wishlist, game-shelf y favoritos para consistencia total. Coordinar con FB-009 (performance): los nuevos filtros deben aprovechar los mismos indices.
+- **Resolucion:** Resuelto junto a FB-020. Backend: `BacklogQuerySchema` y `backlogService.buildWhere` ahora aceptan `platforms[]` (codes), `genres[]` (codes) y `release_year_from/to`, con subqueries sobre `GamePlatforms`, `GameGenres` y `Games.releaseAt`. Frontend: nuevo componente compartido `app-game-filter-panel` con chips de genero/plataforma + inputs de ano, integrado en `/games` (reemplaza los chips inline) y en `backlog-list` (reemplaza el `<select>` de plataforma unica). Saved filters extendidos para guardar/cargar los nuevos campos. Queue/wishlist/shelf quedan sin filtros nuevos por ahora — la UX actual no lo demanda.
 
 ### [FB-015] Mostrar cantidad de runs en la ficha del juego
 
@@ -141,9 +142,10 @@
 
 ### [FB-020] Filtros y orden por ratio, tiempo promedio y tiempo de completado en backlog
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "En los filtros de busqueda del backlog, anadir filtros para ordenar juegos por ratio personal/general, tiempo promedio, tiempo que tomo completar, etc". Faltan ordenes y filtros sobre metricas cuantitativas que el usuario ya esta tracking.
 - **Solucion propuesta:** Agregar opciones de orden en el backlog: ratio personal (score del usuario / horas jugadas), ratio general (community score / tiempo promedio), tiempo promedio del juego (HLTB-style), tiempo real que le tomo al usuario completarlo (`completedAt - startedAt` o `hoursPlayed` si esta cargado). Filtros equivalentes (rango de horas, rango de ratio). Backend: revisar que las queries usen indices y que los campos existan en el modelo (`hoursPlayed`, `startedAt`, `finishedAt`). Coordinar con FB-014 (unificar filtros entre games y backlog) — los nuevos filtros se aplican al backlog principalmente, pero el ratio general podria ser util tambien en `/games`.
+- **Resolucion:** Backend: nuevos params `min_ratio/max_ratio` y `min_personal_ratio/max_personal_ratio` aplicados con literals (`"Backlog"."score" / NULLIF("Backlog"."duration", 0)`), mas extension de la documentacion del sort_by para incluir `ratio` y `personalRatio` (ya soportados). Frontend: nuevos inputs en el panel de filtros de backlog para Real duration, Ratio (score/duration) y Personal ratio (score/realDuration), con sus respectivos rangos min/max. Saved filters y URL params extendidos. El sort dropdown del backlog ya exponia `ratio`, `personalRatio` y `realDuration`, asi que no requirio cambios.
 
 ### [FB-021] Mostrar amigos (follow mutuo) que han jugado un juego en su ficha
 
