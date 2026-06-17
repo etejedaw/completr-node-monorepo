@@ -112,7 +112,7 @@
 - **Estado:** resuelto
 - **Descripcion:** "Bug al hacer un split en los juegos". Falta detalle reproducible. El feature de split permite separar un game compilation en sus juegos individuales. Pedir al reporter pasos para reproducir antes de empezar a investigar.
 - **Solucion propuesta:** Pedir reproduccion: que juego, que pasos, que error visible (mensaje, comportamiento inesperado). Revisar logs del backend en el momento del intento. Una vez reproducido, abrir issue con stack trace y caso de prueba.
-- **Resolucion:** Audit defensivo del flujo `splitGame` (sin reproduccion del reporter). Se detecta un bug latente: si el title de una variante slugifica a vacio (ej. `"???"`, `"---"`), el servicio acepta el request y crea/sobrescribe un game con `code = ""`. Esto rompe la navegacion post-split (`/games/` sin slug) y bloquea creaciones futuras con el mismo simbolo (unique constraint en code). Fix: validacion explicita en `splitGame` que rechaza variantes con slug vacio (`GAME_SPLIT_INVALID`). El mismo patron de vulnerabilidad existe en `registerGame`, `updateGame` y `setCompilationItems` — pendiente decidir si extender el guard.
+- **Resolucion:** Audit defensivo del flujo `splitGame` (sin reproduccion del reporter). Se detecta un bug latente: si el title de una variante slugifica a vacio (ej. `"???"`, `"---"`), el servicio acepta el request y crea/sobrescribe un game con `code = ""`. Esto rompe la navegacion post-split (`/games/` sin slug) y bloquea creaciones futuras con el mismo simbolo (unique constraint en code). Fix: validacion explicita de slug no vacio aplicada en los 4 paths del catalogo de games: `splitGame` (rechaza con `GAME_SPLIT_INVALID`), `registerGame` y `updateGame` (rechazan con `GAME_VALIDATION_ERROR`), y `setCompilationItems` (rechaza con `GAME_COMPILATION_INVALID`).
 
 ### [FB-017] Mostrar slug debajo del juego en el split (como en compilation)
 
@@ -123,9 +123,10 @@
 
 ### [FB-018] Conservar barra de busqueda de games al entrar a la ficha de un juego
 
-- **Estado:** pendiente
+- **Estado:** omitido
 - **Descripcion:** "Conservar barra de busqueda de games cuando se ve un juego especifico". Al estar navegando `/games` con una busqueda activa y entrar a la ficha de un juego, la barra de busqueda y los filtros se pierden. Al volver atras se obliga al usuario a re-aplicar la busqueda desde cero.
 - **Solucion propuesta:** Persistir el estado de busqueda y filtros del browse de games al navegar entre la lista y las fichas individuales (via query params en la URL, state del router o servicio compartido). Al volver con el back del navegador o un boton "Volver a resultados", restaurar la query, filtros y posicion de scroll. Considerar tambien aplicar el patron a las vistas con filtros (backlog, queue, etc.) — coordinar con FB-014.
+- **Decision:** Omitido por ahora. La friccion actual es tolerable; si vuelve a aparecer en feedback de fases posteriores, se reabre.
 
 ### [FB-019] Secciones de "ultimos completados" / "completados este mes" en el perfil
 
