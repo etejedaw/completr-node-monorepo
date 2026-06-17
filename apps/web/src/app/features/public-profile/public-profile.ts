@@ -15,7 +15,8 @@ import {
 	PublicList,
 	PublicFavorite,
 	PublicQueue,
-	PublicGameShelf
+	PublicGameShelf,
+	HighlightEntry
 } from "./public-profile.service";
 import {
 	UserListModal,
@@ -96,6 +97,24 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly gamesInCommon = signal<
 		{ id: string; code: string; title: string; backgroundUrl: string | null }[]
 	>([]);
+	protected readonly highlightsData = signal<{
+		recent: HighlightEntry[];
+		month: {
+			startsAt: string;
+			endsAt: string;
+			completedCount: number;
+			mostPlayed: HighlightEntry | null;
+			highestRated: HighlightEntry | null;
+		};
+	} | null>(null);
+	protected readonly monthLabel = computed(() => {
+		const h = this.highlightsData();
+		if (!h) return "";
+		return new Date(h.month.startsAt).toLocaleDateString("en-US", {
+			year: "numeric",
+			month: "long"
+		});
+	});
 	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
 
 	private readonly lazyLoadEffect = effect(() => {
@@ -108,7 +127,26 @@ export class PublicProfileComponent implements OnInit {
 		else if (tab === "queue") this.ensureQueueLoaded(u);
 		else if (tab === "wishlist") this.ensureWishlistLoaded(u);
 		else if (tab === "shelf") this.ensureGameShelfLoaded(u);
+		else if (tab === "highlights") this.ensureHighlightsLoaded(u);
 	});
+
+	private ensureHighlightsLoaded(username: string) {
+		if (this.highlightsData() !== null) return;
+		this.profileService.getHighlights(username).subscribe({
+			next: data => this.highlightsData.set(data),
+			error: () =>
+				this.highlightsData.set({
+					recent: [],
+					month: {
+						startsAt: new Date().toISOString(),
+						endsAt: new Date().toISOString(),
+						completedCount: 0,
+						mostPlayed: null,
+						highestRated: null
+					}
+				})
+		});
+	}
 
 	private ensureListsLoaded(username: string) {
 		if (this.listsData() !== null) return;

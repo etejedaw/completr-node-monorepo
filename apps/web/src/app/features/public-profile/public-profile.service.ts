@@ -93,6 +93,16 @@ export interface PublicActivity {
 	} | null;
 }
 
+export interface HighlightEntry {
+	id: string;
+	status: string;
+	userRating?: number | null;
+	realDuration?: number | null;
+	finishedAt?: string | null;
+	game: GameSummary;
+	platform: { id: string; abbreviation: string };
+}
+
 export interface BacklogStats {
 	not_started: number;
 	playing: number;
@@ -323,6 +333,25 @@ export class PublicProfileService {
 				};
 			}>(`${environment.apiUrl}/users/${username}/reviews`, { params })
 			.pipe(map(res => res.data));
+	}
+
+	getHighlights(username: string) {
+		return this.http
+			.get<{
+				data: {
+					highlights: {
+						recent: HighlightEntry[];
+						month: {
+							startsAt: string;
+							endsAt: string;
+							completedCount: number;
+							mostPlayed: HighlightEntry | null;
+							highestRated: HighlightEntry | null;
+						};
+					};
+				};
+			}>(`${environment.apiUrl}/users/${username}/highlights`)
+			.pipe(map(res => res.data.highlights));
 	}
 
 	getGamesInCommon(username: string) {

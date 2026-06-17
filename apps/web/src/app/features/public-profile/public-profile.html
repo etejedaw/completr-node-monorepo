@@ -209,6 +209,10 @@
 					</button>
 				}
 				@if (profile()!.user.isBacklogPublic) {
+					<button uiTab value="highlights" class="!whitespace-nowrap" aria-label="Highlights" title="Highlights">
+						<span class="material-icons text-base md:mr-1.5 align-middle">auto_awesome</span>
+						<span class="hidden md:inline">Highlights</span>
+					</button>
 					<button uiTab value="backlog" class="!whitespace-nowrap" aria-label="Backlog" title="Backlog">
 						<span class="material-icons text-base md:mr-1.5 align-middle">list_alt</span>
 						<span class="hidden md:inline">Backlog</span>
@@ -251,6 +255,98 @@
 			</ui-tab-list>
 
 			@if (profile()!.user.isBacklogPublic) {
+			<div uiTabPanel value="highlights">
+				@if (highlightsData() === null) {
+					<div class="grid grid-cols-3 md:grid-cols-6 gap-4 mb-8">
+						@for (i of skeletonRange; track i) {
+							<div class="flex flex-col gap-1.5">
+								<ui-skeleton variant="rect" class="aspect-[3/4] rounded-lg" />
+								<ui-skeleton variant="text" class="w-3/4" />
+							</div>
+						}
+					</div>
+				} @else {
+					<section class="mb-8">
+						<div class="flex items-baseline justify-between mb-3">
+							<h2 class="font-display m-0 text-xl font-bold text-fg">Recent completions</h2>
+						</div>
+						@if (highlightsData()!.recent.length === 0) {
+							<p class="text-center py-12 text-fg-muted text-sm">No completions yet.</p>
+						} @else {
+							<div class="grid grid-cols-3 md:grid-cols-6 gap-4">
+								@for (entry of highlightsData()!.recent; track entry.id) {
+									<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', entry.game.code]">
+										@if (entry.game.backgroundUrl) {
+											<img
+												[src]="entry.game.backgroundUrl"
+												[alt]="entry.game.title"
+												class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" loading="lazy"
+											/>
+										} @else {
+											<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+										}
+										<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ entry.game.title }}</span>
+										<span class="text-[0.625rem] text-fg-muted">{{ entry.finishedAt }}</span>
+										@if (entry.userRating != null) {
+											<span class="text-[0.625rem] text-warning flex items-center gap-0.5">
+												<span class="material-icons text-[0.75rem]">star</span>{{ entry.userRating }}
+											</span>
+										}
+									</a>
+								}
+							</div>
+						}
+					</section>
+
+					<section>
+						<div class="flex items-baseline justify-between mb-3">
+							<h2 class="font-display m-0 text-xl font-bold text-fg">{{ monthLabel() }}</h2>
+							<span class="text-xs text-fg-muted">{{ highlightsData()!.month.completedCount }} completed</span>
+						</div>
+						@if (highlightsData()!.month.completedCount === 0) {
+							<p class="text-center py-12 text-fg-muted text-sm">Nothing completed this month yet.</p>
+						} @else {
+							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+								@if (highlightsData()!.month.mostPlayed; as mp) {
+									<a class="flex gap-3 p-3 rounded-card bg-surface border border-line no-underline text-inherit transition hover:border-brand/50" [routerLink]="['/games', mp.game.code]">
+										@if (mp.game.backgroundUrl) {
+											<img [src]="mp.game.backgroundUrl" [alt]="mp.game.title" class="w-16 h-20 object-cover rounded shrink-0" loading="lazy" />
+										} @else {
+											<div class="w-16 h-20 bg-input-bg rounded shrink-0"></div>
+										}
+										<div class="flex flex-col gap-1 min-w-0">
+											<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-warning">Most played</span>
+											<span class="text-sm font-semibold text-fg line-clamp-2">{{ mp.game.title }}</span>
+											@if (mp.realDuration != null) {
+												<span class="text-xs text-fg-muted">{{ mp.realDuration }}h</span>
+											}
+										</div>
+									</a>
+								}
+								@if (highlightsData()!.month.highestRated; as hr) {
+									<a class="flex gap-3 p-3 rounded-card bg-surface border border-line no-underline text-inherit transition hover:border-brand/50" [routerLink]="['/games', hr.game.code]">
+										@if (hr.game.backgroundUrl) {
+											<img [src]="hr.game.backgroundUrl" [alt]="hr.game.title" class="w-16 h-20 object-cover rounded shrink-0" loading="lazy" />
+										} @else {
+											<div class="w-16 h-20 bg-input-bg rounded shrink-0"></div>
+										}
+										<div class="flex flex-col gap-1 min-w-0">
+											<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-success">Highest rated</span>
+											<span class="text-sm font-semibold text-fg line-clamp-2">{{ hr.game.title }}</span>
+											@if (hr.userRating != null) {
+												<span class="text-xs text-fg-muted flex items-center gap-0.5">
+													<span class="material-icons text-[0.875rem] text-warning">star</span>{{ hr.userRating }}
+												</span>
+											}
+										</div>
+									</a>
+								}
+							</div>
+						}
+					</section>
+				}
+			</div>
+
 			<div uiTabPanel value="backlog">
 				<div class="flex items-baseline justify-between mb-3">
 					<h2 class="font-display m-0 text-xl font-bold text-fg">Recent Backlog</h2>
