@@ -163,7 +163,7 @@
 
 ### [FB-024] Errores de validacion sin detalle en admin/users (y resto del frontend)
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Al intentar crear un usuario en `/admin/users`, la llamada de red devuelve un error generico sin indicar que campo fallo ni por que:
     ```json
     {
@@ -178,3 +178,4 @@
     El frontend no informa si la contrasena era invalida, si falta algun campo, o cual es el formato esperado. El usuario queda sin pistas para corregir el formulario.
 - **Contexto:** El backend ya valida con Zod y conoce los issues exactos (campo, regla violada, mensaje), pero el error `COMMON_SCHEMA_INVALID` se serializa sin el detalle de los issues — solo titulo generico. El frontend, por su parte, no sabe mapear errores 422 a mensajes inline por campo en el formulario de admin/users. Es probable que el mismo problema afecte a otros formularios del frontend que dependen de validacion del backend.
 - **Solucion propuesta:** Backend: enriquecer el payload de `COMMON_SCHEMA_INVALID` (RFC 7807) con un campo `errors` o `issues` que liste `{ path, code, message }` por cada issue de Zod. Mantener el `type`/`title` actuales para compatibilidad. Frontend: en el form de `/admin/users` (y resto), interceptar respuestas 422 con `type === COMMON_SCHEMA_INVALID` y mapear los issues a errores inline por campo (matchear `path` con el control del form). Fallback: si no se puede mapear a un campo concreto, mostrar snackbar con la lista de mensajes. Auditar otros formularios del frontend que hacen POST/PUT/PATCH para aplicar el mismo patron de manejo de 422. Coordinar con la convencion existente de errores (ver `*.error.ts` y `*.error-mapper.ts`).
+- **Resolucion:** Backend: `validateSchemaMiddleware` ahora extrae `error.issues` de Zod en formato `{ path, code, message }` y los pasa por `context.issues`. `commonDomainToHttpMapper` los propaga al `HttpError` como campo top-level `issues`. `errorHandlerMiddleware` incluye `issues` en el payload final (independiente de `NODE_ENV`). Frontend: util `formatValidationIssues(err)` en `core/utils/validation-issues.util.ts` mas un `HttpContextToken SUPPRESS_VALIDATION_TOAST`. El `errorInterceptor` muestra un snackbar global con los issues formateados para cualquier 422 con `issues`, salvo que el request opte por suprimir el toast (forms que ya manejan el error inline). Integracion concreta en `/admin/users` (create y edit): el `AdminService` setea el opt-out y el componente usa `formatValidationIssues` para poblar el banner de error con detalle por campo. Patron listo para extender al resto de los forms.
