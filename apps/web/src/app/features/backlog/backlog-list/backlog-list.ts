@@ -11,10 +11,12 @@ import {
 import { toSignal } from "@angular/core/rxjs-interop";
 import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { BacklogEntry, BacklogStatus, Platform } from "../../../core/models";
+import { BacklogEntry, BacklogStatus, Genre, Platform } from "../../../core/models";
+import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { BacklogService, BacklogFilters } from "../backlog.service";
 import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
 import { QueueService } from "../../queue/queue.service";
+import { FavoritesService } from "../../favorites/favorites.service";
 import { GamesService } from "../../games/games.service";
 import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
@@ -26,7 +28,7 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSkeleton, UiSwitch],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSkeleton, UiSwitch, GameFilterPanel],
 	templateUrl: "./backlog-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -36,6 +38,7 @@ export class BacklogList implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly savedFiltersService = inject(SavedFiltersService);
 	private readonly queueService = inject(QueueService);
+	private readonly favoritesService = inject(FavoritesService);
 	private readonly gamesService = inject(GamesService);
 	private readonly reviewsService = inject(ReviewsService);
 
@@ -89,14 +92,26 @@ export class BacklogList implements OnInit {
 
 	// Filters
 	protected readonly showFilters = signal(false);
+	protected readonly showAdvancedFilters = signal(false);
 	protected readonly allPlatforms = signal<Platform[]>([]);
+	protected readonly allGenres = signal<Genre[]>([]);
 	protected readonly selectedPlatform = signal("");
+	protected readonly selectedPlatforms = signal<Set<string>>(new Set());
+	protected readonly selectedGenres = signal<Set<string>>(new Set());
+	protected readonly yearFrom = signal<number | null>(null);
+	protected readonly yearTo = signal<number | null>(null);
 	protected readonly startedFrom = signal("");
 	protected readonly startedTo = signal("");
 	protected readonly finishedFrom = signal("");
 	protected readonly finishedTo = signal("");
 	protected readonly minRating = signal<number | null>(null);
 	protected readonly maxRating = signal<number | null>(null);
+	protected readonly minRealDuration = signal<number | null>(null);
+	protected readonly maxRealDuration = signal<number | null>(null);
+	protected readonly minRatio = signal<number | null>(null);
+	protected readonly maxRatio = signal<number | null>(null);
+	protected readonly minPersonalRatio = signal<number | null>(null);
+	protected readonly maxPersonalRatio = signal<number | null>(null);
 
 	// Saved filters
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
@@ -111,9 +126,23 @@ export class BacklogList implements OnInit {
 	protected readonly activeFiltersCount = () => {
 		let count = 0;
 		if (this.selectedPlatform() !== "") count++;
+		if (this.selectedPlatforms().size > 0) count++;
+		if (this.selectedGenres().size > 0) count++;
+		if (this.yearFrom() !== null || this.yearTo() !== null) count++;
 		if (this.startedFrom() !== "" || this.startedTo() !== "") count++;
 		if (this.finishedFrom() !== "" || this.finishedTo() !== "") count++;
 		if (this.minRating() !== null || this.maxRating() !== null) count++;
+		if (
+			this.minRealDuration() !== null ||
+			this.maxRealDuration() !== null
+		)
+			count++;
+		if (this.minRatio() !== null || this.maxRatio() !== null) count++;
+		if (
+			this.minPersonalRatio() !== null ||
+			this.maxPersonalRatio() !== null
+		)
+			count++;
 		if (this.activeStatuses().size > 0) count++;
 		return count;
 	};
@@ -130,9 +159,11 @@ export class BacklogList implements OnInit {
 	ngOnInit() {
 		this.setupSearch();
 		this.loadQueueIds();
+		this.favoritesService.ensureIdsLoaded().subscribe();
 		this.gamesService
 			.getPlatforms()
 			.subscribe(p => this.allPlatforms.set(p));
+		this.gamesService.getGenres().subscribe(g => this.allGenres.set(g));
 		this.savedFiltersService.getAll().subscribe(filters => {
 			const sorted = filters.sort((a, b) => a.name.localeCompare(b.name));
 			this.savedFilters.set(sorted);
@@ -173,14 +204,48 @@ export class BacklogList implements OnInit {
 	}
 
 	private applySavedFilterFromUrl(filter: SavedFilter) {
+		this.applySavedFilterState(filter);
+		this.activeFilterId.set(filter.id);
+		this.activeFilterDescription.set(filter.description ?? "");
+		this.offset.set(0);
+		this.loadBacklog();
+	}
+
+	private applySavedFilterState(filter: SavedFilter) {
 		const f = filter.filters as Record<string, string>;
 		this.selectedPlatform.set(f["platform_id"] ?? "");
+		this.selectedPlatforms.set(
+			f["platforms"] ? new Set(f["platforms"].split(",")) : new Set()
+		);
+		this.selectedGenres.set(
+			f["genres"] ? new Set(f["genres"].split(",")) : new Set()
+		);
+		this.yearFrom.set(
+			f["release_year_from"] ? Number(f["release_year_from"]) : null
+		);
+		this.yearTo.set(
+			f["release_year_to"] ? Number(f["release_year_to"]) : null
+		);
 		this.startedFrom.set(f["started_from"] ?? "");
 		this.startedTo.set(f["started_to"] ?? "");
 		this.finishedFrom.set(f["finished_from"] ?? "");
 		this.finishedTo.set(f["finished_to"] ?? "");
 		this.minRating.set(f["min_rating"] ? Number(f["min_rating"]) : null);
 		this.maxRating.set(f["max_rating"] ? Number(f["max_rating"]) : null);
+		this.minRealDuration.set(
+			f["min_real_duration"] ? Number(f["min_real_duration"]) : null
+		);
+		this.maxRealDuration.set(
+			f["max_real_duration"] ? Number(f["max_real_duration"]) : null
+		);
+		this.minRatio.set(f["min_ratio"] ? Number(f["min_ratio"]) : null);
+		this.maxRatio.set(f["max_ratio"] ? Number(f["max_ratio"]) : null);
+		this.minPersonalRatio.set(
+			f["min_personal_ratio"] ? Number(f["min_personal_ratio"]) : null
+		);
+		this.maxPersonalRatio.set(
+			f["max_personal_ratio"] ? Number(f["max_personal_ratio"]) : null
+		);
 
 		const status = f["status"];
 		this.activeStatuses.set(status ? new Set(status.split(",")) : new Set());
@@ -189,10 +254,7 @@ export class BacklogList implements OnInit {
 		if (filter.sortOrder)
 			this.sortOrder.set(filter.sortOrder as "asc" | "desc");
 
-		this.activeFilterId.set(filter.id);
-		this.activeFilterDescription.set(filter.description ?? "");
-		this.offset.set(0);
-		this.loadBacklog();
+		if (this.hasAdvancedFiltersActive()) this.showAdvancedFilters.set(true);
 	}
 
 	private resetFilterState() {
@@ -258,12 +320,22 @@ export class BacklogList implements OnInit {
 	clearFilters() {
 		this.searchQuery.set("");
 		this.selectedPlatform.set("");
+		this.selectedPlatforms.set(new Set());
+		this.selectedGenres.set(new Set());
+		this.yearFrom.set(null);
+		this.yearTo.set(null);
 		this.startedFrom.set("");
 		this.startedTo.set("");
 		this.finishedFrom.set("");
 		this.finishedTo.set("");
 		this.minRating.set(null);
 		this.maxRating.set(null);
+		this.minRealDuration.set(null);
+		this.maxRealDuration.set(null);
+		this.minRatio.set(null);
+		this.maxRatio.set(null);
+		this.minPersonalRatio.set(null);
+		this.maxPersonalRatio.set(null);
 		this.activeStatuses.set(new Set());
 		this.activeFilterId.set(null);
 		this.activeFilterDescription.set("");
@@ -280,25 +352,7 @@ export class BacklogList implements OnInit {
 			return;
 		}
 
-		const f = filter.filters as Record<string, string>;
-		this.selectedPlatform.set(f["platform_id"] ?? "");
-		this.startedFrom.set(f["started_from"] ?? "");
-		this.startedTo.set(f["started_to"] ?? "");
-		this.finishedFrom.set(f["finished_from"] ?? "");
-		this.finishedTo.set(f["finished_to"] ?? "");
-		this.minRating.set(f["min_rating"] ? Number(f["min_rating"]) : null);
-		this.maxRating.set(f["max_rating"] ? Number(f["max_rating"]) : null);
-
-		const status = f["status"];
-		if (status) {
-			this.activeStatuses.set(new Set(status.split(",")));
-		} else {
-			this.activeStatuses.set(new Set());
-		}
-
-		if (filter.sortBy) this.sortBy.set(filter.sortBy);
-		if (filter.sortOrder)
-			this.sortOrder.set(filter.sortOrder as "asc" | "desc");
+		this.applySavedFilterState(filter);
 
 		this.activeFilterId.set(filter.id);
 		this.activeFilterDescription.set(filter.description ?? "");
@@ -367,6 +421,14 @@ export class BacklogList implements OnInit {
 		if (statuses.size > 0) filters["status"] = [...statuses].join(",");
 		if (this.selectedPlatform())
 			filters["platform_id"] = this.selectedPlatform();
+		if (this.selectedPlatforms().size > 0)
+			filters["platforms"] = [...this.selectedPlatforms()].join(",");
+		if (this.selectedGenres().size > 0)
+			filters["genres"] = [...this.selectedGenres()].join(",");
+		if (this.yearFrom() !== null)
+			filters["release_year_from"] = String(this.yearFrom());
+		if (this.yearTo() !== null)
+			filters["release_year_to"] = String(this.yearTo());
 		if (this.startedFrom()) filters["started_from"] = this.startedFrom();
 		if (this.startedTo()) filters["started_to"] = this.startedTo();
 		if (this.finishedFrom()) filters["finished_from"] = this.finishedFrom();
@@ -375,6 +437,18 @@ export class BacklogList implements OnInit {
 			filters["min_rating"] = String(this.minRating());
 		if (this.maxRating() !== null)
 			filters["max_rating"] = String(this.maxRating());
+		if (this.minRealDuration() !== null)
+			filters["min_real_duration"] = String(this.minRealDuration());
+		if (this.maxRealDuration() !== null)
+			filters["max_real_duration"] = String(this.maxRealDuration());
+		if (this.minRatio() !== null)
+			filters["min_ratio"] = String(this.minRatio());
+		if (this.maxRatio() !== null)
+			filters["max_ratio"] = String(this.maxRatio());
+		if (this.minPersonalRatio() !== null)
+			filters["min_personal_ratio"] = String(this.minPersonalRatio());
+		if (this.maxPersonalRatio() !== null)
+			filters["max_personal_ratio"] = String(this.maxPersonalRatio());
 		return filters;
 	}
 
@@ -608,6 +682,39 @@ export class BacklogList implements OnInit {
 		return `${y}-${m}-${d}`;
 	}
 
+	parseNumber(value: string): number | null {
+		const trimmed = value?.trim();
+		return trimmed ? Number(trimmed) : null;
+	}
+
+	hasAdvancedFiltersActive(): boolean {
+		return (
+			this.selectedPlatforms().size > 0 ||
+			this.selectedGenres().size > 0 ||
+			this.yearFrom() !== null ||
+			this.yearTo() !== null ||
+			this.minRealDuration() !== null ||
+			this.maxRealDuration() !== null ||
+			this.minRatio() !== null ||
+			this.maxRatio() !== null ||
+			this.minPersonalRatio() !== null ||
+			this.maxPersonalRatio() !== null
+		);
+	}
+
+	toggleAdvancedFilters() {
+		this.showAdvancedFilters.update(v => !v);
+	}
+
+	isFavorite(gameId: string): boolean {
+		return this.favoritesService.isFavorite(gameId);
+	}
+
+	toggleFavorite(gameId: string, event: Event) {
+		event.stopPropagation();
+		this.favoritesService.toggle(gameId).subscribe();
+	}
+
 	toggleQueue(entry: BacklogEntry) {
 		if (!this.isInQueue(entry)) {
 			this.queueService.addFromBacklog(entry.id).subscribe(() => {
@@ -680,12 +787,31 @@ export class BacklogList implements OnInit {
 		if (this.selectedPlatform()) {
 			filters.platform_id = this.selectedPlatform();
 		}
+		if (this.selectedPlatforms().size > 0) {
+			filters.platforms = [...this.selectedPlatforms()].join(",");
+		}
+		if (this.selectedGenres().size > 0) {
+			filters.genres = [...this.selectedGenres()].join(",");
+		}
+		if (this.yearFrom() !== null)
+			filters.release_year_from = this.yearFrom()!;
+		if (this.yearTo() !== null) filters.release_year_to = this.yearTo()!;
 		if (this.startedFrom()) filters.started_from = this.startedFrom();
 		if (this.startedTo()) filters.started_to = this.startedTo();
 		if (this.finishedFrom()) filters.finished_from = this.finishedFrom();
 		if (this.finishedTo()) filters.finished_to = this.finishedTo();
 		if (this.minRating() !== null) filters.min_rating = this.minRating()!;
 		if (this.maxRating() !== null) filters.max_rating = this.maxRating()!;
+		if (this.minRealDuration() !== null)
+			filters.min_real_duration = this.minRealDuration()!;
+		if (this.maxRealDuration() !== null)
+			filters.max_real_duration = this.maxRealDuration()!;
+		if (this.minRatio() !== null) filters.min_ratio = this.minRatio()!;
+		if (this.maxRatio() !== null) filters.max_ratio = this.maxRatio()!;
+		if (this.minPersonalRatio() !== null)
+			filters.min_personal_ratio = this.minPersonalRatio()!;
+		if (this.maxPersonalRatio() !== null)
+			filters.max_personal_ratio = this.maxPersonalRatio()!;
 		if (this.searchQuery().trim()) filters.search = this.searchQuery().trim();
 
 		this.backlogService.getMyBacklog(filters).subscribe({

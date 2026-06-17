@@ -9,6 +9,10 @@ import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { AdminService, AdminUser } from "../admin.service";
 import { UiButton, UiIconButton, UiInput, UiPagination } from "../../../shared/ui";
+import {
+	fieldErrorsFromResponse,
+	validationSummary
+} from "../../../shared/utils/validation-errors";
 
 interface CreateUserRequest {
 	username: string;
@@ -41,6 +45,7 @@ export class AdminUsers implements OnInit {
 	protected readonly createName = signal("");
 	protected readonly isCreating = signal(false);
 	protected readonly createError = signal("");
+	protected readonly createFieldErrors = signal<Record<string, string>>({});
 	protected readonly showCreatePassword = signal(false);
 
 	toggleShowCreatePassword() {
@@ -56,6 +61,7 @@ export class AdminUsers implements OnInit {
 	protected readonly editIsActive = signal(true);
 	protected readonly isEditing = signal(false);
 	protected readonly editError = signal("");
+	protected readonly editFieldErrors = signal<Record<string, string>>({});
 	protected readonly showEditPassword = signal(false);
 
 	toggleShowEditPassword() {
@@ -86,6 +92,7 @@ export class AdminUsers implements OnInit {
 		this.createPassword.set("");
 		this.createName.set("");
 		this.createError.set("");
+		this.createFieldErrors.set({});
 		this.showCreateModal.set(true);
 	}
 
@@ -98,6 +105,7 @@ export class AdminUsers implements OnInit {
 
 		this.isCreating.set(true);
 		this.createError.set("");
+		this.createFieldErrors.set({});
 
 		const data: CreateUserRequest = {
 			username: this.createUsername(),
@@ -114,8 +122,10 @@ export class AdminUsers implements OnInit {
 				this.loadUsers();
 			},
 			error: err => {
+				this.createFieldErrors.set(fieldErrorsFromResponse(err));
 				this.createError.set(
-					err.error?.detail ||
+					validationSummary(err) ||
+						err.error?.detail ||
 						err.error?.title ||
 						"Failed to create user"
 				);
@@ -133,6 +143,7 @@ export class AdminUsers implements OnInit {
 		this.editPassword.set("");
 		this.editIsActive.set(user.isActive);
 		this.editError.set("");
+		this.editFieldErrors.set({});
 		this.showEditModal.set(true);
 	}
 
@@ -147,6 +158,7 @@ export class AdminUsers implements OnInit {
 
 		this.isEditing.set(true);
 		this.editError.set("");
+		this.editFieldErrors.set({});
 
 		const data: {
 			name?: string;
@@ -175,8 +187,10 @@ export class AdminUsers implements OnInit {
 				this.closeEdit();
 			},
 			error: err => {
+				this.editFieldErrors.set(fieldErrorsFromResponse(err));
 				this.editError.set(
-					err.error?.detail ||
+					validationSummary(err) ||
+						err.error?.detail ||
 						err.error?.title ||
 						"Failed to update user"
 				);

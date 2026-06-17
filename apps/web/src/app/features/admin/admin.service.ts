@@ -1,8 +1,14 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient, HttpContext, HttpParams } from "@angular/common/http";
 import { environment } from "../../../environments/environment";
 import { User } from "../../core/models";
 import { map } from "rxjs";
+import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
+
+const SUPPRESS_TOAST_CONTEXT = new HttpContext().set(
+	SUPPRESS_VALIDATION_TOAST,
+	true
+);
 
 interface CreateUserRequest {
 	username: string;
@@ -43,7 +49,9 @@ export class AdminService {
 
 	createUser(data: CreateUserRequest) {
 		return this.http
-			.post<CreateUserResponse>(`${environment.apiUrl}/admin/users`, data)
+			.post<CreateUserResponse>(`${environment.apiUrl}/admin/users`, data, {
+				context: SUPPRESS_TOAST_CONTEXT
+			})
 			.pipe(map(res => res.data.user));
 	}
 
@@ -87,7 +95,9 @@ export class AdminService {
 		return this.http
 			.patch<{
 				data: { user: AdminUser };
-			}>(`${environment.apiUrl}/admin/users/${userId}`, data)
+			}>(`${environment.apiUrl}/admin/users/${userId}`, data, {
+				context: SUPPRESS_TOAST_CONTEXT
+			})
 			.pipe(map(res => res.data.user));
 	}
 

@@ -8,6 +8,7 @@ import {
 import { DatePipe } from "@angular/common";
 import { GameShelfEntry } from "../../../core/models";
 import { GameShelfService } from "../game-shelf.service";
+import { FavoritesService } from "../../favorites/favorites.service";
 import { RouterLink } from "@angular/router";
 import { GameShelfModal } from "../game-shelf-modal/game-shelf-modal";
 import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";
@@ -28,6 +29,7 @@ interface PlatformCount {
 })
 export class GameShelfList implements OnInit {
 	private readonly shelfService = inject(GameShelfService);
+	private readonly favoritesService = inject(FavoritesService);
 
 	protected readonly allEntries = signal<GameShelfEntry[]>([]);
 	protected readonly entries = signal<GameShelfEntry[]>([]);
@@ -62,7 +64,16 @@ export class GameShelfList implements OnInit {
 				this.offset.set(0);
 				this.loadShelf();
 			});
+		this.favoritesService.ensureIdsLoaded().subscribe();
 		this.loadShelf();
+	}
+
+	isFavorite(gameId: string): boolean {
+		return this.favoritesService.isFavorite(gameId);
+	}
+
+	toggleFavorite(gameId: string) {
+		this.favoritesService.toggle(gameId).subscribe();
 	}
 
 	onSearch(query: string) {

@@ -194,6 +194,88 @@
 				</div>
 			</section>
 
+			<section class="pt-3 border-t border-line">
+				<button
+					type="button"
+					class="w-full bg-transparent border border-line text-fg-secondary text-xs font-semibold uppercase tracking-wider px-3 py-2 rounded cursor-pointer inline-flex items-center justify-center gap-2 transition hover:border-brand hover:text-brand"
+					(click)="toggleAdvancedFilters()"
+				>
+					<span class="material-icons text-base">{{ showAdvancedFilters() ? 'expand_less' : 'expand_more' }}</span>
+					Advanced filters
+					@if (!showAdvancedFilters() && hasAdvancedFiltersActive()) {
+						<span class="inline-block w-1.5 h-1.5 rounded-full bg-brand"></span>
+					}
+				</button>
+			</section>
+
+			@if (showAdvancedFilters()) {
+				<section>
+					<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Genres, platforms &amp; year</h3>
+					<app-game-filter-panel
+						[allGenres]="allGenres()"
+						[allPlatforms]="allPlatforms()"
+						[(selectedGenres)]="selectedGenres"
+						[(selectedPlatforms)]="selectedPlatforms"
+						[(yearFrom)]="yearFrom"
+						[(yearTo)]="yearTo"
+					/>
+				</section>
+
+				<section>
+					<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Real duration (h)</h3>
+					<div class="grid grid-cols-2 gap-3">
+						<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
+							Min
+							<input type="number" min="0" step="0.5" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+								[value]="minRealDuration() ?? ''"
+								(input)="minRealDuration.set(parseNumber($any($event.target).value))" />
+						</label>
+						<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
+							Max
+							<input type="number" min="0" step="0.5" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+								[value]="maxRealDuration() ?? ''"
+								(input)="maxRealDuration.set(parseNumber($any($event.target).value))" />
+						</label>
+					</div>
+				</section>
+
+				<section>
+					<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Ratio (score/duration)</h3>
+					<div class="grid grid-cols-2 gap-3">
+						<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
+							Min
+							<input type="number" min="0" step="0.01" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+								[value]="minRatio() ?? ''"
+								(input)="minRatio.set(parseNumber($any($event.target).value))" />
+						</label>
+						<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
+							Max
+							<input type="number" min="0" step="0.01" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+								[value]="maxRatio() ?? ''"
+								(input)="maxRatio.set(parseNumber($any($event.target).value))" />
+						</label>
+					</div>
+				</section>
+
+				<section>
+					<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Personal ratio (score/real)</h3>
+					<div class="grid grid-cols-2 gap-3">
+						<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
+							Min
+							<input type="number" min="0" step="0.01" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+								[value]="minPersonalRatio() ?? ''"
+								(input)="minPersonalRatio.set(parseNumber($any($event.target).value))" />
+						</label>
+						<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
+							Max
+							<input type="number" min="0" step="0.01" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+								[value]="maxPersonalRatio() ?? ''"
+								(input)="maxPersonalRatio.set(parseNumber($any($event.target).value))" />
+						</label>
+					</div>
+				</section>
+			}
+
 			<section>
 				<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Sort</h3>
 				<div class="grid grid-cols-2 gap-2">
@@ -462,6 +544,14 @@
 						</div>
 
 						<button
+							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center transition hover:text-warning"
+							[class.!text-warning]="isFavorite(entry.game.id)"
+							(click)="toggleFavorite(entry.game.id, $event)"
+							[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
+						>
+							<span class="material-icons text-lg leading-none">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
+						</button>
+						<button
 							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center transition hover:text-danger"
 							[class.!text-danger]="isInQueue(entry)"
 							(click)="toggleQueue(entry); $event.stopPropagation()"
@@ -623,6 +713,16 @@
 											<span class="line-clamp-2">{{ entry.reviewContent }}</span>
 										</div>
 									}
+								</td>
+								<td class="px-2 py-3 align-middle w-9 text-center">
+									<button
+										class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-warning"
+										[class.!text-warning]="isFavorite(entry.game.id)"
+										(click)="toggleFavorite(entry.game.id, $event)"
+										[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
+									>
+										<span class="material-icons text-base leading-none">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
+									</button>
 								</td>
 								<td class="px-2 py-3 align-middle w-9 text-center">
 									<button

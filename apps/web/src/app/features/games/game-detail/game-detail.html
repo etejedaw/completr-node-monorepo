@@ -456,6 +456,42 @@
 							</div>
 						}
 
+						@if (gameStats() && gameStats()!.total > 0) {
+							<div class="mb-6">
+								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Runs</h3>
+								<div class="flex flex-wrap gap-2">
+									<div class="bg-surface border border-line rounded-card px-3 py-2 flex flex-col gap-0.5 min-w-[90px]">
+										<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">Total</span>
+										<span class="text-base font-bold text-fg">{{ gameStats()!.total }}</span>
+									</div>
+									@if (gameStats()!.playing > 0) {
+										<div class="bg-warning/10 border border-warning/25 rounded-card px-3 py-2 flex flex-col gap-0.5 min-w-[90px]">
+											<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-warning">Playing</span>
+											<span class="text-base font-bold text-fg">{{ gameStats()!.playing }}</span>
+										</div>
+									}
+									@if (gameStats()!.completed > 0) {
+										<div class="bg-success/10 border border-success/25 rounded-card px-3 py-2 flex flex-col gap-0.5 min-w-[90px]">
+											<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-success">Completed</span>
+											<span class="text-base font-bold text-fg">{{ gameStats()!.completed }}</span>
+										</div>
+									}
+									@if (gameStats()!.abandoned > 0) {
+										<div class="bg-danger/10 border border-danger/25 rounded-card px-3 py-2 flex flex-col gap-0.5 min-w-[90px]">
+											<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-danger">Abandoned</span>
+											<span class="text-base font-bold text-fg">{{ gameStats()!.abandoned }}</span>
+										</div>
+									}
+									@if (gameStats()!.not_started > 0) {
+										<div class="bg-input-bg border border-line rounded-card px-3 py-2 flex flex-col gap-0.5 min-w-[90px]">
+											<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">Not started</span>
+											<span class="text-base font-bold text-fg">{{ gameStats()!.not_started }}</span>
+										</div>
+									}
+								</div>
+							</div>
+						}
+
 						@if (friendsActivity().length > 0) {
 							<div class="mb-6">
 								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Played by Friends</h3>
@@ -481,7 +517,7 @@
 							</div>
 						}
 
-						@if (!game()!.description && otherScores().length === 0 && otherTimes().length === 0 && friendsActivity().length === 0) {
+						@if (!game()!.description && otherScores().length === 0 && otherTimes().length === 0 && friendsActivity().length === 0 && (!gameStats() || gameStats()!.total === 0)) {
 							<p class="text-center py-12 text-fg-muted text-sm">No additional info available.</p>
 						}
 					</div>

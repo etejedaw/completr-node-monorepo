@@ -352,6 +352,11 @@
 							(ngModelChange)="updateSplitVariantTitle(i, $event)"
 							maxlength="200"
 						/>
+						@if (v.title.trim()) {
+						<div class="text-xs text-fg-muted mt-1">
+							slug → <span class="text-fg-secondary">{{ previewSlug(v.title) }}</span>
+						</div>
+						}
 					</div>
 					<div>
 						<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Variant label</label>
@@ -513,7 +518,7 @@
 					/>
 					@if (row.title.trim()) {
 					<div class="text-xs text-fg-muted mt-1">
-						slug → <span class="text-fg-secondary">{{ previewCompilationSlug(row.title) }}</span>
+						slug → <span class="text-fg-secondary">{{ previewSlug(row.title) }}</span>
 					</div>
 					}
 				</div>

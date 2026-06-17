@@ -7,6 +7,7 @@ import {
 } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
+import { ToastService } from "../../core/services/toast.service";
 import { Subject, debounceTime, switchMap } from "rxjs";
 import { FeedService, FeedActivity } from "./feed.service";
 import {
@@ -31,6 +32,7 @@ export class FeedPage implements OnInit {
 	private readonly feedService = inject(FeedService);
 	private readonly searchService = inject(GlobalSearchService);
 	private readonly authService = inject(AuthService);
+	private readonly toast = inject(ToastService);
 	private readonly router = inject(Router);
 	private readonly searchSubject = new Subject<string>();
 
@@ -108,9 +110,19 @@ export class FeedPage implements OnInit {
 	}
 
 	deleteActivity(id: string) {
-		this.feedService.deleteActivity(id).subscribe({
-			next: () =>
-				this.activities.update(list => list.filter(a => a.id !== id))
+		const snapshot = this.activities();
+		const index = snapshot.findIndex(a => a.id === id);
+		if (index === -1) return;
+		const activity = snapshot[index];
+		this.activities.set(snapshot.filter(a => a.id !== id));
+		this.toast.pending({
+			message: "Activity removed",
+			onCommit: () => this.feedService.deleteActivity(id).subscribe(),
+			onUndo: () => {
+				const restored = [...this.activities()];
+				restored.splice(index, 0, activity);
+				this.activities.set(restored);
+			}
 		});
 	}
 

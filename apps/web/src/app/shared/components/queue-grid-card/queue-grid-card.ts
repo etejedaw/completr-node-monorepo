@@ -8,6 +8,7 @@ import { RouterLink } from "@angular/router";
 import { UiIconButton } from "../../ui";
 
 export interface QueueGridGame {
+	id?: string;
 	code: string;
 	title: string;
 	backgroundUrl?: string;
@@ -76,9 +77,22 @@ export type QueueStatusChange = "playing";
 				[routerLink]="['/games', entry().game.code]"
 			>{{ entry().game.title }}</a>
 			<div class="flex items-center justify-between gap-1">
-				<span class="text-[0.625rem] text-fg-muted truncate">
-					{{ entry().platformAbbreviation ?? '' }}
-				</span>
+				<div class="flex items-center gap-1.5 min-w-0">
+					<button
+						type="button"
+						class="bg-transparent border-0 cursor-pointer p-0 inline-flex items-center justify-center transition"
+						[class.text-warning]="isFavorite()"
+						[class.text-fg-muted]="!isFavorite()"
+						[class.hover:text-warning]="!isFavorite()"
+						(click)="favoriteToggle.emit()"
+						[title]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+					>
+						<span class="material-icons text-base leading-none">{{ isFavorite() ? 'star' : 'star_border' }}</span>
+					</button>
+					<span class="text-[0.625rem] text-fg-muted truncate">
+						{{ entry().platformAbbreviation ?? '' }}
+					</span>
+				</div>
 				@if (showActions()) {
 					<div class="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 pointer-coarse:opacity-100 transition">
 						<button
@@ -118,9 +132,11 @@ export class QueueGridCard {
 	isFirst = input<boolean>(false);
 	isLast = input<boolean>(false);
 	statusUpdating = input<boolean>(false);
+	isFavorite = input<boolean>(false);
 
 	moveUp = output<void>();
 	moveDown = output<void>();
 	remove = output<void>();
 	statusChange = output<QueueStatusChange>();
+	favoriteToggle = output<void>();
 }

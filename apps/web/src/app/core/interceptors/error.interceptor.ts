@@ -11,6 +11,10 @@ import {
 } from "rxjs";
 import { AuthService } from "../services/auth.service";
 import { ToastService } from "../services/toast.service";
+import {
+	SUPPRESS_VALIDATION_TOAST,
+	validationSummary
+} from "../../shared/utils/validation-errors";
 
 let isRefreshing = false;
 const refreshSubject = new BehaviorSubject<string | null>(null);
@@ -37,6 +41,15 @@ export function errorInterceptor(
 				toast.warning(
 					"Too many requests. Please wait a moment and try again."
 				);
+				return throwError(() => error);
+			}
+
+			if (error.status === 422) {
+				const suppress = req.context.get(SUPPRESS_VALIDATION_TOAST);
+				if (!suppress) {
+					const summary = validationSummary(error);
+					if (summary) toast.warning(summary);
+				}
 				return throwError(() => error);
 			}
 

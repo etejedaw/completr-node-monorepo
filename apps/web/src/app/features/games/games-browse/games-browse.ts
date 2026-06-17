@@ -2,6 +2,7 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	effect,
 	inject,
 	OnInit,
 	OnDestroy,
@@ -24,6 +25,7 @@ import {
 	of
 } from "rxjs";
 import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 
 @Component({
 	selector: "app-games-browse",
@@ -33,7 +35,8 @@ import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
 		AdminGameEditor,
 		UiButton,
 		UiPagination,
-		UiSearchBar
+		UiSearchBar,
+		GameFilterPanel
 	],
 	templateUrl: "./games-browse.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -96,6 +99,15 @@ export class GamesBrowse implements OnInit, OnDestroy {
 	protected readonly inSearchOrFilterMode = computed(
 		() => this.searchQuery().length >= 2 || this.activeFiltersCount() > 0
 	);
+
+	private readonly filterPanelEffect = effect(() => {
+		this.selectedGenres();
+		this.selectedPlatforms();
+		this.yearFrom();
+		this.yearTo();
+		if (this.isInitialLoad()) return;
+		this.onFiltersChanged();
+	});
 
 	protected readonly featuredIndex = signal(0);
 	protected readonly featuredGames = computed(() =>
@@ -254,30 +266,6 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		this.showFilters.update(v => !v);
 	}
 
-	toggleGenre(code: string) {
-		const next = new Set(this.selectedGenres());
-		if (next.has(code)) next.delete(code);
-		else next.add(code);
-		this.selectedGenres.set(next);
-		this.onFiltersChanged();
-	}
-
-	togglePlatform(code: string) {
-		const next = new Set(this.selectedPlatforms());
-		if (next.has(code)) next.delete(code);
-		else next.add(code);
-		this.selectedPlatforms.set(next);
-		this.onFiltersChanged();
-	}
-
-	setYearFrom(value: string) {
-		this.yearFrom.set(value ? Number(value) : null);
-		this.onFiltersChanged();
-	}
-	setYearTo(value: string) {
-		this.yearTo.set(value ? Number(value) : null);
-		this.onFiltersChanged();
-	}
 	setMinScore(value: string) {
 		this.minScore.set(value ? Number(value) : null);
 		this.onFiltersChanged();
