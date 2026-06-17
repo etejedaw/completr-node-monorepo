@@ -30,7 +30,8 @@ export type BacklogStatus =
 	| "not_started"
 	| "playing"
 	| "completed"
-	| "abandoned";
+	| "abandoned"
+	| "endless";
 
 interface BacklogGame {
 	id: string;
