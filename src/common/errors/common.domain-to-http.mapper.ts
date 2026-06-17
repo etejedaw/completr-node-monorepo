@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { DomainError } from "../../common/errors/domain-error";
-import { HttpError } from "../../common/errors/http-error";
+import { HttpError, ValidationIssue } from "../../common/errors/http-error";
 
 export function commonDomainToHttpMapper(
 	error: DomainError,
@@ -15,8 +15,12 @@ export function commonDomainToHttpMapper(
 		context: error.context
 	};
 
-	if (error.code === "COMMON_SCHEMA_INVALID")
-		return new HttpError({ ...baseOptions, status: 422 });
+	if (error.code === "COMMON_SCHEMA_INVALID") {
+		const issues = error.context?.["issues"] as
+			| ValidationIssue[]
+			| undefined;
+		return new HttpError({ ...baseOptions, status: 422, issues });
+	}
 
 	return new HttpError({ ...baseOptions, status: 500 });
 }

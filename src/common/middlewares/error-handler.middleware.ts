@@ -22,6 +22,7 @@ export function errorHandlerMiddleware(
 		detail: httpError.detail,
 		instance: httpError.instance,
 		timestamp: httpError.timestamp,
+		...(httpError.issues && { issues: httpError.issues }),
 		...(environmentConfig.NODE_ENV !== "prd" && {
 			context: httpError.context
 		})
