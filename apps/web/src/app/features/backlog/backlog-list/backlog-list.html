@@ -121,17 +121,15 @@
 			</section>
 
 			<section>
-				<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Platform</h3>
-				<select
-					class="w-full cursor-pointer px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-					[ngModel]="selectedPlatform()"
-					(ngModelChange)="selectedPlatform.set($event)"
-				>
-					<option value="">All platforms</option>
-					@for (p of allPlatforms(); track p.id) {
-						<option [value]="p.id">{{ p.name }}</option>
-					}
-				</select>
+				<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Game</h3>
+				<app-game-filter-panel
+					[allGenres]="allGenres()"
+					[allPlatforms]="allPlatforms()"
+					[(selectedGenres)]="selectedGenres"
+					[(selectedPlatforms)]="selectedPlatforms"
+					[(yearFrom)]="yearFrom"
+					[(yearTo)]="yearTo"
+				/>
 			</section>
 
 			<section>
@@ -191,6 +189,60 @@
 							size="sm"
 						/>
 					</div>
+				</div>
+			</section>
+
+			<section>
+				<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Real duration (h)</h3>
+				<div class="grid grid-cols-2 gap-3">
+					<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
+						Min
+						<input type="number" min="0" step="0.5" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+							[value]="minRealDuration() ?? ''"
+							(input)="minRealDuration.set(parseNumber($any($event.target).value))" />
+					</label>
+					<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
+						Max
+						<input type="number" min="0" step="0.5" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+							[value]="maxRealDuration() ?? ''"
+							(input)="maxRealDuration.set(parseNumber($any($event.target).value))" />
+					</label>
+				</div>
+			</section>
+
+			<section>
+				<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Ratio (score/duration)</h3>
+				<div class="grid grid-cols-2 gap-3">
+					<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
+						Min
+						<input type="number" min="0" step="0.01" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+							[value]="minRatio() ?? ''"
+							(input)="minRatio.set(parseNumber($any($event.target).value))" />
+					</label>
+					<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
+						Max
+						<input type="number" min="0" step="0.01" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+							[value]="maxRatio() ?? ''"
+							(input)="maxRatio.set(parseNumber($any($event.target).value))" />
+					</label>
+				</div>
+			</section>
+
+			<section>
+				<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2">Personal ratio (score/real)</h3>
+				<div class="grid grid-cols-2 gap-3">
+					<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
+						Min
+						<input type="number" min="0" step="0.01" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+							[value]="minPersonalRatio() ?? ''"
+							(input)="minPersonalRatio.set(parseNumber($any($event.target).value))" />
+					</label>
+					<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
+						Max
+						<input type="number" min="0" step="0.01" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+							[value]="maxPersonalRatio() ?? ''"
+							(input)="maxPersonalRatio.set(parseNumber($any($event.target).value))" />
+					</label>
 				</div>
 			</section>
 

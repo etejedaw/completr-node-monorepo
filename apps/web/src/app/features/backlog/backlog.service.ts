@@ -20,6 +20,10 @@ export interface BacklogFilters {
 	status?: string;
 	game_id?: string;
 	platform_id?: string;
+	platforms?: string;
+	genres?: string;
+	release_year_from?: number;
+	release_year_to?: number;
 	sort_by?: string;
 	sort_order?: string;
 	started_from?: string;
@@ -30,8 +34,14 @@ export interface BacklogFilters {
 	max_score?: number;
 	min_duration?: number;
 	max_duration?: number;
+	min_real_duration?: number;
+	max_real_duration?: number;
 	min_rating?: number;
 	max_rating?: number;
+	min_ratio?: number;
+	max_ratio?: number;
+	min_personal_ratio?: number;
+	max_personal_ratio?: number;
 	search?: string;
 	limit?: number;
 	offset?: number;
