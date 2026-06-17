@@ -161,9 +161,10 @@
 
 ### [FB-023] Clasificacion para juegos sin estado natural de "completado"
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Hay varios juegos que no se pueden 'completar' como tal, ej: timberman. Que clasificacion podria darle a esos juegos? Hasta ahora dejarlos como 'completado' o 'abandonado' es lo mas sensato, pero no es lo mejor". Juegos infinitos/arcade/casual (Timberman, Tetris, Vampire Survivors, roguelikes sin ending, juegos competitivos) no tienen un estado de fin natural. Forzar `completed` o `dropped` distorsiona las metricas (completion rate, ratio personal, "completados este mes" de FB-019).
 - **Solucion propuesta:** Evaluar opciones: (1) Nuevo status en backlog: `ongoing` / `endless` / `played` — marca el juego como jugado sin un ending. Excluirlo de metricas de "completados" pero contarlo como activity. (2) Flag en el modelo `Game`: `isEndless` (bool) que el admin marca y que cambia la UX del backlog para ese juego (oculta el boton "Completar", expone solo "Marcar como jugado"). (3) Heuristica automatica via tags de RAWG (endless, arcade, roguelite sin final, etc.) que pre-marca `isEndless` y el admin confirma. Frontend: empty states y wording adaptado segun el tipo de juego. Coordinar con FB-019 (las metricas mensuales deberian respetar este status nuevo) y FB-020 (los ratios por tiempo no aplican igual a juegos endless).
+- **Resolucion:** Opcion (1). Nuevo status `endless` agregado al enum `BACKLOG_STATUSES` con migration (`ALTER TYPE ... ADD VALUE 'endless'`). Activity nueva `backlog_endless` con icono `all_inclusive` y label "is endlessly playing". UX: el modal de cambio de status ahora muestra rating/review para `endless` (no incluye `finishedAt` ni `realDuration` — semanticamente no aplican). La transicion a `endless` saca el juego del Queue (similar a `playing`/`completed`/`abandoned`). Highlights mensuales filtran solo `completed`, asi que `endless` NO contamina "completados este mes" — pero list progress SI incluye `endless` como "experimentado" (junto a `completed` y `abandoned`). Filtros y tabs del backlog (mio y publico) muestran "Endless" como opcion. Pendiente: revisar metricas dashboard (cuando existan) para distinguir `endless` de `completed`.
 
 ### [FB-024] Errores de validacion sin detalle en admin/users (y resto del frontend)
 
