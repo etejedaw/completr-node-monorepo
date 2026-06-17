@@ -213,9 +213,9 @@
 						<span class="material-icons text-base md:mr-1.5 align-middle">insights</span>
 						<span class="hidden md:inline">Highlights</span>
 					</button>
-					<button uiTab value="backlog" class="!whitespace-nowrap" aria-label="Backlog" title="Backlog">
+					<button uiTab value="backlog" class="!whitespace-nowrap" aria-label="Games" title="Games">
 						<span class="material-icons text-base md:mr-1.5 align-middle">list_alt</span>
-						<span class="hidden md:inline">Backlog</span>
+						<span class="hidden md:inline">Games</span>
 					</button>
 				}
 				@if (profile()!.user.isShelfPublic) {
@@ -237,15 +237,15 @@
 					</button>
 				}
 				@if (profile()!.user.isQueuePublic) {
-					<button uiTab value="queue" class="!whitespace-nowrap" aria-label="Queue" title="Queue">
+					<button uiTab value="queue" class="!whitespace-nowrap" aria-label="Up Next" title="Up Next">
 						<span class="material-icons text-base md:mr-1.5 align-middle">playlist_play</span>
-						<span class="hidden md:inline">Queue</span>
+						<span class="hidden md:inline">Up Next</span>
 					</button>
 				}
 				@if (profile()!.user.isWishlistPublic) {
-					<button uiTab value="wishlist" class="!whitespace-nowrap" aria-label="Wishlist" title="Wishlist">
+					<button uiTab value="wishlist" class="!whitespace-nowrap" aria-label="Wanted" title="Wanted">
 						<span class="material-icons text-base md:mr-1.5 align-middle">favorite_border</span>
-						<span class="hidden md:inline">Wishlist</span>
+						<span class="hidden md:inline">Wanted</span>
 					</button>
 				}
 				<button uiTab value="reviews" class="!whitespace-nowrap" aria-label="Reviews" title="Reviews">
@@ -349,7 +349,7 @@
 
 			<div uiTabPanel value="backlog">
 				<div class="flex items-baseline justify-between mb-3">
-					<h2 class="font-display m-0 text-xl font-bold text-fg">Recent Backlog</h2>
+					<h2 class="font-display m-0 text-xl font-bold text-fg">Recent games</h2>
 					<a
 						class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 						[routerLink]="['/user', username(), 'backlog']"
@@ -394,7 +394,7 @@
 			@if (profile()!.user.isShelfPublic) {
 			<div uiTabPanel value="shelf">
 				<div class="flex items-baseline justify-between mb-3">
-					<h2 class="font-display m-0 text-xl font-bold text-fg">Game Shelf</h2>
+					<h2 class="font-display m-0 text-xl font-bold text-fg">Shelf</h2>
 					<a
 						class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 						[routerLink]="['/user', username(), 'game-shelf']"
@@ -552,7 +552,7 @@
 			@if (profile()!.user.isQueuePublic) {
 				<div uiTabPanel value="queue">
 					<div class="flex items-baseline justify-between mb-3">
-						<h2 class="font-display m-0 text-xl font-bold text-fg">Queue</h2>
+						<h2 class="font-display m-0 text-xl font-bold text-fg">Up Next</h2>
 						<a
 							class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 							[routerLink]="['/user', username(), 'queue']"
@@ -593,7 +593,7 @@
 			@if (profile()!.user.isWishlistPublic) {
 				<div uiTabPanel value="wishlist">
 					<div class="flex items-baseline justify-between mb-3">
-						<h2 class="font-display m-0 text-xl font-bold text-fg">Wishlist</h2>
+						<h2 class="font-display m-0 text-xl font-bold text-fg">Wanted</h2>
 						<a
 							class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all"
 							[routerLink]="['/user', username(), 'wishlist']"

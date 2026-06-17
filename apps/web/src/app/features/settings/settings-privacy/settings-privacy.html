@@ -68,8 +68,8 @@
 						<h3 class="text-xs font-bold uppercase tracking-wider text-fg-muted m-0">Library</h3>
 						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
 							<div>
-								<span class="block text-sm font-medium text-fg">Backlog</span>
-								<span class="block text-xs text-fg-muted">Show your backlog on your public profile.</span>
+								<span class="block text-sm font-medium text-fg">My Games</span>
+								<span class="block text-xs text-fg-muted">Show your full game history on your public profile.</span>
 							</div>
 							<ui-switch
 								[checked]="isBacklogPublic()"
@@ -79,8 +79,8 @@
 						</label>
 						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
 							<div>
-								<span class="block text-sm font-medium text-fg">Game shelf</span>
-								<span class="block text-xs text-fg-muted">Show your game shelf on your public profile.</span>
+								<span class="block text-sm font-medium text-fg">My Shelf</span>
+								<span class="block text-xs text-fg-muted">Show the games you own on your public profile.</span>
 							</div>
 							<ui-switch
 								[checked]="isShelfPublic()"
@@ -105,8 +105,8 @@
 						</label>
 						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
 							<div>
-								<span class="block text-sm font-medium text-fg">Queue</span>
-								<span class="block text-xs text-fg-muted">Show your queue on your public profile.</span>
+								<span class="block text-sm font-medium text-fg">Up Next</span>
+								<span class="block text-xs text-fg-muted">Show your priority queue on your public profile.</span>
 							</div>
 							<ui-switch
 								[checked]="isQueuePublic()"
@@ -116,8 +116,8 @@
 						</label>
 						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
 							<div>
-								<span class="block text-sm font-medium text-fg">Wishlist</span>
-								<span class="block text-xs text-fg-muted">Show your wishlist on your public profile.</span>
+								<span class="block text-sm font-medium text-fg">Wanted</span>
+								<span class="block text-xs text-fg-muted">Show the games you'd like to acquire on your public profile.</span>
 							</div>
 							<ui-switch
 								[checked]="isWishlistPublic()"
