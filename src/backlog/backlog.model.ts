@@ -7,7 +7,8 @@ export const BACKLOG_STATUSES = [
 	"not_started",
 	"playing",
 	"completed",
-	"abandoned"
+	"abandoned",
+	"endless"
 ] as const;
 
 export type BacklogStatus = (typeof BACKLOG_STATUSES)[number];
