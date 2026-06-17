@@ -64,7 +64,7 @@ interface ReleaseEntry {
 
 			<p class="text-center text-xs text-fg-muted mt-8 mb-0">
 				Found a bug or have a suggestion?
-				<a href="mailto:hi@completr.app" class="text-brand no-underline hover:underline">Tell us</a>.
+				<a href="mailto:completr@etejeda.dev" class="text-brand no-underline hover:underline">Tell us</a>.
 			</p>
 		</div>
 	`,

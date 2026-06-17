@@ -49,7 +49,7 @@ interface InfoCard {
 					<div class="text-sm font-semibold text-fg">Built solo, one bug at a time</div>
 					<div class="text-xs text-fg-muted leading-snug mt-0.5">
 						Feedback, bug reports and feature ideas welcome —
-						<a href="mailto:hi@completr.app" class="text-brand no-underline hover:underline">hi&#64;completr.app</a>.
+						<a href="mailto:completr@etejeda.dev" class="text-brand no-underline hover:underline">completr&#64;etejeda.dev</a>.
 					</div>
 				</div>
 			</div>
@@ -64,7 +64,7 @@ export class AboutPage {
 			icon: "person",
 			tint: "brand",
 			title: "Crafted by",
-			body: '<a href="https://etejeda.dev" target="_blank" rel="noopener" class="text-brand no-underline hover:underline">Esteban Tejeda</a>'
+			body: '<a href="https://www.etejeda.dev" target="_blank" rel="noopener" class="text-brand no-underline hover:underline">Esteban Tejeda</a>'
 		},
 		{
 			icon: "code",
@@ -76,7 +76,7 @@ export class AboutPage {
 			icon: "storage",
 			tint: "warning",
 			title: "Data sources",
-			body: '<a href="https://rawg.io" target="_blank" rel="noopener" class="text-brand no-underline hover:underline">RAWG</a> · <a href="https://howlongtobeat.com" target="_blank" rel="noopener" class="text-brand no-underline hover:underline">HowLongToBeat</a> · <a href="https://www.metacritic.com" target="_blank" rel="noopener" class="text-brand no-underline hover:underline">Metacritic</a> · <a href="https://opencritic.com" target="_blank" rel="noopener" class="text-brand no-underline hover:underline">OpenCritic</a>'
+			body: '<a href="https://rawg.io" target="_blank" rel="noopener" class="text-brand no-underline hover:underline">RAWG</a> · <a href="https://howlongtobeat.com" target="_blank" rel="noopener" class="text-brand no-underline hover:underline">HowLongToBeat</a> · <a href="https://www.metacritic.com" target="_blank" rel="noopener" class="text-brand no-underline hover:underline">Metacritic</a>'
 		},
 		{
 			icon: "lock_open",
