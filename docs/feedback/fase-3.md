@@ -105,10 +105,11 @@
 
 ### [FB-015] Mostrar cantidad de runs en la ficha del juego
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Cuando vea un game, que me muestre en una lista la cantidad de runs que se han realizado".
 - **Contexto:** Un "run" es una pasada/playthrough de un usuario sobre un juego (entrada en backlog con su status, score, horas, etc.). Hoy en la ficha del juego (`/games/:code`) no hay visibilidad de cuanta gente lo esta jugando o lo ha terminado. Es una metrica social util (signal de popularidad) y tambien un proxy del community score.
 - **Solucion propuesta:** Endpoint o serializacion del game con counts agregados: total runs, runs por status (playing, completed, dropped, on-hold, not_started). Frontend: seccion en la ficha del juego con esos counts (ej. "1.234 personas lo han jugado · 567 lo completaron · 89 lo dejaron"). Posible: drill-down clickable que abre la lista de usuarios con esa run (respetando privacidad de cada perfil — ver FB-003). Cachear el agregado con TTL corto para no pegarle a la DB en cada visita.
+- **Resolucion:** Endpoint dedicado `GET /games/:id/stats` que devuelve `stats.runs` con counts por status (`not_started`, `playing`, `completed`, `abandoned`, `total`). Implementacion server: `backlogService.countBacklogByStatusForGame(gameId)` con `GROUP BY status`. La separacion en endpoint propio permite a futuro sumar metricas mas caras (avg score, distribucion) sin engordar la respuesta principal del game. Frontend: nueva seccion "Runs" en la ficha (panel "Info"), badges coloreados por status. Cache y drill-down clickable (FB-021/FB-022) quedan diferidos hasta ver demanda.
 
 ### [FB-016] Bug al hacer un split en los juegos
 
