@@ -25,7 +25,11 @@ docs: |-
     |---------------|--------|----------|-----------------------------------------------------------------------------|
     | status        | string | No       | Filter by status. Single or comma-separated: `completed,abandoned`          |
     | game_id       | uuid   | No       | Filter by specific game                                                     |
-    | platform_id   | uuid   | No       | Filter by specific platform                                                 |
+    | platform_id   | uuid   | No       | Filter by specific platform (legacy single id)                              |
+    | platforms     | string | No       | Filter by platform codes, comma-separated (e.g. `ps5,switch`)               |
+    | genres        | string | No       | Filter by genre codes, comma-separated (e.g. `action,rpg`)                  |
+    | release_year_from | number | No   | Filter by game release year >= value                                        |
+    | release_year_to   | number | No   | Filter by game release year <= value                                        |
     | started_from  | date   | No       | Filter by startedAt >= date (ISO format: `2025-01-01`)                      |
     | started_to    | date   | No       | Filter by startedAt <= date (ISO format: `2025-06-30`)                      |
     | finished_from | date   | No       | Filter by finishedAt >= date (ISO format: `2025-01-01`)                     |
@@ -39,7 +43,11 @@ docs: |-
     | max_real_duration | number | No       | Filter by realDuration <= value (hours)                                     |
     | min_rating    | number | No       | Filter by userRating >= value                                               |
     | max_rating    | number | No       | Filter by userRating <= value                                               |
-    | sort_by       | string | No       | Sort field: `status`, `score`, `duration`, `startedAt`, `finishedAt`, `realDuration`, `userRating`, `createdAt` (default: `createdAt`) |
+    | min_ratio     | number | No       | Filter by community ratio (score / duration) >= value                       |
+    | max_ratio     | number | No       | Filter by community ratio (score / duration) <= value                       |
+    | min_personal_ratio | number | No  | Filter by personal ratio (score / realDuration) >= value                    |
+    | max_personal_ratio | number | No  | Filter by personal ratio (score / realDuration) <= value                    |
+    | sort_by       | string | No       | Sort field: `title`, `status`, `score`, `duration`, `startedAt`, `finishedAt`, `realDuration`, `userRating`, `createdAt`, `ratio`, `personalRatio` (default: `createdAt`) |
     | sort_order    | string | No       | Sort direction: `asc` or `desc` (default: `desc`)                          |
 
     **Valid statuses:** `not_started`, `playing`, `completed`, `abandoned`
