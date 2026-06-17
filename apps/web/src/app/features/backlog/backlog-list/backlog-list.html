@@ -462,6 +462,14 @@
 						</div>
 
 						<button
+							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center transition hover:text-warning"
+							[class.!text-warning]="isFavorite(entry.game.id)"
+							(click)="toggleFavorite(entry.game.id, $event)"
+							[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
+						>
+							<span class="material-icons text-lg leading-none">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
+						</button>
+						<button
 							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center transition hover:text-danger"
 							[class.!text-danger]="isInQueue(entry)"
 							(click)="toggleQueue(entry); $event.stopPropagation()"
@@ -623,6 +631,16 @@
 											<span class="line-clamp-2">{{ entry.reviewContent }}</span>
 										</div>
 									}
+								</td>
+								<td class="px-2 py-3 align-middle w-9 text-center">
+									<button
+										class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-warning"
+										[class.!text-warning]="isFavorite(entry.game.id)"
+										(click)="toggleFavorite(entry.game.id, $event)"
+										[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
+									>
+										<span class="material-icons text-base leading-none">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
+									</button>
 								</td>
 								<td class="px-2 py-3 align-middle w-9 text-center">
 									<button

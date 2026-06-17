@@ -9,6 +9,7 @@ import {
 import { QueueEntry } from "../../../core/models";
 import { QueueService } from "../queue.service";
 import { BacklogService } from "../../backlog/backlog.service";
+import { FavoritesService } from "../../favorites/favorites.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { QueueAddModal } from "../queue-add-modal/queue-add-modal";
 import { UiButton, UiEmptyState, UiPagination, UiSearchBar, UiSkeleton } from "../../../shared/ui";
@@ -27,6 +28,7 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 export class QueueView implements OnInit {
 	private readonly queueService = inject(QueueService);
 	private readonly backlogService = inject(BacklogService);
+	private readonly favoritesService = inject(FavoritesService);
 	private readonly toast = inject(ToastService);
 
 	protected readonly entries = signal<QueueEntry[]>([]);
@@ -108,7 +110,16 @@ export class QueueView implements OnInit {
 				this.offset.set(0);
 				this.loadQueue();
 			});
+		this.favoritesService.ensureIdsLoaded().subscribe();
 		this.loadQueue();
+	}
+
+	isFavorite(gameId: string): boolean {
+		return this.favoritesService.isFavorite(gameId);
+	}
+
+	toggleFavorite(gameId: string) {
+		this.favoritesService.toggle(gameId).subscribe();
 	}
 
 	onSearch(query: string) {

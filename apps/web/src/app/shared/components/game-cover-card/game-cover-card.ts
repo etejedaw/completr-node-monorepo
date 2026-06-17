@@ -76,6 +76,18 @@ export interface GameCoverCardGame {
 					title="Remove"
 				>&times;</button>
 			}
+			@if (showFavorite()) {
+				<button
+					type="button"
+					class="absolute bottom-2 right-2 flex items-center justify-center w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm border-0 cursor-pointer transition hover:bg-black/80"
+					[class.text-warning]="isFavorite()"
+					[class.text-white]="!isFavorite()"
+					(click)="$event.preventDefault(); $event.stopPropagation(); favoriteToggle.emit()"
+					[title]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+				>
+					<span class="material-icons text-[1.125rem]">{{ isFavorite() ? 'star' : 'star_border' }}</span>
+				</button>
+			}
 		</ng-template>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -89,6 +101,9 @@ export class GameCoverCard {
 	acquiredAt = input<string | Date | null | undefined>();
 	clickable = input<boolean>(false);
 	showRemove = input<boolean>(false);
+	showFavorite = input<boolean>(false);
+	isFavorite = input<boolean>(false);
 	cardClick = output<void>();
 	remove = output<void>();
+	favoriteToggle = output<void>();
 }

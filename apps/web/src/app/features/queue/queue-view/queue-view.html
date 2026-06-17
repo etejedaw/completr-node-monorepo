@@ -109,10 +109,12 @@
 				[isFirst]="sortBy() !== 'manual' || i === 0"
 				[isLast]="sortBy() !== 'manual' || i === filteredEntries().length - 1"
 				[statusUpdating]="isUpdatingStatus(entry)"
+				[isFavorite]="isFavorite(entry.backlog.game.id)"
 				(moveUp)="moveUp(i)"
 				(moveDown)="moveDown(i)"
 				(remove)="remove(entry)"
 				(statusChange)="requestStatusChange(entry, $event)"
+				(favoriteToggle)="toggleFavorite(entry.backlog.game.id)"
 			/>
 		}
 	</div>

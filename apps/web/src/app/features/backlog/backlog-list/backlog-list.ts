@@ -15,6 +15,7 @@ import { BacklogEntry, BacklogStatus, Platform } from "../../../core/models";
 import { BacklogService, BacklogFilters } from "../backlog.service";
 import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
 import { QueueService } from "../../queue/queue.service";
+import { FavoritesService } from "../../favorites/favorites.service";
 import { GamesService } from "../../games/games.service";
 import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
@@ -36,6 +37,7 @@ export class BacklogList implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly savedFiltersService = inject(SavedFiltersService);
 	private readonly queueService = inject(QueueService);
+	private readonly favoritesService = inject(FavoritesService);
 	private readonly gamesService = inject(GamesService);
 	private readonly reviewsService = inject(ReviewsService);
 
@@ -130,6 +132,7 @@ export class BacklogList implements OnInit {
 	ngOnInit() {
 		this.setupSearch();
 		this.loadQueueIds();
+		this.favoritesService.ensureIdsLoaded().subscribe();
 		this.gamesService
 			.getPlatforms()
 			.subscribe(p => this.allPlatforms.set(p));
@@ -606,6 +609,15 @@ export class BacklogList implements OnInit {
 		const m = String(now.getMonth() + 1).padStart(2, "0");
 		const d = String(now.getDate()).padStart(2, "0");
 		return `${y}-${m}-${d}`;
+	}
+
+	isFavorite(gameId: string): boolean {
+		return this.favoritesService.isFavorite(gameId);
+	}
+
+	toggleFavorite(gameId: string, event: Event) {
+		event.stopPropagation();
+		this.favoritesService.toggle(gameId).subscribe();
 	}
 
 	toggleQueue(entry: BacklogEntry) {

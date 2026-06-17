@@ -8,6 +8,7 @@ import {
 import { RouterLink } from "@angular/router";
 import { WishlistEntry } from "../../../core/models";
 import { WishlistService } from "../wishlist.service";
+import { FavoritesService } from "../../favorites/favorites.service";
 import { WishlistAddModal } from "../wishlist-add-modal/wishlist-add-modal";
 import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
@@ -20,6 +21,7 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 })
 export class WishlistView implements OnInit {
 	private readonly wishlistService = inject(WishlistService);
+	private readonly favoritesService = inject(FavoritesService);
 
 	protected readonly entries = signal<WishlistEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -43,7 +45,18 @@ export class WishlistView implements OnInit {
 				this.offset.set(0);
 				this.loadWishlist();
 			});
+		this.favoritesService.ensureIdsLoaded().subscribe();
 		this.loadWishlist();
+	}
+
+	isFavorite(gameId: string): boolean {
+		return this.favoritesService.isFavorite(gameId);
+	}
+
+	toggleFavorite(gameId: string, event: Event) {
+		event.preventDefault();
+		event.stopPropagation();
+		this.favoritesService.toggle(gameId).subscribe();
 	}
 
 	onSearch(query: string) {
