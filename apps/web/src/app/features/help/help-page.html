@@ -1,10 +1,14 @@
-<div class="max-w-3xl mx-auto">
-	<div class="flex items-center justify-between mb-4">
-		<div>
-			<h1 class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight">Quick Tutorial</h1>
-			<p class="text-fg-muted mt-1 text-xs">Step {{ step() + 1 }} of {{ total }}</p>
+<div class="max-w-6xl mx-auto">
+	<div class="mb-6 flex items-start gap-4">
+		<span class="flex items-center justify-center w-12 h-12 rounded-2xl text-white shrink-0"
+			style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 10px 24px -8px var(--color-brand-glow);">
+			<span class="material-icons text-[1.5rem]">menu_book</span>
+		</span>
+		<div class="flex-1 min-w-0">
+			<h1 class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight">Help & Guide</h1>
+			<p class="text-fg-muted mt-1 text-sm leading-snug">Learn how Completr works, one section at a time.</p>
 		</div>
-		<a routerLink="/feed" class="text-xs text-fg-muted no-underline hover:text-fg">Skip →</a>
+		<a routerLink="/feed" class="text-xs text-fg-muted no-underline hover:text-fg whitespace-nowrap shrink-0 mt-2">Close ×</a>
 	</div>
 
 	<div class="mb-6 flex items-center gap-3 p-3 rounded-card bg-brand-subtle/50 border border-brand/20">
@@ -25,9 +29,44 @@
 		</button>
 	</div>
 
-	<div class="w-full h-1 bg-input-bg rounded-full overflow-hidden mb-6">
-		<div class="h-full bg-brand transition-all duration-300 ease-out" [style.width.%]="progress()"></div>
-	</div>
+	<div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+
+		<aside class="lg:sticky lg:top-6 lg:self-start">
+			<nav class="bg-sidebar border border-line rounded-card p-2 flex flex-col gap-0.5">
+				@for (s of steps; track s.key; let i = $index) {
+					<button
+						type="button"
+						class="flex items-start gap-3 text-left px-3 py-2.5 rounded-md bg-transparent border-0 cursor-pointer transition hover:bg-surface/60"
+						[class.!bg-brand-subtle]="i === step()"
+						[class.!text-brand]="i === step()"
+						(click)="goTo(i)"
+					>
+						<span
+							class="flex items-center justify-center w-7 h-7 rounded-md shrink-0 transition"
+							[class.bg-brand]="i === step()"
+							[class.text-white]="i === step()"
+							[class.bg-input-bg]="i !== step()"
+							[class.text-fg-muted]="i !== step()"
+						>
+							<span class="material-icons text-base">{{ s.icon }}</span>
+						</span>
+						<div class="min-w-0">
+							<div class="text-[0.8125rem] font-semibold leading-tight"
+								[class.text-brand]="i === step()"
+								[class.text-fg]="i !== step()"
+							>{{ s.label }}</div>
+							<div class="text-[0.6875rem] text-fg-muted leading-snug mt-0.5">{{ s.hint }}</div>
+						</div>
+					</button>
+				}
+			</nav>
+
+			<div class="hidden lg:block mt-4 px-3 py-2.5 rounded-md text-[0.6875rem] text-fg-muted text-center bg-sidebar border border-line">
+				Section {{ step() + 1 }} of {{ total }}
+			</div>
+		</aside>
+
+		<div class="min-w-0">
 
 	<div class="bg-sidebar border border-line rounded-card p-6 md:p-8 min-h-[420px]">
 
@@ -402,18 +441,7 @@
 			Previous
 		</button>
 
-		<div class="flex items-center gap-1.5">
-			@for (s of steps; track s; let i = $index) {
-				<button
-					type="button"
-					class="w-2 h-2 rounded-full bg-transparent border-0 cursor-pointer transition"
-					[class.!bg-brand]="i === step()"
-					[class.!bg-line]="i !== step()"
-					[attr.aria-label]="'Go to step ' + (i + 1)"
-					(click)="goTo(i)"
-				></button>
-			}
-		</div>
+		<span class="text-xs text-fg-muted lg:hidden">Section {{ step() + 1 }} of {{ total }}</span>
 
 		@if (canNext()) {
 			<button
@@ -441,5 +469,8 @@
 			<span class="material-icons text-sm">info_outline</span>
 			About Completr
 		</a>
+	</div>
+
+		</div>
 	</div>
 </div>
