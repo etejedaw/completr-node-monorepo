@@ -33,32 +33,11 @@
 						routerLink="/feed"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
+						title="Activity from people you follow"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">dynamic_feed</span>
 						Feed
-					</a>
-				</li>
-				<li>
-					<a
-						routerLink="/games"
-						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
-						ariaCurrentWhenActive="page"
-						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
-					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">sports_esports</span>
-						Games
-					</a>
-				</li>
-				<li>
-					<a
-						routerLink="/users"
-						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
-						ariaCurrentWhenActive="page"
-						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
-					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">groups</span>
-						Users
 					</a>
 				</li>
 			</ul>
@@ -67,28 +46,18 @@
 		<div class="mx-3 my-1 h-px bg-line"></div>
 
 		<div class="px-3 py-1">
-			<span class="block px-3 mb-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted/70">My collection</span>
+			<span class="block px-3 mb-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted/70">Library</span>
 			<ul class="list-none">
 				<li>
 					<a
 						routerLink="/backlog"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
+						title="Every game you've played, are playing, or want to play"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">list_alt</span>
-						Backlog
-					</a>
-				</li>
-				<li>
-					<a
-						routerLink="/game-shelf"
-						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
-						ariaCurrentWhenActive="page"
-						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
-					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">shelves</span>
-						Game Shelf
+						My Games
 					</a>
 				</li>
 				<li>
@@ -96,10 +65,23 @@
 						routerLink="/queue"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
+						title="Your priority queue of games to play next"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">playlist_play</span>
-						Queue
+						Up Next
+					</a>
+				</li>
+				<li>
+					<a
+						routerLink="/game-shelf"
+						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+						ariaCurrentWhenActive="page"
+						title="Games you own, physical or digital"
+						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
+					>
+						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">shelves</span>
+						My Shelf
 					</a>
 				</li>
 				<li>
@@ -107,25 +89,19 @@
 						routerLink="/wishlist"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
+						title="Games you want to acquire someday"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">favorite_border</span>
-						Wishlist
+						Want to Get
 					</a>
 				</li>
-			</ul>
-		</div>
-
-		<div class="mx-3 my-1 h-px bg-line"></div>
-
-		<div class="px-3 py-1">
-			<span class="block px-3 mb-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted/70">Personal lists</span>
-			<ul class="list-none">
 				<li>
 					<a
 						routerLink="/favorites"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
+						title="Your all-time favorite games"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">star</span>
@@ -137,10 +113,31 @@
 						routerLink="/saved-views"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
+						title="Saved combinations of backlog filters"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">bookmark</span>
 						Saved Views
+					</a>
+				</li>
+			</ul>
+		</div>
+
+		<div class="mx-3 my-1 h-px bg-line"></div>
+
+		<div class="px-3 py-1">
+			<span class="block px-3 mb-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted/70">Discover</span>
+			<ul class="list-none">
+				<li>
+					<a
+						routerLink="/games"
+						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+						ariaCurrentWhenActive="page"
+						title="Browse the full game catalog"
+						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
+					>
+						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">sports_esports</span>
+						Browse
 					</a>
 				</li>
 				<li>
@@ -148,10 +145,23 @@
 						routerLink="/lists"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
+						title="Curated game lists, yours and from others"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
 						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">format_list_bulleted</span>
 						Lists
+					</a>
+				</li>
+				<li>
+					<a
+						routerLink="/users"
+						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
+						ariaCurrentWhenActive="page"
+						title="Find other players on Completr"
+						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
+					>
+						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">groups</span>
+						Users
 					</a>
 				</li>
 			</ul>
@@ -277,15 +287,26 @@
 					</a>
 				</div>
 				<div class="mx-2 mt-2 h-px bg-line"></div>
-				<a
-					routerLink="/help"
-					routerLinkActive="!text-brand"
-					class="mt-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-fg-muted no-underline transition hover:text-brand"
-					title="Help & glossary"
-				>
-					<span class="material-icons text-base">help_outline</span>
-					<span class="text-[0.6875rem] uppercase tracking-wider">Help</span>
-				</a>
+				<div class="mt-1 flex items-center justify-center gap-1">
+					<a
+						routerLink="/help"
+						routerLinkActive="!text-brand"
+						class="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-fg-muted no-underline transition hover:text-brand"
+						title="Help & glossary"
+					>
+						<span class="material-icons text-base">help_outline</span>
+						<span class="text-[0.6875rem] uppercase tracking-wider">Help</span>
+					</a>
+					<button
+						type="button"
+						class="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-brand"
+						(click)="openOnboarding()"
+						title="Take the tour again"
+					>
+						<span class="material-icons text-base">tour</span>
+						<span class="text-[0.6875rem] uppercase tracking-wider">Tour</span>
+					</button>
+				</div>
 			</div>
 
 		</div>
@@ -301,3 +322,10 @@
 </div>
 
 <app-toast-container />
+
+@if (showOnboarding()) {
+	<app-onboarding-tour
+		(done)="dismissOnboarding(true)"
+		(skip)="dismissOnboarding(true)"
+	/>
+}

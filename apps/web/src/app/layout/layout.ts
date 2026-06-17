@@ -12,6 +12,9 @@ import { filter } from "rxjs";
 import { UiIconButton } from "../shared/ui";
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
 import { AttributionFooter } from "../shared/components/attribution-footer/attribution-footer";
+import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
+
+const ONBOARDING_STORAGE_KEY = "completr.onboarding.done";
 
 @Component({
 	selector: "app-layout",
@@ -21,7 +24,8 @@ import { AttributionFooter } from "../shared/components/attribution-footer/attri
 		RouterLinkActive,
 		UiIconButton,
 		ToastContainer,
-		AttributionFooter
+		AttributionFooter,
+		OnboardingTour
 	],
 	templateUrl: "./layout.html"
 })
@@ -38,6 +42,7 @@ export class Layout implements OnInit {
 		return role === "moderator" || role === "admin";
 	});
 	protected readonly sidebarOpen = signal(false);
+	protected readonly showOnboarding = signal(false);
 
 	protected readonly roleBadge = computed(() => {
 		const map: Record<string, string> = {
@@ -59,7 +64,12 @@ export class Layout implements OnInit {
 
 	ngOnInit() {
 		if (!this.user()) {
-			this.auth.loadUser().subscribe();
+			this.auth.loadUser().subscribe({
+				next: () => this.maybeStartOnboarding(),
+				error: () => {}
+			});
+		} else {
+			this.maybeStartOnboarding();
 		}
 
 		this.router.events
@@ -70,6 +80,24 @@ export class Layout implements OnInit {
 			});
 
 		this.showAttribution.set(this.computeShowAttribution());
+	}
+
+	private maybeStartOnboarding() {
+		if (!this.user()) return;
+		if (typeof localStorage === "undefined") return;
+		if (localStorage.getItem(ONBOARDING_STORAGE_KEY) === "1") return;
+		this.showOnboarding.set(true);
+	}
+
+	openOnboarding() {
+		this.showOnboarding.set(true);
+	}
+
+	dismissOnboarding(persist: boolean) {
+		this.showOnboarding.set(false);
+		if (persist && typeof localStorage !== "undefined") {
+			localStorage.setItem(ONBOARDING_STORAGE_KEY, "1");
+		}
 	}
 
 	private computeShowAttribution(): boolean {
