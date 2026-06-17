@@ -336,4 +336,22 @@ export class GamesService {
 			}>(`${environment.apiUrl}/games/${gameId}/friends-activity`)
 			.pipe(map(res => res.data.friends));
 	}
+
+	getGameStats(gameId: string) {
+		return this.http
+			.get<{
+				data: {
+					stats: {
+						runs: {
+							not_started: number;
+							playing: number;
+							completed: number;
+							abandoned: number;
+							total: number;
+						};
+					};
+				};
+			}>(`${environment.apiUrl}/games/${gameId}/stats`)
+			.pipe(map(res => res.data.stats));
+	}
 }
