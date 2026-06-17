@@ -700,6 +700,7 @@ export async function splitGame(
 	const codes = new Set<string>();
 	for (const v of variants) {
 		const code = titleToSlug(v.title);
+		if (!code) throw gamesServiceError.splitInvalidError();
 		if (codes.has(code)) throw gamesServiceError.splitInvalidError();
 		codes.add(code);
 	}
