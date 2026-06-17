@@ -9,9 +9,10 @@
 
 ### [FB-001] Mas avatares predefinidos (sin uploads custom)
 
-- **Estado:** pendiente
+- **Estado:** diferido
 - **Descripcion:** "que locura los avatares ajhsdgjhgsd igual echo de menos poner mi foto". Los usuarios echan de menos poder subir su propia foto de perfil, pero los uploads custom abren toda una superficie de moderacion y storage que no queremos asumir todavia.
 - **Solucion propuesta:** No se permitiran uploads de imagenes custom. En su lugar: (1) ampliar el catalogo de avatares predefinidos, (2) crear sets especiales para eventos (Halloween, navidad, lanzamientos, etc.), (3) sets exclusivos para usuarios premium.
+- **Decision:** Diferido hasta la fase de premium. La discusion de sets temáticos y exclusivos premium se reabre cuando se defina el plan de monetizacion.
 
 ### [FB-002] Follow requests para perfiles privados
 
