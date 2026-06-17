@@ -134,9 +134,10 @@
 
 ### [FB-019] Secciones de "ultimos completados" / "completados este mes" en el perfil
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "En la pestana de un usuario, ver algo asi como 'ultimos completados' (que sea por la fecha de finished) o 'completados este mes', algo asi". Hoy el perfil de usuario muestra el backlog general pero no destaca actividad reciente de completados, que es uno de los hitos mas interesantes socialmente.
 - **Solucion propuesta:** Secciones nuevas en el perfil publico: "Ultimos completados" (ordenado por `finishedAt` desc, top N), "Completados este mes" (filtro por mes calendario actual), posiblemente "Completados este ano". Backend: query sobre backlog con status `completed` ordenado/filtrado por `finishedAt`. Respetar la visibilidad del backlog (ver FB-003). Frontend: cards con poster del juego, fecha de finalizacion y score si existe. Posible: extender a otros highlights (mas jugado del mes, mejor puntuado del mes).
+- **Resolucion:** Endpoint `GET /users/:username/highlights` que devuelve `recent` (top 6 completados por `finishedAt` desc) y `month` con `completedCount`, `mostPlayed` y `highestRated` del mes calendario UTC actual. Respeta la privacidad existente (`isPublic`, `isBacklogPublic`, y `Backlog.isPublic` cuando el viewer no es el dueno). Nueva tab "Highlights" en el perfil publico, visible solo si `isBacklogPublic`. Carga lazy en click de tab. Dashboard extendido (FB-019 opcion 3): muestra recientes en grid + tarjetas de "Most played" y "Highest rated" del mes.
 
 ### [FB-020] Filtros y orden por ratio, tiempo promedio y tiempo de completado en backlog
 
