@@ -69,35 +69,49 @@ interface Step {
 					}
 				</div>
 
-				<div class="px-6 py-4 border-t border-line flex items-center justify-end gap-2">
-					@if (index() > 0) {
+				<div class="px-6 py-4 border-t border-line flex items-center justify-between gap-2">
+					@if (index() === steps.length - 1) {
 						<button
 							type="button"
-							class="bg-transparent border-0 text-fg-muted text-sm font-semibold px-3 py-2 cursor-pointer transition hover:text-fg"
-							(click)="prev()"
+							class="bg-transparent border-0 text-fg-muted text-xs font-medium cursor-pointer transition hover:text-brand inline-flex items-center gap-1"
+							(click)="seeFullGuide.emit()"
 						>
-							Back
-						</button>
-					}
-					@if (index() < steps.length - 1) {
-						<button
-							type="button"
-							class="text-white border-0 rounded-lg text-sm font-semibold px-5 py-2 cursor-pointer transition hover:opacity-90"
-							style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
-							(click)="next()"
-						>
-							Next
+							<span class="material-icons text-sm">menu_book</span>
+							Read full guide
 						</button>
 					} @else {
-						<button
-							type="button"
-							class="text-white border-0 rounded-lg text-sm font-semibold px-5 py-2 cursor-pointer transition hover:opacity-90"
-							style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
-							(click)="done.emit()"
-						>
-							Let's go
-						</button>
+						<span></span>
 					}
+					<div class="flex items-center gap-2">
+						@if (index() > 0) {
+							<button
+								type="button"
+								class="bg-transparent border-0 text-fg-muted text-sm font-semibold px-3 py-2 cursor-pointer transition hover:text-fg"
+								(click)="prev()"
+							>
+								Back
+							</button>
+						}
+						@if (index() < steps.length - 1) {
+							<button
+								type="button"
+								class="text-white border-0 rounded-lg text-sm font-semibold px-5 py-2 cursor-pointer transition hover:opacity-90"
+								style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+								(click)="next()"
+							>
+								Next
+							</button>
+						} @else {
+							<button
+								type="button"
+								class="text-white border-0 rounded-lg text-sm font-semibold px-5 py-2 cursor-pointer transition hover:opacity-90"
+								style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+								(click)="done.emit()"
+							>
+								Let's go
+							</button>
+						}
+					</div>
 				</div>
 			</div>
 		</div>
@@ -158,6 +172,7 @@ export class OnboardingTour {
 
 	done = output<void>();
 	skip = output<void>();
+	seeFullGuide = output<void>();
 
 	next() {
 		this.index.update(i => Math.min(i + 1, this.steps.length - 1));

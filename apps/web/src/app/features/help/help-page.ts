@@ -2,9 +2,11 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	inject,
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { OnboardingService } from "../../core/services/onboarding.service";
 
 @Component({
 	selector: "app-help-page",
@@ -14,6 +16,12 @@ import { RouterLink } from "@angular/router";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HelpPage {
+	protected readonly onboarding = inject(OnboardingService);
+
+	openTour() {
+		this.onboarding.open();
+	}
+
 	protected readonly steps = [
 		"backlog",
 		"ratio",
