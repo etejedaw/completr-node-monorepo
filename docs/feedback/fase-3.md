@@ -115,9 +115,10 @@
 
 ### [FB-017] Mostrar slug debajo del juego en el split (como en compilation)
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "En el split, tambien deberia mostrar debajo el slug, tal como lo hace con la compilation". En la vista de compilation, debajo de cada juego se muestra su slug, lo que ayuda a desambiguar juegos con nombres similares. La vista de split no incluye ese detalle, generando inconsistencia entre flujos parecidos.
 - **Solucion propuesta:** En el componente/vista del split, mostrar el `slug` debajo del nombre del juego en el listado de resultados. Reutilizar el mismo sub-componente que ya usa compilation para mantener consistencia visual. Bonus: si hay otros lugares donde se muestran juegos en listas de seleccion (ej. anadir a lista, mover, etc.), auditar que todos muestren slug.
+- **Resolucion:** En el split modal del `admin-game-editor`, se agrega el preview `slug → <slug>` debajo de cada title input cuando hay contenido, replicando el patron del modo "Create new" de compilation. El helper `previewCompilationSlug` se renombra a `previewSlug` (reutilizable entre ambos flujos).
 
 ### [FB-018] Conservar barra de busqueda de games al entrar a la ficha de un juego
 
