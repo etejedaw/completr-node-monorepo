@@ -151,6 +151,7 @@ export class BacklogList implements OnInit {
 		{ label: "Not Started", value: "not_started" },
 		{ label: "Playing", value: "playing" },
 		{ label: "Completed", value: "completed" },
+		{ label: "Endless", value: "endless" },
 		{ label: "Abandoned", value: "abandoned" }
 	];
 
@@ -489,7 +490,8 @@ export class BacklogList implements OnInit {
 			not_started: "bg-fg-muted/10 text-fg-muted",
 			playing: "bg-warning/10 text-warning",
 			completed: "bg-success/10 text-success",
-			abandoned: "bg-danger/10 text-danger"
+			abandoned: "bg-danger/10 text-danger",
+			endless: "bg-brand-subtle text-brand"
 		};
 		return map[status] ?? "";
 	}
@@ -499,7 +501,8 @@ export class BacklogList implements OnInit {
 			not_started: "Not Started",
 			playing: "Playing",
 			completed: "Completed",
-			abandoned: "Abandoned"
+			abandoned: "Abandoned",
+			endless: "Endless"
 		};
 		return map[status] ?? status;
 	}
@@ -509,13 +512,18 @@ export class BacklogList implements OnInit {
 			not_started: "schedule",
 			playing: "play_circle",
 			completed: "check_circle",
-			abandoned: "cancel"
+			abandoned: "cancel",
+			endless: "all_inclusive"
 		};
 		return map[status] ?? "schedule";
 	}
 
 	canChangeStatus(status: BacklogStatus): boolean {
-		return status === "not_started" || status === "playing";
+		return (
+			status === "not_started" ||
+			status === "playing" ||
+			status === "endless"
+		);
 	}
 
 	canQuickRate(entry: BacklogEntry): boolean {
@@ -593,7 +601,11 @@ export class BacklogList implements OnInit {
 		const pending = this.pendingStatusChange();
 		if (!pending) return;
 		const { entry, status } = pending;
-		const isFinished = status === "completed" || status === "abandoned";
+		const hasFinishedAt = status === "completed" || status === "abandoned";
+		const allowsRating =
+			status === "completed" ||
+			status === "abandoned" ||
+			status === "endless";
 
 		const payload: {
 			status: BacklogStatus;
@@ -604,7 +616,7 @@ export class BacklogList implements OnInit {
 		} = { status };
 		if (status === "playing" && this.pendingStatusStartedAt())
 			payload.startedAt = this.pendingStatusStartedAt();
-		if (isFinished && this.pendingStatusFinishedAt())
+		if (hasFinishedAt && this.pendingStatusFinishedAt())
 			payload.finishedAt = this.pendingStatusFinishedAt();
 		if (status === "completed") {
 			const realDurationRaw = this.pendingRealDuration().trim();
@@ -614,14 +626,14 @@ export class BacklogList implements OnInit {
 					payload.realDuration = parsed;
 			}
 		}
-		if (isFinished) {
+		if (allowsRating) {
 			const rating = this.pendingRating();
 			if (rating != null) {
 				payload.userRating = rating;
 			}
 		}
 
-		const reviewSubmit = isFinished && this.pendingReviewToggle();
+		const reviewSubmit = allowsRating && this.pendingReviewToggle();
 		const reviewRating = this.pendingRating() ?? undefined;
 		const reviewContent = this.pendingReviewContent().trim() || undefined;
 		const shouldSubmitReview =

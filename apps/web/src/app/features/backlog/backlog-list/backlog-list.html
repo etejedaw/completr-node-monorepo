@@ -766,12 +766,12 @@
 		(click)="$event.stopPropagation()"
 	>
 		<h2 class="m-0 text-lg font-bold font-display flex items-center gap-2">
-			<span class="material-icons text-xl" [class.text-warning]="pending.status === 'playing'" [class.text-success]="pending.status === 'completed'" [class.text-danger]="pending.status === 'abandoned'" [class.text-fg-muted]="pending.status === 'not_started'">{{ statusIcon(pending.status) }}</span>
+			<span class="material-icons text-xl" [class.text-warning]="pending.status === 'playing'" [class.text-success]="pending.status === 'completed'" [class.text-danger]="pending.status === 'abandoned'" [class.text-brand]="pending.status === 'endless'" [class.text-fg-muted]="pending.status === 'not_started'">{{ statusIcon(pending.status) }}</span>
 			Change status to {{ statusLabel(pending.status) }}?
 		</h2>
 		<p class="text-sm text-fg-secondary leading-relaxed">
 			<strong>{{ pending.entry.game.title }}</strong> will be marked as
-			<span class="font-medium" [class.text-warning]="pending.status === 'playing'" [class.text-success]="pending.status === 'completed'" [class.text-danger]="pending.status === 'abandoned'" [class.text-fg-muted]="pending.status === 'not_started'">
+			<span class="font-medium" [class.text-warning]="pending.status === 'playing'" [class.text-success]="pending.status === 'completed'" [class.text-danger]="pending.status === 'abandoned'" [class.text-brand]="pending.status === 'endless'" [class.text-fg-muted]="pending.status === 'not_started'">
 				{{ statusLabel(pending.status) }}</span>.
 			@if (isInQueue(pending.entry) && pending.status !== 'not_started') {
 				It will be removed from your Queue.
@@ -816,6 +816,8 @@
 					/>
 				</div>
 			}
+		}
+		@if (pending.status === 'completed' || pending.status === 'abandoned' || pending.status === 'endless') {
 			<div>
 				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Your rating</label>
 				<app-star-rating
