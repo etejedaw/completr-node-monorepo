@@ -1,12 +1,12 @@
 <div>
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
-			<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Queue</h1>
+			<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Up Next</h1>
 			<span class="text-sm text-fg-muted">{{ total() }} games</span>
 		</div>
 		@if (isLoading() || entries().length > 0) {
 			<button uiButton variant="primary" (click)="openAddModal()">
-				+ Add from Backlog
+				+ Add from library
 			</button>
 		}
 	</div>
@@ -79,18 +79,18 @@
 			<ui-empty-state
 				icon="search_off"
 				title="No matches found"
-				hint="No queue entries match your search."
+				hint="Nothing in Up Next matches your search."
 			>
 				<button uiButton variant="secondary" (click)="onSearch('')">Clear search</button>
 			</ui-empty-state>
 		} @else {
 			<ui-empty-state
 				icon="playlist_play"
-				title="Your queue is empty"
-				hint="Prioritize which games to play next. Add games from their detail page or from your backlog."
+				title="Up Next is empty"
+				hint="Pick the next games you actually want to play, in order. Add titles you haven't started yet from your library."
 			>
 				<button uiButton variant="primary" (click)="openAddModal()">
-					+ Add from Backlog
+					+ Add from library
 				</button>
 			</ui-empty-state>
 		}
