@@ -5,6 +5,17 @@
 
 ---
 
+## Resumen de avance
+
+- **Resueltos (11):** FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024.
+- **Diferidos a fases futuras (4):** FB-001 (premium), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
+- **Descartados/omitidos (2):** FB-015 (descartado tras prototipar), FB-018 (omitido, baja prioridad).
+- **Pendientes (7):** FB-002, FB-003, FB-004, FB-005, FB-010, FB-021, FB-022.
+
+Prioridad sugerida para la siguiente sesion: FB-004 (RAWG tags → generos, valor inmediato), seguido del bloque de privacidad/social (FB-002 + FB-003 → desbloquean FB-021 + FB-022).
+
+---
+
 ## Feedback
 
 ### [FB-001] Mas avatares predefinidos (sin uploads custom)
