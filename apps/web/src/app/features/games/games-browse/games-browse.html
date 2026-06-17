@@ -12,53 +12,16 @@
 
 	@if (showFilters()) {
 		<div class="bg-surface border border-line rounded-card p-4 mb-6 flex flex-col gap-4">
-			<div>
-				<span class="block text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-2">Genres</span>
-				<div class="flex flex-wrap gap-1.5">
-					@for (g of allGenres(); track g.id) {
-						<button type="button" class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition"
-							[class.bg-brand-subtle]="selectedGenres().has(g.code)"
-							[class.border-brand]="selectedGenres().has(g.code)"
-							[class.text-brand]="selectedGenres().has(g.code)"
-							[class.bg-input-bg]="!selectedGenres().has(g.code)"
-							[class.border-line]="!selectedGenres().has(g.code)"
-							[class.text-fg-secondary]="!selectedGenres().has(g.code)"
-							[class.hover:border-brand]="!selectedGenres().has(g.code)"
-							[class.hover:text-brand]="!selectedGenres().has(g.code)"
-							(click)="toggleGenre(g.code)"
-						>{{ g.name }}</button>
-					}
-				</div>
-			</div>
-
-			<div>
-				<span class="block text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-2">Platforms</span>
-				<div class="flex flex-wrap gap-1.5">
-					@for (p of allPlatforms(); track p.id) {
-						<button type="button" class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition"
-							[class.bg-brand-subtle]="selectedPlatforms().has(p.code)"
-							[class.border-brand]="selectedPlatforms().has(p.code)"
-							[class.text-brand]="selectedPlatforms().has(p.code)"
-							[class.bg-input-bg]="!selectedPlatforms().has(p.code)"
-							[class.border-line]="!selectedPlatforms().has(p.code)"
-							[class.text-fg-secondary]="!selectedPlatforms().has(p.code)"
-							[class.hover:border-brand]="!selectedPlatforms().has(p.code)"
-							[class.hover:text-brand]="!selectedPlatforms().has(p.code)"
-							(click)="togglePlatform(p.code)"
-						>{{ p.abbreviation }}</button>
-					}
-				</div>
-			</div>
+			<app-game-filter-panel
+				[allGenres]="allGenres()"
+				[allPlatforms]="allPlatforms()"
+				[(selectedGenres)]="selectedGenres"
+				[(selectedPlatforms)]="selectedPlatforms"
+				[(yearFrom)]="yearFrom"
+				[(yearTo)]="yearTo"
+			/>
 
 			<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-				<label class="flex flex-col gap-1 text-xs text-fg-muted">
-					Year from
-					<input type="number" min="1950" max="2100" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand" [value]="yearFrom() ?? ''" (input)="setYearFrom($any($event.target).value)" />
-				</label>
-				<label class="flex flex-col gap-1 text-xs text-fg-muted">
-					Year to
-					<input type="number" min="1950" max="2100" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand" [value]="yearTo() ?? ''" (input)="setYearTo($any($event.target).value)" />
-				</label>
 				<label class="flex flex-col gap-1 text-xs text-fg-muted">
 					Min score (0-5)
 					<input type="number" min="0" max="5" step="0.1" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand" [value]="minScore() ?? ''" (input)="setMinScore($any($event.target).value)" />
