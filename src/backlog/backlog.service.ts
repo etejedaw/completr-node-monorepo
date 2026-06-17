@@ -313,6 +313,73 @@ export async function findCommonCompletedGames(
 	});
 }
 
+export async function findHighlightsByUserId(
+	userId: string,
+	includePrivate: boolean,
+	recentLimit = 6
+) {
+	const now = new Date();
+	const monthStart = new Date(
+		Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+	);
+	const monthEnd = new Date(
+		Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)
+	);
+
+	const baseWhere: Record<string, unknown> = {
+		userId,
+		status: "completed",
+		finishedAt: { [Op.ne]: null }
+	};
+	if (!includePrivate) baseWhere.isPublic = true;
+
+	const recent = await Backlog.findAll({
+		where: baseWhere,
+		include: backlogInclude,
+		order: [["finishedAt", "DESC"]],
+		limit: recentLimit
+	});
+
+	const monthEntries = await Backlog.findAll({
+		where: {
+			...baseWhere,
+			finishedAt: { [Op.gte]: monthStart, [Op.lte]: monthEnd }
+		},
+		include: backlogInclude,
+		order: [["finishedAt", "DESC"]]
+	});
+
+	let mostPlayed: Backlog | null = null;
+	let highestRated: Backlog | null = null;
+	for (const entry of monthEntries) {
+		if (
+			entry.realDuration != null &&
+			(mostPlayed == null ||
+				(mostPlayed.realDuration ?? 0) < entry.realDuration)
+		) {
+			mostPlayed = entry;
+		}
+		if (
+			entry.userRating != null &&
+			(highestRated == null ||
+				(highestRated.userRating ?? 0) < entry.userRating)
+		) {
+			highestRated = entry;
+		}
+	}
+
+	return {
+		recent,
+		month: {
+			startsAt: monthStart,
+			endsAt: monthEnd,
+			completedCount: monthEntries.length,
+			mostPlayed,
+			highestRated
+		}
+	};
+}
+
 export async function findPublicBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}
