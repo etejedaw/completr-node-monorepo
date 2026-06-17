@@ -1,0 +1,66 @@
+info:
+    name: Get User Highlights
+    type: http
+    seq: 11
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/:username/highlights"
+    params:
+        - name: username
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get User Highlights
+
+    Returns the user's recent completion highlights and a monthly summary card. Powers the "Highlights" section in the public profile and the dashboard view of `/my-backlog`.
+
+    The response contains:
+    - `recent`: top 6 most recent completed backlog entries (ordered by `finishedAt` desc).
+    - `month`: summary for the current calendar month (UTC) with `completedCount`, `mostPlayed` (single entry with the highest `realDuration`), and `highestRated` (single entry with the highest `userRating`).
+
+    Backlog entries are public-only unless the viewer is the owner; private entries are excluded for everyone else.
+
+    **Authentication:** Bearer token optional. When absent the viewer is treated as a stranger.
+    **Rate Limit:** 100 requests per minute (public).
+
+    ### Path Params
+
+    | Param    | Type   | Required | Description       |
+    |----------|--------|----------|-------------------|
+    | username | string | Yes      | Profile username  |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "highlights": {
+          "recent": [
+            { "id": "...", "status": "completed", "finishedAt": "2026-06-10", "userRating": 9, "game": {...}, "platform": {...} }
+          ],
+          "month": {
+            "startsAt": "2026-06-01T00:00:00.000Z",
+            "endsAt": "2026-06-30T00:00:00.000Z",
+            "completedCount": 5,
+            "mostPlayed": { "id": "...", "realDuration": 42.5, "game": {...} },
+            "highestRated": { "id": "...", "userRating": 9.5, "game": {...} }
+          }
+        }
+      }
+    }
+    ```
+
+    `mostPlayed` and `highestRated` may be `null` when no entries qualify.
+
+    ### Errors
+
+    | Status | Code                  | Description                                       |
+    |--------|-----------------------|---------------------------------------------------|
+    | 404    | USER_NOT_FOUND        | Username does not exist                           |
+    | 403    | USER_PRIVATE          | Profile or backlog is private to non-owners       |
+    | 422    | COMMON_SCHEMA_INVALID | `username` does not match the expected format     |
