@@ -232,7 +232,8 @@ export class ListDetail implements OnInit {
 			not_started: "status-not-started",
 			playing: "status-playing",
 			completed: "status-completed",
-			abandoned: "status-abandoned"
+			abandoned: "status-abandoned",
+			endless: "status-endless"
 		};
 		return map[status] ?? "";
 	}

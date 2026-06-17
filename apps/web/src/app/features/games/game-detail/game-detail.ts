@@ -381,6 +381,8 @@ export class GameDetail implements OnInit {
 				return { label: "Playing", classes: "bg-brand/15 text-brand" };
 			case "abandoned":
 				return { label: "Abandoned", classes: "bg-warning/15 text-warning" };
+			case "endless":
+				return { label: "Endless", classes: "bg-brand-subtle text-brand" };
 			default:
 				return { label: "Backlog", classes: "bg-input-bg text-fg-muted" };
 		}
