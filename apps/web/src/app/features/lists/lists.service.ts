@@ -73,9 +73,6 @@ export class ListsService {
 			.pipe(map(res => res.data.list));
 	}
 
-	// Same list but with the given user's backlog progress (per-item status +
-	// progress bar), respecting their backlog privacy. Used when viewing a list
-	// from someone's profile (?from=username).
 	getByIdForUser(username: string, id: string) {
 		return this.http
 			.get<ListSingleResponse>(

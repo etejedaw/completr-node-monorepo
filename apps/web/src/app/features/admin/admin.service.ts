@@ -3,7 +3,7 @@ import { HttpClient, HttpContext, HttpParams } from "@angular/common/http";
 import { environment } from "../../../environments/environment";
 import { User } from "../../core/models";
 import { map } from "rxjs";
-import { SUPPRESS_VALIDATION_TOAST } from "../../core/utils/validation-issues.util";
+import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
 
 const SUPPRESS_TOAST_CONTEXT = new HttpContext().set(
 	SUPPRESS_VALIDATION_TOAST,

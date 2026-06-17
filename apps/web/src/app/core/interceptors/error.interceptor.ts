@@ -12,9 +12,9 @@ import {
 import { AuthService } from "../services/auth.service";
 import { ToastService } from "../services/toast.service";
 import {
-	formatValidationIssues,
-	SUPPRESS_VALIDATION_TOAST
-} from "../utils/validation-issues.util";
+	SUPPRESS_VALIDATION_TOAST,
+	validationSummary
+} from "../../shared/utils/validation-errors";
 
 let isRefreshing = false;
 const refreshSubject = new BehaviorSubject<string | null>(null);
@@ -47,8 +47,8 @@ export function errorInterceptor(
 			if (error.status === 422) {
 				const suppress = req.context.get(SUPPRESS_VALIDATION_TOAST);
 				if (!suppress) {
-					const formatted = formatValidationIssues(error);
-					if (formatted) toast.warning(formatted);
+					const summary = validationSummary(error);
+					if (summary) toast.warning(summary);
 				}
 				return throwError(() => error);
 			}
