@@ -24,6 +24,16 @@ export const BacklogQuerySchema = z
 			.optional(),
 		game_id: z.uuid().optional(),
 		platform_id: z.uuid().optional(),
+		platforms: z
+			.string()
+			.transform(val => val.split(",").filter(Boolean))
+			.optional(),
+		genres: z
+			.string()
+			.transform(val => val.split(",").filter(Boolean))
+			.optional(),
+		release_year_from: z.coerce.number().int().optional(),
+		release_year_to: z.coerce.number().int().optional(),
 		started_from: z.iso.date().optional(),
 		started_to: z.iso.date().optional(),
 		finished_from: z.iso.date().optional(),
@@ -37,6 +47,10 @@ export const BacklogQuerySchema = z
 		max_real_duration: z.coerce.number().optional(),
 		min_rating: z.coerce.number().optional(),
 		max_rating: z.coerce.number().optional(),
+		min_ratio: z.coerce.number().optional(),
+		max_ratio: z.coerce.number().optional(),
+		min_personal_ratio: z.coerce.number().optional(),
+		max_personal_ratio: z.coerce.number().optional(),
 		search: z.string().min(1).max(100).optional(),
 		sort_by: z.enum(SORT_FIELDS).optional(),
 		sort_order: z.enum(["asc", "desc"]).optional(),
