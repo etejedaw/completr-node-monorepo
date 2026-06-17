@@ -9,9 +9,10 @@
 
 ### [FB-001] Mas avatares predefinidos (sin uploads custom)
 
-- **Estado:** pendiente
+- **Estado:** diferido
 - **Descripcion:** "que locura los avatares ajhsdgjhgsd igual echo de menos poner mi foto". Los usuarios echan de menos poder subir su propia foto de perfil, pero los uploads custom abren toda una superficie de moderacion y storage que no queremos asumir todavia.
 - **Solucion propuesta:** No se permitiran uploads de imagenes custom. En su lugar: (1) ampliar el catalogo de avatares predefinidos, (2) crear sets especiales para eventos (Halloween, navidad, lanzamientos, etc.), (3) sets exclusivos para usuarios premium.
+- **Decision:** Diferido hasta la fase de premium. La discusion de sets temáticos y exclusivos premium se reabre cuando se defina el plan de monetizacion.
 
 ### [FB-002] Follow requests para perfiles privados
 
@@ -40,10 +41,11 @@
 
 ### [FB-006] Boton de favorito en backlog, game-shelf y queue
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Me gustaria poder agregar juegos a favoritos desde el backlog, gameshelf y queue."
 - **Contexto:** Hoy el unico lugar para marcar favorito es la ficha del juego (`/games/:code`, estrella arriba a la derecha). Desde las vistas de lista no hay acceso rapido. `FavoritesService.toggle(gameId)` ya existe en el frontend.
 - **Solucion propuesta:** Estrella inline en cada card/row de `backlog-list`, `game-shelf-list`, `queue-view` (y opcionalmente `wishlist-view`). Importar `FavoritesService` en cada componente, exponer `isFavorite(gameId)` y `toggleFavorite(gameId)`. UX: toggle optimista, icono `star` (amarillo) vs `star_border` (gris). Considerar tambien si extender el patron a las cards publicas del perfil de otro user (`user-backlog`, `user-favorites`, etc.) cuando el viewer esta logueado. Evaluar si el endpoint actual (`PUT /users/me/favorites` con array completo de IDs) es suficiente para uso intensivo, o si conviene agregar `POST /users/me/favorites/:gameId` y `DELETE /users/me/favorites/:gameId` para acciones atomicas.
+- **Resolucion:** Estrella inline agregada en `backlog-list` (diary + hardcore), `queue-view` (via `QueueGridCard`), `game-shelf-list` (grid + table) y `wishlist-view`. `FavoritesService` extendido con un Set reactivo `_favoriteIds` y `ensureIdsLoaded()` para cargar todos los IDs una vez por sesion (limit 100). El toggle ahora aplica update optimista sobre el Set, hace revert en error, y respalda con el `PUT /users/me/favorites` existente. Endpoints atomicos diferidos hasta ver races reales en produccion.
 
 ### [FB-007] Reviews puntuables (helpful votes)
 
@@ -90,52 +92,60 @@
 
 ### [FB-013] Boton undo al borrar entradas del feed
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Boton undo al borrar feed". Hoy borrar una entrada de actividad del feed es destructivo e inmediato. Si el usuario se equivoca, no hay vuelta atras. El patron de "deshacer" via snackbar/toast es estandar en apps modernas (Gmail, Material).
 - **Solucion propuesta:** Frontend: al borrar una activity, mostrar snackbar con accion "Deshacer" (timeout 5-10s). Backend: soft-delete con flag `deletedAt` en lugar de hard-delete inmediato, o mantener la fila en memoria/cliente y solo enviar el DELETE al expirar el snackbar. Job de limpieza periodico que purga las activities con `deletedAt` antiguo (>24h). Aplicar el mismo patron a otras acciones destructivas reversibles si aplica (borrar review, quitar de backlog, etc.).
+- **Resolucion:** Frontend-only siguiendo el patron ya establecido en favorites/queue. `FeedPage.deleteActivity` ahora remueve la entry de forma optimista, muestra un `ToastService.pending({ onCommit, onUndo })` y solo dispara `DELETE /feed/:id` cuando el toast expira. Si el user hace undo, la entry vuelve a su posicion original sin tocar el backend. Sin migration ni soft-delete server-side.
 
 ### [FB-014] Unificar filtros de busqueda entre `/games` y backlog
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Los filtros de busqueda por juego son superiores a los filtros de busqueda en backlog. Unificar". La pantalla `/games` tiene filtros mas ricos (genero, plataforma, ano, etc.) que la vista de backlog. Hoy son dos implementaciones distintas con UX inconsistente. El usuario espera la misma experiencia de filtrado en ambos lados.
 - **Solucion propuesta:** Auditar filtros disponibles en `/games` vs backlog: identificar gaps (generos, plataformas, ano, score, etc.). Extraer el componente de filtros a uno compartido (`game-filters` reutilizable). Backend: revisar que el endpoint de backlog acepte los mismos query params que el de games (genre, platform, year, etc.). Considerar aplicar el mismo unified-filter a queue, wishlist, game-shelf y favoritos para consistencia total. Coordinar con FB-009 (performance): los nuevos filtros deben aprovechar los mismos indices.
+- **Resolucion:** Resuelto junto a FB-020. Backend: `BacklogQuerySchema` y `backlogService.buildWhere` ahora aceptan `platforms[]` (codes), `genres[]` (codes) y `release_year_from/to`, con subqueries sobre `GamePlatforms`, `GameGenres` y `Games.releaseAt`. Frontend: nuevo componente compartido `app-game-filter-panel` con chips de genero/plataforma + inputs de ano, integrado en `/games` (reemplaza los chips inline) y en `backlog-list` (reemplaza el `<select>` de plataforma unica). Saved filters extendidos para guardar/cargar los nuevos campos. Queue/wishlist/shelf quedan sin filtros nuevos por ahora — la UX actual no lo demanda.
 
 ### [FB-015] Mostrar cantidad de runs en la ficha del juego
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Cuando vea un game, que me muestre en una lista la cantidad de runs que se han realizado".
 - **Contexto:** Un "run" es una pasada/playthrough de un usuario sobre un juego (entrada en backlog con su status, score, horas, etc.). Hoy en la ficha del juego (`/games/:code`) no hay visibilidad de cuanta gente lo esta jugando o lo ha terminado. Es una metrica social util (signal de popularidad) y tambien un proxy del community score.
 - **Solucion propuesta:** Endpoint o serializacion del game con counts agregados: total runs, runs por status (playing, completed, dropped, on-hold, not_started). Frontend: seccion en la ficha del juego con esos counts (ej. "1.234 personas lo han jugado · 567 lo completaron · 89 lo dejaron"). Posible: drill-down clickable que abre la lista de usuarios con esa run (respetando privacidad de cada perfil — ver FB-003). Cachear el agregado con TTL corto para no pegarle a la DB en cada visita.
+- **Resolucion:** Endpoint dedicado `GET /games/:id/stats` que devuelve `stats.runs` con counts por status (`not_started`, `playing`, `completed`, `abandoned`, `total`). Implementacion server: `backlogService.countBacklogByStatusForGame(gameId)` con `GROUP BY status`. La separacion en endpoint propio permite a futuro sumar metricas mas caras (avg score, distribucion) sin engordar la respuesta principal del game. Frontend: nueva seccion "Runs" en la ficha (panel "Info"), badges coloreados por status. Cache y drill-down clickable (FB-021/FB-022) quedan diferidos hasta ver demanda.
 
 ### [FB-016] Bug al hacer un split en los juegos
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Bug al hacer un split en los juegos". Falta detalle reproducible. El feature de split permite separar un game compilation en sus juegos individuales. Pedir al reporter pasos para reproducir antes de empezar a investigar.
 - **Solucion propuesta:** Pedir reproduccion: que juego, que pasos, que error visible (mensaje, comportamiento inesperado). Revisar logs del backend en el momento del intento. Una vez reproducido, abrir issue con stack trace y caso de prueba.
+- **Resolucion:** Audit defensivo del flujo `splitGame` (sin reproduccion del reporter). Se detecta un bug latente: si el title de una variante slugifica a vacio (ej. `"???"`, `"---"`), el servicio acepta el request y crea/sobrescribe un game con `code = ""`. Esto rompe la navegacion post-split (`/games/` sin slug) y bloquea creaciones futuras con el mismo simbolo (unique constraint en code). Fix: validacion explicita de slug no vacio aplicada en los 4 paths del catalogo de games: `splitGame` (rechaza con `GAME_SPLIT_INVALID`), `registerGame` y `updateGame` (rechazan con `GAME_VALIDATION_ERROR`), y `setCompilationItems` (rechaza con `GAME_COMPILATION_INVALID`).
 
 ### [FB-017] Mostrar slug debajo del juego en el split (como en compilation)
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "En el split, tambien deberia mostrar debajo el slug, tal como lo hace con la compilation". En la vista de compilation, debajo de cada juego se muestra su slug, lo que ayuda a desambiguar juegos con nombres similares. La vista de split no incluye ese detalle, generando inconsistencia entre flujos parecidos.
 - **Solucion propuesta:** En el componente/vista del split, mostrar el `slug` debajo del nombre del juego en el listado de resultados. Reutilizar el mismo sub-componente que ya usa compilation para mantener consistencia visual. Bonus: si hay otros lugares donde se muestran juegos en listas de seleccion (ej. anadir a lista, mover, etc.), auditar que todos muestren slug.
+- **Resolucion:** En el split modal del `admin-game-editor`, se agrega el preview `slug → <slug>` debajo de cada title input cuando hay contenido, replicando el patron del modo "Create new" de compilation. El helper `previewCompilationSlug` se renombra a `previewSlug` (reutilizable entre ambos flujos).
 
 ### [FB-018] Conservar barra de busqueda de games al entrar a la ficha de un juego
 
-- **Estado:** pendiente
+- **Estado:** omitido
 - **Descripcion:** "Conservar barra de busqueda de games cuando se ve un juego especifico". Al estar navegando `/games` con una busqueda activa y entrar a la ficha de un juego, la barra de busqueda y los filtros se pierden. Al volver atras se obliga al usuario a re-aplicar la busqueda desde cero.
 - **Solucion propuesta:** Persistir el estado de busqueda y filtros del browse de games al navegar entre la lista y las fichas individuales (via query params en la URL, state del router o servicio compartido). Al volver con el back del navegador o un boton "Volver a resultados", restaurar la query, filtros y posicion de scroll. Considerar tambien aplicar el patron a las vistas con filtros (backlog, queue, etc.) — coordinar con FB-014.
+- **Decision:** Omitido por ahora. La friccion actual es tolerable; si vuelve a aparecer en feedback de fases posteriores, se reabre.
 
 ### [FB-019] Secciones de "ultimos completados" / "completados este mes" en el perfil
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "En la pestana de un usuario, ver algo asi como 'ultimos completados' (que sea por la fecha de finished) o 'completados este mes', algo asi". Hoy el perfil de usuario muestra el backlog general pero no destaca actividad reciente de completados, que es uno de los hitos mas interesantes socialmente.
 - **Solucion propuesta:** Secciones nuevas en el perfil publico: "Ultimos completados" (ordenado por `finishedAt` desc, top N), "Completados este mes" (filtro por mes calendario actual), posiblemente "Completados este ano". Backend: query sobre backlog con status `completed` ordenado/filtrado por `finishedAt`. Respetar la visibilidad del backlog (ver FB-003). Frontend: cards con poster del juego, fecha de finalizacion y score si existe. Posible: extender a otros highlights (mas jugado del mes, mejor puntuado del mes).
+- **Resolucion:** Endpoint `GET /users/:username/highlights` que devuelve `recent` (top 6 completados por `finishedAt` desc) y `month` con `completedCount`, `mostPlayed` y `highestRated` del mes calendario UTC actual. Respeta la privacidad existente (`isPublic`, `isBacklogPublic`, y `Backlog.isPublic` cuando el viewer no es el dueno). Nueva tab "Highlights" en el perfil publico, visible solo si `isBacklogPublic`. Carga lazy en click de tab. Dashboard extendido (FB-019 opcion 3): muestra recientes en grid + tarjetas de "Most played" y "Highest rated" del mes.
 
 ### [FB-020] Filtros y orden por ratio, tiempo promedio y tiempo de completado en backlog
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "En los filtros de busqueda del backlog, anadir filtros para ordenar juegos por ratio personal/general, tiempo promedio, tiempo que tomo completar, etc". Faltan ordenes y filtros sobre metricas cuantitativas que el usuario ya esta tracking.
 - **Solucion propuesta:** Agregar opciones de orden en el backlog: ratio personal (score del usuario / horas jugadas), ratio general (community score / tiempo promedio), tiempo promedio del juego (HLTB-style), tiempo real que le tomo al usuario completarlo (`completedAt - startedAt` o `hoursPlayed` si esta cargado). Filtros equivalentes (rango de horas, rango de ratio). Backend: revisar que las queries usen indices y que los campos existan en el modelo (`hoursPlayed`, `startedAt`, `finishedAt`). Coordinar con FB-014 (unificar filtros entre games y backlog) — los nuevos filtros se aplican al backlog principalmente, pero el ratio general podria ser util tambien en `/games`.
+- **Resolucion:** Backend: nuevos params `min_ratio/max_ratio` y `min_personal_ratio/max_personal_ratio` aplicados con literals (`"Backlog"."score" / NULLIF("Backlog"."duration", 0)`), mas extension de la documentacion del sort_by para incluir `ratio` y `personalRatio` (ya soportados). Frontend: nuevos inputs en el panel de filtros de backlog para Real duration, Ratio (score/duration) y Personal ratio (score/realDuration), con sus respectivos rangos min/max. Saved filters y URL params extendidos. El sort dropdown del backlog ya exponia `ratio`, `personalRatio` y `realDuration`, asi que no requirio cambios.
 
 ### [FB-021] Mostrar amigos (follow mutuo) que han jugado un juego en su ficha
 
@@ -157,7 +167,7 @@
 
 ### [FB-024] Errores de validacion sin detalle en admin/users (y resto del frontend)
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Al intentar crear un usuario en `/admin/users`, la llamada de red devuelve un error generico sin indicar que campo fallo ni por que:
     ```json
     {
@@ -172,3 +182,4 @@
     El frontend no informa si la contrasena era invalida, si falta algun campo, o cual es el formato esperado. El usuario queda sin pistas para corregir el formulario.
 - **Contexto:** El backend ya valida con Zod y conoce los issues exactos (campo, regla violada, mensaje), pero el error `COMMON_SCHEMA_INVALID` se serializa sin el detalle de los issues — solo titulo generico. El frontend, por su parte, no sabe mapear errores 422 a mensajes inline por campo en el formulario de admin/users. Es probable que el mismo problema afecte a otros formularios del frontend que dependen de validacion del backend.
 - **Solucion propuesta:** Backend: enriquecer el payload de `COMMON_SCHEMA_INVALID` (RFC 7807) con un campo `errors` o `issues` que liste `{ path, code, message }` por cada issue de Zod. Mantener el `type`/`title` actuales para compatibilidad. Frontend: en el form de `/admin/users` (y resto), interceptar respuestas 422 con `type === COMMON_SCHEMA_INVALID` y mapear los issues a errores inline por campo (matchear `path` con el control del form). Fallback: si no se puede mapear a un campo concreto, mostrar snackbar con la lista de mensajes. Auditar otros formularios del frontend que hacen POST/PUT/PATCH para aplicar el mismo patron de manejo de 422. Coordinar con la convencion existente de errores (ver `*.error.ts` y `*.error-mapper.ts`).
+- **Resolucion:** Backend: `ValidationIssue` definido en `domain-error.ts` y propagado como campo opcional de `DomainError`. `validateSchemaMiddleware` extrae `error.issues` de Zod en formato `{ path, code, message }`. `commonDomainToHttpMapper` los copia al `HttpError`. `errorHandlerMiddleware` incluye `issues` en el payload final (independiente de `NODE_ENV`). Frontend: helper `shared/utils/validation-errors.ts` con `fieldErrorsFromResponse(err)` y `validationSummary(err)`. Integrado inline en `/admin/users` (create y edit): cada control del form muestra su propio mensaje debajo cuando el backend devuelve un issue con `path` coincidente, y el banner superior resume el resto. Patron listo para extender al resto de los forms.

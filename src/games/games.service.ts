@@ -47,6 +47,10 @@ export async function registerGame(registerGameDto: RegisterGameDto) {
 
 	try {
 		const code = titleToSlug(registerGameDto.title);
+		if (!code)
+			throw gamesServiceError.validationError(
+				new Error("Title must contain at least one slug-safe character")
+			);
 		const { platforms, scores, times, genres, externalIds, ...gameDto } =
 			registerGameDto;
 
@@ -628,8 +632,13 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 
 	const updateData: Record<string, unknown> = { ...gameDto };
 	if (title) {
+		const code = titleToSlug(title);
+		if (!code)
+			throw gamesServiceError.validationError(
+				new Error("Title must contain at least one slug-safe character")
+			);
 		updateData.title = title;
-		updateData.code = titleToSlug(title);
+		updateData.code = code;
 	}
 
 	await game.update(updateData);
@@ -700,6 +709,7 @@ export async function splitGame(
 	const codes = new Set<string>();
 	for (const v of variants) {
 		const code = titleToSlug(v.title);
+		if (!code) throw gamesServiceError.splitInvalidError();
 		if (codes.has(code)) throw gamesServiceError.splitInvalidError();
 		codes.add(code);
 	}
@@ -860,6 +870,9 @@ export async function setCompilationItems(
 	const createdSlugs = items
 		.filter(i => i.mode === "create")
 		.map(i => titleToSlug((i as { title: string }).title));
+	if (createdSlugs.some(s => !s)) {
+		throw gamesServiceError.compilationInvalidError();
+	}
 	if (new Set(createdSlugs).size !== createdSlugs.length) {
 		throw gamesServiceError.compilationInvalidError();
 	}

@@ -1,9 +1,5 @@
-// Reverts the HTML-encoding that express-xss-sanitizer applied to req.body
-// before the FB-067 fix. Used by the one-off backfill to repair legacy data
-// (titles, descriptions, notes, names, bios, etc.) persisted with entities.
-//
-// `&amp;` is decoded last on purpose: doing it first would over-decode
-// single-encoded values (e.g. `&amp;lt;` must become `&lt;`, not `<`).
+// `&amp;` is decoded last so single-encoded values aren't over-decoded
+// (e.g. `&amp;lt;` must become `&lt;`, not `<`).
 const ENTITY_REPLACEMENTS: readonly (readonly [RegExp, string])[] = [
 	[/&lt;/g, "<"],
 	[/&gt;/g, ">"],

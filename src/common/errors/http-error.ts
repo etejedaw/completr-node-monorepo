@@ -1,3 +1,5 @@
+import { ValidationIssue } from "./domain-error";
+
 export class HttpError extends Error {
 	readonly type: string;
 	readonly title: string;
@@ -7,6 +9,7 @@ export class HttpError extends Error {
 	readonly timestamp: Date;
 	readonly correlationId: string;
 	readonly context?: Record<string, unknown>;
+	readonly issues?: ValidationIssue[];
 
 	constructor(httpErrorOptions: HttpErrorOptions) {
 		super(httpErrorOptions.title);
@@ -19,6 +22,7 @@ export class HttpError extends Error {
 		this.timestamp = httpErrorOptions.timestamp;
 		this.correlationId = httpErrorOptions.correlationId;
 		this.context = httpErrorOptions.context;
+		this.issues = httpErrorOptions.issues;
 	}
 }
 
@@ -31,4 +35,5 @@ export interface HttpErrorOptions {
 	timestamp: Date;
 	correlationId: string;
 	context?: Record<string, unknown>;
+	issues?: ValidationIssue[];
 }

@@ -274,9 +274,6 @@ export async function getUserListDetail(request: Request, response: Response) {
 	if (!list.isPublic) throw userDomain.userNotFound();
 
 	const listPlain = list.get({ plain: true });
-	// Progress reflects the PROFILE user's backlog (not the viewer's) — this view
-	// is "see @username's progress on this list". Respect their backlog privacy:
-	// only when public (or self), and only counting public entries for others.
 	const canSeeProgress = isSelf || user.isBacklogPublic;
 	const publicOnly = !isSelf;
 	const gameIds = (list.ListItems ?? []).map(i => i.gameId);
@@ -299,6 +296,45 @@ export async function getUserListDetail(request: Request, response: Response) {
 		profileUser: {
 			username: user.username,
 			name: user.name
+		}
+	};
+	return response.status(200).json({ data });
+}
+
+export async function getUserHighlights(request: Request, response: Response) {
+	const params = request.locals.params as UsernameParam;
+	const currentUser = request.locals.user as RequestUser | undefined;
+
+	const user = await usersService.findUserByUsername(params.username);
+	if (!user) throw userDomain.userNotFound();
+
+	const isSelf = currentUser?.id === user.id;
+	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
+	if (!user.isBacklogPublic && !isSelf) throw userDomain.userPrivate();
+
+	const highlights = await backlogService.findHighlightsByUserId(
+		user.id,
+		isSelf
+	);
+
+	const serialize = (entry: (typeof highlights.recent)[number] | null) => {
+		if (!entry) return null;
+		const plain = entry.get({ plain: true });
+		return isSelf
+			? backlogSerializer(plain)
+			: backlogPublicSerializer(plain);
+	};
+
+	const data = {
+		highlights: {
+			recent: highlights.recent.map(e => serialize(e)!),
+			month: {
+				startsAt: highlights.month.startsAt,
+				endsAt: highlights.month.endsAt,
+				completedCount: highlights.month.completedCount,
+				mostPlayed: serialize(highlights.month.mostPlayed),
+				highestRated: serialize(highlights.month.highestRated)
+			}
 		}
 	};
 	return response.status(200).json({ data });

@@ -226,6 +226,16 @@ router.get(
 );
 
 router.get(
+	"/users/:username/highlights",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
+		validateSchemaMiddleware(UsernameParamSchema, "params")
+	],
+	usersController.getUserHighlights
+);
+
+router.get(
 	"/users/:username/games-in-common",
 	[
 		rateLimiterMiddleware(publicLimiter),

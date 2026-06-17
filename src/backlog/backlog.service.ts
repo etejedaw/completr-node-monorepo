@@ -78,6 +78,7 @@ function buildDateFilter(from?: string, to?: string) {
 
 function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
 	const where: Record<string, unknown> = { ...base };
+	const andConditions: object[] = [];
 
 	if (filters.status)
 		where.status =
@@ -86,6 +87,52 @@ function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
 				: { [Op.in]: filters.status };
 	if (filters.game_id) where.gameId = filters.game_id;
 	if (filters.platform_id) where.platformId = filters.platform_id;
+
+	if (filters.platforms && filters.platforms.length > 0) {
+		const escaped = filters.platforms
+			.map(p => sequelize.escape(p))
+			.join(", ");
+		andConditions.push({
+			platformId: {
+				[Op.in]: literal(
+					`(SELECT id FROM "Platforms" WHERE code IN (${escaped}))`
+				)
+			}
+		});
+	}
+
+	if (filters.genres && filters.genres.length > 0) {
+		const escaped = filters.genres.map(g => sequelize.escape(g)).join(", ");
+		andConditions.push({
+			gameId: {
+				[Op.in]: literal(
+					`(SELECT DISTINCT gg."gameId" FROM "GameGenres" gg JOIN "Genres" g ON g.id = gg."genreId" WHERE g.code IN (${escaped}))`
+				)
+			}
+		});
+	}
+
+	if (
+		filters.release_year_from !== undefined ||
+		filters.release_year_to !== undefined
+	) {
+		const conditions: string[] = [];
+		if (filters.release_year_from !== undefined)
+			conditions.push(
+				`EXTRACT(YEAR FROM g."releaseAt") >= ${filters.release_year_from}`
+			);
+		if (filters.release_year_to !== undefined)
+			conditions.push(
+				`EXTRACT(YEAR FROM g."releaseAt") <= ${filters.release_year_to}`
+			);
+		andConditions.push({
+			gameId: {
+				[Op.in]: literal(
+					`(SELECT g.id FROM "Games" g WHERE ${conditions.join(" AND ")})`
+				)
+			}
+		});
+	}
 
 	const startedAt = buildDateFilter(filters.started_from, filters.started_to);
 	if (startedAt) where.startedAt = startedAt;
@@ -117,6 +164,34 @@ function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
 
 	const userRating = buildRangeFilter(filters.min_rating, filters.max_rating);
 	if (userRating) where.userRating = userRating;
+
+	if (filters.min_ratio !== undefined)
+		andConditions.push(
+			literal(
+				`("Backlog"."score" / NULLIF("Backlog"."duration", 0)) >= ${filters.min_ratio}`
+			)
+		);
+	if (filters.max_ratio !== undefined)
+		andConditions.push(
+			literal(
+				`("Backlog"."score" / NULLIF("Backlog"."duration", 0)) <= ${filters.max_ratio}`
+			)
+		);
+	if (filters.min_personal_ratio !== undefined)
+		andConditions.push(
+			literal(
+				`("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) >= ${filters.min_personal_ratio}`
+			)
+		);
+	if (filters.max_personal_ratio !== undefined)
+		andConditions.push(
+			literal(
+				`("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) <= ${filters.max_personal_ratio}`
+			)
+		);
+
+	if (andConditions.length > 0)
+		where[Op.and as unknown as string] = andConditions;
 
 	return where;
 }
@@ -203,6 +278,34 @@ export async function countBacklogByStatus(userId: string, publicOnly = false) {
 	return result;
 }
 
+export async function countBacklogByStatusForGame(gameId: string) {
+	const rows = (await Backlog.findAll({
+		where: { gameId },
+		attributes: [
+			"status",
+			[sequelize.fn("COUNT", sequelize.col("id")), "count"]
+		],
+		group: ["status"],
+		raw: true
+	})) as unknown as { status: string; count: string }[];
+
+	const result = {
+		not_started: 0,
+		playing: 0,
+		completed: 0,
+		abandoned: 0,
+		total: 0
+	};
+	for (const row of rows) {
+		const n = Number(row.count);
+		if (row.status in result) {
+			result[row.status as keyof typeof result] = n;
+		}
+		result.total += n;
+	}
+	return result;
+}
+
 export async function findBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}
@@ -219,9 +322,6 @@ export async function findBacklogByUserId(
 	return { rows, total: count };
 }
 
-// Friends (users the viewer follows) who have this game in their backlog.
-// Returns one entry per friend — the most recent — respecting privacy
-// (public profile + public backlog + public entry).
 export async function findFriendsActivityForGame(
 	friendIds: string[],
 	gameId: string
@@ -248,8 +348,6 @@ export async function findFriendsActivityForGame(
 	});
 }
 
-// Games that both `viewerId` and `targetId` have completed, deduped per game.
-// Only the target's public completed entries count (privacy).
 export async function findCommonCompletedGames(
 	viewerId: string,
 	targetId: string
@@ -283,6 +381,73 @@ export async function findCommonCompletedGames(
 		seen.add(row.gameId);
 		return true;
 	});
+}
+
+export async function findHighlightsByUserId(
+	userId: string,
+	includePrivate: boolean,
+	recentLimit = 6
+) {
+	const now = new Date();
+	const monthStart = new Date(
+		Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+	);
+	const monthEnd = new Date(
+		Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)
+	);
+
+	const baseWhere: Record<string, unknown> = {
+		userId,
+		status: "completed",
+		finishedAt: { [Op.ne]: null }
+	};
+	if (!includePrivate) baseWhere.isPublic = true;
+
+	const recent = await Backlog.findAll({
+		where: baseWhere,
+		include: backlogInclude,
+		order: [["finishedAt", "DESC"]],
+		limit: recentLimit
+	});
+
+	const monthEntries = await Backlog.findAll({
+		where: {
+			...baseWhere,
+			finishedAt: { [Op.gte]: monthStart, [Op.lte]: monthEnd }
+		},
+		include: backlogInclude,
+		order: [["finishedAt", "DESC"]]
+	});
+
+	let mostPlayed: Backlog | null = null;
+	let highestRated: Backlog | null = null;
+	for (const entry of monthEntries) {
+		if (
+			entry.realDuration != null &&
+			(mostPlayed == null ||
+				(mostPlayed.realDuration ?? 0) < entry.realDuration)
+		) {
+			mostPlayed = entry;
+		}
+		if (
+			entry.userRating != null &&
+			(highestRated == null ||
+				(highestRated.userRating ?? 0) < entry.userRating)
+		) {
+			highestRated = entry;
+		}
+	}
+
+	return {
+		recent,
+		month: {
+			startsAt: monthStart,
+			endsAt: monthEnd,
+			completedCount: monthEntries.length,
+			mostPlayed,
+			highestRated
+		}
+	};
 }
 
 export async function findPublicBacklogByUserId(

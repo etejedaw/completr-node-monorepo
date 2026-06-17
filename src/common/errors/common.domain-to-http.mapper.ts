@@ -12,7 +12,8 @@ export function commonDomainToHttpMapper(
 		instance: request.originalUrl,
 		timestamp: new Date(),
 		correlationId: request.locals?.correlationId as string,
-		context: error.context
+		context: error.context,
+		issues: error.issues
 	};
 
 	if (error.code === "COMMON_SCHEMA_INVALID")

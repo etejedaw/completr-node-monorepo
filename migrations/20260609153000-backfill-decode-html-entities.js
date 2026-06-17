@@ -1,25 +1,9 @@
 "use strict";
 
-// ONE-OFF backfill (FB-067 legacy data repair).
-//
-// Until the FB-067 fix, `express-xss-sanitizer` ran over every req.body and
-// HTML-encoded `&`, `<`, `>`, `"`, `'` before persisting. That left old rows
-// with `&amp;`, `&lt;`, etc. in any string field that went through POST/PATCH.
-// Slugs derived from titles with `&` ended up with `andamp` baked in (slugify
-// maps `&` -> "and", so "Tom &amp; Jerry" -> "tom-andamp-jerry").
-//
-// This decodes the affected text columns and regenerates the broken slugs.
-// Mirrors src/common/utils/decode-html-entities.util.ts — kept inline because
-// sequelize-cli runs plain node (no ts-node), so the TS helper can't be imported.
-//
-// Run once with `npm run migrate` (local + env.production.local), then delete
-// this file. The SequelizeMeta row stays — same one-off pattern as the
-// round-list-item-scores backfill.
-
 const slugify = require("slugify");
 
-// `&amp;` is decoded last on purpose: doing it first would over-decode
-// single-encoded values (e.g. `&amp;lt;` must become `&lt;`, not `<`).
+// `&amp;` is decoded last so single-encoded values aren't over-decoded
+// (e.g. `&amp;lt;` must become `&lt;`, not `<`).
 const ENTITY_REPLACEMENTS = [
 	[/&lt;/g, "<"],
 	[/&gt;/g, ">"],
@@ -42,7 +26,6 @@ function titleToSlug(title) {
 	return slugify(title, { replacement: "-", lower: true, strict: true });
 }
 
-// Tables and their string columns that may carry encoded entities.
 const DECODE_TARGETS = [
 	{ table: "Games", columns: ["title", "description"] },
 	{ table: "Lists", columns: ["name", "description"] },
@@ -52,7 +35,6 @@ const DECODE_TARGETS = [
 	{ table: "GameShelves", columns: ["edition", "notes"] }
 ];
 
-// Slugified forms of the encoded entities that leak into Games.code.
 const SLUG_ARTIFACTS = [
 	"andamp",
 	"andlt",
@@ -85,8 +67,6 @@ async function uniqueGameCode(queryInterface, Sequelize, baseCode, currentId) {
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
 	async up(queryInterface, Sequelize) {
-		// 1) Decode text columns (Games.title first, so slug regen below sees
-		//    clean titles).
 		for (const { table, columns } of DECODE_TARGETS) {
 			const whereLike = columns
 				.map(col => `"${col}" LIKE '%&%'`)
@@ -125,8 +105,6 @@ module.exports = {
 			console.log(`[backfill] ${table}: ${changed} row(s) decoded`);
 		}
 
-		// 2) Regenerate Games.code slugs that carry encoded artifacts, from the
-		//    now-decoded title. Handle the unique constraint on code.
 		const codeLike = SLUG_ARTIFACTS.map(
 			artifact => `code LIKE '%${artifact}%'`
 		).join(" OR ");
@@ -155,8 +133,6 @@ module.exports = {
 	},
 
 	async down() {
-		// Irreversible: re-encoding the entities would corrupt data that was
-		// never encoded in the first place. No-op on purpose.
 		console.log(
 			"[backfill] down() is a no-op — HTML-entity decode is not reversible"
 		);
