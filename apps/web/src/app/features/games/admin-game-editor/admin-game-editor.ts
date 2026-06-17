@@ -718,7 +718,7 @@ export class AdminGameEditor implements OnInit {
 		);
 	}
 
-	previewCompilationSlug(title: string): string {
+	previewSlug(title: string): string {
 		return title
 			.toLowerCase()
 			.trim()
@@ -760,7 +760,7 @@ export class AdminGameEditor implements OnInit {
 		}
 		const createSlugs = items
 			.filter(i => i.mode === "create")
-			.map(i => this.previewCompilationSlug((i as { title: string }).title));
+			.map(i => this.previewSlug((i as { title: string }).title));
 		if (new Set(createSlugs).size !== createSlugs.length) {
 			this.compilationError.set("Created titles must produce unique slugs.");
 			return;
