@@ -109,9 +109,10 @@
 
 ### [FB-016] Bug al hacer un split en los juegos
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Bug al hacer un split en los juegos". Falta detalle reproducible. El feature de split permite separar un game compilation en sus juegos individuales. Pedir al reporter pasos para reproducir antes de empezar a investigar.
 - **Solucion propuesta:** Pedir reproduccion: que juego, que pasos, que error visible (mensaje, comportamiento inesperado). Revisar logs del backend en el momento del intento. Una vez reproducido, abrir issue con stack trace y caso de prueba.
+- **Resolucion:** Audit defensivo del flujo `splitGame` (sin reproduccion del reporter). Se detecta un bug latente: si el title de una variante slugifica a vacio (ej. `"???"`, `"---"`), el servicio acepta el request y crea/sobrescribe un game con `code = ""`. Esto rompe la navegacion post-split (`/games/` sin slug) y bloquea creaciones futuras con el mismo simbolo (unique constraint en code). Fix: validacion explicita en `splitGame` que rechaza variantes con slug vacio (`GAME_SPLIT_INVALID`). El mismo patron de vulnerabilidad existe en `registerGame`, `updateGame` y `setCompilationItems` — pendiente decidir si extender el guard.
 
 ### [FB-017] Mostrar slug debajo del juego en el split (como en compilation)
 
