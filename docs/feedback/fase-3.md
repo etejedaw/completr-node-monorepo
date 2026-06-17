@@ -92,9 +92,10 @@
 
 ### [FB-013] Boton undo al borrar entradas del feed
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Boton undo al borrar feed". Hoy borrar una entrada de actividad del feed es destructivo e inmediato. Si el usuario se equivoca, no hay vuelta atras. El patron de "deshacer" via snackbar/toast es estandar en apps modernas (Gmail, Material).
 - **Solucion propuesta:** Frontend: al borrar una activity, mostrar snackbar con accion "Deshacer" (timeout 5-10s). Backend: soft-delete con flag `deletedAt` en lugar de hard-delete inmediato, o mantener la fila en memoria/cliente y solo enviar el DELETE al expirar el snackbar. Job de limpieza periodico que purga las activities con `deletedAt` antiguo (>24h). Aplicar el mismo patron a otras acciones destructivas reversibles si aplica (borrar review, quitar de backlog, etc.).
+- **Resolucion:** Frontend-only siguiendo el patron ya establecido en favorites/queue. `FeedPage.deleteActivity` ahora remueve la entry de forma optimista, muestra un `ToastService.pending({ onCommit, onUndo })` y solo dispara `DELETE /feed/:id` cuando el toast expira. Si el user hace undo, la entry vuelve a su posicion original sin tocar el backend. Sin migration ni soft-delete server-side.
 
 ### [FB-014] Unificar filtros de busqueda entre `/games` y backlog
 
