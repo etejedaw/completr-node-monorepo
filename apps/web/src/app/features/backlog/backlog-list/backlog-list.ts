@@ -92,6 +92,7 @@ export class BacklogList implements OnInit {
 
 	// Filters
 	protected readonly showFilters = signal(false);
+	protected readonly showAdvancedFilters = signal(false);
 	protected readonly allPlatforms = signal<Platform[]>([]);
 	protected readonly allGenres = signal<Genre[]>([]);
 	protected readonly selectedPlatform = signal("");
@@ -252,6 +253,8 @@ export class BacklogList implements OnInit {
 		if (filter.sortBy) this.sortBy.set(filter.sortBy);
 		if (filter.sortOrder)
 			this.sortOrder.set(filter.sortOrder as "asc" | "desc");
+
+		if (this.hasAdvancedFiltersActive()) this.showAdvancedFilters.set(true);
 	}
 
 	private resetFilterState() {
@@ -682,6 +685,25 @@ export class BacklogList implements OnInit {
 	parseNumber(value: string): number | null {
 		const trimmed = value?.trim();
 		return trimmed ? Number(trimmed) : null;
+	}
+
+	hasAdvancedFiltersActive(): boolean {
+		return (
+			this.selectedPlatforms().size > 0 ||
+			this.selectedGenres().size > 0 ||
+			this.yearFrom() !== null ||
+			this.yearTo() !== null ||
+			this.minRealDuration() !== null ||
+			this.maxRealDuration() !== null ||
+			this.minRatio() !== null ||
+			this.maxRatio() !== null ||
+			this.minPersonalRatio() !== null ||
+			this.maxPersonalRatio() !== null
+		);
+	}
+
+	toggleAdvancedFilters() {
+		this.showAdvancedFilters.update(v => !v);
 	}
 
 	isFavorite(gameId: string): boolean {
