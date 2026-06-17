@@ -322,9 +322,6 @@ export async function findBacklogByUserId(
 	return { rows, total: count };
 }
 
-// Friends (users the viewer follows) who have this game in their backlog.
-// Returns one entry per friend — the most recent — respecting privacy
-// (public profile + public backlog + public entry).
 export async function findFriendsActivityForGame(
 	friendIds: string[],
 	gameId: string
@@ -351,8 +348,6 @@ export async function findFriendsActivityForGame(
 	});
 }
 
-// Games that both `viewerId` and `targetId` have completed, deduped per game.
-// Only the target's public completed entries count (privacy).
 export async function findCommonCompletedGames(
 	viewerId: string,
 	targetId: string

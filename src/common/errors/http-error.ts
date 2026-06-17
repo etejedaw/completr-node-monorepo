@@ -1,8 +1,4 @@
-export interface ValidationIssue {
-	path: string;
-	code: string;
-	message: string;
-}
+import { ValidationIssue } from "./domain-error";
 
 export class HttpError extends Error {
 	readonly type: string;

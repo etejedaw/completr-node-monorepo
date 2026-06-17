@@ -14,7 +14,7 @@ export function validateSchemaMiddleware(
 		} catch (error) {
 			if (error instanceof ZodError) {
 				const issues = error.issues.map(issue => ({
-					path: issue.path.map(p => String(p)).join("."),
+					path: issue.path.join("."),
 					code: issue.code,
 					message: issue.message
 				}));
@@ -22,7 +22,8 @@ export function validateSchemaMiddleware(
 					"Common Module",
 					"COMMON_SCHEMA_INVALID",
 					"Invalid request schema",
-					{ source: requestKey, issues }
+					{ error: JSON.parse(error.message) },
+					issues
 				);
 			}
 			throw error;
