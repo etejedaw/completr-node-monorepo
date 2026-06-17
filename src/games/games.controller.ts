@@ -250,6 +250,18 @@ export async function getGameLists(request: Request, response: Response) {
 	return response.status(200).json({ data });
 }
 
+export async function getGameStats(request: Request, response: Response) {
+	const params = request.locals.params as GameIdParam;
+
+	const game = await gameService.findGameById(params.id);
+	if (!game) throw gameDomainError.gameNotFound();
+
+	const runs = await backlogService.countBacklogByStatusForGame(params.id);
+
+	const data = { stats: { runs } };
+	return response.status(200).json({ data });
+}
+
 export async function getGameFriendsActivity(
 	request: Request,
 	response: Response
