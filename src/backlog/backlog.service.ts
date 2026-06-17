@@ -266,6 +266,7 @@ export async function countBacklogByStatus(userId: string, publicOnly = false) {
 		playing: 0,
 		completed: 0,
 		abandoned: 0,
+		endless: 0,
 		total: 0
 	};
 	for (const row of rows) {
@@ -464,7 +465,8 @@ export async function updateBacklog(
 	if (
 		updateBacklog.status === "playing" ||
 		updateBacklog.status === "completed" ||
-		updateBacklog.status === "abandoned"
+		updateBacklog.status === "abandoned" ||
+		updateBacklog.status === "endless"
 	) {
 		const deletedCount = await Queue.destroy({
 			where: { backlogId: id }
