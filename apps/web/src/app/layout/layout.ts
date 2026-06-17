@@ -13,8 +13,7 @@ import { UiIconButton } from "../shared/ui";
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
 import { AttributionFooter } from "../shared/components/attribution-footer/attribution-footer";
 import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
-
-const ONBOARDING_STORAGE_KEY = "completr.onboarding.done";
+import { OnboardingService } from "../core/services/onboarding.service";
 
 @Component({
 	selector: "app-layout",
@@ -33,6 +32,7 @@ export class Layout implements OnInit {
 	private readonly auth = inject(AuthService);
 	private readonly router = inject(Router);
 	private readonly route = inject(ActivatedRoute);
+	protected readonly onboarding = inject(OnboardingService);
 
 	protected readonly user = this.auth.user;
 	protected readonly showAttribution = signal(false);
@@ -42,7 +42,6 @@ export class Layout implements OnInit {
 		return role === "moderator" || role === "admin";
 	});
 	protected readonly sidebarOpen = signal(false);
-	protected readonly showOnboarding = signal(false);
 
 	protected readonly roleBadge = computed(() => {
 		const map: Record<string, string> = {
@@ -84,20 +83,20 @@ export class Layout implements OnInit {
 
 	private maybeStartOnboarding() {
 		if (!this.user()) return;
-		if (typeof localStorage === "undefined") return;
-		if (localStorage.getItem(ONBOARDING_STORAGE_KEY) === "1") return;
-		this.showOnboarding.set(true);
+		this.onboarding.maybeStartForFirstTime();
 	}
 
 	openOnboarding() {
-		this.showOnboarding.set(true);
+		this.onboarding.open();
 	}
 
 	dismissOnboarding(persist: boolean) {
-		this.showOnboarding.set(false);
-		if (persist && typeof localStorage !== "undefined") {
-			localStorage.setItem(ONBOARDING_STORAGE_KEY, "1");
-		}
+		this.onboarding.dismiss(persist);
+	}
+
+	goToHelp() {
+		this.onboarding.dismiss(true);
+		this.router.navigate(["/help"]);
 	}
 
 	private computeShowAttribution(): boolean {

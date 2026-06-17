@@ -323,9 +323,10 @@
 
 <app-toast-container />
 
-@if (showOnboarding()) {
+@if (onboarding.isOpen()) {
 	<app-onboarding-tour
 		(done)="dismissOnboarding(true)"
 		(skip)="dismissOnboarding(true)"
+		(seeFullGuide)="goToHelp()"
 	/>
 }
