@@ -9,6 +9,7 @@ import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { AdminService, AdminUser } from "../admin.service";
 import { UiButton, UiIconButton, UiInput, UiPagination } from "../../../shared/ui";
+import { formatValidationIssues } from "../../../core/utils/validation-issues.util";
 
 interface CreateUserRequest {
 	username: string;
@@ -115,7 +116,8 @@ export class AdminUsers implements OnInit {
 			},
 			error: err => {
 				this.createError.set(
-					err.error?.detail ||
+					formatValidationIssues(err) ||
+						err.error?.detail ||
 						err.error?.title ||
 						"Failed to create user"
 				);
@@ -176,7 +178,8 @@ export class AdminUsers implements OnInit {
 			},
 			error: err => {
 				this.editError.set(
-					err.error?.detail ||
+					formatValidationIssues(err) ||
+						err.error?.detail ||
 						err.error?.title ||
 						"Failed to update user"
 				);

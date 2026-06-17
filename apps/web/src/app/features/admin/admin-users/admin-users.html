@@ -86,7 +86,7 @@
 		</div>
 
 		@if (createError()) {
-		<div class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem]">{{ createError() }}</div>
+		<div class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem] whitespace-pre-line">{{ createError() }}</div>
 		}
 
 		<form (ngSubmit)="submitCreate()">
@@ -215,7 +215,7 @@
 		</div>
 
 		@if (editError()) {
-		<div class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem]">{{ editError() }}</div>
+		<div class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem] whitespace-pre-line">{{ editError() }}</div>
 		}
 
 		<form (ngSubmit)="submitEdit()">
