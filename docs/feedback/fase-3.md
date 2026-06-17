@@ -40,10 +40,11 @@
 
 ### [FB-006] Boton de favorito en backlog, game-shelf y queue
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Me gustaria poder agregar juegos a favoritos desde el backlog, gameshelf y queue."
 - **Contexto:** Hoy el unico lugar para marcar favorito es la ficha del juego (`/games/:code`, estrella arriba a la derecha). Desde las vistas de lista no hay acceso rapido. `FavoritesService.toggle(gameId)` ya existe en el frontend.
 - **Solucion propuesta:** Estrella inline en cada card/row de `backlog-list`, `game-shelf-list`, `queue-view` (y opcionalmente `wishlist-view`). Importar `FavoritesService` en cada componente, exponer `isFavorite(gameId)` y `toggleFavorite(gameId)`. UX: toggle optimista, icono `star` (amarillo) vs `star_border` (gris). Considerar tambien si extender el patron a las cards publicas del perfil de otro user (`user-backlog`, `user-favorites`, etc.) cuando el viewer esta logueado. Evaluar si el endpoint actual (`PUT /users/me/favorites` con array completo de IDs) es suficiente para uso intensivo, o si conviene agregar `POST /users/me/favorites/:gameId` y `DELETE /users/me/favorites/:gameId` para acciones atomicas.
+- **Resolucion:** Estrella inline agregada en `backlog-list` (diary + hardcore), `queue-view` (via `QueueGridCard`), `game-shelf-list` (grid + table) y `wishlist-view`. `FavoritesService` extendido con un Set reactivo `_favoriteIds` y `ensureIdsLoaded()` para cargar todos los IDs una vez por sesion (limit 100). El toggle ahora aplica update optimista sobre el Set, hace revert en error, y respalda con el `PUT /users/me/favorites` existente. Endpoints atomicos diferidos hasta ver races reales en produccion.
 
 ### [FB-007] Reviews puntuables (helpful votes)
 
