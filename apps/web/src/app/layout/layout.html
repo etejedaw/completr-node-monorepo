@@ -287,26 +287,15 @@
 					</a>
 				</div>
 				<div class="mx-2 mt-2 h-px bg-line"></div>
-				<div class="mt-1 flex items-center justify-center gap-1">
-					<a
-						routerLink="/help"
-						routerLinkActive="!text-brand"
-						class="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-fg-muted no-underline transition hover:text-brand"
-						title="Help & glossary"
-					>
-						<span class="material-icons text-base">help_outline</span>
-						<span class="text-[0.6875rem] uppercase tracking-wider">Help</span>
-					</a>
-					<button
-						type="button"
-						class="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-brand"
-						(click)="openOnboarding()"
-						title="Take the tour again"
-					>
-						<span class="material-icons text-base">tour</span>
-						<span class="text-[0.6875rem] uppercase tracking-wider">Tour</span>
-					</button>
-				</div>
+				<a
+					routerLink="/help"
+					routerLinkActive="!text-brand"
+					class="mt-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-fg-muted no-underline transition hover:text-brand"
+					title="Help, glossary and quick tour"
+				>
+					<span class="material-icons text-base">help_outline</span>
+					<span class="text-[0.6875rem] uppercase tracking-wider">Help</span>
+				</a>
 			</div>
 
 		</div>

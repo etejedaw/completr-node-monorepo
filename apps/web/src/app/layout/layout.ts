@@ -86,10 +86,6 @@ export class Layout implements OnInit {
 		this.onboarding.maybeStartForFirstTime();
 	}
 
-	openOnboarding() {
-		this.onboarding.open();
-	}
-
 	dismissOnboarding(persist: boolean) {
 		this.onboarding.dismiss(persist);
 	}
