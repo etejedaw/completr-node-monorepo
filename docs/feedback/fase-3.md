@@ -7,12 +7,12 @@
 
 ## Resumen de avance
 
-- **Resueltos (17):** FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-026, FB-027, FB-029, FB-030, FB-032, FB-033.
+- **Resueltos (18):** FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-025, FB-026, FB-027, FB-029, FB-030, FB-032, FB-033.
 - **Diferidos a fases futuras (4):** FB-001 (premium), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
 - **Descartados/omitidos (2):** FB-015 (descartado tras prototipar), FB-018 (omitido, baja prioridad).
-- **Pendientes (11):** FB-002, FB-003, FB-004, FB-005, FB-010, FB-021, FB-022, FB-025, FB-028, FB-031, FB-034.
+- **Pendientes (10):** FB-002, FB-003, FB-004, FB-005, FB-010, FB-021, FB-022, FB-028, FB-031, FB-034.
 
-Prioridad sugerida para la siguiente sesion: FB-025 (paginacion de reviews del perfil), seguido de FB-028 (Recent Activity al final del perfil) y FB-031 (vista completa de Completions).
+Prioridad sugerida para la siguiente sesion: FB-028 (Recent Activity al final del perfil), seguido de FB-031 (vista completa de Completions) y FB-004 (promover RAWG tags a generos).
 
 ---
 
@@ -200,9 +200,10 @@ Prioridad sugerida para la siguiente sesion: FB-025 (paginacion de reviews del p
 
 ### [FB-025] Seccion "Reviews" del perfil limitada a 5 entradas sin paginacion
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Al ver un perfil de usuario, la seccion "Reviews" muestra como maximo 5 entradas aunque el usuario tenga mas reviews escritas. No hay forma de ver el resto (ni paginacion, ni "ver mas", ni link a una vista completa).
 - **Solucion propuesta:** Decidir entre: (a) convertir la seccion en una preview con boton/link "Ver todas" que abre una vista completa paginada de reviews del usuario, (b) agregar paginacion/scroll infinito inline en la seccion del perfil, o (c) aumentar el limite y mostrar todas con scroll. Opcion (a) es la mas consistente con el resto del perfil (backlog, highlights, etc.). Backend: revisar si el endpoint actual ya pagina o si esta hardcodeado a `limit: 5`; exponer query params estandar (`page`, `pageSize`) si falta. Frontend: nueva ruta `/user/:username/reviews` o tab dedicada. Respetar visibilidad del perfil/reviews (ver FB-003 cuando se implemente).
+- **Resolucion:** El reporte real apuntaba al tile "Reviews" del grid de stats (junto a Completed/Playing/Lists), no al tab de reviews. El tile mostraba `userReviews().length` (siempre 5 porque el preview se carga con `limit=5`), aunque el endpoint ya devolvia `total`. Fix: el computed `stats.reviews` en `PublicProfileComponent` ahora usa `userReviewsTotal()` — consistente con `stats.lists = listsTotal`. La paginacion en `/user/:username/reviews` ya existia desde FB-026.
 
 ### [FB-026] Vista de reviews del perfil excluye entradas con solo nota (sin texto)
 
