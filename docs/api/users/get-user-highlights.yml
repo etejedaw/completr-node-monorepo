@@ -10,6 +10,14 @@ http:
         - name: username
           type: path
           value: ""
+        - name: year
+          type: query
+          value: ""
+          enabled: false
+        - name: month
+          type: query
+          value: ""
+          enabled: false
 
 settings:
     encodeUrl: true
@@ -33,6 +41,15 @@ docs: |-
     | Param    | Type   | Required | Description       |
     |----------|--------|----------|-------------------|
     | username | string | Yes      | Profile username  |
+
+    ### Query Params
+
+    | Param | Type    | Required | Description                                                                  |
+    |-------|---------|----------|------------------------------------------------------------------------------|
+    | year  | integer | No*      | 4-digit year (1970-9999). Default: current UTC year.                         |
+    | month | integer | No*      | 1-12. Default: current UTC month.                                            |
+
+    *`year` and `month` must be provided together. `recent` always returns the latest 6 completions regardless of the month selected.
 
     ### Response (200)
 

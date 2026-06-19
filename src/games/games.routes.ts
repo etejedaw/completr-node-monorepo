@@ -162,16 +162,6 @@ router.get(
 );
 
 router.get(
-	"/games/:id/stats",
-	[
-		authMiddleware(),
-		rateLimiterMiddleware(publicLimiter),
-		validateSchemaMiddleware(GameIdParamSchema, "params")
-	],
-	gamesController.getGameStats
-);
-
-router.get(
 	"/games/:id/friends-activity",
 	[
 		authMiddleware(),

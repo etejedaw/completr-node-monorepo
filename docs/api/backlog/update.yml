@@ -46,7 +46,7 @@ docs: |-
 
     | Field        | Type   | Required | Description                                |
     |--------------|--------|----------|--------------------------------------------|
-    | status       | string | No       | not_started, playing, completed, abandoned |
+    | status       | string | No       | not_started, playing, completed, abandoned, endless |
     | startedAt    | date   | No       | ISO date                                   |
     | finishedAt   | date   | No       | ISO date                                   |
     | realDuration | number | No       | Duration in hours                          |

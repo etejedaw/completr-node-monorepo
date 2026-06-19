@@ -134,7 +134,7 @@ export async function getListProgress(
 		where: {
 			userId,
 			gameId: { [Op.in]: gameIds },
-			status: { [Op.in]: ["completed", "abandoned"] },
+			status: { [Op.in]: ["completed", "abandoned", "endless"] },
 			...(publicOnly ? { isPublic: true } : {})
 		},
 		distinct: true,

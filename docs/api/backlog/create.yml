@@ -37,7 +37,7 @@ docs: |-
     | platformId   | uuid   | Yes      | The platform UUID                                |
     | score        | number | Yes      | Average score for the game                       |
     | duration     | number | Yes      | Average duration in hours                        |
-    | status       | string | No       | not_started, playing, completed, abandoned       |
+    | status       | string | No       | not_started, playing, completed, abandoned, endless |
     | startedAt    | date   | No       | ISO date                                         |
     | finishedAt   | date   | No       | ISO date                                         |
     | realDuration | number | No       | Duration in hours                                |

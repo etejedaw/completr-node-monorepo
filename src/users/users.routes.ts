@@ -1,7 +1,11 @@
 import { Router } from "express";
 import * as usersController from "./users.controller";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { UpdateUserSchema, UsernameParamSchema } from "./schemas";
+import {
+	HighlightsQuerySchema,
+	UpdateUserSchema,
+	UsernameParamSchema
+} from "./schemas";
 import { RegisterSchema } from "../auth/schemas";
 import { UserSearchQuerySchema } from "./schemas/user-search-query.schema";
 import { UserDiscoverQuerySchema } from "./schemas/user-discover-query.schema";
@@ -230,9 +234,21 @@ router.get(
 	[
 		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
-		validateSchemaMiddleware(UsernameParamSchema, "params")
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(HighlightsQuerySchema, "query")
 	],
 	usersController.getUserHighlights
+);
+
+router.get(
+	"/users/:username/completions",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
+	],
+	usersController.getUserCompletions
 );
 
 router.get(

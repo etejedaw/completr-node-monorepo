@@ -5,6 +5,9 @@ import { User } from "../users/user.model";
 import * as reviewsServiceError from "./errors/reviews.service-error";
 
 const hasContent = literal(`"content" IS NOT NULL AND btrim("content") <> ''`);
+const hasContentOrRating = literal(
+	`(("content" IS NOT NULL AND btrim("content") <> '') OR "rating" IS NOT NULL)`
+);
 
 export async function createReview(
 	userId: string,
@@ -40,7 +43,7 @@ export async function findReviewsByGameId(gameId: string) {
 
 export async function findReviewsByUserId(userId: string) {
 	return Review.findAll({
-		where: { userId, [Op.and]: hasContent },
+		where: { userId, [Op.and]: hasContentOrRating },
 		include: [{ model: Game }],
 		order: [["createdAt", "DESC"]]
 	});
@@ -52,7 +55,7 @@ export async function findReviewsByUserIdPaginated(
 ) {
 	const { limit = 50, offset = 0 } = options;
 	return Review.findAndCountAll({
-		where: { userId, [Op.and]: hasContent },
+		where: { userId, [Op.and]: hasContentOrRating },
 		include: [{ model: Game }],
 		order: [["createdAt", "DESC"]],
 		limit,

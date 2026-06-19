@@ -9,6 +9,7 @@ export const ACTIVITY_TYPES = [
 	"backlog_added",
 	"backlog_completed",
 	"backlog_abandoned",
+	"backlog_endless",
 	"backlog_playing",
 	"backlog_not_started",
 	"queue_added",

@@ -266,34 +266,7 @@ export async function countBacklogByStatus(userId: string, publicOnly = false) {
 		playing: 0,
 		completed: 0,
 		abandoned: 0,
-		total: 0
-	};
-	for (const row of rows) {
-		const n = Number(row.count);
-		if (row.status in result) {
-			result[row.status as keyof typeof result] = n;
-		}
-		result.total += n;
-	}
-	return result;
-}
-
-export async function countBacklogByStatusForGame(gameId: string) {
-	const rows = (await Backlog.findAll({
-		where: { gameId },
-		attributes: [
-			"status",
-			[sequelize.fn("COUNT", sequelize.col("id")), "count"]
-		],
-		group: ["status"],
-		raw: true
-	})) as unknown as { status: string; count: string }[];
-
-	const result = {
-		not_started: 0,
-		playing: 0,
-		completed: 0,
-		abandoned: 0,
+		endless: 0,
 		total: 0
 	};
 	for (const row of rows) {
@@ -386,14 +359,16 @@ export async function findCommonCompletedGames(
 export async function findHighlightsByUserId(
 	userId: string,
 	includePrivate: boolean,
-	recentLimit = 6
+	options: { recentLimit?: number; year?: number; month?: number } = {}
 ) {
+	const { recentLimit = 6 } = options;
 	const now = new Date();
-	const monthStart = new Date(
-		Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
-	);
+	const targetYear = options.year ?? now.getUTCFullYear();
+	const targetMonth =
+		options.month !== undefined ? options.month - 1 : now.getUTCMonth();
+	const monthStart = new Date(Date.UTC(targetYear, targetMonth, 1));
 	const monthEnd = new Date(
-		Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)
+		Date.UTC(targetYear, targetMonth + 1, 0, 23, 59, 59, 999)
 	);
 
 	const baseWhere: Record<string, unknown> = {
@@ -450,6 +425,31 @@ export async function findHighlightsByUserId(
 	};
 }
 
+export async function findCompletionsByUserIdPaginated(
+	userId: string,
+	includePrivate: boolean,
+	options: { limit?: number; offset?: number } = {}
+) {
+	const { limit = 20, offset = 0 } = options;
+	const where: Record<string, unknown> = {
+		userId,
+		status: "completed",
+		finishedAt: { [Op.ne]: null }
+	};
+	if (!includePrivate) where.isPublic = true;
+
+	const { rows, count } = await Backlog.findAndCountAll({
+		where,
+		include: backlogInclude,
+		order: [["finishedAt", "DESC"]],
+		limit,
+		offset,
+		distinct: true
+	});
+
+	return { rows, total: count };
+}
+
 export async function findPublicBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}
@@ -492,7 +492,8 @@ export async function updateBacklog(
 	if (
 		updateBacklog.status === "playing" ||
 		updateBacklog.status === "completed" ||
-		updateBacklog.status === "abandoned"
+		updateBacklog.status === "abandoned" ||
+		updateBacklog.status === "endless"
 	) {
 		const deletedCount = await Queue.destroy({
 			where: { backlogId: id }

@@ -21,7 +21,7 @@ import {
 	listSerializer
 } from "../lists/lists.serializer";
 import { activitySerializer } from "../activity/activity.serializer";
-import { UsernameParam } from "./schemas";
+import { UsernameParam, HighlightsQuery } from "./schemas";
 import { UpdateUserDto } from "./dtos";
 import { RegisterDto } from "../auth/dtos";
 import { UserSearchQuery } from "./schemas/user-search-query.schema";
@@ -95,7 +95,9 @@ export async function getUserByUsername(request: Request, response: Response) {
 			? listsService.countListsByUserId(userId, !isSelf)
 			: Promise.resolve(0),
 		isSelf || user.isFeedPublic
-			? activityService.getUserActivity(userId)
+			? activityService.getUserActivity(userId, 10, {
+					includeSocial: isSelf
+				})
 			: Promise.resolve([]),
 		userFollowersService.getFollowerCount(userId),
 		userFollowersService.getFollowingCount(userId),
@@ -303,6 +305,7 @@ export async function getUserListDetail(request: Request, response: Response) {
 
 export async function getUserHighlights(request: Request, response: Response) {
 	const params = request.locals.params as UsernameParam;
+	const query = request.locals.query as HighlightsQuery;
 	const currentUser = request.locals.user as RequestUser | undefined;
 
 	const user = await usersService.findUserByUsername(params.username);
@@ -314,7 +317,8 @@ export async function getUserHighlights(request: Request, response: Response) {
 
 	const highlights = await backlogService.findHighlightsByUserId(
 		user.id,
-		isSelf
+		isSelf,
+		{ year: query.year, month: query.month }
 	);
 
 	const serialize = (entry: (typeof highlights.recent)[number] | null) => {
@@ -336,6 +340,45 @@ export async function getUserHighlights(request: Request, response: Response) {
 				highestRated: serialize(highlights.month.highestRated)
 			}
 		}
+	};
+	return response.status(200).json({ data });
+}
+
+export async function getUserCompletions(request: Request, response: Response) {
+	const params = request.locals.params as UsernameParam;
+	const query = request.locals.query as PaginationQuery;
+	const currentUser = request.locals.user as RequestUser | undefined;
+
+	const user = await usersService.findUserByUsername(params.username);
+	if (!user) throw userDomain.userNotFound();
+
+	const isSelf = currentUser?.id === user.id;
+	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
+	if (!user.isBacklogPublic && !isSelf) throw userDomain.userPrivate();
+
+	const { rows, total } =
+		await backlogService.findCompletionsByUserIdPaginated(user.id, isSelf, {
+			limit: query.limit,
+			offset: query.offset
+		});
+
+	const plainRows = rows.map(r => r.get({ plain: true }));
+	const gameIds = plainRows
+		.map(r => r.Game?.id)
+		.filter((id): id is string => Boolean(id));
+	const reviewMap = await reviewsService.findReviewContentByUserAndGameIds(
+		user.id,
+		gameIds
+	);
+
+	const data = {
+		completions: plainRows.map(r => {
+			const review = r.Game ? (reviewMap.get(r.Game.id) ?? null) : null;
+			return isSelf
+				? backlogSerializer(r, review)
+				: backlogPublicSerializer(r, review);
+		}),
+		total
 	};
 	return response.status(200).json({ data });
 }

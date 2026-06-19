@@ -50,7 +50,7 @@ docs: |-
     | sort_by       | string | No       | Sort field: `title`, `status`, `score`, `duration`, `startedAt`, `finishedAt`, `realDuration`, `userRating`, `createdAt`, `ratio`, `personalRatio` (default: `createdAt`) |
     | sort_order    | string | No       | Sort direction: `asc` or `desc` (default: `desc`)                          |
 
-    **Valid statuses:** `not_started`, `playing`, `completed`, `abandoned`
+    **Valid statuses:** `not_started`, `playing`, `completed`, `abandoned`, `endless`
 
     ### Response (200)
 

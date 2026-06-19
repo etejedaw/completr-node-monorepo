@@ -50,7 +50,7 @@ docs: |-
     }
     ```
 
-    `status` is one of `not_started | playing | completed | abandoned`. `avatarUrl`, `finishedAt`, and `userRating` may be `null`.
+    `status` is one of `not_started | playing | completed | abandoned | endless`. `avatarUrl`, `finishedAt`, and `userRating` may be `null`.
 
     ### Errors
 
