@@ -306,7 +306,10 @@ export async function findFriendsActivityForGame(
 		include: [
 			{
 				model: User,
-				where: { isPublic: true, isBacklogPublic: true },
+				where: {
+					profileVisibility: { [Op.in]: ["public", "friends"] },
+					backlogVisibility: { [Op.in]: ["public", "friends"] }
+				},
 				attributes: ["id", "username", "name", "avatarUrl"]
 			}
 		],

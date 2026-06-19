@@ -8,6 +8,7 @@ export interface RawgGameSearchResult {
 	rating: number;
 	playtime: number;
 	genres: RawgGenre[];
+	tags: RawgTag[];
 	platforms: RawgPlatformWrapper[];
 }
 
@@ -20,6 +21,13 @@ export interface RawgGenre {
 	id: number;
 	name: string;
 	slug: string;
+}
+
+export interface RawgTag {
+	id: number;
+	name: string;
+	slug: string;
+	language?: string;
 }
 
 export interface RawgPlatformWrapper {

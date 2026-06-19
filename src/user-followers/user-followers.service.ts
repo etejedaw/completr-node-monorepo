@@ -1,20 +1,8 @@
+import { Op } from "sequelize";
 import { UserFollower } from "./user-follower.model";
 import { User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import * as serviceError from "./errors/user-followers.service-error";
-
-export async function follow(followerId: string, username: string) {
-	const target = await usersService.findUserByUsername(username);
-	if (!target) throw serviceError.userNotFoundError();
-	if (target.id === followerId) throw serviceError.cannotFollowSelfError();
-
-	const existing = await UserFollower.findOne({
-		where: { followerId, followingId: target.id }
-	});
-	if (existing) throw serviceError.alreadyFollowingError();
-
-	return UserFollower.create({ followerId, followingId: target.id });
-}
 
 export async function unfollow(followerId: string, username: string) {
 	const target = await usersService.findUserByUsername(username);
@@ -26,6 +14,14 @@ export async function unfollow(followerId: string, username: string) {
 	if (!existing) throw serviceError.notFollowingError();
 
 	await existing.destroy();
+}
+
+export async function createFollow(followerId: string, followingId: string) {
+	return UserFollower.create({ followerId, followingId });
+}
+
+export async function findFollow(followerId: string, followingId: string) {
+	return UserFollower.findOne({ where: { followerId, followingId } });
 }
 
 export async function getFollowers(username: string) {
@@ -83,4 +79,18 @@ export async function isFollowing(followerId: string, followingId: string) {
 		where: { followerId, followingId }
 	});
 	return !!existing;
+}
+
+export async function areMutualFollowers(a: string, b: string) {
+	if (a === b) return false;
+	const rows = await UserFollower.findAll({
+		where: {
+			[Op.or]: [
+				{ followerId: a, followingId: b },
+				{ followerId: b, followingId: a }
+			]
+		},
+		attributes: ["followerId", "followingId"]
+	});
+	return rows.length === 2;
 }

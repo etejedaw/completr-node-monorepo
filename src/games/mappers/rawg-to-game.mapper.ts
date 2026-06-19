@@ -4,6 +4,7 @@ import { RawgGameDetail } from "../../rawg/rawg.interface";
 import { RegisterGameDto } from "../dtos/register-game.dto";
 import { mapRawgPlatformSlugs } from "./rawg-platform.map";
 import { mapRawgGenreSlugs } from "./rawg-genre.map";
+import { mapRawgTagSlugsToGenres } from "./rawg-tag-genre.map";
 
 export interface GameScoreEntry {
 	source: ScoreSourceCode;
@@ -39,7 +40,7 @@ export function rawgToGameMapper(rawgGame: RawgGameDetail): RawgMappedData {
 		enrichment: {
 			scores: mapScores(rawgGame.metacritic, rawgGame.rating),
 			times: mapTimes(rawgGame.playtime),
-			genreSlugs: mapRawgGenreSlugs(rawgGame.genres.map(g => g.slug))
+			genreSlugs: mapGenres(rawgGame)
 		}
 	};
 }
@@ -62,4 +63,13 @@ function mapTimes(playtime: number): GameTimeEntry[] {
 function mapPlatforms(platforms: RawgGameDetail["platforms"]): string[] {
 	const slugs = platforms.map(p => p.platform.slug);
 	return mapRawgPlatformSlugs(slugs);
+}
+
+function mapGenres(rawgGame: RawgGameDetail): string[] {
+	const fromGenres = mapRawgGenreSlugs(rawgGame.genres.map(g => g.slug));
+	const tagSlugs = (rawgGame.tags ?? [])
+		.filter(t => !t.language || t.language === "eng")
+		.map(t => t.slug);
+	const fromTags = mapRawgTagSlugsToGenres(tagSlugs);
+	return Array.from(new Set([...fromGenres, ...fromTags]));
 }

@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import * as backlogService from "./backlog.service";
 import * as usersService from "../users/users.service";
 import * as userDomainError from "../users/errors/users.domain-error";
+import { canView } from "../users/visibility.helper";
 import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import { BacklogIdParams } from "./schemas/backlog-id-params.schema";
@@ -72,8 +73,10 @@ export async function getUserBacklog(request: Request, response: Response) {
 	const currentUser = request.locals.user as RequestUser | undefined;
 	const isSelf = currentUser?.id === user.id;
 
-	if (!user.isPublic && !isSelf) throw userDomainError.userPrivate();
-	if (!isSelf && !user.isBacklogPublic) throw userDomainError.userPrivate();
+	if (!(await canView(currentUser?.id, user, "profile")))
+		throw userDomainError.userPrivate();
+	if (!(await canView(currentUser?.id, user, "backlog")))
+		throw userDomainError.userPrivate();
 
 	const { rows, total } = isSelf
 		? await backlogService.findBacklogByUserId(user.id, query)

@@ -22,6 +22,7 @@ import "../score-sources/score-source.model";
 import "../auth/refresh-token.model";
 import "../game-reports/game-report.model";
 import "../user-followers/user-follower.model";
+import "../user-follow-requests/user-follow-request.model";
 import "../activity/activity.model";
 import "../activity/targets/activity-game.model";
 import "../activity/targets/activity-list.model";

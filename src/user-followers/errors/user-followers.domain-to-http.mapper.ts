@@ -18,12 +18,6 @@ export function userFollowersDomainToHttpMapper(
 	if (error.code === "USER_FOLLOWER_USER_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
-	if (error.code === "USER_FOLLOWER_CANNOT_FOLLOW_SELF")
-		return new HttpError({ ...baseOptions, status: 400 });
-
-	if (error.code === "USER_FOLLOWER_ALREADY_FOLLOWING")
-		return new HttpError({ ...baseOptions, status: 409 });
-
 	if (error.code === "USER_FOLLOWER_NOT_FOLLOWING")
 		return new HttpError({ ...baseOptions, status: 404 });
 
