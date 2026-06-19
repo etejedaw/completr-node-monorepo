@@ -7,12 +7,12 @@
 
 ## Resumen de avance
 
-- **Resueltos (18):** FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-025, FB-026, FB-027, FB-029, FB-030, FB-032, FB-033.
+- **Resueltos (19):** FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-032, FB-033.
 - **Diferidos a fases futuras (4):** FB-001 (premium), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
 - **Descartados/omitidos (2):** FB-015 (descartado tras prototipar), FB-018 (omitido, baja prioridad).
-- **Pendientes (10):** FB-002, FB-003, FB-004, FB-005, FB-010, FB-021, FB-022, FB-028, FB-031, FB-034.
+- **Pendientes (9):** FB-002, FB-003, FB-004, FB-005, FB-010, FB-021, FB-022, FB-031, FB-034.
 
-Prioridad sugerida para la siguiente sesion: FB-028 (Recent Activity al final del perfil), seguido de FB-031 (vista completa de Completions) y FB-004 (promover RAWG tags a generos).
+Prioridad sugerida para la siguiente sesion: FB-031 (vista completa de Completions), seguido de FB-004 (promover RAWG tags a generos) y bloque social/privacidad (FB-021/FB-022/FB-002/FB-003).
 
 ---
 
@@ -222,9 +222,11 @@ Prioridad sugerida para la siguiente sesion: FB-028 (Recent Activity al final de
 
 ### [FB-028] Mover Recent Activity al final del perfil con layout estilo timeline
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** El perfil acumula bastante informacion (header, highlights, backlog, reviews, listas, etc.) y la seccion Recent Activity compite por espacio vertical en la parte alta. Conviene moverla al final como cierre del perfil. Al quedar abajo y tener mas ancho disponible, se puede aprovechar para presentarla en formato timeline — similar al feed global — reutilizando los iconos por tipo de activity que ya existen.
 - **Solucion propuesta:** Reordenar las secciones del perfil publico para que Recent Activity quede al final (debajo de highlights/backlog/reviews/listas). Rediseno visual de la lista: layout vertical tipo timeline con linea conectora a la izquierda, icono por tipo de activity (mismos que el feed: `bookmark_add`, `play_arrow`, `check_circle`, `all_inclusive`, etc.) y fecha relativa a la derecha. Aprovechar el ancho completo del contenedor ahora que no compite con sidebar de highlights. Mantener la misma fuente de datos (`GET /users/:username/activity` o equivalente) y respetar visibilidad (`isFeedPublic`). Coordinar con FB-027 (si Highlights es el tab por defecto, Recent Activity puede vivir como seccion dentro de otro tab o como ultima seccion del scroll principal).
+- **Resolucion:** Frontend-only en `PublicProfileComponent`. Eliminado el sidebar `<aside lg:block lg:sticky>` y el tab "Activity" del `ui-tabs` (incluido el wrapper `lg:grid lg:grid-cols-[320px_1fr]`). Nueva `<section>` al pie del perfil (despues de los tabs, antes del CTA "Sign in") con layout timeline: `<ol>` con `border-l border-line ml-3`, cada item un `<li>` con dot circular superpuesto (`absolute -left-[13px]`) que rendea el icono y color via los helpers `activityIcon()` y `activityIconColorClass()` ya existentes (mismos del feed global). Slice subio a 20 items (antes 15 sidebar / 10 tab). `pickDefaultTab` simplificado: ya no fallback a "activity" (el tab no existe); el handler de resize tampoco hace swap entre activity y otros tabs. La seccion solo aparece si `isFeedPublic` y hay activity — sin ruido para perfiles vacios.
+- **Iteracion visual (2 columnas + Highlights condicional):** Tras feedback de que el timeline solo dejaba mucho aire a la derecha y el bloque mes vacio en Highlights se veia raro: (a) la `<section>` ahora usa `lg:grid lg:grid-cols-[1fr_320px]` con la timeline a la izquierda y un `<aside lg:sticky>` a la derecha con card "Followers" (avatares de los primeros 8 followers + "View all N" que abre el modal existente + linea "Member since"). Followers se carga lazy desde `loadProfile` solo si `isFeedPublic` y hay activity. (b) En Highlights, cuando `month.completedCount === 0` ya no se muestra el `<p>` "Nothing completed this month" — el header con "0 completed" + flechas de mes ya es suficiente, asi que el shell vacio desaparece.
 
 ### [FB-029] Activity "started following you" no deberia aparecer en el feed global
 
