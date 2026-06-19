@@ -117,7 +117,10 @@ export async function getFeed(userId: string, limit = 25, offset = 0) {
 				where: {
 					[Op.or]: [
 						{ id: userId },
-						{ isPublic: true, isFeedPublic: true }
+						{
+							profileVisibility: "public",
+							feedVisibility: "public"
+						}
 					]
 				}
 			},

@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { USER_ROLES, UserRole } from "./user-role.type";
+import { VISIBILITY_LEVELS, VisibilityLevel } from "./visibility.constants";
 
 class User extends Model {
 	declare id: string;
@@ -11,20 +12,26 @@ class User extends Model {
 	declare name: string;
 	declare bio?: string;
 	declare avatarUrl?: string;
-	declare isPublic: boolean;
-	declare isQueuePublic: boolean;
-	declare isWishlistPublic: boolean;
-	declare isFavoritePublic: boolean;
-	declare isFeedPublic: boolean;
-	declare isBacklogPublic: boolean;
-	declare isShelfPublic: boolean;
-	declare isListPublic: boolean;
+	declare profileVisibility: VisibilityLevel;
+	declare queueVisibility: VisibilityLevel;
+	declare wishlistVisibility: VisibilityLevel;
+	declare favoriteVisibility: VisibilityLevel;
+	declare feedVisibility: VisibilityLevel;
+	declare backlogVisibility: VisibilityLevel;
+	declare shelfVisibility: VisibilityLevel;
+	declare listVisibility: VisibilityLevel;
 	declare acceptFollowRequests: boolean;
 	declare theme: string;
 	declare isActive: boolean;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
+
+const visibilityField = {
+	type: DataTypes.ENUM(...VISIBILITY_LEVELS),
+	allowNull: false,
+	defaultValue: "public" as VisibilityLevel
+};
 
 User.init(
 	{
@@ -56,38 +63,14 @@ User.init(
 		name: DataTypes.STRING(80),
 		bio: DataTypes.STRING(250),
 		avatarUrl: DataTypes.STRING,
-		isPublic: {
-			type: DataTypes.BOOLEAN,
-			defaultValue: true
-		},
-		isQueuePublic: {
-			type: DataTypes.BOOLEAN,
-			defaultValue: true
-		},
-		isWishlistPublic: {
-			type: DataTypes.BOOLEAN,
-			defaultValue: true
-		},
-		isFavoritePublic: {
-			type: DataTypes.BOOLEAN,
-			defaultValue: true
-		},
-		isFeedPublic: {
-			type: DataTypes.BOOLEAN,
-			defaultValue: true
-		},
-		isBacklogPublic: {
-			type: DataTypes.BOOLEAN,
-			defaultValue: true
-		},
-		isShelfPublic: {
-			type: DataTypes.BOOLEAN,
-			defaultValue: true
-		},
-		isListPublic: {
-			type: DataTypes.BOOLEAN,
-			defaultValue: true
-		},
+		profileVisibility: visibilityField,
+		queueVisibility: visibilityField,
+		wishlistVisibility: visibilityField,
+		favoriteVisibility: visibilityField,
+		feedVisibility: visibilityField,
+		backlogVisibility: visibilityField,
+		shelfVisibility: visibilityField,
+		listVisibility: visibilityField,
 		acceptFollowRequests: {
 			type: DataTypes.BOOLEAN,
 			allowNull: false,

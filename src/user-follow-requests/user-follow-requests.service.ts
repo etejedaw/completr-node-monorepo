@@ -22,7 +22,8 @@ export async function createOrAcceptFollow(
 	);
 	if (existingFollow) throw serviceError.alreadyFollowingError();
 
-	const isGated = !target.isPublic && target.acceptFollowRequests;
+	const isGated =
+		target.profileVisibility === "private" && target.acceptFollowRequests;
 
 	if (!isGated) {
 		await userFollowersService.createFollow(requesterId, target.id);

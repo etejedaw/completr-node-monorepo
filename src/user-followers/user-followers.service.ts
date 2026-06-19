@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import { UserFollower } from "./user-follower.model";
 import { User } from "../users/user.model";
 import * as usersService from "../users/users.service";
@@ -78,4 +79,18 @@ export async function isFollowing(followerId: string, followingId: string) {
 		where: { followerId, followingId }
 	});
 	return !!existing;
+}
+
+export async function areMutualFollowers(a: string, b: string) {
+	if (a === b) return false;
+	const rows = await UserFollower.findAll({
+		where: {
+			[Op.or]: [
+				{ followerId: a, followingId: b },
+				{ followerId: b, followingId: a }
+			]
+		},
+		attributes: ["followerId", "followingId"]
+	});
+	return rows.length === 2;
 }

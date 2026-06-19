@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as usersService from "../users/users.service";
 import * as userDomainError from "../users/errors/users.domain-error";
+import { canView } from "../users/visibility.helper";
 import * as favoritesService from "./favorites.service";
 import { ReplaceFavoritesBody } from "./schemas/replace-favorites.schema";
 import { UsernameParam } from "../users/schemas/username-params.schema";
@@ -51,10 +52,11 @@ export async function getUserFavorites(request: Request, response: Response) {
 	if (!user) throw userDomainError.userNotFound();
 
 	const currentUser = request.locals.user as RequestUser | undefined;
-	const isSelf = currentUser?.id === user.id;
 
-	if (!user.isPublic && !isSelf) throw userDomainError.userPrivate();
-	if (!user.isFavoritePublic && !isSelf) throw userDomainError.userPrivate();
+	if (!(await canView(currentUser?.id, user, "profile")))
+		throw userDomainError.userPrivate();
+	if (!(await canView(currentUser?.id, user, "favorite")))
+		throw userDomainError.userPrivate();
 
 	const { rows, total } =
 		await favoritesService.findFavoritesByUserIdPaginated(user.id, query);

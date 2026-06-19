@@ -35,6 +35,7 @@ import * as auditService from "../audit/audit.service";
 import * as reviewsService from "../reviews/reviews.service";
 import { userReviewSerializer } from "../reviews/reviews.serializer";
 import * as userDomain from "./errors/users.domain-error";
+import { canView } from "./visibility.helper";
 
 // TODO: Mejorar escritura de código
 export async function getUserByUsername(request: Request, response: Response) {
@@ -48,7 +49,8 @@ export async function getUserByUsername(request: Request, response: Response) {
 	const currentUser = request.locals.user as RequestUser | undefined;
 	const isSelf = currentUser?.id === user.id;
 
-	if (!user.isPublic && !isSelf) {
+	const canViewProfile = await canView(currentUser?.id, user, "profile");
+	if (!canViewProfile) {
 		const [followerCount, followingCount, isFollowing, hasPendingRequest] =
 			await Promise.all([
 				userFollowersService.getFollowerCount(user.id),
@@ -67,6 +69,7 @@ export async function getUserByUsername(request: Request, response: Response) {
 		const data = {
 			user: userPublicSerializer(user.get({ plain: true })),
 			isPrivate: true,
+			profileVisibility: user.profileVisibility,
 			acceptFollowRequests: user.acceptFollowRequests,
 			followerCount,
 			followingCount,
@@ -77,6 +80,11 @@ export async function getUserByUsername(request: Request, response: Response) {
 	}
 
 	const userId = user.id;
+	const [canViewBacklog, canViewLists, canViewFeed] = await Promise.all([
+		canView(currentUser?.id, user, "backlog"),
+		canView(currentUser?.id, user, "list"),
+		canView(currentUser?.id, user, "feed")
+	]);
 
 	const [
 		backlogResult,
@@ -89,10 +97,10 @@ export async function getUserByUsername(request: Request, response: Response) {
 	] = await Promise.all([
 		isSelf
 			? backlogService.findBacklogByUserId(userId)
-			: user.isBacklogPublic
+			: canViewBacklog
 				? backlogService.findPublicBacklogByUserId(userId)
 				: Promise.resolve({ rows: [], total: 0 }),
-		isSelf || user.isBacklogPublic
+		canViewBacklog
 			? backlogService.countBacklogByStatus(userId, !isSelf)
 			: Promise.resolve({
 					not_started: 0,
@@ -101,10 +109,10 @@ export async function getUserByUsername(request: Request, response: Response) {
 					abandoned: 0,
 					total: 0
 				}),
-		isSelf || user.isListPublic
+		canViewLists
 			? listsService.countListsByUserId(userId, !isSelf)
 			: Promise.resolve(0),
-		isSelf || user.isFeedPublic
+		canViewFeed
 			? activityService.getUserActivity(userId, 10, {
 					includeSocial: isSelf
 				})
@@ -187,7 +195,7 @@ export async function searchUsers(request: Request, response: Response) {
 			username: u.username,
 			name: u.name,
 			avatarUrl: u.avatarUrl,
-			isPublic: u.isPublic
+			profileVisibility: u.profileVisibility
 		}))
 	};
 	return response.status(200).json({ data });
@@ -208,7 +216,7 @@ export async function getDiscoverUsers(request: Request, response: Response) {
 			username: u.username,
 			name: u.name,
 			avatarUrl: u.avatarUrl,
-			isPublic: u.isPublic
+			profileVisibility: u.profileVisibility
 		}))
 	};
 	return response.status(200).json({ data });
@@ -223,8 +231,10 @@ export async function getUserLists(request: Request, response: Response) {
 	const currentUser = request.locals.user as RequestUser | undefined;
 	const isSelf = currentUser?.id === user.id;
 
-	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
-	if (!isSelf && !user.isListPublic) throw userDomain.userPrivate();
+	if (!(await canView(currentUser?.id, user, "profile")))
+		throw userDomain.userPrivate();
+	if (!(await canView(currentUser?.id, user, "list")))
+		throw userDomain.userPrivate();
 
 	const lists = isSelf
 		? (await listsService.findListsByUserId(currentUser!)).lists
@@ -262,9 +272,8 @@ export async function getUserFollowingLists(
 	if (!user) throw userDomain.userNotFound();
 
 	const currentUser = request.locals.user as RequestUser | undefined;
-	const isSelf = currentUser?.id === user.id;
-
-	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
+	if (!(await canView(currentUser?.id, user, "profile")))
+		throw userDomain.userPrivate();
 
 	const { rows, total } =
 		await listFollowersService.getFollowingListsPaginated(user.id, query);
@@ -286,14 +295,15 @@ export async function getUserListDetail(request: Request, response: Response) {
 	const currentUser = request.locals.user as RequestUser | undefined;
 	const isSelf = currentUser?.id === user.id;
 
-	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
+	if (!(await canView(currentUser?.id, user, "profile")))
+		throw userDomain.userPrivate();
 
 	const list = await listsService.findListById(params.listId);
 	if (!list) throw userDomain.userNotFound();
 	if (!list.isPublic) throw userDomain.userNotFound();
 
 	const listPlain = list.get({ plain: true });
-	const canSeeProgress = isSelf || user.isBacklogPublic;
+	const canSeeProgress = await canView(currentUser?.id, user, "backlog");
 	const publicOnly = !isSelf;
 	const gameIds = (list.ListItems ?? []).map(i => i.gameId);
 	const [followerCount, backlogSummaryMap, progress] = await Promise.all([
@@ -329,8 +339,10 @@ export async function getUserHighlights(request: Request, response: Response) {
 	if (!user) throw userDomain.userNotFound();
 
 	const isSelf = currentUser?.id === user.id;
-	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
-	if (!user.isBacklogPublic && !isSelf) throw userDomain.userPrivate();
+	if (!(await canView(currentUser?.id, user, "profile")))
+		throw userDomain.userPrivate();
+	if (!(await canView(currentUser?.id, user, "backlog")))
+		throw userDomain.userPrivate();
 
 	const highlights = await backlogService.findHighlightsByUserId(
 		user.id,
@@ -370,8 +382,10 @@ export async function getUserCompletions(request: Request, response: Response) {
 	if (!user) throw userDomain.userNotFound();
 
 	const isSelf = currentUser?.id === user.id;
-	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
-	if (!user.isBacklogPublic && !isSelf) throw userDomain.userPrivate();
+	if (!(await canView(currentUser?.id, user, "profile")))
+		throw userDomain.userPrivate();
+	if (!(await canView(currentUser?.id, user, "backlog")))
+		throw userDomain.userPrivate();
 
 	const { rows, total } =
 		await backlogService.findCompletionsByUserIdPaginated(user.id, isSelf, {
@@ -413,7 +427,11 @@ export async function getUserGamesInCommon(
 	if (user.id === currentUser.id) {
 		return response.status(200).json({ data: { games: [], total: 0 } });
 	}
-	if (!user.isPublic || !user.isBacklogPublic) throw userDomain.userPrivate();
+	const [okProfile, okBacklog] = await Promise.all([
+		canView(currentUser.id, user, "profile"),
+		canView(currentUser.id, user, "backlog")
+	]);
+	if (!okProfile || !okBacklog) throw userDomain.userPrivate();
 
 	const entries = await backlogService.findCommonCompletedGames(
 		currentUser.id,
@@ -437,9 +455,8 @@ export async function getUserReviews(request: Request, response: Response) {
 	if (!user) throw userDomain.userNotFound();
 
 	const currentUser = request.locals.user as RequestUser | undefined;
-	const isSelf = currentUser?.id === user.id;
-
-	if (!user.isPublic && !isSelf) throw userDomain.userPrivate();
+	if (!(await canView(currentUser?.id, user, "profile")))
+		throw userDomain.userPrivate();
 
 	const { rows, count } = await reviewsService.findReviewsByUserIdPaginated(
 		user.id,
@@ -499,7 +516,7 @@ export async function getAdminUsers(request: Request, response: Response) {
 			name: u.name,
 			role: u.role,
 			isActive: u.isActive,
-			isPublic: u.isPublic,
+			profileVisibility: u.profileVisibility,
 			createdAt: u.createdAt
 		})),
 		total: count
@@ -540,7 +557,7 @@ export async function patchAdminUser(request: Request, response: Response) {
 			name: user.name,
 			role: user.role,
 			isActive: user.isActive,
-			isPublic: user.isPublic,
+			profileVisibility: user.profileVisibility,
 			createdAt: user.createdAt
 		}
 	};

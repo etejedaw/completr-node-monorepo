@@ -4,6 +4,7 @@ import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import * as gameShelfService from "./game-shelf.service";
 import * as usersService from "../users/users.service";
 import * as userDomainError from "../users/errors/users.domain-error";
+import { canView } from "../users/visibility.helper";
 import * as activityService from "../activity/activity.service";
 
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
@@ -58,8 +59,10 @@ export async function getUserGameShelf(request: Request, response: Response) {
 	const currentUser = request.locals.user as RequestUser | undefined;
 	const isSelf = currentUser?.id === user.id;
 
-	if (!user.isPublic && !isSelf) throw userDomainError.userPrivate();
-	if (!isSelf && !user.isShelfPublic) throw userDomainError.userPrivate();
+	if (!(await canView(currentUser?.id, user, "profile")))
+		throw userDomainError.userPrivate();
+	if (!(await canView(currentUser?.id, user, "shelf")))
+		throw userDomainError.userPrivate();
 
 	const { rows, total } = isSelf
 		? await gameShelfService.findGameShelfByUserIdPaginated(user.id, query)
