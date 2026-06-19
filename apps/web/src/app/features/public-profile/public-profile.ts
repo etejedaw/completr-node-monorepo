@@ -85,7 +85,7 @@ export class PublicProfileComponent implements OnInit {
 			completed: p.backlogStats?.completed ?? 0,
 			playing: p.backlogStats?.playing ?? 0,
 			lists: p.listsTotal ?? 0,
-			reviews: this.userReviews().length
+			reviews: this.userReviewsTotal()
 		};
 	});
 
