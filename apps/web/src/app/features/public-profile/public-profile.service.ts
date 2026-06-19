@@ -335,6 +335,39 @@ export class PublicProfileService {
 			.pipe(map(res => res.data));
 	}
 
+	getUserCompletions(
+		username: string,
+		opts: { limit?: number; offset?: number } = {}
+	) {
+		let params = new HttpParams();
+		if (opts.limit !== undefined)
+			params = params.set("limit", String(opts.limit));
+		if (opts.offset !== undefined)
+			params = params.set("offset", String(opts.offset));
+		return this.http
+			.get<{
+				data: {
+					completions: {
+						id: string;
+						status: string;
+						userRating?: number | null;
+						realDuration?: number | null;
+						finishedAt?: string | null;
+						reviewContent: string | null;
+						game: {
+							id: string;
+							code: string;
+							title: string;
+							backgroundUrl?: string;
+						};
+						platform: { id: string; abbreviation: string };
+					}[];
+					total: number;
+				};
+			}>(`${environment.apiUrl}/users/${username}/completions`, { params })
+			.pipe(map(res => res.data));
+	}
+
 	getHighlights(
 		username: string,
 		opts: { year?: number; month?: number } = {}

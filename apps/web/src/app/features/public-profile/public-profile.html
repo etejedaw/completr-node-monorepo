@@ -229,6 +229,10 @@
 					<section class="mb-8">
 						<div class="flex items-baseline justify-between mb-3">
 							<h2 class="font-display m-0 text-xl font-bold text-fg">Recent completions</h2>
+							<a class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all" [routerLink]="['/user', username(), 'completions']">
+								See all
+								<span class="material-icons text-sm">arrow_forward</span>
+							</a>
 						</div>
 						@if (highlightsData()!.recent.length === 0) {
 							<p class="text-center py-12 text-fg-muted text-sm">No completions yet.</p>

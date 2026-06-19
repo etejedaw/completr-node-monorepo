@@ -57,6 +57,13 @@ const publicProfileRoutes: Routes = [
 			import("./features/public-profile/user-reviews/user-reviews").then(
 				m => m.UserReviews
 			)
+	},
+	{
+		path: "user/:username/completions",
+		loadComponent: () =>
+			import(
+				"./features/public-profile/user-completions/user-completions"
+			).then(m => m.UserCompletions)
 	}
 ];
 
