@@ -7,12 +7,12 @@
 
 ## Resumen de avance
 
-- **Resueltos (22):** FB-002 (backend), FB-004, FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033.
+- **Resueltos (23):** FB-002 (backend), FB-003 (backend), FB-004, FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033.
 - **Diferidos a fases futuras (5):** FB-001 (premium), FB-005 (migracion a IGDB), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
 - **Descartados/omitidos (2):** FB-015 (descartado tras prototipar), FB-018 (omitido, baja prioridad).
-- **Pendientes (5):** FB-003, FB-010, FB-021, FB-022, FB-034.
+- **Pendientes (4):** FB-010, FB-021, FB-022, FB-034.
 
-Prioridad sugerida para la siguiente sesion: FB-003 (visibilidad granular — desbloquea FB-021 + FB-022) y FB-034 (forgot password). FB-010 (logo) queda bloqueado por diseno. Frontend de FB-002 pendiente (UI de gestion + boton Requested + toggle en settings).
+Prioridad sugerida para la siguiente sesion: FB-021 + FB-022 (senales sociales en la ficha del juego — ya desbloqueados por FB-003) y FB-034 (forgot password). FB-010 (logo) queda bloqueado por diseno. Frontend pendiente para FB-002 (gestion de requests, boton Requested, toggle) y FB-003 (dropdowns de visibilidad + presets Open/Friends/Private/Custom).
 
 ---
 
@@ -34,9 +34,10 @@ Prioridad sugerida para la siguiente sesion: FB-003 (visibilidad granular — de
 
 ### [FB-003] Visibilidad granular por seccion (solo yo / amigos / todos)
 
-- **Estado:** pendiente
+- **Estado:** resuelto (backend)
 - **Descripcion:** Que un usuario privado pueda permitir a sus seguidores ver ciertos menus (backlog, shelf, etc.) sin abrir todo el perfil.
 - **Solucion propuesta:** Reemplazar los flags booleanos `isQueuePublic`, `isWishlistPublic`, `isFavoritePublic`, `isFeedPublic` por enums con 3 niveles: `private` (solo yo), `friends` (seguidos+seguidores mutuos), `public` (todos). Agregar el mismo enum a backlog y game-shelf (que hoy heredan de `isPublic`). Backend: middleware/helper para resolver visibilidad — necesita conocer relacion de following mutuo (amistad). Migration con default = equivalente al estado actual (true → public, false → private). Frontend: settings de privacidad con dropdowns por seccion + explicacion del nivel "amigos". La "amistad" se define como follow mutuo.
+- **Resolucion (backend):** Opcion A (enums por seccion) + `profileVisibility` con 3 niveles (no boolean). Friend = follow mutuo confirmado en ambas direcciones. Migration `20260619160000-add-visibility-enums.js`: crea `enum_Users_visibility` (`private` | `friends` | `public`), agrega 8 columnas `profileVisibility`, `queueVisibility`, `wishlistVisibility`, `favoriteVisibility`, `feedVisibility`, `backlogVisibility`, `shelfVisibility`, `listVisibility` con default `public`, backfill desde los booleanos viejos (`true → public`, `false → private`) y drop de los booleanos en la misma transaccion. Nuevo `src/users/visibility.constants.ts` (`VISIBILITY_LEVELS`, `VISIBILITY_SECTIONS`) y `src/users/visibility.helper.ts` con `canView(viewerId, owner, section)` central que resuelve self → public → private → friends (con chequeo de follow mutuo). `userFollowersService.areMutualFollowers(a, b)` nuevo (un solo query con `Op.or` que cuenta 2 filas). `update-user.schema.ts` cambia los booleanos por enums; `users.serializer.ts` (me + profile) expone los 8 nuevos campos en lugar de los booleanos. Todos los call-sites de gating refactorizados a `canView`: `users.controller` (perfil ajeno, lists, list-detail, highlights, completions, games-in-common, reviews, following-lists), `backlog.controller`, `queue.controller`, `wishlist.controller`, `favorites.controller`, `game-shelf.controller`. En `user-follow-requests.service.createOrAcceptFollow`, el gating ahora es `target.profileVisibility === 'private' && target.acceptFollowRequests` — en `friends` el follow se acepta directo (one-way), solo `private` requiere request. `findFriendsActivityForGame` (preview de FB-021) tambien usa los enums (`profileVisibility IN ('public', 'friends')`). `activity.service.getFeed` mantiene solo owners 100% public por simplicidad — extender a `friends` con chequeo mutuo queda para cuando se aborde FB-021/FB-022 (mismo patron, mismo subquery). Search/discover/admin listings exponen `profileVisibility` en lugar de `isPublic`. Frontend pendiente: dropdowns en settings, presets visuales (Open / Friends / Private / Custom — computados a partir de los 8 enums, no se persisten), copy de cada nivel.
 
 ### [FB-004] Promover tags relevantes de RAWG a generos
 
