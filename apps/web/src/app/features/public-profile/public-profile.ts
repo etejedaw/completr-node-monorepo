@@ -56,7 +56,7 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly togglingFollow = signal(false);
 	protected readonly showUnfollowConfirm = signal(false);
 	protected readonly isWide = signal(false);
-	protected readonly activeTab = signal("activity");
+	protected readonly activeTab = signal("highlights");
 	protected readonly roleBadge = computed(() => {
 		const role = this.profile()?.user.role;
 		if (!role || role === "user") return null;
@@ -129,6 +129,18 @@ export class PublicProfileComponent implements OnInit {
 		else if (tab === "shelf") this.ensureGameShelfLoaded(u);
 		else if (tab === "highlights") this.ensureHighlightsLoaded(u);
 	});
+
+	private pickDefaultTab(profile: PublicProfile, isNarrow: boolean): string {
+		const u = profile.user;
+		if (u.isBacklogPublic) return "highlights";
+		if (isNarrow && u.isFeedPublic) return "activity";
+		if (u.isShelfPublic) return "shelf";
+		if (u.isListPublic) return "lists";
+		if (u.isFavoritePublic) return "favorites";
+		if (u.isQueuePublic) return "queue";
+		if (u.isWishlistPublic) return "wishlist";
+		return "reviews";
+	}
 
 	private ensureHighlightsLoaded(username: string) {
 		if (this.highlightsData() !== null) return;
@@ -239,15 +251,17 @@ export class PublicProfileComponent implements OnInit {
 		if (typeof window !== "undefined" && window.matchMedia) {
 			const mql = window.matchMedia("(min-width: 1024px)");
 			this.isWide.set(mql.matches);
-			if (mql.matches) this.activeTab.set("backlog");
 			mql.addEventListener("change", e => {
 				this.isWide.set(e.matches);
+				const p = this.profile();
+				if (!p) return;
+				const wideDefault = this.pickDefaultTab(p, false);
 				if (e.matches && this.activeTab() === "activity") {
-					this.activeTab.set("backlog");
+					this.activeTab.set(wideDefault);
 				} else if (
 					!e.matches &&
-					this.profile()?.user.isFeedPublic &&
-					this.activeTab() === "backlog"
+					p.user.isFeedPublic &&
+					this.activeTab() === wideDefault
 				) {
 					this.activeTab.set("activity");
 				}
@@ -370,7 +384,8 @@ export class PublicProfileComponent implements OnInit {
 					return;
 				}
 				if (this.isWide() || !data.user.isFeedPublic)
-					this.activeTab.set("backlog");
+					this.activeTab.set(this.pickDefaultTab(data, false));
+				else this.activeTab.set(this.pickDefaultTab(data, true));
 				this.isLoading.set(false);
 				this.profileService
 					.getUserReviews(username, { limit: 5 })
