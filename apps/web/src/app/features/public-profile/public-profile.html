@@ -299,12 +299,34 @@
 					</section>
 
 					<section>
-						<div class="flex items-baseline justify-between mb-3">
-							<h2 class="font-display m-0 text-xl font-bold text-fg">{{ monthLabel() }}</h2>
-							<span class="text-xs text-fg-muted">{{ highlightsData()!.month.completedCount }} completed</span>
+						<div class="flex items-center justify-between mb-3 gap-3">
+							<div class="flex items-center gap-1.5 min-w-0">
+								<button
+									type="button"
+									class="inline-flex items-center justify-center w-7 h-7 rounded text-fg-muted hover:text-fg hover:bg-input-bg transition disabled:opacity-40 disabled:cursor-not-allowed"
+									(click)="goToPreviousMonth()"
+									[disabled]="isLoadingHighlightsMonth()"
+									aria-label="Previous month"
+									title="Previous month"
+								>
+									<span class="material-icons text-lg">chevron_left</span>
+								</button>
+								<h2 class="font-display m-0 text-xl font-bold text-fg truncate">{{ monthLabel() }}</h2>
+								<button
+									type="button"
+									class="inline-flex items-center justify-center w-7 h-7 rounded text-fg-muted hover:text-fg hover:bg-input-bg transition disabled:opacity-40 disabled:cursor-not-allowed"
+									(click)="goToNextMonth()"
+									[disabled]="isAtCurrentMonth() || isLoadingHighlightsMonth()"
+									aria-label="Next month"
+									title="Next month"
+								>
+									<span class="material-icons text-lg">chevron_right</span>
+								</button>
+							</div>
+							<span class="text-xs text-fg-muted shrink-0">{{ highlightsData()!.month.completedCount }} completed</span>
 						</div>
 						@if (highlightsData()!.month.completedCount === 0) {
-							<p class="text-center py-12 text-fg-muted text-sm">Nothing completed this month yet.</p>
+							<p class="text-center py-12 text-fg-muted text-sm">Nothing completed this month.</p>
 						} @else {
 							<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 								@if (highlightsData()!.month.mostPlayed; as mp) {

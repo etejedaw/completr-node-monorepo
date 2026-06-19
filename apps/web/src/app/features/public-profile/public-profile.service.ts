@@ -335,7 +335,15 @@ export class PublicProfileService {
 			.pipe(map(res => res.data));
 	}
 
-	getHighlights(username: string) {
+	getHighlights(
+		username: string,
+		opts: { year?: number; month?: number } = {}
+	) {
+		let params = new HttpParams();
+		if (opts.year !== undefined)
+			params = params.set("year", String(opts.year));
+		if (opts.month !== undefined)
+			params = params.set("month", String(opts.month));
 		return this.http
 			.get<{
 				data: {
@@ -350,7 +358,7 @@ export class PublicProfileService {
 						};
 					};
 				};
-			}>(`${environment.apiUrl}/users/${username}/highlights`)
+			}>(`${environment.apiUrl}/users/${username}/highlights`, { params })
 			.pipe(map(res => res.data.highlights));
 	}
 
