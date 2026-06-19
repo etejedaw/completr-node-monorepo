@@ -7,12 +7,12 @@
 
 ## Resumen de avance
 
-- **Resueltos (20):** FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033.
-- **Diferidos a fases futuras (4):** FB-001 (premium), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
+- **Resueltos (21):** FB-004, FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033.
+- **Diferidos a fases futuras (5):** FB-001 (premium), FB-005 (migracion a IGDB), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
 - **Descartados/omitidos (2):** FB-015 (descartado tras prototipar), FB-018 (omitido, baja prioridad).
-- **Pendientes (8):** FB-002, FB-003, FB-004, FB-005, FB-010, FB-021, FB-022, FB-034.
+- **Pendientes (6):** FB-002, FB-003, FB-010, FB-021, FB-022, FB-034.
 
-Prioridad sugerida para la siguiente sesion: FB-004 (promover RAWG tags a generos, valor inmediato), seguido del bloque social/privacidad (FB-002 + FB-003 → desbloquean FB-021 + FB-022) y FB-034 (forgot password).
+Prioridad sugerida para la siguiente sesion: bloque social/privacidad (FB-002 + FB-003 → desbloquean FB-021 + FB-022) y FB-034 (forgot password). FB-010 (logo) queda bloqueado por diseno.
 
 ---
 
@@ -39,16 +39,18 @@ Prioridad sugerida para la siguiente sesion: FB-004 (promover RAWG tags a genero
 
 ### [FB-004] Promover tags relevantes de RAWG a generos
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Filtrar por genero "Point and Click" en `/games` no devuelve nada, aunque RAWG tiene juegos taggeados asi. Hoy el provider mapea solo los `genres` mayores de RAWG (Action, Adventure, RPG, Shooter...) e ignora las `tags`. Como mitigacion inmediata el frontend muestra un empty state amistoso con boton "Clear filters" cuando una combinacion de filtros devuelve 0 juegos.
 - **Solucion propuesta:** Curar lista de RAWG tags que se promueven a generos locales (point-and-click, roguelike, metroidvania, soulslike, visual-novel, deck-building, etc.). Modificar `RawgProvider` para mapear esas tags ademas de los genres. Script one-off de backfill que re-procesa los juegos existentes y agrega los generos faltantes (sin re-importar el resto de campos). Confirmar con busqueda manual: tras el backfill, filtrar por "Point and Click" debe devolver Hidden Through Time, Thimbleweed Park, etc.
+- **Resolucion:** Backend-only. (1) `RawgGameSearchResult` extendido con `tags: RawgTag[]` (slug, name, language opcional). (2) Nuevo mapper `rawg-tag-genre.map.ts` con whitelist curada de slugs RAWG → codigos de genero local: `point-and-click`, `roguelike` (+ `rogue-like`), `roguelite` (+ `rogue-lite`), `metroidvania`, `soulslike` (+ `souls-like`), `visual-novel`, `deck-building` (+ `deckbuilding`), `battle-royale`, `survival-horror`, `dungeon-crawler`, `auto-battler`. (3) `rawg-to-game.mapper.ts` ahora arma `genreSlugs` mergeando los generos mayores con las tags promovidas (filtrando tags por `language === "eng"` para evitar duplicados localizados), dedupeando con Set. (4) Migration `20260619120000-seed-subgenres.js` que inserta idempotentemente las filas faltantes en `Genres` (down quita primero las relaciones en `GameGenres` y luego los generos). (5) Whitelist en codigo (no en DB) — versionada, sin CRUD admin. (6) Sin backfill offline: los juegos existentes se actualizan al proximo import natural (refresh admin, re-search, etc.); si en el futuro hace falta backfill masivo, se agrega un script aparte que re-fetch los slugs RAWG y aplica el mismo `mapGenres`.
 
 ### [FB-005] Soporte para Nintendo Switch 2 (RAWG no la distingue)
 
-- **Estado:** pendiente
+- **Estado:** diferido
 - **Descripcion:** "La plataforma de NSW2 no siempre existe, asi que el Pokopia dice que esta para NSW que no es verdad."
 - **Contexto:** Verificado contra `https://api.rawg.io/api/platforms` y `https://api.rawg.io/api/games?search=pokemon+pokopia`. RAWG solo tiene `nintendo-switch` (id 7). No existe slug ni id para Switch 2. Juegos exclusivos de Switch 2 (Pokemon Pokopia, etc.) vienen marcados como Nintendo Switch a secas. Nuestro mapper `rawg-platform.map.ts` no es el problema — RAWG nunca emite el slug `nintendo-switch-2`.
-- **Solucion propuesta:** Evaluar IGDB (si distingue Switch 2) como fuente secundaria solo para platforms. Requiere OAuth via Twitch. Alternativa mas liviana: mantener una lista curada local de juegos Switch 2 exclusivos y aplicarla durante el import. Mientras tanto: el admin/moderador puede corregir manualmente desde `/admin/games` y los usuarios reportar errores via game-reports. Re-evaluar periodicamente: cuando RAWG agregue Switch 2 (como hicieron con PS5 en su momento), este FB se puede resolver con una entrada en el mapper.
+- **Decision:** Diferido hasta la fase en que migremos a IGDB como fuente secundaria/primaria de catalogo. IGDB si distingue Switch 2 y resuelve este caso (y otros futuros de plataformas mal mapeadas) de raiz. Mientras tanto: el admin puede corregir manualmente desde `/admin/games` y los usuarios reportar errores via game-reports. Se descarta la lista curada local como solucion intermedia porque no escala y duplica esfuerzo sobre lo que IGDB resolveria de una.
+- **Solucion propuesta:** Integrar IGDB como fuente secundaria solo para platforms (al menos inicialmente). Requiere OAuth via Twitch (client_id + secret). Durante el import, ademas de RAWG, hacer lookup en IGDB para resolver plataformas y mergear. Mapear plataformas IGDB → locales. Considerar tambien usar IGDB para otros datos donde supere a RAWG (release dates regionales, etc.) cuando se aborde.
 
 ### [FB-006] Boton de favorito en backlog, game-shelf y queue
 
