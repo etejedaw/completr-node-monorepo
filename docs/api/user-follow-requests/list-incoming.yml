@@ -1,0 +1,43 @@
+info:
+    name: List Incoming Follow Requests
+    type: http
+    seq: 1
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/follow-requests"
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## List Incoming Follow Requests
+
+    Returns the list of pending follow requests received by the authenticated
+    user. Only relevant for private profiles with `acceptFollowRequests = true`.
+
+    **Auth:** Bearer token (any authenticated user).
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "requests": [
+          {
+            "requesterId": "uuid",
+            "createdAt": "2026-06-19T15:00:00Z",
+            "user": {
+              "id": "uuid",
+              "username": "alice",
+              "name": "Alice",
+              "avatarUrl": "https://..."
+            }
+          }
+        ]
+      }
+    }
+    ```

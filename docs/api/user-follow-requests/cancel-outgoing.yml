@@ -1,0 +1,44 @@
+info:
+    name: Cancel Outgoing Follow Request
+    type: http
+    seq: 4
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/users/me/follow-requests/sent/:username"
+    params:
+        - name: username
+          value: alice
+          type: path
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Cancel Outgoing Follow Request
+
+    Cancels a pending follow request sent by the authenticated user to another
+    user. Used when the requester wants to withdraw before the target accepts
+    or rejects.
+
+    **Auth:** Bearer token (any authenticated user).
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param    | Type   | Required | Description                       |
+    |----------|--------|----------|-----------------------------------|
+    | username | string | Yes      | The user the request was sent to  |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Code                              | Description                |
+    |--------|-----------------------------------|----------------------------|
+    | 404    | USER_FOLLOW_REQUEST_USER_NOT_FOUND| User not found             |
+    | 404    | USER_FOLLOW_REQUEST_NOT_FOUND     | No pending request found   |

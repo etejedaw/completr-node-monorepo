@@ -1,0 +1,44 @@
+info:
+    name: Accept Follow Request
+    type: http
+    seq: 2
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/follow-requests/:requesterId/accept"
+    params:
+        - name: requesterId
+          value: 00000000-0000-0000-0000-000000000000
+          type: path
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Accept Follow Request
+
+    Accepts a pending follow request. Moves the relation from
+    `UserFollowRequests` to `UserFollower` and fires the standard
+    `user_followed` / `user_followed_by` activities (so the requester sees the
+    follow as if it had been auto-accepted).
+
+    **Auth:** Bearer token (any authenticated user).
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param        | Type | Required | Description                       |
+    |--------------|------|----------|-----------------------------------|
+    | requesterId  | uuid | Yes      | The user that sent the request    |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Code                              | Description                |
+    |--------|-----------------------------------|----------------------------|
+    | 404    | USER_FOLLOW_REQUEST_NOT_FOUND     | No pending request found   |

@@ -32,12 +32,21 @@ docs: |-
 
     ### Request Body
 
-    | Field     | Type    | Required | Description          |
-    |-----------|---------|----------|----------------------|
-    | name      | string  | No       | 1-80 characters      |
-    | bio       | string  | No       | 1-250 characters     |
-    | avatarUrl | string  | No       | Valid URL             |
-    | isPublic  | boolean | No       | Profile visibility   |
+    | Field                 | Type    | Required | Description                                                       |
+    |-----------------------|---------|----------|-------------------------------------------------------------------|
+    | name                  | string  | No       | 1-80 characters                                                   |
+    | bio                   | string  | No       | 1-250 characters                                                  |
+    | avatarUrl             | string  | No       | Valid URL                                                         |
+    | isPublic              | boolean | No       | Profile visibility                                                |
+    | isQueuePublic         | boolean | No       | Queue (Up Next) visibility                                        |
+    | isWishlistPublic      | boolean | No       | Wishlist visibility                                               |
+    | isFavoritePublic      | boolean | No       | Favorites visibility                                              |
+    | isFeedPublic          | boolean | No       | Activity feed visibility                                          |
+    | isBacklogPublic       | boolean | No       | Backlog (My Games) visibility                                     |
+    | isShelfPublic         | boolean | No       | Shelf visibility                                                  |
+    | isListPublic          | boolean | No       | Lists visibility                                                  |
+    | acceptFollowRequests  | boolean | No       | If false on a private profile, others cannot send follow requests. Toggling from true to false deletes all pending requests. |
+    | theme                 | string  | No       | Theme id                                                          |
 
     ### Response (200)
 

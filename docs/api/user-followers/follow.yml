@@ -23,6 +23,13 @@ docs: |-
 
     Follow another user. You cannot follow yourself.
 
+    If the target user is **private** and has `acceptFollowRequests = true`, the
+    call creates a follow **request** (status `pending`) instead of an immediate
+    follow. The owner of the private profile must accept it via
+    `/users/me/follow-requests/:requesterId/accept`. If the target is public, or
+    private with `acceptFollowRequests = false`, the call follows directly
+    (status `accepted`).
+
     **Auth:** Bearer token (any authenticated user).
 
     **Rate Limit:** 50 requests per minute.
@@ -35,12 +42,23 @@ docs: |-
 
     ### Response (201)
 
-    No content.
+    ```json
+    {
+      "data": {
+        "status": "accepted",
+        "targetId": "uuid"
+      }
+    }
+    ```
+
+    `status` is either `accepted` (follow created in `UserFollower`) or
+    `pending` (request created in `UserFollowRequests`).
 
     ### Errors
 
-    | Status | Code                              | Description                |
-    |--------|-----------------------------------|----------------------------|
-    | 400    | USER_FOLLOWER_CANNOT_FOLLOW_SELF  | Cannot follow yourself     |
-    | 404    | USER_FOLLOWER_USER_NOT_FOUND      | User not found             |
-    | 409    | USER_FOLLOWER_ALREADY_FOLLOWING   | Already following          |
+    | Status | Code                                       | Description                       |
+    |--------|--------------------------------------------|-----------------------------------|
+    | 400    | USER_FOLLOW_REQUEST_CANNOT_REQUEST_SELF    | Cannot follow yourself            |
+    | 404    | USER_FOLLOW_REQUEST_USER_NOT_FOUND         | User not found                    |
+    | 409    | USER_FOLLOW_REQUEST_ALREADY_FOLLOWING      | Already following                 |
+    | 409    | USER_FOLLOW_REQUEST_ALREADY_REQUESTED      | Already requested (pending)       |
