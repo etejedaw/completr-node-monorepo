@@ -16,7 +16,8 @@ http:
             {
               "name": "John Updated",
               "bio": "Updated bio",
-              "isPublic": true
+              "profileVisibility": "friends",
+              "backlogVisibility": "public"
             }
 
 settings:
@@ -30,38 +31,36 @@ docs: |-
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
 
+    ### Visibility levels
+
+    All `*Visibility` fields use the enum `private | friends | public`:
+
+    - `private` — only the owner can see the section.
+    - `friends` — only the owner and viewers that follow each other with the owner (mutual follow) can see.
+    - `public` — anyone can see.
+
+    `profileVisibility` gates the whole profile (header, metadata). When it is
+    `private` or `friends`, viewers without access only see avatar + username +
+    bio + follow buttons; section visibilities then gate the individual tabs.
+
     ### Request Body
 
-    | Field                 | Type    | Required | Description                                                       |
-    |-----------------------|---------|----------|-------------------------------------------------------------------|
-    | name                  | string  | No       | 1-80 characters                                                   |
-    | bio                   | string  | No       | 1-250 characters                                                  |
-    | avatarUrl             | string  | No       | Valid URL                                                         |
-    | isPublic              | boolean | No       | Profile visibility                                                |
-    | isQueuePublic         | boolean | No       | Queue (Up Next) visibility                                        |
-    | isWishlistPublic      | boolean | No       | Wishlist visibility                                               |
-    | isFavoritePublic      | boolean | No       | Favorites visibility                                              |
-    | isFeedPublic          | boolean | No       | Activity feed visibility                                          |
-    | isBacklogPublic       | boolean | No       | Backlog (My Games) visibility                                     |
-    | isShelfPublic         | boolean | No       | Shelf visibility                                                  |
-    | isListPublic          | boolean | No       | Lists visibility                                                  |
-    | acceptFollowRequests  | boolean | No       | If false on a private profile, others cannot send follow requests. Toggling from true to false deletes all pending requests. |
-    | theme                 | string  | No       | Theme id                                                          |
+    | Field                 | Type                                | Required | Description                                                       |
+    |-----------------------|-------------------------------------|----------|-------------------------------------------------------------------|
+    | name                  | string                              | No       | 1-80 characters                                                   |
+    | bio                   | string                              | No       | 1-250 characters                                                  |
+    | avatarUrl             | string                              | No       | Valid URL                                                         |
+    | profileVisibility     | `private` \| `friends` \| `public`  | No       | Whole-profile gate                                                |
+    | queueVisibility       | `private` \| `friends` \| `public`  | No       | Queue (Up Next) visibility                                        |
+    | wishlistVisibility    | `private` \| `friends` \| `public`  | No       | Wishlist visibility                                               |
+    | favoriteVisibility    | `private` \| `friends` \| `public`  | No       | Favorites visibility                                              |
+    | feedVisibility        | `private` \| `friends` \| `public`  | No       | Activity feed visibility                                          |
+    | backlogVisibility     | `private` \| `friends` \| `public`  | No       | Backlog (My Games) visibility                                     |
+    | shelfVisibility       | `private` \| `friends` \| `public`  | No       | Shelf visibility                                                  |
+    | listVisibility        | `private` \| `friends` \| `public`  | No       | Lists visibility                                                  |
+    | acceptFollowRequests  | boolean                             | No       | If `false` on a `private` profile, the Follow button is hidden. Toggling from true to false deletes all pending requests. |
+    | theme                 | string                              | No       | Theme id                                                          |
 
     ### Response (200)
 
-    ```json
-    {
-      "data": {
-        "user": {
-          "id": "uuid",
-          "username": "johndoe",
-          "email": "johndoe@example.com",
-          "role": "user",
-          "name": "John Updated",
-          "bio": "Updated bio",
-          "avatarUrl": "https://example.com/avatar.png"
-        }
-      }
-    }
-    ```
+    Returns the updated `userMe` payload (all 8 visibility enums included).
