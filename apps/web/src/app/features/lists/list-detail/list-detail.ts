@@ -19,7 +19,8 @@ import {
 	debounceTime,
 	distinctUntilChanged,
 	switchMap,
-	of
+	of,
+	forkJoin
 } from "rxjs";
 import { UiButton, UiIconButton, UiSearchBar } from "../../../shared/ui";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
@@ -65,11 +66,46 @@ export class ListDetail implements OnInit {
 	protected readonly togglingFollow = signal(false);
 
 	private listId = "";
+	private static readonly COMPARE_PARAM = "compare";
+
 	protected readonly fromUsername = signal<string | null>(null);
+	protected readonly compareMode = signal(false);
+	protected readonly viewerProgress = signal<
+		Map<
+			string,
+			{
+				backlogStatus?: string;
+				score?: number;
+				realDuration?: number | null;
+				personalRatio?: number | null;
+			}
+		>
+	>(new Map());
+	protected readonly viewerListProgress = signal<
+		{ completed: number; total: number } | null
+	>(null);
+	protected readonly viewerUsername = computed(
+		() => this.authService.user()?.username ?? null
+	);
+	protected readonly showComparisonBanner = computed(() => {
+		const from = this.fromUsername();
+		if (!from) return false;
+		const viewer = this.viewerUsername();
+		if (viewer && viewer === from) return false;
+		return true;
+	});
+	protected readonly canCompare = computed(() => {
+		if (!this.showComparisonBanner()) return false;
+		return this.viewerUsername() !== null;
+	});
 
 	ngOnInit() {
 		this.listId = this.route.snapshot.paramMap.get("id") ?? "";
 		this.fromUsername.set(this.route.snapshot.queryParamMap.get("from"));
+		this.compareMode.set(
+			this.route.snapshot.queryParamMap.get(ListDetail.COMPARE_PARAM) ===
+				"1"
+		);
 		if (this.listId) this.loadList();
 
 		this.searchSubject
@@ -240,6 +276,28 @@ export class ListDetail implements OnInit {
 
 	private loadList() {
 		const from = this.fromUsername();
+		const isComparing = from !== null && this.compareMode();
+
+		if (isComparing && this.canCompare()) {
+			forkJoin({
+				fromList: this.listsService.getByIdForUser(from, this.listId),
+				viewerList: this.listsService.getById(this.listId)
+			}).subscribe({
+				next: ({ fromList, viewerList }) => {
+					this.list.set(fromList);
+					this.viewerProgress.set(
+						this.buildProgressMap(viewerList.items)
+					);
+					this.viewerListProgress.set(viewerList.progress ?? null);
+					this.isLoading.set(false);
+				},
+				error: () => this.isLoading.set(false)
+			});
+			return;
+		}
+
+		this.viewerProgress.set(new Map());
+		this.viewerListProgress.set(null);
 		const request$ = from
 			? this.listsService.getByIdForUser(from, this.listId)
 			: this.listsService.getById(this.listId);
@@ -250,6 +308,70 @@ export class ListDetail implements OnInit {
 			},
 			error: () => this.isLoading.set(false)
 		});
+	}
+
+	private buildProgressMap(items: ListItem[]) {
+		const map = new Map<
+			string,
+			{
+				backlogStatus?: string;
+				score?: number;
+				realDuration?: number | null;
+				personalRatio?: number | null;
+			}
+		>();
+		for (const item of items) {
+			map.set(item.game.id, {
+				backlogStatus: item.backlogStatus,
+				score: item.score,
+				realDuration: item.realDuration,
+				personalRatio: item.personalRatio
+			});
+		}
+		return map;
+	}
+
+	protected viewerStatusFor(gameId: string) {
+		return this.viewerProgress().get(gameId);
+	}
+
+	protected goToOwnProgress() {
+		this.router.navigate([], {
+			relativeTo: this.route,
+			queryParams: { from: null, [ListDetail.COMPARE_PARAM]: null },
+			queryParamsHandling: "merge",
+			replaceUrl: true
+		});
+		this.fromUsername.set(null);
+		this.compareMode.set(false);
+		this.viewerProgress.set(new Map());
+		this.viewerListProgress.set(null);
+		this.loadList();
+	}
+
+	protected enterCompareMode() {
+		if (!this.canCompare()) return;
+		this.router.navigate([], {
+			relativeTo: this.route,
+			queryParams: { [ListDetail.COMPARE_PARAM]: "1" },
+			queryParamsHandling: "merge",
+			replaceUrl: true
+		});
+		this.compareMode.set(true);
+		this.loadList();
+	}
+
+	protected exitCompareMode() {
+		this.router.navigate([], {
+			relativeTo: this.route,
+			queryParams: { [ListDetail.COMPARE_PARAM]: null },
+			queryParamsHandling: "merge",
+			replaceUrl: true
+		});
+		this.compareMode.set(false);
+		this.viewerProgress.set(new Map());
+		this.viewerListProgress.set(null);
+		this.loadList();
 	}
 
 	private replaceWithOrder(items: ListItem[]) {
