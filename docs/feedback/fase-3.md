@@ -7,12 +7,12 @@
 
 ## Resumen de avance
 
-- **Resueltos (11):** FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024.
+- **Resueltos (16):** FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-026, FB-027, FB-029, FB-030, FB-033.
 - **Diferidos a fases futuras (4):** FB-001 (premium), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
 - **Descartados/omitidos (2):** FB-015 (descartado tras prototipar), FB-018 (omitido, baja prioridad).
-- **Pendientes (17):** FB-002, FB-003, FB-004, FB-005, FB-010, FB-021, FB-022, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033, FB-034.
+- **Pendientes (12):** FB-002, FB-003, FB-004, FB-005, FB-010, FB-021, FB-022, FB-025, FB-028, FB-031, FB-032, FB-034.
 
-Prioridad sugerida para la siguiente sesion: FB-004 (RAWG tags → generos, valor inmediato), seguido del bloque de privacidad/social (FB-002 + FB-003 → desbloquean FB-021 + FB-022).
+Prioridad sugerida para la siguiente sesion: FB-032 (banner de progreso ajeno en listas), seguido de FB-025 (paginacion de reviews del perfil) y FB-028 (Recent Activity al final del perfil).
 
 ---
 
@@ -206,16 +206,18 @@ Prioridad sugerida para la siguiente sesion: FB-004 (RAWG tags → generos, valo
 
 ### [FB-026] Vista de reviews del perfil excluye entradas con solo nota (sin texto)
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** En `https://web.completr.app/user/:username/reviews` solo se listan reviews que tienen texto escrito. Las entradas del backlog con score asignado pero sin review textual no aparecen, aunque conceptualmente tambien son "reviews" del usuario sobre el juego. El usuario espera ver todas sus valoraciones, no solo las que tienen comentario.
 - **Contexto:** Hoy una "review" en el modelo se materializa como `Backlog.review` (texto) + `Backlog.score` (numero). El listado de reviews del perfil filtra probablemente por `review IS NOT NULL` / `review != ''`, ocultando las entradas que solo tienen `score`. Coordinar con FB-025 (paginacion/limit de la misma seccion).
 - **Solucion propuesta:** Definir el contrato: "review" = entrada con `score` o `review` no nulos (cualquiera de los dos). Backend: ajustar la query del endpoint que alimenta `/user/:username/reviews` para incluir filas con `score IS NOT NULL` aunque `review` este vacio. Frontend: en la card de review, mostrar la nota destacada y el texto opcional debajo; si no hay texto, no renderizar el bloque de comentario (o mostrar un placeholder discreto tipo "Sin comentario"). Confirmar con el caso del reporter: tras el fix, el perfil de `etejedaw` debe listar tambien las entradas con solo score.
+- **Resolucion:** Resuelto junto a FB-033 (misma fuente de datos). Backend-only en `reviews.service.ts`: nuevo predicado `hasContentOrRating` que reemplaza a `hasContent` en `findReviewsByUserId` y `findReviewsByUserIdPaginated`. Las reviews con solo `rating` ahora aparecen tanto en `/user/:username/reviews` como en la seccion "Reviews" del perfil (alimentada por el mismo endpoint con `limit=5`). Frontend ya rendereaba `@if (r.content)` condicionalmente, asi que las entradas sin texto se ven como score + titulo del juego, sin bloque de comentario. `findLatestReviewedGameIds` (usado en `/games` "Latest reviewed") mantiene el filtro original — esa superficie no fue reportada.
 
 ### [FB-027] Tab inicial del perfil deberia ser Highlights, no Backlog
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Al entrar al perfil de un usuario, la pestana activa por defecto es Backlog. La expectativa es que arranque en Highlights, que es la vista mas curada y socialmente interesante (ultimos completados, mejor puntuados del mes, etc., introducidos en FB-019).
 - **Solucion propuesta:** Cambiar el tab por defecto del perfil publico a Highlights cuando el viewer aterriza sin un fragment/query especifico. Si el usuario tiene `isBacklogPublic = false` (Highlights tampoco visible), caer al primer tab disponible segun la privacidad. Mantener la URL sincronizada (`?tab=highlights`) para que el deep-link a otros tabs siga funcionando. Auditar tambien el comportamiento de "volver al perfil" desde una ficha de juego para que respete el tab elegido por el usuario en la sesion.
+- **Resolucion:** Frontend-only en `PublicProfileComponent`. Nuevo helper `pickDefaultTab(profile, isNarrow)` con cadena de fallback: `highlights` (si `isBacklogPublic`) → `activity` (si narrow y `isFeedPublic`) → `shelf` → `lists` → `favorites` → `queue` → `wishlist` → `reviews`. `loadProfile` y el handler de resize ya no asumen `backlog` como default — usan el helper, asi que perfiles con backlog privado caen al primer tab visible. Sincronia con URL y "volver al tab anterior" quedan fuera de scope; si se piden de nuevo se reabre como FB nuevo.
 
 ### [FB-028] Mover Recent Activity al final del perfil con layout estilo timeline
 
@@ -225,16 +227,18 @@ Prioridad sugerida para la siguiente sesion: FB-004 (RAWG tags → generos, valo
 
 ### [FB-029] Activity "started following you" no deberia aparecer en el feed global
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Cuando un usuario sigue a otro, se genera una activity `<NAME> started following you` que actualmente aparece en el feed. Esa activity es una notificacion personal/social y deberia vivir exclusivamente en el perfil (o en un canal de notificaciones), no en el feed publico/seguidos.
 - **Contexto:** El feed esta pensado para actividad sobre juegos (agregar a library, completar, review, etc.). Los follows son ruido en ese contexto y ademas exponen relaciones sociales del usuario que estan fuera del scope del feed. Coordinar con FB-002 (follow requests para perfiles privados) y FB-003 (visibilidad granular) para asegurar que el evento de follow respete tambien los settings de privacidad.
 - **Solucion propuesta:** Decidir entre: (a) excluir las activities de tipo `user_followed` (o equivalente) del query del feed — siguen existiendo en DB pero no se serializan en `/feed`, solo en `/users/:username/activity`; (b) no generarlas como activity en absoluto y mover la notificacion al sistema de notificaciones (cuando exista) o a un contador en el perfil. Opcion (a) es la mas barata y reversible. Backend: filtro en `feedService` que excluya los tipos sociales (follow/unfollow) del listado global. Revisar tambien que no se cuelen en el feed de perfil ajeno cuando no corresponda (ver `isFeedPublic`).
+- **Resolucion:** Backend-only. Nueva constante `SOCIAL_TYPES = ["user_followed", "user_followed_by"]` en `activity.service.ts`. `getFeed` ahora filtra esos tipos del query global (afecta tanto el feed propio como el de seguidos). `getUserActivity` acepta un nuevo `options.includeSocial` (default `false`); `users.controller` lo pasa como `isSelf`, asi que el owner sigue viendo sus follows en su propio perfil pero los visitantes no. Las filas siguen existiendo en DB — listas para reutilizarse cuando exista el sistema de notificaciones.
 
 ### [FB-030] Navegacion por meses anteriores en Highlights
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** La seccion Highlights del perfil/dashboard muestra el mes calendario actual (FB-019). Falta una forma de navegar a meses anteriores para revisar progreso historico (cuantos completados, mas jugado, mejor puntuado de cada mes pasado).
 - **Solucion propuesta:** Agregar flechas de navegacion (◀ / ▶) alrededor del titulo del mes en la tarjeta de Highlights. La flecha derecha se deshabilita en el mes actual (no se puede ir al futuro). Backend: extender `GET /users/:username/highlights` con query params `year` y `month` opcionales (default = mes actual UTC); cuando se pasan, el bloque `month` recalcula `completedCount`, `mostPlayed` y `highestRated` sobre ese rango. Mantener `recent` siempre como "ultimos 6 completados" independiente del mes elegido. Frontend: estado local del mes seleccionado en el componente de highlights, refetch al cambiar. Posible: limite inferior = mes en que el usuario creo la cuenta (para no permitir scroll infinito hacia atras sin data).
+- **Resolucion:** Backend: nuevo `HighlightsQuerySchema` con `year` (1970-9999) y `month` (1-12) opcionales, validados juntos (refine "both or neither"). `findHighlightsByUserId` acepta `{ year, month }` y calcula `monthStart`/`monthEnd` sobre ese rango (default = mes UTC actual). De paso se corrige un bug latente: `monthEnd` ahora cierra en `23:59:59.999` en lugar de `00:00:00`, asi las entradas del ultimo dia del mes ya no se pierden. Frontend: nueva signal `highlightsMonth` con flechas ◀ ▶ alrededor del titulo, deshabilitada la flecha futura cuando coincide con el mes actual (via `isAtCurrentMonth` computed). Sync URL con `?highlightsMonth=YYYY-MM` (via `router.navigate` + `queryParamsHandling: 'merge'` + `replaceUrl: true`), parseado en `init()` con regex estricto. `recent` siempre devuelve los ultimos 6 sin filtro de mes. Sin limite inferior (cualquier mes vacio muestra el empty state existente). Bruno doc del endpoint actualizado.
 
 ### [FB-031] "Ver mas" en Recent Completions con vista timeline / historial completo
 
@@ -251,10 +255,11 @@ Prioridad sugerida para la siguiente sesion: FB-004 (RAWG tags → generos, valo
 
 ### [FB-033] Recent Reviews excluye entradas con solo nota (sin texto)
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** La seccion "Recent Reviews" filtra reviews con texto, ocultando las entradas que solo tienen score. Deberian aparecer ambas: tanto las reviews con texto como las que son unicamente puntuacion (sin comentario).
 - **Contexto:** Mismo problema que FB-026 pero en la seccion "Recent Reviews" (probablemente del perfil/dashboard o feed) en lugar de la vista dedicada `/user/:username/reviews`. Aplicar la misma definicion de "review" = entrada con `score` o `review` no nulos.
 - **Solucion propuesta:** Ajustar el query/filtro de la seccion Recent Reviews para incluir entradas con `score IS NOT NULL` aunque `review` este vacio. Frontend: en la card, mostrar el score destacado y el texto opcional debajo; sin texto, omitir el bloque de comentario o usar placeholder discreto. Resolver junto a FB-026 para mantener consistencia entre las dos superficies. Auditar tambien si hay otras vistas (feed, highlights, etc.) con el mismo filtro implicito.
+- **Resolucion:** Resuelto junto a FB-026. La seccion "Reviews" del perfil publico usa `getUserReviews(username, { limit: 5 })`, el mismo endpoint que la vista dedicada, asi que el cambio del predicado `hasContent → hasContentOrRating` en `reviews.service.ts` cubre ambas superficies con una sola fix.
 
 ### [FB-034] Falta flujo "Olvide mi contrasena" en el login
 
