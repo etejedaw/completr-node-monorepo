@@ -95,7 +95,9 @@ export async function getUserByUsername(request: Request, response: Response) {
 			? listsService.countListsByUserId(userId, !isSelf)
 			: Promise.resolve(0),
 		isSelf || user.isFeedPublic
-			? activityService.getUserActivity(userId)
+			? activityService.getUserActivity(userId, 10, {
+					includeSocial: isSelf
+				})
 			: Promise.resolve([]),
 		userFollowersService.getFollowerCount(userId),
 		userFollowersService.getFollowingCount(userId),

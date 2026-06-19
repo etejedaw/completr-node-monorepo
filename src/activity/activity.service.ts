@@ -23,6 +23,7 @@ const GAME_TYPES: string[] = [
 ];
 const LIST_TYPES: string[] = ["list_created", "list_followed"];
 const USER_TYPES: string[] = ["user_followed", "user_followed_by"];
+const SOCIAL_TYPES: string[] = ["user_followed", "user_followed_by"];
 
 export async function record(
 	userId: string,
@@ -79,9 +80,17 @@ const TARGET_INCLUDES = [
 	}
 ];
 
-export async function getUserActivity(userId: string, limit = 10) {
+export async function getUserActivity(
+	userId: string,
+	limit = 10,
+	options: { includeSocial?: boolean } = {}
+) {
+	const where: Record<string, unknown> = { userId };
+	if (!options.includeSocial) {
+		where.type = { [Op.notIn]: SOCIAL_TYPES };
+	}
 	return Activity.findAll({
-		where: { userId },
+		where,
 		include: TARGET_INCLUDES,
 		order: [["createdAt", "DESC"]],
 		limit
@@ -97,7 +106,10 @@ export async function getFeed(userId: string, limit = 25, offset = 0) {
 	const feedUserIds = [userId, ...following.map(f => f.followingId)];
 
 	const { rows, count } = await Activity.findAndCountAll({
-		where: { userId: { [Op.in]: feedUserIds } },
+		where: {
+			userId: { [Op.in]: feedUserIds },
+			type: { [Op.notIn]: SOCIAL_TYPES }
+		},
 		include: [
 			{
 				model: User,
