@@ -146,12 +146,12 @@ export class PublicProfileComponent implements OnInit {
 
 	private pickDefaultTab(profile: PublicProfile): string {
 		const u = profile.user;
-		if (u.isBacklogPublic) return "highlights";
-		if (u.isShelfPublic) return "shelf";
-		if (u.isListPublic) return "lists";
-		if (u.isFavoritePublic) return "favorites";
-		if (u.isQueuePublic) return "queue";
-		if (u.isWishlistPublic) return "wishlist";
+		if (u.backlogVisibility !== "private") return "highlights";
+		if (u.shelfVisibility !== "private") return "shelf";
+		if (u.listVisibility !== "private") return "lists";
+		if (u.favoriteVisibility !== "private") return "favorites";
+		if (u.queueVisibility !== "private") return "queue";
+		if (u.wishlistVisibility !== "private") return "wishlist";
 		return "reviews";
 	}
 
@@ -481,7 +481,10 @@ export class PublicProfileComponent implements OnInit {
 						.subscribe(d => this.gamesInCommon.set(d.games));
 				}
 				this.recentFollowers.set([]);
-				if (data.user.isFeedPublic && data.recentActivity.length > 0) {
+				if (
+					data.user.feedVisibility !== "private" &&
+					data.recentActivity.length > 0
+				) {
 					this.profileService
 						.getFollowers(username)
 						.subscribe(users =>

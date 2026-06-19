@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	signal
+} from "@angular/core";
+import { UiPagination } from "../../shared/ui";
 
 type Tint = "brand" | "purple" | "warning" | "success" | "danger";
 
@@ -17,9 +23,12 @@ interface ReleaseEntry {
 	highlights: Highlight[];
 }
 
+const PAGE_SIZE = 4;
+
 @Component({
 	selector: "app-whats-new-page",
 	standalone: true,
+	imports: [UiPagination],
 	template: `
 		<div class="max-w-3xl mx-auto">
 			<div class="mb-6 flex items-start gap-4">
@@ -34,7 +43,7 @@ interface ReleaseEntry {
 			</div>
 
 			<div class="flex flex-col gap-4">
-				@for (entry of releases; track entry.date + entry.title) {
+				@for (entry of pageEntries(); track entry.date + entry.title) {
 					<article class="bg-sidebar border border-line rounded-card overflow-hidden">
 						<header class="flex items-start gap-3 p-5 border-b border-line">
 							<span class="flex items-center justify-center w-10 h-10 rounded-xl shrink-0" [class]="iconBgClass(entry.tint)">
@@ -62,6 +71,17 @@ interface ReleaseEntry {
 				}
 			</div>
 
+			@if (releases.length > pageSize) {
+				<div class="mt-6">
+					<ui-pagination
+						[offset]="offset()"
+						[limit]="pageSize"
+						[total]="releases.length"
+						(offsetChange)="onOffsetChange($event)"
+					/>
+				</div>
+			}
+
 			<p class="text-center text-xs text-fg-muted mt-8 mb-0">
 				Found a bug or have a suggestion?
 				<a href="mailto:completr@etejeda.dev" class="text-brand no-underline hover:underline">Tell us</a>.
@@ -72,7 +92,58 @@ interface ReleaseEntry {
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WhatsNewPage {
+	protected readonly pageSize = PAGE_SIZE;
+	protected readonly offset = signal(0);
+
 	protected readonly releases: ReleaseEntry[] = [
+		{
+			date: "2026-06-19",
+			tag: "Privacy",
+			title: "Friends-level privacy and follow requests",
+			icon: "lock",
+			tint: "purple",
+			highlights: [
+				{
+					icon: "tune",
+					tint: "purple",
+					text: "Privacy settings get a new Friends preset and a Custom mode where every section (My Games, My Shelf, Lists, Up Next, Wanted, Favorites, Activity feed) can be set to Only you / Friends / Everyone independently."
+				},
+				{
+					icon: "group",
+					tint: "brand",
+					text: "Friend = mutual follower. When a section is set to Friends, only users that follow each other with you can see it."
+				},
+				{
+					icon: "person_add",
+					tint: "success",
+					text: "Private profiles now gate new followers behind a request — accept or reject from the new follow requests panel. Toggle it off and the Follow button hides again."
+				}
+			]
+		},
+		{
+			date: "2026-06-19",
+			tag: "Catalog",
+			title: "Subgenres promoted from RAWG tags",
+			icon: "category",
+			tint: "warning",
+			highlights: [
+				{
+					icon: "label",
+					tint: "warning",
+					text: "Filtering Games by Point and Click, Roguelike, Metroidvania, Soulslike, Visual Novel, Deck Building and other subgenres now returns results — these used to be RAWG tags and were ignored at import time."
+				},
+				{
+					icon: "auto_fix_high",
+					tint: "brand",
+					text: "11 new genres seeded: Point and Click, Roguelike, Roguelite, Metroidvania, Soulslike, Visual Novel, Deck Building, Battle Royale, Survival Horror, Dungeon Crawler, Auto Battler."
+				},
+				{
+					icon: "refresh",
+					tint: "purple",
+					text: "Newly imported games pick up these subgenres automatically. Existing games update on the next natural refresh."
+				}
+			]
+		},
 		{
 			date: "2026-06-18",
 			tag: "Profile",
@@ -232,6 +303,17 @@ export class WhatsNewPage {
 			]
 		}
 	];
+
+	protected readonly pageEntries = computed(() =>
+		this.releases.slice(this.offset(), this.offset() + this.pageSize)
+	);
+
+	protected onOffsetChange(offset: number) {
+		this.offset.set(offset);
+		if (typeof window !== "undefined") {
+			window.scrollTo({ top: 0, behavior: "smooth" });
+		}
+	}
 
 	protected iconBgClass(tint: Tint): string {
 		switch (tint) {

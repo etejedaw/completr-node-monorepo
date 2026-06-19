@@ -2,20 +2,21 @@ import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
-import { User } from "../../core/models";
+import { User, VisibilityLevel } from "../../core/models";
 
 export interface UpdateProfileDto {
 	name?: string;
 	bio?: string;
 	avatarUrl?: string;
-	isPublic?: boolean;
-	isQueuePublic?: boolean;
-	isWishlistPublic?: boolean;
-	isFavoritePublic?: boolean;
-	isFeedPublic?: boolean;
-	isBacklogPublic?: boolean;
-	isShelfPublic?: boolean;
-	isListPublic?: boolean;
+	profileVisibility?: VisibilityLevel;
+	queueVisibility?: VisibilityLevel;
+	wishlistVisibility?: VisibilityLevel;
+	favoriteVisibility?: VisibilityLevel;
+	feedVisibility?: VisibilityLevel;
+	backlogVisibility?: VisibilityLevel;
+	shelfVisibility?: VisibilityLevel;
+	listVisibility?: VisibilityLevel;
+	acceptFollowRequests?: boolean;
 }
 
 @Injectable({ providedIn: "root" })

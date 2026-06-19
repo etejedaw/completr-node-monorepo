@@ -1,3 +1,5 @@
+export type VisibilityLevel = "private" | "friends" | "public";
+
 export interface User {
 	id: string;
 	username: string;
@@ -6,14 +8,15 @@ export interface User {
 	name: string;
 	bio?: string;
 	avatarUrl?: string;
-	isPublic: boolean;
-	isQueuePublic: boolean;
-	isWishlistPublic: boolean;
-	isFavoritePublic: boolean;
-	isFeedPublic: boolean;
-	isBacklogPublic: boolean;
-	isShelfPublic: boolean;
-	isListPublic: boolean;
+	profileVisibility: VisibilityLevel;
+	queueVisibility: VisibilityLevel;
+	wishlistVisibility: VisibilityLevel;
+	favoriteVisibility: VisibilityLevel;
+	feedVisibility: VisibilityLevel;
+	backlogVisibility: VisibilityLevel;
+	shelfVisibility: VisibilityLevel;
+	listVisibility: VisibilityLevel;
+	acceptFollowRequests: boolean;
 	theme?: string;
 	isActive: boolean;
 	createdAt: string;
