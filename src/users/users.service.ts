@@ -44,7 +44,13 @@ export async function searchUsers(query: string, limit = 20) {
 				{ name: { [Op.iLike]: `%${query}%` } }
 			]
 		},
-		attributes: ["id", "username", "name", "avatarUrl", "isPublic"],
+		attributes: [
+			"id",
+			"username",
+			"name",
+			"avatarUrl",
+			"profileVisibility"
+		],
 		limit,
 		order: [["username", "ASC"]]
 	});
@@ -53,7 +59,7 @@ export async function searchUsers(query: string, limit = 20) {
 export async function findUserByExactEmail(email: string) {
 	const user = await User.findOne({
 		where: { email: email.toLowerCase(), isActive: true },
-		attributes: ["id", "username", "name", "avatarUrl", "isPublic"]
+		attributes: ["id", "username", "name", "avatarUrl", "profileVisibility"]
 	});
 	return user ? [user] : [];
 }
@@ -64,14 +70,20 @@ export async function findRandomPublicUsers(
 ) {
 	const where: Record<string, unknown> = {
 		isActive: true,
-		isPublic: true
+		profileVisibility: "public"
 	};
 	if (excludeUserId) {
 		where.id = { [Op.ne]: excludeUserId };
 	}
 	return User.findAll({
 		where,
-		attributes: ["id", "username", "name", "avatarUrl", "isPublic"],
+		attributes: [
+			"id",
+			"username",
+			"name",
+			"avatarUrl",
+			"profileVisibility"
+		],
 		order: sequelize.literal("RANDOM()"),
 		limit
 	});
