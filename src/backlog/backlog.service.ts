@@ -425,6 +425,31 @@ export async function findHighlightsByUserId(
 	};
 }
 
+export async function findCompletionsByUserIdPaginated(
+	userId: string,
+	includePrivate: boolean,
+	options: { limit?: number; offset?: number } = {}
+) {
+	const { limit = 20, offset = 0 } = options;
+	const where: Record<string, unknown> = {
+		userId,
+		status: "completed",
+		finishedAt: { [Op.ne]: null }
+	};
+	if (!includePrivate) where.isPublic = true;
+
+	const { rows, count } = await Backlog.findAndCountAll({
+		where,
+		include: backlogInclude,
+		order: [["finishedAt", "DESC"]],
+		limit,
+		offset,
+		distinct: true
+	});
+
+	return { rows, total: count };
+}
+
 export async function findPublicBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}

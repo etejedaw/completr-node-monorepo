@@ -241,6 +241,17 @@ router.get(
 );
 
 router.get(
+	"/users/:username/completions",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(PaginationQuerySchema, "query")
+	],
+	usersController.getUserCompletions
+);
+
+router.get(
 	"/users/:username/games-in-common",
 	[
 		rateLimiterMiddleware(publicLimiter),
