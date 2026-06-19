@@ -74,6 +74,87 @@ interface ReleaseEntry {
 export class WhatsNewPage {
 	protected readonly releases: ReleaseEntry[] = [
 		{
+			date: "2026-06-18",
+			tag: "Profile",
+			title: "Profile restructure: Highlights first, activity timeline at the bottom",
+			icon: "person",
+			tint: "brand",
+			highlights: [
+				{
+					icon: "insights",
+					tint: "brand",
+					text: "Public profiles now open on Highlights by default instead of Backlog — recent completions and the monthly summary lead the page."
+				},
+				{
+					icon: "dynamic_feed",
+					tint: "purple",
+					text: "Recent Activity moved from the side to the bottom of the profile as a timeline with icons per activity type, plus a sidebar with recent followers."
+				},
+				{
+					icon: "rate_review",
+					tint: "success",
+					text: "Reviews counter on the stats grid now shows the real total instead of capping at the preview size."
+				}
+			]
+		},
+		{
+			date: "2026-06-18",
+			tag: "Highlights",
+			title: "Browse past months and see every completion",
+			icon: "calendar_month",
+			tint: "purple",
+			highlights: [
+				{
+					icon: "chevron_left",
+					tint: "brand",
+					text: "Arrows around the month title in Highlights to navigate to previous months — Most played and Highest rated recalculate per month, with the URL keeping the selection (?highlightsMonth=YYYY-MM)."
+				},
+				{
+					icon: "check_circle",
+					tint: "success",
+					text: "New 'See all' link under Recent completions opens a dedicated timeline view at /user/:username/completions with score, real duration, finish date and an excerpt of your review."
+				}
+			]
+		},
+		{
+			date: "2026-06-18",
+			tag: "Social",
+			title: "Cleaner feed and reviews that count rating-only entries",
+			icon: "filter_alt",
+			tint: "success",
+			highlights: [
+				{
+					icon: "person_off",
+					tint: "purple",
+					text: "Follow activities (X started following Y) no longer leak into the feed or someone else's activity timeline — they stay scoped to the owner."
+				},
+				{
+					icon: "star",
+					tint: "warning",
+					text: "Reviews lists now include entries with only a score (no written text) on the profile and the dedicated reviews view."
+				}
+			]
+		},
+		{
+			date: "2026-06-18",
+			tag: "Lists",
+			title: "Compare your progress with the list owner",
+			icon: "compare_arrows",
+			tint: "warning",
+			highlights: [
+				{
+					icon: "visibility",
+					tint: "brand",
+					text: "When you open a list from another user's profile, a banner makes it clear whose progress you're seeing and lets you switch back to yours in one click."
+				},
+				{
+					icon: "compare_arrows",
+					tint: "warning",
+					text: "New Compare mode shows both progresses side by side — two bars at the top and 'You / @user' status pills per item."
+				}
+			]
+		},
+		{
 			date: "2026-06-17",
 			tag: "UX overhaul",
 			title: "Naming, onboarding and library overhaul",
