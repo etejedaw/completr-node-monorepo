@@ -1,7 +1,7 @@
 import { inject, Injectable } from "@angular/core";
 import { HttpClient, HttpContext, HttpParams } from "@angular/common/http";
 import { environment } from "../../../environments/environment";
-import { User } from "../../core/models";
+import { User, VisibilityLevel } from "../../core/models";
 import { map } from "rxjs";
 import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
 
@@ -163,7 +163,7 @@ export interface AdminUser {
 	name: string;
 	role: string;
 	isActive: boolean;
-	isPublic: boolean;
+	profileVisibility: VisibilityLevel;
 	createdAt: string;
 }
 

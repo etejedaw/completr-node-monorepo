@@ -2,13 +2,14 @@ import { inject, Injectable } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
+import { VisibilityLevel } from "../models/user.model";
 
 export interface UserResult {
 	id: string;
 	username: string;
 	name: string;
 	avatarUrl: string | null;
-	isPublic: boolean;
+	profileVisibility: VisibilityLevel;
 }
 
 interface UsersResponse {

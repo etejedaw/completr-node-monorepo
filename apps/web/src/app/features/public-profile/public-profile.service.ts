@@ -7,6 +7,7 @@ import { FavoriteEntry } from "../../core/models/favorite.model";
 import { QueueEntry } from "../../core/models/queue.model";
 import { WishlistEntry } from "../../core/models/wishlist.model";
 import { GameShelfEntry } from "../../core/models/game-shelf.model";
+import { VisibilityLevel } from "../../core/models/user.model";
 
 export interface PaginatedResult<T> {
 	items: T[];
@@ -20,13 +21,14 @@ export interface PublicUser {
 	name: string;
 	bio?: string;
 	avatarUrl?: string;
-	isQueuePublic: boolean;
-	isWishlistPublic: boolean;
-	isFavoritePublic: boolean;
-	isFeedPublic: boolean;
-	isBacklogPublic: boolean;
-	isShelfPublic: boolean;
-	isListPublic: boolean;
+	profileVisibility: VisibilityLevel;
+	queueVisibility: VisibilityLevel;
+	wishlistVisibility: VisibilityLevel;
+	favoriteVisibility: VisibilityLevel;
+	feedVisibility: VisibilityLevel;
+	backlogVisibility: VisibilityLevel;
+	shelfVisibility: VisibilityLevel;
+	listVisibility: VisibilityLevel;
 	createdAt: string;
 }
 
@@ -114,6 +116,9 @@ export interface BacklogStats {
 export interface PublicProfile {
 	user: PublicUser;
 	isPrivate?: boolean;
+	profileVisibility?: VisibilityLevel;
+	acceptFollowRequests?: boolean;
+	hasPendingRequest?: boolean;
 	followerCount: number;
 	followingCount: number;
 	isFollowing: boolean;
