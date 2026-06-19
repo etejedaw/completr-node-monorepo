@@ -7,12 +7,12 @@
 
 ## Resumen de avance
 
-- **Resueltos (19):** FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-032, FB-033.
+- **Resueltos (20):** FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033.
 - **Diferidos a fases futuras (4):** FB-001 (premium), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
 - **Descartados/omitidos (2):** FB-015 (descartado tras prototipar), FB-018 (omitido, baja prioridad).
-- **Pendientes (9):** FB-002, FB-003, FB-004, FB-005, FB-010, FB-021, FB-022, FB-031, FB-034.
+- **Pendientes (8):** FB-002, FB-003, FB-004, FB-005, FB-010, FB-021, FB-022, FB-034.
 
-Prioridad sugerida para la siguiente sesion: FB-031 (vista completa de Completions), seguido de FB-004 (promover RAWG tags a generos) y bloque social/privacidad (FB-021/FB-022/FB-002/FB-003).
+Prioridad sugerida para la siguiente sesion: FB-004 (promover RAWG tags a generos, valor inmediato), seguido del bloque social/privacidad (FB-002 + FB-003 → desbloquean FB-021 + FB-022) y FB-034 (forgot password).
 
 ---
 
@@ -245,9 +245,10 @@ Prioridad sugerida para la siguiente sesion: FB-031 (vista completa de Completio
 
 ### [FB-031] "Ver mas" en Recent Completions con vista timeline / historial completo
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** La seccion "Recent Completions" de Highlights muestra solo los ultimos 6 completados. Falta una forma de ver el historial completo de completados del usuario, idealmente en un layout estilo timeline (similar al feed) o en una vista dedicada que aproveche el ancho para mostrar mas informacion (score, horas jugadas, fecha de finalizacion, review si tiene, etc.).
 - **Solucion propuesta:** Agregar boton/link "Ver mas" debajo de Recent Completions que lleve a una vista dedicada (ej. `/user/:username/completions` o tab "Completions" en el perfil) con todos los completados paginados/scroll infinito y ordenados por `finishedAt` desc. Layout tipo timeline vertical con icono `check_circle`, poster del juego, score, duracion real, fecha de finalizacion y excerpt del review si existe. Backend: endpoint `GET /users/:username/completions` con paginacion (`page`, `pageSize`), respetando `isBacklogPublic`. Reutilizar el query base de highlights pero sin limite de 6 ni filtro de mes. Coordinar con FB-026 (vista de reviews) y FB-028 (Recent Activity como timeline) — comparten patron visual y podrian usar componentes comunes. Considerar tambien un toggle de filtros (por ano, por plataforma, por genero) sobre la lista completa.
+- **Resolucion:** Backend: nueva funcion `findCompletionsByUserIdPaginated(userId, includePrivate, { limit, offset })` en `backlog.service.ts` (status `completed`, `finishedAt != null`, orden desc, paginacion `limit`/`offset` con default 20/100 max). Nuevo controller `getUserCompletions` que tras serializar los entries cruza con `findReviewContentByUserAndGameIds` para adjuntar `reviewContent` por juego (null si el user no escribio review). Ruta `GET /users/:username/completions` registrada con `UsernameParamSchema` + `PaginationQuerySchema` y `authOptionalMiddleware`. Frontend: nuevo componente standalone `UserCompletions` en `features/public-profile/user-completions/` (paralelo a `UserReviews`) con paginacion `ui-pagination` y layout timeline vertical (border-l con dots verdes `check_circle`, poster a la izquierda, titulo + star rating + fecha/duracion/plataforma + excerpt del review con `line-clamp:3`). Ruta `user/:username/completions` agregada al `app.routes.ts`. Link "See all" agregado en la seccion "Recent completions" del tab Highlights. Bruno doc creada. Sin filtros por ano/plataforma/genero — se reabre como FB nuevo si surge demanda.
 
 ### [FB-032] Lista vista desde otro perfil: distinguir progreso ajeno y permitir cambio a propio
 
