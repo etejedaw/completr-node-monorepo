@@ -7,12 +7,12 @@
 
 ## Resumen de avance
 
-- **Resueltos (21):** FB-004, FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033.
+- **Resueltos (22):** FB-002 (backend), FB-004, FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033.
 - **Diferidos a fases futuras (5):** FB-001 (premium), FB-005 (migracion a IGDB), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
 - **Descartados/omitidos (2):** FB-015 (descartado tras prototipar), FB-018 (omitido, baja prioridad).
-- **Pendientes (6):** FB-002, FB-003, FB-010, FB-021, FB-022, FB-034.
+- **Pendientes (5):** FB-003, FB-010, FB-021, FB-022, FB-034.
 
-Prioridad sugerida para la siguiente sesion: bloque social/privacidad (FB-002 + FB-003 → desbloquean FB-021 + FB-022) y FB-034 (forgot password). FB-010 (logo) queda bloqueado por diseno.
+Prioridad sugerida para la siguiente sesion: FB-003 (visibilidad granular — desbloquea FB-021 + FB-022) y FB-034 (forgot password). FB-010 (logo) queda bloqueado por diseno. Frontend de FB-002 pendiente (UI de gestion + boton Requested + toggle en settings).
 
 ---
 
@@ -27,9 +27,10 @@ Prioridad sugerida para la siguiente sesion: bloque social/privacidad (FB-002 + 
 
 ### [FB-002] Follow requests para perfiles privados
 
-- **Estado:** pendiente
+- **Estado:** resuelto (backend)
 - **Descripcion:** Permitir que usuarios con perfil privado puedan elegir si reciben solicitudes de seguimiento.
 - **Solucion propuesta:** Setting nuevo en `User`: `acceptFollowRequests` (bool, default true). Si el perfil es privado y `acceptFollowRequests = true`, el follow no es automatico: queda en estado `pending` y el dueno aprueba/rechaza. Nuevo modelo `UserFollowRequest` (o estado `pending` en `UserFollower`). Endpoints: listar requests pendientes, aprobar, rechazar. Notificacion al dueno cuando llega una request. Si `acceptFollowRequests = false`, el boton Follow no aparece en perfiles privados.
+- **Resolucion (backend):** Opcion B (tabla aparte). Migration `20260619140000-add-follow-requests.js` agrega columna `Users.acceptFollowRequests` (default `true`) y crea tabla `UserFollowRequests(id, requesterId, targetId, createdAt, updatedAt)` con `UNIQUE(requesterId, targetId)`, indices en `(targetId, createdAt desc)` y `(requesterId)`. Nuevo modulo `src/user-follow-requests/` con modelo, service, controller, routes, errors. Endpoints nuevos (todos auth): `GET /users/me/follow-requests`, `POST /users/me/follow-requests/:requesterId/accept`, `POST /users/me/follow-requests/:requesterId/reject`, `DELETE /users/me/follow-requests/sent/:username`. El endpoint existente `POST /users/:username/follow` ahora delega a `userFollowRequestsService.createOrAcceptFollow`: si el target es publico o tiene `acceptFollowRequests = false` se inserta directo en `UserFollower` (status `accepted`), si es privado con `acceptFollowRequests = true` se inserta en `UserFollowRequests` (status `pending`). El response devuelve `{ status, targetId }` para que el frontend pinte el boton (`Following` vs `Requested`). Aceptar dispara las activities `user_followed` / `user_followed_by` (como si el follow hubiese sido auto-aceptado), rechazar solo borra la fila sin notificar. `PATCH /users/me` acepta `acceptFollowRequests`; cuando se desactiva (true → false) se borran todas las pending recibidas. Public profile response (cuando es privado y no es self) ahora incluye `acceptFollowRequests` y `hasPendingRequest` para que el frontend sepa si mostrar Follow/Requested/oculto. **Drift de schema en `Users` reparado en paralelo:** durante el desarrollo se detecto que `Users` no tenia PK ni UNIQUE en la DB de dev (la migration inicial usaba `CREATE TABLE IF NOT EXISTS` y la tabla habia sido creada antes por `sequelize.sync`, por lo que el DDL nunca corrio). Migration `20260619150000-heal-users-schema.js` agrega idempotentemente `PRIMARY KEY (id)`, `UNIQUE (username)`, `UNIQUE (email)`, `NOT NULL` en username/email/password y `DEFAULT gen_random_uuid()` en id; en entornos sin drift el `IF NOT EXISTS` la deja como no-op. Migration `20260619150100-add-follow-requests-fks.js` agrega las FKs `requesterId/targetId → Users(id) ON DELETE CASCADE` a `UserFollowRequests`. Frontend pendiente (settings toggle, badge de pendings, modal de gestion, estado `Requested` en boton de follow).
 
 ### [FB-003] Visibilidad granular por seccion (solo yo / amigos / todos)
 
