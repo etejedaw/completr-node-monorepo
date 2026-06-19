@@ -7,12 +7,12 @@
 
 ## Resumen de avance
 
-- **Resueltos (16):** FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-026, FB-027, FB-029, FB-030, FB-033.
+- **Resueltos (17):** FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-026, FB-027, FB-029, FB-030, FB-032, FB-033.
 - **Diferidos a fases futuras (4):** FB-001 (premium), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
 - **Descartados/omitidos (2):** FB-015 (descartado tras prototipar), FB-018 (omitido, baja prioridad).
-- **Pendientes (12):** FB-002, FB-003, FB-004, FB-005, FB-010, FB-021, FB-022, FB-025, FB-028, FB-031, FB-032, FB-034.
+- **Pendientes (11):** FB-002, FB-003, FB-004, FB-005, FB-010, FB-021, FB-022, FB-025, FB-028, FB-031, FB-034.
 
-Prioridad sugerida para la siguiente sesion: FB-032 (banner de progreso ajeno en listas), seguido de FB-025 (paginacion de reviews del perfil) y FB-028 (Recent Activity al final del perfil).
+Prioridad sugerida para la siguiente sesion: FB-025 (paginacion de reviews del perfil), seguido de FB-028 (Recent Activity al final del perfil) y FB-031 (vista completa de Completions).
 
 ---
 
@@ -248,10 +248,11 @@ Prioridad sugerida para la siguiente sesion: FB-032 (banner de progreso ajeno en
 
 ### [FB-032] Lista vista desde otro perfil: distinguir progreso ajeno y permitir cambio a propio
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** Al abrir una lista desde el perfil de otro usuario (ej. `/lists/<id>?from=clfak`), la vista muestra el progreso del owner del perfil de origen pero no es evidente que el progreso visible NO es el del viewer. Falta (a) signal visual clara de "estas viendo el progreso de @clfak" y (b) un boton "Ver tu progreso" que recargue la misma lista usando el progreso propio del viewer (quitando el `?from=clfak` de la URL).
 - **Contexto:** El query param `?from=<username>` ya existe para indicar el contexto de origen y resolver el progreso desde ese user. El bug/mejora es de UX: el viewer puede confundir el progreso del otro usuario con el suyo, especialmente si la lista es larga o se llega desde un link compartido.
 - **Solucion propuesta:** Frontend: cuando `?from=<username>` esta presente y no coincide con el username del viewer logueado, mostrar un banner/chip persistente arriba de la lista tipo "Viendo el progreso de @<username>" con avatar del owner. Junto al banner, boton "Ver tu progreso" que navega a la misma lista sin el query param (`router.navigate([], { queryParams: { from: null }, queryParamsHandling: 'merge' })`). Visual del progreso (tildes, contador "X/Y") debe diferenciarse cuando es ajeno — ej. opacidad menor, color secundario, o badge "Progreso de @<username>" sobre cada item completado. Si el viewer no esta logueado, ocultar el boton (no aplica). Coordinar con FB-021/FB-022 (senales sociales): la misma logica de "progreso de un amigo" podria extenderse para mostrar progreso comparado lado a lado en el futuro.
+- **Resolucion:** Frontend-only (la backend ya expone `GET /lists/:id` y `GET /users/:username/lists/:id` con los dos contextos). Banner persistente arriba de la lista cuando `?from=<username>` esta presente y no coincide con el viewer, con icono `visibility`, link al perfil de origen y dos botones: "See my progress" (limpia `from` y `compare` de la URL) y "Compare" (solo si hay viewer logueado). Cada item de la lista en modo ajeno renderiza la status pill con opacidad reducida + sufijo "by @<from>" y se reemplaza el click handler por "Add to my Backlog" (semanticamente la unica accion valida para el viewer). Modo Comparar: `?compare=1` activa fork-join de ambos endpoints, render side-by-side de progress bars (Your / @from) y por item dos pills inline (You: <status> | @from: <status>) — la del viewer es clickable (edita su backlog), la del owner-de-origen es read-only. Sin cambios backend.
 
 ### [FB-033] Recent Reviews excluye entradas con solo nota (sin texto)
 
