@@ -31,7 +31,11 @@ import {
 	UiTabPanel,
 	UiTabs
 } from "../../shared/ui";
-import { activityLabel } from "../../shared/utils/activity-labels";
+import {
+	activityIcon,
+	activityIconColorClass,
+	activityLabel
+} from "../../shared/utils/activity-labels";
 
 @Component({
 	selector: "app-public-profile",
@@ -100,6 +104,7 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly gamesInCommon = signal<
 		{ id: string; code: string; title: string; backgroundUrl: string | null }[]
 	>([]);
+	protected readonly recentFollowers = signal<UserSummary[]>([]);
 	protected readonly highlightsData = signal<{
 		recent: HighlightEntry[];
 		month: {
@@ -139,10 +144,9 @@ export class PublicProfileComponent implements OnInit {
 		else if (tab === "highlights") this.ensureHighlightsLoaded(u);
 	});
 
-	private pickDefaultTab(profile: PublicProfile, isNarrow: boolean): string {
+	private pickDefaultTab(profile: PublicProfile): string {
 		const u = profile.user;
 		if (u.isBacklogPublic) return "highlights";
-		if (isNarrow && u.isFeedPublic) return "activity";
 		if (u.isShelfPublic) return "shelf";
 		if (u.isListPublic) return "lists";
 		if (u.isFavoritePublic) return "favorites";
@@ -337,21 +341,7 @@ export class PublicProfileComponent implements OnInit {
 		if (typeof window !== "undefined" && window.matchMedia) {
 			const mql = window.matchMedia("(min-width: 1024px)");
 			this.isWide.set(mql.matches);
-			mql.addEventListener("change", e => {
-				this.isWide.set(e.matches);
-				const p = this.profile();
-				if (!p) return;
-				const wideDefault = this.pickDefaultTab(p, false);
-				if (e.matches && this.activeTab() === "activity") {
-					this.activeTab.set(wideDefault);
-				} else if (
-					!e.matches &&
-					p.user.isFeedPublic &&
-					this.activeTab() === wideDefault
-				) {
-					this.activeTab.set("activity");
-				}
-			});
+			mql.addEventListener("change", e => this.isWide.set(e.matches));
 		}
 		if (this.authService.token() && !this.authService.user()) {
 			this.authService.loadUser().subscribe({
@@ -439,6 +429,8 @@ export class PublicProfileComponent implements OnInit {
 	}
 
 	protected activityLabel = activityLabel;
+	protected activityIcon = activityIcon;
+	protected activityIconColorClass = activityIconColorClass;
 
 	protected timeAgo(date: string): string {
 		const diff = Date.now() - new Date(date).getTime();
@@ -474,9 +466,7 @@ export class PublicProfileComponent implements OnInit {
 					this.isLoading.set(false);
 					return;
 				}
-				if (this.isWide() || !data.user.isFeedPublic)
-					this.activeTab.set(this.pickDefaultTab(data, false));
-				else this.activeTab.set(this.pickDefaultTab(data, true));
+				this.activeTab.set(this.pickDefaultTab(data));
 				this.isLoading.set(false);
 				this.profileService
 					.getUserReviews(username, { limit: 5 })
@@ -489,6 +479,14 @@ export class PublicProfileComponent implements OnInit {
 					this.profileService
 						.getGamesInCommon(username)
 						.subscribe(d => this.gamesInCommon.set(d.games));
+				}
+				this.recentFollowers.set([]);
+				if (data.user.isFeedPublic && data.recentActivity.length > 0) {
+					this.profileService
+						.getFollowers(username)
+						.subscribe(users =>
+							this.recentFollowers.set(users.slice(0, 8))
+						);
 				}
 			},
 			error: err => {
