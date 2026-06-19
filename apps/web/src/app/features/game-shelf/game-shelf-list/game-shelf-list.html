@@ -1,7 +1,7 @@
 <div>
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
-			<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Game Shelf</h1>
+			<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">My Shelf</h1>
 			<span class="text-sm text-fg-muted">{{ total() }} games</span>
 		</div>
 		@if (isLoading() || entries().length > 0) {
@@ -64,15 +64,15 @@
 			<ui-empty-state
 				icon="search_off"
 				title="No matches found"
-				hint="No shelf entries match your current search or filter."
+				hint="Nothing on your shelf matches your current search or filter."
 			>
 				<button uiButton variant="secondary" (click)="clearSearchAndFilter()">Clear search & filter</button>
 			</ui-empty-state>
 		} @else {
 			<ui-empty-state
 				icon="shelves"
-				title="Your game shelf is empty"
-				hint="Keep track of games you own, whether physical or digital."
+				title="Your shelf is empty"
+				hint="My Shelf tracks games you own — physical copies, digital keys, subscription libraries. Helps you remember what you can actually play before buying duplicates."
 			>
 				<button uiButton variant="primary" (click)="openCreate()">+ Add to Shelf</button>
 			</ui-empty-state>

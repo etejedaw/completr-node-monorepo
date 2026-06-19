@@ -164,7 +164,8 @@ export class BacklogModal implements OnInit {
 			not_started: "Not Started",
 			playing: "Playing",
 			completed: "Completed",
-			abandoned: "Abandoned"
+			abandoned: "Abandoned",
+			endless: "Endless"
 		};
 		return status ? (map[status] ?? status) : "";
 	}
@@ -174,7 +175,8 @@ export class BacklogModal implements OnInit {
 			not_started: "bg-fg-muted/10 text-fg-muted",
 			playing: "bg-warning/10 text-warning",
 			completed: "bg-success/10 text-success",
-			abandoned: "bg-danger/10 text-danger"
+			abandoned: "bg-danger/10 text-danger",
+			endless: "bg-brand-subtle text-brand"
 		};
 		return status ? (map[status] ?? "") : "";
 	}
@@ -222,13 +224,17 @@ export class BacklogModal implements OnInit {
 
 	protected readonly isReviewableStatus = computed(() => {
 		const s = this.statusValue();
-		return s === "completed" || s === "abandoned";
+		return s === "completed" || s === "abandoned" || s === "endless";
 	});
 
 	protected readonly isFirstReviewableTransition = computed(() => {
 		if (!this.isReviewableStatus()) return false;
 		const previous = this.entry()?.status;
-		return previous !== "completed" && previous !== "abandoned";
+		return (
+			previous !== "completed" &&
+			previous !== "abandoned" &&
+			previous !== "endless"
+		);
 	});
 
 	protected readonly existingReview = signal<Review | null>(null);
@@ -547,7 +553,11 @@ export class BacklogModal implements OnInit {
 					if (res.queueRemoved) {
 						const title = this.entry()!.game.title;
 						const reason =
-							dto.status === "completed" ? "completed" : "abandoned";
+							dto.status === "completed"
+								? "completed"
+								: dto.status === "endless"
+									? "marked as endless"
+									: "abandoned";
 						this.toast.info(`Removed from your Queue: ${title} — ${reason}`);
 						this.isInQueue.set(false);
 						this.addToQueue.set(false);

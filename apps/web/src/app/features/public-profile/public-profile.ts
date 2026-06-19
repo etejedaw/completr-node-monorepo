@@ -7,7 +7,7 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
 import {
 	PublicProfileService,
@@ -31,7 +31,11 @@ import {
 	UiTabPanel,
 	UiTabs
 } from "../../shared/ui";
-import { activityLabel } from "../../shared/utils/activity-labels";
+import {
+	activityIcon,
+	activityIconColorClass,
+	activityLabel
+} from "../../shared/utils/activity-labels";
 
 @Component({
 	selector: "app-public-profile",
@@ -41,8 +45,11 @@ import { activityLabel } from "../../shared/utils/activity-labels";
 })
 export class PublicProfileComponent implements OnInit {
 	private readonly route = inject(ActivatedRoute);
+	private readonly router = inject(Router);
 	private readonly profileService = inject(PublicProfileService);
 	private readonly authService = inject(AuthService);
+
+	private static readonly HIGHLIGHTS_MONTH_PARAM = "highlightsMonth";
 
 	protected readonly profile = signal<PublicProfile | null>(null);
 	protected readonly isLoading = signal(true);
@@ -56,7 +63,7 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly togglingFollow = signal(false);
 	protected readonly showUnfollowConfirm = signal(false);
 	protected readonly isWide = signal(false);
-	protected readonly activeTab = signal("activity");
+	protected readonly activeTab = signal("highlights");
 	protected readonly roleBadge = computed(() => {
 		const role = this.profile()?.user.role;
 		if (!role || role === "user") return null;
@@ -82,7 +89,7 @@ export class PublicProfileComponent implements OnInit {
 			completed: p.backlogStats?.completed ?? 0,
 			playing: p.backlogStats?.playing ?? 0,
 			lists: p.listsTotal ?? 0,
-			reviews: this.userReviews().length
+			reviews: this.userReviewsTotal()
 		};
 	});
 
@@ -97,6 +104,7 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly gamesInCommon = signal<
 		{ id: string; code: string; title: string; backgroundUrl: string | null }[]
 	>([]);
+	protected readonly recentFollowers = signal<UserSummary[]>([]);
 	protected readonly highlightsData = signal<{
 		recent: HighlightEntry[];
 		month: {
@@ -107,13 +115,19 @@ export class PublicProfileComponent implements OnInit {
 			highestRated: HighlightEntry | null;
 		};
 	} | null>(null);
+	protected readonly highlightsMonth = signal(this.currentMonth());
+	protected readonly isLoadingHighlightsMonth = signal(false);
 	protected readonly monthLabel = computed(() => {
-		const h = this.highlightsData();
-		if (!h) return "";
-		return new Date(h.month.startsAt).toLocaleDateString("en-US", {
-			year: "numeric",
-			month: "long"
-		});
+		const { year, month } = this.highlightsMonth();
+		return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString(
+			"en-US",
+			{ year: "numeric", month: "long", timeZone: "UTC" }
+		);
+	});
+	protected readonly isAtCurrentMonth = computed(() => {
+		const { year, month } = this.highlightsMonth();
+		const now = this.currentMonth();
+		return year === now.year && month === now.month;
 	});
 	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
 
@@ -130,9 +144,97 @@ export class PublicProfileComponent implements OnInit {
 		else if (tab === "highlights") this.ensureHighlightsLoaded(u);
 	});
 
+	private pickDefaultTab(profile: PublicProfile): string {
+		const u = profile.user;
+		if (u.isBacklogPublic) return "highlights";
+		if (u.isShelfPublic) return "shelf";
+		if (u.isListPublic) return "lists";
+		if (u.isFavoritePublic) return "favorites";
+		if (u.isQueuePublic) return "queue";
+		if (u.isWishlistPublic) return "wishlist";
+		return "reviews";
+	}
+
+	private currentMonth(): { year: number; month: number } {
+		const now = new Date();
+		return {
+			year: now.getUTCFullYear(),
+			month: now.getUTCMonth() + 1
+		};
+	}
+
+	private parseMonthParam(raw: string | null): {
+		year: number;
+		month: number;
+	} | null {
+		if (!raw) return null;
+		const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(raw);
+		if (!match) return null;
+		return { year: Number(match[1]), month: Number(match[2]) };
+	}
+
+	private formatMonthParam(year: number, month: number): string {
+		return `${year}-${String(month).padStart(2, "0")}`;
+	}
+
+	private syncHighlightsMonthInUrl() {
+		const next = this.isAtCurrentMonth()
+			? null
+			: this.formatMonthParam(
+					this.highlightsMonth().year,
+					this.highlightsMonth().month
+				);
+		this.router.navigate([], {
+			relativeTo: this.route,
+			queryParams: {
+				[PublicProfileComponent.HIGHLIGHTS_MONTH_PARAM]: next
+			},
+			queryParamsHandling: "merge",
+			replaceUrl: true
+		});
+	}
+
+	protected goToPreviousMonth() {
+		const { year, month } = this.highlightsMonth();
+		const next =
+			month === 1
+				? { year: year - 1, month: 12 }
+				: { year, month: month - 1 };
+		this.highlightsMonth.set(next);
+		this.syncHighlightsMonthInUrl();
+		this.refetchHighlights();
+	}
+
+	protected goToNextMonth() {
+		if (this.isAtCurrentMonth()) return;
+		const { year, month } = this.highlightsMonth();
+		const next =
+			month === 12
+				? { year: year + 1, month: 1 }
+				: { year, month: month + 1 };
+		this.highlightsMonth.set(next);
+		this.syncHighlightsMonthInUrl();
+		this.refetchHighlights();
+	}
+
+	private refetchHighlights() {
+		const u = this.username();
+		if (!u) return;
+		const { year, month } = this.highlightsMonth();
+		this.isLoadingHighlightsMonth.set(true);
+		this.profileService.getHighlights(u, { year, month }).subscribe({
+			next: data => {
+				this.highlightsData.set(data);
+				this.isLoadingHighlightsMonth.set(false);
+			},
+			error: () => this.isLoadingHighlightsMonth.set(false)
+		});
+	}
+
 	private ensureHighlightsLoaded(username: string) {
 		if (this.highlightsData() !== null) return;
-		this.profileService.getHighlights(username).subscribe({
+		const { year, month } = this.highlightsMonth();
+		this.profileService.getHighlights(username, { year, month }).subscribe({
 			next: data => this.highlightsData.set(data),
 			error: () =>
 				this.highlightsData.set({
@@ -239,19 +341,7 @@ export class PublicProfileComponent implements OnInit {
 		if (typeof window !== "undefined" && window.matchMedia) {
 			const mql = window.matchMedia("(min-width: 1024px)");
 			this.isWide.set(mql.matches);
-			if (mql.matches) this.activeTab.set("backlog");
-			mql.addEventListener("change", e => {
-				this.isWide.set(e.matches);
-				if (e.matches && this.activeTab() === "activity") {
-					this.activeTab.set("backlog");
-				} else if (
-					!e.matches &&
-					this.profile()?.user.isFeedPublic &&
-					this.activeTab() === "backlog"
-				) {
-					this.activeTab.set("activity");
-				}
-			});
+			mql.addEventListener("change", e => this.isWide.set(e.matches));
 		}
 		if (this.authService.token() && !this.authService.user()) {
 			this.authService.loadUser().subscribe({
@@ -264,6 +354,11 @@ export class PublicProfileComponent implements OnInit {
 	}
 
 	private init() {
+		const rawMonth = this.route.snapshot.queryParamMap.get(
+			PublicProfileComponent.HIGHLIGHTS_MONTH_PARAM
+		);
+		const parsed = this.parseMonthParam(rawMonth);
+		if (parsed) this.highlightsMonth.set(parsed);
 		this.route.paramMap.subscribe(params => {
 			const raw = params.get("username") ?? "";
 			this.username.set(raw);
@@ -334,6 +429,8 @@ export class PublicProfileComponent implements OnInit {
 	}
 
 	protected activityLabel = activityLabel;
+	protected activityIcon = activityIcon;
+	protected activityIconColorClass = activityIconColorClass;
 
 	protected timeAgo(date: string): string {
 		const diff = Date.now() - new Date(date).getTime();
@@ -369,8 +466,7 @@ export class PublicProfileComponent implements OnInit {
 					this.isLoading.set(false);
 					return;
 				}
-				if (this.isWide() || !data.user.isFeedPublic)
-					this.activeTab.set("backlog");
+				this.activeTab.set(this.pickDefaultTab(data));
 				this.isLoading.set(false);
 				this.profileService
 					.getUserReviews(username, { limit: 5 })
@@ -383,6 +479,14 @@ export class PublicProfileComponent implements OnInit {
 					this.profileService
 						.getGamesInCommon(username)
 						.subscribe(d => this.gamesInCommon.set(d.games));
+				}
+				this.recentFollowers.set([]);
+				if (data.user.isFeedPublic && data.recentActivity.length > 0) {
+					this.profileService
+						.getFollowers(username)
+						.subscribe(users =>
+							this.recentFollowers.set(users.slice(0, 8))
+						);
 				}
 			},
 			error: err => {

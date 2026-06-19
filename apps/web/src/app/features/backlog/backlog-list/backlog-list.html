@@ -1,7 +1,7 @@
 <div class="max-w-full">
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
-			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Backlog</h1>
+			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">My Games</h1>
 			<span class="text-sm text-fg-muted">{{ total() }} entries</span>
 		</div>
 		@if (isLoading() || entries().length > 0) {
@@ -378,15 +378,15 @@
 			<ui-empty-state
 				icon="search_off"
 				title="No matches found"
-				hint="No backlog entries match your current search or filters."
+				hint="No games match your current search or filters."
 			>
 				<button uiButton variant="secondary" (click)="clearFilters()">Clear search & filters</button>
 			</ui-empty-state>
 		} @else {
 			<ui-empty-state
 				icon="library_books"
-				title="Your backlog is empty"
-				hint="Track the games you want to play, are playing, or have completed."
+				title="Your library is empty"
+				hint="My Games is your full history — every title you want to play, are playing, completed, or dropped. Add one to get started."
 			>
 				<button uiButton variant="primary" (click)="openCreate()">+ Add Entry</button>
 			</ui-empty-state>
@@ -766,12 +766,12 @@
 		(click)="$event.stopPropagation()"
 	>
 		<h2 class="m-0 text-lg font-bold font-display flex items-center gap-2">
-			<span class="material-icons text-xl" [class.text-warning]="pending.status === 'playing'" [class.text-success]="pending.status === 'completed'" [class.text-danger]="pending.status === 'abandoned'" [class.text-fg-muted]="pending.status === 'not_started'">{{ statusIcon(pending.status) }}</span>
+			<span class="material-icons text-xl" [class.text-warning]="pending.status === 'playing'" [class.text-success]="pending.status === 'completed'" [class.text-danger]="pending.status === 'abandoned'" [class.text-brand]="pending.status === 'endless'" [class.text-fg-muted]="pending.status === 'not_started'">{{ statusIcon(pending.status) }}</span>
 			Change status to {{ statusLabel(pending.status) }}?
 		</h2>
 		<p class="text-sm text-fg-secondary leading-relaxed">
 			<strong>{{ pending.entry.game.title }}</strong> will be marked as
-			<span class="font-medium" [class.text-warning]="pending.status === 'playing'" [class.text-success]="pending.status === 'completed'" [class.text-danger]="pending.status === 'abandoned'" [class.text-fg-muted]="pending.status === 'not_started'">
+			<span class="font-medium" [class.text-warning]="pending.status === 'playing'" [class.text-success]="pending.status === 'completed'" [class.text-danger]="pending.status === 'abandoned'" [class.text-brand]="pending.status === 'endless'" [class.text-fg-muted]="pending.status === 'not_started'">
 				{{ statusLabel(pending.status) }}</span>.
 			@if (isInQueue(pending.entry) && pending.status !== 'not_started') {
 				It will be removed from your Queue.
@@ -816,6 +816,8 @@
 					/>
 				</div>
 			}
+		}
+		@if (pending.status === 'completed' || pending.status === 'abandoned' || pending.status === 'endless') {
 			<div>
 				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Your rating</label>
 				<app-star-rating

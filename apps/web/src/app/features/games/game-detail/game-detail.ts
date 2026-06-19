@@ -131,13 +131,6 @@ export class GameDetail implements OnInit {
 			userRating: number | null;
 		}[]
 	>([]);
-	protected readonly gameStats = signal<{
-		not_started: number;
-		playing: number;
-		completed: number;
-		abandoned: number;
-		total: number;
-	} | null>(null);
 	protected readonly showAddToListModal = signal(false);
 	protected readonly addToListSaving = signal(false);
 	protected readonly addToListSelection = signal<Map<string, boolean>>(
@@ -216,10 +209,6 @@ export class GameDetail implements OnInit {
 						.getFriendsActivity(game.id)
 						.subscribe(friends => this.friendsActivity.set(friends));
 				}
-				this.gameStats.set(null);
-				this.gamesService
-					.getGameStats(game.id)
-					.subscribe(stats => this.gameStats.set(stats.runs));
 			},
 			error: () => this.isLoading.set(false)
 		});
@@ -392,6 +381,8 @@ export class GameDetail implements OnInit {
 				return { label: "Playing", classes: "bg-brand/15 text-brand" };
 			case "abandoned":
 				return { label: "Abandoned", classes: "bg-warning/15 text-warning" };
+			case "endless":
+				return { label: "Endless", classes: "bg-brand-subtle text-brand" };
 			default:
 				return { label: "Backlog", classes: "bg-input-bg text-fg-muted" };
 		}

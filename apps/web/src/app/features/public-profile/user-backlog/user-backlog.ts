@@ -47,6 +47,7 @@ export class UserBacklog implements OnInit {
 		{ label: "Not Started", value: "not_started" },
 		{ label: "Playing", value: "playing" },
 		{ label: "Completed", value: "completed" },
+		{ label: "Endless", value: "endless" },
 		{ label: "Abandoned", value: "abandoned" }
 	];
 
@@ -117,7 +118,8 @@ export class UserBacklog implements OnInit {
 			not_started: "status-not-started",
 			playing: "status-playing",
 			completed: "status-completed",
-			abandoned: "status-abandoned"
+			abandoned: "status-abandoned",
+			endless: "status-endless"
 		};
 		return map[status] ?? "";
 	}
@@ -127,7 +129,8 @@ export class UserBacklog implements OnInit {
 			not_started: "Not Started",
 			playing: "Playing",
 			completed: "Completed",
-			abandoned: "Abandoned"
+			abandoned: "Abandoned",
+			endless: "Endless"
 		};
 		return map[status] ?? status;
 	}
@@ -142,6 +145,8 @@ export class UserBacklog implements OnInit {
 			case "completed":
 			case "abandoned":
 				return { sort_by: "finishedAt", sort_order: "desc" };
+			case "endless":
+				return { sort_by: "startedAt", sort_order: "desc" };
 			default:
 				return { sort_by: "createdAt", sort_order: "desc" };
 		}

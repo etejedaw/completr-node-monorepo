@@ -69,6 +69,42 @@
 		}
 	</div>
 
+	@if (showComparisonBanner()) {
+		<div class="mb-4 px-4 py-3 rounded-card bg-brand/5 border border-brand/30 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<div class="flex items-center gap-2 min-w-0">
+				<span class="material-icons text-brand text-base shrink-0">visibility</span>
+				<span class="text-[0.8125rem] text-fg-secondary leading-snug">
+					@if (compareMode()) {
+						Comparing your progress with <a class="font-semibold text-brand no-underline hover:underline" [routerLink]="['/user', fromUsername()]">&#64;{{ fromUsername() }}</a>
+					} @else {
+						Viewing <a class="font-semibold text-brand no-underline hover:underline" [routerLink]="['/user', fromUsername()]">&#64;{{ fromUsername() }}</a>'s progress on this list
+					}
+				</span>
+			</div>
+			<div class="flex flex-wrap gap-2 shrink-0">
+				@if (compareMode()) {
+					<button uiButton variant="secondary" size="sm" (click)="exitCompareMode()">
+						<span class="material-icons text-base">close</span>
+						Exit compare
+					</button>
+				} @else {
+					@if (canCompare()) {
+						<button uiButton variant="secondary" size="sm" (click)="enterCompareMode()">
+							<span class="material-icons text-base">compare_arrows</span>
+							Compare
+						</button>
+					}
+					@if (viewerUsername()) {
+						<button uiButton variant="primary" size="sm" (click)="goToOwnProgress()">
+							<span class="material-icons text-base">person</span>
+							See my progress
+						</button>
+					}
+				}
+			</div>
+		</div>
+	}
+
 	<div class="flex gap-4 mb-5 items-center">
 		<span class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider">
 			<span class="material-icons text-[0.875rem]"
@@ -101,7 +137,38 @@
 		}
 	</div>
 
-	@if (list()!.progress) {
+	@if (compareMode() && viewerListProgress() && list()!.progress) {
+		@let _vp = viewerListProgress()!;
+		@let _fp = list()!.progress!;
+		<div class="mb-5 grid gap-3 grid-cols-1 sm:grid-cols-2">
+			<div class="px-4 py-3 bg-surface border border-line rounded-card">
+				<div class="flex items-center justify-between mb-2 gap-3">
+					<span class="text-xs font-semibold text-fg-secondary uppercase tracking-wider">Your progress</span>
+					<span class="text-[0.8125rem] font-semibold text-fg">{{ _vp.completed }}/{{ _vp.total }}</span>
+				</div>
+				<div class="h-1.5 bg-input-bg rounded-[3px] overflow-hidden">
+					<div
+						class="h-full rounded-[3px] transition-[width] duration-300 ease-out"
+						style="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+						[style.width.%]="_vp.total > 0 ? (_vp.completed / _vp.total) * 100 : 0"
+					></div>
+				</div>
+			</div>
+			<div class="px-4 py-3 bg-surface border border-line rounded-card">
+				<div class="flex items-center justify-between mb-2 gap-3">
+					<span class="text-xs font-semibold text-fg-secondary uppercase tracking-wider">&#64;{{ fromUsername() }}'s progress</span>
+					<span class="text-[0.8125rem] font-semibold text-fg">{{ _fp.completed }}/{{ _fp.total }}</span>
+				</div>
+				<div class="h-1.5 bg-input-bg rounded-[3px] overflow-hidden">
+					<div
+						class="h-full rounded-[3px] transition-[width] duration-300 ease-out"
+						style="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+						[style.width.%]="_fp.total > 0 ? (_fp.completed / _fp.total) * 100 : 0"
+					></div>
+				</div>
+			</div>
+		</div>
+	} @else if (list()!.progress) {
 	@let _progress = list()!.progress!;
 	@let _isComplete = _progress.total > 0 && _progress.completed >= _progress.total;
 	<div
@@ -236,7 +303,106 @@
 								<span class="text-fg-muted">·</span>
 								<span class="text-fg-muted">{{ item.duration }}h</span>
 							}
-							@if (item.backlogStatus) {
+							@if (compareMode()) {
+								@let _viewer = viewerStatusFor(item.game.id);
+								<span class="text-fg-muted">·</span>
+								<span class="flex items-center gap-1 text-[0.6875rem] uppercase tracking-wider text-fg-muted">You:</span>
+								@if (_viewer?.backlogStatus; as myStatus) {
+									<button
+										type="button"
+										class="flex items-center gap-1 capitalize cursor-pointer bg-transparent border-0 p-0 text-xs hover:opacity-80 transition"
+										[class]="
+											myStatus === 'completed' ? 'text-success' :
+											myStatus === 'playing' ? 'text-warning' :
+											myStatus === 'abandoned' ? 'text-danger' :
+											'text-brand'
+										"
+										title="Edit your backlog"
+										(click)="openEditBacklog(item)"
+									>
+										<span class="material-icons text-sm">
+											{{
+												myStatus === 'completed' ? 'check_circle' :
+												myStatus === 'playing' ? 'play_circle' :
+												myStatus === 'abandoned' ? 'cancel' :
+												'schedule'
+											}}
+										</span>
+										{{ myStatus.replace('_', ' ') }}
+									</button>
+								} @else {
+									<button
+										class="flex items-center gap-1 text-fg-muted hover:text-brand transition cursor-pointer bg-transparent border-0 p-0 text-xs"
+										(click)="openBacklogModal(item)"
+										title="Add to Backlog"
+									>
+										<span class="material-icons text-sm">add</span>
+										Add
+									</button>
+								}
+								<span class="text-fg-muted">·</span>
+								<span class="flex items-center gap-1 text-[0.6875rem] uppercase tracking-wider text-fg-muted">&#64;{{ fromUsername() }}:</span>
+								@if (item.backlogStatus; as theirStatus) {
+									<span
+										class="flex items-center gap-1 capitalize text-xs opacity-80"
+										[class]="
+											theirStatus === 'completed' ? 'text-success' :
+											theirStatus === 'playing' ? 'text-warning' :
+											theirStatus === 'abandoned' ? 'text-danger' :
+											'text-brand'
+										"
+										[title]="'@' + fromUsername() + ' status on this game'"
+									>
+										<span class="material-icons text-sm">
+											{{
+												theirStatus === 'completed' ? 'check_circle' :
+												theirStatus === 'playing' ? 'play_circle' :
+												theirStatus === 'abandoned' ? 'cancel' :
+												'schedule'
+											}}
+										</span>
+										{{ theirStatus.replace('_', ' ') }}
+									</span>
+								} @else {
+									<span class="text-fg-muted">—</span>
+								}
+							} @else if (fromUsername()) {
+								@if (item.backlogStatus) {
+									<span class="text-fg-muted">·</span>
+									<span
+										class="flex items-center gap-1 capitalize text-xs opacity-75"
+										[class]="
+											item.backlogStatus === 'completed' ? 'text-success' :
+											item.backlogStatus === 'playing' ? 'text-warning' :
+											item.backlogStatus === 'abandoned' ? 'text-danger' :
+											'text-brand'
+										"
+										[title]="'@' + fromUsername() + ' status on this game'"
+									>
+										<span class="material-icons text-sm">
+											{{
+												item.backlogStatus === 'completed' ? 'check_circle' :
+												item.backlogStatus === 'playing' ? 'play_circle' :
+												item.backlogStatus === 'abandoned' ? 'cancel' :
+												'schedule'
+											}}
+										</span>
+										{{ item.backlogStatus.replace('_', ' ') }}
+									</span>
+									<span class="text-[0.625rem] text-fg-muted">by &#64;{{ fromUsername() }}</span>
+								}
+								@if (viewerUsername()) {
+									<span class="text-fg-muted">·</span>
+									<button
+										class="flex items-center gap-1 text-fg-muted hover:text-brand transition cursor-pointer bg-transparent border-0 p-0 text-xs"
+										(click)="openEditBacklog(item)"
+										title="Add to my Backlog"
+									>
+										<span class="material-icons text-sm">add</span>
+										Add to my Backlog
+									</button>
+								}
+							} @else if (item.backlogStatus) {
 								<span class="text-fg-muted">·</span>
 								<button
 									type="button"

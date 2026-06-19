@@ -8,12 +8,9 @@ import { adminGuard } from "./core/guards/admin.guard";
 import { moderatorGuard } from "./core/guards/moderator.guard";
 import { AuthService } from "./core/services/auth.service";
 
-const ATTR = { showAttribution: true };
-
 const publicProfileRoutes: Routes = [
 	{
 		path: "user/:username",
-		data: ATTR,
 		loadComponent: () =>
 			import("./features/public-profile/public-profile").then(
 				m => m.PublicProfileComponent
@@ -21,7 +18,6 @@ const publicProfileRoutes: Routes = [
 	},
 	{
 		path: "user/:username/backlog",
-		data: ATTR,
 		loadComponent: () =>
 			import("./features/public-profile/user-backlog/user-backlog").then(
 				m => m.UserBacklog
@@ -29,7 +25,6 @@ const publicProfileRoutes: Routes = [
 	},
 	{
 		path: "user/:username/favorites",
-		data: ATTR,
 		loadComponent: () =>
 			import("./features/public-profile/user-favorites/user-favorites").then(
 				m => m.UserFavorites
@@ -37,7 +32,6 @@ const publicProfileRoutes: Routes = [
 	},
 	{
 		path: "user/:username/queue",
-		data: ATTR,
 		loadComponent: () =>
 			import("./features/public-profile/user-queue/user-queue").then(
 				m => m.UserQueue
@@ -45,7 +39,6 @@ const publicProfileRoutes: Routes = [
 	},
 	{
 		path: "user/:username/wishlist",
-		data: ATTR,
 		loadComponent: () =>
 			import("./features/public-profile/user-wishlist/user-wishlist").then(
 				m => m.UserWishlist
@@ -53,7 +46,6 @@ const publicProfileRoutes: Routes = [
 	},
 	{
 		path: "user/:username/game-shelf",
-		data: ATTR,
 		loadComponent: () =>
 			import("./features/public-profile/user-game-shelf/user-game-shelf").then(
 				m => m.UserGameShelf
@@ -61,11 +53,17 @@ const publicProfileRoutes: Routes = [
 	},
 	{
 		path: "user/:username/reviews",
-		data: ATTR,
 		loadComponent: () =>
 			import("./features/public-profile/user-reviews/user-reviews").then(
 				m => m.UserReviews
 			)
+	},
+	{
+		path: "user/:username/completions",
+		loadComponent: () =>
+			import(
+				"./features/public-profile/user-completions/user-completions"
+			).then(m => m.UserCompletions)
 	}
 ];
 
@@ -108,13 +106,11 @@ export const routes: Routes = [
 			...publicProfileRoutes,
 			{
 				path: "feed",
-				data: ATTR,
 				loadComponent: () =>
 					import("./features/feed/feed-page").then(m => m.FeedPage)
 			},
 			{
 				path: "backlog",
-				data: ATTR,
 				loadComponent: () =>
 					import("./features/backlog/backlog-list/backlog-list").then(
 						m => m.BacklogList
@@ -129,7 +125,6 @@ export const routes: Routes = [
 			},
 			{
 				path: "games",
-				data: ATTR,
 				loadComponent: () =>
 					import("./features/games/games-browse/games-browse").then(
 						m => m.GamesBrowse
@@ -148,8 +143,19 @@ export const routes: Routes = [
 					import("./features/help/help-page").then(m => m.HelpPage)
 			},
 			{
+				path: "about",
+				loadComponent: () =>
+					import("./features/about/about-page").then(m => m.AboutPage)
+			},
+			{
+				path: "whats-new",
+				loadComponent: () =>
+					import("./features/whats-new/whats-new-page").then(
+						m => m.WhatsNewPage
+					)
+			},
+			{
 				path: "genres/:code",
-				data: ATTR,
 				loadComponent: () =>
 					import("./features/games/genre-detail/genre-detail").then(
 						m => m.GenreDetail
@@ -157,7 +163,6 @@ export const routes: Routes = [
 			},
 			{
 				path: "games/:code",
-				data: ATTR,
 				loadComponent: () =>
 					import("./features/games/game-detail/game-detail").then(
 						m => m.GameDetail
@@ -165,7 +170,6 @@ export const routes: Routes = [
 			},
 			{
 				path: "game-shelf",
-				data: ATTR,
 				loadComponent: () =>
 					import("./features/game-shelf/game-shelf-list/game-shelf-list").then(
 						m => m.GameShelfList
@@ -173,7 +177,6 @@ export const routes: Routes = [
 			},
 			{
 				path: "lists",
-				data: ATTR,
 				loadComponent: () =>
 					import("./features/lists/list-overview/list-overview").then(
 						m => m.ListOverview
@@ -181,7 +184,6 @@ export const routes: Routes = [
 			},
 			{
 				path: "lists/:id",
-				data: ATTR,
 				loadComponent: () =>
 					import("./features/lists/list-detail/list-detail").then(
 						m => m.ListDetail
@@ -189,7 +191,6 @@ export const routes: Routes = [
 			},
 			{
 				path: "queue",
-				data: ATTR,
 				loadComponent: () =>
 					import("./features/queue/queue-view/queue-view").then(
 						m => m.QueueView
@@ -197,7 +198,6 @@ export const routes: Routes = [
 			},
 			{
 				path: "wishlist",
-				data: ATTR,
 				loadComponent: () =>
 					import("./features/wishlist/wishlist-view/wishlist-view").then(
 						m => m.WishlistView
@@ -205,7 +205,6 @@ export const routes: Routes = [
 			},
 			{
 				path: "favorites",
-				data: ATTR,
 				loadComponent: () =>
 					import("./features/favorites/favorites-view/favorites-view").then(
 						m => m.FavoritesView
@@ -265,7 +264,6 @@ export const routes: Routes = [
 			{
 				path: "admin/games",
 				canActivate: [moderatorGuard],
-				data: ATTR,
 				loadComponent: () =>
 					import("./features/admin/admin-games/admin-games").then(
 						m => m.AdminGames

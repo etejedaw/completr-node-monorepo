@@ -1,6 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from "@angular/core";
 import {
-	ActivatedRoute,
 	RouterLink,
 	RouterLinkActive,
 	RouterOutlet,
@@ -11,7 +10,8 @@ import { AuthService } from "../core/services/auth.service";
 import { filter } from "rxjs";
 import { UiIconButton } from "../shared/ui";
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
-import { AttributionFooter } from "../shared/components/attribution-footer/attribution-footer";
+import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
+import { OnboardingService } from "../core/services/onboarding.service";
 
 @Component({
 	selector: "app-layout",
@@ -21,17 +21,16 @@ import { AttributionFooter } from "../shared/components/attribution-footer/attri
 		RouterLinkActive,
 		UiIconButton,
 		ToastContainer,
-		AttributionFooter
+		OnboardingTour
 	],
 	templateUrl: "./layout.html"
 })
 export class Layout implements OnInit {
 	private readonly auth = inject(AuthService);
 	private readonly router = inject(Router);
-	private readonly route = inject(ActivatedRoute);
+	protected readonly onboarding = inject(OnboardingService);
 
 	protected readonly user = this.auth.user;
-	protected readonly showAttribution = signal(false);
 	protected readonly isAdmin = computed(() => this.user()?.role === "admin");
 	protected readonly isModerator = computed(() => {
 		const role = this.user()?.role;
@@ -59,23 +58,33 @@ export class Layout implements OnInit {
 
 	ngOnInit() {
 		if (!this.user()) {
-			this.auth.loadUser().subscribe();
+			this.auth.loadUser().subscribe({
+				next: () => this.maybeStartOnboarding(),
+				error: () => {}
+			});
+		} else {
+			this.maybeStartOnboarding();
 		}
 
 		this.router.events
 			.pipe(filter(e => e instanceof NavigationEnd))
 			.subscribe(() => {
 				this.sidebarOpen.set(false);
-				this.showAttribution.set(this.computeShowAttribution());
 			});
-
-		this.showAttribution.set(this.computeShowAttribution());
 	}
 
-	private computeShowAttribution(): boolean {
-		let route = this.route;
-		while (route.firstChild) route = route.firstChild;
-		return route.snapshot.data?.["showAttribution"] === true;
+	private maybeStartOnboarding() {
+		if (!this.user()) return;
+		this.onboarding.maybeStartForFirstTime();
+	}
+
+	dismissOnboarding(persist: boolean) {
+		this.onboarding.dismiss(persist);
+	}
+
+	goToHelp() {
+		this.onboarding.dismiss(true);
+		this.router.navigate(["/help"]);
 	}
 
 	toggleSidebar() {
