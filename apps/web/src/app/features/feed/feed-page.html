@@ -32,7 +32,7 @@
 									<span class="font-medium">{{ user.name || user.username }}</span>
 									<span class="text-xs text-fg-muted">{{ '@' + user.username }}</span>
 								</div>
-								@if (!user.isPublic) {
+								@if (user.profileVisibility !== 'public') {
 									<span class="material-icons text-sm text-fg-muted">lock</span>
 								}
 							</button>

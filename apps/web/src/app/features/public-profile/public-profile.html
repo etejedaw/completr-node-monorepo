@@ -168,7 +168,7 @@
 		<div class="min-w-0">
 		<ui-tabs [(value)]="activeTab">
 			<ui-tab-list class="!mb-6 !flex-wrap">
-				@if (profile()!.user.isBacklogPublic) {
+				@if ((isSelf() || profile()!.user.backlogVisibility !== "private")) {
 					<button uiTab value="highlights" class="!whitespace-nowrap" aria-label="Highlights" title="Highlights">
 						<span class="material-icons text-base md:mr-1.5 align-middle">insights</span>
 						<span class="hidden md:inline">Highlights</span>
@@ -178,31 +178,31 @@
 						<span class="hidden md:inline">Games</span>
 					</button>
 				}
-				@if (profile()!.user.isShelfPublic) {
+				@if ((isSelf() || profile()!.user.shelfVisibility !== "private")) {
 					<button uiTab value="shelf" class="!whitespace-nowrap" aria-label="Shelf" title="Shelf">
 						<span class="material-icons text-base md:mr-1.5 align-middle">shelves</span>
 						<span class="hidden md:inline">Shelf</span>
 					</button>
 				}
-				@if (profile()!.user.isListPublic) {
+				@if ((isSelf() || profile()!.user.listVisibility !== "private")) {
 					<button uiTab value="lists" class="!whitespace-nowrap" aria-label="Lists" title="Lists">
 						<span class="material-icons text-base md:mr-1.5 align-middle">format_list_bulleted</span>
 						<span class="hidden md:inline">Lists</span>
 					</button>
 				}
-				@if (profile()!.user.isFavoritePublic) {
+				@if ((isSelf() || profile()!.user.favoriteVisibility !== "private")) {
 					<button uiTab value="favorites" class="!whitespace-nowrap" aria-label="Favorites" title="Favorites">
 						<span class="material-icons text-base md:mr-1.5 align-middle">star</span>
 						<span class="hidden md:inline">Favorites</span>
 					</button>
 				}
-				@if (profile()!.user.isQueuePublic) {
+				@if ((isSelf() || profile()!.user.queueVisibility !== "private")) {
 					<button uiTab value="queue" class="!whitespace-nowrap" aria-label="Up Next" title="Up Next">
 						<span class="material-icons text-base md:mr-1.5 align-middle">playlist_play</span>
 						<span class="hidden md:inline">Up Next</span>
 					</button>
 				}
-				@if (profile()!.user.isWishlistPublic) {
+				@if ((isSelf() || profile()!.user.wishlistVisibility !== "private")) {
 					<button uiTab value="wishlist" class="!whitespace-nowrap" aria-label="Wanted" title="Wanted">
 						<span class="material-icons text-base md:mr-1.5 align-middle">favorite_border</span>
 						<span class="hidden md:inline">Wanted</span>
@@ -214,7 +214,7 @@
 				</button>
 			</ui-tab-list>
 
-			@if (profile()!.user.isBacklogPublic) {
+			@if ((isSelf() || profile()!.user.backlogVisibility !== "private")) {
 			<div uiTabPanel value="highlights">
 				@if (highlightsData() === null) {
 					<div class="grid grid-cols-3 md:grid-cols-6 gap-4 mb-8">
@@ -375,7 +375,7 @@
 
 			}
 
-			@if (profile()!.user.isShelfPublic) {
+			@if ((isSelf() || profile()!.user.shelfVisibility !== "private")) {
 			<div uiTabPanel value="shelf">
 				<div class="flex items-baseline justify-between mb-3">
 					<h2 class="font-display m-0 text-xl font-bold text-fg">Shelf</h2>
@@ -417,7 +417,7 @@
 
 			}
 
-			@if (profile()!.user.isListPublic) {
+			@if ((isSelf() || profile()!.user.listVisibility !== "private")) {
 			<div uiTabPanel value="lists">
 				@if (listsData() === null || followingListsData() === null) {
 					<div class="flex flex-col gap-2">
@@ -493,7 +493,7 @@
 			</div>
 			}
 
-			@if (profile()!.user.isFavoritePublic) {
+			@if ((isSelf() || profile()!.user.favoriteVisibility !== "private")) {
 				<div uiTabPanel value="favorites">
 					<div class="flex items-baseline justify-between mb-3">
 						<h2 class="font-display m-0 text-xl font-bold text-fg">Favorites</h2>
@@ -533,7 +533,7 @@
 				</div>
 			}
 
-			@if (profile()!.user.isQueuePublic) {
+			@if ((isSelf() || profile()!.user.queueVisibility !== "private")) {
 				<div uiTabPanel value="queue">
 					<div class="flex items-baseline justify-between mb-3">
 						<h2 class="font-display m-0 text-xl font-bold text-fg">Up Next</h2>
@@ -574,7 +574,7 @@
 				</div>
 			}
 
-			@if (profile()!.user.isWishlistPublic) {
+			@if ((isSelf() || profile()!.user.wishlistVisibility !== "private")) {
 				<div uiTabPanel value="wishlist">
 					<div class="flex items-baseline justify-between mb-3">
 						<h2 class="font-display m-0 text-xl font-bold text-fg">Wanted</h2>
@@ -651,7 +651,7 @@
 		</ui-tabs>
 		</div>
 
-		@if (profile()!.user.isFeedPublic && profile()!.recentActivity.length > 0) {
+		@if ((isSelf() || profile()!.user.feedVisibility !== "private") && profile()!.recentActivity.length > 0) {
 			<section class="mt-12 lg:grid lg:grid-cols-[1fr_320px] lg:gap-8 lg:items-start">
 				<div class="min-w-0">
 					<div class="flex items-center gap-2 mb-5">
