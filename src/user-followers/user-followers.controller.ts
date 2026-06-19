@@ -2,16 +2,26 @@ import { Request, Response } from "express";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { UsernameParam } from "../users/schemas/username-params.schema";
 import * as userFollowersService from "./user-followers.service";
+import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
 import * as activityService from "../activity/activity.service";
 
 export async function postFollow(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;
 	const user = request.locals.user as RequestUser;
 
-	const follow = await userFollowersService.follow(user.id, username);
-	activityService.record(user.id, "user_followed", follow.followingId);
-	activityService.record(follow.followingId, "user_followed_by", user.id);
-	return response.sendStatus(201);
+	const result = await userFollowRequestsService.createOrAcceptFollow(
+		user.id,
+		username
+	);
+
+	if (result.status === "accepted") {
+		activityService.record(user.id, "user_followed", result.targetId);
+		activityService.record(result.targetId, "user_followed_by", user.id);
+	}
+
+	return response
+		.status(201)
+		.json({ data: { status: result.status, targetId: result.targetId } });
 }
 
 export async function deleteFollow(request: Request, response: Response) {

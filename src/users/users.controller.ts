@@ -6,6 +6,7 @@ import * as backlogService from "../backlog/backlog.service";
 import * as listsService from "../lists/lists.service";
 import * as activityService from "../activity/activity.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
+import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
 import * as listFollowersService from "../list-followers/list-followers.service";
 import {
 	userMeSerializer,
@@ -48,20 +49,29 @@ export async function getUserByUsername(request: Request, response: Response) {
 	const isSelf = currentUser?.id === user.id;
 
 	if (!user.isPublic && !isSelf) {
-		const [followerCount, followingCount, isFollowing] = await Promise.all([
-			userFollowersService.getFollowerCount(user.id),
-			userFollowersService.getFollowingCount(user.id),
-			currentUser
-				? userFollowersService.isFollowing(currentUser.id, user.id)
-				: Promise.resolve(false)
-		]);
+		const [followerCount, followingCount, isFollowing, hasPendingRequest] =
+			await Promise.all([
+				userFollowersService.getFollowerCount(user.id),
+				userFollowersService.getFollowingCount(user.id),
+				currentUser
+					? userFollowersService.isFollowing(currentUser.id, user.id)
+					: Promise.resolve(false),
+				currentUser
+					? userFollowRequestsService.hasOutgoingRequest(
+							currentUser.id,
+							user.id
+						)
+					: Promise.resolve(false)
+			]);
 
 		const data = {
 			user: userPublicSerializer(user.get({ plain: true })),
 			isPrivate: true,
+			acceptFollowRequests: user.acceptFollowRequests,
 			followerCount,
 			followingCount,
-			isFollowing
+			isFollowing,
+			hasPendingRequest
 		};
 		return response.status(200).json({ data });
 	}
@@ -141,8 +151,15 @@ export async function patchUser(request: Request, response: Response) {
 	const updateUserDto = request.locals.body as UpdateUserDto;
 	const { id } = request.locals.user as RequestUser;
 
-	const user = await usersService.updateUser(id, updateUserDto);
+	const { user, disabledFollowRequests } = await usersService.updateUser(
+		id,
+		updateUserDto
+	);
 	if (!user) throw userDomain.userNotFound();
+
+	if (disabledFollowRequests) {
+		await userFollowRequestsService.deleteAllIncomingRequests(user.id);
+	}
 
 	const userPlain = user.get({ plain: true });
 

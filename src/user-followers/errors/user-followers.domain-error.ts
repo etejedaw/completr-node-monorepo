@@ -11,24 +11,6 @@ export function userNotFound(context?: Record<string, unknown>) {
 	);
 }
 
-export function cannotFollowSelf(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"USER_FOLLOWER_CANNOT_FOLLOW_SELF",
-		"You cannot follow yourself",
-		context
-	);
-}
-
-export function alreadyFollowing(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"USER_FOLLOWER_ALREADY_FOLLOWING",
-		"You are already following this user",
-		context
-	);
-}
-
 export function notFollowing(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

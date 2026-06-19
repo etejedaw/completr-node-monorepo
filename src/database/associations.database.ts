@@ -20,6 +20,7 @@ import { ScoreSource } from "../score-sources/score-source.model";
 import { RefreshToken } from "../auth/refresh-token.model";
 import { GameReport } from "../game-reports/game-report.model";
 import { UserFollower } from "../user-followers/user-follower.model";
+import { UserFollowRequest } from "../user-follow-requests/user-follow-request.model";
 import { Activity } from "../activity/activity.model";
 import { ActivityGame } from "../activity/targets/activity-game.model";
 import { ActivityList } from "../activity/targets/activity-list.model";
@@ -48,6 +49,7 @@ export function setupAssociations() {
 	refreshTokens();
 	gameReports();
 	userFollowers();
+	userFollowRequests();
 	activities();
 	auditLogs();
 	reviews();
@@ -232,6 +234,17 @@ function userFollowers() {
 	UserFollower.belongsTo(User, {
 		foreignKey: "followingId",
 		as: "Following"
+	});
+}
+
+function userFollowRequests() {
+	UserFollowRequest.belongsTo(User, {
+		foreignKey: "requesterId",
+		as: "Requester"
+	});
+	UserFollowRequest.belongsTo(User, {
+		foreignKey: "targetId",
+		as: "Target"
 	});
 }
 

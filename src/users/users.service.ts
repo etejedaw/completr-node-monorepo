@@ -77,7 +77,10 @@ export async function findRandomPublicUsers(
 	});
 }
 
-export async function updateUser(id: string, updateUserDto: UpdateUserDto) {
+export async function updateUser(
+	id: string,
+	updateUserDto: UpdateUserDto
+): Promise<{ user: User; disabledFollowRequests: boolean }> {
 	const user = await findUserById(id);
 	if (!user) throw usersServiceError.notFoundError();
 
@@ -85,8 +88,13 @@ export async function updateUser(id: string, updateUserDto: UpdateUserDto) {
 		throw usersServiceError.themeForbiddenError();
 	}
 
+	const disabledFollowRequests =
+		updateUserDto.acceptFollowRequests === false &&
+		user.acceptFollowRequests === true;
+
 	await user.update(updateUserDto);
-	return user;
+
+	return { user, disabledFollowRequests };
 }
 
 export async function findUserByIdUnfiltered(id: string) {

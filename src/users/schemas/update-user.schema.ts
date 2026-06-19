@@ -14,6 +14,7 @@ export const UpdateUserSchema = z
 		isBacklogPublic: z.boolean().optional(),
 		isShelfPublic: z.boolean().optional(),
 		isListPublic: z.boolean().optional(),
+		acceptFollowRequests: z.boolean().optional(),
 		theme: z.enum(THEME_IDS as [string, ...string[]]).optional()
 	})
 	.strict()

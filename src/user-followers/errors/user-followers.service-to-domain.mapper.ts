@@ -13,12 +13,6 @@ export function userFollowersServiceToDomainMapper(
 	if (error.code === "USER_FOLLOWER_USER_NOT_FOUND")
 		return domainError.userNotFound(context);
 
-	if (error.code === "USER_FOLLOWER_CANNOT_FOLLOW_SELF")
-		return domainError.cannotFollowSelf(context);
-
-	if (error.code === "USER_FOLLOWER_ALREADY_FOLLOWING")
-		return domainError.alreadyFollowing(context);
-
 	if (error.code === "USER_FOLLOWER_NOT_FOLLOWING")
 		return domainError.notFollowing(context);
 

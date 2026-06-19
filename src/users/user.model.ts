@@ -19,6 +19,7 @@ class User extends Model {
 	declare isBacklogPublic: boolean;
 	declare isShelfPublic: boolean;
 	declare isListPublic: boolean;
+	declare acceptFollowRequests: boolean;
 	declare theme: string;
 	declare isActive: boolean;
 	declare createdAt: Date;
@@ -85,6 +86,11 @@ User.init(
 		},
 		isListPublic: {
 			type: DataTypes.BOOLEAN,
+			defaultValue: true
+		},
+		acceptFollowRequests: {
+			type: DataTypes.BOOLEAN,
+			allowNull: false,
 			defaultValue: true
 		},
 		theme: {

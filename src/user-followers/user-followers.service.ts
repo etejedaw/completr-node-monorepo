@@ -3,19 +3,6 @@ import { User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import * as serviceError from "./errors/user-followers.service-error";
 
-export async function follow(followerId: string, username: string) {
-	const target = await usersService.findUserByUsername(username);
-	if (!target) throw serviceError.userNotFoundError();
-	if (target.id === followerId) throw serviceError.cannotFollowSelfError();
-
-	const existing = await UserFollower.findOne({
-		where: { followerId, followingId: target.id }
-	});
-	if (existing) throw serviceError.alreadyFollowingError();
-
-	return UserFollower.create({ followerId, followingId: target.id });
-}
-
 export async function unfollow(followerId: string, username: string) {
 	const target = await usersService.findUserByUsername(username);
 	if (!target) throw serviceError.userNotFoundError();
@@ -26,6 +13,14 @@ export async function unfollow(followerId: string, username: string) {
 	if (!existing) throw serviceError.notFollowingError();
 
 	await existing.destroy();
+}
+
+export async function createFollow(followerId: string, followingId: string) {
+	return UserFollower.create({ followerId, followingId });
+}
+
+export async function findFollow(followerId: string, followingId: string) {
+	return UserFollower.findOne({ where: { followerId, followingId } });
 }
 
 export async function getFollowers(username: string) {

@@ -16,6 +16,7 @@ import scoreSourcesRouter from "./score-sources/score-sources.routes";
 import gameExternalRouter from "./game-external/game-external.routes";
 import gameReportsRouter from "./game-reports/game-reports.routes";
 import userFollowersRouter from "./user-followers/user-followers.routes";
+import userFollowRequestsRouter from "./user-follow-requests/user-follow-requests.routes";
 import activityRouter from "./activity/activity.routes";
 import auditRouter from "./audit/audit.routes";
 import jobsRouter from "./jobs/jobs.routes";
@@ -50,6 +51,7 @@ export function server(port: number) {
 	app.use(gameExternalRouter);
 	app.use(gameReportsRouter);
 	app.use(userFollowersRouter);
+	app.use(userFollowRequestsRouter);
 	app.use(activityRouter);
 	app.use(auditRouter);
 	app.use(jobsRouter);

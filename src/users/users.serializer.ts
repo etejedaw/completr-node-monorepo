@@ -16,6 +16,7 @@ export function userMeSerializer(user: User) {
 		isBacklogPublic: user.isBacklogPublic,
 		isShelfPublic: user.isShelfPublic,
 		isListPublic: user.isListPublic,
+		acceptFollowRequests: user.acceptFollowRequests,
 		theme: user.theme,
 		createdAt: user.createdAt
 	};
