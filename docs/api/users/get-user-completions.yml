@@ -1,0 +1,80 @@
+info:
+    name: Get User Completions
+    type: http
+    seq: 12
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/:username/completions"
+    params:
+        - name: username
+          type: path
+          value: ""
+        - name: limit
+          type: query
+          value: ""
+          enabled: false
+        - name: offset
+          type: query
+          value: ""
+          enabled: false
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get User Completions
+
+    Returns the user's completed backlog entries (`status = "completed"` with non-null `finishedAt`) paginated by `finishedAt` desc. Powers the dedicated `/user/:username/completions` view triggered from "See all" under Recent completions in Highlights.
+
+    Each entry includes the corresponding review content (if the user wrote one for that game) as `reviewContent`, used to render an excerpt next to the poster.
+
+    Backlog entries are public-only unless the viewer is the owner; private entries are excluded for everyone else.
+
+    **Authentication:** Bearer token optional. When absent the viewer is treated as a stranger.
+    **Rate Limit:** 100 requests per minute (public).
+
+    ### Path Params
+
+    | Param    | Type   | Required | Description       |
+    |----------|--------|----------|-------------------|
+    | username | string | Yes      | Profile username  |
+
+    ### Query Params
+
+    | Param  | Type | Required | Description                          |
+    |--------|------|----------|--------------------------------------|
+    | limit  | int  | No       | Max items per page (1–100, default 20) |
+    | offset | int  | No       | Items to skip (>= 0, default 0)        |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "completions": [
+          {
+            "id": "uuid",
+            "status": "completed",
+            "finishedAt": "2026-05-12",
+            "userRating": 9.2,
+            "realDuration": 35,
+            "reviewContent": "Best metroidvania I've played in years.",
+            "game": { "id": "uuid", "code": "hollow-knight", "title": "Hollow Knight" },
+            "platform": { "id": "uuid", "abbreviation": "PC" }
+          }
+        ],
+        "total": 124
+      }
+    }
+    ```
+
+    `reviewContent` may be `null` when the user did not write a review for that game.
+
+    ### Errors
+
+    | Status | Code                  | Description                                       |
+    |--------|-----------------------|---------------------------------------------------|
+    | 404    | USER_NOT_FOUND        | Username does not exist                           |
+    | 403    | USER_PRIVATE          | Profile or backlog is private to non-owners       |
+    | 422    | COMMON_SCHEMA_INVALID | Validation failed on `username`, `limit`, or `offset` |
