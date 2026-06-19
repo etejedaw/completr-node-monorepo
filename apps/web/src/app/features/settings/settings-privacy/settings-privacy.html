@@ -4,7 +4,7 @@
 
 	@if (user()) {
 		<div class="flex flex-col gap-6 max-w-2xl">
-			<div class="grid grid-cols-3 gap-3">
+			<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
 				<button
 					type="button"
 					class="flex flex-col items-center text-center gap-1.5 p-4 bg-input-bg border rounded-card transition cursor-pointer hover:border-brand"
@@ -15,7 +15,7 @@
 				>
 					<span class="material-icons text-2xl" [class.text-brand]="mode() === 'custom'" [class.text-fg-muted]="mode() !== 'custom'">tune</span>
 					<span class="block text-sm font-semibold text-fg">Custom</span>
-					<span class="block text-[0.6875rem] text-fg-muted leading-tight">Pick which sections are visible.</span>
+					<span class="block text-[0.6875rem] text-fg-muted leading-tight">Pick each section's level.</span>
 				</button>
 
 				<button
@@ -34,6 +34,19 @@
 				<button
 					type="button"
 					class="flex flex-col items-center text-center gap-1.5 p-4 bg-input-bg border rounded-card transition cursor-pointer hover:border-brand"
+					[class.!border-brand]="mode() === 'friends'"
+					[class.!bg-brand-subtle]="mode() === 'friends'"
+					[class.border-line]="mode() !== 'friends'"
+					(click)="selectPreset('friends')"
+				>
+					<span class="material-icons text-2xl" [class.text-brand]="mode() === 'friends'" [class.text-fg-muted]="mode() !== 'friends'">group</span>
+					<span class="block text-sm font-semibold text-fg">Friends</span>
+					<span class="block text-[0.6875rem] text-fg-muted leading-tight">Only mutual followers can see your profile.</span>
+				</button>
+
+				<button
+					type="button"
+					class="flex flex-col items-center text-center gap-1.5 p-4 bg-input-bg border rounded-card transition cursor-pointer hover:border-brand"
 					[class.!border-brand]="mode() === 'open'"
 					[class.!bg-brand-subtle]="mode() === 'open'"
 					[class.border-line]="mode() !== 'open'"
@@ -47,110 +60,88 @@
 
 			@if (showCustomPanel()) {
 				<div class="flex flex-col gap-5 pt-2 border-t border-line">
-					<label class="flex items-center justify-between gap-3 cursor-pointer">
-						<div>
-							<span class="block text-sm font-medium text-fg">Public profile</span>
-							<span class="block text-xs text-fg-muted">Master switch — everything below requires this on.</span>
+					<div class="flex flex-col gap-2">
+						<div class="flex items-center justify-between gap-3">
+							<div>
+								<span class="block text-sm font-medium text-fg">Profile</span>
+								<span class="block text-xs text-fg-muted">Master gate — header, follower counts and avatar.</span>
+							</div>
+							<select
+								class="bg-input-bg border border-line rounded px-3 py-1.5 text-sm text-fg"
+								[value]="profileVisibility()"
+								(change)="setProfileVisibility($any($event.target).value)"
+							>
+								<option value="private">Only you</option>
+								<option value="friends">Friends</option>
+								<option value="public">Everyone</option>
+							</select>
 						</div>
-						<ui-switch
-							[checked]="isPublic()"
-							(checkedChange)="isPublic.set($event); onSectionFlagChange()"
-						/>
-					</label>
-
-					@if (!isPublic()) {
-						<p class="text-xs text-fg-muted bg-input-bg border border-line rounded px-3 py-2">
-							Sub-options have no effect while your profile is private.
+						<p class="text-[0.6875rem] text-fg-muted">
+							When set to Friends or Only you, visitors without access see just the avatar, username, bio and follow button.
 						</p>
-					}
+					</div>
 
-					<div class="flex flex-col gap-3" [class.opacity-50]="!isPublic()">
+					<div class="flex flex-col gap-3 pt-1 border-t border-line">
 						<h3 class="text-xs font-bold uppercase tracking-wider text-fg-muted m-0">Library</h3>
-						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
-							<div>
-								<span class="block text-sm font-medium text-fg">My Games</span>
-								<span class="block text-xs text-fg-muted">Show your full game history on your public profile.</span>
+						@for (section of libraryGroup; track section.key) {
+							<div class="flex items-center justify-between gap-3">
+								<div>
+									<span class="block text-sm font-medium text-fg">{{ section.title }}</span>
+									<span class="block text-xs text-fg-muted">{{ section.description }}</span>
+								</div>
+								<select
+									class="bg-input-bg border border-line rounded px-3 py-1.5 text-sm text-fg"
+									[value]="getSection(section.key)"
+									(change)="setSection(section.key, $any($event.target).value)"
+								>
+									<option value="private">Only you</option>
+									<option value="friends">Friends</option>
+									<option value="public">Everyone</option>
+								</select>
 							</div>
-							<ui-switch
-								[checked]="isBacklogPublic()"
-								[disabled]="!isPublic()"
-								(checkedChange)="isBacklogPublic.set($event); onSectionFlagChange()"
-							/>
-						</label>
-						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
-							<div>
-								<span class="block text-sm font-medium text-fg">My Shelf</span>
-								<span class="block text-xs text-fg-muted">Show the games you own on your public profile.</span>
-							</div>
-							<ui-switch
-								[checked]="isShelfPublic()"
-								[disabled]="!isPublic()"
-								(checkedChange)="isShelfPublic.set($event); onSectionFlagChange()"
-							/>
-						</label>
+						}
 					</div>
 
-					<div class="flex flex-col gap-3" [class.opacity-50]="!isPublic()">
+					<div class="flex flex-col gap-3 pt-1 border-t border-line">
 						<h3 class="text-xs font-bold uppercase tracking-wider text-fg-muted m-0">Curation</h3>
-						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
-							<div>
-								<span class="block text-sm font-medium text-fg">Lists</span>
-								<span class="block text-xs text-fg-muted">Show your lists section on your public profile.</span>
+						@for (section of curationGroup; track section.key) {
+							<div class="flex items-center justify-between gap-3">
+								<div>
+									<span class="block text-sm font-medium text-fg">{{ section.title }}</span>
+									<span class="block text-xs text-fg-muted">{{ section.description }}</span>
+								</div>
+								<select
+									class="bg-input-bg border border-line rounded px-3 py-1.5 text-sm text-fg"
+									[value]="getSection(section.key)"
+									(change)="setSection(section.key, $any($event.target).value)"
+								>
+									<option value="private">Only you</option>
+									<option value="friends">Friends</option>
+									<option value="public">Everyone</option>
+								</select>
 							</div>
-							<ui-switch
-								[checked]="isListPublic()"
-								[disabled]="!isPublic()"
-								(checkedChange)="isListPublic.set($event); onSectionFlagChange()"
-							/>
-						</label>
-						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
-							<div>
-								<span class="block text-sm font-medium text-fg">Up Next</span>
-								<span class="block text-xs text-fg-muted">Show your priority queue on your public profile.</span>
-							</div>
-							<ui-switch
-								[checked]="isQueuePublic()"
-								[disabled]="!isPublic()"
-								(checkedChange)="isQueuePublic.set($event); onSectionFlagChange()"
-							/>
-						</label>
-						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
-							<div>
-								<span class="block text-sm font-medium text-fg">Wanted</span>
-								<span class="block text-xs text-fg-muted">Show the games you'd like to acquire on your public profile.</span>
-							</div>
-							<ui-switch
-								[checked]="isWishlistPublic()"
-								[disabled]="!isPublic()"
-								(checkedChange)="isWishlistPublic.set($event); onSectionFlagChange()"
-							/>
-						</label>
-						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
-							<div>
-								<span class="block text-sm font-medium text-fg">Favorites</span>
-								<span class="block text-xs text-fg-muted">Show your favorites on your public profile.</span>
-							</div>
-							<ui-switch
-								[checked]="isFavoritePublic()"
-								[disabled]="!isPublic()"
-								(checkedChange)="isFavoritePublic.set($event); onSectionFlagChange()"
-							/>
-						</label>
+						}
 					</div>
 
-					<div class="flex flex-col gap-3" [class.opacity-50]="!isPublic()">
+					<div class="flex flex-col gap-3 pt-1 border-t border-line">
 						<h3 class="text-xs font-bold uppercase tracking-wider text-fg-muted m-0">Social</h3>
-						<label class="flex items-center justify-between gap-3" [class.cursor-pointer]="isPublic()">
-							<div>
-								<span class="block text-sm font-medium text-fg">Activity feed</span>
-								<span class="block text-xs text-fg-muted">Show your activity in your followers' feeds.</span>
+						@for (section of socialGroup; track section.key) {
+							<div class="flex items-center justify-between gap-3">
+								<div>
+									<span class="block text-sm font-medium text-fg">{{ section.title }}</span>
+									<span class="block text-xs text-fg-muted">{{ section.description }}</span>
+								</div>
+								<select
+									class="bg-input-bg border border-line rounded px-3 py-1.5 text-sm text-fg"
+									[value]="getSection(section.key)"
+									(change)="setSection(section.key, $any($event.target).value)"
+								>
+									<option value="private">Only you</option>
+									<option value="friends">Friends</option>
+									<option value="public">Everyone</option>
+								</select>
 							</div>
-							<ui-switch
-								[checked]="isFeedPublic()"
-								[disabled]="!isPublic()"
-								(checkedChange)="isFeedPublic.set($event); onSectionFlagChange()"
-							/>
-						</label>
+						}
 					</div>
 				</div>
 			}

@@ -12,13 +12,73 @@ import {
 	UpdateProfileDto
 } from "../../profile/profile.service";
 import { ToastService } from "../../../core/services/toast.service";
-import { UiButton, UiSwitch } from "../../../shared/ui";
+import { UiButton } from "../../../shared/ui";
+import { VisibilityLevel } from "../../../core/models/user.model";
 
-type PrivacyMode = "private" | "custom" | "open";
+type PrivacyPreset = "custom" | "private" | "friends" | "open";
+
+interface SectionConfig {
+	key:
+		| "backlogVisibility"
+		| "shelfVisibility"
+		| "listVisibility"
+		| "queueVisibility"
+		| "wishlistVisibility"
+		| "favoriteVisibility"
+		| "feedVisibility";
+	group: "Library" | "Curation" | "Social";
+	title: string;
+	description: string;
+}
+
+const SECTIONS: SectionConfig[] = [
+	{
+		key: "backlogVisibility",
+		group: "Library",
+		title: "My Games",
+		description: "Show your full game history."
+	},
+	{
+		key: "shelfVisibility",
+		group: "Library",
+		title: "My Shelf",
+		description: "Show the games you own."
+	},
+	{
+		key: "listVisibility",
+		group: "Curation",
+		title: "Lists",
+		description: "Show your lists section."
+	},
+	{
+		key: "queueVisibility",
+		group: "Curation",
+		title: "Up Next",
+		description: "Show your priority queue."
+	},
+	{
+		key: "wishlistVisibility",
+		group: "Curation",
+		title: "Wanted",
+		description: "Show the games you'd like to acquire."
+	},
+	{
+		key: "favoriteVisibility",
+		group: "Curation",
+		title: "Favorites",
+		description: "Show your favorites."
+	},
+	{
+		key: "feedVisibility",
+		group: "Social",
+		title: "Activity feed",
+		description: "Show your activity in followers' feeds."
+	}
+];
 
 @Component({
 	selector: "app-settings-privacy",
-	imports: [UiButton, UiSwitch],
+	imports: [UiButton],
 	templateUrl: "./settings-privacy.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -28,16 +88,25 @@ export class SettingsPrivacy implements OnInit {
 	private readonly toast = inject(ToastService);
 
 	protected readonly user = this.authService.user;
-	protected readonly isPublic = signal(true);
-	protected readonly isBacklogPublic = signal(true);
-	protected readonly isShelfPublic = signal(true);
-	protected readonly isListPublic = signal(true);
-	protected readonly isQueuePublic = signal(true);
-	protected readonly isWishlistPublic = signal(true);
-	protected readonly isFavoritePublic = signal(true);
-	protected readonly isFeedPublic = signal(true);
+
+	protected readonly profileVisibility = signal<VisibilityLevel>("public");
+	protected readonly backlogVisibility = signal<VisibilityLevel>("public");
+	protected readonly shelfVisibility = signal<VisibilityLevel>("public");
+	protected readonly listVisibility = signal<VisibilityLevel>("public");
+	protected readonly queueVisibility = signal<VisibilityLevel>("public");
+	protected readonly wishlistVisibility = signal<VisibilityLevel>("public");
+	protected readonly favoriteVisibility = signal<VisibilityLevel>("public");
+	protected readonly feedVisibility = signal<VisibilityLevel>("public");
+
 	protected readonly saving = signal(false);
-	protected readonly mode = signal<PrivacyMode>("open");
+	protected readonly mode = signal<PrivacyPreset>("open");
+
+	protected readonly sections = SECTIONS;
+	protected readonly libraryGroup = SECTIONS.filter(s => s.group === "Library");
+	protected readonly curationGroup = SECTIONS.filter(
+		s => s.group === "Curation"
+	);
+	protected readonly socialGroup = SECTIONS.filter(s => s.group === "Social");
 
 	protected readonly showCustomPanel = computed(() => this.mode() === "custom");
 
@@ -49,66 +118,114 @@ export class SettingsPrivacy implements OnInit {
 	private hydrate() {
 		const u = this.user();
 		if (!u) return;
-		this.isPublic.set(u.isPublic);
-		this.isBacklogPublic.set(u.isBacklogPublic);
-		this.isShelfPublic.set(u.isShelfPublic);
-		this.isListPublic.set(u.isListPublic);
-		this.isQueuePublic.set(u.isQueuePublic);
-		this.isWishlistPublic.set(u.isWishlistPublic);
-		this.isFavoritePublic.set(u.isFavoritePublic);
-		this.isFeedPublic.set(u.isFeedPublic);
-		this.mode.set(this.deriveMode());
+		this.profileVisibility.set(u.profileVisibility);
+		this.backlogVisibility.set(u.backlogVisibility);
+		this.shelfVisibility.set(u.shelfVisibility);
+		this.listVisibility.set(u.listVisibility);
+		this.queueVisibility.set(u.queueVisibility);
+		this.wishlistVisibility.set(u.wishlistVisibility);
+		this.favoriteVisibility.set(u.favoriteVisibility);
+		this.feedVisibility.set(u.feedVisibility);
+		this.mode.set(this.derivePreset());
 	}
 
-	private deriveMode(): PrivacyMode {
-		if (!this.isPublic()) return "private";
-		const allOn =
-			this.isBacklogPublic() &&
-			this.isShelfPublic() &&
-			this.isListPublic() &&
-			this.isQueuePublic() &&
-			this.isWishlistPublic() &&
-			this.isFavoritePublic() &&
-			this.isFeedPublic();
-		return allOn ? "open" : "custom";
+	private derivePreset(): PrivacyPreset {
+		const levels = [
+			this.profileVisibility(),
+			this.backlogVisibility(),
+			this.shelfVisibility(),
+			this.listVisibility(),
+			this.queueVisibility(),
+			this.wishlistVisibility(),
+			this.favoriteVisibility(),
+			this.feedVisibility()
+		];
+		if (levels.every(l => l === "public")) return "open";
+		if (levels.every(l => l === "private")) return "private";
+		if (levels.every(l => l === "friends")) return "friends";
+		return "custom";
 	}
 
-	selectPreset(mode: PrivacyMode) {
-		this.mode.set(mode);
-		if (mode === "private") {
-			this.isPublic.set(false);
-			this.setSectionFlags(false);
-		} else if (mode === "open") {
-			this.isPublic.set(true);
-			this.setSectionFlags(true);
+	selectPreset(preset: PrivacyPreset) {
+		this.mode.set(preset);
+		if (preset === "custom") return;
+		const level: VisibilityLevel = preset === "open" ? "public" : preset;
+		this.setAll(level);
+	}
+
+	getSection(key: SectionConfig["key"]): VisibilityLevel {
+		switch (key) {
+			case "backlogVisibility":
+				return this.backlogVisibility();
+			case "shelfVisibility":
+				return this.shelfVisibility();
+			case "listVisibility":
+				return this.listVisibility();
+			case "queueVisibility":
+				return this.queueVisibility();
+			case "wishlistVisibility":
+				return this.wishlistVisibility();
+			case "favoriteVisibility":
+				return this.favoriteVisibility();
+			case "feedVisibility":
+				return this.feedVisibility();
 		}
 	}
 
-	onSectionFlagChange() {
-		this.mode.set(this.deriveMode());
+	setSection(key: SectionConfig["key"], level: VisibilityLevel) {
+		switch (key) {
+			case "backlogVisibility":
+				this.backlogVisibility.set(level);
+				break;
+			case "shelfVisibility":
+				this.shelfVisibility.set(level);
+				break;
+			case "listVisibility":
+				this.listVisibility.set(level);
+				break;
+			case "queueVisibility":
+				this.queueVisibility.set(level);
+				break;
+			case "wishlistVisibility":
+				this.wishlistVisibility.set(level);
+				break;
+			case "favoriteVisibility":
+				this.favoriteVisibility.set(level);
+				break;
+			case "feedVisibility":
+				this.feedVisibility.set(level);
+				break;
+		}
+		this.mode.set(this.derivePreset());
 	}
 
-	private setSectionFlags(value: boolean) {
-		this.isBacklogPublic.set(value);
-		this.isShelfPublic.set(value);
-		this.isListPublic.set(value);
-		this.isQueuePublic.set(value);
-		this.isWishlistPublic.set(value);
-		this.isFavoritePublic.set(value);
-		this.isFeedPublic.set(value);
+	setProfileVisibility(level: VisibilityLevel) {
+		this.profileVisibility.set(level);
+		this.mode.set(this.derivePreset());
+	}
+
+	private setAll(level: VisibilityLevel) {
+		this.profileVisibility.set(level);
+		this.backlogVisibility.set(level);
+		this.shelfVisibility.set(level);
+		this.listVisibility.set(level);
+		this.queueVisibility.set(level);
+		this.wishlistVisibility.set(level);
+		this.favoriteVisibility.set(level);
+		this.feedVisibility.set(level);
 	}
 
 	save() {
 		this.saving.set(true);
 		const dto: UpdateProfileDto = {
-			isPublic: this.isPublic(),
-			isBacklogPublic: this.isBacklogPublic(),
-			isShelfPublic: this.isShelfPublic(),
-			isListPublic: this.isListPublic(),
-			isQueuePublic: this.isQueuePublic(),
-			isWishlistPublic: this.isWishlistPublic(),
-			isFavoritePublic: this.isFavoritePublic(),
-			isFeedPublic: this.isFeedPublic()
+			profileVisibility: this.profileVisibility(),
+			backlogVisibility: this.backlogVisibility(),
+			shelfVisibility: this.shelfVisibility(),
+			listVisibility: this.listVisibility(),
+			queueVisibility: this.queueVisibility(),
+			wishlistVisibility: this.wishlistVisibility(),
+			favoriteVisibility: this.favoriteVisibility(),
+			feedVisibility: this.feedVisibility()
 		};
 		this.profileService.update(dto).subscribe({
 			next: () => {
