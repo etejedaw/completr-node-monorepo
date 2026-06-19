@@ -457,6 +457,18 @@ export class PublicProfileComponent implements OnInit {
 		this.isPrivate.set(false);
 		this.notFound.set(false);
 		this.profile.set(null);
+		this.highlightsData.set(null);
+		this.highlightsMonth.set(this.currentMonth());
+		this.listsData.set(null);
+		this.favoritesData.set(null);
+		this.queueData.set(null);
+		this.wishlistData.set(null);
+		this.gameShelfData.set(null);
+		this.followingListsData.set(null);
+		this.gamesInCommon.set([]);
+		this.recentFollowers.set([]);
+		this.userReviews.set([]);
+		this.userReviewsTotal.set(0);
 
 		this.profileService.getProfile(username).subscribe({
 			next: data => {
