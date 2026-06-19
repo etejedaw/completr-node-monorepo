@@ -359,14 +359,16 @@ export async function findCommonCompletedGames(
 export async function findHighlightsByUserId(
 	userId: string,
 	includePrivate: boolean,
-	recentLimit = 6
+	options: { recentLimit?: number; year?: number; month?: number } = {}
 ) {
+	const { recentLimit = 6 } = options;
 	const now = new Date();
-	const monthStart = new Date(
-		Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
-	);
+	const targetYear = options.year ?? now.getUTCFullYear();
+	const targetMonth =
+		options.month !== undefined ? options.month - 1 : now.getUTCMonth();
+	const monthStart = new Date(Date.UTC(targetYear, targetMonth, 1));
 	const monthEnd = new Date(
-		Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)
+		Date.UTC(targetYear, targetMonth + 1, 0, 23, 59, 59, 999)
 	);
 
 	const baseWhere: Record<string, unknown> = {

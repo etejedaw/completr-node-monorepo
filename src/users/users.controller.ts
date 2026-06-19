@@ -21,7 +21,7 @@ import {
 	listSerializer
 } from "../lists/lists.serializer";
 import { activitySerializer } from "../activity/activity.serializer";
-import { UsernameParam } from "./schemas";
+import { UsernameParam, HighlightsQuery } from "./schemas";
 import { UpdateUserDto } from "./dtos";
 import { RegisterDto } from "../auth/dtos";
 import { UserSearchQuery } from "./schemas/user-search-query.schema";
@@ -305,6 +305,7 @@ export async function getUserListDetail(request: Request, response: Response) {
 
 export async function getUserHighlights(request: Request, response: Response) {
 	const params = request.locals.params as UsernameParam;
+	const query = request.locals.query as HighlightsQuery;
 	const currentUser = request.locals.user as RequestUser | undefined;
 
 	const user = await usersService.findUserByUsername(params.username);
@@ -316,7 +317,8 @@ export async function getUserHighlights(request: Request, response: Response) {
 
 	const highlights = await backlogService.findHighlightsByUserId(
 		user.id,
-		isSelf
+		isSelf,
+		{ year: query.year, month: query.month }
 	);
 
 	const serialize = (entry: (typeof highlights.recent)[number] | null) => {
