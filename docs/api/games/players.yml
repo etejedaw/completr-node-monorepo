@@ -1,0 +1,58 @@
+info:
+    name: Get Random Players For Game
+    type: http
+    seq: 15
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/games/:id/players"
+    auth: inherit
+    params:
+        - name: id
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Random Players For Game
+
+    Returns a randomized sample (up to 10) of other users who have this game in their backlog, with their most recent status. Excludes the viewer and the users the viewer already follows (those are surfaced via `/games/:id/friends-activity`). Only users whose profile **and** backlog are not `private`, and whose backlog entry itself is public, are included.
+
+    The sample is shuffled in memory after deduping by user (one row per user, latest backlog). No caching — each call returns a fresh random pick.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 100 requests per minute (public).
+
+    ### Path Params
+
+    | Param | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | id    | uuid | Yes      | Game UUID   |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "players": [
+          {
+            "username": "marta",
+            "name": "Marta",
+            "avatarUrl": "https://example.com/avatar.png",
+            "status": "playing"
+          }
+        ]
+      }
+    }
+    ```
+
+    `status` is one of `not_started | playing | completed | abandoned | endless`. `avatarUrl` may be `null`. The `players` array is empty when no eligible users exist.
+
+    ### Errors
+
+    | Status | Code                  | Description                          |
+    |--------|-----------------------|--------------------------------------|
+    | 401    | UNAUTHORIZED          | Missing or invalid Bearer token      |
+    | 422    | COMMON_SCHEMA_INVALID | `id` is not a valid uuid             |
