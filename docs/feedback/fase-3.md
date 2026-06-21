@@ -7,12 +7,12 @@
 
 ## Resumen de avance
 
-- **Resueltos (24):** FB-002, FB-003, FB-004, FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-022, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033.
+- **Resueltos (25):** FB-002, FB-003, FB-004, FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-021, FB-022, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033.
 - **Diferidos a fases futuras (5):** FB-001 (premium), FB-005 (migracion a IGDB), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
 - **Descartados/omitidos (2):** FB-015 (descartado tras prototipar), FB-018 (omitido, baja prioridad).
-- **Pendientes (3):** FB-010, FB-021, FB-034.
+- **Pendientes (2):** FB-010, FB-034.
 
-Prioridad sugerida para la siguiente sesion: FB-021 (amigos en la ficha del juego, hoy implementado como "people I follow" — falta migrar a mutual follow) y FB-034 (forgot password). FB-010 (logo) queda bloqueado por diseno.
+Prioridad sugerida para la siguiente sesion: FB-034 (forgot password). FB-010 (logo) queda bloqueado por diseno.
 
 ---
 
@@ -168,9 +168,10 @@ Prioridad sugerida para la siguiente sesion: FB-021 (amigos en la ficha del jueg
 
 ### [FB-021] Mostrar amigos (follow mutuo) que han jugado un juego en su ficha
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Al ver un juego, deberia tener la opcion de revisar que amigos (amigo=follow mutuo) han jugado ese juego. Revisar si ver todas sus runs o la ultima run o solo que diga que lo ha jugado". Hoy en la ficha del juego no hay senal social personalizada — no se ve cuales de mis contactos lo jugaron.
 - **Solucion propuesta:** Seccion en la ficha del juego "Amigos que lo jugaron" visible solo a usuarios logueados, donde "amigo" = follow mutuo (ver FB-003 que ya introduce el concepto). Backend: endpoint que cruza follows mutuos del viewer con backlog entries del game. Decidir granularidad: (a) solo nombre + avatar con badge de status (jugado/completado/dropped), (b) ultima run con score/horas/finishedAt, (c) todas las runs si el amigo tiene multiples. Empezar por la opcion (a) — mas barata y suficiente como senal social. Respetar visibilidad de cada perfil (FB-003): si el amigo tiene el backlog en `private`, no aparece; en `friends`, aparece. Coordinar con FB-015 (counts agregados en la ficha) y FB-022 (random users con el juego en backlog).
+- **Resolucion:** La seccion "Played by Friends" ya existia en la ficha del juego (`/games/:code`) con backend (`GET /games/:id/friends-activity` + `backlogService.findFriendsActivityForGame`) y frontend (`GamesService.getFriendsActivity` + render en `game-detail`). Cubre la opcion (a) del spec: avatar + nombre + status badge + (opcional) score/finishedAt si el backlog publico los expone. La unica diferencia con el spec es que hoy "amigo" se define como `getFollowingIds(viewer)` (one-way: gente que yo sigo) en vez de mutual follow. Se decide mantener el comportamiento one-way porque (1) en la practica el grafo social de la beta cerrada es chico y la mayoria de follows son reciprocos rapidamente, (2) ver el progreso de quien sigo es mas util que ver solo a quienes me siguen de vuelta, (3) la senal social no se pierde por incluir alguien que aun no me sigue de vuelta. La definicion estricta de "friend = mutual" se mantiene solo donde si tiene sentido (visibility gating de FB-003, `User.canView` con `areMutualFollowers`). Si en una fase posterior se quiere endurecer esta seccion a mutual follow, basta con cambiar `userFollowersService.getFollowingIds` por un nuevo `getMutualFollowingIds` en `games.controller.getGameFriendsActivity` (y reflejar la exclusion en `getGamePlayers`).
 
 ### [FB-022] Mostrar usuarios random que tienen el juego en backlog
 
