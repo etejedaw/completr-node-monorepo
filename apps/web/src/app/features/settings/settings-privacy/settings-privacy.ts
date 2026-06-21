@@ -6,12 +6,14 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
+import { RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth.service";
 import {
 	ProfileService,
 	UpdateProfileDto
 } from "../../profile/profile.service";
 import { ToastService } from "../../../core/services/toast.service";
+import { FollowRequestsService } from "../../../core/services/follow-requests.service";
 import { UiButton } from "../../../shared/ui";
 import { VisibilityLevel } from "../../../core/models/user.model";
 
@@ -78,7 +80,7 @@ const SECTIONS: SectionConfig[] = [
 
 @Component({
 	selector: "app-settings-privacy",
-	imports: [UiButton],
+	imports: [UiButton, RouterLink],
 	templateUrl: "./settings-privacy.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -86,6 +88,7 @@ export class SettingsPrivacy implements OnInit {
 	private readonly authService = inject(AuthService);
 	private readonly profileService = inject(ProfileService);
 	private readonly toast = inject(ToastService);
+	private readonly followRequestsService = inject(FollowRequestsService);
 
 	protected readonly user = this.authService.user;
 
@@ -97,9 +100,17 @@ export class SettingsPrivacy implements OnInit {
 	protected readonly wishlistVisibility = signal<VisibilityLevel>("public");
 	protected readonly favoriteVisibility = signal<VisibilityLevel>("public");
 	protected readonly feedVisibility = signal<VisibilityLevel>("public");
+	protected readonly acceptFollowRequests = signal(true);
 
 	protected readonly saving = signal(false);
 	protected readonly mode = signal<PrivacyPreset>("open");
+
+	protected readonly incomingRequests = this.followRequestsService.incoming;
+	protected readonly incomingLoading = signal(false);
+	protected readonly resolvingRequest = signal<string | null>(null);
+	protected readonly showRequestsSection = computed(
+		() => this.profileVisibility() === "private" && this.acceptFollowRequests()
+	);
 
 	protected readonly sections = SECTIONS;
 	protected readonly libraryGroup = SECTIONS.filter(s => s.group === "Library");
@@ -113,6 +124,7 @@ export class SettingsPrivacy implements OnInit {
 	ngOnInit() {
 		this.authService.loadUser().subscribe(() => this.hydrate());
 		this.hydrate();
+		this.loadIncomingRequests();
 	}
 
 	private hydrate() {
@@ -126,7 +138,47 @@ export class SettingsPrivacy implements OnInit {
 		this.wishlistVisibility.set(u.wishlistVisibility);
 		this.favoriteVisibility.set(u.favoriteVisibility);
 		this.feedVisibility.set(u.feedVisibility);
+		this.acceptFollowRequests.set(u.acceptFollowRequests);
 		this.mode.set(this.derivePreset());
+	}
+
+	private loadIncomingRequests() {
+		this.incomingLoading.set(true);
+		this.followRequestsService.list().subscribe({
+			next: () => this.incomingLoading.set(false),
+			error: () => this.incomingLoading.set(false)
+		});
+	}
+
+	acceptRequest(requesterId: string) {
+		if (this.resolvingRequest()) return;
+		this.resolvingRequest.set(requesterId);
+		this.followRequestsService.accept(requesterId).subscribe({
+			next: () => {
+				this.resolvingRequest.set(null);
+				this.toast.success("Follow request accepted.");
+			},
+			error: () => {
+				this.resolvingRequest.set(null);
+				this.toast.warning("Could not accept request.");
+			}
+		});
+	}
+
+	rejectRequest(requesterId: string) {
+		if (this.resolvingRequest()) return;
+		this.resolvingRequest.set(requesterId);
+		this.followRequestsService.reject(requesterId).subscribe({
+			next: () => this.resolvingRequest.set(null),
+			error: () => {
+				this.resolvingRequest.set(null);
+				this.toast.warning("Could not reject request.");
+			}
+		});
+	}
+
+	toggleAcceptFollowRequests(value: boolean) {
+		this.acceptFollowRequests.set(value);
 	}
 
 	private derivePreset(): PrivacyPreset {
@@ -225,13 +277,15 @@ export class SettingsPrivacy implements OnInit {
 			queueVisibility: this.queueVisibility(),
 			wishlistVisibility: this.wishlistVisibility(),
 			favoriteVisibility: this.favoriteVisibility(),
-			feedVisibility: this.feedVisibility()
+			feedVisibility: this.feedVisibility(),
+			acceptFollowRequests: this.acceptFollowRequests()
 		};
 		this.profileService.update(dto).subscribe({
 			next: () => {
 				this.saving.set(false);
 				this.toast.success("Privacy settings updated.");
 				this.authService.loadUser().subscribe();
+				this.loadIncomingRequests();
 			},
 			error: () => {
 				this.saving.set(false);

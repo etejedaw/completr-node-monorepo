@@ -146,6 +146,24 @@
 				</div>
 			}
 
+			@if (profileVisibility() === 'private') {
+				<div class="flex items-start justify-between gap-3 pt-4 border-t border-line">
+					<div>
+						<span class="block text-sm font-medium text-fg">Allow follow requests</span>
+						<span class="block text-xs text-fg-muted">When off, the Follow button is hidden on your profile. When on, others can request to follow you and you approve each one.</span>
+					</div>
+					<label class="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
+						<input
+							type="checkbox"
+							class="sr-only peer"
+							[checked]="acceptFollowRequests()"
+							(change)="toggleAcceptFollowRequests($any($event.target).checked)"
+						/>
+						<span class="w-10 h-5 bg-input-bg border border-line rounded-full peer-checked:bg-brand peer-checked:border-brand transition relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-fg after:rounded-full after:h-4 after:w-4 after:transition peer-checked:after:translate-x-5 peer-checked:after:bg-white"></span>
+					</label>
+				</div>
+			}
+
 			<div class="flex justify-end pt-4 border-t border-line">
 				<button uiButton variant="primary" (click)="save()" [disabled]="saving()">
 					{{ saving() ? 'Saving...' : 'Save' }}
@@ -154,3 +172,65 @@
 		</div>
 	}
 </div>
+
+@if (showRequestsSection()) {
+	<div class="bg-surface border border-line rounded-card p-6 mt-6">
+		<div class="flex items-center justify-between gap-3 mb-1">
+			<h2 class="font-display m-0 text-lg font-bold">Follow requests</h2>
+			@if (incomingRequests(); as rows) {
+				<span class="text-xs text-fg-muted">{{ rows.length }} pending</span>
+			}
+		</div>
+		<p class="text-xs text-fg-muted mb-5">Decide who can follow you. Accepting lets them see sections set to Friends.</p>
+
+		@if (incomingLoading() && !incomingRequests()) {
+			<p class="text-sm text-fg-muted">Loading...</p>
+		} @else if (incomingRequests(); as rows) {
+			@if (rows.length === 0) {
+				<p class="text-sm text-fg-muted">No pending requests.</p>
+			} @else {
+				<ul class="flex flex-col gap-2">
+					@for (req of rows; track req.requesterId) {
+						<li class="flex items-center gap-3 p-3 bg-input-bg border border-line rounded-card">
+							<a [routerLink]="['/user', req.user.username]" class="shrink-0">
+								@if (req.user.avatarUrl) {
+									<img class="w-10 h-10 rounded-full object-cover ring-1 ring-line" [src]="req.user.avatarUrl" [alt]="req.user.username" />
+								} @else {
+									<div class="w-10 h-10 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-sm font-bold ring-1 ring-line">
+										{{ req.user.username.charAt(0).toUpperCase() }}
+									</div>
+								}
+							</a>
+							<div class="flex-1 min-w-0">
+								<a [routerLink]="['/user', req.user.username]" class="block text-sm font-medium text-fg no-underline truncate hover:underline">
+									{{ req.user.name || req.user.username }}
+								</a>
+								<span class="block text-xs text-fg-muted truncate">{{ '@' + req.user.username }}</span>
+							</div>
+							<div class="flex gap-2 shrink-0">
+								<button
+									uiButton
+									variant="ghost"
+									size="sm"
+									[disabled]="resolvingRequest() === req.requesterId"
+									(click)="rejectRequest(req.requesterId)"
+								>
+									Reject
+								</button>
+								<button
+									uiButton
+									variant="primary"
+									size="sm"
+									[disabled]="resolvingRequest() === req.requesterId"
+									(click)="acceptRequest(req.requesterId)"
+								>
+									Accept
+								</button>
+							</div>
+						</li>
+					}
+				</ul>
+			}
+		}
+	</div>
+}
