@@ -85,6 +85,60 @@
 		}
 	</div>
 
+	@if (followRequests(); as requests) {
+		@if (requests.length > 0) {
+			<section class="mb-6 bg-brand-subtle border-2 border-brand rounded-card p-5 shadow-[0_0_0_3px_var(--color-brand-subtle)]">
+				<div class="flex items-center gap-2 mb-3">
+					<span class="material-icons text-brand">person_add</span>
+					<h2 class="font-display m-0 text-base font-bold text-fg">
+						{{ requests.length === 1 ? '1 follow request' : requests.length + ' follow requests' }}
+					</h2>
+				</div>
+				<ul class="flex flex-col gap-2">
+					@for (req of requests; track req.requesterId) {
+						<li class="flex items-center gap-3 p-3 bg-surface border border-line rounded-card">
+							<a [routerLink]="['/user', req.user.username]" class="shrink-0">
+								@if (req.user.avatarUrl) {
+									<img class="w-10 h-10 rounded-full object-cover ring-1 ring-line" [src]="req.user.avatarUrl" [alt]="req.user.username" />
+								} @else {
+									<div class="w-10 h-10 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-sm font-bold ring-1 ring-line">
+										{{ req.user.username.charAt(0).toUpperCase() }}
+									</div>
+								}
+							</a>
+							<div class="flex-1 min-w-0">
+								<a [routerLink]="['/user', req.user.username]" class="block text-sm font-medium text-fg no-underline truncate hover:underline">
+									{{ req.user.name || req.user.username }}
+								</a>
+								<span class="block text-xs text-fg-muted truncate">wants to follow you</span>
+							</div>
+							<div class="flex gap-2 shrink-0">
+								<button
+									uiButton
+									variant="ghost"
+									size="sm"
+									[disabled]="resolvingRequest() === req.requesterId"
+									(click)="rejectFollowRequest(req.requesterId)"
+								>
+									Reject
+								</button>
+								<button
+									uiButton
+									variant="primary"
+									size="sm"
+									[disabled]="resolvingRequest() === req.requesterId"
+									(click)="acceptFollowRequest(req.requesterId)"
+								>
+									Accept
+								</button>
+							</div>
+						</li>
+					}
+				</ul>
+			</section>
+		}
+	}
+
 	<h2 class="font-display mb-4 text-base font-semibold text-fg-secondary">Activity Feed</h2>
 
 	@if (isLoading()) {
