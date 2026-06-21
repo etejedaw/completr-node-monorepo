@@ -337,4 +337,19 @@ export class GamesService {
 			.pipe(map(res => res.data.friends));
 	}
 
+	getPlayers(gameId: string) {
+		return this.http
+			.get<{
+				data: {
+					players: {
+						username: string;
+						name: string;
+						avatarUrl: string | null;
+						status: string;
+					}[];
+				};
+			}>(`${environment.apiUrl}/games/${gameId}/players`)
+			.pipe(map(res => res.data.players));
+	}
+
 }
