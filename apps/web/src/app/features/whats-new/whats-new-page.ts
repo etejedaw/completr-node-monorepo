@@ -97,6 +97,59 @@ export class WhatsNewPage {
 
 	protected readonly releases: ReleaseEntry[] = [
 		{
+			date: "2026-06-21",
+			tag: "Social",
+			title: "Other Players on every game page",
+			icon: "groups",
+			tint: "brand",
+			highlights: [
+				{
+					icon: "diversity_3",
+					tint: "brand",
+					text: "Game pages now show an 'Other Players' section with a randomized sample of up to 10 users who also have the game in their backlog — a quick way to discover folks outside your circle who share your taste."
+				},
+				{
+					icon: "circle",
+					tint: "success",
+					text: "Each avatar carries a small colored dot for the most recent status (Completed, Playing, Abandoned, Endless or Backlog). Hover or tap shows the name and status."
+				},
+				{
+					icon: "shuffle",
+					tint: "purple",
+					text: "Friends you already follow stay in the 'Played by Friends' section above — Other Players excludes them to avoid duplicates. The sample reshuffles every visit."
+				}
+			]
+		},
+		{
+			date: "2026-06-21",
+			tag: "Privacy",
+			title: "Follow requests inbox and clearer privacy settings",
+			icon: "person_add",
+			tint: "success",
+			highlights: [
+				{
+					icon: "campaign",
+					tint: "success",
+					text: "Pending follow requests now show as a highlighted card at the top of your feed with one-click Accept / Reject — only you see it, and the same list also lives in Settings → Privacy."
+				},
+				{
+					icon: "schedule",
+					tint: "warning",
+					text: "Follow button on private profiles now has three states: Follow → Requested (click again to cancel) → Following. No more guessing whether your request went through."
+				},
+				{
+					icon: "toggle_on",
+					tint: "brand",
+					text: "New 'Allow follow requests' toggle on Privacy settings (only when your profile is Private). Switch it off and the Follow button disappears from your profile."
+				},
+				{
+					icon: "tune",
+					tint: "purple",
+					text: "Privacy dropdowns replaced by segmented controls (Only you / Friends / Everyone) with icons and tooltips, plus a legend explaining each level — especially what 'Friends' means (mutual follow)."
+				}
+			]
+		},
+		{
 			date: "2026-06-19",
 			tag: "Privacy",
 			title: "Friends-level privacy and follow requests",
