@@ -373,38 +373,75 @@ export class PublicProfileComponent implements OnInit {
 			this.showUnfollowConfirm.set(true);
 			return;
 		}
-		this.toggleFollow();
+		if (p.hasPendingRequest) {
+			this.cancelOutgoingRequest();
+			return;
+		}
+		this.follow();
 	}
 
 	confirmUnfollow() {
-		this.toggleFollow();
+		this.unfollow();
 	}
 
-	private toggleFollow() {
-		const p = this.profile();
+	private follow() {
 		const u = this.username();
-		if (!p || this.togglingFollow()) return;
-
+		if (!u || this.togglingFollow()) return;
 		this.togglingFollow.set(true);
-		const action = p.isFollowing
-			? this.profileService.unfollow(u)
-			: this.profileService.follow(u);
+		this.profileService.follow(u).subscribe({
+			next: result => {
+				this.profile.update(prev => {
+					if (!prev) return prev;
+					if (result.status === "pending") {
+						return { ...prev, hasPendingRequest: true };
+					}
+					return {
+						...prev,
+						isFollowing: true,
+						followerCount: prev.followerCount + 1
+					};
+				});
+				this.togglingFollow.set(false);
+			},
+			error: () => this.togglingFollow.set(false)
+		});
+	}
 
-		action.subscribe({
+	private unfollow() {
+		const u = this.username();
+		if (!u || this.togglingFollow()) return;
+		this.togglingFollow.set(true);
+		this.profileService.unfollow(u).subscribe({
 			next: () => {
 				this.profile.update(prev =>
 					prev
 						? {
 								...prev,
-								isFollowing: !prev.isFollowing,
-								followerCount:
-									prev.followerCount +
-									(prev.isFollowing ? -1 : 1)
+								isFollowing: false,
+								followerCount: Math.max(
+									0,
+									prev.followerCount - 1
+								)
 							}
 						: prev
 				);
 				this.togglingFollow.set(false);
 				this.showUnfollowConfirm.set(false);
+			},
+			error: () => this.togglingFollow.set(false)
+		});
+	}
+
+	private cancelOutgoingRequest() {
+		const u = this.username();
+		if (!u || this.togglingFollow()) return;
+		this.togglingFollow.set(true);
+		this.profileService.cancelFollowRequest(u).subscribe({
+			next: () => {
+				this.profile.update(prev =>
+					prev ? { ...prev, hasPendingRequest: false } : prev
+				);
+				this.togglingFollow.set(false);
 			},
 			error: () => this.togglingFollow.set(false)
 		});

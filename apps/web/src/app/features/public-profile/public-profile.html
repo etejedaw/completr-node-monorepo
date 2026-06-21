@@ -34,6 +34,42 @@
 			<p class="text-fg-muted mb-6">This profile is private.</p>
 			@if (!isLoggedIn()) {
 				<a uiButton variant="primary" size="md" routerLink="/login">Sign in to follow this user</a>
+			} @else if (!isSelf() && profile(); as p) {
+				@if (p.isFollowing) {
+					<button
+						uiButton
+						variant="secondary"
+						size="md"
+						[disabled]="togglingFollow()"
+						(click)="onFollowButtonClick()"
+					>
+						<span class="material-icons text-base">check</span>
+						Following
+					</button>
+				} @else if (p.hasPendingRequest) {
+					<button
+						uiButton
+						variant="secondary"
+						size="md"
+						[disabled]="togglingFollow()"
+						(click)="onFollowButtonClick()"
+						title="Cancel follow request"
+					>
+						<span class="material-icons text-base">schedule</span>
+						Requested
+					</button>
+				} @else if (p.acceptFollowRequests) {
+					<button
+						uiButton
+						variant="primary"
+						size="md"
+						[disabled]="togglingFollow()"
+						(click)="onFollowButtonClick()"
+					>
+						<span class="material-icons text-base">person_add</span>
+						Follow
+					</button>
+				}
 			}
 		</div>
 	} @else if (profile() && !isPrivate()) {
@@ -80,16 +116,17 @@
 			@if (isLoggedIn() && !isSelf()) {
 				<button
 					uiButton
-					[variant]="profile()!.isFollowing ? 'secondary' : 'primary'"
+					[variant]="profile()!.isFollowing || profile()!.hasPendingRequest ? 'secondary' : 'primary'"
 					size="lg"
 					[disabled]="togglingFollow()"
 					(click)="onFollowButtonClick()"
+					[title]="profile()!.hasPendingRequest ? 'Cancel follow request' : ''"
 					class="!shrink-0 !min-w-[140px] !font-semibold"
 				>
 					<span class="material-icons text-base">
-						{{ profile()!.isFollowing ? 'check' : 'person_add' }}
+						{{ profile()!.isFollowing ? 'check' : profile()!.hasPendingRequest ? 'schedule' : 'person_add' }}
 					</span>
-					{{ profile()!.isFollowing ? 'Following' : 'Follow' }}
+					{{ profile()!.isFollowing ? 'Following' : profile()!.hasPendingRequest ? 'Requested' : 'Follow' }}
 				</button>
 			}
 		</div>

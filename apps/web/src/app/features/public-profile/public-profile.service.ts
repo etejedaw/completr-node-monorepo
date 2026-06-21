@@ -142,10 +142,16 @@ export class PublicProfileService {
 	}
 
 	follow(username: string) {
-		return this.http.post(
-			`${environment.apiUrl}/users/${username}/follow`,
-			{},
-			{ responseType: "text" }
+		return this.http
+			.post<{
+				data: { status: "accepted" | "pending"; targetId: string };
+			}>(`${environment.apiUrl}/users/${username}/follow`, {})
+			.pipe(map(res => res.data));
+	}
+
+	cancelFollowRequest(username: string) {
+		return this.http.delete(
+			`${environment.apiUrl}/users/me/follow-requests/sent/${username}`
 		);
 	}
 
