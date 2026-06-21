@@ -60,21 +60,68 @@
 
 			@if (showCustomPanel()) {
 				<div class="flex flex-col gap-5 pt-2 border-t border-line">
+					<div class="flex flex-col gap-2 p-3 bg-input-bg/40 border border-line rounded-card">
+						<div class="flex items-start gap-2 text-xs text-fg-muted">
+							<span class="material-icons text-sm text-fg-muted shrink-0 mt-px">lock</span>
+							<span><strong class="text-fg">Only you</strong> — hidden from everyone else, even followers.</span>
+						</div>
+						<div class="flex items-start gap-2 text-xs text-fg-muted">
+							<span class="material-icons text-sm text-fg-muted shrink-0 mt-px">group</span>
+							<span><strong class="text-fg">Friends</strong> — visible only when you follow each other (mutual follow).</span>
+						</div>
+						<div class="flex items-start gap-2 text-xs text-fg-muted">
+							<span class="material-icons text-sm text-fg-muted shrink-0 mt-px">public</span>
+							<span><strong class="text-fg">Everyone</strong> — visible to any logged-in or anonymous visitor.</span>
+						</div>
+					</div>
+
 					<div class="flex flex-col gap-2">
-						<div class="flex items-center justify-between gap-3">
-							<div>
+						<div class="flex items-center justify-between gap-3 flex-wrap">
+							<div class="min-w-0">
 								<span class="block text-sm font-medium text-fg">Profile</span>
 								<span class="block text-xs text-fg-muted">Master gate — header, follower counts and avatar.</span>
 							</div>
-							<select
-								class="bg-input-bg border border-line rounded px-3 py-1.5 text-sm text-fg"
-								[value]="profileVisibility()"
-								(change)="setProfileVisibility($any($event.target).value)"
-							>
-								<option value="private">Only you</option>
-								<option value="friends">Friends</option>
-								<option value="public">Everyone</option>
-							</select>
+							<div class="inline-flex items-stretch bg-input-bg border border-line rounded-md overflow-hidden shrink-0" role="radiogroup" aria-label="Profile visibility">
+								<button
+									type="button"
+									role="radio"
+									[attr.aria-checked]="profileVisibility() === 'private'"
+									title="Only you — hidden from everyone else"
+									class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-fg-muted border-r border-line cursor-pointer transition hover:bg-surface"
+									[class.!bg-brand]="profileVisibility() === 'private'"
+									[class.!text-white]="profileVisibility() === 'private'"
+									(click)="setProfileVisibility('private')"
+								>
+									<span class="material-icons text-sm">lock</span>
+									Only you
+								</button>
+								<button
+									type="button"
+									role="radio"
+									[attr.aria-checked]="profileVisibility() === 'friends'"
+									title="Friends — visible to mutual follows only"
+									class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-fg-muted border-r border-line cursor-pointer transition hover:bg-surface"
+									[class.!bg-brand]="profileVisibility() === 'friends'"
+									[class.!text-white]="profileVisibility() === 'friends'"
+									(click)="setProfileVisibility('friends')"
+								>
+									<span class="material-icons text-sm">group</span>
+									Friends
+								</button>
+								<button
+									type="button"
+									role="radio"
+									[attr.aria-checked]="profileVisibility() === 'public'"
+									title="Everyone — visible to any visitor"
+									class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-fg-muted cursor-pointer transition hover:bg-surface"
+									[class.!bg-brand]="profileVisibility() === 'public'"
+									[class.!text-white]="profileVisibility() === 'public'"
+									(click)="setProfileVisibility('public')"
+								>
+									<span class="material-icons text-sm">public</span>
+									Everyone
+								</button>
+							</div>
 						</div>
 						<p class="text-[0.6875rem] text-fg-muted">
 							When set to Friends or Only you, visitors without access see just the avatar, username, bio and follow button.
@@ -84,20 +131,52 @@
 					<div class="flex flex-col gap-3 pt-1 border-t border-line">
 						<h3 class="text-xs font-bold uppercase tracking-wider text-fg-muted m-0">Library</h3>
 						@for (section of libraryGroup; track section.key) {
-							<div class="flex items-center justify-between gap-3">
-								<div>
+							<div class="flex items-center justify-between gap-3 flex-wrap">
+								<div class="min-w-0">
 									<span class="block text-sm font-medium text-fg">{{ section.title }}</span>
 									<span class="block text-xs text-fg-muted">{{ section.description }}</span>
 								</div>
-								<select
-									class="bg-input-bg border border-line rounded px-3 py-1.5 text-sm text-fg"
-									[value]="getSection(section.key)"
-									(change)="setSection(section.key, $any($event.target).value)"
-								>
-									<option value="private">Only you</option>
-									<option value="friends">Friends</option>
-									<option value="public">Everyone</option>
-								</select>
+								<div class="inline-flex items-stretch bg-input-bg border border-line rounded-md overflow-hidden shrink-0" role="radiogroup" [attr.aria-label]="section.title + ' visibility'">
+									<button
+										type="button"
+										role="radio"
+										[attr.aria-checked]="getSection(section.key) === 'private'"
+										title="Only you"
+										class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-fg-muted border-r border-line cursor-pointer transition hover:bg-surface"
+										[class.!bg-brand]="getSection(section.key) === 'private'"
+										[class.!text-white]="getSection(section.key) === 'private'"
+										(click)="setSection(section.key, 'private')"
+									>
+										<span class="material-icons text-sm">lock</span>
+										Only you
+									</button>
+									<button
+										type="button"
+										role="radio"
+										[attr.aria-checked]="getSection(section.key) === 'friends'"
+										title="Friends (mutual follows)"
+										class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-fg-muted border-r border-line cursor-pointer transition hover:bg-surface"
+										[class.!bg-brand]="getSection(section.key) === 'friends'"
+										[class.!text-white]="getSection(section.key) === 'friends'"
+										(click)="setSection(section.key, 'friends')"
+									>
+										<span class="material-icons text-sm">group</span>
+										Friends
+									</button>
+									<button
+										type="button"
+										role="radio"
+										[attr.aria-checked]="getSection(section.key) === 'public'"
+										title="Everyone"
+										class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-fg-muted cursor-pointer transition hover:bg-surface"
+										[class.!bg-brand]="getSection(section.key) === 'public'"
+										[class.!text-white]="getSection(section.key) === 'public'"
+										(click)="setSection(section.key, 'public')"
+									>
+										<span class="material-icons text-sm">public</span>
+										Everyone
+									</button>
+								</div>
 							</div>
 						}
 					</div>
@@ -105,20 +184,52 @@
 					<div class="flex flex-col gap-3 pt-1 border-t border-line">
 						<h3 class="text-xs font-bold uppercase tracking-wider text-fg-muted m-0">Curation</h3>
 						@for (section of curationGroup; track section.key) {
-							<div class="flex items-center justify-between gap-3">
-								<div>
+							<div class="flex items-center justify-between gap-3 flex-wrap">
+								<div class="min-w-0">
 									<span class="block text-sm font-medium text-fg">{{ section.title }}</span>
 									<span class="block text-xs text-fg-muted">{{ section.description }}</span>
 								</div>
-								<select
-									class="bg-input-bg border border-line rounded px-3 py-1.5 text-sm text-fg"
-									[value]="getSection(section.key)"
-									(change)="setSection(section.key, $any($event.target).value)"
-								>
-									<option value="private">Only you</option>
-									<option value="friends">Friends</option>
-									<option value="public">Everyone</option>
-								</select>
+								<div class="inline-flex items-stretch bg-input-bg border border-line rounded-md overflow-hidden shrink-0" role="radiogroup" [attr.aria-label]="section.title + ' visibility'">
+									<button
+										type="button"
+										role="radio"
+										[attr.aria-checked]="getSection(section.key) === 'private'"
+										title="Only you"
+										class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-fg-muted border-r border-line cursor-pointer transition hover:bg-surface"
+										[class.!bg-brand]="getSection(section.key) === 'private'"
+										[class.!text-white]="getSection(section.key) === 'private'"
+										(click)="setSection(section.key, 'private')"
+									>
+										<span class="material-icons text-sm">lock</span>
+										Only you
+									</button>
+									<button
+										type="button"
+										role="radio"
+										[attr.aria-checked]="getSection(section.key) === 'friends'"
+										title="Friends (mutual follows)"
+										class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-fg-muted border-r border-line cursor-pointer transition hover:bg-surface"
+										[class.!bg-brand]="getSection(section.key) === 'friends'"
+										[class.!text-white]="getSection(section.key) === 'friends'"
+										(click)="setSection(section.key, 'friends')"
+									>
+										<span class="material-icons text-sm">group</span>
+										Friends
+									</button>
+									<button
+										type="button"
+										role="radio"
+										[attr.aria-checked]="getSection(section.key) === 'public'"
+										title="Everyone"
+										class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-fg-muted cursor-pointer transition hover:bg-surface"
+										[class.!bg-brand]="getSection(section.key) === 'public'"
+										[class.!text-white]="getSection(section.key) === 'public'"
+										(click)="setSection(section.key, 'public')"
+									>
+										<span class="material-icons text-sm">public</span>
+										Everyone
+									</button>
+								</div>
 							</div>
 						}
 					</div>
@@ -126,23 +237,73 @@
 					<div class="flex flex-col gap-3 pt-1 border-t border-line">
 						<h3 class="text-xs font-bold uppercase tracking-wider text-fg-muted m-0">Social</h3>
 						@for (section of socialGroup; track section.key) {
-							<div class="flex items-center justify-between gap-3">
-								<div>
+							<div class="flex items-center justify-between gap-3 flex-wrap">
+								<div class="min-w-0">
 									<span class="block text-sm font-medium text-fg">{{ section.title }}</span>
 									<span class="block text-xs text-fg-muted">{{ section.description }}</span>
 								</div>
-								<select
-									class="bg-input-bg border border-line rounded px-3 py-1.5 text-sm text-fg"
-									[value]="getSection(section.key)"
-									(change)="setSection(section.key, $any($event.target).value)"
-								>
-									<option value="private">Only you</option>
-									<option value="friends">Friends</option>
-									<option value="public">Everyone</option>
-								</select>
+								<div class="inline-flex items-stretch bg-input-bg border border-line rounded-md overflow-hidden shrink-0" role="radiogroup" [attr.aria-label]="section.title + ' visibility'">
+									<button
+										type="button"
+										role="radio"
+										[attr.aria-checked]="getSection(section.key) === 'private'"
+										title="Only you"
+										class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-fg-muted border-r border-line cursor-pointer transition hover:bg-surface"
+										[class.!bg-brand]="getSection(section.key) === 'private'"
+										[class.!text-white]="getSection(section.key) === 'private'"
+										(click)="setSection(section.key, 'private')"
+									>
+										<span class="material-icons text-sm">lock</span>
+										Only you
+									</button>
+									<button
+										type="button"
+										role="radio"
+										[attr.aria-checked]="getSection(section.key) === 'friends'"
+										title="Friends (mutual follows)"
+										class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-fg-muted border-r border-line cursor-pointer transition hover:bg-surface"
+										[class.!bg-brand]="getSection(section.key) === 'friends'"
+										[class.!text-white]="getSection(section.key) === 'friends'"
+										(click)="setSection(section.key, 'friends')"
+									>
+										<span class="material-icons text-sm">group</span>
+										Friends
+									</button>
+									<button
+										type="button"
+										role="radio"
+										[attr.aria-checked]="getSection(section.key) === 'public'"
+										title="Everyone"
+										class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-fg-muted cursor-pointer transition hover:bg-surface"
+										[class.!bg-brand]="getSection(section.key) === 'public'"
+										[class.!text-white]="getSection(section.key) === 'public'"
+										(click)="setSection(section.key, 'public')"
+									>
+										<span class="material-icons text-sm">public</span>
+										Everyone
+									</button>
+								</div>
 							</div>
 						}
 					</div>
+				</div>
+			}
+
+			@if (profileVisibility() === 'private') {
+				<div class="flex items-start justify-between gap-3 pt-4 border-t border-line">
+					<div>
+						<span class="block text-sm font-medium text-fg">Allow follow requests</span>
+						<span class="block text-xs text-fg-muted">When off, the Follow button is hidden on your profile. When on, others can request to follow you and you approve each one.</span>
+					</div>
+					<label class="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
+						<input
+							type="checkbox"
+							class="sr-only peer"
+							[checked]="acceptFollowRequests()"
+							(change)="toggleAcceptFollowRequests($any($event.target).checked)"
+						/>
+						<span class="w-10 h-5 bg-input-bg border border-line rounded-full peer-checked:bg-brand peer-checked:border-brand transition relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-fg after:rounded-full after:h-4 after:w-4 after:transition peer-checked:after:translate-x-5 peer-checked:after:bg-white"></span>
+					</label>
 				</div>
 			}
 
@@ -154,3 +315,65 @@
 		</div>
 	}
 </div>
+
+@if (showRequestsSection()) {
+	<div class="bg-surface border border-line rounded-card p-6 mt-6">
+		<div class="flex items-center justify-between gap-3 mb-1">
+			<h2 class="font-display m-0 text-lg font-bold">Follow requests</h2>
+			@if (incomingRequests(); as rows) {
+				<span class="text-xs text-fg-muted">{{ rows.length }} pending</span>
+			}
+		</div>
+		<p class="text-xs text-fg-muted mb-5">Decide who can follow you. Accepting lets them see sections set to Friends.</p>
+
+		@if (incomingLoading() && !incomingRequests()) {
+			<p class="text-sm text-fg-muted">Loading...</p>
+		} @else if (incomingRequests(); as rows) {
+			@if (rows.length === 0) {
+				<p class="text-sm text-fg-muted">No pending requests.</p>
+			} @else {
+				<ul class="flex flex-col gap-2">
+					@for (req of rows; track req.requesterId) {
+						<li class="flex items-center gap-3 p-3 bg-input-bg border border-line rounded-card">
+							<a [routerLink]="['/user', req.user.username]" class="shrink-0">
+								@if (req.user.avatarUrl) {
+									<img class="w-10 h-10 rounded-full object-cover ring-1 ring-line" [src]="req.user.avatarUrl" [alt]="req.user.username" />
+								} @else {
+									<div class="w-10 h-10 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-sm font-bold ring-1 ring-line">
+										{{ req.user.username.charAt(0).toUpperCase() }}
+									</div>
+								}
+							</a>
+							<div class="flex-1 min-w-0">
+								<a [routerLink]="['/user', req.user.username]" class="block text-sm font-medium text-fg no-underline truncate hover:underline">
+									{{ req.user.name || req.user.username }}
+								</a>
+								<span class="block text-xs text-fg-muted truncate">{{ '@' + req.user.username }}</span>
+							</div>
+							<div class="flex gap-2 shrink-0">
+								<button
+									uiButton
+									variant="ghost"
+									size="sm"
+									[disabled]="resolvingRequest() === req.requesterId"
+									(click)="rejectRequest(req.requesterId)"
+								>
+									Reject
+								</button>
+								<button
+									uiButton
+									variant="primary"
+									size="sm"
+									[disabled]="resolvingRequest() === req.requesterId"
+									(click)="acceptRequest(req.requesterId)"
+								>
+									Accept
+								</button>
+							</div>
+						</li>
+					}
+				</ul>
+			}
+		}
+	</div>
+}

@@ -131,6 +131,14 @@ export class GameDetail implements OnInit {
 			userRating: number | null;
 		}[]
 	>([]);
+	protected readonly otherPlayers = signal<
+		{
+			username: string;
+			name: string;
+			avatarUrl: string | null;
+			status: string;
+		}[]
+	>([]);
 	protected readonly showAddToListModal = signal(false);
 	protected readonly addToListSaving = signal(false);
 	protected readonly addToListSelection = signal<Map<string, boolean>>(
@@ -204,10 +212,14 @@ export class GameDetail implements OnInit {
 					this.myLists.set(data.myLists);
 				});
 				this.friendsActivity.set([]);
+				this.otherPlayers.set([]);
 				if (this.authService.isLoggedIn()) {
 					this.gamesService
 						.getFriendsActivity(game.id)
 						.subscribe(friends => this.friendsActivity.set(friends));
+					this.gamesService
+						.getPlayers(game.id)
+						.subscribe(players => this.otherPlayers.set(players));
 				}
 			},
 			error: () => this.isLoading.set(false)
@@ -373,18 +385,42 @@ export class GameDetail implements OnInit {
 		return scale ? `/ ${scale}` : "";
 	}
 
-	protected friendStatusMeta(status: string): { label: string; classes: string } {
+	protected friendStatusMeta(status: string): {
+		label: string;
+		classes: string;
+		dot: string;
+	} {
 		switch (status) {
 			case "completed":
-				return { label: "Completed", classes: "bg-success/15 text-success" };
+				return {
+					label: "Completed",
+					classes: "bg-success/15 text-success",
+					dot: "bg-success"
+				};
 			case "playing":
-				return { label: "Playing", classes: "bg-brand/15 text-brand" };
+				return {
+					label: "Playing",
+					classes: "bg-brand/15 text-brand",
+					dot: "bg-brand"
+				};
 			case "abandoned":
-				return { label: "Abandoned", classes: "bg-warning/15 text-warning" };
+				return {
+					label: "Abandoned",
+					classes: "bg-warning/15 text-warning",
+					dot: "bg-warning"
+				};
 			case "endless":
-				return { label: "Endless", classes: "bg-brand-subtle text-brand" };
+				return {
+					label: "Endless",
+					classes: "bg-brand-subtle text-brand",
+					dot: "bg-brand"
+				};
 			default:
-				return { label: "Backlog", classes: "bg-input-bg text-fg-muted" };
+				return {
+					label: "Backlog",
+					classes: "bg-input-bg text-fg-muted",
+					dot: "bg-fg-muted"
+				};
 		}
 	}
 

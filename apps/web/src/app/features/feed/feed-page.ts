@@ -8,6 +8,7 @@ import {
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
 import { ToastService } from "../../core/services/toast.service";
+import { FollowRequestsService } from "../../core/services/follow-requests.service";
 import { Subject, debounceTime, switchMap } from "rxjs";
 import { FeedService, FeedActivity } from "./feed.service";
 import {
@@ -34,6 +35,7 @@ export class FeedPage implements OnInit {
 	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
 	private readonly router = inject(Router);
+	private readonly followRequestsService = inject(FollowRequestsService);
 	private readonly searchSubject = new Subject<string>();
 
 	protected readonly currentUserId = this.authService.user;
@@ -46,6 +48,9 @@ export class FeedPage implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 25;
 
+	protected readonly followRequests = this.followRequestsService.incoming;
+	protected readonly resolvingRequest = signal<string | null>(null);
+
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadFeed();
@@ -53,6 +58,7 @@ export class FeedPage implements OnInit {
 
 	ngOnInit() {
 		this.loadFeed();
+		this.followRequestsService.list().subscribe();
 
 		this.searchSubject
 			.pipe(
@@ -128,6 +134,33 @@ export class FeedPage implements OnInit {
 
 	isOwnActivity(activity: FeedActivity): boolean {
 		return activity.user?.id === this.currentUserId()?.id;
+	}
+
+	acceptFollowRequest(requesterId: string) {
+		if (this.resolvingRequest()) return;
+		this.resolvingRequest.set(requesterId);
+		this.followRequestsService.accept(requesterId).subscribe({
+			next: () => {
+				this.resolvingRequest.set(null);
+				this.toast.success("Follow request accepted.");
+			},
+			error: () => {
+				this.resolvingRequest.set(null);
+				this.toast.warning("Could not accept request.");
+			}
+		});
+	}
+
+	rejectFollowRequest(requesterId: string) {
+		if (this.resolvingRequest()) return;
+		this.resolvingRequest.set(requesterId);
+		this.followRequestsService.reject(requesterId).subscribe({
+			next: () => this.resolvingRequest.set(null),
+			error: () => {
+				this.resolvingRequest.set(null);
+				this.toast.warning("Could not reject request.");
+			}
+		});
 	}
 
 	protected activityLabel = activityLabel;
