@@ -324,6 +324,44 @@ export async function findFriendsActivityForGame(
 	});
 }
 
+export async function findRandomPlayersForGame(
+	gameId: string,
+	viewerId: string,
+	excludeUserIds: string[] = [],
+	limit = 10
+) {
+	const excluded = [...new Set([viewerId, ...excludeUserIds])];
+
+	const rows = await Backlog.findAll({
+		where: { gameId, isPublic: true, userId: { [Op.notIn]: excluded } },
+		include: [
+			{
+				model: User,
+				where: {
+					profileVisibility: { [Op.in]: ["public", "friends"] },
+					backlogVisibility: { [Op.in]: ["public", "friends"] }
+				},
+				attributes: ["id", "username", "name", "avatarUrl"]
+			}
+		],
+		order: [["createdAt", "DESC"]]
+	});
+
+	const byUser = new Map<string, (typeof rows)[number]>();
+	for (const row of rows) {
+		if (!byUser.has(row.userId)) byUser.set(row.userId, row);
+	}
+
+	const unique = Array.from(byUser.values());
+	for (let i = unique.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		const tmp = unique[i]!;
+		unique[i] = unique[j]!;
+		unique[j] = tmp;
+	}
+	return unique.slice(0, limit);
+}
+
 export async function findCommonCompletedGames(
 	viewerId: string,
 	targetId: string
