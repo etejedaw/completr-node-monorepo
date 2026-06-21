@@ -275,3 +275,25 @@ export async function getGameFriendsActivity(
 	};
 	return response.status(200).json({ data });
 }
+
+export async function getGamePlayers(request: Request, response: Response) {
+	const params = request.locals.params as GameIdParam;
+	const user = request.locals.user as RequestUser;
+
+	const friendIds = await userFollowersService.getFollowingIds(user.id);
+	const entries = await backlogService.findRandomPlayersForGame(
+		params.id,
+		user.id,
+		friendIds
+	);
+
+	const data = {
+		players: entries.map(entry => ({
+			username: entry.User!.username,
+			name: entry.User!.name,
+			avatarUrl: entry.User!.avatarUrl ?? null,
+			status: entry.status
+		}))
+	};
+	return response.status(200).json({ data });
+}

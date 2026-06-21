@@ -171,4 +171,14 @@ router.get(
 	gamesController.getGameFriendsActivity
 );
 
+router.get(
+	"/games/:id/players",
+	[
+		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(GameIdParamSchema, "params")
+	],
+	gamesController.getGamePlayers
+);
+
 export default router;
