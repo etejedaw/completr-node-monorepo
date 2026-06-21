@@ -7,12 +7,12 @@
 
 ## Resumen de avance
 
-- **Resueltos (23):** FB-002, FB-003, FB-004, FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033.
+- **Resueltos (24):** FB-002, FB-003, FB-004, FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-022, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033.
 - **Diferidos a fases futuras (5):** FB-001 (premium), FB-005 (migracion a IGDB), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
 - **Descartados/omitidos (2):** FB-015 (descartado tras prototipar), FB-018 (omitido, baja prioridad).
-- **Pendientes (4):** FB-010, FB-021, FB-022, FB-034.
+- **Pendientes (3):** FB-010, FB-021, FB-034.
 
-Prioridad sugerida para la siguiente sesion: FB-021 + FB-022 (senales sociales en la ficha del juego — ya desbloqueados por FB-003) y FB-034 (forgot password). FB-010 (logo) queda bloqueado por diseno.
+Prioridad sugerida para la siguiente sesion: FB-021 (amigos en la ficha del juego, hoy implementado como "people I follow" — falta migrar a mutual follow) y FB-034 (forgot password). FB-010 (logo) queda bloqueado por diseno.
 
 ---
 
@@ -174,9 +174,10 @@ Prioridad sugerida para la siguiente sesion: FB-021 + FB-022 (senales sociales e
 
 ### [FB-022] Mostrar usuarios random que tienen el juego en backlog
 
-- **Estado:** pendiente
+- **Estado:** resuelto
 - **Descripcion:** "Al ver la ventana de un game, que aparezca al azar usuarios que lo tienen en su backlog". Complementa FB-021 (amigos) con descubrimiento social: ver gente fuera de mi circulo que tambien juega o quiere jugar el mismo juego.
 - **Solucion propuesta:** Seccion "Otros jugadores" en la ficha del juego con un sample random de N usuarios (5-10) que tienen el juego en su backlog. Backend: query `ORDER BY RANDOM()` con LIMIT, cacheable con TTL corto (ej. 10 min por juego) para no pegarle a la DB en cada visita. Respetar visibilidad de perfil/backlog (ver FB-003): si el perfil es `private` no aparece, si es `friends` solo aparece para amigos. Posible: filtros para sesgar el random (mismo pais, misma plataforma favorita, mismo genero predominante) si llega a haber demasiada gente. Coordinar con FB-015 (counts agregados) y FB-021 (amigos en la ficha).
+- **Resolucion:** Backend: nuevo `findRandomPlayersForGame(gameId, viewerId, excludeUserIds, limit=10)` en `backlog.service.ts` — fetch de backlogs publicos del juego con join a `User` filtrado por `profileVisibility IN (public, friends)` y `backlogVisibility IN (public, friends)`, excluye al viewer y a los usuarios que ya sigue (para no duplicar con FB-021), dedupea por `userId` quedandose con la fila mas reciente, shuffle Fisher-Yates en memoria y slice a `limit`. Sin caching — la randomizacion ocurre por request (suficiente para fase 3). Nuevo endpoint `GET /games/:id/players` (auth + `publicLimiter`) que devuelve `{ players: [{ username, name, avatarUrl, status }] }`. Frontend: `GamesService.getPlayers(gameId)` y signal `otherPlayers` en `GameDetail` que se carga junto con `friendsActivity` al abrir la ficha. Nueva seccion "Other Players" debajo de "Played by Friends" con grid wrap de chips compactos (avatar + dot circular de color por status en la esquina + nombre truncado), tooltip nativo "Nombre — Status" al hover y link al perfil. `friendStatusMeta` extendido con campo `dot` (color de fondo del indicador). Doc Bruno `docs/api/games/players.yml` agregada.
 
 ### [FB-023] Clasificacion para juegos sin estado natural de "completado"
 
