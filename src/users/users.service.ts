@@ -1,19 +1,19 @@
-import { Op, UniqueConstraintError, ValidationError } from "sequelize";
+import { Op } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { CreateUserDto, UpdateUserDto } from "./dtos";
 import { User } from "./user.model";
-import { canUseTheme } from "./theme-catalog";
+import { canUseTheme } from "./helpers/theme.helper";
 import * as usersServiceError from "./errors/users.service-error";
 
 export async function createUser(createUserDto: CreateUserDto) {
 	try {
 		return await User.create(createUserDto);
 	} catch (error) {
-		if (error instanceof UniqueConstraintError)
-			throw usersServiceError.uniqueConstraintError(error);
-		if (error instanceof ValidationError)
-			throw usersServiceError.validationError(error);
-		throw error;
+		rethrowSequelizeError(error, {
+			unique: usersServiceError.uniqueConstraintError,
+			validation: usersServiceError.validationError
+		});
 	}
 }
 

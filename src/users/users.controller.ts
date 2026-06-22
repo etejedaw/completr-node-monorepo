@@ -1,144 +1,42 @@
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { Request, Response } from "express";
 import * as usersService from "./users.service";
-import * as authService from "../auth/auth.service";
-import * as backlogService from "../backlog/backlog.service";
-import * as listsService from "../lists/lists.service";
-import * as activityService from "../activity/activity.service";
-import * as userFollowersService from "../user-followers/user-followers.service";
+import * as usersProfileService from "./users-profile.service";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
-import * as listFollowersService from "../list-followers/list-followers.service";
 import {
+	enrichedUserListSerializer,
+	fullProfileSerializer,
+	restrictedProfileSerializer,
+	userCompletionsSerializer,
+	userHighlightsSerializer,
 	userMeSerializer,
-	userProfileSerializer,
-	userPublicSerializer
+	userReviewsSerializer,
+	userSummarySerializer
 } from "./users.serializer";
 import {
-	backlogSerializer,
-	backlogPublicSerializer
-} from "../backlog/backlog.serializer";
-import {
-	listSummarySerializer,
-	listSerializer
+	listSerializer,
+	listSummarySerializer
 } from "../lists/lists.serializer";
-import { activitySerializer } from "../activity/activity.serializer";
 import { UsernameParam, HighlightsQuery } from "./schemas";
 import { UpdateUserDto } from "./dtos";
-import { RegisterDto } from "../auth/dtos";
 import { UserSearchQuery } from "./schemas/user-search-query.schema";
 import { UserDiscoverQuery } from "./schemas/user-discover-query.schema";
-import { AdminUpdateUserDto } from "./schemas/admin-update-user.schema";
-import { UserIdParam } from "./schemas/user-id-params.schema";
 import { PaginationQuery } from "../common/schemas/pagination-query.schema";
-import * as passwordService from "../auth/services/password.service";
-import * as auditService from "../audit/audit.service";
-import * as reviewsService from "../reviews/reviews.service";
-import { userReviewSerializer } from "../reviews/reviews.serializer";
 import * as userDomain from "./errors/users.domain-error";
-import { canView } from "./visibility.helper";
 
-// TODO: Mejorar escritura de código
 export async function getUserByUsername(request: Request, response: Response) {
-	const params = request.locals.params as UsernameParam;
-
-	const { username } = params;
-
-	const user = await usersService.findUserByUsername(username);
-	if (!user) throw userDomain.userNotFound();
-
+	const { username } = request.locals.params as UsernameParam;
 	const currentUser = request.locals.user as RequestUser | undefined;
-	const isSelf = currentUser?.id === user.id;
 
-	const canViewProfile = await canView(currentUser?.id, user, "profile");
-	if (!canViewProfile) {
-		const [followerCount, followingCount, isFollowing, hasPendingRequest] =
-			await Promise.all([
-				userFollowersService.getFollowerCount(user.id),
-				userFollowersService.getFollowingCount(user.id),
-				currentUser
-					? userFollowersService.isFollowing(currentUser.id, user.id)
-					: Promise.resolve(false),
-				currentUser
-					? userFollowRequestsService.hasOutgoingRequest(
-							currentUser.id,
-							user.id
-						)
-					: Promise.resolve(false)
-			]);
+	const profile = await usersProfileService.getProfileByUsername(
+		currentUser?.id,
+		username
+	);
 
-		const data = {
-			user: userPublicSerializer(user.get({ plain: true })),
-			isPrivate: true,
-			profileVisibility: user.profileVisibility,
-			acceptFollowRequests: user.acceptFollowRequests,
-			followerCount,
-			followingCount,
-			isFollowing,
-			hasPendingRequest
-		};
-		return response.status(200).json({ data });
-	}
-
-	const userId = user.id;
-	const [canViewBacklog, canViewLists, canViewFeed] = await Promise.all([
-		canView(currentUser?.id, user, "backlog"),
-		canView(currentUser?.id, user, "list"),
-		canView(currentUser?.id, user, "feed")
-	]);
-
-	const [
-		backlogResult,
-		backlogStats,
-		listsTotal,
-		recentActivity,
-		followerCount,
-		followingCount,
-		isFollowing
-	] = await Promise.all([
-		isSelf
-			? backlogService.findBacklogByUserId(userId)
-			: canViewBacklog
-				? backlogService.findPublicBacklogByUserId(userId)
-				: Promise.resolve({ rows: [], total: 0 }),
-		canViewBacklog
-			? backlogService.countBacklogByStatus(userId, !isSelf)
-			: Promise.resolve({
-					not_started: 0,
-					playing: 0,
-					completed: 0,
-					abandoned: 0,
-					total: 0
-				}),
-		canViewLists
-			? listsService.countListsByUserId(userId, !isSelf)
-			: Promise.resolve(0),
-		canViewFeed
-			? activityService.getUserActivity(userId, 10, {
-					includeSocial: isSelf
-				})
-			: Promise.resolve([]),
-		userFollowersService.getFollowerCount(userId),
-		userFollowersService.getFollowingCount(userId),
-		currentUser && !isSelf
-			? userFollowersService.isFollowing(currentUser.id, userId)
-			: Promise.resolve(false)
-	]);
-
-	const backlogs = backlogResult.rows.map(b => b.get({ plain: true }));
-
-	const data = {
-		user: userProfileSerializer(user.get({ plain: true })),
-		followerCount,
-		followingCount,
-		isFollowing,
-		backlogs: backlogs.map(b =>
-			isSelf ? backlogSerializer(b) : backlogPublicSerializer(b)
-		),
-		backlogTotal: backlogResult.total,
-		backlogStats,
-		listsTotal,
-		recentActivity: recentActivity.map(activitySerializer)
-	};
+	const data =
+		profile.kind === "restricted"
+			? restrictedProfileSerializer(profile)
+			: fullProfileSerializer(profile);
 
 	return response.status(200).json({ data });
 }
@@ -189,15 +87,7 @@ export async function searchUsers(request: Request, response: Response) {
 		? await usersService.findUserByExactEmail(email)
 		: await usersService.searchUsers(q!, limit);
 
-	const data = {
-		users: users.map(u => ({
-			id: u.id,
-			username: u.username,
-			name: u.name,
-			avatarUrl: u.avatarUrl,
-			profileVisibility: u.profileVisibility
-		}))
-	};
+	const data = { users: users.map(userSummarySerializer) };
 	return response.status(200).json({ data });
 }
 
@@ -210,53 +100,22 @@ export async function getDiscoverUsers(request: Request, response: Response) {
 		currentUser?.id
 	);
 
-	const data = {
-		users: users.map(u => ({
-			id: u.id,
-			username: u.username,
-			name: u.name,
-			avatarUrl: u.avatarUrl,
-			profileVisibility: u.profileVisibility
-		}))
-	};
+	const data = { users: users.map(userSummarySerializer) };
 	return response.status(200).json({ data });
 }
 
 export async function getUserLists(request: Request, response: Response) {
-	const params = request.locals.params as UsernameParam;
-
-	const user = await usersService.findUserByUsername(params.username);
-	if (!user) throw userDomain.userNotFound();
-
+	const { username } = request.locals.params as UsernameParam;
 	const currentUser = request.locals.user as RequestUser | undefined;
-	const isSelf = currentUser?.id === user.id;
 
-	if (!(await canView(currentUser?.id, user, "profile")))
-		throw userDomain.userPrivate();
-	if (!(await canView(currentUser?.id, user, "list")))
-		throw userDomain.userPrivate();
-
-	const lists = isSelf
-		? (await listsService.findListsByUserId(currentUser!)).lists
-		: await listsService.findPublicListsByUserId(user.id);
-
-	const listsWithFollowers = await Promise.all(
-		lists.map(async list => {
-			const [count, progress] = await Promise.all([
-				listsService.getFollowerCount(list.id),
-				listsService.getListProgress(list.id, user.id)
-			]);
-			return {
-				...listSummarySerializer(list),
-				followerCount: count,
-				progress
-			};
-		})
+	const bundle = await usersProfileService.getListsForUsername(
+		currentUser,
+		username
 	);
 
 	const data = {
-		lists: listsWithFollowers,
-		total: listsWithFollowers.length
+		lists: bundle.lists.map(enrichedUserListSerializer),
+		total: bundle.total
 	};
 	return response.status(200).json({ data });
 }
@@ -265,301 +124,97 @@ export async function getUserFollowingLists(
 	request: Request,
 	response: Response
 ) {
-	const params = request.locals.params as UsernameParam;
-	const query = request.locals.query ?? {};
-
-	const user = await usersService.findUserByUsername(params.username);
-	if (!user) throw userDomain.userNotFound();
-
+	const { username } = request.locals.params as UsernameParam;
+	const query = (request.locals.query ?? {}) as PaginationQuery;
 	const currentUser = request.locals.user as RequestUser | undefined;
-	if (!(await canView(currentUser?.id, user, "profile")))
-		throw userDomain.userPrivate();
 
-	const { rows, total } =
-		await listFollowersService.getFollowingListsPaginated(user.id, query);
+	const bundle = await usersProfileService.getFollowingListsForUsername(
+		currentUser?.id,
+		username,
+		query
+	);
 
-	const followingLists = rows
-		.filter(f => f.isVisible)
-		.map(f => listSummarySerializer(f.List));
-
-	const data = { followingLists, total };
+	const data = {
+		followingLists: bundle.followingLists.map(listSummarySerializer),
+		total: bundle.total
+	};
 	return response.status(200).json({ data });
 }
 
 export async function getUserListDetail(request: Request, response: Response) {
 	const params = request.locals.params as UsernameParam & { listId: string };
-
-	const user = await usersService.findUserByUsername(params.username);
-	if (!user) throw userDomain.userNotFound();
-
 	const currentUser = request.locals.user as RequestUser | undefined;
-	const isSelf = currentUser?.id === user.id;
 
-	if (!(await canView(currentUser?.id, user, "profile")))
-		throw userDomain.userPrivate();
-
-	const list = await listsService.findListById(params.listId);
-	if (!list) throw userDomain.userNotFound();
-	if (!list.isPublic) throw userDomain.userNotFound();
-
-	const listPlain = list.get({ plain: true });
-	const canSeeProgress = await canView(currentUser?.id, user, "backlog");
-	const publicOnly = !isSelf;
-	const gameIds = (list.ListItems ?? []).map(i => i.gameId);
-	const [followerCount, backlogSummaryMap, progress] = await Promise.all([
-		listsService.getFollowerCount(params.listId),
-		canSeeProgress
-			? listsService.getBacklogSummaryMap(gameIds, user.id, publicOnly)
-			: Promise.resolve(undefined),
-		canSeeProgress
-			? listsService.getListProgress(params.listId, user.id, publicOnly)
-			: Promise.resolve(null)
-	]);
+	const bundle = await usersProfileService.getListDetailForUsername(
+		currentUser?.id,
+		params.username,
+		params.listId
+	);
 
 	const data = {
-		list: listSerializer(listPlain, {
-			followerCount,
-			backlogSummaryMap,
-			progress
-		}),
-		profileUser: {
-			username: user.username,
-			name: user.name
-		}
+		list: listSerializer(bundle.listPlain, bundle.aggregates),
+		profileUser: bundle.profileUser
 	};
 	return response.status(200).json({ data });
 }
 
 export async function getUserHighlights(request: Request, response: Response) {
-	const params = request.locals.params as UsernameParam;
+	const { username } = request.locals.params as UsernameParam;
 	const query = request.locals.query as HighlightsQuery;
 	const currentUser = request.locals.user as RequestUser | undefined;
 
-	const user = await usersService.findUserByUsername(params.username);
-	if (!user) throw userDomain.userNotFound();
-
-	const isSelf = currentUser?.id === user.id;
-	if (!(await canView(currentUser?.id, user, "profile")))
-		throw userDomain.userPrivate();
-	if (!(await canView(currentUser?.id, user, "backlog")))
-		throw userDomain.userPrivate();
-
-	const highlights = await backlogService.findHighlightsByUserId(
-		user.id,
-		isSelf,
+	const bundle = await usersProfileService.getHighlightsForUsername(
+		currentUser?.id,
+		username,
 		{ year: query.year, month: query.month }
 	);
 
-	const serialize = (entry: (typeof highlights.recent)[number] | null) => {
-		if (!entry) return null;
-		const plain = entry.get({ plain: true });
-		return isSelf
-			? backlogSerializer(plain)
-			: backlogPublicSerializer(plain);
-	};
-
-	const data = {
-		highlights: {
-			recent: highlights.recent.map(e => serialize(e)!),
-			month: {
-				startsAt: highlights.month.startsAt,
-				endsAt: highlights.month.endsAt,
-				completedCount: highlights.month.completedCount,
-				mostPlayed: serialize(highlights.month.mostPlayed),
-				highestRated: serialize(highlights.month.highestRated)
-			}
-		}
-	};
-	return response.status(200).json({ data });
+	return response
+		.status(200)
+		.json({ data: userHighlightsSerializer(bundle) });
 }
 
 export async function getUserCompletions(request: Request, response: Response) {
-	const params = request.locals.params as UsernameParam;
+	const { username } = request.locals.params as UsernameParam;
 	const query = request.locals.query as PaginationQuery;
 	const currentUser = request.locals.user as RequestUser | undefined;
 
-	const user = await usersService.findUserByUsername(params.username);
-	if (!user) throw userDomain.userNotFound();
-
-	const isSelf = currentUser?.id === user.id;
-	if (!(await canView(currentUser?.id, user, "profile")))
-		throw userDomain.userPrivate();
-	if (!(await canView(currentUser?.id, user, "backlog")))
-		throw userDomain.userPrivate();
-
-	const { rows, total } =
-		await backlogService.findCompletionsByUserIdPaginated(user.id, isSelf, {
-			limit: query.limit,
-			offset: query.offset
-		});
-
-	const plainRows = rows.map(r => r.get({ plain: true }));
-	const gameIds = plainRows
-		.map(r => r.Game?.id)
-		.filter((id): id is string => Boolean(id));
-	const reviewMap = await reviewsService.findReviewContentByUserAndGameIds(
-		user.id,
-		gameIds
+	const bundle = await usersProfileService.getCompletionsForUsername(
+		currentUser?.id,
+		username,
+		query
 	);
 
-	const data = {
-		completions: plainRows.map(r => {
-			const review = r.Game ? (reviewMap.get(r.Game.id) ?? null) : null;
-			return isSelf
-				? backlogSerializer(r, review)
-				: backlogPublicSerializer(r, review);
-		}),
-		total
-	};
-	return response.status(200).json({ data });
+	return response
+		.status(200)
+		.json({ data: userCompletionsSerializer(bundle) });
 }
 
 export async function getUserGamesInCommon(
 	request: Request,
 	response: Response
 ) {
-	const params = request.locals.params as UsernameParam;
+	const { username } = request.locals.params as UsernameParam;
 	const currentUser = request.locals.user as RequestUser;
 
-	const user = await usersService.findUserByUsername(params.username);
-	if (!user) throw userDomain.userNotFound();
-
-	if (user.id === currentUser.id) {
-		return response.status(200).json({ data: { games: [], total: 0 } });
-	}
-	const [okProfile, okBacklog] = await Promise.all([
-		canView(currentUser.id, user, "profile"),
-		canView(currentUser.id, user, "backlog")
-	]);
-	if (!okProfile || !okBacklog) throw userDomain.userPrivate();
-
-	const entries = await backlogService.findCommonCompletedGames(
-		currentUser.id,
-		user.id
+	const bundle = await usersProfileService.getGamesInCommonForUsername(
+		currentUser,
+		username
 	);
-	const games = entries.map(entry => ({
-		id: entry.Game.id,
-		code: entry.Game.code,
-		title: entry.Game.title,
-		backgroundUrl: entry.Game.backgroundUrl
-	}));
 
-	return response.status(200).json({ data: { games, total: games.length } });
+	return response.status(200).json({ data: bundle });
 }
 
 export async function getUserReviews(request: Request, response: Response) {
-	const params = request.locals.params as UsernameParam;
+	const { username } = request.locals.params as UsernameParam;
 	const query = request.locals.query as PaginationQuery;
-
-	const user = await usersService.findUserByUsername(params.username);
-	if (!user) throw userDomain.userNotFound();
-
 	const currentUser = request.locals.user as RequestUser | undefined;
-	if (!(await canView(currentUser?.id, user, "profile")))
-		throw userDomain.userPrivate();
 
-	const { rows, count } = await reviewsService.findReviewsByUserIdPaginated(
-		user.id,
-		{ limit: query.limit, offset: query.offset }
-	);
-	const reviewsPlain = rows.map(r => r.get({ plain: true }));
-
-	const pairs = reviewsPlain
-		.filter(r => r.Game)
-		.map(r => ({ userId: user.id, gameId: r.Game.id }));
-	const durationMap =
-		await backlogService.findLatestCompletedDurations(pairs);
-
-	const data = {
-		reviews: reviewsPlain.map(r =>
-			userReviewSerializer(
-				r,
-				r.Game
-					? (durationMap.get(`${user.id}:${r.Game.id}`) ?? null)
-					: null
-			)
-		),
-		total: count
-	};
-	return response.status(200).json({ data });
-}
-
-export async function postAdminCreateUser(
-	request: Request,
-	response: Response
-) {
-	const registerDto = request.locals.body as RegisterDto;
-	const admin = request.locals.user as RequestUser;
-
-	const { user } = await authService.register(registerDto);
-	auditService.record(admin.id, "user_created", "user", user.id);
-
-	const userPlain = user.get({ plain: true });
-
-	const data = { user: userMeSerializer(userPlain) };
-	return response.status(201).json({ data });
-}
-
-export async function getAdminUsers(request: Request, response: Response) {
-	const query = (request.locals.query ?? {}) as PaginationQuery;
-
-	const { rows, count } = await usersService.findAllUsers(
-		query.limit ?? 50,
-		query.offset ?? 0
+	const bundle = await usersProfileService.getReviewsForUsername(
+		currentUser?.id,
+		username,
+		query
 	);
 
-	const data = {
-		users: rows.map(u => ({
-			id: u.id,
-			username: u.username,
-			email: u.email,
-			name: u.name,
-			role: u.role,
-			isActive: u.isActive,
-			profileVisibility: u.profileVisibility,
-			createdAt: u.createdAt
-		})),
-		total: count
-	};
-	return response.status(200).json({ data });
-}
-
-export async function patchAdminUser(request: Request, response: Response) {
-	const params = request.locals.params as UserIdParam;
-	const dto = request.locals.body as AdminUpdateUserDto;
-	const admin = request.locals.user as RequestUser;
-
-	const user = await usersService.findUserByIdUnfiltered(params.userId);
-	if (!user) throw userDomain.userNotFound();
-
-	if (dto.password) {
-		const hash = await passwordService.hashPassword(dto.password);
-		await user.update({ password: hash });
-	}
-
-	const updateData: Record<string, unknown> = {};
-	if (dto.name !== undefined) updateData.name = dto.name;
-	if (dto.role !== undefined) updateData.role = dto.role;
-	if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
-
-	if (Object.keys(updateData).length > 0) {
-		await user.update(updateData);
-	}
-
-	auditService.record(admin.id, "user_edited", "user", params.userId);
-
-	await user.reload();
-	const data = {
-		user: {
-			id: user.id,
-			username: user.username,
-			email: user.email,
-			name: user.name,
-			role: user.role,
-			isActive: user.isActive,
-			profileVisibility: user.profileVisibility,
-			createdAt: user.createdAt
-		}
-	};
-	return response.status(200).json({ data });
+	return response.status(200).json({ data: userReviewsSerializer(bundle) });
 }

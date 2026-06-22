@@ -4,7 +4,7 @@ import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import * as gameShelfService from "./game-shelf.service";
 import * as usersService from "../users/users.service";
 import * as userDomainError from "../users/errors/users.domain-error";
-import { canView } from "../users/visibility.helper";
+import { canView } from "../users/helpers/visibility.helper";
 import * as activityService from "../activity/activity.service";
 
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";

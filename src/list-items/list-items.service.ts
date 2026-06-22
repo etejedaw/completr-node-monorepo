@@ -6,6 +6,7 @@ import { GameTime } from "../game-times/game-time.model";
 import { ScoreSource } from "../score-sources/score-source.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as listItemsServiceError from "./errors/list-items.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 const FREE_LIST_LIMIT = 5;
 
@@ -80,7 +81,20 @@ export async function replaceItems(
 
 	for (const gameId of toCreate) {
 		const { score, duration } = await freezeScores(gameId, list);
-		await ListItem.create({ listId, gameId, position: 0, score, duration });
+		try {
+			await ListItem.create({
+				listId,
+				gameId,
+				position: 0,
+				score,
+				duration
+			});
+		} catch (error) {
+			rethrowSequelizeError(error, {
+				unique: listItemsServiceError.uniqueConstraintError,
+				validation: listItemsServiceError.validationError
+			});
+		}
 	}
 
 	const allItems = await ListItem.findAll({
@@ -124,13 +138,20 @@ export async function addItem(
 	const nextPosition = (max ?? 0) + 1;
 
 	const { score, duration } = await freezeScores(gameId, list);
-	return ListItem.create({
-		listId,
-		gameId,
-		position: nextPosition,
-		score,
-		duration
-	});
+	try {
+		return await ListItem.create({
+			listId,
+			gameId,
+			position: nextPosition,
+			score,
+			duration
+		});
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: listItemsServiceError.uniqueConstraintError,
+			validation: listItemsServiceError.validationError
+		});
+	}
 }
 
 export async function removeItem(

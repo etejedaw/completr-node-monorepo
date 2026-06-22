@@ -10,6 +10,11 @@ import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import { BacklogQuery } from "./schemas/backlog-query.schema";
 import * as backlogServiceError from "./errors/backlog.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import {
+	buildDateRangeWhere,
+	buildRangeWhere
+} from "../common/utils/sequelize-range.util";
 
 const backlogInclude = [
 	{ model: Game },
@@ -44,10 +49,18 @@ export async function createBacklog(
 		);
 	}
 
-	const backlogEntry = await Backlog.create({
-		...registerBacklog,
-		userId
-	});
+	let backlogEntry: Backlog;
+	try {
+		backlogEntry = await Backlog.create({
+			...registerBacklog,
+			userId
+		});
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: backlogServiceError.uniqueConstraintError,
+			validation: backlogServiceError.validationError
+		});
+	}
 
 	await backlogEntry.reload({ include: backlogInclude });
 	return backlogEntry;
@@ -58,22 +71,6 @@ export async function findBacklogById(id: string) {
 		where: { id },
 		include: backlogInclude
 	});
-}
-
-function buildRangeFilter(min?: number, max?: number) {
-	if (!min && !max) return undefined;
-	const filter: Record<symbol, number> = {};
-	if (min) filter[Op.gte] = min;
-	if (max) filter[Op.lte] = max;
-	return filter;
-}
-
-function buildDateFilter(from?: string, to?: string) {
-	if (!from && !to) return undefined;
-	const filter: Record<symbol, Date> = {};
-	if (from) filter[Op.gte] = new Date(from);
-	if (to) filter[Op.lte] = new Date(to);
-	return filter;
 }
 
 function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
@@ -134,35 +131,38 @@ function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
 		});
 	}
 
-	const startedAt = buildDateFilter(filters.started_from, filters.started_to);
+	const startedAt = buildDateRangeWhere(
+		filters.started_from,
+		filters.started_to
+	);
 	if (startedAt) where.startedAt = startedAt;
 
 	if (filters.no_finished_date) {
 		where.finishedAt = { [Op.is]: null };
 	} else {
-		const finishedAt = buildDateFilter(
+		const finishedAt = buildDateRangeWhere(
 			filters.finished_from,
 			filters.finished_to
 		);
 		if (finishedAt) where.finishedAt = finishedAt;
 	}
 
-	const score = buildRangeFilter(filters.min_score, filters.max_score);
+	const score = buildRangeWhere(filters.min_score, filters.max_score);
 	if (score) where.score = score;
 
-	const duration = buildRangeFilter(
+	const duration = buildRangeWhere(
 		filters.min_duration,
 		filters.max_duration
 	);
 	if (duration) where.duration = duration;
 
-	const realDuration = buildRangeFilter(
+	const realDuration = buildRangeWhere(
 		filters.min_real_duration,
 		filters.max_real_duration
 	);
 	if (realDuration) where.realDuration = realDuration;
 
-	const userRating = buildRangeFilter(filters.min_rating, filters.max_rating);
+	const userRating = buildRangeWhere(filters.min_rating, filters.max_rating);
 	if (userRating) where.userRating = userRating;
 
 	if (filters.min_ratio !== undefined)

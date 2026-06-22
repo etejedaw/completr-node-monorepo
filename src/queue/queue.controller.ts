@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as usersService from "../users/users.service";
 import * as userDomainError from "../users/errors/users.domain-error";
-import { canView } from "../users/visibility.helper";
+import { canView } from "../users/helpers/visibility.helper";
 import * as queueService from "./queue.service";
 import * as queueDomainError from "./errors/queue.domain-error";
 import * as activityService from "../activity/activity.service";

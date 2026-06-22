@@ -23,6 +23,13 @@ export function validationError(rawError: unknown) {
 	});
 }
 
+export function uniqueConstraintError(rawError: unknown) {
+	return new ServiceError("BACKLOG_UNIQUE_CONSTRAINT", {
+		...BASE_OPTIONS,
+		raw: rawError
+	});
+}
+
 export function compilationContextInvalidError() {
 	return new ServiceError("BACKLOG_COMPILATION_CONTEXT_INVALID", {
 		...BASE_OPTIONS,

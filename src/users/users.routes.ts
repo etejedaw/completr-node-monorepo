@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as usersController from "./users.controller";
+import * as usersAdminController from "./users-admin.controller";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import {
 	HighlightsQuerySchema,
@@ -44,7 +45,7 @@ router.post(
 		hiddenRouteMiddleware(),
 		validateSchemaMiddleware(RegisterSchema, "body")
 	],
-	usersController.postAdminCreateUser
+	usersAdminController.postAdminCreateUser
 );
 
 router.get(
@@ -54,7 +55,7 @@ router.get(
 		hiddenRouteMiddleware(),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
-	usersController.getAdminUsers
+	usersAdminController.getAdminUsers
 );
 
 router.patch(
@@ -65,7 +66,7 @@ router.patch(
 		validateSchemaMiddleware(UserIdParamSchema, "params"),
 		validateSchemaMiddleware(AdminUpdateUserSchema, "body")
 	],
-	usersController.patchAdminUser
+	usersAdminController.patchAdminUser
 );
 
 router.get(

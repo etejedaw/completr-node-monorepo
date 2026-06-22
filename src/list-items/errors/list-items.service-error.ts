@@ -29,3 +29,17 @@ export function frozenError() {
 		raw: undefined
 	});
 }
+
+export function uniqueConstraintError(rawError: unknown) {
+	return new ServiceError("LIST_ITEM_UNIQUE_CONSTRAINT", {
+		...BASE_OPTIONS,
+		raw: rawError
+	});
+}
+
+export function validationError(rawError: unknown) {
+	return new ServiceError("LIST_ITEM_VALIDATION_ERROR", {
+		...BASE_OPTIONS,
+		raw: rawError
+	});
+}
