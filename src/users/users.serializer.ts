@@ -4,7 +4,16 @@ import {
 	backlogSerializer
 } from "../backlog/backlog.serializer";
 import { activitySerializer } from "../activity/activity.serializer";
-import { FullUserProfile, RestrictedUserProfile } from "./users.interface";
+import { listSummarySerializer } from "../lists/lists.serializer";
+import { userReviewSerializer } from "../reviews/reviews.serializer";
+import {
+	EnrichedUserList,
+	FullUserProfile,
+	RestrictedUserProfile,
+	UserCompletionsBundle,
+	UserHighlightsBundle,
+	UserReviewsBundle
+} from "./users.interface";
 
 export function userMeSerializer(user: User) {
 	return {
@@ -100,5 +109,75 @@ export function fullProfileSerializer(profile: FullUserProfile) {
 		backlogStats: profile.backlogStats,
 		listsTotal: profile.listsTotal,
 		recentActivity: profile.recentActivity.map(activitySerializer)
+	};
+}
+
+export function userSummarySerializer(user: User) {
+	return {
+		id: user.id,
+		username: user.username,
+		name: user.name,
+		avatarUrl: user.avatarUrl,
+		profileVisibility: user.profileVisibility
+	};
+}
+
+export function enrichedUserListSerializer(entry: EnrichedUserList) {
+	return {
+		...listSummarySerializer(entry.list),
+		followerCount: entry.followerCount,
+		progress: entry.progress
+	};
+}
+
+export function userHighlightsSerializer(bundle: UserHighlightsBundle) {
+	const { isSelf, highlights } = bundle;
+	const serialize = (entry: (typeof highlights.recent)[number] | null) => {
+		if (!entry) return null;
+		const plain = entry.get({ plain: true });
+		return isSelf
+			? backlogSerializer(plain)
+			: backlogPublicSerializer(plain);
+	};
+
+	return {
+		highlights: {
+			recent: highlights.recent.map(e => serialize(e)!),
+			month: {
+				startsAt: highlights.month.startsAt,
+				endsAt: highlights.month.endsAt,
+				completedCount: highlights.month.completedCount,
+				mostPlayed: serialize(highlights.month.mostPlayed),
+				highestRated: serialize(highlights.month.highestRated)
+			}
+		}
+	};
+}
+
+export function userCompletionsSerializer(bundle: UserCompletionsBundle) {
+	const { isSelf, rows, reviewMap, total } = bundle;
+	return {
+		completions: rows.map(r => {
+			const review = r.Game ? (reviewMap.get(r.Game.id) ?? null) : null;
+			return isSelf
+				? backlogSerializer(r, review)
+				: backlogPublicSerializer(r, review);
+		}),
+		total
+	};
+}
+
+export function userReviewsSerializer(bundle: UserReviewsBundle) {
+	const { user, reviewsPlain, durationMap, total } = bundle;
+	return {
+		reviews: reviewsPlain.map(r =>
+			userReviewSerializer(
+				r,
+				r.Game
+					? (durationMap.get(`${user.id}:${r.Game.id}`) ?? null)
+					: null
+			)
+		),
+		total
 	};
 }
