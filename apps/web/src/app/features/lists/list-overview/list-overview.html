@@ -194,13 +194,13 @@
 								<p class="m-0 text-sm text-white/85 line-clamp-2" style="text-shadow: 0 1px 4px rgba(0,0,0,0.5);">{{ list.description }}</p>
 							}
 							<div class="flex flex-col gap-1 mt-1">
-								<div class="h-1 bg-white/20 rounded-[2px] overflow-hidden">
-									<div
-										class="h-full rounded-[2px] transition-[width] duration-300 ease-out"
-										style="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
-										[style.width.%]="progressPercent(list.progress)"
-									></div>
-								</div>
+								<ui-progress
+									[value]="list.progress.completed"
+									[max]="list.progress.total || 1"
+									trackClass="h-1 bg-white/20"
+									indicatorClass=""
+									indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+								/>
 								<span class="text-[0.6875rem] text-white/80">
 									{{ list.progress.completed }}/{{ list.progress.total }} completed
 								</span>

@@ -146,26 +146,24 @@
 					<span class="text-xs font-semibold text-fg-secondary uppercase tracking-wider">Your progress</span>
 					<span class="text-[0.8125rem] font-semibold text-fg">{{ _vp.completed }}/{{ _vp.total }}</span>
 				</div>
-				<div class="h-1.5 bg-input-bg rounded-[3px] overflow-hidden">
-					<div
-						class="h-full rounded-[3px] transition-[width] duration-300 ease-out"
-						style="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
-						[style.width.%]="_vp.total > 0 ? (_vp.completed / _vp.total) * 100 : 0"
-					></div>
-				</div>
+				<ui-progress
+					[value]="_vp.completed"
+					[max]="_vp.total || 1"
+					indicatorClass=""
+					indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+				/>
 			</div>
 			<div class="px-4 py-3 bg-surface border border-line rounded-card">
 				<div class="flex items-center justify-between mb-2 gap-3">
 					<span class="text-xs font-semibold text-fg-secondary uppercase tracking-wider">&#64;{{ fromUsername() }}'s progress</span>
 					<span class="text-[0.8125rem] font-semibold text-fg">{{ _fp.completed }}/{{ _fp.total }}</span>
 				</div>
-				<div class="h-1.5 bg-input-bg rounded-[3px] overflow-hidden">
-					<div
-						class="h-full rounded-[3px] transition-[width] duration-300 ease-out"
-						style="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
-						[style.width.%]="_fp.total > 0 ? (_fp.completed / _fp.total) * 100 : 0"
-					></div>
-				</div>
+				<ui-progress
+					[value]="_fp.completed"
+					[max]="_fp.total || 1"
+					indicatorClass=""
+					indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+				/>
 			</div>
 		</div>
 	} @else if (list()!.progress) {
@@ -195,13 +193,12 @@
 				<span class="text-[0.8125rem] font-semibold text-fg">{{ _progress.completed }}/{{ _progress.total }}</span>
 			</div>
 		</div>
-		<div class="h-1.5 bg-input-bg rounded-[3px] overflow-hidden">
-			<div
-				class="h-full rounded-[3px] transition-[width] duration-300 ease-out"
-				style="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
-				[style.width.%]="_progress.total > 0 ? (_progress.completed / _progress.total) * 100 : 0"
-			></div>
-		</div>
+		<ui-progress
+			[value]="_progress.completed"
+			[max]="_progress.total || 1"
+			indicatorClass=""
+			indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+		/>
 	</div>
 	}
 
