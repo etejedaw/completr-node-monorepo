@@ -16,7 +16,6 @@ import { ToastService } from "../../../core/services/toast.service";
 
 @Component({
 	selector: "app-settings-appearance",
-	standalone: true,
 	templateUrl: "./settings-appearance.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

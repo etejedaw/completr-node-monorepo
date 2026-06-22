@@ -16,7 +16,6 @@ export interface GameCoverCardGame {
 
 @Component({
 	selector: "app-game-cover-card",
-	standalone: true,
 	imports: [RouterLink, NgTemplateOutlet, DatePipe, UiIconButton],
 	template: `
 		<div class="flex flex-col gap-1.5 text-inherit group">

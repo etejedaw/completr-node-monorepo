@@ -11,7 +11,6 @@ interface InfoCard {
 
 @Component({
 	selector: "app-about-page",
-	standalone: true,
 	template: `
 		<div class="max-w-3xl mx-auto">
 			<div class="mb-6 flex items-start gap-4">

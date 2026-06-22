@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component } from "@angular/core";
 
 @Component({
 	selector: "app-attribution-footer",
-	standalone: true,
 	template: `
 		<footer
 			class="px-6 lg:px-8 py-4 border-t border-line text-[0.6875rem] text-fg-muted leading-relaxed"

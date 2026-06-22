@@ -10,7 +10,6 @@ import { OnboardingService } from "../../core/services/onboarding.service";
 
 @Component({
 	selector: "app-help-page",
-	standalone: true,
 	imports: [RouterLink],
 	templateUrl: "./help-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

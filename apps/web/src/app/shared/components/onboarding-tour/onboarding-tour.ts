@@ -19,7 +19,6 @@ interface Step {
 
 @Component({
 	selector: "app-onboarding-tour",
-	standalone: true,
 	template: `
 		<div class="modal-overlay" (click)="skip.emit()">
 			<div
