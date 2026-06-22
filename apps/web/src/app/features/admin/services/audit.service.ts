@@ -4,19 +4,27 @@ import { map } from "rxjs";
 import { environment } from "../../../../environments/environment";
 import { buildHttpParams } from "../../../core/utils/http-params";
 
+export interface AuditActor {
+	id: string;
+	username: string;
+	name: string;
+}
+
+export interface AuditTarget {
+	type: string;
+	id: string;
+	label: string;
+	code?: string;
+	username?: string;
+}
+
 export interface AuditLogEntry {
 	id: string;
-	user: { id: string; username: string; name: string } | null;
+	user: AuditActor | null;
 	action: string;
 	targetType: string;
 	targetId: string;
-	target?: {
-		type: string;
-		id: string;
-		label: string;
-		code?: string;
-		username?: string;
-	};
+	target?: AuditTarget;
 	createdAt: string;
 }
 
