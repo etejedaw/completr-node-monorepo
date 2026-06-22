@@ -2,7 +2,6 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	effect,
-	HostListener,
 	inject,
 	OnInit,
 	signal,
@@ -30,6 +29,9 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 	selector: "app-backlog-list",
 	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea, GameFilterPanel],
 	templateUrl: "./backlog-list.html",
+	host: {
+		"(document:click)": "onDocumentClick()"
+	},
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BacklogList implements OnInit {
@@ -545,7 +547,6 @@ export class BacklogList implements OnInit {
 			.subscribe();
 	}
 
-	@HostListener("document:click")
 	onDocumentClick() {
 		this.statusMenuOpenId.set(null);
 	}
