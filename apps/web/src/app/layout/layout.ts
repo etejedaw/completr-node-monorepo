@@ -1,4 +1,11 @@
-import { Component, computed, inject, OnInit, signal } from "@angular/core";
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	inject,
+	OnInit,
+	signal
+} from "@angular/core";
 import {
 	RouterLink,
 	RouterLinkActive,
@@ -25,7 +32,8 @@ import { OnboardingService } from "../core/services/onboarding.service";
 		ToastContainer,
 		OnboardingTour
 	],
-	templateUrl: "./layout.html"
+	templateUrl: "./layout.html",
+	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Layout implements OnInit {
 	private readonly auth = inject(AuthService);
