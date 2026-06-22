@@ -151,9 +151,9 @@
 			<div class="mb-4">
 				<label for="platformId" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Platform <span class="text-danger font-bold">*</span></label>
 				<select
+					uiSelect
 					id="platformId"
 					formControlName="platformId"
-					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] cursor-pointer transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 				>
 					<option value="">Select platform</option>
 					@for (p of gamePlatforms(); track p.id) {

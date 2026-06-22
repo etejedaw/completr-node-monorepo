@@ -25,11 +25,11 @@ import {
 	switchMap,
 	of
 } from "rxjs";
-import { UiButton, UiIconButton } from "../../../shared/ui";
+import { UiButton, UiIconButton, UiSelect } from "../../../shared/ui";
 
 @Component({
 	selector: "app-game-shelf-modal",
-	imports: [DatePipe, ReactiveFormsModule, UiButton, UiIconButton],
+	imports: [DatePipe, ReactiveFormsModule, UiButton, UiIconButton, UiSelect],
 	templateUrl: "./game-shelf-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
