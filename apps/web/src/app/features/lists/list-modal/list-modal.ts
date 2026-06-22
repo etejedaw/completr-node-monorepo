@@ -12,6 +12,7 @@ import { List } from "../../../core/models";
 import { ListsService, CreateListDto, UpdateListDto } from "../lists.service";
 import {
 	UiButton,
+	UiFocusTrap,
 	UiFormField,
 	UiIconButton,
 	UiInput,
@@ -26,6 +27,7 @@ import {
 	imports: [
 		ReactiveFormsModule,
 		UiButton,
+		UiFocusTrap,
 		UiIconButton,
 		UiInput,
 		UiTextarea,

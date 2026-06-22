@@ -5,7 +5,7 @@ import {
 	output
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { UiAvatar, UiIconButton } from "../../ui";
+import { UiAvatar, UiFocusTrap, UiIconButton } from "../../ui";
 
 export interface UserSummary {
 	id: string;
@@ -16,7 +16,7 @@ export interface UserSummary {
 
 @Component({
 	selector: "app-user-list-modal",
-	imports: [RouterLink, UiAvatar, UiIconButton],
+	imports: [RouterLink, UiAvatar, UiFocusTrap, UiIconButton],
 	templateUrl: "./user-list-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

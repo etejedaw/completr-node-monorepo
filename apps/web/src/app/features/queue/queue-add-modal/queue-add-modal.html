@@ -3,6 +3,8 @@
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[500px] max-h-[80vh] flex flex-col"
 		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
 		(click)="$event.stopPropagation()"
+		uiFocusTrap
+		(escape)="onClose()"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="queue-add-modal-title"

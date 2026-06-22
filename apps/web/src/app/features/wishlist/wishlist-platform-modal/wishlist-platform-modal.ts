@@ -7,7 +7,7 @@ import {
 	signal
 } from "@angular/core";
 import { WishlistService } from "../wishlist.service";
-import { UiButton, UiIconButton } from "../../../shared/ui";
+import { UiButton, UiFocusTrap, UiIconButton } from "../../../shared/ui";
 
 export interface PlatformOption {
 	id: string;
@@ -17,7 +17,7 @@ export interface PlatformOption {
 
 @Component({
 	selector: "app-wishlist-platform-modal",
-	imports: [UiButton, UiIconButton],
+	imports: [UiButton, UiFocusTrap, UiIconButton],
 	templateUrl: "./wishlist-platform-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
