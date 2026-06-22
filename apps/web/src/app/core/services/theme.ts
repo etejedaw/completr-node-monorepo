@@ -60,7 +60,7 @@ export class ThemeService {
 
 	current(): ThemeOption {
 		const id = this.currentId();
-		return this.catalog.find(t => t.id === id) ?? this.catalog[0];
+		return this.catalog.find(theme => theme.id === id) ?? this.catalog[0];
 	}
 
 	apply(id: ThemeId | null | undefined) {

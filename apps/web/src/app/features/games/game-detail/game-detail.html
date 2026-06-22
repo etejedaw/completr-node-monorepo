@@ -69,36 +69,36 @@
 					<span aria-hidden="true" class="material-icons text-base">admin_panel_settings</span>
 					{{ isAdmin() ? 'Admin' : 'Moderator' }}
 				</span>
-				<button uiButton variant="secondary" size="sm" (click)="showEditor.set(!showEditor())">
-					<span aria-hidden="true" class="material-icons text-sm">{{ showEditor() ? 'close' : 'edit' }}</span>
-					{{ showEditor() ? 'Close Editor' : 'Edit Game' }}
+				<button uiButton variant="secondary" size="sm" (click)="updateAdminActions({ editor: !adminActions().editor })">
+					<span aria-hidden="true" class="material-icons text-sm">{{ adminActions().editor ? 'close' : 'edit' }}</span>
+					{{ adminActions().editor ? 'Close Editor' : 'Edit Game' }}
 				</button>
 				@if (isAdmin()) {
-					@if (!showConfirmDeactivate() && !showConfirmDelete()) {
-						<button uiButton variant="danger" size="sm" (click)="showConfirmDeactivate.set(true)">
+					@if (!adminActions().confirmDeactivate && !adminActions().confirmDelete) {
+						<button uiButton variant="danger" size="sm" (click)="updateAdminActions({ confirmDeactivate: true })">
 							<span aria-hidden="true" class="material-icons text-sm">visibility_off</span>
 							Deactivate
 						</button>
-						<button uiButton variant="danger" size="sm" (click)="showConfirmDelete.set(true)">
+						<button uiButton variant="danger" size="sm" (click)="updateAdminActions({ confirmDelete: true })">
 							<span aria-hidden="true" class="material-icons text-sm">delete_forever</span>
 							Delete
 						</button>
-					} @else if (showConfirmDeactivate()) {
+					} @else if (adminActions().confirmDeactivate) {
 						<span class="text-[0.8125rem] text-danger">Deactivate this game?</span>
-						<button uiButton variant="danger" size="sm" (click)="deactivateGame()" [disabled]="deactivating()">
-							{{ deactivating() ? 'Deactivating...' : 'Yes' }}
+						<button uiButton variant="danger" size="sm" (click)="deactivateGame()" [disabled]="adminActions().deactivating">
+							{{ adminActions().deactivating ? 'Deactivating...' : 'Yes' }}
 						</button>
-						<button uiButton variant="ghost" size="sm" (click)="showConfirmDeactivate.set(false)">Cancel</button>
-					} @else if (showConfirmDelete()) {
+						<button uiButton variant="ghost" size="sm" (click)="updateAdminActions({ confirmDeactivate: false })">Cancel</button>
+					} @else if (adminActions().confirmDelete) {
 						<span class="text-[0.8125rem] text-danger">Permanently delete this game?</span>
-						<button uiButton variant="danger" size="sm" (click)="deleteGame()" [disabled]="deleting()">
-							{{ deleting() ? 'Deleting...' : 'Yes, delete' }}
+						<button uiButton variant="danger" size="sm" (click)="deleteGame()" [disabled]="adminActions().deleting">
+							{{ adminActions().deleting ? 'Deleting...' : 'Yes, delete' }}
 						</button>
-						<button uiButton variant="ghost" size="sm" (click)="showConfirmDelete.set(false)">Cancel</button>
+						<button uiButton variant="ghost" size="sm" (click)="updateAdminActions({ confirmDelete: false })">Cancel</button>
 					}
 				}
 			</div>
-			@if (showEditor()) {
+			@if (adminActions().editor) {
 				<app-admin-game-editor [game]="game()!" (saved)="onEditorSaved()" (split)="onEditorSplit($event)" />
 			}
 		}
@@ -195,7 +195,7 @@
 							<span class="text-xs uppercase tracking-wider text-fg-muted">No data</span>
 						</div>
 						<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">Be the first to review this game, or let us know.</p>
-						@if (reportSent()) {
+						@if (reportModal().sent) {
 							<div class="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-success/10 border border-success/30 rounded text-xs font-medium text-success">
 								<span aria-hidden="true" class="material-icons text-sm">check_circle</span>
 								Thanks — reported
@@ -203,11 +203,11 @@
 						} @else {
 							<button
 								class="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-input-bg border border-line rounded text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-60"
-								[disabled]="reportSubmitting()"
+								[disabled]="reportModal().submitting"
 								(click)="reportMissingData()"
 							>
 								<span aria-hidden="true" class="material-icons text-sm">flag</span>
-								{{ reportSubmitting() ? "Reporting..." : "Report missing data" }}
+								{{ reportModal().submitting ? "Reporting..." : "Report missing data" }}
 							</button>
 						}
 					</div>
@@ -351,7 +351,7 @@
 							</a>
 						}
 					}
-					@if (!reportSent()) {
+					@if (!reportModal().sent) {
 						<button class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand" (click)="openReportModal()">
 							<span aria-hidden="true" class="material-icons text-sm">flag</span>
 							Report
@@ -375,7 +375,7 @@
 						<button uiTab value="reviews" class="!whitespace-nowrap">
 							<span aria-hidden="true" class="material-icons text-base mr-1.5 align-middle">rate_review</span>
 							Reviews
-							<span class="ml-1 text-xs text-fg-muted">{{ reviews().length }}</span>
+							<span class="ml-1 text-xs text-fg-muted">{{ reviewsTab.reviewsCount() }}</span>
 						</button>
 						@if (featuredLists().length > 0) {
 							<button uiTab value="lists" class="!whitespace-nowrap">
@@ -456,129 +456,15 @@
 							</div>
 						}
 
-						@if (friendsActivity().length > 0) {
-							<div class="mb-6">
-								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Played by Friends</h3>
-								<div class="flex flex-col gap-2">
-									@for (friend of friendsActivity(); track friend.username) {
-										@let meta = friendStatusMeta(friend.status);
-										<a [routerLink]="['/user', friend.username]" class="flex items-center gap-3 p-2 rounded-card bg-surface border border-line no-underline text-inherit transition hover:border-brand/50">
-											@if (friend.avatarUrl) {
-												<img [src]="friend.avatarUrl" [alt]="friend.name" class="w-8 h-8 rounded-full object-cover shrink-0" loading="lazy" />
-											} @else {
-												<span class="w-8 h-8 rounded-full bg-input-bg flex items-center justify-center text-xs font-bold text-fg-muted uppercase shrink-0">{{ friend.name.charAt(0) }}</span>
-											}
-											<span class="flex-1 text-sm font-medium text-fg truncate">{{ friend.name }}</span>
-											@if (friend.userRating != null) {
-												<span class="flex items-center gap-0.5 text-xs text-fg-muted shrink-0">
-													<span aria-hidden="true" class="material-icons text-[0.875rem] text-warning">star</span>{{ friend.userRating }}
-												</span>
-											}
-											<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider shrink-0 {{ meta.classes }}">{{ meta.label }}</span>
-										</a>
-									}
-								</div>
-							</div>
-						}
+						<app-game-social-activity #social [gameId]="game()!.id" />
 
-						@if (otherPlayers().length > 0) {
-							<div class="mb-6">
-								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Other Players</h3>
-								<div class="flex flex-wrap gap-2">
-									@for (player of otherPlayers(); track player.username) {
-										@let meta = friendStatusMeta(player.status);
-										<a [routerLink]="['/user', player.username]" [title]="player.name + ' — ' + meta.label" class="relative flex items-center gap-2 px-2 py-1.5 rounded-card bg-surface border border-line no-underline text-inherit transition hover:border-brand/50">
-											<div class="relative shrink-0">
-												@if (player.avatarUrl) {
-													<img [src]="player.avatarUrl" [alt]="player.name" class="w-9 h-9 rounded-full object-cover" loading="lazy" />
-												} @else {
-													<span class="w-9 h-9 rounded-full bg-input-bg flex items-center justify-center text-xs font-bold text-fg-muted uppercase">{{ player.name.charAt(0) }}</span>
-												}
-												<span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-bg {{ meta.dot }}" aria-hidden="true"></span>
-											</div>
-											<span class="text-xs font-medium text-fg truncate max-w-[100px]">{{ player.name }}</span>
-										</a>
-									}
-								</div>
-							</div>
-						}
-
-						@if (!game()!.description && otherScores().length === 0 && otherTimes().length === 0 && friendsActivity().length === 0 && otherPlayers().length === 0) {
+						@if (!game()!.description && otherScores().length === 0 && otherTimes().length === 0 && !social.hasContent()) {
 							<p class="text-center py-12 text-fg-muted text-sm">No additional info available.</p>
 						}
 					</div>
 
 					<div uiTabPanel value="reviews">
-						<div class="flex items-center justify-between mb-4">
-							<h3 class="font-display m-0 text-base font-semibold text-fg">Community Reviews</h3>
-							<button uiButton variant="primary" size="sm" (click)="openReviewForm()">
-								{{ myReview() ? 'Edit Review' : 'Write Review' }}
-							</button>
-						</div>
-
-						@if (showReviewForm()) {
-							<div class="bg-surface border border-line rounded p-4 mb-5">
-								<div class="flex items-center gap-3 mb-3">
-									<span class="text-xs font-semibold text-fg-muted uppercase tracking-wider">Rating</span>
-									<app-star-rating [value]="reviewRating()" (ratingChange)="reviewRating.set($event)" size="sm" />
-								</div>
-								<textarea
-									uiTextarea
-									class="!w-full !resize-y"
-									rows="4"
-									placeholder="Share your thoughts about this game..."
-									[ngModel]="reviewContent()"
-									(ngModelChange)="reviewContent.set($event)"
-								></textarea>
-								<div class="flex justify-end gap-2 mt-3">
-									@if (myReview()) {
-										<button uiButton variant="ghost" size="sm" (click)="deleteReview()">Delete</button>
-									}
-									<button uiButton variant="ghost" size="sm" (click)="showReviewForm.set(false)">Cancel</button>
-									<button uiButton variant="primary" size="sm"
-										(click)="submitReview()"
-										[disabled]="reviewSubmitting() || (!reviewContent().trim() && !reviewRating())"
-									>
-										{{ reviewSubmitting() ? 'Saving...' : myReview() ? 'Update' : 'Post' }}
-									</button>
-								</div>
-							</div>
-						}
-
-						@if (reviews().length === 0) {
-							<p class="text-center py-12 text-fg-muted text-sm">No reviews yet. Be the first!</p>
-						} @else {
-							@for (review of reviews(); track review.id) {
-								<div class="py-4 border-b border-line last:border-b-0">
-									<div class="flex items-center justify-between mb-2 gap-2">
-										<div class="flex items-center gap-2 min-w-0">
-											<a class="flex items-center gap-2 no-underline text-inherit group" [routerLink]="['/user', review.user?.username]">
-												@if (review.user?.avatarUrl) {
-													<img class="w-7 h-7 rounded-full object-cover" [src]="review.user!.avatarUrl" [alt]="review.user!.username" loading="lazy" />
-												} @else {
-													<div class="w-7 h-7 rounded-full bg-surface flex items-center justify-center text-[0.6875rem] font-bold text-brand">
-														{{ review.user?.username?.charAt(0)?.toUpperCase() }}
-													</div>
-												}
-												<span class="text-[0.8125rem] font-semibold text-fg transition group-hover:text-brand">{{ review.user?.name || review.user?.username }}</span>
-											</a>
-											@if (review.playthroughDuration) {
-												<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line" title="Author's real playtime">
-													<span aria-hidden="true" class="material-icons text-[0.75rem]">schedule</span>
-													{{ review.playthroughDuration }}h
-												</span>
-											}
-										</div>
-										@if (review.rating) {
-											<app-star-rating [value]="review.rating" [readonly]="true" size="sm" />
-										}
-									</div>
-									@if (review.content) {
-										<p class="m-0 text-sm text-fg-secondary leading-relaxed">{{ review.content }}</p>
-									}
-								</div>
-							}
-						}
+						<app-game-reviews-tab #reviewsTab [gameId]="game()!.id" />
 					</div>
 
 					@if (featuredLists().length > 0) {
@@ -677,11 +563,11 @@
 	</div>
 }
 
-@if (showBacklogModal()) {
+@if (backlogModal().show) {
 	<app-backlog-modal
-		[preselectedGame]="backlogModalGame()"
-		[preselectedCompilationParent]="backlogModalCompilationParent()"
-		[preselectAddToQueue]="backlogModalPreselectQueue()"
+		[preselectedGame]="backlogModal().game"
+		[preselectedCompilationParent]="backlogModal().compilationParent"
+		[preselectAddToQueue]="backlogModal().preselectQueue"
 		(closed)="onModalClosed()"
 		(saved)="onModalSaved()"
 	/>
@@ -699,91 +585,36 @@
 	/>
 }
 @if (showAddToListModal()) {
-	<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]" (click)="closeAddToListModal()">
-		<div class="bg-sidebar border border-line rounded-card p-6 w-[90%] max-w-[480px] max-h-[80vh] flex flex-col" (click)="$event.stopPropagation()">
-			<h3 class="font-display m-0 mb-1 text-base font-semibold">Add to your lists</h3>
-			<p class="m-0 mb-4 text-xs text-fg-muted">Toggle to add or remove {{ game()!.title }} from each list.</p>
-			@if (myLists().length === 0) {
-				<div class="py-6 text-center text-fg-muted text-sm">
-					You don't have any lists yet. Use the input below to create one.
-				</div>
-			} @else {
-				<div class="flex-1 overflow-y-auto -mx-2 px-2">
-					@for (list of myLists(); track list.id) {
-						<label class="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded cursor-pointer transition hover:bg-input-bg">
-							<input
-								type="checkbox"
-								class="w-4 h-4 cursor-pointer accent-brand"
-								[checked]="isAddToListChecked(list.id)"
-								(change)="toggleAddToListSelection(list.id)"
-							/>
-							<span class="flex-1 text-sm text-fg truncate">{{ list.name }}</span>
-							@if (!list.isPublic) {
-								<span aria-hidden="true" class="material-icons text-sm text-fg-muted shrink-0" title="Private">lock</span>
-							}
-						</label>
-					}
-				</div>
-			}
-			<div class="mt-4 pt-3 border-t border-line">
-				<label class="block text-[0.6875rem] uppercase tracking-wider text-fg-muted mb-1.5">Or create a new list</label>
-				<div class="flex gap-2">
-					<input
-						uiInput
-						class="!flex-1"
-						type="text"
-						placeholder="New list name..."
-						[value]="newListName()"
-						(input)="newListName.set($any($event.target).value)"
-						(keydown.enter)="createNewList()"
-						[disabled]="creatingNewList()"
-					/>
-					<button uiButton variant="ghost" size="sm"
-						[disabled]="!newListName().trim() || creatingNewList()"
-						(click)="createNewList()"
-					>
-						{{ creatingNewList() ? "Creating..." : "Create" }}
-					</button>
-				</div>
-				<p class="m-0 mt-1.5 text-[0.6875rem] text-fg-muted">Public list with Metacritic + HowLongToBeat as sources.</p>
-				@if (newListError()) {
-					<div class="mt-2 py-1.5 px-3 bg-danger/10 border border-danger/20 rounded text-danger text-xs">{{ newListError() }}</div>
-				}
-			</div>
-			<div class="flex justify-end gap-2 mt-4 pt-3 border-t border-line">
-				<button uiButton variant="ghost" size="sm" (click)="closeAddToListModal()" [disabled]="addToListSaving()">Cancel</button>
-				<button uiButton variant="primary" size="sm"
-					[disabled]="addToListSaving() || myLists().length === 0"
-					(click)="saveAddToList()"
-				>
-					{{ addToListSaving() ? "Saving..." : "Save" }}
-				</button>
-			</div>
-		</div>
-	</div>
+	<app-game-add-to-list-modal
+		[gameId]="game()!.id"
+		[gameTitle]="game()!.title"
+		[myLists]="myLists()"
+		(closed)="closeAddToListModal()"
+		(listsChanged)="onAddToListListsChanged($event)"
+	/>
 }
-@if (showReportModal()) {
-	<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]" (click)="showReportModal.set(false)">
+@if (reportModal().show) {
+	<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]" (click)="closeReportModal()">
 		<div class="bg-sidebar border border-line rounded-card p-6 w-[90%] max-w-[480px]" (click)="$event.stopPropagation()">
 			<h3 class="font-display m-0 mb-4 text-base font-semibold">Report issue with {{ game()!.title }}</h3>
 			<textarea
 				uiTextarea
 				class="!w-full !resize-y"
 				placeholder="Describe the issue (min 10 characters)..."
-				[value]="reportMessage()"
-				(input)="reportMessage.set($any($event.target).value)"
+				[value]="reportModal().message"
+				(input)="setReportMessage($any($event.target).value)"
 				rows="4"
 			></textarea>
-			@if (reportError()) {
-				<div class="mt-2 py-1.5 px-3 bg-danger/10 border border-danger/20 rounded text-danger text-xs">{{ reportError() }}</div>
+			@if (reportModal().error) {
+				<div class="mt-2 py-1.5 px-3 bg-danger/10 border border-danger/20 rounded text-danger text-xs">{{ reportModal().error }}</div>
 			}
 			<div class="flex justify-end gap-2 mt-4">
-				<button uiButton variant="ghost" size="sm" (click)="showReportModal.set(false)">Cancel</button>
+				<button uiButton variant="ghost" size="sm" (click)="closeReportModal()">Cancel</button>
 				<button uiButton variant="primary" size="sm"
-					[disabled]="reportMessage().length < 10 || reportSubmitting()"
+					[disabled]="reportModal().message.length < 10 || reportModal().submitting"
 					(click)="submitReport()"
 				>
-					{{ reportSubmitting() ? "Sending..." : "Send Report" }}
+					{{ reportModal().submitting ? "Sending..." : "Send Report" }}
 				</button>
 			</div>
 		</div>

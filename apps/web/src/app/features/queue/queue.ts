@@ -1,8 +1,9 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { map, switchMap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { QueueEntry } from "../../core/models";
+import { Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 interface QueueListResponse {
 	data: { queue: QueueEntry[]; total?: number };
@@ -12,7 +13,7 @@ interface QueueSingleResponse {
 	data: { queue: QueueEntry };
 }
 
-export interface QueuePagination {
+export interface QueuePagination extends Record<string, Appendable> {
 	limit?: number;
 	offset?: number;
 	search?: string;
@@ -24,24 +25,14 @@ export class QueueService {
 	private readonly baseUrl = `${environment.apiUrl}/users/me/queue`;
 
 	getMyQueue(pagination: QueuePagination = {}) {
-		let params = new HttpParams();
-		if (pagination.limit !== undefined)
-			params = params.set("limit", String(pagination.limit));
-		if (pagination.offset !== undefined)
-			params = params.set("offset", String(pagination.offset));
-		if (pagination.search) params = params.set("search", pagination.search);
+		const params = buildHttpParams(pagination);
 		return this.http
 			.get<QueueListResponse>(this.baseUrl, { params })
 			.pipe(map(res => res.data.queue));
 	}
 
 	getMyQueuePaged(pagination: QueuePagination = {}) {
-		let params = new HttpParams();
-		if (pagination.limit !== undefined)
-			params = params.set("limit", String(pagination.limit));
-		if (pagination.offset !== undefined)
-			params = params.set("offset", String(pagination.offset));
-		if (pagination.search) params = params.set("search", pagination.search);
+		const params = buildHttpParams(pagination);
 		return this.http.get<QueueListResponse>(this.baseUrl, { params });
 	}
 

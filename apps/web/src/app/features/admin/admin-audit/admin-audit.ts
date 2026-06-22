@@ -7,8 +7,7 @@ import {
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
-import type { AuditLogEntry } from "../admin";
-import { AdminService } from "../admin";
+import { AuditLogEntry, AuditService } from "../services/audit.service";
 import { UiPagination, UiSelect } from "../../../shared/ui";
 
 const ACTION_OPTIONS = [
@@ -32,7 +31,7 @@ const TARGET_TYPE_OPTIONS = ["game", "user", "report", "job"];
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminAudit implements OnInit {
-	private readonly adminService = inject(AdminService);
+	private readonly auditService = inject(AuditService);
 
 	protected readonly Math = Math;
 	protected readonly logs = signal<AuditLogEntry[]>([]);
@@ -75,7 +74,7 @@ export class AdminAudit implements OnInit {
 
 	private loadLogs() {
 		this.isLoading.set(true);
-		this.adminService
+		this.auditService
 			.getAuditLog(this.limit, this.offset(), {
 				action: this.actionFilter() || undefined,
 				targetType: this.targetTypeFilter() || undefined

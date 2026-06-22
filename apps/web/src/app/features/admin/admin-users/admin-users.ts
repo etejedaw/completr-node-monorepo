@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { AdminService, AdminUser } from "../admin";
+import { AdminUser, UserAdminService } from "../services/user-admin.service";
 import {
 	UiButton,
 	UiIconButton,
@@ -42,7 +42,7 @@ interface CreateUserRequest {
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminUsers implements OnInit {
-	private readonly adminService = inject(AdminService);
+	private readonly userAdminService = inject(UserAdminService);
 
 	protected readonly Math = Math;
 	protected readonly users = signal<AdminUser[]>([]);
@@ -86,7 +86,7 @@ export class AdminUsers implements OnInit {
 
 	loadUsers() {
 		this.isLoading.set(true);
-		this.adminService.listUsers(this.limit, this.offset()).subscribe({
+		this.userAdminService.listUsers(this.limit, this.offset()).subscribe({
 			next: res => {
 				this.users.set(res.users);
 				this.total.set(res.total);
@@ -124,7 +124,7 @@ export class AdminUsers implements OnInit {
 			name: this.createName()
 		};
 
-		this.adminService.createUser(data).subscribe({
+		this.userAdminService.createUser(data).subscribe({
 			next: () => {
 				this.isCreating.set(false);
 				this.closeCreate();
@@ -186,7 +186,7 @@ export class AdminUsers implements OnInit {
 			return;
 		}
 
-		this.adminService.editUser(user.id, data).subscribe({
+		this.userAdminService.editUser(user.id, data).subscribe({
 			next: updated => {
 				this.users.update(list =>
 					list.map(u => (u.id === updated.id ? updated : u))

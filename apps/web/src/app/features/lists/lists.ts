@@ -1,14 +1,15 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { List, FollowingList } from "../../core/models";
+import { Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 interface ListsResponse {
 	data: { lists: List[]; total?: number; frozen: boolean };
 }
 
-export interface ListsPagination {
+export interface ListsPagination extends Record<string, Appendable> {
 	limit?: number;
 	offset?: number;
 }
@@ -47,11 +48,7 @@ export class ListsService {
 	private readonly baseUrl = `${environment.apiUrl}/lists`;
 
 	getMyLists(pagination: ListsPagination = {}) {
-		let params = new HttpParams();
-		if (pagination.limit !== undefined)
-			params = params.set("limit", String(pagination.limit));
-		if (pagination.offset !== undefined)
-			params = params.set("offset", String(pagination.offset));
+		const params = buildHttpParams(pagination);
 		return this.http.get<ListsResponse>(`${this.baseUrl}/me`, { params });
 	}
 

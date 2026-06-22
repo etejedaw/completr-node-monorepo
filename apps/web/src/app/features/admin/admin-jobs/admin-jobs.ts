@@ -6,7 +6,7 @@ import {
 	signal
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
-import { AdminService, type JobEntry } from "../admin";
+import { JobsService, type JobEntry } from "../services/jobs.service";
 import { UiButton } from "../../../shared/ui";
 
 @Component({
@@ -16,7 +16,7 @@ import { UiButton } from "../../../shared/ui";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminJobs implements OnInit {
-	private readonly adminService = inject(AdminService);
+	private readonly jobsService = inject(JobsService);
 
 	protected readonly jobs = signal<JobEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -30,12 +30,12 @@ export class AdminJobs implements OnInit {
 		this.starting.set(type);
 		const actions: Record<
 			string,
-			() => ReturnType<typeof this.adminService.startPopulateRawg>
+			() => ReturnType<typeof this.jobsService.startPopulateRawg>
 		> = {
-			populate_rawg: () => this.adminService.startPopulateRawg(2),
-			calculate_ratings: () => this.adminService.startCalculateRatings(),
+			populate_rawg: () => this.jobsService.startPopulateRawg(2),
+			calculate_ratings: () => this.jobsService.startCalculateRatings(),
 			calculate_durations: () =>
-				this.adminService.startCalculateDurations()
+				this.jobsService.startCalculateDurations()
 		};
 
 		const action = actions[type];
@@ -51,7 +51,7 @@ export class AdminJobs implements OnInit {
 	}
 
 	cancelJob(jobId: string) {
-		this.adminService.cancelJob(jobId).subscribe(() => this.loadJobs());
+		this.jobsService.cancelJob(jobId).subscribe(() => this.loadJobs());
 	}
 
 	refresh() {
@@ -60,7 +60,7 @@ export class AdminJobs implements OnInit {
 
 	private loadJobs() {
 		this.isLoading.set(true);
-		this.adminService.getJobs().subscribe({
+		this.jobsService.getJobs().subscribe({
 			next: jobs => {
 				this.jobs.set(jobs);
 				this.isLoading.set(false);

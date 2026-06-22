@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { DatePipe } from "@angular/common";
-import { AdminService, GameReport } from "../admin";
+import { GameReport, ReportsService } from "../services/reports.service";
 import { UiButton } from "../../../shared/ui";
 
 @Component({
@@ -17,7 +17,7 @@ import { UiButton } from "../../../shared/ui";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminReports implements OnInit {
-	private readonly adminService = inject(AdminService);
+	private readonly reportsService = inject(ReportsService);
 	private readonly route = inject(ActivatedRoute);
 
 	protected readonly reports = signal<GameReport[]>([]);
@@ -36,7 +36,7 @@ export class AdminReports implements OnInit {
 	}
 
 	approve(report: GameReport) {
-		this.adminService.updateReportStatus(report.id, "approved").subscribe({
+		this.reportsService.updateReportStatus(report.id, "approved").subscribe({
 			next: () =>
 				this.reports.update(list =>
 					list.filter(r => r.id !== report.id)
@@ -45,7 +45,7 @@ export class AdminReports implements OnInit {
 	}
 
 	reject(report: GameReport) {
-		this.adminService.updateReportStatus(report.id, "rejected").subscribe({
+		this.reportsService.updateReportStatus(report.id, "rejected").subscribe({
 			next: () =>
 				this.reports.update(list =>
 					list.filter(r => r.id !== report.id)
@@ -55,7 +55,7 @@ export class AdminReports implements OnInit {
 
 	private loadReports() {
 		this.isLoading.set(true);
-		this.adminService.getPendingReports().subscribe({
+		this.reportsService.getPendingReports().subscribe({
 			next: reports => {
 				const gameId = this.filterGameId();
 				this.reports.set(

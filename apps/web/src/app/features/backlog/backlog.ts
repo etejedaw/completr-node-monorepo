@@ -1,8 +1,9 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { BacklogEntry } from "../../core/models";
+import { Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 interface BacklogListResponse {
 	data: { backlog: BacklogEntry[]; total: number };
@@ -16,7 +17,7 @@ interface BacklogUpdateResponse {
 	data: { backlog: BacklogEntry; queueRemoved: boolean };
 }
 
-export interface BacklogFilters {
+export interface BacklogFilters extends Record<string, Appendable> {
 	status?: string;
 	game_id?: string;
 	platform_id?: string;
@@ -81,14 +82,7 @@ export class BacklogService {
 	private readonly baseUrl = `${environment.apiUrl}/users/me/backlog`;
 
 	getMyBacklog(filters: BacklogFilters = {}) {
-		let params = new HttpParams();
-
-		for (const [key, value] of Object.entries(filters)) {
-			if (value !== undefined && value !== null && value !== "") {
-				params = params.set(key, String(value));
-			}
-		}
-
+		const params = buildHttpParams(filters);
 		return this.http.get<BacklogListResponse>(this.baseUrl, { params });
 	}
 

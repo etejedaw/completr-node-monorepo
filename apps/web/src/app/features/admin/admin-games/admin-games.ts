@@ -7,8 +7,8 @@ import {
 } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
 import { Game } from "../../../core/models";
-import { GamesService } from "../../games/games";
-import { AdminService } from "../admin";
+import { GamesQuery, GamesService } from "../../games/games";
+import { ReportsService } from "../services/reports.service";
 import { ToastService } from "../../../core/services/toast";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
 
@@ -20,7 +20,7 @@ import { UiPagination, UiSearchBar } from "../../../shared/ui";
 })
 export class AdminGames implements OnInit {
 	private readonly gamesService = inject(GamesService);
-	private readonly adminService = inject(AdminService);
+	private readonly reportsService = inject(ReportsService);
 	private readonly router = inject(Router);
 	private readonly toast = inject(ToastService);
 
@@ -129,7 +129,7 @@ export class AdminGames implements OnInit {
 	}
 
 	private loadReports() {
-		this.adminService.getPendingReports().subscribe({
+		this.reportsService.getPendingReports().subscribe({
 			next: reports => {
 				const ids = new Set(reports.map(r => r.gameId));
 				this.reportedGameIds.set(ids);
@@ -139,7 +139,7 @@ export class AdminGames implements OnInit {
 
 	private loadGames() {
 		this.isLoading.set(true);
-		const query: Record<string, unknown> = {
+		const query: GamesQuery = {
 			limit: this.limit,
 			offset: this.offset(),
 			sort_by: "createdAt",

@@ -9,15 +9,19 @@ import {
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { AuthService } from "../../core/services/auth";
+import { PublicProfileService, PublicProfile } from "./public-profile.service";
 import {
-	PublicProfileService,
-	PublicProfile,
-	PublicList,
+	PublicLibraryService,
 	PublicFavorite,
 	PublicQueue,
-	PublicGameShelf,
+	PublicGameShelf
+} from "./services/public-library.service";
+import { PublicListsService, PublicList } from "./services/public-lists.service";
+import {
+	PublicReviewsService,
 	HighlightEntry
-} from "./public-profile.service";
+} from "./services/public-reviews.service";
+import { PublicSocialService } from "./services/public-social.service";
 import {
 	UserListModal,
 	UserSummary
@@ -48,6 +52,10 @@ export class PublicProfileComponent implements OnInit {
 	private readonly route = inject(ActivatedRoute);
 	private readonly router = inject(Router);
 	private readonly profileService = inject(PublicProfileService);
+	private readonly socialService = inject(PublicSocialService);
+	private readonly libraryService = inject(PublicLibraryService);
+	private readonly listsService = inject(PublicListsService);
+	private readonly reviewsService = inject(PublicReviewsService);
 	private readonly authService = inject(AuthService);
 
 	private static readonly HIGHLIGHTS_MONTH_PARAM = "highlightsMonth";
@@ -223,7 +231,7 @@ export class PublicProfileComponent implements OnInit {
 		if (!u) return;
 		const { year, month } = this.highlightsMonth();
 		this.isLoadingHighlightsMonth.set(true);
-		this.profileService.getHighlights(u, { year, month }).subscribe({
+		this.reviewsService.getHighlights(u, { year, month }).subscribe({
 			next: data => {
 				this.highlightsData.set(data);
 				this.isLoadingHighlightsMonth.set(false);
@@ -235,7 +243,7 @@ export class PublicProfileComponent implements OnInit {
 	private ensureHighlightsLoaded(username: string) {
 		if (this.highlightsData() !== null) return;
 		const { year, month } = this.highlightsMonth();
-		this.profileService.getHighlights(username, { year, month }).subscribe({
+		this.reviewsService.getHighlights(username, { year, month }).subscribe({
 			next: data => this.highlightsData.set(data),
 			error: () =>
 				this.highlightsData.set({
@@ -253,11 +261,11 @@ export class PublicProfileComponent implements OnInit {
 
 	private ensureListsLoaded(username: string) {
 		if (this.listsData() !== null) return;
-		this.profileService.getUserLists(username).subscribe({
+		this.listsService.getUserLists(username).subscribe({
 			next: res => this.listsData.set(res.items),
 			error: () => this.listsData.set([])
 		});
-		this.profileService.getUserFollowingLists(username).subscribe({
+		this.listsService.getUserFollowingLists(username).subscribe({
 			next: res => this.followingListsData.set(res.items),
 			error: () => this.followingListsData.set([])
 		});
@@ -265,7 +273,7 @@ export class PublicProfileComponent implements OnInit {
 
 	private ensureFavoritesLoaded(username: string) {
 		if (this.favoritesData() !== null) return;
-		this.profileService.getUserFavorites(username, { limit: 6 }).subscribe({
+		this.libraryService.getUserFavorites(username, { limit: 6 }).subscribe({
 			next: res =>
 				this.favoritesData.set(
 					res.items.map(e => ({ id: e.id, position: e.position, game: e.game }))
@@ -276,7 +284,7 @@ export class PublicProfileComponent implements OnInit {
 
 	private ensureQueueLoaded(username: string) {
 		if (this.queueData() !== null) return;
-		this.profileService.getUserQueue(username, { limit: 6 }).subscribe({
+		this.libraryService.getUserQueue(username, { limit: 6 }).subscribe({
 			next: res =>
 				this.queueData.set(
 					res.items.map(e => ({
@@ -296,7 +304,7 @@ export class PublicProfileComponent implements OnInit {
 
 	private ensureWishlistLoaded(username: string) {
 		if (this.wishlistData() !== null) return;
-		this.profileService.getUserWishlist(username, { limit: 6 }).subscribe({
+		this.libraryService.getUserWishlist(username, { limit: 6 }).subscribe({
 			next: res =>
 				this.wishlistData.set(
 					res.items.map(e => ({
@@ -311,7 +319,7 @@ export class PublicProfileComponent implements OnInit {
 
 	private ensureGameShelfLoaded(username: string) {
 		if (this.gameShelfData() !== null) return;
-		this.profileService.getUserGameShelf(username, { limit: 6 }).subscribe({
+		this.libraryService.getUserGameShelf(username, { limit: 6 }).subscribe({
 			next: res =>
 				this.gameShelfData.set(
 					res.items.map(e => ({
@@ -389,7 +397,7 @@ export class PublicProfileComponent implements OnInit {
 		const u = this.username();
 		if (!u || this.togglingFollow()) return;
 		this.togglingFollow.set(true);
-		this.profileService.follow(u).subscribe({
+		this.socialService.follow(u).subscribe({
 			next: result => {
 				this.profile.update(prev => {
 					if (!prev) return prev;
@@ -412,7 +420,7 @@ export class PublicProfileComponent implements OnInit {
 		const u = this.username();
 		if (!u || this.togglingFollow()) return;
 		this.togglingFollow.set(true);
-		this.profileService.unfollow(u).subscribe({
+		this.socialService.unfollow(u).subscribe({
 			next: () => {
 				this.profile.update(prev =>
 					prev
@@ -437,7 +445,7 @@ export class PublicProfileComponent implements OnInit {
 		const u = this.username();
 		if (!u || this.togglingFollow()) return;
 		this.togglingFollow.set(true);
-		this.profileService.cancelFollowRequest(u).subscribe({
+		this.socialService.cancelFollowRequest(u).subscribe({
 			next: () => {
 				this.profile.update(prev =>
 					prev ? { ...prev, hasPendingRequest: false } : prev
@@ -452,7 +460,7 @@ export class PublicProfileComponent implements OnInit {
 		this.userListTitle.set("Followers");
 		this.userListUsers.set([]);
 		this.showUserListModal.set(true);
-		this.profileService
+		this.socialService
 			.getFollowers(this.username())
 			.subscribe(users => this.userListUsers.set(users));
 	}
@@ -461,7 +469,7 @@ export class PublicProfileComponent implements OnInit {
 		this.userListTitle.set("Following");
 		this.userListUsers.set([]);
 		this.showUserListModal.set(true);
-		this.profileService
+		this.socialService
 			.getFollowing(this.username())
 			.subscribe(users => this.userListUsers.set(users));
 	}
@@ -518,7 +526,7 @@ export class PublicProfileComponent implements OnInit {
 				}
 				this.activeTab.set(this.pickDefaultTab(data));
 				this.isLoading.set(false);
-				this.profileService
+				this.reviewsService
 					.getUserReviews(username, { limit: 5 })
 					.subscribe(r => {
 						this.userReviews.set(r.reviews);
@@ -526,7 +534,7 @@ export class PublicProfileComponent implements OnInit {
 					});
 				this.gamesInCommon.set([]);
 				if (this.isLoggedIn() && !this.isSelf()) {
-					this.profileService
+					this.libraryService
 						.getGamesInCommon(username)
 						.subscribe(d => this.gamesInCommon.set(d.games));
 				}
@@ -535,7 +543,7 @@ export class PublicProfileComponent implements OnInit {
 					data.user.feedVisibility !== "private" &&
 					data.recentActivity.length > 0
 				) {
-					this.profileService
+					this.socialService
 						.getFollowers(username)
 						.subscribe(users =>
 							this.recentFollowers.set(users.slice(0, 8))

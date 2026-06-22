@@ -1,8 +1,9 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { Game, Genre, Platform } from "../../core/models";
+import { Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 interface GamesResponse {
 	data: { games: Game[]; total: number; limit: number; offset: number };
@@ -81,7 +82,7 @@ export interface CompilationItemResponse {
 	childGame: Game | null;
 }
 
-export interface GamesQuery {
+export interface GamesQuery extends Record<string, Appendable> {
 	limit?: number;
 	offset?: number;
 	sort_by?: string;
@@ -100,6 +101,10 @@ export interface GamesQuery {
 	no_scores?: boolean;
 	no_times?: boolean;
 	no_platforms?: boolean;
+	no_score_source?: string;
+	no_time_source?: string;
+	include_inactive?: boolean;
+	only_inactive?: boolean;
 }
 
 @Injectable({ providedIn: "root" })
@@ -107,12 +112,7 @@ export class GamesService {
 	private readonly http = inject(HttpClient);
 
 	getGames(query: GamesQuery = {}) {
-		let params = new HttpParams();
-		for (const [key, value] of Object.entries(query)) {
-			if (value !== undefined && value !== null) {
-				params = params.set(key, String(value));
-			}
-		}
+		const params = buildHttpParams(query);
 		return this.http.get<GamesResponse>(`${environment.apiUrl}/games`, {
 			params
 		});
@@ -160,11 +160,7 @@ export class GamesService {
 		code: string,
 		opts: { limit?: number; offset?: number } = {}
 	) {
-		let params = new HttpParams();
-		if (opts.limit !== undefined)
-			params = params.set("limit", String(opts.limit));
-		if (opts.offset !== undefined)
-			params = params.set("offset", String(opts.offset));
+		const params = buildHttpParams(opts);
 		return this.http
 			.get<{
 				data: { genre: Genre; games: Game[]; hasMore: boolean };

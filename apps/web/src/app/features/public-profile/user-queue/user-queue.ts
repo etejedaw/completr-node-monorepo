@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth";
-import { PublicProfileService } from "../public-profile.service";
+import { PublicLibraryService } from "../services/public-library.service";
 import { QueueEntry } from "../../../core/models";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
 import { QueueGridCard } from "../../../shared/components/queue-grid-card/queue-grid-card";
@@ -23,7 +23,7 @@ const PAGE_SIZE = 50;
 })
 export class UserQueue implements OnInit {
 	private readonly route = inject(ActivatedRoute);
-	private readonly profileService = inject(PublicProfileService);
+	private readonly libraryService = inject(PublicLibraryService);
 	private readonly authService = inject(AuthService);
 
 	protected readonly username = signal("");
@@ -69,7 +69,7 @@ export class UserQueue implements OnInit {
 	private load(username: string) {
 		this.isLoading.set(true);
 		this.error.set(null);
-		this.profileService
+		this.libraryService
 			.getUserQueue(username, {
 				limit: this.limit,
 				offset: this.offset()

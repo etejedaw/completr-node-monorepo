@@ -1,0 +1,46 @@
+@if (friends().length > 0) {
+	<div class="mb-6">
+		<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Played by Friends</h3>
+		<div class="flex flex-col gap-2">
+			@for (friend of friends(); track friend.username) {
+				@let meta = statusMeta(friend.status);
+				<a [routerLink]="['/user', friend.username]" class="flex items-center gap-3 p-2 rounded-card bg-surface border border-line no-underline text-inherit transition hover:border-brand/50">
+					@if (friend.avatarUrl) {
+						<img [src]="friend.avatarUrl" [alt]="friend.name" class="w-8 h-8 rounded-full object-cover shrink-0" loading="lazy" />
+					} @else {
+						<span class="w-8 h-8 rounded-full bg-input-bg flex items-center justify-center text-xs font-bold text-fg-muted uppercase shrink-0">{{ friend.name.charAt(0) }}</span>
+					}
+					<span class="flex-1 text-sm font-medium text-fg truncate">{{ friend.name }}</span>
+					@if (friend.userRating != null) {
+						<span class="flex items-center gap-0.5 text-xs text-fg-muted shrink-0">
+							<span aria-hidden="true" class="material-icons text-[0.875rem] text-warning">star</span>{{ friend.userRating }}
+						</span>
+					}
+					<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider shrink-0 {{ meta.classes }}">{{ meta.label }}</span>
+				</a>
+			}
+		</div>
+	</div>
+}
+
+@if (players().length > 0) {
+	<div class="mb-6">
+		<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Other Players</h3>
+		<div class="flex flex-wrap gap-2">
+			@for (player of players(); track player.username) {
+				@let meta = statusMeta(player.status);
+				<a [routerLink]="['/user', player.username]" [title]="player.name + ' — ' + meta.label" class="relative flex items-center gap-2 px-2 py-1.5 rounded-card bg-surface border border-line no-underline text-inherit transition hover:border-brand/50">
+					<div class="relative shrink-0">
+						@if (player.avatarUrl) {
+							<img [src]="player.avatarUrl" [alt]="player.name" class="w-9 h-9 rounded-full object-cover" loading="lazy" />
+						} @else {
+							<span class="w-9 h-9 rounded-full bg-input-bg flex items-center justify-center text-xs font-bold text-fg-muted uppercase">{{ player.name.charAt(0) }}</span>
+						}
+						<span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-bg {{ meta.dot }}" aria-hidden="true"></span>
+					</div>
+					<span class="text-xs font-medium text-fg truncate max-w-[100px]">{{ player.name }}</span>
+				</a>
+			}
+		</div>
+	</div>
+}

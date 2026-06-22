@@ -1,0 +1,70 @@
+<div class="flex items-center justify-between mb-4">
+	<h3 class="font-display m-0 text-base font-semibold text-fg">Community Reviews</h3>
+	<button uiButton variant="primary" size="sm" (click)="openForm()">
+		{{ myReview() ? 'Edit Review' : 'Write Review' }}
+	</button>
+</div>
+
+@if (form().show) {
+	<div class="bg-surface border border-line rounded p-4 mb-5">
+		<div class="flex items-center gap-3 mb-3">
+			<span class="text-xs font-semibold text-fg-muted uppercase tracking-wider">Rating</span>
+			<app-star-rating [value]="form().rating" (ratingChange)="update({ rating: $event })" size="sm" />
+		</div>
+		<textarea
+			uiTextarea
+			class="!w-full !resize-y"
+			rows="4"
+			placeholder="Share your thoughts about this game..."
+			[ngModel]="form().content"
+			(ngModelChange)="update({ content: $event })"
+		></textarea>
+		<div class="flex justify-end gap-2 mt-3">
+			@if (myReview()) {
+				<button uiButton variant="ghost" size="sm" (click)="deleteReview()">Delete</button>
+			}
+			<button uiButton variant="ghost" size="sm" (click)="closeForm()">Cancel</button>
+			<button uiButton variant="primary" size="sm"
+				(click)="submit()"
+				[disabled]="form().submitting || (!form().content.trim() && !form().rating)"
+			>
+				{{ form().submitting ? 'Saving...' : myReview() ? 'Update' : 'Post' }}
+			</button>
+		</div>
+	</div>
+}
+
+@if (reviews().length === 0) {
+	<p class="text-center py-12 text-fg-muted text-sm">No reviews yet. Be the first!</p>
+} @else {
+	@for (review of reviews(); track review.id) {
+		<div class="py-4 border-b border-line last:border-b-0">
+			<div class="flex items-center justify-between mb-2 gap-2">
+				<div class="flex items-center gap-2 min-w-0">
+					<a class="flex items-center gap-2 no-underline text-inherit group" [routerLink]="['/user', review.user?.username]">
+						@if (review.user?.avatarUrl) {
+							<img class="w-7 h-7 rounded-full object-cover" [src]="review.user!.avatarUrl" [alt]="review.user!.username" loading="lazy" />
+						} @else {
+							<div class="w-7 h-7 rounded-full bg-surface flex items-center justify-center text-[0.6875rem] font-bold text-brand">
+								{{ review.user?.username?.charAt(0)?.toUpperCase() }}
+							</div>
+						}
+						<span class="text-[0.8125rem] font-semibold text-fg transition group-hover:text-brand">{{ review.user?.name || review.user?.username }}</span>
+					</a>
+					@if (review.playthroughDuration) {
+						<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line" title="Author's real playtime">
+							<span aria-hidden="true" class="material-icons text-[0.75rem]">schedule</span>
+							{{ review.playthroughDuration }}h
+						</span>
+					}
+				</div>
+				@if (review.rating) {
+					<app-star-rating [value]="review.rating" [readonly]="true" size="sm" />
+				}
+			</div>
+			@if (review.content) {
+				<p class="m-0 text-sm text-fg-secondary leading-relaxed">{{ review.content }}</p>
+			}
+		</div>
+	}
+}
