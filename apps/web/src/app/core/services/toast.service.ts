@@ -1,4 +1,5 @@
-import { Injectable, signal } from "@angular/core";
+import { Injectable, TemplateRef, inject } from "@angular/core";
+import { NgpToastManager, type NgpToastRef } from "ng-primitives/toast";
 
 export type ToastVariant = "info" | "success" | "warning" | "error";
 
@@ -8,9 +9,12 @@ export interface Toast {
 	variant: ToastVariant;
 	undoLabel?: string;
 	durationMs?: number;
+	onUndo?: () => void;
+	onDismiss?: () => void;
 }
 
 interface PendingEntry {
+	ref: NgpToastRef;
 	timer: ReturnType<typeof setTimeout>;
 	onCommit: () => void;
 	onUndo?: () => void;
@@ -28,15 +32,32 @@ export interface PendingToastOptions {
 
 @Injectable({ providedIn: "root" })
 export class ToastService {
+	private readonly manager = inject(NgpToastManager);
+	private template: TemplateRef<void> | null = null;
 	private nextId = 1;
-	private readonly _toasts = signal<Toast[]>([]);
 	private readonly pendings = new Map<number, PendingEntry>();
-	readonly toasts = this._toasts.asReadonly();
+
+	/** Called by `ToastContainer` once on init to provide the render template.
+	 * The TemplateRef carries `{ $implicit: Toast }` context at runtime; cast to
+	 * `void` because `NgpToastManager.show` is overly narrow on the template type. */
+	registerTemplate(tpl: TemplateRef<{ $implicit: Toast }>) {
+		this.template = tpl as unknown as TemplateRef<void>;
+	}
 
 	show(message: string, variant: ToastVariant = "info", durationMs = 4000) {
+		if (!this.template) return;
 		const id = this.nextId++;
-		this._toasts.update(list => [...list, { id, message, variant }]);
-		setTimeout(() => this.dismiss(id), durationMs);
+		let ref: NgpToastRef | undefined;
+		const ctx: Toast = {
+			id,
+			message,
+			variant,
+			onDismiss: () => ref?.dismiss()
+		};
+		ref = this.manager.show(this.template, {
+			duration: durationMs,
+			context: { $implicit: ctx }
+		});
 	}
 
 	info(message: string, durationMs?: number) {
@@ -56,25 +77,33 @@ export class ToastService {
 	}
 
 	pending(opts: PendingToastOptions): number {
+		if (!this.template) return -1;
 		const id = this.nextId++;
 		const durationMs = opts.durationMs ?? 5000;
-		const entry: PendingEntry = {
-			timer: setTimeout(() => this.commit(id), durationMs),
+		const ctx: Toast = {
+			id,
+			message: opts.message,
+			variant: opts.variant ?? "info",
+			undoLabel: opts.undoLabel ?? "Undo",
+			durationMs,
+			onUndo: () => this.undo(id),
+			onDismiss: () => this.dismiss(id)
+		};
+		// duration: 0 disables Ngp's auto-dismiss timer so our own setTimeout
+		// drives commit-on-timeout, matching the prior signal-array behavior.
+		const ref = this.manager.show(this.template, {
+			duration: 0,
+			dismissible: false,
+			context: { $implicit: ctx }
+		});
+		const timer = setTimeout(() => this.commit(id), durationMs);
+		this.pendings.set(id, {
+			ref,
+			timer,
 			onCommit: opts.onCommit,
 			onUndo: opts.onUndo,
 			committed: false
-		};
-		this.pendings.set(id, entry);
-		this._toasts.update(list => [
-			...list,
-			{
-				id,
-				message: opts.message,
-				variant: opts.variant ?? "info",
-				undoLabel: opts.undoLabel ?? "Undo",
-				durationMs
-			}
-		]);
+		});
 		return id;
 	}
 
@@ -84,7 +113,7 @@ export class ToastService {
 		clearTimeout(entry.timer);
 		entry.committed = true;
 		this.pendings.delete(id);
-		this._toasts.update(list => list.filter(t => t.id !== id));
+		entry.ref.dismiss();
 		entry.onUndo?.();
 	}
 
@@ -92,9 +121,7 @@ export class ToastService {
 		const entry = this.pendings.get(id);
 		if (entry) {
 			this.commit(id);
-			return;
 		}
-		this._toasts.update(list => list.filter(t => t.id !== id));
 	}
 
 	private commit(id: number) {
@@ -103,7 +130,7 @@ export class ToastService {
 		clearTimeout(entry.timer);
 		entry.committed = true;
 		this.pendings.delete(id);
-		this._toasts.update(list => list.filter(t => t.id !== id));
+		entry.ref.dismiss();
 		entry.onCommit();
 	}
 }
