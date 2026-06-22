@@ -447,6 +447,9 @@
 											[class]="statusClass(entry.status)"
 											[disabled]="isStatusUpdating(entry)"
 											(click)="toggleStatusMenu(entry, $event)"
+											aria-haspopup="menu"
+											[attr.aria-expanded]="statusMenuOpenId() === entry.id"
+											[attr.aria-controls]="'status-menu-' + entry.id"
 										>
 											<span aria-hidden="true" class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
 											{{ statusLabel(entry.status) }}
@@ -454,13 +457,18 @@
 										</button>
 										@if (statusMenuOpenId() === entry.id) {
 											<div
+												role="menu"
+												[id]="'status-menu-' + entry.id"
+												aria-label="Change status"
 												class="absolute left-0 top-full mt-1 z-20 bg-sidebar border border-line rounded shadow-lg py-1 min-w-[160px]"
 												(click)="$event.stopPropagation()"
+												(keydown.escape)="statusMenuOpenId.set(null)"
 											>
 												@for (s of statusFilters; track s.value) {
 													<button
 														type="button"
-														class="flex items-center gap-1.5 w-full text-left px-3 py-1.5 text-xs hover:bg-input-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+														role="menuitem"
+														class="flex items-center gap-1.5 w-full text-left px-3 py-1.5 text-xs hover:bg-input-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-input-bg focus-visible:outline-none"
 														[disabled]="s.value === entry.status"
 														(click)="selectNewStatus(entry, s.value, $event)"
 													>
@@ -670,6 +678,9 @@
 												[class]="statusClass(entry.status)"
 												[disabled]="isStatusUpdating(entry)"
 												(click)="toggleStatusMenu(entry, $event)"
+												aria-haspopup="menu"
+												[attr.aria-expanded]="statusMenuOpenId() === entry.id"
+												[attr.aria-controls]="'status-menu-card-' + entry.id"
 											>
 												<span aria-hidden="true" class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
 												{{ statusLabel(entry.status) }}
@@ -677,13 +688,18 @@
 											</button>
 											@if (statusMenuOpenId() === entry.id) {
 												<div
+													role="menu"
+													[id]="'status-menu-card-' + entry.id"
+													aria-label="Change status"
 													class="absolute left-0 top-full mt-1 z-20 bg-sidebar border border-line rounded shadow-lg py-1 min-w-[160px]"
 													(click)="$event.stopPropagation()"
+													(keydown.escape)="statusMenuOpenId.set(null)"
 												>
 													@for (s of statusFilters; track s.value) {
 														<button
 															type="button"
-															class="flex items-center gap-1.5 w-full text-left px-3 py-1.5 text-xs hover:bg-input-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+															role="menuitem"
+															class="flex items-center gap-1.5 w-full text-left px-3 py-1.5 text-xs hover:bg-input-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-input-bg focus-visible:outline-none"
 															[disabled]="s.value === entry.status"
 															(click)="selectNewStatus(entry, s.value, $event)"
 														>
