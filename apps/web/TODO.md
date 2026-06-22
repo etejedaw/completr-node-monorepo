@@ -6,18 +6,18 @@
 
 ## Resumen cronológico
 
-| Fase     | Etapa                                                 | Release  |
-| -------- | ----------------------------------------------------- | -------- |
-| Fase 0   | Setup y arquitectura base                             | `v0.1.0` |
-| Fase 1   | Excel Killer (solo tú)                                | `v0.2.0` |
-| Fase 1.5 | Beyond the Spreadsheet (mejoras + deploy)             | `v0.2.x` |
-| Fase 2   | MVP Amigos (5–20 personas)                            | `v0.3.0` |
-| Fase 2.5 | Pulido y UX (feedback + visual)                       | `v0.3.x` |
-| Fase 3   | Beta Cerrada (50–200 usuarios, invitación)            | `v0.4.0` |
-| Fase 4   | Beta Pública (500+ usuarios)                          | `v1.0.0` |
-| Fase 5   | Estabilización y calidad                              | `v1.1.0` |
-| Fase 6   | Premium                                               | `v2.0.0` |
-| Fase 7   | Escalamiento continuo                                 | `v2.x.x` |
+| Fase     | Etapa                                      | Release  |
+| -------- | ------------------------------------------ | -------- |
+| Fase 0   | Setup y arquitectura base                  | `v0.1.0` |
+| Fase 1   | Excel Killer (solo tú)                     | `v0.2.0` |
+| Fase 1.5 | Beyond the Spreadsheet (mejoras + deploy)  | `v0.2.x` |
+| Fase 2   | MVP Amigos (5–20 personas)                 | `v0.3.0` |
+| Fase 2.5 | Pulido y UX (feedback + visual)            | `v0.3.x` |
+| Fase 3   | Beta Cerrada (50–200 usuarios, invitación) | `v0.4.0` |
+| Fase 4   | Beta Pública (500+ usuarios)               | `v1.0.0` |
+| Fase 5   | Estabilización y calidad                   | `v1.1.0` |
+| Fase 6   | Premium                                    | `v2.0.0` |
+| Fase 7   | Escalamiento continuo                      | `v2.x.x` |
 
 ---
 
@@ -92,6 +92,7 @@
 - [x] Editar entrada (click en fila, modal precargado, campos nullable para limpiar valores)
 - [x] Eliminar entrada (con confirmación inline)
 - [x] Búsqueda local por título en la tabla
+
 ---
 
 ## FASE 1.5 — Beyond the Spreadsheet
@@ -276,7 +277,7 @@ Migrar todo el frontend para que use ng-primitives como base de componentes UI. 
 - [x] Migrar avatares (perfil, sidebar, feed) a Avatar primitive (`UiAvatar` sobre `NgpAvatar` — sidebar, feed activities, feed follow requests; sweep restante en public-profile, user-list-modal, etc.)
 - [x] Reemplazar los 3 `<input>` raw restantes por `UiInput size="sm"` (`backlog-list`, `games-browse`, `game-filter-panel`)
 - [x] Migrar textareas y form fields a Textarea/Form Field primitives (`UiTextarea`, `UiFormField`, `UiLabel`, `UiDescription`, `UiError`); aplicado en list-modal, settings-profile, game-detail, backlog-modal (2), game-shelf-modal, admin-game-editor, backlog-list, saved-filters-view
-- [ ] Migrar menus (sidebar, context menu) a Menu/Navigation Menu primitives
+- [x] Menus a11y: sidebar mantiene HTML semántico (`<nav><ul><li><a routerLinkActive ariaCurrentWhenActive="page">`) — `NgpNavigationMenu` no aporta valor para nav plana. Status menu de backlog (tabla + cards) recibe `aria-haspopup="menu"`, `aria-expanded`, `aria-controls`, `role="menu"`, `aria-label`, `role="menuitem"` en cada opción y `keydown.escape` para cerrar. Migración a `NgpMenu` primitive deferida hasta que aparezcan context menus o submenus
 - [x] Migrar radio buttons (score source, duration source) a Radio primitive (`UiRadioGroup`, `UiRadioItem` en `list-modal`)
 - [x] Migrar star rating a a11y de tipo slider — el primitive `NgpSlider` no encaja por la UX de half/full click; se añadió `role="slider"`, `aria-valuemin/max/now/text` y navegación por teclado (←/→/Home/End/Del) al componente actual
 - [x] Mejorar a11y de tablas existentes (no existe `NgpTable`): `scope="col"` en todas las th de backlog-list, admin-audit, admin-users, game-shelf-list, admin-games, admin-jobs. Backlog además tiene `aria-sort`, `tabindex="0"`, keyboard activation (Enter/Space) y focus-visible ring en cada columna ordenable + helper `ariaSortFor()`
@@ -285,7 +286,7 @@ Migrar todo el frontend para que use ng-primitives como base de componentes UI. 
 
 ### Corrección de bugs por feedback de usuarios
 
-- [ ] Revisar y corregir bugs reportados (ver docs/feedback/fase-2.md)
+- [x] Revisar y corregir bugs reportados (ver docs/feedback/fase-2.md)
 
 ---
 
