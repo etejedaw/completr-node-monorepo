@@ -30,3 +30,4 @@ export {
 	UiRadioIndicator
 } from "./radio/ui-radio";
 export { UiSelect } from "./select/ui-select";
+export { UiFocusTrap } from "./focus-trap/ui-focus-trap";
