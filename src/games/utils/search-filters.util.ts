@@ -1,6 +1,7 @@
 import { Op, Order } from "sequelize";
 import { sequelize } from "../../database/sequelize.database";
 import { GamesCompilationFlags, GamesStatusFilters } from "../games.interface";
+import { buildRangeWhere } from "../../common/utils/sequelize-range.util";
 
 export function buildActiveFlagWhere(
 	status: GamesStatusFilters | undefined
@@ -28,11 +29,11 @@ export function buildReleaseDateRangeWhere(
 	from: number | undefined,
 	to: number | undefined
 ): Record<string, unknown> {
-	if (from === undefined && to === undefined) return {};
-	const range: Record<symbol, Date> = {};
-	if (from !== undefined) range[Op.gte] = new Date(`${from}-01-01`);
-	if (to !== undefined) range[Op.lte] = new Date(`${to}-12-31`);
-	return { releaseAt: range };
+	const range = buildRangeWhere(
+		from !== undefined ? new Date(`${from}-01-01`) : undefined,
+		to !== undefined ? new Date(`${to}-12-31`) : undefined
+	);
+	return range ? { releaseAt: range } : {};
 }
 
 export function buildGenreCondition(
