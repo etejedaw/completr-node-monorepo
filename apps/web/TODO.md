@@ -270,15 +270,15 @@ Migrar todo el frontend para que use ng-primitives como base de componentes UI. 
 - [x] Migrar paginación a Pagination primitive (`UiPagination` sobre `NgpPagination`)
 - [x] Migrar buscadores a Search primitive (`UiSearchBar` sobre `NgpSearch`)
 - [ ] Migrar toasts/notificaciones a Toast primitive — requiere reescribir `ToastService` para usar `NgpToastManager.show(TemplateRef)` en vez del modelo signal array actual; conservar API pública (`success/error/pending/undo/dismiss`) y la lógica de undo timer
-- [ ] Migrar dropdowns/selects a Select/Combobox primitives — 7 archivos con `<select>` nativo (admin-users, admin-audit, admin-game-editor, backlog-modal, backlog-list, list-modal, game-shelf-modal)
+- [ ] Migrar dropdowns/selects a Select/Combobox primitives — 6 archivos con `<select>` nativo (admin-users, admin-audit, admin-game-editor, backlog-modal, backlog-list, game-shelf-modal); list-modal ya migrado a Radio
 - [x] Migrar barras de progreso (listas) a Progress primitive (`UiProgress` sobre `NgpProgress` — aplicado en `list-detail`, `list-overview`)
 - [x] Migrar separadores visuales a Separator primitive (`UiSeparator` sobre `NgpSeparator` — sidebar)
 - [x] Migrar avatares (perfil, sidebar, feed) a Avatar primitive (`UiAvatar` sobre `NgpAvatar` — sidebar, feed activities, feed follow requests; sweep restante en public-profile, user-list-modal, etc.)
 - [x] Reemplazar los 3 `<input>` raw restantes por `UiInput size="sm"` (`backlog-list`, `games-browse`, `game-filter-panel`)
-- [ ] Migrar textareas y form fields a Textarea/Form Field primitives
+- [x] Migrar textareas y form fields a Textarea/Form Field primitives (`UiTextarea`, `UiFormField`, `UiLabel`, `UiDescription`, `UiError`); aplicado en `list-modal`, `settings-profile`, `game-detail`; sweep restante en backlog-modal, game-shelf-modal, admin-game-editor, backlog-list, saved-filters-view (estilos inline custom)
 - [ ] Migrar menus (sidebar, context menu) a Menu/Navigation Menu primitives
-- [ ] Migrar radio buttons (score source, duration source) a Radio primitive
-- [ ] Migrar star rating a Slider primitive
+- [x] Migrar radio buttons (score source, duration source) a Radio primitive (`UiRadioGroup`, `UiRadioItem` en `list-modal`)
+- [x] Migrar star rating a a11y de tipo slider — el primitive `NgpSlider` no encaja por la UX de half/full click; se añadió `role="slider"`, `aria-valuemin/max/now/text` y navegación por teclado (←/→/Home/End/Del) al componente actual
 - [ ] Migrar tablas (backlog, game-shelf, wishlist, admin) — no existe `NgpTable`; reemplazar con mejoras manuales de a11y (`aria-sort`, `scope`, keyboard nav en celdas ordenables)
 - [ ] Sweep restante de `UiAvatar` por views de perfil público y modales (user-list, queue, wishlist, etc.)
 - [ ] Verificar accesibilidad (keyboard nav, ARIA) en todos los componentes migrados
