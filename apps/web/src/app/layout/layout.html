@@ -43,7 +43,7 @@
 			</ul>
 		</div>
 
-		<div class="mx-3 my-1 h-px bg-line"></div>
+		<div uiSeparator class="mx-3 my-1 h-px bg-line"></div>
 
 		<div class="px-3 py-1">
 			<span class="block px-3 mb-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted/70">Library</span>
@@ -123,7 +123,7 @@
 			</ul>
 		</div>
 
-		<div class="mx-3 my-1 h-px bg-line"></div>
+		<div uiSeparator class="mx-3 my-1 h-px bg-line"></div>
 
 		<div class="px-3 py-1">
 			<span class="block px-3 mb-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted/70">Discover</span>
@@ -168,7 +168,7 @@
 		</div>
 
 		@if (isModerator()) {
-			<div class="mx-3 my-1 h-px bg-line"></div>
+			<div uiSeparator class="mx-3 my-1 h-px bg-line"></div>
 			<div class="px-3 py-1">
 				<span class="block px-3 mb-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted/70">{{ isAdmin() ? 'Admin' : 'Moderator' }}</span>
 				<ul class="list-none">
@@ -236,7 +236,7 @@
 		}
 
 		<div class="mt-auto">
-			<div class="mx-3 my-1 h-px bg-line"></div>
+			<div uiSeparator class="mx-3 my-1 h-px bg-line"></div>
 			<div class="px-3 py-1">
 				<span class="block px-3 mb-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted/70">More</span>
 				<ul class="list-none">
@@ -281,18 +281,15 @@
 		</div>
 
 		<div class="relative">
-			<div class="mx-3 my-1 h-px bg-line"></div>
+			<div uiSeparator class="mx-3 my-1 h-px bg-line"></div>
 			<div class="px-3 py-3">
 				<div class="flex items-center gap-2.5 mb-3">
 					<a
 						routerLink="/profile"
-						class="flex items-center justify-center w-9 h-9 bg-brand-subtle rounded-full text-sm font-bold text-brand no-underline shrink-0 hover:ring-2 hover:ring-brand/40 transition overflow-hidden"
+						class="w-9 h-9 rounded-full no-underline shrink-0 hover:ring-2 hover:ring-brand/40 transition"
+						[attr.aria-label]="user()?.username || 'Profile'"
 					>
-						@if (user()?.avatarUrl) {
-							<img [src]="user()!.avatarUrl" [alt]="user()!.username" class="w-full h-full rounded-full object-cover" />
-						} @else {
-							{{ user()?.username?.charAt(0)?.toUpperCase() }}
-						}
+						<ui-avatar [src]="user()?.avatarUrl" [name]="user()?.username" class="w-9 h-9 text-sm" />
 					</a>
 					<div class="flex-1 min-w-0">
 						<a routerLink="/profile" class="block text-[0.8125rem] font-semibold text-fg no-underline hover:text-brand truncate">{{ user()?.username }}</a>
