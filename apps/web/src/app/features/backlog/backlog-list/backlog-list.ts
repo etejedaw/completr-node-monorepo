@@ -485,6 +485,11 @@ export class BacklogList implements OnInit {
 		this.loadBacklog();
 	}
 
+	ariaSortFor(column: string): "ascending" | "descending" | "none" {
+		if (this.sortBy() !== column) return "none";
+		return this.sortOrder() === "asc" ? "ascending" : "descending";
+	}
+
 	statusClass(status: BacklogStatus): string {
 		const map: Record<BacklogStatus, string> = {
 			not_started: "bg-fg-muted/10 text-fg-muted",

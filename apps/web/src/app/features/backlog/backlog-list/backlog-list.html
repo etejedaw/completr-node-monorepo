@@ -564,53 +564,53 @@
 				<table class="w-full border-collapse text-sm">
 					<thead>
 						<tr>
-							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap min-w-[200px] hover:text-fg-secondary" (click)="sort('title')">
+							<th scope="col" tabindex="0" role="columnheader" [attr.aria-sort]="ariaSortFor('title')" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap min-w-[200px] hover:text-fg-secondary" (click)="sort('title')" (keydown.enter)="sort('title'); $event.preventDefault()" (keydown.space)="sort('title'); $event.preventDefault()">
 								Title @if (sortBy() === 'title') {
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
 							</th>
-							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary">Platform</th>
-							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('score')">
+							<th scope="col" class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line select-none whitespace-nowrap hover:text-fg-secondary">Platform</th>
+							<th scope="col" tabindex="0" role="columnheader" [attr.aria-sort]="ariaSortFor('score')" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('score')" (keydown.enter)="sort('score'); $event.preventDefault()" (keydown.space)="sort('score'); $event.preventDefault()">
 								Score @if (sortBy() === 'score') {
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
 							</th>
-							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('duration')">
+							<th scope="col" tabindex="0" role="columnheader" [attr.aria-sort]="ariaSortFor('duration')" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('duration')" (keydown.enter)="sort('duration'); $event.preventDefault()" (keydown.space)="sort('duration'); $event.preventDefault()">
 								Duration @if (sortBy() === 'duration') {
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
 							</th>
-							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-brand font-bold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-brand-deep" (click)="sort('ratio')">
+							<th scope="col" tabindex="0" role="columnheader" [attr.aria-sort]="ariaSortFor('ratio')" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-brand font-bold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-brand-deep" (click)="sort('ratio')" (keydown.enter)="sort('ratio'); $event.preventDefault()" (keydown.space)="sort('ratio'); $event.preventDefault()">
 								Ratio @if (sortBy() === 'ratio') {
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
 							</th>
-							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('realDuration')">
+							<th scope="col" tabindex="0" role="columnheader" [attr.aria-sort]="ariaSortFor('realDuration')" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('realDuration')" (keydown.enter)="sort('realDuration'); $event.preventDefault()" (keydown.space)="sort('realDuration'); $event.preventDefault()">
 								Real @if (sortBy() === 'realDuration') {
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
 							</th>
-							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('personalRatio')">
+							<th scope="col" tabindex="0" role="columnheader" [attr.aria-sort]="ariaSortFor('personalRatio')" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('personalRatio')" (keydown.enter)="sort('personalRatio'); $event.preventDefault()" (keydown.space)="sort('personalRatio'); $event.preventDefault()">
 								P. Ratio @if (sortBy() === 'personalRatio') {
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
 							</th>
-							<th class="sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('userRating')">
+							<th scope="col" tabindex="0" role="columnheader" [attr.aria-sort]="ariaSortFor('userRating')" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('userRating')" (keydown.enter)="sort('userRating'); $event.preventDefault()" (keydown.space)="sort('userRating'); $event.preventDefault()">
 								Rating @if (sortBy() === 'userRating') {
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
 							</th>
-							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('finishedAt')">
+							<th scope="col" tabindex="0" role="columnheader" [attr.aria-sort]="ariaSortFor('finishedAt')" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('finishedAt')" (keydown.enter)="sort('finishedAt'); $event.preventDefault()" (keydown.space)="sort('finishedAt'); $event.preventDefault()">
 								Finished @if (sortBy() === 'finishedAt') {
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
 							</th>
-							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('status')">
+							<th scope="col" tabindex="0" role="columnheader" [attr.aria-sort]="ariaSortFor('status')" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary" (click)="sort('status')" (keydown.enter)="sort('status'); $event.preventDefault()" (keydown.space)="sort('status'); $event.preventDefault()">
 								Status @if (sortBy() === 'status') {
 									<span class="text-[0.625rem] ml-1 text-brand">{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;" }}</span>
 								}
 							</th>
-							<th class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap max-w-[200px] hover:text-fg-secondary">Notes</th>
+							<th scope="col" class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line select-none whitespace-nowrap max-w-[200px] hover:text-fg-secondary">Notes</th>
 						</tr>
 					</thead>
 					<tbody>
