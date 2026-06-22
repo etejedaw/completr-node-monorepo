@@ -97,14 +97,8 @@
 				<ul class="ui-stagger flex flex-col gap-2">
 					@for (req of requests; track req.requesterId) {
 						<li class="flex items-center gap-3 p-3 bg-surface border border-line rounded-card">
-							<a [routerLink]="['/user', req.user.username]" class="shrink-0">
-								@if (req.user.avatarUrl) {
-									<img class="w-10 h-10 rounded-full object-cover ring-1 ring-line" [src]="req.user.avatarUrl" [alt]="req.user.username" />
-								} @else {
-									<div class="w-10 h-10 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-sm font-bold ring-1 ring-line">
-										{{ req.user.username.charAt(0).toUpperCase() }}
-									</div>
-								}
+							<a [routerLink]="['/user', req.user.username]" class="shrink-0 ring-1 ring-line rounded-full">
+								<ui-avatar [src]="req.user.avatarUrl" [name]="req.user.username" class="w-10 h-10 text-sm" />
 							</a>
 							<div class="flex-1 min-w-0">
 								<a [routerLink]="['/user', req.user.username]" class="block text-sm font-medium text-fg no-underline truncate hover:underline">
@@ -159,18 +153,12 @@
 			@for (activity of activities(); track activity.id) {
 				@let avatarUser = activity.type === 'user_followed_by' && activity.target?.type === 'user' ? activity.target : activity.user;
 				<div class="relative flex items-start gap-4 pb-6 last:pb-0">
-					<div class="relative z-[1] shrink-0">
-						@if (avatarUser?.avatarUrl) {
-							<img
-								[src]="avatarUser!.avatarUrl"
-								[alt]="avatarUser!.username"
-								class="w-11 h-11 rounded-full object-cover ring-4 ring-canvas" loading="lazy"
-							/>
-						} @else {
-							<div class="w-11 h-11 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-base font-bold ring-4 ring-canvas">
-								{{ (avatarUser?.username || '?').charAt(0).toUpperCase() }}
-							</div>
-						}
+					<div class="relative z-[1] shrink-0 ring-4 ring-canvas rounded-full">
+						<ui-avatar
+							[src]="avatarUser?.avatarUrl"
+							[name]="avatarUser?.username"
+							class="w-11 h-11 text-base"
+						/>
 						<span
 							class="material-icons absolute -bottom-1 -right-1 text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
 							[class]="activityIconColorClass(activity.type)"
