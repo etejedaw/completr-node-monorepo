@@ -15,7 +15,7 @@
 				(click)="fetchRawg()"
 				[disabled]="fetchingRawg() || !rawgSlug().trim()"
 			>
-				<span class="material-icons text-base">download</span>
+				<span aria-hidden="true" class="material-icons text-base">download</span>
 				{{ fetchingRawg() ? 'Fetching...' : 'Fetch' }}
 			</button>
 		</div>
@@ -115,7 +115,7 @@
 				}
 				<span class="flex-1 text-[0.8125rem] font-medium">{{ parentGame()!.title }}</span>
 				<button class="bg-none border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="clearParentGame()">
-					<span class="material-icons text-base">close</span>
+					<span aria-hidden="true" class="material-icons text-base">close</span>
 				</button>
 			</div>
 			} @else {
@@ -200,7 +200,7 @@
 				step="0.01"
 			/>
 			<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-danger" (click)="removeScore(i)">
-				<span class="material-icons text-sm">close</span>
+				<span aria-hidden="true" class="material-icons text-sm">close</span>
 			</button>
 		</div>
 		} @if (availableScoreSources.length > 0) {
@@ -230,7 +230,7 @@
 				(click)="addScore()"
 				[disabled]="!newScoreSource() || newScoreValue() === null"
 			>
-				<span class="material-icons text-sm">add</span>
+				<span aria-hidden="true" class="material-icons text-sm">add</span>
 			</button>
 		</div>
 		}
@@ -249,7 +249,7 @@
 				step="0.1"
 			/>
 			<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-danger" (click)="removeTime(i)">
-				<span class="material-icons text-sm">close</span>
+				<span aria-hidden="true" class="material-icons text-sm">close</span>
 			</button>
 		</div>
 		} @if (availableTimeSources.length > 0) {
@@ -279,7 +279,7 @@
 				(click)="addTime()"
 				[disabled]="!newTimeSource() || newTimeValue() === null"
 			>
-				<span class="material-icons text-sm">add</span>
+				<span aria-hidden="true" class="material-icons text-sm">add</span>
 			</button>
 		</div>
 		}
@@ -297,7 +297,7 @@
 				[disabled]="saving()"
 				title="Split this game into multiple variants (e.g. Pokemon Pearl/Diamond → Pearl + Diamond)"
 			>
-				<span class="material-icons text-base">call_split</span>
+				<span aria-hidden="true" class="material-icons text-base">call_split</span>
 				Split game
 			</button>
 			<button
@@ -306,7 +306,7 @@
 				[disabled]="saving()"
 				title="Mark this game as a compilation that bundles other games (e.g. Mass Effect Legendary Edition)"
 			>
-				<span class="material-icons text-base">library_books</span>
+				<span aria-hidden="true" class="material-icons text-base">library_books</span>
 				{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as compilation' }}
 			</button>
 		</div>
@@ -331,7 +331,7 @@
 		<div class="flex justify-between items-center mb-3">
 			<h2 class="font-display m-0 text-lg font-bold">Split game into variants</h2>
 			<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="closeSplitModal()">
-				<span class="material-icons">close</span>
+				<span aria-hidden="true" class="material-icons">close</span>
 			</button>
 		</div>
 		<p class="text-[0.8125rem] text-fg-secondary mb-4">
@@ -380,7 +380,7 @@
 					[disabled]="splitVariants().length <= 2"
 					title="Remove this variant"
 				>
-					<span class="material-icons text-sm">close</span>
+					<span aria-hidden="true" class="material-icons text-sm">close</span>
 				</button>
 			</div>
 			}
@@ -391,7 +391,7 @@
 			(click)="addSplitVariant()"
 			[disabled]="splitVariants().length >= 10"
 		>
-			<span class="material-icons text-sm">add</span>
+			<span aria-hidden="true" class="material-icons text-sm">add</span>
 			Add variant
 		</button>
 
@@ -422,7 +422,7 @@
 		<div class="flex justify-between items-center mb-3">
 			<h2 class="font-display m-0 text-lg font-bold">{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as compilation' }}</h2>
 			<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="closeCompilationModal()">
-				<span class="material-icons">close</span>
+				<span aria-hidden="true" class="material-icons">close</span>
 			</button>
 		</div>
 		<p class="text-[0.8125rem] text-fg-secondary mb-4">
@@ -466,7 +466,7 @@
 						[disabled]="compilationRows().length <= 1"
 						title="Remove this item"
 					>
-						<span class="material-icons text-sm">close</span>
+						<span aria-hidden="true" class="material-icons text-sm">close</span>
 					</button>
 				</div>
 
@@ -479,7 +479,7 @@
 						<span class="flex-1 text-[0.8125rem] font-medium">{{ row.linkedGame.title }}</span>
 						<span class="text-xs text-fg-muted">{{ row.linkedGame.code }}</span>
 						<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="clearCompilationRowGame(i)">
-							<span class="material-icons text-base">close</span>
+							<span aria-hidden="true" class="material-icons text-base">close</span>
 						</button>
 					</div>
 					} @else {
@@ -536,7 +536,7 @@
 			(click)="addCompilationRow()"
 			[disabled]="compilationRows().length >= 50"
 		>
-			<span class="material-icons text-sm">add</span>
+			<span aria-hidden="true" class="material-icons text-sm">add</span>
 			Add item
 		</button>
 

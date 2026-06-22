@@ -12,7 +12,7 @@
 					class="w-24 h-24 text-4xl ring-1 ring-line"
 				/>
 				<span class="absolute -bottom-1 -right-1 flex items-center justify-center w-8 h-8 rounded-full bg-surface border border-line">
-					<span class="material-icons text-base text-fg-muted">lock</span>
+					<span aria-hidden="true" class="material-icons text-base text-fg-muted">lock</span>
 				</span>
 			</div>
 			@if (profile()?.user?.name) {
@@ -37,7 +37,7 @@
 						[disabled]="togglingFollow()"
 						(click)="onFollowButtonClick()"
 					>
-						<span class="material-icons text-base">check</span>
+						<span aria-hidden="true" class="material-icons text-base">check</span>
 						Following
 					</button>
 				} @else if (p.hasPendingRequest) {
@@ -49,7 +49,7 @@
 						(click)="onFollowButtonClick()"
 						title="Cancel follow request"
 					>
-						<span class="material-icons text-base">schedule</span>
+						<span aria-hidden="true" class="material-icons text-base">schedule</span>
 						Requested
 					</button>
 				} @else if (p.acceptFollowRequests) {
@@ -60,7 +60,7 @@
 						[disabled]="togglingFollow()"
 						(click)="onFollowButtonClick()"
 					>
-						<span class="material-icons text-base">person_add</span>
+						<span aria-hidden="true" class="material-icons text-base">person_add</span>
 						Follow
 					</button>
 				}
@@ -94,7 +94,7 @@
 						<span class="text-fg-muted ml-1">following</span>
 					</button>
 					<span class="flex items-center gap-1 text-xs text-fg-muted">
-						<span class="material-icons text-sm">calendar_today</span>
+						<span aria-hidden="true" class="material-icons text-sm">calendar_today</span>
 						Member since {{ memberSince }}
 					</span>
 				</div>
@@ -109,7 +109,7 @@
 					[title]="profile()!.hasPendingRequest ? 'Cancel follow request' : ''"
 					class="!shrink-0 !min-w-[140px] !font-semibold"
 				>
-					<span class="material-icons text-base">
+					<span aria-hidden="true" class="material-icons text-base">
 						{{ profile()!.isFollowing ? 'check' : profile()!.hasPendingRequest ? 'schedule' : 'person_add' }}
 					</span>
 					{{ profile()!.isFollowing ? 'Following' : profile()!.hasPendingRequest ? 'Requested' : 'Follow' }}
@@ -124,7 +124,7 @@
 				class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1 no-underline text-inherit transition hover:border-brand"
 			>
 				<div class="flex items-center gap-2 text-xs uppercase tracking-wider text-fg-muted">
-					<span class="material-icons text-base text-success">check_circle</span>
+					<span aria-hidden="true" class="material-icons text-base text-success">check_circle</span>
 					Completed
 				</div>
 				<span class="text-3xl font-bold text-fg leading-none mt-1">{{ stats().completed }}</span>
@@ -135,7 +135,7 @@
 				class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1 no-underline text-inherit transition hover:border-brand"
 			>
 				<div class="flex items-center gap-2 text-xs uppercase tracking-wider text-fg-muted">
-					<span class="material-icons text-base text-warning">play_arrow</span>
+					<span aria-hidden="true" class="material-icons text-base text-warning">play_arrow</span>
 					Playing
 				</div>
 				<span class="text-3xl font-bold text-fg leading-none mt-1">{{ stats().playing }}</span>
@@ -146,7 +146,7 @@
 				class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1 text-left cursor-pointer transition hover:border-brand"
 			>
 				<div class="flex items-center gap-2 text-xs uppercase tracking-wider text-fg-muted">
-					<span class="material-icons text-base text-brand">format_list_bulleted</span>
+					<span aria-hidden="true" class="material-icons text-base text-brand">format_list_bulleted</span>
 					Lists
 				</div>
 				<span class="text-3xl font-bold text-fg leading-none mt-1">{{ stats().lists }}</span>
@@ -156,7 +156,7 @@
 				class="bg-surface border border-line rounded-card p-4 flex flex-col gap-1 no-underline text-inherit transition hover:border-brand"
 			>
 				<div class="flex items-center gap-2 text-xs uppercase tracking-wider text-fg-muted">
-					<span class="material-icons text-base text-fg-secondary">rate_review</span>
+					<span aria-hidden="true" class="material-icons text-base text-fg-secondary">rate_review</span>
 					Reviews
 				</div>
 				<span class="text-3xl font-bold text-fg leading-none mt-1">{{ stats().reviews }}</span>
@@ -177,7 +177,7 @@
 									<img [src]="game.backgroundUrl" [alt]="game.title" class="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-[1.04]" loading="lazy" />
 								} @else {
 									<div class="absolute inset-0 flex items-center justify-center">
-										<span class="material-icons text-fg-muted/30 text-3xl">videogame_asset</span>
+										<span aria-hidden="true" class="material-icons text-fg-muted/30 text-3xl">videogame_asset</span>
 									</div>
 								}
 							</div>
@@ -193,46 +193,46 @@
 			<ui-tab-list class="!mb-6 !flex-wrap">
 				@if ((isSelf() || profile()!.user.backlogVisibility !== "private")) {
 					<button uiTab value="highlights" class="!whitespace-nowrap" aria-label="Highlights" title="Highlights">
-						<span class="material-icons text-base md:mr-1.5 align-middle">insights</span>
+						<span aria-hidden="true" class="material-icons text-base md:mr-1.5 align-middle">insights</span>
 						<span class="hidden md:inline">Highlights</span>
 					</button>
 					<button uiTab value="backlog" class="!whitespace-nowrap" aria-label="Games" title="Games">
-						<span class="material-icons text-base md:mr-1.5 align-middle">list_alt</span>
+						<span aria-hidden="true" class="material-icons text-base md:mr-1.5 align-middle">list_alt</span>
 						<span class="hidden md:inline">Games</span>
 					</button>
 				}
 				@if ((isSelf() || profile()!.user.shelfVisibility !== "private")) {
 					<button uiTab value="shelf" class="!whitespace-nowrap" aria-label="Shelf" title="Shelf">
-						<span class="material-icons text-base md:mr-1.5 align-middle">shelves</span>
+						<span aria-hidden="true" class="material-icons text-base md:mr-1.5 align-middle">shelves</span>
 						<span class="hidden md:inline">Shelf</span>
 					</button>
 				}
 				@if ((isSelf() || profile()!.user.listVisibility !== "private")) {
 					<button uiTab value="lists" class="!whitespace-nowrap" aria-label="Lists" title="Lists">
-						<span class="material-icons text-base md:mr-1.5 align-middle">format_list_bulleted</span>
+						<span aria-hidden="true" class="material-icons text-base md:mr-1.5 align-middle">format_list_bulleted</span>
 						<span class="hidden md:inline">Lists</span>
 					</button>
 				}
 				@if ((isSelf() || profile()!.user.favoriteVisibility !== "private")) {
 					<button uiTab value="favorites" class="!whitespace-nowrap" aria-label="Favorites" title="Favorites">
-						<span class="material-icons text-base md:mr-1.5 align-middle">star</span>
+						<span aria-hidden="true" class="material-icons text-base md:mr-1.5 align-middle">star</span>
 						<span class="hidden md:inline">Favorites</span>
 					</button>
 				}
 				@if ((isSelf() || profile()!.user.queueVisibility !== "private")) {
 					<button uiTab value="queue" class="!whitespace-nowrap" aria-label="Up Next" title="Up Next">
-						<span class="material-icons text-base md:mr-1.5 align-middle">playlist_play</span>
+						<span aria-hidden="true" class="material-icons text-base md:mr-1.5 align-middle">playlist_play</span>
 						<span class="hidden md:inline">Up Next</span>
 					</button>
 				}
 				@if ((isSelf() || profile()!.user.wishlistVisibility !== "private")) {
 					<button uiTab value="wishlist" class="!whitespace-nowrap" aria-label="Wanted" title="Wanted">
-						<span class="material-icons text-base md:mr-1.5 align-middle">favorite_border</span>
+						<span aria-hidden="true" class="material-icons text-base md:mr-1.5 align-middle">favorite_border</span>
 						<span class="hidden md:inline">Wanted</span>
 					</button>
 				}
 				<button uiTab value="reviews" class="!whitespace-nowrap" aria-label="Reviews" title="Reviews">
-					<span class="material-icons text-base md:mr-1.5 align-middle">rate_review</span>
+					<span aria-hidden="true" class="material-icons text-base md:mr-1.5 align-middle">rate_review</span>
 					<span class="hidden md:inline">Reviews</span>
 				</button>
 			</ui-tab-list>
@@ -254,7 +254,7 @@
 							<h2 class="font-display m-0 text-xl font-bold text-fg">Recent completions</h2>
 							<a class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all" [routerLink]="['/user', username(), 'completions']">
 								See all
-								<span class="material-icons text-sm">arrow_forward</span>
+								<span aria-hidden="true" class="material-icons text-sm">arrow_forward</span>
 							</a>
 						</div>
 						@if (highlightsData()!.recent.length === 0) {
@@ -276,7 +276,7 @@
 										<span class="text-[0.625rem] text-fg-muted">{{ entry.finishedAt }}</span>
 										@if (entry.userRating != null) {
 											<span class="text-[0.625rem] text-warning flex items-center gap-0.5">
-												<span class="material-icons text-[0.75rem]">star</span>{{ entry.userRating }}
+												<span aria-hidden="true" class="material-icons text-[0.75rem]">star</span>{{ entry.userRating }}
 											</span>
 										}
 									</a>
@@ -296,7 +296,7 @@
 									aria-label="Previous month"
 									title="Previous month"
 								>
-									<span class="material-icons text-lg">chevron_left</span>
+									<span aria-hidden="true" class="material-icons text-lg">chevron_left</span>
 								</button>
 								<h2 class="font-display m-0 text-xl font-bold text-fg truncate">{{ monthLabel() }}</h2>
 								<button
@@ -307,7 +307,7 @@
 									aria-label="Next month"
 									title="Next month"
 								>
-									<span class="material-icons text-lg">chevron_right</span>
+									<span aria-hidden="true" class="material-icons text-lg">chevron_right</span>
 								</button>
 							</div>
 							<span class="text-xs text-fg-muted shrink-0">{{ highlightsData()!.month.completedCount }} completed</span>
@@ -342,7 +342,7 @@
 											<span class="text-sm font-semibold text-fg line-clamp-2">{{ hr.game.title }}</span>
 											@if (hr.userRating != null) {
 												<span class="text-xs text-fg-muted flex items-center gap-0.5">
-													<span class="material-icons text-[0.875rem] text-warning">star</span>{{ hr.userRating }}
+													<span aria-hidden="true" class="material-icons text-[0.875rem] text-warning">star</span>{{ hr.userRating }}
 												</span>
 											}
 										</div>
@@ -362,7 +362,7 @@
 						[routerLink]="['/user', username(), 'backlog']"
 					>
 						See all
-						<span class="material-icons text-sm">arrow_forward</span>
+						<span aria-hidden="true" class="material-icons text-sm">arrow_forward</span>
 					</a>
 				</div>
 				@if (profile()!.backlogs.length === 0) {
@@ -407,7 +407,7 @@
 						[routerLink]="['/user', username(), 'game-shelf']"
 					>
 						See all
-						<span class="material-icons text-sm">arrow_forward</span>
+						<span aria-hidden="true" class="material-icons text-sm">arrow_forward</span>
 					</a>
 				</div>
 				@if (gameShelfData() === null) {
@@ -466,7 +466,7 @@
 										<div class="flex items-center justify-between">
 											<span class="text-[0.9375rem] font-semibold text-fg">{{ l.name }}</span>
 											<span class="flex items-center gap-1 text-xs text-fg-muted">
-												<span class="material-icons text-sm">group</span>
+												<span aria-hidden="true" class="material-icons text-sm">group</span>
 												{{ l.followerCount }}
 											</span>
 										</div>
@@ -525,7 +525,7 @@
 							[routerLink]="['/user', username(), 'favorites']"
 						>
 							See all
-							<span class="material-icons text-sm">arrow_forward</span>
+							<span aria-hidden="true" class="material-icons text-sm">arrow_forward</span>
 						</a>
 					</div>
 					@if (favoritesData() === null) {
@@ -565,7 +565,7 @@
 							[routerLink]="['/user', username(), 'queue']"
 						>
 							See all
-							<span class="material-icons text-sm">arrow_forward</span>
+							<span aria-hidden="true" class="material-icons text-sm">arrow_forward</span>
 						</a>
 					</div>
 					@if (queueData() === null) {
@@ -606,7 +606,7 @@
 							[routerLink]="['/user', username(), 'wishlist']"
 						>
 							See all
-							<span class="material-icons text-sm">arrow_forward</span>
+							<span aria-hidden="true" class="material-icons text-sm">arrow_forward</span>
 						</a>
 					</div>
 					@if (wishlistData() === null) {
@@ -640,7 +640,7 @@
 			<div uiTabPanel value="reviews">
 				<div class="flex items-baseline justify-between mb-3">
 					<h2 class="font-display m-0 text-xl font-bold text-fg">Reviews</h2>
-					<a class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all" [routerLink]="['/user', username(), 'reviews']">See all<span class="material-icons text-sm">arrow_forward</span></a>
+					<a class="inline-flex items-center gap-1 text-xs font-medium text-brand no-underline hover:gap-1.5 transition-all" [routerLink]="['/user', username(), 'reviews']">See all<span aria-hidden="true" class="material-icons text-sm">arrow_forward</span></a>
 				</div>
 				@if (userReviews().length === 0) {
 					<p class="text-center py-12 text-fg-muted text-sm">No reviews yet.</p>
@@ -654,7 +654,7 @@
 									}
 									@if (r.playthroughDuration) {
 										<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line" title="Real playtime">
-											<span class="material-icons text-[0.75rem]">schedule</span>
+											<span aria-hidden="true" class="material-icons text-[0.75rem]">schedule</span>
 											{{ r.playthroughDuration }}h
 										</span>
 									}
@@ -678,14 +678,14 @@
 			<section class="mt-12 lg:grid lg:grid-cols-[1fr_320px] lg:gap-8 lg:items-start">
 				<div class="min-w-0">
 					<div class="flex items-center gap-2 mb-5">
-						<span class="material-icons text-brand">dynamic_feed</span>
+						<span aria-hidden="true" class="material-icons text-brand">dynamic_feed</span>
 						<h2 class="font-display m-0 text-xl font-bold text-fg">Recent Activity</h2>
 					</div>
 					<ol class="list-none p-0 m-0 relative border-l border-line ml-3">
 						@for (a of profile()!.recentActivity.slice(0, 20); track a.id) {
 							<li class="relative pl-6 pb-5 last:pb-0">
 								<span class="absolute -left-[13px] top-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface border border-line">
-									<span class="material-icons text-sm" [class]="activityIconColorClass(a.type)">{{ activityIcon(a.type) }}</span>
+									<span aria-hidden="true" class="material-icons text-sm" [class]="activityIconColorClass(a.type)">{{ activityIcon(a.type) }}</span>
 								</span>
 								<div class="flex flex-col gap-0.5">
 									<span class="text-[0.875rem] text-fg-secondary capitalize leading-snug">
@@ -709,7 +709,7 @@
 					<div class="bg-surface border border-line rounded-card p-4">
 						<div class="flex items-center justify-between mb-3 pb-2 border-b border-line gap-2">
 							<div class="flex items-center gap-2 min-w-0">
-								<span class="material-icons text-base text-brand">group</span>
+								<span aria-hidden="true" class="material-icons text-base text-brand">group</span>
 								<h3 class="font-display m-0 text-sm font-bold text-fg truncate">Followers</h3>
 							</div>
 							<span class="text-xs text-fg-muted shrink-0">{{ profile()!.followerCount }}</span>
@@ -732,7 +732,7 @@
 							}
 						}
 						<div class="mt-3 pt-3 border-t border-line flex items-center gap-1.5 text-[0.6875rem] text-fg-muted">
-							<span class="material-icons text-sm">calendar_today</span>
+							<span aria-hidden="true" class="material-icons text-sm">calendar_today</span>
 							Member since {{ memberSince }}
 						</div>
 					</div>

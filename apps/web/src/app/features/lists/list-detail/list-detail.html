@@ -12,20 +12,20 @@
 					class="flex p-1 mt-0.5 text-fg-muted hover:text-brand"
 					[title]="'@' + username + ' profile'"
 				>
-					<span class="material-icons">arrow_back</span>
+					<span aria-hidden="true" class="material-icons">arrow_back</span>
 				</a>
 			} @else {
 				<a
 					routerLink="/lists"
 					class="flex p-1 mt-0.5 text-fg-muted hover:text-brand"
 				>
-					<span class="material-icons">arrow_back</span>
+					<span aria-hidden="true" class="material-icons">arrow_back</span>
 				</a>
 			}
 			<div>
 				@if (list()!.isOfficial) {
 						<span class="inline-flex items-center gap-1 mb-1 text-[0.625rem] font-bold uppercase tracking-wider text-brand">
-							<span class="material-icons text-sm">verified</span>
+							<span aria-hidden="true" class="material-icons text-sm">verified</span>
 							Official
 						</span>
 					}
@@ -38,7 +38,7 @@
 						[routerLink]="['/user', owner.username]"
 						class="inline-flex items-center gap-1 mt-1 text-[0.6875rem] text-fg-muted no-underline hover:text-brand"
 					>
-						<span class="material-icons text-sm">person</span>
+						<span aria-hidden="true" class="material-icons text-sm">person</span>
 						by &#64;{{ owner.username }}
 					</a>
 				}
@@ -50,7 +50,7 @@
 				uiButton variant="secondary" size="sm"
 				(click)="showAddSearch.set(!showAddSearch())"
 			>
-				<span class="material-icons text-base">add</span>
+				<span aria-hidden="true" class="material-icons text-base">add</span>
 				Add Game
 			</button>
 			<button
@@ -58,11 +58,11 @@
 				(click)="refreshScores()"
 				[disabled]="refreshing()"
 			>
-				<span class="material-icons text-base">refresh</span>
+				<span aria-hidden="true" class="material-icons text-base">refresh</span>
 				{{ refreshing() ? 'Refreshing...' : 'Refresh Scores' }}
 			</button>
 			<button uiButton variant="secondary" size="sm" (click)="openEdit()">
-				<span class="material-icons text-base">edit</span>
+				<span aria-hidden="true" class="material-icons text-base">edit</span>
 				Edit
 			</button>
 		</div>
@@ -72,7 +72,7 @@
 	@if (showComparisonBanner()) {
 		<div class="mb-4 px-4 py-3 rounded-card bg-brand/5 border border-brand/30 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<div class="flex items-center gap-2 min-w-0">
-				<span class="material-icons text-brand text-base shrink-0">visibility</span>
+				<span aria-hidden="true" class="material-icons text-brand text-base shrink-0">visibility</span>
 				<span class="text-[0.8125rem] text-fg-secondary leading-snug">
 					@if (compareMode()) {
 						Comparing your progress with <a class="font-semibold text-brand no-underline hover:underline" [routerLink]="['/user', fromUsername()]">&#64;{{ fromUsername() }}</a>
@@ -84,19 +84,19 @@
 			<div class="flex flex-wrap gap-2 shrink-0">
 				@if (compareMode()) {
 					<button uiButton variant="secondary" size="sm" (click)="exitCompareMode()">
-						<span class="material-icons text-base">close</span>
+						<span aria-hidden="true" class="material-icons text-base">close</span>
 						Exit compare
 					</button>
 				} @else {
 					@if (canCompare()) {
 						<button uiButton variant="secondary" size="sm" (click)="enterCompareMode()">
-							<span class="material-icons text-base">compare_arrows</span>
+							<span aria-hidden="true" class="material-icons text-base">compare_arrows</span>
 							Compare
 						</button>
 					}
 					@if (viewerUsername()) {
 						<button uiButton variant="primary" size="sm" (click)="goToOwnProgress()">
-							<span class="material-icons text-base">person</span>
+							<span aria-hidden="true" class="material-icons text-base">person</span>
 							See my progress
 						</button>
 					}
@@ -107,21 +107,21 @@
 
 	<div class="flex gap-4 mb-5 items-center">
 		<span class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider">
-			<span class="material-icons text-[0.875rem]"
+			<span aria-hidden="true" class="material-icons text-[0.875rem]"
 				>{{ list()!.isPublic ? 'public' : 'lock' }}</span
 			>
 			{{ list()!.isPublic ? 'Public' : 'Private' }}
 		</span>
 		<span class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider">
-			<span class="material-icons text-[0.875rem]">leaderboard</span>
+			<span aria-hidden="true" class="material-icons text-[0.875rem]">leaderboard</span>
 			{{ list()!.scoreSource }}
 		</span>
 		<span class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider">
-			<span class="material-icons text-[0.875rem]">schedule</span>
+			<span aria-hidden="true" class="material-icons text-[0.875rem]">schedule</span>
 			{{ list()!.durationSource }}
 		</span>
 		<span class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider">
-			<span class="material-icons text-[0.875rem]">people</span>
+			<span aria-hidden="true" class="material-icons text-[0.875rem]">people</span>
 			{{ list()!.followerCount ?? 0 }} followers
 		</span>
 		@if (!isOwner() && list()!.isPublic) {
@@ -186,7 +186,7 @@
 			<div class="flex items-center gap-2">
 				@if (_isComplete) {
 					<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold uppercase tracking-wider bg-warning/15 text-warning">
-						<span class="material-icons text-sm">emoji_events</span>
+						<span aria-hidden="true" class="material-icons text-sm">emoji_events</span>
 						Completed
 					</span>
 				}
@@ -209,7 +209,7 @@
 		<div class="px-3 py-2 text-[0.8125rem] text-fg-muted">Searching...</div>
 		} @if (isSearchingOnline()) {
 		<div class="px-3 py-2 text-[0.8125rem] text-brand flex items-center gap-2">
-			<span class="material-icons text-base animate-spin">autorenew</span>
+			<span aria-hidden="true" class="material-icons text-base animate-spin">autorenew</span>
 			Searching online...
 		</div>
 		} @if (searchResults().length > 0) {
@@ -233,13 +233,13 @@
 				<span class="flex-1">{{ game.title }}</span>
 				@if (alreadyInList) {
 				<span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-success/15 text-success text-[0.65rem] font-semibold uppercase tracking-wider rounded" title="Already in this list">
-					<span class="material-icons text-[0.75rem]">check</span>
+					<span aria-hidden="true" class="material-icons text-[0.75rem]">check</span>
 					In list
 				</span>
 				}
 				@if (game.justImported) {
 				<span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/15 text-info text-[0.65rem] font-semibold uppercase tracking-wider rounded" title="Just imported from RAWG">
-					<span class="material-icons text-[0.75rem]">cloud_download</span>
+					<span aria-hidden="true" class="material-icons text-[0.75rem]">cloud_download</span>
 					RAWG
 				</span>
 				}
@@ -286,7 +286,7 @@
 							>{{ item.game.title }}</a>
 							@if (item.backlogStatus === 'completed' && item.realDuration) {
 								<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line">
-									<span class="material-icons text-[0.75rem]">schedule</span>
+									<span aria-hidden="true" class="material-icons text-[0.75rem]">schedule</span>
 									Real {{ item.realDuration }}h
 								</span>
 							}
@@ -317,7 +317,7 @@
 										title="Edit your backlog"
 										(click)="openEditBacklog(item)"
 									>
-										<span class="material-icons text-sm">
+										<span aria-hidden="true" class="material-icons text-sm">
 											{{
 												myStatus === 'completed' ? 'check_circle' :
 												myStatus === 'playing' ? 'play_circle' :
@@ -333,7 +333,7 @@
 										(click)="openBacklogModal(item)"
 										title="Add to Backlog"
 									>
-										<span class="material-icons text-sm">add</span>
+										<span aria-hidden="true" class="material-icons text-sm">add</span>
 										Add
 									</button>
 								}
@@ -350,7 +350,7 @@
 										"
 										[title]="'@' + fromUsername() + ' status on this game'"
 									>
-										<span class="material-icons text-sm">
+										<span aria-hidden="true" class="material-icons text-sm">
 											{{
 												theirStatus === 'completed' ? 'check_circle' :
 												theirStatus === 'playing' ? 'play_circle' :
@@ -376,7 +376,7 @@
 										"
 										[title]="'@' + fromUsername() + ' status on this game'"
 									>
-										<span class="material-icons text-sm">
+										<span aria-hidden="true" class="material-icons text-sm">
 											{{
 												item.backlogStatus === 'completed' ? 'check_circle' :
 												item.backlogStatus === 'playing' ? 'play_circle' :
@@ -395,7 +395,7 @@
 										(click)="openEditBacklog(item)"
 										title="Add to my Backlog"
 									>
-										<span class="material-icons text-sm">add</span>
+										<span aria-hidden="true" class="material-icons text-sm">add</span>
 										Add to my Backlog
 									</button>
 								}
@@ -413,7 +413,7 @@
 									title="Edit your backlog"
 									(click)="openEditBacklog(item)"
 								>
-									<span class="material-icons text-sm">
+									<span aria-hidden="true" class="material-icons text-sm">
 										{{
 											item.backlogStatus === 'completed' ? 'check_circle' :
 											item.backlogStatus === 'playing' ? 'play_circle' :
@@ -430,7 +430,7 @@
 									(click)="openBacklogModal(item)"
 									title="Add to Backlog"
 								>
-									<span class="material-icons text-sm">add</span>
+									<span aria-hidden="true" class="material-icons text-sm">add</span>
 									Add to Backlog
 								</button>
 							}
@@ -459,7 +459,7 @@
 								(click)="moveUp(i)"
 								title="Move up"
 							>
-								<span class="material-icons text-lg">keyboard_arrow_up</span>
+								<span aria-hidden="true" class="material-icons text-lg">keyboard_arrow_up</span>
 							</button>
 							<button
 								uiIconButton size="sm"
@@ -467,14 +467,14 @@
 								(click)="moveDown(i)"
 								title="Move down"
 							>
-								<span class="material-icons text-lg">keyboard_arrow_down</span>
+								<span aria-hidden="true" class="material-icons text-lg">keyboard_arrow_down</span>
 							</button>
 							<button
 								uiIconButton size="sm" tone="danger"
 								(click)="removeItem(item)"
 								title="Remove"
 							>
-								<span class="material-icons text-lg">close</span>
+								<span aria-hidden="true" class="material-icons text-lg">close</span>
 							</button>
 						</div>
 					}

@@ -165,7 +165,7 @@
 									(click)="goToGameReport(game.id)"
 									title="View report"
 								>
-									<span class="material-icons text-base">flag</span>
+									<span aria-hidden="true" class="material-icons text-base">flag</span>
 								</button>
 							}
 							@if (game.isActive === false) {
@@ -175,7 +175,7 @@
 									[disabled]="isReactivating(game.id)"
 									title="Reactivate game"
 								>
-									<span class="material-icons text-base">restore_from_trash</span>
+									<span aria-hidden="true" class="material-icons text-base">restore_from_trash</span>
 								</button>
 							}
 						</div>

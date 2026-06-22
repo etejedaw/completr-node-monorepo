@@ -6,10 +6,13 @@
 		class="bg-sidebar border border-line rounded-card p-6 w-full max-w-sm max-h-[70vh] flex flex-col"
 		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
 		(click)="$event.stopPropagation()"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="user-list-modal-title"
 	>
 		<div class="flex justify-between items-center mb-4">
-			<h2 class="font-display text-lg font-bold m-0">{{ title() }}</h2>
-			<button uiIconButton size="sm" (click)="closed.emit()">&times;</button>
+			<h2 id="user-list-modal-title" class="font-display text-lg font-bold m-0">{{ title() }}</h2>
+			<button uiIconButton size="sm" aria-label="Close" (click)="closed.emit()">&times;</button>
 		</div>
 
 		@if (users().length === 0) {

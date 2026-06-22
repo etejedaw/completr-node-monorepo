@@ -3,10 +3,13 @@
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[500px] max-h-[80vh] flex flex-col"
 		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
 		(click)="$event.stopPropagation()"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="wishlist-add-modal-title"
 	>
 		<div class="flex items-center justify-between mb-4">
-			<h2 class="m-0 text-lg font-bold font-display">Add to Wishlist</h2>
-			<button uiIconButton size="sm" (click)="onClose()">&times;</button>
+			<h2 id="wishlist-add-modal-title" class="m-0 text-lg font-bold font-display">Add to Wishlist</h2>
+			<button uiIconButton size="sm" aria-label="Close" (click)="onClose()">&times;</button>
 		</div>
 
 		@if (!selectedGame()) {
@@ -33,7 +36,7 @@
 			<li class="flex items-center justify-between py-2 border-b border-line">
 				<div class="flex items-center gap-2.5 min-w-0">
 					@if (game.backgroundUrl) {
-					<img [src]="game.backgroundUrl" class="w-8 h-[42px] object-cover rounded-sm shrink-0" loading="lazy" />
+					<img alt="" [src]="game.backgroundUrl" class="w-8 h-[42px] object-cover rounded-sm shrink-0" loading="lazy" />
 					}
 					<div class="flex flex-col min-w-0">
 						<span class="text-[0.8125rem] font-medium truncate">{{ game.title }}</span>
@@ -52,7 +55,7 @@
 		} @else {
 			<div class="mb-3 flex items-center gap-2.5">
 				@if (selectedGame()!.backgroundUrl) {
-					<img [src]="selectedGame()!.backgroundUrl" class="w-10 h-[52px] object-cover rounded-sm shrink-0" loading="lazy" />
+					<img alt="" [src]="selectedGame()!.backgroundUrl" class="w-10 h-[52px] object-cover rounded-sm shrink-0" loading="lazy" />
 				}
 				<div class="flex flex-col min-w-0 flex-1">
 					<span class="text-sm font-semibold truncate">{{ selectedGame()!.title }}</span>

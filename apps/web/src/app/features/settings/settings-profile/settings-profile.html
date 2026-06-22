@@ -55,7 +55,7 @@
 							<img [src]="url" alt="Avatar option" class="w-full h-full object-cover" loading="lazy" />
 							@if (avatarUrl() === url) {
 								<span class="absolute bottom-1 right-1 flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white">
-									<span class="material-icons text-sm">check</span>
+									<span aria-hidden="true" class="material-icons text-sm">check</span>
 								</span>
 							}
 						</button>

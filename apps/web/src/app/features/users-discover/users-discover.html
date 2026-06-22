@@ -31,7 +31,7 @@
 								<div class="text-[0.8125rem] text-fg-muted truncate">{{ '@' + user.username }}</div>
 							</div>
 							@if (user.profileVisibility !== 'public') {
-								<span class="material-icons text-fg-muted text-base shrink-0" title="Private profile">lock</span>
+								<span aria-hidden="true" class="material-icons text-fg-muted text-base shrink-0" title="Private profile">lock</span>
 							}
 						</a>
 					}

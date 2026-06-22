@@ -13,7 +13,7 @@
 					[class.border-line]="mode() !== 'custom'"
 					(click)="selectPreset('custom')"
 				>
-					<span class="material-icons text-2xl" [class.text-brand]="mode() === 'custom'" [class.text-fg-muted]="mode() !== 'custom'">tune</span>
+					<span aria-hidden="true" class="material-icons text-2xl" [class.text-brand]="mode() === 'custom'" [class.text-fg-muted]="mode() !== 'custom'">tune</span>
 					<span class="block text-sm font-semibold text-fg">Custom</span>
 					<span class="block text-[0.6875rem] text-fg-muted leading-tight">Pick each section's level.</span>
 				</button>
@@ -26,7 +26,7 @@
 					[class.border-line]="mode() !== 'private'"
 					(click)="selectPreset('private')"
 				>
-					<span class="material-icons text-2xl" [class.text-brand]="mode() === 'private'" [class.text-fg-muted]="mode() !== 'private'">lock</span>
+					<span aria-hidden="true" class="material-icons text-2xl" [class.text-brand]="mode() === 'private'" [class.text-fg-muted]="mode() !== 'private'">lock</span>
 					<span class="block text-sm font-semibold text-fg">Private</span>
 					<span class="block text-[0.6875rem] text-fg-muted leading-tight">Only you can see your profile.</span>
 				</button>
@@ -39,7 +39,7 @@
 					[class.border-line]="mode() !== 'friends'"
 					(click)="selectPreset('friends')"
 				>
-					<span class="material-icons text-2xl" [class.text-brand]="mode() === 'friends'" [class.text-fg-muted]="mode() !== 'friends'">group</span>
+					<span aria-hidden="true" class="material-icons text-2xl" [class.text-brand]="mode() === 'friends'" [class.text-fg-muted]="mode() !== 'friends'">group</span>
 					<span class="block text-sm font-semibold text-fg">Friends</span>
 					<span class="block text-[0.6875rem] text-fg-muted leading-tight">Only mutual followers can see your profile.</span>
 				</button>
@@ -52,7 +52,7 @@
 					[class.border-line]="mode() !== 'open'"
 					(click)="selectPreset('open')"
 				>
-					<span class="material-icons text-2xl" [class.text-brand]="mode() === 'open'" [class.text-fg-muted]="mode() !== 'open'">public</span>
+					<span aria-hidden="true" class="material-icons text-2xl" [class.text-brand]="mode() === 'open'" [class.text-fg-muted]="mode() !== 'open'">public</span>
 					<span class="block text-sm font-semibold text-fg">Open</span>
 					<span class="block text-[0.6875rem] text-fg-muted leading-tight">Everyone can see your profile.</span>
 				</button>
@@ -62,15 +62,15 @@
 				<div class="flex flex-col gap-5 pt-2 border-t border-line">
 					<div class="flex flex-col gap-2 p-3 bg-input-bg/40 border border-line rounded-card">
 						<div class="flex items-start gap-2 text-xs text-fg-muted">
-							<span class="material-icons text-sm text-fg-muted shrink-0 mt-px">lock</span>
+							<span aria-hidden="true" class="material-icons text-sm text-fg-muted shrink-0 mt-px">lock</span>
 							<span><strong class="text-fg">Only you</strong> — hidden from everyone else, even followers.</span>
 						</div>
 						<div class="flex items-start gap-2 text-xs text-fg-muted">
-							<span class="material-icons text-sm text-fg-muted shrink-0 mt-px">group</span>
+							<span aria-hidden="true" class="material-icons text-sm text-fg-muted shrink-0 mt-px">group</span>
 							<span><strong class="text-fg">Friends</strong> — visible only when you follow each other (mutual follow).</span>
 						</div>
 						<div class="flex items-start gap-2 text-xs text-fg-muted">
-							<span class="material-icons text-sm text-fg-muted shrink-0 mt-px">public</span>
+							<span aria-hidden="true" class="material-icons text-sm text-fg-muted shrink-0 mt-px">public</span>
 							<span><strong class="text-fg">Everyone</strong> — visible to any logged-in or anonymous visitor.</span>
 						</div>
 					</div>
@@ -92,7 +92,7 @@
 									[class.!text-white]="profileVisibility() === 'private'"
 									(click)="setProfileVisibility('private')"
 								>
-									<span class="material-icons text-sm">lock</span>
+									<span aria-hidden="true" class="material-icons text-sm">lock</span>
 									Only you
 								</button>
 								<button
@@ -105,7 +105,7 @@
 									[class.!text-white]="profileVisibility() === 'friends'"
 									(click)="setProfileVisibility('friends')"
 								>
-									<span class="material-icons text-sm">group</span>
+									<span aria-hidden="true" class="material-icons text-sm">group</span>
 									Friends
 								</button>
 								<button
@@ -118,7 +118,7 @@
 									[class.!text-white]="profileVisibility() === 'public'"
 									(click)="setProfileVisibility('public')"
 								>
-									<span class="material-icons text-sm">public</span>
+									<span aria-hidden="true" class="material-icons text-sm">public</span>
 									Everyone
 								</button>
 							</div>
@@ -147,7 +147,7 @@
 										[class.!text-white]="getSection(section.key) === 'private'"
 										(click)="setSection(section.key, 'private')"
 									>
-										<span class="material-icons text-sm">lock</span>
+										<span aria-hidden="true" class="material-icons text-sm">lock</span>
 										Only you
 									</button>
 									<button
@@ -160,7 +160,7 @@
 										[class.!text-white]="getSection(section.key) === 'friends'"
 										(click)="setSection(section.key, 'friends')"
 									>
-										<span class="material-icons text-sm">group</span>
+										<span aria-hidden="true" class="material-icons text-sm">group</span>
 										Friends
 									</button>
 									<button
@@ -173,7 +173,7 @@
 										[class.!text-white]="getSection(section.key) === 'public'"
 										(click)="setSection(section.key, 'public')"
 									>
-										<span class="material-icons text-sm">public</span>
+										<span aria-hidden="true" class="material-icons text-sm">public</span>
 										Everyone
 									</button>
 								</div>
@@ -200,7 +200,7 @@
 										[class.!text-white]="getSection(section.key) === 'private'"
 										(click)="setSection(section.key, 'private')"
 									>
-										<span class="material-icons text-sm">lock</span>
+										<span aria-hidden="true" class="material-icons text-sm">lock</span>
 										Only you
 									</button>
 									<button
@@ -213,7 +213,7 @@
 										[class.!text-white]="getSection(section.key) === 'friends'"
 										(click)="setSection(section.key, 'friends')"
 									>
-										<span class="material-icons text-sm">group</span>
+										<span aria-hidden="true" class="material-icons text-sm">group</span>
 										Friends
 									</button>
 									<button
@@ -226,7 +226,7 @@
 										[class.!text-white]="getSection(section.key) === 'public'"
 										(click)="setSection(section.key, 'public')"
 									>
-										<span class="material-icons text-sm">public</span>
+										<span aria-hidden="true" class="material-icons text-sm">public</span>
 										Everyone
 									</button>
 								</div>
@@ -253,7 +253,7 @@
 										[class.!text-white]="getSection(section.key) === 'private'"
 										(click)="setSection(section.key, 'private')"
 									>
-										<span class="material-icons text-sm">lock</span>
+										<span aria-hidden="true" class="material-icons text-sm">lock</span>
 										Only you
 									</button>
 									<button
@@ -266,7 +266,7 @@
 										[class.!text-white]="getSection(section.key) === 'friends'"
 										(click)="setSection(section.key, 'friends')"
 									>
-										<span class="material-icons text-sm">group</span>
+										<span aria-hidden="true" class="material-icons text-sm">group</span>
 										Friends
 									</button>
 									<button
@@ -279,7 +279,7 @@
 										[class.!text-white]="getSection(section.key) === 'public'"
 										(click)="setSection(section.key, 'public')"
 									>
-										<span class="material-icons text-sm">public</span>
+										<span aria-hidden="true" class="material-icons text-sm">public</span>
 										Everyone
 									</button>
 								</div>

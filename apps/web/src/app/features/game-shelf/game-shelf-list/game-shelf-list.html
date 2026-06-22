@@ -19,7 +19,7 @@
 			(click)="setViewMode('grid')"
 			title="Grid view"
 		>
-			<span class="material-icons text-base">grid_view</span>
+			<span aria-hidden="true" class="material-icons text-base">grid_view</span>
 			Grid
 		</button>
 		<button
@@ -29,7 +29,7 @@
 			(click)="setViewMode('table')"
 			title="Hardcore (table) view"
 		>
-			<span class="material-icons text-base">table_rows</span>
+			<span aria-hidden="true" class="material-icons text-base">table_rows</span>
 			Hardcore
 		</button>
 	</div>
@@ -140,7 +140,7 @@
 									(click)="toggleFavorite(entry.game.id); $event.stopPropagation()"
 									[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
 								>
-									<span class="material-icons text-base leading-none">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
+									<span aria-hidden="true" class="material-icons text-base leading-none">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
 								</button>
 							</td>
 						</tr>

@@ -2,7 +2,7 @@
 	<div class="mb-6 flex items-start gap-4">
 		<span class="flex items-center justify-center w-12 h-12 rounded-2xl text-white shrink-0"
 			style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 10px 24px -8px var(--color-brand-glow);">
-			<span class="material-icons text-[1.5rem]">menu_book</span>
+			<span aria-hidden="true" class="material-icons text-[1.5rem]">menu_book</span>
 		</span>
 		<div class="flex-1 min-w-0">
 			<h1 class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight">Help & Guide</h1>
@@ -13,7 +13,7 @@
 
 	<div class="mb-6 flex items-center gap-3 p-3 rounded-card bg-brand-subtle/50 border border-brand/20">
 		<span class="flex items-center justify-center w-9 h-9 rounded-lg bg-brand text-white shrink-0">
-			<span class="material-icons text-[1.125rem]">tour</span>
+			<span aria-hidden="true" class="material-icons text-[1.125rem]">tour</span>
 		</span>
 		<div class="flex-1 min-w-0">
 			<div class="text-sm font-semibold text-fg">Prefer a 30-second overview?</div>
@@ -48,7 +48,7 @@
 							[class.bg-input-bg]="i !== step()"
 							[class.text-fg-muted]="i !== step()"
 						>
-							<span class="material-icons text-base">{{ s.icon }}</span>
+							<span aria-hidden="true" class="material-icons text-base">{{ s.icon }}</span>
 						</span>
 						<div class="min-w-0">
 							<div class="text-[0.8125rem] font-semibold leading-tight"
@@ -73,7 +73,7 @@
 		@switch (current()) {
 			@case ('backlog') {
 				<div class="flex items-center gap-3 mb-3">
-					<span class="material-icons text-3xl text-brand">list_alt</span>
+					<span aria-hidden="true" class="material-icons text-3xl text-brand">list_alt</span>
 					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">My Games (Backlog)</h2>
 				</div>
 				<p class="text-fg-secondary leading-relaxed text-sm mb-5">
@@ -88,7 +88,7 @@
 						<div class="flex items-center gap-2 flex-wrap">
 							<span class="text-base sm:text-lg font-semibold text-fg line-clamp-1">Florence</span>
 							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line">
-								<span class="material-icons text-[0.75rem]">schedule</span>
+								<span aria-hidden="true" class="material-icons text-[0.75rem]">schedule</span>
 								Real 1.2h
 							</span>
 						</div>
@@ -102,13 +102,13 @@
 						</div>
 						<div class="flex items-center gap-2">
 							<div class="flex gap-0.5 text-warning">
-								<span class="material-icons text-base">star</span>
-								<span class="material-icons text-base">star</span>
-								<span class="material-icons text-base">star</span>
-								<span class="material-icons text-base">star</span>
-								<span class="material-icons text-base">star_half</span>
+								<span aria-hidden="true" class="material-icons text-base">star</span>
+								<span aria-hidden="true" class="material-icons text-base">star</span>
+								<span aria-hidden="true" class="material-icons text-base">star</span>
+								<span aria-hidden="true" class="material-icons text-base">star</span>
+								<span aria-hidden="true" class="material-icons text-base">star_half</span>
 							</div>
-							<span class="material-icons text-base text-brand" title="You reviewed this game">rate_review</span>
+							<span aria-hidden="true" class="material-icons text-base text-brand" title="You reviewed this game">rate_review</span>
 						</div>
 						<p class="text-xs text-fg-muted line-clamp-2 leading-snug m-0 mt-auto">A heartfelt vignette about love — finished in one sitting.</p>
 					</div>
@@ -119,14 +119,14 @@
 						</div>
 					</div>
 					<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center" title="Add to Queue">
-						<span class="material-icons text-lg leading-none">playlist_play</span>
+						<span aria-hidden="true" class="material-icons text-lg leading-none">playlist_play</span>
 					</button>
 				</div>
 			}
 
 			@case ('ratio') {
 				<div class="flex items-center gap-3 mb-3">
-					<span class="material-icons text-3xl text-brand">trending_up</span>
+					<span aria-hidden="true" class="material-icons text-3xl text-brand">trending_up</span>
 					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Ratio & Personal Ratio</h2>
 				</div>
 				<p class="text-fg-secondary leading-relaxed text-sm mb-3">
@@ -154,7 +154,7 @@
 
 				<div class="bg-brand/5 border border-brand/30 rounded-card p-3">
 					<div class="flex items-center gap-2 mb-1.5">
-						<span class="material-icons text-base text-brand">tips_and_updates</span>
+						<span aria-hidden="true" class="material-icons text-base text-brand">tips_and_updates</span>
 						<strong class="text-sm">Personal Ratio</strong>
 					</div>
 					<p class="text-[0.8125rem] text-fg-secondary leading-relaxed">
@@ -168,7 +168,7 @@
 
 			@case ('scores') {
 				<div class="flex items-center gap-3 mb-3">
-					<span class="material-icons text-3xl text-brand">leaderboard</span>
+					<span aria-hidden="true" class="material-icons text-3xl text-brand">leaderboard</span>
 					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Aggregate vs Completr Score</h2>
 				</div>
 				<p class="text-fg-secondary leading-relaxed text-sm mb-5">
@@ -178,7 +178,7 @@
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<div class="relative rounded-card p-4 border-2 border-dashed border-info/60 overflow-hidden" style="background: linear-gradient(160deg, rgba(56, 189, 248, 0.08), transparent 60%), var(--color-surface);">
 						<div class="flex items-center gap-2 mb-3">
-							<span class="material-icons text-info text-base">auto_awesome</span>
+							<span aria-hidden="true" class="material-icons text-info text-base">auto_awesome</span>
 							<span class="text-[0.625rem] font-bold uppercase tracking-wider text-info">Aggregate Score</span>
 						</div>
 						<div class="flex items-baseline gap-2 mb-1">
@@ -212,11 +212,11 @@
 							<div class="flex items-center justify-between">
 								<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Rating</span>
 								<div class="flex gap-0.5 text-warning">
-									<span class="material-icons text-sm">star</span>
-									<span class="material-icons text-sm">star</span>
-									<span class="material-icons text-sm">star</span>
-									<span class="material-icons text-sm">star</span>
-									<span class="material-icons text-sm">star_half</span>
+									<span aria-hidden="true" class="material-icons text-sm">star</span>
+									<span aria-hidden="true" class="material-icons text-sm">star</span>
+									<span aria-hidden="true" class="material-icons text-sm">star</span>
+									<span aria-hidden="true" class="material-icons text-sm">star</span>
+									<span aria-hidden="true" class="material-icons text-sm">star_half</span>
 								</div>
 							</div>
 							<div class="flex items-center justify-between">
@@ -234,7 +234,7 @@
 
 			@case ('statuses') {
 				<div class="flex items-center gap-3 mb-3">
-					<span class="material-icons text-3xl text-brand">flag</span>
+					<span aria-hidden="true" class="material-icons text-3xl text-brand">flag</span>
 					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Statuses</h2>
 				</div>
 				<p class="text-fg-secondary leading-relaxed text-sm mb-5">
@@ -244,28 +244,28 @@
 				<div class="flex flex-col gap-2">
 					<div class="bg-input-bg border border-line rounded-card p-3 flex items-center gap-3">
 						<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-fg-muted/10 text-fg-muted shrink-0">
-							<span class="material-icons text-[0.75rem]">radio_button_unchecked</span>
+							<span aria-hidden="true" class="material-icons text-[0.75rem]">radio_button_unchecked</span>
 							Not started
 						</span>
 						<span class="text-[0.75rem] text-fg-secondary">You own it, haven't played yet.</span>
 					</div>
 					<div class="bg-input-bg border border-line rounded-card p-3 flex items-center gap-3">
 						<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning shrink-0">
-							<span class="material-icons text-[0.75rem]">play_arrow</span>
+							<span aria-hidden="true" class="material-icons text-[0.75rem]">play_arrow</span>
 							Playing
 						</span>
 						<span class="text-[0.75rem] text-fg-secondary">Currently in progress.</span>
 					</div>
 					<div class="bg-input-bg border border-line rounded-card p-3 flex items-center gap-3">
 						<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-success/10 text-success shrink-0">
-							<span class="material-icons text-[0.75rem]">check_circle</span>
+							<span aria-hidden="true" class="material-icons text-[0.75rem]">check_circle</span>
 							Completed
 						</span>
 						<span class="text-[0.75rem] text-fg-secondary">Finished. Unlocks Personal Ratio and reviews.</span>
 					</div>
 					<div class="bg-input-bg border border-line rounded-card p-3 flex items-center gap-3">
 						<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-danger/10 text-danger shrink-0">
-							<span class="material-icons text-[0.75rem]">cancel</span>
+							<span aria-hidden="true" class="material-icons text-[0.75rem]">cancel</span>
 							Abandoned
 						</span>
 						<span class="text-[0.75rem] text-fg-secondary">Dropped, won't finish it.</span>
@@ -275,7 +275,7 @@
 
 			@case ('modules') {
 				<div class="flex items-center gap-3 mb-3">
-					<span class="material-icons text-3xl text-brand">apps</span>
+					<span aria-hidden="true" class="material-icons text-3xl text-brand">apps</span>
 					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Your collection modules</h2>
 				</div>
 				<p class="text-fg-secondary leading-relaxed text-sm mb-5">
@@ -285,7 +285,7 @@
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 					<div class="bg-input-bg border border-line rounded-card p-4">
 						<div class="flex items-center gap-2 mb-2">
-							<span class="material-icons text-brand">shelves</span>
+							<span aria-hidden="true" class="material-icons text-brand">shelves</span>
 							<strong class="text-sm">My Shelf (Game Shelf)</strong>
 						</div>
 						<p class="text-[0.75rem] text-fg-secondary leading-snug">
@@ -294,7 +294,7 @@
 					</div>
 					<div class="bg-input-bg border border-line rounded-card p-4">
 						<div class="flex items-center gap-2 mb-2">
-							<span class="material-icons text-brand">playlist_play</span>
+							<span aria-hidden="true" class="material-icons text-brand">playlist_play</span>
 							<strong class="text-sm">Up Next (Queue)</strong>
 						</div>
 						<p class="text-[0.75rem] text-fg-secondary leading-snug">
@@ -303,7 +303,7 @@
 					</div>
 					<div class="bg-input-bg border border-line rounded-card p-4">
 						<div class="flex items-center gap-2 mb-2">
-							<span class="material-icons text-danger">favorite_border</span>
+							<span aria-hidden="true" class="material-icons text-danger">favorite_border</span>
 							<strong class="text-sm">Want to Get (Wishlist)</strong>
 						</div>
 						<p class="text-[0.75rem] text-fg-secondary leading-snug">
@@ -312,7 +312,7 @@
 					</div>
 					<div class="bg-input-bg border border-line rounded-card p-4">
 						<div class="flex items-center gap-2 mb-2">
-							<span class="material-icons text-warning">star</span>
+							<span aria-hidden="true" class="material-icons text-warning">star</span>
 							<strong class="text-sm">Favorites</strong>
 						</div>
 						<p class="text-[0.75rem] text-fg-secondary leading-snug">
@@ -321,7 +321,7 @@
 					</div>
 					<div class="bg-input-bg border border-line rounded-card p-4 sm:col-span-2">
 						<div class="flex items-center gap-2 mb-2">
-							<span class="material-icons text-brand">format_list_bulleted</span>
+							<span aria-hidden="true" class="material-icons text-brand">format_list_bulleted</span>
 							<strong class="text-sm">Lists</strong>
 						</div>
 						<p class="text-[0.75rem] text-fg-secondary leading-snug">
@@ -333,7 +333,7 @@
 
 			@case ('saved-views') {
 				<div class="flex items-center gap-3 mb-3">
-					<span class="material-icons text-3xl text-brand">bookmark</span>
+					<span aria-hidden="true" class="material-icons text-3xl text-brand">bookmark</span>
 					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Saved Views</h2>
 				</div>
 				<p class="text-fg-secondary leading-relaxed text-sm mb-4">
@@ -346,19 +346,19 @@
 							<div class="flex items-center gap-2 min-w-0 flex-1">
 								<h3 class="font-display m-0 text-sm font-semibold text-fg line-clamp-1">Playing on Steam</h3>
 								<span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/15 text-warning">
-									<span class="material-icons text-[0.75rem]">star</span>
+									<span aria-hidden="true" class="material-icons text-[0.75rem]">star</span>
 									Default
 								</span>
 							</div>
-							<span class="material-icons text-base text-fg-muted">edit</span>
+							<span aria-hidden="true" class="material-icons text-base text-fg-muted">edit</span>
 						</div>
 						<div class="flex flex-wrap gap-1.5 mt-auto">
 							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-warning/10 text-warning">
-								<span class="material-icons text-[0.875rem]">play_arrow</span>
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">play_arrow</span>
 								Playing
 							</span>
 							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-input-bg border border-line text-fg-secondary">
-								<span class="material-icons text-[0.875rem]">devices</span>
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">devices</span>
 								PC
 							</span>
 						</div>
@@ -369,19 +369,19 @@
 							<div class="flex items-center gap-2 min-w-0 flex-1">
 								<h3 class="font-display m-0 text-sm font-semibold text-fg line-clamp-1">Completed in 2025</h3>
 								<span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand-subtle text-brand">
-									<span class="material-icons text-[0.75rem]">push_pin</span>
+									<span aria-hidden="true" class="material-icons text-[0.75rem]">push_pin</span>
 									Pinned
 								</span>
 							</div>
-							<span class="material-icons text-base text-fg-muted">edit</span>
+							<span aria-hidden="true" class="material-icons text-base text-fg-muted">edit</span>
 						</div>
 						<div class="flex flex-wrap gap-1.5 mt-auto">
 							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-success/10 text-success">
-								<span class="material-icons text-[0.875rem]">check_circle</span>
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">check_circle</span>
 								Completed
 							</span>
 							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-input-bg border border-line text-fg-secondary">
-								<span class="material-icons text-[0.875rem]">event</span>
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">event</span>
 								2025
 							</span>
 						</div>
@@ -390,12 +390,12 @@
 
 				<div class="bg-brand/5 border border-brand/30 rounded-card p-3">
 					<div class="flex items-center gap-2 mb-1">
-						<span class="material-icons text-base text-warning">star</span>
+						<span aria-hidden="true" class="material-icons text-base text-warning">star</span>
 						<strong class="text-sm">Default</strong>
 						<span class="text-fg-muted text-xs">— opens automatically when you visit /backlog.</span>
 					</div>
 					<div class="flex items-center gap-2 mt-1.5">
-						<span class="material-icons text-base text-brand">push_pin</span>
+						<span aria-hidden="true" class="material-icons text-base text-brand">push_pin</span>
 						<strong class="text-sm">Pinned</strong>
 						<span class="text-fg-muted text-xs">— shown as a tab on the backlog page for one-click switching.</span>
 					</div>
@@ -404,7 +404,7 @@
 
 			@case ('privacy') {
 				<div class="flex items-center gap-3 mb-3">
-					<span class="material-icons text-3xl text-brand">shield</span>
+					<span aria-hidden="true" class="material-icons text-3xl text-brand">shield</span>
 					<h2 class="font-display text-xl md:text-2xl font-bold tracking-tight m-0">Privacy</h2>
 				</div>
 				<p class="text-fg-secondary leading-relaxed text-sm mb-5">
@@ -437,7 +437,7 @@
 			(click)="prev()"
 			[disabled]="!canPrev()"
 		>
-			<span class="material-icons text-base">chevron_left</span>
+			<span aria-hidden="true" class="material-icons text-base">chevron_left</span>
 			Previous
 		</button>
 
@@ -450,7 +450,7 @@
 				(click)="next()"
 			>
 				Next
-				<span class="material-icons text-base">chevron_right</span>
+				<span aria-hidden="true" class="material-icons text-base">chevron_right</span>
 			</button>
 		} @else {
 			<a
@@ -458,7 +458,7 @@
 				class="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium bg-success text-white no-underline transition hover:opacity-90"
 			>
 				Done
-				<span class="material-icons text-base">check</span>
+				<span aria-hidden="true" class="material-icons text-base">check</span>
 			</a>
 		}
 	</div>
@@ -466,7 +466,7 @@
 	<div class="mt-8 flex items-center justify-center gap-3 text-xs text-fg-muted">
 		<span>Want the technical details?</span>
 		<a routerLink="/about" class="text-brand no-underline hover:underline inline-flex items-center gap-1">
-			<span class="material-icons text-sm">info_outline</span>
+			<span aria-hidden="true" class="material-icons text-sm">info_outline</span>
 			About Completr
 		</a>
 	</div>

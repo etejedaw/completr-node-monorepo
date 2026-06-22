@@ -55,7 +55,7 @@
 							[attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
 							[title]="showPassword() ? 'Hide password' : 'Show password'"
 						>
-							<span class="material-icons text-base">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+							<span aria-hidden="true" class="material-icons text-base">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
 						</button>
 					</div>
 				</div>

@@ -4,7 +4,7 @@
 		class="pointer-events-auto flex items-start gap-2.5 px-3.5 py-2.5 rounded-md border backdrop-blur-md shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] max-w-[380px] w-[calc(100vw-2rem)] data-[swipe-direction=right]:translate-x-[var(--ngp-toast-swipe-amount-x)] data-[swipe-direction=left]:translate-x-[var(--ngp-toast-swipe-amount-x)] data-[swipe-direction=down]:translate-y-[var(--ngp-toast-swipe-amount-y)] transition-transform"
 		[class]="classesFor(t.variant)"
 	>
-		<span class="material-icons text-base mt-0.5">{{ iconFor(t.variant) }}</span>
+		<span aria-hidden="true" class="material-icons text-base mt-0.5">{{ iconFor(t.variant) }}</span>
 		<span class="flex-1 text-[0.8125rem] leading-snug text-fg">{{ t.message }}</span>
 		@if (t.undoLabel) {
 			<button
@@ -33,7 +33,7 @@
 			(click)="t.onDismiss?.()"
 			aria-label="Dismiss"
 		>
-			<span class="material-icons text-base">close</span>
+			<span aria-hidden="true" class="material-icons text-base">close</span>
 		</button>
 	</div>
 </ng-template>

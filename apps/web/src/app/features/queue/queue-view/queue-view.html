@@ -58,7 +58,7 @@
 				(click)="saveCurrentOrder()"
 				title="Persist this order as the new manual priority"
 			>
-				<span class="material-icons text-sm">save</span>
+				<span aria-hidden="true" class="material-icons text-sm">save</span>
 				{{ savingOrder() ? 'Saving...' : 'Save this order' }}
 			</button>
 		}

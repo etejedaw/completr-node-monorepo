@@ -57,7 +57,7 @@
 							(click)="$event.preventDefault(); $event.stopPropagation(); remove(entry)"
 							title="Remove"
 						>
-							<span class="material-icons text-base">close</span>
+							<span aria-hidden="true" class="material-icons text-base">close</span>
 						</button>
 						<button
 							class="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 cursor-pointer border-0 flex items-center justify-center transition"
@@ -66,7 +66,7 @@
 							(click)="toggleFavorite(entry.game.id, $event)"
 							[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
 						>
-							<span class="material-icons text-[1.125rem]">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
+							<span aria-hidden="true" class="material-icons text-[1.125rem]">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
 						</button>
 					</a>
 					<a class="text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand" [routerLink]="['/games', entry.game.code]">{{ entry.game.title }}</a>

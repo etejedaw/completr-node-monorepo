@@ -3,10 +3,13 @@
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
 		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
 		(click)="$event.stopPropagation()"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="shelf-modal-title"
 	>
 		<div class="flex items-center justify-between mb-5">
-			<h2 class="m-0 text-lg font-bold font-display">{{ isEdit() ? (viewMode() === 'summary' ? entry()!.game.title : "Edit Entry") : "Add to Shelf" }}</h2>
-			<button uiIconButton size="sm" (click)="onClose()">&times;</button>
+			<h2 id="shelf-modal-title" class="m-0 text-lg font-bold font-display">{{ isEdit() ? (viewMode() === 'summary' ? entry()!.game.title : "Edit Entry") : "Add to Shelf" }}</h2>
+			<button uiIconButton size="sm" aria-label="Close" (click)="onClose()">&times;</button>
 		</div>
 
 		@if (error()) {
@@ -50,7 +53,7 @@
 			<div class="flex justify-end gap-2 mt-5 pt-4 border-t border-line">
 				<button uiButton variant="ghost" type="button" (click)="onClose()">Close</button>
 				<button uiButton variant="primary" type="button" (click)="switchToEdit()">
-					<span class="material-icons text-base mr-1">edit</span>
+					<span aria-hidden="true" class="material-icons text-base mr-1">edit</span>
 					Edit
 				</button>
 			</div>
@@ -94,7 +97,7 @@
 				<div class="mt-1 px-3 py-2.5 text-[0.8125rem] text-fg-muted bg-input-bg border border-line rounded-md">Searching...</div>
 				} @if (isSearchingOnline()) {
 				<div class="mt-1 px-3 py-2.5 text-[0.8125rem] text-brand bg-input-bg border border-line rounded-md flex items-center gap-2">
-					<span class="material-icons text-base animate-spin">autorenew</span>
+					<span aria-hidden="true" class="material-icons text-base animate-spin">autorenew</span>
 					Searching online...
 				</div>
 				} @if (gameResults().length > 0 || (!isSearching() && !isSearchingOnline() &&
@@ -106,12 +109,12 @@
 						(click)="selectGame(game)"
 					>
 						@if (game.backgroundUrl) {
-						<img [src]="game.backgroundUrl" class="w-7 h-[38px] object-cover rounded-sm shrink-0" loading="lazy" />
+						<img alt="" [src]="game.backgroundUrl" class="w-7 h-[38px] object-cover rounded-sm shrink-0" loading="lazy" />
 						}
 						<span class="flex-1">{{ game.title }}</span>
 						@if (game.justImported) {
 						<span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/15 text-info text-[0.65rem] font-semibold uppercase tracking-wider rounded" title="Just imported from RAWG">
-							<span class="material-icons text-[0.75rem]">cloud_download</span>
+							<span aria-hidden="true" class="material-icons text-[0.75rem]">cloud_download</span>
 							RAWG
 						</span>
 						}

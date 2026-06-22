@@ -1,6 +1,6 @@
 <div class="max-w-3xl mx-auto p-6 lg:p-8 max-md:px-4">
 	<a class="inline-flex items-center gap-1.5 text-fg-muted no-underline text-[0.8125rem] mb-5 hover:text-brand" [routerLink]="['/user', username()]">
-		<span class="material-icons text-base">arrow_back</span>
+		<span aria-hidden="true" class="material-icons text-base">arrow_back</span>
 		{{ '@' + username() }}'s profile
 	</a>
 
@@ -23,7 +23,7 @@
 				@for (c of completions(); track c.id) {
 					<li class="relative pl-6 pb-6 last:pb-0">
 						<span class="absolute -left-[13px] top-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface border border-line">
-							<span class="material-icons text-sm text-success">check_circle</span>
+							<span aria-hidden="true" class="material-icons text-sm text-success">check_circle</span>
 						</span>
 						<div class="flex gap-4">
 							<a [routerLink]="['/games', c.game.code]" class="shrink-0">
@@ -43,13 +43,13 @@
 								<div class="flex items-center gap-x-3 gap-y-1 text-[0.6875rem] text-fg-muted flex-wrap">
 									@if (c.finishedAt) {
 										<span class="inline-flex items-center gap-1">
-											<span class="material-icons text-[0.875rem]">event</span>
+											<span aria-hidden="true" class="material-icons text-[0.875rem]">event</span>
 											{{ c.finishedAt }}
 										</span>
 									}
 									@if (c.realDuration != null) {
 										<span class="inline-flex items-center gap-1">
-											<span class="material-icons text-[0.875rem]">schedule</span>
+											<span aria-hidden="true" class="material-icons text-[0.875rem]">schedule</span>
 											{{ c.realDuration }}h
 										</span>
 									}

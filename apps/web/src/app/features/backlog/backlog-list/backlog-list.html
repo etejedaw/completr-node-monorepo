@@ -19,7 +19,7 @@
 			(click)="setViewMode('diary')"
 			title="Diary view"
 		>
-			<span class="material-icons text-base">view_agenda</span>
+			<span aria-hidden="true" class="material-icons text-base">view_agenda</span>
 			Diary
 		</button>
 		<button
@@ -29,7 +29,7 @@
 			(click)="setViewMode('hardcore')"
 			title="Hardcore (table) view"
 		>
-			<span class="material-icons text-base">table_rows</span>
+			<span aria-hidden="true" class="material-icons text-base">table_rows</span>
 			Hardcore
 		</button>
 	</div>
@@ -56,7 +56,7 @@
 					class="bg-transparent border border-line text-fg-muted px-2.5 py-1.5 rounded text-xs font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1 transition hover:border-danger/50 hover:text-danger"
 					(click)="clearFilters()"
 				>
-					<span class="material-icons text-sm">filter_alt_off</span>
+					<span aria-hidden="true" class="material-icons text-sm">filter_alt_off</span>
 					Clear all
 				</button>
 			}
@@ -71,7 +71,7 @@
 				[class.bg-brand-subtle]="showFilters()"
 				(click)="toggleFilters()"
 			>
-				<span class="material-icons text-base">tune</span>
+				<span aria-hidden="true" class="material-icons text-base">tune</span>
 				Filters
 				@if (activeFiltersCount() > 0) {
 					<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none">{{ activeFiltersCount() }}</span>
@@ -91,14 +91,14 @@
 	>
 		<header class="flex items-center justify-between px-5 py-4 border-b border-line shrink-0">
 			<h2 class="font-display text-lg font-bold m-0 flex items-center gap-2">
-				<span class="material-icons text-brand">tune</span>
+				<span aria-hidden="true" class="material-icons text-brand">tune</span>
 				Filters
 				@if (activeFiltersCount() > 0) {
 					<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none">{{ activeFiltersCount() }}</span>
 				}
 			</h2>
 			<button uiIconButton size="sm" (click)="showFilters.set(false)" aria-label="Close">
-				<span class="material-icons">close</span>
+				<span aria-hidden="true" class="material-icons">close</span>
 			</button>
 		</header>
 
@@ -199,7 +199,7 @@
 					class="w-full bg-transparent border border-line text-fg-secondary text-xs font-semibold uppercase tracking-wider px-3 py-2 rounded cursor-pointer inline-flex items-center justify-center gap-2 transition hover:border-brand hover:text-brand"
 					(click)="toggleAdvancedFilters()"
 				>
-					<span class="material-icons text-base">{{ showAdvancedFilters() ? 'expand_less' : 'expand_more' }}</span>
+					<span aria-hidden="true" class="material-icons text-base">{{ showAdvancedFilters() ? 'expand_less' : 'expand_more' }}</span>
 					Advanced filters
 					@if (!showAdvancedFilters() && hasAdvancedFiltersActive()) {
 						<span class="inline-block w-1.5 h-1.5 rounded-full bg-brand"></span>
@@ -310,7 +310,7 @@
 						(click)="updateCurrentFilter()"
 						[disabled]="savingFilter()"
 					>
-						<span class="material-icons text-base">save</span>
+						<span aria-hidden="true" class="material-icons text-base">save</span>
 						Update current view
 					</button>
 				</section>
@@ -333,7 +333,7 @@
 							[disabled]="savingFilter() || !newFilterName().trim()"
 							title="Save view"
 						>
-							<span class="material-icons text-base">bookmark_add</span>
+							<span aria-hidden="true" class="material-icons text-base">bookmark_add</span>
 						</button>
 					</div>
 				</section>
@@ -346,7 +346,7 @@
 					class="bg-transparent border-0 text-fg-muted text-sm font-medium px-2 py-1.5 cursor-pointer inline-flex items-center gap-1 transition hover:text-danger"
 					(click)="clearFilters()"
 				>
-					<span class="material-icons text-base">filter_alt_off</span>
+					<span aria-hidden="true" class="material-icons text-base">filter_alt_off</span>
 					Clear all
 				</button>
 			} @else {
@@ -426,13 +426,13 @@
 										(click)="$event.stopPropagation()"
 										[title]="'Part of ' + entry.compilationGame.title"
 									>
-										<span class="material-icons text-[0.75rem]">library_books</span>
+										<span aria-hidden="true" class="material-icons text-[0.75rem]">library_books</span>
 										in {{ entry.compilationGame.title }}
 									</a>
 								}
 								@if (entry.realDuration) {
 									<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line">
-										<span class="material-icons text-[0.75rem]">schedule</span>
+										<span aria-hidden="true" class="material-icons text-[0.75rem]">schedule</span>
 										Real {{ entry.realDuration }}h
 									</span>
 								}
@@ -448,9 +448,9 @@
 											[disabled]="isStatusUpdating(entry)"
 											(click)="toggleStatusMenu(entry, $event)"
 										>
-											<span class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
+											<span aria-hidden="true" class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
 											{{ statusLabel(entry.status) }}
-											<span class="material-icons text-[0.875rem]">arrow_drop_down</span>
+											<span aria-hidden="true" class="material-icons text-[0.875rem]">arrow_drop_down</span>
 										</button>
 										@if (statusMenuOpenId() === entry.id) {
 											<div
@@ -464,7 +464,7 @@
 														[disabled]="s.value === entry.status"
 														(click)="selectNewStatus(entry, s.value, $event)"
 													>
-														<span class="material-icons text-sm">{{ statusIcon($any(s.value)) }}</span>
+														<span aria-hidden="true" class="material-icons text-sm">{{ statusIcon($any(s.value)) }}</span>
 														{{ s.label }}
 													</button>
 												}
@@ -473,7 +473,7 @@
 									</div>
 								} @else {
 									<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide" [class]="statusClass(entry.status)">
-										<span class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
+										<span aria-hidden="true" class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
 										{{ statusLabel(entry.status) }}
 									</span>
 								}
@@ -522,7 +522,7 @@
 								<p class="text-xs text-fg-muted line-clamp-2 leading-snug m-0 mt-auto">{{ entry.notes }}</p>
 							} @else if (entry.reviewContent) {
 								<div class="flex items-start gap-1.5 mt-auto text-xs text-fg-muted leading-snug">
-									<span class="material-icons text-[0.875rem] mt-0.5 text-brand">format_quote</span>
+									<span aria-hidden="true" class="material-icons text-[0.875rem] mt-0.5 text-brand">format_quote</span>
 									<p class="m-0 line-clamp-2">{{ entry.reviewContent }}</p>
 								</div>
 							}
@@ -546,7 +546,7 @@
 							(click)="toggleFavorite(entry.game.id, $event)"
 							[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
 						>
-							<span class="material-icons text-lg leading-none">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
+							<span aria-hidden="true" class="material-icons text-lg leading-none">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
 						</button>
 						<button
 							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center transition hover:text-danger"
@@ -554,7 +554,7 @@
 							(click)="toggleQueue(entry); $event.stopPropagation()"
 							[title]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
 						>
-							<span class="material-icons text-lg leading-none">{{ isInQueue(entry) ? 'playlist_add_check' : 'playlist_play' }}</span>
+							<span aria-hidden="true" class="material-icons text-lg leading-none">{{ isInQueue(entry) ? 'playlist_add_check' : 'playlist_play' }}</span>
 						</button>
 					</div>
 				}
@@ -620,7 +620,7 @@
 									<a class="font-medium text-fg no-underline hover:text-brand" [routerLink]="['/games', entry.game.code]" (click)="$event.stopPropagation()">{{ entry.game.title }}</a>
 									@if (entry.compilationGame) {
 										<span class="ml-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[0.625rem] font-medium text-brand bg-brand/10 border border-brand/30" [title]="'Part of ' + entry.compilationGame.title">
-											<span class="material-icons text-[0.625rem]">library_books</span>
+											<span aria-hidden="true" class="material-icons text-[0.625rem]">library_books</span>
 											{{ entry.compilationGame.title }}
 										</span>
 									}
@@ -671,9 +671,9 @@
 												[disabled]="isStatusUpdating(entry)"
 												(click)="toggleStatusMenu(entry, $event)"
 											>
-												<span class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
+												<span aria-hidden="true" class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
 												{{ statusLabel(entry.status) }}
-												<span class="material-icons text-[0.875rem]">arrow_drop_down</span>
+												<span aria-hidden="true" class="material-icons text-[0.875rem]">arrow_drop_down</span>
 											</button>
 											@if (statusMenuOpenId() === entry.id) {
 												<div
@@ -687,7 +687,7 @@
 															[disabled]="s.value === entry.status"
 															(click)="selectNewStatus(entry, s.value, $event)"
 														>
-															<span class="material-icons text-sm">{{ statusIcon($any(s.value)) }}</span>
+															<span aria-hidden="true" class="material-icons text-sm">{{ statusIcon($any(s.value)) }}</span>
 															{{ s.label }}
 														</button>
 													}
@@ -696,7 +696,7 @@
 										</div>
 									} @else {
 										<span class="inline-flex items-center gap-1 px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide" [class]="statusClass(entry.status)">
-											<span class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
+											<span aria-hidden="true" class="material-icons text-[0.875rem]">{{ statusIcon(entry.status) }}</span>
 											{{ statusLabel(entry.status) }}
 										</span>
 									}
@@ -706,7 +706,7 @@
 										<span class="text-fg-muted text-xs leading-tight line-clamp-2">{{ entry.notes }}</span>
 									} @else if (entry.reviewContent) {
 										<div class="flex items-start gap-1.5 text-fg-muted text-xs leading-tight">
-											<span class="material-icons text-[0.875rem] mt-0.5 text-brand">format_quote</span>
+											<span aria-hidden="true" class="material-icons text-[0.875rem] mt-0.5 text-brand">format_quote</span>
 											<span class="line-clamp-2">{{ entry.reviewContent }}</span>
 										</div>
 									}
@@ -718,7 +718,7 @@
 										(click)="toggleFavorite(entry.game.id, $event)"
 										[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
 									>
-										<span class="material-icons text-base leading-none">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
+										<span aria-hidden="true" class="material-icons text-base leading-none">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
 									</button>
 								</td>
 								<td class="px-2 py-3 align-middle w-9 text-center">
@@ -728,7 +728,7 @@
 										(click)="toggleQueue(entry); $event.stopPropagation()"
 										[title]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
 									>
-										<span class="material-icons text-base leading-none">{{ isInQueue(entry) ? 'playlist_add_check' : 'playlist_play' }}</span>
+										<span aria-hidden="true" class="material-icons text-base leading-none">{{ isInQueue(entry) ? 'playlist_add_check' : 'playlist_play' }}</span>
 									</button>
 								</td>
 							</tr>
@@ -763,7 +763,7 @@
 		(click)="$event.stopPropagation()"
 	>
 		<h2 class="m-0 text-lg font-bold font-display flex items-center gap-2">
-			<span class="material-icons text-xl" [class.text-warning]="pending.status === 'playing'" [class.text-success]="pending.status === 'completed'" [class.text-danger]="pending.status === 'abandoned'" [class.text-brand]="pending.status === 'endless'" [class.text-fg-muted]="pending.status === 'not_started'">{{ statusIcon(pending.status) }}</span>
+			<span aria-hidden="true" class="material-icons text-xl" [class.text-warning]="pending.status === 'playing'" [class.text-success]="pending.status === 'completed'" [class.text-danger]="pending.status === 'abandoned'" [class.text-brand]="pending.status === 'endless'" [class.text-fg-muted]="pending.status === 'not_started'">{{ statusIcon(pending.status) }}</span>
 			Change status to {{ statusLabel(pending.status) }}?
 		</h2>
 		<p class="text-sm text-fg-secondary leading-relaxed">
@@ -832,7 +832,7 @@
 			</div>
 			@if (pending.entry.review) {
 				<button uiButton variant="ghost" (click)="saveAndOpenReview()">
-					<span class="material-icons text-base mr-1">rate_review</span>
+					<span aria-hidden="true" class="material-icons text-base mr-1">rate_review</span>
 					Write or edit review
 				</button>
 			} @else if (pendingReviewToggle()) {

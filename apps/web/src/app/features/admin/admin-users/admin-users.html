@@ -82,7 +82,7 @@
 	>
 		<div class="flex justify-between items-center mb-5">
 			<h2 class="font-display m-0 text-lg font-bold">Create User</h2>
-			<button uiIconButton size="sm" (click)="closeCreate()">&times;</button>
+			<button uiIconButton size="sm" aria-label="Close" (click)="closeCreate()">&times;</button>
 		</div>
 
 		@if (createError()) {
@@ -176,7 +176,7 @@
 						(click)="toggleShowCreatePassword()"
 						[title]="showCreatePassword() ? 'Hide password' : 'Show password'"
 					>
-						<span class="material-icons text-base">{{ showCreatePassword() ? 'visibility_off' : 'visibility' }}</span>
+						<span aria-hidden="true" class="material-icons text-base">{{ showCreatePassword() ? 'visibility_off' : 'visibility' }}</span>
 					</button>
 					</div>
 					@if (createFieldErrors()['password']; as msg) {
@@ -218,7 +218,7 @@
 	>
 		<div class="flex justify-between items-center mb-5">
 			<h2 class="font-display m-0 text-lg font-bold">Edit User</h2>
-			<button uiIconButton size="sm" (click)="closeEdit()">&times;</button>
+			<button uiIconButton size="sm" aria-label="Close" (click)="closeEdit()">&times;</button>
 		</div>
 
 		<div class="flex items-baseline gap-3 mb-5 pb-4 border-b border-line">
@@ -285,7 +285,7 @@
 							(click)="toggleShowEditPassword()"
 							[title]="showEditPassword() ? 'Hide password' : 'Show password'"
 						>
-							<span class="material-icons text-base">{{ showEditPassword() ? 'visibility_off' : 'visibility' }}</span>
+							<span aria-hidden="true" class="material-icons text-base">{{ showEditPassword() ? 'visibility_off' : 'visibility' }}</span>
 						</button>
 					</div>
 					@if (editFieldErrors()['password']; as msg) {

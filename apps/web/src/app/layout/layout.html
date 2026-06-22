@@ -3,8 +3,10 @@
 		uiIconButton
 		class="!hidden max-md:!fixed max-md:!top-3 max-md:!left-3 max-md:!z-[200] max-md:!flex max-md:!bg-sidebar max-md:!border max-md:!border-line"
 		(click)="toggleSidebar()"
+		aria-label="Toggle navigation menu"
+		[attr.aria-expanded]="sidebarOpen()"
 	>
-		<span class="material-icons">menu</span>
+		<span class="material-icons" aria-hidden="true">menu</span>
 	</button>
 
 	@if (sidebarOpen()) {
@@ -36,7 +38,7 @@
 						title="Activity from people you follow"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">dynamic_feed</span>
+						<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">dynamic_feed</span>
 						Feed
 					</a>
 				</li>
@@ -56,7 +58,7 @@
 						title="Every game you've played, are playing, or want to play"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">list_alt</span>
+						<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">list_alt</span>
 						My Games
 					</a>
 				</li>
@@ -68,7 +70,7 @@
 						title="Your priority queue of games to play next"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">playlist_play</span>
+						<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">playlist_play</span>
 						Up Next
 					</a>
 				</li>
@@ -80,7 +82,7 @@
 						title="Games you own, physical or digital"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">shelves</span>
+						<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">shelves</span>
 						My Shelf
 					</a>
 				</li>
@@ -92,7 +94,7 @@
 						title="Games you want to acquire someday"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">favorite_border</span>
+						<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">favorite_border</span>
 						Want to Get
 					</a>
 				</li>
@@ -104,7 +106,7 @@
 						title="Your all-time favorite games"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">star</span>
+						<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">star</span>
 						Favorites
 					</a>
 				</li>
@@ -116,7 +118,7 @@
 						title="Saved combinations of backlog filters"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">bookmark</span>
+						<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">bookmark</span>
 						Saved Views
 					</a>
 				</li>
@@ -136,7 +138,7 @@
 						title="Browse the full game catalog"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">sports_esports</span>
+						<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">sports_esports</span>
 						Browse
 					</a>
 				</li>
@@ -148,7 +150,7 @@
 						title="Curated game lists, yours and from others"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">format_list_bulleted</span>
+						<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">format_list_bulleted</span>
 						Lists
 					</a>
 				</li>
@@ -160,7 +162,7 @@
 						title="Find other players on Completr"
 						class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 					>
-						<span class="material-icons nav-icon text-base w-5 text-center opacity-70">groups</span>
+						<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">groups</span>
 						Users
 					</a>
 				</li>
@@ -180,7 +182,7 @@
 						ariaCurrentWhenActive="page"
 								class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 							>
-								<span class="material-icons nav-icon text-base w-5 text-center opacity-70">people</span>
+								<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">people</span>
 								Users
 							</a>
 						</li>
@@ -192,7 +194,7 @@
 						ariaCurrentWhenActive="page"
 							class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 						>
-							<span class="material-icons nav-icon text-base w-5 text-center opacity-70">videogame_asset</span>
+							<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">videogame_asset</span>
 							Games
 						</a>
 					</li>
@@ -203,7 +205,7 @@
 						ariaCurrentWhenActive="page"
 							class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 						>
-							<span class="material-icons nav-icon text-base w-5 text-center opacity-70">flag</span>
+							<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">flag</span>
 							Reports
 						</a>
 					</li>
@@ -215,7 +217,7 @@
 						ariaCurrentWhenActive="page"
 								class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 							>
-								<span class="material-icons nav-icon text-base w-5 text-center opacity-70">history</span>
+								<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">history</span>
 								Audit Log
 							</a>
 						</li>
@@ -226,7 +228,7 @@
 						ariaCurrentWhenActive="page"
 								class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 							>
-								<span class="material-icons nav-icon text-base w-5 text-center opacity-70">sync</span>
+								<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">sync</span>
 								Jobs
 							</a>
 						</li>
@@ -248,7 +250,7 @@
 							title="Help, glossary and quick tour"
 							class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 						>
-							<span class="material-icons nav-icon text-base w-5 text-center opacity-70">help_outline</span>
+							<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">help_outline</span>
 							Help
 						</a>
 					</li>
@@ -260,7 +262,7 @@
 							title="What's new on Completr"
 							class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 						>
-							<span class="material-icons nav-icon text-base w-5 text-center opacity-70">campaign</span>
+							<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">campaign</span>
 							What's new
 						</a>
 					</li>
@@ -272,7 +274,7 @@
 							title="About Completr"
 							class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
 						>
-							<span class="material-icons nav-icon text-base w-5 text-center opacity-70">info_outline</span>
+							<span aria-hidden="true" class="material-icons nav-icon text-base w-5 text-center opacity-70">info_outline</span>
 							About
 						</a>
 					</li>
@@ -303,7 +305,7 @@
 						title="Settings"
 						aria-label="Settings"
 					>
-						<span class="material-icons text-base">settings</span>
+						<span aria-hidden="true" class="material-icons text-base">settings</span>
 					</a>
 					<button
 						class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg"
@@ -311,20 +313,20 @@
 						title="Sign out"
 						aria-label="Sign out"
 					>
-						<span class="material-icons text-base">logout</span>
+						<span aria-hidden="true" class="material-icons text-base">logout</span>
 					</button>
 				</div>
 				<div class="grid grid-cols-3 gap-2">
 					<a routerLink="/backlog" [queryParams]="{ status: 'completed' }" class="flex flex-col items-center gap-1 py-2 no-underline transition hover:text-brand">
-						<span class="material-icons text-base text-success">check_circle</span>
+						<span aria-hidden="true" class="material-icons text-base text-success">check_circle</span>
 						<span class="text-[0.5625rem] uppercase tracking-wider text-fg-muted">Done</span>
 					</a>
 					<a routerLink="/backlog" [queryParams]="{ status: 'playing' }" class="flex flex-col items-center gap-1 py-2 no-underline transition hover:text-brand">
-						<span class="material-icons text-base text-warning">play_arrow</span>
+						<span aria-hidden="true" class="material-icons text-base text-warning">play_arrow</span>
 						<span class="text-[0.5625rem] uppercase tracking-wider text-fg-muted">Play</span>
 					</a>
 					<a routerLink="/backlog" class="flex flex-col items-center gap-1 py-2 no-underline transition hover:text-brand">
-						<span class="material-icons text-base text-brand">list_alt</span>
+						<span aria-hidden="true" class="material-icons text-base text-brand">list_alt</span>
 						<span class="text-[0.5625rem] uppercase tracking-wider text-fg-muted">Total</span>
 					</a>
 				</div>

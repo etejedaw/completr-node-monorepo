@@ -3,10 +3,13 @@
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[460px] flex flex-col"
 		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
 		(click)="$event.stopPropagation()"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="wishlist-platform-modal-title"
 	>
 		<div class="flex items-center justify-between mb-3">
-			<h2 class="m-0 text-lg font-bold font-display">Add to Wishlist</h2>
-			<button uiIconButton size="sm" (click)="onClose()">&times;</button>
+			<h2 id="wishlist-platform-modal-title" class="m-0 text-lg font-bold font-display">Add to Wishlist</h2>
+			<button uiIconButton size="sm" aria-label="Close" (click)="onClose()">&times;</button>
 		</div>
 		<p class="text-[0.8125rem] text-fg-muted mb-4 truncate">{{ gameTitle() }}</p>
 
