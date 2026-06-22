@@ -17,3 +17,15 @@ export { UiEmptyState } from "./empty-state/ui-empty-state";
 export { UiSeparator } from "./separator/ui-separator";
 export { UiAvatar } from "./avatar/ui-avatar";
 export { UiProgress } from "./progress/ui-progress";
+export { UiTextarea } from "./textarea/ui-textarea";
+export {
+	UiFormField,
+	UiLabel,
+	UiDescription,
+	UiError
+} from "./form-field/ui-form-field";
+export {
+	UiRadioGroup,
+	UiRadioItem,
+	UiRadioIndicator
+} from "./radio/ui-radio";
