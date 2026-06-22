@@ -279,7 +279,7 @@ Migrar todo el frontend para que use ng-primitives como base de componentes UI. 
 - [ ] Migrar menus (sidebar, context menu) a Menu/Navigation Menu primitives
 - [x] Migrar radio buttons (score source, duration source) a Radio primitive (`UiRadioGroup`, `UiRadioItem` en `list-modal`)
 - [x] Migrar star rating a a11y de tipo slider — el primitive `NgpSlider` no encaja por la UX de half/full click; se añadió `role="slider"`, `aria-valuemin/max/now/text` y navegación por teclado (←/→/Home/End/Del) al componente actual
-- [ ] Migrar tablas (backlog, game-shelf, wishlist, admin) — no existe `NgpTable`; reemplazar con mejoras manuales de a11y (`aria-sort`, `scope`, keyboard nav en celdas ordenables)
+- [x] Mejorar a11y de tablas existentes (no existe `NgpTable`): `scope="col"` en todas las th de backlog-list, admin-audit, admin-users, game-shelf-list, admin-games, admin-jobs. Backlog además tiene `aria-sort`, `tabindex="0"`, keyboard activation (Enter/Space) y focus-visible ring en cada columna ordenable + helper `ariaSortFor()`
 - [ ] Sweep restante de `UiAvatar` por views de perfil público y modales (user-list, queue, wishlist, etc.)
 - [ ] Verificar accesibilidad (keyboard nav, ARIA) en todos los componentes migrados
 
