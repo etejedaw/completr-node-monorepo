@@ -23,12 +23,12 @@ import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 import { ReviewsService } from "../../games/reviews.service";
-import { UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSkeleton, UiSwitch } from "../../../shared/ui";
+import { UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSkeleton, UiSwitch, GameFilterPanel],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, GameFilterPanel],
 	templateUrl: "./backlog-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -256,7 +256,7 @@
 			<div class="mb-4">
 				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Part of compilation <span class="text-fg-muted font-normal normal-case">(optional)</span></label>
 				<select
-					class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans cursor-pointer focus:outline-none focus:border-brand"
+					uiSelect
 					(change)="onCompilationParentChange($any($event.target).value)"
 				>
 					<option value="">None — track as standalone</option>
@@ -297,8 +297,7 @@
 				<label for="platformId" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
 					>Platform <span class="text-danger font-bold">*</span></label
 				>
-				<select id="platformId" formControlName="platformId"
-					class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans cursor-pointer transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]">
+				<select uiSelect id="platformId" formControlName="platformId">
 					<option value="">Select platform</option>
 					@for (p of gamePlatforms(); track p.id) {
 					<option [value]="p.id">{{ p.name }}</option>
@@ -450,8 +449,7 @@
 
 				<div class="mb-4">
 					<label for="status" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Status</label>
-					<select id="status" formControlName="status"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans cursor-pointer transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]">
+					<select uiSelect id="status" formControlName="status">
 						<option value="not_started">Not Started</option>
 						<option value="playing">Playing</option>
 						<option value="completed">Completed</option>
