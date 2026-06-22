@@ -42,7 +42,7 @@
 		<div class="mb-3">
 			<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Description</label>
 			<textarea
-				rows="4"
+				uiTextarea rows="4"
 				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition resize-y focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				[ngModel]="description()"
 				(ngModelChange)="description.set($event)"

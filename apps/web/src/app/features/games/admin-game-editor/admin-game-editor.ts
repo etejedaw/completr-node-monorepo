@@ -19,7 +19,7 @@ import {
 } from "../games.service";
 import { forkJoin } from "rxjs";
 import { ToastService } from "../../../core/services/toast.service";
-import { UiSelect } from "../../../shared/ui";
+import { UiSelect, UiTextarea } from "../../../shared/ui";
 
 type CompilationRowMode = "link" | "create";
 
@@ -34,7 +34,7 @@ interface CompilationRow {
 
 @Component({
 	selector: "app-admin-game-editor",
-	imports: [FormsModule, UiSelect],
+	imports: [FormsModule, UiSelect, UiTextarea],
 	templateUrl: "./admin-game-editor.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
