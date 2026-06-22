@@ -275,12 +275,12 @@ Migrar todo el frontend para que use ng-primitives como base de componentes UI. 
 - [x] Migrar separadores visuales a Separator primitive (`UiSeparator` sobre `NgpSeparator` — sidebar)
 - [x] Migrar avatares (perfil, sidebar, feed) a Avatar primitive (`UiAvatar` sobre `NgpAvatar` — sidebar, feed activities, feed follow requests; sweep restante en public-profile, user-list-modal, etc.)
 - [x] Reemplazar los 3 `<input>` raw restantes por `UiInput size="sm"` (`backlog-list`, `games-browse`, `game-filter-panel`)
-- [x] Migrar textareas y form fields a Textarea/Form Field primitives (`UiTextarea`, `UiFormField`, `UiLabel`, `UiDescription`, `UiError`); aplicado en `list-modal`, `settings-profile`, `game-detail`; sweep restante en backlog-modal, game-shelf-modal, admin-game-editor, backlog-list, saved-filters-view (estilos inline custom)
+- [x] Migrar textareas y form fields a Textarea/Form Field primitives (`UiTextarea`, `UiFormField`, `UiLabel`, `UiDescription`, `UiError`); aplicado en list-modal, settings-profile, game-detail, backlog-modal (2), game-shelf-modal, admin-game-editor, backlog-list, saved-filters-view
 - [ ] Migrar menus (sidebar, context menu) a Menu/Navigation Menu primitives
 - [x] Migrar radio buttons (score source, duration source) a Radio primitive (`UiRadioGroup`, `UiRadioItem` en `list-modal`)
 - [x] Migrar star rating a a11y de tipo slider — el primitive `NgpSlider` no encaja por la UX de half/full click; se añadió `role="slider"`, `aria-valuemin/max/now/text` y navegación por teclado (←/→/Home/End/Del) al componente actual
 - [x] Mejorar a11y de tablas existentes (no existe `NgpTable`): `scope="col"` en todas las th de backlog-list, admin-audit, admin-users, game-shelf-list, admin-games, admin-jobs. Backlog además tiene `aria-sort`, `tabindex="0"`, keyboard activation (Enter/Space) y focus-visible ring en cada columna ordenable + helper `ariaSortFor()`
-- [ ] Sweep restante de `UiAvatar` por views de perfil público y modales (user-list, queue, wishlist, etc.)
+- [x] Sweep `UiAvatar` por public-profile (3 lugares), users-discover (2), settings-privacy follow requests, user-list-modal
 - [ ] Verificar accesibilidad (keyboard nav, ARIA) en todos los componentes migrados
 
 ### Corrección de bugs por feedback de usuarios
