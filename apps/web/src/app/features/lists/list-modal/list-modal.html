@@ -17,8 +17,8 @@
 		}
 
 		<form [formGroup]="form" (ngSubmit)="onSubmit()">
-			<div class="mb-4">
-				<label for="name" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+			<div uiFormField class="mb-4">
+				<label uiLabel for="name" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
 					>Name <span class="text-danger font-bold">*</span></label
 				>
 				<input
@@ -30,10 +30,10 @@
 				/>
 			</div>
 
-			<div class="mb-4">
-				<label for="description" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Description</label>
+			<div uiFormField class="mb-4">
+				<label uiLabel for="description" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Description</label>
 				<textarea
-					uiInput
+					uiTextarea
 					id="description"
 					formControlName="description"
 					rows="2"
@@ -41,35 +41,52 @@
 				></textarea>
 			</div>
 
-			<div class="grid grid-cols-2 gap-3">
-				<div class="mb-4">
-					<label for="scoreSource" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-						>Score Source <span class="text-danger font-bold">*</span></label
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+				<div uiFormField class="mb-4">
+					<span uiLabel class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						>Score Source <span class="text-danger font-bold">*</span></span
 					>
-					<select
-						id="scoreSource"
-						formControlName="scoreSource"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded-card text-fg text-sm cursor-pointer transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
+					<div
+						uiRadioGroup
+						orientation="horizontal"
+						[value]="form.controls.scoreSource.value!"
+						(valueChange)="form.controls.scoreSource.setValue($any($event))"
+						class="flex flex-wrap gap-1.5"
 					>
-						<option value="metacritic">Metacritic</option>
-						<option value="opencritic">OpenCritic</option>
-						<option value="rawg">RAWG</option>
-						<option value="completr">Completr</option>
-					</select>
+						@for (opt of SCORE_SOURCES; track opt.value) {
+							<button
+								type="button"
+								uiRadioItem
+								[value]="opt.value"
+								class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition bg-input-bg border-line text-fg-secondary hover:border-brand hover:text-brand data-[checked]:bg-brand-subtle data-[checked]:border-brand data-[checked]:text-brand data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-brand data-[focus-visible]:outline-offset-2"
+							>
+								{{ opt.label }}
+							</button>
+						}
+					</div>
 				</div>
-				<div class="mb-4">
-					<label for="durationSource" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-						>Duration Source <span class="text-danger font-bold">*</span></label
+				<div uiFormField class="mb-4">
+					<span uiLabel class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						>Duration Source <span class="text-danger font-bold">*</span></span
 					>
-					<select
-						id="durationSource"
-						formControlName="durationSource"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded-card text-fg text-sm cursor-pointer transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
+					<div
+						uiRadioGroup
+						orientation="horizontal"
+						[value]="form.controls.durationSource.value!"
+						(valueChange)="form.controls.durationSource.setValue($any($event))"
+						class="flex flex-wrap gap-1.5"
 					>
-						<option value="hltb">HLTB</option>
-						<option value="rawg">RAWG</option>
-						<option value="completr">Completr</option>
-					</select>
+						@for (opt of DURATION_SOURCES; track opt.value) {
+							<button
+								type="button"
+								uiRadioItem
+								[value]="opt.value"
+								class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition bg-input-bg border-line text-fg-secondary hover:border-brand hover:text-brand data-[checked]:bg-brand-subtle data-[checked]:border-brand data-[checked]:text-brand data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-brand data-[focus-visible]:outline-offset-2"
+							>
+								{{ opt.label }}
+							</button>
+						}
+					</div>
 				</div>
 			</div>
 
