@@ -259,25 +259,28 @@
 
 Migrar todo el frontend para que use ng-primitives como base de componentes UI. Ganamos accesibilidad (keyboard nav, ARIA), comportamiento robusto y una base sólida para las features que vienen.
 
-- [ ] Instalar ng-primitives (`ng add ng-primitives`)
-- [ ] Migrar modals/dialogs a Dialog primitive
-- [ ] Migrar tabs (backlog status tabs) a Tabs primitive
-- [ ] Migrar dropdowns/selects a Select/Combobox primitives
-- [ ] Migrar buscadores (game search, global search) a Search/Combobox primitives
-- [ ] Migrar tooltips a Tooltip primitive
-- [ ] Migrar barras de progreso (listas) a Progress primitive
-- [ ] Migrar toggles/switches (isPublic, showInBacklog, etc.) a Switch primitive
-- [ ] Migrar inputs, textareas y form fields a Input/Textarea/Form Field primitives
+- [x] Instalar ng-primitives (`^0.120.3`)
+- [x] Migrar modals/dialogs a Dialog primitive (`UiDialog`)
+- [x] Migrar tabs (backlog status tabs) a Tabs primitive (`UiTabs / UiTab / UiTabList / UiTabPanel`)
+- [x] Migrar tooltips a Tooltip primitive (`UiTooltipContent`)
+- [x] Migrar toggles/switches (isPublic, showInBacklog, etc.) a Switch primitive (`UiSwitch`)
+- [x] Migrar botones a Button primitive (`UiButton`, `UiIconButton`)
+- [x] Migrar checkboxes a Checkbox primitive (`UiCheckbox`)
+- [x] Migrar inputs principales a Input primitive (`UiInput`) — quedan 3 archivos con `<input>` raw: `backlog-list`, `games-browse`, `game-filter-panel`
+- [x] Migrar paginación a Pagination primitive (`UiPagination` sobre `NgpPagination`)
+- [x] Migrar buscadores a Search primitive (`UiSearchBar` sobre `NgpSearch`)
+- [ ] Migrar toasts/notificaciones a Toast primitive — requiere reescribir `ToastService` para usar `NgpToastManager.show(TemplateRef)` en vez del modelo signal array actual; conservar API pública (`success/error/pending/undo/dismiss`) y la lógica de undo timer
+- [ ] Migrar dropdowns/selects a Select/Combobox primitives — 7 archivos con `<select>` nativo (admin-users, admin-audit, admin-game-editor, backlog-modal, backlog-list, list-modal, game-shelf-modal)
+- [x] Migrar barras de progreso (listas) a Progress primitive (`UiProgress` sobre `NgpProgress` — aplicado en `list-detail`, `list-overview`)
+- [x] Migrar separadores visuales a Separator primitive (`UiSeparator` sobre `NgpSeparator` — sidebar)
+- [x] Migrar avatares (perfil, sidebar, feed) a Avatar primitive (`UiAvatar` sobre `NgpAvatar` — sidebar, feed activities, feed follow requests; sweep restante en public-profile, user-list-modal, etc.)
+- [x] Reemplazar los 3 `<input>` raw restantes por `UiInput size="sm"` (`backlog-list`, `games-browse`, `game-filter-panel`)
+- [ ] Migrar textareas y form fields a Textarea/Form Field primitives
 - [ ] Migrar menus (sidebar, context menu) a Menu/Navigation Menu primitives
-- [ ] Migrar botones a Button primitive
 - [ ] Migrar radio buttons (score source, duration source) a Radio primitive
-- [ ] Migrar checkboxes a Checkbox primitive
-- [ ] Migrar star rating a Slider/Range Slider primitive
-- [ ] Migrar paginación a Pagination primitive
-- [ ] Migrar tablas (backlog, game-shelf, wishlist, admin) a Table primitive
-- [ ] Migrar separadores visuales a Separator primitive
-- [ ] Migrar avatares (perfil, sidebar) a Avatar primitive
-- [ ] Migrar toasts/notificaciones a Toast primitive
+- [ ] Migrar star rating a Slider primitive
+- [ ] Migrar tablas (backlog, game-shelf, wishlist, admin) — no existe `NgpTable`; reemplazar con mejoras manuales de a11y (`aria-sort`, `scope`, keyboard nav en celdas ordenables)
+- [ ] Sweep restante de `UiAvatar` por views de perfil público y modales (user-list, queue, wishlist, etc.)
 - [ ] Verificar accesibilidad (keyboard nav, ARIA) en todos los componentes migrados
 
 ### Corrección de bugs por feedback de usuarios
