@@ -281,7 +281,7 @@ Migrar todo el frontend para que use ng-primitives como base de componentes UI. 
 - [x] Migrar star rating a a11y de tipo slider — el primitive `NgpSlider` no encaja por la UX de half/full click; se añadió `role="slider"`, `aria-valuemin/max/now/text` y navegación por teclado (←/→/Home/End/Del) al componente actual
 - [x] Mejorar a11y de tablas existentes (no existe `NgpTable`): `scope="col"` en todas las th de backlog-list, admin-audit, admin-users, game-shelf-list, admin-games, admin-jobs. Backlog además tiene `aria-sort`, `tabindex="0"`, keyboard activation (Enter/Space) y focus-visible ring en cada columna ordenable + helper `ariaSortFor()`
 - [x] Sweep `UiAvatar` por public-profile (3 lugares), users-discover (2), settings-privacy follow requests, user-list-modal
-- [x] Verificar accesibilidad (keyboard nav, ARIA): `aria-label` en botones close de modales (8) + hamburger (con `aria-expanded`); `aria-hidden="true"` en 345 spans `material-icons` decorativos; `alt=""` en 5 game-cover img sueltas; `role="dialog"` + `aria-modal="true"` + `aria-labelledby` en 7 modales principales (list, backlog, shelf, queue-add, wishlist-add, wishlist-platform, user-list)
+- [x] Verificar accesibilidad (keyboard nav, ARIA): `aria-label` en botones close de modales (8) + hamburger (con `aria-expanded`); `aria-hidden="true"` en 345 spans `material-icons` decorativos; `alt=""` en 5 game-cover img sueltas; `role="dialog"` + `aria-modal="true"` + `aria-labelledby` en 7 modales principales (list, backlog, shelf, queue-add, wishlist-add, wishlist-platform, user-list); `UiFocusTrap` (sobre `NgpFocusTrap`) + `(escape)` para cerrar con Escape aplicado a esos 7 modales
 
 ### Corrección de bugs por feedback de usuarios
 
