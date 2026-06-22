@@ -5,15 +5,6 @@ import {
 	NgpRadioItem
 } from "ng-primitives/radio";
 
-/**
- * Radio group container. Provides roving-focus arrow key navigation across
- * items. Use with `formControlName` / `[(ngModel)]` like a normal group.
- *
- *   <div uiRadioGroup formControlName="scoreSource">
- *     <button uiRadioItem ngpRadioItemValue="metacritic">Metacritic</button>
- *     <button uiRadioItem ngpRadioItemValue="opencritic">OpenCritic</button>
- *   </div>
- */
 @Directive({
 	selector: "[uiRadioGroup]",
 	hostDirectives: [

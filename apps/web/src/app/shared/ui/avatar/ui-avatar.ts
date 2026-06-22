@@ -6,14 +6,6 @@ import {
 } from "@angular/core";
 import { NgpAvatar, NgpAvatarFallback, NgpAvatarImage } from "ng-primitives/avatar";
 
-/**
- * Image avatar with text fallback. Wraps `NgpAvatar` so the fallback only
- * renders when the image fails or is absent. Size is controlled by the host
- * class — the wrapper does not impose dimensions.
- *
- * Usage:
- *   <ui-avatar [src]="user.avatarUrl" [name]="user.username" class="w-9 h-9" />
- */
 @Component({
 	selector: "ui-avatar",
 	imports: [NgpAvatar, NgpAvatarImage, NgpAvatarFallback],

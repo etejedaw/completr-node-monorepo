@@ -52,13 +52,11 @@ export class AdminGameEditor implements OnInit {
 	protected readonly allPlatforms = signal<Platform[]>([]);
 	protected readonly allGenres = signal<Genre[]>([]);
 
-	// RAWG
 	protected readonly rawgSlug = signal("");
 	protected readonly fetchingRawg = signal(false);
 	protected readonly rawgError = signal("");
 	protected readonly rawgId = signal<number | null>(null);
 
-	// Form
 	protected readonly title = signal("");
 	protected readonly description = signal("");
 	protected readonly releaseAt = signal("");
@@ -76,11 +74,9 @@ export class AdminGameEditor implements OnInit {
 		[]
 	);
 
-	// State
 	protected readonly saving = signal(false);
 	protected readonly saveError = signal("");
 
-	// Split modal
 	protected readonly splitOpen = signal(false);
 	protected readonly splitting = signal(false);
 	protected readonly splitError = signal("");
@@ -91,14 +87,12 @@ export class AdminGameEditor implements OnInit {
 		{ title: "", variant: "" }
 	]);
 
-	// Compilation modal
 	protected readonly compilationOpen = signal(false);
 	protected readonly compilationSaving = signal(false);
 	protected readonly compilationClearing = signal(false);
 	protected readonly compilationError = signal("");
 	protected readonly compilationRows = signal<CompilationRow[]>([]);
 
-	// Score/time add
 	protected readonly newScoreSource = signal("");
 	protected readonly newScoreValue = signal<number | null>(null);
 	protected readonly newTimeSource = signal("");

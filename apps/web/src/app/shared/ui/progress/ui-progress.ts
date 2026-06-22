@@ -10,11 +10,6 @@ import {
 	type NgpProgressValueTextFn
 } from "ng-primitives/progress";
 
-/**
- * Linear progress bar with ARIA roles (`role="progressbar"`, `aria-valuenow`,
- * etc.) provided by `NgpProgress`. Override `trackClass` or `indicatorClass`
- * to restyle; `indicatorStyle` accepts inline CSS for gradient fills.
- */
 @Component({
 	selector: "ui-progress",
 	imports: [NgpProgress, NgpProgressIndicator],

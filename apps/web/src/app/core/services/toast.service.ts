@@ -37,9 +37,6 @@ export class ToastService {
 	private nextId = 1;
 	private readonly pendings = new Map<number, PendingEntry>();
 
-	/** Called by `ToastContainer` once on init to provide the render template.
-	 * The TemplateRef carries `{ $implicit: Toast }` context at runtime; cast to
-	 * `void` because `NgpToastManager.show` is overly narrow on the template type. */
 	registerTemplate(tpl: TemplateRef<{ $implicit: Toast }>) {
 		this.template = tpl as unknown as TemplateRef<void>;
 	}
@@ -89,8 +86,6 @@ export class ToastService {
 			onUndo: () => this.undo(id),
 			onDismiss: () => this.dismiss(id)
 		};
-		// duration: 0 disables Ngp's auto-dismiss timer so our own setTimeout
-		// drives commit-on-timeout, matching the prior signal-array behavior.
 		const ref = this.manager.show(this.template, {
 			duration: 0,
 			dismissible: false,

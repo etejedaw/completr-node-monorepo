@@ -90,7 +90,6 @@ export class BacklogList implements OnInit {
 		localStorage.setItem("completr.backlog.viewMode", mode);
 	}
 
-	// Filters
 	protected readonly showFilters = signal(false);
 	protected readonly showAdvancedFilters = signal(false);
 	protected readonly allPlatforms = signal<Platform[]>([]);
@@ -113,7 +112,6 @@ export class BacklogList implements OnInit {
 	protected readonly minPersonalRatio = signal<number | null>(null);
 	protected readonly maxPersonalRatio = signal<number | null>(null);
 
-	// Saved filters
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
 	protected readonly backlogFilters = signal<SavedFilter[]>([]);
 	protected readonly activeFilterId = signal<string | null>(null);

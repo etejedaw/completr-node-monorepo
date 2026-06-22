@@ -1,13 +1,6 @@
 import { Directive, output } from "@angular/core";
 import { NgpFocusTrap } from "ng-primitives/focus-trap";
 
-/**
- * Trap focus inside the host element (autofocuses first focusable on attach
- * and cycles Tab/Shift+Tab within the host). Emits `(escape)` when the user
- * presses Escape while focus is inside — consumer should close the modal.
- *
- *   <div uiFocusTrap (escape)="onClose()" role="dialog" aria-modal="true">…</div>
- */
 @Directive({
 	selector: "[uiFocusTrap]",
 	hostDirectives: [

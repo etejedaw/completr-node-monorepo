@@ -43,7 +43,6 @@ export class SavedFiltersView implements OnInit {
 		this.searchSubject.next(query);
 	}
 
-	// Edit modal
 	protected readonly showModal = signal(false);
 	protected readonly editingFilter = signal<SavedFilter | null>(null);
 	protected readonly editName = signal("");

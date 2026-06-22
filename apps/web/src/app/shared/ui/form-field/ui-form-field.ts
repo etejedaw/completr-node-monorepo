@@ -6,18 +6,6 @@ import {
 	NgpLabel
 } from "ng-primitives/form-field";
 
-/**
- * Wire ARIA relationships between a label, control, description and error
- * inside a form field. Apply these directives on existing markup — no styling
- * is imposed. Pair with `uiInput`, `uiTextarea`, etc.
- *
- *   <div uiFormField>
- *     <label uiLabel>Bio</label>
- *     <textarea uiTextarea formControlName="bio"></textarea>
- *     <p uiDescription>Markdown supported.</p>
- *     <p uiError>Bio is required.</p>
- *   </div>
- */
 @Directive({
 	selector: "[uiFormField]",
 	hostDirectives: [NgpFormField]

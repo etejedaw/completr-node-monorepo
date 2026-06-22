@@ -61,7 +61,6 @@
 			</div>
 		} @else {
 		<form [formGroup]="form" (ngSubmit)="onSubmit()">
-			<!-- Game search (only for create) -->
 			@if (!isEdit()) {
 			<div class="mb-4">
 				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Game <span class="text-danger font-bold">*</span></label>
@@ -151,7 +150,6 @@
 			</div>
 			}
 
-			<!-- Platform -->
 			@if (!isEdit()) {
 			<div class="mb-4">
 				<label for="platformId" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Platform <span class="text-danger font-bold">*</span></label>
@@ -168,7 +166,6 @@
 			</div>
 			}
 
-			<!-- Edition -->
 			<div class="mb-4">
 				<label for="edition" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Edition</label>
 				<input
@@ -192,7 +189,6 @@
 				</div>
 			</div>
 
-			<!-- Acquired date -->
 			<div class="mb-4">
 				<label for="acquiredAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Acquired</label>
 				<input
@@ -203,7 +199,6 @@
 				/>
 			</div>
 
-			<!-- Notes -->
 			<div class="mb-4">
 				<label for="notes" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Notes</label>
 				<textarea
@@ -215,7 +210,6 @@
 				></textarea>
 			</div>
 
-			<!-- Actions -->
 			<div class="flex justify-between items-center mt-5 pt-4 border-t border-line">
 				@if (isEdit()) {
 				<div class="flex items-center gap-2">
