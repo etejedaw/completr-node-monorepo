@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth";
-import { PublicProfileService } from "../public-profile.service";
+import { PublicReviewsService } from "../services/public-reviews.service";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { UiPagination } from "../../../shared/ui";
 
@@ -30,7 +30,7 @@ interface UserReview {
 })
 export class UserReviews implements OnInit {
 	private readonly route = inject(ActivatedRoute);
-	private readonly profileService = inject(PublicProfileService);
+	private readonly reviewsService = inject(PublicReviewsService);
 	private readonly authService = inject(AuthService);
 
 	protected readonly username = signal("");
@@ -67,7 +67,7 @@ export class UserReviews implements OnInit {
 	private load(username: string) {
 		this.isLoading.set(true);
 		this.error.set(null);
-		this.profileService
+		this.reviewsService
 			.getUserReviews(username, {
 				limit: this.limit,
 				offset: this.offset()

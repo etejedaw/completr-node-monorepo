@@ -9,7 +9,7 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { DatePipe } from "@angular/common";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 import { AuthService } from "../../../core/services/auth";
-import { PublicProfileService } from "../public-profile.service";
+import { PublicLibraryService } from "../services/public-library.service";
 import { BacklogEntry, BacklogStatus } from "../../../core/models";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
@@ -25,7 +25,7 @@ const PAGE_SIZE = 50;
 })
 export class UserBacklog implements OnInit {
 	private readonly route = inject(ActivatedRoute);
-	private readonly profileService = inject(PublicProfileService);
+	private readonly libraryService = inject(PublicLibraryService);
 	private readonly authService = inject(AuthService);
 
 	protected readonly username = signal("");
@@ -166,7 +166,7 @@ export class UserBacklog implements OnInit {
 		if (this.activeStatus()) filters["status"] = this.activeStatus();
 		if (this.searchQuery()) filters["search"] = this.searchQuery();
 
-		this.profileService.getUserBacklog(this.username(), filters).subscribe({
+		this.libraryService.getUserBacklog(this.username(), filters).subscribe({
 			next: result => {
 				this.entries.set(result.items);
 				this.total.set(result.total);
