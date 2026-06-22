@@ -1,7 +1,19 @@
-import { Op, Order, WhereOptions, fn, col, where as whereFn } from "sequelize";
+import { Op, WhereOptions, fn, col, where as whereFn } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "./game.model";
 import { GamesQueryOptions } from "./games.interface";
+import {
+	buildActiveFlagWhere,
+	buildAggregateCondition,
+	buildCompilationFlagsWhere,
+	buildGenreCondition,
+	buildMissingRelationCondition,
+	buildOrder,
+	buildPlatformCondition,
+	buildReleaseDateRangeWhere,
+	buildSourceExclusionCondition,
+	resolveGenreCodes
+} from "./utils/search-filters.util";
 import * as reviewsService from "../reviews/reviews.service";
 import { RawgProvider } from "../rawg/rawg.provider";
 import { RawgGameDetail } from "../rawg/rawg.interface";
@@ -67,198 +79,83 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		limit = 50,
 		offset = 0,
 		sort_by = "createdAt",
-		sort_order = "desc",
-		search,
-		genre,
-		genres,
-		platforms,
-		release_year_from,
-		release_year_to,
-		min_score,
-		max_score,
-		min_duration,
-		max_duration,
-		is_dlc,
-		is_compilation,
-		exclude_compilations,
-		include_inactive,
-		only_inactive,
-		no_scores,
-		no_times,
-		no_platforms,
-		no_score_source,
-		no_time_source
+		sort_order = "desc"
 	} = options;
 
-	const where: Record<string, unknown> = {};
-	if (only_inactive) {
-		where["isActive"] = false;
-	} else if (!include_inactive) {
-		where["isActive"] = true;
-	}
-	const andConditions: object[] = [];
-	const include: { association: string; where?: Record<string, unknown> }[] =
-		[
-			{ association: "Platforms" },
-			{ association: "GameScores" },
-			{ association: "GameTimes" }
-		];
+	const where: Record<string, unknown> = {
+		...buildActiveFlagWhere(options),
+		...buildCompilationFlagsWhere(options),
+		...buildReleaseDateRangeWhere(
+			options.release_year_from,
+			options.release_year_to
+		)
+	};
 
-	if (search) {
-		const titleWhere = buildTitleSearchWhere(search);
-		if (titleWhere) andConditions.push(titleWhere);
-	}
-
-	if (is_dlc !== undefined) {
-		where["isDlc"] = is_dlc;
-	}
-
-	if (is_compilation !== undefined) {
-		where["isCompilation"] = is_compilation;
-	} else if (exclude_compilations) {
-		where["isCompilation"] = false;
-	}
-
-	if (release_year_from !== undefined || release_year_to !== undefined) {
-		const range: Record<symbol, Date> = {};
-		if (release_year_from !== undefined) {
-			range[Op.gte] = new Date(`${release_year_from}-01-01`);
-		}
-		if (release_year_to !== undefined) {
-			range[Op.lte] = new Date(`${release_year_to}-12-31`);
-		}
-		where["releaseAt"] = range;
-	}
-
-	const genreCodes =
-		genres && genres.length > 0 ? genres : genre ? [genre] : null;
-	if (genreCodes) {
-		const escaped = genreCodes.map(g => sequelize.escape(g)).join(", ");
-		andConditions.push({
-			id: {
-				[Op.in]: sequelize.literal(
-					`(SELECT DISTINCT gg."gameId" FROM "GameGenres" gg JOIN "Genres" g ON g.id = gg."genreId" WHERE g.code IN (${escaped}))`
-				)
-			}
-		});
-	}
-
-	if (platforms && platforms.length > 0) {
-		const escaped = platforms.map(p => sequelize.escape(p)).join(", ");
-		andConditions.push({
-			id: {
-				[Op.in]: sequelize.literal(
-					`(SELECT DISTINCT gp."gameId" FROM "GamePlatforms" gp JOIN "Platforms" p ON p.id = gp."platformId" WHERE p.code IN (${escaped}))`
-				)
-			}
-		});
-	}
-
-	if (min_score !== undefined || max_score !== undefined) {
-		const conditions: string[] = [];
-		if (min_score !== undefined)
-			conditions.push(`AVG(score) >= ${min_score}`);
-		if (max_score !== undefined)
-			conditions.push(`AVG(score) <= ${max_score}`);
-		andConditions.push({
-			id: {
-				[Op.in]: sequelize.literal(
-					`(SELECT "gameId" FROM "GameScores" GROUP BY "gameId" HAVING ${conditions.join(" AND ")})`
-				)
-			}
-		});
-	}
-
-	if (min_duration !== undefined || max_duration !== undefined) {
-		const conditions: string[] = [];
-		if (min_duration !== undefined)
-			conditions.push(`AVG(duration) >= ${min_duration}`);
-		if (max_duration !== undefined)
-			conditions.push(`AVG(duration) <= ${max_duration}`);
-		andConditions.push({
-			id: {
-				[Op.in]: sequelize.literal(
-					`(SELECT "gameId" FROM "GameTimes" GROUP BY "gameId" HAVING ${conditions.join(" AND ")})`
-				)
-			}
-		});
-	}
-
-	include.push({ association: "Genres" });
-
-	if (no_scores) {
-		andConditions.push({
-			id: {
-				[Op.notIn]: sequelize.literal(
-					'(SELECT DISTINCT "gameId" FROM "GameScores")'
-				)
-			}
-		});
-	}
-
-	if (no_times) {
-		andConditions.push({
-			id: {
-				[Op.notIn]: sequelize.literal(
-					'(SELECT DISTINCT "gameId" FROM "GameTimes")'
-				)
-			}
-		});
-	}
-
-	if (no_platforms) {
-		andConditions.push({
-			id: {
-				[Op.notIn]: sequelize.literal(
-					'(SELECT DISTINCT "gameId" FROM "GamePlatforms")'
-				)
-			}
-		});
-	}
-
-	if (no_score_source && no_score_source.length > 0) {
-		const escaped = no_score_source
-			.map(s => sequelize.escape(s))
-			.join(", ");
-		andConditions.push({
-			id: {
-				[Op.notIn]: sequelize.literal(
-					`(SELECT DISTINCT "gameId" FROM "GameScores" WHERE source IN (${escaped}))`
-				)
-			}
-		});
-	}
-
-	if (no_time_source && no_time_source.length > 0) {
-		const escaped = no_time_source.map(s => sequelize.escape(s)).join(", ");
-		andConditions.push({
-			id: {
-				[Op.notIn]: sequelize.literal(
-					`(SELECT DISTINCT "gameId" FROM "GameTimes" WHERE source IN (${escaped}))`
-				)
-			}
-		});
-	}
-
+	const andConditions = collectAndConditions(options);
 	if (andConditions.length > 0) {
 		where[Op.and as unknown as string] = andConditions;
 	}
 
-	const order: Order =
-		sort_by === "random"
-			? [sequelize.literal("RANDOM()")]
-			: [[sort_by, sort_order.toUpperCase()]];
-
 	const { rows, count } = await Game.findAndCountAll({
 		where,
-		include,
-		order,
+		include: [
+			{ association: "Platforms" },
+			{ association: "GameScores" },
+			{ association: "GameTimes" },
+			{ association: "Genres" }
+		],
+		order: buildOrder(sort_by, sort_order),
 		limit,
 		offset,
 		distinct: true
 	});
 
 	return { games: rows, total: count };
+}
+
+function collectAndConditions(options: GamesQueryOptions): object[] {
+	const conditions: (object | null)[] = [];
+
+	if (options.search) {
+		conditions.push(buildTitleSearchWhere(options.search));
+	}
+
+	conditions.push(
+		buildGenreCondition(resolveGenreCodes(options) ?? undefined)
+	);
+	conditions.push(buildPlatformCondition(options.platforms));
+	conditions.push(
+		buildAggregateCondition(
+			"GameScores",
+			"score",
+			options.min_score,
+			options.max_score
+		)
+	);
+	conditions.push(
+		buildAggregateCondition(
+			"GameTimes",
+			"duration",
+			options.min_duration,
+			options.max_duration
+		)
+	);
+
+	if (options.no_scores)
+		conditions.push(buildMissingRelationCondition("GameScores"));
+	if (options.no_times)
+		conditions.push(buildMissingRelationCondition("GameTimes"));
+	if (options.no_platforms)
+		conditions.push(buildMissingRelationCondition("GamePlatforms"));
+
+	conditions.push(
+		buildSourceExclusionCondition("GameScores", options.no_score_source)
+	);
+	conditions.push(
+		buildSourceExclusionCondition("GameTimes", options.no_time_source)
+	);
+
+	return conditions.filter((c): c is object => c !== null);
 }
 
 export async function findLatestReviewed(limit = 16) {
