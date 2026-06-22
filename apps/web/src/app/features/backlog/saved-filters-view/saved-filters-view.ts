@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
-import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
+import { SavedFiltersService, SavedFilter } from "../saved-filters";
 import { UiButton, UiEmptyState, UiPagination, UiSearchBar, UiTextarea } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 

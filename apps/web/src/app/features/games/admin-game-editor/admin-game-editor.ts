@@ -16,9 +16,9 @@ import {
 	GamesService,
 	RawgDetail,
 	UpdateGameDto
-} from "../games.service";
+} from "../games";
 import { forkJoin } from "rxjs";
-import { ToastService } from "../../../core/services/toast.service";
+import { ToastService } from "../../../core/services/toast";
 import { UiSelect, UiTextarea } from "../../../shared/ui";
 
 type CompilationRowMode = "link" | "create";

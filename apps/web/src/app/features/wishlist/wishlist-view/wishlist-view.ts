@@ -7,8 +7,8 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { WishlistEntry } from "../../../core/models";
-import { WishlistService } from "../wishlist.service";
-import { FavoritesService } from "../../favorites/favorites.service";
+import { WishlistService } from "../wishlist";
+import { FavoritesService } from "../../favorites/favorites";
 import { WishlistAddModal } from "../wishlist-add-modal/wishlist-add-modal";
 import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";

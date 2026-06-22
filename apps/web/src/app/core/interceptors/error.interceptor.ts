@@ -9,8 +9,8 @@ import {
 	take,
 	throwError
 } from "rxjs";
-import { AuthService } from "../services/auth.service";
-import { ToastService } from "../services/toast.service";
+import { AuthService } from "../services/auth";
+import { ToastService } from "../services/toast";
 import {
 	SUPPRESS_VALIDATION_TOAST,
 	validationSummary

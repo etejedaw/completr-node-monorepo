@@ -6,15 +6,15 @@ import {
 	signal
 } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
-import { AuthService } from "../../core/services/auth.service";
-import { ToastService } from "../../core/services/toast.service";
-import { FollowRequestsService } from "../../core/services/follow-requests.service";
+import { AuthService } from "../../core/services/auth";
+import { ToastService } from "../../core/services/toast";
+import { FollowRequestsService } from "../../core/services/follow-requests";
 import { Subject, debounceTime, switchMap } from "rxjs";
-import { FeedService, FeedActivity } from "./feed.service";
+import { FeedService, FeedActivity } from "./feed";
 import {
 	GlobalSearchService,
 	SearchResults
-} from "../../core/services/global-search.service";
+} from "../../core/services/global-search";
 import {
 	activityLabel,
 	activityIcon,

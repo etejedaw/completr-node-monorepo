@@ -6,7 +6,7 @@ import {
 	output,
 	signal
 } from "@angular/core";
-import { WishlistService } from "../wishlist.service";
+import { WishlistService } from "../wishlist";
 import { UiButton, UiFocusTrap, UiIconButton } from "../../../shared/ui";
 
 export interface PlatformOption {

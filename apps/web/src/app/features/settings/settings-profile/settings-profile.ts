@@ -6,12 +6,12 @@ import {
 	signal
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { AuthService } from "../../../core/services/auth.service";
+import { AuthService } from "../../../core/services/auth";
 import {
 	ProfileService,
 	UpdateProfileDto
-} from "../../profile/profile.service";
-import { ToastService } from "../../../core/services/toast.service";
+} from "../../profile/profile";
+import { ToastService } from "../../../core/services/toast";
 import {
 	UiButton,
 	UiFormField,

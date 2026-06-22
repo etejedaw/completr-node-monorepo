@@ -6,7 +6,7 @@ import {
 	signal
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { AuthService } from "../../../core/services/auth.service";
+import { AuthService } from "../../../core/services/auth";
 import { PublicProfileService } from "../public-profile.service";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { UiPagination } from "../../../shared/ui";

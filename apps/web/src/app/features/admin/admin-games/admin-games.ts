@@ -7,9 +7,9 @@ import {
 } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
 import { Game } from "../../../core/models";
-import { GamesService } from "../../games/games.service";
-import { AdminService } from "../admin.service";
-import { ToastService } from "../../../core/services/toast.service";
+import { GamesService } from "../../games/games";
+import { AdminService } from "../admin";
+import { ToastService } from "../../../core/services/toast";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
 
 @Component({

@@ -12,8 +12,8 @@ import { environment } from "../../../../environments/environment";
 import {
 	AuthService,
 	AuthSession
-} from "../../../core/services/auth.service";
-import { ToastService } from "../../../core/services/toast.service";
+} from "../../../core/services/auth";
+import { ToastService } from "../../../core/services/toast";
 import { UiButton, UiInput, UiPagination } from "../../../shared/ui";
 
 @Component({

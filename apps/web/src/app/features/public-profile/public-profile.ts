@@ -8,7 +8,7 @@ import {
 	signal
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { AuthService } from "../../core/services/auth.service";
+import { AuthService } from "../../core/services/auth";
 import {
 	PublicProfileService,
 	PublicProfile,

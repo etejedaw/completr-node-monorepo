@@ -8,12 +8,12 @@ import {
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { List, ListItem, Game, BacklogEntry } from "../../../core/models";
-import { ListsService } from "../lists.service";
-import { AuthService } from "../../../core/services/auth.service";
+import { ListsService } from "../lists";
+import { AuthService } from "../../../core/services/auth";
 import { ListModal } from "../list-modal/list-modal";
 import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
-import { BacklogService } from "../../backlog/backlog.service";
-import { GamesService } from "../../games/games.service";
+import { BacklogService } from "../../backlog/backlog";
+import { GamesService } from "../../games/games";
 import {
 	Subject,
 	debounceTime,

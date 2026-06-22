@@ -7,8 +7,8 @@ import {
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
-import type { AuditLogEntry } from "../admin.service";
-import { AdminService } from "../admin.service";
+import type { AuditLogEntry } from "../admin";
+import { AdminService } from "../admin";
 import { UiPagination, UiSelect } from "../../../shared/ui";
 
 const ACTION_OPTIONS = [

@@ -8,8 +8,8 @@ import {
 } from "@angular/core";
 import { Subject, debounceTime, switchMap, of } from "rxjs";
 import { Game } from "../../../core/models";
-import { GamesService } from "../../games/games.service";
-import { WishlistService } from "../wishlist.service";
+import { GamesService } from "../../games/games";
+import { WishlistService } from "../wishlist";
 import { UiButton, UiFocusTrap, UiIconButton } from "../../../shared/ui";
 
 @Component({

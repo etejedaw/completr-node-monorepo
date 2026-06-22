@@ -16,8 +16,8 @@ import {
 	GameShelfService,
 	CreateGameShelfDto,
 	UpdateGameShelfDto
-} from "../game-shelf.service";
-import { GamesService } from "../../games/games.service";
+} from "../game-shelf";
+import { GamesService } from "../../games/games";
 import {
 	Subject,
 	debounceTime,

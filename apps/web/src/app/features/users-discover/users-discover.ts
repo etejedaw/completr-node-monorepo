@@ -8,7 +8,7 @@ import {
 import { RouterLink } from "@angular/router";
 import { Subject, debounceTime, switchMap, of } from "rxjs";
 import { UiAvatar, UiSearchBar } from "../../shared/ui";
-import { UserResult, UsersService } from "../../core/services/users.service";
+import { UserResult, UsersService } from "../../core/services/users";
 
 @Component({
 	selector: "app-users-discover",

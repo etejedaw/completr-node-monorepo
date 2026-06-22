@@ -6,7 +6,7 @@ import {
 	signal
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
-import { AdminService, type JobEntry } from "../admin.service";
+import { AdminService, type JobEntry } from "../admin";
 import { UiButton } from "../../../shared/ui";
 
 @Component({

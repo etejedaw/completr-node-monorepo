@@ -13,12 +13,12 @@ import {
 	Router,
 	NavigationEnd
 } from "@angular/router";
-import { AuthService } from "../core/services/auth.service";
+import { AuthService } from "../core/services/auth";
 import { filter } from "rxjs";
 import { UiAvatar, UiIconButton, UiSeparator } from "../shared/ui";
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
 import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
-import { OnboardingService } from "../core/services/onboarding.service";
+import { OnboardingService } from "../core/services/onboarding";
 
 @Component({
 	selector: "app-layout",
