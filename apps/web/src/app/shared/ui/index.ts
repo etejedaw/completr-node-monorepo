@@ -29,3 +29,4 @@ export {
 	UiRadioItem,
 	UiRadioIndicator
 } from "./radio/ui-radio";
+export { UiSelect } from "./select/ui-select";
