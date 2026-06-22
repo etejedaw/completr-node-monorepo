@@ -22,12 +22,13 @@ import { GameShelfModal } from "../../game-shelf/game-shelf-modal/game-shelf-mod
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../shared/constants/rating-labels";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
-import { ReviewsService, Review } from "../reviews";
-import { ListsService } from "../../lists/lists";
 import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
 import { metascoreColorClass } from "../../../shared/utils/metascore-color";
 import { FormsModule } from "@angular/forms";
-import { UiButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
+import { UiButton, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
+import { GameSocialActivity } from "./components/game-social-activity";
+import { GameAddToListModal, ListsChanged } from "./components/game-add-to-list-modal";
+import { GameReviewsTab } from "./components/game-reviews-tab";
 
 interface BacklogModalState {
 	show: boolean;
@@ -52,22 +53,6 @@ interface ReportModalState {
 	error: string;
 }
 
-interface ReviewFormState {
-	show: boolean;
-	content: string;
-	rating: number | null;
-	submitting: boolean;
-}
-
-interface AddToListModalState {
-	show: boolean;
-	saving: boolean;
-	selection: Map<string, boolean>;
-	newListName: string;
-	creatingNew: boolean;
-	error: string;
-}
-
 @Component({
 	selector: "app-game-detail",
 	imports: [
@@ -79,11 +64,13 @@ interface AddToListModalState {
 		AdminGameEditor,
 		FormsModule,
 		UiButton,
-		UiInput,
 		UiTabs,
 		UiTabList,
 		UiTab,
-		UiTabPanel
+		UiTabPanel,
+		GameSocialActivity,
+		GameAddToListModal,
+		GameReviewsTab
 	],
 	templateUrl: "./game-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -101,8 +88,6 @@ export class GameDetail implements OnInit {
 	private readonly wishlistService = inject(WishlistService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly gameShelfService = inject(GameShelfService);
-	private readonly reviewsService = inject(ReviewsService);
-	private readonly listsService = inject(ListsService);
 
 	protected readonly game = signal<Game | null>(null);
 	protected readonly isLoading = signal(true);
@@ -145,15 +130,6 @@ export class GameDetail implements OnInit {
 		sent: false,
 		error: ""
 	});
-	protected readonly reviewForm = signal<ReviewFormState>({
-		show: false,
-		content: "",
-		rating: null,
-		submitting: false
-	});
-
-	protected readonly reviews = signal<Review[]>([]);
-	protected readonly myReview = signal<Review | null>(null);
 	protected readonly activeTab = signal("overview");
 	protected readonly featuredLists = signal<
 		{
@@ -168,32 +144,7 @@ export class GameDetail implements OnInit {
 	protected readonly myLists = signal<
 		{ id: string; name: string; isPublic: boolean; contains: boolean }[]
 	>([]);
-	protected readonly friendsActivity = signal<
-		{
-			username: string;
-			name: string;
-			avatarUrl: string | null;
-			status: string;
-			finishedAt: string | null;
-			userRating: number | null;
-		}[]
-	>([]);
-	protected readonly otherPlayers = signal<
-		{
-			username: string;
-			name: string;
-			avatarUrl: string | null;
-			status: string;
-		}[]
-	>([]);
-	protected readonly addToListModal = signal<AddToListModalState>({
-		show: false,
-		saving: false,
-		selection: new Map(),
-		newListName: "",
-		creatingNew: false,
-		error: ""
-	});
+	protected readonly showAddToListModal = signal(false);
 	protected readonly myListsInGame = computed(() =>
 		this.myLists().filter(l => l.contains)
 	);
@@ -205,41 +156,6 @@ export class GameDetail implements OnInit {
 		this.route.paramMap.subscribe(params => {
 			const code = params.get("code");
 			if (code) this.loadGame(code);
-		});
-	}
-
-	private autoOpenReviewIfRequested() {
-		const shouldOpen =
-			this.route.snapshot.queryParamMap.get("review") === "open";
-		if (!shouldOpen) return;
-
-		this.activeTab.set("reviews");
-
-		if (this.myReview()) {
-			this.openReviewForm();
-			return;
-		}
-
-		const gameId = this.game()?.id;
-		if (!gameId) {
-			this.openReviewForm();
-			return;
-		}
-
-		this.backlogService.getMyBacklog({ game_id: gameId }).subscribe({
-			next: res => {
-				const entry = res.data.backlog[0];
-				if (entry) {
-					this.updateReviewForm({
-						show: true,
-						rating: entry.userRating ?? null,
-						content: entry.notes ?? ""
-					});
-				} else {
-					this.openReviewForm();
-				}
-			},
-			error: () => this.openReviewForm()
 		});
 	}
 
@@ -255,21 +171,10 @@ export class GameDetail implements OnInit {
 				this.isLoading.set(false);
 				this.loadSimilarGames(game);
 				this.loadUserStatus(game.id);
-				this.loadReviews(game.id);
 				this.gamesService.getGameLists(game.id).subscribe(data => {
 					this.featuredLists.set(data.lists);
 					this.myLists.set(data.myLists);
 				});
-				this.friendsActivity.set([]);
-				this.otherPlayers.set([]);
-				if (this.authService.isLoggedIn()) {
-					this.gamesService
-						.getFriendsActivity(game.id)
-						.subscribe(friends => this.friendsActivity.set(friends));
-					this.gamesService
-						.getPlayers(game.id)
-						.subscribe(players => this.otherPlayers.set(players));
-				}
 			},
 			error: () => this.isLoading.set(false)
 		});
@@ -431,45 +336,6 @@ export class GameDetail implements OnInit {
 		return scale ? `/ ${scale}` : "";
 	}
 
-	protected friendStatusMeta(status: string): {
-		label: string;
-		classes: string;
-		dot: string;
-	} {
-		switch (status) {
-			case "completed":
-				return {
-					label: "Completed",
-					classes: "bg-success/15 text-success",
-					dot: "bg-success"
-				};
-			case "playing":
-				return {
-					label: "Playing",
-					classes: "bg-brand/15 text-brand",
-					dot: "bg-brand"
-				};
-			case "abandoned":
-				return {
-					label: "Abandoned",
-					classes: "bg-warning/15 text-warning",
-					dot: "bg-warning"
-				};
-			case "endless":
-				return {
-					label: "Endless",
-					classes: "bg-brand-subtle text-brand",
-					dot: "bg-brand"
-				};
-			default:
-				return {
-					label: "Backlog",
-					classes: "bg-input-bg text-fg-muted",
-					dot: "bg-fg-muted"
-				};
-		}
-	}
-
 	protected get canonicalScore() {
 		return pickCanonicalScore(this.game());
 	}
@@ -489,126 +355,16 @@ export class GameDetail implements OnInit {
 	}
 
 	openAddToListModal() {
-		const selection = new Map<string, boolean>();
-		for (const list of this.myLists()) {
-			selection.set(list.id, list.contains);
-		}
-		this.updateAddToListModal({
-			show: true,
-			selection,
-			newListName: "",
-			error: ""
-		});
+		this.showAddToListModal.set(true);
 	}
 
 	closeAddToListModal() {
-		this.updateAddToListModal({ show: false });
+		this.showAddToListModal.set(false);
 	}
 
-	setNewListName(value: string) {
-		this.updateAddToListModal({ newListName: value });
-	}
-
-	createNewList() {
-		const name = this.addToListModal().newListName.trim();
-		if (!name || this.addToListModal().creatingNew) return;
-		const gameId = this.game()?.id;
-		if (!gameId) return;
-
-		this.updateAddToListModal({ creatingNew: true, error: "" });
-		this.listsService
-			.create({
-				name,
-				isPublic: true,
-				scoreSource: "metacritic",
-				durationSource: "hltb"
-			})
-			.subscribe({
-				next: list => {
-					this.listsService.addItem(list.id, gameId).subscribe({
-						next: () => {
-							this.gamesService
-								.getGameLists(gameId)
-								.subscribe(data => {
-									this.featuredLists.set(data.lists);
-									this.myLists.set(data.myLists);
-									const selection = new Map(
-										this.addToListModal().selection
-									);
-									for (const l of data.myLists) {
-										if (!selection.has(l.id))
-											selection.set(l.id, l.contains);
-									}
-									this.updateAddToListModal({
-										selection,
-										newListName: "",
-										creatingNew: false
-									});
-								});
-						},
-						error: () => {
-							this.updateAddToListModal({
-								error: "List created but failed to add game",
-								creatingNew: false
-							});
-						}
-					});
-				},
-				error: () => {
-					this.updateAddToListModal({
-						error: "Failed to create list",
-						creatingNew: false
-					});
-				}
-			});
-	}
-
-	toggleAddToListSelection(listId: string) {
-		const next = new Map(this.addToListModal().selection);
-		next.set(listId, !next.get(listId));
-		this.updateAddToListModal({ selection: next });
-	}
-
-	isAddToListChecked(listId: string): boolean {
-		return this.addToListModal().selection.get(listId) ?? false;
-	}
-
-	saveAddToList() {
-		const gameId = this.game()?.id;
-		if (!gameId) return;
-
-		const selection = this.addToListModal().selection;
-		const ops: Promise<unknown>[] = this.myLists().flatMap(list => {
-			const newState = selection.get(list.id) ?? false;
-			if (newState === list.contains) return [];
-			const action = newState
-				? this.listsService.addItem(list.id, gameId)
-				: this.listsService.removeItem(list.id, gameId);
-			return [
-				new Promise((resolve, reject) =>
-					action.subscribe({ next: resolve, error: reject })
-				)
-			];
-		});
-
-		if (ops.length === 0) {
-			this.closeAddToListModal();
-			return;
-		}
-
-		this.updateAddToListModal({ saving: true });
-		Promise.all(ops)
-			.then(() => {
-				this.gamesService.getGameLists(gameId).subscribe(data => {
-					this.featuredLists.set(data.lists);
-					this.myLists.set(data.myLists);
-					this.updateAddToListModal({ saving: false });
-					this.closeAddToListModal();
-				});
-			})
-			.catch(() => {
-				this.updateAddToListModal({ saving: false });
-			});
+	onAddToListListsChanged(data: ListsChanged) {
+		this.featuredLists.set(data.lists);
+		this.myLists.set(data.myLists);
 	}
 
 	openReportModal() {
@@ -674,73 +430,6 @@ export class GameDetail implements OnInit {
 		});
 	}
 
-	openReviewForm() {
-		const existing = this.myReview();
-		this.updateReviewForm({
-			show: true,
-			content: existing?.content ?? "",
-			rating: existing?.rating ?? null
-		});
-	}
-
-	closeReviewForm() {
-		this.updateReviewForm({ show: false });
-	}
-
-	setReviewContent(value: string) {
-		this.updateReviewForm({ content: value });
-	}
-
-	setReviewRating(value: number | null) {
-		this.updateReviewForm({ rating: value });
-	}
-
-	submitReview() {
-		const gameId = this.game()?.id;
-		if (!gameId) return;
-
-		const state = this.reviewForm();
-		const content = state.content.trim() || undefined;
-		const rating = state.rating ?? undefined;
-		if (!content && !rating) return;
-
-		this.updateReviewForm({ submitting: true });
-		const existing = this.myReview();
-		const action = existing
-			? this.reviewsService.updateReview(gameId, { content, rating })
-			: this.reviewsService.createReview(gameId, { content, rating });
-
-		action.subscribe({
-			next: () => {
-				this.updateReviewForm({ submitting: false, show: false });
-				this.loadReviews(gameId);
-			},
-			error: () => this.updateReviewForm({ submitting: false })
-		});
-	}
-
-	deleteReview() {
-		const gameId = this.game()?.id;
-		if (!gameId) return;
-		this.reviewsService.deleteReview(gameId).subscribe(() => {
-			this.myReview.set(null);
-			this.loadReviews(gameId);
-		});
-	}
-
-	private loadReviews(gameId: string) {
-		this.reviewsService.getReviews(gameId).subscribe(reviews => {
-			this.reviews.set(reviews);
-			const userId = this.authService.user()?.id;
-			if (userId) {
-				this.myReview.set(
-					reviews.find(r => r.user?.id === userId) ?? null
-				);
-			}
-			this.autoOpenReviewIfRequested();
-		});
-	}
-
 	protected updateBacklogModal(patch: Partial<BacklogModalState>) {
 		this.backlogModal.update(s => ({ ...s, ...patch }));
 	}
@@ -753,11 +442,4 @@ export class GameDetail implements OnInit {
 		this.reportModal.update(s => ({ ...s, ...patch }));
 	}
 
-	protected updateReviewForm(patch: Partial<ReviewFormState>) {
-		this.reviewForm.update(s => ({ ...s, ...patch }));
-	}
-
-	protected updateAddToListModal(patch: Partial<AddToListModalState>) {
-		this.addToListModal.update(s => ({ ...s, ...patch }));
-	}
 }
