@@ -7,7 +7,7 @@ import {
 	viewChild
 } from "@angular/core";
 import { NgpToast } from "ng-primitives/toast";
-import { Toast, ToastService } from "../../../core/services/toast.service";
+import { Toast, ToastService } from "../../../core/services/toast";
 
 @Component({
 	selector: "app-toast-container",
@@ -17,7 +17,7 @@ import { Toast, ToastService } from "../../../core/services/toast.service";
 })
 export class ToastContainer implements OnInit {
 	private readonly toastService = inject(ToastService);
-	private readonly tpl = viewChild.required<TemplateRef<{ $implicit: Toast }>>("tpl");
+	private readonly tpl = viewChild.required<TemplateRef<{ context: Toast }>>("tpl");
 
 	ngOnInit() {
 		this.toastService.registerTemplate(this.tpl());
