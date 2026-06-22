@@ -12,11 +12,24 @@ import {
 	UpdateProfileDto
 } from "../../profile/profile.service";
 import { ToastService } from "../../../core/services/toast.service";
-import { UiButton, UiInput } from "../../../shared/ui";
+import {
+	UiButton,
+	UiFormField,
+	UiInput,
+	UiLabel,
+	UiTextarea
+} from "../../../shared/ui";
 
 @Component({
 	selector: "app-settings-profile",
-	imports: [FormsModule, UiButton, UiInput],
+	imports: [
+		FormsModule,
+		UiButton,
+		UiInput,
+		UiTextarea,
+		UiFormField,
+		UiLabel
+	],
 	templateUrl: "./settings-profile.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
