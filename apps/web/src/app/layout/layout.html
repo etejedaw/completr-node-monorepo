@@ -335,8 +335,28 @@
 
 		</div>
 	</nav>
-	<main class="flex-1 bg-canvas overflow-y-auto relative flex flex-col">
-		<div class="max-w-7xl w-full mx-auto p-6 lg:p-8 max-md:pt-14 max-md:px-4 flex-1">
+	<main class="flex-1 bg-canvas overflow-y-auto relative flex flex-col isolate">
+		<!-- Ambient asymmetric accents — break the centered max-w layout (desktop only). -->
+		<div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10 overflow-hidden hidden lg:block">
+			<div
+				class="absolute -top-40 -right-32 w-[560px] h-[560px] rounded-full blur-3xl opacity-40"
+				style="background: radial-gradient(circle, var(--color-brand-glow), transparent 65%);"
+			></div>
+			<div
+				class="absolute top-[58vh] -left-28 w-[400px] h-[400px] rounded-full blur-3xl opacity-25"
+				style="background: radial-gradient(circle, var(--color-brand-glow), transparent 70%);"
+			></div>
+			<div
+				class="absolute top-24 right-[14%] w-px h-44 rotate-[18deg] origin-top"
+				style="background: linear-gradient(to bottom, transparent, var(--color-line-hover) 40%, transparent);"
+			></div>
+			<div
+				class="absolute top-[12vh] left-[42%] w-24 h-24 rotate-12 opacity-[0.08]"
+				style="background-image: linear-gradient(var(--color-line-hover) 1px, transparent 1px), linear-gradient(90deg, var(--color-line-hover) 1px, transparent 1px); background-size: 12px 12px;"
+			></div>
+		</div>
+
+		<div class="max-w-7xl w-full mx-auto p-6 lg:p-8 max-md:pt-14 max-md:px-4 flex-1 relative">
 			<router-outlet />
 		</div>
 	</main>
