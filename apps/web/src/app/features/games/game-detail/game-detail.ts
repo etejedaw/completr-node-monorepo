@@ -29,6 +29,45 @@ import { metascoreColorClass } from "../../../shared/utils/metascore-color";
 import { FormsModule } from "@angular/forms";
 import { UiButton, UiInput, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
 
+interface BacklogModalState {
+	show: boolean;
+	preselectQueue: boolean;
+	game: Game | null;
+	compilationParent: Game | null;
+}
+
+interface AdminActionsState {
+	confirmDeactivate: boolean;
+	confirmDelete: boolean;
+	editor: boolean;
+	deactivating: boolean;
+	deleting: boolean;
+}
+
+interface ReportModalState {
+	show: boolean;
+	message: string;
+	submitting: boolean;
+	sent: boolean;
+	error: string;
+}
+
+interface ReviewFormState {
+	show: boolean;
+	content: string;
+	rating: number | null;
+	submitting: boolean;
+}
+
+interface AddToListModalState {
+	show: boolean;
+	saving: boolean;
+	selection: Map<string, boolean>;
+	newListName: string;
+	creatingNew: boolean;
+	error: string;
+}
+
 @Component({
 	selector: "app-game-detail",
 	imports: [
@@ -74,10 +113,6 @@ export class GameDetail implements OnInit {
 	protected readonly isInQueue = signal(false);
 	protected readonly isInShelf = signal(false);
 	protected readonly addedToQueue = signal(false);
-	protected readonly showBacklogModal = signal(false);
-	protected readonly backlogModalPreselectQueue = signal(false);
-	protected readonly backlogModalGame = signal<Game | null>(null);
-	protected readonly backlogModalCompilationParent = signal<Game | null>(null);
 	protected readonly showShelfModal = signal(false);
 	protected readonly isModerator = computed(() => {
 		const role = this.authService.user()?.role;
@@ -86,26 +121,39 @@ export class GameDetail implements OnInit {
 	protected readonly isAdmin = computed(
 		() => this.authService.user()?.role === "admin"
 	);
-	protected readonly showConfirmDeactivate = signal(false);
-	protected readonly showConfirmDelete = signal(false);
-	protected readonly showEditor = signal(false);
-	protected readonly deactivating = signal(false);
-	protected readonly deleting = signal(false);
 	protected readonly togglingFavorite = signal(false);
 	protected readonly togglingWishlist = signal(false);
 	protected readonly showWishlistPlatformModal = signal(false);
-	protected readonly showReportModal = signal(false);
-	protected readonly reportMessage = signal("");
-	protected readonly reportSubmitting = signal(false);
-	protected readonly reportSent = signal(false);
+
+	protected readonly backlogModal = signal<BacklogModalState>({
+		show: false,
+		preselectQueue: false,
+		game: null,
+		compilationParent: null
+	});
+	protected readonly adminActions = signal<AdminActionsState>({
+		confirmDeactivate: false,
+		confirmDelete: false,
+		editor: false,
+		deactivating: false,
+		deleting: false
+	});
+	protected readonly reportModal = signal<ReportModalState>({
+		show: false,
+		message: "",
+		submitting: false,
+		sent: false,
+		error: ""
+	});
+	protected readonly reviewForm = signal<ReviewFormState>({
+		show: false,
+		content: "",
+		rating: null,
+		submitting: false
+	});
 
 	protected readonly reviews = signal<Review[]>([]);
 	protected readonly myReview = signal<Review | null>(null);
-	protected readonly showReviewForm = signal(false);
-	protected readonly reviewContent = signal("");
-	protected readonly reviewRating = signal<number | null>(null);
-	protected readonly reviewSubmitting = signal(false);
-	protected readonly reportError = signal("");
 	protected readonly activeTab = signal("overview");
 	protected readonly featuredLists = signal<
 		{
@@ -138,14 +186,14 @@ export class GameDetail implements OnInit {
 			status: string;
 		}[]
 	>([]);
-	protected readonly showAddToListModal = signal(false);
-	protected readonly addToListSaving = signal(false);
-	protected readonly addToListSelection = signal<Map<string, boolean>>(
-		new Map()
-	);
-	protected readonly newListName = signal("");
-	protected readonly creatingNewList = signal(false);
-	protected readonly newListError = signal("");
+	protected readonly addToListModal = signal<AddToListModalState>({
+		show: false,
+		saving: false,
+		selection: new Map(),
+		newListName: "",
+		creatingNew: false,
+		error: ""
+	});
 	protected readonly myListsInGame = computed(() =>
 		this.myLists().filter(l => l.contains)
 	);
@@ -182,9 +230,11 @@ export class GameDetail implements OnInit {
 			next: res => {
 				const entry = res.data.backlog[0];
 				if (entry) {
-					this.reviewRating.set(entry.userRating ?? null);
-					this.reviewContent.set(entry.notes ?? "");
-					this.showReviewForm.set(true);
+					this.updateReviewForm({
+						show: true,
+						rating: entry.userRating ?? null,
+						content: entry.notes ?? ""
+					});
 				} else {
 					this.openReviewForm();
 				}
@@ -298,52 +348,45 @@ export class GameDetail implements OnInit {
 	addToQueue() {
 		const g = this.game();
 		if (!g || this.addedToQueue()) return;
-		this.backlogModalPreselectQueue.set(true);
-		const items = g.compilationItems ?? [];
-		if (g.isCompilation && items.length > 0) {
-			this.backlogModalCompilationParent.set(g);
-			this.backlogModalGame.set(null);
-		} else {
-			this.backlogModalCompilationParent.set(null);
-			this.backlogModalGame.set(g);
-		}
-		this.showBacklogModal.set(true);
+		const isCompilation = g.isCompilation && (g.compilationItems ?? []).length > 0;
+		this.updateBacklogModal({
+			show: true,
+			preselectQueue: true,
+			game: isCompilation ? null : g,
+			compilationParent: isCompilation ? g : null
+		});
 	}
 
 	deactivateGame() {
 		const g = this.game();
-		if (!g || this.deactivating()) return;
-		this.deactivating.set(true);
+		if (!g || this.adminActions().deactivating) return;
+		this.updateAdminActions({ deactivating: true });
 		this.gamesService.deactivate(g.id).subscribe({
 			next: () => this.router.navigate(["/games"]),
-			error: () => this.deactivating.set(false)
+			error: () => this.updateAdminActions({ deactivating: false })
 		});
 	}
 
 	deleteGame() {
 		const g = this.game();
-		if (!g || this.deleting()) return;
-		this.deleting.set(true);
+		if (!g || this.adminActions().deleting) return;
+		this.updateAdminActions({ deleting: true });
 		this.gamesService.hardDelete(g.id).subscribe({
 			next: () => this.router.navigate(["/games"]),
-			error: () => this.deleting.set(false)
+			error: () => this.updateAdminActions({ deleting: false })
 		});
 	}
 
 	openBacklogModal() {
 		const g = this.game();
 		if (!g) return;
-		this.backlogModalPreselectQueue.set(false);
-		const items = g.compilationItems ?? [];
-		if (g.isCompilation && items.length > 0) {
-			this.backlogModalCompilationParent.set(g);
-			this.backlogModalGame.set(null);
-			this.showBacklogModal.set(true);
-			return;
-		}
-		this.backlogModalCompilationParent.set(null);
-		this.backlogModalGame.set(g);
-		this.showBacklogModal.set(true);
+		const isCompilation = g.isCompilation && (g.compilationItems ?? []).length > 0;
+		this.updateBacklogModal({
+			show: true,
+			preselectQueue: false,
+			game: isCompilation ? null : g,
+			compilationParent: isCompilation ? g : null
+		});
 	}
 
 	openShelfModal() {
@@ -351,31 +394,35 @@ export class GameDetail implements OnInit {
 	}
 
 	onModalClosed() {
-		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
-		this.backlogModalPreselectQueue.set(false);
-		this.backlogModalGame.set(null);
-		this.backlogModalCompilationParent.set(null);
+		this.updateBacklogModal({
+			show: false,
+			preselectQueue: false,
+			game: null,
+			compilationParent: null
+		});
 	}
 
 	onModalSaved() {
-		this.showBacklogModal.set(false);
 		this.showShelfModal.set(false);
-		this.backlogModalPreselectQueue.set(false);
-		this.backlogModalGame.set(null);
-		this.backlogModalCompilationParent.set(null);
+		this.updateBacklogModal({
+			show: false,
+			preselectQueue: false,
+			game: null,
+			compilationParent: null
+		});
 		const gameId = this.game()?.id;
 		if (gameId) this.loadUserStatus(gameId);
 	}
 
 	onEditorSaved() {
-		this.showEditor.set(false);
+		this.updateAdminActions({ editor: false });
 		const code = this.game()?.code;
 		if (code) this.loadGame(code);
 	}
 
 	onEditorSplit(firstVariant: { code: string }) {
-		this.showEditor.set(false);
+		this.updateAdminActions({ editor: false });
 		this.router.navigate(["/games", firstVariant.code]);
 	}
 
@@ -446,24 +493,29 @@ export class GameDetail implements OnInit {
 		for (const list of this.myLists()) {
 			selection.set(list.id, list.contains);
 		}
-		this.addToListSelection.set(selection);
-		this.newListName.set("");
-		this.newListError.set("");
-		this.showAddToListModal.set(true);
+		this.updateAddToListModal({
+			show: true,
+			selection,
+			newListName: "",
+			error: ""
+		});
 	}
 
 	closeAddToListModal() {
-		this.showAddToListModal.set(false);
+		this.updateAddToListModal({ show: false });
+	}
+
+	setNewListName(value: string) {
+		this.updateAddToListModal({ newListName: value });
 	}
 
 	createNewList() {
-		const name = this.newListName().trim();
-		if (!name || this.creatingNewList()) return;
+		const name = this.addToListModal().newListName.trim();
+		if (!name || this.addToListModal().creatingNew) return;
 		const gameId = this.game()?.id;
 		if (!gameId) return;
 
-		this.creatingNewList.set(true);
-		this.newListError.set("");
+		this.updateAddToListModal({ creatingNew: true, error: "" });
 		this.listsService
 			.create({
 				name,
@@ -481,99 +533,100 @@ export class GameDetail implements OnInit {
 									this.featuredLists.set(data.lists);
 									this.myLists.set(data.myLists);
 									const selection = new Map(
-										this.addToListSelection()
+										this.addToListModal().selection
 									);
 									for (const l of data.myLists) {
 										if (!selection.has(l.id))
 											selection.set(l.id, l.contains);
 									}
-									this.addToListSelection.set(selection);
-									this.newListName.set("");
-									this.creatingNewList.set(false);
+									this.updateAddToListModal({
+										selection,
+										newListName: "",
+										creatingNew: false
+									});
 								});
 						},
 						error: () => {
-							this.newListError.set(
-								"List created but failed to add game"
-							);
-							this.creatingNewList.set(false);
+							this.updateAddToListModal({
+								error: "List created but failed to add game",
+								creatingNew: false
+							});
 						}
 					});
 				},
 				error: () => {
-					this.newListError.set("Failed to create list");
-					this.creatingNewList.set(false);
+					this.updateAddToListModal({
+						error: "Failed to create list",
+						creatingNew: false
+					});
 				}
 			});
 	}
 
 	toggleAddToListSelection(listId: string) {
-		const next = new Map(this.addToListSelection());
+		const next = new Map(this.addToListModal().selection);
 		next.set(listId, !next.get(listId));
-		this.addToListSelection.set(next);
+		this.updateAddToListModal({ selection: next });
 	}
 
 	isAddToListChecked(listId: string): boolean {
-		return this.addToListSelection().get(listId) ?? false;
+		return this.addToListModal().selection.get(listId) ?? false;
 	}
 
 	saveAddToList() {
 		const gameId = this.game()?.id;
 		if (!gameId) return;
 
-		const ops: Promise<unknown>[] = [];
-		for (const list of this.myLists()) {
-			const newState = this.addToListSelection().get(list.id) ?? false;
-			if (newState === list.contains) continue;
-			if (newState) {
-				ops.push(
-					new Promise((resolve, reject) =>
-						this.listsService
-							.addItem(list.id, gameId)
-							.subscribe({ next: resolve, error: reject })
-					)
-				);
-			} else {
-				ops.push(
-					new Promise((resolve, reject) =>
-						this.listsService
-							.removeItem(list.id, gameId)
-							.subscribe({ next: resolve, error: reject })
-					)
-				);
-			}
-		}
+		const selection = this.addToListModal().selection;
+		const ops: Promise<unknown>[] = this.myLists().flatMap(list => {
+			const newState = selection.get(list.id) ?? false;
+			if (newState === list.contains) return [];
+			const action = newState
+				? this.listsService.addItem(list.id, gameId)
+				: this.listsService.removeItem(list.id, gameId);
+			return [
+				new Promise((resolve, reject) =>
+					action.subscribe({ next: resolve, error: reject })
+				)
+			];
+		});
 
 		if (ops.length === 0) {
 			this.closeAddToListModal();
 			return;
 		}
 
-		this.addToListSaving.set(true);
+		this.updateAddToListModal({ saving: true });
 		Promise.all(ops)
 			.then(() => {
 				this.gamesService.getGameLists(gameId).subscribe(data => {
 					this.featuredLists.set(data.lists);
 					this.myLists.set(data.myLists);
-					this.addToListSaving.set(false);
+					this.updateAddToListModal({ saving: false });
 					this.closeAddToListModal();
 				});
 			})
 			.catch(() => {
-				this.addToListSaving.set(false);
+				this.updateAddToListModal({ saving: false });
 			});
 	}
 
 	openReportModal() {
-		this.showReportModal.set(true);
-		this.reportMessage.set("");
-		this.reportError.set("");
+		this.updateReportModal({ show: true, message: "", error: "" });
+	}
+
+	closeReportModal() {
+		this.updateReportModal({ show: false });
+	}
+
+	setReportMessage(value: string) {
+		this.updateReportModal({ message: value });
 	}
 
 	reportMissingData() {
 		const gameId = this.game()?.id;
-		if (!gameId || this.reportSubmitting()) return;
-		this.reportSubmitting.set(true);
+		if (!gameId || this.reportModal().submitting) return;
+		this.updateReportModal({ submitting: true });
 		this.gamesService
 			.reportGame(
 				gameId,
@@ -581,68 +634,77 @@ export class GameDetail implements OnInit {
 				"missing_score"
 			)
 			.subscribe({
-				next: () => {
-					this.reportSubmitting.set(false);
-					this.reportSent.set(true);
-				},
-				error: err => {
-					this.reportSubmitting.set(false);
-					if (err.status === 409) this.reportSent.set(true);
-				}
+				next: () =>
+					this.updateReportModal({ submitting: false, sent: true }),
+				error: err =>
+					this.updateReportModal({
+						submitting: false,
+						sent: err.status === 409 ? true : this.reportModal().sent
+					})
 			});
 	}
 
 	submitReport() {
 		const gameId = this.game()?.id;
-		const message = this.reportMessage();
+		const state = this.reportModal();
 		if (
 			!gameId ||
-			!message ||
-			message.length < 10 ||
-			this.reportSubmitting()
+			!state.message ||
+			state.message.length < 10 ||
+			state.submitting
 		)
 			return;
 
-		this.reportSubmitting.set(true);
-		this.reportError.set("");
-		this.gamesService.reportGame(gameId, message).subscribe({
-			next: () => {
-				this.reportSubmitting.set(false);
-				this.showReportModal.set(false);
-				this.reportSent.set(true);
-			},
-			error: err => {
-				this.reportSubmitting.set(false);
-				this.reportError.set(
-					err.error?.detail ||
+		this.updateReportModal({ submitting: true, error: "" });
+		this.gamesService.reportGame(gameId, state.message).subscribe({
+			next: () =>
+				this.updateReportModal({
+					submitting: false,
+					show: false,
+					sent: true
+				}),
+			error: err =>
+				this.updateReportModal({
+					submitting: false,
+					error:
+						err.error?.detail ||
 						err.error?.title ||
 						"Failed to submit report"
-				);
-			}
+				})
 		});
 	}
 
 	openReviewForm() {
 		const existing = this.myReview();
-		if (existing) {
-			this.reviewContent.set(existing.content ?? "");
-			this.reviewRating.set(existing.rating ?? null);
-		} else {
-			this.reviewContent.set("");
-			this.reviewRating.set(null);
-		}
-		this.showReviewForm.set(true);
+		this.updateReviewForm({
+			show: true,
+			content: existing?.content ?? "",
+			rating: existing?.rating ?? null
+		});
+	}
+
+	closeReviewForm() {
+		this.updateReviewForm({ show: false });
+	}
+
+	setReviewContent(value: string) {
+		this.updateReviewForm({ content: value });
+	}
+
+	setReviewRating(value: number | null) {
+		this.updateReviewForm({ rating: value });
 	}
 
 	submitReview() {
 		const gameId = this.game()?.id;
 		if (!gameId) return;
 
-		const content = this.reviewContent().trim() || undefined;
-		const rating = this.reviewRating() ?? undefined;
+		const state = this.reviewForm();
+		const content = state.content.trim() || undefined;
+		const rating = state.rating ?? undefined;
 		if (!content && !rating) return;
 
-		this.reviewSubmitting.set(true);
+		this.updateReviewForm({ submitting: true });
 		const existing = this.myReview();
 		const action = existing
 			? this.reviewsService.updateReview(gameId, { content, rating })
@@ -650,11 +712,10 @@ export class GameDetail implements OnInit {
 
 		action.subscribe({
 			next: () => {
-				this.reviewSubmitting.set(false);
-				this.showReviewForm.set(false);
+				this.updateReviewForm({ submitting: false, show: false });
 				this.loadReviews(gameId);
 			},
-			error: () => this.reviewSubmitting.set(false)
+			error: () => this.updateReviewForm({ submitting: false })
 		});
 	}
 
@@ -678,5 +739,25 @@ export class GameDetail implements OnInit {
 			}
 			this.autoOpenReviewIfRequested();
 		});
+	}
+
+	protected updateBacklogModal(patch: Partial<BacklogModalState>) {
+		this.backlogModal.update(s => ({ ...s, ...patch }));
+	}
+
+	protected updateAdminActions(patch: Partial<AdminActionsState>) {
+		this.adminActions.update(s => ({ ...s, ...patch }));
+	}
+
+	protected updateReportModal(patch: Partial<ReportModalState>) {
+		this.reportModal.update(s => ({ ...s, ...patch }));
+	}
+
+	protected updateReviewForm(patch: Partial<ReviewFormState>) {
+		this.reviewForm.update(s => ({ ...s, ...patch }));
+	}
+
+	protected updateAddToListModal(patch: Partial<AddToListModalState>) {
+		this.addToListModal.update(s => ({ ...s, ...patch }));
 	}
 }
