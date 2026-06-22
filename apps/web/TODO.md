@@ -270,7 +270,7 @@ Migrar todo el frontend para que use ng-primitives como base de componentes UI. 
 - [x] Migrar paginación a Pagination primitive (`UiPagination` sobre `NgpPagination`)
 - [x] Migrar buscadores a Search primitive (`UiSearchBar` sobre `NgpSearch`)
 - [ ] Migrar toasts/notificaciones a Toast primitive — requiere reescribir `ToastService` para usar `NgpToastManager.show(TemplateRef)` en vez del modelo signal array actual; conservar API pública (`success/error/pending/undo/dismiss`) y la lógica de undo timer
-- [ ] Migrar dropdowns/selects a Select/Combobox primitives — 6 archivos con `<select>` nativo (admin-users, admin-audit, admin-game-editor, backlog-modal, backlog-list, game-shelf-modal); list-modal ya migrado a Radio
+- [x] Migrar dropdowns/selects a Select primitive (`UiSelect` sobre `NgpNativeSelect` + estilos `.ui-input.ui-select` con chevron SVG): admin-users, admin-audit, admin-game-editor, backlog-modal (3), backlog-list (3), game-shelf-modal; list-modal usa Radio
 - [x] Migrar barras de progreso (listas) a Progress primitive (`UiProgress` sobre `NgpProgress` — aplicado en `list-detail`, `list-overview`)
 - [x] Migrar separadores visuales a Separator primitive (`UiSeparator` sobre `NgpSeparator` — sidebar)
 - [x] Migrar avatares (perfil, sidebar, feed) a Avatar primitive (`UiAvatar` sobre `NgpAvatar` — sidebar, feed activities, feed follow requests; sweep restante en public-profile, user-list-modal, etc.)
