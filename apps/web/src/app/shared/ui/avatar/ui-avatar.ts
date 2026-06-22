@@ -38,7 +38,7 @@ import { NgpAvatar, NgpAvatarFallback, NgpAvatarImage } from "ng-primitives/avat
 		</span>
 	`,
 	host: {
-		class: "inline-block shrink-0"
+		class: "inline-block shrink-0 rounded-full overflow-hidden"
 	},
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
