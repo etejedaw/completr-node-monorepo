@@ -11,9 +11,9 @@ import {
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { Game, Genre, List, Platform } from "../../../core/models";
-import { GamesService } from "../games.service";
-import { ListsService } from "../../lists/lists.service";
-import { AuthService } from "../../../core/services/auth.service";
+import { GamesService } from "../games";
+import { ListsService } from "../../lists/lists";
+import { AuthService } from "../../../core/services/auth";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import {
 	Subject,

@@ -25,7 +25,6 @@ export type QueueStatusChange = "playing";
 
 @Component({
 	selector: "app-queue-grid-card",
-	standalone: true,
 	imports: [RouterLink, UiIconButton],
 	template: `
 		<div class="flex flex-col gap-1.5 group">

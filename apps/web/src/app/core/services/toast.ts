@@ -37,8 +37,8 @@ export class ToastService {
 	private nextId = 1;
 	private readonly pendings = new Map<number, PendingEntry>();
 
-	registerTemplate(tpl: TemplateRef<{ $implicit: Toast }>) {
-		this.template = tpl as unknown as TemplateRef<void>;
+	registerTemplate(tpl: TemplateRef<unknown>) {
+		this.template = tpl as TemplateRef<void>;
 	}
 
 	show(message: string, variant: ToastVariant = "info", durationMs = 4000) {
@@ -53,7 +53,7 @@ export class ToastService {
 		};
 		ref = this.manager.show(this.template, {
 			duration: durationMs,
-			context: { $implicit: ctx }
+			context: ctx
 		});
 	}
 
@@ -89,7 +89,7 @@ export class ToastService {
 		const ref = this.manager.show(this.template, {
 			duration: 0,
 			dismissible: false,
-			context: { $implicit: ctx }
+			context: ctx
 		});
 		const timer = setTimeout(() => this.commit(id), durationMs);
 		this.pendings.set(id, {

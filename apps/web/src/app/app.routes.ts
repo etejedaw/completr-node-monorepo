@@ -6,7 +6,7 @@ import { guestMatch } from "./core/guards/guest.match";
 import { selfProfileRedirect } from "./core/guards/self-profile-redirect.guard";
 import { adminGuard } from "./core/guards/admin.guard";
 import { moderatorGuard } from "./core/guards/moderator.guard";
-import { AuthService } from "./core/services/auth.service";
+import { AuthService } from "./core/services/auth";
 
 const publicProfileRoutes: Routes = [
 	{

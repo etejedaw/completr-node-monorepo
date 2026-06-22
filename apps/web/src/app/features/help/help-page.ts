@@ -6,11 +6,10 @@ import {
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { OnboardingService } from "../../core/services/onboarding.service";
+import { OnboardingService } from "../../core/services/onboarding";
 
 @Component({
 	selector: "app-help-page",
-	standalone: true,
 	imports: [RouterLink],
 	templateUrl: "./help-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

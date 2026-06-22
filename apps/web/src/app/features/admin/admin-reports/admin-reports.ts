@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { DatePipe } from "@angular/common";
-import { AdminService, GameReport } from "../admin.service";
+import { AdminService, GameReport } from "../admin";
 import { UiButton } from "../../../shared/ui";
 
 @Component({

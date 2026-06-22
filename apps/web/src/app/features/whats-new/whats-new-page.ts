@@ -27,7 +27,6 @@ const PAGE_SIZE = 4;
 
 @Component({
 	selector: "app-whats-new-page",
-	standalone: true,
 	imports: [UiPagination],
 	template: `
 		<div class="max-w-3xl mx-auto">

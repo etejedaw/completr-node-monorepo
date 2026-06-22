@@ -7,8 +7,8 @@ import {
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
 import { GameShelfEntry } from "../../../core/models";
-import { GameShelfService } from "../game-shelf.service";
-import { FavoritesService } from "../../favorites/favorites.service";
+import { GameShelfService } from "../game-shelf";
+import { FavoritesService } from "../../favorites/favorites";
 import { RouterLink } from "@angular/router";
 import { GameShelfModal } from "../game-shelf-modal/game-shelf-modal";
 import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";

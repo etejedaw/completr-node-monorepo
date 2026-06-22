@@ -4,7 +4,6 @@ export type UiSkeletonVariant = "rect" | "circle" | "text";
 
 @Component({
 	selector: "ui-skeleton",
-	standalone: true,
 	template: `<span
 		class="block bg-fg-muted/10 animate-[skeletonPulse_1.4s_ease-in-out_infinite]"
 		[class.rounded-md]="variant() === 'rect'"

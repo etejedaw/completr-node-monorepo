@@ -8,7 +8,7 @@ import {
 import { RouterLink } from "@angular/router";
 import { Subject, debounceTime, switchMap, of } from "rxjs";
 import { List, FollowingList } from "../../../core/models";
-import { ListsService } from "../lists.service";
+import { ListsService } from "../lists";
 import { ListModal } from "../list-modal/list-modal";
 import { UiButton, UiEmptyState, UiPagination, UiProgress, UiSearchBar } from "../../../shared/ui";
 

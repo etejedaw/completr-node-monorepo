@@ -8,7 +8,7 @@ import {
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { DatePipe } from "@angular/common";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
-import { AuthService } from "../../../core/services/auth.service";
+import { AuthService } from "../../../core/services/auth";
 import { PublicProfileService } from "../public-profile.service";
 import { BacklogEntry, BacklogStatus } from "../../../core/models";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";

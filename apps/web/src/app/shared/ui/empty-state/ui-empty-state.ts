@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
 @Component({
 	selector: "ui-empty-state",
-	standalone: true,
 	template: `
 		<div class="flex flex-col items-center text-center py-12 px-4">
 			<div

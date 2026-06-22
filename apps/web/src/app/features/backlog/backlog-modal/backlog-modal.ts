@@ -17,14 +17,14 @@ import {
 	BacklogService,
 	CreateBacklogDto,
 	UpdateBacklogDto
-} from "../backlog.service";
-import { GamesService } from "../../games/games.service";
-import { QueueService } from "../../queue/queue.service";
-import { GameShelfService } from "../../game-shelf/game-shelf.service";
-import { ScoreSourcesService } from "../../../core/services/score-sources.service";
-import { Review, ReviewsService } from "../../games/reviews.service";
-import { AuthService } from "../../../core/services/auth.service";
-import { ToastService } from "../../../core/services/toast.service";
+} from "../backlog";
+import { GamesService } from "../../games/games";
+import { QueueService } from "../../queue/queue";
+import { GameShelfService } from "../../game-shelf/game-shelf";
+import { ScoreSourcesService } from "../../../core/services/score-sources";
+import { Review, ReviewsService } from "../../games/reviews";
+import { AuthService } from "../../../core/services/auth";
+import { ToastService } from "../../../core/services/toast";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../../../environments/environment";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";

@@ -3,8 +3,8 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import { Router } from "@angular/router";
 import { map, Observable, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
-import { StorageService } from "./storage.service";
-import { ThemeService, ThemeId } from "./theme.service";
+import { StorageService } from "./storage";
+import { ThemeService, ThemeId } from "./theme";
 import { User } from "../models";
 
 const TOKEN_KEY = "access_token";

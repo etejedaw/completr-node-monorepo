@@ -2,7 +2,6 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	effect,
-	HostListener,
 	inject,
 	OnInit,
 	signal,
@@ -13,16 +12,16 @@ import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { BacklogEntry, BacklogStatus, Genre, Platform } from "../../../core/models";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
-import { BacklogService, BacklogFilters } from "../backlog.service";
-import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
-import { QueueService } from "../../queue/queue.service";
-import { FavoritesService } from "../../favorites/favorites.service";
-import { GamesService } from "../../games/games.service";
+import { BacklogService, BacklogFilters } from "../backlog";
+import { SavedFiltersService, SavedFilter } from "../saved-filters";
+import { QueueService } from "../../queue/queue";
+import { FavoritesService } from "../../favorites/favorites";
+import { GamesService } from "../../games/games";
 import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
 import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
-import { ReviewsService } from "../../games/reviews.service";
+import { ReviewsService } from "../../games/reviews";
 import { UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
@@ -30,6 +29,9 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 	selector: "app-backlog-list",
 	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea, GameFilterPanel],
 	templateUrl: "./backlog-list.html",
+	host: {
+		"(document:click)": "onDocumentClick()"
+	},
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BacklogList implements OnInit {
@@ -545,7 +547,6 @@ export class BacklogList implements OnInit {
 			.subscribe();
 	}
 
-	@HostListener("document:click")
 	onDocumentClick() {
 		this.statusMenuOpenId.set(null);
 	}

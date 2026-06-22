@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { AdminService, AdminUser } from "../admin.service";
+import { AdminService, AdminUser } from "../admin";
 import {
 	UiButton,
 	UiIconButton,

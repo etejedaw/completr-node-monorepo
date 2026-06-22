@@ -1,4 +1,11 @@
-import { Component, computed, inject, OnInit, signal } from "@angular/core";
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	inject,
+	OnInit,
+	signal
+} from "@angular/core";
 import {
 	RouterLink,
 	RouterLinkActive,
@@ -6,12 +13,12 @@ import {
 	Router,
 	NavigationEnd
 } from "@angular/router";
-import { AuthService } from "../core/services/auth.service";
+import { AuthService } from "../core/services/auth";
 import { filter } from "rxjs";
 import { UiAvatar, UiIconButton, UiSeparator } from "../shared/ui";
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
 import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
-import { OnboardingService } from "../core/services/onboarding.service";
+import { OnboardingService } from "../core/services/onboarding";
 
 @Component({
 	selector: "app-layout",
@@ -25,7 +32,8 @@ import { OnboardingService } from "../core/services/onboarding.service";
 		ToastContainer,
 		OnboardingTour
 	],
-	templateUrl: "./layout.html"
+	templateUrl: "./layout.html",
+	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Layout implements OnInit {
 	private readonly auth = inject(AuthService);

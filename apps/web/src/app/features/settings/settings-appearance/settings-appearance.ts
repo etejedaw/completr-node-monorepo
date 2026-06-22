@@ -6,17 +6,16 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { AuthService } from "../../../core/services/auth.service";
+import { AuthService } from "../../../core/services/auth";
 import {
 	ThemeService,
 	ThemeId,
 	ThemeOption
-} from "../../../core/services/theme.service";
-import { ToastService } from "../../../core/services/toast.service";
+} from "../../../core/services/theme";
+import { ToastService } from "../../../core/services/toast";
 
 @Component({
 	selector: "app-settings-appearance",
-	standalone: true,
 	templateUrl: "./settings-appearance.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

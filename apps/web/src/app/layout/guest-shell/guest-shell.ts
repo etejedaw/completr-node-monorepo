@@ -4,7 +4,6 @@ import { AttributionFooter } from "../../shared/components/attribution-footer/at
 
 @Component({
 	selector: "app-guest-shell",
-	standalone: true,
 	imports: [RouterOutlet, AttributionFooter],
 	template: `
 		<div class="min-h-screen flex flex-col bg-canvas">

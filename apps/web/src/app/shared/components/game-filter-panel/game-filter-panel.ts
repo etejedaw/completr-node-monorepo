@@ -9,7 +9,6 @@ import { UiInput } from "../../ui";
 
 @Component({
 	selector: "app-game-filter-panel",
-	standalone: true,
 	imports: [UiInput],
 	template: `
 		<div class="flex flex-col gap-4">

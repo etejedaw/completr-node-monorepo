@@ -7,8 +7,8 @@ import {
 	signal
 } from "@angular/core";
 import { BacklogEntry } from "../../../core/models";
-import { BacklogService } from "../../backlog/backlog.service";
-import { QueueService } from "../queue.service";
+import { BacklogService } from "../../backlog/backlog";
+import { QueueService } from "../queue";
 import { UiButton, UiFocusTrap, UiIconButton } from "../../../shared/ui";
 
 @Component({

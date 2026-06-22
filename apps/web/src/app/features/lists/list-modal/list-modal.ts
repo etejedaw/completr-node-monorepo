@@ -9,7 +9,7 @@ import {
 } from "@angular/core";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { List } from "../../../core/models";
-import { ListsService, CreateListDto, UpdateListDto } from "../lists.service";
+import { ListsService, CreateListDto, UpdateListDto } from "../lists";
 import {
 	UiButton,
 	UiFocusTrap,
