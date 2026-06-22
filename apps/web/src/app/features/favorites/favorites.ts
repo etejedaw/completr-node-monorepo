@@ -3,12 +3,13 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable, map, of, shareReplay, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { FavoriteEntry } from "../../core/models";
+import { Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 interface FavoritesResponse {
 	data: { favorites: FavoriteEntry[]; total?: number };
 }
 
-export interface FavoritesPagination {
+export interface FavoritesPagination extends Record<string, Appendable> {
 	limit?: number;
 	offset?: number;
 	search?: string;
@@ -25,12 +26,7 @@ export class FavoritesService {
 	private idsLoad$: Observable<Set<string>> | null = null;
 
 	load(pagination: FavoritesPagination = {}) {
-		let params = new HttpParams();
-		if (pagination.limit !== undefined)
-			params = params.set("limit", String(pagination.limit));
-		if (pagination.offset !== undefined)
-			params = params.set("offset", String(pagination.offset));
-		if (pagination.search) params = params.set("search", pagination.search);
+		const params = buildHttpParams(pagination);
 		return this.http.get<FavoritesResponse>(this.baseUrl, { params }).pipe(
 			tap(res => {
 				this._favorites.set(res.data.favorites);

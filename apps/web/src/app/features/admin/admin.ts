@@ -1,9 +1,10 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient, HttpContext, HttpParams } from "@angular/common/http";
+import { HttpClient, HttpContext } from "@angular/common/http";
 import { environment } from "../../../environments/environment";
 import { User, VisibilityLevel } from "../../core/models";
 import { map } from "rxjs";
 import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
+import { buildHttpParams } from "../../core/utils/http-params";
 
 const SUPPRESS_TOAST_CONTEXT = new HttpContext().set(
 	SUPPRESS_VALIDATION_TOAST,
@@ -73,9 +74,7 @@ export class AdminService {
 	}
 
 	listUsers(limit = 50, offset = 0) {
-		const params = new HttpParams()
-			.set("limit", limit)
-			.set("offset", offset);
+		const params = buildHttpParams({ limit, offset });
 		return this.http
 			.get<{
 				data: { users: AdminUser[]; total: number };
@@ -106,11 +105,7 @@ export class AdminService {
 		offset = 0,
 		filters: { action?: string; targetType?: string } = {}
 	) {
-		let params = new HttpParams()
-			.set("limit", limit)
-			.set("offset", offset);
-		if (filters.action) params = params.set("action", filters.action);
-		if (filters.targetType) params = params.set("targetType", filters.targetType);
+		const params = buildHttpParams({ limit, offset, ...filters });
 		return this.http
 			.get<{
 				data: { logs: AuditLogEntry[]; total: number };

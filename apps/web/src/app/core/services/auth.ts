@@ -1,11 +1,12 @@
 import { computed, inject, Injectable, signal } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
 import { map, Observable, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { StorageService } from "./storage";
 import { ThemeService, ThemeId } from "./theme";
 import { User } from "../models";
+import { buildHttpParams } from "../utils/http-params";
 
 const TOKEN_KEY = "access_token";
 const SESSION_ID_KEY = "session_id";
@@ -120,9 +121,7 @@ export class AuthService {
 	}
 
 	getSessions(params?: { limit?: number; offset?: number }) {
-		let query = new HttpParams();
-		if (params?.limit != null) query = query.set("limit", params.limit);
-		if (params?.offset != null) query = query.set("offset", params.offset);
+		const query = buildHttpParams(params);
 		return this.http
 			.get<{
 				data: { sessions: AuthSession[]; total: number };

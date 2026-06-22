@@ -1,6 +1,7 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { environment } from "../../../environments/environment";
+import { Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 export interface ActivityTarget {
 	type: "game" | "list" | "user";
@@ -25,7 +26,7 @@ export interface FeedActivity {
 	target: ActivityTarget | null;
 }
 
-export interface FeedPagination {
+export interface FeedPagination extends Record<string, Appendable> {
 	limit?: number;
 	offset?: number;
 }
@@ -35,11 +36,7 @@ export class FeedService {
 	private readonly http = inject(HttpClient);
 
 	getFeed(pagination: FeedPagination = {}) {
-		let params = new HttpParams();
-		if (pagination.limit !== undefined)
-			params = params.set("limit", String(pagination.limit));
-		if (pagination.offset !== undefined)
-			params = params.set("offset", String(pagination.offset));
+		const params = buildHttpParams(pagination);
 		return this.http.get<{
 			data: { activities: FeedActivity[]; total: number };
 		}>(`${environment.apiUrl}/feed`, { params });

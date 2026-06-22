@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
 import { Game } from "../../../core/models";
-import { GamesService } from "../../games/games";
+import { GamesQuery, GamesService } from "../../games/games";
 import { AdminService } from "../admin";
 import { ToastService } from "../../../core/services/toast";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
@@ -139,7 +139,7 @@ export class AdminGames implements OnInit {
 
 	private loadGames() {
 		this.isLoading.set(true);
-		const query: Record<string, unknown> = {
+		const query: GamesQuery = {
 			limit: this.limit,
 			offset: this.offset(),
 			sort_by: "createdAt",

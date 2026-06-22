@@ -1,8 +1,9 @@
 import { inject, Injectable, signal } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { map, Observable, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { WishlistEntry } from "../../core/models";
+import { Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 interface WishlistResponse {
 	data: { wishlist: WishlistEntry[]; total?: number };
@@ -12,7 +13,7 @@ interface WishlistAddResponse {
 	data: { wishlist: WishlistEntry };
 }
 
-export interface WishlistPagination {
+export interface WishlistPagination extends Record<string, Appendable> {
 	limit?: number;
 	offset?: number;
 	search?: string;
@@ -26,12 +27,7 @@ export class WishlistService {
 	readonly wishlist = this._wishlist.asReadonly();
 
 	load(pagination: WishlistPagination = {}) {
-		let params = new HttpParams();
-		if (pagination.limit !== undefined)
-			params = params.set("limit", String(pagination.limit));
-		if (pagination.offset !== undefined)
-			params = params.set("offset", String(pagination.offset));
-		if (pagination.search) params = params.set("search", pagination.search);
+		const params = buildHttpParams(pagination);
 		return this.http
 			.get<WishlistResponse>(this.baseUrl, { params })
 			.pipe(tap(res => this._wishlist.set(res.data.wishlist)));

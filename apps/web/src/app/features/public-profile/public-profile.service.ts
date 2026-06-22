@@ -1,5 +1,5 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { BacklogEntry } from "../../core/models/backlog.model";
@@ -8,6 +8,7 @@ import { QueueEntry } from "../../core/models/queue.model";
 import { WishlistEntry } from "../../core/models/wishlist.model";
 import { GameShelfEntry } from "../../core/models/game-shelf.model";
 import { VisibilityLevel } from "../../core/models/user.model";
+import { buildHttpParams } from "../../core/utils/http-params";
 
 export interface PaginatedResult<T> {
 	items: T[];
@@ -195,11 +196,7 @@ export class PublicProfileService {
 		username: string,
 		filters: Record<string, string | number> = {}
 	) {
-		let params = new HttpParams();
-		for (const [key, value] of Object.entries(filters)) {
-			if (value !== undefined && value !== null && value !== "")
-				params = params.set(key, String(value));
-		}
+		const params = buildHttpParams(filters);
 		return this.http
 			.get<{
 				data: { backlog: BacklogEntry[]; total: number };
@@ -213,9 +210,7 @@ export class PublicProfileService {
 		username: string,
 		pagination: { limit?: number; offset?: number } = {}
 	) {
-		let params = new HttpParams();
-		if (pagination.limit) params = params.set("limit", pagination.limit);
-		if (pagination.offset) params = params.set("offset", pagination.offset);
+		const params = buildHttpParams(pagination);
 		return this.http
 			.get<{
 				data: { favorites: FavoriteEntry[]; total: number };
@@ -232,9 +227,7 @@ export class PublicProfileService {
 		username: string,
 		pagination: { limit?: number; offset?: number } = {}
 	) {
-		let params = new HttpParams();
-		if (pagination.limit) params = params.set("limit", pagination.limit);
-		if (pagination.offset) params = params.set("offset", pagination.offset);
+		const params = buildHttpParams(pagination);
 		return this.http
 			.get<{
 				data: { queue: QueueEntry[]; total: number };
@@ -251,9 +244,7 @@ export class PublicProfileService {
 		username: string,
 		pagination: { limit?: number; offset?: number } = {}
 	) {
-		let params = new HttpParams();
-		if (pagination.limit) params = params.set("limit", pagination.limit);
-		if (pagination.offset) params = params.set("offset", pagination.offset);
+		const params = buildHttpParams(pagination);
 		return this.http
 			.get<{
 				data: { wishlist: WishlistEntry[]; total: number };
@@ -270,9 +261,7 @@ export class PublicProfileService {
 		username: string,
 		pagination: { limit?: number; offset?: number } = {}
 	) {
-		let params = new HttpParams();
-		if (pagination.limit) params = params.set("limit", pagination.limit);
-		if (pagination.offset) params = params.set("offset", pagination.offset);
+		const params = buildHttpParams(pagination);
 		return this.http
 			.get<{
 				data: { gameShelf: GameShelfEntry[]; total: number };
@@ -299,9 +288,7 @@ export class PublicProfileService {
 		username: string,
 		pagination: { limit?: number; offset?: number } = {}
 	) {
-		let params = new HttpParams();
-		if (pagination.limit) params = params.set("limit", pagination.limit);
-		if (pagination.offset) params = params.set("offset", pagination.offset);
+		const params = buildHttpParams(pagination);
 		return this.http
 			.get<{
 				data: { followingLists: PublicList[]; total: number };
@@ -320,11 +307,7 @@ export class PublicProfileService {
 		username: string,
 		opts: { limit?: number; offset?: number } = {}
 	) {
-		let params = new HttpParams();
-		if (opts.limit !== undefined)
-			params = params.set("limit", String(opts.limit));
-		if (opts.offset !== undefined)
-			params = params.set("offset", String(opts.offset));
+		const params = buildHttpParams(opts);
 		return this.http
 			.get<{
 				data: {
@@ -350,11 +333,7 @@ export class PublicProfileService {
 		username: string,
 		opts: { limit?: number; offset?: number } = {}
 	) {
-		let params = new HttpParams();
-		if (opts.limit !== undefined)
-			params = params.set("limit", String(opts.limit));
-		if (opts.offset !== undefined)
-			params = params.set("offset", String(opts.offset));
+		const params = buildHttpParams(opts);
 		return this.http
 			.get<{
 				data: {
@@ -383,11 +362,7 @@ export class PublicProfileService {
 		username: string,
 		opts: { year?: number; month?: number } = {}
 	) {
-		let params = new HttpParams();
-		if (opts.year !== undefined)
-			params = params.set("year", String(opts.year));
-		if (opts.month !== undefined)
-			params = params.set("month", String(opts.month));
+		const params = buildHttpParams(opts);
 		return this.http
 			.get<{
 				data: {
