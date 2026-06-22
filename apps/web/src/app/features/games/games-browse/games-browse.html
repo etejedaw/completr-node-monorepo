@@ -24,19 +24,19 @@
 			<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
 				<label class="flex flex-col gap-1 text-xs text-fg-muted">
 					Min score (0-5)
-					<input type="number" min="0" max="5" step="0.1" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand" [value]="minScore() ?? ''" (input)="setMinScore($any($event.target).value)" />
+					<input uiInput size="sm" type="number" min="0" max="5" step="0.1" [value]="minScore() ?? ''" (input)="setMinScore($any($event.target).value)" />
 				</label>
 				<label class="flex flex-col gap-1 text-xs text-fg-muted">
 					Max score (0-5)
-					<input type="number" min="0" max="5" step="0.1" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand" [value]="maxScore() ?? ''" (input)="setMaxScore($any($event.target).value)" />
+					<input uiInput size="sm" type="number" min="0" max="5" step="0.1" [value]="maxScore() ?? ''" (input)="setMaxScore($any($event.target).value)" />
 				</label>
 				<label class="flex flex-col gap-1 text-xs text-fg-muted">
 					Min duration (h)
-					<input type="number" min="0" step="0.5" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand" [value]="minDuration() ?? ''" (input)="setMinDuration($any($event.target).value)" />
+					<input uiInput size="sm" type="number" min="0" step="0.5" [value]="minDuration() ?? ''" (input)="setMinDuration($any($event.target).value)" />
 				</label>
 				<label class="flex flex-col gap-1 text-xs text-fg-muted">
 					Max duration (h)
-					<input type="number" min="0" step="0.5" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand" [value]="maxDuration() ?? ''" (input)="setMaxDuration($any($event.target).value)" />
+					<input uiInput size="sm" type="number" min="0" step="0.5" [value]="maxDuration() ?? ''" (input)="setMaxDuration($any($event.target).value)" />
 				</label>
 				<div class="flex flex-col gap-1 text-xs text-fg-muted">
 					Type

@@ -226,13 +226,13 @@
 					<div class="grid grid-cols-2 gap-3">
 						<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
 							Min
-							<input type="number" min="0" step="0.5" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+							<input uiInput size="sm" type="number" min="0" step="0.5"
 								[value]="minRealDuration() ?? ''"
 								(input)="minRealDuration.set(parseNumber($any($event.target).value))" />
 						</label>
 						<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
 							Max
-							<input type="number" min="0" step="0.5" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+							<input uiInput size="sm" type="number" min="0" step="0.5"
 								[value]="maxRealDuration() ?? ''"
 								(input)="maxRealDuration.set(parseNumber($any($event.target).value))" />
 						</label>
@@ -244,13 +244,13 @@
 					<div class="grid grid-cols-2 gap-3">
 						<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
 							Min
-							<input type="number" min="0" step="0.01" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+							<input uiInput size="sm" type="number" min="0" step="0.01"
 								[value]="minRatio() ?? ''"
 								(input)="minRatio.set(parseNumber($any($event.target).value))" />
 						</label>
 						<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
 							Max
-							<input type="number" min="0" step="0.01" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+							<input uiInput size="sm" type="number" min="0" step="0.01"
 								[value]="maxRatio() ?? ''"
 								(input)="maxRatio.set(parseNumber($any($event.target).value))" />
 						</label>
@@ -262,13 +262,13 @@
 					<div class="grid grid-cols-2 gap-3">
 						<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
 							Min
-							<input type="number" min="0" step="0.01" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+							<input uiInput size="sm" type="number" min="0" step="0.01"
 								[value]="minPersonalRatio() ?? ''"
 								(input)="minPersonalRatio.set(parseNumber($any($event.target).value))" />
 						</label>
 						<label class="flex flex-col gap-1 text-[0.625rem] text-fg-muted">
 							Max
-							<input type="number" min="0" step="0.01" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+							<input uiInput size="sm" type="number" min="0" step="0.01"
 								[value]="maxPersonalRatio() ?? ''"
 								(input)="maxPersonalRatio.set(parseNumber($any($event.target).value))" />
 						</label>

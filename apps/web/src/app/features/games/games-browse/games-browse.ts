@@ -24,7 +24,7 @@ import {
 	switchMap,
 	of
 } from "rxjs";
-import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiInput, UiPagination, UiSearchBar } from "../../../shared/ui";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 
 @Component({
@@ -34,6 +34,7 @@ import { GameFilterPanel } from "../../../shared/components/game-filter-panel/ga
 		FormsModule,
 		AdminGameEditor,
 		UiButton,
+		UiInput,
 		UiPagination,
 		UiSearchBar,
 		GameFilterPanel
