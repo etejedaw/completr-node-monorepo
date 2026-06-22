@@ -24,6 +24,7 @@ import {
 } from "../../shared/components/user-list-modal/user-list-modal";
 import { StarRating } from "../../shared/components/star-rating/star-rating";
 import {
+	UiAvatar,
 	UiButton,
 	UiSkeleton,
 	UiTab,
@@ -39,7 +40,7 @@ import {
 
 @Component({
 	selector: "app-public-profile",
-	imports: [RouterLink, UserListModal, StarRating, UiButton, UiSkeleton, UiTabs, UiTabList, UiTab, UiTabPanel],
+	imports: [RouterLink, UserListModal, StarRating, UiAvatar, UiButton, UiSkeleton, UiTabs, UiTabList, UiTab, UiTabPanel],
 	templateUrl: "./public-profile.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

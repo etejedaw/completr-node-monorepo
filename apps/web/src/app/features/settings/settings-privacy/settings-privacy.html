@@ -335,14 +335,8 @@
 				<ul class="flex flex-col gap-2">
 					@for (req of rows; track req.requesterId) {
 						<li class="flex items-center gap-3 p-3 bg-input-bg border border-line rounded-card">
-							<a [routerLink]="['/user', req.user.username]" class="shrink-0">
-								@if (req.user.avatarUrl) {
-									<img class="w-10 h-10 rounded-full object-cover ring-1 ring-line" [src]="req.user.avatarUrl" [alt]="req.user.username" />
-								} @else {
-									<div class="w-10 h-10 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-sm font-bold ring-1 ring-line">
-										{{ req.user.username.charAt(0).toUpperCase() }}
-									</div>
-								}
+							<a [routerLink]="['/user', req.user.username]" class="shrink-0 ring-1 ring-line rounded-full">
+								<ui-avatar [src]="req.user.avatarUrl" [name]="req.user.username" class="w-10 h-10 text-sm" />
 							</a>
 							<div class="flex-1 min-w-0">
 								<a [routerLink]="['/user', req.user.username]" class="block text-sm font-medium text-fg no-underline truncate hover:underline">

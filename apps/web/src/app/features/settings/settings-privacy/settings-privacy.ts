@@ -14,7 +14,7 @@ import {
 } from "../../profile/profile.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { FollowRequestsService } from "../../../core/services/follow-requests.service";
-import { UiButton } from "../../../shared/ui";
+import { UiAvatar, UiButton } from "../../../shared/ui";
 import { VisibilityLevel } from "../../../core/models/user.model";
 
 type PrivacyPreset = "custom" | "private" | "friends" | "open";
@@ -80,7 +80,7 @@ const SECTIONS: SectionConfig[] = [
 
 @Component({
 	selector: "app-settings-privacy",
-	imports: [UiButton, RouterLink],
+	imports: [UiAvatar, UiButton, RouterLink],
 	templateUrl: "./settings-privacy.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
