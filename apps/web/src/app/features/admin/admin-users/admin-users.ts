@@ -8,7 +8,13 @@ import {
 import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { AdminService, AdminUser } from "../admin.service";
-import { UiButton, UiIconButton, UiInput, UiPagination } from "../../../shared/ui";
+import {
+	UiButton,
+	UiIconButton,
+	UiInput,
+	UiPagination,
+	UiSelect
+} from "../../../shared/ui";
 import {
 	fieldErrorsFromResponse,
 	validationSummary
@@ -23,7 +29,15 @@ interface CreateUserRequest {
 
 @Component({
 	selector: "app-admin-users",
-	imports: [DatePipe, FormsModule, UiButton, UiIconButton, UiInput, UiPagination],
+	imports: [
+		DatePipe,
+		FormsModule,
+		UiButton,
+		UiIconButton,
+		UiInput,
+		UiPagination,
+		UiSelect
+	],
 	templateUrl: "./admin-users.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

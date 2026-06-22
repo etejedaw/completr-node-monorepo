@@ -8,7 +8,8 @@
 		<div class="flex flex-col gap-1">
 			<label class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Action</label>
 			<select
-				class="px-2 py-1 bg-input-bg border border-line rounded text-fg text-sm focus:outline-none focus:border-brand"
+				uiSelect
+				size="sm"
 				[value]="actionFilter()"
 				(change)="setActionFilter($any($event.target).value)"
 			>
@@ -21,7 +22,8 @@
 		<div class="flex flex-col gap-1">
 			<label class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Target type</label>
 			<select
-				class="px-2 py-1 bg-input-bg border border-line rounded text-fg text-sm focus:outline-none focus:border-brand"
+				uiSelect
+				size="sm"
 				[value]="targetTypeFilter()"
 				(change)="setTargetTypeFilter($any($event.target).value)"
 			>

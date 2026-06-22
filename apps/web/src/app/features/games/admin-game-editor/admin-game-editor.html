@@ -206,7 +206,9 @@
 		} @if (availableScoreSources.length > 0) {
 		<div class="flex items-center gap-2 mt-2">
 			<select
-				class="min-w-[80px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-xs cursor-pointer"
+				uiSelect
+				size="sm"
+				class="min-w-[80px]"
 				[ngModel]="newScoreSource()"
 				(ngModelChange)="newScoreSource.set($event)"
 			>
@@ -253,7 +255,9 @@
 		} @if (availableTimeSources.length > 0) {
 		<div class="flex items-center gap-2 mt-2">
 			<select
-				class="min-w-[80px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-xs cursor-pointer"
+				uiSelect
+				size="sm"
+				class="min-w-[80px]"
 				[ngModel]="newTimeSource()"
 				(ngModelChange)="newTimeSource.set($event)"
 			>
