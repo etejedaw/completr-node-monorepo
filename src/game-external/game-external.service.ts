@@ -1,4 +1,6 @@
 import { GameExternal, ExternalSource } from "./game-external.model";
+import * as gameExternalServiceError from "./errors/game-external.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 export async function findByExternalId(
 	source: ExternalSource,
@@ -14,7 +16,13 @@ export async function create(
 	source: ExternalSource,
 	externalId: string
 ) {
-	return GameExternal.create({ gameId, source, externalId });
+	try {
+		return await GameExternal.create({ gameId, source, externalId });
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: gameExternalServiceError.uniqueConstraintError
+		});
+	}
 }
 
 export async function findByGameId(gameId: string) {
@@ -35,5 +43,11 @@ export async function upsert(
 		return existing;
 	}
 
-	return GameExternal.create({ gameId, source, externalId });
+	try {
+		return await GameExternal.create({ gameId, source, externalId });
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: gameExternalServiceError.uniqueConstraintError
+		});
+	}
 }

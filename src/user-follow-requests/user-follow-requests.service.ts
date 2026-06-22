@@ -3,6 +3,7 @@ import { User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import * as serviceError from "./errors/user-follow-requests.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 export type FollowResult =
 	| { status: "accepted"; targetId: string }
@@ -35,7 +36,13 @@ export async function createOrAcceptFollow(
 	});
 	if (existingRequest) throw serviceError.alreadyRequestedError();
 
-	await UserFollowRequest.create({ requesterId, targetId: target.id });
+	try {
+		await UserFollowRequest.create({ requesterId, targetId: target.id });
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: () => serviceError.alreadyRequestedError()
+		});
+	}
 	return { status: "pending", targetId: target.id };
 }
 

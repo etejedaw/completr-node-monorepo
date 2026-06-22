@@ -9,12 +9,20 @@ import { GameShelf } from "./game-shelf.model";
 import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as gameShelfServiceError from "./errors/game-shelf.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 export async function registerGameShelf(
 	userId: string,
 	registerGameShelfDto: RegisterGameShelfDto
 ) {
-	return GameShelf.create({ ...registerGameShelfDto, userId });
+	try {
+		return await GameShelf.create({ ...registerGameShelfDto, userId });
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: gameShelfServiceError.uniqueConstraintError,
+			validation: gameShelfServiceError.validationError
+		});
+	}
 }
 
 export async function findGameShelfById(id: string) {

@@ -1,5 +1,6 @@
-import { Transaction, UniqueConstraintError } from "sequelize";
+import { Transaction } from "sequelize";
 import { GameTime, TimeSource } from "./game-time.model";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import * as gameTimeServiceError from "./errors/game-times.service-error";
 
 export async function createGameTime(
@@ -14,9 +15,9 @@ export async function createGameTime(
 			{ transaction }
 		);
 	} catch (error) {
-		if (error instanceof UniqueConstraintError)
-			throw gameTimeServiceError.uniqueConstraintError(error);
-		throw error;
+		rethrowSequelizeError(error, {
+			unique: gameTimeServiceError.uniqueConstraintError
+		});
 	}
 }
 

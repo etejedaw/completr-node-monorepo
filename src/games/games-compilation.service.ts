@@ -1,5 +1,6 @@
-import { Transaction, UniqueConstraintError, ValidationError } from "sequelize";
+import { Transaction } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { Game } from "./game.model";
 import { CompilationItem } from "../compilation-items/compilation-item.model";
 import { SetCompilationItemInput } from "./games.interface";
@@ -69,11 +70,10 @@ export async function setCompilationItems(
 		return await findCompilationItemsByParent(parentGameId);
 	} catch (error) {
 		await transaction.rollback();
-		if (error instanceof UniqueConstraintError)
-			throw gamesServiceError.uniqueConstraintError(error);
-		if (error instanceof ValidationError)
-			throw gamesServiceError.validationError(error);
-		throw error;
+		rethrowSequelizeError(error, {
+			unique: gamesServiceError.uniqueConstraintError,
+			validation: gamesServiceError.validationError
+		});
 	}
 }
 

@@ -1,9 +1,9 @@
 import { RegisterPlatformDto } from "./dtos/register-platform.dto";
 import * as platformServiceError from "./errors/platforms.service-error";
 import { Platform } from "./platform.model";
-import { UniqueConstraintError, ValidationError } from "sequelize";
 import { UpdatePlatformDto } from "./dtos/update-platform.dto";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 export async function registerPlatform(
 	registerPlatformDto: RegisterPlatformDto
@@ -12,11 +12,10 @@ export async function registerPlatform(
 		const code = titleToSlug(registerPlatformDto.name);
 		return await Platform.create({ ...registerPlatformDto, code });
 	} catch (error) {
-		if (error instanceof UniqueConstraintError)
-			throw platformServiceError.uniqueConstraintError(error);
-		if (error instanceof ValidationError)
-			throw platformServiceError.validationError(error);
-		throw error;
+		rethrowSequelizeError(error, {
+			unique: platformServiceError.uniqueConstraintError,
+			validation: platformServiceError.validationError
+		});
 	}
 }
 

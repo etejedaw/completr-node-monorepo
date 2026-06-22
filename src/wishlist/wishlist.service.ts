@@ -5,6 +5,7 @@ import { Platform } from "../platforms/platform.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as wishlistServiceError from "./errors/wishlist.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 const FREE_WISHLIST_LIMIT = 20;
 const INCLUDE = [{ model: Game }, { model: Platform }];
@@ -67,12 +68,18 @@ export async function addToWishlist(
 	if (!isPremium(user.role) && count >= FREE_WISHLIST_LIMIT)
 		throw wishlistServiceError.limitReachedError();
 
-	await Wishlist.create({
-		userId: user.id,
-		gameId,
-		platformId: platformId ?? null,
-		position: count + 1
-	});
+	try {
+		await Wishlist.create({
+			userId: user.id,
+			gameId,
+			platformId: platformId ?? null,
+			position: count + 1
+		});
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: () => wishlistServiceError.alreadyExistsError()
+		});
+	}
 
 	return Wishlist.findOne({
 		where: { userId: user.id, gameId },

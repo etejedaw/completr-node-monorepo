@@ -15,3 +15,17 @@ export function notFollowingError() {
 		raw: undefined
 	});
 }
+
+export function alreadyFollowingError() {
+	return new ServiceError("USER_FOLLOWER_ALREADY_FOLLOWING", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
+export function validationError(rawError: unknown) {
+	return new ServiceError("USER_FOLLOWER_VALIDATION_ERROR", {
+		...BASE_OPTIONS,
+		raw: rawError
+	});
+}

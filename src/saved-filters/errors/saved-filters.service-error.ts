@@ -29,3 +29,17 @@ export function frozenError() {
 		raw: undefined
 	});
 }
+
+export function uniqueConstraintError(rawError: unknown) {
+	return new ServiceError("SAVED_FILTER_UNIQUE_CONSTRAINT", {
+		...BASE_OPTIONS,
+		raw: rawError
+	});
+}
+
+export function validationError(rawError: unknown) {
+	return new ServiceError("SAVED_FILTER_VALIDATION_ERROR", {
+		...BASE_OPTIONS,
+		raw: rawError
+	});
+}

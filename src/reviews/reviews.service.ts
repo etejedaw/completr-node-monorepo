@@ -3,6 +3,7 @@ import { Review } from "./review.model";
 import { Game } from "../games/game.model";
 import { User } from "../users/user.model";
 import * as reviewsServiceError from "./errors/reviews.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 const hasContent = literal(`"content" IS NOT NULL AND btrim("content") <> ''`);
 const hasContentOrRating = literal(
@@ -20,12 +21,18 @@ export async function createReview(
 	const existing = await Review.findOne({ where: { userId, gameId } });
 	if (existing) throw reviewsServiceError.alreadyExistsError();
 
-	return Review.create({
-		userId,
-		gameId,
-		content: dto.content,
-		rating: dto.rating
-	});
+	try {
+		return await Review.create({
+			userId,
+			gameId,
+			content: dto.content,
+			rating: dto.rating
+		});
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: () => reviewsServiceError.alreadyExistsError()
+		});
+	}
 }
 
 export async function findReviewsByGameId(gameId: string) {

@@ -10,6 +10,7 @@ import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import { BacklogQuery } from "./schemas/backlog-query.schema";
 import * as backlogServiceError from "./errors/backlog.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 const backlogInclude = [
 	{ model: Game },
@@ -44,10 +45,18 @@ export async function createBacklog(
 		);
 	}
 
-	const backlogEntry = await Backlog.create({
-		...registerBacklog,
-		userId
-	});
+	let backlogEntry: Backlog;
+	try {
+		backlogEntry = await Backlog.create({
+			...registerBacklog,
+			userId
+		});
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: backlogServiceError.uniqueConstraintError,
+			validation: backlogServiceError.validationError
+		});
+	}
 
 	await backlogEntry.reload({ include: backlogInclude });
 	return backlogEntry;

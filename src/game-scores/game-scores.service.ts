@@ -1,5 +1,6 @@
-import { Transaction, UniqueConstraintError } from "sequelize";
+import { Transaction } from "sequelize";
 import { GameScore } from "./game-score.model";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import * as gameScoreServiceError from "./errors/game-scores.service-error";
 
 export async function createGameScore(
@@ -14,9 +15,9 @@ export async function createGameScore(
 			{ transaction }
 		);
 	} catch (error) {
-		if (error instanceof UniqueConstraintError)
-			throw gameScoreServiceError.uniqueConstraintError(error);
-		throw error;
+		rethrowSequelizeError(error, {
+			unique: gameScoreServiceError.uniqueConstraintError
+		});
 	}
 }
 

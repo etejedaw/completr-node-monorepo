@@ -6,6 +6,7 @@ import { ListFollower } from "./list-follower.model";
 import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import * as listsService from "../lists/lists.service";
 import * as listFollowersServiceError from "./errors/list-followers.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 const FOLLOWED_LIST_PREVIEW_INCLUDE = {
 	model: List,
@@ -45,7 +46,13 @@ export async function followList(listId: string, userId: string) {
 	});
 	if (existing) throw listFollowersServiceError.alreadyFollowingError();
 
-	return ListFollower.create({ listId, userId });
+	try {
+		return await ListFollower.create({ listId, userId });
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: () => listFollowersServiceError.alreadyFollowingError()
+		});
+	}
 }
 
 export async function unfollowList(listId: string, userId: string) {

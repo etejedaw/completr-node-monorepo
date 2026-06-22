@@ -1,5 +1,6 @@
-import { Sequelize, UniqueConstraintError, ValidationError } from "sequelize";
+import { Sequelize } from "sequelize";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { RegisterGenreDto } from "./dtos/register-genre.dto";
 import { Genre } from "./genres.model";
 import { UpdateGenreDto } from "./dtos/update-genre.dto";
@@ -10,11 +11,10 @@ export async function registerGenre(registerGenre: RegisterGenreDto) {
 		const code = titleToSlug(registerGenre.name);
 		return await Genre.create({ ...registerGenre, code });
 	} catch (error) {
-		if (error instanceof UniqueConstraintError)
-			throw genreServiceError.uniqueConstraintError(error);
-		if (error instanceof ValidationError)
-			throw genreServiceError.validationError(error);
-		throw error;
+		rethrowSequelizeError(error, {
+			unique: genreServiceError.uniqueConstraintError,
+			validation: genreServiceError.validationError
+		});
 	}
 }
 

@@ -4,6 +4,7 @@ import { RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
 import { UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
 import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as savedFilterServiceError from "./errors/saved-filters.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 const FREE_FILTER_LIMIT = 5;
 
@@ -33,7 +34,14 @@ export async function createSavedFilter(
 		await clearDefault(userId);
 	}
 
-	return SavedFilter.create({ ...dto, userId });
+	try {
+		return await SavedFilter.create({ ...dto, userId });
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: savedFilterServiceError.uniqueConstraintError,
+			validation: savedFilterServiceError.validationError
+		});
+	}
 }
 
 export async function findSavedFiltersByUserId(

@@ -1,5 +1,6 @@
-import { Transaction, UniqueConstraintError, ValidationError } from "sequelize";
+import { Transaction } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { Game } from "./game.model";
 import { GameExternal } from "../game-external/game-external.model";
 import { SplitVariantInput } from "./games.interface";
@@ -75,11 +76,10 @@ export async function splitGame(
 		return refreshed.filter((g): g is Game => g !== null);
 	} catch (error) {
 		await transaction.rollback();
-		if (error instanceof UniqueConstraintError)
-			throw gamesServiceError.uniqueConstraintError(error);
-		if (error instanceof ValidationError)
-			throw gamesServiceError.validationError(error);
-		throw error;
+		rethrowSequelizeError(error, {
+			unique: gamesServiceError.uniqueConstraintError,
+			validation: gamesServiceError.validationError
+		});
 	}
 }
 

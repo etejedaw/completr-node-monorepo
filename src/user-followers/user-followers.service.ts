@@ -3,6 +3,7 @@ import { UserFollower } from "./user-follower.model";
 import { User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import * as serviceError from "./errors/user-followers.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 export async function unfollow(followerId: string, username: string) {
 	const target = await usersService.findUserByUsername(username);
@@ -17,7 +18,14 @@ export async function unfollow(followerId: string, username: string) {
 }
 
 export async function createFollow(followerId: string, followingId: string) {
-	return UserFollower.create({ followerId, followingId });
+	try {
+		return await UserFollower.create({ followerId, followingId });
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: () => serviceError.alreadyFollowingError(),
+			validation: serviceError.validationError
+		});
+	}
 }
 
 export async function findFollow(followerId: string, followingId: string) {

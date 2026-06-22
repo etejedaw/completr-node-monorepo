@@ -1,9 +1,9 @@
-import { UniqueConstraintError } from "sequelize";
 import { GameReport, ReportCategory } from "./game-report.model";
 import { Game } from "../games/game.model";
 import { User } from "../users/user.model";
 import * as gamesService from "../games/games.service";
 import * as gameReportsServiceError from "./errors/game-reports.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 export async function createReport(
 	gameId: string,
@@ -17,9 +17,9 @@ export async function createReport(
 	try {
 		return await GameReport.create({ gameId, userId, message, category });
 	} catch (error) {
-		if (error instanceof UniqueConstraintError)
-			throw gameReportsServiceError.alreadyReportedError();
-		throw error;
+		rethrowSequelizeError(error, {
+			unique: () => gameReportsServiceError.alreadyReportedError()
+		});
 	}
 }
 

@@ -7,6 +7,8 @@ import { Platform } from "../platforms/platform.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as queueServiceError from "./errors/queue.service-error";
+import * as backlogServiceError from "../backlog/errors/backlog.service-error";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 const FREE_QUEUE_LIMIT = 10;
 
@@ -70,7 +72,10 @@ export async function addFromGame(
 		});
 	} catch (error) {
 		await transaction.rollback();
-		throw error;
+		rethrowSequelizeError(error, {
+			unique: () => queueServiceError.alreadyInQueueError(),
+			validation: backlogServiceError.validationError
+		});
 	}
 }
 
@@ -91,11 +96,17 @@ export async function addFromBacklog(backlogId: string, user: RequestUser) {
 
 	const position = (await Queue.count({ where: { userId: user.id } })) + 1;
 
-	await Queue.create({
-		userId: user.id,
-		backlogId,
-		position
-	});
+	try {
+		await Queue.create({
+			userId: user.id,
+			backlogId,
+			position
+		});
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: () => queueServiceError.alreadyInQueueError()
+		});
+	}
 
 	return Queue.findOne({
 		where: { backlogId, userId: user.id },
