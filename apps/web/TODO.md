@@ -269,7 +269,7 @@ Migrar todo el frontend para que use ng-primitives como base de componentes UI. 
 - [x] Migrar inputs principales a Input primitive (`UiInput`) — quedan 3 archivos con `<input>` raw: `backlog-list`, `games-browse`, `game-filter-panel`
 - [x] Migrar paginación a Pagination primitive (`UiPagination` sobre `NgpPagination`)
 - [x] Migrar buscadores a Search primitive (`UiSearchBar` sobre `NgpSearch`)
-- [ ] Migrar toasts/notificaciones a Toast primitive — requiere reescribir `ToastService` para usar `NgpToastManager.show(TemplateRef)` en vez del modelo signal array actual; conservar API pública (`success/error/pending/undo/dismiss`) y la lógica de undo timer
+- [x] Migrar toasts/notificaciones a Toast primitive (`NgpToastManager` + `NgpToast`): `ToastService` ahora usa `manager.show(TemplateRef, { context, duration })` y conserva la API pública (`show/info/success/warning/error/pending/undo/dismiss`); `ToastContainer` provee el `<ng-template>` registrado vía `registerTemplate`; `provideToastConfig` en `app.config.ts` define placement bottom-end, gap 8, maxToasts 4, aria-live polite
 - [x] Migrar dropdowns/selects a Select primitive (`UiSelect` sobre `NgpNativeSelect` + estilos `.ui-input.ui-select` con chevron SVG): admin-users, admin-audit, admin-game-editor, backlog-modal (3), backlog-list (3), game-shelf-modal; list-modal usa Radio
 - [x] Migrar barras de progreso (listas) a Progress primitive (`UiProgress` sobre `NgpProgress` — aplicado en `list-detail`, `list-overview`)
 - [x] Migrar separadores visuales a Separator primitive (`UiSeparator` sobre `NgpSeparator` — sidebar)
