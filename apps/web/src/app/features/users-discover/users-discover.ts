@@ -7,12 +7,12 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { Subject, debounceTime, switchMap, of } from "rxjs";
-import { UiSearchBar } from "../../shared/ui";
+import { UiAvatar, UiSearchBar } from "../../shared/ui";
 import { UserResult, UsersService } from "../../core/services/users.service";
 
 @Component({
 	selector: "app-users-discover",
-	imports: [RouterLink, UiSearchBar],
+	imports: [RouterLink, UiAvatar, UiSearchBar],
 	templateUrl: "./users-discover.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -8,7 +8,7 @@ import {
 } from "@angular/router";
 import { AuthService } from "../core/services/auth.service";
 import { filter } from "rxjs";
-import { UiIconButton } from "../shared/ui";
+import { UiAvatar, UiIconButton, UiSeparator } from "../shared/ui";
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
 import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
 import { OnboardingService } from "../core/services/onboarding.service";
@@ -20,6 +20,8 @@ import { OnboardingService } from "../core/services/onboarding.service";
 		RouterLink,
 		RouterLinkActive,
 		UiIconButton,
+		UiSeparator,
+		UiAvatar,
 		ToastContainer,
 		OnboardingTour
 	],

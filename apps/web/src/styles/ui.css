@@ -1,6 +1,4 @@
-/* === ng-primitives wrappers — Refined Dark === */
 
-/* Button */
 .ui-button {
 	display: inline-flex;
 	align-items: center;
@@ -90,7 +88,6 @@
 	cursor: not-allowed;
 }
 
-/* Icon button */
 .ui-icon-button {
 	display: inline-flex;
 	align-items: center;
@@ -140,7 +137,6 @@
 	cursor: not-allowed;
 }
 
-/* Input */
 .ui-input {
 	width: 100%;
 	padding: 0.5rem 0.75rem;
@@ -171,6 +167,33 @@
 	outline: none;
 }
 
+.ui-input[data-size="sm"] {
+	padding: 0.25rem 0.5rem;
+	font-size: 0.75rem;
+}
+
+.ui-select {
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	cursor: pointer;
+	padding-right: 2rem;
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='none' stroke='%23a1a1aa' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M3 4.5L6 7.5L9 4.5'/></svg>");
+	background-repeat: no-repeat;
+	background-position: right 0.75rem center;
+	background-size: 12px 12px;
+}
+
+.ui-select[data-size="sm"] {
+	padding-right: 1.75rem;
+	background-position: right 0.5rem center;
+}
+
+.ui-select option {
+	background: var(--bg-surface);
+	color: var(--text-primary);
+}
+
 .ui-input:disabled,
 .ui-input[data-disabled] {
 	opacity: 0.5;
@@ -182,7 +205,6 @@ textarea.ui-input {
 	resize: vertical;
 }
 
-/* Switch */
 .ui-switch {
 	display: inline-flex;
 	align-items: center;
@@ -240,7 +262,6 @@ textarea.ui-input {
 	color: var(--text-primary);
 }
 
-/* Checkbox */
 .ui-checkbox {
 	display: inline-flex;
 	align-items: center;
@@ -297,7 +318,6 @@ textarea.ui-input {
 	color: var(--text-primary);
 }
 
-/* Tooltip */
 .ui-tooltip {
 	background: #000;
 	color: var(--text-primary);
@@ -309,7 +329,6 @@ textarea.ui-input {
 	z-index: 1100;
 }
 
-/* Tabs */
 .ui-tabs {
 	display: block;
 }
@@ -370,7 +389,6 @@ textarea.ui-input {
 	display: none;
 }
 
-/* Dialog */
 .ui-dialog__trigger-host {
 	display: contents;
 	background: none;

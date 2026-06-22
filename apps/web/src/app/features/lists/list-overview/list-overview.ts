@@ -10,11 +10,11 @@ import { Subject, debounceTime, switchMap, of } from "rxjs";
 import { List, FollowingList } from "../../../core/models";
 import { ListsService } from "../lists.service";
 import { ListModal } from "../list-modal/list-modal";
-import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiEmptyState, UiPagination, UiProgress, UiSearchBar } from "../../../shared/ui";
 
 @Component({
 	selector: "app-list-overview",
-	imports: [RouterLink, ListModal, UiButton, UiEmptyState, UiPagination, UiSearchBar],
+	imports: [RouterLink, ListModal, UiButton, UiEmptyState, UiPagination, UiProgress, UiSearchBar],
 	templateUrl: "./list-overview.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

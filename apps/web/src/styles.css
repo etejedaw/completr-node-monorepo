@@ -8,14 +8,9 @@
 	vertical-align: middle;
 }
 
-/* === Completr Design System === */
-/* @theme declares the CSS variables Tailwind generates utilities for.
-   The actual color values come from the :root blocks below, which can be
-   overridden by setting data-theme on <html>. */
-
 @theme {
-	--font-sans: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-	--font-display: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--font-sans: "Space Grotesk", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--font-display: "Space Grotesk", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
 	--color-canvas: #0a0a0c;
 	--color-sidebar: #0e0e11;
@@ -44,7 +39,6 @@
 	--radius-card: 0.625rem;
 }
 
-/* Refined Dark — default */
 :root,
 :root[data-theme="refined-dark"] {
 	--color-canvas: #0a0a0c;
@@ -72,7 +66,6 @@
 	--color-line-hover: rgba(255, 255, 255, 0.12);
 }
 
-/* Midnight Cyan — classic Completr palette */
 :root[data-theme="midnight-cyan"] {
 	--color-canvas: #0b0f19;
 	--color-sidebar: #111827;
@@ -99,7 +92,6 @@
 	--color-line-hover: rgba(148, 163, 184, 0.24);
 }
 
-/* Twilight Arcade */
 :root[data-theme="twilight-arcade"] {
 	--color-canvas: #181028;
 	--color-sidebar: #1f1535;
@@ -126,7 +118,6 @@
 	--color-line-hover: rgba(182, 146, 255, 0.22);
 }
 
-/* Legacy aliases for in-progress migration to Tailwind utilities */
 :root {
 	--bg-primary: var(--color-canvas);
 	--bg-sidebar: var(--color-sidebar);
@@ -168,6 +159,22 @@ body {
 	letter-spacing: -0.005em;
 	-webkit-font-smoothing: antialiased;
 	color-scheme: dark;
+}
+
+body::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+	opacity: 0.04;
+	mix-blend-mode: overlay;
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.85 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+	background-size: 240px 240px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	body::before { opacity: 0.025; }
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -240,4 +247,36 @@ a:hover {
 @keyframes skeletonPulse {
 	0%, 100% { opacity: 1; }
 	50% { opacity: 0.5; }
+}
+
+@keyframes uiFadeUp {
+	from { opacity: 0; transform: translateY(10px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+.ui-stagger > * {
+	opacity: 0;
+	animation: uiFadeUp 480ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.ui-stagger > *:nth-child(1)  { animation-delay: 0ms; }
+.ui-stagger > *:nth-child(2)  { animation-delay: 45ms; }
+.ui-stagger > *:nth-child(3)  { animation-delay: 90ms; }
+.ui-stagger > *:nth-child(4)  { animation-delay: 135ms; }
+.ui-stagger > *:nth-child(5)  { animation-delay: 180ms; }
+.ui-stagger > *:nth-child(6)  { animation-delay: 225ms; }
+.ui-stagger > *:nth-child(7)  { animation-delay: 270ms; }
+.ui-stagger > *:nth-child(8)  { animation-delay: 315ms; }
+.ui-stagger > *:nth-child(9)  { animation-delay: 360ms; }
+.ui-stagger > *:nth-child(10) { animation-delay: 405ms; }
+.ui-stagger > *:nth-child(11) { animation-delay: 450ms; }
+.ui-stagger > *:nth-child(12) { animation-delay: 495ms; }
+.ui-stagger > *:nth-child(13) { animation-delay: 540ms; }
+.ui-stagger > *:nth-child(14) { animation-delay: 585ms; }
+
+@media (prefers-reduced-motion: reduce) {
+	.ui-stagger > * {
+		animation: none;
+		opacity: 1;
+	}
 }

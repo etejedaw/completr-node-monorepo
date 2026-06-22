@@ -1,6 +1,6 @@
 <div class="max-w-7xl mx-auto p-6 lg:p-8 max-md:px-4">
 	<a class="inline-flex items-center gap-1.5 text-fg-muted no-underline text-[0.8125rem] mb-5 hover:text-brand" [routerLink]="['/user', username()]">
-		<span class="material-icons text-base">arrow_back</span>
+		<span aria-hidden="true" class="material-icons text-base">arrow_back</span>
 		{{ '@' + username() }}'s profile
 	</a>
 
@@ -62,13 +62,13 @@
 										[routerLink]="['/games', entry.compilationGame.code]"
 										[title]="'Part of ' + entry.compilationGame.title"
 									>
-										<span class="material-icons text-[0.75rem]">library_books</span>
+										<span aria-hidden="true" class="material-icons text-[0.75rem]">library_books</span>
 										in {{ entry.compilationGame.title }}
 									</a>
 								}
 								@if (entry.realDuration) {
 									<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line">
-										<span class="material-icons text-[0.75rem]">schedule</span>
+										<span aria-hidden="true" class="material-icons text-[0.75rem]">schedule</span>
 										Real {{ entry.realDuration }}h
 									</span>
 								}
@@ -108,7 +108,7 @@
 							@if (entry.review; as review) {
 								@if (review.content) {
 									<div class="flex items-start gap-1.5 mt-auto text-xs text-fg-muted leading-snug">
-										<span class="material-icons text-[0.875rem] mt-0.5 text-brand">format_quote</span>
+										<span aria-hidden="true" class="material-icons text-[0.875rem] mt-0.5 text-brand">format_quote</span>
 										<div class="flex-1 min-w-0">
 											<p
 												class="m-0"

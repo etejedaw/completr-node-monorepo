@@ -8,7 +8,13 @@ import {
 import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { AdminService, AdminUser } from "../admin.service";
-import { UiButton, UiIconButton, UiInput, UiPagination } from "../../../shared/ui";
+import {
+	UiButton,
+	UiIconButton,
+	UiInput,
+	UiPagination,
+	UiSelect
+} from "../../../shared/ui";
 import {
 	fieldErrorsFromResponse,
 	validationSummary
@@ -23,7 +29,15 @@ interface CreateUserRequest {
 
 @Component({
 	selector: "app-admin-users",
-	imports: [DatePipe, FormsModule, UiButton, UiIconButton, UiInput, UiPagination],
+	imports: [
+		DatePipe,
+		FormsModule,
+		UiButton,
+		UiIconButton,
+		UiInput,
+		UiPagination,
+		UiSelect
+	],
 	templateUrl: "./admin-users.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -37,7 +51,6 @@ export class AdminUsers implements OnInit {
 	protected readonly limit = 50;
 	protected readonly isLoading = signal(true);
 
-	// Create modal
 	protected readonly showCreateModal = signal(false);
 	protected readonly createUsername = signal("");
 	protected readonly createEmail = signal("");
@@ -52,7 +65,6 @@ export class AdminUsers implements OnInit {
 		this.showCreatePassword.update(v => !v);
 	}
 
-	// Edit modal
 	protected readonly showEditModal = signal(false);
 	protected readonly editingUser = signal<AdminUser | null>(null);
 	protected readonly editName = signal("");
@@ -83,8 +95,6 @@ export class AdminUsers implements OnInit {
 			error: () => this.isLoading.set(false)
 		});
 	}
-
-	// === Create modal ===
 
 	openCreate() {
 		this.createUsername.set("");
@@ -133,8 +143,6 @@ export class AdminUsers implements OnInit {
 			}
 		});
 	}
-
-	// === Edit modal ===
 
 	openEdit(user: AdminUser) {
 		this.editingUser.set(user);
@@ -198,8 +206,6 @@ export class AdminUsers implements OnInit {
 			}
 		});
 	}
-
-	// === Pagination ===
 
 	goToOffset(offset: number) {
 		this.offset.set(offset);

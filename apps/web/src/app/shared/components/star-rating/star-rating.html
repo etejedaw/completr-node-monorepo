@@ -1,5 +1,17 @@
 <div class="flex items-center gap-2.5" (mouseleave)="onLeave()">
-	<div class="flex" [class]="listGap()">
+	<div
+		class="flex outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas rounded"
+		[class]="listGap()"
+		[attr.role]="readonly() ? 'img' : 'slider'"
+		[attr.tabindex]="readonly() ? null : 0"
+		[attr.aria-label]="readonly() ? null : 'Rating'"
+		[attr.aria-valuemin]="readonly() ? null : 0"
+		[attr.aria-valuemax]="readonly() ? null : 5"
+		[attr.aria-valuenow]="readonly() ? null : (value() ?? 0)"
+		[attr.aria-valuetext]="readonly() ? ariaValueText() : ariaValueText()"
+		[attr.aria-readonly]="readonly() ? 'true' : null"
+		(keydown)="onKey($event)"
+	>
 		@for (star of stars; track star) {
 			<span [class]="wrapperClasses()">
 				@if (!readonly()) {

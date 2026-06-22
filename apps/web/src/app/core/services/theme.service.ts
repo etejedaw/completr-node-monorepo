@@ -82,7 +82,7 @@ export class ThemeService {
 		try {
 			localStorage.setItem(STORAGE_KEY, id);
 		} catch {
-			/* ignore quota */
+			void 0;
 		}
 		this.apply(id);
 	}

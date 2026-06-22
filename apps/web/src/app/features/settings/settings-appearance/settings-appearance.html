@@ -21,13 +21,13 @@
 			>
 				@if (theme.tier === 'premium') {
 					<span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/15 text-warning">
-						<span class="material-icons text-[0.75rem]">workspace_premium</span>
+						<span aria-hidden="true" class="material-icons text-[0.75rem]">workspace_premium</span>
 						Premium
 					</span>
 				}
 				@if (active) {
 					<span class="absolute bottom-2 right-2 flex items-center justify-center w-6 h-6 rounded-full bg-brand text-white">
-						<span class="material-icons text-sm">check</span>
+						<span aria-hidden="true" class="material-icons text-sm">check</span>
 					</span>
 				}
 
@@ -42,7 +42,7 @@
 
 				@if (locked) {
 					<div class="mt-3 flex items-center gap-1.5 text-[0.6875rem] text-fg-muted">
-						<span class="material-icons text-base">lock</span>
+						<span aria-hidden="true" class="material-icons text-base">lock</span>
 						Upgrade to Premium to unlock
 					</div>
 				}

@@ -5,10 +5,12 @@ import {
 	model
 } from "@angular/core";
 import { Genre, Platform } from "../../../core/models";
+import { UiInput } from "../../ui";
 
 @Component({
 	selector: "app-game-filter-panel",
 	standalone: true,
+	imports: [UiInput],
 	template: `
 		<div class="flex flex-col gap-4">
 			@if (allGenres().length > 0) {
@@ -56,13 +58,13 @@ import { Genre, Platform } from "../../../core/models";
 			<div class="grid grid-cols-2 gap-3 max-w-md">
 				<label class="flex flex-col gap-1 text-xs text-fg-muted">
 					Year from
-					<input type="number" min="1950" max="2100" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+					<input uiInput size="sm" type="number" min="1950" max="2100"
 						[value]="yearFrom() ?? ''"
 						(input)="setYearFrom($any($event.target).value)" />
 				</label>
 				<label class="flex flex-col gap-1 text-xs text-fg-muted">
 					Year to
-					<input type="number" min="1950" max="2100" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand"
+					<input uiInput size="sm" type="number" min="1950" max="2100"
 						[value]="yearTo() ?? ''"
 						(input)="setYearTo($any($event.target).value)" />
 				</label>

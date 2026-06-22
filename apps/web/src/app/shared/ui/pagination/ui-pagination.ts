@@ -5,9 +5,25 @@ import {
 	input,
 	output
 } from "@angular/core";
+import {
+	NgpPagination,
+	NgpPaginationButton,
+	NgpPaginationFirst,
+	NgpPaginationLast,
+	NgpPaginationNext,
+	NgpPaginationPrevious
+} from "ng-primitives/pagination";
 
 @Component({
 	selector: "ui-pagination",
+	imports: [
+		NgpPagination,
+		NgpPaginationButton,
+		NgpPaginationFirst,
+		NgpPaginationLast,
+		NgpPaginationNext,
+		NgpPaginationPrevious
+	],
 	templateUrl: "./ui-pagination.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -21,10 +37,6 @@ export class UiPagination {
 	protected readonly start = computed(() => this.offset() + 1);
 	protected readonly end = computed(() =>
 		Math.min(this.offset() + this.limit(), this.total())
-	);
-	protected readonly hasPrev = computed(() => this.offset() > 0);
-	protected readonly hasNext = computed(
-		() => this.offset() + this.limit() < this.total()
 	);
 	protected readonly totalPages = computed(() =>
 		Math.max(1, Math.ceil(this.total() / this.limit()))
@@ -50,23 +62,7 @@ export class UiPagination {
 		return out;
 	});
 
-	prev() {
-		this.goToPage(this.currentPage() - 1);
-	}
-
-	next() {
-		this.goToPage(this.currentPage() + 1);
-	}
-
-	first() {
-		this.goToPage(1);
-	}
-
-	last() {
-		this.goToPage(this.totalPages());
-	}
-
-	goToPage(page: number) {
+	protected onPageChange(page: number) {
 		const clamped = Math.max(1, Math.min(this.totalPages(), page));
 		if (clamped === this.currentPage()) return;
 		this.offsetChange.emit((clamped - 1) * this.limit());

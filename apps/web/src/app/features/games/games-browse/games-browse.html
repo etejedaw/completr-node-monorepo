@@ -2,7 +2,7 @@
 	<div class="flex items-center gap-2 mb-2">
 		<ui-search-bar class="flex-1 block" placeholder="Search games..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
 		<button uiButton variant="secondary" size="sm" (click)="toggleFilters()" [class.!bg-brand-subtle]="activeFiltersCount() > 0" [class.!text-brand]="activeFiltersCount() > 0">
-			<span class="material-icons text-base">tune</span>
+			<span aria-hidden="true" class="material-icons text-base">tune</span>
 			Filters
 			@if (activeFiltersCount() > 0) {
 				<span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none">{{ activeFiltersCount() }}</span>
@@ -24,19 +24,19 @@
 			<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
 				<label class="flex flex-col gap-1 text-xs text-fg-muted">
 					Min score (0-5)
-					<input type="number" min="0" max="5" step="0.1" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand" [value]="minScore() ?? ''" (input)="setMinScore($any($event.target).value)" />
+					<input uiInput size="sm" type="number" min="0" max="5" step="0.1" [value]="minScore() ?? ''" (input)="setMinScore($any($event.target).value)" />
 				</label>
 				<label class="flex flex-col gap-1 text-xs text-fg-muted">
 					Max score (0-5)
-					<input type="number" min="0" max="5" step="0.1" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand" [value]="maxScore() ?? ''" (input)="setMaxScore($any($event.target).value)" />
+					<input uiInput size="sm" type="number" min="0" max="5" step="0.1" [value]="maxScore() ?? ''" (input)="setMaxScore($any($event.target).value)" />
 				</label>
 				<label class="flex flex-col gap-1 text-xs text-fg-muted">
 					Min duration (h)
-					<input type="number" min="0" step="0.5" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand" [value]="minDuration() ?? ''" (input)="setMinDuration($any($event.target).value)" />
+					<input uiInput size="sm" type="number" min="0" step="0.5" [value]="minDuration() ?? ''" (input)="setMinDuration($any($event.target).value)" />
 				</label>
 				<label class="flex flex-col gap-1 text-xs text-fg-muted">
 					Max duration (h)
-					<input type="number" min="0" step="0.5" class="px-2 py-1 bg-input-bg border border-line rounded text-sm text-fg focus:outline-none focus:border-brand" [value]="maxDuration() ?? ''" (input)="setMaxDuration($any($event.target).value)" />
+					<input uiInput size="sm" type="number" min="0" step="0.5" [value]="maxDuration() ?? ''" (input)="setMaxDuration($any($event.target).value)" />
 				</label>
 				<div class="flex flex-col gap-1 text-xs text-fg-muted">
 					Type
@@ -72,7 +72,7 @@
 			@if (activeFiltersCount() > 0) {
 				<div class="flex justify-end pt-2 border-t border-line">
 					<button uiButton variant="ghost" size="sm" (click)="clearFilters()">
-						<span class="material-icons text-base">clear</span>
+						<span aria-hidden="true" class="material-icons text-base">clear</span>
 						Clear filters
 					</button>
 				</div>
@@ -94,12 +94,12 @@
 			} @else if (filteredGames().length === 0) {
 				<div class="flex flex-col items-center text-center py-16 px-4 bg-surface border border-line rounded-card">
 					<div class="flex items-center justify-center w-14 h-14 bg-input-bg rounded-full mb-4">
-						<span class="material-icons text-3xl text-fg-muted">search_off</span>
+						<span aria-hidden="true" class="material-icons text-3xl text-fg-muted">search_off</span>
 					</div>
 					<h3 class="font-display m-0 mb-1 text-fg text-lg">No games match these filters</h3>
 					<p class="text-fg-muted text-sm mb-4 max-w-md">Try removing some filters or use the search above to find a specific game.</p>
 					<button uiButton variant="secondary" size="sm" (click)="clearFilters()">
-						<span class="material-icons">close</span>
+						<span aria-hidden="true" class="material-icons">close</span>
 						Clear filters
 					</button>
 				</div>
@@ -134,11 +134,11 @@
 	@if (isAdmin()) {
 		<div class="flex items-center gap-3 py-2.5 px-3.5 bg-danger/[0.05] border border-danger/[0.15] rounded mb-6">
 			<span class="flex items-center gap-1.5 text-xs font-semibold text-danger uppercase tracking-wider mr-auto">
-				<span class="material-icons text-base">admin_panel_settings</span>
+				<span aria-hidden="true" class="material-icons text-base">admin_panel_settings</span>
 				Admin
 			</span>
 			<button uiButton variant="secondary" size="sm" (click)="showCreateEditor.set(!showCreateEditor())">
-				<span class="material-icons">{{ showCreateEditor() ? 'close' : 'add' }}</span>
+				<span aria-hidden="true" class="material-icons">{{ showCreateEditor() ? 'close' : 'add' }}</span>
 				{{ showCreateEditor() ? 'Close' : 'Add Game' }}
 			</button>
 		</div>
@@ -162,7 +162,7 @@
 				<p class="text-fg-muted text-sm">Searching...</p>
 			} @else if (isSearchingOnline()) {
 				<p class="text-brand text-sm flex items-center gap-2">
-					<span class="material-icons text-base animate-spin">autorenew</span>
+					<span aria-hidden="true" class="material-icons text-base animate-spin">autorenew</span>
 					Searching online...
 				</p>
 			} @else if (searchResults().length === 0) {
@@ -186,7 +186,7 @@
 								}
 								@if (game.justImported) {
 									<span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/85 text-white text-[0.65rem] font-semibold uppercase tracking-wider rounded backdrop-blur-sm shadow" title="Just imported from RAWG">
-										<span class="material-icons text-[0.75rem]">cloud_download</span>
+										<span aria-hidden="true" class="material-icons text-[0.75rem]">cloud_download</span>
 										RAWG
 									</span>
 								}
@@ -214,7 +214,7 @@
 					<div class="absolute inset-x-0 bottom-0 px-6 lg:px-12 max-md:px-4 pb-10 pt-8 max-w-4xl">
 						<div class="flex items-center gap-2 mb-3">
 							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand text-white">
-								<span class="material-icons text-[0.75rem]">auto_awesome</span>
+								<span aria-hidden="true" class="material-icons text-[0.75rem]">auto_awesome</span>
 								Featured
 							</span>
 							@for (g of hero.genres.slice(0, 3); track g.id) {
@@ -228,7 +228,7 @@
 						<div class="flex items-center gap-3 mt-5">
 							<span class="inline-flex items-center gap-1.5 px-4 py-2 rounded text-sm font-semibold text-white" style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));">
 								View details
-								<span class="material-icons text-base">arrow_forward</span>
+								<span aria-hidden="true" class="material-icons text-base">arrow_forward</span>
 							</span>
 							@if (hero.ratio) {
 								<div class="flex items-baseline gap-1">
@@ -264,10 +264,10 @@
 					</h2>
 					<div class="flex items-center gap-1">
 						<button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-line text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand" (click)="latestShelf.scrollBy({left: -600, behavior: 'smooth'})">
-							<span class="material-icons text-lg">chevron_left</span>
+							<span aria-hidden="true" class="material-icons text-lg">chevron_left</span>
 						</button>
 						<button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-line text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand" (click)="latestShelf.scrollBy({left: 600, behavior: 'smooth'})">
-							<span class="material-icons text-lg">chevron_right</span>
+							<span aria-hidden="true" class="material-icons text-lg">chevron_right</span>
 						</button>
 					</div>
 				</div>
@@ -299,10 +299,10 @@
 					</h2>
 					<div class="flex items-center gap-1">
 						<button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-line text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand" (click)="reviewedShelf.scrollBy({left: -600, behavior: 'smooth'})">
-							<span class="material-icons text-lg">chevron_left</span>
+							<span aria-hidden="true" class="material-icons text-lg">chevron_left</span>
 						</button>
 						<button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-line text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand" (click)="reviewedShelf.scrollBy({left: 600, behavior: 'smooth'})">
-							<span class="material-icons text-lg">chevron_right</span>
+							<span aria-hidden="true" class="material-icons text-lg">chevron_right</span>
 						</button>
 					</div>
 				</div>
@@ -331,14 +331,14 @@
 					<h2 class="font-display m-0 text-xl md:text-2xl font-bold flex items-center gap-3">
 						<span class="inline-block w-1 h-6 bg-brand rounded-full"></span>
 						Completr Official
-						<span class="material-icons text-warning text-2xl">verified</span>
+						<span aria-hidden="true" class="material-icons text-warning text-2xl">verified</span>
 					</h2>
 					<div class="flex items-center gap-1">
 						<button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-line text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand" (click)="officialShelf.scrollBy({left: -600, behavior: 'smooth'})">
-							<span class="material-icons text-lg">chevron_left</span>
+							<span aria-hidden="true" class="material-icons text-lg">chevron_left</span>
 						</button>
 						<button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-line text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand" (click)="officialShelf.scrollBy({left: 600, behavior: 'smooth'})">
-							<span class="material-icons text-lg">chevron_right</span>
+							<span aria-hidden="true" class="material-icons text-lg">chevron_right</span>
 						</button>
 					</div>
 				</div>
@@ -356,7 +356,7 @@
 							}
 							<div class="absolute inset-0" style="background: linear-gradient(to top, rgba(10,10,12,0.97) 0%, rgba(10,10,12,0.82) 38%, rgba(10,10,12,0.5) 70%, rgba(10,10,12,0.2) 100%);"></div>
 							<div class="absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/15 text-warning backdrop-blur-sm">
-								<span class="material-icons text-[0.75rem]">verified</span>
+								<span aria-hidden="true" class="material-icons text-[0.75rem]">verified</span>
 								Official
 							</div>
 							<div class="absolute inset-x-0 bottom-0 p-4">
@@ -380,10 +380,10 @@
 					</h2>
 					<div class="flex items-center gap-1">
 						<button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-line text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand" (click)="recentListsShelf.scrollBy({left: -600, behavior: 'smooth'})">
-							<span class="material-icons text-lg">chevron_left</span>
+							<span aria-hidden="true" class="material-icons text-lg">chevron_left</span>
 						</button>
 						<button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-line text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand" (click)="recentListsShelf.scrollBy({left: 600, behavior: 'smooth'})">
-							<span class="material-icons text-lg">chevron_right</span>
+							<span aria-hidden="true" class="material-icons text-lg">chevron_right</span>
 						</button>
 					</div>
 				</div>
@@ -421,10 +421,10 @@
 					</h2>
 					<div class="flex items-center gap-1">
 						<button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-line text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand" (click)="genreShelf.scrollBy({left: -600, behavior: 'smooth'})">
-							<span class="material-icons text-lg">chevron_left</span>
+							<span aria-hidden="true" class="material-icons text-lg">chevron_left</span>
 						</button>
 						<button type="button" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface border border-line text-fg-muted cursor-pointer transition hover:border-brand hover:text-brand" (click)="genreShelf.scrollBy({left: 600, behavior: 'smooth'})">
-							<span class="material-icons text-lg">chevron_right</span>
+							<span aria-hidden="true" class="material-icons text-lg">chevron_right</span>
 						</button>
 					</div>
 				</div>

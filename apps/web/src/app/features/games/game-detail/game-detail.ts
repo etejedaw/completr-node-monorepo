@@ -99,7 +99,6 @@ export class GameDetail implements OnInit {
 	protected readonly reportSubmitting = signal(false);
 	protected readonly reportSent = signal(false);
 
-	// Reviews
 	protected readonly reviews = signal<Review[]>([]);
 	protected readonly myReview = signal<Review | null>(null);
 	protected readonly showReviewForm = signal(false);
@@ -623,7 +622,6 @@ export class GameDetail implements OnInit {
 		});
 	}
 
-	// Reviews
 	openReviewForm() {
 		const existing = this.myReview();
 		if (existing) {

@@ -9,11 +9,11 @@ import {
 import { BacklogEntry } from "../../../core/models";
 import { BacklogService } from "../../backlog/backlog.service";
 import { QueueService } from "../queue.service";
-import { UiButton, UiIconButton } from "../../../shared/ui";
+import { UiButton, UiFocusTrap, UiIconButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-queue-add-modal",
-	imports: [UiButton, UiIconButton],
+	imports: [UiButton, UiFocusTrap, UiIconButton],
 	templateUrl: "./queue-add-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

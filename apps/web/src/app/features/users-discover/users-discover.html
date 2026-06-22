@@ -25,23 +25,13 @@
 							class="flex items-center gap-3 p-3 rounded-card border border-line bg-card no-underline text-inherit transition hover:border-brand/50"
 							[routerLink]="['/user', user.username]"
 						>
-							@if (user.avatarUrl) {
-								<img
-									class="w-12 h-12 rounded-full object-cover ring-1 ring-line shrink-0"
-									[src]="user.avatarUrl"
-									[alt]="user.username" loading="lazy"
-								/>
-							} @else {
-								<div class="w-12 h-12 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-lg font-bold ring-1 ring-line shrink-0">
-									{{ user.username.charAt(0).toUpperCase() }}
-								</div>
-							}
+							<ui-avatar [src]="user.avatarUrl" [name]="user.username" class="w-12 h-12 text-lg ring-1 ring-line" />
 							<div class="min-w-0 flex-1">
 								<div class="font-semibold text-fg truncate">{{ user.name || user.username }}</div>
 								<div class="text-[0.8125rem] text-fg-muted truncate">{{ '@' + user.username }}</div>
 							</div>
 							@if (user.profileVisibility !== 'public') {
-								<span class="material-icons text-fg-muted text-base shrink-0" title="Private profile">lock</span>
+								<span aria-hidden="true" class="material-icons text-fg-muted text-base shrink-0" title="Private profile">lock</span>
 							}
 						</a>
 					}
@@ -63,17 +53,7 @@
 						class="flex items-center gap-3 p-3 rounded-card border border-line bg-card no-underline text-inherit transition hover:border-brand/50"
 						[routerLink]="['/user', user.username]"
 					>
-						@if (user.avatarUrl) {
-							<img
-								class="w-12 h-12 rounded-full object-cover ring-1 ring-line shrink-0"
-								[src]="user.avatarUrl"
-								[alt]="user.username" loading="lazy"
-							/>
-						} @else {
-							<div class="w-12 h-12 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-lg font-bold ring-1 ring-line shrink-0">
-								{{ user.username.charAt(0).toUpperCase() }}
-							</div>
-						}
+						<ui-avatar [src]="user.avatarUrl" [name]="user.username" class="w-12 h-12 text-lg ring-1 ring-line" />
 						<div class="min-w-0 flex-1">
 							<div class="font-semibold text-fg truncate">{{ user.name || user.username }}</div>
 							<div class="text-[0.8125rem] text-fg-muted truncate">{{ '@' + user.username }}</div>

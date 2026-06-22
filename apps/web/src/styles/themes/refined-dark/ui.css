@@ -1,6 +1,4 @@
-/* === ng-primitives wrappers — Refined Dark === */
 
-/* Button */
 .ui-button {
 	display: inline-flex;
 	align-items: center;
@@ -90,7 +88,6 @@
 	cursor: not-allowed;
 }
 
-/* Icon button */
 .ui-icon-button {
 	display: inline-flex;
 	align-items: center;
@@ -140,7 +137,6 @@
 	cursor: not-allowed;
 }
 
-/* Input */
 .ui-input {
 	width: 100%;
 	padding: 0.5rem 0.75rem;
@@ -182,7 +178,6 @@ textarea.ui-input {
 	resize: vertical;
 }
 
-/* Switch */
 .ui-switch {
 	display: inline-flex;
 	align-items: center;
@@ -240,7 +235,6 @@ textarea.ui-input {
 	color: var(--text-primary);
 }
 
-/* Checkbox */
 .ui-checkbox {
 	display: inline-flex;
 	align-items: center;
@@ -297,7 +291,6 @@ textarea.ui-input {
 	color: var(--text-primary);
 }
 
-/* Tooltip */
 .ui-tooltip {
 	background: #000;
 	color: var(--text-primary);
@@ -309,7 +302,6 @@ textarea.ui-input {
 	z-index: 1100;
 }
 
-/* Tabs */
 .ui-tabs {
 	display: block;
 }
@@ -370,7 +362,6 @@ textarea.ui-input {
 	display: none;
 }
 
-/* Dialog */
 .ui-dialog__trigger-host {
 	display: contents;
 	background: none;

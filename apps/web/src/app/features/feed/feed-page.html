@@ -1,7 +1,7 @@
 <div class="max-w-3xl mx-auto">
 	<div class="relative mb-6">
 		<div class="flex items-center bg-input-bg border border-line rounded-card px-4 transition focus-within:border-brand focus-within:shadow-[0_0_0_3px_var(--color-brand-subtle)]">
-			<span class="material-icons text-xl text-fg-muted">search</span>
+			<span aria-hidden="true" class="material-icons text-xl text-fg-muted">search</span>
 			<input
 				uiInput
 				type="text"
@@ -11,8 +11,8 @@
 				(input)="onSearch($event)"
 			/>
 			@if (searchQuery()) {
-				<button uiIconButton size="sm" (click)="clearSearch()">
-					<span class="material-icons">close</span>
+				<button uiIconButton size="sm" aria-label="Clear search" (click)="clearSearch()">
+					<span class="material-icons" aria-hidden="true">close</span>
 				</button>
 			}
 		</div>
@@ -27,13 +27,13 @@
 								class="flex items-center gap-2.5 w-full px-3 py-2 bg-none border-0 text-fg text-sm text-left transition hover:bg-surface cursor-pointer"
 								(click)="goToUser(user.username)"
 							>
-								<span class="material-icons text-base text-fg-muted">person</span>
+								<span aria-hidden="true" class="material-icons text-base text-fg-muted">person</span>
 								<div class="flex-1 flex flex-col">
 									<span class="font-medium">{{ user.name || user.username }}</span>
 									<span class="text-xs text-fg-muted">{{ '@' + user.username }}</span>
 								</div>
 								@if (user.profileVisibility !== 'public') {
-									<span class="material-icons text-sm text-fg-muted">lock</span>
+									<span aria-hidden="true" class="material-icons text-sm text-fg-muted">lock</span>
 								}
 							</button>
 						}
@@ -47,7 +47,7 @@
 								class="flex items-center gap-2.5 w-full px-3 py-2 bg-none border-0 text-fg text-sm text-left transition hover:bg-surface cursor-pointer"
 								(click)="goToGame(game.code)"
 							>
-								<span class="material-icons text-base text-fg-muted">sports_esports</span>
+								<span aria-hidden="true" class="material-icons text-base text-fg-muted">sports_esports</span>
 								<div class="flex-1 flex flex-col">
 									<span class="font-medium">{{ game.title }}</span>
 								</div>
@@ -63,7 +63,7 @@
 								class="flex items-center gap-2.5 w-full px-3 py-2 bg-none border-0 text-fg text-sm text-left transition hover:bg-surface cursor-pointer"
 								(click)="goToList(list.id)"
 							>
-								<span class="material-icons text-base text-fg-muted">format_list_bulleted</span>
+								<span aria-hidden="true" class="material-icons text-base text-fg-muted">format_list_bulleted</span>
 								<div class="flex-1 flex flex-col">
 									<span class="font-medium">{{ list.name }}</span>
 								</div>
@@ -77,7 +77,7 @@
 						class="flex items-center gap-2 w-full px-3 py-2 bg-none border-0 text-brand text-sm font-medium text-left transition hover:bg-brand-subtle cursor-pointer"
 						(click)="searchInGames()"
 					>
-						<span class="material-icons text-base">sports_esports</span>
+						<span aria-hidden="true" class="material-icons text-base">sports_esports</span>
 						Search games for "{{ searchQuery() }}"
 					</button>
 				</div>
@@ -89,22 +89,16 @@
 		@if (requests.length > 0) {
 			<section class="mb-6 bg-brand-subtle border-2 border-brand rounded-card p-5 shadow-[0_0_0_3px_var(--color-brand-subtle)]">
 				<div class="flex items-center gap-2 mb-3">
-					<span class="material-icons text-brand">person_add</span>
+					<span aria-hidden="true" class="material-icons text-brand">person_add</span>
 					<h2 class="font-display m-0 text-base font-bold text-fg">
 						{{ requests.length === 1 ? '1 follow request' : requests.length + ' follow requests' }}
 					</h2>
 				</div>
-				<ul class="flex flex-col gap-2">
+				<ul class="ui-stagger flex flex-col gap-2">
 					@for (req of requests; track req.requesterId) {
 						<li class="flex items-center gap-3 p-3 bg-surface border border-line rounded-card">
-							<a [routerLink]="['/user', req.user.username]" class="shrink-0">
-								@if (req.user.avatarUrl) {
-									<img class="w-10 h-10 rounded-full object-cover ring-1 ring-line" [src]="req.user.avatarUrl" [alt]="req.user.username" />
-								} @else {
-									<div class="w-10 h-10 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-sm font-bold ring-1 ring-line">
-										{{ req.user.username.charAt(0).toUpperCase() }}
-									</div>
-								}
+							<a [routerLink]="['/user', req.user.username]" class="shrink-0 ring-1 ring-line rounded-full">
+								<ui-avatar [src]="req.user.avatarUrl" [name]="req.user.username" class="w-10 h-10 text-sm" />
 							</a>
 							<div class="flex-1 min-w-0">
 								<a [routerLink]="['/user', req.user.username]" class="block text-sm font-medium text-fg no-underline truncate hover:underline">
@@ -155,22 +149,18 @@
 		<div class="relative">
 			<div class="absolute left-[22px] top-6 bottom-6 w-px bg-line" aria-hidden="true"></div>
 
+			<div class="ui-stagger">
 			@for (activity of activities(); track activity.id) {
 				@let avatarUser = activity.type === 'user_followed_by' && activity.target?.type === 'user' ? activity.target : activity.user;
 				<div class="relative flex items-start gap-4 pb-6 last:pb-0">
-					<div class="relative z-[1] shrink-0">
-						@if (avatarUser?.avatarUrl) {
-							<img
-								[src]="avatarUser!.avatarUrl"
-								[alt]="avatarUser!.username"
-								class="w-11 h-11 rounded-full object-cover ring-4 ring-canvas" loading="lazy"
-							/>
-						} @else {
-							<div class="w-11 h-11 rounded-full bg-brand-subtle text-brand flex items-center justify-center text-base font-bold ring-4 ring-canvas">
-								{{ (avatarUser?.username || '?').charAt(0).toUpperCase() }}
-							</div>
-						}
+					<div class="relative z-[1] shrink-0 ring-4 ring-canvas rounded-full">
+						<ui-avatar
+							[src]="avatarUser?.avatarUrl"
+							[name]="avatarUser?.username"
+							class="w-11 h-11 text-base"
+						/>
 						<span
+							aria-hidden="true"
 							class="material-icons absolute -bottom-1 -right-1 text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
 							[class]="activityIconColorClass(activity.type)"
 						>{{ activityIcon(activity.type) }}</span>
@@ -214,7 +204,7 @@
 							}
 						</div>
 						<div class="flex items-center gap-1 mt-1 text-[0.6875rem] text-fg-muted">
-							<span class="material-icons text-[0.75rem]">schedule</span>
+							<span aria-hidden="true" class="material-icons text-[0.75rem]">schedule</span>
 							{{ timeAgo(activity.createdAt) }}
 						</div>
 					</div>
@@ -233,12 +223,13 @@
 					}
 
 					@if (isOwnActivity(activity)) {
-						<button uiIconButton size="sm" tone="danger" (click)="deleteActivity(activity.id)" class="shrink-0">
-							<span class="material-icons">close</span>
+						<button uiIconButton size="sm" tone="danger" aria-label="Delete activity" (click)="deleteActivity(activity.id)" class="shrink-0">
+							<span class="material-icons" aria-hidden="true">close</span>
 						</button>
 					}
 				</div>
 			}
+			</div>
 		</div>
 
 		<ui-pagination

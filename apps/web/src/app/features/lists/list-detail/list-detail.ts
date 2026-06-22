@@ -22,7 +22,7 @@ import {
 	of,
 	forkJoin
 } from "rxjs";
-import { UiButton, UiIconButton, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiIconButton, UiProgress, UiSearchBar } from "../../../shared/ui";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 
 @Component({
@@ -33,6 +33,7 @@ import { PersonalStats } from "../../../shared/components/personal-stats/persona
 		BacklogModal,
 		UiButton,
 		UiIconButton,
+		UiProgress,
 		UiSearchBar,
 		PersonalStats
 	],

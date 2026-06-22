@@ -30,12 +30,12 @@
 							<h3 class="font-display m-0 text-base font-semibold text-fg line-clamp-1">{{ filter.name }}</h3>
 							@if (filter.isDefault) {
 								<span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/15 text-warning" title="Default view">
-									<span class="material-icons text-[0.75rem]">star</span>
+									<span aria-hidden="true" class="material-icons text-[0.75rem]">star</span>
 									Default
 								</span>
 							} @else if (filter.showInBacklog) {
 								<span class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand-subtle text-brand" title="Pinned to Backlog">
-									<span class="material-icons text-[0.75rem]">push_pin</span>
+									<span aria-hidden="true" class="material-icons text-[0.75rem]">push_pin</span>
 									Pinned
 								</span>
 							}
@@ -45,7 +45,7 @@
 							(click)="openEdit(filter, $event)"
 							title="Edit"
 						>
-							<span class="material-icons text-base">edit</span>
+							<span aria-hidden="true" class="material-icons text-base">edit</span>
 						</button>
 					</div>
 
@@ -62,7 +62,7 @@
 									class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium tracking-wide"
 									[class]="chip.classes"
 								>
-									<span class="material-icons text-[0.875rem]">{{ chip.icon }}</span>
+									<span aria-hidden="true" class="material-icons text-[0.875rem]">{{ chip.icon }}</span>
 									{{ chip.label }}
 								</span>
 							}
@@ -102,7 +102,7 @@
 			<div class="mb-4">
 				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Description</label>
 				<textarea
-					rows="3"
+					uiTextarea rows="3"
 					class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 					[ngModel]="editDescription()"
 					(ngModelChange)="editDescription.set($event)"

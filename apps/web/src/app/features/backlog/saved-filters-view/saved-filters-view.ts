@@ -9,12 +9,12 @@ import {
 import { Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { SavedFiltersService, SavedFilter } from "../saved-filters.service";
-import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiEmptyState, UiPagination, UiSearchBar, UiTextarea } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-saved-filters-view",
-	imports: [FormsModule, RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar],
+	imports: [FormsModule, RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar, UiTextarea],
 	templateUrl: "./saved-filters-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -43,7 +43,6 @@ export class SavedFiltersView implements OnInit {
 		this.searchSubject.next(query);
 	}
 
-	// Edit modal
 	protected readonly showModal = signal(false);
 	protected readonly editingFilter = signal<SavedFilter | null>(null);
 	protected readonly editName = signal("");

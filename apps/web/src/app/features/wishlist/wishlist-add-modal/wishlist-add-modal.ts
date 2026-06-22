@@ -10,11 +10,11 @@ import { Subject, debounceTime, switchMap, of } from "rxjs";
 import { Game } from "../../../core/models";
 import { GamesService } from "../../games/games.service";
 import { WishlistService } from "../wishlist.service";
-import { UiButton, UiIconButton } from "../../../shared/ui";
+import { UiButton, UiFocusTrap, UiIconButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-wishlist-add-modal",
-	imports: [UiButton, UiIconButton],
+	imports: [UiButton, UiFocusTrap, UiIconButton],
 	templateUrl: "./wishlist-add-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

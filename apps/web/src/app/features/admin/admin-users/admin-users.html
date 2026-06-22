@@ -22,12 +22,12 @@
 		<table class="w-full border-collapse text-[0.8125rem]">
 			<thead>
 				<tr>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Username</th>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Email</th>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Name</th>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Role</th>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Status</th>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Created</th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Username</th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Email</th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Name</th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Role</th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Status</th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Created</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -72,7 +72,6 @@
 	}
 </div>
 
-<!-- Create Modal -->
 @if (showCreateModal()) {
 <div class="modal-overlay" (click)="closeCreate()">
 	<div
@@ -82,7 +81,7 @@
 	>
 		<div class="flex justify-between items-center mb-5">
 			<h2 class="font-display m-0 text-lg font-bold">Create User</h2>
-			<button uiIconButton size="sm" (click)="closeCreate()">&times;</button>
+			<button uiIconButton size="sm" aria-label="Close" (click)="closeCreate()">&times;</button>
 		</div>
 
 		@if (createError()) {
@@ -176,7 +175,7 @@
 						(click)="toggleShowCreatePassword()"
 						[title]="showCreatePassword() ? 'Hide password' : 'Show password'"
 					>
-						<span class="material-icons text-base">{{ showCreatePassword() ? 'visibility_off' : 'visibility' }}</span>
+						<span aria-hidden="true" class="material-icons text-base">{{ showCreatePassword() ? 'visibility_off' : 'visibility' }}</span>
 					</button>
 					</div>
 					@if (createFieldErrors()['password']; as msg) {
@@ -208,7 +207,6 @@
 </div>
 }
 
-<!-- Edit Modal -->
 @if (showEditModal() && editingUser()) {
 <div class="modal-overlay" (click)="closeEdit()">
 	<div
@@ -218,7 +216,7 @@
 	>
 		<div class="flex justify-between items-center mb-5">
 			<h2 class="font-display m-0 text-lg font-bold">Edit User</h2>
-			<button uiIconButton size="sm" (click)="closeEdit()">&times;</button>
+			<button uiIconButton size="sm" aria-label="Close" (click)="closeEdit()">&times;</button>
 		</div>
 
 		<div class="flex items-baseline gap-3 mb-5 pb-4 border-b border-line">
@@ -252,8 +250,8 @@
 				<div>
 					<label for="edit-role" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Role</label>
 					<select
+						uiSelect
 						id="edit-role"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm cursor-pointer transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 						[ngModel]="editRole()"
 						(ngModelChange)="editRole.set($event)"
 						name="role"
@@ -285,7 +283,7 @@
 							(click)="toggleShowEditPassword()"
 							[title]="showEditPassword() ? 'Hide password' : 'Show password'"
 						>
-							<span class="material-icons text-base">{{ showEditPassword() ? 'visibility_off' : 'visibility' }}</span>
+							<span aria-hidden="true" class="material-icons text-base">{{ showEditPassword() ? 'visibility_off' : 'visibility' }}</span>
 						</button>
 					</div>
 					@if (editFieldErrors()['password']; as msg) {

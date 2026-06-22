@@ -21,11 +21,11 @@ import {
 	activityIconColorClass
 } from "../../shared/utils/activity-labels";
 
-import { UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination } from "../../shared/ui";
+import { UiAvatar, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination } from "../../shared/ui";
 
 @Component({
 	selector: "app-feed-page",
-	imports: [RouterLink, UiButton, UiEmptyState, UiInput, UiIconButton, UiPagination],
+	imports: [RouterLink, UiAvatar, UiButton, UiEmptyState, UiInput, UiIconButton, UiPagination],
 	templateUrl: "./feed-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

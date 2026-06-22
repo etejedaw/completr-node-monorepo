@@ -9,7 +9,7 @@ import { DatePipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import type { AuditLogEntry } from "../admin.service";
 import { AdminService } from "../admin.service";
-import { UiPagination } from "../../../shared/ui";
+import { UiPagination, UiSelect } from "../../../shared/ui";
 
 const ACTION_OPTIONS = [
 	"user_created",
@@ -27,7 +27,7 @@ const TARGET_TYPE_OPTIONS = ["game", "user", "report", "job"];
 
 @Component({
 	selector: "app-admin-audit",
-	imports: [DatePipe, RouterLink, UiPagination],
+	imports: [DatePipe, RouterLink, UiPagination, UiSelect],
 	templateUrl: "./admin-audit.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

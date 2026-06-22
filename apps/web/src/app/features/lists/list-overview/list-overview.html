@@ -36,7 +36,7 @@
 								/>
 							} @else {
 								<div class="absolute inset-0 bg-input-bg flex items-center justify-center">
-									<span class="material-icons text-fg-muted/30 text-5xl">videogame_asset</span>
+									<span aria-hidden="true" class="material-icons text-fg-muted/30 text-5xl">videogame_asset</span>
 								</div>
 							}
 							<div
@@ -47,7 +47,7 @@
 							@if (list.isOfficial) {
 								<div class="absolute top-3 left-3 flex gap-2">
 									<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider">
-										<span class="material-icons text-[0.875rem]">verified</span>
+										<span aria-hidden="true" class="material-icons text-[0.875rem]">verified</span>
 										Official
 									</span>
 								</div>
@@ -68,7 +68,7 @@
 
 	@if (frozen()) {
 		<div class="flex items-center gap-2 px-3.5 py-2.5 bg-warning/10 border border-warning/25 text-warning rounded-card text-[0.8125rem] mb-5">
-			<span class="material-icons text-base">lock</span>
+			<span aria-hidden="true" class="material-icons text-base">lock</span>
 			Lists are frozen. Delete lists to go below the free limit (5).
 		</div>
 	}
@@ -99,7 +99,7 @@
 						/>
 					} @else {
 						<div class="absolute inset-0 bg-input-bg flex items-center justify-center">
-							<span class="material-icons text-fg-muted/30 text-5xl">videogame_asset</span>
+							<span aria-hidden="true" class="material-icons text-fg-muted/30 text-5xl">videogame_asset</span>
 						</div>
 					}
 					<div
@@ -110,12 +110,12 @@
 					<div class="absolute top-3 left-3 flex gap-2">
 						@if (list.isOfficial) {
 							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider">
-								<span class="material-icons text-[0.875rem]">verified</span>
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">verified</span>
 								Official
 							</span>
 						}
 						<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider">
-							<span class="material-icons text-[0.875rem]">{{ list.isPublic ? 'public' : 'lock' }}</span>
+							<span aria-hidden="true" class="material-icons text-[0.875rem]">{{ list.isPublic ? 'public' : 'lock' }}</span>
 							{{ list.isPublic ? 'Public' : 'Private' }}
 						</span>
 					</div>
@@ -127,11 +127,11 @@
 						}
 						<div class="flex items-center gap-3 mt-1 text-[0.6875rem] text-white/70 uppercase tracking-wider">
 							<span class="flex items-center gap-1">
-								<span class="material-icons text-[0.875rem]">leaderboard</span>
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">leaderboard</span>
 								{{ list.scoreSource }}
 							</span>
 							<span class="flex items-center gap-1">
-								<span class="material-icons text-[0.875rem]">schedule</span>
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">schedule</span>
 								{{ list.durationSource }}
 							</span>
 						</div>
@@ -159,7 +159,7 @@
 							/>
 						} @else {
 							<div class="absolute inset-0 bg-input-bg flex items-center justify-center">
-								<span class="material-icons text-fg-muted/30 text-5xl">videogame_asset</span>
+								<span aria-hidden="true" class="material-icons text-fg-muted/30 text-5xl">videogame_asset</span>
 							</div>
 						}
 						<div
@@ -170,19 +170,19 @@
 						<div class="absolute top-3 left-3 flex gap-2">
 							@if (list.isOfficial) {
 								<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider">
-									<span class="material-icons text-[0.875rem]">verified</span>
+									<span aria-hidden="true" class="material-icons text-[0.875rem]">verified</span>
 									Official
 								</span>
 							}
 							<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider">
-								<span class="material-icons text-[0.875rem]">bookmark</span>
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">bookmark</span>
 								Following
 							</span>
 						</div>
 						@if (list.progress.total > 0 && list.progress.completed >= list.progress.total) {
 							<div class="absolute top-3 right-3">
 								<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning/85 backdrop-blur-sm text-[0.6875rem] font-bold text-black uppercase tracking-wider shadow-lg">
-									<span class="material-icons text-[0.875rem]">emoji_events</span>
+									<span aria-hidden="true" class="material-icons text-[0.875rem]">emoji_events</span>
 									100%
 								</span>
 							</div>
@@ -194,13 +194,13 @@
 								<p class="m-0 text-sm text-white/85 line-clamp-2" style="text-shadow: 0 1px 4px rgba(0,0,0,0.5);">{{ list.description }}</p>
 							}
 							<div class="flex flex-col gap-1 mt-1">
-								<div class="h-1 bg-white/20 rounded-[2px] overflow-hidden">
-									<div
-										class="h-full rounded-[2px] transition-[width] duration-300 ease-out"
-										style="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
-										[style.width.%]="progressPercent(list.progress)"
-									></div>
-								</div>
+								<ui-progress
+									[value]="list.progress.completed"
+									[max]="list.progress.total || 1"
+									trackClass="h-1 bg-white/20"
+									indicatorClass=""
+									indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+								/>
 								<span class="text-[0.6875rem] text-white/80">
 									{{ list.progress.completed }}/{{ list.progress.total }} completed
 								</span>

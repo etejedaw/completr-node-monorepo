@@ -98,14 +98,14 @@
 		<table class="w-full border-collapse text-[0.8125rem]">
 			<thead>
 				<tr>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 pr-0"></th>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap min-w-[200px]">Title</th>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Code</th>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Platforms</th>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Scores</th>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Times</th>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">DLC</th>
-					<th class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 text-center"></th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 pr-0"></th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap min-w-[200px]">Title</th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Code</th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Platforms</th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Scores</th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Times</th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">DLC</th>
+					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 text-center"></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -165,7 +165,7 @@
 									(click)="goToGameReport(game.id)"
 									title="View report"
 								>
-									<span class="material-icons text-base">flag</span>
+									<span aria-hidden="true" class="material-icons text-base">flag</span>
 								</button>
 							}
 							@if (game.isActive === false) {
@@ -175,7 +175,7 @@
 									[disabled]="isReactivating(game.id)"
 									title="Reactivate game"
 								>
-									<span class="material-icons text-base">restore_from_trash</span>
+									<span aria-hidden="true" class="material-icons text-base">restore_from_trash</span>
 								</button>
 							}
 						</div>

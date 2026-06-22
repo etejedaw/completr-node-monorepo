@@ -29,6 +29,12 @@ export class StarRating {
 	protected readonly label = computed(() =>
 		getRatingLabel(this.hoverValue() ?? this.value())
 	);
+	protected readonly ariaValueText = computed(() => {
+		const v = this.value();
+		if (v == null) return "no rating";
+		const l = getRatingLabel(v);
+		return l ? `${v} out of 5 — ${l}` : `${v} out of 5`;
+	});
 
 	protected readonly wrapperClasses = computed(() => {
 		const dims = this.size() === "sm" ? "w-4 h-4" : "w-6 h-6";
@@ -77,6 +83,37 @@ export class StarRating {
 			this.ratingChange.emit(null);
 		} else {
 			this.ratingChange.emit(value);
+		}
+	}
+
+	protected onKey(event: KeyboardEvent) {
+		if (this.readonly()) return;
+		const current = this.value() ?? 0;
+		const step = 0.5;
+		switch (event.key) {
+			case "ArrowRight":
+			case "ArrowUp":
+				event.preventDefault();
+				this.ratingChange.emit(Math.min(5, current + step));
+				return;
+			case "ArrowLeft":
+			case "ArrowDown":
+				event.preventDefault();
+				this.ratingChange.emit(Math.max(0, current - step));
+				return;
+			case "Home":
+				event.preventDefault();
+				this.ratingChange.emit(0.5);
+				return;
+			case "End":
+				event.preventDefault();
+				this.ratingChange.emit(5);
+				return;
+			case "Delete":
+			case "Backspace":
+				event.preventDefault();
+				this.ratingChange.emit(null);
+				return;
 		}
 	}
 }

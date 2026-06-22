@@ -23,12 +23,12 @@ import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 import { ReviewsService } from "../../games/reviews.service";
-import { UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSkeleton, UiSwitch } from "../../../shared/ui";
+import { UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSkeleton, UiSwitch, GameFilterPanel],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea, GameFilterPanel],
 	templateUrl: "./backlog-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -90,7 +90,6 @@ export class BacklogList implements OnInit {
 		localStorage.setItem("completr.backlog.viewMode", mode);
 	}
 
-	// Filters
 	protected readonly showFilters = signal(false);
 	protected readonly showAdvancedFilters = signal(false);
 	protected readonly allPlatforms = signal<Platform[]>([]);
@@ -113,7 +112,6 @@ export class BacklogList implements OnInit {
 	protected readonly minPersonalRatio = signal<number | null>(null);
 	protected readonly maxPersonalRatio = signal<number | null>(null);
 
-	// Saved filters
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
 	protected readonly backlogFilters = signal<SavedFilter[]>([]);
 	protected readonly activeFilterId = signal<string | null>(null);
@@ -483,6 +481,11 @@ export class BacklogList implements OnInit {
 		}
 		this.offset.set(0);
 		this.loadBacklog();
+	}
+
+	ariaSortFor(column: string): "ascending" | "descending" | "none" {
+		if (this.sortBy() !== column) return "none";
+		return this.sortOrder() === "asc" ? "ascending" : "descending";
 	}
 
 	statusClass(status: BacklogStatus): string {

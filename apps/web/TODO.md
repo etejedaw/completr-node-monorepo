@@ -6,18 +6,18 @@
 
 ## Resumen cronológico
 
-| Fase     | Etapa                                                 | Release  |
-| -------- | ----------------------------------------------------- | -------- |
-| Fase 0   | Setup y arquitectura base                             | `v0.1.0` |
-| Fase 1   | Excel Killer (solo tú)                                | `v0.2.0` |
-| Fase 1.5 | Beyond the Spreadsheet (mejoras + deploy)             | `v0.2.x` |
-| Fase 2   | MVP Amigos (5–20 personas)                            | `v0.3.0` |
-| Fase 2.5 | Pulido y UX (feedback + visual)                       | `v0.3.x` |
-| Fase 3   | Beta Cerrada (50–200 usuarios, invitación)            | `v0.4.0` |
-| Fase 4   | Beta Pública (500+ usuarios)                          | `v1.0.0` |
-| Fase 5   | Estabilización y calidad                              | `v1.1.0` |
-| Fase 6   | Premium                                               | `v2.0.0` |
-| Fase 7   | Escalamiento continuo                                 | `v2.x.x` |
+| Fase     | Etapa                                      | Release  |
+| -------- | ------------------------------------------ | -------- |
+| Fase 0   | Setup y arquitectura base                  | `v0.1.0` |
+| Fase 1   | Excel Killer (solo tú)                     | `v0.2.0` |
+| Fase 1.5 | Beyond the Spreadsheet (mejoras + deploy)  | `v0.2.x` |
+| Fase 2   | MVP Amigos (5–20 personas)                 | `v0.3.0` |
+| Fase 2.5 | Pulido y UX (feedback + visual)            | `v0.3.x` |
+| Fase 3   | Beta Cerrada (50–200 usuarios, invitación) | `v0.4.0` |
+| Fase 4   | Beta Pública (500+ usuarios)               | `v1.0.0` |
+| Fase 5   | Estabilización y calidad                   | `v1.1.0` |
+| Fase 6   | Premium                                    | `v2.0.0` |
+| Fase 7   | Escalamiento continuo                      | `v2.x.x` |
 
 ---
 
@@ -92,6 +92,7 @@
 - [x] Editar entrada (click en fila, modal precargado, campos nullable para limpiar valores)
 - [x] Eliminar entrada (con confirmación inline)
 - [x] Búsqueda local por título en la tabla
+
 ---
 
 ## FASE 1.5 — Beyond the Spreadsheet
@@ -259,30 +260,33 @@
 
 Migrar todo el frontend para que use ng-primitives como base de componentes UI. Ganamos accesibilidad (keyboard nav, ARIA), comportamiento robusto y una base sólida para las features que vienen.
 
-- [ ] Instalar ng-primitives (`ng add ng-primitives`)
-- [ ] Migrar modals/dialogs a Dialog primitive
-- [ ] Migrar tabs (backlog status tabs) a Tabs primitive
-- [ ] Migrar dropdowns/selects a Select/Combobox primitives
-- [ ] Migrar buscadores (game search, global search) a Search/Combobox primitives
-- [ ] Migrar tooltips a Tooltip primitive
-- [ ] Migrar barras de progreso (listas) a Progress primitive
-- [ ] Migrar toggles/switches (isPublic, showInBacklog, etc.) a Switch primitive
-- [ ] Migrar inputs, textareas y form fields a Input/Textarea/Form Field primitives
-- [ ] Migrar menus (sidebar, context menu) a Menu/Navigation Menu primitives
-- [ ] Migrar botones a Button primitive
-- [ ] Migrar radio buttons (score source, duration source) a Radio primitive
-- [ ] Migrar checkboxes a Checkbox primitive
-- [ ] Migrar star rating a Slider/Range Slider primitive
-- [ ] Migrar paginación a Pagination primitive
-- [ ] Migrar tablas (backlog, game-shelf, wishlist, admin) a Table primitive
-- [ ] Migrar separadores visuales a Separator primitive
-- [ ] Migrar avatares (perfil, sidebar) a Avatar primitive
-- [ ] Migrar toasts/notificaciones a Toast primitive
-- [ ] Verificar accesibilidad (keyboard nav, ARIA) en todos los componentes migrados
+- [x] Instalar ng-primitives (`^0.120.3`)
+- [x] Migrar modals/dialogs a Dialog primitive (`UiDialog`)
+- [x] Migrar tabs (backlog status tabs) a Tabs primitive (`UiTabs / UiTab / UiTabList / UiTabPanel`)
+- [x] Migrar tooltips a Tooltip primitive (`UiTooltipContent`)
+- [x] Migrar toggles/switches (isPublic, showInBacklog, etc.) a Switch primitive (`UiSwitch`)
+- [x] Migrar botones a Button primitive (`UiButton`, `UiIconButton`)
+- [x] Migrar checkboxes a Checkbox primitive (`UiCheckbox`)
+- [x] Migrar inputs principales a Input primitive (`UiInput`) — quedan 3 archivos con `<input>` raw: `backlog-list`, `games-browse`, `game-filter-panel`
+- [x] Migrar paginación a Pagination primitive (`UiPagination` sobre `NgpPagination`)
+- [x] Migrar buscadores a Search primitive (`UiSearchBar` sobre `NgpSearch`)
+- [x] Migrar toasts/notificaciones a Toast primitive (`NgpToastManager` + `NgpToast`): `ToastService` ahora usa `manager.show(TemplateRef, { context, duration })` y conserva la API pública (`show/info/success/warning/error/pending/undo/dismiss`); `ToastContainer` provee el `<ng-template>` registrado vía `registerTemplate`; `provideToastConfig` en `app.config.ts` define placement bottom-end, gap 8, maxToasts 4, aria-live polite
+- [x] Migrar dropdowns/selects a Select primitive (`UiSelect` sobre `NgpNativeSelect` + estilos `.ui-input.ui-select` con chevron SVG): admin-users, admin-audit, admin-game-editor, backlog-modal (3), backlog-list (3), game-shelf-modal; list-modal usa Radio
+- [x] Migrar barras de progreso (listas) a Progress primitive (`UiProgress` sobre `NgpProgress` — aplicado en `list-detail`, `list-overview`)
+- [x] Migrar separadores visuales a Separator primitive (`UiSeparator` sobre `NgpSeparator` — sidebar)
+- [x] Migrar avatares (perfil, sidebar, feed) a Avatar primitive (`UiAvatar` sobre `NgpAvatar` — sidebar, feed activities, feed follow requests; sweep restante en public-profile, user-list-modal, etc.)
+- [x] Reemplazar los 3 `<input>` raw restantes por `UiInput size="sm"` (`backlog-list`, `games-browse`, `game-filter-panel`)
+- [x] Migrar textareas y form fields a Textarea/Form Field primitives (`UiTextarea`, `UiFormField`, `UiLabel`, `UiDescription`, `UiError`); aplicado en list-modal, settings-profile, game-detail, backlog-modal (2), game-shelf-modal, admin-game-editor, backlog-list, saved-filters-view
+- [x] Menus a11y: sidebar mantiene HTML semántico (`<nav><ul><li><a routerLinkActive ariaCurrentWhenActive="page">`) — `NgpNavigationMenu` no aporta valor para nav plana. Status menu de backlog (tabla + cards) recibe `aria-haspopup="menu"`, `aria-expanded`, `aria-controls`, `role="menu"`, `aria-label`, `role="menuitem"` en cada opción y `keydown.escape` para cerrar. Migración a `NgpMenu` primitive deferida hasta que aparezcan context menus o submenus
+- [x] Migrar radio buttons (score source, duration source) a Radio primitive (`UiRadioGroup`, `UiRadioItem` en `list-modal`)
+- [x] Migrar star rating a a11y de tipo slider — el primitive `NgpSlider` no encaja por la UX de half/full click; se añadió `role="slider"`, `aria-valuemin/max/now/text` y navegación por teclado (←/→/Home/End/Del) al componente actual
+- [x] Mejorar a11y de tablas existentes (no existe `NgpTable`): `scope="col"` en todas las th de backlog-list, admin-audit, admin-users, game-shelf-list, admin-games, admin-jobs. Backlog además tiene `aria-sort`, `tabindex="0"`, keyboard activation (Enter/Space) y focus-visible ring en cada columna ordenable + helper `ariaSortFor()`
+- [x] Sweep `UiAvatar` por public-profile (3 lugares), users-discover (2), settings-privacy follow requests, user-list-modal
+- [x] Verificar accesibilidad (keyboard nav, ARIA): `aria-label` en botones close de modales (8) + hamburger (con `aria-expanded`); `aria-hidden="true"` en 345 spans `material-icons` decorativos; `alt=""` en 5 game-cover img sueltas; `role="dialog"` + `aria-modal="true"` + `aria-labelledby` en 7 modales principales (list, backlog, shelf, queue-add, wishlist-add, wishlist-platform, user-list); `UiFocusTrap` (sobre `NgpFocusTrap`) + `(escape)` para cerrar con Escape aplicado a esos 7 modales
 
 ### Corrección de bugs por feedback de usuarios
 
-- [ ] Revisar y corregir bugs reportados (ver docs/feedback/fase-2.md)
+- [x] Revisar y corregir bugs reportados (ver docs/feedback/fase-2.md)
 
 ---
 

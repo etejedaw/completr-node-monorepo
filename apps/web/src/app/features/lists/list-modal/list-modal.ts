@@ -10,15 +10,48 @@ import {
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { List } from "../../../core/models";
 import { ListsService, CreateListDto, UpdateListDto } from "../lists.service";
-import { UiButton, UiIconButton, UiInput } from "../../../shared/ui";
+import {
+	UiButton,
+	UiFocusTrap,
+	UiFormField,
+	UiIconButton,
+	UiInput,
+	UiLabel,
+	UiRadioGroup,
+	UiRadioItem,
+	UiTextarea
+} from "../../../shared/ui";
 
 @Component({
 	selector: "app-list-modal",
-	imports: [ReactiveFormsModule, UiButton, UiIconButton, UiInput],
+	imports: [
+		ReactiveFormsModule,
+		UiButton,
+		UiFocusTrap,
+		UiIconButton,
+		UiInput,
+		UiTextarea,
+		UiFormField,
+		UiLabel,
+		UiRadioGroup,
+		UiRadioItem
+	],
 	templateUrl: "./list-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListModal implements OnInit {
+	protected readonly SCORE_SOURCES = [
+		{ value: "metacritic", label: "Metacritic" },
+		{ value: "opencritic", label: "OpenCritic" },
+		{ value: "rawg", label: "RAWG" },
+		{ value: "completr", label: "Completr" }
+	] as const;
+	protected readonly DURATION_SOURCES = [
+		{ value: "hltb", label: "HLTB" },
+		{ value: "rawg", label: "RAWG" },
+		{ value: "completr", label: "Completr" }
+	] as const;
+
 	private readonly fb = inject(FormBuilder);
 	private readonly listsService = inject(ListsService);
 

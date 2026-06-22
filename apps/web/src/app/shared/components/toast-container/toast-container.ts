@@ -1,24 +1,29 @@
-import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
-import { ToastService } from "../../../core/services/toast.service";
+import {
+	ChangeDetectionStrategy,
+	Component,
+	inject,
+	OnInit,
+	TemplateRef,
+	viewChild
+} from "@angular/core";
+import { NgpToast } from "ng-primitives/toast";
+import { Toast, ToastService } from "../../../core/services/toast.service";
 
 @Component({
 	selector: "app-toast-container",
+	imports: [NgpToast],
 	templateUrl: "./toast-container.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ToastContainer {
+export class ToastContainer implements OnInit {
 	private readonly toastService = inject(ToastService);
-	protected readonly toasts = this.toastService.toasts;
+	private readonly tpl = viewChild.required<TemplateRef<{ $implicit: Toast }>>("tpl");
 
-	dismiss(id: number) {
-		this.toastService.dismiss(id);
+	ngOnInit() {
+		this.toastService.registerTemplate(this.tpl());
 	}
 
-	undo(id: number) {
-		this.toastService.undo(id);
-	}
-
-	iconFor(variant: string): string {
+	protected iconFor(variant: Toast["variant"]): string {
 		switch (variant) {
 			case "success":
 				return "check_circle";
@@ -31,7 +36,7 @@ export class ToastContainer {
 		}
 	}
 
-	classesFor(variant: string): string {
+	protected classesFor(variant: Toast["variant"]): string {
 		switch (variant) {
 			case "success":
 				return "bg-success/10 border-success/30 text-success";
