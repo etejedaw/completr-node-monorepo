@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import * as backlogService from "./backlog.service";
 import * as usersService from "../users/users.service";
 import * as userDomainError from "../users/errors/users.domain-error";
-import { canView } from "../users/visibility.helper";
+import { canView } from "../users/helpers/visibility.helper";
 import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import { BacklogIdParams } from "./schemas/backlog-id-params.schema";

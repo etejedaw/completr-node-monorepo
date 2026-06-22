@@ -1,6 +1,6 @@
 import z from "zod";
-import { THEME_IDS } from "../theme-catalog";
-import { VISIBILITY_LEVELS } from "../visibility.constants";
+import { THEME_IDS } from "../constants/theme.constants";
+import { VISIBILITY_LEVELS } from "../constants/visibility.constants";
 
 const visibility = z.enum(VISIBILITY_LEVELS).optional();
 

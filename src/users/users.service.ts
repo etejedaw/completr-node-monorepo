@@ -3,7 +3,7 @@ import { sequelize } from "../database/sequelize.database";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { CreateUserDto, UpdateUserDto } from "./dtos";
 import { User } from "./user.model";
-import { canUseTheme } from "./theme-catalog";
+import { canUseTheme } from "./helpers/theme.helper";
 import * as usersServiceError from "./errors/users.service-error";
 
 export async function createUser(createUserDto: CreateUserDto) {
