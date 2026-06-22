@@ -33,3 +33,22 @@ export interface SplitVariantInput {
 export type SetCompilationItemInput =
 	| { mode: "link"; gameId: string }
 	| { mode: "create"; title: string };
+
+export interface EnrichedGameList {
+	id: string;
+	name: string;
+	description: string | null | undefined;
+	isOfficial: boolean;
+	ownerUsername: string | null;
+	completed: boolean;
+}
+
+export interface GameListsBundle {
+	lists: EnrichedGameList[];
+	myLists: {
+		id: string;
+		name: string;
+		isPublic: boolean;
+		contains: boolean;
+	}[];
+}

@@ -1,19 +1,23 @@
 import { Request, Response } from "express";
 import { RegisterGameDto } from "./dtos/register-game.dto";
 import * as gameService from "./games.service";
+import * as gamesProfileService from "./games-profile.service";
 import * as gameDomainError from "./errors/games.domain-error";
 import { GameCodeParam } from "./schemas/game-code-params.schema";
 import { GameSearchQuery } from "./schemas/game-search-query.schema";
-import { gameSerializer } from "./games.serializer";
+import {
+	compilationItemSerializer,
+	gameFriendActivitySerializer,
+	gameListSummarySerializer,
+	gamePlayerSerializer,
+	gameSerializer
+} from "./games.serializer";
 import { GameIdParam } from "./schemas/game-id-params.schema";
 import { RawgIdParam } from "./schemas/rawg-id-params.schema";
 import { UpdateGameDto } from "./dtos/update-game.dto";
 import { GamesQuery } from "./schemas/games-query.schema";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as auditService from "../audit/audit.service";
-import * as listsService from "../lists/lists.service";
-import * as backlogService from "../backlog/backlog.service";
-import * as userFollowersService from "../user-followers/user-followers.service";
 
 export async function getGameByCode(request: Request, response: Response) {
 	const params = request.locals.params as GameCodeParam;
@@ -140,16 +144,7 @@ export async function putCompilationItems(
 	const items = await gameService.setCompilationItems(params.id, body.items);
 	auditService.record(user.id, "game_compilation_set", "game", params.id);
 
-	const data = {
-		items: items.map(i => ({
-			id: i.id,
-			position: i.position,
-			childGameId: i.childGameId,
-			childGame: i.ChildGame
-				? gameSerializer(i.ChildGame.get({ plain: true }))
-				: null
-		}))
-	};
+	const data = { items: items.map(compilationItemSerializer) };
 	return response.status(200).json({ data });
 }
 
@@ -214,39 +209,15 @@ export async function getGameLists(request: Request, response: Response) {
 	const params = request.locals.params as GameIdParam;
 	const user = request.locals.user as RequestUser;
 
-	const [publicLists, myLists] = await Promise.all([
-		listsService.findPublicListsByGameId(params.id),
-		listsService.findUserListsWithGameFlag(user.id, params.id)
-	]);
+	const bundle = await gamesProfileService.getListsForGame(
+		user.id,
+		params.id
+	);
 
 	const data = {
-		lists: await Promise.all(
-			publicLists.map(async list => {
-				const progress = await listsService.getListProgress(
-					list.id,
-					user.id
-				);
-				return {
-					id: list.id,
-					name: list.name,
-					description: list.description,
-					isOfficial: list.User?.role === "admin",
-					owner: list.User ? { username: list.User.username } : null,
-					completed:
-						progress.total > 0 &&
-						progress.completed === progress.total
-				};
-			})
-		),
-		myLists
+		lists: bundle.lists.map(gameListSummarySerializer),
+		myLists: bundle.myLists
 	};
-
-	data.lists.sort((a, b) => {
-		if (a.isOfficial && !b.isOfficial) return -1;
-		if (!a.isOfficial && b.isOfficial) return 1;
-		return 0;
-	});
-
 	return response.status(200).json({ data });
 }
 
@@ -257,22 +228,12 @@ export async function getGameFriendsActivity(
 	const params = request.locals.params as GameIdParam;
 	const user = request.locals.user as RequestUser;
 
-	const friendIds = await userFollowersService.getFollowingIds(user.id);
-	const entries = await backlogService.findFriendsActivityForGame(
-		friendIds,
+	const entries = await gamesProfileService.getFriendsActivityForGame(
+		user.id,
 		params.id
 	);
 
-	const data = {
-		friends: entries.map(entry => ({
-			username: entry.User!.username,
-			name: entry.User!.name,
-			avatarUrl: entry.User!.avatarUrl ?? null,
-			status: entry.status,
-			finishedAt: entry.finishedAt ?? null,
-			userRating: entry.userRating ?? null
-		}))
-	};
+	const data = { friends: entries.map(gameFriendActivitySerializer) };
 	return response.status(200).json({ data });
 }
 
@@ -280,20 +241,11 @@ export async function getGamePlayers(request: Request, response: Response) {
 	const params = request.locals.params as GameIdParam;
 	const user = request.locals.user as RequestUser;
 
-	const friendIds = await userFollowersService.getFollowingIds(user.id);
-	const entries = await backlogService.findRandomPlayersForGame(
-		params.id,
+	const entries = await gamesProfileService.getPlayersForGame(
 		user.id,
-		friendIds
+		params.id
 	);
 
-	const data = {
-		players: entries.map(entry => ({
-			username: entry.User!.username,
-			name: entry.User!.name,
-			avatarUrl: entry.User!.avatarUrl ?? null,
-			status: entry.status
-		}))
-	};
+	const data = { players: entries.map(gamePlayerSerializer) };
 	return response.status(200).json({ data });
 }

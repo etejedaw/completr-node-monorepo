@@ -4,8 +4,10 @@ import { GameTime } from "../game-times/game-time.model";
 import { Genre } from "../genres/genres.model";
 import { Platform } from "../platforms/platform.model";
 import { CompilationItem } from "../compilation-items/compilation-item.model";
+import { Backlog } from "../backlog/backlog.model";
 import { calculateRatio as calculateRatioUtil } from "../common/utils/calculate-ratio.util";
 import { Game } from "./game.model";
+import { EnrichedGameList } from "./games.interface";
 
 export function gameSerializer(
 	game: Game,
@@ -42,6 +44,48 @@ export function gameSerializer(
 			(
 				game as Game & { PartOfCompilations?: CompilationItem[] }
 			).PartOfCompilations?.map(compilationParentSerializer) ?? []
+	};
+}
+
+export function compilationItemSerializer(item: CompilationItem) {
+	return {
+		id: item.id,
+		position: item.position,
+		childGameId: item.childGameId,
+		childGame: item.ChildGame
+			? gameSerializer(item.ChildGame.get({ plain: true }))
+			: null
+	};
+}
+
+export function gameListSummarySerializer(entry: EnrichedGameList) {
+	return {
+		id: entry.id,
+		name: entry.name,
+		description: entry.description ?? null,
+		isOfficial: entry.isOfficial,
+		owner: entry.ownerUsername ? { username: entry.ownerUsername } : null,
+		completed: entry.completed
+	};
+}
+
+export function gameFriendActivitySerializer(entry: Backlog) {
+	return {
+		username: entry.User!.username,
+		name: entry.User!.name,
+		avatarUrl: entry.User!.avatarUrl ?? null,
+		status: entry.status,
+		finishedAt: entry.finishedAt ?? null,
+		userRating: entry.userRating ?? null
+	};
+}
+
+export function gamePlayerSerializer(entry: Backlog) {
+	return {
+		username: entry.User!.username,
+		name: entry.User!.name,
+		avatarUrl: entry.User!.avatarUrl ?? null,
+		status: entry.status
 	};
 }
 
