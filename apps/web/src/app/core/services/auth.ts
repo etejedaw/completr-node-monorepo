@@ -64,28 +64,22 @@ export class AuthService {
 	}
 
 	login(credentials: LoginRequest) {
-		return this.http
-			.post<AuthResponse>(`${environment.apiUrl}/auth/login`, credentials, {
-				withCredentials: true
-			})
-			.pipe(tap(res => this.saveTokens(res)));
+		return this.postAuth("/auth/login", credentials);
 	}
 
 	register(data: RegisterRequest) {
-		return this.http
-			.post<AuthResponse>(`${environment.apiUrl}/auth/register`, data, {
-				withCredentials: true
-			})
-			.pipe(tap(res => this.saveTokens(res)));
+		return this.postAuth("/auth/register", data);
 	}
 
 	refresh(): Observable<AuthResponse> {
+		return this.postAuth("/auth/refresh", {});
+	}
+
+	private postAuth(path: string, body: unknown): Observable<AuthResponse> {
 		return this.http
-			.post<AuthResponse>(
-				`${environment.apiUrl}/auth/refresh`,
-				{},
-				{ withCredentials: true }
-			)
+			.post<AuthResponse>(`${environment.apiUrl}${path}`, body, {
+				withCredentials: true
+			})
 			.pipe(tap(res => this.saveTokens(res)));
 	}
 
