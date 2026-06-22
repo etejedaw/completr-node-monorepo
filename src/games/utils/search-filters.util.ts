@@ -1,26 +1,24 @@
 import { Op, Order } from "sequelize";
 import { sequelize } from "../../database/sequelize.database";
-import { GamesQueryOptions } from "../games.interface";
+import { GamesCompilationFlags, GamesStatusFilters } from "../games.interface";
 
 export function buildActiveFlagWhere(
-	options: Pick<GamesQueryOptions, "only_inactive" | "include_inactive">
+	status: GamesStatusFilters | undefined
 ): Record<string, unknown> {
-	if (options.only_inactive) return { isActive: false };
-	if (options.include_inactive) return {};
+	if (status?.onlyInactive) return { isActive: false };
+	if (status?.includeInactive) return {};
 	return { isActive: true };
 }
 
 export function buildCompilationFlagsWhere(
-	options: Pick<
-		GamesQueryOptions,
-		"is_dlc" | "is_compilation" | "exclude_compilations"
-	>
+	flags: GamesCompilationFlags | undefined
 ): Record<string, unknown> {
 	const where: Record<string, unknown> = {};
-	if (options.is_dlc !== undefined) where["isDlc"] = options.is_dlc;
-	if (options.is_compilation !== undefined) {
-		where["isCompilation"] = options.is_compilation;
-	} else if (options.exclude_compilations) {
+	if (!flags) return where;
+	if (flags.isDlc !== undefined) where["isDlc"] = flags.isDlc;
+	if (flags.isCompilation !== undefined) {
+		where["isCompilation"] = flags.isCompilation;
+	} else if (flags.excludeCompilations) {
 		where["isCompilation"] = false;
 	}
 	return where;
@@ -112,12 +110,4 @@ export function buildSourceExclusionCondition(
 export function buildOrder(sortBy: string, sortOrder: string): Order {
 	if (sortBy === "random") return [sequelize.literal("RANDOM()")];
 	return [[sortBy, sortOrder.toUpperCase()]];
-}
-
-export function resolveGenreCodes(
-	options: Pick<GamesQueryOptions, "genres" | "genre">
-): readonly string[] | null {
-	if (options.genres && options.genres.length > 0) return options.genres;
-	if (options.genre) return [options.genre];
-	return null;
 }

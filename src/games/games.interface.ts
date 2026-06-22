@@ -1,28 +1,62 @@
-export interface GamesQueryOptions {
+export interface GamesPagination {
 	limit?: number;
 	offset?: number;
-	sort_by?: string;
-	sort_order?: string;
-	search?: string;
-	genre?: string;
+}
+
+export interface GamesSort {
+	by?: string;
+	order?: string;
+}
+
+export interface GamesRangeFilter {
+	from?: number;
+	to?: number;
+}
+
+export interface GamesMinMaxFilter {
+	min?: number;
+	max?: number;
+}
+
+export interface GamesCompilationFlags {
+	isDlc?: boolean;
+	isCompilation?: boolean;
+	excludeCompilations?: boolean;
+}
+
+export interface GamesStatusFilters {
+	includeInactive?: boolean;
+	onlyInactive?: boolean;
+}
+
+export interface GamesMissingRelations {
+	scores?: boolean;
+	times?: boolean;
+	platforms?: boolean;
+}
+
+export interface GamesExcludedSources {
+	scoreSources?: readonly string[];
+	timeSources?: readonly string[];
+}
+
+export interface GamesFilters {
 	genres?: readonly string[];
 	platforms?: readonly string[];
-	release_year_from?: number;
-	release_year_to?: number;
-	min_score?: number;
-	max_score?: number;
-	min_duration?: number;
-	max_duration?: number;
-	is_dlc?: boolean;
-	is_compilation?: boolean;
-	exclude_compilations?: boolean;
-	include_inactive?: boolean;
-	only_inactive?: boolean;
-	no_scores?: boolean;
-	no_times?: boolean;
-	no_platforms?: boolean;
-	no_score_source?: readonly string[];
-	no_time_source?: readonly string[];
+	releaseYear?: GamesRangeFilter;
+	score?: GamesMinMaxFilter;
+	duration?: GamesMinMaxFilter;
+	flags?: GamesCompilationFlags;
+	status?: GamesStatusFilters;
+	missing?: GamesMissingRelations;
+	excludedSources?: GamesExcludedSources;
+}
+
+export interface GamesQueryOptions {
+	pagination?: GamesPagination;
+	sort?: GamesSort;
+	search?: string;
+	filters?: GamesFilters;
 }
 
 export interface SplitVariantInput {

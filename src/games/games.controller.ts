@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { RegisterGameDto } from "./dtos/register-game.dto";
 import * as gameService from "./games.service";
-import * as gamesProfileService from "./games-profile.service";
+import * as gamesProfileService from "./services/games-profile.service";
 import * as gameDomainError from "./errors/games.domain-error";
 import { GameCodeParam } from "./schemas/game-code-params.schema";
 import { GameSearchQuery } from "./schemas/game-search-query.schema";
@@ -16,6 +16,7 @@ import { GameIdParam } from "./schemas/game-id-params.schema";
 import { RawgIdParam } from "./schemas/rawg-id-params.schema";
 import { UpdateGameDto } from "./dtos/update-game.dto";
 import { GamesQuery } from "./schemas/games-query.schema";
+import { mapGamesQueryToOptions } from "./utils/games-query.adapter";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as auditService from "../audit/audit.service";
 
@@ -35,7 +36,8 @@ export async function getGameByCode(request: Request, response: Response) {
 
 export async function getAllGames(request: Request, response: Response) {
 	const query = request.locals.query as GamesQuery;
-	const { games, total } = await gameService.findAll(query);
+	const options = mapGamesQueryToOptions(query);
+	const { games, total } = await gameService.findAll(options);
 
 	const gamesPlain = games.map(game => game.get({ plain: true }));
 

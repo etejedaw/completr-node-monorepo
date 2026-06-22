@@ -1,7 +1,7 @@
 import { Op, WhereOptions, fn, col, where as whereFn } from "sequelize";
-import { sequelize } from "../database/sequelize.database";
-import { Game } from "./game.model";
-import { GamesQueryOptions } from "./games.interface";
+import { sequelize } from "../../database/sequelize.database";
+import { Game } from "../game.model";
+import { GamesFilters, GamesQueryOptions } from "../games.interface";
 import {
 	buildActiveFlagWhere,
 	buildAggregateCondition,
@@ -11,14 +11,13 @@ import {
 	buildOrder,
 	buildPlatformCondition,
 	buildReleaseDateRangeWhere,
-	buildSourceExclusionCondition,
-	resolveGenreCodes
-} from "./utils/search-filters.util";
-import * as reviewsService from "../reviews/reviews.service";
-import { RawgProvider } from "../rawg/rawg.provider";
-import { RawgGameDetail } from "../rawg/rawg.interface";
-import { apiKeysConfig } from "../common/config/api-keys.config";
-import { rawgToGameMapper } from "./mappers/rawg-to-game.mapper";
+	buildSourceExclusionCondition
+} from "../utils/search-filters.util";
+import * as reviewsService from "../../reviews/reviews.service";
+import { RawgProvider } from "../../rawg/rawg.provider";
+import { RawgGameDetail } from "../../rawg/rawg.interface";
+import { apiKeysConfig } from "../../common/config/api-keys.config";
+import { rawgToGameMapper } from "../mappers/rawg-to-game.mapper";
 
 const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
 
@@ -75,23 +74,21 @@ export async function findGameById(id: string) {
 }
 
 export async function findAll(options: GamesQueryOptions = {}) {
-	const {
-		limit = 50,
-		offset = 0,
-		sort_by = "createdAt",
-		sort_order = "desc"
-	} = options;
+	const { limit = 50, offset = 0 } = options.pagination ?? {};
+	const { by: sortBy = "createdAt", order: sortOrder = "desc" } =
+		options.sort ?? {};
+	const filters = options.filters ?? {};
 
 	const where: Record<string, unknown> = {
-		...buildActiveFlagWhere(options),
-		...buildCompilationFlagsWhere(options),
+		...buildActiveFlagWhere(filters.status),
+		...buildCompilationFlagsWhere(filters.flags),
 		...buildReleaseDateRangeWhere(
-			options.release_year_from,
-			options.release_year_to
+			filters.releaseYear?.from,
+			filters.releaseYear?.to
 		)
 	};
 
-	const andConditions = collectAndConditions(options);
+	const andConditions = collectAndConditions(options.search, filters);
 	if (andConditions.length > 0) {
 		where[Op.and as unknown as string] = andConditions;
 	}
@@ -104,7 +101,7 @@ export async function findAll(options: GamesQueryOptions = {}) {
 			{ association: "GameTimes" },
 			{ association: "Genres" }
 		],
-		order: buildOrder(sort_by, sort_order),
+		order: buildOrder(sortBy, sortOrder),
 		limit,
 		offset,
 		distinct: true
@@ -113,46 +110,51 @@ export async function findAll(options: GamesQueryOptions = {}) {
 	return { games: rows, total: count };
 }
 
-function collectAndConditions(options: GamesQueryOptions): object[] {
+function collectAndConditions(
+	search: string | undefined,
+	filters: GamesFilters
+): object[] {
 	const conditions: (object | null)[] = [];
 
-	if (options.search) {
-		conditions.push(buildTitleSearchWhere(options.search));
-	}
+	if (search) conditions.push(buildTitleSearchWhere(search));
 
-	conditions.push(
-		buildGenreCondition(resolveGenreCodes(options) ?? undefined)
-	);
-	conditions.push(buildPlatformCondition(options.platforms));
+	conditions.push(buildGenreCondition(filters.genres));
+	conditions.push(buildPlatformCondition(filters.platforms));
 	conditions.push(
 		buildAggregateCondition(
 			"GameScores",
 			"score",
-			options.min_score,
-			options.max_score
+			filters.score?.min,
+			filters.score?.max
 		)
 	);
 	conditions.push(
 		buildAggregateCondition(
 			"GameTimes",
 			"duration",
-			options.min_duration,
-			options.max_duration
+			filters.duration?.min,
+			filters.duration?.max
 		)
 	);
 
-	if (options.no_scores)
+	if (filters.missing?.scores)
 		conditions.push(buildMissingRelationCondition("GameScores"));
-	if (options.no_times)
+	if (filters.missing?.times)
 		conditions.push(buildMissingRelationCondition("GameTimes"));
-	if (options.no_platforms)
+	if (filters.missing?.platforms)
 		conditions.push(buildMissingRelationCondition("GamePlatforms"));
 
 	conditions.push(
-		buildSourceExclusionCondition("GameScores", options.no_score_source)
+		buildSourceExclusionCondition(
+			"GameScores",
+			filters.excludedSources?.scoreSources
+		)
 	);
 	conditions.push(
-		buildSourceExclusionCondition("GameTimes", options.no_time_source)
+		buildSourceExclusionCondition(
+			"GameTimes",
+			filters.excludedSources?.timeSources
+		)
 	);
 
 	return conditions.filter((c): c is object => c !== null);

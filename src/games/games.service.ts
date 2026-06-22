@@ -21,8 +21,8 @@ import {
 	buildTitleSearchWhere,
 	findGameByCode,
 	findGameById
-} from "./games-search.service";
-import { assertVariantConsistency } from "./games-variant.service";
+} from "./services/games-search.service";
+import { assertVariantConsistency } from "./services/games-variant.service";
 
 export {
 	findGameByCode,
@@ -34,16 +34,16 @@ export {
 	rawgDetail,
 	rawgDetailBySlug,
 	findGamesByGenreCode
-} from "./games-search.service";
+} from "./services/games-search.service";
 
-export { splitGame } from "./games-variant.service";
+export { splitGame } from "./services/games-variant.service";
 
 export {
 	setCompilationItems,
 	clearCompilation,
 	findCompilationItemsByParent,
 	findCompilationParentsForChild
-} from "./games-compilation.service";
+} from "./services/games-compilation.service";
 
 export type {
 	GamesQueryOptions,
