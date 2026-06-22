@@ -1,18 +1,22 @@
 @if (total() > limit()) {
-	<div class="flex flex-wrap items-center justify-center gap-2 mt-5 pt-4 border-t border-line">
+	<div
+		ngpPagination
+		[ngpPaginationPage]="currentPage()"
+		[ngpPaginationPageCount]="totalPages()"
+		(ngpPaginationPageChange)="onPageChange($event)"
+		class="flex flex-wrap items-center justify-center gap-2 mt-5 pt-4 border-t border-line"
+	>
 		<button
+			ngpPaginationFirst
 			class="w-8 h-8 inline-flex items-center justify-center bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
-			[disabled]="!hasPrev()"
-			(click)="first()"
 			title="First page"
 			aria-label="First page"
 		>
 			<span class="material-icons text-base">first_page</span>
 		</button>
 		<button
+			ngpPaginationPrevious
 			class="w-8 h-8 inline-flex items-center justify-center bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
-			[disabled]="!hasPrev()"
-			(click)="prev()"
 			title="Previous page"
 			aria-label="Previous page"
 		>
@@ -25,6 +29,8 @@
 					<span class="w-8 h-8 inline-flex items-center justify-center text-fg-muted text-[0.8125rem]">…</span>
 				} @else {
 					<button
+						ngpPaginationButton
+						[ngpPaginationButtonPage]="p"
 						class="min-w-8 h-8 px-2 inline-flex items-center justify-center border rounded text-[0.8125rem] font-medium cursor-pointer transition"
 						[class.bg-brand]="p === currentPage()"
 						[class.border-brand]="p === currentPage()"
@@ -34,7 +40,6 @@
 						[class.text-fg-secondary]="p !== currentPage()"
 						[class.hover:border-brand]="p !== currentPage()"
 						[class.hover:text-brand]="p !== currentPage()"
-						(click)="goToPage(p)"
 					>
 						{{ p }}
 					</button>
@@ -47,18 +52,16 @@
 		</span>
 
 		<button
+			ngpPaginationNext
 			class="w-8 h-8 inline-flex items-center justify-center bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
-			[disabled]="!hasNext()"
-			(click)="next()"
 			title="Next page"
 			aria-label="Next page"
 		>
 			<span class="material-icons text-base">chevron_right</span>
 		</button>
 		<button
+			ngpPaginationLast
 			class="w-8 h-8 inline-flex items-center justify-center bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer transition disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:border-brand enabled:hover:text-brand"
-			[disabled]="!hasNext()"
-			(click)="last()"
 			title="Last page"
 			aria-label="Last page"
 		>
