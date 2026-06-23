@@ -1,4 +1,4 @@
-import { Op, Order, literal, QueryTypes } from "sequelize";
+import { Op, Order, literal, QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
@@ -77,6 +77,27 @@ export async function findBacklogById(id: string) {
 		where: { id },
 		include: backlogInclude
 	});
+}
+
+export async function findBacklogBasicById(id: string) {
+	return Backlog.findOne({ where: { id } });
+}
+
+export async function findBacklogsByUserAndIds(userId: string, ids: string[]) {
+	if (ids.length === 0) return [];
+	return Backlog.findAll({ where: { id: ids, userId } });
+}
+
+export async function createNotStartedBacklog(
+	userId: string,
+	gameId: string,
+	platformId: string,
+	transaction: Transaction
+) {
+	return Backlog.create(
+		{ userId, gameId, platformId, status: "not_started" },
+		{ transaction }
+	);
 }
 
 function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
