@@ -39,6 +39,29 @@ export interface CreateSavedFilterDto {
 	isDefault?: boolean;
 }
 
+export interface SavedFilterStats {
+	totalEntries: number;
+	countByStatus: {
+		not_started: number;
+		playing: number;
+		completed: number;
+		abandoned: number;
+		endless: number;
+	};
+	totalRealHours: number | null;
+	avgRealDuration: number | null;
+	avgEstimatedDuration: number | null;
+	avgScore: number | null;
+	avgUserRating: number | null;
+	avgRatio: number | null;
+	avgPersonalRatio: number | null;
+	estimatedVsRealDelta: number | null;
+}
+
+interface SavedFilterStatsResponse {
+	data: { stats: SavedFilterStats };
+}
+
 @Injectable({ providedIn: "root" })
 export class SavedFiltersService {
 	private readonly http = inject(HttpClient);
@@ -69,5 +92,11 @@ export class SavedFiltersService {
 
 	delete(id: string) {
 		return this.http.delete(`${this.baseUrl}/${id}`);
+	}
+
+	getStats(id: string) {
+		return this.http
+			.get<SavedFilterStatsResponse>(`${this.baseUrl}/${id}/stats`)
+			.pipe(map(res => res.data.stats));
 	}
 }
