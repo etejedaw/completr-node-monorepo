@@ -6,7 +6,7 @@ import { ActivityUser } from "./targets/activity-user.model";
 import { User } from "../users/user.model";
 import { Game } from "../games/game.model";
 import { List } from "../lists/list.model";
-import { UserFollower } from "../user-followers/user-follower.model";
+import * as userFollowersService from "../user-followers/user-followers.service";
 
 const GAME_TYPES: string[] = [
 	"backlog_added",
@@ -98,12 +98,8 @@ export async function getUserActivity(
 }
 
 export async function getFeed(userId: string, limit = 25, offset = 0) {
-	const following = await UserFollower.findAll({
-		where: { followerId: userId },
-		attributes: ["followingId"]
-	});
-
-	const feedUserIds = [userId, ...following.map(f => f.followingId)];
+	const followingIds = await userFollowersService.getFollowingIds(userId);
+	const feedUserIds = [userId, ...followingIds];
 
 	const { rows, count } = await Activity.findAndCountAll({
 		where: {
