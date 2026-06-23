@@ -42,7 +42,9 @@ export {
 	setCompilationItems,
 	clearCompilation,
 	findCompilationItemsByParent,
-	findCompilationParentsForChild
+	findCompilationParentsForChild,
+	existsActiveCompilation,
+	gameBelongsToCompilation
 } from "./services/games-compilation.service";
 
 export type {

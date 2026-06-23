@@ -5,7 +5,7 @@ import { Platform } from "../platforms/platform.model";
 import { User } from "../users/user.model";
 import { Backlog } from "./backlog.model";
 import { Queue } from "../queue/queue.model";
-import { CompilationItem } from "../compilation-items/compilation-item.model";
+import * as gamesService from "../games/games.service";
 import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import { BacklogQuery } from "./schemas/backlog-query.schema";
@@ -34,16 +34,16 @@ async function assertCompilationContext(
 	gameId: string,
 	compilationGameId: string
 ) {
-	const compilationGame = await Game.findOne({
-		where: { id: compilationGameId, isActive: true, isCompilation: true }
-	});
-	if (!compilationGame)
+	if (!(await gamesService.existsActiveCompilation(compilationGameId)))
 		throw backlogServiceError.compilationContextInvalidError();
 
-	const link = await CompilationItem.findOne({
-		where: { parentGameId: compilationGameId, childGameId: gameId }
-	});
-	if (!link) throw backlogServiceError.compilationContextInvalidError();
+	if (
+		!(await gamesService.gameBelongsToCompilation(
+			gameId,
+			compilationGameId
+		))
+	)
+		throw backlogServiceError.compilationContextInvalidError();
 }
 
 export async function createBacklog(
@@ -595,7 +595,10 @@ export async function findLatestCompletedDurations(
 }
 
 export async function removeBacklog(id: string, userId: string) {
-	const backlogEntry = await Backlog.findOne({ where: { id } });
+	const backlogEntry = await Backlog.findOne({
+		where: { id },
+		attributes: ["id", "userId"]
+	});
 	if (!backlogEntry) throw backlogServiceError.notFoundError();
 	if (backlogEntry.userId !== userId)
 		throw backlogServiceError.forbiddenError();
