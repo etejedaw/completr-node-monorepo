@@ -4,6 +4,7 @@ import { ActivityGame } from "./targets/activity-game.model";
 import { ActivityList } from "./targets/activity-list.model";
 import { ActivityUser } from "./targets/activity-user.model";
 import { User } from "../users/user.model";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { Game } from "../games/game.model";
 import { List } from "../lists/list.model";
 import * as userFollowersService from "../user-followers/user-followers.service";
@@ -74,7 +75,7 @@ const TARGET_INCLUDES = [
 			{
 				model: User,
 				as: "TargetUser",
-				attributes: ["id", "username", "name", "avatarUrl"]
+				attributes: USER_PUBLIC_ATTRS
 			}
 		]
 	}
@@ -109,7 +110,7 @@ export async function getFeed(userId: string, limit = 25, offset = 0) {
 		include: [
 			{
 				model: User,
-				attributes: ["id", "username", "name", "avatarUrl"],
+				attributes: USER_PUBLIC_ATTRS,
 				where: {
 					[Op.or]: [
 						{ id: userId },

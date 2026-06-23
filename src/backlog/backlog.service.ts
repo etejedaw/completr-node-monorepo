@@ -11,6 +11,7 @@ import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { User } from "../users/user.model";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { Backlog } from "./backlog.model";
 import { Queue } from "../queue/queue.model";
 import * as gamesService from "../games/games.service";
@@ -488,7 +489,7 @@ export async function findFriendsActivityForGame(
 					profileVisibility: { [Op.in]: ["public", "friends"] },
 					backlogVisibility: { [Op.in]: ["public", "friends"] }
 				},
-				attributes: ["id", "username", "name", "avatarUrl"]
+				attributes: USER_PUBLIC_ATTRS
 			}
 		],
 		order: [["createdAt", "DESC"]]
@@ -519,7 +520,7 @@ export async function findRandomPlayersForGame(
 					profileVisibility: { [Op.in]: ["public", "friends"] },
 					backlogVisibility: { [Op.in]: ["public", "friends"] }
 				},
-				attributes: ["id", "username", "name", "avatarUrl"]
+				attributes: USER_PUBLIC_ATTRS
 			}
 		],
 		order: [["createdAt", "DESC"]]

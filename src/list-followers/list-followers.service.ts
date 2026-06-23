@@ -2,6 +2,7 @@ import { List } from "../lists/list.model";
 import { ListItem } from "../list-items/list-item.model";
 import { Game } from "../games/game.model";
 import { User } from "../users/user.model";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { ListFollower } from "./list-follower.model";
 import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import * as listsService from "../lists/lists.service";
@@ -73,7 +74,7 @@ export async function getListFollowers(listId: string) {
 		include: [
 			{
 				model: User,
-				attributes: ["id", "username", "name", "avatarUrl"]
+				attributes: USER_PUBLIC_ATTRS
 			}
 		],
 		order: [["createdAt", "DESC"]]

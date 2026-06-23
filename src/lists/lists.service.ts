@@ -53,7 +53,18 @@ export async function findListById(id: string) {
 			},
 			{
 				model: ListItem,
-				include: [{ model: Game }],
+				include: [
+					{
+						model: Game,
+						attributes: [
+							"id",
+							"code",
+							"title",
+							"backgroundUrl",
+							"isDlc"
+						]
+					}
+				],
 				separate: true,
 				order: [["position", "ASC"]]
 			}

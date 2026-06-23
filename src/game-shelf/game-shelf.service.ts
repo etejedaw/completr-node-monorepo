@@ -3,6 +3,7 @@ import { Game } from "../games/game.model";
 import { Genre } from "../genres/genres.model";
 import { Platform } from "../platforms/platform.model";
 import { User } from "../users";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import { GameShelf } from "./game-shelf.model";
@@ -35,7 +36,7 @@ export async function findGameShelfByUserId(userId: string) {
 		include: [
 			{ model: Game, include: [{ model: Genre }] },
 			{ model: Platform },
-			{ model: User }
+			{ model: User, attributes: [...USER_PUBLIC_ATTRS, "bio"] }
 		]
 	});
 }
@@ -56,7 +57,11 @@ export async function findGameShelfByUserIdPaginated(
 
 	const query: Record<string, unknown> = {
 		where: { userId },
-		include: [gameInclude, { model: Platform }, { model: User }],
+		include: [
+			gameInclude,
+			{ model: Platform },
+			{ model: User, attributes: [...USER_PUBLIC_ATTRS, "bio"] }
+		],
 		distinct: true
 	};
 	if (pagination.limit) query.limit = pagination.limit;
@@ -75,7 +80,7 @@ export async function findPublicGameShelfByUserId(
 		include: [
 			{ model: Game, include: [{ model: Genre }] },
 			{ model: Platform },
-			{ model: User }
+			{ model: User, attributes: [...USER_PUBLIC_ATTRS, "bio"] }
 		],
 		distinct: true
 	};

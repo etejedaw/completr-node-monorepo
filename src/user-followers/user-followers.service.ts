@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 import { UserFollower } from "./user-follower.model";
 import { User } from "../users/user.model";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import * as usersService from "../users/users.service";
 import * as serviceError from "./errors/user-followers.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
@@ -42,7 +43,7 @@ export async function getFollowers(username: string) {
 			{
 				model: User,
 				as: "Follower",
-				attributes: ["id", "username", "name", "avatarUrl"]
+				attributes: USER_PUBLIC_ATTRS
 			}
 		],
 		order: [["createdAt", "DESC"]]
@@ -59,7 +60,7 @@ export async function getFollowing(username: string) {
 			{
 				model: User,
 				as: "Following",
-				attributes: ["id", "username", "name", "avatarUrl"]
+				attributes: USER_PUBLIC_ATTRS
 			}
 		],
 		order: [["createdAt", "DESC"]]
