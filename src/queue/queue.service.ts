@@ -102,16 +102,15 @@ export async function addFromBacklog(backlogId: string, user: RequestUser) {
 			backlogId,
 			position
 		});
+		return Queue.findOne({
+			where: { backlogId, userId: user.id },
+			include: BACKLOG_INCLUDE
+		});
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: () => queueServiceError.alreadyInQueueError()
 		});
 	}
-
-	return Queue.findOne({
-		where: { backlogId, userId: user.id },
-		include: BACKLOG_INCLUDE
-	});
 }
 
 export async function replaceQueue(user: RequestUser, backlogIds: string[]) {

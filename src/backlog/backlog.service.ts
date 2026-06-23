@@ -57,21 +57,19 @@ export async function createBacklog(
 		);
 	}
 
-	let backlogEntry: Backlog;
 	try {
-		backlogEntry = await Backlog.create({
+		const backlogEntry = await Backlog.create({
 			...registerBacklog,
 			userId
 		});
+		await backlogEntry.reload({ include: backlogInclude });
+		return backlogEntry;
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: backlogServiceError.uniqueConstraintError,
 			validation: backlogServiceError.validationError
 		});
 	}
-
-	await backlogEntry.reload({ include: backlogInclude });
-	return backlogEntry;
 }
 
 export async function findBacklogById(id: string) {

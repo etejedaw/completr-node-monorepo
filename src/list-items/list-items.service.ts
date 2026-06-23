@@ -115,40 +115,40 @@ export async function replaceItems(
 			});
 		}
 
-		if (toCreate.length > 0) {
-			const rows = toCreate.map(gameId => {
-				const { score, duration } = freezeScoresFromContext(
-					gameId,
-					ctx
-				);
-				return {
-					listId,
-					gameId,
-					position: gameIdOrder.get(gameId)!,
-					score,
-					duration
-				};
-			});
-			try {
-				await ListItem.bulkCreate(rows, { transaction });
-			} catch (error) {
-				rethrowSequelizeError(error, {
-					unique: listItemsServiceError.uniqueConstraintError,
-					validation: listItemsServiceError.validationError
+		try {
+			if (toCreate.length > 0) {
+				const rows = toCreate.map(gameId => {
+					const { score, duration } = freezeScoresFromContext(
+						gameId,
+						ctx
+					);
+					return {
+						listId,
+						gameId,
+						position: gameIdOrder.get(gameId)!,
+						score,
+						duration
+					};
 				});
+				await ListItem.bulkCreate(rows, { transaction });
 			}
-		}
 
-		const positionUpdates = existingItems
-			.filter(item => newGameIds.has(item.gameId))
-			.filter(item => item.position !== gameIdOrder.get(item.gameId))
-			.map(item =>
-				item.update(
-					{ position: gameIdOrder.get(item.gameId)! },
-					{ transaction }
-				)
-			);
-		await Promise.all(positionUpdates);
+			const positionUpdates = existingItems
+				.filter(item => newGameIds.has(item.gameId))
+				.filter(item => item.position !== gameIdOrder.get(item.gameId))
+				.map(item =>
+					item.update(
+						{ position: gameIdOrder.get(item.gameId)! },
+						{ transaction }
+					)
+				);
+			await Promise.all(positionUpdates);
+		} catch (error) {
+			rethrowSequelizeError(error, {
+				unique: listItemsServiceError.uniqueConstraintError,
+				validation: listItemsServiceError.validationError
+			});
+		}
 	});
 
 	return ListItem.findAll({

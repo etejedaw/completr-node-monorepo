@@ -75,16 +75,15 @@ export async function addToWishlist(
 			platformId: platformId ?? null,
 			position: count + 1
 		});
+		return Wishlist.findOne({
+			where: { userId: user.id, gameId },
+			include: INCLUDE
+		});
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: () => wishlistServiceError.alreadyExistsError()
 		});
 	}
-
-	return Wishlist.findOne({
-		where: { userId: user.id, gameId },
-		include: INCLUDE
-	});
 }
 
 export async function removeFromWishlist(user: RequestUser, gameId: string) {
