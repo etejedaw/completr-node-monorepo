@@ -52,7 +52,24 @@ docs: |-
           "avgUserRating": 7.6,
           "avgRatio": 4.71,
           "avgPersonalRatio": 4.03,
-          "estimatedVsRealDelta": 52.1
+          "estimatedVsRealDelta": 52.1,
+          "completionRate": 0.714,
+          "abandonmentRate": 0.095,
+          "longestPlayed": {
+            "backlogId": "uuid",
+            "game": { "id": "uuid", "code": "elden-ring", "title": "Elden Ring", "backgroundUrl": "https://..." },
+            "value": 92.5
+          },
+          "bestPersonalRatio": {
+            "backlogId": "uuid",
+            "game": { "id": "uuid", "code": "florence", "title": "Florence", "backgroundUrl": "https://..." },
+            "value": 82
+          },
+          "highestRated": {
+            "backlogId": "uuid",
+            "game": { "id": "uuid", "code": "the-witcher-3", "title": "The Witcher 3", "backgroundUrl": "https://..." },
+            "value": 10
+          }
         }
       }
     }
@@ -64,6 +81,8 @@ docs: |-
     - `avgRatio` = `AVG(score / NULLIF(duration, 0))`.
     - `avgPersonalRatio` = `AVG(score / NULLIF(realDuration, 0))`.
     - `estimatedVsRealDelta` = `SUM(realDuration - duration)` over `completed` entries. Positive means players took longer than the estimated duration on average.
+    - `completionRate` / `abandonmentRate` are ratios in [0, 1] (multiply by 100 for percent). `null` when `totalEntries = 0`.
+    - Highlights (`longestPlayed`, `bestPersonalRatio`, `highestRated`) return the single matching entry with its `value`. `null` when no entry has the required field populated.
     - Numeric fields return `null` when there is no data to aggregate.
 
     ### Errors
