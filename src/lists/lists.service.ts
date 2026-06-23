@@ -40,6 +40,10 @@ export async function createList(
 	});
 }
 
+export async function findListBasicById(id: string) {
+	return List.findOne({ where: { id } });
+}
+
 export async function findListById(id: string) {
 	return List.findOne({
 		where: { id },

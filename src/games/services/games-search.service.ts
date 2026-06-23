@@ -79,6 +79,11 @@ export async function findGameByCode(code: string) {
 	});
 }
 
+export async function findGamesByIds(ids: string[]) {
+	if (ids.length === 0) return [];
+	return Game.findAll({ where: { id: ids } });
+}
+
 export async function findGameById(id: string) {
 	return await Game.findOne({
 		where: { id, isActive: true },

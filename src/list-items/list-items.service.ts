@@ -2,10 +2,16 @@ import { Transaction } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { ListItem } from "./list-item.model";
 import { List } from "../lists/list.model";
+import * as listsService from "../lists/lists.service";
+import * as gamesService from "../games/games.service";
+import * as gameScoresService from "../game-scores/game-scores.service";
+import * as gameTimesService from "../game-times/game-times.service";
+import * as scoreSourcesService from "../score-sources/score-sources.service";
 import { Game } from "../games/game.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
 import { ScoreSource } from "../score-sources/score-source.model";
+import { TimeSource } from "../game-times/game-time.model";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as listItemsServiceError from "./errors/list-items.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
@@ -24,8 +30,8 @@ function isPremium(role: string) {
 
 async function checkFrozen(userId: string, role: string) {
 	if (isPremium(role)) return;
-	const count = await List.count({ where: { userId } });
-	if (count > FREE_LIST_LIMIT) throw listItemsServiceError.frozenError();
+	const total = await listsService.countListsByUserId(userId);
+	if (total > FREE_LIST_LIMIT) throw listItemsServiceError.frozenError();
 }
 
 async function loadFrozenScoreContext(
@@ -33,17 +39,15 @@ async function loadFrozenScoreContext(
 	gameIds: string[]
 ): Promise<FrozenScoreContext> {
 	const [scores, times, scoreSource] = await Promise.all([
-		gameIds.length === 0
-			? Promise.resolve([] as GameScore[])
-			: GameScore.findAll({
-					where: { gameId: gameIds, source: list.scoreSource }
-				}),
-		gameIds.length === 0
-			? Promise.resolve([] as GameTime[])
-			: GameTime.findAll({
-					where: { gameId: gameIds, source: list.durationSource }
-				}),
-		ScoreSource.findOne({ where: { code: list.scoreSource } })
+		gameScoresService.findScoresByGameIdsAndSource(
+			gameIds,
+			list.scoreSource
+		),
+		gameTimesService.findTimesByGameIdsAndSource(
+			gameIds,
+			list.durationSource as TimeSource
+		),
+		scoreSourcesService.findByCode(list.scoreSource)
 	]);
 
 	return {
@@ -74,7 +78,7 @@ export async function replaceItems(
 	user: RequestUser,
 	gameIds: string[]
 ) {
-	const list = await List.findOne({ where: { id: listId } });
+	const list = await listsService.findListBasicById(listId);
 	if (!list) throw listItemsServiceError.listNotFoundError();
 	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
 	await checkFrozen(user.id, user.role);
@@ -84,7 +88,7 @@ export async function replaceItems(
 		return [];
 	}
 
-	const games = await Game.findAll({ where: { id: gameIds } });
+	const games = await gamesService.findGamesByIds(gameIds);
 	if (games.length !== gameIds.length) {
 		const foundIds = new Set(games.map(game => game.id));
 		const missing = gameIds.filter(id => !foundIds.has(id));
@@ -159,7 +163,7 @@ export async function addItem(
 	user: RequestUser,
 	gameId: string
 ) {
-	const list = await List.findOne({ where: { id: listId } });
+	const list = await listsService.findListBasicById(listId);
 	if (!list) throw listItemsServiceError.listNotFoundError();
 	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
 	await checkFrozen(user.id, user.role);
@@ -167,8 +171,9 @@ export async function addItem(
 	const existing = await ListItem.findOne({ where: { listId, gameId } });
 	if (existing) return existing;
 
-	const game = await Game.findOne({ where: { id: gameId } });
-	if (!game) throw listItemsServiceError.gamesNotFoundError([gameId]);
+	const games = await gamesService.findGamesByIds([gameId]);
+	if (games.length === 0)
+		throw listItemsServiceError.gamesNotFoundError([gameId]);
 
 	const max = (await ListItem.max("position", { where: { listId } })) as
 		| number
@@ -199,7 +204,7 @@ export async function removeItem(
 	user: RequestUser,
 	gameId: string
 ) {
-	const list = await List.findOne({ where: { id: listId } });
+	const list = await listsService.findListBasicById(listId);
 	if (!list) throw listItemsServiceError.listNotFoundError();
 	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
 
@@ -207,7 +212,7 @@ export async function removeItem(
 }
 
 export async function refreshScores(listId: string, user: RequestUser) {
-	const list = await List.findOne({ where: { id: listId } });
+	const list = await listsService.findListBasicById(listId);
 	if (!list) throw listItemsServiceError.listNotFoundError();
 	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
 	await checkFrozen(user.id, user.role);

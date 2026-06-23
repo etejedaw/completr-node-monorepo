@@ -27,6 +27,7 @@ import { assertVariantConsistency } from "./services/games-variant.service";
 export {
 	findGameByCode,
 	findGameById,
+	findGamesByIds,
 	findAll,
 	findLatestReviewed,
 	searchGamesLocal,
