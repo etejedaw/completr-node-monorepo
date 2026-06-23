@@ -16,10 +16,18 @@ import {
 	buildRangeWhere
 } from "../common/utils/sequelize-range.util";
 
+const BACKLOG_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
+const BACKLOG_PLATFORM_ATTRS = ["id", "abbreviation"];
+
 const backlogInclude = [
-	{ model: Game },
-	{ model: Platform },
-	{ model: Game, as: "CompilationGame", required: false }
+	{ model: Game, attributes: BACKLOG_GAME_ATTRS },
+	{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS },
+	{
+		model: Game,
+		as: "CompilationGame",
+		attributes: BACKLOG_GAME_ATTRS,
+		required: false
+	}
 ];
 
 async function assertCompilationContext(
@@ -197,7 +205,10 @@ function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
 }
 
 function buildIncludes(filters: BacklogQuery) {
-	const gameInclude: Record<string, unknown> = { model: Game };
+	const gameInclude: Record<string, unknown> = {
+		model: Game,
+		attributes: BACKLOG_GAME_ATTRS
+	};
 	if (filters.search) {
 		gameInclude.where = {
 			title: { [Op.iLike]: `%${filters.search}%` }
@@ -205,8 +216,13 @@ function buildIncludes(filters: BacklogQuery) {
 	}
 	return [
 		gameInclude,
-		{ model: Platform },
-		{ model: Game, as: "CompilationGame", required: false }
+		{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS },
+		{
+			model: Game,
+			as: "CompilationGame",
+			attributes: BACKLOG_GAME_ATTRS,
+			required: false
+		}
 	];
 }
 
