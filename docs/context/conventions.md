@@ -80,6 +80,28 @@ Después de cualquier cambio de código:
 - **Nunca se importan modelos entre módulos.** Para acceder a datos de otro módulo, se importa su `service`. Detalle en [`modules.md`](./modules.md).
 - **Excepción para tablas pivote** (`game-platform/`, `game-shelf/`, `list-items/`): pueden importar modelos para `include` de Sequelize, pero solo para asociaciones, no para CRUD.
 
+## Sequelize includes con `attributes`
+
+Los includes hacia modelos pesados (`Game` con `description` TEXT, `Backlog`, etc.) declaran whitelist de `attributes` en lugar de traer todo. Convención:
+
+1. Constantes `XXX_ATTRS` al inicio del módulo, derivadas de lo que el serializer consume.
+2. Reusarlas en cada `include`/`buildIncludes` del service.
+3. Si dos serializers de un mismo módulo necesitan campos distintos, unificar en un set "razonable" que cubra ambos — no parametrizar el include.
+
+```ts
+const BACKLOG_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
+const BACKLOG_PLATFORM_ATTRS = ["id", "abbreviation"];
+
+const backlogInclude = [
+	{ model: Game, attributes: BACKLOG_GAME_ATTRS },
+	{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS }
+];
+```
+
+**Cuándo aplicar:** módulos con tablas grandes o columnas pesadas (`Game.description`, JSONB, futuros covers en múltiples sizes). Para tablas chicas y estables (`Platform`, `Genre`) es opcional pero recomendado por consistencia.
+
+**Cuándo NO:** cuando el modelo es la raíz de la query (`Game.findOne(...)` sin include) y el serializer usa muchos campos — no vale la pena enumerar 15 columnas.
+
 ## Filosofía Clean Code aplicada al repo
 
 - **No agregar features, refactors ni abstracciones más allá del task.** Tres líneas similares es mejor que una abstracción prematura.
