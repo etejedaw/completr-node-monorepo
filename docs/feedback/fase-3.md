@@ -8,11 +8,11 @@
 ## Resumen de avance
 
 - **Resueltos (25):** FB-002, FB-003, FB-004, FB-006, FB-011, FB-012, FB-013, FB-014, FB-016, FB-017, FB-019, FB-020, FB-021, FB-022, FB-023, FB-024, FB-025, FB-026, FB-027, FB-028, FB-029, FB-030, FB-031, FB-032, FB-033.
-- **Diferidos a fases futuras (5):** FB-001 (premium), FB-005 (migracion a IGDB), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5).
+- **Diferidos a fases futuras (6):** FB-001 (premium), FB-005 (migracion a IGDB), FB-007 (Fase 4-5), FB-008 (Fase 6+), FB-009 (Fase 5), FB-010 (Fase 4, beta publica).
 - **Descartados/omitidos (2):** FB-015 (descartado tras prototipar), FB-018 (omitido, baja prioridad).
-- **Pendientes (2):** FB-010, FB-034.
+- **Pendientes (1):** FB-034.
 
-Prioridad sugerida para la siguiente sesion: FB-034 (forgot password). FB-010 (logo) queda bloqueado por diseno.
+Prioridad sugerida para la siguiente sesion: FB-034 (forgot password).
 
 ---
 
@@ -88,9 +88,10 @@ Prioridad sugerida para la siguiente sesion: FB-034 (forgot password). FB-010 (l
 
 ### [FB-010] Diseno del logo
 
-- **Estado:** pendiente
+- **Estado:** diferido
 - **Descripcion:** "logo feo, pero lo ignoro porque no creo que lo hayas hecho todavia".
-- **Contexto:** El logo actual es un placeholder (cuadrado "C" con gradient brand). El user reconoce que es provisorio. Diferir hasta tener identidad visual definida.
+- **Contexto:** El logo actual es un placeholder (cuadrado "C" con gradient brand). El user reconoce que es provisorio.
+- **Decision:** Diferido a Fase 4 (Beta Publica, v1.0.0). El logo va atado al rebrand y a favicons / PWA icons / og:image / social cards, que recien importan cuando hay trafico publico. Durante la beta cerrada el placeholder no esta bloqueando nada. Coordinar con la definicion de identidad visual antes de abrir a 500+ usuarios.
 - **Solucion propuesta:** Definir identidad visual del producto (paleta, tono, target audience visual). Encargar/disenar logo + variantes (icon-only, full lockup, dark/light). Actualizar favicons, PWA icons, og:image, social cards. Reemplazar el placeholder en `layout.html` (esquina superior izquierda del sidebar).
 
 ### [FB-011] Sobrecarga de terminologia (Backlog vs Queue vs Wishlist vs Shelf vs Favorites)
