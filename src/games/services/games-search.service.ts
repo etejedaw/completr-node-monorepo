@@ -21,26 +21,42 @@ import { rawgToGameMapper } from "../mappers/rawg-to-game.mapper";
 
 const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
 
+const GAME_SUMMARY_ATTRS = ["id", "code", "title", "backgroundUrl", "coverUrl"];
+const PLATFORM_ATTRS = ["id", "name", "code", "abbreviation"];
+const GENRE_ATTRS = ["id", "name", "code"];
+const GAME_SCORE_ATTRS = ["gameId", "source", "score"];
+const GAME_TIME_ATTRS = ["gameId", "source", "duration"];
+const GAME_EXTERNAL_ATTRS = ["gameId", "source", "externalId"];
+const COMPILATION_ITEM_ATTRS = [
+	"id",
+	"position",
+	"childGameId",
+	"parentGameId"
+];
+
 export async function findGameByCode(code: string) {
 	return await Game.findOne({
 		where: { code, isActive: true },
 		include: [
-			{ association: "Platforms" },
-			{ association: "Genres" },
-			{ association: "GameScores" },
-			{ association: "GameTimes" },
-			{ association: "GameExternals" },
+			{ association: "Platforms", attributes: PLATFORM_ATTRS },
+			{ association: "Genres", attributes: GENRE_ATTRS },
+			{ association: "GameScores", attributes: GAME_SCORE_ATTRS },
+			{ association: "GameTimes", attributes: GAME_TIME_ATTRS },
+			{ association: "GameExternals", attributes: GAME_EXTERNAL_ATTRS },
 			{
 				association: "Dlcs",
+				attributes: GAME_SUMMARY_ATTRS,
 				where: { isActive: true },
 				required: false
 			},
-			{ association: "ParentGame" },
+			{ association: "ParentGame", attributes: GAME_SUMMARY_ATTRS },
 			{
 				association: "CompilationItems",
+				attributes: COMPILATION_ITEM_ATTRS,
 				include: [
 					{
 						association: "ChildGame",
+						attributes: GAME_SUMMARY_ATTRS,
 						where: { isActive: true },
 						required: false
 					}
@@ -48,9 +64,11 @@ export async function findGameByCode(code: string) {
 			},
 			{
 				association: "PartOfCompilations",
+				attributes: COMPILATION_ITEM_ATTRS,
 				include: [
 					{
 						association: "ParentGame",
+						attributes: GAME_SUMMARY_ATTRS,
 						where: { isActive: true },
 						required: true
 					}
