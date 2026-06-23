@@ -1,0 +1,72 @@
+info:
+    name: Update Review
+    type: http
+    seq: 3
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/games/:id/reviews"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    params:
+        - name: id
+          type: path
+          value: ""
+    body:
+        type: json
+        data: |-
+            {
+              "content": "Updated text",
+              "rating": 5
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Update Review
+
+    Updates the authenticated user's review for the given game. Fields are independent —
+    pass `content` and/or `rating`. Use `null` to clear either field.
+
+    **Authentication:** Bearer token required (review owner only).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Params
+
+    | Param | Type | Description |
+    |-------|------|-------------|
+    | id    | uuid | Game UUID   |
+
+    ### Request Body
+
+    | Field   | Type           | Required | Description                |
+    |---------|----------------|----------|----------------------------|
+    | content | string \| null | No       | 1-5000 chars, or null      |
+    | rating  | number \| null | No       | 0.5-5 step 0.5, or null    |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "review": {
+          "id": "uuid",
+          "content": "...",
+          "rating": 5,
+          "playthroughDuration": null,
+          "user": null,
+          "createdAt": "...",
+          "updatedAt": "..."
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 403 `REVIEW_FORBIDDEN` — Caller is not the review owner
+    - 404 `REVIEW_NOT_FOUND` — No review exists for this user/game
+    - 422 `COMMON_SCHEMA_INVALID` — Body validation failed

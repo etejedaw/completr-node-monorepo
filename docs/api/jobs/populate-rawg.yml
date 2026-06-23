@@ -1,0 +1,54 @@
+info:
+    name: Start Populate RAWG
+    type: http
+    seq: 2
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/jobs/populate-rawg?limit=100"
+    auth: inherit
+    params:
+        - name: limit
+          type: query
+          value: "100"
+          enabled: false
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Start Populate RAWG
+
+    Background job that walks the active games without a RAWG external ID, looks them up by
+    slug in RAWG, and persists the external mapping. Throttled to ~1 request/second. Idempotent
+    — only one `populate_rawg` job can be running or pending at a time.
+
+    **Authentication:** Hidden route — admin/moderator only.
+    **Rate Limit:** 50 requests per minute (user).
+
+    ### Query Params
+
+    | Param | Type | Required | Description                                              |
+    |-------|------|----------|----------------------------------------------------------|
+    | limit | int  | No       | Max number of games to process this run. Omit for all.   |
+
+    ### Response (202)
+
+    ```json
+    {
+      "data": {
+        "job": {
+          "id": "uuid",
+          "type": "populate_rawg",
+          "status": "running"
+        }
+      }
+    }
+    ```
+
+    The job runs asynchronously. Poll `GET /admin/jobs` to see its `status` and `result`.
+
+    ### Behavior on completion
+
+    Result string format:
+    `Processed: X, Errors: Y, Skipped: Z, Total: T`

@@ -1,11 +1,11 @@
-import { Op, Order, literal, QueryTypes } from "sequelize";
+import { Op, Order, literal, QueryTypes, Transaction } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { User } from "../users/user.model";
 import { Backlog } from "./backlog.model";
 import { Queue } from "../queue/queue.model";
-import { CompilationItem } from "../compilation-items/compilation-item.model";
+import * as gamesService from "../games/games.service";
 import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import { BacklogQuery } from "./schemas/backlog-query.schema";
@@ -16,26 +16,34 @@ import {
 	buildRangeWhere
 } from "../common/utils/sequelize-range.util";
 
+const BACKLOG_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
+const BACKLOG_PLATFORM_ATTRS = ["id", "abbreviation"];
+
 const backlogInclude = [
-	{ model: Game },
-	{ model: Platform },
-	{ model: Game, as: "CompilationGame", required: false }
+	{ model: Game, attributes: BACKLOG_GAME_ATTRS },
+	{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS },
+	{
+		model: Game,
+		as: "CompilationGame",
+		attributes: BACKLOG_GAME_ATTRS,
+		required: false
+	}
 ];
 
 async function assertCompilationContext(
 	gameId: string,
 	compilationGameId: string
 ) {
-	const compilationGame = await Game.findOne({
-		where: { id: compilationGameId, isActive: true, isCompilation: true }
-	});
-	if (!compilationGame)
+	if (!(await gamesService.existsActiveCompilation(compilationGameId)))
 		throw backlogServiceError.compilationContextInvalidError();
 
-	const link = await CompilationItem.findOne({
-		where: { parentGameId: compilationGameId, childGameId: gameId }
-	});
-	if (!link) throw backlogServiceError.compilationContextInvalidError();
+	if (
+		!(await gamesService.gameBelongsToCompilation(
+			gameId,
+			compilationGameId
+		))
+	)
+		throw backlogServiceError.compilationContextInvalidError();
 }
 
 export async function createBacklog(
@@ -49,21 +57,19 @@ export async function createBacklog(
 		);
 	}
 
-	let backlogEntry: Backlog;
 	try {
-		backlogEntry = await Backlog.create({
+		const backlogEntry = await Backlog.create({
 			...registerBacklog,
 			userId
 		});
+		await backlogEntry.reload({ include: backlogInclude });
+		return backlogEntry;
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: backlogServiceError.uniqueConstraintError,
 			validation: backlogServiceError.validationError
 		});
 	}
-
-	await backlogEntry.reload({ include: backlogInclude });
-	return backlogEntry;
 }
 
 export async function findBacklogById(id: string) {
@@ -71,6 +77,95 @@ export async function findBacklogById(id: string) {
 		where: { id },
 		include: backlogInclude
 	});
+}
+
+export async function findBacklogBasicById(id: string) {
+	return Backlog.findOne({ where: { id } });
+}
+
+export async function findBacklogsByUserAndIds(userId: string, ids: string[]) {
+	if (ids.length === 0) return [];
+	return Backlog.findAll({ where: { id: ids, userId } });
+}
+
+export interface BacklogSummary {
+	gameId: string;
+	status: string;
+	score: number | null;
+	realDuration: number | null;
+}
+
+export async function findBacklogSummariesByUserAndGameIds(
+	userId: string,
+	gameIds: string[],
+	publicOnly = false
+): Promise<BacklogSummary[]> {
+	if (gameIds.length === 0) return [];
+
+	return sequelize.query<BacklogSummary>(
+		`SELECT DISTINCT ON ("gameId") "gameId", status, score, "realDuration"
+		 FROM "Backlogs"
+		 WHERE "userId" = :userId AND "gameId" IN (:gameIds)${
+				publicOnly ? ` AND "isPublic" = true` : ""
+			}
+		 ORDER BY "gameId",
+		   CASE status
+		     WHEN 'completed' THEN 1
+		     WHEN 'playing' THEN 2
+		     WHEN 'abandoned' THEN 3
+		     WHEN 'not_started' THEN 4
+		   END,
+		   "createdAt" DESC`,
+		{
+			replacements: { userId, gameIds },
+			type: QueryTypes.SELECT
+		}
+	);
+}
+
+export async function countDistinctGamesByUserStatusAndGameIds(
+	userId: string,
+	gameIds: string[],
+	statuses: string[],
+	publicOnly = false
+) {
+	if (gameIds.length === 0 || statuses.length === 0) return 0;
+	const where: Record<string, unknown> = {
+		userId,
+		gameId: { [Op.in]: gameIds },
+		status: { [Op.in]: statuses }
+	};
+	if (publicOnly) where.isPublic = true;
+	return Backlog.count({ where, distinct: true, col: "gameId" });
+}
+
+export async function findAggregatedRealDurationsByGame() {
+	return (await Backlog.findAll({
+		attributes: [
+			"gameId",
+			[sequelize.fn("AVG", sequelize.col("realDuration")), "avgDuration"],
+			[sequelize.fn("COUNT", sequelize.col("realDuration")), "entryCount"]
+		],
+		where: { realDuration: { [Op.not]: null, [Op.gt]: 0 } },
+		group: ["gameId"],
+		raw: true
+	})) as unknown as {
+		gameId: string;
+		avgDuration: number;
+		entryCount: number;
+	}[];
+}
+
+export async function createNotStartedBacklog(
+	userId: string,
+	gameId: string,
+	platformId: string,
+	transaction: Transaction
+) {
+	return Backlog.create(
+		{ userId, gameId, platformId, status: "not_started" },
+		{ transaction }
+	);
 }
 
 function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
@@ -197,7 +292,10 @@ function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
 }
 
 function buildIncludes(filters: BacklogQuery) {
-	const gameInclude: Record<string, unknown> = { model: Game };
+	const gameInclude: Record<string, unknown> = {
+		model: Game,
+		attributes: BACKLOG_GAME_ATTRS
+	};
 	if (filters.search) {
 		gameInclude.where = {
 			title: { [Op.iLike]: `%${filters.search}%` }
@@ -205,8 +303,13 @@ function buildIncludes(filters: BacklogQuery) {
 	}
 	return [
 		gameInclude,
-		{ model: Platform },
-		{ model: Game, as: "CompilationGame", required: false }
+		{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS },
+		{
+			model: Game,
+			as: "CompilationGame",
+			attributes: BACKLOG_GAME_ATTRS,
+			required: false
+		}
 	];
 }
 
@@ -579,7 +682,10 @@ export async function findLatestCompletedDurations(
 }
 
 export async function removeBacklog(id: string, userId: string) {
-	const backlogEntry = await Backlog.findOne({ where: { id } });
+	const backlogEntry = await Backlog.findOne({
+		where: { id },
+		attributes: ["id", "userId"]
+	});
 	if (!backlogEntry) throw backlogServiceError.notFoundError();
 	if (backlogEntry.userId !== userId)
 		throw backlogServiceError.forbiddenError();

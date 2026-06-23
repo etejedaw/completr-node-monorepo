@@ -5,6 +5,7 @@ export const ReplaceWishlistSchema = z
 		gameIds: z
 			.uuid()
 			.array()
+			.max(100)
 			.refine(ids => new Set(ids).size === ids.length, {
 				message: "Duplicate gameIds are not allowed"
 			})

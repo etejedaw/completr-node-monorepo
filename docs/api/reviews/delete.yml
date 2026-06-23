@@ -1,0 +1,39 @@
+info:
+    name: Delete Review
+    type: http
+    seq: 4
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/games/:id/reviews"
+    auth: inherit
+    params:
+        - name: id
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Delete Review
+
+    Removes the authenticated user's review for the given game.
+
+    **Authentication:** Bearer token required (review owner only).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Params
+
+    | Param | Type | Description |
+    |-------|------|-------------|
+    | id    | uuid | Game UUID   |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    - 403 `REVIEW_FORBIDDEN` — Caller is not the review owner
+    - 404 `REVIEW_NOT_FOUND` — No review exists for this user/game

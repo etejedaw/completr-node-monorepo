@@ -35,6 +35,15 @@ export async function findUserById(id: string) {
 	});
 }
 
+export async function findUsersByIds(ids: string[]) {
+	if (ids.length === 0) return [];
+	return User.findAll({ where: { id: ids } });
+}
+
+export async function countActiveUsers() {
+	return User.count({ where: { isActive: true } });
+}
+
 export async function searchUsers(query: string, limit = 20) {
 	return User.findAll({
 		where: {

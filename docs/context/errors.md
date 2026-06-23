@@ -112,6 +112,49 @@ errors/
 4. **El `service` y el `module` se usan como claves de routing en los normalizers globales.** Si los renombras, hay que actualizar `global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts`.
 5. **Los códigos de error siguen el patrón `<MODULO>_<CAUSA>`** en `SCREAMING_SNAKE_CASE` (`GAME_NOT_FOUND`, `AUTH_INVALID_CREDENTIALS`, `RAWG_RATE_LIMITED`).
 6. **El `correlationId` se propaga en el `context`** para trazabilidad en logs.
+7. **Cuando uses `rethrowSequelizeError`, todo el cuerpo crítico (incluido el `return`) va dentro del `try`.** La función está tipada `: never`, así que el código tras el catch solo correría en path feliz — declarar variables `let` afuera para llenarlas adentro y consumirlas después es confuso y propenso a bugs. Ver "Patrón `rethrowSequelizeError`" más abajo.
+
+## Patrón `rethrowSequelizeError`
+
+`rethrowSequelizeError(error, mappers)` vive en `src/common/errors/sequelize-error.mapper.ts` y mapea `UniqueConstraintError` / `ValidationError` de Sequelize a `ServiceError`s del módulo. Está tipado como `: never`, por lo que cualquier ruta que pase por el catch lanza.
+
+### CLEAN — todo dentro del try, return desde adentro
+
+```ts
+export async function createBacklog(userId: string, dto: RegisterBacklogDto) {
+	try {
+		const backlogEntry = await Backlog.create({ ...dto, userId });
+		await backlogEntry.reload({ include: backlogInclude });
+		return backlogEntry;
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: backlogServiceError.uniqueConstraintError,
+			validation: backlogServiceError.validationError
+		});
+	}
+}
+```
+
+### UGLY — evitar
+
+```ts
+export async function createBacklog(userId: string, dto: RegisterBacklogDto) {
+	let backlogEntry: Backlog;
+	try {
+		backlogEntry = await Backlog.create({ ...dto, userId });
+	} catch (error) {
+		rethrowSequelizeError(error, { unique: ..., validation: ... });
+	}
+	await backlogEntry.reload({ include: backlogInclude }); // ← fuera del try
+	return backlogEntry;                                     // ← fuera del try
+}
+```
+
+La versión sucia obliga a declarar `let` afuera, depende de que TS entienda el `: never`, y deja al lector adivinando si el código posterior puede correr tras un error. La versión limpia es lineal y no necesita explicación.
+
+### Aplica también dentro de `sequelize.transaction(...)`
+
+Si el callback de la transacción tiene un try/catch con `rethrowSequelizeError`, el try debe envolver toda la sección crítica (creates + updates + queries finales), no solo una llamada aislada.
 
 ## Ejemplos concretos
 

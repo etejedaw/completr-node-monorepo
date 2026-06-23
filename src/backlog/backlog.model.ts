@@ -82,7 +82,15 @@ Backlog.init(
 			allowNull: true
 		}
 	},
-	{ sequelize }
+	{
+		sequelize,
+		indexes: [
+			{ fields: ["userId", "status", "finishedAt"] },
+			{ fields: ["userId", "isPublic"] },
+			{ fields: ["userId", "gameId"] },
+			{ fields: ["gameId", "isPublic"] }
+		]
+	}
 );
 
 export { Backlog };

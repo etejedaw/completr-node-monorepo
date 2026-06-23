@@ -39,6 +39,25 @@ export async function findScoresByGameId(gameId: string) {
 	return GameScore.findAll({ where: { gameId } });
 }
 
+export async function findScoresByGameIdsAndSource(
+	gameIds: string[],
+	source: string
+) {
+	if (gameIds.length === 0) return [];
+	return GameScore.findAll({ where: { gameId: gameIds, source } });
+}
+
+export async function upsertScore(
+	gameId: string,
+	source: string,
+	score: number
+) {
+	return GameScore.upsert(
+		{ gameId, source, score },
+		{ conflictFields: ["gameId", "source"] }
+	);
+}
+
 export async function deleteGameScore(gameId: string, source: string) {
 	const existing = await GameScore.findOne({ where: { gameId, source } });
 	if (!existing) throw gameScoreServiceError.notFoundError();

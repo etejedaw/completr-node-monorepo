@@ -15,7 +15,7 @@ export async function putFavorites(request: Request, response: Response) {
 
 	const currentIds = new Set(
 		(await favoritesService.findFavoritesByUserId(user.id)).map(
-			e => e.Game.id
+			e => e.gameId
 		)
 	);
 

@@ -1,0 +1,57 @@
+info:
+    name: Get Reviews by Game
+    type: http
+    seq: 2
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/games/:id/reviews"
+    auth: inherit
+    params:
+        - name: id
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Reviews by Game
+
+    Returns all reviews for a game, including the reviewer's profile summary and the latest
+    `playthroughDuration` derived from each reviewer's completed backlog for the same game.
+    Sorted by `createdAt` DESC.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Params
+
+    | Param | Type | Description |
+    |-------|------|-------------|
+    | id    | uuid | Game UUID   |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "reviews": [
+          {
+            "id": "uuid",
+            "content": "...",
+            "rating": 4,
+            "playthroughDuration": 12.5,
+            "user": {
+              "id": "uuid",
+              "username": "esteban",
+              "name": "Esteban",
+              "avatarUrl": "..."
+            },
+            "createdAt": "2026-06-23T12:00:00.000Z",
+            "updatedAt": "2026-06-23T12:00:00.000Z"
+          }
+        ]
+      }
+    }
+    ```

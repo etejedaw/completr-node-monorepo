@@ -115,6 +115,23 @@ export async function findCompilationItemsByParent(parentGameId: string) {
 	});
 }
 
+export async function existsActiveCompilation(id: string): Promise<boolean> {
+	const count = await Game.count({
+		where: { id, isActive: true, isCompilation: true }
+	});
+	return count > 0;
+}
+
+export async function gameBelongsToCompilation(
+	gameId: string,
+	compilationGameId: string
+): Promise<boolean> {
+	const count = await CompilationItem.count({
+		where: { parentGameId: compilationGameId, childGameId: gameId }
+	});
+	return count > 0;
+}
+
 export async function findCompilationParentsForChild(childGameId: string) {
 	return CompilationItem.findAll({
 		where: { childGameId },

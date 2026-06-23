@@ -39,6 +39,25 @@ export async function findTimesByGameId(gameId: string) {
 	return GameTime.findAll({ where: { gameId } });
 }
 
+export async function findTimesByGameIdsAndSource(
+	gameIds: string[],
+	source: TimeSource
+) {
+	if (gameIds.length === 0) return [];
+	return GameTime.findAll({ where: { gameId: gameIds, source } });
+}
+
+export async function upsertTime(
+	gameId: string,
+	source: TimeSource,
+	duration: number
+) {
+	return GameTime.upsert(
+		{ gameId, source, duration },
+		{ conflictFields: ["gameId", "source"] }
+	);
+}
+
 export async function deleteGameTime(gameId: string, source: TimeSource) {
 	const existing = await GameTime.findOne({ where: { gameId, source } });
 	if (!existing) throw gameTimeServiceError.notFoundError();

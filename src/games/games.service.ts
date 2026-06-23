@@ -27,6 +27,8 @@ import { assertVariantConsistency } from "./services/games-variant.service";
 export {
 	findGameByCode,
 	findGameById,
+	findGamesByIds,
+	findActiveGameSummaries,
 	findAll,
 	findLatestReviewed,
 	searchGamesLocal,
@@ -42,7 +44,9 @@ export {
 	setCompilationItems,
 	clearCompilation,
 	findCompilationItemsByParent,
-	findCompilationParentsForChild
+	findCompilationParentsForChild,
+	existsActiveCompilation,
+	gameBelongsToCompilation
 } from "./services/games-compilation.service";
 
 export type {

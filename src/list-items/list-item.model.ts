@@ -38,7 +38,13 @@ ListItem.init(
 		score: DataTypes.FLOAT,
 		duration: DataTypes.FLOAT
 	},
-	{ sequelize }
+	{
+		sequelize,
+		indexes: [
+			{ unique: true, fields: ["listId", "gameId"] },
+			{ fields: ["listId", "position"] }
+		]
+	}
 );
 
 export { ListItem };

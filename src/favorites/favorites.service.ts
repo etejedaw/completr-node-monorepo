@@ -46,8 +46,7 @@ export async function replaceFavorites(user: RequestUser, gameIds: string[]) {
 export async function findFavoritesByUserId(userId: string) {
 	return Favorite.findAll({
 		where: { userId },
-		include: [{ model: Game }],
-		order: [["position", "ASC"]]
+		attributes: ["gameId"]
 	});
 }
 

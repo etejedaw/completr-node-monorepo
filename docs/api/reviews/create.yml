@@ -1,0 +1,74 @@
+info:
+    name: Create Review
+    type: http
+    seq: 1
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/games/:id/reviews"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    params:
+        - name: id
+          type: path
+          value: ""
+    body:
+        type: json
+        data: |-
+            {
+              "content": "Optional written review",
+              "rating": 4
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Create Review
+
+    Creates a new review for a game. At least one of `content` or `rating` must be provided.
+    Each user can only have one review per game; subsequent creates return 409.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Params
+
+    | Param | Type | Description     |
+    |-------|------|-----------------|
+    | id    | uuid | Game UUID       |
+
+    ### Request Body
+
+    | Field   | Type   | Required | Description                          |
+    |---------|--------|----------|--------------------------------------|
+    | content | string | No*      | 1-5000 chars                         |
+    | rating  | number | No*      | 0.5-5 in 0.5 steps                   |
+
+    *At least one of `content` or `rating` is required.
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "review": {
+          "id": "uuid",
+          "content": "...",
+          "rating": 4,
+          "playthroughDuration": null,
+          "user": null,
+          "createdAt": "2026-06-23T12:00:00.000Z",
+          "updatedAt": "2026-06-23T12:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 404 `REVIEW_GAME_NOT_FOUND` — Game not found or inactive
+    - 409 `REVIEW_ALREADY_EXISTS` — User already reviewed this game
+    - 422 `COMMON_SCHEMA_INVALID` — Body validation failed

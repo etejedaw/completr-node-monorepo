@@ -4,6 +4,9 @@ import { Queue } from "./queue.model";
 import { Backlog } from "../backlog/backlog.model";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
+import * as gamesService from "../games/games.service";
+import * as platformsService from "../platforms/platforms.service";
+import * as backlogService from "../backlog/backlog.service";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as queueServiceError from "./errors/queue.service-error";
@@ -33,23 +36,20 @@ export async function addFromGame(
 ) {
 	await checkLimit(user.id, user.role);
 
-	const game = await Game.findOne({ where: { id: gameId } });
+	const game = await gamesService.findGameById(gameId);
 	if (!game) throw queueServiceError.gameNotFoundError();
 
-	const platform = await Platform.findOne({ where: { id: platformId } });
+	const platform = await platformsService.findPlatformById(platformId);
 	if (!platform) throw queueServiceError.platformNotFoundError();
 
 	const transaction = await sequelize.transaction();
 
 	try {
-		const backlogEntry = await Backlog.create(
-			{
-				userId: user.id,
-				gameId,
-				platformId,
-				status: "not_started"
-			},
-			{ transaction }
+		const backlogEntry = await backlogService.createNotStartedBacklog(
+			user.id,
+			gameId,
+			platformId,
+			transaction
 		);
 
 		const position =
@@ -82,7 +82,7 @@ export async function addFromGame(
 export async function addFromBacklog(backlogId: string, user: RequestUser) {
 	await checkLimit(user.id, user.role);
 
-	const backlog = await Backlog.findOne({ where: { id: backlogId } });
+	const backlog = await backlogService.findBacklogBasicById(backlogId);
 	if (!backlog) throw queueServiceError.backlogNotFoundError();
 	if (backlog.userId !== user.id)
 		throw queueServiceError.backlogNotOwnedError();
@@ -102,16 +102,15 @@ export async function addFromBacklog(backlogId: string, user: RequestUser) {
 			backlogId,
 			position
 		});
+		return Queue.findOne({
+			where: { backlogId, userId: user.id },
+			include: BACKLOG_INCLUDE
+		});
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: () => queueServiceError.alreadyInQueueError()
 		});
 	}
-
-	return Queue.findOne({
-		where: { backlogId, userId: user.id },
-		include: BACKLOG_INCLUDE
-	});
 }
 
 export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
@@ -123,9 +122,10 @@ export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 	if (!isPremium(user.role) && backlogIds.length > FREE_QUEUE_LIMIT)
 		throw queueServiceError.limitReachedError();
 
-	const backlogs = await Backlog.findAll({
-		where: { id: backlogIds, userId: user.id }
-	});
+	const backlogs = await backlogService.findBacklogsByUserAndIds(
+		user.id,
+		backlogIds
+	);
 	if (backlogs.length !== backlogIds.length) {
 		const foundIds = new Set(backlogs.map(b => b.id));
 		const missing = backlogIds.filter(id => !foundIds.has(id));

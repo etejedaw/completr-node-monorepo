@@ -1,6 +1,7 @@
 import { AuditLog } from "./audit.model";
 import { User } from "../users/user.model";
-import { Game } from "../games/game.model";
+import * as usersService from "../users/users.service";
+import * as gamesService from "../games/games.service";
 
 export function record(
 	userId: string,
@@ -42,18 +43,8 @@ export async function findAll(
 		.map(r => r.targetId);
 
 	const [games, users] = await Promise.all([
-		gameIds.length > 0
-			? Game.findAll({
-					where: { id: gameIds },
-					attributes: ["id", "code", "title"]
-				})
-			: Promise.resolve([]),
-		userIds.length > 0
-			? User.findAll({
-					where: { id: userIds },
-					attributes: ["id", "username", "name"]
-				})
-			: Promise.resolve([])
+		gamesService.findGamesByIds(gameIds),
+		usersService.findUsersByIds(userIds)
 	]);
 
 	const gameById = new Map(games.map(g => [g.id, g]));

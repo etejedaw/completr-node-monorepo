@@ -1,0 +1,50 @@
+info:
+    name: List Jobs
+    type: http
+    seq: 1
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/admin/jobs"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## List Jobs
+
+    Returns the last 20 background jobs ordered by `createdAt` DESC. Includes their type,
+    status and free-form result string.
+
+    **Authentication:** Hidden route — admin/moderator only via `hiddenRouteMiddleware`.
+    **Rate Limit:** 50 requests per minute (user).
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "jobs": [
+          {
+            "id": "uuid",
+            "type": "calculate_durations",
+            "status": "completed",
+            "result": "Updated: 2, Skipped: 158 (min 2 entries, 12 users)",
+            "createdAt": "2026-06-23T16:00:00.000Z",
+            "completedAt": "2026-06-23T16:00:05.000Z"
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Job Types
+
+    - `populate_rawg` — Fetches RAWG IDs for active games without external link.
+    - `calculate_ratings` — Aggregates user `Review.rating` into `GameScore` source `completr`.
+    - `calculate_durations` — Aggregates `Backlog.realDuration` into `GameTime` source `completr`.
+
+    ### Job Statuses
+
+    `pending` · `running` · `completed` · `failed` · `cancelled`
