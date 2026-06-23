@@ -184,6 +184,8 @@
 - [x] Error handling completo registrado en normalizers globales (404, 403 forbidden, 403 limit reached, 500)
 - [x] Campo `showInBacklog` (boolean, default true) — controla si aparece como chip en el backlog
 - [x] Campo `isDefault` (boolean, default false) — auto-aplica al abrir el backlog. Solo uno por usuario, requiere showInBacklog
+- [x] `GET /users/me/saved-filters/:filterId/stats` — Estadísticas agregadas del backlog que matchea la vista (totales, promedios, ratios, completion/abandonment rate, highlights: longest played / best personal ratio / highest rated)
+- [ ] **Panel configurable de stats por vista guardada** — Permitir que el usuario active/desactive qué stats ver en cada saved view. MVP: persistir en `localStorage` con key `completr.backlog.statsEnabled.<filterId>` y defaults hardcodeados (4 KPIs visibles + completion rate). Migrar a columna `enabledStats TEXT[]` en `SavedFilter` cuando se necesite sync cross-device (requiere migración Sequelize + DDL). Decisión diferida porque no bloquea — el endpoint ya devuelve todas las stats y el frontend ya las renderiza.
 
 ### Módulo de Listas
 
