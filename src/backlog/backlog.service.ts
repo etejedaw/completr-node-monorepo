@@ -264,6 +264,19 @@ export async function countBacklogByStatus(userId: string, publicOnly = false) {
 	return result;
 }
 
+export interface BacklogHighlightGame {
+	id: string;
+	code: string;
+	title: string;
+	backgroundUrl: string | null;
+}
+
+export interface BacklogHighlight {
+	backlogId: string;
+	game: BacklogHighlightGame;
+	value: number;
+}
+
 export interface BacklogStats {
 	totalEntries: number;
 	countByStatus: {
@@ -281,6 +294,42 @@ export interface BacklogStats {
 	avgRatio: number | null;
 	avgPersonalRatio: number | null;
 	estimatedVsRealDelta: number | null;
+	completionRate: number | null;
+	abandonmentRate: number | null;
+	longestPlayed: BacklogHighlight | null;
+	bestPersonalRatio: BacklogHighlight | null;
+	highestRated: BacklogHighlight | null;
+}
+
+const HIGHLIGHT_GAME_ATTRS = ["id", "code", "title", "backgroundUrl"];
+
+async function findHighlight(
+	baseWhere: Record<string, unknown>,
+	extraWhere: Record<string, unknown>,
+	order: Order
+): Promise<Backlog | null> {
+	return Backlog.findOne({
+		where: { ...baseWhere, ...extraWhere },
+		include: [{ model: Game, attributes: HIGHLIGHT_GAME_ATTRS }],
+		order
+	});
+}
+
+function toHighlight(
+	entry: Backlog | null,
+	value: number | null
+): BacklogHighlight | null {
+	if (!entry || value == null) return null;
+	return {
+		backlogId: entry.id,
+		game: {
+			id: entry.Game.id,
+			code: entry.Game.code,
+			title: entry.Game.title,
+			backgroundUrl: entry.Game.backgroundUrl ?? null
+		},
+		value
+	};
 }
 
 function toNumberOrNull(value: unknown): number | null {
@@ -293,8 +342,10 @@ export async function computeBacklogStats(
 	userId: string,
 	filters: BacklogQuery
 ): Promise<BacklogStats> {
+	const baseWhere = buildBacklogWhere({ userId }, filters);
+
 	const row = (await Backlog.findOne({
-		where: buildBacklogWhere({ userId }, filters),
+		where: baseWhere,
 		attributes: [
 			[fn("COUNT", col("id")), "totalEntries"],
 			[
@@ -339,13 +390,49 @@ export async function computeBacklogStats(
 	})) as unknown as Record<string, unknown> | null;
 
 	const safe = row ?? {};
+	const totalEntries = Number(safe.totalEntries ?? 0);
+	const completed = Number(safe.completed ?? 0);
+	const abandoned = Number(safe.abandoned ?? 0);
+
+	const [longestEntry, bestRatioEntry, highestRatedEntry] = await Promise.all(
+		[
+			findHighlight(
+				baseWhere,
+				{ realDuration: { [Op.not]: null, [Op.gt]: 0 } },
+				[literal(`"Backlog"."realDuration" DESC`)]
+			),
+			findHighlight(
+				baseWhere,
+				{
+					realDuration: { [Op.not]: null, [Op.gt]: 0 },
+					score: { [Op.not]: null, [Op.gt]: 0 }
+				},
+				[
+					literal(
+						`("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) DESC NULLS LAST`
+					)
+				]
+			),
+			findHighlight(baseWhere, { userRating: { [Op.not]: null } }, [
+				literal(`"Backlog"."userRating" DESC`)
+			])
+		]
+	);
+
+	const bestPersonalRatioValue =
+		bestRatioEntry &&
+		bestRatioEntry.score != null &&
+		bestRatioEntry.realDuration
+			? bestRatioEntry.score / bestRatioEntry.realDuration
+			: null;
+
 	return {
-		totalEntries: Number(safe.totalEntries ?? 0),
+		totalEntries,
 		countByStatus: {
 			not_started: Number(safe.notStarted ?? 0),
 			playing: Number(safe.playing ?? 0),
-			completed: Number(safe.completed ?? 0),
-			abandoned: Number(safe.abandoned ?? 0),
+			completed,
+			abandoned,
 			endless: Number(safe.endless ?? 0)
 		},
 		totalRealHours: toNumberOrNull(safe.totalRealHours),
@@ -355,7 +442,18 @@ export async function computeBacklogStats(
 		avgUserRating: toNumberOrNull(safe.avgUserRating),
 		avgRatio: toNumberOrNull(safe.avgRatio),
 		avgPersonalRatio: toNumberOrNull(safe.avgPersonalRatio),
-		estimatedVsRealDelta: toNumberOrNull(safe.estimatedVsRealDelta)
+		estimatedVsRealDelta: toNumberOrNull(safe.estimatedVsRealDelta),
+		completionRate: totalEntries > 0 ? completed / totalEntries : null,
+		abandonmentRate: totalEntries > 0 ? abandoned / totalEntries : null,
+		longestPlayed: toHighlight(
+			longestEntry,
+			longestEntry?.realDuration ?? null
+		),
+		bestPersonalRatio: toHighlight(bestRatioEntry, bestPersonalRatioValue),
+		highestRated: toHighlight(
+			highestRatedEntry,
+			highestRatedEntry?.userRating ?? null
+		)
 	};
 }
 
