@@ -1,9 +1,12 @@
 import { inject, Injectable, signal } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { Observable, map, of, shareReplay, tap } from "rxjs";
+import { Observable, map, of, shareReplay, switchMap, tap, throwError } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { FavoriteEntry } from "../../core/models";
 import { Appendable, buildHttpParams } from "../../core/utils/http-params";
+import { ToastService } from "../../core/services/toast";
+
+const MAX_FAVORITES = 100;
 
 interface FavoritesResponse {
 	data: { favorites: FavoriteEntry[]; total?: number };
@@ -18,6 +21,7 @@ export interface FavoritesPagination extends Record<string, Appendable> {
 @Injectable({ providedIn: "root" })
 export class FavoritesService {
 	private readonly http = inject(HttpClient);
+	private readonly toast = inject(ToastService);
 	private readonly baseUrl = `${environment.apiUrl}/users/me/favorites`;
 	private readonly _favorites = signal<FavoriteEntry[]>([]);
 	private readonly _favoriteIds = signal<Set<string>>(new Set());
@@ -75,6 +79,10 @@ export class FavoritesService {
 	toggle(gameId: string) {
 		const previousIds = this._favoriteIds();
 		const wasFavorite = previousIds.has(gameId);
+		if (!wasFavorite && previousIds.size >= MAX_FAVORITES) {
+			this.toast.error(`You can only have up to ${MAX_FAVORITES} favorites.`);
+			return throwError(() => new Error("Favorites limit reached"));
+		}
 		const nextIds = new Set(previousIds);
 		if (wasFavorite) nextIds.delete(gameId);
 		else nextIds.add(gameId);
@@ -91,6 +99,26 @@ export class FavoritesService {
 					);
 				},
 				error: () => this._favoriteIds.set(previousIds)
+			})
+		);
+	}
+
+	removeFavorite(gameId: string) {
+		return this.ensureIdsLoaded().pipe(
+			switchMap(ids => {
+				const next = new Set(ids);
+				next.delete(gameId);
+				const gameIds = Array.from(next);
+				return this.http
+					.put<FavoritesResponse>(this.baseUrl, { gameIds })
+					.pipe(
+						tap(res => {
+							this._favorites.set(res.data.favorites);
+							this._favoriteIds.set(
+								new Set(res.data.favorites.map(f => f.game.id))
+							);
+						})
+					);
 			})
 		);
 	}

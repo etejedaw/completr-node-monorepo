@@ -64,8 +64,7 @@ export class FavoritesView implements OnInit {
 		this.toast.pending({
 			message: `Removed ${entry.game.title} from favorites`,
 			onCommit: () => {
-				const ids = this.entries().map(e => e.game.id);
-				this.favoritesService.replaceFavorites(ids).subscribe();
+				this.favoritesService.removeFavorite(entry.game.id).subscribe();
 			},
 			onUndo: () => {
 				const restored = [...this.entries(), entry].sort(
