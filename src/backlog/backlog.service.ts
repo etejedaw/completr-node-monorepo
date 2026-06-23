@@ -88,6 +88,57 @@ export async function findBacklogsByUserAndIds(userId: string, ids: string[]) {
 	return Backlog.findAll({ where: { id: ids, userId } });
 }
 
+export interface BacklogSummary {
+	gameId: string;
+	status: string;
+	score: number | null;
+	realDuration: number | null;
+}
+
+export async function findBacklogSummariesByUserAndGameIds(
+	userId: string,
+	gameIds: string[],
+	publicOnly = false
+): Promise<BacklogSummary[]> {
+	if (gameIds.length === 0) return [];
+
+	return sequelize.query<BacklogSummary>(
+		`SELECT DISTINCT ON ("gameId") "gameId", status, score, "realDuration"
+		 FROM "Backlogs"
+		 WHERE "userId" = :userId AND "gameId" IN (:gameIds)${
+				publicOnly ? ` AND "isPublic" = true` : ""
+			}
+		 ORDER BY "gameId",
+		   CASE status
+		     WHEN 'completed' THEN 1
+		     WHEN 'playing' THEN 2
+		     WHEN 'abandoned' THEN 3
+		     WHEN 'not_started' THEN 4
+		   END,
+		   "createdAt" DESC`,
+		{
+			replacements: { userId, gameIds },
+			type: QueryTypes.SELECT
+		}
+	);
+}
+
+export async function countDistinctGamesByUserStatusAndGameIds(
+	userId: string,
+	gameIds: string[],
+	statuses: string[],
+	publicOnly = false
+) {
+	if (gameIds.length === 0 || statuses.length === 0) return 0;
+	const where: Record<string, unknown> = {
+		userId,
+		gameId: { [Op.in]: gameIds },
+		status: { [Op.in]: statuses }
+	};
+	if (publicOnly) where.isPublic = true;
+	return Backlog.count({ where, distinct: true, col: "gameId" });
+}
+
 export async function createNotStartedBacklog(
 	userId: string,
 	gameId: string,

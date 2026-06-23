@@ -1,11 +1,10 @@
-import { Op, QueryTypes } from "sequelize";
-import { sequelize } from "../database/sequelize.database";
+import { Op } from "sequelize";
 import { List } from "./list.model";
 import { ListItem } from "../list-items/list-item.model";
 import { ListFollower } from "../list-followers/list-follower.model";
 import { Game } from "../games/game.model";
 import { User } from "../users/user.model";
-import { Backlog } from "../backlog/backlog.model";
+import * as backlogService from "../backlog/backlog.service";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { RegisterListDto } from "./dtos/register-list.dto";
@@ -86,29 +85,10 @@ export async function getBacklogSummaryMap(
 ): Promise<Map<string, BacklogSummary>> {
 	if (gameIds.length === 0) return new Map();
 
-	const rows = await sequelize.query<{
-		gameId: string;
-		status: string;
-		score: number | null;
-		realDuration: number | null;
-	}>(
-		`SELECT DISTINCT ON ("gameId") "gameId", status, score, "realDuration"
-		 FROM "Backlogs"
-		 WHERE "userId" = :userId AND "gameId" IN (:gameIds)${
-				publicOnly ? ` AND "isPublic" = true` : ""
-			}
-		 ORDER BY "gameId",
-		   CASE status
-		     WHEN 'completed' THEN 1
-		     WHEN 'playing' THEN 2
-		     WHEN 'abandoned' THEN 3
-		     WHEN 'not_started' THEN 4
-		   END,
-		   "createdAt" DESC`,
-		{
-			replacements: { userId, gameIds },
-			type: QueryTypes.SELECT
-		}
+	const rows = await backlogService.findBacklogSummariesByUserAndGameIds(
+		userId,
+		gameIds,
+		publicOnly
 	);
 
 	const map = new Map<string, BacklogSummary>();
@@ -134,16 +114,13 @@ export async function getListProgress(
 	if (items.length === 0) return { completed: 0, total: 0 };
 
 	const gameIds = items.map(i => i.gameId);
-	const completed = await Backlog.count({
-		where: {
+	const completed =
+		await backlogService.countDistinctGamesByUserStatusAndGameIds(
 			userId,
-			gameId: { [Op.in]: gameIds },
-			status: { [Op.in]: ["completed", "abandoned", "endless"] },
-			...(publicOnly ? { isPublic: true } : {})
-		},
-		distinct: true,
-		col: "gameId"
-	});
+			gameIds,
+			["completed", "abandoned", "endless"],
+			publicOnly
+		);
 	return { completed, total: items.length };
 }
 
