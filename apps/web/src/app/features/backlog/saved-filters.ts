@@ -39,6 +39,17 @@ export interface CreateSavedFilterDto {
 	isDefault?: boolean;
 }
 
+export interface BacklogHighlight {
+	backlogId: string;
+	game: {
+		id: string;
+		code: string;
+		title: string;
+		backgroundUrl: string | null;
+	};
+	value: number;
+}
+
 export interface SavedFilterStats {
 	totalEntries: number;
 	countByStatus: {
@@ -56,6 +67,11 @@ export interface SavedFilterStats {
 	avgRatio: number | null;
 	avgPersonalRatio: number | null;
 	estimatedVsRealDelta: number | null;
+	completionRate: number | null;
+	abandonmentRate: number | null;
+	longestPlayed: BacklogHighlight | null;
+	bestPersonalRatio: BacklogHighlight | null;
+	highestRated: BacklogHighlight | null;
 }
 
 interface SavedFilterStatsResponse {

@@ -179,6 +179,11 @@ export class BacklogList implements OnInit {
 		return rounded + suffix;
 	}
 
+	formatPercent(value: number | null): string {
+		if (value == null) return "—";
+		return (value * 100).toFixed(0) + "%";
+	}
+
 	protected readonly hasActiveFilters = () => this.activeFiltersCount() > 0;
 
 	protected readonly activeFiltersCount = () => {
