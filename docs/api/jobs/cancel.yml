@@ -1,0 +1,39 @@
+info:
+    name: Cancel Job
+    type: http
+    seq: 5
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/admin/jobs/:jobId"
+    auth: inherit
+    params:
+        - name: jobId
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Cancel Job
+
+    Marks a running job as `cancelled`. The runner checks this status between iterations and
+    stops gracefully. Jobs in any state other than `running` cannot be cancelled.
+
+    **Authentication:** Hidden route — admin/moderator only.
+    **Rate Limit:** 50 requests per minute (user).
+
+    ### Path Params
+
+    | Param | Type | Description |
+    |-------|------|-------------|
+    | jobId | uuid | Job UUID    |
+
+    ### Response (204)
+
+    No content. The job will transition from `running` to `cancelled` at its next iteration check.
+
+    ### Errors
+
+    - 404 — Job not found or not in `running` state

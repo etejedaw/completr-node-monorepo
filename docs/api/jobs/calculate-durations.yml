@@ -1,0 +1,43 @@
+info:
+    name: Start Calculate Durations
+    type: http
+    seq: 4
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/jobs/calculate-durations"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Start Calculate Durations
+
+    Background job that aggregates `Backlog.realDuration` per game and upserts the average into
+    `GameTime` with `source = 'completr'`. Only counts backlogs with `realDuration > 0`. Skips
+    games whose entry count is below the threshold (10% of active users, minimum 2).
+
+    **Authentication:** Hidden route — admin/moderator only.
+    **Rate Limit:** 50 requests per minute (user).
+
+    ### Response (202)
+
+    ```json
+    {
+      "data": {
+        "job": {
+          "id": "uuid",
+          "type": "calculate_durations",
+          "status": "running"
+        }
+      }
+    }
+    ```
+
+    Poll `GET /admin/jobs` to follow progress.
+
+    ### Behavior on completion
+
+    Result string format:
+    `Updated: X, Skipped: Y (min N entries, M users)`

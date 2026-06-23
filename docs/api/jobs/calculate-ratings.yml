@@ -1,0 +1,43 @@
+info:
+    name: Start Calculate Ratings
+    type: http
+    seq: 3
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/jobs/calculate-ratings"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Start Calculate Ratings
+
+    Background job that aggregates user `Review.rating` per game and upserts the average into
+    `GameScore` with `source = 'completr'`. Skips games whose review count is below the
+    threshold (10% of active users, minimum 2).
+
+    **Authentication:** Hidden route — admin/moderator only.
+    **Rate Limit:** 50 requests per minute (user).
+
+    ### Response (202)
+
+    ```json
+    {
+      "data": {
+        "job": {
+          "id": "uuid",
+          "type": "calculate_ratings",
+          "status": "running"
+        }
+      }
+    }
+    ```
+
+    Poll `GET /admin/jobs` to follow progress.
+
+    ### Behavior on completion
+
+    Result string format:
+    `Updated: X, Skipped: Y (min N reviews, M users)`
