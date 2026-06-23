@@ -81,6 +81,180 @@
 	</div>
 
 	<p class="-mt-2 mb-3 text-xs text-fg-muted italic min-h-[1.25rem]">{{ activeFilterDescription() }}</p>
+
+	@if (activeFilterId()) {
+		<section class="mb-4 bg-surface border border-line rounded-card p-4">
+			<header class="flex items-center justify-between mb-3">
+				<h2 class="font-display m-0 text-sm font-semibold text-fg-secondary uppercase tracking-wider flex items-center gap-2">
+					<span aria-hidden="true" class="material-icons text-base text-brand">insights</span>
+					Stats
+				</h2>
+				<button
+					type="button"
+					class="bg-transparent border-0 text-fg-muted text-xs font-medium cursor-pointer inline-flex items-center gap-1 transition hover:text-fg"
+					(click)="toggleStatsExpanded()"
+				>
+					<span aria-hidden="true" class="material-icons text-base">{{ statsExpanded() ? 'expand_less' : 'expand_more' }}</span>
+					{{ statsExpanded() ? 'Less' : 'More' }}
+				</button>
+			</header>
+
+			@if (statsLoading() && !stats()) {
+				<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+					@for (i of [0,1,2,3]; track i) {
+						<ui-skeleton variant="rect" class="h-16 rounded-md" />
+					}
+				</div>
+			} @else if (statsError()) {
+				<div class="flex items-center justify-between gap-3 bg-danger/10 border border-danger/30 rounded-md p-3">
+					<div class="flex items-center gap-2 text-sm text-danger">
+						<span aria-hidden="true" class="material-icons text-base">error_outline</span>
+						Couldn't load stats.
+					</div>
+					<button
+						type="button"
+						class="bg-transparent border border-danger/40 text-danger px-2.5 py-1 rounded text-xs font-medium cursor-pointer transition hover:bg-danger/10"
+						(click)="retryStats()"
+					>
+						Retry
+					</button>
+				</div>
+			} @else if (stats(); as s) {
+				<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+					<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+						<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Entries</span>
+						<span class="font-display text-xl font-bold tabular-nums">{{ formatStat(s.totalEntries, '', 0) }}</span>
+					</div>
+					<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+						<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Real hours</span>
+						<span class="font-display text-xl font-bold tabular-nums">{{ formatStat(s.totalRealHours, 'h', 1) }}</span>
+					</div>
+					<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+						<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg ratio</span>
+						<span class="font-display text-xl font-bold text-brand tabular-nums">{{ formatStat(s.avgRatio) }}</span>
+					</div>
+					<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+						<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg personal ratio</span>
+						<span class="font-display text-xl font-bold text-brand tabular-nums">{{ formatStat(s.avgPersonalRatio) }}</span>
+					</div>
+				</div>
+
+				@if (statsExpanded()) {
+					<div class="mt-4 pt-4 border-t border-line grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Completion rate</span>
+							<span class="font-display text-base font-semibold text-success tabular-nums">{{ formatPercent(s.completionRate) }}</span>
+						</div>
+						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Abandonment rate</span>
+							<span class="font-display text-base font-semibold text-danger tabular-nums">{{ formatPercent(s.abandonmentRate) }}</span>
+						</div>
+						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg real duration</span>
+							<span class="font-display text-base font-semibold tabular-nums">{{ formatStat(s.avgRealDuration, 'h', 1) }}</span>
+						</div>
+						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg estimated duration</span>
+							<span class="font-display text-base font-semibold tabular-nums">{{ formatStat(s.avgEstimatedDuration, 'h', 1) }}</span>
+						</div>
+						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg score</span>
+							<span class="font-display text-base font-semibold tabular-nums">{{ formatStat(s.avgScore, '', 1) }}</span>
+						</div>
+						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg rating</span>
+							<span class="font-display text-base font-semibold tabular-nums">{{ formatStat(s.avgUserRating, '', 1) }}</span>
+						</div>
+						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1 col-span-2" [title]="'Sum of (realDuration - duration) over completed entries. Positive = took longer than estimated.'">
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Estimated vs real Δ (completed)</span>
+							<span
+								class="font-display text-base font-semibold tabular-nums"
+								[class.text-warning]="s.estimatedVsRealDelta !== null && s.estimatedVsRealDelta > 0"
+								[class.text-success]="s.estimatedVsRealDelta !== null && s.estimatedVsRealDelta < 0"
+							>{{ formatStat(s.estimatedVsRealDelta, 'h', 1) }}</span>
+						</div>
+					</div>
+
+					@if (s.longestPlayed || s.bestPersonalRatio || s.highestRated) {
+						<div class="mt-4 pt-4 border-t border-line">
+							<h3 class="text-[0.625rem] uppercase tracking-wider text-fg-muted font-semibold mb-2">Highlights</h3>
+							<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+								@if (s.longestPlayed; as h) {
+									<a [routerLink]="['/games', h.game.code]" class="flex items-center gap-3 bg-input-bg border border-line rounded-md p-2.5 no-underline transition hover:border-brand/40">
+										@if (h.game.backgroundUrl) {
+											<img [src]="h.game.backgroundUrl" [alt]="h.game.title" class="w-10 h-14 object-cover rounded shrink-0" loading="lazy" />
+										} @else {
+											<div class="w-10 h-14 bg-surface rounded shrink-0"></div>
+										}
+										<div class="min-w-0 flex-1">
+											<span class="block text-[0.625rem] uppercase tracking-wider text-fg-muted">Longest played</span>
+											<span class="block text-sm font-semibold text-fg line-clamp-1">{{ h.game.title }}</span>
+											<span class="block text-xs text-fg-secondary tabular-nums">{{ formatStat(h.value, 'h', 1) }}</span>
+										</div>
+									</a>
+								}
+								@if (s.bestPersonalRatio; as h) {
+									<a [routerLink]="['/games', h.game.code]" class="flex items-center gap-3 bg-input-bg border border-line rounded-md p-2.5 no-underline transition hover:border-brand/40">
+										@if (h.game.backgroundUrl) {
+											<img [src]="h.game.backgroundUrl" [alt]="h.game.title" class="w-10 h-14 object-cover rounded shrink-0" loading="lazy" />
+										} @else {
+											<div class="w-10 h-14 bg-surface rounded shrink-0"></div>
+										}
+										<div class="min-w-0 flex-1">
+											<span class="block text-[0.625rem] uppercase tracking-wider text-fg-muted">Best personal ratio</span>
+											<span class="block text-sm font-semibold text-fg line-clamp-1">{{ h.game.title }}</span>
+											<span class="block text-xs text-brand font-semibold tabular-nums">{{ formatStat(h.value) }}</span>
+										</div>
+									</a>
+								}
+								@if (s.highestRated; as h) {
+									<a [routerLink]="['/games', h.game.code]" class="flex items-center gap-3 bg-input-bg border border-line rounded-md p-2.5 no-underline transition hover:border-brand/40">
+										@if (h.game.backgroundUrl) {
+											<img [src]="h.game.backgroundUrl" [alt]="h.game.title" class="w-10 h-14 object-cover rounded shrink-0" loading="lazy" />
+										} @else {
+											<div class="w-10 h-14 bg-surface rounded shrink-0"></div>
+										}
+										<div class="min-w-0 flex-1">
+											<span class="block text-[0.625rem] uppercase tracking-wider text-fg-muted">Highest rated</span>
+											<span class="block text-sm font-semibold text-fg line-clamp-1">{{ h.game.title }}</span>
+											<span class="block text-xs text-warning font-semibold tabular-nums">{{ formatStat(h.value, '★', 1) }}</span>
+										</div>
+									</a>
+								}
+							</div>
+						</div>
+					}
+
+					<div class="mt-4 pt-4 border-t border-line">
+						<h3 class="text-[0.625rem] uppercase tracking-wider text-fg-muted font-semibold mb-2">By status</h3>
+						<div class="flex flex-wrap gap-2">
+							<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-fg-muted/10 text-fg-muted">
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">schedule</span>
+								Not started <strong class="tabular-nums">{{ s.countByStatus.not_started }}</strong>
+							</span>
+							<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-warning/10 text-warning">
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">play_circle</span>
+								Playing <strong class="tabular-nums">{{ s.countByStatus.playing }}</strong>
+							</span>
+							<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success">
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">check_circle</span>
+								Completed <strong class="tabular-nums">{{ s.countByStatus.completed }}</strong>
+							</span>
+							<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-danger/10 text-danger">
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">cancel</span>
+								Abandoned <strong class="tabular-nums">{{ s.countByStatus.abandoned }}</strong>
+							</span>
+							<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-subtle text-brand">
+								<span aria-hidden="true" class="material-icons text-[0.875rem]">all_inclusive</span>
+								Endless <strong class="tabular-nums">{{ s.countByStatus.endless }}</strong>
+							</span>
+						</div>
+					</div>
+				}
+			}
+		</section>
+	}
+
 	@if (showFilters()) {
 	<div
 		class="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm"

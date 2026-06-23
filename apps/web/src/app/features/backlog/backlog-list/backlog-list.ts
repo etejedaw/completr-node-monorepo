@@ -13,7 +13,7 @@ import { FormsModule } from "@angular/forms";
 import { BacklogEntry, BacklogStatus, Genre, Platform } from "../../../core/models";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { BacklogService, BacklogFilters } from "../backlog";
-import { SavedFiltersService, SavedFilter } from "../saved-filters";
+import { SavedFiltersService, SavedFilter, SavedFilterStats } from "../saved-filters";
 import { QueueService } from "../../queue/queue";
 import { FavoritesService } from "../../favorites/favorites";
 import { GamesService } from "../../games/games";
@@ -122,6 +122,67 @@ export class BacklogList implements OnInit {
 	protected readonly activeFilterDescription = signal("");
 	protected readonly newFilterName = signal("");
 	protected readonly savingFilter = signal(false);
+
+	protected readonly stats = signal<SavedFilterStats | null>(null);
+	protected readonly statsLoading = signal(false);
+	protected readonly statsError = signal(false);
+	protected readonly statsExpanded = signal(
+		localStorage.getItem("completr.backlog.statsExpanded") === "true"
+	);
+
+	private readonly loadStatsEffect = effect(() => {
+		const id = this.activeFilterId();
+		if (!id) {
+			untracked(() => {
+				this.stats.set(null);
+				this.statsLoading.set(false);
+				this.statsError.set(false);
+			});
+			return;
+		}
+		untracked(() => this.loadStats(id));
+	});
+
+	private loadStats(id: string) {
+		this.statsLoading.set(true);
+		this.statsError.set(false);
+		this.savedFiltersService.getStats(id).subscribe({
+			next: stats => {
+				this.stats.set(stats);
+				this.statsLoading.set(false);
+			},
+			error: () => {
+				this.stats.set(null);
+				this.statsLoading.set(false);
+				this.statsError.set(true);
+			}
+		});
+	}
+
+	retryStats() {
+		const id = this.activeFilterId();
+		if (id) this.loadStats(id);
+	}
+
+	toggleStatsExpanded() {
+		const next = !this.statsExpanded();
+		this.statsExpanded.set(next);
+		localStorage.setItem("completr.backlog.statsExpanded", String(next));
+	}
+
+	formatStat(value: number | null, suffix = "", decimals = 2): string {
+		if (value == null) return "—";
+		const rounded =
+			decimals === 0
+				? Math.round(value).toString()
+				: value.toFixed(decimals).replace(/\.?0+$/, "");
+		return rounded + suffix;
+	}
+
+	formatPercent(value: number | null): string {
+		if (value == null) return "—";
+		return (value * 100).toFixed(0) + "%";
+	}
 
 	protected readonly hasActiveFilters = () => this.activeFiltersCount() > 0;
 
@@ -380,6 +441,7 @@ export class BacklogList implements OnInit {
 				next: () => {
 					this.savingFilter.set(false);
 					this.loadSavedFilters();
+					this.loadStats(id);
 				},
 				error: () => this.savingFilter.set(false)
 			});
