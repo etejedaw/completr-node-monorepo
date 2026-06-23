@@ -58,6 +58,21 @@ export async function patchSavedFilter(request: Request, response: Response) {
 	return response.status(200).json({ data });
 }
 
+export async function getSavedFilterStats(
+	request: Request,
+	response: Response
+) {
+	const params = request.locals.params as SavedFilterIdParams;
+	const user = request.locals.user as RequestUser;
+
+	const stats = await savedFiltersService.getSavedFilterStats(
+		params.filterId,
+		user.id
+	);
+
+	return response.status(200).json({ data: { stats } });
+}
+
 export async function deleteSavedFilter(request: Request, response: Response) {
 	const params = request.locals.params as SavedFilterIdParams;
 	const user = request.locals.user as RequestUser;

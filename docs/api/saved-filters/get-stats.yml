@@ -1,0 +1,94 @@
+info:
+    name: Get Saved Filter Stats
+    type: http
+    seq: 5
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/saved-filters/:filterId/stats"
+    params:
+        - name: filterId
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Saved Filter Stats
+
+    Returns aggregated statistics over the backlog entries that match the saved filter's stored query. The same WHERE used by `GET /users/me/backlog` is applied, but no rows are returned — only aggregations computed in SQL.
+
+    Only the owner of the saved filter can read its stats.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param    | Type | Required | Description           |
+    |----------|------|----------|-----------------------|
+    | filterId | uuid | Yes      | The saved filter UUID |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "stats": {
+          "totalEntries": 42,
+          "countByStatus": {
+            "not_started": 5,
+            "playing": 2,
+            "completed": 30,
+            "abandoned": 4,
+            "endless": 1
+          },
+          "totalRealHours": 612.5,
+          "avgRealDuration": 20.42,
+          "avgEstimatedDuration": 18.7,
+          "avgScore": 82.4,
+          "avgUserRating": 7.6,
+          "avgRatio": 4.71,
+          "avgPersonalRatio": 4.03,
+          "estimatedVsRealDelta": 52.1,
+          "completionRate": 0.714,
+          "abandonmentRate": 0.095,
+          "longestPlayed": {
+            "backlogId": "uuid",
+            "game": { "id": "uuid", "code": "elden-ring", "title": "Elden Ring", "backgroundUrl": "https://..." },
+            "value": 92.5
+          },
+          "bestPersonalRatio": {
+            "backlogId": "uuid",
+            "game": { "id": "uuid", "code": "florence", "title": "Florence", "backgroundUrl": "https://..." },
+            "value": 82
+          },
+          "highestRated": {
+            "backlogId": "uuid",
+            "game": { "id": "uuid", "code": "the-witcher-3", "title": "The Witcher 3", "backgroundUrl": "https://..." },
+            "value": 10
+          }
+        }
+      }
+    }
+    ```
+
+    ### Notes
+
+    - `totalRealHours` sums `realDuration` across all matching entries (nulls ignored).
+    - `avgRatio` = `AVG(score / NULLIF(duration, 0))`.
+    - `avgPersonalRatio` = `AVG(score / NULLIF(realDuration, 0))`.
+    - `estimatedVsRealDelta` = `SUM(realDuration - duration)` over `completed` entries. Positive means players took longer than the estimated duration on average.
+    - `completionRate` / `abandonmentRate` are ratios in [0, 1] (multiply by 100 for percent). `null` when `totalEntries = 0`.
+    - Highlights (`longestPlayed`, `bestPersonalRatio`, `highestRated`) return the single matching entry with its `value`. `null` when no entry has the required field populated.
+    - Numeric fields return `null` when there is no data to aggregate.
+
+    ### Errors
+
+    | Code                          | HTTP | Description                          |
+    |-------------------------------|------|--------------------------------------|
+    | SAVED_FILTER_NOT_FOUND        | 404  | Filter does not exist                |
+    | SAVED_FILTER_FORBIDDEN        | 403  | Caller is not the owner              |
+    | SAVED_FILTER_VALIDATION_ERROR | 400  | Stored filters JSON is not valid     |

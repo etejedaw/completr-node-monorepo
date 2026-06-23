@@ -31,6 +31,16 @@ router.get(
 	savedFiltersController.getMeSavedFilters
 );
 
+router.get(
+	"/:filterId/stats",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator"),
+		validateSchemaMiddleware(SavedFilterIdParamsSchema, "params")
+	],
+	savedFiltersController.getSavedFilterStats
+);
+
 router.patch(
 	"/:filterId",
 	[

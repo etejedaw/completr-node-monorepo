@@ -184,6 +184,8 @@
 - [x] Error handling completo registrado en normalizers globales (404, 403 forbidden, 403 limit reached, 500)
 - [x] Campo `showInBacklog` (boolean, default true) — controla si aparece como chip en el backlog
 - [x] Campo `isDefault` (boolean, default false) — auto-aplica al abrir el backlog. Solo uno por usuario, requiere showInBacklog
+- [x] `GET /users/me/saved-filters/:filterId/stats` — Estadísticas agregadas del backlog que matchea la vista (totales, promedios, ratios, completion/abandonment rate, highlights: longest played / best personal ratio / highest rated)
+- [ ] **Panel configurable de stats por vista guardada** — Permitir que el usuario active/desactive qué stats ver en cada saved view. MVP: persistir en `localStorage` con key `completr.backlog.statsEnabled.<filterId>` y defaults hardcodeados (4 KPIs visibles + completion rate). Migrar a columna `enabledStats TEXT[]` en `SavedFilter` cuando se necesite sync cross-device (requiere migración Sequelize + DDL). Decisión diferida porque no bloquea — el endpoint ya devuelve todas las stats y el frontend ya las renderiza.
 
 ### Módulo de Listas
 
@@ -1145,3 +1147,13 @@ Estas decisiones aplican a **todo el proyecto**, no son una fase:
     - `GameShelf` — Puntaje/duración que el usuario eligió para su backlog. Se precarga al añadir un juego, editable manualmente. Determina el ratio en el backlog.
     - `ListItem` — Puntaje/duración congelados desde la fuente oficial de la lista. No editables manualmente. Actualizables con "actualizar puntajes" (refresh-scores). Las listas no permiten valores custom, solo fuentes oficiales.
 - **Filtros guardados (`SavedFilter`):** Los usuarios pueden filtrar su backlog libremente (status, género, plataforma, semestre, etc.). Los filtros se pueden guardar con un nombre. Free: hasta 5 guardados. Premium: ilimitados. Los filtros guardados son presets de query params, no listas.
+
+---
+
+## 🔧 Deuda técnica detectada (auditoría 2026-06-23)
+
+Pendientes que surgieron durante la auditoría de queries Sequelize/Postgres y la limpieza arquitectónica del 23-jun. Ver `docs/changelogs/2026-06-23-sequelize-and-architecture-audit.md` para contexto.
+
+- [ ] **Threshold de `calculate_ratings`/`calculate_durations` posiblemente prematuro.** Con 12 usuarios activos y umbral de 10% (mínimo 2 reviews por juego), el job `calculate_ratings` corre con `Updated: 0, Skipped: 21`. Revisar si conviene bajar el mínimo absoluto o reformular el threshold.
+- [ ] **`GameTimes` y `GameScores` sin PRIMARY KEY ni FOREIGN KEY.** La migración inicial los declaraba pero el `IF NOT EXISTS` saltó la creación. El 23-jun se añadió solo el UNIQUE para destrabar el upsert; falta restaurar PK e FK con una migración nueva. Sequelize gestiona la integridad a nivel de app, pero a nivel de BD están sueltas.
+- [ ] **Auditoría services-not-models pendiente en módulos no tocados el 23-jun.** Quedaron sin revisar: `game-shelf`, `game-platform`, `game-genre`, `game-external`, `game-reports`, `saved-filters`, `user-followers`, `user-follow-requests`, `list-followers`, `genres`, `platforms`, `score-sources`. Probable que tengan violaciones del patrón documentado en `docs/context/modules.md:126`.
