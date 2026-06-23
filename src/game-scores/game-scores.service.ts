@@ -52,7 +52,10 @@ export async function upsertScore(
 	source: string,
 	score: number
 ) {
-	return GameScore.upsert({ gameId, source, score });
+	return GameScore.upsert(
+		{ gameId, source, score },
+		{ conflictFields: ["gameId", "source"] }
+	);
 }
 
 export async function deleteGameScore(gameId: string, source: string) {

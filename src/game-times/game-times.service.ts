@@ -52,7 +52,10 @@ export async function upsertTime(
 	source: TimeSource,
 	duration: number
 ) {
-	return GameTime.upsert({ gameId, source, duration });
+	return GameTime.upsert(
+		{ gameId, source, duration },
+		{ conflictFields: ["gameId", "source"] }
+	);
 }
 
 export async function deleteGameTime(gameId: string, source: TimeSource) {
