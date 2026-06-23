@@ -97,8 +97,7 @@ export async function removeFromWishlist(user: RequestUser, gameId: string) {
 export async function findWishlistByUserId(userId: string) {
 	return Wishlist.findAll({
 		where: { userId },
-		include: INCLUDE,
-		order: [["position", "ASC"]]
+		attributes: ["gameId"]
 	});
 }
 
