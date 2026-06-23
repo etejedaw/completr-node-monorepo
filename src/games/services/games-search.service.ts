@@ -84,6 +84,13 @@ export async function findGamesByIds(ids: string[]) {
 	return Game.findAll({ where: { id: ids } });
 }
 
+export async function findActiveGameSummaries() {
+	return Game.findAll({
+		where: { isActive: true },
+		attributes: ["id", "code"]
+	});
+}
+
 export async function findGameById(id: string) {
 	return await Game.findOne({
 		where: { id, isActive: true },

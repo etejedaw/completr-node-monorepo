@@ -28,6 +28,7 @@ export {
 	findGameByCode,
 	findGameById,
 	findGamesByIds,
+	findActiveGameSummaries,
 	findAll,
 	findLatestReviewed,
 	searchGamesLocal,

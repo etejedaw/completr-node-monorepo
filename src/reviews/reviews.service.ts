@@ -97,6 +97,23 @@ export async function findReviewContentByUserAndGameIds(
 	);
 }
 
+export async function findAggregatedRatingsByGame() {
+	return (await Review.findAll({
+		attributes: [
+			"gameId",
+			[fn("AVG", col("rating")), "avgRating"],
+			[fn("COUNT", col("rating")), "reviewCount"]
+		],
+		where: { rating: { [Op.not]: null } },
+		group: ["gameId"],
+		raw: true
+	})) as unknown as {
+		gameId: string;
+		avgRating: number;
+		reviewCount: number;
+	}[];
+}
+
 export async function findLatestReviewedGameIds(limit = 16) {
 	const rows = (await Review.findAll({
 		where: { [Op.and]: hasContent },

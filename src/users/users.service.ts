@@ -40,6 +40,10 @@ export async function findUsersByIds(ids: string[]) {
 	return User.findAll({ where: { id: ids } });
 }
 
+export async function countActiveUsers() {
+	return User.count({ where: { isActive: true } });
+}
+
 export async function searchUsers(query: string, limit = 20) {
 	return User.findAll({
 		where: {

@@ -139,6 +139,23 @@ export async function countDistinctGamesByUserStatusAndGameIds(
 	return Backlog.count({ where, distinct: true, col: "gameId" });
 }
 
+export async function findAggregatedRealDurationsByGame() {
+	return (await Backlog.findAll({
+		attributes: [
+			"gameId",
+			[sequelize.fn("AVG", sequelize.col("realDuration")), "avgDuration"],
+			[sequelize.fn("COUNT", sequelize.col("realDuration")), "entryCount"]
+		],
+		where: { realDuration: { [Op.not]: null, [Op.gt]: 0 } },
+		group: ["gameId"],
+		raw: true
+	})) as unknown as {
+		gameId: string;
+		avgDuration: number;
+		entryCount: number;
+	}[];
+}
+
 export async function createNotStartedBacklog(
 	userId: string,
 	gameId: string,

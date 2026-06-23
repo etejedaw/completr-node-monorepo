@@ -29,6 +29,16 @@ export async function findByGameId(gameId: string) {
 	return GameExternal.findAll({ where: { gameId } });
 }
 
+export async function findGameIdsBySource(
+	source: ExternalSource
+): Promise<string[]> {
+	const rows = await GameExternal.findAll({
+		where: { source },
+		attributes: ["gameId"]
+	});
+	return rows.map(r => r.gameId);
+}
+
 export async function upsert(
 	gameId: string,
 	source: ExternalSource,

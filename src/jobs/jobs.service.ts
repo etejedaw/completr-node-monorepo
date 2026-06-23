@@ -1,13 +1,12 @@
 import { Op } from "sequelize";
-import { sequelize } from "../database/sequelize.database";
 import { Job } from "./job.model";
-import { Game } from "../games/game.model";
-import { GameExternal } from "../game-external/game-external.model";
-import { GameScore } from "../game-scores/game-score.model";
-import { GameTime } from "../game-times/game-time.model";
-import { Review } from "../reviews/review.model";
-import { Backlog } from "../backlog/backlog.model";
-import { User } from "../users/user.model";
+import * as gamesService from "../games/games.service";
+import * as gameExternalService from "../game-external/game-external.service";
+import * as gameScoresService from "../game-scores/game-scores.service";
+import * as gameTimesService from "../game-times/game-times.service";
+import * as reviewsService from "../reviews/reviews.service";
+import * as backlogService from "../backlog/backlog.service";
+import * as usersService from "../users/users.service";
 import { RawgProvider } from "../rawg/rawg.provider";
 import { apiKeysConfig } from "../common/config/api-keys.config";
 
@@ -69,16 +68,11 @@ async function runPopulateRawg(jobId: string, limit?: number) {
 	let errors = 0;
 
 	try {
-		const gamesWithExternal = await GameExternal.findAll({
-			where: { source: "rawg" },
-			attributes: ["gameId"]
-		});
-		const hasRawg = new Set(gamesWithExternal.map(e => e.gameId));
+		const gameIdsWithRawg =
+			await gameExternalService.findGameIdsBySource("rawg");
+		const hasRawg = new Set(gameIdsWithRawg);
 
-		const allGames = await Game.findAll({
-			where: { isActive: true },
-			attributes: ["id", "code"]
-		});
+		const allGames = await gamesService.findActiveGameSummaries();
 
 		let toProcess = allGames.filter(g => !hasRawg.has(g.id));
 		if (limit) toProcess = toProcess.slice(0, limit);
@@ -94,11 +88,11 @@ async function runPopulateRawg(jobId: string, limit?: number) {
 			try {
 				const detail = await rawg.getGameBySlug(game.code);
 				if (detail?.id) {
-					await GameExternal.create({
-						gameId: game.id,
-						source: "rawg",
-						externalId: String(detail.id)
-					});
+					await gameExternalService.create(
+						game.id,
+						"rawg",
+						String(detail.id)
+					);
 					processed++;
 				}
 			} catch {
@@ -130,26 +124,13 @@ async function runCalculateRatings(jobId: string) {
 	let skipped = 0;
 
 	try {
-		const totalUsers = await User.count({ where: { isActive: true } });
+		const totalUsers = await usersService.countActiveUsers();
 		const minReviews = Math.max(
 			2,
 			Math.ceil(totalUsers * MIN_THRESHOLD_PERCENT)
 		);
 
-		const results = (await Review.findAll({
-			attributes: [
-				"gameId",
-				[sequelize.fn("AVG", sequelize.col("rating")), "avgRating"],
-				[sequelize.fn("COUNT", sequelize.col("rating")), "reviewCount"]
-			],
-			where: { rating: { [Op.not]: null } },
-			group: ["gameId"],
-			raw: true
-		})) as unknown as {
-			gameId: string;
-			avgRating: number;
-			reviewCount: number;
-		}[];
+		const results = await reviewsService.findAggregatedRatingsByGame();
 
 		for (const { gameId, avgRating, reviewCount } of results) {
 			if (Number(reviewCount) < minReviews) {
@@ -157,11 +138,7 @@ async function runCalculateRatings(jobId: string) {
 				continue;
 			}
 			const rounded = Math.round(avgRating * 100) / 100;
-			await GameScore.upsert({
-				gameId,
-				source: "completr",
-				score: rounded
-			});
+			await gameScoresService.upsertScore(gameId, "completr", rounded);
 			updated++;
 		}
 
@@ -185,32 +162,14 @@ async function runCalculateDurations(jobId: string) {
 	let skipped = 0;
 
 	try {
-		const totalUsers = await User.count({ where: { isActive: true } });
+		const totalUsers = await usersService.countActiveUsers();
 		const minEntries = Math.max(
 			2,
 			Math.ceil(totalUsers * MIN_THRESHOLD_PERCENT)
 		);
 
-		const results = (await Backlog.findAll({
-			attributes: [
-				"gameId",
-				[
-					sequelize.fn("AVG", sequelize.col("realDuration")),
-					"avgDuration"
-				],
-				[
-					sequelize.fn("COUNT", sequelize.col("realDuration")),
-					"entryCount"
-				]
-			],
-			where: { realDuration: { [Op.not]: null, [Op.gt]: 0 } },
-			group: ["gameId"],
-			raw: true
-		})) as unknown as {
-			gameId: string;
-			avgDuration: number;
-			entryCount: number;
-		}[];
+		const results =
+			await backlogService.findAggregatedRealDurationsByGame();
 
 		for (const { gameId, avgDuration, entryCount } of results) {
 			if (Number(entryCount) < minEntries) {
@@ -218,11 +177,7 @@ async function runCalculateDurations(jobId: string) {
 				continue;
 			}
 			const rounded = Math.round(avgDuration * 100) / 100;
-			await GameTime.upsert({
-				gameId,
-				source: "completr",
-				duration: rounded
-			});
+			await gameTimesService.upsertTime(gameId, "completr", rounded);
 			updated++;
 		}
 
