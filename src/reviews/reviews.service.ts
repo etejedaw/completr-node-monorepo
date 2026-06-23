@@ -2,6 +2,7 @@ import { fn, col, Op, literal } from "sequelize";
 import { Review } from "./review.model";
 import { Game } from "../games/game.model";
 import { User } from "../users/user.model";
+import * as gamesService from "../games/games.service";
 import * as reviewsServiceError from "./errors/reviews.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
@@ -15,7 +16,7 @@ export async function createReview(
 	gameId: string,
 	dto: { content?: string; rating?: number }
 ) {
-	const game = await Game.findByPk(gameId);
+	const game = await gamesService.findGameById(gameId);
 	if (!game) throw reviewsServiceError.gameNotFoundError();
 
 	const existing = await Review.findOne({ where: { userId, gameId } });
