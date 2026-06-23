@@ -5,6 +5,8 @@ import { UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
 import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as savedFilterServiceError from "./errors/saved-filters.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import * as backlogService from "../backlog/backlog.service";
+import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
 
 const FREE_FILTER_LIMIT = 5;
 
@@ -106,6 +108,19 @@ async function clearDefault(userId: string) {
 		{ isDefault: false },
 		{ where: { userId, isDefault: true } }
 	);
+}
+
+export async function getSavedFilterStats(id: string, userId: string) {
+	const filter = await findSavedFilterById(id);
+	if (!filter) throw savedFilterServiceError.notFoundError();
+	if (filter.userId !== userId)
+		throw savedFilterServiceError.forbiddenError();
+
+	const parsed = BacklogQuerySchema.safeParse(filter.filters);
+	if (!parsed.success)
+		throw savedFilterServiceError.validationError(parsed.error);
+
+	return backlogService.computeBacklogStats(userId, parsed.data);
 }
 
 export async function removeSavedFilter(id: string, userId: string) {

@@ -1,4 +1,12 @@
-import { Op, Order, literal, QueryTypes, Transaction } from "sequelize";
+import {
+	Op,
+	Order,
+	literal,
+	QueryTypes,
+	Transaction,
+	fn,
+	col
+} from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
@@ -11,10 +19,7 @@ import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import { BacklogQuery } from "./schemas/backlog-query.schema";
 import * as backlogServiceError from "./errors/backlog.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import {
-	buildDateRangeWhere,
-	buildRangeWhere
-} from "../common/utils/sequelize-range.util";
+import { buildBacklogWhere } from "./utils/build-backlog-where.util";
 
 const BACKLOG_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
 const BACKLOG_PLATFORM_ATTRS = ["id", "abbreviation"];
@@ -168,129 +173,6 @@ export async function createNotStartedBacklog(
 	);
 }
 
-function buildWhere(base: Record<string, unknown>, filters: BacklogQuery) {
-	const where: Record<string, unknown> = { ...base };
-	const andConditions: object[] = [];
-
-	if (filters.status)
-		where.status =
-			filters.status.length === 1
-				? filters.status[0]
-				: { [Op.in]: filters.status };
-	if (filters.game_id) where.gameId = filters.game_id;
-	if (filters.platform_id) where.platformId = filters.platform_id;
-
-	if (filters.platforms && filters.platforms.length > 0) {
-		const escaped = filters.platforms
-			.map(p => sequelize.escape(p))
-			.join(", ");
-		andConditions.push({
-			platformId: {
-				[Op.in]: literal(
-					`(SELECT id FROM "Platforms" WHERE code IN (${escaped}))`
-				)
-			}
-		});
-	}
-
-	if (filters.genres && filters.genres.length > 0) {
-		const escaped = filters.genres.map(g => sequelize.escape(g)).join(", ");
-		andConditions.push({
-			gameId: {
-				[Op.in]: literal(
-					`(SELECT DISTINCT gg."gameId" FROM "GameGenres" gg JOIN "Genres" g ON g.id = gg."genreId" WHERE g.code IN (${escaped}))`
-				)
-			}
-		});
-	}
-
-	if (
-		filters.release_year_from !== undefined ||
-		filters.release_year_to !== undefined
-	) {
-		const conditions: string[] = [];
-		if (filters.release_year_from !== undefined)
-			conditions.push(
-				`EXTRACT(YEAR FROM g."releaseAt") >= ${filters.release_year_from}`
-			);
-		if (filters.release_year_to !== undefined)
-			conditions.push(
-				`EXTRACT(YEAR FROM g."releaseAt") <= ${filters.release_year_to}`
-			);
-		andConditions.push({
-			gameId: {
-				[Op.in]: literal(
-					`(SELECT g.id FROM "Games" g WHERE ${conditions.join(" AND ")})`
-				)
-			}
-		});
-	}
-
-	const startedAt = buildDateRangeWhere(
-		filters.started_from,
-		filters.started_to
-	);
-	if (startedAt) where.startedAt = startedAt;
-
-	if (filters.no_finished_date) {
-		where.finishedAt = { [Op.is]: null };
-	} else {
-		const finishedAt = buildDateRangeWhere(
-			filters.finished_from,
-			filters.finished_to
-		);
-		if (finishedAt) where.finishedAt = finishedAt;
-	}
-
-	const score = buildRangeWhere(filters.min_score, filters.max_score);
-	if (score) where.score = score;
-
-	const duration = buildRangeWhere(
-		filters.min_duration,
-		filters.max_duration
-	);
-	if (duration) where.duration = duration;
-
-	const realDuration = buildRangeWhere(
-		filters.min_real_duration,
-		filters.max_real_duration
-	);
-	if (realDuration) where.realDuration = realDuration;
-
-	const userRating = buildRangeWhere(filters.min_rating, filters.max_rating);
-	if (userRating) where.userRating = userRating;
-
-	if (filters.min_ratio !== undefined)
-		andConditions.push(
-			literal(
-				`("Backlog"."score" / NULLIF("Backlog"."duration", 0)) >= ${filters.min_ratio}`
-			)
-		);
-	if (filters.max_ratio !== undefined)
-		andConditions.push(
-			literal(
-				`("Backlog"."score" / NULLIF("Backlog"."duration", 0)) <= ${filters.max_ratio}`
-			)
-		);
-	if (filters.min_personal_ratio !== undefined)
-		andConditions.push(
-			literal(
-				`("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) >= ${filters.min_personal_ratio}`
-			)
-		);
-	if (filters.max_personal_ratio !== undefined)
-		andConditions.push(
-			literal(
-				`("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) <= ${filters.max_personal_ratio}`
-			)
-		);
-
-	if (andConditions.length > 0)
-		where[Op.and as unknown as string] = andConditions;
-
-	return where;
-}
-
 function buildIncludes(filters: BacklogQuery) {
 	const gameInclude: Record<string, unknown> = {
 		model: Game,
@@ -382,12 +264,107 @@ export async function countBacklogByStatus(userId: string, publicOnly = false) {
 	return result;
 }
 
+export interface BacklogStats {
+	totalEntries: number;
+	countByStatus: {
+		not_started: number;
+		playing: number;
+		completed: number;
+		abandoned: number;
+		endless: number;
+	};
+	totalRealHours: number | null;
+	avgRealDuration: number | null;
+	avgEstimatedDuration: number | null;
+	avgScore: number | null;
+	avgUserRating: number | null;
+	avgRatio: number | null;
+	avgPersonalRatio: number | null;
+	estimatedVsRealDelta: number | null;
+}
+
+function toNumberOrNull(value: unknown): number | null {
+	if (value === null || value === undefined) return null;
+	const n = Number(value);
+	return Number.isFinite(n) ? n : null;
+}
+
+export async function computeBacklogStats(
+	userId: string,
+	filters: BacklogQuery
+): Promise<BacklogStats> {
+	const row = (await Backlog.findOne({
+		where: buildBacklogWhere({ userId }, filters),
+		attributes: [
+			[fn("COUNT", col("id")), "totalEntries"],
+			[
+				literal(`COUNT(*) FILTER (WHERE status = 'not_started')`),
+				"notStarted"
+			],
+			[literal(`COUNT(*) FILTER (WHERE status = 'playing')`), "playing"],
+			[
+				literal(`COUNT(*) FILTER (WHERE status = 'completed')`),
+				"completed"
+			],
+			[
+				literal(`COUNT(*) FILTER (WHERE status = 'abandoned')`),
+				"abandoned"
+			],
+			[literal(`COUNT(*) FILTER (WHERE status = 'endless')`), "endless"],
+			[fn("SUM", col("realDuration")), "totalRealHours"],
+			[fn("AVG", col("realDuration")), "avgRealDuration"],
+			[fn("AVG", col("duration")), "avgEstimatedDuration"],
+			[fn("AVG", col("score")), "avgScore"],
+			[fn("AVG", col("userRating")), "avgUserRating"],
+			[
+				literal(
+					`AVG("Backlog"."score" / NULLIF("Backlog"."duration", 0))`
+				),
+				"avgRatio"
+			],
+			[
+				literal(
+					`AVG("Backlog"."score" / NULLIF("Backlog"."realDuration", 0))`
+				),
+				"avgPersonalRatio"
+			],
+			[
+				literal(
+					`SUM("Backlog"."realDuration" - "Backlog"."duration") FILTER (WHERE status = 'completed')`
+				),
+				"estimatedVsRealDelta"
+			]
+		],
+		raw: true
+	})) as unknown as Record<string, unknown> | null;
+
+	const safe = row ?? {};
+	return {
+		totalEntries: Number(safe.totalEntries ?? 0),
+		countByStatus: {
+			not_started: Number(safe.notStarted ?? 0),
+			playing: Number(safe.playing ?? 0),
+			completed: Number(safe.completed ?? 0),
+			abandoned: Number(safe.abandoned ?? 0),
+			endless: Number(safe.endless ?? 0)
+		},
+		totalRealHours: toNumberOrNull(safe.totalRealHours),
+		avgRealDuration: toNumberOrNull(safe.avgRealDuration),
+		avgEstimatedDuration: toNumberOrNull(safe.avgEstimatedDuration),
+		avgScore: toNumberOrNull(safe.avgScore),
+		avgUserRating: toNumberOrNull(safe.avgUserRating),
+		avgRatio: toNumberOrNull(safe.avgRatio),
+		avgPersonalRatio: toNumberOrNull(safe.avgPersonalRatio),
+		estimatedVsRealDelta: toNumberOrNull(safe.estimatedVsRealDelta)
+	};
+}
+
 export async function findBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}
 ) {
 	const query: Record<string, unknown> = {
-		where: buildWhere({ userId }, filters),
+		where: buildBacklogWhere({ userId }, filters),
 		include: buildIncludes(filters),
 		order: buildOrder(filters),
 		limit: filters.limit ?? 100,
@@ -599,7 +576,7 @@ export async function findPublicBacklogByUserId(
 	filters: BacklogQuery = {}
 ) {
 	const query: Record<string, unknown> = {
-		where: buildWhere({ userId, isPublic: true }, filters),
+		where: buildBacklogWhere({ userId, isPublic: true }, filters),
 		include: buildIncludes(filters),
 		order: buildOrder(filters),
 		limit: filters.limit ?? 100,
