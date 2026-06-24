@@ -13,7 +13,7 @@ settings:
 docs: |-
     ## Get All Games
 
-    Returns a paginated list of games with optional advanced filters.
+    Returns a paginated list of games with optional advanced filters. Each entry is a lightweight card shape — use `GET /games/:code` to fetch the full detail (description, platforms, scores, times, externals, dlcs, parent game, compilation items).
 
     **Authentication:** Bearer token required (roles: user, premium, moderator).
     **Rate Limit:** 100 requests per minute.
@@ -53,12 +53,13 @@ docs: |-
             "id": "uuid",
             "title": "Metro Exodus",
             "code": "metro-exodus",
-            "description": "...",
-            "releaseAt": "2019-02-14",
-            "platforms": [{ "id": "...", "abbreviation": "steam" }],
-            "genres": [{ "id": "...", "code": "shooter", "name": "Shooter" }],
-            "scores": [{ "source": "metacritic", "score": 4.1 }],
-            "times": [{ "source": "hltb", "duration": 12 }]
+            "backgroundUrl": "https://...",
+            "isDlc": false,
+            "ratio": 0.34,
+            "justImported": false,
+            "genres": [
+              { "id": "uuid", "name": "Shooter", "code": "shooter" }
+            ]
           }
         ],
         "total": 1,
@@ -67,3 +68,5 @@ docs: |-
       }
     }
     ```
+
+    The list shape only includes the fields needed to render a grid card or the featured hero (cover, title, code, isDlc, ratio, genres). `description`, `platforms`, `scores`, `times`, `externalLinks`, `dlcs`, `parentGame`, `compilationItems`, `partOfCompilations`, `coverUrl`, `variant` and `releaseAt` are intentionally omitted to keep the payload small. Filter query params still operate at the DB layer — they don't require those fields to be returned.
