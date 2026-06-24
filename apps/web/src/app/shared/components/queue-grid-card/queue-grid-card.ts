@@ -5,6 +5,7 @@ import {
 	output
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { CdkDragHandle } from "@angular/cdk/drag-drop";
 import { UiIconButton } from "../../ui";
 
 export interface QueueGridGame {
@@ -25,7 +26,7 @@ export type QueueStatusChange = "playing";
 
 @Component({
 	selector: "app-queue-grid-card",
-	imports: [RouterLink, UiIconButton],
+	imports: [RouterLink, CdkDragHandle, UiIconButton],
 	template: `
 		<div class="flex flex-col gap-1.5 group">
 			<div class="block relative">
@@ -94,6 +95,17 @@ export type QueueStatusChange = "playing";
 				</div>
 				@if (showActions()) {
 					<div class="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 pointer-coarse:opacity-100 transition">
+						@if (showDragHandle()) {
+							<button
+								uiIconButton size="sm"
+								cdkDragHandle
+								class="cursor-grab active:cursor-grabbing touch-none"
+								aria-label="Drag to reorder"
+								title="Drag to reorder"
+							>
+								<span aria-hidden="true" class="material-icons text-base">drag_indicator</span>
+							</button>
+						}
 						<button
 							uiIconButton size="sm"
 							[disabled]="isFirst()"
@@ -128,6 +140,7 @@ export class QueueGridCard {
 	entry = input.required<QueueGridEntry>();
 	position = input.required<number>();
 	showActions = input<boolean>(false);
+	showDragHandle = input<boolean>(false);
 	isFirst = input<boolean>(false);
 	isLast = input<boolean>(false);
 	statusUpdating = input<boolean>(false);
