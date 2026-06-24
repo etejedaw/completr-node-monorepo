@@ -8,6 +8,7 @@ import { GameSearchQuery } from "./schemas/game-search-query.schema";
 import {
 	compilationItemSerializer,
 	gameFriendActivitySerializer,
+	gameListSerializer,
 	gameListSummarySerializer,
 	gamePlayerSerializer,
 	gameSerializer
@@ -42,7 +43,7 @@ export async function getAllGames(request: Request, response: Response) {
 	const gamesPlain = games.map(game => game.get({ plain: true }));
 
 	const data = {
-		games: gamesPlain.map(g => gameSerializer(g)),
+		games: gamesPlain.map(g => gameListSerializer(g)),
 		total,
 		limit: query.limit,
 		offset: query.offset
@@ -58,7 +59,7 @@ export async function getLatestReviewedGames(
 	const games = await gameService.findLatestReviewed(limit);
 	const gamesPlain = games.map(game => game.get({ plain: true }));
 
-	const data = { games: gamesPlain.map(g => gameSerializer(g)) };
+	const data = { games: gamesPlain.map(g => gameListSerializer(g)) };
 	return response.status(200).json({ data });
 }
 

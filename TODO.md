@@ -568,7 +568,7 @@
     - `Backlogs.notes` → decode
     - `Users.name`, `Users.bio` → decode
     - `GameShelf.notes`, `GameShelf.edition` → decode
-- [ ] Ejecutar en local + en `env.production.local`, luego borrar el archivo de migración (mismo patrón que el round-list-item-scores)
+- [x] Ejecutar en local + en `env.production.local`, luego borrar el archivo de migración (mismo patrón que el round-list-item-scores)
 - [ ] (Opcional) Tabla `slug_redirects(old_code, new_code, gameId)` + middleware en game-detail que resuelva 404 contra esa tabla, para no romper bookmarks externos
 
 ### Limpieza de descripciones multi-idioma (deferido desde Fase 2 — FB-053)
@@ -593,14 +593,14 @@
 - [ ] Revisión general del código: legibilidad, naming, estructura de módulos
 - [ ] Auditar endpoints: verificar que cada uno tiene validación, auth y rate limiting correcto
 - [ ] Revisar llamadas con Promise.all en el frontend: evaluar si se pueden reducir combinando endpoints en el backend
-- [ ] Optimizar queries N+1 en Sequelize (eager loading)
+- [x] Optimizar queries N+1 en Sequelize (eager loading) — auditoría 2026-06-23 eliminó el N+1 en `list-items.replaceItems` y `refreshScores` (de ~4N queries a ~12 + Δposiciones)
 - [ ] Revisar que no haya código muerto o imports sin usar
 - [ ] Verificar que los serializers no expongan datos sensibles
 
 ### Migraciones de base de datos
 
-- [ ] Reemplazar `sequelize.sync()` por migraciones (`sequelize-cli` o `umzug`)
-- [ ] Crear migraciones iniciales para todos los modelos existentes
+- [x] Reemplazar `sequelize.sync()` por migraciones (`sequelize-cli` o `umzug`) — `sync()` removido del bootstrap; deploy corre `npm run migrate` con sequelize-cli
+- [x] Crear migraciones iniciales para todos los modelos existentes — `20260415230802-initial-schema.js` + migraciones incrementales posteriores
 
 ### Listas oficiales de Completr
 

@@ -2,9 +2,12 @@ import { fn, col, Op, literal } from "sequelize";
 import { Review } from "./review.model";
 import { Game } from "../games/game.model";
 import { User } from "../users/user.model";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import * as gamesService from "../games/games.service";
 import * as reviewsServiceError from "./errors/reviews.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+
+const REVIEW_GAME_ATTRS = ["id", "code", "title"];
 
 const hasContent = literal(`"content" IS NOT NULL AND btrim("content") <> ''`);
 const hasContentOrRating = literal(
@@ -42,7 +45,7 @@ export async function findReviewsByGameId(gameId: string) {
 		include: [
 			{
 				model: User,
-				attributes: ["id", "username", "name", "avatarUrl"]
+				attributes: USER_PUBLIC_ATTRS
 			}
 		],
 		order: [["createdAt", "DESC"]]
@@ -52,7 +55,7 @@ export async function findReviewsByGameId(gameId: string) {
 export async function findReviewsByUserId(userId: string) {
 	return Review.findAll({
 		where: { userId, [Op.and]: hasContentOrRating },
-		include: [{ model: Game }],
+		include: [{ model: Game, attributes: REVIEW_GAME_ATTRS }],
 		order: [["createdAt", "DESC"]]
 	});
 }
@@ -64,7 +67,7 @@ export async function findReviewsByUserIdPaginated(
 	const { limit = 50, offset = 0 } = options;
 	return Review.findAndCountAll({
 		where: { userId, [Op.and]: hasContentOrRating },
-		include: [{ model: Game }],
+		include: [{ model: Game, attributes: REVIEW_GAME_ATTRS }],
 		order: [["createdAt", "DESC"]],
 		limit,
 		offset,

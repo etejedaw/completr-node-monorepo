@@ -34,6 +34,16 @@ const COMPILATION_ITEM_ATTRS = [
 	"parentGameId"
 ];
 
+const GAME_LIST_ATTRS = [
+	"id",
+	"code",
+	"title",
+	"backgroundUrl",
+	"isDlc",
+	"createdAt",
+	"releaseAt"
+];
+
 export async function findGameByCode(code: string) {
 	return await Game.findOne({
 		where: { code, isActive: true },
@@ -125,11 +135,11 @@ export async function findAll(options: GamesQueryOptions = {}) {
 
 	const { rows, count } = await Game.findAndCountAll({
 		where,
+		attributes: GAME_LIST_ATTRS,
 		include: [
-			{ association: "Platforms" },
-			{ association: "GameScores" },
-			{ association: "GameTimes" },
-			{ association: "Genres" }
+			{ association: "Genres", attributes: GENRE_ATTRS },
+			{ association: "GameScores", attributes: GAME_SCORE_ATTRS },
+			{ association: "GameTimes", attributes: GAME_TIME_ATTRS }
 		],
 		order: buildOrder(sortBy, sortOrder),
 		limit,
@@ -196,11 +206,11 @@ export async function findLatestReviewed(limit = 16) {
 
 	const games = await Game.findAll({
 		where: { id: { [Op.in]: gameIds }, isActive: true },
+		attributes: GAME_LIST_ATTRS,
 		include: [
-			{ association: "Platforms" },
-			{ association: "GameScores" },
-			{ association: "GameTimes" },
-			{ association: "Genres" }
+			{ association: "Genres", attributes: GENRE_ATTRS },
+			{ association: "GameScores", attributes: GAME_SCORE_ATTRS },
+			{ association: "GameTimes", attributes: GAME_TIME_ATTRS }
 		]
 	});
 

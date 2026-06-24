@@ -132,13 +132,17 @@ async function buildFullProfile(
 	};
 }
 
+const PROFILE_BACKLOG_PREVIEW = 6;
+
 async function loadBacklog(
 	userId: string,
 	isSelf: boolean,
 	canViewBacklog: boolean
 ) {
-	if (isSelf) return backlogService.findBacklogByUserId(userId);
-	if (canViewBacklog) return backlogService.findPublicBacklogByUserId(userId);
+	const filters = { limit: PROFILE_BACKLOG_PREVIEW };
+	if (isSelf) return backlogService.findBacklogByUserId(userId, filters);
+	if (canViewBacklog)
+		return backlogService.findPublicBacklogByUserId(userId, filters);
 	return { rows: [], total: 0 };
 }
 

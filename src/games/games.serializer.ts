@@ -9,6 +9,22 @@ import { calculateRatio as calculateRatioUtil } from "../common/utils/calculate-
 import { Game } from "./game.model";
 import { EnrichedGameList } from "./games.interface";
 
+export function gameListSerializer(
+	game: Game,
+	options: { justImported?: boolean } = {}
+) {
+	return {
+		id: game.id,
+		title: game.title,
+		code: game.code,
+		backgroundUrl: game.backgroundUrl,
+		isDlc: game.isDlc,
+		ratio: calculateRatio(game.GameScores, game.GameTimes),
+		justImported: options.justImported ?? false,
+		genres: game.Genres?.map(genreSerializer) ?? []
+	};
+}
+
 export function gameSerializer(
 	game: Game,
 	options: { justImported?: boolean } = {}

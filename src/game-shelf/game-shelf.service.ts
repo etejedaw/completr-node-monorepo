@@ -1,8 +1,6 @@
 import { Op } from "sequelize";
 import { Game } from "../games/game.model";
-import { Genre } from "../genres/genres.model";
 import { Platform } from "../platforms/platform.model";
-import { User } from "../users";
 import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import { GameShelf } from "./game-shelf.model";
@@ -10,6 +8,22 @@ import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as gameShelfServiceError from "./errors/game-shelf.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+
+const GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
+const PLATFORM_ATTRS = [
+	"id",
+	"name",
+	"code",
+	"abbreviation",
+	"generation",
+	"logoUrl",
+	"releaseAt"
+];
+
+const shelfInclude = [
+	{ model: Game, attributes: GAME_ATTRS },
+	{ model: Platform, attributes: PLATFORM_ATTRS }
+];
 
 export async function registerGameShelf(
 	userId: string,
@@ -32,11 +46,7 @@ export async function findGameShelfById(id: string) {
 export async function findGameShelfByUserId(userId: string) {
 	return await GameShelf.findAll({
 		where: { userId },
-		include: [
-			{ model: Game, include: [{ model: Genre }] },
-			{ model: Platform },
-			{ model: User }
-		]
+		include: shelfInclude
 	});
 }
 
@@ -46,7 +56,7 @@ export async function findGameShelfByUserIdPaginated(
 ) {
 	const gameInclude: Record<string, unknown> = {
 		model: Game,
-		include: [{ model: Genre }]
+		attributes: GAME_ATTRS
 	};
 	if (pagination.search) {
 		gameInclude.where = {
@@ -56,7 +66,7 @@ export async function findGameShelfByUserIdPaginated(
 
 	const query: Record<string, unknown> = {
 		where: { userId },
-		include: [gameInclude, { model: Platform }, { model: User }],
+		include: [gameInclude, { model: Platform, attributes: PLATFORM_ATTRS }],
 		distinct: true
 	};
 	if (pagination.limit) query.limit = pagination.limit;
@@ -72,11 +82,7 @@ export async function findPublicGameShelfByUserId(
 ) {
 	const query: Record<string, unknown> = {
 		where: { userId, isPublic: true },
-		include: [
-			{ model: Game, include: [{ model: Genre }] },
-			{ model: Platform },
-			{ model: User }
-		],
+		include: shelfInclude,
 		distinct: true
 	};
 	if (pagination.limit) query.limit = pagination.limit;

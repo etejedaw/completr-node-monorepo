@@ -25,8 +25,17 @@ async function checkLimit(userId: string, role: string) {
 	if (count >= FREE_QUEUE_LIMIT) throw queueServiceError.limitReachedError();
 }
 
+const QUEUE_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
+const QUEUE_PLATFORM_ATTRS = ["id", "abbreviation"];
+
 const BACKLOG_INCLUDE = [
-	{ model: Backlog, include: [{ model: Game }, { model: Platform }] }
+	{
+		model: Backlog,
+		include: [
+			{ model: Game, attributes: QUEUE_GAME_ATTRS },
+			{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
+		]
+	}
 ];
 
 export async function addFromGame(
@@ -174,11 +183,12 @@ export async function findQueueByUserIdPaginated(
 						{
 							model: Game,
 							required: true,
+							attributes: QUEUE_GAME_ATTRS,
 							where: {
 								title: { [Op.iLike]: `%${pagination.search}%` }
 							}
 						},
-						{ model: Platform }
+						{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
 					]
 				}
 			]

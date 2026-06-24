@@ -1,5 +1,6 @@
 import { UserFollowRequest } from "./user-follow-request.model";
 import { User } from "../users/user.model";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import * as usersService from "../users/users.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import * as serviceError from "./errors/user-follow-requests.service-error";
@@ -53,7 +54,7 @@ export async function listIncomingRequests(targetId: string) {
 			{
 				model: User,
 				as: "Requester",
-				attributes: ["id", "username", "name", "avatarUrl"]
+				attributes: USER_PUBLIC_ATTRS
 			}
 		],
 		order: [["createdAt", "DESC"]]
