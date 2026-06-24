@@ -1,6 +1,5 @@
 import { Game } from "../../games/game.model";
 import { Platform } from "../../platforms/platform.model";
-import { User } from "../../users";
 import { GameShelf } from "../game-shelf.model";
 
 export function gameShelfSerializer(gameShelf: GameShelf) {
@@ -10,19 +9,8 @@ export function gameShelfSerializer(gameShelf: GameShelf) {
 		edition: gameShelf.edition,
 		notes: gameShelf.notes,
 		isPublic: gameShelf.isPublic,
-		user: userSerializer(gameShelf.User),
 		game: gameSerializer(gameShelf.Game),
 		platform: platformSerializer(gameShelf.Platform)
-	};
-}
-
-function userSerializer(user: User) {
-	return {
-		id: user.id,
-		username: user.username,
-		name: user.name,
-		bio: user.bio,
-		avatarUrl: user.avatarUrl
 	};
 }
 
@@ -31,16 +19,8 @@ function gameSerializer(game: Game) {
 		id: game.id,
 		title: game.title,
 		code: game.code,
-		description: game.description,
-		releaseAt: game.releaseAt,
 		backgroundUrl: game.backgroundUrl,
-		isDlc: game.isDlc,
-		genres:
-			game.Genres?.map(genre => ({
-				id: genre.id,
-				name: genre.name,
-				code: genre.code
-			})) ?? []
+		isDlc: game.isDlc
 	};
 }
 

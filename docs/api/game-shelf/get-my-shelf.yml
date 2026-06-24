@@ -19,6 +19,14 @@ docs: |-
     **Authentication:** Bearer token required (roles: user, premium, moderator).
     **Rate Limit:** 50 requests per minute.
 
+    ### Query Parameters
+
+    | Param  | Type    | Required | Description                  |
+    |--------|---------|----------|------------------------------|
+    | limit  | integer | No       | Page size (default 50, max 100) |
+    | offset | integer | No       | Pagination offset (default 0)|
+    | search | string  | No       | Filter by game title (iLike) |
+
     ### Response (200)
 
     ```json
@@ -36,19 +44,23 @@ docs: |-
               "id": "uuid",
               "title": "Metro Exodus",
               "code": "metro-exodus",
-              "releaseAt": "2019-02-14",
-              "coverUrl": null
+              "backgroundUrl": "https://...",
+              "isDlc": false
             },
             "platform": {
               "id": "uuid",
               "name": "Steam",
               "code": "steam",
+              "abbreviation": "Steam",
               "generation": null,
               "logoUrl": null,
               "releaseAt": "2003-09-12"
             }
           }
-        ]
+        ],
+        "total": 1
       }
     }
     ```
+
+    The `game` payload is intentionally lightweight (no description, no nested genres, no releaseAt). Use `GET /games/:code` for the full detail.
