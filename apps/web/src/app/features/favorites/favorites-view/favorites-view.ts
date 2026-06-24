@@ -5,8 +5,12 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { FavoriteEntry } from "../../../core/models";
+import { FavoriteEntry, Game, BacklogEntry } from "../../../core/models";
 import { FavoritesService } from "../favorites";
+import { WishlistService } from "../../wishlist/wishlist";
+import { BacklogService } from "../../backlog/backlog";
+import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
+import { GamesService } from "../../games/games";
 import { ToastService } from "../../../core/services/toast";
 import { RouterLink } from "@angular/router";
 import { UiButton, UiEmptyState, UiPagination, UiSearchBar, UiSkeleton } from "../../../shared/ui";
@@ -15,13 +19,21 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-favorites-view",
-	imports: [RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar, UiSkeleton, GameCoverCard],
+	imports: [RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar, UiSkeleton, GameCoverCard, BacklogModal],
 	templateUrl: "./favorites-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FavoritesView implements OnInit {
 	private readonly favoritesService = inject(FavoritesService);
+	private readonly wishlistService = inject(WishlistService);
+	private readonly backlogService = inject(BacklogService);
+	private readonly gamesService = inject(GamesService);
 	private readonly toast = inject(ToastService);
+
+	protected readonly backlogModalGame = signal<Game | null>(null);
+	protected readonly backlogModalEntry = signal<BacklogEntry | null>(null);
+	protected readonly showBacklogModal = signal(false);
+	protected readonly backlogGameIds = signal<Set<string>>(new Set());
 
 	protected readonly entries = signal<FavoriteEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -46,6 +58,64 @@ export class FavoritesView implements OnInit {
 				this.loadFavorites();
 			});
 		this.loadFavorites();
+		this.wishlistService.load({ limit: 100 }).subscribe();
+		this.loadBacklogIds();
+	}
+
+	isInWishlist(gameId: string): boolean {
+		return this.wishlistService.isInWishlist(gameId);
+	}
+
+	isInBacklog(gameId: string): boolean {
+		return this.backlogGameIds().has(gameId);
+	}
+
+	toggleWishlist(gameId: string) {
+		this.wishlistService.toggle(gameId).subscribe();
+	}
+
+	openBacklogQuickAdd(entry: FavoriteEntry) {
+		this.backlogService.getMyBacklog({ game_id: entry.game.id }).subscribe({
+			next: res => {
+				const existing = res.data.backlog[0] ?? null;
+				if (existing) {
+					this.backlogModalEntry.set(existing);
+					this.backlogModalGame.set(null);
+					this.showBacklogModal.set(true);
+					return;
+				}
+				this.openCreateBacklogFor(entry.game.code);
+			},
+			error: () => this.openCreateBacklogFor(entry.game.code)
+		});
+	}
+
+	private openCreateBacklogFor(code: string) {
+		this.gamesService.getByCode(code).subscribe(game => {
+			this.backlogModalEntry.set(null);
+			this.backlogModalGame.set(game);
+			this.showBacklogModal.set(true);
+		});
+	}
+
+	onBacklogModalClosed() {
+		this.showBacklogModal.set(false);
+		this.backlogModalGame.set(null);
+		this.backlogModalEntry.set(null);
+	}
+
+	onBacklogModalSaved() {
+		this.onBacklogModalClosed();
+		this.loadBacklogIds();
+	}
+
+	private loadBacklogIds() {
+		this.backlogService.getMyBacklog({ limit: 100 }).subscribe({
+			next: res => {
+				const ids = new Set(res.data.backlog.map(b => b.game.id));
+				this.backlogGameIds.set(ids);
+			}
+		});
 	}
 
 	onSearch(query: string) {
