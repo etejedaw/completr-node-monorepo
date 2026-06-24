@@ -95,27 +95,36 @@
 			</ui-empty-state>
 		}
 	} @else {
-	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+	<div
+		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
+		cdkDropList
+		cdkDropListOrientation="mixed"
+		[cdkDropListDisabled]="sortBy() !== 'manual'"
+		(cdkDropListDropped)="onDrop($event)"
+	>
 		@for (entry of filteredEntries(); track entry.id; let i = $index) {
-			<app-queue-grid-card
-				[entry]="{
-					game: entry.backlog.game,
-					platformAbbreviation: entry.backlog.platform?.abbreviation,
-					ratio: entry.backlog.ratio,
-					duration: entry.backlog.duration
-				}"
-				[position]="offset() + i + 1"
-				[showActions]="true"
-				[isFirst]="sortBy() !== 'manual' || i === 0"
-				[isLast]="sortBy() !== 'manual' || i === filteredEntries().length - 1"
-				[statusUpdating]="isUpdatingStatus(entry)"
-				[isFavorite]="isFavorite(entry.backlog.game.id)"
-				(moveUp)="moveUp(i)"
-				(moveDown)="moveDown(i)"
-				(remove)="remove(entry)"
-				(statusChange)="requestStatusChange(entry, $event)"
-				(favoriteToggle)="toggleFavorite(entry.backlog.game.id)"
-			/>
+			<div cdkDrag [cdkDragDisabled]="sortBy() !== 'manual'" class="cdk-drag-cell">
+				<app-queue-grid-card
+					[entry]="{
+						game: entry.backlog.game,
+						platformAbbreviation: entry.backlog.platform?.abbreviation,
+						ratio: entry.backlog.ratio,
+						duration: entry.backlog.duration
+					}"
+					[position]="offset() + i + 1"
+					[showActions]="true"
+					[showDragHandle]="sortBy() === 'manual'"
+					[isFirst]="sortBy() !== 'manual' || i === 0"
+					[isLast]="sortBy() !== 'manual' || i === filteredEntries().length - 1"
+					[statusUpdating]="isUpdatingStatus(entry)"
+					[isFavorite]="isFavorite(entry.backlog.game.id)"
+					(moveUp)="moveUp(i)"
+					(moveDown)="moveDown(i)"
+					(remove)="remove(entry)"
+					(statusChange)="requestStatusChange(entry, $event)"
+					(favoriteToggle)="toggleFavorite(entry.backlog.game.id)"
+				/>
+			</div>
 		}
 	</div>
 	}

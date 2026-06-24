@@ -6,9 +6,13 @@ import {
 	signal
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
-import { GameShelfEntry } from "../../../core/models";
+import { GameShelfEntry, Game, BacklogEntry } from "../../../core/models";
 import { GameShelfService } from "../game-shelf";
 import { FavoritesService } from "../../favorites/favorites";
+import { WishlistService } from "../../wishlist/wishlist";
+import { BacklogService } from "../../backlog/backlog";
+import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
+import { GamesService } from "../../games/games";
 import { RouterLink } from "@angular/router";
 import { GameShelfModal } from "../game-shelf-modal/game-shelf-modal";
 import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";
@@ -23,13 +27,21 @@ interface PlatformCount {
 
 @Component({
 	selector: "app-game-shelf-list",
-	imports: [DatePipe, GameShelfModal, RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar, GameCoverCard],
+	imports: [DatePipe, GameShelfModal, BacklogModal, RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar, GameCoverCard],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GameShelfList implements OnInit {
 	private readonly shelfService = inject(GameShelfService);
 	private readonly favoritesService = inject(FavoritesService);
+	private readonly wishlistService = inject(WishlistService);
+	private readonly backlogService = inject(BacklogService);
+	private readonly gamesService = inject(GamesService);
+
+	protected readonly backlogModalGame = signal<Game | null>(null);
+	protected readonly backlogModalEntry = signal<BacklogEntry | null>(null);
+	protected readonly showBacklogModal = signal(false);
+	protected readonly backlogGameIds = signal<Set<string>>(new Set());
 
 	protected readonly allEntries = signal<GameShelfEntry[]>([]);
 	protected readonly entries = signal<GameShelfEntry[]>([]);
@@ -65,7 +77,65 @@ export class GameShelfList implements OnInit {
 				this.loadShelf();
 			});
 		this.favoritesService.ensureIdsLoaded().subscribe();
+		this.wishlistService.load({ limit: 100 }).subscribe();
+		this.loadBacklogIds();
 		this.loadShelf();
+	}
+
+	isInWishlist(gameId: string): boolean {
+		return this.wishlistService.isInWishlist(gameId);
+	}
+
+	isInBacklog(gameId: string): boolean {
+		return this.backlogGameIds().has(gameId);
+	}
+
+	toggleWishlist(gameId: string) {
+		this.wishlistService.toggle(gameId).subscribe();
+	}
+
+	openBacklogQuickAdd(entry: GameShelfEntry) {
+		this.backlogService.getMyBacklog({ game_id: entry.game.id }).subscribe({
+			next: res => {
+				const existing = res.data.backlog[0] ?? null;
+				if (existing) {
+					this.backlogModalEntry.set(existing);
+					this.backlogModalGame.set(null);
+					this.showBacklogModal.set(true);
+					return;
+				}
+				this.openCreateBacklogFor(entry.game.code);
+			},
+			error: () => this.openCreateBacklogFor(entry.game.code)
+		});
+	}
+
+	private openCreateBacklogFor(code: string) {
+		this.gamesService.getByCode(code).subscribe(game => {
+			this.backlogModalEntry.set(null);
+			this.backlogModalGame.set(game);
+			this.showBacklogModal.set(true);
+		});
+	}
+
+	onBacklogModalClosed() {
+		this.showBacklogModal.set(false);
+		this.backlogModalGame.set(null);
+		this.backlogModalEntry.set(null);
+	}
+
+	onBacklogModalSaved() {
+		this.onBacklogModalClosed();
+		this.loadBacklogIds();
+	}
+
+	private loadBacklogIds() {
+		this.backlogService.getMyBacklog({ limit: 100 }).subscribe({
+			next: res => {
+				const ids = new Set(res.data.backlog.map(b => b.game.id));
+				this.backlogGameIds.set(ids);
+			}
+		});
 	}
 
 	isFavorite(gameId: string): boolean {

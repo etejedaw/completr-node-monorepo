@@ -17,11 +17,27 @@ import {
 	QueueGridCard,
 	QueueStatusChange
 } from "../../../shared/components/queue-grid-card/queue-grid-card";
+import {
+	CdkDrag,
+	CdkDragDrop,
+	CdkDropList,
+	moveItemInArray
+} from "@angular/cdk/drag-drop";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-queue-view",
-	imports: [QueueAddModal, UiButton, UiEmptyState, UiPagination, UiSearchBar, UiSkeleton, QueueGridCard],
+	imports: [
+		QueueAddModal,
+		UiButton,
+		UiEmptyState,
+		UiPagination,
+		UiSearchBar,
+		UiSkeleton,
+		QueueGridCard,
+		CdkDropList,
+		CdkDrag
+	],
 	templateUrl: "./queue-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -239,6 +255,14 @@ export class QueueView implements OnInit {
 		this.reorder(list);
 	}
 
+	onDrop(event: CdkDragDrop<QueueEntry[]>) {
+		if (this.sortBy() !== "manual") return;
+		if (event.previousIndex === event.currentIndex) return;
+		const list = [...this.entries()];
+		moveItemInArray(list, event.previousIndex, event.currentIndex);
+		this.reorder(list);
+	}
+
 	private loadQueue() {
 		this.isLoading.set(true);
 		this.queueService
@@ -258,9 +282,12 @@ export class QueueView implements OnInit {
 	}
 
 	private reorder(list: QueueEntry[]) {
+		const previous = this.entries();
+		this.entries.set(list);
 		const backlogIds = list.map(e => e.backlog.id);
-		this.queueService.reorder(backlogIds).subscribe(updated => {
-			this.entries.set(updated);
+		this.queueService.reorder(backlogIds).subscribe({
+			next: updated => this.entries.set(updated),
+			error: () => this.entries.set(previous)
 		});
 	}
 }

@@ -88,8 +88,14 @@
 					[clickable]="true"
 					[showFavorite]="true"
 					[isFavorite]="isFavorite(entry.game.id)"
+					[showAddToBacklog]="true"
+					[inBacklog]="isInBacklog(entry.game.id)"
+					[showWishlistToggle]="true"
+					[inWishlist]="isInWishlist(entry.game.id)"
 					(cardClick)="openEdit(entry)"
 					(favoriteToggle)="toggleFavorite(entry.game.id)"
+					(addToBacklog)="openBacklogQuickAdd(entry)"
+					(wishlistToggle)="toggleWishlist(entry.game.id)"
 				/>
 			}
 		</div>
@@ -163,5 +169,14 @@
 	[entry]="editingEntry()"
 	(closed)="onModalClosed()"
 	(saved)="onModalSaved()"
+/>
+}
+
+@if (showBacklogModal()) {
+<app-backlog-modal
+	[preselectedGame]="backlogModalGame()"
+	[entry]="backlogModalEntry()"
+	(closed)="onBacklogModalClosed()"
+	(saved)="onBacklogModalSaved()"
 />
 }
