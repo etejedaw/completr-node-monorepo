@@ -75,17 +75,51 @@ export interface GameCoverCardGame {
 					title="Remove"
 				>&times;</button>
 			}
-			@if (showFavorite()) {
-				<button
-					type="button"
-					class="absolute bottom-2 right-2 flex items-center justify-center w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm border-0 cursor-pointer transition hover:bg-black/80"
-					[class.text-warning]="isFavorite()"
-					[class.text-white]="!isFavorite()"
-					(click)="$event.preventDefault(); $event.stopPropagation(); favoriteToggle.emit()"
-					[title]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
-				>
-					<span class="material-icons text-[1.125rem]">{{ isFavorite() ? 'star' : 'star_border' }}</span>
-				</button>
+			@if (showFavorite() || showAddToBacklog() || showWishlistToggle()) {
+				<div class="absolute bottom-2 right-2 flex flex-col items-end gap-1.5">
+					@if (showAddToBacklog()) {
+						<button
+							type="button"
+							class="flex items-center justify-center w-7 h-7 rounded-full backdrop-blur-sm border-0 cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
+							[class.bg-success]="inBacklog()"
+							[class.bg-black\/60]="!inBacklog()"
+							[class.hover:bg-black\/80]="!inBacklog()"
+							[class.text-white]="true"
+							(click)="$event.preventDefault(); $event.stopPropagation(); addToBacklog.emit()"
+							[title]="inBacklog() ? 'In your backlog — edit' : 'Add to Backlog'"
+							[attr.aria-label]="inBacklog() ? 'Edit backlog entry' : 'Add to Backlog'"
+						>
+							<span aria-hidden="true" class="material-icons text-[1rem]">{{ inBacklog() ? 'check' : 'playlist_add' }}</span>
+						</button>
+					}
+					@if (showWishlistToggle()) {
+						<button
+							type="button"
+							class="flex items-center justify-center w-7 h-7 rounded-full backdrop-blur-sm border-0 cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
+							[class.bg-danger]="inWishlist()"
+							[class.bg-black\/60]="!inWishlist()"
+							[class.hover:bg-black\/80]="!inWishlist()"
+							[class.text-white]="true"
+							(click)="$event.preventDefault(); $event.stopPropagation(); wishlistToggle.emit()"
+							[title]="inWishlist() ? 'Remove from Want to Get' : 'Add to Want to Get'"
+							[attr.aria-label]="inWishlist() ? 'Remove from Want to Get' : 'Add to Want to Get'"
+						>
+							<span aria-hidden="true" class="material-icons text-[1rem]">{{ inWishlist() ? 'favorite' : 'favorite_border' }}</span>
+						</button>
+					}
+					@if (showFavorite()) {
+						<button
+							type="button"
+							class="flex items-center justify-center w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm border-0 cursor-pointer transition hover:bg-black/80"
+							[class.text-warning]="isFavorite()"
+							[class.text-white]="!isFavorite()"
+							(click)="$event.preventDefault(); $event.stopPropagation(); favoriteToggle.emit()"
+							[title]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+						>
+							<span aria-hidden="true" class="material-icons text-[1.125rem]">{{ isFavorite() ? 'star' : 'star_border' }}</span>
+						</button>
+					}
+				</div>
 			}
 		</ng-template>
 	`,
@@ -102,7 +136,13 @@ export class GameCoverCard {
 	showRemove = input<boolean>(false);
 	showFavorite = input<boolean>(false);
 	isFavorite = input<boolean>(false);
+	showAddToBacklog = input<boolean>(false);
+	inBacklog = input<boolean>(false);
+	showWishlistToggle = input<boolean>(false);
+	inWishlist = input<boolean>(false);
 	cardClick = output<void>();
 	remove = output<void>();
 	favoriteToggle = output<void>();
+	addToBacklog = output<void>();
+	wishlistToggle = output<void>();
 }
