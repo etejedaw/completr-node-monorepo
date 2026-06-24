@@ -17,15 +17,17 @@ settings:
 docs: |-
     ## Get User by Username
 
-    Returns the public profile of a user by their username, including their public backlogs, lists, favorites, queue and wishlist.
+    Returns a public profile bundle for the given user: their public information plus a backlog preview (up to 6 most recent entries), backlog stats by status, lists total, recent activity (up to 10) and follower counters.
 
-    If the user's `isPublic` is `false` and the requester is not the user themselves, the response returns a minimal payload with `isPrivate: true` plus `user` (id, username, name, bio, avatarUrl), `followerCount`, `followingCount`, and `isFollowing` — so the avatar can still be displayed.
+    The `backlogs` array is a preview — it is capped at 6 entries by design. Full paginated browsing of the user backlog lives at `GET /users/:username/backlog`. Other sections (queue, wishlist, favorites, game-shelf, lists) are not embedded here either — they each have their own dedicated endpoint.
 
-    When the authenticated requester is the same as the requested user (self view), all data is returned regardless of `isPublic` and per-section visibility flags.
+    If the user's `profileVisibility` is `private` (or `friends` for a viewer that is not a mutual follower) and the requester is not the user themselves, the response returns a minimal payload with `isPrivate: true` plus `user` (id, username, name, bio, avatarUrl), `profileVisibility`, `acceptFollowRequests`, `followerCount`, `followingCount`, `isFollowing`, and `hasPendingRequest`.
 
-    Favorites, queue and wishlist are only included if `isFavoritePublic` / `isQueuePublic` / `isWishlistPublic` are `true` (or the requester is self). Backlog, game shelf and lists are only included if `isBacklogPublic` / `isShelfPublic` / `isListPublic` are `true` (or the requester is self).
+    When the authenticated requester is the same as the requested user (self view), all data is returned regardless of visibility flags.
 
-    **Authentication:** Optional (used to detect self).
+    Per-section visibility (`backlogVisibility`, `listVisibility`, `feedVisibility`) gates whether the backlog/lists/activity blocks are populated for non-self viewers.
+
+    **Authentication:** Optional (used to detect self, mutual follow, etc.).
     **Rate Limit:** 100 requests per minute.
 
     ### Path Parameters
@@ -46,22 +48,35 @@ docs: |-
           "name": "John Doe",
           "bio": "Gamer since 1990",
           "avatarUrl": "https://example.com/avatar.png",
-          "isQueuePublic": true,
-          "isWishlistPublic": true,
-          "isFavoritePublic": true,
-          "isBacklogPublic": true,
-          "isShelfPublic": true,
-          "isListPublic": true,
+          "profileVisibility": "public",
+          "queueVisibility": "public",
+          "wishlistVisibility": "public",
+          "favoriteVisibility": "public",
+          "feedVisibility": "public",
+          "backlogVisibility": "public",
+          "shelfVisibility": "public",
+          "listVisibility": "public",
           "createdAt": "2026-01-01T00:00:00.000Z"
         },
+        "followerCount": 12,
+        "followingCount": 8,
+        "isFollowing": false,
         "backlogs": [],
-        "lists": [],
-        "favorites": [],
-        "queue": [],
-        "wishlist": []
+        "backlogTotal": 0,
+        "backlogStats": {
+          "not_started": 0,
+          "playing": 0,
+          "completed": 0,
+          "abandoned": 0,
+          "endless": 0
+        },
+        "listsTotal": 0,
+        "recentActivity": []
       }
     }
     ```
+
+    `backlogs` is capped at 6 entries (preview). Use `GET /users/:username/backlog` for the full paginated list.
 
     ### Response (200, private profile)
 
@@ -76,9 +91,12 @@ docs: |-
           "avatarUrl": "https://example.com/avatar.png"
         },
         "isPrivate": true,
+        "profileVisibility": "private",
+        "acceptFollowRequests": true,
         "followerCount": 12,
         "followingCount": 8,
-        "isFollowing": false
+        "isFollowing": false,
+        "hasPendingRequest": false
       }
     }
     ```
