@@ -24,6 +24,13 @@ import {
 } from "rxjs";
 import { UiButton, UiIconButton, UiProgress, UiSearchBar } from "../../../shared/ui";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
+import {
+	CdkDrag,
+	CdkDragDrop,
+	CdkDragHandle,
+	CdkDropList,
+	moveItemInArray
+} from "@angular/cdk/drag-drop";
 
 @Component({
 	selector: "app-list-detail",
@@ -35,7 +42,10 @@ import { PersonalStats } from "../../../shared/components/personal-stats/persona
 		UiIconButton,
 		UiProgress,
 		UiSearchBar,
-		PersonalStats
+		PersonalStats,
+		CdkDropList,
+		CdkDrag,
+		CdkDragHandle
 	],
 	templateUrl: "./list-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -179,6 +189,16 @@ export class ListDetail implements OnInit {
 		const items = [...(this.list()?.items ?? [])];
 		if (index >= items.length - 1) return;
 		[items[index], items[index + 1]] = [items[index + 1], items[index]];
+		this.replaceWithOrder(items);
+	}
+
+	onDrop(event: CdkDragDrop<ListItem[]>) {
+		if (!this.isOwner()) return;
+		if (event.previousIndex === event.currentIndex) return;
+		const list = this.list();
+		if (!list) return;
+		const items = [...list.items];
+		moveItemInArray(items, event.previousIndex, event.currentIndex);
 		this.replaceWithOrder(items);
 	}
 
@@ -376,9 +396,17 @@ export class ListDetail implements OnInit {
 	}
 
 	private replaceWithOrder(items: ListItem[]) {
+		const current = this.list();
+		if (!current) return;
+		const optimistic = items.map((item, idx) => ({
+			...item,
+			position: idx + 1
+		}));
+		this.list.set({ ...current, items: optimistic });
 		const gameIds = items.map(i => i.game.id);
-		this.listsService
-			.replaceItems(this.listId, gameIds)
-			.subscribe(() => this.loadList());
+		this.listsService.replaceItems(this.listId, gameIds).subscribe({
+			next: () => this.loadList(),
+			error: () => this.list.set(current)
+		});
 	}
 }
