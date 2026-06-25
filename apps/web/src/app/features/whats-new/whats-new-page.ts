@@ -97,6 +97,49 @@ export class WhatsNewPage {
 	protected readonly releases: ReleaseEntry[] = [
 		{
 			date: "2026-06-25",
+			tag: "Co-op",
+			title: "Tag friends in co-op runs",
+			icon: "group_add",
+			tint: "brand",
+			highlights: [
+				{
+					icon: "group",
+					tint: "brand",
+					text: "Tag friends you played a game with from the Tracking tab in the backlog modal. Each tag auto-creates a backlog for them (if they don't have one) with your critic score and duration prefilled, and links your runs into a shared session."
+				},
+				{
+					icon: "sync",
+					tint: "purple",
+					text: "Each member sees a Sync button per peer. Pick exactly which objective fields to copy (status, started, finished, real duration) with a diff preview. Your personal data — score, rating, notes, mood tags, progress notes — is never touched."
+				},
+				{
+					icon: "shield",
+					tint: "success",
+					text: "Privacy-aware: if a friend's backlog is private to you, the tag creates a fresh entry for them without touching their old runs. If you can see their library and they already have multiple runs, a picker lets you choose which one to annex or create a new one."
+				}
+			]
+		},
+		{
+			date: "2026-06-25",
+			tag: "Backlog",
+			title: "Progress notes per run",
+			icon: "bookmark",
+			tint: "brand",
+			highlights: [
+				{
+					icon: "bookmark",
+					tint: "brand",
+					text: "New 'Where I am' section in the backlog modal: leave short notes like 'Cap 3, stuck en el puzzle del agua' so you remember where you left off when you come back months later."
+				},
+				{
+					icon: "history",
+					tint: "purple",
+					text: "Notes are append-only: each new entry preserves the previous one in a collapsible history. Delete any entry from the timeline. The latest note shows as a chip in the backlog rows for active runs."
+				}
+			]
+		},
+		{
+			date: "2026-06-25",
 			tag: "Tags",
 			title: "Personal mood tags across your library",
 			icon: "label",
