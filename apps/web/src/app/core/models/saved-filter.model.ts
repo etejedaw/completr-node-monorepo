@@ -5,4 +5,5 @@ export interface SavedFilter {
 	filters: Record<string, unknown>;
 	sortBy?: string;
 	sortOrder?: string;
+	enabledStats?: string[] | null;
 }

@@ -4,6 +4,50 @@ import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { Appendable, buildHttpParams } from "../../core/utils/http-params";
 
+export const STAT_KEYS = [
+	"totalEntries",
+	"totalRealHours",
+	"avgRatio",
+	"avgPersonalRatio",
+	"completionRate",
+	"abandonmentRate",
+	"avgRealDuration",
+	"avgEstimatedDuration",
+	"avgScore",
+	"avgUserRating",
+	"estimatedVsRealDelta",
+	"longestPlayed",
+	"bestPersonalRatio",
+	"highestRated",
+	"countByStatus"
+] as const;
+export type StatKey = (typeof STAT_KEYS)[number];
+
+export const DEFAULT_ENABLED_STATS: StatKey[] = [
+	"totalEntries",
+	"totalRealHours",
+	"avgRatio",
+	"avgPersonalRatio"
+];
+
+export const STAT_LABELS: Record<StatKey, string> = {
+	totalEntries: "Entries",
+	totalRealHours: "Real hours",
+	avgRatio: "Avg ratio",
+	avgPersonalRatio: "Avg personal ratio",
+	completionRate: "Completion rate",
+	abandonmentRate: "Abandonment rate",
+	avgRealDuration: "Avg real duration",
+	avgEstimatedDuration: "Avg estimated duration",
+	avgScore: "Avg score",
+	avgUserRating: "Avg rating",
+	estimatedVsRealDelta: "Estimated vs real Δ",
+	longestPlayed: "Longest played (highlight)",
+	bestPersonalRatio: "Best personal ratio (highlight)",
+	highestRated: "Highest rated (highlight)",
+	countByStatus: "By status (chips)"
+};
+
 export interface SavedFilter {
 	id: string;
 	name: string;
@@ -13,6 +57,7 @@ export interface SavedFilter {
 	sortOrder?: string;
 	showInBacklog: boolean;
 	isDefault: boolean;
+	enabledStats: string[] | null;
 }
 
 interface SavedFiltersResponse {
@@ -37,6 +82,7 @@ export interface CreateSavedFilterDto {
 	sortOrder?: string;
 	showInBacklog?: boolean;
 	isDefault?: boolean;
+	enabledStats?: string[] | null;
 }
 
 export interface BacklogHighlight {
