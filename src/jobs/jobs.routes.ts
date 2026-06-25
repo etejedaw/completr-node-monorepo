@@ -36,6 +36,12 @@ router.post(
 	jobsController.postRecomputePopularity
 );
 
+router.post(
+	"/admin/jobs/cleanup-coop-runs",
+	[rateLimiterMiddleware(userLimiter), hiddenRouteMiddleware()],
+	jobsController.postCleanupCoopRuns
+);
+
 router.delete(
 	"/admin/jobs/:jobId",
 	[rateLimiterMiddleware(userLimiter), hiddenRouteMiddleware()],

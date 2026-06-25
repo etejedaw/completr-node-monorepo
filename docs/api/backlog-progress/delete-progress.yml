@@ -1,0 +1,47 @@
+info:
+    name: Delete Progress Note
+    type: http
+    seq: 3
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/users/me/backlog/:backlogId/progress/:noteId"
+    params:
+        - name: backlogId
+          value: ""
+          type: path
+        - name: noteId
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Delete Progress Note
+
+    Removes a single progress note from the timeline. Other notes are not affected.
+
+    **Authentication:** Bearer token required. Only the owner of the backlog can delete
+    progress notes.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Path Parameters
+
+    | Param     | Type | Required | Description                |
+    |-----------|------|----------|----------------------------|
+    | backlogId | uuid | Yes      | The backlog UUID           |
+    | noteId    | uuid | Yes      | The progress note UUID     |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Type                                  | Reason                              |
+    |--------|---------------------------------------|-------------------------------------|
+    | 404    | `BACKLOG_PROGRESS_BACKLOG_NOT_FOUND`  | Backlog id does not exist           |
+    | 404    | `BACKLOG_PROGRESS_NOTE_NOT_FOUND`     | Note id does not belong to backlog  |
+    | 403    | `BACKLOG_PROGRESS_FORBIDDEN`          | Backlog belongs to another user     |

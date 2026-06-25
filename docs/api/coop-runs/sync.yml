@@ -1,0 +1,66 @@
+info:
+    name: Sync From Co-op Member
+    type: http
+    seq: 4
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/backlog/:backlogId/coop/sync"
+    params:
+        - name: backlogId
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "fromBacklogId": "uuid-of-peer-backlog",
+              "fields": ["status", "startedAt", "finishedAt", "realDuration"]
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Sync From Co-op Member
+
+    Copies selected objective fields from a peer backlog in the same co-op run into the
+    requester's backlog. The caller chooses which fields to apply — see the diff in the
+    UI before submitting.
+
+    Only the following fields are syncable: `status`, `startedAt`, `finishedAt`,
+    `realDuration`. Personal data (`score`, `userRating`, `notes`, mood tags, progress
+    notes, compilation parent) is never synced — those stay per user.
+
+    **Authentication:** Bearer token required. Only the owner of the backlog can sync.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Path Parameters
+
+    | Param     | Type | Required | Description                       |
+    |-----------|------|----------|-----------------------------------|
+    | backlogId | uuid | Yes      | Your backlog UUID (the target)    |
+
+    ### Request Body
+
+    | Field         | Type     | Required | Description                                             |
+    |---------------|----------|----------|---------------------------------------------------------|
+    | fromBacklogId | uuid     | Yes      | The peer backlog id (must be in the same coop run)      |
+    | fields        | string[] | Yes      | Subset of `status`, `startedAt`, `finishedAt`, `realDuration`. At least one. |
+
+    ### Response (204)
+
+    No content. Re-fetch the backlog to read the new values.
+
+    ### Errors
+
+    | Status | Type                            | Reason                                          |
+    |--------|---------------------------------|-------------------------------------------------|
+    | 404    | `COOP_BACKLOG_NOT_FOUND`        | Your backlogId does not exist                   |
+    | 404    | `COOP_MEMBER_NOT_FOUND`         | Your backlog is not part of any co-op run       |
+    | 404    | `COOP_SOURCE_NOT_IN_RUN`        | The fromBacklogId is not in the same coop run   |
+    | 403    | `COOP_FORBIDDEN`                | The backlog is not yours                        |

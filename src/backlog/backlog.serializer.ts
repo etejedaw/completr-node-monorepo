@@ -3,10 +3,20 @@ import { Platform } from "../platforms/platform.model";
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { Backlog } from "./backlog.model";
 
+export interface CoopMemberSummary {
+	userId: string;
+	username: string;
+	name: string;
+	avatarUrl: string | null;
+	backlogId: string;
+}
+
 export function backlogSerializer(
 	backlogEntry: Backlog,
 	review?: { content: string | null; rating: number | null } | null,
-	moodTags?: string[]
+	moodTags?: string[],
+	latestProgress?: { note: string; createdAt: Date } | null,
+	coopMembers?: CoopMemberSummary[]
 ) {
 	return {
 		id: backlogEntry.id,
@@ -30,6 +40,9 @@ export function backlogSerializer(
 			? { content: review.content, rating: review.rating }
 			: null,
 		moodTags: moodTags ?? [],
+		latestProgress: latestProgress ?? null,
+		coopRunId: backlogEntry.coopRunId ?? null,
+		coopMembers: coopMembers ?? [],
 		game: gameSerializer(backlogEntry.Game),
 		platform: platformSerializer(backlogEntry.Platform),
 		compilationGame: backlogEntry.CompilationGame
@@ -50,10 +63,18 @@ function gameSummarySerializer(game: Game) {
 export function backlogPublicSerializer(
 	backlogEntry: Backlog,
 	review?: { content: string | null; rating: number | null } | null,
-	moodTags?: string[]
+	moodTags?: string[],
+	latestProgress?: { note: string; createdAt: Date } | null,
+	coopMembers?: CoopMemberSummary[]
 ) {
-	const full = backlogSerializer(backlogEntry, review, moodTags);
-	const { notes: _notes, ...publicEntry } = full;
+	const full = backlogSerializer(
+		backlogEntry,
+		review,
+		moodTags,
+		latestProgress,
+		coopMembers
+	);
+	const { notes: _notes, latestProgress: _lp, ...publicEntry } = full;
 	return publicEntry;
 }
 

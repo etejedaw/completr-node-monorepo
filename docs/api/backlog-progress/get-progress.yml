@@ -1,0 +1,57 @@
+info:
+    name: Get Progress Timeline
+    type: http
+    seq: 1
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/backlog/:backlogId/progress"
+    params:
+        - name: backlogId
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Progress Timeline
+
+    Returns the full timeline of progress notes for a backlog entry, ordered DESC by
+    `createdAt` (newest first). Progress notes are short, personal annotations like
+    "Capítulo 3, stuck en el puzzle del agua" — used to remember where you left off
+    when returning to a game after months.
+
+    Notes are append-only: each call to `POST` adds a new entry; the old ones remain
+    as history. Use `DELETE` to remove individual entries.
+
+    **Authentication:** Bearer token required. Only the owner of the backlog can read its
+    progress notes — never exposed in public profile endpoints.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Path Parameters
+
+    | Param     | Type | Required | Description       |
+    |-----------|------|----------|-------------------|
+    | backlogId | uuid | Yes      | The backlog UUID  |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "progress": [
+          { "id": "uuid", "note": "Capítulo 4 — volví, dejé el puzzle", "createdAt": "2026-06-25T20:31:10.514Z" },
+          { "id": "uuid", "note": "Capítulo 3 — stuck en el puzzle del agua", "createdAt": "2026-06-25T20:31:09.451Z" }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                                  | Reason                              |
+    |--------|---------------------------------------|-------------------------------------|
+    | 404    | `BACKLOG_PROGRESS_BACKLOG_NOT_FOUND`  | Backlog id does not exist           |
+    | 403    | `BACKLOG_PROGRESS_FORBIDDEN`          | Backlog belongs to another user     |

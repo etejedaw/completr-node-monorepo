@@ -11,6 +11,8 @@ import "../lists/list.model";
 import "../list-items/list-item.model";
 import "../list-followers/list-follower.model";
 import "../backlog/backlog.model";
+import "../backlog-progress/backlog-progress.model";
+import "../coop-runs/coop-run.model";
 import "../game-scores/game-score.model";
 import "../game-times/game-time.model";
 import "../game-popularity/game-popularity.model";

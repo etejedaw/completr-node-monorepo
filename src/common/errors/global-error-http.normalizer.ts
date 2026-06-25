@@ -20,6 +20,8 @@ import { userFollowersDomainToHttpMapper } from "../../user-followers/errors/use
 import { userFollowRequestsDomainToHttpMapper } from "../../user-follow-requests/errors/user-follow-requests.domain-to-http.mapper";
 import { reviewsDomainToHttpMapper } from "../../reviews/errors/reviews.domain-to-http.mapper";
 import { moodTagsDomainToHttpMapper } from "../../mood-tags/errors/mood-tags.domain-to-http.mapper";
+import { backlogProgressDomainToHttpMapper } from "../../backlog-progress/errors/backlog-progress.domain-to-http.mapper";
+import { coopRunsDomainToHttpMapper } from "../../coop-runs/errors/coop-runs.domain-to-http.mapper";
 
 import { commonDomainToHttpMapper } from "./common.domain-to-http.mapper";
 import { DomainError } from "./domain-error";
@@ -91,6 +93,12 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "MoodTags Module")
 		return moodTagsDomainToHttpMapper(error, request);
+
+	if (error.module === "BacklogProgress Module")
+		return backlogProgressDomainToHttpMapper(error, request);
+
+	if (error.module === "CoopRuns Module")
+		return coopRunsDomainToHttpMapper(error, request);
 
 	if (error.module === "Common Module" || error.module === "COMMON")
 		return commonDomainToHttpMapper(error, request);

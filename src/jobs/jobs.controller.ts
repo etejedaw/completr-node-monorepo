@@ -73,6 +73,18 @@ export async function postRecomputePopularity(
 	return response.status(202).json(startJobResponse(job));
 }
 
+export async function postCleanupCoopRuns(
+	request: Request,
+	response: Response
+) {
+	const user = request.locals.user as RequestUser;
+
+	const job = await jobsService.startCleanupCoopRuns();
+	auditService.record(user.id, "job_started", "job", job.id);
+
+	return response.status(202).json(startJobResponse(job));
+}
+
 export async function deleteJob(request: Request, response: Response) {
 	const jobId = request.params.jobId as string;
 

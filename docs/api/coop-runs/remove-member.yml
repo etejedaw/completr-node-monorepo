@@ -1,0 +1,54 @@
+info:
+    name: Remove Co-op Member
+    type: http
+    seq: 3
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/users/me/backlog/:backlogId/coop/:userId"
+    params:
+        - name: backlogId
+          value: ""
+          type: path
+        - name: userId
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Remove Co-op Member
+
+    Removes a user from the co-op run linked to this backlog. The user's own backlog
+    entry is **not deleted** — only its `coopRunId` becomes `null`.
+
+    Two valid callers:
+    - The backlog owner (kicks someone out).
+    - The target user themselves (leaves the run voluntarily).
+
+    Auto-cleanup: if removing the member leaves the run with one or zero participants,
+    the remaining backlog (if any) is unlinked too and the `CoopRun` row is deleted.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Path Parameters
+
+    | Param     | Type | Required | Description                              |
+    |-----------|------|----------|------------------------------------------|
+    | backlogId | uuid | Yes      | Any backlog in the run (yours or theirs) |
+    | userId    | uuid | Yes      | The member to remove                     |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Type                       | Reason                                              |
+    |--------|----------------------------|-----------------------------------------------------|
+    | 404    | `COOP_BACKLOG_NOT_FOUND`   | The backlogId does not exist                        |
+    | 404    | `COOP_MEMBER_NOT_FOUND`    | The user is not in this run                         |
+    | 403    | `COOP_FORBIDDEN`           | You are neither the backlog owner nor the target    |

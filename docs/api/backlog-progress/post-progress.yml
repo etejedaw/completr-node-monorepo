@@ -1,0 +1,69 @@
+info:
+    name: Add Progress Note
+    type: http
+    seq: 2
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/backlog/:backlogId/progress"
+    params:
+        - name: backlogId
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "note": "Capítulo 3 — stuck en el puzzle del agua"
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Add Progress Note
+
+    Appends a new progress note to the timeline. Each POST creates a new entry — previous
+    notes are not modified. To update, post a new note; to remove, use `DELETE`.
+
+    **Authentication:** Bearer token required. Only the owner of the backlog can add
+    progress notes.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Path Parameters
+
+    | Param     | Type | Required | Description       |
+    |-----------|------|----------|-------------------|
+    | backlogId | uuid | Yes      | The backlog UUID  |
+
+    ### Request Body
+
+    | Field | Type   | Required | Description                          |
+    |-------|--------|----------|--------------------------------------|
+    | note  | string | Yes      | 1–500 chars. Trimmed before storing. |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "progress": {
+          "id": "uuid",
+          "note": "Capítulo 3 — stuck en el puzzle del agua",
+          "createdAt": "2026-06-25T20:31:09.451Z"
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                                  | Reason                              |
+    |--------|---------------------------------------|-------------------------------------|
+    | 404    | `BACKLOG_PROGRESS_BACKLOG_NOT_FOUND`  | Backlog id does not exist           |
+    | 403    | `BACKLOG_PROGRESS_FORBIDDEN`          | Backlog belongs to another user     |
+    | 422    | `COMMON_SCHEMA_INVALID`               | Note empty or > 500 chars           |

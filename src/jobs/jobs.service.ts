@@ -8,6 +8,7 @@ import * as reviewsService from "../reviews/reviews.service";
 import * as backlogService from "../backlog/backlog.service";
 import * as usersService from "../users/users.service";
 import * as gamePopularityService from "../game-popularity/game-popularity.service";
+import * as coopRunsService from "../coop-runs/coop-runs.service";
 import { RawgProvider } from "../rawg/rawg.provider";
 import { apiKeysConfig } from "../common/config/api-keys.config";
 
@@ -149,6 +150,21 @@ async function runCalculateRatings(jobId: string) {
 		);
 	} catch {
 		await failJob(jobId, `Failed after ${updated} updated`);
+	}
+}
+
+// --- Cleanup orphan coop runs ---
+
+export async function startCleanupCoopRuns() {
+	return startJob("cleanup_coop_runs", runCleanupCoopRuns);
+}
+
+async function runCleanupCoopRuns(jobId: string) {
+	try {
+		const removed = await coopRunsService.cleanupOrphanRuns();
+		await completeJob(jobId, `Removed ${removed} orphan coop runs`);
+	} catch {
+		await failJob(jobId, `Failed`);
 	}
 }
 
