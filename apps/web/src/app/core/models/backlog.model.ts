@@ -16,6 +16,8 @@ export interface BacklogEntry {
 	review?: { content: string | null; rating: number | null } | null;
 	moodTags?: string[];
 	latestProgress?: { note: string; createdAt: string } | null;
+	coopRunId?: string | null;
+	coopMembers?: BacklogCoopMember[];
 	game: BacklogGame;
 	platform: BacklogPlatform;
 	compilationGame?: BacklogCompilationGame | null;
@@ -46,4 +48,12 @@ interface BacklogGame {
 interface BacklogPlatform {
 	id: string;
 	abbreviation: string;
+}
+
+export interface BacklogCoopMember {
+	userId: string;
+	username: string;
+	name: string;
+	avatarUrl: string | null;
+	backlogId: string;
 }
