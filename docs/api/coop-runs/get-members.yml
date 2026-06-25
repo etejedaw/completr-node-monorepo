@@ -1,0 +1,53 @@
+info:
+    name: Get Co-op Members
+    type: http
+    seq: 1
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/backlog/:backlogId/coop"
+    params:
+        - name: backlogId
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Co-op Members
+
+    Returns the list of users who share the co-op run linked to this backlog (excluding
+    the backlog owner itself). For each peer the response includes the metadata needed
+    to render the sync diff: `status`, `startedAt`, `finishedAt`, `realDuration`.
+
+    Co-op runs link backlog entries across different users that share a session. Tags
+    are auto-accepted and reversible — anyone can leave a run via `DELETE`.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "members": [
+          {
+            "userId": "uuid",
+            "username": "jony",
+            "name": "Jony",
+            "avatarUrl": "https://...",
+            "backlogId": "uuid",
+            "status": "playing",
+            "startedAt": "2026-06-01T00:00:00.000Z",
+            "finishedAt": null,
+            "realDuration": null
+          }
+        ]
+      }
+    }
+    ```
+
+    Empty array when the backlog has no `coopRunId`.

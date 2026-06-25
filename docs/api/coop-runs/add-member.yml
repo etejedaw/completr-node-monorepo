@@ -1,0 +1,83 @@
+info:
+    name: Add Co-op Member
+    type: http
+    seq: 2
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/backlog/:backlogId/coop"
+    params:
+        - name: backlogId
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "userId": "uuid-of-friend-you-follow"
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Add Co-op Member
+
+    Tags a user as a co-op partner on this backlog. Behavior depends on the target user's
+    state:
+
+    - If neither backlog has a `coopRunId` yet → creates a new `CoopRun` and links both.
+    - If your backlog already has a `coopRunId` → links the target into the same run.
+    - If the target already has a backlog for this `(gameId, platformId)` → that backlog
+      is moved into your run. Score / duration / notes / mood tags / progress notes of
+      the target remain untouched.
+    - If the target has no backlog for this `(gameId, platformId)` → one is created in
+      `status: playing` with no other data filled.
+
+    The action is auto-accepted (no confirmation request). The target can leave the run
+    at any time via `DELETE`.
+
+    Logs an activity `coop_tagged` on the requester's feed pointing to the target user.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Path Parameters
+
+    | Param     | Type | Required | Description                              |
+    |-----------|------|----------|------------------------------------------|
+    | backlogId | uuid | Yes      | The backlog UUID you own                 |
+
+    ### Request Body
+
+    | Field  | Type | Required | Description                                            |
+    |--------|------|----------|--------------------------------------------------------|
+    | userId | uuid | Yes      | The target user UUID. Must be someone you follow.      |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "coopRunId": "uuid",
+        "targetBacklogId": "uuid"
+      }
+    }
+    ```
+
+    `targetBacklogId` is either the existing target backlog id or the newly created one.
+
+    ### Errors
+
+    | Status | Type                            | Reason                                          |
+    |--------|---------------------------------|-------------------------------------------------|
+    | 404    | `COOP_BACKLOG_NOT_FOUND`        | The backlogId does not exist                    |
+    | 404    | `COOP_TARGET_USER_NOT_FOUND`    | The userId in body does not exist               |
+    | 403    | `COOP_FORBIDDEN`                | The backlog is not yours                        |
+    | 422    | `COOP_SELF_TAG`                 | You tried to tag yourself                       |
+    | 422    | `COOP_TARGET_NOT_FOLLOWED`      | You are not following the target user           |
+    | 422    | `COOP_ALREADY_TAGGED`           | User is already part of this run                |
