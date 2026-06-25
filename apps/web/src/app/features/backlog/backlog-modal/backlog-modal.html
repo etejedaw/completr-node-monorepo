@@ -1,6 +1,6 @@
 <div class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]" (click)="onClose()">
 	<div
-		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[560px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
+		class="bg-sidebar border border-line rounded-[12px] w-full max-w-[640px] max-h-[90vh] flex flex-col shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
 		(click)="$event.stopPropagation()"
 		uiFocusTrap
 		(escape)="onClose()"
@@ -8,10 +8,11 @@
 		aria-modal="true"
 		aria-labelledby="backlog-modal-title"
 	>
-		<div class="flex justify-between items-center mb-5">
+		<div class="flex justify-between items-center px-7 pt-7 pb-4 shrink-0">
 			<h2 id="backlog-modal-title" class="font-display m-0 text-lg font-bold">{{ isEdit() ? (viewMode() === 'summary' ? entry()!.game.title : "Edit Entry") : "Add to Backlog" }}</h2>
 			<button uiIconButton size="sm" aria-label="Close" (click)="onClose()">&times;</button>
 		</div>
+		<div class="px-7 pb-7 overflow-y-auto flex-1 min-h-0">
 
 		@if (error()) {
 		<div class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem]">{{ error() }}</div>
@@ -105,7 +106,7 @@
 					<span aria-hidden="true" class="material-icons text-base text-brand mt-px">bookmark</span>
 					<div class="flex-1 min-w-0">
 						<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Where I am</div>
-						<p class="m-0 text-[0.8125rem] text-fg-secondary line-clamp-3">{{ progressNotes()[0].note }}</p>
+						<p class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap break-words">{{ progressNotes()[0].note }}</p>
 						<p class="m-0 text-[0.625rem] text-fg-muted mt-1">{{ progressNotes()[0].createdAt | date:'yyyy-MM-dd HH:mm' }}</p>
 					</div>
 				</div>
@@ -333,7 +334,23 @@
 			</div>
 			}
 
-			<section class="mb-5 pt-3 border-t border-line">
+			<ui-tabs [(value)]="activeFormTab">
+				<ui-tab-list class="!mb-4 sticky -top-1 bg-sidebar z-10 -mx-1 px-1 pt-1">
+					<button uiTab value="reference" type="button">
+						<span aria-hidden="true" class="material-icons text-base mr-1 align-middle">analytics</span>
+						Reference
+					</button>
+					<button uiTab value="tracking" type="button">
+						<span aria-hidden="true" class="material-icons text-base mr-1 align-middle">play_circle</span>
+						Tracking
+					</button>
+					<button uiTab value="notes" type="button">
+						<span aria-hidden="true" class="material-icons text-base mr-1 align-middle">edit_note</span>
+						Notes
+					</button>
+				</ui-tab-list>
+
+			<div uiTabPanel value="reference" class="pt-1">
 				<div class="flex items-center justify-between gap-3 mb-1">
 					<h3 class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider">Reference data</h3>
 					<div class="flex items-center gap-1.5">
@@ -350,7 +367,7 @@
 					</div>
 				</div>
 				<p class="text-[0.75rem] text-fg-muted m-0 mb-3 leading-snug">
-					Critic score and estimated duration from external sources. Your personal rating and real playtime go below.
+					Critic score and estimated duration from external sources. Your personal data lives in the Tracking tab.
 				</p>
 
 				<div class="grid grid-cols-2 gap-3">
@@ -466,9 +483,9 @@
 				@if (reportFeedback()) {
 				<p class="mt-2 mb-0 text-[0.75rem] text-success">{{ reportFeedback() }}</p>
 				}
-			</section>
+			</div>
 
-			<section class="mb-4 pt-3 border-t border-line">
+			<div uiTabPanel value="tracking" class="pt-1">
 				<div class="flex items-baseline justify-between mb-3">
 					<h3 class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider">Your tracking</h3>
 					<span class="text-[0.6875rem] text-fg-muted italic">personal data</span>
@@ -552,6 +569,13 @@
 				@if (trackingTooltipText()) {
 				<p class="mt-1 mb-4 text-[0.75rem] text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug">{{ trackingTooltipText() }}</p>
 				}
+			</div>
+
+			<div uiTabPanel value="notes" class="pt-1">
+				<div class="flex items-baseline justify-between mb-3">
+					<h3 class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider">Your annotations</h3>
+					<span class="text-[0.6875rem] text-fg-muted italic">tags, progress, notes</span>
+				</div>
 
 				<div class="mb-4">
 					<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Tags</label>
@@ -586,7 +610,7 @@
 						<div class="mt-2 flex items-start gap-2 text-xs text-fg-secondary">
 							<span aria-hidden="true" class="material-icons text-base text-brand mt-px">bookmark</span>
 							<div class="flex-1 min-w-0">
-								<p class="m-0 line-clamp-2">{{ progressNotes()[0].note }}</p>
+								<p class="m-0 whitespace-pre-wrap break-words">{{ progressNotes()[0].note }}</p>
 								<p class="m-0 text-[0.625rem] text-fg-muted mt-0.5">{{ progressNotes()[0].createdAt | date:'yyyy-MM-dd HH:mm' }}</p>
 							</div>
 						</div>
@@ -600,7 +624,7 @@
 								@for (n of progressNotes().slice(1); track n.id) {
 									<li class="flex items-start gap-2 text-xs">
 										<div class="flex-1 min-w-0">
-											<p class="m-0 text-fg-secondary line-clamp-2">{{ n.note }}</p>
+											<p class="m-0 text-fg-secondary whitespace-pre-wrap break-words">{{ n.note }}</p>
 											<p class="m-0 text-[0.625rem] text-fg-muted mt-0.5">{{ n.createdAt | date:'yyyy-MM-dd HH:mm' }}</p>
 										</div>
 										<button type="button" class="bg-transparent border-0 text-fg-muted cursor-pointer p-0.5 hover:text-danger transition" (click)="deleteProgressNote(n)" [disabled]="progressSavingId() === n.id" title="Delete">
@@ -667,7 +691,8 @@
 					</a>
 				</div>
 				}
-			</section>
+			</div>
+			</ui-tabs>
 
 			<div class="flex justify-between items-center mt-5 pt-4 border-t border-line">
 				@if (isEdit()) {
@@ -706,5 +731,6 @@
 			</div>
 		</form>
 		}
+		</div>
 	</div>
 </div>

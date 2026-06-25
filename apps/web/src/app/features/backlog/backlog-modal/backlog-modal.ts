@@ -42,7 +42,7 @@ import {
 	forkJoin,
 	of
 } from "rxjs";
-import { UiButton, UiFocusTrap, UiIconButton, UiInput, UiSelect, UiTextarea } from "../../../shared/ui";
+import { UiButton, UiFocusTrap, UiIconButton, UiInput, UiSelect, UiTabs, UiTabList, UiTab, UiTabPanel, UiTextarea } from "../../../shared/ui";
 import { DatePipe } from "@angular/common";
 
 @Component({
@@ -58,6 +58,10 @@ import { DatePipe } from "@angular/common";
 		UiIconButton,
 		UiInput,
 		UiSelect,
+		UiTabs,
+		UiTabList,
+		UiTab,
+		UiTabPanel,
 		UiTextarea
 	],
 	templateUrl: "./backlog-modal.html",
@@ -175,6 +179,7 @@ export class BacklogModal implements OnInit {
 
 	protected readonly isEdit = signal(false);
 	protected readonly viewMode = signal<"summary" | "edit">("edit");
+	protected readonly activeFormTab = signal<"reference" | "tracking" | "notes">("tracking");
 
 	switchToEdit() {
 		this.viewMode.set("edit");
