@@ -16,6 +16,7 @@ import {
 import * as activityService from "../activity/activity.service";
 import * as reviewsService from "../reviews/reviews.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
+import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
 
 export async function postBacklog(request: Request, response: Response) {
 	const registerBacklog = request.locals.body as RegisterBacklogDto;
@@ -58,13 +59,18 @@ export async function getMeBacklog(request: Request, response: Response) {
 		user.id,
 		gameIds
 	);
+	const latestProgressByBacklog =
+		await backlogProgressService.findLatestProgressForBacklogs(
+			backlogPlain.map(e => e.id)
+		);
 
 	const data = {
 		backlog: backlogPlain.map(entry =>
 			backlogSerializer(
 				entry,
 				reviewByGameId.get(entry.gameId),
-				moodTagsByGameId.get(entry.gameId)
+				moodTagsByGameId.get(entry.gameId),
+				latestProgressByBacklog.get(entry.id)
 			)
 		),
 		total
@@ -99,6 +105,11 @@ export async function getUserBacklog(request: Request, response: Response) {
 		user.id,
 		gameIds
 	);
+	const latestProgressByBacklog = isSelf
+		? await backlogProgressService.findLatestProgressForBacklogs(
+				backlogPlain.map(e => e.id)
+			)
+		: new Map<string, { note: string; createdAt: Date }>();
 
 	const data = {
 		backlog: backlogPlain.map(entry =>
@@ -106,7 +117,8 @@ export async function getUserBacklog(request: Request, response: Response) {
 				? backlogSerializer(
 						entry,
 						reviewByGameId.get(entry.gameId),
-						moodTagsByGameId.get(entry.gameId)
+						moodTagsByGameId.get(entry.gameId),
+						latestProgressByBacklog.get(entry.id)
 					)
 				: backlogPublicSerializer(
 						entry,
