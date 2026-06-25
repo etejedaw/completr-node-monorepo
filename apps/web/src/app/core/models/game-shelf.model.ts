@@ -6,6 +6,7 @@ export interface GameShelfEntry {
 	acquiredAt?: string;
 	edition?: string;
 	notes?: string;
+	moodTags?: string[];
 	game: {
 		id: string;
 		code: string;

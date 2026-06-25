@@ -21,6 +21,7 @@ export interface Game {
 	externalLinks: ExternalLink[];
 	compilationItems?: CompilationItem[];
 	partOfCompilations?: PartOfCompilation[];
+	userMoodTags?: string[];
 }
 
 export interface CompilationItem {
