@@ -31,6 +31,20 @@ import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
 import {
+	BacklogProgressService,
+	ProgressNote
+} from "../../backlog-progress/backlog-progress";
+import {
+	CoopRunsService,
+	CoopMember,
+	CoopCandidate,
+	SyncField
+} from "../../coop-runs/coop-runs";
+import {
+	PublicSocialService,
+	PublicSocialUser
+} from "../../public-profile/services/public-social.service";
+import {
 	Subject,
 	debounceTime,
 	distinctUntilChanged,
@@ -38,11 +52,13 @@ import {
 	forkJoin,
 	of
 } from "rxjs";
-import { UiButton, UiFocusTrap, UiIconButton, UiSelect, UiTextarea } from "../../../shared/ui";
+import { UiButton, UiFocusTrap, UiIconButton, UiInput, UiSelect, UiTabs, UiTabList, UiTab, UiTabPanel, UiTextarea } from "../../../shared/ui";
+import { DatePipe } from "@angular/common";
 
 @Component({
 	selector: "app-backlog-modal",
 	imports: [
+		DatePipe,
 		ReactiveFormsModule,
 		RouterLink,
 		StarRating,
@@ -50,7 +66,12 @@ import { UiButton, UiFocusTrap, UiIconButton, UiSelect, UiTextarea } from "../..
 		UiButton,
 		UiFocusTrap,
 		UiIconButton,
+		UiInput,
 		UiSelect,
+		UiTabs,
+		UiTabList,
+		UiTab,
+		UiTabPanel,
 		UiTextarea
 	],
 	templateUrl: "./backlog-modal.html",
@@ -65,6 +86,9 @@ export class BacklogModal implements OnInit {
 	private readonly gameShelfService = inject(GameShelfService);
 	private readonly reviewsService = inject(ReviewsService);
 	private readonly moodTagsService = inject(MoodTagsService);
+	private readonly progressService = inject(BacklogProgressService);
+	private readonly coopService = inject(CoopRunsService);
+	private readonly publicSocial = inject(PublicSocialService);
 	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
 	private readonly http = inject(HttpClient);
@@ -167,6 +191,7 @@ export class BacklogModal implements OnInit {
 
 	protected readonly isEdit = signal(false);
 	protected readonly viewMode = signal<"summary" | "edit">("edit");
+	protected readonly activeFormTab = signal<"reference" | "tracking" | "notes">("tracking");
 
 	switchToEdit() {
 		this.viewMode.set("edit");
@@ -251,6 +276,187 @@ export class BacklogModal implements OnInit {
 	});
 
 	protected readonly existingReview = signal<Review | null>(null);
+	protected readonly coopMembers = signal<CoopMember[]>([]);
+	protected readonly myFollowing = signal<PublicSocialUser[]>([]);
+	protected readonly coopAdding = signal(false);
+	protected readonly coopRemovingId = signal<string | null>(null);
+	protected readonly syncMember = signal<CoopMember | null>(null);
+	protected readonly syncFields = signal<Record<SyncField, boolean>>({
+		status: true,
+		startedAt: true,
+		finishedAt: true,
+		realDuration: true
+	});
+	protected readonly syncing = signal(false);
+
+	protected availableFollows() {
+		const taken = new Set(this.coopMembers().map(m => m.userId));
+		return this.myFollowing().filter(f => !taken.has(f.id));
+	}
+
+	protected readonly pickerCandidates = signal<CoopCandidate[]>([]);
+	protected readonly pickerUserId = signal<string | null>(null);
+	protected readonly pickerUserName = signal<string>("");
+
+	addCoopMember(userId: string) {
+		const e = this.entry();
+		if (!e || !userId) return;
+		this.coopAdding.set(true);
+		this.coopService.getCandidates(e.id, userId).subscribe({
+			next: res => {
+				if (res.accessible && res.candidates.length >= 2) {
+					this.pickerCandidates.set(res.candidates);
+					this.pickerUserId.set(userId);
+					const friend = this.myFollowing().find(f => f.id === userId);
+					this.pickerUserName.set(friend?.name || friend?.username || "");
+					this.coopAdding.set(false);
+					return;
+				}
+				this.commitCoopAdd(userId);
+			},
+			error: () => {
+				this.coopAdding.set(false);
+			}
+		});
+	}
+
+	chooseCandidate(targetBacklogId: string | null) {
+		const userId = this.pickerUserId();
+		if (!userId) return;
+		const id = targetBacklogId ?? undefined;
+		this.pickerCandidates.set([]);
+		this.pickerUserId.set(null);
+		this.commitCoopAdd(userId, id);
+	}
+
+	cancelPicker() {
+		this.pickerCandidates.set([]);
+		this.pickerUserId.set(null);
+	}
+
+	private commitCoopAdd(userId: string, targetBacklogId?: string) {
+		const e = this.entry();
+		if (!e) return;
+		this.coopAdding.set(true);
+		this.coopService
+			.addMember(e.id, userId, targetBacklogId)
+			.subscribe({
+				next: () => {
+					this.coopAdding.set(false);
+					this.refreshCoopMembers();
+				},
+				error: () => this.coopAdding.set(false)
+			});
+	}
+
+	removeCoopMember(member: CoopMember) {
+		const e = this.entry();
+		if (!e) return;
+		this.coopRemovingId.set(member.userId);
+		this.coopService.removeMember(e.id, member.userId).subscribe({
+			next: () => {
+				this.coopRemovingId.set(null);
+				this.refreshCoopMembers();
+			},
+			error: () => this.coopRemovingId.set(null)
+		});
+	}
+
+	openSyncDialog(member: CoopMember) {
+		this.syncMember.set(member);
+		this.syncFields.set({
+			status: true,
+			startedAt: true,
+			finishedAt: true,
+			realDuration: true
+		});
+	}
+
+	closeSyncDialog() {
+		this.syncMember.set(null);
+	}
+
+	toggleSyncField(field: SyncField) {
+		const current = this.syncFields();
+		this.syncFields.set({ ...current, [field]: !current[field] });
+	}
+
+	hasAnySyncFieldSelected(): boolean {
+		const f = this.syncFields();
+		return f.status || f.startedAt || f.finishedAt || f.realDuration;
+	}
+
+	commitSync() {
+		const e = this.entry();
+		const member = this.syncMember();
+		if (!e || !member) return;
+		const fields: SyncField[] = (
+			Object.keys(this.syncFields()) as SyncField[]
+		).filter(k => this.syncFields()[k]);
+		if (fields.length === 0) return;
+		this.syncing.set(true);
+		this.coopService.sync(e.id, member.backlogId, fields).subscribe({
+			next: () => {
+				this.syncing.set(false);
+				this.syncMember.set(null);
+				this.saved.emit();
+			},
+			error: () => this.syncing.set(false)
+		});
+	}
+
+	private refreshCoopMembers() {
+		const e = this.entry();
+		if (!e) return;
+		this.coopService
+			.getMembers(e.id)
+			.subscribe(members => this.coopMembers.set(members));
+	}
+
+	protected readonly progressNotes = signal<ProgressNote[]>([]);
+	protected readonly progressDraft = signal("");
+	protected readonly progressLoading = signal(false);
+	protected readonly progressHistoryOpen = signal(false);
+	protected readonly progressSavingId = signal<string | null>(null);
+
+	updateProgressDraft(value: string) {
+		this.progressDraft.set(value);
+	}
+
+	toggleProgressHistory() {
+		this.progressHistoryOpen.update(v => !v);
+	}
+
+	addProgressNote() {
+		const note = this.progressDraft().trim();
+		const e = this.entry();
+		if (!note || !e) return;
+		this.progressLoading.set(true);
+		this.progressService.addProgress(e.id, note).subscribe({
+			next: created => {
+				this.progressNotes.update(list => [created, ...list]);
+				this.progressDraft.set("");
+				this.progressLoading.set(false);
+			},
+			error: () => this.progressLoading.set(false)
+		});
+	}
+
+	deleteProgressNote(note: ProgressNote) {
+		const e = this.entry();
+		if (!e) return;
+		this.progressSavingId.set(note.id);
+		this.progressService.deleteProgress(e.id, note.id).subscribe({
+			next: () => {
+				this.progressNotes.update(list =>
+					list.filter(n => n.id !== note.id)
+				);
+				this.progressSavingId.set(null);
+			},
+			error: () => this.progressSavingId.set(null)
+		});
+	}
+
 	protected readonly moodTags = signal<string[]>([]);
 	protected readonly moodTagsSuggestions = signal<string[]>([]);
 
@@ -309,6 +515,16 @@ export class BacklogModal implements OnInit {
 			this.moodTagsService
 				.getGameTags(e.game.id)
 				.subscribe(tags => this.moodTags.set(tags));
+			this.progressService
+				.getProgress(e.id)
+				.subscribe(notes => this.progressNotes.set(notes));
+			this.refreshCoopMembers();
+			const currentUser = this.authService.user();
+			if (currentUser?.username) {
+				this.publicSocial
+					.getFollowing(currentUser.username)
+					.subscribe(users => this.myFollowing.set(users));
+			}
 			this.selectedGame.set({
 				id: e.game.id,
 				code: e.game.code,
@@ -619,6 +835,12 @@ export class BacklogModal implements OnInit {
 				next: backlog => {
 					this.submitReviewIfNeeded(val.gameId!);
 					this.persistMoodTagsIfChanged(val.gameId!);
+					const draft = this.progressDraft().trim();
+					if (draft) {
+						this.progressService
+							.addProgress(backlog.id, draft)
+							.subscribe();
+					}
 					const extras$ = [];
 					if (this.addToQueue()) {
 						extras$.push(
