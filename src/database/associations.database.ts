@@ -11,6 +11,7 @@ import { ListFollower } from "../list-followers/list-follower.model";
 import { Backlog } from "../backlog/backlog.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
+import { GamePopularity } from "../game-popularity/game-popularity.model";
 import { SavedFilter } from "../saved-filters/saved-filter.model";
 import { Queue } from "../queue/queue.model";
 import { Wishlist } from "../wishlist/wishlist.model";
@@ -40,6 +41,7 @@ export function setupAssociations() {
 	backlog();
 	gameScores();
 	gameTimes();
+	gamePopularity();
 	savedFilters();
 	queue();
 	wishlist();
@@ -175,6 +177,11 @@ function gameScores() {
 function gameTimes() {
 	Game.hasMany(GameTime, { foreignKey: "gameId", onDelete: "CASCADE" });
 	GameTime.belongsTo(Game, { foreignKey: "gameId" });
+}
+
+function gamePopularity() {
+	Game.hasOne(GamePopularity, { foreignKey: "gameId", onDelete: "CASCADE" });
+	GamePopularity.belongsTo(Game, { foreignKey: "gameId" });
 }
 
 function savedFilters() {

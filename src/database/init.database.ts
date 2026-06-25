@@ -13,6 +13,7 @@ import "../list-followers/list-follower.model";
 import "../backlog/backlog.model";
 import "../game-scores/game-score.model";
 import "../game-times/game-time.model";
+import "../game-popularity/game-popularity.model";
 import "../saved-filters/saved-filter.model";
 import "../queue/queue.model";
 import "../wishlist/wishlist.model";
