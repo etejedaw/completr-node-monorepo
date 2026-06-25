@@ -13,7 +13,7 @@ import { FormsModule } from "@angular/forms";
 import { BacklogEntry, BacklogStatus, Genre, Platform } from "../../../core/models";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { BacklogService, BacklogFilters } from "../backlog";
-import { SavedFiltersService, SavedFilter, SavedFilterStats } from "../saved-filters";
+import { SavedFiltersService, SavedFilter, SavedFilterStats, STAT_KEYS, StatKey, DEFAULT_ENABLED_STATS, STAT_LABELS } from "../saved-filters";
 import { QueueService } from "../../queue/queue";
 import { FavoritesService } from "../../favorites/favorites";
 import { GamesService } from "../../games/games";
@@ -22,6 +22,8 @@ import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 import { ReviewsService } from "../../games/reviews";
+import { MoodTagsService } from "../../mood-tags/mood-tags";
+import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
@@ -38,7 +40,7 @@ interface PendingStatusUpdate {
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea, GameFilterPanel],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea, GameFilterPanel, MoodTagsInput],
 	templateUrl: "./backlog-list.html",
 	host: {
 		"(document:click)": "onDocumentClick()"
@@ -54,6 +56,7 @@ export class BacklogList implements OnInit {
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly gamesService = inject(GamesService);
 	private readonly reviewsService = inject(ReviewsService);
+	private readonly moodTagsService = inject(MoodTagsService);
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -115,6 +118,8 @@ export class BacklogList implements OnInit {
 	protected readonly maxRatio = signal<number | null>(null);
 	protected readonly minPersonalRatio = signal<number | null>(null);
 	protected readonly maxPersonalRatio = signal<number | null>(null);
+	protected readonly selectedMoodTags = signal<string[]>([]);
+	protected readonly moodTagsSuggestions = signal<string[]>([]);
 
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
 	protected readonly backlogFilters = signal<SavedFilter[]>([]);
@@ -129,6 +134,31 @@ export class BacklogList implements OnInit {
 	protected readonly statsExpanded = signal(
 		localStorage.getItem("completr.backlog.statsExpanded") === "true"
 	);
+	protected readonly showStatsPanel = signal(false);
+	protected readonly statsConfigSaving = signal(false);
+	protected readonly allStatKeys = STAT_KEYS;
+	protected readonly statLabels = STAT_LABELS;
+
+	protected enabledStatsCount(): number {
+		const filter = this.getActiveFilter();
+		if (!filter) return 0;
+		const enabled = filter.enabledStats;
+		if (enabled === undefined || enabled === null) {
+			return DEFAULT_ENABLED_STATS.length;
+		}
+		return enabled.length;
+	}
+
+	protected isStatsCustom(): boolean {
+		const filter = this.getActiveFilter();
+		if (!filter) return false;
+		return filter.enabledStats !== undefined && filter.enabledStats !== null;
+	}
+
+	protected toggleStatsPanel() {
+		if (!this.activeFilterId()) return;
+		this.showStatsPanel.update(v => !v);
+	}
 
 	private readonly loadStatsEffect = effect(() => {
 		const id = this.activeFilterId();
@@ -170,6 +200,102 @@ export class BacklogList implements OnInit {
 		localStorage.setItem("completr.backlog.statsExpanded", String(next));
 	}
 
+	protected onActiveFilterChangedCloseStatsPanel = effect(() => {
+		const id = this.activeFilterId();
+		if (!id) untracked(() => this.showStatsPanel.set(false));
+	});
+
+	private getActiveFilter(): SavedFilter | null {
+		const id = this.activeFilterId();
+		if (!id) return null;
+		return this.savedFilters().find(f => f.id === id) ?? null;
+	}
+
+	protected isStatEnabled(key: StatKey): boolean {
+		const filter = this.getActiveFilter();
+		const enabled = filter?.enabledStats;
+		if (enabled === undefined || enabled === null) {
+			return (DEFAULT_ENABLED_STATS as readonly string[]).includes(key);
+		}
+		return enabled.includes(key);
+	}
+
+	protected hasAnyStatEnabled(): boolean {
+		return this.allStatKeys.some(k => this.isStatEnabled(k));
+	}
+
+	protected hasAnyHighlightEnabled(): boolean {
+		return (
+			this.isStatEnabled("longestPlayed") ||
+			this.isStatEnabled("bestPersonalRatio") ||
+			this.isStatEnabled("highestRated")
+		);
+	}
+
+	protected hasAnyExpandedStatEnabled(): boolean {
+		return (
+			this.isStatEnabled("completionRate") ||
+			this.isStatEnabled("abandonmentRate") ||
+			this.isStatEnabled("avgRealDuration") ||
+			this.isStatEnabled("avgEstimatedDuration") ||
+			this.isStatEnabled("avgScore") ||
+			this.isStatEnabled("avgUserRating") ||
+			this.isStatEnabled("estimatedVsRealDelta")
+		);
+	}
+
+	protected toggleStatKey(key: StatKey) {
+		const filter = this.getActiveFilter();
+		if (!filter) return;
+		const current =
+			filter.enabledStats === undefined || filter.enabledStats === null
+				? [...DEFAULT_ENABLED_STATS]
+				: [...filter.enabledStats];
+		const idx = current.indexOf(key);
+		if (idx >= 0) current.splice(idx, 1);
+		else current.push(key);
+		this.persistEnabledStats(filter, current);
+	}
+
+	protected resetStatsConfig() {
+		const filter = this.getActiveFilter();
+		if (!filter) return;
+		this.persistEnabledStats(filter, null);
+	}
+
+	private persistEnabledStats(filter: SavedFilter, value: string[] | null) {
+		this.statsConfigSaving.set(true);
+		const next = { ...filter, enabledStats: value };
+		this.savedFilters.update(list =>
+			list.map(f => (f.id === filter.id ? next : f))
+		);
+		this.backlogFilters.update(list =>
+			list.map(f => (f.id === filter.id ? next : f))
+		);
+		this.savedFiltersService
+			.update(filter.id, { enabledStats: value })
+			.subscribe({
+				next: updated => {
+					this.savedFilters.update(list =>
+						list.map(f => (f.id === updated.id ? updated : f))
+					);
+					this.backlogFilters.update(list =>
+						list.map(f => (f.id === updated.id ? updated : f))
+					);
+					this.statsConfigSaving.set(false);
+				},
+				error: () => {
+					this.savedFilters.update(list =>
+						list.map(f => (f.id === filter.id ? filter : f))
+					);
+					this.backlogFilters.update(list =>
+						list.map(f => (f.id === filter.id ? filter : f))
+					);
+					this.statsConfigSaving.set(false);
+				}
+			});
+	}
+
 	formatStat(value: number | null, suffix = "", decimals = 2): string {
 		if (value == null) return "—";
 		const rounded =
@@ -207,8 +333,13 @@ export class BacklogList implements OnInit {
 		)
 			count++;
 		if (this.activeStatuses().size > 0) count++;
+		if (this.selectedMoodTags().length > 0) count++;
 		return count;
 	};
+
+	updateMoodTagsFilter(tags: string[]) {
+		this.selectedMoodTags.set(tags);
+	}
 
 	private readonly statuses: { label: string; value: string }[] = [
 		{ label: "Not Started", value: "not_started" },
@@ -234,6 +365,11 @@ export class BacklogList implements OnInit {
 			this.backlogFilters.set(sorted.filter(f => f.showInBacklog));
 			this.savedFiltersLoaded.set(true);
 		});
+		this.moodTagsService
+			.getMyTags()
+			.subscribe(tags =>
+				this.moodTagsSuggestions.set(tags.map(t => t.tag))
+			);
 	}
 
 	private applyFiltersFromUrl(params: ParamMap) {
@@ -309,6 +445,9 @@ export class BacklogList implements OnInit {
 		);
 		this.maxPersonalRatio.set(
 			f["max_personal_ratio"] ? Number(f["max_personal_ratio"]) : null
+		);
+		this.selectedMoodTags.set(
+			f["mood_tags"] ? f["mood_tags"].split(",").filter(Boolean) : []
 		);
 
 		const status = f["status"];
@@ -400,6 +539,7 @@ export class BacklogList implements OnInit {
 		this.maxRatio.set(null);
 		this.minPersonalRatio.set(null);
 		this.maxPersonalRatio.set(null);
+		this.selectedMoodTags.set([]);
 		this.activeStatuses.set(new Set());
 		this.activeFilterId.set(null);
 		this.activeFilterDescription.set("");
@@ -514,6 +654,8 @@ export class BacklogList implements OnInit {
 			filters["min_personal_ratio"] = String(this.minPersonalRatio());
 		if (this.maxPersonalRatio() !== null)
 			filters["max_personal_ratio"] = String(this.maxPersonalRatio());
+		if (this.selectedMoodTags().length > 0)
+			filters["mood_tags"] = this.selectedMoodTags().join(",");
 		return filters;
 	}
 
@@ -883,6 +1025,8 @@ export class BacklogList implements OnInit {
 			filters.min_personal_ratio = this.minPersonalRatio()!;
 		if (this.maxPersonalRatio() !== null)
 			filters.max_personal_ratio = this.maxPersonalRatio()!;
+		if (this.selectedMoodTags().length > 0)
+			filters.mood_tags = this.selectedMoodTags().join(",");
 		if (this.searchQuery().trim()) filters.search = this.searchQuery().trim();
 
 		this.backlogService.getMyBacklog(filters).subscribe({

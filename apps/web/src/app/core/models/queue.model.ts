@@ -12,6 +12,7 @@ interface QueueBacklog {
 	ratio?: number;
 	startedAt?: string;
 	notes?: string;
+	moodTags?: string[];
 	game: {
 		id: string;
 		code: string;

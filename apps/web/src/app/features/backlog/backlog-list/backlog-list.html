@@ -77,12 +77,31 @@
 					<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none">{{ activeFiltersCount() }}</span>
 				}
 			</button>
+			<button
+				class="bg-transparent border text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
+				[class.border-line]="!showStatsPanel() && !hasAnyStatEnabled()"
+				[class.text-fg-secondary]="!showStatsPanel() && !hasAnyStatEnabled()"
+				[class.hover:border-brand]="!showStatsPanel() && activeFilterId()"
+				[class.hover:text-brand]="!showStatsPanel() && activeFilterId()"
+				[class.border-brand]="showStatsPanel() || hasAnyStatEnabled()"
+				[class.text-brand]="showStatsPanel() || hasAnyStatEnabled()"
+				[class.bg-brand-subtle]="showStatsPanel()"
+				[disabled]="!activeFilterId()"
+				[title]="!activeFilterId() ? 'Apply a saved view to configure its stats' : 'Configure visible stats'"
+				(click)="toggleStatsPanel()"
+			>
+				<span aria-hidden="true" class="material-icons text-base">insights</span>
+				Stats
+				@if (enabledStatsCount() > 0) {
+					<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none">{{ enabledStatsCount() }}</span>
+				}
+			</button>
 		</div>
 	</div>
 
 	<p class="-mt-2 mb-3 text-xs text-fg-muted italic min-h-[1.25rem]">{{ activeFilterDescription() }}</p>
 
-	@if (activeFilterId()) {
+	@if (activeFilterId() && hasAnyStatEnabled()) {
 		<section class="mb-4 bg-surface border border-line rounded-card p-4">
 			<header class="flex items-center justify-between mb-3">
 				<h2 class="font-display m-0 text-sm font-semibold text-fg-secondary uppercase tracking-wider flex items-center gap-2">
@@ -121,65 +140,89 @@
 				</div>
 			} @else if (stats(); as s) {
 				<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-					<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
-						<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Entries</span>
-						<span class="font-display text-xl font-bold tabular-nums">{{ formatStat(s.totalEntries, '', 0) }}</span>
-					</div>
-					<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
-						<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Real hours</span>
-						<span class="font-display text-xl font-bold tabular-nums">{{ formatStat(s.totalRealHours, 'h', 1) }}</span>
-					</div>
-					<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
-						<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg ratio</span>
-						<span class="font-display text-xl font-bold text-brand tabular-nums">{{ formatStat(s.avgRatio) }}</span>
-					</div>
-					<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
-						<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg personal ratio</span>
-						<span class="font-display text-xl font-bold text-brand tabular-nums">{{ formatStat(s.avgPersonalRatio) }}</span>
-					</div>
+					@if (isStatEnabled('totalEntries')) {
+						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Entries</span>
+							<span class="font-display text-xl font-bold tabular-nums">{{ formatStat(s.totalEntries, '', 0) }}</span>
+						</div>
+					}
+					@if (isStatEnabled('totalRealHours')) {
+						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Real hours</span>
+							<span class="font-display text-xl font-bold tabular-nums">{{ formatStat(s.totalRealHours, 'h', 1) }}</span>
+						</div>
+					}
+					@if (isStatEnabled('avgRatio')) {
+						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg ratio</span>
+							<span class="font-display text-xl font-bold text-brand tabular-nums">{{ formatStat(s.avgRatio) }}</span>
+						</div>
+					}
+					@if (isStatEnabled('avgPersonalRatio')) {
+						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg personal ratio</span>
+							<span class="font-display text-xl font-bold text-brand tabular-nums">{{ formatStat(s.avgPersonalRatio) }}</span>
+						</div>
+					}
 				</div>
 
 				@if (statsExpanded()) {
-					<div class="mt-4 pt-4 border-t border-line grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
-							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Completion rate</span>
-							<span class="font-display text-base font-semibold text-success tabular-nums">{{ formatPercent(s.completionRate) }}</span>
+					@if (hasAnyExpandedStatEnabled()) {
+						<div class="mt-4 pt-4 border-t border-line grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+							@if (isStatEnabled('completionRate')) {
+								<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Completion rate</span>
+									<span class="font-display text-base font-semibold text-success tabular-nums">{{ formatPercent(s.completionRate) }}</span>
+								</div>
+							}
+							@if (isStatEnabled('abandonmentRate')) {
+								<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Abandonment rate</span>
+									<span class="font-display text-base font-semibold text-danger tabular-nums">{{ formatPercent(s.abandonmentRate) }}</span>
+								</div>
+							}
+							@if (isStatEnabled('avgRealDuration')) {
+								<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg real duration</span>
+									<span class="font-display text-base font-semibold tabular-nums">{{ formatStat(s.avgRealDuration, 'h', 1) }}</span>
+								</div>
+							}
+							@if (isStatEnabled('avgEstimatedDuration')) {
+								<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg estimated duration</span>
+									<span class="font-display text-base font-semibold tabular-nums">{{ formatStat(s.avgEstimatedDuration, 'h', 1) }}</span>
+								</div>
+							}
+							@if (isStatEnabled('avgScore')) {
+								<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg score</span>
+									<span class="font-display text-base font-semibold tabular-nums">{{ formatStat(s.avgScore, '', 1) }}</span>
+								</div>
+							}
+							@if (isStatEnabled('avgUserRating')) {
+								<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg rating</span>
+									<span class="font-display text-base font-semibold tabular-nums">{{ formatStat(s.avgUserRating, '', 1) }}</span>
+								</div>
+							}
+							@if (isStatEnabled('estimatedVsRealDelta')) {
+								<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1 col-span-2" [title]="'Sum of (realDuration - duration) over completed entries. Positive = took longer than estimated.'">
+									<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Estimated vs real Δ (completed)</span>
+									<span
+										class="font-display text-base font-semibold tabular-nums"
+										[class.text-warning]="s.estimatedVsRealDelta !== null && s.estimatedVsRealDelta > 0"
+										[class.text-success]="s.estimatedVsRealDelta !== null && s.estimatedVsRealDelta < 0"
+									>{{ formatStat(s.estimatedVsRealDelta, 'h', 1) }}</span>
+								</div>
+							}
 						</div>
-						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
-							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Abandonment rate</span>
-							<span class="font-display text-base font-semibold text-danger tabular-nums">{{ formatPercent(s.abandonmentRate) }}</span>
-						</div>
-						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
-							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg real duration</span>
-							<span class="font-display text-base font-semibold tabular-nums">{{ formatStat(s.avgRealDuration, 'h', 1) }}</span>
-						</div>
-						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
-							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg estimated duration</span>
-							<span class="font-display text-base font-semibold tabular-nums">{{ formatStat(s.avgEstimatedDuration, 'h', 1) }}</span>
-						</div>
-						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
-							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg score</span>
-							<span class="font-display text-base font-semibold tabular-nums">{{ formatStat(s.avgScore, '', 1) }}</span>
-						</div>
-						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1">
-							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Avg rating</span>
-							<span class="font-display text-base font-semibold tabular-nums">{{ formatStat(s.avgUserRating, '', 1) }}</span>
-						</div>
-						<div class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1 col-span-2" [title]="'Sum of (realDuration - duration) over completed entries. Positive = took longer than estimated.'">
-							<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Estimated vs real Δ (completed)</span>
-							<span
-								class="font-display text-base font-semibold tabular-nums"
-								[class.text-warning]="s.estimatedVsRealDelta !== null && s.estimatedVsRealDelta > 0"
-								[class.text-success]="s.estimatedVsRealDelta !== null && s.estimatedVsRealDelta < 0"
-							>{{ formatStat(s.estimatedVsRealDelta, 'h', 1) }}</span>
-						</div>
-					</div>
+					}
 
-					@if (s.longestPlayed || s.bestPersonalRatio || s.highestRated) {
+					@if (hasAnyHighlightEnabled() && (s.longestPlayed || s.bestPersonalRatio || s.highestRated)) {
 						<div class="mt-4 pt-4 border-t border-line">
 							<h3 class="text-[0.625rem] uppercase tracking-wider text-fg-muted font-semibold mb-2">Highlights</h3>
 							<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-								@if (s.longestPlayed; as h) {
+								@if (isStatEnabled('longestPlayed') && s.longestPlayed; as h) {
 									<a [routerLink]="['/games', h.game.code]" class="flex items-center gap-3 bg-input-bg border border-line rounded-md p-2.5 no-underline transition hover:border-brand/40">
 										@if (h.game.backgroundUrl) {
 											<img [src]="h.game.backgroundUrl" [alt]="h.game.title" class="w-10 h-14 object-cover rounded shrink-0" loading="lazy" />
@@ -193,7 +236,7 @@
 										</div>
 									</a>
 								}
-								@if (s.bestPersonalRatio; as h) {
+								@if (isStatEnabled('bestPersonalRatio') && s.bestPersonalRatio; as h) {
 									<a [routerLink]="['/games', h.game.code]" class="flex items-center gap-3 bg-input-bg border border-line rounded-md p-2.5 no-underline transition hover:border-brand/40">
 										@if (h.game.backgroundUrl) {
 											<img [src]="h.game.backgroundUrl" [alt]="h.game.title" class="w-10 h-14 object-cover rounded shrink-0" loading="lazy" />
@@ -207,7 +250,7 @@
 										</div>
 									</a>
 								}
-								@if (s.highestRated; as h) {
+								@if (isStatEnabled('highestRated') && s.highestRated; as h) {
 									<a [routerLink]="['/games', h.game.code]" class="flex items-center gap-3 bg-input-bg border border-line rounded-md p-2.5 no-underline transition hover:border-brand/40">
 										@if (h.game.backgroundUrl) {
 											<img [src]="h.game.backgroundUrl" [alt]="h.game.title" class="w-10 h-14 object-cover rounded shrink-0" loading="lazy" />
@@ -225,6 +268,7 @@
 						</div>
 					}
 
+					@if (isStatEnabled('countByStatus')) {
 					<div class="mt-4 pt-4 border-t border-line">
 						<h3 class="text-[0.625rem] uppercase tracking-wider text-fg-muted font-semibold mb-2">By status</h3>
 						<div class="flex flex-wrap gap-2">
@@ -250,6 +294,7 @@
 							</span>
 						</div>
 					</div>
+					}
 				}
 			}
 		</section>
@@ -365,6 +410,20 @@
 						/>
 					</div>
 				</div>
+			</section>
+
+			<section>
+				<div class="flex items-center justify-between mb-2">
+					<h3 class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider m-0">Tags</h3>
+					<a routerLink="/tags" class="text-[0.6875rem] text-brand no-underline hover:underline" (click)="showFilters.set(false)">Manage →</a>
+				</div>
+				<app-mood-tags-input
+					[tags]="selectedMoodTags()"
+					[suggestions]="moodTagsSuggestions()"
+					placeholder="e.g. relajante, corto…"
+					(tagsChange)="updateMoodTagsFilter($event)"
+				/>
+				<p class="m-0 mt-1 text-[0.625rem] text-fg-muted">Entries that match all selected tags.</p>
 			</section>
 
 			<section class="pt-3 border-t border-line">
@@ -531,7 +590,64 @@
 			</button>
 		</footer>
 	</aside>
-	} @if (isInitialLoad() && isLoading()) {
+	}
+
+	@if (showStatsPanel()) {
+	<div
+		class="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm"
+		(click)="showStatsPanel.set(false)"
+	></div>
+	<aside
+		class="fixed top-0 right-0 h-screen w-full sm:w-[420px] z-[90] bg-sidebar border-l border-line shadow-[0_0_60px_-12px_rgba(0,0,0,0.7)] flex flex-col"
+	>
+		<header class="flex items-center justify-between px-5 py-4 border-b border-line shrink-0">
+			<h2 class="font-display text-lg font-bold m-0 flex items-center gap-2">
+				<span aria-hidden="true" class="material-icons text-brand">insights</span>
+				Stats
+				@if (isStatsCustom() && enabledStatsCount() > 0) {
+					<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none">{{ enabledStatsCount() }}</span>
+				}
+			</h2>
+			<button uiIconButton size="sm" (click)="showStatsPanel.set(false)" aria-label="Close">
+				<span aria-hidden="true" class="material-icons">close</span>
+			</button>
+		</header>
+
+		<div class="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-1">
+			<p class="text-xs text-fg-muted m-0 mb-2">Choose which stats appear in this view's panel. Changes save automatically.</p>
+			@for (key of allStatKeys; track key) {
+				<label class="flex items-center gap-3 text-sm text-fg cursor-pointer select-none py-1.5 px-2 rounded transition hover:bg-input-bg">
+					<input
+						type="checkbox"
+						class="cursor-pointer"
+						[checked]="isStatEnabled(key)"
+						[disabled]="statsConfigSaving()"
+						(change)="toggleStatKey(key)"
+					/>
+					<span>{{ statLabels[key] }}</span>
+				</label>
+			}
+		</div>
+
+		<footer class="flex items-center justify-between px-5 py-4 border-t border-line shrink-0">
+			<button
+				type="button"
+				class="bg-transparent border-0 text-fg-muted text-sm font-medium px-2 py-1.5 cursor-pointer inline-flex items-center gap-1 transition hover:text-fg disabled:opacity-50"
+				[disabled]="statsConfigSaving() || !isStatsCustom()"
+				(click)="resetStatsConfig()"
+				title="Reset to defaults"
+			>
+				<span aria-hidden="true" class="material-icons text-base">restart_alt</span>
+				Reset to defaults
+			</button>
+			<button uiButton variant="primary" (click)="showStatsPanel.set(false)">
+				Done
+			</button>
+		</footer>
+	</aside>
+	}
+
+	@if (isInitialLoad() && isLoading()) {
 	<div class="flex flex-col gap-3">
 		@for (i of skeletonRange; track i) {
 			<div class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line">
@@ -708,6 +824,14 @@
 									<p class="m-0 line-clamp-2">{{ entry.reviewContent }}</p>
 								</div>
 							}
+
+							@if (entry.moodTags && entry.moodTags.length > 0) {
+								<div class="flex flex-wrap gap-1 mt-2">
+									@for (tag of entry.moodTags; track tag) {
+										<span class="inline-block px-1.5 py-0.5 rounded-full bg-brand-subtle text-brand text-[0.625rem] font-medium leading-none">{{ tag }}</span>
+									}
+								</div>
+							}
 						</div>
 
 						<div class="hidden sm:flex flex-col items-end justify-center gap-3 shrink-0 min-w-[80px] text-right">
@@ -805,6 +929,13 @@
 											<span aria-hidden="true" class="material-icons text-[0.625rem]">library_books</span>
 											{{ entry.compilationGame.title }}
 										</span>
+									}
+									@if (entry.moodTags && entry.moodTags.length > 0) {
+										<div class="flex flex-wrap gap-1 mt-1">
+											@for (tag of entry.moodTags; track tag) {
+												<span class="inline-block px-1.5 py-0.5 rounded-full bg-brand-subtle text-brand text-[0.625rem] font-medium leading-none">{{ tag }}</span>
+											}
+										</div>
 									}
 								</td>
 								<td class="px-4 py-3 align-middle text-fg-secondary whitespace-nowrap">{{ entry.platform.abbreviation }}</td>

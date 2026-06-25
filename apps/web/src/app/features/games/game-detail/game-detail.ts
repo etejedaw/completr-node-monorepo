@@ -29,6 +29,8 @@ import { UiButton, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/
 import { GameSocialActivity } from "./components/game-social-activity";
 import { GameAddToListModal, ListsChanged } from "./components/game-add-to-list-modal";
 import { GameReviewsTab } from "./components/game-reviews-tab";
+import { MoodTagsService } from "../../mood-tags/mood-tags";
+import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 
 interface BacklogModalState {
 	show: boolean;
@@ -70,7 +72,8 @@ interface ReportModalState {
 		UiTabPanel,
 		GameSocialActivity,
 		GameAddToListModal,
-		GameReviewsTab
+		GameReviewsTab,
+		MoodTagsInput
 	],
 	templateUrl: "./game-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -88,8 +91,48 @@ export class GameDetail implements OnInit {
 	private readonly wishlistService = inject(WishlistService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly gameShelfService = inject(GameShelfService);
+	private readonly moodTagsService = inject(MoodTagsService);
 
 	protected readonly game = signal<Game | null>(null);
+	protected readonly moodTags = signal<string[]>([]);
+	protected readonly moodTagsDraft = signal<string[]>([]);
+	protected readonly moodTagsSuggestions = signal<string[]>([]);
+	protected readonly editingMoodTags = signal(false);
+	protected readonly savingMoodTags = signal(false);
+
+	startEditMoodTags() {
+		this.moodTagsDraft.set([...this.moodTags()]);
+		this.editingMoodTags.set(true);
+	}
+
+	cancelEditMoodTags() {
+		this.editingMoodTags.set(false);
+	}
+
+	updateMoodTagsDraft(tags: string[]) {
+		this.moodTagsDraft.set(tags);
+	}
+
+	commitMoodTags() {
+		const game = this.game();
+		if (!game) return;
+		this.savingMoodTags.set(true);
+		this.moodTagsService
+			.replaceGameTags(game.id, this.moodTagsDraft())
+			.subscribe({
+				next: tags => {
+					this.moodTags.set(tags);
+					this.editingMoodTags.set(false);
+					this.savingMoodTags.set(false);
+					this.moodTagsService
+						.getMyTags()
+						.subscribe(all =>
+							this.moodTagsSuggestions.set(all.map(t => t.tag))
+						);
+				},
+				error: () => this.savingMoodTags.set(false)
+			});
+	}
 	protected readonly isLoading = signal(true);
 	protected readonly similarGames = signal<Game[]>([]);
 	protected readonly isFavorite = signal(false);
@@ -166,6 +209,8 @@ export class GameDetail implements OnInit {
 		this.gamesService.getByCode(code).subscribe({
 			next: game => {
 				this.game.set(game);
+				this.moodTags.set(game.userMoodTags ?? []);
+				this.editingMoodTags.set(false);
 				this.isFavorite.set(this.favoritesService.isFavorite(game.id));
 				this.isInWishlist.set(this.wishlistService.isInWishlist(game.id));
 				this.isLoading.set(false);
@@ -175,6 +220,11 @@ export class GameDetail implements OnInit {
 					this.featuredLists.set(data.lists);
 					this.myLists.set(data.myLists);
 				});
+				this.moodTagsService
+					.getMyTags()
+					.subscribe(all =>
+						this.moodTagsSuggestions.set(all.map(t => t.tag))
+					);
 			},
 			error: () => this.isLoading.set(false)
 		});

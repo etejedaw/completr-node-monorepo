@@ -7,6 +7,7 @@ import {
 import { DatePipe, NgTemplateOutlet } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { UiIconButton } from "../../ui";
+import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
 
 export interface GameCoverCardGame {
 	code: string;
@@ -16,7 +17,7 @@ export interface GameCoverCardGame {
 
 @Component({
 	selector: "app-game-cover-card",
-	imports: [RouterLink, NgTemplateOutlet, DatePipe, UiIconButton],
+	imports: [RouterLink, NgTemplateOutlet, DatePipe, UiIconButton, MoodTagsChips],
 	template: `
 		<div class="flex flex-col gap-1.5 text-inherit group">
 			@if (clickable()) {
@@ -32,6 +33,7 @@ export interface GameCoverCardGame {
 			@if (subtitle()) {
 				<span class="text-[0.625rem] text-fg-muted truncate">{{ subtitle() }}</span>
 			}
+			<app-mood-tags-chips [tags]="moodTags()" />
 		</div>
 
 		<ng-template #cover>
@@ -127,6 +129,7 @@ export interface GameCoverCardGame {
 })
 export class GameCoverCard {
 	game = input.required<GameCoverCardGame>();
+	moodTags = input<string[] | null | undefined>();
 	topLeftBadge = input<string | undefined>();
 	ratio = input<number | null | undefined>();
 	duration = input<number | null | undefined>();

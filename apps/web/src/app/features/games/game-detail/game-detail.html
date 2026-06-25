@@ -428,6 +428,42 @@
 							</div>
 						}
 
+						<div class="mb-6">
+							<div class="flex items-center justify-between mb-2.5">
+								<h3 class="font-display m-0 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Your tags</h3>
+								<div class="flex items-center gap-3">
+									@if (!editingMoodTags()) {
+										<button type="button" class="bg-transparent border-0 text-[0.6875rem] text-brand cursor-pointer hover:underline" (click)="startEditMoodTags()">
+											{{ moodTags().length > 0 ? 'Edit' : 'Add tags' }}
+										</button>
+									}
+									<a routerLink="/tags" class="text-[0.6875rem] text-brand no-underline hover:underline">Manage →</a>
+								</div>
+							</div>
+							@if (editingMoodTags()) {
+								<app-mood-tags-input
+									[tags]="moodTagsDraft()"
+									[suggestions]="moodTagsSuggestions()"
+									placeholder="e.g. relajante, podcast game…"
+									(tagsChange)="updateMoodTagsDraft($event)"
+								/>
+								<div class="flex justify-end gap-1.5 mt-2">
+									<button uiButton variant="ghost" size="sm" (click)="cancelEditMoodTags()" [disabled]="savingMoodTags()">Cancel</button>
+									<button uiButton variant="primary" size="sm" (click)="commitMoodTags()" [disabled]="savingMoodTags()">
+										{{ savingMoodTags() ? 'Saving…' : 'Save' }}
+									</button>
+								</div>
+							} @else if (moodTags().length > 0) {
+								<div class="flex flex-wrap gap-1.5">
+									@for (tag of moodTags(); track tag) {
+										<span class="inline-block px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-xs font-medium">{{ tag }}</span>
+									}
+								</div>
+							} @else {
+								<p class="m-0 text-xs text-fg-muted italic">No tags yet — click "Add tags" to label this game.</p>
+							}
+						</div>
+
 						@if (otherScores().length > 0) {
 							<div class="mb-6">
 								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">External Scores</h3>

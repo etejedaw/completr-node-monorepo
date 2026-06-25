@@ -7,6 +7,7 @@ import {
 import { RouterLink } from "@angular/router";
 import { CdkDragHandle } from "@angular/cdk/drag-drop";
 import { UiIconButton } from "../../ui";
+import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
 
 export interface QueueGridGame {
 	id?: string;
@@ -20,13 +21,14 @@ export interface QueueGridEntry {
 	platformAbbreviation?: string;
 	ratio?: number | null;
 	duration?: number | null;
+	moodTags?: string[];
 }
 
 export type QueueStatusChange = "playing";
 
 @Component({
 	selector: "app-queue-grid-card",
-	imports: [RouterLink, CdkDragHandle, UiIconButton],
+	imports: [RouterLink, CdkDragHandle, UiIconButton, MoodTagsChips],
 	template: `
 		<div class="flex flex-col gap-1.5 group">
 			<div class="block relative">
@@ -76,6 +78,8 @@ export type QueueStatusChange = "playing";
 				class="text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand"
 				[routerLink]="['/games', entry().game.code]"
 			>{{ entry().game.title }}</a>
+			<app-mood-tags-chips [tags]="entry().moodTags" />
+
 			<div class="flex items-center justify-between gap-1">
 				<div class="flex items-center gap-1.5 min-w-0">
 					<button

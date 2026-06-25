@@ -70,6 +70,7 @@
 						</button>
 					</a>
 					<a class="text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand" [routerLink]="['/games', entry.game.code]">{{ entry.game.title }}</a>
+					<app-mood-tags-chips [tags]="entry.moodTags" />
 				</div>
 			}
 		</div>
