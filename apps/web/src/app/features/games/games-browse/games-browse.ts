@@ -24,8 +24,9 @@ import {
 	switchMap,
 	of
 } from "rxjs";
-import { UiButton, UiInput, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiInput, UiPagination, UiSearchBar, UiSelect } from "../../../shared/ui";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
+import { StarRating } from "../../../shared/components/star-rating/star-rating";
 
 @Component({
 	selector: "app-games-browse",
@@ -37,7 +38,9 @@ import { GameFilterPanel } from "../../../shared/components/game-filter-panel/ga
 		UiInput,
 		UiPagination,
 		UiSearchBar,
-		GameFilterPanel
+		UiSelect,
+		GameFilterPanel,
+		StarRating
 	],
 	templateUrl: "./games-browse.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -82,6 +85,17 @@ export class GamesBrowse implements OnInit, OnDestroy {
 	protected readonly minDuration = signal<number | null>(null);
 	protected readonly maxDuration = signal<number | null>(null);
 	protected readonly isDlc = signal<boolean | null>(null);
+	protected readonly sortBy = signal<string>("createdAt");
+	protected readonly sortOrder = signal<"asc" | "desc">("desc");
+	protected readonly sortOptions: { value: string; label: string; defaultOrder: "asc" | "desc" }[] = [
+		{ value: "createdAt", label: "Recently added", defaultOrder: "desc" },
+		{ value: "title", label: "Title", defaultOrder: "asc" },
+		{ value: "releaseAt", label: "Release date", defaultOrder: "desc" },
+		{ value: "score", label: "Rating", defaultOrder: "desc" },
+		{ value: "duration", label: "Duration", defaultOrder: "asc" },
+		{ value: "ratio", label: "Ratio", defaultOrder: "desc" },
+		{ value: "popularity", label: "Popularity", defaultOrder: "desc" }
+	];
 	protected readonly filteredGames = signal<Game[]>([]);
 	protected readonly filteredTotal = signal(0);
 	protected readonly filteredOffset = signal(0);
@@ -98,7 +112,11 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		return n;
 	});
 	protected readonly inSearchOrFilterMode = computed(
-		() => this.searchQuery().length >= 2 || this.activeFiltersCount() > 0
+		() =>
+			this.searchQuery().length >= 2 ||
+			this.activeFiltersCount() > 0 ||
+			this.sortBy() !== "createdAt" ||
+			this.sortOrder() !== "desc"
 	);
 
 	private readonly filterPanelEffect = effect(() => {
@@ -267,12 +285,12 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		this.showFilters.update(v => !v);
 	}
 
-	setMinScore(value: string) {
-		this.minScore.set(value ? Number(value) : null);
+	setMinScore(value: number | null) {
+		this.minScore.set(value);
 		this.onFiltersChanged();
 	}
-	setMaxScore(value: string) {
-		this.maxScore.set(value ? Number(value) : null);
+	setMaxScore(value: number | null) {
+		this.maxScore.set(value);
 		this.onFiltersChanged();
 	}
 	setMinDuration(value: string) {
@@ -298,9 +316,22 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		this.minDuration.set(null);
 		this.maxDuration.set(null);
 		this.isDlc.set(null);
+		this.sortBy.set("createdAt");
+		this.sortOrder.set("desc");
 		this.filteredOffset.set(0);
 		this.persistToUrl();
 		this.loadFiltered();
+	}
+
+	setSortBy(value: string) {
+		const option = this.sortOptions.find(o => o.value === value);
+		this.sortBy.set(value);
+		if (option) this.sortOrder.set(option.defaultOrder);
+		this.onFiltersChanged();
+	}
+
+	protected isSortCustom(): boolean {
+		return this.sortBy() !== "createdAt" || this.sortOrder() !== "desc";
 	}
 
 	private onFiltersChanged() {
@@ -335,7 +366,9 @@ export class GamesBrowse implements OnInit, OnDestroy {
 	private buildQuery() {
 		const q: Record<string, string | number | boolean> = {
 			limit: this.filteredLimit,
-			offset: this.filteredOffset()
+			offset: this.filteredOffset(),
+			sort_by: this.sortBy(),
+			sort_order: this.sortOrder()
 		};
 		const search = this.searchQuery().trim();
 		if (search.length >= 2) q["search"] = search;
@@ -368,6 +401,8 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		params["min_duration"] = this.minDuration() !== null ? String(this.minDuration()) : null;
 		params["max_duration"] = this.maxDuration() !== null ? String(this.maxDuration()) : null;
 		params["is_dlc"] = this.isDlc() !== null ? String(this.isDlc()) : null;
+		params["sort_by"] = this.sortBy() !== "createdAt" ? this.sortBy() : null;
+		params["sort_order"] = this.sortOrder() !== "desc" ? this.sortOrder() : null;
 		this.router.navigate([], {
 			relativeTo: this.route,
 			queryParams: params,
@@ -396,6 +431,14 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		);
 		const dlc = p.get("is_dlc");
 		this.isDlc.set(dlc === "true" ? true : dlc === "false" ? false : null);
+		const sortBy = p.get("sort_by");
+		if (sortBy && this.sortOptions.some(o => o.value === sortBy)) {
+			this.sortBy.set(sortBy);
+		}
+		const sortOrder = p.get("sort_order");
+		if (sortOrder === "asc" || sortOrder === "desc") {
+			this.sortOrder.set(sortOrder);
+		}
 		if (this.activeFiltersCount() > 0) this.showFilters.set(true);
 		if (this.inSearchOrFilterMode()) this.loadFiltered();
 	}
