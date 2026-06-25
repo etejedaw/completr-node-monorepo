@@ -20,6 +20,7 @@ import { userFollowRequestsErrorDomainNormalizer } from "../../user-follow-reque
 import { reviewsErrorDomainNormalizer } from "../../reviews/errors/reviews.error-domain.normalizer";
 import { moodTagsErrorDomainNormalizer } from "../../mood-tags/errors/mood-tags.error-domain.normalizer";
 import { backlogProgressErrorDomainNormalizer } from "../../backlog-progress/errors/backlog-progress.error-domain.normalizer";
+import { coopRunsErrorDomainNormalizer } from "../../coop-runs/errors/coop-runs.error-domain.normalizer";
 import { DomainError } from "./domain-error";
 import { ServiceError } from "./service-error";
 
@@ -107,6 +108,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "BacklogProgress Service")
 		return backlogProgressErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "CoopRuns Service")
+		return coopRunsErrorDomainNormalizer(error, correlationId);
 
 	return new DomainError("COMMON", "INTERNAL_ERROR", "Unexpected error", {
 		raw: error,

@@ -28,6 +28,7 @@ class Backlog extends Model {
 	declare isPublic: boolean;
 	declare notes?: string;
 	declare compilationGameId?: string | null;
+	declare coopRunId?: string | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 	declare Game: Game;
@@ -78,6 +79,10 @@ Backlog.init(
 		},
 		notes: DataTypes.TEXT,
 		compilationGameId: {
+			type: DataTypes.UUID,
+			allowNull: true
+		},
+		coopRunId: {
 			type: DataTypes.UUID,
 			allowNull: true
 		}
