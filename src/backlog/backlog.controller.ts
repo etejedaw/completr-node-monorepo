@@ -17,6 +17,7 @@ import * as activityService from "../activity/activity.service";
 import * as reviewsService from "../reviews/reviews.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
+import * as coopRunsService from "../coop-runs/coop-runs.service";
 
 export async function postBacklog(request: Request, response: Response) {
 	const registerBacklog = request.locals.body as RegisterBacklogDto;
@@ -63,6 +64,10 @@ export async function getMeBacklog(request: Request, response: Response) {
 		await backlogProgressService.findLatestProgressForBacklogs(
 			backlogPlain.map(e => e.id)
 		);
+	const coopMembersByBacklog =
+		await coopRunsService.findMembersForManyBacklogs(
+			backlogPlain.map(e => e.id)
+		);
 
 	const data = {
 		backlog: backlogPlain.map(entry =>
@@ -70,7 +75,8 @@ export async function getMeBacklog(request: Request, response: Response) {
 				entry,
 				reviewByGameId.get(entry.gameId),
 				moodTagsByGameId.get(entry.gameId),
-				latestProgressByBacklog.get(entry.id)
+				latestProgressByBacklog.get(entry.id),
+				coopMembersByBacklog.get(entry.id)
 			)
 		),
 		total
@@ -110,6 +116,10 @@ export async function getUserBacklog(request: Request, response: Response) {
 				backlogPlain.map(e => e.id)
 			)
 		: new Map<string, { note: string; createdAt: Date }>();
+	const coopMembersByBacklog =
+		await coopRunsService.findMembersForManyBacklogs(
+			backlogPlain.map(e => e.id)
+		);
 
 	const data = {
 		backlog: backlogPlain.map(entry =>
@@ -118,12 +128,15 @@ export async function getUserBacklog(request: Request, response: Response) {
 						entry,
 						reviewByGameId.get(entry.gameId),
 						moodTagsByGameId.get(entry.gameId),
-						latestProgressByBacklog.get(entry.id)
+						latestProgressByBacklog.get(entry.id),
+						coopMembersByBacklog.get(entry.id)
 					)
 				: backlogPublicSerializer(
 						entry,
 						reviewByGameId.get(entry.gameId),
-						moodTagsByGameId.get(entry.gameId)
+						moodTagsByGameId.get(entry.gameId),
+						undefined,
+						coopMembersByBacklog.get(entry.id)
 					)
 		),
 		total
