@@ -564,7 +564,6 @@
 					<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted">Personal labels you can later use to filter the backlog. Up to 10.</p>
 				</div>
 
-				@if (isEdit()) {
 				<div class="mb-4">
 					<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Where I am</label>
 					<div class="flex gap-2">
@@ -573,15 +572,17 @@
 							placeholder="e.g. Cap 3, stuck en el puzzle del agua"
 							[value]="progressDraft()"
 							(input)="updateProgressDraft($any($event.target).value)"
-							(keyup.enter)="addProgressNote()"
+							(keyup.enter)="isEdit() ? addProgressNote() : null"
 							maxlength="500"
 							class="flex-1"
 						/>
-						<button uiButton variant="primary" size="sm" type="button" (click)="addProgressNote()" [disabled]="progressLoading() || !progressDraft().trim()">
-							{{ progressLoading() ? '…' : 'Add' }}
-						</button>
+						@if (isEdit()) {
+							<button uiButton variant="primary" size="sm" type="button" (click)="addProgressNote()" [disabled]="progressLoading() || !progressDraft().trim()">
+								{{ progressLoading() ? '…' : 'Add' }}
+							</button>
+						}
 					</div>
-					@if (progressNotes().length > 0) {
+					@if (isEdit() && progressNotes().length > 0) {
 						<div class="mt-2 flex items-start gap-2 text-xs text-fg-secondary">
 							<span aria-hidden="true" class="material-icons text-base text-brand mt-px">bookmark</span>
 							<div class="flex-1 min-w-0">
@@ -610,9 +611,14 @@
 							</ul>
 						}
 					}
-					<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted">Short notes to remember where you left off. Each add creates a new entry; history is preserved.</p>
+					<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted">
+						@if (isEdit()) {
+							Short notes to remember where you left off. Each add creates a new entry; history is preserved.
+						} @else {
+							Optional. Will be saved with the backlog so you can pick up later.
+						}
+					</p>
 				</div>
-				}
 
 				<div class="mb-4">
 					<label for="notes" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Notes</label>

@@ -674,6 +674,12 @@ export class BacklogModal implements OnInit {
 				next: backlog => {
 					this.submitReviewIfNeeded(val.gameId!);
 					this.persistMoodTagsIfChanged(val.gameId!);
+					const draft = this.progressDraft().trim();
+					if (draft) {
+						this.progressService
+							.addProgress(backlog.id, draft)
+							.subscribe();
+					}
 					const extras$ = [];
 					if (this.addToQueue()) {
 						extras$.push(
