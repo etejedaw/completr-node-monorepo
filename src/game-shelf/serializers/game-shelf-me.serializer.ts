@@ -2,7 +2,10 @@ import { Game } from "../../games/game.model";
 import { Platform } from "../../platforms/platform.model";
 import { GameShelf } from "../game-shelf.model";
 
-export function gameShelfMeSerializer(gameShelf: GameShelf) {
+export function gameShelfMeSerializer(
+	gameShelf: GameShelf,
+	moodTags?: string[]
+) {
 	return {
 		id: gameShelf.id,
 		userId: gameShelf.userId,
@@ -10,6 +13,7 @@ export function gameShelfMeSerializer(gameShelf: GameShelf) {
 		edition: gameShelf.edition,
 		notes: gameShelf.notes,
 		isPublic: gameShelf.isPublic,
+		moodTags: moodTags ?? [],
 		game: gameSerializer(gameShelf.Game),
 		platform: platformSerializer(gameShelf.Platform)
 	};

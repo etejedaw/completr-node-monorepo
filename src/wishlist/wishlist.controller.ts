@@ -5,6 +5,7 @@ import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
 import * as wishlistService from "./wishlist.service";
 import * as activityService from "../activity/activity.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 import { ReplaceWishlistBody } from "./schemas/replace-wishlist.schema";
 import { AddWishlistBody } from "./schemas/add-wishlist.schema";
 import { WishlistGameParams } from "./schemas/wishlist-game-params.schema";
@@ -28,7 +29,16 @@ export async function putWishlist(request: Request, response: Response) {
 		}
 	}
 
-	const data = { wishlist: entriesPlain.map(wishlistSerializer) };
+	const tagsByGame = await moodTagsService.findTagsForGames(
+		user.id,
+		entriesPlain.map(e => e.gameId)
+	);
+
+	const data = {
+		wishlist: entriesPlain.map(e =>
+			wishlistSerializer(e, tagsByGame.get(e.gameId))
+		)
+	};
 	return response.status(200).json({ data });
 }
 
@@ -66,8 +76,17 @@ export async function getMeWishlist(request: Request, response: Response) {
 		query
 	);
 	const entriesPlain = rows.map(e => e.get({ plain: true }));
+	const tagsByGame = await moodTagsService.findTagsForGames(
+		user.id,
+		entriesPlain.map(e => e.gameId)
+	);
 
-	const data = { wishlist: entriesPlain.map(wishlistSerializer), total };
+	const data = {
+		wishlist: entriesPlain.map(e =>
+			wishlistSerializer(e, tagsByGame.get(e.gameId))
+		),
+		total
+	};
 	return response.status(200).json({ data });
 }
 
@@ -90,7 +109,19 @@ export async function getUserWishlist(request: Request, response: Response) {
 		query
 	);
 	const entriesPlain = rows.map(e => e.get({ plain: true }));
+	const tagsByGame =
+		currentUser?.id === user.id
+			? await moodTagsService.findTagsForGames(
+					user.id,
+					entriesPlain.map(e => e.gameId)
+				)
+			: new Map<string, string[]>();
 
-	const data = { wishlist: entriesPlain.map(wishlistSerializer), total };
+	const data = {
+		wishlist: entriesPlain.map(e =>
+			wishlistSerializer(e, tagsByGame.get(e.gameId))
+		),
+		total
+	};
 	return response.status(200).json({ data });
 }

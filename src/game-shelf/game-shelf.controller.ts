@@ -6,6 +6,7 @@ import * as usersService from "../users/users.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
 import * as activityService from "../activity/activity.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import { GameShelfIdParam } from "./schemas/game-shelf-id-params.schema";
@@ -40,9 +41,15 @@ export async function getMeGameShelf(request: Request, response: Response) {
 	const { rows, total } =
 		await gameShelfService.findGameShelfByUserIdPaginated(user.id, query);
 	const gameShelfPlain = rows.map(game => game.get({ plain: true }));
+	const tagsByGame = await moodTagsService.findTagsForGames(
+		user.id,
+		gameShelfPlain.map(e => e.gameId)
+	);
 
 	const data = {
-		gameShelf: gameShelfPlain.map(gameShelfMeSerializer),
+		gameShelf: gameShelfPlain.map(e =>
+			gameShelfMeSerializer(e, tagsByGame.get(e.gameId))
+		),
 		total
 	};
 	return response.status(200).json({ data });
@@ -68,8 +75,19 @@ export async function getUserGameShelf(request: Request, response: Response) {
 		? await gameShelfService.findGameShelfByUserIdPaginated(user.id, query)
 		: await gameShelfService.findPublicGameShelfByUserId(user.id, query);
 	const gameShelfPlain = rows.map(item => item.get({ plain: true }));
+	const tagsByGame = isSelf
+		? await moodTagsService.findTagsForGames(
+				user.id,
+				gameShelfPlain.map(e => e.gameId)
+			)
+		: new Map<string, string[]>();
 
-	const data = { gameShelf: gameShelfPlain.map(gameShelfSerializer), total };
+	const data = {
+		gameShelf: gameShelfPlain.map(e =>
+			gameShelfSerializer(e, tagsByGame.get(e.gameId))
+		),
+		total
+	};
 	return response.status(200).json({ data });
 }
 

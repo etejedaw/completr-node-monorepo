@@ -8,6 +8,7 @@ import { ReplaceFavoritesBody } from "./schemas/replace-favorites.schema";
 import { UsernameParam } from "../users/schemas/username-params.schema";
 import { favoriteSerializer } from "./favorites.serializer";
 import * as activityService from "../activity/activity.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 
 export async function putFavorites(request: Request, response: Response) {
 	const body = request.locals.body as ReplaceFavoritesBody;
@@ -28,7 +29,16 @@ export async function putFavorites(request: Request, response: Response) {
 		}
 	}
 
-	const data = { favorites: entriesPlain.map(favoriteSerializer) };
+	const tagsByGame = await moodTagsService.findTagsForGames(
+		user.id,
+		entriesPlain.map(e => e.gameId)
+	);
+
+	const data = {
+		favorites: entriesPlain.map(e =>
+			favoriteSerializer(e, tagsByGame.get(e.gameId))
+		)
+	};
 	return response.status(200).json({ data });
 }
 
@@ -39,8 +49,17 @@ export async function getMeFavorites(request: Request, response: Response) {
 	const { rows, total } =
 		await favoritesService.findFavoritesByUserIdPaginated(user.id, query);
 	const entriesPlain = rows.map(e => e.get({ plain: true }));
+	const tagsByGame = await moodTagsService.findTagsForGames(
+		user.id,
+		entriesPlain.map(e => e.gameId)
+	);
 
-	const data = { favorites: entriesPlain.map(favoriteSerializer), total };
+	const data = {
+		favorites: entriesPlain.map(e =>
+			favoriteSerializer(e, tagsByGame.get(e.gameId))
+		),
+		total
+	};
 	return response.status(200).json({ data });
 }
 
@@ -61,7 +80,20 @@ export async function getUserFavorites(request: Request, response: Response) {
 	const { rows, total } =
 		await favoritesService.findFavoritesByUserIdPaginated(user.id, query);
 	const entriesPlain = rows.map(e => e.get({ plain: true }));
+	const currentUserId = currentUser?.id;
+	const tagsByGame =
+		currentUserId === user.id
+			? await moodTagsService.findTagsForGames(
+					user.id,
+					entriesPlain.map(e => e.gameId)
+				)
+			: new Map<string, string[]>();
 
-	const data = { favorites: entriesPlain.map(favoriteSerializer), total };
+	const data = {
+		favorites: entriesPlain.map(e =>
+			favoriteSerializer(e, tagsByGame.get(e.gameId))
+		),
+		total
+	};
 	return response.status(200).json({ data });
 }
