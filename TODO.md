@@ -185,7 +185,7 @@
 - [x] Campo `showInBacklog` (boolean, default true) — controla si aparece como chip en el backlog
 - [x] Campo `isDefault` (boolean, default false) — auto-aplica al abrir el backlog. Solo uno por usuario, requiere showInBacklog
 - [x] `GET /users/me/saved-filters/:filterId/stats` — Estadísticas agregadas del backlog que matchea la vista (totales, promedios, ratios, completion/abandonment rate, highlights: longest played / best personal ratio / highest rated)
-- [ ] **Panel configurable de stats por vista guardada** — Permitir que el usuario active/desactive qué stats ver en cada saved view. MVP: persistir en `localStorage` con key `completr.backlog.statsEnabled.<filterId>` y defaults hardcodeados (4 KPIs visibles + completion rate). Migrar a columna `enabledStats TEXT[]` en `SavedFilter` cuando se necesite sync cross-device (requiere migración Sequelize + DDL). Decisión diferida porque no bloquea — el endpoint ya devuelve todas las stats y el frontend ya las renderiza.
+- [x] **Panel configurable de stats por vista guardada** — Implementado con columna `enabledStats TEXT[]` en `SavedFilter` (sync cross-device desde el día 1, descartado el MVP localStorage). Panel lateral con checkboxes por stat; defaults hardcodeados en frontend (4 KPIs); reset y persistencia automática vía PATCH
 
 ### Módulo de Listas
 
@@ -625,7 +625,7 @@
 ### Búsqueda avanzada
 
 - [x] Filtros combinados: género, plataforma, año, score mínimo/máximo, duración, DLC toggle. Backend `GET /games` extendido en FB-102; frontend con panel de filtros + chips + URL persistente
-- [ ] Ordenamiento dinámico: rating, duración, ratio, popularidad (nº de usuarios que lo tienen)
+- [x] Ordenamiento dinámico: rating, duración, ratio, popularidad. Score y duración resuelven canónico con prioridad de fuente (`completr → metacritic → opencritic → rawg` y `completr → hltb → rawg`) en subqueries con `NULLS LAST`. Popularidad materializada en `GamePopularities`, recalculada por job admin `POST /admin/jobs/recompute-popularity`
 
 ### Landing page
 
@@ -659,8 +659,8 @@
 
 ### Mood tags
 
-- [ ] Tags definidos por el usuario para sus juegos: "relajante", "sesiones cortas", "podcast game", "intenso", etc.
-- [ ] Usables como filtro en el backlog y en el randomizer
+- [x] Tags definidos por el usuario para sus juegos: "relajante", "sesiones cortas", "podcast game", "intenso", etc. Modelo normalizado `UserGameTag(userId, gameId, tag)` con normalización server-side (lowercase + trim + sin acentos), unique `(userId, gameId, tag)` e índices preparados para community-wide aggregation
+- [x] Usables como filtro en el backlog (`?mood_tags=tag1,tag2` con semántica AND) y editables desde modal de backlog, ficha del juego y página `/tags`. Página `/tags` permite crear tags huérfanos, renombrar con merge automático, describir y borrar en cascada. Chips visibles en backlog, game-shelf, queue, wishlist, favorites y game-detail
 
 ### "Recomiéndame"
 
