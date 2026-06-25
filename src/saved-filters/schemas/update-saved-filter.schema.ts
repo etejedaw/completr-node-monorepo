@@ -1,5 +1,5 @@
 import z from "zod";
-import { SORT_ORDERS } from "../saved-filter.model";
+import { SORT_ORDERS, STAT_KEYS } from "../saved-filter.model";
 
 export const UpdateSavedFilterSchema = z
 	.object({
@@ -9,7 +9,8 @@ export const UpdateSavedFilterSchema = z
 		sortBy: z.string().max(50).optional(),
 		sortOrder: z.enum(SORT_ORDERS).optional(),
 		showInBacklog: z.boolean().optional(),
-		isDefault: z.boolean().optional()
+		isDefault: z.boolean().optional(),
+		enabledStats: z.array(z.enum(STAT_KEYS)).nullable().optional()
 	})
 	.strict()
 	.readonly();
