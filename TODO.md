@@ -609,7 +609,7 @@
 - [x] Frontend: destacar listas oficiales en games-browse (sección "Completr Lists")
 - [x] Frontend: badge "Official" en list-detail junto al nombre
 - [x] Frontend: badge en cards de listas oficiales en list-overview
-- [ ] Algunas listas oficiales otorgan un badge/trofeo al usuario que las complete al 100% (configurable por lista)
+- [~] ~~Algunas listas oficiales otorgan un badge/trofeo al usuario que las complete al 100% (configurable por lista)~~ — **diferido a Fase 4**: depende del sistema general de badges, que se difiere por falta de base social (ver sección Badges)
 
 ### Social — Ver actividad de amigos
 
@@ -639,16 +639,9 @@
 - [ ] Cada usuario puede generar N invitaciones
 - [ ] Tracking de quién invitó a quién (útil para badges futuros)
 
-### Badges (manuales)
+### Badges (manuales) — diferido a Fase 4
 
-- [ ] Modelo `Badge`: id, code, name, description, icon_url, type (`manual` | `automatic`), created_at
-- [ ] Modelo `UserBadge`: id, user_id, badge_id, awarded_at — tabla pivote usuario ↔ badge
-- [ ] `GET /users/:username/badges` — Ver badges de un usuario (visible en perfil público)
-- [ ] `POST /badges/:code/award/:username` — Asignar badge a usuario (solo admin)
-- [ ] `DELETE /badges/:code/revoke/:username` — Revocar badge (solo admin)
-- [ ] Badges iniciales: `founder` (primeros N registros), `beta-tester` (usuarios de beta cerrada), `moderator` (rol moderador), `premium-supporter` (suscripción activa)
-- [ ] Mostrar badges en el perfil público del usuario
-- [ ] Los badges automáticos (logros por completar juegos) se implementan en Fase 4
+**Decisión 2026-06-25:** Se difiere todo el sistema de badges (manuales + automáticos por lista oficial) a Fase 4. Razón: con ~12 usuarios registrados y 3 activos, los badges no tienen feedback loop social (mostrar, comparar, presumir) y se vuelven medallitas en el vacío. Esperar a Beta Pública para construir el módulo completo con propósito real: founder/beta-tester/premium-supporter/auto por listas, etc.
 
 ### "¿Dónde iba?" (notas de progreso)
 
@@ -660,10 +653,9 @@
 - [ ] Etiquetar amigos en un backlog de juego co-op/multiplayer
 - [ ] Mostrar en la ficha del juego con quién lo jugaste
 
-### Backlog randomizer
+### Backlog randomizer — diferido a Fase 6 (AI insights)
 
-- [ ] Endpoint "¿Qué juego?" que elige un juego aleatorio del backlog del usuario
-- [ ] Filtros opcionales: género, plataforma, duración máxima, mood tags
+**Decisión 2026-06-25:** Se difiere porque la versión IA del módulo "Recomiéndame" (Fase 6) cubre el mismo caso de uso con mejor producto. Diferenciar "random simple" de "smart pick" generaría duplicación de UI y un feature que envejece mal el día que se lanza la IA. Cuando llegue Fase 6 se construye un único módulo "Recomiéndame" y, si el feedback lo pide, se agrega un modo "Surprise me" al lado del "Smart pick" en la misma pantalla.
 
 ### Mood tags
 
@@ -1002,6 +994,7 @@
 - [ ] Análisis de patrones de juego: "Abandonás más los RPGs largos", "Tu género más completado es Survival Horror"
 - [ ] Recomendaciones personalizadas basadas en historial: "Basado en lo que jugaste, probá estos 10"
 - [ ] Sugerencias semestrales: "Para el próximo semestre te recomiendo estos 20 juegos de tu backlog"
+- [ ] **Módulo "Recomiéndame"** (diferido desde Fase 3): página dedicada `/recommendations` con dos modos. **Smart pick** (premium, IA): recomienda 1 juego de tu backlog según mood, historial reciente, géneros completados y ratio personal. **Surprise me** (free, opcional según feedback): elige uno al azar de tu backlog con filtros básicos (género, plataforma, duración máx). UI compartida: cover grande + título + meta + botones "Spin again" / "Open game".
 
 ### Conveniencia (premium)
 
