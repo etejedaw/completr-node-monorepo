@@ -1,0 +1,78 @@
+info:
+    name: Update Mood Tag (rename / describe)
+    type: http
+    seq: 4
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/users/me/mood-tags/:tag"
+    params:
+        - name: tag
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "newTag": "cozy",
+              "description": "Para una sesión chill, sin estrés"
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Update Mood Tag (rename / describe)
+
+    Renames a tag globally for the authenticated user (across every game it's assigned to)
+    and/or sets a free-text description. At least one of the two fields is required.
+
+    Both old and new tag names are normalized server-side (lowercased, trimmed,
+    diacritics stripped, whitespace collapsed) before any operation runs.
+
+    **Merge semantics on rename:** if `newTag` already exists for some games, the rows
+    are merged. Specifically, for each game where the old tag was present:
+    - If the new tag is not on that game → row is updated.
+    - If the new tag is already on that game → old row is dropped (the existing one wins).
+
+    If the old tag had a description and the new tag did not, the description is
+    transferred. If both had descriptions, the new tag's description is kept.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Path Parameters
+
+    | Param | Type   | Required | Description                              |
+    |-------|--------|----------|------------------------------------------|
+    | tag   | string | Yes      | The current tag name (will be normalized)|
+
+    ### Request Body
+
+    | Field       | Type           | Required | Description                                |
+    |-------------|----------------|----------|--------------------------------------------|
+    | newTag      | string         | No       | New name (1–40 chars). Triggers rename + merge. |
+    | description | string \| null | No       | Description text (max 255 chars). `null` clears.|
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": { "tag": "cozy" }
+    }
+    ```
+
+    Returns the final (normalized) tag name. Re-fetch `GET /users/me/mood-tags` to read the
+    updated row.
+
+    ### Errors
+
+    | Status | Type                       | Reason                                              |
+    |--------|----------------------------|-----------------------------------------------------|
+    | 404    | `MOOD_TAGS_TAG_NOT_FOUND`  | The original tag does not exist for the user        |
+    | 422    | `COMMON_SCHEMA_INVALID`    | Body validation failed (empty / both fields missing)|
+    | 422    | `MOOD_TAGS_INVALID_TAG`    | newTag is empty after normalization or too long     |

@@ -1,0 +1,70 @@
+info:
+    name: Replace Game Mood Tags
+    type: http
+    seq: 3
+
+http:
+    method: PUT
+    url: "{{BASE_URL}}/users/me/games/:gameId/mood-tags"
+    params:
+        - name: gameId
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "tags": ["relajante", "podcast game", "sesiones cortas"]
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Replace Game Mood Tags
+
+    Replaces the entire set of mood tags the authenticated user has assigned to a specific game.
+    Idempotent — sending the same body twice yields the same result. Send `tags: []` to clear all
+    tags for the game.
+
+    Tags are normalized server-side: lowercased, trimmed, whitespace collapsed, diacritics
+    stripped. Duplicates after normalization are silently deduped. Each tag is capped at 40 chars.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Path Parameters
+
+    | Param  | Type | Required | Description       |
+    |--------|------|----------|-------------------|
+    | gameId | uuid | Yes      | The game UUID     |
+
+    ### Request Body
+
+    | Field | Type     | Required | Description                                          |
+    |-------|----------|----------|------------------------------------------------------|
+    | tags  | string[] | Yes      | Up to 10 tags. Each 1–40 chars. Send `[]` to clear. |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "tags": ["podcast game", "relajante", "sesiones cortas"]
+      }
+    }
+    ```
+
+    Returns the normalized, deduped, persisted tag set.
+
+    ### Errors
+
+    | Status | Type                       | Reason                                 |
+    |--------|----------------------------|----------------------------------------|
+    | 404    | `MOOD_TAGS_GAME_NOT_FOUND` | Game id does not exist                 |
+    | 422    | `COMMON_SCHEMA_INVALID`    | Body shape invalid (>10 tags, etc.)    |
+    | 422    | `MOOD_TAGS_TOO_MANY`       | More than 10 distinct tags after normalization |

@@ -12,6 +12,8 @@ import { Backlog } from "../backlog/backlog.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
 import { GamePopularity } from "../game-popularity/game-popularity.model";
+import { UserGameTag } from "../mood-tags/user-game-tag.model";
+import { MoodTagMeta } from "../mood-tags/mood-tag-meta.model";
 import { SavedFilter } from "../saved-filters/saved-filter.model";
 import { Queue } from "../queue/queue.model";
 import { Wishlist } from "../wishlist/wishlist.model";
@@ -42,6 +44,7 @@ export function setupAssociations() {
 	gameScores();
 	gameTimes();
 	gamePopularity();
+	userGameTags();
 	savedFilters();
 	queue();
 	wishlist();
@@ -182,6 +185,15 @@ function gameTimes() {
 function gamePopularity() {
 	Game.hasOne(GamePopularity, { foreignKey: "gameId", onDelete: "CASCADE" });
 	GamePopularity.belongsTo(Game, { foreignKey: "gameId" });
+}
+
+function userGameTags() {
+	User.hasMany(UserGameTag, { foreignKey: "userId", onDelete: "CASCADE" });
+	UserGameTag.belongsTo(User, { foreignKey: "userId" });
+	Game.hasMany(UserGameTag, { foreignKey: "gameId", onDelete: "CASCADE" });
+	UserGameTag.belongsTo(Game, { foreignKey: "gameId" });
+	User.hasMany(MoodTagMeta, { foreignKey: "userId", onDelete: "CASCADE" });
+	MoodTagMeta.belongsTo(User, { foreignKey: "userId" });
 }
 
 function savedFilters() {

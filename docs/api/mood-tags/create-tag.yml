@@ -1,0 +1,66 @@
+info:
+    name: Create Mood Tag
+    type: http
+    seq: 6
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/mood-tags"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "tag": "podcast game",
+              "description": "Para jugar mientras escucho un podcast"
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Create Mood Tag
+
+    Creates a standalone mood tag (without assigning it to any game). Useful when the user
+    wants to plan a tag (give it a name and description) before tagging any game.
+
+    The tag name is normalized server-side (lowercase, trimmed, diacritics stripped,
+    whitespace collapsed). Idempotent — if the tag already exists for the user (either as
+    metadata or used on some games), the response is 200 with the existing record; nothing
+    is overwritten.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Request Body
+
+    | Field       | Type           | Required | Description                              |
+    |-------------|----------------|----------|------------------------------------------|
+    | tag         | string         | Yes      | 1–40 chars. Will be normalized.          |
+    | description | string \| null | No       | Optional description (max 255 chars).    |
+
+    ### Response (201 created)
+
+    ```json
+    {
+      "data": {
+        "tag": "podcast game",
+        "description": "Para jugar mientras escucho un podcast"
+      }
+    }
+    ```
+
+    ### Response (200 already exists)
+
+    Same shape, returns the existing record. The existing description is **not** overwritten —
+    use `PATCH /users/me/mood-tags/:tag` to update it.
+
+    ### Errors
+
+    | Status | Type                     | Reason                                    |
+    |--------|--------------------------|-------------------------------------------|
+    | 422    | `COMMON_SCHEMA_INVALID`  | Body validation failed (empty, too long)  |
+    | 422    | `MOOD_TAGS_INVALID_TAG`  | Tag empty after normalization or > 40 chars |

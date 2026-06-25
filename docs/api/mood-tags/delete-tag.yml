@@ -1,0 +1,44 @@
+info:
+    name: Delete Mood Tag
+    type: http
+    seq: 5
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/users/me/mood-tags/:tag"
+    params:
+        - name: tag
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Delete Mood Tag
+
+    Removes a mood tag globally for the authenticated user. Cleans both the per-game
+    assignments (`UserGameTag` rows) and the metadata (`MoodTagMeta` row, if any).
+
+    The tag name is normalized server-side before deletion.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Path Parameters
+
+    | Param | Type   | Required | Description                              |
+    |-------|--------|----------|------------------------------------------|
+    | tag   | string | Yes      | The tag name to delete (will be normalized) |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Type                       | Reason                                       |
+    |--------|----------------------------|----------------------------------------------|
+    | 404    | `MOOD_TAGS_TAG_NOT_FOUND`  | The tag does not exist for the user          |
+    | 422    | `MOOD_TAGS_INVALID_TAG`    | Tag name is empty after normalization        |
