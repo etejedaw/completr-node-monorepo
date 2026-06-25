@@ -52,6 +52,11 @@ export const BacklogQuerySchema = z
 		min_personal_ratio: z.coerce.number().optional(),
 		max_personal_ratio: z.coerce.number().optional(),
 		search: z.string().min(1).max(100).optional(),
+		mood_tags: z
+			.string()
+			.transform(val => val.split(",").filter(Boolean))
+			.pipe(z.string().array().min(1))
+			.optional(),
 		sort_by: z.enum(SORT_FIELDS).optional(),
 		sort_order: z.enum(["asc", "desc"]).optional(),
 		limit: z.coerce.number().int().min(1).max(100).optional(),
