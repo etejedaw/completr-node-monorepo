@@ -21,6 +21,7 @@ import activityRouter from "./activity/activity.routes";
 import auditRouter from "./audit/audit.routes";
 import jobsRouter from "./jobs/jobs.routes";
 import moodTagsRouter from "./mood-tags/mood-tags.routes";
+import backlogProgressRouter from "./backlog-progress/backlog-progress.routes";
 import { corsConfig } from "./common/config/cors.config";
 import { errorHandlerMiddleware } from "./common/middlewares/error-handler.middleware";
 import { correlationIdMiddleware } from "./common/middlewares/correlation-id.middleware";
@@ -57,6 +58,7 @@ export function server(port: number) {
 	app.use(auditRouter);
 	app.use(jobsRouter);
 	app.use(moodTagsRouter);
+	app.use(backlogProgressRouter);
 	app.use(errorHandlerMiddleware);
 
 	app.listen(port, () => console.log(`Server running on port ${port}`));

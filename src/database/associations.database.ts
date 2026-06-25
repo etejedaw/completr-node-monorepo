@@ -9,6 +9,7 @@ import { List } from "../lists/list.model";
 import { ListItem } from "../list-items/list-item.model";
 import { ListFollower } from "../list-followers/list-follower.model";
 import { Backlog } from "../backlog/backlog.model";
+import { BacklogProgress } from "../backlog-progress/backlog-progress.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
 import { GamePopularity } from "../game-popularity/game-popularity.model";
@@ -41,6 +42,7 @@ export function setupAssociations() {
 	listItems();
 	listFollowers();
 	backlog();
+	backlogProgress();
 	gameScores();
 	gameTimes();
 	gamePopularity();
@@ -170,6 +172,14 @@ function backlog() {
 		foreignKey: "compilationGameId",
 		as: "CompilationGame"
 	});
+}
+
+function backlogProgress() {
+	Backlog.hasMany(BacklogProgress, {
+		foreignKey: "backlogId",
+		onDelete: "CASCADE"
+	});
+	BacklogProgress.belongsTo(Backlog, { foreignKey: "backlogId" });
 }
 
 function gameScores() {
