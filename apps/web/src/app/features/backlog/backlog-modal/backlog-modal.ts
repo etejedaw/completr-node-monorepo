@@ -28,6 +28,8 @@ import { ToastService } from "../../../core/services/toast";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../../../environments/environment";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
+import { MoodTagsService } from "../../mood-tags/mood-tags";
 import {
 	Subject,
 	debounceTime,
@@ -44,6 +46,7 @@ import { UiButton, UiFocusTrap, UiIconButton, UiSelect, UiTextarea } from "../..
 		ReactiveFormsModule,
 		RouterLink,
 		StarRating,
+		MoodTagsInput,
 		UiButton,
 		UiFocusTrap,
 		UiIconButton,
@@ -61,6 +64,7 @@ export class BacklogModal implements OnInit {
 	private readonly queueService = inject(QueueService);
 	private readonly gameShelfService = inject(GameShelfService);
 	private readonly reviewsService = inject(ReviewsService);
+	private readonly moodTagsService = inject(MoodTagsService);
 	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
 	private readonly http = inject(HttpClient);
@@ -247,6 +251,12 @@ export class BacklogModal implements OnInit {
 	});
 
 	protected readonly existingReview = signal<Review | null>(null);
+	protected readonly moodTags = signal<string[]>([]);
+	protected readonly moodTagsSuggestions = signal<string[]>([]);
+
+	updateMoodTags(tags: string[]) {
+		this.moodTags.set(tags);
+	}
 
 	protected readonly hasExistingReview = computed(
 		() => !!this.entry()?.review || !!this.existingReview()
@@ -255,6 +265,11 @@ export class BacklogModal implements OnInit {
 	ngOnInit() {
 		this.gamesService.getPlatforms().subscribe(p => this.platforms.set(p));
 		this.scoreSourcesService.load();
+		this.moodTagsService
+			.getMyTags()
+			.subscribe(tags =>
+				this.moodTagsSuggestions.set(tags.map(t => t.tag))
+			);
 
 		this.searchSubject
 			.pipe(
@@ -290,6 +305,10 @@ export class BacklogModal implements OnInit {
 		if (e) {
 			this.isEdit.set(true);
 			this.viewMode.set("summary");
+			this.moodTags.set(e.moodTags ?? []);
+			this.moodTagsService
+				.getGameTags(e.game.id)
+				.subscribe(tags => this.moodTags.set(tags));
 			this.selectedGame.set({
 				id: e.game.id,
 				code: e.game.code,
@@ -376,6 +395,9 @@ export class BacklogModal implements OnInit {
 		this.selectedGame.set(game);
 		this.refreshAvailableCompilationParents(game);
 		this.fetchExistingReview(game.id);
+		this.moodTagsService
+			.getGameTags(game.id)
+			.subscribe(tags => this.moodTags.set(tags));
 
 		const score = this.pickScore(game);
 		const duration = this.pickDuration(game);
@@ -559,6 +581,7 @@ export class BacklogModal implements OnInit {
 			this.backlogService.update(this.entry()!.id, dto).subscribe({
 				next: res => {
 					this.submitReviewIfNeeded(val.gameId!);
+					this.persistMoodTagsIfChanged(val.gameId!);
 					if (res.queueRemoved) {
 						const title = this.entry()!.game.title;
 						const reason =
@@ -595,6 +618,7 @@ export class BacklogModal implements OnInit {
 			this.backlogService.create(dto).subscribe({
 				next: backlog => {
 					this.submitReviewIfNeeded(val.gameId!);
+					this.persistMoodTagsIfChanged(val.gameId!);
 					const extras$ = [];
 					if (this.addToQueue()) {
 						extras$.push(
@@ -658,6 +682,12 @@ export class BacklogModal implements OnInit {
 
 	onClose() {
 		this.closed.emit();
+	}
+
+	private persistMoodTagsIfChanged(gameId: string) {
+		this.moodTagsService
+			.replaceGameTags(gameId, this.moodTags())
+			.subscribe();
 	}
 
 	private submitReviewIfNeeded(gameId: string) {

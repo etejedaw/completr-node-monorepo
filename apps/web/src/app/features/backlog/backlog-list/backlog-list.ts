@@ -22,6 +22,8 @@ import { BacklogModal } from "../backlog-modal/backlog-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 import { ReviewsService } from "../../games/reviews";
+import { MoodTagsService } from "../../mood-tags/mood-tags";
+import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
@@ -38,7 +40,7 @@ interface PendingStatusUpdate {
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea, GameFilterPanel],
+	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea, GameFilterPanel, MoodTagsInput],
 	templateUrl: "./backlog-list.html",
 	host: {
 		"(document:click)": "onDocumentClick()"
@@ -54,6 +56,7 @@ export class BacklogList implements OnInit {
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly gamesService = inject(GamesService);
 	private readonly reviewsService = inject(ReviewsService);
+	private readonly moodTagsService = inject(MoodTagsService);
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -115,6 +118,8 @@ export class BacklogList implements OnInit {
 	protected readonly maxRatio = signal<number | null>(null);
 	protected readonly minPersonalRatio = signal<number | null>(null);
 	protected readonly maxPersonalRatio = signal<number | null>(null);
+	protected readonly selectedMoodTags = signal<string[]>([]);
+	protected readonly moodTagsSuggestions = signal<string[]>([]);
 
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
 	protected readonly backlogFilters = signal<SavedFilter[]>([]);
@@ -328,8 +333,13 @@ export class BacklogList implements OnInit {
 		)
 			count++;
 		if (this.activeStatuses().size > 0) count++;
+		if (this.selectedMoodTags().length > 0) count++;
 		return count;
 	};
+
+	updateMoodTagsFilter(tags: string[]) {
+		this.selectedMoodTags.set(tags);
+	}
 
 	private readonly statuses: { label: string; value: string }[] = [
 		{ label: "Not Started", value: "not_started" },
@@ -355,6 +365,11 @@ export class BacklogList implements OnInit {
 			this.backlogFilters.set(sorted.filter(f => f.showInBacklog));
 			this.savedFiltersLoaded.set(true);
 		});
+		this.moodTagsService
+			.getMyTags()
+			.subscribe(tags =>
+				this.moodTagsSuggestions.set(tags.map(t => t.tag))
+			);
 	}
 
 	private applyFiltersFromUrl(params: ParamMap) {
@@ -430,6 +445,9 @@ export class BacklogList implements OnInit {
 		);
 		this.maxPersonalRatio.set(
 			f["max_personal_ratio"] ? Number(f["max_personal_ratio"]) : null
+		);
+		this.selectedMoodTags.set(
+			f["mood_tags"] ? f["mood_tags"].split(",").filter(Boolean) : []
 		);
 
 		const status = f["status"];
@@ -521,6 +539,7 @@ export class BacklogList implements OnInit {
 		this.maxRatio.set(null);
 		this.minPersonalRatio.set(null);
 		this.maxPersonalRatio.set(null);
+		this.selectedMoodTags.set([]);
 		this.activeStatuses.set(new Set());
 		this.activeFilterId.set(null);
 		this.activeFilterDescription.set("");
@@ -635,6 +654,8 @@ export class BacklogList implements OnInit {
 			filters["min_personal_ratio"] = String(this.minPersonalRatio());
 		if (this.maxPersonalRatio() !== null)
 			filters["max_personal_ratio"] = String(this.maxPersonalRatio());
+		if (this.selectedMoodTags().length > 0)
+			filters["mood_tags"] = this.selectedMoodTags().join(",");
 		return filters;
 	}
 
@@ -1004,6 +1025,8 @@ export class BacklogList implements OnInit {
 			filters.min_personal_ratio = this.minPersonalRatio()!;
 		if (this.maxPersonalRatio() !== null)
 			filters.max_personal_ratio = this.maxPersonalRatio()!;
+		if (this.selectedMoodTags().length > 0)
+			filters.mood_tags = this.selectedMoodTags().join(",");
 		if (this.searchQuery().trim()) filters.search = this.searchQuery().trim();
 
 		this.backlogService.getMyBacklog(filters).subscribe({
