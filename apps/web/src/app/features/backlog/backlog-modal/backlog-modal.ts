@@ -31,6 +31,10 @@ import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
 import {
+	BacklogProgressService,
+	ProgressNote
+} from "../../backlog-progress/backlog-progress";
+import {
 	Subject,
 	debounceTime,
 	distinctUntilChanged,
@@ -38,11 +42,13 @@ import {
 	forkJoin,
 	of
 } from "rxjs";
-import { UiButton, UiFocusTrap, UiIconButton, UiSelect, UiTextarea } from "../../../shared/ui";
+import { UiButton, UiFocusTrap, UiIconButton, UiInput, UiSelect, UiTextarea } from "../../../shared/ui";
+import { DatePipe } from "@angular/common";
 
 @Component({
 	selector: "app-backlog-modal",
 	imports: [
+		DatePipe,
 		ReactiveFormsModule,
 		RouterLink,
 		StarRating,
@@ -50,6 +56,7 @@ import { UiButton, UiFocusTrap, UiIconButton, UiSelect, UiTextarea } from "../..
 		UiButton,
 		UiFocusTrap,
 		UiIconButton,
+		UiInput,
 		UiSelect,
 		UiTextarea
 	],
@@ -65,6 +72,7 @@ export class BacklogModal implements OnInit {
 	private readonly gameShelfService = inject(GameShelfService);
 	private readonly reviewsService = inject(ReviewsService);
 	private readonly moodTagsService = inject(MoodTagsService);
+	private readonly progressService = inject(BacklogProgressService);
 	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
 	private readonly http = inject(HttpClient);
@@ -251,6 +259,50 @@ export class BacklogModal implements OnInit {
 	});
 
 	protected readonly existingReview = signal<Review | null>(null);
+	protected readonly progressNotes = signal<ProgressNote[]>([]);
+	protected readonly progressDraft = signal("");
+	protected readonly progressLoading = signal(false);
+	protected readonly progressHistoryOpen = signal(false);
+	protected readonly progressSavingId = signal<string | null>(null);
+
+	updateProgressDraft(value: string) {
+		this.progressDraft.set(value);
+	}
+
+	toggleProgressHistory() {
+		this.progressHistoryOpen.update(v => !v);
+	}
+
+	addProgressNote() {
+		const note = this.progressDraft().trim();
+		const e = this.entry();
+		if (!note || !e) return;
+		this.progressLoading.set(true);
+		this.progressService.addProgress(e.id, note).subscribe({
+			next: created => {
+				this.progressNotes.update(list => [created, ...list]);
+				this.progressDraft.set("");
+				this.progressLoading.set(false);
+			},
+			error: () => this.progressLoading.set(false)
+		});
+	}
+
+	deleteProgressNote(note: ProgressNote) {
+		const e = this.entry();
+		if (!e) return;
+		this.progressSavingId.set(note.id);
+		this.progressService.deleteProgress(e.id, note.id).subscribe({
+			next: () => {
+				this.progressNotes.update(list =>
+					list.filter(n => n.id !== note.id)
+				);
+				this.progressSavingId.set(null);
+			},
+			error: () => this.progressSavingId.set(null)
+		});
+	}
+
 	protected readonly moodTags = signal<string[]>([]);
 	protected readonly moodTagsSuggestions = signal<string[]>([]);
 
@@ -309,6 +361,9 @@ export class BacklogModal implements OnInit {
 			this.moodTagsService
 				.getGameTags(e.game.id)
 				.subscribe(tags => this.moodTags.set(tags));
+			this.progressService
+				.getProgress(e.id)
+				.subscribe(notes => this.progressNotes.set(notes));
 			this.selectedGame.set({
 				id: e.game.id,
 				code: e.game.code,

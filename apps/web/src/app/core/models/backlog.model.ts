@@ -15,6 +15,7 @@ export interface BacklogEntry {
 	reviewContent?: string | null;
 	review?: { content: string | null; rating: number | null } | null;
 	moodTags?: string[];
+	latestProgress?: { note: string; createdAt: string } | null;
 	game: BacklogGame;
 	platform: BacklogPlatform;
 	compilationGame?: BacklogCompilationGame | null;
