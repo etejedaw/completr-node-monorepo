@@ -20,7 +20,8 @@ export const ACTIVITY_TYPES = [
 	"list_followed",
 	"user_followed",
 	"user_followed_by",
-	"game_reviewed"
+	"game_reviewed",
+	"coop_tagged"
 ] as const;
 
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];

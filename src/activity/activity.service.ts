@@ -23,7 +23,11 @@ const GAME_TYPES: string[] = [
 	"game_reviewed"
 ];
 const LIST_TYPES: string[] = ["list_created", "list_followed"];
-const USER_TYPES: string[] = ["user_followed", "user_followed_by"];
+const USER_TYPES: string[] = [
+	"user_followed",
+	"user_followed_by",
+	"coop_tagged"
+];
 const SOCIAL_TYPES: string[] = ["user_followed", "user_followed_by"];
 
 export async function record(
