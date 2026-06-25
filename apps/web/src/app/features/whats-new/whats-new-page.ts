@@ -96,6 +96,78 @@ export class WhatsNewPage {
 
 	protected readonly releases: ReleaseEntry[] = [
 		{
+			date: "2026-06-25",
+			tag: "Tags",
+			title: "Personal mood tags across your library",
+			icon: "label",
+			tint: "brand",
+			highlights: [
+				{
+					icon: "label",
+					tint: "brand",
+					text: "Tag any game in your library with personal labels — relajante, podcast game, sesiones cortas, intenso, whatever helps you decide what to play next. Tags are per game, not per playthrough: rename one and every entry updates."
+				},
+				{
+					icon: "filter_alt",
+					tint: "purple",
+					text: "Filter My Games by tag from the side panel — Backlog matches entries whose game has all the selected tags. Same filter persists in the URL so you can bookmark or share a tagged view."
+				},
+				{
+					icon: "settings",
+					tint: "success",
+					text: "Manage all your tags from the new Tags page in the sidebar: create new tags (even before assigning them), rename them in bulk, add an optional description and delete safely with a confirmation modal."
+				},
+				{
+					icon: "visibility",
+					tint: "warning",
+					text: "Tags show up everywhere you view a game: backlog rows, My Shelf, Up Next, Want to Get, Favorites and the game detail page — where you can add or edit them inline without opening any modal."
+				}
+			]
+		},
+		{
+			date: "2026-06-25",
+			tag: "Catalog",
+			title: "Sort the catalog by rating, duration, ratio or popularity",
+			icon: "sort",
+			tint: "purple",
+			highlights: [
+				{
+					icon: "star_rate",
+					tint: "warning",
+					text: "Sort the Games browse by canonical rating (Completr → Metacritic → OpenCritic → RAWG fallback) or canonical duration (Completr → HowLongToBeat → RAWG). Combine it with any of the existing filters."
+				},
+				{
+					icon: "trending_up",
+					tint: "brand",
+					text: "New sort options: Ratio (best score per hour) and Popularity (most owned by Completr users). Popularity is recomputed by an admin job and reflects the real shelf counts across the community."
+				},
+				{
+					icon: "star_border",
+					tint: "warning",
+					text: "Min and Max score in the filters panel now use the same star input as the backlog — pick half stars from 0 to 5 instead of typing decimals."
+				}
+			]
+		},
+		{
+			date: "2026-06-25",
+			tag: "Stats",
+			title: "Pick which stats each saved view shows",
+			icon: "tune",
+			tint: "brand",
+			highlights: [
+				{
+					icon: "checklist",
+					tint: "brand",
+					text: "Each saved view now stores its own set of visible stats. Open the Stats side panel from My Games and check or uncheck any of the 15 stat cards — your selection saves automatically and syncs across devices."
+				},
+				{
+					icon: "restart_alt",
+					tint: "purple",
+					text: "Hit 'Reset to defaults' to clear your custom selection and bring back the default four KPIs. The stats panel hides itself entirely when no stat is enabled, so you can also use this as a quick way to dismiss it for a specific view."
+				}
+			]
+		},
+		{
 			date: "2026-06-23",
 			tag: "Shortcuts",
 			title: "Quick actions on every game cover and drag to reorder",
