@@ -3,7 +3,11 @@ import {
 	provideBrowserGlobalErrorListeners,
 	isDevMode
 } from "@angular/core";
-import { provideRouter } from "@angular/router";
+import {
+	provideRouter,
+	withPreloading,
+	PreloadAllModules
+} from "@angular/router";
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
 
 import { routes } from "./app.routes";
@@ -15,7 +19,7 @@ import { provideToastConfig } from "ng-primitives/toast";
 export const appConfig: ApplicationConfig = {
 	providers: [
 		provideBrowserGlobalErrorListeners(),
-		provideRouter(routes),
+		provideRouter(routes, withPreloading(PreloadAllModules)),
 		provideHttpClient(
 			withInterceptors([authInterceptor, errorInterceptor])
 		),

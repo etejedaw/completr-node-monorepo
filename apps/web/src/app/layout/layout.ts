@@ -11,8 +11,12 @@ import {
 	RouterLinkActive,
 	RouterOutlet,
 	Router,
-	NavigationEnd
+	NavigationEnd,
+	NavigationStart,
+	NavigationCancel,
+	NavigationError
 } from "@angular/router";
+import { NgClass } from "@angular/common";
 import { AuthService } from "../core/services/auth";
 import { filter } from "rxjs";
 import { UiAvatar, UiIconButton, UiSeparator } from "../shared/ui";
@@ -26,6 +30,7 @@ import { OnboardingService } from "../core/services/onboarding";
 		RouterOutlet,
 		RouterLink,
 		RouterLinkActive,
+		NgClass,
 		UiIconButton,
 		UiSeparator,
 		UiAvatar,
@@ -47,6 +52,22 @@ export class Layout implements OnInit {
 		return role === "moderator" || role === "admin";
 	});
 	protected readonly sidebarOpen = signal(false);
+	protected readonly pendingUrl = signal<string | null>(null);
+	protected readonly navigating = signal(false);
+
+	private static readonly NAV_ACTIVE_CLASSES =
+		"!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand";
+
+	isNavTargetActive(target: string): boolean {
+		const pending = this.pendingUrl();
+		if (!pending) return false;
+		if (pending === target) return true;
+		return pending.startsWith(target + "/");
+	}
+
+	pendingNavClasses(target: string): string {
+		return this.isNavTargetActive(target) ? Layout.NAV_ACTIVE_CLASSES : "";
+	}
 
 	protected readonly roleBadge = computed(() => {
 		const map: Record<string, string> = {
@@ -81,6 +102,20 @@ export class Layout implements OnInit {
 			.subscribe(() => {
 				this.sidebarOpen.set(false);
 			});
+
+		this.router.events.subscribe(event => {
+			if (event instanceof NavigationStart) {
+				this.pendingUrl.set(event.url.split("?")[0].split("#")[0]);
+				this.navigating.set(true);
+			} else if (
+				event instanceof NavigationEnd ||
+				event instanceof NavigationCancel ||
+				event instanceof NavigationError
+			) {
+				this.pendingUrl.set(null);
+				this.navigating.set(false);
+			}
+		});
 	}
 
 	private maybeStartOnboarding() {

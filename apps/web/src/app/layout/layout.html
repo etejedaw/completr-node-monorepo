@@ -33,6 +33,7 @@
 				<li>
 					<a
 						routerLink="/feed"
+						[ngClass]="pendingNavClasses('/feed')"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 						title="Activity from people you follow"
@@ -53,6 +54,7 @@
 				<li>
 					<a
 						routerLink="/backlog"
+						[ngClass]="pendingNavClasses('/backlog')"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 						title="Every game you've played, are playing, or want to play"
@@ -65,6 +67,7 @@
 				<li>
 					<a
 						routerLink="/queue"
+						[ngClass]="pendingNavClasses('/queue')"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 						title="Your priority queue of games to play next"
@@ -77,6 +80,7 @@
 				<li>
 					<a
 						routerLink="/game-shelf"
+						[ngClass]="pendingNavClasses('/game-shelf')"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 						title="Games you own, physical or digital"
@@ -89,6 +93,7 @@
 				<li>
 					<a
 						routerLink="/wishlist"
+						[ngClass]="pendingNavClasses('/wishlist')"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 						title="Games you want to acquire someday"
@@ -101,6 +106,7 @@
 				<li>
 					<a
 						routerLink="/favorites"
+						[ngClass]="pendingNavClasses('/favorites')"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 						title="Your all-time favorite games"
@@ -113,6 +119,7 @@
 				<li>
 					<a
 						routerLink="/saved-views"
+						[ngClass]="pendingNavClasses('/saved-views')"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 						title="Saved combinations of backlog filters"
@@ -125,6 +132,7 @@
 				<li>
 					<a
 						routerLink="/tags"
+						[ngClass]="pendingNavClasses('/tags')"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 						title="Manage your personal tags"
@@ -145,6 +153,7 @@
 				<li>
 					<a
 						routerLink="/games"
+						[ngClass]="pendingNavClasses('/games')"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 						title="Browse the full game catalog"
@@ -157,6 +166,7 @@
 				<li>
 					<a
 						routerLink="/lists"
+						[ngClass]="pendingNavClasses('/lists')"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 						title="Curated game lists, yours and from others"
@@ -169,6 +179,7 @@
 				<li>
 					<a
 						routerLink="/users"
+						[ngClass]="pendingNavClasses('/users')"
 						routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 						title="Find other players on Completr"
@@ -190,6 +201,7 @@
 						<li>
 							<a
 								routerLink="/admin/users"
+								[ngClass]="pendingNavClasses('/admin/users')"
 								routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 								class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
@@ -202,6 +214,7 @@
 					<li>
 						<a
 							routerLink="/admin/games"
+							[ngClass]="pendingNavClasses('/admin/games')"
 							routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 							class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
@@ -213,6 +226,7 @@
 					<li>
 						<a
 							routerLink="/admin/reports"
+							[ngClass]="pendingNavClasses('/admin/reports')"
 							routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 							class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
@@ -225,6 +239,7 @@
 						<li>
 							<a
 								routerLink="/admin/audit"
+								[ngClass]="pendingNavClasses('/admin/audit')"
 								routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 								class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
@@ -236,6 +251,7 @@
 						<li>
 							<a
 								routerLink="/admin/jobs"
+								[ngClass]="pendingNavClasses('/admin/jobs')"
 								routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 						ariaCurrentWhenActive="page"
 								class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
@@ -257,6 +273,7 @@
 					<li>
 						<a
 							routerLink="/help"
+							[ngClass]="pendingNavClasses('/help')"
 							routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 							ariaCurrentWhenActive="page"
 							title="Help, glossary and quick tour"
@@ -269,6 +286,7 @@
 					<li>
 						<a
 							routerLink="/whats-new"
+							[ngClass]="pendingNavClasses('/whats-new')"
 							routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 							ariaCurrentWhenActive="page"
 							title="What's new on Completr"
@@ -281,6 +299,7 @@
 					<li>
 						<a
 							routerLink="/about"
+							[ngClass]="pendingNavClasses('/about')"
 							routerLinkActive="!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand"
 							ariaCurrentWhenActive="page"
 							title="About Completr"
