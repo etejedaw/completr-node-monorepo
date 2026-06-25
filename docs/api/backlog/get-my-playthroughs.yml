@@ -74,6 +74,7 @@ docs: |-
             "hasReview": true,
             "reviewContent": "A surreal puzzle gem with a hidden depth.",
             "moodTags": ["corto", "relajante"],
+            "latestProgress": { "note": "Capítulo 3 — stuck en el puzzle del agua", "createdAt": "2026-06-25T20:31:09.451Z" },
             "game": { "id": "uuid", "title": "Fez", "coverUrl": "https://...", "isDlc": false },
             "platform": { "id": "uuid", "abbreviation": "Steam" }
           }
