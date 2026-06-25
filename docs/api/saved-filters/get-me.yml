@@ -30,9 +30,16 @@ docs: |-
             "name": "Completados 2025-S01",
             "filters": { ... },
             "sortBy": "finishedAt",
-            "sortOrder": "desc"
+            "sortOrder": "desc",
+            "showInBacklog": true,
+            "isDefault": false,
+            "enabledStats": null
           }
-        ]
+        ],
+        "total": 1,
+        "frozen": false
       }
     }
     ```
+
+    `enabledStats` is either an array of stat keys to render or `null` (use frontend defaults).
