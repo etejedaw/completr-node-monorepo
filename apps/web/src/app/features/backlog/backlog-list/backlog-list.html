@@ -839,6 +839,24 @@
 									<span class="line-clamp-1">{{ entry.latestProgress.note }}</span>
 								</div>
 							}
+
+							@if (entry.coopMembers && entry.coopMembers.length > 0) {
+								<div class="flex items-center gap-1.5 mt-1.5 text-xs text-fg-muted">
+									<span aria-hidden="true" class="material-icons text-[0.875rem] text-brand">group</span>
+									<div class="flex -space-x-1">
+										@for (m of entry.coopMembers.slice(0, 4); track m.userId) {
+											@if (m.avatarUrl) {
+												<img [src]="m.avatarUrl" [alt]="m.username" class="w-5 h-5 rounded-full object-cover border border-sidebar" [title]="m.name || m.username" />
+											} @else {
+												<div class="w-5 h-5 rounded-full bg-brand/20 text-brand text-[0.5rem] font-semibold flex items-center justify-center border border-sidebar" [title]="m.name || m.username">{{ m.username[0]?.toUpperCase() }}</div>
+											}
+										}
+									</div>
+									@if (entry.coopMembers.length > 4) {
+										<span class="text-[0.625rem]">+{{ entry.coopMembers.length - 4 }}</span>
+									}
+								</div>
+							}
 						</div>
 
 						<div class="hidden sm:flex flex-col items-end justify-center gap-3 shrink-0 min-w-[80px] text-right">
@@ -948,6 +966,22 @@
 										<div class="flex items-start gap-1 mt-1 text-[0.6875rem] text-fg-muted">
 											<span aria-hidden="true" class="material-icons text-[0.75rem] text-brand mt-px">bookmark</span>
 											<span class="line-clamp-1">{{ entry.latestProgress.note }}</span>
+										</div>
+									}
+									@if (entry.coopMembers && entry.coopMembers.length > 0) {
+										<div class="flex items-center gap-1 mt-1">
+											<div class="flex -space-x-1">
+												@for (m of entry.coopMembers.slice(0, 3); track m.userId) {
+													@if (m.avatarUrl) {
+														<img [src]="m.avatarUrl" [alt]="m.username" class="w-4 h-4 rounded-full object-cover border border-sidebar" [title]="m.name || m.username" />
+													} @else {
+														<div class="w-4 h-4 rounded-full bg-brand/20 text-brand text-[0.4375rem] font-semibold flex items-center justify-center border border-sidebar" [title]="m.name || m.username">{{ m.username[0]?.toUpperCase() }}</div>
+													}
+												}
+											</div>
+											@if (entry.coopMembers.length > 3) {
+												<span class="text-[0.5625rem] text-fg-muted">+{{ entry.coopMembers.length - 3 }}</span>
+											}
 										</div>
 									}
 								</td>
