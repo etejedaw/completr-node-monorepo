@@ -38,6 +38,7 @@
 			@for (entry of entries(); track entry.id) {
 				<app-game-cover-card
 					[game]="entry.game"
+					[moodTags]="entry.moodTags"
 					[showRemove]="true"
 					[showAddToBacklog]="true"
 					[inBacklog]="isInBacklog(entry.game.id)"

@@ -17,6 +17,7 @@ import { RouterLink } from "@angular/router";
 import { GameShelfModal } from "../game-shelf-modal/game-shelf-modal";
 import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { MoodTagsChips } from "../../../shared/components/mood-tags-chips/mood-tags-chips";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 interface PlatformCount {
@@ -27,7 +28,7 @@ interface PlatformCount {
 
 @Component({
 	selector: "app-game-shelf-list",
-	imports: [DatePipe, GameShelfModal, BacklogModal, RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar, GameCoverCard],
+	imports: [DatePipe, GameShelfModal, BacklogModal, RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar, GameCoverCard, MoodTagsChips],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
