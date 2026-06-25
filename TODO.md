@@ -185,7 +185,7 @@
 - [x] Campo `showInBacklog` (boolean, default true) — controla si aparece como chip en el backlog
 - [x] Campo `isDefault` (boolean, default false) — auto-aplica al abrir el backlog. Solo uno por usuario, requiere showInBacklog
 - [x] `GET /users/me/saved-filters/:filterId/stats` — Estadísticas agregadas del backlog que matchea la vista (totales, promedios, ratios, completion/abandonment rate, highlights: longest played / best personal ratio / highest rated)
-- [ ] **Panel configurable de stats por vista guardada** — Permitir que el usuario active/desactive qué stats ver en cada saved view. MVP: persistir en `localStorage` con key `completr.backlog.statsEnabled.<filterId>` y defaults hardcodeados (4 KPIs visibles + completion rate). Migrar a columna `enabledStats TEXT[]` en `SavedFilter` cuando se necesite sync cross-device (requiere migración Sequelize + DDL). Decisión diferida porque no bloquea — el endpoint ya devuelve todas las stats y el frontend ya las renderiza.
+- [x] **Panel configurable de stats por vista guardada** — Implementado con columna `enabledStats TEXT[]` en `SavedFilter` (sync cross-device desde el día 1, descartado el MVP localStorage). Panel lateral con checkboxes por stat; defaults hardcodeados en frontend (4 KPIs); reset y persistencia automática vía PATCH
 
 ### Módulo de Listas
 
@@ -609,7 +609,7 @@
 - [x] Frontend: destacar listas oficiales en games-browse (sección "Completr Lists")
 - [x] Frontend: badge "Official" en list-detail junto al nombre
 - [x] Frontend: badge en cards de listas oficiales en list-overview
-- [ ] Algunas listas oficiales otorgan un badge/trofeo al usuario que las complete al 100% (configurable por lista)
+- [~] ~~Algunas listas oficiales otorgan un badge/trofeo al usuario que las complete al 100% (configurable por lista)~~ — **diferido a Fase 4**: depende del sistema general de badges, que se difiere por falta de base social (ver sección Badges)
 
 ### Social — Ver actividad de amigos
 
@@ -625,7 +625,7 @@
 ### Búsqueda avanzada
 
 - [x] Filtros combinados: género, plataforma, año, score mínimo/máximo, duración, DLC toggle. Backend `GET /games` extendido en FB-102; frontend con panel de filtros + chips + URL persistente
-- [ ] Ordenamiento dinámico: rating, duración, ratio, popularidad (nº de usuarios que lo tienen)
+- [x] Ordenamiento dinámico: rating, duración, ratio, popularidad. Score y duración resuelven canónico con prioridad de fuente (`completr → metacritic → opencritic → rawg` y `completr → hltb → rawg`) en subqueries con `NULLS LAST`. Popularidad materializada en `GamePopularities`, recalculada por job admin `POST /admin/jobs/recompute-popularity`
 
 ### Landing page
 
@@ -639,16 +639,9 @@
 - [ ] Cada usuario puede generar N invitaciones
 - [ ] Tracking de quién invitó a quién (útil para badges futuros)
 
-### Badges (manuales)
+### Badges (manuales) — diferido a Fase 4
 
-- [ ] Modelo `Badge`: id, code, name, description, icon_url, type (`manual` | `automatic`), created_at
-- [ ] Modelo `UserBadge`: id, user_id, badge_id, awarded_at — tabla pivote usuario ↔ badge
-- [ ] `GET /users/:username/badges` — Ver badges de un usuario (visible en perfil público)
-- [ ] `POST /badges/:code/award/:username` — Asignar badge a usuario (solo admin)
-- [ ] `DELETE /badges/:code/revoke/:username` — Revocar badge (solo admin)
-- [ ] Badges iniciales: `founder` (primeros N registros), `beta-tester` (usuarios de beta cerrada), `moderator` (rol moderador), `premium-supporter` (suscripción activa)
-- [ ] Mostrar badges en el perfil público del usuario
-- [ ] Los badges automáticos (logros por completar juegos) se implementan en Fase 4
+**Decisión 2026-06-25:** Se difiere todo el sistema de badges (manuales + automáticos por lista oficial) a Fase 4. Razón: con ~12 usuarios registrados y 3 activos, los badges no tienen feedback loop social (mostrar, comparar, presumir) y se vuelven medallitas en el vacío. Esperar a Beta Pública para construir el módulo completo con propósito real: founder/beta-tester/premium-supporter/auto por listas, etc.
 
 ### "¿Dónde iba?" (notas de progreso)
 
@@ -660,15 +653,14 @@
 - [ ] Etiquetar amigos en un backlog de juego co-op/multiplayer
 - [ ] Mostrar en la ficha del juego con quién lo jugaste
 
-### Backlog randomizer
+### Backlog randomizer — diferido a Fase 6 (AI insights)
 
-- [ ] Endpoint "¿Qué juego?" que elige un juego aleatorio del backlog del usuario
-- [ ] Filtros opcionales: género, plataforma, duración máxima, mood tags
+**Decisión 2026-06-25:** Se difiere porque la versión IA del módulo "Recomiéndame" (Fase 6) cubre el mismo caso de uso con mejor producto. Diferenciar "random simple" de "smart pick" generaría duplicación de UI y un feature que envejece mal el día que se lanza la IA. Cuando llegue Fase 6 se construye un único módulo "Recomiéndame" y, si el feedback lo pide, se agrega un modo "Surprise me" al lado del "Smart pick" en la misma pantalla.
 
 ### Mood tags
 
-- [ ] Tags definidos por el usuario para sus juegos: "relajante", "sesiones cortas", "podcast game", "intenso", etc.
-- [ ] Usables como filtro en el backlog y en el randomizer
+- [x] Tags definidos por el usuario para sus juegos: "relajante", "sesiones cortas", "podcast game", "intenso", etc. Modelo normalizado `UserGameTag(userId, gameId, tag)` con normalización server-side (lowercase + trim + sin acentos), unique `(userId, gameId, tag)` e índices preparados para community-wide aggregation
+- [x] Usables como filtro en el backlog (`?mood_tags=tag1,tag2` con semántica AND) y editables desde modal de backlog, ficha del juego y página `/tags`. Página `/tags` permite crear tags huérfanos, renombrar con merge automático, describir y borrar en cascada. Chips visibles en backlog, game-shelf, queue, wishlist, favorites y game-detail
 
 ### "Recomiéndame"
 
@@ -1002,6 +994,7 @@
 - [ ] Análisis de patrones de juego: "Abandonás más los RPGs largos", "Tu género más completado es Survival Horror"
 - [ ] Recomendaciones personalizadas basadas en historial: "Basado en lo que jugaste, probá estos 10"
 - [ ] Sugerencias semestrales: "Para el próximo semestre te recomiendo estos 20 juegos de tu backlog"
+- [ ] **Módulo "Recomiéndame"** (diferido desde Fase 3): página dedicada `/recommendations` con dos modos. **Smart pick** (premium, IA): recomienda 1 juego de tu backlog según mood, historial reciente, géneros completados y ratio personal. **Surprise me** (free, opcional según feedback): elige uno al azar de tu backlog con filtros básicos (género, plataforma, duración máx). UI compartida: cover grande + título + meta + botones "Spin again" / "Open game".
 
 ### Conveniencia (premium)
 

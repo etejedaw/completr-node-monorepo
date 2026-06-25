@@ -40,12 +40,15 @@ docs: |-
 
     ### Request Body
 
-    | Field     | Type   | Required | Description              |
-    |-----------|--------|----------|--------------------------|
-    | name      | string | No       | Filter name (1-100 chars)|
-    | filters   | object | No       | Updated query params     |
-    | sortBy    | string | No       | Sort field               |
-    | sortOrder | string | No       | asc or desc              |
+    | Field         | Type     | Required | Description                                      |
+    |---------------|----------|----------|--------------------------------------------------|
+    | name          | string   | No       | Filter name (1-100 chars)                        |
+    | filters       | object   | No       | Updated query params                             |
+    | sortBy        | string   | No       | Sort field                                       |
+    | sortOrder     | string   | No       | asc or desc                                      |
+    | showInBacklog | boolean  | No       | Whether the view appears as a chip in the backlog|
+    | isDefault     | boolean  | No       | Auto-apply this view when opening the backlog    |
+    | enabledStats  | string[] | No       | Stat keys to render. Pass `null` to reset to frontend defaults. Allowed keys listed under Create. |
 
     ### Response (200)
 
@@ -57,7 +60,10 @@ docs: |-
           "name": "Updated Filter Name",
           "filters": { ... },
           "sortBy": "...",
-          "sortOrder": "..."
+          "sortOrder": "...",
+          "showInBacklog": true,
+          "isDefault": false,
+          "enabledStats": ["totalEntries", "avgRatio"]
         }
       }
     }

@@ -1,9 +1,10 @@
 import { Favorite } from "./favorite.model";
 
-export function favoriteSerializer(entry: Favorite) {
+export function favoriteSerializer(entry: Favorite, moodTags?: string[]) {
 	return {
 		id: entry.id,
 		position: entry.position,
+		moodTags: moodTags ?? [],
 		game: gameSerializer(entry.Game)
 	};
 }

@@ -4,6 +4,25 @@ import { sequelize } from "../database/sequelize.database";
 export const SORT_ORDERS = ["asc", "desc"] as const;
 export type SortOrder = (typeof SORT_ORDERS)[number];
 
+export const STAT_KEYS = [
+	"totalEntries",
+	"totalRealHours",
+	"avgRatio",
+	"avgPersonalRatio",
+	"completionRate",
+	"abandonmentRate",
+	"avgRealDuration",
+	"avgEstimatedDuration",
+	"avgScore",
+	"avgUserRating",
+	"estimatedVsRealDelta",
+	"longestPlayed",
+	"bestPersonalRatio",
+	"highestRated",
+	"countByStatus"
+] as const;
+export type StatKey = (typeof STAT_KEYS)[number];
+
 class SavedFilter extends Model {
 	declare id: string;
 	declare userId: string;
@@ -14,6 +33,7 @@ class SavedFilter extends Model {
 	declare sortOrder: string;
 	declare showInBacklog: boolean;
 	declare isDefault: boolean;
+	declare enabledStats: string[] | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
@@ -54,6 +74,11 @@ SavedFilter.init(
 			type: DataTypes.BOOLEAN,
 			allowNull: false,
 			defaultValue: false
+		},
+		enabledStats: {
+			type: DataTypes.ARRAY(DataTypes.TEXT),
+			allowNull: true,
+			defaultValue: null
 		}
 	},
 	{ sequelize }

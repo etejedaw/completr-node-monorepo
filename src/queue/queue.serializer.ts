@@ -1,15 +1,15 @@
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { Queue } from "./queue.model";
 
-export function queueSerializer(entry: Queue) {
+export function queueSerializer(entry: Queue, moodTags?: string[]) {
 	return {
 		id: entry.id,
 		position: entry.position,
-		backlog: backlogSerializer(entry.Backlog)
+		backlog: backlogSerializer(entry.Backlog, moodTags)
 	};
 }
 
-function backlogSerializer(backlog: Queue["Backlog"]) {
+function backlogSerializer(backlog: Queue["Backlog"], moodTags?: string[]) {
 	if (!backlog) return undefined;
 	return {
 		id: backlog.id,
@@ -19,6 +19,7 @@ function backlogSerializer(backlog: Queue["Backlog"]) {
 		ratio: calculateRatio(backlog.score, backlog.duration),
 		startedAt: backlog.startedAt,
 		notes: backlog.notes,
+		moodTags: moodTags ?? [],
 		game: gameSerializer(backlog.Game),
 		platform: platformSerializer(backlog.Platform)
 	};

@@ -20,9 +20,11 @@ import { GamesQuery } from "./schemas/games-query.schema";
 import { mapGamesQueryToOptions } from "./utils/games-query.adapter";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as auditService from "../audit/audit.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 
 export async function getGameByCode(request: Request, response: Response) {
 	const params = request.locals.params as GameCodeParam;
+	const user = request.locals.user as RequestUser | undefined;
 
 	const { code } = params;
 
@@ -30,8 +32,13 @@ export async function getGameByCode(request: Request, response: Response) {
 	if (!game) throw gameDomainError.gameNotFound();
 
 	const gamePlain = game.get({ plain: true });
+	const userMoodTags = user
+		? await moodTagsService.findTagsByGame(user.id, game.id)
+		: [];
 
-	const data = { game: gameSerializer(gamePlain) };
+	const data = {
+		game: { ...gameSerializer(gamePlain), userMoodTags }
+	};
 	return response.status(200).json({ data });
 }
 

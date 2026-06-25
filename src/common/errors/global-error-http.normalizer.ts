@@ -19,6 +19,7 @@ import { gameReportsDomainToHttpMapper } from "../../game-reports/errors/game-re
 import { userFollowersDomainToHttpMapper } from "../../user-followers/errors/user-followers.domain-to-http.mapper";
 import { userFollowRequestsDomainToHttpMapper } from "../../user-follow-requests/errors/user-follow-requests.domain-to-http.mapper";
 import { reviewsDomainToHttpMapper } from "../../reviews/errors/reviews.domain-to-http.mapper";
+import { moodTagsDomainToHttpMapper } from "../../mood-tags/errors/mood-tags.domain-to-http.mapper";
 
 import { commonDomainToHttpMapper } from "./common.domain-to-http.mapper";
 import { DomainError } from "./domain-error";
@@ -87,6 +88,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "Review Module")
 		return reviewsDomainToHttpMapper(error, request);
+
+	if (error.module === "MoodTags Module")
+		return moodTagsDomainToHttpMapper(error, request);
 
 	if (error.module === "Common Module" || error.module === "COMMON")
 		return commonDomainToHttpMapper(error, request);

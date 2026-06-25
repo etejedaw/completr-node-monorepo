@@ -15,6 +15,7 @@ import {
 } from "./backlog.serializer";
 import * as activityService from "../activity/activity.service";
 import * as reviewsService from "../reviews/reviews.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 
 export async function postBacklog(request: Request, response: Response) {
 	const registerBacklog = request.locals.body as RegisterBacklogDto;
@@ -53,10 +54,18 @@ export async function getMeBacklog(request: Request, response: Response) {
 					string,
 					{ content: string | null; rating: number | null }
 				>();
+	const moodTagsByGameId = await moodTagsService.findTagsForGames(
+		user.id,
+		gameIds
+	);
 
 	const data = {
 		backlog: backlogPlain.map(entry =>
-			backlogSerializer(entry, reviewByGameId.get(entry.gameId))
+			backlogSerializer(
+				entry,
+				reviewByGameId.get(entry.gameId),
+				moodTagsByGameId.get(entry.gameId)
+			)
 		),
 		total
 	};
@@ -85,14 +94,24 @@ export async function getUserBacklog(request: Request, response: Response) {
 
 	const reviews = await reviewsService.findReviewsByUserId(user.id);
 	const reviewByGameId = new Map(reviews.map(r => [r.gameId, r]));
+	const gameIds = backlogPlain.map(entry => entry.gameId);
+	const moodTagsByGameId = await moodTagsService.findTagsForGames(
+		user.id,
+		gameIds
+	);
 
 	const data = {
 		backlog: backlogPlain.map(entry =>
 			isSelf
-				? backlogSerializer(entry, reviewByGameId.get(entry.gameId))
+				? backlogSerializer(
+						entry,
+						reviewByGameId.get(entry.gameId),
+						moodTagsByGameId.get(entry.gameId)
+					)
 				: backlogPublicSerializer(
 						entry,
-						reviewByGameId.get(entry.gameId)
+						reviewByGameId.get(entry.gameId),
+						moodTagsByGameId.get(entry.gameId)
 					)
 		),
 		total

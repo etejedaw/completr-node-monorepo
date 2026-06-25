@@ -24,7 +24,7 @@ docs: |-
     |--------------------|---------|----------------------------------------------------------|
     | limit              | int     | 1-100, default 50                                        |
     | offset             | int     | default 0                                                |
-    | sort_by            | enum    | createdAt, title, releaseAt, random — default createdAt  |
+    | sort_by            | enum    | createdAt, title, releaseAt, random, score, duration, ratio, popularity — default createdAt |
     | sort_order         | enum    | asc, desc — default desc                                 |
     | search             | string  | Partial title match (ILIKE)                              |
     | genre              | string  | Single genre code (legacy, kept for compat)              |
@@ -70,3 +70,14 @@ docs: |-
     ```
 
     The list shape only includes the fields needed to render a grid card or the featured hero (cover, title, code, isDlc, ratio, genres). `description`, `platforms`, `scores`, `times`, `externalLinks`, `dlcs`, `parentGame`, `compilationItems`, `partOfCompilations`, `coverUrl`, `variant` and `releaseAt` are intentionally omitted to keep the payload small. Filter query params still operate at the DB layer — they don't require those fields to be returned.
+
+    ### Dynamic sort options
+
+    `sort_by` accepts four derived criteria that resolve from related tables:
+
+    - **score** — canonical GameScore picked by source priority: `completr` → `metacritic` → `opencritic` → `rawg`.
+    - **duration** — canonical GameTime picked by source priority: `completr` → `hltb` → `rawg`.
+    - **ratio** — canonical score divided by canonical duration (NULL when duration is 0).
+    - **popularity** — denormalized counter from the `GamePopularities` table (number of distinct users that have the game in their GameShelf). Recomputed by `POST /admin/jobs/recompute-popularity`.
+
+    All dynamic sorts use `NULLS LAST` semantics regardless of order.

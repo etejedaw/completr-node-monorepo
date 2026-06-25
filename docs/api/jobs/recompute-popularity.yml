@@ -1,0 +1,46 @@
+info:
+    name: Start Recompute Popularity
+    type: http
+    seq: 5
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/jobs/recompute-popularity"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Start Recompute Popularity
+
+    Background job that rebuilds `GamePopularities.score` for every game. The score is the
+    number of distinct users that have the game in their GameShelf. Used by
+    `GET /games?sort_by=popularity`.
+
+    **Authentication:** Hidden route — admin/moderator only.
+    **Rate Limit:** 50 requests per minute (user).
+
+    ### Response (202)
+
+    ```json
+    {
+      "data": {
+        "job": {
+          "id": "uuid",
+          "type": "recompute_popularity",
+          "status": "running"
+        }
+      }
+    }
+    ```
+
+    Poll `GET /admin/jobs` to follow progress.
+
+    ### Behavior on completion
+
+    Result string format:
+    `Recomputed popularity for N games`
+
+    Idempotent — safe to re-run. Recommended cadence: daily or after large bulk imports of
+    GameShelf entries.

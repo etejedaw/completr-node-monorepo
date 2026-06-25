@@ -21,7 +21,8 @@ http:
                 "finished_to": "2025-06-30"
               },
               "sortBy": "finishedAt",
-              "sortOrder": "desc"
+              "sortOrder": "desc",
+              "enabledStats": ["totalEntries", "totalRealHours", "avgRatio", "completionRate"]
             }
 
 settings:
@@ -37,12 +38,15 @@ docs: |-
 
     ### Request Body
 
-    | Field     | Type   | Required | Description                          |
-    |-----------|--------|----------|--------------------------------------|
-    | name      | string | Yes      | Filter name (1-100 chars)            |
-    | filters   | object | Yes      | Query params to save as preset       |
-    | sortBy    | string | No       | Sort field                           |
-    | sortOrder | string | No       | asc or desc (default: desc)          |
+    | Field         | Type     | Required | Description                                      |
+    |---------------|----------|----------|--------------------------------------------------|
+    | name          | string   | Yes      | Filter name (1-100 chars)                        |
+    | filters       | object   | Yes      | Query params to save as preset                   |
+    | sortBy        | string   | No       | Sort field                                       |
+    | sortOrder     | string   | No       | asc or desc (default: desc)                      |
+    | showInBacklog | boolean  | No       | Whether the view appears as a chip in the backlog|
+    | isDefault     | boolean  | No       | Auto-apply this view when opening the backlog    |
+    | enabledStats  | string[] | No       | Stat keys to render in the panel. `null` = frontend defaults. Allowed keys: `totalEntries`, `totalRealHours`, `avgRatio`, `avgPersonalRatio`, `completionRate`, `abandonmentRate`, `avgRealDuration`, `avgEstimatedDuration`, `avgScore`, `avgUserRating`, `estimatedVsRealDelta`, `longestPlayed`, `bestPersonalRatio`, `highestRated`, `countByStatus` |
 
     ### Response (201)
 
@@ -51,11 +55,13 @@ docs: |-
       "data": {
         "savedFilter": {
           "id": "uuid",
-          "userId": "uuid",
           "name": "Completados 2025-S01",
           "filters": { "status": "completed", "finished_from": "2025-01-01", "finished_to": "2025-06-30" },
           "sortBy": "finishedAt",
-          "sortOrder": "desc"
+          "sortOrder": "desc",
+          "showInBacklog": true,
+          "isDefault": false,
+          "enabledStats": ["totalEntries", "totalRealHours", "avgRatio", "completionRate"]
         }
       }
     }

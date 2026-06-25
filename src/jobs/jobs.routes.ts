@@ -30,6 +30,12 @@ router.post(
 	jobsController.postCalculateDurations
 );
 
+router.post(
+	"/admin/jobs/recompute-popularity",
+	[rateLimiterMiddleware(userLimiter), hiddenRouteMiddleware()],
+	jobsController.postRecomputePopularity
+);
+
 router.delete(
 	"/admin/jobs/:jobId",
 	[rateLimiterMiddleware(userLimiter), hiddenRouteMiddleware()],

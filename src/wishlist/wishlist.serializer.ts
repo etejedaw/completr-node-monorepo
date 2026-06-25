@@ -1,9 +1,10 @@
 import { Wishlist } from "./wishlist.model";
 
-export function wishlistSerializer(entry: Wishlist) {
+export function wishlistSerializer(entry: Wishlist, moodTags?: string[]) {
 	return {
 		id: entry.id,
 		position: entry.position,
+		moodTags: moodTags ?? [],
 		game: gameSerializer(entry.Game),
 		platform: platformSerializer(entry.Platform)
 	};

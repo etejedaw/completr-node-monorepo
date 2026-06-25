@@ -7,6 +7,7 @@ import * as gameTimesService from "../game-times/game-times.service";
 import * as reviewsService from "../reviews/reviews.service";
 import * as backlogService from "../backlog/backlog.service";
 import * as usersService from "../users/users.service";
+import * as gamePopularityService from "../game-popularity/game-popularity.service";
 import { RawgProvider } from "../rawg/rawg.provider";
 import { apiKeysConfig } from "../common/config/api-keys.config";
 
@@ -148,6 +149,21 @@ async function runCalculateRatings(jobId: string) {
 		);
 	} catch {
 		await failJob(jobId, `Failed after ${updated} updated`);
+	}
+}
+
+// --- Recompute popularity (COUNT DISTINCT users in GameShelf per game) ---
+
+export async function startRecomputePopularity() {
+	return startJob("recompute_popularity", runRecomputePopularity);
+}
+
+async function runRecomputePopularity(jobId: string) {
+	try {
+		const total = await gamePopularityService.recomputeAllPopularity();
+		await completeJob(jobId, `Recomputed popularity for ${total} games`);
+	} catch {
+		await failJob(jobId, `Failed`);
 	}
 }
 

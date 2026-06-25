@@ -126,6 +126,22 @@ export function buildBacklogWhere(
 			)
 		);
 
+	if (filters.mood_tags && filters.mood_tags.length > 0) {
+		const ownerId = base.userId as string | undefined;
+		if (ownerId) {
+			const escapedTags = filters.mood_tags
+				.map(t => sequelize.escape(t.toLowerCase().trim()))
+				.join(", ");
+			andConditions.push({
+				gameId: {
+					[Op.in]: literal(
+						`(SELECT "gameId" FROM "UserGameTags" WHERE "userId" = ${sequelize.escape(ownerId)} AND "tag" IN (${escapedTags}) GROUP BY "gameId" HAVING COUNT(DISTINCT "tag") = ${filters.mood_tags.length})`
+					)
+				}
+			});
+		}
+	}
+
 	if (andConditions.length > 0)
 		where[Op.and as unknown as string] = andConditions;
 

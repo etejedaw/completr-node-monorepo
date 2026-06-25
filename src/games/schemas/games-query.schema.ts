@@ -11,7 +11,16 @@ export const GamesQuerySchema = z
 		limit: z.coerce.number().int().min(1).max(100).default(50),
 		offset: z.coerce.number().int().min(0).default(0),
 		sort_by: z
-			.enum(["createdAt", "title", "releaseAt", "random"])
+			.enum([
+				"createdAt",
+				"title",
+				"releaseAt",
+				"random",
+				"score",
+				"duration",
+				"ratio",
+				"popularity"
+			])
 			.default("createdAt"),
 		sort_order: z.enum(["asc", "desc"]).default("desc"),
 		search: z.string().min(1).max(100).optional(),
