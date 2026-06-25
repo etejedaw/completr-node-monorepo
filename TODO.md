@@ -645,13 +645,13 @@
 
 ### "¿Dónde iba?" (notas de progreso)
 
-- [ ] Notas rápidas de progreso dentro de un juego: "Capítulo 3, stuck en el puzzle del agua"
-- [ ] Al retomar un juego después de meses, el usuario sabe exactamente dónde quedó
+- [x] Notas rápidas de progreso dentro de un juego: "Capítulo 3, stuck en el puzzle del agua". Implementado como módulo `backlog-progress` con timeline append-only por backlog run. POST/GET/DELETE endpoints; `latestProgress` incluido en serializer (self-view only). Chip de bookmark en filas del backlog para runs activas.
+- [x] Al retomar un juego después de meses, el usuario sabe exactamente dónde quedó — sección "Where I am" en el modal del backlog muestra la nota más reciente + historial expandible
 
 ### Jugando con (co-op)
 
-- [ ] Etiquetar amigos en un backlog de juego co-op/multiplayer
-- [ ] Mostrar en la ficha del juego con quién lo jugaste
+- [x] Etiquetar amigos en un backlog de juego co-op/multiplayer. Modelo `CoopRun` que vincula N backlogs de distintos users. Tagging auto-acepta y auto-crea backlog para el target con score/duration copiados. Solo podés taguear users que seguís. Sync manual y selectivo de metadatos objetivos (status, dates, realDuration); datos personales nunca se sincronizan. Privacy: si el target tiene backlog privado, siempre se crea entry nueva (Opción C). Picker dialog cuando target tiene 2+ candidatas visibles
+- [x] Mostrar en la ficha del juego con quién lo jugaste — avatares de coopMembers en filas del backlog (cards + tabla hardcore) y en el modal preview. Sección dedicada en game-detail diferida hasta tener endpoint de friends-coop-for-game (service ya implementado, falta exponer ruta)
 
 ### Backlog randomizer — diferido a Fase 6 (AI insights)
 
