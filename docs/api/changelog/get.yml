@@ -1,0 +1,53 @@
+info:
+    name: Get Changelog
+    type: http
+    seq: 1
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/changelog"
+    auth: none
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Changelog
+
+    Returns the list of public releases. Acts as a server-side proxy in front of the
+    landing's `changelog.json` static asset so the Angular app can fetch it from the
+    same origin already whitelisted in its CSP (`api.completr.app`), avoiding the
+    service-worker / CSP race that affects PWA installs whenever a new `connect-src`
+    origin is added.
+
+    The response is cached in memory for 5 minutes. When the upstream source is
+    unreachable, the last known cached body is served instead. If there is no cache
+    yet and the upstream fails, the endpoint returns `503`.
+
+    **Authentication:** Public, no auth required.
+    **Rate Limit:** 300 requests per minute (public limiter).
+
+    ### Response (200)
+
+    ```json
+    {
+      "releases": [
+        {
+          "date": "2026-06-25",
+          "tag": "Co-op",
+          "title": "Tag friends in co-op runs",
+          "icon": "group_add",
+          "tint": "brand",
+          "highlights": [
+            { "icon": "group", "tint": "brand", "text": "..." }
+          ]
+        }
+      ]
+    }
+    ```
+
+    ### Errors
+
+    | Status | Body                                          | Reason                                                 |
+    |--------|-----------------------------------------------|--------------------------------------------------------|
+    | 503    | `{ "error": "Changelog source unavailable" }` | Upstream landing is down and there is no cached entry  |
