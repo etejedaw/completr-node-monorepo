@@ -64,7 +64,7 @@
 							[routerLink]="['/games', c.game.code]"
 							>{{ c.game.title }}</a
 						>
-						@if (c.userRating != null) {
+						@if (c.userRating !== null && c.userRating !== undefined) {
 						<app-star-rating
 							[value]="c.userRating"
 							[readonly]="true"
@@ -84,7 +84,9 @@
 							>
 							{{ c.finishedAt }}
 						</span>
-						} @if (c.realDuration != null) {
+						} @if (
+							c.realDuration !== null && c.realDuration !== undefined
+						) {
 						<span class="inline-flex items-center gap-1">
 							<span
 								aria-hidden="true"

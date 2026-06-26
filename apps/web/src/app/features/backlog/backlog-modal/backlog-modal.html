@@ -76,9 +76,12 @@
 						/>
 					</div>
 				</div>
-				@if (e.ratio != null || e.personalRatio != null) {
+				@if (
+					(e.ratio !== null && e.ratio !== undefined) ||
+					(e.personalRatio !== null && e.personalRatio !== undefined)
+				) {
 				<div class="flex items-center gap-4 shrink-0">
-					@if (e.ratio != null) {
+					@if (e.ratio !== null && e.ratio !== undefined) {
 					<div
 						class="flex flex-col items-end justify-center text-right min-w-[60px]"
 					>
@@ -90,7 +93,9 @@
 							>Ratio</span
 						>
 					</div>
-					} @if (e.personalRatio != null) {
+					} @if (
+						e.personalRatio !== null && e.personalRatio !== undefined
+					) {
 					<div
 						class="flex flex-col items-end justify-center text-right min-w-[60px]"
 					>
@@ -127,7 +132,7 @@
 						{{ e.duration ? e.duration + 'h' : '—' }}
 					</div>
 				</div>
-				@if (e.realDuration != null) {
+				@if (e.realDuration !== null && e.realDuration !== undefined) {
 				<div class="bg-input-bg border border-line rounded-card p-3">
 					<div
 						class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"

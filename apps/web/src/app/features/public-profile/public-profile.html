@@ -500,7 +500,10 @@
 							<span class="text-[0.625rem] text-fg-muted"
 								>{{ entry.finishedAt }}</span
 							>
-							@if (entry.userRating != null) {
+							@if (
+								entry.userRating !== null &&
+								entry.userRating !== undefined
+							) {
 							<span
 								class="text-[0.625rem] text-warning flex items-center gap-0.5"
 							>
@@ -587,7 +590,10 @@
 									class="text-sm font-semibold text-fg line-clamp-2"
 									>{{ mp.game.title }}</span
 								>
-								@if (mp.realDuration != null) {
+								@if (
+									mp.realDuration !== null &&
+									mp.realDuration !== undefined
+								) {
 								<span class="text-xs text-fg-muted"
 									>{{ mp.realDuration }}h</span
 								>
@@ -620,7 +626,10 @@
 									class="text-sm font-semibold text-fg line-clamp-2"
 									>{{ hr.game.title }}</span
 								>
-								@if (hr.userRating != null) {
+								@if (
+									hr.userRating !== null &&
+									hr.userRating !== undefined
+								) {
 								<span
 									class="text-xs text-fg-muted flex items-center gap-0.5"
 								>

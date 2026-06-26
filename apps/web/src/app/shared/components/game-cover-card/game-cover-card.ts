@@ -73,17 +73,20 @@ export interface GameCoverCardGame {
 					{{ topLeftBadge() }}
 				</span>
 			}
-			@if (ratio() != null || duration() != null) {
+			@if (
+				(ratio() !== null && ratio() !== undefined) ||
+				(duration() !== null && duration() !== undefined)
+			) {
 				<div
 					class="absolute top-2 right-2 flex flex-col items-end gap-1"
 				>
-					@if (ratio() != null) {
+					@if (ratio() !== null && ratio() !== undefined) {
 						<span
 							class="px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-brand/85 backdrop-blur-sm"
 							>{{ ratio() }}</span
 						>
 					}
-					@if (duration() != null) {
+					@if (duration() !== null && duration() !== undefined) {
 						<span
 							class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-white bg-black/70 backdrop-blur-sm"
 							>{{ duration() }}h</span

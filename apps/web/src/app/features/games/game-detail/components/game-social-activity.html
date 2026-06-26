@@ -28,7 +28,7 @@
 			<span class="flex-1 text-sm font-medium text-fg truncate"
 				>{{ friend.name }}</span
 			>
-			@if (friend.userRating != null) {
+			@if (friend.userRating !== null && friend.userRating !== undefined) {
 			<span
 				class="flex items-center gap-0.5 text-xs text-fg-muted shrink-0"
 			>
