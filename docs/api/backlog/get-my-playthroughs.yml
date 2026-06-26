@@ -37,6 +37,7 @@ docs: |-
     | active_from   | date   | No       | Calendar overlap: keep entries whose play range ends on/after this date. Open-ended for `playing`/`endless` (treated as ongoing up to today) |
     | active_to     | date   | No       | Calendar overlap: keep entries whose play range starts on/before this date. Combined with `active_from` returns entries overlapping a month |
     | no_finished_date  | bool   | No       | If `true`, returns only entries with no finishedAt date                      |
+    | undated       | bool   | No       | If `true`, returns only entries with neither startedAt nor finishedAt (e.g. for an "unscheduled" count in the calendar) |
     | min_score     | number | No       | Filter by score >= value                                                    |
     | max_score     | number | No       | Filter by score <= value                                                    |
     | min_duration      | number | No       | Filter by duration >= value (hours)                                         |
