@@ -244,18 +244,3 @@
 		(offsetChange)="onOffsetChange($event)"
 	/>
 </div>
-
-@if (showModal()) {
-<app-game-shelf-modal
-	[entry]="editingEntry()"
-	(closed)="onModalClosed()"
-	(saved)="onModalSaved()"
-/>
-} @if (showBacklogModal()) {
-<app-backlog-modal
-	[preselectedGame]="backlogModalGame()"
-	[entry]="backlogModalEntry()"
-	(closed)="onBacklogModalClosed()"
-	(saved)="onBacklogModalSaved()"
-/>
-}

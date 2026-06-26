@@ -1,20 +1,15 @@
-<div class="modal-overlay" (click)="onClose()">
+<div ngpDialogOverlay class="modal-overlay">
 	<div
+		ngpDialog
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
 		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
-		(click)="$event.stopPropagation()"
-		uiFocusTrap
-		(escape)="onClose()"
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="shelf-modal-title"
 	>
 		<div class="flex items-center justify-between mb-5">
 			<h2
-				id="shelf-modal-title"
+				ngpDialogTitle
 				class="m-0 text-lg font-bold font-display"
 			>
-				{{ isEdit() ? (viewMode() === 'summary' ? entry()!.game.title :
+				{{ isEdit() ? (viewMode() === 'summary' ? entry!.game.title :
 				"Edit Entry") : "Add to Shelf" }}
 			</h2>
 			<button
@@ -33,7 +28,7 @@
 		>
 			{{ error() }}
 		</div>
-		} @if (isEdit() && viewMode() === 'summary') { @let e = entry()!;
+		} @if (isEdit() && viewMode() === 'summary') { @let e = entry!;
 		<div class="flex items-stretch gap-4 mb-5">
 			<div class="shrink-0">
 				@if (e.game.backgroundUrl) {
@@ -119,7 +114,7 @@
 				@if (selectedGame()) {
 				<div
 					class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded-md"
-					[class.opacity-70]="preselectedGame()"
+					[class.opacity-70]="preselectedGame"
 				>
 					@if (selectedGame()!.backgroundUrl) {
 					<img
@@ -131,7 +126,7 @@
 					<span class="flex-1 text-sm font-medium"
 						>{{ selectedGame()!.title }}</span
 					>
-					@if (!preselectedGame()) {
+					@if (!preselectedGame) {
 					<button
 						type="button"
 						class="bg-none border-0 text-fg-muted text-xl cursor-pointer px-1 leading-none hover:text-fg"
