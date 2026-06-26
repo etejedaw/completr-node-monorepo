@@ -51,6 +51,7 @@ interface WeekSegment {
 }
 
 const MAX_LANES = 3;
+const MONTH_LIMIT = 100;
 
 @Component({
 	selector: "app-backlog-calendar",
@@ -82,6 +83,11 @@ export class BacklogCalendar {
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly unscheduledCount = signal(0);
+	protected readonly monthTotal = signal(0);
+	protected readonly monthLimit = MONTH_LIMIT;
+	protected readonly isTruncated = computed(
+		() => this.monthTotal() > MONTH_LIMIT
+	);
 	protected readonly weekdayLabels = [
 		"Mon",
 		"Tue",
@@ -104,12 +110,13 @@ export class BacklogCalendar {
 				...filters,
 				active_from: this.isoDate(gridStart),
 				active_to: this.isoDate(gridEnd),
-				limit: 100,
+				limit: MONTH_LIMIT,
 				offset: 0
 			})
 			.subscribe({
 				next: res => {
 					this.entries.set(res.data.backlog);
+					this.monthTotal.set(res.data.total);
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
