@@ -34,6 +34,8 @@ docs: |-
     | started_to    | date   | No       | Filter by startedAt <= date (ISO format: `2025-06-30`)                      |
     | finished_from | date   | No       | Filter by finishedAt >= date (ISO format: `2025-01-01`)                     |
     | finished_to       | date   | No       | Filter by finishedAt <= date (ISO format: `2025-06-30`)                     |
+    | active_from   | date   | No       | Calendar overlap: keep entries whose play range ends on/after this date. Open-ended for `playing`/`endless` (treated as ongoing up to today) |
+    | active_to     | date   | No       | Calendar overlap: keep entries whose play range starts on/before this date. Combined with `active_from` returns entries overlapping a month |
     | no_finished_date  | bool   | No       | If `true`, returns only entries with no finishedAt date                      |
     | min_score     | number | No       | Filter by score >= value                                                    |
     | max_score     | number | No       | Filter by score <= value                                                    |
