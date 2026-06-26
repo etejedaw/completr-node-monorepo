@@ -10,10 +10,12 @@
 	</button>
 
 	@if (sidebarOpen()) {
-	<div
+	<button
+		type="button"
+		aria-label="Close menu"
 		class="hidden max-md:block fixed inset-0 z-[99] bg-black/50"
 		(click)="sidebarOpen.set(false)"
-	></div>
+	></button>
 	}
 
 	<nav

@@ -1088,11 +1088,9 @@
 } @if (reportModal().show) {
 <div
 	class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]"
-	(click)="closeReportModal()"
 >
 	<div
 		class="bg-sidebar border border-line rounded-card p-6 w-[90%] max-w-[480px]"
-		(click)="$event.stopPropagation()"
 	>
 		<h3 class="font-display m-0 mb-4 text-base font-semibold">
 			Report issue with {{ game()!.title }}

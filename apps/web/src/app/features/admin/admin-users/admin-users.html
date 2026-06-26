@@ -146,11 +146,10 @@
 </div>
 
 @if (showCreateModal()) {
-<div class="modal-overlay" (click)="closeCreate()">
+<div class="modal-overlay">
 	<div
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
 		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
-		(click)="$event.stopPropagation()"
 	>
 		<div class="flex justify-between items-center mb-5">
 			<h2 class="font-display m-0 text-lg font-bold">Create User</h2>
@@ -313,11 +312,10 @@
 	</div>
 </div>
 } @if (showEditModal() && editingUser()) {
-<div class="modal-overlay" (click)="closeEdit()">
+<div class="modal-overlay">
 	<div
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
 		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
-		(click)="$event.stopPropagation()"
 	>
 		<div class="flex justify-between items-center mb-5">
 			<h2 class="font-display m-0 text-lg font-bold">Edit User</h2>

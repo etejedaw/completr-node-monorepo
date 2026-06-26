@@ -145,12 +145,10 @@
 @if (confirmRevokeAll()) {
 <div
 	class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]"
-	(click)="confirmRevokeAll.set(false)"
 >
 	<div
 		class="bg-sidebar border border-line rounded-[12px] p-6 w-full max-w-[400px]"
 		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
-		(click)="$event.stopPropagation()"
 	>
 		<h3 class="font-display m-0 mb-2 text-base font-bold">
 			Sign out other devices?

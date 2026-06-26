@@ -16,16 +16,22 @@
 		@for (star of stars; track star) {
 		<span [class]="wrapperClasses()">
 			@if (!readonly()) {
-			<span
+			<button
+				type="button"
+				aria-hidden="true"
+				tabindex="-1"
 				class="absolute top-0 left-0 w-1/2 h-full z-10"
 				(mouseenter)="onHalf(star)"
 				(click)="onClick(star - 0.5)"
-			></span>
-			<span
+			></button>
+			<button
+				type="button"
+				aria-hidden="true"
+				tabindex="-1"
 				class="absolute top-0 right-0 w-1/2 h-full z-10"
 				(mouseenter)="onFull(star)"
 				(click)="onClick(star)"
-			></span>
+			></button>
 			}
 			<span
 				[class]="iconClasses(star)"

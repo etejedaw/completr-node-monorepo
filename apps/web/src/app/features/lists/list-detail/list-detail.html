@@ -310,12 +310,17 @@
 			@for (game of searchResults(); track game.id) { @let alreadyInList =
 			isGameInList(game.id);
 			<li
+				role="button"
+				[attr.tabindex]="alreadyInList ? null : 0"
+				[attr.aria-disabled]="alreadyInList"
 				class="flex items-center gap-2.5 px-3 py-2 text-[0.8125rem] transition"
 				[class.cursor-pointer]="!alreadyInList"
 				[class.hover:bg-surface]="!alreadyInList"
 				[class.opacity-60]="alreadyInList"
 				[class.cursor-not-allowed]="alreadyInList"
 				(click)="!alreadyInList && addGame(game)"
+				(keydown.enter)="!alreadyInList && addGame(game)"
+				(keydown.space)="!alreadyInList && addGame(game); $event.preventDefault()"
 			>
 				@if (game.backgroundUrl) {
 				<img

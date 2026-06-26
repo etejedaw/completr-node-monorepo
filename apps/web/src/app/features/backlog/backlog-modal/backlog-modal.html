@@ -411,8 +411,12 @@
 					>
 						@for (game of gameResults(); track game.id) {
 						<li
+							role="button"
+							tabindex="0"
 							class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] transition hover:bg-surface"
 							(click)="selectGame(game)"
+							(keydown.enter)="selectGame(game)"
+							(keydown.space)="selectGame(game); $event.preventDefault()"
 						>
 							@if (game.backgroundUrl) {
 							<img
@@ -444,8 +448,12 @@
 						</li>
 						} @if (searchQuery().length >= 2) {
 						<li
+							role="button"
+							tabindex="0"
 							class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] border-t border-line text-brand font-medium transition hover:bg-surface"
 							(click)="forceSearch()"
+							(keydown.enter)="forceSearch()"
+							(keydown.space)="forceSearch(); $event.preventDefault()"
 						>
 							{{ isForceSearching() ? 'Searching...' : 'Force
 							search for "' + searchQuery() + '"' }}
@@ -1286,11 +1294,9 @@
 		@if (pickerUserId()) {
 <div
 	class="fixed inset-0 bg-black/70 flex justify-center items-center z-[110] backdrop-blur-[4px] p-4"
-	(click)="cancelPicker()"
 >
 	<div
 		class="bg-sidebar border border-line rounded-card max-w-md w-full p-5 shadow-2xl"
-		(click)="$event.stopPropagation()"
 	>
 		<header class="flex items-center gap-2 mb-3">
 			<span aria-hidden="true" class="material-icons text-brand"
@@ -1360,11 +1366,9 @@
 } @if (syncMember(); as m) {
 <div
 	class="fixed inset-0 bg-black/70 flex justify-center items-center z-[110] backdrop-blur-[4px] p-4"
-	(click)="closeSyncDialog()"
 >
 	<div
 		class="bg-sidebar border border-line rounded-card max-w-md w-full p-5 shadow-2xl"
-		(click)="$event.stopPropagation()"
 	>
 		<header class="flex items-center gap-2 mb-3">
 			<span aria-hidden="true" class="material-icons text-brand"

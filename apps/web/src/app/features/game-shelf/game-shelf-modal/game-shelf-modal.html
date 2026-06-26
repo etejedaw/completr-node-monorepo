@@ -169,8 +169,12 @@
 				>
 					@for (game of gameResults(); track game.id) {
 					<li
+						role="button"
+						tabindex="0"
 						class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] transition hover:bg-surface"
 						(click)="selectGame(game)"
+						(keydown.enter)="selectGame(game)"
+						(keydown.space)="selectGame(game); $event.preventDefault()"
 					>
 						@if (game.backgroundUrl) {
 						<img
@@ -202,8 +206,12 @@
 					</li>
 					} @if (searchQuery().length >= 2) {
 					<li
+						role="button"
+						tabindex="0"
 						class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] font-medium text-brand border-t border-line transition hover:bg-surface"
 						(click)="forceSearch()"
+						(keydown.enter)="forceSearch()"
+						(keydown.space)="forceSearch(); $event.preventDefault()"
 					>
 						{{ isForceSearching() ? 'Searching...' : 'Force search
 						for "' + searchQuery() + '"' }}

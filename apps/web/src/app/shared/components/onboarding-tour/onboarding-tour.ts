@@ -20,11 +20,10 @@ interface Step {
 @Component({
 	selector: "app-onboarding-tour",
 	template: `
-		<div class="modal-overlay" (click)="skip.emit()">
+		<div class="modal-overlay">
 			<div
 				class="bg-sidebar border border-line rounded-[16px] w-full max-w-[420px] flex flex-col max-h-[90vh] overflow-hidden"
 				style="box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.7);"
-				(click)="$event.stopPropagation()"
 			>
 				@let step = steps[index()];
 

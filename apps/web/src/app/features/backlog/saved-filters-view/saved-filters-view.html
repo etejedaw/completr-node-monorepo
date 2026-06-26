@@ -33,8 +33,12 @@
 	<div class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
 		@for (filter of filteredFilters(); track filter.id) {
 		<div
+			role="button"
+			tabindex="0"
 			class="group bg-surface border border-line rounded-card p-5 cursor-pointer transition flex flex-col gap-3 hover:border-brand/50"
 			(click)="applyFilter(filter)"
+			(keydown.enter)="applyFilter(filter)"
+			(keydown.space)="applyFilter(filter); $event.preventDefault()"
 		>
 			<div class="flex justify-between items-start gap-2">
 				<div class="flex items-center gap-2 min-w-0 flex-1">
@@ -121,11 +125,9 @@
 @if (showModal()) {
 <div
 	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]"
-	(click)="closeModal()"
 >
 	<div
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[440px] shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
-		(click)="$event.stopPropagation()"
 	>
 		<div class="flex justify-between items-center mb-5">
 			<h2 class="font-display m-0 text-lg font-bold">Edit View</h2>

@@ -154,11 +154,10 @@
 </div>
 
 @if (pendingPlayEntry(); as pending) {
-<div class="modal-overlay" (click)="cancelPlayConfirmation()">
+<div class="modal-overlay">
 	<div
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[420px] flex flex-col gap-4"
 		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
-		(click)="$event.stopPropagation()"
 	>
 		<h2 class="m-0 text-lg font-bold font-display">
 			Start playing this game?
