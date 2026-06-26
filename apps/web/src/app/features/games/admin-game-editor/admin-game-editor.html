@@ -43,10 +43,12 @@
 
 		<div class="mb-3">
 			<label
+				for="editor-title"
 				class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
 				>Title</label
 			>
 			<input
+				id="editor-title"
 				type="text"
 				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				[ngModel]="title()"
@@ -56,11 +58,13 @@
 
 		<div class="mb-3">
 			<label
+				for="editor-description"
 				class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
 				>Description</label
 			>
 			<textarea
 				uiTextarea
+				id="editor-description"
 				rows="4"
 				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition resize-y focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				[ngModel]="description()"
@@ -71,10 +75,12 @@
 		<div class="grid grid-cols-2 gap-3">
 			<div class="mb-3">
 				<label
+					for="editor-release-date"
 					class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
 					>Release date</label
 				>
 				<input
+					id="editor-release-date"
 					type="date"
 					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 					[ngModel]="releaseAt()"
@@ -83,10 +89,12 @@
 			</div>
 			<div class="mb-3">
 				<label
+					for="editor-background-url"
 					class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
 					>Background URL</label
 				>
 				<input
+					id="editor-background-url"
 					type="text"
 					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 					[ngModel]="backgroundUrl()"
@@ -121,10 +129,12 @@
 
 		<div class="mb-3">
 			<label
+				for="editor-variant"
 				class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
 				>Variant label</label
 			>
 			<input
+				id="editor-variant"
 				type="text"
 				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				placeholder="e.g. Pearl (required when siblings share an external id)"
@@ -136,9 +146,9 @@
 
 		@if (isDlc()) {
 		<div class="mb-3">
-			<label
+			<span
 				class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
-				>Parent Game</label
+				>Parent Game</span
 			>
 			@if (parentGame()) {
 			<div
@@ -467,10 +477,12 @@
 				<div class="flex-1 grid grid-cols-[2fr_1fr] gap-2">
 					<div>
 						<label
+							[attr.for]="'editor-variant-title-' + i"
 							class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
 							>Title #{{ i + 1 }}</label
 						>
 						<input
+							[attr.id]="'editor-variant-title-' + i"
 							type="text"
 							class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 							placeholder="e.g. Pokemon Pearl"
@@ -489,10 +501,12 @@
 					</div>
 					<div>
 						<label
+							[attr.for]="'editor-variant-label-' + i"
 							class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
 							>Variant label</label
 						>
 						<input
+							[attr.id]="'editor-variant-label-' + i"
 							type="text"
 							class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 							placeholder="Pearl"

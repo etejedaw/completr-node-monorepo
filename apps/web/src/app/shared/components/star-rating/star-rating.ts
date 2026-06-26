@@ -19,6 +19,7 @@ export class StarRating {
 	value = input<number | null>(null);
 	readonly = input(false);
 	size = input<"sm" | "md">("md");
+	ariaLabelledby = input<string | null>(null);
 	ratingChange = output<number | null>();
 
 	protected readonly stars: readonly number[] = [1, 2, 3, 4, 5];

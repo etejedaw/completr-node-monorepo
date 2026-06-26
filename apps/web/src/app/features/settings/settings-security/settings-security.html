@@ -8,11 +8,13 @@
 		<div class="flex flex-col gap-4 max-w-md">
 			<div>
 				<label
+					for="new-password"
 					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
 					>New password</label
 				>
 				<input
 					uiInput
+					id="new-password"
 					type="password"
 					[ngModel]="newPassword()"
 					(ngModelChange)="newPassword.set($event)"
@@ -23,11 +25,13 @@
 
 			<div>
 				<label
+					for="confirm-password"
 					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
 					>Confirm password</label
 				>
 				<input
 					uiInput
+					id="confirm-password"
 					type="password"
 					[ngModel]="confirmPassword()"
 					(ngModelChange)="confirmPassword.set($event)"

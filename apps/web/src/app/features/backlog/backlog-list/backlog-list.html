@@ -650,20 +650,26 @@
 				</h3>
 				<div class="grid grid-cols-2 gap-3">
 					<div>
-						<label class="block text-[0.625rem] text-fg-muted mb-1"
-							>Min</label
+						<span
+							id="backlog-min-rating"
+							class="block text-[0.625rem] text-fg-muted mb-1"
+							>Min</span
 						>
 						<app-star-rating
+							ariaLabelledby="backlog-min-rating"
 							[value]="minRating()"
 							(ratingChange)="minRating.set($event)"
 							size="sm"
 						/>
 					</div>
 					<div>
-						<label class="block text-[0.625rem] text-fg-muted mb-1"
-							>Max</label
+						<span
+							id="backlog-max-rating"
+							class="block text-[0.625rem] text-fg-muted mb-1"
+							>Max</span
 						>
 						<app-star-rating
+							ariaLabelledby="backlog-max-rating"
 							[value]="maxRating()"
 							(ratingChange)="maxRating.set($event)"
 							size="sm"
@@ -1918,11 +1924,13 @@
 		} } @if (pending.status === 'completed' || pending.status ===
 		'abandoned' || pending.status === 'endless') {
 		<div>
-			<label
+			<span
+				id="pending-your-rating"
 				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Your rating</label
+				>Your rating</span
 			>
 			<app-star-rating
+				ariaLabelledby="pending-your-rating"
 				[value]="pending.rating"
 				(ratingChange)="updatePendingStatus({ rating: $event })"
 			/>

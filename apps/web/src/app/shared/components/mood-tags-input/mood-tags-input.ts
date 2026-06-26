@@ -28,6 +28,7 @@ export class MoodTagsInput {
 	suggestions = input<string[]>([]);
 	placeholder = input("Add a tag…");
 	max = input(10);
+	ariaLabelledby = input<string | null>(null);
 
 	tagsChange = output<string[]>();
 

@@ -9,11 +9,13 @@
 		<div uiFormField>
 			<label
 				uiLabel
+				for="profile-name"
 				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
 				>Name</label
 			>
 			<input
 				uiInput
+				id="profile-name"
 				type="text"
 				[ngModel]="name()"
 				(ngModelChange)="name.set($event)"
@@ -24,11 +26,13 @@
 		<div uiFormField>
 			<label
 				uiLabel
+				for="profile-bio"
 				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
 				>Bio</label
 			>
 			<textarea
 				uiTextarea
+				id="profile-bio"
 				rows="3"
 				[ngModel]="bio()"
 				(ngModelChange)="bio.set($event)"
@@ -38,9 +42,9 @@
 
 		<div>
 			<div class="flex items-center justify-between mb-2">
-				<label
+				<span
 					class="block text-xs font-medium text-fg-secondary uppercase tracking-wide"
-					>Avatar</label
+					>Avatar</span
 				>
 				@if (avatarUrl()) {
 				<button

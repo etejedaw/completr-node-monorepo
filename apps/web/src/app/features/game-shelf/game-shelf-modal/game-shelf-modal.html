@@ -107,9 +107,9 @@
 		<form [formGroup]="form" (ngSubmit)="onSubmit()">
 			@if (!isEdit()) {
 			<div class="mb-4">
-				<label
+				<span
 					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
-					>Game <span class="text-danger font-bold">*</span></label
+					>Game <span class="text-danger font-bold">*</span></span
 				>
 				@if (selectedGame()) {
 				<div
@@ -214,9 +214,9 @@
 			</div>
 			} @else {
 			<div class="mb-4">
-				<label
+				<span
 					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
-					>Game</label
+					>Game</span
 				>
 				<div
 					class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded-md opacity-70"
