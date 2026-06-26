@@ -38,6 +38,7 @@ interface BarSlot {
 interface CalendarLayout {
 	slots: Map<string, (BarSlot | null)[]>;
 	overflow: Map<string, number>;
+	dayEntries: Map<string, BacklogEntry[]>;
 }
 
 interface WeekSegment {
@@ -88,6 +89,7 @@ export class BacklogCalendar {
 	protected readonly isTruncated = computed(
 		() => this.monthTotal() > MONTH_LIMIT
 	);
+	protected readonly selectedDay = signal<Date | null>(null);
 	protected readonly weekdayLabels = [
 		"Mon",
 		"Tue",
@@ -174,6 +176,37 @@ export class BacklogCalendar {
 		return map[status] ?? "";
 	}
 
+	statusLabel(status: BacklogStatus): string {
+		const map: Record<BacklogStatus, string> = {
+			not_started: "Not Started",
+			playing: "Playing",
+			completed: "Completed",
+			abandoned: "Abandoned",
+			endless: "Endless"
+		};
+		return map[status] ?? status;
+	}
+
+	protected selectedDayEntries(): BacklogEntry[] {
+		const day = this.selectedDay();
+		return day
+			? (this.layout().dayEntries.get(this.dateKey(day)) ?? [])
+			: [];
+	}
+
+	openDay(date: Date) {
+		this.selectedDay.set(date);
+	}
+
+	closeDay() {
+		this.selectedDay.set(null);
+	}
+
+	selectDayEntry(entry: BacklogEntry) {
+		this.selectedDay.set(null);
+		this.entryClick.emit(entry);
+	}
+
 	private buildLayout(entries: BacklogEntry[]): CalendarLayout {
 		const weeks = new Map<
 			number,
@@ -195,6 +228,7 @@ export class BacklogCalendar {
 
 		const slots = new Map<string, (BarSlot | null)[]>();
 		const overflow = new Map<string, number>();
+		const dayEntries = new Map<string, BacklogEntry[]>();
 
 		for (const [wkTime, items] of weeks) {
 			const weekStart = new Date(wkTime);
@@ -213,9 +247,11 @@ export class BacklogCalendar {
 			for (let i = 0; i < 7; i++) {
 				const day = this.addDays(weekStart, i);
 				const lanes: (BarSlot | null)[] = Array(MAX_LANES).fill(null);
+				const covering: BacklogEntry[] = [];
 				let over = 0;
 				for (const seg of segments) {
 					if (day < seg.segStart || day > seg.segEnd) continue;
+					covering.push(seg.entry);
 					if (seg.lane >= MAX_LANES) {
 						over++;
 						continue;
@@ -233,10 +269,11 @@ export class BacklogCalendar {
 				const key = this.dateKey(day);
 				slots.set(key, lanes);
 				if (over > 0) overflow.set(key, over);
+				if (covering.length > 0) dayEntries.set(key, covering);
 			}
 		}
 
-		return { slots, overflow };
+		return { slots, overflow, dayEntries };
 	}
 
 	private assignLanes(segments: WeekSegment[]) {

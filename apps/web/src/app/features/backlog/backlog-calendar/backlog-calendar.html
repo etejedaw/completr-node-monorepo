@@ -104,10 +104,13 @@
 							} @else {
 							<div class="h-[18px]"></div>
 							} } @if (overflowFor(date) > 0) {
-							<span
-								class="px-1.5 text-[0.625rem] text-fg-muted leading-none"
-								>+{{ overflowFor(date) }} more</span
+							<button
+								type="button"
+								class="text-left px-1.5 text-[0.625rem] font-medium text-fg-muted leading-none bg-transparent border-0 cursor-pointer hover:text-brand"
+								(click)="openDay(date)"
 							>
+								+{{ overflowFor(date) }} more
+							</button>
 							}
 						</div>
 					</div>
@@ -169,3 +172,56 @@
 		</span>
 	</div>
 </div>
+
+@if (selectedDay(); as day) {
+<div
+	class="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm"
+	(click)="closeDay()"
+></div>
+<div
+	class="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none"
+>
+	<div
+		class="pointer-events-auto w-full max-w-md max-h-[80vh] flex flex-col bg-sidebar border border-line rounded-card shadow-[0_0_60px_-12px_rgba(0,0,0,0.7)]"
+	>
+		<header
+			class="flex items-center justify-between gap-2 px-5 py-4 border-b border-line shrink-0"
+		>
+			<h3 class="font-display text-base font-bold m-0">
+				{{ day | date: "EEEE, MMMM d" }}
+			</h3>
+			<button
+				uiIconButton
+				size="sm"
+				(click)="closeDay()"
+				aria-label="Close"
+			>
+				<span aria-hidden="true" class="material-icons">close</span>
+			</button>
+		</header>
+		<div class="flex-1 overflow-y-auto p-2">
+			@for (entry of selectedDayEntries(); track entry.id) {
+			<button
+				type="button"
+				class="w-full flex items-center gap-3 px-3 py-2 rounded text-left bg-transparent border-0 cursor-pointer transition hover:bg-input-bg"
+				(click)="selectDayEntry(entry)"
+			>
+				<span
+					class="w-2.5 h-2.5 rounded-full shrink-0"
+					[class]="barClass(entry.status)"
+				></span>
+				<span class="min-w-0 flex-1">
+					<span class="block text-sm font-medium text-fg truncate"
+						>{{ entry.game.title }}</span
+					>
+					<span class="block text-xs text-fg-muted truncate"
+						>{{ statusLabel(entry.status) }} · {{
+						entry.platform.abbreviation }}</span
+					>
+				</span>
+			</button>
+			}
+		</div>
+	</div>
+</div>
+}
