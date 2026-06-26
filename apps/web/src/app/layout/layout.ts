@@ -92,7 +92,7 @@ export class Layout implements OnInit {
 		if (!this.user()) {
 			this.auth.loadUser().subscribe({
 				next: () => this.maybeStartOnboarding(),
-				error: () => {}
+				error: () => undefined
 			});
 		} else {
 			this.maybeStartOnboarding();

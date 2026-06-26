@@ -455,6 +455,8 @@
 					type="button"
 					class="w-2 h-2 rounded-full transition-all border-0 cursor-pointer"
 					[class]="i === featuredIndex() ? 'bg-white w-6' : 'bg-white/40 hover:bg-white/70'"
+					[attr.aria-label]="'Show featured game ' + (i + 1)"
+					[attr.aria-current]="i === featuredIndex()"
 					(click)="setFeatured(i); $event.preventDefault(); $event.stopPropagation()"
 				></button>
 				}

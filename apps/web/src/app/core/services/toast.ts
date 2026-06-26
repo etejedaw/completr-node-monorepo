@@ -44,17 +44,16 @@ export class ToastService {
 	show(message: string, variant: ToastVariant = "info", durationMs = 4000) {
 		if (!this.template) return;
 		const id = this.nextId++;
-		let ref: NgpToastRef | undefined;
 		const ctx: Toast = {
 			id,
 			message,
-			variant,
-			onDismiss: () => ref?.dismiss()
+			variant
 		};
-		ref = this.manager.show(this.template, {
+		const ref = this.manager.show(this.template, {
 			duration: durationMs,
 			context: ctx
 		});
+		ctx.onDismiss = () => ref.dismiss();
 	}
 
 	info(message: string, durationMs?: number) {
