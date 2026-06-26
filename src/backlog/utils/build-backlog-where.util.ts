@@ -83,6 +83,13 @@ export function buildBacklogWhere(
 		if (finishedAt) where.finishedAt = finishedAt;
 	}
 
+	if (filters.undated)
+		andConditions.push(
+			literal(
+				`"Backlog"."startedAt" IS NULL AND "Backlog"."finishedAt" IS NULL`
+			)
+		);
+
 	if (filters.active_to !== undefined)
 		andConditions.push(
 			literal(
