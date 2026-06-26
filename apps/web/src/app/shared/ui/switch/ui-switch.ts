@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, input, model } from "@angular/core";
+import {
+	ChangeDetectionStrategy,
+	Component,
+	input,
+	model
+} from "@angular/core";
 import { NgpSwitch, NgpSwitchThumb } from "ng-primitives/switch";
 
 @Component({

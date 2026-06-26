@@ -1,7 +1,7 @@
 <div class="modal-overlay" (click)="onClose()">
 	<div
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
-		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
 		(click)="$event.stopPropagation()"
 		uiFocusTrap
 		(escape)="onClose()"
@@ -10,60 +10,112 @@
 		aria-labelledby="shelf-modal-title"
 	>
 		<div class="flex items-center justify-between mb-5">
-			<h2 id="shelf-modal-title" class="m-0 text-lg font-bold font-display">{{ isEdit() ? (viewMode() === 'summary' ? entry()!.game.title : "Edit Entry") : "Add to Shelf" }}</h2>
-			<button uiIconButton size="sm" aria-label="Close" (click)="onClose()">&times;</button>
+			<h2
+				id="shelf-modal-title"
+				class="m-0 text-lg font-bold font-display"
+			>
+				{{ isEdit() ? (viewMode() === 'summary' ? entry()!.game.title :
+				"Edit Entry") : "Add to Shelf" }}
+			</h2>
+			<button
+				uiIconButton
+				size="sm"
+				aria-label="Close"
+				(click)="onClose()"
+			>
+				&times;
+			</button>
 		</div>
 
 		@if (error()) {
-		<div class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded-md mb-4 text-[0.8125rem]">{{ error() }}</div>
-		}
-
-		@if (isEdit() && viewMode() === 'summary') {
-			@let e = entry()!;
-			<div class="flex items-stretch gap-4 mb-5">
-				<div class="shrink-0">
-					@if (e.game.backgroundUrl) {
-						<img [src]="e.game.backgroundUrl" [alt]="e.game.title" class="w-20 h-28 object-cover rounded-md shadow-md shadow-black/40" loading="lazy" />
-					} @else {
-						<div class="w-20 h-28 bg-input-bg rounded-md"></div>
-					}
-				</div>
-				<div class="flex-1 min-w-0 flex flex-col gap-1.5 justify-center">
-					<div class="text-[0.8125rem] text-fg-secondary">{{ e.platform.abbreviation }}</div>
-					@if (e.edition) {
-						<span class="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide bg-warning/10 text-warning">{{ e.edition }}</span>
-					}
-				</div>
-			</div>
-
-			<div class="grid grid-cols-2 gap-3 text-[0.8125rem]">
-				@if (e.acquiredAt) {
-					<div class="bg-input-bg border border-line rounded-card p-3 col-span-2">
-						<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Acquired</div>
-						<div class="text-fg">{{ e.acquiredAt | date:'yyyy-MM-dd' }}</div>
-					</div>
+		<div
+			class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded-md mb-4 text-[0.8125rem]"
+		>
+			{{ error() }}
+		</div>
+		} @if (isEdit() && viewMode() === 'summary') { @let e = entry()!;
+		<div class="flex items-stretch gap-4 mb-5">
+			<div class="shrink-0">
+				@if (e.game.backgroundUrl) {
+				<img
+					[src]="e.game.backgroundUrl"
+					[alt]="e.game.title"
+					class="w-20 h-28 object-cover rounded-md shadow-md shadow-black/40"
+					loading="lazy"
+				/>
+				} @else {
+				<div class="w-20 h-28 bg-input-bg rounded-md"></div>
 				}
 			</div>
-
-			@if (e.notes) {
-				<div class="mt-3 bg-input-bg border border-line rounded-card p-3">
-					<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Notes</div>
-					<p class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap">{{ e.notes }}</p>
+			<div class="flex-1 min-w-0 flex flex-col gap-1.5 justify-center">
+				<div class="text-[0.8125rem] text-fg-secondary">
+					{{ e.platform.abbreviation }}
 				</div>
-			}
-
-			<div class="flex justify-end gap-2 mt-5 pt-4 border-t border-line">
-				<button uiButton variant="ghost" type="button" (click)="onClose()">Close</button>
-				<button uiButton variant="primary" type="button" (click)="switchToEdit()">
-					<span aria-hidden="true" class="material-icons text-base mr-1">edit</span>
-					Edit
-				</button>
+				@if (e.edition) {
+				<span
+					class="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide bg-warning/10 text-warning"
+					>{{ e.edition }}</span
+				>
+				}
 			</div>
+		</div>
+
+		<div class="grid grid-cols-2 gap-3 text-[0.8125rem]">
+			@if (e.acquiredAt) {
+			<div
+				class="bg-input-bg border border-line rounded-card p-3 col-span-2"
+			>
+				<div
+					class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+				>
+					Acquired
+				</div>
+				<div class="text-fg">
+					{{ e.acquiredAt | date:'yyyy-MM-dd' }}
+				</div>
+			</div>
+			}
+		</div>
+
+		@if (e.notes) {
+		<div class="mt-3 bg-input-bg border border-line rounded-card p-3">
+			<div
+				class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+			>
+				Notes
+			</div>
+			<p
+				class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap"
+			>
+				{{ e.notes }}
+			</p>
+		</div>
+		}
+
+		<div class="flex justify-end gap-2 mt-5 pt-4 border-t border-line">
+			<button uiButton variant="ghost" type="button" (click)="onClose()">
+				Close
+			</button>
+			<button
+				uiButton
+				variant="primary"
+				type="button"
+				(click)="switchToEdit()"
+			>
+				<span aria-hidden="true" class="material-icons text-base mr-1"
+					>edit</span
+				>
+				Edit
+			</button>
+		</div>
 		} @else {
 		<form [formGroup]="form" (ngSubmit)="onSubmit()">
 			@if (!isEdit()) {
 			<div class="mb-4">
-				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Game <span class="text-danger font-bold">*</span></label>
+				<label
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Game <span class="text-danger font-bold">*</span></label
+				>
 				@if (selectedGame()) {
 				<div
 					class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded-md"
@@ -72,10 +124,13 @@
 					@if (selectedGame()!.backgroundUrl) {
 					<img
 						[src]="selectedGame()!.backgroundUrl"
-						class="w-7 h-[38px] object-cover rounded-sm shrink-0" loading="lazy"
+						class="w-7 h-[38px] object-cover rounded-sm shrink-0"
+						loading="lazy"
 					/>
 					}
-					<span class="flex-1 text-sm font-medium">{{ selectedGame()!.title }}</span>
+					<span class="flex-1 text-sm font-medium"
+						>{{ selectedGame()!.title }}</span
+					>
 					@if (!preselectedGame()) {
 					<button
 						type="button"
@@ -95,32 +150,58 @@
 					(input)="onSearch($event)"
 				/>
 				@if (isSearching() && gameResults().length === 0) {
-				<div class="mt-1 px-3 py-2.5 text-[0.8125rem] text-fg-muted bg-input-bg border border-line rounded-md">Searching...</div>
+				<div
+					class="mt-1 px-3 py-2.5 text-[0.8125rem] text-fg-muted bg-input-bg border border-line rounded-md"
+				>
+					Searching...
+				</div>
 				} @if (isSearchingOnline()) {
-				<div class="mt-1 px-3 py-2.5 text-[0.8125rem] text-brand bg-input-bg border border-line rounded-md flex items-center gap-2">
-					<span aria-hidden="true" class="material-icons text-base animate-spin">autorenew</span>
+				<div
+					class="mt-1 px-3 py-2.5 text-[0.8125rem] text-brand bg-input-bg border border-line rounded-md flex items-center gap-2"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-base animate-spin"
+						>autorenew</span
+					>
 					Searching online...
 				</div>
-				} @if (gameResults().length > 0 || (!isSearching() && !isSearchingOnline() &&
-				searchQuery().length >= 2)) {
-				<ul class="list-none bg-input-bg border border-line rounded-md mt-1 max-h-[200px] overflow-y-auto">
+				} @if (gameResults().length > 0 || (!isSearching() &&
+				!isSearchingOnline() && searchQuery().length >= 2)) {
+				<ul
+					class="list-none bg-input-bg border border-line rounded-md mt-1 max-h-[200px] overflow-y-auto"
+				>
 					@for (game of gameResults(); track game.id) {
 					<li
 						class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] transition hover:bg-surface"
 						(click)="selectGame(game)"
 					>
 						@if (game.backgroundUrl) {
-						<img alt="" [src]="game.backgroundUrl" class="w-7 h-[38px] object-cover rounded-sm shrink-0" loading="lazy" />
+						<img
+							alt=""
+							[src]="game.backgroundUrl"
+							class="w-7 h-[38px] object-cover rounded-sm shrink-0"
+							loading="lazy"
+						/>
 						}
 						<span class="flex-1">{{ game.title }}</span>
 						@if (game.justImported) {
-						<span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/15 text-info text-[0.65rem] font-semibold uppercase tracking-wider rounded" title="Just imported from RAWG">
-							<span aria-hidden="true" class="material-icons text-[0.75rem]">cloud_download</span>
+						<span
+							class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/15 text-info text-[0.65rem] font-semibold uppercase tracking-wider rounded"
+							title="Just imported from RAWG"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-[0.75rem]"
+								>cloud_download</span
+							>
 							RAWG
 						</span>
-						}
-						@if (game.isDlc) {
-						<span class="px-1.5 py-0.5 bg-warning/15 text-warning text-[0.65rem] font-semibold uppercase tracking-wider rounded">DLC</span>
+						} @if (game.isDlc) {
+						<span
+							class="px-1.5 py-0.5 bg-warning/15 text-warning text-[0.65rem] font-semibold uppercase tracking-wider rounded"
+							>DLC</span
+						>
 						}
 					</li>
 					} @if (searchQuery().length >= 2) {
@@ -137,27 +218,34 @@
 			</div>
 			} @else {
 			<div class="mb-4">
-				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Game</label>
-				<div class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded-md opacity-70">
+				<label
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Game</label
+				>
+				<div
+					class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded-md opacity-70"
+				>
 					@if (selectedGame()?.backgroundUrl) {
 					<img
 						[src]="selectedGame()!.backgroundUrl"
-						class="w-7 h-[38px] object-cover rounded-sm shrink-0" loading="lazy"
+						class="w-7 h-[38px] object-cover rounded-sm shrink-0"
+						loading="lazy"
 					/>
 					}
-					<span class="flex-1 text-sm font-medium">{{ selectedGame()!.title }}</span>
+					<span class="flex-1 text-sm font-medium"
+						>{{ selectedGame()!.title }}</span
+					>
 				</div>
 			</div>
-			}
-
-			@if (!isEdit()) {
+			} @if (!isEdit()) {
 			<div class="mb-4">
-				<label for="platformId" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Platform <span class="text-danger font-bold">*</span></label>
-				<select
-					uiSelect
-					id="platformId"
-					formControlName="platformId"
+				<label
+					for="platformId"
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Platform
+					<span class="text-danger font-bold">*</span></label
 				>
+				<select uiSelect id="platformId" formControlName="platformId">
 					<option value="">Select platform</option>
 					@for (p of gamePlatforms(); track p.id) {
 					<option [value]="p.id">{{ p.name }}</option>
@@ -167,7 +255,11 @@
 			}
 
 			<div class="mb-4">
-				<label for="edition" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Edition</label>
+				<label
+					for="edition"
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Edition</label
+				>
 				<input
 					id="edition"
 					type="text"
@@ -190,7 +282,11 @@
 			</div>
 
 			<div class="mb-4">
-				<label for="acquiredAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Acquired</label>
+				<label
+					for="acquiredAt"
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Acquired</label
+				>
 				<input
 					id="acquiredAt"
 					type="date"
@@ -200,9 +296,14 @@
 			</div>
 
 			<div class="mb-4">
-				<label for="notes" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Notes</label>
+				<label
+					for="notes"
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Notes</label
+				>
 				<textarea
-					uiTextarea id="notes"
+					uiTextarea
+					id="notes"
 					formControlName="notes"
 					rows="3"
 					placeholder="Your notes..."
@@ -210,7 +311,9 @@
 				></textarea>
 			</div>
 
-			<div class="flex justify-between items-center mt-5 pt-4 border-t border-line">
+			<div
+				class="flex justify-between items-center mt-5 pt-4 border-t border-line"
+			>
 				@if (isEdit()) {
 				<div class="flex items-center gap-2">
 					@if (!showConfirmDelete()) {
@@ -222,14 +325,22 @@
 						Delete
 					</button>
 					} @else {
-					<span class="text-[0.8125rem] text-danger">Are you sure?</span>
-					<button uiButton variant="danger" size="sm"
+					<span class="text-[0.8125rem] text-danger"
+						>Are you sure?</span
+					>
+					<button
+						uiButton
+						variant="danger"
+						size="sm"
 						type="button"
 						(click)="onDelete()"
 					>
 						Yes, delete
 					</button>
-					<button uiButton variant="ghost" size="sm"
+					<button
+						uiButton
+						variant="ghost"
+						size="sm"
 						type="button"
 						(click)="showConfirmDelete.set(false)"
 					>
@@ -238,7 +349,11 @@
 					}
 				</div>
 				}
-				<button uiButton variant="primary" size="sm" class="ml-auto"
+				<button
+					uiButton
+					variant="primary"
+					size="sm"
+					class="ml-auto"
 					type="submit"
 					[disabled]="form.invalid || isLoading()"
 				>

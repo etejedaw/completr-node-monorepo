@@ -44,7 +44,8 @@ import {
 export class UiDialog {
 	size = input<"sm" | "md" | "lg" | "xl">("md");
 
-	protected readonly content = viewChild.required<TemplateRef<unknown>>("content");
+	protected readonly content =
+		viewChild.required<TemplateRef<unknown>>("content");
 }
 
 @Directive({

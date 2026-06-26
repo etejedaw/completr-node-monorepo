@@ -1,55 +1,66 @@
 <div>
 	<div class="flex items-baseline gap-3 mb-5">
-		<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Favorites</h1>
+		<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">
+			Favorites
+		</h1>
 		<span class="text-sm text-fg-muted">{{ total() }} games</span>
 	</div>
 
-	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
+	<ui-search-bar
+		class="block mb-4 max-w-2xl"
+		placeholder="Search by title..."
+		[value]="searchQuery()"
+		(valueChange)="onSearch($event)"
+	/>
 
 	@if (isLoading()) {
-		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-			@for (i of skeletonRange; track i) {
-				<div class="flex flex-col gap-2">
-					<ui-skeleton variant="rect" class="aspect-[3/4] rounded-lg" />
-					<ui-skeleton variant="text" class="w-3/4" />
-				</div>
-			}
+	<div
+		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
+	>
+		@for (i of skeletonRange; track i) {
+		<div class="flex flex-col gap-2">
+			<ui-skeleton variant="rect" class="aspect-[3/4] rounded-lg" />
+			<ui-skeleton variant="text" class="w-3/4" />
 		</div>
-	} @else if (entries().length === 0) {
-		@if (searchQuery().trim()) {
-			<ui-empty-state
-				icon="search_off"
-				title="No matches found"
-				hint="No favorites match your search."
-			>
-				<button uiButton variant="secondary" (click)="onSearch('')">Clear search</button>
-			</ui-empty-state>
-		} @else {
-			<ui-empty-state
-				icon="star"
-				title="No favorites yet"
-				hint="Mark your all-time favorite games. Visit a game's detail page and tap the star to add it here."
-			>
-				<a uiButton variant="primary" routerLink="/games">Browse games</a>
-			</ui-empty-state>
 		}
+	</div>
+	} @else if (entries().length === 0) { @if (searchQuery().trim()) {
+	<ui-empty-state
+		icon="search_off"
+		title="No matches found"
+		hint="No favorites match your search."
+	>
+		<button uiButton variant="secondary" (click)="onSearch('')">
+			Clear search
+		</button>
+	</ui-empty-state>
 	} @else {
-		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-			@for (entry of entries(); track entry.id) {
-				<app-game-cover-card
-					[game]="entry.game"
-					[moodTags]="entry.moodTags"
-					[showRemove]="true"
-					[showAddToBacklog]="true"
-					[inBacklog]="isInBacklog(entry.game.id)"
-					[showWishlistToggle]="true"
-					[inWishlist]="isInWishlist(entry.game.id)"
-					(remove)="remove(entry)"
-					(addToBacklog)="openBacklogQuickAdd(entry)"
-					(wishlistToggle)="toggleWishlist(entry.game.id)"
-				/>
-			}
-		</div>
+	<ui-empty-state
+		icon="star"
+		title="No favorites yet"
+		hint="Mark your all-time favorite games. Visit a game's detail page and tap the star to add it here."
+	>
+		<a uiButton variant="primary" routerLink="/games">Browse games</a>
+	</ui-empty-state>
+	} } @else {
+	<div
+		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
+	>
+		@for (entry of entries(); track entry.id) {
+		<app-game-cover-card
+			[game]="entry.game"
+			[moodTags]="entry.moodTags"
+			[showRemove]="true"
+			[showAddToBacklog]="true"
+			[inBacklog]="isInBacklog(entry.game.id)"
+			[showWishlistToggle]="true"
+			[inWishlist]="isInWishlist(entry.game.id)"
+			(remove)="remove(entry)"
+			(addToBacklog)="openBacklogQuickAdd(entry)"
+			(wishlistToggle)="toggleWishlist(entry.game.id)"
+		/>
+		}
+	</div>
 	}
 
 	<ui-pagination
@@ -61,10 +72,10 @@
 </div>
 
 @if (showBacklogModal()) {
-	<app-backlog-modal
-		[preselectedGame]="backlogModalGame()"
-		[entry]="backlogModalEntry()"
-		(closed)="onBacklogModalClosed()"
-		(saved)="onBacklogModalSaved()"
-	/>
+<app-backlog-modal
+	[preselectedGame]="backlogModalGame()"
+	[entry]="backlogModalEntry()"
+	(closed)="onBacklogModalClosed()"
+	(saved)="onBacklogModalSaved()"
+/>
 }

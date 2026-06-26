@@ -74,7 +74,9 @@ export class SettingsAppearance implements OnInit {
 				this.current.set(previous);
 				this.themeService.setLocal(previous);
 				if (err.status === 403) {
-					this.toast.warning("That theme requires a premium account.");
+					this.toast.warning(
+						"That theme requires a premium account."
+					);
 				} else {
 					this.toast.warning("Could not save theme.");
 				}

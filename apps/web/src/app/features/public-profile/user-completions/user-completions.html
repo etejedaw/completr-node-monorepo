@@ -1,77 +1,125 @@
 <div class="max-w-3xl mx-auto p-6 lg:p-8 max-md:px-4">
-	<a class="inline-flex items-center gap-1.5 text-fg-muted no-underline text-[0.8125rem] mb-5 hover:text-brand" [routerLink]="['/user', username()]">
-		<span aria-hidden="true" class="material-icons text-base">arrow_back</span>
+	<a
+		class="inline-flex items-center gap-1.5 text-fg-muted no-underline text-[0.8125rem] mb-5 hover:text-brand"
+		[routerLink]="['/user', username()]"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>arrow_back</span
+		>
 		{{ '@' + username() }}'s profile
 	</a>
 
 	@if (error() === 'not_found') {
-		<div class="text-center py-12 text-fg-muted text-sm">User not found.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">User not found.</div>
 	} @else if (error() === 'private') {
-		<div class="text-center py-12 text-fg-muted text-sm">This content is private.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">
+		This content is private.
+	</div>
 	} @else {
-		<div class="flex items-baseline gap-3 mb-5">
-			<h1 class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight">Completions</h1>
-			<span class="text-sm text-fg-muted">{{ total() }} total</span>
-		</div>
+	<div class="flex items-baseline gap-3 mb-5">
+		<h1
+			class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight"
+		>
+			Completions
+		</h1>
+		<span class="text-sm text-fg-muted">{{ total() }} total</span>
+	</div>
 
-		@if (isLoading()) {
-			<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
-		} @else if (completions().length === 0) {
-			<div class="text-center py-12 text-fg-muted text-sm">No completions yet.</div>
-		} @else {
-			<ol class="list-none p-0 m-0 relative border-l border-line ml-3">
-				@for (c of completions(); track c.id) {
-					<li class="relative pl-6 pb-6 last:pb-0">
-						<span class="absolute -left-[13px] top-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface border border-line">
-							<span aria-hidden="true" class="material-icons text-sm text-success">check_circle</span>
+	@if (isLoading()) {
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
+	} @else if (completions().length === 0) {
+	<div class="text-center py-12 text-fg-muted text-sm">
+		No completions yet.
+	</div>
+	} @else {
+	<ol class="list-none p-0 m-0 relative border-l border-line ml-3">
+		@for (c of completions(); track c.id) {
+		<li class="relative pl-6 pb-6 last:pb-0">
+			<span
+				class="absolute -left-[13px] top-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface border border-line"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-sm text-success"
+					>check_circle</span
+				>
+			</span>
+			<div class="flex gap-4">
+				<a [routerLink]="['/games', c.game.code]" class="shrink-0">
+					@if (c.game.backgroundUrl) {
+					<img
+						[src]="c.game.backgroundUrl"
+						[alt]="c.game.title"
+						class="w-16 h-24 object-cover rounded-md shadow-md shadow-black/40"
+						loading="lazy"
+					/>
+					} @else {
+					<div class="w-16 h-24 bg-surface rounded-md"></div>
+					}
+				</a>
+				<div class="flex-1 min-w-0 flex flex-col gap-1">
+					<div class="flex items-center gap-2 flex-wrap">
+						<a
+							class="text-base font-semibold text-fg no-underline hover:text-brand truncate"
+							[routerLink]="['/games', c.game.code]"
+							>{{ c.game.title }}</a
+						>
+						@if (c.userRating != null) {
+						<app-star-rating
+							[value]="c.userRating"
+							[readonly]="true"
+							size="sm"
+						/>
+						}
+					</div>
+					<div
+						class="flex items-center gap-x-3 gap-y-1 text-[0.6875rem] text-fg-muted flex-wrap"
+					>
+						@if (c.finishedAt) {
+						<span class="inline-flex items-center gap-1">
+							<span
+								aria-hidden="true"
+								class="material-icons text-[0.875rem]"
+								>event</span
+							>
+							{{ c.finishedAt }}
 						</span>
-						<div class="flex gap-4">
-							<a [routerLink]="['/games', c.game.code]" class="shrink-0">
-								@if (c.game.backgroundUrl) {
-									<img [src]="c.game.backgroundUrl" [alt]="c.game.title" class="w-16 h-24 object-cover rounded-md shadow-md shadow-black/40" loading="lazy" />
-								} @else {
-									<div class="w-16 h-24 bg-surface rounded-md"></div>
-								}
-							</a>
-							<div class="flex-1 min-w-0 flex flex-col gap-1">
-								<div class="flex items-center gap-2 flex-wrap">
-									<a class="text-base font-semibold text-fg no-underline hover:text-brand truncate" [routerLink]="['/games', c.game.code]">{{ c.game.title }}</a>
-									@if (c.userRating != null) {
-										<app-star-rating [value]="c.userRating" [readonly]="true" size="sm" />
-									}
-								</div>
-								<div class="flex items-center gap-x-3 gap-y-1 text-[0.6875rem] text-fg-muted flex-wrap">
-									@if (c.finishedAt) {
-										<span class="inline-flex items-center gap-1">
-											<span aria-hidden="true" class="material-icons text-[0.875rem]">event</span>
-											{{ c.finishedAt }}
-										</span>
-									}
-									@if (c.realDuration != null) {
-										<span class="inline-flex items-center gap-1">
-											<span aria-hidden="true" class="material-icons text-[0.875rem]">schedule</span>
-											{{ c.realDuration }}h
-										</span>
-									}
-									@if (c.platform.abbreviation) {
-										<span>{{ c.platform.abbreviation }}</span>
-									}
-								</div>
-								@if (c.reviewContent) {
-									<p class="m-0 mt-1 text-[0.8125rem] text-fg-secondary leading-relaxed overflow-hidden" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">{{ c.reviewContent }}</p>
-								}
-							</div>
-						</div>
-					</li>
-				}
-			</ol>
-
-			<ui-pagination
-				[offset]="offset()"
-				[limit]="limit"
-				[total]="total()"
-				(offsetChange)="goToOffset($event)"
-			/>
+						} @if (c.realDuration != null) {
+						<span class="inline-flex items-center gap-1">
+							<span
+								aria-hidden="true"
+								class="material-icons text-[0.875rem]"
+								>schedule</span
+							>
+							{{ c.realDuration }}h
+						</span>
+						} @if (c.platform.abbreviation) {
+						<span>{{ c.platform.abbreviation }}</span>
+						}
+					</div>
+					@if (c.reviewContent) {
+					<p
+						class="m-0 mt-1 text-[0.8125rem] text-fg-secondary leading-relaxed overflow-hidden"
+						style="
+							display: -webkit-box;
+							-webkit-line-clamp: 3;
+							-webkit-box-orient: vertical;
+						"
+					>
+						{{ c.reviewContent }}
+					</p>
+					}
+				</div>
+			</div>
+		</li>
 		}
-	}
+	</ol>
+
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="total()"
+		(offsetChange)="goToOffset($event)"
+	/>
+	} }
 </div>

@@ -90,7 +90,9 @@ export class AuthService {
 				tap(res => {
 					this._user.set(res.data.user);
 					if (res.data.user.theme) {
-						this.themeService.setLocal(res.data.user.theme as ThemeId);
+						this.themeService.setLocal(
+							res.data.user.theme as ThemeId
+						);
 					}
 				})
 			);
@@ -132,9 +134,9 @@ export class AuthService {
 
 	revokeOtherSessions(currentSessionId: string) {
 		return this.http
-			.delete<{ data: { revoked: number } }>(
-				`${environment.apiUrl}/auth/sessions/others/${currentSessionId}`
-			)
+			.delete<{
+				data: { revoked: number };
+			}>(`${environment.apiUrl}/auth/sessions/others/${currentSessionId}`)
 			.pipe(map(res => res.data.revoked));
 	}
 

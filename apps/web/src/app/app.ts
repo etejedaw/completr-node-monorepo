@@ -41,10 +41,7 @@ export class App {
 				document.location.reload();
 			});
 
-		merge(
-			interval(UPDATE_CHECK_INTERVAL_MS),
-			fromEvent(window, "focus")
-		)
+		merge(interval(UPDATE_CHECK_INTERVAL_MS), fromEvent(window, "focus"))
 			.pipe(takeUntilDestroyed())
 			.subscribe(() => {
 				this.swUpdate.checkForUpdate().catch(error => {

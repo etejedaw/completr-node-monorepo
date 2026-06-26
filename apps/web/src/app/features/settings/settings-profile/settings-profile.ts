@@ -7,10 +7,7 @@ import {
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { AuthService } from "../../../core/services/auth";
-import {
-	ProfileService,
-	UpdateProfileDto
-} from "../../profile/profile";
+import { ProfileService, UpdateProfileDto } from "../../profile/profile";
 import { ToastService } from "../../../core/services/toast";
 import {
 	UiButton,
@@ -22,14 +19,7 @@ import {
 
 @Component({
 	selector: "app-settings-profile",
-	imports: [
-		FormsModule,
-		UiButton,
-		UiInput,
-		UiTextarea,
-		UiFormField,
-		UiLabel
-	],
+	imports: [FormsModule, UiButton, UiInput, UiTextarea, UiFormField, UiLabel],
 	templateUrl: "./settings-profile.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

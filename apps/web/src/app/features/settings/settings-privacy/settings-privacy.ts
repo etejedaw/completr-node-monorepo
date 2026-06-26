@@ -8,10 +8,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth";
-import {
-	ProfileService,
-	UpdateProfileDto
-} from "../../profile/profile";
+import { ProfileService, UpdateProfileDto } from "../../profile/profile";
 import { ToastService } from "../../../core/services/toast";
 import { FollowRequestsService } from "../../../core/services/follow-requests";
 import { UiAvatar, UiButton } from "../../../shared/ui";
@@ -109,17 +106,23 @@ export class SettingsPrivacy implements OnInit {
 	protected readonly incomingLoading = signal(false);
 	protected readonly resolvingRequest = signal<string | null>(null);
 	protected readonly showRequestsSection = computed(
-		() => this.profileVisibility() === "private" && this.acceptFollowRequests()
+		() =>
+			this.profileVisibility() === "private" &&
+			this.acceptFollowRequests()
 	);
 
 	protected readonly sections = SECTIONS;
-	protected readonly libraryGroup = SECTIONS.filter(s => s.group === "Library");
+	protected readonly libraryGroup = SECTIONS.filter(
+		s => s.group === "Library"
+	);
 	protected readonly curationGroup = SECTIONS.filter(
 		s => s.group === "Curation"
 	);
 	protected readonly socialGroup = SECTIONS.filter(s => s.group === "Social");
 
-	protected readonly showCustomPanel = computed(() => this.mode() === "custom");
+	protected readonly showCustomPanel = computed(
+		() => this.mode() === "custom"
+	);
 
 	ngOnInit() {
 		this.authService.loadUser().subscribe(() => this.hydrate());

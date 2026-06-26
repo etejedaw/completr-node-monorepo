@@ -103,9 +103,14 @@ export class ThemeService {
 export function applyInitialTheme() {
 	if (typeof document === "undefined") return;
 	const stored = (
-		typeof localStorage !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null
+		typeof localStorage !== "undefined"
+			? localStorage.getItem(STORAGE_KEY)
+			: null
 	) as ThemeId | null;
-	const id = stored && THEME_CATALOG.some(t => t.id === stored) ? stored : DEFAULT_THEME;
+	const id =
+		stored && THEME_CATALOG.some(t => t.id === stored)
+			? stored
+			: DEFAULT_THEME;
 	document.documentElement.setAttribute("data-theme", id);
 	const option = THEME_CATALOG.find(t => t.id === id);
 	if (option) {

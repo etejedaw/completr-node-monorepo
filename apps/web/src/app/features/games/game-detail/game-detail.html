@@ -1,658 +1,1166 @@
 @if (isLoading()) {
-	<div class="text-center py-12 px-4 text-fg-muted text-sm">Loading...</div>
+<div class="text-center py-12 px-4 text-fg-muted text-sm">Loading...</div>
 } @else if (!game()) {
-	<div class="text-center py-12 px-4 text-fg-muted text-sm">Game not found.</div>
+<div class="text-center py-12 px-4 text-fg-muted text-sm">Game not found.</div>
 } @else {
-	<div>
-		<div class="relative -mx-6 lg:-mx-8 max-md:-mx-4 -mt-6 lg:-mt-8 max-md:-mt-4 mb-8 overflow-hidden">
-			<div class="relative h-[55vh] min-h-[420px] max-h-[640px]">
-				@if (game()!.backgroundUrl) {
-					<img
-						[src]="game()!.backgroundUrl"
-						[alt]="game()!.title"
-						class="absolute inset-0 w-full h-full object-cover"
-					/>
-					<div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(10,10,12,0.15) 0%, rgba(10,10,12,0.4) 50%, rgba(10,10,12,0.95) 100%);"></div>
-					<div class="absolute inset-0" style="background: linear-gradient(90deg, rgba(10,10,12,0.5) 0%, transparent 60%);"></div>
-				} @else {
-					<div class="absolute inset-0 bg-surface"></div>
-				}
+<div>
+	<div
+		class="relative -mx-6 lg:-mx-8 max-md:-mx-4 -mt-6 lg:-mt-8 max-md:-mt-4 mb-8 overflow-hidden"
+	>
+		<div class="relative h-[55vh] min-h-[420px] max-h-[640px]">
+			@if (game()!.backgroundUrl) {
+			<img
+				[src]="game()!.backgroundUrl"
+				[alt]="game()!.title"
+				class="absolute inset-0 w-full h-full object-cover"
+			/>
+			<div
+				class="absolute inset-0"
+				style="
+					background: linear-gradient(
+						180deg,
+						rgba(10, 10, 12, 0.15) 0%,
+						rgba(10, 10, 12, 0.4) 50%,
+						rgba(10, 10, 12, 0.95) 100%
+					);
+				"
+			></div>
+			<div
+				class="absolute inset-0"
+				style="
+					background: linear-gradient(
+						90deg,
+						rgba(10, 10, 12, 0.5) 0%,
+						transparent 60%
+					);
+				"
+			></div>
+			} @else {
+			<div class="absolute inset-0 bg-surface"></div>
+			}
 
-				<div class="absolute top-4 right-6 lg:right-8 max-md:right-4 z-[2] flex gap-2">
-					<button
-						class="border border-white/40 w-14 h-14 rounded-full cursor-pointer inline-flex items-center justify-center transition backdrop-blur-md disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
-						[class.text-warning]="isFavorite()"
-						[class.text-white]="!isFavorite()"
-						[class.!border-warning]="isFavorite()"
-						style="background: rgba(0, 0, 0, 0.65); box-shadow: 0 6px 18px -4px rgba(0,0,0,0.6);"
-						[disabled]="togglingFavorite()"
-						(click)="toggleFavorite()"
-						[title]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
-						[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+			<div
+				class="absolute top-4 right-6 lg:right-8 max-md:right-4 z-[2] flex gap-2"
+			>
+				<button
+					class="border border-white/40 w-14 h-14 rounded-full cursor-pointer inline-flex items-center justify-center transition backdrop-blur-md disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
+					[class.text-warning]="isFavorite()"
+					[class.text-white]="!isFavorite()"
+					[class.!border-warning]="isFavorite()"
+					style="
+						background: rgba(0, 0, 0, 0.65);
+						box-shadow: 0 6px 18px -4px rgba(0, 0, 0, 0.6);
+					"
+					[disabled]="togglingFavorite()"
+					(click)="toggleFavorite()"
+					[title]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+					[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-[1.75rem] drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]"
+						>{{ isFavorite() ? 'star' : 'star_border' }}</span
 					>
-						<span aria-hidden="true" class="material-icons text-[1.75rem] drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">{{ isFavorite() ? 'star' : 'star_border' }}</span>
-					</button>
-				</div>
+				</button>
+			</div>
 
-				<div class="absolute inset-x-0 bottom-0 px-6 lg:px-8 max-md:px-4 pb-10 max-w-4xl">
-					<div class="flex flex-wrap items-center gap-1.5 mb-3">
-						@for (p of game()!.platforms; track p.id) {
-							<span class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/15 text-white backdrop-blur-sm">{{ p.abbreviation }}</span>
-						}
-						@for (g of game()!.genres.slice(0, 3); track g.id) {
-							<a
-								class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25"
-								[routerLink]="['/genres', g.code]"
-							>{{ g.name }}</a>
-						}
-						@if (game()!.isDlc) {
-							<span class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-warning/30 text-warning backdrop-blur-sm">DLC</span>
-						}
-					</div>
-					<h1 class="font-display m-0 text-4xl md:text-6xl font-bold text-white tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] line-clamp-2">{{ game()!.title }}</h1>
-					<div class="mt-3 flex items-center gap-4 flex-wrap">
-						@if (game()!.parentGame) {
-							<a class="text-sm text-warning no-underline transition hover:text-white" [routerLink]="['/games', game()!.parentGame!.code]">
-								DLC of {{ game()!.parentGame!.title }}
-							</a>
-						} @else if (game()!.releaseAt) {
-							<span class="text-sm text-white/75">Released {{ game()!.releaseAt }}</span>
-						}
-					</div>
+			<div
+				class="absolute inset-x-0 bottom-0 px-6 lg:px-8 max-md:px-4 pb-10 max-w-4xl"
+			>
+				<div class="flex flex-wrap items-center gap-1.5 mb-3">
+					@for (p of game()!.platforms; track p.id) {
+					<span
+						class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/15 text-white backdrop-blur-sm"
+						>{{ p.abbreviation }}</span
+					>
+					} @for (g of game()!.genres.slice(0, 3); track g.id) {
+					<a
+						class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25"
+						[routerLink]="['/genres', g.code]"
+						>{{ g.name }}</a
+					>
+					} @if (game()!.isDlc) {
+					<span
+						class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-warning/30 text-warning backdrop-blur-sm"
+						>DLC</span
+					>
+					}
+				</div>
+				<h1
+					class="font-display m-0 text-4xl md:text-6xl font-bold text-white tracking-tight drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] line-clamp-2"
+				>
+					{{ game()!.title }}
+				</h1>
+				<div class="mt-3 flex items-center gap-4 flex-wrap">
+					@if (game()!.parentGame) {
+					<a
+						class="text-sm text-warning no-underline transition hover:text-white"
+						[routerLink]="['/games', game()!.parentGame!.code]"
+					>
+						DLC of {{ game()!.parentGame!.title }}
+					</a>
+					} @else if (game()!.releaseAt) {
+					<span class="text-sm text-white/75"
+						>Released {{ game()!.releaseAt }}</span
+					>
+					}
 				</div>
 			</div>
 		</div>
+	</div>
 
-		@if (isModerator()) {
-			<div class="flex items-center gap-3 py-2.5 px-3.5 bg-danger/[0.05] border border-danger/[0.15] rounded mb-4 flex-wrap">
-				<span class="flex items-center gap-1.5 text-xs font-semibold text-danger uppercase tracking-wider mr-auto">
-					<span aria-hidden="true" class="material-icons text-base">admin_panel_settings</span>
-					{{ isAdmin() ? 'Admin' : 'Moderator' }}
-				</span>
-				<button uiButton variant="secondary" size="sm" (click)="updateAdminActions({ editor: !adminActions().editor })">
-					<span aria-hidden="true" class="material-icons text-sm">{{ adminActions().editor ? 'close' : 'edit' }}</span>
-					{{ adminActions().editor ? 'Close Editor' : 'Edit Game' }}
-				</button>
-				@if (isAdmin()) {
-					@if (!adminActions().confirmDeactivate && !adminActions().confirmDelete) {
-						<button uiButton variant="danger" size="sm" (click)="updateAdminActions({ confirmDeactivate: true })">
-							<span aria-hidden="true" class="material-icons text-sm">visibility_off</span>
-							Deactivate
-						</button>
-						<button uiButton variant="danger" size="sm" (click)="updateAdminActions({ confirmDelete: true })">
-							<span aria-hidden="true" class="material-icons text-sm">delete_forever</span>
-							Delete
-						</button>
-					} @else if (adminActions().confirmDeactivate) {
-						<span class="text-[0.8125rem] text-danger">Deactivate this game?</span>
-						<button uiButton variant="danger" size="sm" (click)="deactivateGame()" [disabled]="adminActions().deactivating">
-							{{ adminActions().deactivating ? 'Deactivating...' : 'Yes' }}
-						</button>
-						<button uiButton variant="ghost" size="sm" (click)="updateAdminActions({ confirmDeactivate: false })">Cancel</button>
-					} @else if (adminActions().confirmDelete) {
-						<span class="text-[0.8125rem] text-danger">Permanently delete this game?</span>
-						<button uiButton variant="danger" size="sm" (click)="deleteGame()" [disabled]="adminActions().deleting">
-							{{ adminActions().deleting ? 'Deleting...' : 'Yes, delete' }}
-						</button>
-						<button uiButton variant="ghost" size="sm" (click)="updateAdminActions({ confirmDelete: false })">Cancel</button>
-					}
-				}
-			</div>
-			@if (adminActions().editor) {
-				<app-admin-game-editor [game]="game()!" (saved)="onEditorSaved()" (split)="onEditorSplit($event)" />
-			}
-		}
+	@if (isModerator()) {
+	<div
+		class="flex items-center gap-3 py-2.5 px-3.5 bg-danger/[0.05] border border-danger/[0.15] rounded mb-4 flex-wrap"
+	>
+		<span
+			class="flex items-center gap-1.5 text-xs font-semibold text-danger uppercase tracking-wider mr-auto"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>admin_panel_settings</span
+			>
+			{{ isAdmin() ? 'Admin' : 'Moderator' }}
+		</span>
+		<button
+			uiButton
+			variant="secondary"
+			size="sm"
+			(click)="updateAdminActions({ editor: !adminActions().editor })"
+		>
+			<span aria-hidden="true" class="material-icons text-sm"
+				>{{ adminActions().editor ? 'close' : 'edit' }}</span
+			>
+			{{ adminActions().editor ? 'Close Editor' : 'Edit Game' }}
+		</button>
+		@if (isAdmin()) { @if (!adminActions().confirmDeactivate &&
+		!adminActions().confirmDelete) {
+		<button
+			uiButton
+			variant="danger"
+			size="sm"
+			(click)="updateAdminActions({ confirmDeactivate: true })"
+		>
+			<span aria-hidden="true" class="material-icons text-sm"
+				>visibility_off</span
+			>
+			Deactivate
+		</button>
+		<button
+			uiButton
+			variant="danger"
+			size="sm"
+			(click)="updateAdminActions({ confirmDelete: true })"
+		>
+			<span aria-hidden="true" class="material-icons text-sm"
+				>delete_forever</span
+			>
+			Delete
+		</button>
+		} @else if (adminActions().confirmDeactivate) {
+		<span class="text-[0.8125rem] text-danger">Deactivate this game?</span>
+		<button
+			uiButton
+			variant="danger"
+			size="sm"
+			(click)="deactivateGame()"
+			[disabled]="adminActions().deactivating"
+		>
+			{{ adminActions().deactivating ? 'Deactivating...' : 'Yes' }}
+		</button>
+		<button
+			uiButton
+			variant="ghost"
+			size="sm"
+			(click)="updateAdminActions({ confirmDeactivate: false })"
+		>
+			Cancel
+		</button>
+		} @else if (adminActions().confirmDelete) {
+		<span class="text-[0.8125rem] text-danger"
+			>Permanently delete this game?</span
+		>
+		<button
+			uiButton
+			variant="danger"
+			size="sm"
+			(click)="deleteGame()"
+			[disabled]="adminActions().deleting"
+		>
+			{{ adminActions().deleting ? 'Deleting...' : 'Yes, delete' }}
+		</button>
+		<button
+			uiButton
+			variant="ghost"
+			size="sm"
+			(click)="updateAdminActions({ confirmDelete: false })"
+		>
+			Cancel
+		</button>
+		} }
+	</div>
+	@if (adminActions().editor) {
+	<app-admin-game-editor
+		[game]="game()!"
+		(saved)="onEditorSaved()"
+		(split)="onEditorSplit($event)"
+	/>
+	} }
 
-		<div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 lg:gap-8">
-			<aside class="md:sticky md:top-6 md:self-start flex flex-col gap-4">
-				@let cs = canonicalScore;
-				@if (cs.type === 'completr') {
-					<div class="relative rounded-card p-5 border-2 border-brand overflow-hidden" style="background: linear-gradient(160deg, var(--color-brand-subtle), transparent 60%), var(--color-surface);">
-						<div class="flex items-center gap-2 mb-3">
-							<span class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-[0.6875rem] text-white" style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));">C</span>
-							<span class="text-[0.625rem] font-bold uppercase tracking-wider text-brand">Completr Score</span>
-						</div>
-
-						<div class="flex items-baseline gap-2 mb-1">
-							<span class="text-6xl font-bold text-brand leading-none">{{ cs.ratio }}</span>
-							<span class="text-xs uppercase tracking-wider text-fg-muted">Ratio</span>
-						</div>
-						<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">score relative to time invested by the community</p>
-
-						<div class="mt-4 pt-4 border-t border-line/60 flex flex-col gap-2.5">
-							<div class="flex items-center justify-between">
-								<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">Rating</span>
-								<div class="flex items-center gap-2">
-									<app-star-rating [value]="cs.score" [readonly]="true" size="sm" />
-									@if (canonicalRatingLabel) {
-										<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-warning">{{ canonicalRatingLabel }}</span>
-									}
-								</div>
-							</div>
-							<div class="flex items-center justify-between">
-								<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">Duration</span>
-								<span class="text-sm font-semibold text-fg">{{ cs.duration }}h <span class="text-[0.625rem] font-normal text-fg-muted">avg</span></span>
-							</div>
-						</div>
-					</div>
-				} @else if (cs.type === 'aggregate') {
-					<div class="relative rounded-card p-5 border-2 border-dashed border-info/60 overflow-hidden" style="background: linear-gradient(160deg, rgba(56, 189, 248, 0.08), transparent 60%), var(--color-surface);">
-						<div class="flex items-center gap-2 mb-3">
-							<span aria-hidden="true" class="material-icons text-info text-base">auto_awesome</span>
-							<span class="text-[0.625rem] font-bold uppercase tracking-wider text-info">Aggregate Score</span>
-						</div>
-
-						<div class="flex items-baseline gap-2 mb-1">
-							<span class="text-6xl font-bold text-info leading-none">{{ cs.ratio }}</span>
-							<span class="text-xs uppercase tracking-wider text-fg-muted">Ratio</span>
-						</div>
-						<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">Provisional — based on Metacritic + HowLongToBeat until Completr has community data</p>
-
-						<div class="mt-4 pt-4 border-t border-line/60 flex flex-col gap-2.5">
-							<div class="flex items-center justify-between">
-								<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">Metascore</span>
-								<span class="text-sm font-semibold" [class]="metascoreColorClass(cs.score)">{{ cs.score }}<span class="text-[0.625rem] font-normal text-fg-muted">/100</span></span>
-							</div>
-							<div class="flex items-center justify-between">
-								<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">HLTB Duration</span>
-								<span class="text-sm font-semibold text-fg">{{ cs.duration }}h</span>
-							</div>
-						</div>
-					</div>
-				} @else if (cs.type === 'rawg') {
-					<div class="relative rounded-card p-5 border-2 border-dashed border-fg-muted/60 overflow-hidden" style="background: linear-gradient(160deg, rgba(148, 163, 184, 0.08), transparent 60%), var(--color-surface);">
-						<div class="flex items-center gap-2 mb-3">
-							<span aria-hidden="true" class="material-icons text-fg-muted text-base">cloud_download</span>
-							<span class="text-[0.625rem] font-bold uppercase tracking-wider text-fg-muted">RAWG Score</span>
-						</div>
-
-						<div class="flex items-baseline gap-2 mb-1">
-							<span class="text-6xl font-bold text-fg-secondary leading-none">{{ cs.ratio }}</span>
-							<span class="text-xs uppercase tracking-wider text-fg-muted">Ratio</span>
-						</div>
-						<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">Fallback — RAWG community data while Metacritic/HLTB are missing</p>
-
-						<div class="mt-4 pt-4 border-t border-line/60 flex flex-col gap-2.5">
-							<div class="flex items-center justify-between">
-								<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">RAWG Rating</span>
-								<span class="text-sm font-semibold text-fg">{{ cs.score }}<span class="text-[0.625rem] font-normal text-fg-muted">/5</span></span>
-							</div>
-							<div class="flex items-center justify-between">
-								<span class="text-[0.6875rem] uppercase tracking-wider text-fg-muted">RAWG Playtime</span>
-								<span class="text-sm font-semibold text-fg">{{ cs.duration }}h</span>
-							</div>
-						</div>
-					</div>
-				} @else {
-					<div class="relative rounded-card p-5 border-2 border-dashed border-line overflow-hidden bg-surface">
-						<div class="flex items-center gap-2 mb-3">
-							<span class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-[0.6875rem] text-white" style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));">C</span>
-							<span class="text-[0.625rem] font-bold uppercase tracking-wider text-fg-muted">Completr Score</span>
-						</div>
-
-						<div class="flex items-baseline gap-2 mb-1">
-							<span class="text-3xl font-bold text-fg-muted leading-none">—</span>
-							<span class="text-xs uppercase tracking-wider text-fg-muted">No data</span>
-						</div>
-						<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">Be the first to review this game, or let us know.</p>
-						@if (reportModal().sent) {
-							<div class="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-success/10 border border-success/30 rounded text-xs font-medium text-success">
-								<span aria-hidden="true" class="material-icons text-sm">check_circle</span>
-								Thanks — reported
-							</div>
-						} @else {
-							<button
-								class="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-input-bg border border-line rounded text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-60"
-								[disabled]="reportModal().submitting"
-								(click)="reportMissingData()"
-							>
-								<span aria-hidden="true" class="material-icons text-sm">flag</span>
-								{{ reportModal().submitting ? "Reporting..." : "Report missing data" }}
-							</button>
-						}
-					</div>
-				}
-
-				<div class="bg-sidebar border border-line rounded-card p-4 flex flex-col gap-2">
-					<h3 class="font-display m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Your activity</h3>
-					<button
-						class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
-						[class.bg-brand-subtle]="isInBacklog()"
-						[class.border-brand]="isInBacklog()"
-						[class.text-brand]="isInBacklog()"
-						[class.cursor-default]="isInBacklog()"
-						[class.bg-input-bg]="!isInBacklog()"
-						[class.border-line]="!isInBacklog()"
-						[class.text-fg-secondary]="!isInBacklog()"
-						[class.hover:bg-brand-subtle]="!isInBacklog()"
-						[class.hover:border-brand]="!isInBacklog()"
-						[class.hover:text-brand]="!isInBacklog()"
-						(click)="openBacklogModal()"
+	<div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 lg:gap-8">
+		<aside class="md:sticky md:top-6 md:self-start flex flex-col gap-4">
+			@let cs = canonicalScore; @if (cs.type === 'completr') {
+			<div
+				class="relative rounded-card p-5 border-2 border-brand overflow-hidden"
+				style="
+					background:
+						linear-gradient(
+							160deg,
+							var(--color-brand-subtle),
+							transparent 60%
+						),
+						var(--color-surface);
+				"
+			>
+				<div class="flex items-center gap-2 mb-3">
+					<span
+						class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-[0.6875rem] text-white"
+						style="
+							background: linear-gradient(
+								135deg,
+								var(--color-brand),
+								var(--color-brand-deep)
+							);
+						"
+						>C</span
 					>
-						<span aria-hidden="true" class="material-icons text-lg">list_alt</span>
-						{{ isInBacklog() ? 'In Backlog' : 'Add to Backlog' }}
-					</button>
-
-					<button
-						class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
-						[class.bg-brand-subtle]="addedToQueue()"
-						[class.border-brand]="addedToQueue()"
-						[class.text-brand]="addedToQueue()"
-						[class.cursor-default]="addedToQueue()"
-						[class.bg-input-bg]="!addedToQueue()"
-						[class.border-line]="!addedToQueue()"
-						[class.text-fg-secondary]="!addedToQueue()"
-						[class.hover:bg-brand-subtle]="!addedToQueue()"
-						[class.hover:border-brand]="!addedToQueue()"
-						[class.hover:text-brand]="!addedToQueue()"
-						(click)="addToQueue()"
+					<span
+						class="text-[0.625rem] font-bold uppercase tracking-wider text-brand"
+						>Completr Score</span
 					>
-						<span aria-hidden="true" class="material-icons text-lg">{{ addedToQueue() ? 'playlist_add_check' : 'playlist_play' }}</span>
-						{{ addedToQueue() ? 'In Queue' : 'Add to Queue' }}
-					</button>
-
-					<button
-						class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
-						[class.bg-brand-subtle]="isInWishlist()"
-						[class.border-brand]="isInWishlist()"
-						[class.text-brand]="isInWishlist()"
-						[class.bg-input-bg]="!isInWishlist()"
-						[class.border-line]="!isInWishlist()"
-						[class.text-fg-secondary]="!isInWishlist()"
-						[class.hover:bg-brand-subtle]="!isInWishlist()"
-						[class.hover:border-brand]="!isInWishlist()"
-						[class.hover:text-brand]="!isInWishlist()"
-						[disabled]="togglingWishlist()"
-						(click)="toggleWishlist()"
-					>
-						<span aria-hidden="true" class="material-icons text-lg">{{ isInWishlist() ? 'favorite' : 'favorite_border' }}</span>
-						{{ isInWishlist() ? 'In Wishlist' : 'Add to Wishlist' }}
-					</button>
-
-					<button
-						class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
-						[class.bg-brand-subtle]="isInShelf()"
-						[class.border-brand]="isInShelf()"
-						[class.text-brand]="isInShelf()"
-						[class.cursor-default]="isInShelf()"
-						[class.bg-input-bg]="!isInShelf()"
-						[class.border-line]="!isInShelf()"
-						[class.text-fg-secondary]="!isInShelf()"
-						[class.hover:bg-brand-subtle]="!isInShelf()"
-						[class.hover:border-brand]="!isInShelf()"
-						[class.hover:text-brand]="!isInShelf()"
-						(click)="openShelfModal()"
-					>
-						<span aria-hidden="true" class="material-icons text-lg">shelves</span>
-						{{ isInShelf() ? 'In Shelf' : 'Add to Shelf' }}
-					</button>
-
-					<button
-						class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
-						[class.bg-brand-subtle]="myListsInGame().length > 0"
-						[class.border-brand]="myListsInGame().length > 0"
-						[class.text-brand]="myListsInGame().length > 0"
-						[class.bg-input-bg]="myListsInGame().length === 0"
-						[class.border-line]="myListsInGame().length === 0"
-						[class.text-fg-secondary]="myListsInGame().length === 0"
-						[class.hover:bg-brand-subtle]="myListsInGame().length === 0"
-						[class.hover:border-brand]="myListsInGame().length === 0"
-						[class.hover:text-brand]="myListsInGame().length === 0"
-						(click)="openAddToListModal()"
-					>
-						<span aria-hidden="true" class="material-icons text-lg">format_list_bulleted_add</span>
-						@if (myListsInGame().length > 0) {
-							In {{ myListsInGame().length }} {{ myListsInGame().length === 1 ? 'list' : 'lists' }}
-						} @else {
-							Add to List
-						}
-					</button>
 				</div>
 
-@if (myListsInGame().length > 0) {
-					<div class="bg-surface border border-line rounded-card p-4 flex flex-col gap-2">
-						<h3 class="font-display m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-fg-secondary">In your lists</h3>
-						@for (list of myListsInGame(); track list.id) {
-							<a
-								class="flex items-center justify-between gap-2 py-1.5 px-2 -mx-2 rounded text-sm text-fg no-underline transition hover:bg-input-bg hover:text-brand"
-								[routerLink]="['/lists', list.id]"
-							>
-								<span class="flex items-center gap-1.5 min-w-0">
-									<span aria-hidden="true" class="material-icons text-sm text-brand shrink-0">check_circle</span>
-									<span class="truncate">{{ list.name }}</span>
-								</span>
-								@if (!list.isPublic) {
-									<span aria-hidden="true" class="material-icons text-sm text-fg-muted shrink-0" title="Private">lock</span>
-								}
-							</a>
-						}
-					</div>
-				}
-
-				<div class="flex gap-2 flex-wrap">
-					@for (link of game()!.externalLinks; track link.source) {
-						@if (link.source === 'rawg') {
-							<a class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium no-underline transition hover:border-brand hover:text-brand"
-								[href]="'https://rawg.io/games/' + link.externalId" target="_blank" rel="noopener">
-								<span aria-hidden="true" class="material-icons text-sm">open_in_new</span>
-								RAWG
-							</a>
-						} @else if (link.source === 'steam') {
-							<a class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium no-underline transition hover:border-brand hover:text-brand"
-								[href]="'https://store.steampowered.com/app/' + link.externalId" target="_blank" rel="noopener">
-								<span aria-hidden="true" class="material-icons text-sm">open_in_new</span>
-								Steam
-							</a>
-						} @else if (link.source === 'metacritic') {
-							<a class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium no-underline transition hover:border-brand hover:text-brand"
-								[href]="'https://www.metacritic.com/game/' + link.externalId" target="_blank" rel="noopener">
-								<span aria-hidden="true" class="material-icons text-sm">open_in_new</span>
-								Metacritic
-							</a>
-						}
-					}
-					@if (!reportModal().sent) {
-						<button class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand" (click)="openReportModal()">
-							<span aria-hidden="true" class="material-icons text-sm">flag</span>
-							Report
-						</button>
-					} @else {
-						<span class="flex items-center gap-1.5 text-xs text-success">
-							<span aria-hidden="true" class="material-icons text-sm">check</span>
-							Reported
-						</span>
-					}
+				<div class="flex items-baseline gap-2 mb-1">
+					<span class="text-6xl font-bold text-brand leading-none"
+						>{{ cs.ratio }}</span
+					>
+					<span class="text-xs uppercase tracking-wider text-fg-muted"
+						>Ratio</span
+					>
 				</div>
-			</aside>
+				<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">
+					score relative to time invested by the community
+				</p>
 
-			<div class="min-w-0">
-				<ui-tabs [(value)]="activeTab">
-					<ui-tab-list class="!mb-6 !overflow-x-auto !overflow-y-hidden !flex-nowrap">
-						<button uiTab value="overview" class="!whitespace-nowrap">
-							<span aria-hidden="true" class="material-icons text-base mr-1.5 align-middle">info</span>
-							Overview
-						</button>
-						<button uiTab value="reviews" class="!whitespace-nowrap">
-							<span aria-hidden="true" class="material-icons text-base mr-1.5 align-middle">rate_review</span>
-							Reviews
-							<span class="ml-1 text-xs text-fg-muted">{{ reviewsTab.reviewsCount() }}</span>
-						</button>
-						@if (featuredLists().length > 0) {
-							<button uiTab value="lists" class="!whitespace-nowrap">
-								<span aria-hidden="true" class="material-icons text-base mr-1.5 align-middle">format_list_bulleted</span>
-								Lists
-								<span class="ml-1 text-xs text-fg-muted">{{ featuredLists().length }}</span>
-							</button>
-						}
-						@if (game()!.dlcs.length > 0) {
-							<button uiTab value="dlcs" class="!whitespace-nowrap">
-								<span aria-hidden="true" class="material-icons text-base mr-1.5 align-middle">extension</span>
-								DLCs
-								<span class="ml-1 text-xs text-fg-muted">{{ game()!.dlcs.length }}</span>
-							</button>
-						}
-						@if (game()!.isCompilation && (game()!.compilationItems?.length ?? 0) > 0) {
-							<button uiTab value="compilation" class="!whitespace-nowrap">
-								<span aria-hidden="true" class="material-icons text-base mr-1.5 align-middle">library_books</span>
-								Compilation
-								<span class="ml-1 text-xs text-fg-muted">{{ game()!.compilationItems!.length }}</span>
-							</button>
-						}
-						@if (similarGames().length > 0) {
-							<button uiTab value="similar" class="!whitespace-nowrap">
-								<span aria-hidden="true" class="material-icons text-base mr-1.5 align-middle">apps</span>
-								Similar
-							</button>
-						}
-					</ui-tab-list>
-
-					<div uiTabPanel value="overview">
-						@if ((game()!.partOfCompilations?.length ?? 0) > 0) {
-							<div class="mb-6">
-								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Part of</h3>
-								<div class="flex flex-wrap gap-2">
-									@for (link of game()!.partOfCompilations!; track link.id) {
-										<a class="flex items-center gap-2 py-1.5 px-3 bg-surface border border-line rounded-full text-sm text-fg no-underline transition hover:border-brand hover:text-brand" [routerLink]="['/games', link.parentGame.code]">
-											<span aria-hidden="true" class="material-icons text-base">library_books</span>
-											{{ link.parentGame.title }}
-										</a>
-									}
-								</div>
-							</div>
-						}
-
-						@if (game()!.description) {
-							<div class="mb-6">
-								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Description</h3>
-								<p class="text-fg-secondary text-sm leading-relaxed whitespace-pre-line m-0">{{ game()!.description }}</p>
-							</div>
-						}
-
-						<div class="mb-6">
-							<div class="flex items-center justify-between mb-2.5">
-								<h3 class="font-display m-0 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Your tags</h3>
-								<div class="flex items-center gap-3">
-									@if (!editingMoodTags()) {
-										<button type="button" class="bg-transparent border-0 text-[0.6875rem] text-brand cursor-pointer hover:underline" (click)="startEditMoodTags()">
-											{{ moodTags().length > 0 ? 'Edit' : 'Add tags' }}
-										</button>
-									}
-									<a routerLink="/tags" class="text-[0.6875rem] text-brand no-underline hover:underline">Manage →</a>
-								</div>
-							</div>
-							@if (editingMoodTags()) {
-								<app-mood-tags-input
-									[tags]="moodTagsDraft()"
-									[suggestions]="moodTagsSuggestions()"
-									placeholder="e.g. relajante, podcast game…"
-									(tagsChange)="updateMoodTagsDraft($event)"
-								/>
-								<div class="flex justify-end gap-1.5 mt-2">
-									<button uiButton variant="ghost" size="sm" (click)="cancelEditMoodTags()" [disabled]="savingMoodTags()">Cancel</button>
-									<button uiButton variant="primary" size="sm" (click)="commitMoodTags()" [disabled]="savingMoodTags()">
-										{{ savingMoodTags() ? 'Saving…' : 'Save' }}
-									</button>
-								</div>
-							} @else if (moodTags().length > 0) {
-								<div class="flex flex-wrap gap-1.5">
-									@for (tag of moodTags(); track tag) {
-										<span class="inline-block px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-xs font-medium">{{ tag }}</span>
-									}
-								</div>
-							} @else {
-								<p class="m-0 text-xs text-fg-muted italic">No tags yet — click "Add tags" to label this game.</p>
+				<div
+					class="mt-4 pt-4 border-t border-line/60 flex flex-col gap-2.5"
+				>
+					<div class="flex items-center justify-between">
+						<span
+							class="text-[0.6875rem] uppercase tracking-wider text-fg-muted"
+							>Rating</span
+						>
+						<div class="flex items-center gap-2">
+							<app-star-rating
+								[value]="cs.score"
+								[readonly]="true"
+								size="sm"
+							/>
+							@if (canonicalRatingLabel) {
+							<span
+								class="text-[0.625rem] font-semibold uppercase tracking-wider text-warning"
+								>{{ canonicalRatingLabel }}</span
+							>
 							}
 						</div>
-
-						@if (otherScores().length > 0) {
-							<div class="mb-6">
-								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">External Scores</h3>
-								<div class="flex flex-wrap gap-2">
-									@for (s of otherScores(); track s.source) {
-										<div class="bg-surface border border-line rounded p-3 px-4 flex flex-col gap-1 min-w-[110px]">
-											<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">{{ s.source }}</span>
-											<span class="text-lg font-bold text-fg">{{ s.score }}<span class="text-xs font-normal text-fg-muted ml-1">{{ getScaleLabel(s.source) }}</span></span>
-										</div>
-									}
-								</div>
-							</div>
-						}
-
-						@if (otherTimes().length > 0) {
-							<div class="mb-6">
-								<h3 class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary">Durations by Source</h3>
-								<div class="flex flex-wrap gap-2">
-									@for (t of otherTimes(); track t.source) {
-										<div class="bg-surface border border-line rounded p-3 px-4 flex flex-col gap-1 min-w-[110px]">
-											<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted">{{ t.source }}</span>
-											<span class="text-lg font-bold text-fg">{{ t.duration }}h</span>
-										</div>
-									}
-								</div>
-							</div>
-						}
-
-						<app-game-social-activity #social [gameId]="game()!.id" />
-
-						@if (!game()!.description && otherScores().length === 0 && otherTimes().length === 0 && !social.hasContent()) {
-							<p class="text-center py-12 text-fg-muted text-sm">No additional info available.</p>
-						}
 					</div>
-
-					<div uiTabPanel value="reviews">
-						<app-game-reviews-tab #reviewsTab [gameId]="game()!.id" />
+					<div class="flex items-center justify-between">
+						<span
+							class="text-[0.6875rem] uppercase tracking-wider text-fg-muted"
+							>Duration</span
+						>
+						<span class="text-sm font-semibold text-fg"
+							>{{ cs.duration }}h
+							<span
+								class="text-[0.625rem] font-normal text-fg-muted"
+								>avg</span
+							></span
+						>
 					</div>
-
-					@if (featuredLists().length > 0) {
-						<div uiTabPanel value="lists">
-							<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-								@for (list of featuredLists(); track list.id) {
-									<a
-										class="flex flex-col gap-1 py-2.5 px-3.5 bg-surface border rounded no-underline transition-colors hover:border-brand"
-										[class.border-brand]="list.isOfficial"
-										[class.border-line]="!list.isOfficial"
-										[style.background]="list.isOfficial ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.06), transparent)' : ''"
-										[routerLink]="['/lists', list.id]"
-									>
-										@if (list.isOfficial) {
-											<span class="inline-flex items-center gap-1 text-[0.625rem] font-bold uppercase tracking-wider text-brand">
-												<span aria-hidden="true" class="material-icons text-sm">verified</span>
-												Official
-											</span>
-										}
-										<span class="flex items-center gap-1.5 text-[0.875rem] font-semibold text-fg overflow-hidden text-ellipsis whitespace-nowrap">
-											{{ list.name }}
-											@if (list.completed) {
-												<span class="text-sm text-warning material-icons">emoji_events</span>
-											}
-										</span>
-										@if (list.description) {
-											<span class="text-[0.6875rem] text-fg-muted overflow-hidden text-ellipsis whitespace-nowrap">{{ list.description }}</span>
-										}
-										@if (list.owner) {
-											<span class="text-[0.625rem] text-fg-muted">by &#64;{{ list.owner.username }}</span>
-										}
-									</a>
-								}
-							</div>
-						</div>
-					}
-
-					@if (game()!.dlcs.length > 0) {
-						<div uiTabPanel value="dlcs">
-							<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-								@for (dlc of game()!.dlcs; track dlc.id) {
-									<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', dlc.code]">
-										@if (dlc.backgroundUrl) {
-											<img [src]="dlc.backgroundUrl" [alt]="dlc.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" loading="lazy" />
-										} @else {
-											<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-										}
-										<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ dlc.title }}</span>
-									</a>
-								}
-							</div>
-						</div>
-					}
-
-					@if (game()!.isCompilation && (game()!.compilationItems?.length ?? 0) > 0) {
-						<div uiTabPanel value="compilation">
-							<p class="text-fg-secondary text-sm mb-4">This is a compilation that bundles the following games. Add the one you're playing to your backlog.</p>
-							<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-								@for (item of game()!.compilationItems!; track item.id) {
-									@if (item.game) {
-										<a class="flex flex-col gap-1 no-underline text-inherit group" [routerLink]="['/games', item.game.code]">
-											@if (item.game.backgroundUrl) {
-												<img [src]="item.game.backgroundUrl" [alt]="item.game.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" loading="lazy" />
-											} @else {
-												<div class="w-full aspect-[3/4] bg-surface rounded-lg flex items-center justify-center text-fg-muted">
-													<span aria-hidden="true" class="material-icons">videogame_asset</span>
-												</div>
-											}
-											<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ item.game.title }}</span>
-										</a>
-									}
-								}
-							</div>
-						</div>
-					}
-
-					@if (similarGames().length > 0) {
-						<div uiTabPanel value="similar">
-							<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-								@for (g of similarGames(); track g.id) {
-									<a class="flex flex-col gap-2 cursor-pointer no-underline text-inherit group" [routerLink]="['/games', g.code]">
-										@if (g.backgroundUrl) {
-											<img [src]="g.backgroundUrl" [alt]="g.title" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50" loading="lazy" />
-										} @else {
-											<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-										}
-										<span class="text-sm font-medium text-fg line-clamp-2 leading-snug">{{ g.title }}</span>
-									</a>
-								}
-							</div>
-						</div>
-					}
-				</ui-tabs>
+				</div>
 			</div>
-		</div>
-	</div>
-}
+			} @else if (cs.type === 'aggregate') {
+			<div
+				class="relative rounded-card p-5 border-2 border-dashed border-info/60 overflow-hidden"
+				style="
+					background:
+						linear-gradient(
+							160deg,
+							rgba(56, 189, 248, 0.08),
+							transparent 60%
+						),
+						var(--color-surface);
+				"
+			>
+				<div class="flex items-center gap-2 mb-3">
+					<span
+						aria-hidden="true"
+						class="material-icons text-info text-base"
+						>auto_awesome</span
+					>
+					<span
+						class="text-[0.625rem] font-bold uppercase tracking-wider text-info"
+						>Aggregate Score</span
+					>
+				</div>
 
-@if (backlogModal().show) {
-	<app-backlog-modal
-		[preselectedGame]="backlogModal().game"
-		[preselectedCompilationParent]="backlogModal().compilationParent"
-		[preselectAddToQueue]="backlogModal().preselectQueue"
-		(closed)="onModalClosed()"
-		(saved)="onModalSaved()"
-	/>
-}
-@if (showShelfModal()) {
-	<app-game-shelf-modal [preselectedGame]="game()" (closed)="onModalClosed()" (saved)="onModalSaved()" />
-}
-@if (showWishlistPlatformModal()) {
-	<app-wishlist-platform-modal
-		[gameId]="game()!.id"
-		[gameTitle]="game()!.title"
-		[platforms]="game()!.platforms"
-		(closed)="onWishlistPlatformModalClosed()"
-		(saved)="onWishlistPlatformModalSaved()"
-	/>
-}
-@if (showAddToListModal()) {
-	<app-game-add-to-list-modal
-		[gameId]="game()!.id"
-		[gameTitle]="game()!.title"
-		[myLists]="myLists()"
-		(closed)="closeAddToListModal()"
-		(listsChanged)="onAddToListListsChanged($event)"
-	/>
-}
-@if (reportModal().show) {
-	<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]" (click)="closeReportModal()">
-		<div class="bg-sidebar border border-line rounded-card p-6 w-[90%] max-w-[480px]" (click)="$event.stopPropagation()">
-			<h3 class="font-display m-0 mb-4 text-base font-semibold">Report issue with {{ game()!.title }}</h3>
-			<textarea
-				uiTextarea
-				class="!w-full !resize-y"
-				placeholder="Describe the issue (min 10 characters)..."
-				[value]="reportModal().message"
-				(input)="setReportMessage($any($event.target).value)"
-				rows="4"
-			></textarea>
-			@if (reportModal().error) {
-				<div class="mt-2 py-1.5 px-3 bg-danger/10 border border-danger/20 rounded text-danger text-xs">{{ reportModal().error }}</div>
-			}
-			<div class="flex justify-end gap-2 mt-4">
-				<button uiButton variant="ghost" size="sm" (click)="closeReportModal()">Cancel</button>
-				<button uiButton variant="primary" size="sm"
-					[disabled]="reportModal().message.length < 10 || reportModal().submitting"
-					(click)="submitReport()"
+				<div class="flex items-baseline gap-2 mb-1">
+					<span class="text-6xl font-bold text-info leading-none"
+						>{{ cs.ratio }}</span
+					>
+					<span class="text-xs uppercase tracking-wider text-fg-muted"
+						>Ratio</span
+					>
+				</div>
+				<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">
+					Provisional — based on Metacritic + HowLongToBeat until
+					Completr has community data
+				</p>
+
+				<div
+					class="mt-4 pt-4 border-t border-line/60 flex flex-col gap-2.5"
 				>
-					{{ reportModal().submitting ? "Sending..." : "Send Report" }}
+					<div class="flex items-center justify-between">
+						<span
+							class="text-[0.6875rem] uppercase tracking-wider text-fg-muted"
+							>Metascore</span
+						>
+						<span
+							class="text-sm font-semibold"
+							[class]="metascoreColorClass(cs.score)"
+							>{{ cs.score }}<span
+								class="text-[0.625rem] font-normal text-fg-muted"
+								>/100</span
+							></span
+						>
+					</div>
+					<div class="flex items-center justify-between">
+						<span
+							class="text-[0.6875rem] uppercase tracking-wider text-fg-muted"
+							>HLTB Duration</span
+						>
+						<span class="text-sm font-semibold text-fg"
+							>{{ cs.duration }}h</span
+						>
+					</div>
+				</div>
+			</div>
+			} @else if (cs.type === 'rawg') {
+			<div
+				class="relative rounded-card p-5 border-2 border-dashed border-fg-muted/60 overflow-hidden"
+				style="
+					background:
+						linear-gradient(
+							160deg,
+							rgba(148, 163, 184, 0.08),
+							transparent 60%
+						),
+						var(--color-surface);
+				"
+			>
+				<div class="flex items-center gap-2 mb-3">
+					<span
+						aria-hidden="true"
+						class="material-icons text-fg-muted text-base"
+						>cloud_download</span
+					>
+					<span
+						class="text-[0.625rem] font-bold uppercase tracking-wider text-fg-muted"
+						>RAWG Score</span
+					>
+				</div>
+
+				<div class="flex items-baseline gap-2 mb-1">
+					<span
+						class="text-6xl font-bold text-fg-secondary leading-none"
+						>{{ cs.ratio }}</span
+					>
+					<span class="text-xs uppercase tracking-wider text-fg-muted"
+						>Ratio</span
+					>
+				</div>
+				<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">
+					Fallback — RAWG community data while Metacritic/HLTB are
+					missing
+				</p>
+
+				<div
+					class="mt-4 pt-4 border-t border-line/60 flex flex-col gap-2.5"
+				>
+					<div class="flex items-center justify-between">
+						<span
+							class="text-[0.6875rem] uppercase tracking-wider text-fg-muted"
+							>RAWG Rating</span
+						>
+						<span class="text-sm font-semibold text-fg"
+							>{{ cs.score }}<span
+								class="text-[0.625rem] font-normal text-fg-muted"
+								>/5</span
+							></span
+						>
+					</div>
+					<div class="flex items-center justify-between">
+						<span
+							class="text-[0.6875rem] uppercase tracking-wider text-fg-muted"
+							>RAWG Playtime</span
+						>
+						<span class="text-sm font-semibold text-fg"
+							>{{ cs.duration }}h</span
+						>
+					</div>
+				</div>
+			</div>
+			} @else {
+			<div
+				class="relative rounded-card p-5 border-2 border-dashed border-line overflow-hidden bg-surface"
+			>
+				<div class="flex items-center gap-2 mb-3">
+					<span
+						class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-[0.6875rem] text-white"
+						style="
+							background: linear-gradient(
+								135deg,
+								var(--color-brand),
+								var(--color-brand-deep)
+							);
+						"
+						>C</span
+					>
+					<span
+						class="text-[0.625rem] font-bold uppercase tracking-wider text-fg-muted"
+						>Completr Score</span
+					>
+				</div>
+
+				<div class="flex items-baseline gap-2 mb-1">
+					<span class="text-3xl font-bold text-fg-muted leading-none"
+						>—</span
+					>
+					<span class="text-xs uppercase tracking-wider text-fg-muted"
+						>No data</span
+					>
+				</div>
+				<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted leading-snug">
+					Be the first to review this game, or let us know.
+				</p>
+				@if (reportModal().sent) {
+				<div
+					class="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-success/10 border border-success/30 rounded text-xs font-medium text-success"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>check_circle</span
+					>
+					Thanks — reported
+				</div>
+				} @else {
+				<button
+					class="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-input-bg border border-line rounded text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-60"
+					[disabled]="reportModal().submitting"
+					(click)="reportMissingData()"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>flag</span
+					>
+					{{ reportModal().submitting ? "Reporting..." : "Report
+					missing data" }}
+				</button>
+				}
+			</div>
+			}
+
+			<div
+				class="bg-sidebar border border-line rounded-card p-4 flex flex-col gap-2"
+			>
+				<h3
+					class="font-display m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-fg-secondary"
+				>
+					Your activity
+				</h3>
+				<button
+					class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
+					[class.bg-brand-subtle]="isInBacklog()"
+					[class.border-brand]="isInBacklog()"
+					[class.text-brand]="isInBacklog()"
+					[class.cursor-default]="isInBacklog()"
+					[class.bg-input-bg]="!isInBacklog()"
+					[class.border-line]="!isInBacklog()"
+					[class.text-fg-secondary]="!isInBacklog()"
+					[class.hover:bg-brand-subtle]="!isInBacklog()"
+					[class.hover:border-brand]="!isInBacklog()"
+					[class.hover:text-brand]="!isInBacklog()"
+					(click)="openBacklogModal()"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>list_alt</span
+					>
+					{{ isInBacklog() ? 'In Backlog' : 'Add to Backlog' }}
+				</button>
+
+				<button
+					class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
+					[class.bg-brand-subtle]="addedToQueue()"
+					[class.border-brand]="addedToQueue()"
+					[class.text-brand]="addedToQueue()"
+					[class.cursor-default]="addedToQueue()"
+					[class.bg-input-bg]="!addedToQueue()"
+					[class.border-line]="!addedToQueue()"
+					[class.text-fg-secondary]="!addedToQueue()"
+					[class.hover:bg-brand-subtle]="!addedToQueue()"
+					[class.hover:border-brand]="!addedToQueue()"
+					[class.hover:text-brand]="!addedToQueue()"
+					(click)="addToQueue()"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>{{ addedToQueue() ? 'playlist_add_check' :
+						'playlist_play' }}</span
+					>
+					{{ addedToQueue() ? 'In Queue' : 'Add to Queue' }}
+				</button>
+
+				<button
+					class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
+					[class.bg-brand-subtle]="isInWishlist()"
+					[class.border-brand]="isInWishlist()"
+					[class.text-brand]="isInWishlist()"
+					[class.bg-input-bg]="!isInWishlist()"
+					[class.border-line]="!isInWishlist()"
+					[class.text-fg-secondary]="!isInWishlist()"
+					[class.hover:bg-brand-subtle]="!isInWishlist()"
+					[class.hover:border-brand]="!isInWishlist()"
+					[class.hover:text-brand]="!isInWishlist()"
+					[disabled]="togglingWishlist()"
+					(click)="toggleWishlist()"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>{{ isInWishlist() ? 'favorite' : 'favorite_border'
+						}}</span
+					>
+					{{ isInWishlist() ? 'In Wishlist' : 'Add to Wishlist' }}
+				</button>
+
+				<button
+					class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
+					[class.bg-brand-subtle]="isInShelf()"
+					[class.border-brand]="isInShelf()"
+					[class.text-brand]="isInShelf()"
+					[class.cursor-default]="isInShelf()"
+					[class.bg-input-bg]="!isInShelf()"
+					[class.border-line]="!isInShelf()"
+					[class.text-fg-secondary]="!isInShelf()"
+					[class.hover:bg-brand-subtle]="!isInShelf()"
+					[class.hover:border-brand]="!isInShelf()"
+					[class.hover:text-brand]="!isInShelf()"
+					(click)="openShelfModal()"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>shelves</span
+					>
+					{{ isInShelf() ? 'In Shelf' : 'Add to Shelf' }}
+				</button>
+
+				<button
+					class="flex items-center justify-center gap-2 py-2.5 px-3 border rounded text-sm font-medium cursor-pointer transition whitespace-nowrap"
+					[class.bg-brand-subtle]="myListsInGame().length > 0"
+					[class.border-brand]="myListsInGame().length > 0"
+					[class.text-brand]="myListsInGame().length > 0"
+					[class.bg-input-bg]="myListsInGame().length === 0"
+					[class.border-line]="myListsInGame().length === 0"
+					[class.text-fg-secondary]="myListsInGame().length === 0"
+					[class.hover:bg-brand-subtle]="myListsInGame().length === 0"
+					[class.hover:border-brand]="myListsInGame().length === 0"
+					[class.hover:text-brand]="myListsInGame().length === 0"
+					(click)="openAddToListModal()"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>format_list_bulleted_add</span
+					>
+					@if (myListsInGame().length > 0) { In {{
+					myListsInGame().length }} {{ myListsInGame().length === 1 ?
+					'list' : 'lists' }} } @else { Add to List }
 				</button>
 			</div>
+
+			@if (myListsInGame().length > 0) {
+			<div
+				class="bg-surface border border-line rounded-card p-4 flex flex-col gap-2"
+			>
+				<h3
+					class="font-display m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-fg-secondary"
+				>
+					In your lists
+				</h3>
+				@for (list of myListsInGame(); track list.id) {
+				<a
+					class="flex items-center justify-between gap-2 py-1.5 px-2 -mx-2 rounded text-sm text-fg no-underline transition hover:bg-input-bg hover:text-brand"
+					[routerLink]="['/lists', list.id]"
+				>
+					<span class="flex items-center gap-1.5 min-w-0">
+						<span
+							aria-hidden="true"
+							class="material-icons text-sm text-brand shrink-0"
+							>check_circle</span
+						>
+						<span class="truncate">{{ list.name }}</span>
+					</span>
+					@if (!list.isPublic) {
+					<span
+						aria-hidden="true"
+						class="material-icons text-sm text-fg-muted shrink-0"
+						title="Private"
+						>lock</span
+					>
+					}
+				</a>
+				}
+			</div>
+			}
+
+			<div class="flex gap-2 flex-wrap">
+				@for (link of game()!.externalLinks; track link.source) { @if
+				(link.source === 'rawg') {
+				<a
+					class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium no-underline transition hover:border-brand hover:text-brand"
+					[href]="'https://rawg.io/games/' + link.externalId"
+					target="_blank"
+					rel="noopener"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>open_in_new</span
+					>
+					RAWG
+				</a>
+				} @else if (link.source === 'steam') {
+				<a
+					class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium no-underline transition hover:border-brand hover:text-brand"
+					[href]="'https://store.steampowered.com/app/' + link.externalId"
+					target="_blank"
+					rel="noopener"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>open_in_new</span
+					>
+					Steam
+				</a>
+				} @else if (link.source === 'metacritic') {
+				<a
+					class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium no-underline transition hover:border-brand hover:text-brand"
+					[href]="'https://www.metacritic.com/game/' + link.externalId"
+					target="_blank"
+					rel="noopener"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>open_in_new</span
+					>
+					Metacritic
+				</a>
+				} } @if (!reportModal().sent) {
+				<button
+					class="flex items-center gap-1.5 py-1.5 px-3 bg-surface border border-line rounded text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
+					(click)="openReportModal()"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>flag</span
+					>
+					Report
+				</button>
+				} @else {
+				<span class="flex items-center gap-1.5 text-xs text-success">
+					<span aria-hidden="true" class="material-icons text-sm"
+						>check</span
+					>
+					Reported
+				</span>
+				}
+			</div>
+		</aside>
+
+		<div class="min-w-0">
+			<ui-tabs [(value)]="activeTab">
+				<ui-tab-list
+					class="!mb-6 !overflow-x-auto !overflow-y-hidden !flex-nowrap"
+				>
+					<button uiTab value="overview" class="!whitespace-nowrap">
+						<span
+							aria-hidden="true"
+							class="material-icons text-base mr-1.5 align-middle"
+							>info</span
+						>
+						Overview
+					</button>
+					<button uiTab value="reviews" class="!whitespace-nowrap">
+						<span
+							aria-hidden="true"
+							class="material-icons text-base mr-1.5 align-middle"
+							>rate_review</span
+						>
+						Reviews
+						<span class="ml-1 text-xs text-fg-muted"
+							>{{ reviewsTab.reviewsCount() }}</span
+						>
+					</button>
+					@if (featuredLists().length > 0) {
+					<button uiTab value="lists" class="!whitespace-nowrap">
+						<span
+							aria-hidden="true"
+							class="material-icons text-base mr-1.5 align-middle"
+							>format_list_bulleted</span
+						>
+						Lists
+						<span class="ml-1 text-xs text-fg-muted"
+							>{{ featuredLists().length }}</span
+						>
+					</button>
+					} @if (game()!.dlcs.length > 0) {
+					<button uiTab value="dlcs" class="!whitespace-nowrap">
+						<span
+							aria-hidden="true"
+							class="material-icons text-base mr-1.5 align-middle"
+							>extension</span
+						>
+						DLCs
+						<span class="ml-1 text-xs text-fg-muted"
+							>{{ game()!.dlcs.length }}</span
+						>
+					</button>
+					} @if (game()!.isCompilation &&
+					(game()!.compilationItems?.length ?? 0) > 0) {
+					<button
+						uiTab
+						value="compilation"
+						class="!whitespace-nowrap"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base mr-1.5 align-middle"
+							>library_books</span
+						>
+						Compilation
+						<span class="ml-1 text-xs text-fg-muted"
+							>{{ game()!.compilationItems!.length }}</span
+						>
+					</button>
+					} @if (similarGames().length > 0) {
+					<button uiTab value="similar" class="!whitespace-nowrap">
+						<span
+							aria-hidden="true"
+							class="material-icons text-base mr-1.5 align-middle"
+							>apps</span
+						>
+						Similar
+					</button>
+					}
+				</ui-tab-list>
+
+				<div uiTabPanel value="overview">
+					@if ((game()!.partOfCompilations?.length ?? 0) > 0) {
+					<div class="mb-6">
+						<h3
+							class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary"
+						>
+							Part of
+						</h3>
+						<div class="flex flex-wrap gap-2">
+							@for (link of game()!.partOfCompilations!; track
+							link.id) {
+							<a
+								class="flex items-center gap-2 py-1.5 px-3 bg-surface border border-line rounded-full text-sm text-fg no-underline transition hover:border-brand hover:text-brand"
+								[routerLink]="['/games', link.parentGame.code]"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-base"
+									>library_books</span
+								>
+								{{ link.parentGame.title }}
+							</a>
+							}
+						</div>
+					</div>
+					} @if (game()!.description) {
+					<div class="mb-6">
+						<h3
+							class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary"
+						>
+							Description
+						</h3>
+						<p
+							class="text-fg-secondary text-sm leading-relaxed whitespace-pre-line m-0"
+						>
+							{{ game()!.description }}
+						</p>
+					</div>
+					}
+
+					<div class="mb-6">
+						<div class="flex items-center justify-between mb-2.5">
+							<h3
+								class="font-display m-0 text-xs font-semibold uppercase tracking-wider text-fg-secondary"
+							>
+								Your tags
+							</h3>
+							<div class="flex items-center gap-3">
+								@if (!editingMoodTags()) {
+								<button
+									type="button"
+									class="bg-transparent border-0 text-[0.6875rem] text-brand cursor-pointer hover:underline"
+									(click)="startEditMoodTags()"
+								>
+									{{ moodTags().length > 0 ? 'Edit' : 'Add
+									tags' }}
+								</button>
+								}
+								<a
+									routerLink="/tags"
+									class="text-[0.6875rem] text-brand no-underline hover:underline"
+									>Manage →</a
+								>
+							</div>
+						</div>
+						@if (editingMoodTags()) {
+						<app-mood-tags-input
+							[tags]="moodTagsDraft()"
+							[suggestions]="moodTagsSuggestions()"
+							placeholder="e.g. relajante, podcast game…"
+							(tagsChange)="updateMoodTagsDraft($event)"
+						/>
+						<div class="flex justify-end gap-1.5 mt-2">
+							<button
+								uiButton
+								variant="ghost"
+								size="sm"
+								(click)="cancelEditMoodTags()"
+								[disabled]="savingMoodTags()"
+							>
+								Cancel
+							</button>
+							<button
+								uiButton
+								variant="primary"
+								size="sm"
+								(click)="commitMoodTags()"
+								[disabled]="savingMoodTags()"
+							>
+								{{ savingMoodTags() ? 'Saving…' : 'Save' }}
+							</button>
+						</div>
+						} @else if (moodTags().length > 0) {
+						<div class="flex flex-wrap gap-1.5">
+							@for (tag of moodTags(); track tag) {
+							<span
+								class="inline-block px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-xs font-medium"
+								>{{ tag }}</span
+							>
+							}
+						</div>
+						} @else {
+						<p class="m-0 text-xs text-fg-muted italic">
+							No tags yet — click "Add tags" to label this game.
+						</p>
+						}
+					</div>
+
+					@if (otherScores().length > 0) {
+					<div class="mb-6">
+						<h3
+							class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary"
+						>
+							External Scores
+						</h3>
+						<div class="flex flex-wrap gap-2">
+							@for (s of otherScores(); track s.source) {
+							<div
+								class="bg-surface border border-line rounded p-3 px-4 flex flex-col gap-1 min-w-[110px]"
+							>
+								<span
+									class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted"
+									>{{ s.source }}</span
+								>
+								<span class="text-lg font-bold text-fg"
+									>{{ s.score }}<span
+										class="text-xs font-normal text-fg-muted ml-1"
+										>{{ getScaleLabel(s.source) }}</span
+									></span
+								>
+							</div>
+							}
+						</div>
+					</div>
+					} @if (otherTimes().length > 0) {
+					<div class="mb-6">
+						<h3
+							class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary"
+						>
+							Durations by Source
+						</h3>
+						<div class="flex flex-wrap gap-2">
+							@for (t of otherTimes(); track t.source) {
+							<div
+								class="bg-surface border border-line rounded p-3 px-4 flex flex-col gap-1 min-w-[110px]"
+							>
+								<span
+									class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted"
+									>{{ t.source }}</span
+								>
+								<span class="text-lg font-bold text-fg"
+									>{{ t.duration }}h</span
+								>
+							</div>
+							}
+						</div>
+					</div>
+					}
+
+					<app-game-social-activity #social [gameId]="game()!.id" />
+
+					@if (!game()!.description && otherScores().length === 0 &&
+					otherTimes().length === 0 && !social.hasContent()) {
+					<p class="text-center py-12 text-fg-muted text-sm">
+						No additional info available.
+					</p>
+					}
+				</div>
+
+				<div uiTabPanel value="reviews">
+					<app-game-reviews-tab #reviewsTab [gameId]="game()!.id" />
+				</div>
+
+				@if (featuredLists().length > 0) {
+				<div uiTabPanel value="lists">
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+						@for (list of featuredLists(); track list.id) {
+						<a
+							class="flex flex-col gap-1 py-2.5 px-3.5 bg-surface border rounded no-underline transition-colors hover:border-brand"
+							[class.border-brand]="list.isOfficial"
+							[class.border-line]="!list.isOfficial"
+							[style.background]="list.isOfficial ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.06), transparent)' : ''"
+							[routerLink]="['/lists', list.id]"
+						>
+							@if (list.isOfficial) {
+							<span
+								class="inline-flex items-center gap-1 text-[0.625rem] font-bold uppercase tracking-wider text-brand"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-sm"
+									>verified</span
+								>
+								Official
+							</span>
+							}
+							<span
+								class="flex items-center gap-1.5 text-[0.875rem] font-semibold text-fg overflow-hidden text-ellipsis whitespace-nowrap"
+							>
+								{{ list.name }} @if (list.completed) {
+								<span
+									class="text-sm text-warning material-icons"
+									>emoji_events</span
+								>
+								}
+							</span>
+							@if (list.description) {
+							<span
+								class="text-[0.6875rem] text-fg-muted overflow-hidden text-ellipsis whitespace-nowrap"
+								>{{ list.description }}</span
+							>
+							} @if (list.owner) {
+							<span class="text-[0.625rem] text-fg-muted"
+								>by &#64;{{ list.owner.username }}</span
+							>
+							}
+						</a>
+						}
+					</div>
+				</div>
+				} @if (game()!.dlcs.length > 0) {
+				<div uiTabPanel value="dlcs">
+					<div
+						class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+					>
+						@for (dlc of game()!.dlcs; track dlc.id) {
+						<a
+							class="flex flex-col gap-1 no-underline text-inherit group"
+							[routerLink]="['/games', dlc.code]"
+						>
+							@if (dlc.backgroundUrl) {
+							<img
+								[src]="dlc.backgroundUrl"
+								[alt]="dlc.title"
+								class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
+								loading="lazy"
+							/>
+							} @else {
+							<div
+								class="w-full aspect-[3/4] bg-surface rounded-lg"
+							></div>
+							}
+							<span
+								class="text-sm font-medium text-fg line-clamp-2 leading-snug"
+								>{{ dlc.title }}</span
+							>
+						</a>
+						}
+					</div>
+				</div>
+				} @if (game()!.isCompilation &&
+				(game()!.compilationItems?.length ?? 0) > 0) {
+				<div uiTabPanel value="compilation">
+					<p class="text-fg-secondary text-sm mb-4">
+						This is a compilation that bundles the following games.
+						Add the one you're playing to your backlog.
+					</p>
+					<div
+						class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+					>
+						@for (item of game()!.compilationItems!; track item.id)
+						{ @if (item.game) {
+						<a
+							class="flex flex-col gap-1 no-underline text-inherit group"
+							[routerLink]="['/games', item.game.code]"
+						>
+							@if (item.game.backgroundUrl) {
+							<img
+								[src]="item.game.backgroundUrl"
+								[alt]="item.game.title"
+								class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
+								loading="lazy"
+							/>
+							} @else {
+							<div
+								class="w-full aspect-[3/4] bg-surface rounded-lg flex items-center justify-center text-fg-muted"
+							>
+								<span aria-hidden="true" class="material-icons"
+									>videogame_asset</span
+								>
+							</div>
+							}
+							<span
+								class="text-sm font-medium text-fg line-clamp-2 leading-snug"
+								>{{ item.game.title }}</span
+							>
+						</a>
+						} }
+					</div>
+				</div>
+				} @if (similarGames().length > 0) {
+				<div uiTabPanel value="similar">
+					<div
+						class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+					>
+						@for (g of similarGames(); track g.id) {
+						<a
+							class="flex flex-col gap-2 cursor-pointer no-underline text-inherit group"
+							[routerLink]="['/games', g.code]"
+						>
+							@if (g.backgroundUrl) {
+							<img
+								[src]="g.backgroundUrl"
+								[alt]="g.title"
+								class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:scale-[1.03] group-hover:ring-2 group-hover:ring-brand/50"
+								loading="lazy"
+							/>
+							} @else {
+							<div
+								class="w-full aspect-[3/4] bg-surface rounded-lg"
+							></div>
+							}
+							<span
+								class="text-sm font-medium text-fg line-clamp-2 leading-snug"
+								>{{ g.title }}</span
+							>
+						</a>
+						}
+					</div>
+				</div>
+				}
+			</ui-tabs>
 		</div>
 	</div>
+</div>
+} @if (backlogModal().show) {
+<app-backlog-modal
+	[preselectedGame]="backlogModal().game"
+	[preselectedCompilationParent]="backlogModal().compilationParent"
+	[preselectAddToQueue]="backlogModal().preselectQueue"
+	(closed)="onModalClosed()"
+	(saved)="onModalSaved()"
+/>
+} @if (showShelfModal()) {
+<app-game-shelf-modal
+	[preselectedGame]="game()"
+	(closed)="onModalClosed()"
+	(saved)="onModalSaved()"
+/>
+} @if (showWishlistPlatformModal()) {
+<app-wishlist-platform-modal
+	[gameId]="game()!.id"
+	[gameTitle]="game()!.title"
+	[platforms]="game()!.platforms"
+	(closed)="onWishlistPlatformModalClosed()"
+	(saved)="onWishlistPlatformModalSaved()"
+/>
+} @if (showAddToListModal()) {
+<app-game-add-to-list-modal
+	[gameId]="game()!.id"
+	[gameTitle]="game()!.title"
+	[myLists]="myLists()"
+	(closed)="closeAddToListModal()"
+	(listsChanged)="onAddToListListsChanged($event)"
+/>
+} @if (reportModal().show) {
+<div
+	class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]"
+	(click)="closeReportModal()"
+>
+	<div
+		class="bg-sidebar border border-line rounded-card p-6 w-[90%] max-w-[480px]"
+		(click)="$event.stopPropagation()"
+	>
+		<h3 class="font-display m-0 mb-4 text-base font-semibold">
+			Report issue with {{ game()!.title }}
+		</h3>
+		<textarea
+			uiTextarea
+			class="!w-full !resize-y"
+			placeholder="Describe the issue (min 10 characters)..."
+			[value]="reportModal().message"
+			(input)="setReportMessage($any($event.target).value)"
+			rows="4"
+		></textarea>
+		@if (reportModal().error) {
+		<div
+			class="mt-2 py-1.5 px-3 bg-danger/10 border border-danger/20 rounded text-danger text-xs"
+		>
+			{{ reportModal().error }}
+		</div>
+		}
+		<div class="flex justify-end gap-2 mt-4">
+			<button
+				uiButton
+				variant="ghost"
+				size="sm"
+				(click)="closeReportModal()"
+			>
+				Cancel
+			</button>
+			<button
+				uiButton
+				variant="primary"
+				size="sm"
+				[disabled]="reportModal().message.length < 10 || reportModal().submitting"
+				(click)="submitReport()"
+			>
+				{{ reportModal().submitting ? "Sending..." : "Send Report" }}
+			</button>
+		</div>
+	</div>
+</div>
 }

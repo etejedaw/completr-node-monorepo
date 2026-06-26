@@ -24,14 +24,18 @@ export class UsersService {
 	search(opts: { q?: string; email?: string; limit?: number }) {
 		const params = buildHttpParams(opts);
 		return this.http
-			.get<UsersResponse>(`${environment.apiUrl}/users/search`, { params })
+			.get<UsersResponse>(`${environment.apiUrl}/users/search`, {
+				params
+			})
 			.pipe(map(res => res.data.users));
 	}
 
 	discover(limit = 12) {
 		const params = buildHttpParams({ limit });
 		return this.http
-			.get<UsersResponse>(`${environment.apiUrl}/users/discover`, { params })
+			.get<UsersResponse>(`${environment.apiUrl}/users/discover`, {
+				params
+			})
 			.pipe(map(res => res.data.users));
 	}
 }

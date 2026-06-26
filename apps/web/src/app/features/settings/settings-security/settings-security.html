@@ -1,11 +1,16 @@
 <div class="flex flex-col gap-6">
 	<div class="bg-surface border border-line rounded-card p-6">
 		<h2 class="font-display m-0 mb-1 text-lg font-bold">Change password</h2>
-		<p class="text-xs text-fg-muted mb-5">Other sessions will be signed out after a successful change.</p>
+		<p class="text-xs text-fg-muted mb-5">
+			Other sessions will be signed out after a successful change.
+		</p>
 
 		<div class="flex flex-col gap-4 max-w-md">
 			<div>
-				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">New password</label>
+				<label
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>New password</label
+				>
 				<input
 					uiInput
 					type="password"
@@ -17,7 +22,10 @@
 			</div>
 
 			<div>
-				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide">Confirm password</label>
+				<label
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Confirm password</label
+				>
 				<input
 					uiInput
 					type="password"
@@ -29,7 +37,12 @@
 			</div>
 
 			<div class="flex justify-end">
-				<button uiButton variant="primary" (click)="changePassword()" [disabled]="changingPassword()">
+				<button
+					uiButton
+					variant="primary"
+					(click)="changePassword()"
+					[disabled]="changingPassword()"
+				>
 					{{ changingPassword() ? 'Changing...' : 'Change password' }}
 				</button>
 			</div>
@@ -39,92 +52,127 @@
 	<div class="bg-surface border border-line rounded-card p-6">
 		<div class="flex items-start justify-between gap-4 mb-1">
 			<div>
-				<h2 class="font-display m-0 text-lg font-bold">Active devices</h2>
-				<p class="text-xs text-fg-muted mt-1">Devices currently signed in to your account.</p>
+				<h2 class="font-display m-0 text-lg font-bold">
+					Active devices
+				</h2>
+				<p class="text-xs text-fg-muted mt-1">
+					Devices currently signed in to your account.
+				</p>
 			</div>
 			@if (sessions().length > 0 && total() > 1) {
-				<button uiButton variant="ghost" size="sm" (click)="confirmRevokeAll.set(true)">
-					Sign out other devices
-				</button>
+			<button
+				uiButton
+				variant="ghost"
+				size="sm"
+				(click)="confirmRevokeAll.set(true)"
+			>
+				Sign out other devices
+			</button>
 			}
 		</div>
 
 		@if (sessionsLoading()) {
-			<p class="text-center py-8 text-fg-muted text-sm">Loading...</p>
+		<p class="text-center py-8 text-fg-muted text-sm">Loading...</p>
 		} @else if (sessions().length === 0) {
-			<p class="text-center py-8 text-fg-muted text-sm">No active sessions.</p>
+		<p class="text-center py-8 text-fg-muted text-sm">
+			No active sessions.
+		</p>
 		} @else {
-			<ul class="flex flex-col mt-4">
-				@for (s of sessions(); track s.id; let first = $first) {
-					<li
-						class="flex items-center gap-4 py-4"
-						[class.border-t]="!first"
-						[class.border-line]="!first"
-					>
-						<span aria-hidden="true" class="material-icons text-2xl text-fg-muted shrink-0">
-							{{ parseDevice(s.deviceInfo).icon }}
+		<ul class="flex flex-col mt-4">
+			@for (s of sessions(); track s.id; let first = $first) {
+			<li
+				class="flex items-center gap-4 py-4"
+				[class.border-t]="!first"
+				[class.border-line]="!first"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-2xl text-fg-muted shrink-0"
+				>
+					{{ parseDevice(s.deviceInfo).icon }}
+				</span>
+				<div class="flex-1 min-w-0">
+					<div class="flex items-center gap-2 flex-wrap">
+						<span class="text-sm font-medium text-fg"
+							>{{ parseDevice(s.deviceInfo).name }}</span
+						>
+						@if (s.id === currentSessionId()) {
+						<span
+							class="px-1.5 py-0.5 rounded-full bg-success/15 text-success text-[0.625rem] font-semibold uppercase tracking-wide"
+						>
+							This device
 						</span>
-						<div class="flex-1 min-w-0">
-							<div class="flex items-center gap-2 flex-wrap">
-								<span class="text-sm font-medium text-fg">{{ parseDevice(s.deviceInfo).name }}</span>
-								@if (s.id === currentSessionId()) {
-									<span class="px-1.5 py-0.5 rounded-full bg-success/15 text-success text-[0.625rem] font-semibold uppercase tracking-wide">
-										This device
-									</span>
-								}
-							</div>
-							<div class="text-xs text-fg-muted mt-0.5">
-								Last used {{ timeAgo(s.lastUsedAt) }} · Signed in {{ timeAgo(s.createdAt) }}
-							</div>
-						</div>
-						@if (s.id !== currentSessionId()) {
-							<button
-								uiButton
-								variant="ghost"
-								size="sm"
-								[disabled]="revokingSessionId() === s.id"
-								(click)="revokeSession(s)"
-							>
-								{{ revokingSessionId() === s.id ? 'Revoking...' : 'Revoke' }}
-							</button>
 						}
-					</li>
-				}
-			</ul>
-
-			@if (total() > limit) {
-				<div class="mt-4">
-					<ui-pagination
-						[offset]="offset()"
-						[limit]="limit"
-						[total]="total()"
-						(offsetChange)="onOffsetChange($event)"
-					/>
+					</div>
+					<div class="text-xs text-fg-muted mt-0.5">
+						Last used {{ timeAgo(s.lastUsedAt) }} · Signed in {{
+						timeAgo(s.createdAt) }}
+					</div>
 				</div>
+				@if (s.id !== currentSessionId()) {
+				<button
+					uiButton
+					variant="ghost"
+					size="sm"
+					[disabled]="revokingSessionId() === s.id"
+					(click)="revokeSession(s)"
+				>
+					{{ revokingSessionId() === s.id ? 'Revoking...' : 'Revoke'
+					}}
+				</button>
+				}
+			</li>
 			}
-		}
+		</ul>
+
+		@if (total() > limit) {
+		<div class="mt-4">
+			<ui-pagination
+				[offset]="offset()"
+				[limit]="limit"
+				[total]="total()"
+				(offsetChange)="onOffsetChange($event)"
+			/>
+		</div>
+		} }
 	</div>
 </div>
 
 @if (confirmRevokeAll()) {
-	<div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]" (click)="confirmRevokeAll.set(false)">
-		<div
-			class="bg-sidebar border border-line rounded-[12px] p-6 w-full max-w-[400px]"
-			style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
-			(click)="$event.stopPropagation()"
-		>
-			<h3 class="font-display m-0 mb-2 text-base font-bold">Sign out other devices?</h3>
-			<p class="text-sm text-fg-secondary m-0 mb-5">
-				All sessions except this one will be signed out immediately. You will stay signed in here.
-			</p>
-			<div class="flex justify-end gap-2">
-				<button uiButton variant="ghost" (click)="confirmRevokeAll.set(false)" [disabled]="revokingAll()">
-					Cancel
-				</button>
-				<button uiButton variant="primary" (click)="revokeAllOthers()" [disabled]="revokingAll()">
-					{{ revokingAll() ? 'Revoking...' : 'Sign them out' }}
-				</button>
-			</div>
+<div
+	class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]"
+	(click)="confirmRevokeAll.set(false)"
+>
+	<div
+		class="bg-sidebar border border-line rounded-[12px] p-6 w-full max-w-[400px]"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
+		(click)="$event.stopPropagation()"
+	>
+		<h3 class="font-display m-0 mb-2 text-base font-bold">
+			Sign out other devices?
+		</h3>
+		<p class="text-sm text-fg-secondary m-0 mb-5">
+			All sessions except this one will be signed out immediately. You
+			will stay signed in here.
+		</p>
+		<div class="flex justify-end gap-2">
+			<button
+				uiButton
+				variant="ghost"
+				(click)="confirmRevokeAll.set(false)"
+				[disabled]="revokingAll()"
+			>
+				Cancel
+			</button>
+			<button
+				uiButton
+				variant="primary"
+				(click)="revokeAllOthers()"
+				[disabled]="revokingAll()"
+			>
+				{{ revokingAll() ? 'Revoking...' : 'Sign them out' }}
+			</button>
 		</div>
 	</div>
+</div>
 }

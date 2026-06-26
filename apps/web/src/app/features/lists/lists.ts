@@ -54,13 +54,17 @@ export class ListsService {
 
 	getOfficial(limit = 12) {
 		return this.http
-			.get<{ data: { lists: List[] } }>(`${this.baseUrl}/official?limit=${limit}`)
+			.get<{
+				data: { lists: List[] };
+			}>(`${this.baseUrl}/official?limit=${limit}`)
 			.pipe(map(res => res.data.lists));
 	}
 
 	getRecent(limit = 12) {
 		return this.http
-			.get<{ data: { lists: List[] } }>(`${this.baseUrl}/recent?limit=${limit}`)
+			.get<{
+				data: { lists: List[] };
+			}>(`${this.baseUrl}/recent?limit=${limit}`)
 			.pipe(map(res => res.data.lists));
 	}
 

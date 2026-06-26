@@ -105,17 +105,22 @@ export class GameAddToListModal implements OnInit {
 			})
 			.subscribe({
 				next: list => {
-					this.listsService.addItem(list.id, this.gameId()).subscribe({
-						next: () => this.refreshAfterCreate(),
-						error: () =>
-							this.update({
-								error: "List created but failed to add game",
-								creatingNew: false
-							})
-					});
+					this.listsService
+						.addItem(list.id, this.gameId())
+						.subscribe({
+							next: () => this.refreshAfterCreate(),
+							error: () =>
+								this.update({
+									error: "List created but failed to add game",
+									creatingNew: false
+								})
+						});
 				},
 				error: () =>
-					this.update({ error: "Failed to create list", creatingNew: false })
+					this.update({
+						error: "Failed to create list",
+						creatingNew: false
+					})
 			});
 	}
 

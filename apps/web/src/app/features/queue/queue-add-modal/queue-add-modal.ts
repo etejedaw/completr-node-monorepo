@@ -30,15 +30,13 @@ export class QueueAddModal implements OnInit {
 	protected readonly searchQuery = signal("");
 
 	ngOnInit() {
-		this.backlogService
-			.getMyBacklog({ status: "not_started" })
-			.subscribe({
-				next: res => {
-					this.entries.set(res.data.backlog);
-					this.isLoading.set(false);
-				},
-				error: () => this.isLoading.set(false)
-			});
+		this.backlogService.getMyBacklog({ status: "not_started" }).subscribe({
+			next: res => {
+				this.entries.set(res.data.backlog);
+				this.isLoading.set(false);
+			},
+			error: () => this.isLoading.set(false)
+		});
 	}
 
 	protected filteredEntries() {

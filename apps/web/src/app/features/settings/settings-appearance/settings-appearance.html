@@ -3,50 +3,64 @@
 	<p class="text-xs text-fg-muted mb-5">Pick the look that fits your mood.</p>
 
 	<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-		@for (theme of catalog; track theme.id) {
-			@let active = current() === theme.id;
-			@let locked = !canUse(theme);
-			<button
-				type="button"
-				class="relative text-left rounded-card border-2 cursor-pointer transition p-4 bg-input-bg overflow-hidden"
-				[class.border-brand]="active"
-				[class.ring-2]="active"
-				[class.ring-brand]="active"
-				[class.border-line]="!active"
-				[class.hover:border-brand]="!locked && !active"
-				[class.opacity-60]="locked"
-				[class.cursor-not-allowed]="locked"
-				[disabled]="locked || saving() !== null"
-				(click)="select(theme)"
+		@for (theme of catalog; track theme.id) { @let active = current() ===
+		theme.id; @let locked = !canUse(theme);
+		<button
+			type="button"
+			class="relative text-left rounded-card border-2 cursor-pointer transition p-4 bg-input-bg overflow-hidden"
+			[class.border-brand]="active"
+			[class.ring-2]="active"
+			[class.ring-brand]="active"
+			[class.border-line]="!active"
+			[class.hover:border-brand]="!locked && !active"
+			[class.opacity-60]="locked"
+			[class.cursor-not-allowed]="locked"
+			[disabled]="locked || saving() !== null"
+			(click)="select(theme)"
+		>
+			@if (theme.tier === 'premium') {
+			<span
+				class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/15 text-warning"
 			>
-				@if (theme.tier === 'premium') {
-					<span class="absolute top-2 right-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/15 text-warning">
-						<span aria-hidden="true" class="material-icons text-[0.75rem]">workspace_premium</span>
-						Premium
-					</span>
-				}
-				@if (active) {
-					<span class="absolute bottom-2 right-2 flex items-center justify-center w-6 h-6 rounded-full bg-brand text-white">
-						<span aria-hidden="true" class="material-icons text-sm">check</span>
-					</span>
-				}
+				<span aria-hidden="true" class="material-icons text-[0.75rem]"
+					>workspace_premium</span
+				>
+				Premium
+			</span>
+			} @if (active) {
+			<span
+				class="absolute bottom-2 right-2 flex items-center justify-center w-6 h-6 rounded-full bg-brand text-white"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>check</span
+				>
+			</span>
+			}
 
-				<div class="flex items-end gap-1 h-12 mb-3 rounded-md overflow-hidden">
-					@for (color of theme.swatches; track color) {
-						<div class="flex-1 h-full" [style.background]="color"></div>
-					}
-				</div>
-
-				<div class="text-sm font-semibold text-fg">{{ theme.name }}</div>
-				<div class="text-[0.75rem] text-fg-secondary mt-0.5">{{ theme.description }}</div>
-
-				@if (locked) {
-					<div class="mt-3 flex items-center gap-1.5 text-[0.6875rem] text-fg-muted">
-						<span aria-hidden="true" class="material-icons text-base">lock</span>
-						Upgrade to Premium to unlock
-					</div>
+			<div
+				class="flex items-end gap-1 h-12 mb-3 rounded-md overflow-hidden"
+			>
+				@for (color of theme.swatches; track color) {
+				<div class="flex-1 h-full" [style.background]="color"></div>
 				}
-			</button>
+			</div>
+
+			<div class="text-sm font-semibold text-fg">{{ theme.name }}</div>
+			<div class="text-[0.75rem] text-fg-secondary mt-0.5">
+				{{ theme.description }}
+			</div>
+
+			@if (locked) {
+			<div
+				class="mt-3 flex items-center gap-1.5 text-[0.6875rem] text-fg-muted"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>lock</span
+				>
+				Upgrade to Premium to unlock
+			</div>
+			}
+		</button>
 		}
 	</div>
 </div>

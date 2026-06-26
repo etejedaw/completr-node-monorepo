@@ -4,13 +4,20 @@ import {
 	computed,
 	input
 } from "@angular/core";
-import { NgpAvatar, NgpAvatarFallback, NgpAvatarImage } from "ng-primitives/avatar";
+import {
+	NgpAvatar,
+	NgpAvatarFallback,
+	NgpAvatarImage
+} from "ng-primitives/avatar";
 
 @Component({
 	selector: "ui-avatar",
 	imports: [NgpAvatar, NgpAvatarImage, NgpAvatarFallback],
 	template: `
-		<span ngpAvatar class="block w-full h-full rounded-full overflow-hidden bg-brand-subtle text-brand">
+		<span
+			ngpAvatar
+			class="block w-full h-full rounded-full overflow-hidden bg-brand-subtle text-brand"
+		>
 			@if (src()) {
 				<img
 					ngpAvatarImage

@@ -22,7 +22,12 @@ import {
 	of,
 	forkJoin
 } from "rxjs";
-import { UiButton, UiIconButton, UiProgress, UiSearchBar } from "../../../shared/ui";
+import {
+	UiButton,
+	UiIconButton,
+	UiProgress,
+	UiSearchBar
+} from "../../../shared/ui";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 import {
 	CdkDrag,
@@ -92,9 +97,10 @@ export class ListDetail implements OnInit {
 			}
 		>
 	>(new Map());
-	protected readonly viewerListProgress = signal<
-		{ completed: number; total: number } | null
-	>(null);
+	protected readonly viewerListProgress = signal<{
+		completed: number;
+		total: number;
+	} | null>(null);
 	protected readonly viewerUsername = computed(
 		() => this.authService.user()?.username ?? null
 	);

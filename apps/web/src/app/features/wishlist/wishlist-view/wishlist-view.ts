@@ -10,13 +10,26 @@ import { WishlistEntry } from "../../../core/models";
 import { WishlistService } from "../wishlist";
 import { FavoritesService } from "../../favorites/favorites";
 import { WishlistAddModal } from "../wishlist-add-modal/wishlist-add-modal";
-import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";
+import {
+	UiButton,
+	UiEmptyState,
+	UiPagination,
+	UiSearchBar
+} from "../../../shared/ui";
 import { MoodTagsChips } from "../../../shared/components/mood-tags-chips/mood-tags-chips";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-wishlist-view",
-	imports: [RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar, WishlistAddModal, MoodTagsChips],
+	imports: [
+		RouterLink,
+		UiButton,
+		UiEmptyState,
+		UiPagination,
+		UiSearchBar,
+		WishlistAddModal,
+		MoodTagsChips
+	],
 	templateUrl: "./wishlist-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

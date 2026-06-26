@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, input, model } from "@angular/core";
+import {
+	ChangeDetectionStrategy,
+	Component,
+	input,
+	model
+} from "@angular/core";
 import { NgpCheckbox } from "ng-primitives/checkbox";
 
 @Component({
@@ -11,7 +16,12 @@ import { NgpCheckbox } from "ng-primitives/checkbox";
 			[(ngpCheckboxChecked)]="checked"
 			[ngpCheckboxDisabled]="disabled()"
 		>
-			<svg class="ui-checkbox__indicator" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+			<svg
+				class="ui-checkbox__indicator"
+				viewBox="0 0 16 16"
+				fill="none"
+				aria-hidden="true"
+			>
 				<path
 					d="M3.5 8.5L6.5 11.5L12.5 4.5"
 					stroke="currentColor"

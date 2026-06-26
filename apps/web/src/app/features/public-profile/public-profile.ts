@@ -16,7 +16,10 @@ import {
 	PublicQueue,
 	PublicGameShelf
 } from "./services/public-library.service";
-import { PublicListsService, PublicList } from "./services/public-lists.service";
+import {
+	PublicListsService,
+	PublicList
+} from "./services/public-lists.service";
 import {
 	PublicReviewsService,
 	HighlightEntry
@@ -44,7 +47,18 @@ import {
 
 @Component({
 	selector: "app-public-profile",
-	imports: [RouterLink, UserListModal, StarRating, UiAvatar, UiButton, UiSkeleton, UiTabs, UiTabList, UiTab, UiTabPanel],
+	imports: [
+		RouterLink,
+		UserListModal,
+		StarRating,
+		UiAvatar,
+		UiButton,
+		UiSkeleton,
+		UiTabs,
+		UiTabList,
+		UiTab,
+		UiTabPanel
+	],
 	templateUrl: "./public-profile.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -106,12 +120,27 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly favoritesData = signal<PublicFavorite[] | null>(null);
 	protected readonly queueData = signal<PublicQueue[] | null>(null);
 	protected readonly wishlistData = signal<
-		{ id: string; position: number; game: { id: string; code: string; title: string; backgroundUrl?: string } }[] | null
+		| {
+				id: string;
+				position: number;
+				game: {
+					id: string;
+					code: string;
+					title: string;
+					backgroundUrl?: string;
+				};
+		  }[]
+		| null
 	>(null);
 	protected readonly gameShelfData = signal<PublicGameShelf[] | null>(null);
 	protected readonly followingListsData = signal<PublicList[] | null>(null);
 	protected readonly gamesInCommon = signal<
-		{ id: string; code: string; title: string; backgroundUrl: string | null }[]
+		{
+			id: string;
+			code: string;
+			title: string;
+			backgroundUrl: string | null;
+		}[]
 	>([]);
 	protected readonly recentFollowers = signal<UserSummary[]>([]);
 	protected readonly highlightsData = signal<{
@@ -276,7 +305,11 @@ export class PublicProfileComponent implements OnInit {
 		this.libraryService.getUserFavorites(username, { limit: 6 }).subscribe({
 			next: res =>
 				this.favoritesData.set(
-					res.items.map(e => ({ id: e.id, position: e.position, game: e.game }))
+					res.items.map(e => ({
+						id: e.id,
+						position: e.position,
+						game: e.game
+					}))
 				),
 			error: () => this.favoritesData.set([])
 		});

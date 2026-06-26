@@ -12,7 +12,13 @@ import { BacklogService } from "../../backlog/backlog";
 import { FavoritesService } from "../../favorites/favorites";
 import { ToastService } from "../../../core/services/toast";
 import { QueueAddModal } from "../queue-add-modal/queue-add-modal";
-import { UiButton, UiEmptyState, UiPagination, UiSearchBar, UiSkeleton } from "../../../shared/ui";
+import {
+	UiButton,
+	UiEmptyState,
+	UiPagination,
+	UiSearchBar,
+	UiSkeleton
+} from "../../../shared/ui";
 import {
 	QueueGridCard,
 	QueueStatusChange

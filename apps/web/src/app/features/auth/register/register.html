@@ -1,32 +1,77 @@
-<div class="flex justify-center items-center min-h-screen bg-canvas relative overflow-hidden">
+<div
+	class="flex justify-center items-center min-h-screen bg-canvas relative overflow-hidden"
+>
 	<div
 		class="absolute inset-0 pointer-events-none"
-		style="background: radial-gradient(ellipse at 20% 50%, var(--color-brand-subtle) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%), radial-gradient(ellipse at 50% 100%, var(--color-brand-subtle) 0%, transparent 40%);"
+		style="
+			background:
+				radial-gradient(
+					ellipse at 20% 50%,
+					var(--color-brand-subtle) 0%,
+					transparent 50%
+				),
+				radial-gradient(
+					ellipse at 80% 20%,
+					rgba(139, 92, 246, 0.06) 0%,
+					transparent 50%
+				),
+				radial-gradient(
+					ellipse at 50% 100%,
+					var(--color-brand-subtle) 0%,
+					transparent 40%
+				);
+		"
 	></div>
 	<div class="relative w-full max-w-[480px] px-4">
 		<div
 			class="relative bg-sidebar border border-line rounded-card p-10 w-full"
-			style="box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 20px 50px -12px rgba(0, 0, 0, 0.5);"
+			style="
+				box-shadow:
+					0 0 0 1px rgba(255, 255, 255, 0.03),
+					0 20px 50px -12px rgba(0, 0, 0, 0.5);
+			"
 		>
 			<div class="flex items-center gap-3 mb-2">
 				<span
 					class="flex items-center justify-center w-9 h-9 rounded-lg font-display font-bold text-lg text-white"
-					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 4px 14px -4px var(--color-brand-glow);"
-				>C</span>
-				<h1 class="font-display text-2xl font-bold tracking-tight">Completr</h1>
+					style="
+						background: linear-gradient(
+							135deg,
+							var(--color-brand),
+							var(--color-brand-deep)
+						);
+						box-shadow: 0 4px 14px -4px var(--color-brand-glow);
+					"
+					>C</span
+				>
+				<h1 class="font-display text-2xl font-bold tracking-tight">
+					Completr
+				</h1>
 			</div>
-			<p class="text-fg-muted mb-8 text-sm">Create your account and start tracking.</p>
+			<p class="text-fg-muted mb-8 text-sm">
+				Create your account and start tracking.
+			</p>
 
 			@if (error()) {
-				<div class="bg-danger/10 border border-danger/25 text-red-300 px-3.5 py-2.5 rounded-md mb-5 text-sm">
-					{{ error() }}
-				</div>
+			<div
+				class="bg-danger/10 border border-danger/25 text-red-300 px-3.5 py-2.5 rounded-md mb-5 text-sm"
+			>
+				{{ error() }}
+			</div>
 			}
 
-			<form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+			<form
+				[formGroup]="form"
+				(ngSubmit)="onSubmit()"
+				class="flex flex-col gap-5"
+			>
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
-						<label for="username" class="block mb-1.5 text-sm font-medium text-fg-secondary">Username</label>
+						<label
+							for="username"
+							class="block mb-1.5 text-sm font-medium text-fg-secondary"
+							>Username</label
+						>
 						<input
 							uiInput
 							id="username"
@@ -37,7 +82,11 @@
 						/>
 					</div>
 					<div>
-						<label for="name" class="block mb-1.5 text-sm font-medium text-fg-secondary">Name</label>
+						<label
+							for="name"
+							class="block mb-1.5 text-sm font-medium text-fg-secondary"
+							>Name</label
+						>
 						<input
 							uiInput
 							id="name"
@@ -50,7 +99,11 @@
 				</div>
 
 				<div>
-					<label for="email" class="block mb-1.5 text-sm font-medium text-fg-secondary">Email</label>
+					<label
+						for="email"
+						class="block mb-1.5 text-sm font-medium text-fg-secondary"
+						>Email</label
+					>
 					<input
 						uiInput
 						id="email"
@@ -62,7 +115,11 @@
 				</div>
 
 				<div>
-					<label for="password" class="block mb-1.5 text-sm font-medium text-fg-secondary">Password</label>
+					<label
+						for="password"
+						class="block mb-1.5 text-sm font-medium text-fg-secondary"
+						>Password</label
+					>
 					<input
 						uiInput
 						id="password"
@@ -86,7 +143,10 @@
 			</form>
 
 			<p class="text-center mt-6 text-sm text-fg-muted">
-				Already have an account? <a routerLink="/login" class="text-brand font-medium">Sign in</a>
+				Already have an account?
+				<a routerLink="/login" class="text-brand font-medium"
+					>Sign in</a
+				>
 			</p>
 		</div>
 	</div>

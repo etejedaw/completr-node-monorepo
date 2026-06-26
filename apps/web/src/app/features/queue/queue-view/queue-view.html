@@ -1,17 +1,26 @@
 <div>
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
-			<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">Up Next</h1>
+			<h1
+				class="text-3xl md:text-4xl font-bold tracking-tight font-display"
+			>
+				Up Next
+			</h1>
 			<span class="text-sm text-fg-muted">{{ total() }} games</span>
 		</div>
 		@if (isLoading() || entries().length > 0) {
-			<button uiButton variant="primary" (click)="openAddModal()">
-				+ Add from library
-			</button>
+		<button uiButton variant="primary" (click)="openAddModal()">
+			+ Add from library
+		</button>
 		}
 	</div>
 
-	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
+	<ui-search-bar
+		class="block mb-4 max-w-2xl"
+		placeholder="Search by title..."
+		[value]="searchQuery()"
+		(valueChange)="onSearch($event)"
+	/>
 
 	<div class="flex items-center gap-2 mb-4 flex-wrap">
 		<span class="text-xs text-fg-muted mr-1">Sort by:</span>
@@ -52,49 +61,51 @@
 			Duration
 		</button>
 		@if (sortBy() !== 'manual') {
-			<button
-				class="ml-auto bg-brand-subtle border border-brand text-brand text-xs font-medium px-3 py-1.5 rounded cursor-pointer inline-flex items-center gap-1.5 transition hover:bg-brand hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-				[disabled]="savingOrder()"
-				(click)="saveCurrentOrder()"
-				title="Persist this order as the new manual priority"
-			>
-				<span aria-hidden="true" class="material-icons text-sm">save</span>
-				{{ savingOrder() ? 'Saving...' : 'Save this order' }}
-			</button>
+		<button
+			class="ml-auto bg-brand-subtle border border-brand text-brand text-xs font-medium px-3 py-1.5 rounded cursor-pointer inline-flex items-center gap-1.5 transition hover:bg-brand hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+			[disabled]="savingOrder()"
+			(click)="saveCurrentOrder()"
+			title="Persist this order as the new manual priority"
+		>
+			<span aria-hidden="true" class="material-icons text-sm">save</span>
+			{{ savingOrder() ? 'Saving...' : 'Save this order' }}
+		</button>
 		}
 	</div>
 
 	@if (isLoading()) {
-	<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+	<div
+		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
+	>
 		@for (i of skeletonRange; track i) {
-			<div class="flex flex-col gap-1.5">
-				<ui-skeleton variant="rect" class="aspect-[3/4] rounded-lg" />
-				<ui-skeleton variant="text" class="w-3/4" />
-				<ui-skeleton variant="text" class="w-1/3" />
-			</div>
+		<div class="flex flex-col gap-1.5">
+			<ui-skeleton variant="rect" class="aspect-[3/4] rounded-lg" />
+			<ui-skeleton variant="text" class="w-3/4" />
+			<ui-skeleton variant="text" class="w-1/3" />
+		</div>
 		}
 	</div>
-	} @else if (entries().length === 0) {
-		@if (searchQuery().trim()) {
-			<ui-empty-state
-				icon="search_off"
-				title="No matches found"
-				hint="Nothing in Up Next matches your search."
-			>
-				<button uiButton variant="secondary" (click)="onSearch('')">Clear search</button>
-			</ui-empty-state>
-		} @else {
-			<ui-empty-state
-				icon="playlist_play"
-				title="Up Next is empty"
-				hint="Pick the next games you actually want to play, in order. Add titles you haven't started yet from your library."
-			>
-				<button uiButton variant="primary" (click)="openAddModal()">
-					+ Add from library
-				</button>
-			</ui-empty-state>
-		}
+	} @else if (entries().length === 0) { @if (searchQuery().trim()) {
+	<ui-empty-state
+		icon="search_off"
+		title="No matches found"
+		hint="Nothing in Up Next matches your search."
+	>
+		<button uiButton variant="secondary" (click)="onSearch('')">
+			Clear search
+		</button>
+	</ui-empty-state>
 	} @else {
+	<ui-empty-state
+		icon="playlist_play"
+		title="Up Next is empty"
+		hint="Pick the next games you actually want to play, in order. Add titles you haven't started yet from your library."
+	>
+		<button uiButton variant="primary" (click)="openAddModal()">
+			+ Add from library
+		</button>
+	</ui-empty-state>
+	} } @else {
 	<div
 		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
 		cdkDropList
@@ -103,29 +114,33 @@
 		(cdkDropListDropped)="onDrop($event)"
 	>
 		@for (entry of filteredEntries(); track entry.id; let i = $index) {
-			<div cdkDrag [cdkDragDisabled]="sortBy() !== 'manual'" class="cdk-drag-cell">
-				<app-queue-grid-card
-					[entry]="{
+		<div
+			cdkDrag
+			[cdkDragDisabled]="sortBy() !== 'manual'"
+			class="cdk-drag-cell"
+		>
+			<app-queue-grid-card
+				[entry]="{
 						game: entry.backlog.game,
 						platformAbbreviation: entry.backlog.platform?.abbreviation,
 						ratio: entry.backlog.ratio,
 						duration: entry.backlog.duration,
 						moodTags: entry.backlog.moodTags
 					}"
-					[position]="offset() + i + 1"
-					[showActions]="true"
-					[showDragHandle]="sortBy() === 'manual'"
-					[isFirst]="sortBy() !== 'manual' || i === 0"
-					[isLast]="sortBy() !== 'manual' || i === filteredEntries().length - 1"
-					[statusUpdating]="isUpdatingStatus(entry)"
-					[isFavorite]="isFavorite(entry.backlog.game.id)"
-					(moveUp)="moveUp(i)"
-					(moveDown)="moveDown(i)"
-					(remove)="remove(entry)"
-					(statusChange)="requestStatusChange(entry, $event)"
-					(favoriteToggle)="toggleFavorite(entry.backlog.game.id)"
-				/>
-			</div>
+				[position]="offset() + i + 1"
+				[showActions]="true"
+				[showDragHandle]="sortBy() === 'manual'"
+				[isFirst]="sortBy() !== 'manual' || i === 0"
+				[isLast]="sortBy() !== 'manual' || i === filteredEntries().length - 1"
+				[statusUpdating]="isUpdatingStatus(entry)"
+				[isFavorite]="isFavorite(entry.backlog.game.id)"
+				(moveUp)="moveUp(i)"
+				(moveDown)="moveDown(i)"
+				(remove)="remove(entry)"
+				(statusChange)="requestStatusChange(entry, $event)"
+				(favoriteToggle)="toggleFavorite(entry.backlog.game.id)"
+			/>
+		</div>
 		}
 	</div>
 	}
@@ -143,24 +158,27 @@
 	(closed)="onAddModalClosed()"
 	(saved)="onAddModalSaved()"
 />
-}
-
-@if (pendingPlayEntry(); as pending) {
+} @if (pendingPlayEntry(); as pending) {
 <div class="modal-overlay" (click)="cancelPlayConfirmation()">
 	<div
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[420px] flex flex-col gap-4"
-		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
 		(click)="$event.stopPropagation()"
 	>
-		<h2 class="m-0 text-lg font-bold font-display">Start playing this game?</h2>
+		<h2 class="m-0 text-lg font-bold font-display">
+			Start playing this game?
+		</h2>
 		<p class="text-sm text-fg-secondary leading-relaxed">
 			<strong>{{ pending.backlog.game.title }}</strong> will be marked as
-			<span class="text-warning font-medium">playing</span>. Since the Queue
-			only tracks games you haven't started yet, it will be removed from
-			your Queue.
+			<span class="text-warning font-medium">playing</span>. Since the
+			Queue only tracks games you haven't started yet, it will be removed
+			from your Queue.
 		</p>
 		<div>
-			<label for="pendingPlayStartedAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
+			<label
+				for="pendingPlayStartedAt"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+			>
 				Started on
 			</label>
 			<input

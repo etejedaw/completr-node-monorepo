@@ -14,41 +14,74 @@ interface InfoCard {
 	template: `
 		<div class="max-w-3xl mx-auto">
 			<div class="mb-6 flex items-start gap-4">
-				<span class="flex items-center justify-center w-12 h-12 rounded-2xl text-white shrink-0"
-					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 10px 24px -8px var(--color-brand-glow);">
-					<span class="material-icons text-[1.5rem]">videogame_asset</span>
+				<span
+					class="flex items-center justify-center w-12 h-12 rounded-2xl text-white shrink-0"
+					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 10px 24px -8px var(--color-brand-glow);"
+				>
+					<span class="material-icons text-[1.5rem]"
+						>videogame_asset</span
+					>
 				</span>
 				<div>
-					<h1 class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight">About Completr</h1>
+					<h1
+						class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight"
+					>
+						About Completr
+					</h1>
 					<p class="text-fg-muted mt-1 text-sm leading-snug">
-						A game backlog tracker with ratio-based prioritization — like Trakt or Letterboxd, but for video games.
+						A game backlog tracker with ratio-based prioritization —
+						like Trakt or Letterboxd, but for video games.
 					</p>
 				</div>
 			</div>
 
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 				@for (card of cards; track card.title) {
-					<div class="bg-sidebar border border-line rounded-card p-5 flex flex-col gap-2">
+					<div
+						class="bg-sidebar border border-line rounded-card p-5 flex flex-col gap-2"
+					>
 						<div class="flex items-center gap-2.5">
-							<span class="flex items-center justify-center w-9 h-9 rounded-lg shrink-0" [class]="tintClass(card.tint)">
-								<span class="material-icons text-[1.125rem]">{{ card.icon }}</span>
+							<span
+								class="flex items-center justify-center w-9 h-9 rounded-lg shrink-0"
+								[class]="tintClass(card.tint)"
+							>
+								<span class="material-icons text-[1.125rem]">{{
+									card.icon
+								}}</span>
 							</span>
-							<h2 class="font-display m-0 text-sm font-semibold text-fg">{{ card.title }}</h2>
+							<h2
+								class="font-display m-0 text-sm font-semibold text-fg"
+							>
+								{{ card.title }}
+							</h2>
 						</div>
-						<p class="m-0 text-[0.8125rem] text-fg-secondary leading-relaxed" [innerHTML]="card.body"></p>
+						<p
+							class="m-0 text-[0.8125rem] text-fg-secondary leading-relaxed"
+							[innerHTML]="card.body"
+						></p>
 					</div>
 				}
 			</div>
 
-			<div class="mt-6 bg-sidebar border border-line rounded-card p-5 flex items-center gap-4">
-				<span class="flex items-center justify-center w-11 h-11 rounded-full bg-brand-subtle text-brand shrink-0">
+			<div
+				class="mt-6 bg-sidebar border border-line rounded-card p-5 flex items-center gap-4"
+			>
+				<span
+					class="flex items-center justify-center w-11 h-11 rounded-full bg-brand-subtle text-brand shrink-0"
+				>
 					<span class="material-icons">favorite</span>
 				</span>
 				<div class="flex-1 min-w-0">
-					<div class="text-sm font-semibold text-fg">Built solo, one bug at a time</div>
+					<div class="text-sm font-semibold text-fg">
+						Built solo, one bug at a time
+					</div>
 					<div class="text-xs text-fg-muted leading-snug mt-0.5">
 						Feedback, bug reports and feature ideas welcome —
-						<a href="mailto:completr@etejeda.dev" class="text-brand no-underline hover:underline">completr&#64;etejeda.dev</a>.
+						<a
+							href="mailto:completr@etejeda.dev"
+							class="text-brand no-underline hover:underline"
+							>completr&#64;etejeda.dev</a
+						>.
 					</div>
 				</div>
 			</div>

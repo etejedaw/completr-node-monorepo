@@ -58,7 +58,12 @@ export class GameReviewsTab {
 		this.reviews.set([]);
 		this.myReview.set(null);
 		this.reviewsCount.set(0);
-		this.form.set({ show: false, content: "", rating: null, submitting: false });
+		this.form.set({
+			show: false,
+			content: "",
+			rating: null,
+			submitting: false
+		});
 	}
 
 	private loadReviews(gameId: string) {
@@ -67,7 +72,9 @@ export class GameReviewsTab {
 			this.reviewsCount.set(reviews.length);
 			const userId = this.authService.user()?.id;
 			if (userId) {
-				this.myReview.set(reviews.find(r => r.user?.id === userId) ?? null);
+				this.myReview.set(
+					reviews.find(r => r.user?.id === userId) ?? null
+				);
 			}
 			this.autoOpenIfRequested(gameId);
 		});

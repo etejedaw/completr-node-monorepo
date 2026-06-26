@@ -9,8 +9,12 @@
 }
 
 @theme {
-	--font-sans: "Space Grotesk", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-	--font-display: "Space Grotesk", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--font-sans:
+		"Space Grotesk", ui-sans-serif, -apple-system, BlinkMacSystemFont,
+		"Segoe UI", sans-serif;
+	--font-display:
+		"Space Grotesk", ui-sans-serif, -apple-system, BlinkMacSystemFont,
+		"Segoe UI", sans-serif;
 
 	--color-canvas: #0a0a0c;
 	--color-sidebar: #0e0e11;
@@ -174,10 +178,17 @@ body::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-	body::before { opacity: 0.025; }
+	body::before {
+		opacity: 0.025;
+	}
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
 	font-family: var(--font-display);
 	font-weight: 600;
 	letter-spacing: -0.02em;
@@ -240,18 +251,33 @@ a:hover {
 }
 
 @keyframes toastCountdown {
-	from { stroke-dashoffset: 0; }
-	to { stroke-dashoffset: 100; }
+	from {
+		stroke-dashoffset: 0;
+	}
+	to {
+		stroke-dashoffset: 100;
+	}
 }
 
 @keyframes skeletonPulse {
-	0%, 100% { opacity: 1; }
-	50% { opacity: 0.5; }
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
 }
 
 @keyframes uiFadeUp {
-	from { opacity: 0; transform: translateY(10px); }
-	to { opacity: 1; transform: translateY(0); }
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 .ui-stagger > * {
@@ -259,20 +285,48 @@ a:hover {
 	animation: uiFadeUp 480ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.ui-stagger > *:nth-child(1)  { animation-delay: 0ms; }
-.ui-stagger > *:nth-child(2)  { animation-delay: 45ms; }
-.ui-stagger > *:nth-child(3)  { animation-delay: 90ms; }
-.ui-stagger > *:nth-child(4)  { animation-delay: 135ms; }
-.ui-stagger > *:nth-child(5)  { animation-delay: 180ms; }
-.ui-stagger > *:nth-child(6)  { animation-delay: 225ms; }
-.ui-stagger > *:nth-child(7)  { animation-delay: 270ms; }
-.ui-stagger > *:nth-child(8)  { animation-delay: 315ms; }
-.ui-stagger > *:nth-child(9)  { animation-delay: 360ms; }
-.ui-stagger > *:nth-child(10) { animation-delay: 405ms; }
-.ui-stagger > *:nth-child(11) { animation-delay: 450ms; }
-.ui-stagger > *:nth-child(12) { animation-delay: 495ms; }
-.ui-stagger > *:nth-child(13) { animation-delay: 540ms; }
-.ui-stagger > *:nth-child(14) { animation-delay: 585ms; }
+.ui-stagger > *:nth-child(1) {
+	animation-delay: 0ms;
+}
+.ui-stagger > *:nth-child(2) {
+	animation-delay: 45ms;
+}
+.ui-stagger > *:nth-child(3) {
+	animation-delay: 90ms;
+}
+.ui-stagger > *:nth-child(4) {
+	animation-delay: 135ms;
+}
+.ui-stagger > *:nth-child(5) {
+	animation-delay: 180ms;
+}
+.ui-stagger > *:nth-child(6) {
+	animation-delay: 225ms;
+}
+.ui-stagger > *:nth-child(7) {
+	animation-delay: 270ms;
+}
+.ui-stagger > *:nth-child(8) {
+	animation-delay: 315ms;
+}
+.ui-stagger > *:nth-child(9) {
+	animation-delay: 360ms;
+}
+.ui-stagger > *:nth-child(10) {
+	animation-delay: 405ms;
+}
+.ui-stagger > *:nth-child(11) {
+	animation-delay: 450ms;
+}
+.ui-stagger > *:nth-child(12) {
+	animation-delay: 495ms;
+}
+.ui-stagger > *:nth-child(13) {
+	animation-delay: 540ms;
+}
+.ui-stagger > *:nth-child(14) {
+	animation-delay: 585ms;
+}
 
 @media (prefers-reduced-motion: reduce) {
 	.ui-stagger > * {

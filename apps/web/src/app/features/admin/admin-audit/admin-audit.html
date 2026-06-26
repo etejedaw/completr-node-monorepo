@@ -1,12 +1,21 @@
 <div>
 	<div class="flex items-center justify-between mb-5">
-		<h1 class="font-display text-3xl md:text-4xl font-bold tracking-tight m-0">Audit Log</h1>
-		<span class="text-[0.8125rem] text-fg-muted">{{ total() }} entries</span>
+		<h1
+			class="font-display text-3xl md:text-4xl font-bold tracking-tight m-0"
+		>
+			Audit Log
+		</h1>
+		<span class="text-[0.8125rem] text-fg-muted"
+			>{{ total() }} entries</span
+		>
 	</div>
 
 	<div class="flex flex-wrap gap-2 mb-4 items-end">
 		<div class="flex flex-col gap-1">
-			<label class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Action</label>
+			<label
+				class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
+				>Action</label
+			>
 			<select
 				uiSelect
 				size="sm"
@@ -15,12 +24,15 @@
 			>
 				<option value="">All</option>
 				@for (a of actionOptions; track a) {
-					<option [value]="a">{{ a }}</option>
+				<option [value]="a">{{ a }}</option>
 				}
 			</select>
 		</div>
 		<div class="flex flex-col gap-1">
-			<label class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Target type</label>
+			<label
+				class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
+				>Target type</label
+			>
 			<select
 				uiSelect
 				size="sm"
@@ -29,33 +41,55 @@
 			>
 				<option value="">All</option>
 				@for (t of targetTypeOptions; track t) {
-					<option [value]="t">{{ t }}</option>
+				<option [value]="t">{{ t }}</option>
 				}
 			</select>
 		</div>
 		@if (actionFilter() || targetTypeFilter()) {
-			<button
-				class="px-2.5 py-1.5 bg-transparent border border-line text-fg-muted text-xs rounded cursor-pointer hover:border-brand hover:text-brand transition"
-				(click)="clearFilters()"
-			>
-				Clear filters
-			</button>
+		<button
+			class="px-2.5 py-1.5 bg-transparent border border-line text-fg-muted text-xs rounded cursor-pointer hover:border-brand hover:text-brand transition"
+			(click)="clearFilters()"
+		>
+			Clear filters
+		</button>
 		}
 	</div>
 
 	@if (isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (logs().length === 0) {
-	<div class="text-center py-12 text-fg-muted text-sm">No audit entries match the filters.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">
+		No audit entries match the filters.
+	</div>
 	} @else {
 	<div class="overflow-x-auto">
 		<table class="w-full border-collapse text-[0.8125rem]">
 			<thead>
 				<tr>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">User</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Action</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Target</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Date</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						User
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Action
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Target
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Date
+					</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -65,19 +99,40 @@
 						{{ log.user?.username ?? 'Unknown' }}
 					</td>
 					<td class="px-3 py-2 align-middle whitespace-nowrap">
-						<span class="inline-block px-2 py-0.5 bg-surface rounded-full text-[0.6875rem] font-semibold text-fg-secondary">{{ log.action }}</span>
+						<span
+							class="inline-block px-2 py-0.5 bg-surface rounded-full text-[0.6875rem] font-semibold text-fg-secondary"
+							>{{ log.action }}</span
+						>
 					</td>
-					<td class="px-3 py-2 text-fg-secondary text-[0.8125rem] align-middle">
-						<span class="inline-block px-1.5 py-0.5 mr-1.5 bg-input-bg rounded text-[0.625rem] uppercase tracking-wider text-fg-muted">{{ log.targetType }}</span>
+					<td
+						class="px-3 py-2 text-fg-secondary text-[0.8125rem] align-middle"
+					>
+						<span
+							class="inline-block px-1.5 py-0.5 mr-1.5 bg-input-bg rounded text-[0.625rem] uppercase tracking-wider text-fg-muted"
+							>{{ log.targetType }}</span
+						>
 						@if (log.target?.type === 'game' && log.target?.code) {
-							<a class="text-brand no-underline hover:underline" [routerLink]="['/games', log.target!.code]">{{ log.target!.label }}</a>
-						} @else if (log.target?.type === 'user' && log.target?.username) {
-							<a class="text-brand no-underline hover:underline" [routerLink]="['/user', log.target!.username]">{{ log.target!.label }}</a>
+						<a
+							class="text-brand no-underline hover:underline"
+							[routerLink]="['/games', log.target!.code]"
+							>{{ log.target!.label }}</a
+						>
+						} @else if (log.target?.type === 'user' &&
+						log.target?.username) {
+						<a
+							class="text-brand no-underline hover:underline"
+							[routerLink]="['/user', log.target!.username]"
+							>{{ log.target!.label }}</a
+						>
 						} @else {
-							<span class="font-mono text-fg-muted text-xs">{{ log.targetId.slice(0, 8) }}...</span>
+						<span class="font-mono text-fg-muted text-xs"
+							>{{ log.targetId.slice(0, 8) }}...</span
+						>
 						}
 					</td>
-					<td class="px-3 py-2 text-fg-muted text-xs whitespace-nowrap align-middle">
+					<td
+						class="px-3 py-2 text-fg-muted text-xs whitespace-nowrap align-middle"
+					>
 						{{ log.createdAt | date:'yyyy-MM-dd HH:mm' }}
 					</td>
 				</tr>

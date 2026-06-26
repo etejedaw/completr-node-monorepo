@@ -1,78 +1,161 @@
 <div>
 	<div class="flex items-center justify-between mb-5">
-		<h1 class="font-display text-3xl md:text-4xl font-bold tracking-tight m-0">Jobs</h1>
+		<h1
+			class="font-display text-3xl md:text-4xl font-bold tracking-tight m-0"
+		>
+			Jobs
+		</h1>
 		<button uiButton variant="secondary" size="sm" (click)="refresh()">
-			<span aria-hidden="true" class="material-icons text-lg">refresh</span>
+			<span aria-hidden="true" class="material-icons text-lg"
+				>refresh</span
+			>
 		</button>
 	</div>
 
 	<div class="flex flex-wrap gap-2 mb-5">
 		<button
 			class="px-4 py-2 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:enabled:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-			style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+			style="
+				background: linear-gradient(
+					135deg,
+					var(--color-brand),
+					var(--color-brand-deep)
+				);
+			"
 			(click)="startJob('populate_rawg')"
 			[disabled]="starting()"
 		>
-			{{ starting() === 'populate_rawg' ? 'Starting...' : 'Populate RAWG IDs' }}
+			{{ starting() === 'populate_rawg' ? 'Starting...' : 'Populate RAWG
+			IDs' }}
 		</button>
 		<button
 			class="px-4 py-2 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:enabled:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-			style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+			style="
+				background: linear-gradient(
+					135deg,
+					var(--color-brand),
+					var(--color-brand-deep)
+				);
+			"
 			(click)="startJob('calculate_ratings')"
 			[disabled]="starting()"
 		>
-			{{ starting() === 'calculate_ratings' ? 'Starting...' : 'Calculate Ratings' }}
+			{{ starting() === 'calculate_ratings' ? 'Starting...' : 'Calculate
+			Ratings' }}
 		</button>
 		<button
 			class="px-4 py-2 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:enabled:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-			style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+			style="
+				background: linear-gradient(
+					135deg,
+					var(--color-brand),
+					var(--color-brand-deep)
+				);
+			"
 			(click)="startJob('calculate_durations')"
 			[disabled]="starting()"
 		>
-			{{ starting() === 'calculate_durations' ? 'Starting...' : 'Calculate Durations' }}
+			{{ starting() === 'calculate_durations' ? 'Starting...' : 'Calculate
+			Durations' }}
 		</button>
 	</div>
 
 	@if (isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (jobs().length === 0) {
-	<div class="text-center py-12 text-fg-muted text-sm">No jobs have been run yet.</div>
+	<div class="text-center py-12 text-fg-muted text-sm">
+		No jobs have been run yet.
+	</div>
 	} @else {
 	<div class="overflow-x-auto">
 		<table class="w-full border-collapse text-[0.8125rem]">
 			<thead>
 				<tr>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Type</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Status</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Result</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Started</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Completed</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"></th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Type
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Status
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Result
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Started
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Completed
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					></th>
 				</tr>
 			</thead>
 			<tbody>
 				@for (job of jobs(); track job.id) {
 				<tr class="border-b border-line transition hover:bg-surface">
-					<td class="px-3 py-2 text-fg align-middle">{{ job.type }}</td>
+					<td class="px-3 py-2 text-fg align-middle">
+						{{ job.type }}
+					</td>
 					<td class="px-3 py-2 align-middle">
 						@if (job.status === 'running') {
-						<span class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning">{{ job.status }}</span>
+						<span
+							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning"
+							>{{ job.status }}</span
+						>
 						} @else if (job.status === 'completed') {
-						<span class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-success/10 text-success">{{ job.status }}</span>
+						<span
+							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-success/10 text-success"
+							>{{ job.status }}</span
+						>
 						} @else if (job.status === 'failed') {
-						<span class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-danger/10 text-danger">{{ job.status }}</span>
+						<span
+							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-danger/10 text-danger"
+							>{{ job.status }}</span
+						>
 						} @else {
-						<span class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-fg-muted/10 text-fg-muted">{{ job.status }}</span>
+						<span
+							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-fg-muted/10 text-fg-muted"
+							>{{ job.status }}</span
+						>
 						}
 					</td>
-					<td class="px-3 py-2 text-fg-secondary text-xs align-middle max-w-[300px]">{{ job.result ?? '-' }}</td>
-					<td class="px-3 py-2 text-fg align-middle">{{ job.createdAt | date : "yyyy-MM-dd HH:mm" }}</td>
+					<td
+						class="px-3 py-2 text-fg-secondary text-xs align-middle max-w-[300px]"
+					>
+						{{ job.result ?? '-' }}
+					</td>
 					<td class="px-3 py-2 text-fg align-middle">
-						{{ job.completedAt ? (job.completedAt | date : "yyyy-MM-dd HH:mm") : "-" }}
+						{{ job.createdAt | date : "yyyy-MM-dd HH:mm" }}
+					</td>
+					<td class="px-3 py-2 text-fg align-middle">
+						{{ job.completedAt ? (job.completedAt | date :
+						"yyyy-MM-dd HH:mm") : "-" }}
 					</td>
 					<td class="px-3 py-2 align-middle">
 						@if (job.status === 'running') {
-						<button uiButton variant="danger" size="sm" (click)="cancelJob(job.id)">
+						<button
+							uiButton
+							variant="danger"
+							size="sm"
+							(click)="cancelJob(job.id)"
+						>
 							Cancel
 						</button>
 						}

@@ -82,7 +82,8 @@ export class Layout implements OnInit {
 	protected readonly roleBadgeClass = computed(() => {
 		const role = this.user()?.role;
 		if (role === "admin") return "bg-danger/15 text-danger";
-		if (role === "moderator") return "bg-[rgba(168,85,247,0.15)] text-[#a855f7]";
+		if (role === "moderator")
+			return "bg-[rgba(168,85,247,0.15)] text-[#a855f7]";
 		if (role === "premium") return "bg-warning/15 text-warning";
 		return "bg-[rgba(148,163,184,0.15)] text-fg-muted";
 	});

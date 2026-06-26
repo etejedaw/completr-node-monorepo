@@ -36,21 +36,25 @@ export class AdminReports implements OnInit {
 	}
 
 	approve(report: GameReport) {
-		this.reportsService.updateReportStatus(report.id, "approved").subscribe({
-			next: () =>
-				this.reports.update(list =>
-					list.filter(r => r.id !== report.id)
-				)
-		});
+		this.reportsService
+			.updateReportStatus(report.id, "approved")
+			.subscribe({
+				next: () =>
+					this.reports.update(list =>
+						list.filter(r => r.id !== report.id)
+					)
+			});
 	}
 
 	reject(report: GameReport) {
-		this.reportsService.updateReportStatus(report.id, "rejected").subscribe({
-			next: () =>
-				this.reports.update(list =>
-					list.filter(r => r.id !== report.id)
-				)
-		});
+		this.reportsService
+			.updateReportStatus(report.id, "rejected")
+			.subscribe({
+				next: () =>
+					this.reports.update(list =>
+						list.filter(r => r.id !== report.id)
+					)
+			});
 	}
 
 	private loadReports() {

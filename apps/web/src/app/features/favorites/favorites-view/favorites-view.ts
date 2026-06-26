@@ -13,13 +13,28 @@ import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
 import { GamesService } from "../../games/games";
 import { ToastService } from "../../../core/services/toast";
 import { RouterLink } from "@angular/router";
-import { UiButton, UiEmptyState, UiPagination, UiSearchBar, UiSkeleton } from "../../../shared/ui";
+import {
+	UiButton,
+	UiEmptyState,
+	UiPagination,
+	UiSearchBar,
+	UiSkeleton
+} from "../../../shared/ui";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-favorites-view",
-	imports: [RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar, UiSkeleton, GameCoverCard, BacklogModal],
+	imports: [
+		RouterLink,
+		UiButton,
+		UiEmptyState,
+		UiPagination,
+		UiSearchBar,
+		UiSkeleton,
+		GameCoverCard,
+		BacklogModal
+	],
 	templateUrl: "./favorites-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

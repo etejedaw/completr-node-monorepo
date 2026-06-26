@@ -37,23 +37,34 @@ export type QueueStatusChange = "playing";
 						<img
 							[src]="entry().game.backgroundUrl"
 							[alt]="entry().game.title"
-							class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition-transform group-hover:scale-[1.03]" loading="lazy"
+							class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition-transform group-hover:scale-[1.03]"
+							loading="lazy"
 						/>
 					} @else {
-						<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
+						<div
+							class="w-full aspect-[3/4] bg-surface rounded-lg"
+						></div>
 					}
 				</a>
-				<span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm pointer-events-none">
+				<span
+					class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm pointer-events-none"
+				>
 					#{{ position() }}
 				</span>
-				<div class="absolute top-2 right-2 flex flex-col items-end gap-1 pointer-events-none">
+				<div
+					class="absolute top-2 right-2 flex flex-col items-end gap-1 pointer-events-none"
+				>
 					@if (entry().ratio) {
-						<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-brand/85 backdrop-blur-sm">
+						<span
+							class="px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-brand/85 backdrop-blur-sm"
+						>
 							{{ entry().ratio }}
 						</span>
 					}
 					@if (entry().duration) {
-						<span class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-white bg-black/70 backdrop-blur-sm">
+						<span
+							class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-white bg-black/70 backdrop-blur-sm"
+						>
 							{{ entry().duration }}h
 						</span>
 					}
@@ -69,7 +80,9 @@ export type QueueStatusChange = "playing";
 							[disabled]="statusUpdating()"
 							title="Mark as playing"
 						>
-							<span class="material-icons text-xl">play_arrow</span>
+							<span class="material-icons text-xl"
+								>play_arrow</span
+							>
 						</button>
 					</div>
 				}
@@ -77,7 +90,8 @@ export type QueueStatusChange = "playing";
 			<a
 				class="text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand"
 				[routerLink]="['/games', entry().game.code]"
-			>{{ entry().game.title }}</a>
+				>{{ entry().game.title }}</a
+			>
 			<app-mood-tags-chips [tags]="entry().moodTags" />
 
 			<div class="flex items-center justify-between gap-1">
@@ -89,45 +103,66 @@ export type QueueStatusChange = "playing";
 						[class.text-fg-muted]="!isFavorite()"
 						[class.hover:text-warning]="!isFavorite()"
 						(click)="favoriteToggle.emit()"
-						[title]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+						[title]="
+							isFavorite()
+								? 'Remove from favorites'
+								: 'Add to favorites'
+						"
 					>
-						<span class="material-icons text-base leading-none">{{ isFavorite() ? 'star' : 'star_border' }}</span>
+						<span class="material-icons text-base leading-none">{{
+							isFavorite() ? "star" : "star_border"
+						}}</span>
 					</button>
 					<span class="text-[0.625rem] text-fg-muted truncate">
-						{{ entry().platformAbbreviation ?? '' }}
+						{{ entry().platformAbbreviation ?? "" }}
 					</span>
 				</div>
 				@if (showActions()) {
-					<div class="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 pointer-coarse:opacity-100 transition">
+					<div
+						class="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 pointer-coarse:opacity-100 transition"
+					>
 						@if (showDragHandle()) {
 							<button
-								uiIconButton size="sm"
+								uiIconButton
+								size="sm"
 								cdkDragHandle
 								class="cursor-grab active:cursor-grabbing touch-none"
 								aria-label="Drag to reorder"
 								title="Drag to reorder"
 							>
-								<span aria-hidden="true" class="material-icons text-base">drag_indicator</span>
+								<span
+									aria-hidden="true"
+									class="material-icons text-base"
+									>drag_indicator</span
+								>
 							</button>
 						}
 						<button
-							uiIconButton size="sm"
+							uiIconButton
+							size="sm"
 							[disabled]="isFirst()"
 							(click)="moveUp.emit()"
 							title="Move up"
 						>
-							<span class="material-icons text-base">keyboard_arrow_up</span>
+							<span class="material-icons text-base"
+								>keyboard_arrow_up</span
+							>
 						</button>
 						<button
-							uiIconButton size="sm"
+							uiIconButton
+							size="sm"
 							[disabled]="isLast()"
 							(click)="moveDown.emit()"
 							title="Move down"
 						>
-							<span class="material-icons text-base">keyboard_arrow_down</span>
+							<span class="material-icons text-base"
+								>keyboard_arrow_down</span
+							>
 						</button>
 						<button
-							uiIconButton size="sm" tone="danger"
+							uiIconButton
+							size="sm"
+							tone="danger"
 							(click)="remove.emit()"
 							title="Remove"
 						>

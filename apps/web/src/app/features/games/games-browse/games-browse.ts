@@ -24,7 +24,13 @@ import {
 	switchMap,
 	of
 } from "rxjs";
-import { UiButton, UiInput, UiPagination, UiSearchBar, UiSelect } from "../../../shared/ui";
+import {
+	UiButton,
+	UiInput,
+	UiPagination,
+	UiSearchBar,
+	UiSelect
+} from "../../../shared/ui";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 
@@ -87,7 +93,11 @@ export class GamesBrowse implements OnInit, OnDestroy {
 	protected readonly isDlc = signal<boolean | null>(null);
 	protected readonly sortBy = signal<string>("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
-	protected readonly sortOptions: { value: string; label: string; defaultOrder: "asc" | "desc" }[] = [
+	protected readonly sortOptions: {
+		value: string;
+		label: string;
+		defaultOrder: "asc" | "desc";
+	}[] = [
 		{ value: "createdAt", label: "Recently added", defaultOrder: "desc" },
 		{ value: "title", label: "Title", defaultOrder: "asc" },
 		{ value: "releaseAt", label: "Release date", defaultOrder: "desc" },
@@ -177,7 +187,9 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		this.loadOfficialLists();
 		this.loadRecentLists();
 		this.gamesService.getGenres().subscribe(g => this.allGenres.set(g));
-		this.gamesService.getPlatforms().subscribe(p => this.allPlatforms.set(p));
+		this.gamesService
+			.getPlatforms()
+			.subscribe(p => this.allPlatforms.set(p));
 		this.applyFromUrl();
 
 		this.rotateSub = interval(7000).subscribe(() => {
@@ -380,8 +392,10 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		if (this.yearTo() !== null) q["release_year_to"] = this.yearTo()!;
 		if (this.minScore() !== null) q["min_score"] = this.minScore()!;
 		if (this.maxScore() !== null) q["max_score"] = this.maxScore()!;
-		if (this.minDuration() !== null) q["min_duration"] = this.minDuration()!;
-		if (this.maxDuration() !== null) q["max_duration"] = this.maxDuration()!;
+		if (this.minDuration() !== null)
+			q["min_duration"] = this.minDuration()!;
+		if (this.maxDuration() !== null)
+			q["max_duration"] = this.maxDuration()!;
 		if (this.isDlc() !== null) q["is_dlc"] = this.isDlc()!;
 		return q;
 	}
@@ -394,15 +408,23 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		params["genres"] = genres.length > 0 ? genres.join(",") : null;
 		const platforms = Array.from(this.selectedPlatforms());
 		params["platforms"] = platforms.length > 0 ? platforms.join(",") : null;
-		params["year_from"] = this.yearFrom() !== null ? String(this.yearFrom()) : null;
-		params["year_to"] = this.yearTo() !== null ? String(this.yearTo()) : null;
-		params["min_score"] = this.minScore() !== null ? String(this.minScore()) : null;
-		params["max_score"] = this.maxScore() !== null ? String(this.maxScore()) : null;
-		params["min_duration"] = this.minDuration() !== null ? String(this.minDuration()) : null;
-		params["max_duration"] = this.maxDuration() !== null ? String(this.maxDuration()) : null;
+		params["year_from"] =
+			this.yearFrom() !== null ? String(this.yearFrom()) : null;
+		params["year_to"] =
+			this.yearTo() !== null ? String(this.yearTo()) : null;
+		params["min_score"] =
+			this.minScore() !== null ? String(this.minScore()) : null;
+		params["max_score"] =
+			this.maxScore() !== null ? String(this.maxScore()) : null;
+		params["min_duration"] =
+			this.minDuration() !== null ? String(this.minDuration()) : null;
+		params["max_duration"] =
+			this.maxDuration() !== null ? String(this.maxDuration()) : null;
 		params["is_dlc"] = this.isDlc() !== null ? String(this.isDlc()) : null;
-		params["sort_by"] = this.sortBy() !== "createdAt" ? this.sortBy() : null;
-		params["sort_order"] = this.sortOrder() !== "desc" ? this.sortOrder() : null;
+		params["sort_by"] =
+			this.sortBy() !== "createdAt" ? this.sortBy() : null;
+		params["sort_order"] =
+			this.sortOrder() !== "desc" ? this.sortOrder() : null;
 		this.router.navigate([], {
 			relativeTo: this.route,
 			queryParams: params,
@@ -415,14 +437,22 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		const p = this.route.snapshot.queryParamMap;
 		const csv = (key: string) => {
 			const v = p.get(key);
-			return v ? new Set(v.split(",").filter(Boolean)) : new Set<string>();
+			return v
+				? new Set(v.split(",").filter(Boolean))
+				: new Set<string>();
 		};
 		this.selectedGenres.set(csv("genres"));
 		this.selectedPlatforms.set(csv("platforms"));
-		this.yearFrom.set(p.get("year_from") ? Number(p.get("year_from")) : null);
+		this.yearFrom.set(
+			p.get("year_from") ? Number(p.get("year_from")) : null
+		);
 		this.yearTo.set(p.get("year_to") ? Number(p.get("year_to")) : null);
-		this.minScore.set(p.get("min_score") ? Number(p.get("min_score")) : null);
-		this.maxScore.set(p.get("max_score") ? Number(p.get("max_score")) : null);
+		this.minScore.set(
+			p.get("min_score") ? Number(p.get("min_score")) : null
+		);
+		this.maxScore.set(
+			p.get("max_score") ? Number(p.get("max_score")) : null
+		);
 		this.minDuration.set(
 			p.get("min_duration") ? Number(p.get("min_duration")) : null
 		);

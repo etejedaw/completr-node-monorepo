@@ -37,7 +37,10 @@ export class UiTabList {}
 	hostDirectives: [
 		{
 			directive: NgpTabButton,
-			inputs: ["ngpTabButtonValue: value", "ngpTabButtonDisabled: disabled"]
+			inputs: [
+				"ngpTabButtonValue: value",
+				"ngpTabButtonDisabled: disabled"
+			]
 		}
 	],
 	host: { class: "ui-tab" }

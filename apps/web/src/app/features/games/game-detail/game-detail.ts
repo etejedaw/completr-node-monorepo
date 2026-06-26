@@ -25,9 +25,18 @@ import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
 import { metascoreColorClass } from "../../../shared/utils/metascore-color";
 import { FormsModule } from "@angular/forms";
-import { UiButton, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
+import {
+	UiButton,
+	UiTabs,
+	UiTabList,
+	UiTab,
+	UiTabPanel
+} from "../../../shared/ui";
 import { GameSocialActivity } from "./components/game-social-activity";
-import { GameAddToListModal, ListsChanged } from "./components/game-add-to-list-modal";
+import {
+	GameAddToListModal,
+	ListsChanged
+} from "./components/game-add-to-list-modal";
 import { GameReviewsTab } from "./components/game-reviews-tab";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
@@ -212,7 +221,9 @@ export class GameDetail implements OnInit {
 				this.moodTags.set(game.userMoodTags ?? []);
 				this.editingMoodTags.set(false);
 				this.isFavorite.set(this.favoritesService.isFavorite(game.id));
-				this.isInWishlist.set(this.wishlistService.isInWishlist(game.id));
+				this.isInWishlist.set(
+					this.wishlistService.isInWishlist(game.id)
+				);
 				this.isLoading.set(false);
 				this.loadSimilarGames(game);
 				this.loadUserStatus(game.id);
@@ -297,13 +308,15 @@ export class GameDetail implements OnInit {
 	onWishlistPlatformModalSaved() {
 		this.showWishlistPlatformModal.set(false);
 		const gameId = this.game()?.id;
-		if (gameId) this.isInWishlist.set(this.wishlistService.isInWishlist(gameId));
+		if (gameId)
+			this.isInWishlist.set(this.wishlistService.isInWishlist(gameId));
 	}
 
 	addToQueue() {
 		const g = this.game();
 		if (!g || this.addedToQueue()) return;
-		const isCompilation = g.isCompilation && (g.compilationItems ?? []).length > 0;
+		const isCompilation =
+			g.isCompilation && (g.compilationItems ?? []).length > 0;
 		this.updateBacklogModal({
 			show: true,
 			preselectQueue: true,
@@ -335,7 +348,8 @@ export class GameDetail implements OnInit {
 	openBacklogModal() {
 		const g = this.game();
 		if (!g) return;
-		const isCompilation = g.isCompilation && (g.compilationItems ?? []).length > 0;
+		const isCompilation =
+			g.isCompilation && (g.compilationItems ?? []).length > 0;
 		this.updateBacklogModal({
 			show: true,
 			preselectQueue: false,
@@ -445,7 +459,8 @@ export class GameDetail implements OnInit {
 				error: err =>
 					this.updateReportModal({
 						submitting: false,
-						sent: err.status === 409 ? true : this.reportModal().sent
+						sent:
+							err.status === 409 ? true : this.reportModal().sent
 					})
 			});
 	}
@@ -491,5 +506,4 @@ export class GameDetail implements OnInit {
 	protected updateReportModal(patch: Partial<ReportModalState>) {
 		this.reportModal.update(s => ({ ...s, ...patch }));
 	}
-
 }

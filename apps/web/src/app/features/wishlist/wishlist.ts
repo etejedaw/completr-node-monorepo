@@ -40,24 +40,24 @@ export class WishlistService {
 	add(gameId: string, platformId?: string) {
 		const body: Record<string, string> = { gameId };
 		if (platformId) body["platformId"] = platformId;
-		return this.http
-			.post<WishlistAddResponse>(this.baseUrl, body)
-			.pipe(
-				tap(res =>
-					this._wishlist.set([...this._wishlist(), res.data.wishlist])
-				),
-				map(res => res.data.wishlist)
-			);
+		return this.http.post<WishlistAddResponse>(this.baseUrl, body).pipe(
+			tap(res =>
+				this._wishlist.set([...this._wishlist(), res.data.wishlist])
+			),
+			map(res => res.data.wishlist)
+		);
 	}
 
 	remove(gameId: string) {
-		return this.http.delete<void>(`${this.baseUrl}/${gameId}`).pipe(
-			tap(() =>
-				this._wishlist.set(
-					this._wishlist().filter(w => w.game.id !== gameId)
+		return this.http
+			.delete<void>(`${this.baseUrl}/${gameId}`)
+			.pipe(
+				tap(() =>
+					this._wishlist.set(
+						this._wishlist().filter(w => w.game.id !== gameId)
+					)
 				)
-			)
-		);
+			);
 	}
 
 	toggle(gameId: string): Observable<void> {
@@ -67,11 +67,9 @@ export class WishlistService {
 	}
 
 	replaceWishlist(gameIds: string[]) {
-		return this.http
-			.put<WishlistResponse>(this.baseUrl, { gameIds })
-			.pipe(
-				tap(res => this._wishlist.set(res.data.wishlist)),
-				map(res => res.data.wishlist)
-			);
+		return this.http.put<WishlistResponse>(this.baseUrl, { gameIds }).pipe(
+			tap(res => this._wishlist.set(res.data.wishlist)),
+			map(res => res.data.wishlist)
+		);
 	}
 }

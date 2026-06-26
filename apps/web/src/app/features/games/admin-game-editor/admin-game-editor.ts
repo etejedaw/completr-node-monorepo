@@ -513,7 +513,9 @@ export class AdminGameEditor implements OnInit {
 			variant: v.variant.trim()
 		}));
 		if (cleaned.some(v => !v.title || !v.variant)) {
-			this.splitError.set("All variants need a title and a variant label.");
+			this.splitError.set(
+				"All variants need a title and a variant label."
+			);
 			return;
 		}
 		const titles = new Set(cleaned.map(v => v.title.toLowerCase()));
@@ -530,9 +532,7 @@ export class AdminGameEditor implements OnInit {
 				this.splitting.set(false);
 				this.splitOpen.set(false);
 				if (games.length > 0) {
-					this.toast.success(
-						`Split into ${games.length} variants.`
-					);
+					this.toast.success(`Split into ${games.length} variants.`);
 					this.split.emit(games[0]);
 				}
 			},
@@ -757,7 +757,9 @@ export class AdminGameEditor implements OnInit {
 			.filter(i => i.mode === "create")
 			.map(i => this.previewSlug((i as { title: string }).title));
 		if (new Set(createSlugs).size !== createSlugs.length) {
-			this.compilationError.set("Created titles must produce unique slugs.");
+			this.compilationError.set(
+				"Created titles must produce unique slugs."
+			);
 			return;
 		}
 
@@ -786,7 +788,9 @@ export class AdminGameEditor implements OnInit {
 						"Invalid compilation: duplicates or self-reference."
 					);
 				} else if (err?.error?.type === "GAME_NOT_FOUND") {
-					this.compilationError.set("Parent or a linked game not found.");
+					this.compilationError.set(
+						"Parent or a linked game not found."
+					);
 				} else {
 					this.compilationError.set("Failed to save compilation.");
 				}

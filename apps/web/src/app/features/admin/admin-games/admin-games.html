@@ -1,12 +1,23 @@
 <div>
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
-			<h1 class="font-display text-3xl md:text-4xl font-bold tracking-tight m-0">Games</h1>
-			<span class="text-[0.8125rem] text-fg-muted">{{ total() }} total</span>
+			<h1
+				class="font-display text-3xl md:text-4xl font-bold tracking-tight m-0"
+			>
+				Games
+			</h1>
+			<span class="text-[0.8125rem] text-fg-muted"
+				>{{ total() }} total</span
+			>
 		</div>
 	</div>
 
-	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search games..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
+	<ui-search-bar
+		class="block mb-4 max-w-2xl"
+		placeholder="Search games..."
+		[value]="searchQuery()"
+		(valueChange)="onSearch($event)"
+	/>
 
 	<div class="flex flex-wrap gap-2 mb-4">
 		<button
@@ -66,26 +77,25 @@
 		</button>
 		<span class="self-center text-fg-muted text-xs">|</span>
 		@for (src of SCORE_SOURCES; track src) {
-			<button
-				class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
-				[class.!bg-brand-subtle]="noScoreSources().has(src)"
-				[class.!border-brand]="noScoreSources().has(src)"
-				[class.!text-brand]="noScoreSources().has(src)"
-				(click)="toggleScoreSource(src)"
-			>
-				No {{ src }} score
-			</button>
-		}
-		@for (src of TIME_SOURCES; track src) {
-			<button
-				class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
-				[class.!bg-brand-subtle]="noTimeSources().has(src)"
-				[class.!border-brand]="noTimeSources().has(src)"
-				[class.!text-brand]="noTimeSources().has(src)"
-				(click)="toggleTimeSource(src)"
-			>
-				No {{ src }} time
-			</button>
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="noScoreSources().has(src)"
+			[class.!border-brand]="noScoreSources().has(src)"
+			[class.!text-brand]="noScoreSources().has(src)"
+			(click)="toggleScoreSource(src)"
+		>
+			No {{ src }} score
+		</button>
+		} @for (src of TIME_SOURCES; track src) {
+		<button
+			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
+			[class.!bg-brand-subtle]="noTimeSources().has(src)"
+			[class.!border-brand]="noTimeSources().has(src)"
+			[class.!text-brand]="noTimeSources().has(src)"
+			(click)="toggleTimeSource(src)"
+		>
+			No {{ src }} time
+		</button>
 		}
 	</div>
 
@@ -98,14 +108,50 @@
 		<table class="w-full border-collapse text-[0.8125rem]">
 			<thead>
 				<tr>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 pr-0"></th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap min-w-[200px]">Title</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Code</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Platforms</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Scores</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Times</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">DLC</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 text-center"></th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 pr-0"
+					></th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap min-w-[200px]"
+					>
+						Title
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Code
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Platforms
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Scores
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Times
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						DLC
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 text-center"
+					></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -116,7 +162,8 @@
 						<img
 							[src]="game.backgroundUrl"
 							[alt]="game.title"
-							class="w-9 h-12 object-cover rounded block" loading="lazy"
+							class="w-9 h-12 object-cover rounded block"
+							loading="lazy"
 						/>
 						} @else {
 						<div class="w-9 h-12 bg-surface rounded"></div>
@@ -124,59 +171,93 @@
 					</td>
 					<td class="px-3 py-2 align-middle min-w-[200px]">
 						@if (game.isActive === false) {
-							<span class="text-fg-muted font-medium" [title]="game.title">{{ game.title }}</span>
-							<span class="ml-1.5 inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-danger/10 text-danger">Deactivated</span>
+						<span
+							class="text-fg-muted font-medium"
+							[title]="game.title"
+							>{{ game.title }}</span
+						>
+						<span
+							class="ml-1.5 inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-danger/10 text-danger"
+							>Deactivated</span
+						>
 						} @else {
-							<a
-								class="text-fg font-medium no-underline transition hover:text-brand"
-								[routerLink]="['/games', game.code]"
-							>
-								{{ game.title }}
-							</a>
-						}
-						@if (game.variant) {
-							<span class="ml-1.5 inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-brand/15 text-brand">{{ game.variant }}</span>
+						<a
+							class="text-fg font-medium no-underline transition hover:text-brand"
+							[routerLink]="['/games', game.code]"
+						>
+							{{ game.title }}
+						</a>
+						} @if (game.variant) {
+						<span
+							class="ml-1.5 inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-brand/15 text-brand"
+							>{{ game.variant }}</span
+						>
 						}
 					</td>
-					<td class="px-3 py-2 align-middle text-fg-muted text-xs whitespace-nowrap">{{ game.code }}</td>
-					<td class="px-3 py-2 align-middle text-fg-secondary text-xs max-w-[200px]">
-						{{ game.platforms.map(p => p.abbreviation).join(", ") || "-" }}
+					<td
+						class="px-3 py-2 align-middle text-fg-muted text-xs whitespace-nowrap"
+					>
+						{{ game.code }}
+					</td>
+					<td
+						class="px-3 py-2 align-middle text-fg-secondary text-xs max-w-[200px]"
+					>
+						{{ game.platforms.map(p => p.abbreviation).join(", ") ||
+						"-" }}
 					</td>
 					<td class="px-3 py-2 align-middle whitespace-nowrap">
 						@for (s of game.scores; track s.source) {
-						<span class="inline-block px-1.5 py-0.5 bg-surface rounded text-[0.6875rem] text-fg-secondary mr-1">{{ s.source }}: {{ s.score }}</span>
+						<span
+							class="inline-block px-1.5 py-0.5 bg-surface rounded text-[0.6875rem] text-fg-secondary mr-1"
+							>{{ s.source }}: {{ s.score }}</span
+						>
 						}
 					</td>
 					<td class="px-3 py-2 align-middle whitespace-nowrap">
 						@for (t of game.times; track t.source) {
-						<span class="inline-block px-1.5 py-0.5 bg-surface rounded text-[0.6875rem] text-fg-secondary mr-1">{{ t.source }}: {{ t.duration }}h</span>
+						<span
+							class="inline-block px-1.5 py-0.5 bg-surface rounded text-[0.6875rem] text-fg-secondary mr-1"
+							>{{ t.source }}: {{ t.duration }}h</span
+						>
 						}
 					</td>
 					<td class="px-3 py-2 align-middle">
 						@if (game.isDlc) {
-						<span class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning">DLC</span>
+						<span
+							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning"
+							>DLC</span
+						>
 						}
 					</td>
-					<td class="px-3 py-2 align-middle whitespace-nowrap text-center">
+					<td
+						class="px-3 py-2 align-middle whitespace-nowrap text-center"
+					>
 						<div class="flex items-center justify-center gap-1">
 							@if (reportedGameIds().has(game.id)) {
-								<button
-									class="bg-danger/10 border border-danger/20 rounded text-danger cursor-pointer p-1 leading-none transition hover:bg-danger/20"
-									(click)="goToGameReport(game.id)"
-									title="View report"
+							<button
+								class="bg-danger/10 border border-danger/20 rounded text-danger cursor-pointer p-1 leading-none transition hover:bg-danger/20"
+								(click)="goToGameReport(game.id)"
+								title="View report"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-base"
+									>flag</span
 								>
-									<span aria-hidden="true" class="material-icons text-base">flag</span>
-								</button>
-							}
-							@if (game.isActive === false) {
-								<button
-									class="bg-success/10 border border-success/20 rounded text-success cursor-pointer p-1 leading-none transition hover:bg-success/20 disabled:opacity-50 disabled:cursor-not-allowed"
-									(click)="reactivate(game)"
-									[disabled]="isReactivating(game.id)"
-									title="Reactivate game"
+							</button>
+							} @if (game.isActive === false) {
+							<button
+								class="bg-success/10 border border-success/20 rounded text-success cursor-pointer p-1 leading-none transition hover:bg-success/20 disabled:opacity-50 disabled:cursor-not-allowed"
+								(click)="reactivate(game)"
+								[disabled]="isReactivating(game.id)"
+								title="Reactivate game"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-base"
+									>restore_from_trash</span
 								>
-									<span aria-hidden="true" class="material-icons text-base">restore_from_trash</span>
-								</button>
+							</button>
 							}
 						</div>
 					</td>

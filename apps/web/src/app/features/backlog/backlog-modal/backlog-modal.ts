@@ -13,11 +13,7 @@ import { RouterLink } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { BacklogEntry } from "../../../core/models";
 import { Game, Platform } from "../../../core/models";
-import {
-	BacklogService,
-	CreateBacklogDto,
-	UpdateBacklogDto
-} from "../backlog";
+import { BacklogService, CreateBacklogDto, UpdateBacklogDto } from "../backlog";
 import { GamesService } from "../../games/games";
 import { QueueService } from "../../queue/queue";
 import { GameShelfService } from "../../game-shelf/game-shelf";
@@ -52,7 +48,18 @@ import {
 	forkJoin,
 	of
 } from "rxjs";
-import { UiButton, UiFocusTrap, UiIconButton, UiInput, UiSelect, UiTabs, UiTabList, UiTab, UiTabPanel, UiTextarea } from "../../../shared/ui";
+import {
+	UiButton,
+	UiFocusTrap,
+	UiIconButton,
+	UiInput,
+	UiSelect,
+	UiTabs,
+	UiTabList,
+	UiTab,
+	UiTabPanel,
+	UiTextarea
+} from "../../../shared/ui";
 import { DatePipe } from "@angular/common";
 
 @Component({
@@ -99,9 +106,11 @@ export class BacklogModal implements OnInit {
 	private static readonly TOOLTIP_TEXTS: Record<string, string> = {
 		ratio: "Ratio = (Critic Score ÷ Duration) × 20, scaled to 0–100. Higher means short and well-rated — useful to prioritize what to play next.",
 		score: "Average score from critics (Metacritic, OpenCritic, RAWG). Stored on a 0–5 scale — clicking a source button auto-normalizes the value for you.",
-		duration: "Estimated playtime from HowLongToBeat or RAWG. Not your real playtime — that goes in Real Duration below.",
+		duration:
+			"Estimated playtime from HowLongToBeat or RAWG. Not your real playtime — that goes in Real Duration below.",
 		rating: "Your personal rating (0.5–5 stars). Independent of critic score.",
-		realDuration: "Hours you actually spent. Used to calculate your Personal Ratio."
+		realDuration:
+			"Hours you actually spent. Used to calculate your Personal Ratio."
 	};
 
 	protected readonly referenceTooltipText = computed(() => {
@@ -191,7 +200,9 @@ export class BacklogModal implements OnInit {
 
 	protected readonly isEdit = signal(false);
 	protected readonly viewMode = signal<"summary" | "edit">("edit");
-	protected readonly activeFormTab = signal<"reference" | "tracking" | "notes">("tracking");
+	protected readonly activeFormTab = signal<
+		"reference" | "tracking" | "notes"
+	>("tracking");
 
 	switchToEdit() {
 		this.viewMode.set("edit");
@@ -238,9 +249,12 @@ export class BacklogModal implements OnInit {
 		notes: [""]
 	});
 
-	private readonly scoreValue = toSignal(this.form.controls.score.valueChanges, {
-		initialValue: this.form.controls.score.value
-	});
+	private readonly scoreValue = toSignal(
+		this.form.controls.score.valueChanges,
+		{
+			initialValue: this.form.controls.score.value
+		}
+	);
 	private readonly durationValue = toSignal(
 		this.form.controls.duration.valueChanges,
 		{ initialValue: this.form.controls.duration.value }
@@ -307,8 +321,12 @@ export class BacklogModal implements OnInit {
 				if (res.accessible && res.candidates.length >= 2) {
 					this.pickerCandidates.set(res.candidates);
 					this.pickerUserId.set(userId);
-					const friend = this.myFollowing().find(f => f.id === userId);
-					this.pickerUserName.set(friend?.name || friend?.username || "");
+					const friend = this.myFollowing().find(
+						f => f.id === userId
+					);
+					this.pickerUserName.set(
+						friend?.name || friend?.username || ""
+					);
 					this.coopAdding.set(false);
 					return;
 				}
@@ -338,15 +356,13 @@ export class BacklogModal implements OnInit {
 		const e = this.entry();
 		if (!e) return;
 		this.coopAdding.set(true);
-		this.coopService
-			.addMember(e.id, userId, targetBacklogId)
-			.subscribe({
-				next: () => {
-					this.coopAdding.set(false);
-					this.refreshCoopMembers();
-				},
-				error: () => this.coopAdding.set(false)
-			});
+		this.coopService.addMember(e.id, userId, targetBacklogId).subscribe({
+			next: () => {
+				this.coopAdding.set(false);
+				this.refreshCoopMembers();
+			},
+			error: () => this.coopAdding.set(false)
+		});
 	}
 
 	removeCoopMember(member: CoopMember) {
@@ -806,7 +822,9 @@ export class BacklogModal implements OnInit {
 								: dto.status === "endless"
 									? "marked as endless"
 									: "abandoned";
-						this.toast.info(`Removed from your Queue: ${title} — ${reason}`);
+						this.toast.info(
+							`Removed from your Queue: ${title} — ${reason}`
+						);
 						this.isInQueue.set(false);
 						this.addToQueue.set(false);
 					}

@@ -54,12 +54,16 @@ export class MoodTagsInput {
 			this.commit();
 			return;
 		}
-		if (event.key === "," ) {
+		if (event.key === ",") {
 			event.preventDefault();
 			this.commit();
 			return;
 		}
-		if (event.key === "Backspace" && this.draft() === "" && this.tags().length > 0) {
+		if (
+			event.key === "Backspace" &&
+			this.draft() === "" &&
+			this.tags().length > 0
+		) {
 			event.preventDefault();
 			this.removeAt(this.tags().length - 1);
 			return;
