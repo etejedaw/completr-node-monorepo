@@ -61,9 +61,9 @@ const publicProfileRoutes: Routes = [
 	{
 		path: "user/:username/completions",
 		loadComponent: () =>
-			import(
-				"./features/public-profile/user-completions/user-completions"
-			).then(m => m.UserCompletions)
+			import("./features/public-profile/user-completions/user-completions").then(
+				m => m.UserCompletions
+			)
 	}
 ];
 
@@ -226,39 +226,37 @@ export const routes: Routes = [
 					{
 						path: "profile",
 						loadComponent: () =>
-							import(
-								"./features/settings/settings-profile/settings-profile"
-							).then(m => m.SettingsProfile)
+							import("./features/settings/settings-profile/settings-profile").then(
+								m => m.SettingsProfile
+							)
 					},
 					{
 						path: "privacy",
 						loadComponent: () =>
-							import(
-								"./features/settings/settings-privacy/settings-privacy"
-							).then(m => m.SettingsPrivacy)
+							import("./features/settings/settings-privacy/settings-privacy").then(
+								m => m.SettingsPrivacy
+							)
 					},
 					{
 						path: "appearance",
 						loadComponent: () =>
-							import(
-								"./features/settings/settings-appearance/settings-appearance"
-							).then(m => m.SettingsAppearance)
+							import("./features/settings/settings-appearance/settings-appearance").then(
+								m => m.SettingsAppearance
+							)
 					},
 					{
 						path: "security",
 						loadComponent: () =>
-							import(
-								"./features/settings/settings-security/settings-security"
-							).then(m => m.SettingsSecurity)
+							import("./features/settings/settings-security/settings-security").then(
+								m => m.SettingsSecurity
+							)
 					}
 				]
 			},
 			{
 				path: "tags",
 				loadComponent: () =>
-					import(
-						"./features/tags/tags-page/tags-page"
-					)
+					import("./features/tags/tags-page/tags-page")
 			},
 			{
 				path: "admin/users",

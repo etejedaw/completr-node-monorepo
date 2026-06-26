@@ -1,867 +1,1479 @@
-<div class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]" (click)="onClose()">
+<div
+	ngpDialogOverlay
+	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]"
+>
 	<div
+		ngpDialog
 		class="bg-sidebar border border-line rounded-[12px] w-full max-w-[640px] max-h-[90vh] flex flex-col shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
-		(click)="$event.stopPropagation()"
-		uiFocusTrap
-		(escape)="onClose()"
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="backlog-modal-title"
 	>
 		<div class="flex justify-between items-center px-7 pt-7 pb-4 shrink-0">
-			<h2 id="backlog-modal-title" class="font-display m-0 text-lg font-bold">{{ isEdit() ? (viewMode() === 'summary' ? entry()!.game.title : "Edit Entry") : "Add to Backlog" }}</h2>
-			<button uiIconButton size="sm" aria-label="Close" (click)="onClose()">&times;</button>
+			<h2
+				ngpDialogTitle
+				class="font-display m-0 text-lg font-bold"
+			>
+				{{ isEdit() ? (viewMode() === 'summary' ? entry!.game.title :
+				"Edit Entry") : "Add to Backlog" }}
+			</h2>
+			<button
+				uiIconButton
+				size="sm"
+				aria-label="Close"
+				(click)="onClose()"
+			>
+				&times;
+			</button>
 		</div>
 		<div class="px-7 pb-7 overflow-y-auto flex-1 min-h-0">
-
-		@if (error()) {
-		<div class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem]">{{ error() }}</div>
-		}
-
-		@if (isEdit() && viewMode() === 'summary') {
-			@let e = entry()!;
+			@if (error()) {
+			<div
+				class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem]"
+			>
+				{{ error() }}
+			</div>
+			} @if (isEdit() && viewMode() === 'summary') { @let e = entry!;
 			<div class="flex items-stretch gap-4 mb-5">
 				<div class="shrink-0">
 					@if (e.game.backgroundUrl) {
-						<img [src]="e.game.backgroundUrl" [alt]="e.game.title" class="w-20 h-28 object-cover rounded-md shadow-md shadow-black/40" loading="lazy" />
+					<img
+						[src]="e.game.backgroundUrl"
+						[alt]="e.game.title"
+						class="w-20 h-28 object-cover rounded-md shadow-md shadow-black/40"
+						loading="lazy"
+					/>
 					} @else {
-						<div class="w-20 h-28 bg-input-bg rounded-md"></div>
+					<div class="w-20 h-28 bg-input-bg rounded-md"></div>
 					}
 				</div>
 				<div class="flex-1 min-w-0 flex flex-col gap-1.5">
-					<span class="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide" [class]="statusClass(e.status)">{{ statusLabel(e.status) }}</span>
-					<div class="text-[0.8125rem] text-fg-secondary">{{ e.platform.abbreviation }}</div>
+					<span
+						class="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
+						[class]="statusClass(e.status)"
+						>{{ statusLabel(e.status) }}</span
+					>
+					<div class="text-[0.8125rem] text-fg-secondary">
+						{{ e.platform.abbreviation }}
+					</div>
 					@if (e.compilationGame) {
-						<a
-							class="inline-flex items-center gap-1 w-fit px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand/10 border border-brand/30 no-underline hover:bg-brand/20"
-							[routerLink]="['/games', e.compilationGame.code]"
-							(click)="onClose()"
-							[title]="'Part of ' + e.compilationGame.title"
+					<a
+						class="inline-flex items-center gap-1 w-fit px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand/10 border border-brand/30 no-underline hover:bg-brand/20"
+						[routerLink]="['/games', e.compilationGame.code]"
+						(click)="onClose()"
+						[title]="'Part of ' + e.compilationGame.title"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.75rem]"
+							>library_books</span
 						>
-							<span aria-hidden="true" class="material-icons text-[0.75rem]">library_books</span>
-							in {{ e.compilationGame.title }}
-						</a>
+						in {{ e.compilationGame.title }}
+					</a>
 					}
 					<div class="flex items-center gap-2 mt-auto">
-						<app-star-rating [value]="e.userRating ?? null" [readonly]="true" size="sm" />
+						<app-star-rating
+							[value]="e.userRating ?? null"
+							[readonly]="true"
+							size="sm"
+						/>
 					</div>
 				</div>
-				@if (e.ratio != null || e.personalRatio != null) {
-					<div class="flex items-center gap-4 shrink-0">
-						@if (e.ratio != null) {
-							<div class="flex flex-col items-end justify-center text-right min-w-[60px]">
-								<span class="text-3xl font-bold text-brand leading-none">{{ e.ratio }}</span>
-								<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Ratio</span>
-							</div>
-						}
-						@if (e.personalRatio != null) {
-							<div class="flex flex-col items-end justify-center text-right min-w-[60px]">
-								<span class="text-3xl font-bold text-warning leading-none">{{ e.personalRatio }}</span>
-								<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1">Personal</span>
-							</div>
-						}
+				@if (
+					(e.ratio !== null && e.ratio !== undefined) ||
+					(e.personalRatio !== null && e.personalRatio !== undefined)
+				) {
+				<div class="flex items-center gap-4 shrink-0">
+					@if (e.ratio !== null && e.ratio !== undefined) {
+					<div
+						class="flex flex-col items-end justify-center text-right min-w-[60px]"
+					>
+						<span class="text-3xl font-bold text-brand leading-none"
+							>{{ e.ratio }}</span
+						>
+						<span
+							class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1"
+							>Ratio</span
+						>
 					</div>
+					} @if (
+						e.personalRatio !== null && e.personalRatio !== undefined
+					) {
+					<div
+						class="flex flex-col items-end justify-center text-right min-w-[60px]"
+					>
+						<span
+							class="text-3xl font-bold text-warning leading-none"
+							>{{ e.personalRatio }}</span
+						>
+						<span
+							class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1"
+							>Personal</span
+						>
+					</div>
+					}
+				</div>
 				}
 			</div>
 
 			<div class="grid grid-cols-2 gap-3 text-[0.8125rem]">
 				<div class="bg-input-bg border border-line rounded-card p-3">
-					<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Score</div>
+					<div
+						class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+					>
+						Score
+					</div>
 					<div class="text-fg">{{ e.score ?? '—' }}</div>
 				</div>
 				<div class="bg-input-bg border border-line rounded-card p-3">
-					<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Duration</div>
-					<div class="text-fg">{{ e.duration ? e.duration + 'h' : '—' }}</div>
+					<div
+						class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+					>
+						Duration
+					</div>
+					<div class="text-fg">
+						{{ e.duration ? e.duration + 'h' : '—' }}
+					</div>
 				</div>
-				@if (e.realDuration != null) {
-					<div class="bg-input-bg border border-line rounded-card p-3">
-						<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Real duration</div>
-						<div class="text-fg">{{ e.realDuration }}h</div>
+				@if (e.realDuration !== null && e.realDuration !== undefined) {
+				<div class="bg-input-bg border border-line rounded-card p-3">
+					<div
+						class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+					>
+						Real duration
 					</div>
-				}
-				@if (e.startedAt) {
-					<div class="bg-input-bg border border-line rounded-card p-3">
-						<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Started</div>
-						<div class="text-fg">{{ e.startedAt }}</div>
+					<div class="text-fg">{{ e.realDuration }}h</div>
+				</div>
+				} @if (e.startedAt) {
+				<div class="bg-input-bg border border-line rounded-card p-3">
+					<div
+						class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+					>
+						Started
 					</div>
-				}
-				@if (e.finishedAt) {
-					<div class="bg-input-bg border border-line rounded-card p-3">
-						<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Finished</div>
-						<div class="text-fg">{{ e.finishedAt }}</div>
+					<div class="text-fg">{{ e.startedAt }}</div>
+				</div>
+				} @if (e.finishedAt) {
+				<div class="bg-input-bg border border-line rounded-card p-3">
+					<div
+						class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+					>
+						Finished
 					</div>
+					<div class="text-fg">{{ e.finishedAt }}</div>
+				</div>
 				}
 			</div>
 
 			@if (moodTags().length > 0) {
-				<div class="mt-3 flex flex-wrap gap-1">
-					@for (tag of moodTags(); track tag) {
-						<span class="inline-block px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-xs font-medium leading-none">{{ tag }}</span>
-					}
-				</div>
-			}
-
-			@if (progressNotes().length > 0 && (e.status === 'playing' || e.status === 'endless' || e.status === 'not_started')) {
-				<div class="mt-3 bg-input-bg border border-line rounded-card p-3 flex items-start gap-2">
-					<span aria-hidden="true" class="material-icons text-base text-brand mt-px">bookmark</span>
-					<div class="flex-1 min-w-0">
-						<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Where I am</div>
-						<p class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap break-words">{{ progressNotes()[0].note }}</p>
-						<p class="m-0 text-[0.625rem] text-fg-muted mt-1">{{ progressNotes()[0].createdAt | date:'yyyy-MM-dd HH:mm' }}</p>
+			<div class="mt-3 flex flex-wrap gap-1">
+				@for (tag of moodTags(); track tag) {
+				<span
+					class="inline-block px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-xs font-medium leading-none"
+					>{{ tag }}</span
+				>
+				}
+			</div>
+			} @if (progressNotes().length > 0 && (e.status === 'playing' ||
+			e.status === 'endless' || e.status === 'not_started')) {
+			<div
+				class="mt-3 bg-input-bg border border-line rounded-card p-3 flex items-start gap-2"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-brand mt-px"
+					>bookmark</span
+				>
+				<div class="flex-1 min-w-0">
+					<div
+						class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+					>
+						Where I am
 					</div>
+					<p
+						class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap break-words"
+					>
+						{{ progressNotes()[0].note }}
+					</p>
+					<p class="m-0 text-[0.625rem] text-fg-muted mt-1">
+						{{ progressNotes()[0].createdAt | date:'yyyy-MM-dd
+						HH:mm' }}
+					</p>
 				</div>
-			}
-
-			@if (e.notes) {
-				<div class="mt-3 bg-input-bg border border-line rounded-card p-3">
-					<div class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1">Notes</div>
-					<p class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap">{{ e.notes }}</p>
+			</div>
+			} @if (e.notes) {
+			<div class="mt-3 bg-input-bg border border-line rounded-card p-3">
+				<div
+					class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+				>
+					Notes
 				</div>
-			}
-
-			@if (e.hasReview && e.reviewContent) {
-				<div class="mt-3 bg-brand/5 border border-brand/30 rounded-card p-3">
-					<div class="flex items-center gap-2 mb-1">
-						<span aria-hidden="true" class="material-icons text-base text-brand">rate_review</span>
-						<span class="text-[0.625rem] font-semibold uppercase tracking-wider text-brand">Review</span>
-					</div>
-					<p class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap">{{ e.reviewContent }}</p>
+				<p
+					class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap"
+				>
+					{{ e.notes }}
+				</p>
+			</div>
+			} @if (e.hasReview && e.reviewContent) {
+			<div
+				class="mt-3 bg-brand/5 border border-brand/30 rounded-card p-3"
+			>
+				<div class="flex items-center gap-2 mb-1">
+					<span
+						aria-hidden="true"
+						class="material-icons text-base text-brand"
+						>rate_review</span
+					>
+					<span
+						class="text-[0.625rem] font-semibold uppercase tracking-wider text-brand"
+						>Review</span
+					>
 				</div>
+				<p
+					class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap"
+				>
+					{{ e.reviewContent }}
+				</p>
+			</div>
 			}
 
 			<div class="flex justify-end gap-2 mt-5 pt-4 border-t border-line">
-				<button uiButton variant="ghost" type="button" (click)="onClose()">Close</button>
-				<button uiButton variant="primary" type="button" (click)="switchToEdit()">
-					<span aria-hidden="true" class="material-icons text-base mr-1">edit</span>
+				<button
+					uiButton
+					variant="ghost"
+					type="button"
+					(click)="onClose()"
+				>
+					Close
+				</button>
+				<button
+					uiButton
+					variant="primary"
+					type="button"
+					(click)="switchToEdit()"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-base mr-1"
+						>edit</span
+					>
 					Edit
 				</button>
 			</div>
-		} @else {
-		<form [formGroup]="form" (ngSubmit)="onSubmit()">
-			@if (compilationParent()) {
-			<div class="mb-4 p-3 bg-brand-subtle/40 border border-brand/30 rounded">
-				<div class="flex items-center gap-2 mb-2">
-					<span aria-hidden="true" class="material-icons text-brand text-base">library_books</span>
-					<span class="text-xs font-semibold text-brand uppercase tracking-wider">Compilation</span>
-					<span class="flex-1 text-sm font-medium text-fg">{{ compilationParent()!.title }}</span>
-					@if (!preselectedCompilationParent() && !isEdit()) {
-					<button
-						type="button"
-						class="bg-none border-0 text-fg-muted text-base cursor-pointer leading-none hover:text-fg"
-						(click)="clearCompilationParent()"
-						title="Remove compilation context"
-					>
-						<span aria-hidden="true" class="material-icons text-base">close</span>
-					</button>
-					}
-				</div>
-				@if (!selectedGame() && (compilationParent()!.compilationItems?.length ?? 0) > 0) {
-				<div>
-					<div class="text-xs text-fg-secondary mb-2">Which game are you playing?</div>
-					<div class="grid grid-cols-2 gap-2">
-						@for (item of compilationParent()!.compilationItems!; track item.id) {
-							@if (item.game) {
-								<button
-									type="button"
-									class="flex items-center gap-2 p-2 bg-input-bg border border-line rounded text-left cursor-pointer transition hover:border-brand hover:bg-brand-subtle"
-									(click)="pickCompilationChild(item.game)"
-								>
-									@if (item.game.backgroundUrl) {
-										<img [src]="item.game.backgroundUrl" [alt]="item.game.title" class="w-8 h-10 object-cover rounded shrink-0" loading="lazy" />
-									} @else {
-										<div class="w-8 h-10 bg-surface rounded shrink-0"></div>
-									}
-									<span class="flex-1 text-xs font-medium text-fg line-clamp-2 leading-tight">{{ item.game.title }}</span>
-								</button>
-							}
-						}
-					</div>
-					<button
-						type="button"
-						class="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 bg-transparent border border-dashed border-line rounded text-xs text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand"
-						(click)="selectWholeCompilation()"
-					>
-						<span aria-hidden="true" class="material-icons text-base">layers</span>
-						Track whole compilation as one entry
-					</button>
-				</div>
-				}
-			</div>
-			}
-
-			@if (!isEdit()) {
-			<div class="mb-4">
-				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Game <span class="text-danger font-bold">*</span></label>
-				@if (selectedGame()) {
-				<div
-					class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded"
-					[class.opacity-70]="preselectedGame()"
-				>
-					@if (selectedGame()!.backgroundUrl) {
-					<img
-						[src]="selectedGame()!.backgroundUrl"
-						class="w-7 h-[38px] object-cover rounded-[3px] shrink-0" loading="lazy"
-					/>
-					}
-					<span class="flex-1 text-sm font-medium"
-						>{{ selectedGame()!.title }}</span
-					>
-					@if (!preselectedGame()) {
-					<button
-						type="button"
-						class="bg-none border-0 text-fg-muted text-xl cursor-pointer px-1 leading-none hover:text-fg"
-						(click)="clearGame()"
-					>
-						&times;
-					</button>
-					}
-				</div>
-				} @else if (compilationParent()) {
-				<div class="px-3 py-2 bg-input-bg border border-dashed border-line rounded text-xs text-fg-muted">
-					Pick a game from the compilation above.
-				</div>
-				} @else {
-				<input
-					type="text"
-					class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					placeholder="Search games..."
-					[value]="searchQuery()"
-					(input)="onSearch($event)"
-				/>
-				@if (isSearching() && gameResults().length === 0) {
-				<div class="px-3 py-2.5 text-[0.8125rem] text-fg-muted bg-input-bg border border-line rounded mt-1">Searching...</div>
-				} @if (isSearchingOnline()) {
-				<div class="px-3 py-2.5 text-[0.8125rem] text-brand bg-input-bg border border-line rounded mt-1 flex items-center gap-2">
-					<span aria-hidden="true" class="material-icons text-base animate-spin">autorenew</span>
-					Searching online...
-				</div>
-				} @if (gameResults().length > 0 || (!isSearching() && !isSearchingOnline() &&
-				searchQuery().length >= 2)) {
-				<ul class="list-none bg-input-bg border border-line rounded mt-1 max-h-[200px] overflow-y-auto">
-					@for (game of gameResults(); track game.id) {
-					<li class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] transition hover:bg-surface" (click)="selectGame(game)">
-						@if (game.backgroundUrl) {
-						<img alt="" [src]="game.backgroundUrl" class="w-7 h-[38px] object-cover rounded-[3px] shrink-0" loading="lazy" />
-						}
-						<span class="flex-1">{{ game.title }}</span>
-						@if (game.justImported) {
-						<span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/15 text-info text-[0.65rem] font-semibold uppercase tracking-wider rounded" title="Just imported from RAWG">
-							<span aria-hidden="true" class="material-icons text-[0.75rem]">cloud_download</span>
-							RAWG
-						</span>
-						}
-						@if (game.isDlc) {
-						<span class="px-1.5 py-0.5 bg-warning/15 text-warning text-[0.65rem] font-semibold uppercase tracking-wider rounded">DLC</span>
-						}
-					</li>
-					} @if (searchQuery().length >= 2) {
-					<li class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] border-t border-line text-brand font-medium transition hover:bg-surface" (click)="forceSearch()">
-						{{ isForceSearching() ? 'Searching...' : 'Force search
-						for "' + searchQuery() + '"' }}
-					</li>
-					}
-				</ul>
-				} }
-			</div>
 			} @else {
-			<div class="mb-4">
-				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Game</label>
-				<div class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded opacity-70">
-					@if (selectedGame()?.backgroundUrl) {
-					<img
-						[src]="selectedGame()!.backgroundUrl"
-						class="w-7 h-[38px] object-cover rounded-[3px] shrink-0" loading="lazy"
-					/>
-					}
-					<span class="flex-1 text-sm font-medium"
-						>{{ selectedGame()!.title }}</span
-					>
-				</div>
-			</div>
-			}
-
-			@if (selectedGame() && !compilationParent() && availableCompilationParents().length > 0) {
-			<div class="mb-4">
-				<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Part of compilation <span class="text-fg-muted font-normal normal-case">(optional)</span></label>
-				<select
-					uiSelect
-					(change)="onCompilationParentChange($any($event.target).value)"
+			<form [formGroup]="form" (ngSubmit)="onSubmit()">
+				@if (compilationParent()) {
+				<div
+					class="mb-4 p-3 bg-brand-subtle/40 border border-brand/30 rounded"
 				>
-					<option value="">None — track as standalone</option>
-					@for (parent of availableCompilationParents(); track parent.id) {
-						<option [value]="parent.id">{{ parent.title }}</option>
-					}
-				</select>
-			</div>
-			}
-
-			<div class="flex gap-2 mb-3">
-				<button
-					type="button"
-					class="flex-1 flex items-center justify-center gap-2 px-3 py-2 border rounded text-xs font-medium font-sans cursor-pointer transition"
-					[class]="addToQueue() ? 'bg-brand/10 border-brand text-brand' : 'bg-input-bg border-line-hover text-fg-muted hover:border-brand hover:text-brand'"
-					(click)="addToQueue.set(!addToQueue())"
-				>
-					<span aria-hidden="true" class="material-icons text-base">{{ addToQueue() ? 'playlist_add_check' : 'playlist_play' }}</span>
-					{{ addToQueue() ? 'In Queue' : 'Add to Queue' }}
-				</button>
-				@if (!isEdit()) {
-				<button
-					type="button"
-					class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-input-bg border border-line-hover rounded text-fg-muted text-xs font-medium font-sans cursor-pointer transition hover:border-brand hover:text-brand"
-					[class.!bg-brand-subtle]="addToShelf()"
-					[class.!border-brand]="addToShelf()"
-					[class.!text-brand]="addToShelf()"
-					(click)="addToShelf.set(!addToShelf())"
-				>
-					<span aria-hidden="true" class="material-icons text-base">shelves</span>
-					{{ addToShelf() ? 'In Shelf' : 'Add to Shelf' }}
-				</button>
-				}
-			</div>
-
-			@if (!isEdit()) {
-			<div class="mb-4">
-				<label for="platformId" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-					>Platform <span class="text-danger font-bold">*</span></label
-				>
-				<select uiSelect id="platformId" formControlName="platformId">
-					<option value="">Select platform</option>
-					@for (p of gamePlatforms(); track p.id) {
-					<option [value]="p.id">{{ p.name }}</option>
-					}
-				</select>
-			</div>
-			}
-
-			<ui-tabs [(value)]="activeFormTab">
-				<ui-tab-list class="!mb-4 sticky -top-1 bg-sidebar z-10 -mx-1 px-1 pt-1">
-					<button uiTab value="reference" type="button">
-						<span aria-hidden="true" class="material-icons text-base mr-1 align-middle">analytics</span>
-						Reference
-					</button>
-					<button uiTab value="tracking" type="button">
-						<span aria-hidden="true" class="material-icons text-base mr-1 align-middle">play_circle</span>
-						Tracking
-					</button>
-					<button uiTab value="notes" type="button">
-						<span aria-hidden="true" class="material-icons text-base mr-1 align-middle">edit_note</span>
-						Notes
-					</button>
-				</ui-tab-list>
-
-			<div uiTabPanel value="reference" class="pt-1">
-				<div class="flex items-center justify-between gap-3 mb-1">
-					<h3 class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider">Reference data</h3>
-					<div class="flex items-center gap-1.5">
-						<span class="text-[0.625rem] uppercase tracking-wider text-fg-muted">Ratio</span>
-						<span class="font-display text-base font-bold tabular-nums" [class.text-brand]="ratio() !== null" [class.text-fg-muted]="ratio() === null">{{ ratio() ?? '—' }}</span>
+					<div class="flex items-center gap-2 mb-2">
+						<span
+							aria-hidden="true"
+							class="material-icons text-brand text-base"
+							>library_books</span
+						>
+						<span
+							class="text-xs font-semibold text-brand uppercase tracking-wider"
+							>Compilation</span
+						>
+						<span class="flex-1 text-sm font-medium text-fg"
+							>{{ compilationParent()!.title }}</span
+						>
+						@if (!preselectedCompilationParent && !isEdit()) {
 						<button
 							type="button"
-							class="bg-none border-0 p-0 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
-							(click)="toggleTooltip('ratio')"
-							aria-label="What is the ratio?"
+							class="bg-none border-0 text-fg-muted text-base cursor-pointer leading-none hover:text-fg"
+							(click)="clearCompilationParent()"
+							title="Remove compilation context"
 						>
-							<span aria-hidden="true" class="material-icons text-sm">info</span>
+							<span
+								aria-hidden="true"
+								class="material-icons text-base"
+								>close</span
+							>
+						</button>
+						}
+					</div>
+					@if (!selectedGame() &&
+					(compilationParent()!.compilationItems?.length ?? 0) > 0) {
+					<div>
+						<div class="text-xs text-fg-secondary mb-2">
+							Which game are you playing?
+						</div>
+						<div class="grid grid-cols-2 gap-2">
+							@for (item of
+							compilationParent()!.compilationItems!; track
+							item.id) { @if (item.game) {
+							<button
+								type="button"
+								class="flex items-center gap-2 p-2 bg-input-bg border border-line rounded text-left cursor-pointer transition hover:border-brand hover:bg-brand-subtle"
+								(click)="pickCompilationChild(item.game)"
+							>
+								@if (item.game.backgroundUrl) {
+								<img
+									[src]="item.game.backgroundUrl"
+									[alt]="item.game.title"
+									class="w-8 h-10 object-cover rounded shrink-0"
+									loading="lazy"
+								/>
+								} @else {
+								<div
+									class="w-8 h-10 bg-surface rounded shrink-0"
+								></div>
+								}
+								<span
+									class="flex-1 text-xs font-medium text-fg line-clamp-2 leading-tight"
+									>{{ item.game.title }}</span
+								>
+							</button>
+							} }
+						</div>
+						<button
+							type="button"
+							class="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 bg-transparent border border-dashed border-line rounded text-xs text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand"
+							(click)="selectWholeCompilation()"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-base"
+								>layers</span
+							>
+							Track whole compilation as one entry
 						</button>
 					</div>
+					}
 				</div>
-				<p class="text-[0.75rem] text-fg-muted m-0 mb-3 leading-snug">
-					Critic score and estimated duration from external sources. Your personal data lives in the Tracking tab.
-				</p>
-
-				<div class="grid grid-cols-2 gap-3">
-					<div>
-						<label for="score" class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-							>Critic Score <span class="text-danger font-bold">*</span>
-							<button
-								type="button"
-								class="bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
-								(click)="toggleTooltip('score')"
-								aria-label="Info"
-							>
-								<span aria-hidden="true" class="material-icons text-sm">info</span>
-							</button>
-						</label>
-						@if (gameScores().length > 0 || (selectedGame() && !isEdit())) {
-						<div class="min-h-[26px] mb-1.5 flex flex-wrap items-center gap-1">
-							@if (gameScores().length > 0) {
-								@for (s of gameScores(); track s.source) {
-								<button
-									type="button"
-									class="bg-input-bg border border-line text-fg-secondary text-[0.625rem] font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
-									[class.!bg-brand-subtle]="activeScoreSource() === s.source"
-									[class.!border-brand]="activeScoreSource() === s.source"
-									[class.!text-brand]="activeScoreSource() === s.source"
-									(click)="applyScore(s.source, s.score)"
-								>
-									{{ s.source }} {{ s.score }}{{ getScaleLabel(s.source) }}
-								</button>
-								}
-							} @else {
-								<span class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted">
-									<span aria-hidden="true" class="material-icons text-[0.75rem]">help_outline</span>
-									No sources.
-									<button
-										type="button"
-										class="bg-none border-0 p-0 text-brand cursor-pointer hover:underline"
-										(click)="reportMissing('missing_score')"
-									>Report missing</button>
-								</span>
-							}
-						</div>
-						}
-						<div class="relative">
-							<input
-								id="score"
-								type="number"
-								formControlName="score"
-								placeholder="0–5"
-								step="0.1"
-								min="0"
-								max="5"
-								class="w-full pl-3 pr-9 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-								(input)="onScoreManualChange()"
-							/>
-							<span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fg-muted pointer-events-none select-none">/5</span>
-						</div>
-					</div>
-					<div>
-						<label for="duration" class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-							>Duration (h) <span class="text-danger font-bold">*</span>
-							<button
-								type="button"
-								class="bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
-								(click)="toggleTooltip('duration')"
-								aria-label="Info"
-							>
-								<span aria-hidden="true" class="material-icons text-sm">info</span>
-							</button>
-						</label>
-						@if (gameTimes().length > 0 || (selectedGame() && !isEdit())) {
-						<div class="min-h-[26px] mb-1.5 flex flex-wrap items-center gap-1">
-							@if (gameTimes().length > 0) {
-								@for (t of gameTimes(); track t.source) {
-								<button
-									type="button"
-									class="bg-input-bg border border-line text-fg-secondary text-[0.625rem] font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
-									[class.!bg-brand-subtle]="activeDurationSource() === t.source"
-									[class.!border-brand]="activeDurationSource() === t.source"
-									[class.!text-brand]="activeDurationSource() === t.source"
-									(click)="applyDuration(t.source, t.duration)"
-								>
-									{{ t.source }} {{ t.duration }}h
-								</button>
-								}
-							} @else {
-								<span class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted">
-									<span aria-hidden="true" class="material-icons text-[0.75rem]">help_outline</span>
-									No sources.
-									<button
-										type="button"
-										class="bg-none border-0 p-0 text-brand cursor-pointer hover:underline"
-										(click)="reportMissing('missing_duration')"
-									>Report missing</button>
-								</span>
-							}
-						</div>
-						}
-						<input
-							id="duration"
-							type="number"
-							formControlName="duration"
-							placeholder="HowLongToBeat estimate"
-							step="0.5"
-							class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-							(input)="onDurationManualChange()"
-						/>
-					</div>
-				</div>
-				@if (referenceTooltipText()) {
-				<p class="mt-3 mb-0 text-[0.75rem] text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug">{{ referenceTooltipText() }}</p>
-				}
-				@if (reportFeedback()) {
-				<p class="mt-2 mb-0 text-[0.75rem] text-success">{{ reportFeedback() }}</p>
-				}
-			</div>
-
-			<div uiTabPanel value="tracking" class="pt-1">
-				<div class="flex items-baseline justify-between mb-3">
-					<h3 class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider">Your tracking</h3>
-					<span class="text-[0.6875rem] text-fg-muted italic">personal data</span>
-				</div>
-
+				} @if (!isEdit()) {
 				<div class="mb-4">
-					<label for="status" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Status</label>
-					<select uiSelect id="status" formControlName="status">
-						<option value="not_started">Not Started</option>
-						<option value="playing">Playing</option>
-						<option value="completed">Completed</option>
-						<option value="endless">Endless</option>
-						<option value="abandoned">Abandoned</option>
+					<span
+						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						>Game
+						<span class="text-danger font-bold">*</span></span
+					>
+					@if (selectedGame()) {
+					<div
+						class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded"
+						[class.opacity-70]="preselectedGame"
+					>
+						@if (selectedGame()!.backgroundUrl) {
+						<img
+							alt=""
+							[src]="selectedGame()!.backgroundUrl"
+							class="w-7 h-[38px] object-cover rounded-[3px] shrink-0"
+							loading="lazy"
+						/>
+						}
+						<span class="flex-1 text-sm font-medium"
+							>{{ selectedGame()!.title }}</span
+						>
+						@if (!preselectedGame) {
+						<button
+							type="button"
+							class="bg-none border-0 text-fg-muted text-xl cursor-pointer px-1 leading-none hover:text-fg"
+							(click)="clearGame()"
+						>
+							&times;
+						</button>
+						}
+					</div>
+					} @else if (compilationParent()) {
+					<div
+						class="px-3 py-2 bg-input-bg border border-dashed border-line rounded text-xs text-fg-muted"
+					>
+						Pick a game from the compilation above.
+					</div>
+					} @else {
+					<input
+						type="text"
+						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+						placeholder="Search games..."
+						[value]="searchQuery()"
+						(input)="onSearch($event)"
+					/>
+					@if (isSearching() && gameResults().length === 0) {
+					<div
+						class="px-3 py-2.5 text-[0.8125rem] text-fg-muted bg-input-bg border border-line rounded mt-1"
+					>
+						Searching...
+					</div>
+					} @if (isSearchingOnline()) {
+					<div
+						class="px-3 py-2.5 text-[0.8125rem] text-brand bg-input-bg border border-line rounded mt-1 flex items-center gap-2"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base animate-spin"
+							>autorenew</span
+						>
+						Searching online...
+					</div>
+					} @if (gameResults().length > 0 || (!isSearching() &&
+					!isSearchingOnline() && searchQuery().length >= 2)) {
+					<ul
+						class="list-none bg-input-bg border border-line rounded mt-1 max-h-[200px] overflow-y-auto"
+					>
+						@for (game of gameResults(); track game.id) {
+						<li
+							role="button"
+							tabindex="0"
+							class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] transition hover:bg-surface"
+							(click)="selectGame(game)"
+							(keydown.enter)="selectGame(game)"
+							(keydown.space)="selectGame(game); $event.preventDefault()"
+						>
+							@if (game.backgroundUrl) {
+							<img
+								alt=""
+								[src]="game.backgroundUrl"
+								class="w-7 h-[38px] object-cover rounded-[3px] shrink-0"
+								loading="lazy"
+							/>
+							}
+							<span class="flex-1">{{ game.title }}</span>
+							@if (game.justImported) {
+							<span
+								class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/15 text-info text-[0.65rem] font-semibold uppercase tracking-wider rounded"
+								title="Just imported from RAWG"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-[0.75rem]"
+									>cloud_download</span
+								>
+								RAWG
+							</span>
+							} @if (game.isDlc) {
+							<span
+								class="px-1.5 py-0.5 bg-warning/15 text-warning text-[0.65rem] font-semibold uppercase tracking-wider rounded"
+								>DLC</span
+							>
+							}
+						</li>
+						} @if (searchQuery().length >= 2) {
+						<li
+							role="button"
+							tabindex="0"
+							class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] border-t border-line text-brand font-medium transition hover:bg-surface"
+							(click)="forceSearch()"
+							(keydown.enter)="forceSearch()"
+							(keydown.space)="forceSearch(); $event.preventDefault()"
+						>
+							{{ isForceSearching() ? 'Searching...' : 'Force
+							search for "' + searchQuery() + '"' }}
+						</li>
+						}
+					</ul>
+					} }
+				</div>
+				} @else {
+				<div class="mb-4">
+					<span
+						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						>Game</span
+					>
+					<div
+						class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded opacity-70"
+					>
+						@if (selectedGame()?.backgroundUrl) {
+						<img
+							alt=""
+							[src]="selectedGame()!.backgroundUrl"
+							class="w-7 h-[38px] object-cover rounded-[3px] shrink-0"
+							loading="lazy"
+						/>
+						}
+						<span class="flex-1 text-sm font-medium"
+							>{{ selectedGame()!.title }}</span
+						>
+					</div>
+				</div>
+				} @if (selectedGame() && !compilationParent() &&
+				availableCompilationParents().length > 0) {
+				<div class="mb-4">
+					<label
+						for="compilation-parent"
+						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						>Part of compilation
+						<span class="text-fg-muted font-normal normal-case"
+							>(optional)</span
+						></label
+					>
+					<select
+						uiSelect
+						id="compilation-parent"
+						(change)="onCompilationParentChange($any($event.target).value)"
+					>
+						<option value="">None — track as standalone</option>
+						@for (parent of availableCompilationParents(); track
+						parent.id) {
+						<option [value]="parent.id">{{ parent.title }}</option>
+						}
 					</select>
 				</div>
-
-				@if (showTrackingDetails()) {
-				<div class="grid grid-cols-2 gap-3">
-					<div class="mb-4">
-						<label for="startedAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Started</label>
-						<input
-							id="startedAt"
-							type="date"
-							formControlName="startedAt"
-							class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-						/>
-					</div>
-					<div class="mb-4">
-						<label for="finishedAt" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Finished</label>
-						<input
-							id="finishedAt"
-							type="date"
-							formControlName="finishedAt"
-							class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-						/>
-					</div>
-				</div>
-
-				<div class="grid grid-cols-2 gap-3">
-					<div class="mb-4">
-						<label class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
-							My Rating
-							<button
-								type="button"
-								class="bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
-								(click)="toggleTooltip('rating')"
-								aria-label="Info"
-							>
-								<span aria-hidden="true" class="material-icons text-sm">info</span>
-							</button>
-						</label>
-						<app-star-rating
-							[value]="form.controls.userRating.value"
-							(ratingChange)="form.controls.userRating.setValue($event)"
-						/>
-					</div>
-					<div class="mb-4">
-						<label for="realDuration" class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-							>Real Duration (h)
-							<button
-								type="button"
-								class="bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
-								(click)="toggleTooltip('realDuration')"
-								aria-label="Info"
-							>
-								<span aria-hidden="true" class="material-icons text-sm">info</span>
-							</button>
-						</label>
-						<input
-							id="realDuration"
-							type="number"
-							formControlName="realDuration"
-							placeholder="Actual hours"
-							step="0.5"
-							class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-						/>
-					</div>
-				</div>
 				}
 
-				@if (trackingTooltipText()) {
-				<p class="mt-1 mb-4 text-[0.75rem] text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug">{{ trackingTooltipText() }}</p>
-				}
-
-				@if (isEdit()) {
-				<div class="mb-4 pt-3 border-t border-line">
-					<label class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider">Played with</label>
-					<p class="text-[0.6875rem] text-fg-muted m-0 mb-2 leading-snug">
-						Tag friends you played this with. Each tag auto-creates a backlog for them if they don't have one. You can only tag users you follow.
-					</p>
-					@if (coopMembers().length > 0) {
-						<ul class="list-none p-0 m-0 flex flex-col gap-1.5 mb-2">
-							@for (member of coopMembers(); track member.userId) {
-								<li class="flex items-center gap-2 bg-input-bg border border-line rounded px-2.5 py-1.5">
-									@if (member.avatarUrl) {
-										<img [src]="member.avatarUrl" [alt]="member.username" class="w-6 h-6 rounded-full object-cover shrink-0" />
-									} @else {
-										<div class="w-6 h-6 rounded-full bg-brand/20 text-brand text-[0.625rem] font-semibold flex items-center justify-center shrink-0">{{ member.username[0]?.toUpperCase() }}</div>
-									}
-									<div class="flex-1 min-w-0">
-										<span class="block text-xs font-medium text-fg line-clamp-1">{{ member.name || member.username }}</span>
-										<span class="block text-[0.625rem] text-fg-muted">{{ member.status }} · {{ member.realDuration ? member.realDuration + 'h' : '—' }}</span>
-									</div>
-									<button type="button" class="bg-transparent border-0 text-[0.6875rem] text-brand cursor-pointer hover:underline" (click)="openSyncDialog(member)" title="Compare and sync from this peer">
-										Sync
-									</button>
-									<button type="button" class="bg-transparent border-0 text-fg-muted hover:text-danger cursor-pointer p-0.5 transition" (click)="removeCoopMember(member)" [disabled]="coopRemovingId() === member.userId" title="Remove">
-										<span class="material-icons text-sm">close</span>
-									</button>
-								</li>
-							}
-						</ul>
-					}
-					@if (availableFollows().length > 0) {
-						<select uiSelect (change)="addCoopMember($any($event.target).value); $any($event.target).value = ''" [disabled]="coopAdding()">
-							<option value="">{{ coopAdding() ? 'Adding…' : 'Add a friend you follow…' }}</option>
-							@for (friend of availableFollows(); track friend.id) {
-								<option [value]="friend.id">{{ friend.name || friend.username }}{{ '@' + friend.username !== friend.name ? ' (@' + friend.username + ')' : '' }}</option>
-							}
-						</select>
-					} @else if (coopMembers().length === 0) {
-						<p class="text-[0.6875rem] text-fg-muted italic m-0">You're not following anyone yet. Follow a friend to tag them here.</p>
-					}
-				</div>
-				}
-			</div>
-
-			<div uiTabPanel value="notes" class="pt-1">
-				<div class="flex items-baseline justify-between mb-3">
-					<h3 class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider">Your annotations</h3>
-					<span class="text-[0.6875rem] text-fg-muted italic">tags, progress, notes</span>
-				</div>
-
-				<div class="mb-4">
-					<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Tags</label>
-					<app-mood-tags-input
-						[tags]="moodTags()"
-						[suggestions]="moodTagsSuggestions()"
-						placeholder="e.g. relajante, podcast game…"
-						(tagsChange)="updateMoodTags($event)"
-					/>
-					<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted">Personal labels you can later use to filter the backlog. Up to 10.</p>
-				</div>
-
-				<div class="mb-4">
-					<label class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Where I am</label>
-					<div class="flex gap-2">
-						<input
-							uiInput size="sm"
-							placeholder="e.g. Cap 3, stuck en el puzzle del agua"
-							[value]="progressDraft()"
-							(input)="updateProgressDraft($any($event.target).value)"
-							(keyup.enter)="isEdit() ? addProgressNote() : null"
-							maxlength="500"
-							class="flex-1"
-						/>
-						@if (isEdit()) {
-							<button uiButton variant="primary" size="sm" type="button" (click)="addProgressNote()" [disabled]="progressLoading() || !progressDraft().trim()">
-								{{ progressLoading() ? '…' : 'Add' }}
-							</button>
-						}
-					</div>
-					@if (isEdit() && progressNotes().length > 0) {
-						<div class="mt-2 flex items-start gap-2 text-xs text-fg-secondary">
-							<span aria-hidden="true" class="material-icons text-base text-brand mt-px">bookmark</span>
-							<div class="flex-1 min-w-0">
-								<p class="m-0 whitespace-pre-wrap break-words">{{ progressNotes()[0].note }}</p>
-								<p class="m-0 text-[0.625rem] text-fg-muted mt-0.5">{{ progressNotes()[0].createdAt | date:'yyyy-MM-dd HH:mm' }}</p>
-							</div>
-							<button type="button" class="bg-transparent border-0 text-fg-muted cursor-pointer p-0.5 hover:text-danger transition" (click)="deleteProgressNote(progressNotes()[0])" [disabled]="progressSavingId() === progressNotes()[0].id" title="Delete">
-								<span class="material-icons text-sm">close</span>
-							</button>
-						</div>
-						@if (progressNotes().length > 1) {
-							<button type="button" class="bg-transparent border-0 text-[0.6875rem] text-brand cursor-pointer mt-1.5 hover:underline" (click)="toggleProgressHistory()">
-								{{ progressHistoryOpen() ? 'Hide history' : 'Show history (' + (progressNotes().length - 1) + ')' }}
-							</button>
-						}
-						@if (progressHistoryOpen()) {
-							<ul class="mt-2 list-none p-0 m-0 flex flex-col gap-1.5 max-h-44 overflow-y-auto border-t border-line pt-2">
-								@for (n of progressNotes().slice(1); track n.id) {
-									<li class="flex items-start gap-2 text-xs">
-										<div class="flex-1 min-w-0">
-											<p class="m-0 text-fg-secondary whitespace-pre-wrap break-words">{{ n.note }}</p>
-											<p class="m-0 text-[0.625rem] text-fg-muted mt-0.5">{{ n.createdAt | date:'yyyy-MM-dd HH:mm' }}</p>
-										</div>
-										<button type="button" class="bg-transparent border-0 text-fg-muted cursor-pointer p-0.5 hover:text-danger transition" (click)="deleteProgressNote(n)" [disabled]="progressSavingId() === n.id" title="Delete">
-											<span class="material-icons text-sm">close</span>
-										</button>
-									</li>
-								}
-							</ul>
-						}
-					}
-					<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted">
-						@if (isEdit()) {
-							Short notes to remember where you left off. Each add creates a new entry; history is preserved.
-						} @else {
-							Optional. Will be saved with the backlog so you can pick up later.
-						}
-					</p>
-				</div>
-
-				<div class="mb-4">
-					<label for="notes" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Notes</label>
-					<textarea
-						uiTextarea id="notes"
-						formControlName="notes"
-						rows="3"
-						placeholder="Your thoughts..."
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					></textarea>
-				</div>
-
-				@if (hasExistingReview() && selectedGame()) {
-				<div class="mt-3 pt-3 border-t border-line">
-					<a
-						class="inline-flex items-center gap-1.5 text-xs text-brand no-underline hover:underline cursor-pointer"
-						[routerLink]="['/games', selectedGame()!.code]"
-						[queryParams]="{ review: 'open' }"
-						(click)="onClose()"
-					>
-						<span aria-hidden="true" class="material-icons text-sm">rate_review</span>
-						Write or edit review
-					</a>
-				</div>
-				} @else if (isFirstReviewableTransition()) {
-				<div class="mt-3 pt-3 border-t border-line">
-					<label class="block mb-1.5 text-xs font-medium text-fg-muted uppercase tracking-wider">Review (optional)</label>
-					<textarea
-						uiTextarea rows="3"
-						placeholder="Share your review of this game..."
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-						[value]="reviewContent()"
-						(input)="reviewContent.set($any($event.target).value)"
-					></textarea>
-				</div>
-				} @else if (isEdit() && isReviewableStatus() && selectedGame()) {
-				<div class="mt-3 pt-3 border-t border-line">
-					<a
-						class="inline-flex items-center gap-1.5 text-xs text-brand no-underline hover:underline cursor-pointer"
-						[routerLink]="['/games', selectedGame()!.code]"
-						[queryParams]="{ review: 'open' }"
-						(click)="onClose()"
-					>
-						<span aria-hidden="true" class="material-icons text-sm">rate_review</span>
-						Write or edit review
-					</a>
-				</div>
-				}
-			</div>
-			</ui-tabs>
-
-			<div class="flex justify-between items-center mt-5 pt-4 border-t border-line">
-				@if (isEdit()) {
-				<div class="flex items-center gap-2">
-					@if (!showConfirmDelete()) {
+				<div class="flex gap-2 mb-3">
 					<button
 						type="button"
-						class="px-3 py-1.5 bg-transparent border border-danger/30 text-danger rounded text-xs cursor-pointer transition hover:bg-danger/10"
-						(click)="showConfirmDelete.set(true)"
+						class="flex-1 flex items-center justify-center gap-2 px-3 py-2 border rounded text-xs font-medium font-sans cursor-pointer transition"
+						[class]="addToQueue() ? 'bg-brand/10 border-brand text-brand' : 'bg-input-bg border-line-hover text-fg-muted hover:border-brand hover:text-brand'"
+						(click)="addToQueue.set(!addToQueue())"
 					>
-						Delete
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>{{ addToQueue() ? 'playlist_add_check' :
+							'playlist_play' }}</span
+						>
+						{{ addToQueue() ? 'In Queue' : 'Add to Queue' }}
 					</button>
-					} @else {
-					<span class="text-[0.8125rem] text-danger">Are you sure?</span>
-					<button uiButton variant="danger" size="sm"
+					@if (!isEdit()) {
+					<button
 						type="button"
-						(click)="onDelete()"
+						class="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-input-bg border border-line-hover rounded text-fg-muted text-xs font-medium font-sans cursor-pointer transition hover:border-brand hover:text-brand"
+						[class.!bg-brand-subtle]="addToShelf()"
+						[class.!border-brand]="addToShelf()"
+						[class.!text-brand]="addToShelf()"
+						(click)="addToShelf.set(!addToShelf())"
 					>
-						Yes, delete
-					</button>
-					<button uiButton variant="ghost" size="sm"
-						type="button"
-						(click)="showConfirmDelete.set(false)"
-					>
-						Cancel
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>shelves</span
+						>
+						{{ addToShelf() ? 'In Shelf' : 'Add to Shelf' }}
 					</button>
 					}
 				</div>
+
+				@if (!isEdit()) {
+				<div class="mb-4">
+					<label
+						for="platformId"
+						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						>Platform
+						<span class="text-danger font-bold">*</span></label
+					>
+					<select
+						uiSelect
+						id="platformId"
+						formControlName="platformId"
+					>
+						<option value="">Select platform</option>
+						@for (p of gamePlatforms(); track p.id) {
+						<option [value]="p.id">{{ p.name }}</option>
+						}
+					</select>
+				</div>
 				}
-				<button uiButton variant="primary" size="sm" class="ml-auto"
-					type="submit"
-					[disabled]="form.invalid || isLoading()"
+
+				<ui-tabs [(value)]="activeFormTab">
+					<ui-tab-list
+						class="!mb-4 sticky -top-1 bg-sidebar z-10 -mx-1 px-1 pt-1"
+					>
+						<button uiTab value="reference" type="button">
+							<span
+								aria-hidden="true"
+								class="material-icons text-base mr-1 align-middle"
+								>analytics</span
+							>
+							Reference
+						</button>
+						<button uiTab value="tracking" type="button">
+							<span
+								aria-hidden="true"
+								class="material-icons text-base mr-1 align-middle"
+								>play_circle</span
+							>
+							Tracking
+						</button>
+						<button uiTab value="notes" type="button">
+							<span
+								aria-hidden="true"
+								class="material-icons text-base mr-1 align-middle"
+								>edit_note</span
+							>
+							Notes
+						</button>
+					</ui-tab-list>
+
+					<div uiTabPanel value="reference" class="pt-1">
+						<div
+							class="flex items-center justify-between gap-3 mb-1"
+						>
+							<h3
+								class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider"
+							>
+								Reference data
+							</h3>
+							<div class="flex items-center gap-1.5">
+								<span
+									class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
+									>Ratio</span
+								>
+								<span
+									class="font-display text-base font-bold tabular-nums"
+									[class.text-brand]="ratio() !== null"
+									[class.text-fg-muted]="ratio() === null"
+									>{{ ratio() ?? '—' }}</span
+								>
+								<button
+									type="button"
+									class="bg-none border-0 p-0 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+									(click)="toggleTooltip('ratio')"
+									aria-label="What is the ratio?"
+								>
+									<span
+										aria-hidden="true"
+										class="material-icons text-sm"
+										>info</span
+									>
+								</button>
+							</div>
+						</div>
+						<p
+							class="text-[0.75rem] text-fg-muted m-0 mb-3 leading-snug"
+						>
+							Critic score and estimated duration from external
+							sources. Your personal data lives in the Tracking
+							tab.
+						</p>
+
+						<div class="grid grid-cols-2 gap-3">
+							<div>
+								<label
+									for="score"
+									class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+									>Critic Score
+									<span class="text-danger font-bold">*</span>
+									<button
+										type="button"
+										class="bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+										(click)="toggleTooltip('score')"
+										aria-label="Info"
+									>
+										<span
+											aria-hidden="true"
+											class="material-icons text-sm"
+											>info</span
+										>
+									</button>
+								</label>
+								@if (gameScores().length > 0 || (selectedGame()
+								&& !isEdit())) {
+								<div
+									class="min-h-[26px] mb-1.5 flex flex-wrap items-center gap-1"
+								>
+									@if (gameScores().length > 0) { @for (s of
+									gameScores(); track s.source) {
+									<button
+										type="button"
+										class="bg-input-bg border border-line text-fg-secondary text-[0.625rem] font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
+										[class.!bg-brand-subtle]="activeScoreSource() === s.source"
+										[class.!border-brand]="activeScoreSource() === s.source"
+										[class.!text-brand]="activeScoreSource() === s.source"
+										(click)="applyScore(s.source, s.score)"
+									>
+										{{ s.source }} {{ s.score }}{{
+										getScaleLabel(s.source) }}
+									</button>
+									} } @else {
+									<span
+										class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted"
+									>
+										<span
+											aria-hidden="true"
+											class="material-icons text-[0.75rem]"
+											>help_outline</span
+										>
+										No sources.
+										<button
+											type="button"
+											class="bg-none border-0 p-0 text-brand cursor-pointer hover:underline"
+											(click)="reportMissing('missing_score')"
+										>
+											Report missing
+										</button>
+									</span>
+									}
+								</div>
+								}
+								<div class="relative">
+									<input
+										id="score"
+										type="number"
+										formControlName="score"
+										placeholder="0–5"
+										step="0.1"
+										min="0"
+										max="5"
+										class="w-full pl-3 pr-9 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+										(input)="onScoreManualChange()"
+									/>
+									<span
+										class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fg-muted pointer-events-none select-none"
+										>/5</span
+									>
+								</div>
+							</div>
+							<div>
+								<label
+									for="duration"
+									class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+									>Duration (h)
+									<span class="text-danger font-bold">*</span>
+									<button
+										type="button"
+										class="bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+										(click)="toggleTooltip('duration')"
+										aria-label="Info"
+									>
+										<span
+											aria-hidden="true"
+											class="material-icons text-sm"
+											>info</span
+										>
+									</button>
+								</label>
+								@if (gameTimes().length > 0 || (selectedGame()
+								&& !isEdit())) {
+								<div
+									class="min-h-[26px] mb-1.5 flex flex-wrap items-center gap-1"
+								>
+									@if (gameTimes().length > 0) { @for (t of
+									gameTimes(); track t.source) {
+									<button
+										type="button"
+										class="bg-input-bg border border-line text-fg-secondary text-[0.625rem] font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
+										[class.!bg-brand-subtle]="activeDurationSource() === t.source"
+										[class.!border-brand]="activeDurationSource() === t.source"
+										[class.!text-brand]="activeDurationSource() === t.source"
+										(click)="applyDuration(t.source, t.duration)"
+									>
+										{{ t.source }} {{ t.duration }}h
+									</button>
+									} } @else {
+									<span
+										class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted"
+									>
+										<span
+											aria-hidden="true"
+											class="material-icons text-[0.75rem]"
+											>help_outline</span
+										>
+										No sources.
+										<button
+											type="button"
+											class="bg-none border-0 p-0 text-brand cursor-pointer hover:underline"
+											(click)="reportMissing('missing_duration')"
+										>
+											Report missing
+										</button>
+									</span>
+									}
+								</div>
+								}
+								<input
+									id="duration"
+									type="number"
+									formControlName="duration"
+									placeholder="HowLongToBeat estimate"
+									step="0.5"
+									class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+									(input)="onDurationManualChange()"
+								/>
+							</div>
+						</div>
+						@if (referenceTooltipText()) {
+						<p
+							class="mt-3 mb-0 text-[0.75rem] text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug"
+						>
+							{{ referenceTooltipText() }}
+						</p>
+						} @if (reportFeedback()) {
+						<p class="mt-2 mb-0 text-[0.75rem] text-success">
+							{{ reportFeedback() }}
+						</p>
+						}
+					</div>
+
+					<div uiTabPanel value="tracking" class="pt-1">
+						<div class="flex items-baseline justify-between mb-3">
+							<h3
+								class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider"
+							>
+								Your tracking
+							</h3>
+							<span class="text-[0.6875rem] text-fg-muted italic"
+								>personal data</span
+							>
+						</div>
+
+						<div class="mb-4">
+							<label
+								for="status"
+								class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+								>Status</label
+							>
+							<select
+								uiSelect
+								id="status"
+								formControlName="status"
+							>
+								<option value="not_started">Not Started</option>
+								<option value="playing">Playing</option>
+								<option value="completed">Completed</option>
+								<option value="endless">Endless</option>
+								<option value="abandoned">Abandoned</option>
+							</select>
+						</div>
+
+						@if (showTrackingDetails()) {
+						<div class="grid grid-cols-2 gap-3">
+							<div class="mb-4">
+								<label
+									for="startedAt"
+									class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+									>Started</label
+								>
+								<input
+									id="startedAt"
+									type="date"
+									formControlName="startedAt"
+									class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+								/>
+							</div>
+							<div class="mb-4">
+								<label
+									for="finishedAt"
+									class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+									>Finished</label
+								>
+								<input
+									id="finishedAt"
+									type="date"
+									formControlName="finishedAt"
+									class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+								/>
+							</div>
+						</div>
+
+						<div class="grid grid-cols-2 gap-3">
+							<div class="mb-4">
+								<span
+									id="backlog-my-rating-label"
+									class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+								>
+									My Rating
+									<button
+										type="button"
+										class="bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+										(click)="toggleTooltip('rating')"
+										aria-label="Info"
+									>
+										<span
+											aria-hidden="true"
+											class="material-icons text-sm"
+											>info</span
+										>
+									</button>
+								</span>
+								<app-star-rating
+									ariaLabelledby="backlog-my-rating-label"
+									[value]="form.controls.userRating.value"
+									(ratingChange)="form.controls.userRating.setValue($event)"
+								/>
+							</div>
+							<div class="mb-4">
+								<label
+									for="realDuration"
+									class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+									>Real Duration (h)
+									<button
+										type="button"
+										class="bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+										(click)="toggleTooltip('realDuration')"
+										aria-label="Info"
+									>
+										<span
+											aria-hidden="true"
+											class="material-icons text-sm"
+											>info</span
+										>
+									</button>
+								</label>
+								<input
+									id="realDuration"
+									type="number"
+									formControlName="realDuration"
+									placeholder="Actual hours"
+									step="0.5"
+									class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+								/>
+							</div>
+						</div>
+						} @if (trackingTooltipText()) {
+						<p
+							class="mt-1 mb-4 text-[0.75rem] text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug"
+						>
+							{{ trackingTooltipText() }}
+						</p>
+						} @if (isEdit()) {
+						<div class="mb-4 pt-3 border-t border-line">
+							<span
+								class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+								>Played with</span
+							>
+							<p
+								class="text-[0.6875rem] text-fg-muted m-0 mb-2 leading-snug"
+							>
+								Tag friends you played this with. Each tag
+								auto-creates a backlog for them if they don't
+								have one. You can only tag users you follow.
+							</p>
+							@if (coopMembers().length > 0) {
+							<ul
+								class="list-none p-0 m-0 flex flex-col gap-1.5 mb-2"
+							>
+								@for (member of coopMembers(); track
+								member.userId) {
+								<li
+									class="flex items-center gap-2 bg-input-bg border border-line rounded px-2.5 py-1.5"
+								>
+									@if (member.avatarUrl) {
+									<img
+										[src]="member.avatarUrl"
+										[alt]="member.username"
+										class="w-6 h-6 rounded-full object-cover shrink-0"
+									/>
+									} @else {
+									<div
+										class="w-6 h-6 rounded-full bg-brand/20 text-brand text-[0.625rem] font-semibold flex items-center justify-center shrink-0"
+									>
+										{{ member.username[0]?.toUpperCase() }}
+									</div>
+									}
+									<div class="flex-1 min-w-0">
+										<span
+											class="block text-xs font-medium text-fg line-clamp-1"
+											>{{ member.name || member.username
+											}}</span
+										>
+										<span
+											class="block text-[0.625rem] text-fg-muted"
+											>{{ member.status }} · {{
+											member.realDuration ?
+											member.realDuration + 'h' : '—'
+											}}</span
+										>
+									</div>
+									<button
+										type="button"
+										class="bg-transparent border-0 text-[0.6875rem] text-brand cursor-pointer hover:underline"
+										(click)="openSyncDialog(member)"
+										title="Compare and sync from this peer"
+									>
+										Sync
+									</button>
+									<button
+										type="button"
+										class="bg-transparent border-0 text-fg-muted hover:text-danger cursor-pointer p-0.5 transition"
+										(click)="removeCoopMember(member)"
+										[disabled]="coopRemovingId() === member.userId"
+										title="Remove"
+									>
+										<span class="material-icons text-sm"
+											>close</span
+										>
+									</button>
+								</li>
+								}
+							</ul>
+							} @if (availableFollows().length > 0) {
+							<select
+								uiSelect
+								(change)="addCoopMember($any($event.target).value); $any($event.target).value = ''"
+								[disabled]="coopAdding()"
+							>
+								<option value="">
+									{{ coopAdding() ? 'Adding…' : 'Add a friend
+									you follow…' }}
+								</option>
+								@for (friend of availableFollows(); track
+								friend.id) {
+								<option [value]="friend.id">
+									{{ friend.name || friend.username }}{{ '@' +
+									friend.username !== friend.name ? ' (@' +
+									friend.username + ')' : '' }}
+								</option>
+								}
+							</select>
+							} @else if (coopMembers().length === 0) {
+							<p
+								class="text-[0.6875rem] text-fg-muted italic m-0"
+							>
+								You're not following anyone yet. Follow a friend
+								to tag them here.
+							</p>
+							}
+						</div>
+						}
+					</div>
+
+					<div uiTabPanel value="notes" class="pt-1">
+						<div class="flex items-baseline justify-between mb-3">
+							<h3
+								class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider"
+							>
+								Your annotations
+							</h3>
+							<span class="text-[0.6875rem] text-fg-muted italic"
+								>tags, progress, notes</span
+							>
+						</div>
+
+						<div class="mb-4">
+							<span
+								id="backlog-tags-label"
+								class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+								>Tags</span
+							>
+							<app-mood-tags-input
+								ariaLabelledby="backlog-tags-label"
+								[tags]="moodTags()"
+								[suggestions]="moodTagsSuggestions()"
+								placeholder="e.g. relajante, podcast game…"
+								(tagsChange)="updateMoodTags($event)"
+							/>
+							<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted">
+								Personal labels you can later use to filter the
+								backlog. Up to 10.
+							</p>
+						</div>
+
+						<div class="mb-4">
+							<label
+								for="progress-note"
+								class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+								>Where I am</label
+							>
+							<div class="flex gap-2">
+								<input
+									uiInput
+									id="progress-note"
+									size="sm"
+									placeholder="e.g. Cap 3, stuck en el puzzle del agua"
+									[value]="progressDraft()"
+									(input)="updateProgressDraft($any($event.target).value)"
+									(keyup.enter)="isEdit() ? addProgressNote() : null"
+									maxlength="500"
+									class="flex-1"
+								/>
+								@if (isEdit()) {
+								<button
+									uiButton
+									variant="primary"
+									size="sm"
+									type="button"
+									(click)="addProgressNote()"
+									[disabled]="progressLoading() || !progressDraft().trim()"
+								>
+									{{ progressLoading() ? '…' : 'Add' }}
+								</button>
+								}
+							</div>
+							@if (isEdit() && progressNotes().length > 0) {
+							<div
+								class="mt-2 flex items-start gap-2 text-xs text-fg-secondary"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-base text-brand mt-px"
+									>bookmark</span
+								>
+								<div class="flex-1 min-w-0">
+									<p
+										class="m-0 whitespace-pre-wrap break-words"
+									>
+										{{ progressNotes()[0].note }}
+									</p>
+									<p
+										class="m-0 text-[0.625rem] text-fg-muted mt-0.5"
+									>
+										{{ progressNotes()[0].createdAt |
+										date:'yyyy-MM-dd HH:mm' }}
+									</p>
+								</div>
+								<button
+									type="button"
+									class="bg-transparent border-0 text-fg-muted cursor-pointer p-0.5 hover:text-danger transition"
+									(click)="deleteProgressNote(progressNotes()[0])"
+									[disabled]="progressSavingId() === progressNotes()[0].id"
+									title="Delete"
+								>
+									<span class="material-icons text-sm"
+										>close</span
+									>
+								</button>
+							</div>
+							@if (progressNotes().length > 1) {
+							<button
+								type="button"
+								class="bg-transparent border-0 text-[0.6875rem] text-brand cursor-pointer mt-1.5 hover:underline"
+								(click)="toggleProgressHistory()"
+							>
+								{{ progressHistoryOpen() ? 'Hide history' :
+								'Show history (' + (progressNotes().length - 1)
+								+ ')' }}
+							</button>
+							} @if (progressHistoryOpen()) {
+							<ul
+								class="mt-2 list-none p-0 m-0 flex flex-col gap-1.5 max-h-44 overflow-y-auto border-t border-line pt-2"
+							>
+								@for (n of progressNotes().slice(1); track n.id)
+								{
+								<li class="flex items-start gap-2 text-xs">
+									<div class="flex-1 min-w-0">
+										<p
+											class="m-0 text-fg-secondary whitespace-pre-wrap break-words"
+										>
+											{{ n.note }}
+										</p>
+										<p
+											class="m-0 text-[0.625rem] text-fg-muted mt-0.5"
+										>
+											{{ n.createdAt | date:'yyyy-MM-dd
+											HH:mm' }}
+										</p>
+									</div>
+									<button
+										type="button"
+										class="bg-transparent border-0 text-fg-muted cursor-pointer p-0.5 hover:text-danger transition"
+										(click)="deleteProgressNote(n)"
+										[disabled]="progressSavingId() === n.id"
+										title="Delete"
+									>
+										<span class="material-icons text-sm"
+											>close</span
+										>
+									</button>
+								</li>
+								}
+							</ul>
+							} }
+							<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted">
+								@if (isEdit()) { Short notes to remember where
+								you left off. Each add creates a new entry;
+								history is preserved. } @else { Optional. Will
+								be saved with the backlog so you can pick up
+								later. }
+							</p>
+						</div>
+
+						<div class="mb-4">
+							<label
+								for="notes"
+								class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+								>Notes</label
+							>
+							<textarea
+								uiTextarea
+								id="notes"
+								formControlName="notes"
+								rows="3"
+								placeholder="Your thoughts..."
+								class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							></textarea>
+						</div>
+
+						@if (hasExistingReview() && selectedGame()) {
+						<div class="mt-3 pt-3 border-t border-line">
+							<a
+								class="inline-flex items-center gap-1.5 text-xs text-brand no-underline hover:underline cursor-pointer"
+								[routerLink]="['/games', selectedGame()!.code]"
+								[queryParams]="{ review: 'open' }"
+								(click)="onClose()"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-sm"
+									>rate_review</span
+								>
+								Write or edit review
+							</a>
+						</div>
+						} @else if (isFirstReviewableTransition()) {
+						<div class="mt-3 pt-3 border-t border-line">
+							<label
+								for="review-content"
+								class="block mb-1.5 text-xs font-medium text-fg-muted uppercase tracking-wider"
+								>Review (optional)</label
+							>
+							<textarea
+								uiTextarea
+								id="review-content"
+								rows="3"
+								placeholder="Share your review of this game..."
+								class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+								[value]="reviewContent()"
+								(input)="reviewContent.set($any($event.target).value)"
+							></textarea>
+						</div>
+						} @else if (isEdit() && isReviewableStatus() &&
+						selectedGame()) {
+						<div class="mt-3 pt-3 border-t border-line">
+							<a
+								class="inline-flex items-center gap-1.5 text-xs text-brand no-underline hover:underline cursor-pointer"
+								[routerLink]="['/games', selectedGame()!.code]"
+								[queryParams]="{ review: 'open' }"
+								(click)="onClose()"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-sm"
+									>rate_review</span
+								>
+								Write or edit review
+							</a>
+						</div>
+						}
+					</div>
+				</ui-tabs>
+
+				<div
+					class="flex justify-between items-center mt-5 pt-4 border-t border-line"
 				>
-					{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Add" }}
+					@if (isEdit()) {
+					<div class="flex items-center gap-2">
+						@if (!showConfirmDelete()) {
+						<button
+							type="button"
+							class="px-3 py-1.5 bg-transparent border border-danger/30 text-danger rounded text-xs cursor-pointer transition hover:bg-danger/10"
+							(click)="showConfirmDelete.set(true)"
+						>
+							Delete
+						</button>
+						} @else {
+						<span class="text-[0.8125rem] text-danger"
+							>Are you sure?</span
+						>
+						<button
+							uiButton
+							variant="danger"
+							size="sm"
+							type="button"
+							(click)="onDelete()"
+						>
+							Yes, delete
+						</button>
+						<button
+							uiButton
+							variant="ghost"
+							size="sm"
+							type="button"
+							(click)="showConfirmDelete.set(false)"
+						>
+							Cancel
+						</button>
+						}
+					</div>
+					}
+					<button
+						uiButton
+						variant="primary"
+						size="sm"
+						class="ml-auto"
+						type="submit"
+						[disabled]="form.invalid || isLoading()"
+					>
+						{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Add"
+						}}
+					</button>
+				</div>
+			</form>
+			}
+		</div>
+
+		@if (pickerUserId()) {
+<div
+	class="fixed inset-0 bg-black/70 flex justify-center items-center z-[110] backdrop-blur-[4px] p-4"
+>
+	<div
+		class="bg-sidebar border border-line rounded-card max-w-md w-full p-5 shadow-2xl"
+	>
+		<header class="flex items-center gap-2 mb-3">
+			<span aria-hidden="true" class="material-icons text-brand"
+				>group_add</span
+			>
+			<h2 class="font-display text-lg font-semibold m-0">
+				Pick a run for {{ pickerUserName() }}
+			</h2>
+		</header>
+		<p class="text-sm text-fg-secondary m-0 mb-4">
+			{{ pickerUserName() }} already has runs for this game. Pick one to
+			annex into your co-op session, or create a new entry for them.
+		</p>
+		<ul
+			class="list-none p-0 m-0 flex flex-col gap-2 mb-4 max-h-72 overflow-y-auto"
+		>
+			@for (c of pickerCandidates(); track c.id) {
+			<li>
+				<button
+					type="button"
+					class="w-full bg-input-bg border border-line rounded-card p-3 text-left cursor-pointer hover:border-brand transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-line"
+					(click)="chooseCandidate(c.id)"
+					[disabled]="!!c.coopRunId"
+				>
+					<div class="flex items-center justify-between mb-1">
+						<span
+							class="text-xs font-semibold uppercase tracking-wider text-fg"
+							>{{ c.status }}</span
+						>
+						@if (c.coopRunId) {
+						<span class="text-[0.625rem] text-warning"
+							>Already in another co-op</span
+						>
+						}
+					</div>
+					<div class="text-[0.6875rem] text-fg-muted tabular-nums">
+						Started: {{ c.startedAt ?? '—' }} · Finished: {{
+						c.finishedAt ?? '—' }} · Real: {{ c.realDuration ?? '—'
+						}}h
+					</div>
 				</button>
-			</div>
-		</form>
-		}
+			</li>
+			}
+		</ul>
+		<div class="flex justify-between gap-2">
+			<button
+				uiButton
+				variant="ghost"
+				size="sm"
+				type="button"
+				(click)="cancelPicker()"
+			>
+				Cancel
+			</button>
+			<button
+				uiButton
+				variant="primary"
+				size="sm"
+				type="button"
+				(click)="chooseCandidate(null)"
+			>
+				Create new entry
+			</button>
 		</div>
 	</div>
 </div>
+} @if (syncMember(); as m) {
+<div
+	class="fixed inset-0 bg-black/70 flex justify-center items-center z-[110] backdrop-blur-[4px] p-4"
+>
+	<div
+		class="bg-sidebar border border-line rounded-card max-w-md w-full p-5 shadow-2xl"
+	>
+		<header class="flex items-center gap-2 mb-3">
+			<span aria-hidden="true" class="material-icons text-brand"
+				>sync</span
+			>
+			<h2 class="font-display text-lg font-semibold m-0">
+				Sync from {{ m.name || m.username }}
+			</h2>
+		</header>
+		<p class="text-sm text-fg-secondary m-0 mb-4">
+			Pick which fields to copy. Your personal data (score, rating, notes)
+			is never synced.
+		</p>
 
-@if (pickerUserId()) {
-	<div class="fixed inset-0 bg-black/70 flex justify-center items-center z-[110] backdrop-blur-[4px] p-4" (click)="cancelPicker()">
-		<div class="bg-sidebar border border-line rounded-card max-w-md w-full p-5 shadow-2xl" (click)="$event.stopPropagation()">
-			<header class="flex items-center gap-2 mb-3">
-				<span aria-hidden="true" class="material-icons text-brand">group_add</span>
-				<h2 class="font-display text-lg font-semibold m-0">Pick a run for {{ pickerUserName() }}</h2>
-			</header>
-			<p class="text-sm text-fg-secondary m-0 mb-4">{{ pickerUserName() }} already has runs for this game. Pick one to annex into your co-op session, or create a new entry for them.</p>
-			<ul class="list-none p-0 m-0 flex flex-col gap-2 mb-4 max-h-72 overflow-y-auto">
-				@for (c of pickerCandidates(); track c.id) {
-					<li>
-						<button type="button" class="w-full bg-input-bg border border-line rounded-card p-3 text-left cursor-pointer hover:border-brand transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-line" (click)="chooseCandidate(c.id)" [disabled]="!!c.coopRunId">
-							<div class="flex items-center justify-between mb-1">
-								<span class="text-xs font-semibold uppercase tracking-wider text-fg">{{ c.status }}</span>
-								@if (c.coopRunId) {
-									<span class="text-[0.625rem] text-warning">Already in another co-op</span>
-								}
-							</div>
-							<div class="text-[0.6875rem] text-fg-muted tabular-nums">
-								Started: {{ c.startedAt ?? '—' }} · Finished: {{ c.finishedAt ?? '—' }} · Real: {{ c.realDuration ?? '—' }}h
-							</div>
-						</button>
-					</li>
-				}
-			</ul>
-			<div class="flex justify-between gap-2">
-				<button uiButton variant="ghost" size="sm" type="button" (click)="cancelPicker()">Cancel</button>
-				<button uiButton variant="primary" size="sm" type="button" (click)="chooseCandidate(null)">
-					Create new entry
-				</button>
-			</div>
+		@let mine = entry;
+		<div class="flex flex-col gap-2 mb-4">
+			<label class="flex items-start gap-2 cursor-pointer">
+				<input
+					type="checkbox"
+					class="cursor-pointer mt-0.5"
+					[checked]="syncFields().status"
+					(change)="toggleSyncField('status')"
+				/>
+				<div class="flex-1">
+					<span class="block text-sm text-fg">Status</span>
+					<span
+						class="block text-[0.6875rem] text-fg-muted tabular-nums"
+						>{{ mine?.status ?? '—' }} → {{ m.status }}</span
+					>
+				</div>
+			</label>
+			<label class="flex items-start gap-2 cursor-pointer">
+				<input
+					type="checkbox"
+					class="cursor-pointer mt-0.5"
+					[checked]="syncFields().startedAt"
+					(change)="toggleSyncField('startedAt')"
+				/>
+				<div class="flex-1">
+					<span class="block text-sm text-fg">Started At</span>
+					<span
+						class="block text-[0.6875rem] text-fg-muted tabular-nums"
+						>{{ mine?.startedAt ?? '—' }} → {{ m.startedAt ?? '—'
+						}}</span
+					>
+				</div>
+			</label>
+			<label class="flex items-start gap-2 cursor-pointer">
+				<input
+					type="checkbox"
+					class="cursor-pointer mt-0.5"
+					[checked]="syncFields().finishedAt"
+					(change)="toggleSyncField('finishedAt')"
+				/>
+				<div class="flex-1">
+					<span class="block text-sm text-fg">Finished At</span>
+					<span
+						class="block text-[0.6875rem] text-fg-muted tabular-nums"
+						>{{ mine?.finishedAt ?? '—' }} → {{ m.finishedAt ?? '—'
+						}}</span
+					>
+				</div>
+			</label>
+			<label class="flex items-start gap-2 cursor-pointer">
+				<input
+					type="checkbox"
+					class="cursor-pointer mt-0.5"
+					[checked]="syncFields().realDuration"
+					(change)="toggleSyncField('realDuration')"
+				/>
+				<div class="flex-1">
+					<span class="block text-sm text-fg">Real Duration</span>
+					<span
+						class="block text-[0.6875rem] text-fg-muted tabular-nums"
+						>{{ mine?.realDuration ?? '—' }}h → {{ m.realDuration ??
+						'—' }}h</span
+					>
+				</div>
+			</label>
+		</div>
+
+		<div class="flex justify-end gap-2">
+			<button
+				uiButton
+				variant="ghost"
+				size="sm"
+				type="button"
+				(click)="closeSyncDialog()"
+				[disabled]="syncing()"
+			>
+				Cancel
+			</button>
+			<button
+				uiButton
+				variant="primary"
+				size="sm"
+				type="button"
+				(click)="commitSync()"
+				[disabled]="syncing() || !hasAnySyncFieldSelected()"
+			>
+				{{ syncing() ? 'Syncing…' : 'Apply' }}
+			</button>
 		</div>
 	</div>
+</div>
 }
-
-@if (syncMember(); as m) {
-	<div class="fixed inset-0 bg-black/70 flex justify-center items-center z-[110] backdrop-blur-[4px] p-4" (click)="closeSyncDialog()">
-		<div class="bg-sidebar border border-line rounded-card max-w-md w-full p-5 shadow-2xl" (click)="$event.stopPropagation()">
-			<header class="flex items-center gap-2 mb-3">
-				<span aria-hidden="true" class="material-icons text-brand">sync</span>
-				<h2 class="font-display text-lg font-semibold m-0">Sync from {{ m.name || m.username }}</h2>
-			</header>
-			<p class="text-sm text-fg-secondary m-0 mb-4">Pick which fields to copy. Your personal data (score, rating, notes) is never synced.</p>
-
-			@let mine = entry();
-			<div class="flex flex-col gap-2 mb-4">
-				<label class="flex items-start gap-2 cursor-pointer">
-					<input type="checkbox" class="cursor-pointer mt-0.5" [checked]="syncFields().status" (change)="toggleSyncField('status')" />
-					<div class="flex-1">
-						<span class="block text-sm text-fg">Status</span>
-						<span class="block text-[0.6875rem] text-fg-muted tabular-nums">{{ mine?.status ?? '—' }} → {{ m.status }}</span>
-					</div>
-				</label>
-				<label class="flex items-start gap-2 cursor-pointer">
-					<input type="checkbox" class="cursor-pointer mt-0.5" [checked]="syncFields().startedAt" (change)="toggleSyncField('startedAt')" />
-					<div class="flex-1">
-						<span class="block text-sm text-fg">Started At</span>
-						<span class="block text-[0.6875rem] text-fg-muted tabular-nums">{{ mine?.startedAt ?? '—' }} → {{ m.startedAt ?? '—' }}</span>
-					</div>
-				</label>
-				<label class="flex items-start gap-2 cursor-pointer">
-					<input type="checkbox" class="cursor-pointer mt-0.5" [checked]="syncFields().finishedAt" (change)="toggleSyncField('finishedAt')" />
-					<div class="flex-1">
-						<span class="block text-sm text-fg">Finished At</span>
-						<span class="block text-[0.6875rem] text-fg-muted tabular-nums">{{ mine?.finishedAt ?? '—' }} → {{ m.finishedAt ?? '—' }}</span>
-					</div>
-				</label>
-				<label class="flex items-start gap-2 cursor-pointer">
-					<input type="checkbox" class="cursor-pointer mt-0.5" [checked]="syncFields().realDuration" (change)="toggleSyncField('realDuration')" />
-					<div class="flex-1">
-						<span class="block text-sm text-fg">Real Duration</span>
-						<span class="block text-[0.6875rem] text-fg-muted tabular-nums">{{ mine?.realDuration ?? '—' }}h → {{ m.realDuration ?? '—' }}h</span>
-					</div>
-				</label>
-			</div>
-
-			<div class="flex justify-end gap-2">
-				<button uiButton variant="ghost" size="sm" type="button" (click)="closeSyncDialog()" [disabled]="syncing()">Cancel</button>
-				<button uiButton variant="primary" size="sm" type="button" (click)="commitSync()" [disabled]="syncing() || !hasAnySyncFieldSelected()">
-					{{ syncing() ? 'Syncing…' : 'Apply' }}
-				</button>
-			</div>
-		</div>
 	</div>
-}
+</div>

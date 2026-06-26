@@ -2,17 +2,20 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	input,
 	OnInit,
-	output,
 	signal
 } from "@angular/core";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import {
+	NgpDialog,
+	NgpDialogOverlay,
+	NgpDialogTitle,
+	injectDialogRef
+} from "ng-primitives/dialog";
 import { List } from "../../../core/models";
 import { ListsService, CreateListDto, UpdateListDto } from "../lists";
 import {
 	UiButton,
-	UiFocusTrap,
 	UiFormField,
 	UiIconButton,
 	UiInput,
@@ -22,12 +25,19 @@ import {
 	UiTextarea
 } from "../../../shared/ui";
 
+export interface ListModalData {
+	list: List | null;
+}
+export type ListModalResult = "saved" | "deleted";
+
 @Component({
 	selector: "app-list-modal",
 	imports: [
 		ReactiveFormsModule,
+		NgpDialog,
+		NgpDialogOverlay,
+		NgpDialogTitle,
 		UiButton,
-		UiFocusTrap,
 		UiIconButton,
 		UiInput,
 		UiTextarea,
@@ -54,11 +64,11 @@ export class ListModal implements OnInit {
 
 	private readonly fb = inject(FormBuilder);
 	private readonly listsService = inject(ListsService);
-
-	list = input<List | null>(null);
-	closed = output<void>();
-	saved = output<void>();
-	deleted = output<void>();
+	private readonly dialogRef = injectDialogRef<
+		ListModalData,
+		ListModalResult
+	>();
+	private readonly list = this.dialogRef.data.list;
 
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
@@ -74,7 +84,7 @@ export class ListModal implements OnInit {
 	});
 
 	ngOnInit() {
-		const l = this.list();
+		const l = this.list;
 		if (l) {
 			this.isEdit.set(true);
 			this.form.patchValue({
@@ -102,8 +112,8 @@ export class ListModal implements OnInit {
 				scoreSource: val.scoreSource ?? undefined,
 				durationSource: val.durationSource ?? undefined
 			};
-			this.listsService.update(this.list()!.id, dto).subscribe({
-				next: () => this.saved.emit(),
+			this.listsService.update(this.list!.id, dto).subscribe({
+				next: () => this.dialogRef.close("saved"),
 				error: err => {
 					this.isLoading.set(false);
 					this.error.set(err.error?.title ?? "Update failed");
@@ -118,7 +128,7 @@ export class ListModal implements OnInit {
 				isPublic: val.isPublic ?? false
 			};
 			this.listsService.create(dto).subscribe({
-				next: () => this.saved.emit(),
+				next: () => this.dialogRef.close("saved"),
 				error: err => {
 					this.isLoading.set(false);
 					this.error.set(err.error?.title ?? "Creation failed");
@@ -129,8 +139,8 @@ export class ListModal implements OnInit {
 
 	onDelete() {
 		this.isLoading.set(true);
-		this.listsService.delete(this.list()!.id).subscribe({
-			next: () => this.deleted.emit(),
+		this.listsService.delete(this.list!.id).subscribe({
+			next: () => this.dialogRef.close("deleted"),
 			error: err => {
 				this.isLoading.set(false);
 				this.error.set(err.error?.title ?? "Delete failed");
@@ -139,6 +149,6 @@ export class ListModal implements OnInit {
 	}
 
 	onClose() {
-		this.closed.emit();
+		this.dialogRef.close();
 	}
 }

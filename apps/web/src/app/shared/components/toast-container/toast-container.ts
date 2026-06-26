@@ -17,7 +17,8 @@ import { Toast, ToastService } from "../../../core/services/toast";
 })
 export class ToastContainer implements OnInit {
 	private readonly toastService = inject(ToastService);
-	private readonly tpl = viewChild.required<TemplateRef<{ context: Toast }>>("tpl");
+	private readonly tpl =
+		viewChild.required<TemplateRef<{ context: Toast }>>("tpl");
 
 	ngOnInit() {
 		this.toastService.registerTemplate(this.tpl());

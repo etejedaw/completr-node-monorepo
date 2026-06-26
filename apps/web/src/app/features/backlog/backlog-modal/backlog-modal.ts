@@ -3,21 +3,21 @@ import {
 	Component,
 	computed,
 	inject,
-	input,
 	OnInit,
-	output,
 	signal
 } from "@angular/core";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
+import {
+	NgpDialog,
+	NgpDialogOverlay,
+	NgpDialogTitle,
+	injectDialogRef
+} from "ng-primitives/dialog";
 import { BacklogEntry } from "../../../core/models";
 import { Game, Platform } from "../../../core/models";
-import {
-	BacklogService,
-	CreateBacklogDto,
-	UpdateBacklogDto
-} from "../backlog";
+import { BacklogService, CreateBacklogDto, UpdateBacklogDto } from "../backlog";
 import { GamesService } from "../../games/games";
 import { QueueService } from "../../queue/queue";
 import { GameShelfService } from "../../game-shelf/game-shelf";
@@ -52,8 +52,26 @@ import {
 	forkJoin,
 	of
 } from "rxjs";
-import { UiButton, UiFocusTrap, UiIconButton, UiInput, UiSelect, UiTabs, UiTabList, UiTab, UiTabPanel, UiTextarea } from "../../../shared/ui";
+import {
+	UiButton,
+	UiIconButton,
+	UiInput,
+	UiSelect,
+	UiTabs,
+	UiTabList,
+	UiTab,
+	UiTabPanel,
+	UiTextarea
+} from "../../../shared/ui";
 import { DatePipe } from "@angular/common";
+
+export interface BacklogModalData {
+	entry: BacklogEntry | null;
+	preselectedGame: Game | null;
+	preselectedCompilationParent: Game | null;
+	preselectAddToQueue: boolean;
+}
+export type BacklogModalResult = "saved";
 
 @Component({
 	selector: "app-backlog-modal",
@@ -63,8 +81,10 @@ import { DatePipe } from "@angular/common";
 		RouterLink,
 		StarRating,
 		MoodTagsInput,
+		NgpDialog,
+		NgpDialogOverlay,
+		NgpDialogTitle,
 		UiButton,
-		UiFocusTrap,
 		UiIconButton,
 		UiInput,
 		UiSelect,
@@ -99,9 +119,11 @@ export class BacklogModal implements OnInit {
 	private static readonly TOOLTIP_TEXTS: Record<string, string> = {
 		ratio: "Ratio = (Critic Score ÷ Duration) × 20, scaled to 0–100. Higher means short and well-rated — useful to prioritize what to play next.",
 		score: "Average score from critics (Metacritic, OpenCritic, RAWG). Stored on a 0–5 scale — clicking a source button auto-normalizes the value for you.",
-		duration: "Estimated playtime from HowLongToBeat or RAWG. Not your real playtime — that goes in Real Duration below.",
+		duration:
+			"Estimated playtime from HowLongToBeat or RAWG. Not your real playtime — that goes in Real Duration below.",
 		rating: "Your personal rating (0.5–5 stars). Independent of critic score.",
-		realDuration: "Hours you actually spent. Used to calculate your Personal Ratio."
+		realDuration:
+			"Hours you actually spent. Used to calculate your Personal Ratio."
 	};
 
 	protected readonly referenceTooltipText = computed(() => {
@@ -151,12 +173,16 @@ export class BacklogModal implements OnInit {
 			});
 	}
 
-	entry = input<BacklogEntry | null>(null);
-	preselectedGame = input<Game | null>(null);
-	preselectedCompilationParent = input<Game | null>(null);
-	preselectAddToQueue = input<boolean>(false);
-	closed = output<void>();
-	saved = output<void>();
+	private readonly dialogRef = injectDialogRef<
+		BacklogModalData,
+		BacklogModalResult
+	>();
+	protected readonly entry = this.dialogRef.data.entry;
+	protected readonly preselectedGame = this.dialogRef.data.preselectedGame;
+	protected readonly preselectedCompilationParent =
+		this.dialogRef.data.preselectedCompilationParent;
+	protected readonly preselectAddToQueue =
+		this.dialogRef.data.preselectAddToQueue;
 
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
@@ -191,7 +217,9 @@ export class BacklogModal implements OnInit {
 
 	protected readonly isEdit = signal(false);
 	protected readonly viewMode = signal<"summary" | "edit">("edit");
-	protected readonly activeFormTab = signal<"reference" | "tracking" | "notes">("tracking");
+	protected readonly activeFormTab = signal<
+		"reference" | "tracking" | "notes"
+	>("tracking");
 
 	switchToEdit() {
 		this.viewMode.set("edit");
@@ -238,9 +266,12 @@ export class BacklogModal implements OnInit {
 		notes: [""]
 	});
 
-	private readonly scoreValue = toSignal(this.form.controls.score.valueChanges, {
-		initialValue: this.form.controls.score.value
-	});
+	private readonly scoreValue = toSignal(
+		this.form.controls.score.valueChanges,
+		{
+			initialValue: this.form.controls.score.value
+		}
+	);
 	private readonly durationValue = toSignal(
 		this.form.controls.duration.valueChanges,
 		{ initialValue: this.form.controls.duration.value }
@@ -267,7 +298,7 @@ export class BacklogModal implements OnInit {
 
 	protected readonly isFirstReviewableTransition = computed(() => {
 		if (!this.isReviewableStatus()) return false;
-		const previous = this.entry()?.status;
+		const previous = this.entry?.status;
 		return (
 			previous !== "completed" &&
 			previous !== "abandoned" &&
@@ -299,7 +330,7 @@ export class BacklogModal implements OnInit {
 	protected readonly pickerUserName = signal<string>("");
 
 	addCoopMember(userId: string) {
-		const e = this.entry();
+		const e = this.entry;
 		if (!e || !userId) return;
 		this.coopAdding.set(true);
 		this.coopService.getCandidates(e.id, userId).subscribe({
@@ -307,8 +338,12 @@ export class BacklogModal implements OnInit {
 				if (res.accessible && res.candidates.length >= 2) {
 					this.pickerCandidates.set(res.candidates);
 					this.pickerUserId.set(userId);
-					const friend = this.myFollowing().find(f => f.id === userId);
-					this.pickerUserName.set(friend?.name || friend?.username || "");
+					const friend = this.myFollowing().find(
+						f => f.id === userId
+					);
+					this.pickerUserName.set(
+						friend?.name || friend?.username || ""
+					);
 					this.coopAdding.set(false);
 					return;
 				}
@@ -335,22 +370,20 @@ export class BacklogModal implements OnInit {
 	}
 
 	private commitCoopAdd(userId: string, targetBacklogId?: string) {
-		const e = this.entry();
+		const e = this.entry;
 		if (!e) return;
 		this.coopAdding.set(true);
-		this.coopService
-			.addMember(e.id, userId, targetBacklogId)
-			.subscribe({
-				next: () => {
-					this.coopAdding.set(false);
-					this.refreshCoopMembers();
-				},
-				error: () => this.coopAdding.set(false)
-			});
+		this.coopService.addMember(e.id, userId, targetBacklogId).subscribe({
+			next: () => {
+				this.coopAdding.set(false);
+				this.refreshCoopMembers();
+			},
+			error: () => this.coopAdding.set(false)
+		});
 	}
 
 	removeCoopMember(member: CoopMember) {
-		const e = this.entry();
+		const e = this.entry;
 		if (!e) return;
 		this.coopRemovingId.set(member.userId);
 		this.coopService.removeMember(e.id, member.userId).subscribe({
@@ -387,7 +420,7 @@ export class BacklogModal implements OnInit {
 	}
 
 	commitSync() {
-		const e = this.entry();
+		const e = this.entry;
 		const member = this.syncMember();
 		if (!e || !member) return;
 		const fields: SyncField[] = (
@@ -399,14 +432,14 @@ export class BacklogModal implements OnInit {
 			next: () => {
 				this.syncing.set(false);
 				this.syncMember.set(null);
-				this.saved.emit();
+				this.dialogRef.close("saved");
 			},
 			error: () => this.syncing.set(false)
 		});
 	}
 
 	private refreshCoopMembers() {
-		const e = this.entry();
+		const e = this.entry;
 		if (!e) return;
 		this.coopService
 			.getMembers(e.id)
@@ -429,7 +462,7 @@ export class BacklogModal implements OnInit {
 
 	addProgressNote() {
 		const note = this.progressDraft().trim();
-		const e = this.entry();
+		const e = this.entry;
 		if (!note || !e) return;
 		this.progressLoading.set(true);
 		this.progressService.addProgress(e.id, note).subscribe({
@@ -443,7 +476,7 @@ export class BacklogModal implements OnInit {
 	}
 
 	deleteProgressNote(note: ProgressNote) {
-		const e = this.entry();
+		const e = this.entry;
 		if (!e) return;
 		this.progressSavingId.set(note.id);
 		this.progressService.deleteProgress(e.id, note.id).subscribe({
@@ -465,7 +498,7 @@ export class BacklogModal implements OnInit {
 	}
 
 	protected readonly hasExistingReview = computed(
-		() => !!this.entry()?.review || !!this.existingReview()
+		() => !!this.entry?.review || !!this.existingReview()
 	);
 
 	ngOnInit() {
@@ -507,7 +540,7 @@ export class BacklogModal implements OnInit {
 				this.isSearchingOnline.set(false);
 			});
 
-		const e = this.entry();
+		const e = this.entry;
 		if (e) {
 			this.isEdit.set(true);
 			this.viewMode.set("summary");
@@ -565,17 +598,17 @@ export class BacklogModal implements OnInit {
 			});
 		}
 
-		const parentPreset = this.preselectedCompilationParent();
+		const parentPreset = this.preselectedCompilationParent;
 		if (parentPreset && !this.isEdit()) {
 			this.compilationParent.set(parentPreset);
 		}
 
-		const pg = this.preselectedGame();
+		const pg = this.preselectedGame;
 		if (pg && !this.isEdit()) {
 			this.selectGame(pg);
 		}
 
-		if (this.preselectAddToQueue() && !this.isEdit()) {
+		if (this.preselectAddToQueue && !this.isEdit()) {
 			this.addToQueue.set(true);
 		}
 	}
@@ -794,23 +827,25 @@ export class BacklogModal implements OnInit {
 				notes: val.notes || null,
 				compilationGameId: this.compilationParent()?.id ?? null
 			};
-			this.backlogService.update(this.entry()!.id, dto).subscribe({
+			this.backlogService.update(this.entry!.id, dto).subscribe({
 				next: res => {
 					this.submitReviewIfNeeded(val.gameId!);
 					this.persistMoodTagsIfChanged(val.gameId!);
 					if (res.queueRemoved) {
-						const title = this.entry()!.game.title;
+						const title = this.entry!.game.title;
 						const reason =
 							dto.status === "completed"
 								? "completed"
 								: dto.status === "endless"
 									? "marked as endless"
 									: "abandoned";
-						this.toast.info(`Removed from your Queue: ${title} — ${reason}`);
+						this.toast.info(
+							`Removed from your Queue: ${title} — ${reason}`
+						);
 						this.isInQueue.set(false);
 						this.addToQueue.set(false);
 					}
-					this.handleQueueChange(this.entry()!.id);
+					this.handleQueueChange(this.entry!.id);
 				},
 				error: err => {
 					this.isLoading.set(false);
@@ -856,9 +891,9 @@ export class BacklogModal implements OnInit {
 						);
 					}
 					if (extras$.length > 0) {
-						forkJoin(extras$).subscribe(() => this.saved.emit());
+						forkJoin(extras$).subscribe(() => this.dialogRef.close("saved"));
 					} else {
-						this.saved.emit();
+						this.dialogRef.close("saved");
 					}
 				},
 				error: err => {
@@ -876,7 +911,7 @@ export class BacklogModal implements OnInit {
 		if (want && !was) {
 			this.queueService
 				.addFromBacklog(backlogId)
-				.subscribe(() => this.saved.emit());
+				.subscribe(() => this.dialogRef.close("saved"));
 		} else if (!want && was) {
 			this.queueService.getMyQueue().subscribe(queue => {
 				const remaining = queue
@@ -884,17 +919,17 @@ export class BacklogModal implements OnInit {
 					.map(w => w.backlog.id);
 				this.queueService
 					.reorder(remaining)
-					.subscribe(() => this.saved.emit());
+					.subscribe(() => this.dialogRef.close("saved"));
 			});
 		} else {
-			this.saved.emit();
+			this.dialogRef.close("saved");
 		}
 	}
 
 	onDelete() {
 		this.isLoading.set(true);
-		this.backlogService.delete(this.entry()!.id).subscribe({
-			next: () => this.saved.emit(),
+		this.backlogService.delete(this.entry!.id).subscribe({
+			next: () => this.dialogRef.close("saved"),
 			error: err => {
 				this.isLoading.set(false);
 				this.error.set(err.error?.title ?? "Delete failed");
@@ -903,7 +938,7 @@ export class BacklogModal implements OnInit {
 	}
 
 	onClose() {
-		this.closed.emit();
+		this.dialogRef.close();
 	}
 
 	private persistMoodTagsIfChanged(gameId: string) {

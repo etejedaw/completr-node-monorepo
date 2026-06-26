@@ -1,0 +1,245 @@
+<div
+	ngpDatePicker
+	[ngpDatePickerFirstDayOfWeek]="1"
+	[ngpDatePickerFocusedDate]="focusedDate()"
+	(ngpDatePickerFocusedDateChange)="focusedDate.set($event)"
+	class="bg-surface border border-line rounded-card p-3 sm:p-4"
+>
+	<header class="flex items-center justify-between gap-2 mb-3">
+		<div class="flex items-center gap-1">
+			<button
+				uiIconButton
+				size="sm"
+				ngpDatePickerPreviousMonth
+				aria-label="Previous month"
+			>
+				<span aria-hidden="true" class="material-icons"
+					>chevron_left</span
+				>
+			</button>
+			<h2
+				ngpDatePickerLabel
+				class="font-display m-0 text-lg font-bold tracking-tight min-w-[11rem] text-center"
+			>
+				{{ focusedDate() | date: "MMMM yyyy" }}
+			</h2>
+			<button
+				uiIconButton
+				size="sm"
+				ngpDatePickerNextMonth
+				aria-label="Next month"
+			>
+				<span aria-hidden="true" class="material-icons"
+					>chevron_right</span
+				>
+			</button>
+		</div>
+		<button
+			class="bg-transparent border border-line text-fg-secondary text-xs font-medium px-3 py-1.5 rounded cursor-pointer transition hover:border-brand hover:text-brand"
+			(click)="goToday()"
+		>
+			Today
+		</button>
+	</header>
+
+	<table
+		ngpDatePickerGrid
+		class="w-full table-fixed border-collapse transition-opacity"
+		[class.opacity-50]="isLoading()"
+	>
+		<thead>
+			<tr>
+				@for (label of weekdayLabels; track label) {
+				<th
+					scope="col"
+					class="text-center text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted pb-1.5"
+				>
+					{{ label }}
+				</th>
+				}
+			</tr>
+		</thead>
+		<tbody>
+			<tr *ngpDatePickerRowRender>
+				<td
+					*ngpDatePickerCellRender="let date"
+					ngpDatePickerCell
+					class="align-top border border-line p-0 w-[14.28%]"
+					[class.bg-canvas]="isOutsideMonth(date)"
+					[class.bg-fg-muted/5]="!isOutsideMonth(date) && isWeekend(date)"
+				>
+					<div
+						class="min-h-[3.5rem] sm:min-h-[5.5rem] flex flex-col pb-1"
+					>
+						<div class="flex justify-end px-1.5 pt-1 pb-0.5">
+							@if (isToday(date)) {
+							<span
+								class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.6875rem] font-bold leading-none"
+								>{{ date.getDate() }}</span
+							>
+							} @else {
+							<span
+								class="text-[0.6875rem] font-medium leading-none"
+								[class.text-fg-muted]="isOutsideMonth(date)"
+								[class.text-fg-secondary]="!isOutsideMonth(date)"
+								>{{ date.getDate() }}</span
+							>
+							}
+						</div>
+
+						@if (entriesForDay(date).length > 0) {
+						<button
+							type="button"
+							class="sm:hidden flex flex-wrap items-center gap-1 px-1.5 py-0.5 bg-transparent border-0 cursor-pointer"
+							[attr.aria-label]="entriesForDay(date).length + ' games, open day'"
+							(click)="openDay(date)"
+						>
+							@for (entry of entriesForDay(date).slice(0, 4);
+							track entry.id) {
+							<span
+								class="w-1.5 h-1.5 rounded-full"
+								[class]="dotClass(entry.status)"
+							></span>
+							} @if (entriesForDay(date).length > 4) {
+							<span
+								class="text-[0.5rem] text-fg-muted leading-none"
+								>+{{ entriesForDay(date).length - 4 }}</span
+							>
+							}
+						</button>
+						}
+
+						<div class="hidden sm:flex flex-col gap-0.5">
+							@for (slot of slotsFor(date); track $index) { @if
+							(slot) {
+							<button
+								type="button"
+								class="-mx-px h-[18px] flex items-center px-1.5 text-[0.6875rem] font-medium leading-none truncate cursor-pointer transition hover:brightness-110"
+								[class]="barClass(slot.status)"
+								[class.rounded-l]="slot.roundLeft"
+								[class.rounded-r]="slot.roundRight"
+								[title]="slot.entry.game.title"
+								(click)="entryClick.emit(slot.entry)"
+							>
+								<span class="truncate"
+									>{{ slot.showTitle ? slot.entry.game.title :
+									"" }}</span
+								>
+							</button>
+							} @else {
+							<div class="h-[18px]"></div>
+							} } @if (overflowFor(date) > 0) {
+							<button
+								type="button"
+								class="text-left px-1.5 text-[0.625rem] font-medium text-fg-muted leading-none bg-transparent border-0 cursor-pointer hover:text-brand"
+								(click)="openDay(date)"
+							>
+								+{{ overflowFor(date) }} more
+							</button>
+							}
+						</div>
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	@if (isTruncated()) {
+	<p class="mt-3 flex items-start gap-1.5 text-xs text-warning leading-snug">
+		<span aria-hidden="true" class="material-icons text-sm"
+			>warning_amber</span
+		>
+		<span
+			>Showing {{ monthLimit }} of {{ monthTotal() }} games this month —
+			narrow your filters to see all of them.</span
+		>
+	</p>
+	} @if (unscheduledCount() > 0) {
+	<p class="mt-3 text-xs text-fg-muted leading-snug">
+		{{ unscheduledCount() }} {{ unscheduledCount() === 1 ? "game has" :
+		"games have" }} no dates and aren't shown here ·
+		<button
+			type="button"
+			class="bg-transparent border-0 p-0 text-brand font-medium cursor-pointer hover:underline"
+			(click)="viewUnscheduled.emit()"
+		>
+			View in Diary
+		</button>
+	</p>
+	}
+
+	<div
+		class="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 pt-3 border-t border-line"
+	>
+		@for (item of legendItems; track item.status) {
+		<button
+			type="button"
+			class="inline-flex items-center gap-1.5 text-[0.6875rem] text-fg-muted bg-transparent border-0 cursor-pointer transition hover:text-fg"
+			[class.opacity-40]="isStatusHidden(item.status)"
+			[attr.aria-pressed]="!isStatusHidden(item.status)"
+			[title]="isStatusHidden(item.status) ? 'Show ' + statusLabel(item.status) : 'Hide ' + statusLabel(item.status)"
+			(click)="toggleStatus(item.status)"
+		>
+			<span class="w-3 h-3 rounded-sm" [class]="item.dot"></span>
+			<span [class.line-through]="isStatusHidden(item.status)"
+				>{{ statusLabel(item.status) }}</span
+			>
+		</button>
+		}
+	</div>
+</div>
+
+@if (selectedDay(); as day) {
+<button
+	type="button"
+	aria-label="Close"
+	class="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm"
+	(click)="closeDay()"
+></button>
+<div
+	class="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none"
+>
+	<div
+		class="pointer-events-auto w-full max-w-md max-h-[80vh] flex flex-col bg-sidebar border border-line rounded-card shadow-[0_0_60px_-12px_rgba(0,0,0,0.7)]"
+	>
+		<header
+			class="flex items-center justify-between gap-2 px-5 py-4 border-b border-line shrink-0"
+		>
+			<h3 class="font-display text-base font-bold m-0">
+				{{ day | date: "EEEE, MMMM d" }}
+			</h3>
+			<button
+				uiIconButton
+				size="sm"
+				(click)="closeDay()"
+				aria-label="Close"
+			>
+				<span aria-hidden="true" class="material-icons">close</span>
+			</button>
+		</header>
+		<div class="flex-1 overflow-y-auto p-2">
+			@for (entry of selectedDayEntries(); track entry.id) {
+			<button
+				type="button"
+				class="w-full flex items-center gap-3 px-3 py-2 rounded text-left bg-transparent border-0 cursor-pointer transition hover:bg-input-bg"
+				(click)="selectDayEntry(entry)"
+			>
+				<span
+					class="w-2.5 h-2.5 rounded-full shrink-0"
+					[class]="dotClass(entry.status)"
+				></span>
+				<span class="min-w-0 flex-1">
+					<span class="block text-sm font-medium text-fg truncate"
+						>{{ entry.game.title }}</span
+					>
+					<span class="block text-xs text-fg-muted truncate"
+						>{{ statusLabel(entry.status) }} · {{
+						entry.platform.abbreviation }}</span
+					>
+				</span>
+			</button>
+			}
+		</div>
+	</div>
+</div>
+}

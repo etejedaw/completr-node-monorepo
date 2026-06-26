@@ -1,17 +1,30 @@
 <div>
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
-			<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">My Shelf</h1>
+			<h1
+				class="text-3xl md:text-4xl font-bold tracking-tight font-display"
+			>
+				My Shelf
+			</h1>
 			<span class="text-sm text-fg-muted">{{ total() }} games</span>
 		</div>
 		@if (isLoading() || entries().length > 0) {
-			<button uiButton variant="primary" (click)="openCreate()">+ Add to Shelf</button>
+		<button uiButton variant="primary" (click)="openCreate()">
+			+ Add to Shelf
+		</button>
 		}
 	</div>
 
-	<ui-search-bar class="block mb-4 max-w-2xl" placeholder="Search by title..." [value]="searchQuery()" (valueChange)="onSearch($event)" />
+	<ui-search-bar
+		class="block mb-4 max-w-2xl"
+		placeholder="Search by title..."
+		[value]="searchQuery()"
+		(valueChange)="onSearch($event)"
+	/>
 
-	<div class="flex gap-1 bg-input-bg border border-line rounded-md p-1 mb-4 w-fit">
+	<div
+		class="flex gap-1 bg-input-bg border border-line rounded-md p-1 mb-4 w-fit"
+	>
 		<button
 			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
 			[class.!bg-surface-hover]="viewMode() === 'grid'"
@@ -19,7 +32,9 @@
 			(click)="setViewMode('grid')"
 			title="Grid view"
 		>
-			<span aria-hidden="true" class="material-icons text-base">grid_view</span>
+			<span aria-hidden="true" class="material-icons text-base"
+				>grid_view</span
+			>
 			Grid
 		</button>
 		<button
@@ -29,8 +44,22 @@
 			(click)="setViewMode('table')"
 			title="Hardcore (table) view"
 		>
-			<span aria-hidden="true" class="material-icons text-base">table_rows</span>
+			<span aria-hidden="true" class="material-icons text-base"
+				>table_rows</span
+			>
 			Hardcore
+		</button>
+		<button
+			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+			[class.!bg-surface-hover]="viewMode() === 'calendar'"
+			[class.!text-fg]="viewMode() === 'calendar'"
+			(click)="setViewMode('calendar')"
+			title="Calendar (acquired dates) view"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>calendar_month</span
+			>
+			Calendar
 		</button>
 	</div>
 
@@ -59,128 +88,176 @@
 	</div>
 	} @if (isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
-	} @else if (entries().length === 0) {
-		@if (searchQuery().trim() || selectedPlatform()) {
-			<ui-empty-state
-				icon="search_off"
-				title="No matches found"
-				hint="Nothing on your shelf matches your current search or filter."
-			>
-				<button uiButton variant="secondary" (click)="clearSearchAndFilter()">Clear search & filter</button>
-			</ui-empty-state>
-		} @else {
-			<ui-empty-state
-				icon="shelves"
-				title="Your shelf is empty"
-				hint="My Shelf tracks games you own — physical copies, digital keys, subscription libraries. Helps you remember what you can actually play before buying duplicates."
-			>
-				<button uiButton variant="primary" (click)="openCreate()">+ Add to Shelf</button>
-			</ui-empty-state>
-		}
-	} @else if (viewMode() === 'grid') {
-		<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-			@for (entry of entries(); track entry.id) {
-				<app-game-cover-card
-					[game]="entry.game"
-					[moodTags]="entry.moodTags"
-					[topLeftBadge]="entry.platform.abbreviation"
-					[subtitle]="entry.edition"
-					[acquiredAt]="entry.acquiredAt"
-					[clickable]="true"
-					[showFavorite]="true"
-					[isFavorite]="isFavorite(entry.game.id)"
-					[showAddToBacklog]="true"
-					[inBacklog]="isInBacklog(entry.game.id)"
-					[showWishlistToggle]="true"
-					[inWishlist]="isInWishlist(entry.game.id)"
-					(cardClick)="openEdit(entry)"
-					(favoriteToggle)="toggleFavorite(entry.game.id)"
-					(addToBacklog)="openBacklogQuickAdd(entry)"
-					(wishlistToggle)="toggleWishlist(entry.game.id)"
-				/>
-			}
-		</div>
+	} @else if (entries().length === 0) { @if (searchQuery().trim() ||
+	selectedPlatform()) {
+	<ui-empty-state
+		icon="search_off"
+		title="No matches found"
+		hint="Nothing on your shelf matches your current search or filter."
+	>
+		<button uiButton variant="secondary" (click)="clearSearchAndFilter()">
+			Clear search & filter
+		</button>
+	</ui-empty-state>
 	} @else {
-		<div class="overflow-x-auto">
-			<table class="w-full border-collapse text-sm">
-				<thead>
-					<tr>
-						<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Title</th>
-						<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Platform</th>
-						<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Edition</th>
-						<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Acquired</th>
-						<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Notes</th>
-					</tr>
-				</thead>
-				<tbody>
-					@for (entry of entries(); track entry.id) {
-						<tr
-							class="border-b border-line/50 cursor-pointer transition hover:bg-surface"
-							(click)="openEdit(entry)"
-						>
-							<td class="px-3 py-2 align-middle">
-								<div class="flex items-center gap-2 min-w-0">
-									@if (entry.game.backgroundUrl) {
-										<img [src]="entry.game.backgroundUrl" [alt]="entry.game.title" class="w-8 h-10 object-cover rounded shrink-0" loading="lazy" />
-									} @else {
-										<div class="w-8 h-10 bg-input-bg rounded shrink-0"></div>
-									}
-									<div class="min-w-0 flex-1">
-										<a
-											[routerLink]="['/games', entry.game.code]"
-											(click)="$event.stopPropagation()"
-											class="text-fg font-medium no-underline hover:text-brand line-clamp-1 block"
-										>{{ entry.game.title }}</a>
-										<app-mood-tags-chips [tags]="entry.moodTags" containerClass="mt-0.5" />
-									</div>
-								</div>
-							</td>
-							<td class="px-3 py-2 align-middle whitespace-nowrap">
-								<span class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide bg-brand-subtle text-brand">{{ entry.platform.abbreviation }}</span>
-							</td>
-							<td class="px-3 py-2 align-middle text-fg-secondary text-xs whitespace-nowrap">{{ entry.edition || '—' }}</td>
-							<td class="px-3 py-2 align-middle text-fg-muted text-xs whitespace-nowrap">{{ entry.acquiredAt ? (entry.acquiredAt | date:'yyyy-MM-dd') : '—' }}</td>
-							<td class="px-3 py-2 align-middle text-fg-muted text-xs">
-								<span class="line-clamp-1">{{ entry.notes || '' }}</span>
-							</td>
-							<td class="px-2 py-2 align-middle w-9 text-center">
-								<button
-									class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-warning"
-									[class.!text-warning]="isFavorite(entry.game.id)"
-									(click)="toggleFavorite(entry.game.id); $event.stopPropagation()"
-									[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
+	<ui-empty-state
+		icon="shelves"
+		title="Your shelf is empty"
+		hint="My Shelf tracks games you own — physical copies, digital keys, subscription libraries. Helps you remember what you can actually play before buying duplicates."
+	>
+		<button uiButton variant="primary" (click)="openCreate()">
+			+ Add to Shelf
+		</button>
+	</ui-empty-state>
+	} } @else if (viewMode() === 'calendar') {
+	<app-game-shelf-calendar
+		[entries]="entries()"
+		(entryClick)="openEdit($event)"
+	/>
+	} @else if (viewMode() === 'grid') {
+	<div
+		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
+	>
+		@for (entry of entries(); track entry.id) {
+		<app-game-cover-card
+			[game]="entry.game"
+			[moodTags]="entry.moodTags"
+			[topLeftBadge]="entry.platform.abbreviation"
+			[subtitle]="entry.edition"
+			[acquiredAt]="entry.acquiredAt"
+			[clickable]="true"
+			[showFavorite]="true"
+			[isFavorite]="isFavorite(entry.game.id)"
+			[showAddToBacklog]="true"
+			[inBacklog]="isInBacklog(entry.game.id)"
+			[showWishlistToggle]="true"
+			[inWishlist]="isInWishlist(entry.game.id)"
+			(cardClick)="openEdit(entry)"
+			(favoriteToggle)="toggleFavorite(entry.game.id)"
+			(addToBacklog)="openBacklogQuickAdd(entry)"
+			(wishlistToggle)="toggleWishlist(entry.game.id)"
+		/>
+		}
+	</div>
+	} @else {
+	<div class="overflow-x-auto">
+		<table class="w-full border-collapse text-sm">
+			<thead>
+				<tr>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Title
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Platform
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Edition
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Acquired
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Notes
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (entry of entries(); track entry.id) {
+				<tr
+					class="border-b border-line/50 cursor-pointer transition hover:bg-surface"
+					(click)="openEdit(entry)"
+				>
+					<td class="px-3 py-2 align-middle">
+						<div class="flex items-center gap-2 min-w-0">
+							@if (entry.game.backgroundUrl) {
+							<img
+								[src]="entry.game.backgroundUrl"
+								[alt]="entry.game.title"
+								class="w-8 h-10 object-cover rounded shrink-0"
+								loading="lazy"
+							/>
+							} @else {
+							<div
+								class="w-8 h-10 bg-input-bg rounded shrink-0"
+							></div>
+							}
+							<div class="min-w-0 flex-1">
+								<a
+									[routerLink]="['/games', entry.game.code]"
+									(click)="$event.stopPropagation()"
+									class="text-fg font-medium no-underline hover:text-brand line-clamp-1 block"
+									>{{ entry.game.title }}</a
 								>
-									<span aria-hidden="true" class="material-icons text-base leading-none">{{ isFavorite(entry.game.id) ? 'star' : 'star_border' }}</span>
-								</button>
-							</td>
-						</tr>
-					}
-				</tbody>
-			</table>
-		</div>
-	}
-
+								<app-mood-tags-chips
+									[tags]="entry.moodTags"
+									containerClass="mt-0.5"
+								/>
+							</div>
+						</div>
+					</td>
+					<td class="px-3 py-2 align-middle whitespace-nowrap">
+						<span
+							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide bg-brand-subtle text-brand"
+							>{{ entry.platform.abbreviation }}</span
+						>
+					</td>
+					<td
+						class="px-3 py-2 align-middle text-fg-secondary text-xs whitespace-nowrap"
+					>
+						{{ entry.edition || '—' }}
+					</td>
+					<td
+						class="px-3 py-2 align-middle text-fg-muted text-xs whitespace-nowrap"
+					>
+						{{ entry.acquiredAt ? (entry.acquiredAt |
+						date:'yyyy-MM-dd') : '—' }}
+					</td>
+					<td class="px-3 py-2 align-middle text-fg-muted text-xs">
+						<span class="line-clamp-1"
+							>{{ entry.notes || '' }}</span
+						>
+					</td>
+					<td class="px-2 py-2 align-middle w-9 text-center">
+						<button
+							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-warning"
+							[class.!text-warning]="isFavorite(entry.game.id)"
+							(click)="toggleFavorite(entry.game.id); $event.stopPropagation()"
+							[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-base leading-none"
+								>{{ isFavorite(entry.game.id) ? 'star' :
+								'star_border' }}</span
+							>
+						</button>
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+	} @if (viewMode() !== 'calendar') {
 	<ui-pagination
 		[offset]="offset()"
 		[limit]="limit"
 		[total]="total()"
 		(offsetChange)="onOffsetChange($event)"
 	/>
+	}
 </div>
-
-@if (showModal()) {
-<app-game-shelf-modal
-	[entry]="editingEntry()"
-	(closed)="onModalClosed()"
-	(saved)="onModalSaved()"
-/>
-}
-
-@if (showBacklogModal()) {
-<app-backlog-modal
-	[preselectedGame]="backlogModalGame()"
-	[entry]="backlogModalEntry()"
-	(closed)="onBacklogModalClosed()"
-	(saved)="onBacklogModalSaved()"
-/>
-}

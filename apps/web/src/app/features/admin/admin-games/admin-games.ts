@@ -153,9 +153,11 @@ export class AdminGames implements OnInit {
 		if (this.activeFilter() === "all") query["include_inactive"] = true;
 		if (this.activeFilter() === "inactive") query["only_inactive"] = true;
 		const scoreSources = Array.from(this.noScoreSources());
-		if (scoreSources.length > 0) query["no_score_source"] = scoreSources.join(",");
+		if (scoreSources.length > 0)
+			query["no_score_source"] = scoreSources.join(",");
 		const timeSources = Array.from(this.noTimeSources());
-		if (timeSources.length > 0) query["no_time_source"] = timeSources.join(",");
+		if (timeSources.length > 0)
+			query["no_time_source"] = timeSources.join(",");
 		this.gamesService.getGames(query).subscribe({
 			next: res => {
 				this.games.set(res.data.games);

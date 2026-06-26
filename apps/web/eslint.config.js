@@ -19,7 +19,7 @@ module.exports = defineConfig([
         "error",
         {
           type: "attribute",
-          prefix: "app",
+          prefix: ["app", "ui"],
           style: "camelCase",
         },
       ],
@@ -27,8 +27,26 @@ module.exports = defineConfig([
         "error",
         {
           type: "element",
-          prefix: "app",
+          prefix: ["app", "ui"],
           style: "kebab-case",
+        },
+      ],
+    },
+  },
+  {
+    // Design-system components that augment native elements via an attribute
+    // selector (e.g. <button uiButton>) follow the camelCase attribute convention.
+    files: [
+      "src/app/shared/ui/button/**/*.ts",
+      "src/app/shared/ui/icon-button/**/*.ts",
+    ],
+    rules: {
+      "@angular-eslint/component-selector": [
+        "error",
+        {
+          type: "attribute",
+          prefix: ["app", "ui"],
+          style: "camelCase",
         },
       ],
     },

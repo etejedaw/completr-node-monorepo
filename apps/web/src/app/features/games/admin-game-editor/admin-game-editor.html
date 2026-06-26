@@ -1,6 +1,10 @@
 <div class="bg-sidebar border border-line rounded-card p-5 mb-6">
 	<div class="mb-5 pb-5 border-b border-line">
-		<h4 class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider">RAWG Lookup</h4>
+		<h4
+			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+		>
+			RAWG Lookup
+		</h4>
 		<div class="flex gap-2">
 			<input
 				type="text"
@@ -15,23 +19,36 @@
 				(click)="fetchRawg()"
 				[disabled]="fetchingRawg() || !rawgSlug().trim()"
 			>
-				<span aria-hidden="true" class="material-icons text-base">download</span>
+				<span aria-hidden="true" class="material-icons text-base"
+					>download</span
+				>
 				{{ fetchingRawg() ? 'Fetching...' : 'Fetch' }}
 			</button>
 		</div>
 		@if (rawgError()) {
 		<span class="block mt-1.5 text-xs text-danger">{{ rawgError() }}</span>
 		} @if (rawgId()) {
-		<span class="block mt-1.5 text-xs text-brand">RAWG ID: {{ rawgId() }}</span>
+		<span class="block mt-1.5 text-xs text-brand"
+			>RAWG ID: {{ rawgId() }}</span
+		>
 		}
 	</div>
 
 	<div class="mb-5">
-		<h4 class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider">Game Info</h4>
+		<h4
+			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+		>
+			Game Info
+		</h4>
 
 		<div class="mb-3">
-			<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Title</label>
+			<label
+				for="editor-title"
+				class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
+				>Title</label
+			>
 			<input
+				id="editor-title"
 				type="text"
 				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				[ngModel]="title()"
@@ -40,9 +57,15 @@
 		</div>
 
 		<div class="mb-3">
-			<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Description</label>
+			<label
+				for="editor-description"
+				class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
+				>Description</label
+			>
 			<textarea
-				uiTextarea rows="4"
+				uiTextarea
+				id="editor-description"
+				rows="4"
 				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition resize-y focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				[ngModel]="description()"
 				(ngModelChange)="description.set($event)"
@@ -51,8 +74,13 @@
 
 		<div class="grid grid-cols-2 gap-3">
 			<div class="mb-3">
-				<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Release date</label>
+				<label
+					for="editor-release-date"
+					class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
+					>Release date</label
+				>
 				<input
+					id="editor-release-date"
 					type="date"
 					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 					[ngModel]="releaseAt()"
@@ -60,8 +88,13 @@
 				/>
 			</div>
 			<div class="mb-3">
-				<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Background URL</label>
+				<label
+					for="editor-background-url"
+					class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
+					>Background URL</label
+				>
 				<input
+					id="editor-background-url"
 					type="text"
 					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 					[ngModel]="backgroundUrl()"
@@ -73,7 +106,12 @@
 
 		@if (backgroundUrl()) {
 		<div class="mb-3 rounded overflow-hidden max-h-[120px]">
-			<img class="w-full h-[120px] object-cover block" [src]="backgroundUrl()" alt="Preview" loading="lazy" />
+			<img
+				class="w-full h-[120px] object-cover block"
+				[src]="backgroundUrl()"
+				alt="Preview"
+				loading="lazy"
+			/>
 		</div>
 		}
 
@@ -90,8 +128,13 @@
 		</div>
 
 		<div class="mb-3">
-			<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Variant label</label>
+			<label
+				for="editor-variant"
+				class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
+				>Variant label</label
+			>
 			<input
+				id="editor-variant"
 				type="text"
 				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				placeholder="e.g. Pearl (required when siblings share an external id)"
@@ -103,19 +146,32 @@
 
 		@if (isDlc()) {
 		<div class="mb-3">
-			<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Parent Game</label>
+			<span
+				class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
+				>Parent Game</span
+			>
 			@if (parentGame()) {
-			<div class="flex items-center gap-2.5 py-2 px-3 bg-input-bg border border-line rounded">
+			<div
+				class="flex items-center gap-2.5 py-2 px-3 bg-input-bg border border-line rounded"
+			>
 				@if (parentGame()!.backgroundUrl) {
 				<img
 					class="w-7 h-7 object-cover rounded-[3px] shrink-0"
 					[src]="parentGame()!.backgroundUrl"
-					[alt]="parentGame()!.title" loading="lazy"
+					[alt]="parentGame()!.title"
+					loading="lazy"
 				/>
 				}
-				<span class="flex-1 text-[0.8125rem] font-medium">{{ parentGame()!.title }}</span>
-				<button class="bg-none border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="clearParentGame()">
-					<span aria-hidden="true" class="material-icons text-base">close</span>
+				<span class="flex-1 text-[0.8125rem] font-medium"
+					>{{ parentGame()!.title }}</span
+				>
+				<button
+					class="bg-none border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg"
+					(click)="clearParentGame()"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>close</span
+					>
 				</button>
 			</div>
 			} @else {
@@ -137,14 +193,20 @@
 				</button>
 			</div>
 			@if (parentError()) {
-			<span class="block mt-1 text-xs text-danger">{{ parentError() }}</span>
+			<span class="block mt-1 text-xs text-danger"
+				>{{ parentError() }}</span
+			>
 			} }
 		</div>
 		}
 	</div>
 
 	<div class="mb-5">
-		<h4 class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider">Platforms</h4>
+		<h4
+			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+		>
+			Platforms
+		</h4>
 		<div class="flex flex-wrap gap-1">
 			@for (p of allPlatforms(); track p.id) {
 			<button
@@ -166,7 +228,11 @@
 	</div>
 
 	<div class="mb-5">
-		<h4 class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider">Genres</h4>
+		<h4
+			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+		>
+			Genres
+		</h4>
 		<div class="flex flex-wrap gap-1">
 			@for (g of allGenres(); track g.id) {
 			<button
@@ -188,10 +254,17 @@
 	</div>
 
 	<div class="mb-5">
-		<h4 class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider">Scores</h4>
+		<h4
+			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+		>
+			Scores
+		</h4>
 		@for (s of scores(); track s.source; let i = $index) {
 		<div class="flex items-center gap-2 mb-1.5">
-			<span class="min-w-[80px] text-xs font-semibold text-fg-secondary uppercase">{{ s.source }}</span>
+			<span
+				class="min-w-[80px] text-xs font-semibold text-fg-secondary uppercase"
+				>{{ s.source }}</span
+			>
 			<input
 				type="number"
 				class="w-[100px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
@@ -199,8 +272,13 @@
 				(ngModelChange)="updateScoreValue(i, $event)"
 				step="0.01"
 			/>
-			<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-danger" (click)="removeScore(i)">
-				<span aria-hidden="true" class="material-icons text-sm">close</span>
+			<button
+				class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-danger"
+				(click)="removeScore(i)"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>close</span
+				>
 			</button>
 		</div>
 		} @if (availableScoreSources.length > 0) {
@@ -230,17 +308,26 @@
 				(click)="addScore()"
 				[disabled]="!newScoreSource() || newScoreValue() === null"
 			>
-				<span aria-hidden="true" class="material-icons text-sm">add</span>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>add</span
+				>
 			</button>
 		</div>
 		}
 	</div>
 
 	<div class="mb-5">
-		<h4 class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider">Durations</h4>
+		<h4
+			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+		>
+			Durations
+		</h4>
 		@for (t of times(); track t.source; let i = $index) {
 		<div class="flex items-center gap-2 mb-1.5">
-			<span class="min-w-[80px] text-xs font-semibold text-fg-secondary uppercase">{{ t.source }}</span>
+			<span
+				class="min-w-[80px] text-xs font-semibold text-fg-secondary uppercase"
+				>{{ t.source }}</span
+			>
 			<input
 				type="number"
 				class="w-[100px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
@@ -248,8 +335,13 @@
 				(ngModelChange)="updateTimeValue(i, $event)"
 				step="0.1"
 			/>
-			<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-danger" (click)="removeTime(i)">
-				<span aria-hidden="true" class="material-icons text-sm">close</span>
+			<button
+				class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-danger"
+				(click)="removeTime(i)"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>close</span
+				>
 			</button>
 		</div>
 		} @if (availableTimeSources.length > 0) {
@@ -279,16 +371,24 @@
 				(click)="addTime()"
 				[disabled]="!newTimeSource() || newTimeValue() === null"
 			>
-				<span aria-hidden="true" class="material-icons text-sm">add</span>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>add</span
+				>
 			</button>
 		</div>
 		}
 	</div>
 
 	@if (saveError()) {
-	<div class="bg-danger/[0.08] border border-danger/20 text-red-300 py-2 px-3 rounded mb-3 text-[0.8125rem]">{{ saveError() }}</div>
+	<div
+		class="bg-danger/[0.08] border border-danger/20 text-red-300 py-2 px-3 rounded mb-3 text-[0.8125rem]"
+	>
+		{{ saveError() }}
+	</div>
 	}
-	<div class="flex justify-between items-center pt-4 border-t border-line gap-2">
+	<div
+		class="flex justify-between items-center pt-4 border-t border-line gap-2"
+	>
 		@if (isEditMode()) {
 		<div class="flex items-center gap-2 flex-wrap">
 			<button
@@ -297,7 +397,9 @@
 				[disabled]="saving()"
 				title="Split this game into multiple variants (e.g. Pokemon Pearl/Diamond → Pearl + Diamond)"
 			>
-				<span aria-hidden="true" class="material-icons text-base">call_split</span>
+				<span aria-hidden="true" class="material-icons text-base"
+					>call_split</span
+				>
 				Split game
 			</button>
 			<button
@@ -306,8 +408,11 @@
 				[disabled]="saving()"
 				title="Mark this game as a compilation that bundles other games (e.g. Mass Effect Legendary Edition)"
 			>
-				<span aria-hidden="true" class="material-icons text-base">library_books</span>
-				{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as compilation' }}
+				<span aria-hidden="true" class="material-icons text-base"
+					>library_books</span
+				>
+				{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as
+				compilation' }}
 			</button>
 		</div>
 		} @else {
@@ -315,7 +420,13 @@
 		}
 		<button
 			class="py-2 px-5 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-			style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+			style="
+				background: linear-gradient(
+					135deg,
+					var(--color-brand),
+					var(--color-brand-deep)
+				);
+			"
 			(click)="save()"
 			[disabled]="saving() || !title().trim()"
 		>
@@ -326,20 +437,36 @@
 </div>
 
 @if (splitOpen()) {
-<div class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]" (click)="closeSplitModal()">
-	<div class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[640px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]" (click)="$event.stopPropagation()">
+<div
+	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]"
+>
+	<div
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[640px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
+	>
 		<div class="flex justify-between items-center mb-3">
-			<h2 class="font-display m-0 text-lg font-bold">Split game into variants</h2>
-			<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="closeSplitModal()">
+			<h2 class="font-display m-0 text-lg font-bold">
+				Split game into variants
+			</h2>
+			<button
+				class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg"
+				(click)="closeSplitModal()"
+			>
 				<span aria-hidden="true" class="material-icons">close</span>
 			</button>
 		</div>
 		<p class="text-[0.8125rem] text-fg-secondary mb-4">
-			Use this when an external source (e.g. RAWG) bundles distinct titles in one record. The first variant overwrites the current game; the rest are created as new games sharing platforms, genres, scores, times and external ids.
+			Use this when an external source (e.g. RAWG) bundles distinct titles
+			in one record. The first variant overwrites the current game; the
+			rest are created as new games sharing platforms, genres, scores,
+			times and external ids.
 		</p>
 
 		@if (splitError()) {
-		<div class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded mb-3 text-[0.8125rem]">{{ splitError() }}</div>
+		<div
+			class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded mb-3 text-[0.8125rem]"
+		>
+			{{ splitError() }}
+		</div>
 		}
 
 		<div class="flex flex-col gap-2 mb-4">
@@ -347,8 +474,13 @@
 			<div class="flex items-start gap-2">
 				<div class="flex-1 grid grid-cols-[2fr_1fr] gap-2">
 					<div>
-						<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Title #{{ i + 1 }}</label>
+						<label
+							[attr.for]="'editor-variant-title-' + i"
+							class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
+							>Title #{{ i + 1 }}</label
+						>
 						<input
+							[attr.id]="'editor-variant-title-' + i"
 							type="text"
 							class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 							placeholder="e.g. Pokemon Pearl"
@@ -358,13 +490,21 @@
 						/>
 						@if (v.title.trim()) {
 						<div class="text-xs text-fg-muted mt-1">
-							slug → <span class="text-fg-secondary">{{ previewSlug(v.title) }}</span>
+							slug →
+							<span class="text-fg-secondary"
+								>{{ previewSlug(v.title) }}</span
+							>
 						</div>
 						}
 					</div>
 					<div>
-						<label class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider">Variant label</label>
+						<label
+							[attr.for]="'editor-variant-label-' + i"
+							class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
+							>Variant label</label
+						>
 						<input
+							[attr.id]="'editor-variant-label-' + i"
 							type="text"
 							class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 							placeholder="Pearl"
@@ -380,7 +520,9 @@
 					[disabled]="splitVariants().length <= 2"
 					title="Remove this variant"
 				>
-					<span aria-hidden="true" class="material-icons text-sm">close</span>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>close</span
+					>
 				</button>
 			</div>
 			}
@@ -405,7 +547,13 @@
 			</button>
 			<button
 				class="py-2 px-5 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+				style="
+					background: linear-gradient(
+						135deg,
+						var(--color-brand),
+						var(--color-brand-deep)
+					);
+				"
 				(click)="submitSplit()"
 				[disabled]="splitting()"
 			>
@@ -414,30 +562,51 @@
 		</div>
 	</div>
 </div>
-}
-
-@if (compilationOpen()) {
-<div class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]" (click)="closeCompilationModal()">
-	<div class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[720px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]" (click)="$event.stopPropagation()">
+} @if (compilationOpen()) {
+<div
+	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]"
+>
+	<div
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[720px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
+	>
 		<div class="flex justify-between items-center mb-3">
-			<h2 class="font-display m-0 text-lg font-bold">{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as compilation' }}</h2>
-			<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="closeCompilationModal()">
+			<h2 class="font-display m-0 text-lg font-bold">
+				{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as
+				compilation' }}
+			</h2>
+			<button
+				class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg"
+				(click)="closeCompilationModal()"
+			>
 				<span aria-hidden="true" class="material-icons">close</span>
 			</button>
 		</div>
 		<p class="text-[0.8125rem] text-fg-secondary mb-4">
-			Define the games that this compilation contains. Use <strong>Link existing</strong> when the title is already in the catalog (e.g. classic Mass Effect 1 inside Mass Effect Trilogy). Use <strong>Create new</strong> when the bundled title doesn't exist standalone (e.g. Mass Effect 1 Legendary Edition inside MEL) — a new game page will be created, inheriting cover/description from this compilation, editable later.
+			Define the games that this compilation contains. Use
+			<strong>Link existing</strong> when the title is already in the
+			catalog (e.g. classic Mass Effect 1 inside Mass Effect Trilogy). Use
+			<strong>Create new</strong> when the bundled title doesn't exist
+			standalone (e.g. Mass Effect 1 Legendary Edition inside MEL) — a new
+			game page will be created, inheriting cover/description from this
+			compilation, editable later.
 		</p>
 
 		@if (compilationError()) {
-		<div class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded mb-3 text-[0.8125rem]">{{ compilationError() }}</div>
+		<div
+			class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded mb-3 text-[0.8125rem]"
+		>
+			{{ compilationError() }}
+		</div>
 		}
 
 		<div class="flex flex-col gap-3 mb-4">
 			@for (row of compilationRows(); track $index; let i = $index) {
 			<div class="border border-line rounded p-3 bg-input-bg/40">
 				<div class="flex items-center gap-2 mb-2">
-					<span class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider">#{{ i + 1 }}</span>
+					<span
+						class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider"
+						>#{{ i + 1 }}</span
+					>
 					<div class="flex gap-1 ml-1">
 						<button
 							class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold cursor-pointer transition border"
@@ -448,7 +617,9 @@
 							[class.border-line]="row.mode !== 'link'"
 							[class.text-fg-muted]="row.mode !== 'link'"
 							(click)="setCompilationRowMode(i, 'link')"
-						>Link existing</button>
+						>
+							Link existing
+						</button>
 						<button
 							class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold cursor-pointer transition border"
 							[class.bg-brand-subtle]="row.mode === 'create'"
@@ -458,7 +629,9 @@
 							[class.border-line]="row.mode !== 'create'"
 							[class.text-fg-muted]="row.mode !== 'create'"
 							(click)="setCompilationRowMode(i, 'create')"
-						>Create new</button>
+						>
+							Create new
+						</button>
 					</div>
 					<button
 						class="ml-auto bg-transparent border border-line rounded p-1 text-fg-muted cursor-pointer transition hover:border-danger hover:text-danger disabled:opacity-30 disabled:cursor-not-allowed"
@@ -466,51 +639,78 @@
 						[disabled]="compilationRows().length <= 1"
 						title="Remove this item"
 					>
-						<span aria-hidden="true" class="material-icons text-sm">close</span>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>close</span
+						>
 					</button>
 				</div>
 
-				@if (row.mode === 'link') {
-					@if (row.linkedGame) {
-					<div class="flex items-center gap-2.5 py-2 px-3 bg-input-bg border border-line rounded">
-						@if (row.linkedGame.backgroundUrl) {
-						<img class="w-9 h-9 object-cover rounded-[3px] shrink-0" [src]="row.linkedGame.backgroundUrl" [alt]="row.linkedGame.title" loading="lazy" />
-						}
-						<span class="flex-1 text-[0.8125rem] font-medium">{{ row.linkedGame.title }}</span>
-						<span class="text-xs text-fg-muted">{{ row.linkedGame.code }}</span>
-						<button class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg" (click)="clearCompilationRowGame(i)">
-							<span aria-hidden="true" class="material-icons text-base">close</span>
-						</button>
-					</div>
-					} @else {
-					<input
-						type="text"
-						class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-						placeholder="Search existing game..."
-						[ngModel]="row.searchQuery"
-						(ngModelChange)="updateCompilationRowQuery(i, $event)"
+				@if (row.mode === 'link') { @if (row.linkedGame) {
+				<div
+					class="flex items-center gap-2.5 py-2 px-3 bg-input-bg border border-line rounded"
+				>
+					@if (row.linkedGame.backgroundUrl) {
+					<img
+						class="w-9 h-9 object-cover rounded-[3px] shrink-0"
+						[src]="row.linkedGame.backgroundUrl"
+						[alt]="row.linkedGame.title"
+						loading="lazy"
 					/>
-					@if (row.searching) {
-					<div class="text-xs text-fg-muted mt-1">Searching...</div>
 					}
-					@if (row.searchResults.length > 0) {
-					<div class="border border-line rounded mt-1 max-h-[180px] overflow-y-auto bg-input-bg">
-						@for (g of row.searchResults; track g.id) {
-						<button
-							class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-brand-subtle transition border-0 cursor-pointer bg-transparent"
-							(click)="pickCompilationRowGame(i, g)"
+					<span class="flex-1 text-[0.8125rem] font-medium"
+						>{{ row.linkedGame.title }}</span
+					>
+					<span class="text-xs text-fg-muted"
+						>{{ row.linkedGame.code }}</span
+					>
+					<button
+						class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg"
+						(click)="clearCompilationRowGame(i)"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>close</span
 						>
-							@if (g.backgroundUrl) {
-							<img class="w-7 h-7 object-cover rounded-[3px] shrink-0" [src]="g.backgroundUrl" [alt]="g.title" loading="lazy" />
-							}
-							<span class="flex-1 text-[0.8125rem]">{{ g.title }}</span>
-							<span class="text-[0.6875rem] text-fg-muted">{{ g.code }}</span>
-						</button>
-						}
-					</div>
-					}
-					}
+					</button>
+				</div>
 				} @else {
+				<input
+					type="text"
+					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+					placeholder="Search existing game..."
+					[ngModel]="row.searchQuery"
+					(ngModelChange)="updateCompilationRowQuery(i, $event)"
+				/>
+				@if (row.searching) {
+				<div class="text-xs text-fg-muted mt-1">Searching...</div>
+				} @if (row.searchResults.length > 0) {
+				<div
+					class="border border-line rounded mt-1 max-h-[180px] overflow-y-auto bg-input-bg"
+				>
+					@for (g of row.searchResults; track g.id) {
+					<button
+						class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-brand-subtle transition border-0 cursor-pointer bg-transparent"
+						(click)="pickCompilationRowGame(i, g)"
+					>
+						@if (g.backgroundUrl) {
+						<img
+							class="w-7 h-7 object-cover rounded-[3px] shrink-0"
+							[src]="g.backgroundUrl"
+							[alt]="g.title"
+							loading="lazy"
+						/>
+						}
+						<span class="flex-1 text-[0.8125rem]"
+							>{{ g.title }}</span
+						>
+						<span class="text-[0.6875rem] text-fg-muted"
+							>{{ g.code }}</span
+						>
+					</button>
+					}
+				</div>
+				} } } @else {
 				<div>
 					<input
 						type="text"
@@ -522,7 +722,10 @@
 					/>
 					@if (row.title.trim()) {
 					<div class="text-xs text-fg-muted mt-1">
-						slug → <span class="text-fg-secondary">{{ previewSlug(row.title) }}</span>
+						slug →
+						<span class="text-fg-secondary"
+							>{{ previewSlug(row.title) }}</span
+						>
 					</div>
 					}
 				</div>
@@ -540,14 +743,17 @@
 			Add item
 		</button>
 
-		<div class="flex justify-between items-center pt-4 border-t border-line gap-2">
+		<div
+			class="flex justify-between items-center pt-4 border-t border-line gap-2"
+		>
 			@if (game()?.isCompilation) {
 			<button
 				class="py-2 px-4 bg-transparent border border-danger/40 rounded text-danger text-[0.8125rem] font-semibold cursor-pointer transition hover:bg-danger/10 disabled:opacity-40 disabled:cursor-not-allowed"
 				(click)="clearCompilation()"
 				[disabled]="compilationSaving() || compilationClearing()"
 			>
-				{{ compilationClearing() ? 'Clearing...' : 'Clear compilation' }}
+				{{ compilationClearing() ? 'Clearing...' : 'Clear compilation'
+				}}
 			</button>
 			} @else {
 			<span></span>
@@ -562,7 +768,13 @@
 				</button>
 				<button
 					class="py-2 px-5 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+					style="
+						background: linear-gradient(
+							135deg,
+							var(--color-brand),
+							var(--color-brand-deep)
+						);
+					"
 					(click)="submitCompilation()"
 					[disabled]="compilationSaving() || compilationClearing()"
 				>

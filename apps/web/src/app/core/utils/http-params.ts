@@ -17,12 +17,15 @@ export function buildHttpParams<T extends Record<string, Appendable>>(
 	return params;
 }
 
-function appendValue(params: HttpParams, key: string, raw: Appendable): HttpParams {
+function appendValue(
+	params: HttpParams,
+	key: string,
+	raw: Appendable
+): HttpParams {
 	if (Array.isArray(raw)) {
-		return raw.filter(isAppendable).reduce(
-			(acc, item) => acc.append(key, item),
-			params
-		);
+		return raw
+			.filter(isAppendable)
+			.reduce((acc, item) => acc.append(key, item), params);
 	}
 
 	return isAppendable(raw) ? params.set(key, raw) : params;

@@ -10,21 +10,51 @@ import {
 import { toSignal } from "@angular/core/rxjs-interop";
 import { DatePipe } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { BacklogEntry, BacklogStatus, Genre, Platform } from "../../../core/models";
+import {
+	BacklogEntry,
+	BacklogStatus,
+	Genre,
+	Platform
+} from "../../../core/models";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { BacklogService, BacklogFilters } from "../backlog";
-import { SavedFiltersService, SavedFilter, SavedFilterStats, STAT_KEYS, StatKey, DEFAULT_ENABLED_STATS, STAT_LABELS } from "../saved-filters";
+import {
+	SavedFiltersService,
+	SavedFilter,
+	SavedFilterStats,
+	STAT_KEYS,
+	StatKey,
+	DEFAULT_ENABLED_STATS,
+	STAT_LABELS
+} from "../saved-filters";
 import { QueueService } from "../../queue/queue";
 import { FavoritesService } from "../../favorites/favorites";
 import { GamesService } from "../../games/games";
 import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
-import { BacklogModal } from "../backlog-modal/backlog-modal";
+import {
+	BacklogModal,
+	type BacklogModalData,
+	type BacklogModalResult
+} from "../backlog-modal/backlog-modal";
+import { DialogService } from "../../../core/services/dialog";
+import { BacklogCalendar } from "../backlog-calendar/backlog-calendar";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 import { ReviewsService } from "../../games/reviews";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
-import { UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea } from "../../../shared/ui";
+import {
+	UiButton,
+	UiEmptyState,
+	UiIconButton,
+	UiInput,
+	UiPagination,
+	UiSearchBar,
+	UiSelect,
+	UiSkeleton,
+	UiSwitch,
+	UiTextarea
+} from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 interface PendingStatusUpdate {
@@ -40,7 +70,26 @@ interface PendingStatusUpdate {
 
 @Component({
 	selector: "app-backlog-list",
-	imports: [DatePipe, FormsModule, BacklogModal, StarRating, PersonalStats, RouterLink, UiButton, UiEmptyState, UiIconButton, UiInput, UiPagination, UiSearchBar, UiSelect, UiSkeleton, UiSwitch, UiTextarea, GameFilterPanel, MoodTagsInput],
+	imports: [
+		DatePipe,
+		FormsModule,
+		BacklogCalendar,
+		StarRating,
+		PersonalStats,
+		RouterLink,
+		UiButton,
+		UiEmptyState,
+		UiIconButton,
+		UiInput,
+		UiPagination,
+		UiSearchBar,
+		UiSelect,
+		UiSkeleton,
+		UiSwitch,
+		UiTextarea,
+		GameFilterPanel,
+		MoodTagsInput
+	],
 	templateUrl: "./backlog-list.html",
 	host: {
 		"(document:click)": "onDocumentClick()"
@@ -57,6 +106,7 @@ export class BacklogList implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly reviewsService = inject(ReviewsService);
 	private readonly moodTagsService = inject(MoodTagsService);
+	private readonly dialogs = inject(DialogService);
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -69,11 +119,11 @@ export class BacklogList implements OnInit {
 	protected readonly activeStatuses = signal<Set<string>>(new Set());
 	protected readonly sortBy = signal("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
-	protected readonly showModal = signal(false);
-	protected readonly editingEntry = signal<BacklogEntry | null>(null);
 	private readonly queueBacklogIds = signal<Set<string>>(new Set());
 	protected readonly statusMenuOpenId = signal<string | null>(null);
-	protected readonly pendingStatusUpdate = signal<PendingStatusUpdate | null>(null);
+	protected readonly pendingStatusUpdate = signal<PendingStatusUpdate | null>(
+		null
+	);
 	protected readonly updatingStatusIds = signal<Set<string>>(new Set());
 	protected readonly reviewExpandedIds = signal<Set<string>>(new Set());
 
@@ -87,12 +137,14 @@ export class BacklogList implements OnInit {
 		untracked(() => this.applyFiltersFromUrl(params));
 	});
 
-	protected readonly viewMode = signal<"diary" | "hardcore">(
-		(localStorage.getItem("completr.backlog.viewMode") as "diary" | "hardcore") ||
-			"diary"
+	protected readonly viewMode = signal<"diary" | "hardcore" | "calendar">(
+		(localStorage.getItem("completr.backlog.viewMode") as
+			| "diary"
+			| "hardcore"
+			| "calendar") || "diary"
 	);
 
-	setViewMode(mode: "diary" | "hardcore") {
+	setViewMode(mode: "diary" | "hardcore" | "calendar") {
 		this.viewMode.set(mode);
 		localStorage.setItem("completr.backlog.viewMode", mode);
 	}
@@ -121,6 +173,7 @@ export class BacklogList implements OnInit {
 	protected readonly selectedMoodTags = signal<string[]>([]);
 	protected readonly moodTagsSuggestions = signal<string[]>([]);
 
+	protected readonly appliedFilters = signal<BacklogFilters>({});
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
 	protected readonly backlogFilters = signal<SavedFilter[]>([]);
 	protected readonly activeFilterId = signal<string | null>(null);
@@ -152,7 +205,9 @@ export class BacklogList implements OnInit {
 	protected isStatsCustom(): boolean {
 		const filter = this.getActiveFilter();
 		if (!filter) return false;
-		return filter.enabledStats !== undefined && filter.enabledStats !== null;
+		return (
+			filter.enabledStats !== undefined && filter.enabledStats !== null
+		);
 	}
 
 	protected toggleStatsPanel() {
@@ -321,10 +376,7 @@ export class BacklogList implements OnInit {
 		if (this.startedFrom() !== "" || this.startedTo() !== "") count++;
 		if (this.finishedFrom() !== "" || this.finishedTo() !== "") count++;
 		if (this.minRating() !== null || this.maxRating() !== null) count++;
-		if (
-			this.minRealDuration() !== null ||
-			this.maxRealDuration() !== null
-		)
+		if (this.minRealDuration() !== null || this.maxRealDuration() !== null)
 			count++;
 		if (this.minRatio() !== null || this.maxRatio() !== null) count++;
 		if (
@@ -451,7 +503,9 @@ export class BacklogList implements OnInit {
 		);
 
 		const status = f["status"];
-		this.activeStatuses.set(status ? new Set(status.split(",")) : new Set());
+		this.activeStatuses.set(
+			status ? new Set(status.split(",")) : new Set()
+		);
 
 		if (filter.sortBy) this.sortBy.set(filter.sortBy);
 		if (filter.sortOrder)
@@ -481,9 +535,7 @@ export class BacklogList implements OnInit {
 
 	private loadQueueIds() {
 		this.queueService.getMyQueue().subscribe(entries => {
-			this.queueBacklogIds.set(
-				new Set(entries.map(e => e.backlog.id))
-			);
+			this.queueBacklogIds.set(new Set(entries.map(e => e.backlog.id)));
 		});
 	}
 
@@ -778,8 +830,11 @@ export class BacklogList implements OnInit {
 			status: newStatus,
 			startedAt: newStatus === "playing" ? today : "",
 			finishedAt:
-				newStatus === "completed" || newStatus === "abandoned" ? today : "",
-			realDuration: entry.realDuration != null ? String(entry.realDuration) : "",
+				newStatus === "completed" || newStatus === "abandoned"
+					? today
+					: "",
+			realDuration:
+				entry.realDuration != null ? String(entry.realDuration) : "",
 			rating: entry.review?.rating ?? entry.userRating ?? null,
 			reviewToggle: false,
 			reviewContent: ""
@@ -954,28 +1009,32 @@ export class BacklogList implements OnInit {
 	}
 
 	openCreate() {
-		this.editingEntry.set(null);
-		this.showModal.set(true);
+		this.openBacklog(null);
 	}
 
-	openEdit(entry: BacklogEntry, event?: MouseEvent) {
+	openEdit(entry: BacklogEntry, event?: Event) {
 		if (event) {
 			const target = event.target as HTMLElement;
 			if (target.closest("a") || target.closest("button")) return;
 		}
-		this.editingEntry.set(entry);
-		this.showModal.set(true);
+		this.openBacklog(entry);
 	}
 
-	onModalClosed() {
-		this.showModal.set(false);
-		this.editingEntry.set(null);
-	}
-
-	onModalSaved() {
-		this.showModal.set(false);
-		this.editingEntry.set(null);
-		this.loadBacklog();
+	private openBacklog(entry: BacklogEntry | null) {
+		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
+			BacklogModal,
+			{
+				data: {
+					entry,
+					preselectedGame: null,
+					preselectedCompilationParent: null,
+					preselectAddToQueue: false
+				}
+			}
+		);
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.loadBacklog();
+		});
 	}
 
 	onOffsetChange(offset: number) {
@@ -983,14 +1042,8 @@ export class BacklogList implements OnInit {
 		this.loadBacklog();
 	}
 
-	private loadBacklog() {
-		this.isLoading.set(true);
-		const filters: BacklogFilters = {
-			limit: this.limit,
-			offset: this.offset(),
-			sort_by: this.sortBy(),
-			sort_order: this.sortOrder()
-		};
+	private buildBaseFilters(): BacklogFilters {
+		const filters: BacklogFilters = {};
 
 		const statuses = this.activeStatuses();
 		if (statuses.size > 0) {
@@ -1027,7 +1080,23 @@ export class BacklogList implements OnInit {
 			filters.max_personal_ratio = this.maxPersonalRatio()!;
 		if (this.selectedMoodTags().length > 0)
 			filters.mood_tags = this.selectedMoodTags().join(",");
-		if (this.searchQuery().trim()) filters.search = this.searchQuery().trim();
+		if (this.searchQuery().trim())
+			filters.search = this.searchQuery().trim();
+
+		return filters;
+	}
+
+	private loadBacklog() {
+		this.isLoading.set(true);
+		const base = this.buildBaseFilters();
+		this.appliedFilters.set(base);
+		const filters: BacklogFilters = {
+			...base,
+			limit: this.limit,
+			offset: this.offset(),
+			sort_by: this.sortBy(),
+			sort_order: this.sortOrder()
+		};
 
 		this.backlogService.getMyBacklog(filters).subscribe({
 			next: res => {

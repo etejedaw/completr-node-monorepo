@@ -3,13 +3,17 @@ import {
 	Component,
 	computed,
 	inject,
-	input,
 	OnInit,
-	output,
 	signal
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import {
+	NgpDialog,
+	NgpDialogOverlay,
+	NgpDialogTitle,
+	injectDialogRef
+} from "ng-primitives/dialog";
 import { GameShelfEntry } from "../../../core/models";
 import { Game, Platform } from "../../../core/models";
 import {
@@ -25,11 +29,32 @@ import {
 	switchMap,
 	of
 } from "rxjs";
-import { UiButton, UiFocusTrap, UiIconButton, UiSelect, UiTextarea } from "../../../shared/ui";
+import {
+	UiButton,
+	UiIconButton,
+	UiSelect,
+	UiTextarea
+} from "../../../shared/ui";
+
+export interface GameShelfModalData {
+	entry: GameShelfEntry | null;
+	preselectedGame: Game | null;
+}
+export type GameShelfModalResult = "saved";
 
 @Component({
 	selector: "app-game-shelf-modal",
-	imports: [DatePipe, ReactiveFormsModule, UiButton, UiFocusTrap, UiIconButton, UiSelect, UiTextarea],
+	imports: [
+		DatePipe,
+		ReactiveFormsModule,
+		NgpDialog,
+		NgpDialogOverlay,
+		NgpDialogTitle,
+		UiButton,
+		UiIconButton,
+		UiSelect,
+		UiTextarea
+	],
 	templateUrl: "./game-shelf-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -37,11 +62,12 @@ export class GameShelfModal implements OnInit {
 	private readonly fb = inject(FormBuilder);
 	private readonly shelfService = inject(GameShelfService);
 	private readonly gamesService = inject(GamesService);
-
-	entry = input<GameShelfEntry | null>(null);
-	preselectedGame = input<Game | null>(null);
-	closed = output<void>();
-	saved = output<void>();
+	private readonly dialogRef = injectDialogRef<
+		GameShelfModalData,
+		GameShelfModalResult
+	>();
+	protected readonly entry = this.dialogRef.data.entry;
+	protected readonly preselectedGame = this.dialogRef.data.preselectedGame;
 
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
@@ -121,7 +147,7 @@ export class GameShelfModal implements OnInit {
 				this.isSearchingOnline.set(false);
 			});
 
-		const e = this.entry();
+		const e = this.entry;
 		if (e) {
 			this.isEdit.set(true);
 			this.viewMode.set("summary");
@@ -139,7 +165,7 @@ export class GameShelfModal implements OnInit {
 			});
 		}
 
-		const pg = this.preselectedGame();
+		const pg = this.preselectedGame;
 		if (pg && !this.isEdit()) {
 			this.selectGame(pg);
 		}
@@ -194,8 +220,8 @@ export class GameShelfModal implements OnInit {
 				acquiredAt: val.acquiredAt || null,
 				notes: val.notes || null
 			};
-			this.shelfService.update(this.entry()!.id, dto).subscribe({
-				next: () => this.saved.emit(),
+			this.shelfService.update(this.entry!.id, dto).subscribe({
+				next: () => this.dialogRef.close("saved"),
 				error: err => {
 					this.isLoading.set(false);
 					this.error.set(err.error?.title ?? "Update failed");
@@ -210,7 +236,7 @@ export class GameShelfModal implements OnInit {
 				notes: val.notes || undefined
 			};
 			this.shelfService.create(dto).subscribe({
-				next: () => this.saved.emit(),
+				next: () => this.dialogRef.close("saved"),
 				error: err => {
 					this.isLoading.set(false);
 					this.error.set(err.error?.title ?? "Creation failed");
@@ -221,8 +247,8 @@ export class GameShelfModal implements OnInit {
 
 	onDelete() {
 		this.isLoading.set(true);
-		this.shelfService.delete(this.entry()!.id).subscribe({
-			next: () => this.saved.emit(),
+		this.shelfService.delete(this.entry!.id).subscribe({
+			next: () => this.dialogRef.close("saved"),
 			error: err => {
 				this.isLoading.set(false);
 				this.error.set(err.error?.title ?? "Delete failed");
@@ -231,6 +257,6 @@ export class GameShelfModal implements OnInit {
 	}
 
 	onClose() {
-		this.closed.emit();
+		this.dialogRef.close();
 	}
 }

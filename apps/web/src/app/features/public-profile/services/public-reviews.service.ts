@@ -70,7 +70,9 @@ export class PublicReviewsService {
 		return this.http
 			.get<{
 				data: { completions: CompletionEntry[]; total: number };
-			}>(`${environment.apiUrl}/users/${username}/completions`, { params })
+			}>(`${environment.apiUrl}/users/${username}/completions`, {
+				params
+			})
 			.pipe(map(res => res.data));
 	}
 

@@ -19,7 +19,9 @@ function round2(n: number): number {
 	return Math.round(n * 100) / 100;
 }
 
-export function pickCanonicalScore(game: GameWithSources | null | undefined): CanonicalScore {
+export function pickCanonicalScore(
+	game: GameWithSources | null | undefined
+): CanonicalScore {
 	const empty: CanonicalScore = {
 		type: null,
 		score: null,
@@ -30,8 +32,12 @@ export function pickCanonicalScore(game: GameWithSources | null | undefined): Ca
 
 	if (!game) return empty;
 
-	const completrScore = game.scores?.find(s => s.source === "completr")?.score;
-	const completrTime = game.times?.find(t => t.source === "completr")?.duration;
+	const completrScore = game.scores?.find(
+		s => s.source === "completr"
+	)?.score;
+	const completrTime = game.times?.find(
+		t => t.source === "completr"
+	)?.duration;
 
 	if (completrScore != null && completrTime != null && completrTime > 0) {
 		return {

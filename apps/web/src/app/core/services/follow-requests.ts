@@ -26,9 +26,9 @@ export class FollowRequestsService {
 
 	list() {
 		return this.http
-			.get<{ data: { requests: IncomingFollowRequest[] } }>(
-				`${environment.apiUrl}/users/me/follow-requests`
-			)
+			.get<{
+				data: { requests: IncomingFollowRequest[] };
+			}>(`${environment.apiUrl}/users/me/follow-requests`)
 			.pipe(
 				map(res => res.data.requests),
 				tap(rows => {

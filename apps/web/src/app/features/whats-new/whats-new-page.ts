@@ -39,45 +39,94 @@ const PAGE_SIZE = 5;
 	template: `
 		<div class="max-w-3xl mx-auto">
 			<div class="mb-6 flex items-start gap-4">
-				<span class="flex items-center justify-center w-12 h-12 rounded-2xl text-white shrink-0"
-					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 10px 24px -8px var(--color-brand-glow);">
+				<span
+					class="flex items-center justify-center w-12 h-12 rounded-2xl text-white shrink-0"
+					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 10px 24px -8px var(--color-brand-glow);"
+				>
 					<span class="material-icons text-[1.5rem]">campaign</span>
 				</span>
 				<div>
-					<h1 class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight">What's new</h1>
-					<p class="text-fg-muted mt-1 text-sm leading-snug">Recent updates and improvements to Completr</p>
+					<h1
+						class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight"
+					>
+						What's new
+					</h1>
+					<p class="text-fg-muted mt-1 text-sm leading-snug">
+						Recent updates and improvements to Completr
+					</p>
 				</div>
 			</div>
 
 			@if (isLoading()) {
-				<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
+				<div class="text-center py-12 text-fg-muted text-sm">
+					Loading...
+				</div>
 			} @else if (error()) {
 				<div class="text-center py-12 text-fg-muted text-sm">
-					Couldn't load the changelog right now. Please try again later.
+					Couldn't load the changelog right now. Please try again
+					later.
 				</div>
 			} @else {
 				<div class="flex flex-col gap-4">
-					@for (entry of pageEntries(); track entry.date + entry.title) {
-						<article class="bg-sidebar border border-line rounded-card overflow-hidden">
-							<header class="flex items-start gap-3 p-5 border-b border-line">
-								<span class="flex items-center justify-center w-10 h-10 rounded-xl shrink-0" [class]="iconBgClass(entry.tint)">
-									<span class="material-icons text-[1.25rem]">{{ entry.icon }}</span>
+					@for (
+						entry of pageEntries();
+						track entry.date + entry.title
+					) {
+						<article
+							class="bg-sidebar border border-line rounded-card overflow-hidden"
+						>
+							<header
+								class="flex items-start gap-3 p-5 border-b border-line"
+							>
+								<span
+									class="flex items-center justify-center w-10 h-10 rounded-xl shrink-0"
+									[class]="iconBgClass(entry.tint)"
+								>
+									<span
+										class="material-icons text-[1.25rem]"
+										>{{ entry.icon }}</span
+									>
 								</span>
 								<div class="flex-1 min-w-0">
-									<div class="flex items-center gap-2 mb-1 flex-wrap">
-										<span class="inline-block px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider" [class]="tagClass(entry.tint)">{{ entry.tag }}</span>
-										<span class="text-[0.6875rem] text-fg-muted">{{ entry.date }}</span>
+									<div
+										class="flex items-center gap-2 mb-1 flex-wrap"
+									>
+										<span
+											class="inline-block px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider"
+											[class]="tagClass(entry.tint)"
+											>{{ entry.tag }}</span
+										>
+										<span
+											class="text-[0.6875rem] text-fg-muted"
+											>{{ entry.date }}</span
+										>
 									</div>
-									<h2 class="font-display m-0 text-base font-semibold text-fg leading-tight">{{ entry.title }}</h2>
+									<h2
+										class="font-display m-0 text-base font-semibold text-fg leading-tight"
+									>
+										{{ entry.title }}
+									</h2>
 								</div>
 							</header>
 							<ul class="m-0 list-none p-5 flex flex-col gap-3">
-								@for (item of entry.highlights; track item.text) {
+								@for (
+									item of entry.highlights;
+									track item.text
+								) {
 									<li class="flex items-start gap-2.5">
-										<span class="flex items-center justify-center w-6 h-6 rounded-md shrink-0 mt-0.5" [class]="iconBgClass(item.tint)">
-											<span class="material-icons text-[0.875rem]">{{ item.icon }}</span>
+										<span
+											class="flex items-center justify-center w-6 h-6 rounded-md shrink-0 mt-0.5"
+											[class]="iconBgClass(item.tint)"
+										>
+											<span
+												class="material-icons text-[0.875rem]"
+												>{{ item.icon }}</span
+											>
 										</span>
-										<span class="text-[0.8125rem] text-fg-secondary leading-relaxed">{{ item.text }}</span>
+										<span
+											class="text-[0.8125rem] text-fg-secondary leading-relaxed"
+											>{{ item.text }}</span
+										>
 									</li>
 								}
 							</ul>
@@ -98,7 +147,11 @@ const PAGE_SIZE = 5;
 
 				<p class="text-center text-xs text-fg-muted mt-8 mb-0">
 					Found a bug or have a suggestion?
-					<a href="mailto:completr@etejeda.dev" class="text-brand no-underline hover:underline">Tell us</a>.
+					<a
+						href="mailto:completr@etejeda.dev"
+						class="text-brand no-underline hover:underline"
+						>Tell us</a
+					>.
 				</p>
 			}
 		</div>

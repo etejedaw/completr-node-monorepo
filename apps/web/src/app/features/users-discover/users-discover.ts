@@ -39,7 +39,8 @@ export class UsersDiscover implements OnInit {
 						return of<UserResult[]>([]);
 					}
 					this.isSearching.set(true);
-					const isEmail = trimmed.includes("@") && /.+@.+\..+/.test(trimmed);
+					const isEmail =
+						trimmed.includes("@") && /.+@.+\..+/.test(trimmed);
 					return isEmail
 						? this.usersService.search({ email: trimmed })
 						: this.usersService.search({ q: trimmed, limit: 30 });

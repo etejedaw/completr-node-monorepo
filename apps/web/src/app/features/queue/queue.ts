@@ -68,7 +68,9 @@ export class QueueService {
 			),
 			switchMap(remaining =>
 				this.http
-					.put<QueueListResponse>(this.baseUrl, { backlogIds: remaining })
+					.put<QueueListResponse>(this.baseUrl, {
+						backlogIds: remaining
+					})
 					.pipe(map(res => res.data.queue))
 			)
 		);

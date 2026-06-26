@@ -9,10 +9,7 @@ import {
 import { FormsModule } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../../../environments/environment";
-import {
-	AuthService,
-	AuthSession
-} from "../../../core/services/auth";
+import { AuthService, AuthSession } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
 import { UiButton, UiInput, UiPagination } from "../../../shared/ui";
 
@@ -36,7 +33,9 @@ export class SettingsSecurity implements OnInit {
 	protected readonly revokingAll = signal(false);
 	protected readonly confirmRevokeAll = signal(false);
 
-	protected readonly currentSessionId = computed(() => this.authService.sessionId());
+	protected readonly currentSessionId = computed(() =>
+		this.authService.sessionId()
+	);
 
 	protected readonly newPassword = signal("");
 	protected readonly confirmPassword = signal("");
@@ -48,14 +47,16 @@ export class SettingsSecurity implements OnInit {
 
 	loadSessions() {
 		this.sessionsLoading.set(true);
-		this.authService.getSessions({ limit: this.limit, offset: this.offset() }).subscribe({
-			next: data => {
-				this.sessions.set(data.sessions);
-				this.total.set(data.total);
-				this.sessionsLoading.set(false);
-			},
-			error: () => this.sessionsLoading.set(false)
-		});
+		this.authService
+			.getSessions({ limit: this.limit, offset: this.offset() })
+			.subscribe({
+				next: data => {
+					this.sessions.set(data.sessions);
+					this.total.set(data.total);
+					this.sessionsLoading.set(false);
+				},
+				error: () => this.sessionsLoading.set(false)
+			});
 	}
 
 	onOffsetChange(value: number) {
@@ -66,7 +67,9 @@ export class SettingsSecurity implements OnInit {
 	revokeSession(session: AuthSession) {
 		if (this.revokingSessionId()) return;
 		if (session.id === this.currentSessionId()) {
-			this.toast.warning("Use the logout button to end the current session.");
+			this.toast.warning(
+				"Use the logout button to end the current session."
+			);
 			return;
 		}
 		this.revokingSessionId.set(session.id);
@@ -180,9 +183,11 @@ export class SettingsSecurity implements OnInit {
 
 		let browser = "Browser";
 		if (/Edg\//i.test(ua)) browser = "Edge";
-		else if (/Chrome\//i.test(ua) && !/Chromium/i.test(ua)) browser = "Chrome";
+		else if (/Chrome\//i.test(ua) && !/Chromium/i.test(ua))
+			browser = "Chrome";
 		else if (/Firefox\//i.test(ua)) browser = "Firefox";
-		else if (/Safari\//i.test(ua) && !/Chrome/i.test(ua)) browser = "Safari";
+		else if (/Safari\//i.test(ua) && !/Chrome/i.test(ua))
+			browser = "Safari";
 
 		return { name: `${browser} · ${os}`, icon };
 	}

@@ -65,11 +65,7 @@ export class Login {
 	}
 
 	private messageFor(err: { status?: number }): string {
-		if (
-			err.status === 400 ||
-			err.status === 401 ||
-			err.status === 422
-		) {
+		if (err.status === 400 || err.status === 401 || err.status === 422) {
 			return "Invalid email or password.";
 		}
 		return "Login failed. Please try again.";

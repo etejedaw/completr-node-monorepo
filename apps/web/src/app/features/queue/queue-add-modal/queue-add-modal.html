@@ -1,17 +1,24 @@
-<div class="modal-overlay" (click)="onClose()">
+<div ngpDialogOverlay class="modal-overlay">
 	<div
+		ngpDialog
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[500px] max-h-[80vh] flex flex-col"
-		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
-		(click)="$event.stopPropagation()"
-		uiFocusTrap
-		(escape)="onClose()"
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="queue-add-modal-title"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
 	>
 		<div class="flex items-center justify-between mb-4">
-			<h2 id="queue-add-modal-title" class="m-0 text-lg font-bold font-display">Add to Queue</h2>
-			<button uiIconButton size="sm" aria-label="Close" (click)="onClose()">&times;</button>
+			<h2
+				ngpDialogTitle
+				class="m-0 text-lg font-bold font-display"
+			>
+				Add to Queue
+			</h2>
+			<button
+				uiIconButton
+				size="sm"
+				aria-label="Close"
+				(click)="onClose()"
+			>
+				&times;
+			</button>
 		</div>
 
 		<div class="mb-3">
@@ -25,25 +32,41 @@
 		</div>
 
 		@if (isLoading()) {
-		<div class="text-center py-8 text-fg-muted text-[0.8125rem]">Loading backlog...</div>
+		<div class="text-center py-8 text-fg-muted text-[0.8125rem]">
+			Loading backlog...
+		</div>
 		} @else if (filteredEntries().length === 0) {
-		<div class="text-center py-8 text-fg-muted text-[0.8125rem]">No backlog entries available.</div>
+		<div class="text-center py-8 text-fg-muted text-[0.8125rem]">
+			No backlog entries available.
+		</div>
 		} @else {
 		<ul class="list-none overflow-y-auto flex-1">
 			@for (entry of filteredEntries(); track entry.id) {
-			<li class="flex items-center justify-between py-2 border-b border-line">
+			<li
+				class="flex items-center justify-between py-2 border-b border-line"
+			>
 				<div class="flex items-center gap-2.5 min-w-0">
 					@if (entry.game.backgroundUrl) {
-					<img alt="" [src]="entry.game.backgroundUrl" class="w-8 h-[42px] object-cover rounded-sm shrink-0" loading="lazy" />
+					<img
+						alt=""
+						[src]="entry.game.backgroundUrl"
+						class="w-8 h-[42px] object-cover rounded-sm shrink-0"
+						loading="lazy"
+					/>
 					}
 					<div class="flex flex-col min-w-0 gap-1">
-						<span class="text-[0.8125rem] font-medium truncate">{{ entry.game.title }}</span>
+						<span class="text-[0.8125rem] font-medium truncate"
+							>{{ entry.game.title }}</span
+						>
 						<div class="flex items-center gap-1.5 flex-wrap">
-							<span class="text-[0.6875rem] text-fg-muted">{{ entry.platform.abbreviation }}</span>
+							<span class="text-[0.6875rem] text-fg-muted"
+								>{{ entry.platform.abbreviation }}</span
+							>
 							<span
 								class="inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold tracking-wide"
 								[class]="statusClass(entry.status)"
-							>{{ statusLabel(entry.status) }}</span>
+								>{{ statusLabel(entry.status) }}</span
+							>
 						</div>
 					</div>
 				</div>

@@ -14,30 +14,46 @@ import { AuthService } from "../../../core/services/auth";
 import { FavoritesService } from "../../favorites/favorites";
 import { QueueService } from "../../queue/queue";
 import { WishlistService } from "../../wishlist/wishlist";
-import { WishlistPlatformModal } from "../../wishlist/wishlist-platform-modal/wishlist-platform-modal";
+import {
+	WishlistPlatformModal,
+	type WishlistPlatformModalData,
+	type WishlistPlatformModalResult
+} from "../../wishlist/wishlist-platform-modal/wishlist-platform-modal";
+import { DialogService } from "../../../core/services/dialog";
 import { BacklogService } from "../../backlog/backlog";
 import { GameShelfService } from "../../game-shelf/game-shelf";
-import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
-import { GameShelfModal } from "../../game-shelf/game-shelf-modal/game-shelf-modal";
+import {
+	BacklogModal,
+	type BacklogModalData,
+	type BacklogModalResult
+} from "../../backlog/backlog-modal/backlog-modal";
+import {
+	GameShelfModal,
+	type GameShelfModalData,
+	type GameShelfModalResult
+} from "../../game-shelf/game-shelf-modal/game-shelf-modal";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../shared/constants/rating-labels";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
 import { metascoreColorClass } from "../../../shared/utils/metascore-color";
 import { FormsModule } from "@angular/forms";
-import { UiButton, UiTabs, UiTabList, UiTab, UiTabPanel } from "../../../shared/ui";
+import {
+	UiButton,
+	UiTabs,
+	UiTabList,
+	UiTab,
+	UiTabPanel
+} from "../../../shared/ui";
 import { GameSocialActivity } from "./components/game-social-activity";
-import { GameAddToListModal, ListsChanged } from "./components/game-add-to-list-modal";
+import {
+	GameAddToListModal,
+	type GameAddToListModalData,
+	ListsChanged
+} from "./components/game-add-to-list-modal";
 import { GameReviewsTab } from "./components/game-reviews-tab";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
-
-interface BacklogModalState {
-	show: boolean;
-	preselectQueue: boolean;
-	game: Game | null;
-	compilationParent: Game | null;
-}
 
 interface AdminActionsState {
 	confirmDeactivate: boolean;
@@ -60,9 +76,6 @@ interface ReportModalState {
 	imports: [
 		RouterLink,
 		StarRating,
-		BacklogModal,
-		GameShelfModal,
-		WishlistPlatformModal,
 		AdminGameEditor,
 		FormsModule,
 		UiButton,
@@ -71,7 +84,6 @@ interface ReportModalState {
 		UiTab,
 		UiTabPanel,
 		GameSocialActivity,
-		GameAddToListModal,
 		GameReviewsTab,
 		MoodTagsInput
 	],
@@ -92,6 +104,7 @@ export class GameDetail implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly gameShelfService = inject(GameShelfService);
 	private readonly moodTagsService = inject(MoodTagsService);
+	private readonly dialogs = inject(DialogService);
 
 	protected readonly game = signal<Game | null>(null);
 	protected readonly moodTags = signal<string[]>([]);
@@ -141,7 +154,6 @@ export class GameDetail implements OnInit {
 	protected readonly isInQueue = signal(false);
 	protected readonly isInShelf = signal(false);
 	protected readonly addedToQueue = signal(false);
-	protected readonly showShelfModal = signal(false);
 	protected readonly isModerator = computed(() => {
 		const role = this.authService.user()?.role;
 		return role === "moderator" || role === "admin";
@@ -151,14 +163,7 @@ export class GameDetail implements OnInit {
 	);
 	protected readonly togglingFavorite = signal(false);
 	protected readonly togglingWishlist = signal(false);
-	protected readonly showWishlistPlatformModal = signal(false);
 
-	protected readonly backlogModal = signal<BacklogModalState>({
-		show: false,
-		preselectQueue: false,
-		game: null,
-		compilationParent: null
-	});
 	protected readonly adminActions = signal<AdminActionsState>({
 		confirmDeactivate: false,
 		confirmDelete: false,
@@ -187,7 +192,6 @@ export class GameDetail implements OnInit {
 	protected readonly myLists = signal<
 		{ id: string; name: string; isPublic: boolean; contains: boolean }[]
 	>([]);
-	protected readonly showAddToListModal = signal(false);
 	protected readonly myListsInGame = computed(() =>
 		this.myLists().filter(l => l.contains)
 	);
@@ -212,7 +216,9 @@ export class GameDetail implements OnInit {
 				this.moodTags.set(game.userMoodTags ?? []);
 				this.editingMoodTags.set(false);
 				this.isFavorite.set(this.favoritesService.isFavorite(game.id));
-				this.isInWishlist.set(this.wishlistService.isInWishlist(game.id));
+				this.isInWishlist.set(
+					this.wishlistService.isInWishlist(game.id)
+				);
 				this.isLoading.set(false);
 				this.loadSimilarGames(game);
 				this.loadUserStatus(game.id);
@@ -286,30 +292,22 @@ export class GameDetail implements OnInit {
 				error: () => this.togglingWishlist.set(false)
 			});
 		} else {
-			this.showWishlistPlatformModal.set(true);
+			const ref = this.dialogs.open<
+				WishlistPlatformModalData,
+				WishlistPlatformModalResult
+			>(WishlistPlatformModal, {
+				data: { gameId: g.id, gameTitle: g.title, platforms: g.platforms }
+			});
+			ref.afterClosed.subscribe(result => {
+				if (result === "saved")
+					this.isInWishlist.set(this.wishlistService.isInWishlist(g.id));
+			});
 		}
 	}
 
-	onWishlistPlatformModalClosed() {
-		this.showWishlistPlatformModal.set(false);
-	}
-
-	onWishlistPlatformModalSaved() {
-		this.showWishlistPlatformModal.set(false);
-		const gameId = this.game()?.id;
-		if (gameId) this.isInWishlist.set(this.wishlistService.isInWishlist(gameId));
-	}
-
 	addToQueue() {
-		const g = this.game();
-		if (!g || this.addedToQueue()) return;
-		const isCompilation = g.isCompilation && (g.compilationItems ?? []).length > 0;
-		this.updateBacklogModal({
-			show: true,
-			preselectQueue: true,
-			game: isCompilation ? null : g,
-			compilationParent: isCompilation ? g : null
-		});
+		if (this.addedToQueue()) return;
+		this.openBacklog(true);
 	}
 
 	deactivateGame() {
@@ -333,41 +331,40 @@ export class GameDetail implements OnInit {
 	}
 
 	openBacklogModal() {
+		this.openBacklog(false);
+	}
+
+	private openBacklog(preselectAddToQueue: boolean) {
 		const g = this.game();
 		if (!g) return;
-		const isCompilation = g.isCompilation && (g.compilationItems ?? []).length > 0;
-		this.updateBacklogModal({
-			show: true,
-			preselectQueue: false,
-			game: isCompilation ? null : g,
-			compilationParent: isCompilation ? g : null
+		const isCompilation =
+			g.isCompilation && (g.compilationItems ?? []).length > 0;
+		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
+			BacklogModal,
+			{
+				data: {
+					entry: null,
+					preselectedGame: isCompilation ? null : g,
+					preselectedCompilationParent: isCompilation ? g : null,
+					preselectAddToQueue
+				}
+			}
+		);
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.loadUserStatus(g.id);
 		});
 	}
 
 	openShelfModal() {
-		this.showShelfModal.set(true);
-	}
-
-	onModalClosed() {
-		this.showShelfModal.set(false);
-		this.updateBacklogModal({
-			show: false,
-			preselectQueue: false,
-			game: null,
-			compilationParent: null
+		const g = this.game();
+		if (!g) return;
+		const ref = this.dialogs.open<GameShelfModalData, GameShelfModalResult>(
+			GameShelfModal,
+			{ data: { entry: null, preselectedGame: g } }
+		);
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.loadUserStatus(g.id);
 		});
-	}
-
-	onModalSaved() {
-		this.showShelfModal.set(false);
-		this.updateBacklogModal({
-			show: false,
-			preselectQueue: false,
-			game: null,
-			compilationParent: null
-		});
-		const gameId = this.game()?.id;
-		if (gameId) this.loadUserStatus(gameId);
 	}
 
 	onEditorSaved() {
@@ -405,11 +402,16 @@ export class GameDetail implements OnInit {
 	}
 
 	openAddToListModal() {
-		this.showAddToListModal.set(true);
-	}
-
-	closeAddToListModal() {
-		this.showAddToListModal.set(false);
+		const g = this.game();
+		if (!g) return;
+		this.dialogs.open<GameAddToListModalData>(GameAddToListModal, {
+			data: {
+				gameId: g.id,
+				gameTitle: g.title,
+				myLists: this.myLists(),
+				onListsChanged: data => this.onAddToListListsChanged(data)
+			}
+		});
 	}
 
 	onAddToListListsChanged(data: ListsChanged) {
@@ -445,7 +447,8 @@ export class GameDetail implements OnInit {
 				error: err =>
 					this.updateReportModal({
 						submitting: false,
-						sent: err.status === 409 ? true : this.reportModal().sent
+						sent:
+							err.status === 409 ? true : this.reportModal().sent
 					})
 			});
 	}
@@ -480,9 +483,6 @@ export class GameDetail implements OnInit {
 		});
 	}
 
-	protected updateBacklogModal(patch: Partial<BacklogModalState>) {
-		this.backlogModal.update(s => ({ ...s, ...patch }));
-	}
 
 	protected updateAdminActions(patch: Partial<AdminActionsState>) {
 		this.adminActions.update(s => ({ ...s, ...patch }));
@@ -491,5 +491,4 @@ export class GameDetail implements OnInit {
 	protected updateReportModal(patch: Partial<ReportModalState>) {
 		this.reportModal.update(s => ({ ...s, ...patch }));
 	}
-
 }

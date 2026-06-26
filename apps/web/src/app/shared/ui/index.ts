@@ -1,7 +1,10 @@
 export { UiButton } from "./button/ui-button";
 export type { UiButtonVariant, UiButtonSize } from "./button/ui-button";
 export { UiIconButton } from "./icon-button/ui-icon-button";
-export type { UiIconButtonSize, UiIconButtonTone } from "./icon-button/ui-icon-button";
+export type {
+	UiIconButtonSize,
+	UiIconButtonTone
+} from "./icon-button/ui-icon-button";
 export { UiInput } from "./input/ui-input";
 export type { UiInputSize } from "./input/ui-input";
 export { UiSearchBar } from "./search-bar/ui-search-bar";
@@ -9,7 +12,6 @@ export { UiSwitch } from "./switch/ui-switch";
 export { UiCheckbox } from "./checkbox/ui-checkbox";
 export { UiTooltipContent } from "./tooltip/ui-tooltip";
 export { UiTabs, UiTabList, UiTab, UiTabPanel } from "./tabs/ui-tabs";
-export { UiDialog, UiDialogTitle, UiDialogDescription } from "./dialog/ui-dialog";
 export { UiPagination } from "./pagination/ui-pagination";
 export { UiSkeleton } from "./skeleton/ui-skeleton";
 export type { UiSkeletonVariant } from "./skeleton/ui-skeleton";
@@ -24,10 +26,6 @@ export {
 	UiDescription,
 	UiError
 } from "./form-field/ui-form-field";
-export {
-	UiRadioGroup,
-	UiRadioItem,
-	UiRadioIndicator
-} from "./radio/ui-radio";
+export { UiRadioGroup, UiRadioItem, UiRadioIndicator } from "./radio/ui-radio";
 export { UiSelect } from "./select/ui-select";
 export { UiFocusTrap } from "./focus-trap/ui-focus-trap";

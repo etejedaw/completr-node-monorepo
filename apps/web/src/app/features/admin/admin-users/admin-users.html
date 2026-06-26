@@ -1,16 +1,30 @@
 <div>
 	<div class="flex items-center justify-between mb-5">
 		<div class="flex items-baseline gap-3">
-			<h1 class="font-display text-3xl md:text-4xl font-bold tracking-tight m-0">Users</h1>
-			<span class="text-[0.8125rem] text-fg-muted">{{ total() }} total</span>
+			<h1
+				class="font-display text-3xl md:text-4xl font-bold tracking-tight m-0"
+			>
+				Users
+			</h1>
+			<span class="text-[0.8125rem] text-fg-muted"
+				>{{ total() }} total</span
+			>
 		</div>
 		<button
 			uiButton
 			variant="primary"
 			class="!text-white !border-0"
-			style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+			style="
+				background: linear-gradient(
+					135deg,
+					var(--color-brand),
+					var(--color-brand-deep)
+				);
+			"
 			(click)="openCreate()"
-		>Create User</button>
+		>
+			Create User
+		</button>
 	</div>
 
 	@if (isLoading()) {
@@ -22,39 +36,98 @@
 		<table class="w-full border-collapse text-[0.8125rem]">
 			<thead>
 				<tr>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Username</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Email</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Name</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Role</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Status</th>
-					<th scope="col" class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap">Created</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Username
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Email
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Name
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Role
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Status
+					</th>
+					<th
+						scope="col"
+						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+					>
+						Created
+					</th>
 				</tr>
 			</thead>
 			<tbody>
 				@for (user of users(); track user.id) {
-				<tr class="border-b border-line transition hover:bg-surface cursor-pointer" (click)="openEdit(user)">
-					<td class="px-3 py-2 text-fg align-middle font-medium">{{ user.username }}</td>
-					<td class="px-3 py-2 text-fg-secondary align-middle">{{ user.email }}</td>
-					<td class="px-3 py-2 text-fg align-middle">{{ user.name }}</td>
+				<tr
+					class="border-b border-line transition hover:bg-surface cursor-pointer"
+					(click)="openEdit(user)"
+				>
+					<td class="px-3 py-2 text-fg align-middle font-medium">
+						{{ user.username }}
+					</td>
+					<td class="px-3 py-2 text-fg-secondary align-middle">
+						{{ user.email }}
+					</td>
+					<td class="px-3 py-2 text-fg align-middle">
+						{{ user.name }}
+					</td>
 					<td class="px-3 py-2 align-middle">
 						@if (user.role === 'admin') {
-						<span class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-danger/10 text-danger">{{ user.role }}</span>
+						<span
+							class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-danger/10 text-danger"
+							>{{ user.role }}</span
+						>
 						} @else if (user.role === 'moderator') {
-						<span class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-[rgba(168,85,247,0.12)] text-[#a855f7]">{{ user.role }}</span>
+						<span
+							class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-[rgba(168,85,247,0.12)] text-[#a855f7]"
+							>{{ user.role }}</span
+						>
 						} @else if (user.role === 'premium') {
-						<span class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-warning/10 text-warning">{{ user.role }}</span>
+						<span
+							class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-warning/10 text-warning"
+							>{{ user.role }}</span
+						>
 						} @else {
-						<span class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-fg-muted/10 text-fg-muted">{{ user.role }}</span>
+						<span
+							class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-fg-muted/10 text-fg-muted"
+							>{{ user.role }}</span
+						>
 						}
 					</td>
 					<td class="px-3 py-2 align-middle">
 						@if (user.isActive) {
-						<span class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold bg-success/10 text-success">Active</span>
+						<span
+							class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold bg-success/10 text-success"
+							>Active</span
+						>
 						} @else {
-						<span class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold bg-danger/10 text-danger">Inactive</span>
+						<span
+							class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold bg-danger/10 text-danger"
+							>Inactive</span
+						>
 						}
 					</td>
-					<td class="px-3 py-2 text-fg-muted text-xs whitespace-nowrap align-middle">
+					<td
+						class="px-3 py-2 text-fg-muted text-xs whitespace-nowrap align-middle"
+					>
 						{{ user.createdAt | date: "mediumDate" }}
 					</td>
 				</tr>
@@ -73,25 +146,38 @@
 </div>
 
 @if (showCreateModal()) {
-<div class="modal-overlay" (click)="closeCreate()">
+<div class="modal-overlay">
 	<div
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
-		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
-		(click)="$event.stopPropagation()"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
 	>
 		<div class="flex justify-between items-center mb-5">
 			<h2 class="font-display m-0 text-lg font-bold">Create User</h2>
-			<button uiIconButton size="sm" aria-label="Close" (click)="closeCreate()">&times;</button>
+			<button
+				uiIconButton
+				size="sm"
+				aria-label="Close"
+				(click)="closeCreate()"
+			>
+				&times;
+			</button>
 		</div>
 
 		@if (createError()) {
-		<div class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem] whitespace-pre-line">{{ createError() }}</div>
+		<div
+			class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem] whitespace-pre-line"
+		>
+			{{ createError() }}
+		</div>
 		}
 
 		<form (ngSubmit)="submitCreate()">
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
 				<div>
-					<label for="create-username" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
+					<label
+						for="create-username"
+						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+					>
 						Username <span class="text-danger font-bold">*</span>
 					</label>
 					<input
@@ -107,11 +193,14 @@
 						maxlength="15"
 					/>
 					@if (createFieldErrors()['username']; as msg) {
-						<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
+					<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
 					}
 				</div>
 				<div>
-					<label for="create-name" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
+					<label
+						for="create-name"
+						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+					>
 						Name <span class="text-danger font-bold">*</span>
 					</label>
 					<input
@@ -127,14 +216,17 @@
 						maxlength="80"
 					/>
 					@if (createFieldErrors()['name']; as msg) {
-						<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
+					<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
 					}
 				</div>
 			</div>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
 				<div>
-					<label for="create-email" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
+					<label
+						for="create-email"
+						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+					>
 						Email <span class="text-danger font-bold">*</span>
 					</label>
 					<input
@@ -148,38 +240,46 @@
 						required
 					/>
 					@if (createFieldErrors()['email']; as msg) {
-						<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
+					<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
 					}
 				</div>
 				<div>
-					<label for="create-password" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">
+					<label
+						for="create-password"
+						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+					>
 						Password <span class="text-danger font-bold">*</span>
 					</label>
 					<div class="relative">
-					<input
-						id="create-password"
-						uiInput
-						[type]="showCreatePassword() ? 'text' : 'password'"
-						[ngModel]="createPassword()"
-						(ngModelChange)="createPassword.set($event)"
-						name="password"
-						placeholder="Min 8 chars"
-						required
-						class="!pr-10"
-						minlength="8"
-						maxlength="15"
-					/>
-					<button
-						type="button"
-						class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-transparent border-0 cursor-pointer text-fg-muted hover:text-fg transition"
-						(click)="toggleShowCreatePassword()"
-						[title]="showCreatePassword() ? 'Hide password' : 'Show password'"
-					>
-						<span aria-hidden="true" class="material-icons text-base">{{ showCreatePassword() ? 'visibility_off' : 'visibility' }}</span>
-					</button>
+						<input
+							id="create-password"
+							uiInput
+							[type]="showCreatePassword() ? 'text' : 'password'"
+							[ngModel]="createPassword()"
+							(ngModelChange)="createPassword.set($event)"
+							name="password"
+							placeholder="Min 8 chars"
+							required
+							class="!pr-10"
+							minlength="8"
+							maxlength="15"
+						/>
+						<button
+							type="button"
+							class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-transparent border-0 cursor-pointer text-fg-muted hover:text-fg transition"
+							(click)="toggleShowCreatePassword()"
+							[title]="showCreatePassword() ? 'Hide password' : 'Show password'"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-base"
+								>{{ showCreatePassword() ? 'visibility_off' :
+								'visibility' }}</span
+							>
+						</button>
 					</div>
 					@if (createFieldErrors()['password']; as msg) {
-						<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
+					<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
 					}
 				</div>
 			</div>
@@ -189,7 +289,13 @@
 					uiButton
 					variant="primary"
 					class="!text-white !border-0"
-					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+					style="
+						background: linear-gradient(
+							135deg,
+							var(--color-brand),
+							var(--color-brand-deep)
+						);
+					"
 					type="submit"
 					[disabled]="
 						!createUsername() ||
@@ -205,32 +311,48 @@
 		</form>
 	</div>
 </div>
-}
-
-@if (showEditModal() && editingUser()) {
-<div class="modal-overlay" (click)="closeEdit()">
+} @if (showEditModal() && editingUser()) {
+<div class="modal-overlay">
 	<div
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
-		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6);"
-		(click)="$event.stopPropagation()"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
 	>
 		<div class="flex justify-between items-center mb-5">
 			<h2 class="font-display m-0 text-lg font-bold">Edit User</h2>
-			<button uiIconButton size="sm" aria-label="Close" (click)="closeEdit()">&times;</button>
+			<button
+				uiIconButton
+				size="sm"
+				aria-label="Close"
+				(click)="closeEdit()"
+			>
+				&times;
+			</button>
 		</div>
 
 		<div class="flex items-baseline gap-3 mb-5 pb-4 border-b border-line">
-			<span class="font-semibold text-[0.9375rem]">{{ editingUser()!.username }}</span>
-			<span class="text-[0.8125rem] text-fg-muted">{{ editingUser()!.email }}</span>
+			<span class="font-semibold text-[0.9375rem]"
+				>{{ editingUser()!.username }}</span
+			>
+			<span class="text-[0.8125rem] text-fg-muted"
+				>{{ editingUser()!.email }}</span
+			>
 		</div>
 
 		@if (editError()) {
-		<div class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem] whitespace-pre-line">{{ editError() }}</div>
+		<div
+			class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded mb-4 text-[0.8125rem] whitespace-pre-line"
+		>
+			{{ editError() }}
+		</div>
 		}
 
 		<form (ngSubmit)="submitEdit()">
 			<div class="mb-4">
-				<label for="edit-name" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Name</label>
+				<label
+					for="edit-name"
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+					>Name</label
+				>
 				<input
 					id="edit-name"
 					uiInput
@@ -242,13 +364,17 @@
 					maxlength="80"
 				/>
 				@if (editFieldErrors()['name']; as msg) {
-					<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
+				<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
 				}
 			</div>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
 				<div>
-					<label for="edit-role" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">Role</label>
+					<label
+						for="edit-role"
+						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						>Role</label
+					>
 					<select
 						uiSelect
 						id="edit-role"
@@ -263,7 +389,11 @@
 					</select>
 				</div>
 				<div>
-					<label for="edit-password" class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider">New Password</label>
+					<label
+						for="edit-password"
+						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						>New Password</label
+					>
 					<div class="relative">
 						<input
 							id="edit-password"
@@ -283,17 +413,24 @@
 							(click)="toggleShowEditPassword()"
 							[title]="showEditPassword() ? 'Hide password' : 'Show password'"
 						>
-							<span aria-hidden="true" class="material-icons text-base">{{ showEditPassword() ? 'visibility_off' : 'visibility' }}</span>
+							<span
+								aria-hidden="true"
+								class="material-icons text-base"
+								>{{ showEditPassword() ? 'visibility_off' :
+								'visibility' }}</span
+							>
 						</button>
 					</div>
 					@if (editFieldErrors()['password']; as msg) {
-						<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
+					<p class="mt-1 text-[0.75rem] text-danger">{{ msg }}</p>
 					}
 				</div>
 			</div>
 
 			<div class="mb-4">
-				<label class="flex items-center gap-2 cursor-pointer text-[0.8125rem] text-fg-secondary px-3 py-2 bg-input-bg border border-line rounded">
+				<label
+					class="flex items-center gap-2 cursor-pointer text-[0.8125rem] text-fg-secondary px-3 py-2 bg-input-bg border border-line rounded"
+				>
 					<input
 						type="checkbox"
 						class="w-4 h-4 cursor-pointer accent-brand"
@@ -310,7 +447,13 @@
 					uiButton
 					variant="primary"
 					class="!text-white !border-0"
-					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+					style="
+						background: linear-gradient(
+							135deg,
+							var(--color-brand),
+							var(--color-brand-deep)
+						);
+					"
 					type="submit"
 					[disabled]="isEditing()"
 				>

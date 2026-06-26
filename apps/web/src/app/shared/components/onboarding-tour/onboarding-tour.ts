@@ -20,11 +20,10 @@ interface Step {
 @Component({
 	selector: "app-onboarding-tour",
 	template: `
-		<div class="modal-overlay" (click)="skip.emit()">
+		<div class="modal-overlay">
 			<div
 				class="bg-sidebar border border-line rounded-[16px] w-full max-w-[420px] flex flex-col max-h-[90vh] overflow-hidden"
 				style="box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.7);"
-				(click)="$event.stopPropagation()"
 			>
 				@let step = steps[index()];
 
@@ -50,32 +49,54 @@ interface Step {
 						</button>
 					</div>
 
-					<h2 class="font-display m-0 text-xl font-bold text-fg leading-tight">{{ step.heading }}</h2>
-					<p class="mt-1 mb-0 text-[0.8125rem] text-fg-muted">{{ step.tagline }}</p>
+					<h2
+						class="font-display m-0 text-xl font-bold text-fg leading-tight"
+					>
+						{{ step.heading }}
+					</h2>
+					<p class="mt-1 mb-0 text-[0.8125rem] text-fg-muted">
+						{{ step.tagline }}
+					</p>
 				</div>
 
 				<div class="px-6 py-4 flex flex-col gap-2 overflow-y-auto">
 					@for (item of step.items; track item.name) {
 						<div class="flex items-center gap-3 py-2">
-							<span class="flex items-center justify-center w-9 h-9 rounded-lg bg-brand-subtle text-brand shrink-0">
-								<span class="material-icons text-[1.125rem]">{{ item.icon }}</span>
+							<span
+								class="flex items-center justify-center w-9 h-9 rounded-lg bg-brand-subtle text-brand shrink-0"
+							>
+								<span class="material-icons text-[1.125rem]">{{
+									item.icon
+								}}</span>
 							</span>
 							<div class="min-w-0">
-								<div class="text-sm font-semibold text-fg leading-tight">{{ item.name }}</div>
-								<div class="text-[0.75rem] text-fg-muted leading-snug">{{ item.hint }}</div>
+								<div
+									class="text-sm font-semibold text-fg leading-tight"
+								>
+									{{ item.name }}
+								</div>
+								<div
+									class="text-[0.75rem] text-fg-muted leading-snug"
+								>
+									{{ item.hint }}
+								</div>
 							</div>
 						</div>
 					}
 				</div>
 
-				<div class="px-6 py-4 border-t border-line flex items-center justify-between gap-2">
+				<div
+					class="px-6 py-4 border-t border-line flex items-center justify-between gap-2"
+				>
 					@if (index() === steps.length - 1) {
 						<button
 							type="button"
 							class="bg-transparent border-0 text-fg-muted text-xs font-medium cursor-pointer transition hover:text-brand inline-flex items-center gap-1"
 							(click)="seeFullGuide.emit()"
 						>
-							<span class="material-icons text-sm">menu_book</span>
+							<span class="material-icons text-sm"
+								>menu_book</span
+							>
 							Read full guide
 						</button>
 					} @else {

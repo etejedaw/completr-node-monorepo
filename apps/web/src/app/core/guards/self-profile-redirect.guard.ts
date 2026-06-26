@@ -12,5 +12,7 @@ export const selfProfileRedirect: CanActivateFn = () => {
 
 	return auth
 		.loadUser()
-		.pipe(map(res => router.createUrlTree(["/user", res.data.user.username])));
+		.pipe(
+			map(res => router.createUrlTree(["/user", res.data.user.username]))
+		);
 };

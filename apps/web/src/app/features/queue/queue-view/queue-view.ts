@@ -11,8 +11,18 @@ import { QueueService } from "../queue";
 import { BacklogService } from "../../backlog/backlog";
 import { FavoritesService } from "../../favorites/favorites";
 import { ToastService } from "../../../core/services/toast";
-import { QueueAddModal } from "../queue-add-modal/queue-add-modal";
-import { UiButton, UiEmptyState, UiPagination, UiSearchBar, UiSkeleton } from "../../../shared/ui";
+import { DialogService } from "../../../core/services/dialog";
+import {
+	QueueAddModal,
+	type QueueAddModalData
+} from "../queue-add-modal/queue-add-modal";
+import {
+	UiButton,
+	UiEmptyState,
+	UiPagination,
+	UiSearchBar,
+	UiSkeleton
+} from "../../../shared/ui";
 import {
 	QueueGridCard,
 	QueueStatusChange
@@ -28,7 +38,6 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 @Component({
 	selector: "app-queue-view",
 	imports: [
-		QueueAddModal,
 		UiButton,
 		UiEmptyState,
 		UiPagination,
@@ -46,11 +55,11 @@ export class QueueView implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly toast = inject(ToastService);
+	private readonly dialogs = inject(DialogService);
 
 	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);
-	protected readonly showAddModal = signal(false);
 	protected readonly searchQuery = signal("");
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
@@ -149,15 +158,9 @@ export class QueueView implements OnInit {
 	}
 
 	openAddModal() {
-		this.showAddModal.set(true);
-	}
-
-	onAddModalClosed() {
-		this.showAddModal.set(false);
-	}
-
-	onAddModalSaved() {
-		this.loadQueue();
+		this.dialogs.open<QueueAddModalData>(QueueAddModal, {
+			data: { onAdded: () => this.loadQueue() }
+		});
 	}
 
 	isUpdatingStatus(entry: QueueEntry): boolean {

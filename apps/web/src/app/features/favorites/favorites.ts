@@ -1,6 +1,14 @@
 import { inject, Injectable, signal } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { Observable, map, of, shareReplay, switchMap, tap, throwError } from "rxjs";
+import {
+	Observable,
+	map,
+	of,
+	shareReplay,
+	switchMap,
+	tap,
+	throwError
+} from "rxjs";
 import { environment } from "../../../environments/environment";
 import { FavoriteEntry } from "../../core/models";
 import { Appendable, buildHttpParams } from "../../core/utils/http-params";
@@ -80,7 +88,9 @@ export class FavoritesService {
 		const previousIds = this._favoriteIds();
 		const wasFavorite = previousIds.has(gameId);
 		if (!wasFavorite && previousIds.size >= MAX_FAVORITES) {
-			this.toast.error(`You can only have up to ${MAX_FAVORITES} favorites.`);
+			this.toast.error(
+				`You can only have up to ${MAX_FAVORITES} favorites.`
+			);
 			return throwError(() => new Error("Favorites limit reached"));
 		}
 		const nextIds = new Set(previousIds);

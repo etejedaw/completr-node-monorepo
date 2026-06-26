@@ -16,7 +16,10 @@ import {
 	PublicQueue,
 	PublicGameShelf
 } from "./services/public-library.service";
-import { PublicListsService, PublicList } from "./services/public-lists.service";
+import {
+	PublicListsService,
+	PublicList
+} from "./services/public-lists.service";
 import {
 	PublicReviewsService,
 	HighlightEntry
@@ -24,8 +27,10 @@ import {
 import { PublicSocialService } from "./services/public-social.service";
 import {
 	UserListModal,
-	UserSummary
+	UserSummary,
+	type UserListModalData
 } from "../../shared/components/user-list-modal/user-list-modal";
+import { DialogService } from "../../core/services/dialog";
 import { StarRating } from "../../shared/components/star-rating/star-rating";
 import {
 	UiAvatar,
@@ -44,7 +49,17 @@ import {
 
 @Component({
 	selector: "app-public-profile",
-	imports: [RouterLink, UserListModal, StarRating, UiAvatar, UiButton, UiSkeleton, UiTabs, UiTabList, UiTab, UiTabPanel],
+	imports: [
+		RouterLink,
+		StarRating,
+		UiAvatar,
+		UiButton,
+		UiSkeleton,
+		UiTabs,
+		UiTabList,
+		UiTab,
+		UiTabPanel
+	],
 	templateUrl: "./public-profile.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -57,6 +72,7 @@ export class PublicProfileComponent implements OnInit {
 	private readonly listsService = inject(PublicListsService);
 	private readonly reviewsService = inject(PublicReviewsService);
 	private readonly authService = inject(AuthService);
+	private readonly dialogs = inject(DialogService);
 
 	private static readonly HIGHLIGHTS_MONTH_PARAM = "highlightsMonth";
 
@@ -106,12 +122,27 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly favoritesData = signal<PublicFavorite[] | null>(null);
 	protected readonly queueData = signal<PublicQueue[] | null>(null);
 	protected readonly wishlistData = signal<
-		{ id: string; position: number; game: { id: string; code: string; title: string; backgroundUrl?: string } }[] | null
+		| {
+				id: string;
+				position: number;
+				game: {
+					id: string;
+					code: string;
+					title: string;
+					backgroundUrl?: string;
+				};
+		  }[]
+		| null
 	>(null);
 	protected readonly gameShelfData = signal<PublicGameShelf[] | null>(null);
 	protected readonly followingListsData = signal<PublicList[] | null>(null);
 	protected readonly gamesInCommon = signal<
-		{ id: string; code: string; title: string; backgroundUrl: string | null }[]
+		{
+			id: string;
+			code: string;
+			title: string;
+			backgroundUrl: string | null;
+		}[]
 	>([]);
 	protected readonly recentFollowers = signal<UserSummary[]>([]);
 	protected readonly highlightsData = signal<{
@@ -276,7 +307,11 @@ export class PublicProfileComponent implements OnInit {
 		this.libraryService.getUserFavorites(username, { limit: 6 }).subscribe({
 			next: res =>
 				this.favoritesData.set(
-					res.items.map(e => ({ id: e.id, position: e.position, game: e.game }))
+					res.items.map(e => ({
+						id: e.id,
+						position: e.position,
+						game: e.game
+					}))
 				),
 			error: () => this.favoritesData.set([])
 		});
@@ -342,9 +377,6 @@ export class PublicProfileComponent implements OnInit {
 		}[]
 	>([]);
 	protected readonly userReviewsTotal = signal(0);
-	protected readonly showUserListModal = signal(false);
-	protected readonly userListTitle = signal("");
-	protected readonly userListUsers = signal<UserSummary[]>([]);
 
 	ngOnInit() {
 		if (typeof window !== "undefined" && window.matchMedia) {
@@ -457,21 +489,21 @@ export class PublicProfileComponent implements OnInit {
 	}
 
 	showFollowers() {
-		this.userListTitle.set("Followers");
-		this.userListUsers.set([]);
-		this.showUserListModal.set(true);
-		this.socialService
-			.getFollowers(this.username())
-			.subscribe(users => this.userListUsers.set(users));
+		this.dialogs.open<UserListModalData>(UserListModal, {
+			data: {
+				title: "Followers",
+				users$: this.socialService.getFollowers(this.username())
+			}
+		});
 	}
 
 	showFollowing() {
-		this.userListTitle.set("Following");
-		this.userListUsers.set([]);
-		this.showUserListModal.set(true);
-		this.socialService
-			.getFollowing(this.username())
-			.subscribe(users => this.userListUsers.set(users));
+		this.dialogs.open<UserListModalData>(UserListModal, {
+			data: {
+				title: "Following",
+				users$: this.socialService.getFollowing(this.username())
+			}
+		});
 	}
 
 	protected activityLabel = activityLabel;

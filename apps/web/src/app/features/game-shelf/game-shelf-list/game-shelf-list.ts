@@ -11,11 +11,26 @@ import { GameShelfService } from "../game-shelf";
 import { FavoritesService } from "../../favorites/favorites";
 import { WishlistService } from "../../wishlist/wishlist";
 import { BacklogService } from "../../backlog/backlog";
-import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
+import {
+	BacklogModal,
+	type BacklogModalData,
+	type BacklogModalResult
+} from "../../backlog/backlog-modal/backlog-modal";
 import { GamesService } from "../../games/games";
 import { RouterLink } from "@angular/router";
-import { GameShelfModal } from "../game-shelf-modal/game-shelf-modal";
-import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";
+import {
+	GameShelfModal,
+	type GameShelfModalData,
+	type GameShelfModalResult
+} from "../game-shelf-modal/game-shelf-modal";
+import { DialogService } from "../../../core/services/dialog";
+import { GameShelfCalendar } from "../game-shelf-calendar/game-shelf-calendar";
+import {
+	UiButton,
+	UiEmptyState,
+	UiPagination,
+	UiSearchBar
+} from "../../../shared/ui";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { MoodTagsChips } from "../../../shared/components/mood-tags-chips/mood-tags-chips";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
@@ -28,7 +43,17 @@ interface PlatformCount {
 
 @Component({
 	selector: "app-game-shelf-list",
-	imports: [DatePipe, GameShelfModal, BacklogModal, RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar, GameCoverCard, MoodTagsChips],
+	imports: [
+		DatePipe,
+		RouterLink,
+		UiButton,
+		UiEmptyState,
+		UiPagination,
+		UiSearchBar,
+		GameCoverCard,
+		MoodTagsChips,
+		GameShelfCalendar
+	],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -38,10 +63,8 @@ export class GameShelfList implements OnInit {
 	private readonly wishlistService = inject(WishlistService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly gamesService = inject(GamesService);
+	private readonly dialogs = inject(DialogService);
 
-	protected readonly backlogModalGame = signal<Game | null>(null);
-	protected readonly backlogModalEntry = signal<BacklogEntry | null>(null);
-	protected readonly showBacklogModal = signal(false);
 	protected readonly backlogGameIds = signal<Set<string>>(new Set());
 
 	protected readonly allEntries = signal<GameShelfEntry[]>([]);
@@ -50,20 +73,20 @@ export class GameShelfList implements OnInit {
 	protected readonly searchQuery = signal("");
 	protected readonly selectedPlatform = signal("");
 	protected readonly platformCounts = signal<PlatformCount[]>([]);
-	protected readonly showModal = signal(false);
-	protected readonly editingEntry = signal<GameShelfEntry | null>(null);
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
 
-	protected readonly viewMode = signal<"grid" | "table">(
-		((): "grid" | "table" => {
+	protected readonly viewMode = signal<"grid" | "table" | "calendar">(
+		((): "grid" | "table" | "calendar" => {
 			const saved = localStorage.getItem("completr.shelf.viewMode");
-			return saved === "table" ? "table" : "grid";
+			if (saved === "table") return "table";
+			if (saved === "calendar") return "calendar";
+			return "grid";
 		})()
 	);
 
-	setViewMode(mode: "grid" | "table") {
+	setViewMode(mode: "grid" | "table" | "calendar") {
 		this.viewMode.set(mode);
 		localStorage.setItem("completr.shelf.viewMode", mode);
 	}
@@ -100,9 +123,7 @@ export class GameShelfList implements OnInit {
 			next: res => {
 				const existing = res.data.backlog[0] ?? null;
 				if (existing) {
-					this.backlogModalEntry.set(existing);
-					this.backlogModalGame.set(null);
-					this.showBacklogModal.set(true);
+					this.openBacklog(existing, null);
 					return;
 				}
 				this.openCreateBacklogFor(entry.game.code);
@@ -113,21 +134,28 @@ export class GameShelfList implements OnInit {
 
 	private openCreateBacklogFor(code: string) {
 		this.gamesService.getByCode(code).subscribe(game => {
-			this.backlogModalEntry.set(null);
-			this.backlogModalGame.set(game);
-			this.showBacklogModal.set(true);
+			this.openBacklog(null, game);
 		});
 	}
 
-	onBacklogModalClosed() {
-		this.showBacklogModal.set(false);
-		this.backlogModalGame.set(null);
-		this.backlogModalEntry.set(null);
-	}
-
-	onBacklogModalSaved() {
-		this.onBacklogModalClosed();
-		this.loadBacklogIds();
+	private openBacklog(
+		entry: BacklogEntry | null,
+		preselectedGame: Game | null
+	) {
+		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
+			BacklogModal,
+			{
+				data: {
+					entry,
+					preselectedGame,
+					preselectedCompilationParent: null,
+					preselectAddToQueue: false
+				}
+			}
+		);
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.loadBacklogIds();
+		});
 	}
 
 	private loadBacklogIds() {
@@ -170,24 +198,21 @@ export class GameShelfList implements OnInit {
 	}
 
 	openCreate() {
-		this.editingEntry.set(null);
-		this.showModal.set(true);
+		this.openModal(null);
 	}
 
 	openEdit(entry: GameShelfEntry) {
-		this.editingEntry.set(entry);
-		this.showModal.set(true);
+		this.openModal(entry);
 	}
 
-	onModalClosed() {
-		this.showModal.set(false);
-		this.editingEntry.set(null);
-	}
-
-	onModalSaved() {
-		this.showModal.set(false);
-		this.editingEntry.set(null);
-		this.loadShelf();
+	private openModal(entry: GameShelfEntry | null) {
+		const ref = this.dialogs.open<GameShelfModalData, GameShelfModalResult>(
+			GameShelfModal,
+			{ data: { entry, preselectedGame: null } }
+		);
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.loadShelf();
+		});
 	}
 
 	onOffsetChange(offset: number) {

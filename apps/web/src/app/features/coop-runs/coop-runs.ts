@@ -15,11 +15,7 @@ export interface CoopMember {
 	realDuration: number | null;
 }
 
-export type SyncField =
-	| "status"
-	| "startedAt"
-	| "finishedAt"
-	| "realDuration";
+export type SyncField = "status" | "startedAt" | "finishedAt" | "realDuration";
 
 interface MembersResponse {
 	data: { members: CoopMember[] };
@@ -56,11 +52,7 @@ export class CoopRunsService {
 			.pipe(map(res => res.data.members));
 	}
 
-	addMember(
-		backlogId: string,
-		userId: string,
-		targetBacklogId?: string
-	) {
+	addMember(backlogId: string, userId: string, targetBacklogId?: string) {
 		return this.http
 			.post<AddResponse>(`${this.baseUrl}/${backlogId}/coop`, {
 				userId,

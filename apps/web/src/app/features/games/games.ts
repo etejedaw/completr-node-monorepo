@@ -347,5 +347,4 @@ export class GamesService {
 			}>(`${environment.apiUrl}/games/${gameId}/players`)
 			.pipe(map(res => res.data.players));
 	}
-
 }

@@ -9,20 +9,37 @@ import { RouterLink } from "@angular/router";
 import { WishlistEntry } from "../../../core/models";
 import { WishlistService } from "../wishlist";
 import { FavoritesService } from "../../favorites/favorites";
-import { WishlistAddModal } from "../wishlist-add-modal/wishlist-add-modal";
-import { UiButton, UiEmptyState, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { DialogService } from "../../../core/services/dialog";
+import {
+	WishlistAddModal,
+	type WishlistAddModalResult
+} from "../wishlist-add-modal/wishlist-add-modal";
+import {
+	UiButton,
+	UiEmptyState,
+	UiPagination,
+	UiSearchBar
+} from "../../../shared/ui";
 import { MoodTagsChips } from "../../../shared/components/mood-tags-chips/mood-tags-chips";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 @Component({
 	selector: "app-wishlist-view",
-	imports: [RouterLink, UiButton, UiEmptyState, UiPagination, UiSearchBar, WishlistAddModal, MoodTagsChips],
+	imports: [
+		RouterLink,
+		UiButton,
+		UiEmptyState,
+		UiPagination,
+		UiSearchBar,
+		MoodTagsChips
+	],
 	templateUrl: "./wishlist-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WishlistView implements OnInit {
 	private readonly wishlistService = inject(WishlistService);
 	private readonly favoritesService = inject(FavoritesService);
+	private readonly dialogs = inject(DialogService);
 
 	protected readonly entries = signal<WishlistEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -30,7 +47,6 @@ export class WishlistView implements OnInit {
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
-	protected readonly showAddModal = signal(false);
 
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
@@ -78,16 +94,12 @@ export class WishlistView implements OnInit {
 	}
 
 	openAddModal() {
-		this.showAddModal.set(true);
-	}
-
-	onAddModalClosed() {
-		this.showAddModal.set(false);
-	}
-
-	onAddModalSaved() {
-		this.showAddModal.set(false);
-		this.loadWishlist();
+		const ref = this.dialogs.open<void, WishlistAddModalResult>(
+			WishlistAddModal
+		);
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.loadWishlist();
+		});
 	}
 
 	private loadWishlist() {
