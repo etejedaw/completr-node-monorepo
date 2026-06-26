@@ -73,6 +73,7 @@ const MAX_LANES = 3;
 export class BacklogCalendar {
 	readonly filters = input<BacklogFilters>({});
 	readonly entryClick = output<BacklogEntry>();
+	readonly viewUnscheduled = output<void>();
 
 	private readonly backlogService = inject(BacklogService);
 	private readonly now = new Date();
@@ -80,6 +81,7 @@ export class BacklogCalendar {
 	protected readonly focusedDate = signal(this.startOfDay(this.now));
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
+	protected readonly unscheduledCount = signal(0);
 	protected readonly weekdayLabels = [
 		"Mon",
 		"Tue",
@@ -111,6 +113,17 @@ export class BacklogCalendar {
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
+			});
+		onCleanup(() => sub.unsubscribe());
+	});
+
+	private readonly unscheduledEffect = effect(onCleanup => {
+		const filters = this.filters();
+		const sub = this.backlogService
+			.getMyBacklog({ ...filters, undated: true, limit: 1, offset: 0 })
+			.subscribe({
+				next: res => this.unscheduledCount.set(res.data.total),
+				error: () => this.unscheduledCount.set(0)
 			});
 		onCleanup(() => sub.unsubscribe());
 	});

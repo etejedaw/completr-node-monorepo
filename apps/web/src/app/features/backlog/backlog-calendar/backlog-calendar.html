@@ -116,6 +116,20 @@
 		</tbody>
 	</table>
 
+	@if (unscheduledCount() > 0) {
+	<p class="mt-3 text-xs text-fg-muted leading-snug">
+		{{ unscheduledCount() }} {{ unscheduledCount() === 1 ? "game has" :
+		"games have" }} no dates and aren't shown here ·
+		<button
+			type="button"
+			class="bg-transparent border-0 p-0 text-brand font-medium cursor-pointer hover:underline"
+			(click)="viewUnscheduled.emit()"
+		>
+			View in Diary
+		</button>
+	</p>
+	}
+
 	<div
 		class="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 pt-3 border-t border-line"
 	>

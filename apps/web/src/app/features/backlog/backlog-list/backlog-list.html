@@ -1376,6 +1376,7 @@
 	<app-backlog-calendar
 		[filters]="appliedFilters()"
 		(entryClick)="openEdit($event)"
+		(viewUnscheduled)="setViewMode('diary')"
 	/>
 	} @else {
 	<div class="overflow-x-auto max-h-[calc(100vh-260px)] overflow-y-auto">
