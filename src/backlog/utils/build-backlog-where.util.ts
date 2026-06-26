@@ -83,6 +83,19 @@ export function buildBacklogWhere(
 		if (finishedAt) where.finishedAt = finishedAt;
 	}
 
+	if (filters.active_to !== undefined)
+		andConditions.push(
+			literal(
+				`COALESCE("Backlog"."startedAt", "Backlog"."finishedAt") <= ${sequelize.escape(filters.active_to)}`
+			)
+		);
+	if (filters.active_from !== undefined)
+		andConditions.push(
+			literal(
+				`COALESCE("Backlog"."finishedAt", CASE WHEN "Backlog"."status" IN ('playing', 'endless') THEN CURRENT_DATE ELSE "Backlog"."startedAt" END) >= ${sequelize.escape(filters.active_from)}`
+			)
+		);
+
 	const score = buildRangeWhere(filters.min_score, filters.max_score);
 	if (score) where.score = score;
 

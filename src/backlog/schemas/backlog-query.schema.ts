@@ -38,6 +38,8 @@ export const BacklogQuerySchema = z
 		started_to: z.iso.date().optional(),
 		finished_from: z.iso.date().optional(),
 		finished_to: z.iso.date().optional(),
+		active_from: z.iso.date().optional(),
+		active_to: z.iso.date().optional(),
 		no_finished_date: z.stringbool().optional(),
 		min_score: z.coerce.number().optional(),
 		max_score: z.coerce.number().optional(),
