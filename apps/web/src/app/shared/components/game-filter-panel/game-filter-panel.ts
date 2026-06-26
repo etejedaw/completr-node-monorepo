@@ -34,7 +34,7 @@ import { UiInput } from "../../ui";
 								type="button"
 								ngpToggleGroupItem
 								[ngpToggleGroupItemValue]="g.code"
-								class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition bg-input-bg border-line text-fg-secondary hover:border-brand hover:text-brand data-[checked]:bg-brand-subtle data-[checked]:border-brand data-[checked]:text-brand data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-brand data-[focus-visible]:outline-offset-2"
+								class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition bg-input-bg border-line text-fg-secondary hover:border-brand hover:text-brand data-[selected]:bg-brand-subtle data-[selected]:border-brand data-[selected]:text-brand data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-brand data-[focus-visible]:outline-offset-2"
 							>
 								{{ g.name }}
 							</button>
@@ -63,7 +63,7 @@ import { UiInput } from "../../ui";
 								type="button"
 								ngpToggleGroupItem
 								[ngpToggleGroupItemValue]="p.code"
-								class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition bg-input-bg border-line text-fg-secondary hover:border-brand hover:text-brand data-[checked]:bg-brand-subtle data-[checked]:border-brand data-[checked]:text-brand data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-brand data-[focus-visible]:outline-offset-2"
+								class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition bg-input-bg border-line text-fg-secondary hover:border-brand hover:text-brand data-[selected]:bg-brand-subtle data-[selected]:border-brand data-[selected]:text-brand data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-brand data-[focus-visible]:outline-offset-2"
 							>
 								{{ p.abbreviation }}
 							</button>
