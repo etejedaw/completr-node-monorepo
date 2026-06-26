@@ -165,6 +165,11 @@ export class BacklogCalendar {
 		return this.diffDays(date, this.now) === 0;
 	}
 
+	protected isWeekend(date: Date): boolean {
+		const day = date.getDay();
+		return day === 0 || day === 6;
+	}
+
 	protected isOutsideMonth(date: Date): boolean {
 		const focus = this.focusedDate();
 		return (

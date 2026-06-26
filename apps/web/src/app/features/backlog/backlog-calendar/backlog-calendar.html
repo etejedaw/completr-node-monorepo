@@ -66,6 +66,7 @@
 					ngpDatePickerCell
 					class="align-top border border-line p-0 w-[14.28%]"
 					[class.bg-canvas]="isOutsideMonth(date)"
+					[class.bg-fg-muted/5]="!isOutsideMonth(date) && isWeekend(date)"
 				>
 					<div
 						class="min-h-[3.5rem] sm:min-h-[5.5rem] flex flex-col pb-1"
