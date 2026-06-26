@@ -121,7 +121,7 @@ export class WhatsNewPage implements OnInit {
 
 	async ngOnInit() {
 		try {
-			const res = await fetch(`${environment.landingUrl}/changelog.json`);
+			const res = await fetch(`${environment.apiUrl}/changelog`);
 			if (!res.ok) throw new Error(`HTTP ${res.status}`);
 			const body = (await res.json()) as ChangelogResponse;
 			this.releases.set(body.releases);
