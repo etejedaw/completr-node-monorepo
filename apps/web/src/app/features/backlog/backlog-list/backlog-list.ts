@@ -31,7 +31,12 @@ import { QueueService } from "../../queue/queue";
 import { FavoritesService } from "../../favorites/favorites";
 import { GamesService } from "../../games/games";
 import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
-import { BacklogModal } from "../backlog-modal/backlog-modal";
+import {
+	BacklogModal,
+	type BacklogModalData,
+	type BacklogModalResult
+} from "../backlog-modal/backlog-modal";
+import { DialogService } from "../../../core/services/dialog";
 import { BacklogCalendar } from "../backlog-calendar/backlog-calendar";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
@@ -68,7 +73,6 @@ interface PendingStatusUpdate {
 	imports: [
 		DatePipe,
 		FormsModule,
-		BacklogModal,
 		BacklogCalendar,
 		StarRating,
 		PersonalStats,
@@ -102,6 +106,7 @@ export class BacklogList implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly reviewsService = inject(ReviewsService);
 	private readonly moodTagsService = inject(MoodTagsService);
+	private readonly dialogs = inject(DialogService);
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -114,8 +119,6 @@ export class BacklogList implements OnInit {
 	protected readonly activeStatuses = signal<Set<string>>(new Set());
 	protected readonly sortBy = signal("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
-	protected readonly showModal = signal(false);
-	protected readonly editingEntry = signal<BacklogEntry | null>(null);
 	private readonly queueBacklogIds = signal<Set<string>>(new Set());
 	protected readonly statusMenuOpenId = signal<string | null>(null);
 	protected readonly pendingStatusUpdate = signal<PendingStatusUpdate | null>(
@@ -1006,8 +1009,7 @@ export class BacklogList implements OnInit {
 	}
 
 	openCreate() {
-		this.editingEntry.set(null);
-		this.showModal.set(true);
+		this.openBacklog(null);
 	}
 
 	openEdit(entry: BacklogEntry, event?: MouseEvent) {
@@ -1015,19 +1017,24 @@ export class BacklogList implements OnInit {
 			const target = event.target as HTMLElement;
 			if (target.closest("a") || target.closest("button")) return;
 		}
-		this.editingEntry.set(entry);
-		this.showModal.set(true);
+		this.openBacklog(entry);
 	}
 
-	onModalClosed() {
-		this.showModal.set(false);
-		this.editingEntry.set(null);
-	}
-
-	onModalSaved() {
-		this.showModal.set(false);
-		this.editingEntry.set(null);
-		this.loadBacklog();
+	private openBacklog(entry: BacklogEntry | null) {
+		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
+			BacklogModal,
+			{
+				data: {
+					entry,
+					preselectedGame: null,
+					preselectedCompilationParent: null,
+					preselectAddToQueue: false
+				}
+			}
+		);
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.loadBacklog();
+		});
 	}
 
 	onOffsetChange(offset: number) {
