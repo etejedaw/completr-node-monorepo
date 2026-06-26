@@ -12,11 +12,6 @@ export { UiSwitch } from "./switch/ui-switch";
 export { UiCheckbox } from "./checkbox/ui-checkbox";
 export { UiTooltipContent } from "./tooltip/ui-tooltip";
 export { UiTabs, UiTabList, UiTab, UiTabPanel } from "./tabs/ui-tabs";
-export {
-	UiDialog,
-	UiDialogTitle,
-	UiDialogDescription
-} from "./dialog/ui-dialog";
 export { UiPagination } from "./pagination/ui-pagination";
 export { UiSkeleton } from "./skeleton/ui-skeleton";
 export type { UiSkeletonVariant } from "./skeleton/ui-skeleton";
