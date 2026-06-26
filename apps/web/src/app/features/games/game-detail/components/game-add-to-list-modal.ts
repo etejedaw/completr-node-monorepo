@@ -2,11 +2,15 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	input,
 	OnInit,
-	output,
 	signal
 } from "@angular/core";
+import {
+	NgpDialog,
+	NgpDialogOverlay,
+	NgpDialogTitle,
+	injectDialogRef
+} from "ng-primitives/dialog";
 import { GamesService } from "../../games";
 import { ListsService } from "../../../lists/lists";
 import { UiButton, UiInput } from "../../../../shared/ui";
@@ -32,6 +36,13 @@ export interface ListsChanged {
 	myLists: MyList[];
 }
 
+export interface GameAddToListModalData {
+	gameId: string;
+	gameTitle: string;
+	myLists: MyList[];
+	onListsChanged: (data: ListsChanged) => void;
+}
+
 interface ModalState {
 	selection: Map<string, boolean>;
 	newListName: string;
@@ -42,20 +53,18 @@ interface ModalState {
 
 @Component({
 	selector: "app-game-add-to-list-modal",
-	imports: [UiButton, UiInput],
+	imports: [NgpDialog, NgpDialogOverlay, NgpDialogTitle, UiButton, UiInput],
 	templateUrl: "./game-add-to-list-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GameAddToListModal implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly listsService = inject(ListsService);
+	private readonly dialogRef = injectDialogRef<GameAddToListModalData>();
 
-	readonly gameId = input.required<string>();
-	readonly gameTitle = input.required<string>();
-	readonly myLists = input.required<MyList[]>();
-
-	readonly closed = output<void>();
-	readonly listsChanged = output<ListsChanged>();
+	protected readonly gameId = this.dialogRef.data.gameId;
+	protected readonly gameTitle = this.dialogRef.data.gameTitle;
+	protected readonly myLists = this.dialogRef.data.myLists;
 
 	protected readonly state = signal<ModalState>({
 		selection: new Map(),
@@ -67,7 +76,7 @@ export class GameAddToListModal implements OnInit {
 
 	ngOnInit() {
 		const selection = new Map<string, boolean>();
-		for (const list of this.myLists()) {
+		for (const list of this.myLists) {
 			selection.set(list.id, list.contains);
 		}
 		this.update({ selection });
@@ -88,7 +97,7 @@ export class GameAddToListModal implements OnInit {
 	}
 
 	protected close() {
-		this.closed.emit();
+		this.dialogRef.close();
 	}
 
 	protected createNewList() {
@@ -106,7 +115,7 @@ export class GameAddToListModal implements OnInit {
 			.subscribe({
 				next: list => {
 					this.listsService
-						.addItem(list.id, this.gameId())
+						.addItem(list.id, this.gameId)
 						.subscribe({
 							next: () => this.refreshAfterCreate(),
 							error: () =>
@@ -125,20 +134,20 @@ export class GameAddToListModal implements OnInit {
 	}
 
 	private refreshAfterCreate() {
-		this.gamesService.getGameLists(this.gameId()).subscribe(data => {
+		this.gamesService.getGameLists(this.gameId).subscribe(data => {
 			const selection = new Map(this.state().selection);
 			for (const l of data.myLists) {
 				if (!selection.has(l.id)) selection.set(l.id, l.contains);
 			}
 			this.update({ selection, newListName: "", creatingNew: false });
-			this.listsChanged.emit(data);
+			this.dialogRef.data.onListsChanged(data);
 		});
 	}
 
 	protected save() {
-		const gameId = this.gameId();
+		const gameId = this.gameId;
 		const selection = this.state().selection;
-		const ops: Promise<unknown>[] = this.myLists().flatMap(list => {
+		const ops: Promise<unknown>[] = this.myLists.flatMap(list => {
 			const newState = selection.get(list.id) ?? false;
 			if (newState === list.contains) return [];
 			const action = newState
@@ -161,7 +170,7 @@ export class GameAddToListModal implements OnInit {
 			.then(() => {
 				this.gamesService.getGameLists(gameId).subscribe(data => {
 					this.update({ saving: false });
-					this.listsChanged.emit(data);
+					this.dialogRef.data.onListsChanged(data);
 					this.close();
 				});
 			})

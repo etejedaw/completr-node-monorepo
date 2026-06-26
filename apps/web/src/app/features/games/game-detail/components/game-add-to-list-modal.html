@@ -1,24 +1,24 @@
 <div
+	ngpDialogOverlay
 	class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]"
-	(click)="close()"
 >
 	<div
+		ngpDialog
 		class="bg-sidebar border border-line rounded-card p-6 w-[90%] max-w-[480px] max-h-[80vh] flex flex-col"
-		(click)="$event.stopPropagation()"
 	>
-		<h3 class="font-display m-0 mb-1 text-base font-semibold">
+		<h3 ngpDialogTitle class="font-display m-0 mb-1 text-base font-semibold">
 			Add to your lists
 		</h3>
 		<p class="m-0 mb-4 text-xs text-fg-muted">
-			Toggle to add or remove {{ gameTitle() }} from each list.
+			Toggle to add or remove {{ gameTitle }} from each list.
 		</p>
-		@if (myLists().length === 0) {
+		@if (myLists.length === 0) {
 		<div class="py-6 text-center text-fg-muted text-sm">
 			You don't have any lists yet. Use the input below to create one.
 		</div>
 		} @else {
 		<div class="flex-1 overflow-y-auto -mx-2 px-2">
-			@for (list of myLists(); track list.id) {
+			@for (list of myLists; track list.id) {
 			<label
 				class="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded cursor-pointer transition hover:bg-input-bg"
 			>
@@ -94,7 +94,7 @@
 				uiButton
 				variant="primary"
 				size="sm"
-				[disabled]="state().saving || myLists().length === 0"
+				[disabled]="state().saving || myLists.length === 0"
 				(click)="save()"
 			>
 				{{ state().saving ? "Saving..." : "Save" }}
