@@ -90,6 +90,13 @@ export class BacklogCalendar {
 		() => this.monthTotal() > MONTH_LIMIT
 	);
 	protected readonly selectedDay = signal<Date | null>(null);
+	protected readonly hiddenStatuses = signal<Set<BacklogStatus>>(new Set());
+	protected readonly legendItems: { status: BacklogStatus; dot: string }[] = [
+		{ status: "playing", dot: "bg-warning/25" },
+		{ status: "completed", dot: "bg-success/25" },
+		{ status: "abandoned", dot: "bg-danger/25" },
+		{ status: "endless", dot: "bg-brand-subtle" }
+	];
 	protected readonly weekdayLabels = [
 		"Mon",
 		"Tue",
@@ -137,9 +144,14 @@ export class BacklogCalendar {
 		onCleanup(() => sub.unsubscribe());
 	});
 
-	private readonly layout = computed<CalendarLayout>(() =>
-		this.buildLayout(this.entries())
-	);
+	private readonly layout = computed<CalendarLayout>(() => {
+		const hidden = this.hiddenStatuses();
+		const visible =
+			hidden.size === 0
+				? this.entries()
+				: this.entries().filter(e => !hidden.has(e.status));
+		return this.buildLayout(visible);
+	});
 
 	protected slotsFor(date: Date): (BarSlot | null)[] {
 		return this.layout().slots.get(this.dateKey(date)) ?? [];
@@ -192,6 +204,17 @@ export class BacklogCalendar {
 		return day
 			? (this.layout().dayEntries.get(this.dateKey(day)) ?? [])
 			: [];
+	}
+
+	isStatusHidden(status: BacklogStatus): boolean {
+		return this.hiddenStatuses().has(status);
+	}
+
+	toggleStatus(status: BacklogStatus) {
+		const next = new Set(this.hiddenStatuses());
+		if (next.has(status)) next.delete(status);
+		else next.add(status);
+		this.hiddenStatuses.set(next);
 	}
 
 	openDay(date: Date) {

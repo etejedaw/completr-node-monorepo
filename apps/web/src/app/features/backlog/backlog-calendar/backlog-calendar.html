@@ -146,30 +146,21 @@
 	<div
 		class="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 pt-3 border-t border-line"
 	>
-		<span
-			class="inline-flex items-center gap-1.5 text-[0.6875rem] text-fg-muted"
+		@for (item of legendItems; track item.status) {
+		<button
+			type="button"
+			class="inline-flex items-center gap-1.5 text-[0.6875rem] text-fg-muted bg-transparent border-0 cursor-pointer transition hover:text-fg"
+			[class.opacity-40]="isStatusHidden(item.status)"
+			[attr.aria-pressed]="!isStatusHidden(item.status)"
+			[title]="isStatusHidden(item.status) ? 'Show ' + statusLabel(item.status) : 'Hide ' + statusLabel(item.status)"
+			(click)="toggleStatus(item.status)"
 		>
-			<span class="w-3 h-3 rounded-sm bg-warning/25"></span>
-			Playing
-		</span>
-		<span
-			class="inline-flex items-center gap-1.5 text-[0.6875rem] text-fg-muted"
-		>
-			<span class="w-3 h-3 rounded-sm bg-success/25"></span>
-			Completed
-		</span>
-		<span
-			class="inline-flex items-center gap-1.5 text-[0.6875rem] text-fg-muted"
-		>
-			<span class="w-3 h-3 rounded-sm bg-danger/25"></span>
-			Abandoned
-		</span>
-		<span
-			class="inline-flex items-center gap-1.5 text-[0.6875rem] text-fg-muted"
-		>
-			<span class="w-3 h-3 rounded-sm bg-brand-subtle"></span>
-			Endless
-		</span>
+			<span class="w-3 h-3 rounded-sm" [class]="item.dot"></span>
+			<span [class.line-through]="isStatusHidden(item.status)"
+				>{{ statusLabel(item.status) }}</span
+			>
+		</button>
+		}
 	</div>
 </div>
 
