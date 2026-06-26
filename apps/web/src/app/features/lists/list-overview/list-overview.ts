@@ -9,7 +9,12 @@ import { RouterLink } from "@angular/router";
 import { Subject, debounceTime, switchMap, of } from "rxjs";
 import { List, FollowingList } from "../../../core/models";
 import { ListsService } from "../lists";
-import { ListModal } from "../list-modal/list-modal";
+import {
+	ListModal,
+	type ListModalData,
+	type ListModalResult
+} from "../list-modal/list-modal";
+import { DialogService } from "../../../core/services/dialog";
 import {
 	UiButton,
 	UiEmptyState,
@@ -22,7 +27,6 @@ import {
 	selector: "app-list-overview",
 	imports: [
 		RouterLink,
-		ListModal,
 		UiButton,
 		UiEmptyState,
 		UiPagination,
@@ -34,14 +38,13 @@ import {
 })
 export class ListOverview implements OnInit {
 	private readonly listsService = inject(ListsService);
+	private readonly dialogs = inject(DialogService);
 	private readonly searchSubject = new Subject<string>();
 
 	protected readonly lists = signal<List[]>([]);
 	protected readonly followingLists = signal<FollowingList[]>([]);
 	protected readonly frozen = signal(false);
 	protected readonly isLoading = signal(true);
-	protected readonly showModal = signal(false);
-	protected readonly editingList = signal<List | null>(null);
 	protected readonly searchQuery = signal("");
 	protected readonly searchResults = signal<List[]>([]);
 	protected readonly isSearching = signal(false);
@@ -83,25 +86,21 @@ export class ListOverview implements OnInit {
 	}
 
 	openCreate() {
-		this.editingList.set(null);
-		this.showModal.set(true);
+		this.openModal(null);
 	}
 
 	openEdit(list: List, event: Event) {
 		event.stopPropagation();
-		this.editingList.set(list);
-		this.showModal.set(true);
+		this.openModal(list);
 	}
 
-	onModalClosed() {
-		this.showModal.set(false);
-		this.editingList.set(null);
-	}
-
-	onModalSaved() {
-		this.showModal.set(false);
-		this.editingList.set(null);
-		this.loadLists();
+	private openModal(list: List | null) {
+		const ref = this.dialogs.open<ListModalData, ListModalResult>(ListModal, {
+			data: { list }
+		});
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.loadLists();
+		});
 	}
 
 	progressPercent(p: { completed: number; total: number }): number {

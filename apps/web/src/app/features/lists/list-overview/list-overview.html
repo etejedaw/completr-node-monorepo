@@ -366,11 +366,3 @@
 		(offsetChange)="onOffsetChange($event)"
 	/>
 </div>
-
-@if (showModal()) {
-<app-list-modal
-	[list]="editingList()"
-	(closed)="onModalClosed()"
-	(saved)="onModalSaved()"
-/>
-}

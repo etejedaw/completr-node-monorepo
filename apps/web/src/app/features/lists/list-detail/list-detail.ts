@@ -10,8 +10,17 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { List, ListItem, Game, BacklogEntry } from "../../../core/models";
 import { ListsService } from "../lists";
 import { AuthService } from "../../../core/services/auth";
-import { ListModal } from "../list-modal/list-modal";
-import { BacklogModal } from "../../backlog/backlog-modal/backlog-modal";
+import { DialogService } from "../../../core/services/dialog";
+import {
+	ListModal,
+	type ListModalData,
+	type ListModalResult
+} from "../list-modal/list-modal";
+import {
+	BacklogModal,
+	type BacklogModalData,
+	type BacklogModalResult
+} from "../../backlog/backlog-modal/backlog-modal";
 import { BacklogService } from "../../backlog/backlog";
 import { GamesService } from "../../games/games";
 import {
@@ -41,8 +50,6 @@ import {
 	selector: "app-list-detail",
 	imports: [
 		RouterLink,
-		ListModal,
-		BacklogModal,
 		UiButton,
 		UiIconButton,
 		UiProgress,
@@ -62,6 +69,7 @@ export class ListDetail implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly authService = inject(AuthService);
+	private readonly dialogs = inject(DialogService);
 	private readonly searchSubject = new Subject<string>();
 
 	protected readonly list = signal<List | null>(null);
@@ -71,14 +79,10 @@ export class ListDetail implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly refreshing = signal(false);
 	protected readonly showAddSearch = signal(false);
-	protected readonly showEditModal = signal(false);
 	protected readonly searchQuery = signal("");
 	protected readonly searchResults = signal<Game[]>([]);
 	protected readonly isSearching = signal(false);
 	protected readonly isSearchingOnline = signal(false);
-	protected readonly showBacklogModal = signal(false);
-	protected readonly backlogPreselectedGame = signal<Game | null>(null);
-	protected readonly backlogEditingEntry = signal<BacklogEntry | null>(null);
 	protected readonly togglingFollow = signal(false);
 
 	private listId = "";
@@ -209,26 +213,18 @@ export class ListDetail implements OnInit {
 	}
 
 	openEdit() {
-		this.showEditModal.set(true);
-	}
-
-	onEditClosed() {
-		this.showEditModal.set(false);
-	}
-
-	onEditSaved() {
-		this.showEditModal.set(false);
-		this.loadList();
-	}
-
-	onEditDeleted() {
-		this.router.navigate(["/lists"]);
+		const ref = this.dialogs.open<ListModalData, ListModalResult>(ListModal, {
+			data: { list: this.list() }
+		});
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.loadList();
+			else if (result === "deleted") this.router.navigate(["/lists"]);
+		});
 	}
 
 	openBacklogModal(item: ListItem) {
 		this.gamesService.getByCode(item.game.code).subscribe(game => {
-			this.backlogPreselectedGame.set(game);
-			this.showBacklogModal.set(true);
+			this.openBacklog(null, game);
 		});
 	}
 
@@ -240,24 +236,27 @@ export class ListDetail implements OnInit {
 					this.openBacklogModal(item);
 					return;
 				}
-				this.backlogEditingEntry.set(entry);
-				this.showBacklogModal.set(true);
+				this.openBacklog(entry, null);
 			},
 			error: () => this.openBacklogModal(item)
 		});
 	}
 
-	onBacklogModalClosed() {
-		this.showBacklogModal.set(false);
-		this.backlogPreselectedGame.set(null);
-		this.backlogEditingEntry.set(null);
-	}
-
-	onBacklogModalSaved() {
-		this.showBacklogModal.set(false);
-		this.backlogPreselectedGame.set(null);
-		this.backlogEditingEntry.set(null);
-		this.loadList();
+	private openBacklog(entry: BacklogEntry | null, preselectedGame: Game | null) {
+		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
+			BacklogModal,
+			{
+				data: {
+					entry,
+					preselectedGame,
+					preselectedCompilationParent: null,
+					preselectAddToQueue: false
+				}
+			}
+		);
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.loadList();
+		});
 	}
 
 	refreshScores() {
