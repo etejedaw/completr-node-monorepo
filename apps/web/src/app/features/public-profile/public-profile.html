@@ -1298,13 +1298,7 @@
 	} }
 </div>
 
-@if (showUserListModal()) {
-<app-user-list-modal
-	[title]="userListTitle()"
-	[users]="userListUsers()"
-	(closed)="showUserListModal.set(false)"
-/>
-} @if (showUnfollowConfirm()) {
+@if (showUnfollowConfirm()) {
 <div
 	class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100]"
 	(click)="showUnfollowConfirm.set(false)"
