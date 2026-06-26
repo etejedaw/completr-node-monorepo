@@ -188,6 +188,21 @@ export class BacklogCalendar {
 		return map[status] ?? "";
 	}
 
+	dotClass(status: BacklogStatus): string {
+		const map: Record<BacklogStatus, string> = {
+			not_started: "bg-fg-muted",
+			playing: "bg-warning",
+			completed: "bg-success",
+			abandoned: "bg-danger",
+			endless: "bg-brand"
+		};
+		return map[status] ?? "bg-fg-muted";
+	}
+
+	protected entriesForDay(date: Date): BacklogEntry[] {
+		return this.layout().dayEntries.get(this.dateKey(date)) ?? [];
+	}
+
 	statusLabel(status: BacklogStatus): string {
 		const map: Record<BacklogStatus, string> = {
 			not_started: "Not Started",

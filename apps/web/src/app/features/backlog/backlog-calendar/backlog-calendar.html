@@ -67,7 +67,9 @@
 					class="align-top border border-line p-0 w-[14.28%]"
 					[class.bg-canvas]="isOutsideMonth(date)"
 				>
-					<div class="min-h-[5.5rem] flex flex-col pb-1">
+					<div
+						class="min-h-[3.5rem] sm:min-h-[5.5rem] flex flex-col pb-1"
+					>
 						<div class="flex justify-end px-1.5 pt-1 pb-0.5">
 							@if (isToday(date)) {
 							<span
@@ -84,7 +86,29 @@
 							}
 						</div>
 
-						<div class="flex flex-col gap-0.5">
+						@if (entriesForDay(date).length > 0) {
+						<button
+							type="button"
+							class="sm:hidden flex flex-wrap items-center gap-1 px-1.5 py-0.5 bg-transparent border-0 cursor-pointer"
+							[attr.aria-label]="entriesForDay(date).length + ' games, open day'"
+							(click)="openDay(date)"
+						>
+							@for (entry of entriesForDay(date).slice(0, 4);
+							track entry.id) {
+							<span
+								class="w-1.5 h-1.5 rounded-full"
+								[class]="dotClass(entry.status)"
+							></span>
+							} @if (entriesForDay(date).length > 4) {
+							<span
+								class="text-[0.5rem] text-fg-muted leading-none"
+								>+{{ entriesForDay(date).length - 4 }}</span
+							>
+							}
+						</button>
+						}
+
+						<div class="hidden sm:flex flex-col gap-0.5">
 							@for (slot of slotsFor(date); track $index) { @if
 							(slot) {
 							<button
@@ -199,7 +223,7 @@
 			>
 				<span
 					class="w-2.5 h-2.5 rounded-full shrink-0"
-					[class]="barClass(entry.status)"
+					[class]="dotClass(entry.status)"
 				></span>
 				<span class="min-w-0 flex-1">
 					<span class="block text-sm font-medium text-fg truncate"
