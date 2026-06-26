@@ -1,22 +1,17 @@
 <div
+	ngpDialogOverlay
 	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]"
-	(click)="onClose()"
 >
 	<div
+		ngpDialog
 		class="bg-sidebar border border-line rounded-[12px] w-full max-w-[640px] max-h-[90vh] flex flex-col shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
-		(click)="$event.stopPropagation()"
-		uiFocusTrap
-		(escape)="onClose()"
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="backlog-modal-title"
 	>
 		<div class="flex justify-between items-center px-7 pt-7 pb-4 shrink-0">
 			<h2
-				id="backlog-modal-title"
+				ngpDialogTitle
 				class="font-display m-0 text-lg font-bold"
 			>
-				{{ isEdit() ? (viewMode() === 'summary' ? entry()!.game.title :
+				{{ isEdit() ? (viewMode() === 'summary' ? entry!.game.title :
 				"Edit Entry") : "Add to Backlog" }}
 			</h2>
 			<button
@@ -35,7 +30,7 @@
 			>
 				{{ error() }}
 			</div>
-			} @if (isEdit() && viewMode() === 'summary') { @let e = entry()!;
+			} @if (isEdit() && viewMode() === 'summary') { @let e = entry!;
 			<div class="flex items-stretch gap-4 mb-5">
 				<div class="shrink-0">
 					@if (e.game.backgroundUrl) {
@@ -276,7 +271,7 @@
 						<span class="flex-1 text-sm font-medium text-fg"
 							>{{ compilationParent()!.title }}</span
 						>
-						@if (!preselectedCompilationParent() && !isEdit()) {
+						@if (!preselectedCompilationParent && !isEdit()) {
 						<button
 							type="button"
 							class="bg-none border-0 text-fg-muted text-base cursor-pointer leading-none hover:text-fg"
@@ -350,7 +345,7 @@
 					@if (selectedGame()) {
 					<div
 						class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded"
-						[class.opacity-70]="preselectedGame()"
+						[class.opacity-70]="preselectedGame"
 					>
 						@if (selectedGame()!.backgroundUrl) {
 						<img
@@ -362,7 +357,7 @@
 						<span class="flex-1 text-sm font-medium"
 							>{{ selectedGame()!.title }}</span
 						>
-						@if (!preselectedGame()) {
+						@if (!preselectedGame) {
 						<button
 							type="button"
 							class="bg-none border-0 text-fg-muted text-xl cursor-pointer px-1 leading-none hover:text-fg"
@@ -1270,10 +1265,8 @@
 			</form>
 			}
 		</div>
-	</div>
-</div>
 
-@if (pickerUserId()) {
+		@if (pickerUserId()) {
 <div
 	class="fixed inset-0 bg-black/70 flex justify-center items-center z-[110] backdrop-blur-[4px] p-4"
 	(click)="cancelPicker()"
@@ -1369,7 +1362,7 @@
 			is never synced.
 		</p>
 
-		@let mine = entry();
+		@let mine = entry;
 		<div class="flex flex-col gap-2 mb-4">
 			<label class="flex items-start gap-2 cursor-pointer">
 				<input
@@ -1461,3 +1454,5 @@
 	</div>
 </div>
 }
+	</div>
+</div>

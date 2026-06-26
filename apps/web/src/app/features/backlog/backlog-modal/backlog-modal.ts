@@ -3,14 +3,18 @@ import {
 	Component,
 	computed,
 	inject,
-	input,
 	OnInit,
-	output,
 	signal
 } from "@angular/core";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
 import { RouterLink } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
+import {
+	NgpDialog,
+	NgpDialogOverlay,
+	NgpDialogTitle,
+	injectDialogRef
+} from "ng-primitives/dialog";
 import { BacklogEntry } from "../../../core/models";
 import { Game, Platform } from "../../../core/models";
 import { BacklogService, CreateBacklogDto, UpdateBacklogDto } from "../backlog";
@@ -50,7 +54,6 @@ import {
 } from "rxjs";
 import {
 	UiButton,
-	UiFocusTrap,
 	UiIconButton,
 	UiInput,
 	UiSelect,
@@ -62,6 +65,14 @@ import {
 } from "../../../shared/ui";
 import { DatePipe } from "@angular/common";
 
+export interface BacklogModalData {
+	entry: BacklogEntry | null;
+	preselectedGame: Game | null;
+	preselectedCompilationParent: Game | null;
+	preselectAddToQueue: boolean;
+}
+export type BacklogModalResult = "saved";
+
 @Component({
 	selector: "app-backlog-modal",
 	imports: [
@@ -70,8 +81,10 @@ import { DatePipe } from "@angular/common";
 		RouterLink,
 		StarRating,
 		MoodTagsInput,
+		NgpDialog,
+		NgpDialogOverlay,
+		NgpDialogTitle,
 		UiButton,
-		UiFocusTrap,
 		UiIconButton,
 		UiInput,
 		UiSelect,
@@ -160,12 +173,16 @@ export class BacklogModal implements OnInit {
 			});
 	}
 
-	entry = input<BacklogEntry | null>(null);
-	preselectedGame = input<Game | null>(null);
-	preselectedCompilationParent = input<Game | null>(null);
-	preselectAddToQueue = input<boolean>(false);
-	closed = output<void>();
-	saved = output<void>();
+	private readonly dialogRef = injectDialogRef<
+		BacklogModalData,
+		BacklogModalResult
+	>();
+	protected readonly entry = this.dialogRef.data.entry;
+	protected readonly preselectedGame = this.dialogRef.data.preselectedGame;
+	protected readonly preselectedCompilationParent =
+		this.dialogRef.data.preselectedCompilationParent;
+	protected readonly preselectAddToQueue =
+		this.dialogRef.data.preselectAddToQueue;
 
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
@@ -281,7 +298,7 @@ export class BacklogModal implements OnInit {
 
 	protected readonly isFirstReviewableTransition = computed(() => {
 		if (!this.isReviewableStatus()) return false;
-		const previous = this.entry()?.status;
+		const previous = this.entry?.status;
 		return (
 			previous !== "completed" &&
 			previous !== "abandoned" &&
@@ -313,7 +330,7 @@ export class BacklogModal implements OnInit {
 	protected readonly pickerUserName = signal<string>("");
 
 	addCoopMember(userId: string) {
-		const e = this.entry();
+		const e = this.entry;
 		if (!e || !userId) return;
 		this.coopAdding.set(true);
 		this.coopService.getCandidates(e.id, userId).subscribe({
@@ -353,7 +370,7 @@ export class BacklogModal implements OnInit {
 	}
 
 	private commitCoopAdd(userId: string, targetBacklogId?: string) {
-		const e = this.entry();
+		const e = this.entry;
 		if (!e) return;
 		this.coopAdding.set(true);
 		this.coopService.addMember(e.id, userId, targetBacklogId).subscribe({
@@ -366,7 +383,7 @@ export class BacklogModal implements OnInit {
 	}
 
 	removeCoopMember(member: CoopMember) {
-		const e = this.entry();
+		const e = this.entry;
 		if (!e) return;
 		this.coopRemovingId.set(member.userId);
 		this.coopService.removeMember(e.id, member.userId).subscribe({
@@ -403,7 +420,7 @@ export class BacklogModal implements OnInit {
 	}
 
 	commitSync() {
-		const e = this.entry();
+		const e = this.entry;
 		const member = this.syncMember();
 		if (!e || !member) return;
 		const fields: SyncField[] = (
@@ -415,14 +432,14 @@ export class BacklogModal implements OnInit {
 			next: () => {
 				this.syncing.set(false);
 				this.syncMember.set(null);
-				this.saved.emit();
+				this.dialogRef.close("saved");
 			},
 			error: () => this.syncing.set(false)
 		});
 	}
 
 	private refreshCoopMembers() {
-		const e = this.entry();
+		const e = this.entry;
 		if (!e) return;
 		this.coopService
 			.getMembers(e.id)
@@ -445,7 +462,7 @@ export class BacklogModal implements OnInit {
 
 	addProgressNote() {
 		const note = this.progressDraft().trim();
-		const e = this.entry();
+		const e = this.entry;
 		if (!note || !e) return;
 		this.progressLoading.set(true);
 		this.progressService.addProgress(e.id, note).subscribe({
@@ -459,7 +476,7 @@ export class BacklogModal implements OnInit {
 	}
 
 	deleteProgressNote(note: ProgressNote) {
-		const e = this.entry();
+		const e = this.entry;
 		if (!e) return;
 		this.progressSavingId.set(note.id);
 		this.progressService.deleteProgress(e.id, note.id).subscribe({
@@ -481,7 +498,7 @@ export class BacklogModal implements OnInit {
 	}
 
 	protected readonly hasExistingReview = computed(
-		() => !!this.entry()?.review || !!this.existingReview()
+		() => !!this.entry?.review || !!this.existingReview()
 	);
 
 	ngOnInit() {
@@ -523,7 +540,7 @@ export class BacklogModal implements OnInit {
 				this.isSearchingOnline.set(false);
 			});
 
-		const e = this.entry();
+		const e = this.entry;
 		if (e) {
 			this.isEdit.set(true);
 			this.viewMode.set("summary");
@@ -581,17 +598,17 @@ export class BacklogModal implements OnInit {
 			});
 		}
 
-		const parentPreset = this.preselectedCompilationParent();
+		const parentPreset = this.preselectedCompilationParent;
 		if (parentPreset && !this.isEdit()) {
 			this.compilationParent.set(parentPreset);
 		}
 
-		const pg = this.preselectedGame();
+		const pg = this.preselectedGame;
 		if (pg && !this.isEdit()) {
 			this.selectGame(pg);
 		}
 
-		if (this.preselectAddToQueue() && !this.isEdit()) {
+		if (this.preselectAddToQueue && !this.isEdit()) {
 			this.addToQueue.set(true);
 		}
 	}
@@ -810,12 +827,12 @@ export class BacklogModal implements OnInit {
 				notes: val.notes || null,
 				compilationGameId: this.compilationParent()?.id ?? null
 			};
-			this.backlogService.update(this.entry()!.id, dto).subscribe({
+			this.backlogService.update(this.entry!.id, dto).subscribe({
 				next: res => {
 					this.submitReviewIfNeeded(val.gameId!);
 					this.persistMoodTagsIfChanged(val.gameId!);
 					if (res.queueRemoved) {
-						const title = this.entry()!.game.title;
+						const title = this.entry!.game.title;
 						const reason =
 							dto.status === "completed"
 								? "completed"
@@ -828,7 +845,7 @@ export class BacklogModal implements OnInit {
 						this.isInQueue.set(false);
 						this.addToQueue.set(false);
 					}
-					this.handleQueueChange(this.entry()!.id);
+					this.handleQueueChange(this.entry!.id);
 				},
 				error: err => {
 					this.isLoading.set(false);
@@ -874,9 +891,9 @@ export class BacklogModal implements OnInit {
 						);
 					}
 					if (extras$.length > 0) {
-						forkJoin(extras$).subscribe(() => this.saved.emit());
+						forkJoin(extras$).subscribe(() => this.dialogRef.close("saved"));
 					} else {
-						this.saved.emit();
+						this.dialogRef.close("saved");
 					}
 				},
 				error: err => {
@@ -894,7 +911,7 @@ export class BacklogModal implements OnInit {
 		if (want && !was) {
 			this.queueService
 				.addFromBacklog(backlogId)
-				.subscribe(() => this.saved.emit());
+				.subscribe(() => this.dialogRef.close("saved"));
 		} else if (!want && was) {
 			this.queueService.getMyQueue().subscribe(queue => {
 				const remaining = queue
@@ -902,17 +919,17 @@ export class BacklogModal implements OnInit {
 					.map(w => w.backlog.id);
 				this.queueService
 					.reorder(remaining)
-					.subscribe(() => this.saved.emit());
+					.subscribe(() => this.dialogRef.close("saved"));
 			});
 		} else {
-			this.saved.emit();
+			this.dialogRef.close("saved");
 		}
 	}
 
 	onDelete() {
 		this.isLoading.set(true);
-		this.backlogService.delete(this.entry()!.id).subscribe({
-			next: () => this.saved.emit(),
+		this.backlogService.delete(this.entry!.id).subscribe({
+			next: () => this.dialogRef.close("saved"),
 			error: err => {
 				this.isLoading.set(false);
 				this.error.set(err.error?.title ?? "Delete failed");
@@ -921,7 +938,7 @@ export class BacklogModal implements OnInit {
 	}
 
 	onClose() {
-		this.closed.emit();
+		this.dialogRef.close();
 	}
 
 	private persistMoodTagsIfChanged(gameId: string) {
