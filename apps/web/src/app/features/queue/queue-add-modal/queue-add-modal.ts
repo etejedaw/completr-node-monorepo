@@ -3,26 +3,33 @@ import {
 	Component,
 	inject,
 	OnInit,
-	output,
 	signal
 } from "@angular/core";
+import {
+	NgpDialog,
+	NgpDialogOverlay,
+	NgpDialogTitle,
+	injectDialogRef
+} from "ng-primitives/dialog";
 import { BacklogEntry } from "../../../core/models";
 import { BacklogService } from "../../backlog/backlog";
 import { QueueService } from "../queue";
-import { UiButton, UiFocusTrap, UiIconButton } from "../../../shared/ui";
+import { UiButton, UiIconButton } from "../../../shared/ui";
+
+export interface QueueAddModalData {
+	onAdded: () => void;
+}
 
 @Component({
 	selector: "app-queue-add-modal",
-	imports: [UiButton, UiFocusTrap, UiIconButton],
+	imports: [NgpDialog, NgpDialogOverlay, NgpDialogTitle, UiButton, UiIconButton],
 	templateUrl: "./queue-add-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QueueAddModal implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly queueService = inject(QueueService);
-
-	closed = output<void>();
-	saved = output<void>();
+	private readonly dialogRef = injectDialogRef<QueueAddModalData>();
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -58,14 +65,14 @@ export class QueueAddModal implements OnInit {
 			next: () => {
 				this.adding.set(null);
 				this.entries.set(this.entries().filter(e => e.id !== entry.id));
-				this.saved.emit();
+				this.dialogRef.data.onAdded();
 			},
 			error: () => this.adding.set(null)
 		});
 	}
 
 	onClose() {
-		this.closed.emit();
+		this.dialogRef.close();
 	}
 
 	statusLabel(status?: string): string {
