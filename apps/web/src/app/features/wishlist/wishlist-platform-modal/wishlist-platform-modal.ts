@@ -1,13 +1,12 @@
+import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
 import {
-	ChangeDetectionStrategy,
-	Component,
-	inject,
-	input,
-	output,
-	signal
-} from "@angular/core";
+	NgpDialog,
+	NgpDialogOverlay,
+	NgpDialogTitle,
+	injectDialogRef
+} from "ng-primitives/dialog";
 import { WishlistService } from "../wishlist";
-import { UiButton, UiFocusTrap, UiIconButton } from "../../../shared/ui";
+import { UiButton, UiIconButton } from "../../../shared/ui";
 
 export interface PlatformOption {
 	id: string;
@@ -15,21 +14,28 @@ export interface PlatformOption {
 	abbreviation: string;
 }
 
+export interface WishlistPlatformModalData {
+	gameId: string;
+	gameTitle: string;
+	platforms: PlatformOption[];
+}
+export type WishlistPlatformModalResult = "saved";
+
 @Component({
 	selector: "app-wishlist-platform-modal",
-	imports: [UiButton, UiFocusTrap, UiIconButton],
+	imports: [NgpDialog, NgpDialogOverlay, NgpDialogTitle, UiButton, UiIconButton],
 	templateUrl: "./wishlist-platform-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WishlistPlatformModal {
 	private readonly wishlistService = inject(WishlistService);
-
-	gameId = input.required<string>();
-	gameTitle = input.required<string>();
-	platforms = input.required<PlatformOption[]>();
-
-	closed = output<void>();
-	saved = output<void>();
+	private readonly dialogRef = injectDialogRef<
+		WishlistPlatformModalData,
+		WishlistPlatformModalResult
+	>();
+	protected readonly gameId = this.dialogRef.data.gameId;
+	protected readonly gameTitle = this.dialogRef.data.gameTitle;
+	protected readonly platforms = this.dialogRef.data.platforms;
 
 	protected readonly selectedPlatformId = signal<string | null>(null);
 	protected readonly saving = signal(false);
@@ -44,16 +50,16 @@ export class WishlistPlatformModal {
 		const platformId = skipPlatform
 			? undefined
 			: (this.selectedPlatformId() ?? undefined);
-		this.wishlistService.add(this.gameId(), platformId).subscribe({
+		this.wishlistService.add(this.gameId, platformId).subscribe({
 			next: () => {
 				this.saving.set(false);
-				this.saved.emit();
+				this.dialogRef.close("saved");
 			},
 			error: () => this.saving.set(false)
 		});
 	}
 
 	onClose() {
-		this.closed.emit();
+		this.dialogRef.close();
 	}
 }

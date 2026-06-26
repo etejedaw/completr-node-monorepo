@@ -112,10 +112,3 @@
 		(offsetChange)="onOffsetChange($event)"
 	/>
 </div>
-
-@if (showAddModal()) {
-<app-wishlist-add-modal
-	(closed)="onAddModalClosed()"
-	(saved)="onAddModalSaved()"
-/>
-}

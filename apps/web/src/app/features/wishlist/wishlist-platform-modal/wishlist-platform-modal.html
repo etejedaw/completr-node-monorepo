@@ -1,17 +1,12 @@
-<div class="modal-overlay" (click)="onClose()">
+<div ngpDialogOverlay class="modal-overlay">
 	<div
+		ngpDialog
 		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[460px] flex flex-col"
 		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
-		(click)="$event.stopPropagation()"
-		uiFocusTrap
-		(escape)="onClose()"
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="wishlist-platform-modal-title"
 	>
 		<div class="flex items-center justify-between mb-3">
 			<h2
-				id="wishlist-platform-modal-title"
+				ngpDialogTitle
 				class="m-0 text-lg font-bold font-display"
 			>
 				Add to Wishlist
@@ -26,10 +21,10 @@
 			</button>
 		</div>
 		<p class="text-[0.8125rem] text-fg-muted mb-4 truncate">
-			{{ gameTitle() }}
+			{{ gameTitle }}
 		</p>
 
-		@if (platforms().length === 0) {
+		@if (platforms.length === 0) {
 		<p class="text-[0.8125rem] text-fg-muted mb-4">
 			No platforms available for this game. You can add it without a
 			platform.
@@ -39,7 +34,7 @@
 			>Pick a platform (optional)</span
 		>
 		<div class="flex flex-wrap gap-1.5 mb-5">
-			@for (p of platforms(); track p.id) {
+			@for (p of platforms; track p.id) {
 			<button
 				class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition"
 				[class.bg-brand-subtle]="selectedPlatformId() === p.id"
@@ -71,7 +66,7 @@
 				uiButton
 				variant="primary"
 				(click)="confirm(false)"
-				[disabled]="saving() || (platforms().length > 0 && !selectedPlatformId())"
+				[disabled]="saving() || (platforms.length > 0 && !selectedPlatformId())"
 			>
 				{{ saving() ? 'Adding...' : 'Add' }}
 			</button>

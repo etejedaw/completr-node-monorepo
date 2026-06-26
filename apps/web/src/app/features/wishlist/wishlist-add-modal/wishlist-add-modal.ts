@@ -3,28 +3,33 @@ import {
 	Component,
 	inject,
 	OnInit,
-	output,
 	signal
 } from "@angular/core";
 import { Subject, debounceTime, switchMap, of } from "rxjs";
+import {
+	NgpDialog,
+	NgpDialogOverlay,
+	NgpDialogTitle,
+	injectDialogRef
+} from "ng-primitives/dialog";
 import { Game } from "../../../core/models";
 import { GamesService } from "../../games/games";
 import { WishlistService } from "../wishlist";
-import { UiButton, UiFocusTrap, UiIconButton } from "../../../shared/ui";
+import { UiButton, UiIconButton } from "../../../shared/ui";
+
+export type WishlistAddModalResult = "saved";
 
 @Component({
 	selector: "app-wishlist-add-modal",
-	imports: [UiButton, UiFocusTrap, UiIconButton],
+	imports: [NgpDialog, NgpDialogOverlay, NgpDialogTitle, UiButton, UiIconButton],
 	templateUrl: "./wishlist-add-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WishlistAddModal implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly wishlistService = inject(WishlistService);
+	private readonly dialogRef = injectDialogRef<void, WishlistAddModalResult>();
 	private readonly searchSubject = new Subject<string>();
-
-	closed = output<void>();
-	saved = output<void>();
 
 	protected readonly results = signal<Game[]>([]);
 	protected readonly searchQuery = signal("");
@@ -85,14 +90,13 @@ export class WishlistAddModal implements OnInit {
 		this.wishlistService.add(game.id, platformId).subscribe({
 			next: () => {
 				this.adding.set(false);
-				this.saved.emit();
-				this.closed.emit();
+				this.dialogRef.close("saved");
 			},
 			error: () => this.adding.set(false)
 		});
 	}
 
 	onClose() {
-		this.closed.emit();
+		this.dialogRef.close();
 	}
 }
