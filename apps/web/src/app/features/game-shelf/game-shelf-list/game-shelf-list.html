@@ -49,6 +49,18 @@
 			>
 			Hardcore
 		</button>
+		<button
+			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
+			[class.!bg-surface-hover]="viewMode() === 'calendar'"
+			[class.!text-fg]="viewMode() === 'calendar'"
+			(click)="setViewMode('calendar')"
+			title="Calendar (acquired dates) view"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>calendar_month</span
+			>
+			Calendar
+		</button>
 	</div>
 
 	@if (platformCounts().length > 1) {
@@ -97,7 +109,12 @@
 			+ Add to Shelf
 		</button>
 	</ui-empty-state>
-	} } @else if (viewMode() === 'grid') {
+	} } @else if (viewMode() === 'calendar') {
+	<app-game-shelf-calendar
+		[entries]="entries()"
+		(entryClick)="openEdit($event)"
+	/>
+	} @else if (viewMode() === 'grid') {
 	<div
 		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
 	>
@@ -235,12 +252,12 @@
 			</tbody>
 		</table>
 	</div>
-	}
-
+	} @if (viewMode() !== 'calendar') {
 	<ui-pagination
 		[offset]="offset()"
 		[limit]="limit"
 		[total]="total()"
 		(offsetChange)="onOffsetChange($event)"
 	/>
+	}
 </div>

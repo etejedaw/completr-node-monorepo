@@ -24,6 +24,7 @@ import {
 	type GameShelfModalResult
 } from "../game-shelf-modal/game-shelf-modal";
 import { DialogService } from "../../../core/services/dialog";
+import { GameShelfCalendar } from "../game-shelf-calendar/game-shelf-calendar";
 import {
 	UiButton,
 	UiEmptyState,
@@ -50,7 +51,8 @@ interface PlatformCount {
 		UiPagination,
 		UiSearchBar,
 		GameCoverCard,
-		MoodTagsChips
+		MoodTagsChips,
+		GameShelfCalendar
 	],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -75,14 +77,16 @@ export class GameShelfList implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
 
-	protected readonly viewMode = signal<"grid" | "table">(
-		((): "grid" | "table" => {
+	protected readonly viewMode = signal<"grid" | "table" | "calendar">(
+		((): "grid" | "table" | "calendar" => {
 			const saved = localStorage.getItem("completr.shelf.viewMode");
-			return saved === "table" ? "table" : "grid";
+			if (saved === "table") return "table";
+			if (saved === "calendar") return "calendar";
+			return "grid";
 		})()
 	);
 
-	setViewMode(mode: "grid" | "table") {
+	setViewMode(mode: "grid" | "table" | "calendar") {
 		this.viewMode.set(mode);
 		localStorage.setItem("completr.shelf.viewMode", mode);
 	}
@@ -134,7 +138,10 @@ export class GameShelfList implements OnInit {
 		});
 	}
 
-	private openBacklog(entry: BacklogEntry | null, preselectedGame: Game | null) {
+	private openBacklog(
+		entry: BacklogEntry | null,
+		preselectedGame: Game | null
+	) {
 		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
 			BacklogModal,
 			{
