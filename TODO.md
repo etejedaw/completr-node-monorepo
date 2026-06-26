@@ -629,15 +629,17 @@
 
 ### Landing page
 
-- [ ] Crear landing page con Astro: descripción de Completr, screenshots y formulario de "solicitar invitación"
-- [ ] Sección `/changelog` con novedades de cada release (Astro + Content Collections, posts en markdown)
+- [x] Crear landing page con Astro: descripción de Completr, screenshots y formulario de "solicitar invitación" — live en `completr.app` (index, privacy, gracias, 404) con inscripción por correo
+- [x] Sección `/changelog` con novedades de cada release (Astro + Content Collections, posts en markdown) — landing renderiza featured releases en `/changelog`, expone `/changelog.json` con todo el historial. Angular `/whats-new` pasa a fetchear desde `completr.app/changelog.json` (CSP + nginx CORS ajustados); array hardcodeado eliminado.
 - [ ] **Pegado app ↔ landing** (deferido desde Fase 2 — FB-101): definir mapa de enlaces entre `completr.app` (landing) y `web.completr.app` (app autenticada). Footer global con links a About/Changelog/Pricing/Privacy/Terms; links en login/register hacia landing para visitantes; CTA "Hazte premium" desde Settings → landing pricing; comportamiento del logo del navbar en estados no autenticados / error 404. Definir cuándo abrir en misma pestaña vs. nueva (footer → about: misma; leer terms mientras editás perfil: nueva). En sentido inverso, CTAs claros en landing a `web.completr.app/register` y `/login`.
 
-### Sistema de invitación
+### Sistema de invitación — descartado
 
-- [ ] Registro solo por código de invitación
-- [ ] Cada usuario puede generar N invitaciones
-- [ ] Tracking de quién invitó a quién (útil para badges futuros)
+**Decisión 2026-06-25:** La landing en `completr.app` ya cubre el filtro de acceso con inscripción por correo (formulario "solicitar invitación"). No se monta sistema de códigos de invitación interno; el control de entrada queda en la landing.
+
+- [~] ~~Registro solo por código de invitación~~
+- [~] ~~Cada usuario puede generar N invitaciones~~
+- [~] ~~Tracking de quién invitó a quién (útil para badges futuros)~~
 
 ### Badges (manuales) — diferido a Fase 4
 
