@@ -13,7 +13,8 @@ const ACTIVITY_LABELS: Record<string, string> = {
 	list_followed: "followed a list",
 	user_followed: "followed a user",
 	user_followed_by: "started following you",
-	game_reviewed: "reviewed"
+	game_reviewed: "reviewed",
+	coop_tagged: "is playing co-op with"
 };
 
 const ACTIVITY_ICONS: Record<string, string> = {
@@ -31,7 +32,8 @@ const ACTIVITY_ICONS: Record<string, string> = {
 	list_followed: "bookmark",
 	user_followed: "person_add",
 	user_followed_by: "person",
-	game_reviewed: "rate_review"
+	game_reviewed: "rate_review",
+	coop_tagged: "groups"
 };
 
 const ACTIVITY_ICON_COLOR_CLASSES: Record<string, string> = {
@@ -49,7 +51,8 @@ const ACTIVITY_ICON_COLOR_CLASSES: Record<string, string> = {
 	list_followed: "text-brand",
 	user_followed: "text-brand",
 	user_followed_by: "text-brand",
-	game_reviewed: "text-success"
+	game_reviewed: "text-success",
+	coop_tagged: "text-brand"
 };
 
 export function activityLabel(type: string): string {
