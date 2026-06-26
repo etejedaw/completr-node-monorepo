@@ -1,15 +1,17 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	input,
 	model
 } from "@angular/core";
+import { NgpToggleGroup, NgpToggleGroupItem } from "ng-primitives/toggle-group";
 import { Genre, Platform } from "../../../core/models";
 import { UiInput } from "../../ui";
 
 @Component({
 	selector: "app-game-filter-panel",
-	imports: [UiInput],
+	imports: [UiInput, NgpToggleGroup, NgpToggleGroupItem],
 	template: `
 		<div class="flex flex-col gap-4">
 			@if (allGenres().length > 0) {
@@ -18,28 +20,21 @@ import { UiInput } from "../../ui";
 						class="block text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-2"
 						>Genres</span
 					>
-					<div class="flex flex-wrap gap-1.5">
+					<div
+						ngpToggleGroup
+						ngpToggleGroupType="multiple"
+						[ngpToggleGroupValue]="genreValues()"
+						(ngpToggleGroupValueChange)="
+							selectedGenres.set(asSet($event))
+						"
+						class="flex flex-wrap gap-1.5"
+					>
 						@for (g of allGenres(); track g.id) {
 							<button
 								type="button"
-								class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition"
-								[class.bg-brand-subtle]="
-									isGenreSelected(g.code)
-								"
-								[class.border-brand]="isGenreSelected(g.code)"
-								[class.text-brand]="isGenreSelected(g.code)"
-								[class.bg-input-bg]="!isGenreSelected(g.code)"
-								[class.border-line]="!isGenreSelected(g.code)"
-								[class.text-fg-secondary]="
-									!isGenreSelected(g.code)
-								"
-								[class.hover:border-brand]="
-									!isGenreSelected(g.code)
-								"
-								[class.hover:text-brand]="
-									!isGenreSelected(g.code)
-								"
-								(click)="toggleGenre(g.code)"
+								ngpToggleGroupItem
+								[ngpToggleGroupItemValue]="g.code"
+								class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition bg-input-bg border-line text-fg-secondary hover:border-brand hover:text-brand data-[checked]:bg-brand-subtle data-[checked]:border-brand data-[checked]:text-brand data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-brand data-[focus-visible]:outline-offset-2"
 							>
 								{{ g.name }}
 							</button>
@@ -54,34 +49,21 @@ import { UiInput } from "../../ui";
 						class="block text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-2"
 						>Platforms</span
 					>
-					<div class="flex flex-wrap gap-1.5">
+					<div
+						ngpToggleGroup
+						ngpToggleGroupType="multiple"
+						[ngpToggleGroupValue]="platformValues()"
+						(ngpToggleGroupValueChange)="
+							selectedPlatforms.set(asSet($event))
+						"
+						class="flex flex-wrap gap-1.5"
+					>
 						@for (p of allPlatforms(); track p.id) {
 							<button
 								type="button"
-								class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition"
-								[class.bg-brand-subtle]="
-									isPlatformSelected(p.code)
-								"
-								[class.border-brand]="
-									isPlatformSelected(p.code)
-								"
-								[class.text-brand]="isPlatformSelected(p.code)"
-								[class.bg-input-bg]="
-									!isPlatformSelected(p.code)
-								"
-								[class.border-line]="
-									!isPlatformSelected(p.code)
-								"
-								[class.text-fg-secondary]="
-									!isPlatformSelected(p.code)
-								"
-								[class.hover:border-brand]="
-									!isPlatformSelected(p.code)
-								"
-								[class.hover:text-brand]="
-									!isPlatformSelected(p.code)
-								"
-								(click)="togglePlatform(p.code)"
+								ngpToggleGroupItem
+								[ngpToggleGroupItemValue]="p.code"
+								class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition bg-input-bg border-line text-fg-secondary hover:border-brand hover:text-brand data-[checked]:bg-brand-subtle data-[checked]:border-brand data-[checked]:text-brand data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-brand data-[focus-visible]:outline-offset-2"
 							>
 								{{ p.abbreviation }}
 							</button>
@@ -128,26 +110,15 @@ export class GameFilterPanel {
 	yearFrom = model<number | null>(null);
 	yearTo = model<number | null>(null);
 
-	isGenreSelected(code: string): boolean {
-		return this.selectedGenres().has(code);
-	}
+	protected readonly genreValues = computed(() =>
+		Array.from(this.selectedGenres())
+	);
+	protected readonly platformValues = computed(() =>
+		Array.from(this.selectedPlatforms())
+	);
 
-	isPlatformSelected(code: string): boolean {
-		return this.selectedPlatforms().has(code);
-	}
-
-	toggleGenre(code: string) {
-		const next = new Set(this.selectedGenres());
-		if (next.has(code)) next.delete(code);
-		else next.add(code);
-		this.selectedGenres.set(next);
-	}
-
-	togglePlatform(code: string) {
-		const next = new Set(this.selectedPlatforms());
-		if (next.has(code)) next.delete(code);
-		else next.add(code);
-		this.selectedPlatforms.set(next);
+	protected asSet(values: string[]): Set<string> {
+		return new Set(values);
 	}
 
 	setYearFrom(value: string) {
