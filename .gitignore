@@ -146,9 +146,6 @@ vite.config.ts.timestamp-*
 /TODO.md
 /docs/feedback/
 
-# Data files
-docs/lista.csv
-
 # Informes (local only)
 docs/informes/
 
