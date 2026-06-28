@@ -58,11 +58,5 @@ export default defineConfig(
 			"@typescript-eslint/no-misused-promises": "error"
 		}
 	},
-	{
-		files: ["src/server.ts", "src/database/sequelize.database.ts"],
-		rules: {
-			"no-console": "off"
-		}
-	},
 	eslintConfigPrettier
 );

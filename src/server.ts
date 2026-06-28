@@ -9,6 +9,7 @@ import authRouter from "./auth/auth.router";
 import backlogProgressRouter from "./backlog-progress/backlog-progress.routes";
 import changelogRouter from "./changelog/changelog.routes";
 import { corsConfig } from "./common/config/cors.config";
+import { PinoLogger } from "./common/logger/pino.logger";
 import { correlationIdMiddleware } from "./common/middlewares/correlation-id.middleware";
 import { errorHandlerMiddleware } from "./common/middlewares/error-handler.middleware";
 import { loggerMiddleware } from "./common/middlewares/logger.middleware";
@@ -30,6 +31,8 @@ import userFollowRequestsRouter from "./user-follow-requests/user-follow-request
 import userFollowersRouter from "./user-followers/user-followers.routes";
 import usersRoute from "./users/users.routes";
 import wellKnownRouter from "./well-known/well-known.routes";
+
+const logger = new PinoLogger("Server");
 
 export function server(port: number) {
 	const app = express();
@@ -66,5 +69,5 @@ export function server(port: number) {
 	app.use(changelogRouter);
 	app.use(errorHandlerMiddleware);
 
-	app.listen(port, () => console.log(`Server running on port ${port}`));
+	app.listen(port, () => logger.info("startup", "listening", { port }));
 }
