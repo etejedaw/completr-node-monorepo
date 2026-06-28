@@ -81,6 +81,11 @@ export const routes: Routes = [
 			import("./features/auth/register/register").then(m => m.Register)
 	},
 	{
+		path: "privacy",
+		loadComponent: () =>
+			import("./features/legal/privacy/privacy").then(m => m.Privacy)
+	},
+	{
 		path: "user/:username/lists/:id",
 		redirectTo: ({ params }) =>
 			`/lists/${params["id"]}?from=${params["username"]}`
