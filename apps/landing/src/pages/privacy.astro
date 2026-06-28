@@ -4,7 +4,7 @@ import Layout from "../layouts/Layout.astro";
 
 <Layout
 	title="Privacidad — Completr"
-	description="Qué hacemos con tu correo cuando te inscribes a la beta cerrada de Completr."
+	description="Qué datos recojo en Completr, para qué los uso y qué control tienes sobre ellos."
 >
 	<main class="relative px-6 py-24 max-w-2xl mx-auto">
 		<a
@@ -15,48 +15,242 @@ import Layout from "../layouts/Layout.astro";
 		</a>
 
 		<h1
-			class="font-[var(--font-display)] m-0 mb-8 text-3xl md:text-4xl font-bold tracking-tight"
+			class="font-[var(--font-display)] m-0 mb-3 text-3xl md:text-4xl font-bold tracking-tight"
 		>
-			Privacidad
+			Política de privacidad
 		</h1>
 
+		<p class="m-0 mb-10 text-sm text-[var(--color-fg-muted)]">
+			Última actualización: 28 de junio de 2026
+		</p>
+
 		<div
-			class="flex flex-col gap-6 text-[var(--color-fg-secondary)] leading-relaxed"
+			class="flex flex-col gap-8 text-[var(--color-fg-secondary)] leading-relaxed"
 		>
-			<p class="m-0">
-				Cuando te inscribes a la beta cerrada solo guardo tu
-				<strong class="text-[var(--color-fg)]"
-					>correo electrónico</strong
-				>. Lo uso únicamente para avisarte cuando abramos cupos.
-			</p>
+			<section class="flex flex-col gap-3">
+				<p class="m-0">
+					Completr es un proyecto personal desarrollado y operado por
+					<strong class="text-[var(--color-fg)]"
+						>Esteban Tejeda</strong
+					>, responsable del tratamiento de los datos descritos aquí.
+					Esta política aplica tanto a esta página de inscripción (<span
+						class="text-[var(--color-fg)]">completr.app</span
+					>) como a la aplicación (<span
+						class="text-[var(--color-fg)]">web.completr.app</span
+					>).
+				</p>
+				<p class="m-0">
+					La idea de fondo es simple: recojo lo mínimo para que la app
+					funcione, no vendo ni cedo tus datos a nadie, y puedes
+					borrarlos cuando quieras.
+				</p>
+			</section>
 
-			<p class="m-0">
-				No comparto ni vendo tu correo a terceros. No te suscribo a
-				ningún newsletter. No envío promociones, publicidad ni nada más
-				allá del aviso de acceso a la beta.
-			</p>
+			<section class="flex flex-col gap-3">
+				<h2
+					class="font-[var(--font-display)] m-0 text-xl font-semibold text-[var(--color-fg)]"
+				>
+					Qué datos recojo
+				</h2>
+				<p class="m-0">
+					<strong class="text-[var(--color-fg)]"
+						>Inscripción a la beta.</strong
+					> Si te inscribes desde esta página, guardo solo tu correo electrónico,
+					para avisarte cuando abramos cupos.
+				</p>
+				<p class="m-0">
+					<strong class="text-[var(--color-fg)]"
+						>Cuenta en la app.</strong
+					> Al registrarte guardo tu correo, una versión cifrada de tu contraseña
+					(nunca la contraseña en texto plano), tu nombre de usuario y,
+					opcionalmente, nombre visible, biografía y avatar.
+				</p>
+				<p class="m-0">
+					<strong class="text-[var(--color-fg)]"
+						>Contenido que creas.</strong
+					> Lo que registras dentro de la app: tu backlog de juegos, listas,
+					reseñas, etiquetas, notas de progreso y partidas cooperativas.
+					Es la razón de ser del servicio.
+				</p>
+				<p class="m-0">
+					<strong class="text-[var(--color-fg)]"
+						>Datos técnicos.</strong
+					> Analítica de uso agregada mediante Umami (ver más abajo) y registros
+					de servidor (logs) que conservo por tiempo acotado con fines de
+					seguridad y diagnóstico.
+				</p>
+			</section>
 
-			<p class="m-0">
-				Si en algún momento quieres que borre tu correo de la lista,
-				escríbeme a <a
-					href="mailto:completr@etejeda.dev"
-					class="text-[var(--color-brand)] hover:underline"
-					>completr@etejeda.dev</a
-				> y lo elimino.
-			</p>
+			<section class="flex flex-col gap-3">
+				<h2
+					class="font-[var(--font-display)] m-0 text-xl font-semibold text-[var(--color-fg)]"
+				>
+					Para qué los uso
+				</h2>
+				<ul class="m-0 list-disc pl-5 flex flex-col gap-2">
+					<li>Operar el servicio y mostrarte tu propio contenido.</li>
+					<li>Autenticarte y mantener tu sesión de forma segura.</li>
+					<li>
+						Entender de forma agregada cómo se usa la app para
+						mejorarla.
+					</li>
+					<li>
+						Comunicarme contigo sobre tu cuenta o el acceso a la
+						beta.
+					</li>
+				</ul>
+				<p class="m-0">
+					Lo que <strong class="text-[var(--color-fg)]">no</strong> hago:
+					no vendo ni cedo tus datos a terceros, no hago publicidad, no
+					te suscribo a newsletters y no te rastreo entre sitios.
+				</p>
+			</section>
 
-			<p class="m-0">
-				Para entender cómo se usa la página utilizo
-				<strong class="text-[var(--color-fg)]">Umami</strong>, una
-				herramienta de analítica auto-hospedada que mide visitas de
-				forma agregada y anónima. No usa cookies, no rastrea entre
-				sitios ni recolecta información personal identificable.
-			</p>
+			<section class="flex flex-col gap-3">
+				<h2
+					class="font-[var(--font-display)] m-0 text-xl font-semibold text-[var(--color-fg)]"
+				>
+					Base legal
+				</h2>
+				<p class="m-0">
+					Trato tus datos de cuenta y tu contenido para poder
+					prestarte el servicio que solicitas al registrarte
+					(ejecución de un contrato). La analítica agregada y los
+					registros de seguridad se apoyan en mi interés legítimo en
+					mantener y mejorar la app. La inscripción a la beta se apoya
+					en tu consentimiento, que puedes retirar en cualquier
+					momento.
+				</p>
+			</section>
 
-			<p class="m-0 text-sm text-[var(--color-fg-muted)] pt-4">
-				Esta política puede cambiar conforme Completr deje la fase de
-				beta cerrada. Cualquier cambio se reflejará aquí.
-			</p>
+			<section class="flex flex-col gap-3">
+				<h2
+					class="font-[var(--font-display)] m-0 text-xl font-semibold text-[var(--color-fg)]"
+				>
+					Cookies y analítica
+				</h2>
+				<p class="m-0">
+					Para entender cómo se usa la app utilizo
+					<strong class="text-[var(--color-fg)]">Umami</strong>, una
+					herramienta de analítica auto-hospedada que mide visitas de
+					forma agregada y anónima. No usa cookies, no rastrea entre
+					sitios ni recolecta información personal identificable.
+				</p>
+				<p class="m-0">
+					La aplicación usa una única cookie estrictamente necesaria
+					para mantener tu sesión iniciada (un token de sesión
+					<span class="text-[var(--color-fg)]">HttpOnly</span>). No es
+					de rastreo y no se puede desactivar sin impedir el inicio de
+					sesión, por lo que no verás banners de consentimiento de
+					cookies.
+				</p>
+			</section>
+
+			<section class="flex flex-col gap-3">
+				<h2
+					class="font-[var(--font-display)] m-0 text-xl font-semibold text-[var(--color-fg)]"
+				>
+					Con quién se comparten
+				</h2>
+				<p class="m-0">
+					Con nadie con fines comerciales. La infraestructura es
+					autoalojada: tanto la base de datos como la analítica corren
+					en servidores que administro directamente. Los datos de los
+					videojuegos provienen de catálogos externos (como RAWG),
+					pero eso es información que <em>recibo</em>; nunca envío tus
+					datos personales a esos servicios.
+				</p>
+			</section>
+
+			<section class="flex flex-col gap-3">
+				<h2
+					class="font-[var(--font-display)] m-0 text-xl font-semibold text-[var(--color-fg)]"
+				>
+					Cuánto tiempo los conservo
+				</h2>
+				<p class="m-0">
+					Conservo tu cuenta y tu contenido mientras tu cuenta esté
+					activa. Si borras tu cuenta, elimino tus datos personales y
+					tu contenido. El correo de la lista de beta lo conservo
+					hasta que pidas eliminarlo o hasta que termine la fase de
+					beta. Los registros de servidor se eliminan tras un período
+					acotado, y la analítica de Umami es agregada y anónima.
+				</p>
+			</section>
+
+			<section class="flex flex-col gap-3">
+				<h2
+					class="font-[var(--font-display)] m-0 text-xl font-semibold text-[var(--color-fg)]"
+				>
+					Tus derechos
+				</h2>
+				<p class="m-0">
+					Puedes ejercer en cualquier momento tus derechos de acceso,
+					rectificación, cancelación (supresión), oposición y
+					portabilidad sobre tus datos personales, reconocidos por la
+					Ley 21.719 de Chile y, si te encuentras en la Unión Europea,
+					por el RGPD.
+				</p>
+				<ul class="m-0 list-disc pl-5 flex flex-col gap-2">
+					<li>
+						Puedes editar tus datos y borrar tu cuenta directamente
+						desde la app.
+					</li>
+					<li>
+						Para cualquier otra solicitud, escríbeme a <a
+							href="mailto:completr@etejeda.dev"
+							class="text-[var(--color-brand)] hover:underline"
+							>completr@etejeda.dev</a
+						>.
+					</li>
+				</ul>
+			</section>
+
+			<section class="flex flex-col gap-3">
+				<h2
+					class="font-[var(--font-display)] m-0 text-xl font-semibold text-[var(--color-fg)]"
+				>
+					Seguridad
+				</h2>
+				<p class="m-0">
+					Las contraseñas se almacenan cifradas, las sesiones usan
+					cookies <span class="text-[var(--color-fg)]">HttpOnly</span> y
+					todo el tráfico viaja por HTTPS. Ningún sistema es infalible,
+					pero trato tus datos con el mismo cuidado con el que querría que
+					trataran los míos.
+				</p>
+			</section>
+
+			<section class="flex flex-col gap-3">
+				<h2
+					class="font-[var(--font-display)] m-0 text-xl font-semibold text-[var(--color-fg)]"
+				>
+					Menores de edad
+				</h2>
+				<p class="m-0">
+					Completr no está dirigido a menores de 14 años (o de 16 en
+					la Unión Europea). Si crees que un menor me ha proporcionado
+					datos, escríbeme y los eliminaré.
+				</p>
+			</section>
+
+			<section class="flex flex-col gap-3">
+				<h2
+					class="font-[var(--font-display)] m-0 text-xl font-semibold text-[var(--color-fg)]"
+				>
+					Cambios y contacto
+				</h2>
+				<p class="m-0">
+					Esta política puede cambiar conforme Completr evoluciona.
+					Cualquier cambio se reflejará en esta página, junto con la
+					fecha de última actualización. Si tienes dudas sobre cómo
+					trato tus datos, escríbeme a <a
+						href="mailto:completr@etejeda.dev"
+						class="text-[var(--color-brand)] hover:underline"
+						>completr@etejeda.dev</a
+					>.
+				</p>
+			</section>
 		</div>
 	</main>
 </Layout>
