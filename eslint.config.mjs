@@ -36,7 +36,18 @@ export default defineConfig(
 			],
 			curly: ["error", "all"],
 			"simple-import-sort/imports": "error",
-			"simple-import-sort/exports": "error"
+			"simple-import-sort/exports": "error",
+			"@typescript-eslint/consistent-type-imports": [
+				"error",
+				{ fixStyle: "inline-type-imports" }
+			],
+			"no-console": ["warn", { allow: ["warn", "error"] }]
+		}
+	},
+	{
+		files: ["src/server.ts", "src/database/sequelize.database.ts"],
+		rules: {
+			"no-console": "off"
 		}
 	},
 	eslintConfigPrettier
