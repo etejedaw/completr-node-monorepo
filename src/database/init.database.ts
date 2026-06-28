@@ -34,8 +34,24 @@ import "../audit/audit.model";
 import "../reviews/review.model";
 import "../jobs/job.model";
 
+import { databaseConfig } from "../common/config/database.config";
+import { PinoLogger } from "../common/logger/pino.logger";
 import { setupAssociations } from "./associations.database";
+import { sequelize } from "./sequelize.database";
+
+const logger = new PinoLogger("Database");
 
 export async function initDatabase() {
 	setupAssociations();
+	try {
+		await sequelize.authenticate();
+		logger.info("connect", "ok", {
+			host: databaseConfig.PG_HOST,
+			database: databaseConfig.PG_DATABASE
+		});
+	} catch (error) {
+		logger.warn("connect", "failed", {
+			error: error instanceof Error ? error.message : String(error)
+		});
+	}
 }
