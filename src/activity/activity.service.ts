@@ -31,11 +31,11 @@ const USER_TYPES: string[] = [
 ];
 const SOCIAL_TYPES: string[] = ["user_followed", "user_followed_by"];
 
-export async function record(
-	userId: string,
-	type: ActivityType,
-	targetId?: string
-) {
+export function record(userId: string, type: ActivityType, targetId?: string) {
+	persist(userId, type, targetId).catch(Function.prototype as () => void);
+}
+
+async function persist(userId: string, type: ActivityType, targetId?: string) {
 	const activity = await Activity.create({ userId, type });
 
 	if (targetId) {
