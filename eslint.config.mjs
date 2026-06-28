@@ -41,7 +41,21 @@ export default defineConfig(
 				"error",
 				{ fixStyle: "inline-type-imports" }
 			],
-			"no-console": ["warn", { allow: ["warn", "error"] }]
+			"no-console": ["warn", { allow: ["warn", "error"] }],
+			eqeqeq: ["error", "always"]
+		}
+	},
+	{
+		files: ["src/**/*.ts"],
+		languageOptions: {
+			parserOptions: {
+				projectService: true,
+				tsconfigRootDir: import.meta.dirname
+			}
+		},
+		rules: {
+			"@typescript-eslint/no-floating-promises": "error",
+			"@typescript-eslint/no-misused-promises": "error"
 		}
 	},
 	{
