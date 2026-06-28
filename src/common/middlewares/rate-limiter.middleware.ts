@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { RateLimiterMemory } from "rate-limiter-flexible";
+
 import * as authDomainsErrors from "../../auth/errors/auth.domains-error";
 import { RequestUser } from "../interfaces/request-user.interface";
 

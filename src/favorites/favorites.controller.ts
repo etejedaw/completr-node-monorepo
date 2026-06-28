@@ -1,14 +1,15 @@
 import { Request, Response } from "express";
+
+import * as activityService from "../activity/activity.service";
 import { RequestUser } from "../common/interfaces/request-user.interface";
-import * as usersService from "../users/users.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
+import { UsernameParam } from "../users/schemas/username-params.schema";
+import * as usersService from "../users/users.service";
+import { favoriteSerializer } from "./favorites.serializer";
 import * as favoritesService from "./favorites.service";
 import { ReplaceFavoritesBody } from "./schemas/replace-favorites.schema";
-import { UsernameParam } from "../users/schemas/username-params.schema";
-import { favoriteSerializer } from "./favorites.serializer";
-import * as activityService from "../activity/activity.service";
-import * as moodTagsService from "../mood-tags/mood-tags.service";
 
 export async function putFavorites(request: Request, response: Response) {
 	const body = request.locals.body as ReplaceFavoritesBody;

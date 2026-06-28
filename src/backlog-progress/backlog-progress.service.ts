@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
-import { BacklogProgress } from "./backlog-progress.model";
+
 import * as backlogService from "../backlog/backlog.service";
+import { BacklogProgress } from "./backlog-progress.model";
 import * as backlogProgressServiceError from "./errors/backlog-progress.service-error";
 
 export async function addProgress(

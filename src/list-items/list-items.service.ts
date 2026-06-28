@@ -1,20 +1,21 @@
 import { Transaction } from "sequelize";
+
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { RequestUser } from "../common/interfaces/request-user.interface";
 import { sequelize } from "../database/sequelize.database";
-import { ListItem } from "./list-item.model";
+import { GameScore } from "../game-scores/game-score.model";
+import * as gameScoresService from "../game-scores/game-scores.service";
+import { GameTime } from "../game-times/game-time.model";
+import { TimeSource } from "../game-times/game-time.model";
+import * as gameTimesService from "../game-times/game-times.service";
+import { Game } from "../games/game.model";
+import * as gamesService from "../games/games.service";
 import { List } from "../lists/list.model";
 import * as listsService from "../lists/lists.service";
-import * as gamesService from "../games/games.service";
-import * as gameScoresService from "../game-scores/game-scores.service";
-import * as gameTimesService from "../game-times/game-times.service";
-import * as scoreSourcesService from "../score-sources/score-sources.service";
-import { Game } from "../games/game.model";
-import { GameScore } from "../game-scores/game-score.model";
-import { GameTime } from "../game-times/game-time.model";
 import { ScoreSource } from "../score-sources/score-source.model";
-import { TimeSource } from "../game-times/game-time.model";
-import { RequestUser } from "../common/interfaces/request-user.interface";
+import * as scoreSourcesService from "../score-sources/score-sources.service";
 import * as listItemsServiceError from "./errors/list-items.service-error";
-import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { ListItem } from "./list-item.model";
 
 const FREE_LIST_LIMIT = 5;
 

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+
 import { environmentConfig } from "../common/config/environment.config";
 
 const CACHE_TTL_MS = 5 * 60 * 1000;

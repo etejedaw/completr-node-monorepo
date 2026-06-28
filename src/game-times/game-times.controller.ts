@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
-import * as gameTimesService from "./game-times.service";
+
 import { RegisterGameTimeDto } from "./dtos/register-game-time.dto";
 import { UpdateGameTimeDto } from "./dtos/update-game-time.dto";
-import { GameTimeParams } from "./schemas/game-time-params.schema";
+import * as gameTimesService from "./game-times.service";
 import { GameTimeIdParams } from "./schemas/game-time-id-params.schema";
+import { GameTimeParams } from "./schemas/game-time-params.schema";
 
 export async function postGameTime(request: Request, response: Response) {
 	const registerGameTimeDto = request.locals.body as RegisterGameTimeDto;

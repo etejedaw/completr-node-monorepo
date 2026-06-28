@@ -1,17 +1,18 @@
 import { Router } from "express";
-import * as listsController from "./lists.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
-import {
-	userLimiter,
-	publicLimiter
-} from "../common/config/rate-limiter.config";
+
 import { authMiddleware } from "../auth/auth.middleware";
+import {
+	publicLimiter,
+	userLimiter
+} from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
+import { SearchQuerySchema } from "../common/schemas/search-query.schema";
+import * as listsController from "./lists.controller";
+import { ListIdParamsSchema } from "./schemas/list-id-params.schema";
 import { RegisterListSchema } from "./schemas/register-list.schema";
 import { UpdateListSchema } from "./schemas/update-list.schema";
-import { ListIdParamsSchema } from "./schemas/list-id-params.schema";
-import { SearchQuerySchema } from "../common/schemas/search-query.schema";
-import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 
 const router = Router();
 

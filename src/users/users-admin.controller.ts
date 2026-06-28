@@ -1,15 +1,16 @@
-import { RequestUser } from "../common/interfaces/request-user.interface";
 import { Request, Response } from "express";
-import * as usersService from "./users.service";
-import * as authService from "../auth/auth.service";
-import * as passwordService from "../auth/services/password.service";
+
 import * as auditService from "../audit/audit.service";
-import { userAdminSerializer, userMeSerializer } from "./users.serializer";
+import * as authService from "../auth/auth.service";
 import { RegisterDto } from "../auth/dtos";
-import { AdminUpdateUserDto } from "./schemas/admin-update-user.schema";
-import { UserIdParam } from "./schemas/user-id-params.schema";
+import * as passwordService from "../auth/services/password.service";
+import { RequestUser } from "../common/interfaces/request-user.interface";
 import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import * as userDomain from "./errors/users.domain-error";
+import { AdminUpdateUserDto } from "./schemas/admin-update-user.schema";
+import { UserIdParam } from "./schemas/user-id-params.schema";
+import { userAdminSerializer, userMeSerializer } from "./users.serializer";
+import * as usersService from "./users.service";
 
 export async function postAdminCreateUser(
 	request: Request,

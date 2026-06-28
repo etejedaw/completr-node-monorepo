@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import * as backlogProgressService from "./backlog-progress.service";
-import { backlogProgressSerializer } from "./backlog-progress.serializer";
-import { AddProgressDto } from "./dtos/add-progress.dto";
 import z from "zod";
+
+import { RequestUser } from "../common/interfaces/request-user.interface";
+import { backlogProgressSerializer } from "./backlog-progress.serializer";
+import * as backlogProgressService from "./backlog-progress.service";
+import { AddProgressDto } from "./dtos/add-progress.dto";
 import { BacklogIdParamsSchema } from "./schemas/backlog-id-params.schema";
 import { NoteIdParamsSchema } from "./schemas/note-id-params.schema";
 

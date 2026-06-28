@@ -1,10 +1,11 @@
 import { Router } from "express";
-import * as reviewsController from "./reviews.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
-import { userLimiter } from "../common/config/rate-limiter.config";
+
 import { authMiddleware } from "../auth/auth.middleware";
+import { userLimiter } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { GameIdParamSchema } from "../games/schemas/game-id-params.schema";
+import * as reviewsController from "./reviews.controller";
 import { CreateReviewSchema } from "./schemas/create-review.schema";
 import { UpdateReviewSchema } from "./schemas/update-review.schema";
 

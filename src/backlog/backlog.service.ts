@@ -1,25 +1,26 @@
 import {
+	col,
+	fn,
+	literal,
 	Op,
 	Order,
-	literal,
 	QueryTypes,
-	Transaction,
-	fn,
-	col
+	Transaction
 } from "sequelize";
+
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
-import { Platform } from "../platforms/platform.model";
-import { User } from "../users/user.model";
-import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
-import { Backlog } from "./backlog.model";
-import { Queue } from "../queue/queue.model";
 import * as gamesService from "../games/games.service";
+import { Platform } from "../platforms/platform.model";
+import { Queue } from "../queue/queue.model";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
+import { User } from "../users/user.model";
+import { Backlog } from "./backlog.model";
 import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
-import { BacklogQuery } from "./schemas/backlog-query.schema";
 import * as backlogServiceError from "./errors/backlog.service-error";
-import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { BacklogQuery } from "./schemas/backlog-query.schema";
 import { buildBacklogWhere } from "./utils/build-backlog-where.util";
 
 const BACKLOG_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];

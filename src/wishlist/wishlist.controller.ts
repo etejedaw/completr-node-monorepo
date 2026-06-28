@@ -1,16 +1,17 @@
 import { Request, Response } from "express";
+
+import * as activityService from "../activity/activity.service";
 import { RequestUser } from "../common/interfaces/request-user.interface";
-import * as usersService from "../users/users.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
-import * as wishlistService from "./wishlist.service";
-import * as activityService from "../activity/activity.service";
-import * as moodTagsService from "../mood-tags/mood-tags.service";
-import { ReplaceWishlistBody } from "./schemas/replace-wishlist.schema";
-import { AddWishlistBody } from "./schemas/add-wishlist.schema";
-import { WishlistGameParams } from "./schemas/wishlist-game-params.schema";
 import { UsernameParam } from "../users/schemas/username-params.schema";
+import * as usersService from "../users/users.service";
+import { AddWishlistBody } from "./schemas/add-wishlist.schema";
+import { ReplaceWishlistBody } from "./schemas/replace-wishlist.schema";
+import { WishlistGameParams } from "./schemas/wishlist-game-params.schema";
 import { wishlistSerializer } from "./wishlist.serializer";
+import * as wishlistService from "./wishlist.service";
 
 export async function putWishlist(request: Request, response: Response) {
 	const body = request.locals.body as ReplaceWishlistBody;

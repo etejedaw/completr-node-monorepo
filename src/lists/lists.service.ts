@@ -1,15 +1,16 @@
 import { Op } from "sequelize";
-import { List } from "./list.model";
-import { ListItem } from "../list-items/list-item.model";
-import { ListFollower } from "../list-followers/list-follower.model";
-import { Game } from "../games/game.model";
-import { User } from "../users/user.model";
+
 import * as backlogService from "../backlog/backlog.service";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
+import { Game } from "../games/game.model";
+import { ListFollower } from "../list-followers/list-follower.model";
+import { ListItem } from "../list-items/list-item.model";
+import { User } from "../users/user.model";
 import { RegisterListDto } from "./dtos/register-list.dto";
 import { UpdateListDto } from "./dtos/update-list.dto";
 import * as listsServiceError from "./errors/lists.service-error";
+import { List } from "./list.model";
 
 const FREE_LIST_LIMIT = 5;
 

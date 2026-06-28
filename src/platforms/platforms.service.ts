@@ -1,9 +1,9 @@
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { RegisterPlatformDto } from "./dtos/register-platform.dto";
+import { UpdatePlatformDto } from "./dtos/update-platform.dto";
 import * as platformServiceError from "./errors/platforms.service-error";
 import { Platform } from "./platform.model";
-import { UpdatePlatformDto } from "./dtos/update-platform.dto";
-import { titleToSlug } from "../common/utils/title-to-slug.util";
-import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 
 export async function registerPlatform(
 	registerPlatformDto: RegisterPlatformDto

@@ -1,4 +1,5 @@
 import { Sequelize } from "sequelize";
+
 import { databaseConfig } from "../common/config/database.config";
 import { environmentConfig } from "../common/config/environment.config";
 

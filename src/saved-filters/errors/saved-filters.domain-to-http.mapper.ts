@@ -1,4 +1,5 @@
 import { Request } from "express";
+
 import { DomainError } from "../../common/errors/domain-error";
 import { HttpError } from "../../common/errors/http-error";
 

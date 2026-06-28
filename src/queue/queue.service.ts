@@ -1,17 +1,18 @@
 import { Op } from "sequelize";
-import { sequelize } from "../database/sequelize.database";
-import { Queue } from "./queue.model";
+
 import { Backlog } from "../backlog/backlog.model";
-import { Game } from "../games/game.model";
-import { Platform } from "../platforms/platform.model";
-import * as gamesService from "../games/games.service";
-import * as platformsService from "../platforms/platforms.service";
 import * as backlogService from "../backlog/backlog.service";
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
-import * as queueServiceError from "./errors/queue.service-error";
 import * as backlogServiceError from "../backlog/errors/backlog.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { RequestUser } from "../common/interfaces/request-user.interface";
+import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { sequelize } from "../database/sequelize.database";
+import { Game } from "../games/game.model";
+import * as gamesService from "../games/games.service";
+import { Platform } from "../platforms/platform.model";
+import * as platformsService from "../platforms/platforms.service";
+import * as queueServiceError from "./errors/queue.service-error";
+import { Queue } from "./queue.model";
 
 const FREE_QUEUE_LIMIT = 10;
 

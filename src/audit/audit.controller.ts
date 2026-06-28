@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+
 import * as auditService from "./audit.service";
 
 export async function getAuditLog(request: Request, response: Response) {

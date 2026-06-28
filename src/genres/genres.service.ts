@@ -1,10 +1,11 @@
 import { Sequelize } from "sequelize";
-import { titleToSlug } from "../common/utils/title-to-slug.util";
+
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { RegisterGenreDto } from "./dtos/register-genre.dto";
-import { Genre } from "./genres.model";
 import { UpdateGenreDto } from "./dtos/update-genre.dto";
 import * as genreServiceError from "./errors/genres.service-error";
+import { Genre } from "./genres.model";
 
 export async function registerGenre(registerGenre: RegisterGenreDto) {
 	try {

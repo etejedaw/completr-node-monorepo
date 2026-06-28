@@ -1,11 +1,12 @@
-import { Request, Response, NextFunction } from "express";
-import { HeaderTokenSchema } from "./schemas";
-import * as tokenService from "./services/token.service";
+import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
-import * as authDomainsErrors from "./errors/auth.domains-error";
-import * as userService from "../users/users.service";
+
 import { DomainError } from "../common/errors/domain-error";
 import { UserRole } from "../users/user-role.type";
+import * as userService from "../users/users.service";
+import * as authDomainsErrors from "./errors/auth.domains-error";
+import { HeaderTokenSchema } from "./schemas";
+import * as tokenService from "./services/token.service";
 
 export function authMiddleware(...roles: UserRole[]) {
 	return async (

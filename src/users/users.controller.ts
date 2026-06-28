@@ -1,8 +1,17 @@
-import { RequestUser } from "../common/interfaces/request-user.interface";
 import { Request, Response } from "express";
-import * as usersService from "./users.service";
-import * as usersProfileService from "./users-profile.service";
+
+import { RequestUser } from "../common/interfaces/request-user.interface";
+import { PaginationQuery } from "../common/schemas/pagination-query.schema";
+import {
+	listSerializer,
+	listSummarySerializer
+} from "../lists/lists.serializer";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
+import { UpdateUserDto } from "./dtos";
+import * as userDomain from "./errors/users.domain-error";
+import { HighlightsQuery, UsernameParam } from "./schemas";
+import { UserDiscoverQuery } from "./schemas/user-discover-query.schema";
+import { UserSearchQuery } from "./schemas/user-search-query.schema";
 import {
 	enrichedUserListSerializer,
 	fullProfileSerializer,
@@ -13,16 +22,8 @@ import {
 	userReviewsSerializer,
 	userSummarySerializer
 } from "./users.serializer";
-import {
-	listSerializer,
-	listSummarySerializer
-} from "../lists/lists.serializer";
-import { UsernameParam, HighlightsQuery } from "./schemas";
-import { UpdateUserDto } from "./dtos";
-import { UserSearchQuery } from "./schemas/user-search-query.schema";
-import { UserDiscoverQuery } from "./schemas/user-discover-query.schema";
-import { PaginationQuery } from "../common/schemas/pagination-query.schema";
-import * as userDomain from "./errors/users.domain-error";
+import * as usersService from "./users.service";
+import * as usersProfileService from "./users-profile.service";
 
 export async function getUserByUsername(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;

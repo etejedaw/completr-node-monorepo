@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+
 import { environmentConfig } from "../../common/config/environment.config";
 
 export async function hashPassword(password: string): Promise<string> {

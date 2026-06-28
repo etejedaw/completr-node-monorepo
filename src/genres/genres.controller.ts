@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
-import { GenreCodeParam } from "./schemas/genre-code-params.schema";
-import * as genreService from "./genres.service";
-import * as genreDomainError from "./errors/genres.domain-error";
-import * as gamesService from "../games/games.service";
+
+import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { gameSerializer } from "../games/games.serializer";
+import * as gamesService from "../games/games.service";
 import { RegisterGenreDto } from "./dtos/register-genre.dto";
 import { UpdateGenreDto } from "./dtos/update-genre.dto";
+import * as genreDomainError from "./errors/genres.domain-error";
+import * as genreService from "./genres.service";
+import { GenreCodeParam } from "./schemas/genre-code-params.schema";
 import { GenreIdParam } from "./schemas/genre-id-params.schema";
-import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 
 export async function getGenreByCode(request: Request, response: Response) {
 	const param = request.locals.params as GenreCodeParam;

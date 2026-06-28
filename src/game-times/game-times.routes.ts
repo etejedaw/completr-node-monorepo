@@ -1,13 +1,14 @@
 import { Router } from "express";
-import * as gameTimesController from "./game-times.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
-import { userLimiter } from "../common/config/rate-limiter.config";
+
 import { authMiddleware } from "../auth/auth.middleware";
+import { userLimiter } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import * as gameTimesController from "./game-times.controller";
+import { GameTimeIdParamsSchema } from "./schemas/game-time-id-params.schema";
+import { GameTimeParamsSchema } from "./schemas/game-time-params.schema";
 import { RegisterGameTimeSchema } from "./schemas/register-game-time.schema";
 import { UpdateGameTimeSchema } from "./schemas/update-game-time.schema";
-import { GameTimeParamsSchema } from "./schemas/game-time-params.schema";
-import { GameTimeIdParamsSchema } from "./schemas/game-time-id-params.schema";
 
 const router = Router();
 

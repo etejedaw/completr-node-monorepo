@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
-import * as gameScoresService from "./game-scores.service";
+
 import { RegisterGameScoreDto } from "./dtos/register-game-score.dto";
 import { UpdateGameScoreDto } from "./dtos/update-game-score.dto";
-import { GameScoreParams } from "./schemas/game-score-params.schema";
+import * as gameScoresService from "./game-scores.service";
 import { GameScoreIdParams } from "./schemas/game-score-id-params.schema";
+import { GameScoreParams } from "./schemas/game-score-params.schema";
 
 export async function postGameScore(request: Request, response: Response) {
 	const registerGameScoreDto = request.locals.body as RegisterGameScoreDto;

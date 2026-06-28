@@ -1,12 +1,13 @@
 import { Router } from "express";
-import * as scoreSourcesController from "./score-sources.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+
+import { authMiddleware } from "../auth/auth.middleware";
 import {
 	publicLimiter,
 	userLimiter
 } from "../common/config/rate-limiter.config";
-import { authMiddleware } from "../auth/auth.middleware";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import * as scoreSourcesController from "./score-sources.controller";
 import { RegisterScoreSourceSchema } from "./score-sources.schema";
 
 const router = Router();

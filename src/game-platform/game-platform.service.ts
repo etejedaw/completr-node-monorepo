@@ -1,4 +1,5 @@
 import { Transaction } from "sequelize";
+
 import { GamePlatform } from "./game-platform.model";
 
 export async function linkGameToPlatforms(

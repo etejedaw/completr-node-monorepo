@@ -1,40 +1,41 @@
 import { Router } from "express";
-import * as usersController from "./users.controller";
-import * as usersAdminController from "./users-admin.controller";
-import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import {
-	HighlightsQuerySchema,
-	UpdateUserSchema,
-	UsernameParamSchema
-} from "./schemas";
-import { RegisterSchema } from "../auth/schemas";
-import { UserSearchQuerySchema } from "./schemas/user-search-query.schema";
-import { UserDiscoverQuerySchema } from "./schemas/user-discover-query.schema";
+
 import { authMiddleware } from "../auth/auth.middleware";
 import { authOptionalMiddleware } from "../auth/auth-optional.middleware";
 import { hiddenRouteMiddleware } from "../auth/hidden-route.middleware";
+import { RegisterSchema } from "../auth/schemas";
+import * as backlogController from "../backlog/backlog.controller";
+import backlogRouter from "../backlog/backlog.routes";
+import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
 import {
 	publicLimiter,
 	registerLimiter,
 	userLimiter
 } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
-import gameShelfRouter from "../game-shelf/game-shelf.routes";
-import * as gameShelfController from "../game-shelf/game-shelf.controller";
-import backlogRouter from "../backlog/backlog.routes";
-import * as backlogController from "../backlog/backlog.controller";
-import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
+import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
-import { UserIdParamSchema } from "./schemas/user-id-params.schema";
-import { AdminUpdateUserSchema } from "./schemas/admin-update-user.schema";
-import { UsernameListParamsSchema } from "./schemas/username-list-params.schema";
-import savedFiltersRouter from "../saved-filters/saved-filters.routes";
-import queueRouter from "../queue/queue.routes";
-import * as queueController from "../queue/queue.controller";
-import wishlistRouter from "../wishlist/wishlist.routes";
-import * as wishlistController from "../wishlist/wishlist.controller";
-import favoritesRouter from "../favorites/favorites.routes";
 import * as favoritesController from "../favorites/favorites.controller";
+import favoritesRouter from "../favorites/favorites.routes";
+import * as gameShelfController from "../game-shelf/game-shelf.controller";
+import gameShelfRouter from "../game-shelf/game-shelf.routes";
+import * as queueController from "../queue/queue.controller";
+import queueRouter from "../queue/queue.routes";
+import savedFiltersRouter from "../saved-filters/saved-filters.routes";
+import * as wishlistController from "../wishlist/wishlist.controller";
+import wishlistRouter from "../wishlist/wishlist.routes";
+import {
+	HighlightsQuerySchema,
+	UpdateUserSchema,
+	UsernameParamSchema
+} from "./schemas";
+import { AdminUpdateUserSchema } from "./schemas/admin-update-user.schema";
+import { UserDiscoverQuerySchema } from "./schemas/user-discover-query.schema";
+import { UserIdParamSchema } from "./schemas/user-id-params.schema";
+import { UserSearchQuerySchema } from "./schemas/user-search-query.schema";
+import { UsernameListParamsSchema } from "./schemas/username-list-params.schema";
+import * as usersController from "./users.controller";
+import * as usersAdminController from "./users-admin.controller";
 
 const router = Router();
 

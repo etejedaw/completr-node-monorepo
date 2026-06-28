@@ -1,12 +1,13 @@
 import { Op } from "sequelize";
-import { SavedFilter } from "./saved-filter.model";
-import { RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
-import { UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
-import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
-import * as savedFilterServiceError from "./errors/saved-filters.service-error";
-import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+
 import * as backlogService from "../backlog/backlog.service";
 import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
+import { UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
+import * as savedFilterServiceError from "./errors/saved-filters.service-error";
+import { SavedFilter } from "./saved-filter.model";
 
 const FREE_FILTER_LIMIT = 5;
 

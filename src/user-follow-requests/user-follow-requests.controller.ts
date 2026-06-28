@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
+
+import * as activityService from "../activity/activity.service";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import { UsernameParam } from "../users/schemas/username-params.schema";
 import { RequesterIdParam } from "./schemas/requester-id-params.schema";
 import * as service from "./user-follow-requests.service";
-import * as activityService from "../activity/activity.service";
 
 export async function getIncomingRequests(
 	request: Request,

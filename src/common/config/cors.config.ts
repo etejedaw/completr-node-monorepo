@@ -1,4 +1,5 @@
 import { CorsOptions } from "cors";
+
 import { environmentConfig } from "./environment.config";
 
 function validateOrigin(

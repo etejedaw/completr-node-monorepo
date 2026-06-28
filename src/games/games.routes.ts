@@ -1,22 +1,23 @@
 import { Router } from "express";
+
 import { authMiddleware } from "../auth/auth.middleware";
-import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { RegisterGameSchema } from "./schemas/register-game.schema";
-import * as gamesController from "./games.controller";
-import { UpdateGameSchema } from "./schemas/update-game.schema";
-import { GameIdParamSchema } from "./schemas/game-id-params.schema";
-import { GameCodeParamSchema } from "./schemas/game-code-params.schema";
-import { GameSearchQuerySchema } from "./schemas/game-search-query.schema";
-import { RawgIdParamSchema } from "./schemas/rawg-id-params.schema";
-import { GamesQuerySchema } from "./schemas/games-query.schema";
-import { SplitGameSchema } from "./schemas/split-game.schema";
-import { MarkCompilationSchema } from "./schemas/mark-compilation.schema";
-import reviewsRouter from "../reviews/reviews.routes";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import {
 	publicLimiter,
 	userLimiter
 } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import reviewsRouter from "../reviews/reviews.routes";
+import * as gamesController from "./games.controller";
+import { GameCodeParamSchema } from "./schemas/game-code-params.schema";
+import { GameIdParamSchema } from "./schemas/game-id-params.schema";
+import { GameSearchQuerySchema } from "./schemas/game-search-query.schema";
+import { GamesQuerySchema } from "./schemas/games-query.schema";
+import { MarkCompilationSchema } from "./schemas/mark-compilation.schema";
+import { RawgIdParamSchema } from "./schemas/rawg-id-params.schema";
+import { RegisterGameSchema } from "./schemas/register-game.schema";
+import { SplitGameSchema } from "./schemas/split-game.schema";
+import { UpdateGameSchema } from "./schemas/update-game.schema";
 
 const router = Router();
 

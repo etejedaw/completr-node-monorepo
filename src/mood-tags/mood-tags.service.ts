@@ -1,10 +1,11 @@
 import { Op, QueryTypes } from "sequelize";
+
 import { sequelize } from "../database/sequelize.database";
-import { UserGameTag } from "./user-game-tag.model";
-import { MoodTagMeta } from "./mood-tag-meta.model";
-import { normalizeTag, normalizeTags } from "./normalize-tag.util";
 import * as gamesService from "../games/games.service";
 import * as moodTagsServiceError from "./errors/mood-tags.service-error";
+import { MoodTagMeta } from "./mood-tag-meta.model";
+import { normalizeTag, normalizeTags } from "./normalize-tag.util";
+import { UserGameTag } from "./user-game-tag.model";
 
 const MAX_TAGS_PER_GAME = 10;
 

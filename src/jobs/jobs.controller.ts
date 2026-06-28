@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
+
+import * as auditService from "../audit/audit.service";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as jobsService from "./jobs.service";
-import * as auditService from "../audit/audit.service";
 
 export async function getJobs(_request: Request, response: Response) {
 	const jobs = await jobsService.findAll();

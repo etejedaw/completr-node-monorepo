@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
-import { PlatformCodeParam } from "./schemas/platform-code-params.schema";
-import * as platformService from "./platforms.service";
-import * as platformDomainError from "./errors/platform.domain-error";
+
 import { RegisterPlatformDto } from "./dtos/register-platform.dto";
-import { platformSerializer } from "./platform.serializer";
 import { UpdatePlatformDto } from "./dtos/update-platform.dto";
+import * as platformDomainError from "./errors/platform.domain-error";
+import { platformSerializer } from "./platform.serializer";
+import * as platformService from "./platforms.service";
+import { PlatformCodeParam } from "./schemas/platform-code-params.schema";
 import { PlatformIdParam } from "./schemas/platformid-params.schema";
 
 export async function getPlatformByCode(request: Request, response: Response) {

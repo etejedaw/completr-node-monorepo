@@ -1,7 +1,8 @@
 import { Router } from "express";
-import * as changelogController from "./changelog.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+
 import { publicLimiter } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+import * as changelogController from "./changelog.controller";
 
 const router = Router();
 

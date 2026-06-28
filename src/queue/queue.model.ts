@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
-import { sequelize } from "../database/sequelize.database";
+
 import { Backlog } from "../backlog/backlog.model";
+import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 

@@ -1,5 +1,3 @@
-import { setupAssociations } from "./associations.database";
-
 import "../users/user.model";
 import "../games/game.model";
 import "../platforms/platform.model";
@@ -35,6 +33,8 @@ import "../activity/targets/activity-user.model";
 import "../audit/audit.model";
 import "../reviews/review.model";
 import "../jobs/job.model";
+
+import { setupAssociations } from "./associations.database";
 
 export async function initDatabase() {
 	setupAssociations();

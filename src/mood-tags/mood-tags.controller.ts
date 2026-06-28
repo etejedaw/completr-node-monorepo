@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
+import z from "zod";
+
 import { RequestUser } from "../common/interfaces/request-user.interface";
-import * as moodTagsService from "./mood-tags.service";
+import { CreateTagDto } from "./dtos/create-tag.dto";
 import { ReplaceTagsDto } from "./dtos/replace-tags.dto";
 import { UpdateTagDto } from "./dtos/update-tag.dto";
-import { CreateTagDto } from "./dtos/create-tag.dto";
-import z from "zod";
+import * as moodTagsService from "./mood-tags.service";
 import { GameIdParamsSchema } from "./schemas/game-id-params.schema";
 import { TagNameParamsSchema } from "./schemas/tag-name-params.schema";
 

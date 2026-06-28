@@ -1,22 +1,23 @@
 import { Transaction } from "sequelize";
-import { sequelize } from "../database/sequelize.database";
+
+import { apiKeysConfig } from "../common/config/api-keys.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { RegisterGameDto } from "./dtos/register-game.dto";
-import { Game } from "./game.model";
-import { UpdateGameDto } from "./dtos/update-game.dto";
-import * as gamesServiceError from "./errors/games.service-error";
-import * as gamePlatformsService from "../game-platform/game-platform.service";
+import { PinoLogger } from "../common/logger/pino.logger";
+import { titleToSlug } from "../common/utils/title-to-slug.util";
+import { sequelize } from "../database/sequelize.database";
+import * as gameExternalService from "../game-external/game-external.service";
 import * as gameGenresService from "../game-genre/game-genre.service";
-import * as platformsService from "../platforms/platforms.service";
-import * as genresService from "../genres/genres.service";
+import * as gamePlatformsService from "../game-platform/game-platform.service";
 import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
-import * as gameExternalService from "../game-external/game-external.service";
+import * as genresService from "../genres/genres.service";
+import * as platformsService from "../platforms/platforms.service";
 import { RawgProvider } from "../rawg/rawg.provider";
-import { apiKeysConfig } from "../common/config/api-keys.config";
-import { titleToSlug } from "../common/utils/title-to-slug.util";
+import { RegisterGameDto } from "./dtos/register-game.dto";
+import { UpdateGameDto } from "./dtos/update-game.dto";
+import * as gamesServiceError from "./errors/games.service-error";
+import { Game } from "./game.model";
 import { rawgToGameMapper } from "./mappers/rawg-to-game.mapper";
-import { PinoLogger } from "../common/logger/pino.logger";
 import {
 	buildTitleSearchWhere,
 	findGameByCode,
@@ -24,36 +25,33 @@ import {
 } from "./services/games-search.service";
 import { assertVariantConsistency } from "./services/games-variant.service";
 
-export {
-	findGameByCode,
-	findGameById,
-	findGamesByIds,
-	findActiveGameSummaries,
-	findAll,
-	findLatestReviewed,
-	searchGamesLocal,
-	rawgLookup,
-	rawgDetail,
-	rawgDetailBySlug,
-	findGamesByGenreCode
-} from "./services/games-search.service";
-
-export { splitGame } from "./services/games-variant.service";
-
-export {
-	setCompilationItems,
-	clearCompilation,
-	findCompilationItemsByParent,
-	findCompilationParentsForChild,
-	existsActiveCompilation,
-	gameBelongsToCompilation
-} from "./services/games-compilation.service";
-
 export type {
 	GamesQueryOptions,
-	SplitVariantInput,
-	SetCompilationItemInput
+	SetCompilationItemInput,
+	SplitVariantInput
 } from "./games.interface";
+export {
+	clearCompilation,
+	existsActiveCompilation,
+	findCompilationItemsByParent,
+	findCompilationParentsForChild,
+	gameBelongsToCompilation,
+	setCompilationItems
+} from "./services/games-compilation.service";
+export {
+	findActiveGameSummaries,
+	findAll,
+	findGameByCode,
+	findGameById,
+	findGamesByGenreCode,
+	findGamesByIds,
+	findLatestReviewed,
+	rawgDetail,
+	rawgDetailBySlug,
+	rawgLookup,
+	searchGamesLocal
+} from "./services/games-search.service";
+export { splitGame } from "./services/games-variant.service";
 
 const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
 const logger = new PinoLogger("GamesService");

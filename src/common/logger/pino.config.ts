@@ -1,6 +1,8 @@
-import pino from "pino";
-import path from "node:path";
 import fs from "node:fs";
+import path from "node:path";
+
+import pino from "pino";
+
 import { environmentConfig } from "../config/environment.config";
 
 const filePath = createLogDirectory();

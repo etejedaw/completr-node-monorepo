@@ -1,7 +1,8 @@
 import { Transaction } from "sequelize";
-import { GameScore } from "./game-score.model";
+
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import * as gameScoreServiceError from "./errors/game-scores.service-error";
+import { GameScore } from "./game-score.model";
 
 export async function createGameScore(
 	gameId: string,

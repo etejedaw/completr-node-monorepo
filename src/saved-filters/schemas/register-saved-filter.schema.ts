@@ -1,4 +1,5 @@
 import z from "zod";
+
 import { SORT_ORDERS, STAT_KEYS } from "../saved-filter.model";
 
 export const RegisterSavedFilterSchema = z

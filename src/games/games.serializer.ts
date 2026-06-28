@@ -1,11 +1,11 @@
+import { Backlog } from "../backlog/backlog.model";
+import { calculateRatio as calculateRatioUtil } from "../common/utils/calculate-ratio.util";
+import { CompilationItem } from "../compilation-items/compilation-item.model";
 import { GameExternal } from "../game-external/game-external.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
 import { Genre } from "../genres/genres.model";
 import { Platform } from "../platforms/platform.model";
-import { CompilationItem } from "../compilation-items/compilation-item.model";
-import { Backlog } from "../backlog/backlog.model";
-import { calculateRatio as calculateRatioUtil } from "../common/utils/calculate-ratio.util";
 import { Game } from "./game.model";
 import { EnrichedGameList } from "./games.interface";
 

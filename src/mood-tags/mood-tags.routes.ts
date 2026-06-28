@@ -1,14 +1,15 @@
 import { Router } from "express";
-import * as moodTagsController from "./mood-tags.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
-import { userLimiter } from "../common/config/rate-limiter.config";
+
 import { authMiddleware } from "../auth/auth.middleware";
+import { userLimiter } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { ReplaceTagsSchema } from "./schemas/replace-tags.schema";
+import * as moodTagsController from "./mood-tags.controller";
+import { CreateTagSchema } from "./schemas/create-tag.schema";
 import { GameIdParamsSchema } from "./schemas/game-id-params.schema";
+import { ReplaceTagsSchema } from "./schemas/replace-tags.schema";
 import { TagNameParamsSchema } from "./schemas/tag-name-params.schema";
 import { UpdateTagSchema } from "./schemas/update-tag.schema";
-import { CreateTagSchema } from "./schemas/create-tag.schema";
 
 const router = Router();
 

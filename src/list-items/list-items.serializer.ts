@@ -1,5 +1,5 @@
-import { Game } from "../games/game.model";
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
+import { Game } from "../games/game.model";
 import { ListItem } from "./list-item.model";
 
 export function listItemSerializer(item: ListItem) {

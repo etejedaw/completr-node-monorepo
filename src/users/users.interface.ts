@@ -1,9 +1,9 @@
-import { User } from "./user.model";
 import { Activity } from "../activity/activity.model";
 import { Backlog } from "../backlog/backlog.model";
 import { List } from "../lists/list.model";
 import { BacklogSummary } from "../lists/lists.service";
 import { Review } from "../reviews/review.model";
+import { User } from "./user.model";
 
 export interface RestrictedUserProfile {
 	kind: "restricted";

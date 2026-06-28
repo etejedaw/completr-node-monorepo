@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+
 import { PinoLogger } from "../logger/pino.logger";
 
 export function loggerMiddleware(

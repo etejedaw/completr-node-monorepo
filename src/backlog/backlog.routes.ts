@@ -1,13 +1,14 @@
 import { Router } from "express";
-import * as backlogController from "./backlog.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
-import { userLimiter } from "../common/config/rate-limiter.config";
+
 import { authMiddleware } from "../auth/auth.middleware";
+import { userLimiter } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { RegisterBacklogSchema } from "./schemas/register-backlog.schema";
-import { UpdateBacklogSchema } from "./schemas/update-backlog.schema";
+import * as backlogController from "./backlog.controller";
 import { BacklogIdParamsSchema } from "./schemas/backlog-id-params.schema";
 import { BacklogQuerySchema } from "./schemas/backlog-query.schema";
+import { RegisterBacklogSchema } from "./schemas/register-backlog.schema";
+import { UpdateBacklogSchema } from "./schemas/update-backlog.schema";
 
 const router = Router({ mergeParams: true });
 

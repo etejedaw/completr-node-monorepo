@@ -1,7 +1,8 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
+
+import * as userService from "../users/users.service";
 import { HeaderTokenSchema } from "./schemas";
 import * as tokenService from "./services/token.service";
-import * as userService from "../users/users.service";
 
 export async function authOptionalMiddleware(
 	request: Request,

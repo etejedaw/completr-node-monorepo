@@ -1,17 +1,18 @@
 import { Request, Response } from "express";
+
+import * as activityService from "../activity/activity.service";
 import { RequestUser } from "../common/interfaces/request-user.interface";
-import * as usersService from "../users/users.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
-import * as queueService from "./queue.service";
+import { UsernameParam } from "../users/schemas/username-params.schema";
+import * as usersService from "../users/users.service";
 import * as queueDomainError from "./errors/queue.domain-error";
-import * as activityService from "../activity/activity.service";
-import * as moodTagsService from "../mood-tags/mood-tags.service";
+import { queueSerializer } from "./queue.serializer";
+import * as queueService from "./queue.service";
 import { AddQueueBody } from "./schemas/add-queue-body.schema";
 import { AddQueueQuery } from "./schemas/add-queue-query.schema";
 import { ReplaceQueueBody } from "./schemas/replace-queue.schema";
-import { UsernameParam } from "../users/schemas/username-params.schema";
-import { queueSerializer } from "./queue.serializer";
 
 export async function postQueue(request: Request, response: Response) {
 	const body = request.locals.body as AddQueueBody;

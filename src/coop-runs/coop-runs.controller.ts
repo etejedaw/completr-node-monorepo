@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
+import z from "zod";
+
+import * as activityService from "../activity/activity.service";
 import { RequestUser } from "../common/interfaces/request-user.interface";
 import * as coopService from "./coop-runs.service";
-import * as activityService from "../activity/activity.service";
-import z from "zod";
-import { BacklogIdParamsSchema } from "./schemas/backlog-id-params.schema";
-import { MemberParamsSchema } from "./schemas/member-params.schema";
-import { CandidatesQuerySchema } from "./schemas/candidates-query.schema";
 import { AddMemberDto } from "./dtos/add-member.dto";
 import { SyncDto } from "./dtos/sync.dto";
+import { BacklogIdParamsSchema } from "./schemas/backlog-id-params.schema";
+import { CandidatesQuerySchema } from "./schemas/candidates-query.schema";
+import { MemberParamsSchema } from "./schemas/member-params.schema";
 
 type BacklogIdParams = z.infer<typeof BacklogIdParamsSchema>;
 type MemberParams = z.infer<typeof MemberParamsSchema>;

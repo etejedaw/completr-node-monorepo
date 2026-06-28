@@ -1,10 +1,11 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
+
 import { sequelize } from "../database/sequelize.database";
-import { Platform } from "../platforms/platform.model";
-import { Genre } from "../genres/genres.model";
+import { GameExternal } from "../game-external/game-external.model";
 import { GameScore } from "../game-scores/game-score.model";
 import { GameTime } from "../game-times/game-time.model";
-import { GameExternal } from "../game-external/game-external.model";
+import { Genre } from "../genres/genres.model";
+import { Platform } from "../platforms/platform.model";
 
 class Game extends Model {
 	declare id: string;

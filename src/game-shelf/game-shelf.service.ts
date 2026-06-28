@@ -1,13 +1,14 @@
 import { Op } from "sequelize";
+
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
-import { GameShelf } from "./game-shelf.model";
-import { PaginationQuery } from "../common/schemas/pagination-query.schema";
-import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as gameShelfServiceError from "./errors/game-shelf.service-error";
-import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { GameShelf } from "./game-shelf.model";
 
 const GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
 const PLATFORM_ATTRS = [

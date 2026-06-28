@@ -1,23 +1,24 @@
-import { RequestUser } from "../common/interfaces/request-user.interface";
 import { Request, Response } from "express";
-import * as backlogService from "./backlog.service";
-import * as usersService from "../users/users.service";
+
+import * as activityService from "../activity/activity.service";
+import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
+import { RequestUser } from "../common/interfaces/request-user.interface";
+import * as coopRunsService from "../coop-runs/coop-runs.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
+import * as reviewsService from "../reviews/reviews.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
+import { UsernameParam } from "../users/schemas/username-params.schema";
+import * as usersService from "../users/users.service";
+import {
+	backlogPublicSerializer,
+	backlogSerializer
+} from "./backlog.serializer";
+import * as backlogService from "./backlog.service";
 import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import { BacklogIdParams } from "./schemas/backlog-id-params.schema";
 import { BacklogQuery } from "./schemas/backlog-query.schema";
-import { UsernameParam } from "../users/schemas/username-params.schema";
-import {
-	backlogSerializer,
-	backlogPublicSerializer
-} from "./backlog.serializer";
-import * as activityService from "../activity/activity.service";
-import * as reviewsService from "../reviews/reviews.service";
-import * as moodTagsService from "../mood-tags/mood-tags.service";
-import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
-import * as coopRunsService from "../coop-runs/coop-runs.service";
 
 export async function postBacklog(request: Request, response: Response) {
 	const registerBacklog = request.locals.body as RegisterBacklogDto;

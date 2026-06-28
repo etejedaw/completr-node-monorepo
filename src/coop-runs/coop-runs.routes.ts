@@ -1,14 +1,15 @@
 import { Router } from "express";
-import * as coopController from "./coop-runs.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
-import { userLimiter } from "../common/config/rate-limiter.config";
+
 import { authMiddleware } from "../auth/auth.middleware";
+import { userLimiter } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { BacklogIdParamsSchema } from "./schemas/backlog-id-params.schema";
-import { MemberParamsSchema } from "./schemas/member-params.schema";
+import * as coopController from "./coop-runs.controller";
 import { AddMemberSchema } from "./schemas/add-member.schema";
-import { SyncSchema } from "./schemas/sync.schema";
+import { BacklogIdParamsSchema } from "./schemas/backlog-id-params.schema";
 import { CandidatesQuerySchema } from "./schemas/candidates-query.schema";
+import { MemberParamsSchema } from "./schemas/member-params.schema";
+import { SyncSchema } from "./schemas/sync.schema";
 
 const router = Router();
 

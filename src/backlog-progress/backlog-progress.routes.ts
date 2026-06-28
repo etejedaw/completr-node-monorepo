@@ -1,9 +1,10 @@
 import { Router } from "express";
-import * as backlogProgressController from "./backlog-progress.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
-import { userLimiter } from "../common/config/rate-limiter.config";
+
 import { authMiddleware } from "../auth/auth.middleware";
+import { userLimiter } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import * as backlogProgressController from "./backlog-progress.controller";
 import { AddProgressSchema } from "./schemas/add-progress.schema";
 import { BacklogIdParamsSchema } from "./schemas/backlog-id-params.schema";
 import { NoteIdParamsSchema } from "./schemas/note-id-params.schema";

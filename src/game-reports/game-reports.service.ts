@@ -1,9 +1,9 @@
-import { GameReport, ReportCategory } from "./game-report.model";
-import { Game } from "../games/game.model";
-import { User } from "../users/user.model";
-import * as gamesService from "../games/games.service";
-import * as gameReportsServiceError from "./errors/game-reports.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { Game } from "../games/game.model";
+import * as gamesService from "../games/games.service";
+import { User } from "../users/user.model";
+import * as gameReportsServiceError from "./errors/game-reports.service-error";
+import { GameReport, ReportCategory } from "./game-report.model";
 
 export async function createReport(
 	gameId: string,
