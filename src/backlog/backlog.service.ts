@@ -321,7 +321,7 @@ function toHighlight(
 	entry: Backlog | null,
 	value: number | null
 ): BacklogHighlight | null {
-	if (!entry || value == null) return null;
+	if (!entry || value === null) return null;
 	return {
 		backlogId: entry.id,
 		game: {
@@ -423,7 +423,8 @@ export async function computeBacklogStats(
 
 	const bestPersonalRatioValue =
 		bestRatioEntry &&
-		bestRatioEntry.score != null &&
+		bestRatioEntry.score !== null &&
+		bestRatioEntry.score !== undefined &&
 		bestRatioEntry.realDuration
 			? bestRatioEntry.score / bestRatioEntry.realDuration
 			: null;
@@ -619,15 +620,17 @@ export async function findHighlightsByUserId(
 	let highestRated: Backlog | null = null;
 	for (const entry of monthEntries) {
 		if (
-			entry.realDuration != null &&
-			(mostPlayed == null ||
+			entry.realDuration !== null &&
+			entry.realDuration !== undefined &&
+			(mostPlayed === null ||
 				(mostPlayed.realDuration ?? 0) < entry.realDuration)
 		) {
 			mostPlayed = entry;
 		}
 		if (
-			entry.userRating != null &&
-			(highestRated == null ||
+			entry.userRating !== null &&
+			entry.userRating !== undefined &&
+			(highestRated === null ||
 				(highestRated.userRating ?? 0) < entry.userRating)
 		) {
 			highestRated = entry;
