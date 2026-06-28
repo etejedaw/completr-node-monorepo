@@ -1,8 +1,8 @@
 import * as rawgServiceError from "./errors/rawg.service-error";
 import {
-	RawgGameDetail,
-	RawgGameSearchResult,
-	RawgSearchFilters
+	type RawgGameDetail,
+	type RawgGameSearchResult,
+	type RawgSearchFilters
 } from "./rawg.interface";
 
 export class RawgProvider {

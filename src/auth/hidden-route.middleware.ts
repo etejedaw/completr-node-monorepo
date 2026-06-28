@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from "express";
+import { type NextFunction, type Request, type Response } from "express";
 
-import { UserRole } from "../users/user-role.type";
+import { type UserRole } from "../users/user-role.type";
 import * as userService from "../users/users.service";
 import * as authDomainsErrors from "./errors/auth.domains-error";
 import { HeaderTokenSchema } from "./schemas";

@@ -3,9 +3,9 @@ import {
 	fn,
 	literal,
 	Op,
-	Order,
+	type Order,
 	QueryTypes,
-	Transaction
+	type Transaction
 } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
@@ -17,10 +17,10 @@ import { Queue } from "../queue/queue.model";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
 import { Backlog } from "./backlog.model";
-import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
-import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
+import { type RegisterBacklogDto } from "./dtos/register-backlog.dto";
+import { type UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import * as backlogServiceError from "./errors/backlog.service-error";
-import { BacklogQuery } from "./schemas/backlog-query.schema";
+import { type BacklogQuery } from "./schemas/backlog-query.schema";
 import { buildBacklogWhere } from "./utils/build-backlog-where.util";
 
 const BACKLOG_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];

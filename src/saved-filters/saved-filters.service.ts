@@ -3,9 +3,9 @@ import { Op } from "sequelize";
 import * as backlogService from "../backlog/backlog.service";
 import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
-import { RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
-import { UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
+import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { type RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
+import { type UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
 import * as savedFilterServiceError from "./errors/saved-filters.service-error";
 import { SavedFilter } from "./saved-filter.model";
 

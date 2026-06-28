@@ -1,5 +1,5 @@
-import z from "zod";
+import type z from "zod";
 
-import { ReplaceFavoritesSchema } from "../schemas/replace-favorites.schema";
+import { type ReplaceFavoritesSchema } from "../schemas/replace-favorites.schema";
 
 export type ReplaceFavoritesDto = z.infer<typeof ReplaceFavoritesSchema>;

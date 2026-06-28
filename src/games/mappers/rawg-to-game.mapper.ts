@@ -1,7 +1,7 @@
-import { TimeSource } from "../../game-times/game-time.model";
-import { RawgGameDetail } from "../../rawg/rawg.interface";
-import { ScoreSourceCode } from "../../score-sources/score-source.constants";
-import { RegisterGameDto } from "../dtos/register-game.dto";
+import { type TimeSource } from "../../game-times/game-time.model";
+import { type RawgGameDetail } from "../../rawg/rawg.interface";
+import { type ScoreSourceCode } from "../../score-sources/score-source.constants";
+import { type RegisterGameDto } from "../dtos/register-game.dto";
 import { mapRawgGenreSlugs } from "./rawg-genre.map";
 import { mapRawgPlatformSlugs } from "./rawg-platform.map";
 import { mapRawgTagSlugsToGenres } from "./rawg-tag-genre.map";

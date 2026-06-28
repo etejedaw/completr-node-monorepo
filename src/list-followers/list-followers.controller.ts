@@ -1,12 +1,12 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
-import { RequestUser } from "../common/interfaces/request-user.interface";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { listSummarySerializer } from "../lists/lists.serializer";
 import * as listsService from "../lists/lists.service";
-import { ListIdParams } from "../lists/schemas/list-id-params.schema";
+import { type ListIdParams } from "../lists/schemas/list-id-params.schema";
 import * as listFollowersService from "./list-followers.service";
-import { UpdateFollowVisibilityBody } from "./schemas/update-follow-visibility.schema";
+import { type UpdateFollowVisibilityBody } from "./schemas/update-follow-visibility.schema";
 
 export async function postFollow(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;

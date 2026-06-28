@@ -1,12 +1,12 @@
 import { Op } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
-import { PaginationQuery } from "../common/schemas/pagination-query.schema";
+import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
-import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
-import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
+import { type RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
+import { type UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import * as gameShelfServiceError from "./errors/game-shelf.service-error";
 import { GameShelf } from "./game-shelf.model";
 

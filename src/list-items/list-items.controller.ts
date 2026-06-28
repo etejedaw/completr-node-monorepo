@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { ListIdParams } from "../lists/schemas/list-id-params.schema";
-import { ReplaceListItemsDto } from "./dtos/replace-list-items.dto";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type ListIdParams } from "../lists/schemas/list-id-params.schema";
+import { type ReplaceListItemsDto } from "./dtos/replace-list-items.dto";
 import { listItemSerializer } from "./list-items.serializer";
 import * as listItemsService from "./list-items.service";
 

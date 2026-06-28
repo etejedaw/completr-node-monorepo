@@ -1,8 +1,11 @@
-import { Op, Order } from "sequelize";
+import { Op, type Order } from "sequelize";
 
 import { buildRangeWhere } from "../../common/utils/sequelize-range.util";
 import { sequelize } from "../../database/sequelize.database";
-import { GamesCompilationFlags, GamesStatusFilters } from "../games.interface";
+import {
+	type GamesCompilationFlags,
+	type GamesStatusFilters
+} from "../games.interface";
 
 export function buildActiveFlagWhere(
 	status: GamesStatusFilters | undefined

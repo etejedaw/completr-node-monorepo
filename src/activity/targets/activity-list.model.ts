@@ -1,7 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../../database/sequelize.database";
-import { List } from "../../lists/list.model";
+import { type List } from "../../lists/list.model";
 
 class ActivityList extends Model {
 	declare id: string;

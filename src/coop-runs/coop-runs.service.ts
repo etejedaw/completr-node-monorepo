@@ -6,7 +6,7 @@ import { UserFollower } from "../user-followers/user-follower.model";
 import { canView } from "../users/helpers/visibility.helper";
 import { User } from "../users/user.model";
 import { CoopRun } from "./coop-run.model";
-import { SyncDto } from "./dtos/sync.dto";
+import { type SyncDto } from "./dtos/sync.dto";
 import * as coopServiceError from "./errors/coop-runs.service-error";
 
 type SyncableField = "status" | "startedAt" | "finishedAt" | "realDuration";

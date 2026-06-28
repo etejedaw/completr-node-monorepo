@@ -2,7 +2,7 @@ import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
 import { TIME_SOURCES } from "../game-times/game-time.model";
-import { ListItem } from "../list-items/list-item.model";
+import { type ListItem } from "../list-items/list-item.model";
 import { SCORE_SOURCES } from "../score-sources/score-source.constants";
 
 class List extends Model {

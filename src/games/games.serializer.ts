@@ -1,13 +1,13 @@
-import { Backlog } from "../backlog/backlog.model";
+import { type Backlog } from "../backlog/backlog.model";
 import { calculateRatio as calculateRatioUtil } from "../common/utils/calculate-ratio.util";
-import { CompilationItem } from "../compilation-items/compilation-item.model";
-import { GameExternal } from "../game-external/game-external.model";
-import { GameScore } from "../game-scores/game-score.model";
-import { GameTime } from "../game-times/game-time.model";
-import { Genre } from "../genres/genres.model";
-import { Platform } from "../platforms/platform.model";
-import { Game } from "./game.model";
-import { EnrichedGameList } from "./games.interface";
+import { type CompilationItem } from "../compilation-items/compilation-item.model";
+import { type GameExternal } from "../game-external/game-external.model";
+import { type GameScore } from "../game-scores/game-score.model";
+import { type GameTime } from "../game-times/game-time.model";
+import { type Genre } from "../genres/genres.model";
+import { type Platform } from "../platforms/platform.model";
+import { type Game } from "./game.model";
+import { type EnrichedGameList } from "./games.interface";
 
 export function gameListSerializer(
 	game: Game,

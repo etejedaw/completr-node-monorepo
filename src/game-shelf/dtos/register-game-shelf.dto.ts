@@ -1,5 +1,5 @@
-import z from "zod";
+import type z from "zod";
 
-import { RegisterGameShelfSchema } from "../schemas/register-game-shelf.schema";
+import { type RegisterGameShelfSchema } from "../schemas/register-game-shelf.schema";
 
 export type RegisterGameShelfDto = z.infer<typeof RegisterGameShelfSchema>;

@@ -5,7 +5,7 @@ import {
 	buildRangeWhere
 } from "../../common/utils/sequelize-range.util";
 import { sequelize } from "../../database/sequelize.database";
-import { BacklogQuery } from "../schemas/backlog-query.schema";
+import { type BacklogQuery } from "../schemas/backlog-query.schema";
 
 export function buildBacklogWhere(
 	base: Record<string, unknown>,

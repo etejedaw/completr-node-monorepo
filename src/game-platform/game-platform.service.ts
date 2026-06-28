@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { type Transaction } from "sequelize";
 
 import { GamePlatform } from "./game-platform.model";
 

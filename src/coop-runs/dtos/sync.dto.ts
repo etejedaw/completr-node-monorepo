@@ -1,5 +1,5 @@
-import z from "zod";
+import type z from "zod";
 
-import { SyncSchema } from "../schemas/sync.schema";
+import { type SyncSchema } from "../schemas/sync.schema";
 
 export type SyncDto = z.infer<typeof SyncSchema>;

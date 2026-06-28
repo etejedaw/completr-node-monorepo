@@ -1,15 +1,15 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
-import { RequestUser } from "../common/interfaces/request-user.interface";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
-import { UsernameParam } from "../users/schemas/username-params.schema";
+import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
-import { AddWishlistBody } from "./schemas/add-wishlist.schema";
-import { ReplaceWishlistBody } from "./schemas/replace-wishlist.schema";
-import { WishlistGameParams } from "./schemas/wishlist-game-params.schema";
+import { type AddWishlistBody } from "./schemas/add-wishlist.schema";
+import { type ReplaceWishlistBody } from "./schemas/replace-wishlist.schema";
+import { type WishlistGameParams } from "./schemas/wishlist-game-params.schema";
 import { wishlistSerializer } from "./wishlist.serializer";
 import * as wishlistService from "./wishlist.service";
 

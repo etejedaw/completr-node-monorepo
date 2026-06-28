@@ -1,5 +1,5 @@
-import { GamesQueryOptions } from "../games.interface";
-import { GamesQuery } from "../schemas/games-query.schema";
+import { type GamesQueryOptions } from "../games.interface";
+import { type GamesQuery } from "../schemas/games-query.schema";
 
 export function mapGamesQueryToOptions(query: GamesQuery): GamesQueryOptions {
 	return {

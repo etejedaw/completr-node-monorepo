@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import * as gameScoreServiceError from "./errors/game-scores.service-error";

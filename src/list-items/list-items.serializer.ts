@@ -1,6 +1,6 @@
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
-import { Game } from "../games/game.model";
-import { ListItem } from "./list-item.model";
+import { type Game } from "../games/game.model";
+import { type ListItem } from "./list-item.model";
 
 export function listItemSerializer(item: ListItem) {
 	return {

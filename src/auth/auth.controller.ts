@@ -1,12 +1,12 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
-import { RequestUser } from "../common/interfaces/request-user.interface";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { userMeSerializer } from "../users";
 import * as authService from "./auth.service";
-import { LoginDto, RegisterDto } from "./dtos";
+import { type LoginDto, type RegisterDto } from "./dtos";
 import * as authDomainError from "./errors/auth.domains-error";
-import { ChangePassword } from "./schemas";
-import { RefreshTokenBody } from "./schemas/refresh-token.schema";
+import { type ChangePassword } from "./schemas";
+import { type RefreshTokenBody } from "./schemas/refresh-token.schema";
 import {
 	clearRefreshCookie,
 	REFRESH_COOKIE_NAME,

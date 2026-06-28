@@ -1,14 +1,14 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { GameIdParam } from "../games/schemas/game-id-params.schema";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type GameIdParam } from "../games/schemas/game-id-params.schema";
 import * as reviewsServiceError from "./errors/reviews.service-error";
 import { reviewSerializer } from "./reviews.serializer";
 import * as reviewsService from "./reviews.service";
-import { CreateReviewDto } from "./schemas/create-review.schema";
-import { UpdateReviewDto } from "./schemas/update-review.schema";
+import { type CreateReviewDto } from "./schemas/create-review.schema";
+import { type UpdateReviewDto } from "./schemas/update-review.schema";
 
 export async function postReview(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;

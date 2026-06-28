@@ -1,14 +1,14 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { SearchQuery } from "../common/schemas/search-query.schema";
-import { RegisterListDto } from "./dtos/register-list.dto";
-import { UpdateListDto } from "./dtos/update-list.dto";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type SearchQuery } from "../common/schemas/search-query.schema";
+import { type RegisterListDto } from "./dtos/register-list.dto";
+import { type UpdateListDto } from "./dtos/update-list.dto";
 import * as listDomainError from "./errors/lists.domain-error";
 import { listSerializer, listSummarySerializer } from "./lists.serializer";
 import * as listsService from "./lists.service";
-import { ListIdParams } from "./schemas/list-id-params.schema";
+import { type ListIdParams } from "./schemas/list-id-params.schema";
 
 export async function postList(request: Request, response: Response) {
 	const registerList = request.locals.body as RegisterListDto;

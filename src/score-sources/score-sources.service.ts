@@ -1,5 +1,5 @@
 import { ScoreSource } from "./score-source.model";
-import { RegisterScoreSourceDto } from "./score-sources.schema";
+import { type RegisterScoreSourceDto } from "./score-sources.schema";
 
 export async function findAll() {
 	return ScoreSource.findAll({ order: [["name", "ASC"]] });

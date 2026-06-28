@@ -1,14 +1,14 @@
 import { Op } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
-import { RequestUser } from "../common/interfaces/request-user.interface";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { Game } from "../games/game.model";
 import { ListFollower } from "../list-followers/list-follower.model";
 import { ListItem } from "../list-items/list-item.model";
 import { User } from "../users/user.model";
-import { RegisterListDto } from "./dtos/register-list.dto";
-import { UpdateListDto } from "./dtos/update-list.dto";
+import { type RegisterListDto } from "./dtos/register-list.dto";
+import { type UpdateListDto } from "./dtos/update-list.dto";
 import * as listsServiceError from "./errors/lists.service-error";
 import { List } from "./list.model";
 

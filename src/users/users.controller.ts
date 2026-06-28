@@ -1,17 +1,17 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { PaginationQuery } from "../common/schemas/pagination-query.schema";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import {
 	listSerializer,
 	listSummarySerializer
 } from "../lists/lists.serializer";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
-import { UpdateUserDto } from "./dtos";
+import { type UpdateUserDto } from "./dtos";
 import * as userDomain from "./errors/users.domain-error";
-import { HighlightsQuery, UsernameParam } from "./schemas";
-import { UserDiscoverQuery } from "./schemas/user-discover-query.schema";
-import { UserSearchQuery } from "./schemas/user-search-query.schema";
+import { type HighlightsQuery, type UsernameParam } from "./schemas";
+import { type UserDiscoverQuery } from "./schemas/user-discover-query.schema";
+import { type UserSearchQuery } from "./schemas/user-search-query.schema";
 import {
 	enrichedUserListSerializer,
 	fullProfileSerializer,

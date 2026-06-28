@@ -1,12 +1,12 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
 import * as auditService from "../audit/audit.service";
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { GameIdParam } from "../games/schemas/game-id-params.schema";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type GameIdParam } from "../games/schemas/game-id-params.schema";
 import * as gameReportsService from "./game-reports.service";
-import { CreateReportBody } from "./schemas/create-report.schema";
-import { ReportIdParams } from "./schemas/report-id-params.schema";
-import { UpdateReportStatusBody } from "./schemas/update-report-status.schema";
+import { type CreateReportBody } from "./schemas/create-report.schema";
+import { type ReportIdParams } from "./schemas/report-id-params.schema";
+import { type UpdateReportStatusBody } from "./schemas/update-report-status.schema";
 
 export async function postReport(request: Request, response: Response) {
 	const { id: gameId } = request.locals.params as GameIdParam;

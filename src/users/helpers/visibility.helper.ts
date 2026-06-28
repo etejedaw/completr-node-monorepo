@@ -1,6 +1,6 @@
 import * as userFollowersService from "../../user-followers/user-followers.service";
-import { VisibilitySection } from "../constants/visibility.constants";
-import { User } from "../user.model";
+import { type VisibilitySection } from "../constants/visibility.constants";
+import { type User } from "../user.model";
 
 const SECTION_TO_FIELD: Record<VisibilitySection, keyof User> = {
 	profile: "profileVisibility",

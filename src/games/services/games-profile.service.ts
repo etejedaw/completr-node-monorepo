@@ -1,7 +1,10 @@
 import * as backlogService from "../../backlog/backlog.service";
 import * as listsService from "../../lists/lists.service";
 import * as userFollowersService from "../../user-followers/user-followers.service";
-import { EnrichedGameList, GameListsBundle } from "../games.interface";
+import {
+	type EnrichedGameList,
+	type GameListsBundle
+} from "../games.interface";
 
 export async function getListsForGame(
 	viewerId: string,

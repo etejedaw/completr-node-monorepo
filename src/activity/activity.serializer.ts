@@ -1,5 +1,5 @@
-import { User } from "../users/user.model";
-import { Activity } from "./activity.model";
+import { type User } from "../users/user.model";
+import { type Activity } from "./activity.model";
 
 export function activitySerializer(activity: Activity) {
 	const target = resolveTarget(activity);

@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { type Response } from "express";
 
 import { environmentConfig } from "../../common/config/environment.config";
 

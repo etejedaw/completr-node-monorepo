@@ -1,5 +1,5 @@
-import z from "zod";
+import type z from "zod";
 
-import { UpdateSavedFilterSchema } from "../schemas/update-saved-filter.schema";
+import { type UpdateSavedFilterSchema } from "../schemas/update-saved-filter.schema";
 
 export type UpdateSavedFilterDto = z.infer<typeof UpdateSavedFilterSchema>;

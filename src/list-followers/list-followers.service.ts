@@ -1,5 +1,5 @@
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { PaginationQuery } from "../common/schemas/pagination-query.schema";
+import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { Game } from "../games/game.model";
 import { ListItem } from "../list-items/list-item.model";
 import { List } from "../lists/list.model";

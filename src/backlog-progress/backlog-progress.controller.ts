@@ -1,12 +1,12 @@
-import { Request, Response } from "express";
-import z from "zod";
+import { type Request, type Response } from "express";
+import type z from "zod";
 
-import { RequestUser } from "../common/interfaces/request-user.interface";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { backlogProgressSerializer } from "./backlog-progress.serializer";
 import * as backlogProgressService from "./backlog-progress.service";
-import { AddProgressDto } from "./dtos/add-progress.dto";
-import { BacklogIdParamsSchema } from "./schemas/backlog-id-params.schema";
-import { NoteIdParamsSchema } from "./schemas/note-id-params.schema";
+import { type AddProgressDto } from "./dtos/add-progress.dto";
+import { type BacklogIdParamsSchema } from "./schemas/backlog-id-params.schema";
+import { type NoteIdParamsSchema } from "./schemas/note-id-params.schema";
 
 type BacklogIdParams = z.infer<typeof BacklogIdParamsSchema>;
 type NoteIdParams = z.infer<typeof NoteIdParamsSchema>;

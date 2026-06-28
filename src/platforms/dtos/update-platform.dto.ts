@@ -1,5 +1,5 @@
-import z from "zod";
+import type z from "zod";
 
-import { UpdatePlatformSchema } from "../schemas/update-platform.schema";
+import { type UpdatePlatformSchema } from "../schemas/update-platform.schema";
 
 export type UpdatePlatformDto = z.infer<typeof UpdatePlatformSchema>;

@@ -1,10 +1,10 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
 import * as auditService from "../audit/audit.service";
-import { RequestUser } from "../common/interfaces/request-user.interface";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
-import { RegisterGameDto } from "./dtos/register-game.dto";
-import { UpdateGameDto } from "./dtos/update-game.dto";
+import { type RegisterGameDto } from "./dtos/register-game.dto";
+import { type UpdateGameDto } from "./dtos/update-game.dto";
 import * as gameDomainError from "./errors/games.domain-error";
 import {
 	compilationItemSerializer,
@@ -15,11 +15,11 @@ import {
 	gameSerializer
 } from "./games.serializer";
 import * as gameService from "./games.service";
-import { GameCodeParam } from "./schemas/game-code-params.schema";
-import { GameIdParam } from "./schemas/game-id-params.schema";
-import { GameSearchQuery } from "./schemas/game-search-query.schema";
-import { GamesQuery } from "./schemas/games-query.schema";
-import { RawgIdParam } from "./schemas/rawg-id-params.schema";
+import { type GameCodeParam } from "./schemas/game-code-params.schema";
+import { type GameIdParam } from "./schemas/game-id-params.schema";
+import { type GameSearchQuery } from "./schemas/game-search-query.schema";
+import { type GamesQuery } from "./schemas/games-query.schema";
+import { type RawgIdParam } from "./schemas/rawg-id-params.schema";
 import * as gamesProfileService from "./services/games-profile.service";
 import { mapGamesQueryToOptions } from "./utils/games-query.adapter";
 

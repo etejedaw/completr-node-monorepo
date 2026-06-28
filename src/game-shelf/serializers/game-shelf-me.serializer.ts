@@ -1,6 +1,6 @@
-import { Game } from "../../games/game.model";
-import { Platform } from "../../platforms/platform.model";
-import { GameShelf } from "../game-shelf.model";
+import { type Game } from "../../games/game.model";
+import { type Platform } from "../../platforms/platform.model";
+import { type GameShelf } from "../game-shelf.model";
 
 export function gameShelfMeSerializer(
 	gameShelf: GameShelf,

@@ -5,7 +5,7 @@ import { List } from "../lists/list.model";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
-import { Activity, ActivityType } from "./activity.model";
+import { Activity, type ActivityType } from "./activity.model";
 import { ActivityGame } from "./targets/activity-game.model";
 import { ActivityList } from "./targets/activity-list.model";
 import { ActivityUser } from "./targets/activity-user.model";

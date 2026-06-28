@@ -1,4 +1,4 @@
-import { Request } from "express";
+import { type Request } from "express";
 
 import { authDomainToHttpMapper } from "../../auth/errors/auth.domain-to-http.mapper";
 import { backlogDomainToHttpMapper } from "../../backlog/errors/backlog.domain-to-http.mapper";
@@ -24,7 +24,7 @@ import { userFollowersDomainToHttpMapper } from "../../user-followers/errors/use
 import { usersDomainToHttpMapper } from "../../users/errors/users.domain-to-http.mapper";
 import { wishlistDomainToHttpMapper } from "../../wishlist/errors/wishlist.domain-to-http.mapper";
 import { commonDomainToHttpMapper } from "./common.domain-to-http.mapper";
-import { DomainError } from "./domain-error";
+import { type DomainError } from "./domain-error";
 import { HttpError } from "./http-error";
 
 export function globalErrorHttpNormalizer(

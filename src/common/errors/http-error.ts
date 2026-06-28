@@ -1,4 +1,4 @@
-import { ValidationIssue } from "./domain-error";
+import { type ValidationIssue } from "./domain-error";
 
 export class HttpError extends Error {
 	readonly type: string;

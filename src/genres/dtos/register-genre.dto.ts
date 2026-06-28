@@ -1,5 +1,5 @@
-import z from "zod";
+import type z from "zod";
 
-import { RegisterGenreSchema } from "../schemas/register-genre.schema";
+import { type RegisterGenreSchema } from "../schemas/register-genre.schema";
 
 export type RegisterGenreDto = z.infer<typeof RegisterGenreSchema>;

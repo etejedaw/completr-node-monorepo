@@ -1,4 +1,4 @@
-import { GameShelf } from "../game-shelf.model";
+import { type GameShelf } from "../game-shelf.model";
 
 export function gameShelfSerializerTiny(gameShelf: GameShelf) {
 	return {

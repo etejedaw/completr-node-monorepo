@@ -1,11 +1,11 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
-import { UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
+import { type UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
 import { savedFilterSerializer } from "./saved-filters.serializer";
 import * as savedFiltersService from "./saved-filters.service";
-import { SavedFilterIdParams } from "./schemas/saved-filter-id-params.schema";
+import { type SavedFilterIdParams } from "./schemas/saved-filter-id-params.schema";
 
 export async function postSavedFilter(request: Request, response: Response) {
 	const registerSavedFilter = request.locals.body as RegisterSavedFilterDto;

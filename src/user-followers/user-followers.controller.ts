@@ -1,9 +1,9 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
-import { RequestUser } from "../common/interfaces/request-user.interface";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
-import { UsernameParam } from "../users/schemas/username-params.schema";
+import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as userFollowersService from "./user-followers.service";
 
 export async function postFollow(request: Request, response: Response) {

@@ -1,9 +1,9 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { UsernameParam } from "../users/schemas/username-params.schema";
-import { RequesterIdParam } from "./schemas/requester-id-params.schema";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type UsernameParam } from "../users/schemas/username-params.schema";
+import { type RequesterIdParam } from "./schemas/requester-id-params.schema";
 import * as service from "./user-follow-requests.service";
 
 export async function getIncomingRequests(

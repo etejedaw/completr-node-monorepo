@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { type Transaction } from "sequelize";
 
 import { apiKeysConfig } from "../common/config/api-keys.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
@@ -13,8 +13,8 @@ import * as gameTimesService from "../game-times/game-times.service";
 import * as genresService from "../genres/genres.service";
 import * as platformsService from "../platforms/platforms.service";
 import { RawgProvider } from "../rawg/rawg.provider";
-import { RegisterGameDto } from "./dtos/register-game.dto";
-import { UpdateGameDto } from "./dtos/update-game.dto";
+import { type RegisterGameDto } from "./dtos/register-game.dto";
+import { type UpdateGameDto } from "./dtos/update-game.dto";
 import * as gamesServiceError from "./errors/games.service-error";
 import { Game } from "./game.model";
 import { rawgToGameMapper } from "./mappers/rawg-to-game.mapper";

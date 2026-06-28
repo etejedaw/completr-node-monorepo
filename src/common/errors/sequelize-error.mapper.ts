@@ -1,6 +1,6 @@
 import { UniqueConstraintError, ValidationError } from "sequelize";
 
-import { ServiceError } from "./service-error";
+import { type ServiceError } from "./service-error";
 
 export interface SequelizeErrorMappers {
 	unique?: (rawError: unknown) => ServiceError;

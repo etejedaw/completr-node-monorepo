@@ -1,7 +1,7 @@
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
-import { RegisterPlatformDto } from "./dtos/register-platform.dto";
-import { UpdatePlatformDto } from "./dtos/update-platform.dto";
+import { type RegisterPlatformDto } from "./dtos/register-platform.dto";
+import { type UpdatePlatformDto } from "./dtos/update-platform.dto";
 import * as platformServiceError from "./errors/platforms.service-error";
 import { Platform } from "./platform.model";
 

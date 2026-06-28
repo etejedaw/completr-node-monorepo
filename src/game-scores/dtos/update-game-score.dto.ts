@@ -1,5 +1,5 @@
-import z from "zod";
+import type z from "zod";
 
-import { UpdateGameScoreSchema } from "../schemas/update-game-score.schema";
+import { type UpdateGameScoreSchema } from "../schemas/update-game-score.schema";
 
 export type UpdateGameScoreDto = z.infer<typeof UpdateGameScoreSchema>;

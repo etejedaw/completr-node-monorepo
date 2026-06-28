@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { Game } from "../games/game.model";
 import * as favoritesServiceError from "./errors/favorites.service-error";
 import { Favorite } from "./favorite.model";

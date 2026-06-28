@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../../common/errors/sequelize-error.mapper";
 import { titleToSlug } from "../../common/utils/title-to-slug.util";
@@ -7,11 +7,11 @@ import { GameExternal } from "../../game-external/game-external.model";
 import * as gameGenresService from "../../game-genre/game-genre.service";
 import * as gamePlatformsService from "../../game-platform/game-platform.service";
 import * as gameScoresService from "../../game-scores/game-scores.service";
-import { TimeSource } from "../../game-times/game-time.model";
+import { type TimeSource } from "../../game-times/game-time.model";
 import * as gameTimesService from "../../game-times/game-times.service";
 import * as gamesServiceError from "../errors/games.service-error";
 import { Game } from "../game.model";
-import { SplitVariantInput } from "../games.interface";
+import { type SplitVariantInput } from "../games.interface";
 import { findGameById } from "./games-search.service";
 
 export async function assertVariantConsistency(

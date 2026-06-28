@@ -1,5 +1,5 @@
 import * as userService from "../users/users.service";
-import { LoginDto, RegisterDto } from "./dtos";
+import { type LoginDto, type RegisterDto } from "./dtos";
 import * as authDomainError from "./errors/auth.domains-error";
 import * as passwordService from "./services/password.service";
 import * as tokenService from "./services/token.service";

@@ -1,5 +1,5 @@
-import z from "zod";
+import type z from "zod";
 
-import { UpdateTagSchema } from "../schemas/update-tag.schema";
+import { type UpdateTagSchema } from "../schemas/update-tag.schema";
 
 export type UpdateTagDto = z.infer<typeof UpdateTagSchema>;
