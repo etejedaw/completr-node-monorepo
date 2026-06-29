@@ -1,7 +1,13 @@
-import { Op, WhereOptions, fn, col, where as whereFn } from "sequelize";
+import { col, fn, Op, where as whereFn, type WhereOptions } from "sequelize";
+
+import { apiKeysConfig } from "../../common/config/api-keys.config";
 import { sequelize } from "../../database/sequelize.database";
+import { type RawgGameDetail } from "../../rawg/rawg.interface";
+import { RawgProvider } from "../../rawg/rawg.provider";
+import * as reviewsService from "../../reviews/reviews.service";
 import { Game } from "../game.model";
-import { GamesFilters, GamesQueryOptions } from "../games.interface";
+import { type GamesFilters, type GamesQueryOptions } from "../games.interface";
+import { rawgToGameMapper } from "../mappers/rawg-to-game.mapper";
 import {
 	buildActiveFlagWhere,
 	buildAggregateCondition,
@@ -13,11 +19,6 @@ import {
 	buildReleaseDateRangeWhere,
 	buildSourceExclusionCondition
 } from "../utils/search-filters.util";
-import * as reviewsService from "../../reviews/reviews.service";
-import { RawgProvider } from "../../rawg/rawg.provider";
-import { RawgGameDetail } from "../../rawg/rawg.interface";
-import { apiKeysConfig } from "../../common/config/api-keys.config";
-import { rawgToGameMapper } from "../mappers/rawg-to-game.mapper";
 
 const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
 

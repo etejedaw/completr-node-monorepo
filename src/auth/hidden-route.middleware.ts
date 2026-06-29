@@ -1,9 +1,10 @@
-import { Request, Response, NextFunction } from "express";
-import { HeaderTokenSchema } from "./schemas";
-import * as tokenService from "./services/token.service";
+import { type NextFunction, type Request, type Response } from "express";
+
+import { type UserRole } from "../users/user-role.type";
 import * as userService from "../users/users.service";
 import * as authDomainsErrors from "./errors/auth.domains-error";
-import { UserRole } from "../users/user-role.type";
+import { HeaderTokenSchema } from "./schemas";
+import * as tokenService from "./services/token.service";
 
 export function hiddenRouteMiddleware(...roles: UserRole[]) {
 	return async (

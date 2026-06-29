@@ -1,8 +1,9 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
+
+import { type Backlog } from "../backlog/backlog.model";
 import { sequelize } from "../database/sequelize.database";
-import { Backlog } from "../backlog/backlog.model";
-import { Game } from "../games/game.model";
-import { Platform } from "../platforms/platform.model";
+import { type Game } from "../games/game.model";
+import { type Platform } from "../platforms/platform.model";
 
 interface BacklogWithIncludes extends Backlog {
 	Game: Game;

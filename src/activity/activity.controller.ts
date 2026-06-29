@@ -1,7 +1,8 @@
-import { Request, Response } from "express";
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import * as activityService from "./activity.service";
+import { type Request, type Response } from "express";
+
+import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { activitySerializer } from "./activity.serializer";
+import * as activityService from "./activity.service";
 
 export async function getFeed(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;

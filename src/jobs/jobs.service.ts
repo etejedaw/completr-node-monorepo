@@ -1,16 +1,17 @@
 import { Op } from "sequelize";
-import { Job } from "./job.model";
-import * as gamesService from "../games/games.service";
+
+import * as backlogService from "../backlog/backlog.service";
+import { apiKeysConfig } from "../common/config/api-keys.config";
+import * as coopRunsService from "../coop-runs/coop-runs.service";
 import * as gameExternalService from "../game-external/game-external.service";
+import * as gamePopularityService from "../game-popularity/game-popularity.service";
 import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
-import * as reviewsService from "../reviews/reviews.service";
-import * as backlogService from "../backlog/backlog.service";
-import * as usersService from "../users/users.service";
-import * as gamePopularityService from "../game-popularity/game-popularity.service";
-import * as coopRunsService from "../coop-runs/coop-runs.service";
+import * as gamesService from "../games/games.service";
 import { RawgProvider } from "../rawg/rawg.provider";
-import { apiKeysConfig } from "../common/config/api-keys.config";
+import * as reviewsService from "../reviews/reviews.service";
+import * as usersService from "../users/users.service";
+import { Job } from "./job.model";
 
 const MIN_THRESHOLD_PERCENT = 0.1;
 

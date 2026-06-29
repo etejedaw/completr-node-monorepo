@@ -1,25 +1,26 @@
 import {
-	Op,
-	Order,
-	literal,
-	QueryTypes,
-	Transaction,
+	col,
 	fn,
-	col
+	literal,
+	Op,
+	type Order,
+	QueryTypes,
+	type Transaction
 } from "sequelize";
+
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
-import { Platform } from "../platforms/platform.model";
-import { User } from "../users/user.model";
-import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
-import { Backlog } from "./backlog.model";
-import { Queue } from "../queue/queue.model";
 import * as gamesService from "../games/games.service";
-import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
-import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
-import { BacklogQuery } from "./schemas/backlog-query.schema";
+import { Platform } from "../platforms/platform.model";
+import { Queue } from "../queue/queue.model";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
+import { User } from "../users/user.model";
+import { Backlog } from "./backlog.model";
+import { type RegisterBacklogDto } from "./dtos/register-backlog.dto";
+import { type UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import * as backlogServiceError from "./errors/backlog.service-error";
-import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type BacklogQuery } from "./schemas/backlog-query.schema";
 import { buildBacklogWhere } from "./utils/build-backlog-where.util";
 
 const BACKLOG_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
@@ -320,7 +321,7 @@ function toHighlight(
 	entry: Backlog | null,
 	value: number | null
 ): BacklogHighlight | null {
-	if (!entry || value == null) return null;
+	if (!entry || value === null) return null;
 	return {
 		backlogId: entry.id,
 		game: {
@@ -422,7 +423,8 @@ export async function computeBacklogStats(
 
 	const bestPersonalRatioValue =
 		bestRatioEntry &&
-		bestRatioEntry.score != null &&
+		bestRatioEntry.score !== null &&
+		bestRatioEntry.score !== undefined &&
 		bestRatioEntry.realDuration
 			? bestRatioEntry.score / bestRatioEntry.realDuration
 			: null;
@@ -618,15 +620,17 @@ export async function findHighlightsByUserId(
 	let highestRated: Backlog | null = null;
 	for (const entry of monthEntries) {
 		if (
-			entry.realDuration != null &&
-			(mostPlayed == null ||
+			entry.realDuration !== null &&
+			entry.realDuration !== undefined &&
+			(mostPlayed === null ||
 				(mostPlayed.realDuration ?? 0) < entry.realDuration)
 		) {
 			mostPlayed = entry;
 		}
 		if (
-			entry.userRating != null &&
-			(highestRated == null ||
+			entry.userRating !== null &&
+			entry.userRating !== undefined &&
+			(highestRated === null ||
 				(highestRated.userRating ?? 0) < entry.userRating)
 		) {
 			highestRated = entry;

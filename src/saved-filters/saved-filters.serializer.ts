@@ -1,4 +1,4 @@
-import { SavedFilter } from "./saved-filter.model";
+import { type SavedFilter } from "./saved-filter.model";
 
 export function savedFilterSerializer(filter: SavedFilter) {
 	return {

@@ -1,7 +1,8 @@
-import { NextFunction, Request, Response } from "express";
-import { RateLimiterMemory } from "rate-limiter-flexible";
+import { type NextFunction, type Request, type Response } from "express";
+import { type RateLimiterMemory } from "rate-limiter-flexible";
+
 import * as authDomainsErrors from "../../auth/errors/auth.domains-error";
-import { RequestUser } from "../interfaces/request-user.interface";
+import { type RequestUser } from "../interfaces/request-user.interface";
 
 const PRIVILEGED_ROLES = new Set(["admin", "moderator"]);
 

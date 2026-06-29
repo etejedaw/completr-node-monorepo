@@ -1,6 +1,6 @@
 import { listItemSerializer } from "../list-items/list-items.serializer";
-import { List } from "./list.model";
-import { BacklogSummary } from "./lists.service";
+import { type List } from "./list.model";
+import { type BacklogSummary } from "./lists.service";
 
 interface ListSerializerOptions {
 	followerCount?: number;

@@ -1,5 +1,5 @@
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
-import { Queue } from "./queue.model";
+import { type Queue } from "./queue.model";
 
 export function queueSerializer(entry: Queue, moodTags?: string[]) {
 	return {

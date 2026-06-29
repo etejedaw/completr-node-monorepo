@@ -1,7 +1,7 @@
-import { AuditLog } from "./audit.model";
+import * as gamesService from "../games/games.service";
 import { User } from "../users/user.model";
 import * as usersService from "../users/users.service";
-import * as gamesService from "../games/games.service";
+import { AuditLog } from "./audit.model";
 
 export function record(
 	userId: string,

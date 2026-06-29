@@ -1,7 +1,8 @@
-import { Request, Response, NextFunction } from "express";
+import { type NextFunction, type Request, type Response } from "express";
+
+import { environmentConfig } from "../config/environment.config";
 import { globalErrorDomainNormalizer } from "../errors/global-error-domain.normalizer";
 import { globalErrorHttpNormalizer } from "../errors/global-error-http.normalizer";
-import { environmentConfig } from "../config/environment.config";
 
 export function errorHandlerMiddleware(
 	error: Error,

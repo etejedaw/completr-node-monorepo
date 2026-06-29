@@ -1,11 +1,12 @@
-import { fn, col, Op, literal } from "sequelize";
-import { Review } from "./review.model";
-import { Game } from "../games/game.model";
-import { User } from "../users/user.model";
-import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
-import * as gamesService from "../games/games.service";
-import * as reviewsServiceError from "./errors/reviews.service-error";
+import { col, fn, literal, Op } from "sequelize";
+
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { Game } from "../games/game.model";
+import * as gamesService from "../games/games.service";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
+import { User } from "../users/user.model";
+import * as reviewsServiceError from "./errors/reviews.service-error";
+import { Review } from "./review.model";
 
 const REVIEW_GAME_ATTRS = ["id", "code", "title"];
 

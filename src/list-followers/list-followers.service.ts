@@ -1,13 +1,13 @@
-import { List } from "../lists/list.model";
-import { ListItem } from "../list-items/list-item.model";
-import { Game } from "../games/game.model";
-import { User } from "../users/user.model";
-import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
-import { ListFollower } from "./list-follower.model";
-import { PaginationQuery } from "../common/schemas/pagination-query.schema";
-import * as listsService from "../lists/lists.service";
-import * as listFollowersServiceError from "./errors/list-followers.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
+import { Game } from "../games/game.model";
+import { ListItem } from "../list-items/list-item.model";
+import { List } from "../lists/list.model";
+import * as listsService from "../lists/lists.service";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
+import { User } from "../users/user.model";
+import * as listFollowersServiceError from "./errors/list-followers.service-error";
+import { ListFollower } from "./list-follower.model";
 
 const FOLLOWED_LIST_PREVIEW_INCLUDE = {
 	model: List,

@@ -1,9 +1,10 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { literal, Op } from "sequelize";
-import { environmentConfig } from "../../common/config/environment.config";
 import type { StringValue } from "ms";
-import { JwtPayload } from "../../common/interfaces/jwt-payload.interface";
+import { literal, Op } from "sequelize";
+
+import { environmentConfig } from "../../common/config/environment.config";
+import { type JwtPayload } from "../../common/interfaces/jwt-payload.interface";
 import { RefreshToken } from "../refresh-token.model";
 
 export function signAccessToken(payload: JwtPayload) {

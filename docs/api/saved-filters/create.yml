@@ -31,7 +31,7 @@ settings:
 docs: |-
     ## Create Saved Filter
 
-    Creates a saved filter (view) for the backlog. Free users can save up to 5 filters. Premium users have unlimited.
+    Creates a saved filter (view) for the backlog.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.

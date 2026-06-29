@@ -142,8 +142,9 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .DS_Store
 
-# Data files
-docs/lista.csv
+# Private strategy docs (live in Affine, kept local only)
+/TODO.md
+/docs/feedback/
 
 # Informes (local only)
 docs/informes/

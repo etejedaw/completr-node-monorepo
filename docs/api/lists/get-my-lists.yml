@@ -40,4 +40,4 @@ docs: |-
     }
     ```
 
-    `frozen: true` means the user has more than 5 lists (downgraded from premium) and cannot create or edit until they delete the excess.
+    `frozen: true` means the user has exceeded their list limit and cannot create or edit until they delete the excess.

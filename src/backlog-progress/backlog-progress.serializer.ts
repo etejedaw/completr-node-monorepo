@@ -1,4 +1,4 @@
-import { BacklogProgress } from "./backlog-progress.model";
+import { type BacklogProgress } from "./backlog-progress.model";
 
 export function backlogProgressSerializer(entry: BacklogProgress) {
 	return {

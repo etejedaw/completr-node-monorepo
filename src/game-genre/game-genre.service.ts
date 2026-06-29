@@ -1,4 +1,5 @@
-import { Transaction } from "sequelize";
+import { type Transaction } from "sequelize";
+
 import { GameGenre } from "./game-genre.model";
 
 export async function linkGameToGenres(

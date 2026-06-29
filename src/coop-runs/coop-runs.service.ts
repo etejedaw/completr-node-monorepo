@@ -1,12 +1,13 @@
 import { Op } from "sequelize";
-import { sequelize } from "../database/sequelize.database";
-import { CoopRun } from "./coop-run.model";
+
 import { Backlog } from "../backlog/backlog.model";
-import { User } from "../users/user.model";
+import { sequelize } from "../database/sequelize.database";
 import { UserFollower } from "../user-followers/user-follower.model";
-import { SyncDto } from "./dtos/sync.dto";
-import * as coopServiceError from "./errors/coop-runs.service-error";
 import { canView } from "../users/helpers/visibility.helper";
+import { User } from "../users/user.model";
+import { CoopRun } from "./coop-run.model";
+import { type SyncDto } from "./dtos/sync.dto";
+import * as coopServiceError from "./errors/coop-runs.service-error";
 
 type SyncableField = "status" | "startedAt" | "finishedAt" | "realDuration";
 

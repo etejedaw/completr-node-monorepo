@@ -1,30 +1,30 @@
-import * as usersService from "./users.service";
-import * as backlogService from "../backlog/backlog.service";
-import * as listsService from "../lists/lists.service";
-import * as listFollowersService from "../list-followers/list-followers.service";
-import * as reviewsService from "../reviews/reviews.service";
 import * as activityService from "../activity/activity.service";
-import * as userFollowersService from "../user-followers/user-followers.service";
+import * as backlogService from "../backlog/backlog.service";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
+import * as listFollowersService from "../list-followers/list-followers.service";
+import * as listsService from "../lists/lists.service";
+import * as reviewsService from "../reviews/reviews.service";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
-import { canView } from "./helpers/visibility.helper";
-import { VisibilitySection } from "./constants/visibility.constants";
+import * as userFollowersService from "../user-followers/user-followers.service";
+import { type VisibilitySection } from "./constants/visibility.constants";
 import * as userDomain from "./errors/users.domain-error";
+import { canView } from "./helpers/visibility.helper";
+import { type User } from "./user.model";
 import {
-	BacklogStatusCounts,
-	FullUserProfile,
-	RestrictedUserProfile,
-	UserCompletionsBundle,
-	UserFollowingListsBundle,
-	UserGamesInCommonBundle,
-	UserHighlightsBundle,
-	UserListDetailBundle,
-	UserListsBundle,
-	UserProfileResult,
-	UserReviewsBundle
+	type BacklogStatusCounts,
+	type FullUserProfile,
+	type RestrictedUserProfile,
+	type UserCompletionsBundle,
+	type UserFollowingListsBundle,
+	type UserGamesInCommonBundle,
+	type UserHighlightsBundle,
+	type UserListDetailBundle,
+	type UserListsBundle,
+	type UserProfileResult,
+	type UserReviewsBundle
 } from "./users.interface";
-import { User } from "./user.model";
-import { PaginationQuery } from "../common/schemas/pagination-query.schema";
-import { RequestUser } from "../common/interfaces/request-user.interface";
+import * as usersService from "./users.service";
 
 const EMPTY_BACKLOG_STATS: BacklogStatusCounts = {
 	not_started: 0,

@@ -1,4 +1,5 @@
 import { QueryTypes } from "sequelize";
+
 import { sequelize } from "../database/sequelize.database";
 
 export async function recomputeAllPopularity(): Promise<number> {

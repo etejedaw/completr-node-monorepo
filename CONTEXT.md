@@ -24,7 +24,7 @@ Los puntajes y tiempos viven en 3 lugares distintos según el contexto:
 
 **Precarga de puntajes al crear backlog:** Al seleccionar un juego, el frontend precarga score (Metacritic preferido) y duration (HLTB preferido) desde los GameScore/GameTime del juego. El usuario puede editarlos antes de guardar.
 
-**Regla free vs premium para scores:** Todos los usuarios pueden ver y usar scores de cualquier fuente al crear/editar manualmente. La diferencia es la **actualización masiva**: free solo puede actualizar en lote con OpenCritic + Completr (score) y HLTB + Completr (duration). Premium puede actualizar masivamente con todas las fuentes (Metacritic, RAWG, OpenCritic, HLTB, Completr).
+**Actualización de scores:** Todos los usuarios pueden ver y usar scores de cualquier fuente al crear/editar manualmente. Además existe una actualización masiva en lote de scores y duraciones desde las fuentes disponibles.
 
 ### Ratio
 
@@ -46,7 +46,7 @@ Se calcula desde el `Backlog` completado. Si hay múltiples backlogs completados
 
 ### Filtros y vistas guardadas (SavedFilter)
 
-El backlog soporta filtros completos por: status (uno o varios comma-separated, ej: `completed,abandoned`), game_id, platform_id, rangos de fechas (started_from/to, finished_from/to), no_finished_date (bool, filtra entradas sin fecha de finalización), rangos numéricos (min/max_score, min/max_duration, min/max_rating) y ordenamiento (sort_by + sort_order). Cualquier combinación de filtros se puede guardar como vista con nombre y descripción opcional (ej: "Completados 2025-S01"). El backend almacena los filtros como JSONB y el frontend los aplica como query params al consultar el backlog. Free: hasta 5 vistas guardadas, Premium: ilimitadas. Las vistas son una conveniencia — cualquier usuario puede construir la URL con query params y guardarla como bookmark.
+El backlog soporta filtros completos por: status (uno o varios comma-separated, ej: `completed,abandoned`), game_id, platform_id, rangos de fechas (started_from/to, finished_from/to), no_finished_date (bool, filtra entradas sin fecha de finalización), rangos numéricos (min/max_score, min/max_duration, min/max_rating) y ordenamiento (sort_by + sort_order). Cualquier combinación de filtros se puede guardar como vista con nombre y descripción opcional (ej: "Completados 2025-S01"). El backend almacena los filtros como JSONB y el frontend los aplica como query params al consultar el backlog. Las vistas son una conveniencia — cualquier usuario puede construir la URL con query params y guardarla como bookmark.
 
 ### Wishlist y Favorites
 
@@ -59,13 +59,11 @@ Dos módulos independientes que reemplazan el concepto original de "listas por d
 - POST con `?source=backlog`: añade backlog existente a la wishlist
 - PUT: reemplaza array completo de `backlogIds` (posición por orden)
 - Auto-remove: al cambiar backlog a `playing`, `completed` o `abandoned`, se elimina de la wishlist (el Queue solo contiene runs en estado `not_started`)
-- Límite: 10 free, ilimitado premium/admin
 
 **Favorites** — Juegos que el usuario marca como favoritos. Apunta a `Game` (no requiere backlog). Puedo marcar un juego como favorito sin haberlo jugado.
 
 - Modelo: `Favorite(id, user_id, game_id, position, added_at)` — Unique `(user_id, game_id)`
 - PUT: reemplaza array completo de `gameIds` (posición por orden)
-- Límite: 10 free, ilimitado premium/admin
 
 **Visibilidad:** Controlada desde `User` con `isWishlistPublic` y `isFavoritePublic` (boolean, default true). No hay flag por entry individual.
 
@@ -117,7 +115,6 @@ Concepto clave derivado del flujo actual en NocoDB:
 - Ratio calculado por juego (`score / duration`). Si la fuente no tiene dato → null
 - Posición por juego (unique dentro de la lista, sin huecos, reordenable)
 - Contador de seguidores
-- Límite: free hasta 5 listas, premium/admin ilimitado. Si un usuario baja de premium a free con >5 listas, quedan congeladas (no puede crear ni editar) hasta que elimine las sobrantes
 
 **Interacción con una lista:**
 
@@ -198,29 +195,3 @@ Los módulos del backend reflejan distintos pedazos del dominio. Esta tabla es l
 
 - Usuarios casuales que quieren organizar qué jugar
 - Comunidad social de gamers (estilo Trakt/Letterboxd pero para juegos)
-
----
-
-## Filosofía de monetización
-
-Inspirada en Trakt:
-
-> _"Si te gusta Completr, esta versión es para apoyar el proyecto."_
-
-- Plan gratuito generoso (funcionalidad completa de backlog)
-- Premium como apoyo, no como paywall agresivo
-- Premium desbloquea: estadísticas avanzadas, temas, listas ilimitadas, sync Steam, listas colaborativas
-- Pricing: Early Supporters $3 USD/mes (de por vida), público $5 USD/mes. Plan anual con descuento
-
----
-
-## Integraciones planeadas
-
-| Servicio               | Propósito                                         | Estado       |
-| ---------------------- | ------------------------------------------------- | ------------ |
-| RAWG API               | Géneros, descripciones, covers, scores, playtimes | Implementado |
-| HowLongToBeat          | Duración estimada de juegos                       | Fase 1       |
-| Metacritic/OpenCritic  | Puntuación promedio                               | Fase 1       |
-| Steam API              | Sincronización de librería                        | Fase 6       |
-| Stripe/LemonSqueezy    | Pagos Premium                                     | Fase 6       |
-| SMTP (Resend/SendGrid) | Emails transaccionales                            | Fase 5       |

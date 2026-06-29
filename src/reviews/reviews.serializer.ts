@@ -1,4 +1,4 @@
-import { Review } from "./review.model";
+import { type Review } from "./review.model";
 
 export function reviewSerializer(
 	review: Review,

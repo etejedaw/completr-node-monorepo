@@ -1,20 +1,21 @@
 import { Router } from "express";
-import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import {
-	ChangePasswordSchema,
-	LoginSchema,
-	RegisterSchema,
-	RefreshTokenSchema
-} from "./schemas";
-import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
-import { SessionIdParamsSchema } from "./schemas/session-id-params.schema";
-import * as authController from "./auth.controller";
-import { authMiddleware } from "./auth.middleware";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+
 import {
 	authLimiter,
 	registerLimiter
 } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
+import * as authController from "./auth.controller";
+import { authMiddleware } from "./auth.middleware";
+import {
+	ChangePasswordSchema,
+	LoginSchema,
+	RefreshTokenSchema,
+	RegisterSchema
+} from "./schemas";
+import { SessionIdParamsSchema } from "./schemas/session-id-params.schema";
 
 const router = Router();
 

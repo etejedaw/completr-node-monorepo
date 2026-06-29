@@ -1,13 +1,14 @@
 import { Op } from "sequelize";
-import { Activity, ActivityType } from "./activity.model";
-import { ActivityGame } from "./targets/activity-game.model";
-import { ActivityList } from "./targets/activity-list.model";
-import { ActivityUser } from "./targets/activity-user.model";
-import { User } from "../users/user.model";
-import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
+
 import { Game } from "../games/game.model";
 import { List } from "../lists/list.model";
 import * as userFollowersService from "../user-followers/user-followers.service";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
+import { User } from "../users/user.model";
+import { Activity, type ActivityType } from "./activity.model";
+import { ActivityGame } from "./targets/activity-game.model";
+import { ActivityList } from "./targets/activity-list.model";
+import { ActivityUser } from "./targets/activity-user.model";
 
 const GAME_TYPES: string[] = [
 	"backlog_added",
@@ -30,11 +31,11 @@ const USER_TYPES: string[] = [
 ];
 const SOCIAL_TYPES: string[] = ["user_followed", "user_followed_by"];
 
-export async function record(
-	userId: string,
-	type: ActivityType,
-	targetId?: string
-) {
+export function record(userId: string, type: ActivityType, targetId?: string) {
+	persist(userId, type, targetId).catch(Function.prototype as () => void);
+}
+
+async function persist(userId: string, type: ActivityType, targetId?: string) {
 	const activity = await Activity.create({ userId, type });
 
 	if (targetId) {

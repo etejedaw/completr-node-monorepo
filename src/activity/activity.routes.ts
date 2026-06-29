@@ -1,11 +1,12 @@
 import { Router } from "express";
+
 import { authMiddleware } from "../auth/auth.middleware";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { userLimiter } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { ActivityIdParamsSchema } from "./schemas/activity-id-params.schema";
 import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 import * as activityController from "./activity.controller";
+import { ActivityIdParamsSchema } from "./schemas/activity-id-params.schema";
 
 const router = Router();
 

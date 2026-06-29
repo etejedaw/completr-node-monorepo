@@ -1,16 +1,17 @@
 import { Router } from "express";
-import * as platformController from "./platforms.controller";
+
 import { authMiddleware } from "../auth/auth.middleware";
-import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { RegisterPlatformSchema } from "./schemas/register-platform.schema";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import {
 	publicLimiter,
 	userLimiter
 } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import * as platformController from "./platforms.controller";
 import { PlatformCodeParamSchema } from "./schemas/platform-code-params.schema";
-import { UpdatePlatformSchema } from "./schemas/update-platform.schema";
 import { PlatformIdParamSchema } from "./schemas/platformid-params.schema";
+import { RegisterPlatformSchema } from "./schemas/register-platform.schema";
+import { UpdatePlatformSchema } from "./schemas/update-platform.schema";
 
 const router = Router();
 

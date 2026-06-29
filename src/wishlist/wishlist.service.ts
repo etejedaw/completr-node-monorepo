@@ -1,11 +1,12 @@
 import { Op } from "sequelize";
-import { Wishlist } from "./wishlist.model";
+
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as wishlistServiceError from "./errors/wishlist.service-error";
-import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { Wishlist } from "./wishlist.model";
 
 const FREE_WISHLIST_LIMIT = 20;
 const INCLUDE = [{ model: Game }, { model: Platform }];

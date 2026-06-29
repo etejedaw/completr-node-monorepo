@@ -1,5 +1,6 @@
-import { Request } from "express";
-import { DomainError } from "../../common/errors/domain-error";
+import { type Request } from "express";
+
+import { type DomainError } from "../../common/errors/domain-error";
 import { HttpError } from "../../common/errors/http-error";
 
 export function wishlistDomainToHttpMapper(

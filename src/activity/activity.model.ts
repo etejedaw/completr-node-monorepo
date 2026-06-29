@@ -1,9 +1,10 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
+
 import { sequelize } from "../database/sequelize.database";
-import { User } from "../users/user.model";
-import { ActivityGame } from "./targets/activity-game.model";
-import { ActivityList } from "./targets/activity-list.model";
-import { ActivityUser } from "./targets/activity-user.model";
+import { type User } from "../users/user.model";
+import { type ActivityGame } from "./targets/activity-game.model";
+import { type ActivityList } from "./targets/activity-list.model";
+import { type ActivityUser } from "./targets/activity-user.model";
 
 export const ACTIVITY_TYPES = [
 	"backlog_added",

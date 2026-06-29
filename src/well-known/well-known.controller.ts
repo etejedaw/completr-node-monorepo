@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
 const SECURITY_TXT = [
 	"Contact: mailto:completr@etejeda.dev",

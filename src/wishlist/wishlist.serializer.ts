@@ -1,4 +1,4 @@
-import { Wishlist } from "./wishlist.model";
+import { type Wishlist } from "./wishlist.model";
 
 export function wishlistSerializer(entry: Wishlist, moodTags?: string[]) {
 	return {

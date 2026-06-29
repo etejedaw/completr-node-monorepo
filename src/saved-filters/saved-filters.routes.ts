@@ -1,13 +1,14 @@
 import { Router } from "express";
-import * as savedFiltersController from "./saved-filters.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
-import { userLimiter } from "../common/config/rate-limiter.config";
+
 import { authMiddleware } from "../auth/auth.middleware";
+import { userLimiter } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { RegisterSavedFilterSchema } from "./schemas/register-saved-filter.schema";
-import { UpdateSavedFilterSchema } from "./schemas/update-saved-filter.schema";
-import { SavedFilterIdParamsSchema } from "./schemas/saved-filter-id-params.schema";
 import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
+import * as savedFiltersController from "./saved-filters.controller";
+import { RegisterSavedFilterSchema } from "./schemas/register-saved-filter.schema";
+import { SavedFilterIdParamsSchema } from "./schemas/saved-filter-id-params.schema";
+import { UpdateSavedFilterSchema } from "./schemas/update-saved-filter.schema";
 
 const router = Router({ mergeParams: true });
 

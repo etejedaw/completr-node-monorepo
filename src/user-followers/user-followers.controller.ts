@@ -1,9 +1,10 @@
-import { Request, Response } from "express";
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { UsernameParam } from "../users/schemas/username-params.schema";
-import * as userFollowersService from "./user-followers.service";
-import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
+import { type Request, type Response } from "express";
+
 import * as activityService from "../activity/activity.service";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
+import { type UsernameParam } from "../users/schemas/username-params.schema";
+import * as userFollowersService from "./user-followers.service";
 
 export async function postFollow(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;

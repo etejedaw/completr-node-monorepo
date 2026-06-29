@@ -1,23 +1,24 @@
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { Request, Response } from "express";
-import * as backlogService from "./backlog.service";
-import * as usersService from "../users/users.service";
+import { type Request, type Response } from "express";
+
+import * as activityService from "../activity/activity.service";
+import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import * as coopRunsService from "../coop-runs/coop-runs.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
+import * as reviewsService from "../reviews/reviews.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
-import { RegisterBacklogDto } from "./dtos/register-backlog.dto";
-import { UpdateBacklogDto } from "./dtos/update-backlog.dto";
-import { BacklogIdParams } from "./schemas/backlog-id-params.schema";
-import { BacklogQuery } from "./schemas/backlog-query.schema";
-import { UsernameParam } from "../users/schemas/username-params.schema";
+import { type UsernameParam } from "../users/schemas/username-params.schema";
+import * as usersService from "../users/users.service";
 import {
-	backlogSerializer,
-	backlogPublicSerializer
+	backlogPublicSerializer,
+	backlogSerializer
 } from "./backlog.serializer";
-import * as activityService from "../activity/activity.service";
-import * as reviewsService from "../reviews/reviews.service";
-import * as moodTagsService from "../mood-tags/mood-tags.service";
-import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
-import * as coopRunsService from "../coop-runs/coop-runs.service";
+import * as backlogService from "./backlog.service";
+import { type RegisterBacklogDto } from "./dtos/register-backlog.dto";
+import { type UpdateBacklogDto } from "./dtos/update-backlog.dto";
+import { type BacklogIdParams } from "./schemas/backlog-id-params.schema";
+import { type BacklogQuery } from "./schemas/backlog-query.schema";
 
 export async function postBacklog(request: Request, response: Response) {
 	const registerBacklog = request.locals.body as RegisterBacklogDto;

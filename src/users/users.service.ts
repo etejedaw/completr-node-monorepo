@@ -1,11 +1,12 @@
 import { Op } from "sequelize";
-import { sequelize } from "../database/sequelize.database";
+
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { CreateUserDto, UpdateUserDto } from "./dtos";
-import { User } from "./user.model";
+import { sequelize } from "../database/sequelize.database";
 import { USER_PUBLIC_ATTRS } from "./constants/user-attrs.constants";
-import { canUseTheme } from "./helpers/theme.helper";
+import { type CreateUserDto, type UpdateUserDto } from "./dtos";
 import * as usersServiceError from "./errors/users.service-error";
+import { canUseTheme } from "./helpers/theme.helper";
+import { User } from "./user.model";
 
 export async function createUser(createUserDto: CreateUserDto) {
 	try {

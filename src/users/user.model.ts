@@ -1,10 +1,11 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
+
 import { sequelize } from "../database/sequelize.database";
-import { USER_ROLES, UserRole } from "./user-role.type";
 import {
 	VISIBILITY_LEVELS,
-	VisibilityLevel
+	type VisibilityLevel
 } from "./constants/visibility.constants";
+import { USER_ROLES, type UserRole } from "./user-role.type";
 
 class User extends Model {
 	declare id: string;

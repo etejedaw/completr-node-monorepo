@@ -1,11 +1,12 @@
-import { Request, Response } from "express";
-import { PlatformCodeParam } from "./schemas/platform-code-params.schema";
-import * as platformService from "./platforms.service";
+import { type Request, type Response } from "express";
+
+import { type RegisterPlatformDto } from "./dtos/register-platform.dto";
+import { type UpdatePlatformDto } from "./dtos/update-platform.dto";
 import * as platformDomainError from "./errors/platform.domain-error";
-import { RegisterPlatformDto } from "./dtos/register-platform.dto";
 import { platformSerializer } from "./platform.serializer";
-import { UpdatePlatformDto } from "./dtos/update-platform.dto";
-import { PlatformIdParam } from "./schemas/platformid-params.schema";
+import * as platformService from "./platforms.service";
+import { type PlatformCodeParam } from "./schemas/platform-code-params.schema";
+import { type PlatformIdParam } from "./schemas/platformid-params.schema";
 
 export async function getPlatformByCode(request: Request, response: Response) {
 	const param = request.locals.params as PlatformCodeParam;

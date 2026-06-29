@@ -1,7 +1,8 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
+
 import { sequelize } from "../database/sequelize.database";
-import { Game } from "../games/game.model";
-import { Platform } from "../platforms/platform.model";
+import { type Game } from "../games/game.model";
+import { type Platform } from "../platforms/platform.model";
 
 export const BACKLOG_STATUSES = [
 	"not_started",

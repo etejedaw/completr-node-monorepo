@@ -1,9 +1,10 @@
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
+
+import { type RegisterGameScoreDto } from "./dtos/register-game-score.dto";
+import { type UpdateGameScoreDto } from "./dtos/update-game-score.dto";
 import * as gameScoresService from "./game-scores.service";
-import { RegisterGameScoreDto } from "./dtos/register-game-score.dto";
-import { UpdateGameScoreDto } from "./dtos/update-game-score.dto";
-import { GameScoreParams } from "./schemas/game-score-params.schema";
-import { GameScoreIdParams } from "./schemas/game-score-id-params.schema";
+import { type GameScoreIdParams } from "./schemas/game-score-id-params.schema";
+import { type GameScoreParams } from "./schemas/game-score-params.schema";
 
 export async function postGameScore(request: Request, response: Response) {
 	const registerGameScoreDto = request.locals.body as RegisterGameScoreDto;

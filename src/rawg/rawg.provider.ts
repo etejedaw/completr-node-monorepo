@@ -1,9 +1,9 @@
-import {
-	RawgGameDetail,
-	RawgGameSearchResult,
-	RawgSearchFilters
-} from "./rawg.interface";
 import * as rawgServiceError from "./errors/rawg.service-error";
+import {
+	type RawgGameDetail,
+	type RawgGameSearchResult,
+	type RawgSearchFilters
+} from "./rawg.interface";
 
 export class RawgProvider {
 	private readonly BASE_URL = "https://api.rawg.io/api";

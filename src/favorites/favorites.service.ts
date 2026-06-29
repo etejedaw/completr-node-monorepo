@@ -1,9 +1,10 @@
 import { Op } from "sequelize";
-import { Favorite } from "./favorite.model";
+
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { Game } from "../games/game.model";
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as favoritesServiceError from "./errors/favorites.service-error";
+import { Favorite } from "./favorite.model";
 
 const FREE_FAVORITE_LIMIT = 10;
 

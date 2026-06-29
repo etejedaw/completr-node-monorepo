@@ -1,4 +1,4 @@
-import { DomainError } from "../../common/errors/domain-error";
+import { type DomainError } from "../../common/errors/domain-error";
 import { ServiceError } from "../../common/errors/service-error";
 import * as backlogProgressDomainError from "./backlog-progress.domain-error";
 

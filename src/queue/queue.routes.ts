@@ -1,13 +1,14 @@
 import { Router } from "express";
-import * as queueController from "./queue.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
-import { userLimiter } from "../common/config/rate-limiter.config";
+
 import { authMiddleware } from "../auth/auth.middleware";
+import { userLimiter } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
+import * as queueController from "./queue.controller";
 import { AddQueueBodySchema } from "./schemas/add-queue-body.schema";
 import { AddQueueQuerySchema } from "./schemas/add-queue-query.schema";
 import { ReplaceQueueSchema } from "./schemas/replace-queue.schema";
-import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
 
 const router = Router({ mergeParams: true });
 

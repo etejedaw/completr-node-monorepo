@@ -27,7 +27,7 @@ settings:
 docs: |-
     ## Create List
 
-    Creates a new list for the authenticated user. Free users can create up to 5 lists.
+    Creates a new list for the authenticated user.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.

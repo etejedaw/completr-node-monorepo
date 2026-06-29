@@ -1,9 +1,10 @@
-import { User } from "./user.model";
-import { Activity } from "../activity/activity.model";
-import { Backlog } from "../backlog/backlog.model";
-import { List } from "../lists/list.model";
-import { BacklogSummary } from "../lists/lists.service";
-import { Review } from "../reviews/review.model";
+import { type Activity } from "../activity/activity.model";
+import { type Backlog } from "../backlog/backlog.model";
+import { type findHighlightsByUserId } from "../backlog/backlog.service";
+import { type List } from "../lists/list.model";
+import { type BacklogSummary } from "../lists/lists.service";
+import { type Review } from "../reviews/review.model";
+import { type User } from "./user.model";
 
 export interface RestrictedUserProfile {
 	kind: "restricted";
@@ -66,9 +67,7 @@ export interface UserListDetailBundle {
 }
 
 export type HighlightsResult = Awaited<
-	ReturnType<
-		typeof import("../backlog/backlog.service").findHighlightsByUserId
-	>
+	ReturnType<typeof findHighlightsByUserId>
 >;
 
 export interface UserHighlightsBundle {

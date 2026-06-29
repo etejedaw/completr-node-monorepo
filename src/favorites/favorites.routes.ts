@@ -1,11 +1,12 @@
 import { Router } from "express";
-import * as favoritesController from "./favorites.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
-import { userLimiter } from "../common/config/rate-limiter.config";
+
 import { authMiddleware } from "../auth/auth.middleware";
+import { userLimiter } from "../common/config/rate-limiter.config";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { ReplaceFavoritesSchema } from "./schemas/replace-favorites.schema";
 import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
+import * as favoritesController from "./favorites.controller";
+import { ReplaceFavoritesSchema } from "./schemas/replace-favorites.schema";
 
 const router = Router({ mergeParams: true });
 

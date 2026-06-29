@@ -1,13 +1,14 @@
 import { Router } from "express";
-import * as listFollowersController from "./list-followers.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+
+import { authMiddleware } from "../auth/auth.middleware";
 import {
 	publicLimiter,
 	userLimiter
 } from "../common/config/rate-limiter.config";
-import { authMiddleware } from "../auth/auth.middleware";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { ListIdParamsSchema } from "../lists/schemas/list-id-params.schema";
+import * as listFollowersController from "./list-followers.controller";
 import { UpdateFollowVisibilitySchema } from "./schemas/update-follow-visibility.schema";
 
 const router = Router();

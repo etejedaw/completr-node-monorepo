@@ -1,4 +1,4 @@
-import { Favorite } from "./favorite.model";
+import { type Favorite } from "./favorite.model";
 
 export function favoriteSerializer(entry: Favorite, moodTags?: string[]) {
 	return {

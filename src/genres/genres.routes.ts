@@ -1,17 +1,18 @@
 import { Router } from "express";
-import * as genreController from "./genres.controller";
-import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+
+import { authMiddleware } from "../auth/auth.middleware";
 import {
 	publicLimiter,
 	userLimiter
 } from "../common/config/rate-limiter.config";
-import { authMiddleware } from "../auth/auth.middleware";
+import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
+import * as genreController from "./genres.controller";
 import { GenreCodeParamsSchema } from "./schemas/genre-code-params.schema";
+import { GenreIdParamSchema } from "./schemas/genre-id-params.schema";
 import { RegisterGenreSchema } from "./schemas/register-genre.schema";
 import { UpdateGenreSchema } from "./schemas/update-genre.schema";
-import { GenreIdParamSchema } from "./schemas/genre-id-params.schema";
-import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 
 const router = Router();
 

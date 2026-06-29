@@ -1,18 +1,18 @@
-import { User } from "./user.model";
+import { activitySerializer } from "../activity/activity.serializer";
 import {
 	backlogPublicSerializer,
 	backlogSerializer
 } from "../backlog/backlog.serializer";
-import { activitySerializer } from "../activity/activity.serializer";
 import { listSummarySerializer } from "../lists/lists.serializer";
 import { userReviewSerializer } from "../reviews/reviews.serializer";
+import { type User } from "./user.model";
 import {
-	EnrichedUserList,
-	FullUserProfile,
-	RestrictedUserProfile,
-	UserCompletionsBundle,
-	UserHighlightsBundle,
-	UserReviewsBundle
+	type EnrichedUserList,
+	type FullUserProfile,
+	type RestrictedUserProfile,
+	type UserCompletionsBundle,
+	type UserHighlightsBundle,
+	type UserReviewsBundle
 } from "./users.interface";
 
 export function userMeSerializer(user: User) {

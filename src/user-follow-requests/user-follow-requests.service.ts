@@ -1,10 +1,10 @@
-import { UserFollowRequest } from "./user-follow-request.model";
-import { User } from "../users/user.model";
-import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
-import * as usersService from "../users/users.service";
-import * as userFollowersService from "../user-followers/user-followers.service";
-import * as serviceError from "./errors/user-follow-requests.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import * as userFollowersService from "../user-followers/user-followers.service";
+import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
+import { User } from "../users/user.model";
+import * as usersService from "../users/users.service";
+import * as serviceError from "./errors/user-follow-requests.service-error";
+import { UserFollowRequest } from "./user-follow-request.model";
 
 export type FollowResult =
 	| { status: "accepted"; targetId: string }

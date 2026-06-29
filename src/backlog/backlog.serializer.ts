@@ -1,7 +1,7 @@
-import { Game } from "../games/game.model";
-import { Platform } from "../platforms/platform.model";
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
-import { Backlog } from "./backlog.model";
+import { type Game } from "../games/game.model";
+import { type Platform } from "../platforms/platform.model";
+import { type Backlog } from "./backlog.model";
 
 export interface CoopMemberSummary {
 	userId: string;

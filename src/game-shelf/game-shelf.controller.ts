@@ -1,16 +1,16 @@
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import { Request, Response } from "express";
-import { RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
-import * as gameShelfService from "./game-shelf.service";
-import * as usersService from "../users/users.service";
+import { type Request, type Response } from "express";
+
+import * as activityService from "../activity/activity.service";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
-import * as activityService from "../activity/activity.service";
-import * as moodTagsService from "../mood-tags/mood-tags.service";
-
-import { UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
-import { GameShelfIdParam } from "./schemas/game-shelf-id-params.schema";
-import { UsernameParam } from "../users/schemas/username-params.schema";
+import { type UsernameParam } from "../users/schemas/username-params.schema";
+import * as usersService from "../users/users.service";
+import { type RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
+import { type UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
+import * as gameShelfService from "./game-shelf.service";
+import { type GameShelfIdParam } from "./schemas/game-shelf-id-params.schema";
 import {
 	gameShelfMeSerializer,
 	gameShelfSerializer,

@@ -1,4 +1,4 @@
-import { Platform } from "./platform.model";
+import { type Platform } from "./platform.model";
 
 export function platformSerializer(platform: Platform) {
 	return {

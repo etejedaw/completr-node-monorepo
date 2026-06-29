@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import * as wellKnownController from "./well-known.controller";
 
 const router = Router();

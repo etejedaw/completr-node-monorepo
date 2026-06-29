@@ -1,16 +1,17 @@
-import { Request, Response } from "express";
-import { LoginDto, RegisterDto } from "./dtos";
-import * as authService from "./auth.service";
+import { type Request, type Response } from "express";
+
+import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { userMeSerializer } from "../users";
-import { ChangePassword } from "./schemas";
-import { RefreshTokenBody } from "./schemas/refresh-token.schema";
-import { RequestUser } from "../common/interfaces/request-user.interface";
+import * as authService from "./auth.service";
+import { type LoginDto, type RegisterDto } from "./dtos";
+import * as authDomainError from "./errors/auth.domains-error";
+import { type ChangePassword } from "./schemas";
+import { type RefreshTokenBody } from "./schemas/refresh-token.schema";
 import {
-	REFRESH_COOKIE_NAME,
 	clearRefreshCookie,
+	REFRESH_COOKIE_NAME,
 	setRefreshCookie
 } from "./utils/refresh-cookie.util";
-import * as authDomainError from "./errors/auth.domains-error";
 
 function getDeviceInfo(request: Request): string {
 	return (request.headers["user-agent"] ?? "Unknown device").slice(0, 500);

@@ -1,10 +1,11 @@
 import { Op } from "sequelize";
-import { UserFollower } from "./user-follower.model";
-import { User } from "../users/user.model";
+
+import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
+import { User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import * as serviceError from "./errors/user-followers.service-error";
-import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { UserFollower } from "./user-follower.model";
 
 export async function unfollow(followerId: string, username: string) {
 	const target = await usersService.findUserByUsername(username);

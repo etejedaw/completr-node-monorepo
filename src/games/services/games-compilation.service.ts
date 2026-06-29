@@ -1,16 +1,17 @@
-import { Transaction } from "sequelize";
-import { sequelize } from "../../database/sequelize.database";
+import { type Transaction } from "sequelize";
+
 import { rethrowSequelizeError } from "../../common/errors/sequelize-error.mapper";
-import { Game } from "../game.model";
-import { CompilationItem } from "../../compilation-items/compilation-item.model";
-import { SetCompilationItemInput } from "../games.interface";
-import * as gamesServiceError from "../errors/games.service-error";
-import * as gamePlatformsService from "../../game-platform/game-platform.service";
-import * as gameGenresService from "../../game-genre/game-genre.service";
-import * as gameScoresService from "../../game-scores/game-scores.service";
-import * as gameTimesService from "../../game-times/game-times.service";
-import { TimeSource } from "../../game-times/game-time.model";
 import { titleToSlug } from "../../common/utils/title-to-slug.util";
+import { CompilationItem } from "../../compilation-items/compilation-item.model";
+import { sequelize } from "../../database/sequelize.database";
+import * as gameGenresService from "../../game-genre/game-genre.service";
+import * as gamePlatformsService from "../../game-platform/game-platform.service";
+import * as gameScoresService from "../../game-scores/game-scores.service";
+import { type TimeSource } from "../../game-times/game-time.model";
+import * as gameTimesService from "../../game-times/game-times.service";
+import * as gamesServiceError from "../errors/games.service-error";
+import { Game } from "../game.model";
+import { type SetCompilationItemInput } from "../games.interface";
 
 export async function setCompilationItems(
 	parentGameId: string,

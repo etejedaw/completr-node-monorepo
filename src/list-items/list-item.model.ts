@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
+
 import { sequelize } from "../database/sequelize.database";
-import { Game } from "../games/game.model";
+import { type Game } from "../games/game.model";
 
 class ListItem extends Model {
 	declare id: string;

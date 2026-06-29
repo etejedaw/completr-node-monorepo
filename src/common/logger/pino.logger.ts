@@ -1,4 +1,4 @@
-import { Logger } from "./logger.interface";
+import { type Logger } from "./logger.interface";
 import { pinoConfig as baseLogger } from "./pino.config";
 
 export class PinoLogger implements Logger {

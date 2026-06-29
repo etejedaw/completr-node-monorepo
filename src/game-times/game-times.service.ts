@@ -1,7 +1,8 @@
-import { Transaction } from "sequelize";
-import { GameTime, TimeSource } from "./game-time.model";
+import { type Transaction } from "sequelize";
+
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import * as gameTimeServiceError from "./errors/game-times.service-error";
+import { GameTime, type TimeSource } from "./game-time.model";
 
 export async function createGameTime(
 	gameId: string,

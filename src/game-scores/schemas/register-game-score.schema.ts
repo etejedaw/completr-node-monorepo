@@ -1,4 +1,5 @@
 import z from "zod";
+
 import { SCORE_SOURCES_API } from "../../score-sources/score-source.constants";
 
 export const RegisterGameScoreSchema = z

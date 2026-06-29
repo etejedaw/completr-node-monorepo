@@ -1,10 +1,11 @@
-import { Request, Response } from "express";
-import { RegisterGameDto } from "./dtos/register-game.dto";
-import * as gameService from "./games.service";
-import * as gamesProfileService from "./services/games-profile.service";
+import { type Request, type Response } from "express";
+
+import * as auditService from "../audit/audit.service";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
+import { type RegisterGameDto } from "./dtos/register-game.dto";
+import { type UpdateGameDto } from "./dtos/update-game.dto";
 import * as gameDomainError from "./errors/games.domain-error";
-import { GameCodeParam } from "./schemas/game-code-params.schema";
-import { GameSearchQuery } from "./schemas/game-search-query.schema";
 import {
 	compilationItemSerializer,
 	gameFriendActivitySerializer,
@@ -13,14 +14,14 @@ import {
 	gamePlayerSerializer,
 	gameSerializer
 } from "./games.serializer";
-import { GameIdParam } from "./schemas/game-id-params.schema";
-import { RawgIdParam } from "./schemas/rawg-id-params.schema";
-import { UpdateGameDto } from "./dtos/update-game.dto";
-import { GamesQuery } from "./schemas/games-query.schema";
+import * as gameService from "./games.service";
+import { type GameCodeParam } from "./schemas/game-code-params.schema";
+import { type GameIdParam } from "./schemas/game-id-params.schema";
+import { type GameSearchQuery } from "./schemas/game-search-query.schema";
+import { type GamesQuery } from "./schemas/games-query.schema";
+import { type RawgIdParam } from "./schemas/rawg-id-params.schema";
+import * as gamesProfileService from "./services/games-profile.service";
 import { mapGamesQueryToOptions } from "./utils/games-query.adapter";
-import { RequestUser } from "../common/interfaces/request-user.interface";
-import * as auditService from "../audit/audit.service";
-import * as moodTagsService from "../mood-tags/mood-tags.service";
 
 export async function getGameByCode(request: Request, response: Response) {
 	const params = request.locals.params as GameCodeParam;

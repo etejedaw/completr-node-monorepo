@@ -1,5 +1,6 @@
-import { NextFunction, Request, Response } from "express";
-import { ZodError, ZodType } from "zod";
+import { type NextFunction, type Request, type Response } from "express";
+import { ZodError, type ZodType } from "zod";
+
 import { DomainError } from "../errors/domain-error";
 
 export function validateSchemaMiddleware(

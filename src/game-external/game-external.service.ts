@@ -1,6 +1,6 @@
-import { GameExternal, ExternalSource } from "./game-external.model";
-import * as gameExternalServiceError from "./errors/game-external.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import * as gameExternalServiceError from "./errors/game-external.service-error";
+import { type ExternalSource, GameExternal } from "./game-external.model";
 
 export async function findByExternalId(
 	source: ExternalSource,

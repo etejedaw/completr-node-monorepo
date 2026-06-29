@@ -15,19 +15,13 @@ Reglas asociadas:
 - `user` es el rol por defecto al registrarse.
 - `moderator` puede CRUD sobre `games`, `platforms`, `genres` y `game-reports`, pero no borrar juegos.
 - `admin` puede todo. Es el único que borra juegos, reactiva inactivos, dispara jobs y consulta `audit`.
-- `premium`, `moderator` y `admin` tienen los límites de usuario extendidos a sin tope.
 - El registro público está cerrado: solo `admin` puede crear usuarios (siempre con rol `user`).
 
 ---
 
 ## Límites por usuario
 
-| Recurso         | Límite por defecto | Sin tope para                   |
-| --------------- | ------------------ | ------------------------------- |
-| `lists`         | 5                  | `premium`, `moderator`, `admin` |
-| `saved-filters` | 5                  | `premium`, `moderator`, `admin` |
-| `favorites`     | 10                 | `premium`, `moderator`, `admin` |
-| `wishlist`      | 20                 | `premium`, `moderator`, `admin` |
+Algunos recursos (`lists`, `saved-filters`, `favorites`, `wishlist`) tienen un límite de cantidad por usuario según su rol.
 
 **Estado congelado:** si un usuario excede su límite (típicamente por cambio de rol), los recursos existentes quedan visibles pero **no puede crear ni editar** hasta volver bajo el límite. Solo borrar es posible. Error `402` al intentar crear sobre el tope.
 

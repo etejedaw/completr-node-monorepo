@@ -1,4 +1,5 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
+
 import { sequelize } from "../database/sequelize.database";
 
 export const REPORT_STATUSES = ["pending", "approved", "rejected"] as const;

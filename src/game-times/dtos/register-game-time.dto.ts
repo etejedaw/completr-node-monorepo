@@ -1,4 +1,5 @@
-import z from "zod";
-import { RegisterGameTimeSchema } from "../schemas/register-game-time.schema";
+import type z from "zod";
+
+import { type RegisterGameTimeSchema } from "../schemas/register-game-time.schema";
 
 export type RegisterGameTimeDto = z.infer<typeof RegisterGameTimeSchema>;
