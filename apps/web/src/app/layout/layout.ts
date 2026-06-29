@@ -23,6 +23,7 @@ import { UiAvatar, UiIconButton, UiSeparator } from "../shared/ui";
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
 import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
 import { OnboardingService } from "../core/services/onboarding";
+import { AttributionFooter } from "../shared/components/attribution-footer/attribution-footer";
 
 @Component({
 	selector: "app-layout",
@@ -35,7 +36,8 @@ import { OnboardingService } from "../core/services/onboarding";
 		UiSeparator,
 		UiAvatar,
 		ToastContainer,
-		OnboardingTour
+		OnboardingTour,
+		AttributionFooter
 	],
 	templateUrl: "./layout.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
