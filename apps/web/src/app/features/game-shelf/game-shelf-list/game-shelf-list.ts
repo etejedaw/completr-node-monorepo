@@ -17,7 +17,6 @@ import {
 	type BacklogModalResult
 } from "../../backlog/backlog-modal/backlog-modal";
 import { GamesService } from "../../games/games";
-import { RouterLink } from "@angular/router";
 import {
 	GameShelfModal,
 	type GameShelfModalData,
@@ -32,7 +31,7 @@ import {
 	UiSearchBar
 } from "../../../shared/ui";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
-import { MoodTagsChips } from "../../../shared/components/mood-tags-chips/mood-tags-chips";
+import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 interface PlatformCount {
@@ -45,13 +44,12 @@ interface PlatformCount {
 	selector: "app-game-shelf-list",
 	imports: [
 		DatePipe,
-		RouterLink,
 		UiButton,
 		UiEmptyState,
 		UiPagination,
 		UiSearchBar,
 		GameCoverCard,
-		MoodTagsChips,
+		GameTitleCell,
 		GameShelfCalendar
 	],
 	templateUrl: "./game-shelf-list.html",

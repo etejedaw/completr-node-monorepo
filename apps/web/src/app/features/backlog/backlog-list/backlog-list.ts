@@ -39,6 +39,8 @@ import {
 import { DialogService } from "../../../core/services/dialog";
 import { BacklogCalendar } from "../backlog-calendar/backlog-calendar";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
+import { FloatingXScrollbar } from "../../../shared/directives/floating-x-scrollbar";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 import { ReviewsService } from "../../games/reviews";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
@@ -75,6 +77,8 @@ interface PendingStatusUpdate {
 		FormsModule,
 		BacklogCalendar,
 		StarRating,
+		GameTitleCell,
+		FloatingXScrollbar,
 		PersonalStats,
 		RouterLink,
 		UiButton,

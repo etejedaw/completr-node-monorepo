@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { RouterLink } from "@angular/router";
 
 type Tint = "brand" | "purple" | "warning" | "success";
 
@@ -11,6 +12,7 @@ interface InfoCard {
 
 @Component({
 	selector: "app-about-page",
+	imports: [RouterLink],
 	template: `
 		<div class="max-w-3xl mx-auto">
 			<div class="mb-6 flex items-start gap-4">
@@ -85,6 +87,13 @@ interface InfoCard {
 					</div>
 				</div>
 			</div>
+			<p class="mt-4 text-center text-xs text-fg-muted">
+				<a
+					routerLink="/privacy"
+					class="text-fg-secondary no-underline hover:text-brand"
+					>Privacy Policy</a
+				>
+			</p>
 		</div>
 	`,
 	host: { class: "block p-6" },

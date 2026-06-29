@@ -358,3 +358,35 @@ a:hover {
 .cdk-drop-list-dragging .cdk-drag:not(.cdk-drag-placeholder) {
 	transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
+
+.floating-x-host {
+	scrollbar-width: none;
+}
+
+.floating-x-host::-webkit-scrollbar {
+	display: none;
+}
+
+.floating-x-scrollbar {
+	position: sticky;
+	bottom: 0;
+	z-index: 2;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scrollbar-width: thin;
+}
+
+.floating-x-scrollbar::-webkit-scrollbar {
+	height: 10px;
+	-webkit-appearance: none;
+}
+
+.floating-x-scrollbar::-webkit-scrollbar-thumb {
+	background-color: var(--color-fg-muted);
+	border-radius: 9999px;
+	border: 2px solid var(--color-canvas);
+}
+
+.floating-x-scrollbar::-webkit-scrollbar-track {
+	background-color: var(--color-canvas);
+}
