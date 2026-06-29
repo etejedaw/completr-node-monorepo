@@ -146,31 +146,31 @@
 				<tr>
 					<th
 						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+						class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
 					>
 						Title
 					</th>
 					<th
 						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+						class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
 					>
 						Platform
 					</th>
 					<th
 						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+						class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
 					>
 						Edition
 					</th>
 					<th
 						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+						class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
 					>
 						Acquired
 					</th>
 					<th
 						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
+						class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
 					>
 						Notes
 					</th>
@@ -183,32 +183,12 @@
 					(click)="openEdit(entry)"
 				>
 					<td class="px-3 py-2 align-middle">
-						<div class="flex items-center gap-2 min-w-0">
-							@if (entry.game.backgroundUrl) {
-							<img
-								[src]="entry.game.backgroundUrl"
-								[alt]="entry.game.title"
-								class="w-8 h-10 object-cover rounded shrink-0"
-								loading="lazy"
-							/>
-							} @else {
-							<div
-								class="w-8 h-10 bg-input-bg rounded shrink-0"
-							></div>
-							}
-							<div class="min-w-0 flex-1">
-								<a
-									[routerLink]="['/games', entry.game.code]"
-									(click)="$event.stopPropagation()"
-									class="text-fg font-medium no-underline hover:text-brand line-clamp-1 block"
-									>{{ entry.game.title }}</a
-								>
-								<app-mood-tags-chips
-									[tags]="entry.moodTags"
-									containerClass="mt-0.5"
-								/>
-							</div>
-						</div>
+						<app-game-title-cell
+							[coverUrl]="entry.game.backgroundUrl"
+							[title]="entry.game.title"
+							[code]="entry.game.code"
+							[moodTags]="entry.moodTags"
+						/>
 					</td>
 					<td class="px-3 py-2 align-middle whitespace-nowrap">
 						<span
