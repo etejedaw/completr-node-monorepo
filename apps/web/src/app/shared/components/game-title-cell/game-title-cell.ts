@@ -24,7 +24,10 @@ import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
 					class="text-fg font-medium no-underline hover:text-brand line-clamp-1 block"
 					>{{ title() }}</a
 				>
-				<app-mood-tags-chips [tags]="moodTags()" containerClass="mt-0.5" />
+				<app-mood-tags-chips
+					[tags]="moodTags()"
+					containerClass="mt-0.5"
+				/>
 				<ng-content />
 			</div>
 		</div>

@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
+import {
+	ChangeDetectionStrategy,
+	Component,
+	inject,
+	signal
+} from "@angular/core";
 import {
 	NgpDialog,
 	NgpDialogOverlay,
@@ -23,7 +28,13 @@ export type WishlistPlatformModalResult = "saved";
 
 @Component({
 	selector: "app-wishlist-platform-modal",
-	imports: [NgpDialog, NgpDialogOverlay, NgpDialogTitle, UiButton, UiIconButton],
+	imports: [
+		NgpDialog,
+		NgpDialogOverlay,
+		NgpDialogTitle,
+		UiButton,
+		UiIconButton
+	],
 	templateUrl: "./wishlist-platform-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

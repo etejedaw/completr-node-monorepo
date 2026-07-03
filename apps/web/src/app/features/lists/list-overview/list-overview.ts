@@ -95,9 +95,12 @@ export class ListOverview implements OnInit {
 	}
 
 	private openModal(list: List | null) {
-		const ref = this.dialogs.open<ListModalData, ListModalResult>(ListModal, {
-			data: { list }
-		});
+		const ref = this.dialogs.open<ListModalData, ListModalResult>(
+			ListModal,
+			{
+				data: { list }
+			}
+		);
 		ref.afterClosed.subscribe(result => {
 			if (result === "saved") this.loadLists();
 		});

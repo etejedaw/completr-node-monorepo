@@ -22,7 +22,13 @@ export interface QueueAddModalData {
 
 @Component({
 	selector: "app-queue-add-modal",
-	imports: [NgpDialog, NgpDialogOverlay, NgpDialogTitle, UiButton, UiIconButton],
+	imports: [
+		NgpDialog,
+		NgpDialogOverlay,
+		NgpDialogTitle,
+		UiButton,
+		UiIconButton
+	],
 	templateUrl: "./queue-add-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

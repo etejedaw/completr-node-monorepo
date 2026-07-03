@@ -111,7 +111,10 @@ export class FavoritesView implements OnInit {
 		});
 	}
 
-	private openBacklog(entry: BacklogEntry | null, preselectedGame: Game | null) {
+	private openBacklog(
+		entry: BacklogEntry | null,
+		preselectedGame: Game | null
+	) {
 		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
 			BacklogModal,
 			{

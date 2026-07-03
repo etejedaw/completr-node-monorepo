@@ -24,7 +24,14 @@ export interface UserListModalData {
 
 @Component({
 	selector: "app-user-list-modal",
-	imports: [RouterLink, NgpDialog, NgpDialogOverlay, NgpDialogTitle, UiAvatar, UiIconButton],
+	imports: [
+		RouterLink,
+		NgpDialog,
+		NgpDialogOverlay,
+		NgpDialogTitle,
+		UiAvatar,
+		UiIconButton
+	],
 	templateUrl: "./user-list-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
