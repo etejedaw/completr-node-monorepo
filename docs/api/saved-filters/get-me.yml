@@ -34,6 +34,8 @@ docs: |-
             "showInBacklog": true,
             "isDefault": false,
             "enabledStats": null,
+            "icon": "check_circle",
+            "color": "emerald",
             "createdAt": "2025-01-15T12:00:00.000Z"
           }
         ],

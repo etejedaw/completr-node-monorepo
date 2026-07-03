@@ -11,6 +11,8 @@ export function savedFilterSerializer(filter: SavedFilter) {
 		showInBacklog: filter.showInBacklog,
 		isDefault: filter.isDefault,
 		enabledStats: filter.enabledStats ?? null,
+		icon: filter.icon ?? null,
+		color: filter.color ?? null,
 		createdAt: filter.createdAt
 	};
 }

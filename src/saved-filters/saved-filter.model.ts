@@ -24,6 +24,38 @@ export const STAT_KEYS = [
 ] as const;
 export type StatKey = (typeof STAT_KEYS)[number];
 
+export const SAVED_FILTER_ICONS = [
+	"bookmark",
+	"star",
+	"favorite",
+	"sports_esports",
+	"emoji_events",
+	"flag",
+	"check_circle",
+	"schedule",
+	"bolt",
+	"local_fire_department",
+	"filter_alt",
+	"list",
+	"calendar_month",
+	"military_tech",
+	"rocket_launch",
+	"visibility"
+] as const;
+export type SavedFilterIcon = (typeof SAVED_FILTER_ICONS)[number];
+
+export const SAVED_FILTER_COLORS = [
+	"brand",
+	"sky",
+	"emerald",
+	"amber",
+	"rose",
+	"purple",
+	"teal",
+	"slate"
+] as const;
+export type SavedFilterColor = (typeof SAVED_FILTER_COLORS)[number];
+
 class SavedFilter extends Model {
 	declare id: string;
 	declare userId: string;
@@ -36,6 +68,8 @@ class SavedFilter extends Model {
 	declare isDefault: boolean;
 	declare enabledStats: string[] | null;
 	declare position: number;
+	declare icon: string | null;
+	declare color: string | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
@@ -86,6 +120,16 @@ SavedFilter.init(
 			type: DataTypes.INTEGER,
 			allowNull: false,
 			defaultValue: 0
+		},
+		icon: {
+			type: DataTypes.STRING(50),
+			allowNull: true,
+			defaultValue: null
+		},
+		color: {
+			type: DataTypes.STRING(20),
+			allowNull: true,
+			defaultValue: null
 		}
 	},
 	{ sequelize }
