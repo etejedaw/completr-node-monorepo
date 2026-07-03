@@ -10,6 +10,11 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { SavedFiltersService, SavedFilter } from "../saved-filters";
+import {
+	SAVED_FILTER_COLORS,
+	SAVED_FILTER_ICONS,
+	savedFilterColorHex
+} from "../saved-filter-appearance";
 import { ToastService } from "../../../core/services/toast";
 import { AuthService } from "../../../core/services/auth";
 import {
@@ -110,6 +115,11 @@ export class SavedFiltersView implements OnInit {
 	protected readonly editDescription = signal("");
 	protected readonly editShowInBacklog = signal(true);
 	protected readonly editIsDefault = signal(false);
+	protected readonly editIcon = signal<string | null>(null);
+	protected readonly editColor = signal<string | null>(null);
+	protected readonly iconOptions = SAVED_FILTER_ICONS;
+	protected readonly colorOptions = SAVED_FILTER_COLORS;
+	protected readonly colorHex = savedFilterColorHex;
 	protected readonly saving = signal(false);
 	protected readonly showConfirmDelete = signal(false);
 	protected readonly deleting = signal(false);
@@ -240,6 +250,8 @@ export class SavedFiltersView implements OnInit {
 		this.editDescription.set(filter.description ?? "");
 		this.editShowInBacklog.set(filter.showInBacklog);
 		this.editIsDefault.set(filter.isDefault);
+		this.editIcon.set(filter.icon);
+		this.editColor.set(filter.color);
 		this.showConfirmDelete.set(false);
 		this.showModal.set(true);
 	}
@@ -259,7 +271,9 @@ export class SavedFiltersView implements OnInit {
 				name: this.editName(),
 				description: this.editDescription() || undefined,
 				showInBacklog: this.editShowInBacklog(),
-				isDefault: this.editIsDefault()
+				isDefault: this.editIsDefault(),
+				icon: this.editIcon(),
+				color: this.editColor()
 			})
 			.subscribe({
 				next: () => {

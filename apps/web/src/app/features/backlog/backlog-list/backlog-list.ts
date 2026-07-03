@@ -19,6 +19,7 @@ import {
 } from "../../../core/models";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { BacklogService, BacklogFilters } from "../backlog";
+import { savedFilterColorHex } from "../saved-filter-appearance";
 import {
 	SavedFiltersService,
 	SavedFilter,
@@ -183,6 +184,7 @@ export class BacklogList implements OnInit {
 	protected readonly appliedFilters = signal<BacklogFilters>({});
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
 	protected readonly backlogFilters = signal<SavedFilter[]>([]);
+	protected readonly colorHex = savedFilterColorHex;
 	protected readonly activeFilterId = signal<string | null>(null);
 	protected readonly activeFilterDescription = signal("");
 	protected readonly newFilterName = signal("");

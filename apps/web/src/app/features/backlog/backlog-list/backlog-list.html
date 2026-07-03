@@ -68,13 +68,20 @@
 		<div class="flex flex-wrap items-center gap-1.5">
 			@for (sf of backlogFilters(); track sf.id) {
 			<button
-				class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+				class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand inline-flex items-center gap-1"
 				[class.!bg-brand-subtle]="activeFilterId() === sf.id"
 				[class.!border-brand]="activeFilterId() === sf.id"
 				[class.!text-brand]="activeFilterId() === sf.id"
 				(click)="applySavedFilter(sf)"
 			>
-				{{ sf.name }}
+				@if (sf.icon) {
+				<span
+					aria-hidden="true"
+					class="material-icons text-sm"
+					[style.color]="colorHex(sf.color)"
+					>{{ sf.icon }}</span
+				>
+				} {{ sf.name }}
 			</button>
 			} @if (backlogFilters().length > 1) {
 			<button

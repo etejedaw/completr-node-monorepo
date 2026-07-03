@@ -68,6 +68,14 @@
 		>
 			<div class="flex justify-between items-start gap-2">
 				<div class="flex items-center gap-2 min-w-0 flex-1">
+					@if (filter.icon) {
+					<span
+						aria-hidden="true"
+						class="material-icons text-lg shrink-0"
+						[style.color]="colorHex(filter.color)"
+						>{{ filter.icon }}</span
+					>
+					}
 					<h3
 						class="font-display m-0 text-base font-semibold text-fg line-clamp-1"
 					>
@@ -259,6 +267,79 @@
 			<span class="block mt-1 text-[0.6875rem] text-fg-muted"
 				>Auto-apply this view when opening the Backlog</span
 			>
+		</div>
+
+		<div class="mb-4">
+			<span
+				class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Icon</span
+			>
+			<div class="flex flex-wrap gap-1">
+				<button
+					type="button"
+					class="w-8 h-8 rounded border border-line inline-flex items-center justify-center text-fg-muted transition hover:border-brand"
+					[class.!border-brand]="!editIcon()"
+					[class.text-brand]="!editIcon()"
+					(click)="editIcon.set(null)"
+					title="No icon"
+					aria-label="No icon"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>block</span
+					>
+				</button>
+				@for (ic of iconOptions; track ic) {
+				<button
+					type="button"
+					class="w-8 h-8 rounded border border-line inline-flex items-center justify-center transition hover:border-brand"
+					[class.!border-brand]="editIcon() === ic"
+					(click)="editIcon.set(ic)"
+					[attr.aria-label]="ic"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-base"
+						[style.color]="colorHex(editColor())"
+						>{{ ic }}</span
+					>
+				</button>
+				}
+			</div>
+		</div>
+
+		<div class="mb-4">
+			<span
+				class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Color</span
+			>
+			<div class="flex flex-wrap items-center gap-1.5">
+				<button
+					type="button"
+					class="w-7 h-7 rounded-full border border-line inline-flex items-center justify-center text-fg-muted transition hover:border-brand"
+					[class.!border-brand]="!editColor()"
+					(click)="editColor.set(null)"
+					title="No color"
+					aria-label="No color"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>block</span
+					>
+				</button>
+				@for (c of colorOptions; track c.key) {
+				<button
+					type="button"
+					class="w-7 h-7 rounded-full transition"
+					[style.background]="c.hex"
+					[style.outline]="
+						editColor() === c.key ? '2px solid #fff' : 'none'
+					"
+					[style.outline-offset]="'1px'"
+					(click)="editColor.set(c.key)"
+					[attr.aria-label]="c.key"
+					[title]="c.key"
+				></button>
+				}
+			</div>
 		</div>
 
 		<div

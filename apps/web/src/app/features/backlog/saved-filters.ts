@@ -58,6 +58,8 @@ export interface SavedFilter {
 	showInBacklog: boolean;
 	isDefault: boolean;
 	enabledStats: string[] | null;
+	icon: string | null;
+	color: string | null;
 	createdAt: string;
 }
 
@@ -84,6 +86,8 @@ export interface CreateSavedFilterDto {
 	showInBacklog?: boolean;
 	isDefault?: boolean;
 	enabledStats?: string[] | null;
+	icon?: string | null;
+	color?: string | null;
 }
 
 export interface BacklogHighlight {
