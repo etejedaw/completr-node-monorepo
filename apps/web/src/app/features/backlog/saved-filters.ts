@@ -58,11 +58,13 @@ export interface SavedFilter {
 	showInBacklog: boolean;
 	isDefault: boolean;
 	enabledStats: string[] | null;
+	icon: string | null;
+	color: string | null;
 	createdAt: string;
 }
 
 interface SavedFiltersResponse {
-	data: { savedFilters: SavedFilter[]; total?: number };
+	data: { savedFilters: SavedFilter[]; total?: number; frozen?: boolean };
 }
 
 export interface SavedFiltersPagination extends Record<string, Appendable> {
@@ -84,6 +86,8 @@ export interface CreateSavedFilterDto {
 	showInBacklog?: boolean;
 	isDefault?: boolean;
 	enabledStats?: string[] | null;
+	icon?: string | null;
+	color?: string | null;
 }
 
 export interface BacklogHighlight {

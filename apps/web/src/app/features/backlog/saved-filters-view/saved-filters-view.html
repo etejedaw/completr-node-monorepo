@@ -37,7 +37,15 @@
 		</label>
 	</div>
 
-	@if (isLoading()) {
+	@if (frozen()) {
+	<div
+		class="flex items-center gap-2 px-3.5 py-2.5 bg-warning/10 border border-warning/25 text-warning rounded-card text-[0.8125rem] mb-4 max-w-2xl"
+	>
+		<span aria-hidden="true" class="material-icons text-base">lock</span>
+		Saved views are frozen. Delete views to go below the free limit (5) to
+		create or edit again.
+	</div>
+	} @if (isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (filters().length === 0) {
 	<ui-empty-state
@@ -60,6 +68,14 @@
 		>
 			<div class="flex justify-between items-start gap-2">
 				<div class="flex items-center gap-2 min-w-0 flex-1">
+					@if (filter.icon) {
+					<span
+						aria-hidden="true"
+						class="material-icons text-lg shrink-0"
+						[style.color]="colorHex(filter.color)"
+						>{{ filter.icon }}</span
+					>
+					}
 					<h3
 						class="font-display m-0 text-base font-semibold text-fg line-clamp-1"
 					>
@@ -91,15 +107,44 @@
 					</span>
 					}
 				</div>
-				<button
-					class="shrink-0 bg-transparent border-0 text-fg-muted cursor-pointer p-1 rounded transition hover:bg-input-bg hover:text-fg"
-					(click)="openEdit(filter, $event)"
-					title="Edit"
-				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>edit</span
+				<div class="flex items-center gap-0.5 shrink-0">
+					<button
+						class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 rounded transition hover:bg-input-bg hover:text-fg"
+						(click)="shareFilter(filter, $event)"
+						title="Copy public link"
+						aria-label="Copy public backlog link"
 					>
-				</button>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>share</span
+						>
+					</button>
+					<button
+						class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 rounded transition hover:bg-input-bg hover:text-fg"
+						(click)="openDuplicate(filter, $event)"
+						title="Duplicate"
+						aria-label="Duplicate view"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>content_copy</span
+						>
+					</button>
+					<button
+						class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 rounded transition hover:bg-input-bg hover:text-fg"
+						(click)="openEdit(filter, $event)"
+						title="Edit"
+						aria-label="Edit view"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>edit</span
+						>
+					</button>
+				</div>
 			</div>
 
 			@if (filter.description) {
@@ -224,6 +269,79 @@
 			>
 		</div>
 
+		<div class="mb-4">
+			<span
+				class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Icon</span
+			>
+			<div class="flex flex-wrap gap-1">
+				<button
+					type="button"
+					class="w-8 h-8 rounded border border-line inline-flex items-center justify-center text-fg-muted transition hover:border-brand"
+					[class.!border-brand]="!editIcon()"
+					[class.text-brand]="!editIcon()"
+					(click)="editIcon.set(null)"
+					title="No icon"
+					aria-label="No icon"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>block</span
+					>
+				</button>
+				@for (ic of iconOptions; track ic) {
+				<button
+					type="button"
+					class="w-8 h-8 rounded border border-line inline-flex items-center justify-center transition hover:border-brand"
+					[class.!border-brand]="editIcon() === ic"
+					(click)="editIcon.set(ic)"
+					[attr.aria-label]="ic"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-base"
+						[style.color]="colorHex(editColor())"
+						>{{ ic }}</span
+					>
+				</button>
+				}
+			</div>
+		</div>
+
+		<div class="mb-4">
+			<span
+				class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Color</span
+			>
+			<div class="flex flex-wrap items-center gap-1.5">
+				<button
+					type="button"
+					class="w-7 h-7 rounded-full border border-line inline-flex items-center justify-center text-fg-muted transition hover:border-brand"
+					[class.!border-brand]="!editColor()"
+					(click)="editColor.set(null)"
+					title="No color"
+					aria-label="No color"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>block</span
+					>
+				</button>
+				@for (c of colorOptions; track c.key) {
+				<button
+					type="button"
+					class="w-7 h-7 rounded-full transition"
+					[style.background]="c.hex"
+					[style.outline]="
+						editColor() === c.key ? '2px solid #fff' : 'none'
+					"
+					[style.outline-offset]="'1px'"
+					(click)="editColor.set(c.key)"
+					[attr.aria-label]="c.key"
+					[title]="c.key"
+				></button>
+				}
+			</div>
+		</div>
+
 		<div
 			class="flex justify-between items-center mt-5 pt-4 border-t border-line"
 		>
@@ -267,6 +385,64 @@
 				[disabled]="saving() || !editName().trim()"
 			>
 				{{ saving() ? 'Saving...' : 'Save' }}
+			</button>
+		</div>
+	</div>
+</div>
+} @if (showDuplicateModal()) {
+<div
+	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]"
+>
+	<div
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[440px] shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
+	>
+		<div class="flex justify-between items-center mb-5">
+			<h2 class="font-display m-0 text-lg font-bold">Duplicate View</h2>
+			<button
+				class="bg-none border-0 text-fg-muted text-2xl cursor-pointer px-1 leading-none transition hover:text-fg"
+				(click)="closeDuplicateModal()"
+				aria-label="Close"
+			>
+				&times;
+			</button>
+		</div>
+
+		<div class="mb-5">
+			<label
+				for="duplicate-filter-name"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Name</label
+			>
+			<input
+				id="duplicate-filter-name"
+				type="text"
+				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
+				[ngModel]="duplicateName()"
+				(ngModelChange)="duplicateName.set($event)"
+				(keydown.enter)="confirmDuplicate()"
+			/>
+		</div>
+
+		<div class="flex justify-end items-center gap-2">
+			<button
+				class="px-3 py-1.5 bg-transparent border-0 text-fg-muted rounded text-[0.8125rem] cursor-pointer hover:text-fg"
+				(click)="closeDuplicateModal()"
+			>
+				Cancel
+			</button>
+			<button
+				class="px-5 py-2 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+				style="
+					background: linear-gradient(
+						135deg,
+						var(--color-brand),
+						var(--color-brand-deep)
+					);
+				"
+				(click)="confirmDuplicate()"
+				[disabled]="duplicating() || !duplicateName().trim()"
+			>
+				{{ duplicating() ? 'Duplicating...' : 'Duplicate' }}
 			</button>
 		</div>
 	</div>

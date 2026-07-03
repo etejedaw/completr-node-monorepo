@@ -68,13 +68,20 @@
 		<div class="flex flex-wrap items-center gap-1.5">
 			@for (sf of backlogFilters(); track sf.id) {
 			<button
-				class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
+				class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand inline-flex items-center gap-1"
 				[class.!bg-brand-subtle]="activeFilterId() === sf.id"
 				[class.!border-brand]="activeFilterId() === sf.id"
 				[class.!text-brand]="activeFilterId() === sf.id"
 				(click)="applySavedFilter(sf)"
 			>
-				{{ sf.name }}
+				@if (sf.icon) {
+				<span
+					aria-hidden="true"
+					class="material-icons text-sm"
+					[style.color]="colorHex(sf.color)"
+					>{{ sf.icon }}</span
+				>
+				} {{ sf.name }}
 			</button>
 			} @if (backlogFilters().length > 1) {
 			<button
@@ -2005,12 +2012,28 @@
 		<p class="text-sm text-fg-secondary leading-relaxed">
 			Arrange how your pinned views appear as chips in the backlog.
 		</p>
-		<div class="flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
+		<div
+			class="flex flex-col gap-2 max-h-[50vh] overflow-y-auto"
+			cdkDropList
+			(cdkDropListDropped)="onReorderDrop($event)"
+		>
 			@for (item of reorderItems(); track item.id; let i = $index) {
 			<div
+				cdkDrag
 				class="flex items-center gap-2 bg-input-bg border border-line rounded px-3 py-2"
 			>
-				<span class="flex-1 text-sm truncate">{{ item.name }}</span>
+				<button
+					uiIconButton
+					size="sm"
+					cdkDragHandle
+					class="cursor-grab active:cursor-grabbing touch-none"
+					aria-label="Drag to reorder"
+					title="Drag to reorder"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>drag_indicator</span
+					></button
+				><span class="flex-1 text-sm truncate">{{ item.name }}</span>
 				<button
 					uiIconButton
 					size="sm"

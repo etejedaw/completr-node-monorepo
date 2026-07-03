@@ -9,6 +9,14 @@ import {
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { DatePipe } from "@angular/common";
+import { HttpErrorResponse } from "@angular/common/http";
+import {
+	CdkDrag,
+	CdkDragDrop,
+	CdkDragHandle,
+	CdkDropList,
+	moveItemInArray
+} from "@angular/cdk/drag-drop";
 import { FormsModule } from "@angular/forms";
 import {
 	BacklogEntry,
@@ -18,6 +26,7 @@ import {
 } from "../../../core/models";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { BacklogService, BacklogFilters } from "../backlog";
+import { savedFilterColorHex } from "../saved-filter-appearance";
 import {
 	SavedFiltersService,
 	SavedFilter,
@@ -37,6 +46,7 @@ import {
 	type BacklogModalResult
 } from "../backlog-modal/backlog-modal";
 import { DialogService } from "../../../core/services/dialog";
+import { ToastService } from "../../../core/services/toast";
 import { BacklogCalendar } from "../backlog-calendar/backlog-calendar";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
@@ -92,7 +102,10 @@ interface PendingStatusUpdate {
 		UiSwitch,
 		UiTextarea,
 		GameFilterPanel,
-		MoodTagsInput
+		MoodTagsInput,
+		CdkDropList,
+		CdkDrag,
+		CdkDragHandle
 	],
 	templateUrl: "./backlog-list.html",
 	host: {
@@ -111,6 +124,7 @@ export class BacklogList implements OnInit {
 	private readonly reviewsService = inject(ReviewsService);
 	private readonly moodTagsService = inject(MoodTagsService);
 	private readonly dialogs = inject(DialogService);
+	private readonly toast = inject(ToastService);
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -180,6 +194,7 @@ export class BacklogList implements OnInit {
 	protected readonly appliedFilters = signal<BacklogFilters>({});
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
 	protected readonly backlogFilters = signal<SavedFilter[]>([]);
+	protected readonly colorHex = savedFilterColorHex;
 	protected readonly activeFilterId = signal<string | null>(null);
 	protected readonly activeFilterDescription = signal("");
 	protected readonly newFilterName = signal("");
@@ -579,6 +594,13 @@ export class BacklogList implements OnInit {
 		this.reorderItems.set(items);
 	}
 
+	onReorderDrop(event: CdkDragDrop<SavedFilter[]>) {
+		if (event.previousIndex === event.currentIndex) return;
+		const items = [...this.reorderItems()];
+		moveItemInArray(items, event.previousIndex, event.currentIndex);
+		this.reorderItems.set(items);
+	}
+
 	saveReorder() {
 		this.savingReorder.set(true);
 		const ids = this.reorderItems().map(f => f.id);
@@ -681,7 +703,10 @@ export class BacklogList implements OnInit {
 					this.loadSavedFilters();
 					this.loadStats(id);
 				},
-				error: () => this.savingFilter.set(false)
+				error: err => {
+					this.savingFilter.set(false);
+					this.notifyFilterLimit(err);
+				}
 			});
 	}
 
@@ -716,8 +741,18 @@ export class BacklogList implements OnInit {
 					this.newFilterPinned.set(true);
 					this.loadSavedFilters();
 				},
-				error: () => this.savingFilter.set(false)
+				error: err => {
+					this.savingFilter.set(false);
+					this.notifyFilterLimit(err);
+				}
 			});
+	}
+
+	private notifyFilterLimit(error: unknown) {
+		if (error instanceof HttpErrorResponse && error.status === 402)
+			this.toast.error(
+				"You've reached the free limit of 5 saved views. Delete one to save a new view."
+			);
 	}
 
 	private buildFiltersObject(): Record<string, string> {
