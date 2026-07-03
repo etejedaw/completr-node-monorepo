@@ -7,6 +7,7 @@ import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.
 import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
 import * as savedFiltersController from "./saved-filters.controller";
 import { RegisterSavedFilterSchema } from "./schemas/register-saved-filter.schema";
+import { ReorderSavedFiltersSchema } from "./schemas/reorder-saved-filters.schema";
 import { SavedFilterIdParamsSchema } from "./schemas/saved-filter-id-params.schema";
 import { UpdateSavedFilterSchema } from "./schemas/update-saved-filter.schema";
 
@@ -30,6 +31,16 @@ router.get(
 		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	savedFiltersController.getMeSavedFilters
+);
+
+router.put(
+	"/reorder",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator"),
+		validateSchemaMiddleware(ReorderSavedFiltersSchema, "body")
+	],
+	savedFiltersController.putReorderSavedFilters
 );
 
 router.get(
