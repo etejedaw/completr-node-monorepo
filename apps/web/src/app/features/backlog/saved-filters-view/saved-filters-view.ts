@@ -111,6 +111,10 @@ export class SavedFiltersView implements OnInit {
 	protected readonly saving = signal(false);
 	protected readonly showConfirmDelete = signal(false);
 	protected readonly deleting = signal(false);
+	protected readonly showDuplicateModal = signal(false);
+	protected readonly duplicatingFilter = signal<SavedFilter | null>(null);
+	protected readonly duplicateName = signal("");
+	protected readonly duplicating = signal(false);
 
 	ngOnInit() {
 		this.searchSubject
@@ -149,6 +153,51 @@ export class SavedFiltersView implements OnInit {
 				savedFilterId: filter.id
 			}
 		});
+	}
+
+	openDuplicate(filter: SavedFilter, event: Event) {
+		event.stopPropagation();
+		this.duplicatingFilter.set(filter);
+		this.duplicateName.set(`${filter.name} (copy)`);
+		this.showDuplicateModal.set(true);
+	}
+
+	closeDuplicateModal() {
+		this.showDuplicateModal.set(false);
+		this.duplicatingFilter.set(null);
+	}
+
+	confirmDuplicate() {
+		const filter = this.duplicatingFilter();
+		const name = this.duplicateName().trim();
+		if (!filter || !name) return;
+
+		this.duplicating.set(true);
+		this.savedFiltersService
+			.create({
+				name,
+				description: filter.description ?? undefined,
+				filters: filter.filters,
+				sortBy: filter.sortBy ?? undefined,
+				sortOrder: filter.sortOrder ?? undefined,
+				showInBacklog: filter.showInBacklog,
+				enabledStats: filter.enabledStats
+			})
+			.subscribe({
+				next: () => {
+					this.duplicating.set(false);
+					this.showDuplicateModal.set(false);
+					this.duplicatingFilter.set(null);
+					this.loadFilters();
+				},
+				error: err => {
+					this.duplicating.set(false);
+					if (err instanceof HttpErrorResponse && err.status === 402)
+						this.toast.error(
+							"You've reached the free limit of 5 saved views. Delete one to duplicate."
+						);
+				}
+			});
 	}
 
 	openEdit(filter: SavedFilter, event: Event) {
