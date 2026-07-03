@@ -65,7 +65,7 @@
 
 	<div class="flex items-center gap-2 mb-4">
 		@if (backlogFilters().length > 0) {
-		<div class="flex flex-wrap gap-1.5">
+		<div class="flex flex-wrap items-center gap-1.5">
 			@for (sf of backlogFilters(); track sf.id) {
 			<button
 				class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
@@ -75,6 +75,17 @@
 				(click)="applySavedFilter(sf)"
 			>
 				{{ sf.name }}
+			</button>
+			} @if (backlogFilters().length > 1) {
+			<button
+				class="text-fg-muted w-7 h-7 rounded-full inline-flex items-center justify-center cursor-pointer transition hover:text-brand hover:bg-input-bg"
+				(click)="openReorderModal()"
+				aria-label="Reorder pinned views"
+				title="Reorder pinned views"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>swap_vert</span
+				>
 			</button>
 			}
 		</div>
@@ -910,29 +921,24 @@
 				>
 					Save as view
 				</h3>
-				<div class="flex items-center gap-2">
-					<input
-						uiInput
-						type="text"
-						class="!flex-1 !text-sm"
-						placeholder="View name..."
-						[ngModel]="newFilterName()"
-						(ngModelChange)="newFilterName.set($event)"
-						(keydown.enter)="saveCurrentFilter()"
+				<input
+					uiInput
+					type="text"
+					class="!w-full !text-sm"
+					placeholder="View name..."
+					[ngModel]="newFilterName()"
+					(ngModelChange)="newFilterName.set($event)"
+					(keydown.enter)="saveCurrentFilter()"
+				/>
+				<label
+					class="flex items-center gap-2 mt-2 cursor-pointer text-sm text-fg-secondary"
+				>
+					<ui-switch
+						[checked]="newFilterPinned()"
+						(checkedChange)="newFilterPinned.set($event)"
 					/>
-					<button
-						class="bg-transparent border border-line text-fg-muted w-9 h-9 rounded cursor-pointer inline-flex items-center justify-center shrink-0 transition hover:border-brand hover:text-brand disabled:opacity-30"
-						(click)="saveCurrentFilter()"
-						[disabled]="savingFilter() || !newFilterName().trim()"
-						title="Save view"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>bookmark_add</span
-						>
-					</button>
-				</div>
+					Pin to backlog
+				</label>
 			</section>
 			}
 		</div>
@@ -958,7 +964,7 @@
 				variant="primary"
 				(click)="applyFilters(); showFilters.set(false)"
 			>
-				Apply
+				{{ hasPendingViewName() ? "Apply & Save" : "Apply" }}
 			</button>
 		</footer>
 	</aside>
@@ -1576,60 +1582,60 @@
 							[moodTags]="entry.moodTags"
 						>
 							@if (entry.compilationGame) {
-						<span
-							class="ml-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[0.625rem] font-medium text-brand bg-brand/10 border border-brand/30"
-							[title]="'Part of ' + entry.compilationGame.title"
-						>
 							<span
-								aria-hidden="true"
-								class="material-icons text-[0.625rem]"
-								>library_books</span
+								class="ml-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[0.625rem] font-medium text-brand bg-brand/10 border border-brand/30"
+								[title]="'Part of ' + entry.compilationGame.title"
 							>
-							{{ entry.compilationGame.title }}
-						</span>
-						} @if (entry.latestProgress && (entry.status ===
-						'playing' || entry.status === 'endless' || entry.status
-						=== 'not_started')) {
-						<div
-							class="flex items-start gap-1 mt-1 text-[0.6875rem] text-fg-muted"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.75rem] text-brand mt-px"
-								>bookmark</span
-							>
-							<span class="line-clamp-1"
-								>{{ entry.latestProgress.note }}</span
-							>
-						</div>
-						} @if (entry.coopMembers && entry.coopMembers.length >
-						0) {
-						<div class="flex items-center gap-1 mt-1">
-							<div class="flex -space-x-1">
-								@for (m of entry.coopMembers.slice(0, 3); track
-								m.userId) { @if (m.avatarUrl) {
-								<img
-									[src]="m.avatarUrl"
-									[alt]="m.username"
-									class="w-4 h-4 rounded-full object-cover border border-sidebar"
-									[title]="m.name || m.username"
-								/>
-								} @else {
-								<div
-									class="w-4 h-4 rounded-full bg-brand/20 text-brand text-[0.4375rem] font-semibold flex items-center justify-center border border-sidebar"
-									[title]="m.name || m.username"
+								<span
+									aria-hidden="true"
+									class="material-icons text-[0.625rem]"
+									>library_books</span
 								>
-									{{ m.username[0]?.toUpperCase() }}
-								</div>
-								} }
-							</div>
-							@if (entry.coopMembers.length > 3) {
-							<span class="text-[0.5625rem] text-fg-muted"
-								>+{{ entry.coopMembers.length - 3 }}</span
+								{{ entry.compilationGame.title }}
+							</span>
+							} @if (entry.latestProgress && (entry.status ===
+							'playing' || entry.status === 'endless' ||
+							entry.status === 'not_started')) {
+							<div
+								class="flex items-start gap-1 mt-1 text-[0.6875rem] text-fg-muted"
 							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-[0.75rem] text-brand mt-px"
+									>bookmark</span
+								>
+								<span class="line-clamp-1"
+									>{{ entry.latestProgress.note }}</span
+								>
+							</div>
+							} @if (entry.coopMembers && entry.coopMembers.length
+							> 0) {
+							<div class="flex items-center gap-1 mt-1">
+								<div class="flex -space-x-1">
+									@for (m of entry.coopMembers.slice(0, 3);
+									track m.userId) { @if (m.avatarUrl) {
+									<img
+										[src]="m.avatarUrl"
+										[alt]="m.username"
+										class="w-4 h-4 rounded-full object-cover border border-sidebar"
+										[title]="m.name || m.username"
+									/>
+									} @else {
+									<div
+										class="w-4 h-4 rounded-full bg-brand/20 text-brand text-[0.4375rem] font-semibold flex items-center justify-center border border-sidebar"
+										[title]="m.name || m.username"
+									>
+										{{ m.username[0]?.toUpperCase() }}
+									</div>
+									} }
+								</div>
+								@if (entry.coopMembers.length > 3) {
+								<span class="text-[0.5625rem] text-fg-muted"
+									>+{{ entry.coopMembers.length - 3 }}</span
+								>
+								}
+							</div>
 							}
-						</div>
-						}
 						</app-game-title-cell>
 					</td>
 					<td
@@ -1980,6 +1986,69 @@
 			</button>
 			<button uiButton variant="primary" (click)="confirmStatusChange()">
 				Confirm
+			</button>
+		</div>
+	</div>
+</div>
+} @if (showReorderModal()) {
+<div class="modal-overlay">
+	<div
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[420px] flex flex-col gap-4"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
+	>
+		<h2 class="m-0 text-lg font-bold font-display flex items-center gap-2">
+			<span aria-hidden="true" class="material-icons text-xl"
+				>swap_vert</span
+			>
+			Reorder pinned views
+		</h2>
+		<p class="text-sm text-fg-secondary leading-relaxed">
+			Arrange how your pinned views appear as chips in the backlog.
+		</p>
+		<div class="flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
+			@for (item of reorderItems(); track item.id; let i = $index) {
+			<div
+				class="flex items-center gap-2 bg-input-bg border border-line rounded px-3 py-2"
+			>
+				<span class="flex-1 text-sm truncate">{{ item.name }}</span>
+				<button
+					uiIconButton
+					size="sm"
+					[disabled]="i === 0"
+					(click)="moveReorderUp(i)"
+					aria-label="Move up"
+					title="Move up"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>keyboard_arrow_up</span
+					>
+				</button>
+				<button
+					uiIconButton
+					size="sm"
+					[disabled]="i === reorderItems().length - 1"
+					(click)="moveReorderDown(i)"
+					aria-label="Move down"
+					title="Move down"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>keyboard_arrow_down</span
+					>
+				</button>
+			</div>
+			}
+		</div>
+		<div class="flex items-center justify-end gap-2">
+			<button uiButton variant="ghost" (click)="closeReorderModal()">
+				Cancel
+			</button>
+			<button
+				uiButton
+				variant="primary"
+				[disabled]="savingReorder()"
+				(click)="saveReorder()"
+			>
+				Save order
 			</button>
 		</div>
 	</div>

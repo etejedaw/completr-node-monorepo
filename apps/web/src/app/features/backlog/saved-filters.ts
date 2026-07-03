@@ -58,6 +58,7 @@ export interface SavedFilter {
 	showInBacklog: boolean;
 	isDefault: boolean;
 	enabledStats: string[] | null;
+	createdAt: string;
 }
 
 interface SavedFiltersResponse {
@@ -150,6 +151,12 @@ export class SavedFiltersService {
 		return this.http
 			.patch<SavedFilterResponse>(`${this.baseUrl}/${id}`, dto)
 			.pipe(map(res => res.data.savedFilter));
+	}
+
+	reorder(ids: string[]) {
+		return this.http
+			.put<SavedFiltersResponse>(`${this.baseUrl}/reorder`, { ids })
+			.pipe(map(res => res.data.savedFilters));
 	}
 
 	delete(id: string) {

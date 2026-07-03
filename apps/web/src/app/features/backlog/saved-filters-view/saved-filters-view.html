@@ -12,12 +12,30 @@
 		</div>
 	</div>
 
-	<ui-search-bar
-		class="block mb-4 max-w-2xl"
-		placeholder="Search saved views..."
-		[value]="searchQuery()"
-		(valueChange)="onSearch($event)"
-	/>
+	<div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 max-w-2xl">
+		<ui-search-bar
+			class="block flex-1"
+			placeholder="Search saved views..."
+			[value]="searchQuery()"
+			(valueChange)="onSearch($event)"
+		/>
+		<label class="flex items-center gap-2 shrink-0 text-sm text-fg-muted">
+			Sort by
+			<select
+				uiSelect
+				size="sm"
+				[ngModel]="sortMode()"
+				(ngModelChange)="sortMode.set($event)"
+			>
+				<option value="name_asc">Name (A–Z)</option>
+				<option value="name_desc">Name (Z–A)</option>
+				<option value="created_desc">Recently created</option>
+				<option value="created_asc">Oldest first</option>
+				<option value="pinned">Pinned first</option>
+				<option value="default">Default first</option>
+			</select>
+		</label>
+	</div>
 
 	@if (isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
