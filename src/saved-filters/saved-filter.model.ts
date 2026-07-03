@@ -35,6 +35,7 @@ class SavedFilter extends Model {
 	declare showInBacklog: boolean;
 	declare isDefault: boolean;
 	declare enabledStats: string[] | null;
+	declare position: number;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
@@ -80,6 +81,11 @@ SavedFilter.init(
 			type: DataTypes.ARRAY(DataTypes.TEXT),
 			allowNull: true,
 			defaultValue: null
+		},
+		position: {
+			type: DataTypes.INTEGER,
+			allowNull: false,
+			defaultValue: 0
 		}
 	},
 	{ sequelize }

@@ -2,6 +2,7 @@ import { type Request, type Response } from "express";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
+import { type ReorderSavedFiltersDto } from "./dtos/reorder-saved-filters.dto";
 import { type UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
 import { savedFilterSerializer } from "./saved-filters.serializer";
 import * as savedFiltersService from "./saved-filters.service";
@@ -56,6 +57,20 @@ export async function patchSavedFilter(request: Request, response: Response) {
 	const filterPlain = filter.get({ plain: true });
 
 	const data = { savedFilter: savedFilterSerializer(filterPlain) };
+	return response.status(200).json({ data });
+}
+
+export async function putReorderSavedFilters(
+	request: Request,
+	response: Response
+) {
+	const { ids } = request.locals.body as ReorderSavedFiltersDto;
+	const user = request.locals.user as RequestUser;
+
+	const filters = await savedFiltersService.reorderSavedFilters(user.id, ids);
+	const filtersPlain = filters.map(filter => filter.get({ plain: true }));
+
+	const data = { savedFilters: filtersPlain.map(savedFilterSerializer) };
 	return response.status(200).json({ data });
 }
 

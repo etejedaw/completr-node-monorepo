@@ -4,6 +4,7 @@ import * as backlogService from "../backlog/backlog.service";
 import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { sequelize } from "../database/sequelize.database";
 import { type RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
 import { type UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
 import * as savedFilterServiceError from "./errors/saved-filters.service-error";
@@ -37,8 +38,13 @@ export async function createSavedFilter(
 		await clearDefault(userId);
 	}
 
+	const maxPosition = (await SavedFilter.max("position", {
+		where: { userId }
+	})) as number | null;
+	const position = (maxPosition ?? 0) + 1;
+
 	try {
-		return await SavedFilter.create({ ...dto, userId });
+		return await SavedFilter.create({ ...dto, userId, position });
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: savedFilterServiceError.uniqueConstraintError,
@@ -62,7 +68,10 @@ export async function findSavedFiltersByUserId(
 
 	const query: Record<string, unknown> = {
 		where,
-		order: [["createdAt", "DESC"]]
+		order: [
+			["position", "ASC"],
+			["createdAt", "DESC"]
+		]
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
@@ -102,6 +111,39 @@ export async function updateSavedFilter(
 
 	await filter.update(dto);
 	return filter;
+}
+
+export async function reorderSavedFilters(userId: string, ids: string[]) {
+	const filters = await SavedFilter.findAll({
+		where: { userId, id: { [Op.in]: ids } }
+	});
+	if (filters.length !== ids.length)
+		throw savedFilterServiceError.notFoundError();
+
+	const positionById = new Map(ids.map((id, index) => [id, index + 1]));
+
+	await sequelize.transaction(async transaction => {
+		await Promise.all(
+			filters
+				.filter(
+					filter => filter.position !== positionById.get(filter.id)
+				)
+				.map(filter =>
+					filter.update(
+						{ position: positionById.get(filter.id) },
+						{ transaction }
+					)
+				)
+		);
+	});
+
+	return SavedFilter.findAll({
+		where: { userId },
+		order: [
+			["position", "ASC"],
+			["createdAt", "DESC"]
+		]
+	});
 }
 
 async function clearDefault(userId: string) {
