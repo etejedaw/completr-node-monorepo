@@ -11,7 +11,8 @@ import {
 	selector: "[appFloatingXScrollbar]"
 })
 export class FloatingXScrollbar implements OnDestroy {
-	private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+	private readonly host =
+		inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 	private readonly zone = inject(NgZone);
 
 	private bar?: HTMLElement;

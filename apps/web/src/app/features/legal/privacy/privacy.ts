@@ -36,8 +36,8 @@ import { RouterLink } from "@angular/router";
 						</p>
 						<p class="m-0">
 							The idea is simple: I collect the minimum needed for
-							the app to work, I never sell or share your data, and
-							you can delete it whenever you want.
+							the app to work, I never sell or share your data,
+							and you can delete it whenever you want.
 						</p>
 					</section>
 
@@ -62,8 +62,8 @@ import { RouterLink } from "@angular/router";
 						<p class="m-0">
 							<strong class="text-fg">Technical data.</strong>
 							Aggregate usage analytics via Umami (see below) and
-							server logs, kept for a limited time for security and
-							troubleshooting.
+							server logs, kept for a limited time for security
+							and troubleshooting.
 						</p>
 					</section>
 
@@ -74,7 +74,9 @@ import { RouterLink } from "@angular/router";
 							What I use it for
 						</h2>
 						<ul class="m-0 list-disc pl-5 flex flex-col gap-2">
-							<li>Run the service and show you your own content.</li>
+							<li>
+								Run the service and show you your own content.
+							</li>
 							<li>
 								Authenticate you and keep your session secure.
 							</li>
@@ -87,8 +89,8 @@ import { RouterLink } from "@angular/router";
 						<p class="m-0">
 							What I <strong class="text-fg">don't</strong> do: I
 							don't sell or share your data with third parties, I
-							don't run ads, I don't sign you up to newsletters, and
-							I don't track you across sites.
+							don't run ads, I don't sign you up to newsletters,
+							and I don't track you across sites.
 						</p>
 					</section>
 
@@ -115,19 +117,19 @@ import { RouterLink } from "@angular/router";
 						</h2>
 						<p class="m-0">
 							To understand how the app is used I use
-							<strong class="text-fg">Umami</strong>, a self-hosted
-							analytics tool that measures visits in an aggregate,
-							anonymous way. It uses no cookies, doesn't track
-							across sites and doesn't collect personally
-							identifiable information.
+							<strong class="text-fg">Umami</strong>, a
+							self-hosted analytics tool that measures visits in
+							an aggregate, anonymous way. It uses no cookies,
+							doesn't track across sites and doesn't collect
+							personally identifiable information.
 						</p>
 						<p class="m-0">
 							The app uses a single strictly necessary cookie to
 							keep you signed in (an
-							<span class="text-fg">HttpOnly</span> session token).
-							It's not a tracking cookie and can't be disabled
-							without breaking sign-in, so you won't see cookie
-							consent banners.
+							<span class="text-fg">HttpOnly</span> session
+							token). It's not a tracking cookie and can't be
+							disabled without breaking sign-in, so you won't see
+							cookie consent banners.
 						</p>
 					</section>
 
@@ -155,8 +157,8 @@ import { RouterLink } from "@angular/router";
 						</h2>
 						<p class="m-0">
 							I keep your account and your content for as long as
-							your account is active. If you delete your account, I
-							delete your personal data and your content. Server
+							your account is active. If you delete your account,
+							I delete your personal data and your content. Server
 							logs are removed after a limited period, and Umami
 							analytics are aggregate and anonymous.
 						</p>
@@ -170,9 +172,9 @@ import { RouterLink } from "@angular/router";
 						</h2>
 						<p class="m-0">
 							You can exercise your rights of access,
-							rectification, erasure, objection and portability over
-							your personal data at any time, as recognized by
-							Chile's Law 21.719 and, if you're in the European
+							rectification, erasure, objection and portability
+							over your personal data at any time, as recognized
+							by Chile's Law 21.719 and, if you're in the European
 							Union, by the GDPR.
 						</p>
 						<ul class="m-0 list-disc pl-5 flex flex-col gap-2">
@@ -199,10 +201,10 @@ import { RouterLink } from "@angular/router";
 						</h2>
 						<p class="m-0">
 							Passwords are stored encrypted, sessions use
-							<span class="text-fg">HttpOnly</span> cookies and all
-							traffic runs over HTTPS. No system is foolproof, but I
-							treat your data with the same care I'd want for my
-							own.
+							<span class="text-fg">HttpOnly</span> cookies and
+							all traffic runs over HTTPS. No system is foolproof,
+							but I treat your data with the same care I'd want
+							for my own.
 						</p>
 					</section>
 
@@ -227,10 +229,10 @@ import { RouterLink } from "@angular/router";
 							Changes and contact
 						</h2>
 						<p class="m-0">
-							This policy may change as Completr evolves. Any change
-							will be reflected on this page, along with the last
-							updated date. If you have questions about how I handle
-							your data, email me at
+							This policy may change as Completr evolves. Any
+							change will be reflected on this page, along with
+							the last updated date. If you have questions about
+							how I handle your data, email me at
 							<a
 								href="mailto:completr@etejeda.dev"
 								class="text-brand hover:underline"

@@ -213,9 +213,12 @@ export class ListDetail implements OnInit {
 	}
 
 	openEdit() {
-		const ref = this.dialogs.open<ListModalData, ListModalResult>(ListModal, {
-			data: { list: this.list() }
-		});
+		const ref = this.dialogs.open<ListModalData, ListModalResult>(
+			ListModal,
+			{
+				data: { list: this.list() }
+			}
+		);
 		ref.afterClosed.subscribe(result => {
 			if (result === "saved") this.loadList();
 			else if (result === "deleted") this.router.navigate(["/lists"]);
@@ -242,7 +245,10 @@ export class ListDetail implements OnInit {
 		});
 	}
 
-	private openBacklog(entry: BacklogEntry | null, preselectedGame: Game | null) {
+	private openBacklog(
+		entry: BacklogEntry | null,
+		preselectedGame: Game | null
+	) {
 		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
 			BacklogModal,
 			{

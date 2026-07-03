@@ -296,11 +296,17 @@ export class GameDetail implements OnInit {
 				WishlistPlatformModalData,
 				WishlistPlatformModalResult
 			>(WishlistPlatformModal, {
-				data: { gameId: g.id, gameTitle: g.title, platforms: g.platforms }
+				data: {
+					gameId: g.id,
+					gameTitle: g.title,
+					platforms: g.platforms
+				}
 			});
 			ref.afterClosed.subscribe(result => {
 				if (result === "saved")
-					this.isInWishlist.set(this.wishlistService.isInWishlist(g.id));
+					this.isInWishlist.set(
+						this.wishlistService.isInWishlist(g.id)
+					);
 			});
 		}
 	}
@@ -482,7 +488,6 @@ export class GameDetail implements OnInit {
 				})
 		});
 	}
-
 
 	protected updateAdminActions(patch: Partial<AdminActionsState>) {
 		this.adminActions.update(s => ({ ...s, ...patch }));

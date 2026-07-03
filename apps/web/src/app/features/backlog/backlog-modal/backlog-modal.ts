@@ -891,7 +891,9 @@ export class BacklogModal implements OnInit {
 						);
 					}
 					if (extras$.length > 0) {
-						forkJoin(extras$).subscribe(() => this.dialogRef.close("saved"));
+						forkJoin(extras$).subscribe(() =>
+							this.dialogRef.close("saved")
+						);
 					} else {
 						this.dialogRef.close("saved");
 					}

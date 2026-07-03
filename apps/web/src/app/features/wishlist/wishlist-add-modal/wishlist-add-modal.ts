@@ -21,14 +21,23 @@ export type WishlistAddModalResult = "saved";
 
 @Component({
 	selector: "app-wishlist-add-modal",
-	imports: [NgpDialog, NgpDialogOverlay, NgpDialogTitle, UiButton, UiIconButton],
+	imports: [
+		NgpDialog,
+		NgpDialogOverlay,
+		NgpDialogTitle,
+		UiButton,
+		UiIconButton
+	],
 	templateUrl: "./wishlist-add-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WishlistAddModal implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly wishlistService = inject(WishlistService);
-	private readonly dialogRef = injectDialogRef<void, WishlistAddModalResult>();
+	private readonly dialogRef = injectDialogRef<
+		void,
+		WishlistAddModalResult
+	>();
 	private readonly searchSubject = new Subject<string>();
 
 	protected readonly results = signal<Game[]>([]);

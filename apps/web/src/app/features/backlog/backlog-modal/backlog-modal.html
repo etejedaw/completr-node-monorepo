@@ -7,10 +7,7 @@
 		class="bg-sidebar border border-line rounded-[12px] w-full max-w-[640px] max-h-[90vh] flex flex-col shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
 	>
 		<div class="flex justify-between items-center px-7 pt-7 pb-4 shrink-0">
-			<h2
-				ngpDialogTitle
-				class="font-display m-0 text-lg font-bold"
-			>
+			<h2 ngpDialogTitle class="font-display m-0 text-lg font-bold">
 				{{ isEdit() ? (viewMode() === 'summary' ? entry!.game.title :
 				"Edit Entry") : "Add to Backlog" }}
 			</h2>
@@ -76,10 +73,8 @@
 						/>
 					</div>
 				</div>
-				@if (
-					(e.ratio !== null && e.ratio !== undefined) ||
-					(e.personalRatio !== null && e.personalRatio !== undefined)
-				) {
+				@if ( (e.ratio !== null && e.ratio !== undefined) ||
+				(e.personalRatio !== null && e.personalRatio !== undefined) ) {
 				<div class="flex items-center gap-4 shrink-0">
 					@if (e.ratio !== null && e.ratio !== undefined) {
 					<div
@@ -93,9 +88,8 @@
 							>Ratio</span
 						>
 					</div>
-					} @if (
-						e.personalRatio !== null && e.personalRatio !== undefined
-					) {
+					} @if ( e.personalRatio !== null && e.personalRatio !==
+					undefined ) {
 					<div
 						class="flex flex-col items-end justify-center text-right min-w-[60px]"
 					>
@@ -344,8 +338,7 @@
 				<div class="mb-4">
 					<span
 						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-						>Game
-						<span class="text-danger font-bold">*</span></span
+						>Game <span class="text-danger font-bold">*</span></span
 					>
 					@if (selectedGame()) {
 					<div
@@ -1292,188 +1285,198 @@
 		</div>
 
 		@if (pickerUserId()) {
-<div
-	class="fixed inset-0 bg-black/70 flex justify-center items-center z-[110] backdrop-blur-[4px] p-4"
->
-	<div
-		class="bg-sidebar border border-line rounded-card max-w-md w-full p-5 shadow-2xl"
-	>
-		<header class="flex items-center gap-2 mb-3">
-			<span aria-hidden="true" class="material-icons text-brand"
-				>group_add</span
-			>
-			<h2 class="font-display text-lg font-semibold m-0">
-				Pick a run for {{ pickerUserName() }}
-			</h2>
-		</header>
-		<p class="text-sm text-fg-secondary m-0 mb-4">
-			{{ pickerUserName() }} already has runs for this game. Pick one to
-			annex into your co-op session, or create a new entry for them.
-		</p>
-		<ul
-			class="list-none p-0 m-0 flex flex-col gap-2 mb-4 max-h-72 overflow-y-auto"
+		<div
+			class="fixed inset-0 bg-black/70 flex justify-center items-center z-[110] backdrop-blur-[4px] p-4"
 		>
-			@for (c of pickerCandidates(); track c.id) {
-			<li>
-				<button
-					type="button"
-					class="w-full bg-input-bg border border-line rounded-card p-3 text-left cursor-pointer hover:border-brand transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-line"
-					(click)="chooseCandidate(c.id)"
-					[disabled]="!!c.coopRunId"
+			<div
+				class="bg-sidebar border border-line rounded-card max-w-md w-full p-5 shadow-2xl"
+			>
+				<header class="flex items-center gap-2 mb-3">
+					<span aria-hidden="true" class="material-icons text-brand"
+						>group_add</span
+					>
+					<h2 class="font-display text-lg font-semibold m-0">
+						Pick a run for {{ pickerUserName() }}
+					</h2>
+				</header>
+				<p class="text-sm text-fg-secondary m-0 mb-4">
+					{{ pickerUserName() }} already has runs for this game. Pick
+					one to annex into your co-op session, or create a new entry
+					for them.
+				</p>
+				<ul
+					class="list-none p-0 m-0 flex flex-col gap-2 mb-4 max-h-72 overflow-y-auto"
 				>
-					<div class="flex items-center justify-between mb-1">
-						<span
-							class="text-xs font-semibold uppercase tracking-wider text-fg"
-							>{{ c.status }}</span
+					@for (c of pickerCandidates(); track c.id) {
+					<li>
+						<button
+							type="button"
+							class="w-full bg-input-bg border border-line rounded-card p-3 text-left cursor-pointer hover:border-brand transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-line"
+							(click)="chooseCandidate(c.id)"
+							[disabled]="!!c.coopRunId"
 						>
-						@if (c.coopRunId) {
-						<span class="text-[0.625rem] text-warning"
-							>Already in another co-op</span
-						>
-						}
-					</div>
-					<div class="text-[0.6875rem] text-fg-muted tabular-nums">
-						Started: {{ c.startedAt ?? '—' }} · Finished: {{
-						c.finishedAt ?? '—' }} · Real: {{ c.realDuration ?? '—'
-						}}h
-					</div>
-				</button>
-			</li>
-			}
-		</ul>
-		<div class="flex justify-between gap-2">
-			<button
-				uiButton
-				variant="ghost"
-				size="sm"
-				type="button"
-				(click)="cancelPicker()"
-			>
-				Cancel
-			</button>
-			<button
-				uiButton
-				variant="primary"
-				size="sm"
-				type="button"
-				(click)="chooseCandidate(null)"
-			>
-				Create new entry
-			</button>
+							<div class="flex items-center justify-between mb-1">
+								<span
+									class="text-xs font-semibold uppercase tracking-wider text-fg"
+									>{{ c.status }}</span
+								>
+								@if (c.coopRunId) {
+								<span class="text-[0.625rem] text-warning"
+									>Already in another co-op</span
+								>
+								}
+							</div>
+							<div
+								class="text-[0.6875rem] text-fg-muted tabular-nums"
+							>
+								Started: {{ c.startedAt ?? '—' }} · Finished: {{
+								c.finishedAt ?? '—' }} · Real: {{ c.realDuration
+								?? '—' }}h
+							</div>
+						</button>
+					</li>
+					}
+				</ul>
+				<div class="flex justify-between gap-2">
+					<button
+						uiButton
+						variant="ghost"
+						size="sm"
+						type="button"
+						(click)="cancelPicker()"
+					>
+						Cancel
+					</button>
+					<button
+						uiButton
+						variant="primary"
+						size="sm"
+						type="button"
+						(click)="chooseCandidate(null)"
+					>
+						Create new entry
+					</button>
+				</div>
+			</div>
 		</div>
-	</div>
-</div>
-} @if (syncMember(); as m) {
-<div
-	class="fixed inset-0 bg-black/70 flex justify-center items-center z-[110] backdrop-blur-[4px] p-4"
->
-	<div
-		class="bg-sidebar border border-line rounded-card max-w-md w-full p-5 shadow-2xl"
-	>
-		<header class="flex items-center gap-2 mb-3">
-			<span aria-hidden="true" class="material-icons text-brand"
-				>sync</span
+		} @if (syncMember(); as m) {
+		<div
+			class="fixed inset-0 bg-black/70 flex justify-center items-center z-[110] backdrop-blur-[4px] p-4"
+		>
+			<div
+				class="bg-sidebar border border-line rounded-card max-w-md w-full p-5 shadow-2xl"
 			>
-			<h2 class="font-display text-lg font-semibold m-0">
-				Sync from {{ m.name || m.username }}
-			</h2>
-		</header>
-		<p class="text-sm text-fg-secondary m-0 mb-4">
-			Pick which fields to copy. Your personal data (score, rating, notes)
-			is never synced.
-		</p>
+				<header class="flex items-center gap-2 mb-3">
+					<span aria-hidden="true" class="material-icons text-brand"
+						>sync</span
+					>
+					<h2 class="font-display text-lg font-semibold m-0">
+						Sync from {{ m.name || m.username }}
+					</h2>
+				</header>
+				<p class="text-sm text-fg-secondary m-0 mb-4">
+					Pick which fields to copy. Your personal data (score,
+					rating, notes) is never synced.
+				</p>
 
-		@let mine = entry;
-		<div class="flex flex-col gap-2 mb-4">
-			<label class="flex items-start gap-2 cursor-pointer">
-				<input
-					type="checkbox"
-					class="cursor-pointer mt-0.5"
-					[checked]="syncFields().status"
-					(change)="toggleSyncField('status')"
-				/>
-				<div class="flex-1">
-					<span class="block text-sm text-fg">Status</span>
-					<span
-						class="block text-[0.6875rem] text-fg-muted tabular-nums"
-						>{{ mine?.status ?? '—' }} → {{ m.status }}</span
-					>
+				@let mine = entry;
+				<div class="flex flex-col gap-2 mb-4">
+					<label class="flex items-start gap-2 cursor-pointer">
+						<input
+							type="checkbox"
+							class="cursor-pointer mt-0.5"
+							[checked]="syncFields().status"
+							(change)="toggleSyncField('status')"
+						/>
+						<div class="flex-1">
+							<span class="block text-sm text-fg">Status</span>
+							<span
+								class="block text-[0.6875rem] text-fg-muted tabular-nums"
+								>{{ mine?.status ?? '—' }} → {{ m.status
+								}}</span
+							>
+						</div>
+					</label>
+					<label class="flex items-start gap-2 cursor-pointer">
+						<input
+							type="checkbox"
+							class="cursor-pointer mt-0.5"
+							[checked]="syncFields().startedAt"
+							(change)="toggleSyncField('startedAt')"
+						/>
+						<div class="flex-1">
+							<span class="block text-sm text-fg"
+								>Started At</span
+							>
+							<span
+								class="block text-[0.6875rem] text-fg-muted tabular-nums"
+								>{{ mine?.startedAt ?? '—' }} → {{ m.startedAt
+								?? '—' }}</span
+							>
+						</div>
+					</label>
+					<label class="flex items-start gap-2 cursor-pointer">
+						<input
+							type="checkbox"
+							class="cursor-pointer mt-0.5"
+							[checked]="syncFields().finishedAt"
+							(change)="toggleSyncField('finishedAt')"
+						/>
+						<div class="flex-1">
+							<span class="block text-sm text-fg"
+								>Finished At</span
+							>
+							<span
+								class="block text-[0.6875rem] text-fg-muted tabular-nums"
+								>{{ mine?.finishedAt ?? '—' }} → {{ m.finishedAt
+								?? '—' }}</span
+							>
+						</div>
+					</label>
+					<label class="flex items-start gap-2 cursor-pointer">
+						<input
+							type="checkbox"
+							class="cursor-pointer mt-0.5"
+							[checked]="syncFields().realDuration"
+							(change)="toggleSyncField('realDuration')"
+						/>
+						<div class="flex-1">
+							<span class="block text-sm text-fg"
+								>Real Duration</span
+							>
+							<span
+								class="block text-[0.6875rem] text-fg-muted tabular-nums"
+								>{{ mine?.realDuration ?? '—' }}h → {{
+								m.realDuration ?? '—' }}h</span
+							>
+						</div>
+					</label>
 				</div>
-			</label>
-			<label class="flex items-start gap-2 cursor-pointer">
-				<input
-					type="checkbox"
-					class="cursor-pointer mt-0.5"
-					[checked]="syncFields().startedAt"
-					(change)="toggleSyncField('startedAt')"
-				/>
-				<div class="flex-1">
-					<span class="block text-sm text-fg">Started At</span>
-					<span
-						class="block text-[0.6875rem] text-fg-muted tabular-nums"
-						>{{ mine?.startedAt ?? '—' }} → {{ m.startedAt ?? '—'
-						}}</span
-					>
-				</div>
-			</label>
-			<label class="flex items-start gap-2 cursor-pointer">
-				<input
-					type="checkbox"
-					class="cursor-pointer mt-0.5"
-					[checked]="syncFields().finishedAt"
-					(change)="toggleSyncField('finishedAt')"
-				/>
-				<div class="flex-1">
-					<span class="block text-sm text-fg">Finished At</span>
-					<span
-						class="block text-[0.6875rem] text-fg-muted tabular-nums"
-						>{{ mine?.finishedAt ?? '—' }} → {{ m.finishedAt ?? '—'
-						}}</span
-					>
-				</div>
-			</label>
-			<label class="flex items-start gap-2 cursor-pointer">
-				<input
-					type="checkbox"
-					class="cursor-pointer mt-0.5"
-					[checked]="syncFields().realDuration"
-					(change)="toggleSyncField('realDuration')"
-				/>
-				<div class="flex-1">
-					<span class="block text-sm text-fg">Real Duration</span>
-					<span
-						class="block text-[0.6875rem] text-fg-muted tabular-nums"
-						>{{ mine?.realDuration ?? '—' }}h → {{ m.realDuration ??
-						'—' }}h</span
-					>
-				</div>
-			</label>
-		</div>
 
-		<div class="flex justify-end gap-2">
-			<button
-				uiButton
-				variant="ghost"
-				size="sm"
-				type="button"
-				(click)="closeSyncDialog()"
-				[disabled]="syncing()"
-			>
-				Cancel
-			</button>
-			<button
-				uiButton
-				variant="primary"
-				size="sm"
-				type="button"
-				(click)="commitSync()"
-				[disabled]="syncing() || !hasAnySyncFieldSelected()"
-			>
-				{{ syncing() ? 'Syncing…' : 'Apply' }}
-			</button>
+				<div class="flex justify-end gap-2">
+					<button
+						uiButton
+						variant="ghost"
+						size="sm"
+						type="button"
+						(click)="closeSyncDialog()"
+						[disabled]="syncing()"
+					>
+						Cancel
+					</button>
+					<button
+						uiButton
+						variant="primary"
+						size="sm"
+						type="button"
+						(click)="commitSync()"
+						[disabled]="syncing() || !hasAnySyncFieldSelected()"
+					>
+						{{ syncing() ? 'Syncing…' : 'Apply' }}
+					</button>
+				</div>
+			</div>
 		</div>
-	</div>
-</div>
-}
+		}
 	</div>
 </div>
