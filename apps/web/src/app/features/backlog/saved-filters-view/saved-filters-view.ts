@@ -11,6 +11,7 @@ import { Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { SavedFiltersService, SavedFilter } from "../saved-filters";
 import { ToastService } from "../../../core/services/toast";
+import { AuthService } from "../../../core/services/auth";
 import {
 	UiButton,
 	UiEmptyState,
@@ -48,6 +49,7 @@ export class SavedFiltersView implements OnInit {
 	private readonly savedFiltersService = inject(SavedFiltersService);
 	private readonly router = inject(Router);
 	private readonly toast = inject(ToastService);
+	private readonly authService = inject(AuthService);
 
 	protected readonly filters = signal<SavedFilter[]>([]);
 	protected readonly isLoading = signal(true);
@@ -153,6 +155,37 @@ export class SavedFiltersView implements OnInit {
 				savedFilterId: filter.id
 			}
 		});
+	}
+
+	shareFilter(filter: SavedFilter, event: Event) {
+		event.stopPropagation();
+		const username = this.authService.user()?.username;
+		if (!username) return;
+
+		const params = new URLSearchParams();
+		for (const [key, value] of Object.entries(filter.filters))
+			if (value != null && value !== "") params.set(key, String(value));
+		if (filter.sortBy) params.set("sort_by", filter.sortBy);
+		if (filter.sortOrder) params.set("sort_order", filter.sortOrder);
+		params.set("view_name", filter.name);
+		if (filter.description) params.set("view_desc", filter.description);
+
+		const url = `${window.location.origin}/user/${username}/backlog?${params.toString()}`;
+		navigator.clipboard.writeText(url).then(
+			() => {
+				const visibility = this.authService.user()?.backlogVisibility;
+				if (visibility === "friends")
+					this.toast.warning(
+						"Link copied. Your backlog is friends-only, so only your friends (signed in) can open it."
+					);
+				else if (visibility === "private")
+					this.toast.warning(
+						"Link copied, but your backlog is private, so no one else can open it."
+					);
+				else this.toast.success("Backlog link copied to clipboard.");
+			},
+			() => this.toast.error("Couldn't copy the link.")
+		);
 	}
 
 	openDuplicate(filter: SavedFilter, event: Event) {

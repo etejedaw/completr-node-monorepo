@@ -17,6 +17,27 @@ import { UiPagination, UiSearchBar } from "../../../shared/ui";
 
 const PAGE_SIZE = 50;
 
+const SHAREABLE_FILTER_KEYS = [
+	"platform_id",
+	"platforms",
+	"genres",
+	"release_year_from",
+	"release_year_to",
+	"started_from",
+	"started_to",
+	"finished_from",
+	"finished_to",
+	"min_rating",
+	"max_rating",
+	"min_real_duration",
+	"max_real_duration",
+	"min_ratio",
+	"max_ratio",
+	"min_personal_ratio",
+	"max_personal_ratio",
+	"mood_tags"
+];
+
 @Component({
 	selector: "app-user-backlog",
 	imports: [
@@ -46,6 +67,12 @@ export class UserBacklog implements OnInit {
 	protected readonly activeStatus = signal("");
 	protected readonly limit = PAGE_SIZE;
 	protected readonly Math = Math;
+
+	private readonly sharedFilters = signal<Record<string, string>>({});
+	private readonly urlSortBy = signal("");
+	private readonly urlSortOrder = signal("");
+	protected readonly viewName = signal("");
+	protected readonly viewDescription = signal("");
 
 	private readonly searchSubject = new Subject<string>();
 
@@ -98,10 +125,21 @@ export class UserBacklog implements OnInit {
 	}
 
 	private init() {
-		const username = this.route.snapshot.paramMap.get("username") ?? "";
-		this.username.set(username);
-		const status = this.route.snapshot.queryParamMap.get("status") ?? "";
-		this.activeStatus.set(status);
+		const qp = this.route.snapshot.queryParamMap;
+		this.username.set(this.route.snapshot.paramMap.get("username") ?? "");
+		this.activeStatus.set(qp.get("status") ?? "");
+
+		const shared: Record<string, string> = {};
+		for (const key of SHAREABLE_FILTER_KEYS) {
+			const value = qp.get(key);
+			if (value) shared[key] = value;
+		}
+		this.sharedFilters.set(shared);
+		this.urlSortBy.set(qp.get("sort_by") ?? "");
+		this.urlSortOrder.set(qp.get("sort_order") ?? "");
+		this.viewName.set(qp.get("view_name") ?? "");
+		this.viewDescription.set(qp.get("view_desc") ?? "");
+
 		this.load();
 	}
 
@@ -163,12 +201,18 @@ export class UserBacklog implements OnInit {
 		this.isLoading.set(true);
 		this.error.set(null);
 
-		const sort = this.defaultSortForStatus(this.activeStatus());
+		const sort = this.urlSortBy()
+			? {
+					sort_by: this.urlSortBy(),
+					sort_order: this.urlSortOrder() || "desc"
+				}
+			: this.defaultSortForStatus(this.activeStatus());
 		const filters: Record<string, string | number> = {
 			limit: this.limit,
 			offset: this.offset(),
 			sort_by: sort.sort_by,
-			sort_order: sort.sort_order
+			sort_order: sort.sort_order,
+			...this.sharedFilters()
 		};
 		if (this.activeStatus()) filters["status"] = this.activeStatus();
 		if (this.searchQuery()) filters["search"] = this.searchQuery();
