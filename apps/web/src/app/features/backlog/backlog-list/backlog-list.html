@@ -910,29 +910,24 @@
 				>
 					Save as view
 				</h3>
-				<div class="flex items-center gap-2">
-					<input
-						uiInput
-						type="text"
-						class="!flex-1 !text-sm"
-						placeholder="View name..."
-						[ngModel]="newFilterName()"
-						(ngModelChange)="newFilterName.set($event)"
-						(keydown.enter)="saveCurrentFilter()"
+				<input
+					uiInput
+					type="text"
+					class="!w-full !text-sm"
+					placeholder="View name..."
+					[ngModel]="newFilterName()"
+					(ngModelChange)="newFilterName.set($event)"
+					(keydown.enter)="saveCurrentFilter()"
+				/>
+				<label
+					class="flex items-center gap-2 mt-2 cursor-pointer text-sm text-fg-secondary"
+				>
+					<ui-switch
+						[checked]="newFilterPinned()"
+						(checkedChange)="newFilterPinned.set($event)"
 					/>
-					<button
-						class="bg-transparent border border-line text-fg-muted w-9 h-9 rounded cursor-pointer inline-flex items-center justify-center shrink-0 transition hover:border-brand hover:text-brand disabled:opacity-30"
-						(click)="saveCurrentFilter()"
-						[disabled]="savingFilter() || !newFilterName().trim()"
-						title="Save view"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>bookmark_add</span
-						>
-					</button>
-				</div>
+					Pin to backlog
+				</label>
 			</section>
 			}
 		</div>
@@ -958,7 +953,7 @@
 				variant="primary"
 				(click)="applyFilters(); showFilters.set(false)"
 			>
-				Apply
+				{{ hasPendingViewName() ? "Apply & Save" : "Apply" }}
 			</button>
 		</footer>
 	</aside>
@@ -1576,60 +1571,60 @@
 							[moodTags]="entry.moodTags"
 						>
 							@if (entry.compilationGame) {
-						<span
-							class="ml-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[0.625rem] font-medium text-brand bg-brand/10 border border-brand/30"
-							[title]="'Part of ' + entry.compilationGame.title"
-						>
 							<span
-								aria-hidden="true"
-								class="material-icons text-[0.625rem]"
-								>library_books</span
+								class="ml-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[0.625rem] font-medium text-brand bg-brand/10 border border-brand/30"
+								[title]="'Part of ' + entry.compilationGame.title"
 							>
-							{{ entry.compilationGame.title }}
-						</span>
-						} @if (entry.latestProgress && (entry.status ===
-						'playing' || entry.status === 'endless' || entry.status
-						=== 'not_started')) {
-						<div
-							class="flex items-start gap-1 mt-1 text-[0.6875rem] text-fg-muted"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.75rem] text-brand mt-px"
-								>bookmark</span
-							>
-							<span class="line-clamp-1"
-								>{{ entry.latestProgress.note }}</span
-							>
-						</div>
-						} @if (entry.coopMembers && entry.coopMembers.length >
-						0) {
-						<div class="flex items-center gap-1 mt-1">
-							<div class="flex -space-x-1">
-								@for (m of entry.coopMembers.slice(0, 3); track
-								m.userId) { @if (m.avatarUrl) {
-								<img
-									[src]="m.avatarUrl"
-									[alt]="m.username"
-									class="w-4 h-4 rounded-full object-cover border border-sidebar"
-									[title]="m.name || m.username"
-								/>
-								} @else {
-								<div
-									class="w-4 h-4 rounded-full bg-brand/20 text-brand text-[0.4375rem] font-semibold flex items-center justify-center border border-sidebar"
-									[title]="m.name || m.username"
+								<span
+									aria-hidden="true"
+									class="material-icons text-[0.625rem]"
+									>library_books</span
 								>
-									{{ m.username[0]?.toUpperCase() }}
-								</div>
-								} }
-							</div>
-							@if (entry.coopMembers.length > 3) {
-							<span class="text-[0.5625rem] text-fg-muted"
-								>+{{ entry.coopMembers.length - 3 }}</span
+								{{ entry.compilationGame.title }}
+							</span>
+							} @if (entry.latestProgress && (entry.status ===
+							'playing' || entry.status === 'endless' ||
+							entry.status === 'not_started')) {
+							<div
+								class="flex items-start gap-1 mt-1 text-[0.6875rem] text-fg-muted"
 							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-[0.75rem] text-brand mt-px"
+									>bookmark</span
+								>
+								<span class="line-clamp-1"
+									>{{ entry.latestProgress.note }}</span
+								>
+							</div>
+							} @if (entry.coopMembers && entry.coopMembers.length
+							> 0) {
+							<div class="flex items-center gap-1 mt-1">
+								<div class="flex -space-x-1">
+									@for (m of entry.coopMembers.slice(0, 3);
+									track m.userId) { @if (m.avatarUrl) {
+									<img
+										[src]="m.avatarUrl"
+										[alt]="m.username"
+										class="w-4 h-4 rounded-full object-cover border border-sidebar"
+										[title]="m.name || m.username"
+									/>
+									} @else {
+									<div
+										class="w-4 h-4 rounded-full bg-brand/20 text-brand text-[0.4375rem] font-semibold flex items-center justify-center border border-sidebar"
+										[title]="m.name || m.username"
+									>
+										{{ m.username[0]?.toUpperCase() }}
+									</div>
+									} }
+								</div>
+								@if (entry.coopMembers.length > 3) {
+								<span class="text-[0.5625rem] text-fg-muted"
+									>+{{ entry.coopMembers.length - 3 }}</span
+								>
+								}
+							</div>
 							}
-						</div>
-						}
 						</app-game-title-cell>
 					</td>
 					<td

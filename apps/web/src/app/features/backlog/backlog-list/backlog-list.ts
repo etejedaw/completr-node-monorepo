@@ -183,6 +183,7 @@ export class BacklogList implements OnInit {
 	protected readonly activeFilterId = signal<string | null>(null);
 	protected readonly activeFilterDescription = signal("");
 	protected readonly newFilterName = signal("");
+	protected readonly newFilterPinned = signal(true);
 	protected readonly savingFilter = signal(false);
 
 	protected readonly stats = signal<SavedFilterStats | null>(null);
@@ -370,6 +371,9 @@ export class BacklogList implements OnInit {
 	}
 
 	protected readonly hasActiveFilters = () => this.activeFiltersCount() > 0;
+
+	protected readonly hasPendingViewName = () =>
+		this.newFilterName().trim().length > 0;
 
 	protected readonly activeFiltersCount = () => {
 		let count = 0;
@@ -571,6 +575,7 @@ export class BacklogList implements OnInit {
 	}
 
 	applyFilters() {
+		if (!this.activeFilterId()) this.saveCurrentFilter();
 		this.activeFilterId.set(null);
 		this.offset.set(0);
 		this.loadBacklog();
@@ -664,12 +669,14 @@ export class BacklogList implements OnInit {
 				name,
 				filters,
 				sortBy: this.sortBy(),
-				sortOrder: this.sortOrder()
+				sortOrder: this.sortOrder(),
+				showInBacklog: this.newFilterPinned()
 			})
 			.subscribe({
 				next: () => {
 					this.savingFilter.set(false);
 					this.newFilterName.set("");
+					this.newFilterPinned.set(true);
 					this.loadSavedFilters();
 				},
 				error: () => this.savingFilter.set(false)
