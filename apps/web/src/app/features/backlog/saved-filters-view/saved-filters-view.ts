@@ -6,9 +6,11 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
+import { HttpErrorResponse } from "@angular/common/http";
 import { Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { SavedFiltersService, SavedFilter } from "../saved-filters";
+import { ToastService } from "../../../core/services/toast";
 import {
 	UiButton,
 	UiEmptyState,
@@ -45,6 +47,7 @@ type SortMode =
 export class SavedFiltersView implements OnInit {
 	private readonly savedFiltersService = inject(SavedFiltersService);
 	private readonly router = inject(Router);
+	private readonly toast = inject(ToastService);
 
 	protected readonly filters = signal<SavedFilter[]>([]);
 	protected readonly isLoading = signal(true);
@@ -52,6 +55,7 @@ export class SavedFiltersView implements OnInit {
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 25;
+	protected readonly frozen = signal(false);
 	protected readonly sortMode = signal<SortMode>("name_asc");
 
 	onOffsetChange(offset: number) {
@@ -132,6 +136,7 @@ export class SavedFiltersView implements OnInit {
 					this.total.set(
 						res.data.total ?? res.data.savedFilters.length
 					);
+					this.frozen.set(res.data.frozen ?? false);
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
@@ -181,7 +186,13 @@ export class SavedFiltersView implements OnInit {
 					this.editingFilter.set(null);
 					this.loadFilters();
 				},
-				error: () => this.saving.set(false)
+				error: err => {
+					this.saving.set(false);
+					if (err instanceof HttpErrorResponse && err.status === 402)
+						this.toast.error(
+							"Saved views are frozen. Delete views to go below the free limit of 5 before editing."
+						);
+				}
 			});
 	}
 

@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { DatePipe } from "@angular/common";
+import { HttpErrorResponse } from "@angular/common/http";
 import { FormsModule } from "@angular/forms";
 import {
 	BacklogEntry,
@@ -37,6 +38,7 @@ import {
 	type BacklogModalResult
 } from "../backlog-modal/backlog-modal";
 import { DialogService } from "../../../core/services/dialog";
+import { ToastService } from "../../../core/services/toast";
 import { BacklogCalendar } from "../backlog-calendar/backlog-calendar";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
@@ -111,6 +113,7 @@ export class BacklogList implements OnInit {
 	private readonly reviewsService = inject(ReviewsService);
 	private readonly moodTagsService = inject(MoodTagsService);
 	private readonly dialogs = inject(DialogService);
+	private readonly toast = inject(ToastService);
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -681,7 +684,10 @@ export class BacklogList implements OnInit {
 					this.loadSavedFilters();
 					this.loadStats(id);
 				},
-				error: () => this.savingFilter.set(false)
+				error: err => {
+					this.savingFilter.set(false);
+					this.notifyFilterLimit(err);
+				}
 			});
 	}
 
@@ -716,8 +722,18 @@ export class BacklogList implements OnInit {
 					this.newFilterPinned.set(true);
 					this.loadSavedFilters();
 				},
-				error: () => this.savingFilter.set(false)
+				error: err => {
+					this.savingFilter.set(false);
+					this.notifyFilterLimit(err);
+				}
 			});
+	}
+
+	private notifyFilterLimit(error: unknown) {
+		if (error instanceof HttpErrorResponse && error.status === 402)
+			this.toast.error(
+				"You've reached the free limit of 5 saved views. Delete one to save a new view."
+			);
 	}
 
 	private buildFiltersObject(): Record<string, string> {

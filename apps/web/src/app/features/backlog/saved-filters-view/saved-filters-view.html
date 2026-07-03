@@ -37,7 +37,15 @@
 		</label>
 	</div>
 
-	@if (isLoading()) {
+	@if (frozen()) {
+	<div
+		class="flex items-center gap-2 px-3.5 py-2.5 bg-warning/10 border border-warning/25 text-warning rounded-card text-[0.8125rem] mb-4 max-w-2xl"
+	>
+		<span aria-hidden="true" class="material-icons text-base">lock</span>
+		Saved views are frozen. Delete views to go below the free limit (5) to
+		create or edit again.
+	</div>
+	} @if (isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (filters().length === 0) {
 	<ui-empty-state

@@ -62,7 +62,7 @@ export interface SavedFilter {
 }
 
 interface SavedFiltersResponse {
-	data: { savedFilters: SavedFilter[]; total?: number };
+	data: { savedFilters: SavedFilter[]; total?: number; frozen?: boolean };
 }
 
 export interface SavedFiltersPagination extends Record<string, Appendable> {
