@@ -10,6 +10,13 @@ import {
 import { toSignal } from "@angular/core/rxjs-interop";
 import { DatePipe } from "@angular/common";
 import { HttpErrorResponse } from "@angular/common/http";
+import {
+	CdkDrag,
+	CdkDragDrop,
+	CdkDragHandle,
+	CdkDropList,
+	moveItemInArray
+} from "@angular/cdk/drag-drop";
 import { FormsModule } from "@angular/forms";
 import {
 	BacklogEntry,
@@ -95,7 +102,10 @@ interface PendingStatusUpdate {
 		UiSwitch,
 		UiTextarea,
 		GameFilterPanel,
-		MoodTagsInput
+		MoodTagsInput,
+		CdkDropList,
+		CdkDrag,
+		CdkDragHandle
 	],
 	templateUrl: "./backlog-list.html",
 	host: {
@@ -581,6 +591,13 @@ export class BacklogList implements OnInit {
 		const items = [...this.reorderItems()];
 		if (index >= items.length - 1) return;
 		[items[index], items[index + 1]] = [items[index + 1], items[index]];
+		this.reorderItems.set(items);
+	}
+
+	onReorderDrop(event: CdkDragDrop<SavedFilter[]>) {
+		if (event.previousIndex === event.currentIndex) return;
+		const items = [...this.reorderItems()];
+		moveItemInArray(items, event.previousIndex, event.currentIndex);
 		this.reorderItems.set(items);
 	}
 

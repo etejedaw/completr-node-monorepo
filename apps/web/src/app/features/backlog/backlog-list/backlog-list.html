@@ -2012,12 +2012,28 @@
 		<p class="text-sm text-fg-secondary leading-relaxed">
 			Arrange how your pinned views appear as chips in the backlog.
 		</p>
-		<div class="flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
+		<div
+			class="flex flex-col gap-2 max-h-[50vh] overflow-y-auto"
+			cdkDropList
+			(cdkDropListDropped)="onReorderDrop($event)"
+		>
 			@for (item of reorderItems(); track item.id; let i = $index) {
 			<div
+				cdkDrag
 				class="flex items-center gap-2 bg-input-bg border border-line rounded px-3 py-2"
 			>
-				<span class="flex-1 text-sm truncate">{{ item.name }}</span>
+				<button
+					uiIconButton
+					size="sm"
+					cdkDragHandle
+					class="cursor-grab active:cursor-grabbing touch-none"
+					aria-label="Drag to reorder"
+					title="Drag to reorder"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>drag_indicator</span
+					></button
+				><span class="flex-1 text-sm truncate">{{ item.name }}</span>
 				<button
 					uiIconButton
 					size="sm"
