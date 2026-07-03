@@ -58,6 +58,7 @@ export interface SavedFilter {
 	showInBacklog: boolean;
 	isDefault: boolean;
 	enabledStats: string[] | null;
+	createdAt: string;
 }
 
 interface SavedFiltersResponse {

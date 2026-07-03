@@ -14,9 +14,18 @@ import {
 	UiEmptyState,
 	UiPagination,
 	UiSearchBar,
+	UiSelect,
 	UiTextarea
 } from "../../../shared/ui";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
+
+type SortMode =
+	| "name_asc"
+	| "name_desc"
+	| "created_desc"
+	| "created_asc"
+	| "pinned"
+	| "default";
 
 @Component({
 	selector: "app-saved-filters-view",
@@ -27,6 +36,7 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 		UiEmptyState,
 		UiPagination,
 		UiSearchBar,
+		UiSelect,
 		UiTextarea
 	],
 	templateUrl: "./saved-filters-view.html",
@@ -42,13 +52,44 @@ export class SavedFiltersView implements OnInit {
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 25;
+	protected readonly sortMode = signal<SortMode>("name_asc");
 
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadFilters();
 	}
 
-	protected readonly filteredFilters = computed(() => this.filters());
+	protected readonly filteredFilters = computed(() => {
+		const filters = [...this.filters()];
+		const byName = (a: SavedFilter, b: SavedFilter) =>
+			a.name.localeCompare(b.name);
+		switch (this.sortMode()) {
+			case "name_asc":
+				return filters.sort(byName);
+			case "name_desc":
+				return filters.sort((a, b) => byName(b, a));
+			case "created_desc":
+				return filters.sort((a, b) =>
+					b.createdAt.localeCompare(a.createdAt)
+				);
+			case "created_asc":
+				return filters.sort((a, b) =>
+					a.createdAt.localeCompare(b.createdAt)
+				);
+			case "pinned":
+				return filters.sort(
+					(a, b) =>
+						Number(b.showInBacklog) - Number(a.showInBacklog) ||
+						byName(a, b)
+				);
+			case "default":
+				return filters.sort(
+					(a, b) =>
+						Number(b.isDefault) - Number(a.isDefault) ||
+						byName(a, b)
+				);
+		}
+	});
 
 	private readonly searchSubject = new Subject<string>();
 
@@ -87,11 +128,7 @@ export class SavedFiltersView implements OnInit {
 			})
 			.subscribe({
 				next: res => {
-					this.filters.set(
-						res.data.savedFilters.sort((a, b) =>
-							a.name.localeCompare(b.name)
-						)
-					);
+					this.filters.set(res.data.savedFilters);
 					this.total.set(
 						res.data.total ?? res.data.savedFilters.length
 					);
