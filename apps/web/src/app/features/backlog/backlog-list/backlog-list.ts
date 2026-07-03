@@ -185,6 +185,9 @@ export class BacklogList implements OnInit {
 	protected readonly newFilterName = signal("");
 	protected readonly newFilterPinned = signal(true);
 	protected readonly savingFilter = signal(false);
+	protected readonly showReorderModal = signal(false);
+	protected readonly reorderItems = signal<SavedFilter[]>([]);
+	protected readonly savingReorder = signal(false);
 
 	protected readonly stats = signal<SavedFilterStats | null>(null);
 	protected readonly statsLoading = signal(false);
@@ -420,9 +423,8 @@ export class BacklogList implements OnInit {
 			.subscribe(p => this.allPlatforms.set(p));
 		this.gamesService.getGenres().subscribe(g => this.allGenres.set(g));
 		this.savedFiltersService.getAll().subscribe(filters => {
-			const sorted = filters.sort((a, b) => a.name.localeCompare(b.name));
-			this.savedFilters.set(sorted);
-			this.backlogFilters.set(sorted.filter(f => f.showInBacklog));
+			this.savedFilters.set(filters);
+			this.backlogFilters.set(filters.filter(f => f.showInBacklog));
 			this.savedFiltersLoaded.set(true);
 		});
 		this.moodTagsService
@@ -549,9 +551,44 @@ export class BacklogList implements OnInit {
 
 	private loadSavedFilters() {
 		this.savedFiltersService.getAll().subscribe(filters => {
-			const sorted = filters.sort((a, b) => a.name.localeCompare(b.name));
-			this.savedFilters.set(sorted);
-			this.backlogFilters.set(sorted.filter(f => f.showInBacklog));
+			this.savedFilters.set(filters);
+			this.backlogFilters.set(filters.filter(f => f.showInBacklog));
+		});
+	}
+
+	openReorderModal() {
+		this.reorderItems.set([...this.backlogFilters()]);
+		this.showReorderModal.set(true);
+	}
+
+	closeReorderModal() {
+		this.showReorderModal.set(false);
+	}
+
+	moveReorderUp(index: number) {
+		if (index === 0) return;
+		const items = [...this.reorderItems()];
+		[items[index - 1], items[index]] = [items[index], items[index - 1]];
+		this.reorderItems.set(items);
+	}
+
+	moveReorderDown(index: number) {
+		const items = [...this.reorderItems()];
+		if (index >= items.length - 1) return;
+		[items[index], items[index + 1]] = [items[index + 1], items[index]];
+		this.reorderItems.set(items);
+	}
+
+	saveReorder() {
+		this.savingReorder.set(true);
+		const ids = this.reorderItems().map(f => f.id);
+		this.savedFiltersService.reorder(ids).subscribe({
+			next: () => {
+				this.savingReorder.set(false);
+				this.showReorderModal.set(false);
+				this.loadSavedFilters();
+			},
+			error: () => this.savingReorder.set(false)
 		});
 	}
 
