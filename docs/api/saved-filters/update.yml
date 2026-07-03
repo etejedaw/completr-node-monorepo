@@ -49,6 +49,8 @@ docs: |-
     | showInBacklog | boolean  | No       | Whether the view appears as a chip in the backlog|
     | isDefault     | boolean  | No       | Auto-apply this view when opening the backlog    |
     | enabledStats  | string[] | No       | Stat keys to render. Pass `null` to reset to frontend defaults. Allowed keys listed under Create. |
+    | icon          | string   | No       | Icon for the chip/card. `null` to clear. Allowed values listed under Create.                       |
+    | color         | string   | No       | Color token for the chip/card. `null` to clear. Allowed values listed under Create.                |
 
     ### Response (200)
 
@@ -63,7 +65,9 @@ docs: |-
           "sortOrder": "...",
           "showInBacklog": true,
           "isDefault": false,
-          "enabledStats": ["totalEntries", "avgRatio"]
+          "enabledStats": ["totalEntries", "avgRatio"],
+          "icon": "check_circle",
+          "color": "emerald"
         }
       }
     }
