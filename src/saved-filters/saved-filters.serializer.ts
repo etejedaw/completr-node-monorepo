@@ -10,6 +10,7 @@ export function savedFilterSerializer(filter: SavedFilter) {
 		sortOrder: filter.sortOrder,
 		showInBacklog: filter.showInBacklog,
 		isDefault: filter.isDefault,
-		enabledStats: filter.enabledStats ?? null
+		enabledStats: filter.enabledStats ?? null,
+		createdAt: filter.createdAt
 	};
 }
