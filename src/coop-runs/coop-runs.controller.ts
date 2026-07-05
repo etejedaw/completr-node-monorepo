@@ -3,6 +3,7 @@ import type z from "zod";
 
 import * as activityService from "../activity/activity.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import * as gamesService from "../games/games.service";
 import * as coopService from "./coop-runs.service";
 import { type AddMemberDto } from "./dtos/add-member.dto";
 import { type SyncDto } from "./dtos/sync.dto";
@@ -26,7 +27,19 @@ export async function postMember(request: Request, response: Response) {
 		body.targetBacklogId
 	);
 
-	activityService.record(user.id, "coop_tagged", body.userId);
+	const game = await gamesService.findGameById(result.gameId);
+	const metadata = game
+		? {
+				game: {
+					id: game.id,
+					title: game.title,
+					code: game.code,
+					backgroundUrl: game.backgroundUrl
+				}
+			}
+		: undefined;
+
+	activityService.record(user.id, "coop_tagged", body.userId, metadata);
 
 	return response.status(201).json({
 		data: {
