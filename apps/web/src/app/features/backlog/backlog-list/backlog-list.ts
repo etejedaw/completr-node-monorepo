@@ -593,8 +593,8 @@ export class BacklogList implements OnInit {
 	}
 
 	private loadQueueIds() {
-		this.queueService.getMyQueue().subscribe(entries => {
-			this.queueBacklogIds.set(new Set(entries.map(e => e.backlog.id)));
+		this.queueService.getMyQueueBacklogIds().subscribe(ids => {
+			this.queueBacklogIds.set(new Set(ids));
 		});
 	}
 
