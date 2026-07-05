@@ -864,6 +864,17 @@ export class BacklogList implements OnInit {
 		return map[status] ?? "schedule";
 	}
 
+	statusIconColor(status: BacklogStatus): string {
+		const map: Record<BacklogStatus, string> = {
+			not_started: "text-fg-muted",
+			playing: "text-warning",
+			completed: "text-success",
+			abandoned: "text-danger",
+			endless: "text-brand"
+		};
+		return map[status] ?? "";
+	}
+
 	canChangeStatus(status: BacklogStatus): boolean {
 		return (
 			status === "not_started" ||

@@ -1164,11 +1164,26 @@
 				<div
 					class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap"
 				>
-					@if (canChangeStatus(entry.status)) {
+					@if (entry.status === 'not_started') {
+					<button
+						type="button"
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide bg-warning/10 text-warning hover:bg-warning/20 border border-warning/20 hover:border-warning/40 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+						[disabled]="isStatusUpdating(entry)"
+						(click)="selectNewStatus(entry, 'playing', $event)"
+						title="Start playing"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.875rem]"
+							>play_arrow</span
+						>
+						Start
+					</button>
+					} @if (canChangeStatus(entry.status)) {
 					<div class="relative inline-block">
 						<button
 							type="button"
-							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide border border-line hover:border-brand/50 cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
 							[class]="statusClass(entry.status)"
 							[disabled]="isStatusUpdating(entry)"
 							(click)="toggleStatusMenu(entry, $event)"
@@ -1209,6 +1224,7 @@
 								<span
 									aria-hidden="true"
 									class="material-icons text-sm"
+									[class]="statusIconColor($any(s.value))"
 									>{{ statusIcon($any(s.value)) }}</span
 								>
 								{{ s.label }}
@@ -1715,11 +1731,26 @@
 						date:'yyyy-MM-dd') : "-" }}
 					</td>
 					<td class="px-4 py-3 align-middle whitespace-nowrap">
-						@if (canChangeStatus(entry.status)) {
+						@if (entry.status === 'not_started') {
+						<button
+							type="button"
+							class="inline-flex items-center gap-1 px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide bg-warning/10 text-warning hover:bg-warning/20 border border-warning/20 hover:border-warning/40 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mr-1.5"
+							[disabled]="isStatusUpdating(entry)"
+							(click)="selectNewStatus(entry, 'playing', $event)"
+							title="Start playing"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-[0.875rem]"
+								>play_arrow</span
+							>
+							Start
+						</button>
+						} @if (canChangeStatus(entry.status)) {
 						<div class="relative inline-block">
 							<button
 								type="button"
-								class="inline-flex items-center gap-1 px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+								class="inline-flex items-center gap-1 px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide border border-line hover:border-brand/50 cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
 								[class]="statusClass(entry.status)"
 								[disabled]="isStatusUpdating(entry)"
 								(click)="toggleStatusMenu(entry, $event)"
@@ -1760,6 +1791,7 @@
 									<span
 										aria-hidden="true"
 										class="material-icons text-sm"
+										[class]="statusIconColor($any(s.value))"
 										>{{ statusIcon($any(s.value)) }}</span
 									>
 									{{ s.label }}
