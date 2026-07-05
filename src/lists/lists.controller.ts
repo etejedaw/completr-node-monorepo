@@ -3,6 +3,7 @@ import { type Request, type Response } from "express";
 import * as activityService from "../activity/activity.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type SearchQuery } from "../common/schemas/search-query.schema";
+import { type DuplicateListDto } from "./dtos/duplicate-list.dto";
 import { type RegisterListDto } from "./dtos/register-list.dto";
 import { type UpdateListDto } from "./dtos/update-list.dto";
 import * as listDomainError from "./errors/lists.domain-error";
@@ -22,6 +23,24 @@ export async function postList(request: Request, response: Response) {
 	}
 
 	const data = { list: listSummarySerializer(listPlain) };
+	return response.status(201).json({ data });
+}
+
+export async function postDuplicateList(request: Request, response: Response) {
+	const params = request.locals.params as ListIdParams;
+	const body = request.locals.body as DuplicateListDto;
+	const user = request.locals.user as RequestUser;
+
+	const created = await listsService.duplicateList(user, params.listId, body);
+
+	if (created.isPublic) {
+		activityService.record(user.id, "list_created", created.id);
+	}
+
+	const full = await listsService.findListById(created.id);
+	if (!full) throw listDomainError.listInternalError();
+
+	const data = { list: listSerializer(full.get({ plain: true })) };
 	return response.status(201).json({ data });
 }
 

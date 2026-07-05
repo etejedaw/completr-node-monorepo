@@ -3,10 +3,12 @@ import { Op } from "sequelize";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
+import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { ListFollower } from "../list-followers/list-follower.model";
 import { ListItem } from "../list-items/list-item.model";
 import { User } from "../users/user.model";
+import { type DuplicateListDto } from "./dtos/duplicate-list.dto";
 import { type RegisterListDto } from "./dtos/register-list.dto";
 import { type UpdateListDto } from "./dtos/update-list.dto";
 import * as listsServiceError from "./errors/lists.service-error";
@@ -37,6 +39,63 @@ export async function createList(
 	return List.create({
 		...registerList,
 		userId: user.id
+	});
+}
+
+export async function duplicateList(
+	user: RequestUser,
+	listId: string,
+	duplicateList: DuplicateListDto
+) {
+	const source = await List.findOne({
+		where: { id: listId },
+		include: [
+			{
+				model: ListItem,
+				separate: true,
+				order: [["position", "ASC"]]
+			}
+		]
+	});
+	if (!source) throw listsServiceError.notFoundError();
+	if (!source.isPublic && source.userId !== user.id)
+		throw listsServiceError.forbiddenError();
+
+	if (!isPremium(user.role)) {
+		const count = await List.count({ where: { userId: user.id } });
+		if (count >= FREE_LIST_LIMIT)
+			throw listsServiceError.limitReachedError();
+	}
+
+	const items = source.ListItems ?? [];
+
+	return sequelize.transaction(async transaction => {
+		const list = await List.create(
+			{
+				userId: user.id,
+				name: duplicateList.name,
+				description: source.description,
+				isPublic: duplicateList.isPublic ?? false,
+				scoreSource: source.scoreSource,
+				durationSource: source.durationSource
+			},
+			{ transaction }
+		);
+
+		if (items.length > 0) {
+			await ListItem.bulkCreate(
+				items.map(item => ({
+					listId: list.id,
+					gameId: item.gameId,
+					position: item.position,
+					score: item.score,
+					duration: item.duration
+				})),
+				{ transaction }
+			);
+		}
+
+		return list;
 	});
 }
 

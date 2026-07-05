@@ -23,6 +23,19 @@ docs: |-
 
     **Rate Limit:** 50 requests per minute.
 
+    ### Query Parameters
+
+    | Param    | Type   | Description                                                                 |
+    |----------|--------|-----------------------------------------------------------------------------|
+    | limit    | number | Page size (1-100, default 25).                                              |
+    | offset   | number | Rows to skip (default 0).                                                    |
+    | category | string | Coarse filter: `games`, `lists` or `social`. **Premium only.**              |
+    | types    | string | CSV of granular activity types (e.g. `backlog_completed,backlog_abandoned`). **Premium only.** |
+
+    When both `category` and `types` are provided, the result is their intersection. Follow events (`user_followed`, `user_followed_by`) never appear in the feed, so the `social` category effectively surfaces `coop_tagged` only.
+
+    **Premium gate:** free users who send `category` or `types` get `402 ACTIVITY_FEED_FILTER_PREMIUM`. Without those params the feed works for everyone.
+
     ### Response (200)
 
     ```json

@@ -1,0 +1,76 @@
+info:
+    name: Duplicate List
+    type: http
+    seq: 7
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/lists/:listId/duplicate"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "name": "Survival Horror esenciales (copy)",
+              "isPublic": false
+            }
+    params:
+        - name: listId
+          value: ""
+          type: path
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Duplicate List
+
+    Creates an editable copy of a list into the authenticated user's own lists. Copies the source name (overridable), description, score/duration source and all items (with their frozen score/duration and position). The copy is owned by the caller; the original is untouched.
+
+    The source list must be public or owned by the caller. Runs in a single transaction.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param  | Type | Description                     |
+    |--------|------|---------------------------------|
+    | listId | uuid | Id of the source list to copy   |
+
+    ### Request Body
+
+    | Field    | Type   | Required | Description                                   |
+    |----------|--------|----------|-----------------------------------------------|
+    | name     | string | Yes      | 1-100 characters (e.g. `<source> (copy)`)     |
+    | isPublic | bool   | No       | Default false (the copy is private by default)|
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "list": {
+          "id": "uuid",
+          "userId": "uuid",
+          "name": "Survival Horror esenciales (copy)",
+          "isPublic": false,
+          "scoreSource": "metacritic",
+          "durationSource": "hltb",
+          "followerCount": 0,
+          "isFollowing": false,
+          "progress": null,
+          "items": []
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 404 `LIST_NOT_FOUND` — Source list does not exist
+    - 403 `LIST_FORBIDDEN` — Source list is private and not owned by the caller
+    - 402 `LIST_LIMIT_REACHED` — Free user reached 5 list limit

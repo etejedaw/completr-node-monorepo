@@ -10,6 +10,7 @@ import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.
 import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 import { SearchQuerySchema } from "../common/schemas/search-query.schema";
 import * as listsController from "./lists.controller";
+import { DuplicateListSchema } from "./schemas/duplicate-list.schema";
 import { ListIdParamsSchema } from "./schemas/list-id-params.schema";
 import { RegisterListSchema } from "./schemas/register-list.schema";
 import { UpdateListSchema } from "./schemas/update-list.schema";
@@ -24,6 +25,17 @@ router.post(
 		validateSchemaMiddleware(RegisterListSchema, "body")
 	],
 	listsController.postList
+);
+
+router.post(
+	"/lists/:listId/duplicate",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator", "admin"),
+		validateSchemaMiddleware(ListIdParamsSchema, "params"),
+		validateSchemaMiddleware(DuplicateListSchema, "body")
+	],
+	listsController.postDuplicateList
 );
 
 router.get(
