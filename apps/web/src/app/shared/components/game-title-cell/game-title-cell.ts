@@ -1,15 +1,16 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
+import { CoverUrlPipe } from "../../pipes/cover-url";
 
 @Component({
 	selector: "app-game-title-cell",
-	imports: [RouterLink, MoodTagsChips],
+	imports: [RouterLink, MoodTagsChips, CoverUrlPipe],
 	template: `
 		<div class="flex items-center gap-2 min-w-0">
 			@if (coverUrl()) {
 				<img
-					[src]="coverUrl()"
+					[src]="coverUrl() | coverUrl: 200"
 					[alt]="title()"
 					class="w-8 h-10 object-cover rounded shrink-0"
 					loading="lazy"
