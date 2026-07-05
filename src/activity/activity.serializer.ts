@@ -9,7 +9,29 @@ export function activitySerializer(activity: Activity) {
 		type: activity.type,
 		createdAt: activity.createdAt,
 		user: userSerializer(activity.User),
-		target
+		target,
+		game: resolveMetadataGame(activity)
+	};
+}
+
+function resolveMetadataGame(activity: Activity) {
+	const game = activity.metadata?.game as
+		| {
+				id: string;
+				title: string;
+				code: string;
+				backgroundUrl: string | null;
+		  }
+		| undefined;
+
+	if (!game) return undefined;
+
+	return {
+		type: "game",
+		id: game.id,
+		name: game.title,
+		code: game.code,
+		backgroundUrl: game.backgroundUrl
 	};
 }
 

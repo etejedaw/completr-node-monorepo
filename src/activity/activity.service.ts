@@ -31,12 +31,24 @@ const USER_TYPES: string[] = [
 ];
 const SOCIAL_TYPES: string[] = ["user_followed", "user_followed_by"];
 
-export function record(userId: string, type: ActivityType, targetId?: string) {
-	persist(userId, type, targetId).catch(Function.prototype as () => void);
+export function record(
+	userId: string,
+	type: ActivityType,
+	targetId?: string,
+	metadata?: Record<string, unknown>
+) {
+	persist(userId, type, targetId, metadata).catch(
+		Function.prototype as () => void
+	);
 }
 
-async function persist(userId: string, type: ActivityType, targetId?: string) {
-	const activity = await Activity.create({ userId, type });
+async function persist(
+	userId: string,
+	type: ActivityType,
+	targetId?: string,
+	metadata?: Record<string, unknown>
+) {
+	const activity = await Activity.create({ userId, type, metadata });
 
 	if (targetId) {
 		if (GAME_TYPES.includes(type)) {
