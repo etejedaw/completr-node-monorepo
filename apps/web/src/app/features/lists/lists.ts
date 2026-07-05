@@ -42,6 +42,11 @@ export interface UpdateListDto {
 	durationSource?: string;
 }
 
+export interface DuplicateListDto {
+	name: string;
+	isPublic?: boolean;
+}
+
 @Injectable({ providedIn: "root" })
 export class ListsService {
 	private readonly http = inject(HttpClient);
@@ -91,6 +96,12 @@ export class ListsService {
 	update(id: string, dto: UpdateListDto) {
 		return this.http
 			.patch<ListSingleResponse>(`${this.baseUrl}/${id}`, dto)
+			.pipe(map(res => res.data.list));
+	}
+
+	duplicate(id: string, dto: DuplicateListDto) {
+		return this.http
+			.post<ListSingleResponse>(`${this.baseUrl}/${id}/duplicate`, dto)
 			.pipe(map(res => res.data.list));
 	}
 

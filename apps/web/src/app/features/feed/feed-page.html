@@ -194,9 +194,33 @@
 	</section>
 	} }
 
-	<h2 class="font-display mb-4 text-base font-semibold text-fg-secondary">
-		Activity Feed
-	</h2>
+	<div class="flex items-center justify-between gap-3 mb-4">
+		<h2 class="font-display m-0 text-base font-semibold text-fg-secondary">
+			Activity Feed
+		</h2>
+		<div class="flex items-center gap-1.5 shrink-0">
+			@if (!isPremium()) {
+			<span
+				aria-hidden="true"
+				class="material-icons text-sm text-fg-muted"
+				title="Filtering the feed is a premium feature"
+				>lock</span
+			>
+			}
+			<select
+				uiSelect
+				size="sm"
+				aria-label="Filter feed"
+				[value]="filter()"
+				[disabled]="!isPremium()"
+				(change)="onFilterChange($event)"
+			>
+				@for (option of filterOptions; track option.value) {
+				<option [value]="option.value">{{ option.label }}</option>
+				}
+			</select>
+		</div>
+	</div>
 
 	@if (isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>

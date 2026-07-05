@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
@@ -10,7 +11,7 @@ import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
 import { FollowRequestsService } from "../../core/services/follow-requests";
 import { Subject, debounceTime, switchMap } from "rxjs";
-import { FeedService, FeedActivity } from "./feed";
+import { FeedService, FeedActivity, FeedCategory } from "./feed";
 import {
 	GlobalSearchService,
 	SearchResults
@@ -27,7 +28,8 @@ import {
 	UiEmptyState,
 	UiIconButton,
 	UiInput,
-	UiPagination
+	UiPagination,
+	UiSelect
 } from "../../shared/ui";
 
 @Component({
@@ -39,7 +41,8 @@ import {
 		UiEmptyState,
 		UiInput,
 		UiIconButton,
-		UiPagination
+		UiPagination,
+		UiSelect
 	],
 	templateUrl: "./feed-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -63,12 +66,42 @@ export class FeedPage implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 25;
 
+	protected readonly isPremium = computed(() => {
+		const role = this.currentUserId()?.role;
+		return role === "premium" || role === "moderator" || role === "admin";
+	});
+	protected readonly filter = signal("");
+	protected readonly filterOptions = [
+		{ value: "", label: "All activity" },
+		{ value: "cat:games", label: "Games" },
+		{ value: "type:backlog_completed", label: "Completed only" },
+		{ value: "type:backlog_abandoned", label: "Abandoned only" },
+		{ value: "type:backlog_playing", label: "Started playing" },
+		{ value: "type:game_reviewed", label: "Reviews" },
+		{ value: "cat:lists", label: "Lists" },
+		{ value: "cat:social", label: "Co-op & social" }
+	];
+
 	protected readonly followRequests = this.followRequestsService.incoming;
 	protected readonly resolvingRequest = signal<string | null>(null);
 
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadFeed();
+	}
+
+	onFilterChange(event: Event) {
+		this.filter.set((event.target as HTMLSelectElement).value);
+		this.offset.set(0);
+		this.loadFeed();
+	}
+
+	private buildFilterParams(): { category?: FeedCategory; types?: string } {
+		const value = this.filter();
+		if (value.startsWith("cat:"))
+			return { category: value.slice(4) as FeedCategory };
+		if (value.startsWith("type:")) return { types: value.slice(5) };
+		return {};
 	}
 
 	ngOnInit() {
@@ -196,7 +229,11 @@ export class FeedPage implements OnInit {
 	private loadFeed() {
 		this.isLoading.set(true);
 		this.feedService
-			.getFeed({ limit: this.limit, offset: this.offset() })
+			.getFeed({
+				limit: this.limit,
+				offset: this.offset(),
+				...this.buildFilterParams()
+			})
 			.subscribe({
 				next: res => {
 					this.activities.set(res.data.activities);

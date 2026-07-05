@@ -6,8 +6,9 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
+import { DatePipe } from "@angular/common";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Game } from "../../../core/models";
+import { Game, BacklogEntry } from "../../../core/models";
 import { GamesService } from "../games";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { AuthService } from "../../../core/services/auth";
@@ -37,6 +38,11 @@ import { getRatingLabel } from "../../../shared/constants/rating-labels";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
 import { metascoreColorClass } from "../../../shared/utils/metascore-color";
+import {
+	backlogStatusClass,
+	backlogStatusLabel,
+	backlogStatusIcon
+} from "../../../shared/utils/backlog-status";
 import { FormsModule } from "@angular/forms";
 import {
 	UiButton,
@@ -75,6 +81,7 @@ interface ReportModalState {
 	selector: "app-game-detail",
 	imports: [
 		RouterLink,
+		DatePipe,
 		StarRating,
 		AdminGameEditor,
 		FormsModule,
@@ -150,7 +157,8 @@ export class GameDetail implements OnInit {
 	protected readonly similarGames = signal<Game[]>([]);
 	protected readonly isFavorite = signal(false);
 	protected readonly isInWishlist = signal(false);
-	protected readonly isInBacklog = signal(false);
+	protected readonly myRuns = signal<BacklogEntry[]>([]);
+	protected readonly isInBacklog = computed(() => this.myRuns().length > 0);
 	protected readonly isInQueue = signal(false);
 	protected readonly isInShelf = signal(false);
 	protected readonly addedToQueue = signal(false);
@@ -238,7 +246,7 @@ export class GameDetail implements OnInit {
 
 	private loadUserStatus(gameId: string) {
 		this.backlogService.getMyBacklog({ game_id: gameId }).subscribe({
-			next: res => this.isInBacklog.set(res.data.backlog.length > 0)
+			next: res => this.myRuns.set(res.data.backlog)
 		});
 		this.queueService.getMyQueue().subscribe({
 			next: queue => {
@@ -360,6 +368,29 @@ export class GameDetail implements OnInit {
 			if (result === "saved") this.loadUserStatus(g.id);
 		});
 	}
+
+	openRun(entry: BacklogEntry) {
+		const g = this.game();
+		if (!g) return;
+		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
+			BacklogModal,
+			{
+				data: {
+					entry,
+					preselectedGame: null,
+					preselectedCompilationParent: null,
+					preselectAddToQueue: false
+				}
+			}
+		);
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.loadUserStatus(g.id);
+		});
+	}
+
+	protected statusClass = backlogStatusClass;
+	protected statusLabel = backlogStatusLabel;
+	protected statusIcon = backlogStatusIcon;
 
 	openShelfModal() {
 		const g = this.game();

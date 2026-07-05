@@ -90,6 +90,17 @@
 				>
 				Edit
 			</button>
+			<button
+				uiButton
+				variant="secondary"
+				size="sm"
+				(click)="openDuplicate()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>content_copy</span
+				>
+				Duplicate
+			</button>
 		</div>
 		}
 	</div>
@@ -203,6 +214,19 @@
 			(click)="toggleFollow()"
 		>
 			{{ list()!.isFollowing ? 'Following' : 'Follow' }}
+		</button>
+		}
+		@if (!isOwner() && list()!.isPublic) {
+		<button
+			uiButton
+			variant="secondary"
+			size="sm"
+			(click)="openDuplicate()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>content_copy</span
+			>
+			Duplicate
 		</button>
 		}
 	</div>

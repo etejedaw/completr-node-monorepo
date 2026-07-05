@@ -477,6 +477,91 @@
 			</div>
 			}
 
+			@if (myRuns().length > 0) {
+			<div
+				class="bg-sidebar border border-line rounded-card p-4 flex flex-col gap-2"
+			>
+				<h3
+					class="font-display m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-fg-secondary"
+				>
+					Your runs
+				</h3>
+				@for (run of myRuns(); track run.id) {
+				<button
+					type="button"
+					class="w-full text-left flex flex-col gap-1.5 p-3 bg-input-bg border border-line rounded-card cursor-pointer transition hover:border-brand"
+					(click)="openRun(run)"
+				>
+					<div class="flex items-center gap-2">
+						<span
+							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+							[class]="statusClass(run.status)"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-sm"
+								>{{ statusIcon(run.status) }}</span
+							>
+							{{ statusLabel(run.status) }}
+						</span>
+						<span class="text-xs text-fg-muted"
+							>{{ run.platform.abbreviation }}</span
+						>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base text-fg-muted ml-auto"
+							>open_in_full</span
+						>
+					</div>
+					<div
+						class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-muted"
+					>
+						@if (run.finishedAt) {
+						<span class="inline-flex items-center gap-1">
+							<span
+								aria-hidden="true"
+								class="material-icons text-sm"
+								>event_available</span
+							>
+							{{ run.finishedAt | date: "yyyy-MM-dd" }}
+						</span>
+						} @else if (run.startedAt) {
+						<span class="inline-flex items-center gap-1">
+							<span
+								aria-hidden="true"
+								class="material-icons text-sm"
+								>play_arrow</span
+							>
+							{{ run.startedAt | date: "yyyy-MM-dd" }}
+						</span>
+						} @if (run.realDuration) {
+						<span>{{ run.realDuration }}h</span>
+						} @if (run.userRating) {
+						<span class="inline-flex items-center gap-0.5 text-warning">
+							<span
+								aria-hidden="true"
+								class="material-icons text-sm"
+								>star</span
+							>
+							{{ run.userRating }}
+						</span>
+						}
+					</div>
+					@if (run.latestProgress) {
+					<div class="flex items-start gap-1.5 text-xs text-fg-secondary">
+						<span
+							aria-hidden="true"
+							class="material-icons text-sm text-brand"
+							>bookmark</span
+						>
+						<span class="italic">{{ run.latestProgress.note }}</span>
+					</div>
+					}
+				</button>
+				}
+			</div>
+			}
+
 			<div
 				class="bg-sidebar border border-line rounded-card p-4 flex flex-col gap-2"
 			>

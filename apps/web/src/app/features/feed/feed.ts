@@ -26,9 +26,13 @@ export interface FeedActivity {
 	target: ActivityTarget | null;
 }
 
+export type FeedCategory = "games" | "lists" | "social";
+
 export interface FeedPagination extends Record<string, Appendable> {
 	limit?: number;
 	offset?: number;
+	category?: FeedCategory;
+	types?: string;
 }
 
 @Injectable({ providedIn: "root" })

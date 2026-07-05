@@ -17,7 +17,7 @@ export class FloatingXScrollbar implements OnDestroy {
 
 	private bar?: HTMLElement;
 	private resizeObserver?: ResizeObserver;
-	private teardown: () => void = () => {};
+	private teardown?: () => void;
 
 	constructor() {
 		afterNextRender(() => this.setup());
@@ -78,7 +78,7 @@ export class FloatingXScrollbar implements OnDestroy {
 	}
 
 	ngOnDestroy(): void {
-		this.teardown();
+		this.teardown?.();
 		this.resizeObserver?.disconnect();
 		this.bar?.remove();
 	}
