@@ -937,15 +937,15 @@
 					(ngModelChange)="newFilterName.set($event)"
 					(keydown.enter)="saveCurrentFilter()"
 				/>
-				<label
-					class="flex items-center gap-2 mt-2 cursor-pointer text-sm text-fg-secondary"
+				<div
+					class="flex items-center gap-2 mt-2 text-sm text-fg-secondary"
 				>
 					<ui-switch
 						[checked]="newFilterPinned()"
 						(checkedChange)="newFilterPinned.set($event)"
+						label="Pin to backlog"
 					/>
-					Pin to backlog
-				</label>
+				</div>
 			</section>
 			}
 		</div>
