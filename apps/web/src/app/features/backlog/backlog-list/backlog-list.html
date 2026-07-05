@@ -723,6 +723,32 @@
 				</p>
 			</section>
 
+			<section>
+				<h3
+					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider m-0 mb-2"
+				>
+					Co-op
+				</h3>
+				<label
+					class="flex items-center gap-3 text-sm text-fg cursor-pointer select-none py-1.5 px-2 rounded transition hover:bg-input-bg"
+				>
+					<input
+						type="checkbox"
+						class="cursor-pointer"
+						[checked]="coopOnly()"
+						(change)="toggleCoopOnly()"
+					/>
+					<span class="inline-flex items-center gap-1.5">
+						<span
+							aria-hidden="true"
+							class="material-icons text-base text-brand"
+							>group</span
+						>
+						Only games played in co-op
+					</span>
+				</label>
+			</section>
+
 			<section class="pt-3 border-t border-line">
 				<button
 					type="button"
@@ -1101,29 +1127,44 @@
 		<div
 			role="button"
 			tabindex="0"
-			class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line cursor-pointer transition hover:border-brand/40"
+			class="group/row flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line cursor-pointer transition hover:border-brand/40"
 			(click)="openEdit(entry, $event)"
 			(keydown.enter)="openEdit(entry, $event)"
 			(keydown.space)="openEdit(entry, $event); $event.preventDefault()"
 		>
-			<a
-				[routerLink]="['/games', entry.game.code]"
-				(click)="$event.stopPropagation()"
-				class="shrink-0"
-			>
-				@if (entry.game.backgroundUrl) {
-				<img
-					[src]="entry.game.backgroundUrl"
-					[alt]="entry.game.title"
-					class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
-					loading="lazy"
-				/>
-				} @else {
-				<div
-					class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"
-				></div>
+			<div class="relative shrink-0 self-center">
+				<a
+					[routerLink]="['/games', entry.game.code]"
+					(click)="$event.stopPropagation()"
+					class="block"
+				>
+					@if (entry.game.backgroundUrl) {
+					<img
+						[src]="entry.game.backgroundUrl"
+						[alt]="entry.game.title"
+						class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
+						loading="lazy"
+					/>
+					} @else {
+					<div
+						class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"
+					></div>
+					}
+				</a>
+				@if (entry.status === 'not_started') {
+				<button
+					type="button"
+					class="absolute bottom-1 right-1 flex items-center justify-center w-8 h-8 rounded-full bg-warning text-white shadow-lg shadow-warning/40 ring-2 ring-white/20 opacity-0 group-hover/row:opacity-100 pointer-coarse:opacity-100 hover:scale-110 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
+					[disabled]="isStatusUpdating(entry)"
+					(click)="selectNewStatus(entry, 'playing', $event)"
+					title="Start playing"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>play_arrow</span
+					>
+				</button>
 				}
-			</a>
+			</div>
 
 			<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
 				<div class="flex items-center gap-2 flex-wrap">
@@ -1168,7 +1209,7 @@
 					<div class="relative inline-block">
 						<button
 							type="button"
-							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide border border-line hover:border-brand/50 cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
 							[class]="statusClass(entry.status)"
 							[disabled]="isStatusUpdating(entry)"
 							(click)="toggleStatusMenu(entry, $event)"
@@ -1209,6 +1250,7 @@
 								<span
 									aria-hidden="true"
 									class="material-icons text-sm"
+									[class]="statusIconColor($any(s.value))"
 									>{{ statusIcon($any(s.value)) }}</span
 								>
 								{{ s.label }}
@@ -1719,7 +1761,7 @@
 						<div class="relative inline-block">
 							<button
 								type="button"
-								class="inline-flex items-center gap-1 px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+								class="inline-flex items-center gap-1 px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide border border-line hover:border-brand/50 cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
 								[class]="statusClass(entry.status)"
 								[disabled]="isStatusUpdating(entry)"
 								(click)="toggleStatusMenu(entry, $event)"
@@ -1760,6 +1802,7 @@
 									<span
 										aria-hidden="true"
 										class="material-icons text-sm"
+										[class]="statusIconColor($any(s.value))"
 										>{{ statusIcon($any(s.value)) }}</span
 									>
 									{{ s.label }}

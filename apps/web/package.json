@@ -1,55 +1,67 @@
 {
-  "name": "completr",
-  "version": "0.3.0",
-  "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "lint": "ng lint",
-    "lint:fix": "ng lint --fix",
-    "format": "prettier --write \"src/**/*.{ts,html,css}\""
-  },
-  "description": "Frontend for Completr, a game backlog tracker with ratio-based prioritization",
-  "author": "Esteban Tejeda <etejedaw@hotmail.com> (https://etejeda.dev)",
-  "license": "AGPL-3.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/etejedaw/completr-node-frontend.git"
-  },
-  "homepage": "https://completr.app",
-  "private": true,
-  "packageManager": "npm@11.11.0",
-  "dependencies": {
-    "@angular/cdk": "^21.2.11",
-    "@angular/common": "^21.2.0",
-    "@angular/compiler": "^21.2.0",
-    "@angular/core": "^21.2.0",
-    "@angular/forms": "^21.2.0",
-    "@angular/platform-browser": "^21.2.0",
-    "@angular/router": "^21.2.0",
-    "@angular/service-worker": "^21.2.0",
-    "@floating-ui/dom": "^1.7.6",
-    "material-icons": "^1.13.14",
-    "ng-primitives": "^0.120.3",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
-  },
-  "devDependencies": {
-    "@angular/build": "^21.2.7",
-    "@angular/cli": "^21.2.7",
-    "@angular/compiler-cli": "^21.2.0",
-    "@eslint/js": "^10.0.1",
-    "@tailwindcss/postcss": "^4.3.0",
-    "angular-eslint": "21.3.1",
-    "eslint": "^10.0.3",
-    "jsdom": "^28.0.0",
-    "postcss": "^8.5.14",
-    "prettier": "^3.8.1",
-    "tailwindcss": "^4.3.0",
-    "typescript": "~5.9.2",
-    "typescript-eslint": "8.56.1",
-    "vitest": "^4.0.8"
-  }
+	"name": "completr",
+	"version": "0.3.0",
+	"scripts": {
+		"ng": "ng",
+		"start": "ng serve",
+		"build": "ng build",
+		"watch": "ng build --watch --configuration development",
+		"test": "ng test",
+		"lint": "ng lint",
+		"lint:fix": "ng lint --fix",
+		"format": "prettier --write \"src/**/*.{ts,html,css}\"",
+		"prepare": "husky"
+	},
+	"lint-staged": {
+		"*.{ts,html}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{css,scss,json,md}": [
+			"prettier --write"
+		]
+	},
+	"description": "Frontend for Completr, a game backlog tracker with ratio-based prioritization",
+	"author": "Esteban Tejeda <etejedaw@hotmail.com> (https://etejeda.dev)",
+	"license": "AGPL-3.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/etejedaw/completr-node-frontend.git"
+	},
+	"homepage": "https://completr.app",
+	"private": true,
+	"packageManager": "npm@11.11.0",
+	"dependencies": {
+		"@angular/cdk": "^21.2.11",
+		"@angular/common": "^21.2.0",
+		"@angular/compiler": "^21.2.0",
+		"@angular/core": "^21.2.0",
+		"@angular/forms": "^21.2.0",
+		"@angular/platform-browser": "^21.2.0",
+		"@angular/router": "^21.2.0",
+		"@angular/service-worker": "^21.2.0",
+		"@floating-ui/dom": "^1.7.6",
+		"material-icons": "^1.13.14",
+		"ng-primitives": "^0.120.3",
+		"rxjs": "~7.8.0",
+		"tslib": "^2.3.0"
+	},
+	"devDependencies": {
+		"@angular/build": "^21.2.7",
+		"@angular/cli": "^21.2.7",
+		"@angular/compiler-cli": "^21.2.0",
+		"@eslint/js": "^10.0.1",
+		"@tailwindcss/postcss": "^4.3.0",
+		"angular-eslint": "21.3.1",
+		"eslint": "^10.0.3",
+		"husky": "^9.1.7",
+		"jsdom": "^28.0.0",
+		"lint-staged": "^17.0.8",
+		"postcss": "^8.5.14",
+		"prettier": "^3.8.1",
+		"tailwindcss": "^4.3.0",
+		"typescript": "~5.9.2",
+		"typescript-eslint": "8.56.1",
+		"vitest": "^4.0.8"
+	}
 }

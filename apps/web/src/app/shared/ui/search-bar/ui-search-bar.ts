@@ -18,7 +18,7 @@ import { NgpSearch, NgpSearchClear } from "ng-primitives/search";
 			<span class="material-icons text-xl text-fg-muted">search</span>
 			<input
 				ngpInput
-				type="search"
+				type="text"
 				class="flex-1 bg-transparent border-0 px-2.5 py-3 text-fg text-base outline-none placeholder:text-fg-muted"
 				[placeholder]="placeholder()"
 				[value]="value()"

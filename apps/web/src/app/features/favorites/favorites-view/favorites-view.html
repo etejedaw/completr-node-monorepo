@@ -53,11 +53,8 @@
 			[showRemove]="true"
 			[showAddToBacklog]="true"
 			[inBacklog]="isInBacklog(entry.game.id)"
-			[showWishlistToggle]="true"
-			[inWishlist]="isInWishlist(entry.game.id)"
 			(remove)="remove(entry)"
 			(addToBacklog)="openBacklogQuickAdd(entry)"
-			(wishlistToggle)="toggleWishlist(entry.game.id)"
 		/>
 		}
 	</div>

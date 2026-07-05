@@ -15,8 +15,12 @@ import {
 	NgpDialogTitle,
 	injectDialogRef
 } from "ng-primitives/dialog";
-import { BacklogEntry } from "../../../core/models";
+import { BacklogEntry, BacklogStatus } from "../../../core/models";
 import { Game, Platform } from "../../../core/models";
+import {
+	backlogStatusClass,
+	backlogStatusLabel
+} from "../../../shared/utils/backlog-status";
 import { BacklogService, CreateBacklogDto, UpdateBacklogDto } from "../backlog";
 import { GamesService } from "../../games/games";
 import { QueueService } from "../../queue/queue";
@@ -225,27 +229,11 @@ export class BacklogModal implements OnInit {
 		this.viewMode.set("edit");
 	}
 
-	statusLabel(status?: string): string {
-		const map: Record<string, string> = {
-			not_started: "Not Started",
-			playing: "Playing",
-			completed: "Completed",
-			abandoned: "Abandoned",
-			endless: "Endless"
-		};
-		return status ? (map[status] ?? status) : "";
-	}
+	protected statusLabel = (status?: string) =>
+		status ? backlogStatusLabel(status as BacklogStatus) : "";
 
-	statusClass(status?: string): string {
-		const map: Record<string, string> = {
-			not_started: "bg-fg-muted/10 text-fg-muted",
-			playing: "bg-warning/10 text-warning",
-			completed: "bg-success/10 text-success",
-			abandoned: "bg-danger/10 text-danger",
-			endless: "bg-brand-subtle text-brand"
-		};
-		return status ? (map[status] ?? "") : "";
-	}
+	protected statusClass = (status?: string) =>
+		status ? backlogStatusClass(status as BacklogStatus) : "";
 
 	form = this.fb.group({
 		gameId: ["", Validators.required],

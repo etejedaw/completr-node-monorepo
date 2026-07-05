@@ -371,9 +371,8 @@ a:hover {
 	position: sticky;
 	bottom: 0;
 	z-index: 2;
-	overflow-x: auto;
+	overflow-x: scroll;
 	overflow-y: hidden;
-	scrollbar-width: thin;
 }
 
 .floating-x-scrollbar::-webkit-scrollbar {
