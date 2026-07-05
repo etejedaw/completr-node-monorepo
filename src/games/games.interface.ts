@@ -57,6 +57,7 @@ export interface GamesQueryOptions {
 	sort?: GamesSort;
 	search?: string;
 	filters?: GamesFilters;
+	detailed?: boolean;
 }
 
 export interface SplitVariantInput {

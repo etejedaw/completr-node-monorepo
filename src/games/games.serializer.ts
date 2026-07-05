@@ -25,6 +25,22 @@ export function gameListSerializer(
 	};
 }
 
+export function gameAdminListSerializer(game: Game) {
+	return {
+		id: game.id,
+		title: game.title,
+		code: game.code,
+		backgroundUrl: game.backgroundUrl,
+		isDlc: game.isDlc,
+		variant: game.variant ?? null,
+		isActive: game.isActive,
+		ratio: calculateRatio(game.GameScores, game.GameTimes),
+		platforms: game.Platforms?.map(platformSerializer) ?? [],
+		scores: game.GameScores?.map(scoreSerializer) ?? [],
+		times: game.GameTimes?.map(timeSerializer) ?? []
+	};
+}
+
 export function gameSerializer(
 	game: Game,
 	options: { justImported?: boolean } = {}

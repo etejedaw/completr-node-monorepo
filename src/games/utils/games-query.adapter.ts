@@ -6,6 +6,7 @@ export function mapGamesQueryToOptions(query: GamesQuery): GamesQueryOptions {
 		pagination: { limit: query.limit, offset: query.offset },
 		sort: { by: query.sort_by, order: query.sort_order },
 		search: query.search,
+		detailed: query.detailed,
 		filters: {
 			genres: resolveGenres(query),
 			platforms: query.platforms,
