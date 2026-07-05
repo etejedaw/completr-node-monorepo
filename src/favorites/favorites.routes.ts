@@ -21,6 +21,15 @@ router.put(
 );
 
 router.get(
+	"/game-ids",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator")
+	],
+	favoritesController.getMeFavoriteGameIds
+);
+
+router.get(
 	"/",
 	[
 		rateLimiterMiddleware(userLimiter),

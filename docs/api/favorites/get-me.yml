@@ -28,9 +28,12 @@ docs: |-
           {
             "id": "uuid",
             "position": 1,
+            "inBacklog": true,
             "game": { "id": "uuid", "title": "...", "coverUrl": "...", "isDlc": false }
           }
         ]
       }
     }
     ```
+
+    `inBacklog` is `true` when the authenticated user has at least one backlog entry (any status) for the game.
