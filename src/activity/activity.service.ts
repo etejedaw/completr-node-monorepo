@@ -103,14 +103,50 @@ export async function getUserActivity(
 	});
 }
 
-export async function getFeed(userId: string, limit = 25, offset = 0) {
+export type FeedCategory = "games" | "lists" | "social";
+
+const CATEGORY_TYPES: Record<FeedCategory, readonly string[]> = {
+	games: GAME_TYPES,
+	lists: LIST_TYPES,
+	social: USER_TYPES
+};
+
+function resolveFeedTypes(filter: {
+	category?: FeedCategory;
+	types?: ActivityType[];
+}): string[] | undefined {
+	const { category, types } = filter;
+	let allowed: string[] | undefined = category
+		? [...CATEGORY_TYPES[category]]
+		: undefined;
+	if (types?.length) {
+		allowed = allowed
+			? allowed.filter(type => types.includes(type as ActivityType))
+			: [...types];
+	}
+	return allowed;
+}
+
+export async function getFeed(
+	userId: string,
+	limit = 25,
+	offset = 0,
+	filter: { category?: FeedCategory; types?: ActivityType[] } = {}
+) {
 	const followingIds = await userFollowersService.getFollowingIds(userId);
 	const feedUserIds = [userId, ...followingIds];
+
+	const typeCondition: { [Op.notIn]: readonly string[]; [Op.in]?: string[] } =
+		{
+			[Op.notIn]: SOCIAL_TYPES
+		};
+	const allowedTypes = resolveFeedTypes(filter);
+	if (allowedTypes) typeCondition[Op.in] = allowedTypes;
 
 	const { rows, count } = await Activity.findAndCountAll({
 		where: {
 			userId: { [Op.in]: feedUserIds },
-			type: { [Op.notIn]: SOCIAL_TYPES }
+			type: typeCondition
 		},
 		include: [
 			{

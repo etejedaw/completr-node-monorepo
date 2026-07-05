@@ -4,9 +4,9 @@ import { authMiddleware } from "../auth/auth.middleware";
 import { userLimiter } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 import * as activityController from "./activity.controller";
 import { ActivityIdParamsSchema } from "./schemas/activity-id-params.schema";
+import { FeedQuerySchema } from "./schemas/feed-query.schema";
 
 const router = Router();
 
@@ -15,7 +15,7 @@ router.get(
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
-		validateSchemaMiddleware(PaginationQuerySchema, "query")
+		validateSchemaMiddleware(FeedQuerySchema, "query")
 	],
 	activityController.getFeed
 );
