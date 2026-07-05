@@ -7,7 +7,6 @@ import {
 } from "@angular/core";
 import { FavoriteEntry, Game, BacklogEntry } from "../../../core/models";
 import { FavoritesService } from "../favorites";
-import { WishlistService } from "../../wishlist/wishlist";
 import { BacklogService } from "../../backlog/backlog";
 import {
 	BacklogModal,
@@ -44,7 +43,6 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 })
 export class FavoritesView implements OnInit {
 	private readonly favoritesService = inject(FavoritesService);
-	private readonly wishlistService = inject(WishlistService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly gamesService = inject(GamesService);
 	private readonly toast = inject(ToastService);
@@ -75,20 +73,11 @@ export class FavoritesView implements OnInit {
 				this.loadFavorites();
 			});
 		this.loadFavorites();
-		this.wishlistService.load({ limit: 100 }).subscribe();
 		this.loadBacklogIds();
-	}
-
-	isInWishlist(gameId: string): boolean {
-		return this.wishlistService.isInWishlist(gameId);
 	}
 
 	isInBacklog(gameId: string): boolean {
 		return this.backlogGameIds().has(gameId);
-	}
-
-	toggleWishlist(gameId: string) {
-		this.wishlistService.toggle(gameId).subscribe();
 	}
 
 	openBacklogQuickAdd(entry: FavoriteEntry) {
