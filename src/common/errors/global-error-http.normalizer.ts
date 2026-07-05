@@ -1,5 +1,6 @@
 import { type Request } from "express";
 
+import { activityDomainToHttpMapper } from "../../activity/errors/activity.domain-to-http.mapper";
 import { authDomainToHttpMapper } from "../../auth/errors/auth.domain-to-http.mapper";
 import { backlogDomainToHttpMapper } from "../../backlog/errors/backlog.domain-to-http.mapper";
 import { backlogProgressDomainToHttpMapper } from "../../backlog-progress/errors/backlog-progress.domain-to-http.mapper";
@@ -99,6 +100,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "CoopRuns Module")
 		return coopRunsDomainToHttpMapper(error, request);
+
+	if (error.module === "Activity Module")
+		return activityDomainToHttpMapper(error, request);
 
 	if (error.module === "Common Module" || error.module === "COMMON")
 		return commonDomainToHttpMapper(error, request);
