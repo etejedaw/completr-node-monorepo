@@ -1203,7 +1203,20 @@
 						<span
 							class="text-[0.875rem] text-fg-secondary capitalize leading-snug"
 						>
-							{{ activityLabel(a.type) }}{{ " " }} @if
+							@if (a.type === 'coop_tagged') { is playing @if
+							(a.game) {
+							<a
+								class="font-semibold text-brand no-underline hover:underline"
+								[routerLink]="['/games', a.game.code]"
+								>{{ a.game.name }}</a
+							>{{ " " }} } co-op with @if (a.target?.type ===
+							'user') {
+							<a
+								class="font-semibold text-brand no-underline hover:underline"
+								[routerLink]="['/user', a.target!.username]"
+								>{{ a.target!.name }}</a
+							>
+							} } @else { {{ activityLabel(a.type) }}{{ " " }} @if
 							(a.target?.type === 'game') {
 							<a
 								class="font-semibold text-brand no-underline hover:underline"
@@ -1222,7 +1235,7 @@
 								[routerLink]="['/user', a.target!.username]"
 								>{{ a.target!.name }}</a
 							>
-							}
+							} }
 						</span>
 						<span class="text-[0.6875rem] text-fg-muted"
 							>{{ timeAgo(a.createdAt) }}</span

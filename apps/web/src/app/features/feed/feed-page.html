@@ -242,7 +242,8 @@
 		<div class="ui-stagger">
 			@for (activity of activities(); track activity.id) { @let avatarUser
 			= activity.type === 'user_followed_by' && activity.target?.type ===
-			'user' ? activity.target : activity.user;
+			'user' ? activity.target : activity.user; @let coverGame =
+			activity.target?.type === 'game' ? activity.target : activity.game;
 			<div class="relative flex items-start gap-4 pb-6 last:pb-0">
 				<div
 					class="relative z-[1] shrink-0 ring-4 ring-canvas rounded-full"
@@ -279,7 +280,23 @@
 							(click)="goToUser(activity.user.username)"
 						>
 							{{ activity.user.name || activity.user.username }}</button
+						>{{ " " }} } @if (activity.type === 'coop_tagged') {
+						<span class="text-fg-muted">is playing</span>
+						@if (activity.game) { {{ " " }}
+						<a
+							class="font-semibold text-brand hover:text-brand-hover"
+							[routerLink]="['/games', activity.game.code]"
+							>{{ activity.game.name }}</a
 						>{{ " " }} }
+						<span class="text-fg-muted">co-op with</span>
+						@if (activity.target?.type === 'user') { {{ " " }}
+						<button
+							class="font-semibold text-brand bg-none border-0 text-[inherit] cursor-pointer p-0 hover:text-brand-hover"
+							(click)="goToUser(activity.target!.username!)"
+						>
+							{{ activity.target!.name }}
+						</button>
+						} } @else {
 						<span class="text-fg-muted"
 							>{{ activityLabel(activity.type) }}</span
 						>
@@ -303,7 +320,7 @@
 						>
 							{{ activity.target.name }}
 						</button>
-						} } }
+						} } } }
 					</div>
 					<div
 						class="flex items-center gap-1 mt-1 text-[0.6875rem] text-fg-muted"
@@ -317,15 +334,11 @@
 					</div>
 				</div>
 
-				@if (activity.target?.type === 'game' &&
-				activity.target?.backgroundUrl) {
-				<a
-					[routerLink]="['/games', activity.target!.code]"
-					class="shrink-0"
-				>
+				@if (coverGame?.backgroundUrl) {
+				<a [routerLink]="['/games', coverGame!.code]" class="shrink-0">
 					<img
-						[src]="activity.target!.backgroundUrl!"
-						[alt]="activity.target!.name"
+						[src]="coverGame!.backgroundUrl!"
+						[alt]="coverGame!.name"
 						class="w-20 h-28 object-cover rounded-md shadow-md shadow-black/30 ring-1 ring-line transition hover:ring-2 hover:ring-brand/50"
 						loading="lazy"
 					/>
