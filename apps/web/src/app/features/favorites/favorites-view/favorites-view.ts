@@ -48,8 +48,6 @@ export class FavoritesView implements OnInit {
 	private readonly toast = inject(ToastService);
 	private readonly dialogs = inject(DialogService);
 
-	protected readonly backlogGameIds = signal<Set<string>>(new Set());
-
 	protected readonly entries = signal<FavoriteEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);
@@ -73,11 +71,6 @@ export class FavoritesView implements OnInit {
 				this.loadFavorites();
 			});
 		this.loadFavorites();
-		this.loadBacklogIds();
-	}
-
-	isInBacklog(gameId: string): boolean {
-		return this.backlogGameIds().has(gameId);
 	}
 
 	openBacklogQuickAdd(entry: FavoriteEntry) {
@@ -116,16 +109,7 @@ export class FavoritesView implements OnInit {
 			}
 		);
 		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.loadBacklogIds();
-		});
-	}
-
-	private loadBacklogIds() {
-		this.backlogService.getMyBacklog({ limit: 100 }).subscribe({
-			next: res => {
-				const ids = new Set(res.data.backlog.map(b => b.game.id));
-				this.backlogGameIds.set(ids);
-			}
+			if (result === "saved") this.loadFavorites();
 		});
 	}
 
