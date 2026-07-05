@@ -21,6 +21,7 @@ export function buildBacklogWhere(
 				: { [Op.in]: filters.status };
 	if (filters.game_id) where.gameId = filters.game_id;
 	if (filters.platform_id) where.platformId = filters.platform_id;
+	if (filters.coop_only) where.coopRunId = { [Op.ne]: null };
 
 	if (filters.platforms && filters.platforms.length > 0) {
 		const escaped = filters.platforms
