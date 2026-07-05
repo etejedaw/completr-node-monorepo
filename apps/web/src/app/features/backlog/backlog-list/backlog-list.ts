@@ -196,6 +196,7 @@ export class BacklogList implements OnInit {
 	protected readonly maxPersonalRatio = signal<number | null>(null);
 	protected readonly selectedMoodTags = signal<string[]>([]);
 	protected readonly moodTagsSuggestions = signal<string[]>([]);
+	protected readonly coopOnly = signal(false);
 
 	protected readonly appliedFilters = signal<BacklogFilters>({});
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
@@ -418,11 +419,17 @@ export class BacklogList implements OnInit {
 			count++;
 		if (this.activeStatuses().size > 0) count++;
 		if (this.selectedMoodTags().length > 0) count++;
+		if (this.coopOnly()) count++;
 		return count;
 	};
 
 	updateMoodTagsFilter(tags: string[]) {
 		this.selectedMoodTags.set(tags);
+	}
+
+	toggleCoopOnly() {
+		this.coopOnly.update(v => !v);
+		this.activeFilterId.set(null);
 	}
 
 	private readonly statuses: { label: string; value: string }[] = [
@@ -532,6 +539,7 @@ export class BacklogList implements OnInit {
 		this.selectedMoodTags.set(
 			f["mood_tags"] ? f["mood_tags"].split(",").filter(Boolean) : []
 		);
+		this.coopOnly.set(f["coop_only"] === "true");
 
 		const status = f["status"];
 		this.activeStatuses.set(
@@ -554,6 +562,7 @@ export class BacklogList implements OnInit {
 		this.minRating.set(null);
 		this.maxRating.set(null);
 		this.activeStatuses.set(new Set());
+		this.coopOnly.set(false);
 		this.activeFilterId.set(null);
 		this.activeFilterDescription.set("");
 		this.sortBy.set("createdAt");
@@ -667,6 +676,7 @@ export class BacklogList implements OnInit {
 		this.maxPersonalRatio.set(null);
 		this.selectedMoodTags.set([]);
 		this.activeStatuses.set(new Set());
+		this.coopOnly.set(false);
 		this.activeFilterId.set(null);
 		this.activeFilterDescription.set("");
 		this.sortBy.set("createdAt");
@@ -797,6 +807,7 @@ export class BacklogList implements OnInit {
 			filters["max_personal_ratio"] = String(this.maxPersonalRatio());
 		if (this.selectedMoodTags().length > 0)
 			filters["mood_tags"] = this.selectedMoodTags().join(",");
+		if (this.coopOnly()) filters["coop_only"] = "true";
 		return filters;
 	}
 
@@ -1141,6 +1152,7 @@ export class BacklogList implements OnInit {
 			filters.max_personal_ratio = this.maxPersonalRatio()!;
 		if (this.selectedMoodTags().length > 0)
 			filters.mood_tags = this.selectedMoodTags().join(",");
+		if (this.coopOnly()) filters.coop_only = true;
 		if (this.searchQuery().trim())
 			filters.search = this.searchQuery().trim();
 
