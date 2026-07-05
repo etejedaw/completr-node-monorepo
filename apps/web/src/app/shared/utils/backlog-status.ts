@@ -24,6 +24,14 @@ const STATUS_ICONS: Record<BacklogStatus, string> = {
 	endless: "all_inclusive"
 };
 
+const STATUS_ICON_COLORS: Record<BacklogStatus, string> = {
+	not_started: "text-fg-muted",
+	playing: "text-warning",
+	completed: "text-success",
+	abandoned: "text-danger",
+	endless: "text-brand"
+};
+
 export function backlogStatusClass(status: BacklogStatus): string {
 	return STATUS_CLASSES[status] ?? "";
 }
@@ -34,4 +42,8 @@ export function backlogStatusLabel(status: BacklogStatus): string {
 
 export function backlogStatusIcon(status: BacklogStatus): string {
 	return STATUS_ICONS[status] ?? "schedule";
+}
+
+export function backlogStatusIconColor(status: BacklogStatus): string {
+	return STATUS_ICON_COLORS[status] ?? "";
 }

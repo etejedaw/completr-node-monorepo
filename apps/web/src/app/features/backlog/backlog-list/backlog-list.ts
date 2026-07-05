@@ -25,6 +25,12 @@ import {
 	Platform
 } from "../../../core/models";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
+import {
+	backlogStatusClass,
+	backlogStatusLabel,
+	backlogStatusIcon,
+	backlogStatusIconColor
+} from "../../../shared/utils/backlog-status";
 import { BacklogService, BacklogFilters } from "../backlog";
 import { savedFilterColorHex } from "../saved-filter-appearance";
 import {
@@ -831,49 +837,10 @@ export class BacklogList implements OnInit {
 		return this.sortOrder() === "asc" ? "ascending" : "descending";
 	}
 
-	statusClass(status: BacklogStatus): string {
-		const map: Record<BacklogStatus, string> = {
-			not_started: "bg-fg-muted/10 text-fg-muted",
-			playing: "bg-warning/10 text-warning",
-			completed: "bg-success/10 text-success",
-			abandoned: "bg-danger/10 text-danger",
-			endless: "bg-brand-subtle text-brand"
-		};
-		return map[status] ?? "";
-	}
-
-	statusLabel(status: BacklogStatus): string {
-		const map: Record<BacklogStatus, string> = {
-			not_started: "Not Started",
-			playing: "Playing",
-			completed: "Completed",
-			abandoned: "Abandoned",
-			endless: "Endless"
-		};
-		return map[status] ?? status;
-	}
-
-	statusIcon(status: BacklogStatus): string {
-		const map: Record<BacklogStatus, string> = {
-			not_started: "schedule",
-			playing: "play_circle",
-			completed: "check_circle",
-			abandoned: "cancel",
-			endless: "all_inclusive"
-		};
-		return map[status] ?? "schedule";
-	}
-
-	statusIconColor(status: BacklogStatus): string {
-		const map: Record<BacklogStatus, string> = {
-			not_started: "text-fg-muted",
-			playing: "text-warning",
-			completed: "text-success",
-			abandoned: "text-danger",
-			endless: "text-brand"
-		};
-		return map[status] ?? "";
-	}
+	protected statusClass = backlogStatusClass;
+	protected statusLabel = backlogStatusLabel;
+	protected statusIcon = backlogStatusIcon;
+	protected statusIconColor = backlogStatusIconColor;
 
 	canChangeStatus(status: BacklogStatus): boolean {
 		return (
