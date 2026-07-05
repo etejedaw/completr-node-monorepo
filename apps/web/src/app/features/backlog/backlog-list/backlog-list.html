@@ -1132,22 +1132,22 @@
 			(keydown.enter)="openEdit(entry, $event)"
 			(keydown.space)="openEdit(entry, $event); $event.preventDefault()"
 		>
-			<div class="relative shrink-0">
+			<div class="relative shrink-0 self-center">
 				<a
 					[routerLink]="['/games', entry.game.code]"
 					(click)="$event.stopPropagation()"
-					class="block h-full"
+					class="block"
 				>
 					@if (entry.game.backgroundUrl) {
 					<img
 						[src]="entry.game.backgroundUrl"
 						[alt]="entry.game.title"
-						class="w-16 sm:w-20 h-full min-h-[6rem] sm:min-h-[7rem] object-cover rounded-md shadow-md shadow-black/40"
+						class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
 						loading="lazy"
 					/>
 					} @else {
 					<div
-						class="w-16 sm:w-20 h-full min-h-[6rem] sm:min-h-[7rem] bg-input-bg rounded-md"
+						class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"
 					></div>
 					}
 				</a>
