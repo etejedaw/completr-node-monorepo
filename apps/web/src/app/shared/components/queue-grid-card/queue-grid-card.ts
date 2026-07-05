@@ -8,6 +8,7 @@ import { RouterLink } from "@angular/router";
 import { CdkDragHandle } from "@angular/cdk/drag-drop";
 import { UiIconButton } from "../../ui";
 import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
+import { CoverUrlPipe } from "../../pipes/cover-url";
 
 export interface QueueGridGame {
 	id?: string;
@@ -28,14 +29,20 @@ export type QueueStatusChange = "playing";
 
 @Component({
 	selector: "app-queue-grid-card",
-	imports: [RouterLink, CdkDragHandle, UiIconButton, MoodTagsChips],
+	imports: [
+		RouterLink,
+		CdkDragHandle,
+		UiIconButton,
+		MoodTagsChips,
+		CoverUrlPipe
+	],
 	template: `
 		<div class="flex flex-col gap-1.5 group">
 			<div class="block relative">
 				<a [routerLink]="['/games', entry().game.code]" class="block">
 					@if (entry().game.backgroundUrl) {
 						<img
-							[src]="entry().game.backgroundUrl"
+							[src]="entry().game.backgroundUrl | coverUrl: 420"
 							[alt]="entry().game.title"
 							class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition-transform group-hover:scale-[1.03]"
 							loading="lazy"

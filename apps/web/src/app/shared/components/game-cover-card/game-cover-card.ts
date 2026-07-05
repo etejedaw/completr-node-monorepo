@@ -8,6 +8,7 @@ import { DatePipe, NgTemplateOutlet } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { UiIconButton } from "../../ui";
 import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
+import { CoverUrlPipe } from "../../pipes/cover-url";
 
 export interface GameCoverCardGame {
 	code: string;
@@ -22,7 +23,8 @@ export interface GameCoverCardGame {
 		NgTemplateOutlet,
 		DatePipe,
 		UiIconButton,
-		MoodTagsChips
+		MoodTagsChips,
+		CoverUrlPipe
 	],
 	template: `
 		<div class="flex flex-col gap-1.5 text-inherit group">
@@ -58,7 +60,7 @@ export interface GameCoverCardGame {
 		<ng-template #cover>
 			@if (game().backgroundUrl) {
 				<img
-					[src]="game().backgroundUrl"
+					[src]="game().backgroundUrl | coverUrl: 420"
 					[alt]="game().title"
 					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition-transform group-hover:scale-[1.03]"
 					loading="lazy"

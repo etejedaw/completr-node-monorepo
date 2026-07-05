@@ -3,6 +3,7 @@ export interface GameShelfEntry {
 	gameId: string;
 	platformId: string;
 	isPublic: boolean;
+	inBacklog?: boolean;
 	acquiredAt?: string;
 	edition?: string;
 	notes?: string;

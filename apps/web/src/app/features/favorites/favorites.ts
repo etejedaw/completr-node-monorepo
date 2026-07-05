@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import {
 	Observable,
 	map,
@@ -18,6 +18,10 @@ const MAX_FAVORITES = 100;
 
 interface FavoritesResponse {
 	data: { favorites: FavoriteEntry[]; total?: number };
+}
+
+interface FavoriteGameIdsResponse {
+	data: { gameIds: string[] };
 }
 
 export interface FavoritesPagination extends Record<string, Appendable> {
@@ -54,11 +58,10 @@ export class FavoritesService {
 	ensureIdsLoaded(): Observable<Set<string>> {
 		if (this._favoriteIds().size > 0) return of(this._favoriteIds());
 		if (this.idsLoad$) return this.idsLoad$;
-		const params = new HttpParams().set("limit", "100");
 		this.idsLoad$ = this.http
-			.get<FavoritesResponse>(this.baseUrl, { params })
+			.get<FavoriteGameIdsResponse>(`${this.baseUrl}/game-ids`)
 			.pipe(
-				map(res => new Set(res.data.favorites.map(f => f.game.id))),
+				map(res => new Set(res.data.gameIds)),
 				tap(ids => {
 					this._favoriteIds.set(ids);
 					this.idsLoad$ = null;

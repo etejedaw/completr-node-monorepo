@@ -52,7 +52,7 @@
 			[moodTags]="entry.moodTags"
 			[showRemove]="true"
 			[showAddToBacklog]="true"
-			[inBacklog]="isInBacklog(entry.game.id)"
+			[inBacklog]="entry.inBacklog ?? false"
 			(remove)="remove(entry)"
 			(addToBacklog)="openBacklogQuickAdd(entry)"
 		/>

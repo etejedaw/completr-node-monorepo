@@ -129,7 +129,7 @@
 			[showFavorite]="true"
 			[isFavorite]="isFavorite(entry.game.id)"
 			[showAddToBacklog]="true"
-			[inBacklog]="isInBacklog(entry.game.id)"
+			[inBacklog]="entry.inBacklog ?? false"
 			[showWishlistToggle]="true"
 			[inWishlist]="isInWishlist(entry.game.id)"
 			(cardClick)="openEdit(entry)"

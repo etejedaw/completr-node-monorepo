@@ -13,6 +13,10 @@ interface QueueSingleResponse {
 	data: { queue: QueueEntry };
 }
 
+interface QueueBacklogIdsResponse {
+	data: { backlogIds: string[] };
+}
+
 export interface QueuePagination extends Record<string, Appendable> {
 	limit?: number;
 	offset?: number;
@@ -34,6 +38,12 @@ export class QueueService {
 	getMyQueuePaged(pagination: QueuePagination = {}) {
 		const params = buildHttpParams(pagination);
 		return this.http.get<QueueListResponse>(this.baseUrl, { params });
+	}
+
+	getMyQueueBacklogIds() {
+		return this.http
+			.get<QueueBacklogIdsResponse>(`${this.baseUrl}/backlog-ids`)
+			.pipe(map(res => res.data.backlogIds));
 	}
 
 	addFromGame(gameId: string, platformId: string) {
@@ -60,12 +70,8 @@ export class QueueService {
 	}
 
 	removeByBacklogId(backlogId: string) {
-		return this.getMyQueue().pipe(
-			map(entries =>
-				entries
-					.filter(e => e.backlog.id !== backlogId)
-					.map(e => e.backlog.id)
-			),
+		return this.getMyQueueBacklogIds().pipe(
+			map(ids => ids.filter(id => id !== backlogId)),
 			switchMap(remaining =>
 				this.http
 					.put<QueueListResponse>(this.baseUrl, {

@@ -206,8 +206,8 @@ export class GameDetail implements OnInit {
 
 	ngOnInit() {
 		this.scoreSourcesService.load();
-		this.favoritesService.load().subscribe();
-		this.wishlistService.load().subscribe();
+		this.favoritesService.ensureIdsLoaded().subscribe();
+		this.wishlistService.ensureIdsLoaded().subscribe();
 		this.route.paramMap.subscribe(params => {
 			const code = params.get("code");
 			if (code) this.loadGame(code);
