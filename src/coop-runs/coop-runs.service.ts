@@ -194,13 +194,13 @@ export async function removeMember(
 	const remaining = await Backlog.count({
 		where: { coopRunId: backlog.coopRunId }
 	});
-	if (remaining <= 1) {
-		const last = await Backlog.findOne({
-			where: { coopRunId: backlog.coopRunId }
-		});
-		if (last) await last.update({ coopRunId: null });
-		await CoopRun.destroy({ where: { id: backlog.coopRunId } });
-	}
+	if (remaining > 1) return;
+
+	const last = await Backlog.findOne({
+		where: { coopRunId: backlog.coopRunId }
+	});
+	if (last) await last.update({ coopRunId: null });
+	await CoopRun.destroy({ where: { id: backlog.coopRunId } });
 }
 
 export async function syncFromMember(

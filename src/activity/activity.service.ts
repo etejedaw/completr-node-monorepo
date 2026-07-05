@@ -50,23 +50,23 @@ async function persist(
 ) {
 	const activity = await Activity.create({ userId, type, metadata });
 
-	if (targetId) {
-		if (GAME_TYPES.includes(type)) {
-			await ActivityGame.create({
-				activityId: activity.id,
-				gameId: targetId
-			});
-		} else if (LIST_TYPES.includes(type)) {
-			await ActivityList.create({
-				activityId: activity.id,
-				listId: targetId
-			});
-		} else if (USER_TYPES.includes(type)) {
-			await ActivityUser.create({
-				activityId: activity.id,
-				targetUserId: targetId
-			});
-		}
+	if (!targetId) return activity;
+
+	if (GAME_TYPES.includes(type)) {
+		await ActivityGame.create({
+			activityId: activity.id,
+			gameId: targetId
+		});
+	} else if (LIST_TYPES.includes(type)) {
+		await ActivityList.create({
+			activityId: activity.id,
+			listId: targetId
+		});
+	} else if (USER_TYPES.includes(type)) {
+		await ActivityUser.create({
+			activityId: activity.id,
+			targetUserId: targetId
+		});
 	}
 
 	return activity;
