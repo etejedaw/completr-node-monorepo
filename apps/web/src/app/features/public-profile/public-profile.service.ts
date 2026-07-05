@@ -34,6 +34,13 @@ export interface PublicActivity {
 		code?: string;
 		username?: string;
 	} | null;
+	game: {
+		type: "game";
+		id: string;
+		name: string;
+		code: string;
+		backgroundUrl: string | null;
+	} | null;
 }
 
 export interface BacklogStats {

@@ -24,6 +24,7 @@ export interface FeedActivity {
 		avatarUrl: string | null;
 	} | null;
 	target: ActivityTarget | null;
+	game: ActivityTarget | null;
 }
 
 export type FeedCategory = "games" | "lists" | "social";
