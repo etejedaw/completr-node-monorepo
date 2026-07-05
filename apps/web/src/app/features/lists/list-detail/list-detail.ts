@@ -17,6 +17,11 @@ import {
 	type ListModalResult
 } from "../list-modal/list-modal";
 import {
+	DuplicateListModal,
+	type DuplicateListModalData,
+	type DuplicateListModalResult
+} from "../duplicate-list-modal/duplicate-list-modal";
+import {
 	BacklogModal,
 	type BacklogModalData,
 	type BacklogModalResult
@@ -222,6 +227,20 @@ export class ListDetail implements OnInit {
 		ref.afterClosed.subscribe(result => {
 			if (result === "saved") this.loadList();
 			else if (result === "deleted") this.router.navigate(["/lists"]);
+		});
+	}
+
+	openDuplicate() {
+		const l = this.list();
+		if (!l) return;
+		const ref = this.dialogs.open<
+			DuplicateListModalData,
+			DuplicateListModalResult
+		>(DuplicateListModal, {
+			data: { list: l }
+		});
+		ref.afterClosed.subscribe(newList => {
+			if (newList) this.router.navigate(["/lists", newList.id]);
 		});
 	}
 
