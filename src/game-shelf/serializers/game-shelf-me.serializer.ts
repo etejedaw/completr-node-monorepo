@@ -4,7 +4,8 @@ import { type GameShelf } from "../game-shelf.model";
 
 export function gameShelfMeSerializer(
 	gameShelf: GameShelf,
-	moodTags?: string[]
+	moodTags?: string[],
+	inBacklog = false
 ) {
 	return {
 		id: gameShelf.id,
@@ -13,6 +14,7 @@ export function gameShelfMeSerializer(
 		edition: gameShelf.edition,
 		notes: gameShelf.notes,
 		isPublic: gameShelf.isPublic,
+		inBacklog,
 		moodTags: moodTags ?? [],
 		game: gameSerializer(gameShelf.Game),
 		platform: platformSerializer(gameShelf.Platform)

@@ -40,6 +40,7 @@ docs: |-
             "edition": "Standard",
             "notes": "Gift from a friend",
             "isPublic": false,
+            "inBacklog": true,
             "game": {
               "id": "uuid",
               "title": "Metro Exodus",
@@ -64,3 +65,5 @@ docs: |-
     ```
 
     The `game` payload is intentionally lightweight (no description, no nested genres, no releaseAt). Use `GET /games/:code` for the full detail.
+
+    `inBacklog` is `true` when the authenticated user has at least one backlog entry (any status) for the game.
