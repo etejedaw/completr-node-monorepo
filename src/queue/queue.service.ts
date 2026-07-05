@@ -163,6 +163,14 @@ export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 	});
 }
 
+export async function findQueueBacklogIdsByUserId(userId: string) {
+	return Queue.findAll({
+		where: { userId },
+		attributes: ["backlogId"],
+		order: [["position", "ASC"]]
+	});
+}
+
 export async function findQueueByUserId(userId: string) {
 	return Queue.findAll({
 		where: { userId },

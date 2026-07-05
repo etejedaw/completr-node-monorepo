@@ -34,6 +34,15 @@ router.put(
 );
 
 router.get(
+	"/backlog-ids",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator")
+	],
+	queueController.getMeQueueBacklogIds
+);
+
+router.get(
 	"/",
 	[
 		rateLimiterMiddleware(userLimiter),
