@@ -13,6 +13,18 @@ import { type WishlistGameParams } from "./schemas/wishlist-game-params.schema";
 import { wishlistSerializer } from "./wishlist.serializer";
 import * as wishlistService from "./wishlist.service";
 
+export async function getMeWishlistGameIds(
+	request: Request,
+	response: Response
+) {
+	const user = request.locals.user as RequestUser;
+
+	const entries = await wishlistService.findWishlistByUserId(user.id);
+
+	const data = { gameIds: entries.map(e => e.gameId) };
+	return response.status(200).json({ data });
+}
+
 export async function putWishlist(request: Request, response: Response) {
 	const body = request.locals.body as ReplaceWishlistBody;
 	const user = request.locals.user as RequestUser;
