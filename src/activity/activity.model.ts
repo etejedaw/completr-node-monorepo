@@ -31,6 +31,7 @@ class Activity extends Model {
 	declare id: string;
 	declare userId: string;
 	declare type: ActivityType;
+	declare metadata: Record<string, unknown> | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 	declare User: User;
@@ -54,6 +55,10 @@ Activity.init(
 		type: {
 			type: DataTypes.STRING,
 			allowNull: false
+		},
+		metadata: {
+			type: DataTypes.JSONB,
+			allowNull: true
 		}
 	},
 	{

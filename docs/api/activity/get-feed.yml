@@ -65,6 +65,8 @@ docs: |-
     }
     ```
 
+    For `coop_tagged`, `target` is the tagged user and `game` carries the co-op game (from a `metadata` snapshot taken when the tag was created, shape `{ type: "game", id, name, code, backgroundUrl }`). This lets the client render "X is playing co-op with Y in [game]". Other activity types omit `game`.
+
     ### Activity Types
 
     | Type               | Description                    |
@@ -76,3 +78,4 @@ docs: |-
     | favorite_added     | Added a game to favorites      |
     | list_created       | Created a new list             |
     | game_reviewed      | Reviewed a game                |
+    | coop_tagged        | Tagged a friend in a co-op run |

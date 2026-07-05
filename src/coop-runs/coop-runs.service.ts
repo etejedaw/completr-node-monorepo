@@ -106,7 +106,11 @@ export async function addMember(
 			await targetBacklog.update({ coopRunId }, { transaction });
 		}
 
-		return { coopRunId, targetBacklogId: targetBacklog.id };
+		return {
+			coopRunId,
+			targetBacklogId: targetBacklog.id,
+			gameId: myBacklog.gameId
+		};
 	});
 }
 
