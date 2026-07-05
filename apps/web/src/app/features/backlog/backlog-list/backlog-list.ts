@@ -57,6 +57,7 @@ import { BacklogCalendar } from "../backlog-calendar/backlog-calendar";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
 import { FloatingXScrollbar } from "../../../shared/directives/floating-x-scrollbar";
+import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 import { ReviewsService } from "../../games/reviews";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
@@ -111,7 +112,8 @@ interface PendingStatusUpdate {
 		MoodTagsInput,
 		CdkDropList,
 		CdkDrag,
-		CdkDragHandle
+		CdkDragHandle,
+		CoverUrlPipe
 	],
 	templateUrl: "./backlog-list.html",
 	host: {
@@ -153,12 +155,29 @@ export class BacklogList implements OnInit {
 
 	private readonly queryParamMap = toSignal(this.route.queryParamMap);
 	private readonly savedFiltersLoaded = signal(false);
+	private eagerlyAppliedParams: ParamMap | null = null;
 
 	private readonly applyFromUrlEffect = effect(() => {
-		if (!this.savedFiltersLoaded()) return;
 		const params = this.queryParamMap();
 		if (!params) return;
-		untracked(() => this.applyFiltersFromUrl(params));
+		const filtersLoaded = this.savedFiltersLoaded();
+		untracked(() => {
+			if (!filtersLoaded) {
+				if (params.get("savedFilterId")) return;
+				this.eagerlyAppliedParams = params;
+				this.applyFiltersFromUrl(params);
+				return;
+			}
+			const hasDefault = this.savedFilters().some(f => f.isDefault);
+			if (
+				this.eagerlyAppliedParams === params &&
+				(params.get("status") !== null || !hasDefault)
+			) {
+				return;
+			}
+			this.eagerlyAppliedParams = null;
+			this.applyFiltersFromUrl(params);
+		});
 	});
 
 	protected readonly viewMode = signal<"diary" | "hardcore" | "calendar">(
@@ -1159,7 +1178,10 @@ export class BacklogList implements OnInit {
 		return filters;
 	}
 
+	private loadSeq = 0;
+
 	private loadBacklog() {
+		const seq = ++this.loadSeq;
 		this.isLoading.set(true);
 		const base = this.buildBaseFilters();
 		this.appliedFilters.set(base);
@@ -1173,12 +1195,14 @@ export class BacklogList implements OnInit {
 
 		this.backlogService.getMyBacklog(filters).subscribe({
 			next: res => {
+				if (seq !== this.loadSeq) return;
 				this.entries.set(res.data.backlog);
 				this.total.set(res.data.total);
 				this.isLoading.set(false);
 				this.isInitialLoad.set(false);
 			},
 			error: () => {
+				if (seq !== this.loadSeq) return;
 				this.isLoading.set(false);
 				this.isInitialLoad.set(false);
 			}

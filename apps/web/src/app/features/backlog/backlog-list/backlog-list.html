@@ -376,7 +376,7 @@
 				>
 					@if (h.game.backgroundUrl) {
 					<img
-						[src]="h.game.backgroundUrl"
+						[src]="h.game.backgroundUrl | coverUrl: 200"
 						[alt]="h.game.title"
 						class="w-10 h-14 object-cover rounded shrink-0"
 						loading="lazy"
@@ -407,7 +407,7 @@
 				>
 					@if (h.game.backgroundUrl) {
 					<img
-						[src]="h.game.backgroundUrl"
+						[src]="h.game.backgroundUrl | coverUrl: 200"
 						[alt]="h.game.title"
 						class="w-10 h-14 object-cover rounded shrink-0"
 						loading="lazy"
@@ -437,7 +437,7 @@
 				>
 					@if (h.game.backgroundUrl) {
 					<img
-						[src]="h.game.backgroundUrl"
+						[src]="h.game.backgroundUrl | coverUrl: 200"
 						[alt]="h.game.title"
 						class="w-10 h-14 object-cover rounded shrink-0"
 						loading="lazy"
@@ -1140,7 +1140,7 @@
 				>
 					@if (entry.game.backgroundUrl) {
 					<img
-						[src]="entry.game.backgroundUrl"
+						[src]="entry.game.backgroundUrl | coverUrl: 200"
 						[alt]="entry.game.title"
 						class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
 						loading="lazy"
