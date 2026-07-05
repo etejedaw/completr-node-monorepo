@@ -143,7 +143,8 @@ export class AdminGames implements OnInit {
 			limit: this.limit,
 			offset: this.offset(),
 			sort_by: "createdAt",
-			sort_order: "desc"
+			sort_order: "desc",
+			detailed: true
 		};
 		const search = this.searchQuery().trim();
 		if (search.length > 0) query["search"] = search;

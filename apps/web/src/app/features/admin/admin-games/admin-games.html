@@ -202,8 +202,8 @@
 					<td
 						class="px-3 py-2 align-middle text-fg-secondary text-xs max-w-[200px]"
 					>
-						{{ game.platforms.map(p => p.abbreviation).join(", ") ||
-						"-" }}
+						{{ (game.platforms ?? []).map(p =>
+						p.abbreviation).join(", ") || "-" }}
 					</td>
 					<td class="px-3 py-2 align-middle whitespace-nowrap">
 						@for (s of game.scores; track s.source) {

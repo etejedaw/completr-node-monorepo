@@ -105,6 +105,7 @@ export interface GamesQuery extends Record<string, Appendable> {
 	no_time_source?: string;
 	include_inactive?: boolean;
 	only_inactive?: boolean;
+	detailed?: boolean;
 }
 
 @Injectable({ providedIn: "root" })
