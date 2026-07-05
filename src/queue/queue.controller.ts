@@ -62,6 +62,18 @@ export async function putQueue(request: Request, response: Response) {
 	return response.status(200).json({ data });
 }
 
+export async function getMeQueueBacklogIds(
+	request: Request,
+	response: Response
+) {
+	const user = request.locals.user as RequestUser;
+
+	const entries = await queueService.findQueueBacklogIdsByUserId(user.id);
+
+	const data = { backlogIds: entries.map(e => e.backlogId) };
+	return response.status(200).json({ data });
+}
+
 export async function getMeQueue(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 	const query = request.locals.query ?? {};

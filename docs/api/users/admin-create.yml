@@ -42,8 +42,8 @@ docs: |-
     | username  | string | Yes      | 4-15 characters, converted to lowercase           |
     | email     | string | Yes      | Valid email, converted to lowercase                |
     | password  | string | Yes      | 8-15 chars, uppercase, lowercase, number, special |
-    | name      | string | Yes      | 4-80 characters                                   |
-    | bio       | string | No       | Max 250 characters                                |
+    | name      | string | Yes      | 4-80 characters, must not contain `<` or `>`      |
+    | bio       | string | No       | Max 250 characters, must not contain `<` or `>`   |
     | avatarUrl | string | No       | Valid URL                                          |
 
     ### Response (201)

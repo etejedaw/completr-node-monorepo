@@ -1,0 +1,30 @@
+info:
+    name: Get My Queue Backlog Ids
+    type: http
+    seq: 5
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/queue/backlog-ids"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get My Queue Backlog Ids
+
+    Returns only the backlog ids in the authenticated user's play queue, ordered by position, without pagination. Lightweight endpoint intended for membership checks and queue rebuilds (e.g. "already in queue" indicators, remove-by-id flows).
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "backlogIds": ["uuid", "uuid"]
+      }
+    }
+    ```

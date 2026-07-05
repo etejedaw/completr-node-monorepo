@@ -1,6 +1,7 @@
 import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
+import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as userDomainError from "../users/errors/users.domain-error";
@@ -43,6 +44,18 @@ export async function putFavorites(request: Request, response: Response) {
 	return response.status(200).json({ data });
 }
 
+export async function getMeFavoriteGameIds(
+	request: Request,
+	response: Response
+) {
+	const user = request.locals.user as RequestUser;
+
+	const favorites = await favoritesService.findFavoritesByUserId(user.id);
+
+	const data = { gameIds: favorites.map(e => e.gameId) };
+	return response.status(200).json({ data });
+}
+
 export async function getMeFavorites(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 	const query = request.locals.query ?? {};
@@ -50,14 +63,20 @@ export async function getMeFavorites(request: Request, response: Response) {
 	const { rows, total } =
 		await favoritesService.findFavoritesByUserIdPaginated(user.id, query);
 	const entriesPlain = rows.map(e => e.get({ plain: true }));
-	const tagsByGame = await moodTagsService.findTagsForGames(
-		user.id,
-		entriesPlain.map(e => e.gameId)
-	);
+	const gameIds = entriesPlain.map(e => e.gameId);
+	const [tagsByGame, backlogGameIds] = await Promise.all([
+		moodTagsService.findTagsForGames(user.id, gameIds),
+		backlogService.findGameIdsInBacklogByUser(user.id, gameIds)
+	]);
+	const inBacklogIds = new Set(backlogGameIds);
 
 	const data = {
 		favorites: entriesPlain.map(e =>
-			favoriteSerializer(e, tagsByGame.get(e.gameId))
+			favoriteSerializer(
+				e,
+				tagsByGame.get(e.gameId),
+				inBacklogIds.has(e.gameId)
+			)
 		),
 		total
 	};

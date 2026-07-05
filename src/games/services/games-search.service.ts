@@ -1,4 +1,11 @@
-import { col, fn, Op, where as whereFn, type WhereOptions } from "sequelize";
+import {
+	col,
+	fn,
+	type Includeable,
+	Op,
+	where as whereFn,
+	type WhereOptions
+} from "sequelize";
 
 import { apiKeysConfig } from "../../common/config/api-keys.config";
 import { sequelize } from "../../database/sequelize.database";
@@ -44,6 +51,8 @@ const GAME_LIST_ATTRS = [
 	"createdAt",
 	"releaseAt"
 ];
+
+const GAME_ADMIN_LIST_ATTRS = [...GAME_LIST_ATTRS, "variant", "isActive"];
 
 export async function findGameByCode(code: string) {
 	return await Game.findOne({
@@ -134,14 +143,19 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		where[Op.and as unknown as string] = andConditions;
 	}
 
+	const include: Includeable[] = [
+		{ association: "Genres", attributes: GENRE_ATTRS },
+		{ association: "GameScores", attributes: GAME_SCORE_ATTRS },
+		{ association: "GameTimes", attributes: GAME_TIME_ATTRS }
+	];
+	if (options.detailed) {
+		include.push({ association: "Platforms", attributes: PLATFORM_ATTRS });
+	}
+
 	const { rows, count } = await Game.findAndCountAll({
 		where,
-		attributes: GAME_LIST_ATTRS,
-		include: [
-			{ association: "Genres", attributes: GENRE_ATTRS },
-			{ association: "GameScores", attributes: GAME_SCORE_ATTRS },
-			{ association: "GameTimes", attributes: GAME_TIME_ATTRS }
-		],
+		attributes: options.detailed ? GAME_ADMIN_LIST_ATTRS : GAME_LIST_ATTRS,
+		include,
 		order: buildOrder(sortBy, sortOrder),
 		limit,
 		offset,

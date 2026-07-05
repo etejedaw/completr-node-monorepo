@@ -1,0 +1,74 @@
+info:
+    name: Admin Update User
+    type: http
+    seq: 13
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/admin/users/{{USER_ID}}"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "name": "Updated Name",
+              "role": "premium",
+              "isActive": true
+            }
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Admin Update User
+
+    Partially updates a user account. Only accessible by admin. All fields are optional.
+
+    **Auth:** Bearer token (admin only).
+
+    ### Path params
+
+    | Param  | Type | Description         |
+    |--------|------|---------------------|
+    | userId | uuid | Id of the user      |
+
+    ### Request Body
+
+    | Field    | Type                                          | Required | Description                                    |
+    |----------|-----------------------------------------------|----------|------------------------------------------------|
+    | name     | string                                        | No       | 1-100 characters, must not contain `<` or `>`  |
+    | password | string                                        | No       | 8-128 characters, stored hashed                |
+    | role     | `user` \| `premium` \| `moderator` \| `admin` | No       | New role                                       |
+    | isActive | boolean                                       | No       | Activate or deactivate the account             |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "user": {
+          "id": "uuid",
+          "username": "johndoe",
+          "email": "johndoe@example.com",
+          "name": "Updated Name",
+          "role": "premium",
+          "isActive": true,
+          "profileVisibility": "public",
+          "createdAt": "2026-04-15T00:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code                  | Description          |
+    |--------|-----------------------|----------------------|
+    | 404    | USER_NOT_FOUND        | User does not exist  |
+    | 422    | COMMON_SCHEMA_INVALID | Invalid request body |

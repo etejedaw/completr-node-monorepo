@@ -47,8 +47,8 @@ docs: |-
 
     | Field                 | Type                                | Required | Description                                                       |
     |-----------------------|-------------------------------------|----------|-------------------------------------------------------------------|
-    | name                  | string                              | No       | 1-80 characters                                                   |
-    | bio                   | string                              | No       | 1-250 characters                                                  |
+    | name                  | string                              | No       | 1-80 characters, must not contain `<` or `>`                      |
+    | bio                   | string                              | No       | 1-250 characters, must not contain `<` or `>`                     |
     | avatarUrl             | string                              | No       | Valid URL                                                         |
     | profileVisibility     | `private` \| `friends` \| `public`  | No       | Whole-profile gate                                                |
     | queueVisibility       | `private` \| `friends` \| `public`  | No       | Queue (Up Next) visibility                                        |

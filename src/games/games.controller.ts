@@ -8,6 +8,7 @@ import { type UpdateGameDto } from "./dtos/update-game.dto";
 import * as gameDomainError from "./errors/games.domain-error";
 import {
 	compilationItemSerializer,
+	gameAdminListSerializer,
 	gameFriendActivitySerializer,
 	gameListSerializer,
 	gameListSummarySerializer,
@@ -50,8 +51,12 @@ export async function getAllGames(request: Request, response: Response) {
 
 	const gamesPlain = games.map(game => game.get({ plain: true }));
 
+	const serialize = query.detailed
+		? gameAdminListSerializer
+		: gameListSerializer;
+
 	const data = {
-		games: gamesPlain.map(g => gameListSerializer(g)),
+		games: gamesPlain.map(g => serialize(g)),
 		total,
 		limit: query.limit,
 		offset: query.offset

@@ -1,6 +1,7 @@
 import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
+import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as userDomainError from "../users/errors/users.domain-error";
@@ -41,14 +42,20 @@ export async function getMeGameShelf(request: Request, response: Response) {
 	const { rows, total } =
 		await gameShelfService.findGameShelfByUserIdPaginated(user.id, query);
 	const gameShelfPlain = rows.map(game => game.get({ plain: true }));
-	const tagsByGame = await moodTagsService.findTagsForGames(
-		user.id,
-		gameShelfPlain.map(e => e.gameId)
-	);
+	const gameIds = gameShelfPlain.map(e => e.gameId);
+	const [tagsByGame, backlogGameIds] = await Promise.all([
+		moodTagsService.findTagsForGames(user.id, gameIds),
+		backlogService.findGameIdsInBacklogByUser(user.id, gameIds)
+	]);
+	const inBacklogIds = new Set(backlogGameIds);
 
 	const data = {
 		gameShelf: gameShelfPlain.map(e =>
-			gameShelfMeSerializer(e, tagsByGame.get(e.gameId))
+			gameShelfMeSerializer(
+				e,
+				tagsByGame.get(e.gameId),
+				inBacklogIds.has(e.gameId)
+			)
 		),
 		total
 	};

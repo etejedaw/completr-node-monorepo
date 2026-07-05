@@ -42,6 +42,9 @@ docs: |-
     | no_platforms       | bool    | Admin: games without platforms                           |
     | no_score_source    | csv     | Admin: games missing these score sources                 |
     | no_time_source     | csv     | Admin: games missing these time sources                  |
+    | include_inactive   | bool    | Admin: include deactivated games                         |
+    | only_inactive      | bool    | Admin: only deactivated games                            |
+    | detailed           | bool    | Admin: return the richer admin-list shape (see below)    |
 
     ### Response (200)
 
@@ -70,6 +73,37 @@ docs: |-
     ```
 
     The list shape only includes the fields needed to render a grid card or the featured hero (cover, title, code, isDlc, ratio, genres). `description`, `platforms`, `scores`, `times`, `externalLinks`, `dlcs`, `parentGame`, `compilationItems`, `partOfCompilations`, `coverUrl`, `variant` and `releaseAt` are intentionally omitted to keep the payload small. Filter query params still operate at the DB layer — they don't require those fields to be returned.
+
+    ### Detailed shape (`detailed=true`)
+
+    The admin games table passes `detailed=true` to get the extra columns it renders. This swaps the entry shape to include `variant`, `isActive`, `platforms`, `scores` and `times` (and drops `justImported`, `genres`):
+
+    ```json
+    {
+      "data": {
+        "games": [
+          {
+            "id": "uuid",
+            "title": "Metro Exodus",
+            "code": "metro-exodus",
+            "backgroundUrl": "https://...",
+            "isDlc": false,
+            "variant": null,
+            "isActive": true,
+            "ratio": 0.34,
+            "platforms": [
+              { "id": "uuid", "name": "PC", "code": "pc", "abbreviation": "PC" }
+            ],
+            "scores": [{ "source": "metacritic", "score": 4.3 }],
+            "times": [{ "source": "hltb", "duration": 15 }]
+          }
+        ],
+        "total": 1,
+        "limit": 50,
+        "offset": 0
+      }
+    }
+    ```
 
     ### Dynamic sort options
 

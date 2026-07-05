@@ -95,6 +95,19 @@ export async function findBacklogsByUserAndIds(userId: string, ids: string[]) {
 	return Backlog.findAll({ where: { id: ids, userId } });
 }
 
+export async function findGameIdsInBacklogByUser(
+	userId: string,
+	gameIds: string[]
+) {
+	if (gameIds.length === 0) return [];
+	const rows = await Backlog.findAll({
+		where: { userId, gameId: gameIds },
+		attributes: ["gameId"],
+		group: ["gameId"]
+	});
+	return rows.map(row => row.gameId);
+}
+
 export interface BacklogSummary {
 	gameId: string;
 	status: string;

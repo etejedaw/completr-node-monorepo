@@ -47,7 +47,8 @@ export const GamesQuerySchema = z
 		no_times: z.stringbool().optional(),
 		no_platforms: z.stringbool().optional(),
 		no_score_source: csv().optional(),
-		no_time_source: csv().optional()
+		no_time_source: csv().optional(),
+		detailed: z.stringbool().optional()
 	})
 	.strict()
 	.readonly();

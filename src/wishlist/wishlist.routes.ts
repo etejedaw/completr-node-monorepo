@@ -43,6 +43,15 @@ router.delete(
 );
 
 router.get(
+	"/game-ids",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator")
+	],
+	wishlistController.getMeWishlistGameIds
+);
+
+router.get(
 	"/",
 	[
 		rateLimiterMiddleware(userLimiter),
