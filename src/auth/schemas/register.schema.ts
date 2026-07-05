@@ -1,5 +1,6 @@
 import z from "zod";
 
+import { SafeTextSchema } from "../../common/schemas/safe-text.schema";
 import { PasswordPolicySchema } from "./password-policy.schema";
 
 export const RegisterSchema = z
@@ -14,8 +15,8 @@ export const RegisterSchema = z
 			),
 		email: z.email().toLowerCase(),
 		password: PasswordPolicySchema,
-		name: z.string().min(4).max(80),
-		bio: z.string().max(250).optional(),
+		name: SafeTextSchema.min(4).max(80),
+		bio: SafeTextSchema.max(250).optional(),
 		avatarUrl: z.url().optional()
 	})
 	.strict()
