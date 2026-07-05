@@ -10,6 +10,12 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { SavedFiltersService, SavedFilter } from "../saved-filters";
+import { BacklogStatus } from "../../../core/models";
+import {
+	backlogStatusClass,
+	backlogStatusIcon,
+	backlogStatusLabel
+} from "../../../shared/utils/backlog-status";
 import {
 	SAVED_FILTER_COLORS,
 	SAVED_FILTER_ICONS,
@@ -328,9 +334,9 @@ export class SavedFiltersView implements OnInit {
 		if (f["status"]) {
 			for (const status of f["status"].split(",")) {
 				chips.push({
-					label: this.statusLabel(status),
-					icon: this.statusIcon(status),
-					classes: this.statusChipClass(status)
+					label: backlogStatusLabel(status as BacklogStatus),
+					icon: backlogStatusIcon(status as BacklogStatus),
+					classes: backlogStatusClass(status as BacklogStatus)
 				});
 			}
 		}
@@ -372,35 +378,5 @@ export class SavedFiltersView implements OnInit {
 		}
 
 		return chips;
-	}
-
-	private statusLabel(status: string): string {
-		const map: Record<string, string> = {
-			not_started: "Not Started",
-			playing: "Playing",
-			completed: "Completed",
-			abandoned: "Abandoned"
-		};
-		return map[status] ?? status;
-	}
-
-	private statusIcon(status: string): string {
-		const map: Record<string, string> = {
-			not_started: "radio_button_unchecked",
-			playing: "play_arrow",
-			completed: "check_circle",
-			abandoned: "cancel"
-		};
-		return map[status] ?? "circle";
-	}
-
-	private statusChipClass(status: string): string {
-		const map: Record<string, string> = {
-			not_started: "bg-fg-muted/10 text-fg-muted",
-			playing: "bg-warning/10 text-warning",
-			completed: "bg-success/10 text-success",
-			abandoned: "bg-danger/10 text-danger"
-		};
-		return map[status] ?? "bg-input-bg text-fg-secondary";
 	}
 }
