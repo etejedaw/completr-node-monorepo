@@ -63,8 +63,6 @@ export class GameShelfList implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly dialogs = inject(DialogService);
 
-	protected readonly backlogGameIds = signal<Set<string>>(new Set());
-
 	protected readonly allEntries = signal<GameShelfEntry[]>([]);
 	protected readonly entries = signal<GameShelfEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -99,17 +97,12 @@ export class GameShelfList implements OnInit {
 				this.loadShelf();
 			});
 		this.favoritesService.ensureIdsLoaded().subscribe();
-		this.wishlistService.load({ limit: 100 }).subscribe();
-		this.loadBacklogIds();
+		this.wishlistService.ensureIdsLoaded().subscribe();
 		this.loadShelf();
 	}
 
 	isInWishlist(gameId: string): boolean {
 		return this.wishlistService.isInWishlist(gameId);
-	}
-
-	isInBacklog(gameId: string): boolean {
-		return this.backlogGameIds().has(gameId);
 	}
 
 	toggleWishlist(gameId: string) {
@@ -152,16 +145,7 @@ export class GameShelfList implements OnInit {
 			}
 		);
 		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.loadBacklogIds();
-		});
-	}
-
-	private loadBacklogIds() {
-		this.backlogService.getMyBacklog({ limit: 100 }).subscribe({
-			next: res => {
-				const ids = new Set(res.data.backlog.map(b => b.game.id));
-				this.backlogGameIds.set(ids);
-			}
+			if (result === "saved") this.loadShelf();
 		});
 	}
 
