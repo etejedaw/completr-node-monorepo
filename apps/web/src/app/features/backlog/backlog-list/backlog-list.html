@@ -1127,29 +1127,44 @@
 		<div
 			role="button"
 			tabindex="0"
-			class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line cursor-pointer transition hover:border-brand/40"
+			class="group/row flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line cursor-pointer transition hover:border-brand/40"
 			(click)="openEdit(entry, $event)"
 			(keydown.enter)="openEdit(entry, $event)"
 			(keydown.space)="openEdit(entry, $event); $event.preventDefault()"
 		>
-			<a
-				[routerLink]="['/games', entry.game.code]"
-				(click)="$event.stopPropagation()"
-				class="shrink-0"
-			>
-				@if (entry.game.backgroundUrl) {
-				<img
-					[src]="entry.game.backgroundUrl"
-					[alt]="entry.game.title"
-					class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
-					loading="lazy"
-				/>
-				} @else {
-				<div
-					class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"
-				></div>
+			<div class="relative shrink-0">
+				<a
+					[routerLink]="['/games', entry.game.code]"
+					(click)="$event.stopPropagation()"
+					class="block h-full"
+				>
+					@if (entry.game.backgroundUrl) {
+					<img
+						[src]="entry.game.backgroundUrl"
+						[alt]="entry.game.title"
+						class="w-16 sm:w-20 h-full min-h-[6rem] sm:min-h-[7rem] object-cover rounded-md shadow-md shadow-black/40"
+						loading="lazy"
+					/>
+					} @else {
+					<div
+						class="w-16 sm:w-20 h-full min-h-[6rem] sm:min-h-[7rem] bg-input-bg rounded-md"
+					></div>
+					}
+				</a>
+				@if (entry.status === 'not_started') {
+				<button
+					type="button"
+					class="absolute bottom-1 right-1 flex items-center justify-center w-8 h-8 rounded-full bg-warning text-white shadow-lg shadow-warning/40 ring-2 ring-white/20 opacity-0 group-hover/row:opacity-100 pointer-coarse:opacity-100 hover:scale-110 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
+					[disabled]="isStatusUpdating(entry)"
+					(click)="selectNewStatus(entry, 'playing', $event)"
+					title="Start playing"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>play_arrow</span
+					>
+				</button>
 				}
-			</a>
+			</div>
 
 			<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
 				<div class="flex items-center gap-2 flex-wrap">
@@ -1190,22 +1205,7 @@
 				<div
 					class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap"
 				>
-					@if (entry.status === 'not_started') {
-					<button
-						type="button"
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide bg-warning/10 text-warning hover:bg-warning/20 border border-warning/20 hover:border-warning/40 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-						[disabled]="isStatusUpdating(entry)"
-						(click)="selectNewStatus(entry, 'playing', $event)"
-						title="Start playing"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem]"
-							>play_arrow</span
-						>
-						Start
-					</button>
-					} @if (canChangeStatus(entry.status)) {
+					@if (canChangeStatus(entry.status)) {
 					<div class="relative inline-block">
 						<button
 							type="button"
@@ -1757,22 +1757,7 @@
 						date:'yyyy-MM-dd') : "-" }}
 					</td>
 					<td class="px-4 py-3 align-middle whitespace-nowrap">
-						@if (entry.status === 'not_started') {
-						<button
-							type="button"
-							class="inline-flex items-center gap-1 px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide bg-warning/10 text-warning hover:bg-warning/20 border border-warning/20 hover:border-warning/40 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mr-1.5"
-							[disabled]="isStatusUpdating(entry)"
-							(click)="selectNewStatus(entry, 'playing', $event)"
-							title="Start playing"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.875rem]"
-								>play_arrow</span
-							>
-							Start
-						</button>
-						} @if (canChangeStatus(entry.status)) {
+						@if (canChangeStatus(entry.status)) {
 						<div class="relative inline-block">
 							<button
 								type="button"
