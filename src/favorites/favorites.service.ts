@@ -51,6 +51,26 @@ export async function findFavoritesByUserId(userId: string) {
 	});
 }
 
+export async function findGameEntriesByUserId(
+	userId: string,
+	gameIds?: string[]
+) {
+	const where: Record<string, unknown> = { userId };
+	if (gameIds) where.gameId = { [Op.in]: gameIds };
+
+	return Favorite.findAll({
+		where,
+		attributes: ["gameId"],
+		include: [
+			{
+				model: Game,
+				attributes: ["id", "code", "title", "backgroundUrl"]
+			}
+		],
+		order: [["position", "ASC"]]
+	});
+}
+
 export async function findFavoritesByUserIdPaginated(
 	userId: string,
 	pagination: PaginatedSearchQuery = {}

@@ -4,6 +4,7 @@ import { type findHighlightsByUserId } from "../backlog/backlog.service";
 import { type List } from "../lists/list.model";
 import { type BacklogSummary } from "../lists/lists.service";
 import { type Review } from "../reviews/review.model";
+import { type ComparisonDimension } from "./schemas/comparison-query.schema";
 import { type User } from "./user.model";
 
 export interface RestrictedUserProfile {
@@ -82,16 +83,23 @@ export interface UserCompletionsBundle {
 	total: number;
 }
 
-export interface GameInCommonEntry {
+export interface ComparisonGameEntry {
 	id: string;
 	code: string;
 	title: string;
 	backgroundUrl: string | null | undefined;
 }
 
-export interface UserGamesInCommonBundle {
-	games: GameInCommonEntry[];
-	total: number;
+export interface UserComparisonBundle {
+	by: ComparisonDimension;
+	inCommon: ComparisonGameEntry[];
+	onlyViewer: ComparisonGameEntry[];
+	onlyTarget: ComparisonGameEntry[];
+	counts: {
+		inCommon: number;
+		onlyViewer: number;
+		onlyTarget: number;
+	};
 }
 
 export interface UserReviewsBundle {

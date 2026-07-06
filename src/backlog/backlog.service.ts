@@ -16,7 +16,7 @@ import { Platform } from "../platforms/platform.model";
 import { Queue } from "../queue/queue.model";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
-import { Backlog } from "./backlog.model";
+import { Backlog, type BacklogStatus } from "./backlog.model";
 import { type RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { type UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import * as backlogServiceError from "./errors/backlog.service-error";
@@ -556,38 +556,26 @@ export async function findRandomPlayersForGame(
 	return unique.slice(0, limit);
 }
 
-export async function findCommonCompletedGames(
-	viewerId: string,
-	targetId: string
+export async function findGameEntriesByStatus(
+	userId: string,
+	status: BacklogStatus,
+	publicOnly: boolean,
+	gameIds?: string[]
 ) {
-	const viewerCompleted = await Backlog.findAll({
-		where: { userId: viewerId, status: "completed" },
-		attributes: ["gameId"]
-	});
-	const viewerGameIds = [...new Set(viewerCompleted.map(row => row.gameId))];
-	if (viewerGameIds.length === 0) return [];
+	const where: Record<string, unknown> = { userId, status };
+	if (publicOnly) where.isPublic = true;
+	if (gameIds) where.gameId = { [Op.in]: gameIds };
 
-	const targetCompleted = await Backlog.findAll({
-		where: {
-			userId: targetId,
-			status: "completed",
-			isPublic: true,
-			gameId: { [Op.in]: viewerGameIds }
-		},
+	return Backlog.findAll({
+		where,
+		attributes: ["gameId"],
 		include: [
 			{
 				model: Game,
 				attributes: ["id", "code", "title", "backgroundUrl"]
 			}
 		],
-		order: [["finishedAt", "DESC"]]
-	});
-
-	const seen = new Set<string>();
-	return targetCompleted.filter(row => {
-		if (seen.has(row.gameId)) return false;
-		seen.add(row.gameId);
-		return true;
+		order: [["createdAt", "DESC"]]
 	});
 }
 

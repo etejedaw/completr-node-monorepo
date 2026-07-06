@@ -25,6 +25,7 @@ import savedFiltersRouter from "../saved-filters/saved-filters.routes";
 import * as wishlistController from "../wishlist/wishlist.controller";
 import wishlistRouter from "../wishlist/wishlist.routes";
 import {
+	ComparisonQuerySchema,
 	HighlightsQuerySchema,
 	UpdateUserSchema,
 	UsernameParamSchema
@@ -254,13 +255,14 @@ router.get(
 );
 
 router.get(
-	"/users/:username/games-in-common",
+	"/users/:username/comparison",
 	[
 		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
-		validateSchemaMiddleware(UsernameParamSchema, "params")
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(ComparisonQuerySchema, "query")
 	],
-	usersController.getUserGamesInCommon
+	usersController.getUserComparison
 );
 
 export default router;

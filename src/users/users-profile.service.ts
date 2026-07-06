@@ -2,22 +2,27 @@ import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
+import * as favoritesService from "../favorites/favorites.service";
+import * as gameShelfService from "../game-shelf/game-shelf.service";
 import * as listFollowersService from "../list-followers/list-followers.service";
 import * as listsService from "../lists/lists.service";
 import * as reviewsService from "../reviews/reviews.service";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
+import * as wishlistService from "../wishlist/wishlist.service";
 import { type VisibilitySection } from "./constants/visibility.constants";
 import * as userDomain from "./errors/users.domain-error";
 import { canView } from "./helpers/visibility.helper";
+import { type ComparisonDimension } from "./schemas/comparison-query.schema";
 import { type User } from "./user.model";
 import {
 	type BacklogStatusCounts,
+	type ComparisonGameEntry,
 	type FullUserProfile,
 	type RestrictedUserProfile,
+	type UserComparisonBundle,
 	type UserCompletionsBundle,
 	type UserFollowingListsBundle,
-	type UserGamesInCommonBundle,
 	type UserHighlightsBundle,
 	type UserListDetailBundle,
 	type UserListsBundle,
@@ -293,32 +298,161 @@ export async function getCompletionsForUsername(
 	return { isSelf, rows: plainRows, reviewMap, total };
 }
 
-export async function getGamesInCommonForUsername(
+const COMPARISON_SECTION: Record<ComparisonDimension, VisibilitySection> = {
+	completed: "backlog",
+	playing: "backlog",
+	not_started: "backlog",
+	shelf: "shelf",
+	favorites: "favorite",
+	wishlist: "wishlist"
+};
+
+type GameEntryRow = {
+	gameId: string;
+	Game?: {
+		id: string;
+		code: string;
+		title: string;
+		backgroundUrl?: string | null;
+	};
+};
+
+function loadComparisonEntries(
+	userId: string,
+	by: ComparisonDimension,
+	publicOnly: boolean,
+	gameIds?: string[]
+): Promise<GameEntryRow[]> {
+	switch (by) {
+		case "completed":
+		case "playing":
+		case "not_started":
+			return backlogService.findGameEntriesByStatus(
+				userId,
+				by,
+				publicOnly,
+				gameIds
+			);
+		case "shelf":
+			return gameShelfService.findGameEntriesByUserId(
+				userId,
+				publicOnly,
+				gameIds
+			);
+		case "favorites":
+			return favoritesService.findGameEntriesByUserId(userId, gameIds);
+		case "wishlist":
+			return wishlistService.findGameEntriesByUserId(userId, gameIds);
+	}
+}
+
+function toEntryMap(rows: GameEntryRow[]): Map<string, ComparisonGameEntry> {
+	const map = new Map<string, ComparisonGameEntry>();
+	for (const row of rows) {
+		if (!row.Game || map.has(row.gameId)) continue;
+		map.set(row.gameId, {
+			id: row.Game.id,
+			code: row.Game.code,
+			title: row.Game.title,
+			backgroundUrl: row.Game.backgroundUrl
+		});
+	}
+	return map;
+}
+
+const EMPTY_COMPARISON = (by: ComparisonDimension): UserComparisonBundle => ({
+	by,
+	inCommon: [],
+	onlyViewer: [],
+	onlyTarget: [],
+	counts: { inCommon: 0, onlyViewer: 0, onlyTarget: 0 }
+});
+
+export interface ComparisonOptions {
+	includeOnlyTarget: boolean;
+	includeOnlyViewer: boolean;
+	limit?: number;
+	offset: number;
+}
+
+function paginate(
+	entries: ComparisonGameEntry[],
+	limit: number | undefined,
+	offset: number
+): ComparisonGameEntry[] {
+	if (limit === undefined && offset === 0) return entries;
+	const end = limit === undefined ? undefined : offset + limit;
+	return entries.slice(offset, end);
+}
+
+export async function getComparisonForUsername(
 	viewer: RequestUser,
-	username: string
-): Promise<UserGamesInCommonBundle> {
+	username: string,
+	by: ComparisonDimension,
+	options: ComparisonOptions
+): Promise<UserComparisonBundle> {
 	const user = await usersService.findUserByUsername(username);
 	if (!user) throw userDomain.userNotFound();
 
-	if (user.id === viewer.id) return { games: [], total: 0 };
+	if (user.id === viewer.id) return EMPTY_COMPARISON(by);
 
-	const [okProfile, okBacklog] = await Promise.all([
+	const section = COMPARISON_SECTION[by];
+	const [okProfile, okSection] = await Promise.all([
 		canView(viewer.id, user, "profile"),
-		canView(viewer.id, user, "backlog")
+		canView(viewer.id, user, section)
 	]);
-	if (!okProfile || !okBacklog) throw userDomain.userPrivate();
+	if (!okProfile || !okSection) throw userDomain.userPrivate();
 
-	const entries = await backlogService.findCommonCompletedGames(
-		viewer.id,
-		user.id
+	const viewerMap = toEntryMap(
+		await loadComparisonEntries(viewer.id, by, false)
 	);
-	const games = entries.map(entry => ({
-		id: entry.Game.id,
-		code: entry.Game.code,
-		title: entry.Game.title,
-		backgroundUrl: entry.Game.backgroundUrl
-	}));
-	return { games, total: games.length };
+	const viewerGameIds = [...viewerMap.keys()];
+
+	const targetMap = await loadTargetMap(user.id, by, viewerGameIds, options);
+
+	const inCommon: ComparisonGameEntry[] = [];
+	const onlyViewer: ComparisonGameEntry[] = [];
+	for (const [gameId, entry] of viewerMap) {
+		if (targetMap.has(gameId)) inCommon.push(entry);
+		else if (options.includeOnlyViewer) onlyViewer.push(entry);
+	}
+
+	const onlyTarget: ComparisonGameEntry[] = [];
+	if (options.includeOnlyTarget) {
+		for (const [gameId, entry] of targetMap) {
+			if (!viewerMap.has(gameId)) onlyTarget.push(entry);
+		}
+	}
+
+	const { limit, offset } = options;
+	return {
+		by,
+		inCommon: paginate(inCommon, limit, offset),
+		onlyViewer: paginate(onlyViewer, limit, offset),
+		onlyTarget: paginate(onlyTarget, limit, offset),
+		counts: {
+			inCommon: inCommon.length,
+			onlyViewer: onlyViewer.length,
+			onlyTarget: onlyTarget.length
+		}
+	};
+}
+
+async function loadTargetMap(
+	targetId: string,
+	by: ComparisonDimension,
+	viewerGameIds: string[],
+	options: ComparisonOptions
+): Promise<Map<string, ComparisonGameEntry>> {
+	// onlyTarget needs the target's full set; otherwise restrict the query to
+	// the viewer's games — enough for inCommon and onlyViewer, and far cheaper.
+	if (options.includeOnlyTarget) {
+		return toEntryMap(await loadComparisonEntries(targetId, by, true));
+	}
+	if (viewerGameIds.length === 0) return new Map();
+	return toEntryMap(
+		await loadComparisonEntries(targetId, by, true, viewerGameIds)
+	);
 }
 
 export async function getReviewsForUsername(

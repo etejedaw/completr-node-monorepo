@@ -9,7 +9,11 @@ import {
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
 import { type UpdateUserDto } from "./dtos";
 import * as userDomain from "./errors/users.domain-error";
-import { type HighlightsQuery, type UsernameParam } from "./schemas";
+import {
+	type ComparisonQuery,
+	type HighlightsQuery,
+	type UsernameParam
+} from "./schemas";
 import { type UserDiscoverQuery } from "./schemas/user-discover-query.schema";
 import { type UserSearchQuery } from "./schemas/user-search-query.schema";
 import {
@@ -191,16 +195,17 @@ export async function getUserCompletions(request: Request, response: Response) {
 		.json({ data: userCompletionsSerializer(bundle) });
 }
 
-export async function getUserGamesInCommon(
-	request: Request,
-	response: Response
-) {
+export async function getUserComparison(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;
+	const { by, includeOnlyTarget, includeOnlyViewer, limit, offset } = request
+		.locals.query as ComparisonQuery;
 	const currentUser = request.locals.user as RequestUser;
 
-	const bundle = await usersProfileService.getGamesInCommonForUsername(
+	const bundle = await usersProfileService.getComparisonForUsername(
 		currentUser,
-		username
+		username,
+		by,
+		{ includeOnlyTarget, includeOnlyViewer, limit, offset }
 	);
 
 	return response.status(200).json({ data: bundle });
