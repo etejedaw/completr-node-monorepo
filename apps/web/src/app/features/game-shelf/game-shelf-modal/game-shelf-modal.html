@@ -101,7 +101,7 @@
 			</button>
 		</div>
 		} @else {
-		<form [formGroup]="form" (ngSubmit)="onSubmit()">
+		<form (submit)="onSubmit($event)">
 			@if (!isEdit()) {
 			<div class="mb-4">
 				<span
@@ -247,7 +247,7 @@
 					>Platform
 					<span class="text-danger font-bold">*</span></label
 				>
-				<select uiSelect id="platformId" formControlName="platformId">
+				<select uiSelect id="platformId" [formField]="form.platformId">
 					<option value="">Select platform</option>
 					@for (p of gamePlatforms(); track p.id) {
 					<option [value]="p.id">{{ p.name }}</option>
@@ -265,7 +265,7 @@
 				<input
 					id="edition"
 					type="text"
-					formControlName="edition"
+					[formField]="form.edition"
 					placeholder="Standard, Deluxe, GOTY..."
 					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] transition placeholder:text-fg-muted focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 				/>
@@ -274,7 +274,7 @@
 					<button
 						type="button"
 						class="px-2 py-1 text-[0.7rem] font-medium rounded-md border transition cursor-pointer"
-						[class]="form.value.edition === suggestion ? 'bg-brand/15 border-brand text-brand' : 'bg-input-bg border-line text-fg-muted hover:border-brand hover:text-brand'"
+						[class]="form.edition().value() === suggestion ? 'bg-brand/15 border-brand text-brand' : 'bg-input-bg border-line text-fg-muted hover:border-brand hover:text-brand'"
 						(click)="applyEditionSuggestion(suggestion)"
 					>
 						{{ suggestion }}
@@ -292,7 +292,7 @@
 				<input
 					id="acquiredAt"
 					type="date"
-					formControlName="acquiredAt"
+					[formField]="form.acquiredAt"
 					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 				/>
 			</div>
@@ -306,7 +306,7 @@
 				<textarea
 					uiTextarea
 					id="notes"
-					formControlName="notes"
+					[formField]="form.notes"
 					rows="3"
 					placeholder="Your notes..."
 					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] resize-y transition placeholder:text-fg-muted focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
@@ -357,7 +357,7 @@
 					size="sm"
 					class="ml-auto"
 					type="submit"
-					[disabled]="form.invalid || isLoading()"
+					[disabled]="form().invalid() || isLoading()"
 				>
 					{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Add" }}
 				</button>
