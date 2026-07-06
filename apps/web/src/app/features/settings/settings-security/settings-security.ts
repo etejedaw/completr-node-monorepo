@@ -6,7 +6,7 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { FormsModule } from "@angular/forms";
+import { form, FormField } from "@angular/forms/signals";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../../../environments/environment";
 import { AuthService, AuthSession } from "../../../core/services/auth";
@@ -15,7 +15,7 @@ import { UiButton, UiInput, UiPagination } from "../../../shared/ui";
 
 @Component({
 	selector: "app-settings-security",
-	imports: [FormsModule, UiButton, UiInput, UiPagination],
+	imports: [FormField, UiButton, UiInput, UiPagination],
 	templateUrl: "./settings-security.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -37,8 +37,11 @@ export class SettingsSecurity implements OnInit {
 		this.authService.sessionId()
 	);
 
-	protected readonly newPassword = signal("");
-	protected readonly confirmPassword = signal("");
+	protected readonly passwordModel = signal({
+		newPassword: "",
+		confirmPassword: ""
+	});
+	readonly passwordForm = form(this.passwordModel);
 	protected readonly changingPassword = signal(false);
 
 	ngOnInit() {
@@ -113,24 +116,27 @@ export class SettingsSecurity implements OnInit {
 	}
 
 	changePassword() {
-		if (this.newPassword().length < 8) {
+		const { newPassword, confirmPassword } = this.passwordForm().value();
+		if (newPassword.length < 8) {
 			this.toast.warning("Password must be at least 8 characters.");
 			return;
 		}
-		if (this.newPassword() !== this.confirmPassword()) {
+		if (newPassword !== confirmPassword) {
 			this.toast.warning("Passwords do not match.");
 			return;
 		}
 		this.changingPassword.set(true);
 		this.http
 			.patch(`${environment.apiUrl}/auth/password`, {
-				password: this.newPassword()
+				password: newPassword
 			})
 			.subscribe({
 				next: () => {
 					this.changingPassword.set(false);
-					this.newPassword.set("");
-					this.confirmPassword.set("");
+					this.passwordModel.set({
+						newPassword: "",
+						confirmPassword: ""
+					});
 					this.toast.success(
 						"Password changed. All other sessions were signed out."
 					);

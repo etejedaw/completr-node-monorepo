@@ -16,8 +16,7 @@
 					uiInput
 					id="new-password"
 					type="password"
-					[ngModel]="newPassword()"
-					(ngModelChange)="newPassword.set($event)"
+					[formField]="passwordForm.newPassword"
 					placeholder="At least 8 characters"
 					autocomplete="new-password"
 				/>
@@ -33,8 +32,7 @@
 					uiInput
 					id="confirm-password"
 					type="password"
-					[ngModel]="confirmPassword()"
-					(ngModelChange)="confirmPassword.set($event)"
+					[formField]="passwordForm.confirmPassword"
 					placeholder="Repeat new password"
 					autocomplete="new-password"
 				/>

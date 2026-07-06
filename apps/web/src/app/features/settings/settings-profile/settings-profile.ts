@@ -1,11 +1,12 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	OnInit,
 	signal
 } from "@angular/core";
-import { FormsModule } from "@angular/forms";
+import { form, FormField } from "@angular/forms/signals";
 import { AuthService } from "../../../core/services/auth";
 import { ProfileService, UpdateProfileDto } from "../../profile/profile";
 import { ToastService } from "../../../core/services/toast";
@@ -19,7 +20,7 @@ import {
 
 @Component({
 	selector: "app-settings-profile",
-	imports: [FormsModule, UiButton, UiInput, UiTextarea, UiFormField, UiLabel],
+	imports: [FormField, UiButton, UiInput, UiTextarea, UiFormField, UiLabel],
 	templateUrl: "./settings-profile.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -29,9 +30,11 @@ export class SettingsProfile implements OnInit {
 	private readonly toast = inject(ToastService);
 
 	protected readonly user = this.authService.user;
-	protected readonly name = signal("");
-	protected readonly bio = signal("");
-	protected readonly avatarUrl = signal("");
+	protected readonly model = signal({ name: "", bio: "", avatarUrl: "" });
+	readonly form = form(this.model);
+	protected readonly avatarUrl = computed(() =>
+		this.form.avatarUrl().value()
+	);
 	protected readonly saving = signal(false);
 
 	protected readonly AVATARS = Array.from({ length: 15 }, (_, i) => {
@@ -40,11 +43,11 @@ export class SettingsProfile implements OnInit {
 	});
 
 	selectAvatar(url: string) {
-		this.avatarUrl.set(url);
+		this.model.update(m => ({ ...m, avatarUrl: url }));
 	}
 
 	clearAvatar() {
-		this.avatarUrl.set("");
+		this.model.update(m => ({ ...m, avatarUrl: "" }));
 	}
 
 	ngOnInit() {
@@ -55,17 +58,20 @@ export class SettingsProfile implements OnInit {
 	private hydrate() {
 		const u = this.user();
 		if (!u) return;
-		this.name.set(u.name ?? "");
-		this.bio.set(u.bio ?? "");
-		this.avatarUrl.set(u.avatarUrl ?? "");
+		this.model.set({
+			name: u.name ?? "",
+			bio: u.bio ?? "",
+			avatarUrl: u.avatarUrl ?? ""
+		});
 	}
 
 	save() {
 		this.saving.set(true);
+		const v = this.form().value();
 		const dto: UpdateProfileDto = {
-			name: this.name() || undefined,
-			bio: this.bio() || undefined,
-			avatarUrl: this.avatarUrl() || undefined
+			name: v.name || undefined,
+			bio: v.bio || undefined,
+			avatarUrl: v.avatarUrl || undefined
 		};
 		this.profileService.update(dto).subscribe({
 			next: () => {
