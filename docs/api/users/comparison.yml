@@ -1,0 +1,104 @@
+info:
+    name: Get User Comparison
+    type: http
+    seq: 8
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/:username/comparison?by=completed&includeOnlyTarget=false&includeOnlyViewer=false"
+    auth: inherit
+    params:
+        - name: username
+          type: path
+          value: ""
+        - name: by
+          type: query
+          value: completed
+        - name: includeOnlyTarget
+          type: query
+          value: "false"
+        - name: includeOnlyViewer
+          type: query
+          value: "false"
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get User Comparison
+
+    Compares one library dimension between the authenticated viewer and `:username`. Returns up to three buckets of games:
+
+    - `inCommon` — games both have in that dimension. **Always returned.**
+    - `onlyTarget` — games the target has and the viewer does not. Returned only when `includeOnlyTarget=true`; otherwise an empty array.
+    - `onlyViewer` — games the viewer has and the target does not. Returned only when `includeOnlyViewer=true`; otherwise an empty array.
+
+    By default only `inCommon` is computed, and the target's query is restricted to the viewer's games (cheap). Requesting `onlyTarget` loads the target's full set for that dimension, which can be large.
+
+    Set the dimension with the `by` query param. Each dimension has its own privacy section; the target's data is only included if the viewer can see both the target's `profile` and that section.
+
+    | `by`          | Source                       | Visibility section |
+    |---------------|------------------------------|--------------------|
+    | `completed`   | Backlog (status `completed`) | `backlog`          |
+    | `playing`     | Backlog (status `playing`)   | `backlog`          |
+    | `not_started` | Backlog (status `not_started`) | `backlog`        |
+    | `shelf`       | Game shelf                   | `shelf`            |
+    | `favorites`   | Favorites                    | `favorite`         |
+    | `wishlist`    | Wishlist                     | `wishlist`         |
+
+    For `completed`, `playing`, `not_started` and `shelf` only the target's **public** entries are counted. `favorites` and `wishlist` have no per-entry flag — visibility is controlled entirely by their section. The viewer's own set always counts every entry. Each bucket is deduped per game.
+
+    When the viewer requests their own profile, empty buckets are returned (comparing with yourself is meaningless).
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 100 requests per minute (public).
+
+    ### Path Params
+
+    | Param    | Type   | Required | Description      |
+    |----------|--------|----------|------------------|
+    | username | string | Yes      | Profile username |
+
+    ### Query Params
+
+    | Param             | Type    | Required | Default     | Description                                                               |
+    |-------------------|---------|----------|-------------|---------------------------------------------------------------------------|
+    | by                | string  | No       | `completed` | `completed`, `playing`, `not_started`, `shelf`, `favorites` or `wishlist` |
+    | includeOnlyTarget | boolean | No       | `false`     | Include `onlyTarget` (games the target has and the viewer does not)       |
+    | includeOnlyViewer | boolean | No       | `false`     | Include `onlyViewer` (games the viewer has and the target does not)       |
+    | limit             | integer | No       | —           | Page size (1–100) applied to each returned bucket. Omit to return all     |
+    | offset            | integer | No       | `0`         | Page offset applied to each returned bucket                               |
+
+    `counts` always reflects the full bucket totals (before pagination), so it can drive pagination controls.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "by": "completed",
+        "inCommon": [
+          {
+            "id": "uuid",
+            "code": "resident-evil-2",
+            "title": "Resident Evil 2",
+            "backgroundUrl": "https://example.com/bg.jpg"
+          }
+        ],
+        "onlyViewer": [],
+        "onlyTarget": [],
+        "counts": { "inCommon": 1, "onlyViewer": 0, "onlyTarget": 0 }
+      }
+    }
+    ```
+
+    `backgroundUrl` may be `null`. Each `counts` value equals the length of its bucket.
+
+    ### Errors
+
+    | Status | Code                  | Description                                                        |
+    |--------|-----------------------|--------------------------------------------------------------------|
+    | 403    | USER_PRIVATE          | Target profile is private or the requested section is not visible  |
+    | 404    | USER_NOT_FOUND        | No user with that username                                         |
+    | 422    | AUTH_SCHEMA_INVALID   | Missing or malformed Bearer token                                 |
+    | 422    | COMMON_SCHEMA_INVALID | `username`, `by` or an `includeOnly*` flag fails validation       |
