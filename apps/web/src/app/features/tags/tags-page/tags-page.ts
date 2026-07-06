@@ -5,7 +5,6 @@ import {
 	inject,
 	signal
 } from "@angular/core";
-import { FormsModule } from "@angular/forms";
 import {
 	MoodTagsService,
 	UpdateTagDto,
@@ -16,7 +15,7 @@ import { UiButton, UiInput } from "../../../shared/ui";
 
 @Component({
 	selector: "app-tags-page",
-	imports: [FormsModule, UiButton, UiInput],
+	imports: [UiButton, UiInput],
 	templateUrl: "./tags-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -184,8 +184,8 @@
 						id="create-username"
 						uiInput
 						type="text"
-						[ngModel]="createUsername()"
-						(ngModelChange)="createUsername.set($event)"
+						[value]="createUsername()"
+						(input)="createUsername.set($any($event.target).value)"
 						name="username"
 						placeholder="johndoe"
 						required
@@ -207,8 +207,8 @@
 						id="create-name"
 						uiInput
 						type="text"
-						[ngModel]="createName()"
-						(ngModelChange)="createName.set($event)"
+						[value]="createName()"
+						(input)="createName.set($any($event.target).value)"
 						name="name"
 						placeholder="John Doe"
 						required
@@ -233,8 +233,8 @@
 						id="create-email"
 						uiInput
 						type="email"
-						[ngModel]="createEmail()"
-						(ngModelChange)="createEmail.set($event)"
+						[value]="createEmail()"
+						(input)="createEmail.set($any($event.target).value)"
 						name="email"
 						placeholder="john@example.com"
 						required
@@ -255,8 +255,8 @@
 							id="create-password"
 							uiInput
 							[type]="showCreatePassword() ? 'text' : 'password'"
-							[ngModel]="createPassword()"
-							(ngModelChange)="createPassword.set($event)"
+							[value]="createPassword()"
+							(input)="createPassword.set($any($event.target).value)"
 							name="password"
 							placeholder="Min 8 chars"
 							required
@@ -357,8 +357,8 @@
 					id="edit-name"
 					uiInput
 					type="text"
-					[ngModel]="editName()"
-					(ngModelChange)="editName.set($event)"
+					[value]="editName()"
+					(input)="editName.set($any($event.target).value)"
 					name="name"
 					minlength="4"
 					maxlength="80"
@@ -378,8 +378,8 @@
 					<select
 						uiSelect
 						id="edit-role"
-						[ngModel]="editRole()"
-						(ngModelChange)="editRole.set($event)"
+						[value]="editRole()"
+						(change)="editRole.set($any($event.target).value)"
 						name="role"
 					>
 						<option value="user">User</option>
@@ -399,8 +399,8 @@
 							id="edit-password"
 							uiInput
 							[type]="showEditPassword() ? 'text' : 'password'"
-							[ngModel]="editPassword()"
-							(ngModelChange)="editPassword.set($event)"
+							[value]="editPassword()"
+							(input)="editPassword.set($any($event.target).value)"
 							name="password"
 							placeholder="Leave empty to keep current"
 							class="!pr-10"
@@ -434,8 +434,8 @@
 					<input
 						type="checkbox"
 						class="w-4 h-4 cursor-pointer accent-brand"
-						[ngModel]="editIsActive()"
-						(ngModelChange)="editIsActive.set($event)"
+						[checked]="editIsActive()"
+						(change)="editIsActive.set($any($event.target).checked)"
 						name="isActive"
 					/>
 					<span>{{ editIsActive() ? "Active" : "Inactive" }}</span>

@@ -8,7 +8,6 @@ import {
 } from "@angular/core";
 import { HttpErrorResponse } from "@angular/common/http";
 import { Router, RouterLink } from "@angular/router";
-import { FormsModule } from "@angular/forms";
 import { SavedFiltersService, SavedFilter } from "../saved-filters";
 import { BacklogStatus } from "../../../core/models";
 import {
@@ -44,7 +43,6 @@ type SortMode =
 @Component({
 	selector: "app-saved-filters-view",
 	imports: [
-		FormsModule,
 		RouterLink,
 		UiButton,
 		UiEmptyState,

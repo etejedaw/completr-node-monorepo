@@ -9,7 +9,6 @@ import {
 	signal
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { FormsModule } from "@angular/forms";
 import { Game, Genre, List, Platform } from "../../../core/models";
 import { GamesService } from "../games";
 import { ListsService } from "../../lists/lists";
@@ -38,7 +37,6 @@ import { StarRating } from "../../../shared/components/star-rating/star-rating";
 	selector: "app-games-browse",
 	imports: [
 		RouterLink,
-		FormsModule,
 		AdminGameEditor,
 		UiButton,
 		UiInput,
