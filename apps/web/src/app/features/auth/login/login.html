@@ -60,11 +60,7 @@
 			</div>
 			}
 
-			<form
-				[formGroup]="form"
-				(ngSubmit)="onSubmit()"
-				class="flex flex-col gap-5"
-			>
+			<form (submit)="onSubmit($event)" class="flex flex-col gap-5">
 				<div>
 					<label
 						for="email"
@@ -75,7 +71,7 @@
 						uiInput
 						id="email"
 						type="email"
-						formControlName="email"
+						[formField]="form.email"
 						placeholder="you@example.com"
 						autocomplete="email"
 					/>
@@ -92,7 +88,7 @@
 							uiInput
 							id="password"
 							[type]="showPassword() ? 'text' : 'password'"
-							formControlName="password"
+							[formField]="form.password"
 							placeholder="Your password"
 							autocomplete="current-password"
 							class="!pr-10"
@@ -120,7 +116,7 @@
 					size="lg"
 					[block]="true"
 					type="submit"
-					[disabled]="form.invalid || isLoading()"
+					[disabled]="form().invalid() || isLoading()"
 				>
 					{{ isLoading() ? 'Signing in...' : 'Sign in' }}
 				</button>
