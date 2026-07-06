@@ -5,7 +5,7 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import { form, required, maxLength, FormField } from "@angular/forms/signals";
 import {
 	NgpDialog,
 	NgpDialogOverlay,
@@ -33,7 +33,7 @@ export type ListModalResult = "saved" | "deleted";
 @Component({
 	selector: "app-list-modal",
 	imports: [
-		ReactiveFormsModule,
+		FormField,
 		NgpDialog,
 		NgpDialogOverlay,
 		NgpDialogTitle,
@@ -62,7 +62,6 @@ export class ListModal implements OnInit {
 		{ value: "completr", label: "Completr" }
 	] as const;
 
-	private readonly fb = inject(FormBuilder);
 	private readonly listsService = inject(ListsService);
 	private readonly dialogRef = injectDialogRef<
 		ListModalData,
@@ -75,19 +74,28 @@ export class ListModal implements OnInit {
 	protected readonly isEdit = signal(false);
 	protected readonly showConfirmDelete = signal(false);
 
-	form = this.fb.group({
-		name: ["", [Validators.required, Validators.maxLength(100)]],
-		description: [""],
-		isPublic: [true],
-		scoreSource: ["metacritic", Validators.required],
-		durationSource: ["hltb", Validators.required]
+	protected readonly model = signal({
+		name: "",
+		description: "",
+		isPublic: true,
+		scoreSource: "metacritic",
+		durationSource: "hltb"
+	});
+
+	readonly form = form(this.model, path => {
+		required(path.name, { message: "Name is required" });
+		maxLength(path.name, 100, {
+			message: "Name must be 100 characters or fewer"
+		});
+		required(path.scoreSource);
+		required(path.durationSource);
 	});
 
 	ngOnInit() {
 		const l = this.list;
 		if (l) {
 			this.isEdit.set(true);
-			this.form.patchValue({
+			this.model.set({
 				name: l.name,
 				description: l.description ?? "",
 				isPublic: l.isPublic,
@@ -97,20 +105,21 @@ export class ListModal implements OnInit {
 		}
 	}
 
-	onSubmit() {
-		if (this.form.invalid) return;
+	onSubmit(event: Event) {
+		event.preventDefault();
+		if (this.form().invalid()) return;
 		this.isLoading.set(true);
 		this.error.set("");
 
-		const val = this.form.getRawValue();
+		const val = this.form().value();
 
 		if (this.isEdit()) {
 			const dto: UpdateListDto = {
-				name: val.name ?? undefined,
+				name: val.name,
 				description: val.description || undefined,
-				isPublic: val.isPublic ?? undefined,
-				scoreSource: val.scoreSource ?? undefined,
-				durationSource: val.durationSource ?? undefined
+				isPublic: val.isPublic,
+				scoreSource: val.scoreSource,
+				durationSource: val.durationSource
 			};
 			this.listsService.update(this.list!.id, dto).subscribe({
 				next: () => this.dialogRef.close("saved"),
@@ -121,11 +130,11 @@ export class ListModal implements OnInit {
 			});
 		} else {
 			const dto: CreateListDto = {
-				name: val.name!,
-				scoreSource: val.scoreSource!,
-				durationSource: val.durationSource!,
+				name: val.name,
+				scoreSource: val.scoreSource,
+				durationSource: val.durationSource,
 				description: val.description || undefined,
-				isPublic: val.isPublic ?? false
+				isPublic: val.isPublic
 			};
 			this.listsService.create(dto).subscribe({
 				next: () => this.dialogRef.close("saved"),

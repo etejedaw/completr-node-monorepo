@@ -7,7 +7,7 @@ import {
 	signal
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
-import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import { form, required, FormField } from "@angular/forms/signals";
 import {
 	NgpDialog,
 	NgpDialogOverlay,
@@ -46,7 +46,7 @@ export type GameShelfModalResult = "saved";
 	selector: "app-game-shelf-modal",
 	imports: [
 		DatePipe,
-		ReactiveFormsModule,
+		FormField,
 		NgpDialog,
 		NgpDialogOverlay,
 		NgpDialogTitle,
@@ -59,7 +59,6 @@ export type GameShelfModalResult = "saved";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GameShelfModal implements OnInit {
-	private readonly fb = inject(FormBuilder);
 	private readonly shelfService = inject(GameShelfService);
 	private readonly gamesService = inject(GamesService);
 	private readonly dialogRef = injectDialogRef<
@@ -91,12 +90,17 @@ export class GameShelfModal implements OnInit {
 		this.viewMode.set("edit");
 	}
 
-	form = this.fb.group({
-		gameId: ["", Validators.required],
-		platformId: ["", Validators.required],
-		edition: [""],
-		acquiredAt: [null as string | null],
-		notes: [""]
+	protected readonly model = signal({
+		gameId: "",
+		platformId: "",
+		edition: "",
+		acquiredAt: null as string | null,
+		notes: ""
+	});
+
+	readonly form = form(this.model, path => {
+		required(path.gameId);
+		required(path.platformId);
 	});
 
 	protected readonly editionSuggestions = [
@@ -111,7 +115,7 @@ export class GameShelfModal implements OnInit {
 	];
 
 	applyEditionSuggestion(value: string) {
-		this.form.patchValue({ edition: value });
+		this.model.update(m => ({ ...m, edition: value }));
 	}
 
 	ngOnInit() {
@@ -156,7 +160,7 @@ export class GameShelfModal implements OnInit {
 				title: e.game.title,
 				backgroundUrl: e.game.backgroundUrl
 			} as Game);
-			this.form.patchValue({
+			this.model.set({
 				gameId: e.game.id,
 				platformId: e.platform.id,
 				edition: e.edition ?? "",
@@ -194,25 +198,27 @@ export class GameShelfModal implements OnInit {
 	selectGame(game: Game) {
 		this.selectedGame.set(game);
 		const platforms = game.platforms ?? [];
-		this.form.patchValue({
+		this.model.update(m => ({
+			...m,
 			gameId: game.id,
 			platformId: platforms.length === 1 ? platforms[0].id : ""
-		});
+		}));
 		this.gameResults.set([]);
 		this.searchQuery.set("");
 	}
 
 	clearGame() {
 		this.selectedGame.set(null);
-		this.form.patchValue({ gameId: "" });
+		this.model.update(m => ({ ...m, gameId: "" }));
 	}
 
-	onSubmit() {
-		if (this.form.invalid) return;
+	onSubmit(event: Event) {
+		event.preventDefault();
+		if (this.form().invalid()) return;
 		this.isLoading.set(true);
 		this.error.set("");
 
-		const val = this.form.getRawValue();
+		const val = this.form().value();
 
 		if (this.isEdit()) {
 			const dto: UpdateGameShelfDto = {

@@ -4,19 +4,18 @@ import {
 	inject,
 	signal
 } from "@angular/core";
-import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import { form, required, FormField } from "@angular/forms/signals";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth";
 import { UiButton, UiInput } from "../../../shared/ui";
 
 @Component({
 	selector: "app-login",
-	imports: [ReactiveFormsModule, UiButton, UiInput, RouterLink],
+	imports: [FormField, UiButton, UiInput, RouterLink],
 	templateUrl: "./login.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Login {
-	private readonly fb = inject(FormBuilder);
 	private readonly auth = inject(AuthService);
 	private readonly router = inject(Router);
 	private readonly route = inject(ActivatedRoute);
@@ -29,19 +28,22 @@ export class Login {
 		this.showPassword.update(v => !v);
 	}
 
-	form = this.fb.group({
-		email: ["", [Validators.required]],
-		password: ["", [Validators.required]]
+	protected readonly model = signal({ email: "", password: "" });
+
+	readonly form = form(this.model, path => {
+		required(path.email);
+		required(path.password);
 	});
 
-	onSubmit() {
-		if (this.form.invalid) return;
+	onSubmit(event: Event) {
+		event.preventDefault();
+		if (this.form().invalid()) return;
 
 		this.isLoading.set(true);
 		this.error.set("");
 
-		const { email, password } = this.form.getRawValue();
-		this.auth.login({ email: email!, password: password! }).subscribe({
+		const { email, password } = this.form().value();
+		this.auth.login({ email, password }).subscribe({
 			next: () => {
 				const target = this.resolveReturnUrl();
 				this.auth.loadUser().subscribe({

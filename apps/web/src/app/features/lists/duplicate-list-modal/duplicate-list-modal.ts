@@ -4,7 +4,7 @@ import {
 	inject,
 	signal
 } from "@angular/core";
-import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import { form, required, maxLength, FormField } from "@angular/forms/signals";
 import {
 	NgpDialog,
 	NgpDialogOverlay,
@@ -29,7 +29,7 @@ export type DuplicateListModalResult = List | null;
 @Component({
 	selector: "app-duplicate-list-modal",
 	imports: [
-		ReactiveFormsModule,
+		FormField,
 		NgpDialog,
 		NgpDialogOverlay,
 		NgpDialogTitle,
@@ -43,7 +43,6 @@ export type DuplicateListModalResult = List | null;
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DuplicateListModal {
-	private readonly fb = inject(FormBuilder);
 	private readonly listsService = inject(ListsService);
 	private readonly dialogRef = injectDialogRef<
 		DuplicateListModalData,
@@ -54,24 +53,27 @@ export class DuplicateListModal {
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
 
-	form = this.fb.group({
-		name: [
-			`${this.source.name} (copy)`,
-			[Validators.required, Validators.maxLength(100)]
-		],
-		isPublic: [false]
+	protected readonly model = signal({
+		name: `${this.source.name} (copy)`,
+		isPublic: false
 	});
 
-	onSubmit() {
-		if (this.form.invalid) return;
+	readonly form = form(this.model, path => {
+		required(path.name);
+		maxLength(path.name, 100);
+	});
+
+	onSubmit(event: Event) {
+		event.preventDefault();
+		if (this.form().invalid()) return;
 		this.isLoading.set(true);
 		this.error.set("");
 
-		const val = this.form.getRawValue();
+		const val = this.form().value();
 		this.listsService
 			.duplicate(this.source.id, {
-				name: val.name!,
-				isPublic: val.isPublic ?? false
+				name: val.name,
+				isPublic: val.isPublic
 			})
 			.subscribe({
 				next: list => this.dialogRef.close(list),

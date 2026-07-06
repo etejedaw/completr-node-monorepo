@@ -17,7 +17,6 @@ import {
 	CdkDropList,
 	moveItemInArray
 } from "@angular/cdk/drag-drop";
-import { FormsModule } from "@angular/forms";
 import {
 	BacklogEntry,
 	BacklogStatus,
@@ -91,7 +90,6 @@ interface PendingStatusUpdate {
 	selector: "app-backlog-list",
 	imports: [
 		DatePipe,
-		FormsModule,
 		BacklogCalendar,
 		StarRating,
 		GameTitleCell,
@@ -182,9 +180,7 @@ export class BacklogList implements OnInit {
 
 	protected readonly viewMode = signal<"diary" | "hardcore" | "calendar">(
 		(localStorage.getItem("completr.backlog.viewMode") as
-			| "diary"
-			| "hardcore"
-			| "calendar") || "diary"
+			"diary" | "hardcore" | "calendar") || "diary"
 	);
 
 	setViewMode(mode: "diary" | "hardcore" | "calendar") {

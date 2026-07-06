@@ -43,7 +43,6 @@ import {
 	backlogStatusLabel,
 	backlogStatusIcon
 } from "../../../shared/utils/backlog-status";
-import { FormsModule } from "@angular/forms";
 import {
 	UiButton,
 	UiTabs,
@@ -84,7 +83,6 @@ interface ReportModalState {
 		DatePipe,
 		StarRating,
 		AdminGameEditor,
-		FormsModule,
 		UiButton,
 		UiTabs,
 		UiTabList,

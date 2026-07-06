@@ -8,7 +8,7 @@ import {
 	output,
 	signal
 } from "@angular/core";
-import { FormsModule } from "@angular/forms";
+import { form, maxLength, FormField } from "@angular/forms/signals";
 import { Game, Genre, Platform } from "../../../core/models";
 import {
 	CompilationItemInput,
@@ -34,7 +34,7 @@ interface CompilationRow {
 
 @Component({
 	selector: "app-admin-game-editor",
-	imports: [FormsModule, UiSelect, UiTextarea],
+	imports: [FormField, UiSelect, UiTextarea],
 	templateUrl: "./admin-game-editor.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -52,18 +52,40 @@ export class AdminGameEditor implements OnInit {
 	protected readonly allPlatforms = signal<Platform[]>([]);
 	protected readonly allGenres = signal<Genre[]>([]);
 
-	protected readonly rawgSlug = signal("");
+	protected readonly model = signal({
+		rawgSlug: "",
+		title: "",
+		description: "",
+		releaseAt: "",
+		backgroundUrl: "",
+		isDlc: false,
+		variant: "",
+		parentSlug: ""
+	});
+	readonly form = form(this.model, path => {
+		maxLength(path.variant, 100);
+	});
+	protected readonly rawgSlug = computed(() => this.form.rawgSlug().value());
+	protected readonly title = computed(() => this.form.title().value());
+	protected readonly description = computed(() =>
+		this.form.description().value()
+	);
+	protected readonly releaseAt = computed(() =>
+		this.form.releaseAt().value()
+	);
+	protected readonly backgroundUrl = computed(() =>
+		this.form.backgroundUrl().value()
+	);
+	protected readonly isDlc = computed(() => this.form.isDlc().value());
+	protected readonly variant = computed(() => this.form.variant().value());
+	protected readonly parentSlug = computed(() =>
+		this.form.parentSlug().value()
+	);
+
 	protected readonly fetchingRawg = signal(false);
 	protected readonly rawgError = signal("");
 	protected readonly rawgId = signal<number | null>(null);
 
-	protected readonly title = signal("");
-	protected readonly description = signal("");
-	protected readonly releaseAt = signal("");
-	protected readonly backgroundUrl = signal("");
-	protected readonly isDlc = signal(false);
-	protected readonly variant = signal("");
-	protected readonly parentSlug = signal("");
 	protected readonly parentGame = signal<Game | null>(null);
 	protected readonly fetchingParent = signal(false);
 	protected readonly parentError = signal("");
@@ -118,12 +140,15 @@ export class AdminGameEditor implements OnInit {
 	}
 
 	private populateFromGame(g: Game) {
-		this.title.set(g.title);
-		this.description.set(g.description ?? "");
-		this.releaseAt.set(g.releaseAt ?? "");
-		this.backgroundUrl.set(g.backgroundUrl ?? "");
-		this.isDlc.set(g.isDlc);
-		this.variant.set(g.variant ?? "");
+		this.model.update(m => ({
+			...m,
+			title: g.title,
+			description: g.description ?? "",
+			releaseAt: g.releaseAt ?? "",
+			backgroundUrl: g.backgroundUrl ?? "",
+			isDlc: g.isDlc,
+			variant: g.variant ?? ""
+		}));
 		this.selectedPlatforms.set(new Set(g.platforms.map(p => p.code)));
 		this.selectedGenres.set(new Set(g.genres.map(ge => ge.code)));
 		this.scores.set(g.scores.map(s => ({ ...s })));
@@ -151,7 +176,7 @@ export class AdminGameEditor implements OnInit {
 
 	clearParentGame() {
 		this.parentGame.set(null);
-		this.parentSlug.set("");
+		this.model.update(m => ({ ...m, parentSlug: "" }));
 		this.parentError.set("");
 	}
 
@@ -173,10 +198,13 @@ export class AdminGameEditor implements OnInit {
 
 	private applyRawgData(detail: RawgDetail) {
 		this.rawgId.set(detail.rawgId);
-		this.title.set(detail.title);
-		this.description.set(detail.description ?? "");
-		this.releaseAt.set(detail.releaseAt ?? "");
-		this.backgroundUrl.set(detail.coverUrl ?? "");
+		this.model.update(m => ({
+			...m,
+			title: detail.title,
+			description: detail.description ?? "",
+			releaseAt: detail.releaseAt ?? "",
+			backgroundUrl: detail.coverUrl ?? ""
+		}));
 
 		if (detail.platforms.length > 0) {
 			this.selectedPlatforms.set(new Set(detail.platforms));

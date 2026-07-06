@@ -7,23 +7,16 @@ import {
 	signal
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { FormsModule } from "@angular/forms";
+import { form, FormField } from "@angular/forms/signals";
 import { AuthService } from "../../../../core/services/auth";
 import { BacklogService } from "../../../backlog/backlog";
 import { ReviewsService, Review } from "../../reviews";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { UiButton, UiTextarea } from "../../../../shared/ui";
 
-interface ReviewFormState {
-	show: boolean;
-	content: string;
-	rating: number | null;
-	submitting: boolean;
-}
-
 @Component({
 	selector: "app-game-reviews-tab",
-	imports: [RouterLink, FormsModule, StarRating, UiButton, UiTextarea],
+	imports: [RouterLink, FormField, StarRating, UiButton, UiTextarea],
 	templateUrl: "./game-reviews-tab.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -37,12 +30,13 @@ export class GameReviewsTab {
 
 	readonly reviews = signal<Review[]>([]);
 	protected readonly myReview = signal<Review | null>(null);
-	protected readonly form = signal<ReviewFormState>({
-		show: false,
-		content: "",
-		rating: null,
-		submitting: false
-	});
+	protected readonly show = signal(false);
+	protected readonly submitting = signal(false);
+	protected readonly reviewModel = signal<{
+		content: string;
+		rating: number | null;
+	}>({ content: "", rating: null });
+	readonly reviewForm = form(this.reviewModel);
 
 	readonly reviewsCount = signal(0);
 
@@ -58,12 +52,9 @@ export class GameReviewsTab {
 		this.reviews.set([]);
 		this.myReview.set(null);
 		this.reviewsCount.set(0);
-		this.form.set({
-			show: false,
-			content: "",
-			rating: null,
-			submitting: false
-		});
+		this.show.set(false);
+		this.submitting.set(false);
+		this.reviewModel.set({ content: "", rating: null });
 	}
 
 	private loadReviews(gameId: string) {
@@ -92,11 +83,11 @@ export class GameReviewsTab {
 			next: res => {
 				const entry = res.data.backlog[0];
 				if (entry) {
-					this.update({
-						show: true,
-						rating: entry.userRating ?? null,
-						content: entry.notes ?? ""
+					this.reviewModel.set({
+						content: entry.notes ?? "",
+						rating: entry.userRating ?? null
 					});
+					this.show.set(true);
 				} else {
 					this.openForm();
 				}
@@ -105,33 +96,29 @@ export class GameReviewsTab {
 		});
 	}
 
-	protected update(patch: Partial<ReviewFormState>) {
-		this.form.update(s => ({ ...s, ...patch }));
-	}
-
 	openForm() {
 		const existing = this.myReview();
-		this.update({
-			show: true,
+		this.reviewModel.set({
 			content: existing?.content ?? "",
 			rating: existing?.rating ?? null
 		});
+		this.show.set(true);
 	}
 
 	protected closeForm() {
-		this.update({ show: false });
+		this.show.set(false);
 	}
 
 	protected submit() {
 		const gameId = this.gameId();
 		if (!gameId) return;
 
-		const state = this.form();
+		const state = this.reviewForm().value();
 		const content = state.content.trim() || undefined;
 		const rating = state.rating ?? undefined;
 		if (!content && !rating) return;
 
-		this.update({ submitting: true });
+		this.submitting.set(true);
 		const existing = this.myReview();
 		const action = existing
 			? this.reviewsService.updateReview(gameId, { content, rating })
@@ -139,10 +126,11 @@ export class GameReviewsTab {
 
 		action.subscribe({
 			next: () => {
-				this.update({ submitting: false, show: false });
+				this.submitting.set(false);
+				this.show.set(false);
 				this.loadReviews(gameId);
 			},
-			error: () => this.update({ submitting: false })
+			error: () => this.submitting.set(false)
 		});
 	}
 
