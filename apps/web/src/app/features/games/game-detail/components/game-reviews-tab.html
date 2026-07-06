@@ -59,7 +59,7 @@
 		<div class="flex items-center gap-2 min-w-0">
 			<a
 				class="flex items-center gap-2 no-underline text-inherit group"
-				[routerLink]="['/user', $safeNavigationMigration(review.user?.username)]"
+				[routerLink]="['/user', review.user?.username]"
 			>
 				@if (review.user?.avatarUrl) {
 				<img
