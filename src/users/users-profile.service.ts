@@ -226,7 +226,8 @@ export async function getListDetailForUsername(
 	const isSelf = viewerId === user.id;
 
 	const list = await listsService.findListById(listId);
-	if (!list || !list.isPublic) throw userDomain.userNotFound();
+	if (!list || (!list.isPublic && list.userId !== viewerId))
+		throw userDomain.userNotFound();
 
 	const listPlain = list.get({ plain: true });
 	const canSeeProgress = await canView(viewerId, user, "backlog");
