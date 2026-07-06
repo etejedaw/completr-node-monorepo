@@ -64,6 +64,13 @@ const publicProfileRoutes: Routes = [
 			import("./features/public-profile/user-completions/user-completions").then(
 				m => m.UserCompletions
 			)
+	},
+	{
+		path: "user/:username/in-common",
+		loadComponent: () =>
+			import("./features/public-profile/user-in-common/user-in-common").then(
+				m => m.UserInCommon
+			)
 	}
 ];
 

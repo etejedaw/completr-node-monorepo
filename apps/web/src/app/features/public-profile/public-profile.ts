@@ -14,7 +14,9 @@ import {
 	PublicLibraryService,
 	PublicFavorite,
 	PublicQueue,
-	PublicGameShelf
+	PublicGameShelf,
+	ComparisonDimension,
+	UserComparison
 } from "./services/public-library.service";
 import {
 	PublicListsService,
@@ -27,7 +29,6 @@ import {
 import { PublicSocialService } from "./services/public-social.service";
 import {
 	UserListModal,
-	UserSummary,
 	type UserListModalData
 } from "../../shared/components/user-list-modal/user-list-modal";
 import { DialogService } from "../../core/services/dialog";
@@ -136,15 +137,34 @@ export class PublicProfileComponent implements OnInit {
 	>(null);
 	protected readonly gameShelfData = signal<PublicGameShelf[] | null>(null);
 	protected readonly followingListsData = signal<PublicList[] | null>(null);
-	protected readonly gamesInCommon = signal<
-		{
-			id: string;
-			code: string;
-			title: string;
-			backgroundUrl: string | null;
-		}[]
-	>([]);
-	protected readonly recentFollowers = signal<UserSummary[]>([]);
+	protected readonly comparison = signal<UserComparison | null>(null);
+	protected readonly comparisonBy = signal<ComparisonDimension>("completed");
+	protected readonly comparisonLoading = signal(false);
+	protected readonly comparisonPrivate = signal(false);
+	protected readonly comparisonDimensions: {
+		value: ComparisonDimension;
+		label: string;
+	}[] = [
+		{ value: "completed", label: "Completed" },
+		{ value: "not_started", label: "To play" }
+	];
+	protected readonly comparisonGames = computed(
+		() => this.comparison()?.inCommon ?? []
+	);
+	protected readonly comparisonCount = computed(
+		() => this.comparison()?.counts.inCommon ?? 0
+	);
+	protected readonly showComparison = computed(
+		() => this.isLoggedIn() && !this.isSelf() && !!this.profile()
+	);
+	protected readonly showActivity = computed(() => {
+		const p = this.profile();
+		if (!p) return false;
+		return (
+			(this.isSelf() || p.user.feedVisibility !== "private") &&
+			p.recentActivity.length > 0
+		);
+	});
 	protected readonly highlightsData = signal<{
 		recent: HighlightEntry[];
 		month: {
@@ -530,6 +550,41 @@ export class PublicProfileComponent implements OnInit {
 		});
 	}
 
+	protected comparisonBtnClass(value: ComparisonDimension) {
+		const base =
+			"px-3 py-1.5 rounded-full text-sm font-medium border transition cursor-pointer ";
+		return this.comparisonBy() === value
+			? base + "border-brand bg-brand/20 text-brand"
+			: base +
+					"border-line text-fg-muted hover:text-fg hover:border-brand/40";
+	}
+
+	protected changeComparison(by: ComparisonDimension) {
+		if (by === this.comparisonBy() && this.comparison()) return;
+		this.comparisonBy.set(by);
+		this.loadComparison();
+	}
+
+	private loadComparison() {
+		const username = this.username();
+		const by = this.comparisonBy();
+		this.comparisonLoading.set(true);
+		this.comparisonPrivate.set(false);
+		this.libraryService
+			.getComparison(username, by, { limit: 10 })
+			.subscribe({
+				next: data => {
+					this.comparison.set(data);
+					this.comparisonLoading.set(false);
+				},
+				error: err => {
+					this.comparison.set(null);
+					this.comparisonPrivate.set(err.status === 403);
+					this.comparisonLoading.set(false);
+				}
+			});
+	}
+
 	private loadProfile(username: string) {
 		this.isLoading.set(true);
 		this.isPrivate.set(false);
@@ -543,8 +598,9 @@ export class PublicProfileComponent implements OnInit {
 		this.wishlistData.set(null);
 		this.gameShelfData.set(null);
 		this.followingListsData.set(null);
-		this.gamesInCommon.set([]);
-		this.recentFollowers.set([]);
+		this.comparison.set(null);
+		this.comparisonBy.set("completed");
+		this.comparisonPrivate.set(false);
 		this.userReviews.set([]);
 		this.userReviewsTotal.set(0);
 
@@ -564,22 +620,9 @@ export class PublicProfileComponent implements OnInit {
 						this.userReviews.set(r.reviews);
 						this.userReviewsTotal.set(r.total);
 					});
-				this.gamesInCommon.set([]);
+				this.comparison.set(null);
 				if (this.isLoggedIn() && !this.isSelf()) {
-					this.libraryService
-						.getGamesInCommon(username)
-						.subscribe(d => this.gamesInCommon.set(d.games));
-				}
-				this.recentFollowers.set([]);
-				if (
-					data.user.feedVisibility !== "private" &&
-					data.recentActivity.length > 0
-				) {
-					this.socialService
-						.getFollowers(username)
-						.subscribe(users =>
-							this.recentFollowers.set(users.slice(0, 8))
-						);
+					this.loadComparison();
 				}
 			},
 			error: err => {

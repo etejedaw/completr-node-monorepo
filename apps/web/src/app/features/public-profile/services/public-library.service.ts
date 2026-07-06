@@ -129,19 +129,43 @@ export class PublicLibraryService {
 			);
 	}
 
-	getGamesInCommon(username: string) {
+	getComparison(
+		username: string,
+		by: ComparisonDimension,
+		pagination: { limit?: number; offset?: number } = {}
+	) {
+		const params = buildHttpParams({ by, ...pagination });
 		return this.http
 			.get<{
-				data: {
-					games: {
-						id: string;
-						code: string;
-						title: string;
-						backgroundUrl: string | null;
-					}[];
-					total: number;
-				};
-			}>(`${environment.apiUrl}/users/${username}/games-in-common`)
+				data: UserComparison;
+			}>(`${environment.apiUrl}/users/${username}/comparison`, { params })
 			.pipe(map(res => res.data));
 	}
+}
+
+export type ComparisonDimension =
+	| "completed"
+	| "playing"
+	| "not_started"
+	| "shelf"
+	| "favorites"
+	| "wishlist";
+
+export interface ComparisonGame {
+	id: string;
+	code: string;
+	title: string;
+	backgroundUrl: string | null;
+}
+
+export interface UserComparison {
+	by: ComparisonDimension;
+	inCommon: ComparisonGame[];
+	onlyViewer: ComparisonGame[];
+	onlyTarget: ComparisonGame[];
+	counts: {
+		inCommon: number;
+		onlyViewer: number;
+		onlyTarget: number;
+	};
 }
