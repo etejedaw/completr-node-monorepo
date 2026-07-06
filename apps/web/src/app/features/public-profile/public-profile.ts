@@ -37,6 +37,7 @@ import { StarRating } from "../../shared/components/star-rating/star-rating";
 import {
 	UiAvatar,
 	UiButton,
+	UiProgress,
 	UiSkeleton,
 	UiTab,
 	UiTabList,
@@ -56,6 +57,7 @@ import {
 		StarRating,
 		UiAvatar,
 		UiButton,
+		UiProgress,
 		UiSkeleton,
 		UiTabs,
 		UiTabList,

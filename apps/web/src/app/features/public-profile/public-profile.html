@@ -277,12 +277,12 @@
 						>{{ s.completed }}/{{ s.total }}</span
 					>
 				</div>
-				<div class="h-2 rounded-full bg-bg overflow-hidden">
-					<div
-						class="h-full bg-brand rounded-full transition-all"
-						[style.width.%]="s.total ? (s.completed / s.total) * 100 : 0"
-					></div>
-				</div>
+				<ui-progress
+					[value]="s.completed"
+					[max]="s.total || 1"
+					indicatorClass=""
+					indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+				/>
 			</a>
 			}
 		</div>

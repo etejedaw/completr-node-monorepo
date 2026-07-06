@@ -22,6 +22,7 @@ export interface FranchiseDetail {
 	franchise: Franchise;
 	games: (Game & { backlogStatus: string | null })[];
 	progress: { completed: number; total: number };
+	isTracked: boolean;
 	hasMore: boolean;
 }
 
@@ -75,5 +76,13 @@ export class FranchisesService {
 
 	deleteFranchise(id: string) {
 		return this.http.delete<void>(`${this.baseUrl}/${id}`);
+	}
+
+	trackFranchise(code: string) {
+		return this.http.post<void>(`${this.baseUrl}/${code}/track`, {});
+	}
+
+	untrackFranchise(code: string) {
+		return this.http.delete<void>(`${this.baseUrl}/${code}/track`);
 	}
 }

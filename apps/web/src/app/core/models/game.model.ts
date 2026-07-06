@@ -24,6 +24,7 @@ export interface Game {
 	userMoodTags?: string[];
 	franchise?: { id: string; name: string; code: string } | null;
 	franchiseProgress?: { completed: number; total: number } | null;
+	franchiseTracked?: boolean;
 }
 
 export interface CompilationItem {

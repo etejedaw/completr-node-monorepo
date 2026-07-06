@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { AuthService } from "../../../core/services/auth";
-import { UiPagination } from "../../../shared/ui";
+import { UiPagination, UiProgress } from "../../../shared/ui";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import {
 	FranchiseDetail as FranchiseDetailData,
@@ -26,7 +26,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 @Component({
 	selector: "app-franchise-detail",
-	imports: [UiPagination, GameCoverCard],
+	imports: [UiPagination, UiProgress, GameCoverCard],
 	templateUrl: "./franchise-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -41,6 +41,8 @@ export class FranchiseDetail implements OnInit {
 	protected readonly limit = PAGE_SIZE;
 	protected readonly isLoading = signal(true);
 	protected readonly notFound = signal(false);
+	protected readonly tracked = signal(false);
+	protected readonly toggling = signal(false);
 	protected readonly isLoggedIn = this.authService.isLoggedIn;
 
 	ngOnInit() {
@@ -79,6 +81,7 @@ export class FranchiseDetail implements OnInit {
 			.subscribe({
 				next: data => {
 					this.detail.set(data);
+					this.tracked.set(data.isTracked);
 					this.isLoading.set(false);
 				},
 				error: () => {
@@ -86,5 +89,30 @@ export class FranchiseDetail implements OnInit {
 					this.isLoading.set(false);
 				}
 			});
+	}
+
+	protected trackBtnClass() {
+		const base =
+			"ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border transition cursor-pointer disabled:opacity-50 ";
+		return this.tracked()
+			? base + "border-brand bg-brand/20 text-brand"
+			: base +
+					"border-line text-fg-muted hover:text-fg hover:border-brand/40";
+	}
+
+	protected toggleTrack() {
+		if (this.toggling()) return;
+		const next = !this.tracked();
+		this.toggling.set(true);
+		const req$ = next
+			? this.franchisesService.trackFranchise(this.code())
+			: this.franchisesService.untrackFranchise(this.code());
+		req$.subscribe({
+			next: () => {
+				this.tracked.set(next);
+				this.toggling.set(false);
+			},
+			error: () => this.toggling.set(false)
+		});
 	}
 }

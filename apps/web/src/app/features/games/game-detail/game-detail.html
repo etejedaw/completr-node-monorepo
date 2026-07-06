@@ -118,7 +118,19 @@
 						>
 						}
 					</a>
-					}
+					@if (isLoggedIn()) {
+					<button
+						type="button"
+						class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border border-white/30 text-white/80 hover:text-white hover:border-white/60 transition cursor-pointer disabled:opacity-50"
+						[disabled]="togglingFranchise()"
+						(click)="toggleFranchiseTrack()"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>{{ franchiseTracked() ? 'check' : 'add' }}</span
+						>
+						{{ franchiseTracked() ? 'Tracking' : 'Track' }}
+					</button>
+					} }
 				</div>
 			</div>
 		</div>
