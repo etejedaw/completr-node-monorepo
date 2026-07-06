@@ -283,7 +283,7 @@
 				</button>
 			</div>
 			} @else {
-			<form [formGroup]="form" (ngSubmit)="onSubmit()">
+			<form (submit)="onSubmit($event)">
 				@if (compilationParent()) {
 				<div
 					class="mb-4 p-3 bg-brand-subtle/40 border border-brand/30 rounded"
@@ -578,7 +578,7 @@
 					<select
 						uiSelect
 						id="platformId"
-						formControlName="platformId"
+						[formField]="form.platformId"
 					>
 						<option value="">Select platform</option>
 						@for (p of gamePlatforms(); track p.id) {
@@ -723,11 +723,9 @@
 									<input
 										id="score"
 										type="number"
-										formControlName="score"
+										[formField]="form.score"
 										placeholder="0–5"
 										step="0.1"
-										min="0"
-										max="5"
 										class="w-full pl-3 pr-9 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 										(input)="onScoreManualChange()"
 									/>
@@ -797,7 +795,7 @@
 								<input
 									id="duration"
 									type="number"
-									formControlName="duration"
+									[formField]="form.duration"
 									placeholder="HowLongToBeat estimate"
 									step="0.5"
 									class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
@@ -839,7 +837,7 @@
 							<select
 								uiSelect
 								id="status"
-								formControlName="status"
+								[formField]="form.status"
 							>
 								<option value="not_started">Not Started</option>
 								<option value="playing">Playing</option>
@@ -860,7 +858,7 @@
 								<input
 									id="startedAt"
 									type="date"
-									formControlName="startedAt"
+									[formField]="form.startedAt"
 									class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 								/>
 							</div>
@@ -873,7 +871,7 @@
 								<input
 									id="finishedAt"
 									type="date"
-									formControlName="finishedAt"
+									[formField]="form.finishedAt"
 									class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 								/>
 							</div>
@@ -901,8 +899,8 @@
 								</span>
 								<app-star-rating
 									ariaLabelledby="backlog-my-rating-label"
-									[value]="form.controls.userRating.value"
-									(ratingChange)="form.controls.userRating.setValue($event)"
+									[value]="form.userRating().value()"
+									(ratingChange)="form.userRating().value.set($event)"
 								/>
 							</div>
 							<div class="mb-4">
@@ -926,7 +924,7 @@
 								<input
 									id="realDuration"
 									type="number"
-									formControlName="realDuration"
+									[formField]="form.realDuration"
 									placeholder="Actual hours"
 									step="0.5"
 									class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
@@ -1200,7 +1198,7 @@
 							<textarea
 								uiTextarea
 								id="notes"
-								formControlName="notes"
+								[formField]="form.notes"
 								rows="3"
 								placeholder="Your thoughts..."
 								class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
@@ -1305,7 +1303,7 @@
 						size="sm"
 						class="ml-auto"
 						type="submit"
-						[disabled]="form.invalid || isLoading()"
+						[disabled]="form().invalid() || isLoading()"
 					>
 						{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Add"
 						}}
