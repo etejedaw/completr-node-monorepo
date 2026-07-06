@@ -7,7 +7,7 @@
 	<div class="text-center py-16">
 		<div class="relative inline-block mb-4">
 			<ui-avatar
-				[src]="profile()?.user?.avatarUrl"
+				[src]="$safeNavigationMigration(profile()?.user?.avatarUrl)"
 				[name]="profile()?.user?.username || username()"
 				class="w-24 h-24 text-4xl ring-1 ring-line"
 			/>

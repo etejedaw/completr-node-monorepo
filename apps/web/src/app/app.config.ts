@@ -8,7 +8,11 @@ import {
 	withPreloading,
 	PreloadAllModules
 } from "@angular/router";
-import { provideHttpClient, withInterceptors } from "@angular/common/http";
+import {
+	provideHttpClient,
+	withInterceptors,
+	withXhr
+} from "@angular/common/http";
 
 import { routes } from "./app.routes";
 import { authInterceptor } from "./core/interceptors/auth.interceptor";
@@ -21,6 +25,7 @@ export const appConfig: ApplicationConfig = {
 		provideBrowserGlobalErrorListeners(),
 		provideRouter(routes, withPreloading(PreloadAllModules)),
 		provideHttpClient(
+			withXhr(),
 			withInterceptors([authInterceptor, errorInterceptor])
 		),
 		provideServiceWorker("ngsw-worker.js", {

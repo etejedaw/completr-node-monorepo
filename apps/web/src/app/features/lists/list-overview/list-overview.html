@@ -47,8 +47,9 @@
 				class="relative block aspect-[4/3] rounded-card overflow-hidden no-underline text-inherit border border-line transition group hover:border-brand/50"
 				[routerLink]="['/lists', list.id]"
 			>
-				@let hero = list.previewItems?.[0]?.game?.backgroundUrl; @if
-				(hero) {
+				@let hero =
+				$safeNavigationMigration(list.previewItems?.[0]?.game?.backgroundUrl);
+				@if (hero) {
 				<img
 					[src]="hero"
 					[alt]="list.name"
@@ -143,8 +144,9 @@
 			class="relative block aspect-[4/3] rounded-card overflow-hidden no-underline text-inherit border border-line transition group hover:border-brand/50"
 			[routerLink]="['/lists', list.id]"
 		>
-			@let hero = list.previewItems?.[0]?.game?.backgroundUrl; @if (hero)
-			{
+			@let hero =
+			$safeNavigationMigration(list.previewItems?.[0]?.game?.backgroundUrl);
+			@if (hero) {
 			<img
 				[src]="hero"
 				[alt]="list.name"
@@ -250,8 +252,9 @@
 				class="relative block aspect-[4/3] rounded-card overflow-hidden no-underline text-inherit border border-line transition group hover:border-brand/50"
 				[routerLink]="['/lists', list.id]"
 			>
-				@let hero = list.previewItems?.[0]?.game?.backgroundUrl; @if
-				(hero) {
+				@let hero =
+				$safeNavigationMigration(list.previewItems?.[0]?.game?.backgroundUrl);
+				@if (hero) {
 				<img
 					[src]="hero"
 					[alt]="list.name"

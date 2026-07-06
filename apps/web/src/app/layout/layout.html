@@ -427,8 +427,8 @@
 						[attr.aria-label]="user()?.username || 'Profile'"
 					>
 						<ui-avatar
-							[src]="user()?.avatarUrl"
-							[name]="user()?.username"
+							[src]="$safeNavigationMigration(user()?.avatarUrl)"
+							[name]="$safeNavigationMigration(user()?.username)"
 							class="w-9 h-9 text-sm"
 						/>
 					</a>
