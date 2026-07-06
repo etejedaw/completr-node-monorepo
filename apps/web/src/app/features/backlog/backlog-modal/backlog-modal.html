@@ -283,7 +283,7 @@
 				</button>
 			</div>
 			} @else {
-			<form (submit)="onSubmit($event)">
+			<form (submit)="onSubmit($event)" novalidate>
 				@if (compilationParent()) {
 				<div
 					class="mb-4 p-3 bg-brand-subtle/40 border border-brand/30 rounded"
