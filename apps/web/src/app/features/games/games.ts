@@ -58,6 +58,7 @@ export interface UpdateGameDto {
 	backgroundUrl?: string;
 	isDlc?: boolean;
 	parentGameId?: string;
+	franchiseId?: string | null;
 	variant?: string | null;
 	genres?: string[];
 	externalIds?: { source: string; externalId: string }[];
@@ -68,8 +69,7 @@ export interface SplitGameDto {
 }
 
 export type CompilationItemInput =
-	| { mode: "link"; gameId: string }
-	| { mode: "create"; title: string };
+	{ mode: "link"; gameId: string } | { mode: "create"; title: string };
 
 export interface SetCompilationItemsDto {
 	items: CompilationItemInput[];

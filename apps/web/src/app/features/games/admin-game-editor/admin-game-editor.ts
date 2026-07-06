@@ -20,6 +20,7 @@ import {
 import { forkJoin } from "rxjs";
 import { ToastService } from "../../../core/services/toast";
 import { UiSelect, UiTextarea } from "../../../shared/ui";
+import { Franchise, FranchisesService } from "../../franchises/franchises";
 
 type CompilationRowMode = "link" | "create";
 
@@ -47,10 +48,13 @@ export class AdminGameEditor implements OnInit {
 	protected readonly isEditMode = computed(() => !!this.game());
 
 	private readonly gamesService = inject(GamesService);
+	private readonly franchisesService = inject(FranchisesService);
 	private readonly toast = inject(ToastService);
 
 	protected readonly allPlatforms = signal<Platform[]>([]);
 	protected readonly allGenres = signal<Genre[]>([]);
+	protected readonly allFranchises = signal<Franchise[]>([]);
+	protected readonly selectedFranchiseId = signal<string>("");
 
 	protected readonly model = signal({
 		rawgSlug: "",
@@ -132,10 +136,12 @@ export class AdminGameEditor implements OnInit {
 	private loadSelects() {
 		forkJoin([
 			this.gamesService.getPlatforms(),
-			this.gamesService.getGenres()
-		]).subscribe(([platforms, genres]) => {
+			this.gamesService.getGenres(),
+			this.franchisesService.getFranchises({ limit: 100 })
+		]).subscribe(([platforms, genres, franchises]) => {
 			this.allPlatforms.set(platforms);
 			this.allGenres.set(genres);
+			this.allFranchises.set(franchises.franchises);
 		});
 	}
 
@@ -151,6 +157,7 @@ export class AdminGameEditor implements OnInit {
 		}));
 		this.selectedPlatforms.set(new Set(g.platforms.map(p => p.code)));
 		this.selectedGenres.set(new Set(g.genres.map(ge => ge.code)));
+		this.selectedFranchiseId.set(g.franchise?.id ?? "");
 		this.scores.set(g.scores.map(s => ({ ...s })));
 		this.times.set(g.times.map(t => ({ ...t })));
 	}
@@ -395,7 +402,8 @@ export class AdminGameEditor implements OnInit {
 			isDlc: this.isDlc(),
 			variant: variantTrim ? variantTrim : null,
 			platforms: [...this.selectedPlatforms()],
-			genres: [...this.selectedGenres()]
+			genres: [...this.selectedGenres()],
+			franchiseId: this.selectedFranchiseId() || null
 		};
 
 		const parent = this.parentGame();

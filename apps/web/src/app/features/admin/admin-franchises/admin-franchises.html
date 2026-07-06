@@ -1,0 +1,121 @@
+<div class="max-w-3xl mx-auto p-6 lg:p-8 max-md:px-4">
+	<h1
+		class="font-display m-0 mb-6 text-3xl md:text-4xl font-bold tracking-tight"
+	>
+		Franchises
+	</h1>
+
+	<div class="bg-surface border border-line rounded-card p-4 mb-6">
+		<h2 class="font-display m-0 mb-3 text-base font-bold text-fg">
+			New franchise
+		</h2>
+		<div class="flex flex-col gap-2">
+			<input
+				type="text"
+				placeholder="Name (e.g. Resident Evil)"
+				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-sm outline-none focus:border-brand"
+				[value]="newName()"
+				(input)="newName.set($any($event.target).value)"
+			/>
+			<textarea
+				placeholder="Description (optional)"
+				rows="2"
+				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-sm outline-none focus:border-brand resize-y"
+				[value]="newDescription()"
+				(input)="newDescription.set($any($event.target).value)"
+			></textarea>
+			<button
+				class="self-start px-4 py-2 rounded-md text-sm font-semibold bg-brand text-white cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+				[disabled]="!newName().trim() || saving()"
+				(click)="create()"
+			>
+				Create
+			</button>
+		</div>
+	</div>
+
+	@if (isLoading()) {
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
+	} @else if (franchises().length === 0) {
+	<div class="text-center py-12 text-fg-muted text-sm">
+		No franchises yet. Create one above.
+	</div>
+	} @else {
+	<ul class="list-none p-0 m-0 flex flex-col gap-2">
+		@for (f of franchises(); track f.id) {
+		<li class="bg-surface border border-line rounded-card p-4">
+			@if (editingId() === f.id) {
+			<div class="flex flex-col gap-2">
+				<input
+					type="text"
+					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-sm outline-none focus:border-brand"
+					[value]="editName()"
+					(input)="editName.set($any($event.target).value)"
+				/>
+				<textarea
+					rows="2"
+					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-sm outline-none focus:border-brand resize-y"
+					[value]="editDescription()"
+					(input)="editDescription.set($any($event.target).value)"
+				></textarea>
+				<div class="flex gap-2">
+					<button
+						class="px-3 py-1.5 rounded-md text-xs font-semibold bg-brand text-white cursor-pointer transition hover:opacity-90 disabled:opacity-40"
+						[disabled]="!editName().trim() || saving()"
+						(click)="saveEdit(f)"
+					>
+						Save
+					</button>
+					<button
+						class="px-3 py-1.5 rounded-md text-xs font-medium border border-line text-fg-muted cursor-pointer transition hover:text-fg"
+						(click)="cancelEdit()"
+					>
+						Cancel
+					</button>
+				</div>
+			</div>
+			} @else {
+			<div class="flex items-start justify-between gap-3">
+				<div class="min-w-0">
+					<a
+						[routerLink]="['/franchises', f.code]"
+						class="font-semibold text-fg no-underline hover:text-brand"
+						>{{ f.name }}</a
+					>
+					@if (f.description) {
+					<p class="text-xs text-fg-muted mt-1 mb-0">
+						{{ f.description }}
+					</p>
+					}
+				</div>
+				<div class="flex gap-1 shrink-0">
+					<button
+						class="p-1.5 rounded text-fg-muted cursor-pointer transition hover:text-brand"
+						title="Edit"
+						(click)="startEdit(f)"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>edit</span
+						>
+					</button>
+					<button
+						class="p-1.5 rounded text-fg-muted cursor-pointer transition hover:text-danger"
+						title="Delete"
+						(click)="remove(f)"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>delete</span
+						>
+					</button>
+				</div>
+			</div>
+			}
+		</li>
+		}
+	</ul>
+	}
+</div>

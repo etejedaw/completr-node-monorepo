@@ -248,6 +248,25 @@
 		<h4
 			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
 		>
+			Franchise
+		</h4>
+		<select
+			uiSelect
+			class="w-full"
+			[value]="selectedFranchiseId()"
+			(change)="selectedFranchiseId.set($any($event.target).value)"
+		>
+			<option value="">— None —</option>
+			@for (f of allFranchises(); track f.id) {
+			<option [value]="f.id">{{ f.name }}</option>
+			}
+		</select>
+	</div>
+
+	<div class="mb-5">
+		<h4
+			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+		>
 			Scores
 		</h4>
 		@for (s of scores(); track s.source; let i = $index) {
