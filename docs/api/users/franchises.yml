@@ -18,7 +18,7 @@ settings:
 docs: |-
     ## Get User Franchises
 
-    Returns the franchises `:username` has made progress in — one entry per franchise that contains at least one game the user has completed — with that user's progress. Powers the "Sagas" section on a profile.
+    Returns the franchises `:username` has **tracked** (opted in via `POST /franchises/:code/track`), with that user's progress in each. Powers the "Sagas" section on a profile. A tracked franchise appears even with `0` completed games.
 
     A game counts as completed when its backlog status is `completed`, `abandoned` or `endless`. For non-self viewers only the target's **public** backlog entries are counted, and the target's `backlog` section must be visible. Entries are sorted by `completed` descending.
 

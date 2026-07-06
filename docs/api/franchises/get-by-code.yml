@@ -67,12 +67,13 @@ docs: |-
           }
         ],
         "progress": { "completed": 3, "total": 6 },
+        "isTracked": true,
         "hasMore": false
       }
     }
     ```
 
-    `games[]` entries use the standard game serializer plus a `backlogStatus` field.
+    `games[]` entries use the standard game serializer plus a `backlogStatus` field. `isTracked` is whether the authenticated viewer tracks this franchise (`false` when unauthenticated).
 
     ### Errors
 

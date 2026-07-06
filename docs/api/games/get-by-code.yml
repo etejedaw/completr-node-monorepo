@@ -59,7 +59,8 @@ docs: |-
             "name": "Resident Evil",
             "code": "resident-evil"
           },
-          "franchiseProgress": { "completed": 3, "total": 6 }
+          "franchiseProgress": { "completed": 3, "total": 6 },
+          "franchiseTracked": true
         }
       }
     }
@@ -75,3 +76,4 @@ docs: |-
 
     - `franchise` — the franchise this game belongs to (`{ id, name, code }`), or `null`.
     - `franchiseProgress` — the viewer's progress across the whole franchise (`{ completed, total }`), or `null` when the game has no franchise. `completed` is `0` when unauthenticated.
+    - `franchiseTracked` — whether the authenticated viewer tracks this game's franchise (`false` when unauthenticated or no franchise).
