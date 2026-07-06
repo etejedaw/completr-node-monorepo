@@ -255,6 +255,16 @@ router.get(
 );
 
 router.get(
+	"/users/:username/franchises",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
+		validateSchemaMiddleware(UsernameParamSchema, "params")
+	],
+	usersController.getUserFranchises
+);
+
+router.get(
 	"/users/:username/comparison",
 	[
 		rateLimiterMiddleware(publicLimiter),

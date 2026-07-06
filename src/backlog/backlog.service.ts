@@ -159,6 +159,26 @@ export async function countDistinctGamesByUserStatusAndGameIds(
 	return Backlog.count({ where, distinct: true, col: "gameId" });
 }
 
+export async function findDistinctGameIdsByUserAndStatuses(
+	userId: string,
+	statuses: string[],
+	publicOnly = false
+) {
+	if (statuses.length === 0) return [];
+	const where: Record<string, unknown> = {
+		userId,
+		status: { [Op.in]: statuses }
+	};
+	if (publicOnly) where.isPublic = true;
+
+	const rows = (await Backlog.findAll({
+		where,
+		attributes: [[fn("DISTINCT", col("gameId")), "gameId"]],
+		raw: true
+	})) as unknown as { gameId: string }[];
+	return rows.map(row => row.gameId);
+}
+
 export async function findAggregatedRealDurationsByGame() {
 	return (await Backlog.findAll({
 		attributes: [

@@ -211,6 +211,18 @@ export async function getUserComparison(request: Request, response: Response) {
 	return response.status(200).json({ data: bundle });
 }
 
+export async function getUserFranchises(request: Request, response: Response) {
+	const { username } = request.locals.params as UsernameParam;
+	const currentUser = request.locals.user as RequestUser | undefined;
+
+	const bundle = await usersProfileService.getFranchisesForUsername(
+		currentUser,
+		username
+	);
+
+	return response.status(200).json({ data: bundle });
+}
+
 export async function getUserReviews(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;
 	const query = request.locals.query as PaginationQuery;

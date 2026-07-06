@@ -1,6 +1,7 @@
 import { type Activity } from "../activity/activity.model";
 import { type Backlog } from "../backlog/backlog.model";
 import { type findHighlightsByUserId } from "../backlog/backlog.service";
+import { type FranchiseProgressEntry } from "../franchises/franchises.service";
 import { type List } from "../lists/list.model";
 import { type BacklogSummary } from "../lists/lists.service";
 import { type Review } from "../reviews/review.model";
@@ -100,6 +101,11 @@ export interface UserComparisonBundle {
 		onlyViewer: number;
 		onlyTarget: number;
 	};
+}
+
+export interface UserFranchisesBundle {
+	franchises: FranchiseProgressEntry[];
+	total: number;
 }
 
 export interface UserReviewsBundle {

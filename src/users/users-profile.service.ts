@@ -3,6 +3,7 @@ import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import * as favoritesService from "../favorites/favorites.service";
+import * as franchiseService from "../franchises/franchises.service";
 import * as gameShelfService from "../game-shelf/game-shelf.service";
 import * as listFollowersService from "../list-followers/list-followers.service";
 import * as listsService from "../lists/lists.service";
@@ -23,6 +24,7 @@ import {
 	type UserComparisonBundle,
 	type UserCompletionsBundle,
 	type UserFollowingListsBundle,
+	type UserFranchisesBundle,
 	type UserHighlightsBundle,
 	type UserListDetailBundle,
 	type UserListsBundle,
@@ -454,6 +456,30 @@ async function loadTargetMap(
 	return toEntryMap(
 		await loadComparisonEntries(targetId, by, true, viewerGameIds)
 	);
+}
+
+const FRANCHISE_PROGRESS_STATUSES = ["completed", "abandoned", "endless"];
+
+export async function getFranchisesForUsername(
+	viewer: RequestUser | undefined,
+	username: string
+): Promise<UserFranchisesBundle> {
+	const user = await requireVisibleUser(viewer?.id, username, [
+		"profile",
+		"backlog"
+	]);
+	const isSelf = viewer?.id === user.id;
+
+	const completedGameIds =
+		await backlogService.findDistinctGameIdsByUserAndStatuses(
+			user.id,
+			FRANCHISE_PROGRESS_STATUSES,
+			!isSelf
+		);
+	const franchises =
+		await franchiseService.findUserFranchiseProgress(completedGameIds);
+
+	return { franchises, total: franchises.length };
 }
 
 export async function getReviewsForUsername(
