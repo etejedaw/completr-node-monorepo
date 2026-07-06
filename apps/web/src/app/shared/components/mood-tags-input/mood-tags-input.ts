@@ -6,7 +6,6 @@ import {
 	output,
 	signal
 } from "@angular/core";
-import { FormsModule } from "@angular/forms";
 
 function normalizeTag(input: string): string {
 	return input
@@ -19,7 +18,6 @@ function normalizeTag(input: string): string {
 
 @Component({
 	selector: "app-mood-tags-input",
-	imports: [FormsModule],
 	templateUrl: "./mood-tags-input.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
