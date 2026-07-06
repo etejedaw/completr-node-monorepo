@@ -8,6 +8,7 @@ import { type RegisterFranchiseDto } from "./dtos/register-franchise.dto";
 import { type UpdateFranchiseDto } from "./dtos/update-franchise.dto";
 import * as franchiseServiceError from "./errors/franchises.service-error";
 import { Franchise } from "./franchise.model";
+import { UserFranchise } from "./user-franchise.model";
 
 export async function registerFranchise(
 	registerFranchise: RegisterFranchiseDto
@@ -80,15 +81,40 @@ export interface FranchiseProgressEntry {
 	total: number;
 }
 
-export async function findUserFranchiseProgress(
+export async function trackFranchise(userId: string, franchiseId: string) {
+	await UserFranchise.findOrCreate({
+		where: { userId, franchiseId }
+	});
+}
+
+export async function untrackFranchise(userId: string, franchiseId: string) {
+	await UserFranchise.destroy({ where: { userId, franchiseId } });
+}
+
+export async function isTrackingFranchise(userId: string, franchiseId: string) {
+	const row = await UserFranchise.findOne({
+		where: { userId, franchiseId },
+		attributes: ["id"]
+	});
+	return !!row;
+}
+
+export async function findTrackedFranchiseIds(userId: string) {
+	const rows = await UserFranchise.findAll({
+		where: { userId },
+		attributes: ["franchiseId"]
+	});
+	return rows.map(row => row.franchiseId);
+}
+
+export async function findTrackedFranchiseProgress(
+	trackedFranchiseIds: string[],
 	completedGameIds: string[]
 ): Promise<FranchiseProgressEntry[]> {
-	if (completedGameIds.length === 0) return [];
+	if (trackedFranchiseIds.length === 0) return [];
 
 	const franchiseIdsOfCompleted =
 		await gamesService.findFranchiseIdsForGameIds(completedGameIds);
-	if (franchiseIdsOfCompleted.length === 0) return [];
-
 	const completedByFranchise = new Map<string, number>();
 	for (const franchiseId of franchiseIdsOfCompleted) {
 		completedByFranchise.set(
@@ -97,10 +123,9 @@ export async function findUserFranchiseProgress(
 		);
 	}
 
-	const franchiseIds = [...completedByFranchise.keys()];
 	const [totalByFranchise, franchises] = await Promise.all([
-		gamesService.countActiveGamesByFranchiseIds(franchiseIds),
-		Franchise.findAll({ where: { id: { [Op.in]: franchiseIds } } })
+		gamesService.countActiveGamesByFranchiseIds(trackedFranchiseIds),
+		Franchise.findAll({ where: { id: { [Op.in]: trackedFranchiseIds } } })
 	]);
 
 	return franchises

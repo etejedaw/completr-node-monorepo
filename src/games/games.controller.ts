@@ -3,6 +3,7 @@ import { type Request, type Response } from "express";
 import * as auditService from "../audit/audit.service";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import * as franchiseService from "../franchises/franchises.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import { type RegisterGameDto } from "./dtos/register-game.dto";
 import { type UpdateGameDto } from "./dtos/update-game.dto";
@@ -35,13 +36,25 @@ export async function getGameByCode(request: Request, response: Response) {
 	if (!game) throw gameDomainError.gameNotFound();
 
 	const gamePlain = game.get({ plain: true });
-	const [userMoodTags, franchiseProgress] = await Promise.all([
-		user ? moodTagsService.findTagsByGame(user.id, game.id) : [],
-		buildFranchiseProgress(game.franchiseId, user)
-	]);
+	const [userMoodTags, franchiseProgress, franchiseTracked] =
+		await Promise.all([
+			user ? moodTagsService.findTagsByGame(user.id, game.id) : [],
+			buildFranchiseProgress(game.franchiseId, user),
+			user && game.franchiseId
+				? franchiseService.isTrackingFranchise(
+						user.id,
+						game.franchiseId
+					)
+				: Promise.resolve(false)
+		]);
 
 	const data = {
-		game: { ...gameSerializer(gamePlain), userMoodTags, franchiseProgress }
+		game: {
+			...gameSerializer(gamePlain),
+			userMoodTags,
+			franchiseProgress,
+			franchiseTracked
+		}
 	};
 	return response.status(200).json({ data });
 }

@@ -40,6 +40,26 @@ router.get(
 );
 
 router.post(
+	"/franchises/:code/track",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware(),
+		validateSchemaMiddleware(FranchiseCodeParamsSchema, "params")
+	],
+	franchiseController.postTrackFranchise
+);
+
+router.delete(
+	"/franchises/:code/track",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware(),
+		validateSchemaMiddleware(FranchiseCodeParamsSchema, "params")
+	],
+	franchiseController.deleteTrackFranchise
+);
+
+router.post(
 	"/franchises",
 	[
 		rateLimiterMiddleware(userLimiter),

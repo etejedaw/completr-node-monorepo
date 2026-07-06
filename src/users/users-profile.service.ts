@@ -470,14 +470,18 @@ export async function getFranchisesForUsername(
 	]);
 	const isSelf = viewer?.id === user.id;
 
-	const completedGameIds =
-		await backlogService.findDistinctGameIdsByUserAndStatuses(
+	const [trackedFranchiseIds, completedGameIds] = await Promise.all([
+		franchiseService.findTrackedFranchiseIds(user.id),
+		backlogService.findDistinctGameIdsByUserAndStatuses(
 			user.id,
 			FRANCHISE_PROGRESS_STATUSES,
 			!isSelf
-		);
-	const franchises =
-		await franchiseService.findUserFranchiseProgress(completedGameIds);
+		)
+	]);
+	const franchises = await franchiseService.findTrackedFranchiseProgress(
+		trackedFranchiseIds,
+		completedGameIds
+	);
 
 	return { franchises, total: franchises.length };
 }

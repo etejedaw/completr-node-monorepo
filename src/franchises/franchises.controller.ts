@@ -42,7 +42,7 @@ export async function getFranchiseByCode(request: Request, response: Response) {
 	]);
 
 	const pageGameIds = rows.map(game => game.id);
-	const [completed, statusMap] = await Promise.all([
+	const [completed, statusMap, isTracked] = await Promise.all([
 		viewer
 			? backlogService.countDistinctGamesByUserStatusAndGameIds(
 					viewer.id,
@@ -52,7 +52,10 @@ export async function getFranchiseByCode(request: Request, response: Response) {
 			: Promise.resolve(0),
 		viewer
 			? buildStatusMap(viewer.id, pageGameIds)
-			: Promise.resolve(new Map<string, string>())
+			: Promise.resolve(new Map<string, string>()),
+		viewer
+			? franchiseService.isTrackingFranchise(viewer.id, franchise.id)
+			: Promise.resolve(false)
 	]);
 
 	const games = rows.map(game => ({
@@ -64,9 +67,35 @@ export async function getFranchiseByCode(request: Request, response: Response) {
 		franchise: franchise.get({ plain: true }),
 		games,
 		progress: { completed, total: allGameIds.length },
+		isTracked,
 		hasMore
 	};
 	return response.status(200).json({ data });
+}
+
+export async function postTrackFranchise(request: Request, response: Response) {
+	const { code } = request.locals.params as FranchiseCodeParam;
+	const viewer = request.locals.user as RequestUser;
+
+	const franchise = await franchiseService.findFranchiseByCode(code);
+	if (!franchise) throw franchiseDomainError.franchiseNotFound();
+
+	await franchiseService.trackFranchise(viewer.id, franchise.id);
+	return response.sendStatus(204);
+}
+
+export async function deleteTrackFranchise(
+	request: Request,
+	response: Response
+) {
+	const { code } = request.locals.params as FranchiseCodeParam;
+	const viewer = request.locals.user as RequestUser;
+
+	const franchise = await franchiseService.findFranchiseByCode(code);
+	if (!franchise) throw franchiseDomainError.franchiseNotFound();
+
+	await franchiseService.untrackFranchise(viewer.id, franchise.id);
+	return response.sendStatus(204);
 }
 
 async function buildStatusMap(userId: string, gameIds: string[]) {
