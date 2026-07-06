@@ -63,6 +63,27 @@ export class AuthService {
 		return this.storage.get(SESSION_ID_KEY);
 	}
 
+	isAccessTokenExpired(skewSeconds = 30): boolean {
+		const token = this.token();
+		if (!token) return false;
+		const exp = this.decodeExp(token);
+		if (exp === null) return false;
+		return exp - Date.now() / 1000 <= skewSeconds;
+	}
+
+	private decodeExp(token: string): number | null {
+		const payload = token.split(".")[1];
+		if (!payload) return null;
+		try {
+			const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+			const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+			const claims = JSON.parse(atob(padded));
+			return typeof claims.exp === "number" ? claims.exp : null;
+		} catch {
+			return null;
+		}
+	}
+
 	login(credentials: LoginRequest) {
 		return this.postAuth("/auth/login", credentials);
 	}

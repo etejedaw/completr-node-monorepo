@@ -1,6 +1,8 @@
 import {
 	ApplicationConfig,
 	provideBrowserGlobalErrorListeners,
+	provideAppInitializer,
+	inject,
 	isDevMode
 } from "@angular/core";
 import {
@@ -9,10 +11,12 @@ import {
 	PreloadAllModules
 } from "@angular/router";
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
+import { catchError, firstValueFrom, of } from "rxjs";
 
 import { routes } from "./app.routes";
 import { authInterceptor } from "./core/interceptors/auth.interceptor";
 import { errorInterceptor } from "./core/interceptors/error.interceptor";
+import { AuthService } from "./core/services/auth";
 import { provideServiceWorker } from "@angular/service-worker";
 import { provideToastConfig } from "ng-primitives/toast";
 
@@ -23,6 +27,13 @@ export const appConfig: ApplicationConfig = {
 		provideHttpClient(
 			withInterceptors([authInterceptor, errorInterceptor])
 		),
+		provideAppInitializer(() => {
+			const auth = inject(AuthService);
+			if (!auth.isAccessTokenExpired()) return;
+			return firstValueFrom(
+				auth.refresh().pipe(catchError(() => of(null)))
+			);
+		}),
 		provideServiceWorker("ngsw-worker.js", {
 			enabled: !isDevMode(),
 			registrationStrategy: "registerWhenStable:30000"
