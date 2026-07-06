@@ -10,8 +10,7 @@
 				type="text"
 				class="flex-1 py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				placeholder="RAWG slug (e.g. resident-evil-4)"
-				[ngModel]="rawgSlug()"
-				(ngModelChange)="rawgSlug.set($event)"
+				[formField]="form.rawgSlug"
 				(keydown.enter)="fetchRawg()"
 			/>
 			<button
@@ -51,8 +50,7 @@
 				id="editor-title"
 				type="text"
 				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-				[ngModel]="title()"
-				(ngModelChange)="title.set($event)"
+				[formField]="form.title"
 			/>
 		</div>
 
@@ -67,8 +65,7 @@
 				id="editor-description"
 				rows="4"
 				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition resize-y focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-				[ngModel]="description()"
-				(ngModelChange)="description.set($event)"
+				[formField]="form.description"
 			></textarea>
 		</div>
 
@@ -83,8 +80,7 @@
 					id="editor-release-date"
 					type="date"
 					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					[ngModel]="releaseAt()"
-					(ngModelChange)="releaseAt.set($event)"
+					[formField]="form.releaseAt"
 				/>
 			</div>
 			<div class="mb-3">
@@ -97,8 +93,7 @@
 					id="editor-background-url"
 					type="text"
 					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					[ngModel]="backgroundUrl()"
-					(ngModelChange)="backgroundUrl.set($event)"
+					[formField]="form.backgroundUrl"
 					placeholder="https://..."
 				/>
 			</div>
@@ -120,8 +115,7 @@
 				<input
 					type="checkbox"
 					class="w-auto"
-					[ngModel]="isDlc()"
-					(ngModelChange)="isDlc.set($event)"
+					[formField]="form.isDlc"
 				/>
 				DLC
 			</label>
@@ -138,9 +132,7 @@
 				type="text"
 				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				placeholder="e.g. Pearl (required when siblings share an external id)"
-				[ngModel]="variant()"
-				(ngModelChange)="variant.set($event)"
-				maxlength="100"
+				[formField]="form.variant"
 			/>
 		</div>
 
@@ -179,8 +171,7 @@
 				<input
 					type="text"
 					class="flex-1 py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					[ngModel]="parentSlug()"
-					(ngModelChange)="parentSlug.set($event)"
+					[formField]="form.parentSlug"
 					(keydown.enter)="fetchParentGame()"
 					placeholder="Completr slug (e.g. resident-evil-4)"
 				/>
@@ -268,8 +259,8 @@
 			<input
 				type="number"
 				class="w-[100px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
-				[ngModel]="s.score"
-				(ngModelChange)="updateScoreValue(i, $event)"
+				[value]="s.score"
+				(input)="updateScoreValue(i, +$any($event.target).value)"
 				step="0.01"
 			/>
 			<button
@@ -287,8 +278,8 @@
 				uiSelect
 				size="sm"
 				class="min-w-[80px]"
-				[ngModel]="newScoreSource()"
-				(ngModelChange)="newScoreSource.set($event)"
+				[value]="newScoreSource()"
+				(change)="newScoreSource.set($any($event.target).value)"
 			>
 				<option value="">Source...</option>
 				@for (src of availableScoreSources; track src) {
@@ -299,8 +290,8 @@
 				type="number"
 				class="w-[100px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
 				placeholder="Value"
-				[ngModel]="newScoreValue()"
-				(ngModelChange)="newScoreValue.set($event)"
+				[value]="newScoreValue()"
+				(input)="newScoreValue.set($any($event.target).value === '' ? null : +$any($event.target).value)"
 				step="0.01"
 			/>
 			<button
@@ -331,8 +322,8 @@
 			<input
 				type="number"
 				class="w-[100px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
-				[ngModel]="t.duration"
-				(ngModelChange)="updateTimeValue(i, $event)"
+				[value]="t.duration"
+				(input)="updateTimeValue(i, +$any($event.target).value)"
 				step="0.1"
 			/>
 			<button
@@ -350,8 +341,8 @@
 				uiSelect
 				size="sm"
 				class="min-w-[80px]"
-				[ngModel]="newTimeSource()"
-				(ngModelChange)="newTimeSource.set($event)"
+				[value]="newTimeSource()"
+				(change)="newTimeSource.set($any($event.target).value)"
 			>
 				<option value="">Source...</option>
 				@for (src of availableTimeSources; track src) {
@@ -362,8 +353,8 @@
 				type="number"
 				class="w-[100px] py-1.5 px-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
 				placeholder="Hours"
-				[ngModel]="newTimeValue()"
-				(ngModelChange)="newTimeValue.set($event)"
+				[value]="newTimeValue()"
+				(input)="newTimeValue.set($any($event.target).value === '' ? null : +$any($event.target).value)"
 				step="0.1"
 			/>
 			<button
@@ -484,8 +475,8 @@
 							type="text"
 							class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 							placeholder="e.g. Pokemon Pearl"
-							[ngModel]="v.title"
-							(ngModelChange)="updateSplitVariantTitle(i, $event)"
+							[value]="v.title"
+							(input)="updateSplitVariantTitle(i, $any($event.target).value)"
 							maxlength="200"
 						/>
 						@if (v.title.trim()) {
@@ -508,8 +499,8 @@
 							type="text"
 							class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 							placeholder="Pearl"
-							[ngModel]="v.variant"
-							(ngModelChange)="updateSplitVariantLabel(i, $event)"
+							[value]="v.variant"
+							(input)="updateSplitVariantLabel(i, $any($event.target).value)"
 							maxlength="100"
 						/>
 					</div>
@@ -679,8 +670,8 @@
 					type="text"
 					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 					placeholder="Search existing game..."
-					[ngModel]="row.searchQuery"
-					(ngModelChange)="updateCompilationRowQuery(i, $event)"
+					[value]="row.searchQuery"
+					(input)="updateCompilationRowQuery(i, $any($event.target).value)"
 				/>
 				@if (row.searching) {
 				<div class="text-xs text-fg-muted mt-1">Searching...</div>
@@ -716,8 +707,8 @@
 						type="text"
 						class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 						placeholder="Title for the new game (e.g. Mass Effect 1 Legendary Edition)"
-						[ngModel]="row.title"
-						(ngModelChange)="updateCompilationRowTitle(i, $event)"
+						[value]="row.title"
+						(input)="updateCompilationRowTitle(i, $any($event.target).value)"
 						maxlength="200"
 					/>
 					@if (row.title.trim()) {
