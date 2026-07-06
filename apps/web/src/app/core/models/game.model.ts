@@ -22,6 +22,8 @@ export interface Game {
 	compilationItems?: CompilationItem[];
 	partOfCompilations?: PartOfCompilation[];
 	userMoodTags?: string[];
+	franchise?: { id: string; name: string; code: string } | null;
+	franchiseProgress?: { completed: number; total: number } | null;
 }
 
 export interface CompilationItem {

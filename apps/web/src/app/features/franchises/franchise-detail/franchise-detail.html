@@ -1,0 +1,68 @@
+<div class="max-w-7xl mx-auto p-6 lg:p-8 max-md:px-4">
+	@if (isLoading()) {
+	<div class="text-center py-16 text-fg-muted text-sm">Loading...</div>
+	} @else if (notFound() || !detail()) {
+	<div class="text-center py-16 text-fg-muted text-sm">
+		Franchise not found.
+	</div>
+	} @else {
+	<div class="flex items-center gap-2 mb-3">
+		<span aria-hidden="true" class="material-icons text-brand"
+			>collections_bookmark</span
+		>
+		<h1
+			class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight"
+		>
+			{{ detail()!.franchise.name }}
+		</h1>
+	</div>
+
+	@if (detail()!.franchise.description) {
+	<p class="text-fg-secondary text-sm max-w-2xl mb-4">
+		{{ detail()!.franchise.description }}
+	</p>
+	}
+
+	<div class="flex items-center gap-3 mb-6 max-w-md">
+		<div class="flex-1 h-2 rounded-full bg-surface overflow-hidden">
+			<div
+				class="h-full bg-brand rounded-full transition-all"
+				[style.width.%]="
+					detail()!.progress.total
+						? (detail()!.progress.completed /
+								detail()!.progress.total) *
+							100
+						: 0
+				"
+			></div>
+		</div>
+		<span class="text-sm text-fg-muted shrink-0">
+			@if (isLoggedIn()) { {{ detail()!.progress.completed }}/ } {{
+			detail()!.progress.total }} games
+		</span>
+	</div>
+
+	@if (detail()!.games.length === 0) {
+	<div class="text-center py-12 text-fg-muted text-sm">
+		No games in this franchise yet.
+	</div>
+	} @else {
+	<div
+		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
+	>
+		@for (game of detail()!.games; track game.id) {
+		<app-game-cover-card
+			[game]="game"
+			[topLeftBadge]="statusLabel(game.backlogStatus)"
+		/>
+		}
+	</div>
+
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="detail()!.progress.total"
+		(offsetChange)="goToOffset($event)"
+	/>
+	} }
+</div>
