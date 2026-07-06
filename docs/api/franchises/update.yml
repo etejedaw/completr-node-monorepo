@@ -1,0 +1,73 @@
+info:
+    name: Update Franchise
+    type: http
+    seq: 4
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/franchises/:franchiseId"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    params:
+        - name: franchiseId
+          value: ""
+          type: path
+    body:
+        type: json
+        data: |-
+            {
+              "name": "Resident Evil",
+              "description": "Updated description."
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Update Franchise
+
+    Updates a franchise's name and/or description. The `code` slug is re-derived from `name`.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Params
+
+    | Param       | Type | Required | Description   |
+    |-------------|------|----------|---------------|
+    | franchiseId | uuid | Yes      | Franchise id  |
+
+    ### Request Body
+
+    | Field       | Type          | Required | Description        |
+    |-------------|---------------|----------|--------------------|
+    | name        | string        | Yes      | Max 100 characters |
+    | description | string / null | No       | Max 500 characters |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "franchise": {
+          "id": "uuid",
+          "name": "Resident Evil",
+          "code": "resident-evil",
+          "description": "Updated description.",
+          "createdAt": "2026-07-06T00:00:00.000Z",
+          "updatedAt": "2026-07-06T00:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code                       | Description                          |
+    |--------|----------------------------|--------------------------------------|
+    | 403    | AUTH_FORBIDDEN             | Authenticated user is not a moderator |
+    | 404    | FRANCHISE_NOT_FOUND       | No franchise with that id            |
+    | 409    | FRANCHISE_UNIQUE_CONSTRAINT | Name or code already exists          |
+    | 422    | COMMON_SCHEMA_INVALID     | Params or body fail validation       |

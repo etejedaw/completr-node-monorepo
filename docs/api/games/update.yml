@@ -22,6 +22,7 @@ http:
               "platforms": ["steam", "gogcom"],
               "releaseAt": "2019-02-14",
               "coverUrl": "https://example.com/cover.jpg",
+              "franchiseId": "uuid",
               "averageScore": 85,
               "averagePlaytime": 120
             }
@@ -51,6 +52,7 @@ docs: |-
     | platforms       | string[] | No       | Array of platform codes        |
     | releaseAt       | string   | No       | ISO date                       |
     | coverUrl        | string   | No       | URL to cover image             |
+    | franchiseId     | uuid/null | No      | Assign the game to a franchise; send `null` to unassign |
     | averageScore    | number   | No       | Average game score             |
     | averagePlaytime | number   | No       | Average playtime in minutes    |
     | variant         | string   | No       | Variant label (e.g. "Pearl"). Required when multiple games share the same external id. Send `null` to clear. |

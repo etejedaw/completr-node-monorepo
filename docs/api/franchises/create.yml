@@ -1,0 +1,63 @@
+info:
+    name: Create Franchise
+    type: http
+    seq: 3
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/franchises"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "name": "Resident Evil",
+              "description": "Survival horror saga by Capcom."
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Create Franchise
+
+    Creates a franchise. The `code` slug is derived from `name`. Assign games to it via `PATCH /games/:id` with `franchiseId`.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Request Body
+
+    | Field       | Type   | Required | Description        |
+    |-------------|--------|----------|--------------------|
+    | name        | string | Yes      | Max 100 characters |
+    | description | string | No       | Max 500 characters |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "franchise": {
+          "id": "uuid",
+          "name": "Resident Evil",
+          "code": "resident-evil",
+          "description": "Survival horror saga by Capcom.",
+          "createdAt": "2026-07-06T00:00:00.000Z",
+          "updatedAt": "2026-07-06T00:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code                       | Description                          |
+    |--------|----------------------------|--------------------------------------|
+    | 403    | AUTH_FORBIDDEN             | Authenticated user is not a moderator |
+    | 409    | FRANCHISE_UNIQUE_CONSTRAINT | Name or code already exists          |
+    | 400    | FRANCHISE_VALIDATION_ERROR | Invalid field values                 |
+    | 422    | COMMON_SCHEMA_INVALID     | Body fails schema validation         |
