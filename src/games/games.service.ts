@@ -39,10 +39,14 @@ export {
 	setCompilationItems
 } from "./services/games-compilation.service";
 export {
+	countActiveGamesByFranchiseIds,
 	findActiveGameSummaries,
 	findAll,
+	findFranchiseIdsForGameIds,
 	findGameByCode,
 	findGameById,
+	findGameIdsByFranchiseId,
+	findGamesByFranchiseId,
 	findGamesByGenreCode,
 	findGamesByIds,
 	findLatestReviewed,
