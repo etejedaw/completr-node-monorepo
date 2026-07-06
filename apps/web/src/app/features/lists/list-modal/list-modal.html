@@ -32,7 +32,7 @@
 		</div>
 		}
 
-		<form [formGroup]="form" (ngSubmit)="onSubmit()">
+		<form (submit)="onSubmit($event)">
 			<div uiFormField class="mb-4">
 				<label
 					uiLabel
@@ -44,7 +44,7 @@
 					uiInput
 					id="name"
 					type="text"
-					formControlName="name"
+					[formField]="form.name"
 					placeholder="Saga Resident Evil, Top 10 RPGs..."
 				/>
 			</div>
@@ -59,7 +59,7 @@
 				<textarea
 					uiTextarea
 					id="description"
-					formControlName="description"
+					[formField]="form.description"
 					rows="2"
 					placeholder="What's this list about?"
 				></textarea>
@@ -76,8 +76,8 @@
 					<div
 						uiRadioGroup
 						orientation="horizontal"
-						[value]="form.controls.scoreSource.value!"
-						(valueChange)="form.controls.scoreSource.setValue($any($event))"
+						[value]="form.scoreSource().value()"
+						(valueChange)="form.scoreSource().value.set($any($event))"
 						class="flex flex-wrap gap-1.5"
 					>
 						@for (opt of SCORE_SOURCES; track opt.value) {
@@ -102,8 +102,8 @@
 					<div
 						uiRadioGroup
 						orientation="horizontal"
-						[value]="form.controls.durationSource.value!"
-						(valueChange)="form.controls.durationSource.setValue($any($event))"
+						[value]="form.durationSource().value()"
+						(valueChange)="form.durationSource().value.set($any($event))"
 						class="flex flex-wrap gap-1.5"
 					>
 						@for (opt of DURATION_SOURCES; track opt.value) {
@@ -126,16 +126,15 @@
 				>
 					<input
 						type="checkbox"
-						formControlName="isPublic"
+						[formField]="form.isPublic"
 						class="w-4 h-4 cursor-pointer accent-[var(--color-brand)]"
 					/>
 					<span aria-hidden="true" class="material-icons text-base"
-						>{{ form.controls.isPublic.value ? 'public' : 'lock'
-						}}</span
+						>{{ form.isPublic().value() ? 'public' : 'lock' }}</span
 					>
 					<span
-						>{{ form.controls.isPublic.value ? 'Public list' :
-						'Private list' }}</span
+						>{{ form.isPublic().value() ? 'Public list' : 'Private
+						list' }}</span
 					>
 				</label>
 			</div>
@@ -186,7 +185,7 @@
 					size="sm"
 					type="submit"
 					class="!ml-auto"
-					[disabled]="form.invalid || isLoading()"
+					[disabled]="form().invalid() || isLoading()"
 				>
 					{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Create"
 					}}

@@ -24,8 +24,8 @@
 			<select
 				uiSelect
 				size="sm"
-				[ngModel]="sortMode()"
-				(ngModelChange)="sortMode.set($event)"
+				[value]="sortMode()"
+				(change)="sortMode.set($any($event.target).value)"
 			>
 				<option value="name_asc">Name (A–Z)</option>
 				<option value="name_desc">Name (Z–A)</option>
@@ -212,8 +212,8 @@
 				id="saved-filter-name"
 				type="text"
 				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
-				[ngModel]="editName()"
-				(ngModelChange)="editName.set($event)"
+				[value]="editName()"
+				(input)="editName.set($any($event.target).value)"
 			/>
 		</div>
 
@@ -228,8 +228,8 @@
 				id="saved-filter-description"
 				rows="3"
 				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-				[ngModel]="editDescription()"
-				(ngModelChange)="editDescription.set($event)"
+				[value]="editDescription()"
+				(input)="editDescription.set($any($event.target).value)"
 				placeholder="Optional description..."
 			></textarea>
 		</div>
@@ -241,8 +241,8 @@
 				<input
 					type="checkbox"
 					class="w-auto"
-					[ngModel]="editShowInBacklog()"
-					(ngModelChange)="editShowInBacklog.set($event)"
+					[checked]="editShowInBacklog()"
+					(change)="editShowInBacklog.set($any($event.target).checked)"
 				/>
 				Show in Backlog
 			</label>
@@ -258,8 +258,8 @@
 				<input
 					type="checkbox"
 					class="w-auto"
-					[ngModel]="editIsDefault()"
-					(ngModelChange)="editIsDefault.set($event)"
+					[checked]="editIsDefault()"
+					(change)="editIsDefault.set($any($event.target).checked)"
 					[disabled]="!editShowInBacklog()"
 				/>
 				Default view
@@ -417,8 +417,8 @@
 				id="duplicate-filter-name"
 				type="text"
 				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
-				[ngModel]="duplicateName()"
-				(ngModelChange)="duplicateName.set($event)"
+				[value]="duplicateName()"
+				(input)="duplicateName.set($any($event.target).value)"
 				(keydown.enter)="confirmDuplicate()"
 			/>
 		</div>

@@ -38,8 +38,8 @@
 					uiInput
 					size="sm"
 					placeholder="Tag name (e.g. relajante)"
-					[ngModel]="newName()"
-					(ngModelChange)="newName.set($event)"
+					[value]="newName()"
+					(input)="newName.set($any($event.target).value)"
 					(keyup.enter)="commitCreate()"
 					maxlength="40"
 				/>
@@ -47,8 +47,8 @@
 					uiInput
 					size="sm"
 					placeholder="Optional description"
-					[ngModel]="newDescription()"
-					(ngModelChange)="newDescription.set($event)"
+					[value]="newDescription()"
+					(input)="newDescription.set($any($event.target).value)"
 					(keyup.enter)="commitCreate()"
 					maxlength="255"
 				/>
@@ -114,8 +114,8 @@
 							<input
 								uiInput
 								size="sm"
-								[ngModel]="editName()"
-								(ngModelChange)="editName.set($event)"
+								[value]="editName()"
+								(input)="editName.set($any($event.target).value)"
 								maxlength="40"
 							/>
 						</td>
@@ -124,8 +124,8 @@
 								uiInput
 								size="sm"
 								placeholder="Optional description"
-								[ngModel]="editDescription()"
-								(ngModelChange)="editDescription.set($event)"
+								[value]="editDescription()"
+								(input)="editDescription.set($any($event.target).value)"
 								maxlength="255"
 							/>
 						</td>

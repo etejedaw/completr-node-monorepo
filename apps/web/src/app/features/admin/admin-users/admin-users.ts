@@ -6,7 +6,6 @@ import {
 	signal
 } from "@angular/core";
 import { DatePipe } from "@angular/common";
-import { FormsModule } from "@angular/forms";
 import { AdminUser, UserAdminService } from "../services/user-admin.service";
 import {
 	UiButton,
@@ -31,7 +30,6 @@ interface CreateUserRequest {
 	selector: "app-admin-users",
 	imports: [
 		DatePipe,
-		FormsModule,
 		UiButton,
 		UiIconButton,
 		UiInput,

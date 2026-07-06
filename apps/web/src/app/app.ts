@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { RouterOutlet } from "@angular/router";
 import { SwUpdate, VersionReadyEvent } from "@angular/service-worker";
@@ -9,6 +9,7 @@ const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000;
 @Component({
 	selector: "app-root",
 	imports: [RouterOutlet],
+	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: "<router-outlet />"
 })
 export class App {

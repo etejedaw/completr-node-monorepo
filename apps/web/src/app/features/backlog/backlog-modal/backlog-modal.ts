@@ -6,9 +6,8 @@ import {
 	OnInit,
 	signal
 } from "@angular/core";
-import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import { form, required, min, max, FormField } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
-import { toSignal } from "@angular/core/rxjs-interop";
 import {
 	NgpDialog,
 	NgpDialogOverlay,
@@ -81,7 +80,7 @@ export type BacklogModalResult = "saved";
 	selector: "app-backlog-modal",
 	imports: [
 		DatePipe,
-		ReactiveFormsModule,
+		FormField,
 		RouterLink,
 		StarRating,
 		MoodTagsInput,
@@ -102,7 +101,6 @@ export type BacklogModalResult = "saved";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BacklogModal implements OnInit {
-	private readonly fb = inject(FormBuilder);
 	private readonly backlogService = inject(BacklogService);
 	private readonly gamesService = inject(GamesService);
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
@@ -235,34 +233,32 @@ export class BacklogModal implements OnInit {
 	protected statusClass = (status?: string) =>
 		status ? backlogStatusClass(status as BacklogStatus) : "";
 
-	form = this.fb.group({
-		gameId: ["", Validators.required],
-		platformId: ["", Validators.required],
-		score: [
-			null as number | null,
-			[Validators.required, Validators.min(0.01), Validators.max(5)]
-		],
-		duration: [
-			null as number | null,
-			[Validators.required, Validators.min(0.01)]
-		],
-		status: ["not_started"],
-		startedAt: [null as string | null],
-		finishedAt: [null as string | null],
-		realDuration: [null as number | null],
-		userRating: [null as number | null],
-		notes: [""]
+	protected readonly model = signal({
+		gameId: "",
+		platformId: "",
+		score: null as number | null,
+		duration: null as number | null,
+		status: "not_started",
+		startedAt: null as string | null,
+		finishedAt: null as string | null,
+		realDuration: null as number | null,
+		userRating: null as number | null,
+		notes: ""
 	});
 
-	private readonly scoreValue = toSignal(
-		this.form.controls.score.valueChanges,
-		{
-			initialValue: this.form.controls.score.value
-		}
-	);
-	private readonly durationValue = toSignal(
-		this.form.controls.duration.valueChanges,
-		{ initialValue: this.form.controls.duration.value }
+	readonly form = form(this.model, path => {
+		required(path.gameId);
+		required(path.platformId);
+		required(path.score);
+		min(path.score, 0.01);
+		max(path.score, 5);
+		required(path.duration);
+		min(path.duration, 0.01);
+	});
+
+	private readonly scoreValue = computed(() => this.form.score().value());
+	private readonly durationValue = computed(() =>
+		this.form.duration().value()
 	);
 	protected readonly ratio = computed(() => {
 		const s = this.scoreValue();
@@ -271,10 +267,7 @@ export class BacklogModal implements OnInit {
 		return Math.round((s / d) * 20 * 100) / 100;
 	});
 
-	private readonly statusValue = toSignal(
-		this.form.controls.status.valueChanges,
-		{ initialValue: this.form.controls.status.value }
-	);
+	private readonly statusValue = computed(() => this.form.status().value());
 	protected readonly showTrackingDetails = computed(
 		() => this.statusValue() !== "not_started"
 	);
@@ -566,7 +559,7 @@ export class BacklogModal implements OnInit {
 					this.refreshAvailableCompilationParents(full);
 				}
 			});
-			this.form.patchValue({
+			this.model.set({
 				gameId: e.game.id,
 				platformId: e.platform.id,
 				score: e.score ?? null,
@@ -642,12 +635,13 @@ export class BacklogModal implements OnInit {
 		this.activeDurationSource.set(duration.source);
 
 		const platforms = game.platforms ?? [];
-		this.form.patchValue({
+		this.model.update(m => ({
+			...m,
 			gameId: game.id,
 			platformId: platforms.length === 1 ? platforms[0].id : "",
 			score: score.value,
 			duration: duration.value
-		});
+		}));
 		this.gameResults.set([]);
 		this.searchQuery.set("");
 	}
@@ -655,7 +649,7 @@ export class BacklogModal implements OnInit {
 	clearCompilationChild() {
 		this.selectedGame.set(null);
 		this.existingReview.set(null);
-		this.form.patchValue({ gameId: "", platformId: "" });
+		this.model.update(m => ({ ...m, gameId: "", platformId: "" }));
 	}
 
 	private fetchExistingReview(gameId: string) {
@@ -720,7 +714,7 @@ export class BacklogModal implements OnInit {
 			this.gameResults.set([]);
 			this.searchQuery.set("");
 			this.selectedGame.set(null);
-			this.form.patchValue({ gameId: "", platformId: "" });
+			this.model.update(m => ({ ...m, gameId: "", platformId: "" }));
 			if (
 				game.compilationItems !== undefined &&
 				game.compilationItems.length > 0
@@ -740,19 +734,19 @@ export class BacklogModal implements OnInit {
 	applyScore(source: string, score: number) {
 		this.activeScoreSource.set(source);
 		const normalized = this.scoreSourcesService.normalize(score, source);
-		this.form.patchValue({ score: normalized });
+		this.model.update(m => ({ ...m, score: normalized }));
 	}
 
 	applyDuration(source: string, duration: number) {
 		this.activeDurationSource.set(source);
-		this.form.patchValue({ duration });
+		this.model.update(m => ({ ...m, duration }));
 	}
 
 	onScoreManualChange() {
 		this.activeScoreSource.set("");
-		const current = this.form.controls.score.value;
+		const current = this.form.score().value();
 		if (current !== null && current !== undefined && current > 5) {
-			this.form.controls.score.setValue(5);
+			this.form.score().value.set(5);
 		}
 	}
 
@@ -793,15 +787,16 @@ export class BacklogModal implements OnInit {
 
 	clearGame() {
 		this.selectedGame.set(null);
-		this.form.patchValue({ gameId: "" });
+		this.model.update(m => ({ ...m, gameId: "" }));
 	}
 
-	onSubmit() {
-		if (this.form.invalid) return;
+	onSubmit(event: Event) {
+		event.preventDefault();
+		if (this.form().invalid()) return;
 		this.isLoading.set(true);
 		this.error.set("");
 
-		const val = this.form.getRawValue();
+		const val = this.form().value();
 
 		if (this.isEdit()) {
 			const dto: UpdateBacklogDto = {
@@ -942,7 +937,7 @@ export class BacklogModal implements OnInit {
 		if (this.hasExistingReview()) return;
 
 		const content = this.reviewContent().trim();
-		const rating = this.form.get("userRating")?.value;
+		const rating = this.form().value().userRating;
 		if (!content && !rating) return;
 
 		const data: { content?: string; rating?: number } = {};

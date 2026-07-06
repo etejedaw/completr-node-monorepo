@@ -606,8 +606,8 @@
 				</h3>
 				<select
 					uiSelect
-					[ngModel]="selectedPlatform()"
-					(ngModelChange)="selectedPlatform.set($event)"
+					[value]="selectedPlatform()"
+					(change)="selectedPlatform.set($any($event.target).value)"
 				>
 					<option value="">All platforms</option>
 					@for (p of allPlatforms(); track p.id) {
@@ -627,15 +627,15 @@
 						type="date"
 						placeholder="From"
 						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-						[ngModel]="startedFrom()"
-						(ngModelChange)="startedFrom.set($event)"
+						[value]="startedFrom()"
+						(input)="startedFrom.set($any($event.target).value)"
 					/>
 					<input
 						type="date"
 						placeholder="To"
 						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-						[ngModel]="startedTo()"
-						(ngModelChange)="startedTo.set($event)"
+						[value]="startedTo()"
+						(input)="startedTo.set($any($event.target).value)"
 					/>
 				</div>
 			</section>
@@ -650,14 +650,14 @@
 					<input
 						type="date"
 						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-						[ngModel]="finishedFrom()"
-						(ngModelChange)="finishedFrom.set($event)"
+						[value]="finishedFrom()"
+						(input)="finishedFrom.set($any($event.target).value)"
 					/>
 					<input
 						type="date"
 						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-						[ngModel]="finishedTo()"
-						(ngModelChange)="finishedTo.set($event)"
+						[value]="finishedTo()"
+						(input)="finishedTo.set($any($event.target).value)"
 					/>
 				</div>
 			</section>
@@ -909,8 +909,8 @@
 				<div class="grid grid-cols-2 gap-2">
 					<select
 						uiSelect
-						[ngModel]="sortBy()"
-						(ngModelChange)="sortBy.set($event)"
+						[value]="sortBy()"
+						(change)="sortBy.set($any($event.target).value)"
 					>
 						<option value="createdAt">Date added</option>
 						<option value="title">Title</option>
@@ -925,8 +925,8 @@
 					</select>
 					<select
 						uiSelect
-						[ngModel]="sortOrder()"
-						(ngModelChange)="sortOrder.set($event)"
+						[value]="sortOrder()"
+						(change)="sortOrder.set($any($event.target).value)"
 					>
 						<option value="desc">Descending</option>
 						<option value="asc">Ascending</option>
@@ -959,8 +959,8 @@
 					type="text"
 					class="!w-full !text-sm"
 					placeholder="View name..."
-					[ngModel]="newFilterName()"
-					(ngModelChange)="newFilterName.set($event)"
+					[value]="newFilterName()"
+					(input)="newFilterName.set($any($event.target).value)"
 					(keydown.enter)="saveCurrentFilter()"
 				/>
 				<div

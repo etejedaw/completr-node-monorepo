@@ -17,8 +17,7 @@
 				uiInput
 				id="profile-name"
 				type="text"
-				[ngModel]="name()"
-				(ngModelChange)="name.set($event)"
+				[formField]="form.name"
 				placeholder="Your display name"
 			/>
 		</div>
@@ -34,8 +33,7 @@
 				uiTextarea
 				id="profile-bio"
 				rows="3"
-				[ngModel]="bio()"
-				(ngModelChange)="bio.set($event)"
+				[formField]="form.bio"
 				placeholder="Tell something about yourself..."
 			></textarea>
 		</div>

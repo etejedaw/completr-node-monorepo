@@ -32,7 +32,7 @@
 		</div>
 		}
 
-		<form [formGroup]="form" (ngSubmit)="onSubmit()">
+		<form (submit)="onSubmit($event)">
 			<div uiFormField class="mb-4">
 				<label
 					uiLabel
@@ -40,12 +40,7 @@
 					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
 					>Name <span class="text-danger font-bold">*</span></label
 				>
-				<input
-					uiInput
-					id="name"
-					type="text"
-					formControlName="name"
-				/>
+				<input uiInput id="name" type="text" [formField]="form.name" />
 			</div>
 
 			<div class="mb-4">
@@ -54,16 +49,15 @@
 				>
 					<input
 						type="checkbox"
-						formControlName="isPublic"
+						[formField]="form.isPublic"
 						class="w-4 h-4 cursor-pointer accent-[var(--color-brand)]"
 					/>
 					<span aria-hidden="true" class="material-icons text-base"
-						>{{ form.controls.isPublic.value ? 'public' : 'lock'
-						}}</span
+						>{{ form.isPublic().value() ? 'public' : 'lock' }}</span
 					>
 					<span
-						>{{ form.controls.isPublic.value ? 'Public list' :
-						'Private list' }}</span
+						>{{ form.isPublic().value() ? 'Public list' : 'Private
+						list' }}</span
 					>
 				</label>
 			</div>
@@ -90,7 +84,7 @@
 					variant="primary"
 					size="sm"
 					type="submit"
-					[disabled]="form.invalid || isLoading()"
+					[disabled]="form().invalid() || isLoading()"
 				>
 					{{ isLoading() ? "Duplicating..." : "Duplicate" }}
 				</button>
