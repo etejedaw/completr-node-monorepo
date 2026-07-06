@@ -255,40 +255,6 @@
 		</a>
 	</div>
 
-	@if (sagas().length > 0) {
-	<section class="mb-8">
-		<div class="flex items-center gap-2 mb-4">
-			<span aria-hidden="true" class="material-icons text-brand"
-				>collections_bookmark</span
-			>
-			<h2 class="font-display m-0 text-xl font-bold text-fg">Sagas</h2>
-		</div>
-		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-			@for (s of sagas(); track s.franchise.id) {
-			<a
-				[routerLink]="['/franchises', s.franchise.code]"
-				class="bg-surface border border-line rounded-card p-4 no-underline text-inherit transition hover:border-brand"
-			>
-				<div class="flex items-baseline justify-between gap-2 mb-2">
-					<span class="font-semibold text-fg truncate"
-						>{{ s.franchise.name }}</span
-					>
-					<span class="text-xs text-fg-muted shrink-0"
-						>{{ s.completed }}/{{ s.total }}</span
-					>
-				</div>
-				<ui-progress
-					[value]="s.completed"
-					[max]="s.total || 1"
-					indicatorClass=""
-					indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
-				/>
-			</a>
-			}
-		</div>
-	</section>
-	}
-
 	<div class="min-w-0">
 		<ui-tabs [(value)]="activeTab">
 			<ui-tab-list class="!mb-6 !flex-wrap">
@@ -417,6 +383,22 @@
 					>
 					<span class="hidden md:inline">Reviews</span>
 				</button>
+				@if (sagas().length > 0 || isSelf()) {
+				<button
+					uiTab
+					value="sagas"
+					class="!whitespace-nowrap"
+					aria-label="Sagas"
+					title="Sagas"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-base md:mr-1.5 align-middle"
+						>collections_bookmark</span
+					>
+					<span class="hidden md:inline">Sagas</span>
+				</button>
+				}
 			</ui-tab-list>
 
 			@if ((isSelf() || profile()!.user.backlogVisibility !== "private"))
@@ -1151,6 +1133,43 @@
 					}
 				</div>
 				} }
+			</div>
+			<div uiTabPanel value="sagas">
+				@if (sagas().length === 0) {
+				<p class="text-center py-12 text-fg-muted text-sm">
+					@if (isSelf()) { You're not tracking any sagas yet. Open a
+					franchise and hit "Track saga". } @else { No sagas tracked
+					yet. }
+				</p>
+				} @else {
+				<div
+					class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+				>
+					@for (s of sagas(); track s.franchise.id) {
+					<a
+						[routerLink]="['/franchises', s.franchise.code]"
+						class="bg-surface border border-line rounded-card p-4 no-underline text-inherit transition hover:border-brand"
+					>
+						<div
+							class="flex items-baseline justify-between gap-2 mb-2"
+						>
+							<span class="font-semibold text-fg truncate"
+								>{{ s.franchise.name }}</span
+							>
+							<span class="text-xs text-fg-muted shrink-0"
+								>{{ s.completed }}/{{ s.total }}</span
+							>
+						</div>
+						<ui-progress
+							[value]="s.completed"
+							[max]="s.total || 1"
+							indicatorClass=""
+							indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+						/>
+					</a>
+					}
+				</div>
+				}
 			</div>
 		</ui-tabs>
 	</div>
