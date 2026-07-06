@@ -255,6 +255,40 @@
 		</a>
 	</div>
 
+	@if (sagas().length > 0) {
+	<section class="mb-8">
+		<div class="flex items-center gap-2 mb-4">
+			<span aria-hidden="true" class="material-icons text-brand"
+				>collections_bookmark</span
+			>
+			<h2 class="font-display m-0 text-xl font-bold text-fg">Sagas</h2>
+		</div>
+		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+			@for (s of sagas(); track s.franchise.id) {
+			<a
+				[routerLink]="['/franchises', s.franchise.code]"
+				class="bg-surface border border-line rounded-card p-4 no-underline text-inherit transition hover:border-brand"
+			>
+				<div class="flex items-baseline justify-between gap-2 mb-2">
+					<span class="font-semibold text-fg truncate"
+						>{{ s.franchise.name }}</span
+					>
+					<span class="text-xs text-fg-muted shrink-0"
+						>{{ s.completed }}/{{ s.total }}</span
+					>
+				</div>
+				<div class="h-2 rounded-full bg-bg overflow-hidden">
+					<div
+						class="h-full bg-brand rounded-full transition-all"
+						[style.width.%]="s.total ? (s.completed / s.total) * 100 : 0"
+					></div>
+				</div>
+			</a>
+			}
+		</div>
+	</section>
+	}
+
 	<div class="min-w-0">
 		<ui-tabs [(value)]="activeTab">
 			<ui-tab-list class="!mb-6 !flex-wrap">

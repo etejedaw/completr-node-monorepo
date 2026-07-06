@@ -8,6 +8,7 @@ import { QueueEntry } from "../../../core/models/queue.model";
 import { WishlistEntry } from "../../../core/models/wishlist.model";
 import { GameShelfEntry } from "../../../core/models/game-shelf.model";
 import { buildHttpParams } from "../../../core/utils/http-params";
+import { FranchiseProgress } from "../../franchises/franchises";
 import { GameSummary } from "./types";
 
 export interface PublicBacklog {
@@ -127,6 +128,14 @@ export class PublicLibraryService {
 					total: res.data.total
 				}))
 			);
+	}
+
+	getUserFranchises(username: string) {
+		return this.http
+			.get<{
+				data: { franchises: FranchiseProgress[]; total: number };
+			}>(`${environment.apiUrl}/users/${username}/franchises`)
+			.pipe(map(res => res.data.franchises));
 	}
 
 	getComparison(

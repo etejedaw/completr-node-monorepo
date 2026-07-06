@@ -22,6 +22,7 @@ import {
 	PublicListsService,
 	PublicList
 } from "./services/public-lists.service";
+import { FranchiseProgress } from "../franchises/franchises";
 import {
 	PublicReviewsService,
 	HighlightEntry
@@ -137,6 +138,7 @@ export class PublicProfileComponent implements OnInit {
 	>(null);
 	protected readonly gameShelfData = signal<PublicGameShelf[] | null>(null);
 	protected readonly followingListsData = signal<PublicList[] | null>(null);
+	protected readonly sagas = signal<FranchiseProgress[]>([]);
 	protected readonly comparison = signal<UserComparison | null>(null);
 	protected readonly comparisonBy = signal<ComparisonDimension>("completed");
 	protected readonly comparisonLoading = signal(false);
@@ -601,6 +603,7 @@ export class PublicProfileComponent implements OnInit {
 		this.comparison.set(null);
 		this.comparisonBy.set("completed");
 		this.comparisonPrivate.set(false);
+		this.sagas.set([]);
 		this.userReviews.set([]);
 		this.userReviewsTotal.set(0);
 
@@ -624,6 +627,11 @@ export class PublicProfileComponent implements OnInit {
 				if (this.isLoggedIn() && !this.isSelf()) {
 					this.loadComparison();
 				}
+				this.sagas.set([]);
+				this.libraryService.getUserFranchises(username).subscribe({
+					next: franchises => this.sagas.set(franchises),
+					error: () => this.sagas.set([])
+				});
 			},
 			error: err => {
 				if (err.status === 404) this.notFound.set(true);
