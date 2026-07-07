@@ -792,7 +792,21 @@ export class BacklogModal implements OnInit {
 
 	onSubmit(event: Event) {
 		event.preventDefault();
-		if (this.form().invalid()) return;
+		if (this.form().invalid()) {
+			const score = this.scoreValue();
+			const duration = this.durationValue();
+			const scoreBad = score == null || score < 0.01 || score > 5;
+			const durationBad = duration == null || duration < 0.01;
+			if (scoreBad || durationBad) {
+				this.activeFormTab.set("reference");
+				this.error.set(
+					"Set a score (0.01–5) and duration in the Reference tab before adding."
+				);
+			} else {
+				this.error.set("Please complete the required fields.");
+			}
+			return;
+		}
 		this.isLoading.set(true);
 		this.error.set("");
 

@@ -8,6 +8,7 @@ import { QueueEntry } from "../../../core/models/queue.model";
 import { WishlistEntry } from "../../../core/models/wishlist.model";
 import { GameShelfEntry } from "../../../core/models/game-shelf.model";
 import { buildHttpParams } from "../../../core/utils/http-params";
+import { FranchiseProgress } from "../../franchises/franchises";
 import { GameSummary } from "./types";
 
 export interface PublicBacklog {
@@ -129,19 +130,51 @@ export class PublicLibraryService {
 			);
 	}
 
-	getGamesInCommon(username: string) {
+	getUserFranchises(username: string) {
 		return this.http
 			.get<{
-				data: {
-					games: {
-						id: string;
-						code: string;
-						title: string;
-						backgroundUrl: string | null;
-					}[];
-					total: number;
-				};
-			}>(`${environment.apiUrl}/users/${username}/games-in-common`)
+				data: { franchises: FranchiseProgress[]; total: number };
+			}>(`${environment.apiUrl}/users/${username}/franchises`)
+			.pipe(map(res => res.data.franchises));
+	}
+
+	getComparison(
+		username: string,
+		by: ComparisonDimension,
+		pagination: { limit?: number; offset?: number } = {}
+	) {
+		const params = buildHttpParams({ by, ...pagination });
+		return this.http
+			.get<{
+				data: UserComparison;
+			}>(`${environment.apiUrl}/users/${username}/comparison`, { params })
 			.pipe(map(res => res.data));
 	}
+}
+
+export type ComparisonDimension =
+	| "completed"
+	| "playing"
+	| "not_started"
+	| "shelf"
+	| "favorites"
+	| "wishlist";
+
+export interface ComparisonGame {
+	id: string;
+	code: string;
+	title: string;
+	backgroundUrl: string | null;
+}
+
+export interface UserComparison {
+	by: ComparisonDimension;
+	inCommon: ComparisonGame[];
+	onlyViewer: ComparisonGame[];
+	onlyTarget: ComparisonGame[];
+	counts: {
+		inCommon: number;
+		onlyViewer: number;
+		onlyTarget: number;
+	};
 }

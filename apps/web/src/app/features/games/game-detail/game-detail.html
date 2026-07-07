@@ -103,7 +103,34 @@
 					<span class="text-sm text-white/75"
 						>Released {{ game()!.releaseAt }}</span
 					>
-					}
+					} @if (game()!.franchise) {
+					<a
+						class="text-sm text-brand no-underline transition hover:text-white flex items-center gap-1"
+						[routerLink]="['/franchises', game()!.franchise!.code]"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>collections_bookmark</span
+						>
+						{{ game()!.franchise!.name }} @if
+						(game()!.franchiseProgress; as fp) {
+						<span class="text-white/60"
+							>{{ fp.completed }}/{{ fp.total }}</span
+						>
+						}
+					</a>
+					@if (isLoggedIn()) {
+					<button
+						type="button"
+						class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border border-white/30 text-white/80 hover:text-white hover:border-white/60 transition cursor-pointer disabled:opacity-50"
+						[disabled]="togglingFranchise()"
+						(click)="toggleFranchiseTrack()"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>{{ franchiseTracked() ? 'check' : 'add' }}</span
+						>
+						{{ franchiseTracked() ? 'Tracking' : 'Track' }}
+					</button>
+					} }
 				</div>
 			</div>
 		</div>
@@ -475,9 +502,7 @@
 				</button>
 				}
 			</div>
-			}
-
-			@if (myRuns().length > 0) {
+			} @if (myRuns().length > 0) {
 			<div
 				class="bg-sidebar border border-line rounded-card p-4 flex flex-col gap-2"
 			>
@@ -537,7 +562,9 @@
 						} @if (run.realDuration) {
 						<span>{{ run.realDuration }}h</span>
 						} @if (run.userRating) {
-						<span class="inline-flex items-center gap-0.5 text-warning">
+						<span
+							class="inline-flex items-center gap-0.5 text-warning"
+						>
 							<span
 								aria-hidden="true"
 								class="material-icons text-sm"
@@ -548,13 +575,17 @@
 						}
 					</div>
 					@if (run.latestProgress) {
-					<div class="flex items-start gap-1.5 text-xs text-fg-secondary">
+					<div
+						class="flex items-start gap-1.5 text-xs text-fg-secondary"
+					>
 						<span
 							aria-hidden="true"
 							class="material-icons text-sm text-brand"
 							>bookmark</span
 						>
-						<span class="italic">{{ run.latestProgress.note }}</span>
+						<span class="italic"
+							>{{ run.latestProgress.note }}</span
+						>
 					</div>
 					}
 				</button>

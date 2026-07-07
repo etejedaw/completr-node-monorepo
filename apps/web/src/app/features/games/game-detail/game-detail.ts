@@ -10,6 +10,7 @@ import { DatePipe } from "@angular/common";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Game, BacklogEntry } from "../../../core/models";
 import { GamesService } from "../games";
+import { FranchisesService } from "../../franchises/franchises";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { AuthService } from "../../../core/services/auth";
 import { FavoritesService } from "../../favorites/favorites";
@@ -101,6 +102,7 @@ export class GameDetail implements OnInit {
 	private readonly route = inject(ActivatedRoute);
 	private readonly router = inject(Router);
 	private readonly gamesService = inject(GamesService);
+	private readonly franchisesService = inject(FranchisesService);
 	private readonly authService = inject(AuthService);
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	private readonly favoritesService = inject(FavoritesService);
@@ -112,6 +114,9 @@ export class GameDetail implements OnInit {
 	private readonly dialogs = inject(DialogService);
 
 	protected readonly game = signal<Game | null>(null);
+	protected readonly isLoggedIn = this.authService.isLoggedIn;
+	protected readonly franchiseTracked = signal(false);
+	protected readonly togglingFranchise = signal(false);
 	protected readonly moodTags = signal<string[]>([]);
 	protected readonly moodTagsDraft = signal<string[]>([]);
 	protected readonly moodTagsSuggestions = signal<string[]>([]);
@@ -219,6 +224,7 @@ export class GameDetail implements OnInit {
 		this.gamesService.getByCode(code).subscribe({
 			next: game => {
 				this.game.set(game);
+				this.franchiseTracked.set(game.franchiseTracked ?? false);
 				this.moodTags.set(game.userMoodTags ?? []);
 				this.editingMoodTags.set(false);
 				this.isFavorite.set(this.favoritesService.isFavorite(game.id));
@@ -282,6 +288,23 @@ export class GameDetail implements OnInit {
 				this.togglingFavorite.set(false);
 			},
 			error: () => this.togglingFavorite.set(false)
+		});
+	}
+
+	toggleFranchiseTrack() {
+		const code = this.game()?.franchise?.code;
+		if (!code || this.togglingFranchise()) return;
+		const next = !this.franchiseTracked();
+		this.togglingFranchise.set(true);
+		const req$ = next
+			? this.franchisesService.trackFranchise(code)
+			: this.franchisesService.untrackFranchise(code);
+		req$.subscribe({
+			next: () => {
+				this.franchiseTracked.set(next);
+				this.togglingFranchise.set(false);
+			},
+			error: () => this.togglingFranchise.set(false)
 		});
 	}
 

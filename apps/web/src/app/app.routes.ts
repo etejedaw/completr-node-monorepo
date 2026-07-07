@@ -64,6 +64,13 @@ const publicProfileRoutes: Routes = [
 			import("./features/public-profile/user-completions/user-completions").then(
 				m => m.UserCompletions
 			)
+	},
+	{
+		path: "user/:username/in-common",
+		loadComponent: () =>
+			import("./features/public-profile/user-in-common/user-in-common").then(
+				m => m.UserInCommon
+			)
 	}
 ];
 
@@ -174,6 +181,13 @@ export const routes: Routes = [
 					)
 			},
 			{
+				path: "franchises/:code",
+				loadComponent: () =>
+					import("./features/franchises/franchise-detail/franchise-detail").then(
+						m => m.FranchiseDetail
+					)
+			},
+			{
 				path: "game-shelf",
 				loadComponent: () =>
 					import("./features/game-shelf/game-shelf-list/game-shelf-list").then(
@@ -277,6 +291,14 @@ export const routes: Routes = [
 				loadComponent: () =>
 					import("./features/admin/admin-games/admin-games").then(
 						m => m.AdminGames
+					)
+			},
+			{
+				path: "admin/franchises",
+				canActivate: [moderatorGuard],
+				loadComponent: () =>
+					import("./features/admin/admin-franchises/admin-franchises").then(
+						m => m.AdminFranchises
 					)
 			},
 			{
