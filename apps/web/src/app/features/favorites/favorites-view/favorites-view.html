@@ -3,7 +3,19 @@
 		<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">
 			Favorites
 		</h1>
-		<span class="text-sm text-fg-muted">{{ total() }} games</span>
+		<span
+			class="text-sm"
+			[class.text-warning]="isPremium()"
+			[class.text-fg-muted]="!isPremium()"
+			>{{ total() }} games</span
+		>
+		<ui-premium-badge
+			*appPremiumOnly
+			size="sm"
+			interactive
+			label="Unlimited favorites (Premium)"
+			message="Unlimited favorites — a Premium perk."
+		/>
 	</div>
 
 	<ui-search-bar

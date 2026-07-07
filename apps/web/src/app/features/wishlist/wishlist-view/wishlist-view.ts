@@ -9,6 +9,7 @@ import { RouterLink } from "@angular/router";
 import { WishlistEntry } from "../../../core/models";
 import { WishlistService } from "../wishlist";
 import { FavoritesService } from "../../favorites/favorites";
+import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import {
 	WishlistAddModal,
@@ -18,8 +19,10 @@ import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
+	UiPremiumBadge,
 	UiSearchBar
 } from "../../../shared/ui";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { MoodTagsChips } from "../../../shared/components/mood-tags-chips/mood-tags-chips";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
@@ -30,8 +33,10 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 		UiButton,
 		UiEmptyState,
 		UiPagination,
+		UiPremiumBadge,
 		UiSearchBar,
-		MoodTagsChips
+		MoodTagsChips,
+		PremiumOnly
 	],
 	templateUrl: "./wishlist-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -41,6 +46,7 @@ export class WishlistView implements OnInit {
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly dialogs = inject(DialogService);
 
+	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly entries = signal<WishlistEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");

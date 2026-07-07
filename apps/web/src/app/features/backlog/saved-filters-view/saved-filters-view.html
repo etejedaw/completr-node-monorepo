@@ -6,9 +6,19 @@
 			>
 				Saved Views
 			</h1>
-			<span class="text-[0.8125rem] text-fg-muted"
+			<span
+				class="text-[0.8125rem]"
+				[class.text-warning]="isPremium()"
+				[class.text-fg-muted]="!isPremium()"
 				>{{ total() }} views</span
 			>
+			<ui-premium-badge
+				*appPremiumOnly
+				size="sm"
+				interactive
+				label="Unlimited saved views (Premium)"
+				message="Unlimited saved views — a Premium perk."
+			/>
 		</div>
 	</div>
 

@@ -6,7 +6,19 @@
 			>
 				Up Next
 			</h1>
-			<span class="text-sm text-fg-muted">{{ total() }} games</span>
+			<span
+				class="text-sm"
+				[class.text-warning]="isPremium()"
+				[class.text-fg-muted]="!isPremium()"
+				>{{ total() }} games</span
+			>
+			<ui-premium-badge
+				*appPremiumOnly
+				size="sm"
+				interactive
+				label="Unlimited Up Next (Premium)"
+				message="Unlimited Up Next — a Premium perk."
+			/>
 		</div>
 		@if (isLoading() || entries().length > 0) {
 		<button uiButton variant="primary" (click)="openAddModal()">

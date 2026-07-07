@@ -15,15 +15,18 @@ import {
 } from "../../backlog/backlog-modal/backlog-modal";
 import { GamesService } from "../../games/games";
 import { ToastService } from "../../../core/services/toast";
+import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { RouterLink } from "@angular/router";
 import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
+	UiPremiumBadge,
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
@@ -34,9 +37,11 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 		UiButton,
 		UiEmptyState,
 		UiPagination,
+		UiPremiumBadge,
 		UiSearchBar,
 		UiSkeleton,
-		GameCoverCard
+		GameCoverCard,
+		PremiumOnly
 	],
 	templateUrl: "./favorites-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -48,6 +53,7 @@ export class FavoritesView implements OnInit {
 	private readonly toast = inject(ToastService);
 	private readonly dialogs = inject(DialogService);
 
+	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly entries = signal<FavoriteEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);
