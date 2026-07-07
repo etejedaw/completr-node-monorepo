@@ -15,6 +15,7 @@ export { UiTabs, UiTabList, UiTab, UiTabPanel } from "./tabs/ui-tabs";
 export { UiPagination } from "./pagination/ui-pagination";
 export { UiSkeleton } from "./skeleton/ui-skeleton";
 export type { UiSkeletonVariant } from "./skeleton/ui-skeleton";
+export { UiPremiumBadge } from "./premium-badge/ui-premium-badge";
 export { UiEmptyState } from "./empty-state/ui-empty-state";
 export { UiSeparator } from "./separator/ui-separator";
 export { UiAvatar } from "./avatar/ui-avatar";

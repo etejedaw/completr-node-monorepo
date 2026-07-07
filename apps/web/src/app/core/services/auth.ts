@@ -54,6 +54,10 @@ export class AuthService {
 	readonly isLoggedIn = computed(
 		() => this._user() !== null || this.storage.get(TOKEN_KEY) !== null
 	);
+	readonly isPremium = computed(() => {
+		const role = this._user()?.role;
+		return role === "premium" || role === "moderator" || role === "admin";
+	});
 
 	token(): string | null {
 		return this.storage.get(TOKEN_KEY);
