@@ -6,29 +6,29 @@ import {
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
 import { Franchise, FranchisesService } from "../../franchises/franchises";
+import { UiButton, UiIconButton } from "../../../shared/ui";
+import {
+	AdminFranchiseModal,
+	AdminFranchiseModalData,
+	AdminFranchiseModalResult
+} from "../admin-franchise-modal/admin-franchise-modal";
 
 @Component({
 	selector: "app-admin-franchises",
-	imports: [RouterLink],
+	imports: [RouterLink, UiButton, UiIconButton],
 	templateUrl: "./admin-franchises.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminFranchises implements OnInit {
 	private readonly franchisesService = inject(FranchisesService);
+	private readonly dialogs = inject(DialogService);
 	private readonly toast = inject(ToastService);
 
 	protected readonly franchises = signal<Franchise[]>([]);
 	protected readonly isLoading = signal(true);
-	protected readonly saving = signal(false);
-
-	protected readonly newName = signal("");
-	protected readonly newDescription = signal("");
-
-	protected readonly editingId = signal<string | null>(null);
-	protected readonly editName = signal("");
-	protected readonly editDescription = signal("");
 
 	ngOnInit() {
 		this.load();
@@ -45,65 +45,22 @@ export class AdminFranchises implements OnInit {
 		});
 	}
 
-	protected create() {
-		const name = this.newName().trim();
-		if (!name || this.saving()) return;
-		this.saving.set(true);
-		this.franchisesService
-			.createFranchise({
-				name,
-				description: this.newDescription().trim() || null
-			})
-			.subscribe({
-				next: () => {
-					this.newName.set("");
-					this.newDescription.set("");
-					this.saving.set(false);
-					this.toast.success("Franchise created");
-					this.load();
-				},
-				error: err => {
-					this.saving.set(false);
-					this.toast.error(
-						err?.status === 409
-							? "A franchise with that name already exists"
-							: "Failed to create franchise"
-					);
-				}
-			});
+	protected openCreate() {
+		this.openModal(null);
 	}
 
-	protected startEdit(f: Franchise) {
-		this.editingId.set(f.id);
-		this.editName.set(f.name);
-		this.editDescription.set(f.description ?? "");
+	protected openEdit(franchise: Franchise) {
+		this.openModal(franchise);
 	}
 
-	protected cancelEdit() {
-		this.editingId.set(null);
-	}
-
-	protected saveEdit(f: Franchise) {
-		const name = this.editName().trim();
-		if (!name || this.saving()) return;
-		this.saving.set(true);
-		this.franchisesService
-			.updateFranchise(f.id, {
-				name,
-				description: this.editDescription().trim() || null
-			})
-			.subscribe({
-				next: () => {
-					this.saving.set(false);
-					this.editingId.set(null);
-					this.toast.success("Franchise updated");
-					this.load();
-				},
-				error: () => {
-					this.saving.set(false);
-					this.toast.error("Failed to update franchise");
-				}
-			});
+	private openModal(franchise: Franchise | null) {
+		const ref = this.dialogs.open<
+			AdminFranchiseModalData,
+			AdminFranchiseModalResult
+		>(AdminFranchiseModal, { data: { franchise } });
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.load();
+		});
 	}
 
 	protected remove(f: Franchise) {
