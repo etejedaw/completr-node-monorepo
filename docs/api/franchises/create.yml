@@ -31,10 +31,10 @@ docs: |-
 
     ### Request Body
 
-    | Field       | Type   | Required | Description        |
-    |-------------|--------|----------|--------------------|
-    | name        | string | Yes      | Max 100 characters |
-    | description | string | No       | Max 500 characters |
+    | Field       | Type          | Required | Description        |
+    |-------------|---------------|----------|--------------------|
+    | name        | string        | Yes      | Max 100 characters |
+    | description | string / null | No       | Max 500 characters |
 
     ### Response (201)
 
