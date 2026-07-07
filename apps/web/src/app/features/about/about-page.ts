@@ -111,7 +111,7 @@ export class AboutPage {
 			icon: "code",
 			tint: "purple",
 			title: "Stack",
-			body: "Angular 20 (signals) · Tailwind CSS · Node + Express · PostgreSQL + Sequelize · Zod everywhere"
+			body: "Angular 22 (signals) · Tailwind CSS · Node + Express · PostgreSQL + Sequelize · Zod everywhere"
 		},
 		{
 			icon: "storage",

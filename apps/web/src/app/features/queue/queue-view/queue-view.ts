@@ -11,6 +11,7 @@ import { QueueService } from "../queue";
 import { BacklogService } from "../../backlog/backlog";
 import { FavoritesService } from "../../favorites/favorites";
 import { ToastService } from "../../../core/services/toast";
+import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import {
 	QueueAddModal,
@@ -20,9 +21,11 @@ import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
+	UiPremiumBadge,
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	QueueGridCard,
 	QueueStatusChange
@@ -41,11 +44,13 @@ import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 		UiButton,
 		UiEmptyState,
 		UiPagination,
+		UiPremiumBadge,
 		UiSearchBar,
 		UiSkeleton,
 		QueueGridCard,
 		CdkDropList,
-		CdkDrag
+		CdkDrag,
+		PremiumOnly
 	],
 	templateUrl: "./queue-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -57,6 +62,7 @@ export class QueueView implements OnInit {
 	private readonly toast = inject(ToastService);
 	private readonly dialogs = inject(DialogService);
 
+	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);

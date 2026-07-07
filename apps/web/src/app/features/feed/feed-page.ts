@@ -1,7 +1,6 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
-	computed,
 	inject,
 	OnInit,
 	signal
@@ -21,6 +20,7 @@ import {
 	activityIcon,
 	activityIconColorClass
 } from "../../shared/utils/activity-labels";
+import { PremiumOnly } from "../../shared/directives/premium-only";
 
 import {
 	UiAvatar,
@@ -29,6 +29,7 @@ import {
 	UiIconButton,
 	UiInput,
 	UiPagination,
+	UiPremiumBadge,
 	UiSelect
 } from "../../shared/ui";
 
@@ -42,7 +43,9 @@ import {
 		UiInput,
 		UiIconButton,
 		UiPagination,
-		UiSelect
+		UiPremiumBadge,
+		UiSelect,
+		PremiumOnly
 	],
 	templateUrl: "./feed-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -66,10 +69,6 @@ export class FeedPage implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 25;
 
-	protected readonly isPremium = computed(() => {
-		const role = this.currentUserId()?.role;
-		return role === "premium" || role === "moderator" || role === "admin";
-	});
 	protected readonly filter = signal("");
 	protected readonly filterOptions = [
 		{ value: "", label: "All activity" },

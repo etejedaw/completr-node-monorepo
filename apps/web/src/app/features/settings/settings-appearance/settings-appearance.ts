@@ -13,9 +13,11 @@ import {
 	ThemeOption
 } from "../../../core/services/theme";
 import { ToastService } from "../../../core/services/toast";
+import { UiPremiumBadge } from "../../../shared/ui";
 
 @Component({
 	selector: "app-settings-appearance",
+	imports: [UiPremiumBadge],
 	templateUrl: "./settings-appearance.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -29,10 +31,13 @@ export class SettingsAppearance implements OnInit {
 	protected readonly saving = signal<ThemeId | null>(null);
 	protected readonly user = this.authService.user;
 
-	protected readonly isPremium = computed(() => {
-		const role = this.user()?.role;
-		return role === "premium" || role === "moderator" || role === "admin";
-	});
+	protected readonly isPremium = this.authService.isPremium;
+
+	protected readonly visibleThemes = computed(() =>
+		this.isPremium()
+			? this.catalog
+			: this.catalog.filter(theme => theme.tier === "free")
+	);
 
 	ngOnInit() {
 		this.authService.loadUser().subscribe(res => {

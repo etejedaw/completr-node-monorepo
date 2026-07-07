@@ -198,21 +198,19 @@
 		<h2 class="font-display m-0 text-base font-semibold text-fg-secondary">
 			Activity Feed
 		</h2>
-		<div class="flex items-center gap-1.5 shrink-0">
-			@if (!isPremium()) {
-			<span
-				aria-hidden="true"
-				class="material-icons text-sm text-fg-muted"
-				title="Filtering the feed is a premium feature"
-				>lock</span
-			>
-			}
+		<div *appPremiumOnly class="flex items-center gap-1.5 shrink-0">
+			<ui-premium-badge
+				size="sm"
+				interactive
+				label="Feed filtering (Premium)"
+				message="You've unlocked feed filtering — a Premium perk."
+			/>
 			<select
 				uiSelect
 				size="sm"
 				aria-label="Filter feed"
+				class="ring-1 ring-warning/40 rounded-md"
 				[value]="filter()"
-				[disabled]="!isPremium()"
 				(change)="onFilterChange($event)"
 			>
 				@for (option of filterOptions; track option.value) {

@@ -26,10 +26,12 @@ import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
+	UiPremiumBadge,
 	UiSearchBar,
 	UiSelect,
 	UiTextarea
 } from "../../../shared/ui";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
 
 type SortMode =
@@ -47,9 +49,11 @@ type SortMode =
 		UiButton,
 		UiEmptyState,
 		UiPagination,
+		UiPremiumBadge,
 		UiSearchBar,
 		UiSelect,
-		UiTextarea
+		UiTextarea,
+		PremiumOnly
 	],
 	templateUrl: "./saved-filters-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -60,6 +64,7 @@ export class SavedFiltersView implements OnInit {
 	private readonly toast = inject(ToastService);
 	private readonly authService = inject(AuthService);
 
+	protected readonly isPremium = this.authService.isPremium;
 	protected readonly filters = signal<SavedFilter[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
