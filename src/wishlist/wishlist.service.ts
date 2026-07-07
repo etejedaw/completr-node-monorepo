@@ -101,6 +101,26 @@ export async function findWishlistByUserId(userId: string) {
 	});
 }
 
+export async function findGameEntriesByUserId(
+	userId: string,
+	gameIds?: string[]
+) {
+	const where: Record<string, unknown> = { userId };
+	if (gameIds) where.gameId = { [Op.in]: gameIds };
+
+	return Wishlist.findAll({
+		where,
+		attributes: ["gameId"],
+		include: [
+			{
+				model: Game,
+				attributes: ["id", "code", "title", "backgroundUrl"]
+			}
+		],
+		order: [["position", "ASC"]]
+	});
+}
+
 export async function findWishlistByUserIdPaginated(
 	userId: string,
 	pagination: PaginatedSearchQuery = {}

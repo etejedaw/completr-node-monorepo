@@ -1,0 +1,63 @@
+info:
+    name: Get User Franchises
+    type: http
+    seq: 14
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/:username/franchises"
+    auth: inherit
+    params:
+        - name: username
+          value: ""
+          type: path
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get User Franchises
+
+    Returns the franchises `:username` has **tracked** (opted in via `POST /franchises/:code/track`), with that user's progress in each. Powers the "Sagas" section on a profile. A tracked franchise appears even with `0` completed games.
+
+    A game counts as completed when its backlog status is `completed`, `abandoned` or `endless`. For non-self viewers only the target's **public** backlog entries are counted, and the target's `backlog` section must be visible. Entries are sorted by `completed` descending.
+
+    **Authentication:** optional (Bearer token). Required to see another user's progress subject to their privacy.
+    **Rate Limit:** 100 requests per minute (public).
+
+    ### Path Params
+
+    | Param    | Type   | Required | Description      |
+    |----------|--------|----------|------------------|
+    | username | string | Yes      | Profile username |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "franchises": [
+          {
+            "franchise": {
+              "id": "uuid",
+              "name": "Resident Evil",
+              "code": "resident-evil"
+            },
+            "completed": 3,
+            "total": 6
+          }
+        ],
+        "total": 1
+      }
+    }
+    ```
+
+    `completed` is the user's completed games in the franchise; `total` is all active games in it.
+
+    ### Errors
+
+    | Status | Code                  | Description                                          |
+    |--------|-----------------------|------------------------------------------------------|
+    | 403    | USER_PRIVATE          | Profile or its backlog section is not visible        |
+    | 404    | USER_NOT_FOUND        | No user with that username                           |
+    | 422    | COMMON_SCHEMA_INVALID | `username` fails validation                          |

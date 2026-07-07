@@ -67,6 +67,13 @@ export function gameSerializer(
 		times: game.GameTimes?.map(timeSerializer) ?? [],
 		dlcs: game.Dlcs?.map(dlcSerializer) ?? [],
 		parentGame: parentGameSerializer(game.ParentGame),
+		franchise: game.Franchise
+			? {
+					id: game.Franchise.id,
+					name: game.Franchise.name,
+					code: game.Franchise.code
+				}
+			: null,
 		externalLinks: game.GameExternals?.map(externalSerializer) ?? [],
 		compilationItems:
 			(

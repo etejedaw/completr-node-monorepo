@@ -51,6 +51,28 @@ export async function findGameShelfByUserId(userId: string) {
 	});
 }
 
+export async function findGameEntriesByUserId(
+	userId: string,
+	publicOnly: boolean,
+	gameIds?: string[]
+) {
+	const where: Record<string, unknown> = { userId };
+	if (publicOnly) where.isPublic = true;
+	if (gameIds) where.gameId = { [Op.in]: gameIds };
+
+	return GameShelf.findAll({
+		where,
+		attributes: ["gameId"],
+		include: [
+			{
+				model: Game,
+				attributes: ["id", "code", "title", "backgroundUrl"]
+			}
+		],
+		order: [["createdAt", "DESC"]]
+	});
+}
+
 export async function findGameShelfByUserIdPaginated(
 	userId: string,
 	pagination: PaginatedSearchQuery = {}

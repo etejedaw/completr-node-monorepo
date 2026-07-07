@@ -1,0 +1,42 @@
+info:
+    name: Delete Franchise
+    type: http
+    seq: 5
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/franchises/:franchiseId"
+    auth: inherit
+    params:
+        - name: franchiseId
+          value: ""
+          type: path
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Delete Franchise
+
+    Deletes a franchise. Games that belonged to it are **not** deleted — their `franchiseId` is set to `null` (via `ON DELETE SET NULL`).
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Params
+
+    | Param       | Type | Required | Description   |
+    |-------------|------|----------|---------------|
+    | franchiseId | uuid | Yes      | Franchise id  |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Code                  | Description                          |
+    |--------|-----------------------|--------------------------------------|
+    | 403    | AUTH_FORBIDDEN        | Authenticated user is not a moderator |
+    | 404    | FRANCHISE_NOT_FOUND   | No franchise with that id            |
+    | 422    | COMMON_SCHEMA_INVALID | `franchiseId` fails validation       |

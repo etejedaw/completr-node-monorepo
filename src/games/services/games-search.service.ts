@@ -63,6 +63,7 @@ export async function findGameByCode(code: string) {
 			{ association: "GameScores", attributes: GAME_SCORE_ATTRS },
 			{ association: "GameTimes", attributes: GAME_TIME_ATTRS },
 			{ association: "GameExternals", attributes: GAME_EXTERNAL_ATTRS },
+			{ association: "Franchise", attributes: ["id", "name", "code"] },
 			{
 				association: "Dlcs",
 				attributes: GAME_SUMMARY_ATTRS,
@@ -118,7 +119,8 @@ export async function findGameById(id: string) {
 			{ association: "Platforms" },
 			{ association: "Genres" },
 			{ association: "GameScores" },
-			{ association: "GameTimes" }
+			{ association: "GameTimes" },
+			{ association: "Franchise" }
 		]
 	});
 }
@@ -346,4 +348,60 @@ export async function findGamesByGenreCode(
 	});
 	const hasMore = rows.length > limit;
 	return { rows: hasMore ? rows.slice(0, limit) : rows, hasMore };
+}
+
+export async function findGamesByFranchiseId(
+	franchiseId: string,
+	options: { limit?: number; offset?: number } = {}
+) {
+	const { limit = 50, offset = 0 } = options;
+	const rows = await Game.findAll({
+		where: { isActive: true, franchiseId },
+		include: [
+			{ association: "Platforms" },
+			{ association: "Genres" },
+			{ association: "GameScores" },
+			{ association: "GameTimes" }
+		],
+		order: [["releaseAt", "ASC"]],
+		limit: limit + 1,
+		offset
+	});
+	const hasMore = rows.length > limit;
+	return { rows: hasMore ? rows.slice(0, limit) : rows, hasMore };
+}
+
+export async function findGameIdsByFranchiseId(franchiseId: string) {
+	const rows = await Game.findAll({
+		where: { isActive: true, franchiseId },
+		attributes: ["id"]
+	});
+	return rows.map(row => row.id);
+}
+
+export async function findFranchiseIdsForGameIds(gameIds: string[]) {
+	if (gameIds.length === 0) return [];
+	const rows = (await Game.findAll({
+		where: {
+			id: { [Op.in]: gameIds },
+			franchiseId: { [Op.ne]: null }
+		},
+		attributes: ["franchiseId"],
+		raw: true
+	})) as unknown as { franchiseId: string }[];
+	return rows.map(row => row.franchiseId);
+}
+
+export async function countActiveGamesByFranchiseIds(franchiseIds: string[]) {
+	if (franchiseIds.length === 0) return new Map<string, number>();
+	const rows = (await Game.findAll({
+		where: { isActive: true, franchiseId: { [Op.in]: franchiseIds } },
+		attributes: ["franchiseId", [fn("COUNT", col("id")), "count"]],
+		group: ["franchiseId"],
+		raw: true
+	})) as unknown as { franchiseId: string; count: string }[];
+
+	const map = new Map<string, number>();
+	for (const row of rows) map.set(row.franchiseId, Number(row.count));
+	return map;
 }

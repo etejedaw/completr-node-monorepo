@@ -3,6 +3,7 @@ import { backlogErrorDomainNormalizer } from "../../backlog/errors/backlog.error
 import { backlogProgressErrorDomainNormalizer } from "../../backlog-progress/errors/backlog-progress.error-domain.normalizer";
 import { coopRunsErrorDomainNormalizer } from "../../coop-runs/errors/coop-runs.error-domain.normalizer";
 import { favoritesErrorDomainNormalizer } from "../../favorites/errors/favorites.error-domain.normalizer";
+import { franchisesErrorDomainNormalizer } from "../../franchises/errors/franchises.error-domain.normalizer";
 import { gameReportsErrorDomainNormalizer } from "../../game-reports/errors/game-reports.error-domain.normalizer";
 import { gameScoresErrorDomainNormalizer } from "../../game-scores/errors/game-scores.error-domain.normalizer";
 import { gameShelfErrorDomainNormalizer } from "../../game-shelf/errors/game-shelf.error-domain.normalizer";
@@ -57,6 +58,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "Genre Service")
 		return genresErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Franchise Service")
+		return franchisesErrorDomainNormalizer(error, correlationId);
 
 	if (error.serviceError.service === "GameShelf Service")
 		return gameShelfErrorDomainNormalizer(error, correlationId);

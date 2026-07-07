@@ -9,6 +9,8 @@ import { BacklogProgress } from "../backlog-progress/backlog-progress.model";
 import { CompilationItem } from "../compilation-items/compilation-item.model";
 import { CoopRun } from "../coop-runs/coop-run.model";
 import { Favorite } from "../favorites/favorite.model";
+import { Franchise } from "../franchises/franchise.model";
+import { UserFranchise } from "../franchises/user-franchise.model";
 import { GameExternal } from "../game-external/game-external.model";
 import { GameGenre } from "../game-genre/game-genre.model";
 import { GamePlatform } from "../game-platform/game-platform.model";
@@ -63,6 +65,20 @@ export function setupAssociations() {
 	auditLogs();
 	reviews();
 	compilations();
+	franchises();
+}
+
+function franchises() {
+	Franchise.hasMany(Game, { foreignKey: "franchiseId" });
+	Game.belongsTo(Franchise, { foreignKey: "franchiseId" });
+
+	User.hasMany(UserFranchise, { foreignKey: "userId", onDelete: "CASCADE" });
+	UserFranchise.belongsTo(User, { foreignKey: "userId" });
+	Franchise.hasMany(UserFranchise, {
+		foreignKey: "franchiseId",
+		onDelete: "CASCADE"
+	});
+	UserFranchise.belongsTo(Franchise, { foreignKey: "franchiseId" });
 }
 
 function compilations() {

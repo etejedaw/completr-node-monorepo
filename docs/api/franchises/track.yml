@@ -1,0 +1,41 @@
+info:
+    name: Track Franchise
+    type: http
+    seq: 6
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/franchises/:code/track"
+    auth: inherit
+    params:
+        - name: code
+          value: resident-evil
+          type: path
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Track Franchise
+
+    Marks the franchise as tracked by the authenticated user so it appears in the "Sagas" section of their profile. Idempotent — tracking an already-tracked franchise is a no-op.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Params
+
+    | Param | Type   | Required | Description    |
+    |-------|--------|----------|----------------|
+    | code  | string | Yes      | Franchise slug |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Code                  | Description                       |
+    |--------|-----------------------|-----------------------------------|
+    | 404    | FRANCHISE_NOT_FOUND   | No franchise with that code       |
+    | 422    | AUTH_SCHEMA_INVALID   | Missing or malformed Bearer token |

@@ -68,6 +68,8 @@ export async function getListById(request: Request, response: Response) {
 
 	const list = await listsService.findListById(params.listId);
 	if (!list) throw listDomainError.listNotFound();
+	if (!list.isPublic && list.userId !== user.id)
+		throw listDomainError.listNotFound();
 
 	const listPlain = list.get({ plain: true });
 	const gameIds = (list.ListItems ?? []).map(item => item.gameId);

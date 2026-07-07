@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
+import { type Franchise } from "../franchises/franchise.model";
 import { type GameExternal } from "../game-external/game-external.model";
 import { type GameScore } from "../game-scores/game-score.model";
 import { type GameTime } from "../game-times/game-time.model";
@@ -20,10 +21,12 @@ class Game extends Model {
 	declare variant?: string | null;
 	declare isCompilation: boolean;
 	declare isActive: boolean;
+	declare franchiseId?: string | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 	declare Platforms: Platform[];
 	declare Genres: Genre[];
+	declare Franchise?: Franchise | null;
 	declare GameScores: GameScore[];
 	declare GameTimes: GameTime[];
 	declare GameExternals: GameExternal[];
@@ -72,6 +75,10 @@ Game.init(
 		isActive: {
 			type: DataTypes.BOOLEAN,
 			defaultValue: true
+		},
+		franchiseId: {
+			type: DataTypes.UUID,
+			allowNull: true
 		}
 	},
 	{ sequelize }
