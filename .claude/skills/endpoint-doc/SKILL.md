@@ -5,7 +5,7 @@ description: Update the Bruno API documentation in docs/api/ whenever an HTTP en
 
 # Endpoint Doc
 
-Documentación de endpoints HTTP en `docs/api/` siguiendo el formato de **Bruno v3.1+** (YAML, no `.bru`).
+Documentación de endpoints HTTP en `docs/api/` siguiendo el formato de **Bruno v4.0+** (YAML, no `.bru`).
 
 ## Cuándo aplicar
 

@@ -1,0 +1,15 @@
+{
+	"mcpServers": {
+		"affine": {
+			"type": "stdio",
+			"command": "sh",
+			"args": [
+				"-c",
+				"set -a; [ -f .env.claude ] && . ./.env.claude; set +a; exec npx -y --package=affine-mcp-server affine-mcp"
+			],
+			"env": {
+				"AFFINE_DISABLED_GROUPS": "comments,history,blobs,notifications,users,docs.edgeless,docs.surface,docs.semantic,docs.template,docs.intent,docs.share,docs.database,docs.properties,organize.collections,admin,cleanup"
+			}
+		}
+	}
+}
