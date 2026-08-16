@@ -5,7 +5,7 @@ export default [
 	...tseslint.configs.recommended,
 	...eslintPluginAstro.configs.recommended,
 	{
-		ignores: [".astro/**", "dist/"]
+		ignores: [".astro/**", "dist/", "scripts/", "tmp/"]
 	},
 	{
 		rules: {
