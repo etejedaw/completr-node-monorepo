@@ -9,6 +9,6 @@ pnpm-debug.log*
 .env.production
 .DS_Store
 .idea/
-.claude/settings.local.json
 scripts/
 tmp/
+.vscode
