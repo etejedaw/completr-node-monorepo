@@ -20,21 +20,24 @@
 		"*.{js,mjs,cjs,ts,astro,css,json,md}": "prettier --write"
 	},
 	"devDependencies": {
-		"@astrojs/check": "^0.9.9",
-		"@astrojs/sitemap": "^3.7.2",
-		"@playwright/test": "^1.60.0",
-		"@tailwindcss/vite": "^4.3.0",
+		"@astrojs/check": "^0.9.10",
+		"@astrojs/compiler": "^2.13.1",
+		"@astrojs/sitemap": "^3.7.3",
+		"@tailwindcss/vite": "^4.3.3",
 		"@types/node": "^25.9.1",
-		"astro": "^6.3.5",
-		"eslint": "^10.4.0",
-		"eslint-plugin-astro": "^1.7.0",
+		"astro": "^7.2.2",
+		"eslint": "^10.8.1",
+		"eslint-plugin-astro": "^3.1.0",
 		"husky": "^9.1.7",
-		"lint-staged": "^17.0.5",
-		"playwright": "^1.60.0",
-		"prettier": "3.8.3",
+		"lint-staged": "^17.3.0",
+		"prettier": "^3.9.6",
 		"prettier-plugin-astro": "0.14.1",
-		"tailwindcss": "^4.3.0",
+		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.59.4"
+		"typescript-eslint": "^8.67.0"
+	},
+	"allowScripts": {
+		"esbuild": false,
+		"fsevents": false
 	}
 }
