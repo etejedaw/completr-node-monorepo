@@ -11,8 +11,8 @@ Genera documentos changelog por feature (Keep a Changelog adaptado) en `docs/cha
 
 ## Contexto del proyecto
 
-- **Repo:** backend de Completr (Node.js + Express + Sequelize). El producto y sus reglas de dominio viven en `CONTEXT.md`. La arquitectura técnica vive en `docs/architecture.md` y `docs/context/`.
-- **Idioma:** español, sin emojis, frases cortas. Mismo tono que `docs/feedback/CONTEXT.md` y el resto de `docs/`.
+- **Repo:** backend de Completr (Node.js + Express + Sequelize). El producto y sus reglas de negocio viven en AFFiNE (ver `CLAUDE.md`). Lo técnico vive en `docs/architecture.md`, `docs/invariants.md` y `docs/context/`.
+- **Idioma:** español, sin emojis, frases cortas. Mismo tono que el resto de `docs/`.
 
 ## Cuándo invocar
 
