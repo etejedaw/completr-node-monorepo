@@ -6,11 +6,12 @@ Backend de Completr (Node + Express + Sequelize + PostgreSQL), un gestor de back
 
 Los documentos del proyecto viven en AFFiNE, workspace `b48542ca-7422-4505-a933-3640ba923c2d`, carpeta `Completr`:
 
-| Doc               | docId        | Qué contiene                                        |
-| ----------------- | ------------ | --------------------------------------------------- |
-| Context           | `JYN5z0t8Zy` | Visión, cronología de fases, decisiones y supuestos |
-| Reglas de negocio | `xruqTLlMPw` | Estados del backlog, ratio, privacidad, semestres   |
-| Premium           | `XraQg_c8i0` | Roles y permisos, límites free vs. premium, gating  |
+| Doc               | docId        | Qué contiene                                            |
+| ----------------- | ------------ | ------------------------------------------------------- |
+| Context           | `JYN5z0t8Zy` | Visión, cronología de fases, decisiones y supuestos     |
+| Reglas de negocio | `xruqTLlMPw` | Estados del backlog, ratio, privacidad, semestres       |
+| Premium           | `XraQg_c8i0` | Roles y permisos, límites free vs. premium, gating      |
+| Deuda técnica     | `3kQdzgm3Yb` | Pendientes técnicos abiertos y qué falta para cerrarlos |
 
 ### Roadmap (carpeta `Completr/Roadmap`)
 
@@ -57,3 +58,5 @@ AFFiNE tiene el negocio y la planificación. Todo lo técnico vive en el repo, y
 | `docs/api/`                   | Colección Bruno con todos los endpoints                                  |
 
 **La frontera:** `docs/` describe el mecanismo (cómo se llama el enum, qué constraint existe, qué status devuelve la API). AFFiNE tiene la decisión (cuál es el límite de un free, qué significa cada estado, por qué existe el ratio). Un dato tiene un solo dueño: no lo dupliques en el otro lado.
+
+**Este archivo es el único del repo que puede mencionar AFFiNE.** El repo es AGPLv3: quien lo forkee no debe encontrar referencias a un workspace privado al que no tiene acceso. `README.md`, `docs/` y `docs/changelogs/` se escriben autocontenidos — cuando una decisión vive fuera del repo, se dice "es planificación de producto y no se documenta acá", sin nombrar la herramienta ni el doc. Si el dato existe en el código (un `FREE_*_LIMIT`, un `authMiddleware`), apunta al código, que además no se desfasa.
