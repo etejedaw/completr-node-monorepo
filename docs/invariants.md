@@ -2,7 +2,7 @@
 
 Lo que el código hace cumplir, en forma atómica: enums, constraints, validaciones, códigos de error, nombres de eventos y comportamientos automáticos.
 
-**Este archivo describe el mecanismo, no la decisión.** El _qué_ y el _por qué_ de cada regla de negocio viven en AFFiNE (docs `Reglas de negocio` y `Premium`) — ver [`../CLAUDE.md`](../CLAUDE.md) para los ids. Si buscas cuántas listas puede tener un usuario free o qué significa cada estado, está allá. Si buscas cómo se llama el enum o qué status devuelve la API al exceder el tope, está aquí.
+**Este archivo describe el mecanismo, no la decisión de producto detrás.** Acá está cómo se llama cada enum, qué constraint existe y qué código de respuesta devuelve la API al violar una regla. El porqué de cada regla —cuánto obtiene cada tier, qué significa cada estado para el usuario— es planificación de producto y no se documenta en este repo.
 
 Arquitectura en [`architecture.md`](./architecture.md), endpoints en [`api/`](./api/).
 
@@ -13,13 +13,13 @@ Arquitectura en [`architecture.md`](./architecture.md), endpoints en [`api/`](./
 Enum `User.role` en `src/users/user-role.type.ts`: `user`, `premium`, `moderator`, `admin`. Default al registrarse: `user`.
 
 - El gating premium se resuelve con `isPremium()`, que acepta `premium`, `moderator` y `admin`.
-- La matriz de permisos por rol vive en el doc `Premium` de AFFiNE.
+- Qué puede hacer cada rol se hace cumplir en `authMiddleware(...)` de cada `*.routes.ts`: esa es la fuente autoritativa de permisos.
 
 ---
 
 ## Límites por usuario
 
-Los recursos con tope por rol son `lists`, `list-items`, `saved-filters`, `favorites`, `wishlist` y `queue`. Los valores de cada tope viven en el doc `Premium` de AFFiNE, no aquí.
+Los recursos con tope por rol son `lists`, `list-items`, `saved-filters`, `favorites`, `wishlist` y `queue`. Cada valor vive como constante en el service del módulo (`FREE_LIST_LIMIT`, `FREE_FAVORITE_LIMIT`, `FREE_WISHLIST_LIMIT`, `FREE_QUEUE_LIMIT`, `FREE_FILTER_LIMIT`); no se replican acá para que no queden desfasados.
 
 - Exceder el tope devuelve **`402`**, mapeado en el `domain-to-http.mapper.ts` de cada módulo.
 - `lists`, `list-items` y `saved-filters` implementan además el estado **frozen**: estando sobre el tope, create y update lanzan `frozenError()`; delete sigue permitido y lo existente se sigue sirviendo. Nada se borra automáticamente.
@@ -31,7 +31,7 @@ Los recursos con tope por rol son `lists`, `list-items`, `saved-filters`, `favor
 
 ### Estados
 
-Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endless`. Default al crear: `not_started`. El significado de cada uno está en `Reglas de negocio` (AFFiNE).
+Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endless`. Default al crear: `not_started`.
 
 - `endless` se agrupa con `completed` y `abandoned` en los cálculos de progreso de franquicias y listas.
 - En filtros por actividad, `endless` se trata como activo junto a `playing`: `finishedAt` se coalesce a `CURRENT_DATE`.
@@ -145,7 +145,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 
 ## Ratio
 
-Fórmulas y comportamiento en bordes. El porqué del ratio está en `Reglas de negocio` (AFFiNE).
+Fórmulas y comportamiento en bordes.
 
 - `ratio = GameShelf.score / GameShelf.duration` — escala 0–100, 2 decimales, `null` si falta alguno.
 - `personalRatio = GameShelf.score / Backlog.realDuration` — desde el backlog completado con `realDuration`. Si hay varios, se elige el primero o el mejor.

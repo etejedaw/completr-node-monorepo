@@ -156,14 +156,13 @@ export const apiKeysConfig = {
 
 El provider las recibe por constructor — **nunca leas `process.env` dentro del provider**. Mantén la configuración inyectada para facilitar tests futuros.
 
-## Providers actuales y planeados
+## Providers implementados
 
-| Provider          | Propósito                                        | Estado       |
-| ----------------- | ------------------------------------------------ | ------------ |
-| `src/rawg/`       | RAWG API: géneros, descripciones, covers, scores | Implementado |
-| `src/hltb/`       | HowLongToBeat: duración estimada de juegos       | Pendiente    |
-| `src/metacritic/` | Metacritic / OpenCritic: puntuación promedio     | Pendiente    |
-| `src/steam/`      | Steam API: sincronización de librería            | Pendiente    |
+| Provider    | Propósito                                        |
+| ----------- | ------------------------------------------------ |
+| `src/rawg/` | RAWG API: géneros, descripciones, covers, scores |
+
+Es el único que existe hoy. **Qué integraciones vienen después no se decide acá:** el roadmap de fuentes externas es planificación de producto, y varias dependen de revisiones de licencia todavía abiertas.
 
 ## Cómo crear un provider nuevo
 
@@ -177,4 +176,4 @@ El provider las recibe por constructor — **nunca leas `process.env` dentro del
 
 ## Nota: ¿providers en `src/` o en `src/common/providers/`?
 
-Hoy todos viven directamente en `src/`. Está en evaluación mover providers genéricos a `src/common/providers/`. Por ahora, **un provider por carpeta en `src/`**.
+Hoy todos viven directamente en `src/`. La regla vigente es **un provider por carpeta en `src/`**. Mover los genéricos a `src/common/providers/` sigue siendo una decisión abierta.

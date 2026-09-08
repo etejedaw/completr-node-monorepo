@@ -10,7 +10,7 @@ Punto de entrada para entender cómo está organizado este backend. Cada archivo
 
 ### Invariantes del código
 
-- [`invariants.md`](./invariants.md) — Lo que el backend hace cumplir, en forma atómica: enums, constraints, validaciones, códigos de error, nombres de eventos, comportamientos automáticos. Describe el **mecanismo**; la **decisión** de negocio detrás de cada regla vive en AFFiNE (docs `Reglas de negocio` y `Premium`).
+- [`invariants.md`](./invariants.md) — Lo que el backend hace cumplir, en forma atómica: enums, constraints, validaciones, códigos de error, nombres de eventos, comportamientos automáticos. Describe el **mecanismo**, no la decisión de producto detrás.
 
 ### Contexto detallado (`context/`)
 
@@ -24,7 +24,7 @@ Punto de entrada para entender cómo está organizado este backend. Cada archivo
 - [`api/`](./api/) — Colección Bruno v3.1 con todos los endpoints documentados (request, response, auth, rate limit).
 - [`changelogs/`](./changelogs/) — Un archivo por feature entregada, con contexto y commits.
 
-El feedback de beta testers (`FB-NNN`) ya no vive en este repo: está en AFFiNE, carpeta `Completr/Feedback`.
+Esta carpeta describe **cómo funciona el código hoy**. La planificación de producto —roadmap, feedback de usuarios, deuda técnica pendiente— se lleva fuera del repo y no se documenta acá.
 
 ## Cómo usar esta carpeta
 
@@ -32,5 +32,5 @@ El feedback de beta testers (`FB-NNN`) ya no vive en este repo: está en AFFiNE,
 - ¿Vas a crear un módulo nuevo? Lee `context/modules.md` y `context/errors.md`.
 - ¿Vas a integrar un servicio externo? Lee `context/providers.md`.
 - ¿Necesitas saber una validación, un constraint o cuándo dispara un comportamiento? `invariants.md`.
-- ¿Necesitas saber el valor de un límite, qué puede hacer un rol o por qué existe una regla? Está en AFFiNE, no aquí.
+- ¿Necesitas el valor exacto de un límite o los permisos de un rol? Están en el código: las constantes `FREE_*_LIMIT` de cada service y el `authMiddleware(...)` de cada `*.routes.ts`.
 - ¿Vas a abrir un PR? Revisa `context/conventions.md` antes de commitear.

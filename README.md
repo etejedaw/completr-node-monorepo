@@ -77,7 +77,7 @@ npm run start:dev
 
 El servidor queda escuchando en `http://localhost:3000` y se reinicia automáticamente al guardar cambios (`node --watch`).
 
-Las convenciones de arquitectura están en [`docs/`](./docs/README.md). Los conceptos del dominio (ratio, estados, vistas vs listas) viven en AFFiNE — ver [`CLAUDE.md`](./CLAUDE.md) para los ids de los documentos.
+Las convenciones de arquitectura y las reglas que el backend hace cumplir están en [`docs/`](./docs/README.md).
 
 ## Documentación de la API
 
