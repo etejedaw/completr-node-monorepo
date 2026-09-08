@@ -72,6 +72,10 @@ Después de cualquier cambio de código:
 3. `npm run typecheck` si tocaste tipos o interfaces.
 4. Si modificaste o agregaste un endpoint → actualizar `docs/api/` (Bruno v3.1, formato `.yml`).
 5. Si modificaste el schema de un modelo → crear migración Sequelize en `migrations/`.
+6. Si cambiaste un enum, un constraint, una validación o un auto-comportamiento → actualizar [`../invariants.md`](../invariants.md).
+7. Si cambiaste un tope por rol, un permiso o qué se ve en público → **eso es una decisión de negocio, no un invariante**: se documenta en la planificación de producto, fuera de `docs/`.
+
+Los pasos 6 y 7 no son opcionales. La documentación de este repo acumuló tres datos falsos (un estado del enum faltante, el modelo de privacidad entero y el nombre de un campo de respuesta) precisamente porque nadie los ejecutaba.
 
 ## Reglas de dominio aplicadas al código
 
