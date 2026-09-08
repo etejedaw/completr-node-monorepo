@@ -77,5 +77,8 @@
 		"*.{json,md,yml,yaml}": [
 			"prettier --write"
 		]
+	},
+	"allowScripts": {
+		"bcrypt": false
 	}
 }
