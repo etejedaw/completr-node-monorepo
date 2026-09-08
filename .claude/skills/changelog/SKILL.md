@@ -11,7 +11,8 @@ Genera documentos changelog por feature (Keep a Changelog adaptado) en `docs/cha
 
 ## Contexto del proyecto
 
-- **Repo:** backend de Completr (Node.js + Express + Sequelize). El producto y sus reglas de negocio viven en AFFiNE (ver `CLAUDE.md`). Lo técnico vive en `docs/architecture.md`, `docs/invariants.md` y `docs/context/`.
+- **Repo:** backend de Completr (Node.js + Express + Sequelize). El producto y sus reglas de negocio se documentan fuera del repo (ver `CLAUDE.md`). Lo técnico vive en `docs/architecture.md`, `docs/invariants.md` y `docs/context/`.
+- **Los changelogs son públicos** (repo AGPLv3): no mencionan herramientas ni documentos internos de planificación, solo lo que cambió en el código y en `docs/`.
 - **Idioma:** español, sin emojis, frases cortas. Mismo tono que el resto de `docs/`.
 
 ## Cuándo invocar
