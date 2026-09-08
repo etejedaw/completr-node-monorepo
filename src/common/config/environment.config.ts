@@ -16,7 +16,6 @@ const EnvironmentConfigSchema = z
 		COOKIE_SECURE: z.stringbool().default(false),
 		COOKIE_SAME_SITE: z.enum(["strict", "lax", "none"]).default("lax"),
 		CHANGELOG_SOURCE_URL: z
-			.string()
 			.url()
 			.default("https://www.completr.app/changelog.json")
 	})
