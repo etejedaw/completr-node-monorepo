@@ -8,9 +8,9 @@ Punto de entrada para entender cómo está organizado este backend. Cada archivo
 
 - [`architecture.md`](./architecture.md) — Vista panorámica: stack, capas, cómo fluye un request, decisiones de diseño y dónde vive cada cosa. **Empieza aquí si nunca has visto el proyecto.**
 
-### Reglas del dominio
+### Invariantes del código
 
-- [`business-rules.md`](./business-rules.md) — Reglas atómicas que el backend hace cumplir: límites, estados, validaciones, privacidad, comportamientos automáticos. Para los conceptos detrás, ver `CONTEXT.md` en la raíz.
+- [`invariants.md`](./invariants.md) — Lo que el backend hace cumplir, en forma atómica: enums, constraints, validaciones, códigos de error, nombres de eventos, comportamientos automáticos. Describe el **mecanismo**; la **decisión** de negocio detrás de cada regla vive en AFFiNE (docs `Reglas de negocio` y `Premium`).
 
 ### Contexto detallado (`context/`)
 
@@ -22,12 +22,15 @@ Punto de entrada para entender cómo está organizado este backend. Cada archivo
 ### Otros recursos del repo
 
 - [`api/`](./api/) — Colección Bruno v3.1 con todos los endpoints documentados (request, response, auth, rate limit).
-- [`feedback/`](./feedback/) — Feedback de beta testers agrupado por fase (`fase-X.md` con entradas `FB-NNN`).
+- [`changelogs/`](./changelogs/) — Un archivo por feature entregada, con contexto y commits.
+
+El feedback de beta testers (`FB-NNN`) ya no vive en este repo: está en AFFiNE, carpeta `Completr/Feedback`.
 
 ## Cómo usar esta carpeta
 
 - ¿Vas a tocar un módulo existente? Lee `architecture.md` + `context/modules.md`.
 - ¿Vas a crear un módulo nuevo? Lee `context/modules.md` y `context/errors.md`.
 - ¿Vas a integrar un servicio externo? Lee `context/providers.md`.
-- ¿Necesitas saber un límite, una validación o cuándo dispara un comportamiento? `business-rules.md`.
+- ¿Necesitas saber una validación, un constraint o cuándo dispara un comportamiento? `invariants.md`.
+- ¿Necesitas saber el valor de un límite, qué puede hacer un rol o por qué existe una regla? Está en AFFiNE, no aquí.
 - ¿Vas a abrir un PR? Revisa `context/conventions.md` antes de commitear.

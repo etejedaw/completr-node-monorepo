@@ -87,5 +87,6 @@ Ver [`context/providers.md`](./context/providers.md).
 
 ## Documentación relacionada
 
-- [`CONTEXT.md`](../CONTEXT.md) — Contexto del producto y reglas de dominio (qué es un Backlog, qué es una List, cómo se calcula el ratio, etc.).
+- [`invariants.md`](./invariants.md) — Lo que el código hace cumplir: enums, constraints, validaciones, comportamientos automáticos.
+- **AFFiNE** — Contexto del producto y reglas de negocio (qué es un Backlog, qué significa cada estado, por qué existe el ratio). Ver [`CLAUDE.md`](../CLAUDE.md) para los ids.
 - [`README.md`](../README.md) — Setup local y scripts.
