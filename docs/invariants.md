@@ -236,3 +236,23 @@ Reglas:
 - Fallback a RAWG cuando no hay match local, salvo `local_only=true`. Importa hasta 3 resultados con detalle, excluye DLCs.
 - `force_rawg=true` salta búsqueda local.
 - `sort_by=random` disponible para discover.
+- Si RAWG está deshabilitado no hay fallback: la búsqueda devuelve solo catálogo local.
+
+## Providers externos
+
+- Un provider externo expone `isEnabled` en su clase base.
+- Si falta su credencial, el `create` de la clase base devuelve la implementación deshabilitada: el backend arranca igual y cada método lanza `<PROVIDER>_DISABLED`.
+- Único provider hoy: RAWG. `RAWG_API_KEY` es opcional (vacía o ausente = deshabilitado).
+
+### Códigos de error de RAWG
+
+| Código                | Status |
+| --------------------- | ------ |
+| `RAWG_DISABLED`       | 503    |
+| `RAWG_NOT_FOUND`      | 404    |
+| `RAWG_RATE_LIMITED`   | 429    |
+| `RAWG_REQUEST_ERROR`  | 502    |
+| `RAWG_PARSE_ERROR`    | 502    |
+| `RAWG_INTERNAL_ERROR` | 500    |
+
+Con RAWG deshabilitado: `GET /games/rawg-lookup`, `GET /games/rawg-detail/:rawgId`, `GET /game-external/rawg/:slug` y `POST /admin/jobs/populate-rawg` responden 503; el resto del backend no se ve afectado.

@@ -25,10 +25,14 @@ Ejemplo — `src/rawg/`:
 
 ```
 src/rawg/
-├── rawg.provider.ts        Clase con los métodos públicos
-├── rawg.interface.ts       Tipos de request/response
+├── rawg.provider.ts        Clase base abstracta + implementación activa y deshabilitada
+├── rawg.interface.ts       Contrato del provider y tipos de request/response
 └── errors/
-    └── rawg.service-error.ts  Constructores de ServiceError del provider
+    ├── rawg.service-error.ts            Constructores de ServiceError
+    ├── rawg.domain-error.ts             Constructores de DomainError
+    ├── rawg.service-to-domain.mapper.ts ServiceError → DomainError
+    ├── rawg.domain-to-http.mapper.ts    DomainError → HttpError
+    └── rawg.error-domain.normalizer.ts  Entry point desde el normalizer global
 ```
 
 Si los tipos del provider son extensos, pueden ir en `interfaces/<algo>.interface.ts` siguiendo la regla 1 → raíz, 2+ → subcarpeta.
@@ -68,7 +72,7 @@ export class RawgProvider {
 }
 ```
 
-- **Clase con constructor** que recibe credenciales/configuración. La instancia se crea en el módulo que la consume (o se exporta como singleton si tiene sentido).
+- **Clase con constructor** que recibe credenciales/configuración. La instancia la crea el módulo que la consume, vía el método estático `create` de la clase base (ver "Providers opcionales").
 - **Métodos públicos** = la interfaz limpia. Nombres en términos del dominio del provider (`searchGame`, `getGameById`).
 - **Métodos privados** para parsing, manejo de errores, helpers internos.
 - **Sin lógica de negocio** — el provider no decide qué hacer con los datos, solo los entrega.
@@ -118,6 +122,7 @@ Errores típicos de un provider:
 - `<MOD>_PARSE_ERROR` — la respuesta no tiene el shape esperado.
 - `<MOD>_TIMEOUT` — si manejas timeouts.
 - `<MOD>_UNAUTHORIZED` — 401 (key inválida o expirada).
+- `<MOD>_DISABLED` — el provider no tiene credencial configurada.
 
 ## Cómo lo consume un módulo
 
@@ -125,10 +130,10 @@ El módulo de negocio importa el provider y lo usa dentro de su service.
 
 ```ts
 // games/games.service.ts
-import { RawgProvider } from "../rawg/rawg.provider";
 import { apiKeysConfig } from "../common/config/api-keys.config";
+import { RawgClient } from "../rawg/rawg.provider";
 
-const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
+const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
 
 export async function importGameFromRawg(rawgId: number) {
 	const detail = await rawg.getGameById(rawgId);
@@ -149,12 +154,63 @@ La decisión es del **service que consume**, no del provider.
 Las credenciales y endpoints viven en `src/common/config/api-keys.config.ts` (u otro `*.config.ts` según corresponda):
 
 ```ts
-export const apiKeysConfig = {
-	RAWG_API_KEY: process.env.RAWG_API_KEY ?? ""
-};
+const optionalApiKey = z
+	.string()
+	.trim()
+	.optional()
+	.transform(value => value || undefined);
+
+const ApiKeysConfigSchema = z
+	.object({
+		RAWG_API_KEY: optionalApiKey
+	})
+	.readonly();
 ```
 
-El provider las recibe por constructor — **nunca leas `process.env` dentro del provider**. Mantén la configuración inyectada para facilitar tests futuros.
+Las credenciales de providers son **opcionales**: un provider sin key deshabilita su integración, no tumba el arranque. Agregar un provider nuevo es una línea más en el schema, reusando `optionalApiKey`.
+
+Las clases del provider reciben la credencial por constructor — **nunca leas `process.env` ni importes el config dentro del provider**. Quien lee el config es el módulo que instancia.
+
+## Providers opcionales
+
+El contrato es una **clase base abstracta** que declara `isEnabled` y los métodos del provider. De ella cuelgan la implementación real y la deshabilitada, y la elección entre ambas es un **método estático de la propia clase base**:
+
+```ts
+export abstract class RawgClient {
+	abstract readonly isEnabled: boolean;
+
+	static create(apiKey?: string): RawgClient {
+		return apiKey ? new RawgProvider(apiKey) : new DisabledRawgProvider();
+	}
+
+	abstract searchGame(
+		query: string,
+		filters?: RawgSearchFilters
+	): Promise<RawgGameSearchResult[]>;
+	// ...
+}
+
+export class RawgProvider extends RawgClient {
+	readonly isEnabled = true;
+	// ...
+}
+
+export class DisabledRawgProvider extends RawgClient {
+	readonly isEnabled = false;
+
+	searchGame(): Promise<RawgGameSearchResult[]> {
+		throw rawgServiceError.disabledError();
+	}
+	// ...
+}
+```
+
+Consecuencias:
+
+- El archivo del provider **exporta clases, no funciones sueltas**, y no importa el config ni instancia nada. Sin estado global ni side effects al importar.
+- `create` es el único lugar donde vive la decisión "con key → real, sin key → deshabilitado". El consumidor sigue creando su instancia con `RawgClient.create(...)`, como con cualquier provider.
+- **La disponibilidad se le pregunta a la instancia** (`rawg.isEnabled`), no a un flag por integración en el config. Un provider nuevo no agrega variables globales.
+- Si un flujo debe degradar en silencio, chequea `isEnabled` antes de llamar (ej: la búsqueda cae a catálogo local). Si debe fallar visible, no chequea nada: el provider deshabilitado lanza `<PROVIDER>_DISABLED` y el normalizer lo convierte en 503.
 
 ## Providers implementados
 
@@ -170,9 +226,10 @@ Es el único que existe hoy. **Qué integraciones vienen después no se decide a
 2. Definir tipos en `<nombre>.interface.ts` (request, response, filtros).
 3. Implementar `<nombre>.provider.ts` con clase + constructor que reciba credenciales.
 4. Crear `errors/<nombre>.service-error.ts` con los códigos del provider y `service: "<Nombre> Provider"`.
-5. Agregar la variable de entorno al `.env.example` y al `*.config.ts` correspondiente.
-6. **No hace falta** crear `controller`, `routes`, `model`, `serializer`, `dtos` ni `schemas` — el provider no expone HTTP propio.
-7. Si los errores del provider tienen que llegar al cliente con status code propio, registrar un normalizer del provider en `global-error-domain.normalizer.ts` (mismo patrón que un módulo de negocio). Si no, el service que lo consume captura y traduce.
+5. Agregar la variable de entorno al `.env.example` y al `*.config.ts` correspondiente, siempre opcional.
+6. Definir la clase base abstracta con `isEnabled`, los métodos del provider y su `static create`, y agregar la clase `Disabled<Nombre>Provider` con su error `<PROVIDER>_DISABLED`.
+7. **No hace falta** crear `controller`, `routes`, `model`, `serializer`, `dtos` ni `schemas` — el provider no expone HTTP propio.
+8. Si los errores del provider tienen que llegar al cliente con status code propio, registrar un normalizer del provider en `global-error-domain.normalizer.ts` (mismo patrón que un módulo de negocio). Si no, el service que lo consume captura y traduce.
 
 ## Nota: ¿providers en `src/` o en `src/common/providers/`?
 
