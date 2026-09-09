@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import pino from "pino";
+import pretty from "pino-pretty";
 
 import { environmentConfig } from "../config/environment.config";
 
@@ -26,18 +27,14 @@ function generatePinoConfig(logFilePath: string) {
 }
 
 function devLogger() {
-	return pino({
-		level: "debug",
-		base: undefined,
-		transport: {
-			target: "pino-pretty",
-			options: {
-				colorize: true,
-				translateTime: "SYS:standard",
-				singleLine: true
-			}
-		}
-	});
+	return pino(
+		{ level: "debug", base: undefined },
+		pretty({
+			colorize: true,
+			translateTime: "SYS:standard",
+			singleLine: true
+		})
+	);
 }
 
 function defaultLogger(logFilePath: string) {
