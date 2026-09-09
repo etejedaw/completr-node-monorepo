@@ -29,3 +29,10 @@ export function parseError(rawError: unknown) {
 		raw: rawError
 	});
 }
+
+export function disabledError() {
+	return new ServiceError("RAWG_DISABLED", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}

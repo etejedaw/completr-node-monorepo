@@ -19,6 +19,7 @@ import { listsDomainToHttpMapper } from "../../lists/errors/lists.domain-to-http
 import { moodTagsDomainToHttpMapper } from "../../mood-tags/errors/mood-tags.domain-to-http.mapper";
 import { platformsDomainToHttpMapper } from "../../platforms/errors/platforms.domain-to-http.mapper";
 import { queueDomainToHttpMapper } from "../../queue/errors/queue.domain-to-http.mapper";
+import { rawgDomainToHttpMapper } from "../../rawg/errors/rawg.domain-to-http.mapper";
 import { reviewsDomainToHttpMapper } from "../../reviews/errors/reviews.domain-to-http.mapper";
 import { savedFiltersDomainToHttpMapper } from "../../saved-filters/errors/saved-filters.domain-to-http.mapper";
 import { userFollowRequestsDomainToHttpMapper } from "../../user-follow-requests/errors/user-follow-requests.domain-to-http.mapper";
@@ -107,6 +108,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "Activity Module")
 		return activityDomainToHttpMapper(error, request);
+
+	if (error.module === "RAWG Provider")
+		return rawgDomainToHttpMapper(error, request);
 
 	if (error.module === "Common Module" || error.module === "COMMON")
 		return commonDomainToHttpMapper(error, request);
