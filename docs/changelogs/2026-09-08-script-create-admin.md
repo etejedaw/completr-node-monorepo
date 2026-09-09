@@ -1,0 +1,41 @@
+# Script de creacion de administradores
+
+**Released:** 2026-09-08
+
+## Summary
+
+Un despliegue nuevo no tenia forma de crear el primer usuario administrador: el registro publico siempre crea usuarios con rol `user` y no hay endpoint para elevar el rol. Se agrega `scripts/create-admin.ts`, un script de provisionamiento que se ejecuta contra la base ya migrada y deja un admin listo. Para poder compilarlo junto al backend se movio el `rootDir` de TypeScript a la raiz del repo, lo que cambia la ruta del entrypoint en `dist`.
+
+## Highlights
+
+- `npm run create:admin <email> [password]` crea un usuario con rol `admin`.
+- Si no se pasa password, el script genera una aleatoria y la imprime una sola vez en el log.
+- El username se deriva del email y se valida con las mismas reglas que el registro (4-15 caracteres).
+- `scripts/` pasa a estar versionado, compilado y lintado como el resto del codigo.
+
+## Added
+
+- `scripts/create-admin.ts` — valida argumentos con Zod, hashea la password con `password.service`, crea el usuario via `users.service` y luego actualiza su rol a `admin`. Cierra la conexion de Sequelize al terminar y sale con codigo 1 ante cualquier error.
+- Script `create:admin` en `package.json`, que corre el artefacto compilado (`dist/scripts/create-admin.js`).
+
+## Changed
+
+- `tsconfig.json`: `rootDir` pasa de `./src` a `.` y `include` suma `scripts`, para que el script se compile en el mismo build que el backend.
+- `eslint.config.mjs`: se quita `scripts` de los ignores.
+- `.gitignore`: se quita `scripts/`, que hasta ahora excluia la carpeta entera del repo.
+
+## Migration
+
+- **La ruta del entrypoint compilado cambio.** Con `rootDir` en la raiz, `dist/app.js` pasa a ser `dist/src/app.js`. El script `start` ya apunta a la ruta nueva, pero cualquier Dockerfile, unidad de systemd, `Procfile` o configuracion de PM2 que invoque `node dist/app.js` directamente debe actualizarse.
+- El script asume que las migraciones ya corrieron: ejecutar `npm run migrate` antes de `npm run create:admin`.
+- La password generada se muestra una unica vez en la salida del script; no queda recuperable despues.
+
+## Files of interest
+
+- `scripts/create-admin.ts` — el script completo.
+- `tsconfig.json` — cambio de `rootDir` e `include`.
+- `package.json` — scripts `create:admin` y `start`.
+
+## Commits
+
+- `456b2e0` — feat(scripts): add create-admin provisioning script
