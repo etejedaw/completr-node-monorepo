@@ -29,7 +29,7 @@ export async function authOptionalMiddleware(
 			};
 		}
 	} catch {
-		// No valid token — continue as anonymous
+		return next();
 	}
 
 	return next();

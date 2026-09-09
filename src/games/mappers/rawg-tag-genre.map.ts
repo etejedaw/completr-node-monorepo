@@ -1,4 +1,3 @@
-/** Maps RAWG tag slugs to Completr genre codes for tags that are effectively subgenres */
 export const RAWG_TAG_GENRE_MAP: Record<string, string> = {
 	"point-and-click": "point-and-click",
 	roguelike: "roguelike",

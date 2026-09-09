@@ -447,8 +447,6 @@ async function loadTargetMap(
 	viewerGameIds: string[],
 	options: ComparisonOptions
 ): Promise<Map<string, ComparisonGameEntry>> {
-	// onlyTarget needs the target's full set; otherwise restrict the query to
-	// the viewer's games — enough for inCommon and onlyViewer, and far cheaper.
 	if (options.includeOnlyTarget) {
 		return toEntryMap(await loadComparisonEntries(targetId, by, true));
 	}

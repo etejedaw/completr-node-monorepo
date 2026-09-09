@@ -1,5 +1,3 @@
-// `&amp;` is decoded last so single-encoded values aren't over-decoded
-// (e.g. `&amp;lt;` must become `&lt;`, not `<`).
 const ENTITY_REPLACEMENTS: readonly (readonly [RegExp, string])[] = [
 	[/&lt;/g, "<"],
 	[/&gt;/g, ">"],

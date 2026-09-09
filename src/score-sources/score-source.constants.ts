@@ -1,4 +1,3 @@
-/** Score source codes — kept as constants for schema validation until dynamic validation is implemented */
 export const SCORE_SOURCES = [
 	"metacritic",
 	"opencritic",

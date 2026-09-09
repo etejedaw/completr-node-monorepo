@@ -1,4 +1,3 @@
-/** Maps RAWG platform slugs to Completr platform codes */
 const RAWG_PLATFORM_MAP: Record<string, string> = {
 	playstation5: "playstation-5",
 	playstation4: "playstation-4",
@@ -28,7 +27,6 @@ const RAWG_PLATFORM_MAP: Record<string, string> = {
 	android: "android"
 };
 
-/** RAWG "pc" expands to all PC store platforms plus the generic PC option */
 const PC_PLATFORMS = [
 	"pc",
 	"steam",

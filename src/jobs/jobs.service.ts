@@ -62,8 +62,6 @@ async function failJob(jobId: string, result: string) {
 	);
 }
 
-// --- Populate RAWG IDs ---
-
 export async function startPopulateRawg(limit?: number) {
 	if (!rawg.isEnabled) throw rawgServiceError.disabledError();
 
@@ -158,8 +156,6 @@ async function runCalculateRatings(jobId: string) {
 	}
 }
 
-// --- Cleanup orphan coop runs ---
-
 export async function startCleanupCoopRuns() {
 	return startJob("cleanup_coop_runs", runCleanupCoopRuns);
 }
@@ -173,8 +169,6 @@ async function runCleanupCoopRuns(jobId: string) {
 	}
 }
 
-// --- Recompute popularity (COUNT DISTINCT users in GameShelf per game) ---
-
 export async function startRecomputePopularity() {
 	return startJob("recompute_popularity", runRecomputePopularity);
 }
@@ -187,8 +181,6 @@ async function runRecomputePopularity(jobId: string) {
 		await failJob(jobId, `Failed`);
 	}
 }
-
-// --- Calculate Durations (backlog realDuration → GameTime completr) ---
 
 export async function startCalculateDurations() {
 	return startJob("calculate_durations", runCalculateDurations);

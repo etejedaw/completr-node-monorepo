@@ -1,4 +1,3 @@
-/** Maps RAWG genre slugs to Completr genre codes */
 export const RAWG_GENRE_MAP: Record<string, string> = {
 	action: "action",
 	indie: "indie",
