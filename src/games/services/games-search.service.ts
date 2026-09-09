@@ -10,7 +10,7 @@ import {
 import { apiKeysConfig } from "../../common/config/api-keys.config";
 import { sequelize } from "../../database/sequelize.database";
 import { type RawgGameDetail } from "../../rawg/rawg.interface";
-import { RawgProvider } from "../../rawg/rawg.provider";
+import { RawgClient } from "../../rawg/rawg.provider";
 import * as reviewsService from "../../reviews/reviews.service";
 import { Game } from "../game.model";
 import { type GamesFilters, type GamesQueryOptions } from "../games.interface";
@@ -27,7 +27,7 @@ import {
 	buildSourceExclusionCondition
 } from "../utils/search-filters.util";
 
-const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
+const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
 
 const GAME_SUMMARY_ATTRS = ["id", "code", "title", "backgroundUrl", "coverUrl"];
 const PLATFORM_ATTRS = ["id", "name", "code", "abbreviation"];

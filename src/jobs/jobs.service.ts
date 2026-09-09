@@ -8,10 +8,13 @@ import * as gamePopularityService from "../game-popularity/game-popularity.servi
 import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
 import * as gamesService from "../games/games.service";
-import { RawgProvider } from "../rawg/rawg.provider";
+import * as rawgServiceError from "../rawg/errors/rawg.service-error";
+import { RawgClient } from "../rawg/rawg.provider";
 import * as reviewsService from "../reviews/reviews.service";
 import * as usersService from "../users/users.service";
 import { Job } from "./job.model";
+
+const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
 
 const MIN_THRESHOLD_PERCENT = 0.1;
 
@@ -62,11 +65,12 @@ async function failJob(jobId: string, result: string) {
 // --- Populate RAWG IDs ---
 
 export async function startPopulateRawg(limit?: number) {
+	if (!rawg.isEnabled) throw rawgServiceError.disabledError();
+
 	return startJob("populate_rawg", jobId => runPopulateRawg(jobId, limit));
 }
 
 async function runPopulateRawg(jobId: string, limit?: number) {
-	const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
 	let processed = 0;
 	let errors = 0;
 

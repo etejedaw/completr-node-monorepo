@@ -5,10 +5,32 @@ import {
 	type RawgSearchFilters
 } from "./rawg.interface";
 
-export class RawgProvider {
+export abstract class RawgClient {
+	abstract readonly isEnabled: boolean;
+
+	static create(apiKey?: string): RawgClient {
+		if (!apiKey) return new DisabledRawgProvider();
+		return new RawgProvider(apiKey);
+	}
+
+	abstract searchGame(
+		query: string,
+		filters?: RawgSearchFilters
+	): Promise<RawgGameSearchResult[]>;
+
+	abstract getGameById(id: number): Promise<RawgGameDetail>;
+
+	abstract getGameBySlug(slug: string): Promise<RawgGameDetail>;
+}
+
+export class RawgProvider extends RawgClient {
+	readonly isEnabled = true;
+
 	private readonly BASE_URL = "https://api.rawg.io/api";
 
-	constructor(private readonly apiKey: string) {}
+	constructor(private readonly apiKey: string) {
+		super();
+	}
 
 	async searchGame(
 		query: string,
@@ -61,5 +83,21 @@ export class RawgProvider {
 			throw rawgServiceError.requestError(
 				`RAWG API returned ${response.status}: ${response.statusText}`
 			);
+	}
+}
+
+export class DisabledRawgProvider extends RawgClient {
+	readonly isEnabled = false;
+
+	searchGame(): Promise<RawgGameSearchResult[]> {
+		throw rawgServiceError.disabledError();
+	}
+
+	getGameById(): Promise<RawgGameDetail> {
+		throw rawgServiceError.disabledError();
+	}
+
+	getGameBySlug(): Promise<RawgGameDetail> {
+		throw rawgServiceError.disabledError();
 	}
 }

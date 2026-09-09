@@ -12,7 +12,7 @@ import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
 import * as genresService from "../genres/genres.service";
 import * as platformsService from "../platforms/platforms.service";
-import { RawgProvider } from "../rawg/rawg.provider";
+import { RawgClient } from "../rawg/rawg.provider";
 import { type RegisterGameDto } from "./dtos/register-game.dto";
 import { type UpdateGameDto } from "./dtos/update-game.dto";
 import * as gamesServiceError from "./errors/games.service-error";
@@ -57,7 +57,7 @@ export {
 } from "./services/games-search.service";
 export { splitGame } from "./services/games-variant.service";
 
-const rawg = new RawgProvider(apiKeysConfig.RAWG_API_KEY);
+const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
 const logger = new PinoLogger("GamesService");
 
 export async function registerGame(registerGameDto: RegisterGameDto) {
@@ -201,6 +201,8 @@ export async function searchGames(query: string, forceRawg = false) {
 
 async function searchAndCreateFromRawg(query: string) {
 	const importedIds = new Set<string>();
+	if (!rawg.isEnabled) return { games: [] as Game[], importedIds };
+
 	try {
 		const rawgResults = await rawg.searchGame(query, {
 			page_size: 3,
