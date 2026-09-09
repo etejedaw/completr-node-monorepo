@@ -15,7 +15,7 @@
 	"type": "commonjs",
 	"main": "index.js",
 	"scripts": {
-		"start": "node dist/app.js",
+		"start": "node dist/src/app.js",
 		"start:dev": "node --watch -r ts-node/register --env-file-if-exists=.env ./src/app.ts",
 		"start:stg": "node --watch -r ts-node/register --env-file=.env.staging.local ./src/app.ts",
 		"start:prod": "node --watch -r ts-node/register --env-file=.env.production.local ./src/app.ts",
@@ -28,6 +28,7 @@
 		"migrate:undo": "node --env-file=.env node_modules/.bin/sequelize-cli db:migrate:undo",
 		"migrate:create": "node --env-file=.env node_modules/.bin/sequelize-cli migration:generate --name",
 		"migrate:status": "node --env-file=.env node_modules/.bin/sequelize-cli db:migrate:status",
+		"create:admin": "node dist/scripts/create-admin.js",
 		"prepare": "husky"
 	},
 	"overrides": {

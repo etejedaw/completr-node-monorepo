@@ -15,8 +15,7 @@ export default defineConfig(
 			"logs",
 			"migrations",
 			".sequelizerc",
-			"**/*.migrate.js",
-			"scripts"
+			"**/*.migrate.js"
 		]
 	},
 	eslint.configs.recommended,

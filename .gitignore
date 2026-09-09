@@ -152,7 +152,6 @@ docs/informes/
 
 # Others
 **/.DS_Store
-scripts/
 tmp/
 
 # Claude local settings (keep skills tracked)
