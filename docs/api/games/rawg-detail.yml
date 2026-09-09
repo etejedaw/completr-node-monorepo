@@ -48,3 +48,11 @@ docs: |-
       }
     }
     ```
+
+    ### Errors
+
+    - 404 `RAWG_NOT_FOUND` — RAWG has no game for that id
+    - 429 `RAWG_RATE_LIMITED` — RAWG rate limit reached
+    - 502 `RAWG_REQUEST_ERROR` — RAWG request failed
+    - 502 `RAWG_PARSE_ERROR` — Unexpected RAWG response
+    - 503 `RAWG_DISABLED` — `RAWG_API_KEY` is not configured on the server

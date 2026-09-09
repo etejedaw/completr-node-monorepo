@@ -52,3 +52,7 @@ docs: |-
 
     Result string format:
     `Processed: X, Errors: Y, Skipped: Z, Total: T`
+
+    ### Errors
+
+    - 503 `RAWG_DISABLED` — `RAWG_API_KEY` is not configured on the server; the job is not started
