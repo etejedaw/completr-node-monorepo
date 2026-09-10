@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 
 import z from "zod";
 
+import { PasswordPolicySchema } from "../src/auth/schemas";
 import * as passwordService from "../src/auth/services/password.service";
 import { PinoLogger } from "../src/common/logger/pino.logger";
 import { initDatabase } from "../src/database/init.database";
@@ -12,6 +13,10 @@ const logger = new PinoLogger("create-admin");
 
 const UsernameSchema = z.string().min(4).max(15);
 
+function generatePassword() {
+	return `${randomBytes(9).toString("base64url").slice(0, 11)}Aa1!`;
+}
+
 function usernameFromEmail(email: string) {
 	return email
 		.slice(0, email.indexOf("@"))
@@ -21,11 +26,7 @@ function usernameFromEmail(email: string) {
 
 const ArgsSchema = z.object({
 	email: z.email().toLowerCase(),
-	password: z
-		.string()
-		.trim()
-		.min(6)
-		.default(() => randomBytes(12).toString("base64url"))
+	password: PasswordPolicySchema.default(generatePassword)
 });
 
 async function main() {
