@@ -1,6 +1,6 @@
 {
 	"name": "@completr/api",
-	"version": "0.4.0",
+	"private": true,
 	"description": "Backend for Completr, a game backlog tracker with ratio-based prioritization",
 	"homepage": "https://www.completr.app",
 	"bugs": {
@@ -14,7 +14,6 @@
 	"license": "AGPL-3.0",
 	"author": "Esteban Tejeda <contacto@etejeda.dev> (https://www.etejeda.dev)",
 	"type": "commonjs",
-	"main": "index.js",
 	"scripts": {
 		"start": "node dist/src/app.js",
 		"start:dev": "node --watch -r ts-node/register --env-file-if-exists=.env ./src/app.ts",
