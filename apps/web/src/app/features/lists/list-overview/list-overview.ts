@@ -2,18 +2,13 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { Subject, debounceTime, switchMap, of } from "rxjs";
-import { List, FollowingList } from "../../../core/models";
-import { ListsService } from "../lists";
-import {
-	ListModal,
-	type ListModalData,
-	type ListModalResult
-} from "../list-modal/list-modal";
+import { debounceTime, of, Subject, switchMap } from "rxjs";
+
+import { type FollowingList, type List } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
 import {
 	UiButton,
@@ -22,6 +17,12 @@ import {
 	UiProgress,
 	UiSearchBar
 } from "../../../shared/ui";
+import {
+	ListModal,
+	type ListModalData,
+	type ListModalResult
+} from "../list-modal/list-modal";
+import { ListsService } from "../lists";
 
 @Component({
 	selector: "app-list-overview",

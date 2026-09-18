@@ -2,19 +2,17 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { WishlistEntry } from "../../../core/models";
-import { WishlistService } from "../wishlist";
-import { FavoritesService } from "../../favorites/favorites";
+import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+
+import { type WishlistEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
-import {
-	WishlistAddModal,
-	type WishlistAddModalResult
-} from "../wishlist-add-modal/wishlist-add-modal";
+import { MoodTagsChips } from "../../../shared/components/mood-tags-chips/mood-tags-chips";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
@@ -22,9 +20,12 @@ import {
 	UiPremiumBadge,
 	UiSearchBar
 } from "../../../shared/ui";
-import { PremiumOnly } from "../../../shared/directives/premium-only";
-import { MoodTagsChips } from "../../../shared/components/mood-tags-chips/mood-tags-chips";
-import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
+import { FavoritesService } from "../../favorites/favorites";
+import { WishlistService } from "../wishlist";
+import {
+	WishlistAddModal,
+	type WishlistAddModalResult
+} from "../wishlist-add-modal/wishlist-add-modal";
 
 @Component({
 	selector: "app-wishlist-view",

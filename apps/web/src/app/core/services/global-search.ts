@@ -1,8 +1,9 @@
-import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
 import { forkJoin, map, of } from "rxjs";
+
 import { environment } from "../../../environments/environment";
-import { VisibilityLevel } from "../models/user.model";
+import { type VisibilityLevel } from "../models/user.model";
 
 interface UserResult {
 	id: string;

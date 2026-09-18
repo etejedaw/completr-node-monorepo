@@ -4,36 +4,18 @@ import {
 	computed,
 	effect,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+
 import { AuthService } from "../../core/services/auth";
-import { PublicProfileService, PublicProfile } from "./public-profile.service";
-import {
-	PublicLibraryService,
-	PublicFavorite,
-	PublicQueue,
-	PublicGameShelf,
-	ComparisonDimension,
-	UserComparison
-} from "./services/public-library.service";
-import {
-	PublicListsService,
-	PublicList
-} from "./services/public-lists.service";
-import { FranchiseProgress } from "../franchises/franchises";
-import {
-	PublicReviewsService,
-	HighlightEntry
-} from "./services/public-reviews.service";
-import { PublicSocialService } from "./services/public-social.service";
+import { DialogService } from "../../core/services/dialog";
+import { StarRating } from "../../shared/components/star-rating/star-rating";
 import {
 	UserListModal,
 	type UserListModalData
 } from "../../shared/components/user-list-modal/user-list-modal";
-import { DialogService } from "../../core/services/dialog";
-import { StarRating } from "../../shared/components/star-rating/star-rating";
 import {
 	UiAvatar,
 	UiButton,
@@ -49,6 +31,28 @@ import {
 	activityIconColorClass,
 	activityLabel
 } from "../../shared/utils/activity-labels";
+import { type FranchiseProgress } from "../franchises/franchises";
+import {
+	type PublicProfile,
+	PublicProfileService
+} from "./public-profile.service";
+import {
+	type ComparisonDimension,
+	type PublicFavorite,
+	type PublicGameShelf,
+	PublicLibraryService,
+	type PublicQueue,
+	type UserComparison
+} from "./services/public-library.service";
+import {
+	type PublicList,
+	PublicListsService
+} from "./services/public-lists.service";
+import {
+	type HighlightEntry,
+	PublicReviewsService
+} from "./services/public-reviews.service";
+import { PublicSocialService } from "./services/public-social.service";
 
 @Component({
 	selector: "app-public-profile",

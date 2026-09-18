@@ -2,15 +2,16 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
-import { Game } from "../../../core/models";
-import { GamesQuery, GamesService } from "../../games/games";
-import { ReportsService } from "../services/reports.service";
+
+import { type Game } from "../../../core/models";
 import { ToastService } from "../../../core/services/toast";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { type GamesQuery, GamesService } from "../../games/games";
+import { ReportsService } from "../services/reports.service";
 
 @Component({
 	selector: "app-admin-games",

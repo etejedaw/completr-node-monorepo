@@ -1,11 +1,12 @@
 import { inject } from "@angular/core";
-import { Routes } from "@angular/router";
+import { type Routes } from "@angular/router";
+
+import { adminGuard } from "./core/guards/admin.guard";
 import { authGuard } from "./core/guards/auth.guard";
 import { guestGuard } from "./core/guards/guest.guard";
 import { guestMatch } from "./core/guards/guest.match";
-import { selfProfileRedirect } from "./core/guards/self-profile-redirect.guard";
-import { adminGuard } from "./core/guards/admin.guard";
 import { moderatorGuard } from "./core/guards/moderator.guard";
+import { selfProfileRedirect } from "./core/guards/self-profile-redirect.guard";
 import { AuthService } from "./core/services/auth";
 
 const publicProfileRoutes: Routes = [

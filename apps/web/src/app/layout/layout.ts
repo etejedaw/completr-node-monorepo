@@ -1,29 +1,30 @@
+import { NgClass } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import {
+	NavigationCancel,
+	NavigationEnd,
+	NavigationError,
+	NavigationStart,
+	Router,
 	RouterLink,
 	RouterLinkActive,
-	RouterOutlet,
-	Router,
-	NavigationEnd,
-	NavigationStart,
-	NavigationCancel,
-	NavigationError
+	RouterOutlet
 } from "@angular/router";
-import { NgClass } from "@angular/common";
-import { AuthService } from "../core/services/auth";
 import { filter } from "rxjs";
-import { UiAvatar, UiIconButton, UiSeparator } from "../shared/ui";
-import { ToastContainer } from "../shared/components/toast-container/toast-container";
-import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
+
+import { AuthService } from "../core/services/auth";
 import { OnboardingService } from "../core/services/onboarding";
 import { AttributionFooter } from "../shared/components/attribution-footer/attribution-footer";
+import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
+import { ToastContainer } from "../shared/components/toast-container/toast-container";
+import { UiAvatar, UiIconButton, UiSeparator } from "../shared/ui";
 
 @Component({
 	selector: "app-layout",

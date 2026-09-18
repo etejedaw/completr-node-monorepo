@@ -1,4 +1,4 @@
-import { GameScore, GameTime } from "../../core/models/game.model";
+import { type GameScore, type GameTime } from "../../core/models/game.model";
 
 export type CanonicalScoreType = "completr" | "aggregate" | "rawg" | null;
 

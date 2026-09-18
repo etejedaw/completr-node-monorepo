@@ -1,15 +1,16 @@
+import { HttpClient } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { form, FormField } from "@angular/forms/signals";
-import { HttpClient } from "@angular/common/http";
+
 import { environment } from "../../../../environments/environment";
-import { AuthService, AuthSession } from "../../../core/services/auth";
+import { AuthService, type AuthSession } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
 import { UiButton, UiInput, UiPagination } from "../../../shared/ui";
 

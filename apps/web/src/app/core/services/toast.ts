@@ -1,4 +1,4 @@
-import { Injectable, TemplateRef, inject } from "@angular/core";
+import { inject, Injectable, type TemplateRef } from "@angular/core";
 import { NgpToastManager, type NgpToastRef } from "ng-primitives/toast";
 
 export type ToastVariant = "info" | "success" | "warning" | "error";

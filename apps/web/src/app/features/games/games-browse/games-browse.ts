@@ -4,25 +4,30 @@ import {
 	computed,
 	effect,
 	inject,
-	OnInit,
-	OnDestroy,
+	type OnDestroy,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Game, Genre, List, Platform } from "../../../core/models";
-import { GamesService } from "../games";
-import { ListsService } from "../../lists/lists";
-import { AuthService } from "../../../core/services/auth";
-import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import {
-	Subject,
-	Subscription,
 	debounceTime,
 	distinctUntilChanged,
 	interval,
-	switchMap,
-	of
+	of,
+	Subject,
+	type Subscription,
+	switchMap
 } from "rxjs";
+
+import {
+	type Game,
+	type Genre,
+	type List,
+	type Platform
+} from "../../../core/models";
+import { AuthService } from "../../../core/services/auth";
+import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
+import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
 	UiButton,
 	UiInput,
@@ -30,8 +35,9 @@ import {
 	UiSearchBar,
 	UiSelect
 } from "../../../shared/ui";
-import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
-import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { ListsService } from "../../lists/lists";
+import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
+import { GamesService } from "../games";
 
 @Component({
 	selector: "app-games-browse",

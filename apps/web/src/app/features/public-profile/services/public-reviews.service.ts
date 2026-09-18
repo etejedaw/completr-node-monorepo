@@ -1,9 +1,10 @@
-import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
+
 import { environment } from "../../../../environments/environment";
 import { buildHttpParams } from "../../../core/utils/http-params";
-import { GameSummary } from "./types";
+import { type GameSummary } from "./types";
 
 export interface HighlightEntry {
 	id: string;

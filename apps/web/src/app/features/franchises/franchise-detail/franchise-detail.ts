@@ -2,15 +2,16 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
+
 import { AuthService } from "../../../core/services/auth";
-import { UiPagination, UiProgress } from "../../../shared/ui";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { UiPagination, UiProgress } from "../../../shared/ui";
 import {
-	FranchiseDetail as FranchiseDetailData,
+	type FranchiseDetail as FranchiseDetailData,
 	FranchisesService
 } from "../franchises";
 

@@ -1,19 +1,20 @@
+import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { DatePipe } from "@angular/common";
-import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
+import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+
+import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
-import { PublicLibraryService } from "../services/public-library.service";
-import { BacklogEntry, BacklogStatus } from "../../../core/models";
-import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
+import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { PublicLibraryService } from "../services/public-library.service";
 
 const PAGE_SIZE = 50;
 

@@ -1,7 +1,7 @@
-import { Component, inject, ChangeDetectionStrategy } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { RouterOutlet } from "@angular/router";
-import { SwUpdate, VersionReadyEvent } from "@angular/service-worker";
+import { SwUpdate, type VersionReadyEvent } from "@angular/service-worker";
 import { filter, fromEvent, interval, merge } from "rxjs";
 
 const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000;

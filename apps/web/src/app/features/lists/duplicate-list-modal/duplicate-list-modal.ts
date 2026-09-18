@@ -4,15 +4,15 @@ import {
 	inject,
 	signal
 } from "@angular/core";
-import { form, required, maxLength, FormField } from "@angular/forms/signals";
+import { form, FormField, maxLength, required } from "@angular/forms/signals";
 import {
+	injectDialogRef,
 	NgpDialog,
 	NgpDialogOverlay,
-	NgpDialogTitle,
-	injectDialogRef
+	NgpDialogTitle
 } from "ng-primitives/dialog";
-import { List } from "../../../core/models";
-import { ListsService } from "../lists";
+
+import { type List } from "../../../core/models";
 import {
 	UiButton,
 	UiFormField,
@@ -20,6 +20,7 @@ import {
 	UiInput,
 	UiLabel
 } from "../../../shared/ui";
+import { ListsService } from "../lists";
 
 export interface DuplicateListModalData {
 	list: List;

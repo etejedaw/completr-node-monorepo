@@ -2,22 +2,22 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { FavoriteEntry, Game, BacklogEntry } from "../../../core/models";
-import { FavoritesService } from "../favorites";
-import { BacklogService } from "../../backlog/backlog";
+import { RouterLink } from "@angular/router";
+import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+
 import {
-	BacklogModal,
-	type BacklogModalData,
-	type BacklogModalResult
-} from "../../backlog/backlog-modal/backlog-modal";
-import { GamesService } from "../../games/games";
-import { ToastService } from "../../../core/services/toast";
+	type BacklogEntry,
+	type FavoriteEntry,
+	type Game
+} from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
-import { RouterLink } from "@angular/router";
+import { ToastService } from "../../../core/services/toast";
+import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
@@ -26,9 +26,14 @@ import {
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
-import { PremiumOnly } from "../../../shared/directives/premium-only";
-import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
-import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
+import { BacklogService } from "../../backlog/backlog";
+import {
+	BacklogModal,
+	type BacklogModalData,
+	type BacklogModalResult
+} from "../../backlog/backlog-modal/backlog-modal";
+import { GamesService } from "../../games/games";
+import { FavoritesService } from "../favorites";
 
 @Component({
 	selector: "app-favorites-view",

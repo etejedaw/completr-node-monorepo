@@ -6,6 +6,7 @@ import {
 	output,
 	signal
 } from "@angular/core";
+
 import { getRatingLabel } from "../../constants/rating-labels";
 
 type StarState = "empty" | "half" | "full";

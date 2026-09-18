@@ -6,6 +6,7 @@ import {
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+
 import { OnboardingService } from "../../core/services/onboarding";
 
 @Component({

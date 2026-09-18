@@ -6,13 +6,14 @@ import {
 	input,
 	signal
 } from "@angular/core";
-import { ActivatedRoute, RouterLink } from "@angular/router";
 import { form, FormField } from "@angular/forms/signals";
+import { ActivatedRoute, RouterLink } from "@angular/router";
+
 import { AuthService } from "../../../../core/services/auth";
-import { BacklogService } from "../../../backlog/backlog";
-import { ReviewsService, Review } from "../../reviews";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { UiButton, UiTextarea } from "../../../../shared/ui";
+import { BacklogService } from "../../../backlog/backlog";
+import { type Review, ReviewsService } from "../../reviews";
 
 @Component({
 	selector: "app-game-reviews-tab",

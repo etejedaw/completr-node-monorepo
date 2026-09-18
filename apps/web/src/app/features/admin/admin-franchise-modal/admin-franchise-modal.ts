@@ -2,31 +2,26 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { form, required, maxLength, FormField } from "@angular/forms/signals";
+import { form, FormField, maxLength, required } from "@angular/forms/signals";
 import {
+	injectDialogRef,
 	NgpDialog,
 	NgpDialogOverlay,
-	NgpDialogTitle,
-	injectDialogRef
+	NgpDialogTitle
 } from "ng-primitives/dialog";
 import {
-	Observable,
-	Subject,
 	debounceTime,
 	forkJoin,
+	type Observable,
 	of,
+	Subject,
 	switchMap
 } from "rxjs";
-import { Game } from "../../../core/models";
-import { GamesService } from "../../games/games";
-import {
-	Franchise,
-	FranchisesService,
-	FranchiseDto
-} from "../../franchises/franchises";
+
+import { type Game } from "../../../core/models";
 import {
 	UiButton,
 	UiFormField,
@@ -35,6 +30,12 @@ import {
 	UiLabel,
 	UiTextarea
 } from "../../../shared/ui";
+import {
+	type Franchise,
+	type FranchiseDto,
+	FranchisesService
+} from "../../franchises/franchises";
+import { GamesService } from "../../games/games";
 
 export interface AdminFranchiseModalData {
 	franchise: Franchise | null;

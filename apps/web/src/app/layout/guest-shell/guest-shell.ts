@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
+
 import { AttributionFooter } from "../../shared/components/attribution-footer/attribution-footer";
 
 @Component({

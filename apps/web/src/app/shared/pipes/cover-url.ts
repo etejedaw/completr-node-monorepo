@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform } from "@angular/core";
+import { Pipe, type PipeTransform } from "@angular/core";
 
 const RAWG_MEDIA_PREFIX = "https://media.rawg.io/media/";
 

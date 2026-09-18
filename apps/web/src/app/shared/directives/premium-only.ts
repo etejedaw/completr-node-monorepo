@@ -1,10 +1,11 @@
 import {
 	Directive,
-	TemplateRef,
-	ViewContainerRef,
 	effect,
-	inject
+	inject,
+	TemplateRef,
+	ViewContainerRef
 } from "@angular/core";
+
 import { AuthService } from "../../core/services/auth";
 
 @Directive({

@@ -1,55 +1,61 @@
 import {
+	CdkDrag,
+	type CdkDragDrop,
+	CdkDragHandle,
+	CdkDropList,
+	moveItemInArray
+} from "@angular/cdk/drag-drop";
+import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { List, ListItem, Game, BacklogEntry } from "../../../core/models";
-import { ListsService } from "../lists";
-import { AuthService } from "../../../core/services/auth";
-import { DialogService } from "../../../core/services/dialog";
 import {
-	ListModal,
-	type ListModalData,
-	type ListModalResult
-} from "../list-modal/list-modal";
-import {
-	DuplicateListModal,
-	type DuplicateListModalData,
-	type DuplicateListModalResult
-} from "../duplicate-list-modal/duplicate-list-modal";
-import {
-	BacklogModal,
-	type BacklogModalData,
-	type BacklogModalResult
-} from "../../backlog/backlog-modal/backlog-modal";
-import { BacklogService } from "../../backlog/backlog";
-import { GamesService } from "../../games/games";
-import {
-	Subject,
 	debounceTime,
 	distinctUntilChanged,
-	switchMap,
+	forkJoin,
 	of,
-	forkJoin
+	Subject,
+	switchMap
 } from "rxjs";
+
+import {
+	type BacklogEntry,
+	type Game,
+	type List,
+	type ListItem
+} from "../../../core/models";
+import { AuthService } from "../../../core/services/auth";
+import { DialogService } from "../../../core/services/dialog";
+import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
 import {
 	UiButton,
 	UiIconButton,
 	UiProgress,
 	UiSearchBar
 } from "../../../shared/ui";
-import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
+import { BacklogService } from "../../backlog/backlog";
 import {
-	CdkDrag,
-	CdkDragDrop,
-	CdkDragHandle,
-	CdkDropList,
-	moveItemInArray
-} from "@angular/cdk/drag-drop";
+	BacklogModal,
+	type BacklogModalData,
+	type BacklogModalResult
+} from "../../backlog/backlog-modal/backlog-modal";
+import { GamesService } from "../../games/games";
+import {
+	DuplicateListModal,
+	type DuplicateListModalData,
+	type DuplicateListModalResult
+} from "../duplicate-list-modal/duplicate-list-modal";
+import {
+	ListModal,
+	type ListModalData,
+	type ListModalResult
+} from "../list-modal/list-modal";
+import { ListsService } from "../lists";
 
 @Component({
 	selector: "app-list-detail",

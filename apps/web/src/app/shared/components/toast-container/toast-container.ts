@@ -2,12 +2,13 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
-	TemplateRef,
+	type OnInit,
+	type TemplateRef,
 	viewChild
 } from "@angular/core";
 import { NgpToast } from "ng-primitives/toast";
-import { Toast, ToastService } from "../../../core/services/toast";
+
+import { type Toast, ToastService } from "../../../core/services/toast";
 
 @Component({
 	selector: "app-toast-container",

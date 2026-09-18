@@ -3,15 +3,16 @@ import {
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
+
+import { type QueueEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
-import { PublicLibraryService } from "../services/public-library.service";
-import { QueueEntry } from "../../../core/models";
-import { UiPagination, UiSearchBar } from "../../../shared/ui";
 import { QueueGridCard } from "../../../shared/components/queue-grid-card/queue-grid-card";
+import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { PublicLibraryService } from "../services/public-library.service";
 
 const PAGE_SIZE = 50;
 

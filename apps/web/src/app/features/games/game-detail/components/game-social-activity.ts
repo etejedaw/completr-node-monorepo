@@ -7,8 +7,9 @@ import {
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { GamesService } from "../../games";
+
 import { AuthService } from "../../../../core/services/auth";
+import { GamesService } from "../../games";
 
 interface FriendActivity {
 	username: string;

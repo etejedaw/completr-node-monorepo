@@ -1,18 +1,19 @@
-import { inject, Injectable, signal } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { inject, Injectable, signal } from "@angular/core";
 import {
-	Observable,
 	map,
+	type Observable,
 	of,
 	shareReplay,
 	switchMap,
 	tap,
 	throwError
 } from "rxjs";
+
 import { environment } from "../../../environments/environment";
-import { FavoriteEntry } from "../../core/models";
-import { Appendable, buildHttpParams } from "../../core/utils/http-params";
+import { type FavoriteEntry } from "../../core/models";
 import { ToastService } from "../../core/services/toast";
+import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 const MAX_FAVORITES = 100;
 

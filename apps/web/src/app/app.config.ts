@@ -1,24 +1,24 @@
+import { provideHttpClient, withInterceptors } from "@angular/common/http";
 import {
-	ApplicationConfig,
-	provideBrowserGlobalErrorListeners,
-	provideAppInitializer,
+	type ApplicationConfig,
 	inject,
-	isDevMode
+	isDevMode,
+	provideAppInitializer,
+	provideBrowserGlobalErrorListeners
 } from "@angular/core";
 import {
+	PreloadAllModules,
 	provideRouter,
-	withPreloading,
-	PreloadAllModules
+	withPreloading
 } from "@angular/router";
-import { provideHttpClient, withInterceptors } from "@angular/common/http";
+import { provideServiceWorker } from "@angular/service-worker";
+import { provideToastConfig } from "ng-primitives/toast";
 import { catchError, firstValueFrom, of } from "rxjs";
 
 import { routes } from "./app.routes";
 import { authInterceptor } from "./core/interceptors/auth.interceptor";
 import { errorInterceptor } from "./core/interceptors/error.interceptor";
 import { AuthService } from "./core/services/auth";
-import { provideServiceWorker } from "@angular/service-worker";
-import { provideToastConfig } from "ng-primitives/toast";
 
 export const appConfig: ApplicationConfig = {
 	providers: [

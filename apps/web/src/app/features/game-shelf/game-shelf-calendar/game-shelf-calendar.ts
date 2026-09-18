@@ -1,3 +1,4 @@
+import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -8,7 +9,6 @@ import {
 	signal,
 	untracked
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
 import {
 	NgpDatePicker,
 	NgpDatePickerCell,
@@ -23,7 +23,8 @@ import {
 	NgpNativeDateAdapter,
 	provideDateAdapter
 } from "ng-primitives/date-time";
-import { GameShelfEntry } from "../../../core/models";
+
+import { type GameShelfEntry } from "../../../core/models";
 import { UiIconButton } from "../../../shared/ui";
 
 const MAX_CHIPS = 3;

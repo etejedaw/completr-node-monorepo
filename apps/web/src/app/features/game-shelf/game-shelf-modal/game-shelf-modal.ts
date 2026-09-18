@@ -1,40 +1,41 @@
+import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
-import { form, required, FormField } from "@angular/forms/signals";
+import { form, FormField, required } from "@angular/forms/signals";
 import {
+	injectDialogRef,
 	NgpDialog,
 	NgpDialogOverlay,
-	NgpDialogTitle,
-	injectDialogRef
+	NgpDialogTitle
 } from "ng-primitives/dialog";
-import { GameShelfEntry } from "../../../core/models";
-import { Game, Platform } from "../../../core/models";
 import {
-	GameShelfService,
-	CreateGameShelfDto,
-	UpdateGameShelfDto
-} from "../game-shelf";
-import { GamesService } from "../../games/games";
-import {
-	Subject,
 	debounceTime,
 	distinctUntilChanged,
-	switchMap,
-	of
+	of,
+	Subject,
+	switchMap
 } from "rxjs";
+
+import { type GameShelfEntry } from "../../../core/models";
+import { type Game, type Platform } from "../../../core/models";
 import {
 	UiButton,
 	UiIconButton,
 	UiSelect,
 	UiTextarea
 } from "../../../shared/ui";
+import { GamesService } from "../../games/games";
+import {
+	type CreateGameShelfDto,
+	GameShelfService,
+	type UpdateGameShelfDto
+} from "../game-shelf";
 
 export interface GameShelfModalData {
 	entry: GameShelfEntry | null;

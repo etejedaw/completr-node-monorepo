@@ -2,18 +2,18 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { form, required, maxLength, FormField } from "@angular/forms/signals";
+import { form, FormField, maxLength, required } from "@angular/forms/signals";
 import {
+	injectDialogRef,
 	NgpDialog,
 	NgpDialogOverlay,
-	NgpDialogTitle,
-	injectDialogRef
+	NgpDialogTitle
 } from "ng-primitives/dialog";
-import { List } from "../../../core/models";
-import { ListsService, CreateListDto, UpdateListDto } from "../lists";
+
+import { type List } from "../../../core/models";
 import {
 	UiButton,
 	UiFormField,
@@ -24,6 +24,7 @@ import {
 	UiRadioItem,
 	UiTextarea
 } from "../../../shared/ui";
+import { type CreateListDto, ListsService, type UpdateListDto } from "../lists";
 
 export interface ListModalData {
 	list: List | null;

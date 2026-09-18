@@ -1,9 +1,10 @@
-import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
+
 import { environment } from "../../../environments/environment";
-import { Game, Genre, Platform } from "../../core/models";
-import { Appendable, buildHttpParams } from "../../core/utils/http-params";
+import { type Game, type Genre, type Platform } from "../../core/models";
+import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 interface GamesResponse {
 	data: { games: Game[]; total: number; limit: number; offset: number };

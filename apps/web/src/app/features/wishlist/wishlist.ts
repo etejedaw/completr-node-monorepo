@@ -1,9 +1,10 @@
-import { inject, Injectable, signal } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { map, Observable, of, shareReplay, tap } from "rxjs";
+import { inject, Injectable, signal } from "@angular/core";
+import { map, type Observable, of, shareReplay, tap } from "rxjs";
+
 import { environment } from "../../../environments/environment";
-import { WishlistEntry } from "../../core/models";
-import { Appendable, buildHttpParams } from "../../core/utils/http-params";
+import { type WishlistEntry } from "../../core/models";
+import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 interface WishlistResponse {
 	data: { wishlist: WishlistEntry[]; total?: number };

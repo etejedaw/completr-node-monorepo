@@ -1,10 +1,10 @@
 import {
+	afterNextRender,
 	Directive,
 	ElementRef,
+	inject,
 	NgZone,
-	OnDestroy,
-	afterNextRender,
-	inject
+	type OnDestroy
 } from "@angular/core";
 
 @Directive({

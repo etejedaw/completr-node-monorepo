@@ -2,13 +2,14 @@ import {
 	ChangeDetectionStrategy,
 	ChangeDetectorRef,
 	Component,
-	OnInit,
 	computed,
 	inject,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { UiPagination } from "../../shared/ui";
+
 import { environment } from "../../../environments/environment";
+import { UiPagination } from "../../shared/ui";
 
 type Tint = "brand" | "purple" | "warning" | "success" | "danger";
 

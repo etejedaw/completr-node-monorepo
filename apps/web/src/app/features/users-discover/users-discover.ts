@@ -2,13 +2,14 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { Subject, debounceTime, switchMap, of } from "rxjs";
+import { debounceTime, of, Subject, switchMap } from "rxjs";
+
+import { type UserResult, UsersService } from "../../core/services/users";
 import { UiAvatar, UiSearchBar } from "../../shared/ui";
-import { UserResult, UsersService } from "../../core/services/users";
 
 @Component({
 	selector: "app-users-discover",

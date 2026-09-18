@@ -3,14 +3,15 @@ import {
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
+
 import { AuthService } from "../../../core/services/auth";
 import {
-	ThemeService,
-	ThemeId,
-	ThemeOption
+	type ThemeId,
+	type ThemeOption,
+	ThemeService
 } from "../../../core/services/theme";
 import { ToastService } from "../../../core/services/toast";
 import { UiPremiumBadge } from "../../../shared/ui";

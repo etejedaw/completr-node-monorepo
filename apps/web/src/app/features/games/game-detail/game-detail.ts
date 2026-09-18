@@ -1,19 +1,50 @@
+import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Game, BacklogEntry } from "../../../core/models";
-import { GamesService } from "../games";
-import { FranchisesService } from "../../franchises/franchises";
-import { ScoreSourcesService } from "../../../core/services/score-sources";
+
+import { type BacklogEntry, type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
+import { DialogService } from "../../../core/services/dialog";
+import { ScoreSourcesService } from "../../../core/services/score-sources";
+import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
+import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { getRatingLabel } from "../../../shared/constants/rating-labels";
+import {
+	UiButton,
+	UiTab,
+	UiTabList,
+	UiTabPanel,
+	UiTabs
+} from "../../../shared/ui";
+import {
+	backlogStatusClass,
+	backlogStatusIcon,
+	backlogStatusLabel
+} from "../../../shared/utils/backlog-status";
+import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
+import { metascoreColorClass } from "../../../shared/utils/metascore-color";
+import { BacklogService } from "../../backlog/backlog";
+import {
+	BacklogModal,
+	type BacklogModalData,
+	type BacklogModalResult
+} from "../../backlog/backlog-modal/backlog-modal";
 import { FavoritesService } from "../../favorites/favorites";
+import { FranchisesService } from "../../franchises/franchises";
+import { GameShelfService } from "../../game-shelf/game-shelf";
+import {
+	GameShelfModal,
+	type GameShelfModalData,
+	type GameShelfModalResult
+} from "../../game-shelf/game-shelf-modal/game-shelf-modal";
+import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { QueueService } from "../../queue/queue";
 import { WishlistService } from "../../wishlist/wishlist";
 import {
@@ -21,45 +52,15 @@ import {
 	type WishlistPlatformModalData,
 	type WishlistPlatformModalResult
 } from "../../wishlist/wishlist-platform-modal/wishlist-platform-modal";
-import { DialogService } from "../../../core/services/dialog";
-import { BacklogService } from "../../backlog/backlog";
-import { GameShelfService } from "../../game-shelf/game-shelf";
-import {
-	BacklogModal,
-	type BacklogModalData,
-	type BacklogModalResult
-} from "../../backlog/backlog-modal/backlog-modal";
-import {
-	GameShelfModal,
-	type GameShelfModalData,
-	type GameShelfModalResult
-} from "../../game-shelf/game-shelf-modal/game-shelf-modal";
-import { StarRating } from "../../../shared/components/star-rating/star-rating";
-import { getRatingLabel } from "../../../shared/constants/rating-labels";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
-import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
-import { metascoreColorClass } from "../../../shared/utils/metascore-color";
-import {
-	backlogStatusClass,
-	backlogStatusLabel,
-	backlogStatusIcon
-} from "../../../shared/utils/backlog-status";
-import {
-	UiButton,
-	UiTabs,
-	UiTabList,
-	UiTab,
-	UiTabPanel
-} from "../../../shared/ui";
-import { GameSocialActivity } from "./components/game-social-activity";
+import { GamesService } from "../games";
 import {
 	GameAddToListModal,
 	type GameAddToListModalData,
-	ListsChanged
+	type ListsChanged
 } from "./components/game-add-to-list-modal";
 import { GameReviewsTab } from "./components/game-reviews-tab";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
-import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
+import { GameSocialActivity } from "./components/game-social-activity";
 
 interface AdminActionsState {
 	confirmDeactivate: boolean;

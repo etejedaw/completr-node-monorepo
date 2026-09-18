@@ -4,8 +4,9 @@ import {
 	inject,
 	signal
 } from "@angular/core";
-import { form, required, FormField } from "@angular/forms/signals";
+import { form, FormField, required } from "@angular/forms/signals";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+
 import { AuthService } from "../../../core/services/auth";
 import { UiButton, UiInput } from "../../../shared/ui";
 

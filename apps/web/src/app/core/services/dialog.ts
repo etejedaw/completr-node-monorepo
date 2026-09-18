@@ -1,7 +1,7 @@
-import { Injectable, Type, inject } from "@angular/core";
+import { inject, Injectable, type Type } from "@angular/core";
 import {
-	NgpDialogManager,
 	type NgpDialogConfig,
+	NgpDialogManager,
 	type NgpDialogRef
 } from "ng-primitives/dialog";
 

@@ -1,5 +1,6 @@
 import { Directive, input } from "@angular/core";
 import { NgpNativeSelect } from "ng-primitives/select";
+
 import type { UiInputSize } from "../input/ui-input";
 
 @Directive({

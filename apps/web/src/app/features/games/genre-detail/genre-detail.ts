@@ -2,15 +2,16 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { Game, Genre } from "../../../core/models";
-import { GamesService } from "../games";
+
+import { type Game, type Genre } from "../../../core/models";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { UiButton } from "../../../shared/ui";
 import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
+import { GamesService } from "../games";
 
 const PAGE_SIZE = 50;
 

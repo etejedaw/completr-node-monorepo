@@ -1,3 +1,4 @@
+import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -8,8 +9,6 @@ import {
 	output,
 	signal
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
-import { BacklogFilters, BacklogService } from "../backlog";
 import {
 	NgpDatePicker,
 	NgpDatePickerCell,
@@ -24,8 +23,10 @@ import {
 	NgpNativeDateAdapter,
 	provideDateAdapter
 } from "ng-primitives/date-time";
-import { BacklogEntry, BacklogStatus } from "../../../core/models";
+
+import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
 import { UiIconButton } from "../../../shared/ui";
+import { type BacklogFilters, BacklogService } from "../backlog";
 
 interface BarSlot {
 	entry: BacklogEntry;

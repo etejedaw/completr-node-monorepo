@@ -6,7 +6,8 @@ import {
 	model
 } from "@angular/core";
 import { NgpToggleGroup, NgpToggleGroupItem } from "ng-primitives/toggle-group";
-import { Genre, Platform } from "../../../core/models";
+
+import { type Genre, type Platform } from "../../../core/models";
 import { UiInput } from "../../ui";
 
 @Component({

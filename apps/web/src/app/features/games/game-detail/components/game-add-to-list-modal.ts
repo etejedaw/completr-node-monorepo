@@ -2,18 +2,19 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import {
+	injectDialogRef,
 	NgpDialog,
 	NgpDialogOverlay,
-	NgpDialogTitle,
-	injectDialogRef
+	NgpDialogTitle
 } from "ng-primitives/dialog";
-import { GamesService } from "../../games";
-import { ListsService } from "../../../lists/lists";
+
 import { UiButton, UiInput } from "../../../../shared/ui";
+import { ListsService } from "../../../lists/lists";
+import { GamesService } from "../../games";
 
 interface MyList {
 	id: string;

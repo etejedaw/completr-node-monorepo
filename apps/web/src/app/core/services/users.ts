@@ -1,8 +1,9 @@
-import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
+
 import { environment } from "../../../environments/environment";
-import { VisibilityLevel } from "../models/user.model";
+import { type VisibilityLevel } from "../models/user.model";
 import { buildHttpParams } from "../utils/http-params";
 
 export interface UserResult {

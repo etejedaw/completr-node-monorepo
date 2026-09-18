@@ -4,23 +4,24 @@ import {
 	computed,
 	inject,
 	input,
-	OnInit,
+	type OnInit,
 	output,
 	signal
 } from "@angular/core";
-import { form, maxLength, FormField } from "@angular/forms/signals";
-import { Game, Genre, Platform } from "../../../core/models";
-import {
-	CompilationItemInput,
-	CreateGameDto,
-	GamesService,
-	RawgDetail,
-	UpdateGameDto
-} from "../games";
+import { form, FormField, maxLength } from "@angular/forms/signals";
 import { forkJoin } from "rxjs";
+
+import { type Game, type Genre, type Platform } from "../../../core/models";
 import { ToastService } from "../../../core/services/toast";
 import { UiSelect, UiTextarea } from "../../../shared/ui";
-import { Franchise, FranchisesService } from "../../franchises/franchises";
+import { type Franchise, FranchisesService } from "../../franchises/franchises";
+import {
+	type CompilationItemInput,
+	type CreateGameDto,
+	GamesService,
+	type RawgDetail,
+	type UpdateGameDto
+} from "../games";
 
 type CompilationRowMode = "link" | "create";
 

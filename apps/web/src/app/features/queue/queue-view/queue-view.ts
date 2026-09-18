@@ -1,22 +1,28 @@
 import {
+	CdkDrag,
+	type CdkDragDrop,
+	CdkDropList,
+	moveItemInArray
+} from "@angular/cdk/drag-drop";
+import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { QueueEntry } from "../../../core/models";
-import { QueueService } from "../queue";
-import { BacklogService } from "../../backlog/backlog";
-import { FavoritesService } from "../../favorites/favorites";
-import { ToastService } from "../../../core/services/toast";
+import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+
+import { type QueueEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
+import { ToastService } from "../../../core/services/toast";
 import {
-	QueueAddModal,
-	type QueueAddModalData
-} from "../queue-add-modal/queue-add-modal";
+	QueueGridCard,
+	type QueueStatusChange
+} from "../../../shared/components/queue-grid-card/queue-grid-card";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
@@ -25,18 +31,13 @@ import {
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
-import { PremiumOnly } from "../../../shared/directives/premium-only";
+import { BacklogService } from "../../backlog/backlog";
+import { FavoritesService } from "../../favorites/favorites";
+import { QueueService } from "../queue";
 import {
-	QueueGridCard,
-	QueueStatusChange
-} from "../../../shared/components/queue-grid-card/queue-grid-card";
-import {
-	CdkDrag,
-	CdkDragDrop,
-	CdkDropList,
-	moveItemInArray
-} from "@angular/cdk/drag-drop";
-import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
+	QueueAddModal,
+	type QueueAddModalData
+} from "../queue-add-modal/queue-add-modal";
 
 @Component({
 	selector: "app-queue-view",

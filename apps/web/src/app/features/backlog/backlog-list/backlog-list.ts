@@ -1,66 +1,45 @@
 import {
-	ChangeDetectionStrategy,
-	Component,
-	effect,
-	inject,
-	OnInit,
-	signal,
-	untracked
-} from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
-import { DatePipe } from "@angular/common";
-import { HttpErrorResponse } from "@angular/common/http";
-import {
 	CdkDrag,
-	CdkDragDrop,
+	type CdkDragDrop,
 	CdkDragHandle,
 	CdkDropList,
 	moveItemInArray
 } from "@angular/cdk/drag-drop";
+import { DatePipe } from "@angular/common";
+import { HttpErrorResponse } from "@angular/common/http";
 import {
-	BacklogEntry,
-	BacklogStatus,
-	Genre,
-	Platform
+	ChangeDetectionStrategy,
+	Component,
+	effect,
+	inject,
+	type OnInit,
+	signal,
+	untracked
+} from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
+import {
+	ActivatedRoute,
+	type ParamMap,
+	Router,
+	RouterLink
+} from "@angular/router";
+import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+
+import {
+	type BacklogEntry,
+	type BacklogStatus,
+	type Genre,
+	type Platform
 } from "../../../core/models";
-import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
-import {
-	backlogStatusClass,
-	backlogStatusLabel,
-	backlogStatusIcon,
-	backlogStatusIconColor
-} from "../../../shared/utils/backlog-status";
-import { BacklogService, BacklogFilters } from "../backlog";
-import { savedFilterColorHex } from "../saved-filter-appearance";
-import {
-	SavedFiltersService,
-	SavedFilter,
-	SavedFilterStats,
-	STAT_KEYS,
-	StatKey,
-	DEFAULT_ENABLED_STATS,
-	STAT_LABELS
-} from "../saved-filters";
-import { QueueService } from "../../queue/queue";
-import { FavoritesService } from "../../favorites/favorites";
-import { GamesService } from "../../games/games";
-import { ActivatedRoute, ParamMap, Router, RouterLink } from "@angular/router";
-import {
-	BacklogModal,
-	type BacklogModalData,
-	type BacklogModalResult
-} from "../backlog-modal/backlog-modal";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
-import { BacklogCalendar } from "../backlog-calendar/backlog-calendar";
-import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
+import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
+import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
+import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { FloatingXScrollbar } from "../../../shared/directives/floating-x-scrollbar";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
-import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
-import { ReviewsService } from "../../games/reviews";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
-import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import {
 	UiButton,
 	UiEmptyState,
@@ -73,7 +52,34 @@ import {
 	UiSwitch,
 	UiTextarea
 } from "../../../shared/ui";
-import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
+import {
+	backlogStatusClass,
+	backlogStatusIcon,
+	backlogStatusIconColor,
+	backlogStatusLabel
+} from "../../../shared/utils/backlog-status";
+import { FavoritesService } from "../../favorites/favorites";
+import { GamesService } from "../../games/games";
+import { ReviewsService } from "../../games/reviews";
+import { MoodTagsService } from "../../mood-tags/mood-tags";
+import { QueueService } from "../../queue/queue";
+import { type BacklogFilters, BacklogService } from "../backlog";
+import { BacklogCalendar } from "../backlog-calendar/backlog-calendar";
+import {
+	BacklogModal,
+	type BacklogModalData,
+	type BacklogModalResult
+} from "../backlog-modal/backlog-modal";
+import { savedFilterColorHex } from "../saved-filter-appearance";
+import {
+	DEFAULT_ENABLED_STATS,
+	type SavedFilter,
+	SavedFiltersService,
+	type SavedFilterStats,
+	STAT_KEYS,
+	STAT_LABELS,
+	type StatKey
+} from "../saved-filters";
 
 interface PendingStatusUpdate {
 	entry: BacklogEntry;

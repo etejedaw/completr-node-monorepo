@@ -1,8 +1,9 @@
-import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
+
 import { environment } from "../../../environments/environment";
-import { Game } from "../../core/models";
+import { type Game } from "../../core/models";
 import { buildHttpParams } from "../../core/utils/http-params";
 
 export interface Franchise {

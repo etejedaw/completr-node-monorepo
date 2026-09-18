@@ -1,10 +1,11 @@
 import {
+	booleanAttribute,
 	ChangeDetectionStrategy,
 	Component,
-	booleanAttribute,
 	inject,
 	input
 } from "@angular/core";
+
 import { ToastService } from "../../../core/services/toast";
 
 @Component({

@@ -2,18 +2,19 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
-import { Franchise, FranchisesService } from "../../franchises/franchises";
 import { UiButton, UiIconButton } from "../../../shared/ui";
+import { type Franchise, FranchisesService } from "../../franchises/franchises";
 import {
 	AdminFranchiseModal,
-	AdminFranchiseModalData,
-	AdminFranchiseModalResult
+	type AdminFranchiseModalData,
+	type AdminFranchiseModalResult
 } from "../admin-franchise-modal/admin-franchise-modal";
 
 @Component({

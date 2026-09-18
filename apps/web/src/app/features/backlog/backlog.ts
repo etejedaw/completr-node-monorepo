@@ -1,9 +1,10 @@
-import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
+
 import { environment } from "../../../environments/environment";
-import { BacklogEntry } from "../../core/models";
-import { Appendable, buildHttpParams } from "../../core/utils/http-params";
+import { type BacklogEntry } from "../../core/models";
+import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 interface BacklogListResponse {
 	data: { backlog: BacklogEntry[]; total: number };

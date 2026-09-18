@@ -2,14 +2,15 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
+
 import { AuthService } from "../../../core/services/auth";
-import { PublicReviewsService } from "../services/public-reviews.service";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { UiPagination } from "../../../shared/ui";
+import { PublicReviewsService } from "../services/public-reviews.service";
 
 const PAGE_SIZE = 20;
 

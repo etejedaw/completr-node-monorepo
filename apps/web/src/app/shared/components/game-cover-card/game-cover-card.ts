@@ -1,14 +1,15 @@
+import { DatePipe, NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	input,
 	output
 } from "@angular/core";
-import { DatePipe, NgTemplateOutlet } from "@angular/common";
 import { RouterLink } from "@angular/router";
+
+import { CoverUrlPipe } from "../../pipes/cover-url";
 import { UiIconButton } from "../../ui";
 import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
-import { CoverUrlPipe } from "../../pipes/cover-url";
 
 export interface GameCoverCardGame {
 	code: string;

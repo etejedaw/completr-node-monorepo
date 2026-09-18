@@ -1,9 +1,10 @@
-import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
 import { map, switchMap } from "rxjs";
+
 import { environment } from "../../../environments/environment";
-import { QueueEntry } from "../../core/models";
-import { Appendable, buildHttpParams } from "../../core/utils/http-params";
+import { type QueueEntry } from "../../core/models";
+import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 interface QueueListResponse {
 	data: { queue: QueueEntry[]; total?: number };

@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
+
 import { CoverUrlPipe } from "../../pipes/cover-url";
+import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
 
 @Component({
 	selector: "app-game-title-cell",

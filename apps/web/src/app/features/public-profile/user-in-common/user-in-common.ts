@@ -3,18 +3,19 @@ import {
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+
 import { AuthService } from "../../../core/services/auth";
+import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { UiPagination } from "../../../shared/ui";
 import {
-	ComparisonDimension,
+	type ComparisonDimension,
 	PublicLibraryService
 } from "../services/public-library.service";
-import { UiPagination } from "../../../shared/ui";
-import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
-import { GameSummary } from "../services/types";
+import { type GameSummary } from "../services/types";
 
 const PAGE_SIZE = 50;
 

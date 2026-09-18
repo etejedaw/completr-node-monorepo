@@ -1,7 +1,8 @@
-import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
+
 import { environment } from "../../../environments/environment";
-import { Appendable, buildHttpParams } from "../../core/utils/http-params";
+import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 export interface ActivityTarget {
 	type: "game" | "list" | "user";

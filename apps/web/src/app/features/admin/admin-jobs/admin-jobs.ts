@@ -1,13 +1,14 @@
+import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
-import { JobsService, type JobEntry } from "../services/jobs.service";
+
 import { UiButton } from "../../../shared/ui";
+import { type JobEntry, JobsService } from "../services/jobs.service";
 
 @Component({
 	selector: "app-admin-jobs",

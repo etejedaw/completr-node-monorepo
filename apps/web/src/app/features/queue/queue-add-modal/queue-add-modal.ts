@@ -2,23 +2,24 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import {
+	injectDialogRef,
 	NgpDialog,
 	NgpDialogOverlay,
-	NgpDialogTitle,
-	injectDialogRef
+	NgpDialogTitle
 } from "ng-primitives/dialog";
-import { BacklogEntry, BacklogStatus } from "../../../core/models";
-import { BacklogService } from "../../backlog/backlog";
+
+import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { UiButton, UiIconButton } from "../../../shared/ui";
 import {
 	backlogStatusClass,
 	backlogStatusLabel
 } from "../../../shared/utils/backlog-status";
+import { BacklogService } from "../../backlog/backlog";
 import { QueueService } from "../queue";
-import { UiButton, UiIconButton } from "../../../shared/ui";
 
 export interface QueueAddModalData {
 	onAdded: () => void;

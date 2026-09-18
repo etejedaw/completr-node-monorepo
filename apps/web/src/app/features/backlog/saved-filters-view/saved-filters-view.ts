@@ -1,15 +1,28 @@
+import { HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { HttpErrorResponse } from "@angular/common/http";
 import { Router, RouterLink } from "@angular/router";
-import { SavedFiltersService, SavedFilter } from "../saved-filters";
-import { BacklogStatus } from "../../../core/models";
+import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+
+import { type BacklogStatus } from "../../../core/models";
+import { AuthService } from "../../../core/services/auth";
+import { ToastService } from "../../../core/services/toast";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
+import {
+	UiButton,
+	UiEmptyState,
+	UiPagination,
+	UiPremiumBadge,
+	UiSearchBar,
+	UiSelect,
+	UiTextarea
+} from "../../../shared/ui";
 import {
 	backlogStatusClass,
 	backlogStatusIcon,
@@ -20,19 +33,7 @@ import {
 	SAVED_FILTER_ICONS,
 	savedFilterColorHex
 } from "../saved-filter-appearance";
-import { ToastService } from "../../../core/services/toast";
-import { AuthService } from "../../../core/services/auth";
-import {
-	UiButton,
-	UiEmptyState,
-	UiPagination,
-	UiPremiumBadge,
-	UiSearchBar,
-	UiSelect,
-	UiTextarea
-} from "../../../shared/ui";
-import { PremiumOnly } from "../../../shared/directives/premium-only";
-import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
+import { type SavedFilter, SavedFiltersService } from "../saved-filters";
 
 type SortMode =
 	| "name_asc"

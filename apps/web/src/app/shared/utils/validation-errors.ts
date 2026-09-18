@@ -1,4 +1,4 @@
-import { HttpContextToken, HttpErrorResponse } from "@angular/common/http";
+import { HttpContextToken, type HttpErrorResponse } from "@angular/common/http";
 
 export interface ServerValidationIssue {
 	path: string;

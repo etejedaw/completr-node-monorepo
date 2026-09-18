@@ -2,26 +2,20 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
+import { debounceTime, Subject, switchMap } from "rxjs";
+
 import { AuthService } from "../../core/services/auth";
-import { ToastService } from "../../core/services/toast";
 import { FollowRequestsService } from "../../core/services/follow-requests";
-import { Subject, debounceTime, switchMap } from "rxjs";
-import { FeedService, FeedActivity, FeedCategory } from "./feed";
 import {
 	GlobalSearchService,
-	SearchResults
+	type SearchResults
 } from "../../core/services/global-search";
-import {
-	activityLabel,
-	activityIcon,
-	activityIconColorClass
-} from "../../shared/utils/activity-labels";
+import { ToastService } from "../../core/services/toast";
 import { PremiumOnly } from "../../shared/directives/premium-only";
-
 import {
 	UiAvatar,
 	UiButton,
@@ -32,6 +26,12 @@ import {
 	UiPremiumBadge,
 	UiSelect
 } from "../../shared/ui";
+import {
+	activityIcon,
+	activityIconColorClass,
+	activityLabel
+} from "../../shared/utils/activity-labels";
+import { type FeedActivity, type FeedCategory, FeedService } from "./feed";
 
 @Component({
 	selector: "app-feed-page",

@@ -1,4 +1,4 @@
-import { HttpHandlerFn, HttpRequest } from "@angular/common/http";
+import { type HttpHandlerFn, type HttpRequest } from "@angular/common/http";
 import { inject } from "@angular/core";
 import {
 	BehaviorSubject,
@@ -9,12 +9,13 @@ import {
 	take,
 	throwError
 } from "rxjs";
-import { AuthService } from "../services/auth";
-import { ToastService } from "../services/toast";
+
 import {
 	SUPPRESS_VALIDATION_TOAST,
 	validationSummary
 } from "../../shared/utils/validation-errors";
+import { AuthService } from "../services/auth";
+import { ToastService } from "../services/toast";
 
 let isRefreshing = false;
 const refreshSubject = new BehaviorSubject<string | null>(null);

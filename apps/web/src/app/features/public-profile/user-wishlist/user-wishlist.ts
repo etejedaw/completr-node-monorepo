@@ -3,15 +3,16 @@ import {
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
+
+import { type WishlistEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
-import { PublicLibraryService } from "../services/public-library.service";
-import { WishlistEntry } from "../../../core/models";
-import { UiPagination, UiSearchBar } from "../../../shared/ui";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { PublicLibraryService } from "../services/public-library.service";
 
 const PAGE_SIZE = 50;
 

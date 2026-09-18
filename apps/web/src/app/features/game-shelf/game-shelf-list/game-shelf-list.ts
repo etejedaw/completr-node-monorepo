@@ -1,38 +1,43 @@
+import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
-import { GameShelfEntry, Game, BacklogEntry } from "../../../core/models";
-import { GameShelfService } from "../game-shelf";
-import { FavoritesService } from "../../favorites/favorites";
-import { WishlistService } from "../../wishlist/wishlist";
-import { BacklogService } from "../../backlog/backlog";
+import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+
 import {
-	BacklogModal,
-	type BacklogModalData,
-	type BacklogModalResult
-} from "../../backlog/backlog-modal/backlog-modal";
-import { GamesService } from "../../games/games";
-import {
-	GameShelfModal,
-	type GameShelfModalData,
-	type GameShelfModalResult
-} from "../game-shelf-modal/game-shelf-modal";
+	type BacklogEntry,
+	type Game,
+	type GameShelfEntry
+} from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
-import { GameShelfCalendar } from "../game-shelf-calendar/game-shelf-calendar";
+import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
 import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
 	UiSearchBar
 } from "../../../shared/ui";
-import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
-import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
-import { Subject, debounceTime, distinctUntilChanged } from "rxjs";
+import { BacklogService } from "../../backlog/backlog";
+import {
+	BacklogModal,
+	type BacklogModalData,
+	type BacklogModalResult
+} from "../../backlog/backlog-modal/backlog-modal";
+import { FavoritesService } from "../../favorites/favorites";
+import { GamesService } from "../../games/games";
+import { WishlistService } from "../../wishlist/wishlist";
+import { GameShelfService } from "../game-shelf";
+import { GameShelfCalendar } from "../game-shelf-calendar/game-shelf-calendar";
+import {
+	GameShelfModal,
+	type GameShelfModalData,
+	type GameShelfModalResult
+} from "../game-shelf-modal/game-shelf-modal";
 
 interface PlatformCount {
 	id: string;

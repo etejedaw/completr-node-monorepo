@@ -1,72 +1,77 @@
+import { DatePipe } from "@angular/common";
+import { HttpClient } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { form, required, min, max, FormField } from "@angular/forms/signals";
+import { form, FormField, max, min, required } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
 import {
+	injectDialogRef,
 	NgpDialog,
 	NgpDialogOverlay,
-	NgpDialogTitle,
-	injectDialogRef
+	NgpDialogTitle
 } from "ng-primitives/dialog";
-import { BacklogEntry, BacklogStatus } from "../../../core/models";
-import { Game, Platform } from "../../../core/models";
 import {
-	backlogStatusClass,
-	backlogStatusLabel
-} from "../../../shared/utils/backlog-status";
-import { BacklogService, CreateBacklogDto, UpdateBacklogDto } from "../backlog";
-import { GamesService } from "../../games/games";
-import { QueueService } from "../../queue/queue";
-import { GameShelfService } from "../../game-shelf/game-shelf";
-import { ScoreSourcesService } from "../../../core/services/score-sources";
-import { Review, ReviewsService } from "../../games/reviews";
-import { AuthService } from "../../../core/services/auth";
-import { ToastService } from "../../../core/services/toast";
-import { HttpClient } from "@angular/common/http";
-import { environment } from "../../../../environments/environment";
-import { StarRating } from "../../../shared/components/star-rating/star-rating";
-import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
-import {
-	BacklogProgressService,
-	ProgressNote
-} from "../../backlog-progress/backlog-progress";
-import {
-	CoopRunsService,
-	CoopMember,
-	CoopCandidate,
-	SyncField
-} from "../../coop-runs/coop-runs";
-import {
-	PublicSocialService,
-	PublicSocialUser
-} from "../../public-profile/services/public-social.service";
-import {
-	Subject,
 	debounceTime,
 	distinctUntilChanged,
-	switchMap,
 	forkJoin,
-	of
+	of,
+	Subject,
+	switchMap
 } from "rxjs";
+
+import { environment } from "../../../../environments/environment";
+import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { type Game, type Platform } from "../../../core/models";
+import { AuthService } from "../../../core/services/auth";
+import { ScoreSourcesService } from "../../../core/services/score-sources";
+import { ToastService } from "../../../core/services/toast";
+import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
+import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
 	UiButton,
 	UiIconButton,
 	UiInput,
 	UiSelect,
-	UiTabs,
-	UiTabList,
 	UiTab,
+	UiTabList,
 	UiTabPanel,
+	UiTabs,
 	UiTextarea
 } from "../../../shared/ui";
-import { DatePipe } from "@angular/common";
+import {
+	backlogStatusClass,
+	backlogStatusLabel
+} from "../../../shared/utils/backlog-status";
+import {
+	BacklogProgressService,
+	type ProgressNote
+} from "../../backlog-progress/backlog-progress";
+import {
+	type CoopCandidate,
+	type CoopMember,
+	CoopRunsService,
+	type SyncField
+} from "../../coop-runs/coop-runs";
+import { GameShelfService } from "../../game-shelf/game-shelf";
+import { GamesService } from "../../games/games";
+import { type Review, ReviewsService } from "../../games/reviews";
+import { MoodTagsService } from "../../mood-tags/mood-tags";
+import {
+	PublicSocialService,
+	type PublicSocialUser
+} from "../../public-profile/services/public-social.service";
+import { QueueService } from "../../queue/queue";
+import {
+	BacklogService,
+	type CreateBacklogDto,
+	type UpdateBacklogDto
+} from "../backlog";
 
 export interface BacklogModalData {
 	entry: BacklogEntry | null;

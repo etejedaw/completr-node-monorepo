@@ -2,20 +2,21 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { Subject, debounceTime, switchMap, of } from "rxjs";
 import {
+	injectDialogRef,
 	NgpDialog,
 	NgpDialogOverlay,
-	NgpDialogTitle,
-	injectDialogRef
+	NgpDialogTitle
 } from "ng-primitives/dialog";
-import { Game } from "../../../core/models";
+import { debounceTime, of, Subject, switchMap } from "rxjs";
+
+import { type Game } from "../../../core/models";
+import { UiButton, UiIconButton } from "../../../shared/ui";
 import { GamesService } from "../../games/games";
 import { WishlistService } from "../wishlist";
-import { UiButton, UiIconButton } from "../../../shared/ui";
 
 export type WishlistAddModalResult = "saved";
 

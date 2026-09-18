@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { Observable } from "rxjs";
 import { RouterLink } from "@angular/router";
 import {
+	injectDialogRef,
 	NgpDialog,
 	NgpDialogOverlay,
-	NgpDialogTitle,
-	injectDialogRef
+	NgpDialogTitle
 } from "ng-primitives/dialog";
+import { type Observable } from "rxjs";
+
 import { UiAvatar, UiIconButton } from "../../ui";
 
 export interface UserSummary {

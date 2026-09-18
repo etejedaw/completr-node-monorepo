@@ -5,14 +5,15 @@ import {
 	signal
 } from "@angular/core";
 import {
-	form,
-	required,
-	minLength,
-	maxLength,
 	email,
-	FormField
+	form,
+	FormField,
+	maxLength,
+	minLength,
+	required
 } from "@angular/forms/signals";
 import { Router, RouterLink } from "@angular/router";
+
 import { AuthService } from "../../../core/services/auth";
 import { UiButton, UiInput } from "../../../shared/ui";
 

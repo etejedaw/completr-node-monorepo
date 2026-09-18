@@ -1,14 +1,15 @@
+import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
-import { AuditLogEntry, AuditService } from "../services/audit.service";
+
 import { UiPagination, UiSelect } from "../../../shared/ui";
+import { type AuditLogEntry, AuditService } from "../services/audit.service";
 
 const ACTION_OPTIONS = [
 	"user_created",

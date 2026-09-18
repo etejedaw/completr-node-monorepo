@@ -1,4 +1,4 @@
-import { BacklogStatus } from "../../core/models";
+import { type BacklogStatus } from "../../core/models";
 
 const STATUS_CLASSES: Record<BacklogStatus, string> = {
 	not_started: "bg-fg-muted/10 text-fg-muted",

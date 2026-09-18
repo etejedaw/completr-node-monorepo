@@ -1,14 +1,15 @@
+import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { DatePipe } from "@angular/common";
-import { GameReport, ReportsService } from "../services/reports.service";
+
 import { UiButton } from "../../../shared/ui";
+import { type GameReport, ReportsService } from "../services/reports.service";
 
 @Component({
 	selector: "app-admin-reports",

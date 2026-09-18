@@ -1,12 +1,13 @@
-import { computed, inject, Injectable, signal } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { computed, inject, Injectable, signal } from "@angular/core";
 import { Router } from "@angular/router";
-import { map, Observable, tap } from "rxjs";
+import { map, type Observable, tap } from "rxjs";
+
 import { environment } from "../../../environments/environment";
-import { StorageService } from "./storage";
-import { ThemeService, ThemeId } from "./theme";
-import { User } from "../models";
+import { type User } from "../models";
 import { buildHttpParams } from "../utils/http-params";
+import { StorageService } from "./storage";
+import { type ThemeId, ThemeService } from "./theme";
 
 const TOKEN_KEY = "access_token";
 const SESSION_ID_KEY = "session_id";

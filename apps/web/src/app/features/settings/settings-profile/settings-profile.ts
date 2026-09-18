@@ -3,12 +3,12 @@ import {
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { form, FormField } from "@angular/forms/signals";
+
 import { AuthService } from "../../../core/services/auth";
-import { ProfileService, UpdateProfileDto } from "../../profile/profile";
 import { ToastService } from "../../../core/services/toast";
 import {
 	UiButton,
@@ -17,6 +17,7 @@ import {
 	UiLabel,
 	UiTextarea
 } from "../../../shared/ui";
+import { ProfileService, type UpdateProfileDto } from "../../profile/profile";
 
 @Component({
 	selector: "app-settings-profile",

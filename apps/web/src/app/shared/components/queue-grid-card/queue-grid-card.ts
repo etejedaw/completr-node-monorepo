@@ -1,3 +1,4 @@
+import { CdkDragHandle } from "@angular/cdk/drag-drop";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -5,10 +6,10 @@ import {
 	output
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { CdkDragHandle } from "@angular/cdk/drag-drop";
+
+import { CoverUrlPipe } from "../../pipes/cover-url";
 import { UiIconButton } from "../../ui";
 import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
-import { CoverUrlPipe } from "../../pipes/cover-url";
 
 export interface QueueGridGame {
 	id?: string;

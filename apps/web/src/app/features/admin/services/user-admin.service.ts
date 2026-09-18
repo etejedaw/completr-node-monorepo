@@ -1,8 +1,9 @@
-import { inject, Injectable } from "@angular/core";
 import { HttpClient, HttpContext } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
+
 import { environment } from "../../../../environments/environment";
-import { User, VisibilityLevel } from "../../../core/models";
+import { type User, type VisibilityLevel } from "../../../core/models";
 import { buildHttpParams } from "../../../core/utils/http-params";
 import { SUPPRESS_VALIDATION_TOAST } from "../../../shared/utils/validation-errors";
 

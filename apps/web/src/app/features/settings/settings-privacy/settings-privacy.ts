@@ -3,16 +3,17 @@ import {
 	Component,
 	computed,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+
+import { type VisibilityLevel } from "../../../core/models/user.model";
 import { AuthService } from "../../../core/services/auth";
-import { ProfileService, UpdateProfileDto } from "../../profile/profile";
-import { ToastService } from "../../../core/services/toast";
 import { FollowRequestsService } from "../../../core/services/follow-requests";
+import { ToastService } from "../../../core/services/toast";
 import { UiAvatar, UiButton } from "../../../shared/ui";
-import { VisibilityLevel } from "../../../core/models/user.model";
+import { ProfileService, type UpdateProfileDto } from "../../profile/profile";
 
 type PrivacyPreset = "custom" | "private" | "friends" | "open";
 

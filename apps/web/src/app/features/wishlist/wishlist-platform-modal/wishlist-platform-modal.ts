@@ -5,13 +5,14 @@ import {
 	signal
 } from "@angular/core";
 import {
+	injectDialogRef,
 	NgpDialog,
 	NgpDialogOverlay,
-	NgpDialogTitle,
-	injectDialogRef
+	NgpDialogTitle
 } from "ng-primitives/dialog";
-import { WishlistService } from "../wishlist";
+
 import { UiButton, UiIconButton } from "../../../shared/ui";
+import { WishlistService } from "../wishlist";
 
 export interface PlatformOption {
 	id: string;

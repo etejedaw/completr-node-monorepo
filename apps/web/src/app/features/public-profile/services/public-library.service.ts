@@ -1,15 +1,16 @@
-import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
+
 import { environment } from "../../../../environments/environment";
-import { BacklogEntry } from "../../../core/models/backlog.model";
-import { FavoriteEntry } from "../../../core/models/favorite.model";
-import { QueueEntry } from "../../../core/models/queue.model";
-import { WishlistEntry } from "../../../core/models/wishlist.model";
-import { GameShelfEntry } from "../../../core/models/game-shelf.model";
+import { type BacklogEntry } from "../../../core/models/backlog.model";
+import { type FavoriteEntry } from "../../../core/models/favorite.model";
+import { type GameShelfEntry } from "../../../core/models/game-shelf.model";
+import { type QueueEntry } from "../../../core/models/queue.model";
+import { type WishlistEntry } from "../../../core/models/wishlist.model";
 import { buildHttpParams } from "../../../core/utils/http-params";
-import { FranchiseProgress } from "../../franchises/franchises";
-import { GameSummary } from "./types";
+import { type FranchiseProgress } from "../../franchises/franchises";
+import { type GameSummary } from "./types";
 
 export interface PublicBacklog {
 	id: string;

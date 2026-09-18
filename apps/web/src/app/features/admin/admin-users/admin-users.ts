@@ -1,11 +1,11 @@
+import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
-	OnInit,
+	type OnInit,
 	signal
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
 import {
 	email,
 	form,
@@ -15,9 +15,9 @@ import {
 	pattern,
 	required,
 	validate,
-	ValidationError
+	type ValidationError
 } from "@angular/forms/signals";
-import { AdminUser, UserAdminService } from "../services/user-admin.service";
+
 import {
 	UiButton,
 	UiIconButton,
@@ -29,6 +29,10 @@ import {
 	fieldErrorsFromResponse,
 	validationSummary
 } from "../../../shared/utils/validation-errors";
+import {
+	type AdminUser,
+	UserAdminService
+} from "../services/user-admin.service";
 
 interface CreateUserRequest {
 	username: string;

@@ -1,17 +1,18 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
-	OnInit,
 	inject,
+	type OnInit,
 	signal
 } from "@angular/core";
-import {
-	MoodTagsService,
-	UpdateTagDto,
-	UserTag
-} from "../../mood-tags/mood-tags";
+
 import { ToastService } from "../../../core/services/toast";
 import { UiButton, UiInput } from "../../../shared/ui";
+import {
+	MoodTagsService,
+	type UpdateTagDto,
+	type UserTag
+} from "../../mood-tags/mood-tags";
 
 @Component({
 	selector: "app-tags-page",
