@@ -16,5 +16,4 @@ COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
 RUN npm ci -w apps/api --omit=dev --ignore-scripts
 COPY --from=builder /usr/app/apps/api/dist ./apps/api/dist
-WORKDIR /usr/app/apps/api
-CMD ["npm", "run", "start"]
+CMD ["node", "apps/api/dist/src/app.js"]
