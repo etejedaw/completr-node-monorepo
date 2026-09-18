@@ -153,11 +153,7 @@ docs/informes/
 # Others
 **/.DS_Store
 tmp/
-
-# Angular
 .angular/
-
-# Editors
 .vscode
 
 # Claude local settings (keep skills tracked)
