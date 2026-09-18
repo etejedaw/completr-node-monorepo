@@ -1,0 +1,391 @@
+@import "tailwindcss";
+@import "material-icons/iconfont/material-icons.css" layer(base);
+@import "../public/fonts/space-grotesk.css";
+@import "./styles/ui.css";
+
+.material-icons {
+	line-height: 1;
+	vertical-align: middle;
+}
+
+@theme {
+	--font-sans:
+		"Space Grotesk", ui-sans-serif, -apple-system, BlinkMacSystemFont,
+		"Segoe UI", sans-serif;
+	--font-display:
+		"Space Grotesk", ui-sans-serif, -apple-system, BlinkMacSystemFont,
+		"Segoe UI", sans-serif;
+
+	--color-canvas: #0a0a0c;
+	--color-sidebar: #0e0e11;
+	--color-surface: #131318;
+	--color-surface-hover: #1a1a20;
+	--color-input-bg: #0c0c0f;
+
+	--color-fg: #f5f5f7;
+	--color-fg-secondary: #a1a1aa;
+	--color-fg-muted: #71717a;
+
+	--color-brand: #8b5cf6;
+	--color-brand-hover: #a78bfa;
+	--color-brand-deep: #7c3aed;
+	--color-brand-subtle: rgba(139, 92, 246, 0.1);
+	--color-brand-glow: rgba(139, 92, 246, 0.25);
+
+	--color-success: #10b981;
+	--color-warning: #f59e0b;
+	--color-danger: #ef4444;
+	--color-info: #38bdf8;
+
+	--color-line: rgba(255, 255, 255, 0.06);
+	--color-line-hover: rgba(255, 255, 255, 0.12);
+
+	--radius-card: 0.625rem;
+}
+
+:root,
+:root[data-theme="refined-dark"] {
+	--color-canvas: #0a0a0c;
+	--color-sidebar: #0e0e11;
+	--color-surface: #131318;
+	--color-surface-hover: #1a1a20;
+	--color-input-bg: #0c0c0f;
+
+	--color-fg: #f5f5f7;
+	--color-fg-secondary: #a1a1aa;
+	--color-fg-muted: #71717a;
+
+	--color-brand: #8b5cf6;
+	--color-brand-hover: #a78bfa;
+	--color-brand-deep: #7c3aed;
+	--color-brand-subtle: rgba(139, 92, 246, 0.1);
+	--color-brand-glow: rgba(139, 92, 246, 0.25);
+
+	--color-success: #10b981;
+	--color-warning: #f59e0b;
+	--color-danger: #ef4444;
+	--color-info: #38bdf8;
+
+	--color-line: rgba(255, 255, 255, 0.06);
+	--color-line-hover: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="midnight-cyan"] {
+	--color-canvas: #0b0f19;
+	--color-sidebar: #111827;
+	--color-surface: #1e293b;
+	--color-surface-hover: #263548;
+	--color-input-bg: #0f172a;
+
+	--color-fg: #e2e8f0;
+	--color-fg-secondary: #94a3b8;
+	--color-fg-muted: #64748b;
+
+	--color-brand: #0ea5e9;
+	--color-brand-hover: #0284c7;
+	--color-brand-deep: #0369a1;
+	--color-brand-subtle: rgba(14, 165, 233, 0.12);
+	--color-brand-glow: rgba(14, 165, 233, 0.25);
+
+	--color-success: #22c55e;
+	--color-warning: #f59e0b;
+	--color-danger: #ef4444;
+	--color-info: #38bdf8;
+
+	--color-line: rgba(148, 163, 184, 0.12);
+	--color-line-hover: rgba(148, 163, 184, 0.24);
+}
+
+:root[data-theme="twilight-arcade"] {
+	--color-canvas: #181028;
+	--color-sidebar: #1f1535;
+	--color-surface: #261b3f;
+	--color-surface-hover: #2f234d;
+	--color-input-bg: #14092a;
+
+	--color-fg: #f4eeff;
+	--color-fg-secondary: #b9a8d4;
+	--color-fg-muted: #7e6e9a;
+
+	--color-brand: #ff5d8f;
+	--color-brand-hover: #ff7da9;
+	--color-brand-deep: #e63d72;
+	--color-brand-subtle: rgba(255, 93, 143, 0.12);
+	--color-brand-glow: rgba(255, 93, 143, 0.35);
+
+	--color-success: #5bd8a1;
+	--color-warning: #ffc857;
+	--color-danger: #ff5d6c;
+	--color-info: #b692ff;
+
+	--color-line: rgba(182, 146, 255, 0.12);
+	--color-line-hover: rgba(182, 146, 255, 0.22);
+}
+
+:root {
+	--bg-primary: var(--color-canvas);
+	--bg-sidebar: var(--color-sidebar);
+	--bg-surface: var(--color-surface);
+	--bg-surface-hover: var(--color-surface-hover);
+	--bg-input: var(--color-input-bg);
+
+	--text-primary: var(--color-fg);
+	--text-secondary: var(--color-fg-secondary);
+	--text-muted: var(--color-fg-muted);
+
+	--accent: var(--color-brand);
+	--accent-hover: var(--color-brand-hover);
+	--accent-deep: var(--color-brand-deep);
+	--accent-subtle: var(--color-brand-subtle);
+	--accent-glow: var(--color-brand-glow);
+
+	--status-completed: var(--color-success);
+	--status-playing: var(--color-warning);
+	--status-not-started: var(--color-fg-muted);
+	--status-abandoned: var(--color-danger);
+
+	--border: var(--color-line);
+	--border-hover: var(--color-line-hover);
+
+	--radius: 6px;
+	--radius-lg: 10px;
+	--transition: 150ms ease;
+}
+
+html,
+body {
+	height: 100%;
+	background: var(--color-canvas);
+	color: var(--color-fg);
+	font-family: var(--font-sans);
+	font-size: 14px;
+	line-height: 1.5;
+	letter-spacing: -0.005em;
+	-webkit-font-smoothing: antialiased;
+	color-scheme: dark;
+}
+
+body::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+	opacity: 0.04;
+	mix-blend-mode: overlay;
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.85 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+	background-size: 240px 240px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	body::before {
+		opacity: 0.025;
+	}
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--font-display);
+	font-weight: 600;
+	letter-spacing: -0.02em;
+}
+
+a {
+	color: var(--color-brand);
+	text-decoration: none;
+	transition: color var(--transition);
+}
+
+a:hover {
+	color: var(--color-brand-hover);
+}
+
+::-webkit-scrollbar {
+	width: 6px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--color-line-hover);
+	border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--color-fg-muted);
+}
+
+.modal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.7);
+	backdrop-filter: blur(8px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+}
+
+@layer components {
+	.empty-title {
+		font-family: var(--font-display);
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: var(--color-fg-secondary);
+		margin-bottom: 0.5rem;
+	}
+
+	.empty-hint {
+		font-size: 0.875rem;
+		color: var(--color-fg-muted);
+		max-width: 420px;
+		margin: 0 auto;
+		line-height: 1.6;
+	}
+}
+
+@keyframes toastCountdown {
+	from {
+		stroke-dashoffset: 0;
+	}
+	to {
+		stroke-dashoffset: 100;
+	}
+}
+
+@keyframes skeletonPulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+}
+
+@keyframes uiFadeUp {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.ui-stagger > * {
+	opacity: 0;
+	animation: uiFadeUp 480ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.ui-stagger > *:nth-child(1) {
+	animation-delay: 0ms;
+}
+.ui-stagger > *:nth-child(2) {
+	animation-delay: 45ms;
+}
+.ui-stagger > *:nth-child(3) {
+	animation-delay: 90ms;
+}
+.ui-stagger > *:nth-child(4) {
+	animation-delay: 135ms;
+}
+.ui-stagger > *:nth-child(5) {
+	animation-delay: 180ms;
+}
+.ui-stagger > *:nth-child(6) {
+	animation-delay: 225ms;
+}
+.ui-stagger > *:nth-child(7) {
+	animation-delay: 270ms;
+}
+.ui-stagger > *:nth-child(8) {
+	animation-delay: 315ms;
+}
+.ui-stagger > *:nth-child(9) {
+	animation-delay: 360ms;
+}
+.ui-stagger > *:nth-child(10) {
+	animation-delay: 405ms;
+}
+.ui-stagger > *:nth-child(11) {
+	animation-delay: 450ms;
+}
+.ui-stagger > *:nth-child(12) {
+	animation-delay: 495ms;
+}
+.ui-stagger > *:nth-child(13) {
+	animation-delay: 540ms;
+}
+.ui-stagger > *:nth-child(14) {
+	animation-delay: 585ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ui-stagger > * {
+		animation: none;
+		opacity: 1;
+	}
+}
+
+/* Angular CDK Drag & Drop */
+.cdk-drag-preview {
+	box-sizing: border-box;
+	border-radius: 0.5rem;
+	box-shadow:
+		0 5px 5px -3px rgba(0, 0, 0, 0.3),
+		0 8px 10px 1px rgba(0, 0, 0, 0.2),
+		0 3px 14px 2px rgba(0, 0, 0, 0.16);
+	opacity: 0.95;
+}
+
+.cdk-drag-placeholder {
+	opacity: 0.25;
+	transition: opacity 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drag-animating {
+	transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .cdk-drag:not(.cdk-drag-placeholder) {
+	transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.floating-x-host {
+	scrollbar-width: none;
+}
+
+.floating-x-host::-webkit-scrollbar {
+	display: none;
+}
+
+.floating-x-scrollbar {
+	position: sticky;
+	bottom: 0;
+	z-index: 2;
+	overflow-x: scroll;
+	overflow-y: hidden;
+}
+
+.floating-x-scrollbar::-webkit-scrollbar {
+	height: 10px;
+	-webkit-appearance: none;
+}
+
+.floating-x-scrollbar::-webkit-scrollbar-thumb {
+	background-color: var(--color-fg-muted);
+	border-radius: 9999px;
+	border: 2px solid var(--color-canvas);
+}
+
+.floating-x-scrollbar::-webkit-scrollbar-track {
+	background-color: var(--color-canvas);
+}

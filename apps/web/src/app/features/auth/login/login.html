@@ -1,0 +1,143 @@
+<div
+	class="flex justify-center items-center min-h-screen bg-canvas relative overflow-hidden"
+>
+	<div
+		class="absolute inset-0 pointer-events-none"
+		style="
+			background:
+				radial-gradient(
+					ellipse at 20% 50%,
+					var(--color-brand-subtle) 0%,
+					transparent 50%
+				),
+				radial-gradient(
+					ellipse at 80% 20%,
+					rgba(139, 92, 246, 0.06) 0%,
+					transparent 50%
+				),
+				radial-gradient(
+					ellipse at 50% 100%,
+					var(--color-brand-subtle) 0%,
+					transparent 40%
+				);
+		"
+	></div>
+	<div class="relative w-full max-w-md px-4">
+		<div
+			class="relative bg-sidebar border border-line rounded-card p-10 w-full"
+			style="
+				box-shadow:
+					0 0 0 1px rgba(255, 255, 255, 0.03),
+					0 20px 50px -12px rgba(0, 0, 0, 0.5);
+			"
+		>
+			<div class="flex items-center gap-3 mb-2">
+				<span
+					class="flex items-center justify-center w-9 h-9 rounded-lg font-display font-bold text-lg text-white"
+					style="
+						background: linear-gradient(
+							135deg,
+							var(--color-brand),
+							var(--color-brand-deep)
+						);
+						box-shadow: 0 4px 14px -4px var(--color-brand-glow);
+					"
+					>C</span
+				>
+				<h1 class="font-display text-2xl font-bold tracking-tight">
+					Completr
+				</h1>
+			</div>
+			<p class="text-fg-muted mb-8 text-sm">
+				Track your games. Prioritize your backlog.
+			</p>
+
+			@if (error()) {
+			<div
+				class="bg-danger/10 border border-danger/25 text-red-300 px-3.5 py-2.5 rounded-md mb-5 text-sm"
+			>
+				{{ error() }}
+			</div>
+			}
+
+			<form (submit)="onSubmit($event)" class="flex flex-col gap-5">
+				<div>
+					<label
+						for="email"
+						class="block mb-1.5 text-sm font-medium text-fg-secondary"
+						>Email</label
+					>
+					<input
+						uiInput
+						id="email"
+						type="email"
+						[formField]="form.email"
+						placeholder="you@example.com"
+						autocomplete="email"
+					/>
+				</div>
+
+				<div>
+					<label
+						for="password"
+						class="block mb-1.5 text-sm font-medium text-fg-secondary"
+						>Password</label
+					>
+					<div class="relative">
+						<input
+							uiInput
+							id="password"
+							[type]="showPassword() ? 'text' : 'password'"
+							[formField]="form.password"
+							placeholder="Your password"
+							autocomplete="current-password"
+							class="!pr-10"
+						/>
+						<button
+							type="button"
+							class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-transparent border-0 cursor-pointer text-fg-muted hover:text-fg transition"
+							(click)="toggleShowPassword()"
+							[attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+							[title]="showPassword() ? 'Hide password' : 'Show password'"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-base"
+								>{{ showPassword() ? 'visibility_off' :
+								'visibility' }}</span
+							>
+						</button>
+					</div>
+				</div>
+
+				<button
+					uiButton
+					variant="primary"
+					size="lg"
+					[block]="true"
+					type="submit"
+					[disabled]="form().invalid() || isLoading()"
+				>
+					{{ isLoading() ? 'Signing in...' : 'Sign in' }}
+				</button>
+			</form>
+		</div>
+		<div class="mt-4 text-xs text-fg-muted text-center">
+			<a
+				routerLink="/privacy"
+				class="text-fg-secondary no-underline hover:text-brand"
+				>Privacy Policy</a
+			>
+		</div>
+		<div class="mt-2 text-xs text-fg-muted text-center">
+			Made with ♥ by
+			<a
+				href="https://www.etejeda.dev"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="text-fg-secondary no-underline hover:text-brand"
+				>Esteban Tejeda</a
+			>
+		</div>
+	</div>
+</div>

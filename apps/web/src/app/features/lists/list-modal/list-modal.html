@@ -1,0 +1,196 @@
+<div
+	ngpDialogOverlay
+	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-sm"
+>
+	<div
+		ngpDialog
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
+	>
+		<div class="flex justify-between items-center mb-5">
+			<h2
+				ngpDialogTitle
+				class="font-display m-0 text-[1.125rem] font-bold"
+			>
+				{{ isEdit() ? "Edit List" : "Create List" }}
+			</h2>
+			<button
+				uiIconButton
+				size="sm"
+				aria-label="Close"
+				(click)="onClose()"
+			>
+				&times;
+			</button>
+		</div>
+
+		@if (error()) {
+		<div
+			class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded-card mb-4 text-[0.8125rem]"
+		>
+			{{ error() }}
+		</div>
+		}
+
+		<form (submit)="onSubmit($event)">
+			<div uiFormField class="mb-4">
+				<label
+					uiLabel
+					for="name"
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+					>Name <span class="text-danger font-bold">*</span></label
+				>
+				<input
+					uiInput
+					id="name"
+					type="text"
+					[formField]="form.name"
+					placeholder="Saga Resident Evil, Top 10 RPGs..."
+				/>
+			</div>
+
+			<div uiFormField class="mb-4">
+				<label
+					uiLabel
+					for="description"
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+					>Description</label
+				>
+				<textarea
+					uiTextarea
+					id="description"
+					[formField]="form.description"
+					rows="2"
+					placeholder="What's this list about?"
+				></textarea>
+			</div>
+
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+				<div uiFormField class="mb-4">
+					<span
+						uiLabel
+						class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						>Score Source
+						<span class="text-danger font-bold">*</span></span
+					>
+					<div
+						uiRadioGroup
+						orientation="horizontal"
+						[value]="form.scoreSource().value()"
+						(valueChange)="form.scoreSource().value.set($any($event))"
+						class="flex flex-wrap gap-1.5"
+					>
+						@for (opt of SCORE_SOURCES; track opt.value) {
+						<button
+							type="button"
+							uiRadioItem
+							[value]="opt.value"
+							class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition bg-input-bg border-line text-fg-secondary hover:border-brand hover:text-brand data-[checked]:bg-brand-subtle data-[checked]:border-brand data-[checked]:text-brand data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-brand data-[focus-visible]:outline-offset-2"
+						>
+							{{ opt.label }}
+						</button>
+						}
+					</div>
+				</div>
+				<div uiFormField class="mb-4">
+					<span
+						uiLabel
+						class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						>Duration Source
+						<span class="text-danger font-bold">*</span></span
+					>
+					<div
+						uiRadioGroup
+						orientation="horizontal"
+						[value]="form.durationSource().value()"
+						(valueChange)="form.durationSource().value.set($any($event))"
+						class="flex flex-wrap gap-1.5"
+					>
+						@for (opt of DURATION_SOURCES; track opt.value) {
+						<button
+							type="button"
+							uiRadioItem
+							[value]="opt.value"
+							class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition bg-input-bg border-line text-fg-secondary hover:border-brand hover:text-brand data-[checked]:bg-brand-subtle data-[checked]:border-brand data-[checked]:text-brand data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-brand data-[focus-visible]:outline-offset-2"
+						>
+							{{ opt.label }}
+						</button>
+						}
+					</div>
+				</div>
+			</div>
+
+			<div class="mb-4">
+				<label
+					class="flex items-center gap-2 cursor-pointer text-[0.8125rem] text-fg-secondary px-3 py-2 bg-input-bg border border-line rounded-card"
+				>
+					<input
+						type="checkbox"
+						[formField]="form.isPublic"
+						class="w-4 h-4 cursor-pointer accent-[var(--color-brand)]"
+					/>
+					<span aria-hidden="true" class="material-icons text-base"
+						>{{ form.isPublic().value() ? 'public' : 'lock' }}</span
+					>
+					<span
+						>{{ form.isPublic().value() ? 'Public list' : 'Private
+						list' }}</span
+					>
+				</label>
+			</div>
+
+			<div
+				class="flex justify-between items-center mt-5 pt-4 border-t border-line"
+			>
+				@if (isEdit()) {
+				<div class="flex items-center gap-2">
+					@if (!showConfirmDelete()) {
+					<button
+						uiButton
+						variant="danger"
+						size="sm"
+						type="button"
+						(click)="showConfirmDelete.set(true)"
+					>
+						Delete
+					</button>
+					} @else {
+					<span class="text-[0.8125rem] text-danger"
+						>Are you sure?</span
+					>
+					<button
+						uiButton
+						variant="danger"
+						size="sm"
+						type="button"
+						(click)="onDelete()"
+					>
+						Yes, delete
+					</button>
+					<button
+						uiButton
+						variant="ghost"
+						size="sm"
+						type="button"
+						(click)="showConfirmDelete.set(false)"
+					>
+						Cancel
+					</button>
+					}
+				</div>
+				}
+				<button
+					uiButton
+					variant="primary"
+					size="sm"
+					type="submit"
+					class="!ml-auto"
+					[disabled]="form().invalid() || isLoading()"
+				>
+					{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Create"
+					}}
+				</button>
+			</div>
+		</form>
+	</div>
+</div>

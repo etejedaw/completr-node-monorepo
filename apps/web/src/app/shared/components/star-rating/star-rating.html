@@ -1,0 +1,60 @@
+<div class="flex items-center gap-2.5" (mouseleave)="onLeave()">
+	<div
+		class="flex outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas rounded"
+		[class]="listGap()"
+		[attr.role]="readonly() ? 'img' : 'slider'"
+		[attr.tabindex]="readonly() ? null : 0"
+		[attr.aria-labelledby]="ariaLabelledby()"
+		[attr.aria-label]="ariaLabelledby() ? null : (readonly() ? null : 'Rating')"
+		[attr.aria-valuemin]="readonly() ? null : 0"
+		[attr.aria-valuemax]="readonly() ? null : 5"
+		[attr.aria-valuenow]="readonly() ? null : (value() ?? 0)"
+		[attr.aria-valuetext]="readonly() ? ariaValueText() : ariaValueText()"
+		[attr.aria-readonly]="readonly() ? 'true' : null"
+		(keydown)="onKey($event)"
+	>
+		@for (star of stars; track star) {
+		<span [class]="wrapperClasses()">
+			@if (!readonly()) {
+			<button
+				type="button"
+				aria-hidden="true"
+				tabindex="-1"
+				class="absolute top-0 left-0 w-1/2 h-full z-10"
+				(mouseenter)="onHalf(star)"
+				(click)="onClick(star - 0.5)"
+			></button>
+			<button
+				type="button"
+				aria-hidden="true"
+				tabindex="-1"
+				class="absolute top-0 right-0 w-1/2 h-full z-10"
+				(mouseenter)="onFull(star)"
+				(click)="onClick(star)"
+			></button>
+			}
+			<span
+				[class]="iconClasses(star)"
+				[style.background]="isHalf(star) ? 'linear-gradient(90deg, var(--color-warning) 50%, var(--color-fg-muted) 50%)' : null"
+				[style.-webkit-background-clip]="isHalf(star) ? 'text' : null"
+				[style.background-clip]="isHalf(star) ? 'text' : null"
+				[style.-webkit-text-fill-color]="isHalf(star) ? 'transparent' : null"
+				>&#9733;</span
+			>
+		</span>
+		}
+	</div>
+	@if (!readonly()) {
+	<span class="flex items-center gap-1.5 min-w-[80px]">
+		@if (displayValue() > 0) {
+		<span class="text-[0.8125rem] font-semibold text-warning"
+			>{{ displayValue() }}</span
+		>
+		} @if (label()) {
+		<span class="text-[0.6875rem] text-fg-muted uppercase tracking-wider"
+			>{{ label() }}</span
+		>
+		}
+	</span>
+	}
+</div>

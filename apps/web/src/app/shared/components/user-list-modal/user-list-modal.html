@@ -1,0 +1,49 @@
+<div
+	ngpDialogOverlay
+	class="fixed inset-0 flex justify-center items-center z-[100] bg-black/60 backdrop-blur-sm"
+>
+	<div
+		ngpDialog
+		class="bg-sidebar border border-line rounded-card p-6 w-full max-w-sm max-h-[70vh] flex flex-col"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
+	>
+		<div class="flex justify-between items-center mb-4">
+			<h2 ngpDialogTitle class="font-display text-lg font-bold m-0">
+				{{ title }}
+			</h2>
+			<button uiIconButton size="sm" aria-label="Close" (click)="close()">
+				&times;
+			</button>
+		</div>
+
+		@if (users().length === 0) {
+		<p class="text-center text-fg-muted text-sm py-6 m-0">No users yet.</p>
+		} @else {
+		<ul class="list-none m-0 p-0 overflow-y-auto">
+			@for (user of users(); track user.id) {
+			<li class="[&:last-child>a]:border-b-0">
+				<a
+					class="flex items-center gap-3 px-2 py-2.5 text-inherit no-underline border-b border-line transition rounded-md hover:bg-surface"
+					[routerLink]="['/user', user.username]"
+					(click)="close()"
+				>
+					<ui-avatar
+						[src]="user.avatarUrl"
+						[name]="user.username"
+						class="w-9 h-9 text-sm"
+					/>
+					<div class="flex flex-col min-w-0">
+						<span class="text-sm font-semibold text-fg truncate"
+							>{{ user.name || user.username }}</span
+						>
+						<span class="text-xs text-fg-muted"
+							>{{ '@' + user.username }}</span
+						>
+					</div>
+				</a>
+			</li>
+			}
+		</ul>
+		}
+	</div>
+</div>

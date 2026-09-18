@@ -1,0 +1,673 @@
+@if (isLoading()) {
+<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
+} @else if (!list()) {
+<div class="text-center py-12 text-fg-muted text-sm">List not found.</div>
+} @else {
+<div class="max-w-full">
+	<div class="flex justify-between items-start mb-4 gap-4">
+		<div class="flex items-start gap-3">
+			@if (fromUsername(); as username) {
+			<a
+				[routerLink]="['/user', username]"
+				class="flex p-1 mt-0.5 text-fg-muted hover:text-brand"
+				[title]="'@' + username + ' profile'"
+			>
+				<span aria-hidden="true" class="material-icons"
+					>arrow_back</span
+				>
+			</a>
+			} @else {
+			<a
+				routerLink="/lists"
+				class="flex p-1 mt-0.5 text-fg-muted hover:text-brand"
+			>
+				<span aria-hidden="true" class="material-icons"
+					>arrow_back</span
+				>
+			</a>
+			}
+			<div>
+				@if (list()!.isOfficial) {
+				<span
+					class="inline-flex items-center gap-1 mb-1 text-[0.625rem] font-bold uppercase tracking-wider text-brand"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>verified</span
+					>
+					Official
+				</span>
+				}
+				<h1
+					class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight"
+				>
+					{{ list()!.name }}
+				</h1>
+				@if (list()!.description) {
+				<p class="mt-1 mb-0 text-[0.8125rem] text-fg-secondary">
+					{{ list()!.description }}
+				</p>
+				} @if (!isOwner() && list()!.owner; as owner) {
+				<a
+					[routerLink]="['/user', owner.username]"
+					class="inline-flex items-center gap-1 mt-1 text-[0.6875rem] text-fg-muted no-underline hover:text-brand"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>person</span
+					>
+					by &#64;{{ owner.username }}
+				</a>
+				}
+			</div>
+		</div>
+		@if (isOwner()) {
+		<div class="flex gap-2 shrink-0">
+			<button
+				uiButton
+				variant="secondary"
+				size="sm"
+				(click)="showAddSearch.set(!showAddSearch())"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>add</span
+				>
+				Add Game
+			</button>
+			<button
+				uiButton
+				variant="secondary"
+				size="sm"
+				(click)="refreshScores()"
+				[disabled]="refreshing()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>refresh</span
+				>
+				{{ refreshing() ? 'Refreshing...' : 'Refresh Scores' }}
+			</button>
+			<button uiButton variant="secondary" size="sm" (click)="openEdit()">
+				<span aria-hidden="true" class="material-icons text-base"
+					>edit</span
+				>
+				Edit
+			</button>
+			<button
+				uiButton
+				variant="secondary"
+				size="sm"
+				(click)="openDuplicate()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>content_copy</span
+				>
+				Duplicate
+			</button>
+		</div>
+		}
+	</div>
+
+	@if (showComparisonBanner()) {
+	<div
+		class="mb-4 px-4 py-3 rounded-card bg-brand/5 border border-brand/30 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+	>
+		<div class="flex items-center gap-2 min-w-0">
+			<span
+				aria-hidden="true"
+				class="material-icons text-brand text-base shrink-0"
+				>visibility</span
+			>
+			<span class="text-[0.8125rem] text-fg-secondary leading-snug">
+				@if (compareMode()) { Comparing your progress with
+				<a
+					class="font-semibold text-brand no-underline hover:underline"
+					[routerLink]="['/user', fromUsername()]"
+					>&#64;{{ fromUsername() }}</a
+				>
+				} @else { Viewing
+				<a
+					class="font-semibold text-brand no-underline hover:underline"
+					[routerLink]="['/user', fromUsername()]"
+					>&#64;{{ fromUsername() }}</a
+				>'s progress on this list }
+			</span>
+		</div>
+		<div class="flex flex-wrap gap-2 shrink-0">
+			@if (compareMode()) {
+			<button
+				uiButton
+				variant="secondary"
+				size="sm"
+				(click)="exitCompareMode()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>close</span
+				>
+				Exit compare
+			</button>
+			} @else { @if (canCompare()) {
+			<button
+				uiButton
+				variant="secondary"
+				size="sm"
+				(click)="enterCompareMode()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>compare_arrows</span
+				>
+				Compare
+			</button>
+			} @if (viewerUsername()) {
+			<button
+				uiButton
+				variant="primary"
+				size="sm"
+				(click)="goToOwnProgress()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>person</span
+				>
+				See my progress
+			</button>
+			} }
+		</div>
+	</div>
+	}
+
+	<div class="flex gap-4 mb-5 items-center">
+		<span
+			class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider"
+		>
+			<span aria-hidden="true" class="material-icons text-[0.875rem]"
+				>{{ list()!.isPublic ? 'public' : 'lock' }}</span
+			>
+			{{ list()!.isPublic ? 'Public' : 'Private' }}
+		</span>
+		<span
+			class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider"
+		>
+			<span aria-hidden="true" class="material-icons text-[0.875rem]"
+				>leaderboard</span
+			>
+			{{ list()!.scoreSource }}
+		</span>
+		<span
+			class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider"
+		>
+			<span aria-hidden="true" class="material-icons text-[0.875rem]"
+				>schedule</span
+			>
+			{{ list()!.durationSource }}
+		</span>
+		<span
+			class="flex items-center gap-1 text-xs text-fg-muted uppercase tracking-wider"
+		>
+			<span aria-hidden="true" class="material-icons text-[0.875rem]"
+				>people</span
+			>
+			{{ list()!.followerCount ?? 0 }} followers
+		</span>
+		@if (!isOwner() && list()!.isPublic) {
+		<button
+			uiButton
+			[variant]="list()!.isFollowing ? 'ghost' : 'primary'"
+			size="sm"
+			[disabled]="togglingFollow()"
+			(click)="toggleFollow()"
+		>
+			{{ list()!.isFollowing ? 'Following' : 'Follow' }}
+		</button>
+		}
+		@if (!isOwner() && list()!.isPublic) {
+		<button
+			uiButton
+			variant="secondary"
+			size="sm"
+			(click)="openDuplicate()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>content_copy</span
+			>
+			Duplicate
+		</button>
+		}
+	</div>
+
+	@if (compareMode() && viewerListProgress() && list()!.progress) { @let _vp =
+	viewerListProgress()!; @let _fp = list()!.progress!;
+	<div class="mb-5 grid gap-3 grid-cols-1 sm:grid-cols-2">
+		<div class="px-4 py-3 bg-surface border border-line rounded-card">
+			<div class="flex items-center justify-between mb-2 gap-3">
+				<span
+					class="text-xs font-semibold text-fg-secondary uppercase tracking-wider"
+					>Your progress</span
+				>
+				<span class="text-[0.8125rem] font-semibold text-fg"
+					>{{ _vp.completed }}/{{ _vp.total }}</span
+				>
+			</div>
+			<ui-progress
+				[value]="_vp.completed"
+				[max]="_vp.total || 1"
+				indicatorClass=""
+				indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+			/>
+		</div>
+		<div class="px-4 py-3 bg-surface border border-line rounded-card">
+			<div class="flex items-center justify-between mb-2 gap-3">
+				<span
+					class="text-xs font-semibold text-fg-secondary uppercase tracking-wider"
+					>&#64;{{ fromUsername() }}'s progress</span
+				>
+				<span class="text-[0.8125rem] font-semibold text-fg"
+					>{{ _fp.completed }}/{{ _fp.total }}</span
+				>
+			</div>
+			<ui-progress
+				[value]="_fp.completed"
+				[max]="_fp.total || 1"
+				indicatorClass=""
+				indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+			/>
+		</div>
+	</div>
+	} @else if (list()!.progress) { @let _progress = list()!.progress!; @let
+	_isComplete = _progress.total > 0 && _progress.completed >= _progress.total;
+	<div
+		class="mb-5 px-4 py-3 bg-surface border rounded-card transition-colors"
+		[class.border-line]="!_isComplete"
+		[class.border-warning]="_isComplete"
+		[class.bg-warning\/5]="_isComplete"
+	>
+		<div class="flex items-center justify-between mb-2 gap-3">
+			<span
+				class="text-xs font-semibold text-fg-secondary uppercase tracking-wider"
+			>
+				@if (fromUsername(); as username) { &#64;{{ username }}'s
+				progress } @else { Your progress }
+			</span>
+			<div class="flex items-center gap-2">
+				@if (_isComplete) {
+				<span
+					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold uppercase tracking-wider bg-warning/15 text-warning"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>emoji_events</span
+					>
+					Completed
+				</span>
+				}
+				<span class="text-[0.8125rem] font-semibold text-fg"
+					>{{ _progress.completed }}/{{ _progress.total }}</span
+				>
+			</div>
+		</div>
+		<ui-progress
+			[value]="_progress.completed"
+			[max]="_progress.total || 1"
+			indicatorClass=""
+			indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+		/>
+	</div>
+	} @if (isOwner() && showAddSearch()) {
+	<div class="mb-5 max-w-2xl">
+		<ui-search-bar
+			placeholder="Search games to add..."
+			[value]="searchQuery()"
+			(valueChange)="onSearch($event)"
+		/>
+		@if (isSearching()) {
+		<div class="px-3 py-2 text-[0.8125rem] text-fg-muted">Searching...</div>
+		} @if (isSearchingOnline()) {
+		<div
+			class="px-3 py-2 text-[0.8125rem] text-brand flex items-center gap-2"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-base animate-spin"
+				>autorenew</span
+			>
+			Searching online...
+		</div>
+		} @if (searchResults().length > 0) {
+		<ul
+			class="list-none bg-input-bg border border-line rounded-card mt-1 max-h-[200px] overflow-y-auto p-0"
+		>
+			@for (game of searchResults(); track game.id) { @let alreadyInList =
+			isGameInList(game.id);
+			<li
+				role="button"
+				[attr.tabindex]="alreadyInList ? null : 0"
+				[attr.aria-disabled]="alreadyInList"
+				class="flex items-center gap-2.5 px-3 py-2 text-[0.8125rem] transition"
+				[class.cursor-pointer]="!alreadyInList"
+				[class.hover:bg-surface]="!alreadyInList"
+				[class.opacity-60]="alreadyInList"
+				[class.cursor-not-allowed]="alreadyInList"
+				(click)="!alreadyInList && addGame(game)"
+				(keydown.enter)="!alreadyInList && addGame(game)"
+				(keydown.space)="!alreadyInList && addGame(game); $event.preventDefault()"
+			>
+				@if (game.backgroundUrl) {
+				<img
+					alt=""
+					[src]="game.backgroundUrl"
+					class="w-7 h-[38px] object-cover rounded-[3px] shrink-0"
+					loading="lazy"
+				/>
+				}
+				<span class="flex-1">{{ game.title }}</span>
+				@if (alreadyInList) {
+				<span
+					class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-success/15 text-success text-[0.65rem] font-semibold uppercase tracking-wider rounded"
+					title="Already in this list"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-[0.75rem]"
+						>check</span
+					>
+					In list
+				</span>
+				} @if (game.justImported) {
+				<span
+					class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/15 text-info text-[0.65rem] font-semibold uppercase tracking-wider rounded"
+					title="Just imported from RAWG"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-[0.75rem]"
+						>cloud_download</span
+					>
+					RAWG
+				</span>
+				} @if (game.isDlc) {
+				<span
+					class="px-1.5 py-0.5 bg-warning/15 text-warning text-[0.65rem] font-semibold uppercase tracking-wider rounded"
+					>DLC</span
+				>
+				}
+			</li>
+			}
+		</ul>
+		}
+	</div>
+	} @if (list()!.items.length === 0) {
+	<div class="text-center py-12 text-fg-muted text-sm">
+		No games in this list yet.
+	</div>
+	} @else {
+	<div
+		class="flex flex-col gap-3"
+		cdkDropList
+		[cdkDropListDisabled]="!isOwner()"
+		(cdkDropListDropped)="onDrop($event)"
+	>
+		@for (item of list()!.items; track item.id; let i = $index) {
+		<div
+			cdkDrag
+			[cdkDragDisabled]="!isOwner()"
+			class="flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line transition hover:border-brand/40"
+		>
+			<div
+				class="shrink-0 flex items-center justify-center w-10 text-3xl font-bold text-fg-muted"
+			>
+				{{ item.position }}
+			</div>
+
+			<a [routerLink]="['/games', item.game.code]" class="shrink-0">
+				@if (item.game.backgroundUrl) {
+				<img
+					[src]="item.game.backgroundUrl"
+					[alt]="item.game.title"
+					class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
+					loading="lazy"
+				/>
+				} @else {
+				<div
+					class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"
+				></div>
+				}
+			</a>
+
+			<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
+				<div class="flex items-center gap-2 flex-wrap">
+					<a
+						class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
+						[routerLink]="['/games', item.game.code]"
+						>{{ item.game.title }}</a
+					>
+					@if (item.backlogStatus === 'completed' &&
+					item.realDuration) {
+					<span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.75rem]"
+							>schedule</span
+						>
+						Real {{ item.realDuration }}h
+					</span>
+					}
+				</div>
+
+				<div
+					class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap"
+				>
+					@if (item.score) {
+					<span class="text-fg-muted">Score {{ item.score }}</span>
+					} @if (item.duration) {
+					<span class="text-fg-muted">·</span>
+					<span class="text-fg-muted">{{ item.duration }}h</span>
+					} @if (compareMode()) { @let _viewer =
+					viewerStatusFor(item.game.id);
+					<span class="text-fg-muted">·</span>
+					<span
+						class="flex items-center gap-1 text-[0.6875rem] uppercase tracking-wider text-fg-muted"
+						>You:</span
+					>
+					@if (_viewer?.backlogStatus; as myStatus) {
+					<button
+						type="button"
+						class="flex items-center gap-1 capitalize cursor-pointer bg-transparent border-0 p-0 text-xs hover:opacity-80 transition"
+						[class]="
+											myStatus === 'completed' ? 'text-success' :
+											myStatus === 'playing' ? 'text-warning' :
+											myStatus === 'abandoned' ? 'text-danger' :
+											'text-brand'
+										"
+						title="Edit your backlog"
+						(click)="openEditBacklog(item)"
+					>
+						<span aria-hidden="true" class="material-icons text-sm">
+							{{ myStatus === 'completed' ? 'check_circle' :
+							myStatus === 'playing' ? 'play_circle' : myStatus
+							=== 'abandoned' ? 'cancel' : 'schedule' }}
+						</span>
+						{{ myStatus.replace('_', ' ') }}
+					</button>
+					} @else {
+					<button
+						class="flex items-center gap-1 text-fg-muted hover:text-brand transition cursor-pointer bg-transparent border-0 p-0 text-xs"
+						(click)="openBacklogModal(item)"
+						title="Add to Backlog"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>add</span
+						>
+						Add
+					</button>
+					}
+					<span class="text-fg-muted">·</span>
+					<span
+						class="flex items-center gap-1 text-[0.6875rem] uppercase tracking-wider text-fg-muted"
+						>&#64;{{ fromUsername() }}:</span
+					>
+					@if (item.backlogStatus; as theirStatus) {
+					<span
+						class="flex items-center gap-1 capitalize text-xs opacity-80"
+						[class]="
+											theirStatus === 'completed' ? 'text-success' :
+											theirStatus === 'playing' ? 'text-warning' :
+											theirStatus === 'abandoned' ? 'text-danger' :
+											'text-brand'
+										"
+						[title]="'@' + fromUsername() + ' status on this game'"
+					>
+						<span aria-hidden="true" class="material-icons text-sm">
+							{{ theirStatus === 'completed' ? 'check_circle' :
+							theirStatus === 'playing' ? 'play_circle' :
+							theirStatus === 'abandoned' ? 'cancel' : 'schedule'
+							}}
+						</span>
+						{{ theirStatus.replace('_', ' ') }}
+					</span>
+					} @else {
+					<span class="text-fg-muted">—</span>
+					} } @else if (fromUsername()) { @if (item.backlogStatus) {
+					<span class="text-fg-muted">·</span>
+					<span
+						class="flex items-center gap-1 capitalize text-xs opacity-75"
+						[class]="
+											item.backlogStatus === 'completed' ? 'text-success' :
+											item.backlogStatus === 'playing' ? 'text-warning' :
+											item.backlogStatus === 'abandoned' ? 'text-danger' :
+											'text-brand'
+										"
+						[title]="'@' + fromUsername() + ' status on this game'"
+					>
+						<span aria-hidden="true" class="material-icons text-sm">
+							{{ item.backlogStatus === 'completed' ?
+							'check_circle' : item.backlogStatus === 'playing' ?
+							'play_circle' : item.backlogStatus === 'abandoned' ?
+							'cancel' : 'schedule' }}
+						</span>
+						{{ item.backlogStatus.replace('_', ' ') }}
+					</span>
+					<span class="text-[0.625rem] text-fg-muted"
+						>by &#64;{{ fromUsername() }}</span
+					>
+					} @if (viewerUsername()) {
+					<span class="text-fg-muted">·</span>
+					<button
+						class="flex items-center gap-1 text-fg-muted hover:text-brand transition cursor-pointer bg-transparent border-0 p-0 text-xs"
+						(click)="openEditBacklog(item)"
+						title="Add to my Backlog"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>add</span
+						>
+						Add to my Backlog
+					</button>
+					} } @else if (item.backlogStatus) {
+					<span class="text-fg-muted">·</span>
+					<button
+						type="button"
+						class="flex items-center gap-1 capitalize cursor-pointer bg-transparent border-0 p-0 text-xs hover:opacity-80 transition"
+						[class]="
+										item.backlogStatus === 'completed' ? 'text-success' :
+										item.backlogStatus === 'playing' ? 'text-warning' :
+										item.backlogStatus === 'abandoned' ? 'text-danger' :
+										'text-brand'
+									"
+						title="Edit your backlog"
+						(click)="openEditBacklog(item)"
+					>
+						<span aria-hidden="true" class="material-icons text-sm">
+							{{ item.backlogStatus === 'completed' ?
+							'check_circle' : item.backlogStatus === 'playing' ?
+							'play_circle' : item.backlogStatus === 'abandoned' ?
+							'cancel' : 'schedule' }}
+						</span>
+						{{ item.backlogStatus.replace('_', ' ') }}
+					</button>
+					} @else {
+					<span class="text-fg-muted">·</span>
+					<button
+						class="flex items-center gap-1 text-fg-muted hover:text-brand transition cursor-pointer bg-transparent border-0 p-0 text-xs"
+						(click)="openBacklogModal(item)"
+						title="Add to Backlog"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>add</span
+						>
+						Add to Backlog
+					</button>
+					}
+				</div>
+			</div>
+
+			<div
+				class="hidden sm:flex flex-col items-end justify-center gap-3 shrink-0 min-w-[70px] text-right"
+			>
+				@if (item.ratio) {
+				<div class="flex flex-col items-end leading-none">
+					<span class="text-3xl font-bold text-brand"
+						>{{ item.ratio }}</span
+					>
+					<span
+						class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1"
+						>Ratio</span
+					>
+				</div>
+				} @if (item.backlogStatus === 'completed') {
+				<app-personal-stats [personalRatio]="item.personalRatio" />
+				}
+			</div>
+
+			@if (isOwner()) {
+			<div
+				class="flex flex-col items-center justify-center gap-1 shrink-0"
+			>
+				<button
+					uiIconButton
+					size="sm"
+					cdkDragHandle
+					class="cursor-grab active:cursor-grabbing touch-none"
+					aria-label="Drag to reorder"
+					title="Drag to reorder"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>drag_indicator</span
+					>
+				</button>
+				<button
+					uiIconButton
+					size="sm"
+					[disabled]="i === 0"
+					(click)="moveUp(i)"
+					title="Move up"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>keyboard_arrow_up</span
+					>
+				</button>
+				<button
+					uiIconButton
+					size="sm"
+					[disabled]="i === list()!.items.length - 1"
+					(click)="moveDown(i)"
+					title="Move down"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>keyboard_arrow_down</span
+					>
+				</button>
+				<button
+					uiIconButton
+					size="sm"
+					tone="danger"
+					(click)="removeItem(item)"
+					title="Remove"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>close</span
+					>
+				</button>
+			</div>
+			}
+		</div>
+		}
+	</div>
+	}
+</div>
+}

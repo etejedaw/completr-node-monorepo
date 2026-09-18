@@ -1,0 +1,153 @@
+<div ngpDialogOverlay class="modal-overlay">
+	<div
+		ngpDialog
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[500px] max-h-[80vh] flex flex-col"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
+	>
+		<div class="flex items-center justify-between mb-4">
+			<h2 ngpDialogTitle class="m-0 text-lg font-bold font-display">
+				Add to Wishlist
+			</h2>
+			<button
+				uiIconButton
+				size="sm"
+				aria-label="Close"
+				(click)="onClose()"
+			>
+				&times;
+			</button>
+		</div>
+
+		@if (!selectedGame()) {
+		<div class="mb-3">
+			<input
+				type="text"
+				class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-[0.8125rem] transition placeholder:text-fg-muted focus:outline-none focus:border-brand"
+				placeholder="Search games by title..."
+				[value]="searchQuery()"
+				(input)="onSearch($event)"
+			/>
+		</div>
+
+		@if (searchQuery().trim().length < 2) {
+		<div class="text-center py-8 text-fg-muted text-[0.8125rem]">
+			Type at least 2 characters to search.
+		</div>
+		} @else if (isSearching()) {
+		<div class="text-center py-8 text-fg-muted text-[0.8125rem]">
+			Searching...
+		</div>
+		} @else if (results().length === 0) {
+		<div class="text-center py-8 text-fg-muted text-[0.8125rem]">
+			No games found.
+		</div>
+		} @else {
+		<ul class="list-none overflow-y-auto flex-1">
+			@for (game of results(); track game.id) {
+			<li
+				class="flex items-center justify-between py-2 border-b border-line"
+			>
+				<div class="flex items-center gap-2.5 min-w-0">
+					@if (game.backgroundUrl) {
+					<img
+						alt=""
+						[src]="game.backgroundUrl"
+						class="w-8 h-[42px] object-cover rounded-sm shrink-0"
+						loading="lazy"
+					/>
+					}
+					<div class="flex flex-col min-w-0">
+						<span class="text-[0.8125rem] font-medium truncate"
+							>{{ game.title }}</span
+						>
+						@if (game.releaseAt) {
+						<span class="text-[0.6875rem] text-fg-muted"
+							>{{ game.releaseAt.substring(0, 4) }}</span
+						>
+						}
+					</div>
+				</div>
+				<button
+					uiButton
+					variant="primary"
+					size="sm"
+					(click)="pickGame(game)"
+				>
+					Select
+				</button>
+			</li>
+			}
+		</ul>
+		} } @else {
+		<div class="mb-3 flex items-center gap-2.5">
+			@if (selectedGame()!.backgroundUrl) {
+			<img
+				alt=""
+				[src]="selectedGame()!.backgroundUrl"
+				class="w-10 h-[52px] object-cover rounded-sm shrink-0"
+				loading="lazy"
+			/>
+			}
+			<div class="flex flex-col min-w-0 flex-1">
+				<span class="text-sm font-semibold truncate"
+					>{{ selectedGame()!.title }}</span
+				>
+				<button
+					class="text-[0.6875rem] text-brand hover:underline self-start cursor-pointer bg-transparent border-0 p-0"
+					(click)="backToSearch()"
+				>
+					← Change game
+				</button>
+			</div>
+		</div>
+
+		@if (selectedGame()!.platforms.length === 0) {
+		<p class="text-[0.8125rem] text-fg-muted mb-4">
+			No platforms available for this game. You can add it without a
+			platform.
+		</p>
+		} @else {
+		<span class="block text-xs font-semibold text-fg-secondary mb-2"
+			>Pick a platform (optional)</span
+		>
+		<div class="flex flex-wrap gap-1.5 mb-5">
+			@for (p of selectedGame()!.platforms; track p.id) {
+			<button
+				class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition"
+				[class.bg-brand-subtle]="selectedPlatformId() === p.id"
+				[class.border-brand]="selectedPlatformId() === p.id"
+				[class.text-brand]="selectedPlatformId() === p.id"
+				[class.bg-input-bg]="selectedPlatformId() !== p.id"
+				[class.border-line]="selectedPlatformId() !== p.id"
+				[class.text-fg-secondary]="selectedPlatformId() !== p.id"
+				[class.hover:border-brand]="selectedPlatformId() !== p.id"
+				[class.hover:text-brand]="selectedPlatformId() !== p.id"
+				(click)="selectPlatform(p.id)"
+			>
+				{{ p.abbreviation }}
+			</button>
+			}
+		</div>
+		}
+
+		<div class="flex justify-end gap-2">
+			<button
+				uiButton
+				variant="ghost"
+				(click)="confirm(true)"
+				[disabled]="adding()"
+			>
+				Skip
+			</button>
+			<button
+				uiButton
+				variant="primary"
+				(click)="confirm(false)"
+				[disabled]="adding() || (selectedGame()!.platforms.length > 0 && !selectedPlatformId())"
+			>
+				{{ adding() ? 'Adding...' : 'Add' }}
+			</button>
+		</div>
+		}
+	</div>
+</div>

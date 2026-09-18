@@ -1,0 +1,54 @@
+<div>
+	<a
+		class="inline-flex items-center gap-1.5 text-fg-muted no-underline text-[0.8125rem] mb-5 hover:text-brand"
+		routerLink="/games"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>arrow_back</span
+		>
+		Games
+	</a>
+
+	@if (isLoading()) {
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
+	} @else if (notFound()) {
+	<div class="text-center py-12 text-fg-muted text-sm">Genre not found.</div>
+	} @else if (genre()) {
+	<div class="flex items-baseline gap-3 mb-5">
+		<h1
+			class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight"
+		>
+			{{ genre()!.name }}
+		</h1>
+	</div>
+
+	@if (games().length === 0) {
+	<div class="text-center py-12 text-fg-muted text-sm">
+		No games in this genre yet.
+	</div>
+	} @else {
+	<div
+		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
+	>
+		@for (game of games(); track game.id) {
+		<app-game-cover-card
+			[game]="game"
+			[ratio]="gameRatio(game)"
+			[duration]="gameDuration(game)"
+		/>
+		}
+	</div>
+
+	@if (hasMore()) {
+	<div class="flex justify-center mt-6">
+		<button
+			uiButton
+			variant="ghost"
+			[disabled]="isLoadingMore()"
+			(click)="loadMore()"
+		>
+			{{ isLoadingMore() ? "Loading..." : "Load more" }}
+		</button>
+	</div>
+	} } }
+</div>

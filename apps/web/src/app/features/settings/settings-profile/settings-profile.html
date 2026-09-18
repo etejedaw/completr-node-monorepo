@@ -1,0 +1,102 @@
+<div class="bg-surface border border-line rounded-card p-6">
+	<h2 class="font-display m-0 mb-1 text-lg font-bold">Profile</h2>
+	<p class="text-xs text-fg-muted mb-5">
+		Public information shown on your profile page.
+	</p>
+
+	@if (user()) {
+	<div class="flex flex-col gap-4 max-w-xl">
+		<div uiFormField>
+			<label
+				uiLabel
+				for="profile-name"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+				>Name</label
+			>
+			<input
+				uiInput
+				id="profile-name"
+				type="text"
+				[formField]="form.name"
+				placeholder="Your display name"
+			/>
+		</div>
+
+		<div uiFormField>
+			<label
+				uiLabel
+				for="profile-bio"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+				>Bio</label
+			>
+			<textarea
+				uiTextarea
+				id="profile-bio"
+				rows="3"
+				[formField]="form.bio"
+				placeholder="Tell something about yourself..."
+			></textarea>
+		</div>
+
+		<div>
+			<div class="flex items-center justify-between mb-2">
+				<span
+					class="block text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Avatar</span
+				>
+				@if (avatarUrl()) {
+				<button
+					type="button"
+					class="text-[0.6875rem] text-fg-muted bg-transparent border-0 cursor-pointer hover:text-danger transition"
+					(click)="clearAvatar()"
+				>
+					Remove
+				</button>
+				}
+			</div>
+			<div class="grid grid-cols-5 gap-3">
+				@for (url of AVATARS; track url) {
+				<button
+					type="button"
+					class="relative aspect-square rounded-card overflow-hidden border-2 cursor-pointer transition p-0 bg-transparent"
+					[class.border-brand]="avatarUrl() === url"
+					[class.border-transparent]="avatarUrl() !== url"
+					[class.ring-2]="avatarUrl() === url"
+					[class.ring-brand]="avatarUrl() === url"
+					[class.hover:border-brand]="avatarUrl() !== url"
+					[class.opacity-60]="avatarUrl() && avatarUrl() !== url"
+					(click)="selectAvatar(url)"
+				>
+					<img
+						[src]="url"
+						alt="Avatar option"
+						class="w-full h-full object-cover"
+						loading="lazy"
+					/>
+					@if (avatarUrl() === url) {
+					<span
+						class="absolute bottom-1 right-1 flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>check</span
+						>
+					</span>
+					}
+				</button>
+				}
+			</div>
+		</div>
+
+		<div class="flex justify-end pt-4 border-t border-line">
+			<button
+				uiButton
+				variant="primary"
+				(click)="save()"
+				[disabled]="saving()"
+			>
+				{{ saving() ? 'Saving...' : 'Save' }}
+			</button>
+		</div>
+	</div>
+	}
+</div>

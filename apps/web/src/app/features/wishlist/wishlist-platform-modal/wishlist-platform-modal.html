@@ -1,0 +1,72 @@
+<div ngpDialogOverlay class="modal-overlay">
+	<div
+		ngpDialog
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[460px] flex flex-col"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
+	>
+		<div class="flex items-center justify-between mb-3">
+			<h2 ngpDialogTitle class="m-0 text-lg font-bold font-display">
+				Add to Wishlist
+			</h2>
+			<button
+				uiIconButton
+				size="sm"
+				aria-label="Close"
+				(click)="onClose()"
+			>
+				&times;
+			</button>
+		</div>
+		<p class="text-[0.8125rem] text-fg-muted mb-4 truncate">
+			{{ gameTitle }}
+		</p>
+
+		@if (platforms.length === 0) {
+		<p class="text-[0.8125rem] text-fg-muted mb-4">
+			No platforms available for this game. You can add it without a
+			platform.
+		</p>
+		} @else {
+		<span class="block text-xs font-semibold text-fg-secondary mb-2"
+			>Pick a platform (optional)</span
+		>
+		<div class="flex flex-wrap gap-1.5 mb-5">
+			@for (p of platforms; track p.id) {
+			<button
+				class="px-2.5 py-1 rounded-full border text-xs font-medium cursor-pointer transition"
+				[class.bg-brand-subtle]="selectedPlatformId() === p.id"
+				[class.border-brand]="selectedPlatformId() === p.id"
+				[class.text-brand]="selectedPlatformId() === p.id"
+				[class.bg-input-bg]="selectedPlatformId() !== p.id"
+				[class.border-line]="selectedPlatformId() !== p.id"
+				[class.text-fg-secondary]="selectedPlatformId() !== p.id"
+				[class.hover:border-brand]="selectedPlatformId() !== p.id"
+				[class.hover:text-brand]="selectedPlatformId() !== p.id"
+				(click)="selectPlatform(p.id)"
+			>
+				{{ p.abbreviation }}
+			</button>
+			}
+		</div>
+		}
+
+		<div class="flex justify-end gap-2">
+			<button
+				uiButton
+				variant="ghost"
+				(click)="confirm(true)"
+				[disabled]="saving()"
+			>
+				Skip
+			</button>
+			<button
+				uiButton
+				variant="primary"
+				(click)="confirm(false)"
+				[disabled]="saving() || (platforms.length > 0 && !selectedPlatformId())"
+			>
+				{{ saving() ? 'Adding...' : 'Add' }}
+			</button>
+		</div>
+	</div>
+</div>

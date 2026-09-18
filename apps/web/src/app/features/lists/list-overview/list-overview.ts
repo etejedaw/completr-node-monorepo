@@ -1,0 +1,133 @@
+import {
+	ChangeDetectionStrategy,
+	Component,
+	inject,
+	OnInit,
+	signal
+} from "@angular/core";
+import { RouterLink } from "@angular/router";
+import { Subject, debounceTime, switchMap, of } from "rxjs";
+import { List, FollowingList } from "../../../core/models";
+import { ListsService } from "../lists";
+import {
+	ListModal,
+	type ListModalData,
+	type ListModalResult
+} from "../list-modal/list-modal";
+import { DialogService } from "../../../core/services/dialog";
+import {
+	UiButton,
+	UiEmptyState,
+	UiPagination,
+	UiProgress,
+	UiSearchBar
+} from "../../../shared/ui";
+
+@Component({
+	selector: "app-list-overview",
+	imports: [
+		RouterLink,
+		UiButton,
+		UiEmptyState,
+		UiPagination,
+		UiProgress,
+		UiSearchBar
+	],
+	templateUrl: "./list-overview.html",
+	changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class ListOverview implements OnInit {
+	private readonly listsService = inject(ListsService);
+	private readonly dialogs = inject(DialogService);
+	private readonly searchSubject = new Subject<string>();
+
+	protected readonly lists = signal<List[]>([]);
+	protected readonly followingLists = signal<FollowingList[]>([]);
+	protected readonly frozen = signal(false);
+	protected readonly isLoading = signal(true);
+	protected readonly searchQuery = signal("");
+	protected readonly searchResults = signal<List[]>([]);
+	protected readonly isSearching = signal(false);
+	protected readonly total = signal(0);
+	protected readonly offset = signal(0);
+	protected readonly limit = 25;
+
+	onOffsetChange(offset: number) {
+		this.offset.set(offset);
+		this.loadLists();
+	}
+
+	ngOnInit() {
+		this.loadLists();
+		this.loadFollowing();
+
+		this.searchSubject
+			.pipe(
+				debounceTime(400),
+				switchMap(query => {
+					if (query.length < 2) {
+						this.isSearching.set(false);
+						return of([]);
+					}
+					this.isSearching.set(true);
+					return this.listsService.search(query);
+				})
+			)
+			.subscribe(lists => {
+				this.searchResults.set(lists);
+				this.isSearching.set(false);
+			});
+	}
+
+	onSearch(query: string) {
+		this.searchQuery.set(query);
+		if (query.length >= 2) this.isSearching.set(true);
+		this.searchSubject.next(query);
+	}
+
+	openCreate() {
+		this.openModal(null);
+	}
+
+	openEdit(list: List, event: Event) {
+		event.stopPropagation();
+		this.openModal(list);
+	}
+
+	private openModal(list: List | null) {
+		const ref = this.dialogs.open<ListModalData, ListModalResult>(
+			ListModal,
+			{
+				data: { list }
+			}
+		);
+		ref.afterClosed.subscribe(result => {
+			if (result === "saved") this.loadLists();
+		});
+	}
+
+	progressPercent(p: { completed: number; total: number }): number {
+		return p.total > 0 ? Math.round((p.completed / p.total) * 100) : 0;
+	}
+
+	private loadLists() {
+		this.isLoading.set(true);
+		this.listsService
+			.getMyLists({ limit: this.limit, offset: this.offset() })
+			.subscribe({
+				next: res => {
+					this.lists.set(res.data.lists);
+					this.total.set(res.data.total ?? res.data.lists.length);
+					this.frozen.set(res.data.frozen);
+					this.isLoading.set(false);
+				},
+				error: () => this.isLoading.set(false)
+			});
+	}
+
+	private loadFollowing() {
+		this.listsService.getFollowing().subscribe({
+			next: lists => this.followingLists.set(lists)
+		});
+	}
+}

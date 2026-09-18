@@ -1,0 +1,50 @@
+<div class="relative">
+	<div
+		class="flex flex-wrap gap-1.5 items-center px-2 py-1.5 bg-input-bg border border-line rounded text-sm min-h-[2.25rem] focus-within:border-brand"
+	>
+		@for (tag of tags(); track tag; let i = $index) {
+		<span
+			class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-xs font-medium"
+		>
+			{{ tag }}
+			<button
+				type="button"
+				class="bg-transparent border-0 text-brand/70 hover:text-brand cursor-pointer leading-none p-0 m-0 flex items-center"
+				(click)="removeAt(i)"
+				[attr.aria-label]="'Remove ' + tag"
+			>
+				<span aria-hidden="true" class="material-icons text-[0.875rem]"
+					>close</span
+				>
+			</button>
+		</span>
+		} @if (canAdd()) {
+		<input
+			type="text"
+			class="flex-1 min-w-[6rem] bg-transparent border-0 outline-none text-fg text-sm font-sans"
+			[attr.aria-labelledby]="ariaLabelledby()"
+			[placeholder]="tags().length === 0 ? placeholder() : ''"
+			[value]="draft()"
+			(input)="onInput($any($event.target).value)"
+			(keydown)="onKey($event)"
+			(focus)="onFocus()"
+			(blur)="onBlur()"
+		/>
+		}
+	</div>
+
+	@if (focused() && filteredSuggestions().length > 0) {
+	<ul
+		class="absolute left-0 right-0 top-full mt-1 z-50 bg-surface border border-line rounded shadow-lg max-h-48 overflow-y-auto py-1 list-none p-0 m-0"
+	>
+		@for (s of filteredSuggestions(); track s) {
+		<li
+			class="px-3 py-1.5 text-sm text-fg-secondary cursor-pointer hover:bg-input-bg hover:text-fg transition"
+			(mousedown)="pickSuggestion(s)"
+		>
+			{{ s }}
+		</li>
+		}
+	</ul>
+	}
+</div>

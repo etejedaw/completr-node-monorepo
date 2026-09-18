@@ -1,0 +1,268 @@
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	inject,
+	OnInit,
+	signal
+} from "@angular/core";
+import { DatePipe } from "@angular/common";
+import { form, required, FormField } from "@angular/forms/signals";
+import {
+	NgpDialog,
+	NgpDialogOverlay,
+	NgpDialogTitle,
+	injectDialogRef
+} from "ng-primitives/dialog";
+import { GameShelfEntry } from "../../../core/models";
+import { Game, Platform } from "../../../core/models";
+import {
+	GameShelfService,
+	CreateGameShelfDto,
+	UpdateGameShelfDto
+} from "../game-shelf";
+import { GamesService } from "../../games/games";
+import {
+	Subject,
+	debounceTime,
+	distinctUntilChanged,
+	switchMap,
+	of
+} from "rxjs";
+import {
+	UiButton,
+	UiIconButton,
+	UiSelect,
+	UiTextarea
+} from "../../../shared/ui";
+
+export interface GameShelfModalData {
+	entry: GameShelfEntry | null;
+	preselectedGame: Game | null;
+}
+export type GameShelfModalResult = "saved";
+
+@Component({
+	selector: "app-game-shelf-modal",
+	imports: [
+		DatePipe,
+		FormField,
+		NgpDialog,
+		NgpDialogOverlay,
+		NgpDialogTitle,
+		UiButton,
+		UiIconButton,
+		UiSelect,
+		UiTextarea
+	],
+	templateUrl: "./game-shelf-modal.html",
+	changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class GameShelfModal implements OnInit {
+	private readonly shelfService = inject(GameShelfService);
+	private readonly gamesService = inject(GamesService);
+	private readonly dialogRef = injectDialogRef<
+		GameShelfModalData,
+		GameShelfModalResult
+	>();
+	protected readonly entry = this.dialogRef.data.entry;
+	protected readonly preselectedGame = this.dialogRef.data.preselectedGame;
+
+	protected readonly isLoading = signal(false);
+	protected readonly error = signal("");
+	protected readonly platforms = signal<Platform[]>([]);
+	protected readonly gameResults = signal<Game[]>([]);
+	protected readonly selectedGame = signal<Game | null>(null);
+	protected readonly searchQuery = signal("");
+	protected readonly isSearching = signal(false);
+	protected readonly isSearchingOnline = signal(false);
+	protected readonly gamePlatforms = computed(
+		() => this.selectedGame()?.platforms ?? []
+	);
+	protected readonly showConfirmDelete = signal(false);
+	protected readonly isForceSearching = signal(false);
+
+	private readonly searchSubject = new Subject<string>();
+	protected readonly isEdit = signal(false);
+	protected readonly viewMode = signal<"summary" | "edit">("edit");
+
+	switchToEdit() {
+		this.viewMode.set("edit");
+	}
+
+	protected readonly model = signal({
+		gameId: "",
+		platformId: "",
+		edition: "",
+		acquiredAt: null as string | null,
+		notes: ""
+	});
+
+	readonly form = form(this.model, path => {
+		required(path.gameId);
+		required(path.platformId);
+	});
+
+	protected readonly editionSuggestions = [
+		"Standard",
+		"Deluxe",
+		"GOTY",
+		"Collector's",
+		"Definitive",
+		"Complete",
+		"Digital",
+		"Physical"
+	];
+
+	applyEditionSuggestion(value: string) {
+		this.model.update(m => ({ ...m, edition: value }));
+	}
+
+	ngOnInit() {
+		this.gamesService.getPlatforms().subscribe(p => this.platforms.set(p));
+
+		this.searchSubject
+			.pipe(
+				debounceTime(400),
+				distinctUntilChanged(),
+				switchMap(query => {
+					if (query.length < 2) {
+						this.isSearching.set(false);
+						this.isSearchingOnline.set(false);
+						return of([]);
+					}
+					this.isSearching.set(true);
+					this.isSearchingOnline.set(false);
+					return this.gamesService.searchLocal(query).pipe(
+						switchMap(localResults => {
+							if (localResults.length > 0) {
+								return of(localResults);
+							}
+							this.isSearching.set(false);
+							this.isSearchingOnline.set(true);
+							return this.gamesService.search(query);
+						})
+					);
+				})
+			)
+			.subscribe(games => {
+				this.gameResults.set(games);
+				this.isSearching.set(false);
+				this.isSearchingOnline.set(false);
+			});
+
+		const e = this.entry;
+		if (e) {
+			this.isEdit.set(true);
+			this.viewMode.set("summary");
+			this.selectedGame.set({
+				id: e.game.id,
+				title: e.game.title,
+				backgroundUrl: e.game.backgroundUrl
+			} as Game);
+			this.model.set({
+				gameId: e.game.id,
+				platformId: e.platform.id,
+				edition: e.edition ?? "",
+				acquiredAt: e.acquiredAt ? e.acquiredAt.substring(0, 10) : null,
+				notes: e.notes ?? ""
+			});
+		}
+
+		const pg = this.preselectedGame;
+		if (pg && !this.isEdit()) {
+			this.selectGame(pg);
+		}
+	}
+
+	onSearch(event: Event) {
+		const query = (event.target as HTMLInputElement).value;
+		this.searchQuery.set(query);
+		if (query.length >= 2) this.isSearching.set(true);
+		this.searchSubject.next(query);
+	}
+
+	forceSearch() {
+		const query = this.searchQuery();
+		if (query.length < 2) return;
+		this.isForceSearching.set(true);
+		this.gamesService.search(query, true).subscribe({
+			next: games => {
+				this.gameResults.set(games);
+				this.isForceSearching.set(false);
+			},
+			error: () => this.isForceSearching.set(false)
+		});
+	}
+
+	selectGame(game: Game) {
+		this.selectedGame.set(game);
+		const platforms = game.platforms ?? [];
+		this.model.update(m => ({
+			...m,
+			gameId: game.id,
+			platformId: platforms.length === 1 ? platforms[0].id : ""
+		}));
+		this.gameResults.set([]);
+		this.searchQuery.set("");
+	}
+
+	clearGame() {
+		this.selectedGame.set(null);
+		this.model.update(m => ({ ...m, gameId: "" }));
+	}
+
+	onSubmit(event: Event) {
+		event.preventDefault();
+		if (this.form().invalid()) return;
+		this.isLoading.set(true);
+		this.error.set("");
+
+		const val = this.form().value();
+
+		if (this.isEdit()) {
+			const dto: UpdateGameShelfDto = {
+				edition: val.edition || null,
+				acquiredAt: val.acquiredAt || null,
+				notes: val.notes || null
+			};
+			this.shelfService.update(this.entry!.id, dto).subscribe({
+				next: () => this.dialogRef.close("saved"),
+				error: err => {
+					this.isLoading.set(false);
+					this.error.set(err.error?.title ?? "Update failed");
+				}
+			});
+		} else {
+			const dto: CreateGameShelfDto = {
+				gameId: val.gameId!,
+				platformId: val.platformId!,
+				edition: val.edition || undefined,
+				acquiredAt: val.acquiredAt || undefined,
+				notes: val.notes || undefined
+			};
+			this.shelfService.create(dto).subscribe({
+				next: () => this.dialogRef.close("saved"),
+				error: err => {
+					this.isLoading.set(false);
+					this.error.set(err.error?.title ?? "Creation failed");
+				}
+			});
+		}
+	}
+
+	onDelete() {
+		this.isLoading.set(true);
+		this.shelfService.delete(this.entry!.id).subscribe({
+			next: () => this.dialogRef.close("saved"),
+			error: err => {
+				this.isLoading.set(false);
+				this.error.set(err.error?.title ?? "Delete failed");
+			}
+		});
+	}
+
+	onClose() {
+		this.dialogRef.close();
+	}
+}

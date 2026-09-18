@@ -1,0 +1,66 @@
+<div>
+	<h1
+		class="font-display text-3xl md:text-4xl font-bold tracking-tight mt-0 mb-5"
+	>
+		Pending Reports
+	</h1>
+
+	@if (filterGameId()) {
+	<div
+		class="flex items-center gap-3 mb-4 px-3 py-2 bg-surface border border-line rounded max-w-[700px]"
+	>
+		<span class="text-[0.8125rem] text-fg-secondary">Filtered by game</span>
+		<button uiButton variant="ghost" size="sm" (click)="clearFilter()">
+			Show all
+		</button>
+	</div>
+	} @if (isLoading()) {
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
+	} @else if (reports().length === 0) {
+	<div class="text-center py-12 text-fg-muted text-sm">
+		No pending reports.
+	</div>
+	} @else {
+	<div class="flex flex-col gap-3 max-w-[700px]">
+		@for (report of reports(); track report.id) {
+		<div class="bg-surface border border-line rounded p-4">
+			<div class="flex items-baseline justify-between mb-2">
+				<a
+					class="font-semibold text-brand no-underline text-[0.9375rem] hover:underline"
+					[routerLink]="['/games', report.Game.code]"
+				>
+					{{ report.Game.title }}
+				</a>
+				<span class="text-xs text-fg-muted">
+					by {{ report.User.username }} &middot; {{ report.createdAt |
+					date : "yyyy-MM-dd" }}
+				</span>
+			</div>
+			<p
+				class="mt-0 mb-3 text-[0.8125rem] text-fg-secondary leading-relaxed"
+			>
+				{{ report.message }}
+			</p>
+			<div class="flex gap-2">
+				<button
+					uiButton
+					variant="primary"
+					size="sm"
+					(click)="approve(report)"
+				>
+					Approve
+				</button>
+				<button
+					uiButton
+					variant="danger"
+					size="sm"
+					(click)="reject(report)"
+				>
+					Reject
+				</button>
+			</div>
+		</div>
+		}
+	</div>
+	}
+</div>

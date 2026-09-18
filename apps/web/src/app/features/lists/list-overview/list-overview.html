@@ -1,0 +1,368 @@
+<div class="max-w-full">
+	<div class="flex items-center justify-between mb-5">
+		<div class="flex items-baseline gap-3">
+			<h1
+				class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight"
+			>
+				Lists
+			</h1>
+			<span class="text-[0.8125rem] text-fg-muted"
+				>{{ total() }} lists</span
+			>
+		</div>
+		@if (isLoading() || lists().length > 0) {
+		<button
+			uiButton
+			variant="primary"
+			(click)="openCreate()"
+			[disabled]="frozen()"
+		>
+			+ Create List
+		</button>
+		}
+	</div>
+
+	<ui-search-bar
+		class="block mb-4 max-w-2xl"
+		placeholder="Search public lists..."
+		[value]="searchQuery()"
+		(valueChange)="onSearch($event)"
+	/>
+
+	@if (searchQuery().length >= 2) {
+	<div class="mb-6 pb-6 border-b border-line">
+		<h2
+			class="font-display m-0 mb-3 text-sm font-semibold text-fg-secondary"
+		>
+			Search Results
+		</h2>
+		@if (isSearching()) {
+		<div class="text-center py-12 text-fg-muted text-sm">Searching...</div>
+		} @else if (searchResults().length === 0) {
+		<div class="text-fg-muted text-[0.8125rem]">No public lists found.</div>
+		} @else {
+		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+			@for (list of searchResults(); track list.id) {
+			<a
+				class="relative block aspect-[4/3] rounded-card overflow-hidden no-underline text-inherit border border-line transition group hover:border-brand/50"
+				[routerLink]="['/lists', list.id]"
+			>
+				@let hero = list.previewItems?.[0]?.game?.backgroundUrl; @if
+				(hero) {
+				<img
+					[src]="hero"
+					[alt]="list.name"
+					class="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-[1.04]"
+					loading="lazy"
+				/>
+				} @else {
+				<div
+					class="absolute inset-0 bg-input-bg flex items-center justify-center"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-fg-muted/30 text-5xl"
+						>videogame_asset</span
+					>
+				</div>
+				}
+				<div
+					class="absolute inset-0"
+					style="
+						background: linear-gradient(
+							to top,
+							rgba(10, 10, 12, 0.98) 0%,
+							rgba(10, 10, 12, 0.85) 35%,
+							rgba(10, 10, 12, 0.55) 65%,
+							rgba(10, 10, 12, 0.25) 100%
+						);
+					"
+				></div>
+
+				@if (list.isOfficial) {
+				<div class="absolute top-3 left-3 flex gap-2">
+					<span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.875rem]"
+							>verified</span
+						>
+						Official
+					</span>
+				</div>
+				}
+
+				<div
+					class="relative h-full flex flex-col justify-end p-4 gap-1"
+				>
+					<h3
+						class="m-0 text-lg font-bold text-white line-clamp-1"
+						style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6)"
+					>
+						{{ list.name }}
+					</h3>
+					@if (list.description) {
+					<p
+						class="m-0 text-xs text-white/80 line-clamp-2"
+						style="text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5)"
+					>
+						{{ list.description }}
+					</p>
+					}
+				</div>
+			</a>
+			}
+		</div>
+		}
+	</div>
+	} @if (frozen()) {
+	<div
+		class="flex items-center gap-2 px-3.5 py-2.5 bg-warning/10 border border-warning/25 text-warning rounded-card text-[0.8125rem] mb-5"
+	>
+		<span aria-hidden="true" class="material-icons text-base">lock</span>
+		Lists are frozen. Delete lists to go below the free limit (5).
+	</div>
+	} @if (isLoading()) {
+	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
+	} @else if (lists().length === 0) {
+	<ui-empty-state
+		icon="format_list_bulleted"
+		title="No lists yet"
+		hint="Create curated collections of games — sagas, top picks, or themed lists."
+	>
+		<button uiButton variant="primary" (click)="openCreate()">
+			+ Create List
+		</button>
+	</ui-empty-state>
+	} @else {
+	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+		@for (list of lists(); track list.id) {
+		<a
+			class="relative block aspect-[4/3] rounded-card overflow-hidden no-underline text-inherit border border-line transition group hover:border-brand/50"
+			[routerLink]="['/lists', list.id]"
+		>
+			@let hero = list.previewItems?.[0]?.game?.backgroundUrl; @if (hero)
+			{
+			<img
+				[src]="hero"
+				[alt]="list.name"
+				class="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-[1.04]"
+				loading="lazy"
+			/>
+			} @else {
+			<div
+				class="absolute inset-0 bg-input-bg flex items-center justify-center"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-fg-muted/30 text-5xl"
+					>videogame_asset</span
+				>
+			</div>
+			}
+			<div
+				class="absolute inset-0"
+				style="
+					background: linear-gradient(
+						to top,
+						rgba(10, 10, 12, 0.98) 0%,
+						rgba(10, 10, 12, 0.85) 35%,
+						rgba(10, 10, 12, 0.55) 65%,
+						rgba(10, 10, 12, 0.25) 100%
+					);
+				"
+			></div>
+
+			<div class="absolute top-3 left-3 flex gap-2">
+				@if (list.isOfficial) {
+				<span
+					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-[0.875rem]"
+						>verified</span
+					>
+					Official
+				</span>
+				}
+				<span
+					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-[0.875rem]"
+						>{{ list.isPublic ? 'public' : 'lock' }}</span
+					>
+					{{ list.isPublic ? 'Public' : 'Private' }}
+				</span>
+			</div>
+
+			<div class="relative h-full flex flex-col justify-end p-4 gap-1.5">
+				<h3
+					class="m-0 text-xl font-bold text-white line-clamp-1 font-display tracking-tight"
+					style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6)"
+				>
+					{{ list.name }}
+				</h3>
+				@if (list.description) {
+				<p
+					class="m-0 text-sm text-white/85 line-clamp-2"
+					style="text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5)"
+				>
+					{{ list.description }}
+				</p>
+				}
+				<div
+					class="flex items-center gap-3 mt-1 text-[0.6875rem] text-white/70 uppercase tracking-wider"
+				>
+					<span class="flex items-center gap-1">
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.875rem]"
+							>leaderboard</span
+						>
+						{{ list.scoreSource }}
+					</span>
+					<span class="flex items-center gap-1">
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.875rem]"
+							>schedule</span
+						>
+						{{ list.durationSource }}
+					</span>
+				</div>
+			</div>
+		</a>
+		}
+	</div>
+	} @if (followingLists().length > 0) {
+	<div class="mt-8 pt-6 border-t border-line">
+		<h2 class="font-display m-0 mb-4 text-xl font-bold text-fg">
+			Following
+		</h2>
+		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+			@for (list of followingLists(); track list.id) {
+			<a
+				class="relative block aspect-[4/3] rounded-card overflow-hidden no-underline text-inherit border border-line transition group hover:border-brand/50"
+				[routerLink]="['/lists', list.id]"
+			>
+				@let hero = list.previewItems?.[0]?.game?.backgroundUrl; @if
+				(hero) {
+				<img
+					[src]="hero"
+					[alt]="list.name"
+					class="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-[1.04]"
+					loading="lazy"
+				/>
+				} @else {
+				<div
+					class="absolute inset-0 bg-input-bg flex items-center justify-center"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-fg-muted/30 text-5xl"
+						>videogame_asset</span
+					>
+				</div>
+				}
+				<div
+					class="absolute inset-0"
+					style="
+						background: linear-gradient(
+							to top,
+							rgba(10, 10, 12, 0.98) 0%,
+							rgba(10, 10, 12, 0.85) 35%,
+							rgba(10, 10, 12, 0.55) 65%,
+							rgba(10, 10, 12, 0.25) 100%
+						);
+					"
+				></div>
+
+				<div class="absolute top-3 left-3 flex gap-2">
+					@if (list.isOfficial) {
+					<span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.875rem]"
+							>verified</span
+						>
+						Official
+					</span>
+					}
+					<span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.875rem]"
+							>bookmark</span
+						>
+						Following
+					</span>
+				</div>
+				@if (list.progress.total > 0 && list.progress.completed >=
+				list.progress.total) {
+				<div class="absolute top-3 right-3">
+					<span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning/85 backdrop-blur-sm text-[0.6875rem] font-bold text-black uppercase tracking-wider shadow-lg"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.875rem]"
+							>emoji_events</span
+						>
+						100%
+					</span>
+				</div>
+				}
+
+				<div
+					class="relative h-full flex flex-col justify-end p-4 gap-1.5"
+				>
+					<h3
+						class="m-0 text-xl font-bold text-white line-clamp-1 font-display tracking-tight"
+						style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6)"
+					>
+						{{ list.name }}
+					</h3>
+					@if (list.description) {
+					<p
+						class="m-0 text-sm text-white/85 line-clamp-2"
+						style="text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5)"
+					>
+						{{ list.description }}
+					</p>
+					}
+					<div class="flex flex-col gap-1 mt-1">
+						<ui-progress
+							[value]="list.progress.completed"
+							[max]="list.progress.total || 1"
+							trackClass="h-1 bg-white/20"
+							indicatorClass=""
+							indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
+						/>
+						<span class="text-[0.6875rem] text-white/80">
+							{{ list.progress.completed }}/{{ list.progress.total
+							}} completed
+						</span>
+					</div>
+				</div>
+			</a>
+			}
+		</div>
+	</div>
+	}
+
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="total()"
+		(offsetChange)="onOffsetChange($event)"
+	/>
+</div>

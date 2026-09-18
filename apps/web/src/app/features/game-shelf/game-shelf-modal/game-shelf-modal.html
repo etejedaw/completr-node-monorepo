@@ -1,0 +1,368 @@
+<div ngpDialogOverlay class="modal-overlay">
+	<div
+		ngpDialog
+		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[520px] max-h-[90vh] overflow-y-auto"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
+	>
+		<div class="flex items-center justify-between mb-5">
+			<h2 ngpDialogTitle class="m-0 text-lg font-bold font-display">
+				{{ isEdit() ? (viewMode() === 'summary' ? entry!.game.title :
+				"Edit Entry") : "Add to Shelf" }}
+			</h2>
+			<button
+				uiIconButton
+				size="sm"
+				aria-label="Close"
+				(click)="onClose()"
+			>
+				&times;
+			</button>
+		</div>
+
+		@if (error()) {
+		<div
+			class="bg-danger/10 border border-danger/25 text-red-300 px-3 py-2 rounded-md mb-4 text-[0.8125rem]"
+		>
+			{{ error() }}
+		</div>
+		} @if (isEdit() && viewMode() === 'summary') { @let e = entry!;
+		<div class="flex items-stretch gap-4 mb-5">
+			<div class="shrink-0">
+				@if (e.game.backgroundUrl) {
+				<img
+					[src]="e.game.backgroundUrl"
+					[alt]="e.game.title"
+					class="w-20 h-28 object-cover rounded-md shadow-md shadow-black/40"
+					loading="lazy"
+				/>
+				} @else {
+				<div class="w-20 h-28 bg-input-bg rounded-md"></div>
+				}
+			</div>
+			<div class="flex-1 min-w-0 flex flex-col gap-1.5 justify-center">
+				<div class="text-[0.8125rem] text-fg-secondary">
+					{{ e.platform.abbreviation }}
+				</div>
+				@if (e.edition) {
+				<span
+					class="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide bg-warning/10 text-warning"
+					>{{ e.edition }}</span
+				>
+				}
+			</div>
+		</div>
+
+		<div class="grid grid-cols-2 gap-3 text-[0.8125rem]">
+			@if (e.acquiredAt) {
+			<div
+				class="bg-input-bg border border-line rounded-card p-3 col-span-2"
+			>
+				<div
+					class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+				>
+					Acquired
+				</div>
+				<div class="text-fg">
+					{{ e.acquiredAt | date:'yyyy-MM-dd' }}
+				</div>
+			</div>
+			}
+		</div>
+
+		@if (e.notes) {
+		<div class="mt-3 bg-input-bg border border-line rounded-card p-3">
+			<div
+				class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+			>
+				Notes
+			</div>
+			<p
+				class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap"
+			>
+				{{ e.notes }}
+			</p>
+		</div>
+		}
+
+		<div class="flex justify-end gap-2 mt-5 pt-4 border-t border-line">
+			<button uiButton variant="ghost" type="button" (click)="onClose()">
+				Close
+			</button>
+			<button
+				uiButton
+				variant="primary"
+				type="button"
+				(click)="switchToEdit()"
+			>
+				<span aria-hidden="true" class="material-icons text-base mr-1"
+					>edit</span
+				>
+				Edit
+			</button>
+		</div>
+		} @else {
+		<form (submit)="onSubmit($event)">
+			@if (!isEdit()) {
+			<div class="mb-4">
+				<span
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Game <span class="text-danger font-bold">*</span></span
+				>
+				@if (selectedGame()) {
+				<div
+					class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded-md"
+					[class.opacity-70]="preselectedGame"
+				>
+					@if (selectedGame()!.backgroundUrl) {
+					<img
+						alt=""
+						[src]="selectedGame()!.backgroundUrl"
+						class="w-7 h-[38px] object-cover rounded-sm shrink-0"
+						loading="lazy"
+					/>
+					}
+					<span class="flex-1 text-sm font-medium"
+						>{{ selectedGame()!.title }}</span
+					>
+					@if (!preselectedGame) {
+					<button
+						type="button"
+						class="bg-none border-0 text-fg-muted text-xl cursor-pointer px-1 leading-none hover:text-fg"
+						(click)="clearGame()"
+					>
+						&times;
+					</button>
+					}
+				</div>
+				} @else {
+				<input
+					type="text"
+					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] transition placeholder:text-fg-muted focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
+					placeholder="Search games..."
+					[value]="searchQuery()"
+					(input)="onSearch($event)"
+				/>
+				@if (isSearching() && gameResults().length === 0) {
+				<div
+					class="mt-1 px-3 py-2.5 text-[0.8125rem] text-fg-muted bg-input-bg border border-line rounded-md"
+				>
+					Searching...
+				</div>
+				} @if (isSearchingOnline()) {
+				<div
+					class="mt-1 px-3 py-2.5 text-[0.8125rem] text-brand bg-input-bg border border-line rounded-md flex items-center gap-2"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-base animate-spin"
+						>autorenew</span
+					>
+					Searching online...
+				</div>
+				} @if (gameResults().length > 0 || (!isSearching() &&
+				!isSearchingOnline() && searchQuery().length >= 2)) {
+				<ul
+					class="list-none bg-input-bg border border-line rounded-md mt-1 max-h-[200px] overflow-y-auto"
+				>
+					@for (game of gameResults(); track game.id) {
+					<li
+						role="button"
+						tabindex="0"
+						class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] transition hover:bg-surface"
+						(click)="selectGame(game)"
+						(keydown.enter)="selectGame(game)"
+						(keydown.space)="selectGame(game); $event.preventDefault()"
+					>
+						@if (game.backgroundUrl) {
+						<img
+							alt=""
+							[src]="game.backgroundUrl"
+							class="w-7 h-[38px] object-cover rounded-sm shrink-0"
+							loading="lazy"
+						/>
+						}
+						<span class="flex-1">{{ game.title }}</span>
+						@if (game.justImported) {
+						<span
+							class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/15 text-info text-[0.65rem] font-semibold uppercase tracking-wider rounded"
+							title="Just imported from RAWG"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-[0.75rem]"
+								>cloud_download</span
+							>
+							RAWG
+						</span>
+						} @if (game.isDlc) {
+						<span
+							class="px-1.5 py-0.5 bg-warning/15 text-warning text-[0.65rem] font-semibold uppercase tracking-wider rounded"
+							>DLC</span
+						>
+						}
+					</li>
+					} @if (searchQuery().length >= 2) {
+					<li
+						role="button"
+						tabindex="0"
+						class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] font-medium text-brand border-t border-line transition hover:bg-surface"
+						(click)="forceSearch()"
+						(keydown.enter)="forceSearch()"
+						(keydown.space)="forceSearch(); $event.preventDefault()"
+					>
+						{{ isForceSearching() ? 'Searching...' : 'Force search
+						for "' + searchQuery() + '"' }}
+					</li>
+					}
+				</ul>
+				} }
+			</div>
+			} @else {
+			<div class="mb-4">
+				<span
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Game</span
+				>
+				<div
+					class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded-md opacity-70"
+				>
+					@if (selectedGame()?.backgroundUrl) {
+					<img
+						alt=""
+						[src]="selectedGame()!.backgroundUrl"
+						class="w-7 h-[38px] object-cover rounded-sm shrink-0"
+						loading="lazy"
+					/>
+					}
+					<span class="flex-1 text-sm font-medium"
+						>{{ selectedGame()!.title }}</span
+					>
+				</div>
+			</div>
+			} @if (!isEdit()) {
+			<div class="mb-4">
+				<label
+					for="platformId"
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Platform
+					<span class="text-danger font-bold">*</span></label
+				>
+				<select uiSelect id="platformId" [formField]="form.platformId">
+					<option value="">Select platform</option>
+					@for (p of gamePlatforms(); track p.id) {
+					<option [value]="p.id">{{ p.name }}</option>
+					}
+				</select>
+			</div>
+			}
+
+			<div class="mb-4">
+				<label
+					for="edition"
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Edition</label
+				>
+				<input
+					id="edition"
+					type="text"
+					[formField]="form.edition"
+					placeholder="Standard, Deluxe, GOTY..."
+					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] transition placeholder:text-fg-muted focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
+				/>
+				<div class="flex flex-wrap gap-1.5 mt-2">
+					@for (suggestion of editionSuggestions; track suggestion) {
+					<button
+						type="button"
+						class="px-2 py-1 text-[0.7rem] font-medium rounded-md border transition cursor-pointer"
+						[class]="form.edition().value() === suggestion ? 'bg-brand/15 border-brand text-brand' : 'bg-input-bg border-line text-fg-muted hover:border-brand hover:text-brand'"
+						(click)="applyEditionSuggestion(suggestion)"
+					>
+						{{ suggestion }}
+					</button>
+					}
+				</div>
+			</div>
+
+			<div class="mb-4">
+				<label
+					for="acquiredAt"
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Acquired</label
+				>
+				<input
+					id="acquiredAt"
+					type="date"
+					[formField]="form.acquiredAt"
+					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
+				/>
+			</div>
+
+			<div class="mb-4">
+				<label
+					for="notes"
+					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+					>Notes</label
+				>
+				<textarea
+					uiTextarea
+					id="notes"
+					[formField]="form.notes"
+					rows="3"
+					placeholder="Your notes..."
+					class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-sm font-[inherit] resize-y transition placeholder:text-fg-muted focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
+				></textarea>
+			</div>
+
+			<div
+				class="flex justify-between items-center mt-5 pt-4 border-t border-line"
+			>
+				@if (isEdit()) {
+				<div class="flex items-center gap-2">
+					@if (!showConfirmDelete()) {
+					<button
+						type="button"
+						class="px-3 py-1.5 bg-transparent border border-danger/30 text-danger rounded-md text-xs cursor-pointer transition hover:bg-danger/10"
+						(click)="showConfirmDelete.set(true)"
+					>
+						Delete
+					</button>
+					} @else {
+					<span class="text-[0.8125rem] text-danger"
+						>Are you sure?</span
+					>
+					<button
+						uiButton
+						variant="danger"
+						size="sm"
+						type="button"
+						(click)="onDelete()"
+					>
+						Yes, delete
+					</button>
+					<button
+						uiButton
+						variant="ghost"
+						size="sm"
+						type="button"
+						(click)="showConfirmDelete.set(false)"
+					>
+						Cancel
+					</button>
+					}
+				</div>
+				}
+				<button
+					uiButton
+					variant="primary"
+					size="sm"
+					class="ml-auto"
+					type="submit"
+					[disabled]="form().invalid() || isLoading()"
+				>
+					{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Add" }}
+				</button>
+			</div>
+		</form>
+		}
+	</div>
+</div>
