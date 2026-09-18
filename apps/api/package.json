@@ -51,7 +51,6 @@
 		"@types/express": "^5.0.5",
 		"@types/jsonwebtoken": "^9.0.10",
 		"sequelize-cli": "^6.6.5",
-		"ts-node": "^10.9.2",
-		"typescript": "^5.9.3"
+		"ts-node": "^10.9.2"
 	}
 }
