@@ -9,7 +9,7 @@ ServiceError → DomainError → HttpError
 
 ## Las 3 clases base
 
-Viven en `src/common/errors/`.
+Viven en `apps/api/src/common/errors/`.
 
 ### `ServiceError`
 
@@ -116,7 +116,7 @@ errors/
 
 ## Patrón `rethrowSequelizeError`
 
-`rethrowSequelizeError(error, mappers)` vive en `src/common/errors/sequelize-error.mapper.ts` y mapea `UniqueConstraintError` / `ValidationError` de Sequelize a `ServiceError`s del módulo. Está tipado como `: never`, por lo que cualquier ruta que pase por el catch lanza.
+`rethrowSequelizeError(error, mappers)` vive en `apps/api/src/common/errors/sequelize-error.mapper.ts` y mapea `UniqueConstraintError` / `ValidationError` de Sequelize a `ServiceError`s del módulo. Está tipado como `: never`, por lo que cualquier ruta que pase por el catch lanza.
 
 ### CLEAN — todo dentro del try, return desde adentro
 
@@ -270,14 +270,14 @@ export function gamesErrorDomainNormalizer(
 
 Cuando agregas un módulo nuevo, hay que registrarlo en dos lugares:
 
-### `src/common/errors/global-error-domain.normalizer.ts`
+### `apps/api/src/common/errors/global-error-domain.normalizer.ts`
 
 ```ts
 if (error.serviceError.service === "Games Service")
 	return gamesErrorDomainNormalizer(error, correlationId);
 ```
 
-### `src/common/errors/global-error-http.normalizer.ts`
+### `apps/api/src/common/errors/global-error-http.normalizer.ts`
 
 ```ts
 if (error.module === "Game Module")

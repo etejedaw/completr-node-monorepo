@@ -14,17 +14,17 @@ Un provider:
 Un provider **no** es:
 
 - Un módulo de negocio. No tiene controller, routes, ni habla con la DB.
-- Una librería compartida cualquiera. Helpers genéricos viven en `src/common/utils/`.
+- Una librería compartida cualquiera. Helpers genéricos viven en `apps/api/src/common/utils/`.
 - Un wrapper trivial — si solo reexporta una librería sin agregar valor, no necesitas provider.
 
 ## Estructura
 
-Cada provider vive en `src/<nombre>/` al mismo nivel que un módulo de negocio. No tiene `model`, `controller` ni `routes`.
+Cada provider vive en `apps/api/src/<nombre>/` al mismo nivel que un módulo de negocio. No tiene `model`, `controller` ni `routes`.
 
-Ejemplo — `src/rawg/`:
+Ejemplo — `apps/api/src/rawg/`:
 
 ```
-src/rawg/
+apps/api/src/rawg/
 ├── rawg.provider.ts        Clase base abstracta + implementación activa y deshabilitada
 ├── rawg.interface.ts       Contrato del provider y tipos de request/response
 └── errors/
@@ -40,7 +40,7 @@ Si los tipos del provider son extensos, pueden ir en `interfaces/<algo>.interfac
 ## La clase Provider
 
 ```ts
-// src/rawg/rawg.provider.ts
+// apps/api/src/rawg/rawg.provider.ts
 export class RawgProvider {
 	private readonly BASE_URL = "https://api.rawg.io/api";
 
@@ -82,7 +82,7 @@ export class RawgProvider {
 El provider lanza `ServiceError` con `service: "<Nombre> Provider"` — distinto de `"<Nombre> Service"` para distinguir fallos externos de fallos internos.
 
 ```ts
-// src/rawg/errors/rawg.service-error.ts
+// apps/api/src/rawg/errors/rawg.service-error.ts
 const BASE_OPTIONS = { service: "RAWG Provider" };
 
 export function notFoundError() {
@@ -151,7 +151,7 @@ La decisión es del **service que consume**, no del provider.
 
 ## Configuración
 
-Las credenciales y endpoints viven en `src/common/config/api-keys.config.ts` (u otro `*.config.ts` según corresponda):
+Las credenciales y endpoints viven en `apps/api/src/common/config/api-keys.config.ts` (u otro `*.config.ts` según corresponda):
 
 ```ts
 const optionalApiKey = z
@@ -214,15 +214,15 @@ Consecuencias:
 
 ## Providers implementados
 
-| Provider    | Propósito                                        |
-| ----------- | ------------------------------------------------ |
-| `src/rawg/` | RAWG API: géneros, descripciones, covers, scores |
+| Provider             | Propósito                                        |
+| -------------------- | ------------------------------------------------ |
+| `apps/api/src/rawg/` | RAWG API: géneros, descripciones, covers, scores |
 
 Es el único que existe hoy. **Qué integraciones vienen después no se decide acá:** el roadmap de fuentes externas es planificación de producto, y varias dependen de revisiones de licencia todavía abiertas.
 
 ## Cómo crear un provider nuevo
 
-1. Crear `src/<nombre>/`.
+1. Crear `apps/api/src/<nombre>/`.
 2. Definir tipos en `<nombre>.interface.ts` (request, response, filtros).
 3. Implementar `<nombre>.provider.ts` con clase + constructor que reciba credenciales.
 4. Crear `errors/<nombre>.service-error.ts` con los códigos del provider y `service: "<Nombre> Provider"`.
@@ -231,6 +231,6 @@ Es el único que existe hoy. **Qué integraciones vienen después no se decide a
 7. **No hace falta** crear `controller`, `routes`, `model`, `serializer`, `dtos` ni `schemas` — el provider no expone HTTP propio.
 8. Si los errores del provider tienen que llegar al cliente con status code propio, registrar un normalizer del provider en `global-error-domain.normalizer.ts` (mismo patrón que un módulo de negocio). Si no, el service que lo consume captura y traduce.
 
-## Nota: ¿providers en `src/` o en `src/common/providers/`?
+## Nota: ¿providers en `apps/api/src/` o en `apps/api/src/common/providers/`?
 
-Hoy todos viven directamente en `src/`. La regla vigente es **un provider por carpeta en `src/`**. Mover los genéricos a `src/common/providers/` sigue siendo una decisión abierta.
+Hoy todos viven directamente en `apps/api/src/`. La regla vigente es **un provider por carpeta en `apps/api/src/`**. Mover los genéricos a `apps/api/src/common/providers/` sigue siendo una decisión abierta.

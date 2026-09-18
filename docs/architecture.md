@@ -1,6 +1,20 @@
 # Arquitectura
 
-Vista panorámica del backend. Para detalle de cada subsistema, ver los archivos en [`context/`](./context/).
+Vista panorámica del proyecto. Para detalle de cada subsistema, ver los archivos en [`context/`](./context/).
+
+## Estructura del repo
+
+Monorepo con npm workspaces:
+
+| Carpeta    | Qué contiene                                                                     |
+| ---------- | -------------------------------------------------------------------------------- |
+| `apps/api` | Backend (este documento), migraciones Sequelize, scripts y compose de desarrollo |
+| `apps/web` | Frontend Angular. Ver [`context/frontend.md`](./context/frontend.md)             |
+| `docs/`    | Documentación técnica y changelog de las dos apps                                |
+
+El `package-lock.json`, ESLint, Prettier, Husky y lint-staged viven en la raíz. Cada app tiene su `Dockerfile` y un `captain-definition-<app>` en la raíz; el contexto de build de Docker es siempre la raíz del repo.
+
+El resto de este documento describe el backend.
 
 ## Stack
 
@@ -18,7 +32,7 @@ Vista panorámica del backend. Para detalle de cada subsistema, ver los archivos
 ## Estructura de carpetas
 
 ```
-src/
+apps/api/src/
 ├── app.ts                  # Bootstrap (initDatabase + server)
 ├── server.ts               # Express app, registro de routers y middlewares globales
 ├── common/                 # Infraestructura compartida (no es un módulo de negocio)
@@ -70,7 +84,7 @@ Ver [`context/errors.md`](./context/errors.md) para el detalle del sistema de er
 
 ## Integraciones externas
 
-Los servicios externos (RAWG, HLTB, Metacritic, Steam) viven como **providers** en `src/<nombre>/`. Son adapters: encapsulan HTTP/scraping y exponen una interfaz limpia. No contienen lógica de negocio.
+Los servicios externos (RAWG, HLTB, Metacritic, Steam) viven como **providers** en `apps/api/src/<nombre>/`. Son adapters: encapsulan HTTP/scraping y exponen una interfaz limpia. No contienen lógica de negocio.
 
 Ver [`context/providers.md`](./context/providers.md).
 

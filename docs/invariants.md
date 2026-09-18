@@ -10,7 +10,7 @@ Arquitectura en [`architecture.md`](./architecture.md), endpoints en [`api/`](./
 
 ## Roles
 
-Enum `User.role` en `src/users/user-role.type.ts`: `user`, `premium`, `moderator`, `admin`. Default al registrarse: `user`.
+Enum `User.role` en `apps/api/src/users/user-role.type.ts`: `user`, `premium`, `moderator`, `admin`. Default al registrarse: `user`.
 
 - El gating premium se resuelve con `isPremium()`, que acepta `premium`, `moderator` y `admin`.
 - Qué puede hacer cada rol se hace cumplir en `authMiddleware(...)` de cada `*.routes.ts`: esa es la fuente autoritativa de permisos.
@@ -157,7 +157,7 @@ Fórmulas y comportamiento en bordes.
 
 ### Campos en `User`
 
-Ocho secciones independientes, cada una con un `VisibilityLevel` (`src/users/constants/visibility.constants.ts`): `private`, `friends`, `public`.
+Ocho secciones independientes, cada una con un `VisibilityLevel` (`apps/api/src/users/constants/visibility.constants.ts`): `private`, `friends`, `public`.
 
 | Sección  | Campo                |
 | -------- | -------------------- |
@@ -174,7 +174,7 @@ Más `acceptFollowRequests` (boolean).
 
 ### Resolución
 
-Toda la lógica vive en `canView(viewerId, owner, section)` en `src/users/helpers/visibility.helper.ts`, en este orden:
+Toda la lógica vive en `canView(viewerId, owner, section)` en `apps/api/src/users/helpers/visibility.helper.ts`, en este orden:
 
 1. Si el viewer es el owner → `true`. Self-view siempre permitida.
 2. Nivel `public` → `true`, incluso sin autenticar.

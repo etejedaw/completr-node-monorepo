@@ -65,13 +65,13 @@ Detalle del flujo en `.claude/skills/commit/SKILL.md`.
 
 ## Post-edición obligatoria
 
-Después de cualquier cambio de código:
+Después de cualquier cambio de código, desde la raíz del repo:
 
 1. `npm run lint:fix`
 2. `npm run format`
-3. `npm run typecheck` si tocaste tipos o interfaces.
+3. `npm run typecheck` si tocaste tipos o interfaces del backend; `npm test` si tocaste el frontend.
 4. Si modificaste o agregaste un endpoint → actualizar `docs/api/` (Bruno v3.1, formato `.yml`).
-5. Si modificaste el schema de un modelo → crear migración Sequelize en `migrations/`.
+5. Si modificaste el schema de un modelo → crear migración Sequelize en `apps/api/migrations/`.
 6. Si cambiaste un enum, un constraint, una validación o un auto-comportamiento → actualizar [`../invariants.md`](../invariants.md).
 7. Si cambiaste un tope por rol, un permiso o qué se ve en público → **eso es una decisión de negocio, no un invariante**: se documenta en la planificación de producto, fuera de `docs/`.
 

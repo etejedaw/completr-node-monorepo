@@ -1,13 +1,13 @@
 # Módulos
 
-Cada módulo de negocio en `src/` sigue la misma estructura. Este archivo es la referencia para crear uno nuevo o modificar uno existente.
+Cada módulo de negocio en `apps/api/src/` sigue la misma estructura. Este archivo es la referencia para crear uno nuevo o modificar uno existente.
 
 ## Estructura de un módulo
 
 Ejemplo completo (`games/`):
 
 ```
-src/games/
+apps/api/src/games/
 ├── game.model.ts                  Modelo Sequelize
 ├── games.service.ts               Lógica de negocio + queries
 ├── games.controller.ts            Handlers de request/response
@@ -43,7 +43,7 @@ Categorías que aplican esta regla: `dtos/`, `schemas/`, `errors/`, `serializers
 Ejemplo simple — `genres/` con un solo DTO:
 
 ```
-src/genres/
+apps/api/src/genres/
 ├── genres.model.ts
 ├── genres.service.ts
 ├── genres.controller.ts
@@ -159,15 +159,15 @@ Pero **solo para asociaciones e includes**. Para CRUD de Game o Platform, siguen
 
 ## Cómo crear un módulo nuevo
 
-1. Crear la carpeta `src/<nombre>/`.
+1. Crear la carpeta `apps/api/src/<nombre>/`.
 2. Crear `<recurso>.model.ts` con el modelo Sequelize (PK UUID, soft delete si aplica).
-3. Registrar el modelo en `src/database/init.database.ts` y sus asociaciones en `src/database/associations.database.ts`.
-4. Crear migración Sequelize en `migrations/` con `npm run migrate:create -- --name <nombre>`.
+3. Registrar el modelo en `apps/api/src/database/init.database.ts` y sus asociaciones en `apps/api/src/database/associations.database.ts`.
+4. Crear migración Sequelize en `apps/api/migrations/` con `npm run migrate:create -w apps/api -- <nombre>`.
 5. Crear `<modulo>.service.ts` con funciones que lancen `ServiceError`.
 6. Crear los errores del módulo en `errors/` siguiendo [`errors.md`](./errors.md).
-7. Registrar el normalizer y el mapper del módulo en `src/common/errors/global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts`.
+7. Registrar el normalizer y el mapper del módulo en `apps/api/src/common/errors/global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts`.
 8. Crear schemas Zod en `schemas/` y sus DTOs en `dtos/`.
 9. Crear `<modulo>.controller.ts` y `<modulo>.serializer.ts`.
 10. Crear `<modulo>.routes.ts` con middlewares.
-11. Registrar el router en `src/server.ts`.
+11. Registrar el router en `apps/api/src/server.ts`.
 12. Documentar los endpoints en `docs/api/<modulo>/` (Bruno v3.1).
