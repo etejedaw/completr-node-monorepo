@@ -6,9 +6,7 @@
 		"start": "ng serve",
 		"build": "ng build",
 		"watch": "ng build --watch --configuration development",
-		"test": "ng test",
-		"lint": "ng lint",
-		"lint:fix": "ng lint --fix"
+		"test": "ng test"
 	},
 	"description": "Frontend for Completr, a game backlog tracker with ratio-based prioritization",
 	"author": "Esteban Tejeda <etejedaw@hotmail.com> (https://etejeda.dev)",
@@ -39,15 +37,11 @@
 		"@angular/build": "^22.0.5",
 		"@angular/cli": "^22.0.5",
 		"@angular/compiler-cli": "^22.0.5",
-		"@eslint/js": "^10.0.1",
 		"@tailwindcss/postcss": "^4.3.2",
-		"angular-eslint": "22.0.0",
-		"eslint": "^10.6.0",
 		"jsdom": "^29.1.1",
 		"postcss": "^8.5.16",
 		"tailwindcss": "^4.3.2",
 		"typescript": "~6.0.3",
-		"typescript-eslint": "^8.62.1",
 		"vitest": "^4.1.10"
 	}
 }

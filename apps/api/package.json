@@ -20,8 +20,6 @@
 		"start:dev": "node --watch -r ts-node/register --env-file-if-exists=.env ./src/app.ts",
 		"start:stg": "node --watch -r ts-node/register --env-file=.env.staging.local ./src/app.ts",
 		"start:prod": "node --watch -r ts-node/register --env-file=.env.production.local ./src/app.ts",
-		"lint": "eslint .",
-		"lint:fix": "eslint . --fix",
 		"build": "tsc -p .",
 		"typecheck": "tsc -p . --noEmit",
 		"migrate": "node --env-file=.env ../../node_modules/.bin/sequelize-cli db:migrate",
@@ -47,19 +45,13 @@
 		"zod": "^4.1.13"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.39.2",
 		"@types/bcrypt": "^6.0.0",
 		"@types/cookie-parser": "^1.4.10",
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.5",
 		"@types/jsonwebtoken": "^9.0.10",
-		"eslint": "^9.39.2",
-		"eslint-config-prettier": "^10.1.8",
-		"eslint-plugin-simple-import-sort": "^13.0.0",
-		"globals": "^16.5.0",
 		"sequelize-cli": "^6.6.5",
 		"ts-node": "^10.9.2",
-		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.51.0"
+		"typescript": "^5.9.3"
 	}
 }

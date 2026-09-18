@@ -30,12 +30,17 @@
 		"test": "npm run test -w apps/web",
 		"migrate": "npm run migrate -w apps/api",
 		"migrate:status": "npm run migrate:status -w apps/api",
-		"lint": "npm run lint --workspaces",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
 		"prepare": "husky"
 	},
 	"lint-staged": {
-		"*.{ts,js,mjs,html,css,json,md,yml,yaml}": [
+		"*.{ts,js,mjs,html}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{css,json,md,yml,yaml}": [
 			"prettier --write"
 		]
 	},
@@ -52,9 +57,16 @@
 		"msgpackr-extract": false
 	},
 	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"angular-eslint": "^22.0.0",
 		"concurrently": "^10.0.5",
+		"eslint": "^10.10.0",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-simple-import-sort": "^13.0.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^17.0.8",
-		"prettier": "^3.9.4"
+		"prettier": "^3.9.4",
+		"typescript": "~6.0.3",
+		"typescript-eslint": "^8.70.0"
 	}
 }
