@@ -1,7 +1,6 @@
 FROM node:krypton-alpine AS deps
 WORKDIR /usr/app
 COPY package.json package-lock.json ./
-COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
 RUN npm ci -w apps/web --ignore-scripts
 
