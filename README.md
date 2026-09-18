@@ -119,6 +119,24 @@ Todos se ejecutan desde la raíz:
 
 Cualquier otro script de una app: `npm run <script> -w apps/<app>`.
 
+## Dependencias
+
+El repo usa [npm workspaces](https://docs.npmjs.com/cli/using-npm/workspaces): hay un solo `package-lock.json` y un solo `node_modules` en la raíz, compartido por las dos apps. Por eso `npm install` se ejecuta siempre desde la raíz, nunca dentro de `apps/api` ni de `apps/web`.
+
+| Quiero…                                      | Comando                                 |
+| -------------------------------------------- | --------------------------------------- |
+| Instalar todo después de clonar o de un pull | `npm install`                           |
+| Agregar una dependencia al backend           | `npm install <paquete> -w apps/api`     |
+| Agregar una dependencia al frontend          | `npm install <paquete> -w apps/web`     |
+| Agregar una herramienta de desarrollo común  | `npm install -D <paquete>`              |
+| Quitar una dependencia de una app            | `npm uninstall <paquete> -w apps/<app>` |
+
+Dónde declarar cada paquete:
+
+- **En el `package.json` de la raíz:** herramientas que usa todo el repo (TypeScript, ESLint, Prettier, Husky) y cualquier paquete que necesiten las dos apps.
+- **En el `package.json` de cada app:** lo que solo usa esa app, como Express o Sequelize en el backend, y Angular o Tailwind en el frontend.
+- **Nunca en los dos a la vez.** Un paquete declarado en la raíz y en una app puede terminar instalado en dos versiones distintas.
+
 Las convenciones de arquitectura y las reglas que el código hace cumplir están en [`docs/`](./docs/README.md).
 
 ## Documentación de la API
