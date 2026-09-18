@@ -1,11 +1,11 @@
 ---
 name: db-migration
-description: Create a Sequelize migration in /migrations whenever a *.model.ts file is created or modified in a way that changes the DB schema (new model, new/removed/renamed column, type change, default change, nullability, unique/index, FK, enum value). Skip if the change is purely TypeScript-side (typings, getters, hooks without DDL impact). Uses sequelize-cli + raw SQL idempotent DDL on PostgreSQL.
+description: Create a Sequelize migration in apps/api/migrations whenever a *.model.ts file is created or modified in a way that changes the DB schema (new model, new/removed/renamed column, type change, default change, nullability, unique/index, FK, enum value). Skip if the change is purely TypeScript-side (typings, getters, hooks without DDL impact). Uses sequelize-cli + raw SQL idempotent DDL on PostgreSQL.
 ---
 
 # DB Migration
 
-Cada vez que se **crea o modifica** un `*.model.ts` y el cambio impacta el esquema de la base, hay que generar una migración en `/migrations/`. Esto incluye también ediciones a `*-role.type.ts` u otros types usados como `DataTypes.ENUM(...)` dentro de un model.
+Cada vez que se **crea o modifica** un `*.model.ts` y el cambio impacta el esquema de la base, hay que generar una migración en `apps/api/migrations/`. Esto incluye también ediciones a `*-role.type.ts` u otros types usados como `DataTypes.ENUM(...)` dentro de un model.
 
 > **Antes de tocar un modelo, recordá pedir confirmación al usuario** (ver `feedback_no_db_changes_without_asking.md`). La skill se aplica una vez ya hay luz verde para cambiar el modelo.
 
@@ -28,7 +28,7 @@ Si dudás, generala: una migración idempotente sin diff efectivo es barata; un 
 
 - ORM: `sequelize` 6 + `sequelize-cli` 6 (devDep)
 - Dialecto: **PostgreSQL** (`pg`, `pg-hstore`)
-- Carpeta: `/migrations/` en la raíz del repo
+- Carpeta: `apps/api/migrations/`
 - Formato de archivo: **CommonJS** (`module.exports = { up, down }`), extensión **`.js`**
 - Tabla de control: la default de sequelize-cli (`SequelizeMeta`)
 
@@ -37,10 +37,10 @@ Si dudás, generala: una migración idempotente sin diff efectivo es barata; un 
 1. **Scaffold con el script existente** (genera el timestamp correctamente):
 
     ```bash
-    npm run migrate:create -- nombre-en-kebab-case
+    npm run migrate:create -w apps/api -- nombre-en-kebab-case
     ```
 
-    Ejemplo: `npm run migrate:create -- add-isfeedpublic-to-users` produce `migrations/20260416035811-add-isfeedpublic-to-users.js`.
+    Ejemplo: `npm run migrate:create -w apps/api -- add-isfeedpublic-to-users` produce `apps/api/migrations/20260416035811-add-isfeedpublic-to-users.js`.
 
 2. **Reescribir el contenido** siguiendo el template de la sección siguiente. El scaffold de sequelize-cli usa la API de `queryInterface` (addColumn, etc.); en este repo preferimos **SQL crudo idempotente** porque maneja mejor enums y permite reruns.
 
@@ -221,4 +221,4 @@ Si la migración acompaña un cambio de modelo + lógica, puede ir en el mismo c
 2. `up` y `down` ambos idempotentes (rerun-safe).
 3. Identificadores quoteados donde corresponde (todo lo camelCase y todas las tablas plural).
 4. El modelo TS ya tiene los `declare` y la columna en `Model.init` antes de pedirle al usuario correr la migración.
-5. Avisar al usuario: "migración lista en `migrations/<file>.js`, corré `npm run migrate` cuando quieras aplicarla". **No correrla yo.**
+5. Avisar al usuario: "migración lista en `apps/api/migrations/<file>.js`, corré `npm run migrate` cuando quieras aplicarla". **No correrla yo.**

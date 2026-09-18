@@ -27,6 +27,8 @@ Reglas para crear commits en este proyecto.
 
 ## Ejemplos
 
+Scope: el módulo o la feature cuando es claro de qué app es (`auth`, `backlog`, `admin-users`). Si no, `api`, `web` o `repo` (cambios transversales del monorepo: workspaces, tooling, Docker).
+
 - `feat(auth): add register endpoint`
 - `fix(stands): correct slug generation with accented names`
 - `refactor(events): extract date validation helper`

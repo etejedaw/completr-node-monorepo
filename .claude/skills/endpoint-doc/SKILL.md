@@ -1,6 +1,6 @@
 ---
 name: endpoint-doc
-description: Update the Bruno API documentation in docs/api/ whenever an HTTP endpoint is created, modified, or removed. Trigger on changes to *.routes.ts, *.controller.ts, *.schema.ts, *.error.ts or *.error-mapper.ts files that affect the HTTP surface (method, path, body/query/params, response shape, status codes, domain errors). Uses Bruno v3.1+ YAML format (.yml, not .bru).
+description: Update the Bruno API documentation in docs/api/ whenever an HTTP endpoint is created, modified, or removed. Trigger on changes under apps/api/src to *.routes.ts, *.controller.ts, *.schema.ts, *.error.ts or *.error-mapper.ts files that affect the HTTP surface (method, path, body/query/params, response shape, status codes, domain errors). Uses Bruno v3.1+ YAML format (.yml, not .bru).
 ---
 
 # Endpoint Doc
@@ -9,7 +9,7 @@ Documentación de endpoints HTTP en `docs/api/` siguiendo el formato de **Bruno 
 
 ## Cuándo aplicar
 
-Cada vez que se **crea, modifica o elimina** un endpoint, hay que actualizar su documentación. Concretamente, la skill se activa cuando se tocan archivos que afectan la superficie HTTP de un módulo:
+Cada vez que se **crea, modifica o elimina** un endpoint, hay que actualizar su documentación. Concretamente, la skill se activa cuando se tocan archivos de `apps/api/src/` que afectan la superficie HTTP de un módulo:
 
 - `*.routes.ts` — alta/baja de endpoints o cambio de método/path
 - `*.controller.ts` — cambio en request/response shape, status codes, query/path params

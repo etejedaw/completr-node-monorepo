@@ -11,7 +11,8 @@ Genera documentos changelog por feature (Keep a Changelog adaptado) en `docs/cha
 
 ## Contexto del proyecto
 
-- **Repo:** backend de Completr (Node.js + Express + Sequelize). El producto y sus reglas de negocio se documentan fuera del repo (ver `CLAUDE.md`). Lo técnico vive en `docs/architecture.md`, `docs/invariants.md` y `docs/context/`.
+- **Repo:** monorepo de Completr. Backend en `apps/api` (Node.js + Express + Sequelize) y frontend en `apps/web` (Angular). El producto y sus reglas de negocio se documentan fuera del repo (ver `CLAUDE.md`). Lo técnico vive en `docs/architecture.md`, `docs/invariants.md` y `docs/context/`.
+- **Un solo changelog para las dos apps.** Un grupo puede mezclar commits de `apps/api` y `apps/web` si cuentan la misma feature. Los commits del frontend anteriores a la migración al monorepo no se documentan hacia atrás.
 - **Los changelogs son públicos** (repo AGPLv3): no mencionan herramientas ni documentos internos de planificación, solo lo que cambió en el código y en `docs/`.
 - **Idioma:** español, sin emojis, frases cortas. Mismo tono que el resto de `docs/`.
 
@@ -58,7 +59,8 @@ Si un commit es ambiguo, preguntar al usuario antes de descartarlo.
 
 Analiza subject + archivos tocados de cada commit. Agrupa por:
 
-- **Módulo de negocio nuevo o tocado** (`auth`, `games`, `backlog`, `lists`, `wishlist`, `favorites`, `game-shelf`, etc.).
+- **Módulo de negocio nuevo o tocado** (`auth`, `games`, `backlog`, `lists`, `wishlist`, `favorites`, `game-shelf`, etc.), junto con la feature del frontend que lo consume.
+- **Feature del frontend sin cambios en el backend** (`apps/web/src/app/features/<feature>`).
 - **Provider nuevo o ajustado** (`rawg`, `hltb`, `metacritic`, `steam`).
 - **Cambio transversal** (sistema de errores, convención de imports, middleware nuevo, refactor de `request.locals`).
 - **Documentación arquitectónica** (cambios estructurales en `docs/` que valga la pena destacar).
@@ -92,7 +94,7 @@ Por cada grupo confirmado, crear `docs/changelogs/YYYY-MM-DD-<feature>.md` sigui
 - Español, tono profesional, sin emojis.
 - Bullets concretos, frases cortas — mismo registro que `docs/feedback/fase-N.md` y `docs/context/`.
 - Hashes con backticks: `` `c892226` `` — subject del commit.
-- Referenciar módulos por su nombre real en `src/` (`backlog`, `game-shelf`, `list-items`).
+- Referenciar módulos por su nombre real en `apps/api/src/` (`backlog`, `game-shelf`, `list-items`) y features por su carpeta en `apps/web/src/app/features/`.
 - En la sección `Commits`, listar **todos** los commits del grupo (incluso style/refactor accesorios) — ese es el ledger.
 - En `Released`: fecha `YYYY-MM-DD` del último commit del grupo (formato declarado en `docs/changelogs/README.md`).
 
