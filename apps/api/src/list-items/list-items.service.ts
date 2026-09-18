@@ -177,8 +177,7 @@ export async function addItem(
 		throw listItemsServiceError.gamesNotFoundError([gameId]);
 
 	const max = (await ListItem.max("position", { where: { listId } })) as
-		| number
-		| null;
+		number | null;
 	const nextPosition = (max ?? 0) + 1;
 
 	const ctx = await loadFrozenScoreContext(list, [gameId]);

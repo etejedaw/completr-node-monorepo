@@ -66,8 +66,7 @@ export interface SplitVariantInput {
 }
 
 export type SetCompilationItemInput =
-	| { mode: "link"; gameId: string }
-	| { mode: "create"; title: string };
+	{ mode: "link"; gameId: string } | { mode: "create"; title: string };
 
 export interface EnrichedGameList {
 	id: string;

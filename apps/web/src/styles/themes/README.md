@@ -17,8 +17,8 @@ cp src/styles/themes/<theme-name>/ui.css src/styles/ui.css
 ```
 
 2. Update `src/index.html` `<meta name="theme-color">` to match the bg:
-   - refined-dark: `#0a0a0c`
-   - twilight-arcade: `#181028`
+    - refined-dark: `#0a0a0c`
+    - twilight-arcade: `#181028`
 
 3. Hard refresh the browser (Cmd+Shift+R) to bypass the service worker cache.
 

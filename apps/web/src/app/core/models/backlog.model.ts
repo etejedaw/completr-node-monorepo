@@ -31,11 +31,7 @@ export interface BacklogCompilationGame {
 }
 
 export type BacklogStatus =
-	| "not_started"
-	| "playing"
-	| "completed"
-	| "abandoned"
-	| "endless";
+	"not_started" | "playing" | "completed" | "abandoned" | "endless";
 
 interface BacklogGame {
 	id: string;

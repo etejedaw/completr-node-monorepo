@@ -1,5 +1,9 @@
-dist
-coverage
+**/dist
+**/coverage
+**/.angular
 package-lock.json
 .env*
 *.tsbuildinfo
+
+.claude/skills/frontend-design
+skills-lock.json

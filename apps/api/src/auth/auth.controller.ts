@@ -19,8 +19,7 @@ function getDeviceInfo(request: Request): string {
 
 function getRefreshToken(request: Request): string {
 	const fromCookie = request.cookies?.[REFRESH_COOKIE_NAME] as
-		| string
-		| undefined;
+		string | undefined;
 	const fromBody = (request.locals.body as RefreshTokenBody)?.refresh_token;
 	const token = fromCookie ?? fromBody;
 	if (!token) throw authDomainError.invalidRefreshToken();
@@ -83,8 +82,7 @@ export async function postRefresh(request: Request, response: Response) {
 
 export async function postLogout(request: Request, response: Response) {
 	const fromCookie = request.cookies?.[REFRESH_COOKIE_NAME] as
-		| string
-		| undefined;
+		string | undefined;
 	const fromBody = (request.locals.body as RefreshTokenBody)?.refresh_token;
 	const refreshToken = fromCookie ?? fromBody;
 

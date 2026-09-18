@@ -242,8 +242,7 @@ const NULLABLE_SORT_FIELDS = new Set([
 function buildOrder(filters: BacklogQuery): Order {
 	const sortBy = filters.sort_by ?? "createdAt";
 	const sortOrder = (filters.sort_order ?? "desc").toUpperCase() as
-		| "ASC"
-		| "DESC";
+		"ASC" | "DESC";
 
 	if (sortBy === "title") {
 		return [[Game, "title", sortOrder]];

@@ -185,8 +185,7 @@ export async function putCompilationItems(
 	const params = request.locals.params as GameIdParam;
 	const body = request.locals.body as {
 		items: (
-			| { mode: "link"; gameId: string }
-			| { mode: "create"; title: string }
+			{ mode: "link"; gameId: string } | { mode: "create"; title: string }
 		)[];
 	};
 	const user = request.locals.user as RequestUser;

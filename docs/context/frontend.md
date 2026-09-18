@@ -8,16 +8,16 @@ Frontend de Completr: aplicación web para gestionar backlogs de videojuegos con
 
 ## Stack técnico
 
-| Capa                | Tecnología                            |
-| ------------------- | ------------------------------------- |
-| Framework           | Angular 21 (standalone, sin NgModule) |
-| Lenguaje            | TypeScript 5.9                        |
-| Reactividad         | Signals (Angular Signals API)         |
-| Testing             | Vitest + jsdom                        |
-| Estilos             | CSS (sin preprocesador por ahora)     |
-| PWA                 | `@angular/pwa` (pendiente)            |
-| Build               | `@angular/build:application`          |
-| Package Manager     | npm                                   |
+| Capa            | Tecnología                            |
+| --------------- | ------------------------------------- |
+| Framework       | Angular 21 (standalone, sin NgModule) |
+| Lenguaje        | TypeScript 5.9                        |
+| Reactividad     | Signals (Angular Signals API)         |
+| Testing         | Vitest + jsdom                        |
+| Estilos         | CSS (sin preprocesador por ahora)     |
+| PWA             | `@angular/pwa` (pendiente)            |
+| Build           | `@angular/build:application`          |
+| Package Manager | npm                                   |
 
 ---
 
@@ -95,13 +95,13 @@ Todos los componentes son standalone. Cada uno declara sus imports directamente:
 
 ```typescript
 @Component({
-  selector: 'app-game-card',
-  imports: [CommonModule, RouterLink],
-  templateUrl: './game-card.html',
-  styleUrl: './game-card.css'
+	selector: "app-game-card",
+	imports: [CommonModule, RouterLink],
+	templateUrl: "./game-card.html",
+	styleUrl: "./game-card.css"
 })
 export class GameCard {
-  game = input.required<Game>();
+	game = input.required<Game>();
 }
 ```
 
@@ -127,6 +127,7 @@ export class AuthService {
 ```
 
 **Cuándo usar Signals vs Observables:**
+
 - **Signals**: estado sincrónico, UI state, datos cacheados, computed values
 - **Observables (RxJS)**: llamadas HTTP, WebSockets, eventos de tiempo (debounce, throttle), operaciones complejas con operadores
 
@@ -136,8 +137,8 @@ Usar `inject()` en vez de constructor injection:
 
 ```typescript
 export class BacklogService {
-  private readonly http = inject(HttpClient);
-  private readonly authService = inject(AuthService);
+	private readonly http = inject(HttpClient);
+	private readonly authService = inject(AuthService);
 }
 ```
 
@@ -176,10 +177,10 @@ Configurado en `app.config.ts` con interceptors funcionales:
 
 ```typescript
 export const appConfig: ApplicationConfig = {
-  providers: [
-    provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor, errorInterceptor]))
-  ]
+	providers: [
+		provideRouter(routes),
+		provideHttpClient(withInterceptors([authInterceptor, errorInterceptor]))
+	]
 };
 ```
 
@@ -187,13 +188,13 @@ export const appConfig: ApplicationConfig = {
 
 ```typescript
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = inject(AuthService).token();
-  if (token) {
-    req = req.clone({
-      setHeaders: { Authorization: `Bearer ${token}` }
-    });
-  }
-  return next(req);
+	const token = inject(AuthService).token();
+	if (token) {
+		req = req.clone({
+			setHeaders: { Authorization: `Bearer ${token}` }
+		});
+	}
+	return next(req);
 };
 ```
 
@@ -203,11 +204,13 @@ Las rutas cargan features on-demand:
 
 ```typescript
 export const routes: Routes = [
-  {
-    path: 'backlog',
-    loadChildren: () => import('./features/backlog/backlog.routes')
-      .then(m => m.BACKLOG_ROUTES)
-  }
+	{
+		path: "backlog",
+		loadChildren: () =>
+			import("./features/backlog/backlog.routes").then(
+				m => m.BACKLOG_ROUTES
+			)
+	}
 ];
 ```
 
@@ -217,12 +220,12 @@ Se usan Reactive Forms (no template-driven) para formularios complejos:
 
 ```typescript
 export class LoginForm {
-  private readonly fb = inject(FormBuilder);
+	private readonly fb = inject(FormBuilder);
 
-  form = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]]
-  });
+	form = this.fb.group({
+		email: ["", [Validators.required, Validators.email]],
+		password: ["", [Validators.required, Validators.minLength(8)]]
+	});
 }
 ```
 
@@ -230,9 +233,9 @@ export class LoginForm {
 
 ```typescript
 export const authGuard: CanActivateFn = () => {
-  const auth = inject(AuthService);
-  const router = inject(Router);
-  return auth.isLoggedIn() ? true : router.createUrlTree(['/login']);
+	const auth = inject(AuthService);
+	const router = inject(Router);
+	return auth.isLoggedIn() ? true : router.createUrlTree(["/login"]);
 };
 ```
 
@@ -250,18 +253,18 @@ export const authGuard: CanActivateFn = () => {
 
 ## Versionado por fase (mismo que backend)
 
-| Fase     | Release  | Descripción                                    |
-| -------- | -------- | ---------------------------------------------- |
-| Fase 0   | `v0.1.0` | Setup, arquitectura, sin vistas funcionales    |
-| Fase 1   | `v0.2.0` | Excel Killer, solo uso personal                |
-| Fase 1.5 | `v0.2.x` | Beyond the Spreadsheet, mejoras + deploy       |
-| Fase 2   | `v0.3.0` | MVP Amigos, 5–20 personas                      |
-| Fase 2.5 | `v0.3.x` | Pulido y UX, feedback + visual                 |
-| Fase 3   | `v0.4.0` | Beta cerrada, 50–200 por invitación            |
-| Fase 4   | `v1.0.0` | Beta pública, primer release abierto (500+)    |
-| Fase 5   | `v1.1.0` | Estabilización y calidad                       |
-| Fase 6   | `v2.0.0` | Premium                                        |
-| Fase 7   | `v2.x.x` | Incrementales según features                   |
+| Fase     | Release  | Descripción                                 |
+| -------- | -------- | ------------------------------------------- |
+| Fase 0   | `v0.1.0` | Setup, arquitectura, sin vistas funcionales |
+| Fase 1   | `v0.2.0` | Excel Killer, solo uso personal             |
+| Fase 1.5 | `v0.2.x` | Beyond the Spreadsheet, mejoras + deploy    |
+| Fase 2   | `v0.3.0` | MVP Amigos, 5–20 personas                   |
+| Fase 2.5 | `v0.3.x` | Pulido y UX, feedback + visual              |
+| Fase 3   | `v0.4.0` | Beta cerrada, 50–200 por invitación         |
+| Fase 4   | `v1.0.0` | Beta pública, primer release abierto (500+) |
+| Fase 5   | `v1.1.0` | Estabilización y calidad                    |
+| Fase 6   | `v2.0.0` | Premium                                     |
+| Fase 7   | `v2.x.x` | Incrementales según features                |
 
 ---
 

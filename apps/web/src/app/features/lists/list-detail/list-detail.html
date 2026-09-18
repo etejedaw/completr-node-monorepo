@@ -215,8 +215,7 @@
 		>
 			{{ list()!.isFollowing ? 'Following' : 'Follow' }}
 		</button>
-		}
-		@if (!isOwner() && list()!.isPublic) {
+		} @if (!isOwner() && list()!.isPublic) {
 		<button
 			uiButton
 			variant="secondary"
