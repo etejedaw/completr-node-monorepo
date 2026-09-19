@@ -1,21 +1,26 @@
 ---
 name: changelog
-description: Generate per-feature changelog documents in docs/changelogs/ summarizing commits since the last documented release. Trigger when the user asks to "registrar cambios", "actualizar el changelog", "preparar release", "documentar lo que se ha hecho" o antes de un paso a productivo. Format and process live in this skill; never rewrites historical entries.
+description: Generate per-feature changelog documents in docs/changelogs/ summarizing commits since the last documented release, plus a public release entry in apps/landing/src/content/releases/ when the changes are user-facing features. Trigger when the user asks to "registrar cambios", "actualizar el changelog", "preparar release", "documentar lo que se ha hecho" o antes de un paso a productivo. Format and process live in this skill; never rewrites historical entries.
 ---
 
 # Changelog
 
-Genera documentos changelog por feature (Keep a Changelog adaptado) en `docs/changelogs/`. Un archivo por feature. La skill define el **proceso** (qué commits agrupar, qué descartar, cómo nombrar); el **formato del archivo** vive en [`template.md`](./template.md) — léelo antes de generar.
+Genera dos tipos de changelog:
+
+- **Técnico**, en `docs/changelogs/`: un archivo por feature (Keep a Changelog adaptado), para quien lee el código. Formato en [`template.md`](./template.md).
+- **Público**, en `apps/landing/src/content/releases/`: una entrada por release visible para los usuarios. Se muestra en `https://www.completr.app/changelog` y en la página "What's new" de la app. Formato en [`release-template.md`](./release-template.md).
+
+La skill define el **proceso** (qué commits agrupar, qué descartar, cómo nombrar, cuándo hay entrada pública). Lee las dos plantillas antes de generar.
 
 `Released`, `Summary` y `Commits` son obligatorias en cada archivo; el resto solo si aplica.
 
 ## Contexto del proyecto
 
-- **Repo:** monorepo de Completr. Backend en `apps/api` (Node.js + Express + Sequelize) frontend en `apps/web` (Angular) y landing en `apps/landing` (Astro). El producto y sus reglas de negocio se documentan fuera del repo (ver `CLAUDE.md`). Lo técnico vive en `docs/architecture.md`, `docs/invariants.md` y `docs/context/`.
+- **Repo:** monorepo de Completr. Backend en `apps/api` (Node.js + Express + Sequelize), frontend en `apps/web` (Angular) y landing en `apps/landing` (Astro). El producto y sus reglas de negocio se documentan fuera del repo (ver `CLAUDE.md`). Lo técnico vive en `docs/architecture.md`, `docs/invariants.md` y `docs/context/`.
 - **Un solo changelog para todas las apps.** Un grupo puede mezclar commits de distintas apps si cuentan la misma feature. Los commits del frontend y de la landing anteriores a su migración al monorepo no se documentan hacia atrás.
-- **No confundir con `apps/landing/src/content/releases/`**, que es el changelog público para usuarios. Esta skill no lo toca.
+- **El changelog público es un subconjunto.** Todo grupo tiene su archivo técnico; solo los grupos con cambios que un usuario nota tienen además entrada pública (ver paso 7).
 - **Los changelogs son públicos** (repo AGPLv3): no mencionan herramientas ni documentos internos de planificación, solo lo que cambió en el código y en `docs/`.
-- **Idioma:** español, sin emojis, frases cortas. Mismo tono que el resto de `docs/`.
+- **Idioma:** el changelog técnico va en español, sin emojis, frases cortas, con el mismo tono que el resto de `docs/`. El público tiene sus propias reglas de idioma (paso 7).
 
 ## Cuándo invocar
 
@@ -83,6 +88,7 @@ Mostrar al usuario:
 - Nombre tentativo de cada uno (`YYYY-MM-DD-<feature>.md`).
 - Cuántos commits incluye cada uno y la fecha calculada.
 - Commits descartados (con razón breve).
+- Qué grupos llevan **entrada pública** y cuáles no, con la razón. Si varios grupos van a una sola entrada pública (por ejemplo, fixes sueltos en una entrada `Fixes`), dilo.
 
 **Esperar confirmación.** Si el usuario reagrupa, ajustar y volver a mostrar.
 
@@ -99,10 +105,46 @@ Por cada grupo confirmado, crear `docs/changelogs/YYYY-MM-DD-<feature>.md` sigui
 - En la sección `Commits`, listar **todos** los commits del grupo (incluso style/refactor accesorios) — ese es el ledger.
 - En `Released`: fecha `YYYY-MM-DD` del último commit del grupo (formato declarado en `docs/changelogs/README.md`).
 
-### 7. Verificar
+### 7. Generar la entrada pública (solo si aplica)
+
+**Cuándo lleva entrada pública:** cuando el usuario de la app nota el cambio. Por ejemplo, una feature nueva, un cambio de UX, una mejora visible de rendimiento o un bug que el usuario sufría.
+
+**Cuándo no:** refactors, tooling, dependencias, CI, Docker, deploy, documentación, cambios internos de la API sin efecto visible y cambios de la propia landing. Ante la duda, pregunta en el paso 5.
+
+**Agrupación:** normalmente un grupo técnico da una entrada pública. Varios grupos pequeños que el usuario percibe como "arreglos" van juntos en una entrada con `tag: Fixes`. Una versión grande (un tag `vX.Y.Z` que cierra una fase) puede tener además su propia entrada de resumen con `tag: Launch`.
+
+**Archivo:** `apps/landing/src/content/releases/YYYY-MM-DD-NN-<slug>.md`, siguiendo [`release-template.md`](./release-template.md).
+
+- `YYYY-MM-DD`: la misma fecha que el `Released` del changelog técnico.
+- `NN`: correlativo del día, con dos dígitos. Si ya hay archivos con esa fecha, usa el siguiente número libre.
+- `<slug>`: kebab-case en inglés, corto (`franchise-tracker`, `coop-runs`).
+- El archivo solo tiene frontmatter, sin cuerpo.
+
+**Campos** (el schema vive en `apps/landing/src/content.config.ts`, y el build falla si no se cumple):
+
+| Campo              | Idioma  | Dónde se ve                                 | Regla                                                                                                                   |
+| ------------------ | ------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `date`             | —       | Landing y app                               | `YYYY-MM-DD`                                                                                                            |
+| `order`            | —       | —                                           | Desempata entradas del mismo día: **la más alta se muestra primero**. La entrada más importante del día lleva el mayor. |
+| `tag`              | Inglés  | Landing y app                               | Una o dos palabras (`Sagas`, `Social`, `Fixes`, `Launch`). Reutiliza un tag existente si encaja.                        |
+| `title`            | Inglés  | Landing y app                               | Una línea. Lo que gana el usuario, no el nombre técnico. Comillas si lleva `:` o `—`.                                   |
+| `icon`             | —       | Landing y app                               | Nombre de [Material Icons](https://fonts.google.com/icons?icon.set=Material+Icons) en snake_case.                       |
+| `tint`             | —       | Landing y app                               | `brand`, `purple`, `warning`, `success` o `danger`. `warning` para fixes, `brand` para features principales.            |
+| `landing.pitch`    | Español | Landing (`/` y `/changelog`)                | Una o dos frases. Qué puede hacer ahora el usuario.                                                                     |
+| `landing.featured` | —       | —                                           | `true` solo en releases grandes (versión nueva, feature principal). Si no, se omite.                                    |
+| `highlights`       | Inglés  | App (página "What's new", vía `/changelog`) | De 2 a 6 ítems con `icon`, `tint` y `text`. Cada `text` es un cambio concreto contado desde el lado del usuario.        |
+
+**Tono:** para usuarios, no para devs. Sin nombres de endpoints, módulos, tablas, commits ni librerías. En segunda persona o impersonal ("You can now…", "Ahora puedes…"). Usa los nombres de secciones que ve el usuario en la app (`My Games`, `Up Next`, `Want to Get`), no los internos (`backlog`, `queue`, `wishlist`).
+
+Toma como referencia de estilo las entradas más recientes de `apps/landing/src/content/releases/`.
+
+**Mostrar el texto al usuario antes de dejarlo listo.** El changelog público es copy de producto: `title`, `pitch` y `highlights` se revisan con el usuario igual que los grupos del paso 5.
+
+### 8. Verificar
 
 - `git log <base>..HEAD --oneline | wc -l` matchea con (commits documentados + commits descartados).
-- Ningún changelog viejo fue tocado.
+- Ningún changelog viejo fue tocado, ni técnico ni público.
+- Si hubo entrada pública: `npm run build:landing` pasa. Valida el frontmatter contra el schema.
 
 **No hace commit automáticamente.** Deja los archivos en el working tree para que el usuario revise y use `/commit`.
 
@@ -112,6 +154,8 @@ Por cada grupo confirmado, crear `docs/changelogs/YYYY-MM-DD-<feature>.md` sigui
 - Fecha del archivo = fecha del último commit del grupo (formato `YYYY-MM-DD`).
 - Nombre del archivo: kebab-case derivado del tema dominante del grupo.
 - Estructura del template (sin inventar secciones nuevas).
+- Que un grupo sin cambios visibles para el usuario no lleva entrada pública.
+- Nombre del archivo público (`NN` = siguiente libre del día) y `order` (mayor = más importante).
 
 ## Decisiones que NUNCA toma esta skill (siempre pregunta)
 
@@ -119,10 +163,12 @@ Por cada grupo confirmado, crear `docs/changelogs/YYYY-MM-DD-<feature>.md` sigui
 - Si un commit puede ir en dos grupos (¿cuál es el principal?).
 - Si un cambio pequeño merece su propio archivo o entra en un refinements doc.
 - Si descartar un commit que parece bookkeeping pero podría no serlo.
+- Si un cambio dudoso merece entrada pública, y si va sola o dentro de una entrada `Fixes`.
+- El texto final de `title`, `pitch` y `highlights`.
 
 ## Reglas
 
-- **Nunca tocar changelogs ya creados.** Si una convención cambia (ej: regla de imports, formato de errores), crear un **nuevo** changelog. Los viejos son historia y deben quedar fieles a la fecha que llevan.
+- **Nunca tocar changelogs ya creados** (técnicos ni públicos). Si una convención cambia (ej: regla de imports, formato de errores), crear un **nuevo** changelog. Los viejos son historia y deben quedar fieles a la fecha que llevan.
 - **El changelog se commitea con el feature, no después.** Idealmente: feature commits + changelog + commit `docs(changelogs): add <feature> entry`. La skill genera los archivos; el usuario los commitea.
 - **Hashes deben matchear commits reales.** Si un commit cambia de hash (rebase, amend), actualizar el changelog antes de mergear.
 
@@ -134,10 +180,14 @@ Por cada grupo confirmado, crear `docs/changelogs/YYYY-MM-DD-<feature>.md` sigui
 - Incluir commits de TODO/feedback bookkeeping.
 - Inventar fechas que no correspondan al último commit del grupo.
 - Usar emojis en los archivos generados.
+- Entrada pública para cambios internos (refactor, tooling, deploy) o con jerga técnica.
+- `pitch` en inglés o `title` / `highlights` en español.
 
 ## Checklist final
 
 - [ ] Cada commit no documentado entra en algún changelog o está explícitamente descartado.
 - [ ] Hashes en cada doc matchean `git log --oneline`.
 - [ ] No se modificó ningún changelog viejo.
+- [ ] Cada grupo con cambios visibles tiene su entrada pública, o el usuario decidió que no la lleve.
+- [ ] `npm run build:landing` pasa si se agregó una entrada pública.
 - [ ] El usuario revisó los archivos antes de commitear.
