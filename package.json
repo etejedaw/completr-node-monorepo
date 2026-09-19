@@ -38,7 +38,7 @@
 		"prepare": "husky"
 	},
 	"lint-staged": {
-		"*.{ts,js,mjs,html}": [
+		"*.{ts,js,mjs,html,astro}": [
 			"eslint --fix",
 			"prettier --write"
 		],
@@ -59,15 +59,18 @@
 		"msgpackr-extract": false
 	},
 	"devDependencies": {
+		"@astrojs/compiler": "^2.13.1",
 		"@eslint/js": "^10.0.1",
 		"angular-eslint": "^22.0.0",
 		"concurrently": "^10.0.5",
 		"eslint": "^10.10.0",
 		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-astro": "^3.2.1",
 		"eslint-plugin-simple-import-sort": "^13.0.0",
 		"husky": "^9.1.7",
-		"lint-staged": "^17.0.8",
-		"prettier": "^3.9.4",
+		"lint-staged": "^17.5.1",
+		"prettier": "^3.9.8",
+		"prettier-plugin-astro": "0.14.1",
 		"typescript": "~6.0.3",
 		"typescript-eslint": "^8.70.0"
 	}

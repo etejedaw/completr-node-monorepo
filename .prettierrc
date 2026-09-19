@@ -4,5 +4,14 @@
 	"useTabs": true,
 	"tabWidth": 4,
 	"semi": true,
-	"arrowParens": "avoid"
+	"arrowParens": "avoid",
+	"plugins": ["prettier-plugin-astro"],
+	"overrides": [
+		{
+			"files": "*.astro",
+			"options": {
+				"parser": "astro"
+			}
+		}
+	]
 }

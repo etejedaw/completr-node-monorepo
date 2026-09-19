@@ -4,6 +4,7 @@ import eslint from "@eslint/js";
 import angular from "angular-eslint";
 import { defineConfig } from "eslint/config";
 import eslintConfigPrettier from "eslint-config-prettier";
+import eslintPluginAstro from "eslint-plugin-astro";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import tseslint from "typescript-eslint";
 
@@ -14,6 +15,7 @@ export default defineConfig(
 			"**/coverage",
 			"**/node_modules",
 			"**/.angular",
+			"**/.astro",
 			"**/out-tsc",
 			"tmp",
 			".claude/skills/frontend-design",
@@ -25,7 +27,7 @@ export default defineConfig(
 	},
 
 	{
-		files: ["**/*.{ts,js,mjs}"],
+		files: ["**/*.{ts,js,mjs,astro}"],
 		extends: [
 			eslint.configs.recommended,
 			tseslint.configs.recommended,
@@ -110,6 +112,8 @@ export default defineConfig(
 			angular.configs.templateAccessibility
 		]
 	},
+
+	eslintPluginAstro.configs.recommended,
 
 	eslintConfigPrettier
 );

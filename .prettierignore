@@ -1,6 +1,7 @@
 **/dist
 **/coverage
 **/.angular
+**/.astro
 package-lock.json
 .env*
 *.tsbuildinfo
