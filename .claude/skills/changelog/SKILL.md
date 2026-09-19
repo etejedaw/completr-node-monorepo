@@ -11,8 +11,9 @@ Genera documentos changelog por feature (Keep a Changelog adaptado) en `docs/cha
 
 ## Contexto del proyecto
 
-- **Repo:** monorepo de Completr. Backend en `apps/api` (Node.js + Express + Sequelize) y frontend en `apps/web` (Angular). El producto y sus reglas de negocio se documentan fuera del repo (ver `CLAUDE.md`). Lo técnico vive en `docs/architecture.md`, `docs/invariants.md` y `docs/context/`.
-- **Un solo changelog para las dos apps.** Un grupo puede mezclar commits de `apps/api` y `apps/web` si cuentan la misma feature. Los commits del frontend anteriores a la migración al monorepo no se documentan hacia atrás.
+- **Repo:** monorepo de Completr. Backend en `apps/api` (Node.js + Express + Sequelize) frontend en `apps/web` (Angular) y landing en `apps/landing` (Astro). El producto y sus reglas de negocio se documentan fuera del repo (ver `CLAUDE.md`). Lo técnico vive en `docs/architecture.md`, `docs/invariants.md` y `docs/context/`.
+- **Un solo changelog para todas las apps.** Un grupo puede mezclar commits de distintas apps si cuentan la misma feature. Los commits del frontend y de la landing anteriores a su migración al monorepo no se documentan hacia atrás.
+- **No confundir con `apps/landing/src/content/releases/`**, que es el changelog público para usuarios. Esta skill no lo toca.
 - **Los changelogs son públicos** (repo AGPLv3): no mencionan herramientas ni documentos internos de planificación, solo lo que cambió en el código y en `docs/`.
 - **Idioma:** español, sin emojis, frases cortas. Mismo tono que el resto de `docs/`.
 
