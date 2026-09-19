@@ -13,6 +13,7 @@ Reglas para crear commits en este proyecto.
 2. **Una sola línea**: el commit es solo el subject. Sin body, sin footer, sin trailers.
 3. **Granular pero pragmático**: cada commit cubre un único cambio lógico. Si el working tree mezcla cambios no relacionados, se dividen en commits separados — **agrupando por archivo**, no por hunk. Si un archivo mezcla 2-3 intenciones cercanas, va en un solo commit con un subject que abarque la intención dominante. La granularidad no justifica gastar tokens en cirugía de hunks.
 4. **Sin firma**: nunca agregar `Co-Authored-By: Claude...` ni ningún tipo de atribución de IA.
+5. En inglés
 
 ## Flujo
 
