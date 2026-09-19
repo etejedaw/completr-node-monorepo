@@ -154,7 +154,9 @@ docs/informes/
 **/.DS_Store
 tmp/
 .angular/
+.astro/
 .vscode
+/apps/landing/scripts/
 
 # Claude local settings (keep skills tracked)
 .claude/settings.local.json
