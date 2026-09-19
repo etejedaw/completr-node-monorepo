@@ -65,15 +65,15 @@ Un solo `npm install` en la raíz instala las dependencias de todas las apps.
 
 ### 2. Configurar variables de entorno
 
-Copia el ejemplo:
+Para desarrollo local no hace falta `.env`: los valores por defecto de la API están en el código y coinciden con el `docker-compose.yml`. Las variables disponibles y cómo se consumen viven en [`apps/api/src/common/config/`](./apps/api/src/common/config/).
+
+Si quieres sobrescribir alguna, crea `apps/api/.env` solo con esas variables. [`apps/api/.env.example`](./apps/api/.env.example) lista todas las keys como referencia; no lo copies tal cual, porque una key vacía no toma el valor por defecto.
+
+La única que conviene definir es `RAWG_API_KEY`, gratuita en https://rawg.io/apidocs. Es opcional: sin ella, la API arranca y usa solo el catálogo local.
 
 ```bash
-cp apps/api/.env.example apps/api/.env
+echo "RAWG_API_KEY=<tu-key>" > apps/api/.env
 ```
-
-Los valores por defecto ya están listos para desarrollo local y coinciden con el `docker-compose.yml`. Las variables disponibles y cómo se consumen viven en [`apps/api/src/common/config/`](./apps/api/src/common/config/).
-
-Lo único que necesitas conseguir aparte es una `RAWG_API_KEY` gratuita en https://rawg.io/apidocs.
 
 La URL de la API que usa el frontend está en [`apps/web/src/environments/`](./apps/web/src/environments/).
 
