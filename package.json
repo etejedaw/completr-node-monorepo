@@ -18,7 +18,7 @@
 		"apps/*"
 	],
 	"scripts": {
-		"dev": "concurrently -k -n api,web -c blue,magenta \"npm run start:dev -w apps/api\" \"npm start -w apps/web\"",
+		"dev": "concurrently -k -n api,web,landing -c blue,magenta,green \"npm run start:dev -w apps/api\" \"npm start -w apps/web\" \"npm run dev -w apps/landing\"",
 		"dev:api": "npm run start:dev -w apps/api",
 		"dev:web": "npm start -w apps/web",
 		"dev:landing": "npm run dev -w apps/landing",
