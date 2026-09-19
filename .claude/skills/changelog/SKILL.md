@@ -7,7 +7,7 @@ description: Generate per-feature changelog documents in docs/changelogs/ summar
 
 Genera dos tipos de changelog:
 
-- **Técnico**, en `docs/changelogs/`: un archivo por feature (Keep a Changelog adaptado), para quien lee el código. Formato en [`template.md`](./template.md).
+- **Técnico**, en `docs/changelogs/`: un archivo por feature (Keep a Changelog adaptado), para quien lee el código. Formato en [`changelog-template.md`](./changelog-template.md).
 - **Público**, en `apps/landing/src/content/releases/`: una entrada por release visible para los usuarios. Se muestra en `https://www.completr.app/changelog` y en la página "What's new" de la app. Formato en [`release-template.md`](./release-template.md).
 
 La skill define el **proceso** (qué commits agrupar, qué descartar, cómo nombrar, cuándo hay entrada pública). Lee las dos plantillas antes de generar.
@@ -94,7 +94,7 @@ Mostrar al usuario:
 
 ### 6. Generar archivos
 
-Por cada grupo confirmado, crear `docs/changelogs/YYYY-MM-DD-<feature>.md` siguiendo la plantilla en [`template.md`](./template.md). Secciones obligatorias: `Released`, `Summary`, `Commits`. Las secciones `Added / Changed / Removed / Fixed / Migration` solo si aplican.
+Por cada grupo confirmado, crear `docs/changelogs/YYYY-MM-DD-<feature>.md` siguiendo la plantilla en [`changelog-template.md`](./changelog-template.md). Secciones obligatorias: `Released`, `Summary`, `Commits`. Las secciones `Added / Changed / Removed / Fixed / Migration` solo si aplican.
 
 **Estilo:**
 
@@ -153,7 +153,7 @@ Toma como referencia de estilo las entradas más recientes de `apps/landing/src/
 - Excluir TODO bookkeeping, feedback bookkeeping y style-only commits standalone.
 - Fecha del archivo = fecha del último commit del grupo (formato `YYYY-MM-DD`).
 - Nombre del archivo: kebab-case derivado del tema dominante del grupo.
-- Estructura del template (sin inventar secciones nuevas).
+- Estructura de `changelog-template.md` y `release-template.md` (sin inventar secciones ni campos nuevos).
 - Que un grupo sin cambios visibles para el usuario no lleva entrada pública.
 - Nombre del archivo público (`NN` = siguiente libre del día) y `order` (mayor = más importante).
 
