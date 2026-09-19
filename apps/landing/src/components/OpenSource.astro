@@ -20,6 +20,11 @@ const folders = [
 		stack: "Angular · Tailwind · PWA"
 	},
 	{
+		path: "apps/landing",
+		description: "Esta página",
+		stack: "Astro · Tailwind"
+	},
+	{
 		path: "docs",
 		description: "Documentación técnica",
 		stack: "Arquitectura · changelogs"
@@ -29,6 +34,7 @@ const folders = [
 const languageColors: Record<string, string> = {
 	TypeScript: "#3178c6",
 	HTML: "#e34c26",
+	Astro: "#ff5a03",
 	JavaScript: "#f1e05a",
 	CSS: "#663399",
 	Dockerfile: "#384d54"
@@ -38,11 +44,12 @@ const otherColor = "#6e7681";
 // Snapshot used when the GitHub API is unreachable or rate-limited at build time
 const fallbackLicense = "AGPL-3.0";
 const fallbackLanguageBytes: GitHubLanguages = {
-	TypeScript: 1145844,
+	TypeScript: 1148427,
 	HTML: 548196,
-	JavaScript: 48009,
-	CSS: 40752,
-	Dockerfile: 1047
+	Astro: 67897,
+	JavaScript: 48475,
+	CSS: 42802,
+	Dockerfile: 1598
 };
 
 const [repoLicense, languageBytes] = await Promise.all([
@@ -108,7 +115,7 @@ const languages = [
 				>.
 			</h2>
 			<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
-				Tanto el frontend como el backend están publicados en GitHub.
+				La app, la API y esta misma página están publicadas en GitHub.
 				Puedes revisar cómo se calcula el Ratio, cómo se guardan tus
 				datos o proponer mejoras.
 			</p>
