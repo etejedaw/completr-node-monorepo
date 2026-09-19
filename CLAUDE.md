@@ -1,6 +1,6 @@
 # Completr
 
-Monorepo de Completr: backend (Node + Express + Sequelize + PostgreSQL) en `apps/api` y frontend (Angular) en `apps/web`. Completr es un gestor de backlog de videojuegos tipo Trakt que prioriza qué jugar mediante un ratio puntuación/duración. AGPLv3, desarrollo iterativo.
+Monorepo de Completr: backend (Node + Express + Sequelize + PostgreSQL) en `apps/api`, frontend (Angular) en `apps/web` y landing (Astro) en `apps/landing`. Completr es un gestor de backlog de videojuegos tipo Trakt que prioriza qué jugar mediante un ratio puntuación/duración. AGPLv3, desarrollo iterativo.
 
 ## Fuente de verdad
 
@@ -52,11 +52,12 @@ npm workspaces. Cada app tiene su `package.json`; el lockfile, el tooling (ESLin
 | ---------------------- | ----------------------------------------------------------------- |
 | `apps/api`             | Backend, migraciones, scripts, `docker-compose.yml` de desarrollo |
 | `apps/web`             | Frontend Angular, config de nginx                                 |
-| `docs/`                | Documentación técnica de las dos apps y el changelog único        |
+| `apps/landing`         | Landing Astro (sitio público y changelog para usuarios), nginx    |
+| `docs/`                | Documentación técnica de las apps y el changelog único            |
 | `.claude/skills/`      | Skills del proyecto                                               |
 | `captain-definition-*` | Deploy de cada app; el contexto de build de Docker es la raíz     |
 
-Comandos desde la raíz: `npm run dev` (API + web), `dev:api`, `dev:web`, `db` / `db:down`, `build`, `typecheck`, `test`, `lint`, `lint:fix`, `format`, `migrate`, `migrate:status`. Cualquier otro script de una app: `npm run <script> -w apps/<app>`. Las dependencias se instalan con `npm install <pkg> -w apps/<app>`, nunca con `npm install` dentro de la carpeta de la app.
+Comandos desde la raíz: `npm run dev` (API + web), `dev:api`, `dev:web`, `dev:landing`, `db` / `db:down`, `build`, `typecheck`, `test`, `lint`, `lint:fix`, `format`, `migrate`, `migrate:status`. Cualquier otro script de una app: `npm run <script> -w apps/<app>`. Las dependencias se instalan con `npm install <pkg> -w apps/<app>`, nunca con `npm install` dentro de la carpeta de la app.
 
 ## Lo técnico vive en `docs/`
 
@@ -71,6 +72,7 @@ AFFiNE tiene el negocio y la planificación. Todo lo técnico vive en el repo, y
 | `docs/context/errors.md`      | Sistema de errores en 3 capas (obligatorio si tocas errores)                    |
 | `docs/context/providers.md`   | Adapters de integraciones externas (obligatorio si tocas providers)             |
 | `docs/context/frontend.md`    | Stack, estructura y convenciones del frontend (obligatorio si tocas `apps/web`) |
+| `docs/context/landing.md`     | Stack, contenido y build de la landing (obligatorio si tocas `apps/landing`)    |
 | `docs/api/`                   | Colección Bruno con todos los endpoints                                         |
 
 **La frontera:** `docs/` describe el mecanismo (cómo se llama el enum, qué constraint existe, qué status devuelve la API). AFFiNE tiene la decisión (cuál es el límite de un free, qué significa cada estado, por qué existe el ratio). Un dato tiene un solo dueño: no lo dupliques en el otro lado.
