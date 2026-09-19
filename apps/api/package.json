@@ -21,10 +21,10 @@
 		"start:prod": "node --watch -r ts-node/register --env-file=.env.production.local ./src/app.ts",
 		"build": "tsc -p .",
 		"typecheck": "tsc -p . --noEmit",
-		"migrate": "node --env-file=.env ../../node_modules/.bin/sequelize-cli db:migrate",
-		"migrate:undo": "node --env-file=.env ../../node_modules/.bin/sequelize-cli db:migrate:undo",
-		"migrate:create": "node --env-file=.env ../../node_modules/.bin/sequelize-cli migration:generate --name",
-		"migrate:status": "node --env-file=.env ../../node_modules/.bin/sequelize-cli db:migrate:status",
+		"migrate": "node --env-file-if-exists=.env ../../node_modules/.bin/sequelize-cli db:migrate",
+		"migrate:undo": "node --env-file-if-exists=.env ../../node_modules/.bin/sequelize-cli db:migrate:undo",
+		"migrate:create": "node --env-file-if-exists=.env ../../node_modules/.bin/sequelize-cli migration:generate --name",
+		"migrate:status": "node --env-file-if-exists=.env ../../node_modules/.bin/sequelize-cli db:migrate:status",
 		"create:admin": "node dist/scripts/create-admin.js"
 	},
 	"dependencies": {

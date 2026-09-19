@@ -1,5 +1,7 @@
 const path = require("path");
 
+process.env.NODE_ENV ||= "dev";
+
 module.exports = {
 	config: path.resolve("src", "common", "config", "database.migrate.js"),
 	"migrations-path": path.resolve("migrations")
