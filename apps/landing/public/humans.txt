@@ -1,0 +1,8 @@
+/* TEAM */
+Creador: Esteban Tejeda
+Contacto: completr@etejeda.dev
+Sitio: https://www.etejeda.dev
+
+/* SITE */
+Stack: Astro, Tailwind CSS
+Datos: RAWG (rawg.io)

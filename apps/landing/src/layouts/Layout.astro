@@ -1,0 +1,89 @@
+---
+import "../styles/global.css";
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const {
+	title = "Completr",
+	description = "Completr es un tracker de videojuegos para llevar el control de tu backlog y decidir qué jugar a continuación."
+} = Astro.props;
+
+const ogImage = new URL("/og.png", Astro.site ?? Astro.url).toString();
+const canonical = new URL(
+	Astro.url.pathname,
+	Astro.site ?? Astro.url
+).toString();
+
+const structuredData = {
+	"@context": "https://schema.org",
+	"@type": "SoftwareApplication",
+	name: "Completr",
+	description,
+	url: (Astro.site ?? Astro.url).toString(),
+	applicationCategory: "LifestyleApplication",
+	operatingSystem: "Web",
+	creator: {
+		"@type": "Person",
+		name: "Esteban Tejeda",
+		url: "https://www.etejeda.dev"
+	}
+};
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content={description} />
+		<meta name="theme-color" content="#0a0a0c" />
+		<link rel="canonical" href={canonical} />
+		<link rel="alternate" hreflang="es" href={canonical} />
+		<link rel="alternate" hreflang="x-default" href={canonical} />
+		<link rel="sitemap" href="/sitemap-index.xml" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:image" content={ogImage} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content="Completr" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImage} />
+		<link
+			rel="preload"
+			href="/fonts/inter-latin.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
+		<link
+			rel="preload"
+			href="/fonts/sora-latin.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<script
+			type="application/ld+json"
+			is:inline
+			set:html={JSON.stringify(structuredData)}
+		/>
+		<script
+			defer
+			is:inline
+			src="https://umami.app.etejeda.dev/script.js"
+			data-website-id="e87ede7e-3946-4bc5-8a8c-b2177cf1078a"></script>
+		<title>{title}</title>
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>

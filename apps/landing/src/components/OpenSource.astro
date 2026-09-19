@@ -1,0 +1,232 @@
+---
+import {
+	getRepoLicense,
+	getRepoLanguages,
+	type GitHubLanguages
+} from "../providers/github";
+
+const repo = "etejedaw/completr-node-monorepo";
+const repoUrl = `https://github.com/${repo}`;
+
+const folders = [
+	{
+		path: "apps/api",
+		description: "API REST",
+		stack: "Node.js · Express · PostgreSQL"
+	},
+	{
+		path: "apps/web",
+		description: "App web",
+		stack: "Angular · Tailwind · PWA"
+	},
+	{
+		path: "docs",
+		description: "Documentación técnica",
+		stack: "Arquitectura · changelogs"
+	}
+];
+
+const languageColors: Record<string, string> = {
+	TypeScript: "#3178c6",
+	HTML: "#e34c26",
+	JavaScript: "#f1e05a",
+	CSS: "#663399",
+	Dockerfile: "#384d54"
+};
+const otherColor = "#6e7681";
+
+// Snapshot used when the GitHub API is unreachable or rate-limited at build time
+const fallbackLicense = "AGPL-3.0";
+const fallbackLanguageBytes: GitHubLanguages = {
+	TypeScript: 1145844,
+	HTML: 548196,
+	JavaScript: 48009,
+	CSS: 40752,
+	Dockerfile: 1047
+};
+
+const [repoLicense, languageBytes] = await Promise.all([
+	getRepoLicense(repo).catch(() => null),
+	getRepoLanguages(repo).catch(() => null)
+]);
+
+const license = repoLicense ?? fallbackLicense;
+
+const bytes =
+	languageBytes && Object.keys(languageBytes).length > 0
+		? languageBytes
+		: fallbackLanguageBytes;
+const totalBytes = Object.values(bytes).reduce((sum, value) => sum + value, 0);
+const sortedLanguages = Object.entries(bytes)
+	.map(([name, size]) => ({ name, percent: (size / totalBytes) * 100 }))
+	.sort((a, b) => b.percent - a.percent);
+
+// Keep the bar legible: show the top four and fold the rest into "Otros"
+const topLanguages = sortedLanguages.slice(0, 4);
+const otherPercent = sortedLanguages
+	.slice(4)
+	.reduce((sum, language) => sum + language.percent, 0);
+const languages = [
+	...topLanguages.map(language => ({
+		...language,
+		color: languageColors[language.name] ?? otherColor
+	})),
+	...(otherPercent >= 0.1
+		? [{ name: "Otros", percent: otherPercent, color: otherColor }]
+		: [])
+].map(language => ({
+	...language,
+	percent: Math.round(language.percent * 10) / 10
+}));
+---
+
+<section
+	id="open-source"
+	class="relative py-24 px-6 border-t border-[var(--color-line)] overflow-hidden"
+>
+	<div
+		class="absolute top-1/2 -translate-y-1/2 -right-40 w-[500px] h-[500px] rounded-full blur-3xl opacity-20 pointer-events-none"
+		style="background: radial-gradient(circle, var(--color-brand) 0%, transparent 60%);"
+		aria-hidden="true"
+	>
+	</div>
+
+	<div class="relative max-w-3xl mx-auto">
+		<div class="text-center mb-12 max-w-2xl mx-auto">
+			<span
+				class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-brand)]"
+				>Código abierto</span
+			>
+			<h2
+				class="font-[var(--font-display)] mt-3 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight"
+			>
+				Completr es{" "}
+				<span
+					class="bg-clip-text text-transparent"
+					style="background-image: linear-gradient(135deg, var(--color-brand), #c4a8ff);"
+					>100% open source</span
+				>.
+			</h2>
+			<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
+				Tanto el frontend como el backend están publicados en GitHub.
+				Puedes revisar cómo se calcula el Ratio, cómo se guardan tus
+				datos o proponer mejoras.
+			</p>
+		</div>
+
+		<div
+			class="rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] overflow-hidden"
+			style="box-shadow: 0 24px 48px -24px var(--color-brand-glow);"
+		>
+			<div
+				class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-[var(--color-line)]"
+			>
+				<div class="flex items-center gap-2 min-w-0 text-sm">
+					<svg
+						class="w-5 h-5 shrink-0 text-[var(--color-fg-muted)]"
+						viewBox="0 0 16 16"
+						fill="currentColor"
+						aria-hidden="true"
+					>
+						<path
+							d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"
+						></path>
+					</svg>
+					<a
+						href={repoUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="truncate no-underline text-[var(--color-fg-secondary)] hover:text-[var(--color-brand)] transition-colors"
+					>
+						etejedaw /{" "}
+						<strong class="font-semibold text-[var(--color-fg)]"
+							>completr-node-monorepo</strong
+						>
+					</a>
+					<span
+						class="shrink-0 px-2 py-0.5 rounded-full border border-[var(--color-line)] text-[0.6875rem] text-[var(--color-fg-muted)]"
+						>Public</span
+					>
+				</div>
+				<span
+					class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.6875rem] font-semibold text-[var(--color-brand)] border border-[var(--color-brand)]/40 bg-[var(--color-brand)]/10"
+				>
+					<span class="material-icons text-[0.875rem]">gavel</span>
+					{license}
+				</span>
+			</div>
+
+			<ul class="list-none m-0 p-0">
+				{
+					folders.map(folder => (
+						<li class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 px-5 py-3 border-b border-[var(--color-line)] text-sm">
+							<span class="flex items-center gap-2 sm:w-40 shrink-0 font-mono text-[var(--color-fg)]">
+								<span class="material-icons text-[1.125rem] text-[var(--color-brand)]">
+									folder
+								</span>
+								{folder.path}
+							</span>
+							<span class="flex-1 text-[var(--color-fg-secondary)]">
+								{folder.description}
+							</span>
+							<span class="text-xs text-[var(--color-fg-muted)]">
+								{folder.stack}
+							</span>
+						</li>
+					))
+				}
+			</ul>
+
+			<div class="px-5 py-4">
+				<div
+					class="flex h-2 rounded-full overflow-hidden"
+					role="img"
+					aria-label="Lenguajes del repositorio"
+				>
+					{
+						languages.map(language => (
+							<span
+								style={`width: ${language.percent}%; background: ${language.color};`}
+							/>
+						))
+					}
+				</div>
+				<ul
+					class="list-none m-0 mt-3 p-0 flex flex-wrap gap-x-5 gap-y-1.5 text-xs"
+				>
+					{
+						languages.map(language => (
+							<li class="flex items-center gap-1.5">
+								<span
+									class="w-2 h-2 rounded-full"
+									style={`background: ${language.color};`}
+									aria-hidden="true"
+								/>
+								<span class="font-semibold text-[var(--color-fg-secondary)]">
+									{language.name}
+								</span>
+								<span class="text-[var(--color-fg-muted)]">
+									{language.percent}%
+								</span>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+		</div>
+
+		<div class="mt-10 text-center">
+			<a
+				href={repoUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-white font-semibold text-base no-underline transition-transform hover:scale-[1.03]"
+				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 12px 24px -10px var(--color-brand-glow);"
+			>
+				Ver el código en GitHub
+				<span class="material-icons text-[1.125rem]">arrow_forward</span
+				>
+			</a>
+		</div>
+	</div>
+</section>

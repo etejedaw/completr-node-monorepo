@@ -1,0 +1,270 @@
+---
+import { getCollection } from "astro:content";
+
+const all = await getCollection("releases");
+
+const sorted = all.sort((a, b) => {
+	if (a.data.date !== b.data.date) return a.data.date < b.data.date ? 1 : -1;
+	return b.data.order - a.data.order;
+});
+
+const hero = sorted[0];
+const rest = sorted.slice(1, 5);
+const totalReleases = sorted.length;
+
+const firstDate = sorted[sorted.length - 1]?.data.date;
+const lastDate = sorted[0]?.data.date;
+
+function weeksBetween(startIso: string, endIso: string): number {
+	if (!startIso || !endIso) return 0;
+	const start = Date.UTC(
+		...(startIso.split("-").map(Number) as [number, number, number])
+	);
+	const end = Date.UTC(
+		...(endIso.split("-").map(Number) as [number, number, number])
+	);
+	return Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24 * 7)));
+}
+
+function daysSince(iso: string): number {
+	if (!iso) return 0;
+	const [y, m, d] = iso.split("-").map(Number);
+	const target = Date.UTC(y, m - 1, d);
+	const now = Date.now();
+	return Math.max(0, Math.floor((now - target) / (1000 * 60 * 60 * 24)));
+}
+
+const spanWeeks = weeksBetween(firstDate, lastDate);
+const daysSinceLast = daysSince(lastDate);
+
+function formatDate(iso: string): string {
+	const [year, month, day] = iso.split("-").map(Number);
+	const date = new Date(Date.UTC(year, month - 1, day));
+	return new Intl.DateTimeFormat("es", {
+		day: "numeric",
+		month: "short",
+		timeZone: "UTC"
+	}).format(date);
+}
+
+function tintBg(tint: string): string {
+	switch (tint) {
+		case "brand":
+			return "background: rgba(139, 92, 246, 0.15); color: var(--color-brand);";
+		case "purple":
+			return "background: rgba(168, 85, 247, 0.15); color: #a855f7;";
+		case "warning":
+			return "background: rgba(245, 158, 11, 0.15); color: #f59e0b;";
+		case "success":
+			return "background: rgba(34, 197, 94, 0.15); color: #22c55e;";
+		case "danger":
+			return "background: rgba(239, 68, 68, 0.15); color: #ef4444;";
+		default:
+			return "background: var(--color-surface); color: var(--color-fg-secondary);";
+	}
+}
+
+const lastUpdatedLabel =
+	daysSinceLast === 0
+		? "hoy"
+		: daysSinceLast === 1
+			? "ayer"
+			: `hace ${daysSinceLast} días`;
+---
+
+<section
+	id="changelog"
+	class="relative py-24 px-6 border-t border-[var(--color-line)] overflow-hidden"
+>
+	<div
+		class="absolute inset-0 pointer-events-none"
+		style="background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(139, 92, 246, 0.12), transparent 70%);"
+		aria-hidden="true"
+	>
+	</div>
+
+	<div class="relative max-w-6xl mx-auto">
+		<div class="text-center mb-12 max-w-2xl mx-auto">
+			<span
+				class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--color-brand)]/30 bg-[var(--color-brand)]/10 text-xs font-semibold uppercase tracking-[0.15em] text-[var(--color-brand)]"
+			>
+				<span class="relative flex h-2 w-2" aria-hidden="true">
+					<span
+						class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+						style="background: var(--color-brand);"></span>
+					<span
+						class="relative inline-flex rounded-full h-2 w-2"
+						style="background: var(--color-brand);"></span>
+				</span>
+				En desarrollo activo
+			</span>
+			<h2
+				class="font-[var(--font-display)] mt-4 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight"
+			>
+				El cambio es{" "}
+				<span
+					class="bg-clip-text text-transparent"
+					style="background-image: linear-gradient(135deg, var(--color-brand), #c4a8ff);"
+					>constante</span
+				>
+			</h2>
+			<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
+				Completr no se duerme. Cada semana entran features pedidas por
+				los testers, ajustes de UX y mejoras de rendimiento.
+			</p>
+		</div>
+
+		<div class="grid grid-cols-3 gap-4 mb-12 max-w-2xl mx-auto">
+			<div
+				class="text-center rounded-2xl bg-[var(--color-surface)] border border-[var(--color-line)] p-5"
+			>
+				<div
+					class="font-[var(--font-display)] text-3xl md:text-4xl font-bold tracking-tight"
+					style="background-image: linear-gradient(135deg, var(--color-brand), #c4a8ff); -webkit-background-clip: text; background-clip: text; color: transparent;"
+				>
+					{totalReleases}
+				</div>
+				<div
+					class="text-[0.6875rem] uppercase tracking-wider text-[var(--color-fg-muted)] mt-1 font-semibold"
+				>
+					releases
+				</div>
+			</div>
+			<div
+				class="text-center rounded-2xl bg-[var(--color-surface)] border border-[var(--color-line)] p-5"
+			>
+				<div
+					class="font-[var(--font-display)] text-3xl md:text-4xl font-bold tracking-tight"
+					style="background-image: linear-gradient(135deg, var(--color-brand), #c4a8ff); -webkit-background-clip: text; background-clip: text; color: transparent;"
+				>
+					{spanWeeks}
+				</div>
+				<div
+					class="text-[0.6875rem] uppercase tracking-wider text-[var(--color-fg-muted)] mt-1 font-semibold"
+				>
+					semanas
+				</div>
+			</div>
+			<div
+				class="text-center rounded-2xl bg-[var(--color-surface)] border border-[var(--color-line)] p-5"
+			>
+				<div
+					class="font-[var(--font-display)] text-3xl md:text-4xl font-bold tracking-tight"
+					style="background-image: linear-gradient(135deg, var(--color-brand), #c4a8ff); -webkit-background-clip: text; background-clip: text; color: transparent;"
+				>
+					{lastUpdatedLabel}
+				</div>
+				<div
+					class="text-[0.6875rem] uppercase tracking-wider text-[var(--color-fg-muted)] mt-1 font-semibold"
+				>
+					último release
+				</div>
+			</div>
+		</div>
+
+		{
+			hero && (
+				<article
+					class="group relative rounded-3xl overflow-hidden border border-[var(--color-brand)]/40 mb-4"
+					style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(109, 40, 217, 0.05)), var(--color-surface); box-shadow: 0 30px 60px -30px var(--color-brand-glow);"
+				>
+					<div
+						class="absolute -top-20 -right-20 w-72 h-72 rounded-full blur-3xl opacity-40 pointer-events-none"
+						style="background: var(--color-brand);"
+						aria-hidden="true"
+					/>
+					<div class="relative p-6 md:p-8 flex flex-col md:flex-row md:items-start gap-5">
+						<span
+							class="flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-2xl shrink-0"
+							style={tintBg(hero.data.tint)}
+						>
+							<span class="material-icons text-[1.75rem] md:text-[2rem]">
+								{hero.data.icon}
+							</span>
+						</span>
+						<div class="flex-1 min-w-0">
+							<div class="flex items-center gap-2 mb-2 flex-wrap">
+								<span
+									class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider"
+									style="background: var(--color-brand); color: white;"
+								>
+									<span class="material-icons text-[0.75rem]">
+										fiber_new
+									</span>
+									Último release
+								</span>
+								<span
+									class="inline-block px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider"
+									style={tintBg(hero.data.tint)}
+								>
+									{hero.data.tag}
+								</span>
+								<span class="text-[0.6875rem] text-[var(--color-fg-muted)]">
+									{formatDate(hero.data.date)}
+								</span>
+							</div>
+							<h3 class="font-[var(--font-display)] m-0 mb-3 text-xl md:text-2xl font-bold text-[var(--color-fg)] leading-tight tracking-tight">
+								{hero.data.title}
+							</h3>
+							{hero.data.landing?.pitch && (
+								<p class="m-0 text-[0.9375rem] text-[var(--color-fg-secondary)] leading-relaxed">
+									{hero.data.landing.pitch}
+								</p>
+							)}
+						</div>
+					</div>
+				</article>
+			)
+		}
+
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			{
+				rest.map(entry => (
+					<article class="group relative rounded-2xl bg-[var(--color-surface)] border border-[var(--color-line)] hover:border-[var(--color-brand)]/50 hover:-translate-y-0.5 transition-all p-5 flex items-start gap-4">
+						<span
+							class="flex items-center justify-center w-11 h-11 rounded-xl shrink-0"
+							style={tintBg(entry.data.tint)}
+						>
+							<span class="material-icons text-[1.375rem]">
+								{entry.data.icon}
+							</span>
+						</span>
+						<div class="flex-1 min-w-0">
+							<div class="flex items-center gap-2 mb-1.5 flex-wrap">
+								<span
+									class="inline-block px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider"
+									style={tintBg(entry.data.tint)}
+								>
+									{entry.data.tag}
+								</span>
+								<span class="text-[0.6875rem] text-[var(--color-fg-muted)]">
+									{formatDate(entry.data.date)}
+								</span>
+							</div>
+							<h3 class="font-[var(--font-display)] m-0 mb-1.5 text-base font-semibold text-[var(--color-fg)] leading-tight">
+								{entry.data.title}
+							</h3>
+							{entry.data.landing?.pitch && (
+								<p class="m-0 text-[0.8125rem] text-[var(--color-fg-secondary)] leading-relaxed line-clamp-2">
+									{entry.data.landing.pitch}
+								</p>
+							)}
+						</div>
+					</article>
+				))
+			}
+		</div>
+
+		<div class="mt-10 text-center">
+			<a
+				href="/changelog"
+				class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-white font-semibold text-base no-underline transition-transform hover:scale-[1.03]"
+				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 12px 24px -10px var(--color-brand-glow);"
+			>
+				Ver las {totalReleases} novedades
+				<span class="material-icons text-[1.125rem]">arrow_forward</span
+				>
+			</a>
+		</div>
+	</div>
+</section>

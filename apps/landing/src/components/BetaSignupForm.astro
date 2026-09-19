@@ -1,0 +1,164 @@
+---
+const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
+---
+
+<form
+	data-endpoint={endpoint}
+	class="beta-signup-form flex flex-col sm:flex-row gap-3 w-full max-w-xl mx-auto"
+	novalidate
+>
+	<input
+		type="email"
+		name="email"
+		required
+		autocomplete="email"
+		placeholder="tu@correo.com"
+		aria-label="Correo electrónico"
+		class="beta-signup-email flex-1 px-4 py-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-line)] text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] focus:outline-none focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/30 transition-colors w-full"
+	/>
+	<input
+		type="text"
+		name="website"
+		tabindex="-1"
+		autocomplete="off"
+		aria-hidden="true"
+		class="beta-signup-hp absolute left-[-9999px] w-px h-px opacity-0 pointer-events-none"
+	/>
+	<button
+		type="submit"
+		class="px-6 py-3 rounded-xl font-semibold text-white border-0 cursor-pointer transition-transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+		style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 8px 24px -4px var(--color-brand-glow);"
+	>
+		Inscribirme
+	</button>
+</form>
+
+<noscript>
+	<p
+		class="m-0 mt-3 text-sm text-center text-[var(--color-fg-muted)] max-w-xl mx-auto"
+	>
+		El formulario necesita JavaScript. Si lo tienes desactivado, escríbeme a{
+			" "
+		}
+		<a
+			href="mailto:completr@etejeda.dev"
+			class="text-[var(--color-brand)] hover:underline"
+			>completr@etejeda.dev</a
+		> y te aviso del acceso.
+	</p>
+</noscript>
+
+<p
+	class="beta-signup-status m-0 mt-3 min-h-[1.25rem] text-sm text-center"
+	role="status"
+	aria-live="polite"
+>
+</p>
+
+<p class="m-0 mt-2 text-xs text-[var(--color-fg-muted)] text-center">
+	Solo lo uso para avisarte del acceso. <a
+		href="/privacy"
+		class="text-[var(--color-fg-secondary)] underline underline-offset-2 decoration-[var(--color-fg-muted)] hover:text-[var(--color-brand)] hover:decoration-[var(--color-brand)] transition-colors"
+		>Cómo manejo tu correo</a
+	>.
+</p>
+
+<script>
+	function setStatus(
+		el: HTMLElement,
+		message: string,
+		tone: "info" | "success" | "error"
+	) {
+		el.textContent = message;
+		el.style.color =
+			tone === "success"
+				? "var(--color-brand)"
+				: tone === "error"
+					? "#ef4444"
+					: "var(--color-fg-muted)";
+	}
+
+	document
+		.querySelectorAll<HTMLFormElement>(".beta-signup-form")
+		.forEach(form => {
+			const submitBtn = form.querySelector<HTMLButtonElement>(
+				"button[type='submit']"
+			);
+			const emailInput =
+				form.querySelector<HTMLInputElement>(".beta-signup-email");
+			const honeypot =
+				form.querySelector<HTMLInputElement>(".beta-signup-hp");
+			const status = form.parentElement?.querySelector<HTMLElement>(
+				".beta-signup-status"
+			);
+
+			if (!submitBtn || !emailInput || !status) return;
+
+			form.addEventListener("submit", async event => {
+				event.preventDefault();
+
+				if (honeypot && honeypot.value) {
+					form.reset();
+					window.location.assign("/gracias");
+					return;
+				}
+
+				const endpoint = form.dataset.endpoint;
+				if (!endpoint) {
+					setStatus(
+						status,
+						"Configuración incompleta. Inténtalo más tarde.",
+						"error"
+					);
+					return;
+				}
+
+				const email = emailInput.value.trim();
+				if (!email || !emailInput.checkValidity()) {
+					setStatus(status, "Ingresa un correo válido.", "error");
+					emailInput.focus();
+					return;
+				}
+
+				submitBtn.disabled = true;
+				setStatus(status, "Enviando…", "info");
+
+				try {
+					const response = await fetch(endpoint, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Accept: "application/json"
+						},
+						body: JSON.stringify({ email })
+					});
+
+					if (response.ok) {
+						form.reset();
+						window.location.assign("/gracias");
+						return;
+					} else if (response.status === 429) {
+						setStatus(
+							status,
+							"Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+							"error"
+						);
+					} else {
+						setStatus(
+							status,
+							"No pudimos guardar tu correo. Inténtalo de nuevo en un momento.",
+							"error"
+						);
+					}
+				} catch {
+					setStatus(
+						status,
+						"Sin conexión. Verifica tu red e inténtalo de nuevo.",
+						"error"
+					);
+				} finally {
+					submitBtn.disabled = false;
+				}
+			});
+		});
+</script>
