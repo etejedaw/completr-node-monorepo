@@ -36,7 +36,9 @@ apps/landing/
 
 `src/content/releases/` es el changelog que ven los usuarios, en `/changelog` y en `/changelog.json`. Es distinto de `docs/changelogs/`, que es técnico y referencia commits. Cada entrada es un `.md` con frontmatter validado por el schema de `content.config.ts`; el nombre sigue `YYYY-MM-DD-NN-<slug>.md` y `order` desempata las entradas del mismo día.
 
-`/changelog.json` se genera en el build (`src/pages/changelog.json.ts`) y nginx lo sirve con `Access-Control-Allow-Origin: *` para que otros orígenes puedan leerlo.
+`/changelog.json` se genera en el build (`src/pages/changelog.json.ts`) y nginx lo sirve con `Access-Control-Allow-Origin: *` para que otros orígenes puedan leerlo. La API lo reexpone en `GET /changelog` (`CHANGELOG_SOURCE_URL`) y `apps/web` lo muestra en la página "What's new".
+
+Por eso cada entrada mezcla dos idiomas: `tag`, `title` y `highlights` van en inglés, como la UI de la app; `landing.pitch` va en español, como la landing. Los `highlights` solo se ven en la app, y el `pitch` solo en la landing.
 
 ## Variables de entorno
 
