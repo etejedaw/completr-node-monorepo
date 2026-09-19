@@ -103,12 +103,13 @@ npm run migrate
 npm run dev
 ```
 
-Levanta las dos apps a la vez:
+Levanta las tres apps a la vez:
 
 - **API** en `http://localhost:3000`, con reinicio automático al guardar cambios (`node --watch`).
 - **Web** en `http://localhost:4200`.
+- **Landing** en `http://localhost:4321`. La página "What's new" de la web lee el changelog de la landing a través de la API, así que en local muestra las entradas de `apps/landing/src/content/releases/`.
 
-Para levantar una sola: `npm run dev:api` o `npm run dev:web`. La landing se levanta aparte con `npm run dev:landing`, en `http://localhost:4321`.
+Para levantar una sola: `npm run dev:api`, `npm run dev:web` o `npm run dev:landing`.
 
 ## Scripts principales
 
@@ -116,7 +117,7 @@ Todos se ejecutan desde la raíz:
 
 | Script              | Qué hace                          |
 | ------------------- | --------------------------------- |
-| `npm run dev`       | API + web en modo desarrollo      |
+| `npm run dev`       | API, web y landing en desarrollo  |
 | `npm run build`     | Compila todas las apps            |
 | `npm run lint`      | ESLint sobre todo el repo         |
 | `npm run format`    | Prettier sobre todo el repo       |
