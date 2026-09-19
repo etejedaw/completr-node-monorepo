@@ -6,11 +6,12 @@ Vista panorámica del proyecto. Para detalle de cada subsistema, ver los archivo
 
 Monorepo con npm workspaces:
 
-| Carpeta    | Qué contiene                                                                     |
-| ---------- | -------------------------------------------------------------------------------- |
-| `apps/api` | Backend (este documento), migraciones Sequelize, scripts y compose de desarrollo |
-| `apps/web` | Frontend Angular. Ver [`context/frontend.md`](./context/frontend.md)             |
-| `docs/`    | Documentación técnica y changelog de las dos apps                                |
+| Carpeta        | Qué contiene                                                                     |
+| -------------- | -------------------------------------------------------------------------------- |
+| `apps/api`     | Backend (este documento), migraciones Sequelize, scripts y compose de desarrollo |
+| `apps/web`     | Frontend Angular. Ver [`context/frontend.md`](./context/frontend.md)             |
+| `apps/landing` | Landing Astro estática. Ver [`context/landing.md`](./context/landing.md)         |
+| `docs/`        | Documentación técnica y changelog de las apps                                    |
 
 El `package-lock.json`, ESLint, Prettier, Husky y lint-staged viven en la raíz. Cada app tiene su `Dockerfile` y un `captain-definition-<app>` en la raíz; el contexto de build de Docker es siempre la raíz del repo.
 

@@ -1,6 +1,6 @@
 # Frontend
 
-Arquitectura y convenciones de `apps/web`, la aplicación Angular que consume la API de `apps/api`. Las reglas generales de estilo, commits y post-edición están en [`conventions.md`](./conventions.md) y aplican a las dos apps.
+Arquitectura y convenciones de `apps/web`, la aplicación Angular que consume la API de `apps/api`. Las reglas generales de estilo, commits y post-edición están en [`conventions.md`](./conventions.md) y aplican a todas las apps.
 
 ## Stack
 

@@ -1,6 +1,6 @@
 # Documentación
 
-Punto de entrada para entender cómo está organizado el código de Completr: backend en `apps/api` y frontend en `apps/web`. Cada archivo cubre un tema concreto — si tienes una duda, este índice te dice a dónde ir.
+Punto de entrada para entender cómo está organizado el código de Completr: backend en `apps/api`, frontend en `apps/web` y landing en `apps/landing`. Cada archivo cubre un tema concreto — si tienes una duda, este índice te dice a dónde ir.
 
 ## Índice
 
@@ -19,6 +19,7 @@ Punto de entrada para entender cómo está organizado el código de Completr: ba
 - [`context/errors.md`](./context/errors.md) — Sistema de errores en 3 capas (`ServiceError` → `DomainError` → `HttpError`), quién lanza qué, los mappers y normalizers globales, y cómo agregar un error nuevo.
 - [`context/providers.md`](./context/providers.md) — Adapters para integraciones externas (HTTP APIs, scrapers, librerías). Cómo se estructuran, qué responsabilidades tienen y cómo se diferencian de los servicios.
 - [`context/frontend.md`](./context/frontend.md) — Stack, estructura de carpetas y convenciones de la app Angular.
+- [`context/landing.md`](./context/landing.md) — Stack, changelog público, variables de build y CSP de la landing Astro.
 
 ### Otros recursos del repo
 
@@ -33,6 +34,7 @@ Esta carpeta describe **cómo funciona el código hoy**. La planificación de pr
 - ¿Vas a crear un módulo nuevo? Lee `context/modules.md` y `context/errors.md`.
 - ¿Vas a integrar un servicio externo? Lee `context/providers.md`.
 - ¿Vas a tocar el frontend? Lee `context/frontend.md`.
+- ¿Vas a tocar la landing? Lee `context/landing.md`.
 - ¿Necesitas saber una validación, un constraint o cuándo dispara un comportamiento? `invariants.md`.
 - ¿Necesitas el valor exacto de un límite o los permisos de un rol? Están en el código: las constantes `FREE_*_LIMIT` de cada service y el `authMiddleware(...)` de cada `*.routes.ts`.
 - ¿Vas a abrir un PR? Revisa `context/conventions.md` antes de commitear.

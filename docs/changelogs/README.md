@@ -1,6 +1,6 @@
 # Changelogs
 
-Un archivo por feature entregada. Cubre las dos apps del repo (`apps/api` y `apps/web`).
+Un archivo por feature entregada. Cubre todas las apps del repo (`apps/api`, `apps/web` y `apps/landing`).
 
 ## Formato
 

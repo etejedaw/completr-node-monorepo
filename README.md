@@ -4,17 +4,19 @@
 
 Permite gestionar tu backlog de juegos, priorizarlos con un sistema de ratio (puntuación / duración estimada) y llevar registro de qué has completado, qué estás jugando y qué quieres jugar próximamente. Integra datos de fuentes como RAWG, Metacritic, OpenCritic y HowLongToBeat.
 
+- **Sitio:** https://www.completr.app
 - **App en producción:** https://web.completr.app
 
 ## Estructura
 
 Monorepo con npm workspaces:
 
-| Carpeta    | Qué contiene                                        |
-| ---------- | --------------------------------------------------- |
-| `apps/api` | API REST (Node.js + Express + Sequelize)            |
-| `apps/web` | Aplicación web (Angular + PWA)                      |
-| `docs/`    | Documentación técnica, colección Bruno y changelogs |
+| Carpeta        | Qué contiene                                        |
+| -------------- | --------------------------------------------------- |
+| `apps/api`     | API REST (Node.js + Express + Sequelize)            |
+| `apps/web`     | Aplicación web (Angular + PWA)                      |
+| `apps/landing` | Landing y changelog público (Astro, estático)       |
+| `docs/`        | Documentación técnica, colección Bruno y changelogs |
 
 ## Stack
 
@@ -37,6 +39,11 @@ Monorepo con npm workspaces:
 - **PWA:** Angular Service Worker
 - **Tests:** Vitest
 
+**Landing (`apps/landing`)**
+
+- **Framework:** Astro 7 (salida estática)
+- **Estilos:** Tailwind CSS 4
+
 ## Requisitos
 
 - [Node.js 22+](https://nodejs.org/) (se usa el flag nativo `--env-file`)
@@ -54,7 +61,7 @@ nvm use
 npm install
 ```
 
-Un solo `npm install` en la raíz instala las dependencias de las dos apps.
+Un solo `npm install` en la raíz instala las dependencias de todas las apps.
 
 ### 2. Configurar variables de entorno
 
@@ -101,7 +108,7 @@ Levanta las dos apps a la vez:
 - **API** en `http://localhost:3000`, con reinicio automático al guardar cambios (`node --watch`).
 - **Web** en `http://localhost:4200`.
 
-Para levantar una sola: `npm run dev:api` o `npm run dev:web`.
+Para levantar una sola: `npm run dev:api` o `npm run dev:web`. La landing se levanta aparte con `npm run dev:landing`, en `http://localhost:4321`.
 
 ## Scripts principales
 
@@ -110,10 +117,10 @@ Todos se ejecutan desde la raíz:
 | Script              | Qué hace                          |
 | ------------------- | --------------------------------- |
 | `npm run dev`       | API + web en modo desarrollo      |
-| `npm run build`     | Compila las dos apps              |
+| `npm run build`     | Compila todas las apps            |
 | `npm run lint`      | ESLint sobre todo el repo         |
 | `npm run format`    | Prettier sobre todo el repo       |
-| `npm run typecheck` | Chequeo de tipos del backend      |
+| `npm run typecheck` | Chequeo de tipos de API y landing |
 | `npm test`          | Tests del frontend                |
 | `npm run migrate`   | Aplica las migraciones pendientes |
 
@@ -121,20 +128,21 @@ Cualquier otro script de una app: `npm run <script> -w apps/<app>`.
 
 ## Dependencias
 
-El repo usa [npm workspaces](https://docs.npmjs.com/cli/using-npm/workspaces): hay un solo `package-lock.json` y un solo `node_modules` en la raíz, compartido por las dos apps. Por eso `npm install` se ejecuta siempre desde la raíz, nunca dentro de `apps/api` ni de `apps/web`.
+El repo usa [npm workspaces](https://docs.npmjs.com/cli/using-npm/workspaces): hay un solo `package-lock.json` y un solo `node_modules` en la raíz, compartido por todas las apps. Por eso `npm install` se ejecuta siempre desde la raíz, nunca dentro de una carpeta de `apps/`.
 
 | Quiero…                                      | Comando                                 |
 | -------------------------------------------- | --------------------------------------- |
 | Instalar todo después de clonar o de un pull | `npm install`                           |
 | Agregar una dependencia al backend           | `npm install <paquete> -w apps/api`     |
 | Agregar una dependencia al frontend          | `npm install <paquete> -w apps/web`     |
+| Agregar una dependencia a la landing         | `npm install <paquete> -w apps/landing` |
 | Agregar una herramienta de desarrollo común  | `npm install -D <paquete>`              |
 | Quitar una dependencia de una app            | `npm uninstall <paquete> -w apps/<app>` |
 
 Dónde declarar cada paquete:
 
-- **En el `package.json` de la raíz:** herramientas que usa todo el repo (TypeScript, ESLint, Prettier, Husky) y cualquier paquete que necesiten las dos apps.
-- **En el `package.json` de cada app:** lo que solo usa esa app, como Express o Sequelize en el backend, y Angular o Tailwind en el frontend.
+- **En el `package.json` de la raíz:** herramientas que usa todo el repo (TypeScript, ESLint, Prettier, Husky) y cualquier paquete que necesiten varias apps.
+- **En el `package.json` de cada app:** lo que solo usa esa app, como Express o Sequelize en el backend, Angular en el frontend y Astro en la landing.
 - **Nunca en los dos a la vez.** Un paquete declarado en la raíz y en una app puede terminar instalado en dos versiones distintas.
 
 Las convenciones de arquitectura y las reglas que el código hace cumplir están en [`docs/`](./docs/README.md).
