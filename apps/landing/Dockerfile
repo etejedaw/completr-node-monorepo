@@ -1,17 +1,17 @@
 FROM node:krypton-alpine AS deps
-WORKDIR /app
+WORKDIR /usr/app
 COPY package.json package-lock.json ./
-RUN npm ci
+COPY apps/landing/package.json apps/landing/
+RUN npm ci -w apps/landing --ignore-scripts
 
-FROM node:krypton-alpine AS builder
-WORKDIR /app
+FROM deps AS builder
 ARG PUBLIC_CONTACT_ENDPOINT
 ENV PUBLIC_CONTACT_ENDPOINT=$PUBLIC_CONTACT_ENDPOINT
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN npm run build
+COPY apps/landing ./apps/landing
+RUN npm run build -w apps/landing
 
 FROM nginx:alpine AS runner
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY apps/landing/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /usr/app/apps/landing/dist /usr/share/nginx/html
 EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
