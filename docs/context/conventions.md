@@ -69,7 +69,7 @@ Después de cualquier cambio de código, desde la raíz del repo:
 
 1. `npm run lint:fix`
 2. `npm run format`
-3. `npm run typecheck` si tocaste tipos o interfaces del backend; `npm test` si tocaste el frontend.
+3. `npm run typecheck` si tocaste tipos o interfaces del backend o la landing (corre también `astro check`); `npm test` si tocaste el frontend; `npm run build:landing` si tocaste la landing, porque valida el contenido de `src/content/` contra su schema.
 4. Si modificaste o agregaste un endpoint → actualizar `docs/api/` (Bruno v3.1, formato `.yml`).
 5. Si modificaste el schema de un modelo → crear migración Sequelize en `apps/api/migrations/`.
 6. Si cambiaste un enum, un constraint, una validación o un auto-comportamiento → actualizar [`../invariants.md`](../invariants.md).
