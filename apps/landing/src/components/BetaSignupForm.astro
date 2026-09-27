@@ -97,12 +97,6 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 			form.addEventListener("submit", async event => {
 				event.preventDefault();
 
-				if (honeypot && honeypot.value) {
-					form.reset();
-					window.location.assign("/gracias");
-					return;
-				}
-
 				const endpoint = form.dataset.endpoint;
 				if (!endpoint) {
 					setStatus(
@@ -130,7 +124,10 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 							"Content-Type": "application/json",
 							Accept: "application/json"
 						},
-						body: JSON.stringify({ email })
+						body: JSON.stringify({
+							email,
+							website: honeypot?.value ?? ""
+						})
 					});
 
 					if (response.ok) {
