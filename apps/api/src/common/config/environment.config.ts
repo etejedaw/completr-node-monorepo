@@ -2,7 +2,7 @@ import z from "zod";
 
 const EnvironmentConfigSchema = z
 	.object({
-		NODE_ENV: z.enum(["test", "dev", "stg", "prd"]).default("dev"),
+		NODE_ENV: z.enum(["test", "dev", "prod"]).default("dev"),
 		PORT: z.coerce.number().default(3000),
 		ACCESS_TOKEN_TTL: z.union([z.string(), z.number()]).default("15m"),
 		ACCESS_TOKEN_SECRET: z.string().default("secret-token"),

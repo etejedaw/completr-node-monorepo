@@ -65,14 +65,14 @@ Un solo `npm install` en la raíz instala las dependencias de todas las apps.
 
 ### 2. Configurar variables de entorno
 
-Para desarrollo local no hace falta `.env`: los valores por defecto de la API están en el código y coinciden con el `docker-compose.yml`. Las variables disponibles y cómo se consumen viven en [`apps/api/src/common/config/`](./apps/api/src/common/config/).
+Para desarrollo local no hace falta `.env.dev.local`: los valores por defecto de la API están en el código y coinciden con el `docker-compose.yml`. Las variables disponibles y cómo se consumen viven en [`apps/api/src/common/config/`](./apps/api/src/common/config/).
 
-Si quieres sobrescribir alguna, crea `apps/api/.env` solo con esas variables. [`apps/api/.env.example`](./apps/api/.env.example) lista todas las keys como referencia; no lo copies tal cual, porque una key vacía no toma el valor por defecto.
+Si quieres sobrescribir alguna, crea `apps/api/.env.dev.local` solo con esas variables. [`apps/api/.env.example`](./apps/api/.env.example) lista todas las keys como referencia; no lo copies tal cual, porque una key vacía no toma el valor por defecto.
 
 La única que conviene definir es `RAWG_API_KEY`, gratuita en https://rawg.io/apidocs. Es opcional: sin ella, la API arranca y usa solo el catálogo local.
 
 ```bash
-echo "RAWG_API_KEY=<tu-key>" > apps/api/.env
+echo "RAWG_API_KEY=<tu-key>" > apps/api/.env.dev.local
 ```
 
 La URL de la API que usa el frontend está en [`apps/web/src/environments/`](./apps/web/src/environments/).
@@ -94,7 +94,7 @@ Para bajarla: `npm run db:down`.
 ### 4. Correr migraciones
 
 ```bash
-npm run migrate
+npm run migrate:dev
 ```
 
 ### 5. Iniciar la app en modo desarrollo
@@ -115,15 +115,16 @@ Para levantar una sola: `npm run dev:api`, `npm run dev:web` o `npm run dev:land
 
 Todos se ejecutan desde la raíz:
 
-| Script              | Qué hace                          |
-| ------------------- | --------------------------------- |
-| `npm run dev`       | API, web y landing en desarrollo  |
-| `npm run build`     | Compila todas las apps            |
-| `npm run lint`      | ESLint sobre todo el repo         |
-| `npm run format`    | Prettier sobre todo el repo       |
-| `npm run typecheck` | Chequeo de tipos de API y landing |
-| `npm test`          | Tests del frontend                |
-| `npm run migrate`   | Aplica las migraciones pendientes |
+| Script                 | Qué hace                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| `npm run dev`          | API, web y landing en desarrollo                                                |
+| `npm run build`        | Compila todas las apps                                                          |
+| `npm run lint`         | ESLint sobre todo el repo                                                       |
+| `npm run format`       | Prettier sobre todo el repo                                                     |
+| `npm run typecheck`    | Chequeo de tipos de API y landing                                               |
+| `npm test`             | Tests del frontend                                                              |
+| `npm run migrate:dev`  | Aplica las migraciones pendientes en local                                      |
+| `npm run migrate:prod` | Aplica las migraciones pendientes en producción, con `apps/api/.env.prod.local` |
 
 Cualquier otro script de una app: `npm run <script> -w apps/<app>`.
 

@@ -44,7 +44,7 @@ Si dudás, generala: una migración idempotente sin diff efectivo es barata; un 
 
 2. **Reescribir el contenido** siguiendo el template de la sección siguiente. El scaffold de sequelize-cli usa la API de `queryInterface` (addColumn, etc.); en este repo preferimos **SQL crudo idempotente** porque maneja mejor enums y permite reruns.
 
-3. **No correr `npm run migrate` automáticamente.** Avisar al usuario que la migración está lista y dejar que él la corra (igual que con cambios de modelo, ver feedback `no_db_changes_without_asking`).
+3. **No correr `npm run migrate:dev` automáticamente, y nunca `npm run migrate:prod`.** Avisar al usuario que la migración está lista y dejar que él la corra (igual que con cambios de modelo, ver feedback `no_db_changes_without_asking`).
 
 ## Naming
 
@@ -221,4 +221,4 @@ Si la migración acompaña un cambio de modelo + lógica, puede ir en el mismo c
 2. `up` y `down` ambos idempotentes (rerun-safe).
 3. Identificadores quoteados donde corresponde (todo lo camelCase y todas las tablas plural).
 4. El modelo TS ya tiene los `declare` y la columna en `Model.init` antes de pedirle al usuario correr la migración.
-5. Avisar al usuario: "migración lista en `apps/api/migrations/<file>.js`, corré `npm run migrate` cuando quieras aplicarla". **No correrla yo.**
+5. Avisar al usuario: "migración lista en `apps/api/migrations/<file>.js`, corré `npm run migrate:dev` cuando quieras aplicarla". **No correrla yo.**
