@@ -111,7 +111,7 @@ module.exports = {
     - Para enums, envolver en `DO $$ BEGIN ... EXCEPTION WHEN duplicate_object THEN null; END $$;` (ver `20260415230802-initial-schema.js`).
 - **Defaults con UUID**: usar `gen_random_uuid()` (extensión `pgcrypto`/`pgcrypto`-equivalente ya disponible, igual que el initial-schema).
 - **Timestamps**: columnas `"createdAt"` y `"updatedAt"` siempre `TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()` cuando creás una tabla (Sequelize las espera).
-- **FKs**: declararlas con `REFERENCES "Tabla"(id) ON DELETE CASCADE|SET NULL` según haga sentido en el modelo.
+- **FKs**: declararlas con `REFERENCES "Tabla"(id) ON DELETE CASCADE|SET NULL` según haga sentido en el modelo, y **siempre igual al `onDelete` de la asociación** en `apps/api/src/database/associations.database.ts`. El `onDelete` de la asociación no llega a la DB (no hay `sync()`); si la migración lo omite, el borrado del padre falla con `23503` y la API responde 500. Al tocar una asociación con `onDelete`, revisá que la FK de la migración lo tenga.
 - **Enums**: el tipo se llama `enum_<Tabla>_<columna>` por convención de Sequelize (ej: `enum_Users_role`). Si agregás un valor: `ALTER TYPE "enum_Users_role" ADD VALUE IF NOT EXISTS 'newvalue';` (no tiene `IF NOT EXISTS` antes de PG12 — acá sí está disponible).
 
 ## Ejemplos por tipo de cambio
