@@ -44,6 +44,10 @@ Lee `Trabajo por feature` antes de empezar un ítem de una fase. Lee `Context` c
 
 Al completar ítems de una fase, márcalos ahí (`update_block` con `checked`).
 
+## Ramas
+
+**Todo cambio de código se hace en `develop`, nunca en `main`.** Antes de editar, verifica la rama con `git branch --show-current`; si estás en `main`, detente y avisa antes de tocar nada. `main` solo recibe merges desde `develop`.
+
 ## Monorepo
 
 npm workspaces. Cada app tiene su `package.json`; el lockfile, el tooling (ESLint, Prettier, Husky, lint-staged) y la versión del producto viven en la raíz.

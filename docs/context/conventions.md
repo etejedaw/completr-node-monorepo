@@ -54,6 +54,12 @@ Solo se permiten comentarios cuando es **estrictamente necesario** — casos don
 
 No comentar lo que el nombre ya dice. No dejar referencias a tareas, issues o PRs en el código — eso va en el commit message.
 
+## Ramas
+
+- **Todo cambio de código se hace en `develop`.** Nunca editar ni commitear directo en `main`.
+- `main` solo recibe merges desde `develop` para pasar a productivo.
+- Antes de editar, verificar la rama con `git branch --show-current`; si es `main`, cambiar a `develop` (`git switch develop`) antes de tocar nada.
+
 ## Commits
 
 - **Conventional Commits** (`feat`, `fix`, `docs`, `chore`, `refactor`, `style`, `test`, `perf`, `build`, `ci`).

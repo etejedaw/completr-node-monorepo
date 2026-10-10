@@ -17,14 +17,15 @@ Reglas para crear commits en este proyecto.
 
 ## Flujo
 
-1. `git status` y `git diff` para ver el estado.
-2. Si hay cambios no relacionados, agruparlos mentalmente por intención.
-3. Por cada grupo:
+1. `git branch --show-current`: si la rama es `main`, **no commitear** — avisar al usuario. Los commits van en `develop`.
+2. `git status` y `git diff` para ver el estado.
+3. Si hay cambios no relacionados, agruparlos mentalmente por intención.
+4. Por cada grupo:
     - Stagear solo los archivos del grupo con `git add <files>`. **No usar `git add -p`** — el costo en tokens y complejidad supera el beneficio de granularidad fina.
     - Elegir `type` y `scope` apropiados al cambio.
     - Subject en imperativo, en minúsculas, sin punto final.
     - `git commit -m "<type>(<scope>): <subject>"`.
-4. Verificar con `git log --oneline -n <N>`.
+5. Verificar con `git log --oneline -n <N>`.
 
 ## Ejemplos
 
