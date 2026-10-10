@@ -19,5 +19,8 @@ export function platformsServiceToDomainMapper(
 	if (error.code === "PLATFORM_VALIDATION_ERROR")
 		return platformDomainError.platformValidation(context);
 
+	if (error.code === "PLATFORM_IN_USE")
+		return platformDomainError.platformInUse(context);
+
 	return platformDomainError.platformInternalError(context);
 }

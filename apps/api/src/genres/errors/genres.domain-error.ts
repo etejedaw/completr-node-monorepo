@@ -37,3 +37,12 @@ export function genreInternalError(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function genreInUse(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GENRE_IN_USE",
+		"Genre is in use and cannot be deleted",
+		context
+	);
+}

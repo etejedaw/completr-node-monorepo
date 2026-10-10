@@ -1,10 +1,15 @@
-import { UniqueConstraintError, ValidationError } from "sequelize";
+import {
+	ForeignKeyConstraintError,
+	UniqueConstraintError,
+	ValidationError
+} from "sequelize";
 
 import { type ServiceError } from "./service-error";
 
 export interface SequelizeErrorMappers {
 	unique?: (rawError: unknown) => ServiceError;
 	validation?: (rawError: unknown) => ServiceError;
+	foreignKey?: (rawError: unknown) => ServiceError;
 }
 
 export function rethrowSequelizeError(
@@ -16,6 +21,9 @@ export function rethrowSequelizeError(
 	}
 	if (error instanceof ValidationError && mappers.validation) {
 		throw mappers.validation(error);
+	}
+	if (error instanceof ForeignKeyConstraintError && mappers.foreignKey) {
+		throw mappers.foreignKey(error);
 	}
 	throw error;
 }

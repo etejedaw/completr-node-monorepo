@@ -22,3 +22,10 @@ export function notFoundError() {
 		raw: undefined
 	});
 }
+
+export function inUseError(rawError: unknown) {
+	return new ServiceError("PLATFORM_IN_USE", {
+		...BASE_OPTIONS,
+		raw: rawError
+	});
+}

@@ -43,5 +43,8 @@ export function gamesDomainToHttpMapper(
 	if (error.code === "GAME_COMPILATION_INVALID")
 		return new HttpError({ ...baseOptions, status: 400 });
 
+	if (error.code === "GAME_IN_USE")
+		return new HttpError({ ...baseOptions, status: 409 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

@@ -169,8 +169,14 @@ export async function hardDeleteGame(id: string) {
 	const game = await Game.findOne({ where: { id } });
 	if (!game) throw gamesServiceError.notFoundError();
 
-	await Game.destroy({ where: { id } });
-	return true;
+	try {
+		await Game.destroy({ where: { id } });
+		return true;
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			foreignKey: gamesServiceError.inUseError
+		});
+	}
 }
 
 export async function searchGames(query: string, forceRawg = false) {

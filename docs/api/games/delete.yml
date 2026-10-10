@@ -44,7 +44,9 @@ docs: |-
 
     ### Hard delete (`?hard=true`)
 
-    Physically deletes the game and all associated data: backlogs, game-shelf, list-items, favorites, scores, times, platforms, genres, external IDs.
+    Physically deletes the game and all associated data: backlogs (and their queue entries and progress), game-shelf, list-items, favorites, wishlist entries, scores, times, platforms, genres, external IDs, reports, activity targets, popularity, mood tags, compilation items and coop runs.
+
+    Rejected with 409 while the game has reviews, variants (`parentGameId`) or is the compilation of some backlog (`compilationGameId`).
 
     ### Response (204)
 
@@ -54,3 +56,4 @@ docs: |-
 
     - 403 `GAME_FORBIDDEN` — Hard delete requires admin role
     - 404 `GAME_NOT_FOUND`
+    - 409 `GAME_IN_USE` — The game is still referenced by reviews, variants or compilation backlogs

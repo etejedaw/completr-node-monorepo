@@ -19,5 +19,8 @@ export function genresServiceToDomainMapper(
 	if (error.code === "GENRE_VALIDATION_ERROR")
 		return genreDomainError.genreValidation(context);
 
+	if (error.code === "GENRE_IN_USE")
+		return genreDomainError.genreInUse(context);
+
 	return genreDomainError.genreInternalError(context);
 }

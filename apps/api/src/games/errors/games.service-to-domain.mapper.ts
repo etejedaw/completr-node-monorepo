@@ -34,5 +34,7 @@ export function gamesServiceToDomainMapper(
 	if (error.code === "GAME_COMPILATION_INVALID")
 		return gameDomainError.gameCompilationInvalid(context);
 
+	if (error.code === "GAME_IN_USE") return gameDomainError.gameInUse(context);
+
 	return gameDomainError.gameInternalError(context);
 }

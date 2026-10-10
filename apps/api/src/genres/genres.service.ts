@@ -56,6 +56,12 @@ export async function removeGenre(id: string) {
 	const genre = await findGenreById(id);
 	if (!genre) return false;
 
-	await Genre.destroy({ where: { id } });
-	return true;
+	try {
+		await Genre.destroy({ where: { id } });
+		return true;
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			foreignKey: genreServiceError.inUseError
+		});
+	}
 }

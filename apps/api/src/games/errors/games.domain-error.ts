@@ -91,3 +91,12 @@ export function gameInternalError(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function gameInUse(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_IN_USE",
+		"Game is referenced by other games or backlogs and cannot be deleted",
+		context
+	);
+}

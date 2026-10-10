@@ -25,5 +25,8 @@ export function platformsDomainToHttpMapper(
 	if (error.code === "PLATFORM_VALIDATION_ERROR")
 		return new HttpError({ ...baseOptions, status: 400 });
 
+	if (error.code === "PLATFORM_IN_USE")
+		return new HttpError({ ...baseOptions, status: 409 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

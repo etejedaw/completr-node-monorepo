@@ -57,3 +57,10 @@ export function compilationInvalidError() {
 		raw: undefined
 	});
 }
+
+export function inUseError(rawError: unknown) {
+	return new ServiceError("GAME_IN_USE", {
+		...BASE_OPTIONS,
+		raw: rawError
+	});
+}

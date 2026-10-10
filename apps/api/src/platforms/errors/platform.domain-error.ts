@@ -37,3 +37,12 @@ export function platformInternalError(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function platformInUse(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"PLATFORM_IN_USE",
+		"Platform is in use and cannot be deleted",
+		context
+	);
+}

@@ -25,5 +25,8 @@ export function genresDomainToHttpMapper(
 	if (error.code === "GENRE_VALIDATION_ERROR")
 		return new HttpError({ ...baseOptions, status: 400 });
 
+	if (error.code === "GENRE_IN_USE")
+		return new HttpError({ ...baseOptions, status: 409 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }
