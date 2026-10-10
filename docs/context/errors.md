@@ -303,7 +303,7 @@ Si te saltas este paso, los errores del módulo caerán al fallback genérico (`
 }
 ```
 
-El campo `context` solo se incluye fuera de `NODE_ENV=prd` para no filtrar detalles internos en producción.
+El campo `context` solo se incluye fuera de `NODE_ENV=prod` para no filtrar detalles internos en producción.
 
 ## Cómo agregar un error nuevo
 

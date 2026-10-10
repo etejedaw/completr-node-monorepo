@@ -15,7 +15,7 @@ export const sequelize = new Sequelize(
 		host: databaseConfig.PG_HOST,
 		port: databaseConfig.PG_PORT,
 		logging:
-			environmentConfig.NODE_ENV !== "prd"
+			environmentConfig.NODE_ENV !== "prod"
 				? sql => logger.debug("query", sql)
 				: false
 	}

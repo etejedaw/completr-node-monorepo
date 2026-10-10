@@ -95,7 +95,7 @@ Ver [`context/providers.md`](./context/providers.md).
 - **Soft delete con `isActive`** en Games y Users — no se borra físicamente.
 - **Slugs/codes auto-generados** desde el título con `slugify` para URLs amigables.
 - **Rate limiting diferenciado** por tipo de endpoint (auth, registro, público, usuario). Configurado en `common/config/rate-limiter.config.ts`.
-- **Variables de entorno** se cargan con `--env-file=.env` (Node 22+), no `dotenv`. Se exponen tipadas desde `common/config/`.
+- **Variables de entorno** se cargan con `--env-file` (Node 22+) desde `apps/api/.env.dev.local` (opcional) o `apps/api/.env.prod.local`, no `dotenv`. Se exponen tipadas desde `common/config/`.
 - **`request.locals` como contenedor de datos validados.** Extendido por declaration merging en `common/types/express.d.ts`.
 - **Toda lógica de cálculo vive en backend** (ratio, estadísticas, derivados). El frontend solo renderiza.
 - **El esquema de la DB lo definen solo las migraciones.** Cada FK declara su `ON DELETE` en la migración (`REFERENCES "Tabla"(id) ON DELETE CASCADE`), igual al `onDelete` de su asociación en `associations.database.ts`.
