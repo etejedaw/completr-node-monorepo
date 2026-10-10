@@ -63,6 +63,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 
 - Solo acepta backlogs en estado `not_started`. Cualquier otro estado se rechaza al añadir.
 - Auto-remove al cambiar el status del backlog asociado fuera de `not_started`.
+- Auto-remove al borrar el backlog asociado (`ON DELETE CASCADE` en `Queues.backlogId`).
 - Unique `(user_id, backlog_id)`.
 
 ---

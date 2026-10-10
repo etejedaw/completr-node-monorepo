@@ -240,7 +240,7 @@ function queue() {
 	User.hasMany(Queue, { foreignKey: "userId" });
 	Queue.belongsTo(User, { foreignKey: "userId" });
 
-	Backlog.hasMany(Queue, { foreignKey: "backlogId" });
+	Backlog.hasMany(Queue, { foreignKey: "backlogId", onDelete: "CASCADE" });
 	Queue.belongsTo(Backlog, { foreignKey: "backlogId" });
 }
 
