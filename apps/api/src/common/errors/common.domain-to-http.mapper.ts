@@ -20,5 +20,11 @@ export function commonDomainToHttpMapper(
 	if (error.code === "COMMON_SCHEMA_INVALID")
 		return new HttpError({ ...baseOptions, status: 422 });
 
+	if (error.code === "COMMON_RESOURCE_IN_USE")
+		return new HttpError({ ...baseOptions, status: 409 });
+
+	if (error.code === "COMMON_REFERENCE_NOT_FOUND")
+		return new HttpError({ ...baseOptions, status: 422 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

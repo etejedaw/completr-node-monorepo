@@ -156,6 +156,17 @@ La versión sucia obliga a declarar `let` afuera, depende de que TS entienda el 
 
 Si el callback de la transacción tiene un try/catch con `rethrowSequelizeError`, el try debe envolver toda la sección crítica (creates + updates + queries finales), no solo una llamada aislada.
 
+### Fallback para `ForeignKeyConstraintError` sin mapear
+
+`globalErrorDomainNormalizer` convierte un `ForeignKeyConstraintError` que ningún módulo mapeó en un `DomainError` de `Common Module` (constructores en `apps/api/src/common/errors/common.domain-error.ts`):
+
+| Caso                                                   | Código                       | Status |
+| ------------------------------------------------------ | ---------------------------- | ------ |
+| Borrar o actualizar un padre que todavía tiene hijos   | `COMMON_RESOURCE_IN_USE`     | 409    |
+| Insertar o actualizar un hijo con un padre inexistente | `COMMON_REFERENCE_NOT_FOUND` | 422    |
+
+El fallback es una red de seguridad: un borrado que puede quedar bloqueado por una FK se sigue mapeando en su módulo con `foreignKey` a `<MODULO>_IN_USE`.
+
 ## Ejemplos concretos
 
 ### Service lanza ServiceError

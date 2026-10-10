@@ -1,3 +1,5 @@
+import { ForeignKeyConstraintError } from "sequelize";
+
 import { authErrorDomainNormalizer } from "../../auth/errors/auth.error-domain.normalizer";
 import { backlogErrorDomainNormalizer } from "../../backlog/errors/backlog.error-domain.normalizer";
 import { backlogProgressErrorDomainNormalizer } from "../../backlog-progress/errors/backlog-progress.error-domain.normalizer";
@@ -23,6 +25,7 @@ import { userFollowRequestsErrorDomainNormalizer } from "../../user-follow-reque
 import { userFollowersErrorDomainNormalizer } from "../../user-followers/errors/user-followers.error-domain.normalizer";
 import { usersErrorDomainNormalizer } from "../../users/errors/users.error-domain.normalizer";
 import { wishlistErrorDomainNormalizer } from "../../wishlist/errors/wishlist.error-domain.normalizer";
+import * as commonDomainError from "./common.domain-error";
 import { DomainError } from "./domain-error";
 import { ServiceError } from "./service-error";
 
@@ -34,6 +37,9 @@ export function globalErrorDomainNormalizer(
 
 	if (error instanceof ServiceError)
 		return globalServiceErrorMapper(error, correlationId);
+
+	if (error instanceof ForeignKeyConstraintError)
+		return foreignKeyErrorMapper(error, correlationId);
 
 	return new DomainError("COMMON", "INTERNAL_ERROR", "Unexpected error", {
 		raw: error,
@@ -124,4 +130,18 @@ function globalServiceErrorMapper(
 		raw: error,
 		correlationId
 	});
+}
+
+const PARENT_ROW_DELETE_PATTERN = /^update or delete on table/;
+
+function foreignKeyErrorMapper(
+	error: ForeignKeyConstraintError,
+	correlationId: string
+): DomainError {
+	const context = { raw: error, correlationId };
+
+	if (PARENT_ROW_DELETE_PATTERN.test(error.message))
+		return commonDomainError.commonResourceInUse(context);
+
+	return commonDomainError.commonReferenceNotFound(context);
 }
