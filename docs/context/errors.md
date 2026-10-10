@@ -116,7 +116,7 @@ errors/
 
 ## Patrón `rethrowSequelizeError`
 
-`rethrowSequelizeError(error, mappers)` vive en `apps/api/src/common/errors/sequelize-error.mapper.ts` y mapea `UniqueConstraintError` / `ValidationError` / `ForeignKeyConstraintError` de Sequelize a `ServiceError`s del módulo (claves `unique`, `validation` y `foreignKey`). Un borrado bloqueado por una FK sin cascade se mapea con `foreignKey` a un `<MODULO>_IN_USE` (409); si no, termina en 500. Está tipado como `: never`, por lo que cualquier ruta que pase por el catch lanza.
+`rethrowSequelizeError(error, mappers)` vive en `apps/api/src/common/errors/sequelize-error.mapper.ts` y mapea `UniqueConstraintError` / `ValidationError` / `ForeignKeyConstraintError` de Sequelize a `ServiceError`s del módulo (claves `unique`, `validation` y `foreignKey`). Un borrado que puede quedar bloqueado por una FK se envuelve en `rethrowSequelizeError` con `foreignKey` mapeado a `<MODULO>_IN_USE` (409). Está tipado como `: never`, por lo que cualquier ruta que pase por el catch lanza.
 
 ### CLEAN — todo dentro del try, return desde adentro
 

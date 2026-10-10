@@ -162,7 +162,7 @@ Pero **solo para asociaciones e includes**. Para CRUD de Game o Platform, siguen
 1. Crear la carpeta `apps/api/src/<nombre>/`.
 2. Crear `<recurso>.model.ts` con el modelo Sequelize (PK UUID, soft delete si aplica).
 3. Registrar el modelo en `apps/api/src/database/init.database.ts` y sus asociaciones en `apps/api/src/database/associations.database.ts`.
-4. Crear migración Sequelize en `apps/api/migrations/` con `npm run migrate:create -w apps/api -- <nombre>`. Cada FK lleva en la migración el mismo `ON DELETE` que declara su asociación; sin él, borrar el padre da 500.
+4. Crear migración Sequelize en `apps/api/migrations/` con `npm run migrate:create -w apps/api -- <nombre>`. Cada FK lleva en la migración el mismo `ON DELETE` que declara su asociación.
 5. Crear `<modulo>.service.ts` con funciones que lancen `ServiceError`.
 6. Crear los errores del módulo en `errors/` siguiendo [`errors.md`](./errors.md).
 7. Registrar el normalizer y el mapper del módulo en `apps/api/src/common/errors/global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts`.
