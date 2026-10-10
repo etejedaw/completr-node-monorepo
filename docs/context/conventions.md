@@ -71,7 +71,7 @@ Después de cualquier cambio de código, desde la raíz del repo:
 2. `npm run format`
 3. `npm run typecheck` si tocaste tipos o interfaces del backend o la landing (corre también `astro check`); `npm test` si tocaste el frontend; `npm run build:landing` si tocaste la landing, porque valida el contenido de `src/content/` contra su schema.
 4. Si modificaste o agregaste un endpoint → actualizar `docs/api/` (Bruno v3.1, formato `.yml`).
-5. Si modificaste el schema de un modelo → crear migración Sequelize en `apps/api/migrations/`.
+5. Si modificaste el schema de un modelo o una asociación → crear migración Sequelize en `apps/api/migrations/`. Cada `onDelete` de `associations.database.ts` tiene que existir también como `ON DELETE` en la FK de la migración; el de la asociación no llega a la DB (ver "Decisiones clave" en [`../architecture.md`](../architecture.md)).
 6. Si cambiaste un enum, un constraint, una validación o un auto-comportamiento → actualizar [`../invariants.md`](../invariants.md).
 7. Si cambiaste un tope por rol, un permiso o qué se ve en público → **eso es una decisión de negocio, no un invariante**: se documenta en la planificación de producto, fuera de `docs/`.
 

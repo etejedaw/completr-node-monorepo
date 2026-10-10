@@ -98,6 +98,7 @@ Ver [`context/providers.md`](./context/providers.md).
 - **Variables de entorno** se cargan con `--env-file=.env` (Node 22+), no `dotenv`. Se exponen tipadas desde `common/config/`.
 - **`request.locals` como contenedor de datos validados.** Extendido por declaration merging en `common/types/express.d.ts`.
 - **Toda lógica de cálculo vive en backend** (ratio, estadísticas, derivados). El frontend solo renderiza.
+- **El esquema de la DB lo definen solo las migraciones.** No se usa `sequelize.sync()` desde abril de 2026, así que el `onDelete` de `associations.database.ts` **no crea nada en Postgres**: solo documenta la intención. Cada FK tiene que escribir su `ON DELETE` en la migración (`REFERENCES "Tabla"(id) ON DELETE CASCADE`) y coincidir con lo que declara la asociación. Tampoco hay cascade en la aplicación: `Model.destroy({ where })` manda un `DELETE` plano. Una FK sin cascade hace que el borrado del padre falle con `23503`; sin un mapper `foreignKey` (ver [`context/errors.md`](./context/errors.md)) eso es un 500. Pasó al borrar listas (`ActivityLists.listId`), backlogs en cola (`Queues.backlogId`) y juegos: la migración inicial se escribió a mano omitiendo cascades que la asociación sí declaraba, y no se notó porque las DBs creadas antes con `sync()` sí los tenían.
 - **Los modelos nunca se importan entre módulos** — se accede vía el `service` del módulo dueño. Excepción: tablas pivote para asociaciones Sequelize. Ver [`context/modules.md`](./context/modules.md).
 
 ## Documentación relacionada
