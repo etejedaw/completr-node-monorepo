@@ -40,6 +40,20 @@
 	--color-line: rgba(255, 255, 255, 0.06);
 	--color-line-hover: rgba(255, 255, 255, 0.12);
 
+	--color-nav-feed: #38bdf8;
+	--color-nav-backlog: #818cf8;
+	--color-nav-queue: #fb7185;
+	--color-nav-shelf: #fb923c;
+	--color-nav-wishlist: #f472b6;
+	--color-nav-favorites: #facc15;
+	--color-nav-saved-views: #c084fc;
+	--color-nav-tags: #a3e635;
+	--color-nav-browse: #34d399;
+	--color-nav-lists: #2dd4bf;
+	--color-nav-users: #e879f9;
+	--color-nav-admin: #94a3b8;
+	--color-nav-more: var(--color-fg-secondary);
+
 	--radius-card: 0.625rem;
 }
 
@@ -68,6 +82,20 @@
 
 	--color-line: rgba(255, 255, 255, 0.06);
 	--color-line-hover: rgba(255, 255, 255, 0.12);
+
+	--color-nav-feed: #38bdf8;
+	--color-nav-backlog: #818cf8;
+	--color-nav-queue: #fb7185;
+	--color-nav-shelf: #fb923c;
+	--color-nav-wishlist: #f472b6;
+	--color-nav-favorites: #facc15;
+	--color-nav-saved-views: #c084fc;
+	--color-nav-tags: #a3e635;
+	--color-nav-browse: #34d399;
+	--color-nav-lists: #2dd4bf;
+	--color-nav-users: #e879f9;
+	--color-nav-admin: #94a3b8;
+	--color-nav-more: var(--color-fg-secondary);
 }
 
 :root[data-theme="midnight-cyan"] {
@@ -94,6 +122,20 @@
 
 	--color-line: rgba(148, 163, 184, 0.12);
 	--color-line-hover: rgba(148, 163, 184, 0.24);
+
+	--color-nav-feed: #60a5fa;
+	--color-nav-backlog: #a78bfa;
+	--color-nav-queue: #fb7185;
+	--color-nav-shelf: #fb923c;
+	--color-nav-wishlist: #f472b6;
+	--color-nav-favorites: #facc15;
+	--color-nav-saved-views: #c084fc;
+	--color-nav-tags: #a3e635;
+	--color-nav-browse: #34d399;
+	--color-nav-lists: #2dd4bf;
+	--color-nav-users: #e879f9;
+	--color-nav-admin: #94a3b8;
+	--color-nav-more: var(--color-fg-secondary);
 }
 
 :root[data-theme="twilight-arcade"] {
@@ -120,6 +162,20 @@
 
 	--color-line: rgba(182, 146, 255, 0.12);
 	--color-line-hover: rgba(182, 146, 255, 0.22);
+
+	--color-nav-feed: #7dd3fc;
+	--color-nav-backlog: #b692ff;
+	--color-nav-queue: #ffa07a;
+	--color-nav-shelf: #ffb067;
+	--color-nav-wishlist: #f9a8d4;
+	--color-nav-favorites: #ffe066;
+	--color-nav-saved-views: #d8b4fe;
+	--color-nav-tags: #bef264;
+	--color-nav-browse: #5bd8a1;
+	--color-nav-lists: #5eead4;
+	--color-nav-users: #f0abfc;
+	--color-nav-admin: #9d8bb8;
+	--color-nav-more: var(--color-fg-secondary);
 }
 
 :root {
@@ -194,14 +250,16 @@ h6 {
 	letter-spacing: -0.02em;
 }
 
-a {
-	color: var(--color-brand);
-	text-decoration: none;
-	transition: color var(--transition);
-}
+@layer base {
+	a {
+		color: var(--color-brand);
+		text-decoration: none;
+		transition: color var(--transition);
+	}
 
-a:hover {
-	color: var(--color-brand-hover);
+	a:hover {
+		color: var(--color-brand-hover);
+	}
 }
 
 ::-webkit-scrollbar {

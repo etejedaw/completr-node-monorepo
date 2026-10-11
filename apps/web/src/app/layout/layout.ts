@@ -1,4 +1,4 @@
-import { NgClass } from "@angular/common";
+import { NgClass, NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -25,6 +25,7 @@ import { AttributionFooter } from "../shared/components/attribution-footer/attri
 import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
 import { UiAvatar, UiIconButton, UiSeparator } from "../shared/ui";
+import { NAV_ACTIVE_CLASSES, visibleNavSections } from "./nav-sections";
 
 @Component({
 	selector: "app-layout",
@@ -33,6 +34,7 @@ import { UiAvatar, UiIconButton, UiSeparator } from "../shared/ui";
 		RouterLink,
 		RouterLinkActive,
 		NgClass,
+		NgTemplateOutlet,
 		UiIconButton,
 		UiSeparator,
 		UiAvatar,
@@ -49,17 +51,20 @@ export class Layout implements OnInit {
 	protected readonly onboarding = inject(OnboardingService);
 
 	protected readonly user = this.auth.user;
-	protected readonly isAdmin = computed(() => this.user()?.role === "admin");
-	protected readonly isModerator = computed(() => {
-		const role = this.user()?.role;
-		return role === "moderator" || role === "admin";
-	});
 	protected readonly sidebarOpen = signal(false);
 	protected readonly pendingUrl = signal<string | null>(null);
 	protected readonly navigating = signal(false);
 
-	private static readonly NAV_ACTIVE_CLASSES =
-		"!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand";
+	protected readonly navActiveClasses = NAV_ACTIVE_CLASSES;
+	private readonly navSections = computed(() =>
+		visibleNavSections(this.user()?.role)
+	);
+	protected readonly topNavSections = computed(() =>
+		this.navSections().filter(section => !section.pinnedToBottom)
+	);
+	protected readonly bottomNavSections = computed(() =>
+		this.navSections().filter(section => section.pinnedToBottom)
+	);
 
 	isNavTargetActive(target: string): boolean {
 		const pending = this.pendingUrl();
@@ -69,7 +74,7 @@ export class Layout implements OnInit {
 	}
 
 	pendingNavClasses(target: string): string {
-		return this.isNavTargetActive(target) ? Layout.NAV_ACTIVE_CLASSES : "";
+		return this.isNavTargetActive(target) ? NAV_ACTIVE_CLASSES : "";
 	}
 
 	protected readonly roleBadge = computed(() => {
