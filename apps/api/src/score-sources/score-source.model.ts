@@ -7,6 +7,7 @@ class ScoreSource extends Model {
 	declare code: string;
 	declare name: string;
 	declare scale: number;
+	declare priority: number;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
@@ -31,6 +32,11 @@ ScoreSource.init(
 		scale: {
 			type: DataTypes.INTEGER,
 			allowNull: false
+		},
+		priority: {
+			type: DataTypes.INTEGER,
+			allowNull: false,
+			defaultValue: 100
 		}
 	},
 	{ sequelize }

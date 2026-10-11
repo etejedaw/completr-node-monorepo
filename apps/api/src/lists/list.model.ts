@@ -3,7 +3,6 @@ import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { TIME_SOURCES } from "../game-times/game-time.model";
 import { type ListItem } from "../list-items/list-item.model";
-import { SCORE_SOURCES } from "../score-sources/score-source.constants";
 
 class List extends Model {
 	declare id: string;
@@ -41,7 +40,7 @@ List.init(
 			defaultValue: false
 		},
 		scoreSource: {
-			type: DataTypes.ENUM(...SCORE_SOURCES),
+			type: DataTypes.STRING(50),
 			allowNull: false
 		},
 		durationSource: {

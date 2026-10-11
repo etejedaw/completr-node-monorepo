@@ -337,10 +337,22 @@ function activities() {
 function scoreSources() {
 	ScoreSource.hasMany(GameScore, {
 		foreignKey: "source",
-		sourceKey: "code"
+		sourceKey: "code",
+		onUpdate: "CASCADE",
+		onDelete: "RESTRICT"
 	});
 	GameScore.belongsTo(ScoreSource, {
 		foreignKey: "source",
+		targetKey: "code"
+	});
+	ScoreSource.hasMany(List, {
+		foreignKey: "scoreSource",
+		sourceKey: "code",
+		onUpdate: "CASCADE",
+		onDelete: "RESTRICT"
+	});
+	List.belongsTo(ScoreSource, {
+		foreignKey: "scoreSource",
 		targetKey: "code"
 	});
 }
