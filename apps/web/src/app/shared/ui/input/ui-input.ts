@@ -5,7 +5,7 @@ export type UiInputSize = "sm" | "md";
 
 @Directive({
 	selector: "input[uiInput], textarea[uiInput]",
-	hostDirectives: [{ directive: NgpInput, inputs: ["disabled"] }],
+	hostDirectives: [{ directive: NgpInput, inputs: ["id", "disabled"] }],
 	host: {
 		class: "ui-input",
 		"[attr.data-size]": "size()"

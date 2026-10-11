@@ -5,7 +5,7 @@ import type { UiInputSize } from "../input/ui-input";
 
 @Directive({
 	selector: "textarea[uiTextarea]",
-	hostDirectives: [{ directive: NgpTextarea, inputs: ["disabled"] }],
+	hostDirectives: [{ directive: NgpTextarea, inputs: ["id", "disabled"] }],
 	host: {
 		class: "ui-input",
 		"[attr.data-size]": "size()"
