@@ -1,13 +1,15 @@
 import { type TimeSource } from "../../game-times/game-time.model";
 import { type RawgGameDetail } from "../../rawg/rawg.interface";
-import { type ScoreSourceCode } from "../../score-sources/score-source.constants";
 import { type RegisterGameDto } from "../dtos/register-game.dto";
+import { RAWG_SCORE_EXTRACTORS } from "./extractors/rawg-score.extractors";
+import { RAWG_TIME_EXTRACTORS } from "./extractors/rawg-time.extractors";
+import { extractSourceValues } from "./extractors/source-value-extractor";
 import { mapRawgGenreSlugs } from "./rawg-genre.map";
 import { mapRawgPlatformSlugs } from "./rawg-platform.map";
 import { mapRawgTagSlugsToGenres } from "./rawg-tag-genre.map";
 
 export interface GameScoreEntry {
-	source: ScoreSourceCode;
+	source: string;
 	score: number;
 }
 
@@ -38,26 +40,23 @@ export function rawgToGameMapper(rawgGame: RawgGameDetail): RawgMappedData {
 			genres: []
 		},
 		enrichment: {
-			scores: mapScores(rawgGame.metacritic, rawgGame.rating),
-			times: mapTimes(rawgGame.playtime),
+			scores: mapScores(rawgGame),
+			times: mapTimes(rawgGame),
 			genreSlugs: mapGenres(rawgGame)
 		}
 	};
 }
 
-function mapScores(
-	metacritic: number | null,
-	rawgRating: number
-): GameScoreEntry[] {
-	const scores: GameScoreEntry[] = [];
-	if (metacritic) scores.push({ source: "metacritic", score: metacritic });
-	if (rawgRating > 0) scores.push({ source: "rawg", score: rawgRating });
-	return scores;
+function mapScores(rawgGame: RawgGameDetail): GameScoreEntry[] {
+	return extractSourceValues(RAWG_SCORE_EXTRACTORS, rawgGame).map(
+		({ source, value }) => ({ source, score: value })
+	);
 }
 
-function mapTimes(playtime: number): GameTimeEntry[] {
-	if (playtime <= 0) return [];
-	return [{ source: "rawg", duration: playtime }];
+function mapTimes(rawgGame: RawgGameDetail): GameTimeEntry[] {
+	return extractSourceValues(RAWG_TIME_EXTRACTORS, rawgGame).map(
+		({ source, value }) => ({ source, duration: value })
+	);
 }
 
 function mapPlatforms(platforms: RawgGameDetail["platforms"]): string[] {
