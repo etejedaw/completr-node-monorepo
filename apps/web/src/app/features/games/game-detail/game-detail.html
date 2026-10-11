@@ -901,18 +901,14 @@
 							}
 						</div>
 					</div>
-					} @if (game()!.description) {
+					} @if (game()!.description; as description) {
 					<div class="mb-6">
 						<h3
 							class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary"
 						>
 							Description
 						</h3>
-						<p
-							class="text-fg-secondary text-sm leading-relaxed whitespace-pre-line m-0"
-						>
-							{{ game()!.description }}
-						</p>
+						<app-expandable-text [text]="description" />
 					</div>
 					}
 

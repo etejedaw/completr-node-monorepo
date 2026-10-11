@@ -13,6 +13,7 @@ import { type BacklogEntry, type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
+import { ExpandableText } from "../../../shared/components/expandable-text/expandable-text";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../shared/constants/rating-labels";
@@ -92,7 +93,8 @@ interface ReportModalState {
 		UiTabPanel,
 		GameSocialActivity,
 		GameReviewsTab,
-		MoodTagsInput
+		MoodTagsInput,
+		ExpandableText
 	],
 	templateUrl: "./game-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

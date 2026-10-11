@@ -1,0 +1,22 @@
+<p
+	#content
+	[id]="contentId"
+	class="text-fg-secondary text-sm leading-relaxed whitespace-pre-line m-0"
+	[class.line-clamp-6]="!expanded()"
+>
+	{{ text() }}
+</p>
+@if (overflows()) {
+<button
+	type="button"
+	class="inline-flex items-center gap-0.5 mt-2 bg-transparent border-0 p-0 text-sm text-brand cursor-pointer hover:underline"
+	[attr.aria-expanded]="expanded()"
+	[attr.aria-controls]="contentId"
+	(click)="toggle()"
+>
+	{{ expanded() ? 'Read less' : 'Read more' }}
+	<span aria-hidden="true" class="material-icons text-base"
+		>{{ expanded() ? 'expand_less' : 'expand_more' }}</span
+	>
+</button>
+}
