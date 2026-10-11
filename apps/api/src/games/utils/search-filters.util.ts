@@ -113,15 +113,10 @@ export function buildSourceExclusionCondition(
 }
 
 const CANONICAL_SCORE_SUBQUERY = `(
-	SELECT score FROM "GameScores" gs
+	SELECT gs.score * 5.0 / ss.scale FROM "GameScores" gs
+	JOIN "ScoreSources" ss ON ss.code = gs."source"
 	WHERE gs."gameId" = "Game"."id"
-	ORDER BY CASE gs."source"
-		WHEN 'completr' THEN 1
-		WHEN 'metacritic' THEN 2
-		WHEN 'opencritic' THEN 3
-		WHEN 'rawg' THEN 4
-		ELSE 99
-	END
+	ORDER BY ss.priority ASC, ss.code ASC
 	LIMIT 1
 )`;
 
