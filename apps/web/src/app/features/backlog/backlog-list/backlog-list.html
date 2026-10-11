@@ -1975,8 +1975,25 @@
 				(input)="updatePendingStatus({ realDuration: $any($event.target).value })"
 			/>
 		</div>
-		} } @if (pending.status === 'completed' || pending.status ===
-		'abandoned' || pending.status === 'endless') {
+		}
+		<div>
+			<label
+				for="pendingNotes"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Notes</label
+			>
+			<textarea
+				uiTextarea
+				id="pendingNotes"
+				rows="3"
+				[placeholder]="pending.status === 'abandoned' ? 'Why did you drop it?' : 'Your thoughts...'"
+				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+				[value]="pending.notes"
+				(input)="updatePendingStatus({ notes: $any($event.target).value })"
+			></textarea>
+		</div>
+		} @if (pending.status === 'completed' || pending.status === 'abandoned'
+		|| pending.status === 'endless') {
 		<div>
 			<span
 				id="pending-your-rating"

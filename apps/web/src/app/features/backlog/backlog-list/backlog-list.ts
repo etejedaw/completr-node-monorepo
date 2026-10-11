@@ -90,6 +90,7 @@ interface PendingStatusUpdate {
 	rating: number | null;
 	reviewToggle: boolean;
 	reviewContent: string;
+	notes: string;
 }
 
 @Component({
@@ -930,7 +931,8 @@ export class BacklogList implements OnInit {
 				entry.realDuration != null ? String(entry.realDuration) : "",
 			rating: entry.review?.rating ?? entry.userRating ?? null,
 			reviewToggle: false,
-			reviewContent: ""
+			reviewContent: "",
+			notes: entry.notes ?? ""
 		});
 	}
 
@@ -958,6 +960,7 @@ export class BacklogList implements OnInit {
 		if (!pending) return;
 		const { entry, status } = pending;
 		const hasFinishedAt = status === "completed" || status === "abandoned";
+		const allowsNotes = hasFinishedAt;
 		const allowsRating =
 			status === "completed" ||
 			status === "abandoned" ||
@@ -969,6 +972,7 @@ export class BacklogList implements OnInit {
 			finishedAt?: string;
 			realDuration?: number;
 			userRating?: number | null;
+			notes?: string | null;
 		} = { status };
 		if (status === "playing" && pending.startedAt)
 			payload.startedAt = pending.startedAt;
@@ -984,6 +988,10 @@ export class BacklogList implements OnInit {
 		}
 		if (allowsRating && pending.rating != null) {
 			payload.userRating = pending.rating;
+		}
+		const notes = pending.notes.trim();
+		if (allowsNotes && notes !== (entry.notes ?? "").trim()) {
+			payload.notes = notes || null;
 		}
 
 		const reviewSubmit = allowsRating && pending.reviewToggle;
