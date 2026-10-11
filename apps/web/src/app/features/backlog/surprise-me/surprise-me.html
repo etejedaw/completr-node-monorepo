@@ -1,0 +1,165 @@
+<div class="modal-overlay">
+	<div
+		uiFocusTrap
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="surprise-me-title"
+		class="bg-sidebar border border-line rounded-[12px] p-6 w-full max-w-[440px] mx-4 flex flex-col gap-4"
+		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
+		(escape)="close()"
+	>
+		<div class="flex items-center justify-between">
+			<h2
+				id="surprise-me-title"
+				class="m-0 text-lg font-bold font-display flex items-center gap-2"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-xl text-brand"
+					>casino</span
+				>
+				Surprise me
+			</h2>
+			<button
+				type="button"
+				class="bg-transparent border-0 p-1 text-fg-muted cursor-pointer hover:text-fg transition"
+				aria-label="Close"
+				(click)="close()"
+			>
+				<span aria-hidden="true" class="material-icons text-xl"
+					>close</span
+				>
+			</button>
+		</div>
+
+		@switch (state()) { @case ('empty') {
+		<div class="py-6 text-center flex flex-col items-center gap-2">
+			<span
+				aria-hidden="true"
+				class="material-icons text-4xl text-fg-muted"
+				>search_off</span
+			>
+			<p class="m-0 text-sm text-fg-secondary">
+				@if (onlyUnplayed()) { You have no Not started games matching
+				your filters. } @else { No games match your current filters. }
+			</p>
+		</div>
+		} @case ('error') {
+		<div class="py-6 text-center flex flex-col items-center gap-3">
+			<p class="m-0 text-sm text-danger">
+				Couldn't pick a game. Try again.
+			</p>
+			<button uiButton variant="secondary" (click)="spin()">Retry</button>
+		</div>
+		} @default { @if (pick(); as entry) {
+		<div
+			class="flex flex-col gap-3 transition-opacity"
+			[class.opacity-40]="state() === 'loading'"
+			aria-live="polite"
+		>
+			<div
+				class="aspect-video w-full rounded-lg overflow-hidden bg-surface border border-line"
+			>
+				@if (entry.game.backgroundUrl) {
+				<img
+					[src]="entry.game.backgroundUrl | coverUrl: 640"
+					[alt]="entry.game.title"
+					class="w-full h-full object-cover"
+				/>
+				} @else {
+				<div class="w-full h-full flex items-center justify-center">
+					<span
+						aria-hidden="true"
+						class="material-icons text-5xl text-fg-muted"
+						>sports_esports</span
+					>
+				</div>
+				}
+			</div>
+			<div>
+				<h3 class="m-0 text-xl font-bold font-display leading-tight">
+					{{ entry.game.title }}
+				</h3>
+				<div
+					class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-secondary"
+				>
+					<span
+						class="px-1.5 py-0.5 rounded bg-input-bg border border-line font-semibold"
+						>{{ entry.platform.abbreviation }}</span
+					>
+					@if (entry.duration) {
+					<span class="inline-flex items-center gap-1"
+						><span aria-hidden="true" class="material-icons text-sm"
+							>schedule</span
+						>{{ entry.duration }}h</span
+					>
+					} @if (entry.ratio) {
+					<span class="inline-flex items-center gap-1"
+						><span aria-hidden="true" class="material-icons text-sm"
+							>trending_up</span
+						>Ratio {{ entry.ratio }}</span
+					>
+					}
+				</div>
+				@if (entry.moodTags?.length) {
+				<div class="mt-2 flex flex-wrap gap-1">
+					@for (tag of entry.moodTags; track tag) {
+					<span
+						class="px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-[0.6875rem] font-medium"
+						>{{ tag }}</span
+					>
+					}
+				</div>
+				}
+			</div>
+		</div>
+		} @else {
+		<div class="py-10 text-center text-sm text-fg-muted" aria-live="polite">
+			Rolling the dice…
+		</div>
+		} } } @if (candidateCount(); as count) {
+		<p class="m-0 text-xs text-fg-muted">
+			Picked from {{ count }} {{ count === 1 ? 'game' : 'games' }}. @if
+			(onlyUnplayed()) { Only Not started games, since no status filter is
+			active. }
+		</p>
+		} @if (queueError()) {
+		<p class="m-0 text-xs text-danger" role="alert">{{ queueError() }}</p>
+		}
+
+		<div class="flex flex-wrap items-center justify-end gap-2">
+			<button
+				uiButton
+				variant="ghost"
+				[disabled]="state() === 'loading' || (candidateCount() ?? 0) < 2"
+				(click)="spin()"
+			>
+				<span aria-hidden="true" class="material-icons text-base mr-1"
+					>casino</span
+				>
+				Spin again
+			</button>
+			@if (state() === 'ready' && pick(); as entry) {
+			<button
+				uiButton
+				variant="secondary"
+				[disabled]="isPickQueued() || queueing()"
+				(click)="addToQueue()"
+			>
+				<span aria-hidden="true" class="material-icons text-base mr-1"
+					>{{ isPickQueued() ? 'check' : 'playlist_add' }}</span
+				>
+				{{ isPickQueued() ? 'In Up Next' : 'Add to Up Next' }}
+			</button>
+			<a
+				uiButton
+				variant="primary"
+				[routerLink]="['/games', entry.game.code]"
+				(click)="close()"
+			>
+				Open game
+			</a>
+			}
+		</div>
+	</div>
+</div>

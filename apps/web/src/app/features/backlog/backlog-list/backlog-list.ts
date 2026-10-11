@@ -80,6 +80,7 @@ import {
 	STAT_LABELS,
 	type StatKey
 } from "../saved-filters";
+import { SurpriseMe } from "../surprise-me/surprise-me";
 
 interface PendingStatusUpdate {
 	entry: BacklogEntry;
@@ -98,6 +99,7 @@ interface PendingStatusUpdate {
 	imports: [
 		DatePipe,
 		BacklogCalendar,
+		SurpriseMe,
 		StarRating,
 		GameTitleCell,
 		FloatingXScrollbar,
@@ -150,7 +152,8 @@ export class BacklogList implements OnInit {
 	protected readonly activeStatuses = signal<Set<string>>(new Set());
 	protected readonly sortBy = signal("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
-	private readonly queueBacklogIds = signal<Set<string>>(new Set());
+	protected readonly queueBacklogIds = signal<Set<string>>(new Set());
+	protected readonly surpriseMeFilters = signal<BacklogFilters | null>(null);
 	protected readonly statusMenuOpenId = signal<string | null>(null);
 	protected readonly pendingStatusUpdate = signal<PendingStatusUpdate | null>(
 		null
@@ -591,11 +594,15 @@ export class BacklogList implements OnInit {
 		this.sortOrder.set("desc");
 	}
 
+	protected openSurpriseMe(): void {
+		this.surpriseMeFilters.set(this.buildBaseFilters());
+	}
+
 	isInQueue(entry: BacklogEntry): boolean {
 		return this.queueBacklogIds().has(entry.id);
 	}
 
-	private loadQueueIds() {
+	protected loadQueueIds() {
 		this.queueService.getMyQueueBacklogIds().subscribe(ids => {
 			this.queueBacklogIds.set(new Set(ids));
 		});

@@ -9,9 +9,22 @@
 			<span class="text-sm text-fg-muted">{{ total() }} entries</span>
 		</div>
 		@if (isLoading() || entries().length > 0) {
-		<button uiButton variant="primary" (click)="openCreate()">
-			+ Add to Backlog
-		</button>
+		<div class="flex items-center gap-2">
+			<button
+				uiButton
+				variant="secondary"
+				(click)="openSurpriseMe()"
+				title="Pick a random game from your current filters"
+			>
+				<span aria-hidden="true" class="material-icons text-base mr-1"
+					>casino</span
+				>
+				Surprise me
+			</button>
+			<button uiButton variant="primary" (click)="openCreate()">
+				+ Add to Backlog
+			</button>
+		</div>
 		}
 	</div>
 
@@ -2136,4 +2149,11 @@
 		</div>
 	</div>
 </div>
+} @if (surpriseMeFilters(); as filters) {
+<app-surprise-me
+	[filters]="filters"
+	[queuedBacklogIds]="queueBacklogIds()"
+	(closed)="surpriseMeFilters.set(null)"
+	(queued)="loadQueueIds()"
+/>
 }
