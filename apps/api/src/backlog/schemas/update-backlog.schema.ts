@@ -9,7 +9,7 @@ export const UpdateBacklogSchema = z
 		startedAt: z.iso.date().nullable().optional(),
 		finishedAt: z.iso.date().nullable().optional(),
 		realDuration: z.number().positive().nullable().optional(),
-		score: z.number().positive().optional(),
+		score: z.number().positive().max(5).optional(),
 		duration: z.number().positive().optional(),
 		userRating: z
 			.number()
