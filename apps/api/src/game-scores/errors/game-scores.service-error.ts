@@ -9,6 +9,13 @@ export function notFoundError() {
 	});
 }
 
+export function unknownSourceError(source: string) {
+	return new ServiceError("GAME_SCORE_UNKNOWN_SOURCE", {
+		...BASE_OPTIONS,
+		raw: { source }
+	});
+}
+
 export function uniqueConstraintError(rawError: unknown) {
 	return new ServiceError("GAME_SCORE_UNIQUE_CONSTRAINT", {
 		...BASE_OPTIONS,

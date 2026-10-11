@@ -22,6 +22,9 @@ export function gamesDomainToHttpMapper(
 	if (error.code === "GAME_PLATFORM_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
+	if (error.code === "GAME_SCORE_SOURCE_NOT_FOUND")
+		return new HttpError({ ...baseOptions, status: 422 });
+
 	if (error.code === "GAME_GENRE_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 

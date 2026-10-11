@@ -25,6 +25,9 @@ export function listsServiceToDomainMapper(
 	if (error.code === "LIST_LIMIT_REACHED")
 		return listDomainError.listLimitReached(context);
 
+	if (error.code === "LIST_SCORE_SOURCE_NOT_FOUND")
+		return listDomainError.listScoreSourceNotFound(context);
+
 	if (error.code === "LIST_FROZEN")
 		return listDomainError.listFrozen(context);
 

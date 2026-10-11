@@ -12,6 +12,7 @@ import { sequelize } from "../../database/sequelize.database";
 import { type RawgGameDetail } from "../../rawg/rawg.interface";
 import { RawgClient } from "../../rawg/rawg.provider";
 import * as reviewsService from "../../reviews/reviews.service";
+import * as scoreSourcesService from "../../score-sources/score-sources.service";
 import { Game } from "../game.model";
 import { type GamesFilters, type GamesQueryOptions } from "../games.interface";
 import { rawgToGameMapper } from "../mappers/rawg-to-game.mapper";
@@ -312,8 +313,12 @@ export async function rawgDetailBySlug(slug: string) {
 	return mapRawgDetail(detail);
 }
 
-function mapRawgDetail(detail: RawgGameDetail) {
+async function mapRawgDetail(detail: RawgGameDetail) {
 	const mapped = rawgToGameMapper(detail);
+	const scores = mapped.enrichment.scores ?? [];
+	const catalogedSources = await scoreSourcesService.findExistingCodes(
+		scores.map(score => score.source)
+	);
 	return {
 		rawgId: detail.id,
 		title: detail.name,
@@ -322,7 +327,7 @@ function mapRawgDetail(detail: RawgGameDetail) {
 		releaseAt: detail.released,
 		platforms: mapped.game.platforms,
 		genres: mapped.enrichment.genreSlugs ?? [],
-		scores: mapped.enrichment.scores ?? [],
+		scores: scores.filter(score => catalogedSources.has(score.source)),
 		times: mapped.enrichment.times ?? []
 	};
 }

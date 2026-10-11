@@ -20,6 +20,15 @@ export function gamePlatformNotFound(context?: Record<string, unknown>) {
 	);
 }
 
+export function gameScoreSourceNotFound(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_SCORE_SOURCE_NOT_FOUND",
+		"One or more score sources do not exist in the catalog",
+		context
+	);
+}
+
 export function gameGenreNotFound(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

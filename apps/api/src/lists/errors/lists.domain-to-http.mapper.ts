@@ -31,6 +31,9 @@ export function listsDomainToHttpMapper(
 	if (error.code === "LIST_LIMIT_REACHED")
 		return new HttpError({ ...baseOptions, status: 402 });
 
+	if (error.code === "LIST_SCORE_SOURCE_NOT_FOUND")
+		return new HttpError({ ...baseOptions, status: 422 });
+
 	if (error.code === "LIST_FROZEN")
 		return new HttpError({ ...baseOptions, status: 402 });
 

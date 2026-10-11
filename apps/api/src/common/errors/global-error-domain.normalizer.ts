@@ -21,6 +21,7 @@ import { queueErrorDomainNormalizer } from "../../queue/errors/queue.error-domai
 import { rawgErrorDomainNormalizer } from "../../rawg/errors/rawg.error-domain.normalizer";
 import { reviewsErrorDomainNormalizer } from "../../reviews/errors/reviews.error-domain.normalizer";
 import { savedFiltersErrorDomainNormalizer } from "../../saved-filters/errors/saved-filters.error-domain.normalizer";
+import { scoreSourcesErrorDomainNormalizer } from "../../score-sources/errors/score-sources.error-domain.normalizer";
 import { userFollowRequestsErrorDomainNormalizer } from "../../user-follow-requests/errors/user-follow-requests.error-domain.normalizer";
 import { userFollowersErrorDomainNormalizer } from "../../user-followers/errors/user-followers.error-domain.normalizer";
 import { usersErrorDomainNormalizer } from "../../users/errors/users.error-domain.normalizer";
@@ -71,6 +72,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "GameShelf Service")
 		return gameShelfErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "ScoreSource Service")
+		return scoreSourcesErrorDomainNormalizer(error, correlationId);
 
 	if (error.serviceError.service === "GameScore Service")
 		return gameScoresErrorDomainNormalizer(error, correlationId);

@@ -7,6 +7,7 @@ import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { ListFollower } from "../list-followers/list-follower.model";
 import { ListItem } from "../list-items/list-item.model";
+import * as scoreSourcesService from "../score-sources/score-sources.service";
 import { User } from "../users/user.model";
 import { type DuplicateListDto } from "./dtos/duplicate-list.dto";
 import { type RegisterListDto } from "./dtos/register-list.dto";
@@ -35,6 +36,7 @@ export async function createList(
 		if (count >= FREE_LIST_LIMIT)
 			throw listsServiceError.limitReachedError();
 	}
+	await assertScoreSourceExists(registerList.scoreSource);
 
 	return List.create({
 		...registerList,
@@ -412,6 +414,8 @@ export async function updateList(
 
 	const frozen = await areFrozen(user.id, user.role);
 	if (frozen) throw listsServiceError.frozenError();
+	if (updateList.scoreSource)
+		await assertScoreSourceExists(updateList.scoreSource);
 
 	return list.update(updateList);
 }
@@ -423,4 +427,9 @@ export async function removeList(id: string, user: RequestUser) {
 
 	await List.destroy({ where: { id } });
 	return true;
+}
+
+async function assertScoreSourceExists(scoreSource: string) {
+	if (!(await scoreSourcesService.existsByCode(scoreSource)))
+		throw listsServiceError.scoreSourceNotFoundError(scoreSource);
 }

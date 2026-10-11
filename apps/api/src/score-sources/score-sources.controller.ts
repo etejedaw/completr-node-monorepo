@@ -9,7 +9,8 @@ export async function getScoreSources(_request: Request, response: Response) {
 		sources: sources.map(s => ({
 			code: s.code,
 			name: s.name,
-			scale: s.scale
+			scale: s.scale,
+			priority: s.priority
 		}))
 	};
 	return response.status(200).json({ data });
@@ -19,7 +20,12 @@ export async function postScoreSource(request: Request, response: Response) {
 	const dto = request.locals.body as RegisterScoreSourceDto;
 	const source = await scoreSourcesService.create(dto);
 	const data = {
-		source: { code: source.code, name: source.name, scale: source.scale }
+		source: {
+			code: source.code,
+			name: source.name,
+			scale: source.scale,
+			priority: source.priority
+		}
 	};
 	return response.status(201).json({ data });
 }

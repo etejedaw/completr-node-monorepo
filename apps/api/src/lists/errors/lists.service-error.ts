@@ -37,6 +37,13 @@ export function limitReachedError() {
 	});
 }
 
+export function scoreSourceNotFoundError(scoreSource: string) {
+	return new ServiceError("LIST_SCORE_SOURCE_NOT_FOUND", {
+		...BASE_OPTIONS,
+		raw: { scoreSource }
+	});
+}
+
 export function frozenError() {
 	return new ServiceError("LIST_FROZEN", {
 		...BASE_OPTIONS,

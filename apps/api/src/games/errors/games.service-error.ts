@@ -30,6 +30,13 @@ export function platformNotFoundError() {
 	});
 }
 
+export function scoreSourceNotFoundError(sources: string[]) {
+	return new ServiceError("GAME_SCORE_SOURCE_NOT_FOUND", {
+		...BASE_OPTIONS,
+		raw: { sources }
+	});
+}
+
 export function genreNotFoundError() {
 	return new ServiceError("GAME_GENRE_NOT_FOUND", {
 		...BASE_OPTIONS,

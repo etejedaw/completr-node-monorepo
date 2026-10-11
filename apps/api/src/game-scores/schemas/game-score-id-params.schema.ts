@@ -1,11 +1,11 @@
 import z from "zod";
 
-import { SCORE_SOURCES_API } from "../../score-sources/score-source.constants";
+import { ManualScoreSourceCodeSchema } from "../../score-sources/score-sources.schema";
 
 export const GameScoreIdParamsSchema = z
 	.object({
 		gameId: z.uuid(),
-		source: z.enum(SCORE_SOURCES_API)
+		source: ManualScoreSourceCodeSchema
 	})
 	.strict()
 	.readonly();

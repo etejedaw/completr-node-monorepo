@@ -47,6 +47,15 @@ export function listLimitReached(context?: Record<string, unknown>) {
 	);
 }
 
+export function listScoreSourceNotFound(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"LIST_SCORE_SOURCE_NOT_FOUND",
+		"Score source does not exist in the catalog",
+		context
+	);
+}
+
 export function listFrozen(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

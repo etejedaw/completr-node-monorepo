@@ -13,11 +13,15 @@ import * as gameTimesService from "../game-times/game-times.service";
 import * as genresService from "../genres/genres.service";
 import * as platformsService from "../platforms/platforms.service";
 import { RawgClient } from "../rawg/rawg.provider";
+import * as scoreSourcesService from "../score-sources/score-sources.service";
 import { type RegisterGameDto } from "./dtos/register-game.dto";
 import { type UpdateGameDto } from "./dtos/update-game.dto";
 import * as gamesServiceError from "./errors/games.service-error";
 import { Game } from "./game.model";
-import { rawgToGameMapper } from "./mappers/rawg-to-game.mapper";
+import {
+	type GameScoreEntry,
+	rawgToGameMapper
+} from "./mappers/rawg-to-game.mapper";
 import {
 	buildTitleSearchWhere,
 	findGameByCode,
@@ -69,6 +73,7 @@ export async function registerGame(registerGameDto: RegisterGameDto) {
 		);
 	}
 
+	await assertScoreSourcesExist(registerGameDto.scores);
 	const transaction = await sequelize.transaction();
 
 	try {
@@ -282,7 +287,7 @@ async function resolveRawgResult(
 
 	const game = await registerGame({
 		...mapped.game,
-		scores: mapped.enrichment.scores,
+		scores: await keepCatalogedScores(mapped.enrichment.scores, rawgId),
 		times: mapped.enrichment.times,
 		genres: mapped.enrichment.genreSlugs ?? []
 	});
@@ -317,6 +322,32 @@ async function linkPlatforms(
 		platformsDb.map(platform => platform.id),
 		transaction
 	);
+}
+
+async function assertScoreSourcesExist(scores: RegisterGameDto["scores"]) {
+	if (!scores?.length) return;
+	const sources = scores.map(score => score.source);
+	const existing = await scoreSourcesService.findExistingCodes(sources);
+	const missing = sources.filter(source => !existing.has(source));
+	if (missing.length > 0)
+		throw gamesServiceError.scoreSourceNotFoundError(missing);
+}
+
+async function keepCatalogedScores(
+	scores: GameScoreEntry[] | undefined,
+	rawgId: string
+): Promise<GameScoreEntry[]> {
+	if (!scores?.length) return [];
+	const existing = await scoreSourcesService.findExistingCodes(
+		scores.map(score => score.source)
+	);
+	const skipped = scores.filter(score => !existing.has(score.source));
+	if (skipped.length > 0)
+		logger.warn("importFromRawg", "score skipped: unknown source", {
+			rawgId,
+			sources: skipped.map(score => score.source)
+		});
+	return scores.filter(score => existing.has(score.source));
 }
 
 async function createScores(

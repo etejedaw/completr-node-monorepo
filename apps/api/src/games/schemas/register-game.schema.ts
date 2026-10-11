@@ -2,10 +2,10 @@ import z from "zod";
 
 import { EXTERNAL_SOURCES } from "../../game-external/game-external.model";
 import { TIME_SOURCES } from "../../game-times/game-time.model";
-import { SCORE_SOURCES } from "../../score-sources/score-source.constants";
+import { ScoreSourceCodeSchema } from "../../score-sources/score-sources.schema";
 
 const GameScoreEntrySchema = z.object({
-	source: z.enum(SCORE_SOURCES),
+	source: ScoreSourceCodeSchema,
 	score: z.number().positive()
 });
 

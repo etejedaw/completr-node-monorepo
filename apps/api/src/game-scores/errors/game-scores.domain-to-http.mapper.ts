@@ -19,6 +19,9 @@ export function gameScoresDomainToHttpMapper(
 	if (error.code === "GAME_SCORE_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
+	if (error.code === "GAME_SCORE_SOURCE_NOT_FOUND")
+		return new HttpError({ ...baseOptions, status: 422 });
+
 	if (error.code === "GAME_SCORE_ALREADY_EXISTS")
 		return new HttpError({ ...baseOptions, status: 409 });
 

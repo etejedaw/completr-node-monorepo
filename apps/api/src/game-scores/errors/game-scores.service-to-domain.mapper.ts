@@ -13,6 +13,9 @@ export function gameScoresServiceToDomainMapper(
 	if (error.code === "GAME_SCORE_NOT_FOUND")
 		return gameScoreDomainError.gameScoreNotFound(context);
 
+	if (error.code === "GAME_SCORE_UNKNOWN_SOURCE")
+		return gameScoreDomainError.scoreSourceNotFound(context);
+
 	if (error.code === "GAME_SCORE_UNIQUE_CONSTRAINT")
 		return gameScoreDomainError.gameScoreAlreadyExists(context);
 

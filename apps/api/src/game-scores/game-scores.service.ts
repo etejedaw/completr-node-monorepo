@@ -1,6 +1,7 @@
 import { type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import * as scoreSourcesService from "../score-sources/score-sources.service";
 import * as gameScoreServiceError from "./errors/game-scores.service-error";
 import { GameScore } from "./game-score.model";
 
@@ -10,6 +11,7 @@ export async function createGameScore(
 	score: number,
 	transaction?: Transaction
 ) {
+	await assertSourceExists(source);
 	try {
 		return await GameScore.create(
 			{ gameId, source, score },
@@ -64,4 +66,9 @@ export async function deleteGameScore(gameId: string, source: string) {
 	if (!existing) throw gameScoreServiceError.notFoundError();
 
 	await existing.destroy();
+}
+
+async function assertSourceExists(source: string) {
+	if (!(await scoreSourcesService.existsByCode(source)))
+		throw gameScoreServiceError.unknownSourceError(source);
 }
