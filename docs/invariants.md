@@ -120,15 +120,26 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 
 ### Tres niveles
 
-- **`GameScore` + `GameTime` (catálogo global):** un registro por `(game_id, source)`. Tablas separadas para evitar nulls; cada una con UUID propio. Sources soportadas: Metacritic, OpenCritic, RAWG, HLTB, Completr.
+- **`GameScore` + `GameTime` (catálogo global):** un registro por `(game_id, source)`. Tablas separadas para evitar nulls; cada una con UUID propio. `GameScore` guarda la nota cruda en la escala de su fuente; `GameTime` guarda horas. Las fuentes de duración son un enum fijo (`TIME_SOURCES`: hltb, rawg, completr).
 - **`GameShelf` (del usuario):** copia editable elegida por el usuario. Determina el ratio en su backlog.
 - **`ListItem` (congelado en lista):** copiado desde la fuente declarada por la lista al añadir el juego. No editable manualmente — solo vía refresh o cambio de fuente.
 
 `Game` no tiene `averageScore` ni `averagePlaytime`: los puntajes viven en `GameScore` y las duraciones en `GameTime`.
 
+### Catálogo de fuentes de score
+
+- Las fuentes de score son registros de `ScoreSources` (`code` único, `name`, `scale`, `priority`). No hay lista fija en el código: cualquier fuente creada con `POST /score-sources` se puede usar en `GameScore` y como `scoreSource` de una lista.
+- `GameScores.source` y `Lists.scoreSource` tienen FK a `ScoreSources.code` con `ON UPDATE CASCADE` y `ON DELETE RESTRICT`: no se puede borrar una fuente en uso.
+- Una fuente inexistente responde 422 (`GAME_SCORE_SOURCE_NOT_FOUND` en game-scores y games, `LIST_SCORE_SOURCE_NOT_FOUND` en lists).
+- `scale` es el máximo de la fuente. Normalizar a 0–5: `score / scale * 5`, redondeado a 2 decimales.
+- `priority` (menor gana, default 100) decide qué fuente manda cuando un juego tiene varias: orden canónico de `/games` y precarga del Critic Score en el modal del backlog.
+- `completr` es la fuente propia del sistema (`COMPLETR_SCORE_SOURCE`): la escribe solo el job `calculate-ratings`; la API de carga manual la rechaza.
+- La migración `change-score-sources-to-catalog` siembra completr (5), metacritic (100), opencritic (100) y rawg (5) sin pisar registros existentes.
+- Al importar desde RAWG, las notas de fuentes que no están en el catálogo se omiten con un warning en el log; el juego se importa igual.
+
 ### Precarga al crear un backlog
 
-- Score: precarga desde `GameScore.source = "metacritic"` si existe.
+- Score: precarga la nota de la fuente con menor `priority` que tenga el juego, normalizada a 0–5.
 - Duration: precarga desde `GameTime.source = "hltb"` si existe.
 - El usuario puede sobrescribir antes de guardar.
 

@@ -14,7 +14,7 @@ settings:
 docs: |-
     ## Get Score Sources
 
-    Returns all available score sources with their scales.
+    Returns the score source catalog ordered by priority (lower first), then by name.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -26,24 +26,28 @@ docs: |-
       "data": {
         "sources": [
           {
+            "code": "completr",
+            "name": "Completr",
+            "scale": 5,
+            "priority": 1
+          },
+          {
             "code": "metacritic",
             "name": "Metacritic",
-            "scale": 100
+            "scale": 100,
+            "priority": 2
           },
           {
             "code": "opencritic",
             "name": "OpenCritic",
-            "scale": 100
+            "scale": 100,
+            "priority": 3
           },
           {
             "code": "rawg",
             "name": "RAWG",
-            "scale": 5
-          },
-          {
-            "code": "completr",
-            "name": "Completr",
-            "scale": 5
+            "scale": 5,
+            "priority": 4
           }
         ]
       }

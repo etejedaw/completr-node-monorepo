@@ -40,7 +40,7 @@ docs: |-
     | Param  | Type   | Required | Description                                  |
     |--------|--------|----------|----------------------------------------------|
     | gameId | uuid   | Yes      | The game UUID                                |
-    | source | string | Yes      | Score source: metacritic, opencritic, rawg   |
+    | source | string | Yes      | Score source code from GET /score-sources (not completr) |
 
     ### Request Body
 

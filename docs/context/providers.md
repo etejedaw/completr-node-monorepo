@@ -220,6 +220,15 @@ Consecuencias:
 
 Es el único que existe hoy. **Qué integraciones vienen después no se decide acá:** el roadmap de fuentes externas es planificación de producto, y varias dependen de revisiones de licencia todavía abiertas.
 
+## Extraer notas y duraciones de un provider
+
+Qué campo de la respuesta de un provider se guarda como nota o duración, y bajo qué fuente, es regla de negocio: vive en el módulo que consume el provider, no en el provider. Para RAWG está en `games/mappers/extractors/`:
+
+- `source-value-extractor.ts`: la interfaz `SourceValueExtractor<TPayload, TSource>` (`source` + `extract(payload) => number | null`) y el runner genérico `extractSourceValues`.
+- `rawg-score.extractors.ts` y `rawg-time.extractors.ts`: arrays explícitos con un extractor por campo de RAWG. `extract` está tipado contra `RawgGameDetail`, así que un campo inexistente falla al compilar.
+
+Para sumar un campo nuevo del provider se agrega una entrada al array; el mapper no cambia. Un provider nuevo define su propio array y reutiliza el runner. El registry es un array explícito, sin registro por efecto secundario al importar, para que lo que no está en el array no exista.
+
 ## Cómo crear un provider nuevo
 
 1. Crear `apps/api/src/<nombre>/`.

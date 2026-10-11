@@ -25,7 +25,7 @@ settings:
 docs: |-
     ## Create Score Source
 
-    Creates a new score source definition.
+    Creates a new score source in the catalog. Returns 409 (`SCORE_SOURCE_ALREADY_EXISTS`) if the code is already taken.
 
     **Authentication:** Bearer token required (role: admin).
     **Rate Limit:** 50 requests per minute.
@@ -37,6 +37,7 @@ docs: |-
     | code  | string | Yes      | Unique code identifier (1-50 chars)  |
     | name  | string | Yes      | Display name (1-100 chars)           |
     | scale | number | Yes      | Maximum score value (positive int)   |
+    | priority | number | No    | Lower wins when a game has several sources (positive int, default 100) |
 
     ### Response (201)
 
@@ -46,7 +47,8 @@ docs: |-
         "source": {
           "code": "igdb",
           "name": "IGDB",
-          "scale": 100
+          "scale": 100,
+          "priority": 100
         }
       }
     }

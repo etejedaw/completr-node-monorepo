@@ -39,7 +39,7 @@ docs: |-
     | name           | string | No       | 1-100 characters                                 |
     | description    | string | No       | Max 500 characters                               |
     | isPublic       | bool   | No       |                                                  |
-    | scoreSource    | string | No       | metacritic, opencritic, rawg, completr           |
+    | scoreSource    | string | No       | Score source code from GET /score-sources        |
     | durationSource | string | No       | hltb, rawg, completr                             |
 
     ### Errors
