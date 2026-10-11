@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
@@ -14,6 +15,7 @@ import {
 } from "ng-primitives/dialog";
 
 import { type List } from "../../../core/models";
+import { ScoreSourcesService } from "../../../core/services/score-sources";
 import {
 	UiButton,
 	UiFormField,
@@ -51,12 +53,12 @@ export type ListModalResult = "saved" | "deleted";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListModal implements OnInit {
-	protected readonly SCORE_SOURCES = [
-		{ value: "metacritic", label: "Metacritic" },
-		{ value: "opencritic", label: "OpenCritic" },
-		{ value: "rawg", label: "RAWG" },
-		{ value: "completr", label: "Completr" }
-	] as const;
+	private readonly scoreSourcesService = inject(ScoreSourcesService);
+	protected readonly scoreSourceOptions = computed(() =>
+		this.scoreSourcesService
+			.sources()
+			.map(source => ({ value: source.code, label: source.name }))
+	);
 	protected readonly DURATION_SOURCES = [
 		{ value: "hltb", label: "HLTB" },
 		{ value: "rawg", label: "RAWG" },
@@ -93,6 +95,7 @@ export class ListModal implements OnInit {
 	});
 
 	ngOnInit() {
+		this.scoreSourcesService.load();
 		const l = this.list;
 		if (l) {
 			this.isEdit.set(true);

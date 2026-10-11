@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
@@ -8,6 +9,7 @@ import {
 import { Router, RouterLink } from "@angular/router";
 
 import { type Game } from "../../../core/models";
+import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { UiPagination, UiSearchBar } from "../../../shared/ui";
 import { type GamesQuery, GamesService } from "../../games/games";
@@ -43,10 +45,14 @@ export class AdminGames implements OnInit {
 	);
 	protected readonly reactivatingIds = signal<Set<string>>(new Set());
 
-	protected readonly SCORE_SOURCES = ["metacritic", "opencritic", "rawg"];
+	private readonly scoreSourcesService = inject(ScoreSourcesService);
+	protected readonly manualScoreSources = computed(() =>
+		this.scoreSourcesService.manualSources().map(source => source.code)
+	);
 	protected readonly TIME_SOURCES = ["hltb", "rawg"];
 
 	ngOnInit() {
+		this.scoreSourcesService.load();
 		this.loadGames();
 		this.loadReports();
 	}

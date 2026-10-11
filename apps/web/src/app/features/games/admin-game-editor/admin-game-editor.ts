@@ -12,6 +12,7 @@ import { form, FormField, maxLength } from "@angular/forms/signals";
 import { forkJoin } from "rxjs";
 
 import { type Game, type Genre, type Platform } from "../../../core/models";
+import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { UiSelect, UiTextarea } from "../../../shared/ui";
 import { type Franchise, FranchisesService } from "../../franchises/franchises";
@@ -125,10 +126,11 @@ export class AdminGameEditor implements OnInit {
 	protected readonly newTimeSource = signal("");
 	protected readonly newTimeValue = signal<number | null>(null);
 
-	protected readonly scoreSources = ["metacritic", "opencritic", "rawg"];
+	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	protected readonly timeSources = ["hltb", "rawg"];
 
 	ngOnInit() {
+		this.scoreSourcesService.load();
 		this.loadSelects();
 		const g = this.game();
 		if (g) this.populateFromGame(g);
@@ -857,7 +859,10 @@ export class AdminGameEditor implements OnInit {
 
 	protected get availableScoreSources() {
 		const used = new Set(this.scores().map(s => s.source));
-		return this.scoreSources.filter(s => !used.has(s));
+		return this.scoreSourcesService
+			.manualSources()
+			.map(source => source.code)
+			.filter(code => !used.has(code));
 	}
 
 	protected get availableTimeSources() {

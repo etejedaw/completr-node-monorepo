@@ -76,7 +76,7 @@
 			No Platforms
 		</button>
 		<span class="self-center text-fg-muted text-xs">|</span>
-		@for (src of SCORE_SOURCES; track src) {
+		@for (src of manualScoreSources(); track src) {
 		<button
 			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
 			[class.!bg-brand-subtle]="noScoreSources().has(src)"

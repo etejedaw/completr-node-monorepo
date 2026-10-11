@@ -634,9 +634,7 @@ export class BacklogModal implements OnInit {
 			.getGameTags(game.id)
 			.subscribe(tags => this.moodTags.set(tags));
 
-		const score = this.pickScore(game);
 		const duration = this.pickDuration(game);
-		this.activeScoreSource.set(score.source);
 		this.activeDurationSource.set(duration.source);
 
 		const platforms = game.platforms ?? [];
@@ -644,9 +642,9 @@ export class BacklogModal implements OnInit {
 			...m,
 			gameId: game.id,
 			platformId: platforms.length === 1 ? platforms[0].id : "",
-			score: score.value,
 			duration: duration.value
 		}));
+		this.prefillScoreOnceSourcesLoad(game);
 		this.gameResults.set([]);
 		this.searchQuery.set("");
 	}
@@ -764,8 +762,19 @@ export class BacklogModal implements OnInit {
 		return scale ? `/${scale}` : "";
 	}
 
+	private prefillScoreOnceSourcesLoad(game: Game) {
+		this.scoreSourcesService.whenLoaded().subscribe(() => {
+			if (this.selectedGame()?.id !== game.id) return;
+			const score = this.pickScore(game);
+			this.activeScoreSource.set(score.source);
+			this.model.update(m => ({ ...m, score: score.value }));
+		});
+	}
+
 	private pickScore(game: Game): { value: number | null; source: string } {
-		const priority = ["metacritic", "opencritic", "rawg", "completr"];
+		const priority = this.scoreSourcesService
+			.sources()
+			.map(source => source.code);
 		for (const source of priority) {
 			const found = game.scores?.find(s => s.source === source);
 			if (found) {

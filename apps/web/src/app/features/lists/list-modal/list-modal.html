@@ -80,7 +80,7 @@
 						(valueChange)="form.scoreSource().value.set($any($event))"
 						class="flex flex-wrap gap-1.5"
 					>
-						@for (opt of SCORE_SOURCES; track opt.value) {
+						@for (opt of scoreSourceOptions(); track opt.value) {
 						<button
 							type="button"
 							uiRadioItem
