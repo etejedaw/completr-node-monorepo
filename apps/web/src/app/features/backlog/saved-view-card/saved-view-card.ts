@@ -101,10 +101,12 @@ function buildChips(view: SavedFilter): ViewChip[] {
 })
 export class SavedViewCard {
 	readonly view = input.required<SavedFilter>();
+	readonly variant = input<"card" | "row">("card");
 
 	readonly shared = output<void>();
 	readonly duplicated = output<void>();
 	readonly edited = output<void>();
+	readonly moreRequested = output<void>();
 
 	protected readonly accent = computed(
 		() => savedFilterColorHex(this.view().color) ?? "var(--color-brand)"

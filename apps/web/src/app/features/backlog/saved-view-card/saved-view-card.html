@@ -1,10 +1,10 @@
-@let item = view();
+@let item = view(); @if (variant() === 'card') {
 <article
-	class="group relative isolate h-full flex flex-col gap-3 p-4 sm:p-5 rounded-card bg-surface border border-line overflow-hidden transition duration-200 hover:border-line-hover hover:-translate-y-0.5 focus-within:border-brand/60"
+	class="group relative isolate h-full flex flex-col gap-2 p-4 rounded-card bg-surface border border-line overflow-hidden transition duration-200 hover:border-line-hover hover:-translate-y-0.5 focus-within:border-brand/60"
 >
 	<div
 		aria-hidden="true"
-		class="absolute inset-x-0 top-0 h-1"
+		class="absolute inset-x-0 top-0 h-0.5"
 		[style.background]="accent()"
 	></div>
 	<div
@@ -13,62 +13,53 @@
 		[style.background]="accent()"
 	></div>
 
-	<header class="flex items-start gap-3">
+	<header class="flex items-center gap-3">
 		<span
 			aria-hidden="true"
-			class="shrink-0 w-10 h-10 inline-flex items-center justify-center rounded-card bg-white/5 ring-1 ring-white/10"
+			class="shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-card bg-white/5 ring-1 ring-white/10"
 			[style.color]="accent()"
 		>
-			<span class="material-icons text-xl"
+			<span class="material-icons text-lg"
 				>{{ item.icon || 'bookmark' }}</span
 			>
 		</span>
-		<div class="flex-1 min-w-0">
-			<h3
-				class="m-0 font-display text-base sm:text-lg font-semibold leading-tight"
-			>
-				<a
-					class="text-fg no-underline after:absolute after:inset-0 after:content-[''] focus-visible:outline-none hover:text-brand"
-					routerLink="/backlog"
-					[queryParams]="{ savedFilterId: item.id }"
-					>{{ item.name }}</a
-				>
-			</h3>
-			@if (item.isDefault || item.showInBacklog) {
-			<p class="m-0 mt-1 flex flex-wrap gap-1.5">
-				@if (item.isDefault) {
-				<span
-					class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/15 text-warning"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.75rem]"
-						>star</span
-					>
-					Default
-				</span>
-				} @if (item.showInBacklog) {
-				<span
-					class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand-subtle text-brand"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.75rem]"
-						>push_pin</span
-					>
-					Pinned
-				</span>
-				}
-			</p>
-			}
-		</div>
-		<div
-			class="relative z-10 shrink-0 flex items-center gap-0.5 -mr-1.5 -mt-1.5"
+		<h3
+			class="flex-1 min-w-0 m-0 flex items-center gap-1.5 font-display text-base font-semibold leading-tight"
 		>
+			<a
+				class="truncate text-fg no-underline after:absolute after:inset-0 after:content-[''] focus-visible:outline-none hover:text-brand"
+				routerLink="/backlog"
+				[queryParams]="{ savedFilterId: item.id }"
+				[title]="item.name"
+				>{{ item.name }}</a
+			>
+			@if (item.isDefault) {
+			<span
+				class="shrink-0 material-icons text-base text-warning"
+				aria-label="Default view"
+				title="Default view"
+				>star</span
+			>
+			}
+		</h3>
+		<div
+			class="relative z-10 shrink-0 flex items-center gap-0.5 -mr-1.5 -my-1"
+		>
+			<button
+				type="button"
+				class="sm:hidden w-[44px] h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
+				aria-haspopup="dialog"
+				[attr.aria-label]="'More actions for ' + item.name"
+				(click)="moreRequested.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-xl"
+					>more_vert</span
+				>
+			</button>
 			@for (action of actions(); track action.id) {
 			<button
 				type="button"
-				class="w-8 h-8 max-sm:w-[44px] max-sm:h-[44px] pointer-coarse:w-[44px] pointer-coarse:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:bg-white/5 hover:text-fg active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
+				class="max-sm:hidden w-8 h-8 pointer-coarse:w-[44px] pointer-coarse:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:bg-white/5 hover:text-fg active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
 				[attr.aria-label]="action.label"
 				[title]="action.label"
 				(click)="trigger(action.id)"
@@ -82,7 +73,10 @@
 	</header>
 
 	@if (item.description) {
-	<p class="m-0 text-sm text-fg-secondary leading-relaxed line-clamp-2">
+	<p
+		class="m-0 text-sm text-fg-secondary truncate"
+		[title]="item.description"
+	>
 		{{ item.description }}
 	</p>
 	}
@@ -93,7 +87,7 @@
 	>
 		@for (chip of chips(); track chip.label) {
 		<li
-			class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium tracking-wide"
+			class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium tracking-wide whitespace-nowrap"
 			[class]="chip.classes"
 		>
 			<span aria-hidden="true" class="material-icons text-[0.875rem]"
@@ -106,3 +100,80 @@
 		}
 	</ul>
 </article>
+} @else {
+<article
+	class="group relative flex items-start md:items-center gap-3 px-3 sm:px-4 py-3 transition hover:bg-white/[0.03] focus-within:bg-white/[0.03]"
+>
+	<span
+		aria-hidden="true"
+		class="shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-card bg-white/5 ring-1 ring-white/10"
+		[style.color]="accent()"
+	>
+		<span class="material-icons text-lg"
+			>{{ item.icon || 'bookmark' }}</span
+		>
+	</span>
+	<div
+		class="flex-1 min-w-0 flex flex-col gap-1 md:flex-row md:items-center md:gap-4"
+	>
+		<h3
+			class="m-0 md:w-44 md:shrink-0 font-display text-[0.9375rem] font-semibold leading-tight truncate"
+		>
+			<a
+				class="text-fg no-underline after:absolute after:inset-0 after:content-[''] focus-visible:outline-none hover:text-brand"
+				routerLink="/backlog"
+				[queryParams]="{ savedFilterId: item.id }"
+				[title]="item.name"
+				>{{ item.name }}</a
+			>
+		</h3>
+		<p class="m-0 md:flex-1 min-w-0 text-sm text-fg-secondary truncate">
+			{{ item.description || '—' }}
+		</p>
+		<ul
+			class="list-none m-0 p-0 flex flex-wrap gap-1.5 md:shrink-0"
+			aria-label="Filters"
+		>
+			@for (chip of chips(); track chip.label) {
+			<li
+				class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium tracking-wide whitespace-nowrap"
+				[class]="chip.classes"
+			>
+				<span aria-hidden="true" class="material-icons text-[0.875rem]"
+					>{{ chip.icon }}</span
+				>
+				{{ chip.label }}
+			</li>
+			} @empty {
+			<li class="text-[0.6875rem] text-fg-muted italic">All games</li>
+			}
+		</ul>
+	</div>
+	<div class="relative z-10 shrink-0 flex items-center gap-0.5 -my-1">
+		<button
+			type="button"
+			class="sm:hidden w-[44px] h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
+			aria-haspopup="dialog"
+			[attr.aria-label]="'More actions for ' + item.name"
+			(click)="moreRequested.emit()"
+		>
+			<span aria-hidden="true" class="material-icons text-xl"
+				>more_vert</span
+			>
+		</button>
+		@for (action of actions(); track action.id) {
+		<button
+			type="button"
+			class="max-sm:hidden w-8 h-8 pointer-coarse:w-[44px] pointer-coarse:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:bg-white/5 hover:text-fg active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
+			[attr.aria-label]="action.label"
+			[title]="action.label"
+			(click)="trigger(action.id)"
+		>
+			<span aria-hidden="true" class="material-icons text-lg"
+				>{{ action.icon }}</span
+			>
+		</button>
+		}
+	</div>
+</article>
+}
