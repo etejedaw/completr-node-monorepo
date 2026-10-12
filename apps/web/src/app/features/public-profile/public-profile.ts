@@ -51,6 +51,7 @@ import {
 import { PublicSocialService } from "./services/public-social.service";
 
 const LATEST_REVIEWS_COUNT = 4;
+const REVIEWS_SAMPLE_SIZE = 20;
 
 @Component({
 	selector: "app-public-profile",
@@ -310,9 +311,12 @@ export class PublicProfileComponent implements OnInit {
 	}
 
 	protected readonly userReviews = signal<ReviewEntry[]>([]);
-	protected readonly latestReviews = computed(() =>
-		this.userReviews().slice(0, LATEST_REVIEWS_COUNT)
-	);
+	protected readonly latestReviews = computed(() => {
+		const reviews = this.userReviews();
+		const written = reviews.filter(review => review.content?.trim());
+		const ratedOnly = reviews.filter(review => !review.content?.trim());
+		return [...written, ...ratedOnly].slice(0, LATEST_REVIEWS_COUNT);
+	});
 	protected readonly userReviewsTotal = signal(0);
 
 	ngOnInit() {
@@ -525,7 +529,7 @@ export class PublicProfileComponent implements OnInit {
 					this.ensureFavoritesLoaded(username);
 				}
 				this.reviewsService
-					.getUserReviews(username, { limit: 5 })
+					.getUserReviews(username, { limit: REVIEWS_SAMPLE_SIZE })
 					.subscribe(r => {
 						this.userReviews.set(r.reviews);
 						this.userReviewsTotal.set(r.total);
