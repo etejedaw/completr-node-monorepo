@@ -10,6 +10,7 @@ import { HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	effect,
 	inject,
 	type OnInit,
@@ -33,10 +34,12 @@ import {
 } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
+import { EntryAnnotation } from "../../../shared/components/entry-annotation/entry-annotation";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
+import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
-import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
+import { RatioSummary } from "../../../shared/components/ratio-summary/ratio-summary";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { FloatingXScrollbar } from "../../../shared/directives/floating-x-scrollbar";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
@@ -94,6 +97,12 @@ interface PendingStatusUpdate {
 	notes: string;
 }
 
+const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
+	"playing",
+	"endless",
+	"not_started"
+]);
+
 @Component({
 	selector: "app-backlog-list",
 	imports: [
@@ -102,8 +111,10 @@ interface PendingStatusUpdate {
 		SurpriseMe,
 		StarRating,
 		GameTitleCell,
+		GamePoster,
+		EntryAnnotation,
+		RatioSummary,
 		FloatingXScrollbar,
-		PersonalStats,
 		RouterLink,
 		UiButton,
 		UiEmptyState,
@@ -150,6 +161,18 @@ export class BacklogList implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
 	protected readonly activeStatuses = signal<Set<string>>(new Set());
+
+	protected readonly heroPosters = computed(() => {
+		const posters = this.entries().map(entry => ({
+			src: entry.game.backgroundUrl,
+			title: entry.game.title
+		}));
+		if (posters.length === 0) return [];
+		return Array.from(
+			{ length: 14 },
+			(_, i) => posters[i % posters.length]!
+		);
+	});
 	protected readonly sortBy = signal("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
 	protected readonly queueBacklogIds = signal<Set<string>>(new Set());
@@ -159,8 +182,6 @@ export class BacklogList implements OnInit {
 		null
 	);
 	protected readonly updatingStatusIds = signal<Set<string>>(new Set());
-	protected readonly reviewExpandedIds = signal<Set<string>>(new Set());
-
 	private readonly queryParamMap = toSignal(this.route.queryParamMap);
 	private readonly savedFiltersLoaded = signal(false);
 	private eagerlyAppliedParams: ParamMap | null = null;
@@ -669,6 +690,18 @@ export class BacklogList implements OnInit {
 		this.activeFilterId.set(null);
 	}
 
+	setQuickStatus(status: string | null) {
+		this.activeStatuses.set(status ? new Set([status]) : new Set());
+		this.applyFilters();
+	}
+
+	isQuickStatus(status: string | null): boolean {
+		const active = this.activeStatuses();
+		return status === null
+			? active.size === 0
+			: active.size === 1 && active.has(status);
+	}
+
 	isStatusActive(status: string): boolean {
 		return this.activeStatuses().has(status);
 	}
@@ -1103,17 +1136,11 @@ export class BacklogList implements OnInit {
 		});
 	}
 
-	isReviewExpanded(entryId: string) {
-		return this.reviewExpandedIds().has(entryId);
-	}
-
-	toggleReview(entry: BacklogEntry, event: Event) {
-		event.stopPropagation();
-		if (!entry.hasReview || !entry.notes) return;
-		const next = new Set(this.reviewExpandedIds());
-		if (next.has(entry.id)) next.delete(entry.id);
-		else next.add(entry.id);
-		this.reviewExpandedIds.set(next);
+	protected showsProgress(entry: BacklogEntry): boolean {
+		return (
+			!!entry.latestProgress &&
+			PROGRESS_VISIBLE_STATUSES.has(entry.status)
+		);
 	}
 
 	openCreate() {
