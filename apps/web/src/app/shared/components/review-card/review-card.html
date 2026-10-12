@@ -1,9 +1,9 @@
 @let item = review();
 <article
 	class="relative isolate flex gap-4 sm:gap-5 h-full"
-	[class]="variant() === 'card' ? 'overflow-hidden p-4 sm:p-5 rounded-card border border-line bg-surface' : 'py-6'"
+	[class]="surfaceClass()"
 >
-	@if (variant() === 'card' && item.game?.backgroundUrl) {
+	@if (showBackdrop()) {
 	<img
 		[src]="item.game!.backgroundUrl! | coverUrl: 640"
 		alt=""
@@ -11,7 +11,7 @@
 		loading="lazy"
 		class="absolute inset-y-0 right-0 -z-10 w-2/3 h-full object-cover opacity-20 [mask-image:linear-gradient(to_left,black,transparent)]"
 	/>
-	} @if (item.game; as game) {
+	} @if (subject() === 'game' && item.game; as game) {
 	<a
 		class="shrink-0 self-start"
 		[routerLink]="['/games', game.code]"
@@ -27,74 +27,95 @@
 			[class]="variant() === 'card' ? 'w-16 sm:w-20' : 'w-14 sm:w-16'"
 		/>
 	</a>
+	} @else if (subject() === 'author' && item.user; as user) {
+	<a
+		class="shrink-0 self-start rounded-full no-underline"
+		[routerLink]="['/user', user.username]"
+		tabindex="-1"
+		[attr.aria-label]="authorName()"
+	>
+		<ui-avatar
+			[src]="user.avatarUrl"
+			[name]="user.username"
+			class="w-10 h-10 sm:w-12 sm:h-12 text-sm"
+		/>
+	</a>
 	}
 
 	<div class="flex-1 min-w-0 flex flex-col gap-2">
-		<header>
-			@if (item.game; as game) {
-			<h3
-				class="m-0 font-display font-semibold leading-tight"
-				[class]="variant() === 'card' ? 'text-base sm:text-lg' : 'text-lg sm:text-xl'"
-			>
-				<a
-					class="text-fg no-underline hover:text-brand"
-					[routerLink]="['/games', game.code]"
-					>{{ game.title }}</a
+		<header class="flex items-start gap-3">
+			<div class="flex-1 min-w-0">
+				@if (subject() === 'game' && item.game; as game) {
+				<h3
+					class="m-0 font-display font-semibold leading-tight"
+					[class]="variant() === 'card' ? 'text-base sm:text-lg' : 'text-lg sm:text-xl'"
 				>
-			</h3>
-			}
-			<p
-				class="m-0 mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-fg-muted"
-			>
-				@if (item.rating) {
-				<span class="inline-flex items-center gap-1.5">
-					<app-star-rating
-						[value]="item.rating"
-						[readonly]="true"
-						size="sm"
-					/>
-					<span class="font-semibold text-fg tabular-nums"
-						>{{ item.rating }}</span
+					<a
+						class="tap-area text-fg no-underline hover:text-brand"
+						[routerLink]="['/games', game.code]"
+						>{{ game.title }}</a
 					>
-				</span>
-				} @if (item.playthroughDuration) {
-				<span class="inline-flex items-center gap-1">
-					<span aria-hidden="true" class="material-icons text-sm"
-						>schedule</span
+				</h3>
+				} @else if (subject() === 'author' && item.user; as user) {
+				<h3
+					class="m-0 flex flex-wrap items-center gap-x-2 text-sm sm:text-base font-semibold leading-tight"
+				>
+					<a
+						class="tap-area text-fg no-underline hover:text-brand truncate"
+						[routerLink]="['/user', user.username]"
+						>{{ authorName() }}</a
 					>
-					After {{ item.playthroughDuration }}h
-				</span>
+					@if (highlighted()) {
+					<span
+						class="px-1.5 py-px rounded-full bg-brand text-white text-[0.5625rem] font-bold uppercase tracking-wider"
+						>You</span
+					>
+					}
+				</h3>
 				}
-				<time [attr.datetime]="item.createdAt"
-					>{{ item.createdAt | date: 'MMM d, y' }}</time
+				<p
+					class="m-0 mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-fg-muted"
 				>
-			</p>
+					@if (item.rating) {
+					<span class="inline-flex items-center gap-1.5">
+						<app-star-rating
+							[value]="item.rating"
+							[readonly]="true"
+							size="sm"
+						/>
+						<span class="font-semibold text-fg tabular-nums"
+							>{{ item.rating }}</span
+						>
+						@if (ratingLabel()) {
+						<span
+							class="text-[0.625rem] font-bold uppercase tracking-[0.14em] text-warning"
+							>{{ ratingLabel() }}</span
+						>
+						}
+					</span>
+					} @if (item.playthroughDuration) {
+					<span class="inline-flex items-center gap-1">
+						<span aria-hidden="true" class="material-icons text-sm"
+							>schedule</span
+						>
+						After {{ item.playthroughDuration }}h
+					</span>
+					}
+					<time [attr.datetime]="item.createdAt"
+						>{{ item.createdAt | date: 'MMM d, y' }}</time
+					>
+				</p>
+			</div>
+			<ng-content select="[reviewActions]" />
 		</header>
 
 		@if (item.content) {
-		<blockquote
-			class="relative m-0 pl-4 border-l-2 border-brand/50 max-w-[68ch]"
-		>
-			<p
-				#reviewContent
-				class="m-0 text-sm text-fg-secondary leading-[1.7] whitespace-pre-line"
-				[class.line-clamp-4]="variant() === 'card' && !expanded()"
-				[class.line-clamp-6]="variant() === 'row' && !expanded()"
-				[textContent]="item.content"
-			></p>
+		<blockquote class="m-0 pl-4 border-l-2 border-brand/50 max-w-[68ch]">
+			<app-expandable-text
+				[text]="item.content"
+				[lines]="variant() === 'card' ? 4 : 6"
+			/>
 		</blockquote>
-		@if (showToggle()) {
-		<button
-			type="button"
-			class="tap-area self-start inline-flex items-center gap-0.5 p-0 bg-transparent border-0 text-xs font-medium text-brand cursor-pointer hover:text-brand-hover"
-			[attr.aria-expanded]="expanded()"
-			(click)="expanded.set(!expanded())"
-		>
-			{{ expanded() ? 'Show less' : 'Read more' }}
-			<span aria-hidden="true" class="material-icons text-base"
-				>{{ expanded() ? 'expand_less' : 'expand_more' }}</span
-			>
-		</button>
-		} }
+		}
 	</div>
 </article>
