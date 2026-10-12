@@ -4,7 +4,11 @@
 		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
 		>Library</span
 	>
-	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
+	<p
+		heroSubtitle
+		class="m-0 mt-2 text-sm text-fg-secondary"
+		[class.mb-6]="platformCounts().length <= 1"
+	>
 		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
 		{{ total() === 1 ? 'game' : 'games' }} you own @if
 		(platformCounts().length > 1) { · across
@@ -14,7 +18,13 @@
 		platforms }
 	</p>
 	@if (isLoading() || allEntries().length > 0) {
-	<button heroActions uiButton variant="primary" (click)="openCreate()">
+	<button
+		heroActions
+		uiButton
+		variant="primary"
+		[class.sm:mb-6]="platformCounts().length <= 1"
+		(click)="openCreate()"
+	>
 		<span aria-hidden="true" class="material-icons text-base">add</span>
 		Add to Shelf
 	</button>
@@ -29,9 +39,7 @@
 </app-library-hero>
 
 @if (isLoading() || allEntries().length > 0 || searchQuery().trim()) {
-<div
-	class="bleed bleed-inner sticky top-[var(--topbar-height)] z-30 py-3 mb-6 flex flex-wrap items-center gap-2 bg-canvas/85 backdrop-blur-md border-b border-line/60"
->
+<app-library-toolbar>
 	<ui-search-bar
 		class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
 		placeholder="Search your shelf..."
@@ -60,19 +68,9 @@
 		</button>
 		}
 	</div>
-</div>
+</app-library-toolbar>
 } @if (isLoading()) {
-<div class="poster-grid" aria-busy="true" aria-label="Loading shelf">
-	@for (i of skeletonRange; track i) {
-	<div class="flex flex-col gap-2">
-		<ui-skeleton
-			variant="rect"
-			class="block w-full aspect-[2/3] rounded-lg"
-		/>
-		<ui-skeleton variant="text" class="block w-3/4" />
-	</div>
-	}
-</div>
+<app-cover-grid [loading]="true" loadingLabel="Loading shelf" />
 } @else if (entries().length === 0) { @if (searchQuery().trim() ||
 selectedPlatform()) {
 <ui-empty-state
@@ -101,7 +99,7 @@ selectedPlatform()) {
 	(entryClick)="openEdit($event)"
 />
 } @else if (viewMode() === 'grid') {
-<ul class="list-none m-0 p-0 poster-grid poster-grid-actionable">
+<app-cover-grid [actionable]="true">
 	@for (entry of entries(); track entry.id) {
 	<li>
 		<app-game-cover-card
@@ -124,7 +122,7 @@ selectedPlatform()) {
 		/>
 	</li>
 	}
-</ul>
+</app-cover-grid>
 } @else {
 <div
 	class="overflow-x-auto rounded-card border border-line bg-surface/40 shadow-[0_24px_48px_-32px_rgba(0,0,0,0.9)]"

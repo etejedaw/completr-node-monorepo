@@ -16,9 +16,11 @@ import {
 	type GameShelfEntry
 } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
+import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import {
 	countByPlatform,
 	matchesPlatform,
@@ -28,8 +30,7 @@ import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
-	UiSearchBar,
-	UiSkeleton
+	UiSearchBar
 } from "../../../shared/ui";
 import { BacklogService } from "../../backlog/backlog";
 import {
@@ -74,9 +75,10 @@ function readStoredViewMode(): ShelfViewMode {
 		GameCoverCard,
 		GameTitleCell,
 		GameShelfCalendar,
+		CoverGrid,
 		LibraryHero,
-		PlatformFilter,
-		UiSkeleton
+		LibraryToolbar,
+		PlatformFilter
 	],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -97,7 +99,6 @@ export class GameShelfList implements OnInit {
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
-	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);
 	protected readonly tableColumns = [
 		"Title",
 		"Platform",
