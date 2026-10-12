@@ -1,4 +1,5 @@
 export { UiAvatar } from "./avatar/ui-avatar";
+export { UiBottomSheet } from "./bottom-sheet/ui-bottom-sheet";
 export type { UiButtonSize, UiButtonVariant } from "./button/ui-button";
 export { UiButton } from "./button/ui-button";
 export { UiCheckbox } from "./checkbox/ui-checkbox";
