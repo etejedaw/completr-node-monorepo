@@ -6,14 +6,9 @@ import {
 	signal
 } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
-import { debounceTime, Subject, switchMap } from "rxjs";
 
 import { AuthService } from "../../core/services/auth";
 import { FollowRequestsService } from "../../core/services/follow-requests";
-import {
-	GlobalSearchService,
-	type SearchResults
-} from "../../core/services/global-search";
 import { ToastService } from "../../core/services/toast";
 import { PremiumOnly } from "../../shared/directives/premium-only";
 import {
@@ -21,7 +16,6 @@ import {
 	UiButton,
 	UiEmptyState,
 	UiIconButton,
-	UiInput,
 	UiPagination,
 	UiPremiumBadge,
 	UiSelect
@@ -40,7 +34,6 @@ import { type FeedActivity, type FeedCategory, FeedService } from "./feed";
 		UiAvatar,
 		UiButton,
 		UiEmptyState,
-		UiInput,
 		UiIconButton,
 		UiPagination,
 		UiPremiumBadge,
@@ -52,19 +45,14 @@ import { type FeedActivity, type FeedCategory, FeedService } from "./feed";
 })
 export class FeedPage implements OnInit {
 	private readonly feedService = inject(FeedService);
-	private readonly searchService = inject(GlobalSearchService);
 	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
 	private readonly router = inject(Router);
 	private readonly followRequestsService = inject(FollowRequestsService);
-	private readonly searchSubject = new Subject<string>();
 
 	protected readonly currentUserId = this.authService.user;
 	protected readonly activities = signal<FeedActivity[]>([]);
 	protected readonly isLoading = signal(true);
-	protected readonly searchQuery = signal("");
-	protected readonly searchResults = signal<SearchResults | null>(null);
-	protected readonly isSearching = signal(false);
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 25;
@@ -106,60 +94,10 @@ export class FeedPage implements OnInit {
 	ngOnInit() {
 		this.loadFeed();
 		this.followRequestsService.list().subscribe();
-
-		this.searchSubject
-			.pipe(
-				debounceTime(300),
-				switchMap(query => {
-					if (query.length < 2) {
-						this.searchResults.set(null);
-						this.isSearching.set(false);
-						return [];
-					}
-					this.isSearching.set(true);
-					return this.searchService.search(query);
-				})
-			)
-			.subscribe(results => {
-				this.searchResults.set(results);
-				this.isSearching.set(false);
-			});
-	}
-
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
-		this.searchQuery.set(query);
-		if (query.length < 2) {
-			this.searchResults.set(null);
-			return;
-		}
-		this.searchSubject.next(query);
-	}
-
-	clearSearch() {
-		this.searchQuery.set("");
-		this.searchResults.set(null);
 	}
 
 	goToUser(username: string) {
-		this.clearSearch();
 		this.router.navigateByUrl(`/user/${username}`);
-	}
-
-	goToGame(code: string) {
-		this.clearSearch();
-		this.router.navigateByUrl(`/games/${code}`);
-	}
-
-	goToList(id: string) {
-		this.clearSearch();
-		this.router.navigateByUrl(`/lists/${id}`);
-	}
-
-	searchInGames() {
-		const query = this.searchQuery();
-		this.clearSearch();
-		this.router.navigate(["/games"], { queryParams: { q: query } });
 	}
 
 	deleteActivity(id: string) {

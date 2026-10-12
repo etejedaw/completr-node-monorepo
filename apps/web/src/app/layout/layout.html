@@ -1,267 +1,435 @@
-<div class="flex h-screen">
-	<button
-		uiIconButton
-		class="!hidden max-md:!fixed max-md:!top-3 max-md:!left-3 max-md:!z-[200] max-md:!flex max-md:!bg-sidebar max-md:!border max-md:!border-line"
-		(click)="toggleSidebar()"
-		aria-label="Toggle navigation menu"
-		[attr.aria-expanded]="sidebarOpen()"
-	>
-		<span class="material-icons" aria-hidden="true">menu</span>
-	</button>
+<a
+	href="#main-content"
+	class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[300] focus:px-4 focus:py-2 focus:rounded-card focus:bg-brand focus:text-white"
+	>Skip to content</a
+>
 
-	@if (sidebarOpen()) {
-	<button
-		type="button"
-		aria-label="Close menu"
-		class="hidden max-md:block fixed inset-0 z-[99] bg-black/50"
-		(click)="sidebarOpen.set(false)"
-	></button>
-	}
-
-	<nav
-		class="w-60 bg-sidebar flex flex-col border-r border-line shrink-0 h-screen sticky top-0 overflow-y-auto max-md:fixed max-md:left-0 max-md:top-0 max-md:z-[100] max-md:-translate-x-full max-md:transition-transform max-md:duration-200"
-		[class.max-md:!translate-x-0]="sidebarOpen()"
+<div class="flex h-dvh">
+	<aside
+		class="hidden md:flex flex-col shrink-0 h-dvh sticky top-0 bg-sidebar/80 border-r border-line transition-[width] duration-200 ease-out overflow-hidden"
+		[ngClass]="railMode() ? 'w-[4.75rem]' : 'w-64'"
+		aria-label="Main navigation"
 	>
-		<a
-			routerLink="/feed"
-			class="flex items-center gap-2 px-5 pt-4 pb-3 no-underline hover:opacity-90"
+		<div
+			class="flex items-center h-[var(--topbar-height)] shrink-0 px-4 gap-2"
+			[class.justify-center]="railMode()"
+			[class.!px-0]="railMode()"
 		>
-			<span
-				class="flex items-center justify-center w-7 h-7 rounded-md font-display font-bold text-sm text-white"
-				style="
-					background: linear-gradient(
-						135deg,
-						var(--color-brand),
-						var(--color-brand-deep)
-					);
-					box-shadow: 0 4px 14px -4px var(--color-brand-glow);
-				"
-				>C</span
+			<a
+				routerLink="/feed"
+				class="flex items-center gap-2.5 no-underline hover:opacity-90 min-w-0"
+				aria-label="Completr home"
 			>
-			<span
-				class="text-base font-bold text-fg tracking-tight font-display"
-				>Completr</span
-			>
-		</a>
-
-		@for (section of topNavSections(); track section.id; let first = $first)
-		{ @if (!first) {
-		<div uiSeparator class="mx-3 my-1 h-px bg-line"></div>
-		}
-		<ng-container
-			*ngTemplateOutlet="navSection; context: { $implicit: section }"
-		/>
-		}
-
-		<div class="mt-auto">
-			@for (section of bottomNavSections(); track section.id) {
-			<div uiSeparator class="mx-3 my-1 h-px bg-line"></div>
-			<ng-container
-				*ngTemplateOutlet="navSection; context: { $implicit: section }"
-			/>
-			}
-		</div>
-
-		<ng-template #navSection let-section>
-			<div class="px-3 py-1">
-				@if (section.heading) {
 				<span
-					class="block px-3 mb-1.5 text-[0.5625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted/70"
-					>{{ section.heading }}</span
+					class="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg font-display font-bold text-base text-white bg-gradient-to-br from-brand to-brand-deep shadow-lg shadow-brand/25"
+					>C</span
+				>
+				@if (!railMode()) {
+				<span
+					class="text-lg font-bold text-fg tracking-tight font-display truncate"
+					>Completr</span
 				>
 				}
-				<ul class="list-none">
-					@for (item of section.items; track item.route) {
-					<li>
-						<a
-							[routerLink]="item.route"
-							[ngClass]="pendingNavClasses(item.route)"
-							[routerLinkActive]="navActiveClasses"
-							ariaCurrentWhenActive="page"
-							[attr.title]="item.tooltip ?? null"
-							class="flex items-center gap-2.5 pl-3 pr-2.5 py-2 border-l-[3px] border-transparent text-fg-secondary text-[0.875rem] font-medium transition hover:bg-surface/60 hover:text-fg"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons nav-icon text-base w-5 text-center opacity-80"
-								[ngClass]="item.iconColorClass"
-								>{{ item.icon }}</span
-							>
-							{{ item.label }}
-						</a>
-					</li>
-					}
-				</ul>
-			</div>
-		</ng-template>
+			</a>
+		</div>
 
-		<div class="relative">
-			<div uiSeparator class="mx-3 my-1 h-px bg-line"></div>
-			<div class="px-3 py-3">
-				<div class="flex items-center gap-2.5 mb-3">
+		<nav
+			class="flex-1 overflow-y-auto overflow-x-hidden py-2 [scrollbar-width:thin]"
+		>
+			@for (section of topNavSections(); track section.id) {
+			<ng-container
+				*ngTemplateOutlet="sidebarSection; context: { $implicit: section }"
+			/>
+			}
+		</nav>
+
+		<div
+			class="shrink-0 border-t border-line px-3 py-2 flex gap-1"
+			[class.flex-col]="railMode()"
+			[class.items-center]="railMode()"
+		>
+			@for (section of bottomNavSections(); track section.id) { @for (item
+			of section.items; track item.route) {
+			<a
+				[routerLink]="item.route"
+				routerLinkActive="!text-brand !bg-brand-subtle"
+				ariaCurrentWhenActive="page"
+				class="flex-1 flex items-center justify-center h-9 rounded-md text-fg-muted no-underline transition hover:text-fg hover:bg-surface/70"
+				[class.w-10]="railMode()"
+				[class.flex-none]="railMode()"
+				[title]="item.label"
+				[attr.aria-label]="item.label"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>{{ item.icon }}</span
+				>
+			</a>
+			} }
+		</div>
+
+		<div class="shrink-0 border-t border-line p-3">
+			<div
+				class="flex items-center gap-2.5"
+				[class.flex-col]="railMode()"
+			>
+				<a
+					routerLink="/profile"
+					class="relative shrink-0 rounded-full no-underline ring-2 ring-transparent hover:ring-brand/50 transition"
+					[attr.aria-label]="'Your profile, ' + (user()?.username ?? '')"
+					[attr.title]="railMode() ? user()?.username : null"
+				>
+					<ui-avatar
+						[src]="user()?.avatarUrl"
+						[name]="user()?.username"
+						class="w-9 h-9 text-sm"
+					/>
+				</a>
+				@if (!railMode()) {
+				<div class="flex-1 min-w-0">
 					<a
 						routerLink="/profile"
-						class="w-9 h-9 rounded-full no-underline shrink-0 hover:ring-2 hover:ring-brand/40 transition"
-						[attr.aria-label]="user()?.username || 'Profile'"
+						class="block text-sm font-semibold text-fg no-underline hover:text-brand truncate"
+						>{{ user()?.username }}</a
 					>
-						<ui-avatar
-							[src]="user()?.avatarUrl"
-							[name]="user()?.username"
-							class="w-9 h-9 text-sm"
-						/>
-					</a>
-					<div class="flex-1 min-w-0">
-						<a
-							routerLink="/profile"
-							class="block text-[0.8125rem] font-semibold text-fg no-underline hover:text-brand truncate"
-							>{{ user()?.username }}</a
-						>
-						@if (user()?.role && user()?.role !== 'user') {
-						<span
-							class="inline-block mt-0.5 px-1.5 py-0.5 rounded-full text-[0.5625rem] font-bold uppercase tracking-wider"
-							[class]="roleBadgeClass()"
-							>{{ roleBadge() }}</span
-						>
-						}
-					</div>
+					<span
+						class="inline-block mt-0.5 px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-wider"
+						[class]="roleBadgeClass()"
+						>{{ roleBadge() }}</span
+					>
+				</div>
+				}
+				<div class="flex items-center" [class.flex-col]="railMode()">
 					<a
 						routerLink="/settings"
-						class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md text-fg-muted no-underline transition hover:text-fg"
+						class="flex items-center justify-center w-9 h-9 rounded-md text-fg-muted no-underline transition hover:text-fg hover:bg-surface"
 						title="Settings"
 						aria-label="Settings"
 					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
+						<span aria-hidden="true" class="material-icons text-lg"
 							>settings</span
 						>
 					</a>
 					<button
-						class="shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg"
+						type="button"
+						class="flex items-center justify-center w-9 h-9 rounded-md bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-danger hover:bg-surface"
 						(click)="logout()"
 						title="Sign out"
 						aria-label="Sign out"
 					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
+						<span aria-hidden="true" class="material-icons text-lg"
 							>logout</span
 						>
 					</button>
 				</div>
-				<div class="grid grid-cols-3 gap-2">
-					<a
-						routerLink="/backlog"
-						[queryParams]="{ status: 'completed' }"
-						class="flex flex-col items-center gap-1 py-2 no-underline transition hover:text-brand"
+			</div>
+			<button
+				type="button"
+				class="hidden lg:flex items-center justify-center gap-2 w-full mt-2 h-8 rounded-md bg-transparent border-0 text-fg-muted text-xs cursor-pointer transition hover:text-fg hover:bg-surface"
+				(click)="toggleCollapsed()"
+				[attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+				[attr.aria-expanded]="!collapsed()"
+				[title]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>{{ collapsed() ? 'keyboard_double_arrow_right' :
+					'keyboard_double_arrow_left' }}</span
+				>
+				@if (!collapsed()) {
+				<span>Collapse</span>
+				}
+			</button>
+		</div>
+	</aside>
+
+	<main
+		#scroller
+		id="main-content"
+		tabindex="-1"
+		class="page-scroller flex-1 min-w-0 bg-canvas overflow-y-auto overflow-x-hidden relative flex flex-col isolate focus:outline-none"
+		(scroll)="onScroll(scroller.scrollTop)"
+	>
+		<header
+			class="sticky top-0 z-40 shrink-0 h-[var(--topbar-height)] -mb-[var(--topbar-height)] transition-[background-color,border-color,backdrop-filter] duration-200 border-b"
+			[ngClass]="scrolled() ? 'bg-canvas/80 backdrop-blur-xl border-line' : 'border-transparent'"
+		>
+			<div class="h-full flex items-center gap-3 px-[var(--page-pad-x)]">
+				<a
+					routerLink="/feed"
+					class="md:hidden flex items-center gap-2 no-underline shrink-0"
+					aria-label="Completr home"
+				>
+					<span
+						class="flex items-center justify-center w-8 h-8 rounded-lg font-display font-bold text-base text-white bg-gradient-to-br from-brand to-brand-deep shadow-lg shadow-brand/25"
+						>C</span
 					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base text-success"
-							>check_circle</span
+					<span
+						class="text-lg font-bold text-fg tracking-tight font-display"
+						>Completr</span
+					>
+				</a>
+
+				<app-global-search
+					class="hidden md:block flex-1 max-w-xl"
+					variant="inline"
+				/>
+
+				<div class="ml-auto flex items-center gap-1">
+					<button
+						type="button"
+						class="md:hidden w-10 h-10 rounded-full inline-flex items-center justify-center bg-transparent border-0 text-fg-secondary cursor-pointer transition hover:text-fg hover:bg-surface/70"
+						aria-label="Search"
+						(click)="mobileSearchOpen.set(true)"
+					>
+						<span aria-hidden="true" class="material-icons"
+							>search</span
 						>
-						<span
-							class="text-[0.5625rem] uppercase tracking-wider text-fg-muted"
-							>Done</span
+					</button>
+					<a
+						routerLink="/whats-new"
+						class="w-10 h-10 rounded-full inline-flex items-center justify-center text-fg-secondary no-underline transition hover:text-fg hover:bg-surface/70"
+						routerLinkActive="!text-brand"
+						aria-label="What's new"
+						title="What's new"
+					>
+						<span aria-hidden="true" class="material-icons"
+							>campaign</span
 						>
 					</a>
 					<a
-						routerLink="/backlog"
-						[queryParams]="{ status: 'playing' }"
-						class="flex flex-col items-center gap-1 py-2 no-underline transition hover:text-brand"
+						routerLink="/profile"
+						class="md:hidden ml-1 rounded-full no-underline ring-2 ring-transparent hover:ring-brand/50 transition"
+						[attr.aria-label]="'Your profile, ' + (user()?.username ?? '')"
 					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base text-warning"
-							>play_arrow</span
-						>
-						<span
-							class="text-[0.5625rem] uppercase tracking-wider text-fg-muted"
-							>Play</span
-						>
-					</a>
-					<a
-						routerLink="/backlog"
-						class="flex flex-col items-center gap-1 py-2 no-underline transition hover:text-brand"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base text-brand"
-							>list_alt</span
-						>
-						<span
-							class="text-[0.5625rem] uppercase tracking-wider text-fg-muted"
-							>Total</span
-						>
+						<ui-avatar
+							[src]="user()?.avatarUrl"
+							[name]="user()?.username"
+							class="w-8 h-8 text-xs"
+						/>
 					</a>
 				</div>
 			</div>
-		</div>
-	</nav>
-	<main
-		class="flex-1 min-w-0 bg-canvas overflow-y-auto relative flex flex-col isolate"
-	>
-		<div
-			aria-hidden="true"
-			class="pointer-events-none absolute inset-0 -z-10 overflow-hidden hidden lg:block"
-		>
+			@if (navigating()) {
 			<div
-				class="absolute -top-40 -right-32 w-[560px] h-[560px] rounded-full blur-3xl opacity-40"
-				style="
-					background: radial-gradient(
-						circle,
-						var(--color-brand-glow),
-						transparent 65%
-					);
-				"
-			></div>
-			<div
-				class="absolute top-[58vh] -left-28 w-[400px] h-[400px] rounded-full blur-3xl opacity-25"
-				style="
-					background: radial-gradient(
-						circle,
-						var(--color-brand-glow),
-						transparent 70%
-					);
-				"
-			></div>
-			<div
-				class="absolute top-24 right-[14%] w-px h-44 rotate-[18deg] origin-top"
-				style="
-					background: linear-gradient(
-						to bottom,
-						transparent,
-						var(--color-line-hover) 40%,
-						transparent
-					);
-				"
-			></div>
-			<div
-				class="absolute top-[12vh] left-[42%] w-24 h-24 rotate-12 opacity-[0.08]"
-				style="
-					background-image:
-						linear-gradient(
-							var(--color-line-hover) 1px,
-							transparent 1px
-						),
-						linear-gradient(
-							90deg,
-							var(--color-line-hover) 1px,
-							transparent 1px
-						);
-					background-size: 12px 12px;
-				"
-			></div>
-		</div>
+				aria-hidden="true"
+				class="absolute inset-x-0 bottom-0 h-0.5 overflow-hidden"
+			>
+				<div
+					class="h-full w-1/3 bg-gradient-to-r from-transparent via-brand to-transparent motion-safe:animate-[navProgress_1s_ease-in-out_infinite]"
+				></div>
+			</div>
+			}
+		</header>
 
-		<div
-			class="max-w-7xl w-full mx-auto p-6 lg:p-8 max-md:pt-14 max-md:px-4 flex-1 relative"
-		>
+		<div class="page-shell flex-1 relative">
 			<router-outlet />
 		</div>
 		<app-attribution-footer />
+		<div
+			aria-hidden="true"
+			class="md:hidden shrink-0 h-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))]"
+		></div>
 	</main>
 </div>
+
+<nav
+	class="md:hidden fixed inset-x-0 bottom-0 z-[90] bg-sidebar/90 backdrop-blur-xl border-t border-line pb-[env(safe-area-inset-bottom)]"
+	aria-label="Primary"
+>
+	<ul class="list-none m-0 p-0 grid grid-cols-5 h-[var(--tabbar-height)]">
+		@for (tab of primaryTabs; track tab.route) {
+		<li class="flex">
+			<a
+				[routerLink]="tab.route"
+				routerLinkActive
+				#rla="routerLinkActive"
+				ariaCurrentWhenActive="page"
+				class="group/tab relative flex-1 flex flex-col items-center justify-center gap-0.5 no-underline text-fg-muted transition active:scale-95"
+				[class.!text-fg]="rla.isActive || isNavTargetActive(tab.route)"
+			>
+				<span
+					aria-hidden="true"
+					class="flex items-center justify-center w-14 h-8 rounded-full transition"
+					[class.bg-brand-subtle]="rla.isActive || isNavTargetActive(tab.route)"
+				>
+					<span
+						class="material-icons text-[1.375rem]"
+						[class]="(rla.isActive || isNavTargetActive(tab.route)) ? tab.iconColorClass : ''"
+						>{{ tab.icon }}</span
+					>
+				</span>
+				<span class="text-[0.6875rem] font-medium leading-none"
+					>{{ tab.label }}</span
+				>
+			</a>
+		</li>
+		}
+		<li class="flex">
+			<button
+				type="button"
+				class="relative flex-1 flex flex-col items-center justify-center gap-0.5 bg-transparent border-0 text-fg-muted cursor-pointer transition active:scale-95"
+				[class.!text-fg]="moreActive() || moreOpen()"
+				aria-haspopup="dialog"
+				[attr.aria-expanded]="moreOpen()"
+				(click)="moreOpen.set(true)"
+			>
+				<span
+					aria-hidden="true"
+					class="flex items-center justify-center w-14 h-8 rounded-full transition"
+					[class.bg-brand-subtle]="moreActive() || moreOpen()"
+				>
+					<span class="material-icons text-[1.375rem]">apps</span>
+				</span>
+				<span class="text-[0.6875rem] font-medium leading-none"
+					>More</span
+				>
+			</button>
+		</li>
+	</ul>
+</nav>
+
+@if (moreOpen()) {
+<ui-bottom-sheet heading="Menu" (closed)="moreOpen.set(false)">
+	<a
+		routerLink="/profile"
+		class="flex items-center gap-3 mx-2 mb-3 p-3 rounded-card bg-surface border border-line no-underline transition hover:border-brand/40"
+	>
+		<ui-avatar
+			[src]="user()?.avatarUrl"
+			[name]="user()?.username"
+			class="w-11 h-11 text-base"
+		/>
+		<span class="flex-1 min-w-0">
+			<span class="block text-sm font-semibold text-fg truncate"
+				>{{ user()?.username }}</span
+			>
+			<span class="block text-xs text-fg-muted">View your profile</span>
+		</span>
+		<span
+			class="px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-wider"
+			[class]="roleBadgeClass()"
+			>{{ roleBadge() }}</span
+		>
+	</a>
+
+	@for (section of sheetSections(); track section.id) {
+	<section class="px-2 mb-3">
+		@if (section.heading) {
+		<h3
+			class="m-0 px-1 mb-2 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+		>
+			{{ section.heading }}
+		</h3>
+		}
+		<ul class="list-none m-0 p-0 grid grid-cols-3 gap-2">
+			@for (item of section.items; track item.route) {
+			<li>
+				<a
+					[routerLink]="item.route"
+					routerLinkActive="!border-brand/60 !bg-brand-subtle"
+					class="flex flex-col items-center justify-center gap-1.5 h-20 px-1 rounded-card bg-surface/60 border border-line no-underline text-fg-secondary text-xs font-medium text-center transition active:scale-95 hover:text-fg"
+					(click)="moreOpen.set(false)"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-2xl"
+						[ngClass]="item.iconColorClass"
+						>{{ item.icon }}</span
+					>
+					<span class="leading-tight line-clamp-2"
+						>{{ item.label }}</span
+					>
+				</a>
+			</li>
+			}
+		</ul>
+	</section>
+	}
+
+	<div class="flex gap-2 px-2 pt-1">
+		<a
+			routerLink="/settings"
+			class="flex-1 flex items-center justify-center gap-2 h-11 rounded-card bg-surface border border-line no-underline text-sm font-medium text-fg"
+			(click)="moreOpen.set(false)"
+		>
+			<span aria-hidden="true" class="material-icons text-lg"
+				>settings</span
+			>
+			Settings
+		</a>
+		<button
+			type="button"
+			class="flex-1 flex items-center justify-center gap-2 h-11 rounded-card bg-transparent border border-danger/30 text-sm font-medium text-danger cursor-pointer"
+			(click)="logout()"
+		>
+			<span aria-hidden="true" class="material-icons text-lg"
+				>logout</span
+			>
+			Sign out
+		</button>
+	</div>
+</ui-bottom-sheet>
+} @if (mobileSearchOpen()) {
+<div
+	class="md:hidden fixed inset-0 z-[1000] bg-canvas/97 backdrop-blur-xl pt-[env(safe-area-inset-top)] motion-safe:animate-[uiFadeUp_180ms_ease-out]"
+	role="dialog"
+	aria-modal="true"
+	aria-label="Search"
+>
+	<app-global-search
+		class="h-full"
+		variant="overlay"
+		(closed)="mobileSearchOpen.set(false)"
+	/>
+</div>
+}
+
+<ng-template #sidebarSection let-section let-hideHeading="hideHeading">
+	<div class="px-3 py-1" [class.!px-2]="railMode()">
+		@if (section.heading && !hideHeading) { @if (railMode()) {
+		<div
+			uiSeparator
+			aria-hidden="true"
+			class="mx-3 mb-1.5 h-px bg-line"
+		></div>
+		} @else {
+		<span
+			class="block px-3 mb-1 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted/80"
+			>{{ section.heading }}</span
+		>
+		} }
+		<ul class="list-none m-0 p-0 flex flex-col gap-0.5">
+			@for (item of section.items; track item.route) {
+			<li>
+				<a
+					[routerLink]="item.route"
+					[ngClass]="pendingNavClasses(item.route)"
+					[routerLinkActive]="navActiveClasses"
+					ariaCurrentWhenActive="page"
+					[attr.title]="railMode() ? item.label : (item.tooltip ?? null)"
+					[attr.aria-label]="railMode() ? item.label : null"
+					class="group/nav relative flex items-center gap-3 h-9 rounded-lg text-fg-secondary text-sm font-medium no-underline transition hover:bg-surface/70 hover:text-fg"
+					[class.px-3]="!railMode()"
+					[class.justify-center]="railMode()"
+				>
+					<span
+						aria-hidden="true"
+						class="nav-indicator absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-0 rounded-r-full bg-brand transition-all"
+					></span>
+					<span
+						aria-hidden="true"
+						class="material-icons nav-icon text-xl w-6 text-center shrink-0 opacity-80 transition group-hover/nav:opacity-100"
+						[ngClass]="item.iconColorClass"
+						>{{ item.icon }}</span
+					>
+					@if (!railMode()) {
+					<span class="truncate">{{ item.label }}</span>
+					}
+				</a>
+			</li>
+			}
+		</ul>
+	</div>
+</ng-template>
 
 <app-toast-container />
 

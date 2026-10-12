@@ -179,6 +179,13 @@
 }
 
 :root {
+	--topbar-height: 3.5rem;
+	--tabbar-height: 4rem;
+	--page-max-width: 80rem;
+	--page-pad-x: 1rem;
+	--page-pad-y: 1rem;
+	--page-pad-top: calc(var(--topbar-height) + var(--page-pad-y));
+
 	--bg-primary: var(--color-canvas);
 	--bg-sidebar: var(--color-sidebar);
 	--bg-surface: var(--color-surface);
@@ -290,6 +297,47 @@ h6 {
 	z-index: 1000;
 }
 
+@media (min-width: 768px) {
+	:root {
+		--page-pad-x: 1.5rem;
+		--page-pad-y: 1.5rem;
+	}
+}
+
+@media (min-width: 1024px) {
+	:root {
+		--page-pad-x: 2rem;
+		--page-pad-y: 2rem;
+	}
+}
+
+.page-scroller {
+	container-type: inline-size;
+	container-name: page;
+}
+
+.page-shell {
+	width: 100%;
+	max-width: var(--page-max-width);
+	margin-inline: auto;
+	padding: var(--page-pad-top) var(--page-pad-x) var(--page-pad-y);
+}
+
+.bleed {
+	width: 100cqw;
+	margin-inline: calc(50% - 50cqw);
+}
+
+.bleed-top {
+	margin-top: calc(-1 * var(--page-pad-top));
+}
+
+.bleed-inner {
+	padding-inline: calc(
+		max(0px, (100cqw - var(--page-max-width)) / 2) + var(--page-pad-x)
+	);
+}
+
 @layer components {
 	.empty-title {
 		font-family: var(--font-display);
@@ -342,6 +390,15 @@ h6 {
 	}
 	to {
 		opacity: 1;
+	}
+}
+
+@keyframes navProgress {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(300%);
 	}
 }
 
