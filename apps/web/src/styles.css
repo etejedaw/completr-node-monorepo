@@ -363,6 +363,12 @@ h6 {
 	}
 }
 
+@media (max-width: 639px), (pointer: coarse) {
+	.poster-grid.poster-grid-actionable {
+		grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	}
+}
+
 .bleed-scroll-snap {
 	scroll-padding-inline: calc(
 		max(0px, (100cqw - var(--page-max-width)) / 2) + var(--page-pad-x)

@@ -69,7 +69,7 @@
 		aria-label="View mode"
 		class="flex gap-0.5 bg-input-bg border border-line rounded-card p-1"
 	>
-		@for (mode of viewModes(); track mode.value) {
+		@for (mode of viewModes; track mode.value) {
 		<button
 			type="button"
 			class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 pointer-coarse:min-h-[44px] pointer-coarse:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
@@ -126,66 +126,8 @@ selectedPlatform()) {
 	[entries]="entries()"
 	(entryClick)="openEdit($event)"
 />
-} @else if (viewMode() === 'grid' && viewport.isMobile()) {
-<ul class="list-none m-0 p-0 flex flex-col gap-3">
-	@for (entry of entries(); track entry.id) {
-	<li class="relative">
-		<div
-			aria-hidden="true"
-			class="absolute inset-0 rounded-card flex items-center px-6 transition-colors duration-150"
-			[class.invisible]="!swipe.direction()"
-			[class.justify-start]="swipe.direction() === 'right'"
-			[class.justify-end]="swipe.direction() === 'left'"
-			[class.bg-nav-favorites/15]="swipe.direction() === 'right' && !swipe.armed()"
-			[class.bg-nav-favorites/35]="swipe.direction() === 'right' && swipe.armed()"
-			[class.bg-brand/15]="swipe.direction() === 'left' && !swipe.armed()"
-			[class.bg-brand/35]="swipe.direction() === 'left' && swipe.armed()"
-		>
-			@if (swipe.direction() === 'right') {
-			<span
-				class="flex flex-col items-center gap-1 text-nav-favorites text-xs font-semibold"
-			>
-				<span
-					class="material-icons text-2xl transition-transform"
-					[class.scale-125]="swipe.armed()"
-					>{{ isFavorite(entry.game.id) ? 'heart_broken' : 'favorite'
-					}}</span
-				>
-				{{ isFavorite(entry.game.id) ? 'Unfavorite' : 'Favorite' }}
-			</span>
-			} @else if (swipe.direction() === 'left') {
-			<span
-				class="flex flex-col items-center gap-1 text-brand text-xs font-semibold"
-			>
-				<span
-					class="material-icons text-2xl transition-transform"
-					[class.scale-125]="swipe.armed()"
-					>{{ entry.inBacklog ? 'edit_note' : 'playlist_add' }}</span
-				>
-				My Games
-			</span>
-			}
-		</div>
-		<app-shelf-entry-card
-			appSwipeActions
-			#swipe="swipeActions"
-			class="relative"
-			[swipeDisabled]="!pointer.isCoarse()"
-			[entry]="entry"
-			[favorite]="isFavorite(entry.game.id)"
-			[wanted]="isInWishlist(entry.game.id)"
-			(swipeRight)="toggleFavorite(entry.game.id)"
-			(swipeLeft)="openBacklogQuickAdd(entry)"
-			(opened)="openEdit(entry)"
-			(favoriteToggled)="toggleFavorite(entry.game.id)"
-			(wantedToggled)="toggleWishlist(entry.game.id)"
-			(libraryRequested)="openBacklogQuickAdd(entry)"
-		/>
-	</li>
-	}
-</ul>
 } @else if (viewMode() === 'grid') {
-<ul class="list-none m-0 p-0 poster-grid">
+<ul class="list-none m-0 p-0 poster-grid poster-grid-actionable">
 	@for (entry of entries(); track entry.id) {
 	<li>
 		<app-game-cover-card

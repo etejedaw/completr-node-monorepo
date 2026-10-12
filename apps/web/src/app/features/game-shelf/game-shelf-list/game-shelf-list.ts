@@ -16,12 +16,9 @@ import {
 	type GameShelfEntry
 } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
-import { PointerService } from "../../../core/services/pointer";
-import { ViewportService } from "../../../core/services/viewport";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
 	UiButton,
 	UiEmptyState,
@@ -45,7 +42,6 @@ import {
 	type GameShelfModalData,
 	type GameShelfModalResult
 } from "../game-shelf-modal/game-shelf-modal";
-import { ShelfEntryCard } from "../shelf-entry-card/shelf-entry-card";
 
 interface PlatformCount {
 	id: string;
@@ -95,8 +91,6 @@ function countByPlatform(entries: GameShelfEntry[]): PlatformCount[] {
 		GameTitleCell,
 		GameShelfCalendar,
 		LibraryHero,
-		ShelfEntryCard,
-		SwipeActions,
 		UiSkeleton
 	],
 	templateUrl: "./game-shelf-list.html",
@@ -109,17 +103,7 @@ export class GameShelfList implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly gamesService = inject(GamesService);
 	private readonly dialogs = inject(DialogService);
-	protected readonly viewport = inject(ViewportService);
-	protected readonly pointer = inject(PointerService);
-	protected readonly viewModes = computed(() =>
-		this.viewport.isMobile()
-			? VIEW_MODES.map(mode =>
-					mode.value === "grid"
-						? { ...mode, label: "Cards", icon: "view_agenda" }
-						: mode
-				)
-			: VIEW_MODES
-	);
+	protected readonly viewModes = VIEW_MODES;
 
 	protected readonly allEntries = signal<GameShelfEntry[]>([]);
 	protected readonly isLoading = signal(true);
