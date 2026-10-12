@@ -7,8 +7,16 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
+import { rxResource } from "@angular/core/rxjs-interop";
 import { RouterLink } from "@angular/router";
-import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+import {
+	catchError,
+	debounceTime,
+	distinctUntilChanged,
+	map,
+	of,
+	Subject
+} from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
@@ -26,6 +34,7 @@ import {
 	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
+import { BacklogService } from "../backlog";
 import {
 	SAVED_FILTER_COLORS,
 	SAVED_FILTER_ICONS,
@@ -53,6 +62,8 @@ const SHEET_ACTIONS: { id: SheetActionId; icon: string; label: string }[] = [
 	{ id: "duplicate", icon: "content_copy", label: "Duplicate" },
 	{ id: "edit", icon: "edit", label: "Edit" }
 ];
+
+const HERO_POSTER_COUNT = 14;
 
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 	{ value: "name_asc", label: "Name (A–Z)" },
@@ -86,6 +97,7 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 })
 export class SavedFiltersView implements OnInit {
 	private readonly savedFiltersService = inject(SavedFiltersService);
+	private readonly backlogService = inject(BacklogService);
 	private readonly toast = inject(ToastService);
 	private readonly authService = inject(AuthService);
 
@@ -99,6 +111,28 @@ export class SavedFiltersView implements OnInit {
 	protected readonly sortOptions = SORT_OPTIONS;
 	protected readonly sheetActions = SHEET_ACTIONS;
 	protected readonly actionSheetView = signal<SavedFilter | null>(null);
+
+	private readonly libraryPosters = rxResource({
+		stream: () =>
+			this.backlogService
+				.getMyBacklog({
+					limit: HERO_POSTER_COUNT,
+					sort_by: "createdAt",
+					sort_order: "desc"
+				})
+				.pipe(
+					map(res =>
+						res.data.backlog.map(entry => ({
+							src: entry.game.backgroundUrl,
+							title: entry.game.title
+						}))
+					),
+					catchError(() => of([]))
+				)
+	});
+	protected readonly heroPosters = computed(() =>
+		this.libraryPosters.hasValue() ? this.libraryPosters.value() : []
+	);
 	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
 	protected readonly frozen = signal(false);
 	protected readonly sortMode = signal<SortMode>("name_asc");
