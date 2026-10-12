@@ -1,0 +1,79 @@
+<article class="group flex items-center gap-3 py-3">
+	@if (game(); as game) {
+	<a
+		class="shrink-0"
+		[routerLink]="['/games', game.code]"
+		[attr.aria-label]="game.name"
+		tabindex="-1"
+	>
+		<app-game-poster
+			[src]="game.backgroundUrl"
+			[title]="game.name"
+			[width]="200"
+			[compact]="true"
+			class="w-9 aspect-[2/3] rounded ring-1 ring-white/10"
+		/>
+	</a>
+	} @else if (actor(); as actor) {
+	<a
+		class="shrink-0 w-9 flex justify-center"
+		[routerLink]="['/user', actor.username]"
+		[attr.aria-label]="actor.displayName"
+		tabindex="-1"
+	>
+		<ui-avatar
+			[src]="actor.avatarUrl"
+			[name]="actor.username"
+			class="w-8 h-8 text-xs"
+		/>
+	</a>
+	}
+
+	<p class="flex-1 min-w-0 m-0 text-sm leading-snug text-fg-muted">
+		@if (actor(); as actor) {
+		<a
+			class="font-medium text-fg no-underline hover:text-brand"
+			[routerLink]="['/user', actor.username]"
+			>{{ actor.displayName }}</a
+		>{{ " " }} }
+		<span>{{ actionsLabel() }}</span>
+		@if (game(); as game) { {{ " " }}<a
+			class="font-medium text-fg no-underline hover:text-brand"
+			[routerLink]="['/games', game.code]"
+			>{{ game.name }}</a
+		>
+		} @if (secondaryTarget(); as target) { {{ isCoop() ? " with " : " "
+		}}@if (target.type === 'list') {<a
+			class="font-medium text-fg no-underline hover:text-brand"
+			[routerLink]="['/lists', target.id]"
+			>{{ target.name }}</a
+		>} @else if (target.type === 'user') {<a
+			class="font-medium text-fg no-underline hover:text-brand"
+			[routerLink]="['/user', target.username]"
+			>{{ target.name }}</a
+		>} }
+	</p>
+
+	<span
+		aria-hidden="true"
+		class="material-icons text-base shrink-0"
+		[class]="iconColor()"
+		>{{ icon() }}</span
+	>
+	<time
+		class="shrink-0 w-16 text-right text-xs text-fg-muted tabular-nums"
+		[attr.datetime]="activity().createdAt"
+		>{{ time() }}</time
+	>
+	@if (isOwn()) {
+	<button
+		type="button"
+		class="shrink-0 -mr-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100 hover:text-danger"
+		[attr.aria-label]="activities().length > 1 ? 'Remove these activities' : 'Remove this activity'"
+		title="Remove from feed"
+		(click)="emitDelete()"
+	>
+		<span aria-hidden="true" class="material-icons text-base">close</span>
+	</button>
+	}
+</article>

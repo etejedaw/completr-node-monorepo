@@ -1,25 +1,42 @@
 <div class="max-w-3xl mx-auto">
+	<header class="mb-6">
+		<span
+			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+			>Activity</span
+		>
+		<h1
+			class="m-0 mt-1 font-display text-3xl sm:text-4xl font-bold tracking-tight"
+		>
+			Feed
+		</h1>
+		<p class="m-0 mt-1.5 text-sm text-fg-muted">
+			What the people you follow are playing, finishing and reviewing.
+		</p>
+	</header>
+
 	@if (followRequests(); as requests) { @if (requests.length > 0) {
 	<section
-		class="mb-6 bg-brand-subtle border-2 border-brand rounded-card p-5 shadow-[0_0_0_3px_var(--color-brand-subtle)]"
+		class="mb-8 rounded-card border border-line p-4"
+		aria-labelledby="follow-requests-heading"
 	>
-		<div class="flex items-center gap-2 mb-3">
-			<span aria-hidden="true" class="material-icons text-brand"
+		<h2
+			id="follow-requests-heading"
+			class="m-0 mb-3 flex items-center gap-2 text-sm font-semibold text-fg"
+		>
+			<span aria-hidden="true" class="material-icons text-lg text-brand"
 				>person_add</span
 			>
-			<h2 class="font-display m-0 text-base font-bold text-fg">
-				{{ requests.length === 1 ? '1 follow request' : requests.length
-				+ ' follow requests' }}
-			</h2>
-		</div>
-		<ul class="ui-stagger flex flex-col gap-2">
+			{{ requests.length === 1 ? '1 follow request' : requests.length + '
+			follow requests' }}
+		</h2>
+		<ul class="list-none m-0 p-0 flex flex-col gap-2">
 			@for (req of requests; track req.requesterId) {
-			<li
-				class="flex items-center gap-3 p-3 bg-surface border border-line rounded-card"
-			>
+			<li class="flex items-center gap-3 py-1.5">
 				<a
 					[routerLink]="['/user', req.user.username]"
-					class="shrink-0 ring-1 ring-line rounded-full"
+					class="shrink-0 rounded-full"
+					tabindex="-1"
+					[attr.aria-label]="req.user.name || req.user.username"
 				>
 					<ui-avatar
 						[src]="req.user.avatarUrl"
@@ -30,7 +47,7 @@
 				<div class="flex-1 min-w-0">
 					<a
 						[routerLink]="['/user', req.user.username]"
-						class="block text-sm font-medium text-fg no-underline truncate hover:underline"
+						class="block text-sm font-semibold text-fg no-underline truncate hover:text-brand"
 					>
 						{{ req.user.name || req.user.username }}
 					</a>
@@ -38,7 +55,7 @@
 						>wants to follow you</span
 					>
 				</div>
-				<div class="flex gap-2 shrink-0">
+				<div class="flex gap-1.5 shrink-0">
 					<button
 						uiButton
 						variant="ghost"
@@ -46,7 +63,7 @@
 						[disabled]="resolvingRequest() === req.requesterId"
 						(click)="rejectFollowRequest(req.requesterId)"
 					>
-						Reject
+						Decline
 					</button>
 					<button
 						uiButton
@@ -64,168 +81,113 @@
 	</section>
 	} }
 
-	<div class="flex items-center justify-between gap-3 mb-4">
-		<h2 class="font-display m-0 text-base font-semibold text-fg-secondary">
-			Activity Feed
-		</h2>
-		<div *appPremiumOnly class="flex items-center gap-1.5 shrink-0">
+	<div *appPremiumOnly class="mb-6">
+		<div class="flex items-center gap-1.5 mb-2">
 			<ui-premium-badge
 				size="sm"
 				interactive
 				label="Feed filtering (Premium)"
 				message="You've unlocked feed filtering — a Premium perk."
 			/>
-			<select
-				uiSelect
-				size="sm"
-				aria-label="Filter feed"
-				class="ring-1 ring-warning/40 rounded-md"
-				[value]="filter()"
-				(change)="onFilterChange($event)"
+			<span
+				class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>Show</span
 			>
-				@for (option of filterOptions; track option.value) {
-				<option [value]="option.value">{{ option.label }}</option>
-				}
-			</select>
 		</div>
+		<nav
+			aria-label="Filter feed"
+			class="-mx-[var(--page-pad-x)] px-[var(--page-pad-x)] flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+		>
+			@for (option of filterOptions; track option.value) {
+			<button
+				type="button"
+				class="shrink-0 h-8 px-3 rounded-full border text-xs font-medium cursor-pointer transition"
+				[class]="filter() === option.value ? 'border-brand bg-brand-subtle text-brand' : 'border-line bg-surface/60 text-fg-secondary hover:border-fg-muted hover:text-fg'"
+				[attr.aria-pressed]="filter() === option.value"
+				(click)="setFilter(option.value)"
+			>
+				{{ option.label }}
+			</button>
+			}
+		</nav>
 	</div>
 
 	@if (isLoading()) {
-	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
-	} @else if (activities().length === 0) {
-	<ui-empty-state
-		icon="dynamic_feed"
-		title="Your feed is empty"
-		hint="Follow other users to see their activity here. Use the search at the top to find friends."
-	>
-		<a uiButton variant="primary" routerLink="/users">Discover users</a>
-	</ui-empty-state>
-	} @else {
-	<div class="relative">
-		<div
-			class="absolute left-[22px] top-6 bottom-6 w-px bg-line"
-			aria-hidden="true"
-		></div>
-
-		<div class="ui-stagger">
-			@for (activity of activities(); track activity.id) { @let avatarUser
-			= activity.type === 'user_followed_by' && activity.target?.type ===
-			'user' ? activity.target : activity.user; @let coverGame =
-			activity.target?.type === 'game' ? activity.target : activity.game;
-			<div class="relative flex items-start gap-4 pb-6 last:pb-0">
-				<div
-					class="relative z-[1] shrink-0 ring-4 ring-canvas rounded-full"
-				>
-					<ui-avatar
-						[src]="avatarUser?.avatarUrl"
-						[name]="avatarUser?.username"
-						class="w-11 h-11 text-base"
-					/>
-					<span
-						aria-hidden="true"
-						class="material-icons absolute -bottom-1 -right-1 text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
-						[class]="activityIconColorClass(activity.type)"
-						>{{ activityIcon(activity.type) }}</span
-					>
-				</div>
-
-				<div class="flex-1 min-w-0 pt-1">
-					<div class="text-[15px] leading-snug text-fg-secondary">
-						@if (activity.type === 'user_followed_by' &&
-						activity.target?.type === 'user') {
-						<button
-							class="bg-none border-0 text-fg font-semibold text-[inherit] cursor-pointer p-0 hover:text-brand"
-							(click)="goToUser(activity.target!.username!)"
-						>
-							{{ activity.target!.name }}</button
-						>{{ " " }}
-						<span class="text-fg-muted"
-							>{{ activityLabel(activity.type) }}</span
-						>
-						} @else { @if (activity.user) {
-						<button
-							class="bg-none border-0 text-fg font-semibold text-[inherit] cursor-pointer p-0 hover:text-brand"
-							(click)="goToUser(activity.user.username)"
-						>
-							{{ activity.user.name || activity.user.username }}</button
-						>{{ " " }} } @if (activity.type === 'coop_tagged') {
-						<span class="text-fg-muted">is playing</span>
-						@if (activity.game) { {{ " " }}
-						<a
-							class="font-semibold text-brand hover:text-brand-hover"
-							[routerLink]="['/games', activity.game.code]"
-							>{{ activity.game.name }}</a
-						>{{ " " }} }
-						<span class="text-fg-muted">co-op with</span>
-						@if (activity.target?.type === 'user') { {{ " " }}
-						<button
-							class="font-semibold text-brand bg-none border-0 text-[inherit] cursor-pointer p-0 hover:text-brand-hover"
-							(click)="goToUser(activity.target!.username!)"
-						>
-							{{ activity.target!.name }}
-						</button>
-						} } @else {
-						<span class="text-fg-muted"
-							>{{ activityLabel(activity.type) }}</span
-						>
-						@if (activity.target) { {{ " " }} @if
-						(activity.target.type === 'game') {
-						<a
-							class="font-semibold text-brand hover:text-brand-hover"
-							[routerLink]="['/games', activity.target.code]"
-							>{{ activity.target.name }}</a
-						>
-						} @else if (activity.target.type === 'list') {
-						<a
-							class="font-semibold text-brand hover:text-brand-hover"
-							[routerLink]="['/lists', activity.target.id]"
-							>{{ activity.target.name }}</a
-						>
-						} @else if (activity.target.type === 'user') {
-						<button
-							class="font-semibold text-brand bg-none border-0 text-[inherit] cursor-pointer p-0 hover:text-brand-hover"
-							(click)="goToUser(activity.target.username!)"
-						>
-							{{ activity.target.name }}
-						</button>
-						} } } }
-					</div>
-					<div
-						class="flex items-center gap-1 mt-1 text-[0.6875rem] text-fg-muted"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.75rem]"
-							>schedule</span
-						>
-						{{ timeAgo(activity.createdAt) }}
-					</div>
-				</div>
-
-				@if (coverGame?.backgroundUrl) {
-				<a [routerLink]="['/games', coverGame!.code]" class="shrink-0">
-					<img
-						[src]="coverGame!.backgroundUrl!"
-						[alt]="coverGame!.name"
-						class="w-20 h-28 object-cover rounded-md shadow-md shadow-black/30 ring-1 ring-line transition hover:ring-2 hover:ring-brand/50"
-						loading="lazy"
-					/>
-				</a>
-				} @if (isOwnActivity(activity)) {
-				<button
-					uiIconButton
-					size="sm"
-					tone="danger"
-					aria-label="Delete activity"
-					(click)="deleteActivity(activity.id)"
-					class="shrink-0"
-				>
-					<span class="material-icons" aria-hidden="true">close</span>
-				</button>
-				}
+	<div aria-busy="true" aria-label="Loading feed">
+		<ui-skeleton variant="text" class="block w-20 h-3 mb-3" />
+		<div class="divide-y divide-line">
+			@for (row of skeletonRows; track row) {
+			<div class="flex items-center gap-3 py-3">
+				<ui-skeleton
+					variant="rect"
+					class="block w-9 aspect-[2/3] rounded shrink-0"
+				/>
+				<ui-skeleton variant="text" class="block flex-1 max-w-sm" />
+				<ui-skeleton variant="text" class="block w-12 ml-auto" />
 			</div>
 			}
 		</div>
+	</div>
+	} @else if (activities().length === 0) {
+	<section class="flex flex-col items-center text-center py-20 px-6">
+		<span
+			aria-hidden="true"
+			class="material-icons text-4xl text-fg-muted mb-3"
+			>dynamic_feed</span
+		>
+		<h2 class="m-0 font-display text-xl font-semibold text-fg">
+			@if (filter()) { Nothing here for this filter } @else { Your feed is
+			quiet }
+		</h2>
+		<p class="m-0 mt-2 mb-6 max-w-sm text-sm text-fg-muted leading-relaxed">
+			@if (filter()) { Try another filter or go back to all activity. }
+			@else { Follow other players to see what they're playing, finishing
+			and reviewing. }
+		</p>
+		<div class="flex flex-wrap justify-center gap-2">
+			@if (filter()) {
+			<button uiButton variant="secondary" (click)="setFilter('')">
+				Show all activity
+			</button>
+			} @else {
+			<a uiButton variant="primary" routerLink="/users">
+				<span aria-hidden="true" class="material-icons text-base"
+					>group_add</span
+				>
+				Find players
+			</a>
+			<a uiButton variant="secondary" routerLink="/games">
+				<span aria-hidden="true" class="material-icons text-base"
+					>sports_esports</span
+				>
+				Browse games
+			</a>
+			}
+		</div>
+	</section>
+	} @else {
+	<div class="flex flex-col gap-6">
+		@for (group of activityGroups(); track group.key) {
+		<section [attr.aria-labelledby]="'feed-day-' + group.key">
+			<h2
+				[id]="'feed-day-' + group.key"
+				class="sticky top-[var(--topbar-height)] z-10 py-2 m-0 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted bg-canvas/85 backdrop-blur-md"
+			>
+				{{ group.label }}
+			</h2>
+			<ol class="list-none m-0 p-0 divide-y divide-line">
+				@for (entry of group.entries; track entry.key) {
+				<li>
+					<app-feed-activity-item
+						[activities]="entry.activities"
+						[isOwn]="isOwnActivity(entry.activities[0])"
+						(deleted)="deleteActivities($event)"
+					/>
+				</li>
+				}
+			</ol>
+		</section>
+		}
 	</div>
 
 	<ui-pagination

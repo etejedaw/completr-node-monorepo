@@ -1,11 +1,12 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
-import { Router, RouterLink } from "@angular/router";
+import { RouterLink } from "@angular/router";
 
 import { AuthService } from "../../core/services/auth";
 import { FollowRequestsService } from "../../core/services/follow-requests";
@@ -14,18 +15,89 @@ import { PremiumOnly } from "../../shared/directives/premium-only";
 import {
 	UiAvatar,
 	UiButton,
-	UiEmptyState,
-	UiIconButton,
 	UiPagination,
 	UiPremiumBadge,
-	UiSelect
+	UiSkeleton
 } from "../../shared/ui";
-import {
-	activityIcon,
-	activityIconColorClass,
-	activityLabel
-} from "../../shared/utils/activity-labels";
 import { type FeedActivity, type FeedCategory, FeedService } from "./feed";
+import { FeedActivityItem } from "./feed-activity-item/feed-activity-item";
+
+interface ActivityEntry {
+	key: string;
+	activities: FeedActivity[];
+}
+
+interface ActivityDayGroup {
+	key: string;
+	label: string;
+	entries: ActivityEntry[];
+}
+
+const DAY_MS = 86_400_000;
+const WEEKDAY_FORMAT = new Intl.DateTimeFormat("en", { weekday: "long" });
+const DATE_FORMAT = new Intl.DateTimeFormat("en", {
+	month: "short",
+	day: "numeric",
+	year: "numeric"
+});
+
+function startOfDay(date: Date): number {
+	return new Date(
+		date.getFullYear(),
+		date.getMonth(),
+		date.getDate()
+	).getTime();
+}
+
+function dayLabel(dayStart: number, todayStart: number): string {
+	const daysAgo = Math.round((todayStart - dayStart) / DAY_MS);
+	if (daysAgo === 0) return "Today";
+	if (daysAgo === 1) return "Yesterday";
+	if (daysAgo < 7) return WEEKDAY_FORMAT.format(dayStart);
+	return DATE_FORMAT.format(dayStart);
+}
+
+function gameCodeOf(activity: FeedActivity): string | null {
+	const game =
+		activity.target?.type === "game" ? activity.target : activity.game;
+	return game?.code ?? null;
+}
+
+function belongsToEntry(entry: ActivityEntry, activity: FeedActivity): boolean {
+	const latest = entry.activities[entry.activities.length - 1];
+	const gameCode = gameCodeOf(activity);
+	return (
+		gameCode !== null &&
+		gameCode === gameCodeOf(latest) &&
+		activity.user?.id === latest.user?.id &&
+		activity.type !== "coop_tagged" &&
+		latest.type !== "coop_tagged"
+	);
+}
+
+function groupByDay(activities: FeedActivity[]): ActivityDayGroup[] {
+	const todayStart = startOfDay(new Date());
+	const groups = new Map<number, ActivityDayGroup>();
+	for (const activity of activities) {
+		const dayStart = startOfDay(new Date(activity.createdAt));
+		let group = groups.get(dayStart);
+		if (!group) {
+			group = {
+				key: String(dayStart),
+				label: dayLabel(dayStart, todayStart),
+				entries: []
+			};
+			groups.set(dayStart, group);
+		}
+		const lastEntry = group.entries[group.entries.length - 1];
+		if (lastEntry && belongsToEntry(lastEntry, activity)) {
+			lastEntry.activities.push(activity);
+		} else {
+			group.entries.push({ key: activity.id, activities: [activity] });
+		}
+	}
+	return [...groups.values()];
+}
 
 @Component({
 	selector: "app-feed-page",
@@ -33,12 +105,11 @@ import { type FeedActivity, type FeedCategory, FeedService } from "./feed";
 		RouterLink,
 		UiAvatar,
 		UiButton,
-		UiEmptyState,
-		UiIconButton,
 		UiPagination,
 		UiPremiumBadge,
-		UiSelect,
-		PremiumOnly
+		UiSkeleton,
+		PremiumOnly,
+		FeedActivityItem
 	],
 	templateUrl: "./feed-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -47,7 +118,6 @@ export class FeedPage implements OnInit {
 	private readonly feedService = inject(FeedService);
 	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
-	private readonly router = inject(Router);
 	private readonly followRequestsService = inject(FollowRequestsService);
 
 	protected readonly currentUserId = this.authService.user;
@@ -56,6 +126,10 @@ export class FeedPage implements OnInit {
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 25;
+	protected readonly skeletonRows = [0, 1, 2, 3];
+	protected readonly activityGroups = computed(() =>
+		groupByDay(this.activities())
+	);
 
 	protected readonly filter = signal("");
 	protected readonly filterOptions = [
@@ -77,8 +151,9 @@ export class FeedPage implements OnInit {
 		this.loadFeed();
 	}
 
-	onFilterChange(event: Event) {
-		this.filter.set((event.target as HTMLSelectElement).value);
+	setFilter(value: string) {
+		if (value === this.filter()) return;
+		this.filter.set(value);
 		this.offset.set(0);
 		this.loadFeed();
 	}
@@ -96,24 +171,20 @@ export class FeedPage implements OnInit {
 		this.followRequestsService.list().subscribe();
 	}
 
-	goToUser(username: string) {
-		this.router.navigateByUrl(`/user/${username}`);
-	}
-
-	deleteActivity(id: string) {
+	deleteActivities(ids: string[]) {
 		const snapshot = this.activities();
-		const index = snapshot.findIndex(a => a.id === id);
-		if (index === -1) return;
-		const activity = snapshot[index];
-		this.activities.set(snapshot.filter(a => a.id !== id));
+		const removed = new Set(ids);
+		if (!snapshot.some(activity => removed.has(activity.id))) return;
+		this.activities.set(
+			snapshot.filter(activity => !removed.has(activity.id))
+		);
 		this.toast.pending({
-			message: "Activity removed",
-			onCommit: () => this.feedService.deleteActivity(id).subscribe(),
-			onUndo: () => {
-				const restored = [...this.activities()];
-				restored.splice(index, 0, activity);
-				this.activities.set(restored);
-			}
+			message: ids.length > 1 ? "Activities removed" : "Activity removed",
+			onCommit: () =>
+				ids.forEach(id =>
+					this.feedService.deleteActivity(id).subscribe()
+				),
+			onUndo: () => this.activities.set(snapshot)
 		});
 	}
 
@@ -146,21 +217,6 @@ export class FeedPage implements OnInit {
 				this.toast.warning("Could not reject request.");
 			}
 		});
-	}
-
-	protected activityLabel = activityLabel;
-	protected activityIcon = activityIcon;
-	protected activityIconColorClass = activityIconColorClass;
-
-	protected timeAgo(date: string): string {
-		const diff = Date.now() - new Date(date).getTime();
-		const minutes = Math.floor(diff / 60000);
-		if (minutes < 1) return "just now";
-		if (minutes < 60) return `${minutes}m ago`;
-		const hours = Math.floor(minutes / 60);
-		if (hours < 24) return `${hours}h ago`;
-		const days = Math.floor(hours / 24);
-		return `${days}d ago`;
 	}
 
 	private loadFeed() {
