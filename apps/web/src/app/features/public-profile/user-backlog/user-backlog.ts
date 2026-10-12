@@ -24,6 +24,10 @@ import {
 	backlogStatusIcon,
 	backlogStatusIconColor
 } from "../../../shared/utils/backlog-status";
+import {
+	type ProfileAccessError,
+	ProfileAccessState
+} from "../components/profile-access-state";
 import { PublicLibraryService } from "../services/public-library.service";
 
 const PAGE_SIZE = 50;
@@ -55,6 +59,7 @@ const SHAREABLE_FILTER_KEYS = [
 		RouterLink,
 		BacklogEntryCard,
 		LibraryHero,
+		ProfileAccessState,
 		UiButton,
 		UiPagination,
 		UiSearchBar,
@@ -74,7 +79,7 @@ export class UserBacklog implements OnInit {
 	protected readonly searchQuery = signal("");
 	protected readonly offset = signal(0);
 	protected readonly isLoading = signal(true);
-	protected readonly error = signal<"not_found" | "private" | null>(null);
+	protected readonly error = signal<ProfileAccessError | null>(null);
 	protected readonly pointer = inject(PointerService);
 	protected readonly activeStatus = signal("");
 	protected readonly limit = PAGE_SIZE;
