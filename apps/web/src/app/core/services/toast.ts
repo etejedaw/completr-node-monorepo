@@ -3,6 +3,8 @@ import { NgpToastManager, type NgpToastRef } from "ng-primitives/toast";
 
 export type ToastVariant = "info" | "success" | "warning" | "error";
 
+export const UNDO_WINDOW_MS = 5000;
+
 export interface Toast {
 	id: number;
 	message: string;
@@ -26,7 +28,6 @@ export interface PendingToastOptions {
 	onCommit: () => void;
 	onUndo?: () => void;
 	undoLabel?: string;
-	durationMs?: number;
 	variant?: ToastVariant;
 }
 
@@ -75,7 +76,7 @@ export class ToastService {
 	pending(opts: PendingToastOptions): number {
 		if (!this.template) return -1;
 		const id = this.nextId++;
-		const durationMs = opts.durationMs ?? 5000;
+		const durationMs = UNDO_WINDOW_MS;
 		const ctx: Toast = {
 			id,
 			message: opts.message,
@@ -86,7 +87,7 @@ export class ToastService {
 			onDismiss: () => this.dismiss(id)
 		};
 		const ref = this.manager.show(this.template, {
-			duration: 0,
+			persistent: true,
 			dismissible: false,
 			context: ctx
 		});

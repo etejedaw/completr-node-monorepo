@@ -8,7 +8,11 @@ import {
 } from "@angular/core";
 import { NgpToast } from "ng-primitives/toast";
 
-import { type Toast, ToastService } from "../../../core/services/toast";
+import {
+	type Toast,
+	ToastService,
+	UNDO_WINDOW_MS
+} from "../../../core/services/toast";
 
 @Component({
 	selector: "app-toast-container",
@@ -18,6 +22,7 @@ import { type Toast, ToastService } from "../../../core/services/toast";
 })
 export class ToastContainer implements OnInit {
 	private readonly toastService = inject(ToastService);
+	protected readonly undoWindowMs = UNDO_WINDOW_MS;
 	private readonly tpl =
 		viewChild.required<TemplateRef<{ context: Toast }>>("tpl");
 
