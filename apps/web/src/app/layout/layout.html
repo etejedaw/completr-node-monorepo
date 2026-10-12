@@ -7,7 +7,7 @@
 <div class="flex h-dvh">
 	<aside
 		class="hidden md:flex flex-col shrink-0 h-dvh sticky top-0 bg-sidebar/80 border-r border-line transition-[width] duration-200 ease-out overflow-hidden"
-		[ngClass]="railMode() ? 'w-[4.75rem]' : 'w-64'"
+		[class]="railMode() ? 'w-[4.75rem]' : 'w-64'"
 		aria-label="Main navigation"
 	>
 		<div
@@ -150,7 +150,7 @@
 	>
 		<header
 			class="sticky top-0 z-40 shrink-0 h-[var(--topbar-height)] -mb-[var(--topbar-height)] transition-[background-color,border-color,backdrop-filter] duration-200 border-b"
-			[ngClass]="scrolled() ? 'bg-canvas/80 backdrop-blur-xl border-line' : 'border-transparent'"
+			[class]="scrolled() ? 'bg-canvas/80 backdrop-blur-xl border-line' : 'border-transparent'"
 		>
 			<div class="h-full flex items-center gap-3 px-[var(--page-pad-x)]">
 				<a
@@ -334,7 +334,7 @@
 					<span
 						aria-hidden="true"
 						class="material-icons text-2xl"
-						[ngClass]="item.iconColorClass"
+						[class]="item.iconColorClass"
 						>{{ item.icon }}</span
 					>
 					<span class="leading-tight line-clamp-2"
@@ -420,7 +420,7 @@
 					<span
 						aria-hidden="true"
 						class="material-icons nav-icon text-xl w-6 text-center shrink-0 opacity-80 transition group-hover/nav:opacity-100"
-						[ngClass]="item.iconColorClass"
+						[class]="item.iconColorClass"
 						>{{ item.icon }}</span
 					>
 					@if (!railMode()) {
