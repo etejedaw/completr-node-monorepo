@@ -126,7 +126,7 @@ export interface GameCoverCardGame {
 					@if (showAddToBacklog()) {
 						<button
 							type="button"
-							class="flex items-center justify-center w-7 h-7 rounded-full backdrop-blur-sm border-0 cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
+							class="flex items-center justify-center w-7 h-7 pointer-coarse:w-[44px] pointer-coarse:h-[44px] rounded-full backdrop-blur-sm border-0 cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
 							[class.bg-success]="inBacklog()"
 							[class.bg-black/60]="!inBacklog()"
 							[class.hover:bg-black/80]="!inBacklog()"
@@ -159,7 +159,7 @@ export interface GameCoverCardGame {
 					@if (showWishlistToggle()) {
 						<button
 							type="button"
-							class="flex items-center justify-center w-7 h-7 rounded-full backdrop-blur-sm border-0 cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
+							class="flex items-center justify-center w-7 h-7 pointer-coarse:w-[44px] pointer-coarse:h-[44px] rounded-full backdrop-blur-sm border-0 cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
 							[class.bg-nav-wishlist]="inWishlist()"
 							[class.bg-black/60]="!inWishlist()"
 							[class.hover:bg-black/80]="!inWishlist()"
@@ -190,7 +190,7 @@ export interface GameCoverCardGame {
 					@if (showFavorite()) {
 						<button
 							type="button"
-							class="flex items-center justify-center w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm border-0 cursor-pointer transition hover:bg-black/80"
+							class="flex items-center justify-center w-7 h-7 pointer-coarse:w-[44px] pointer-coarse:h-[44px] rounded-full bg-black/60 backdrop-blur-sm border-0 cursor-pointer transition hover:bg-black/80"
 							[class.text-nav-favorites]="isFavorite()"
 							[class.text-white]="!isFavorite()"
 							(click)="
@@ -203,6 +203,12 @@ export interface GameCoverCardGame {
 									? 'Remove from favorites'
 									: 'Add to favorites'
 							"
+							[attr.aria-label]="
+								isFavorite()
+									? 'Remove from favorites'
+									: 'Add to favorites'
+							"
+							[attr.aria-pressed]="isFavorite()"
 						>
 							<span
 								aria-hidden="true"
