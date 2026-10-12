@@ -17,15 +17,14 @@ import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 import { type QueueEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
+import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
-import {
-	QueueGridCard,
-	type QueueStatusChange
-} from "../../../shared/components/queue-grid-card/queue-grid-card";
+import { type QueueStatusChange } from "../../../shared/components/queue-grid-card/queue-grid-card";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
+import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
 	UiButton,
-	UiEmptyState,
+	UiInput,
 	UiPagination,
 	UiPremiumBadge,
 	UiSearchBar,
@@ -38,20 +37,33 @@ import {
 	QueueAddModal,
 	type QueueAddModalData
 } from "../queue-add-modal/queue-add-modal";
+import { QueueNextCard } from "../queue-next-card/queue-next-card";
+import { QueueRow } from "../queue-row/queue-row";
+
+type QueueSort = "manual" | "ratio" | "score" | "duration";
+
+const SORT_OPTIONS: { value: QueueSort; label: string }[] = [
+	{ value: "manual", label: "My order" },
+	{ value: "ratio", label: "Ratio" },
+	{ value: "score", label: "Score" },
+	{ value: "duration", label: "Shortest" }
+];
 
 @Component({
 	selector: "app-queue-view",
 	imports: [
 		UiButton,
-		UiEmptyState,
+		UiInput,
 		UiPagination,
 		UiPremiumBadge,
 		UiSearchBar,
 		UiSkeleton,
-		QueueGridCard,
+		QueueNextCard,
+		QueueRow,
 		CdkDropList,
 		CdkDrag,
-		PremiumOnly
+		PremiumOnly,
+		SwipeActions
 	],
 	templateUrl: "./queue-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -64,16 +76,16 @@ export class QueueView implements OnInit {
 	private readonly dialogs = inject(DialogService);
 
 	protected readonly isPremium = inject(AuthService).isPremium;
+	protected readonly pointer = inject(PointerService);
+	protected readonly sortOptions = SORT_OPTIONS;
 	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);
-	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);
+	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
 	protected readonly searchQuery = signal("");
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
-	protected readonly sortBy = signal<
-		"manual" | "ratio" | "score" | "duration"
-	>("manual");
+	protected readonly sortBy = signal<QueueSort>("manual");
 	protected readonly savingOrder = signal(false);
 	protected readonly updatingStatusIds = signal<Set<string>>(new Set());
 	protected readonly pendingPlayEntry = signal<QueueEntry | null>(null);
@@ -92,7 +104,7 @@ export class QueueView implements OnInit {
 		this.loadQueue();
 	}
 
-	setSort(sort: "manual" | "ratio" | "score" | "duration") {
+	setSort(sort: QueueSort) {
 		this.sortBy.set(sort);
 	}
 
@@ -117,6 +129,25 @@ export class QueueView implements OnInit {
 			);
 		}
 		return sorted;
+	});
+
+	protected readonly featured = computed(() => {
+		if (this.offset() > 0 || this.searchQuery().trim()) return null;
+		return this.filteredEntries()[0] ?? null;
+	});
+	protected readonly rest = computed(() =>
+		this.featured()
+			? this.filteredEntries().slice(1)
+			: this.filteredEntries()
+	);
+	protected readonly restOffset = computed(() => (this.featured() ? 1 : 0));
+	protected readonly isManual = computed(() => this.sortBy() === "manual");
+	protected readonly featuredEyebrow = computed(() => {
+		const sort = this.sortBy();
+		if (sort === "ratio") return "Best ratio";
+		if (sort === "score") return "Highest score";
+		if (sort === "duration") return "Quickest to beat";
+		return "Play next";
 	});
 
 	saveCurrentOrder() {
@@ -266,10 +297,15 @@ export class QueueView implements OnInit {
 	}
 
 	onDrop(event: CdkDragDrop<QueueEntry[]>) {
-		if (this.sortBy() !== "manual") return;
+		if (!this.isManual()) return;
 		if (event.previousIndex === event.currentIndex) return;
+		const shift = this.restOffset();
 		const list = [...this.entries()];
-		moveItemInArray(list, event.previousIndex, event.currentIndex);
+		moveItemInArray(
+			list,
+			event.previousIndex + shift,
+			event.currentIndex + shift
+		);
 		this.reorder(list);
 	}
 

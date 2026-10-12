@@ -1,0 +1,155 @@
+@let backlog = entry().backlog;
+<article
+	class="relative isolate overflow-hidden rounded-card border border-line bg-surface"
+	aria-labelledby="queue-next-title"
+>
+	@if (backlog.game.backgroundUrl) {
+	<img
+		[src]="backlog.game.backgroundUrl | coverUrl: 640"
+		alt=""
+		aria-hidden="true"
+		class="absolute inset-0 -z-10 w-full h-full object-cover opacity-25 blur-2xl scale-110 saturate-150"
+	/>
+	}
+	<div
+		aria-hidden="true"
+		class="absolute inset-0 -z-10 bg-gradient-to-r from-surface via-surface/85 to-surface/40"
+	></div>
+
+	<div
+		class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 sm:gap-x-6 gap-y-4 p-4 sm:p-6"
+	>
+		<a
+			class="shrink-0 sm:row-span-2"
+			[routerLink]="['/games', backlog.game.code]"
+			tabindex="-1"
+			[attr.aria-label]="backlog.game.title"
+		>
+			<app-game-poster
+				[src]="backlog.game.backgroundUrl"
+				[title]="backlog.game.title"
+				[width]="420"
+				class="w-24 sm:w-36 aspect-[2/3] rounded-lg ring-1 ring-white/10 shadow-xl shadow-black/50"
+			/>
+		</a>
+
+		<div class="flex-1 min-w-0 flex flex-col">
+			<span
+				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+				>{{ eyebrow() }}</span
+			>
+			<h2
+				id="queue-next-title"
+				class="m-0 mt-1 font-display text-xl sm:text-3xl font-bold tracking-tight leading-tight line-clamp-2"
+			>
+				<a
+					class="text-fg no-underline hover:text-brand"
+					[routerLink]="['/games', backlog.game.code]"
+					>{{ backlog.game.title }}</a
+				>
+			</h2>
+			<p class="m-0 mt-1 text-sm text-fg-muted">
+				{{ backlog.platform?.abbreviation }} @if (backlog.game.isDlc) {
+				· DLC }
+			</p>
+
+			<dl class="m-0 mt-4 flex items-end gap-6">
+				@if (backlog.ratio) {
+				<div>
+					<dt
+						class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+					>
+						Ratio
+					</dt>
+					<dd
+						class="m-0 font-display text-3xl font-bold text-brand tabular-nums leading-none"
+					>
+						{{ backlog.ratio }}
+					</dd>
+				</div>
+				} @if (backlog.score) {
+				<div>
+					<dt
+						class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+					>
+						Score
+					</dt>
+					<dd
+						class="m-0 text-lg font-semibold text-fg tabular-nums leading-none"
+					>
+						{{ backlog.score }}
+					</dd>
+				</div>
+				} @if (backlog.duration) {
+				<div>
+					<dt
+						class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+					>
+						Length
+					</dt>
+					<dd
+						class="m-0 text-lg font-semibold text-fg tabular-nums leading-none"
+					>
+						{{ backlog.duration }}<span
+							class="text-xs font-normal text-fg-muted"
+							>h</span
+						>
+					</dd>
+				</div>
+				}
+			</dl>
+		</div>
+		<div
+			class="col-span-2 sm:col-span-1 sm:col-start-2 flex items-center gap-2"
+		>
+			<button
+				type="button"
+				class="max-sm:flex-1 inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-card border-0 bg-brand text-white text-sm font-semibold cursor-pointer transition hover:bg-brand-hover active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+				[disabled]="statusUpdating()"
+				(click)="startPlaying.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>play_arrow</span
+				>
+				Start playing
+			</button>
+			<button
+				type="button"
+				class="w-10 h-10 inline-flex items-center justify-center rounded-card border border-line bg-transparent cursor-pointer transition hover:border-fg-muted"
+				[class]="isFavorite() ? 'text-nav-favorites' : 'text-fg-muted hover:text-fg'"
+				[attr.aria-pressed]="isFavorite()"
+				[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+				[title]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
+				(click)="favoriteToggle.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>{{ isFavorite() ? 'favorite' : 'favorite_border' }}</span
+				>
+			</button>
+			@if (canMoveDown()) {
+			<button
+				type="button"
+				class="w-10 h-10 inline-flex items-center justify-center rounded-card border border-line bg-transparent text-fg-muted cursor-pointer transition hover:text-fg hover:border-fg-muted"
+				aria-label="Move down"
+				title="Move down"
+				(click)="moveDown.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>arrow_downward</span
+				>
+			</button>
+			}
+			<button
+				type="button"
+				class="w-10 h-10 inline-flex items-center justify-center rounded-card border border-line bg-transparent text-fg-muted cursor-pointer transition hover:text-danger hover:border-danger/40"
+				aria-label="Remove from Up Next"
+				title="Remove from Up Next"
+				(click)="remove.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>playlist_remove</span
+				>
+			</button>
+		</div>
+	</div>
+</article>
