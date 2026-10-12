@@ -1,0 +1,124 @@
+<div class="flex flex-col gap-6">
+	<label class="flex flex-col gap-1.5 md:hidden">
+		<span
+			class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+			>Sort by</span
+		>
+		<select
+			uiSelect
+			[value]="sortBy()"
+			(change)="sortChange.emit($any($event.target).value)"
+		>
+			@for (opt of sortOptions(); track opt.value) {
+			<option [value]="opt.value">{{ opt.label }}</option>
+			}
+		</select>
+	</label>
+
+	<app-game-filter-panel
+		[allGenres]="allGenres()"
+		[allPlatforms]="allPlatforms()"
+		[(selectedGenres)]="selectedGenres"
+		[(selectedPlatforms)]="selectedPlatforms"
+		[(yearFrom)]="yearFrom"
+		[(yearTo)]="yearTo"
+	/>
+
+	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+		<fieldset class="m-0 p-0 border-0 flex flex-col gap-1.5">
+			<legend
+				class="mb-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+			>
+				Min rating
+			</legend>
+			<app-star-rating
+				[value]="minScore()"
+				(ratingChange)="minScore.set($event)"
+				size="sm"
+			/>
+		</fieldset>
+		<fieldset class="m-0 p-0 border-0 flex flex-col gap-1.5">
+			<legend
+				class="mb-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+			>
+				Max rating
+			</legend>
+			<app-star-rating
+				[value]="maxScore()"
+				(ratingChange)="maxScore.set($event)"
+				size="sm"
+			/>
+		</fieldset>
+		<label class="flex flex-col gap-1.5">
+			<span
+				class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>Min hours</span
+			>
+			<input
+				uiInput
+				size="sm"
+				type="number"
+				inputmode="decimal"
+				min="0"
+				step="0.5"
+				placeholder="0"
+				[value]="minDuration() ?? ''"
+				(input)="setMinDuration($any($event.target).value)"
+			/>
+		</label>
+		<label class="flex flex-col gap-1.5">
+			<span
+				class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>Max hours</span
+			>
+			<input
+				uiInput
+				size="sm"
+				type="number"
+				inputmode="decimal"
+				min="0"
+				step="0.5"
+				placeholder="Any"
+				[value]="maxDuration() ?? ''"
+				(input)="setMaxDuration($any($event.target).value)"
+			/>
+		</label>
+	</div>
+
+	<fieldset class="m-0 p-0 border-0">
+		<legend
+			class="mb-2 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+		>
+			Type
+		</legend>
+		<div
+			class="inline-flex gap-0.5 p-1 bg-input-bg border border-line rounded-card"
+			role="radiogroup"
+			aria-label="Game type"
+		>
+			@for (option of typeOptions; track option.label) {
+			<button
+				type="button"
+				role="radio"
+				class="h-8 px-4 rounded-md border-0 text-xs font-medium cursor-pointer transition"
+				[class]="isDlc() === option.value ? 'bg-surface-hover text-fg' : 'bg-transparent text-fg-muted hover:text-fg'"
+				[attr.aria-checked]="isDlc() === option.value"
+				(click)="isDlc.set(option.value)"
+			>
+				{{ option.label }}
+			</button>
+			}
+		</div>
+	</fieldset>
+
+	@if (activeCount() > 0) {
+	<div class="flex justify-end pt-4 border-t border-line">
+		<button uiButton variant="ghost" size="sm" (click)="cleared.emit()">
+			<span aria-hidden="true" class="material-icons text-base"
+				>filter_alt_off</span
+			>
+			Clear all filters
+		</button>
+	</div>
+	}
+</div>

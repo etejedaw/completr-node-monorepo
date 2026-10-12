@@ -338,6 +338,25 @@ h6 {
 	);
 }
 
+.poster-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+	gap: 1.25rem 0.75rem;
+}
+
+@media (min-width: 640px) {
+	.poster-grid {
+		grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+		gap: 1.5rem 1rem;
+	}
+}
+
+.bleed-scroll-snap {
+	scroll-padding-inline: calc(
+		max(0px, (100cqw - var(--page-max-width)) / 2) + var(--page-pad-x)
+	);
+}
+
 @layer components {
 	.empty-title {
 		font-family: var(--font-display);
