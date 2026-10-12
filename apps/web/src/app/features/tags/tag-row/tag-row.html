@@ -1,0 +1,133 @@
+@let item = tag(); @if (editing()) {
+<form
+	class="flex flex-col gap-3 px-3 sm:px-4 py-4 bg-brand-subtle/30"
+	[attr.aria-label]="'Edit ' + item.tag"
+	(submit)="$event.preventDefault(); save()"
+	(keydown.escape)="cancelled.emit()"
+>
+	<div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+		<label class="flex flex-col gap-1.5" [for]="fieldId + '-name'">
+			<span
+				class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>Name</span
+			>
+			<input
+				uiInput
+				[id]="fieldId + '-name'"
+				maxlength="40"
+				required
+				[value]="draftName()"
+				(input)="draftName.set($any($event.target).value)"
+			/>
+		</label>
+		<label class="flex flex-col gap-1.5" [for]="fieldId + '-description'">
+			<span
+				class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>Description (optional)</span
+			>
+			<input
+				uiInput
+				[id]="fieldId + '-description'"
+				maxlength="255"
+				[value]="draftDescription()"
+				(input)="draftDescription.set($any($event.target).value)"
+			/>
+		</label>
+	</div>
+	<div class="flex items-center justify-end gap-2">
+		<button
+			uiButton
+			type="button"
+			variant="ghost"
+			size="sm"
+			(click)="cancelled.emit()"
+		>
+			Cancel
+		</button>
+		<button
+			uiButton
+			type="submit"
+			variant="primary"
+			size="sm"
+			[disabled]="saving() || !draftName().trim()"
+		>
+			{{ saving() ? 'Saving…' : 'Save' }}
+		</button>
+	</div>
+</form>
+} @else {
+<article
+	class="group relative flex items-center gap-3 px-3 sm:px-4 py-3 transition hover:bg-white/[0.03] focus-within:bg-white/[0.03]"
+>
+	<div
+		class="flex-1 min-w-0 flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4"
+	>
+		<h3 class="m-0 md:w-48 md:shrink-0 min-w-0">
+			<a
+				class="inline-flex max-w-full items-center gap-1 px-2.5 py-1 rounded-full bg-brand-subtle text-brand text-sm font-medium no-underline after:absolute after:inset-0 after:content-[''] focus-visible:outline-none group-hover:bg-brand/20"
+				routerLink="/backlog"
+				[queryParams]="{ mood_tags: item.tag }"
+				[title]="'Show games tagged ' + item.tag + ' in My Games'"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>label</span
+				>
+				<span class="truncate">{{ item.tag }}</span>
+			</a>
+		</h3>
+		<p class="m-0 md:flex-1 min-w-0 text-sm text-fg-secondary truncate">
+			{{ item.description || 'No description' }}
+		</p>
+		<div class="flex items-center gap-2 md:w-40 md:shrink-0">
+			<span
+				aria-hidden="true"
+				class="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden"
+			>
+				<span
+					class="block h-full rounded-full bg-brand/70"
+					[style.width.%]="usagePercent()"
+				></span>
+			</span>
+			<span class="shrink-0 text-xs text-fg-muted tabular-nums">
+				{{ item.usageCount }} {{ item.usageCount === 1 ? 'game' :
+				'games' }}
+			</span>
+		</div>
+	</div>
+	<div class="relative z-10 shrink-0 flex items-center gap-0.5">
+		<button
+			type="button"
+			class="sm:hidden w-[44px] h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
+			aria-haspopup="dialog"
+			[attr.aria-label]="'More actions for ' + item.tag"
+			(click)="moreRequested.emit()"
+		>
+			<span aria-hidden="true" class="material-icons text-xl"
+				>more_vert</span
+			>
+		</button>
+		<button
+			type="button"
+			class="max-sm:hidden w-8 h-8 pointer-coarse:w-[44px] pointer-coarse:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:bg-white/5 hover:text-fg active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
+			[attr.aria-label]="'Edit ' + item.tag"
+			[title]="'Edit ' + item.tag"
+			[disabled]="saving()"
+			(click)="editRequested.emit()"
+		>
+			<span aria-hidden="true" class="material-icons text-lg">edit</span>
+		</button>
+		<button
+			type="button"
+			class="max-sm:hidden w-8 h-8 pointer-coarse:w-[44px] pointer-coarse:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:bg-danger/10 hover:text-danger active:bg-danger/20 focus-visible:outline-2 focus-visible:outline-brand"
+			[attr.aria-label]="'Delete ' + item.tag"
+			[title]="'Delete ' + item.tag"
+			[disabled]="saving()"
+			(click)="deleteRequested.emit()"
+		>
+			<span aria-hidden="true" class="material-icons text-lg"
+				>delete</span
+			>
+		</button>
+	</div>
+</article>
+}
