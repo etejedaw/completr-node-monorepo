@@ -96,12 +96,12 @@
 		</div>
 		<nav
 			aria-label="Filter feed"
-			class="-mx-[var(--page-pad-x)] px-[var(--page-pad-x)] flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+			class="-mx-[var(--page-pad-x)] px-[var(--page-pad-x)] pointer-coarse:py-[8px] pointer-coarse:-my-[8px] flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 		>
 			@for (option of filterOptions; track option.value) {
 			<button
 				type="button"
-				class="shrink-0 h-8 px-3 rounded-full border text-xs font-medium cursor-pointer transition"
+				class="tap-area shrink-0 h-8 px-3 rounded-full border text-xs font-medium cursor-pointer transition"
 				[class]="filter() === option.value ? 'border-brand bg-brand-subtle text-brand' : 'border-line bg-surface/60 text-fg-secondary hover:border-fg-muted hover:text-fg'"
 				[attr.aria-pressed]="filter() === option.value"
 				(click)="setFilter(option.value)"

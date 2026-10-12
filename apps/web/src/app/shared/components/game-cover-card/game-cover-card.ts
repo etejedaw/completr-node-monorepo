@@ -47,7 +47,8 @@ export interface GameCoverCardGame {
 				</a>
 			}
 			<a
-				class="text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand"
+				tabindex="-1"
+				class="tap-area text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand"
 				[routerLink]="['/games', game().code]"
 				>{{ game().title }}</a
 			>

@@ -49,7 +49,7 @@
 		</label>
 		<button
 			type="button"
-			class="shrink-0 inline-flex items-center gap-1.5 h-10 px-3 rounded-card border text-sm font-medium cursor-pointer transition"
+			class="shrink-0 inline-flex items-center gap-1.5 h-10 pointer-coarse:min-h-[44px] pointer-coarse:min-w-[44px] px-3 rounded-card border text-sm font-medium cursor-pointer transition"
 			[class]="showFilters() || activeFiltersCount() > 0 ? 'border-brand bg-brand-subtle text-brand' : 'border-line bg-transparent text-fg-secondary hover:border-brand hover:text-brand'"
 			[attr.aria-expanded]="showFilters()"
 			aria-controls="browse-filters"
@@ -86,12 +86,12 @@
 	@if (quickGenres().length > 0) {
 	<nav
 		aria-label="Quick genre filters"
-		class="-mx-[var(--page-pad-x)] px-[var(--page-pad-x)] mt-3 flex gap-1.5 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_var(--page-pad-x),black_calc(100%-3rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+		class="-mx-[var(--page-pad-x)] px-[var(--page-pad-x)] mt-3 pointer-coarse:py-[8px] pointer-coarse:-mb-[8px] pointer-coarse:mt-[2px] flex gap-1.5 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_var(--page-pad-x),black_calc(100%-3rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 	>
 		@for (genre of quickGenres(); track genre.id) {
 		<button
 			type="button"
-			class="shrink-0 h-8 px-3 rounded-full border text-xs font-medium cursor-pointer transition"
+			class="tap-area shrink-0 h-8 px-3 rounded-full border text-xs font-medium cursor-pointer transition"
 			[class]="isQuickGenreActive(genre.code) ? 'border-brand bg-brand-subtle text-brand' : 'border-line bg-surface/60 text-fg-secondary hover:border-fg-muted hover:text-fg'"
 			[attr.aria-pressed]="isQuickGenreActive(genre.code)"
 			(click)="toggleQuickGenre(genre.code)"

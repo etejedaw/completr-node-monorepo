@@ -46,7 +46,7 @@
 				</span>
 				@for (genre of game.genres.slice(0, 3); track genre.id) {
 				<a
-					class="px-2 py-0.5 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25 hover:text-white"
+					class="tap-area px-2 py-0.5 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25 hover:text-white"
 					[routerLink]="['/genres', genre.code]"
 					>{{ genre.name }}</a
 				>
@@ -63,7 +63,7 @@
 			</h1>
 			<div class="mt-5 flex flex-wrap items-center gap-3">
 				<a
-					class="inline-flex items-center gap-1.5 h-11 px-5 rounded-card bg-brand text-white text-sm font-semibold no-underline shadow-lg shadow-brand/30 transition hover:bg-brand-hover hover:text-white active:scale-[0.98]"
+					class="inline-flex items-center gap-1.5 h-11 pointer-coarse:min-h-[44px] px-5 rounded-card bg-brand text-white text-sm font-semibold no-underline shadow-lg shadow-brand/30 transition hover:bg-brand-hover hover:text-white active:scale-[0.98]"
 					[routerLink]="['/games', game.code]"
 				>
 					View game
@@ -90,23 +90,28 @@
 
 		@if (games().length > 1) {
 		<div class="mt-8 flex items-end justify-between gap-4">
-			<div class="flex items-center gap-2">
+			<div class="flex items-center gap-0.5">
 				@for (item of games(); track item.id; let i = $index) {
 				<button
 					type="button"
-					class="h-2 rounded-full border-0 cursor-pointer transition-all"
-					[class]="i === index() ? 'w-6 bg-white' : 'w-2 bg-white/40 hover:bg-white/70'"
+					class="tap-area group/dot h-6 px-1 inline-flex items-center bg-transparent border-0 cursor-pointer"
 					[attr.aria-label]="'Show ' + item.title"
 					[attr.aria-current]="i === index()"
 					(click)="select(i)"
-				></button>
+				>
+					<span
+						aria-hidden="true"
+						class="block h-2 rounded-full transition-all"
+						[class]="i === index() ? 'w-6 bg-white' : 'w-2 bg-white/40 group-hover/dot:bg-white/70'"
+					></span>
+				</button>
 				}
 			</div>
 
 			<div class="flex items-center gap-1 ml-auto">
 				<button
 					type="button"
-					class="w-10 h-10 inline-flex items-center justify-center rounded-full bg-canvas/50 border border-white/10 text-white/80 backdrop-blur-md cursor-pointer transition hover:text-white hover:border-white/30"
+					class="w-10 h-10 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] inline-flex items-center justify-center rounded-full bg-canvas/50 border border-white/10 text-white/80 backdrop-blur-md cursor-pointer transition hover:text-white hover:border-white/30"
 					[attr.aria-label]="paused() ? 'Resume rotation' : 'Pause rotation'"
 					[attr.aria-pressed]="paused()"
 					(click)="togglePaused()"
@@ -117,7 +122,7 @@
 				</button>
 				<button
 					type="button"
-					class="w-10 h-10 inline-flex items-center justify-center rounded-full bg-canvas/50 border border-white/10 text-white/80 backdrop-blur-md cursor-pointer transition hover:text-white hover:border-white/30"
+					class="w-10 h-10 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] inline-flex items-center justify-center rounded-full bg-canvas/50 border border-white/10 text-white/80 backdrop-blur-md cursor-pointer transition hover:text-white hover:border-white/30"
 					aria-label="Previous featured game"
 					(click)="step(-1)"
 				>
@@ -127,7 +132,7 @@
 				</button>
 				<button
 					type="button"
-					class="w-10 h-10 inline-flex items-center justify-center rounded-full bg-canvas/50 border border-white/10 text-white/80 backdrop-blur-md cursor-pointer transition hover:text-white hover:border-white/30"
+					class="w-10 h-10 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] inline-flex items-center justify-center rounded-full bg-canvas/50 border border-white/10 text-white/80 backdrop-blur-md cursor-pointer transition hover:text-white hover:border-white/30"
 					aria-label="Next featured game"
 					(click)="step(1)"
 				>

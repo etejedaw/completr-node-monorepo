@@ -155,7 +155,7 @@
 			<div class="h-full flex items-center gap-3 px-[var(--page-pad-x)]">
 				<a
 					routerLink="/feed"
-					class="md:hidden flex items-center gap-2 no-underline shrink-0"
+					class="md:hidden flex items-center gap-2 min-h-[44px] no-underline shrink-0"
 					aria-label="Completr home"
 				>
 					<span
@@ -176,7 +176,7 @@
 				<div class="ml-auto flex items-center gap-1">
 					<button
 						type="button"
-						class="md:hidden w-10 h-10 rounded-full inline-flex items-center justify-center bg-transparent border-0 text-fg-secondary cursor-pointer transition hover:text-fg hover:bg-surface/70"
+						class="md:hidden w-10 h-10 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] rounded-full inline-flex items-center justify-center bg-transparent border-0 text-fg-secondary cursor-pointer transition hover:text-fg hover:bg-surface/70"
 						aria-label="Search"
 						(click)="mobileSearchOpen.set(true)"
 					>
@@ -187,7 +187,7 @@
 					@if (onFeed()) {
 					<a
 						routerLink="/whats-new"
-						class="w-10 h-10 rounded-full inline-flex items-center justify-center text-fg-secondary no-underline transition hover:text-fg hover:bg-surface/70"
+						class="w-10 h-10 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] rounded-full inline-flex items-center justify-center text-fg-secondary no-underline transition hover:text-fg hover:bg-surface/70"
 						routerLinkActive="!text-brand"
 						aria-label="What's new"
 						title="What's new"
@@ -199,7 +199,7 @@
 					}
 					<a
 						routerLink="/profile"
-						class="md:hidden ml-1 rounded-full no-underline ring-2 ring-transparent hover:ring-brand/50 transition"
+						class="md:hidden ml-1 inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full no-underline ring-2 ring-transparent hover:ring-brand/50 transition"
 						[attr.aria-label]="'Your profile, ' + (user()?.username ?? '')"
 					>
 						<ui-avatar

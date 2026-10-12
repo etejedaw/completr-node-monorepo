@@ -393,3 +393,14 @@ textarea.ui-input {
 .ui-tab-panel:not([data-active]) {
 	display: none;
 }
+
+@media (pointer: coarse) {
+	.ui-button,
+	.ui-icon-button {
+		min-height: 44px;
+	}
+
+	.ui-icon-button {
+		min-width: 44px;
+	}
+}

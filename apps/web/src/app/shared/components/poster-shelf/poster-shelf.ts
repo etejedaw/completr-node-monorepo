@@ -37,7 +37,7 @@ const SCROLL_EDGE_TOLERANCE = 4;
 					@if (seeAllLabel()) {
 						<button
 							type="button"
-							class="inline-flex items-center gap-0.5 h-9 px-2.5 mr-1 rounded-md bg-transparent border-0 text-sm font-medium text-fg-secondary cursor-pointer transition hover:text-brand"
+							class="inline-flex items-center gap-0.5 h-9 pointer-coarse:min-h-[44px] px-2.5 mr-1 rounded-md bg-transparent border-0 text-sm font-medium text-fg-secondary cursor-pointer transition hover:text-brand"
 							(click)="seeAll.emit()"
 						>
 							{{ seeAllLabel() }}

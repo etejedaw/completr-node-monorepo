@@ -338,6 +338,18 @@ h6 {
 	);
 }
 
+.tap-area {
+	position: relative;
+}
+
+@media (pointer: coarse) {
+	.tap-area::after {
+		content: "";
+		position: absolute;
+		inset: min(0px, calc(50% - 22px));
+	}
+}
+
 .poster-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));

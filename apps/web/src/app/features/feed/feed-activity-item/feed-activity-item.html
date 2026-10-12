@@ -68,7 +68,7 @@
 	@if (isOwn()) {
 	<button
 		type="button"
-		class="shrink-0 -mr-2 w-8 h-8 inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100 hover:text-danger"
+		class="shrink-0 -mr-2 w-8 h-8 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100 hover:text-danger"
 		[attr.aria-label]="activities().length > 1 ? 'Remove these activities' : 'Remove this activity'"
 		title="Remove from feed"
 		(click)="emitDelete()"
