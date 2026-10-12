@@ -1,24 +1,21 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { CoverUrlPipe } from "../../pipes/cover-url";
+import { GamePoster } from "../game-poster/game-poster";
 import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
 
 @Component({
 	selector: "app-game-title-cell",
-	imports: [RouterLink, MoodTagsChips, CoverUrlPipe],
+	imports: [RouterLink, MoodTagsChips, GamePoster],
 	template: `
 		<div class="flex items-center gap-2 min-w-0">
-			@if (coverUrl()) {
-				<img
-					[src]="coverUrl() | coverUrl: 200"
-					[alt]="title()"
-					class="w-8 h-10 object-cover rounded shrink-0"
-					loading="lazy"
-				/>
-			} @else {
-				<div class="w-8 h-10 bg-input-bg rounded shrink-0"></div>
-			}
+			<app-game-poster
+				[src]="coverUrl()"
+				[title]="title()"
+				[width]="200"
+				[compact]="true"
+				class="w-9 aspect-[2/3] rounded shrink-0 ring-1 ring-white/10"
+			/>
 			<div class="min-w-0 flex-1">
 				<a
 					[routerLink]="['/games', code()]"
