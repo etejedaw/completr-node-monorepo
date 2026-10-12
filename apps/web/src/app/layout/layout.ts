@@ -125,6 +125,9 @@ export class Layout implements OnInit {
 	);
 
 	protected readonly primaryTabs = PRIMARY_TABS;
+	protected readonly onFeed = computed(() =>
+		matchesRoute(this.currentUrl(), "/feed")
+	);
 	protected readonly moreActive = computed(() => {
 		const url = this.currentUrl();
 		return !PRIMARY_TABS.some(tab => matchesRoute(url, tab.route));

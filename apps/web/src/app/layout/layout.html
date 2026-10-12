@@ -184,6 +184,7 @@
 							>search</span
 						>
 					</button>
+					@if (onFeed()) {
 					<a
 						routerLink="/whats-new"
 						class="w-10 h-10 rounded-full inline-flex items-center justify-center text-fg-secondary no-underline transition hover:text-fg hover:bg-surface/70"
@@ -195,6 +196,7 @@
 							>campaign</span
 						>
 					</a>
+					}
 					<a
 						routerLink="/profile"
 						class="md:hidden ml-1 rounded-full no-underline ring-2 ring-transparent hover:ring-brand/50 transition"
