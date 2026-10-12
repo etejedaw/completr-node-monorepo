@@ -22,16 +22,7 @@
 	</div>
 </div>
 } @else if (notFound()) {
-<section class="flex flex-col items-center text-center py-24 px-6">
-	<span aria-hidden="true" class="material-icons text-5xl text-fg-muted mb-3"
-		>person_search</span
-	>
-	<h1 class="m-0 font-display text-2xl font-bold">Player not found</h1>
-	<p class="m-0 mt-2 mb-6 text-sm text-fg-muted">
-		There's no one called "{{ username() }}" on Completr.
-	</p>
-	<a uiButton variant="secondary" routerLink="/users">Find players</a>
-</section>
+<app-profile-access-state reason="not_found" [username]="username()" />
 } @else if (isPrivate()) {
 <section
 	class="bleed bleed-top relative isolate overflow-hidden"
@@ -127,36 +118,19 @@
 	[listsTotal]="p.listsTotal"
 	[reviewsTotal]="userReviewsTotal()"
 	[showLibrary]="visibility().backlog"
-	(listsOpened)="openListsTab()"
+	(listsOpened)="scrollToLists()"
 />
 
 @if (visibility().favorites && (favoritesData()?.length ?? 0) > 0) {
 <section class="mt-10" aria-labelledby="favorites-heading">
-	<header class="flex items-end justify-between gap-3 mb-4">
-		<div>
-			<span
-				class="block text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand"
-				>All-time</span
-			>
-			<h2
-				id="favorites-heading"
-				class="m-0 mt-1 font-display text-xl sm:text-2xl font-bold tracking-tight"
-			>
-				Favorite games
-			</h2>
-		</div>
-		<a
-			class="tap-area inline-flex items-center gap-0.5 text-sm font-medium text-fg-secondary no-underline hover:text-brand"
-			[routerLink]="['/user', username(), 'favorites']"
-		>
-			See all
-			<span aria-hidden="true" class="material-icons text-lg"
-				>chevron_right</span
-			>
-		</a>
-	</header>
+	<app-profile-section-header
+		heading="Favorite games"
+		headingId="favorites-heading"
+		eyebrow="All-time"
+		[seeAllLink]="['/user', username(), 'favorites']"
+	/>
 	<ol
-		class="list-none m-0 p-0 grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4"
+		class="list-none m-0 p-0 grid grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4"
 	>
 		@for (favorite of favoritesData()!; track favorite.id; let i = $index) {
 		<li [class.max-sm:hidden]="i >= 4">
@@ -170,455 +144,119 @@
 </section>
 }
 
-<ui-tabs [(value)]="activeTab" class="block mt-10">
-	<ui-tab-list
-		class="bleed bleed-inner sticky top-[var(--topbar-height)] z-20 !mb-8 !overflow-x-auto !flex-nowrap bg-canvas/85 backdrop-blur-xl [scrollbar-width:none]"
+<div
+	class="mt-12 grid gap-12"
+	[class.lg:grid-cols-[minmax(0,1fr)_20rem]]="hasAside()"
+	[class.xl:grid-cols-[minmax(0,1fr)_22rem]]="hasAside()"
+>
+	<div class="min-w-0 flex flex-col gap-12">
+		@if (visibility().backlog) { @defer (on viewport; prefetch on idle) {
+		<app-profile-playing-now [username]="username()" />
+		} @placeholder {
+		<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
+		} } @if (visibility().queue) { @defer (on viewport; prefetch on idle) {
+		<app-profile-up-next [username]="username()" />
+		} @placeholder {
+		<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
+		} } @if (visibility().backlog) { @if (highlightsData() === null) {
+		<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
+		} @else {
+		<app-profile-month-review
+			[monthLabel]="monthLabel()"
+			[completedCount]="highlightsData()!.month.completedCount"
+			[mostPlayed]="highlightsData()!.month.mostPlayed"
+			[highestRated]="highlightsData()!.month.highestRated"
+			[canGoNext]="!isAtCurrentMonth()"
+			[loading]="isLoadingHighlightsMonth()"
+			(previousMonth)="goToPreviousMonth()"
+			(nextMonth)="goToNextMonth()"
+		/>
+		@if (highlightsData()!.recent.length > 0) {
+		<app-poster-shelf
+			[contained]="true"
+			heading="Recently completed"
+			eyebrow="Finished"
+			seeAllLabel="See all"
+			(seeAll)="openCompletions()"
+		>
+			@for (entry of highlightsData()!.recent; track entry.id) {
+			<app-game-cover-card
+				class="w-32 sm:w-40"
+				[game]="entry.game"
+				[subtitle]="entry.finishedAt ?? undefined"
+				[topLeftBadge]="entry.userRating ? '★ ' + entry.userRating : undefined"
+			/>
+			}
+		</app-poster-shelf>
+		} } }
+
+		<app-profile-reviews
+			[username]="username()"
+			[reviews]="latestReviews()"
+			[total]="userReviewsTotal()"
+		/>
+
+		@if (visibility().shelf || visibility().wishlist) { @defer (on viewport;
+		prefetch on idle) {
+		<app-profile-collections
+			[username]="username()"
+			[showShelf]="visibility().shelf"
+			[showWishlist]="visibility().wishlist"
+		/>
+		} @placeholder {
+		<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
+		} } @if (visibility().lists) {
+		<div
+			id="profile-lists"
+			class="scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
+		>
+			@defer (on viewport; prefetch on idle) {
+			<app-profile-lists [username]="username()" />
+			} @placeholder {
+			<div class="h-40"></div>
+			}
+		</div>
+		}
+
+		<section aria-labelledby="activity-heading">
+			<app-profile-section-header
+				heading="Recent activity"
+				headingId="activity-heading"
+				eyebrow="Latest"
+			/>
+			@if (showActivity()) {
+			<app-profile-activity
+				[activities]="p.recentActivity.slice(0, 15)"
+			/>
+			} @else {
+			<p class="m-0 py-6 text-sm text-fg-muted">
+				No recent activity to show.
+			</p>
+			}
+		</section>
+	</div>
+
+	@if (hasAside()) {
+	<aside
+		class="flex flex-col gap-4 lg:sticky lg:top-[calc(var(--topbar-height)+1.5rem)] lg:self-start"
+		aria-label="Comparisons and sagas"
 	>
-		<button uiTab value="highlights" class="!whitespace-nowrap">
-			Overview
-		</button>
-		@if (visibility().backlog) {
-		<button uiTab value="backlog" class="!whitespace-nowrap">Games</button>
-		} @if (visibility().shelf) {
-		<button uiTab value="shelf" class="!whitespace-nowrap">Shelf</button>
-		} @if (visibility().lists) {
-		<button uiTab value="lists" class="!whitespace-nowrap">
-			Lists
-			<span
-				class="ml-1.5 px-1.5 py-px rounded-full bg-white/5 text-[0.6875rem] text-fg-muted tabular-nums"
-				>{{ p.listsTotal }}</span
-			>
-		</button>
-		} @if (visibility().queue) {
-		<button uiTab value="queue" class="!whitespace-nowrap">Up Next</button>
-		} @if (visibility().wishlist) {
-		<button uiTab value="wishlist" class="!whitespace-nowrap">
-			Wanted
-		</button>
+		@if (showComparison()) {
+		<app-profile-in-common
+			[username]="username()"
+			[options]="comparisonDimensions"
+			[selected]="comparisonBy()"
+			[games]="comparisonGames()"
+			[count]="comparisonCount()"
+			[loading]="comparisonLoading()"
+			[isPrivate]="comparisonPrivate()"
+			(selectedChange)="changeComparison($event)"
+		/>
 		}
-		<button uiTab value="reviews" class="!whitespace-nowrap">
-			Reviews
-			<span
-				class="ml-1.5 px-1.5 py-px rounded-full bg-white/5 text-[0.6875rem] text-fg-muted tabular-nums"
-				>{{ userReviewsTotal() }}</span
-			>
-		</button>
-		@if (sagas().length > 0 || isSelf()) {
-		<button uiTab value="sagas" class="!whitespace-nowrap">Sagas</button>
-		}
-	</ui-tab-list>
-
-	<div uiTabPanel value="highlights">
-		<div
-			class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]"
-		>
-			<div class="min-w-0 flex flex-col gap-10">
-				@if (visibility().backlog) { @if (highlightsData() === null) {
-				<div class="flex gap-4 overflow-hidden" aria-busy="true">
-					@for (i of skeletonRange; track i) {
-					<ui-skeleton
-						variant="rect"
-						class="block shrink-0 w-32 sm:w-40 aspect-[2/3] rounded-lg"
-					/>
-					}
-				</div>
-				} @else { @if (highlightsData()!.recent.length > 0) {
-				<app-poster-shelf
-					[contained]="true"
-					heading="Recently completed"
-					eyebrow="Finished"
-					seeAllLabel="See all"
-					(seeAll)="openCompletions()"
-				>
-					@for (entry of highlightsData()!.recent; track entry.id) {
-					<app-game-cover-card
-						class="w-32 sm:w-40"
-						[game]="entry.game"
-						[subtitle]="entry.finishedAt ?? undefined"
-						[topLeftBadge]="entry.userRating ? '★ ' + entry.userRating : undefined"
-					/>
-					}
-				</app-poster-shelf>
-				}
-				<app-profile-month-review
-					[monthLabel]="monthLabel()"
-					[completedCount]="highlightsData()!.month.completedCount"
-					[mostPlayed]="highlightsData()!.month.mostPlayed"
-					[highestRated]="highlightsData()!.month.highestRated"
-					[canGoNext]="!isAtCurrentMonth()"
-					[loading]="isLoadingHighlightsMonth()"
-					(previousMonth)="goToPreviousMonth()"
-					(nextMonth)="goToNextMonth()"
-				/>
-				} }
-
-				<section aria-labelledby="activity-heading">
-					<h2
-						id="activity-heading"
-						class="m-0 mb-2 font-display text-xl sm:text-2xl font-bold tracking-tight"
-					>
-						Recent activity
-					</h2>
-					@if (showActivity()) {
-					<app-profile-activity
-						[activities]="p.recentActivity.slice(0, 15)"
-					/>
-					} @else {
-					<p class="m-0 py-6 text-sm text-fg-muted">
-						No recent activity to show.
-					</p>
-					}
-				</section>
-			</div>
-
-			<aside
-				class="flex flex-col gap-4 lg:sticky lg:top-[calc(var(--topbar-height)+4rem)] lg:self-start"
-				aria-label="Comparisons and sagas"
-			>
-				@if (showComparison()) {
-				<app-profile-in-common
-					[username]="username()"
-					[options]="comparisonDimensions"
-					[selected]="comparisonBy()"
-					[games]="comparisonGames()"
-					[count]="comparisonCount()"
-					[loading]="comparisonLoading()"
-					[isPrivate]="comparisonPrivate()"
-					(selectedChange)="changeComparison($event)"
-				/>
-				} @if (sagas().length > 0) {
-				<section
-					class="p-4 rounded-card border border-line bg-surface"
-					aria-labelledby="sagas-preview-heading"
-				>
-					<header
-						class="flex items-center justify-between gap-3 mb-3"
-					>
-						<h2
-							id="sagas-preview-heading"
-							class="m-0 flex items-center gap-2 font-display text-base font-semibold text-fg"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-lg text-brand"
-								>collections_bookmark</span
-							>
-							Sagas
-						</h2>
-						<button
-							type="button"
-							class="tap-area bg-transparent border-0 text-xs font-medium text-fg-secondary cursor-pointer hover:text-brand"
-							(click)="activeTab.set('sagas')"
-						>
-							See all
-						</button>
-					</header>
-					<ul class="list-none m-0 p-0 flex flex-col gap-3">
-						@for (saga of sagas().slice(0, 4); track
-						saga.franchise.id) {
-						<li>
-							<a
-								class="block no-underline group"
-								[routerLink]="['/franchises', saga.franchise.code]"
-							>
-								<span
-									class="flex items-baseline justify-between gap-2 mb-1.5 text-sm"
-								>
-									<span
-										class="font-medium text-fg truncate group-hover:text-brand"
-										>{{ saga.franchise.name }}</span
-									>
-									<span
-										class="shrink-0 text-xs text-fg-muted tabular-nums"
-										>{{ saga.completed }}/{{ saga.total
-										}}</span
-									>
-								</span>
-								<ui-progress
-									[value]="saga.completed"
-									[max]="saga.total || 1"
-									indicatorClass="bg-gradient-to-r from-brand to-success"
-								/>
-							</a>
-						</li>
-						}
-					</ul>
-				</section>
-				}
-			</aside>
-		</div>
-	</div>
-
-	@if (visibility().backlog) {
-	<div uiTabPanel value="backlog">
-		<ng-container
-			*ngTemplateOutlet="panelHeader; context: { $implicit: 'Recent games', link: ['/user', username(), 'backlog'] }"
-		/>
-		@if (p.backlogs.length === 0) {
-		<ng-container
-			*ngTemplateOutlet="panelEmpty; context: { $implicit: 'No games in this library yet.' }"
-		/>
-		} @else {
-		<ul class="list-none m-0 p-0 poster-grid">
-			@for (b of p.backlogs.slice(0, 12); track b.id) {
-			<li>
-				<app-game-cover-card
-					[game]="b.game"
-					[ratio]="b.ratio"
-					[topLeftBadge]="statusLabel($any(b.status))"
-					[subtitle]="b.platform.abbreviation"
-				/>
-			</li>
-			}
-		</ul>
-		}
-	</div>
-	} @if (visibility().shelf) {
-	<div uiTabPanel value="shelf">
-		<ng-container
-			*ngTemplateOutlet="panelHeader; context: { $implicit: 'Shelf', link: ['/user', username(), 'game-shelf'] }"
-		/>
-		@if (gameShelfData() === null) {
-		<ng-container *ngTemplateOutlet="gridSkeleton" />
-		} @else if (gameShelfData()!.length === 0) {
-		<ng-container
-			*ngTemplateOutlet="panelEmpty; context: { $implicit: 'Their shelf is empty.' }"
-		/>
-		} @else {
-		<ul class="list-none m-0 p-0 poster-grid">
-			@for (s of gameShelfData()!; track s.id) {
-			<li>
-				<app-game-cover-card
-					[game]="s.game"
-					[subtitle]="s.platform.abbreviation"
-				/>
-			</li>
-			}
-		</ul>
-		}
-	</div>
-	} @if (visibility().lists) {
-	<div uiTabPanel value="lists">
-		@if (listsData() === null || followingListsData() === null) {
-		<div class="flex flex-col gap-2" aria-busy="true">
-			@for (i of skeletonRange; track i) {
-			<ui-skeleton variant="rect" class="block h-16 rounded-card" />
-			}
-		</div>
-		} @else if (listsData()!.length === 0 && followingListsData()!.length
-		=== 0) {
-		<ng-container
-			*ngTemplateOutlet="panelEmpty; context: { $implicit: 'No lists yet.' }"
-		/>
-		} @else {
-		<div
-			class="grid gap-10"
-			[class.lg:grid-cols-2]="listsData()!.length > 0 && followingListsData()!.length > 0"
-		>
-			@for (group of [{ title: 'Created', items: listsData()! }, { title:
-			'Following', items: followingListsData()! }]; track group.title) {
-			@if (group.items.length > 0) {
-			<section>
-				<h2
-					class="m-0 mb-2 flex items-baseline justify-between gap-3 font-display text-xl font-bold tracking-tight"
-				>
-					{{ group.title }}
-					<span class="text-xs font-sans font-normal text-fg-muted"
-						>{{ group.items.length }}</span
-					>
-				</h2>
-				<ul class="list-none m-0 p-0 divide-y divide-line">
-					@for (l of group.items.slice(0, 8); track l.id) {
-					<li>
-						<a
-							class="group flex items-center gap-4 py-3 no-underline"
-							[routerLink]="['/lists', l.id]"
-							[queryParams]="{ from: username() }"
-						>
-							<span
-								aria-hidden="true"
-								class="shrink-0 w-10 h-10 inline-flex items-center justify-center rounded-card bg-nav-lists/10 text-nav-lists"
-							>
-								<span class="material-icons"
-									>format_list_bulleted</span
-								>
-							</span>
-							<span class="flex-1 min-w-0">
-								<span
-									class="block text-sm font-medium text-fg truncate group-hover:text-brand"
-									>{{ l.name }}</span
-								>
-								@if (l.description) {
-								<span
-									class="block text-xs text-fg-muted truncate"
-									>{{ l.description }}</span
-								>
-								} @if (l.progress && l.progress.total > 0) {
-								<span class="flex items-center gap-2 mt-1.5">
-									<ui-progress
-										class="flex-1"
-										[value]="l.progress.completed"
-										[max]="l.progress.total"
-										trackClass="h-1"
-										indicatorClass="bg-gradient-to-r from-brand to-success"
-									/>
-									<span
-										class="shrink-0 text-[0.6875rem] text-fg-muted tabular-nums"
-										>{{ l.progress.completed }}/{{
-										l.progress.total }}</span
-									>
-								</span>
-								}
-							</span>
-							<span
-								class="shrink-0 inline-flex items-center gap-1 text-xs text-fg-muted tabular-nums"
-								title="Followers"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-sm"
-									>group</span
-								>
-								{{ l.followerCount }}
-							</span>
-						</a>
-					</li>
-					}
-				</ul>
-			</section>
-			} }
-		</div>
-		}
-	</div>
-	} @if (visibility().queue) {
-	<div uiTabPanel value="queue">
-		<ng-container
-			*ngTemplateOutlet="panelHeader; context: { $implicit: 'Up Next', link: ['/user', username(), 'queue'] }"
-		/>
-		@if (queueData() === null) {
-		<ng-container *ngTemplateOutlet="gridSkeleton" />
-		} @else if (queueData()!.length === 0) {
-		<ng-container
-			*ngTemplateOutlet="panelEmpty; context: { $implicit: 'Nothing queued right now.' }"
-		/>
-		} @else {
-		<ol class="list-none m-0 p-0 poster-grid">
-			@for (w of queueData()!; track w.id; let i = $index) {
-			<li>
-				<app-game-cover-card
-					[game]="w.backlog.game"
-					[topLeftBadge]="'#' + (i + 1)"
-					[subtitle]="w.backlog.platform?.abbreviation"
-				/>
-			</li>
-			}
-		</ol>
-		}
-	</div>
-	} @if (visibility().wishlist) {
-	<div uiTabPanel value="wishlist">
-		<ng-container
-			*ngTemplateOutlet="panelHeader; context: { $implicit: 'Wanted', link: ['/user', username(), 'wishlist'] }"
-		/>
-		@if (wishlistData() === null) {
-		<ng-container *ngTemplateOutlet="gridSkeleton" />
-		} @else if (wishlistData()!.length === 0) {
-		<ng-container
-			*ngTemplateOutlet="panelEmpty; context: { $implicit: 'Their wishlist is empty.' }"
-		/>
-		} @else {
-		<ul class="list-none m-0 p-0 poster-grid">
-			@for (w of wishlistData()!; track w.id) {
-			<li><app-game-cover-card [game]="w.game" /></li>
-			}
-		</ul>
-		}
-	</div>
+		<app-profile-sagas [sagas]="sagas()" [isSelf]="isSelf()" />
+	</aside>
 	}
-
-	<div uiTabPanel value="reviews">
-		<ng-container
-			*ngTemplateOutlet="panelHeader; context: { $implicit: 'Reviews', link: ['/user', username(), 'reviews'] }"
-		/>
-		@if (userReviews().length === 0) {
-		<ng-container
-			*ngTemplateOutlet="panelEmpty; context: { $implicit: 'No reviews yet.' }"
-		/>
-		} @else {
-		<ul class="list-none m-0 p-0 grid gap-3 md:grid-cols-2">
-			@for (r of userReviews(); track r.id) {
-			<li
-				class="flex flex-col gap-2 p-4 rounded-card border border-line bg-surface"
-			>
-				<div class="flex items-start justify-between gap-3">
-					@if (r.game) {
-					<a
-						class="font-display text-base font-semibold text-fg no-underline leading-tight hover:text-brand"
-						[routerLink]="['/games', r.game.code]"
-						>{{ r.game.title }}</a
-					>
-					} @if (r.rating) {
-					<app-star-rating
-						class="shrink-0"
-						[value]="r.rating"
-						[readonly]="true"
-						size="sm"
-					/>
-					}
-				</div>
-				@if (r.content) {
-				<p
-					class="m-0 relative pl-3 border-l-2 border-brand/40 text-sm text-fg-secondary leading-relaxed line-clamp-4"
-				>
-					{{ r.content }}
-				</p>
-				} @if (r.playthroughDuration) {
-				<span class="text-xs text-fg-muted"
-					>After {{ r.playthroughDuration }}h of play</span
-				>
-				}
-			</li>
-			}
-		</ul>
-		}
-	</div>
-
-	<div uiTabPanel value="sagas">
-		@if (sagas().length === 0) {
-		<ng-container
-			*ngTemplateOutlet="panelEmpty; context: { $implicit: isSelf() ? 'You are not tracking any sagas yet. Open a franchise and hit “Track”.' : 'No sagas tracked yet.' }"
-		/>
-		} @else {
-		<ul class="list-none m-0 p-0 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-			@for (s of sagas(); track s.franchise.id) {
-			<li>
-				<a
-					[routerLink]="['/franchises', s.franchise.code]"
-					class="group flex flex-col gap-3 h-full p-4 rounded-card border border-line bg-surface no-underline transition hover:border-brand/50"
-				>
-					<span class="flex items-baseline justify-between gap-2">
-						<span
-							class="font-display text-base font-semibold text-fg truncate group-hover:text-brand"
-							>{{ s.franchise.name }}</span
-						>
-						<span
-							class="shrink-0 text-sm text-fg-muted tabular-nums"
-							><strong class="text-fg">{{ s.completed }}</strong>
-							/ {{ s.total }}</span
-						>
-					</span>
-					<ui-progress
-						[value]="s.completed"
-						[max]="s.total || 1"
-						indicatorClass="bg-gradient-to-r from-brand to-success"
-					/>
-				</a>
-			</li>
-			}
-		</ul>
-		}
-	</div>
-</ui-tabs>
+</div>
 
 @if (!isLoggedIn()) {
 <section
@@ -648,34 +286,17 @@
 </section>
 } }
 
-<ng-template #panelHeader let-title let-link="link">
-	<header class="flex items-end justify-between gap-3 mb-5">
-		<h2
-			class="m-0 font-display text-xl sm:text-2xl font-bold tracking-tight"
-		>
-			{{ title }}
-		</h2>
-		<a
-			class="tap-area inline-flex items-center gap-0.5 text-sm font-medium text-fg-secondary no-underline hover:text-brand"
-			[routerLink]="link"
-		>
-			See all
-			<span aria-hidden="true" class="material-icons text-lg"
-				>chevron_right</span
-			>
-		</a>
-	</header>
-</ng-template>
-
-<ng-template #panelEmpty let-message>
-	<p class="m-0 py-16 text-center text-sm text-fg-muted">{{ message }}</p>
-</ng-template>
-
-<ng-template #gridSkeleton>
-	<div class="poster-grid" aria-busy="true">
-		@for (i of skeletonRange; track i) {
-		<ui-skeleton variant="rect" class="block aspect-[2/3] rounded-lg" />
-		}
+<ng-template #shelfSkeleton>
+	<div class="flex flex-col gap-4" aria-busy="true">
+		<ui-skeleton variant="text" class="block w-40 h-6" />
+		<div class="flex gap-4 overflow-hidden">
+			@for (i of skeletonRange; track i) {
+			<ui-skeleton
+				variant="rect"
+				class="block shrink-0 w-32 sm:w-40 aspect-[2/3] rounded-lg"
+			/>
+			}
+		</div>
 	</div>
 </ng-template>
 

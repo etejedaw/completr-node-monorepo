@@ -3,7 +3,6 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
-	effect,
 	inject,
 	type OnInit,
 	signal
@@ -15,28 +14,25 @@ import { DialogService } from "../../core/services/dialog";
 import { ToastService } from "../../core/services/toast";
 import { GameCoverCard } from "../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
-import { StarRating } from "../../shared/components/star-rating/star-rating";
 import {
 	UserListModal,
 	type UserListModalData
 } from "../../shared/components/user-list-modal/user-list-modal";
-import {
-	UiAvatar,
-	UiButton,
-	UiProgress,
-	UiSkeleton,
-	UiTab,
-	UiTabList,
-	UiTabPanel,
-	UiTabs
-} from "../../shared/ui";
-import { backlogStatusLabel } from "../../shared/utils/backlog-status";
+import { UiAvatar, UiButton, UiSkeleton } from "../../shared/ui";
 import { type FranchiseProgress } from "../franchises/franchises";
+import { ProfileAccessState } from "./components/profile-access-state";
 import { ProfileActivity } from "./components/profile-activity";
+import { ProfileCollections } from "./components/profile-collections";
 import { ProfileHero } from "./components/profile-hero";
 import { ProfileInCommon } from "./components/profile-in-common";
+import { ProfileLists } from "./components/profile-lists";
 import { ProfileMonthReview } from "./components/profile-month-review";
+import { ProfilePlayingNow } from "./components/profile-playing-now";
+import { ProfileReviews } from "./components/profile-reviews";
+import { ProfileSagas } from "./components/profile-sagas";
+import { ProfileSectionHeader } from "./components/profile-section-header";
 import { ProfileStats } from "./components/profile-stats";
+import { ProfileUpNext } from "./components/profile-up-next";
 import {
 	type PublicProfile,
 	PublicProfileService
@@ -44,20 +40,17 @@ import {
 import {
 	type ComparisonDimension,
 	type PublicFavorite,
-	type PublicGameShelf,
 	PublicLibraryService,
-	type PublicQueue,
 	type UserComparison
 } from "./services/public-library.service";
 import {
-	type PublicList,
-	PublicListsService
-} from "./services/public-lists.service";
-import {
 	type HighlightEntry,
-	PublicReviewsService
+	PublicReviewsService,
+	type ReviewEntry
 } from "./services/public-reviews.service";
 import { PublicSocialService } from "./services/public-social.service";
+
+const LATEST_REVIEWS_COUNT = 4;
 
 @Component({
 	selector: "app-public-profile",
@@ -66,20 +59,22 @@ import { PublicSocialService } from "./services/public-social.service";
 		RouterLink,
 		GameCoverCard,
 		PosterShelf,
+		ProfileAccessState,
 		ProfileActivity,
+		ProfileCollections,
 		ProfileHero,
 		ProfileInCommon,
+		ProfileLists,
 		ProfileMonthReview,
+		ProfilePlayingNow,
+		ProfileReviews,
+		ProfileSagas,
+		ProfileSectionHeader,
 		ProfileStats,
-		StarRating,
+		ProfileUpNext,
 		UiAvatar,
 		UiButton,
-		UiProgress,
-		UiSkeleton,
-		UiTabs,
-		UiTabList,
-		UiTab,
-		UiTabPanel
+		UiSkeleton
 	],
 	templateUrl: "./public-profile.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -90,7 +85,6 @@ export class PublicProfileComponent implements OnInit {
 	private readonly profileService = inject(PublicProfileService);
 	private readonly socialService = inject(PublicSocialService);
 	private readonly libraryService = inject(PublicLibraryService);
-	private readonly listsService = inject(PublicListsService);
 	private readonly reviewsService = inject(PublicReviewsService);
 	private readonly authService = inject(AuthService);
 	private readonly dialogs = inject(DialogService);
@@ -109,8 +103,6 @@ export class PublicProfileComponent implements OnInit {
 	);
 	protected readonly togglingFollow = signal(false);
 	protected readonly showUnfollowConfirm = signal(false);
-	protected readonly activeTab = signal("highlights");
-	protected readonly statusLabel = backlogStatusLabel;
 	protected readonly emptyStats = {
 		not_started: 0,
 		playing: 0,
@@ -148,24 +140,7 @@ export class PublicProfileComponent implements OnInit {
 		);
 	});
 
-	protected readonly listsData = signal<PublicList[] | null>(null);
 	protected readonly favoritesData = signal<PublicFavorite[] | null>(null);
-	protected readonly queueData = signal<PublicQueue[] | null>(null);
-	protected readonly wishlistData = signal<
-		| {
-				id: string;
-				position: number;
-				game: {
-					id: string;
-					code: string;
-					title: string;
-					backgroundUrl?: string;
-				};
-		  }[]
-		| null
-	>(null);
-	protected readonly gameShelfData = signal<PublicGameShelf[] | null>(null);
-	protected readonly followingListsData = signal<PublicList[] | null>(null);
 	protected readonly sagas = signal<FranchiseProgress[]>([]);
 	protected readonly comparison = signal<UserComparison | null>(null);
 	protected readonly comparisonBy = signal<ComparisonDimension>("completed");
@@ -186,6 +161,9 @@ export class PublicProfileComponent implements OnInit {
 	);
 	protected readonly showComparison = computed(
 		() => this.isLoggedIn() && !this.isSelf() && !!this.profile()
+	);
+	protected readonly hasAside = computed(
+		() => this.showComparison() || this.isSelf() || this.sagas().length > 0
 	);
 	protected readonly showActivity = computed(() => {
 		const p = this.profile();
@@ -220,18 +198,6 @@ export class PublicProfileComponent implements OnInit {
 		return year === now.year && month === now.month;
 	});
 	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
-
-	private readonly lazyLoadEffect = effect(() => {
-		const tab = this.activeTab();
-		const p = this.profile();
-		const u = this.username();
-		if (!p || p.isPrivate || !u) return;
-		if (tab === "lists") this.ensureListsLoaded(u);
-		else if (tab === "queue") this.ensureQueueLoaded(u);
-		else if (tab === "wishlist") this.ensureWishlistLoaded(u);
-		else if (tab === "shelf") this.ensureGameShelfLoaded(u);
-		else if (tab === "highlights") this.ensureHighlightsLoaded(u);
-	});
 
 	private currentMonth(): { year: number; month: number } {
 		const now = new Date();
@@ -328,18 +294,6 @@ export class PublicProfileComponent implements OnInit {
 		});
 	}
 
-	private ensureListsLoaded(username: string) {
-		if (this.listsData() !== null) return;
-		this.listsService.getUserLists(username).subscribe({
-			next: res => this.listsData.set(res.items),
-			error: () => this.listsData.set([])
-		});
-		this.listsService.getUserFollowingLists(username).subscribe({
-			next: res => this.followingListsData.set(res.items),
-			error: () => this.followingListsData.set([])
-		});
-	}
-
 	private ensureFavoritesLoaded(username: string) {
 		if (this.favoritesData() !== null) return;
 		this.libraryService.getUserFavorites(username, { limit: 8 }).subscribe({
@@ -355,65 +309,10 @@ export class PublicProfileComponent implements OnInit {
 		});
 	}
 
-	private ensureQueueLoaded(username: string) {
-		if (this.queueData() !== null) return;
-		this.libraryService.getUserQueue(username, { limit: 6 }).subscribe({
-			next: res =>
-				this.queueData.set(
-					res.items.map(e => ({
-						id: e.id,
-						position: e.position,
-						backlog: {
-							id: e.backlog.id,
-							status: e.backlog.status,
-							game: e.backlog.game,
-							platform: e.backlog.platform
-						}
-					}))
-				),
-			error: () => this.queueData.set([])
-		});
-	}
-
-	private ensureWishlistLoaded(username: string) {
-		if (this.wishlistData() !== null) return;
-		this.libraryService.getUserWishlist(username, { limit: 6 }).subscribe({
-			next: res =>
-				this.wishlistData.set(
-					res.items.map(e => ({
-						id: e.id,
-						position: e.position,
-						game: e.game
-					}))
-				),
-			error: () => this.wishlistData.set([])
-		});
-	}
-
-	private ensureGameShelfLoaded(username: string) {
-		if (this.gameShelfData() !== null) return;
-		this.libraryService.getUserGameShelf(username, { limit: 6 }).subscribe({
-			next: res =>
-				this.gameShelfData.set(
-					res.items.map(e => ({
-						id: e.id,
-						game: e.game,
-						platform: e.platform
-					}))
-				),
-			error: () => this.gameShelfData.set([])
-		});
-	}
-	protected readonly userReviews = signal<
-		{
-			id: string;
-			content?: string;
-			rating?: number;
-			playthroughDuration?: number | null;
-			game: { id: string; code: string; title: string } | null;
-			createdAt: string;
-		}[]
-	>([]);
+	protected readonly userReviews = signal<ReviewEntry[]>([]);
+	protected readonly latestReviews = computed(() =>
+		this.userReviews().slice(0, LATEST_REVIEWS_COUNT)
+	);
 	protected readonly userReviewsTotal = signal(0);
 
 	ngOnInit() {
@@ -554,8 +453,10 @@ export class PublicProfileComponent implements OnInit {
 			.catch(() => this.toast.warning("Could not copy the link."));
 	}
 
-	openListsTab() {
-		this.activeTab.set("lists");
+	protected scrollToLists() {
+		document
+			.getElementById("profile-lists")
+			?.scrollIntoView({ behavior: "smooth", block: "start" });
 	}
 
 	openCompletions() {
@@ -597,12 +498,7 @@ export class PublicProfileComponent implements OnInit {
 		this.profile.set(null);
 		this.highlightsData.set(null);
 		this.highlightsMonth.set(this.currentMonth());
-		this.listsData.set(null);
 		this.favoritesData.set(null);
-		this.queueData.set(null);
-		this.wishlistData.set(null);
-		this.gameShelfData.set(null);
-		this.followingListsData.set(null);
 		this.comparison.set(null);
 		this.comparisonBy.set("completed");
 		this.comparisonPrivate.set(false);
@@ -618,8 +514,10 @@ export class PublicProfileComponent implements OnInit {
 					this.isLoading.set(false);
 					return;
 				}
-				this.activeTab.set("highlights");
 				this.isLoading.set(false);
+				if (this.visibility().backlog) {
+					this.ensureHighlightsLoaded(username);
+				}
 				if (
 					this.isSelf() ||
 					data.user.favoriteVisibility !== "private"
