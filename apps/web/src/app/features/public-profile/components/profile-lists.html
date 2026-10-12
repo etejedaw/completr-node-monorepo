@@ -1,0 +1,98 @@
+@if (isLoading()) {
+<div class="flex flex-col gap-2" aria-busy="true" aria-label="Loading lists">
+	@for (i of skeletonRange; track i) {
+	<ui-skeleton variant="rect" class="block h-16 rounded-card" />
+	}
+</div>
+} @else if (groups().length > 0) {
+<section aria-labelledby="profile-lists-heading">
+	<app-profile-section-header
+		heading="Lists"
+		headingId="profile-lists-heading"
+		eyebrow="Curated"
+	/>
+	<div class="grid gap-8" [class.lg:grid-cols-2]="groups().length > 1">
+		@for (group of groups(); track group.title) {
+		<div>
+			<h3
+				class="m-0 mb-1 flex items-baseline gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-fg-muted"
+			>
+				{{ group.title }}
+				<span class="tabular-nums">{{ group.items.length }}</span>
+			</h3>
+			<ul class="list-none m-0 p-0 divide-y divide-line">
+				@for (list of visibleItems(group); track list.id) {
+				<li>
+					<a
+						class="group flex items-center gap-4 py-3 no-underline"
+						[routerLink]="['/lists', list.id]"
+						[queryParams]="{ from: username() }"
+					>
+						<span
+							aria-hidden="true"
+							class="shrink-0 w-10 h-10 inline-flex items-center justify-center rounded-card bg-nav-lists/10 text-nav-lists"
+						>
+							<span class="material-icons"
+								>format_list_bulleted</span
+							>
+						</span>
+						<span class="flex-1 min-w-0">
+							<span
+								class="block text-sm font-medium text-fg truncate group-hover:text-brand"
+								>{{ list.name }}</span
+							>
+							@if (list.description) {
+							<span class="block text-xs text-fg-muted truncate"
+								>{{ list.description }}</span
+							>
+							} @if (list.progress && list.progress.total > 0) {
+							<span class="flex items-center gap-2 mt-1.5">
+								<ui-progress
+									class="flex-1"
+									[value]="list.progress.completed"
+									[max]="list.progress.total"
+									trackClass="h-1"
+									indicatorClass="bg-gradient-to-r from-brand to-success"
+								/>
+								<span
+									class="shrink-0 text-[0.6875rem] text-fg-muted tabular-nums"
+									>{{ list.progress.completed }}/{{
+									list.progress.total }}</span
+								>
+							</span>
+							}
+						</span>
+						<span
+							class="shrink-0 inline-flex items-center gap-1 text-xs text-fg-muted tabular-nums"
+							[attr.aria-label]="list.followerCount + ' followers'"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-sm"
+								>group</span
+							>
+							{{ list.followerCount }}
+						</span>
+					</a>
+				</li>
+				}
+			</ul>
+		</div>
+		}
+	</div>
+	@if (hasHiddenLists()) {
+	<button
+		uiButton
+		variant="ghost"
+		class="mt-3"
+		[attr.aria-expanded]="expanded()"
+		(click)="expanded.set(!expanded())"
+	>
+		{{ expanded() ? 'Show fewer' : 'Show all lists' }}
+		<span aria-hidden="true" class="material-icons text-lg"
+			>{{ expanded() ? 'expand_less' : 'expand_more' }}</span
+		>
+	</button>
+	}
+</section>
+}
