@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -11,6 +12,9 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 
 import { AuthService } from "../../core/services/auth";
 import { DialogService } from "../../core/services/dialog";
+import { ToastService } from "../../core/services/toast";
+import { GameCoverCard } from "../../shared/components/game-cover-card/game-cover-card";
+import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
 import { StarRating } from "../../shared/components/star-rating/star-rating";
 import {
 	UserListModal,
@@ -26,12 +30,13 @@ import {
 	UiTabPanel,
 	UiTabs
 } from "../../shared/ui";
-import {
-	activityIcon,
-	activityIconColorClass,
-	activityLabel
-} from "../../shared/utils/activity-labels";
+import { backlogStatusLabel } from "../../shared/utils/backlog-status";
 import { type FranchiseProgress } from "../franchises/franchises";
+import { ProfileActivity } from "./components/profile-activity";
+import { ProfileHero } from "./components/profile-hero";
+import { ProfileInCommon } from "./components/profile-in-common";
+import { ProfileMonthReview } from "./components/profile-month-review";
+import { ProfileStats } from "./components/profile-stats";
 import {
 	type PublicProfile,
 	PublicProfileService
@@ -57,7 +62,15 @@ import { PublicSocialService } from "./services/public-social.service";
 @Component({
 	selector: "app-public-profile",
 	imports: [
+		NgTemplateOutlet,
 		RouterLink,
+		GameCoverCard,
+		PosterShelf,
+		ProfileActivity,
+		ProfileHero,
+		ProfileInCommon,
+		ProfileMonthReview,
+		ProfileStats,
 		StarRating,
 		UiAvatar,
 		UiButton,
@@ -81,6 +94,7 @@ export class PublicProfileComponent implements OnInit {
 	private readonly reviewsService = inject(PublicReviewsService);
 	private readonly authService = inject(AuthService);
 	private readonly dialogs = inject(DialogService);
+	private readonly toast = inject(ToastService);
 
 	private static readonly HIGHLIGHTS_MONTH_PARAM = "highlightsMonth";
 
@@ -95,35 +109,43 @@ export class PublicProfileComponent implements OnInit {
 	);
 	protected readonly togglingFollow = signal(false);
 	protected readonly showUnfollowConfirm = signal(false);
-	protected readonly isWide = signal(false);
 	protected readonly activeTab = signal("highlights");
-	protected readonly roleBadge = computed(() => {
-		const role = this.profile()?.user.role;
-		if (!role || role === "user") return null;
-		const map: Record<string, string> = {
-			admin: "Admin",
-			moderator: "Mod",
-			premium: "Premium"
-		};
-		return map[role] ?? null;
-	});
-	protected readonly roleBadgeClass = computed(() => {
-		const role = this.profile()?.user.role;
-		if (role === "admin") return "bg-danger/15 text-danger";
-		if (role === "moderator")
-			return "bg-[rgba(168,85,247,0.15)] text-[#a855f7]";
-		if (role === "premium") return "bg-warning/15 text-warning";
-		return "bg-[rgba(148,163,184,0.15)] text-fg-muted";
-	});
-	protected readonly stats = computed(() => {
-		const p = this.profile();
-		if (!p) return { completed: 0, playing: 0, lists: 0, reviews: 0 };
+	protected readonly statusLabel = backlogStatusLabel;
+	protected readonly emptyStats = {
+		not_started: 0,
+		playing: 0,
+		completed: 0,
+		abandoned: 0,
+		total: 0
+	};
+	protected readonly visibility = computed(() => {
+		const user = this.profile()?.user;
+		const self = this.isSelf();
+		const visible = (level: string | undefined) =>
+			self || (!!level && level !== "private");
 		return {
-			completed: p.backlogStats?.completed ?? 0,
-			playing: p.backlogStats?.playing ?? 0,
-			lists: p.listsTotal ?? 0,
-			reviews: this.userReviewsTotal()
+			backlog: visible(user?.backlogVisibility),
+			shelf: visible(user?.shelfVisibility),
+			lists: visible(user?.listVisibility),
+			favorites: visible(user?.favoriteVisibility),
+			queue: visible(user?.queueVisibility),
+			wishlist: visible(user?.wishlistVisibility)
 		};
+	});
+	protected readonly backdropUrl = computed(() => {
+		const fromFavorites = this.favoritesData()?.find(
+			favorite => favorite.game.backgroundUrl
+		)?.game.backgroundUrl;
+		if (fromFavorites) return fromFavorites;
+		const profile = this.profile();
+		return (
+			profile?.backlogs.find(backlog => backlog.game.backgroundUrl)?.game
+				.backgroundUrl ??
+			profile?.recentActivity.find(
+				activity => activity.game?.backgroundUrl
+			)?.game?.backgroundUrl ??
+			null
+		);
 	});
 
 	protected readonly listsData = signal<PublicList[] | null>(null);
@@ -205,23 +227,11 @@ export class PublicProfileComponent implements OnInit {
 		const u = this.username();
 		if (!p || p.isPrivate || !u) return;
 		if (tab === "lists") this.ensureListsLoaded(u);
-		else if (tab === "favorites") this.ensureFavoritesLoaded(u);
 		else if (tab === "queue") this.ensureQueueLoaded(u);
 		else if (tab === "wishlist") this.ensureWishlistLoaded(u);
 		else if (tab === "shelf") this.ensureGameShelfLoaded(u);
 		else if (tab === "highlights") this.ensureHighlightsLoaded(u);
 	});
-
-	private pickDefaultTab(profile: PublicProfile): string {
-		const u = profile.user;
-		if (u.backlogVisibility !== "private") return "highlights";
-		if (u.shelfVisibility !== "private") return "shelf";
-		if (u.listVisibility !== "private") return "lists";
-		if (u.favoriteVisibility !== "private") return "favorites";
-		if (u.queueVisibility !== "private") return "queue";
-		if (u.wishlistVisibility !== "private") return "wishlist";
-		return "reviews";
-	}
 
 	private currentMonth(): { year: number; month: number } {
 		const now = new Date();
@@ -332,7 +342,7 @@ export class PublicProfileComponent implements OnInit {
 
 	private ensureFavoritesLoaded(username: string) {
 		if (this.favoritesData() !== null) return;
-		this.libraryService.getUserFavorites(username, { limit: 6 }).subscribe({
+		this.libraryService.getUserFavorites(username, { limit: 8 }).subscribe({
 			next: res =>
 				this.favoritesData.set(
 					res.items.map(e => ({
@@ -407,11 +417,6 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly userReviewsTotal = signal(0);
 
 	ngOnInit() {
-		if (typeof window !== "undefined" && window.matchMedia) {
-			const mql = window.matchMedia("(min-width: 1024px)");
-			this.isWide.set(mql.matches);
-			mql.addEventListener("change", e => this.isWide.set(e.matches));
-		}
 		if (this.authService.token() && !this.authService.user()) {
 			this.authService.loadUser().subscribe({
 				next: () => this.init(),
@@ -534,37 +539,27 @@ export class PublicProfileComponent implements OnInit {
 		});
 	}
 
-	protected activityLabel = activityLabel;
-	protected activityIcon = activityIcon;
-	protected activityIconColorClass = activityIconColorClass;
-
-	protected timeAgo(date: string): string {
-		const diff = Date.now() - new Date(date).getTime();
-		const minutes = Math.floor(diff / 60000);
-		if (minutes < 1) return "just now";
-		if (minutes < 60) return `${minutes}m ago`;
-		const hours = Math.floor(minutes / 60);
-		if (hours < 24) return `${hours}h ago`;
-		const days = Math.floor(hours / 24);
-		return `${days}d ago`;
+	shareProfile() {
+		const url = window.location.href.split("?")[0];
+		const name = this.profile()?.user.name || this.username();
+		if (navigator.share) {
+			navigator
+				.share({ title: `${name} on Completr`, url })
+				.catch(() => undefined);
+			return;
+		}
+		navigator.clipboard
+			?.writeText(url)
+			.then(() => this.toast.success("Profile link copied."))
+			.catch(() => this.toast.warning("Could not copy the link."));
 	}
 
-	protected get memberSince(): string {
-		const date = this.profile()?.user.createdAt;
-		if (!date) return "";
-		return new Date(date).toLocaleDateString("en-US", {
-			year: "numeric",
-			month: "long"
-		});
+	openListsTab() {
+		this.activeTab.set("lists");
 	}
 
-	protected comparisonBtnClass(value: ComparisonDimension) {
-		const base =
-			"px-3 py-1.5 rounded-full text-sm font-medium border transition cursor-pointer ";
-		return this.comparisonBy() === value
-			? base + "border-brand bg-brand/20 text-brand"
-			: base +
-					"border-line text-fg-muted hover:text-fg hover:border-brand/40";
+	openCompletions() {
+		this.router.navigate(["/user", this.username(), "completions"]);
 	}
 
 	protected changeComparison(by: ComparisonDimension) {
@@ -621,8 +616,14 @@ export class PublicProfileComponent implements OnInit {
 					this.isLoading.set(false);
 					return;
 				}
-				this.activeTab.set(this.pickDefaultTab(data));
+				this.activeTab.set("highlights");
 				this.isLoading.set(false);
+				if (
+					this.isSelf() ||
+					data.user.favoriteVisibility !== "private"
+				) {
+					this.ensureFavoritesLoaded(username);
+				}
 				this.reviewsService
 					.getUserReviews(username, { limit: 5 })
 					.subscribe(r => {

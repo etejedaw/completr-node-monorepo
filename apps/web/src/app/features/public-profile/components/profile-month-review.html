@@ -1,0 +1,124 @@
+<section aria-labelledby="month-review-heading" [attr.aria-busy]="loading()">
+	<header class="flex items-center justify-between gap-3 mb-4">
+		<div>
+			<span
+				class="block text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand"
+				>Month in review</span
+			>
+			<h2
+				id="month-review-heading"
+				class="m-0 mt-1 font-display text-xl sm:text-2xl font-bold tracking-tight"
+			>
+				{{ monthLabel() }}
+			</h2>
+		</div>
+		<div class="flex items-center gap-1">
+			<button
+				type="button"
+				class="inline-flex items-center justify-center w-9 h-9 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] rounded-full bg-surface border border-line text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed"
+				[disabled]="loading()"
+				aria-label="Previous month"
+				(click)="previousMonth.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-xl"
+					>chevron_left</span
+				>
+			</button>
+			<button
+				type="button"
+				class="inline-flex items-center justify-center w-9 h-9 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] rounded-full bg-surface border border-line text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed"
+				[disabled]="!canGoNext() || loading()"
+				aria-label="Next month"
+				(click)="nextMonth.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-xl"
+					>chevron_right</span
+				>
+			</button>
+		</div>
+	</header>
+
+	<div
+		class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] transition-opacity"
+		[class.opacity-50]="loading()"
+	>
+		<div
+			class="flex flex-col justify-between gap-6 p-5 rounded-card border border-line bg-[radial-gradient(circle_at_100%_0%,var(--color-brand-subtle),transparent_70%)] bg-surface"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-2xl text-success"
+				>emoji_events</span
+			>
+			<p class="m-0">
+				<span
+					class="block font-display text-5xl font-bold text-fg tabular-nums leading-none"
+					>{{ completedCount() }}</span
+				>
+				<span class="block mt-1.5 text-sm text-fg-muted"
+					>{{ completedCount() === 1 ? 'game' : 'games' }}
+					completed</span
+				>
+			</p>
+		</div>
+
+		@for (highlight of [mostPlayed(), highestRated()]; track $index; let
+		first = $first) { @if (highlight; as entry) {
+		<a
+			class="group relative isolate flex items-end gap-4 min-h-[9.5rem] p-4 rounded-card overflow-hidden border border-line no-underline transition hover:border-brand/50"
+			[routerLink]="['/games', entry.game.code]"
+		>
+			@if (entry.game.backgroundUrl) {
+			<img
+				[src]="entry.game.backgroundUrl | coverUrl: 640"
+				alt=""
+				aria-hidden="true"
+				loading="lazy"
+				class="absolute inset-0 -z-10 w-full h-full object-cover opacity-45 transition duration-500 group-hover:scale-105 group-hover:opacity-60"
+			/>
+			}
+			<span
+				aria-hidden="true"
+				class="absolute inset-0 -z-10 bg-gradient-to-t from-canvas via-canvas/75 to-canvas/20"
+			></span>
+			<app-game-poster
+				[src]="entry.game.backgroundUrl"
+				[title]="entry.game.title"
+				[width]="200"
+				[compact]="true"
+				class="w-14 aspect-[2/3] shrink-0 rounded-md ring-1 ring-white/15 shadow-lg shadow-black/60"
+			/>
+			<span class="flex-1 min-w-0 flex flex-col gap-1">
+				<span
+					class="inline-flex items-center gap-1 text-[0.625rem] font-semibold uppercase tracking-[0.16em]"
+					[class]="first ? 'text-warning' : 'text-success'"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>{{ first ? 'schedule' : 'star' }}</span
+					>
+					{{ first ? 'Most played' : 'Highest rated' }}
+				</span>
+				<span
+					class="font-display text-base font-semibold text-white leading-tight line-clamp-2"
+					>{{ entry.game.title }}</span
+				>
+				<span class="text-xs text-white/70 tabular-nums">
+					@if (first && entry.realDuration) { {{ entry.realDuration
+					}}h played } @else if (!first && entry.userRating) { ★ {{
+					entry.userRating }} } @else { {{ entry.platform.abbreviation
+					}} }
+				</span>
+			</span>
+		</a>
+		} @else {
+		<div
+			class="flex flex-col items-center justify-center gap-1.5 min-h-[9.5rem] p-4 rounded-card border border-dashed border-line text-center text-sm text-fg-muted"
+		>
+			<span aria-hidden="true" class="material-icons text-xl"
+				>{{ first ? 'schedule' : 'star_border' }}</span
+			>
+			{{ first ? 'No playtime logged' : 'No ratings this month' }}
+		</div>
+		} }
+	</div>
+</section>
