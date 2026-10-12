@@ -1,24 +1,32 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
-import { RouterLink } from "@angular/router";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
 import { type WishlistEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
-import { MoodTagsChips } from "../../../shared/components/mood-tags-chips/mood-tags-chips";
+import { ToastService } from "../../../core/services/toast";
+import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import {
+	countByPlatform,
+	matchesPlatform,
+	PlatformFilter
+} from "../../../shared/components/platform-filter/platform-filter";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
 	UiPremiumBadge,
-	UiSearchBar
+	UiSearchBar,
+	UiSkeleton
 } from "../../../shared/ui";
 import { FavoritesService } from "../../favorites/favorites";
 import { WishlistService } from "../wishlist";
@@ -30,14 +38,16 @@ import {
 @Component({
 	selector: "app-wishlist-view",
 	imports: [
-		RouterLink,
+		GameCoverCard,
+		LibraryHero,
+		PlatformFilter,
+		PremiumOnly,
 		UiButton,
 		UiEmptyState,
 		UiPagination,
 		UiPremiumBadge,
 		UiSearchBar,
-		MoodTagsChips,
-		PremiumOnly
+		UiSkeleton
 	],
 	templateUrl: "./wishlist-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -46,19 +56,32 @@ export class WishlistView implements OnInit {
 	private readonly wishlistService = inject(WishlistService);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly dialogs = inject(DialogService);
+	private readonly toast = inject(ToastService);
 
 	protected readonly isPremium = inject(AuthService).isPremium;
-	protected readonly entries = signal<WishlistEntry[]>([]);
+	protected readonly allEntries = signal<WishlistEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
+	protected readonly selectedPlatform = signal("");
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
+	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);
 
-	onOffsetChange(offset: number) {
-		this.offset.set(offset);
-		this.loadWishlist();
-	}
+	protected readonly platformCounts = computed(() =>
+		countByPlatform(this.allEntries(), entry => entry.platform)
+	);
+	protected readonly entries = computed(() =>
+		this.allEntries().filter(entry =>
+			matchesPlatform(entry.platform, this.selectedPlatform())
+		)
+	);
+	protected readonly heroPosters = computed(() =>
+		this.allEntries().map(entry => ({
+			src: entry.game.backgroundUrl,
+			title: entry.game.title
+		}))
+	);
 
 	private readonly searchSubject = new Subject<string>();
 
@@ -77,9 +100,7 @@ export class WishlistView implements OnInit {
 		return this.favoritesService.isFavorite(gameId);
 	}
 
-	toggleFavorite(gameId: string, event: Event) {
-		event.preventDefault();
-		event.stopPropagation();
+	toggleFavorite(gameId: string) {
 		this.favoritesService.toggle(gameId).subscribe();
 	}
 
@@ -93,10 +114,35 @@ export class WishlistView implements OnInit {
 		this.searchSubject.next(query);
 	}
 
+	clearSearchAndFilter() {
+		this.selectedPlatform.set("");
+		this.onSearch("");
+	}
+
+	onOffsetChange(offset: number) {
+		this.offset.set(offset);
+		this.loadWishlist();
+	}
+
 	remove(entry: WishlistEntry) {
-		this.wishlistService.remove(entry.game.id).subscribe(() => {
-			this.entries.set(this.entries().filter(e => e.id !== entry.id));
-			this.total.set(this.total() - 1);
+		const snapshot = this.allEntries();
+		const previousTotal = this.total();
+		this.allEntries.set(snapshot.filter(e => e.id !== entry.id));
+		this.total.set(previousTotal - 1);
+		this.toast.pending({
+			message: `Removed ${entry.game.title} from Want to Get`,
+			onCommit: () =>
+				this.wishlistService.remove(entry.game.id).subscribe({
+					error: () => {
+						this.allEntries.set(snapshot);
+						this.total.set(previousTotal);
+						this.toast.error("Could not remove the game.");
+					}
+				}),
+			onUndo: () => {
+				this.allEntries.set(snapshot);
+				this.total.set(previousTotal);
+			}
 		});
 	}
 
@@ -119,7 +165,7 @@ export class WishlistView implements OnInit {
 			})
 			.subscribe({
 				next: res => {
-					this.entries.set(res.data.wishlist);
+					this.allEntries.set(res.data.wishlist);
 					this.total.set(res.data.total ?? res.data.wishlist.length);
 					this.isLoading.set(false);
 				},
