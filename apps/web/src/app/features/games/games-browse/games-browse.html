@@ -347,7 +347,7 @@
 	} @else if (isInitialLoad()) {
 	<div class="text-center py-20 text-fg-muted text-sm">Loading games...</div>
 	} @else if (activeFiltersCount() === 0) { @if (featured(); as hero) {
-	<section class="relative -mx-6 lg:-mx-8 max-md:-mx-4 mb-12 overflow-hidden">
+	<section class="bleed relative mb-12 overflow-hidden">
 		<a
 			[routerLink]="['/games', hero.code]"
 			class="block relative h-[420px] md:h-[520px] no-underline group"
@@ -381,9 +381,7 @@
 				"
 			></div>
 
-			<div
-				class="absolute inset-x-0 bottom-0 px-6 lg:px-12 max-md:px-4 pb-10 pt-8 max-w-4xl"
-			>
+			<div class="bleed-inner absolute inset-x-0 bottom-0 pb-10 pt-8">
 				<div class="flex items-center gap-2 mb-3">
 					<span
 						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand text-white"

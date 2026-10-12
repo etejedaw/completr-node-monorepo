@@ -1,6 +1,6 @@
 <div class="max-w-full">
 	<header
-		class="relative isolate overflow-hidden -mx-6 -mt-6 lg:-mx-8 lg:-mt-8 max-md:-mx-4 max-md:-mt-14 mb-6 border-b border-line"
+		class="bleed bleed-top relative isolate overflow-hidden mb-6 border-b border-line"
 	>
 		<div aria-hidden="true" class="absolute inset-0 -z-10 overflow-hidden">
 			<div
@@ -25,7 +25,7 @@
 		</div>
 
 		<div
-			class="px-6 lg:px-8 max-md:px-4 pt-20 sm:pt-24 pb-0 flex flex-col gap-6"
+			class="bleed-inner pt-[calc(var(--topbar-height)+3rem)] sm:pt-[calc(var(--topbar-height)+4.5rem)] pb-0 flex flex-col gap-6"
 		>
 			<div
 				class="flex flex-col sm:flex-row sm:items-end justify-between gap-4"
@@ -180,7 +180,7 @@
 	</header>
 
 	<div
-		class="sticky top-0 z-30 -mx-6 lg:-mx-8 max-md:-mx-4 px-6 lg:px-8 max-md:px-4 py-3 mb-4 bg-canvas/85 backdrop-blur-md border-b border-line/60 max-md:static"
+		class="bleed bleed-inner sticky top-[var(--topbar-height)] z-30 py-3 mb-4 bg-canvas/85 backdrop-blur-md border-b border-line/60 max-md:static"
 	>
 		<div class="flex flex-wrap items-center gap-2">
 			<ui-search-bar
