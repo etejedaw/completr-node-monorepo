@@ -19,7 +19,6 @@ import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
-import { type QueueStatusChange } from "../../../shared/components/queue-grid-card/queue-grid-card";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
@@ -27,8 +26,7 @@ import {
 	UiInput,
 	UiPagination,
 	UiPremiumBadge,
-	UiSearchBar,
-	UiSkeleton
+	UiSearchBar
 } from "../../../shared/ui";
 import { BacklogService } from "../../backlog/backlog";
 import { FavoritesService } from "../../favorites/favorites";
@@ -38,16 +36,15 @@ import {
 	type QueueAddModalData
 } from "../queue-add-modal/queue-add-modal";
 import { QueueNextCard } from "../queue-next-card/queue-next-card";
+import {
+	queueFeaturedEyebrow,
+	type QueueSort,
+	type QueueStatusChange,
+	sortQueueEntries
+} from "../queue-order";
 import { QueueRow } from "../queue-row/queue-row";
-
-type QueueSort = "manual" | "ratio" | "score" | "duration";
-
-const SORT_OPTIONS: { value: QueueSort; label: string }[] = [
-	{ value: "manual", label: "My order" },
-	{ value: "ratio", label: "Ratio" },
-	{ value: "score", label: "Score" },
-	{ value: "duration", label: "Shortest" }
-];
+import { QueueSkeleton } from "../queue-skeleton/queue-skeleton";
+import { QueueSortControl } from "../queue-sort-control/queue-sort-control";
 
 @Component({
 	selector: "app-queue-view",
@@ -57,9 +54,10 @@ const SORT_OPTIONS: { value: QueueSort; label: string }[] = [
 		UiPagination,
 		UiPremiumBadge,
 		UiSearchBar,
-		UiSkeleton,
 		QueueNextCard,
 		QueueRow,
+		QueueSkeleton,
+		QueueSortControl,
 		CdkDropList,
 		CdkDrag,
 		PremiumOnly,
@@ -77,10 +75,8 @@ export class QueueView implements OnInit {
 
 	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly pointer = inject(PointerService);
-	protected readonly sortOptions = SORT_OPTIONS;
 	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);
-	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
 	protected readonly searchQuery = signal("");
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
@@ -104,32 +100,9 @@ export class QueueView implements OnInit {
 		this.loadQueue();
 	}
 
-	setSort(sort: QueueSort) {
-		this.sortBy.set(sort);
-	}
-
-	protected readonly filteredEntries = computed(() => {
-		const sort = this.sortBy();
-		const list = this.entries();
-		if (sort === "manual") return list;
-		const sorted = [...list];
-		if (sort === "ratio") {
-			sorted.sort(
-				(a, b) => (b.backlog.ratio ?? -1) - (a.backlog.ratio ?? -1)
-			);
-		} else if (sort === "score") {
-			sorted.sort(
-				(a, b) => (b.backlog.score ?? -1) - (a.backlog.score ?? -1)
-			);
-		} else if (sort === "duration") {
-			sorted.sort(
-				(a, b) =>
-					(a.backlog.duration ?? Number.POSITIVE_INFINITY) -
-					(b.backlog.duration ?? Number.POSITIVE_INFINITY)
-			);
-		}
-		return sorted;
-	});
+	protected readonly filteredEntries = computed(() =>
+		sortQueueEntries(this.entries(), this.sortBy())
+	);
 
 	protected readonly featured = computed(() => {
 		if (this.offset() > 0 || this.searchQuery().trim()) return null;
@@ -142,13 +115,9 @@ export class QueueView implements OnInit {
 	);
 	protected readonly restOffset = computed(() => (this.featured() ? 1 : 0));
 	protected readonly isManual = computed(() => this.sortBy() === "manual");
-	protected readonly featuredEyebrow = computed(() => {
-		const sort = this.sortBy();
-		if (sort === "ratio") return "Best ratio";
-		if (sort === "score") return "Highest score";
-		if (sort === "duration") return "Quickest to beat";
-		return "Play next";
-	});
+	protected readonly featuredEyebrow = computed(() =>
+		queueFeaturedEyebrow(this.sortBy())
+	);
 
 	saveCurrentOrder() {
 		if (this.sortBy() === "manual" || this.savingOrder()) return;
