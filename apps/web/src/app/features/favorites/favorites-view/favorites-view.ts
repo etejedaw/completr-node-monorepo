@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
@@ -16,15 +17,17 @@ import {
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
+import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
 	UiPremiumBadge,
-	UiSearchBar,
-	UiSkeleton
+	UiSearchBar
 } from "../../../shared/ui";
 import { BacklogService } from "../../backlog/backlog";
 import {
@@ -39,14 +42,16 @@ import { FavoritesService } from "../favorites";
 	selector: "app-favorites-view",
 	imports: [
 		RouterLink,
+		CoverGrid,
+		GameCoverCard,
+		LibraryHero,
+		LibraryToolbar,
+		PremiumOnly,
 		UiButton,
 		UiEmptyState,
 		UiPagination,
 		UiPremiumBadge,
-		UiSearchBar,
-		UiSkeleton,
-		GameCoverCard,
-		PremiumOnly
+		UiSearchBar
 	],
 	templateUrl: "./favorites-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -61,11 +66,16 @@ export class FavoritesView implements OnInit {
 	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly entries = signal<FavoriteEntry[]>([]);
 	protected readonly isLoading = signal(true);
-	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);
 	protected readonly searchQuery = signal("");
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
+	protected readonly heroPosters = computed(() =>
+		this.entries().map(entry => ({
+			src: entry.game.backgroundUrl,
+			title: entry.game.title
+		}))
+	);
 
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
@@ -135,21 +145,34 @@ export class FavoritesView implements OnInit {
 	}
 
 	remove(entry: FavoriteEntry) {
-		this.entries.set(this.entries().filter(e => e.id !== entry.id));
-		this.total.set(Math.max(0, this.total() - 1));
+		const snapshot = this.entries();
+		const previousTotal = this.total();
+		const restore = () => {
+			this.entries.set(snapshot);
+			this.total.set(previousTotal);
+		};
+		this.entries.set(
+			this.renumber(snapshot.filter(e => e.id !== entry.id))
+		);
+		this.total.set(Math.max(0, previousTotal - 1));
 		this.toast.pending({
 			message: `Removed ${entry.game.title} from favorites`,
-			onCommit: () => {
-				this.favoritesService.removeFavorite(entry.game.id).subscribe();
-			},
-			onUndo: () => {
-				const restored = [...this.entries(), entry].sort(
-					(a, b) => a.position - b.position
-				);
-				this.entries.set(restored);
-				this.total.set(this.total() + 1);
-			}
+			onCommit: () =>
+				this.favoritesService.removeFavorite(entry.game.id).subscribe({
+					error: () => {
+						restore();
+						this.toast.error("Could not remove the favorite.");
+					}
+				}),
+			onUndo: restore
 		});
+	}
+
+	private renumber(entries: FavoriteEntry[]): FavoriteEntry[] {
+		return entries.map((entry, index) => ({
+			...entry,
+			position: this.offset() + index + 1
+		}));
 	}
 
 	private loadFavorites() {
