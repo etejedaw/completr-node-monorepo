@@ -33,6 +33,7 @@ import {
 	type Platform
 } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
+import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
 import { EntryAnnotation } from "../../../shared/components/entry-annotation/entry-annotation";
 import { FlipCard } from "../../../shared/components/flip-card/flip-card";
@@ -43,8 +44,10 @@ import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-t
 import { RatioSummary } from "../../../shared/components/ratio-summary/ratio-summary";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { FloatingXScrollbar } from "../../../shared/directives/floating-x-scrollbar";
+import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import {
+	UiBottomSheet,
 	UiButton,
 	UiEmptyState,
 	UiIconButton,
@@ -98,6 +101,11 @@ interface PendingStatusUpdate {
 	notes: string;
 }
 
+interface RatingSheetState {
+	entry: BacklogEntry;
+	value: number | null;
+}
+
 const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 	"playing",
 	"endless",
@@ -115,6 +123,8 @@ const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		GamePoster,
 		EntryAnnotation,
 		FlipCard,
+		SwipeActions,
+		UiBottomSheet,
 		RatioSummary,
 		FloatingXScrollbar,
 		RouterLink,
@@ -163,6 +173,10 @@ export class BacklogList implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
 	protected readonly activeStatuses = signal<Set<string>>(new Set());
+	protected readonly pointer = inject(PointerService);
+	protected readonly statusSheetEntry = signal<BacklogEntry | null>(null);
+	protected readonly ratingSheet = signal<RatingSheetState | null>(null);
+	protected readonly toolsSheetOpen = signal(false);
 	protected readonly flippedEntryIds = signal<ReadonlySet<string>>(new Set());
 
 	protected readonly heroPosters = computed(() => {
@@ -948,6 +962,10 @@ export class BacklogList implements OnInit {
 
 	toggleStatusMenu(entry: BacklogEntry, event: Event) {
 		event.stopPropagation();
+		if (this.pointer.isCoarse()) {
+			this.statusSheetEntry.set(entry);
+			return;
+		}
 		const current = this.statusMenuOpenId();
 		this.statusMenuOpenId.set(current === entry.id ? null : entry.id);
 	}
@@ -1122,8 +1140,8 @@ export class BacklogList implements OnInit {
 		return this.favoritesService.isFavorite(gameId);
 	}
 
-	toggleFavorite(gameId: string, event: Event) {
-		event.stopPropagation();
+	toggleFavorite(gameId: string, event?: Event) {
+		event?.stopPropagation();
 		this.favoritesService.toggle(gameId).subscribe();
 	}
 
@@ -1137,6 +1155,43 @@ export class BacklogList implements OnInit {
 		this.queueService.removeByBacklogId(entry.id).subscribe(() => {
 			this.loadQueueIds();
 		});
+	}
+
+	protected selectStatusFromSheet(
+		entry: BacklogEntry,
+		status: string,
+		event: Event
+	) {
+		this.statusSheetEntry.set(null);
+		this.selectNewStatus(entry, status, event);
+	}
+
+	protected openRatingSheet(entry: BacklogEntry, event: Event) {
+		event.stopPropagation();
+		this.ratingSheet.set({ entry, value: entry.userRating ?? null });
+	}
+
+	protected updateRatingDraft(value: number | null) {
+		this.ratingSheet.update(sheet => (sheet ? { ...sheet, value } : sheet));
+	}
+
+	protected saveRatingSheet() {
+		const sheet = this.ratingSheet();
+		if (!sheet) return;
+		this.ratingSheet.set(null);
+		if (sheet.value !== (sheet.entry.userRating ?? null)) {
+			this.onQuickRate(sheet.entry, sheet.value);
+		}
+	}
+
+	protected openFiltersFromSheet() {
+		this.toolsSheetOpen.set(false);
+		this.toggleFilters();
+	}
+
+	protected openStatsFromSheet() {
+		this.toolsSheetOpen.set(false);
+		this.toggleStatsPanel();
 	}
 
 	protected hasAnnotations(entry: BacklogEntry): boolean {
