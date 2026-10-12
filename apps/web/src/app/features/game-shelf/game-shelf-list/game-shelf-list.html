@@ -19,38 +19,12 @@
 		Add to Shelf
 	</button>
 	} @if (platformCounts().length > 1) {
-	<nav aria-label="Filter by platform" class="flex flex-wrap gap-2 pb-5">
-		<button
-			type="button"
-			class="inline-flex items-center gap-1.5 h-9 pointer-coarse:min-h-[44px] px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg"
-			[class.!text-brand]="selectedPlatform() === ''"
-			[class.!border-brand]="selectedPlatform() === ''"
-			[class.!bg-brand-subtle]="selectedPlatform() === ''"
-			[attr.aria-pressed]="selectedPlatform() === ''"
-			(click)="filterByPlatform('')"
-		>
-			All
-			<span class="text-xs text-fg-muted tabular-nums"
-				>{{ allEntries().length }}</span
-			>
-		</button>
-		@for (platform of platformCounts(); track platform.id) {
-		<button
-			type="button"
-			class="inline-flex items-center gap-1.5 h-9 pointer-coarse:min-h-[44px] px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg"
-			[class.!text-brand]="selectedPlatform() === platform.id"
-			[class.!border-brand]="selectedPlatform() === platform.id"
-			[class.!bg-brand-subtle]="selectedPlatform() === platform.id"
-			[attr.aria-pressed]="selectedPlatform() === platform.id"
-			(click)="filterByPlatform(platform.id)"
-		>
-			{{ platform.abbreviation }}
-			<span class="text-xs text-fg-muted tabular-nums"
-				>{{ platform.count }}</span
-			>
-		</button>
-		}
-	</nav>
+	<app-platform-filter
+		class="pb-5"
+		[platforms]="platformCounts()"
+		[total]="allEntries().length"
+		[(selected)]="selectedPlatform"
+	/>
 	}
 </app-library-hero>
 

@@ -20,6 +20,11 @@ import { GameCoverCard } from "../../../shared/components/game-cover-card/game-c
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
+	countByPlatform,
+	matchesPlatform,
+	PlatformFilter
+} from "../../../shared/components/platform-filter/platform-filter";
+import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
@@ -43,12 +48,6 @@ import {
 	type GameShelfModalResult
 } from "../game-shelf-modal/game-shelf-modal";
 
-interface PlatformCount {
-	id: string;
-	abbreviation: string;
-	count: number;
-}
-
 type ShelfViewMode = "grid" | "table" | "calendar";
 
 const VIEW_MODE_STORAGE_KEY = "completr.shelf.viewMode";
@@ -64,21 +63,6 @@ function readStoredViewMode(): ShelfViewMode {
 	return saved === "table" || saved === "calendar" ? saved : "grid";
 }
 
-function countByPlatform(entries: GameShelfEntry[]): PlatformCount[] {
-	const counts = new Map<string, PlatformCount>();
-	for (const entry of entries) {
-		const existing = counts.get(entry.platform.id);
-		if (existing) existing.count++;
-		else
-			counts.set(entry.platform.id, {
-				id: entry.platform.id,
-				abbreviation: entry.platform.abbreviation,
-				count: 1
-			});
-	}
-	return [...counts.values()].sort((a, b) => b.count - a.count);
-}
-
 @Component({
 	selector: "app-game-shelf-list",
 	imports: [
@@ -91,6 +75,7 @@ function countByPlatform(entries: GameShelfEntry[]): PlatformCount[] {
 		GameTitleCell,
 		GameShelfCalendar,
 		LibraryHero,
+		PlatformFilter,
 		UiSkeleton
 	],
 	templateUrl: "./game-shelf-list.html",
@@ -123,13 +108,13 @@ export class GameShelfList implements OnInit {
 	protected readonly viewMode = signal<ShelfViewMode>(readStoredViewMode());
 
 	protected readonly platformCounts = computed(() =>
-		countByPlatform(this.allEntries())
+		countByPlatform(this.allEntries(), entry => entry.platform)
 	);
-	protected readonly entries = computed(() => {
-		const platform = this.selectedPlatform();
-		const all = this.allEntries();
-		return platform ? all.filter(e => e.platform.id === platform) : all;
-	});
+	protected readonly entries = computed(() =>
+		this.allEntries().filter(entry =>
+			matchesPlatform(entry.platform, this.selectedPlatform())
+		)
+	);
 	protected readonly heroPosters = computed(() =>
 		this.allEntries().map(entry => ({
 			src: entry.game.backgroundUrl,
@@ -221,10 +206,6 @@ export class GameShelfList implements OnInit {
 			return;
 		}
 		this.searchSubject.next(query);
-	}
-
-	filterByPlatform(platformId: string) {
-		this.selectedPlatform.set(platformId);
 	}
 
 	clearSearchAndFilter() {
