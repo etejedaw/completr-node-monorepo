@@ -21,6 +21,7 @@ export class QueueRow {
 	readonly entry = input.required<QueueEntry>();
 	readonly position = input.required<number>();
 	readonly reorderable = input(false);
+	readonly readonly = input(false);
 	readonly isFirst = input(false);
 	readonly isLast = input(false);
 	readonly isFavorite = input(false);

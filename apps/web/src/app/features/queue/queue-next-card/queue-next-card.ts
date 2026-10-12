@@ -20,6 +20,7 @@ import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 export class QueueNextCard {
 	readonly entry = input.required<QueueEntry>();
 	readonly eyebrow = input("Play next");
+	readonly readonly = input(false);
 	readonly isFavorite = input(false);
 	readonly statusUpdating = input(false);
 	readonly canMoveDown = input(false);
