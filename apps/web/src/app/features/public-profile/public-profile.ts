@@ -559,7 +559,9 @@ export class PublicProfileComponent implements OnInit {
 	}
 
 	openCompletions() {
-		this.router.navigate(["/user", this.username(), "completions"]);
+		this.router.navigate(["/user", this.username(), "backlog"], {
+			queryParams: { status: "completed" }
+		});
 	}
 
 	protected changeComparison(by: ComparisonDimension) {

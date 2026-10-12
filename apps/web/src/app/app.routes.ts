@@ -1,5 +1,5 @@
 import { inject } from "@angular/core";
-import { type Routes } from "@angular/router";
+import { Router, type Routes } from "@angular/router";
 
 import { adminGuard } from "./core/guards/admin.guard";
 import { authGuard } from "./core/guards/auth.guard";
@@ -61,9 +61,10 @@ const publicProfileRoutes: Routes = [
 	},
 	{
 		path: "user/:username/completions",
-		loadComponent: () =>
-			import("./features/public-profile/user-completions/user-completions").then(
-				m => m.UserCompletions
+		redirectTo: ({ params }) =>
+			inject(Router).createUrlTree(
+				["/user", params["username"], "backlog"],
+				{ queryParams: { status: "completed" } }
 			)
 	},
 	{

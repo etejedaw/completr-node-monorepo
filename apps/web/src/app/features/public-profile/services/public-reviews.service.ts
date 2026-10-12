@@ -25,17 +25,6 @@ export interface ReviewEntry {
 	createdAt: string;
 }
 
-export interface CompletionEntry {
-	id: string;
-	status: string;
-	userRating?: number | null;
-	realDuration?: number | null;
-	finishedAt?: string | null;
-	reviewContent: string | null;
-	game: GameSummary;
-	platform: { id: string; abbreviation: string };
-}
-
 export interface HighlightsData {
 	recent: HighlightEntry[];
 	month: {
@@ -60,20 +49,6 @@ export class PublicReviewsService {
 			.get<{
 				data: { reviews: ReviewEntry[]; total: number };
 			}>(`${environment.apiUrl}/users/${username}/reviews`, { params })
-			.pipe(map(res => res.data));
-	}
-
-	getUserCompletions(
-		username: string,
-		opts: { limit?: number; offset?: number } = {}
-	) {
-		const params = buildHttpParams(opts);
-		return this.http
-			.get<{
-				data: { completions: CompletionEntry[]; total: number };
-			}>(`${environment.apiUrl}/users/${username}/completions`, {
-				params
-			})
 			.pipe(map(res => res.data));
 	}
 
