@@ -35,13 +35,12 @@ import {
 import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
+import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { EntryAnnotation } from "../../../shared/components/entry-annotation/entry-annotation";
-import { FlipCard } from "../../../shared/components/flip-card/flip-card";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
-import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
-import { RatioSummary } from "../../../shared/components/ratio-summary/ratio-summary";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { FloatingXScrollbar } from "../../../shared/directives/floating-x-scrollbar";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
@@ -120,12 +119,11 @@ const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		SurpriseMe,
 		StarRating,
 		GameTitleCell,
-		GamePoster,
+		BacklogEntryCard,
+		LibraryHero,
 		EntryAnnotation,
-		FlipCard,
 		SwipeActions,
 		UiBottomSheet,
-		RatioSummary,
 		FloatingXScrollbar,
 		RouterLink,
 		UiButton,
@@ -214,17 +212,12 @@ export class BacklogList implements OnInit {
 	});
 	protected readonly flippedEntryIds = signal<ReadonlySet<string>>(new Set());
 
-	protected readonly heroPosters = computed(() => {
-		const posters = this.entries().map(entry => ({
+	protected readonly heroPosters = computed(() =>
+		this.entries().map(entry => ({
 			src: entry.game.backgroundUrl,
 			title: entry.game.title
-		}));
-		if (posters.length === 0) return [];
-		return Array.from(
-			{ length: 14 },
-			(_, i) => posters[i % posters.length]!
-		);
-	});
+		}))
+	);
 	protected readonly sortBy = signal("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
 	protected readonly queueBacklogIds = signal<Set<string>>(new Set());
@@ -1242,10 +1235,6 @@ export class BacklogList implements OnInit {
 	protected reorderViewsFromSheet() {
 		this.viewsSheetOpen.set(false);
 		this.openReorderModal();
-	}
-
-	protected hasAnnotations(entry: BacklogEntry): boolean {
-		return !!entry.notes || (!!entry.hasReview && !!entry.reviewContent);
 	}
 
 	protected isFlipped(entryId: string): boolean {
