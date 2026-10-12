@@ -8,7 +8,7 @@ import { User } from "../users/user.model";
 import * as reviewsServiceError from "./errors/reviews.service-error";
 import { Review } from "./review.model";
 
-const REVIEW_GAME_ATTRS = ["id", "code", "title"];
+const REVIEW_GAME_ATTRS = ["id", "code", "title", "coverUrl", "backgroundUrl"];
 
 const hasContent = literal(`"content" IS NOT NULL AND btrim("content") <> ''`);
 const hasContentOrRating = literal(

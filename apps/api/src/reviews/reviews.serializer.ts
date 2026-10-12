@@ -35,7 +35,9 @@ export function userReviewSerializer(
 			? {
 					id: review.Game.id,
 					code: review.Game.code,
-					title: review.Game.title
+					title: review.Game.title,
+					coverUrl: review.Game.coverUrl ?? null,
+					backgroundUrl: review.Game.backgroundUrl ?? null
 				}
 			: null,
 		createdAt: review.createdAt,

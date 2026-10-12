@@ -16,7 +16,13 @@ class Review extends Model {
 		name: string;
 		avatarUrl: string | null;
 	};
-	declare Game: { id: string; code: string; title: string };
+	declare Game: {
+		id: string;
+		code: string;
+		title: string;
+		coverUrl?: string | null;
+		backgroundUrl?: string | null;
+	};
 }
 
 Review.init(
