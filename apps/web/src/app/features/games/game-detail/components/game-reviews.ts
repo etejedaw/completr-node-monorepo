@@ -1,6 +1,8 @@
+import { DatePipe, NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	effect,
 	inject,
 	input,
@@ -10,18 +12,33 @@ import { form, FormField } from "@angular/forms/signals";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 
 import { AuthService } from "../../../../core/services/auth";
+import { ExpandableText } from "../../../../shared/components/expandable-text/expandable-text";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
+import { getRatingLabel } from "../../../../shared/constants/rating-labels";
+import { UiAvatar } from "../../../../shared/ui";
 import { UiButton, UiTextarea } from "../../../../shared/ui";
 import { BacklogService } from "../../../backlog/backlog";
 import { type Review, ReviewsService } from "../../reviews";
 
+const RATING_BUCKETS = [5, 4, 3, 2, 1];
+
 @Component({
-	selector: "app-game-reviews-tab",
-	imports: [RouterLink, FormField, StarRating, UiButton, UiTextarea],
-	templateUrl: "./game-reviews-tab.html",
+	selector: "app-game-reviews",
+	imports: [
+		DatePipe,
+		NgTemplateOutlet,
+		RouterLink,
+		FormField,
+		ExpandableText,
+		StarRating,
+		UiAvatar,
+		UiButton,
+		UiTextarea
+	],
+	templateUrl: "./game-reviews.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class GameReviewsTab {
+export class GameReviews {
 	private readonly authService = inject(AuthService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly reviewsService = inject(ReviewsService);
@@ -40,6 +57,34 @@ export class GameReviewsTab {
 	readonly reviewForm = form(this.reviewModel);
 
 	readonly reviewsCount = signal(0);
+
+	protected readonly ratingLabel = getRatingLabel;
+	protected readonly communityReviews = computed(() => {
+		const mine = this.myReview()?.id;
+		return this.reviews().filter(review => review.id !== mine);
+	});
+	protected readonly ratedReviews = computed(() =>
+		this.reviews().filter(review => !!review.rating)
+	);
+	protected readonly averageRating = computed(() => {
+		const rated = this.ratedReviews();
+		if (rated.length === 0) return null;
+		const total = rated.reduce((sum, review) => sum + review.rating!, 0);
+		return Math.round((total / rated.length) * 10) / 10;
+	});
+	protected readonly ratingDistribution = computed(() => {
+		const rated = this.ratedReviews();
+		return RATING_BUCKETS.map(stars => {
+			const count = rated.filter(
+				review => Math.ceil(review.rating!) === stars
+			).length;
+			return {
+				stars,
+				count,
+				percent: rated.length ? (count / rated.length) * 100 : 0
+			};
+		});
+	});
 
 	constructor() {
 		effect(() => {

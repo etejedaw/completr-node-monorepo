@@ -158,7 +158,9 @@
 	>
 		<span
 			class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] opacity-75"
-			>Ratio<span class="sr-only">, {{ scoreDescription() }}</span></span
+			><span class="md:hidden">Ratio</span
+			><span class="hidden md:inline">{{ scoreLabel() }}</span
+			><span class="sr-only">, {{ scoreDescription() }}</span></span
 		>
 		<span class="font-display text-2xl font-bold leading-none tabular-nums"
 			>{{ score().ratio }}</span

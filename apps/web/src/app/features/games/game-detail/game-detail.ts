@@ -15,14 +15,7 @@ import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ExpandableText } from "../../../shared/components/expandable-text/expandable-text";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { InView } from "../../../shared/directives/in-view";
-import {
-	UiButton,
-	UiTab,
-	UiTabList,
-	UiTabPanel,
-	UiTabs,
-	UiTextarea
-} from "../../../shared/ui";
+import { UiButton, UiTextarea } from "../../../shared/ui";
 import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
 import { metascoreColorClass } from "../../../shared/utils/metascore-color";
 import { BacklogService } from "../../backlog/backlog";
@@ -58,12 +51,15 @@ import {
 	type AdminActionsState,
 	GameAdminBar
 } from "./components/game-admin-bar";
+import { GameDlcList } from "./components/game-dlc-list";
+import { GameFeaturedLists } from "./components/game-featured-lists";
 import { type GameFact, GameHero } from "./components/game-hero";
 import { GameLibraryActions } from "./components/game-library-actions";
 import { GamePosterGrid } from "./components/game-poster-grid";
-import { GameReviewsTab } from "./components/game-reviews-tab";
+import { GameReviews } from "./components/game-reviews";
 import { GameRuns } from "./components/game-runs";
 import { GameScoreCard } from "./components/game-score-card";
+import { GameSection } from "./components/game-section";
 import { GameSocialActivity } from "./components/game-social-activity";
 
 const TIME_SOURCE_LABELS: Record<string, string> = {
@@ -88,20 +84,19 @@ interface ReportModalState {
 		RouterLink,
 		AdminGameEditor,
 		UiButton,
-		UiTabs,
-		UiTabList,
-		UiTab,
-		UiTabPanel,
 		UiTextarea,
+		GameSection,
 		InView,
 		GameHero,
 		GameLibraryActions,
 		GameScoreCard,
 		GameRuns,
 		GamePosterGrid,
+		GameFeaturedLists,
+		GameDlcList,
 		GameAdminBar,
 		GameSocialActivity,
-		GameReviewsTab,
+		GameReviews,
 		MoodTagsInput,
 		ExpandableText
 	],
@@ -225,12 +220,6 @@ export class GameDetail implements OnInit {
 			.map(item => item.game)
 			.filter(game => game !== null)
 	);
-	protected readonly hasOverviewDetails = computed(
-		() =>
-			!!this.game()?.description ||
-			this.externalScores().length > 0 ||
-			this.externalTimes().length > 0
-	);
 	protected readonly isInQueue = signal(false);
 	protected readonly isInShelf = signal(false);
 	protected readonly addedToQueue = signal(false);
@@ -258,7 +247,6 @@ export class GameDetail implements OnInit {
 		sent: false,
 		error: ""
 	});
-	protected readonly activeTab = signal("overview");
 	protected readonly featuredLists = signal<
 		{
 			id: string;

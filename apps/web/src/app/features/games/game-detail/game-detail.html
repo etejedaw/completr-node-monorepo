@@ -75,327 +75,210 @@
 } }
 
 <div
-	class="mt-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-8 lg:gap-10"
+	class="mt-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] gap-10"
 >
-	<div class="min-w-0">
-		<ui-tabs [(value)]="activeTab">
-			<ui-tab-list
-				class="!mb-6 !overflow-x-auto !overflow-y-hidden !flex-nowrap [scrollbar-width:none]"
-			>
-				<button uiTab value="overview" class="!whitespace-nowrap">
-					Overview
-				</button>
-				<button uiTab value="reviews" class="!whitespace-nowrap">
-					Reviews
-					<span
-						class="ml-1.5 px-1.5 py-px rounded-full bg-white/5 text-[0.6875rem] text-fg-muted tabular-nums"
-						>{{ reviewsTab.reviewsCount() }}</span
+	<div
+		class="min-w-0 flex flex-col gap-12 [&>*+*]:pt-12 [&>*+*]:border-t [&>*+*]:border-line/70"
+	>
+		@if (g.description || (g.partOfCompilations?.length ?? 0) > 0) {
+		<app-game-section sectionId="about" heading="About">
+			@if ((g.partOfCompilations?.length ?? 0) > 0) {
+			<div class="flex flex-wrap items-center gap-2 mb-4">
+				<span
+					class="text-[0.625rem] font-bold uppercase tracking-[0.18em] text-fg-muted"
+					>Part of</span
+				>
+				@for (link of g.partOfCompilations!; track link.id) {
+				<a
+					class="flex items-center gap-2 h-9 px-3 bg-surface border border-line rounded-full text-sm text-fg no-underline transition hover:border-brand hover:text-brand"
+					[routerLink]="['/games', link.parentGame.code]"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>library_books</span
 					>
-				</button>
-				@if (featuredLists().length > 0) {
-				<button uiTab value="lists" class="!whitespace-nowrap">
-					Lists
-					<span
-						class="ml-1.5 px-1.5 py-px rounded-full bg-white/5 text-[0.6875rem] text-fg-muted tabular-nums"
-						>{{ featuredLists().length }}</span
-					>
-				</button>
-				} @if (g.dlcs.length > 0) {
-				<button uiTab value="dlcs" class="!whitespace-nowrap">
-					DLCs
-					<span
-						class="ml-1.5 px-1.5 py-px rounded-full bg-white/5 text-[0.6875rem] text-fg-muted tabular-nums"
-						>{{ g.dlcs.length }}</span
-					>
-				</button>
-				} @if (compilationGames().length > 0) {
-				<button uiTab value="compilation" class="!whitespace-nowrap">
-					Compilation
-					<span
-						class="ml-1.5 px-1.5 py-px rounded-full bg-white/5 text-[0.6875rem] text-fg-muted tabular-nums"
-						>{{ compilationGames().length }}</span
-					>
-				</button>
-				} @if (similarGames().length > 0) {
-				<button uiTab value="similar" class="!whitespace-nowrap">
-					Similar
-				</button>
+					{{ link.parentGame.title }}
+				</a>
 				}
-			</ui-tab-list>
-
-			<div uiTabPanel value="overview">
-				<div
-					class="flex flex-col gap-10 [&>*+*]:pt-10 [&>*+*]:border-t [&>*+*]:border-line/70"
-				>
-					@if ((g.partOfCompilations?.length ?? 0) > 0) {
-					<section aria-labelledby="part-of-heading">
-						<h2
-							id="part-of-heading"
-							class="m-0 mb-3 text-[0.625rem] font-bold uppercase tracking-[0.18em] text-fg-muted"
-						>
-							Part of
-						</h2>
-						<div class="flex flex-wrap gap-2">
-							@for (link of g.partOfCompilations!; track link.id)
-							{
-							<a
-								class="flex items-center gap-2 h-9 px-3 bg-surface border border-line rounded-full text-sm text-fg no-underline transition hover:border-brand hover:text-brand"
-								[routerLink]="['/games', link.parentGame.code]"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-base"
-									>library_books</span
-								>
-								{{ link.parentGame.title }}
-							</a>
-							}
-						</div>
-					</section>
-					} @if (g.description; as description) {
-					<section aria-labelledby="about-heading">
-						<h2
-							id="about-heading"
-							class="m-0 mb-3 font-display text-xl font-semibold text-fg"
-						>
-							About
-						</h2>
-						<div
-							class="max-w-3xl text-[0.9375rem] leading-relaxed text-fg-secondary"
-						>
-							<app-expandable-text [text]="description" />
-						</div>
-					</section>
-					} @if (externalScores().length > 0 || externalTimes().length
-					> 0) {
-					<section aria-labelledby="sources-heading">
-						<h2
-							id="sources-heading"
-							class="m-0 mb-3 font-display text-xl font-semibold text-fg"
-						>
-							Scores & time to beat
-						</h2>
-						<dl
-							class="m-0 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2"
-						>
-							@for (s of externalScores(); track s.source) {
-							<div
-								class="flex flex-col gap-1.5 p-4 bg-surface border border-line rounded-card"
-							>
-								<dt
-									class="flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-								>
-									<span
-										aria-hidden="true"
-										class="material-icons text-sm"
-										>star_rate</span
-									>
-									{{ s.label }}
-								</dt>
-								<dd
-									class="m-0 text-2xl font-display font-bold text-fg tabular-nums leading-none"
-									[class]="s.valueClass ?? ''"
-								>
-									{{ s.value }}@if (s.unit) {<span
-										class="ml-1 text-xs font-sans font-normal text-fg-muted"
-										>{{ s.unit }}</span
-									>}
-								</dd>
-							</div>
-							} @for (t of externalTimes(); track t.source) {
-							<div
-								class="flex flex-col gap-1.5 p-4 bg-surface border border-line rounded-card"
-							>
-								<dt
-									class="flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-								>
-									<span
-										aria-hidden="true"
-										class="material-icons text-sm"
-										>schedule</span
-									>
-									{{ t.label }}
-								</dt>
-								<dd
-									class="m-0 text-2xl font-display font-bold text-fg tabular-nums leading-none"
-								>
-									{{ t.value }}<span
-										class="ml-1 text-xs font-sans font-normal text-fg-muted"
-										>{{ t.unit }}</span
-									>
-								</dd>
-							</div>
-							}
-						</dl>
-					</section>
-					}
-
-					<section aria-labelledby="tags-heading">
-						<div
-							class="flex items-center justify-between gap-3 mb-3"
-						>
-							<h2
-								id="tags-heading"
-								class="m-0 font-display text-xl font-semibold text-fg"
-							>
-								Your tags
-							</h2>
-							<div class="flex items-center gap-1">
-								@if (!editingMoodTags()) {
-								<button
-									uiButton
-									variant="ghost"
-									size="sm"
-									(click)="startEditMoodTags()"
-								>
-									<span
-										aria-hidden="true"
-										class="material-icons text-sm"
-										>{{ moodTags().length > 0 ? 'edit' :
-										'add' }}</span
-									>
-									{{ moodTags().length > 0 ? 'Edit' : 'Add
-									tags' }}
-								</button>
-								}
-								<a
-									routerLink="/tags"
-									class="inline-flex items-center h-8 px-2 text-xs text-fg-muted no-underline hover:text-brand"
-									>Manage</a
-								>
-							</div>
-						</div>
-						@if (editingMoodTags()) {
-						<app-mood-tags-input
-							[tags]="moodTagsDraft()"
-							[suggestions]="moodTagsSuggestions()"
-							placeholder="e.g. relajante, podcast game…"
-							(tagsChange)="updateMoodTagsDraft($event)"
-						/>
-						<div class="flex justify-end gap-1.5 mt-2">
-							<button
-								uiButton
-								variant="ghost"
-								size="sm"
-								(click)="cancelEditMoodTags()"
-								[disabled]="savingMoodTags()"
-							>
-								Cancel
-							</button>
-							<button
-								uiButton
-								variant="primary"
-								size="sm"
-								(click)="commitMoodTags()"
-								[disabled]="savingMoodTags()"
-							>
-								{{ savingMoodTags() ? 'Saving…' : 'Save' }}
-							</button>
-						</div>
-						} @else if (moodTags().length > 0) {
-						<ul class="list-none m-0 p-0 flex flex-wrap gap-1.5">
-							@for (tag of moodTags(); track tag) {
-							<li
-								class="px-2.5 py-1 rounded-full bg-brand-subtle text-brand text-xs font-medium"
-							>
-								{{ tag }}
-							</li>
-							}
-						</ul>
-						} @else {
-						<p class="m-0 text-sm text-fg-muted">
-							Label this game your way — "comfort game", "with
-							friends", "podcast game"…
-						</p>
-						}
-					</section>
-
-					<app-game-social-activity
-						#social
-						class="empty:hidden"
-						[gameId]="g.id"
-					/>
-
-					@if (!hasOverviewDetails() && !social.hasContent()) {
-					<p class="m-0 py-8 text-center text-fg-muted text-sm">
-						No additional info available yet.
-					</p>
-					}
-				</div>
 			</div>
-
-			<div uiTabPanel value="reviews">
-				<app-game-reviews-tab #reviewsTab [gameId]="g.id" />
-			</div>
-
-			@if (featuredLists().length > 0) {
-			<div uiTabPanel value="lists">
-				<ul
-					class="list-none m-0 p-0 grid grid-cols-1 sm:grid-cols-2 gap-2"
-				>
-					@for (list of featuredLists(); track list.id) {
-					<li>
-						<a
-							class="flex flex-col gap-1 h-full py-3 px-4 bg-surface border rounded-card no-underline transition hover:border-brand"
-							[class]="list.isOfficial ? 'border-brand/50 bg-[linear-gradient(135deg,var(--color-brand-subtle),transparent)]' : 'border-line'"
-							[routerLink]="['/lists', list.id]"
-						>
-							@if (list.isOfficial) {
-							<span
-								class="inline-flex items-center gap-1 text-[0.625rem] font-bold uppercase tracking-wider text-brand"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-sm"
-									>verified</span
-								>
-								Official
-							</span>
-							}
-							<span
-								class="flex items-center gap-1.5 text-sm font-semibold text-fg truncate"
-							>
-								{{ list.name }} @if (list.completed) {
-								<span
-									class="material-icons text-sm text-warning"
-									title="Completed"
-									aria-label="Completed"
-									>emoji_events</span
-								>
-								}
-							</span>
-							@if (list.description) {
-							<span class="text-xs text-fg-muted truncate"
-								>{{ list.description }}</span
-							>
-							} @if (list.owner) {
-							<span class="text-[0.6875rem] text-fg-muted"
-								>by &#64;{{ list.owner.username }}</span
-							>
-							}
-						</a>
-					</li>
-					}
-				</ul>
-			</div>
-			} @if (g.dlcs.length > 0) {
-			<div uiTabPanel value="dlcs">
-				<app-game-poster-grid [games]="g.dlcs" />
-			</div>
-			} @if (compilationGames().length > 0) {
-			<div uiTabPanel value="compilation">
-				<p class="m-0 mb-4 text-fg-secondary text-sm">
-					This compilation bundles the following games. Add the one
-					you're playing to your library.
-				</p>
-				<app-game-poster-grid [games]="compilationGames()" />
-			</div>
-			} @if (similarGames().length > 0) {
-			<div uiTabPanel value="similar">
-				<app-game-poster-grid [games]="similarGames()" />
+			} @if (g.description; as description) {
+			<div
+				class="max-w-3xl text-[0.9375rem] leading-relaxed text-fg-secondary"
+			>
+				<app-expandable-text [text]="description" />
 			</div>
 			}
-		</ui-tabs>
+		</app-game-section>
+		} @if (externalScores().length > 0 || externalTimes().length > 0) {
+		<app-game-section sectionId="scores" heading="Scores & time to beat">
+			<dl
+				class="m-0 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2"
+			>
+				@for (s of externalScores(); track s.source) {
+				<div
+					class="flex flex-col gap-1.5 p-4 bg-surface border border-line rounded-card"
+				>
+					<dt
+						class="flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>star_rate</span
+						>
+						{{ s.label }}
+					</dt>
+					<dd
+						class="m-0 text-2xl font-display font-bold tabular-nums leading-none"
+						[class]="s.valueClass ?? 'text-fg'"
+					>
+						{{ s.value }}@if (s.unit) {<span
+							class="ml-1 text-xs font-sans font-normal text-fg-muted"
+							>{{ s.unit }}</span
+						>}
+					</dd>
+				</div>
+				} @for (t of externalTimes(); track t.source) {
+				<div
+					class="flex flex-col gap-1.5 p-4 bg-surface border border-line rounded-card"
+				>
+					<dt
+						class="flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>schedule</span
+						>
+						{{ t.label }}
+					</dt>
+					<dd
+						class="m-0 text-2xl font-display font-bold text-fg tabular-nums leading-none"
+					>
+						{{ t.value }}<span
+							class="ml-1 text-xs font-sans font-normal text-fg-muted"
+							>{{ t.unit }}</span
+						>
+					</dd>
+				</div>
+				}
+			</dl>
+		</app-game-section>
+		} @if (g.dlcs.length > 0) {
+		<app-game-section
+			sectionId="dlcs"
+			heading="DLCs & expansions"
+			[count]="g.dlcs.length"
+		>
+			<app-game-dlc-list [dlcs]="g.dlcs" />
+		</app-game-section>
+		} @if (compilationGames().length > 0) {
+		<app-game-section
+			sectionId="compilation"
+			heading="In this compilation"
+			subheading="Add the one you're playing to your library."
+			[count]="compilationGames().length"
+		>
+			<app-game-poster-grid [games]="compilationGames()" />
+		</app-game-section>
+		}
+
+		<app-game-section
+			sectionId="reviews"
+			heading="Reviews"
+			[count]="reviews.reviewsCount()"
+		>
+			<app-game-reviews #reviews [gameId]="g.id" />
+		</app-game-section>
+
+		<app-game-section
+			sectionId="tags"
+			heading="Your tags"
+			subheading="Private labels to find this game later."
+		>
+			<div sectionActions class="flex items-center gap-1">
+				@if (!editingMoodTags()) {
+				<button
+					uiButton
+					variant="ghost"
+					size="sm"
+					(click)="startEditMoodTags()"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>{{ moodTags().length > 0 ? 'edit' : 'add' }}</span
+					>
+					{{ moodTags().length > 0 ? 'Edit' : 'Add tags' }}
+				</button>
+				}
+				<a
+					routerLink="/tags"
+					class="inline-flex items-center h-8 px-2 text-xs text-fg-muted no-underline hover:text-brand"
+					>Manage</a
+				>
+			</div>
+			@if (editingMoodTags()) {
+			<app-mood-tags-input
+				[tags]="moodTagsDraft()"
+				[suggestions]="moodTagsSuggestions()"
+				placeholder="e.g. relajante, podcast game…"
+				(tagsChange)="updateMoodTagsDraft($event)"
+			/>
+			<div class="flex justify-end gap-1.5 mt-2">
+				<button
+					uiButton
+					variant="ghost"
+					size="sm"
+					(click)="cancelEditMoodTags()"
+					[disabled]="savingMoodTags()"
+				>
+					Cancel
+				</button>
+				<button
+					uiButton
+					variant="primary"
+					size="sm"
+					(click)="commitMoodTags()"
+					[disabled]="savingMoodTags()"
+				>
+					{{ savingMoodTags() ? 'Saving…' : 'Save' }}
+				</button>
+			</div>
+			} @else if (moodTags().length > 0) {
+			<ul class="list-none m-0 p-0 flex flex-wrap gap-1.5">
+				@for (tag of moodTags(); track tag) {
+				<li
+					class="px-2.5 py-1 rounded-full bg-brand-subtle text-brand text-xs font-medium"
+				>
+					{{ tag }}
+				</li>
+				}
+			</ul>
+			} @else {
+			<p class="m-0 text-sm text-fg-muted">
+				Label it your way — "comfort game", "with friends", "podcast
+				game"…
+			</p>
+			}
+		</app-game-section>
+
+		<app-game-social-activity class="empty:hidden" [gameId]="g.id" />
+
+		@if (featuredLists().length > 0) {
+		<app-game-section
+			sectionId="lists"
+			heading="Featured in lists"
+			[count]="featuredLists().length"
+		>
+			<button
+				sectionActions
+				uiButton
+				variant="secondary"
+				size="sm"
+				(click)="openAddToListModal()"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>playlist_add</span
+				>
+				Add to a list
+			</button>
+			<app-game-featured-lists [lists]="featuredLists()" />
+		</app-game-section>
+		}
 	</div>
 
 	<aside
@@ -519,6 +402,28 @@
 		</nav>
 	</aside>
 </div>
+
+@if (similarGames().length > 0) {
+<app-game-section
+	class="mt-14 pt-12 border-t border-line/70"
+	sectionId="similar"
+	heading="More like this"
+	[subheading]="g.genres[0] ? 'Other ' + g.genres[0].name + ' games you might like' : null"
+>
+	@if (g.genres[0]; as genre) {
+	<a
+		sectionActions
+		class="inline-flex items-center gap-1 h-8 text-sm font-medium no-underline"
+		[routerLink]="['/genres', genre.code]"
+		>See all
+		<span aria-hidden="true" class="material-icons text-base"
+			>arrow_forward</span
+		></a
+	>
+	}
+	<app-game-poster-grid [games]="similarGames()" [wide]="true" />
+</app-game-section>
+}
 
 <div aria-hidden="true" class="md:hidden h-20"></div>
 

@@ -36,10 +36,10 @@
 		<button
 			type="button"
 			class="shrink-0 inline-flex items-center justify-center gap-2 h-11 rounded-card border backdrop-blur-md text-sm font-medium cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-			[class]="(favorite() ? 'border-nav-favorites/50 bg-nav-favorites/15 text-nav-favorites' : 'border-white/10 bg-canvas/50 text-white/80 hover:text-white hover:border-white/30') + (variant() === 'full' ? ' px-3.5' : ' w-11')"
+			[class]="(favorite() ? 'border-nav-favorites/50 bg-nav-favorites/15 text-nav-favorites' : 'border-white/10 bg-canvas/50 text-white/80 hover:text-white hover:border-white/30') + (variant() === 'full' ? ' w-11 md:w-auto md:px-3.5' : ' w-11')"
 			[disabled]="togglingFavorite()"
 			[attr.aria-pressed]="favorite()"
-			[attr.aria-label]="variant() === 'compact' ? (favorite() ? 'Remove from favorites' : 'Add to favorites') : null"
+			[attr.aria-label]="favorite() ? 'Remove from favorites' : 'Add to favorites'"
 			[title]="favorite() ? 'Remove from favorites' : 'Add to favorites'"
 			(click)="favoriteToggled.emit()"
 		>
@@ -47,7 +47,7 @@
 				>{{ favorite() ? 'favorite' : 'favorite_border' }}</span
 			>
 			@if (variant() === 'full') {
-			<span>{{ favorite() ? 'Favorite' : 'Add to favorites' }}</span>
+			<span aria-hidden="true" class="hidden md:inline">Favorite</span>
 			}
 		</button>
 	</div>

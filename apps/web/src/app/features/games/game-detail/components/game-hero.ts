@@ -20,6 +20,12 @@ export interface GameFact {
 	valueClass?: string;
 }
 
+const SCORE_TYPE_LABELS: Record<NonNullable<CanonicalScore["type"]>, string> = {
+	completr: "Completr ratio",
+	aggregate: "Provisional ratio",
+	rawg: "RAWG ratio"
+};
+
 const SCORE_TYPE_DESCRIPTIONS: Record<
 	NonNullable<CanonicalScore["type"]>,
 	string
@@ -69,6 +75,10 @@ export class GameHero {
 	protected readonly releaseYear = computed(() =>
 		this.game().releaseAt?.slice(0, 4)
 	);
+	protected readonly scoreLabel = computed(() => {
+		const type = this.score().type;
+		return type ? SCORE_TYPE_LABELS[type] : "";
+	});
 	protected readonly scoreDescription = computed(() => {
 		const type = this.score().type;
 		return type ? SCORE_TYPE_DESCRIPTIONS[type] : "";
