@@ -1,7 +1,7 @@
-import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
@@ -9,11 +9,21 @@ import {
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
-import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { type BacklogEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
-import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
-import { StarRating } from "../../../shared/components/star-rating/star-rating";
-import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { PointerService } from "../../../core/services/pointer";
+import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import {
+	UiButton,
+	UiPagination,
+	UiSearchBar,
+	UiSkeleton
+} from "../../../shared/ui";
+import {
+	backlogStatusIcon,
+	backlogStatusIconColor
+} from "../../../shared/utils/backlog-status";
 import { PublicLibraryService } from "../services/public-library.service";
 
 const PAGE_SIZE = 50;
@@ -43,11 +53,12 @@ const SHAREABLE_FILTER_KEYS = [
 	selector: "app-user-backlog",
 	imports: [
 		RouterLink,
-		DatePipe,
-		StarRating,
-		PersonalStats,
+		BacklogEntryCard,
+		LibraryHero,
+		UiButton,
 		UiPagination,
-		UiSearchBar
+		UiSearchBar,
+		UiSkeleton
 	],
 	templateUrl: "./user-backlog.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -64,10 +75,19 @@ export class UserBacklog implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly isLoading = signal(true);
 	protected readonly error = signal<"not_found" | "private" | null>(null);
-	protected readonly isLoggedIn = this.authService.isLoggedIn;
+	protected readonly pointer = inject(PointerService);
 	protected readonly activeStatus = signal("");
 	protected readonly limit = PAGE_SIZE;
-	protected readonly Math = Math;
+	protected readonly skeletonRange = [0, 1, 2, 3, 4, 5];
+	protected readonly statusIcon = backlogStatusIcon;
+	protected readonly statusIconColor = backlogStatusIconColor;
+	protected readonly flippedEntryIds = signal<Set<string>>(new Set());
+	protected readonly heroPosters = computed(() =>
+		this.entries().map(entry => ({
+			src: entry.game.backgroundUrl,
+			title: entry.game.title
+		}))
+	);
 
 	private readonly sharedFilters = signal<Record<string, string>>({});
 	private readonly urlSortBy = signal("");
@@ -86,24 +106,28 @@ export class UserBacklog implements OnInit {
 		{ label: "Abandoned", value: "abandoned" }
 	];
 
-	protected readonly expandedReviews = signal<Set<string>>(new Set());
+	protected readonly activeStatusLabel = computed(
+		() =>
+			this.statusTabs.find(
+				tab => tab.value && tab.value === this.activeStatus()
+			)?.label ?? ""
+	);
 
-	toggleReview(id: string) {
-		const next = new Set(this.expandedReviews());
-		if (next.has(id)) {
-			next.delete(id);
-		} else {
-			next.add(id);
-		}
-		this.expandedReviews.set(next);
+	protected isFlipped(entryId: string): boolean {
+		return this.flippedEntryIds().has(entryId);
 	}
 
-	isReviewExpanded(id: string): boolean {
-		return this.expandedReviews().has(id);
+	protected toggleFlip(entryId: string, event: Event) {
+		event.stopPropagation();
+		const next = new Set(this.flippedEntryIds());
+		if (next.has(entryId)) next.delete(entryId);
+		else next.add(entryId);
+		this.flippedEntryIds.set(next);
 	}
 
-	needsReviewToggle(content: string | null | undefined): boolean {
-		return !!content && content.length > 180;
+	protected resetFilters() {
+		this.searchQuery.set("");
+		this.filterByStatus("");
 	}
 
 	ngOnInit() {
@@ -157,28 +181,6 @@ export class UserBacklog implements OnInit {
 	goToOffset(offset: number) {
 		this.offset.set(offset);
 		this.load();
-	}
-
-	statusClass(status: BacklogStatus): string {
-		const map: Record<BacklogStatus, string> = {
-			not_started: "status-not-started",
-			playing: "status-playing",
-			completed: "status-completed",
-			abandoned: "status-abandoned",
-			endless: "status-endless"
-		};
-		return map[status] ?? "";
-	}
-
-	statusLabel(status: BacklogStatus): string {
-		const map: Record<BacklogStatus, string> = {
-			not_started: "Not Started",
-			playing: "Playing",
-			completed: "Completed",
-			abandoned: "Abandoned",
-			endless: "Endless"
-		};
-		return map[status] ?? status;
 	}
 
 	private defaultSortForStatus(status: string): {
