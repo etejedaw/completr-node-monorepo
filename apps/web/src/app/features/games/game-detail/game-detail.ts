@@ -1,4 +1,3 @@
-import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -15,20 +14,15 @@ import { DialogService } from "../../../core/services/dialog";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ExpandableText } from "../../../shared/components/expandable-text/expandable-text";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
-import { StarRating } from "../../../shared/components/star-rating/star-rating";
-import { getRatingLabel } from "../../../shared/constants/rating-labels";
+import { InView } from "../../../shared/directives/in-view";
 import {
 	UiButton,
 	UiTab,
 	UiTabList,
 	UiTabPanel,
-	UiTabs
+	UiTabs,
+	UiTextarea
 } from "../../../shared/ui";
-import {
-	backlogStatusClass,
-	backlogStatusIcon,
-	backlogStatusLabel
-} from "../../../shared/utils/backlog-status";
 import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
 import { metascoreColorClass } from "../../../shared/utils/metascore-color";
 import { BacklogService } from "../../backlog/backlog";
@@ -60,16 +54,25 @@ import {
 	type GameAddToListModalData,
 	type ListsChanged
 } from "./components/game-add-to-list-modal";
+import {
+	type AdminActionsState,
+	GameAdminBar
+} from "./components/game-admin-bar";
+import { type GameFact, GameHero } from "./components/game-hero";
+import { GameLibraryActions } from "./components/game-library-actions";
+import { GamePosterGrid } from "./components/game-poster-grid";
 import { GameReviewsTab } from "./components/game-reviews-tab";
+import { GameRuns } from "./components/game-runs";
+import { GameScoreCard } from "./components/game-score-card";
 import { GameSocialActivity } from "./components/game-social-activity";
 
-interface AdminActionsState {
-	confirmDeactivate: boolean;
-	confirmDelete: boolean;
-	editor: boolean;
-	deactivating: boolean;
-	deleting: boolean;
-}
+const TIME_SOURCE_LABELS: Record<string, string> = {
+	completr: "Completr",
+	hltb: "HowLongToBeat",
+	rawg: "RAWG"
+};
+
+const HERO_SCORE_SOURCES_LIMIT = 3;
 
 interface ReportModalState {
 	show: boolean;
@@ -83,14 +86,20 @@ interface ReportModalState {
 	selector: "app-game-detail",
 	imports: [
 		RouterLink,
-		DatePipe,
-		StarRating,
 		AdminGameEditor,
 		UiButton,
 		UiTabs,
 		UiTabList,
 		UiTab,
 		UiTabPanel,
+		UiTextarea,
+		InView,
+		GameHero,
+		GameLibraryActions,
+		GameScoreCard,
+		GameRuns,
+		GamePosterGrid,
+		GameAdminBar,
 		GameSocialActivity,
 		GameReviewsTab,
 		MoodTagsInput,
@@ -164,7 +173,64 @@ export class GameDetail implements OnInit {
 	protected readonly isFavorite = signal(false);
 	protected readonly isInWishlist = signal(false);
 	protected readonly myRuns = signal<BacklogEntry[]>([]);
-	protected readonly isInBacklog = computed(() => this.myRuns().length > 0);
+	protected readonly latestRun = computed(() => this.myRuns()[0] ?? null);
+	protected readonly heroActionsInView = signal(true);
+	protected readonly score = computed(() => pickCanonicalScore(this.game()));
+	protected readonly externalScores = computed(() =>
+		(this.game()?.scores ?? [])
+			.filter(score => score.source !== "completr")
+			.map(score => ({
+				source: score.source,
+				label: this.scoreSourceName(score.source),
+				value: `${score.score}`,
+				unit: this.scaleLabel(score.source),
+				valueClass:
+					score.source === "metacritic"
+						? metascoreColorClass(score.score)
+						: undefined
+			}))
+	);
+	protected readonly externalTimes = computed(() =>
+		(this.game()?.times ?? [])
+			.filter(time => time.source !== "completr")
+			.map(time => ({
+				source: time.source,
+				label: TIME_SOURCE_LABELS[time.source] ?? time.source,
+				value: `${time.duration}`,
+				unit: "h"
+			}))
+	);
+	protected readonly heroFacts = computed<GameFact[]>(() => {
+		const facts: GameFact[] = this.externalScores()
+			.slice(0, HERO_SCORE_SOURCES_LIMIT)
+			.map(({ label, value, unit, valueClass }) => ({
+				label,
+				value,
+				unit,
+				valueClass
+			}));
+		const duration =
+			this.score().duration ?? this.game()?.times?.[0]?.duration;
+		if (duration) {
+			facts.push({
+				label: "Time to beat",
+				value: `${duration}`,
+				unit: "h"
+			});
+		}
+		return facts;
+	});
+	protected readonly compilationGames = computed(() =>
+		(this.game()?.compilationItems ?? [])
+			.map(item => item.game)
+			.filter(game => game !== null)
+	);
+	protected readonly hasOverviewDetails = computed(
+		() =>
+			!!this.game()?.description ||
+			this.externalScores().length > 0 ||
+			this.externalTimes().length > 0
+	);
 	protected readonly isInQueue = signal(false);
 	protected readonly isInShelf = signal(false);
 	protected readonly addedToQueue = signal(false);
@@ -412,10 +478,6 @@ export class GameDetail implements OnInit {
 		});
 	}
 
-	protected statusClass = backlogStatusClass;
-	protected statusLabel = backlogStatusLabel;
-	protected statusIcon = backlogStatusIcon;
-
 	openShelfModal() {
 		const g = this.game();
 		if (!g) return;
@@ -439,27 +501,16 @@ export class GameDetail implements OnInit {
 		this.router.navigate(["/games", firstVariant.code]);
 	}
 
-	protected getScaleLabel(source: string): string {
+	private scaleLabel(source: string): string | undefined {
 		const scale = this.scoreSourcesService.getScale(source);
-		return scale ? `/ ${scale}` : "";
+		return scale ? `/${scale}` : undefined;
 	}
 
-	protected get canonicalScore() {
-		return pickCanonicalScore(this.game());
-	}
-
-	protected get canonicalRatingLabel(): string {
-		const cs = this.canonicalScore;
-		if (cs.type !== "completr" || cs.score == null) return "";
-		return getRatingLabel(cs.score);
-	}
-
-	protected otherScores() {
-		return this.game()?.scores?.filter(s => s.source !== "completr") ?? [];
-	}
-
-	protected otherTimes() {
-		return this.game()?.times?.filter(t => t.source !== "completr") ?? [];
+	private scoreSourceName(source: string): string {
+		return (
+			this.scoreSourcesService.sources().find(s => s.code === source)
+				?.name ?? source
+		);
 	}
 
 	openAddToListModal() {

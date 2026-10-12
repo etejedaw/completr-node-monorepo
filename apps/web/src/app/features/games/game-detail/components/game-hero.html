@@ -1,0 +1,185 @@
+<section
+	class="bleed bleed-top relative isolate overflow-hidden"
+	[attr.aria-label]="game().title"
+>
+	<div aria-hidden="true" class="absolute inset-0 -z-10">
+		@if (backdrop(); as backdrop) {
+		<img
+			[src]="backdrop | coverUrl: 640"
+			alt=""
+			class="absolute inset-0 w-full h-full object-cover scale-125 blur-3xl opacity-70 saturate-150"
+		/>
+		<img
+			[src]="backdrop"
+			alt=""
+			fetchpriority="high"
+			class="absolute inset-0 w-full h-full object-cover opacity-60 [mask-image:linear-gradient(to_bottom,black_30%,transparent_95%)] md:opacity-70 md:[mask-image:linear-gradient(to_left,black_25%,transparent_90%)]"
+		/>
+		} @else {
+		<div class="absolute inset-0 bg-surface"></div>
+		}
+		<div
+			class="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/70 to-canvas/10"
+		></div>
+		<div
+			class="absolute inset-0 bg-gradient-to-r from-canvas/85 via-canvas/30 to-transparent"
+		></div>
+	</div>
+
+	<div
+		class="bleed-inner pt-[calc(var(--topbar-height)+5rem)] sm:pt-[calc(var(--topbar-height)+8rem)] lg:pt-[calc(var(--topbar-height)+11rem)] pb-6 md:pb-10"
+	>
+		<div
+			class="grid grid-cols-[auto_minmax(0,1fr)] md:grid-rows-[1fr_auto] items-end gap-x-4 sm:gap-x-6 lg:gap-x-8"
+		>
+			<app-game-poster
+				[src]="poster()"
+				[title]="game().title"
+				[width]="420"
+				titleSize="1rem"
+				class="row-start-1 md:row-span-2 self-end w-28 sm:w-40 md:w-48 lg:w-56 shrink-0 aspect-[2/3] rounded-xl ring-1 ring-white/15 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.9)]"
+			/>
+
+			<div class="col-start-2 row-start-1 self-end min-w-0 pb-1">
+				<div class="flex flex-wrap items-center gap-1.5 mb-2 sm:mb-3">
+					@if (game().isDlc) {
+					<span
+						class="py-0.5 px-2 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/25 text-warning backdrop-blur-sm"
+						>DLC</span
+					>
+					} @if (game().isCompilation) {
+					<span
+						class="py-0.5 px-2 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand/25 text-brand backdrop-blur-sm"
+						>Compilation</span
+					>
+					} @for (genre of game().genres.slice(0, 3); track genre.id)
+					{
+					<a
+						class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25 hover:text-white"
+						[routerLink]="['/genres', genre.code]"
+						>{{ genre.name }}</a
+					>
+					}
+				</div>
+
+				<h1
+					class="font-display m-0 text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.02] drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)] line-clamp-3 [text-wrap:balance]"
+				>
+					{{ game().title }}
+				</h1>
+
+				<div
+					class="mt-2 sm:mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-white/75"
+				>
+					@if (releaseYear(); as year) {
+					<span class="tabular-nums" [title]="game().releaseAt"
+						>{{ year }}</span
+					>
+					} @if (game().platforms.length > 0) {
+					<span aria-hidden="true" class="text-white/30">•</span>
+					<span class="truncate max-w-[18rem]"
+						>{{ platformsLabel() }}</span
+					>
+					} @if (game().parentGame; as parent) {
+					<span aria-hidden="true" class="text-white/30">•</span>
+					<a
+						class="text-warning no-underline transition hover:text-white"
+						[routerLink]="['/games', parent.code]"
+						>DLC of {{ parent.title }}</a
+					>
+					} @if (game().franchise; as franchise) {
+					<span aria-hidden="true" class="text-white/30">•</span>
+					<span class="inline-flex items-center gap-2">
+						<a
+							class="inline-flex items-center gap-1 text-white/85 no-underline transition hover:text-brand"
+							[routerLink]="['/franchises', franchise.code]"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-sm"
+								>collections_bookmark</span
+							>
+							{{ franchise.name }} @if (game().franchiseProgress;
+							as progress) {
+							<span class="text-white/50 tabular-nums"
+								>{{ progress.completed }}/{{ progress.total
+								}}</span
+							>
+							}
+						</a>
+						@if (isLoggedIn()) {
+						<button
+							type="button"
+							class="inline-flex items-center gap-0.5 h-6 px-2 rounded-full border text-[0.6875rem] font-semibold cursor-pointer transition disabled:opacity-50"
+							[class]="franchiseTracked() ? 'border-brand/50 bg-brand-subtle text-brand' : 'border-white/30 bg-transparent text-white/80 hover:text-white hover:border-white/60'"
+							[disabled]="togglingFranchise()"
+							[attr.aria-pressed]="franchiseTracked()"
+							(click)="franchiseTrackToggled.emit()"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-sm"
+								>{{ franchiseTracked() ? 'check' : 'add'
+								}}</span
+							>
+							{{ franchiseTracked() ? 'Tracking' : 'Track' }}
+						</button>
+						}
+					</span>
+					}
+				</div>
+
+				<div class="hidden sm:flex mt-5 flex-wrap items-stretch gap-2">
+					<ng-container *ngTemplateOutlet="scoreStrip" />
+				</div>
+			</div>
+
+			<div
+				class="col-span-2 sm:hidden mt-4 -mx-[var(--page-pad-x)] px-[var(--page-pad-x)] flex flex-nowrap items-stretch gap-2 overflow-x-auto [scrollbar-width:none] [&>*]:shrink-0"
+			>
+				<ng-container *ngTemplateOutlet="scoreStrip" />
+			</div>
+
+			<div
+				class="col-span-2 md:col-span-1 md:col-start-2 md:row-start-2 mt-5 md:mt-6"
+			>
+				<ng-content />
+			</div>
+		</div>
+	</div>
+</section>
+
+<ng-template #scoreStrip>
+	@if (score().ratio !== null) {
+	<div
+		class="flex flex-col justify-center px-3.5 py-1.5 rounded-card border backdrop-blur-md min-w-[4.5rem]"
+		[class]="scoreClass()"
+		[title]="scoreDescription()"
+	>
+		<span
+			class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] opacity-75"
+			>Ratio<span class="sr-only">, {{ scoreDescription() }}</span></span
+		>
+		<span class="font-display text-2xl font-bold leading-none tabular-nums"
+			>{{ score().ratio }}</span
+		>
+	</div>
+	} @for (fact of facts(); track fact.label) {
+	<div
+		class="flex flex-col justify-center px-3 py-1.5 rounded-card bg-canvas/50 border border-white/10 backdrop-blur-md min-w-[4.5rem]"
+	>
+		<span
+			class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-white/55 truncate"
+			>{{ fact.label }}</span
+		>
+		<span
+			class="text-base font-semibold tabular-nums leading-tight"
+			[class]="fact.valueClass ?? 'text-white'"
+			>{{ fact.value }}@if (fact.unit) {<span
+				class="ml-0.5 text-[0.6875rem] font-normal text-white/50"
+				>{{ fact.unit }}</span
+			>}</span
+		>
+	</div>
+	}
+</ng-template>

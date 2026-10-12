@@ -1,0 +1,85 @@
+<div
+	class="flex items-stretch gap-2"
+	[class.flex-col]="variant() === 'full'"
+	[class.sm:flex-row]="variant() === 'full'"
+	[class.sm:flex-wrap]="variant() === 'full'"
+>
+	<div class="flex items-stretch gap-2 flex-1 sm:flex-none">
+		@if (latestRun(); as run) {
+		<button
+			type="button"
+			class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 h-11 px-4 rounded-card border border-white/10 backdrop-blur-md text-sm font-semibold cursor-pointer transition hover:brightness-125 active:scale-[0.98]"
+			[class]="statusClass(run.status)"
+			(click)="openPrimary()"
+			[title]="'Open your ' + statusLabel(run.status).toLowerCase() + ' run'"
+		>
+			<span aria-hidden="true" class="material-icons text-lg"
+				>{{ statusIcon(run.status) }}</span
+			>
+			{{ statusLabel(run.status) }}
+			<span class="opacity-60 font-medium"
+				>· {{ run.platform.abbreviation }}</span
+			>
+		</button>
+		} @else {
+		<button
+			type="button"
+			class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 h-11 px-5 rounded-card border-0 bg-brand text-white text-sm font-semibold cursor-pointer shadow-lg shadow-brand/30 transition hover:bg-brand-hover active:scale-[0.98]"
+			(click)="openPrimary()"
+		>
+			<span aria-hidden="true" class="material-icons text-lg"
+				>add_circle</span
+			>
+			Add to My Games
+		</button>
+		}
+		<button
+			type="button"
+			class="shrink-0 inline-flex items-center justify-center gap-2 h-11 rounded-card border backdrop-blur-md text-sm font-medium cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+			[class]="(favorite() ? 'border-nav-favorites/50 bg-nav-favorites/15 text-nav-favorites' : 'border-white/10 bg-canvas/50 text-white/80 hover:text-white hover:border-white/30') + (variant() === 'full' ? ' px-3.5' : ' w-11')"
+			[disabled]="togglingFavorite()"
+			[attr.aria-pressed]="favorite()"
+			[attr.aria-label]="variant() === 'compact' ? (favorite() ? 'Remove from favorites' : 'Add to favorites') : null"
+			[title]="favorite() ? 'Remove from favorites' : 'Add to favorites'"
+			(click)="favoriteToggled.emit()"
+		>
+			<span aria-hidden="true" class="material-icons text-xl"
+				>{{ favorite() ? 'favorite' : 'favorite_border' }}</span
+			>
+			@if (variant() === 'full') {
+			<span>{{ favorite() ? 'Favorite' : 'Add to favorites' }}</span>
+			}
+		</button>
+	</div>
+
+	@if (variant() === 'full') {
+	<ul
+		class="list-none m-0 p-0 grid grid-cols-4 gap-2 sm:flex sm:flex-wrap"
+		aria-label="More library actions"
+	>
+		@for (action of secondaryActions(); track action.id) {
+		<li class="flex">
+			<button
+				type="button"
+				class="flex-1 inline-flex max-sm:flex-col items-center justify-center gap-1 sm:gap-2 h-16 sm:h-11 px-2 sm:px-3.5 rounded-card border backdrop-blur-md text-[0.6875rem] sm:text-sm font-medium cursor-pointer transition active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+				[class]="action.active ? 'border-white/20 bg-white/10 text-white' : 'border-white/10 bg-canvas/50 text-white/75 hover:text-white hover:border-white/25'"
+				[disabled]="action.disabled"
+				[attr.aria-pressed]="action.active"
+				(click)="runSecondary(action.id)"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-xl sm:text-lg"
+					[class]="action.active ? action.accentClass : ''"
+					>{{ action.active ? action.activeIcon : action.icon }}</span
+				>
+				<span class="leading-tight text-center"
+					>{{ action.active ? action.activeLabel : action.label
+					}}</span
+				>
+			</button>
+		</li>
+		}
+	</ul>
+	}
+</div>
