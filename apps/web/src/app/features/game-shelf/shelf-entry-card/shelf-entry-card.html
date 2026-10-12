@@ -1,0 +1,121 @@
+@let item = entry();
+<article
+	role="button"
+	tabindex="0"
+	class="group relative isolate flex items-stretch gap-3 p-3 rounded-t-card bg-surface border border-line cursor-pointer focus-visible:outline-2 focus-visible:outline-brand"
+	[attr.aria-label]="'Edit ' + item.game.title + ' on your shelf'"
+	(click)="opened.emit()"
+	(keydown.enter)="opened.emit()"
+	(keydown.space)="opened.emit(); $event.preventDefault()"
+>
+	<div
+		aria-hidden="true"
+		class="absolute inset-0 -z-10 overflow-hidden rounded-t-card"
+	>
+		<div
+			class="absolute inset-y-0 right-0 w-3/4 opacity-25 [mask-image:linear-gradient(to_left,black_10%,transparent)]"
+		>
+			<app-game-poster
+				[src]="item.game.backgroundUrl"
+				[title]="item.game.title"
+				[width]="640"
+				[compact]="true"
+				class="w-full h-full blur-[2px] scale-110"
+			/>
+		</div>
+	</div>
+
+	<a
+		class="shrink-0 self-center"
+		[routerLink]="['/games', item.game.code]"
+		tabindex="-1"
+		[attr.aria-label]="item.game.title"
+		(click)="$event.stopPropagation()"
+	>
+		<app-game-poster
+			[src]="item.game.backgroundUrl"
+			[title]="item.game.title"
+			[width]="200"
+			class="w-[4.75rem] aspect-[2/3] rounded-md shadow-lg shadow-black/50 ring-1 ring-white/10"
+		/>
+	</a>
+
+	<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
+		<h3
+			class="m-0 font-display text-base font-semibold leading-tight text-fg line-clamp-2"
+		>
+			{{ item.game.title }}
+		</h3>
+		<p
+			class="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-fg-muted"
+		>
+			<span
+				class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide bg-brand-subtle text-brand"
+				>{{ item.platform.abbreviation }}</span
+			>
+			@if (item.edition) {
+			<span class="truncate">{{ item.edition }}</span>
+			} @if (item.acquiredAt) {
+			<span class="inline-flex items-center gap-1">
+				<span aria-hidden="true" class="material-icons text-sm"
+					>event</span
+				>
+				{{ item.acquiredAt | date: 'MMM d, y' }}
+			</span>
+			}
+		</p>
+		@if (item.inBacklog) {
+		<p
+			class="m-0 inline-flex items-center gap-1 text-xs font-medium text-success"
+		>
+			<span aria-hidden="true" class="material-icons text-sm"
+				>check_circle</span
+			>
+			In My Games
+		</p>
+		} @if (item.notes) {
+		<p class="m-0 text-xs text-fg-secondary leading-relaxed line-clamp-2">
+			{{ item.notes }}
+		</p>
+		}
+		<app-mood-tags-chips [tags]="item.moodTags" />
+	</div>
+</article>
+
+<div
+	class="grid grid-cols-3 rounded-b-card border border-t-0 border-line bg-surface"
+>
+	<button
+		type="button"
+		class="min-h-[48px] flex flex-col items-center justify-center gap-0.5 bg-transparent border-0 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-white/5"
+		[class.!text-nav-favorites]="favorite()"
+		[attr.aria-pressed]="favorite()"
+		(click)="favoriteToggled.emit()"
+	>
+		<span aria-hidden="true" class="material-icons text-xl"
+			>{{ favorite() ? 'favorite' : 'favorite_border' }}</span
+		>
+		Favorite
+	</button>
+	<button
+		type="button"
+		class="min-h-[48px] flex flex-col items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-white/5"
+		[class.!text-nav-wishlist]="wanted()"
+		[attr.aria-pressed]="wanted()"
+		(click)="wantedToggled.emit()"
+	>
+		<span aria-hidden="true" class="material-icons text-xl">redeem</span>
+		{{ wanted() ? 'Wanted' : 'Want' }}
+	</button>
+	<button
+		type="button"
+		class="min-h-[48px] flex flex-col items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium cursor-pointer active:bg-white/5"
+		[class]="item.inBacklog ? 'text-success' : 'text-brand'"
+		(click)="libraryRequested.emit()"
+	>
+		<span aria-hidden="true" class="material-icons text-xl"
+			>{{ item.inBacklog ? 'edit_note' : 'playlist_add' }}</span
+		>
+		{{ item.inBacklog ? 'Edit in My Games' : 'Add to My Games' }}
+	</button>
+</div>
