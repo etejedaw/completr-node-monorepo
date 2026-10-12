@@ -6,8 +6,9 @@ import { type Observable } from "rxjs";
 import { AuthService } from "../../../core/services/auth";
 import { type ProfileAccessError } from "../components/profile-access-state";
 
-interface CollectionItem {
-	game: { title: string; backgroundUrl?: string };
+interface CollectionGame {
+	title: string;
+	backgroundUrl?: string;
 }
 
 interface CollectionPage<T> {
@@ -20,8 +21,9 @@ type CollectionFetcher<T> = (
 	pagination: { limit: number; offset: number }
 ) => Observable<CollectionPage<T>>;
 
-export function injectPublicCollection<T extends CollectionItem>(
+export function injectPublicCollection<T>(
 	fetchPage: CollectionFetcher<T>,
+	gameOf: (item: T) => CollectionGame,
 	limit = 50
 ) {
 	const route = inject(ActivatedRoute);
@@ -40,14 +42,14 @@ export function injectPublicCollection<T extends CollectionItem>(
 		const normalizedQuery = query().toLowerCase().trim();
 		if (!normalizedQuery) return items();
 		return items().filter(item =>
-			item.game.title.toLowerCase().includes(normalizedQuery)
+			gameOf(item).title.toLowerCase().includes(normalizedQuery)
 		);
 	});
 
 	const posters = computed(() =>
 		items().map(item => ({
-			src: item.game.backgroundUrl,
-			title: item.game.title
+			src: gameOf(item).backgroundUrl,
+			title: gameOf(item).title
 		}))
 	);
 

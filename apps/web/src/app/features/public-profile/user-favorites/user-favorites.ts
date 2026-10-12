@@ -17,6 +17,7 @@ export class UserFavorites {
 
 	protected readonly collection = injectPublicCollection<FavoriteEntry>(
 		(username, pagination) =>
-			this.libraryService.getUserFavorites(username, pagination)
+			this.libraryService.getUserFavorites(username, pagination),
+		entry => entry.game
 	);
 }

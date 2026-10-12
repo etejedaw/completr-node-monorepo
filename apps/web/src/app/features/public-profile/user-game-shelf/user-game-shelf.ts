@@ -17,6 +17,7 @@ export class UserGameShelf {
 
 	protected readonly collection = injectPublicCollection<GameShelfEntry>(
 		(username, pagination) =>
-			this.libraryService.getUserGameShelf(username, pagination)
+			this.libraryService.getUserGameShelf(username, pagination),
+		entry => entry.game
 	);
 }

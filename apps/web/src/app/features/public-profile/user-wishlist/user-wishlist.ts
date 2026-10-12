@@ -17,6 +17,7 @@ export class UserWishlist {
 
 	protected readonly collection = injectPublicCollection<WishlistEntry>(
 		(username, pagination) =>
-			this.libraryService.getUserWishlist(username, pagination)
+			this.libraryService.getUserWishlist(username, pagination),
+		entry => entry.game
 	);
 }
