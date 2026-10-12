@@ -403,4 +403,8 @@ textarea.ui-input {
 	.ui-icon-button {
 		min-width: 44px;
 	}
+
+	.ui-tab {
+		min-height: 44px;
+	}
 }
