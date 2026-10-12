@@ -208,7 +208,7 @@
 					</span>
 					} @if (item.compilationGame) {
 					<a
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand/10 border border-brand/30 no-underline hover:bg-brand/20"
+						class="tap-area inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand/10 border border-brand/30 no-underline hover:bg-brand/20"
 						[routerLink]="['/games', item.compilationGame.code]"
 						(click)="$event.stopPropagation()"
 						[title]="'Part of ' + item.compilationGame.title"
