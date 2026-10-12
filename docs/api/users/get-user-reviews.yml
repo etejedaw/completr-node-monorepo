@@ -17,10 +17,12 @@ settings:
 docs: |-
     ## Get User Reviews
 
-    Returns the reviews written by `:username`, paginated by createdAt desc. Used by the public profile reviews tab (limit 5) and the dedicated `/user/:username/reviews` page (limit 50).
+    Returns the reviews written by `:username`, paginated by createdAt desc. Used by the public profile reviews section (limit 20) and the dedicated `/user/:username/reviews` page (limit 50).
 
     **Authentication:** Not required (public).
     **Rate Limit:** 100 requests per minute (public).
+
+    `playthroughDuration` is the real duration (hours) of the latest completed run of that game, or `null`. `game.coverUrl` and `game.backgroundUrl` are `null` when the game has no artwork.
 
     Returns 403 if the profile is private. Returns 404 if user not found.
 
@@ -47,8 +49,16 @@ docs: |-
             "id": "uuid",
             "content": "Loved the puzzle design.",
             "rating": 4.5,
-            "game": { "id": "uuid", "code": "fez", "title": "Fez" },
-            "createdAt": "2026-04-12T10:24:00.000Z"
+            "playthroughDuration": 9.5,
+            "game": {
+              "id": "uuid",
+              "code": "fez",
+              "title": "Fez",
+              "coverUrl": "https://…/fez-cover.jpg",
+              "backgroundUrl": "https://…/fez.jpg"
+            },
+            "createdAt": "2026-04-12T10:24:00.000Z",
+            "updatedAt": "2026-04-12T10:24:00.000Z"
           }
         ],
         "total": 23
