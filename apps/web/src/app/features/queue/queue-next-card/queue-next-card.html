@@ -8,19 +8,19 @@
 		[src]="backlog.game.backgroundUrl | coverUrl: 640"
 		alt=""
 		aria-hidden="true"
-		class="absolute inset-0 -z-10 w-full h-full object-cover opacity-25 blur-2xl scale-110 saturate-150"
+		class="absolute inset-0 -z-10 w-full h-full object-cover opacity-25 blur-2xl scale-110 saturate-150 md:opacity-50 md:blur-none md:scale-100 md:saturate-100 md:[mask-image:linear-gradient(to_left,black_15%,transparent_70%)]"
 	/>
 	}
 	<div
 		aria-hidden="true"
-		class="absolute inset-0 -z-10 bg-gradient-to-r from-surface via-surface/85 to-surface/40"
+		class="absolute inset-0 -z-10 bg-gradient-to-r from-surface via-surface/85 to-surface/40 md:via-surface/70 md:to-surface/20"
 	></div>
 
 	<div
-		class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 sm:gap-x-6 gap-y-4 p-4 sm:p-6"
+		class="grid grid-cols-[auto_minmax(0,1fr)] md:grid-cols-[auto_minmax(0,1fr)_auto] gap-x-4 md:gap-x-6 gap-y-4 md:gap-y-3 p-4 md:p-5"
 	>
 		<a
-			class="shrink-0 sm:row-span-2"
+			class="row-span-2 shrink-0"
 			[routerLink]="['/games', backlog.game.code]"
 			tabindex="-1"
 			[attr.aria-label]="backlog.game.title"
@@ -29,18 +29,18 @@
 				[src]="backlog.game.backgroundUrl"
 				[title]="backlog.game.title"
 				[width]="420"
-				class="w-24 sm:w-36 aspect-[2/3] rounded-lg ring-1 ring-white/10 shadow-xl shadow-black/50"
+				class="w-24 md:w-28 aspect-[2/3] rounded-lg ring-1 ring-white/10 shadow-xl shadow-black/50"
 			/>
 		</a>
 
-		<div class="flex-1 min-w-0 flex flex-col">
+		<div class="col-start-2 min-w-0 md:self-end">
 			<span
 				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
 				>{{ eyebrow() }}</span
 			>
 			<h2
 				id="queue-next-title"
-				class="m-0 mt-1 font-display text-xl sm:text-3xl font-bold tracking-tight leading-tight line-clamp-2"
+				class="m-0 mt-1 font-display text-xl md:text-2xl lg:text-3xl font-bold tracking-tight leading-tight line-clamp-2"
 			>
 				<a
 					class="text-fg no-underline hover:text-brand"
@@ -52,23 +52,28 @@
 				{{ backlog.platform?.abbreviation }} @if (backlog.game.isDlc) {
 				· DLC }
 			</p>
+		</div>
 
-			<dl class="m-0 mt-4 flex items-end gap-6">
-				@if (backlog.ratio) {
-				<div>
-					<dt
-						class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-					>
-						Ratio
-					</dt>
-					<dd
-						class="m-0 font-display text-3xl font-bold text-brand tabular-nums leading-none"
-					>
-						{{ backlog.ratio }}
-					</dd>
-				</div>
-				} @if (backlog.score) {
-				<div>
+		<dl
+			class="col-start-2 row-start-2 m-0 flex items-end gap-6 md:col-start-3 md:row-start-1 md:row-span-2 md:self-center md:flex-col md:items-end md:gap-3 md:pl-8 md:border-l md:border-line"
+		>
+			@if (backlog.ratio) {
+			<div class="md:text-right">
+				<dt
+					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Ratio
+				</dt>
+				<dd
+					class="m-0 font-display text-3xl md:text-5xl font-bold text-brand tabular-nums leading-none"
+				>
+					{{ backlog.ratio }}
+				</dd>
+			</div>
+			}
+			<div class="flex items-end gap-6 md:gap-5">
+				@if (backlog.score) {
+				<div class="md:text-right">
 					<dt
 						class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
 					>
@@ -81,7 +86,7 @@
 					</dd>
 				</div>
 				} @if (backlog.duration) {
-				<div>
+				<div class="md:text-right">
 					<dt
 						class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
 					>
@@ -97,14 +102,15 @@
 					</dd>
 				</div>
 				}
-			</dl>
-		</div>
+			</div>
+		</dl>
+
 		<div
-			class="col-span-2 sm:col-span-1 sm:col-start-2 flex items-center gap-2"
+			class="col-span-2 row-start-3 flex items-center gap-2 md:col-span-1 md:col-start-2 md:row-start-2 md:self-start"
 		>
 			<button
 				type="button"
-				class="max-sm:flex-1 inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-card border-0 bg-brand text-white text-sm font-semibold cursor-pointer transition hover:bg-brand-hover active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+				class="max-sm:flex-1 inline-flex items-center justify-center gap-1.5 h-10 pointer-coarse:min-h-[44px] px-4 rounded-card border-0 bg-brand text-white text-sm font-semibold cursor-pointer transition hover:bg-brand-hover active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
 				[disabled]="statusUpdating()"
 				(click)="startPlaying.emit()"
 			>
@@ -115,7 +121,7 @@
 			</button>
 			<button
 				type="button"
-				class="w-10 h-10 inline-flex items-center justify-center rounded-card border border-line bg-transparent cursor-pointer transition hover:border-fg-muted"
+				class="shrink-0 w-10 h-10 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] inline-flex items-center justify-center rounded-card border border-line bg-canvas/40 cursor-pointer transition hover:border-fg-muted"
 				[class]="isFavorite() ? 'text-nav-favorites' : 'text-fg-muted hover:text-fg'"
 				[attr.aria-pressed]="isFavorite()"
 				[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
@@ -129,7 +135,7 @@
 			@if (canMoveDown()) {
 			<button
 				type="button"
-				class="w-10 h-10 inline-flex items-center justify-center rounded-card border border-line bg-transparent text-fg-muted cursor-pointer transition hover:text-fg hover:border-fg-muted"
+				class="shrink-0 w-10 h-10 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] inline-flex items-center justify-center rounded-card border border-line bg-canvas/40 text-fg-muted cursor-pointer transition hover:text-fg hover:border-fg-muted"
 				aria-label="Move down"
 				title="Move down"
 				(click)="moveDown.emit()"
@@ -141,7 +147,7 @@
 			}
 			<button
 				type="button"
-				class="w-10 h-10 inline-flex items-center justify-center rounded-card border border-line bg-transparent text-fg-muted cursor-pointer transition hover:text-danger hover:border-danger/40"
+				class="shrink-0 w-10 h-10 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] inline-flex items-center justify-center rounded-card border border-line bg-canvas/40 text-fg-muted cursor-pointer transition hover:text-danger hover:border-danger/40"
 				aria-label="Remove from Up Next"
 				title="Remove from Up Next"
 				(click)="remove.emit()"
