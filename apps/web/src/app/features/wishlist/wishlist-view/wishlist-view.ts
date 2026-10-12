@@ -12,8 +12,10 @@ import { type WishlistEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
+import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import {
 	countByPlatform,
 	matchesPlatform,
@@ -25,8 +27,7 @@ import {
 	UiEmptyState,
 	UiPagination,
 	UiPremiumBadge,
-	UiSearchBar,
-	UiSkeleton
+	UiSearchBar
 } from "../../../shared/ui";
 import { FavoritesService } from "../../favorites/favorites";
 import { WishlistService } from "../wishlist";
@@ -39,15 +40,16 @@ import {
 	selector: "app-wishlist-view",
 	imports: [
 		GameCoverCard,
+		CoverGrid,
 		LibraryHero,
+		LibraryToolbar,
 		PlatformFilter,
 		PremiumOnly,
 		UiButton,
 		UiEmptyState,
 		UiPagination,
 		UiPremiumBadge,
-		UiSearchBar,
-		UiSkeleton
+		UiSearchBar
 	],
 	templateUrl: "./wishlist-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -66,7 +68,6 @@ export class WishlistView implements OnInit {
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
-	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);
 
 	protected readonly platformCounts = computed(() =>
 		countByPlatform(this.allEntries(), entry => entry.platform)
