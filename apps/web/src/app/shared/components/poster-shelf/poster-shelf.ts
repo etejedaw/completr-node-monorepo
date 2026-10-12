@@ -34,6 +34,7 @@ const SCROLL_EDGE_TOLERANCE = 4;
 					</h2>
 				</div>
 				<div class="flex items-center gap-1 shrink-0">
+					<ng-content select="[shelfActions]" />
 					@if (seeAllLabel()) {
 						<button
 							type="button"
