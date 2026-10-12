@@ -17,6 +17,8 @@ export interface ListCardList {
 	owner?: { username: string } | null;
 	previewItems?: ListPreviewItem[];
 	followerCount?: number;
+	isPublic?: boolean;
+	progress?: { completed: number; total: number } | null;
 }
 
 const COLLAGE_SIZE = 4;
@@ -53,18 +55,44 @@ const COLLAGE_SIZE = 4;
 				class="absolute inset-0 -z-10 bg-gradient-to-t from-canvas via-canvas/70 to-canvas/0"
 			></div>
 
-			@if (list().isOfficial) {
-				<span
-					class="absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-canvas/70 text-warning backdrop-blur-md"
-				>
+			<div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+				@if (list().isOfficial) {
 					<span
-						aria-hidden="true"
-						class="material-icons text-[0.75rem]"
-						>verified</span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-canvas/70 text-warning backdrop-blur-md"
 					>
-					Official
-				</span>
-			}
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.75rem]"
+							>verified</span
+						>
+						Official
+					</span>
+				}
+				@if (progress()?.percent === 100) {
+					<span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/90 text-black backdrop-blur-md"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.75rem]"
+							>emoji_events</span
+						>
+						Completed
+					</span>
+				}
+				@if (showVisibility() && list().isPublic !== undefined) {
+					<span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-canvas/70 text-white backdrop-blur-md"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.75rem]"
+							>{{ list().isPublic ? "public" : "lock" }}</span
+						>
+						{{ list().isPublic ? "Public" : "Private" }}
+					</span>
+				}
+			</div>
 			<span
 				aria-hidden="true"
 				class="absolute top-3 right-3 w-8 h-8 inline-flex items-center justify-center rounded-full bg-canvas/70 text-white backdrop-blur-md opacity-0 -translate-x-1 transition duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100"
@@ -90,6 +118,26 @@ const COLLAGE_SIZE = 4;
 						by &#64;{{ list().owner!.username }}
 					</p>
 				}
+				@if (progress(); as listProgress) {
+					<div class="mt-2.5 flex items-center gap-2">
+						<span
+							aria-hidden="true"
+							class="flex-1 h-1 rounded-full bg-white/15 overflow-hidden"
+						>
+							<span
+								class="block h-full rounded-full bg-gradient-to-r from-brand to-success"
+								[style.width.%]="listProgress.percent"
+							></span>
+						</span>
+						<span
+							class="shrink-0 text-[0.6875rem] font-semibold text-white/80 tabular-nums"
+							>{{ listProgress.completed }}/{{
+								listProgress.total
+							}}
+							<span class="sr-only">games completed</span></span
+						>
+					</div>
+				}
 			</div>
 		</a>
 	`,
@@ -98,10 +146,19 @@ const COLLAGE_SIZE = 4;
 })
 export class ListCard {
 	readonly list = input.required<ListCardList>();
+	readonly showVisibility = input(false);
 
 	protected readonly collage = computed(() =>
 		(this.list().previewItems ?? [])
 			.filter(item => item.game !== null)
 			.slice(0, COLLAGE_SIZE)
 	);
+	protected readonly progress = computed(() => {
+		const progress = this.list().progress;
+		if (!progress || progress.total === 0) return null;
+		return {
+			...progress,
+			percent: Math.round((progress.completed / progress.total) * 100)
+		};
+	});
 }
