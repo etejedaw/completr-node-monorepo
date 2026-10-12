@@ -245,7 +245,9 @@ export class BacklogList implements OnInit {
 			const hasDefault = this.savedFilters().some(f => f.isDefault);
 			if (
 				this.eagerlyAppliedParams === params &&
-				(params.get("status") !== null || !hasDefault)
+				(params.get("status") !== null ||
+					params.get("mood_tags") !== null ||
+					!hasDefault)
 			) {
 				return;
 			}
@@ -567,6 +569,15 @@ export class BacklogList implements OnInit {
 		if (statusParam) {
 			this.resetFilterState();
 			this.activeStatuses.set(new Set(statusParam.split(",")));
+			this.offset.set(0);
+			this.loadBacklog();
+			return;
+		}
+
+		const moodTagsParam = params.get("mood_tags");
+		if (moodTagsParam) {
+			this.resetFilterState();
+			this.selectedMoodTags.set(moodTagsParam.split(",").filter(Boolean));
 			this.offset.set(0);
 			this.loadBacklog();
 			return;
