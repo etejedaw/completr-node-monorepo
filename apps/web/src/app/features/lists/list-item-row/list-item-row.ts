@@ -2,6 +2,7 @@ import { CdkDragHandle } from "@angular/cdk/drag-drop";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	input,
 	output
 } from "@angular/core";
@@ -9,7 +10,7 @@ import { RouterLink } from "@angular/router";
 
 import { type BacklogStatus, type ListItem } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
-import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
+import { RatioSummary } from "../../../shared/components/ratio-summary/ratio-summary";
 import {
 	backlogStatusIcon,
 	backlogStatusIconColor,
@@ -20,7 +21,7 @@ export type ListItemRowMode = "own" | "theirs" | "compare";
 
 @Component({
 	selector: "app-list-item-row",
-	imports: [CdkDragHandle, RouterLink, GamePoster, PersonalStats],
+	imports: [CdkDragHandle, RouterLink, GamePoster, RatioSummary],
 	templateUrl: "./list-item-row.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -40,6 +41,31 @@ export class ListItemRow {
 	readonly moveDown = output<void>();
 	readonly remove = output<void>();
 	readonly moreRequested = output<void>();
+
+	protected readonly runRatio = computed(() => {
+		const entry = this.item();
+		return entry.backlogStatus === "completed" ? entry.personalRatio : null;
+	});
+	protected readonly stats = computed(() => {
+		const entry = this.item();
+		const played =
+			entry.backlogStatus === "completed" && entry.realDuration
+				? `${entry.realDuration}h`
+				: null;
+		return [
+			{
+				label: "Score",
+				value: entry.score ?? null,
+				valueClass: "text-fg"
+			},
+			{
+				label: "Length",
+				value: entry.duration ? `${entry.duration}h` : null,
+				valueClass: "text-fg"
+			},
+			{ label: "Played", value: played, valueClass: "text-success" }
+		];
+	});
 
 	protected statusIcon(status: string): string {
 		return backlogStatusIcon(status as BacklogStatus);
