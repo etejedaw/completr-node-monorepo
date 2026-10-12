@@ -35,6 +35,7 @@ import {
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
 import { EntryAnnotation } from "../../../shared/components/entry-annotation/entry-annotation";
+import { FlipCard } from "../../../shared/components/flip-card/flip-card";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
@@ -113,6 +114,7 @@ const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		GameTitleCell,
 		GamePoster,
 		EntryAnnotation,
+		FlipCard,
 		RatioSummary,
 		FloatingXScrollbar,
 		RouterLink,
@@ -161,6 +163,7 @@ export class BacklogList implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
 	protected readonly activeStatuses = signal<Set<string>>(new Set());
+	protected readonly flippedEntryIds = signal<ReadonlySet<string>>(new Set());
 
 	protected readonly heroPosters = computed(() => {
 		const posters = this.entries().map(entry => ({
@@ -1134,6 +1137,23 @@ export class BacklogList implements OnInit {
 		this.queueService.removeByBacklogId(entry.id).subscribe(() => {
 			this.loadQueueIds();
 		});
+	}
+
+	protected hasAnnotations(entry: BacklogEntry): boolean {
+		return !!entry.notes || (!!entry.hasReview && !!entry.reviewContent);
+	}
+
+	protected isFlipped(entryId: string): boolean {
+		return this.flippedEntryIds().has(entryId);
+	}
+
+	protected toggleFlip(entry: BacklogEntry, event: Event) {
+		event.stopPropagation();
+		this.statusMenuOpenId.set(null);
+		const next = new Set(this.flippedEntryIds());
+		if (next.has(entry.id)) next.delete(entry.id);
+		else next.add(entry.id);
+		this.flippedEntryIds.set(next);
 	}
 
 	protected showsProgress(entry: BacklogEntry): boolean {

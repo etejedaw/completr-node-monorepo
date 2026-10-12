@@ -1247,127 +1247,193 @@
 	} } @else { @if (viewMode() === 'diary') {
 	<div class="grid gap-3 xl:grid-cols-2">
 		@for (entry of entries(); track entry.id) {
-		<article
-			role="button"
-			tabindex="0"
-			class="group/row relative isolate flex flex-col rounded-card bg-surface border border-line cursor-pointer transition duration-200 hover:border-brand/40 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-20px_rgba(0,0,0,0.9)] focus-visible:outline-2 focus-visible:outline-brand"
+		<app-flip-card
+			class="relative h-full"
 			[class.z-20]="statusMenuOpenId() === entry.id"
-			(click)="openEdit(entry, $event)"
-			(keydown.enter)="openEdit(entry, $event)"
-			(keydown.space)="openEdit(entry, $event); $event.preventDefault()"
+			[flipped]="isFlipped(entry.id)"
 		>
-			<div
-				aria-hidden="true"
-				class="absolute inset-0 -z-10 overflow-hidden rounded-card"
+			<article
+				flipCardFront
+				role="button"
+				tabindex="0"
+				class="group/row relative isolate h-full flex flex-col rounded-card bg-surface border border-line cursor-pointer transition duration-200 hover:border-brand/40 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-20px_rgba(0,0,0,0.9)] focus-visible:outline-2 focus-visible:outline-brand"
+				(click)="openEdit(entry, $event)"
+				(keydown.enter)="openEdit(entry, $event)"
+				(keydown.space)="openEdit(entry, $event); $event.preventDefault()"
 			>
 				<div
-					class="absolute inset-y-0 right-0 w-3/4 opacity-25 transition-opacity duration-300 group-hover/row:opacity-40 [mask-image:linear-gradient(to_left,black_10%,transparent)]"
+					aria-hidden="true"
+					class="absolute inset-0 -z-10 overflow-hidden rounded-card"
 				>
-					<app-game-poster
-						[src]="entry.game.backgroundUrl"
-						[title]="entry.game.title"
-						[width]="640"
-						[compact]="true"
-						class="w-full h-full blur-[2px] scale-110"
-					/>
-				</div>
-				<div
-					class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
-				></div>
-			</div>
-
-			<div class="flex-1 flex items-stretch gap-3 sm:gap-4 p-3 sm:p-4">
-				<div class="relative shrink-0 self-center">
-					<a
-						[routerLink]="['/games', entry.game.code]"
-						(click)="$event.stopPropagation()"
-						class="block"
-						[attr.aria-label]="entry.game.title"
+					<div
+						class="absolute inset-y-0 right-0 w-3/4 opacity-25 transition-opacity duration-300 group-hover/row:opacity-40 [mask-image:linear-gradient(to_left,black_10%,transparent)]"
 					>
 						<app-game-poster
 							[src]="entry.game.backgroundUrl"
 							[title]="entry.game.title"
-							[width]="200"
-							class="w-[4.75rem] sm:w-24 aspect-[2/3] rounded-md shadow-lg shadow-black/50 ring-1 ring-white/10 transition duration-300 group-hover/row:scale-[1.03]"
+							[width]="640"
+							[compact]="true"
+							class="w-full h-full blur-[2px] scale-110"
 						/>
-					</a>
-					@if (entry.ratio) {
-					<span
-						class="sm:hidden absolute -bottom-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-md bg-canvas/90 border border-brand/40 text-brand text-xs font-bold tabular-nums leading-none shadow"
-						>{{ entry.ratio }}</span
-					>
-					} @if (entry.status === 'not_started') {
-					<button
-						type="button"
-						class="absolute top-1 right-1 flex items-center justify-center w-8 h-8 rounded-full bg-warning text-white shadow-lg shadow-warning/40 ring-2 ring-white/20 opacity-0 group-hover/row:opacity-100 pointer-coarse:opacity-100 hover:scale-110 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
-						[disabled]="isStatusUpdating(entry)"
-						(click)="selectNewStatus(entry, 'playing', $event)"
-						title="Start playing"
-						aria-label="Start playing"
-					>
-						<span aria-hidden="true" class="material-icons text-lg"
-							>play_arrow</span
-						>
-					</button>
-					}
+					</div>
+					<div
+						class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
+					></div>
 				</div>
-
-				<div class="flex-1 min-w-0 flex flex-col gap-1.5">
-					<div class="flex items-start gap-2">
+				<div
+					class="flex-1 flex items-stretch gap-3 sm:gap-4 p-3 sm:p-4"
+				>
+					<div class="relative shrink-0 self-center">
 						<a
-							class="flex-1 min-w-0 font-display text-base sm:text-lg font-semibold leading-tight text-fg no-underline hover:text-brand line-clamp-2"
 							[routerLink]="['/games', entry.game.code]"
 							(click)="$event.stopPropagation()"
-							>{{ entry.game.title }}</a
+							class="block"
+							[attr.aria-label]="entry.game.title"
 						>
-						<div class="flex items-center -mr-1 -mt-1 shrink-0">
-							<button
-								type="button"
-								class="w-9 h-9 rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-nav-favorites hover:bg-white/5"
-								[class.!text-nav-favorites]="isFavorite(entry.game.id)"
-								(click)="toggleFavorite(entry.game.id, $event)"
-								[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
-								[attr.aria-label]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
+							<app-game-poster
+								[src]="entry.game.backgroundUrl"
+								[title]="entry.game.title"
+								[width]="200"
+								class="w-[4.75rem] sm:w-24 aspect-[2/3] rounded-md shadow-lg shadow-black/50 ring-1 ring-white/10 transition duration-300 group-hover/row:scale-[1.03]"
+							/>
+						</a>
+						@if (entry.status === 'not_started') {
+						<button
+							type="button"
+							class="absolute top-1 right-1 flex items-center justify-center w-8 h-8 rounded-full bg-warning text-white shadow-lg shadow-warning/40 ring-2 ring-white/20 opacity-0 group-hover/row:opacity-100 pointer-coarse:opacity-100 hover:scale-110 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
+							[disabled]="isStatusUpdating(entry)"
+							(click)="selectNewStatus(entry, 'playing', $event)"
+							title="Start playing"
+							aria-label="Start playing"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-lg"
+								>play_arrow</span
 							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-lg leading-none"
-									>{{ isFavorite(entry.game.id) ? 'favorite' :
-									'favorite_border' }}</span
-								>
-							</button>
-							<button
-								type="button"
-								class="w-9 h-9 rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-danger hover:bg-white/5"
-								[class.!text-danger]="isInQueue(entry)"
-								(click)="toggleQueue(entry); $event.stopPropagation()"
-								[title]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
-								[attr.aria-label]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-lg leading-none"
-									>{{ isInQueue(entry) ? 'playlist_add_check'
-									: 'playlist_play' }}</span
-								>
-							</button>
-						</div>
+						</button>
+						}
 					</div>
-
-					<div
-						class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap"
-					>
-						@if (canChangeStatus(entry.status)) {
-						<div class="relative inline-block">
-							<button
-								type="button"
-								class="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide border border-line hover:border-brand/50 cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+					<div class="flex-1 min-w-0 flex flex-col gap-1.5">
+						<div class="flex items-start gap-2">
+							<a
+								class="flex-1 min-w-0 font-display text-base sm:text-lg font-semibold leading-tight text-fg no-underline hover:text-brand line-clamp-2"
+								[routerLink]="['/games', entry.game.code]"
+								(click)="$event.stopPropagation()"
+								>{{ entry.game.title }}</a
+							>
+							<div class="flex items-center -mr-1 -mt-1 shrink-0">
+								@if (hasAnnotations(entry)) {
+								<button
+									type="button"
+									class="group/flip w-9 h-9 rounded-full bg-transparent border-0 text-brand/80 cursor-pointer inline-flex items-center justify-center transition hover:text-brand hover:bg-brand-subtle"
+									(click)="toggleFlip(entry, $event)"
+									[attr.aria-pressed]="isFlipped(entry.id)"
+									title="Flip to read your note and review"
+									aria-label="Flip to read your note and review"
+								>
+									<span
+										aria-hidden="true"
+										class="material-icons text-lg leading-none transition-transform duration-500 group-hover/flip:rotate-180"
+										>rotate_right</span
+									>
+								</button>
+								}
+								<button
+									type="button"
+									class="w-9 h-9 rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-nav-favorites hover:bg-white/5"
+									[class.!text-nav-favorites]="isFavorite(entry.game.id)"
+									(click)="toggleFavorite(entry.game.id, $event)"
+									[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
+									[attr.aria-label]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
+								>
+									<span
+										aria-hidden="true"
+										class="material-icons text-lg leading-none"
+										>{{ isFavorite(entry.game.id) ?
+										'favorite' : 'favorite_border' }}</span
+									>
+								</button>
+								<button
+									type="button"
+									class="w-9 h-9 rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-danger hover:bg-white/5"
+									[class.!text-danger]="isInQueue(entry)"
+									(click)="toggleQueue(entry); $event.stopPropagation()"
+									[title]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
+									[attr.aria-label]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
+								>
+									<span
+										aria-hidden="true"
+										class="material-icons text-lg leading-none"
+										>{{ isInQueue(entry) ?
+										'playlist_add_check' : 'playlist_play'
+										}}</span
+									>
+								</button>
+							</div>
+						</div>
+						<div
+							class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap"
+						>
+							@if (canChangeStatus(entry.status)) {
+							<div class="relative inline-block">
+								<button
+									type="button"
+									class="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide border border-line hover:border-brand/50 cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+									[class]="statusClass(entry.status)"
+									[disabled]="isStatusUpdating(entry)"
+									(click)="toggleStatusMenu(entry, $event)"
+									aria-haspopup="menu"
+									[attr.aria-expanded]="statusMenuOpenId() === entry.id"
+									[attr.aria-controls]="'status-menu-' + entry.id"
+								>
+									<span
+										aria-hidden="true"
+										class="material-icons text-[0.875rem]"
+										>{{ statusIcon(entry.status) }}</span
+									>
+									{{ statusLabel(entry.status) }}
+									<span
+										aria-hidden="true"
+										class="material-icons text-[0.875rem]"
+										>arrow_drop_down</span
+									>
+								</button>
+								@if (statusMenuOpenId() === entry.id) {
+								<div
+									role="menu"
+									tabindex="-1"
+									[id]="'status-menu-' + entry.id"
+									aria-label="Change status"
+									class="absolute left-0 top-full mt-1 z-20 bg-sidebar border border-line rounded-card shadow-xl shadow-black/50 py-1 min-w-[170px]"
+									(click)="$event.stopPropagation()"
+									(keydown.escape)="statusMenuOpenId.set(null)"
+								>
+									@for (s of statusFilters; track s.value) {
+									<button
+										type="button"
+										role="menuitem"
+										class="flex items-center gap-2 w-full text-left px-3 py-2 text-xs bg-transparent border-0 text-fg hover:bg-input-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-input-bg focus-visible:outline-none"
+										[disabled]="s.value === entry.status"
+										(click)="selectNewStatus(entry, s.value, $event)"
+									>
+										<span
+											aria-hidden="true"
+											class="material-icons text-sm"
+											[class]="statusIconColor($any(s.value))"
+											>{{ statusIcon($any(s.value))
+											}}</span
+										>
+										{{ s.label }}
+									</button>
+									}
+								</div>
+								}
+							</div>
+							} @else {
+							<span
+								class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
 								[class]="statusClass(entry.status)"
-								[disabled]="isStatusUpdating(entry)"
-								(click)="toggleStatusMenu(entry, $event)"
-								aria-haspopup="menu"
-								[attr.aria-expanded]="statusMenuOpenId() === entry.id"
-								[attr.aria-controls]="'status-menu-' + entry.id"
 							>
 								<span
 									aria-hidden="true"
@@ -1375,188 +1441,139 @@
 									>{{ statusIcon(entry.status) }}</span
 								>
 								{{ statusLabel(entry.status) }}
+							</span>
+							}
+							<span
+								class="px-1.5 py-0.5 rounded bg-white/5 text-fg-secondary text-[0.6875rem] font-semibold tracking-wide"
+								>{{ entry.platform.abbreviation }}</span
+							>
+							@if (entry.compilationGame) {
+							<a
+								class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand/10 border border-brand/30 no-underline hover:bg-brand/20"
+								[routerLink]="['/games', entry.compilationGame.code]"
+								(click)="$event.stopPropagation()"
+								[title]="'Part of ' + entry.compilationGame.title"
+							>
 								<span
 									aria-hidden="true"
-									class="material-icons text-[0.875rem]"
-									>arrow_drop_down</span
+									class="material-icons text-[0.75rem]"
+									>library_books</span
 								>
-							</button>
-							@if (statusMenuOpenId() === entry.id) {
-							<div
-								role="menu"
-								tabindex="-1"
-								[id]="'status-menu-' + entry.id"
-								aria-label="Change status"
-								class="absolute left-0 top-full mt-1 z-20 bg-sidebar border border-line rounded-card shadow-xl shadow-black/50 py-1 min-w-[170px]"
-								(click)="$event.stopPropagation()"
-								(keydown.escape)="statusMenuOpenId.set(null)"
-							>
-								@for (s of statusFilters; track s.value) {
-								<button
-									type="button"
-									role="menuitem"
-									class="flex items-center gap-2 w-full text-left px-3 py-2 text-xs bg-transparent border-0 text-fg hover:bg-input-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-input-bg focus-visible:outline-none"
-									[disabled]="s.value === entry.status"
-									(click)="selectNewStatus(entry, s.value, $event)"
-								>
-									<span
-										aria-hidden="true"
-										class="material-icons text-sm"
-										[class]="statusIconColor($any(s.value))"
-										>{{ statusIcon($any(s.value)) }}</span
-									>
-									{{ s.label }}
-								</button>
-								}
-							</div>
+								in {{ entry.compilationGame.title }}
+							</a>
 							}
 						</div>
-						} @else {
-						<span
-							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
-							[class]="statusClass(entry.status)"
+						@if (showsProgress(entry)) {
+						<div
+							class="flex items-start gap-1 text-xs text-fg-muted"
 						>
 							<span
 								aria-hidden="true"
-								class="material-icons text-[0.875rem]"
-								>{{ statusIcon(entry.status) }}</span
+								class="material-icons text-[0.875rem] text-brand mt-px"
+								>bookmark</span
 							>
-							{{ statusLabel(entry.status) }}
-						</span>
-						}
-						<span
-							class="px-1.5 py-0.5 rounded bg-white/5 text-fg-secondary text-[0.6875rem] font-semibold tracking-wide"
-							>{{ entry.platform.abbreviation }}</span
-						>
-						@if (entry.compilationGame) {
-						<a
-							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand/10 border border-brand/30 no-underline hover:bg-brand/20"
-							[routerLink]="['/games', entry.compilationGame.code]"
-							(click)="$event.stopPropagation()"
-							[title]="'Part of ' + entry.compilationGame.title"
-						>
+							<span class="line-clamp-1"
+								>{{ entry.latestProgress?.note }}</span
+							>
+						</div>
+						} @if (entry.moodTags && entry.moodTags.length > 0) {
+						<div class="flex flex-wrap gap-1">
+							@for (tag of entry.moodTags; track tag) {
 							<span
-								aria-hidden="true"
-								class="material-icons text-[0.75rem]"
-								>library_books</span
+								class="inline-block px-1.5 py-0.5 rounded-full bg-brand-subtle text-brand text-[0.625rem] font-medium leading-none"
+								>{{ tag }}</span
 							>
-							in {{ entry.compilationGame.title }}
-						</a>
+							}
+						</div>
 						}
-					</div>
-
-					<app-star-rating
-						[value]="entry.userRating ?? null"
-						[readonly]="!canQuickRate(entry)"
-						size="sm"
-						(ratingChange)="onQuickRate(entry, $event)"
-					/>
-
-					<app-entry-annotation
-						[note]="entry.notes"
-						[review]="entry.hasReview ? entry.reviewContent : null"
-					/>
-					@if (showsProgress(entry)) {
-					<div class="flex items-start gap-1 text-xs text-fg-muted">
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem] text-brand mt-px"
-							>bookmark</span
-						>
-						<span class="line-clamp-1"
-							>{{ entry.latestProgress?.note }}</span
-						>
-					</div>
-					} @if (entry.moodTags && entry.moodTags.length > 0) {
-					<div class="flex flex-wrap gap-1">
-						@for (tag of entry.moodTags; track tag) {
-						<span
-							class="inline-block px-1.5 py-0.5 rounded-full bg-brand-subtle text-brand text-[0.625rem] font-medium leading-none"
-							>{{ tag }}</span
-						>
-						}
-					</div>
-					}
-
-					<div
-						class="mt-auto pt-2 flex items-end justify-between gap-3 border-t border-line/60"
-					>
-						<dl
-							class="m-0 flex items-end gap-4 text-[0.625rem] uppercase tracking-wider text-fg-muted"
+						<p
+							class="m-0 mt-auto flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-fg-muted tabular-nums"
 						>
 							@if (entry.score) {
-							<div class="flex flex-col gap-0.5">
-								<dt>Score</dt>
-								<dd
-									class="m-0 text-sm font-semibold normal-case tracking-normal text-fg-secondary tabular-nums"
-								>
-									{{ entry.score }}
-								</dd>
-							</div>
+							<span
+								>Score
+								<span class="text-fg-secondary"
+									>{{ entry.score }}</span
+								></span
+							>
 							} @if (entry.duration) {
-							<div class="flex flex-col gap-0.5">
-								<dt>Length</dt>
-								<dd
-									class="m-0 text-sm font-semibold normal-case tracking-normal text-fg-secondary tabular-nums"
+							<span aria-hidden="true">·</span>
+							<span
+								><span class="text-fg-secondary"
+									>{{ entry.duration }}h</span
 								>
-									{{ entry.duration }}h
-								</dd>
-							</div>
+								long</span
+							>
 							} @if (entry.realDuration) {
-							<div class="flex flex-col gap-0.5">
-								<dt>Played</dt>
-								<dd
-									class="m-0 text-sm font-semibold normal-case tracking-normal text-fg-secondary tabular-nums"
+							<span aria-hidden="true">·</span>
+							<span
+								><span class="text-fg-secondary"
+									>{{ entry.realDuration }}h</span
 								>
-									{{ entry.realDuration }}h
-								</dd>
-							</div>
+								played</span
+							>
 							} @if (entry.finishedAt) {
-							<div class="flex flex-col gap-0.5 max-sm:hidden">
-								<dt>Finished</dt>
-								<dd
-									class="m-0 text-sm font-semibold normal-case tracking-normal text-fg-secondary tabular-nums"
-								>
-									{{ entry.finishedAt | date:'MMM d, y' }}
-								</dd>
-							</div>
-							}
-						</dl>
-						@if (entry.coopMembers && entry.coopMembers.length > 0)
-						{
-						<div
-							class="flex items-center gap-1 text-xs text-fg-muted mr-auto"
-						>
-							<div class="flex -space-x-1.5">
-								@for (m of entry.coopMembers.slice(0, 4); track
-								m.userId) { @if (m.avatarUrl) {
-								<img
-									[src]="m.avatarUrl"
-									[alt]="m.username"
-									class="w-6 h-6 rounded-full object-cover ring-2 ring-surface"
-									[title]="m.name || m.username"
-								/>
-								} @else {
-								<div
-									class="w-6 h-6 rounded-full bg-brand/20 text-brand text-[0.5625rem] font-semibold flex items-center justify-center ring-2 ring-surface"
-									[title]="m.name || m.username"
-								>
-									{{ m.username[0]?.toUpperCase() }}
-								</div>
-								} }
-							</div>
-							@if (entry.coopMembers.length > 4) {
-							<span class="text-[0.625rem]"
-								>+{{ entry.coopMembers.length - 4 }}</span
+							<span aria-hidden="true">·</span>
+							<span class="text-fg-secondary"
+								>{{ entry.finishedAt | date:'MMM d, y' }}</span
 							>
 							}
-						</div>
-						}
+						</p>
 						<div
-							class="hidden sm:flex items-end gap-4 shrink-0 text-right"
+							class="pt-2.5 flex flex-wrap items-end justify-between gap-x-4 gap-y-3 border-t border-line/60"
 						>
-							@if (entry.ratio || entry.personalRatio) {
+							<div class="flex flex-col gap-1.5 leading-none">
+								<span
+									class="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+									>Your rating</span
+								>
+								<div class="flex items-center gap-2">
+									@if (entry.userRating) {
+									<span
+										class="font-display text-2xl sm:text-3xl font-bold text-warning tabular-nums"
+										>{{ entry.userRating }}</span
+									>
+									}
+									<app-star-rating
+										[value]="entry.userRating ?? null"
+										[readonly]="!canQuickRate(entry)"
+										size="sm"
+										(ratingChange)="onQuickRate(entry, $event)"
+									/>
+								</div>
+							</div>
+							@if (entry.coopMembers && entry.coopMembers.length >
+							0) {
+							<div
+								class="flex items-center gap-1 text-xs text-fg-muted mr-auto"
+							>
+								<div class="flex -space-x-1.5">
+									@for (m of entry.coopMembers.slice(0, 4);
+									track m.userId) { @if (m.avatarUrl) {
+									<img
+										[src]="m.avatarUrl"
+										[alt]="m.username"
+										class="w-6 h-6 rounded-full object-cover ring-2 ring-surface"
+										[title]="m.name || m.username"
+									/>
+									} @else {
+									<div
+										class="w-6 h-6 rounded-full bg-brand/20 text-brand text-[0.5625rem] font-semibold flex items-center justify-center ring-2 ring-surface"
+										[title]="m.name || m.username"
+									>
+										{{ m.username[0]?.toUpperCase() }}
+									</div>
+									} }
+								</div>
+								@if (entry.coopMembers.length > 4) {
+								<span class="text-[0.625rem]"
+									>+{{ entry.coopMembers.length - 4 }}</span
+								>
+								}
+							</div>
+							} @if (entry.ratio || entry.personalRatio) {
 							<app-ratio-summary
+								class="ml-auto"
 								[ratio]="entry.ratio"
 								[personalRatio]="entry.personalRatio"
 							/>
@@ -1564,8 +1581,81 @@
 						</div>
 					</div>
 				</div>
-			</div>
-		</article>
+			</article>
+			<section
+				flipCardBack
+				class="h-full flex flex-col rounded-card bg-sidebar border border-brand/30 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.9)] overflow-hidden"
+				[attr.aria-label]="'Your note and review for ' + entry.game.title"
+			>
+				<header
+					class="flex items-center gap-3 px-3 sm:px-4 py-2.5 border-b border-line"
+				>
+					<app-game-poster
+						[src]="entry.game.backgroundUrl"
+						[title]="entry.game.title"
+						[width]="200"
+						[compact]="true"
+						class="w-7 aspect-[2/3] rounded-sm shrink-0 ring-1 ring-white/10"
+					/>
+					<span
+						class="flex-1 min-w-0 font-display font-semibold text-fg truncate"
+						>{{ entry.game.title }}</span
+					>
+					<button
+						type="button"
+						class="w-9 h-9 rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-brand hover:bg-brand-subtle"
+						(click)="toggleFlip(entry, $event)"
+						title="Back to the card"
+						aria-label="Back to the card"
+					>
+						<span aria-hidden="true" class="material-icons text-lg"
+							>rotate_left</span
+						>
+					</button>
+				</header>
+				<div
+					class="flex-1 min-h-0 overflow-y-auto px-3 sm:px-4 py-3 flex flex-col gap-4"
+				>
+					@if (entry.notes) {
+					<div class="flex flex-col gap-1.5">
+						<h3
+							class="m-0 flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons !text-sm"
+								>sticky_note_2</span
+							>
+							Note
+						</h3>
+						<p
+							class="m-0 text-sm leading-relaxed text-fg-secondary whitespace-pre-line break-words"
+						>
+							{{ entry.notes }}
+						</p>
+					</div>
+					} @if (entry.hasReview && entry.reviewContent) {
+					<div class="flex flex-col gap-1.5">
+						<h3
+							class="m-0 flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons !text-sm"
+								>rate_review</span
+							>
+							Review
+						</h3>
+						<p
+							class="m-0 text-sm leading-relaxed text-fg-secondary italic whitespace-pre-line break-words"
+						>
+							{{ entry.reviewContent }}
+						</p>
+					</div>
+					}
+				</div>
+			</section>
+		</app-flip-card>
 		}
 	</div>
 	} @else if (viewMode() === 'calendar') {
