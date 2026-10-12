@@ -8,6 +8,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type QueueEntry } from "../../../core/models";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
 import { QueueNextCard } from "../../queue/queue-next-card/queue-next-card";
 import {
@@ -28,6 +29,7 @@ const QUEUE_PAGE_SIZE = 100;
 	selector: "app-user-queue",
 	imports: [
 		RouterLink,
+		LibraryHero,
 		ProfileAccessState,
 		QueueNextCard,
 		QueueRow,

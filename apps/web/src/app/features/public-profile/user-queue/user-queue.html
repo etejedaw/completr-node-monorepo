@@ -5,115 +5,104 @@
 	privateTitle="This queue is private"
 />
 } @else {
-<div class="max-w-3xl mx-auto">
-	<header class="mb-6">
-		<a
-			class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
-			[routerLink]="['/user', collection.username()]"
+<app-library-hero heading="Up Next" [posters]="collection.posters()">
+	<a
+		heroEyebrow
+		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
+		[routerLink]="['/user', collection.username()]"
+	>
+		<span aria-hidden="true" class="material-icons text-sm"
+			>arrow_back</span
 		>
-			<span aria-hidden="true" class="material-icons text-sm"
-				>arrow_back</span
-			>
-			{{ '@' + collection.username() }}'s profile
-		</a>
-		<h1
-			class="m-0 mt-1 font-display text-3xl sm:text-4xl font-bold tracking-tight"
+		{{ '@' + collection.username() }}'s profile
+	</a>
+	<p heroSubtitle class="m-0 mt-2 mb-6 text-sm text-fg-secondary">
+		<span class="font-semibold text-fg tabular-nums"
+			>{{ collection.total() }}</span
 		>
-			Up Next
-		</h1>
-		<p class="m-0 mt-1.5 text-sm text-fg-muted">
-			<span class="tabular-nums"
-				>{{ collection.total() }} {{ collection.total() === 1 ? 'game' :
-				'games' }}</span
-			>
-			in their queue
-		</p>
-	</header>
+		{{ collection.total() === 1 ? 'game' : 'games' }} in their queue
+	</p>
+</app-library-hero>
 
-	@if (collection.isLoading() || collection.items().length > 0) {
-	<div class="flex flex-wrap items-center gap-2 mb-6">
-		<ui-search-bar
-			class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
-			[placeholder]="'Search ' + collection.username() + '\'s queue...'"
-			[value]="collection.query()"
-			(valueChange)="collection.query.set($event)"
-		/>
-		<app-queue-sort-control [(value)]="sortBy" manualLabel="Their order" />
-	</div>
-	} @if (collection.isLoading()) {
-	<app-queue-skeleton />
-	} @else if (collection.items().length === 0) {
-	<section class="flex flex-col items-center text-center py-20 px-6">
-		<span
-			aria-hidden="true"
-			class="material-icons text-4xl text-fg-muted mb-3"
-			>playlist_play</span
-		>
-		<h2 class="m-0 font-display text-xl font-semibold text-fg">
-			Nothing queued yet
-		</h2>
-		<p class="m-0 mt-2 mb-6 max-w-sm text-sm text-fg-muted leading-relaxed">
-			{{ '@' + collection.username() }} hasn't lined up any games to play
-			next.
-		</p>
-		<a
-			uiButton
-			variant="secondary"
-			[routerLink]="['/user', collection.username()]"
-			>Back to profile</a
-		>
-	</section>
-	} @else if (sortedEntries().length === 0) {
-	<section class="flex flex-col items-center text-center py-16 px-6">
-		<span
-			aria-hidden="true"
-			class="material-icons text-4xl text-fg-muted mb-3"
-			>search_off</span
-		>
-		<h2 class="m-0 font-display text-xl font-semibold text-fg">
-			No matches
-		</h2>
-		<p class="m-0 mt-2 mb-6 text-sm text-fg-muted">
-			Nothing in their Up Next matches "{{ collection.query().trim() }}".
-		</p>
-		<button uiButton variant="secondary" (click)="collection.query.set('')">
-			Clear search
-		</button>
-	</section>
-	} @else { @if (featured(); as next) {
-	<app-queue-next-card
-		class="mb-8"
-		[entry]="next"
-		[eyebrow]="featuredEyebrow()"
-		[readonly]="true"
+@if (collection.isLoading() || collection.items().length > 0) {
+<div
+	class="bleed bleed-inner sticky top-[var(--topbar-height)] z-30 py-3 mb-6 flex flex-wrap items-center gap-2 bg-canvas/85 backdrop-blur-md border-b border-line/60"
+>
+	<ui-search-bar
+		class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
+		[placeholder]="'Search ' + collection.username() + '\'s queue...'"
+		[value]="collection.query()"
+		(valueChange)="collection.query.set($event)"
 	/>
-	} @if (rest().length > 0) {
-	<section aria-labelledby="queue-list-heading">
-		<h2
-			id="queue-list-heading"
-			class="m-0 mb-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-		>
-			@if (featured()) { After that } @else { Results }
-		</h2>
-		<ol class="list-none m-0 p-0 divide-y divide-line">
-			@for (entry of rest(); track entry.id; let i = $index) {
-			<li>
-				<app-queue-row
-					[entry]="entry"
-					[position]="collection.offset() + i + restOffset() + 1"
-					[readonly]="true"
-				/>
-			</li>
-			}
-		</ol>
-	</section>
-	} }
-
-	<ui-pagination
-		[offset]="collection.offset()"
-		[limit]="collection.limit"
-		[total]="collection.total()"
-		(offsetChange)="collection.goToOffset($event)"
-	/>
+	<app-queue-sort-control [(value)]="sortBy" manualLabel="Their order" />
 </div>
+} @if (collection.isLoading()) {
+<app-queue-skeleton />
+} @else if (collection.items().length === 0) {
+<section class="flex flex-col items-center text-center py-20 px-6">
+	<span aria-hidden="true" class="material-icons text-4xl text-fg-muted mb-3"
+		>playlist_play</span
+	>
+	<h2 class="m-0 font-display text-xl font-semibold text-fg">
+		Nothing queued yet
+	</h2>
+	<p class="m-0 mt-2 mb-6 max-w-sm text-sm text-fg-muted leading-relaxed">
+		{{ '@' + collection.username() }} hasn't lined up any games to play
+		next.
+	</p>
+	<a
+		uiButton
+		variant="secondary"
+		[routerLink]="['/user', collection.username()]"
+		>Back to profile</a
+	>
+</section>
+} @else if (sortedEntries().length === 0) {
+<section class="flex flex-col items-center text-center py-16 px-6">
+	<span aria-hidden="true" class="material-icons text-4xl text-fg-muted mb-3"
+		>search_off</span
+	>
+	<h2 class="m-0 font-display text-xl font-semibold text-fg">No matches</h2>
+	<p class="m-0 mt-2 mb-6 text-sm text-fg-muted">
+		Nothing in their Up Next matches "{{ collection.query().trim() }}".
+	</p>
+	<button uiButton variant="secondary" (click)="collection.query.set('')">
+		Clear search
+	</button>
+</section>
+} @else { @if (featured(); as next) {
+<app-queue-next-card
+	class="mb-8"
+	[entry]="next"
+	[eyebrow]="featuredEyebrow()"
+	[readonly]="true"
+/>
+} @if (rest().length > 0) {
+<section aria-labelledby="queue-list-heading">
+	<h2
+		id="queue-list-heading"
+		class="m-0 mb-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+	>
+		@if (featured()) { After that } @else { Results }
+	</h2>
+	<ol class="list-none m-0 p-0 divide-y divide-line">
+		@for (entry of rest(); track entry.id; let i = $index) {
+		<li>
+			<app-queue-row
+				[entry]="entry"
+				[position]="collection.offset() + i + restOffset() + 1"
+				[readonly]="true"
+			/>
+		</li>
+		}
+	</ol>
+</section>
+} }
+
+<ui-pagination
+	[offset]="collection.offset()"
+	[limit]="collection.limit"
+	[total]="collection.total()"
+	(offsetChange)="collection.goToOffset($event)"
+/>
 }
