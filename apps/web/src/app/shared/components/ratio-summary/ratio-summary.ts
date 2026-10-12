@@ -41,7 +41,7 @@ const COMPARISON_STYLES: Record<RatioComparison, ComparisonStyle> = {
 			>
 				<span
 					class="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-					>Your run</span
+					>{{ personalLabel() }}</span
 				>
 				<span
 					class="inline-flex items-center gap-0.5 text-lg font-bold tabular-nums"
@@ -77,6 +77,7 @@ const COMPARISON_STYLES: Record<RatioComparison, ComparisonStyle> = {
 export class RatioSummary {
 	readonly ratio = input<number | null | undefined>(null);
 	readonly personalRatio = input<number | null | undefined>(null);
+	readonly personalLabel = input("Your run");
 
 	protected readonly comparison = computed<ComparisonStyle | null>(() => {
 		const personal = this.personalRatio();
