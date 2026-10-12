@@ -7,13 +7,14 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { CoverUrlPipe } from "../../pipes/cover-url";
 import { UiIconButton } from "../../ui";
+import { GamePoster } from "../game-poster/game-poster";
 import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
 
 export interface GameCoverCardGame {
 	code: string;
 	title: string;
+	coverUrl?: string;
 	backgroundUrl?: string;
 }
 
@@ -25,7 +26,7 @@ export interface GameCoverCardGame {
 		DatePipe,
 		UiIconButton,
 		MoodTagsChips,
-		CoverUrlPipe
+		GamePoster
 	],
 	template: `
 		<div class="flex flex-col gap-1.5 text-inherit group">
@@ -59,16 +60,12 @@ export interface GameCoverCardGame {
 		</div>
 
 		<ng-template #cover>
-			@if (game().backgroundUrl) {
-				<img
-					[src]="game().backgroundUrl | coverUrl: 420"
-					[alt]="game().title"
-					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition-transform group-hover:scale-[1.03]"
-					loading="lazy"
-				/>
-			} @else {
-				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-			}
+			<app-game-poster
+				[src]="game().coverUrl ?? game().backgroundUrl"
+				[title]="game().title"
+				[width]="420"
+				class="w-full aspect-[2/3] rounded-lg ring-1 ring-white/10 shadow-lg shadow-black/40 transition duration-200 group-hover:-translate-y-1 group-hover:ring-brand/60"
+			/>
 			@if (topLeftBadge()) {
 				<span
 					class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm"
@@ -85,7 +82,7 @@ export interface GameCoverCardGame {
 				>
 					@if (ratio() !== null && ratio() !== undefined) {
 						<span
-							class="px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-brand/85 backdrop-blur-sm"
+							class="px-2 py-0.5 rounded-md text-xs font-display font-bold tabular-nums text-white bg-brand/90 shadow-md shadow-black/40 backdrop-blur-sm"
 							>{{ ratio() }}</span
 						>
 					}
