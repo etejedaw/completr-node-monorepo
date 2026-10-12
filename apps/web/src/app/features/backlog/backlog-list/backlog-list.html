@@ -1462,7 +1462,8 @@
 										>{{ entry.game.title }}</a
 									>
 									<div
-										class="max-sm:hidden flex items-center -mt-1 mr-9 shrink-0"
+										class="max-sm:hidden flex items-center -mt-1 -mr-1 shrink-0"
+										[class.!mr-9]="hasAnnotations(entry)"
 									>
 										<button
 											type="button"
