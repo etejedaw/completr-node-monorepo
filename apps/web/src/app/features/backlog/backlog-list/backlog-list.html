@@ -75,9 +75,75 @@
 				}
 			</div>
 
+			<div
+				class="md:hidden grid gap-2 pb-5"
+				[class.grid-cols-2]="backlogFilters().length > 0"
+			>
+				<button
+					type="button"
+					class="h-12 px-3.5 flex items-center gap-2.5 rounded-card border border-line bg-surface/70 backdrop-blur text-left cursor-pointer transition active:bg-surface-hover"
+					aria-haspopup="dialog"
+					(click)="statusFilterSheetOpen.set(true)"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-lg shrink-0"
+						[class]="quickStatusIconColor()"
+						>{{ quickStatusIcon() }}</span
+					>
+					<span
+						class="flex-1 min-w-0 flex flex-col gap-0.5 leading-none"
+					>
+						<span
+							class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+							>Status</span
+						>
+						<span class="text-sm font-medium text-fg truncate"
+							>{{ quickStatusLabel() }}</span
+						>
+					</span>
+					<span
+						aria-hidden="true"
+						class="material-icons text-fg-muted shrink-0"
+						>expand_more</span
+					>
+				</button>
+				@if (backlogFilters().length > 0) {
+				<button
+					type="button"
+					class="h-12 px-3.5 flex items-center gap-2.5 rounded-card border border-line bg-surface/70 backdrop-blur text-left cursor-pointer transition active:bg-surface-hover"
+					aria-haspopup="dialog"
+					(click)="viewsSheetOpen.set(true)"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-lg shrink-0"
+						[style.color]="activeView() ? colorHex(activeView()!.color) : null"
+						>{{ activeView()?.icon || 'bookmark_border' }}</span
+					>
+					<span
+						class="flex-1 min-w-0 flex flex-col gap-0.5 leading-none"
+					>
+						<span
+							class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+							>View</span
+						>
+						<span class="text-sm font-medium text-fg truncate"
+							>{{ activeView()?.name ?? 'None' }}</span
+						>
+					</span>
+					<span
+						aria-hidden="true"
+						class="material-icons text-fg-muted shrink-0"
+						>expand_more</span
+					>
+				</button>
+				}
+			</div>
+
 			<nav
 				aria-label="Filter by status"
-				class="flex flex-wrap gap-2 pb-5"
+				class="max-md:hidden flex flex-wrap gap-2 pb-5"
 			>
 				<button
 					type="button"
@@ -247,42 +313,44 @@
 		</div>
 
 		@if (backlogFilters().length > 0) {
-		<div class="flex flex-wrap items-center gap-1.5 mt-3">
+		<div class="max-md:hidden flex items-start gap-3 mt-3">
 			<span
-				class="shrink-0 text-[0.625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted mr-1"
+				class="shrink-0 h-8 inline-flex items-center text-[0.625rem] font-semibold uppercase tracking-[0.15em] text-fg-muted"
 				>Views</span
 			>
-			@for (sf of backlogFilters(); track sf.id) {
-			<button
-				type="button"
-				class="shrink-0 bg-surface/60 border border-line rounded-full text-fg-secondary text-xs font-medium px-3 py-1.5 pointer-coarse:py-2.5 cursor-pointer transition hover:border-brand hover:text-brand inline-flex items-center gap-1"
-				[class.!bg-brand-subtle]="activeFilterId() === sf.id"
-				[class.!border-brand]="activeFilterId() === sf.id"
-				[class.!text-brand]="activeFilterId() === sf.id"
-				(click)="applySavedFilter(sf)"
-			>
-				@if (sf.icon) {
-				<span
-					aria-hidden="true"
-					class="material-icons text-sm"
-					[style.color]="colorHex(sf.color)"
-					>{{ sf.icon }}</span
+			<div class="flex-1 min-w-0 flex flex-wrap items-center gap-1.5">
+				@for (sf of backlogFilters(); track sf.id) {
+				<button
+					type="button"
+					class="shrink-0 bg-surface/60 border border-line rounded-full text-fg-secondary text-xs font-medium px-3 py-1.5 pointer-coarse:py-2.5 cursor-pointer transition hover:border-brand hover:text-brand inline-flex items-center gap-1"
+					[class.!bg-brand-subtle]="activeFilterId() === sf.id"
+					[class.!border-brand]="activeFilterId() === sf.id"
+					[class.!text-brand]="activeFilterId() === sf.id"
+					(click)="applySavedFilter(sf)"
 				>
-				} {{ sf.name }}
-			</button>
-			} @if (backlogFilters().length > 1) {
-			<button
-				type="button"
-				class="shrink-0 text-fg-muted w-8 h-8 rounded-full inline-flex items-center justify-center cursor-pointer transition hover:text-brand hover:bg-input-bg bg-transparent border-0"
-				(click)="openReorderModal()"
-				aria-label="Reorder pinned views"
-				title="Reorder pinned views"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>swap_vert</span
+					@if (sf.icon) {
+					<span
+						aria-hidden="true"
+						class="material-icons text-sm"
+						[style.color]="colorHex(sf.color)"
+						>{{ sf.icon }}</span
+					>
+					} {{ sf.name }}
+				</button>
+				} @if (backlogFilters().length > 1) {
+				<button
+					type="button"
+					class="shrink-0 text-fg-muted w-8 h-8 rounded-full inline-flex items-center justify-center cursor-pointer transition hover:text-brand hover:bg-input-bg bg-transparent border-0"
+					(click)="openReorderModal()"
+					aria-label="Reorder pinned views"
+					title="Reorder pinned views"
 				>
-			</button>
-			}
+					<span aria-hidden="true" class="material-icons text-base"
+						>swap_vert</span
+					>
+				</button>
+				}
+			</div>
 		</div>
 		}
 	</div>
@@ -1509,7 +1577,39 @@
 										class="px-1.5 py-0.5 rounded bg-white/5 text-fg-secondary text-[0.6875rem] font-semibold tracking-wide"
 										>{{ entry.platform.abbreviation }}</span
 									>
-									@if (entry.compilationGame) {
+									@if (entry.coopMembers &&
+									entry.coopMembers.length > 0) {
+									<span
+										class="inline-flex items-center gap-1.5 text-[0.6875rem] text-fg-muted"
+									>
+										with
+										<span class="flex -space-x-1.5">
+											@for (m of
+											entry.coopMembers.slice(0, 3); track
+											m.userId) { @if (m.avatarUrl) {
+											<img
+												[src]="m.avatarUrl"
+												[alt]="m.username"
+												class="w-5 h-5 rounded-full object-cover ring-2 ring-surface"
+												[title]="m.name || m.username"
+											/>
+											} @else {
+											<span
+												class="w-5 h-5 rounded-full bg-brand/20 text-brand text-[0.5rem] font-semibold flex items-center justify-center ring-2 ring-surface"
+												[title]="m.name || m.username"
+												>{{ m.username[0]?.toUpperCase()
+												}}</span
+											>
+											} }
+										</span>
+										@if (entry.coopMembers.length > 3) {
+										<span
+											>+{{ entry.coopMembers.length - 3
+											}}</span
+										>
+										}
+									</span>
+									} @if (entry.compilationGame) {
 									<a
 										class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand/10 border border-brand/30 no-underline hover:bg-brand/20"
 										[routerLink]="['/games', entry.compilationGame.code]"
@@ -1596,39 +1696,7 @@
 										</div>
 										}
 									</div>
-									@if (entry.coopMembers &&
-									entry.coopMembers.length > 0) {
-									<div
-										class="flex items-center gap-1 text-xs text-fg-muted mr-auto"
-									>
-										<div class="flex -space-x-1.5">
-											@for (m of
-											entry.coopMembers.slice(0, 4); track
-											m.userId) { @if (m.avatarUrl) {
-											<img
-												[src]="m.avatarUrl"
-												[alt]="m.username"
-												class="w-6 h-6 rounded-full object-cover ring-2 ring-surface"
-												[title]="m.name || m.username"
-											/>
-											} @else {
-											<div
-												class="w-6 h-6 rounded-full bg-brand/20 text-brand text-[0.5625rem] font-semibold flex items-center justify-center ring-2 ring-surface"
-												[title]="m.name || m.username"
-											>
-												{{ m.username[0]?.toUpperCase()
-												}}
-											</div>
-											} }
-										</div>
-										@if (entry.coopMembers.length > 4) {
-										<span class="text-[0.625rem]"
-											>+{{ entry.coopMembers.length - 4
-											}}</span
-										>
-										}
-									</div>
-									} @if (entry.ratio || entry.personalRatio) {
+									@if (entry.ratio || entry.personalRatio) {
 									<app-ratio-summary
 										class="ml-auto"
 										[ratio]="entry.ratio"
@@ -2641,5 +2709,100 @@
 			>
 		</button>
 	</div>
+</ui-bottom-sheet>
+} @if (statusFilterSheetOpen()) {
+<ui-bottom-sheet
+	heading="Filter by status"
+	(closed)="statusFilterSheetOpen.set(false)"
+>
+	<ul class="list-none m-0 p-0 flex flex-col gap-1">
+		<li>
+			<button
+				type="button"
+				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border border-transparent text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface"
+				[class.!bg-brand-subtle]="isQuickStatus(null)"
+				[class.!border-brand/30]="isQuickStatus(null)"
+				[attr.aria-pressed]="isQuickStatus(null)"
+				(click)="chooseQuickStatus(null)"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-2xl text-fg-secondary"
+					>apps</span
+				>
+				<span class="flex-1">All games</span>
+				@if (isQuickStatus(null)) {
+				<span aria-hidden="true" class="material-icons text-brand"
+					>check</span
+				>
+				}
+			</button>
+		</li>
+		@for (s of statusFilters; track s.value) {
+		<li>
+			<button
+				type="button"
+				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border border-transparent text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface"
+				[class.!bg-brand-subtle]="isQuickStatus(s.value)"
+				[class.!border-brand/30]="isQuickStatus(s.value)"
+				[attr.aria-pressed]="isQuickStatus(s.value)"
+				(click)="chooseQuickStatus(s.value)"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-2xl"
+					[class]="statusIconColor($any(s.value))"
+					>{{ statusIcon($any(s.value)) }}</span
+				>
+				<span class="flex-1">{{ s.label }}</span>
+				@if (isQuickStatus(s.value)) {
+				<span aria-hidden="true" class="material-icons text-brand"
+					>check</span
+				>
+				}
+			</button>
+		</li>
+		}
+	</ul>
+</ui-bottom-sheet>
+} @if (viewsSheetOpen()) {
+<ui-bottom-sheet heading="Saved views" (closed)="viewsSheetOpen.set(false)">
+	<ul class="list-none m-0 p-0 flex flex-col gap-1">
+		@for (sf of backlogFilters(); track sf.id) {
+		<li>
+			<button
+				type="button"
+				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border border-transparent text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface"
+				[class.!bg-brand-subtle]="activeFilterId() === sf.id"
+				[class.!border-brand/30]="activeFilterId() === sf.id"
+				[attr.aria-pressed]="activeFilterId() === sf.id"
+				(click)="chooseSavedView(sf)"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-2xl text-fg-secondary"
+					[style.color]="sf.icon ? colorHex(sf.color) : null"
+					>{{ sf.icon || 'bookmark_border' }}</span
+				>
+				<span class="flex-1 min-w-0 truncate">{{ sf.name }}</span>
+				@if (activeFilterId() === sf.id) {
+				<span aria-hidden="true" class="material-icons text-brand"
+					>check</span
+				>
+				}
+			</button>
+		</li>
+		}
+	</ul>
+	@if (backlogFilters().length > 1) {
+	<button
+		type="button"
+		class="mt-2 w-full min-h-12 flex items-center justify-center gap-2 rounded-card bg-transparent border border-line text-sm font-medium text-fg-secondary cursor-pointer transition active:bg-surface"
+		(click)="reorderViewsFromSheet()"
+	>
+		<span aria-hidden="true" class="material-icons text-lg">swap_vert</span>
+		Reorder views
+	</button>
+	}
 </ui-bottom-sheet>
 }

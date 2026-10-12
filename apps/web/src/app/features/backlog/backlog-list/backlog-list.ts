@@ -177,6 +177,41 @@ export class BacklogList implements OnInit {
 	protected readonly statusSheetEntry = signal<BacklogEntry | null>(null);
 	protected readonly ratingSheet = signal<RatingSheetState | null>(null);
 	protected readonly toolsSheetOpen = signal(false);
+	protected readonly statusFilterSheetOpen = signal(false);
+	protected readonly viewsSheetOpen = signal(false);
+
+	protected readonly activeView = computed(
+		() =>
+			this.backlogFilters().find(
+				view => view.id === this.activeFilterId()
+			) ?? null
+	);
+
+	private readonly singleActiveStatus = computed(() => {
+		const active = this.activeStatuses();
+		return active.size === 1 ? ([...active][0] as BacklogStatus) : null;
+	});
+
+	protected readonly quickStatusLabel = computed(() => {
+		const count = this.activeStatuses().size;
+		const single = this.singleActiveStatus();
+		if (count === 0) return "All games";
+		if (single) return this.statusLabel(single);
+		return `${count} statuses`;
+	});
+
+	protected readonly quickStatusIcon = computed(() => {
+		const count = this.activeStatuses().size;
+		const single = this.singleActiveStatus();
+		if (count === 0) return "apps";
+		if (single) return this.statusIcon(single);
+		return "filter_list";
+	});
+
+	protected readonly quickStatusIconColor = computed(() => {
+		const single = this.singleActiveStatus();
+		return single ? this.statusIconColor(single) : "text-fg-secondary";
+	});
 	protected readonly flippedEntryIds = signal<ReadonlySet<string>>(new Set());
 
 	protected readonly heroPosters = computed(() => {
@@ -1192,6 +1227,21 @@ export class BacklogList implements OnInit {
 	protected openStatsFromSheet() {
 		this.toolsSheetOpen.set(false);
 		this.toggleStatsPanel();
+	}
+
+	protected chooseQuickStatus(status: string | null) {
+		this.statusFilterSheetOpen.set(false);
+		this.setQuickStatus(status);
+	}
+
+	protected chooseSavedView(view: SavedFilter) {
+		this.viewsSheetOpen.set(false);
+		this.applySavedFilter(view);
+	}
+
+	protected reorderViewsFromSheet() {
+		this.viewsSheetOpen.set(false);
+		this.openReorderModal();
 	}
 
 	protected hasAnnotations(entry: BacklogEntry): boolean {
