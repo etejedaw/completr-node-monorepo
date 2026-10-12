@@ -21,6 +21,7 @@ let nextContentId = 0;
 })
 export class ExpandableText {
 	text = input.required<string>();
+	lines = input<4 | 6>(6);
 
 	private readonly content =
 		viewChild.required<ElementRef<HTMLElement>>("content");
