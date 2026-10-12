@@ -74,7 +74,10 @@ const SCROLL_EDGE_TOLERANCE = 4;
 			</header>
 			<div
 				#scroller
-				class="bleed bleed-inner flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:snap-start [&>*]:shrink-0 bleed-scroll-snap"
+				class="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:snap-start [&>*]:shrink-0"
+				[class]="
+					contained() ? '' : 'bleed bleed-inner bleed-scroll-snap'
+				"
 				(scroll)="updateEdges()"
 			>
 				<ng-content />
@@ -90,6 +93,7 @@ export class PosterShelf {
 	readonly heading = input.required<string>();
 	readonly eyebrow = input<string | null>(null);
 	readonly seeAllLabel = input<string | null>(null);
+	readonly contained = input(false);
 
 	readonly seeAll = output<void>();
 
