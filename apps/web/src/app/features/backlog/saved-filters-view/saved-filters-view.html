@@ -116,26 +116,89 @@
 >
 	<a uiButton variant="primary" routerLink="/backlog">Go to My Games</a>
 </ui-empty-state>
-} } @else {
-<ul class="list-none m-0 p-0 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-	@for (filter of filteredFilters(); track filter.id) {
-	<li>
-		<app-saved-view-card
-			[view]="filter"
-			(shared)="shareFilter(filter)"
-			(duplicated)="openDuplicate(filter)"
-			(edited)="openEdit(filter)"
-		/>
-	</li>
+} } @else { @if (featuredViews().length > 0) {
+<section class="mb-10" aria-labelledby="featured-views-heading">
+	<h2
+		id="featured-views-heading"
+		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+	>
+		Pinned & default
+	</h2>
+	<ul class="list-none m-0 p-0 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+		@for (filter of featuredViews(); track filter.id) {
+		<li>
+			<app-saved-view-card
+				[view]="filter"
+				(shared)="shareFilter(filter)"
+				(duplicated)="openDuplicate(filter)"
+				(edited)="openEdit(filter)"
+				(moreRequested)="actionSheetView.set(filter)"
+			/>
+		</li>
+		}
+	</ul>
+</section>
+} @if (otherViews().length > 0) {
+<section aria-labelledby="all-views-heading">
+	@if (featuredViews().length > 0) {
+	<h2
+		id="all-views-heading"
+		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+	>
+		All views
+	</h2>
+	} @else {
+	<h2 id="all-views-heading" class="sr-only">All views</h2>
 	}
-</ul>
-} @if (!isLoading()) {
+	<ul
+		class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
+	>
+		@for (filter of otherViews(); track filter.id) {
+		<li>
+			<app-saved-view-card
+				variant="row"
+				[view]="filter"
+				(shared)="shareFilter(filter)"
+				(duplicated)="openDuplicate(filter)"
+				(edited)="openEdit(filter)"
+				(moreRequested)="actionSheetView.set(filter)"
+			/>
+		</li>
+		}
+	</ul>
+</section>
+} } @if (!isLoading()) {
 <ui-pagination
 	[offset]="offset()"
 	[limit]="limit"
 	[total]="total()"
 	(offsetChange)="onOffsetChange($event)"
 />
+} @if (actionSheetView(); as sheetView) {
+<ui-bottom-sheet
+	[heading]="sheetView.name"
+	subheading="Saved view"
+	(closed)="actionSheetView.set(null)"
+>
+	<ul class="list-none m-0 p-0 flex flex-col gap-1">
+		@for (action of sheetActions; track action.id) {
+		<li>
+			<button
+				type="button"
+				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface"
+				(click)="runSheetAction(sheetView, action.id)"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-2xl text-fg-muted"
+					>{{ action.icon }}</span
+				>
+				{{ action.label }}
+			</button>
+		</li>
+		}
+	</ul>
+</ui-bottom-sheet>
 } @if (showModal()) {
 <div
 	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]"

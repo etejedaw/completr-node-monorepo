@@ -16,6 +16,7 @@ import { LibraryHero } from "../../../shared/components/library-hero/library-her
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
+	UiBottomSheet,
 	UiButton,
 	UiEmptyState,
 	UiPagination,
@@ -41,6 +42,18 @@ type SortMode =
 	| "pinned"
 	| "default";
 
+function isFeatured(view: SavedFilter): boolean {
+	return view.isDefault || view.showInBacklog;
+}
+
+type SheetActionId = "share" | "duplicate" | "edit";
+
+const SHEET_ACTIONS: { id: SheetActionId; icon: string; label: string }[] = [
+	{ id: "share", icon: "share", label: "Copy public link" },
+	{ id: "duplicate", icon: "content_copy", label: "Duplicate" },
+	{ id: "edit", icon: "edit", label: "Edit" }
+];
+
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 	{ value: "name_asc", label: "Name (A–Z)" },
 	{ value: "name_desc", label: "Name (Z–A)" },
@@ -64,6 +77,7 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 		UiSearchBar,
 		UiSelect,
 		UiSkeleton,
+		UiBottomSheet,
 		UiTextarea,
 		PremiumOnly
 	],
@@ -83,6 +97,8 @@ export class SavedFiltersView implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
 	protected readonly sortOptions = SORT_OPTIONS;
+	protected readonly sheetActions = SHEET_ACTIONS;
+	protected readonly actionSheetView = signal<SavedFilter | null>(null);
 	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
 	protected readonly frozen = signal(false);
 	protected readonly sortMode = signal<SortMode>("name_asc");
@@ -123,6 +139,13 @@ export class SavedFiltersView implements OnInit {
 				);
 		}
 	});
+
+	protected readonly featuredViews = computed(() =>
+		this.filteredFilters().filter(isFeatured)
+	);
+	protected readonly otherViews = computed(() =>
+		this.filteredFilters().filter(view => !isFeatured(view))
+	);
 
 	private readonly searchSubject = new Subject<string>();
 
@@ -179,6 +202,13 @@ export class SavedFiltersView implements OnInit {
 				},
 				error: () => this.isLoading.set(false)
 			});
+	}
+
+	runSheetAction(view: SavedFilter, id: SheetActionId) {
+		this.actionSheetView.set(null);
+		if (id === "share") this.shareFilter(view);
+		else if (id === "duplicate") this.openDuplicate(view);
+		else this.openEdit(view);
 	}
 
 	shareFilter(filter: SavedFilter) {
