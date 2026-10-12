@@ -1,0 +1,96 @@
+@if (error(); as reason) {
+<app-profile-access-state
+	[reason]="reason"
+	[username]="username()"
+	[privateTitle]="privateTitle()"
+/>
+} @else {
+<app-library-hero [heading]="heading()" [posters]="posters()">
+	<a
+		heroEyebrow
+		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
+		[routerLink]="['/user', username()]"
+	>
+		<span aria-hidden="true" class="material-icons text-sm"
+			>arrow_back</span
+		>
+		{{ '@' + username() }}'s profile
+	</a>
+	<p
+		heroSubtitle
+		class="m-0 mt-2 mb-6 flex items-center gap-2 text-sm text-fg-secondary"
+	>
+		<span
+			aria-hidden="true"
+			class="material-icons text-lg"
+			[class]="iconColor()"
+			>{{ icon() }}</span
+		>
+		<span>
+			<span class="font-semibold text-fg tabular-nums"
+				>{{ total() }}</span
+			>
+			{{ total() === 1 ? noun() : noun() + 's' }}
+		</span>
+	</p>
+</app-library-hero>
+
+@if (!isLoading() && itemCount() > searchThreshold) {
+<div
+	class="bleed bleed-inner sticky top-[var(--topbar-height)] z-30 py-3 mb-6 bg-canvas/85 backdrop-blur-md border-b border-line/60"
+>
+	<ui-search-bar
+		class="block max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+		[placeholder]="'Search ' + username() + '\'s ' + heading().toLowerCase() + '...'"
+		[value]="query()"
+		(valueChange)="query.set($event)"
+	/>
+</div>
+} @if (isLoading()) {
+<div class="poster-grid" aria-busy="true" aria-label="Loading">
+	@for (i of skeletonRange; track i) {
+	<div class="flex flex-col gap-2">
+		<ui-skeleton
+			variant="rect"
+			class="block w-full aspect-[2/3] rounded-lg"
+		/>
+		<ui-skeleton variant="text" class="block w-3/4" />
+	</div>
+	}
+</div>
+} @else if (itemCount() === 0) {
+<section class="flex flex-col items-center text-center py-20 px-6">
+	<span aria-hidden="true" class="material-icons text-4xl text-fg-muted mb-3"
+		>{{ icon() }}</span
+	>
+	<h2 class="m-0 font-display text-xl font-semibold text-fg">
+		{{ emptyTitle() }}
+	</h2>
+	<p class="m-0 mt-2 mb-6 text-sm text-fg-muted">{{ emptyText() }}</p>
+	<a uiButton variant="secondary" [routerLink]="['/user', username()]"
+		>Back to profile</a
+	>
+</section>
+} @else if (visibleCount() === 0) {
+<section class="flex flex-col items-center text-center py-20 px-6">
+	<span aria-hidden="true" class="material-icons text-4xl text-fg-muted mb-3"
+		>search_off</span
+	>
+	<h2 class="m-0 font-display text-xl font-semibold text-fg">No matches</h2>
+	<p class="m-0 mt-2 mb-6 text-sm text-fg-muted">
+		Nothing on this page matches "{{ query() }}". Try another title or clear
+		the search.
+	</p>
+	<button uiButton variant="secondary" (click)="query.set('')">
+		Clear search
+	</button>
+</section>
+} @else {
+<ng-content />
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit()"
+	[total]="total()"
+	(offsetChange)="offsetChange.emit($event)"
+/>
+} }
