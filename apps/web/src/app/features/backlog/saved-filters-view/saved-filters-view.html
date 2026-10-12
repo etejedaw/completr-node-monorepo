@@ -1,201 +1,142 @@
-<div class="max-w-full">
-	<div class="flex items-center justify-between mb-5">
-		<div class="flex items-baseline gap-3">
-			<h1
-				class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight"
-			>
-				Saved Views
-			</h1>
-			<span
-				class="text-[0.8125rem]"
-				[class.text-warning]="isPremium()"
-				[class.text-fg-muted]="!isPremium()"
-				>{{ total() }} views</span
-			>
-			<ui-premium-badge
-				*appPremiumOnly
-				size="sm"
-				interactive
-				label="Unlimited saved views (Premium)"
-				message="Unlimited saved views — a Premium perk."
-			/>
-		</div>
-	</div>
-
-	<div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 max-w-2xl">
-		<ui-search-bar
-			class="block flex-1"
-			placeholder="Search saved views..."
-			[value]="searchQuery()"
-			(valueChange)="onSearch($event)"
-		/>
-		<label class="flex items-center gap-2 shrink-0 text-sm text-fg-muted">
-			Sort by
-			<select
-				uiSelect
-				size="sm"
-				[value]="sortMode()"
-				(change)="sortMode.set($any($event.target).value)"
-			>
-				<option value="name_asc">Name (A–Z)</option>
-				<option value="name_desc">Name (Z–A)</option>
-				<option value="created_desc">Recently created</option>
-				<option value="created_asc">Oldest first</option>
-				<option value="pinned">Pinned first</option>
-				<option value="default">Default first</option>
-			</select>
-		</label>
-	</div>
-
-	@if (frozen()) {
-	<div
-		class="flex items-center gap-2 px-3.5 py-2.5 bg-warning/10 border border-warning/25 text-warning rounded-card text-[0.8125rem] mb-4 max-w-2xl"
+<app-library-hero heading="Saved Views">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Library</span
 	>
-		<span aria-hidden="true" class="material-icons text-base">lock</span>
-		Saved views are frozen. Delete views to go below the free limit (5) to
-		create or edit again.
-	</div>
-	} @if (isLoading()) {
-	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
-	} @else if (filters().length === 0) {
-	<ui-empty-state
-		icon="bookmarks"
-		title="No saved views yet"
-		hint='Save your favorite filter combinations from the Backlog to quickly switch between views like "Completed 2025" or "Playing on Steam".'
+	<p
+		heroSubtitle
+		class="m-0 mt-2 mb-6 flex items-center gap-1.5 text-sm text-fg-secondary"
 	>
-		<a uiButton variant="primary" routerLink="/backlog">Go to Backlog</a>
-	</ui-empty-state>
-	} @else {
-	<div class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
-		@for (filter of filteredFilters(); track filter.id) {
-		<div
-			role="button"
-			tabindex="0"
-			class="group bg-surface border border-line rounded-card p-5 cursor-pointer transition flex flex-col gap-3 hover:border-brand/50"
-			(click)="applyFilter(filter)"
-			(keydown.enter)="applyFilter(filter)"
-			(keydown.space)="applyFilter(filter); $event.preventDefault()"
+		<span
+			class="font-semibold text-fg tabular-nums"
+			[class.!text-warning]="isPremium()"
+			>{{ total() }}</span
 		>
-			<div class="flex justify-between items-start gap-2">
-				<div class="flex items-center gap-2 min-w-0 flex-1">
-					@if (filter.icon) {
-					<span
-						aria-hidden="true"
-						class="material-icons text-lg shrink-0"
-						[style.color]="colorHex(filter.color)"
-						>{{ filter.icon }}</span
-					>
-					}
-					<h3
-						class="font-display m-0 text-base font-semibold text-fg line-clamp-1"
-					>
-						{{ filter.name }}
-					</h3>
-					@if (filter.isDefault) {
-					<span
-						class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/15 text-warning"
-						title="Default view"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.75rem]"
-							>star</span
-						>
-						Default
-					</span>
-					} @else if (filter.showInBacklog) {
-					<span
-						class="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand-subtle text-brand"
-						title="Pinned to Backlog"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.75rem]"
-							>push_pin</span
-						>
-						Pinned
-					</span>
-					}
-				</div>
-				<div class="flex items-center gap-0.5 shrink-0">
-					<button
-						class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 rounded transition hover:bg-input-bg hover:text-fg"
-						(click)="shareFilter(filter, $event)"
-						title="Copy public link"
-						aria-label="Copy public backlog link"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>share</span
-						>
-					</button>
-					<button
-						class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 rounded transition hover:bg-input-bg hover:text-fg"
-						(click)="openDuplicate(filter, $event)"
-						title="Duplicate"
-						aria-label="Duplicate view"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>content_copy</span
-						>
-					</button>
-					<button
-						class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 rounded transition hover:bg-input-bg hover:text-fg"
-						(click)="openEdit(filter, $event)"
-						title="Edit"
-						aria-label="Edit view"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>edit</span
-						>
-					</button>
-				</div>
-			</div>
+		saved {{ total() === 1 ? 'view' : 'views' }} of your library
+		<ui-premium-badge
+			*appPremiumOnly
+			size="sm"
+			interactive
+			label="Unlimited saved views (Premium)"
+			message="Unlimited saved views — a Premium perk."
+		/>
+	</p>
+	<a
+		heroActions
+		uiButton
+		variant="primary"
+		class="sm:mb-6"
+		routerLink="/backlog"
+		title="Filter My Games and save the result as a view"
+	>
+		<span aria-hidden="true" class="material-icons text-base">add</span>
+		New view
+	</a>
+</app-library-hero>
 
-			@if (filter.description) {
-			<p class="m-0 text-[0.8125rem] text-fg-secondary line-clamp-2">
-				{{ filter.description }}
-			</p>
+@if (isLoading() || filters().length > 0 || searchQuery().trim()) {
+<app-library-toolbar>
+	<ui-search-bar
+		class="flex-1 min-w-[12rem] max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+		placeholder="Search saved views..."
+		[value]="searchQuery()"
+		(valueChange)="onSearch($event)"
+	/>
+	<label
+		class="relative shrink-0 flex items-center max-sm:flex-1 max-sm:basis-full"
+	>
+		<span class="sr-only">Sort saved views</span>
+		<span
+			aria-hidden="true"
+			class="material-icons pointer-events-none absolute left-2.5 text-base text-fg-muted"
+			>sort</span
+		>
+		<select
+			uiSelect
+			size="sm"
+			class="!pl-8 max-sm:w-full max-sm:min-h-[44px] pointer-coarse:min-h-[44px]"
+			[value]="sortMode()"
+			(change)="sortMode.set($any($event.target).value)"
+		>
+			@for (option of sortOptions; track option.value) {
+			<option
+				[value]="option.value"
+				[selected]="option.value === sortMode()"
+			>
+				{{ option.label }}
+			</option>
 			}
-
-			<div class="flex flex-wrap gap-1.5 mt-auto">
-				@if (filterChips(filter).length === 0) {
-				<span class="text-[0.6875rem] text-fg-muted italic"
-					>No filters</span
-				>
-				} @else { @for (chip of filterChips(filter); track chip.label) {
-				<span
-					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium tracking-wide"
-					[class]="chip.classes"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.875rem]"
-						>{{ chip.icon }}</span
-					>
-					{{ chip.label }}
-				</span>
-				} }
-			</div>
+		</select>
+	</label>
+</app-library-toolbar>
+} @if (frozen()) {
+<div
+	role="status"
+	class="flex items-start gap-2 px-3.5 py-2.5 mb-6 bg-warning/10 border border-warning/25 text-warning rounded-card text-sm max-w-2xl"
+>
+	<span aria-hidden="true" class="material-icons text-base mt-0.5">lock</span>
+	Saved views are frozen. Delete views to go below the free limit (5) to
+	create or edit again.
+</div>
+} @if (isLoading()) {
+<div
+	class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+	aria-busy="true"
+	aria-label="Loading saved views"
+>
+	@for (i of skeletonRange; track i) {
+	<div
+		class="flex flex-col gap-3 p-5 rounded-card bg-surface border border-line"
+	>
+		<div class="flex items-center gap-3">
+			<ui-skeleton variant="rect" class="block w-10 h-10 rounded-card" />
+			<ui-skeleton variant="text" class="block w-1/2 h-5" />
 		</div>
-		}
+		<ui-skeleton variant="text" class="block w-3/4" />
+		<ui-skeleton variant="text" class="block w-1/3" />
 	</div>
 	}
-
-	<ui-pagination
-		[offset]="offset()"
-		[limit]="limit"
-		[total]="total()"
-		(offsetChange)="onOffsetChange($event)"
-	/>
 </div>
-
-@if (showModal()) {
+} @else if (filteredFilters().length === 0) { @if (searchQuery().trim()) {
+<ui-empty-state
+	icon="search_off"
+	title="No matches found"
+	hint="No saved views match your search."
+>
+	<button uiButton variant="secondary" (click)="onSearch('')">
+		Clear search
+	</button>
+</ui-empty-state>
+} @else {
+<ui-empty-state
+	icon="bookmarks"
+	title="No saved views yet"
+	hint='Save your favorite filter combinations from My Games to switch between views like "Completed 2025" or "Playing on Steam" in one tap.'
+>
+	<a uiButton variant="primary" routerLink="/backlog">Go to My Games</a>
+</ui-empty-state>
+} } @else {
+<ul class="list-none m-0 p-0 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+	@for (filter of filteredFilters(); track filter.id) {
+	<li>
+		<app-saved-view-card
+			[view]="filter"
+			(shared)="shareFilter(filter)"
+			(duplicated)="openDuplicate(filter)"
+			(edited)="openEdit(filter)"
+		/>
+	</li>
+	}
+</ul>
+} @if (!isLoading()) {
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit"
+	[total]="total()"
+	(offsetChange)="onOffsetChange($event)"
+/>
+} @if (showModal()) {
 <div
 	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]"
 >

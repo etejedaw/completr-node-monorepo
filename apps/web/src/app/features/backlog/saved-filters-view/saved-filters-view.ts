@@ -7,12 +7,13 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
-import { Router, RouterLink } from "@angular/router";
+import { RouterLink } from "@angular/router";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
-import { type BacklogStatus } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
@@ -21,19 +22,16 @@ import {
 	UiPremiumBadge,
 	UiSearchBar,
 	UiSelect,
+	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
-import {
-	backlogStatusClass,
-	backlogStatusIcon,
-	backlogStatusLabel
-} from "../../../shared/utils/backlog-status";
 import {
 	SAVED_FILTER_COLORS,
 	SAVED_FILTER_ICONS,
 	savedFilterColorHex
 } from "../saved-filter-appearance";
 import { type SavedFilter, SavedFiltersService } from "../saved-filters";
+import { SavedViewCard } from "../saved-view-card/saved-view-card";
 
 type SortMode =
 	| "name_asc"
@@ -43,16 +41,29 @@ type SortMode =
 	| "pinned"
 	| "default";
 
+const SORT_OPTIONS: { value: SortMode; label: string }[] = [
+	{ value: "name_asc", label: "Name (A–Z)" },
+	{ value: "name_desc", label: "Name (Z–A)" },
+	{ value: "created_desc", label: "Recently created" },
+	{ value: "created_asc", label: "Oldest first" },
+	{ value: "pinned", label: "Pinned first" },
+	{ value: "default", label: "Default first" }
+];
+
 @Component({
 	selector: "app-saved-filters-view",
 	imports: [
 		RouterLink,
+		LibraryHero,
+		LibraryToolbar,
+		SavedViewCard,
 		UiButton,
 		UiEmptyState,
 		UiPagination,
 		UiPremiumBadge,
 		UiSearchBar,
 		UiSelect,
+		UiSkeleton,
 		UiTextarea,
 		PremiumOnly
 	],
@@ -61,7 +72,6 @@ type SortMode =
 })
 export class SavedFiltersView implements OnInit {
 	private readonly savedFiltersService = inject(SavedFiltersService);
-	private readonly router = inject(Router);
 	private readonly toast = inject(ToastService);
 	private readonly authService = inject(AuthService);
 
@@ -71,7 +81,9 @@ export class SavedFiltersView implements OnInit {
 	protected readonly searchQuery = signal("");
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
-	protected readonly limit = 25;
+	protected readonly limit = 100;
+	protected readonly sortOptions = SORT_OPTIONS;
+	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
 	protected readonly frozen = signal(false);
 	protected readonly sortMode = signal<SortMode>("name_asc");
 
@@ -169,16 +181,7 @@ export class SavedFiltersView implements OnInit {
 			});
 	}
 
-	applyFilter(filter: SavedFilter) {
-		this.router.navigate(["/backlog"], {
-			queryParams: {
-				savedFilterId: filter.id
-			}
-		});
-	}
-
-	shareFilter(filter: SavedFilter, event: Event) {
-		event.stopPropagation();
+	shareFilter(filter: SavedFilter) {
 		const username = this.authService.user()?.username;
 		if (!username) return;
 
@@ -208,8 +211,7 @@ export class SavedFiltersView implements OnInit {
 		);
 	}
 
-	openDuplicate(filter: SavedFilter, event: Event) {
-		event.stopPropagation();
+	openDuplicate(filter: SavedFilter) {
 		this.duplicatingFilter.set(filter);
 		this.duplicateName.set(`${filter.name} (copy)`);
 		this.showDuplicateModal.set(true);
@@ -253,8 +255,7 @@ export class SavedFiltersView implements OnInit {
 			});
 	}
 
-	openEdit(filter: SavedFilter, event: Event) {
-		event.stopPropagation();
+	openEdit(filter: SavedFilter) {
 		this.editingFilter.set(filter);
 		this.editName.set(filter.name);
 		this.editDescription.set(filter.description ?? "");
@@ -316,71 +317,5 @@ export class SavedFiltersView implements OnInit {
 			},
 			error: () => this.deleting.set(false)
 		});
-	}
-
-	statusSummary(filter: SavedFilter): string {
-		const f = filter.filters as Record<string, string>;
-		const parts: string[] = [];
-		if (f["status"]) parts.push(f["status"].replace(/,/g, ", "));
-		if (f["platform_id"]) parts.push("platform");
-		if (f["started_from"] || f["started_to"]) parts.push("started date");
-		if (f["finished_from"] || f["finished_to"]) parts.push("finished date");
-		if (f["min_rating"] || f["max_rating"]) parts.push("rating");
-		return parts.join(" · ") || "No filters";
-	}
-
-	filterChips(
-		filter: SavedFilter
-	): { label: string; icon: string; classes: string }[] {
-		const f = filter.filters as Record<string, string>;
-		const chips: { label: string; icon: string; classes: string }[] = [];
-
-		if (f["status"]) {
-			for (const status of f["status"].split(",")) {
-				chips.push({
-					label: backlogStatusLabel(status as BacklogStatus),
-					icon: backlogStatusIcon(status as BacklogStatus),
-					classes: backlogStatusClass(status as BacklogStatus)
-				});
-			}
-		}
-		if (f["platform_id"]) {
-			chips.push({
-				label: "Platform",
-				icon: "devices",
-				classes: "bg-brand-subtle text-brand"
-			});
-		}
-		if (f["started_from"] || f["started_to"]) {
-			chips.push({
-				label: "Started",
-				icon: "play_arrow",
-				classes: "bg-input-bg text-fg-secondary border border-line"
-			});
-		}
-		if (f["finished_from"] || f["finished_to"]) {
-			chips.push({
-				label: "Finished",
-				icon: "flag",
-				classes: "bg-input-bg text-fg-secondary border border-line"
-			});
-		}
-		if (f["min_rating"] || f["max_rating"]) {
-			chips.push({
-				label: "Rating",
-				icon: "star",
-				classes: "bg-warning/10 text-warning"
-			});
-		}
-		if (filter.sortBy && filter.sortBy !== "createdAt") {
-			const order = filter.sortOrder === "asc" ? "↑" : "↓";
-			chips.push({
-				label: `${filter.sortBy} ${order}`,
-				icon: "sort",
-				classes: "bg-input-bg text-fg-secondary border border-line"
-			});
-		}
-
-		return chips;
 	}
 }
