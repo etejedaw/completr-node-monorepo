@@ -43,6 +43,7 @@ export class ProfileCollectionPage {
 	readonly icon = input.required<string>();
 	readonly iconColor = input("text-brand");
 	readonly noun = input("game");
+	readonly skeleton = input<"posters" | "rows">("posters");
 	readonly posters = input<LibraryHeroPoster[]>([]);
 	readonly total = input(0);
 	readonly itemCount = input(0);
@@ -58,5 +59,6 @@ export class ProfileCollectionPage {
 	readonly offsetChange = output<number>();
 
 	protected readonly searchThreshold = 12;
+	protected readonly rowSkeletonRange = [0, 1, 2, 3];
 	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);
 }
