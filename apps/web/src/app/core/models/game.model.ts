@@ -4,6 +4,7 @@ export interface Game {
 	code: string;
 	description?: string;
 	releaseAt?: string;
+	coverUrl?: string;
 	backgroundUrl?: string;
 	ratio?: number;
 	isDlc: boolean;
@@ -47,6 +48,7 @@ export interface GameSummary {
 	id: string;
 	code: string;
 	title: string;
+	coverUrl?: string;
 	backgroundUrl?: string;
 }
 
