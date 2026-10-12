@@ -32,7 +32,18 @@ docs: |-
             "isPublic": true,
             "isOfficial": false,
             "scoreSource": "metacritic",
-            "durationSource": "hltb"
+            "durationSource": "hltb",
+            "previewItems": [
+              {
+                "id": "uuid",
+                "game": {
+                  "id": "uuid",
+                  "code": "resident-evil-4",
+                  "title": "Resident Evil 4",
+                  "backgroundUrl": "https://…/re4.jpg"
+                }
+              }
+            ]
           }
         ],
         "frozen": false
@@ -41,3 +52,5 @@ docs: |-
     ```
 
     `frozen: true` means the user has exceeded their list limit and cannot create or edit until they delete the excess.
+
+    `previewItems` holds the first items of the list by position (up to 4), used for the cover collage. `game` is `null` if the game was removed.
