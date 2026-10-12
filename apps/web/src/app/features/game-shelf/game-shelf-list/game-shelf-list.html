@@ -214,16 +214,16 @@
 					</td>
 					<td class="px-2 py-2 align-middle w-9 text-center">
 						<button
-							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-warning"
-							[class.!text-warning]="isFavorite(entry.game.id)"
+							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-nav-favorites"
+							[class.!text-nav-favorites]="isFavorite(entry.game.id)"
 							(click)="toggleFavorite(entry.game.id); $event.stopPropagation()"
 							[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
 						>
 							<span
 								aria-hidden="true"
 								class="material-icons text-base leading-none"
-								>{{ isFavorite(entry.game.id) ? 'star' :
-								'star_border' }}</span
+								>{{ isFavorite(entry.game.id) ? 'favorite' :
+								'favorite_border' }}</span
 							>
 						</button>
 					</td>

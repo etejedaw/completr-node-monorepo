@@ -107,9 +107,9 @@ export type QueueStatusChange = "playing";
 					<button
 						type="button"
 						class="bg-transparent border-0 cursor-pointer p-0 inline-flex items-center justify-center transition"
-						[class.text-warning]="isFavorite()"
+						[class.text-nav-favorites]="isFavorite()"
 						[class.text-fg-muted]="!isFavorite()"
-						[class.hover:text-warning]="!isFavorite()"
+						[class.hover:text-nav-favorites]="!isFavorite()"
 						(click)="favoriteToggle.emit()"
 						[title]="
 							isFavorite()
@@ -118,7 +118,7 @@ export type QueueStatusChange = "playing";
 						"
 					>
 						<span class="material-icons text-base leading-none">{{
-							isFavorite() ? "star" : "star_border"
+							isFavorite() ? "favorite" : "favorite_border"
 						}}</span>
 					</button>
 					<span class="text-[0.625rem] text-fg-muted truncate">

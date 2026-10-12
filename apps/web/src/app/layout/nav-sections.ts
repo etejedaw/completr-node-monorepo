@@ -65,14 +65,14 @@ export const NAV_SECTIONS: readonly NavSection[] = [
 			},
 			{
 				route: "/wishlist",
-				icon: "favorite_border",
+				icon: "redeem",
 				label: "Want to Get",
 				iconColorClass: "text-nav-wishlist",
 				tooltip: "Games you want to acquire someday"
 			},
 			{
 				route: "/favorites",
-				icon: "star",
+				icon: "favorite",
 				label: "Favorites",
 				iconColorClass: "text-nav-favorites",
 				tooltip: "Your all-time favorite games"

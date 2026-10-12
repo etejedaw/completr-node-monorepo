@@ -162,7 +162,7 @@ export interface GameCoverCardGame {
 						<button
 							type="button"
 							class="flex items-center justify-center w-7 h-7 rounded-full backdrop-blur-sm border-0 cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
-							[class.bg-danger]="inWishlist()"
+							[class.bg-nav-wishlist]="inWishlist()"
 							[class.bg-black/60]="!inWishlist()"
 							[class.hover:bg-black/80]="!inWishlist()"
 							[class.text-white]="true"
@@ -185,11 +185,7 @@ export interface GameCoverCardGame {
 							<span
 								aria-hidden="true"
 								class="material-icons text-[1rem]"
-								>{{
-									inWishlist()
-										? "favorite"
-										: "favorite_border"
-								}}</span
+								>redeem</span
 							>
 						</button>
 					}
@@ -197,7 +193,7 @@ export interface GameCoverCardGame {
 						<button
 							type="button"
 							class="flex items-center justify-center w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm border-0 cursor-pointer transition hover:bg-black/80"
-							[class.text-warning]="isFavorite()"
+							[class.text-nav-favorites]="isFavorite()"
 							[class.text-white]="!isFavorite()"
 							(click)="
 								$event.preventDefault();
@@ -214,7 +210,9 @@ export interface GameCoverCardGame {
 								aria-hidden="true"
 								class="material-icons text-[1.125rem]"
 								>{{
-									isFavorite() ? "star" : "star_border"
+									isFavorite()
+										? "favorite"
+										: "favorite_border"
 								}}</span
 							>
 						</button>

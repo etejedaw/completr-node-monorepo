@@ -161,7 +161,7 @@ export class OnboardingTour {
 					hint: "What you own"
 				},
 				{
-					icon: "favorite_border",
+					icon: "redeem",
 					name: "Want to Get",
 					hint: "Wishlist for future buys"
 				}

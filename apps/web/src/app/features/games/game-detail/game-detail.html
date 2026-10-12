@@ -44,9 +44,9 @@
 			>
 				<button
 					class="border border-white/40 w-14 h-14 rounded-full cursor-pointer inline-flex items-center justify-center transition backdrop-blur-md disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
-					[class.text-warning]="isFavorite()"
+					[class.text-nav-favorites]="isFavorite()"
 					[class.text-white]="!isFavorite()"
-					[class.!border-warning]="isFavorite()"
+					[class.!border-nav-favorites]="isFavorite()"
 					style="
 						background: rgba(0, 0, 0, 0.65);
 						box-shadow: 0 6px 18px -4px rgba(0, 0, 0, 0.6);
@@ -59,7 +59,8 @@
 					<span
 						aria-hidden="true"
 						class="material-icons text-[1.75rem] drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]"
-						>{{ isFavorite() ? 'star' : 'star_border' }}</span
+						>{{ isFavorite() ? 'favorite' : 'favorite_border'
+						}}</span
 					>
 				</button>
 			</div>
@@ -657,8 +658,7 @@
 					(click)="toggleWishlist()"
 				>
 					<span aria-hidden="true" class="material-icons text-lg"
-						>{{ isInWishlist() ? 'favorite' : 'favorite_border'
-						}}</span
+						>redeem</span
 					>
 					{{ isInWishlist() ? 'In Wishlist' : 'Add to Wishlist' }}
 				</button>
