@@ -1,4 +1,3 @@
-import { DatePipe, NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -9,13 +8,12 @@ import {
 	signal
 } from "@angular/core";
 import { form, FormField } from "@angular/forms/signals";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 
 import { AuthService } from "../../../../core/services/auth";
-import { ExpandableText } from "../../../../shared/components/expandable-text/expandable-text";
+import { ReviewCard } from "../../../../shared/components/review-card/review-card";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../../shared/constants/rating-labels";
-import { UiAvatar } from "../../../../shared/ui";
 import { UiButton, UiTextarea } from "../../../../shared/ui";
 import { BacklogService } from "../../../backlog/backlog";
 import { type Review, ReviewsService } from "../../reviews";
@@ -24,17 +22,7 @@ const RATING_BUCKETS = [5, 4, 3, 2, 1];
 
 @Component({
 	selector: "app-game-reviews",
-	imports: [
-		DatePipe,
-		NgTemplateOutlet,
-		RouterLink,
-		FormField,
-		ExpandableText,
-		StarRating,
-		UiAvatar,
-		UiButton,
-		UiTextarea
-	],
+	imports: [FormField, ReviewCard, StarRating, UiButton, UiTextarea],
 	templateUrl: "./game-reviews.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
