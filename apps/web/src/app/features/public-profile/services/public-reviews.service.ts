@@ -21,7 +21,13 @@ export interface ReviewEntry {
 	content?: string;
 	rating?: number;
 	playthroughDuration?: number | null;
-	game: { id: string; code: string; title: string } | null;
+	game: {
+		id: string;
+		code: string;
+		title: string;
+		coverUrl?: string | null;
+		backgroundUrl?: string | null;
+	} | null;
 	createdAt: string;
 }
 
