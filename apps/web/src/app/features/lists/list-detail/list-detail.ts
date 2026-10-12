@@ -1,10 +1,10 @@
 import {
 	CdkDrag,
 	type CdkDragDrop,
-	CdkDragHandle,
 	CdkDropList,
 	moveItemInArray
 } from "@angular/cdk/drag-drop";
+import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -31,12 +31,16 @@ import {
 } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
-import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
+import { ToastService } from "../../../core/services/toast";
+import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
+	UiBottomSheet,
 	UiButton,
-	UiIconButton,
+	UiEmptyState,
 	UiProgress,
-	UiSearchBar
+	UiSearchBar,
+	UiSkeleton
 } from "../../../shared/ui";
 import { BacklogService } from "../../backlog/backlog";
 import {
@@ -51,24 +55,41 @@ import {
 	type DuplicateListModalResult
 } from "../duplicate-list-modal/duplicate-list-modal";
 import {
+	ListItemRow,
+	type ListItemRowMode
+} from "../list-item-row/list-item-row";
+import {
 	ListModal,
 	type ListModalData,
 	type ListModalResult
 } from "../list-modal/list-modal";
 import { ListsService } from "../lists";
 
+type ListActionId = "refresh" | "duplicate" | "edit";
+type ItemActionId = "up" | "down" | "remove";
+
+const LIST_ACTIONS: { id: ListActionId; icon: string; label: string }[] = [
+	{ id: "edit", icon: "edit", label: "Edit list" },
+	{ id: "refresh", icon: "refresh", label: "Refresh scores" },
+	{ id: "duplicate", icon: "content_copy", label: "Duplicate" }
+];
+
 @Component({
 	selector: "app-list-detail",
 	imports: [
+		NgTemplateOutlet,
 		RouterLink,
-		UiButton,
-		UiIconButton,
-		UiProgress,
-		UiSearchBar,
-		PersonalStats,
 		CdkDropList,
 		CdkDrag,
-		CdkDragHandle
+		GamePoster,
+		LibraryHero,
+		ListItemRow,
+		UiBottomSheet,
+		UiButton,
+		UiEmptyState,
+		UiProgress,
+		UiSearchBar,
+		UiSkeleton
 	],
 	templateUrl: "./list-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -81,6 +102,7 @@ export class ListDetail implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly authService = inject(AuthService);
 	private readonly dialogs = inject(DialogService);
+	private readonly toast = inject(ToastService);
 	private readonly searchSubject = new Subject<string>();
 
 	protected readonly list = signal<List | null>(null);
@@ -95,6 +117,33 @@ export class ListDetail implements OnInit {
 	protected readonly isSearching = signal(false);
 	protected readonly isSearchingOnline = signal(false);
 	protected readonly togglingFollow = signal(false);
+	protected readonly listSheetOpen = signal(false);
+	protected readonly listActions = LIST_ACTIONS;
+	protected readonly itemSheet = signal<{
+		item: ListItem;
+		index: number;
+	} | null>(null);
+	protected readonly skeletonRange = [0, 1, 2, 3, 4];
+	protected readonly heroPosters = computed(() =>
+		(this.list()?.items ?? []).map(item => ({
+			src: item.game.backgroundUrl,
+			title: item.game.title
+		}))
+	);
+	protected readonly rowMode = computed<ListItemRowMode>(() => {
+		if (this.compareMode() && this.canCompare()) return "compare";
+		return this.fromUsername() && this.showComparisonBanner()
+			? "theirs"
+			: "own";
+	});
+	protected readonly progressSummary = computed(() => {
+		const progress = this.list()?.progress;
+		if (!progress || progress.total === 0) return null;
+		return {
+			...progress,
+			complete: progress.completed >= progress.total
+		};
+	});
 
 	private listId = "";
 	private static readonly COMPARE_PARAM = "compare";
@@ -190,13 +239,45 @@ export class ListDetail implements OnInit {
 	}
 
 	removeItem(item: ListItem) {
-		const remaining =
-			this.list()
-				?.items?.filter(i => i.id !== item.id)
-				.map(i => i.game.id) ?? [];
-		this.listsService
-			.replaceItems(this.listId, remaining)
-			.subscribe(() => this.loadList());
+		const current = this.list();
+		if (!current) return;
+		const remaining = current.items
+			.filter(i => i.id !== item.id)
+			.map((i, index) => ({ ...i, position: index + 1 }));
+		this.list.set({ ...current, items: remaining });
+		this.toast.pending({
+			message: `Removed ${item.game.title} from the list`,
+			onCommit: () =>
+				this.listsService
+					.replaceItems(
+						this.listId,
+						remaining.map(i => i.game.id)
+					)
+					.subscribe({
+						next: () => this.loadList(),
+						error: () => {
+							this.list.set(current);
+							this.toast.error("Could not remove the game.");
+						}
+					}),
+			onUndo: () => this.list.set(current)
+		});
+	}
+
+	runListAction(id: ListActionId) {
+		this.listSheetOpen.set(false);
+		if (id === "refresh") this.refreshScores();
+		else if (id === "duplicate") this.openDuplicate();
+		else this.openEdit();
+	}
+
+	runItemAction(id: ItemActionId) {
+		const sheet = this.itemSheet();
+		this.itemSheet.set(null);
+		if (!sheet) return;
+		if (id === "up") this.moveUp(sheet.index);
+		else if (id === "down") this.moveDown(sheet.index);
+		else this.removeItem(sheet.item);
 	}
 
 	moveUp(index: number) {
@@ -317,18 +398,6 @@ export class ListDetail implements OnInit {
 			},
 			error: () => this.togglingFollow.set(false)
 		});
-	}
-
-	statusClass(status: string | undefined): string {
-		if (!status) return "";
-		const map: Record<string, string> = {
-			not_started: "status-not-started",
-			playing: "status-playing",
-			completed: "status-completed",
-			abandoned: "status-abandoned",
-			endless: "status-endless"
-		};
-		return map[status] ?? "";
 	}
 
 	private loadList() {
