@@ -19,6 +19,7 @@ import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
@@ -49,6 +50,7 @@ import { QueueSortControl } from "../queue-sort-control/queue-sort-control";
 @Component({
 	selector: "app-queue-view",
 	imports: [
+		LibraryHero,
 		UiButton,
 		UiInput,
 		UiPagination,
@@ -100,6 +102,12 @@ export class QueueView implements OnInit {
 		this.loadQueue();
 	}
 
+	protected readonly heroPosters = computed(() =>
+		this.entries().map(entry => ({
+			src: entry.backlog.game.backgroundUrl,
+			title: entry.backlog.game.title
+		}))
+	);
 	protected readonly filteredEntries = computed(() =>
 		sortQueueEntries(this.entries(), this.sortBy())
 	);
