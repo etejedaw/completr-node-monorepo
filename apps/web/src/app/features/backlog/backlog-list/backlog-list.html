@@ -66,7 +66,7 @@
 		>
 			<button
 				type="button"
-				class="inline-flex items-center gap-1.5 h-9 pointer-coarse:h-11 px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg"
+				class="inline-flex items-center gap-1.5 h-9 tap:h-11 px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg"
 				[class.!text-brand]="isQuickStatus(null)"
 				[class.!border-brand]="isQuickStatus(null)"
 				[class.!bg-brand-subtle]="isQuickStatus(null)"
@@ -78,7 +78,7 @@
 			@for (s of statusFilters; track s.value) {
 			<button
 				type="button"
-				class="inline-flex items-center gap-1.5 h-9 pointer-coarse:h-11 px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg"
+				class="inline-flex items-center gap-1.5 h-9 tap:h-11 px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg"
 				[class.!text-brand]="isQuickStatus(s.value)"
 				[class.!border-brand]="isQuickStatus(s.value)"
 				[class.!bg-brand-subtle]="isQuickStatus(s.value)"
@@ -130,7 +130,7 @@
 			>
 				<button
 					type="button"
-					class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 pointer-coarse:min-h-[44px] pointer-coarse:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
+					class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 tap:min-h-[44px] tap:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
 					[class.!bg-surface-hover]="viewMode() === 'diary'"
 					[class.!text-fg]="viewMode() === 'diary'"
 					[attr.aria-pressed]="viewMode() === 'diary'"
@@ -144,7 +144,7 @@
 				</button>
 				<button
 					type="button"
-					class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 pointer-coarse:min-h-[44px] pointer-coarse:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
+					class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 tap:min-h-[44px] tap:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
 					[class.!bg-surface-hover]="viewMode() === 'hardcore'"
 					[class.!text-fg]="viewMode() === 'hardcore'"
 					[attr.aria-pressed]="viewMode() === 'hardcore'"
@@ -158,7 +158,7 @@
 				</button>
 				<button
 					type="button"
-					class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 pointer-coarse:min-h-[44px] pointer-coarse:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
+					class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 tap:min-h-[44px] tap:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
 					[class.!bg-surface-hover]="viewMode() === 'calendar'"
 					[class.!text-fg]="viewMode() === 'calendar'"
 					[attr.aria-pressed]="viewMode() === 'calendar'"
@@ -175,7 +175,7 @@
 			<div class="flex items-center gap-2">
 				<button
 					type="button"
-					class="sm:hidden h-12 px-4 pointer-coarse:min-h-[44px] bg-transparent border rounded-card text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-2 transition"
+					class="sm:hidden h-12 px-4 tap:min-h-[44px] bg-transparent border rounded-card text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-2 transition"
 					[class.border-line]="!hasActiveFilters() && !hasAnyStatEnabled()"
 					[class.text-fg-secondary]="!hasActiveFilters() && !hasAnyStatEnabled()"
 					[class.border-brand]="hasActiveFilters() || hasAnyStatEnabled()"
@@ -256,7 +256,7 @@
 		} @if (hasActiveFilters()) {
 		<button
 			type="button"
-			class="inline-flex items-center gap-1 h-8 pointer-coarse:h-10 px-3 rounded-full bg-transparent border border-line text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-danger/50 hover:text-danger"
+			class="inline-flex items-center gap-1 h-8 tap:h-10 px-3 rounded-full bg-transparent border border-line text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-danger/50 hover:text-danger"
 			(click)="clearFilters()"
 		>
 			<span aria-hidden="true" class="material-icons text-sm"

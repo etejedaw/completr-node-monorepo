@@ -254,7 +254,7 @@
 						@if (coarsePointer() && canQuickRate()) {
 						<button
 							type="button"
-							class="flex items-center gap-2 -mx-2 px-2 py-2 -my-2 rounded-card bg-transparent border-0 cursor-pointer active:bg-white/5"
+							class="flex items-center gap-2 -mx-2 px-2 min-h-[44px] -my-3 rounded-card bg-transparent border-0 cursor-pointer active:bg-white/5"
 							[attr.aria-label]="'Rate ' + item.game.title"
 							(click)="ratingSheetRequested.emit($event)"
 						>
@@ -421,7 +421,7 @@
 	@if (!readonly()) {
 	<button
 		type="button"
-		class="h-12 flex flex-col pointer-coarse:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-white/5"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-white/5"
 		[class.!text-nav-favorites]="favorite()"
 		[attr.aria-pressed]="favorite()"
 		(click)="favoriteToggled.emit($event)"
@@ -433,7 +433,7 @@
 	</button>
 	<button
 		type="button"
-		class="h-12 flex flex-col pointer-coarse:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-white/5"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-white/5"
 		[class.!text-danger]="inQueue()"
 		[attr.aria-pressed]="inQueue()"
 		(click)="queueToggled.emit($event)"
@@ -447,7 +447,7 @@
 	<button
 		type="button"
 		[class.border-l]="!readonly()"
-		class="h-12 flex flex-col pointer-coarse:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-line/60 text-[0.6875rem] font-medium text-brand cursor-pointer active:bg-white/5"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-line/60 text-[0.6875rem] font-medium text-brand cursor-pointer active:bg-white/5"
 		[class.bg-brand-subtle]="flipped()"
 		[attr.aria-pressed]="flipped()"
 		(click)="flipToggled.emit($event)"
@@ -463,7 +463,7 @@
 	} @if (item.status === 'not_started' && !readonly()) {
 	<button
 		type="button"
-		class="h-12 flex flex-col pointer-coarse:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-playing cursor-pointer active:bg-white/5 disabled:opacity-50"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-playing cursor-pointer active:bg-white/5 disabled:opacity-50"
 		[disabled]="statusUpdating()"
 		(click)="startPlayingRequested.emit($event)"
 	>

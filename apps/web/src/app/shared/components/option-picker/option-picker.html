@@ -10,7 +10,7 @@
 	[class]="
 		variant() === 'field'
 			? 'w-full h-12 min-h-[44px] px-3.5 flex items-center gap-2.5 rounded-card border border-line bg-surface/70 backdrop-blur text-left cursor-pointer transition hover:border-line-hover active:bg-surface-hover'
-			: (size() === 'md' ? 'h-10 ' : 'h-9 ') + 'max-sm:min-h-[44px] pointer-coarse:min-h-[44px] px-3 inline-flex items-center gap-1.5 rounded-card border bg-transparent text-sm font-medium whitespace-nowrap cursor-pointer transition hover:border-brand hover:text-brand ' +
+			: (size() === 'md' ? 'h-10 ' : 'h-9 ') + 'max-sm:min-h-[44px] tap:min-h-[44px] px-3 inline-flex items-center gap-1.5 rounded-card border bg-transparent text-sm font-medium whitespace-nowrap cursor-pointer transition hover:border-brand hover:text-brand ' +
 				(value() ? 'border-brand text-brand' : 'border-line text-fg-secondary')
 	"
 	(click)="openSheet()"

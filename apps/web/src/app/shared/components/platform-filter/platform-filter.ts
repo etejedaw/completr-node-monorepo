@@ -70,7 +70,7 @@ export function matchesPlatform(
 			@for (option of options(); track option.id) {
 				<button
 					type="button"
-					class="inline-flex items-center gap-1.5 h-9 pointer-coarse:min-h-[44px] px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg"
+					class="inline-flex items-center gap-1.5 h-9 tap:min-h-[44px] px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg"
 					[class.!text-brand]="selected() === option.id"
 					[class.!border-brand]="selected() === option.id"
 					[class.!bg-brand-subtle]="selected() === option.id"

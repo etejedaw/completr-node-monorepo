@@ -25,7 +25,7 @@ export interface SegmentedOption<T extends string = string> {
 				<button
 					type="button"
 					role="radio"
-					class="inline-flex items-center gap-1 h-7 pointer-coarse:min-h-[44px] px-3 rounded-md border-0 text-xs font-medium cursor-pointer transition"
+					class="inline-flex items-center gap-1 h-7 tap:min-h-[44px] px-3 rounded-md border-0 text-xs font-medium cursor-pointer transition"
 					[class]="
 						value() === option.value
 							? 'bg-surface-hover text-fg'

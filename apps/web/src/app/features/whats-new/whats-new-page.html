@@ -142,7 +142,7 @@
 					<a
 						routerLink="/whats-new"
 						[fragment]="monthAnchor(entry.month)"
-						class="-ml-px flex items-center justify-between gap-3 min-h-[40px] pointer-coarse:min-h-[44px] pl-4 pr-3 border-l-2 border-transparent no-underline text-sm text-fg-muted transition-colors hover:text-fg hover:border-line-hover focus-visible:outline-2 focus-visible:outline-brand"
+						class="-ml-px flex items-center justify-between gap-3 min-h-[40px] tap:min-h-[44px] pl-4 pr-3 border-l-2 border-transparent no-underline text-sm text-fg-muted transition-colors hover:text-fg hover:border-line-hover focus-visible:outline-2 focus-visible:outline-brand"
 						(click)="jumpToMonth(entry.month)"
 					>
 						{{ entry.month + "-01" | date: "MMMM y" : "UTC" }}

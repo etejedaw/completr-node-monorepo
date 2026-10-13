@@ -29,7 +29,7 @@ export interface WishlistPlatformOption {
 					@for (platform of platforms(); track platform.id) {
 						<button
 							type="button"
-							class="min-h-[32px] max-md:min-h-[44px] max-md:min-w-[44px] pointer-coarse:min-h-[44px] pointer-coarse:min-w-[44px] px-3 rounded-full border text-xs font-medium cursor-pointer transition"
+							class="min-h-[32px] max-md:min-h-[44px] max-md:min-w-[44px] tap:min-h-[44px] tap:min-w-[44px] px-3 rounded-full border text-xs font-medium cursor-pointer transition"
 							[class]="
 								selected() === platform.id
 									? 'bg-brand-subtle border-brand text-brand'

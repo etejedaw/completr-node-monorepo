@@ -34,7 +34,7 @@ import {
 				</h2>
 				<button
 					type="button"
-					class="inline-flex items-center gap-1 h-8 pointer-coarse:min-h-[44px] px-2.5 -mr-1 rounded-md bg-transparent border-0 text-xs font-medium text-brand cursor-pointer transition hover:bg-brand-subtle"
+					class="inline-flex items-center gap-1 h-8 tap:min-h-[44px] px-2.5 -mr-1 rounded-md bg-transparent border-0 text-xs font-medium text-brand cursor-pointer transition hover:bg-brand-subtle"
 					(click)="runAdded.emit()"
 				>
 					<span aria-hidden="true" class="material-icons text-base"
@@ -93,7 +93,7 @@ import {
 					<li class="border-b border-line last:border-b-0">
 						<button
 							type="button"
-							class="group relative w-full flex gap-3 pl-5 pr-4 py-3 pointer-coarse:min-h-[44px] text-left bg-transparent border-0 cursor-pointer transition hover:bg-white/[0.03]"
+							class="group relative w-full flex gap-3 pl-5 pr-4 py-3 tap:min-h-[44px] text-left bg-transparent border-0 cursor-pointer transition hover:bg-white/[0.03]"
 							[attr.aria-label]="
 								'Run ' +
 								(runs().length - i) +

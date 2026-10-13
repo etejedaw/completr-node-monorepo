@@ -3,6 +3,12 @@
 @import "../public/fonts/space-grotesk.css";
 @import "./styles/ui.css";
 
+@custom-variant tap {
+	@media (max-width: 639px), (pointer: coarse) {
+		@slot;
+	}
+}
+
 .material-icons {
 	line-height: 1;
 	vertical-align: middle;
@@ -354,7 +360,7 @@ h6 {
 	position: relative;
 }
 
-@media (pointer: coarse) {
+@media (max-width: 639px), (pointer: coarse) {
 	.tap-area::after {
 		content: "";
 		position: absolute;

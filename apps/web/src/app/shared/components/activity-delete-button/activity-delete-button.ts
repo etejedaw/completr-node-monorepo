@@ -10,7 +10,7 @@ import {
 	template: `
 		<button
 			type="button"
-			class="-mr-2 w-8 h-8 max-sm:min-w-[44px] max-sm:min-h-[44px] pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100 pointer-coarse:opacity-100 hover:text-danger"
+			class="-mr-2 w-8 h-8 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100 pointer-coarse:opacity-100 hover:text-danger"
 			[attr.aria-label]="
 				multiple() ? 'Remove these activities' : 'Remove this activity'
 			"

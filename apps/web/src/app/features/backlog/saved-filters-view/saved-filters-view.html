@@ -274,7 +274,7 @@
 			<div class="flex flex-wrap gap-1.5">
 				<button
 					type="button"
-					class="size-9 max-md:size-[44px] pointer-coarse:size-[44px] rounded-card border inline-flex items-center justify-center transition hover:border-brand"
+					class="size-9 max-md:size-[44px] tap:size-[44px] rounded-card border inline-flex items-center justify-center transition hover:border-brand"
 					[class]="!editIcon() ? 'border-brand text-brand bg-brand-subtle' : 'border-line text-fg-muted'"
 					aria-label="No icon"
 					title="No icon"
@@ -288,7 +288,7 @@
 				@for (ic of iconOptions; track ic) {
 				<button
 					type="button"
-					class="size-9 max-md:size-[44px] pointer-coarse:size-[44px] rounded-card border inline-flex items-center justify-center transition hover:border-brand"
+					class="size-9 max-md:size-[44px] tap:size-[44px] rounded-card border inline-flex items-center justify-center transition hover:border-brand"
 					[class]="editIcon() === ic ? 'border-brand bg-brand-subtle' : 'border-line'"
 					[attr.aria-label]="ic"
 					[attr.aria-pressed]="editIcon() === ic"
@@ -314,7 +314,7 @@
 			<div class="flex flex-wrap items-center gap-2">
 				<button
 					type="button"
-					class="size-8 max-md:size-[44px] pointer-coarse:size-[44px] rounded-full border inline-flex items-center justify-center text-fg-muted transition hover:border-brand"
+					class="size-8 max-md:size-[44px] tap:size-[44px] rounded-full border inline-flex items-center justify-center text-fg-muted transition hover:border-brand"
 					[class]="!editColor() ? 'border-brand ring-2 ring-fg/80 ring-offset-2 ring-offset-sidebar' : 'border-line'"
 					aria-label="No color"
 					title="No color"
@@ -328,7 +328,7 @@
 				@for (c of colorOptions; track c.key) {
 				<button
 					type="button"
-					class="size-8 max-md:size-[44px] pointer-coarse:size-[44px] rounded-full transition"
+					class="size-8 max-md:size-[44px] tap:size-[44px] rounded-full transition"
 					[class]="editColor() === c.key ? 'ring-2 ring-fg/80 ring-offset-2 ring-offset-sidebar' : ''"
 					[style.background]="c.hex"
 					[attr.aria-label]="c.key"

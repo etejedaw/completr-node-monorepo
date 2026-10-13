@@ -54,7 +54,7 @@
 		@for (mode of viewModes; track mode.value) {
 		<button
 			type="button"
-			class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 pointer-coarse:min-h-[44px] pointer-coarse:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
+			class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 tap:min-h-[44px] tap:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
 			[class.!bg-surface-hover]="viewMode() === mode.value"
 			[class.!text-fg]="viewMode() === mode.value"
 			[attr.aria-pressed]="viewMode() === mode.value"
@@ -181,7 +181,7 @@ selectedPlatform()) {
 				<td class="px-2 py-2.5 align-middle text-center">
 					<button
 						type="button"
-						class="w-9 h-9 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-nav-favorites hover:bg-surface"
+						class="w-9 h-9 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-nav-favorites hover:bg-surface"
 						[class.!text-nav-favorites]="isFavorite(entry.game.id)"
 						[attr.aria-pressed]="isFavorite(entry.game.id)"
 						[attr.aria-label]="isFavorite(entry.game.id) ? 'Remove ' + entry.game.title + ' from favorites' : 'Add ' + entry.game.title + ' to favorites'"

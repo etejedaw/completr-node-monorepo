@@ -1,6 +1,6 @@
 <div class="relative">
 	<div
-		class="flex flex-wrap gap-1.5 items-center px-2 py-1.5 max-md:py-0 pointer-coarse:py-0 bg-input-bg border border-line rounded text-sm min-h-[2.25rem] max-md:min-h-[44px] pointer-coarse:min-h-[44px] focus-within:border-brand"
+		class="flex flex-wrap gap-1.5 items-center px-2 py-1.5 max-md:py-0 pointer-coarse:py-0 bg-input-bg border border-line rounded text-sm min-h-[2.25rem] max-md:min-h-[44px] tap:min-h-[44px] focus-within:border-brand"
 	>
 		@for (tag of tags(); track tag; let i = $index) {
 		<span
@@ -21,7 +21,7 @@
 		} @if (canAdd()) {
 		<input
 			type="text"
-			class="flex-1 min-w-[6rem] self-stretch max-md:min-h-[42px] pointer-coarse:min-h-[42px] bg-transparent border-0 outline-none text-fg text-sm font-sans"
+			class="flex-1 min-w-[6rem] self-stretch max-md:min-h-[42px] tap:min-h-[42px] bg-transparent border-0 outline-none text-fg text-sm font-sans"
 			[attr.aria-labelledby]="ariaLabelledby()"
 			[placeholder]="tags().length === 0 ? placeholder() : ''"
 			[value]="draft()"

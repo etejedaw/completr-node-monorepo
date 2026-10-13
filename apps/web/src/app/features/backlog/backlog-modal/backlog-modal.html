@@ -136,7 +136,7 @@
 			} @else {
 			<input
 				type="text"
-				class="w-full max-md:min-h-[44px] pointer-coarse:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+				class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				placeholder="Search games..."
 				[value]="searchQuery()"
 				(input)="onSearch($event)"
@@ -266,7 +266,7 @@
 		<div class="flex gap-2 mb-3">
 			<button
 				type="button"
-				class="flex-1 flex items-center justify-center gap-2 max-md:min-h-[44px] pointer-coarse:min-h-[44px] px-3 py-2 border rounded text-xs font-medium font-sans cursor-pointer transition"
+				class="flex-1 flex items-center justify-center gap-2 max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 border rounded text-xs font-medium font-sans cursor-pointer transition"
 				[class]="addToQueue() ? 'bg-brand/10 border-brand text-brand' : 'bg-input-bg border-line-hover text-fg-muted hover:border-brand hover:text-brand'"
 				(click)="addToQueue.set(!addToQueue())"
 			>
@@ -279,7 +279,7 @@
 			@if (!isEdit()) {
 			<button
 				type="button"
-				class="flex-1 flex items-center justify-center gap-2 max-md:min-h-[44px] pointer-coarse:min-h-[44px] px-3 py-2 bg-input-bg border border-line-hover rounded text-fg-muted text-xs font-medium font-sans cursor-pointer transition hover:border-brand hover:text-brand"
+				class="flex-1 flex items-center justify-center gap-2 max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line-hover rounded text-fg-muted text-xs font-medium font-sans cursor-pointer transition hover:border-brand hover:text-brand"
 				[class.!bg-brand-subtle]="addToShelf()"
 				[class.!border-brand]="addToShelf()"
 				[class.!text-brand]="addToShelf()"
@@ -405,7 +405,7 @@
 							gameScores(); track s.source) {
 							<button
 								type="button"
-								class="max-md:min-h-[44px] pointer-coarse:min-h-[44px] bg-input-bg border border-line text-fg-secondary text-[0.625rem] max-md:text-xs font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
+								class="max-md:min-h-[44px] tap:min-h-[44px] bg-input-bg border border-line text-fg-secondary text-[0.625rem] max-md:text-xs font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
 								[class.!bg-brand-subtle]="activeScoreSource() === s.source"
 								[class.!border-brand]="activeScoreSource() === s.source"
 								[class.!text-brand]="activeScoreSource() === s.source"
@@ -442,7 +442,7 @@
 								[formField]="form.score"
 								placeholder="0–5"
 								step="0.1"
-								class="w-full max-md:min-h-[44px] pointer-coarse:min-h-[44px] pl-3 pr-9 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+								class="w-full max-md:min-h-[44px] tap:min-h-[44px] pl-3 pr-9 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 								(input)="onScoreManualChange()"
 							/>
 							<span
@@ -479,7 +479,7 @@
 							gameTimes(); track t.source) {
 							<button
 								type="button"
-								class="max-md:min-h-[44px] pointer-coarse:min-h-[44px] bg-input-bg border border-line text-fg-secondary text-[0.625rem] max-md:text-xs font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
+								class="max-md:min-h-[44px] tap:min-h-[44px] bg-input-bg border border-line text-fg-secondary text-[0.625rem] max-md:text-xs font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
 								[class.!bg-brand-subtle]="activeDurationSource() === t.source"
 								[class.!border-brand]="activeDurationSource() === t.source"
 								[class.!text-brand]="activeDurationSource() === t.source"
@@ -514,7 +514,7 @@
 							[formField]="form.duration"
 							placeholder="HowLongToBeat estimate"
 							step="0.5"
-							class="w-full max-md:min-h-[44px] pointer-coarse:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 							(input)="onDurationManualChange()"
 						/>
 					</div>
@@ -571,7 +571,7 @@
 							id="startedAt"
 							type="date"
 							[formField]="form.startedAt"
-							class="w-full max-md:min-h-[44px] pointer-coarse:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 						/>
 					</div>
 					<div class="mb-4">
@@ -584,7 +584,7 @@
 							id="finishedAt"
 							type="date"
 							[formField]="form.finishedAt"
-							class="w-full max-md:min-h-[44px] pointer-coarse:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 						/>
 					</div>
 				</div>
@@ -639,7 +639,7 @@
 							[formField]="form.realDuration"
 							placeholder="Actual hours"
 							step="0.5"
-							class="w-full max-md:min-h-[44px] pointer-coarse:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 						/>
 					</div>
 				</div>
@@ -798,7 +798,7 @@
 							variant="primary"
 							size="sm"
 							type="button"
-							class="max-md:min-w-[56px] pointer-coarse:min-w-[56px]"
+							class="max-md:min-w-[56px] tap:min-w-[56px]"
 							(click)="addProgressNote()"
 							[disabled]="progressLoading() || !progressDraft().trim()"
 						>
@@ -896,7 +896,7 @@
 						[formField]="form.notes"
 						rows="3"
 						placeholder="Your thoughts..."
-						class="w-full max-md:min-h-[44px] pointer-coarse:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+						class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 					></textarea>
 				</div>
 
@@ -926,7 +926,7 @@
 						id="review-content"
 						rows="3"
 						placeholder="Share your review of this game..."
-						class="w-full max-md:min-h-[44px] pointer-coarse:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+						class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 						[value]="reviewContent()"
 						(input)="reviewContent.set($any($event.target).value)"
 					></textarea>

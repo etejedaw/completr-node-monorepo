@@ -33,7 +33,7 @@
 			<button
 				uiButton
 				size="sm"
-				class="relative z-10 max-sm:min-h-[44px] pointer-coarse:min-h-[44px]"
+				class="relative z-10 tap:min-h-[44px]"
 				[variant]="followState() === 'none' ? 'primary' : 'secondary'"
 				[disabled]="busy()"
 				[attr.aria-pressed]="followState() !== 'none'"

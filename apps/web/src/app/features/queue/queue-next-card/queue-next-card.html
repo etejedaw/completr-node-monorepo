@@ -111,7 +111,7 @@
 		>
 			<button
 				type="button"
-				class="max-sm:flex-1 inline-flex items-center justify-center gap-1.5 h-10 pointer-coarse:min-h-[44px] px-4 rounded-card border-0 bg-brand text-white text-sm font-semibold cursor-pointer transition hover:bg-brand-hover active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+				class="max-sm:flex-1 inline-flex items-center justify-center gap-1.5 h-10 tap:min-h-[44px] px-4 rounded-card border-0 bg-brand text-white text-sm font-semibold cursor-pointer transition hover:bg-brand-hover active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
 				[disabled]="statusUpdating()"
 				(click)="startPlaying.emit()"
 			>
@@ -122,7 +122,7 @@
 			</button>
 			<button
 				type="button"
-				class="shrink-0 w-10 h-10 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] inline-flex items-center justify-center rounded-card border border-line bg-canvas/40 cursor-pointer transition hover:border-fg-muted"
+				class="shrink-0 w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-card border border-line bg-canvas/40 cursor-pointer transition hover:border-fg-muted"
 				[class]="isFavorite() ? 'text-nav-favorites' : 'text-fg-muted hover:text-fg'"
 				[attr.aria-pressed]="isFavorite()"
 				[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
@@ -136,7 +136,7 @@
 			@if (canMoveDown()) {
 			<button
 				type="button"
-				class="shrink-0 w-10 h-10 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] inline-flex items-center justify-center rounded-card border border-line bg-canvas/40 text-fg-muted cursor-pointer transition hover:text-fg hover:border-fg-muted"
+				class="shrink-0 w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-card border border-line bg-canvas/40 text-fg-muted cursor-pointer transition hover:text-fg hover:border-fg-muted"
 				aria-label="Move down"
 				title="Move down"
 				(click)="moveDown.emit()"
@@ -148,7 +148,7 @@
 			}
 			<button
 				type="button"
-				class="shrink-0 w-10 h-10 pointer-coarse:min-w-[44px] pointer-coarse:min-h-[44px] inline-flex items-center justify-center rounded-card border border-line bg-canvas/40 text-fg-muted cursor-pointer transition hover:text-danger hover:border-danger/40"
+				class="shrink-0 w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-card border border-line bg-canvas/40 text-fg-muted cursor-pointer transition hover:text-danger hover:border-danger/40"
 				aria-label="Remove from Up Next"
 				title="Remove from Up Next"
 				(click)="remove.emit()"

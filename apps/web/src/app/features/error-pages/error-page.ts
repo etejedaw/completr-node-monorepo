@@ -45,7 +45,7 @@ import { UiButton } from "../../shared/ui";
 				{{ message() }}
 			</p>
 			<div
-				class="mt-8 flex flex-wrap items-center justify-center gap-2 pointer-coarse:gap-[8px]"
+				class="mt-8 flex flex-wrap items-center justify-center gap-2 tap:gap-[8px]"
 			>
 				<a
 					uiButton

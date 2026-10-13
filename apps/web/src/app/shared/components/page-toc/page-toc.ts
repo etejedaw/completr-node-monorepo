@@ -41,7 +41,7 @@ export interface PageSection {
 							<a
 								[routerLink]="path()"
 								[fragment]="section.id"
-								class="-ml-px flex items-center gap-3 min-h-[40px] pointer-coarse:min-h-[44px] pl-4 pr-3 border-l-2 no-underline text-sm transition-colors focus-visible:outline-2 focus-visible:outline-brand"
+								class="-ml-px flex items-center gap-3 min-h-[40px] tap:min-h-[44px] pl-4 pr-3 border-l-2 no-underline text-sm transition-colors focus-visible:outline-2 focus-visible:outline-brand"
 								[class]="
 									section.id === active()
 										? 'border-brand text-fg font-semibold'

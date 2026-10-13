@@ -11,7 +11,7 @@
 	@if (editable()) {
 	<span
 		cdkDragHandle
-		class="shrink-0 -mx-1 w-7 h-9 pointer-coarse:w-[44px] pointer-coarse:h-[44px] max-sm:w-[44px] max-sm:h-[44px] inline-flex items-center justify-center rounded text-fg-muted/60 cursor-grab active:cursor-grabbing transition hover:text-fg touch-none"
+		class="shrink-0 -mx-1 w-7 h-9 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded text-fg-muted/60 cursor-grab active:cursor-grabbing transition hover:text-fg touch-none"
 		aria-hidden="true"
 		title="Drag to reorder"
 	>
@@ -211,7 +211,7 @@
 		>
 			<button
 				type="button"
-				class="w-8 h-8 pointer-coarse:w-[44px] pointer-coarse:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface disabled:opacity-30 disabled:cursor-default"
+				class="w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface disabled:opacity-30 disabled:cursor-default"
 				[disabled]="isFirst()"
 				[attr.aria-label]="'Move ' + entry.game.title + ' up'"
 				title="Move up"
@@ -223,7 +223,7 @@
 			</button>
 			<button
 				type="button"
-				class="w-8 h-8 pointer-coarse:w-[44px] pointer-coarse:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface disabled:opacity-30 disabled:cursor-default"
+				class="w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface disabled:opacity-30 disabled:cursor-default"
 				[disabled]="isLast()"
 				[attr.aria-label]="'Move ' + entry.game.title + ' down'"
 				title="Move down"
@@ -235,7 +235,7 @@
 			</button>
 			<button
 				type="button"
-				class="w-8 h-8 pointer-coarse:w-[44px] pointer-coarse:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-danger hover:bg-danger/10"
+				class="w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-danger hover:bg-danger/10"
 				[attr.aria-label]="'Remove ' + entry.game.title + ' from the list'"
 				title="Remove from list"
 				(click)="remove.emit()"

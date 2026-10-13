@@ -43,12 +43,12 @@ import { AttributionFooter } from "../../shared/components/attribution-footer/at
 					>
 						<a
 							routerLink="/login"
-							class="inline-flex items-center h-10 max-sm:min-h-[44px] pointer-coarse:min-h-[44px] px-3 rounded-card text-sm font-medium text-fg-secondary no-underline transition hover:text-fg hover:bg-surface/70"
+							class="inline-flex items-center h-10 tap:min-h-[44px] px-3 rounded-card text-sm font-medium text-fg-secondary no-underline transition hover:text-fg hover:bg-surface/70"
 							>Sign in</a
 						>
 						<a
 							routerLink="/register"
-							class="inline-flex items-center h-10 max-sm:min-h-[44px] pointer-coarse:min-h-[44px] px-4 rounded-card bg-brand text-white text-sm font-semibold no-underline shadow-lg shadow-brand/25 transition hover:bg-brand-hover hover:text-white"
+							class="inline-flex items-center h-10 tap:min-h-[44px] px-4 rounded-card bg-brand text-white text-sm font-semibold no-underline shadow-lg shadow-brand/25 transition hover:bg-brand-hover hover:text-white"
 							>Create account</a
 						>
 					</nav>
