@@ -407,4 +407,8 @@ textarea.ui-input {
 	.ui-tab {
 		min-height: 44px;
 	}
+
+	.ui-input {
+		min-height: 44px;
+	}
 }
