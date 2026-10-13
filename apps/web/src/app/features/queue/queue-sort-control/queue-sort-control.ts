@@ -31,28 +31,16 @@ const QUEUE_SORT_ICONS: Record<QueueSort, string> = {
 			[value]="value()"
 			(valueChange)="value.set($any($event))"
 		/>
-		<div
-			role="radiogroup"
-			aria-label="Sort queue"
-			class="max-md:hidden flex gap-0.5 p-1 bg-input-bg border border-line rounded-card overflow-x-auto [scrollbar-width:none]"
-		>
-			@for (option of options(); track option.value) {
-				<button
-					type="button"
-					role="radio"
-					class="shrink-0 h-8 pointer-coarse:min-h-[44px] px-3 rounded-md border-0 text-xs font-medium cursor-pointer transition"
-					[class]="
-						value() === option.value
-							? 'bg-surface-hover text-fg'
-							: 'bg-transparent text-fg-muted hover:text-fg'
-					"
-					[attr.aria-checked]="value() === option.value"
-					(click)="value.set(option.value)"
-				>
-					{{ option.label }}
-				</button>
-			}
-		</div>
+		<app-option-picker
+			class="max-md:hidden shrink-0"
+			variant="compact"
+			size="md"
+			label="Sort"
+			heading="Sort queue by"
+			[options]="pickerOptions()"
+			[value]="value()"
+			(valueChange)="value.set($any($event))"
+		/>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
