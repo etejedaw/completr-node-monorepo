@@ -3,16 +3,20 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	effect,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
 	debounceTime,
 	distinctUntilChanged,
+	map,
 	of,
+	skip,
 	Subject,
 	switchMap
 } from "rxjs";
@@ -74,6 +78,7 @@ export class GamesBrowse implements OnInit {
 	private readonly authService = inject(AuthService);
 	private readonly router = inject(Router);
 	private readonly route = inject(ActivatedRoute);
+	private readonly destroyRef = inject(DestroyRef);
 	private readonly searchSubject = new Subject<string>();
 	protected readonly isMobile = inject(ViewportService).isMobile;
 
@@ -224,6 +229,7 @@ export class GamesBrowse implements OnInit {
 			.getPlatforms()
 			.subscribe(p => this.allPlatforms.set(p));
 		this.applyFromUrl();
+		this.syncGenresWithUrl();
 
 		const q = this.route.snapshot.queryParamMap.get("q");
 		if (q) {
@@ -440,6 +446,24 @@ export class GamesBrowse implements OnInit {
 		});
 	}
 
+	private syncGenresWithUrl() {
+		this.route.queryParamMap
+			.pipe(
+				map(params => params.get("genres") ?? ""),
+				distinctUntilChanged(),
+				skip(1),
+				takeUntilDestroyed(this.destroyRef)
+			)
+			.subscribe(genresCsv => {
+				const fromUrl = genresCsv.split(",").filter(Boolean);
+				const current = this.selectedGenres();
+				const unchanged =
+					fromUrl.length === current.size &&
+					fromUrl.every(code => current.has(code));
+				if (!unchanged) this.selectedGenres.set(new Set(fromUrl));
+			});
+	}
+
 	private applyFromUrl() {
 		const p = this.route.snapshot.queryParamMap;
 		const csv = (key: string) => {
@@ -476,7 +500,9 @@ export class GamesBrowse implements OnInit {
 		if (sortOrder === "asc" || sortOrder === "desc") {
 			this.sortOrder.set(sortOrder);
 		}
-		if (this.activeFiltersCount() > 0) this.showFilters.set(true);
+		const genreFilterCount = this.selectedGenres().size > 0 ? 1 : 0;
+		if (this.activeFiltersCount() > genreFilterCount)
+			this.showFilters.set(true);
 		if (this.inSearchOrFilterMode()) this.loadFiltered();
 	}
 }

@@ -158,18 +158,6 @@ export class GamesService {
 			.pipe(map(res => res.data.genres));
 	}
 
-	getGenreGames(
-		code: string,
-		opts: { limit?: number; offset?: number } = {}
-	) {
-		const params = buildHttpParams(opts);
-		return this.http
-			.get<{
-				data: { genre: Genre; games: Game[]; hasMore: boolean };
-			}>(`${environment.apiUrl}/genres/${code}/games`, { params })
-			.pipe(map(res => res.data));
-	}
-
 	getByCode(code: string) {
 		return this.http
 			.get<{

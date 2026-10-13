@@ -56,7 +56,8 @@
 					{
 					<a
 						class="tap-area py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25 hover:text-white"
-						[routerLink]="['/genres', genre.code]"
+						routerLink="/games"
+						[queryParams]="{ genres: genre.code }"
 						>{{ genre.name }}</a
 					>
 					}

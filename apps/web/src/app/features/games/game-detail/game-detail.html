@@ -414,7 +414,8 @@
 	<a
 		sectionActions
 		class="inline-flex items-center gap-1 h-8 pointer-coarse:min-h-[44px] text-sm font-medium no-underline"
-		[routerLink]="['/genres', genre.code]"
+		routerLink="/games"
+		[queryParams]="{ genres: genre.code }"
 		>See all
 		<span aria-hidden="true" class="material-icons text-base"
 			>arrow_forward</span

@@ -9,6 +9,12 @@ import { moderatorGuard } from "./core/guards/moderator.guard";
 import { selfProfileRedirect } from "./core/guards/self-profile-redirect.guard";
 import { AuthService } from "./core/services/auth";
 
+const privacyRoute = {
+	path: "privacy",
+	loadComponent: () =>
+		import("./features/legal/privacy/privacy").then(m => m.Privacy)
+};
+
 const publicProfileRoutes: Routes = [
 	{
 		path: "user/:username",
@@ -106,11 +112,6 @@ export const routes: Routes = [
 			import("./features/auth/register/register").then(m => m.Register)
 	},
 	{
-		path: "privacy",
-		loadComponent: () =>
-			import("./features/legal/privacy/privacy").then(m => m.Privacy)
-	},
-	{
 		path: "user/:username/lists/:id",
 		redirectTo: ({ params }) =>
 			`/lists/${params["id"]}?from=${params["username"]}`
@@ -125,7 +126,7 @@ export const routes: Routes = [
 		canMatch: [guestMatch],
 		loadComponent: () =>
 			import("./layout/guest-shell/guest-shell").then(m => m.GuestShell),
-		children: publicProfileRoutes
+		children: [...publicProfileRoutes, privacyRoute]
 	},
 	{
 		path: "",
@@ -134,6 +135,7 @@ export const routes: Routes = [
 		children: [
 			{ path: "", redirectTo: "feed", pathMatch: "full" },
 			...publicProfileRoutes,
+			privacyRoute,
 			{
 				path: "feed",
 				loadComponent: () =>
@@ -186,10 +188,7 @@ export const routes: Routes = [
 			},
 			{
 				path: "genres/:code",
-				loadComponent: () =>
-					import("./features/games/genre-detail/genre-detail").then(
-						m => m.GenreDetail
-					)
+				redirectTo: ({ params }) => `/games?genres=${params["code"]}`
 			},
 			{
 				path: "games/:code",
@@ -356,12 +355,14 @@ export const routes: Routes = [
 					import("./features/error-pages/not-found").then(
 						m => m.NotFound
 					)
+			},
+			{
+				path: "**",
+				loadComponent: () =>
+					import("./features/error-pages/not-found").then(
+						m => m.NotFound
+					)
 			}
 		]
-	},
-	{
-		path: "**",
-		loadComponent: () =>
-			import("./features/error-pages/not-found").then(m => m.NotFound)
 	}
 ];
