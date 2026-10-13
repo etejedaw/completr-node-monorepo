@@ -1,13 +1,16 @@
 import {
-	afterRenderEffect,
 	ChangeDetectionStrategy,
 	Component,
-	type ElementRef,
+	computed,
 	input,
-	output,
-	viewChild
+	output
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+
+import {
+	OptionPicker,
+	type PickerOption
+} from "../option-picker/option-picker";
 
 export interface PageSection {
 	id: string;
@@ -17,7 +20,7 @@ export interface PageSection {
 
 @Component({
 	selector: "app-page-toc",
-	imports: [RouterLink],
+	imports: [RouterLink, OptionPicker],
 	template: `
 		@if (variant() === "rail") {
 			<nav [attr.aria-label]="label()">
@@ -61,40 +64,13 @@ export interface PageSection {
 				</ol>
 			</nav>
 		} @else {
-			<nav
-				#chipScroller
-				[attr.aria-label]="label()"
-				class="relative -mx-1 px-1 overflow-x-auto [scrollbar-width:none]"
-			>
-				<ol class="m-0 p-0 list-none flex gap-2 w-max">
-					@for (section of sections(); track section.id) {
-						<li>
-							<a
-								[routerLink]="path()"
-								[fragment]="section.id"
-								[attr.data-section]="section.id"
-								class="inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full border text-[0.8125rem] font-medium whitespace-nowrap no-underline transition-colors"
-								[class]="
-									section.id === active()
-										? 'border-brand bg-brand-subtle text-brand'
-										: 'border-line text-fg-secondary hover:border-line-hover hover:text-fg'
-								"
-								[attr.aria-current]="
-									section.id === active() ? 'location' : null
-								"
-								(click)="selected.emit(section.id)"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-base"
-									>{{ section.icon }}</span
-								>
-								{{ section.label }}
-							</a>
-						</li>
-					}
-				</ol>
-			</nav>
+			<app-option-picker
+				label="On this page"
+				[heading]="label()"
+				[options]="pickerOptions()"
+				[value]="active()"
+				(valueChange)="selected.emit($event)"
+			/>
 		}
 	`,
 	host: { class: "block" },
@@ -109,27 +85,16 @@ export class PageToc {
 
 	readonly selected = output<string>();
 
-	private readonly chipScroller =
-		viewChild<ElementRef<HTMLElement>>("chipScroller");
-
-	constructor() {
-		afterRenderEffect(() => {
-			const scroller = this.chipScroller()?.nativeElement;
-			const active = this.active();
-			if (!scroller) return;
-			const chip = scroller.querySelector<HTMLElement>(
-				`[data-section="${active}"]`
-			);
-			if (!chip) return;
-			scroller.scrollTo({
-				left:
-					chip.offsetLeft -
-					scroller.clientWidth / 2 +
-					chip.offsetWidth / 2,
-				behavior: "smooth"
-			});
-		});
-	}
+	protected readonly pickerOptions = computed<PickerOption[]>(() =>
+		this.sections().map((section, index) => ({
+			value: section.id,
+			label: section.label,
+			icon: section.icon,
+			hint: this.pad(index + 1),
+			link: this.path(),
+			fragment: section.id
+		}))
+	);
 
 	protected pad(n: number): string {
 		return n.toString().padStart(2, "0");
