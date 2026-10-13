@@ -1,4 +1,3 @@
-import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -9,42 +8,22 @@ import {
 	signal,
 	untracked
 } from "@angular/core";
-import {
-	NgpDatePicker,
-	NgpDatePickerCell,
-	NgpDatePickerCellRender,
-	NgpDatePickerGrid,
-	NgpDatePickerLabel,
-	NgpDatePickerNextMonth,
-	NgpDatePickerPreviousMonth,
-	NgpDatePickerRowRender
-} from "ng-primitives/date-picker";
-import {
-	NgpNativeDateAdapter,
-	provideDateAdapter
-} from "ng-primitives/date-time";
 
 import { type GameShelfEntry } from "../../../core/models";
-import { UiIconButton } from "../../../shared/ui";
+import {
+	type CalendarAgendaItem,
+	CalendarDayTemplate,
+	isSameMonth,
+	MonthCalendar,
+	shortDate
+} from "../../../shared/components/month-calendar/month-calendar";
 
 const MAX_CHIPS = 3;
-const MAX_DOTS = 4;
+const ACQUIRED_DOT = "bg-brand";
 
 @Component({
 	selector: "app-game-shelf-calendar",
-	imports: [
-		DatePipe,
-		NgpDatePicker,
-		NgpDatePickerCell,
-		NgpDatePickerCellRender,
-		NgpDatePickerGrid,
-		NgpDatePickerLabel,
-		NgpDatePickerNextMonth,
-		NgpDatePickerPreviousMonth,
-		NgpDatePickerRowRender,
-		UiIconButton
-	],
-	providers: [provideDateAdapter(NgpNativeDateAdapter)],
+	imports: [MonthCalendar, CalendarDayTemplate],
 	templateUrl: "./game-shelf-calendar.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -57,15 +36,6 @@ export class GameShelfCalendar {
 	protected readonly focusedDate = signal(this.startOfDay(this.now));
 	protected readonly selectedDay = signal<Date | null>(null);
 	protected readonly maxChips = MAX_CHIPS;
-	protected readonly weekdayLabels = [
-		"Mon",
-		"Tue",
-		"Wed",
-		"Thu",
-		"Fri",
-		"Sat",
-		"Sun"
-	];
 
 	private autoPositioned = false;
 
@@ -98,6 +68,40 @@ export class GameShelfCalendar {
 		() => this.entries().filter(e => !e.acquiredAt).length
 	);
 
+	protected readonly monthEntries = computed(() => {
+		const focus = this.focusedDate();
+		return this.entries()
+			.filter(
+				entry =>
+					!!entry.acquiredAt &&
+					isSameMonth(this.parseDateOnly(entry.acquiredAt), focus)
+			)
+			.sort(
+				(a, b) =>
+					this.parseDateOnly(a.acquiredAt!).getTime() -
+						this.parseDateOnly(b.acquiredAt!).getTime() ||
+					a.game.title.localeCompare(b.game.title)
+			);
+	});
+
+	protected readonly agendaItems = computed<CalendarAgendaItem[]>(() => {
+		const day = this.selectedDay();
+		const entries = day ? this.itemsForDay(day) : this.monthEntries();
+		return entries.map(entry => ({
+			id: entry.id,
+			title: entry.game.title,
+			posterSrc: entry.game.backgroundUrl,
+			meta: entry.edition
+				? `${entry.platform.abbreviation} · ${entry.edition}`
+				: entry.platform.abbreviation,
+			dotClass: ACQUIRED_DOT,
+			dateLabel: shortDate(this.parseDateOnly(entry.acquiredAt!))
+		}));
+	});
+
+	protected readonly markersFor = (date: Date): string[] =>
+		this.itemsForDay(date).map(() => ACQUIRED_DOT);
+
 	protected itemsForDay(date: Date): GameShelfEntry[] {
 		return this.byDay().get(this.dateKey(date)) ?? [];
 	}
@@ -106,45 +110,13 @@ export class GameShelfCalendar {
 		return Math.max(0, this.itemsForDay(date).length - MAX_CHIPS);
 	}
 
-	protected selectedDayItems(): GameShelfEntry[] {
-		const day = this.selectedDay();
-		return day ? this.itemsForDay(day) : [];
-	}
-
-	protected readonly maxDots = MAX_DOTS;
-
-	protected isToday(date: Date): boolean {
-		return this.diffDays(date, this.now) === 0;
-	}
-
-	protected isWeekend(date: Date): boolean {
-		const day = date.getDay();
-		return day === 0 || day === 6;
-	}
-
-	protected isOutsideMonth(date: Date): boolean {
-		const focus = this.focusedDate();
-		return (
-			date.getMonth() !== focus.getMonth() ||
-			date.getFullYear() !== focus.getFullYear()
-		);
-	}
-
-	goToday() {
-		this.focusedDate.set(this.startOfDay(this.now));
-	}
-
-	openDay(date: Date) {
+	protected selectDay(date: Date) {
 		this.selectedDay.set(date);
 	}
 
-	closeDay() {
-		this.selectedDay.set(null);
-	}
-
-	selectItem(entry: GameShelfEntry) {
-		this.selectedDay.set(null);
-		this.entryClick.emit(entry);
+	protected openEntry(id: string) {
+		const entry = this.entries().find(item => item.id === id);
+		if (entry) this.entryClick.emit(entry);
 	}
 
 	private latestAcquiredMonth(entries: GameShelfEntry[]): Date | null {
@@ -170,12 +142,5 @@ export class GameShelfCalendar {
 
 	private startOfDay(date: Date): Date {
 		return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-	}
-
-	private diffDays(a: Date, b: Date): number {
-		return Math.round(
-			(this.startOfDay(a).getTime() - this.startOfDay(b).getTime()) /
-				86400000
-		);
 	}
 }
