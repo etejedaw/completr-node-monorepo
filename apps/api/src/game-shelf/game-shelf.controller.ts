@@ -24,7 +24,7 @@ export async function postGameShelf(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 
 	const gameShelfRegister = await gameShelfService.registerGameShelf(
-		user.id,
+		user,
 		registerGameShelfDto
 	);
 	const gameShelfPlain = gameShelfRegister.get({ plain: true });

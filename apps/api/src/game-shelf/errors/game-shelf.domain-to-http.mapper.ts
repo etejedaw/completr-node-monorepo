@@ -28,5 +28,8 @@ export function gameShelfDomainToHttpMapper(
 	if (error.code === "GAME_SHELF_VALIDATION_ERROR")
 		return new HttpError({ ...baseOptions, status: 400 });
 
+	if (error.code === "GAME_SHELF_LIMIT_REACHED")
+		return new HttpError({ ...baseOptions, status: 402 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

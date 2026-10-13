@@ -59,3 +59,9 @@ docs: |-
       }
     }
     ```
+
+    ### Errors
+
+    - 402 `GAME_SHELF_LIMIT_REACHED` — Free plan limit (250) reached; premium roles have no limit
+    - 409 `GAME_SHELF_UNIQUE_CONSTRAINT` — Entry already exists
+    - 400 `GAME_SHELF_VALIDATION_ERROR` — Invalid data
