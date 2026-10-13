@@ -4,38 +4,25 @@ import {
 	inject,
 	signal
 } from "@angular/core";
+import { injectDialogRef } from "ng-primitives/dialog";
+
+import { UiButton, UiDialog } from "../../../shared/ui";
 import {
-	injectDialogRef,
-	NgpDialog,
-	NgpDialogOverlay,
-	NgpDialogTitle
-} from "ng-primitives/dialog";
-
-import { UiButton, UiIconButton } from "../../../shared/ui";
+	WishlistPlatformChoice,
+	type WishlistPlatformOption
+} from "../components/wishlist-platform-choice";
 import { WishlistService } from "../wishlist";
-
-export interface PlatformOption {
-	id: string;
-	name: string;
-	abbreviation: string;
-}
 
 export interface WishlistPlatformModalData {
 	gameId: string;
 	gameTitle: string;
-	platforms: PlatformOption[];
+	platforms: WishlistPlatformOption[];
 }
 export type WishlistPlatformModalResult = "saved";
 
 @Component({
 	selector: "app-wishlist-platform-modal",
-	imports: [
-		NgpDialog,
-		NgpDialogOverlay,
-		NgpDialogTitle,
-		UiButton,
-		UiIconButton
-	],
+	imports: [UiButton, UiDialog, WishlistPlatformChoice],
 	templateUrl: "./wishlist-platform-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -51,10 +38,6 @@ export class WishlistPlatformModal {
 
 	protected readonly selectedPlatformId = signal<string | null>(null);
 	protected readonly saving = signal(false);
-
-	selectPlatform(id: string) {
-		this.selectedPlatformId.set(id);
-	}
 
 	confirm(skipPlatform = false) {
 		if (this.saving()) return;
