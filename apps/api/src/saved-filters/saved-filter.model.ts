@@ -48,7 +48,6 @@ export const SAVED_FILTER_COLORS = [
 	"brand",
 	"sky",
 	"emerald",
-	"amber",
 	"rose",
 	"purple",
 	"teal",
