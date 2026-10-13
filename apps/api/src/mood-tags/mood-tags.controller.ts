@@ -18,7 +18,7 @@ export async function putGameTags(request: Request, response: Response) {
 	const body = request.locals.body as ReplaceTagsDto;
 
 	const tags = await moodTagsService.replaceTags(
-		user.id,
+		user,
 		params.gameId,
 		body.tags
 	);
@@ -48,7 +48,7 @@ export async function postTag(request: Request, response: Response) {
 	const body = request.locals.body as CreateTagDto;
 
 	const result = await moodTagsService.createTag(
-		user.id,
+		user,
 		body.tag,
 		body.description ?? null
 	);
@@ -69,7 +69,7 @@ export async function patchTag(request: Request, response: Response) {
 	const finalTag = body.newTag ?? params.tag;
 	if (body.description !== undefined) {
 		await moodTagsService.setTagDescription(
-			user.id,
+			user,
 			finalTag,
 			body.description
 		);

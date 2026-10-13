@@ -68,3 +68,4 @@ docs: |-
     | 404    | `MOOD_TAGS_GAME_NOT_FOUND` | Game id does not exist                 |
     | 422    | `COMMON_SCHEMA_INVALID`    | Body shape invalid (>10 tags, etc.)    |
     | 422    | `MOOD_TAGS_TOO_MANY`       | More than 10 distinct tags after normalization |
+    | 402    | `MOOD_TAGS_LIMIT_REACHED`  | Free plan limit (25 distinct tags) reached by a new tag name; premium roles have no limit |

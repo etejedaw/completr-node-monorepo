@@ -19,8 +19,9 @@ Enum `User.role` en `apps/api/src/users/user-role.type.ts`: `user`, `premium`, `
 
 ## Límites por usuario
 
-Los recursos con tope por rol son `lists`, `list-items`, `saved-filters`, `favorites`, `wishlist` y `queue`. Cada valor vive como constante en el service del módulo (`FREE_LIST_LIMIT`, `FREE_FAVORITE_LIMIT`, `FREE_WISHLIST_LIMIT`, `FREE_QUEUE_LIMIT`, `FREE_FILTER_LIMIT`); no se replican acá para que no queden desfasados.
+Los recursos con tope por rol son `lists`, `list-items`, `saved-filters`, `favorites`, `wishlist`, `queue`, `game-shelf` y `mood-tags`. Cada valor vive como constante en el service del módulo (`FREE_LIST_LIMIT`, `FREE_FAVORITE_LIMIT`, `FREE_WISHLIST_LIMIT`, `FREE_QUEUE_LIMIT`, `FREE_FILTER_LIMIT`, `FREE_SHELF_LIMIT`, `FREE_TAG_LIMIT`); no se replican acá para que no queden desfasados. El backlog no tiene tope.
 
+- En `mood-tags` el tope cuenta nombres de tag distintos (los asignados a juegos más los creados sin juego). Solo se bloquea introducir un nombre nuevo: asignar, renombrar o borrar tags existentes sigue permitido aunque el usuario esté sobre el tope.
 - Exceder el tope devuelve **`402`**, mapeado en el `domain-to-http.mapper.ts` de cada módulo.
 - `lists`, `list-items` y `saved-filters` implementan además el estado **frozen**: estando sobre el tope, create y update lanzan `frozenError()`; delete sigue permitido y lo existente se sigue sirviendo. Nada se borra automáticamente.
 - Los listados de `lists` y `saved-filters` devuelven un flag `frozen` en la respuesta para que el frontend lo refleje.
