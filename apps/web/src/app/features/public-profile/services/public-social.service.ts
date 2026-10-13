@@ -3,13 +3,9 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
+import { type UserResult } from "../../../core/services/users";
 
-export interface PublicSocialUser {
-	id: string;
-	username: string;
-	name: string;
-	avatarUrl?: string;
-}
+export type PublicSocialUser = UserResult;
 
 export interface FollowResult {
 	status: "accepted" | "pending";
@@ -43,7 +39,7 @@ export class PublicSocialService {
 	getFollowers(username: string) {
 		return this.http
 			.get<{
-				data: { users: PublicSocialUser[] };
+				data: { users: UserResult[] };
 			}>(`${environment.apiUrl}/users/${username}/followers`)
 			.pipe(map(res => res.data.users));
 	}
@@ -51,7 +47,7 @@ export class PublicSocialService {
 	getFollowing(username: string) {
 		return this.http
 			.get<{
-				data: { users: PublicSocialUser[] };
+				data: { users: UserResult[] };
 			}>(`${environment.apiUrl}/users/${username}/following`)
 			.pipe(map(res => res.data.users));
 	}

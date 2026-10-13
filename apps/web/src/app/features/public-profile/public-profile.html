@@ -39,6 +39,7 @@
 			<ui-avatar
 				[src]="profile()?.user?.avatarUrl"
 				[name]="profile()?.user?.username || username()"
+				[premium]="isPremiumRole(profile()?.user?.role)"
 				class="w-28 h-28 text-4xl ring-4 ring-canvas shadow-2xl shadow-black/60"
 			/>
 			<span
@@ -106,8 +107,6 @@
 	[isLoggedIn]="isLoggedIn()"
 	[togglingFollow]="togglingFollow()"
 	(followToggled)="onFollowButtonClick()"
-	(followersOpened)="showFollowers()"
-	(followingOpened)="showFollowing()"
 	(shared)="shareProfile()"
 />
 

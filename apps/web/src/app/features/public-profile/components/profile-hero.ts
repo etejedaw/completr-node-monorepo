@@ -7,6 +7,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
+import { isPremiumRole } from "../../../core/utils/premium";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import { UiAvatar } from "../../../shared/ui";
 import { type PublicProfile } from "../public-profile.service";
@@ -37,13 +38,14 @@ export class ProfileHero {
 	readonly togglingFollow = input(false);
 
 	readonly followToggled = output<void>();
-	readonly followersOpened = output<void>();
-	readonly followingOpened = output<void>();
 	readonly shared = output<void>();
 
 	protected readonly user = computed(() => this.profile().user);
 	protected readonly displayName = computed(
 		() => this.user().name || this.user().username
+	);
+	protected readonly isPremium = computed(() =>
+		isPremiumRole(this.user().role)
 	);
 	protected readonly roleBadge = computed(
 		() => ROLE_BADGES[this.user().role] ?? null

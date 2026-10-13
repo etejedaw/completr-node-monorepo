@@ -68,6 +68,22 @@ const publicProfileRoutes: Routes = [
 			)
 	},
 	{
+		path: "user/:username/followers",
+		data: { kind: "followers" },
+		loadComponent: () =>
+			import("./features/public-profile/user-connections/user-connections").then(
+				m => m.UserConnections
+			)
+	},
+	{
+		path: "user/:username/following",
+		data: { kind: "following" },
+		loadComponent: () =>
+			import("./features/public-profile/user-connections/user-connections").then(
+				m => m.UserConnections
+			)
+	},
+	{
 		path: "user/:username/in-common",
 		loadComponent: () =>
 			import("./features/public-profile/user-in-common/user-in-common").then(

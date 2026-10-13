@@ -40,11 +40,13 @@
 			<div class="relative shrink-0">
 				<span
 					aria-hidden="true"
-					class="absolute -inset-1.5 rounded-full bg-gradient-to-br from-brand via-brand/40 to-transparent opacity-80 blur-sm"
+					class="absolute -inset-1.5 rounded-full bg-gradient-to-br to-transparent opacity-80 blur-sm"
+					[class]="isPremium() ? 'from-premium via-premium/40' : 'from-brand via-brand/40'"
 				></span>
 				<ui-avatar
 					[src]="user().avatarUrl"
 					[name]="user().username"
+					[premium]="isPremium()"
 					class="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40 text-5xl ring-4 ring-canvas shadow-2xl shadow-black/60"
 				/>
 			</div>
@@ -89,10 +91,9 @@
 				<div
 					class="mt-5 flex flex-wrap items-center gap-2 max-sm:justify-center"
 				>
-					<button
-						type="button"
-						class="tap-area inline-flex items-baseline gap-1.5 h-10 px-3 rounded-card bg-canvas/50 border border-white/10 backdrop-blur-md text-sm text-white/70 cursor-pointer transition hover:text-white hover:border-white/30"
-						(click)="followersOpened.emit()"
+					<a
+						class="tap-area inline-flex items-baseline gap-1.5 h-10 px-3 rounded-card bg-canvas/50 border border-white/10 backdrop-blur-md text-sm text-white/70 no-underline transition hover:text-white hover:border-white/30"
+						[routerLink]="['/user', user().username, 'followers']"
 					>
 						<strong
 							class="text-base text-white tabular-nums self-center"
@@ -102,18 +103,17 @@
 							>{{ profile().followerCount === 1 ? 'follower' :
 							'followers' }}</span
 						>
-					</button>
-					<button
-						type="button"
-						class="tap-area inline-flex items-baseline gap-1.5 h-10 px-3 rounded-card bg-canvas/50 border border-white/10 backdrop-blur-md text-sm text-white/70 cursor-pointer transition hover:text-white hover:border-white/30"
-						(click)="followingOpened.emit()"
+					</a>
+					<a
+						class="tap-area inline-flex items-baseline gap-1.5 h-10 px-3 rounded-card bg-canvas/50 border border-white/10 backdrop-blur-md text-sm text-white/70 no-underline transition hover:text-white hover:border-white/30"
+						[routerLink]="['/user', user().username, 'following']"
 					>
 						<strong
 							class="text-base text-white tabular-nums self-center"
 							>{{ profile().followingCount }}</strong
 						>
 						<span class="self-center">following</span>
-					</button>
+					</a>
 
 					<span class="hidden sm:block flex-1"></span>
 

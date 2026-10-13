@@ -10,14 +10,10 @@ import {
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 
 import { AuthService } from "../../core/services/auth";
-import { DialogService } from "../../core/services/dialog";
 import { ToastService } from "../../core/services/toast";
+import { isPremiumRole } from "../../core/utils/premium";
 import { GameCoverCard } from "../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
-import {
-	UserListModal,
-	type UserListModalData
-} from "../../shared/components/user-list-modal/user-list-modal";
 import { UiAvatar, UiButton, UiSkeleton } from "../../shared/ui";
 import { type FranchiseProgress } from "../franchises/franchises";
 import { ProfileAccessState } from "./components/profile-access-state";
@@ -89,7 +85,6 @@ export class PublicProfileComponent implements OnInit {
 	private readonly libraryService = inject(PublicLibraryService);
 	private readonly reviewsService = inject(PublicReviewsService);
 	private readonly authService = inject(AuthService);
-	private readonly dialogs = inject(DialogService);
 	private readonly toast = inject(ToastService);
 
 	private static readonly HIGHLIGHTS_MONTH_PARAM = "highlightsMonth";
@@ -149,6 +144,7 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly comparisonLoading = signal(false);
 	protected readonly comparisonPrivate = signal(false);
 	protected readonly comparisonDimensions = COMPARISON_OPTIONS;
+	protected readonly isPremiumRole = isPremiumRole;
 	protected readonly comparisonGames = computed(
 		() => this.comparison()?.inCommon ?? []
 	);
@@ -413,24 +409,6 @@ export class PublicProfileComponent implements OnInit {
 				this.togglingFollow.set(false);
 			},
 			error: () => this.togglingFollow.set(false)
-		});
-	}
-
-	showFollowers() {
-		this.dialogs.open<UserListModalData>(UserListModal, {
-			data: {
-				title: "Followers",
-				users$: this.socialService.getFollowers(this.username())
-			}
-		});
-	}
-
-	showFollowing() {
-		this.dialogs.open<UserListModalData>(UserListModal, {
-			data: {
-				title: "Following",
-				users$: this.socialService.getFollowing(this.username())
-			}
 		});
 	}
 
