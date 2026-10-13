@@ -16,9 +16,11 @@
 	[offset]="collection.offset()"
 	[limit]="collection.limit"
 	[(query)]="collection.query"
+	[platforms]="collection.platformCounts()"
+	[(platform)]="collection.platform"
 	(offsetChange)="collection.goToOffset($event)"
 >
-	<ul class="poster-grid list-none m-0 p-0">
+	<app-cover-grid>
 		@for (entry of collection.visibleItems(); track entry.id) {
 		<li>
 			<app-game-cover-card
@@ -29,5 +31,5 @@
 			/>
 		</li>
 		}
-	</ul>
+	</app-cover-grid>
 </app-profile-collection-page>

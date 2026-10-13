@@ -49,7 +49,7 @@ export class UserQueue {
 		(username, pagination) =>
 			this.libraryService.getUserQueue(username, pagination),
 		entry => entry.backlog.game,
-		QUEUE_PAGE_SIZE
+		{ limit: QUEUE_PAGE_SIZE }
 	);
 
 	protected readonly sortBy = signal<QueueSort>("manual");

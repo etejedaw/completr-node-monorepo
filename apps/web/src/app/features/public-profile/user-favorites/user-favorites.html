@@ -2,7 +2,7 @@
 	heading="Favorites"
 	icon="favorite"
 	iconColor="text-nav-favorites"
-	noun="favorite"
+	noun="all-time favorite"
 	privateTitle="These favorites are private"
 	emptyTitle="No favorites yet"
 	emptyText="They haven't picked their all-time favorite games yet."
@@ -18,15 +18,14 @@
 	[(query)]="collection.query"
 	(offsetChange)="collection.goToOffset($event)"
 >
-	<ol class="poster-grid list-none m-0 p-0">
-		@for (entry of collection.visibleItems(); track entry.id; let rank =
-		$index) {
+	<app-cover-grid>
+		@for (entry of collection.visibleItems(); track entry.id) {
 		<li>
 			<app-game-cover-card
 				[game]="entry.game"
-				[topLeftBadge]="'#' + (collection.offset() + rank + 1)"
+				[topLeftBadge]="'#' + entry.position"
 			/>
 		</li>
 		}
-	</ol>
+	</app-cover-grid>
 </app-profile-collection-page>

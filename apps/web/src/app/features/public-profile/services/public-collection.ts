@@ -4,7 +4,16 @@ import { ActivatedRoute } from "@angular/router";
 import { type Observable } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
+import {
+	countByPlatform,
+	matchesPlatform
+} from "../../../shared/components/platform-filter/platform-filter";
 import { type ProfileAccessError } from "../components/profile-access-state";
+
+interface CollectionPlatform {
+	id: string;
+	abbreviation: string;
+}
 
 interface CollectionGame {
 	title: string;
@@ -24,8 +33,13 @@ type CollectionFetcher<T> = (
 export function injectPublicCollection<T>(
 	fetchPage: CollectionFetcher<T>,
 	gameOf: (item: T) => CollectionGame,
-	limit = 50
+	options: {
+		limit?: number;
+		platformOf?: (item: T) => CollectionPlatform | null | undefined;
+	} = {}
 ) {
+	const limit = options.limit ?? 50;
+	const platformOf = options.platformOf;
 	const route = inject(ActivatedRoute);
 	const authService = inject(AuthService);
 	const destroyRef = inject(DestroyRef);
@@ -37,12 +51,23 @@ export function injectPublicCollection<T>(
 	const isLoading = signal(true);
 	const error = signal<ProfileAccessError | null>(null);
 	const query = signal("");
+	const platform = signal("");
+
+	const platformCounts = computed(() =>
+		platformOf ? countByPlatform(items(), platformOf) : []
+	);
 
 	const visibleItems = computed(() => {
 		const normalizedQuery = query().toLowerCase().trim();
-		if (!normalizedQuery) return items();
-		return items().filter(item =>
-			gameOf(item).title.toLowerCase().includes(normalizedQuery)
+		const selectedPlatform = platform();
+		return items().filter(
+			item =>
+				(!normalizedQuery ||
+					gameOf(item)
+						.title.toLowerCase()
+						.includes(normalizedQuery)) &&
+				(!platformOf ||
+					matchesPlatform(platformOf(item), selectedPlatform))
 		);
 	});
 
@@ -75,6 +100,7 @@ export function injectPublicCollection<T>(
 	const goToOffset = (nextOffset: number) => {
 		offset.set(nextOffset);
 		query.set("");
+		platform.set("");
 		load();
 	};
 
@@ -95,6 +121,8 @@ export function injectPublicCollection<T>(
 		isLoading: isLoading.asReadonly(),
 		error: error.asReadonly(),
 		query,
+		platform,
+		platformCounts,
 		goToOffset
 	};
 }
