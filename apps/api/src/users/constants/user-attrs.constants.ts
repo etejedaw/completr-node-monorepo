@@ -1,8 +1,13 @@
-export const USER_PUBLIC_ATTRS = ["id", "username", "name", "avatarUrl"];
+export const USER_PUBLIC_ATTRS = [
+	"id",
+	"username",
+	"name",
+	"avatarUrl",
+	"role"
+];
 
 export const USER_CARD_ATTRS = [
 	...USER_PUBLIC_ATTRS,
-	"role",
 	"profileVisibility",
 	"queueVisibility",
 	"wishlistVisibility",

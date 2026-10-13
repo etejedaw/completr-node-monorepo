@@ -14,7 +14,8 @@ export function reviewSerializer(
 					id: review.User.id,
 					username: review.User.username,
 					name: review.User.name,
-					avatarUrl: review.User.avatarUrl
+					avatarUrl: review.User.avatarUrl,
+					role: review.User.role
 				}
 			: null,
 		createdAt: review.createdAt,

@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
+import { type UserRole } from "../users/user-role.type";
 
 class Review extends Model {
 	declare id: string;
@@ -15,6 +16,7 @@ class Review extends Model {
 		username: string;
 		name: string;
 		avatarUrl: string | null;
+		role: UserRole;
 	};
 	declare Game: {
 		id: string;
