@@ -147,14 +147,15 @@ export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 	if (invalid.length > 0)
 		throw queueServiceError.backlogNotStartedError(invalid);
 
-	await Queue.destroy({ where: { userId: user.id } });
-
 	const entries = backlogIds.map((backlogId, index) => ({
 		userId: user.id,
 		backlogId,
 		position: index + 1
 	}));
-	await Queue.bulkCreate(entries);
+	await sequelize.transaction(async transaction => {
+		await Queue.destroy({ where: { userId: user.id }, transaction });
+		await Queue.bulkCreate(entries, { transaction });
+	});
 
 	return Queue.findAll({
 		where: { userId: user.id },
