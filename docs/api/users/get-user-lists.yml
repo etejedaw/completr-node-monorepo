@@ -1,0 +1,73 @@
+info:
+    name: Get User Lists
+    type: http
+    seq: 15
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/:username/lists"
+    params:
+        - name: username
+          type: path
+          value: ""
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get User Lists
+
+    Returns the lists created by `:username`, newest first, as shown in the Lists section of their profile. Other viewers only get the **public** lists; when you request your own username, private lists are included too.
+
+    Each list carries up to 4 `previewItems` (the first games by position) so the client can render the list cover, plus `followerCount` and the profile user's `progress` on it.
+
+    **Authentication:** Optional (Bearer token). The viewer identity is used to detect self-view and to apply profile privacy.
+    **Rate Limit:** 100 requests per minute (public).
+
+    Returns 403 if the profile or its lists are private for the viewer. Returns 404 if the user does not exist.
+
+    ### Path Params
+
+    | Param    | Type   | Required | Description      |
+    |----------|--------|----------|------------------|
+    | username | string | Yes      | Profile username |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "lists": [
+          {
+            "id": "uuid",
+            "name": "Saga Resident Evil",
+            "description": "Every mainline entry, in release order.",
+            "isPublic": true,
+            "isOfficial": false,
+            "scoreSource": "metacritic",
+            "durationSource": "hltb",
+            "previewItems": [
+              {
+                "id": "uuid",
+                "game": {
+                  "id": "uuid",
+                  "code": "resident-evil-4-2023",
+                  "title": "Resident Evil 4",
+                  "backgroundUrl": "https://media.rawg.io/media/games/..."
+                }
+              }
+            ],
+            "followerCount": 12,
+            "progress": { "completed": 8, "total": 15 }
+          }
+        ],
+        "total": 1
+      }
+    }
+    ```
+
+    ### Errors
+
+    - `403 USER_PRIVATE` — the profile or its lists are private for the viewer
+    - `404 USER_NOT_FOUND` — no user with that username
+    - `422 SCHEMA_VALIDATION_ERROR` — invalid username
