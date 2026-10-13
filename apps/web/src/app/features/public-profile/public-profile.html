@@ -287,41 +287,33 @@
 </ng-template>
 
 @if (showUnfollowConfirm()) {
-<div class="modal-overlay">
-	<div
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="unfollow-title"
-		class="bg-sidebar border border-line rounded-card p-6 w-full max-w-[400px] shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
-	>
-		<h2
-			id="unfollow-title"
-			class="font-display m-0 mb-2 text-lg font-semibold"
+<ui-dialog
+	size="sm"
+	[heading]="'Unfollow @' + (profile()?.user?.username || username()) + '?'"
+	[dismissible]="!togglingFollow()"
+	(closed)="showUnfollowConfirm.set(false)"
+>
+	<p class="text-sm text-fg-secondary m-0">
+		Their activity will stop appearing in your feed. You can follow them
+		again later.
+	</p>
+	<ng-container dialogFooter>
+		<button
+			uiButton
+			variant="ghost"
+			[disabled]="togglingFollow()"
+			(click)="showUnfollowConfirm.set(false)"
 		>
-			Unfollow {{ '@' + (profile()?.user?.username || username()) }}?
-		</h2>
-		<p class="text-sm text-fg-secondary m-0 mb-5">
-			Their activity will stop appearing in your feed. You can follow them
-			again later.
-		</p>
-		<div class="flex justify-end gap-2">
-			<button
-				uiButton
-				variant="ghost"
-				(click)="showUnfollowConfirm.set(false)"
-				[disabled]="togglingFollow()"
-			>
-				Cancel
-			</button>
-			<button
-				uiButton
-				variant="danger"
-				(click)="confirmUnfollow()"
-				[disabled]="togglingFollow()"
-			>
-				{{ togglingFollow() ? 'Unfollowing...' : 'Unfollow' }}
-			</button>
-		</div>
-	</div>
-</div>
+			Cancel
+		</button>
+		<button
+			uiButton
+			variant="danger"
+			[disabled]="togglingFollow()"
+			(click)="confirmUnfollow()"
+		>
+			{{ togglingFollow() ? "Unfollowing..." : "Unfollow" }}
+		</button>
+	</ng-container>
+</ui-dialog>
 }

@@ -14,7 +14,7 @@ import { ToastService } from "../../core/services/toast";
 import { isPremiumRole } from "../../core/utils/premium";
 import { GameCoverCard } from "../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
-import { UiAvatar, UiButton, UiSkeleton } from "../../shared/ui";
+import { UiAvatar, UiButton, UiDialog, UiSkeleton } from "../../shared/ui";
 import { type FranchiseProgress } from "../franchises/franchises";
 import { ProfileAccessState } from "./components/profile-access-state";
 import { ProfileActivity } from "./components/profile-activity";
@@ -72,6 +72,7 @@ const REVIEWS_SAMPLE_SIZE = 20;
 		ProfileUpNext,
 		UiAvatar,
 		UiButton,
+		UiDialog,
 		UiSkeleton
 	],
 	templateUrl: "./public-profile.html",

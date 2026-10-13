@@ -18,6 +18,7 @@ import {
 import {
 	UiBottomSheet,
 	UiButton,
+	UiDialog,
 	UiEmptyState,
 	UiInput,
 	UiSearchBar,
@@ -68,7 +69,8 @@ const SHEET_ACTIONS: {
 		UiEmptyState,
 		UiInput,
 		UiSearchBar,
-		UiSkeleton
+		UiSkeleton,
+		UiDialog
 	],
 	templateUrl: "./tags-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
