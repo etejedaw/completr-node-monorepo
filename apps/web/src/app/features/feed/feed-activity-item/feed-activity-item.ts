@@ -8,6 +8,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { isPremiumRole } from "../../../core/utils/premium";
+import { ActivityDeleteButton } from "../../../shared/components/activity-delete-button/activity-delete-button";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { UiAvatar } from "../../../shared/ui";
 import {
@@ -47,7 +48,7 @@ function toAction(type: string): ActivityAction {
 
 @Component({
 	selector: "app-feed-activity-item",
-	imports: [RouterLink, GamePoster, UiAvatar],
+	imports: [RouterLink, ActivityDeleteButton, GamePoster, UiAvatar],
 	templateUrl: "./feed-activity-item.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
