@@ -57,7 +57,7 @@ export class ProfileCollectionPage {
 	readonly subtitleSuffix = input("");
 	readonly searchPlaceholder = input<string | null>(null);
 	readonly platforms = input<PlatformCount[]>([]);
-	readonly skeleton = input<"posters" | "rows">("posters");
+	readonly skeleton = input<"posters" | "cards">("posters");
 	readonly posters = input<LibraryHeroPoster[]>([]);
 	readonly total = input(0);
 	readonly itemCount = input(0);
@@ -73,7 +73,7 @@ export class ProfileCollectionPage {
 	readonly platform = model("");
 	readonly offsetChange = output<number>();
 
-	protected readonly rowSkeletonRange = [0, 1, 2, 3];
+	protected readonly cardSkeletonRange = [0, 1, 2, 3];
 
 	protected clearFilters() {
 		this.query.set("");

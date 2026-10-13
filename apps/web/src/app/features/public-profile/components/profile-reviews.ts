@@ -20,7 +20,7 @@ import { ProfileSectionHeader } from "./profile-section-header";
 				<ul class="list-none m-0 p-0 grid gap-3 md:grid-cols-2">
 					@for (review of reviews(); track review.id) {
 						<li>
-							<app-review-card [review]="review" variant="card" />
+							<app-review-card [review]="review" />
 						</li>
 					}
 				</ul>

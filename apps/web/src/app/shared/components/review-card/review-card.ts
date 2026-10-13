@@ -32,7 +32,6 @@ export interface ReviewCardReview {
 	} | null;
 }
 
-export type ReviewCardVariant = "card" | "row";
 export type ReviewCardSubject = "game" | "author";
 
 @Component({
@@ -52,7 +51,6 @@ export type ReviewCardSubject = "game" | "author";
 })
 export class ReviewCard {
 	readonly review = input.required<ReviewCardReview>();
-	readonly variant = input<ReviewCardVariant>("card");
 	readonly subject = input<ReviewCardSubject>("game");
 	readonly highlighted = input(false);
 
@@ -67,13 +65,9 @@ export class ReviewCard {
 		getRatingLabel(this.review().rating ?? null)
 	);
 	protected readonly showBackdrop = computed(
-		() =>
-			this.variant() === "card" &&
-			this.subject() === "game" &&
-			!!this.review().game?.backgroundUrl
+		() => this.subject() === "game" && !!this.review().game?.backgroundUrl
 	);
 	protected readonly surfaceClass = computed(() => {
-		if (this.variant() === "row") return "py-6";
 		const tone = this.highlighted()
 			? "bg-brand-subtle/60 border-brand/40"
 			: "bg-surface border-line";

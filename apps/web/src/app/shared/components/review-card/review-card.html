@@ -23,8 +23,7 @@
 			[title]="game.title"
 			[width]="200"
 			[compact]="true"
-			class="aspect-[2/3] rounded-md ring-1 ring-white/10 shadow-lg shadow-black/40"
-			[class]="variant() === 'card' ? 'w-16 sm:w-20' : 'w-14 sm:w-16'"
+			class="w-16 sm:w-20 aspect-[2/3] rounded-md ring-1 ring-white/10 shadow-lg shadow-black/40"
 		/>
 	</a>
 	} @else if (subject() === 'author' && item.user; as user) {
@@ -47,8 +46,7 @@
 			<div class="flex-1 min-w-0">
 				@if (subject() === 'game' && item.game; as game) {
 				<h3
-					class="m-0 font-display font-semibold leading-tight"
-					[class]="variant() === 'card' ? 'text-base sm:text-lg' : 'text-lg sm:text-xl'"
+					class="m-0 font-display text-base sm:text-lg font-semibold leading-tight"
 				>
 					<a
 						class="tap-area text-fg no-underline hover:text-brand"
@@ -111,10 +109,7 @@
 
 		@if (item.content) {
 		<blockquote class="m-0 pl-4 border-l-2 border-brand/50 max-w-[68ch]">
-			<app-expandable-text
-				[text]="item.content"
-				[lines]="variant() === 'card' ? 4 : 6"
-			/>
+			<app-expandable-text [text]="item.content" [lines]="4" />
 		</blockquote>
 		}
 	</div>

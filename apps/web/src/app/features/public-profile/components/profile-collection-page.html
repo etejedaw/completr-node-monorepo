@@ -57,19 +57,25 @@
 		(valueChange)="query.set($event)"
 	/>
 </app-library-toolbar>
-} @if (isLoading()) { @if (skeleton() === 'rows') {
-<div class="divide-y divide-line" aria-busy="true" aria-label="Loading">
-	@for (i of rowSkeletonRange; track i) {
-	<div class="flex gap-5 py-6">
+} @if (isLoading()) { @if (skeleton() === 'cards') {
+<div
+	class="grid gap-3 md:grid-cols-2"
+	aria-busy="true"
+	[attr.aria-label]="'Loading ' + heading()"
+>
+	@for (i of cardSkeletonRange; track i) {
+	<div
+		class="flex gap-4 p-4 sm:p-5 rounded-card border border-line bg-surface"
+	>
 		<ui-skeleton
 			variant="rect"
-			class="block w-20 sm:w-24 aspect-[2/3] rounded-md shrink-0"
+			class="block w-16 sm:w-20 aspect-[2/3] rounded-md shrink-0"
 		/>
 		<div class="flex-1 flex flex-col gap-2 py-1">
-			<ui-skeleton variant="text" class="block w-1/3 h-5" />
-			<ui-skeleton variant="text" class="block w-1/4" />
-			<ui-skeleton variant="text" class="block w-full max-w-xl mt-2" />
-			<ui-skeleton variant="text" class="block w-2/3 max-w-md" />
+			<ui-skeleton variant="text" class="block w-1/2 h-5" />
+			<ui-skeleton variant="text" class="block w-1/3" />
+			<ui-skeleton variant="text" class="block w-full mt-2" />
+			<ui-skeleton variant="text" class="block w-2/3" />
 		</div>
 	</div>
 	}
