@@ -242,6 +242,26 @@ export async function findListsByUserId(
 export async function findPublicListsByUserId(userId: string) {
 	return List.findAll({
 		where: { userId, isPublic: true },
+		include: [
+			{
+				model: ListItem,
+				separate: true,
+				limit: LIST_PREVIEW_SIZE,
+				order: [["position", "ASC"]] as [string, string][],
+				include: [
+					{
+						model: Game,
+						attributes: [
+							"id",
+							"code",
+							"title",
+							"backgroundUrl",
+							"isDlc"
+						]
+					}
+				]
+			}
+		],
 		order: [["createdAt", "DESC"]]
 	});
 }
