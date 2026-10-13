@@ -31,6 +31,10 @@ import { AuthService } from "../../../core/services/auth";
 import { ViewportService } from "../../../core/services/viewport";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { ListCard } from "../../../shared/components/list-card/list-card";
+import {
+	OptionPicker,
+	type PickerOption
+} from "../../../shared/components/option-picker/option-picker";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
 import {
 	UiBottomSheet,
@@ -52,9 +56,22 @@ import { BrowseHero } from "./components/browse-hero";
 const FEATURED_GAMES_LIMIT = 5;
 const QUICK_GENRES_LIMIT = 16;
 
+const MIXED_GENRES_VALUE = "__mixed__";
+
+const SORT_ICONS: Record<string, string> = {
+	createdAt: "schedule",
+	title: "sort_by_alpha",
+	releaseAt: "event",
+	score: "star",
+	duration: "timer",
+	ratio: "trending_up",
+	popularity: "local_fire_department"
+};
+
 @Component({
 	selector: "app-games-browse",
 	imports: [
+		OptionPicker,
 		NgTemplateOutlet,
 		AdminGameEditor,
 		UiBottomSheet,
@@ -182,6 +199,28 @@ export class GamesBrowse implements OnInit {
 	protected readonly quickGenres = computed(() =>
 		this.allGenres().slice(0, QUICK_GENRES_LIMIT)
 	);
+	protected readonly genrePickerOptions = computed<PickerOption[]>(() => [
+		{ value: "", label: "Any genre", icon: "category" },
+		...this.allGenres().map(genre => ({
+			value: genre.code,
+			label: genre.name,
+			icon: "label"
+		}))
+	]);
+	protected readonly genrePickerValue = computed(() => {
+		const selected = this.selectedGenres();
+		if (selected.size === 0) return "";
+		return selected.size === 1 ? [...selected][0]! : MIXED_GENRES_VALUE;
+	});
+	protected readonly genrePickerPlaceholder = computed(
+		() => `${this.selectedGenres().size} genres`
+	);
+	protected readonly sortPickerOptions: readonly PickerOption[] =
+		this.sortOptions.map(option => ({
+			value: option.value,
+			label: option.label,
+			icon: SORT_ICONS[option.value] ?? "sort"
+		}));
 	protected readonly sortLabel = computed(
 		() =>
 			this.sortOptions.find(option => option.value === this.sortBy())
@@ -347,6 +386,11 @@ export class GamesBrowse implements OnInit {
 		this.isDlc.set(null);
 		this.sortBy.set("createdAt");
 		this.sortOrder.set("desc");
+	}
+
+	protected pickGenre(code: string) {
+		if (code === MIXED_GENRES_VALUE) return;
+		this.selectedGenres.set(code ? new Set([code]) : new Set());
 	}
 
 	setSortBy(value: string) {

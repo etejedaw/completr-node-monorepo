@@ -83,10 +83,28 @@
 		}
 	</div>
 
+	<div class="md:hidden mt-3 grid grid-cols-2 gap-2">
+		<app-option-picker
+			label="Genre"
+			heading="Filter by genre"
+			placeholderIcon="category"
+			[options]="genrePickerOptions()"
+			[value]="genrePickerValue()"
+			[placeholder]="genrePickerPlaceholder()"
+			(valueChange)="pickGenre($event)"
+		/>
+		<app-option-picker
+			label="Sort"
+			heading="Sort games by"
+			[options]="sortPickerOptions"
+			[value]="sortBy()"
+			(valueChange)="setSortBy($event)"
+		/>
+	</div>
 	@if (quickGenres().length > 0) {
 	<nav
 		aria-label="Quick genre filters"
-		class="-mx-[var(--page-pad-x)] px-[var(--page-pad-x)] mt-3 pointer-coarse:py-[8px] pointer-coarse:-mb-[8px] pointer-coarse:mt-[2px] flex gap-1.5 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_var(--page-pad-x),black_calc(100%-3rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+		class="max-md:hidden -mx-[var(--page-pad-x)] px-[var(--page-pad-x)] mt-3 pointer-coarse:py-[8px] pointer-coarse:-mb-[8px] pointer-coarse:mt-[2px] flex gap-1.5 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_var(--page-pad-x),black_calc(100%-3rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 	>
 		@for (genre of quickGenres(); track genre.id) {
 		<button
