@@ -1,6 +1,12 @@
-import { ChangeDetectionStrategy, Component, input } from "@angular/core";
+import {
+	ChangeDetectionStrategy,
+	Component,
+	input,
+	output
+} from "@angular/core";
 import { RouterLink } from "@angular/router";
 
+import { ActivityDeleteButton } from "../../../shared/components/activity-delete-button/activity-delete-button";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import {
 	activityIcon,
@@ -16,11 +22,11 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en", {
 
 @Component({
 	selector: "app-profile-activity",
-	imports: [RouterLink, GamePoster],
+	imports: [RouterLink, ActivityDeleteButton, GamePoster],
 	template: `
 		<ol class="list-none m-0 p-0 divide-y divide-line">
 			@for (activity of activities(); track activity.id) {
-				<li class="flex items-center gap-3 py-3">
+				<li class="group flex items-center gap-3 py-3">
 					@if (activity.game; as game) {
 						<a
 							class="shrink-0"
@@ -99,6 +105,12 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en", {
 						[attr.datetime]="activity.createdAt"
 						>{{ date(activity.createdAt) }}</time
 					>
+					@if (deletable()) {
+						<app-activity-delete-button
+							tooltip="Remove from your activity"
+							(pressed)="deleted.emit(activity.id)"
+						/>
+					}
 				</li>
 			}
 		</ol>
@@ -108,6 +120,8 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en", {
 })
 export class ProfileActivity {
 	readonly activities = input.required<PublicActivity[]>();
+	readonly deletable = input(false);
+	readonly deleted = output<string>();
 
 	protected readonly label = activityLabel;
 	protected readonly icon = activityIcon;

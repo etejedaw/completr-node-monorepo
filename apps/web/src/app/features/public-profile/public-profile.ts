@@ -15,6 +15,7 @@ import { isPremiumRole } from "../../core/utils/premium";
 import { GameCoverCard } from "../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
 import { UiAvatar, UiButton, UiDialog, UiSkeleton } from "../../shared/ui";
+import { FeedService } from "../feed/feed";
 import { type FranchiseProgress } from "../franchises/franchises";
 import { ProfileAccessState } from "./components/profile-access-state";
 import { ProfileActivity } from "./components/profile-activity";
@@ -87,6 +88,7 @@ export class PublicProfileComponent implements OnInit {
 	private readonly reviewsService = inject(PublicReviewsService);
 	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
+	private readonly feedService = inject(FeedService);
 
 	private static readonly HIGHLIGHTS_MONTH_PARAM = "highlightsMonth";
 
@@ -421,6 +423,30 @@ export class PublicProfileComponent implements OnInit {
 			?.writeText(url)
 			.then(() => this.toast.success("Profile link copied."))
 			.catch(() => this.toast.warning("Could not copy the link."));
+	}
+
+	protected deleteActivity(id: string) {
+		const snapshot = this.profile();
+		if (!snapshot) return;
+		this.profile.set({
+			...snapshot,
+			recentActivity: snapshot.recentActivity.filter(
+				activity => activity.id !== id
+			)
+		});
+		this.toast.pending({
+			message: "Activity removed",
+			onCommit: () => this.feedService.deleteActivity(id).subscribe(),
+			onUndo: () =>
+				this.profile.update(current =>
+					current
+						? {
+								...current,
+								recentActivity: snapshot.recentActivity
+							}
+						: current
+				)
+		});
 	}
 
 	protected scrollToLists() {

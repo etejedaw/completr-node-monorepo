@@ -234,7 +234,11 @@
 			eyebrow="Latest"
 		/>
 		@if (showActivity()) {
-		<app-profile-activity [activities]="p.recentActivity.slice(0, 15)" />
+		<app-profile-activity
+			[activities]="p.recentActivity.slice(0, 15)"
+			[deletable]="isSelf()"
+			(deleted)="deleteActivity($event)"
+		/>
 		} @else {
 		<p class="m-0 py-6 text-sm text-fg-muted">
 			No recent activity to show.
