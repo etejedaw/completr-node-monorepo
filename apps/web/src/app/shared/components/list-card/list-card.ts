@@ -4,7 +4,7 @@ import {
 	computed,
 	input
 } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { type Params, RouterLink } from "@angular/router";
 
 import { type ListPreviewItem } from "../../../core/models";
 import { GamePoster } from "../game-poster/game-poster";
@@ -30,6 +30,7 @@ const COLLAGE_SIZE = 4;
 		<a
 			class="group relative isolate block aspect-[16/10] rounded-card overflow-hidden bg-surface ring-1 ring-white/10 shadow-lg shadow-black/40 no-underline transition duration-200 hover:-translate-y-1 hover:ring-brand/60 focus-visible:ring-brand"
 			[routerLink]="['/lists', list().id]"
+			[queryParams]="linkQueryParams()"
 		>
 			<div aria-hidden="true" class="absolute inset-0 -z-10 flex">
 				@for (item of collage(); track item.id) {
@@ -147,6 +148,7 @@ const COLLAGE_SIZE = 4;
 export class ListCard {
 	readonly list = input.required<ListCardList>();
 	readonly showVisibility = input(false);
+	readonly linkQueryParams = input<Params | null>(null);
 
 	protected readonly collage = computed(() =>
 		(this.list().previewItems ?? [])

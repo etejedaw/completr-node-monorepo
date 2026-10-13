@@ -10,11 +10,13 @@ import {
 	signal,
 	viewChild
 } from "@angular/core";
+import { type Params, RouterLink } from "@angular/router";
 
 const SCROLL_EDGE_TOLERANCE = 4;
 
 @Component({
 	selector: "app-poster-shelf",
+	imports: [RouterLink],
 	template: `
 		<section [attr.aria-labelledby]="headingId">
 			<header class="flex items-end justify-between gap-3 mb-4">
@@ -36,18 +38,33 @@ const SCROLL_EDGE_TOLERANCE = 4;
 				<div class="flex items-center gap-1 shrink-0">
 					<ng-content select="[shelfActions]" />
 					@if (seeAllLabel()) {
-						<button
-							type="button"
-							class="inline-flex items-center gap-0.5 h-9 pointer-coarse:min-h-[44px] px-2.5 mr-1 rounded-md bg-transparent border-0 text-sm font-medium text-fg-secondary cursor-pointer transition hover:text-brand"
-							(click)="seeAll.emit()"
-						>
-							{{ seeAllLabel() }}
-							<span
-								aria-hidden="true"
-								class="material-icons text-lg"
-								>chevron_right</span
+						@if (seeAllLink(); as link) {
+							<a
+								class="inline-flex items-center gap-0.5 h-9 pointer-coarse:min-h-[44px] px-2.5 mr-1 rounded-md text-sm font-medium text-fg-secondary no-underline transition hover:text-brand"
+								[routerLink]="link"
+								[queryParams]="seeAllQueryParams()"
 							>
-						</button>
+								{{ seeAllLabel() }}
+								<span
+									aria-hidden="true"
+									class="material-icons text-lg"
+									>chevron_right</span
+								>
+							</a>
+						} @else {
+							<button
+								type="button"
+								class="inline-flex items-center gap-0.5 h-9 pointer-coarse:min-h-[44px] px-2.5 mr-1 rounded-md bg-transparent border-0 text-sm font-medium text-fg-secondary cursor-pointer transition hover:text-brand"
+								(click)="seeAll.emit()"
+							>
+								{{ seeAllLabel() }}
+								<span
+									aria-hidden="true"
+									class="material-icons text-lg"
+									>chevron_right</span
+								>
+							</button>
+						}
 					}
 					<button
 						type="button"
@@ -94,6 +111,8 @@ export class PosterShelf {
 	readonly heading = input.required<string>();
 	readonly eyebrow = input<string | null>(null);
 	readonly seeAllLabel = input<string | null>(null);
+	readonly seeAllLink = input<unknown[] | null>(null);
+	readonly seeAllQueryParams = input<Params | null>(null);
 	readonly contained = input(false);
 
 	readonly seeAll = output<void>();
