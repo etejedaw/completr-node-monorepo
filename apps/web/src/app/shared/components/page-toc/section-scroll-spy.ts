@@ -1,24 +1,36 @@
-import { afterNextRender, DOCUMENT, inject, signal } from "@angular/core";
+import {
+	afterRenderEffect,
+	DOCUMENT,
+	inject,
+	isSignal,
+	type Signal,
+	signal,
+	untracked
+} from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 
 import { type PageSection } from "./page-toc";
 
 const PROGRAMMATIC_SCROLL_MS = 1000;
 
-export function injectSectionScrollSpy(sections: readonly PageSection[]) {
+export function injectSectionScrollSpy(
+	sections: readonly PageSection[] | Signal<readonly PageSection[]>
+) {
 	const route = inject(ActivatedRoute);
 	const document = inject(DOCUMENT);
-	const firstId = sections[0]!.id;
-	const lastId = sections.at(-1)!.id;
+	const currentSections = isSignal(sections) ? sections : () => sections;
+	const firstId = () => currentSections()[0]?.id ?? "";
+	const lastId = () => currentSections().at(-1)?.id ?? "";
 
-	const active = signal(firstId);
+	const active = signal(firstId());
 	let followScrollAfter = 0;
 	let atPageEnd = false;
-	let sectionInReadingBand = firstId;
+	let sectionInReadingBand = firstId();
+	let fragmentHandled = false;
 
 	const syncActiveWithScroll = () => {
 		if (Date.now() < followScrollAfter) return;
-		active.set(atPageEnd ? lastId : sectionInReadingBand);
+		active.set(atPageEnd ? lastId() : sectionInReadingBand);
 	};
 
 	const scrollTo = (id: string, behavior?: ScrollBehavior) => {
@@ -35,9 +47,17 @@ export function injectSectionScrollSpy(sections: readonly PageSection[]) {
 		active.set(id);
 	};
 
-	afterNextRender(() => {
-		const fragment = route.snapshot.fragment;
-		if (fragment) scrollTo(fragment, "auto");
+	afterRenderEffect({
+		mixedReadWrite: () => {
+			if (fragmentHandled || currentSections().length === 0) return;
+			fragmentHandled = true;
+			untracked(() => {
+				if (!active()) active.set(firstId());
+				sectionInReadingBand ||= firstId();
+				const fragment = route.snapshot.fragment;
+				if (fragment) scrollTo(fragment, "auto");
+			});
+		}
 	});
 
 	return {

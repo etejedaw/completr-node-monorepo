@@ -1,4 +1,6 @@
-<app-library-hero heading="Privacy Policy">
+<app-library-hero
+	[heading]="policy.hasValue() ? policy.value().title : 'Privacy Policy'"
+>
 	<span
 		heroEyebrow
 		class="inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
@@ -7,15 +9,20 @@
 		Legal
 	</span>
 	<div heroSubtitle class="mt-2 flex flex-col gap-2 max-w-xl">
+		@if (policy.hasValue()) { @let current = policy.value();
 		<p class="m-0 text-sm sm:text-base text-fg-secondary leading-relaxed">
-			The idea is simple: I collect the minimum needed for the app to
-			work, I never sell or share your data, and you can delete it
-			whenever you want.
+			{{ current.summary }}
 		</p>
 		<p class="m-0 text-xs text-fg-muted">
-			Last updated:
-			<time datetime="2026-06-28">June 28, 2026</time>
+			Version {{ current.version }} · Last updated:
+			<time [attr.datetime]="current.updated"
+				>{{ current.updated | date: 'longDate' : 'UTC' }}</time
+			>
 		</p>
+		} @else if (policy.isLoading()) {
+		<ui-skeleton class="h-4 w-full max-w-md rounded-md" />
+		<ui-skeleton class="h-3 w-48 rounded-md" />
+		}
 	</div>
 	@if (isLoggedIn()) {
 	<a
@@ -31,13 +38,14 @@
 	}
 </app-library-hero>
 
+@if (policy.hasValue()) { @let current = policy.value();
 <app-library-toolbar class="lg:hidden">
 	<app-page-toc
 		path="/privacy"
 		label="Policy sections"
 		variant="chips"
 		class="w-full min-w-0"
-		[sections]="sections"
+		[sections]="sections()"
 		[active]="scrollSpy.active()"
 		(selected)="scrollSpy.scrollTo($event)"
 	/>
@@ -49,7 +57,7 @@
 			<app-page-toc
 				path="/privacy"
 				label="Policy sections"
-				[sections]="sections"
+				[sections]="sections()"
 				[active]="scrollSpy.active()"
 				(selected)="scrollSpy.scrollTo($event)"
 			/>
@@ -61,7 +69,7 @@
 			aria-label="At a glance"
 			class="m-0 p-0 list-none grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"
 		>
-			@for (point of atAGlance; track point.title) {
+			@for (point of current.highlights; track point.title) {
 			<li>
 				<a
 					routerLink="/privacy"
@@ -88,305 +96,115 @@
 			}
 		</ul>
 
+		@for (section of current.sections; track section.id; let index = $index)
+		{
 		<section
-			id="overview"
-			aria-labelledby="overview-title"
+			[id]="section.id"
+			[attr.aria-labelledby]="section.id + '-title'"
 			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
 			appInView
 			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="scrollSpy.onSectionInView('overview', $event)"
+			(inViewChange)="scrollSpy.onSectionInView(section.id, $event)"
 		>
-			<ng-container
-				*ngTemplateOutlet="sectionHeading; context: { id: 'overview', label: 'Overview', title: 'Who runs Completr' }"
-			/>
-			<div [class]="bodyClass">
-				<p class="m-0">
-					Completr is a personal project built and operated by
-					<strong class="text-fg">Esteban Tejeda</strong>, who acts as
-					the data controller for the data described here. This policy
-					covers the Completr application (<span class="text-fg"
-						>web.completr.app</span
-					>).
-				</p>
-			</div>
-		</section>
-
-		<section
-			id="data"
-			aria-labelledby="data-title"
-			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
-			appInView
-			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="scrollSpy.onSectionInView('data', $event)"
-		>
-			<ng-container
-				*ngTemplateOutlet="sectionHeading; context: { id: 'data', label: 'Data collected', title: 'What data I collect' }"
-			/>
-			<div [class]="bodyClass">
-				<p class="m-0">
-					<strong class="text-fg">Your account.</strong> When you sign
-					up I store your email, an encrypted version of your password
-					(never plain text), your username and, optionally, a display
-					name, bio and avatar.
-				</p>
-				<p class="m-0">
-					<strong class="text-fg">Content you create.</strong> What
-					you track inside the app: your game backlog, lists, reviews,
-					tags, progress notes and co-op runs. It's the whole point of
-					the service.
-				</p>
-				<p class="m-0">
-					<strong class="text-fg">Technical data.</strong> Aggregate
-					usage analytics via Umami (see below) and server logs, kept
-					for a limited time for security and troubleshooting.
-				</p>
-			</div>
-		</section>
-
-		<section
-			id="use"
-			aria-labelledby="use-title"
-			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
-			appInView
-			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="scrollSpy.onSectionInView('use', $event)"
-		>
-			<ng-container
-				*ngTemplateOutlet="sectionHeading; context: { id: 'use', label: 'How it\'s used', title: 'What I use it for' }"
-			/>
-			<div [class]="bodyClass">
-				<ul class="m-0 list-disc pl-5 flex flex-col gap-2">
-					<li>Run the service and show you your own content.</li>
-					<li>Authenticate you and keep your session secure.</li>
-					<li>
-						Understand in aggregate how the app is used, to improve
-						it.
-					</li>
-					<li>Contact you about your account.</li>
-				</ul>
-				<p
-					class="m-0 mt-2 px-4 py-3 rounded-card border-l-2 border-success bg-success/5"
-				>
-					What I <strong class="text-fg">don't</strong> do: I don't
-					sell or share your data with third parties, I don't run ads,
-					I don't sign you up to newsletters, and I don't track you
-					across sites.
-				</p>
-			</div>
-		</section>
-
-		<section
-			id="legal-basis"
-			aria-labelledby="legal-basis-title"
-			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
-			appInView
-			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="scrollSpy.onSectionInView('legal-basis', $event)"
-		>
-			<ng-container
-				*ngTemplateOutlet="sectionHeading; context: { id: 'legal-basis', label: 'Legal basis', title: 'Legal basis' }"
-			/>
-			<div [class]="bodyClass">
-				<p class="m-0">
-					I process your account data and your content to provide the
-					service you request when you sign up (performance of a
-					contract). Aggregate analytics and security logs rely on my
-					legitimate interest in keeping and improving the app.
-				</p>
-			</div>
-		</section>
-
-		<section
-			id="cookies"
-			aria-labelledby="cookies-title"
-			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
-			appInView
-			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="scrollSpy.onSectionInView('cookies', $event)"
-		>
-			<ng-container
-				*ngTemplateOutlet="sectionHeading; context: { id: 'cookies', label: 'Cookies', title: 'Cookies and analytics' }"
-			/>
-			<div [class]="bodyClass">
-				<p class="m-0">
-					To understand how the app is used I use
-					<strong class="text-fg">Umami</strong>, a self-hosted
-					analytics tool that measures visits in an aggregate,
-					anonymous way. It uses no cookies, doesn't track across
-					sites and doesn't collect personally identifiable
-					information.
-				</p>
-				<p class="m-0">
-					The app uses a single strictly necessary cookie to keep you
-					signed in (an <span class="text-fg">HttpOnly</span> session
-					token). It's not a tracking cookie and can't be disabled
-					without breaking sign-in, so you won't see cookie consent
-					banners.
-				</p>
-			</div>
-		</section>
-
-		<section
-			id="sharing"
-			aria-labelledby="sharing-title"
-			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
-			appInView
-			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="scrollSpy.onSectionInView('sharing', $event)"
-		>
-			<ng-container
-				*ngTemplateOutlet="sectionHeading; context: { id: 'sharing', label: 'Sharing', title: 'Who it\'s shared with' }"
-			/>
-			<div [class]="bodyClass">
-				<p class="m-0">
-					No one, for commercial purposes. The infrastructure is
-					self-hosted: both the database and the analytics run on
-					servers I manage directly. Video game data comes from
-					external catalogs (such as RAWG), but that's information I
-					<em>receive</em>; I never send your personal data to those
-					services.
-				</p>
-			</div>
-		</section>
-
-		<section
-			id="retention"
-			aria-labelledby="retention-title"
-			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
-			appInView
-			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="scrollSpy.onSectionInView('retention', $event)"
-		>
-			<ng-container
-				*ngTemplateOutlet="sectionHeading; context: { id: 'retention', label: 'Retention', title: 'How long I keep it' }"
-			/>
-			<div [class]="bodyClass">
-				<p class="m-0">
-					I keep your account and your content for as long as your
-					account is active. If you delete your account, I delete your
-					personal data and your content. Server logs are removed
-					after a limited period, and Umami analytics are aggregate
-					and anonymous.
-				</p>
-			</div>
-		</section>
-
-		<section
-			id="rights"
-			aria-labelledby="rights-title"
-			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
-			appInView
-			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="scrollSpy.onSectionInView('rights', $event)"
-		>
-			<ng-container
-				*ngTemplateOutlet="sectionHeading; context: { id: 'rights', label: 'Your rights', title: 'Your rights' }"
-			/>
-			<div [class]="bodyClass">
-				<p class="m-0">
-					You can exercise your rights of access, rectification,
-					erasure, objection and portability over your personal data
-					at any time, as recognized by Chile's Law 21.719 and, if
-					you're in the European Union, by the GDPR.
-				</p>
-				<ul class="m-0 list-disc pl-5 flex flex-col gap-2">
-					<li>
-						You can edit your data and delete your account directly
-						from the app.
-					</li>
-					<li>
-						For any other request, email me at
-						<a
-							class="text-brand hover:underline"
-							[href]="'mailto:' + contactEmail"
-							>{{ contactEmail }}</a
-						>.
-					</li>
-				</ul>
-			</div>
-		</section>
-
-		<section
-			id="security"
-			aria-labelledby="security-title"
-			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
-			appInView
-			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="scrollSpy.onSectionInView('security', $event)"
-		>
-			<ng-container
-				*ngTemplateOutlet="sectionHeading; context: { id: 'security', label: 'Security', title: 'Security' }"
-			/>
-			<div [class]="bodyClass">
-				<p class="m-0">
-					Passwords are stored encrypted, sessions use
-					<span class="text-fg">HttpOnly</span> cookies and all
-					traffic runs over HTTPS. No system is foolproof, but I treat
-					your data with the same care I'd want for my own.
-				</p>
-			</div>
-		</section>
-
-		<section
-			id="minors"
-			aria-labelledby="minors-title"
-			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
-			appInView
-			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="scrollSpy.onSectionInView('minors', $event)"
-		>
-			<ng-container
-				*ngTemplateOutlet="sectionHeading; context: { id: 'minors', label: 'Minors', title: 'Minors' }"
-			/>
-			<div [class]="bodyClass">
-				<p class="m-0">
-					Completr is not directed at children under 14 (or under 16
-					in the European Union). If you believe a minor has provided
-					me with data, email me and I'll delete it.
-				</p>
-			</div>
-		</section>
-
-		<section
-			id="changes"
-			aria-labelledby="changes-title"
-			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
-			appInView
-			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="scrollSpy.onSectionInView('changes', $event)"
-		>
-			<ng-container
-				*ngTemplateOutlet="sectionHeading; context: { id: 'changes', label: 'Changes & contact', title: 'Changes and contact' }"
-			/>
-			<div [class]="bodyClass">
-				<p class="m-0">
-					This policy may change as Completr evolves. Any change will
-					be reflected on this page, along with the last updated date.
-					If you have questions about how I handle your data, email me
-					at
-					<a
-						class="text-brand hover:underline"
-						[href]="'mailto:' + contactEmail"
-						>{{ contactEmail }}</a
-					>.
-				</p>
-			</div>
-			<a
-				uiButton
-				variant="secondary"
-				class="mt-6 max-sm:min-h-[44px]"
-				[href]="'mailto:' + contactEmail"
+			<span
+				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+				>{{ sectionNumber(index) }} · {{ section.label }}</span
 			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>mail_outline</span
-				>
-				Email {{ contactEmail }}
-			</a>
+			<h2
+				class="font-display m-0 mt-1 text-xl sm:text-2xl font-bold tracking-tight"
+				[id]="section.id + '-title'"
+			>
+				{{ section.title }}
+			</h2>
+			<div [class]="bodyClass" [innerHTML]="section.html"></div>
 		</section>
+		}
+
+		<a
+			uiButton
+			variant="secondary"
+			class="self-start max-sm:min-h-[44px]"
+			[href]="'mailto:' + contactEmail"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>mail_outline</span
+			>
+			Email {{ contactEmail }}
+		</a>
 	</div>
 </div>
-
-@if (isLoggedIn()) {
+} @else if (policy.error()) {
+<div
+	role="alert"
+	class="flex flex-col items-center text-center gap-3 py-16 px-6 rounded-card border border-line bg-surface/40"
+>
+	<span aria-hidden="true" class="material-icons text-4xl text-fg-muted"
+		>cloud_off</span
+	>
+	<h2 class="m-0 font-display text-lg font-semibold">
+		Couldn't load the privacy policy
+	</h2>
+	<p class="m-0 max-w-sm text-sm text-fg-muted">
+		It's out of reach right now. Try again, or read it on the Completr
+		website.
+	</p>
+	<div class="mt-2 flex flex-wrap justify-center gap-2">
+		<button
+			uiButton
+			type="button"
+			variant="secondary"
+			class="max-sm:min-h-[44px]"
+			(click)="policy.reload()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>refresh</span
+			>
+			Try again
+		</button>
+		<a
+			uiButton
+			variant="ghost"
+			class="max-sm:min-h-[44px]"
+			target="_blank"
+			rel="noopener noreferrer"
+			[href]="landingPrivacyUrl"
+		>
+			Read it on completr.app
+			<span aria-hidden="true" class="material-icons text-base"
+				>open_in_new</span
+			>
+		</a>
+	</div>
+</div>
+} @else {
+<div
+	aria-busy="true"
+	aria-label="Loading privacy policy"
+	class="lg:grid lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-12 xl:gap-16"
+>
+	<div class="hidden lg:flex flex-col gap-2">
+		@for (i of skeletonSections; track i) {
+		<ui-skeleton class="h-8 w-full rounded-md" />
+		}
+	</div>
+	<div class="flex flex-col gap-12">
+		<div class="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+			@for (i of [1, 2, 3, 4]; track i) {
+			<ui-skeleton class="h-28 rounded-card" />
+			}
+		</div>
+		@for (i of skeletonSections; track i) {
+		<div class="flex flex-col gap-2 max-w-[68ch]">
+			<ui-skeleton class="h-3 w-32 rounded-full" />
+			<ui-skeleton class="h-7 w-2/3 rounded-md" />
+			<ui-skeleton class="mt-2 h-4 w-full rounded-md" />
+			<ui-skeleton class="h-4 w-11/12 rounded-md" />
+			<ui-skeleton class="h-4 w-4/5 rounded-md" />
+		</div>
+		}
+	</div>
+</div>
+} @if (isLoggedIn()) {
 <app-info-page-links current="privacy" />
 }
 <div
@@ -395,16 +213,3 @@
 	appInView
 	(inViewChange)="scrollSpy.onEndInView($event)"
 ></div>
-
-<ng-template #sectionHeading let-id="id" let-label="label" let-title="title">
-	<span
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>{{ sectionNumber(id) }} · {{ label }}</span
-	>
-	<h2
-		class="font-display m-0 mt-1 text-xl sm:text-2xl font-bold tracking-tight"
-		[id]="id + '-title'"
-	>
-		{{ title }}
-	</h2>
-</ng-template>
