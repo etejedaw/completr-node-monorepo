@@ -9,6 +9,8 @@ export interface SegmentedOption<T extends string = string> {
 	value: T;
 	label: string;
 	count?: number;
+	icon?: string;
+	hint?: string;
 }
 
 @Component({
@@ -30,8 +32,16 @@ export interface SegmentedOption<T extends string = string> {
 							: 'bg-transparent text-fg-muted hover:text-fg'
 					"
 					[attr.aria-checked]="value() === option.value"
+					[attr.title]="option.hint ?? null"
 					(click)="value.set(option.value)"
 				>
+					@if (option.icon) {
+						<span
+							aria-hidden="true"
+							class="material-icons text-sm"
+							>{{ option.icon }}</span
+						>
+					}
 					{{ option.label }}
 					@if (option.count !== undefined) {
 						<span class="tabular-nums text-fg-muted">{{
