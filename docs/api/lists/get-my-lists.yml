@@ -33,6 +33,7 @@ docs: |-
             "isOfficial": false,
             "scoreSource": "metacritic",
             "durationSource": "hltb",
+            "progress": { "completed": 12, "total": 20 },
             "previewItems": [
               {
                 "id": "uuid",
@@ -54,3 +55,5 @@ docs: |-
     `frozen: true` means the user has exceeded their list limit and cannot create or edit until they delete the excess.
 
     `previewItems` holds the first items of the list by position (up to 4), used for the cover collage. `game` is `null` if the game was removed.
+
+    `progress` counts the list's games that the user has in their backlog as completed, abandoned or endless (`completed`) out of the list's total games (`total`). An empty list returns `{ "completed": 0, "total": 0 }`.
