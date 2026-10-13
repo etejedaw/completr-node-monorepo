@@ -24,6 +24,7 @@ import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
 	UiButton,
+	UiDialog,
 	UiInput,
 	UiPagination,
 	UiPremiumBadge,
@@ -52,6 +53,7 @@ import { QueueSortControl } from "../queue-sort-control/queue-sort-control";
 	imports: [
 		LibraryHero,
 		UiButton,
+		UiDialog,
 		UiInput,
 		UiPagination,
 		UiPremiumBadge,

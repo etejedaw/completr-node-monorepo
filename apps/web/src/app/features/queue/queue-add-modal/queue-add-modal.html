@@ -1,84 +1,93 @@
-<div ngpDialogOverlay class="modal-overlay">
-	<div
-		ngpDialog
-		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[500px] max-h-[80vh] flex flex-col"
-		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
-	>
-		<div class="flex items-center justify-between mb-4">
-			<h2 ngpDialogTitle class="m-0 text-lg font-bold font-display">
-				Add to Queue
-			</h2>
-			<button
-				uiIconButton
-				size="sm"
-				aria-label="Close"
-				(click)="onClose()"
-			>
-				&times;
-			</button>
-		</div>
-
-		<div class="mb-3">
-			<input
-				type="text"
-				class="w-full px-3 py-2 bg-input-bg border border-line rounded-md text-fg text-[0.8125rem] transition placeholder:text-fg-muted focus:outline-none focus:border-brand"
-				placeholder="Filter by title..."
-				[value]="searchQuery()"
-				(input)="onSearch($event)"
-			/>
-		</div>
-
-		@if (isLoading()) {
-		<div class="text-center py-8 text-fg-muted text-[0.8125rem]">
-			Loading backlog...
-		</div>
-		} @else if (filteredEntries().length === 0) {
-		<div class="text-center py-8 text-fg-muted text-[0.8125rem]">
-			No backlog entries available.
-		</div>
-		} @else {
-		<ul class="list-none overflow-y-auto flex-1">
-			@for (entry of filteredEntries(); track entry.id) {
-			<li
-				class="flex items-center justify-between py-2 border-b border-line"
-			>
-				<div class="flex items-center gap-2.5 min-w-0">
-					@if (entry.game.backgroundUrl) {
-					<img
-						alt=""
-						[src]="entry.game.backgroundUrl"
-						class="w-8 h-[42px] object-cover rounded-sm shrink-0"
-						loading="lazy"
-					/>
-					}
-					<div class="flex flex-col min-w-0 gap-1">
-						<span class="text-[0.8125rem] font-medium truncate"
-							>{{ entry.game.title }}</span
-						>
-						<div class="flex items-center gap-1.5 flex-wrap">
-							<span class="text-[0.6875rem] text-fg-muted"
-								>{{ entry.platform.abbreviation }}</span
-							>
-							<span
-								class="inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold tracking-wide"
-								[class]="statusClass(entry.status)"
-								>{{ statusLabel(entry.status) }}</span
-							>
-						</div>
-					</div>
-				</div>
-				<button
-					uiButton
-					variant="primary"
-					size="sm"
-					(click)="addToQueue(entry)"
-					[disabled]="adding() === entry.id"
-				>
-					{{ adding() === entry.id ? '...' : '+ Add' }}
-				</button>
-			</li>
-			}
-		</ul>
-		}
+<ui-dialog
+	heading="Add to Up Next"
+	eyebrow="Up Next"
+	subheading="Pick games from your library to play next"
+	size="md"
+	[flush]="true"
+	(closed)="onClose()"
+>
+	<div class="sticky top-0 z-10 bg-sidebar px-5 md:px-6 pb-3">
+		<ui-search-bar
+			placeholder="Filter by title..."
+			[(value)]="searchQuery"
+		/>
 	</div>
-</div>
+
+	@if (isLoading()) {
+	<ul class="list-none m-0 px-5 md:px-6 pb-5" aria-label="Loading library">
+		@for (row of skeletonRows; track row) {
+		<li class="flex items-center gap-3 py-2.5">
+			<div
+				class="w-10 aspect-[2/3] rounded bg-fg-muted/10 animate-[skeletonPulse_1.4s_ease-in-out_infinite]"
+			></div>
+			<div class="flex-1 flex flex-col gap-2">
+				<div
+					class="h-3 w-2/3 rounded bg-fg-muted/10 animate-[skeletonPulse_1.4s_ease-in-out_infinite]"
+				></div>
+				<div
+					class="h-2.5 w-1/3 rounded bg-fg-muted/10 animate-[skeletonPulse_1.4s_ease-in-out_infinite]"
+				></div>
+			</div>
+		</li>
+		}
+	</ul>
+	} @else if (filteredEntries().length === 0) {
+	<div class="flex flex-col items-center text-center gap-2 px-6 py-10">
+		<span aria-hidden="true" class="material-icons text-3xl text-fg-muted"
+			>{{ searchQuery() ? "search_off" : "playlist_add_check" }}</span
+		>
+		<p class="m-0 text-sm font-semibold text-fg">
+			{{ searchQuery() ? "No matches" : "Nothing left to add" }}
+		</p>
+		<p class="m-0 text-[0.8125rem] text-fg-muted max-w-[18rem]">
+			{{ searchQuery() ? "No game in your library matches “" +
+			searchQuery() + "”." : "All your unstarted games are already in Up
+			Next." }}
+		</p>
+	</div>
+	} @else {
+	<ul class="list-none m-0 px-5 md:px-6 pb-4 divide-y divide-line">
+		@for (entry of filteredEntries(); track entry.id) {
+		<li class="flex items-center gap-3 py-2.5">
+			<app-game-poster
+				class="w-10 aspect-[2/3] shrink-0 rounded ring-1 ring-white/10"
+				[src]="entry.game.backgroundUrl"
+				[title]="entry.game.title"
+				[width]="200"
+				[compact]="true"
+			/>
+			<div class="flex-1 min-w-0 flex flex-col gap-1">
+				<span class="text-[0.8125rem] font-medium text-fg truncate"
+					>{{ entry.game.title }}</span
+				>
+				<div class="flex items-center gap-1.5 flex-wrap">
+					<span class="text-[0.6875rem] text-fg-muted"
+						>{{ entry.platform.abbreviation }}</span
+					>
+					<span
+						class="inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold tracking-wide"
+						[class]="statusClass(entry.status)"
+						>{{ statusLabel(entry.status) }}</span
+					>
+				</div>
+			</div>
+			<button
+				uiButton
+				variant="secondary"
+				size="sm"
+				class="shrink-0 max-md:min-h-[44px] max-md:min-w-[44px]"
+				[attr.aria-label]="'Add ' + entry.game.title + ' to Up Next'"
+				[disabled]="adding() === entry.id"
+				(click)="addToQueue(entry)"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>{{ adding() === entry.id ? "hourglass_empty" : "add"
+					}}</span
+				>
+				<span class="max-sm:hidden">Add</span>
+			</button>
+		</li>
+		}
+	</ul>
+	}
+</ui-dialog>

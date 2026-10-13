@@ -5,15 +5,11 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
-import {
-	injectDialogRef,
-	NgpDialog,
-	NgpDialogOverlay,
-	NgpDialogTitle
-} from "ng-primitives/dialog";
+import { injectDialogRef } from "ng-primitives/dialog";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
-import { UiButton, UiIconButton } from "../../../shared/ui";
+import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { UiButton, UiDialog, UiSearchBar } from "../../../shared/ui";
 import {
 	backlogStatusClass,
 	backlogStatusLabel
@@ -27,13 +23,7 @@ export interface QueueAddModalData {
 
 @Component({
 	selector: "app-queue-add-modal",
-	imports: [
-		NgpDialog,
-		NgpDialogOverlay,
-		NgpDialogTitle,
-		UiButton,
-		UiIconButton
-	],
+	imports: [GamePoster, UiButton, UiDialog, UiSearchBar],
 	templateUrl: "./queue-add-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -46,6 +36,7 @@ export class QueueAddModal implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly adding = signal<string | null>(null);
 	protected readonly searchQuery = signal("");
+	protected readonly skeletonRows = [1, 2, 3, 4, 5];
 
 	ngOnInit() {
 		this.backlogService.getMyBacklog({ status: "not_started" }).subscribe({
@@ -63,10 +54,6 @@ export class QueueAddModal implements OnInit {
 		return this.entries().filter(e =>
 			e.game.title.toLowerCase().includes(query)
 		);
-	}
-
-	onSearch(event: Event) {
-		this.searchQuery.set((event.target as HTMLInputElement).value);
 	}
 
 	addToQueue(entry: BacklogEntry) {

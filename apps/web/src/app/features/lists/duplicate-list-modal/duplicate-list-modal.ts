@@ -5,18 +5,13 @@ import {
 	signal
 } from "@angular/core";
 import { form, FormField, maxLength, required } from "@angular/forms/signals";
-import {
-	injectDialogRef,
-	NgpDialog,
-	NgpDialogOverlay,
-	NgpDialogTitle
-} from "ng-primitives/dialog";
+import { injectDialogRef } from "ng-primitives/dialog";
 
 import { type List } from "../../../core/models";
 import {
 	UiButton,
+	UiDialog,
 	UiFormField,
-	UiIconButton,
 	UiInput,
 	UiLabel
 } from "../../../shared/ui";
@@ -29,17 +24,7 @@ export type DuplicateListModalResult = List | null;
 
 @Component({
 	selector: "app-duplicate-list-modal",
-	imports: [
-		FormField,
-		NgpDialog,
-		NgpDialogOverlay,
-		NgpDialogTitle,
-		UiButton,
-		UiIconButton,
-		UiInput,
-		UiFormField,
-		UiLabel
-	],
+	imports: [FormField, UiButton, UiDialog, UiInput, UiFormField, UiLabel],
 	templateUrl: "./duplicate-list-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

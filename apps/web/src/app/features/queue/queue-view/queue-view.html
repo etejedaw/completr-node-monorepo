@@ -172,47 +172,39 @@
 />
 
 @if (pendingPlayEntry(); as pending) {
-<div class="modal-overlay">
-	<div
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="start-playing-title"
-		class="bg-sidebar border border-line rounded-card p-6 w-full max-w-[420px] flex flex-col gap-4 shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
-	>
-		<h2
-			id="start-playing-title"
-			class="m-0 text-lg font-semibold font-display"
+<ui-dialog
+	eyebrow="Up Next"
+	size="sm"
+	[heading]="'Start playing ' + pending.backlog.game.title + '?'"
+	(closed)="cancelPlayConfirmation()"
+>
+	<p class="m-0 mb-4 text-sm text-fg-secondary leading-relaxed">
+		It will be marked as
+		<span class="text-fg font-medium">Playing</span> and leave Up Next,
+		which only holds games you haven't started.
+	</p>
+	<label class="flex flex-col gap-1.5">
+		<span
+			class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+			>Started on</span
 		>
-			Start playing {{ pending.backlog.game.title }}?
-		</h2>
-		<p class="m-0 text-sm text-fg-secondary leading-relaxed">
-			It will be marked as
-			<span class="text-warning font-medium">playing</span> and leave Up
-			Next, which only holds games you haven't started.
-		</p>
-		<label class="flex flex-col gap-1.5">
-			<span
-				class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>Started on</span
+		<input
+			uiInput
+			type="date"
+			[value]="pendingPlayStartedAt()"
+			(input)="onPendingPlayStartedAtChange($any($event.target).value)"
+		/>
+	</label>
+	<ng-container dialogFooter>
+		<button uiButton variant="ghost" (click)="cancelPlayConfirmation()">
+			Cancel
+		</button>
+		<button uiButton variant="primary" (click)="confirmPlay()">
+			<span aria-hidden="true" class="material-icons text-base"
+				>play_arrow</span
 			>
-			<input
-				uiInput
-				type="date"
-				[value]="pendingPlayStartedAt()"
-				(input)="onPendingPlayStartedAtChange($any($event.target).value)"
-			/>
-		</label>
-		<div class="flex items-center justify-end gap-2">
-			<button uiButton variant="ghost" (click)="cancelPlayConfirmation()">
-				Cancel
-			</button>
-			<button uiButton variant="primary" (click)="confirmPlay()">
-				<span aria-hidden="true" class="material-icons text-base"
-					>play_arrow</span
-				>
-				Start playing
-			</button>
-		</div>
-	</div>
-</div>
+			Start playing
+		</button>
+	</ng-container>
+</ui-dialog>
 }
