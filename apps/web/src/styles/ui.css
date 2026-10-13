@@ -394,7 +394,7 @@ textarea.ui-input {
 	display: none;
 }
 
-@media (pointer: coarse) {
+@media (pointer: coarse), (max-width: 767px) {
 	.ui-button,
 	.ui-icon-button {
 		min-height: 44px;
@@ -408,7 +408,14 @@ textarea.ui-input {
 		min-height: 44px;
 	}
 
-	.ui-input {
+	.ui-input,
+	.ui-select {
 		min-height: 44px;
+	}
+
+	.ui-switch__track::after {
+		content: "";
+		position: absolute;
+		inset: -12px -4px;
 	}
 }
