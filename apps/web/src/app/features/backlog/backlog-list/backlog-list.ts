@@ -6,7 +6,6 @@ import {
 	moveItemInArray
 } from "@angular/cdk/drag-drop";
 import { DatePipe } from "@angular/common";
-import { HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -881,10 +880,7 @@ export class BacklogList implements OnInit {
 					this.loadSavedFilters();
 					this.loadStats(id);
 				},
-				error: err => {
-					this.savingFilter.set(false);
-					this.notifyFilterLimit(err);
-				}
+				error: () => this.savingFilter.set(false)
 			});
 	}
 
@@ -919,18 +915,8 @@ export class BacklogList implements OnInit {
 					this.newFilterPinned.set(true);
 					this.loadSavedFilters();
 				},
-				error: err => {
-					this.savingFilter.set(false);
-					this.notifyFilterLimit(err);
-				}
+				error: () => this.savingFilter.set(false)
 			});
-	}
-
-	private notifyFilterLimit(error: unknown) {
-		if (error instanceof HttpErrorResponse && error.status === 402)
-			this.toast.error(
-				"You've reached the free limit of 5 saved views. Delete one to save a new view."
-			);
 	}
 
 	private buildFiltersObject(): Record<string, string> {

@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -37,7 +36,8 @@ import { injectLibraryPosters } from "../library-posters";
 import {
 	SAVED_FILTER_COLORS,
 	SAVED_FILTER_ICONS,
-	savedFilterColorHex
+	savedFilterColorHex,
+	supportedSavedFilterColor
 } from "../saved-filter-appearance";
 import { type SavedFilter, SavedFiltersService } from "../saved-filters";
 import { SavedViewCard } from "../saved-view-card/saved-view-card";
@@ -288,12 +288,8 @@ export class SavedFiltersView implements OnInit {
 					this.duplicatingFilter.set(null);
 					this.loadFilters();
 				},
-				error: err => {
+				error: () => {
 					this.duplicating.set(false);
-					if (err instanceof HttpErrorResponse && err.status === 402)
-						this.toast.error(
-							"You've reached the free limit of 5 saved views. Delete one to duplicate."
-						);
 				}
 			});
 	}
@@ -305,7 +301,7 @@ export class SavedFiltersView implements OnInit {
 		this.editShowInBacklog.set(filter.showInBacklog);
 		this.editIsDefault.set(filter.isDefault);
 		this.editIcon.set(filter.icon);
-		this.editColor.set(filter.color);
+		this.editColor.set(supportedSavedFilterColor(filter.color));
 		this.showModal.set(true);
 	}
 
@@ -335,12 +331,8 @@ export class SavedFiltersView implements OnInit {
 					this.editingFilter.set(null);
 					this.loadFilters();
 				},
-				error: err => {
+				error: () => {
 					this.saving.set(false);
-					if (err instanceof HttpErrorResponse && err.status === 402)
-						this.toast.error(
-							"Saved views are frozen. Delete views to go below the free limit of 5 before editing."
-						);
 				}
 			});
 	}

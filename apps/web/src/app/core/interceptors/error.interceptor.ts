@@ -16,6 +16,7 @@ import {
 } from "../../shared/utils/validation-errors";
 import { AuthService } from "../services/auth";
 import { ToastService } from "../services/toast";
+import { planLimitMessage } from "../utils/plan-limit-message";
 
 let isRefreshing = false;
 const refreshSubject = new BehaviorSubject<string | null>(null);
@@ -35,6 +36,12 @@ export function errorInterceptor(
 					error.error?.title ??
 					"This action was already performed. Please refresh and try again.";
 				toast.warning(detail);
+				return throwError(() => error);
+			}
+
+			if (error.status === 402) {
+				const message = planLimitMessage(error.error?.type);
+				if (message) toast.warning(message, 6000);
 				return throwError(() => error);
 			}
 
