@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { sequelize } from "../database/sequelize.database";
-import { USER_PUBLIC_ATTRS } from "./constants/user-attrs.constants";
+import { USER_CARD_ATTRS } from "./constants/user-attrs.constants";
 import { type CreateUserDto, type UpdateUserDto } from "./dtos";
 import * as usersServiceError from "./errors/users.service-error";
 import { canUseTheme } from "./helpers/theme.helper";
@@ -55,7 +55,7 @@ export async function searchUsers(query: string, limit = 20) {
 				{ name: { [Op.iLike]: `%${query}%` } }
 			]
 		},
-		attributes: [...USER_PUBLIC_ATTRS, "profileVisibility"],
+		attributes: USER_CARD_ATTRS,
 		limit,
 		order: [["username", "ASC"]]
 	});
@@ -64,7 +64,7 @@ export async function searchUsers(query: string, limit = 20) {
 export async function findUserByExactEmail(email: string) {
 	const user = await User.findOne({
 		where: { email: email.toLowerCase(), isActive: true },
-		attributes: [...USER_PUBLIC_ATTRS, "profileVisibility"]
+		attributes: USER_CARD_ATTRS
 	});
 	return user ? [user] : [];
 }
@@ -82,7 +82,7 @@ export async function findRandomPublicUsers(
 	}
 	return User.findAll({
 		where,
-		attributes: [...USER_PUBLIC_ATTRS, "profileVisibility"],
+		attributes: USER_CARD_ATTRS,
 		order: sequelize.literal("RANDOM()"),
 		limit
 	});

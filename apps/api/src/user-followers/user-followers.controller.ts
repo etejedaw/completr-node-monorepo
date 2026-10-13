@@ -4,6 +4,8 @@ import * as activityService from "../activity/activity.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
+import { userCardSerializer } from "../users/users.serializer";
+import * as usersProfileService from "../users/users-profile.service";
 import * as userFollowersService from "./user-followers.service";
 
 export async function postFollow(request: Request, response: Response) {
@@ -35,18 +37,30 @@ export async function deleteFollow(request: Request, response: Response) {
 
 export async function getFollowers(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;
+	const viewer = request.locals.user as RequestUser | undefined;
 
 	const followers = await userFollowersService.getFollowers(username);
-	const data = followers.map(f => f.Follower);
+	const cards = await usersProfileService.buildUserCards(
+		viewer?.id,
+		followers.map(f => f.Follower)
+	);
 
-	return response.status(200).json({ data: { users: data } });
+	return response
+		.status(200)
+		.json({ data: { users: cards.map(userCardSerializer) } });
 }
 
 export async function getFollowing(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;
+	const viewer = request.locals.user as RequestUser | undefined;
 
 	const following = await userFollowersService.getFollowing(username);
-	const data = following.map(f => f.Following);
+	const cards = await usersProfileService.buildUserCards(
+		viewer?.id,
+		following.map(f => f.Following)
+	);
 
-	return response.status(200).json({ data: { users: data } });
+	return response
+		.status(200)
+		.json({ data: { users: cards.map(userCardSerializer) } });
 }

@@ -39,6 +39,7 @@ docs: |-
             "name": "John Doe",
             "avatarUrl": null,
             "profileVisibility": "public",
+            "role": "user",
             "isSelf": false,
             "followerCount": 12,
             "isFollowing": false,

@@ -126,6 +126,7 @@ export function userSummarySerializer(user: User) {
 export function userCardSerializer(card: UserCardInsights) {
 	return {
 		...userSummarySerializer(card.user),
+		role: card.user.role,
 		isSelf: card.isSelf,
 		followerCount: card.followerCount,
 		isFollowing: card.isFollowing,

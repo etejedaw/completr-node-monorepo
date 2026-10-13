@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { authMiddleware } from "../auth/auth.middleware";
+import { authOptionalMiddleware } from "../auth/auth-optional.middleware";
 import {
 	publicLimiter,
 	userLimiter
@@ -36,6 +37,7 @@ router.get(
 	"/users/:username/followers",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	controller.getFollowers
@@ -45,6 +47,7 @@ router.get(
 	"/users/:username/following",
 	[
 		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	controller.getFollowing

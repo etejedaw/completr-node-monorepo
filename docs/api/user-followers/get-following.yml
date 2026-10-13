@@ -17,9 +17,9 @@ settings:
 docs: |-
     ## Get Following
 
-    List users that the specified user is following.
+    List users the specified user follows, newest first. Each entry is a user card (same shape as `GET /users/discover`): stats, `featuredGame` and `followerCount` follow each listed user's privacy settings for the viewer (`null` when hidden), and `isFollowing` / `isSelf` are relative to the viewer.
 
-    **Auth:** Not required.
+    **Auth:** Optional (Bearer token). Without a token, `isFollowing` is always `false` and only public sections are counted.
 
     **Rate Limit:** 100 requests per minute.
 
@@ -29,8 +29,26 @@ docs: |-
     {
       "data": {
         "users": [
-          { "id": "uuid", "username": "john", "name": "John", "avatarUrl": null }
+          {
+            "id": "uuid",
+            "username": "jane",
+            "name": "Jane",
+            "avatarUrl": null,
+            "profileVisibility": "public",
+            "role": "premium",
+            "isSelf": false,
+            "followerCount": 12,
+            "isFollowing": true,
+            "gamesTotal": 140,
+            "completedTotal": 58,
+            "featuredGame": { "title": "Hollow Knight", "backgroundUrl": "https://media.rawg.io/media/games/..." }
+          }
         ]
       }
     }
     ```
+
+    ### Errors
+
+    - `404 USER_FOLLOWER_USER_NOT_FOUND` — no user with that username
+    - `422 SCHEMA_VALIDATION_ERROR` — invalid username
