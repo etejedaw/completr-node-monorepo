@@ -450,58 +450,57 @@
 	</div>
 </div>
 } } @if (reportModal().show) {
-<div class="modal-overlay" role="presentation" (click)="closeReportModal()">
-	<div
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="report-dialog-title"
-		class="bg-sidebar border border-line rounded-card p-6 w-[90%] max-w-[480px]"
-		(click)="$event.stopPropagation()"
-		(keydown.escape)="closeReportModal()"
-		tabindex="-1"
+<ui-dialog
+	eyebrow="Report an issue"
+	size="sm"
+	subheading="Wrong data, missing platforms, broken images… tell us what to fix."
+	[heading]="game()!.title"
+	[dismissible]="!reportModal().submitting"
+	(closed)="closeReportModal()"
+>
+	<label
+		for="report-message"
+		class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+		>What's wrong?</label
 	>
-		<h2
-			id="report-dialog-title"
-			class="font-display m-0 mb-4 text-lg font-semibold"
+	<textarea
+		uiTextarea
+		id="report-message"
+		class="!w-full !resize-y"
+		rows="5"
+		placeholder="Describe the issue (min 10 characters)..."
+		aria-describedby="report-message-hint"
+		[value]="reportModal().message"
+		(input)="setReportMessage($any($event.target).value)"
+	></textarea>
+	<p
+		id="report-message-hint"
+		class="m-0 mt-1 text-[0.6875rem] text-fg-muted tabular-nums"
+	>
+		{{ reportModal().message.length }} characters · at least 10
+	</p>
+	@if (reportModal().error) {
+	<p
+		role="alert"
+		class="m-0 mt-2 py-1.5 px-3 bg-danger/10 border border-danger/20 rounded text-danger text-xs"
+	>
+		{{ reportModal().error }}
+	</p>
+	}
+	<ng-container dialogFooter>
+		<button uiButton variant="ghost" (click)="closeReportModal()">
+			Cancel
+		</button>
+		<button
+			uiButton
+			variant="primary"
+			[disabled]="
+				reportModal().message.length < 10 || reportModal().submitting
+			"
+			(click)="submitReport()"
 		>
-			Report an issue with {{ game()!.title }}
-		</h2>
-		<textarea
-			uiTextarea
-			class="!w-full !resize-y"
-			placeholder="Describe the issue (min 10 characters)..."
-			[value]="reportModal().message"
-			(input)="setReportMessage($any($event.target).value)"
-			rows="4"
-			aria-label="Issue description"
-		></textarea>
-		@if (reportModal().error) {
-		<p
-			role="alert"
-			class="m-0 mt-2 py-1.5 px-3 bg-danger/10 border border-danger/20 rounded text-danger text-xs"
-		>
-			{{ reportModal().error }}
-		</p>
-		}
-		<div class="flex justify-end gap-2 mt-4">
-			<button
-				uiButton
-				variant="ghost"
-				size="sm"
-				(click)="closeReportModal()"
-			>
-				Cancel
-			</button>
-			<button
-				uiButton
-				variant="primary"
-				size="sm"
-				[disabled]="reportModal().message.length < 10 || reportModal().submitting"
-				(click)="submitReport()"
-			>
-				{{ reportModal().submitting ? "Sending..." : "Send report" }}
-			</button>
-		</div>
-	</div>
-</div>
+			{{ reportModal().submitting ? "Sending..." : "Send report" }}
+		</button>
+	</ng-container>
+</ui-dialog>
 }

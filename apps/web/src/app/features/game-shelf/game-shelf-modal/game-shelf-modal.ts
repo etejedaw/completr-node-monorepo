@@ -8,12 +8,7 @@ import {
 	signal
 } from "@angular/core";
 import { form, FormField, required } from "@angular/forms/signals";
-import {
-	injectDialogRef,
-	NgpDialog,
-	NgpDialogOverlay,
-	NgpDialogTitle
-} from "ng-primitives/dialog";
+import { injectDialogRef } from "ng-primitives/dialog";
 import {
 	debounceTime,
 	distinctUntilChanged,
@@ -24,9 +19,13 @@ import {
 
 import { type GameShelfEntry } from "../../../core/models";
 import { type Game, type Platform } from "../../../core/models";
+import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
+import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import {
 	UiButton,
+	UiDialog,
 	UiIconButton,
+	UiInput,
 	UiSelect,
 	UiTextarea
 } from "../../../shared/ui";
@@ -47,12 +46,13 @@ export type GameShelfModalResult = "saved";
 	selector: "app-game-shelf-modal",
 	imports: [
 		DatePipe,
+		DialogDeleteAction,
 		FormField,
-		NgpDialog,
-		NgpDialogOverlay,
-		NgpDialogTitle,
+		GamePoster,
 		UiButton,
+		UiDialog,
 		UiIconButton,
+		UiInput,
 		UiSelect,
 		UiTextarea
 	],
@@ -80,12 +80,17 @@ export class GameShelfModal implements OnInit {
 	protected readonly gamePlatforms = computed(
 		() => this.selectedGame()?.platforms ?? []
 	);
-	protected readonly showConfirmDelete = signal(false);
 	protected readonly isForceSearching = signal(false);
 
 	private readonly searchSubject = new Subject<string>();
 	protected readonly isEdit = signal(false);
 	protected readonly viewMode = signal<"summary" | "edit">("edit");
+	protected readonly heading = computed(() => {
+		if (!this.isEdit()) return "Add to My Shelf";
+		return this.viewMode() === "summary"
+			? this.entry!.game.title
+			: "Edit shelf entry";
+	});
 
 	switchToEdit() {
 		this.viewMode.set("edit");

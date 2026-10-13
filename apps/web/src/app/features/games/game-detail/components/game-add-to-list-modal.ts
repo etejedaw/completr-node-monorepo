@@ -5,14 +5,9 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
-import {
-	injectDialogRef,
-	NgpDialog,
-	NgpDialogOverlay,
-	NgpDialogTitle
-} from "ng-primitives/dialog";
+import { injectDialogRef } from "ng-primitives/dialog";
 
-import { UiButton, UiInput } from "../../../../shared/ui";
+import { UiButton, UiDialog, UiInput } from "../../../../shared/ui";
 import { ListsService } from "../../../lists/lists";
 import { GamesService } from "../../games";
 
@@ -54,7 +49,7 @@ interface ModalState {
 
 @Component({
 	selector: "app-game-add-to-list-modal",
-	imports: [NgpDialog, NgpDialogOverlay, NgpDialogTitle, UiButton, UiInput],
+	imports: [UiButton, UiDialog, UiInput],
 	templateUrl: "./game-add-to-list-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
