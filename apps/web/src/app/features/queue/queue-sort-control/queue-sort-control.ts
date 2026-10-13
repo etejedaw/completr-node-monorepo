@@ -6,15 +6,35 @@ import {
 	model
 } from "@angular/core";
 
+import {
+	OptionPicker,
+	type PickerOption
+} from "../../../shared/components/option-picker/option-picker";
 import { QUEUE_SORT_OPTIONS, type QueueSort } from "../queue-order";
+
+const QUEUE_SORT_ICONS: Record<QueueSort, string> = {
+	manual: "drag_indicator",
+	ratio: "trending_up",
+	score: "star",
+	duration: "timer"
+};
 
 @Component({
 	selector: "app-queue-sort-control",
+	imports: [OptionPicker],
 	template: `
+		<app-option-picker
+			class="md:hidden"
+			label="Sort"
+			heading="Sort queue by"
+			[options]="pickerOptions()"
+			[value]="value()"
+			(valueChange)="value.set($any($event))"
+		/>
 		<div
 			role="radiogroup"
 			aria-label="Sort queue"
-			class="flex gap-0.5 p-1 bg-input-bg border border-line rounded-card overflow-x-auto [scrollbar-width:none]"
+			class="max-md:hidden flex gap-0.5 p-1 bg-input-bg border border-line rounded-card overflow-x-auto [scrollbar-width:none]"
 		>
 			@for (option of options(); track option.value) {
 				<button
@@ -46,5 +66,13 @@ export class QueueSortControl {
 				? { ...option, label: this.manualLabel() }
 				: option
 		)
+	);
+
+	protected readonly pickerOptions = computed<PickerOption[]>(() =>
+		this.options().map(option => ({
+			value: option.value,
+			label: option.label,
+			icon: QUEUE_SORT_ICONS[option.value]
+		}))
 	);
 }
