@@ -3,89 +3,70 @@ import {
 	Component,
 	computed,
 	inject,
-	type OnInit,
 	signal
 } from "@angular/core";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { RouterLink } from "@angular/router";
 
 import { type QueueEntry } from "../../../core/models";
-import { AuthService } from "../../../core/services/auth";
-import { QueueGridCard } from "../../../shared/components/queue-grid-card/queue-grid-card";
-import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { QueueNextCard } from "../../queue/queue-next-card/queue-next-card";
+import {
+	queueFeaturedEyebrow,
+	type QueueSort,
+	sortQueueEntries
+} from "../../queue/queue-order";
+import { QueueRow } from "../../queue/queue-row/queue-row";
+import { QueueSkeleton } from "../../queue/queue-skeleton/queue-skeleton";
+import { QueueSortControl } from "../../queue/queue-sort-control/queue-sort-control";
+import { ProfileAccessState } from "../components/profile-access-state";
+import { injectPublicCollection } from "../services/public-collection";
 import { PublicLibraryService } from "../services/public-library.service";
 
-const PAGE_SIZE = 50;
+const QUEUE_PAGE_SIZE = 100;
 
 @Component({
 	selector: "app-user-queue",
-	imports: [RouterLink, UiPagination, UiSearchBar, QueueGridCard],
+	imports: [
+		RouterLink,
+		LibraryHero,
+		ProfileAccessState,
+		QueueNextCard,
+		QueueRow,
+		QueueSkeleton,
+		QueueSortControl,
+		UiButton,
+		UiPagination,
+		UiSearchBar
+	],
 	templateUrl: "./user-queue.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class UserQueue implements OnInit {
-	private readonly route = inject(ActivatedRoute);
+export class UserQueue {
 	private readonly libraryService = inject(PublicLibraryService);
-	private readonly authService = inject(AuthService);
 
-	protected readonly username = signal("");
-	protected readonly entries = signal<QueueEntry[]>([]);
-	protected readonly total = signal(0);
-	protected readonly offset = signal(0);
-	protected readonly limit = PAGE_SIZE;
-	protected readonly Math = Math;
-	protected readonly isLoading = signal(true);
-	protected readonly error = signal<"not_found" | "private" | null>(null);
-	protected readonly isLoggedIn = this.authService.isLoggedIn;
-	protected readonly searchQuery = signal("");
-	protected readonly filteredEntries = computed(() => {
-		const q = this.searchQuery().toLowerCase().trim();
-		if (!q) return this.entries();
-		return this.entries().filter(e =>
-			e.backlog.game.title.toLowerCase().includes(q)
-		);
-	});
+	protected readonly collection = injectPublicCollection<QueueEntry>(
+		(username, pagination) =>
+			this.libraryService.getUserQueue(username, pagination),
+		entry => entry.backlog.game,
+		{ limit: QUEUE_PAGE_SIZE }
+	);
 
-	ngOnInit() {
-		if (this.authService.token() && !this.authService.user()) {
-			this.authService.loadUser().subscribe({
-				next: () => this.init(),
-				error: () => this.init()
-			});
-		} else {
-			this.init();
+	protected readonly sortBy = signal<QueueSort>("manual");
+	protected readonly sortedEntries = computed(() =>
+		sortQueueEntries(this.collection.visibleItems(), this.sortBy())
+	);
+	protected readonly featured = computed(() => {
+		if (this.collection.offset() > 0 || this.collection.query().trim()) {
+			return null;
 		}
-	}
-
-	private init() {
-		const username = this.route.snapshot.paramMap.get("username") ?? "";
-		this.username.set(username);
-		this.load(username);
-	}
-
-	goToOffset(offset: number) {
-		this.offset.set(offset);
-		this.load(this.username());
-	}
-
-	private load(username: string) {
-		this.isLoading.set(true);
-		this.error.set(null);
-		this.libraryService
-			.getUserQueue(username, {
-				limit: this.limit,
-				offset: this.offset()
-			})
-			.subscribe({
-				next: result => {
-					this.entries.set(result.items);
-					this.total.set(result.total);
-					this.isLoading.set(false);
-				},
-				error: err => {
-					if (err.status === 403) this.error.set("private");
-					else if (err.status === 404) this.error.set("not_found");
-					this.isLoading.set(false);
-				}
-			});
-	}
+		return this.sortedEntries()[0] ?? null;
+	});
+	protected readonly rest = computed(() =>
+		this.featured() ? this.sortedEntries().slice(1) : this.sortedEntries()
+	);
+	protected readonly restOffset = computed(() => (this.featured() ? 1 : 0));
+	protected readonly featuredEyebrow = computed(() =>
+		queueFeaturedEyebrow(this.sortBy())
+	);
 }

@@ -1,6 +1,6 @@
 {
 	"name": "completr",
-	"version": "0.4.0",
+	"version": "0.5.0",
 	"private": true,
 	"description": "Completr, a game backlog tracker with ratio-based prioritization",
 	"homepage": "https://www.completr.app",

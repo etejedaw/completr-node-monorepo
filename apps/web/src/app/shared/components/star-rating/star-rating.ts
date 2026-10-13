@@ -10,6 +10,25 @@ import {
 import { getRatingLabel } from "../../constants/rating-labels";
 
 type StarState = "empty" | "half" | "full";
+export type StarRatingSize = "sm" | "md" | "lg";
+
+const STAR_BOX: Record<StarRatingSize, string> = {
+	sm: "w-4 h-4",
+	md: "w-6 h-6",
+	lg: "w-11 h-11"
+};
+
+const STAR_GLYPH: Record<StarRatingSize, string> = {
+	sm: "text-base",
+	md: "text-2xl",
+	lg: "text-[2.75rem]"
+};
+
+const STAR_GAP: Record<StarRatingSize, string> = {
+	sm: "gap-0.5",
+	md: "gap-1",
+	lg: "gap-2"
+};
 
 @Component({
 	selector: "app-star-rating",
@@ -19,8 +38,9 @@ type StarState = "empty" | "half" | "full";
 export class StarRating {
 	value = input<number | null>(null);
 	readonly = input(false);
-	size = input<"sm" | "md">("md");
+	size = input<StarRatingSize>("md");
 	ariaLabelledby = input<string | null>(null);
+	showValue = input(true);
 	ratingChange = output<number | null>();
 
 	protected readonly stars: readonly number[] = [1, 2, 3, 4, 5];
@@ -39,14 +59,12 @@ export class StarRating {
 	});
 
 	protected readonly wrapperClasses = computed(() => {
-		const dims = this.size() === "sm" ? "w-4 h-4" : "w-6 h-6";
+		const dims = STAR_BOX[this.size()];
 		const cursor = this.readonly() ? "cursor-default" : "cursor-pointer";
 		return `relative inline-block shrink-0 ${dims} ${cursor}`;
 	});
 
-	protected readonly listGap = computed(() =>
-		this.size() === "sm" ? "gap-0.5" : "gap-1"
-	);
+	protected readonly listGap = computed(() => STAR_GAP[this.size()]);
 
 	protected starState(star: number): StarState {
 		const val = this.displayValue();
@@ -56,10 +74,10 @@ export class StarRating {
 	}
 
 	protected iconClasses(star: number): string {
-		const sizeText = this.size() === "sm" ? "text-base" : "text-2xl";
+		const sizeText = STAR_GLYPH[this.size()];
 		const state = this.starState(star);
 		let color = "";
-		if (state === "full") color = "text-warning";
+		if (state === "full") color = "text-rating";
 		else if (state === "empty") color = "text-fg-muted/40";
 		return `absolute inset-0 flex items-center justify-center pointer-events-none transition-colors leading-none ${sizeText} ${color}`;
 	}

@@ -58,7 +58,7 @@ export class AdminFranchises implements OnInit {
 		const ref = this.dialogs.open<
 			AdminFranchiseModalData,
 			AdminFranchiseModalResult
-		>(AdminFranchiseModal, { data: { franchise } });
+		>(AdminFranchiseModal, { data: { franchise }, closeOnEscape: true });
 		ref.afterClosed.subscribe(result => {
 			if (result === "saved") this.load();
 		});

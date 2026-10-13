@@ -1,0 +1,117 @@
+@let item = review();
+<article
+	class="relative isolate flex gap-4 sm:gap-5 h-full"
+	[class]="surfaceClass()"
+>
+	@if (showBackdrop()) {
+	<img
+		[src]="item.game!.backgroundUrl! | coverUrl: 640"
+		alt=""
+		aria-hidden="true"
+		loading="lazy"
+		class="absolute inset-y-0 right-0 -z-10 w-2/3 h-full object-cover opacity-20 [mask-image:linear-gradient(to_left,black,transparent)]"
+	/>
+	} @if (subject() === 'game' && item.game; as game) {
+	<a
+		class="shrink-0 self-start"
+		[routerLink]="['/games', game.code]"
+		tabindex="-1"
+		[attr.aria-label]="game.title"
+	>
+		<app-game-poster
+			[src]="posterUrl()"
+			[title]="game.title"
+			[width]="200"
+			[compact]="true"
+			class="w-16 sm:w-20 aspect-[2/3] rounded-md ring-1 ring-white/10 shadow-lg shadow-black/40"
+		/>
+	</a>
+	} @else if (subject() === 'author' && item.user; as user) {
+	<a
+		class="shrink-0 self-start rounded-full no-underline"
+		[routerLink]="['/user', user.username]"
+		tabindex="-1"
+		[attr.aria-label]="authorName()"
+	>
+		<ui-avatar
+			[src]="user.avatarUrl"
+			[name]="user.username"
+			[premium]="authorIsPremium()"
+			class="w-10 h-10 sm:w-12 sm:h-12 text-sm"
+		/>
+	</a>
+	}
+
+	<div class="flex-1 min-w-0 flex flex-col gap-2">
+		<header class="flex items-start gap-3">
+			<div class="flex-1 min-w-0">
+				@if (subject() === 'game' && item.game; as game) {
+				<h3
+					class="m-0 font-display text-base sm:text-lg font-semibold leading-tight"
+				>
+					<a
+						class="tap-area text-fg no-underline hover:text-brand"
+						[routerLink]="['/games', game.code]"
+						>{{ game.title }}</a
+					>
+				</h3>
+				} @else if (subject() === 'author' && item.user; as user) {
+				<h3
+					class="m-0 flex flex-wrap items-center gap-x-2 text-sm sm:text-base font-semibold leading-tight"
+				>
+					<a
+						class="tap-area text-fg no-underline hover:text-brand truncate"
+						[routerLink]="['/user', user.username]"
+						>{{ authorName() }}</a
+					>
+					@if (highlighted()) {
+					<span
+						class="px-1.5 py-px rounded-full bg-brand text-white text-[0.5625rem] font-bold uppercase tracking-wider"
+						>You</span
+					>
+					}
+				</h3>
+				}
+				<p
+					class="m-0 mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-fg-muted"
+				>
+					@if (item.rating) {
+					<span class="inline-flex items-center gap-1.5">
+						<app-star-rating
+							[value]="item.rating"
+							[readonly]="true"
+							size="sm"
+						/>
+						<span class="font-semibold text-fg tabular-nums"
+							>{{ item.rating }}</span
+						>
+						@if (ratingLabel()) {
+						<span
+							class="text-[0.625rem] font-bold uppercase tracking-[0.14em] text-rating"
+							>{{ ratingLabel() }}</span
+						>
+						}
+					</span>
+					} @if (item.playthroughDuration) {
+					<span class="inline-flex items-center gap-1">
+						<span aria-hidden="true" class="material-icons text-sm"
+							>schedule</span
+						>
+						After {{ item.playthroughDuration }}h
+					</span>
+					}
+					<time [attr.datetime]="item.createdAt"
+						>{{ item.createdAt | date: 'MMM d, y' }}</time
+					>
+				</p>
+			</div>
+			<ng-content select="[reviewActions]" />
+		</header>
+
+		@if (item.content) {
+		<blockquote class="m-0 pl-4 border-l-2 border-brand/50 max-w-[68ch]">
+			<app-expandable-text [text]="item.content" [lines]="4" />
+		</blockquote>
+		}
+	</div>
+</article>

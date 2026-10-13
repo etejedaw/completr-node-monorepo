@@ -1,61 +1,40 @@
 <div
-	class="flex justify-center items-center min-h-screen bg-canvas relative overflow-hidden"
+	class="min-h-screen bg-canvas lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(26rem,1fr)]"
 >
-	<div
-		class="absolute inset-0 pointer-events-none"
-		style="
-			background:
-				radial-gradient(
-					ellipse at 20% 50%,
-					var(--color-brand-subtle) 0%,
-					transparent 50%
-				),
-				radial-gradient(
-					ellipse at 80% 20%,
-					rgba(139, 92, 246, 0.06) 0%,
-					transparent 50%
-				),
-				radial-gradient(
-					ellipse at 50% 100%,
-					var(--color-brand-subtle) 0%,
-					transparent 40%
-				);
-		"
-	></div>
-	<div class="relative w-full max-w-md px-4">
+	<app-auth-showcase
+		class="h-64 sm:h-80 lg:h-auto lg:min-h-screen lg:sticky lg:top-0 border-b lg:border-b-0 lg:border-r border-line"
+	/>
+
+	<main
+		class="relative flex flex-col justify-center px-5 sm:px-10 lg:px-16 py-10 lg:py-16"
+	>
 		<div
-			class="relative bg-sidebar border border-line rounded-card p-10 w-full"
-			style="
-				box-shadow:
-					0 0 0 1px rgba(255, 255, 255, 0.03),
-					0 20px 50px -12px rgba(0, 0, 0, 0.5);
-			"
-		>
-			<div class="flex items-center gap-3 mb-2">
-				<span
-					class="flex items-center justify-center w-9 h-9 rounded-lg font-display font-bold text-lg text-white"
-					style="
-						background: linear-gradient(
-							135deg,
-							var(--color-brand),
-							var(--color-brand-deep)
-						);
-						box-shadow: 0 4px 14px -4px var(--color-brand-glow);
-					"
-					>C</span
-				>
-				<h1 class="font-display text-2xl font-bold tracking-tight">
-					Completr
-				</h1>
-			</div>
-			<p class="text-fg-muted mb-8 text-sm">
-				Track your games. Prioritize your backlog.
+			aria-hidden="true"
+			class="pointer-events-none absolute -top-32 right-0 w-96 h-96 rounded-full blur-3xl opacity-40 bg-[radial-gradient(circle,var(--color-brand-glow),transparent_65%)]"
+		></div>
+
+		<div class="relative w-full max-w-sm mx-auto lg:mx-0">
+			<span
+				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+				>Sign in</span
+			>
+			<h1
+				class="m-0 mt-2 font-display text-3xl sm:text-4xl font-bold tracking-tight leading-tight"
+			>
+				Welcome back
+			</h1>
+			<p class="m-0 mt-2 mb-8 text-sm text-fg-muted">
+				Pick up right where your backlog left off.
 			</p>
 
 			@if (error()) {
 			<div
-				class="bg-danger/10 border border-danger/25 text-red-300 px-3.5 py-2.5 rounded-md mb-5 text-sm"
+				role="alert"
+				class="flex items-start gap-2 bg-danger/10 border border-danger/25 text-red-300 px-3.5 py-2.5 rounded-card mb-5 text-sm"
 			>
+				<span aria-hidden="true" class="material-icons text-base mt-px"
+					>error_outline</span
+				>
 				{{ error() }}
 			</div>
 			}
@@ -67,14 +46,22 @@
 						class="block mb-1.5 text-sm font-medium text-fg-secondary"
 						>Email</label
 					>
-					<input
-						uiInput
-						id="email"
-						type="email"
-						[formField]="form.email"
-						placeholder="you@example.com"
-						autocomplete="email"
-					/>
+					<div class="relative">
+						<span
+							aria-hidden="true"
+							class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-lg text-fg-muted pointer-events-none"
+							>mail_outline</span
+						>
+						<input
+							uiInput
+							id="email"
+							type="email"
+							[formField]="form.email"
+							placeholder="you@example.com"
+							autocomplete="email"
+							class="!pl-10 !py-3 !text-sm"
+						/>
+					</div>
 				</div>
 
 				<div>
@@ -84,6 +71,11 @@
 						>Password</label
 					>
 					<div class="relative">
+						<span
+							aria-hidden="true"
+							class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-lg text-fg-muted pointer-events-none"
+							>lock_outline</span
+						>
 						<input
 							uiInput
 							id="password"
@@ -91,18 +83,18 @@
 							[formField]="form.password"
 							placeholder="Your password"
 							autocomplete="current-password"
-							class="!pr-10"
+							class="!pl-10 !pr-11 !py-3 !text-sm"
 						/>
 						<button
 							type="button"
-							class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center bg-transparent border-0 cursor-pointer text-fg-muted hover:text-fg transition"
+							class="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-md bg-transparent border-0 cursor-pointer text-fg-muted hover:text-fg hover:bg-surface transition"
 							(click)="toggleShowPassword()"
 							[attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
 							[title]="showPassword() ? 'Hide password' : 'Show password'"
 						>
 							<span
 								aria-hidden="true"
-								class="material-icons text-base"
+								class="material-icons text-lg"
 								>{{ showPassword() ? 'visibility_off' :
 								'visibility' }}</span
 							>
@@ -116,28 +108,37 @@
 					size="lg"
 					[block]="true"
 					type="submit"
+					class="!py-3.5 mt-1"
 					[disabled]="form().invalid() || isLoading()"
 				>
-					{{ isLoading() ? 'Signing in...' : 'Sign in' }}
+					{{ isLoading() ? 'Signing in...' : 'Sign in' }} @if
+					(!isLoading()) {
+					<span aria-hidden="true" class="material-icons text-base"
+						>arrow_forward</span
+					>
+					}
 				</button>
 			</form>
-		</div>
-		<div class="mt-4 text-xs text-fg-muted text-center">
-			<a
-				routerLink="/privacy"
-				class="text-fg-secondary no-underline hover:text-brand"
-				>Privacy Policy</a
+
+			<div
+				class="mt-10 pt-6 border-t border-line flex flex-wrap items-center justify-between gap-3 text-xs text-fg-muted"
 			>
+				<a
+					routerLink="/privacy"
+					class="text-fg-secondary no-underline hover:text-brand"
+					>Privacy Policy</a
+				>
+				<span>
+					Made with ♥ by
+					<a
+						href="https://www.etejeda.dev"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-fg-secondary no-underline hover:text-brand"
+						>Esteban Tejeda</a
+					>
+				</span>
+			</div>
 		</div>
-		<div class="mt-2 text-xs text-fg-muted text-center">
-			Made with ♥ by
-			<a
-				href="https://www.etejeda.dev"
-				target="_blank"
-				rel="noopener noreferrer"
-				class="text-fg-secondary no-underline hover:text-brand"
-				>Esteban Tejeda</a
-			>
-		</div>
-	</div>
+	</main>
 </div>

@@ -38,6 +38,15 @@ export function invalidTag(context?: Record<string, unknown>) {
 	);
 }
 
+export function limitReached(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"MOOD_TAGS_LIMIT_REACHED",
+		"Tag limit reached for free plan",
+		context
+	);
+}
+
 export function moodTagsInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

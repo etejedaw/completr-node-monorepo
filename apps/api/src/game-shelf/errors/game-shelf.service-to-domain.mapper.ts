@@ -22,5 +22,8 @@ export function gameShelfServiceToDomainMapper(
 	if (error.code === "GAME_SHELF_VALIDATION_ERROR")
 		return gameShelfDomainError.gameShelfValidation(context);
 
+	if (error.code === "GAME_SHELF_LIMIT_REACHED")
+		return gameShelfDomainError.gameShelfLimitReached(context);
+
 	return gameShelfDomainError.gameShelfInternalError(context);
 }

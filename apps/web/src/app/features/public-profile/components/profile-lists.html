@@ -1,0 +1,58 @@
+@if (isLoading()) {
+<div
+	class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+	aria-busy="true"
+	aria-label="Loading lists"
+>
+	@for (i of skeletonRange; track i) {
+	<ui-skeleton variant="rect" class="block aspect-[16/10] rounded-card" />
+	}
+</div>
+} @else if (groups().length > 0) {
+<section aria-labelledby="profile-lists-heading">
+	<app-profile-section-header
+		heading="Lists"
+		headingId="profile-lists-heading"
+		eyebrow="Curated"
+	/>
+	<div class="flex flex-col gap-8">
+		@for (group of groups(); track group.title) {
+		<div>
+			<h3
+				class="m-0 mb-3 flex items-baseline gap-2 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+			>
+				{{ group.title }}
+				<span class="tabular-nums">{{ group.items.length }}</span>
+			</h3>
+			<ul
+				class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+			>
+				@for (list of visibleItems(group); track list.id) {
+				<li>
+					<app-list-card
+						[list]="list"
+						[showVisibility]="isSelf() && group.title === 'Created'"
+						[linkQueryParams]="{ from: username() }"
+					/>
+				</li>
+				}
+			</ul>
+		</div>
+		}
+	</div>
+	@if (hasHiddenLists()) {
+	<button
+		uiButton
+		variant="ghost"
+		class="mt-4"
+		[attr.aria-expanded]="expanded()"
+		(click)="expanded.set(!expanded())"
+	>
+		{{ expanded() ? 'Show fewer' : 'Show all lists' }}
+		<span aria-hidden="true" class="material-icons text-lg"
+			>{{ expanded() ? 'expand_less' : 'expand_more' }}</span
+		>
+	</button>
+	}
+</section>
+}

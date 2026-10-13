@@ -63,7 +63,8 @@ function resolveTarget(activity: Activity) {
 			id: targetUser.id,
 			name: targetUser.name || targetUser.username,
 			username: targetUser.username,
-			avatarUrl: targetUser.avatarUrl
+			avatarUrl: targetUser.avatarUrl,
+			role: targetUser.role
 		};
 	}
 
@@ -76,6 +77,7 @@ function userSerializer(user?: User) {
 		id: user.id,
 		username: user.username,
 		name: user.name,
-		avatarUrl: user.avatarUrl
+		avatarUrl: user.avatarUrl,
+		role: user.role
 	};
 }

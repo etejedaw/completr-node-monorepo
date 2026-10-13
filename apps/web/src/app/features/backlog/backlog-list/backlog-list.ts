@@ -6,10 +6,10 @@ import {
 	moveItemInArray
 } from "@angular/cdk/drag-drop";
 import { DatePipe } from "@angular/common";
-import { HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	effect,
 	inject,
 	type OnInit,
@@ -32,16 +32,26 @@ import {
 	type Platform
 } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
+import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
+import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
-import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
+import {
+	OptionPicker,
+	type PickerAction,
+	type PickerOption
+} from "../../../shared/components/option-picker/option-picker";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { FloatingXScrollbar } from "../../../shared/directives/floating-x-scrollbar";
+import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import {
+	UiBottomSheet,
 	UiButton,
+	UiDialog,
 	UiEmptyState,
 	UiIconButton,
 	UiInput,
@@ -94,18 +104,36 @@ interface PendingStatusUpdate {
 	notes: string;
 }
 
+interface RatingSheetState {
+	entry: BacklogEntry;
+	value: number | null;
+}
+
+const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
+	"playing",
+	"endless",
+	"not_started"
+]);
+
+const MIXED_STATUS_VALUE = "__mixed__";
+
 @Component({
 	selector: "app-backlog-list",
 	imports: [
 		DatePipe,
+		OptionPicker,
 		BacklogCalendar,
 		SurpriseMe,
 		StarRating,
 		GameTitleCell,
+		BacklogEntryCard,
+		LibraryHero,
+		SwipeActions,
+		UiBottomSheet,
 		FloatingXScrollbar,
-		PersonalStats,
 		RouterLink,
 		UiButton,
+		UiDialog,
 		UiEmptyState,
 		UiIconButton,
 		UiInput,
@@ -150,6 +178,89 @@ export class BacklogList implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
 	protected readonly activeStatuses = signal<Set<string>>(new Set());
+	protected readonly pointer = inject(PointerService);
+	protected readonly statusSheetEntry = signal<BacklogEntry | null>(null);
+	protected readonly ratingSheet = signal<RatingSheetState | null>(null);
+	protected readonly toolsSheetOpen = signal(false);
+
+	protected readonly activeView = computed(
+		() =>
+			this.backlogFilters().find(
+				view => view.id === this.activeFilterId()
+			) ?? null
+	);
+
+	private readonly singleActiveStatus = computed(() => {
+		const active = this.activeStatuses();
+		return active.size === 1 ? ([...active][0] as BacklogStatus) : null;
+	});
+
+	protected readonly quickStatusLabel = computed(() => {
+		const count = this.activeStatuses().size;
+		const single = this.singleActiveStatus();
+		if (count === 0) return "All games";
+		if (single) return this.statusLabel(single);
+		return `${count} statuses`;
+	});
+
+	protected readonly quickStatusIcon = computed(() => {
+		const count = this.activeStatuses().size;
+		const single = this.singleActiveStatus();
+		if (count === 0) return "apps";
+		if (single) return this.statusIcon(single);
+		return "filter_list";
+	});
+
+	protected readonly statusPickerOptions = computed<PickerOption[]>(() => [
+		{ value: "", label: "All games", icon: "apps" },
+		...this.statusFilters.map(status => ({
+			value: status.value,
+			label: status.label,
+			icon: this.statusIcon(status.value as BacklogStatus),
+			iconClass: this.statusIconColor(status.value as BacklogStatus)
+		}))
+	]);
+
+	protected readonly statusPickerValue = computed(() => {
+		if (this.activeStatuses().size === 0) return "";
+		return this.singleActiveStatus() ?? MIXED_STATUS_VALUE;
+	});
+
+	protected readonly viewPickerOptions = computed<PickerOption[]>(() => [
+		{ value: "", label: "None", icon: "bookmark_border" },
+		...this.backlogFilters().map(view => ({
+			value: view.id,
+			label: view.name,
+			icon: view.icon || "bookmark_border",
+			iconColor: view.icon ? this.colorHex(view.color) : null
+		}))
+	]);
+
+	protected readonly viewPickerActions = computed<PickerAction[]>(() => [
+		...(this.backlogFilters().length > 1
+			? [
+					{
+						id: "reorder",
+						label: "Reorder pinned views",
+						icon: "swap_vert"
+					}
+				]
+			: []),
+		{ id: "manage", label: "Manage saved views", icon: "settings" }
+	]);
+
+	protected readonly quickStatusIconColor = computed(() => {
+		const single = this.singleActiveStatus();
+		return single ? this.statusIconColor(single) : "text-fg-secondary";
+	});
+	protected readonly flippedEntryIds = signal<ReadonlySet<string>>(new Set());
+
+	protected readonly heroPosters = computed(() =>
+		this.entries().map(entry => ({
+			src: entry.game.backgroundUrl,
+			title: entry.game.title
+		}))
+	);
 	protected readonly sortBy = signal("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
 	protected readonly queueBacklogIds = signal<Set<string>>(new Set());
@@ -159,8 +270,6 @@ export class BacklogList implements OnInit {
 		null
 	);
 	protected readonly updatingStatusIds = signal<Set<string>>(new Set());
-	protected readonly reviewExpandedIds = signal<Set<string>>(new Set());
-
 	private readonly queryParamMap = toSignal(this.route.queryParamMap);
 	private readonly savedFiltersLoaded = signal(false);
 	private eagerlyAppliedParams: ParamMap | null = null;
@@ -179,7 +288,9 @@ export class BacklogList implements OnInit {
 			const hasDefault = this.savedFilters().some(f => f.isDefault);
 			if (
 				this.eagerlyAppliedParams === params &&
-				(params.get("status") !== null || !hasDefault)
+				(params.get("status") !== null ||
+					params.get("mood_tags") !== null ||
+					!hasDefault)
 			) {
 				return;
 			}
@@ -506,6 +617,15 @@ export class BacklogList implements OnInit {
 			return;
 		}
 
+		const moodTagsParam = params.get("mood_tags");
+		if (moodTagsParam) {
+			this.resetFilterState();
+			this.selectedMoodTags.set(moodTagsParam.split(",").filter(Boolean));
+			this.offset.set(0);
+			this.loadBacklog();
+			return;
+		}
+
 		const defaultFilter = this.savedFilters().find(f => f.isDefault);
 		if (defaultFilter && this.activeFilterId() !== defaultFilter.id) {
 			this.applySavedFilterFromUrl(defaultFilter);
@@ -669,6 +789,18 @@ export class BacklogList implements OnInit {
 		this.activeFilterId.set(null);
 	}
 
+	setQuickStatus(status: string | null) {
+		this.activeStatuses.set(status ? new Set([status]) : new Set());
+		this.applyFilters();
+	}
+
+	isQuickStatus(status: string | null): boolean {
+		const active = this.activeStatuses();
+		return status === null
+			? active.size === 0
+			: active.size === 1 && active.has(status);
+	}
+
 	isStatusActive(status: string): boolean {
 		return this.activeStatuses().has(status);
 	}
@@ -748,10 +880,7 @@ export class BacklogList implements OnInit {
 					this.loadSavedFilters();
 					this.loadStats(id);
 				},
-				error: err => {
-					this.savingFilter.set(false);
-					this.notifyFilterLimit(err);
-				}
+				error: () => this.savingFilter.set(false)
 			});
 	}
 
@@ -786,18 +915,8 @@ export class BacklogList implements OnInit {
 					this.newFilterPinned.set(true);
 					this.loadSavedFilters();
 				},
-				error: err => {
-					this.savingFilter.set(false);
-					this.notifyFilterLimit(err);
-				}
+				error: () => this.savingFilter.set(false)
 			});
-	}
-
-	private notifyFilterLimit(error: unknown) {
-		if (error instanceof HttpErrorResponse && error.status === 402)
-			this.toast.error(
-				"You've reached the free limit of 5 saved views. Delete one to save a new view."
-			);
 	}
 
 	private buildFiltersObject(): Record<string, string> {
@@ -912,6 +1031,10 @@ export class BacklogList implements OnInit {
 
 	toggleStatusMenu(entry: BacklogEntry, event: Event) {
 		event.stopPropagation();
+		if (this.pointer.isCoarse()) {
+			this.statusSheetEntry.set(entry);
+			return;
+		}
 		const current = this.statusMenuOpenId();
 		this.statusMenuOpenId.set(current === entry.id ? null : entry.id);
 	}
@@ -1086,8 +1209,8 @@ export class BacklogList implements OnInit {
 		return this.favoritesService.isFavorite(gameId);
 	}
 
-	toggleFavorite(gameId: string, event: Event) {
-		event.stopPropagation();
+	toggleFavorite(gameId: string, event?: Event) {
+		event?.stopPropagation();
 		this.favoritesService.toggle(gameId).subscribe();
 	}
 
@@ -1103,17 +1226,84 @@ export class BacklogList implements OnInit {
 		});
 	}
 
-	isReviewExpanded(entryId: string) {
-		return this.reviewExpandedIds().has(entryId);
+	protected selectStatusFromSheet(
+		entry: BacklogEntry,
+		status: string,
+		event: Event
+	) {
+		this.statusSheetEntry.set(null);
+		this.selectNewStatus(entry, status, event);
 	}
 
-	toggleReview(entry: BacklogEntry, event: Event) {
+	protected openRatingSheet(entry: BacklogEntry, event: Event) {
 		event.stopPropagation();
-		if (!entry.hasReview || !entry.notes) return;
-		const next = new Set(this.reviewExpandedIds());
+		this.ratingSheet.set({ entry, value: entry.userRating ?? null });
+	}
+
+	protected updateRatingDraft(value: number | null) {
+		this.ratingSheet.update(sheet => (sheet ? { ...sheet, value } : sheet));
+	}
+
+	protected saveRatingSheet() {
+		const sheet = this.ratingSheet();
+		if (!sheet) return;
+		this.ratingSheet.set(null);
+		if (sheet.value !== (sheet.entry.userRating ?? null)) {
+			this.onQuickRate(sheet.entry, sheet.value);
+		}
+	}
+
+	protected openFiltersFromSheet() {
+		this.toolsSheetOpen.set(false);
+		this.toggleFilters();
+	}
+
+	protected openStatsFromSheet() {
+		this.toolsSheetOpen.set(false);
+		this.toggleStatsPanel();
+	}
+
+	protected pickStatus(value: string) {
+		if (value === MIXED_STATUS_VALUE) return;
+		this.setQuickStatus(value || null);
+	}
+
+	protected pickView(id: string) {
+		if (!id) {
+			if (this.activeFilterId()) {
+				this.clearFilters();
+				this.showFilters.set(false);
+			}
+			return;
+		}
+		const view = this.backlogFilters().find(item => item.id === id);
+		if (view && view.id !== this.activeFilterId())
+			this.applySavedFilter(view);
+	}
+
+	protected runViewAction(id: string) {
+		if (id === "reorder") this.openReorderModal();
+		if (id === "manage") this.router.navigate(["/saved-views"]);
+	}
+
+	protected isFlipped(entryId: string): boolean {
+		return this.flippedEntryIds().has(entryId);
+	}
+
+	protected toggleFlip(entry: BacklogEntry, event: Event) {
+		event.stopPropagation();
+		this.statusMenuOpenId.set(null);
+		const next = new Set(this.flippedEntryIds());
 		if (next.has(entry.id)) next.delete(entry.id);
 		else next.add(entry.id);
-		this.reviewExpandedIds.set(next);
+		this.flippedEntryIds.set(next);
+	}
+
+	protected showsProgress(entry: BacklogEntry): boolean {
+		return (
+			!!entry.latestProgress &&
+			PROGRESS_VISIBLE_STATUSES.has(entry.status)
+		);
 	}
 
 	openCreate() {

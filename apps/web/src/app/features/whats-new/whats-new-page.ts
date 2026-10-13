@@ -1,226 +1,156 @@
+import { DatePipe } from "@angular/common";
+import { httpResource } from "@angular/common/http";
 import {
+	afterRenderEffect,
 	ChangeDetectionStrategy,
-	ChangeDetectorRef,
 	Component,
 	computed,
+	DOCUMENT,
 	inject,
-	type OnInit,
 	signal
 } from "@angular/core";
+import { ActivatedRoute, RouterLink } from "@angular/router";
 
 import { environment } from "../../../environments/environment";
-import { UiPagination } from "../../shared/ui";
+import { InfoPageLinks } from "../../shared/components/info-page-links/info-page-links";
+import { LibraryHero } from "../../shared/components/library-hero/library-hero";
+import { UiButton, UiSkeleton } from "../../shared/ui";
+import { injectLibraryPosters } from "../backlog/library-posters";
+import { ReleaseEntryCard } from "./components/release-entry";
+import {
+	type ChangelogResponse,
+	type ReleaseView,
+	toReleaseViews
+} from "./release.model";
 
-type Tint = "brand" | "purple" | "warning" | "success" | "danger";
+const OLDER_PAGE_SIZE = 8;
 
-interface Highlight {
-	icon: string;
-	tint: Tint;
-	text: string;
+interface PendingScroll {
+	anchor: string;
+	behavior: ScrollBehavior;
 }
 
-interface ReleaseEntry {
-	date: string;
-	tag: string;
-	title: string;
-	icon: string;
-	tint: Tint;
-	highlights: Highlight[];
+interface MonthSummary {
+	month: string;
+	count: number;
 }
 
-interface ChangelogResponse {
-	releases: ReleaseEntry[];
+interface MonthGroup {
+	month: string;
+	releases: ReleaseView[];
 }
 
-const PAGE_SIZE = 5;
+function monthAnchor(month: string): string {
+	return `month-${month}`;
+}
+
+function groupByMonth(releases: ReleaseView[]): MonthGroup[] {
+	const groups: MonthGroup[] = [];
+	for (const release of releases) {
+		const month = release.date.slice(0, 7);
+		const last = groups.at(-1);
+		if (last?.month === month) last.releases.push(release);
+		else groups.push({ month, releases: [release] });
+	}
+	return groups;
+}
 
 @Component({
 	selector: "app-whats-new-page",
-	imports: [UiPagination],
-	template: `
-		<div class="max-w-3xl mx-auto">
-			<div class="mb-6 flex items-start gap-4">
-				<span
-					class="flex items-center justify-center w-12 h-12 rounded-2xl text-white shrink-0"
-					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 10px 24px -8px var(--color-brand-glow);"
-				>
-					<span class="material-icons text-[1.5rem]">campaign</span>
-				</span>
-				<div>
-					<h1
-						class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight"
-					>
-						What's new
-					</h1>
-					<p class="text-fg-muted mt-1 text-sm leading-snug">
-						Recent updates and improvements to Completr
-					</p>
-				</div>
-			</div>
-
-			@if (isLoading()) {
-				<div class="text-center py-12 text-fg-muted text-sm">
-					Loading...
-				</div>
-			} @else if (error()) {
-				<div class="text-center py-12 text-fg-muted text-sm">
-					Couldn't load the changelog right now. Please try again
-					later.
-				</div>
-			} @else {
-				<div class="flex flex-col gap-4">
-					@for (
-						entry of pageEntries();
-						track entry.date + entry.title
-					) {
-						<article
-							class="bg-sidebar border border-line rounded-card overflow-hidden"
-						>
-							<header
-								class="flex items-start gap-3 p-5 border-b border-line"
-							>
-								<span
-									class="flex items-center justify-center w-10 h-10 rounded-xl shrink-0"
-									[class]="iconBgClass(entry.tint)"
-								>
-									<span
-										class="material-icons text-[1.25rem]"
-										>{{ entry.icon }}</span
-									>
-								</span>
-								<div class="flex-1 min-w-0">
-									<div
-										class="flex items-center gap-2 mb-1 flex-wrap"
-									>
-										<span
-											class="inline-block px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider"
-											[class]="tagClass(entry.tint)"
-											>{{ entry.tag }}</span
-										>
-										<span
-											class="text-[0.6875rem] text-fg-muted"
-											>{{ entry.date }}</span
-										>
-									</div>
-									<h2
-										class="font-display m-0 text-base font-semibold text-fg leading-tight"
-									>
-										{{ entry.title }}
-									</h2>
-								</div>
-							</header>
-							<ul class="m-0 list-none p-5 flex flex-col gap-3">
-								@for (
-									item of entry.highlights;
-									track item.text
-								) {
-									<li class="flex items-start gap-2.5">
-										<span
-											class="flex items-center justify-center w-6 h-6 rounded-md shrink-0 mt-0.5"
-											[class]="iconBgClass(item.tint)"
-										>
-											<span
-												class="material-icons text-[0.875rem]"
-												>{{ item.icon }}</span
-											>
-										</span>
-										<span
-											class="text-[0.8125rem] text-fg-secondary leading-relaxed"
-											>{{ item.text }}</span
-										>
-									</li>
-								}
-							</ul>
-						</article>
-					}
-				</div>
-
-				@if (releases().length > pageSize) {
-					<div class="mt-6">
-						<ui-pagination
-							[offset]="offset()"
-							[limit]="pageSize"
-							[total]="releases().length"
-							(offsetChange)="onOffsetChange($event)"
-						/>
-					</div>
-				}
-
-				<p class="text-center text-xs text-fg-muted mt-8 mb-0">
-					Found a bug or have a suggestion?
-					<a
-						href="mailto:completr@etejeda.dev"
-						class="text-brand no-underline hover:underline"
-						>Tell us</a
-					>.
-				</p>
-			}
-		</div>
-	`,
-	host: { class: "block p-6" },
+	imports: [
+		DatePipe,
+		RouterLink,
+		LibraryHero,
+		ReleaseEntryCard,
+		InfoPageLinks,
+		UiButton,
+		UiSkeleton
+	],
+	templateUrl: "./whats-new-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class WhatsNewPage implements OnInit {
-	private readonly cdr = inject(ChangeDetectorRef);
+export class WhatsNewPage {
+	private readonly route = inject(ActivatedRoute);
+	private readonly document = inject(DOCUMENT);
 
-	protected readonly pageSize = PAGE_SIZE;
-	protected readonly offset = signal(0);
-	protected readonly releases = signal<ReleaseEntry[]>([]);
-	protected readonly isLoading = signal(true);
-	protected readonly error = signal(false);
-
-	protected readonly pageEntries = computed(() =>
-		this.releases().slice(this.offset(), this.offset() + this.pageSize)
+	protected readonly posters = injectLibraryPosters();
+	protected readonly changelog = httpResource<ChangelogResponse>(
+		() => `${environment.apiUrl}/changelog`
 	);
 
-	async ngOnInit() {
-		try {
-			const res = await fetch(`${environment.apiUrl}/changelog`);
-			if (!res.ok) throw new Error(`HTTP ${res.status}`);
-			const body = (await res.json()) as ChangelogResponse;
-			this.releases.set(body.releases);
-		} catch {
-			this.error.set(true);
-		} finally {
-			this.isLoading.set(false);
-			this.cdr.markForCheck();
-		}
+	protected readonly releases = computed(() =>
+		this.changelog.hasValue()
+			? toReleaseViews(this.changelog.value().releases)
+			: []
+	);
+	protected readonly latest = computed(() => this.releases()[0] ?? null);
+	protected readonly older = computed(() => this.releases().slice(1));
+
+	private readonly olderLimit = signal(OLDER_PAGE_SIZE);
+	protected readonly visibleGroups = computed(() =>
+		groupByMonth(this.older().slice(0, this.olderLimit()))
+	);
+	protected readonly hiddenCount = computed(() =>
+		Math.max(0, this.older().length - this.olderLimit())
+	);
+	protected readonly months = computed(() =>
+		groupByMonth(this.older()).map((group): MonthSummary => ({
+			month: group.month,
+			count: group.releases.length
+		}))
+	);
+	protected readonly firstDate = computed(
+		() => this.releases().at(-1)?.date ?? null
+	);
+
+	private readonly pendingScroll = signal<PendingScroll | null>(
+		this.route.snapshot.fragment
+			? { anchor: this.route.snapshot.fragment, behavior: "auto" }
+			: null
+	);
+
+	constructor() {
+		afterRenderEffect(() => {
+			const pending = this.pendingScroll();
+			if (!pending || this.releases().length === 0) return;
+			const target = this.document.getElementById(pending.anchor);
+			if (!target && this.revealRelease(pending.anchor)) return;
+			this.pendingScroll.set(null);
+			target?.scrollIntoView({
+				behavior: pending.behavior,
+				block: "start"
+			});
+		});
 	}
 
-	protected onOffsetChange(offset: number) {
-		this.offset.set(offset);
-		if (typeof window !== "undefined") {
-			window.scrollTo({ top: 0, behavior: "smooth" });
-		}
+	protected showOlder() {
+		this.olderLimit.update(limit => limit + OLDER_PAGE_SIZE);
 	}
 
-	protected iconBgClass(tint: Tint): string {
-		switch (tint) {
-			case "brand":
-				return "bg-brand-subtle text-brand";
-			case "purple":
-				return "bg-[rgba(168,85,247,0.15)] text-[#a855f7]";
-			case "warning":
-				return "bg-warning/15 text-warning";
-			case "success":
-				return "bg-success/15 text-success";
-			case "danger":
-				return "bg-danger/15 text-danger";
-		}
+	protected jumpToMonth(month: string) {
+		const lastIndex = this.older().reduce(
+			(found, release, index) =>
+				release.date.startsWith(month) ? index : found,
+			-1
+		);
+		if (lastIndex >= this.olderLimit()) this.olderLimit.set(lastIndex + 1);
+		const reduceMotion = this.document.defaultView?.matchMedia(
+			"(prefers-reduced-motion: reduce)"
+		).matches;
+		this.pendingScroll.set({
+			anchor: monthAnchor(month),
+			behavior: reduceMotion ? "auto" : "smooth"
+		});
 	}
 
-	protected tagClass(tint: Tint): string {
-		switch (tint) {
-			case "brand":
-				return "bg-brand-subtle text-brand";
-			case "purple":
-				return "bg-[rgba(168,85,247,0.15)] text-[#a855f7]";
-			case "warning":
-				return "bg-warning/15 text-warning";
-			case "success":
-				return "bg-success/15 text-success";
-			case "danger":
-				return "bg-danger/15 text-danger";
-		}
+	protected monthAnchor(month: string): string {
+		return monthAnchor(month);
+	}
+
+	private revealRelease(anchor: string): boolean {
+		const index = this.older().findIndex(r => r.anchor === anchor);
+		if (index < this.olderLimit()) return false;
+		this.olderLimit.set(index + 1);
+		return true;
 	}
 }

@@ -8,7 +8,11 @@ import {
 } from "@angular/core";
 import { NgpToast } from "ng-primitives/toast";
 
-import { type Toast, ToastService } from "../../../core/services/toast";
+import {
+	type Toast,
+	ToastService,
+	UNDO_WINDOW_MS
+} from "../../../core/services/toast";
 
 @Component({
 	selector: "app-toast-container",
@@ -18,6 +22,7 @@ import { type Toast, ToastService } from "../../../core/services/toast";
 })
 export class ToastContainer implements OnInit {
 	private readonly toastService = inject(ToastService);
+	protected readonly undoWindowMs = UNDO_WINDOW_MS;
 	private readonly tpl =
 		viewChild.required<TemplateRef<{ context: Toast }>>("tpl");
 
@@ -33,6 +38,8 @@ export class ToastContainer implements OnInit {
 				return "warning";
 			case "error":
 				return "error";
+			case "premium":
+				return "workspace_premium";
 			default:
 				return "info";
 		}
@@ -46,6 +53,8 @@ export class ToastContainer implements OnInit {
 				return "bg-warning/10 border-warning/30 text-warning";
 			case "error":
 				return "bg-danger/10 border-danger/30 text-danger";
+			case "premium":
+				return "bg-premium/10 border-premium/35 text-premium";
 			default:
 				return "bg-brand-subtle border-brand/30 text-brand";
 		}

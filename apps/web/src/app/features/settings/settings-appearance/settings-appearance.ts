@@ -15,11 +15,13 @@ import {
 } from "../../../core/services/theme";
 import { ToastService } from "../../../core/services/toast";
 import { UiPremiumBadge } from "../../../shared/ui";
+import { SettingsPanel } from "../components/settings-panel";
 
 @Component({
 	selector: "app-settings-appearance",
-	imports: [UiPremiumBadge],
+	imports: [SettingsPanel, UiPremiumBadge],
 	templateUrl: "./settings-appearance.html",
+	host: { class: "contents" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsAppearance implements OnInit {
@@ -33,6 +35,7 @@ export class SettingsAppearance implements OnInit {
 	protected readonly user = this.authService.user;
 
 	protected readonly isPremium = this.authService.isPremium;
+	protected readonly previewTiles = [0, 1, 2];
 
 	protected readonly visibleThemes = computed(() =>
 		this.isPremium()

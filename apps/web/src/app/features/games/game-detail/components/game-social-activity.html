@@ -1,10 +1,8 @@
 @if (friends().length > 0) {
 <div class="mb-6">
-	<h3
-		class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary"
-	>
+	<h2 class="font-display m-0 mb-3 text-xl sm:text-2xl font-semibold text-fg">
 		Played by Friends
-	</h3>
+	</h2>
 	<div class="flex flex-col gap-2">
 		@for (friend of friends(); track friend.username) { @let meta =
 		statusMeta(friend.status);
@@ -35,7 +33,7 @@
 			>
 				<span
 					aria-hidden="true"
-					class="material-icons text-[0.875rem] text-warning"
+					class="material-icons text-[0.875rem] text-rating"
 					>star</span
 				>{{ friend.userRating }}
 			</span>
@@ -50,11 +48,9 @@
 </div>
 } @if (players().length > 0) {
 <div class="mb-6">
-	<h3
-		class="font-display m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-fg-secondary"
-	>
+	<h2 class="font-display m-0 mb-3 text-xl sm:text-2xl font-semibold text-fg">
 		Other Players
-	</h3>
+	</h2>
 	<div class="flex flex-wrap gap-2">
 		@for (player of players(); track player.username) { @let meta =
 		statusMeta(player.status);

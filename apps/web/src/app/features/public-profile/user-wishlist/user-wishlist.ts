@@ -1,91 +1,25 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	inject,
-	type OnInit,
-	signal
-} from "@angular/core";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 
 import { type WishlistEntry } from "../../../core/models";
-import { AuthService } from "../../../core/services/auth";
+import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
-import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { ProfileCollectionPage } from "../components/profile-collection-page";
+import { injectPublicCollection } from "../services/public-collection";
 import { PublicLibraryService } from "../services/public-library.service";
-
-const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-user-wishlist",
-	imports: [RouterLink, UiPagination, UiSearchBar, GameCoverCard],
+	imports: [ProfileCollectionPage, CoverGrid, GameCoverCard],
 	templateUrl: "./user-wishlist.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class UserWishlist implements OnInit {
-	private readonly route = inject(ActivatedRoute);
+export class UserWishlist {
 	private readonly libraryService = inject(PublicLibraryService);
-	private readonly authService = inject(AuthService);
 
-	protected readonly username = signal("");
-	protected readonly entries = signal<WishlistEntry[]>([]);
-	protected readonly total = signal(0);
-	protected readonly offset = signal(0);
-	protected readonly limit = PAGE_SIZE;
-	protected readonly Math = Math;
-	protected readonly isLoading = signal(true);
-	protected readonly error = signal<"not_found" | "private" | null>(null);
-	protected readonly isLoggedIn = this.authService.isLoggedIn;
-	protected readonly searchQuery = signal("");
-	protected readonly filteredEntries = computed(() => {
-		const q = this.searchQuery().toLowerCase().trim();
-		if (!q) return this.entries();
-		return this.entries().filter(e =>
-			e.game.title.toLowerCase().includes(q)
-		);
-	});
-
-	ngOnInit() {
-		if (this.authService.token() && !this.authService.user()) {
-			this.authService.loadUser().subscribe({
-				next: () => this.init(),
-				error: () => this.init()
-			});
-		} else {
-			this.init();
-		}
-	}
-
-	private init() {
-		const username = this.route.snapshot.paramMap.get("username") ?? "";
-		this.username.set(username);
-		this.load(username);
-	}
-
-	private load(username: string) {
-		this.isLoading.set(true);
-		this.error.set(null);
-		this.libraryService
-			.getUserWishlist(username, {
-				limit: this.limit,
-				offset: this.offset()
-			})
-			.subscribe({
-				next: result => {
-					this.entries.set(result.items);
-					this.total.set(result.total);
-					this.isLoading.set(false);
-				},
-				error: err => {
-					if (err.status === 403) this.error.set("private");
-					else if (err.status === 404) this.error.set("not_found");
-					this.isLoading.set(false);
-				}
-			});
-	}
-
-	protected goToOffset(offset: number) {
-		this.offset.set(offset);
-		this.load(this.username());
-	}
+	protected readonly collection = injectPublicCollection<WishlistEntry>(
+		(username, pagination) =>
+			this.libraryService.getUserWishlist(username, pagination),
+		entry => entry.game,
+		{ platformOf: entry => entry.platform }
+	);
 }

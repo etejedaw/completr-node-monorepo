@@ -3,12 +3,17 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
+import { type ListPreviewItem } from "../../../core/models";
 import { buildHttpParams } from "../../../core/utils/http-params";
 
 export interface PublicList {
 	id: string;
 	name: string;
 	description?: string;
+	isPublic?: boolean;
+	isOfficial?: boolean;
+	owner?: { username: string } | null;
+	previewItems?: ListPreviewItem[];
 	scoreSource: string;
 	durationSource: string;
 	followerCount: number;

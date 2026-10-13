@@ -10,12 +10,7 @@ import {
 } from "@angular/core";
 import { form, FormField, max, min, required } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
-import {
-	injectDialogRef,
-	NgpDialog,
-	NgpDialogOverlay,
-	NgpDialogTitle
-} from "ng-primitives/dialog";
+import { injectDialogRef } from "ng-primitives/dialog";
 import {
 	debounceTime,
 	distinctUntilChanged,
@@ -31,11 +26,12 @@ import { type Game, type Platform } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
+import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
 	UiButton,
-	UiIconButton,
+	UiDialog,
 	UiInput,
 	UiSelect,
 	UiTab,
@@ -72,6 +68,7 @@ import {
 	type CreateBacklogDto,
 	type UpdateBacklogDto
 } from "../backlog";
+import { BacklogEntrySummary } from "./components/backlog-entry-summary";
 
 export interface BacklogModalData {
 	entry: BacklogEntry | null;
@@ -89,11 +86,10 @@ export type BacklogModalResult = "saved";
 		RouterLink,
 		StarRating,
 		MoodTagsInput,
-		NgpDialog,
-		NgpDialogOverlay,
-		NgpDialogTitle,
+		BacklogEntrySummary,
+		DialogDeleteAction,
 		UiButton,
-		UiIconButton,
+		UiDialog,
 		UiInput,
 		UiSelect,
 		UiTabs,
@@ -200,7 +196,6 @@ export class BacklogModal implements OnInit {
 	protected readonly gamePlatforms = computed(
 		() => this.selectedGame()?.platforms ?? []
 	);
-	protected readonly showConfirmDelete = signal(false);
 	protected readonly isSearching = signal(false);
 	protected readonly isSearchingOnline = signal(false);
 	protected readonly addToQueue = signal(false);
@@ -224,6 +219,12 @@ export class BacklogModal implements OnInit {
 
 	protected readonly isEdit = signal(false);
 	protected readonly viewMode = signal<"summary" | "edit">("edit");
+	protected readonly heading = computed(() => {
+		if (!this.isEdit()) return "Add to My Games";
+		return this.viewMode() === "summary"
+			? this.entry!.game.title
+			: "Edit run";
+	});
 	protected readonly activeFormTab = signal<
 		"reference" | "tracking" | "notes"
 	>("tracking");

@@ -1,6 +1,6 @@
 <div class="relative">
 	<div
-		class="flex flex-wrap gap-1.5 items-center px-2 py-1.5 bg-input-bg border border-line rounded text-sm min-h-[2.25rem] focus-within:border-brand"
+		class="flex flex-wrap gap-1.5 items-center px-2 py-1.5 max-md:py-0 pointer-coarse:py-0 bg-input-bg border border-line rounded text-sm min-h-[2.25rem] max-md:min-h-[44px] tap:min-h-[44px] focus-within:border-brand"
 	>
 		@for (tag of tags(); track tag; let i = $index) {
 		<span
@@ -9,7 +9,7 @@
 			{{ tag }}
 			<button
 				type="button"
-				class="bg-transparent border-0 text-brand/70 hover:text-brand cursor-pointer leading-none p-0 m-0 flex items-center"
+				class="tap-area bg-transparent border-0 text-brand/70 hover:text-brand cursor-pointer leading-none p-0 m-0 flex items-center"
 				(click)="removeAt(i)"
 				[attr.aria-label]="'Remove ' + tag"
 			>
@@ -21,7 +21,7 @@
 		} @if (canAdd()) {
 		<input
 			type="text"
-			class="flex-1 min-w-[6rem] bg-transparent border-0 outline-none text-fg text-sm font-sans"
+			class="flex-1 min-w-[6rem] self-stretch max-md:min-h-[42px] tap:min-h-[42px] bg-transparent border-0 outline-none text-fg text-sm font-sans"
 			[attr.aria-labelledby]="ariaLabelledby()"
 			[placeholder]="tags().length === 0 ? placeholder() : ''"
 			[value]="draft()"
@@ -39,7 +39,7 @@
 	>
 		@for (s of filteredSuggestions(); track s) {
 		<li
-			class="px-3 py-1.5 text-sm text-fg-secondary cursor-pointer hover:bg-input-bg hover:text-fg transition"
+			class="px-3 py-1.5 max-md:py-3 pointer-coarse:py-3 text-sm text-fg-secondary cursor-pointer hover:bg-input-bg hover:text-fg transition"
 			(mousedown)="pickSuggestion(s)"
 		>
 			{{ s }}

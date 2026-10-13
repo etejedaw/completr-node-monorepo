@@ -15,6 +15,7 @@ export class DialogService {
 	): NgpDialogRef<T, R> {
 		return this.manager.open(component, {
 			modal: true,
+			closeOnEscape: false,
 			closeOnNavigation: true,
 			...config
 		}) as NgpDialogRef<T, R>;

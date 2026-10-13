@@ -20,6 +20,15 @@ import { authInterceptor } from "./core/interceptors/auth.interceptor";
 import { errorInterceptor } from "./core/interceptors/error.interceptor";
 import { AuthService } from "./core/services/auth";
 
+const MOBILE_TAB_BAR_CLEARANCE = 80;
+
+function toastOffsetBottom(): number {
+	const isMobile =
+		typeof window !== "undefined" &&
+		window.matchMedia?.("(max-width: 767px)").matches;
+	return isMobile ? MOBILE_TAB_BAR_CLEARANCE : 16;
+}
+
 export const appConfig: ApplicationConfig = {
 	providers: [
 		provideBrowserGlobalErrorListeners(),
@@ -40,7 +49,7 @@ export const appConfig: ApplicationConfig = {
 		}),
 		provideToastConfig({
 			placement: "bottom-end",
-			offsetBottom: 16,
+			offsetBottom: toastOffsetBottom(),
 			offsetRight: 16,
 			gap: 8,
 			maxToasts: 4,

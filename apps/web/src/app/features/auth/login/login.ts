@@ -9,10 +9,11 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 
 import { AuthService } from "../../../core/services/auth";
 import { UiButton, UiInput } from "../../../shared/ui";
+import { AuthShowcase } from "../auth-showcase/auth-showcase";
 
 @Component({
 	selector: "app-login",
-	imports: [FormField, UiButton, UiInput, RouterLink],
+	imports: [FormField, UiButton, UiInput, RouterLink, AuthShowcase],
 	templateUrl: "./login.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -1,0 +1,215 @@
+<app-library-hero
+	[heading]="policy.hasValue() ? policy.value().title : 'Privacy Policy'"
+>
+	<span
+		heroEyebrow
+		class="inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+	>
+		<span aria-hidden="true" class="material-icons text-sm">policy</span>
+		Legal
+	</span>
+	<div heroSubtitle class="mt-2 flex flex-col gap-2 max-w-xl">
+		@if (policy.hasValue()) { @let current = policy.value();
+		<p class="m-0 text-sm sm:text-base text-fg-secondary leading-relaxed">
+			{{ current.summary }}
+		</p>
+		<p class="m-0 text-xs text-fg-muted">
+			Version {{ current.version }} · Last updated:
+			<time [attr.datetime]="current.updated"
+				>{{ current.updated | date: 'longDate' : 'UTC' }}</time
+			>
+		</p>
+		} @else if (policy.isLoading()) {
+		<ui-skeleton class="h-4 w-full max-w-md rounded-md" />
+		<ui-skeleton class="h-3 w-48 rounded-md" />
+		}
+	</div>
+	@if (isLoggedIn()) {
+	<a
+		heroActions
+		uiButton
+		variant="secondary"
+		class="!bg-surface/70 backdrop-blur max-sm:min-h-[44px]"
+		routerLink="/settings/privacy"
+	>
+		<span aria-hidden="true" class="material-icons text-base">shield</span>
+		Privacy settings
+	</a>
+	}
+</app-library-hero>
+
+@if (policy.hasValue()) { @let current = policy.value();
+<app-library-toolbar class="lg:hidden">
+	<app-page-toc
+		path="/privacy"
+		label="Policy sections"
+		variant="chips"
+		class="w-full min-w-0"
+		[sections]="sections()"
+		[active]="scrollSpy.active()"
+		(selected)="scrollSpy.scrollTo($event)"
+	/>
+</app-library-toolbar>
+
+<div class="lg:grid lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-12 xl:gap-16">
+	<aside class="hidden lg:block">
+		<div class="sticky top-[calc(var(--topbar-height)+1.5rem)]">
+			<app-page-toc
+				path="/privacy"
+				label="Policy sections"
+				[sections]="sections()"
+				[active]="scrollSpy.active()"
+				(selected)="scrollSpy.scrollTo($event)"
+			/>
+		</div>
+	</aside>
+
+	<div class="min-w-0 flex flex-col gap-12 sm:gap-14">
+		<ul
+			aria-label="At a glance"
+			class="m-0 p-0 list-none grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"
+		>
+			@for (point of current.highlights; track point.title) {
+			<li>
+				<a
+					routerLink="/privacy"
+					[fragment]="point.section"
+					class="group h-full grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-0.5 p-3 sm:flex sm:flex-col sm:gap-2 sm:p-4 rounded-card border border-line bg-surface no-underline transition hover:border-line-hover hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-brand"
+					(click)="scrollSpy.scrollTo(point.section)"
+				>
+					<span
+						aria-hidden="true"
+						class="row-span-2 inline-flex items-center justify-center w-9 h-9 rounded-card bg-success/10 text-success"
+					>
+						<span class="material-icons text-lg"
+							>{{ point.icon }}</span
+						>
+					</span>
+					<span class="text-sm font-semibold text-fg"
+						>{{ point.title }}</span
+					>
+					<span class="text-xs text-fg-secondary leading-relaxed"
+						>{{ point.text }}</span
+					>
+				</a>
+			</li>
+			}
+		</ul>
+
+		@for (section of current.sections; track section.id; let index = $index)
+		{
+		<section
+			[id]="section.id"
+			[attr.aria-labelledby]="section.id + '-title'"
+			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
+			appInView
+			inViewRootMargin="-30% 0px -65% 0px"
+			(inViewChange)="scrollSpy.onSectionInView(section.id, $event)"
+		>
+			<span
+				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+				>{{ sectionNumber(index) }} · {{ section.label }}</span
+			>
+			<h2
+				class="font-display m-0 mt-1 text-xl sm:text-2xl font-bold tracking-tight"
+				[id]="section.id + '-title'"
+			>
+				{{ section.title }}
+			</h2>
+			<div [class]="bodyClass" [innerHTML]="section.html"></div>
+		</section>
+		}
+
+		<a
+			uiButton
+			variant="secondary"
+			class="self-start max-sm:min-h-[44px]"
+			[href]="'mailto:' + contactEmail"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>mail_outline</span
+			>
+			Email {{ contactEmail }}
+		</a>
+	</div>
+</div>
+} @else if (policy.error()) {
+<div
+	role="alert"
+	class="flex flex-col items-center text-center gap-3 py-16 px-6 rounded-card border border-line bg-surface/40"
+>
+	<span aria-hidden="true" class="material-icons text-4xl text-fg-muted"
+		>cloud_off</span
+	>
+	<h2 class="m-0 font-display text-lg font-semibold">
+		Couldn't load the privacy policy
+	</h2>
+	<p class="m-0 max-w-sm text-sm text-fg-muted">
+		It's out of reach right now. Try again, or read it on the Completr
+		website.
+	</p>
+	<div class="mt-2 flex flex-wrap justify-center gap-2">
+		<button
+			uiButton
+			type="button"
+			variant="secondary"
+			class="max-sm:min-h-[44px]"
+			(click)="policy.reload()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>refresh</span
+			>
+			Try again
+		</button>
+		<a
+			uiButton
+			variant="ghost"
+			class="max-sm:min-h-[44px]"
+			target="_blank"
+			rel="noopener noreferrer"
+			[href]="landingPrivacyUrl"
+		>
+			Read it on completr.app
+			<span aria-hidden="true" class="material-icons text-base"
+				>open_in_new</span
+			>
+		</a>
+	</div>
+</div>
+} @else {
+<div
+	aria-busy="true"
+	aria-label="Loading privacy policy"
+	class="lg:grid lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-12 xl:gap-16"
+>
+	<div class="hidden lg:flex flex-col gap-2">
+		@for (i of skeletonSections; track i) {
+		<ui-skeleton class="h-8 w-full rounded-md" />
+		}
+	</div>
+	<div class="flex flex-col gap-12">
+		<div class="grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+			@for (i of [1, 2, 3, 4]; track i) {
+			<ui-skeleton class="h-28 rounded-card" />
+			}
+		</div>
+		@for (i of skeletonSections; track i) {
+		<div class="flex flex-col gap-2 max-w-[68ch]">
+			<ui-skeleton class="h-3 w-32 rounded-full" />
+			<ui-skeleton class="h-7 w-2/3 rounded-md" />
+			<ui-skeleton class="mt-2 h-4 w-full rounded-md" />
+			<ui-skeleton class="h-4 w-11/12 rounded-md" />
+			<ui-skeleton class="h-4 w-4/5 rounded-md" />
+		</div>
+		}
+	</div>
+</div>
+} @if (isLoggedIn()) {
+<app-info-page-links current="privacy" />
+}
+<div
+	aria-hidden="true"
+	class="h-px"
+	appInView
+	(inViewChange)="scrollSpy.onEndInView($event)"
+></div>

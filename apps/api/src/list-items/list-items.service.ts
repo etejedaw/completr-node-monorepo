@@ -17,7 +17,7 @@ import * as scoreSourcesService from "../score-sources/score-sources.service";
 import * as listItemsServiceError from "./errors/list-items.service-error";
 import { ListItem } from "./list-item.model";
 
-const FREE_LIST_LIMIT = 5;
+const FREE_OWNED_LISTS_LIMIT = 5;
 
 type FrozenScoreContext = {
 	scoresByGameId: Map<string, GameScore>;
@@ -32,7 +32,8 @@ function isPremium(role: string) {
 async function checkFrozen(userId: string, role: string) {
 	if (isPremium(role)) return;
 	const total = await listsService.countListsByUserId(userId);
-	if (total > FREE_LIST_LIMIT) throw listItemsServiceError.frozenError();
+	if (total > FREE_OWNED_LISTS_LIMIT)
+		throw listItemsServiceError.frozenError();
 }
 
 async function loadFrozenScoreContext(

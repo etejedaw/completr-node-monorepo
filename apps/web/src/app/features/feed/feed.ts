@@ -12,6 +12,7 @@ export interface ActivityTarget {
 	username?: string;
 	backgroundUrl?: string;
 	avatarUrl?: string;
+	role?: string;
 }
 
 export interface FeedActivity {
@@ -23,6 +24,7 @@ export interface FeedActivity {
 		username: string;
 		name: string;
 		avatarUrl: string | null;
+		role?: string;
 	} | null;
 	target: ActivityTarget | null;
 	game: ActivityTarget | null;

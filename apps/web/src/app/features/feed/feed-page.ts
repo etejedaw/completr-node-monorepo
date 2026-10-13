@@ -1,84 +1,168 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
-import { Router, RouterLink } from "@angular/router";
-import { debounceTime, Subject, switchMap } from "rxjs";
+import { RouterLink } from "@angular/router";
 
 import { AuthService } from "../../core/services/auth";
 import { FollowRequestsService } from "../../core/services/follow-requests";
-import {
-	GlobalSearchService,
-	type SearchResults
-} from "../../core/services/global-search";
 import { ToastService } from "../../core/services/toast";
+import { isPremiumRole } from "../../core/utils/premium";
+import {
+	OptionPicker,
+	type PickerOption
+} from "../../shared/components/option-picker/option-picker";
 import { PremiumOnly } from "../../shared/directives/premium-only";
 import {
 	UiAvatar,
 	UiButton,
-	UiEmptyState,
-	UiIconButton,
-	UiInput,
 	UiPagination,
 	UiPremiumBadge,
-	UiSelect
+	UiSkeleton
 } from "../../shared/ui";
-import {
-	activityIcon,
-	activityIconColorClass,
-	activityLabel
-} from "../../shared/utils/activity-labels";
 import { type FeedActivity, type FeedCategory, FeedService } from "./feed";
+import { FeedActivityItem } from "./feed-activity-item/feed-activity-item";
+
+interface ActivityEntry {
+	key: string;
+	activities: FeedActivity[];
+}
+
+interface ActivityDayGroup {
+	key: string;
+	label: string;
+	entries: ActivityEntry[];
+}
+
+const DAY_MS = 86_400_000;
+const WEEKDAY_FORMAT = new Intl.DateTimeFormat("en", { weekday: "long" });
+const DATE_FORMAT = new Intl.DateTimeFormat("en", {
+	month: "short",
+	day: "numeric",
+	year: "numeric"
+});
+
+function startOfDay(date: Date): number {
+	return new Date(
+		date.getFullYear(),
+		date.getMonth(),
+		date.getDate()
+	).getTime();
+}
+
+function dayLabel(dayStart: number, todayStart: number): string {
+	const daysAgo = Math.round((todayStart - dayStart) / DAY_MS);
+	if (daysAgo === 0) return "Today";
+	if (daysAgo === 1) return "Yesterday";
+	if (daysAgo < 7) return WEEKDAY_FORMAT.format(dayStart);
+	return DATE_FORMAT.format(dayStart);
+}
+
+function gameCodeOf(activity: FeedActivity): string | null {
+	const game =
+		activity.target?.type === "game" ? activity.target : activity.game;
+	return game?.code ?? null;
+}
+
+function belongsToEntry(entry: ActivityEntry, activity: FeedActivity): boolean {
+	const latest = entry.activities[entry.activities.length - 1];
+	const gameCode = gameCodeOf(activity);
+	return (
+		gameCode !== null &&
+		gameCode === gameCodeOf(latest) &&
+		activity.user?.id === latest.user?.id &&
+		activity.type !== "coop_tagged" &&
+		latest.type !== "coop_tagged"
+	);
+}
+
+function groupByDay(activities: FeedActivity[]): ActivityDayGroup[] {
+	const todayStart = startOfDay(new Date());
+	const groups = new Map<number, ActivityDayGroup>();
+	for (const activity of activities) {
+		const dayStart = startOfDay(new Date(activity.createdAt));
+		let group = groups.get(dayStart);
+		if (!group) {
+			group = {
+				key: String(dayStart),
+				label: dayLabel(dayStart, todayStart),
+				entries: []
+			};
+			groups.set(dayStart, group);
+		}
+		const lastEntry = group.entries[group.entries.length - 1];
+		if (lastEntry && belongsToEntry(lastEntry, activity)) {
+			lastEntry.activities.push(activity);
+		} else {
+			group.entries.push({ key: activity.id, activities: [activity] });
+		}
+	}
+	return [...groups.values()];
+}
 
 @Component({
 	selector: "app-feed-page",
 	imports: [
 		RouterLink,
+		OptionPicker,
 		UiAvatar,
 		UiButton,
-		UiEmptyState,
-		UiInput,
-		UiIconButton,
 		UiPagination,
 		UiPremiumBadge,
-		UiSelect,
-		PremiumOnly
+		UiSkeleton,
+		PremiumOnly,
+		FeedActivityItem
 	],
 	templateUrl: "./feed-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FeedPage implements OnInit {
 	private readonly feedService = inject(FeedService);
-	private readonly searchService = inject(GlobalSearchService);
 	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
-	private readonly router = inject(Router);
 	private readonly followRequestsService = inject(FollowRequestsService);
-	private readonly searchSubject = new Subject<string>();
 
+	protected readonly isPremiumRole = isPremiumRole;
 	protected readonly currentUserId = this.authService.user;
 	protected readonly activities = signal<FeedActivity[]>([]);
 	protected readonly isLoading = signal(true);
-	protected readonly searchQuery = signal("");
-	protected readonly searchResults = signal<SearchResults | null>(null);
-	protected readonly isSearching = signal(false);
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 25;
+	protected readonly skeletonRows = [0, 1, 2, 3];
+	protected readonly activityGroups = computed(() =>
+		groupByDay(this.activities())
+	);
 
 	protected readonly filter = signal("");
-	protected readonly filterOptions = [
-		{ value: "", label: "All activity" },
-		{ value: "cat:games", label: "Games" },
-		{ value: "type:backlog_completed", label: "Completed only" },
-		{ value: "type:backlog_abandoned", label: "Abandoned only" },
-		{ value: "type:backlog_playing", label: "Started playing" },
-		{ value: "type:game_reviewed", label: "Reviews" },
-		{ value: "cat:lists", label: "Lists" },
-		{ value: "cat:social", label: "Co-op & social" }
+	protected readonly filterOptions: readonly PickerOption[] = [
+		{ value: "", label: "All activity", icon: "dynamic_feed" },
+		{ value: "cat:games", label: "Games", icon: "sports_esports" },
+		{
+			value: "type:backlog_completed",
+			label: "Completed only",
+			icon: "check_circle",
+			iconClass: "text-success"
+		},
+		{
+			value: "type:backlog_abandoned",
+			label: "Abandoned only",
+			icon: "cancel",
+			iconClass: "text-danger"
+		},
+		{
+			value: "type:backlog_playing",
+			label: "Started playing",
+			icon: "play_circle",
+			iconClass: "text-playing"
+		},
+		{ value: "type:game_reviewed", label: "Reviews", icon: "rate_review" },
+		{ value: "cat:lists", label: "Lists", icon: "format_list_bulleted" },
+		{ value: "cat:social", label: "Co-op & social", icon: "group" }
 	];
 
 	protected readonly followRequests = this.followRequestsService.incoming;
@@ -89,8 +173,9 @@ export class FeedPage implements OnInit {
 		this.loadFeed();
 	}
 
-	onFilterChange(event: Event) {
-		this.filter.set((event.target as HTMLSelectElement).value);
+	setFilter(value: string) {
+		if (value === this.filter()) return;
+		this.filter.set(value);
 		this.offset.set(0);
 		this.loadFeed();
 	}
@@ -106,76 +191,22 @@ export class FeedPage implements OnInit {
 	ngOnInit() {
 		this.loadFeed();
 		this.followRequestsService.list().subscribe();
-
-		this.searchSubject
-			.pipe(
-				debounceTime(300),
-				switchMap(query => {
-					if (query.length < 2) {
-						this.searchResults.set(null);
-						this.isSearching.set(false);
-						return [];
-					}
-					this.isSearching.set(true);
-					return this.searchService.search(query);
-				})
-			)
-			.subscribe(results => {
-				this.searchResults.set(results);
-				this.isSearching.set(false);
-			});
 	}
 
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
-		this.searchQuery.set(query);
-		if (query.length < 2) {
-			this.searchResults.set(null);
-			return;
-		}
-		this.searchSubject.next(query);
-	}
-
-	clearSearch() {
-		this.searchQuery.set("");
-		this.searchResults.set(null);
-	}
-
-	goToUser(username: string) {
-		this.clearSearch();
-		this.router.navigateByUrl(`/user/${username}`);
-	}
-
-	goToGame(code: string) {
-		this.clearSearch();
-		this.router.navigateByUrl(`/games/${code}`);
-	}
-
-	goToList(id: string) {
-		this.clearSearch();
-		this.router.navigateByUrl(`/lists/${id}`);
-	}
-
-	searchInGames() {
-		const query = this.searchQuery();
-		this.clearSearch();
-		this.router.navigate(["/games"], { queryParams: { q: query } });
-	}
-
-	deleteActivity(id: string) {
+	deleteActivities(ids: string[]) {
 		const snapshot = this.activities();
-		const index = snapshot.findIndex(a => a.id === id);
-		if (index === -1) return;
-		const activity = snapshot[index];
-		this.activities.set(snapshot.filter(a => a.id !== id));
+		const removed = new Set(ids);
+		if (!snapshot.some(activity => removed.has(activity.id))) return;
+		this.activities.set(
+			snapshot.filter(activity => !removed.has(activity.id))
+		);
 		this.toast.pending({
-			message: "Activity removed",
-			onCommit: () => this.feedService.deleteActivity(id).subscribe(),
-			onUndo: () => {
-				const restored = [...this.activities()];
-				restored.splice(index, 0, activity);
-				this.activities.set(restored);
-			}
+			message: ids.length > 1 ? "Activities removed" : "Activity removed",
+			onCommit: () =>
+				ids.forEach(id =>
+					this.feedService.deleteActivity(id).subscribe()
+				),
+			onUndo: () => this.activities.set(snapshot)
 		});
 	}
 
@@ -208,21 +239,6 @@ export class FeedPage implements OnInit {
 				this.toast.warning("Could not reject request.");
 			}
 		});
-	}
-
-	protected activityLabel = activityLabel;
-	protected activityIcon = activityIcon;
-	protected activityIconColorClass = activityIconColorClass;
-
-	protected timeAgo(date: string): string {
-		const diff = Date.now() - new Date(date).getTime();
-		const minutes = Math.floor(diff / 60000);
-		if (minutes < 1) return "just now";
-		if (minutes < 60) return `${minutes}m ago`;
-		const hours = Math.floor(minutes / 60);
-		if (hours < 24) return `${hours}h ago`;
-		const days = Math.floor(hours / 24);
-		return `${days}d ago`;
 	}
 
 	private loadFeed() {

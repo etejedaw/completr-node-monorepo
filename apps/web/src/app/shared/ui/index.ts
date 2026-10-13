@@ -1,7 +1,10 @@
 export { UiAvatar } from "./avatar/ui-avatar";
+export { UiBottomSheet } from "./bottom-sheet/ui-bottom-sheet";
 export type { UiButtonSize, UiButtonVariant } from "./button/ui-button";
 export { UiButton } from "./button/ui-button";
 export { UiCheckbox } from "./checkbox/ui-checkbox";
+export type { UiDialogSize } from "./dialog/ui-dialog";
+export { UiDialog } from "./dialog/ui-dialog";
 export { UiEmptyState } from "./empty-state/ui-empty-state";
 export { UiFocusTrap } from "./focus-trap/ui-focus-trap";
 export {

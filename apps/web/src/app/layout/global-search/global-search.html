@@ -1,0 +1,201 @@
+<div
+	role="search"
+	class="relative"
+	[class.flex]="variant() === 'overlay'"
+	[class.flex-col]="variant() === 'overlay'"
+	[class.h-full]="variant() === 'overlay'"
+	(focusin)="focused.set(true)"
+	(focusout)="onFocusOut($event)"
+>
+	<div
+		class="flex items-center gap-2"
+		[class.px-3]="variant() === 'overlay'"
+		[class.py-2]="variant() === 'overlay'"
+		[class.border-b]="variant() === 'overlay'"
+		[class.border-line]="variant() === 'overlay'"
+	>
+		<label
+			class="flex-1 flex items-center gap-2 h-10 px-3 rounded-full bg-surface/70 border border-line transition focus-within:border-brand focus-within:bg-input-bg focus-within:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-xl text-fg-muted"
+				>search</span
+			>
+			<span class="sr-only">Search users, games or lists</span>
+			<input
+				#input
+				type="search"
+				enterkeyhint="search"
+				autocomplete="off"
+				class="flex-1 min-w-0 bg-transparent border-0 outline-none text-fg text-base md:text-sm placeholder:text-fg-muted [&::-webkit-search-cancel-button]:hidden"
+				placeholder="Search games, players, lists..."
+				[value]="query()"
+				(input)="onInput($event)"
+				(keydown.escape)="onEscape()"
+				(keydown.enter)="searchInGames()"
+			/>
+			@if (searching()) {
+			<span
+				aria-hidden="true"
+				class="material-icons text-base text-fg-muted animate-spin"
+				>autorenew</span
+			>
+			} @else if (query()) {
+			<button
+				type="button"
+				class="w-7 h-7 tap:min-w-[44px] tap:min-h-[44px] -mr-1.5 rounded-full inline-flex items-center justify-center bg-transparent border-0 text-fg-muted cursor-pointer hover:text-fg hover:bg-surface-hover"
+				aria-label="Clear search"
+				(click)="clear(); input.focus()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>close</span
+				>
+			</button>
+			} @else if (variant() === 'inline') {
+			<kbd
+				class="hidden lg:inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded border border-line bg-canvas/60 text-[0.6875rem] font-sans text-fg-muted"
+				>/</kbd
+			>
+			}
+		</label>
+		@if (variant() === 'overlay') {
+		<button
+			type="button"
+			class="h-10 px-2 bg-transparent border-0 text-sm font-medium text-fg-secondary cursor-pointer hover:text-fg"
+			(click)="closed.emit()"
+		>
+			Cancel
+		</button>
+		}
+	</div>
+
+	@if (isOpen) {
+	<div
+		id="global-search-results"
+		role="region"
+		aria-label="Search results"
+		[class]="variant() === 'overlay' ? 'flex-1 overflow-y-auto py-2' : 'absolute top-full inset-x-0 mt-2 max-h-[min(32rem,70vh)] overflow-y-auto rounded-card bg-sidebar/95 backdrop-blur-xl border border-line shadow-[0_24px_60px_-20px_rgba(0,0,0,0.9)] py-2 z-50 motion-safe:animate-[uiFadeUp_180ms_ease-out]'"
+	>
+		@if (query().length < 2) {
+		<p class="m-0 px-4 py-6 text-sm text-fg-muted text-center">
+			Type at least 2 characters to search games, players and lists.
+		</p>
+		} @else if (results(); as r) { @if (r.games.length > 0) {
+		<section class="py-1">
+			<h3
+				class="m-0 px-4 py-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+			>
+				Games
+			</h3>
+			@for (game of r.games.slice(0, 6); track game.id) {
+			<button
+				type="button"
+				class="flex items-center gap-3 w-full px-4 py-2 bg-transparent border-0 text-left cursor-pointer transition hover:bg-surface focus-visible:bg-surface focus-visible:outline-none"
+				(click)="goTo('/games/' + game.code)"
+			>
+				<app-game-poster
+					[src]="game.backgroundUrl"
+					[title]="game.title"
+					[width]="200"
+					[compact]="true"
+					class="w-8 aspect-[2/3] rounded shrink-0 ring-1 ring-white/10"
+				/>
+				<span
+					class="flex-1 min-w-0 text-sm font-medium text-fg truncate"
+					>{{ game.title }}</span
+				>
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-fg-muted"
+					>north_east</span
+				>
+			</button>
+			}
+		</section>
+		} @if (r.users.length > 0) {
+		<section class="py-1">
+			<h3
+				class="m-0 px-4 py-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+			>
+				Players
+			</h3>
+			@for (user of r.users.slice(0, 5); track user.id) {
+			<button
+				type="button"
+				class="flex items-center gap-3 w-full px-4 py-2 bg-transparent border-0 text-left cursor-pointer transition hover:bg-surface focus-visible:bg-surface focus-visible:outline-none"
+				(click)="goTo('/user/' + user.username)"
+			>
+				<ui-avatar
+					[src]="user.avatarUrl"
+					[name]="user.username"
+					[premium]="isPremiumRole(user.role)"
+					class="w-8 h-8 text-xs"
+				/>
+				<span class="flex-1 min-w-0 flex flex-col">
+					<span class="text-sm font-medium text-fg truncate"
+						>{{ user.name || user.username }}</span
+					>
+					<span class="text-xs text-fg-muted truncate"
+						>{{ '@' + user.username }}</span
+					>
+				</span>
+				@if (user.profileVisibility !== 'public') {
+				<span
+					class="material-icons text-sm text-fg-muted"
+					title="Private profile"
+					aria-label="Private profile"
+					>lock</span
+				>
+				}
+			</button>
+			}
+		</section>
+		} @if (r.lists.length > 0) {
+		<section class="py-1">
+			<h3
+				class="m-0 px-4 py-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+			>
+				Lists
+			</h3>
+			@for (list of r.lists.slice(0, 5); track list.id) {
+			<button
+				type="button"
+				class="flex items-center gap-3 w-full px-4 py-2 bg-transparent border-0 text-left cursor-pointer transition hover:bg-surface focus-visible:bg-surface focus-visible:outline-none"
+				(click)="goTo('/lists/' + list.id)"
+			>
+				<span
+					class="w-8 h-8 rounded-md bg-nav-lists/15 text-nav-lists inline-flex items-center justify-center shrink-0"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>format_list_bulleted</span
+					>
+				</span>
+				<span
+					class="flex-1 min-w-0 text-sm font-medium text-fg truncate"
+					>{{ list.name }}</span
+				>
+			</button>
+			}
+		</section>
+		} @if (!hasResults && !searching()) {
+		<p class="m-0 px-4 py-6 text-sm text-fg-muted text-center">
+			No matches for "{{ query() }}" in Completr yet.
+		</p>
+		}
+		<div class="mt-1 pt-1 border-t border-line">
+			<button
+				type="button"
+				class="flex items-center gap-2 w-full px-4 py-2.5 bg-transparent border-0 text-brand text-sm font-medium text-left cursor-pointer transition hover:bg-brand-subtle"
+				(click)="searchInGames()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>travel_explore</span
+				>
+				Search the full catalog for "{{ query() }}"
+			</button>
+		</div>
+		}
+	</div>
+	}
+</div>

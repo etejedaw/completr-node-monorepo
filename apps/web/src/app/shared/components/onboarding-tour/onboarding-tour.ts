@@ -5,10 +5,14 @@ import {
 	signal
 } from "@angular/core";
 
+import { NAV_SECTIONS, type NavItem } from "../../../layout/nav-sections";
+import { UiButton, UiDialog } from "../../ui";
+
 interface SectionItem {
 	icon: string;
 	name: string;
 	hint: string;
+	colorClass: string;
 }
 
 interface Step {
@@ -17,124 +21,141 @@ interface Step {
 	items: SectionItem[];
 }
 
+const NAV_ITEMS = new Map<string, NavItem>(
+	NAV_SECTIONS.flatMap(section => section.items).map(item => [
+		item.route,
+		item
+	])
+);
+
+function tourItem(route: string, hint: string): SectionItem {
+	const nav = NAV_ITEMS.get(route);
+	return {
+		icon: nav?.icon ?? "circle",
+		name: nav?.label ?? route,
+		hint,
+		colorClass: nav?.iconColorClass ?? "text-brand"
+	};
+}
+
 @Component({
 	selector: "app-onboarding-tour",
+	imports: [UiButton, UiDialog],
 	template: `
-		<div class="modal-overlay">
+		@let step = steps[index()];
+		<ui-dialog
+			size="sm"
+			[eyebrow]="
+				'Welcome · Step ' + (index() + 1) + ' of ' + steps.length
+			"
+			[heading]="step.heading"
+			[subheading]="step.tagline"
+			(closed)="skip.emit()"
+		>
 			<div
-				class="bg-sidebar border border-line rounded-[16px] w-full max-w-[420px] flex flex-col max-h-[90vh] overflow-hidden"
-				style="box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.7);"
+				class="flex items-center gap-1.5 mb-4"
+				role="progressbar"
+				aria-label="Tour progress"
+				[attr.aria-valuenow]="index() + 1"
+				aria-valuemin="1"
+				[attr.aria-valuemax]="steps.length"
 			>
-				@let step = steps[index()];
-
-				<div class="px-6 pt-6 pb-3">
-					<div class="flex items-center justify-between mb-4">
-						<div class="flex items-center gap-1.5">
-							@for (_ of steps; track $index) {
-								<span
-									class="block h-1.5 rounded-full transition-all"
-									[class.w-6]="$index === index()"
-									[class.w-1.5]="$index !== index()"
-									[class.bg-brand]="$index === index()"
-									[class.bg-line]="$index !== index()"
-								></span>
-							}
-						</div>
-						<button
-							type="button"
-							class="bg-transparent border-0 text-fg-muted text-xs font-medium cursor-pointer transition hover:text-fg"
-							(click)="skip.emit()"
-						>
-							Skip
-						</button>
-					</div>
-
-					<h2
-						class="font-display m-0 text-xl font-bold text-fg leading-tight"
-					>
-						{{ step.heading }}
-					</h2>
-					<p class="mt-1 mb-0 text-[0.8125rem] text-fg-muted">
-						{{ step.tagline }}
-					</p>
-				</div>
-
-				<div class="px-6 py-4 flex flex-col gap-2 overflow-y-auto">
-					@for (item of step.items; track item.name) {
-						<div class="flex items-center gap-3 py-2">
-							<span
-								class="flex items-center justify-center w-9 h-9 rounded-lg bg-brand-subtle text-brand shrink-0"
-							>
-								<span class="material-icons text-[1.125rem]">{{
-									item.icon
-								}}</span>
-							</span>
-							<div class="min-w-0">
-								<div
-									class="text-sm font-semibold text-fg leading-tight"
-								>
-									{{ item.name }}
-								</div>
-								<div
-									class="text-[0.75rem] text-fg-muted leading-snug"
-								>
-									{{ item.hint }}
-								</div>
-							</div>
-						</div>
-					}
-				</div>
-
-				<div
-					class="px-6 py-4 border-t border-line flex items-center justify-between gap-2"
-				>
-					@if (index() === steps.length - 1) {
-						<button
-							type="button"
-							class="bg-transparent border-0 text-fg-muted text-xs font-medium cursor-pointer transition hover:text-brand inline-flex items-center gap-1"
-							(click)="seeFullGuide.emit()"
-						>
-							<span class="material-icons text-sm"
-								>menu_book</span
-							>
-							Read full guide
-						</button>
-					} @else {
-						<span></span>
-					}
-					<div class="flex items-center gap-2">
-						@if (index() > 0) {
-							<button
-								type="button"
-								class="bg-transparent border-0 text-fg-muted text-sm font-semibold px-3 py-2 cursor-pointer transition hover:text-fg"
-								(click)="prev()"
-							>
-								Back
-							</button>
-						}
-						@if (index() < steps.length - 1) {
-							<button
-								type="button"
-								class="text-white border-0 rounded-lg text-sm font-semibold px-5 py-2 cursor-pointer transition hover:opacity-90"
-								style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
-								(click)="next()"
-							>
-								Next
-							</button>
-						} @else {
-							<button
-								type="button"
-								class="text-white border-0 rounded-lg text-sm font-semibold px-5 py-2 cursor-pointer transition hover:opacity-90"
-								style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
-								(click)="done.emit()"
-							>
-								Let's go
-							</button>
-						}
-					</div>
-				</div>
+				@for (_ of steps; track $index) {
+					<span
+						class="block h-1.5 rounded-full transition-all motion-reduce:transition-none"
+						[class]="
+							$index === index()
+								? 'w-6 bg-brand'
+								: 'w-1.5 bg-line-hover'
+						"
+					></span>
+				}
 			</div>
-		</div>
+			<ul class="list-none m-0 p-0 flex flex-col gap-1">
+				@for (item of step.items; track item.name) {
+					<li class="flex items-center gap-3 py-2">
+						<span
+							aria-hidden="true"
+							class="flex items-center justify-center w-10 h-10 rounded-card bg-surface border border-line shrink-0"
+						>
+							<span
+								class="material-icons text-[1.25rem]"
+								[class]="item.colorClass"
+								>{{ item.icon }}</span
+							>
+						</span>
+						<span class="min-w-0">
+							<span
+								class="block text-sm font-semibold text-fg leading-tight"
+								>{{ item.name }}</span
+							>
+							<span
+								class="block text-[0.75rem] text-fg-muted leading-snug"
+								>{{ item.hint }}</span
+							>
+						</span>
+					</li>
+				}
+			</ul>
+
+			<ng-container dialogFooter>
+				@if (index() === steps.length - 1) {
+					<button
+						uiButton
+						variant="ghost"
+						type="button"
+						class="mr-auto max-md:!basis-full"
+						(click)="seeFullGuide.emit()"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>menu_book</span
+						>
+						Read full guide
+					</button>
+				} @else {
+					<button
+						uiButton
+						variant="ghost"
+						type="button"
+						class="mr-auto"
+						(click)="skip.emit()"
+					>
+						Skip
+					</button>
+				}
+				@if (index() > 0) {
+					<button
+						uiButton
+						variant="secondary"
+						type="button"
+						(click)="prev()"
+					>
+						Back
+					</button>
+				}
+				@if (index() < steps.length - 1) {
+					<button
+						uiButton
+						variant="primary"
+						type="button"
+						(click)="next()"
+					>
+						Next
+					</button>
+				} @else {
+					<button
+						uiButton
+						variant="primary"
+						type="button"
+						(click)="done.emit()"
+					>
+						Let's go
+					</button>
+				}
+			</ng-container>
+		</ui-dialog>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -145,54 +166,29 @@ export class OnboardingTour {
 			heading: "Your library",
 			tagline: "Where your games live",
 			items: [
-				{
-					icon: "list_alt",
-					name: "My Games",
-					hint: "Every game you've played, are playing, or want to play"
-				},
-				{
-					icon: "playlist_play",
-					name: "Up Next",
-					hint: "Your priority queue"
-				},
-				{
-					icon: "shelves",
-					name: "My Shelf",
-					hint: "What you own"
-				},
-				{
-					icon: "favorite_border",
-					name: "Want to Get",
-					hint: "Wishlist for future buys"
-				}
+				tourItem(
+					"/backlog",
+					"Every game you've played, are playing, or want to play"
+				),
+				tourItem("/queue", "Your priority queue"),
+				tourItem("/game-shelf", "What you own"),
+				tourItem("/wishlist", "Wishlist for future buys")
 			]
 		},
 		{
 			heading: "Discover",
 			tagline: "Find your next game",
 			items: [
-				{
-					icon: "sports_esports",
-					name: "Browse",
-					hint: "Full game catalog"
-				},
-				{
-					icon: "format_list_bulleted",
-					name: "Lists",
-					hint: "Curated picks"
-				},
-				{
-					icon: "dynamic_feed",
-					name: "Feed",
-					hint: "What your friends are playing"
-				}
+				tourItem("/games", "Full game catalog"),
+				tourItem("/lists", "Curated picks"),
+				tourItem("/feed", "What your friends are playing")
 			]
 		}
 	];
 
-	done = output<void>();
-	skip = output<void>();
-	seeFullGuide = output<void>();
+	readonly done = output<void>();
+	readonly skip = output<void>();
+	readonly seeFullGuide = output<void>();
 
 	next() {
 		this.index.update(i => Math.min(i + 1, this.steps.length - 1));

@@ -21,7 +21,7 @@ export interface NavSection {
 }
 
 export const NAV_ACTIVE_CLASSES =
-	"!border-brand !text-brand !bg-brand-subtle [&_.nav-icon]:opacity-100 [&_.nav-icon]:!text-brand";
+	"!text-fg !bg-brand-subtle [&_.nav-icon]:!opacity-100 [&_.nav-indicator]:!h-5";
 
 export const NAV_SECTIONS: readonly NavSection[] = [
 	{
@@ -65,14 +65,14 @@ export const NAV_SECTIONS: readonly NavSection[] = [
 			},
 			{
 				route: "/wishlist",
-				icon: "favorite_border",
+				icon: "redeem",
 				label: "Want to Get",
 				iconColorClass: "text-nav-wishlist",
 				tooltip: "Games you want to acquire someday"
 			},
 			{
 				route: "/favorites",
-				icon: "star",
+				icon: "favorite",
 				label: "Favorites",
 				iconColorClass: "text-nav-favorites",
 				tooltip: "Your all-time favorite games"

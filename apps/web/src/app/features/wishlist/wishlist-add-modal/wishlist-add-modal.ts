@@ -1,21 +1,22 @@
 import {
+	afterNextRender,
 	ChangeDetectionStrategy,
 	Component,
+	type ElementRef,
 	inject,
+	Injector,
 	type OnInit,
-	signal
+	signal,
+	viewChild
 } from "@angular/core";
-import {
-	injectDialogRef,
-	NgpDialog,
-	NgpDialogOverlay,
-	NgpDialogTitle
-} from "ng-primitives/dialog";
+import { injectDialogRef } from "ng-primitives/dialog";
 import { debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { type Game } from "../../../core/models";
-import { UiButton, UiIconButton } from "../../../shared/ui";
+import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { UiButton, UiDialog, UiSearchBar } from "../../../shared/ui";
 import { GamesService } from "../../games/games";
+import { WishlistPlatformChoice } from "../components/wishlist-platform-choice";
 import { WishlistService } from "../wishlist";
 
 export type WishlistAddModalResult = "saved";
@@ -23,11 +24,11 @@ export type WishlistAddModalResult = "saved";
 @Component({
 	selector: "app-wishlist-add-modal",
 	imports: [
-		NgpDialog,
-		NgpDialogOverlay,
-		NgpDialogTitle,
+		GamePoster,
 		UiButton,
-		UiIconButton
+		UiDialog,
+		UiSearchBar,
+		WishlistPlatformChoice
 	],
 	templateUrl: "./wishlist-add-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -40,6 +41,9 @@ export class WishlistAddModal implements OnInit {
 		WishlistAddModalResult
 	>();
 	private readonly searchSubject = new Subject<string>();
+	private readonly injector = inject(Injector);
+	private readonly changeGameButton =
+		viewChild<ElementRef<HTMLButtonElement>>("changeGameButton");
 
 	protected readonly results = signal<Game[]>([]);
 	protected readonly searchQuery = signal("");
@@ -70,8 +74,7 @@ export class WishlistAddModal implements OnInit {
 			});
 	}
 
-	onSearch(event: Event) {
-		const value = (event.target as HTMLInputElement).value;
+	onSearch(value: string) {
 		this.searchQuery.set(value);
 		this.searchSubject.next(value);
 	}
@@ -79,15 +82,14 @@ export class WishlistAddModal implements OnInit {
 	pickGame(game: Game) {
 		this.selectedGame.set(game);
 		this.selectedPlatformId.set(null);
+		afterNextRender(() => this.changeGameButton()?.nativeElement.focus(), {
+			injector: this.injector
+		});
 	}
 
 	backToSearch() {
 		this.selectedGame.set(null);
 		this.selectedPlatformId.set(null);
-	}
-
-	selectPlatform(id: string) {
-		this.selectedPlatformId.set(id);
 	}
 
 	confirm(skipPlatform = false) {

@@ -28,5 +28,8 @@ export function moodTagsDomainToHttpMapper(
 	if (error.code === "MOOD_TAGS_INVALID_TAG")
 		return new HttpError({ ...baseOptions, status: 422 });
 
+	if (error.code === "MOOD_TAGS_LIMIT_REACHED")
+		return new HttpError({ ...baseOptions, status: 402 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

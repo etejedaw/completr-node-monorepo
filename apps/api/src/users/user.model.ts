@@ -31,11 +31,11 @@ class User extends Model {
 	declare updatedAt: Date;
 }
 
-const visibilityField = {
+const visibilityField = () => ({
 	type: DataTypes.ENUM(...VISIBILITY_LEVELS),
 	allowNull: false,
 	defaultValue: "public" as VisibilityLevel
-};
+});
 
 User.init(
 	{
@@ -67,14 +67,14 @@ User.init(
 		name: DataTypes.STRING(80),
 		bio: DataTypes.STRING(250),
 		avatarUrl: DataTypes.STRING,
-		profileVisibility: visibilityField,
-		queueVisibility: visibilityField,
-		wishlistVisibility: visibilityField,
-		favoriteVisibility: visibilityField,
-		feedVisibility: visibilityField,
-		backlogVisibility: visibilityField,
-		shelfVisibility: visibilityField,
-		listVisibility: visibilityField,
+		profileVisibility: visibilityField(),
+		queueVisibility: visibilityField(),
+		wishlistVisibility: visibilityField(),
+		favoriteVisibility: visibilityField(),
+		feedVisibility: visibilityField(),
+		backlogVisibility: visibilityField(),
+		shelfVisibility: visibilityField(),
+		listVisibility: visibilityField(),
 		acceptFollowRequests: {
 			type: DataTypes.BOOLEAN,
 			allowNull: false,

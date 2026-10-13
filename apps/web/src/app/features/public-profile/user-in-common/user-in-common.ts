@@ -3,128 +3,97 @@ import {
 	Component,
 	computed,
 	inject,
-	type OnInit,
 	signal
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { map, of } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
+import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
-import { UiPagination } from "../../../shared/ui";
+import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
+import { UiButton, UiEmptyState } from "../../../shared/ui";
+import { ProfileCollectionPage } from "../components/profile-collection-page";
+import { COMPARISON_OPTIONS } from "../services/comparison-options";
+import { injectPublicCollection } from "../services/public-collection";
 import {
 	type ComparisonDimension,
+	type ComparisonGame,
 	PublicLibraryService
 } from "../services/public-library.service";
-import { type GameSummary } from "../services/types";
 
-const PAGE_SIZE = 50;
+const IN_COMMON_SUFFIX: Record<string, string> = {
+	completed: " you both completed",
+	not_started: " you both have yet to play"
+};
 
-const DIMENSIONS: { value: ComparisonDimension; label: string }[] = [
-	{ value: "completed", label: "Completed" },
-	{ value: "not_started", label: "To play" }
-];
+type InCommonGame = Omit<ComparisonGame, "backgroundUrl"> & {
+	backgroundUrl?: string;
+};
+
+function toInCommonGame(game: ComparisonGame): InCommonGame {
+	return { ...game, backgroundUrl: game.backgroundUrl ?? undefined };
+}
+
+function parseDimension(value: string | null): ComparisonDimension {
+	return COMPARISON_OPTIONS.some(option => option.value === value)
+		? (value as ComparisonDimension)
+		: "completed";
+}
 
 @Component({
 	selector: "app-user-in-common",
-	imports: [RouterLink, UiPagination, GameCoverCard],
+	imports: [
+		RouterLink,
+		ProfileCollectionPage,
+		CoverGrid,
+		GameCoverCard,
+		SegmentedControl,
+		UiButton,
+		UiEmptyState
+	],
 	templateUrl: "./user-in-common.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class UserInCommon implements OnInit {
+export class UserInCommon {
 	private readonly route = inject(ActivatedRoute);
 	private readonly router = inject(Router);
 	private readonly libraryService = inject(PublicLibraryService);
-	private readonly authService = inject(AuthService);
 
-	protected readonly username = signal("");
-	protected readonly games = signal<GameSummary[]>([]);
-	protected readonly total = signal(0);
-	protected readonly offset = signal(0);
-	protected readonly limit = PAGE_SIZE;
-	protected readonly by = signal<ComparisonDimension>("completed");
-	protected readonly dimensions = DIMENSIONS;
-	protected readonly isLoading = signal(true);
-	protected readonly error = signal<"not_found" | "private" | null>(null);
-	protected readonly isLoggedIn = this.authService.isLoggedIn;
-	protected readonly dimensionLabel = computed(
-		() => DIMENSIONS.find(d => d.value === this.by())?.label ?? "Completed"
+	protected readonly isLoggedIn = inject(AuthService).isLoggedIn;
+	protected readonly options = COMPARISON_OPTIONS;
+	protected readonly by = signal(
+		parseDimension(this.route.snapshot.queryParamMap.get("by"))
 	);
 
-	ngOnInit() {
-		if (this.authService.token() && !this.authService.user()) {
-			this.authService.loadUser().subscribe({
-				next: () => this.init(),
-				error: () => this.init()
-			});
-		} else {
-			this.init();
-		}
-	}
+	protected readonly collection = injectPublicCollection<InCommonGame>(
+		(username, pagination) =>
+			this.isLoggedIn()
+				? this.libraryService
+						.getComparison(username, this.by(), pagination)
+						.pipe(
+							map(comparison => ({
+								items: comparison.inCommon.map(toInCommonGame),
+								total: comparison.counts.inCommon
+							}))
+						)
+				: of({ items: [], total: 0 }),
+		game => game
+	);
 
-	private init() {
-		const username = this.route.snapshot.paramMap.get("username") ?? "";
-		this.username.set(username);
-		const rawBy = this.route.snapshot.queryParamMap.get("by");
-		this.by.set(
-			DIMENSIONS.some(d => d.value === rawBy)
-				? (rawBy as ComparisonDimension)
-				: "completed"
-		);
-		this.load();
-	}
-
-	protected dimBtnClass(value: ComparisonDimension) {
-		const base =
-			"px-3 py-1.5 rounded-full text-sm font-medium border transition cursor-pointer ";
-		return this.by() === value
-			? base + "border-brand bg-brand/20 text-brand"
-			: base +
-					"border-line text-fg-muted hover:text-fg hover:border-brand/40";
-	}
+	protected readonly subtitleSuffix = computed(
+		() => IN_COMMON_SUFFIX[this.by()] ?? " in common"
+	);
 
 	protected changeDimension(by: ComparisonDimension) {
 		if (by === this.by()) return;
 		this.by.set(by);
-		this.offset.set(0);
 		this.router.navigate([], {
 			relativeTo: this.route,
 			queryParams: { by },
-			queryParamsHandling: "merge"
+			queryParamsHandling: "merge",
+			replaceUrl: true
 		});
-		this.load();
-	}
-
-	protected goToOffset(offset: number) {
-		this.offset.set(offset);
-		this.load();
-	}
-
-	private load() {
-		this.isLoading.set(true);
-		this.error.set(null);
-		this.libraryService
-			.getComparison(this.username(), this.by(), {
-				limit: this.limit,
-				offset: this.offset()
-			})
-			.subscribe({
-				next: data => {
-					this.games.set(
-						data.inCommon.map(g => ({
-							id: g.id,
-							code: g.code,
-							title: g.title,
-							backgroundUrl: g.backgroundUrl ?? undefined
-						}))
-					);
-					this.total.set(data.counts.inCommon);
-					this.isLoading.set(false);
-				},
-				error: err => {
-					if (err.status === 403) this.error.set("private");
-					else if (err.status === 404) this.error.set("not_found");
-					this.isLoading.set(false);
-				}
-			});
+		this.collection.goToOffset(0);
 	}
 }

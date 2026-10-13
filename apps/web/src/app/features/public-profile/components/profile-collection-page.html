@@ -1,0 +1,109 @@
+@if (error(); as reason) {
+<app-profile-access-state
+	[reason]="reason"
+	[username]="username()"
+	[privateTitle]="privateTitle()"
+/>
+} @else {
+<app-library-hero [heading]="heading()" [posters]="posters()">
+	<a
+		heroEyebrow
+		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
+		[routerLink]="['/user', username()]"
+	>
+		<span aria-hidden="true" class="material-icons text-sm"
+			>arrow_back</span
+		>
+		{{ '@' + username() }}'s profile
+	</a>
+	<p
+		heroSubtitle
+		class="m-0 mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-fg-secondary"
+	>
+		<span
+			aria-hidden="true"
+			class="material-icons text-lg"
+			[class]="iconColor()"
+			>{{ icon() }}</span
+		>
+		<span>
+			<span class="font-semibold text-fg tabular-nums"
+				>{{ total() }}</span
+			>
+			{{ total() === 1 ? noun() : noun() + 's' }}{{ subtitleSuffix() }}
+			@if (platforms().length > 1) { · across
+			<span class="font-semibold text-fg tabular-nums"
+				>{{ platforms().length }}</span
+			>
+			platforms }
+		</span>
+	</p>
+	<ng-content select="[collectionFilters]" />
+	@if (platforms().length > 1) {
+	<app-platform-filter
+		[platforms]="platforms()"
+		[total]="itemCount()"
+		[(selected)]="platform"
+	/>
+	}
+</app-library-hero>
+
+@if (isLoading() || itemCount() > 0) {
+<app-library-toolbar>
+	<ui-search-bar
+		class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+		[placeholder]="searchPlaceholder() ?? 'Search ' + username() + '\'s ' + heading().toLowerCase() + '...'"
+		[value]="query()"
+		(valueChange)="query.set($event)"
+	/>
+</app-library-toolbar>
+} @if (isLoading()) { @if (skeleton() === 'cards') {
+<div
+	class="grid gap-3 md:grid-cols-2"
+	aria-busy="true"
+	[attr.aria-label]="'Loading ' + heading()"
+>
+	@for (i of cardSkeletonRange; track i) {
+	<div
+		class="flex gap-4 p-4 sm:p-5 rounded-card border border-line bg-surface"
+	>
+		<ui-skeleton
+			variant="rect"
+			class="block w-16 sm:w-20 aspect-[2/3] rounded-md shrink-0"
+		/>
+		<div class="flex-1 flex flex-col gap-2 py-1">
+			<ui-skeleton variant="text" class="block w-1/2 h-5" />
+			<ui-skeleton variant="text" class="block w-1/3" />
+			<ui-skeleton variant="text" class="block w-full mt-2" />
+			<ui-skeleton variant="text" class="block w-2/3" />
+		</div>
+	</div>
+	}
+</div>
+} @else {
+<app-cover-grid [loading]="true" [loadingLabel]="'Loading ' + heading()" />
+} } @else if (itemCount() === 0) {
+<ui-empty-state [icon]="icon()" [title]="emptyTitle()" [hint]="emptyText()">
+	<a uiButton variant="secondary" [routerLink]="['/user', username()]"
+		>Back to profile</a
+	>
+</ui-empty-state>
+} @else if (visibleCount() === 0) {
+<ui-empty-state
+	icon="search_off"
+	title="No matches found"
+	hint="Nothing on this page matches your search or platform."
+>
+	<button uiButton variant="secondary" (click)="clearFilters()">
+		Clear search & filter
+	</button>
+</ui-empty-state>
+} @else {
+<ng-content />
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit()"
+	[total]="total()"
+	(offsetChange)="offsetChange.emit($event)"
+/>
+} }

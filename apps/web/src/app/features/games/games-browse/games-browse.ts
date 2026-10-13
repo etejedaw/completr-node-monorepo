@@ -1,21 +1,23 @@
+import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	effect,
 	inject,
-	type OnDestroy,
 	type OnInit,
 	signal
 } from "@angular/core";
-import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { ActivatedRoute, Router } from "@angular/router";
 import {
 	debounceTime,
 	distinctUntilChanged,
-	interval,
+	map,
 	of,
+	skip,
 	Subject,
-	type Subscription,
 	switchMap
 } from "rxjs";
 
@@ -26,43 +28,73 @@ import {
 	type Platform
 } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
-import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
-import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { ViewportService } from "../../../core/services/viewport";
+import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { ListCard } from "../../../shared/components/list-card/list-card";
 import {
+	OptionPicker,
+	type PickerOption
+} from "../../../shared/components/option-picker/option-picker";
+import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
+import {
+	UiBottomSheet,
 	UiButton,
-	UiInput,
 	UiPagination,
 	UiSearchBar,
-	UiSelect
+	UiSkeleton
 } from "../../../shared/ui";
 import { ListsService } from "../../lists/lists";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { GamesService } from "../games";
+import {
+	BrowseFilters,
+	type BrowseSortOption
+} from "./components/browse-filters";
+import { BrowseHero } from "./components/browse-hero";
+
+const FEATURED_GAMES_LIMIT = 5;
+
+const MIXED_GENRES_VALUE = "__mixed__";
+
+const SORT_ICONS: Record<string, string> = {
+	createdAt: "schedule",
+	title: "sort_by_alpha",
+	releaseAt: "event",
+	score: "star",
+	duration: "timer",
+	ratio: "trending_up",
+	popularity: "local_fire_department"
+};
 
 @Component({
 	selector: "app-games-browse",
 	imports: [
-		RouterLink,
+		OptionPicker,
+		NgTemplateOutlet,
 		AdminGameEditor,
+		UiBottomSheet,
 		UiButton,
-		UiInput,
 		UiPagination,
 		UiSearchBar,
-		UiSelect,
-		GameFilterPanel,
-		StarRating
+		UiSkeleton,
+		BrowseFilters,
+		BrowseHero,
+		GameCoverCard,
+		ListCard,
+		PosterShelf
 	],
 	templateUrl: "./games-browse.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class GamesBrowse implements OnInit, OnDestroy {
+export class GamesBrowse implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly listsService = inject(ListsService);
 	private readonly authService = inject(AuthService);
 	private readonly router = inject(Router);
 	private readonly route = inject(ActivatedRoute);
+	private readonly destroyRef = inject(DestroyRef);
 	private readonly searchSubject = new Subject<string>();
-	private rotateSub?: Subscription;
+	protected readonly isMobile = inject(ViewportService).isMobile;
 
 	protected readonly isAdmin = computed(() => {
 		const role = this.authService.user()?.role;
@@ -97,11 +129,7 @@ export class GamesBrowse implements OnInit, OnDestroy {
 	protected readonly isDlc = signal<boolean | null>(null);
 	protected readonly sortBy = signal<string>("createdAt");
 	protected readonly sortOrder = signal<"asc" | "desc">("desc");
-	protected readonly sortOptions: {
-		value: string;
-		label: string;
-		defaultOrder: "asc" | "desc";
-	}[] = [
+	protected readonly sortOptions: BrowseSortOption[] = [
 		{ value: "createdAt", label: "Recently added", defaultOrder: "desc" },
 		{ value: "title", label: "Title", defaultOrder: "asc" },
 		{ value: "releaseAt", label: "Release date", defaultOrder: "desc" },
@@ -133,26 +161,65 @@ export class GamesBrowse implements OnInit, OnDestroy {
 			this.sortOrder() !== "desc"
 	);
 
-	private readonly filterPanelEffect = effect(() => {
+	private readonly filtersEffect = effect(() => {
 		this.selectedGenres();
 		this.selectedPlatforms();
 		this.yearFrom();
 		this.yearTo();
+		this.minScore();
+		this.maxScore();
+		this.minDuration();
+		this.maxDuration();
+		this.isDlc();
+		this.sortBy();
+		this.sortOrder();
 		if (this.isInitialLoad()) return;
 		this.onFiltersChanged();
 	});
 
-	protected readonly featuredIndex = signal(0);
 	protected readonly featuredGames = computed(() =>
 		this.latestGames()
 			.filter(g => !!g.backgroundUrl)
-			.slice(0, 5)
+			.slice(0, FEATURED_GAMES_LIMIT)
 	);
-	protected readonly featured = computed(() => {
-		const games = this.featuredGames();
-		if (games.length === 0) return null;
-		return games[this.featuredIndex() % games.length];
+	protected readonly viewMode = computed<"discover" | "search" | "filtered">(
+		() => {
+			if (this.activeFiltersCount() > 0 || this.isSortCustom())
+				return "filtered";
+			if (this.searchQuery().length >= 2) return "search";
+			return "discover";
+		}
+	);
+	protected readonly selectedGenreNames = computed(() =>
+		this.allGenres().filter(genre => this.selectedGenres().has(genre.code))
+	);
+	protected readonly genrePickerOptions = computed<PickerOption[]>(() => [
+		{ value: "", label: "Any genre", icon: "category" },
+		...this.allGenres().map(genre => ({
+			value: genre.code,
+			label: genre.name,
+			icon: "label"
+		}))
+	]);
+	protected readonly genrePickerValue = computed(() => {
+		const selected = this.selectedGenres();
+		if (selected.size === 0) return "";
+		return selected.size === 1 ? [...selected][0]! : MIXED_GENRES_VALUE;
 	});
+	protected readonly genrePickerPlaceholder = computed(
+		() => `${this.selectedGenres().size} genres`
+	);
+	protected readonly sortPickerOptions: readonly PickerOption[] =
+		this.sortOptions.map(option => ({
+			value: option.value,
+			label: option.label,
+			icon: SORT_ICONS[option.value] ?? "sort"
+		}));
+	protected readonly sortLabel = computed(
+		() =>
+			this.sortOptions.find(option => option.value === this.sortBy())
+				?.label ?? ""
+	);
 
 	ngOnInit() {
 		this.searchSubject
@@ -195,23 +262,13 @@ export class GamesBrowse implements OnInit, OnDestroy {
 			.getPlatforms()
 			.subscribe(p => this.allPlatforms.set(p));
 		this.applyFromUrl();
-
-		this.rotateSub = interval(7000).subscribe(() => {
-			const total = this.featuredGames().length;
-			if (total > 1 && this.searchQuery().length < 2) {
-				this.featuredIndex.update(i => (i + 1) % total);
-			}
-		});
+		this.syncGenresWithUrl();
 
 		const q = this.route.snapshot.queryParamMap.get("q");
 		if (q) {
 			this.searchQuery.set(q);
 			this.searchSubject.next(q);
 		}
-	}
-
-	ngOnDestroy() {
-		this.rotateSub?.unsubscribe();
 	}
 
 	onSearch(query: string) {
@@ -236,10 +293,6 @@ export class GamesBrowse implements OnInit, OnDestroy {
 	onGameCreated(game: Game) {
 		this.showCreateEditor.set(false);
 		this.router.navigate(["/games", game.code]);
-	}
-
-	setFeatured(index: number) {
-		this.featuredIndex.set(index);
 	}
 
 	private loadLatest() {
@@ -301,25 +354,8 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		this.showFilters.update(v => !v);
 	}
 
-	setMinScore(value: number | null) {
-		this.minScore.set(value);
-		this.onFiltersChanged();
-	}
-	setMaxScore(value: number | null) {
-		this.maxScore.set(value);
-		this.onFiltersChanged();
-	}
-	setMinDuration(value: string) {
-		this.minDuration.set(value ? Number(value) : null);
-		this.onFiltersChanged();
-	}
-	setMaxDuration(value: string) {
-		this.maxDuration.set(value ? Number(value) : null);
-		this.onFiltersChanged();
-	}
-	toggleIsDlc(value: boolean | null) {
-		this.isDlc.set(value);
-		this.onFiltersChanged();
+	showGenre(code: string) {
+		this.selectedGenres.set(new Set([code]));
 	}
 
 	clearFilters() {
@@ -334,16 +370,17 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		this.isDlc.set(null);
 		this.sortBy.set("createdAt");
 		this.sortOrder.set("desc");
-		this.filteredOffset.set(0);
-		this.persistToUrl();
-		this.loadFiltered();
+	}
+
+	protected pickGenre(code: string) {
+		if (code === MIXED_GENRES_VALUE) return;
+		this.selectedGenres.set(code ? new Set([code]) : new Set());
 	}
 
 	setSortBy(value: string) {
 		const option = this.sortOptions.find(o => o.value === value);
 		this.sortBy.set(value);
 		if (option) this.sortOrder.set(option.defaultOrder);
-		this.onFiltersChanged();
 	}
 
 	protected isSortCustom(): boolean {
@@ -437,6 +474,24 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		});
 	}
 
+	private syncGenresWithUrl() {
+		this.route.queryParamMap
+			.pipe(
+				map(params => params.get("genres") ?? ""),
+				distinctUntilChanged(),
+				skip(1),
+				takeUntilDestroyed(this.destroyRef)
+			)
+			.subscribe(genresCsv => {
+				const fromUrl = genresCsv.split(",").filter(Boolean);
+				const current = this.selectedGenres();
+				const unchanged =
+					fromUrl.length === current.size &&
+					fromUrl.every(code => current.has(code));
+				if (!unchanged) this.selectedGenres.set(new Set(fromUrl));
+			});
+	}
+
 	private applyFromUrl() {
 		const p = this.route.snapshot.queryParamMap;
 		const csv = (key: string) => {
@@ -473,7 +528,9 @@ export class GamesBrowse implements OnInit, OnDestroy {
 		if (sortOrder === "asc" || sortOrder === "desc") {
 			this.sortOrder.set(sortOrder);
 		}
-		if (this.activeFiltersCount() > 0) this.showFilters.set(true);
+		const genreFilterCount = this.selectedGenres().size > 0 ? 1 : 0;
+		if (this.activeFiltersCount() > genreFilterCount)
+			this.showFilters.set(true);
 		if (this.inSearchOrFilterMode()) this.loadFiltered();
 	}
 }

@@ -16,6 +16,7 @@ import * as listsServiceError from "./errors/lists.service-error";
 import { List } from "./list.model";
 
 const FREE_LIST_LIMIT = 5;
+export const LIST_PREVIEW_SIZE = 4;
 
 function isPremium(role: string) {
 	return role === "premium" || role === "moderator" || role === "admin";
@@ -211,7 +212,7 @@ export async function findListsByUserId(
 			{
 				model: ListItem,
 				separate: true,
-				limit: 1,
+				limit: LIST_PREVIEW_SIZE,
 				order: [["position", "ASC"]] as [string, string][],
 				include: [
 					{
@@ -241,6 +242,26 @@ export async function findListsByUserId(
 export async function findPublicListsByUserId(userId: string) {
 	return List.findAll({
 		where: { userId, isPublic: true },
+		include: [
+			{
+				model: ListItem,
+				separate: true,
+				limit: LIST_PREVIEW_SIZE,
+				order: [["position", "ASC"]] as [string, string][],
+				include: [
+					{
+						model: Game,
+						attributes: [
+							"id",
+							"code",
+							"title",
+							"backgroundUrl",
+							"isDlc"
+						]
+					}
+				]
+			}
+		],
 		order: [["createdAt", "DESC"]]
 	});
 }
@@ -332,7 +353,7 @@ export async function findRecentUserLists(limit = 12) {
 			{
 				model: ListItem,
 				separate: true,
-				limit: 1,
+				limit: LIST_PREVIEW_SIZE,
 				order: [["position", "ASC"]] as [string, string][],
 				include: [
 					{
@@ -365,7 +386,7 @@ export async function findOfficialLists(limit = 12) {
 			{
 				model: ListItem,
 				separate: true,
-				limit: 1,
+				limit: LIST_PREVIEW_SIZE,
 				order: [["position", "ASC"]] as [string, string][],
 				include: [
 					{
@@ -396,6 +417,24 @@ export async function searchPublicLists(query: string, limit = 20) {
 			{
 				model: User,
 				attributes: ["id", "username", "role"]
+			},
+			{
+				model: ListItem,
+				separate: true,
+				limit: LIST_PREVIEW_SIZE,
+				order: [["position", "ASC"]] as [string, string][],
+				include: [
+					{
+						model: Game,
+						attributes: [
+							"id",
+							"code",
+							"title",
+							"backgroundUrl",
+							"isDlc"
+						]
+					}
+				]
 			}
 		],
 		limit,

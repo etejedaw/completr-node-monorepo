@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { Game } from "../games/game.model";
@@ -21,17 +22,32 @@ const PLATFORM_ATTRS = [
 	"releaseAt"
 ];
 
+const FREE_SHELF_LIMIT = 250;
+
+function isPremium(role: string) {
+	return role === "premium" || role === "moderator" || role === "admin";
+}
+
 const shelfInclude = [
 	{ model: Game, attributes: GAME_ATTRS },
 	{ model: Platform, attributes: PLATFORM_ATTRS }
 ];
 
 export async function registerGameShelf(
-	userId: string,
+	user: RequestUser,
 	registerGameShelfDto: RegisterGameShelfDto
 ) {
+	if (!isPremium(user.role)) {
+		const count = await GameShelf.count({ where: { userId: user.id } });
+		if (count >= FREE_SHELF_LIMIT)
+			throw gameShelfServiceError.limitReachedError();
+	}
+
 	try {
-		return await GameShelf.create({ ...registerGameShelfDto, userId });
+		return await GameShelf.create({
+			...registerGameShelfDto,
+			userId: user.id
+		});
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: gameShelfServiceError.uniqueConstraintError,

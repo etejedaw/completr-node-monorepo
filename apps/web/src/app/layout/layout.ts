@@ -3,6 +3,7 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
@@ -24,8 +25,55 @@ import { OnboardingService } from "../core/services/onboarding";
 import { AttributionFooter } from "../shared/components/attribution-footer/attribution-footer";
 import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
-import { UiAvatar, UiIconButton, UiSeparator } from "../shared/ui";
-import { NAV_ACTIVE_CLASSES, visibleNavSections } from "./nav-sections";
+import { UiAvatar, UiBottomSheet, UiSeparator } from "../shared/ui";
+import { GlobalSearch } from "./global-search/global-search";
+import {
+	NAV_ACTIVE_CLASSES,
+	type NavItem,
+	visibleNavSections
+} from "./nav-sections";
+
+const SIDEBAR_COLLAPSED_KEY = "completr.sidebar.collapsed";
+const TABLET_QUERY = "(min-width: 768px) and (max-width: 1023px)";
+
+const PRIMARY_TABS: readonly NavItem[] = [
+	{
+		route: "/feed",
+		icon: "dynamic_feed",
+		label: "Feed",
+		iconColorClass: "text-nav-feed"
+	},
+	{
+		route: "/backlog",
+		icon: "list_alt",
+		label: "My Games",
+		iconColorClass: "text-nav-backlog"
+	},
+	{
+		route: "/queue",
+		icon: "playlist_play",
+		label: "Up Next",
+		iconColorClass: "text-nav-queue"
+	},
+	{
+		route: "/games",
+		icon: "sports_esports",
+		label: "Browse",
+		iconColorClass: "text-nav-browse"
+	}
+];
+
+function readCollapsedPreference(): boolean {
+	try {
+		return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
+	} catch {
+		return false;
+	}
+}
+
+function matchesRoute(url: string, route: string): boolean {
+	return url === route || url.startsWith(route + "/");
+}
 
 @Component({
 	selector: "app-layout",
@@ -35,9 +83,10 @@ import { NAV_ACTIVE_CLASSES, visibleNavSections } from "./nav-sections";
 		RouterLinkActive,
 		NgClass,
 		NgTemplateOutlet,
-		UiIconButton,
 		UiSeparator,
 		UiAvatar,
+		UiBottomSheet,
+		GlobalSearch,
 		ToastContainer,
 		OnboardingTour,
 		AttributionFooter
@@ -48,10 +97,20 @@ import { NAV_ACTIVE_CLASSES, visibleNavSections } from "./nav-sections";
 export class Layout implements OnInit {
 	private readonly auth = inject(AuthService);
 	private readonly router = inject(Router);
+	private readonly destroyRef = inject(DestroyRef);
 	protected readonly onboarding = inject(OnboardingService);
 
 	protected readonly user = this.auth.user;
-	protected readonly sidebarOpen = signal(false);
+	protected readonly isPremium = this.auth.isPremium;
+	protected readonly collapsed = signal(readCollapsedPreference());
+	protected readonly tablet = signal(false);
+	protected readonly railMode = computed(
+		() => this.collapsed() || this.tablet()
+	);
+	protected readonly scrolled = signal(false);
+	protected readonly moreOpen = signal(false);
+	protected readonly mobileSearchOpen = signal(false);
+	private readonly currentUrl = signal(this.router.url.split(/[?#]/)[0]);
 	protected readonly pendingUrl = signal<string | null>(null);
 	protected readonly navigating = signal(false);
 
@@ -64,6 +123,25 @@ export class Layout implements OnInit {
 	);
 	protected readonly bottomNavSections = computed(() =>
 		this.navSections().filter(section => section.pinnedToBottom)
+	);
+
+	protected readonly primaryTabs = PRIMARY_TABS;
+	protected readonly onFeed = computed(() =>
+		matchesRoute(this.currentUrl(), "/feed")
+	);
+	protected readonly moreActive = computed(() => {
+		const url = this.currentUrl();
+		return !PRIMARY_TABS.some(tab => matchesRoute(url, tab.route));
+	});
+	protected readonly sheetSections = computed(() =>
+		this.navSections()
+			.map(section => ({
+				...section,
+				items: section.items.filter(
+					item => !PRIMARY_TABS.some(tab => tab.route === item.route)
+				)
+			}))
+			.filter(section => section.items.length > 0)
 	);
 
 	isNavTargetActive(target: string): boolean {
@@ -92,7 +170,7 @@ export class Layout implements OnInit {
 		if (role === "admin") return "bg-danger/15 text-danger";
 		if (role === "moderator")
 			return "bg-[rgba(168,85,247,0.15)] text-[#a855f7]";
-		if (role === "premium") return "bg-warning/15 text-warning";
+		if (role === "premium") return "bg-premium/15 text-premium";
 		return "bg-[rgba(148,163,184,0.15)] text-fg-muted";
 	});
 
@@ -108,9 +186,13 @@ export class Layout implements OnInit {
 
 		this.router.events
 			.pipe(filter(e => e instanceof NavigationEnd))
-			.subscribe(() => {
-				this.sidebarOpen.set(false);
+			.subscribe(event => {
+				this.currentUrl.set(event.urlAfterRedirects.split(/[?#]/)[0]);
+				this.moreOpen.set(false);
+				this.mobileSearchOpen.set(false);
 			});
+
+		this.watchTabletBreakpoint();
 
 		this.router.events.subscribe(event => {
 			if (event instanceof NavigationStart) {
@@ -141,8 +223,30 @@ export class Layout implements OnInit {
 		this.router.navigate(["/help"]);
 	}
 
-	toggleSidebar() {
-		this.sidebarOpen.update(v => !v);
+	toggleCollapsed() {
+		const next = !this.collapsed();
+		this.collapsed.set(next);
+		try {
+			localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
+		} catch {
+			void 0;
+		}
+	}
+
+	onScroll(scrollTop: number) {
+		const scrolled = scrollTop > 8;
+		if (scrolled !== this.scrolled()) this.scrolled.set(scrolled);
+	}
+
+	private watchTabletBreakpoint() {
+		if (typeof window === "undefined" || !window.matchMedia) return;
+		const query = window.matchMedia(TABLET_QUERY);
+		const update = () => this.tablet.set(query.matches);
+		update();
+		query.addEventListener("change", update);
+		this.destroyRef.onDestroy(() =>
+			query.removeEventListener("change", update)
+		);
 	}
 
 	logout() {

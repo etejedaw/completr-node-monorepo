@@ -1,368 +1,144 @@
-<div class="max-w-full">
-	<div class="flex items-center justify-between mb-5">
-		<div class="flex items-baseline gap-3">
-			<h1
-				class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight"
-			>
-				Lists
-			</h1>
-			<span class="text-[0.8125rem] text-fg-muted"
-				>{{ total() }} lists</span
-			>
-		</div>
-		@if (isLoading() || lists().length > 0) {
-		<button
-			uiButton
-			variant="primary"
-			(click)="openCreate()"
-			[disabled]="frozen()"
+<app-library-hero heading="Lists" [posters]="heroPosters()">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Library</span
+	>
+	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
+		<span
+			class="font-semibold text-fg tabular-nums"
+			[class.!text-premium]="isPremium()"
+			>{{ total() }}</span
 		>
-			+ Create List
-		</button>
-		}
-	</div>
+		{{ total() === 1 ? 'list' : 'lists' }} of yours
+		<ui-premium-badge
+			*appPremiumOnly
+			size="sm"
+			interactive
+			label="Premium perk: unlimited lists"
+			message="Your lists have no limit. Create as many as you like."
+		/>
+		·
+		<span class="font-semibold text-fg tabular-nums"
+			>{{ followingLists().length }}</span
+		>
+		followed
+	</p>
+	@if (isLoading() || lists().length > 0) {
+	<button
+		heroActions
+		uiButton
+		variant="primary"
+		[disabled]="frozen()"
+		(click)="openCreate()"
+	>
+		<span aria-hidden="true" class="material-icons text-base">add</span>
+		Create list
+	</button>
+	}
+</app-library-hero>
 
+<app-library-toolbar>
 	<ui-search-bar
-		class="block mb-4 max-w-2xl"
+		class="flex-1 min-w-[12rem] max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
 		placeholder="Search public lists..."
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>
+</app-library-toolbar>
 
-	@if (searchQuery().length >= 2) {
-	<div class="mb-6 pb-6 border-b border-line">
-		<h2
-			class="font-display m-0 mb-3 text-sm font-semibold text-fg-secondary"
-		>
-			Search Results
-		</h2>
-		@if (isSearching()) {
-		<div class="text-center py-12 text-fg-muted text-sm">Searching...</div>
-		} @else if (searchResults().length === 0) {
-		<div class="text-fg-muted text-[0.8125rem]">No public lists found.</div>
-		} @else {
-		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-			@for (list of searchResults(); track list.id) {
-			<a
-				class="relative block aspect-[4/3] rounded-card overflow-hidden no-underline text-inherit border border-line transition group hover:border-brand/50"
-				[routerLink]="['/lists', list.id]"
-			>
-				@let hero = list.previewItems?.[0]?.game?.backgroundUrl; @if
-				(hero) {
-				<img
-					[src]="hero"
-					[alt]="list.name"
-					class="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-[1.04]"
-					loading="lazy"
-				/>
-				} @else {
-				<div
-					class="absolute inset-0 bg-input-bg flex items-center justify-center"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-fg-muted/30 text-5xl"
-						>videogame_asset</span
-					>
-				</div>
-				}
-				<div
-					class="absolute inset-0"
-					style="
-						background: linear-gradient(
-							to top,
-							rgba(10, 10, 12, 0.98) 0%,
-							rgba(10, 10, 12, 0.85) 35%,
-							rgba(10, 10, 12, 0.55) 65%,
-							rgba(10, 10, 12, 0.25) 100%
-						);
-					"
-				></div>
-
-				@if (list.isOfficial) {
-				<div class="absolute top-3 left-3 flex gap-2">
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem]"
-							>verified</span
-						>
-						Official
-					</span>
-				</div>
-				}
-
-				<div
-					class="relative h-full flex flex-col justify-end p-4 gap-1"
-				>
-					<h3
-						class="m-0 text-lg font-bold text-white line-clamp-1"
-						style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6)"
-					>
-						{{ list.name }}
-					</h3>
-					@if (list.description) {
-					<p
-						class="m-0 text-xs text-white/80 line-clamp-2"
-						style="text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5)"
-					>
-						{{ list.description }}
-					</p>
-					}
-				</div>
-			</a>
-			}
-		</div>
-		}
-	</div>
-	} @if (frozen()) {
-	<div
-		class="flex items-center gap-2 px-3.5 py-2.5 bg-warning/10 border border-warning/25 text-warning rounded-card text-[0.8125rem] mb-5"
+@if (searchQuery().length >= 2) {
+<section class="mb-10" aria-labelledby="list-search-heading">
+	<h2
+		id="list-search-heading"
+		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
 	>
-		<span aria-hidden="true" class="material-icons text-base">lock</span>
-		Lists are frozen. Delete lists to go below the free limit (5).
-	</div>
-	} @if (isLoading()) {
-	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
+		Public lists matching “{{ searchQuery() }}”
+	</h2>
+	@if (isSearching()) {
+	<ng-container [ngTemplateOutlet]="cardsSkeleton" />
+	} @else if (searchResults().length === 0) {
+	<p class="m-0 py-6 text-sm text-fg-muted">
+		No public lists match “{{ searchQuery() }}”. Try another name.
+	</p>
+	} @else {
+	<ul class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+		@for (list of searchResults(); track list.id) {
+		<li><app-list-card [list]="list" /></li>
+		}
+	</ul>
+	}
+</section>
+} @if (frozen()) {
+<div
+	role="status"
+	class="flex items-start gap-2 px-3.5 py-2.5 mb-6 bg-premium/10 border border-premium/25 text-premium rounded-card text-sm max-w-2xl"
+>
+	<span aria-hidden="true" class="material-icons text-base mt-0.5">lock</span>
+	Lists are frozen. Delete lists to go below the free limit (5) to create new
+	ones.
+</div>
+}
+
+<section aria-labelledby="my-lists-heading">
+	<h2
+		id="my-lists-heading"
+		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+	>
+		Your lists
+	</h2>
+	@if (isLoading()) {
+	<ng-container [ngTemplateOutlet]="cardsSkeleton" />
 	} @else if (lists().length === 0) {
 	<ui-empty-state
 		icon="format_list_bulleted"
 		title="No lists yet"
-		hint="Create curated collections of games — sagas, top picks, or themed lists."
+		hint="Create curated collections of games — sagas, top picks or themed lists — and track how many you've completed."
 	>
 		<button uiButton variant="primary" (click)="openCreate()">
-			+ Create List
+			<span aria-hidden="true" class="material-icons text-base">add</span>
+			Create list
 		</button>
 	</ui-empty-state>
 	} @else {
-	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+	<ul class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
 		@for (list of lists(); track list.id) {
-		<a
-			class="relative block aspect-[4/3] rounded-card overflow-hidden no-underline text-inherit border border-line transition group hover:border-brand/50"
-			[routerLink]="['/lists', list.id]"
-		>
-			@let hero = list.previewItems?.[0]?.game?.backgroundUrl; @if (hero)
-			{
-			<img
-				[src]="hero"
-				[alt]="list.name"
-				class="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-[1.04]"
-				loading="lazy"
-			/>
-			} @else {
-			<div
-				class="absolute inset-0 bg-input-bg flex items-center justify-center"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-fg-muted/30 text-5xl"
-					>videogame_asset</span
-				>
-			</div>
-			}
-			<div
-				class="absolute inset-0"
-				style="
-					background: linear-gradient(
-						to top,
-						rgba(10, 10, 12, 0.98) 0%,
-						rgba(10, 10, 12, 0.85) 35%,
-						rgba(10, 10, 12, 0.55) 65%,
-						rgba(10, 10, 12, 0.25) 100%
-					);
-				"
-			></div>
-
-			<div class="absolute top-3 left-3 flex gap-2">
-				@if (list.isOfficial) {
-				<span
-					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.875rem]"
-						>verified</span
-					>
-					Official
-				</span>
-				}
-				<span
-					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.875rem]"
-						>{{ list.isPublic ? 'public' : 'lock' }}</span
-					>
-					{{ list.isPublic ? 'Public' : 'Private' }}
-				</span>
-			</div>
-
-			<div class="relative h-full flex flex-col justify-end p-4 gap-1.5">
-				<h3
-					class="m-0 text-xl font-bold text-white line-clamp-1 font-display tracking-tight"
-					style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6)"
-				>
-					{{ list.name }}
-				</h3>
-				@if (list.description) {
-				<p
-					class="m-0 text-sm text-white/85 line-clamp-2"
-					style="text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5)"
-				>
-					{{ list.description }}
-				</p>
-				}
-				<div
-					class="flex items-center gap-3 mt-1 text-[0.6875rem] text-white/70 uppercase tracking-wider"
-				>
-					<span class="flex items-center gap-1">
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem]"
-							>leaderboard</span
-						>
-						{{ list.scoreSource }}
-					</span>
-					<span class="flex items-center gap-1">
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem]"
-							>schedule</span
-						>
-						{{ list.durationSource }}
-					</span>
-				</div>
-			</div>
-		</a>
+		<li><app-list-card [list]="list" [showVisibility]="true" /></li>
 		}
-	</div>
-	} @if (followingLists().length > 0) {
-	<div class="mt-8 pt-6 border-t border-line">
-		<h2 class="font-display m-0 mb-4 text-xl font-bold text-fg">
-			Following
-		</h2>
-		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-			@for (list of followingLists(); track list.id) {
-			<a
-				class="relative block aspect-[4/3] rounded-card overflow-hidden no-underline text-inherit border border-line transition group hover:border-brand/50"
-				[routerLink]="['/lists', list.id]"
-			>
-				@let hero = list.previewItems?.[0]?.game?.backgroundUrl; @if
-				(hero) {
-				<img
-					[src]="hero"
-					[alt]="list.name"
-					class="absolute inset-0 w-full h-full object-cover transition duration-300 group-hover:scale-[1.04]"
-					loading="lazy"
-				/>
-				} @else {
-				<div
-					class="absolute inset-0 bg-input-bg flex items-center justify-center"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-fg-muted/30 text-5xl"
-						>videogame_asset</span
-					>
-				</div>
-				}
-				<div
-					class="absolute inset-0"
-					style="
-						background: linear-gradient(
-							to top,
-							rgba(10, 10, 12, 0.98) 0%,
-							rgba(10, 10, 12, 0.85) 35%,
-							rgba(10, 10, 12, 0.55) 65%,
-							rgba(10, 10, 12, 0.25) 100%
-						);
-					"
-				></div>
-
-				<div class="absolute top-3 left-3 flex gap-2">
-					@if (list.isOfficial) {
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/80 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem]"
-							>verified</span
-						>
-						Official
-					</span>
-					}
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-[0.6875rem] font-semibold text-white uppercase tracking-wider"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem]"
-							>bookmark</span
-						>
-						Following
-					</span>
-				</div>
-				@if (list.progress.total > 0 && list.progress.completed >=
-				list.progress.total) {
-				<div class="absolute top-3 right-3">
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning/85 backdrop-blur-sm text-[0.6875rem] font-bold text-black uppercase tracking-wider shadow-lg"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem]"
-							>emoji_events</span
-						>
-						100%
-					</span>
-				</div>
-				}
-
-				<div
-					class="relative h-full flex flex-col justify-end p-4 gap-1.5"
-				>
-					<h3
-						class="m-0 text-xl font-bold text-white line-clamp-1 font-display tracking-tight"
-						style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6)"
-					>
-						{{ list.name }}
-					</h3>
-					@if (list.description) {
-					<p
-						class="m-0 text-sm text-white/85 line-clamp-2"
-						style="text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5)"
-					>
-						{{ list.description }}
-					</p>
-					}
-					<div class="flex flex-col gap-1 mt-1">
-						<ui-progress
-							[value]="list.progress.completed"
-							[max]="list.progress.total || 1"
-							trackClass="h-1 bg-white/20"
-							indicatorClass=""
-							indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
-						/>
-						<span class="text-[0.6875rem] text-white/80">
-							{{ list.progress.completed }}/{{ list.progress.total
-							}} completed
-						</span>
-					</div>
-				</div>
-			</a>
-			}
-		</div>
-	</div>
-	}
-
+	</ul>
 	<ui-pagination
 		[offset]="offset()"
 		[limit]="limit"
 		[total]="total()"
 		(offsetChange)="onOffsetChange($event)"
 	/>
-</div>
+	}
+</section>
+
+@if (followingLists().length > 0) {
+<section class="mt-10" aria-labelledby="following-heading">
+	<h2
+		id="following-heading"
+		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+	>
+		Following
+	</h2>
+	<ul class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+		@for (list of followingLists(); track list.id) {
+		<li><app-list-card [list]="list" /></li>
+		}
+	</ul>
+</section>
+}
+
+<ng-template #cardsSkeleton>
+	<div
+		class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+		aria-busy="true"
+		aria-label="Loading lists"
+	>
+		@for (i of skeletonRange; track i) {
+		<ui-skeleton variant="rect" class="block aspect-[16/10] rounded-card" />
+		}
+	</div>
+</ng-template>

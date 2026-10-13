@@ -1,0 +1,240 @@
+<div
+	class="grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start"
+>
+	<div
+		ngpDatePicker
+		[ngpDatePickerFirstDayOfWeek]="1"
+		[ngpDatePickerFocusedDate]="month()"
+		(ngpDatePickerFocusedDateChange)="changeMonth($event)"
+		[ngpDatePickerDate]="selected() ?? undefined"
+		(ngpDatePickerDateChange)="selectDay($event)"
+		class="min-w-0 bg-surface border border-line rounded-card p-3 sm:p-4"
+	>
+		<header class="flex items-center justify-between gap-2 mb-3">
+			<div class="flex items-center gap-1 min-w-0">
+				<button
+					uiIconButton
+					size="sm"
+					ngpDatePickerPreviousMonth
+					aria-label="Previous month"
+					class="tap:!w-[44px] tap:!h-[44px]"
+				>
+					<span aria-hidden="true" class="material-icons"
+						>chevron_left</span
+					>
+				</button>
+				<div class="min-w-[9rem] sm:min-w-[11rem] text-center">
+					<h2
+						ngpDatePickerLabel
+						class="font-display m-0 text-lg font-bold tracking-tight leading-tight"
+					>
+						{{ month() | date: "MMMM yyyy" }}
+					</h2>
+					<ng-content select="[calendarSummary]" />
+				</div>
+				<button
+					uiIconButton
+					size="sm"
+					ngpDatePickerNextMonth
+					aria-label="Next month"
+					class="tap:!w-[44px] tap:!h-[44px]"
+				>
+					<span aria-hidden="true" class="material-icons"
+						>chevron_right</span
+					>
+				</button>
+			</div>
+			<button
+				uiButton
+				variant="secondary"
+				size="sm"
+				type="button"
+				class="max-sm:min-h-[44px]"
+				[disabled]="isCurrentMonth()"
+				(click)="goToday()"
+			>
+				Today
+			</button>
+		</header>
+
+		<table
+			ngpDatePickerGrid
+			class="w-full table-fixed border-collapse transition-opacity"
+			[class.opacity-50]="loading()"
+			[attr.aria-busy]="loading()"
+		>
+			<thead>
+				<tr>
+					@for (weekday of weekdays; track weekday.short) {
+					<th
+						scope="col"
+						class="text-center text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted pb-1.5"
+						[attr.abbr]="weekday.full"
+					>
+						{{ weekday.short }}
+					</th>
+					}
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngpDatePickerRowRender>
+					<td
+						*ngpDatePickerCellRender="let date"
+						ngpDatePickerCell
+						class="relative align-top border border-line p-0"
+						[class.bg-canvas]="isOutsideMonth(date)"
+						[class.bg-fg-muted/5]="!isOutsideMonth(date) && isWeekend(date)"
+					>
+						@let markers = markersFor()(date);
+						<button
+							ngpDatePickerDateButton
+							type="button"
+							class="absolute inset-0 w-full flex flex-col items-end gap-1.5 p-1 sm:px-1.5 bg-transparent border-0 cursor-pointer outline-none transition-colors hover:bg-surface-hover/60 data-[selected]:bg-brand-subtle/60 data-[selected]:shadow-[inset_0_0_0_2px_var(--color-brand)] data-[focus-visible]:shadow-[inset_0_0_0_2px_var(--color-brand)]"
+							[attr.data-has-items]="markers.length > 0 ? '' : null"
+							[attr.aria-label]="dayLabel(date, markers.length)"
+						>
+							<span
+								class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[0.6875rem] leading-none tabular-nums"
+								[class.bg-brand]="isToday(date)"
+								[class.text-white]="isToday(date)"
+								[class.font-bold]="isToday(date)"
+								[class.font-medium]="!isToday(date)"
+								[class.text-fg-muted]="!isToday(date) && isOutsideMonth(date)"
+								[class.text-fg-secondary]="!isToday(date) && !isOutsideMonth(date)"
+								>{{ date.getDate() }}</span
+							>
+							@if (markers.length > 0) {
+							<span
+								aria-hidden="true"
+								class="sm:hidden flex flex-wrap justify-end items-center gap-1 px-0.5"
+							>
+								@for (dot of markers.slice(0, maxDots); track
+								$index) {
+								<span
+									class="w-1.5 h-1.5 rounded-full"
+									[class]="dot"
+								></span>
+								} @if (markers.length > maxDots) {
+								<span
+									class="text-[0.5625rem] leading-none text-fg-muted"
+									>+{{ markers.length - maxDots }}</span
+								>
+								}
+							</span>
+							}
+						</button>
+						<div
+							class="relative min-h-[3.25rem] sm:min-h-[5.5rem] pt-7 pb-1 pointer-events-none"
+						>
+							@if (dayTemplate(); as day) {
+							<div
+								class="hidden sm:flex flex-col gap-0.5 [&_button]:pointer-events-auto"
+							>
+								<ng-container
+									*ngTemplateOutlet="day.template; context: { $implicit: date }"
+								/>
+							</div>
+							}
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<ng-content />
+	</div>
+
+	<section
+		data-calendar-agenda
+		aria-labelledby="calendar-agenda-title"
+		class="flex flex-col min-h-0 bg-surface border border-line rounded-card xl:sticky xl:top-[calc(var(--topbar-height)+5rem)] xl:max-h-[calc(100dvh-var(--topbar-height)-6rem)]"
+	>
+		<header
+			class="flex items-center justify-between gap-3 px-4 py-3 border-b border-line"
+		>
+			<div class="min-w-0" aria-live="polite">
+				<span
+					class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+					>{{ selected() ? "Selected day" : "This month" }}</span
+				>
+				<h3
+					id="calendar-agenda-title"
+					class="font-display m-0 text-base font-bold [text-wrap:balance]"
+				>
+					@if (selected(); as day) { {{ day | date: "EEEE, MMMM d" }}
+					} @else { {{ month() | date: "MMMM yyyy" }} }
+				</h3>
+				<p class="m-0 text-xs text-fg-muted tabular-nums">
+					{{ agendaCount() }} {{ nounFor(agendaCount()) }}
+				</p>
+			</div>
+			@if (selected()) {
+			<button
+				uiButton
+				variant="ghost"
+				size="sm"
+				type="button"
+				class="shrink-0 max-sm:min-h-[44px]"
+				(click)="showWholeMonth()"
+			>
+				Whole month
+			</button>
+			}
+		</header>
+		@if (agendaItems().length > 0) {
+		<ul class="list-none m-0 p-2 flex flex-col overflow-y-auto">
+			@for (item of agendaItems(); track item.id) {
+			<li>
+				<button
+					type="button"
+					class="w-full min-h-[52px] flex items-center gap-3 px-2 py-1.5 rounded text-left bg-transparent border-0 cursor-pointer transition hover:bg-input-bg focus-visible:outline-2 focus-visible:outline-brand"
+					(click)="itemSelected.emit(item.id)"
+				>
+					<app-game-poster
+						[src]="item.posterSrc"
+						[title]="item.title"
+						[width]="200"
+						[compact]="true"
+						class="w-9 shrink-0 aspect-[2/3] rounded"
+					/>
+					<span class="min-w-0 flex-1">
+						<span class="block text-sm font-medium text-fg truncate"
+							>{{ item.title }}</span
+						>
+						<span
+							class="flex items-center gap-1.5 text-xs text-fg-muted min-w-0"
+						>
+							<span
+								aria-hidden="true"
+								class="w-2 h-2 rounded-full shrink-0"
+								[class]="item.dotClass"
+							></span>
+							<span class="truncate">{{ item.meta }}</span>
+						</span>
+					</span>
+					<span
+						class="shrink-0 text-[0.6875rem] text-fg-muted tabular-nums"
+						>{{ item.dateLabel }}</span
+					>
+				</button>
+			</li>
+			}
+		</ul>
+		} @else {
+		<div class="flex flex-col items-center gap-1 px-6 py-8 text-center">
+			<span
+				aria-hidden="true"
+				class="material-icons text-2xl text-fg-muted"
+				>event_busy</span
+			>
+			<p class="m-0 text-sm font-medium text-fg">
+				{{ selected() ? "Nothing on this day" : "Nothing this month" }}
+			</p>
+			<p class="m-0 text-xs text-fg-muted">
+				{{ selected() ? "Pick a day with dots or bars to see its games."
+				: emptyMonthHint() }}
+			</p>
+		</div>
+		}
+	</section>
+</div>

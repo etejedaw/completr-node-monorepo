@@ -17,7 +17,7 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 				}
 				@if (personalRatio()) {
 					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-warning bg-warning/10 border border-warning/20"
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-brand bg-brand/10 border border-brand/20"
 					>
 						P. Ratio {{ personalRatio() }}
 					</span>
@@ -27,7 +27,7 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 			<div class="flex flex-col items-end gap-3">
 				@if (personalRatio()) {
 					<div class="flex flex-col items-end leading-none">
-						<span class="text-lg font-semibold text-warning">{{
+						<span class="text-lg font-semibold text-brand">{{
 							personalRatio()
 						}}</span>
 						<span

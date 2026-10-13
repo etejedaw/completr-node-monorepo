@@ -1,64 +1,35 @@
-<div class="max-w-7xl mx-auto p-6 lg:p-8 max-md:px-4">
-	<a
-		class="inline-flex items-center gap-1.5 text-fg-muted no-underline text-[0.8125rem] mb-5 hover:text-brand"
-		[routerLink]="['/user', username()]"
-	>
-		<span aria-hidden="true" class="material-icons text-base"
-			>arrow_back</span
-		>
-		{{ '@' + username() }}'s profile
-	</a>
-
-	@if (error() === 'not_found') {
-	<div class="text-center py-12 text-fg-muted text-sm">User not found.</div>
-	} @else if (error() === 'private') {
-	<div class="text-center py-12 text-fg-muted text-sm">
-		This profile is private.
-	</div>
-	} @else {
-	<div class="flex items-baseline gap-3 mb-4">
-		<h1
-			class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight"
-		>
-			Shelf
-		</h1>
-		<span class="text-sm text-fg-muted">{{ total() }} games</span>
-	</div>
-
-	<ui-search-bar
-		class="block mb-4 max-w-2xl"
-		placeholder="Search by title..."
-		[value]="searchQuery()"
-		(valueChange)="onSearch($event)"
-	/>
-
-	@if (isLoading()) {
-	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
-	} @else if (entries().length === 0 && !searchQuery()) {
-	<div class="text-center py-12 text-fg-muted text-sm">
-		No public games on the shelf.
-	</div>
-	} @else if (entries().length === 0 && searchQuery()) {
-	<div class="text-center py-12 text-fg-muted text-sm">No results found.</div>
-	} @else {
-	<div
-		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
-	>
-		@for (entry of entries(); track entry.id) {
-		<app-game-cover-card
-			[game]="entry.game"
-			[topLeftBadge]="entry.platform.abbreviation"
-			[subtitle]="entry.edition"
-			[acquiredAt]="entry.acquiredAt"
-		/>
+<app-profile-collection-page
+	heading="Shelf"
+	icon="shelves"
+	iconColor="text-nav-shelf"
+	noun="game"
+	privateTitle="This shelf is private"
+	emptyTitle="The shelf is empty"
+	emptyText="They haven't shared any games they own yet."
+	[username]="collection.username()"
+	[posters]="collection.posters()"
+	[total]="collection.total()"
+	[itemCount]="collection.items().length"
+	[visibleCount]="collection.visibleItems().length"
+	[isLoading]="collection.isLoading()"
+	[error]="collection.error()"
+	[offset]="collection.offset()"
+	[limit]="collection.limit"
+	[(query)]="collection.query"
+	[platforms]="collection.platformCounts()"
+	[(platform)]="collection.platform"
+	(offsetChange)="collection.goToOffset($event)"
+>
+	<app-cover-grid>
+		@for (entry of collection.visibleItems(); track entry.id) {
+		<li>
+			<app-game-cover-card
+				[game]="entry.game"
+				[topLeftBadge]="entry.platform.abbreviation"
+				[subtitle]="entry.edition"
+				[acquiredAt]="entry.acquiredAt"
+			/>
+		</li>
 		}
-	</div>
-
-	<ui-pagination
-		[offset]="offset()"
-		[limit]="limit"
-		[total]="total()"
-		(offsetChange)="goToOffset($event)"
-	/>
-	} }
-</div>
+	</app-cover-grid>
+</app-profile-collection-page>

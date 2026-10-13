@@ -52,10 +52,15 @@ export async function getMeLists(request: Request, response: Response) {
 		user,
 		query
 	);
-	const listsPlain = lists.map(list => list.get({ plain: true }));
+	const listsWithProgress = await Promise.all(
+		lists.map(async list => ({
+			...listSummarySerializer(list.get({ plain: true })),
+			progress: await listsService.getListProgress(list.id, user.id)
+		}))
+	);
 
 	const data = {
-		lists: listsPlain.map(listSummarySerializer),
+		lists: listsWithProgress,
 		total,
 		frozen
 	};

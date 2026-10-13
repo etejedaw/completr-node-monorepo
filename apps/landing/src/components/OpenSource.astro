@@ -31,6 +31,12 @@ const folders = [
 	}
 ];
 
+const openSourcePoints = [
+	"Revisa cómo se calcula el Ratio",
+	"Mira cómo se guardan tus datos",
+	"Propón mejoras o reporta errores"
+];
+
 const languageColors: Record<string, string> = {
 	TypeScript: "#3178c6",
 	HTML: "#e34c26",
@@ -98,142 +104,159 @@ const languages = [
 	>
 	</div>
 
-	<div class="relative max-w-3xl mx-auto">
-		<div class="text-center mb-12 max-w-2xl mx-auto">
-			<span
-				class="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-brand)]"
-				>Código abierto</span
-			>
+	<div
+		class="relative max-w-6xl mx-auto grid gap-12 lg:grid-cols-12 lg:gap-16 items-center"
+	>
+		<div class="min-w-0 lg:col-span-5">
+			<span class="eyebrow">Código abierto</span>
 			<h2
-				class="font-[var(--font-display)] mt-3 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight"
+				class="font-display mt-3 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
 			>
-				Completr es{" "}
-				<span
-					class="bg-clip-text text-transparent"
-					style="background-image: linear-gradient(135deg, var(--color-brand), #c4a8ff);"
-					>100% open source</span
-				>.
+				Completr es <span class="text-gradient">100% open source</span>.
 			</h2>
-			<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
-				La app, la API y esta misma página están publicadas en GitHub.
-				Puedes revisar cómo se calcula el Ratio, cómo se guardan tus
-				datos o proponer mejoras.
-			</p>
-		</div>
-
-		<div
-			class="rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] overflow-hidden"
-			style="box-shadow: 0 24px 48px -24px var(--color-brand-glow);"
-		>
-			<div
-				class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-[var(--color-line)]"
+			<p
+				class="m-0 mb-6 text-[var(--color-fg-secondary)] leading-relaxed"
 			>
-				<div class="flex items-center gap-2 min-w-0 text-sm">
-					<svg
-						class="w-5 h-5 shrink-0 text-[var(--color-fg-muted)]"
-						viewBox="0 0 16 16"
-						fill="currentColor"
-						aria-hidden="true"
-					>
-						<path
-							d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"
-						></path>
-					</svg>
-					<a
-						href={repoUrl}
-						target="_blank"
-						rel="noopener noreferrer"
-						class="truncate no-underline text-[var(--color-fg-secondary)] hover:text-[var(--color-brand)] transition-colors"
-					>
-						etejedaw /{" "}
-						<strong class="font-semibold text-[var(--color-fg)]"
-							>completr-node-monorepo</strong
-						>
-					</a>
-					<span
-						class="shrink-0 px-2 py-0.5 rounded-full border border-[var(--color-line)] text-[0.6875rem] text-[var(--color-fg-muted)]"
-						>Public</span
-					>
-				</div>
-				<span
-					class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.6875rem] font-semibold text-[var(--color-brand)] border border-[var(--color-brand)]/40 bg-[var(--color-brand)]/10"
-				>
-					<span class="material-icons text-[0.875rem]">gavel</span>
-					{license}
-				</span>
-			</div>
-
-			<ul class="list-none m-0 p-0">
+				La app, la API y esta misma página están publicadas en GitHub
+				con licencia {license}.
+			</p>
+			<ul
+				class="m-0 mb-8 p-0 list-none flex flex-col gap-2 text-sm text-[var(--color-fg-secondary)]"
+			>
 				{
-					folders.map(folder => (
-						<li class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 px-5 py-3 border-b border-[var(--color-line)] text-sm">
-							<span class="flex items-center gap-2 sm:w-40 shrink-0 font-mono text-[var(--color-fg)]">
-								<span class="material-icons text-[1.125rem] text-[var(--color-brand)]">
-									folder
-								</span>
-								{folder.path}
+					openSourcePoints.map(point => (
+						<li class="flex gap-2">
+							<span
+								class="material-icons text-[1.125rem] text-[var(--color-brand)]"
+								aria-hidden="true"
+							>
+								check
 							</span>
-							<span class="flex-1 text-[var(--color-fg-secondary)]">
-								{folder.description}
-							</span>
-							<span class="text-xs text-[var(--color-fg-muted)]">
-								{folder.stack}
-							</span>
+							{point}
 						</li>
 					))
 				}
 			</ul>
+			<a
+				href={repoUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="btn-primary"
+			>
+				Ver el código en GitHub
+				<span class="material-icons text-[1.125rem]" aria-hidden="true"
+					>arrow_forward</span
+				>
+			</a>
+		</div>
 
-			<div class="px-5 py-4">
+		<div class="min-w-0 lg:col-span-7">
+			<div
+				class="rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] overflow-hidden"
+				style="box-shadow: 0 24px 48px -24px var(--color-brand-glow);"
+			>
 				<div
-					class="flex h-2 rounded-full overflow-hidden"
-					role="img"
-					aria-label="Lenguajes del repositorio"
+					class="flex items-center justify-between gap-3 px-5 py-2 border-b border-[var(--color-line)]"
 				>
-					{
-						languages.map(language => (
-							<span
-								style={`width: ${language.percent}%; background: ${language.color};`}
-							/>
-						))
-					}
+					<div class="flex flex-1 items-center gap-2 min-w-0 text-sm">
+						<svg
+							class="w-5 h-5 shrink-0 text-[var(--color-fg-muted)]"
+							viewBox="0 0 16 16"
+							fill="currentColor"
+							aria-hidden="true"
+						>
+							<path
+								d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"
+							></path>
+						</svg>
+						<a
+							href={repoUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="block min-w-0 truncate leading-[44px] no-underline text-[var(--color-fg-secondary)] hover:text-[var(--color-brand)] transition-colors"
+						>
+							etejedaw /{" "}
+							<strong class="font-semibold text-[var(--color-fg)]"
+								>completr-node-monorepo</strong
+							>
+						</a>
+						<span
+							class="hidden sm:inline-block shrink-0 px-2 py-0.5 rounded-full border border-[var(--color-line)] text-[0.6875rem] text-[var(--color-fg-muted)]"
+							>Public</span
+						>
+					</div>
+					<span
+						class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.6875rem] font-semibold text-[var(--color-brand)] border border-[var(--color-brand)]/40 bg-[var(--color-brand)]/10"
+					>
+						<span
+							class="material-icons text-[0.875rem]"
+							aria-hidden="true">gavel</span
+						>
+						{license}
+					</span>
 				</div>
-				<ul
-					class="list-none m-0 mt-3 p-0 flex flex-wrap gap-x-5 gap-y-1.5 text-xs"
-				>
+
+				<ul class="list-none m-0 p-0">
 					{
-						languages.map(language => (
-							<li class="flex items-center gap-1.5">
-								<span
-									class="w-2 h-2 rounded-full"
-									style={`background: ${language.color};`}
-									aria-hidden="true"
-								/>
-								<span class="font-semibold text-[var(--color-fg-secondary)]">
-									{language.name}
+						folders.map(folder => (
+							<li class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-3 gap-y-0.5 sm:flex sm:items-center sm:gap-4 px-5 py-3 border-b border-[var(--color-line)] text-sm">
+								<span class="flex items-center gap-2 sm:w-40 shrink-0 font-mono text-[var(--color-fg)] self-center">
+									<span
+										class="material-icons text-[1.125rem] text-[var(--color-brand)]"
+										aria-hidden="true"
+									>
+										folder
+									</span>
+									{folder.path}
 								</span>
-								<span class="text-[var(--color-fg-muted)]">
-									{language.percent}%
+								<span class="flex-1 min-w-0 truncate text-[var(--color-fg-secondary)]">
+									{folder.description}
+								</span>
+								<span class="col-span-2 pl-[1.625rem] sm:pl-0 text-xs text-[var(--color-fg-muted)]">
+									{folder.stack}
 								</span>
 							</li>
 						))
 					}
 				</ul>
-			</div>
-		</div>
 
-		<div class="mt-10 text-center">
-			<a
-				href={repoUrl}
-				target="_blank"
-				rel="noopener noreferrer"
-				class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-white font-semibold text-base no-underline transition-transform hover:scale-[1.03]"
-				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 12px 24px -10px var(--color-brand-glow);"
-			>
-				Ver el código en GitHub
-				<span class="material-icons text-[1.125rem]">arrow_forward</span
-				>
-			</a>
+				<div class="px-5 py-4">
+					<div
+						class="flex h-2 rounded-full overflow-hidden"
+						role="img"
+						aria-label="Lenguajes del repositorio"
+					>
+						{
+							languages.map(language => (
+								<span
+									style={`width: ${language.percent}%; background: ${language.color};`}
+								/>
+							))
+						}
+					</div>
+					<ul
+						class="list-none m-0 mt-3 p-0 flex flex-wrap gap-x-5 gap-y-1.5 text-xs"
+					>
+						{
+							languages.map(language => (
+								<li class="flex items-center gap-1.5">
+									<span
+										class="w-2 h-2 rounded-full"
+										style={`background: ${language.color};`}
+										aria-hidden="true"
+									/>
+									<span class="font-semibold text-[var(--color-fg-secondary)]">
+										{language.name}
+									</span>
+									<span class="text-[var(--color-fg-muted)]">
+										{language.percent}%
+									</span>
+								</li>
+							))
+						}
+					</ul>
+				</div>
+			</div>
 		</div>
 	</div>
 </section>

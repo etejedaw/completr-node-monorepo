@@ -29,3 +29,10 @@ export function invalidTagError(reason: string) {
 		raw: { reason }
 	});
 }
+
+export function limitReachedError(max: number) {
+	return new ServiceError("MOOD_TAGS_LIMIT_REACHED", {
+		...BASE_OPTIONS,
+		raw: { max }
+	});
+}

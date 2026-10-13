@@ -1,5 +1,6 @@
 import { Op, QueryTypes } from "sequelize";
 
+import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { sequelize } from "../database/sequelize.database";
 import * as gamesService from "../games/games.service";
 import * as moodTagsServiceError from "./errors/mood-tags.service-error";
@@ -8,18 +9,46 @@ import { normalizeTag, normalizeTags } from "./normalize-tag.util";
 import { UserGameTag } from "./user-game-tag.model";
 
 const MAX_TAGS_PER_GAME = 10;
+const FREE_TAG_LIMIT = 25;
+
+function isPremium(role: string) {
+	return role === "premium" || role === "moderator" || role === "admin";
+}
+
+async function findTagNamesByUser(userId: string) {
+	const rows = (await sequelize.query(
+		`SELECT "tag" FROM "UserGameTags" WHERE "userId" = :userId
+		UNION
+		SELECT "tag" FROM "MoodTagMetas" WHERE "userId" = :userId`,
+		{ replacements: { userId }, type: QueryTypes.SELECT }
+	)) as { tag: string }[];
+	return new Set(rows.map(row => row.tag));
+}
+
+async function assertWithinTagLimit(
+	user: RequestUser,
+	tags: readonly string[]
+) {
+	if (isPremium(user.role)) return;
+	const existing = await findTagNamesByUser(user.id);
+	const newTags = tags.filter(tag => !existing.has(tag));
+	if (newTags.length > 0 && existing.size + newTags.length > FREE_TAG_LIMIT)
+		throw moodTagsServiceError.limitReachedError(FREE_TAG_LIMIT);
+}
 
 export async function replaceTags(
-	userId: string,
+	user: RequestUser,
 	gameId: string,
 	rawTags: readonly string[]
 ) {
+	const userId = user.id;
 	const game = await gamesService.findGameById(gameId);
 	if (!game) throw moodTagsServiceError.gameNotFoundError();
 
 	const tags = normalizeTags(rawTags);
 	if (tags.length > MAX_TAGS_PER_GAME)
 		throw moodTagsServiceError.tooManyTagsError(MAX_TAGS_PER_GAME);
+	await assertWithinTagLimit(user, tags);
 
 	return sequelize.transaction(async transaction => {
 		await UserGameTag.destroy({ where: { userId, gameId }, transaction });
@@ -67,10 +96,11 @@ export async function findTagsByUser(userId: string) {
 }
 
 export async function createTag(
-	userId: string,
+	user: RequestUser,
 	rawTag: string,
 	description: string | null | undefined
 ) {
+	const userId = user.id;
 	const tag = normalizeTag(rawTag);
 	if (!tag) throw moodTagsServiceError.invalidTagError("empty");
 	if (tag.length > 40) throw moodTagsServiceError.invalidTagError("too long");
@@ -84,18 +114,22 @@ export async function createTag(
 	if (existing)
 		return { tag, description: existing.description, created: false };
 
+	await assertWithinTagLimit(user, [tag]);
+
 	await MoodTagMeta.create({ userId, tag, description: trimmed });
 	return { tag, description: trimmed, created: true };
 }
 
 export async function setTagDescription(
-	userId: string,
+	user: RequestUser,
 	rawTag: string,
 	description: string | null
 ) {
+	const userId = user.id;
 	const tag = normalizeTag(rawTag);
 	if (!tag) throw moodTagsServiceError.invalidTagError("empty");
 	if (tag.length > 40) throw moodTagsServiceError.invalidTagError("too long");
+	await assertWithinTagLimit(user, [tag]);
 
 	const trimmed =
 		description === null || description === undefined

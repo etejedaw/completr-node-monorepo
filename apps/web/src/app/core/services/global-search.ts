@@ -3,15 +3,7 @@ import { inject, Injectable } from "@angular/core";
 import { forkJoin, map, of } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type VisibilityLevel } from "../models/user.model";
-
-interface UserResult {
-	id: string;
-	username: string;
-	name: string;
-	avatarUrl: string | null;
-	profileVisibility: VisibilityLevel;
-}
+import { type UserResult } from "./users";
 
 interface GameResult {
 	id: string;

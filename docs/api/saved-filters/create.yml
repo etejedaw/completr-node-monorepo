@@ -48,7 +48,7 @@ docs: |-
     | isDefault     | boolean  | No       | Auto-apply this view when opening the backlog    |
     | enabledStats  | string[] | No       | Stat keys to render in the panel. `null` = frontend defaults. Allowed keys: `totalEntries`, `totalRealHours`, `avgRatio`, `avgPersonalRatio`, `completionRate`, `abandonmentRate`, `avgRealDuration`, `avgEstimatedDuration`, `avgScore`, `avgUserRating`, `estimatedVsRealDelta`, `longestPlayed`, `bestPersonalRatio`, `highestRated`, `countByStatus` |
     | icon          | string   | No       | Icon for the chip/card. `null` to clear. Allowed: `bookmark`, `star`, `favorite`, `sports_esports`, `emoji_events`, `flag`, `check_circle`, `schedule`, `bolt`, `local_fire_department`, `filter_alt`, `list`, `calendar_month`, `military_tech`, `rocket_launch`, `visibility` |
-    | color         | string   | No       | Color token for the chip/card. `null` to clear. Allowed: `brand`, `sky`, `emerald`, `amber`, `rose`, `purple`, `teal`, `slate` |
+    | color         | string   | No       | Color token for the chip/card. `null` to clear. Allowed: `brand`, `sky`, `emerald`, `rose`, `purple`, `teal`, `slate` |
 
     ### Response (201)
 

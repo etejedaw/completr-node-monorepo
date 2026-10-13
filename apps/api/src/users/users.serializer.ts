@@ -10,6 +10,7 @@ import {
 	type EnrichedUserList,
 	type FullUserProfile,
 	type RestrictedUserProfile,
+	type UserCardInsights,
 	type UserCompletionsBundle,
 	type UserHighlightsBundle,
 	type UserReviewsBundle
@@ -108,7 +109,8 @@ export function fullProfileSerializer(profile: FullUserProfile) {
 		backlogTotal: profile.backlogTotal,
 		backlogStats: profile.backlogStats,
 		listsTotal: profile.listsTotal,
-		recentActivity: profile.recentActivity.map(activitySerializer)
+		recentActivity: profile.recentActivity.map(activitySerializer),
+		access: profile.access
 	};
 }
 
@@ -119,6 +121,19 @@ export function userSummarySerializer(user: User) {
 		name: user.name,
 		avatarUrl: user.avatarUrl,
 		profileVisibility: user.profileVisibility
+	};
+}
+
+export function userCardSerializer(card: UserCardInsights) {
+	return {
+		...userSummarySerializer(card.user),
+		role: card.user.role,
+		isSelf: card.isSelf,
+		followerCount: card.followerCount,
+		isFollowing: card.isFollowing,
+		gamesTotal: card.gamesTotal,
+		completedTotal: card.completedTotal,
+		featuredGame: card.featuredGame
 	};
 }
 

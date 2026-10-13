@@ -1,62 +1,52 @@
-<div class="max-w-7xl mx-auto p-6 lg:p-8 max-md:px-4">
-	<a
-		class="inline-flex items-center gap-1.5 text-fg-muted no-underline text-[0.8125rem] mb-5 hover:text-brand"
-		[routerLink]="['/user', username()]"
-	>
-		<span aria-hidden="true" class="material-icons text-base"
-			>arrow_back</span
+@if (!isLoggedIn()) {
+<ui-empty-state
+	icon="join_inner"
+	title="Sign in to compare libraries"
+	[hint]="'See which games you and @' + collection.username() + ' have in common.'"
+>
+	<div class="flex flex-wrap justify-center gap-2">
+		<a uiButton variant="primary" routerLink="/login">Sign in</a>
+		<a
+			uiButton
+			variant="secondary"
+			[routerLink]="['/user', collection.username()]"
+			>Back to profile</a
 		>
-		{{ '@' + username() }}'s profile
-	</a>
-
-	@if (error() === 'not_found') {
-	<div class="text-center py-12 text-fg-muted text-sm">User not found.</div>
-	} @else if (error() === 'private') {
-	<div class="text-center py-12 text-fg-muted text-sm">
-		This content is private.
 	</div>
-	} @else {
-	<div class="flex items-baseline gap-3 mb-4">
-		<h1
-			class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight"
-		>
-			In common
-		</h1>
-		<span class="text-[0.8125rem] text-fg-muted">{{ total() }} games</span>
-	</div>
-
-	<div class="flex gap-2 flex-wrap mb-6">
-		@for (dim of dimensions; track dim.value) {
-		<button
-			type="button"
-			(click)="changeDimension(dim.value)"
-			[class]="dimBtnClass(dim.value)"
-		>
-			{{ dim.label }}
-		</button>
-		}
-	</div>
-
-	@if (isLoading()) {
-	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
-	} @else if (games().length === 0) {
-	<div class="text-center py-12 text-fg-muted text-sm">
-		Nothing in common in {{ dimensionLabel() }} yet.
-	</div>
-	} @else {
-	<div
-		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
-	>
-		@for (game of games(); track game.id) {
-		<app-game-cover-card [game]="game" />
-		}
-	</div>
-
-	<ui-pagination
-		[offset]="offset()"
-		[limit]="limit"
-		[total]="total()"
-		(offsetChange)="goToOffset($event)"
+</ui-empty-state>
+} @else {
+<app-profile-collection-page
+	heading="In common"
+	icon="join_inner"
+	noun="game"
+	searchPlaceholder="Search games in common..."
+	privateTitle="This part of their library is private"
+	emptyTitle="Nothing in common yet"
+	[emptyText]="'No games' + subtitleSuffix() + ' yet. Try the other comparison.'"
+	[subtitleSuffix]="subtitleSuffix()"
+	[username]="collection.username()"
+	[posters]="collection.posters()"
+	[total]="collection.total()"
+	[itemCount]="collection.items().length"
+	[visibleCount]="collection.visibleItems().length"
+	[isLoading]="collection.isLoading()"
+	[error]="collection.error()"
+	[offset]="collection.offset()"
+	[limit]="collection.limit"
+	[(query)]="collection.query"
+	(offsetChange)="collection.goToOffset($event)"
+>
+	<app-segmented-control
+		collectionFilters
+		label="Compare by"
+		[options]="options"
+		[value]="by()"
+		(valueChange)="changeDimension($event)"
 	/>
-	} }
-</div>
+	<app-cover-grid>
+		@for (game of collection.visibleItems(); track game.id) {
+		<li><app-game-cover-card [game]="game" /></li>
+		}
+	</app-cover-grid>
+</app-profile-collection-page>
+}

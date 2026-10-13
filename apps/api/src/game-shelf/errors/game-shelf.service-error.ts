@@ -29,3 +29,10 @@ export function forbiddenError() {
 		raw: undefined
 	});
 }
+
+export function limitReachedError() {
+	return new ServiceError("GAME_SHELF_LIMIT_REACHED", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}

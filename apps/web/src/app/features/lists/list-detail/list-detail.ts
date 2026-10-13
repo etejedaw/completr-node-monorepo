@@ -1,7 +1,6 @@
 import {
 	CdkDrag,
 	type CdkDragDrop,
-	CdkDragHandle,
 	CdkDropList,
 	moveItemInArray
 } from "@angular/cdk/drag-drop";
@@ -13,37 +12,34 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
+import { toObservable } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import {
 	debounceTime,
 	distinctUntilChanged,
+	filter,
 	forkJoin,
 	of,
 	Subject,
-	switchMap
+	switchMap,
+	take
 } from "rxjs";
 
-import {
-	type BacklogEntry,
-	type Game,
-	type List,
-	type ListItem
-} from "../../../core/models";
+import { type Game, type List, type ListItem } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
-import { PersonalStats } from "../../../shared/components/personal-stats/personal-stats";
+import { ToastService } from "../../../core/services/toast";
+import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
 import {
+	UiBottomSheet,
 	UiButton,
-	UiIconButton,
-	UiProgress,
-	UiSearchBar
+	UiEmptyState,
+	UiSearchBar,
+	UiSkeleton
 } from "../../../shared/ui";
-import { BacklogService } from "../../backlog/backlog";
-import {
-	BacklogModal,
-	type BacklogModalData,
-	type BacklogModalResult
-} from "../../backlog/backlog-modal/backlog-modal";
+import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { GamesService } from "../../games/games";
 import {
 	DuplicateListModal,
@@ -51,24 +47,40 @@ import {
 	type DuplicateListModalResult
 } from "../duplicate-list-modal/duplicate-list-modal";
 import {
+	ListItemRow,
+	type ListItemRowMode
+} from "../list-item-row/list-item-row";
+import {
 	ListModal,
 	type ListModalData,
 	type ListModalResult
 } from "../list-modal/list-modal";
 import { ListsService } from "../lists";
 
+type ListActionId = "refresh" | "duplicate" | "edit";
+type ItemActionId = "up" | "down" | "remove";
+
+const LIST_ACTIONS: { id: ListActionId; icon: string; label: string }[] = [
+	{ id: "edit", icon: "edit", label: "Edit list" },
+	{ id: "refresh", icon: "refresh", label: "Refresh scores" },
+	{ id: "duplicate", icon: "content_copy", label: "Duplicate" }
+];
+
 @Component({
 	selector: "app-list-detail",
 	imports: [
 		RouterLink,
-		UiButton,
-		UiIconButton,
-		UiProgress,
-		UiSearchBar,
-		PersonalStats,
 		CdkDropList,
 		CdkDrag,
-		CdkDragHandle
+		GamePoster,
+		LibraryHero,
+		ListItemRow,
+		ProgressMeter,
+		UiBottomSheet,
+		UiButton,
+		UiEmptyState,
+		UiSearchBar,
+		UiSkeleton
 	],
 	templateUrl: "./list-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -78,9 +90,12 @@ export class ListDetail implements OnInit {
 	private readonly router = inject(Router);
 	private readonly listsService = inject(ListsService);
 	private readonly gamesService = inject(GamesService);
-	private readonly backlogService = inject(BacklogService);
 	private readonly authService = inject(AuthService);
 	private readonly dialogs = inject(DialogService);
+	protected readonly openBacklogQuickAdd = injectBacklogQuickAdd(() =>
+		this.loadList()
+	);
+	private readonly toast = inject(ToastService);
 	private readonly searchSubject = new Subject<string>();
 
 	protected readonly list = signal<List | null>(null);
@@ -95,6 +110,33 @@ export class ListDetail implements OnInit {
 	protected readonly isSearching = signal(false);
 	protected readonly isSearchingOnline = signal(false);
 	protected readonly togglingFollow = signal(false);
+	protected readonly listSheetOpen = signal(false);
+	protected readonly listActions = LIST_ACTIONS;
+	protected readonly itemSheet = signal<{
+		item: ListItem;
+		index: number;
+	} | null>(null);
+	protected readonly skeletonRange = [0, 1, 2, 3, 4];
+	protected readonly heroPosters = computed(() =>
+		(this.list()?.items ?? []).map(item => ({
+			src: item.game.backgroundUrl,
+			title: item.game.title
+		}))
+	);
+	protected readonly rowMode = computed<ListItemRowMode>(() => {
+		if (this.compareMode() && this.canCompare()) return "compare";
+		return this.fromUsername() && this.showComparisonBanner()
+			? "theirs"
+			: "own";
+	});
+	protected readonly progressSummary = computed(() => {
+		const progress = this.list()?.progress;
+		if (!progress || progress.total === 0) return null;
+		return {
+			...progress,
+			complete: progress.completed >= progress.total
+		};
+	});
 
 	private listId = "";
 	private static readonly COMPARE_PARAM = "compare";
@@ -126,6 +168,15 @@ export class ListDetail implements OnInit {
 		if (viewer && viewer === from) return false;
 		return true;
 	});
+	protected readonly singleProgressLabel = computed(() =>
+		this.showComparisonBanner()
+			? `@${this.fromUsername()}’s progress`
+			: "Your progress"
+	);
+	private readonly viewerLoaded$ = toObservable(this.authService.user).pipe(
+		filter(user => user !== null),
+		take(1)
+	);
 	protected readonly canCompare = computed(() => {
 		if (!this.showComparisonBanner()) return false;
 		return this.viewerUsername() !== null;
@@ -138,7 +189,7 @@ export class ListDetail implements OnInit {
 			this.route.snapshot.queryParamMap.get(ListDetail.COMPARE_PARAM) ===
 				"1"
 		);
-		if (this.listId) this.loadList();
+		if (this.listId) this.loadListOnceViewerIsKnown();
 
 		this.searchSubject
 			.pipe(
@@ -190,13 +241,45 @@ export class ListDetail implements OnInit {
 	}
 
 	removeItem(item: ListItem) {
-		const remaining =
-			this.list()
-				?.items?.filter(i => i.id !== item.id)
-				.map(i => i.game.id) ?? [];
-		this.listsService
-			.replaceItems(this.listId, remaining)
-			.subscribe(() => this.loadList());
+		const current = this.list();
+		if (!current) return;
+		const remaining = current.items
+			.filter(i => i.id !== item.id)
+			.map((i, index) => ({ ...i, position: index + 1 }));
+		this.list.set({ ...current, items: remaining });
+		this.toast.pending({
+			message: `Removed ${item.game.title} from the list`,
+			onCommit: () =>
+				this.listsService
+					.replaceItems(
+						this.listId,
+						remaining.map(i => i.game.id)
+					)
+					.subscribe({
+						next: () => this.loadList(),
+						error: () => {
+							this.list.set(current);
+							this.toast.error("Could not remove the game.");
+						}
+					}),
+			onUndo: () => this.list.set(current)
+		});
+	}
+
+	runListAction(id: ListActionId) {
+		this.listSheetOpen.set(false);
+		if (id === "refresh") this.refreshScores();
+		else if (id === "duplicate") this.openDuplicate();
+		else this.openEdit();
+	}
+
+	runItemAction(id: ItemActionId) {
+		const sheet = this.itemSheet();
+		this.itemSheet.set(null);
+		if (!sheet) return;
+		if (id === "up") this.moveUp(sheet.index);
+		else if (id === "down") this.moveDown(sheet.index);
+		else this.removeItem(sheet.item);
 	}
 
 	moveUp(index: number) {
@@ -250,46 +333,6 @@ export class ListDetail implements OnInit {
 		});
 	}
 
-	openBacklogModal(item: ListItem) {
-		this.gamesService.getByCode(item.game.code).subscribe(game => {
-			this.openBacklog(null, game);
-		});
-	}
-
-	openEditBacklog(item: ListItem) {
-		this.backlogService.getMyBacklog({ game_id: item.game.id }).subscribe({
-			next: res => {
-				const entry = res.data.backlog[0];
-				if (!entry) {
-					this.openBacklogModal(item);
-					return;
-				}
-				this.openBacklog(entry, null);
-			},
-			error: () => this.openBacklogModal(item)
-		});
-	}
-
-	private openBacklog(
-		entry: BacklogEntry | null,
-		preselectedGame: Game | null
-	) {
-		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
-			BacklogModal,
-			{
-				data: {
-					entry,
-					preselectedGame,
-					preselectedCompilationParent: null,
-					preselectAddToQueue: false
-				}
-			}
-		);
-		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.loadList();
-		});
-	}
-
 	refreshScores() {
 		this.refreshing.set(true);
 		this.listsService.refreshScores(this.listId).subscribe({
@@ -319,16 +362,13 @@ export class ListDetail implements OnInit {
 		});
 	}
 
-	statusClass(status: string | undefined): string {
-		if (!status) return "";
-		const map: Record<string, string> = {
-			not_started: "status-not-started",
-			playing: "status-playing",
-			completed: "status-completed",
-			abandoned: "status-abandoned",
-			endless: "status-endless"
-		};
-		return map[status] ?? "";
+	private loadListOnceViewerIsKnown() {
+		const needsViewer = this.compareMode() && this.showComparisonBanner();
+		if (!needsViewer || this.viewerUsername() !== null) {
+			this.loadList();
+			return;
+		}
+		this.viewerLoaded$.subscribe(() => this.loadList());
 	}
 
 	private loadList() {

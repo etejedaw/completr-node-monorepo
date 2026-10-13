@@ -2,18 +2,33 @@ import { DatePipe, NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	input,
 	output
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { CoverUrlPipe } from "../../pipes/cover-url";
 import { UiIconButton } from "../../ui";
+import { GamePoster } from "../game-poster/game-poster";
 import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
+
+type CoverActionId = "favorite" | "wishlist" | "backlog";
+
+interface CoverAction {
+	id: CoverActionId;
+	label: string;
+	icon: string;
+	active: boolean;
+	pressed: boolean | null;
+	alwaysVisible: boolean;
+	overlayActiveClass: string;
+	barActiveClass: string;
+}
 
 export interface GameCoverCardGame {
 	code: string;
 	title: string;
+	coverUrl?: string;
 	backgroundUrl?: string;
 }
 
@@ -25,28 +40,110 @@ export interface GameCoverCardGame {
 		DatePipe,
 		UiIconButton,
 		MoodTagsChips,
-		CoverUrlPipe
+		GamePoster
 	],
 	template: `
 		<div class="flex flex-col gap-1.5 text-inherit group">
-			@if (clickable()) {
-				<button
-					type="button"
-					class="block relative bg-transparent border-0 p-0 cursor-pointer w-full text-left"
-					(click)="cardClick.emit()"
-				>
-					<ng-container *ngTemplateOutlet="cover" />
-				</button>
-			} @else {
-				<a
-					class="block relative"
-					[routerLink]="['/games', game().code]"
-				>
-					<ng-container *ngTemplateOutlet="cover" />
-				</a>
-			}
+			<div
+				class="relative rounded-lg overflow-hidden bg-surface ring-1 ring-white/10 shadow-lg shadow-black/40 transition duration-200 group-hover:-translate-y-1 group-hover:ring-brand/60"
+			>
+				@if (clickable()) {
+					<button
+						type="button"
+						class="block relative bg-transparent border-0 p-0 cursor-pointer w-full text-left"
+						(click)="cardClick.emit()"
+					>
+						<ng-container *ngTemplateOutlet="cover" />
+					</button>
+				} @else {
+					<a
+						class="block relative"
+						[routerLink]="['/games', game().code]"
+					>
+						<ng-container *ngTemplateOutlet="cover" />
+					</a>
+				}
+				@if (showRemove()) {
+					<button
+						uiIconButton
+						size="sm"
+						tone="danger"
+						class="!absolute !top-1 !right-1 !bg-black/60 hover:!bg-black/80 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100 pointer-coarse:opacity-100"
+						aria-label="Remove"
+						title="Remove"
+						(click)="remove.emit()"
+					>
+						&times;
+					</button>
+				}
+				@if (actions().length > 0) {
+					<div
+						class="absolute bottom-2 right-2 flex flex-col items-end gap-1.5 max-sm:hidden pointer-coarse:hidden"
+					>
+						@for (action of overlayActions(); track action.id) {
+							<button
+								type="button"
+								class="flex items-center justify-center w-7 h-7 rounded-full backdrop-blur-sm border-0 cursor-pointer transition hover:brightness-125 focus-visible:outline-2 focus-visible:outline-brand"
+								[class]="
+									action.active
+										? action.overlayActiveClass
+										: 'bg-black/60 text-white'
+								"
+								[class.opacity-0]="!action.alwaysVisible"
+								[class.group-hover:opacity-100]="
+									!action.alwaysVisible
+								"
+								[class.group-focus-within:opacity-100]="
+									!action.alwaysVisible
+								"
+								[attr.aria-label]="action.label"
+								[attr.aria-pressed]="action.pressed"
+								[title]="action.label"
+								(click)="trigger(action.id)"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-[1rem]"
+									>{{ action.icon }}</span
+								>
+							</button>
+						}
+					</div>
+					<div
+						class="hidden max-sm:grid pointer-coarse:grid grid-flow-col auto-cols-fr border-t border-white/10"
+					>
+						@for (
+							action of actions();
+							track action.id;
+							let first = $first
+						) {
+							<button
+								type="button"
+								class="min-h-[44px] inline-flex items-center justify-center bg-transparent border-0 border-white/10 cursor-pointer transition hover:bg-white/5 active:bg-white/10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
+								[class.border-l]="!first"
+								[class]="
+									action.active
+										? action.barActiveClass
+										: 'text-fg-muted hover:text-fg'
+								"
+								[attr.aria-label]="action.label"
+								[attr.aria-pressed]="action.pressed"
+								[title]="action.label"
+								(click)="trigger(action.id)"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-lg"
+									>{{ action.icon }}</span
+								>
+							</button>
+						}
+					</div>
+				}
+			</div>
 			<a
-				class="text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand"
+				tabindex="-1"
+				class="tap-area text-xs font-medium text-fg-secondary truncate no-underline hover:text-brand"
 				[routerLink]="['/games', game().code]"
 				>{{ game().title }}</a
 			>
@@ -59,16 +156,12 @@ export interface GameCoverCardGame {
 		</div>
 
 		<ng-template #cover>
-			@if (game().backgroundUrl) {
-				<img
-					[src]="game().backgroundUrl | coverUrl: 420"
-					[alt]="game().title"
-					class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg shadow-black/40 transition-transform group-hover:scale-[1.03]"
-					loading="lazy"
-				/>
-			} @else {
-				<div class="w-full aspect-[3/4] bg-surface rounded-lg"></div>
-			}
+			<app-game-poster
+				[src]="game().coverUrl ?? game().backgroundUrl"
+				[title]="game().title"
+				[width]="420"
+				class="block w-full aspect-[2/3]"
+			/>
 			@if (topLeftBadge()) {
 				<span
 					class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm"
@@ -85,7 +178,7 @@ export interface GameCoverCardGame {
 				>
 					@if (ratio() !== null && ratio() !== undefined) {
 						<span
-							class="px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-brand/85 backdrop-blur-sm"
+							class="px-2 py-0.5 rounded-md text-xs font-display font-bold tabular-nums text-white bg-brand/90 shadow-md shadow-black/40 backdrop-blur-sm"
 							>{{ ratio() }}</span
 						>
 					}
@@ -101,125 +194,13 @@ export interface GameCoverCardGame {
 				<span
 					class="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-white bg-black/70 backdrop-blur-sm"
 				>
-					<span class="material-icons text-[0.75rem]">event</span>
-					{{ acquiredAt() | date: "yyyy-MM-dd" }}
+					<span
+						aria-hidden="true"
+						class="material-icons text-[0.75rem]"
+						>event</span
+					>
+					{{ acquiredAt() | date: "MMM d, y" }}
 				</span>
-			}
-			@if (showRemove()) {
-				<button
-					uiIconButton
-					size="sm"
-					tone="danger"
-					class="!absolute !top-1 !right-1 !bg-black/60 hover:!bg-black/80 opacity-0 group-hover:opacity-100"
-					(click)="
-						$event.preventDefault();
-						$event.stopPropagation();
-						remove.emit()
-					"
-					title="Remove"
-				>
-					&times;
-				</button>
-			}
-			@if (showFavorite() || showAddToBacklog() || showWishlistToggle()) {
-				<div
-					class="absolute bottom-2 right-2 flex flex-col items-end gap-1.5"
-				>
-					@if (showAddToBacklog()) {
-						<button
-							type="button"
-							class="flex items-center justify-center w-7 h-7 rounded-full backdrop-blur-sm border-0 cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
-							[class.bg-success]="inBacklog()"
-							[class.bg-black/60]="!inBacklog()"
-							[class.hover:bg-black/80]="!inBacklog()"
-							[class.text-white]="true"
-							(click)="
-								$event.preventDefault();
-								$event.stopPropagation();
-								addToBacklog.emit()
-							"
-							[title]="
-								inBacklog()
-									? 'In your backlog — edit'
-									: 'Add to Backlog'
-							"
-							[attr.aria-label]="
-								inBacklog()
-									? 'Edit backlog entry'
-									: 'Add to Backlog'
-							"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[1rem]"
-								>{{
-									inBacklog() ? "check" : "playlist_add"
-								}}</span
-							>
-						</button>
-					}
-					@if (showWishlistToggle()) {
-						<button
-							type="button"
-							class="flex items-center justify-center w-7 h-7 rounded-full backdrop-blur-sm border-0 cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
-							[class.bg-danger]="inWishlist()"
-							[class.bg-black/60]="!inWishlist()"
-							[class.hover:bg-black/80]="!inWishlist()"
-							[class.text-white]="true"
-							(click)="
-								$event.preventDefault();
-								$event.stopPropagation();
-								wishlistToggle.emit()
-							"
-							[title]="
-								inWishlist()
-									? 'Remove from Want to Get'
-									: 'Add to Want to Get'
-							"
-							[attr.aria-label]="
-								inWishlist()
-									? 'Remove from Want to Get'
-									: 'Add to Want to Get'
-							"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[1rem]"
-								>{{
-									inWishlist()
-										? "favorite"
-										: "favorite_border"
-								}}</span
-							>
-						</button>
-					}
-					@if (showFavorite()) {
-						<button
-							type="button"
-							class="flex items-center justify-center w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm border-0 cursor-pointer transition hover:bg-black/80"
-							[class.text-warning]="isFavorite()"
-							[class.text-white]="!isFavorite()"
-							(click)="
-								$event.preventDefault();
-								$event.stopPropagation();
-								favoriteToggle.emit()
-							"
-							[title]="
-								isFavorite()
-									? 'Remove from favorites'
-									: 'Add to favorites'
-							"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[1.125rem]"
-								>{{
-									isFavorite() ? "star" : "star_border"
-								}}</span
-							>
-						</button>
-					}
-				</div>
 			}
 		</ng-template>
 	`,
@@ -246,4 +227,60 @@ export class GameCoverCard {
 	favoriteToggle = output<void>();
 	addToBacklog = output<void>();
 	wishlistToggle = output<void>();
+
+	protected readonly actions = computed<CoverAction[]>(() => {
+		const actions: CoverAction[] = [];
+		if (this.showFavorite()) {
+			const favorite = this.isFavorite();
+			actions.push({
+				id: "favorite",
+				label: favorite ? "Remove from favorites" : "Add to favorites",
+				icon: favorite ? "favorite" : "favorite_border",
+				active: favorite,
+				pressed: favorite,
+				alwaysVisible: true,
+				overlayActiveClass: "bg-black/60 text-nav-favorites",
+				barActiveClass: "text-nav-favorites"
+			});
+		}
+		if (this.showWishlistToggle()) {
+			const wanted = this.inWishlist();
+			actions.push({
+				id: "wishlist",
+				label: wanted
+					? "Remove from Want to Get"
+					: "Add to Want to Get",
+				icon: "redeem",
+				active: wanted,
+				pressed: wanted,
+				alwaysVisible: false,
+				overlayActiveClass: "bg-nav-wishlist text-white",
+				barActiveClass: "text-nav-wishlist"
+			});
+		}
+		if (this.showAddToBacklog()) {
+			const inBacklog = this.inBacklog();
+			actions.push({
+				id: "backlog",
+				label: inBacklog ? "Edit in My Games" : "Add to My Games",
+				icon: inBacklog ? "check" : "playlist_add",
+				active: inBacklog,
+				pressed: null,
+				alwaysVisible: false,
+				overlayActiveClass: "bg-success text-white",
+				barActiveClass: "text-success"
+			});
+		}
+		return actions;
+	});
+
+	protected readonly overlayActions = computed(() =>
+		[...this.actions()].reverse()
+	);
+
+	protected trigger(id: CoverActionId) {
+		if (id === "favorite") this.favoriteToggle.emit();
+		else if (id === "wishlist") this.wishlistToggle.emit();
+		else this.addToBacklog.emit();
+	}
 }

@@ -13,7 +13,7 @@ import { ToastService } from "../../../core/services/toast";
 	template: `@if (interactive()) {
 			<button
 				type="button"
-				class="material-icons text-warning leading-none inline-flex items-center align-middle bg-transparent border-0 p-0 m-0 cursor-pointer transition hover:opacity-70"
+				class="tap-area material-icons text-premium leading-none inline-flex items-center align-middle bg-transparent border-0 p-0 m-0 cursor-pointer transition hover:opacity-70"
 				[class.text-base]="size() === 'md'"
 				[class.text-sm]="size() === 'sm'"
 				[attr.aria-label]="label()"
@@ -24,7 +24,7 @@ import { ToastService } from "../../../core/services/toast";
 			</button>
 		} @else {
 			<span
-				class="material-icons text-warning leading-none inline-flex items-center align-middle cursor-help"
+				class="material-icons text-premium leading-none inline-flex items-center align-middle cursor-help"
 				[class.text-base]="size() === 'md'"
 				[class.text-sm]="size() === 'sm'"
 				[attr.aria-label]="label()"
@@ -44,6 +44,6 @@ export class UiPremiumBadge {
 
 	onPress(event: Event) {
 		event.stopPropagation();
-		this.toast.info(this.message() || this.label());
+		this.toast.premium("Premium perk", this.message() || this.label());
 	}
 }

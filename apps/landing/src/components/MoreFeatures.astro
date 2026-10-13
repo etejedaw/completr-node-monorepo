@@ -1,0 +1,125 @@
+---
+const features = [
+	{
+		icon: "shelves",
+		title: "My Shelf",
+		description:
+			"Los juegos que tienes, físicos o digitales, con plataforma, edición y fecha de compra."
+	},
+	{
+		icon: "redeem",
+		title: "Want to Get",
+		description:
+			"Lo que quieres comprar, separado de lo que ya tienes y con la plataforma que te interesa."
+	},
+	{
+		icon: "favorite",
+		title: "Favoritos",
+		description:
+			"Tu top personal, ordenado a tu gusto, como vitrina de tu perfil."
+	},
+	{
+		icon: "bookmark",
+		title: "Vistas guardadas",
+		description:
+			"Guarda filtros con nombre y color, y míralos con sus propias estadísticas."
+	},
+	{
+		icon: "sell",
+		title: "Tags de ánimo",
+		description:
+			"Etiqueta tus juegos por cómo te sientes: corto, relajado, para jugar acompañado."
+	},
+	{
+		icon: "group",
+		title: "Runs en co-op",
+		description:
+			"Registra las partidas compartidas y con quién las jugaste."
+	},
+	{
+		icon: "rate_review",
+		title: "Reseñas",
+		description:
+			"Tu nota, lo que pensaste y las horas reales que te tomó terminarlo."
+	},
+	{
+		icon: "palette",
+		title: "Temas",
+		description: "Tres temas oscuros para que la app se vea como te guste."
+	},
+	{
+		icon: "lock",
+		title: "Privacidad por sección",
+		description:
+			"Cada parte de tu perfil puede ser pública, solo para amigos o privada."
+	}
+];
+---
+
+<section
+	id="more-features"
+	class="relative py-24 px-6 border-t border-[var(--color-line)]"
+>
+	<div class="max-w-6xl mx-auto">
+		<div class="max-w-2xl mb-12">
+			<span class="eyebrow">Y además</span>
+			<h2
+				class="font-display mt-3 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
+			>
+				Lo que no cabía <span class="text-gradient">en un Excel</span>.
+			</h2>
+			<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
+				Herramientas para ordenar lo que tienes, lo que quieres y lo que
+				ya jugaste.
+			</p>
+		</div>
+
+		<ul
+			class="m-0 p-0 list-none grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px rounded-2xl overflow-hidden bg-[var(--color-line)] border border-[var(--color-line)]"
+		>
+			{
+				features.map(feature => (
+					<li class="flex gap-4 p-6 bg-[var(--color-canvas)] transition-colors hover:bg-[var(--color-surface)]">
+						<span
+							class="material-icons text-[1.5rem] text-[var(--color-brand)] shrink-0"
+							aria-hidden="true"
+						>
+							{feature.icon}
+						</span>
+						<div>
+							<h3 class="font-display m-0 mb-1.5 text-base font-bold text-[var(--color-fg)]">
+								{feature.title}
+							</h3>
+							<p class="m-0 text-sm text-[var(--color-fg-secondary)] leading-relaxed">
+								{feature.description}
+							</p>
+						</div>
+					</li>
+				))
+			}
+		</ul>
+
+		<div
+			class="mt-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-2xl border border-[var(--color-brand)]/30"
+			style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.14), transparent 70%), var(--color-surface);"
+		>
+			<div>
+				<p
+					class="m-0 font-display text-xl font-bold text-[var(--color-fg)]"
+				>
+					¿Quieres probarlo?
+				</p>
+				<p class="m-0 mt-1 text-sm text-[var(--color-fg-secondary)]">
+					La beta es cerrada. Déjame tu correo y te aviso cuando abra
+					cupos.
+				</p>
+			</div>
+			<a href="#beta-signup" class="btn-primary shrink-0">
+				Unirme a la beta
+				<span class="material-icons text-[1.125rem]" aria-hidden="true"
+					>arrow_forward</span
+				>
+			</a>
+		</div>
+	</div>
+</section>

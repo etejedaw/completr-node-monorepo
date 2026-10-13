@@ -7,9 +7,14 @@
 		<span aria-hidden="true" class="material-icons text-base mt-0.5"
 			>{{ iconFor(t.variant) }}</span
 		>
-		<span class="flex-1 text-[0.8125rem] leading-snug text-fg"
-			>{{ t.message }}</span
+		<span
+			class="flex-1 flex flex-col gap-0.5 text-[0.8125rem] leading-snug"
 		>
+			@if (t.title) {
+			<span class="font-semibold">{{ t.title }}</span>
+			}
+			<span class="text-fg">{{ t.message }}</span>
+		</span>
 		@if (t.undoLabel) {
 		<button
 			class="bg-transparent border-0 text-fg font-semibold text-[0.75rem] uppercase tracking-wider cursor-pointer pl-1 pr-2 py-0.5 rounded hover:bg-fg/10 transition shrink-0 inline-flex items-center gap-1.5"
@@ -38,7 +43,7 @@
 						pathLength="100"
 						stroke-dasharray="100"
 						stroke-dashoffset="0"
-						[style.animation]="'toastCountdown ' + (t.durationMs ?? 5000) + 'ms linear forwards'"
+						[style.animation]="'toastCountdown ' + (t.durationMs ?? undoWindowMs) + 'ms linear forwards'"
 					/>
 				</svg>
 			</span>

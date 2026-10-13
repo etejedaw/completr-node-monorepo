@@ -1,0 +1,250 @@
+@let entry = item();
+<article
+	class="group relative flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3 bg-canvas transition hover:bg-white/[0.03]"
+>
+	<span
+		class="shrink-0 w-6 sm:w-8 text-right font-display text-lg sm:text-xl font-bold text-fg-muted tabular-nums"
+		[attr.aria-label]="'Position ' + entry.position"
+		>{{ entry.position }}</span
+	>
+
+	@if (editable()) {
+	<span
+		cdkDragHandle
+		class="shrink-0 -mx-1 w-7 h-9 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded text-fg-muted/60 cursor-grab active:cursor-grabbing transition hover:text-fg touch-none"
+		aria-hidden="true"
+		title="Drag to reorder"
+	>
+		<span class="material-icons text-lg">drag_indicator</span>
+	</span>
+	}
+
+	<a
+		class="shrink-0"
+		[routerLink]="['/games', entry.game.code]"
+		tabindex="-1"
+		[attr.aria-label]="entry.game.title"
+	>
+		<app-game-poster
+			[src]="entry.game.backgroundUrl"
+			[title]="entry.game.title"
+			[width]="200"
+			[compact]="true"
+			class="w-11 sm:w-14 aspect-[2/3] rounded ring-1 ring-white/10 shadow-md shadow-black/40"
+		/>
+	</a>
+
+	<div
+		class="flex-1 min-w-0 flex flex-col gap-1 lg:flex-row lg:items-center lg:gap-6"
+	>
+		<div class="min-w-0 flex flex-col gap-1 lg:flex-1">
+			<a
+				class="tap-area font-display text-[0.9375rem] sm:text-base font-semibold text-fg no-underline leading-tight line-clamp-2 hover:text-brand"
+				[routerLink]="['/games', entry.game.code]"
+				>{{ entry.game.title }}</a
+			>
+			<p
+				class="lg:hidden m-0 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-fg-muted"
+			>
+				@if (entry.score) {
+				<span>Score {{ entry.score }}</span>
+				} @if (entry.duration) {
+				<span>{{ entry.duration }}h long</span>
+				} @if (entry.backlogStatus === 'completed' &&
+				entry.realDuration) {
+				<span class="inline-flex items-center gap-0.5 text-success">
+					<span
+						aria-hidden="true"
+						class="material-icons text-[0.8125rem]"
+						>schedule</span
+					>
+					{{ entry.realDuration }}h played
+				</span>
+				} @if (entry.game.isDlc) {
+				<span>DLC</span>
+				}
+			</p>
+		</div>
+		<div
+			class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs lg:w-48 lg:shrink-0 lg:flex-col lg:items-start lg:gap-y-1.5"
+		>
+			@switch (mode()) { @case ('own') { @if (entry.backlogStatus; as
+			status) {
+			<button
+				type="button"
+				class="tap-area inline-flex items-center gap-1 p-0 bg-transparent border-0 font-medium cursor-pointer hover:underline"
+				[class]="statusColor(status)"
+				title="Edit in My Games"
+				(click)="libraryRequested.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>{{ statusIcon(status) }}</span
+				>
+				{{ statusLabel(status) }}
+			</button>
+			} @else {
+			<button
+				type="button"
+				class="tap-area inline-flex items-center gap-1 p-0 bg-transparent border-0 font-medium text-brand cursor-pointer hover:underline"
+				(click)="libraryRequested.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>add</span
+				>
+				Add to My Games
+			</button>
+			} } @case ('theirs') { @if (entry.backlogStatus; as status) {
+			<span
+				class="inline-flex items-center gap-1 font-medium"
+				[class]="statusColor(status)"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>{{ statusIcon(status) }}</span
+				>
+				{{ statusLabel(status) }}
+				<span class="text-fg-muted font-normal"
+					>· &#64;{{ ownerUsername() }}</span
+				>
+			</span>
+			} @if (canAddToLibrary()) {
+			<button
+				type="button"
+				class="tap-area inline-flex items-center gap-1 p-0 bg-transparent border-0 font-medium text-brand cursor-pointer hover:underline"
+				(click)="libraryRequested.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>add</span
+				>
+				My Games
+			</button>
+			} } @case ('compare') {
+			<span class="inline-flex items-center gap-1.5">
+				<span class="text-fg-muted">You</span>
+				@if (viewerStatus(); as status) {
+				<button
+					type="button"
+					class="tap-area inline-flex items-center gap-1 p-0 bg-transparent border-0 font-medium cursor-pointer hover:underline"
+					[class]="statusColor(status)"
+					title="Edit in My Games"
+					(click)="libraryRequested.emit()"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>{{ statusIcon(status) }}</span
+					>
+					{{ statusLabel(status) }}
+				</button>
+				} @else {
+				<button
+					type="button"
+					class="tap-area inline-flex items-center gap-1 p-0 bg-transparent border-0 font-medium text-brand cursor-pointer hover:underline"
+					(click)="libraryRequested.emit()"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>add</span
+					>
+					Add
+				</button>
+				}
+			</span>
+			<span class="inline-flex items-center gap-1.5">
+				<span class="text-fg-muted">&#64;{{ ownerUsername() }}</span>
+				@if (entry.backlogStatus; as status) {
+				<span
+					class="inline-flex items-center gap-1 font-medium"
+					[class]="statusColor(status)"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>{{ statusIcon(status) }}</span
+					>
+					{{ statusLabel(status) }}
+				</span>
+				} @else {
+				<span class="text-fg-muted">—</span>
+				}
+			</span>
+			} }
+		</div>
+	</div>
+
+	<dl
+		class="max-lg:hidden shrink-0 grid grid-cols-3 gap-6 w-64 m-0 text-right leading-none"
+	>
+		@for (stat of stats(); track stat.label) {
+		<div class="flex flex-col gap-1.5">
+			<dt
+				class="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+			>
+				{{ stat.label }}
+			</dt>
+			<dd
+				class="m-0 text-base font-semibold tabular-nums"
+				[class]="stat.value ? stat.valueClass : 'text-fg-muted/50'"
+			>
+				{{ stat.value ?? '—' }}
+			</dd>
+		</div>
+		}
+	</dl>
+
+	<app-ratio-summary
+		class="shrink-0 lg:w-44 justify-end"
+		[ratio]="entry.ratio"
+		[personalRatio]="runRatio()"
+		[personalLabel]="mode() === 'own' ? 'Your run' : 'Their run'"
+	/>
+
+	@if (editable()) {
+	<div class="shrink-0 flex items-center gap-0.5">
+		<button
+			type="button"
+			class="sm:hidden w-[44px] h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition active:bg-white/10"
+			aria-haspopup="dialog"
+			[attr.aria-label]="'More actions for ' + entry.game.title"
+			(click)="moreRequested.emit()"
+		>
+			<span aria-hidden="true" class="material-icons text-xl"
+				>more_vert</span
+			>
+		</button>
+		<div
+			class="max-sm:hidden flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100 transition-opacity"
+		>
+			<button
+				type="button"
+				class="w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface disabled:opacity-30 disabled:cursor-default"
+				[disabled]="isFirst()"
+				[attr.aria-label]="'Move ' + entry.game.title + ' up'"
+				title="Move up"
+				(click)="moveUp.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>arrow_upward</span
+				>
+			</button>
+			<button
+				type="button"
+				class="w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface disabled:opacity-30 disabled:cursor-default"
+				[disabled]="isLast()"
+				[attr.aria-label]="'Move ' + entry.game.title + ' down'"
+				title="Move down"
+				(click)="moveDown.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>arrow_downward</span
+				>
+			</button>
+			<button
+				type="button"
+				class="w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-danger hover:bg-danger/10"
+				[attr.aria-label]="'Remove ' + entry.game.title + ' from the list'"
+				title="Remove from list"
+				(click)="remove.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>playlist_remove</span
+				>
+			</button>
+		</div>
+	</div>
+	}
+</article>

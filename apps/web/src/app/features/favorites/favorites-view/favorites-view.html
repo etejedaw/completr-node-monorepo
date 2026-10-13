@@ -1,81 +1,142 @@
-<div>
-	<div class="flex items-baseline gap-3 mb-5">
-		<h1 class="text-3xl md:text-4xl font-bold tracking-tight font-display">
-			Favorites
-		</h1>
+<app-library-hero heading="Favorites" [posters]="heroPosters()">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Library</span
+	>
+	<p
+		heroSubtitle
+		class="m-0 mt-2 flex items-center gap-1.5 text-sm text-fg-secondary"
+	>
 		<span
-			class="text-sm"
-			[class.text-warning]="isPremium()"
-			[class.text-fg-muted]="!isPremium()"
-			>{{ total() }} games</span
+			class="font-semibold text-fg tabular-nums"
+			[class.!text-premium]="isPremium()"
+			>{{ total() }}</span
 		>
+		all-time {{ total() === 1 ? 'favorite' : 'favorites' }}
 		<ui-premium-badge
 			*appPremiumOnly
 			size="sm"
 			interactive
-			label="Unlimited favorites (Premium)"
-			message="Unlimited favorites — a Premium perk."
+			label="Premium perk: unlimited favorites"
+			message="Your favorites have no limit. Showcase as many games as you like."
 		/>
-	</div>
+	</p>
+	<a
+		heroActions
+		uiButton
+		variant="secondary"
+		class="!bg-surface/70 backdrop-blur"
+		routerLink="/games"
+	>
+		<span aria-hidden="true" class="material-icons text-base">explore</span>
+		Browse games
+	</a>
+</app-library-hero>
 
+@if (isLoading() || entries().length > 0 || searchQuery().trim()) {
+<app-library-toolbar>
+	@if (reordering()) {
+	<p
+		class="m-0 flex-1 min-w-0 flex items-center gap-2 text-sm text-fg-secondary"
+	>
+		<span aria-hidden="true" class="material-icons text-lg text-brand"
+			>swap_horiz</span
+		>
+		<span>Drag a cover or use the arrows. Your #1 leads your profile.</span>
+	</p>
+	<button uiButton variant="primary" (click)="finishReordering()">
+		<span aria-hidden="true" class="material-icons text-base">check</span>
+		Done
+	</button>
+	} @else {
 	<ui-search-bar
-		class="block mb-4 max-w-2xl"
-		placeholder="Search by title..."
+		class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+		placeholder="Search your favorites..."
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>
-
-	@if (isLoading()) {
-	<div
-		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
+	<button
+		uiButton
+		variant="secondary"
+		class="tap:min-h-[44px]"
+		[disabled]="!canReorder()"
+		[title]="canReorder() ? 'Change the order of your favorites' : 'Clear the search to reorder'"
+		(click)="startReordering()"
 	>
-		@for (i of skeletonRange; track i) {
-		<div class="flex flex-col gap-2">
-			<ui-skeleton variant="rect" class="aspect-[3/4] rounded-lg" />
-			<ui-skeleton variant="text" class="w-3/4" />
-		</div>
-		}
-	</div>
-	} @else if (entries().length === 0) { @if (searchQuery().trim()) {
-	<ui-empty-state
-		icon="search_off"
-		title="No matches found"
-		hint="No favorites match your search."
-	>
-		<button uiButton variant="secondary" (click)="onSearch('')">
-			Clear search
-		</button>
-	</ui-empty-state>
-	} @else {
-	<ui-empty-state
-		icon="star"
-		title="No favorites yet"
-		hint="Mark your all-time favorite games. Visit a game's detail page and tap the star to add it here."
-	>
-		<a uiButton variant="primary" routerLink="/games">Browse games</a>
-	</ui-empty-state>
-	} } @else {
-	<div
-		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
-	>
-		@for (entry of entries(); track entry.id) {
+		<span aria-hidden="true" class="material-icons text-base"
+			>swap_horiz</span
+		>
+		Reorder
+	</button>
+	}
+</app-library-toolbar>
+<p class="sr-only" aria-live="polite">{{ reorderAnnouncement() }}</p>
+} @if (isLoading()) {
+<app-cover-grid [loading]="true" loadingLabel="Loading favorites" />
+} @else if (entries().length === 0) { @if (searchQuery().trim()) {
+<ui-empty-state
+	icon="search_off"
+	title="No matches found"
+	hint="No favorites match your search."
+>
+	<button uiButton variant="secondary" (click)="onSearch('')">
+		Clear search
+	</button>
+</ui-empty-state>
+} @else {
+<ui-empty-state
+	icon="favorite"
+	title="No favorites yet"
+	hint="Mark your all-time favorite games. Visit a game's page and tap the heart to add it here — your top pick leads your public profile."
+>
+	<a uiButton variant="primary" routerLink="/games">Browse games</a>
+</ui-empty-state>
+} } @else if (reordering()) {
+<app-cover-grid
+	[actionable]="true"
+	cdkDropList
+	cdkDropListOrientation="mixed"
+	cdkDropListElementContainer=".poster-grid"
+	[cdkDropListData]="entries()"
+	(cdkDropListDropped)="onDrop($event)"
+>
+	@for (entry of entries(); track entry.game.id; let index = $index, first =
+	$first, last = $last) {
+	<li cdkDrag [cdkDragData]="entry">
+		<app-favorite-reorder-card
+			[entry]="entry"
+			[position]="index + 1"
+			[isFirst]="first"
+			[isLast]="last"
+			(move)="onReorderAction(index, $event)"
+		/>
+	</li>
+	}
+</app-cover-grid>
+} @else {
+<app-cover-grid [actionable]="true">
+	@for (entry of entries(); track entry.id) {
+	<li>
 		<app-game-cover-card
 			[game]="entry.game"
 			[moodTags]="entry.moodTags"
-			[showRemove]="true"
+			[topLeftBadge]="'#' + entry.position"
+			[showFavorite]="true"
+			[isFavorite]="true"
 			[showAddToBacklog]="true"
 			[inBacklog]="entry.inBacklog ?? false"
-			(remove)="remove(entry)"
-			(addToBacklog)="openBacklogQuickAdd(entry)"
+			(favoriteToggle)="remove(entry)"
+			(addToBacklog)="openBacklogQuickAdd(entry.game)"
 		/>
-		}
-	</div>
+	</li>
 	}
-
-	<ui-pagination
-		[offset]="offset()"
-		[limit]="limit"
-		[total]="total()"
-		(offsetChange)="onOffsetChange($event)"
-	/>
-</div>
+</app-cover-grid>
+} @if (!isLoading() && !reordering()) {
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit"
+	[total]="total()"
+	(offsetChange)="onOffsetChange($event)"
+/>
+}

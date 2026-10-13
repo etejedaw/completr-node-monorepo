@@ -71,12 +71,24 @@ docs: |-
           "endless": 0
         },
         "listsTotal": 0,
-        "recentActivity": []
+        "recentActivity": [],
+        "access": {
+          "profile": true,
+          "queue": true,
+          "wishlist": false,
+          "favorite": true,
+          "feed": false,
+          "backlog": true,
+          "shelf": true,
+          "list": true
+        }
       }
     }
     ```
 
     `backlogs` is capped at 6 entries (preview). Use `GET /users/:username/backlog` for the full paginated list.
+
+    `access` tells whether the current viewer can see each section: always `true` for the owner, `true` for `public`, `true` for `friends` only when viewer and owner follow each other, `false` for `private` and for `friends` otherwise. Clients should use it to decide which sections to request and render instead of reading the raw `*Visibility` levels.
 
     ### Response (200, private profile)
 

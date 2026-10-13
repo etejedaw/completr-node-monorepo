@@ -1,85 +1,35 @@
-<div class="max-w-5xl mx-auto">
-	<div class="mb-6">
-		<h1
-			class="font-display text-2xl md:text-3xl font-bold tracking-tight m-0"
+<app-library-hero heading="Settings" [posters]="heroPosters()">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Account</span
+	>
+	@if (user(); as account) {
+	<a
+		heroActions
+		uiButton
+		variant="secondary"
+		class="!bg-surface/70 backdrop-blur"
+		[routerLink]="['/user', account.username]"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>visibility</span
 		>
-			Settings
-		</h1>
-		<p class="text-sm text-fg-muted mt-1">
-			Manage your account, privacy and security.
-		</p>
-	</div>
+		View public profile
+	</a>
+	}
+</app-library-hero>
 
-	<div class="flex flex-col md:flex-row gap-6">
-		<nav class="md:w-56 shrink-0">
-			<ul
-				class="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible"
-			>
-				<li>
-					<a
-						routerLink="/settings/profile"
-						routerLinkActive="!bg-brand-subtle !text-brand"
-						ariaCurrentWhenActive="page"
-						class="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-fg-secondary no-underline transition hover:bg-input-bg whitespace-nowrap"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>person</span
-						>
-						Profile
-					</a>
-				</li>
-				<li>
-					<a
-						routerLink="/settings/privacy"
-						routerLinkActive="!bg-brand-subtle !text-brand"
-						ariaCurrentWhenActive="page"
-						class="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-fg-secondary no-underline transition hover:bg-input-bg whitespace-nowrap"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>lock</span
-						>
-						Privacy
-					</a>
-				</li>
-				<li>
-					<a
-						routerLink="/settings/appearance"
-						routerLinkActive="!bg-brand-subtle !text-brand"
-						ariaCurrentWhenActive="page"
-						class="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-fg-secondary no-underline transition hover:bg-input-bg whitespace-nowrap"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>palette</span
-						>
-						Appearance
-					</a>
-				</li>
-				<li>
-					<a
-						routerLink="/settings/security"
-						routerLinkActive="!bg-brand-subtle !text-brand"
-						ariaCurrentWhenActive="page"
-						class="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-fg-secondary no-underline transition hover:bg-input-bg whitespace-nowrap"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>shield</span
-						>
-						Security
-					</a>
-				</li>
-			</ul>
-		</nav>
+<app-library-toolbar class="lg:hidden">
+	<app-settings-nav variant="chips" class="flex-1 min-w-0" />
+</app-library-toolbar>
 
-		<main class="flex-1 min-w-0">
-			<router-outlet />
-		</main>
+<div class="lg:mt-8 grid gap-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
+	<app-settings-nav
+		variant="rail"
+		class="hidden lg:block lg:sticky lg:top-[calc(var(--topbar-height)+1.5rem)] lg:self-start"
+	/>
+	<div class="min-w-0 max-w-3xl flex flex-col">
+		<router-outlet />
 	</div>
 </div>

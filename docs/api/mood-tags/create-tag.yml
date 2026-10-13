@@ -64,3 +64,4 @@ docs: |-
     |--------|--------------------------|-------------------------------------------|
     | 422    | `COMMON_SCHEMA_INVALID`  | Body validation failed (empty, too long)  |
     | 422    | `MOOD_TAGS_INVALID_TAG`  | Tag empty after normalization or > 40 chars |
+    | 402    | `MOOD_TAGS_LIMIT_REACHED`  | Free plan limit (25 distinct tags) reached by a new tag name; premium roles have no limit |

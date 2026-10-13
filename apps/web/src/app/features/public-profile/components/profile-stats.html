@@ -1,0 +1,130 @@
+<section
+	class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]"
+	aria-label="Profile stats"
+>
+	<ul
+		class="list-none m-0 p-0 grid grid-cols-2 sm:grid-cols-4 gap-px rounded-card overflow-hidden border border-line bg-line"
+	>
+		@if (showLibrary()) {
+		<li class="bg-surface">
+			<a
+				class="flex flex-col justify-center gap-1 h-full p-4 no-underline transition hover:bg-surface-hover"
+				[routerLink]="['/user', username(), 'backlog']"
+				[queryParams]="{ status: 'completed' }"
+			>
+				<span
+					class="order-2 block text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Completed
+				</span>
+				<span
+					class="order-1 block font-display text-3xl font-bold text-fg tabular-nums leading-none"
+				>
+					{{ stats().completed }}
+				</span>
+			</a>
+		</li>
+		<li class="bg-surface">
+			<a
+				class="flex flex-col justify-center gap-1 h-full p-4 no-underline transition hover:bg-surface-hover"
+				[routerLink]="['/user', username(), 'backlog']"
+			>
+				<span
+					class="order-2 block text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					In library
+				</span>
+				<span
+					class="order-1 block font-display text-3xl font-bold text-fg tabular-nums leading-none"
+				>
+					{{ stats().total }}
+				</span>
+			</a>
+		</li>
+		}
+		<li class="bg-surface">
+			<button
+				type="button"
+				class="flex flex-col justify-center gap-1 w-full h-full p-4 text-left bg-transparent border-0 cursor-pointer transition hover:bg-surface-hover"
+				(click)="listsOpened.emit()"
+			>
+				<span
+					class="order-2 block text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Lists
+				</span>
+				<span
+					class="order-1 block font-display text-3xl font-bold text-fg tabular-nums leading-none"
+				>
+					{{ listsTotal() }}
+				</span>
+			</button>
+		</li>
+		<li class="bg-surface">
+			<a
+				class="flex flex-col justify-center gap-1 h-full p-4 no-underline transition hover:bg-surface-hover"
+				[routerLink]="['/user', username(), 'reviews']"
+			>
+				<span
+					class="order-2 block text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Reviews
+				</span>
+				<span
+					class="order-1 block font-display text-3xl font-bold text-fg tabular-nums leading-none"
+				>
+					{{ reviewsTotal() }}
+				</span>
+			</a>
+		</li>
+	</ul>
+
+	@if (showLibrary() && stats().total > 0) {
+	<div
+		class="flex flex-col justify-center gap-3 p-4 rounded-card border border-line bg-surface"
+	>
+		<h2
+			class="m-0 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+		>
+			Library breakdown
+		</h2>
+		<div
+			class="flex h-2.5 rounded-full overflow-hidden bg-input-bg gap-0.5"
+			role="img"
+			[attr.aria-label]="'Library: ' + stats().completed + ' completed, ' + stats().playing + ' playing, ' + stats().not_started + ' to play, ' + stats().abandoned + ' dropped'"
+		>
+			@for (segment of segments(); track segment.status) {
+			<span
+				class="h-full first:rounded-l-full last:rounded-r-full transition-[flex-grow] duration-700"
+				[class]="segment.barClass"
+				[style.flex-grow]="segment.count"
+			></span>
+			}
+		</div>
+		<ul class="list-none m-0 p-0 flex flex-wrap gap-x-4 gap-y-1.5">
+			@for (segment of segments(); track segment.status) {
+			<li>
+				<a
+					class="tap-area inline-flex items-center gap-1.5 text-xs text-fg-secondary no-underline hover:text-fg"
+					[routerLink]="['/user', username(), 'backlog']"
+					[queryParams]="{ status: segment.status }"
+				>
+					<span
+						aria-hidden="true"
+						class="w-2 h-2 rounded-full"
+						[class]="segment.dotClass"
+					></span>
+					{{ segment.label }}
+					<span class="font-semibold text-fg tabular-nums"
+						>{{ segment.count }}</span
+					>
+					<span class="text-fg-muted tabular-nums"
+						>({{ segment.percent }}%)</span
+					>
+				</a>
+			</li>
+			}
+		</ul>
+	</div>
+	}
+</section>

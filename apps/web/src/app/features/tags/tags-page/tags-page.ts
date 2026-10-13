@@ -1,39 +1,140 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { Router } from "@angular/router";
 
+import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
-import { UiButton, UiInput } from "../../../shared/ui";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import {
+	OptionPicker,
+	type PickerOption
+} from "../../../shared/components/option-picker/option-picker";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
+import {
+	UiBottomSheet,
+	UiButton,
+	UiDialog,
+	UiEmptyState,
+	UiInput,
+	UiPremiumBadge,
+	UiSearchBar,
+	UiSkeleton
+} from "../../../shared/ui";
+import { injectLibraryPosters } from "../../backlog/library-posters";
 import {
 	MoodTagsService,
 	type UpdateTagDto,
 	type UserTag
 } from "../../mood-tags/mood-tags";
+import { type TagEdit, TagRow } from "../tag-row/tag-row";
+
+type TagSort = "usage" | "name";
+
+const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: TagSort })[] = [
+	{ value: "usage", label: "Most used", icon: "trending_up" },
+	{ value: "name", label: "Name (A–Z)", icon: "sort_by_alpha" }
+];
+
+type SheetActionId = "games" | "edit" | "delete";
+
+const SHEET_ACTIONS: {
+	id: SheetActionId;
+	icon: string;
+	label: string;
+	danger: boolean;
+}[] = [
+	{
+		id: "games",
+		icon: "videogame_asset",
+		label: "Show in My Games",
+		danger: false
+	},
+	{ id: "edit", icon: "edit", label: "Edit", danger: false },
+	{ id: "delete", icon: "delete", label: "Delete", danger: true }
+];
 
 @Component({
 	selector: "app-tags-page",
-	imports: [UiButton, UiInput],
+	imports: [
+		LibraryHero,
+		LibraryToolbar,
+		OptionPicker,
+		TagRow,
+		UiBottomSheet,
+		UiButton,
+		UiEmptyState,
+		UiInput,
+		UiSearchBar,
+		UiSkeleton,
+		UiDialog,
+		PremiumOnly,
+		UiPremiumBadge
+	],
 	templateUrl: "./tags-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export default class TagsPage implements OnInit {
 	private readonly moodTagsService = inject(MoodTagsService);
 	private readonly toast = inject(ToastService);
+	private readonly router = inject(Router);
+	protected readonly isPremium = inject(AuthService).isPremium;
 
 	protected readonly tags = signal<UserTag[]>([]);
 	protected readonly loading = signal(true);
 	protected readonly saving = signal<string | null>(null);
 	protected readonly editingTag = signal<string | null>(null);
-	protected readonly editName = signal("");
-	protected readonly editDescription = signal("");
 	protected readonly creating = signal(false);
 	protected readonly newName = signal("");
 	protected readonly newDescription = signal("");
 	protected readonly submittingNew = signal(false);
+	protected readonly searchQuery = signal("");
+	protected readonly sortBy = signal<TagSort>("usage");
+	protected readonly sortPickerOptions = SORT_PICKER_OPTIONS;
+	protected readonly sheetActions = SHEET_ACTIONS;
+	protected readonly actionSheetTag = signal<UserTag | null>(null);
+	protected readonly skeletonRange = [0, 1, 2, 3, 4];
+	protected readonly heroPosters = injectLibraryPosters();
+
+	protected readonly totalUsage = computed(() =>
+		this.tags().reduce((sum, tag) => sum + tag.usageCount, 0)
+	);
+	protected readonly maxUsage = computed(() =>
+		Math.max(1, ...this.tags().map(tag => tag.usageCount))
+	);
+	protected readonly visibleTags = computed(() => {
+		const query = this.searchQuery().trim().toLowerCase();
+		const matches = query
+			? this.tags().filter(
+					tag =>
+						tag.tag.toLowerCase().includes(query) ||
+						(tag.description ?? "").toLowerCase().includes(query)
+				)
+			: [...this.tags()];
+		return this.sortBy() === "name"
+			? matches.sort((a, b) => a.tag.localeCompare(b.tag))
+			: matches.sort(
+					(a, b) =>
+						b.usageCount - a.usageCount ||
+						a.tag.localeCompare(b.tag)
+				);
+	});
+
+	runSheetAction(tag: UserTag, id: SheetActionId) {
+		this.actionSheetTag.set(null);
+		if (id === "games") {
+			this.router.navigate(["/backlog"], {
+				queryParams: { mood_tags: tag.tag }
+			});
+		} else if (id === "edit") this.startEdit(tag);
+		else this.requestDelete(tag);
+	}
 
 	openCreate() {
 		this.creating.set(true);
@@ -88,26 +189,18 @@ export default class TagsPage implements OnInit {
 
 	startEdit(tag: UserTag) {
 		this.editingTag.set(tag.tag);
-		this.editName.set(tag.tag);
-		this.editDescription.set(tag.description ?? "");
 	}
 
 	cancelEdit() {
 		this.editingTag.set(null);
-		this.editName.set("");
-		this.editDescription.set("");
 	}
 
-	commitEdit(tag: UserTag) {
-		const newName = this.editName().trim();
-		const newDesc = this.editDescription();
-		if (!newName) return;
-
+	commitEdit(tag: UserTag, edit: TagEdit) {
 		const dto: UpdateTagDto = {};
-		if (newName !== tag.tag) dto.newTag = newName;
-		const currentDesc = tag.description ?? "";
-		if (newDesc !== currentDesc) {
-			dto.description = newDesc.trim() ? newDesc.trim() : null;
+		if (edit.name !== tag.tag) dto.newTag = edit.name;
+		const description = edit.description.trim();
+		if (description !== (tag.description ?? "")) {
+			dto.description = description || null;
 		}
 		if (Object.keys(dto).length === 0) {
 			this.cancelEdit();

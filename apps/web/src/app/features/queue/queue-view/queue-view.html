@@ -1,208 +1,210 @@
-<div>
-	<div class="flex items-center justify-between mb-5">
-		<div class="flex items-baseline gap-3">
-			<h1
-				class="text-3xl md:text-4xl font-bold tracking-tight font-display"
-			>
-				Up Next
-			</h1>
-			<span
-				class="text-sm"
-				[class.text-warning]="isPremium()"
-				[class.text-fg-muted]="!isPremium()"
-				>{{ total() }} games</span
-			>
-			<ui-premium-badge
-				*appPremiumOnly
-				size="sm"
-				interactive
-				label="Unlimited Up Next (Premium)"
-				message="Unlimited Up Next — a Premium perk."
-			/>
-		</div>
-		@if (isLoading() || entries().length > 0) {
-		<button uiButton variant="primary" (click)="openAddModal()">
-			+ Add from library
-		</button>
-		}
-	</div>
+<app-library-hero heading="Up Next" [posters]="heroPosters()">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Library</span
+	>
+	<p
+		heroSubtitle
+		class="m-0 mt-2 flex items-center gap-1.5 text-sm text-fg-secondary"
+	>
+		<span
+			class="font-semibold text-fg tabular-nums"
+			[class.!text-premium]="isPremium()"
+			>{{ total() }}</span
+		>
+		{{ total() === 1 ? 'game' : 'games' }} in your queue
+		<ui-premium-badge
+			*appPremiumOnly
+			size="sm"
+			interactive
+			label="Premium perk: unlimited Up Next"
+			message="Your Up Next has no limit. Queue as many games as you like."
+		/>
+	</p>
+	@if (isLoading() || entries().length > 0) {
+	<button heroActions uiButton variant="primary" (click)="openAddModal()">
+		<span aria-hidden="true" class="material-icons text-base">add</span>
+		Add from library
+	</button>
+	}
+</app-library-hero>
 
+@if (isLoading() || entries().length > 0 || searchQuery().trim()) {
+<div
+	class="bleed bleed-inner sticky top-[var(--topbar-height)] z-30 py-3 mb-6 flex flex-wrap items-center gap-2 bg-canvas/85 backdrop-blur-md border-b border-line/60"
+>
 	<ui-search-bar
-		class="block mb-4 max-w-2xl"
-		placeholder="Search by title..."
+		class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
+		placeholder="Search your queue..."
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>
-
-	<div class="flex items-center gap-2 mb-4 flex-wrap">
-		<span class="text-xs text-fg-muted mr-1">Sort by:</span>
-		<button
-			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="sortBy() === 'manual'"
-			[class.!border-brand]="sortBy() === 'manual'"
-			[class.!text-brand]="sortBy() === 'manual'"
-			(click)="setSort('manual')"
-		>
-			Manual
-		</button>
-		<button
-			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="sortBy() === 'ratio'"
-			[class.!border-brand]="sortBy() === 'ratio'"
-			[class.!text-brand]="sortBy() === 'ratio'"
-			(click)="setSort('ratio')"
-		>
-			Ratio
-		</button>
-		<button
-			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="sortBy() === 'score'"
-			[class.!border-brand]="sortBy() === 'score'"
-			[class.!text-brand]="sortBy() === 'score'"
-			(click)="setSort('score')"
-		>
-			Score
-		</button>
-		<button
-			class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="sortBy() === 'duration'"
-			[class.!border-brand]="sortBy() === 'duration'"
-			[class.!text-brand]="sortBy() === 'duration'"
-			(click)="setSort('duration')"
-		>
-			Duration
-		</button>
-		@if (sortBy() !== 'manual') {
-		<button
-			class="ml-auto bg-brand-subtle border border-brand text-brand text-xs font-medium px-3 py-1.5 rounded cursor-pointer inline-flex items-center gap-1.5 transition hover:bg-brand hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-			[disabled]="savingOrder()"
-			(click)="saveCurrentOrder()"
-			title="Persist this order as the new manual priority"
-		>
-			<span aria-hidden="true" class="material-icons text-sm">save</span>
-			{{ savingOrder() ? 'Saving...' : 'Save this order' }}
-		</button>
-		}
-	</div>
-
-	@if (isLoading()) {
-	<div
-		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
+	<app-queue-sort-control [(value)]="sortBy" />
+</div>
+@if (!isManual()) {
+<div
+	class="flex flex-wrap items-center justify-between gap-2 mb-6 px-3 py-2 rounded-card border border-line text-xs text-fg-muted"
+	role="status"
+>
+	Previewing a sorted order. Your saved order is unchanged.
+	<button
+		uiButton
+		variant="ghost"
+		size="sm"
+		[disabled]="savingOrder()"
+		(click)="saveCurrentOrder()"
 	>
-		@for (i of skeletonRange; track i) {
-		<div class="flex flex-col gap-1.5">
-			<ui-skeleton variant="rect" class="aspect-[3/4] rounded-lg" />
-			<ui-skeleton variant="text" class="w-3/4" />
-			<ui-skeleton variant="text" class="w-1/3" />
-		</div>
-		}
-	</div>
-	} @else if (entries().length === 0) { @if (searchQuery().trim()) {
-	<ui-empty-state
-		icon="search_off"
-		title="No matches found"
-		hint="Nothing in Up Next matches your search."
+		<span aria-hidden="true" class="material-icons text-sm">save</span>
+		{{ savingOrder() ? 'Saving...' : 'Save as my order' }}
+	</button>
+</div>
+} } @if (isLoading()) {
+<app-queue-skeleton />
+} @else if (entries().length === 0) { @if (searchQuery().trim()) {
+<section class="flex flex-col items-center text-center py-16 px-6">
+	<span aria-hidden="true" class="material-icons text-4xl text-fg-muted mb-3"
+		>search_off</span
 	>
-		<button uiButton variant="secondary" (click)="onSearch('')">
-			Clear search
-		</button>
-	</ui-empty-state>
-	} @else {
-	<ui-empty-state
-		icon="playlist_play"
-		title="Up Next is empty"
-		hint="Pick the next games you actually want to play, in order. Add titles you haven't started yet from your library."
+	<h2 class="m-0 font-display text-xl font-semibold text-fg">No matches</h2>
+	<p class="m-0 mt-2 mb-6 text-sm text-fg-muted">
+		Nothing in Up Next matches "{{ searchQuery().trim() }}".
+	</p>
+	<button uiButton variant="secondary" (click)="onSearch('')">
+		Clear search
+	</button>
+</section>
+} @else {
+<section class="flex flex-col items-center text-center py-20 px-6">
+	<span aria-hidden="true" class="material-icons text-4xl text-fg-muted mb-3"
+		>playlist_play</span
 	>
-		<button uiButton variant="primary" (click)="openAddModal()">
-			+ Add from library
-		</button>
-	</ui-empty-state>
-	} } @else {
-	<div
-		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
+	<h2 class="m-0 font-display text-xl font-semibold text-fg">
+		Nothing queued yet
+	</h2>
+	<p class="m-0 mt-2 mb-6 max-w-sm text-sm text-fg-muted leading-relaxed">
+		Line up the games you actually want to play next, in order. Pick titles
+		you haven't started from your library.
+	</p>
+	<button uiButton variant="primary" (click)="openAddModal()">
+		<span aria-hidden="true" class="material-icons text-base">add</span>
+		Add from library
+	</button>
+</section>
+} } @else { @if (featured(); as next) {
+<app-queue-next-card
+	class="mb-8"
+	[entry]="next"
+	[eyebrow]="featuredEyebrow()"
+	[isFavorite]="isFavorite(next.backlog.game.id)"
+	[statusUpdating]="isUpdatingStatus(next)"
+	[canMoveDown]="isManual() && rest().length > 0"
+	(startPlaying)="requestStatusChange(next, 'playing')"
+	(favoriteToggle)="toggleFavorite(next.backlog.game.id)"
+	(remove)="remove(next)"
+	(moveDown)="moveDown(0)"
+/>
+} @if (rest().length > 0) {
+<section aria-labelledby="queue-list-heading">
+	<h2
+		id="queue-list-heading"
+		class="m-0 mb-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+	>
+		@if (featured()) { After that } @else { Results }
+	</h2>
+	<ol
+		class="list-none m-0 p-0 divide-y divide-line"
 		cdkDropList
-		cdkDropListOrientation="mixed"
-		[cdkDropListDisabled]="sortBy() !== 'manual'"
+		[cdkDropListDisabled]="!isManual()"
 		(cdkDropListDropped)="onDrop($event)"
 	>
-		@for (entry of filteredEntries(); track entry.id; let i = $index) {
-		<div
-			cdkDrag
-			[cdkDragDisabled]="sortBy() !== 'manual'"
-			class="cdk-drag-cell"
-		>
-			<app-queue-grid-card
-				[entry]="{
-						game: entry.backlog.game,
-						platformAbbreviation: entry.backlog.platform?.abbreviation,
-						ratio: entry.backlog.ratio,
-						duration: entry.backlog.duration,
-						moodTags: entry.backlog.moodTags
-					}"
-				[position]="offset() + i + 1"
-				[showActions]="true"
-				[showDragHandle]="sortBy() === 'manual'"
-				[isFirst]="sortBy() !== 'manual' || i === 0"
-				[isLast]="sortBy() !== 'manual' || i === filteredEntries().length - 1"
-				[statusUpdating]="isUpdatingStatus(entry)"
+		@for (entry of rest(); track entry.id; let i = $index) { @let index = i
+		+ restOffset();
+		<li cdkDrag [cdkDragDisabled]="!isManual()" class="relative">
+			<div
+				aria-hidden="true"
+				class="absolute inset-0 flex items-center px-4 transition-colors"
+				[class.invisible]="!swipe.direction()"
+				[class.justify-start]="swipe.direction() === 'right'"
+				[class.justify-end]="swipe.direction() === 'left'"
+				[class]="swipe.direction() === 'right' ? (swipe.armed() ? 'bg-nav-favorites/35' : 'bg-nav-favorites/15') : swipe.direction() === 'left' ? (swipe.armed() ? 'bg-danger/35' : 'bg-danger/15') : ''"
+			>
+				<span
+					class="material-icons text-2xl transition-transform"
+					[class]="swipe.direction() === 'right' ? 'text-nav-favorites' : 'text-danger'"
+					[class.scale-125]="swipe.armed()"
+					>{{ swipe.direction() === 'right' ?
+					(isFavorite(entry.backlog.game.id) ? 'heart_broken' :
+					'favorite') : 'playlist_remove' }}</span
+				>
+			</div>
+			<app-queue-row
+				appSwipeActions
+				#swipe="swipeActions"
+				class="relative"
+				[swipeDisabled]="!pointer.isCoarse()"
+				(swipeRight)="toggleFavorite(entry.backlog.game.id)"
+				(swipeLeft)="remove(entry)"
+				[entry]="entry"
+				[position]="offset() + index + 1"
+				[reorderable]="isManual()"
+				[isFirst]="index === 0"
+				[isLast]="index === entries().length - 1"
 				[isFavorite]="isFavorite(entry.backlog.game.id)"
-				(moveUp)="moveUp(i)"
-				(moveDown)="moveDown(i)"
-				(remove)="remove(entry)"
-				(statusChange)="requestStatusChange(entry, $event)"
+				[statusUpdating]="isUpdatingStatus(entry)"
+				(startPlaying)="requestStatusChange(entry, 'playing')"
 				(favoriteToggle)="toggleFavorite(entry.backlog.game.id)"
+				(remove)="remove(entry)"
+				(moveUp)="moveUp(index)"
+				(moveDown)="moveDown(index)"
 			/>
-		</div>
+		</li>
 		}
-	</div>
-	}
+	</ol>
+</section>
+} }
 
-	<ui-pagination
-		[offset]="offset()"
-		[limit]="limit"
-		[total]="total()"
-		(offsetChange)="onOffsetChange($event)"
-	/>
-</div>
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit"
+	[total]="total()"
+	(offsetChange)="onOffsetChange($event)"
+/>
 
 @if (pendingPlayEntry(); as pending) {
-<div class="modal-overlay">
-	<div
-		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[420px] flex flex-col gap-4"
-		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
-	>
-		<h2 class="m-0 text-lg font-bold font-display">
-			Start playing this game?
-		</h2>
-		<p class="text-sm text-fg-secondary leading-relaxed">
-			<strong>{{ pending.backlog.game.title }}</strong> will be marked as
-			<span class="text-warning font-medium">playing</span>. Since the
-			Queue only tracks games you haven't started yet, it will be removed
-			from your Queue.
-		</p>
-		<div>
-			<label
-				for="pendingPlayStartedAt"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+<ui-dialog
+	eyebrow="Up Next"
+	size="sm"
+	[heading]="'Start playing ' + pending.backlog.game.title + '?'"
+	(closed)="cancelPlayConfirmation()"
+>
+	<p class="m-0 mb-4 text-sm text-fg-secondary leading-relaxed">
+		It will be marked as
+		<span class="text-fg font-medium">Playing</span> and leave Up Next,
+		which only holds games you haven't started.
+	</p>
+	<label class="flex flex-col gap-1.5">
+		<span
+			class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+			>Started on</span
+		>
+		<input
+			uiInput
+			type="date"
+			[value]="pendingPlayStartedAt()"
+			(input)="onPendingPlayStartedAtChange($any($event.target).value)"
+		/>
+	</label>
+	<ng-container dialogFooter>
+		<button uiButton variant="ghost" (click)="cancelPlayConfirmation()">
+			Cancel
+		</button>
+		<button uiButton variant="primary" (click)="confirmPlay()">
+			<span aria-hidden="true" class="material-icons text-base"
+				>play_arrow</span
 			>
-				Started on
-			</label>
-			<input
-				id="pendingPlayStartedAt"
-				type="date"
-				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-				[value]="pendingPlayStartedAt()"
-				(input)="onPendingPlayStartedAtChange($any($event.target).value)"
-			/>
-		</div>
-		<div class="flex items-center justify-end gap-2">
-			<button uiButton variant="ghost" (click)="cancelPlayConfirmation()">
-				Cancel
-			</button>
-			<button uiButton variant="primary" (click)="confirmPlay()">
-				Start playing
-			</button>
-		</div>
-	</div>
-</div>
+			Start playing
+		</button>
+	</ng-container>
+</ui-dialog>
 }

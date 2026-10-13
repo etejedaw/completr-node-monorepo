@@ -5,6 +5,7 @@ import { type FranchiseProgressEntry } from "../franchises/franchises.service";
 import { type List } from "../lists/list.model";
 import { type BacklogSummary } from "../lists/lists.service";
 import { type Review } from "../reviews/review.model";
+import { type SectionAccess } from "./helpers/visibility.helper";
 import { type ComparisonDimension } from "./schemas/comparison-query.schema";
 import { type User } from "./user.model";
 
@@ -29,6 +30,7 @@ export interface FullUserProfile {
 	followerCount: number;
 	followingCount: number;
 	isFollowing: boolean;
+	access: SectionAccess;
 }
 
 export type UserProfileResult = RestrictedUserProfile | FullUserProfile;
@@ -63,6 +65,7 @@ export interface UserListDetailBundle {
 	listPlain: List;
 	aggregates: {
 		followerCount: number;
+		isFollowing: boolean;
 		backlogSummaryMap: Map<string, BacklogSummary> | undefined;
 		progress: { completed: number; total: number } | null;
 	};
@@ -113,4 +116,15 @@ export interface UserReviewsBundle {
 	reviewsPlain: Review[];
 	durationMap: Map<string, number>;
 	total: number;
+}
+
+export interface UserCardInsights {
+	user: User;
+	isSelf: boolean;
+	profileVisible: boolean;
+	followerCount: number | null;
+	isFollowing: boolean;
+	gamesTotal: number | null;
+	completedTotal: number | null;
+	featuredGame: { title: string; backgroundUrl: string | null } | null;
 }

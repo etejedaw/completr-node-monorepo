@@ -7,19 +7,15 @@ import {
 	signal
 } from "@angular/core";
 import { form, FormField, maxLength, required } from "@angular/forms/signals";
-import {
-	injectDialogRef,
-	NgpDialog,
-	NgpDialogOverlay,
-	NgpDialogTitle
-} from "ng-primitives/dialog";
+import { injectDialogRef } from "ng-primitives/dialog";
 
 import { type List } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
+import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import {
 	UiButton,
+	UiDialog,
 	UiFormField,
-	UiIconButton,
 	UiInput,
 	UiLabel,
 	UiRadioGroup,
@@ -36,12 +32,10 @@ export type ListModalResult = "saved" | "deleted";
 @Component({
 	selector: "app-list-modal",
 	imports: [
+		DialogDeleteAction,
 		FormField,
-		NgpDialog,
-		NgpDialogOverlay,
-		NgpDialogTitle,
 		UiButton,
-		UiIconButton,
+		UiDialog,
 		UiInput,
 		UiTextarea,
 		UiFormField,
@@ -75,7 +69,6 @@ export class ListModal implements OnInit {
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
 	protected readonly isEdit = signal(false);
-	protected readonly showConfirmDelete = signal(false);
 
 	protected readonly model = signal({
 		name: "",

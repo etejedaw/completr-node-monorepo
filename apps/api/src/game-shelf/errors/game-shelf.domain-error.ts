@@ -46,3 +46,12 @@ export function gameShelfInternalError(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function gameShelfLimitReached(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_SHELF_LIMIT_REACHED",
+		"Game shelf limit reached for free plan",
+		context
+	);
+}

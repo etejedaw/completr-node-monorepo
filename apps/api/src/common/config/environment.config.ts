@@ -17,7 +17,10 @@ const EnvironmentConfigSchema = z
 		COOKIE_SAME_SITE: z.enum(["strict", "lax", "none"]).default("lax"),
 		CHANGELOG_SOURCE_URL: z
 			.url()
-			.default("http://localhost:4321/changelog.json")
+			.default("http://localhost:4321/changelog.json"),
+		PRIVACY_SOURCE_URL: z
+			.url()
+			.default("http://localhost:4321/privacy.json")
 	})
 	.readonly();
 

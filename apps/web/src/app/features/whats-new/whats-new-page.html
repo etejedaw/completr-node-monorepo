@@ -1,0 +1,161 @@
+<app-library-hero heading="What's new" [posters]="posters()">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Changelog</span
+	>
+	<p
+		heroSubtitle
+		class="m-0 mt-2 max-w-xl text-sm sm:text-base text-fg-secondary leading-relaxed"
+	>
+		@if (firstDate(); as since) { {{ releases().length }} updates since {{
+		since | date: "MMMM y" : "UTC" }}, newest first. } @else { Every update
+		to Completr, newest first. }
+	</p>
+</app-library-hero>
+
+<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_12rem] lg:gap-12 xl:gap-16">
+	<div class="min-w-0 max-w-4xl">
+		@if (changelog.isLoading() && !changelog.hasValue()) {
+		<div aria-busy="true" aria-label="Loading updates">
+			<div class="p-5 sm:p-8 rounded-card border border-line bg-surface">
+				<ui-skeleton class="h-5 w-40 rounded-full" />
+				<ui-skeleton class="mt-4 h-9 w-3/4 rounded-md" />
+				<div class="mt-6 grid gap-5 md:grid-cols-2">
+					@for (i of [1, 2, 3, 4]; track i) {
+					<div class="flex gap-3">
+						<ui-skeleton class="w-9 h-9 shrink-0 rounded-lg" />
+						<ui-skeleton class="h-12 flex-1 rounded-md" />
+					</div>
+					}
+				</div>
+			</div>
+			<div
+				class="mt-12 ml-4 pl-6 border-l border-line flex flex-col gap-8"
+			>
+				@for (i of [1, 2]; track i) {
+				<div class="flex flex-col gap-2">
+					<ui-skeleton class="h-4 w-28 rounded-full" />
+					<ui-skeleton class="h-6 w-2/3 rounded-md" />
+					<ui-skeleton class="h-4 w-full rounded-md" />
+					<ui-skeleton class="h-4 w-5/6 rounded-md" />
+				</div>
+				}
+			</div>
+		</div>
+		} @else if (changelog.error()) {
+		<div
+			role="alert"
+			class="flex flex-col items-center text-center gap-3 py-16 px-6 rounded-card border border-line bg-surface/40"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-4xl text-fg-muted"
+				>cloud_off</span
+			>
+			<h2 class="m-0 font-display text-lg font-semibold">
+				Couldn't load the updates
+			</h2>
+			<p class="m-0 max-w-sm text-sm text-fg-muted">
+				The changelog is out of reach right now. Check your connection
+				and try again.
+			</p>
+			<button
+				uiButton
+				type="button"
+				variant="secondary"
+				class="mt-2"
+				(click)="changelog.reload()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>refresh</span
+				>
+				Try again
+			</button>
+		</div>
+		} @else if (latest(); as entry) {
+		<app-release-entry [release]="entry" variant="featured" />
+
+		@if (visibleGroups().length > 0) {
+		<section aria-labelledby="earlier-title" class="mt-14">
+			<h2
+				id="earlier-title"
+				class="font-display m-0 text-xl sm:text-2xl font-bold tracking-tight"
+			>
+				Earlier updates
+			</h2>
+			@for (group of visibleGroups(); track group.month) {
+			<h3
+				[id]="monthAnchor(group.month)"
+				class="scroll-mt-[var(--topbar-height)] sticky top-[var(--topbar-height)] z-10 m-0 mt-6 py-2 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted bg-canvas/85 backdrop-blur-md"
+			>
+				{{ group.month + "-01" | date: "MMMM y" : "UTC" }}
+			</h3>
+			<ol
+				class="m-0 mt-3 ml-4 p-0 pl-6 sm:pl-8 list-none border-l border-line flex flex-col gap-10 pb-2"
+			>
+				@for (release of group.releases; track release.anchor) {
+				<li>
+					<app-release-entry [release]="release" />
+				</li>
+				}
+			</ol>
+			} @if (hiddenCount() > 0) {
+			<div class="mt-8 ml-4 pl-6 sm:pl-8">
+				<button
+					uiButton
+					type="button"
+					variant="secondary"
+					(click)="showOlder()"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>expand_more</span
+					>
+					Show older updates
+					<span class="text-fg-muted tabular-nums"
+						>({{ hiddenCount() }})</span
+					>
+				</button>
+			</div>
+			}
+		</section>
+		} } @else {
+		<p class="m-0 py-16 text-center text-sm text-fg-muted">
+			No updates published yet.
+		</p>
+		}
+	</div>
+	@if (months().length > 1) {
+	<aside class="hidden lg:block">
+		<nav
+			aria-label="Updates by month"
+			class="sticky top-[calc(var(--topbar-height)+1.5rem)]"
+		>
+			<p
+				class="m-0 mb-3 px-3 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-muted"
+			>
+				Jump to
+			</p>
+			<ol class="m-0 p-0 list-none flex flex-col border-l border-line">
+				@for (entry of months(); track entry.month) {
+				<li>
+					<a
+						routerLink="/whats-new"
+						[fragment]="monthAnchor(entry.month)"
+						class="-ml-px flex items-center justify-between gap-3 min-h-[40px] tap:min-h-[44px] pl-4 pr-3 border-l-2 border-transparent no-underline text-sm text-fg-muted transition-colors hover:text-fg hover:border-line-hover focus-visible:outline-2 focus-visible:outline-brand"
+						(click)="jumpToMonth(entry.month)"
+					>
+						{{ entry.month + "-01" | date: "MMMM y" : "UTC" }}
+						<span class="text-[0.6875rem] tabular-nums"
+							>{{ entry.count }}</span
+						>
+					</a>
+				</li>
+				}
+			</ol>
+		</nav>
+	</aside>
+	}
+</div>
+
+<app-info-page-links current="whats-new" />

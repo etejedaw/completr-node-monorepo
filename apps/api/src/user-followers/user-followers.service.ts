@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
+import { USER_CARD_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import * as serviceError from "./errors/user-followers.service-error";
@@ -44,7 +44,7 @@ export async function getFollowers(username: string) {
 			{
 				model: User,
 				as: "Follower",
-				attributes: USER_PUBLIC_ATTRS
+				attributes: USER_CARD_ATTRS
 			}
 		],
 		order: [["createdAt", "DESC"]]
@@ -61,7 +61,7 @@ export async function getFollowing(username: string) {
 			{
 				model: User,
 				as: "Following",
-				attributes: USER_PUBLIC_ATTRS
+				attributes: USER_CARD_ATTRS
 			}
 		],
 		order: [["createdAt", "DESC"]]

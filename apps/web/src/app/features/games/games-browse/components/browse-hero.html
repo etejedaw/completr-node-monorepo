@@ -1,0 +1,149 @@
+@if (current(); as game) {
+<section
+	class="bleed bleed-top relative isolate overflow-hidden"
+	aria-roledescription="carousel"
+	aria-label="Featured games"
+>
+	<div aria-hidden="true" class="absolute inset-0 -z-10">
+		@for (item of games(); track item.id; let i = $index) {
+		<img
+			[src]="item.backgroundUrl"
+			alt=""
+			[attr.fetchpriority]="i === 0 ? 'high' : null"
+			[attr.loading]="i === 0 ? null : 'lazy'"
+			class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out"
+			[class]="i === index() ? 'opacity-80' : 'opacity-0'"
+		/>
+		}
+		<div
+			class="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/60 to-canvas/10"
+		></div>
+		<div
+			class="absolute inset-0 bg-gradient-to-r from-canvas/90 via-canvas/40 to-transparent"
+		></div>
+	</div>
+
+	<div
+		class="bleed-inner min-h-[26rem] sm:min-h-[30rem] lg:min-h-[34rem] pt-[calc(var(--topbar-height)+4rem)] pb-8 sm:pb-10 flex flex-col justify-end"
+	>
+		<div
+			class="max-w-2xl"
+			role="group"
+			aria-roledescription="slide"
+			[attr.aria-label]="(index() + 1) + ' of ' + games().length + ': ' + game.title"
+			[attr.aria-live]="rotating() ? 'off' : 'polite'"
+		>
+			<div class="flex flex-wrap items-center gap-1.5 mb-3">
+				<span
+					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand text-white"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-[0.75rem]"
+						>auto_awesome</span
+					>
+					Just added
+				</span>
+				@for (genre of game.genres.slice(0, 3); track genre.id) {
+				<a
+					class="tap-area px-2 py-0.5 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25 hover:text-white"
+					routerLink="/games"
+					[queryParams]="{ genres: genre.code }"
+					>{{ genre.name }}</a
+				>
+				}
+			</div>
+			<h1
+				class="m-0 font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.02] text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)] line-clamp-2 [text-wrap:balance]"
+			>
+				<a
+					class="text-inherit no-underline hover:text-white"
+					[routerLink]="['/games', game.code]"
+					>{{ game.title }}</a
+				>
+			</h1>
+			<div class="mt-5 flex flex-wrap items-center gap-3">
+				<a
+					class="inline-flex items-center gap-1.5 h-11 tap:min-h-[44px] px-5 rounded-card bg-brand text-white text-sm font-semibold no-underline shadow-lg shadow-brand/30 transition hover:bg-brand-hover hover:text-white active:scale-[0.98]"
+					[routerLink]="['/games', game.code]"
+				>
+					View game
+					<span aria-hidden="true" class="material-icons text-base"
+						>arrow_forward</span
+					>
+				</a>
+				@if (game.ratio) {
+				<span
+					class="inline-flex items-center gap-2 h-11 pl-3 pr-4 rounded-card bg-canvas/50 border border-white/10 backdrop-blur-md"
+				>
+					<span
+						class="font-display text-2xl font-bold text-brand tabular-nums leading-none"
+						>{{ game.ratio }}</span
+					>
+					<span
+						class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-white/60"
+						>Ratio</span
+					>
+				</span>
+				}
+			</div>
+		</div>
+
+		@if (games().length > 1) {
+		<div class="mt-8 flex items-end justify-between gap-4">
+			<div class="flex items-center gap-0.5">
+				@for (item of games(); track item.id; let i = $index) {
+				<button
+					type="button"
+					class="tap-area group/dot h-6 px-1 inline-flex items-center bg-transparent border-0 cursor-pointer"
+					[attr.aria-label]="'Show ' + item.title"
+					[attr.aria-current]="i === index()"
+					(click)="select(i)"
+				>
+					<span
+						aria-hidden="true"
+						class="block h-2 rounded-full transition-all"
+						[class]="i === index() ? 'w-6 bg-white' : 'w-2 bg-white/40 group-hover/dot:bg-white/70'"
+					></span>
+				</button>
+				}
+			</div>
+
+			<div class="flex items-center gap-1 ml-auto">
+				<button
+					type="button"
+					class="w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-canvas/50 border border-white/10 text-white/80 backdrop-blur-md cursor-pointer transition hover:text-white hover:border-white/30"
+					[attr.aria-label]="paused() ? 'Resume rotation' : 'Pause rotation'"
+					[attr.aria-pressed]="paused()"
+					(click)="togglePaused()"
+				>
+					<span aria-hidden="true" class="material-icons text-xl"
+						>{{ paused() ? 'play_arrow' : 'pause' }}</span
+					>
+				</button>
+				<button
+					type="button"
+					class="w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-canvas/50 border border-white/10 text-white/80 backdrop-blur-md cursor-pointer transition hover:text-white hover:border-white/30"
+					aria-label="Previous featured game"
+					(click)="step(-1)"
+				>
+					<span aria-hidden="true" class="material-icons text-xl"
+						>chevron_left</span
+					>
+				</button>
+				<button
+					type="button"
+					class="w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-canvas/50 border border-white/10 text-white/80 backdrop-blur-md cursor-pointer transition hover:text-white hover:border-white/30"
+					aria-label="Next featured game"
+					(click)="step(1)"
+				>
+					<span aria-hidden="true" class="material-icons text-xl"
+						>chevron_right</span
+					>
+				</button>
+			</div>
+		</div>
+		}
+	</div>
+</section>
+}

@@ -17,19 +17,18 @@ import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 import { type QueueEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
+import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
-import {
-	QueueGridCard,
-	type QueueStatusChange
-} from "../../../shared/components/queue-grid-card/queue-grid-card";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
+import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
 	UiButton,
-	UiEmptyState,
+	UiDialog,
+	UiInput,
 	UiPagination,
 	UiPremiumBadge,
-	UiSearchBar,
-	UiSkeleton
+	UiSearchBar
 } from "../../../shared/ui";
 import { BacklogService } from "../../backlog/backlog";
 import { FavoritesService } from "../../favorites/favorites";
@@ -38,20 +37,35 @@ import {
 	QueueAddModal,
 	type QueueAddModalData
 } from "../queue-add-modal/queue-add-modal";
+import { QueueNextCard } from "../queue-next-card/queue-next-card";
+import {
+	queueFeaturedEyebrow,
+	type QueueSort,
+	type QueueStatusChange,
+	sortQueueEntries
+} from "../queue-order";
+import { QueueRow } from "../queue-row/queue-row";
+import { QueueSkeleton } from "../queue-skeleton/queue-skeleton";
+import { QueueSortControl } from "../queue-sort-control/queue-sort-control";
 
 @Component({
 	selector: "app-queue-view",
 	imports: [
+		LibraryHero,
 		UiButton,
-		UiEmptyState,
+		UiDialog,
+		UiInput,
 		UiPagination,
 		UiPremiumBadge,
 		UiSearchBar,
-		UiSkeleton,
-		QueueGridCard,
+		QueueNextCard,
+		QueueRow,
+		QueueSkeleton,
+		QueueSortControl,
 		CdkDropList,
 		CdkDrag,
-		PremiumOnly
+		PremiumOnly,
+		SwipeActions
 	],
 	templateUrl: "./queue-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -64,16 +78,14 @@ export class QueueView implements OnInit {
 	private readonly dialogs = inject(DialogService);
 
 	protected readonly isPremium = inject(AuthService).isPremium;
+	protected readonly pointer = inject(PointerService);
 	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);
-	protected readonly skeletonRange = Array.from({ length: 12 }, (_, i) => i);
 	protected readonly searchQuery = signal("");
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
-	protected readonly sortBy = signal<
-		"manual" | "ratio" | "score" | "duration"
-	>("manual");
+	protected readonly sortBy = signal<QueueSort>("manual");
 	protected readonly savingOrder = signal(false);
 	protected readonly updatingStatusIds = signal<Set<string>>(new Set());
 	protected readonly pendingPlayEntry = signal<QueueEntry | null>(null);
@@ -92,32 +104,30 @@ export class QueueView implements OnInit {
 		this.loadQueue();
 	}
 
-	setSort(sort: "manual" | "ratio" | "score" | "duration") {
-		this.sortBy.set(sort);
-	}
+	protected readonly heroPosters = computed(() =>
+		this.entries().map(entry => ({
+			src: entry.backlog.game.backgroundUrl,
+			title: entry.backlog.game.title
+		}))
+	);
+	protected readonly filteredEntries = computed(() =>
+		sortQueueEntries(this.entries(), this.sortBy())
+	);
 
-	protected readonly filteredEntries = computed(() => {
-		const sort = this.sortBy();
-		const list = this.entries();
-		if (sort === "manual") return list;
-		const sorted = [...list];
-		if (sort === "ratio") {
-			sorted.sort(
-				(a, b) => (b.backlog.ratio ?? -1) - (a.backlog.ratio ?? -1)
-			);
-		} else if (sort === "score") {
-			sorted.sort(
-				(a, b) => (b.backlog.score ?? -1) - (a.backlog.score ?? -1)
-			);
-		} else if (sort === "duration") {
-			sorted.sort(
-				(a, b) =>
-					(a.backlog.duration ?? Number.POSITIVE_INFINITY) -
-					(b.backlog.duration ?? Number.POSITIVE_INFINITY)
-			);
-		}
-		return sorted;
+	protected readonly featured = computed(() => {
+		if (this.offset() > 0 || this.searchQuery().trim()) return null;
+		return this.filteredEntries()[0] ?? null;
 	});
+	protected readonly rest = computed(() =>
+		this.featured()
+			? this.filteredEntries().slice(1)
+			: this.filteredEntries()
+	);
+	protected readonly restOffset = computed(() => (this.featured() ? 1 : 0));
+	protected readonly isManual = computed(() => this.sortBy() === "manual");
+	protected readonly featuredEyebrow = computed(() =>
+		queueFeaturedEyebrow(this.sortBy())
+	);
 
 	saveCurrentOrder() {
 		if (this.sortBy() === "manual" || this.savingOrder()) return;
@@ -266,10 +276,15 @@ export class QueueView implements OnInit {
 	}
 
 	onDrop(event: CdkDragDrop<QueueEntry[]>) {
-		if (this.sortBy() !== "manual") return;
+		if (!this.isManual()) return;
 		if (event.previousIndex === event.currentIndex) return;
+		const shift = this.restOffset();
 		const list = [...this.entries()];
-		moveItemInArray(list, event.previousIndex, event.currentIndex);
+		moveItemInArray(
+			list,
+			event.previousIndex + shift,
+			event.currentIndex + shift
+		);
 		this.reorder(list);
 	}
 

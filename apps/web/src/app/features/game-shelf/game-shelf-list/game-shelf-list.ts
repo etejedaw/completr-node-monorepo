@@ -2,34 +2,37 @@ import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
+	effect,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
-import {
-	type BacklogEntry,
-	type Game,
-	type GameShelfEntry
-} from "../../../core/models";
+import { type GameShelfEntry } from "../../../core/models";
+import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
+import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import {
+	countByPlatform,
+	matchesPlatform,
+	PlatformFilter
+} from "../../../shared/components/platform-filter/platform-filter";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
+	UiPremiumBadge,
 	UiSearchBar
 } from "../../../shared/ui";
-import { BacklogService } from "../../backlog/backlog";
-import {
-	BacklogModal,
-	type BacklogModalData,
-	type BacklogModalResult
-} from "../../backlog/backlog-modal/backlog-modal";
+import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { FavoritesService } from "../../favorites/favorites";
-import { GamesService } from "../../games/games";
 import { WishlistService } from "../../wishlist/wishlist";
 import { GameShelfService } from "../game-shelf";
 import { GameShelfCalendar } from "../game-shelf-calendar/game-shelf-calendar";
@@ -39,10 +42,19 @@ import {
 	type GameShelfModalResult
 } from "../game-shelf-modal/game-shelf-modal";
 
-interface PlatformCount {
-	id: string;
-	abbreviation: string;
-	count: number;
+type ShelfViewMode = "grid" | "table" | "calendar";
+
+const VIEW_MODE_STORAGE_KEY = "completr.shelf.viewMode";
+
+const VIEW_MODES: { value: ShelfViewMode; label: string; icon: string }[] = [
+	{ value: "grid", label: "Grid", icon: "grid_view" },
+	{ value: "table", label: "Hardcore", icon: "table_rows" },
+	{ value: "calendar", label: "Calendar", icon: "calendar_month" }
+];
+
+function readStoredViewMode(): ShelfViewMode {
+	const saved = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+	return saved === "table" || saved === "calendar" ? saved : "grid";
 }
 
 @Component({
@@ -55,7 +67,13 @@ interface PlatformCount {
 		UiSearchBar,
 		GameCoverCard,
 		GameTitleCell,
-		GameShelfCalendar
+		GameShelfCalendar,
+		CoverGrid,
+		LibraryHero,
+		LibraryToolbar,
+		PlatformFilter,
+		PremiumOnly,
+		UiPremiumBadge
 	],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -64,32 +82,47 @@ export class GameShelfList implements OnInit {
 	private readonly shelfService = inject(GameShelfService);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly wishlistService = inject(WishlistService);
-	private readonly backlogService = inject(BacklogService);
-	private readonly gamesService = inject(GamesService);
 	private readonly dialogs = inject(DialogService);
+	protected readonly openBacklogQuickAdd = injectBacklogQuickAdd(() =>
+		this.loadShelf()
+	);
+	protected readonly isPremium = inject(AuthService).isPremium;
+	protected readonly viewModes = VIEW_MODES;
 
 	protected readonly allEntries = signal<GameShelfEntry[]>([]);
-	protected readonly entries = signal<GameShelfEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
 	protected readonly selectedPlatform = signal("");
-	protected readonly platformCounts = signal<PlatformCount[]>([]);
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
+	protected readonly tableColumns = [
+		"Title",
+		"Platform",
+		"Edition",
+		"Acquired"
+	];
+	protected readonly viewMode = signal<ShelfViewMode>(readStoredViewMode());
 
-	protected readonly viewMode = signal<"grid" | "table" | "calendar">(
-		((): "grid" | "table" | "calendar" => {
-			const saved = localStorage.getItem("completr.shelf.viewMode");
-			if (saved === "table") return "table";
-			if (saved === "calendar") return "calendar";
-			return "grid";
-		})()
+	protected readonly platformCounts = computed(() =>
+		countByPlatform(this.allEntries(), entry => entry.platform)
+	);
+	protected readonly entries = computed(() =>
+		this.allEntries().filter(entry =>
+			matchesPlatform(entry.platform, this.selectedPlatform())
+		)
+	);
+	protected readonly heroPosters = computed(() =>
+		this.allEntries().map(entry => ({
+			src: entry.game.backgroundUrl,
+			title: entry.game.title
+		}))
 	);
 
-	setViewMode(mode: "grid" | "table" | "calendar") {
-		this.viewMode.set(mode);
-		localStorage.setItem("completr.shelf.viewMode", mode);
+	constructor() {
+		effect(() =>
+			localStorage.setItem(VIEW_MODE_STORAGE_KEY, this.viewMode())
+		);
 	}
 
 	private readonly searchSubject = new Subject<string>();
@@ -114,46 +147,6 @@ export class GameShelfList implements OnInit {
 		this.wishlistService.toggle(gameId).subscribe();
 	}
 
-	openBacklogQuickAdd(entry: GameShelfEntry) {
-		this.backlogService.getMyBacklog({ game_id: entry.game.id }).subscribe({
-			next: res => {
-				const existing = res.data.backlog[0] ?? null;
-				if (existing) {
-					this.openBacklog(existing, null);
-					return;
-				}
-				this.openCreateBacklogFor(entry.game.code);
-			},
-			error: () => this.openCreateBacklogFor(entry.game.code)
-		});
-	}
-
-	private openCreateBacklogFor(code: string) {
-		this.gamesService.getByCode(code).subscribe(game => {
-			this.openBacklog(null, game);
-		});
-	}
-
-	private openBacklog(
-		entry: BacklogEntry | null,
-		preselectedGame: Game | null
-	) {
-		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
-			BacklogModal,
-			{
-				data: {
-					entry,
-					preselectedGame,
-					preselectedCompilationParent: null,
-					preselectAddToQueue: false
-				}
-			}
-		);
-		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.loadShelf();
-		});
-	}
-
 	isFavorite(gameId: string): boolean {
 		return this.favoritesService.isFavorite(gameId);
 	}
@@ -170,11 +163,6 @@ export class GameShelfList implements OnInit {
 			return;
 		}
 		this.searchSubject.next(query);
-	}
-
-	filterByPlatform(platformId: string) {
-		this.selectedPlatform.set(platformId);
-		this.filterEntries();
 	}
 
 	clearSearchAndFilter() {
@@ -217,43 +205,11 @@ export class GameShelfList implements OnInit {
 			})
 			.subscribe({
 				next: res => {
-					const entries = res.data.gameShelf;
-					this.allEntries.set(entries);
+					this.allEntries.set(res.data.gameShelf);
 					this.total.set(res.data.total);
-					this.buildPlatformCounts(entries);
-					this.filterEntries();
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
 			});
-	}
-
-	private buildPlatformCounts(entries: GameShelfEntry[]) {
-		const map = new Map<string, PlatformCount>();
-		for (const e of entries) {
-			const existing = map.get(e.platform.id);
-			if (existing) {
-				existing.count++;
-			} else {
-				map.set(e.platform.id, {
-					id: e.platform.id,
-					abbreviation: e.platform.abbreviation,
-					count: 1
-				});
-			}
-		}
-		const sorted = [...map.values()].sort((a, b) => b.count - a.count);
-		this.platformCounts.set(sorted);
-	}
-
-	private filterEntries() {
-		let filtered = this.allEntries();
-
-		const platform = this.selectedPlatform();
-		if (platform) {
-			filtered = filtered.filter(e => e.platform.id === platform);
-		}
-
-		this.entries.set(filtered);
 	}
 }

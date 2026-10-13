@@ -1,22 +1,30 @@
+import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
-import { RouterLink } from "@angular/router";
 import { debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { type FollowingList, type List } from "../../../core/models";
+import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import { ListCard } from "../../../shared/components/list-card/list-card";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
-	UiProgress,
-	UiSearchBar
+	UiPremiumBadge,
+	UiSearchBar,
+	UiSkeleton
 } from "../../../shared/ui";
+import { injectLibraryPosters } from "../../backlog/library-posters";
 import {
 	ListModal,
 	type ListModalData,
@@ -27,12 +35,17 @@ import { ListsService } from "../lists";
 @Component({
 	selector: "app-list-overview",
 	imports: [
-		RouterLink,
+		NgTemplateOutlet,
+		LibraryHero,
+		LibraryToolbar,
+		ListCard,
 		UiButton,
 		UiEmptyState,
 		UiPagination,
-		UiProgress,
-		UiSearchBar
+		UiSearchBar,
+		UiSkeleton,
+		PremiumOnly,
+		UiPremiumBadge
 	],
 	templateUrl: "./list-overview.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -41,6 +54,7 @@ export class ListOverview implements OnInit {
 	private readonly listsService = inject(ListsService);
 	private readonly dialogs = inject(DialogService);
 	private readonly searchSubject = new Subject<string>();
+	protected readonly isPremium = inject(AuthService).isPremium;
 
 	protected readonly lists = signal<List[]>([]);
 	protected readonly followingLists = signal<FollowingList[]>([]);
@@ -52,6 +66,18 @@ export class ListOverview implements OnInit {
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 25;
+	protected readonly skeletonRange = [0, 1, 2];
+	private readonly libraryPosters = injectLibraryPosters();
+	protected readonly heroPosters = computed(() => {
+		const fromLists = [...this.lists(), ...this.followingLists()]
+			.flatMap(list => list.previewItems ?? [])
+			.flatMap(item =>
+				item.game
+					? [{ src: item.game.backgroundUrl, title: item.game.title }]
+					: []
+			);
+		return fromLists.length > 0 ? fromLists : this.libraryPosters();
+	});
 
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
@@ -90,11 +116,6 @@ export class ListOverview implements OnInit {
 		this.openModal(null);
 	}
 
-	openEdit(list: List, event: Event) {
-		event.stopPropagation();
-		this.openModal(list);
-	}
-
 	private openModal(list: List | null) {
 		const ref = this.dialogs.open<ListModalData, ListModalResult>(
 			ListModal,
@@ -105,10 +126,6 @@ export class ListOverview implements OnInit {
 		ref.afterClosed.subscribe(result => {
 			if (result === "saved") this.loadLists();
 		});
-	}
-
-	progressPercent(p: { completed: number; total: number }): number {
-		return p.total > 0 ? Math.round((p.completed / p.total) * 100) : 0;
 	}
 
 	private loadLists() {

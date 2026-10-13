@@ -20,11 +20,11 @@ import {
 	enrichedUserListSerializer,
 	fullProfileSerializer,
 	restrictedProfileSerializer,
+	userCardSerializer,
 	userCompletionsSerializer,
 	userHighlightsSerializer,
 	userMeSerializer,
-	userReviewsSerializer,
-	userSummarySerializer
+	userReviewsSerializer
 } from "./users.serializer";
 import * as usersService from "./users.service";
 import * as usersProfileService from "./users-profile.service";
@@ -88,11 +88,17 @@ export async function deleteUser(request: Request, response: Response) {
 export async function searchUsers(request: Request, response: Response) {
 	const { q, email, limit } = request.locals.query as UserSearchQuery;
 
+	const currentUser = request.locals.user as RequestUser | undefined;
+
 	const users = email
 		? await usersService.findUserByExactEmail(email)
 		: await usersService.searchUsers(q!, limit);
+	const cards = await usersProfileService.buildUserCards(
+		currentUser?.id,
+		users
+	);
 
-	const data = { users: users.map(userSummarySerializer) };
+	const data = { users: cards.map(userCardSerializer) };
 	return response.status(200).json({ data });
 }
 
@@ -104,8 +110,12 @@ export async function getDiscoverUsers(request: Request, response: Response) {
 		limit ?? 12,
 		currentUser?.id
 	);
+	const cards = await usersProfileService.buildUserCards(
+		currentUser?.id,
+		users
+	);
 
-	const data = { users: users.map(userSummarySerializer) };
+	const data = { users: cards.map(userCardSerializer) };
 	return response.status(200).json({ data });
 }
 

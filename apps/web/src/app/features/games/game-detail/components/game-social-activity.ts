@@ -80,8 +80,8 @@ export class GameSocialActivity {
 			case "abandoned":
 				return {
 					label: "Abandoned",
-					classes: "bg-warning/15 text-warning",
-					dot: "bg-warning"
+					classes: "bg-danger/15 text-danger",
+					dot: "bg-danger"
 				};
 			case "endless":
 				return {

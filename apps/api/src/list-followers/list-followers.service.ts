@@ -19,7 +19,7 @@ const FOLLOWED_LIST_PREVIEW_INCLUDE = {
 		{
 			model: ListItem,
 			separate: true,
-			limit: 1,
+			limit: listsService.LIST_PREVIEW_SIZE,
 			order: [["position", "ASC"]] as [string, string][],
 			include: [
 				{

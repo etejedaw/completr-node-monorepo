@@ -35,7 +35,7 @@
 			}
 			<span
 				[class]="iconClasses(star)"
-				[style.background]="isHalf(star) ? 'linear-gradient(90deg, var(--color-warning) 50%, var(--color-fg-muted) 50%)' : null"
+				[style.background]="isHalf(star) ? 'linear-gradient(90deg, var(--color-rating) 50%, var(--color-fg-muted) 50%)' : null"
 				[style.-webkit-background-clip]="isHalf(star) ? 'text' : null"
 				[style.background-clip]="isHalf(star) ? 'text' : null"
 				[style.-webkit-text-fill-color]="isHalf(star) ? 'transparent' : null"
@@ -44,10 +44,10 @@
 		</span>
 		}
 	</div>
-	@if (!readonly()) {
+	@if (!readonly() && showValue()) {
 	<span class="flex items-center gap-1.5 min-w-[80px]">
 		@if (displayValue() > 0) {
-		<span class="text-[0.8125rem] font-semibold text-warning"
+		<span class="text-[0.8125rem] font-semibold text-rating"
 			>{{ displayValue() }}</span
 		>
 		} @if (label()) {

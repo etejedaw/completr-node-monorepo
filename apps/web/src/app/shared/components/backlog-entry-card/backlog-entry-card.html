@@ -1,0 +1,477 @@
+@let item = entry();
+<app-flip-card class="relative flex-1 min-h-0" [flipped]="flipped()">
+	<article
+		flipCardFront
+		[attr.role]="readonly() ? null : 'button'"
+		[attr.tabindex]="readonly() ? null : 0"
+		[class.max-sm:rounded-b-none]="hasMobileBar()"
+		[class.cursor-pointer]="!readonly()"
+		class="group/row relative isolate h-full flex flex-col rounded-card bg-surface border border-line transition duration-200 hover:border-brand/40 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-20px_rgba(0,0,0,0.9)] focus-visible:outline-2 focus-visible:outline-brand"
+		(click)="opened.emit($event)"
+		(keydown.enter)="opened.emit($event)"
+		(keydown.space)="opened.emit($event); $event.preventDefault()"
+	>
+		<div
+			aria-hidden="true"
+			class="absolute inset-0 -z-10 overflow-hidden rounded-card"
+		>
+			<div
+				class="absolute inset-y-0 right-0 w-3/4 opacity-25 transition-opacity duration-300 group-hover/row:opacity-40 [mask-image:linear-gradient(to_left,black_10%,transparent)]"
+			>
+				<app-game-poster
+					[src]="item.game.backgroundUrl"
+					[title]="item.game.title"
+					[width]="640"
+					[compact]="true"
+					class="w-full h-full blur-[2px] scale-110"
+				/>
+			</div>
+			<div
+				class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
+			></div>
+		</div>
+		<div class="flex-1 flex items-stretch gap-3 sm:gap-4 p-3 sm:p-4">
+			<div class="relative shrink-0 self-center">
+				<a
+					[routerLink]="['/games', item.game.code]"
+					(click)="$event.stopPropagation()"
+					class="block"
+					[attr.aria-label]="item.game.title"
+				>
+					<app-game-poster
+						[src]="item.game.backgroundUrl"
+						[title]="item.game.title"
+						[width]="200"
+						class="w-[4.75rem] sm:w-24 aspect-[2/3] rounded-md shadow-lg shadow-black/50 ring-1 ring-white/10 transition duration-300 group-hover/row:scale-[1.03]"
+					/>
+				</a>
+				@if (item.status === 'not_started' && !readonly()) {
+				<button
+					type="button"
+					class="max-sm:hidden absolute top-1 right-1 flex items-center justify-center w-8 h-8 rounded-full bg-playing text-canvas shadow-lg shadow-playing/40 ring-2 ring-white/20 opacity-0 group-hover/row:opacity-100 pointer-coarse:opacity-100 hover:scale-110 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
+					[disabled]="statusUpdating()"
+					(click)="startPlayingRequested.emit($event)"
+					title="Start playing"
+					aria-label="Start playing"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>play_arrow</span
+					>
+				</button>
+				}
+			</div>
+			<div class="flex-1 min-w-0 flex flex-col gap-1.5">
+				<div class="flex items-start gap-2">
+					<a
+						class="tap-area flex-1 min-w-0 font-display text-base sm:text-lg font-semibold leading-tight text-fg no-underline hover:text-brand line-clamp-2"
+						[routerLink]="['/games', item.game.code]"
+						(click)="$event.stopPropagation()"
+						>{{ item.game.title }}</a
+					>
+					@if (!readonly()) {
+					<div
+						class="max-sm:hidden flex items-center -mt-1 -mr-1 shrink-0"
+						[class.!mr-9]="hasAnnotations()"
+					>
+						<button
+							type="button"
+							class="w-9 h-9 rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-nav-favorites hover:bg-white/5"
+							[class.!text-nav-favorites]="favorite()"
+							(click)="favoriteToggled.emit($event)"
+							[title]="favorite() ? 'Remove from favorites' : 'Add to favorites'"
+							[attr.aria-label]="favorite() ? 'Remove from favorites' : 'Add to favorites'"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-lg leading-none"
+								>{{ favorite() ? 'favorite' : 'favorite_border'
+								}}</span
+							>
+						</button>
+						<button
+							type="button"
+							class="w-9 h-9 rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-danger hover:bg-white/5"
+							[class.!text-danger]="inQueue()"
+							(click)="queueToggled.emit($event)"
+							[title]="inQueue() ? 'Remove from Queue' : 'Add to Queue'"
+							[attr.aria-label]="inQueue() ? 'Remove from Queue' : 'Add to Queue'"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-lg leading-none"
+								>{{ inQueue() ? 'playlist_add_check' :
+								'playlist_play' }}</span
+							>
+						</button>
+					</div>
+					}
+				</div>
+				<div
+					class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap"
+				>
+					@if (canChangeStatus()) {
+					<div class="relative inline-block">
+						<button
+							type="button"
+							class="tap-area inline-flex items-center gap-1 pl-2 pr-1 py-0.5 pointer-coarse:pl-3 pointer-coarse:pr-2 pointer-coarse:py-2 pointer-coarse:text-xs rounded-full text-[0.6875rem] font-semibold tracking-wide border border-line hover:border-brand/50 cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+							[class]="statusClass(item.status)"
+							[disabled]="statusUpdating()"
+							(click)="statusMenuToggled.emit($event)"
+							aria-haspopup="menu"
+							[attr.aria-expanded]="statusMenuOpen()"
+							[attr.aria-controls]="'status-menu-' + item.id"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-[0.875rem]"
+								>{{ statusIcon(item.status) }}</span
+							>
+							{{ statusLabel(item.status) }}
+							<span
+								aria-hidden="true"
+								class="material-icons text-[0.875rem]"
+								>arrow_drop_down</span
+							>
+						</button>
+						@if (statusMenuOpen()) {
+						<div
+							role="menu"
+							tabindex="-1"
+							[id]="'status-menu-' + item.id"
+							aria-label="Change status"
+							class="absolute left-0 top-full mt-1 z-20 bg-sidebar border border-line rounded-card shadow-xl shadow-black/50 py-1 min-w-[170px]"
+							(click)="$event.stopPropagation()"
+							(keydown.escape)="statusMenuClosed.emit()"
+						>
+							@for (s of statusOptions(); track s.value) {
+							<button
+								type="button"
+								role="menuitem"
+								class="flex items-center gap-2 w-full text-left px-3 py-2 text-xs bg-transparent border-0 text-fg hover:bg-input-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-input-bg focus-visible:outline-none"
+								[disabled]="s.value === item.status"
+								(click)="statusSelected.emit({ status: s.value, event: $event })"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-sm"
+									[class]="statusIconColor($any(s.value))"
+									>{{ statusIcon($any(s.value)) }}</span
+								>
+								{{ s.label }}
+							</button>
+							}
+						</div>
+						}
+					</div>
+					} @else {
+					<span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
+						[class]="statusClass(item.status)"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.875rem]"
+							>{{ statusIcon(item.status) }}</span
+						>
+						{{ statusLabel(item.status) }}
+					</span>
+					}
+					<span
+						class="px-1.5 py-0.5 rounded bg-white/5 text-fg-secondary text-[0.6875rem] font-semibold tracking-wide"
+						>{{ item.platform.abbreviation }}</span
+					>
+					@if (item.coopMembers && item.coopMembers.length > 0) {
+					<span
+						class="inline-flex items-center gap-1.5 text-[0.6875rem] text-fg-muted"
+					>
+						with
+						<span class="flex -space-x-1.5">
+							@for (m of item.coopMembers.slice(0, 3); track
+							m.userId) { @if (m.avatarUrl) {
+							<img
+								[src]="m.avatarUrl"
+								[alt]="m.username"
+								class="w-5 h-5 rounded-full object-cover ring-2 ring-surface"
+								[title]="m.name || m.username"
+							/>
+							} @else {
+							<span
+								class="w-5 h-5 rounded-full bg-brand/20 text-brand text-[0.5rem] font-semibold flex items-center justify-center ring-2 ring-surface"
+								[title]="m.name || m.username"
+								>{{ m.username[0]?.toUpperCase() }}</span
+							>
+							} }
+						</span>
+						@if (item.coopMembers.length > 3) {
+						<span>+{{ item.coopMembers.length - 3 }}</span>
+						}
+					</span>
+					} @if (item.compilationGame) {
+					<a
+						class="tap-area inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand/10 border border-brand/30 no-underline hover:bg-brand/20"
+						[routerLink]="['/games', item.compilationGame.code]"
+						(click)="$event.stopPropagation()"
+						[title]="'Part of ' + item.compilationGame.title"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.75rem]"
+							>library_books</span
+						>
+						in {{ item.compilationGame.title }}
+					</a>
+					}
+				</div>
+				@if (showsProgress()) {
+				<div class="flex items-start gap-1 text-xs text-fg-muted">
+					<span
+						aria-hidden="true"
+						class="material-icons text-[0.875rem] text-brand mt-px"
+						>bookmark</span
+					>
+					<span class="line-clamp-1"
+						>{{ item.latestProgress?.note }}</span
+					>
+				</div>
+				} @if (item.moodTags && item.moodTags.length > 0) {
+				<div class="flex flex-wrap gap-1">
+					@for (tag of item.moodTags; track tag) {
+					<span
+						class="inline-block px-1.5 py-0.5 rounded-full bg-brand-subtle text-brand text-[0.625rem] font-medium leading-none"
+						>{{ tag }}</span
+					>
+					}
+				</div>
+				}
+				<div
+					class="my-auto py-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-3"
+				>
+					<div class="flex flex-col gap-1.5 leading-none">
+						<span
+							class="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+							>{{ readonly() ? "Rating" : "Your rating" }}</span
+						>
+						@if (coarsePointer() && canQuickRate()) {
+						<button
+							type="button"
+							class="flex items-center gap-2 -mx-2 px-2 min-h-[44px] -my-3 rounded-card bg-transparent border-0 cursor-pointer active:bg-white/5"
+							[attr.aria-label]="'Rate ' + item.game.title"
+							(click)="ratingSheetRequested.emit($event)"
+						>
+							@if (item.userRating) {
+							<span
+								class="font-display text-2xl font-bold text-rating tabular-nums"
+								>{{ item.userRating }}</span
+							>
+							}
+							<app-star-rating
+								[value]="item.userRating ?? null"
+								[readonly]="true"
+								size="md"
+							/>
+						</button>
+						} @else {
+						<div class="flex items-center gap-2">
+							@if (item.userRating) {
+							<span
+								class="font-display text-2xl sm:text-3xl font-bold text-rating tabular-nums"
+								>{{ item.userRating }}</span
+							>
+							}
+							<app-star-rating
+								[value]="item.userRating ?? null"
+								[readonly]="!canQuickRate()"
+								size="md"
+								(ratingChange)="quickRated.emit($event)"
+							/>
+						</div>
+						}
+					</div>
+					@if (item.ratio || item.personalRatio) {
+					<app-ratio-summary
+						[personalLabel]="readonly() ? 'Their run' : 'Your run'"
+						class="ml-auto"
+						[ratio]="item.ratio"
+						[personalRatio]="item.personalRatio"
+					/>
+					}
+				</div>
+				<p
+					class="m-0 pt-2.5 border-t border-line/60 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-fg-muted tabular-nums"
+				>
+					@if (item.score) {
+					<span
+						>Score
+						<span class="text-fg-secondary"
+							>{{ item.score }}</span
+						></span
+					>
+					} @if (item.duration) {
+					<span aria-hidden="true">·</span>
+					<span
+						><span class="text-fg-secondary"
+							>{{ item.duration }}h</span
+						>
+						long</span
+					>
+					} @if (item.realDuration) {
+					<span aria-hidden="true">·</span>
+					<span
+						><span class="text-fg-secondary"
+							>{{ item.realDuration }}h</span
+						>
+						played</span
+					>
+					} @if (item.finishedAt) {
+					<span aria-hidden="true">·</span>
+					<span class="text-fg-secondary"
+						>{{ item.finishedAt | date:'MMM d, y' }}</span
+					>
+					}
+				</p>
+			</div>
+		</div>
+	</article>
+	<section
+		flipCardBack
+		[class.max-sm:rounded-b-none]="hasMobileBar()"
+		class="h-full flex flex-col rounded-card bg-sidebar border border-brand/30 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.9)] overflow-hidden"
+		[attr.aria-label]="(readonly() ? 'Note and review for ' : 'Your note and review for ') + item.game.title"
+	>
+		<header
+			class="flex items-center gap-3 px-3 sm:pl-4 sm:pr-14 py-2.5 min-h-[3.75rem] border-b border-line"
+		>
+			<app-game-poster
+				[src]="item.game.backgroundUrl"
+				[title]="item.game.title"
+				[width]="200"
+				[compact]="true"
+				class="w-7 aspect-[2/3] rounded-sm shrink-0 ring-1 ring-white/10"
+			/>
+			<span
+				class="flex-1 min-w-0 font-display font-semibold text-fg truncate"
+				>{{ item.game.title }}</span
+			>
+		</header>
+		<div
+			class="flex-1 min-h-0 overflow-y-auto px-3 sm:px-4 py-3 flex flex-col gap-4"
+		>
+			@if (item.notes) {
+			<div class="flex flex-col gap-1.5">
+				<h3
+					class="m-0 flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					<span aria-hidden="true" class="material-icons !text-sm"
+						>sticky_note_2</span
+					>
+					Note
+				</h3>
+				<p
+					class="m-0 text-sm leading-relaxed text-fg-secondary whitespace-pre-line break-words"
+				>
+					{{ item.notes }}
+				</p>
+			</div>
+			} @if (item.hasReview && item.reviewContent) {
+			<div class="flex flex-col gap-1.5">
+				<h3
+					class="m-0 flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					<span aria-hidden="true" class="material-icons !text-sm"
+						>rate_review</span
+					>
+					Review
+				</h3>
+				<p
+					class="m-0 text-sm leading-relaxed text-fg-secondary italic whitespace-pre-line break-words"
+				>
+					{{ item.reviewContent }}
+				</p>
+			</div>
+			}
+		</div>
+	</section>
+</app-flip-card>
+@if (hasAnnotations()) {
+<button
+	type="button"
+	class="max-sm:hidden absolute top-3 right-3 z-10 w-9 h-9 rounded-full border cursor-pointer inline-flex items-center justify-center transition"
+	[class.bg-transparent]="!flipped()"
+	[class.border-transparent]="!flipped()"
+	[class.text-brand]="true"
+	[class.hover:bg-brand-subtle]="!flipped()"
+	[class.bg-brand-subtle]="flipped()"
+	[class.border-brand/40]="flipped()"
+	[attr.aria-pressed]="flipped()"
+	[title]="flipped() ? 'Back to the card' : 'Flip to read your note and review'"
+	[attr.aria-label]="flipped() ? 'Back to the card' : 'Flip to read your note and review'"
+	(click)="flipToggled.emit($event)"
+>
+	<span
+		aria-hidden="true"
+		class="material-icons text-lg leading-none transition-transform duration-500"
+		[class.rotate-180]="flipped()"
+		>rotate_right</span
+	>
+</button>
+} @if (hasMobileBar()) {
+<div
+	class="sm:hidden grid grid-flow-col auto-cols-fr rounded-b-card border border-t-0 border-line bg-surface"
+>
+	@if (!readonly()) {
+	<button
+		type="button"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-white/5"
+		[class.!text-nav-favorites]="favorite()"
+		[attr.aria-pressed]="favorite()"
+		(click)="favoriteToggled.emit($event)"
+	>
+		<span aria-hidden="true" class="material-icons text-xl"
+			>{{ favorite() ? 'favorite' : 'favorite_border' }}</span
+		>
+		Favorite
+	</button>
+	<button
+		type="button"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-white/5"
+		[class.!text-danger]="inQueue()"
+		[attr.aria-pressed]="inQueue()"
+		(click)="queueToggled.emit($event)"
+	>
+		<span aria-hidden="true" class="material-icons text-xl"
+			>{{ inQueue() ? 'playlist_add_check' : 'playlist_play' }}</span
+		>
+		Up next
+	</button>
+	} @if (hasAnnotations()) {
+	<button
+		type="button"
+		[class.border-l]="!readonly()"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-line/60 text-[0.6875rem] font-medium text-brand cursor-pointer active:bg-white/5"
+		[class.bg-brand-subtle]="flipped()"
+		[attr.aria-pressed]="flipped()"
+		(click)="flipToggled.emit($event)"
+	>
+		<span
+			aria-hidden="true"
+			class="material-icons text-xl transition-transform duration-500"
+			[class.rotate-180]="flipped()"
+			>rotate_right</span
+		>
+		{{ flipped() ? 'Card' : 'Notes' }}
+	</button>
+	} @if (item.status === 'not_started' && !readonly()) {
+	<button
+		type="button"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-playing cursor-pointer active:bg-white/5 disabled:opacity-50"
+		[disabled]="statusUpdating()"
+		(click)="startPlayingRequested.emit($event)"
+	>
+		<span aria-hidden="true" class="material-icons text-xl"
+			>play_arrow</span
+		>
+		Play
+	</button>
+	}
+</div>
+}

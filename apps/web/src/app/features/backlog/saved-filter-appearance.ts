@@ -21,7 +21,6 @@ export const SAVED_FILTER_COLORS: { key: string; hex: string }[] = [
 	{ key: "brand", hex: "var(--color-brand)" },
 	{ key: "sky", hex: "#38bdf8" },
 	{ key: "emerald", hex: "#34d399" },
-	{ key: "amber", hex: "#fbbf24" },
 	{ key: "rose", hex: "#fb7185" },
 	{ key: "purple", hex: "#a78bfa" },
 	{ key: "teal", hex: "#2dd4bf" },
@@ -31,4 +30,8 @@ export const SAVED_FILTER_COLORS: { key: string; hex: string }[] = [
 export function savedFilterColorHex(color: string | null | undefined) {
 	if (!color) return null;
 	return SAVED_FILTER_COLORS.find(c => c.key === color)?.hex ?? null;
+}
+
+export function supportedSavedFilterColor(color: string | null | undefined) {
+	return SAVED_FILTER_COLORS.find(c => c.key === color)?.key ?? null;
 }

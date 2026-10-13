@@ -1,0 +1,126 @@
+@if (variant(); as v) {
+<section
+	class="relative rounded-card p-5 border bg-surface overflow-hidden"
+	[class]="v.frameClass"
+	[attr.aria-label]="v.title"
+>
+	<header class="flex items-center gap-2 mb-4">
+		@if (v.icon) {
+		<span
+			aria-hidden="true"
+			class="material-icons text-base"
+			[class]="v.accentClass"
+			>{{ v.icon }}</span
+		>
+		} @else {
+		<span
+			aria-hidden="true"
+			class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-[0.6875rem] text-white bg-gradient-to-br from-brand to-brand-deep"
+			>C</span
+		>
+		}
+		<h2
+			class="m-0 text-[0.625rem] font-bold uppercase tracking-[0.18em]"
+			[class]="v.accentClass"
+		>
+			{{ v.title }}
+		</h2>
+	</header>
+
+	<div class="flex items-end gap-2">
+		<span
+			class="font-display text-6xl font-bold leading-[0.85] tabular-nums"
+			[class]="v.accentClass"
+			>{{ score().ratio }}</span
+		>
+		<span
+			class="mb-1 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+			>Ratio</span
+		>
+	</div>
+	<p class="m-0 mt-2 text-xs text-fg-muted leading-snug">
+		{{ v.description }}
+	</p>
+
+	<dl class="m-0 mt-4 pt-4 border-t border-line/70 grid grid-cols-2 gap-3">
+		@for (row of v.rows; track row.label) {
+		<div class="flex flex-col gap-1 min-w-0">
+			<dt
+				class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+			>
+				{{ row.label }}
+			</dt>
+			<dd class="m-0 flex flex-col gap-0.5">
+				@if (row.stars !== undefined) {
+				<app-star-rating
+					[value]="row.stars"
+					[readonly]="true"
+					size="sm"
+				/>
+				@if (row.value) {
+				<span
+					class="text-[0.625rem] font-bold uppercase tracking-wider"
+					[class]="row.valueClass ?? ''"
+					>{{ row.value }}</span
+				>
+				} } @else {
+				<span
+					class="text-lg font-semibold text-fg tabular-nums leading-none"
+					[class]="row.valueClass ?? ''"
+					>{{ row.value }}@if (row.unit) {<span
+						class="ml-0.5 text-[0.6875rem] font-normal text-fg-muted"
+						>{{ row.unit }}</span
+					>}</span
+				>
+				}
+			</dd>
+		</div>
+		}
+	</dl>
+</section>
+} @else {
+<section
+	class="rounded-card p-5 border border-dashed border-line bg-surface"
+	aria-label="Completr Score"
+>
+	<header class="flex items-center gap-2 mb-3">
+		<span
+			aria-hidden="true"
+			class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-[0.6875rem] text-white bg-gradient-to-br from-brand to-brand-deep"
+			>C</span
+		>
+		<h2
+			class="m-0 text-[0.625rem] font-bold uppercase tracking-[0.18em] text-fg-muted"
+		>
+			Completr Score
+		</h2>
+	</header>
+	<p class="m-0 font-display text-2xl font-bold text-fg-muted">
+		No ratio yet
+	</p>
+	<p class="m-0 mt-1 text-xs text-fg-muted leading-snug">
+		Be the first to review this game, or let us know what's missing.
+	</p>
+	@if (reportSent()) {
+	<p
+		role="status"
+		class="m-0 mt-4 flex items-center justify-center gap-1.5 h-10 px-3 bg-success/10 border border-success/30 rounded-card text-xs font-medium text-success"
+	>
+		<span aria-hidden="true" class="material-icons text-sm"
+			>check_circle</span
+		>
+		Thanks — reported
+	</p>
+	} @else {
+	<button
+		type="button"
+		class="mt-4 w-full flex items-center justify-center gap-1.5 h-10 px-3 bg-input-bg border border-line rounded-card text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-60"
+		[disabled]="reporting()"
+		(click)="missingDataReported.emit()"
+	>
+		<span aria-hidden="true" class="material-icons text-sm">flag</span>
+		{{ reporting() ? 'Reporting...' : 'Report missing data' }}
+	</button>
+	}
+</section>
+}

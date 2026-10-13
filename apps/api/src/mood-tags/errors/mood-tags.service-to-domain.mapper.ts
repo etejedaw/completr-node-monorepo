@@ -22,5 +22,8 @@ export function moodTagsServiceToDomainMapper(
 	if (error.code === "MOOD_TAGS_INVALID_TAG")
 		return moodTagsDomainError.invalidTag(context);
 
+	if (error.code === "MOOD_TAGS_LIMIT_REACHED")
+		return moodTagsDomainError.limitReached(context);
+
 	return moodTagsDomainError.moodTagsInternalError(context);
 }

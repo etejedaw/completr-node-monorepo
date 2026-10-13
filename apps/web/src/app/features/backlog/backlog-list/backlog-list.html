@@ -1,179 +1,272 @@
 <div class="max-w-full">
-	<div class="flex items-center justify-between mb-5">
-		<div class="flex items-baseline gap-3">
-			<h1
-				class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight"
+	<app-library-hero heading="My Games" [posters]="heroPosters()">
+		<span
+			heroEyebrow
+			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+			>Library</span
+		>
+		<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
+			<span class="font-semibold text-fg tabular-nums"
+				>{{ total() }}</span
 			>
-				My Games
-			</h1>
-			<span class="text-sm text-fg-muted">{{ total() }} entries</span>
-		</div>
+			{{ total() === 1 ? 'game' : 'games' }} in your library
+		</p>
 		@if (isLoading() || entries().length > 0) {
-		<div class="flex items-center gap-2">
+		<div heroActions class="flex items-center gap-2">
 			<button
 				uiButton
 				variant="secondary"
+				class="!bg-surface/70 backdrop-blur"
 				(click)="openSurpriseMe()"
 				title="Pick a random game from your current filters"
 			>
-				<span aria-hidden="true" class="material-icons text-base mr-1"
+				<span aria-hidden="true" class="material-icons text-base"
 					>casino</span
 				>
 				Surprise me
 			</button>
 			<button uiButton variant="primary" (click)="openCreate()">
-				+ Add to Backlog
+				<span aria-hidden="true" class="material-icons text-base"
+					>add</span
+				>
+				Add game
 			</button>
 		</div>
 		}
-	</div>
 
-	<ui-search-bar
-		class="block mb-4 max-w-2xl"
-		placeholder="Search by title..."
-		[value]="searchQuery()"
-		(valueChange)="onSearch($event)"
-	/>
+		<div
+			class="md:hidden grid gap-2"
+			[class.grid-cols-2]="backlogFilters().length > 0"
+		>
+			<app-option-picker
+				label="Status"
+				heading="Filter by status"
+				[options]="statusPickerOptions()"
+				[value]="statusPickerValue()"
+				[placeholder]="quickStatusLabel()"
+				[placeholderIcon]="quickStatusIcon()"
+				(valueChange)="pickStatus($event)"
+			/>
+			@if (backlogFilters().length > 0) {
+			<app-option-picker
+				label="View"
+				heading="Saved views"
+				[options]="viewPickerOptions()"
+				[value]="activeFilterId() ?? ''"
+				[actions]="viewPickerActions()"
+				(valueChange)="pickView($event)"
+				(actionSelected)="runViewAction($event)"
+			/>
+			}
+		</div>
 
-	<div
-		class="flex gap-1 bg-input-bg border border-line rounded-md p-1 mb-4 w-fit"
-	>
-		<button
-			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
-			[class.!bg-surface-hover]="viewMode() === 'diary'"
-			[class.!text-fg]="viewMode() === 'diary'"
-			(click)="setViewMode('diary')"
-			title="Diary view"
+		<nav
+			aria-label="Filter by status"
+			class="max-md:hidden flex flex-wrap gap-2"
 		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>view_agenda</span
-			>
-			Diary
-		</button>
-		<button
-			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
-			[class.!bg-surface-hover]="viewMode() === 'hardcore'"
-			[class.!text-fg]="viewMode() === 'hardcore'"
-			(click)="setViewMode('hardcore')"
-			title="Hardcore (table) view"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>table_rows</span
-			>
-			Hardcore
-		</button>
-		<button
-			class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
-			[class.!bg-surface-hover]="viewMode() === 'calendar'"
-			[class.!text-fg]="viewMode() === 'calendar'"
-			(click)="setViewMode('calendar')"
-			title="Calendar view"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>calendar_month</span
-			>
-			Calendar
-		</button>
-	</div>
-
-	<div class="flex items-center gap-2 mb-4">
-		@if (backlogFilters().length > 0) {
-		<div class="flex flex-wrap items-center gap-1.5">
-			@for (sf of backlogFilters(); track sf.id) {
 			<button
-				class="bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium px-2.5 py-1 cursor-pointer transition hover:border-brand hover:text-brand inline-flex items-center gap-1"
-				[class.!bg-brand-subtle]="activeFilterId() === sf.id"
-				[class.!border-brand]="activeFilterId() === sf.id"
-				[class.!text-brand]="activeFilterId() === sf.id"
-				(click)="applySavedFilter(sf)"
+				type="button"
+				class="inline-flex items-center gap-1.5 h-9 tap:h-11 px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg"
+				[class.!text-brand]="isQuickStatus(null)"
+				[class.!border-brand]="isQuickStatus(null)"
+				[class.!bg-brand-subtle]="isQuickStatus(null)"
+				[attr.aria-pressed]="isQuickStatus(null)"
+				(click)="setQuickStatus(null)"
 			>
-				@if (sf.icon) {
+				All
+			</button>
+			@for (s of statusFilters; track s.value) {
+			<button
+				type="button"
+				class="inline-flex items-center gap-1.5 h-9 tap:h-11 px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg"
+				[class.!text-brand]="isQuickStatus(s.value)"
+				[class.!border-brand]="isQuickStatus(s.value)"
+				[class.!bg-brand-subtle]="isQuickStatus(s.value)"
+				[attr.aria-pressed]="isQuickStatus(s.value)"
+				(click)="setQuickStatus(s.value)"
+			>
 				<span
 					aria-hidden="true"
-					class="material-icons text-sm"
-					[style.color]="colorHex(sf.color)"
-					>{{ sf.icon }}</span
+					class="material-icons text-base"
+					[class]="statusIconColor($any(s.value))"
+					>{{ statusIcon($any(s.value)) }}</span
 				>
-				} {{ sf.name }}
-			</button>
-			} @if (backlogFilters().length > 1) {
-			<button
-				class="text-fg-muted w-7 h-7 rounded-full inline-flex items-center justify-center cursor-pointer transition hover:text-brand hover:bg-input-bg"
-				(click)="openReorderModal()"
-				aria-label="Reorder pinned views"
-				title="Reorder pinned views"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>swap_vert</span
-				>
+				{{ s.label }}
 			</button>
 			}
-		</div>
-		}
-		<div class="ml-auto flex items-center gap-2">
-			@if (hasActiveFilters()) {
-			<button
-				class="bg-transparent border border-line text-fg-muted px-2.5 py-1.5 rounded text-xs font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1 transition hover:border-danger/50 hover:text-danger"
-				(click)="clearFilters()"
-			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>filter_alt_off</span
-				>
-				Clear all
-			</button>
+		</nav>
+	</app-library-hero>
+
+	<div
+		class="bleed bleed-inner sticky top-[var(--topbar-height)] z-30 py-3 mb-4 bg-canvas/85 backdrop-blur-md border-b border-line/60 max-md:static"
+	>
+		<div class="flex flex-wrap items-center gap-2">
+			<ui-search-bar
+				class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
+				placeholder="Search your library..."
+				[value]="searchQuery()"
+				(valueChange)="onSearch($event)"
+			/>
+
+			@if (backlogFilters().length > 0) {
+			<app-option-picker
+				class="max-md:hidden"
+				variant="compact"
+				label="View"
+				heading="Saved views"
+				placeholderIcon="bookmark_border"
+				[options]="viewPickerOptions()"
+				[value]="activeFilterId() ?? ''"
+				[actions]="viewPickerActions()"
+				(valueChange)="pickView($event)"
+				(actionSelected)="runViewAction($event)"
+			/>
 			}
-			<button
-				class="bg-transparent border text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded transition"
-				[class.border-line]="!showFilters() && !hasActiveFilters()"
-				[class.text-fg-secondary]="!showFilters() && !hasActiveFilters()"
-				[class.hover:border-brand]="!showFilters()"
-				[class.hover:text-brand]="!showFilters()"
-				[class.border-brand]="showFilters() || hasActiveFilters()"
-				[class.text-brand]="showFilters() || hasActiveFilters()"
-				[class.bg-brand-subtle]="showFilters()"
-				(click)="toggleFilters()"
+
+			<div
+				role="group"
+				aria-label="View mode"
+				class="flex gap-0.5 bg-input-bg border border-line rounded-card p-1"
 			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>tune</span
+				<button
+					type="button"
+					class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 tap:min-h-[44px] tap:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
+					[class.!bg-surface-hover]="viewMode() === 'diary'"
+					[class.!text-fg]="viewMode() === 'diary'"
+					[attr.aria-pressed]="viewMode() === 'diary'"
+					(click)="setViewMode('diary')"
+					title="Diary view"
 				>
-				Filters @if (activeFiltersCount() > 0) {
-				<span
-					class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none"
-					>{{ activeFiltersCount() }}</span
+					<span aria-hidden="true" class="material-icons text-base"
+						>view_agenda</span
+					>
+					<span class="max-lg:sr-only">Diary</span>
+				</button>
+				<button
+					type="button"
+					class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 tap:min-h-[44px] tap:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
+					[class.!bg-surface-hover]="viewMode() === 'hardcore'"
+					[class.!text-fg]="viewMode() === 'hardcore'"
+					[attr.aria-pressed]="viewMode() === 'hardcore'"
+					(click)="setViewMode('hardcore')"
+					title="Hardcore (table) view"
 				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>table_rows</span
+					>
+					<span class="max-lg:sr-only">Hardcore</span>
+				</button>
+				<button
+					type="button"
+					class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 tap:min-h-[44px] tap:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
+					[class.!bg-surface-hover]="viewMode() === 'calendar'"
+					[class.!text-fg]="viewMode() === 'calendar'"
+					[attr.aria-pressed]="viewMode() === 'calendar'"
+					(click)="setViewMode('calendar')"
+					title="Calendar view"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>calendar_month</span
+					>
+					<span class="max-lg:sr-only">Calendar</span>
+				</button>
+			</div>
+
+			<div class="flex items-center gap-2">
+				<button
+					type="button"
+					class="sm:hidden h-12 px-4 tap:min-h-[44px] bg-transparent border rounded-card text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-2 transition"
+					[class.border-line]="!hasActiveFilters() && !hasAnyStatEnabled()"
+					[class.text-fg-secondary]="!hasActiveFilters() && !hasAnyStatEnabled()"
+					[class.border-brand]="hasActiveFilters() || hasAnyStatEnabled()"
+					[class.text-brand]="hasActiveFilters() || hasAnyStatEnabled()"
+					aria-haspopup="dialog"
+					(click)="toolsSheetOpen.set(true)"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>tune</span
+					>
+					Filters & stats @if (activeFiltersCount() +
+					enabledStatsCount() > 0) {
+					<span
+						class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none"
+						>{{ activeFiltersCount() + enabledStatsCount() }}</span
+					>
+					}
+				</button>
+				<button
+					type="button"
+					class="max-sm:hidden bg-transparent border h-9 text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 rounded-card transition"
+					[class.border-line]="!showFilters() && !hasActiveFilters()"
+					[class.text-fg-secondary]="!showFilters() && !hasActiveFilters()"
+					[class.hover:border-brand]="!showFilters()"
+					[class.hover:text-brand]="!showFilters()"
+					[class.border-brand]="showFilters() || hasActiveFilters()"
+					[class.text-brand]="showFilters() || hasActiveFilters()"
+					[class.bg-brand-subtle]="showFilters()"
+					(click)="toggleFilters()"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>tune</span
+					>
+					<span class="max-sm:sr-only">Filters</span>
+					@if (activeFiltersCount() > 0) {
+					<span
+						class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none"
+						>{{ activeFiltersCount() }}</span
+					>
+					}
+				</button>
+				@if (activeFilterId()) {
+				<button
+					type="button"
+					class="max-sm:hidden bg-transparent border h-9 text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 rounded-card transition"
+					[class.border-line]="!showStatsPanel() && !hasAnyStatEnabled()"
+					[class.text-fg-secondary]="!showStatsPanel() && !hasAnyStatEnabled()"
+					[class.hover:border-brand]="!showStatsPanel()"
+					[class.hover:text-brand]="!showStatsPanel()"
+					[class.border-brand]="showStatsPanel() || hasAnyStatEnabled()"
+					[class.text-brand]="showStatsPanel() || hasAnyStatEnabled()"
+					[class.bg-brand-subtle]="showStatsPanel()"
+					title="Configure the stats of this view"
+					(click)="toggleStatsPanel()"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>insights</span
+					>
+					<span class="max-sm:sr-only">Stats</span>
+					@if (enabledStatsCount() > 0) {
+					<span
+						class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none"
+						>{{ enabledStatsCount() }}</span
+					>
+					}
+				</button>
 				}
-			</button>
-			<button
-				class="bg-transparent border text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
-				[class.border-line]="!showStatsPanel() && !hasAnyStatEnabled()"
-				[class.text-fg-secondary]="!showStatsPanel() && !hasAnyStatEnabled()"
-				[class.hover:border-brand]="!showStatsPanel() && activeFilterId()"
-				[class.hover:text-brand]="!showStatsPanel() && activeFilterId()"
-				[class.border-brand]="showStatsPanel() || hasAnyStatEnabled()"
-				[class.text-brand]="showStatsPanel() || hasAnyStatEnabled()"
-				[class.bg-brand-subtle]="showStatsPanel()"
-				[disabled]="!activeFilterId()"
-				[title]="!activeFilterId() ? 'Apply a saved view to configure its stats' : 'Configure visible stats'"
-				(click)="toggleStatsPanel()"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>insights</span
-				>
-				Stats @if (enabledStatsCount() > 0) {
-				<span
-					class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none"
-					>{{ enabledStatsCount() }}</span
-				>
-				}
-			</button>
+			</div>
 		</div>
 	</div>
 
-	<p class="-mt-2 mb-3 text-xs text-fg-muted italic min-h-[1.25rem]">
-		{{ activeFilterDescription() }}
-	</p>
-
-	@if (activeFilterId() && hasAnyStatEnabled()) {
+	@if (activeFilterDescription() || hasActiveFilters()) {
+	<div
+		class="-mt-1 mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-fg-muted"
+	>
+		@if (activeFilterDescription()) {
+		<p class="m-0 italic">{{ activeFilterDescription() }}</p>
+		} @if (hasActiveFilters()) {
+		<button
+			type="button"
+			class="inline-flex items-center gap-1 h-8 tap:h-10 px-3 rounded-full bg-transparent border border-line text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-danger/50 hover:text-danger"
+			(click)="clearFilters()"
+		>
+			<span aria-hidden="true" class="material-icons text-sm"
+				>filter_alt_off</span
+			>
+			Clear filters
+		</button>
+		}
+	</div>
+	} @if (activeFilterId() && hasAnyStatEnabled()) {
 	<section class="mb-4 bg-surface border border-line rounded-card p-4">
 		<header class="flex items-center justify-between mb-3">
 			<h2
@@ -468,7 +561,7 @@
 							>{{ h.game.title }}</span
 						>
 						<span
-							class="block text-xs text-warning font-semibold tabular-nums"
+							class="block text-xs text-rating font-semibold tabular-nums"
 							>{{ formatStat(h.value, '★', 1) }}</span
 						>
 					</div>
@@ -498,7 +591,7 @@
 					>
 				</span>
 				<span
-					class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-warning/10 text-warning"
+					class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-playing/10 text-playing"
 				>
 					<span
 						aria-hidden="true"
@@ -1135,320 +1228,79 @@
 		</button>
 	</ui-empty-state>
 	} } @else { @if (viewMode() === 'diary') {
-	<div class="flex flex-col gap-3">
+	<div class="grid gap-3 xl:grid-cols-2">
 		@for (entry of entries(); track entry.id) {
 		<div
-			role="button"
-			tabindex="0"
-			class="group/row flex items-stretch gap-4 p-4 rounded-card bg-surface border border-line cursor-pointer transition hover:border-brand/40"
-			(click)="openEdit(entry, $event)"
-			(keydown.enter)="openEdit(entry, $event)"
-			(keydown.space)="openEdit(entry, $event); $event.preventDefault()"
+			class="relative h-full"
+			[class.z-20]="statusMenuOpenId() === entry.id"
 		>
-			<div class="relative shrink-0 self-center">
-				<a
-					[routerLink]="['/games', entry.game.code]"
-					(click)="$event.stopPropagation()"
-					class="block"
-				>
-					@if (entry.game.backgroundUrl) {
-					<img
-						[src]="entry.game.backgroundUrl | coverUrl: 200"
-						[alt]="entry.game.title"
-						class="w-16 h-24 sm:w-20 sm:h-28 object-cover rounded-md shadow-md shadow-black/40"
-						loading="lazy"
-					/>
-					} @else {
-					<div
-						class="w-16 h-24 sm:w-20 sm:h-28 bg-input-bg rounded-md"
-					></div>
-					}
-				</a>
-				@if (entry.status === 'not_started') {
-				<button
-					type="button"
-					class="absolute bottom-1 right-1 flex items-center justify-center w-8 h-8 rounded-full bg-warning text-white shadow-lg shadow-warning/40 ring-2 ring-white/20 opacity-0 group-hover/row:opacity-100 pointer-coarse:opacity-100 hover:scale-110 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
-					[disabled]="isStatusUpdating(entry)"
-					(click)="selectNewStatus(entry, 'playing', $event)"
-					title="Start playing"
-				>
-					<span aria-hidden="true" class="material-icons text-lg"
-						>play_arrow</span
-					>
-				</button>
-				}
-			</div>
-
-			<div class="flex-1 min-w-0 flex flex-col gap-1.5 py-0.5">
-				<div class="flex items-center gap-2 flex-wrap">
-					<a
-						class="text-base sm:text-lg font-semibold text-fg no-underline hover:text-brand line-clamp-1"
-						[routerLink]="['/games', entry.game.code]"
-						(click)="$event.stopPropagation()"
-						>{{ entry.game.title }}</a
-					>
-					@if (entry.compilationGame) {
-					<a
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand/10 border border-brand/30 no-underline hover:bg-brand/20"
-						[routerLink]="['/games', entry.compilationGame.code]"
-						(click)="$event.stopPropagation()"
-						[title]="'Part of ' + entry.compilationGame.title"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.75rem]"
-							>library_books</span
-						>
-						in {{ entry.compilationGame.title }}
-					</a>
-					} @if (entry.realDuration) {
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-fg-secondary bg-input-bg border border-line"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.75rem]"
-							>schedule</span
-						>
-						Real {{ entry.realDuration }}h
-					</span>
-					}
-				</div>
-
-				<div
-					class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap"
-				>
-					@if (canChangeStatus(entry.status)) {
-					<div class="relative inline-block">
-						<button
-							type="button"
-							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide border border-line hover:border-brand/50 cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
-							[class]="statusClass(entry.status)"
-							[disabled]="isStatusUpdating(entry)"
-							(click)="toggleStatusMenu(entry, $event)"
-							aria-haspopup="menu"
-							[attr.aria-expanded]="statusMenuOpenId() === entry.id"
-							[attr.aria-controls]="'status-menu-' + entry.id"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.875rem]"
-								>{{ statusIcon(entry.status) }}</span
-							>
-							{{ statusLabel(entry.status) }}
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.875rem]"
-								>arrow_drop_down</span
-							>
-						</button>
-						@if (statusMenuOpenId() === entry.id) {
-						<div
-							role="menu"
-							tabindex="-1"
-							[id]="'status-menu-' + entry.id"
-							aria-label="Change status"
-							class="absolute left-0 top-full mt-1 z-20 bg-sidebar border border-line rounded shadow-lg py-1 min-w-[160px]"
-							(click)="$event.stopPropagation()"
-							(keydown.escape)="statusMenuOpenId.set(null)"
-						>
-							@for (s of statusFilters; track s.value) {
-							<button
-								type="button"
-								role="menuitem"
-								class="flex items-center gap-1.5 w-full text-left px-3 py-1.5 text-xs hover:bg-input-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-input-bg focus-visible:outline-none"
-								[disabled]="s.value === entry.status"
-								(click)="selectNewStatus(entry, s.value, $event)"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-sm"
-									[class]="statusIconColor($any(s.value))"
-									>{{ statusIcon($any(s.value)) }}</span
-								>
-								{{ s.label }}
-							</button>
-							}
-						</div>
-						}
-					</div>
-					} @else {
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
-						[class]="statusClass(entry.status)"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem]"
-							>{{ statusIcon(entry.status) }}</span
-						>
-						{{ statusLabel(entry.status) }}
-					</span>
-					}
-					<span class="text-fg-muted"
-						>{{ entry.platform.abbreviation }}</span
-					>
-					@if (entry.score) {
-					<span class="text-fg-muted">·</span>
-					<span class="text-fg-muted">Score {{ entry.score }}</span>
-					} @if (entry.duration) {
-					<span class="text-fg-muted">·</span>
-					<span class="text-fg-muted">{{ entry.duration }}h</span>
-					} @if (entry.finishedAt) {
-					<span class="text-fg-muted">·</span>
-					<span class="text-fg-muted"
-						>{{ entry.finishedAt | date:'yyyy-MM-dd' }}</span
-					>
-					}
-				</div>
-
-				<div class="flex items-center gap-2">
-					<app-star-rating
-						[value]="entry.userRating ?? null"
-						[readonly]="!canQuickRate(entry)"
-						size="sm"
-						(ratingChange)="onQuickRate(entry, $event)"
-					/>
-					@if (entry.hasReview) { @if (entry.notes) {
-					<button
-						type="button"
-						class="material-icons text-base bg-transparent border-0 p-0 cursor-pointer transition"
-						[class.text-brand]="isReviewExpanded(entry.id)"
-						[class.text-fg-muted]="!isReviewExpanded(entry.id)"
-						[title]="isReviewExpanded(entry.id) ? 'Show your note' : 'Show your review'"
-						(click)="toggleReview(entry, $event)"
-					>
-						rate_review
-					</button>
-					} @else {
-					<span
-						class="material-icons text-base text-brand"
-						title="You reviewed this game"
-						>rate_review</span
-					>
-					} }
-				</div>
-
-				@if (entry.notes && (!entry.hasReview ||
-				!isReviewExpanded(entry.id))) {
-				<p
-					class="text-xs text-fg-muted line-clamp-2 leading-snug m-0 mt-auto"
-				>
-					{{ entry.notes }}
-				</p>
-				} @else if (entry.reviewContent) {
-				<div
-					class="flex items-start gap-1.5 mt-auto text-xs text-fg-muted leading-snug"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.875rem] mt-0.5 text-brand"
-						>format_quote</span
-					>
-					<p class="m-0 line-clamp-2">{{ entry.reviewContent }}</p>
-				</div>
-				} @if (entry.moodTags && entry.moodTags.length > 0) {
-				<div class="flex flex-wrap gap-1 mt-2">
-					@for (tag of entry.moodTags; track tag) {
-					<span
-						class="inline-block px-1.5 py-0.5 rounded-full bg-brand-subtle text-brand text-[0.625rem] font-medium leading-none"
-						>{{ tag }}</span
-					>
-					}
-				</div>
-				} @if (entry.latestProgress && (entry.status === 'playing' ||
-				entry.status === 'endless' || entry.status === 'not_started')) {
-				<div
-					class="flex items-start gap-1 mt-1.5 text-xs text-fg-muted"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.875rem] text-brand mt-px"
-						>bookmark</span
-					>
-					<span class="line-clamp-1"
-						>{{ entry.latestProgress.note }}</span
-					>
-				</div>
-				} @if (entry.coopMembers && entry.coopMembers.length > 0) {
-				<div
-					class="flex items-center gap-1.5 mt-1.5 text-xs text-fg-muted"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.875rem] text-brand"
-						>group</span
-					>
-					<div class="flex -space-x-1">
-						@for (m of entry.coopMembers.slice(0, 4); track
-						m.userId) { @if (m.avatarUrl) {
-						<img
-							[src]="m.avatarUrl"
-							[alt]="m.username"
-							class="w-5 h-5 rounded-full object-cover border border-sidebar"
-							[title]="m.name || m.username"
-						/>
-						} @else {
-						<div
-							class="w-5 h-5 rounded-full bg-brand/20 text-brand text-[0.5rem] font-semibold flex items-center justify-center border border-sidebar"
-							[title]="m.name || m.username"
-						>
-							{{ m.username[0]?.toUpperCase() }}
-						</div>
-						} }
-					</div>
-					@if (entry.coopMembers.length > 4) {
-					<span class="text-[0.625rem]"
-						>+{{ entry.coopMembers.length - 4 }}</span
-					>
-					}
-				</div>
-				}
-			</div>
-
 			<div
-				class="hidden sm:flex flex-col items-end justify-center gap-3 shrink-0 min-w-[80px] text-right"
+				aria-hidden="true"
+				class="absolute inset-0 rounded-card flex items-center px-6 transition-colors duration-150"
+				[class.invisible]="!swipe.direction()"
+				[class.justify-start]="swipe.direction() === 'right'"
+				[class.justify-end]="swipe.direction() === 'left'"
+				[class.bg-nav-favorites/15]="swipe.direction() === 'right' && !swipe.armed()"
+				[class.bg-nav-favorites/35]="swipe.direction() === 'right' && swipe.armed()"
+				[class.bg-brand/15]="swipe.direction() === 'left' && !swipe.armed()"
+				[class.bg-brand/35]="swipe.direction() === 'left' && swipe.armed()"
 			>
-				@if (entry.ratio) {
-				<div class="flex flex-col items-end leading-none">
-					<span class="text-3xl font-bold text-brand"
-						>{{ entry.ratio }}</span
-					>
+				@if (swipe.direction() === 'right') {
+				<span
+					class="flex flex-col items-center gap-1 text-nav-favorites text-xs font-semibold"
+				>
 					<span
-						class="text-[0.625rem] uppercase tracking-wider text-fg-muted mt-1"
-						>Ratio</span
+						class="material-icons text-2xl transition-transform"
+						[class.scale-125]="swipe.armed()"
+						>{{ isFavorite(entry.game.id) ? 'heart_broken' :
+						'favorite' }}</span
 					>
-				</div>
+					{{ isFavorite(entry.game.id) ? 'Unfavorite' : 'Favorite' }}
+				</span>
+				} @else if (swipe.direction() === 'left') {
+				<span
+					class="flex flex-col items-center gap-1 text-brand text-xs font-semibold"
+				>
+					<span
+						class="material-icons text-2xl transition-transform"
+						[class.scale-125]="swipe.armed()"
+						>{{ isInQueue(entry) ? 'playlist_remove' :
+						'playlist_add' }}</span
+					>
+					{{ isInQueue(entry) ? 'Remove from Up next' : 'Up next' }}
+				</span>
 				}
-				<app-personal-stats [personalRatio]="entry.personalRatio" />
 			</div>
-
-			<button
-				class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center transition hover:text-warning"
-				[class.!text-warning]="isFavorite(entry.game.id)"
-				(click)="toggleFavorite(entry.game.id, $event)"
-				[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
+			<div
+				appSwipeActions
+				#swipe="swipeActions"
+				class="relative h-full flex flex-col"
+				[swipeDisabled]="isFlipped(entry.id) || !pointer.isCoarse()"
+				(swipeRight)="toggleFavorite(entry.game.id)"
+				(swipeLeft)="toggleQueue(entry)"
 			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-lg leading-none"
-					>{{ isFavorite(entry.game.id) ? 'star' : 'star_border'
-					}}</span
-				>
-			</button>
-			<button
-				class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center self-center transition hover:text-danger"
-				[class.!text-danger]="isInQueue(entry)"
-				(click)="toggleQueue(entry); $event.stopPropagation()"
-				[title]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-lg leading-none"
-					>{{ isInQueue(entry) ? 'playlist_add_check' :
-					'playlist_play' }}</span
-				>
-			</button>
+				<app-backlog-entry-card
+					class="flex-1 min-h-0"
+					[entry]="entry"
+					[favorite]="isFavorite(entry.game.id)"
+					[inQueue]="isInQueue(entry)"
+					[flipped]="isFlipped(entry.id)"
+					[statusMenuOpen]="statusMenuOpenId() === entry.id"
+					[statusUpdating]="isStatusUpdating(entry)"
+					[coarsePointer]="pointer.isCoarse()"
+					[statusOptions]="statusFilters"
+					(opened)="openEdit(entry, $event)"
+					(favoriteToggled)="toggleFavorite(entry.game.id, $event)"
+					(queueToggled)="toggleQueue(entry); $event.stopPropagation()"
+					(flipToggled)="toggleFlip(entry, $event)"
+					(statusMenuToggled)="toggleStatusMenu(entry, $event)"
+					(statusMenuClosed)="statusMenuOpenId.set(null)"
+					(statusSelected)="selectNewStatus(entry, $event.status, $event.event)"
+					(startPlayingRequested)="selectNewStatus(entry, 'playing', $event)"
+					(quickRated)="onQuickRate(entry, $event)"
+					(ratingSheetRequested)="openRatingSheet(entry, $event)"
+				/>
+			</div>
 		</div>
 		}
 	</div>
@@ -1459,7 +1311,10 @@
 		(viewUnscheduled)="setViewMode('diary')"
 	/>
 	} @else {
-	<div appFloatingXScrollbar class="overflow-x-auto floating-x-host">
+	<div
+		appFloatingXScrollbar
+		class="overflow-x-auto floating-x-host rounded-card border border-line bg-surface/40 shadow-[0_24px_48px_-32px_rgba(0,0,0,0.9)]"
+	>
 		<table class="w-full border-collapse text-sm">
 			<thead>
 				<tr>
@@ -1468,21 +1323,23 @@
 						tabindex="0"
 						role="columnheader"
 						[attr.aria-sort]="ariaSortFor('title')"
-						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap min-w-[200px] hover:text-fg-secondary"
+						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-sidebar/95 backdrop-blur z-[1] text-left px-3 py-3 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line cursor-pointer select-none whitespace-nowrap min-w-[180px] hover:text-fg-secondary"
 						(click)="sort('title')"
 						(keydown.enter)="sort('title'); $event.preventDefault()"
 						(keydown.space)="sort('title'); $event.preventDefault()"
 					>
 						Title @if (sortBy() === 'title') {
-						<span class="text-[0.625rem] ml-1 text-brand"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
+						<span
+							aria-hidden="true"
+							class="material-icons align-middle !text-sm ml-0.5 text-brand"
+							>{{ sortOrder() === "asc" ? "arrow_upward" :
+							"arrow_downward" }}</span
 						>
 						}
 					</th>
 					<th
 						scope="col"
-						class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line select-none whitespace-nowrap hover:text-fg-secondary"
+						class="sticky top-0 bg-sidebar/95 backdrop-blur z-[1] text-left px-3 py-3 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line select-none whitespace-nowrap hover:text-fg-secondary"
 					>
 						Platform
 					</th>
@@ -1491,15 +1348,17 @@
 						tabindex="0"
 						role="columnheader"
 						[attr.aria-sort]="ariaSortFor('score')"
-						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
+						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-sidebar/95 backdrop-blur z-[1] text-right px-3 py-3 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
 						(click)="sort('score')"
 						(keydown.enter)="sort('score'); $event.preventDefault()"
 						(keydown.space)="sort('score'); $event.preventDefault()"
 					>
 						Score @if (sortBy() === 'score') {
-						<span class="text-[0.625rem] ml-1 text-brand"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
+						<span
+							aria-hidden="true"
+							class="material-icons align-middle !text-sm ml-0.5 text-brand"
+							>{{ sortOrder() === "asc" ? "arrow_upward" :
+							"arrow_downward" }}</span
 						>
 						}
 					</th>
@@ -1508,15 +1367,17 @@
 						tabindex="0"
 						role="columnheader"
 						[attr.aria-sort]="ariaSortFor('duration')"
-						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
+						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-sidebar/95 backdrop-blur z-[1] text-right px-3 py-3 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
 						(click)="sort('duration')"
 						(keydown.enter)="sort('duration'); $event.preventDefault()"
 						(keydown.space)="sort('duration'); $event.preventDefault()"
 					>
 						Duration @if (sortBy() === 'duration') {
-						<span class="text-[0.625rem] ml-1 text-brand"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
+						<span
+							aria-hidden="true"
+							class="material-icons align-middle !text-sm ml-0.5 text-brand"
+							>{{ sortOrder() === "asc" ? "arrow_upward" :
+							"arrow_downward" }}</span
 						>
 						}
 					</th>
@@ -1525,15 +1386,17 @@
 						tabindex="0"
 						role="columnheader"
 						[attr.aria-sort]="ariaSortFor('ratio')"
-						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-brand font-bold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-brand-deep"
+						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-sidebar/95 backdrop-blur z-[1] text-right px-3 py-3 text-brand font-bold text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-brand-deep"
 						(click)="sort('ratio')"
 						(keydown.enter)="sort('ratio'); $event.preventDefault()"
 						(keydown.space)="sort('ratio'); $event.preventDefault()"
 					>
 						Ratio @if (sortBy() === 'ratio') {
-						<span class="text-[0.625rem] ml-1 text-brand"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
+						<span
+							aria-hidden="true"
+							class="material-icons align-middle !text-sm ml-0.5 text-brand"
+							>{{ sortOrder() === "asc" ? "arrow_upward" :
+							"arrow_downward" }}</span
 						>
 						}
 					</th>
@@ -1542,15 +1405,17 @@
 						tabindex="0"
 						role="columnheader"
 						[attr.aria-sort]="ariaSortFor('realDuration')"
-						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
+						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-sidebar/95 backdrop-blur z-[1] text-right px-3 py-3 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
 						(click)="sort('realDuration')"
 						(keydown.enter)="sort('realDuration'); $event.preventDefault()"
 						(keydown.space)="sort('realDuration'); $event.preventDefault()"
 					>
 						Real @if (sortBy() === 'realDuration') {
-						<span class="text-[0.625rem] ml-1 text-brand"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
+						<span
+							aria-hidden="true"
+							class="material-icons align-middle !text-sm ml-0.5 text-brand"
+							>{{ sortOrder() === "asc" ? "arrow_upward" :
+							"arrow_downward" }}</span
 						>
 						}
 					</th>
@@ -1559,15 +1424,18 @@
 						tabindex="0"
 						role="columnheader"
 						[attr.aria-sort]="ariaSortFor('personalRatio')"
-						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
+						title="Score per hour you actually played"
+						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-sidebar/95 backdrop-blur z-[1] text-right px-3 py-3 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
 						(click)="sort('personalRatio')"
 						(keydown.enter)="sort('personalRatio'); $event.preventDefault()"
 						(keydown.space)="sort('personalRatio'); $event.preventDefault()"
 					>
-						P. Ratio @if (sortBy() === 'personalRatio') {
-						<span class="text-[0.625rem] ml-1 text-brand"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
+						Your run @if (sortBy() === 'personalRatio') {
+						<span
+							aria-hidden="true"
+							class="material-icons align-middle !text-sm ml-0.5 text-brand"
+							>{{ sortOrder() === "asc" ? "arrow_upward" :
+							"arrow_downward" }}</span
 						>
 						}
 					</th>
@@ -1576,15 +1444,17 @@
 						tabindex="0"
 						role="columnheader"
 						[attr.aria-sort]="ariaSortFor('userRating')"
-						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-right px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
+						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-sidebar/95 backdrop-blur z-[1] text-left px-3 py-3 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
 						(click)="sort('userRating')"
 						(keydown.enter)="sort('userRating'); $event.preventDefault()"
 						(keydown.space)="sort('userRating'); $event.preventDefault()"
 					>
 						Rating @if (sortBy() === 'userRating') {
-						<span class="text-[0.625rem] ml-1 text-brand"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
+						<span
+							aria-hidden="true"
+							class="material-icons align-middle !text-sm ml-0.5 text-brand"
+							>{{ sortOrder() === "asc" ? "arrow_upward" :
+							"arrow_downward" }}</span
 						>
 						}
 					</th>
@@ -1593,15 +1463,17 @@
 						tabindex="0"
 						role="columnheader"
 						[attr.aria-sort]="ariaSortFor('finishedAt')"
-						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
+						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-sidebar/95 backdrop-blur z-[1] text-left px-3 py-3 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
 						(click)="sort('finishedAt')"
 						(keydown.enter)="sort('finishedAt'); $event.preventDefault()"
 						(keydown.space)="sort('finishedAt'); $event.preventDefault()"
 					>
 						Finished @if (sortBy() === 'finishedAt') {
-						<span class="text-[0.625rem] ml-1 text-brand"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
+						<span
+							aria-hidden="true"
+							class="material-icons align-middle !text-sm ml-0.5 text-brand"
+							>{{ sortOrder() === "asc" ? "arrow_upward" :
+							"arrow_downward" }}</span
 						>
 						}
 					</th>
@@ -1610,33 +1482,41 @@
 						tabindex="0"
 						role="columnheader"
 						[attr.aria-sort]="ariaSortFor('status')"
-						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
+						class="focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sticky top-0 bg-sidebar/95 backdrop-blur z-[1] text-left px-3 py-3 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line cursor-pointer select-none whitespace-nowrap hover:text-fg-secondary"
 						(click)="sort('status')"
 						(keydown.enter)="sort('status'); $event.preventDefault()"
 						(keydown.space)="sort('status'); $event.preventDefault()"
 					>
 						Status @if (sortBy() === 'status') {
-						<span class="text-[0.625rem] ml-1 text-brand"
-							>{{ sortOrder() === "asc" ? "&#9650;" : "&#9660;"
-							}}</span
+						<span
+							aria-hidden="true"
+							class="material-icons align-middle !text-sm ml-0.5 text-brand"
+							>{{ sortOrder() === "asc" ? "arrow_upward" :
+							"arrow_downward" }}</span
 						>
 						}
 					</th>
 					<th
 						scope="col"
-						class="sticky top-0 bg-canvas z-[1] text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line select-none whitespace-nowrap max-w-[200px] hover:text-fg-secondary"
+						class="sticky top-0 bg-sidebar/95 backdrop-blur z-[1] border-b border-line"
 					>
-						Notes
+						<span class="sr-only">Favorite</span>
+					</th>
+					<th
+						scope="col"
+						class="sticky top-0 bg-sidebar/95 backdrop-blur z-[1] border-b border-line"
+					>
+						<span class="sr-only">Up Next</span>
 					</th>
 				</tr>
 			</thead>
 			<tbody>
 				@for (entry of entries(); track entry.id) {
 				<tr
-					class="cursor-pointer border-b border-line transition hover:bg-surface"
+					class="group/tr cursor-pointer border-b border-line/70 last:border-b-0 transition even:bg-white/[0.015] hover:!bg-brand/[0.06]"
 					(click)="openEdit(entry, $event)"
 				>
-					<td class="px-4 py-3 align-middle min-w-[200px]">
+					<td class="px-3 py-3 align-middle min-w-[180px]">
 						<app-game-title-cell
 							[coverUrl]="entry.game.backgroundUrl"
 							[title]="entry.game.title"
@@ -1655,9 +1535,7 @@
 								>
 								{{ entry.compilationGame.title }}
 							</span>
-							} @if (entry.latestProgress && (entry.status ===
-							'playing' || entry.status === 'endless' ||
-							entry.status === 'not_started')) {
+							} @if (showsProgress(entry)) {
 							<div
 								class="flex items-start gap-1 mt-1 text-[0.6875rem] text-fg-muted"
 							>
@@ -1667,7 +1545,7 @@
 									>bookmark</span
 								>
 								<span class="line-clamp-1"
-									>{{ entry.latestProgress.note }}</span
+									>{{ entry.latestProgress?.note }}</span
 								>
 							</div>
 							} @if (entry.coopMembers && entry.coopMembers.length
@@ -1701,75 +1579,64 @@
 						</app-game-title-cell>
 					</td>
 					<td
-						class="px-4 py-3 align-middle text-fg-secondary whitespace-nowrap"
+						class="px-3 py-3 align-middle text-fg-secondary whitespace-nowrap"
 					>
 						{{ entry.platform.abbreviation }}
 					</td>
 					<td
-						class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary"
+						class="px-3 py-3 align-middle text-right whitespace-nowrap text-fg-secondary tabular-nums"
 					>
 						{{ entry.score ?? "-" }}
 					</td>
 					<td
-						class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary"
+						class="px-3 py-3 align-middle text-right whitespace-nowrap text-fg-secondary tabular-nums"
 					>
 						{{ entry.duration ? entry.duration + "h" : "-" }}
 					</td>
 					<td
-						class="px-4 py-3 align-middle text-right whitespace-nowrap font-display text-base font-bold tabular-nums"
-						[class.text-brand]="entry.ratio !== null && entry.ratio !== undefined"
-						[class.text-fg-muted]="entry.ratio === null || entry.ratio === undefined"
+						class="px-3 py-3 align-middle text-right whitespace-nowrap"
 					>
-						{{ entry.ratio ?? "—" }}
+						@if (entry.ratio !== null && entry.ratio !== undefined)
+						{
+						<span
+							class="inline-flex items-center justify-center min-w-[3.25rem] px-2 py-1 rounded-md bg-brand-subtle border border-brand/25 font-display text-base font-bold text-brand tabular-nums leading-none"
+							>{{ entry.ratio }}</span
+						>
+						} @else {
+						<span class="text-fg-muted">—</span>
+						}
 					</td>
 					<td
-						class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary"
+						class="px-3 py-3 align-middle text-right whitespace-nowrap text-fg-secondary tabular-nums"
 					>
 						{{ entry.realDuration ? entry.realDuration + "h" : "-"
 						}}
 					</td>
 					<td
-						class="px-4 py-3 align-middle text-right whitespace-nowrap text-fg-secondary"
+						class="px-3 py-3 align-middle text-right whitespace-nowrap text-fg-secondary tabular-nums"
 					>
 						{{ entry.personalRatio ?? "-" }}
 					</td>
-					<td class="px-4 py-3 align-middle">
+					<td class="px-3 py-3 align-middle">
 						<div class="flex items-center gap-1.5">
 							<span>
 								<app-star-rating
 									[value]="entry.userRating ?? null"
 									[readonly]="!canQuickRate(entry)"
+									[showValue]="false"
 									size="sm"
 									(ratingChange)="onQuickRate(entry, $event)"
 								/>
 							</span>
-							@if (entry.hasReview) { @if (entry.notes) {
-							<button
-								type="button"
-								class="material-icons text-sm bg-transparent border-0 p-0 cursor-pointer transition"
-								[class.text-brand]="isReviewExpanded(entry.id)"
-								[class.text-fg-muted]="!isReviewExpanded(entry.id)"
-								[title]="isReviewExpanded(entry.id) ? 'Show your note' : 'Show your review'"
-								(click)="toggleReview(entry, $event)"
-							>
-								rate_review
-							</button>
-							} @else {
-							<span
-								class="material-icons text-sm text-brand"
-								title="You reviewed this game"
-								>rate_review</span
-							>
-							} }
 						</div>
 					</td>
 					<td
-						class="px-4 py-3 align-middle whitespace-nowrap text-fg-secondary text-sm"
+						class="px-3 py-3 align-middle whitespace-nowrap text-fg-secondary text-sm"
 					>
 						{{ entry.finishedAt ? (entry.finishedAt |
 						date:'yyyy-MM-dd') : "-" }}
 					</td>
-					<td class="px-4 py-3 align-middle whitespace-nowrap">
+					<td class="px-3 py-3 align-middle whitespace-nowrap">
 						@if (canChangeStatus(entry.status)) {
 						<div class="relative inline-block">
 							<button
@@ -1838,40 +1705,19 @@
 						</span>
 						}
 					</td>
-					<td class="px-4 py-3 align-middle max-w-[200px]">
-						@if (entry.notes && (!entry.hasReview ||
-						!isReviewExpanded(entry.id))) {
-						<span
-							class="text-fg-muted text-xs leading-tight line-clamp-2"
-							>{{ entry.notes }}</span
-						>
-						} @else if (entry.reviewContent) {
-						<div
-							class="flex items-start gap-1.5 text-fg-muted text-xs leading-tight"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.875rem] mt-0.5 text-brand"
-								>format_quote</span
-							>
-							<span class="line-clamp-2"
-								>{{ entry.reviewContent }}</span
-							>
-						</div>
-						}
-					</td>
 					<td class="px-2 py-3 align-middle w-9 text-center">
 						<button
-							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-warning"
-							[class.!text-warning]="isFavorite(entry.game.id)"
+							class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-nav-favorites"
+							[class.!text-nav-favorites]="isFavorite(entry.game.id)"
 							(click)="toggleFavorite(entry.game.id, $event)"
 							[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
+							[attr.aria-label]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
 						>
 							<span
 								aria-hidden="true"
 								class="material-icons text-base leading-none"
-								>{{ isFavorite(entry.game.id) ? 'star' :
-								'star_border' }}</span
+								>{{ isFavorite(entry.game.id) ? 'favorite' :
+								'favorite_border' }}</span
 							>
 						</button>
 					</td>
@@ -1881,6 +1727,7 @@
 							[class.!text-danger]="isInQueue(entry)"
 							(click)="toggleQueue(entry); $event.stopPropagation()"
 							[title]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
+							[attr.aria-label]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
 						>
 							<span
 								aria-hidden="true"
@@ -1906,29 +1753,26 @@
 </div>
 
 @if (pendingStatusUpdate(); as pending) {
-<div class="modal-overlay">
-	<div
-		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[420px] flex flex-col gap-4"
-		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
+<ui-dialog
+	eyebrow="Change status"
+	size="sm"
+	[heading]="statusLabel(pending.status) + '?'"
+	[subheading]="pending.entry.game.title"
+	(closed)="cancelStatusChange()"
+>
+	<span
+		dialogLead
+		aria-hidden="true"
+		class="material-icons text-2xl mt-1"
+		[class]="statusIconColor(pending.status)"
+		>{{ statusIcon(pending.status) }}</span
 	>
-		<h2 class="m-0 text-lg font-bold font-display flex items-center gap-2">
-			<span
-				aria-hidden="true"
-				class="material-icons text-xl"
-				[class.text-warning]="pending.status === 'playing'"
-				[class.text-success]="pending.status === 'completed'"
-				[class.text-danger]="pending.status === 'abandoned'"
-				[class.text-brand]="pending.status === 'endless'"
-				[class.text-fg-muted]="pending.status === 'not_started'"
-				>{{ statusIcon(pending.status) }}</span
-			>
-			Change status to {{ statusLabel(pending.status) }}?
-		</h2>
-		<p class="text-sm text-fg-secondary leading-relaxed">
+	<div class="flex flex-col gap-4">
+		<p class="m-0 text-sm text-fg-secondary leading-relaxed">
 			<strong>{{ pending.entry.game.title }}</strong> will be marked as
 			<span
 				class="font-medium"
-				[class.text-warning]="pending.status === 'playing'"
+				[class.text-playing]="pending.status === 'playing'"
 				[class.text-success]="pending.status === 'completed'"
 				[class.text-danger]="pending.status === 'abandoned'"
 				[class.text-brand]="pending.status === 'endless'"
@@ -1946,9 +1790,9 @@
 				>Started on</label
 			>
 			<input
+				uiInput
 				id="pendingStartedAt"
 				type="date"
-				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				[value]="pending.startedAt"
 				(input)="updatePendingStatus({ startedAt: $any($event.target).value })"
 			/>
@@ -1964,9 +1808,9 @@
 				on' }}
 			</label>
 			<input
+				uiInput
 				id="pendingFinishedAt"
 				type="date"
-				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				[value]="pending.finishedAt"
 				(input)="updatePendingStatus({ finishedAt: $any($event.target).value })"
 			/>
@@ -1979,11 +1823,12 @@
 				>Real duration (hours)</label
 			>
 			<input
+				uiInput
 				id="pendingRealDuration"
 				type="number"
+				inputmode="decimal"
 				min="0"
 				step="0.5"
-				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				[value]="pending.realDuration"
 				(input)="updatePendingStatus({ realDuration: $any($event.target).value })"
 			/>
@@ -2000,7 +1845,6 @@
 				id="pendingNotes"
 				rows="3"
 				[placeholder]="pending.status === 'abandoned' ? 'Why did you drop it?' : 'Your thoughts...'"
-				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 				[value]="pending.notes"
 				(input)="updatePendingStatus({ notes: $any($event.target).value })"
 			></textarea>
@@ -2019,8 +1863,9 @@
 				(ratingChange)="updatePendingStatus({ rating: $event })"
 			/>
 		</div>
-		<div class="flex items-center gap-3">
+		<div class="flex items-center gap-3 min-h-[44px]">
 			<ui-switch
+				ariaLabel="Write a review"
 				[checked]="pending.reviewToggle"
 				[disabled]="!!pending.entry.review"
 				(checkedChange)="updatePendingStatus({ reviewToggle: $event })"
@@ -2034,7 +1879,7 @@
 		</div>
 		@if (pending.entry.review) {
 		<button uiButton variant="ghost" (click)="saveAndOpenReview()">
-			<span aria-hidden="true" class="material-icons text-base mr-1"
+			<span aria-hidden="true" class="material-icons text-base"
 				>rate_review</span
 			>
 			Write or edit review
@@ -2050,7 +1895,6 @@
 				uiTextarea
 				id="pendingReviewContent"
 				rows="4"
-				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted resize-y"
 				[value]="pending.reviewContent"
 				(input)="updatePendingStatus({ reviewContent: $any($event.target).value })"
 			></textarea>
@@ -2060,95 +1904,88 @@
 			</p>
 		</div>
 		} }
-		<div class="flex items-center justify-end gap-2">
-			<button uiButton variant="ghost" (click)="cancelStatusChange()">
-				Cancel
-			</button>
-			<button uiButton variant="primary" (click)="confirmStatusChange()">
-				Confirm
-			</button>
-		</div>
 	</div>
-</div>
+	<ng-container dialogFooter>
+		<button uiButton variant="ghost" (click)="cancelStatusChange()">
+			Cancel
+		</button>
+		<button uiButton variant="primary" (click)="confirmStatusChange()">
+			Confirm
+		</button>
+	</ng-container>
+</ui-dialog>
 } @if (showReorderModal()) {
-<div class="modal-overlay">
+<ui-dialog
+	eyebrow="Pinned views"
+	heading="Reorder pinned views"
+	subheading="Arrange how your pinned views appear as chips in My Games."
+	size="sm"
+	[dismissible]="!savingReorder()"
+	(closed)="closeReorderModal()"
+>
 	<div
-		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[420px] flex flex-col gap-4"
-		style="box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.6)"
+		class="flex flex-col gap-2"
+		cdkDropList
+		(cdkDropListDropped)="onReorderDrop($event)"
 	>
-		<h2 class="m-0 text-lg font-bold font-display flex items-center gap-2">
-			<span aria-hidden="true" class="material-icons text-xl"
-				>swap_vert</span
-			>
-			Reorder pinned views
-		</h2>
-		<p class="text-sm text-fg-secondary leading-relaxed">
-			Arrange how your pinned views appear as chips in the backlog.
-		</p>
+		@for (item of reorderItems(); track item.id; let i = $index) {
 		<div
-			class="flex flex-col gap-2 max-h-[50vh] overflow-y-auto"
-			cdkDropList
-			(cdkDropListDropped)="onReorderDrop($event)"
+			cdkDrag
+			class="flex items-center gap-1 bg-input-bg border border-line rounded-card pl-1 pr-1 py-1"
 		>
-			@for (item of reorderItems(); track item.id; let i = $index) {
-			<div
-				cdkDrag
-				class="flex items-center gap-2 bg-input-bg border border-line rounded px-3 py-2"
+			<button
+				uiIconButton
+				size="sm"
+				cdkDragHandle
+				class="cursor-grab active:cursor-grabbing touch-none"
+				aria-label="Drag to reorder"
+				title="Drag to reorder"
 			>
-				<button
-					uiIconButton
-					size="sm"
-					cdkDragHandle
-					class="cursor-grab active:cursor-grabbing touch-none"
-					aria-label="Drag to reorder"
-					title="Drag to reorder"
+				<span aria-hidden="true" class="material-icons text-lg"
+					>drag_indicator</span
+				></button
+			><span class="flex-1 text-sm truncate">{{ item.name }}</span>
+			<button
+				uiIconButton
+				size="sm"
+				[disabled]="i === 0"
+				(click)="moveReorderUp(i)"
+				aria-label="Move up"
+				title="Move up"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>keyboard_arrow_up</span
 				>
-					<span aria-hidden="true" class="material-icons text-lg"
-						>drag_indicator</span
-					></button
-				><span class="flex-1 text-sm truncate">{{ item.name }}</span>
-				<button
-					uiIconButton
-					size="sm"
-					[disabled]="i === 0"
-					(click)="moveReorderUp(i)"
-					aria-label="Move up"
-					title="Move up"
-				>
-					<span aria-hidden="true" class="material-icons text-lg"
-						>keyboard_arrow_up</span
-					>
-				</button>
-				<button
-					uiIconButton
-					size="sm"
-					[disabled]="i === reorderItems().length - 1"
-					(click)="moveReorderDown(i)"
-					aria-label="Move down"
-					title="Move down"
-				>
-					<span aria-hidden="true" class="material-icons text-lg"
-						>keyboard_arrow_down</span
-					>
-				</button>
-			</div>
-			}
-		</div>
-		<div class="flex items-center justify-end gap-2">
-			<button uiButton variant="ghost" (click)="closeReorderModal()">
-				Cancel
 			</button>
 			<button
-				uiButton
-				variant="primary"
-				[disabled]="savingReorder()"
-				(click)="saveReorder()"
+				uiIconButton
+				size="sm"
+				[disabled]="i === reorderItems().length - 1"
+				(click)="moveReorderDown(i)"
+				aria-label="Move down"
+				title="Move down"
 			>
-				Save order
+				<span aria-hidden="true" class="material-icons text-lg"
+					>keyboard_arrow_down</span
+				>
 			</button>
 		</div>
+		}
 	</div>
-</div>
+	<ng-container dialogFooter>
+		<button uiButton variant="ghost" (click)="closeReorderModal()">
+			Cancel
+		</button>
+		<button
+			uiButton
+			variant="primary"
+			[disabled]="savingReorder()"
+			(click)="saveReorder()"
+		>
+			Save order
+		</button>
+	</ng-container>
+</ui-dialog>
 } @if (surpriseMeFilters(); as filters) {
 <app-surprise-me
 	[filters]="filters"
@@ -2156,4 +1993,128 @@
 	(closed)="surpriseMeFilters.set(null)"
 	(queued)="loadQueueIds()"
 />
+} @if (statusSheetEntry(); as sheetEntry) {
+<ui-bottom-sheet
+	heading="Change status"
+	[subheading]="sheetEntry.game.title"
+	(closed)="statusSheetEntry.set(null)"
+>
+	<ul class="list-none m-0 p-0 flex flex-col gap-1">
+		@for (s of statusFilters; track s.value) {
+		<li>
+			<button
+				type="button"
+				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border border-transparent text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface disabled:cursor-default"
+				[class.!bg-brand-subtle]="s.value === sheetEntry.status"
+				[class.!border-brand/30]="s.value === sheetEntry.status"
+				[disabled]="s.value === sheetEntry.status || isStatusUpdating(sheetEntry)"
+				(click)="selectStatusFromSheet(sheetEntry, s.value, $event)"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-2xl"
+					[class]="statusIconColor($any(s.value))"
+					>{{ statusIcon($any(s.value)) }}</span
+				>
+				<span class="flex-1">{{ s.label }}</span>
+				@if (s.value === sheetEntry.status) {
+				<span aria-hidden="true" class="material-icons text-brand"
+					>check</span
+				>
+				<span class="sr-only">Current status</span>
+				}
+			</button>
+		</li>
+		}
+	</ul>
+</ui-bottom-sheet>
+} @if (ratingSheet(); as sheet) {
+<ui-bottom-sheet
+	heading="Your rating"
+	[subheading]="sheet.entry.game.title"
+	(closed)="ratingSheet.set(null)"
+>
+	<div class="flex flex-col items-center gap-5 px-2 pt-2 pb-1">
+		<span
+			class="font-display text-6xl font-bold tabular-nums leading-none"
+			[class.text-rating]="sheet.value"
+			[class.text-fg-muted]="!sheet.value"
+			>{{ sheet.value ?? "–" }}</span
+		>
+		<app-star-rating
+			size="lg"
+			[value]="sheet.value"
+			(ratingChange)="updateRatingDraft($event)"
+		/>
+		<p class="m-0 text-xs text-fg-muted text-center">
+			Tap the left half of a star for half points.
+		</p>
+		<div class="grid grid-cols-2 gap-2 w-full">
+			<button
+				uiButton
+				variant="secondary"
+				size="lg"
+				class="!h-12"
+				[disabled]="sheet.value === null"
+				(click)="updateRatingDraft(null)"
+			>
+				Clear
+			</button>
+			<button
+				uiButton
+				variant="primary"
+				size="lg"
+				class="!h-12"
+				(click)="saveRatingSheet()"
+			>
+				Save
+			</button>
+		</div>
+	</div>
+</ui-bottom-sheet>
+} @if (toolsSheetOpen()) {
+<ui-bottom-sheet heading="Filters & stats" (closed)="toolsSheetOpen.set(false)">
+	<div class="flex flex-col gap-1">
+		<button
+			type="button"
+			class="w-full min-h-16 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-left cursor-pointer transition active:bg-surface"
+			(click)="openFiltersFromSheet()"
+		>
+			<span aria-hidden="true" class="material-icons text-2xl text-brand"
+				>tune</span
+			>
+			<span class="flex-1 flex flex-col">
+				<span class="text-base font-medium text-fg">Filters</span>
+				<span class="text-xs text-fg-muted">
+					{{ activeFiltersCount() > 0 ? activeFiltersCount() + '
+					active' : 'Platform, rating, tags, genres and more' }}
+				</span>
+			</span>
+			<span aria-hidden="true" class="material-icons text-fg-muted"
+				>chevron_right</span
+			>
+		</button>
+		<button
+			type="button"
+			class="w-full min-h-16 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-left cursor-pointer transition active:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
+			[disabled]="!activeFilterId()"
+			(click)="openStatsFromSheet()"
+		>
+			<span aria-hidden="true" class="material-icons text-2xl text-brand"
+				>insights</span
+			>
+			<span class="flex-1 flex flex-col">
+				<span class="text-base font-medium text-fg">Stats</span>
+				<span class="text-xs text-fg-muted">
+					{{ activeFilterId() ? (enabledStatsCount() > 0 ?
+					enabledStatsCount() + ' visible' : 'Choose which stats to
+					show') : 'Apply a saved view to configure its stats' }}
+				</span>
+			</span>
+			<span aria-hidden="true" class="material-icons text-fg-muted"
+				>chevron_right</span
+			>
+		</button>
+	</div>
+</ui-bottom-sheet>
 }

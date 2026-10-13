@@ -28,6 +28,7 @@ import listItemsRouter from "./list-items/list-items.routes";
 import listsRouter from "./lists/lists.routes";
 import moodTagsRouter from "./mood-tags/mood-tags.routes";
 import platformRouter from "./platforms/platforms.routes";
+import privacyRouter from "./privacy/privacy.routes";
 import scoreSourcesRouter from "./score-sources/score-sources.routes";
 import userFollowRequestsRouter from "./user-follow-requests/user-follow-requests.routes";
 import userFollowersRouter from "./user-followers/user-followers.routes";
@@ -77,6 +78,7 @@ export function server(port: number) {
 	app.use(backlogProgressRouter);
 	app.use(coopRunsRouter);
 	app.use(changelogRouter);
+	app.use(privacyRouter);
 	app.use(errorHandlerMiddleware);
 
 	app.listen(port, () => logger.info("startup", "listening", { port }));

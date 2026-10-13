@@ -51,7 +51,8 @@ docs: |-
               "id": "uuid",
               "username": "johndoe",
               "name": "John Doe",
-              "avatarUrl": null
+              "avatarUrl": null,
+              "role": "user"
             },
             "game": {
               "id": "uuid",

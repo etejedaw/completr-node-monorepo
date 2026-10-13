@@ -13,7 +13,7 @@ import * as userFollowersService from "../user-followers/user-followers.service"
 import * as wishlistService from "../wishlist/wishlist.service";
 import { type VisibilitySection } from "./constants/visibility.constants";
 import * as userDomain from "./errors/users.domain-error";
-import { canView } from "./helpers/visibility.helper";
+import { canView, resolveSectionAccess } from "./helpers/visibility.helper";
 import { type ComparisonDimension } from "./schemas/comparison-query.schema";
 import { type User } from "./user.model";
 import {
@@ -21,6 +21,7 @@ import {
 	type ComparisonGameEntry,
 	type FullUserProfile,
 	type RestrictedUserProfile,
+	type UserCardInsights,
 	type UserComparisonBundle,
 	type UserCompletionsBundle,
 	type UserFollowingListsBundle,
@@ -92,11 +93,12 @@ async function buildFullProfile(
 	isSelf: boolean
 ): Promise<FullUserProfile> {
 	const userId = user.id;
-	const [canViewBacklog, canViewLists, canViewFeed] = await Promise.all([
-		canView(viewerId, user, "backlog"),
-		canView(viewerId, user, "list"),
-		canView(viewerId, user, "feed")
-	]);
+	const access = await resolveSectionAccess(viewerId, user);
+	const {
+		backlog: canViewBacklog,
+		list: canViewLists,
+		feed: canViewFeed
+	} = access;
 
 	const [
 		backlogResult,
@@ -135,7 +137,8 @@ async function buildFullProfile(
 		recentActivity,
 		followerCount,
 		followingCount,
-		isFollowing
+		isFollowing,
+		access
 	};
 }
 
@@ -236,20 +239,28 @@ export async function getListDetailForUsername(
 	const publicOnly = !isSelf;
 	const gameIds = (list.ListItems ?? []).map(i => i.gameId);
 
-	const [followerCount, backlogSummaryMap, progress] = await Promise.all([
-		listsService.getFollowerCount(listId),
-		canSeeProgress
-			? listsService.getBacklogSummaryMap(gameIds, user.id, publicOnly)
-			: Promise.resolve(undefined),
-		canSeeProgress
-			? listsService.getListProgress(listId, user.id, publicOnly)
-			: Promise.resolve(null)
-	]);
+	const [followerCount, isFollowing, backlogSummaryMap, progress] =
+		await Promise.all([
+			listsService.getFollowerCount(listId),
+			viewerId
+				? listsService.getIsFollowing(listId, viewerId)
+				: Promise.resolve(false),
+			canSeeProgress
+				? listsService.getBacklogSummaryMap(
+						gameIds,
+						user.id,
+						publicOnly
+					)
+				: Promise.resolve(undefined),
+			canSeeProgress
+				? listsService.getListProgress(listId, user.id, publicOnly)
+				: Promise.resolve(null)
+		]);
 
 	return {
 		profileUser: { username: user.username, name: user.name },
 		listPlain,
-		aggregates: { followerCount, backlogSummaryMap, progress }
+		aggregates: { followerCount, isFollowing, backlogSummaryMap, progress }
 	};
 }
 
@@ -504,4 +515,87 @@ export async function getReviewsForUsername(
 		await backlogService.findLatestCompletedDurations(pairs);
 
 	return { user, reviewsPlain, durationMap, total: count };
+}
+
+export async function getConnectionCardsForUsername(
+	viewerId: string | undefined,
+	username: string,
+	kind: "followers" | "following"
+): Promise<UserCardInsights[]> {
+	await requireVisibleUser(viewerId, username, ["profile"]);
+	const users =
+		kind === "followers"
+			? (await userFollowersService.getFollowers(username)).map(
+					row => row.Follower
+				)
+			: (await userFollowersService.getFollowing(username)).map(
+					row => row.Following
+				);
+	return buildUserCards(viewerId, users);
+}
+
+export async function buildUserCards(
+	viewerId: string | undefined,
+	users: User[]
+): Promise<UserCardInsights[]> {
+	return Promise.all(users.map(user => buildUserCard(viewerId, user)));
+}
+
+async function buildUserCard(
+	viewerId: string | undefined,
+	user: User
+): Promise<UserCardInsights> {
+	const isSelf = viewerId === user.id;
+	const [profileVisible, isFollowing] = await Promise.all([
+		canView(viewerId, user, "profile"),
+		viewerId && !isSelf
+			? userFollowersService.isFollowing(viewerId, user.id)
+			: Promise.resolve(false)
+	]);
+	if (!profileVisible) {
+		return {
+			user,
+			isSelf,
+			profileVisible,
+			followerCount: null,
+			isFollowing,
+			gamesTotal: null,
+			completedTotal: null,
+			featuredGame: null
+		};
+	}
+
+	const [canViewBacklog, canViewFavorites] = await Promise.all([
+		canView(viewerId, user, "backlog"),
+		canView(viewerId, user, "favorite")
+	]);
+	const [followerCount, backlogStats, featuredGame] = await Promise.all([
+		userFollowersService.getFollowerCount(user.id),
+		canViewBacklog
+			? backlogService.countBacklogByStatus(user.id, !isSelf)
+			: Promise.resolve(null),
+		canViewFavorites ? loadFeaturedFavorite(user.id) : Promise.resolve(null)
+	]);
+
+	return {
+		user,
+		isSelf,
+		profileVisible,
+		followerCount,
+		isFollowing,
+		gamesTotal: backlogStats?.total ?? null,
+		completedTotal: backlogStats?.completed ?? null,
+		featuredGame
+	};
+}
+
+async function loadFeaturedFavorite(userId: string) {
+	const { rows } = await favoritesService.findFavoritesByUserIdPaginated(
+		userId,
+		{ limit: 1 }
+	);
+	const game = rows[0]?.get({ plain: true }).Game;
+	return game
+		? { title: game.title, backgroundUrl: game.backgroundUrl ?? null }
+		: null;
 }
