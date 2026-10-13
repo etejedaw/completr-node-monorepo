@@ -1,0 +1,126 @@
+@let person = user();
+<article
+	class="group relative isolate h-full flex flex-col rounded-card bg-surface border border-line overflow-hidden transition duration-200 hover:border-line-hover hover:-translate-y-0.5 focus-within:border-brand/60"
+>
+	<div
+		aria-hidden="true"
+		class="relative overflow-hidden bg-[radial-gradient(circle_at_20%_0%,var(--color-brand-subtle),transparent_70%)]"
+		[class]="person.featuredGame?.backgroundUrl ? 'h-20 sm:h-24' : 'h-12 sm:h-16'"
+	>
+		@if (person.featuredGame?.backgroundUrl) {
+		<img
+			[src]="person.featuredGame!.backgroundUrl! | coverUrl: 640"
+			alt=""
+			loading="lazy"
+			class="w-full h-full object-cover opacity-60 transition duration-500 group-hover:scale-105 group-hover:opacity-75"
+		/>
+		}
+		<div
+			class="absolute inset-0 bg-gradient-to-t from-surface via-surface/30 to-transparent"
+		></div>
+	</div>
+
+	<div class="relative flex-1 flex flex-col gap-3 px-4 pb-4 -mt-9">
+		<div class="flex items-end justify-between gap-3">
+			<ui-avatar
+				[src]="person.avatarUrl"
+				[name]="person.username"
+				class="w-16 h-16 text-xl ring-4 ring-surface shadow-lg shadow-black/40"
+			/>
+			@if (canFollow() && !person.isSelf && person.followerCount !== null)
+			{
+			<button
+				uiButton
+				size="sm"
+				class="relative z-10 max-sm:min-h-[44px] pointer-coarse:min-h-[44px]"
+				[variant]="followState() === 'none' ? 'primary' : 'secondary'"
+				[disabled]="busy()"
+				[attr.aria-pressed]="followState() !== 'none'"
+				[attr.aria-label]="followLabel() + ' ' + displayName()"
+				(click)="followToggled.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>{{ followIcon() }}</span
+				>
+				{{ followLabel() }}
+			</button>
+			} @else if (person.isSelf) {
+			<span
+				class="text-xs font-semibold uppercase tracking-[0.14em] text-brand"
+				>You</span
+			>
+			}
+		</div>
+
+		<div class="min-w-0">
+			<h3
+				class="m-0 font-display text-base font-semibold leading-tight truncate"
+			>
+				<a
+					class="text-fg no-underline after:absolute after:inset-0 after:content-[''] focus-visible:outline-none hover:text-brand"
+					[routerLink]="['/user', person.username]"
+					>{{ displayName() }}</a
+				>
+			</h3>
+			<p
+				class="m-0 mt-0.5 flex items-center gap-1 text-sm text-fg-muted truncate"
+			>
+				{{ '@' + person.username }} @if (person.profileVisibility !==
+				'public') {
+				<span
+					class="material-icons text-sm"
+					aria-label="Restricted profile"
+					title="Restricted profile"
+					>lock</span
+				>
+				}
+			</p>
+		</div>
+
+		<dl
+			class="m-0 mt-auto grid grid-cols-3 gap-2 pt-3 border-t border-line/60"
+		>
+			<div>
+				<dt
+					class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Games
+				</dt>
+				<dd class="m-0 mt-1 text-sm font-semibold text-fg tabular-nums">
+					{{ hasStats() ? person.gamesTotal : '—' }}
+				</dd>
+			</div>
+			<div>
+				<dt
+					class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Completed
+				</dt>
+				<dd
+					class="m-0 mt-1 text-sm font-semibold text-success tabular-nums"
+				>
+					{{ hasStats() ? person.completedTotal : '—' }}
+				</dd>
+			</div>
+			<div>
+				<dt
+					class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Followers
+				</dt>
+				<dd class="m-0 mt-1 text-sm font-semibold text-fg tabular-nums">
+					{{ person.followerCount ?? '—' }}
+				</dd>
+			</div>
+		</dl>
+		@if (person.followerCount === null) {
+		<p class="m-0 -mt-1 text-[0.6875rem] text-fg-muted">
+			Private profile — follow to request access
+		</p>
+		} @else if (!hasStats()) {
+		<p class="m-0 -mt-1 text-[0.6875rem] text-fg-muted">
+			Library not shared with you
+		</p>
+		}
+	</div>
+</article>

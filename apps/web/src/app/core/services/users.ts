@@ -12,6 +12,12 @@ export interface UserResult {
 	name: string;
 	avatarUrl: string | null;
 	profileVisibility: VisibilityLevel;
+	isSelf?: boolean;
+	followerCount?: number | null;
+	isFollowing?: boolean;
+	gamesTotal?: number | null;
+	completedTotal?: number | null;
+	featuredGame?: { title: string; backgroundUrl: string | null } | null;
 }
 
 interface UsersResponse {
