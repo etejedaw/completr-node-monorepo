@@ -39,10 +39,10 @@ export async function getFollowers(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;
 	const viewer = request.locals.user as RequestUser | undefined;
 
-	const followers = await userFollowersService.getFollowers(username);
-	const cards = await usersProfileService.buildUserCards(
+	const cards = await usersProfileService.getConnectionCardsForUsername(
 		viewer?.id,
-		followers.map(f => f.Follower)
+		username,
+		"followers"
 	);
 
 	return response
@@ -54,10 +54,10 @@ export async function getFollowing(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;
 	const viewer = request.locals.user as RequestUser | undefined;
 
-	const following = await userFollowersService.getFollowing(username);
-	const cards = await usersProfileService.buildUserCards(
+	const cards = await usersProfileService.getConnectionCardsForUsername(
 		viewer?.id,
-		following.map(f => f.Following)
+		username,
+		"following"
 	);
 
 	return response

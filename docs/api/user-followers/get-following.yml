@@ -19,7 +19,7 @@ docs: |-
 
     List users the specified user follows, newest first. Each entry is a user card (same shape as `GET /users/discover`): stats, `featuredGame` and `followerCount` follow each listed user's privacy settings for the viewer (`null` when hidden), and `isFollowing` / `isSelf` are relative to the viewer.
 
-    **Auth:** Optional (Bearer token). Without a token, `isFollowing` is always `false` and only public sections are counted.
+    **Auth:** Optional (Bearer token). Without a token, `isFollowing` is always `false` and only public sections are counted. The list follows the profile owner's profile visibility: if the viewer cannot see the profile, the request fails with 403.
 
     **Rate Limit:** 100 requests per minute.
 
@@ -50,5 +50,6 @@ docs: |-
 
     ### Errors
 
-    - `404 USER_FOLLOWER_USER_NOT_FOUND` — no user with that username
+    - `403 USER_PRIVATE` — the profile is not visible to the viewer (the profile section gates every other section, including connections)
+    - `404 USER_NOT_FOUND` — no user with that username
     - `422 SCHEMA_VALIDATION_ERROR` — invalid username

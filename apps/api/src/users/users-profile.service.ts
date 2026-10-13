@@ -507,6 +507,23 @@ export async function getReviewsForUsername(
 	return { user, reviewsPlain, durationMap, total: count };
 }
 
+export async function getConnectionCardsForUsername(
+	viewerId: string | undefined,
+	username: string,
+	kind: "followers" | "following"
+): Promise<UserCardInsights[]> {
+	await requireVisibleUser(viewerId, username, ["profile"]);
+	const users =
+		kind === "followers"
+			? (await userFollowersService.getFollowers(username)).map(
+					row => row.Follower
+				)
+			: (await userFollowersService.getFollowing(username)).map(
+					row => row.Following
+				);
+	return buildUserCards(viewerId, users);
+}
+
 export async function buildUserCards(
 	viewerId: string | undefined,
 	users: User[]
