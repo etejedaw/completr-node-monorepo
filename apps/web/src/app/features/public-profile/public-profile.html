@@ -136,7 +136,7 @@
 		<li [class.max-sm:hidden]="i >= 4">
 			<app-game-cover-card
 				[game]="favorite.game"
-				[topLeftBadge]="'#' + (i + 1)"
+				[topLeftBadge]="'#' + favorite.position"
 			/>
 		</li>
 		}
@@ -144,118 +144,103 @@
 </section>
 }
 
-<div
-	class="mt-12 grid gap-12"
-	[class.lg:grid-cols-[minmax(0,1fr)_20rem]]="hasAside()"
-	[class.xl:grid-cols-[minmax(0,1fr)_22rem]]="hasAside()"
->
-	<div class="min-w-0 flex flex-col gap-12">
-		@if (visibility().backlog) { @defer (on viewport; prefetch on idle) {
-		<app-profile-playing-now [username]="username()" />
-		} @placeholder {
-		<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
-		} } @if (visibility().queue) { @defer (on viewport; prefetch on idle) {
-		<app-profile-up-next [username]="username()" />
-		} @placeholder {
-		<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
-		} } @if (visibility().backlog) { @if (highlightsData() === null) {
-		<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
-		} @else {
-		<app-profile-month-review
-			[monthLabel]="monthLabel()"
-			[completedCount]="highlightsData()!.month.completedCount"
-			[mostPlayed]="highlightsData()!.month.mostPlayed"
-			[highestRated]="highlightsData()!.month.highestRated"
-			[canGoNext]="!isAtCurrentMonth()"
-			[loading]="isLoadingHighlightsMonth()"
-			(previousMonth)="goToPreviousMonth()"
-			(nextMonth)="goToNextMonth()"
-		/>
-		@if (highlightsData()!.recent.length > 0) {
-		<app-poster-shelf
-			[contained]="true"
-			heading="Recently completed"
-			eyebrow="Finished"
-			seeAllLabel="See all"
-			(seeAll)="openCompletions()"
-		>
-			@for (entry of highlightsData()!.recent; track entry.id) {
-			<app-game-cover-card
-				class="w-32 sm:w-40"
-				[game]="entry.game"
-				[subtitle]="entry.finishedAt ?? undefined"
-				[topLeftBadge]="entry.userRating ? '★ ' + entry.userRating : undefined"
-			/>
-			}
-		</app-poster-shelf>
-		} } }
-
-		<app-profile-reviews
-			[username]="username()"
-			[reviews]="latestReviews()"
-			[total]="userReviewsTotal()"
-		/>
-
-		@if (visibility().shelf || visibility().wishlist) { @defer (on viewport;
-		prefetch on idle) {
-		<app-profile-collections
-			[username]="username()"
-			[showShelf]="visibility().shelf"
-			[showWishlist]="visibility().wishlist"
-		/>
-		} @placeholder {
-		<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
-		} } @if (visibility().lists) {
-		<div
-			id="profile-lists"
-			class="scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
-		>
-			@defer (on viewport; prefetch on idle) {
-			<app-profile-lists [username]="username()" />
-			} @placeholder {
-			<div class="h-40"></div>
-			}
-		</div>
-		}
-
-		<section aria-labelledby="activity-heading">
-			<app-profile-section-header
-				heading="Recent activity"
-				headingId="activity-heading"
-				eyebrow="Latest"
-			/>
-			@if (showActivity()) {
-			<app-profile-activity
-				[activities]="p.recentActivity.slice(0, 15)"
-			/>
-			} @else {
-			<p class="m-0 py-6 text-sm text-fg-muted">
-				No recent activity to show.
-			</p>
-			}
-		</section>
-	</div>
-
-	@if (hasAside()) {
-	<aside
-		class="flex flex-col gap-4 lg:sticky lg:top-[calc(var(--topbar-height)+1.5rem)] lg:self-start"
-		aria-label="Comparisons and sagas"
+<div class="mt-12 flex flex-col gap-12">
+	@if (showComparison()) {
+	<app-profile-in-common
+		[username]="username()"
+		[options]="comparisonDimensions"
+		[selected]="comparisonBy()"
+		[games]="comparisonGames()"
+		[count]="comparisonCount()"
+		[loading]="comparisonLoading()"
+		[isPrivate]="comparisonPrivate()"
+		(selectedChange)="changeComparison($event)"
+	/>
+	} @if (visibility().backlog) { @defer (on viewport; prefetch on idle) {
+	<app-profile-playing-now [username]="username()" />
+	} @placeholder {
+	<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
+	} } @if (visibility().queue) { @defer (on viewport; prefetch on idle) {
+	<app-profile-up-next [username]="username()" />
+	} @placeholder {
+	<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
+	} } @if (visibility().backlog) { @if (highlightsData() === null) {
+	<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
+	} @else {
+	<app-profile-month-review
+		[monthLabel]="monthLabel()"
+		[completedCount]="highlightsData()!.month.completedCount"
+		[mostPlayed]="highlightsData()!.month.mostPlayed"
+		[highestRated]="highlightsData()!.month.highestRated"
+		[canGoNext]="!isAtCurrentMonth()"
+		[loading]="isLoadingHighlightsMonth()"
+		(previousMonth)="goToPreviousMonth()"
+		(nextMonth)="goToNextMonth()"
+	/>
+	@if (highlightsData()!.recent.length > 0) {
+	<app-poster-shelf
+		[contained]="true"
+		heading="Recently completed"
+		eyebrow="Finished"
+		seeAllLabel="See all"
+		[seeAllLink]="['/user', username(), 'backlog']"
+		[seeAllQueryParams]="{ status: 'completed' }"
 	>
-		@if (showComparison()) {
-		<app-profile-in-common
-			[username]="username()"
-			[options]="comparisonDimensions"
-			[selected]="comparisonBy()"
-			[games]="comparisonGames()"
-			[count]="comparisonCount()"
-			[loading]="comparisonLoading()"
-			[isPrivate]="comparisonPrivate()"
-			(selectedChange)="changeComparison($event)"
+		@for (entry of highlightsData()!.recent; track entry.id) {
+		<app-game-cover-card
+			class="w-32 sm:w-40"
+			[game]="entry.game"
+			[subtitle]="entry.finishedAt ?? undefined"
+			[topLeftBadge]="entry.userRating ? '★ ' + entry.userRating : undefined"
 		/>
 		}
-		<app-profile-sagas [sagas]="sagas()" [isSelf]="isSelf()" />
-	</aside>
+	</app-poster-shelf>
+	} } }
+
+	<app-profile-reviews
+		[username]="username()"
+		[reviews]="latestReviews()"
+		[total]="userReviewsTotal()"
+	/>
+
+	@if (visibility().shelf || visibility().wishlist) { @defer (on viewport;
+	prefetch on idle) {
+	<app-profile-collections
+		[username]="username()"
+		[showShelf]="visibility().shelf"
+		[showWishlist]="visibility().wishlist"
+	/>
+	} @placeholder {
+	<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
+	} } @if (visibility().lists) {
+	<div
+		id="profile-lists"
+		class="scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
+	>
+		@defer (on viewport; prefetch on idle) {
+		<app-profile-lists [username]="username()" [isSelf]="isSelf()" />
+		} @placeholder {
+		<div class="h-40"></div>
+		}
+	</div>
 	}
+
+	<app-profile-sagas [sagas]="sagas()" [isSelf]="isSelf()" />
+
+	<section aria-labelledby="activity-heading">
+		<app-profile-section-header
+			heading="Recent activity"
+			headingId="activity-heading"
+			eyebrow="Latest"
+		/>
+		@if (showActivity()) {
+		<app-profile-activity [activities]="p.recentActivity.slice(0, 15)" />
+		} @else {
+		<p class="m-0 py-6 text-sm text-fg-muted">
+			No recent activity to show.
+		</p>
+		}
+	</section>
 </div>
 
 @if (!isLoggedIn()) {

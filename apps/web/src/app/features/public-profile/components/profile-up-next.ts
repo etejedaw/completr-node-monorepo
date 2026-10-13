@@ -6,7 +6,6 @@ import {
 	input
 } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
-import { Router } from "@angular/router";
 import { catchError, map, of } from "rxjs";
 
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
@@ -25,7 +24,7 @@ const UP_NEXT_LIMIT = 10;
 				heading="Up Next"
 				eyebrow="Playing soon"
 				seeAllLabel="See all"
-				(seeAll)="openQueue()"
+				[seeAllLink]="['/user', username(), 'queue']"
 			>
 				@for (entry of entries(); track entry.id; let rank = $index) {
 					<app-game-cover-card
@@ -44,7 +43,6 @@ const UP_NEXT_LIMIT = 10;
 })
 export class ProfileUpNext {
 	private readonly libraryService = inject(PublicLibraryService);
-	private readonly router = inject(Router);
 
 	readonly username = input.required<string>();
 
@@ -62,8 +60,4 @@ export class ProfileUpNext {
 	protected readonly entries = computed(() =>
 		this.queue.hasValue() ? this.queue.value() : []
 	);
-
-	protected openQueue() {
-		this.router.navigate(["/user", this.username(), "queue"]);
-	}
 }

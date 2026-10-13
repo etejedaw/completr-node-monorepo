@@ -7,83 +7,91 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { UiProgress } from "../../../shared/ui";
+import { UiButton, UiProgress } from "../../../shared/ui";
 import { type FranchiseProgress } from "../../franchises/franchises";
+import { ProfileSectionHeader } from "./profile-section-header";
 
-const COLLAPSED_SAGA_COUNT = 5;
+const COLLAPSED_SAGA_COUNT = 6;
 
 @Component({
 	selector: "app-profile-sagas",
-	imports: [RouterLink, UiProgress],
+	imports: [RouterLink, ProfileSectionHeader, UiButton, UiProgress],
 	template: `
 		@if (sagas().length > 0) {
-			<section
-				class="p-4 rounded-card border border-line bg-surface"
-				aria-labelledby="profile-sagas-heading"
-			>
-				<h2
-					id="profile-sagas-heading"
-					class="m-0 mb-3 flex items-center gap-2 font-display text-base font-semibold text-fg"
+			<section aria-labelledby="profile-sagas-heading">
+				<app-profile-section-header
+					heading="Sagas"
+					headingId="profile-sagas-heading"
+					eyebrow="Franchises"
+				/>
+				<ul
+					class="list-none m-0 p-0 grid gap-x-8 sm:grid-cols-2 xl:grid-cols-3 border-t border-line"
 				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-lg text-brand"
-						>collections_bookmark</span
-					>
-					Sagas
-					<span
-						class="ml-auto text-xs font-sans font-normal text-fg-muted tabular-nums"
-						>{{ sagas().length }}</span
-					>
-				</h2>
-				<ul class="list-none m-0 p-0 flex flex-col gap-3">
 					@for (saga of visibleSagas(); track saga.franchise.id) {
-						<li>
+						<li class="border-b border-line">
 							<a
-								class="block no-underline group"
+								class="group flex items-center gap-3 py-3 min-h-[44px] no-underline"
 								[routerLink]="[
 									'/franchises',
 									saga.franchise.code
 								]"
 							>
 								<span
-									class="flex items-baseline justify-between gap-2 mb-1.5 text-sm"
+									aria-hidden="true"
+									class="shrink-0 w-10 h-10 inline-flex items-center justify-center rounded-card bg-brand-subtle text-brand"
 								>
-									<span
-										class="font-medium text-fg truncate group-hover:text-brand"
-										>{{ saga.franchise.name }}</span
-									>
-									<span
-										class="shrink-0 text-xs text-fg-muted tabular-nums"
-										>{{ saga.completed }}/{{
-											saga.total
-										}}</span
-									>
+									<span class="material-icons text-xl">{{
+										saga.completed >= saga.total &&
+										saga.total > 0
+											? "emoji_events"
+											: "collections_bookmark"
+									}}</span>
 								</span>
-								<ui-progress
-									[value]="saga.completed"
-									[max]="saga.total || 1"
-									indicatorClass="bg-gradient-to-r from-brand to-success"
-								/>
+								<span class="flex-1 min-w-0">
+									<span
+										class="flex items-baseline justify-between gap-2 mb-1.5"
+									>
+										<span
+											class="text-sm font-medium text-fg truncate group-hover:text-brand"
+											>{{ saga.franchise.name }}</span
+										>
+										<span
+											class="shrink-0 text-xs text-fg-muted tabular-nums"
+											>{{ saga.completed }}/{{
+												saga.total
+											}}
+											<span class="sr-only"
+												>games completed</span
+											></span
+										>
+									</span>
+									<ui-progress
+										[value]="saga.completed"
+										[max]="saga.total || 1"
+										trackClass="h-1.5"
+										indicatorClass="bg-gradient-to-r from-brand to-success"
+									/>
+								</span>
 							</a>
 						</li>
 					}
 				</ul>
 				@if (sagas().length > collapsedCount) {
 					<button
-						type="button"
-						class="tap-area mt-3 inline-flex items-center gap-0.5 p-0 bg-transparent border-0 text-xs font-medium text-fg-secondary cursor-pointer hover:text-brand"
+						uiButton
+						variant="ghost"
+						class="mt-3"
 						[attr.aria-expanded]="expanded()"
 						(click)="expanded.set(!expanded())"
 					>
 						{{
 							expanded()
 								? "Show fewer"
-								: "Show all " + sagas().length
+								: "Show all " + sagas().length + " sagas"
 						}}
 						<span
 							aria-hidden="true"
-							class="material-icons text-base"
+							class="material-icons text-lg"
 							>{{
 								expanded() ? "expand_less" : "expand_more"
 							}}</span
@@ -92,12 +100,38 @@ const COLLAPSED_SAGA_COUNT = 5;
 				}
 			</section>
 		} @else if (isSelf()) {
-			<p
-				class="m-0 p-4 rounded-card border border-dashed border-line text-sm text-fg-muted"
-			>
-				Track a saga from any franchise page to follow your progress
-				here.
-			</p>
+			<section aria-labelledby="profile-sagas-heading">
+				<app-profile-section-header
+					heading="Sagas"
+					headingId="profile-sagas-heading"
+					eyebrow="Franchises"
+				/>
+				<div
+					class="flex flex-wrap items-center gap-4 p-4 rounded-card border border-dashed border-line"
+				>
+					<span
+						aria-hidden="true"
+						class="shrink-0 w-10 h-10 inline-flex items-center justify-center rounded-card bg-brand-subtle text-brand"
+					>
+						<span class="material-icons text-xl"
+							>collections_bookmark</span
+						>
+					</span>
+					<p
+						class="m-0 flex-1 min-w-[12rem] text-sm text-fg-secondary"
+					>
+						Track a saga from any franchise page to follow your
+						progress here.
+					</p>
+					<a
+						uiButton
+						variant="secondary"
+						size="sm"
+						routerLink="/games"
+						>Browse games</a
+					>
+				</div>
+			</section>
 		}
 	`,
 	host: { class: "block empty:hidden" },

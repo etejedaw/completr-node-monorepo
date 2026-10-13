@@ -7,11 +7,14 @@ import {
 	linkedSignal
 } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
-import { Router } from "@angular/router";
 import { catchError, map, of } from "rxjs";
 
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
+import {
+	SegmentedControl,
+	type SegmentedOption
+} from "../../../shared/components/segmented-control/segmented-control";
 import { PublicLibraryService } from "../services/public-library.service";
 
 type CollectionKind = "shelf" | "wishlist";
@@ -35,7 +38,7 @@ const COLLECTION_OPTIONS: {
 
 @Component({
 	selector: "app-profile-collections",
-	imports: [GameCoverCard, PosterShelf],
+	imports: [GameCoverCard, PosterShelf, SegmentedControl],
 	template: `
 		@if (options().length > 0) {
 			<app-poster-shelf
@@ -43,36 +46,16 @@ const COLLECTION_OPTIONS: {
 				heading="Collection"
 				eyebrow="Owned & wanted"
 				seeAllLabel="See all"
-				(seeAll)="openSelected()"
+				[seeAllLink]="['/user', username(), selectedRoute()]"
 			>
 				@if (options().length > 1) {
-					<div
+					<app-segmented-control
 						shelfActions
-						role="radiogroup"
-						aria-label="Collection"
-						class="inline-flex p-1 mr-1 bg-input-bg border border-line rounded-card"
-					>
-						@for (option of options(); track option.value) {
-							<button
-								type="button"
-								role="radio"
-								class="px-3 h-7 pointer-coarse:min-h-[44px] rounded-md border-0 bg-transparent text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg"
-								[class.!bg-surface-hover]="
-									selected() === option.value
-								"
-								[class.!text-fg]="selected() === option.value"
-								[attr.aria-checked]="
-									selected() === option.value
-								"
-								(click)="selected.set(option.value)"
-							>
-								{{ option.label }}
-								<span class="ml-1 tabular-nums text-fg-muted">{{
-									countFor(option.value)
-								}}</span>
-							</button>
-						}
-					</div>
+						class="mr-1"
+						label="Collection"
+						[options]="options()"
+						[(value)]="selected"
+					/>
 				}
 				@for (item of items(); track item.id) {
 					<app-game-cover-card
@@ -89,7 +72,6 @@ const COLLECTION_OPTIONS: {
 })
 export class ProfileCollections {
 	private readonly libraryService = inject(PublicLibraryService);
-	private readonly router = inject(Router);
 
 	readonly username = input.required<string>();
 	readonly showShelf = input(false);
@@ -136,11 +118,15 @@ export class ProfileCollections {
 		wishlist: this.wishlist.hasValue() ? this.wishlist.value() : null
 	}));
 
-	protected readonly options = computed(() =>
-		COLLECTION_OPTIONS.filter(option => {
-			const page = this.pages()[option.value];
-			return !!page && page.total > 0;
-		})
+	protected readonly options = computed<SegmentedOption<CollectionKind>[]>(
+		() =>
+			COLLECTION_OPTIONS.filter(
+				option => (this.pages()[option.value]?.total ?? 0) > 0
+			).map(option => ({
+				value: option.value,
+				label: option.label,
+				count: this.pages()[option.value]!.total
+			}))
 	);
 
 	protected readonly selected = linkedSignal<CollectionKind>(
@@ -151,14 +137,9 @@ export class ProfileCollections {
 		() => this.pages()[this.selected()]?.items ?? []
 	);
 
-	protected countFor(kind: CollectionKind): number {
-		return this.pages()[kind]?.total ?? 0;
-	}
-
-	protected openSelected() {
-		const route = COLLECTION_OPTIONS.find(
-			option => option.value === this.selected()
-		)!.route;
-		this.router.navigate(["/user", this.username(), route]);
-	}
+	protected readonly selectedRoute = computed(
+		() =>
+			COLLECTION_OPTIONS.find(option => option.value === this.selected())!
+				.route
+	);
 }

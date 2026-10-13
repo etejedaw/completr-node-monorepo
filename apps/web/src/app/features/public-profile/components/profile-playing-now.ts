@@ -6,7 +6,6 @@ import {
 	input
 } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
-import { Router } from "@angular/router";
 import { catchError, map, of } from "rxjs";
 
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
@@ -25,7 +24,8 @@ const PLAYING_NOW_LIMIT = 12;
 				heading="Playing now"
 				eyebrow="In progress"
 				seeAllLabel="See all"
-				(seeAll)="openPlaying()"
+				[seeAllLink]="['/user', username(), 'backlog']"
+				[seeAllQueryParams]="{ status: 'playing' }"
 			>
 				@for (entry of entries(); track entry.id) {
 					<app-game-cover-card
@@ -43,7 +43,6 @@ const PLAYING_NOW_LIMIT = 12;
 })
 export class ProfilePlayingNow {
 	private readonly libraryService = inject(PublicLibraryService);
-	private readonly router = inject(Router);
 
 	readonly username = input.required<string>();
 
@@ -66,10 +65,4 @@ export class ProfilePlayingNow {
 	protected readonly entries = computed(() =>
 		this.playing.hasValue() ? this.playing.value() : []
 	);
-
-	protected openPlaying() {
-		this.router.navigate(["/user", this.username(), "backlog"], {
-			queryParams: { status: "playing" }
-		});
-	}
 }

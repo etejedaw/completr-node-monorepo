@@ -37,6 +37,7 @@ import {
 	type PublicProfile,
 	PublicProfileService
 } from "./public-profile.service";
+import { COMPARISON_OPTIONS } from "./services/comparison-options";
 import {
 	type ComparisonDimension,
 	type PublicFavorite,
@@ -147,13 +148,7 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly comparisonBy = signal<ComparisonDimension>("completed");
 	protected readonly comparisonLoading = signal(false);
 	protected readonly comparisonPrivate = signal(false);
-	protected readonly comparisonDimensions: {
-		value: ComparisonDimension;
-		label: string;
-	}[] = [
-		{ value: "completed", label: "Completed" },
-		{ value: "not_started", label: "To play" }
-	];
+	protected readonly comparisonDimensions = COMPARISON_OPTIONS;
 	protected readonly comparisonGames = computed(
 		() => this.comparison()?.inCommon ?? []
 	);
@@ -162,9 +157,6 @@ export class PublicProfileComponent implements OnInit {
 	);
 	protected readonly showComparison = computed(
 		() => this.isLoggedIn() && !this.isSelf() && !!this.profile()
-	);
-	protected readonly hasAside = computed(
-		() => this.showComparison() || this.isSelf() || this.sagas().length > 0
 	);
 	protected readonly showActivity = computed(() => {
 		const p = this.profile();
@@ -463,12 +455,6 @@ export class PublicProfileComponent implements OnInit {
 			?.scrollIntoView({ behavior: "smooth", block: "start" });
 	}
 
-	openCompletions() {
-		this.router.navigate(["/user", this.username(), "backlog"], {
-			queryParams: { status: "completed" }
-		});
-	}
-
 	protected changeComparison(by: ComparisonDimension) {
 		if (by === this.comparisonBy() && this.comparison()) return;
 		this.comparisonBy.set(by);
@@ -481,7 +467,7 @@ export class PublicProfileComponent implements OnInit {
 		this.comparisonLoading.set(true);
 		this.comparisonPrivate.set(false);
 		this.libraryService
-			.getComparison(username, by, { limit: 10 })
+			.getComparison(username, by, { limit: 12 })
 			.subscribe({
 				next: data => {
 					this.comparison.set(data);

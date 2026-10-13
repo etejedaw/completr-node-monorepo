@@ -1,123 +1,114 @@
+import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	input,
 	output
 } from "@angular/core";
-import { RouterLink } from "@angular/router";
 
-import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
+import {
+	SegmentedControl,
+	type SegmentedOption
+} from "../../../shared/components/segmented-control/segmented-control";
+import { UiSkeleton } from "../../../shared/ui";
 import {
 	type ComparisonDimension,
 	type ComparisonGame
 } from "../services/public-library.service";
+import { ProfileSectionHeader } from "./profile-section-header";
 
-export interface ComparisonOption {
-	value: ComparisonDimension;
-	label: string;
-}
+const SKELETON_RANGE = [0, 1, 2, 3, 4, 5];
 
 @Component({
 	selector: "app-profile-in-common",
-	imports: [RouterLink, GamePoster],
+	imports: [
+		NgTemplateOutlet,
+		GameCoverCard,
+		PosterShelf,
+		ProfileSectionHeader,
+		SegmentedControl,
+		UiSkeleton
+	],
 	template: `
-		<section
-			class="p-4 rounded-card border border-line bg-surface"
-			aria-labelledby="in-common-heading"
-		>
-			<header class="flex items-center justify-between gap-3 mb-3">
-				<h2
-					id="in-common-heading"
-					class="m-0 flex items-center gap-2 font-display text-base font-semibold text-fg"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-lg text-brand"
-						>join_inner</span
-					>
-					You have in common
-				</h2>
+		<ng-template #compareControl>
+			<app-segmented-control
+				label="Compare by"
+				[options]="options()"
+				[value]="selected()"
+				(valueChange)="selectedChange.emit($event)"
+			/>
+		</ng-template>
+
+		@if (!loading() && cards().length > 0) {
+			<app-poster-shelf
+				[contained]="true"
+				heading="In common"
+				[eyebrow]="'You & @' + username()"
+				[seeAllLabel]="'See all ' + count()"
+				[seeAllLink]="['/user', username(), 'in-common']"
+				[seeAllQueryParams]="{ by: selected() }"
+			>
 				<span
-					class="font-display text-2xl font-bold text-brand tabular-nums leading-none"
+					shelfHeadingIcon
+					class="text-base font-semibold text-brand tabular-nums"
 					>{{ count() }}</span
 				>
-			</header>
-			<div
-				role="radiogroup"
-				aria-label="Compare by"
-				class="inline-flex gap-0.5 p-1 mb-4 bg-input-bg border border-line rounded-card"
-			>
-				@for (option of options(); track option.value) {
-					<button
-						type="button"
-						role="radio"
-						class="h-7 pointer-coarse:min-h-[44px] px-3 rounded-md border-0 text-xs font-medium cursor-pointer transition"
-						[class]="
-							selected() === option.value
-								? 'bg-surface-hover text-fg'
-								: 'bg-transparent text-fg-muted hover:text-fg'
-						"
-						[attr.aria-checked]="selected() === option.value"
-						(click)="selectedChange.emit(option.value)"
-					>
-						{{ option.label }}
-					</button>
+				<div shelfActions class="mr-1">
+					<ng-container [ngTemplateOutlet]="compareControl" />
+				</div>
+				@for (game of cards(); track game.id) {
+					<app-game-cover-card class="w-32 sm:w-40" [game]="game" />
 				}
-			</div>
-			@if (loading()) {
-				<p class="m-0 py-4 text-center text-sm text-fg-muted">
-					Comparing libraries…
-				</p>
-			} @else if (isPrivate()) {
-				<p class="m-0 py-4 text-center text-sm text-fg-muted">
-					This part of their library is private.
-				</p>
-			} @else if (games().length === 0) {
-				<p class="m-0 py-4 text-center text-sm text-fg-muted">
-					Nothing in common here yet.
-				</p>
-			} @else {
-				<ul class="list-none m-0 p-0 grid grid-cols-5 gap-2">
-					@for (game of games().slice(0, 10); track game.id) {
-						<li>
-							<a
-								class="group block"
-								[routerLink]="['/games', game.code]"
-								[attr.aria-label]="game.title"
-								[title]="game.title"
-							>
-								<app-game-poster
-									[src]="game.backgroundUrl"
-									[title]="game.title"
-									[width]="200"
-									[compact]="true"
-									class="w-full aspect-[2/3] rounded-md ring-1 ring-white/10 transition group-hover:ring-brand/60"
-								/>
-							</a>
-						</li>
-					}
-				</ul>
-				@if (count() > games().length) {
-					<a
-						class="mt-3 flex items-center justify-center gap-1 h-9 pointer-coarse:min-h-[44px] rounded-card border border-line text-xs font-medium text-brand no-underline transition hover:border-brand/40"
-						[routerLink]="['/user', username(), 'in-common']"
-						[queryParams]="{ by: selected() }"
+			</app-poster-shelf>
+		} @else {
+			<section aria-labelledby="in-common-heading">
+				<app-profile-section-header
+					heading="In common"
+					headingId="in-common-heading"
+					[eyebrow]="'You & @' + username()"
+				>
+					<ng-container [ngTemplateOutlet]="compareControl" />
+				</app-profile-section-header>
+				@if (loading()) {
+					<div
+						class="flex gap-3 sm:gap-4 overflow-hidden"
+						aria-busy="true"
 					>
-						See all {{ count() }}
-						<span aria-hidden="true" class="material-icons text-sm"
-							>arrow_forward</span
+						@for (i of skeletonRange; track i) {
+							<ui-skeleton
+								variant="rect"
+								class="block shrink-0 w-32 sm:w-40 aspect-[2/3] rounded-lg"
+							/>
+						}
+					</div>
+				} @else {
+					<p
+						class="m-0 flex items-center gap-3 p-4 rounded-card border border-dashed border-line text-sm text-fg-secondary"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-xl text-brand"
+							>join_inner</span
 						>
-					</a>
+						{{
+							isPrivate()
+								? "This part of their library is private."
+								: "Nothing in common here yet. Try the other comparison."
+						}}
+					</p>
 				}
-			}
-		</section>
+			</section>
+		}
 	`,
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProfileInCommon {
 	readonly username = input.required<string>();
-	readonly options = input.required<ComparisonOption[]>();
+	readonly options = input.required<SegmentedOption<ComparisonDimension>[]>();
 	readonly selected = input.required<ComparisonDimension>();
 	readonly games = input<ComparisonGame[]>([]);
 	readonly count = input(0);
@@ -125,4 +116,12 @@ export class ProfileInCommon {
 	readonly isPrivate = input(false);
 
 	readonly selectedChange = output<ComparisonDimension>();
+
+	protected readonly skeletonRange = SKELETON_RANGE;
+	protected readonly cards = computed(() =>
+		this.games().map(game => ({
+			...game,
+			backgroundUrl: game.backgroundUrl ?? undefined
+		}))
+	);
 }

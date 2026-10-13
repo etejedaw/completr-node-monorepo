@@ -7,17 +7,19 @@ import {
 	signal
 } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
-import { RouterLink } from "@angular/router";
 import { catchError, forkJoin, map, of } from "rxjs";
 
-import { UiButton, UiProgress, UiSkeleton } from "../../../shared/ui";
+import { ViewportService } from "../../../core/services/viewport";
+import { ListCard } from "../../../shared/components/list-card/list-card";
+import { UiButton, UiSkeleton } from "../../../shared/ui";
 import {
 	type PublicList,
 	PublicListsService
 } from "../services/public-lists.service";
 import { ProfileSectionHeader } from "./profile-section-header";
 
-const COLLAPSED_LIST_COUNT = 4;
+const COLLAPSED_LIST_COUNT = 6;
+const COLLAPSED_LIST_COUNT_MOBILE = 3;
 
 interface ListGroup {
 	title: string;
@@ -26,21 +28,17 @@ interface ListGroup {
 
 @Component({
 	selector: "app-profile-lists",
-	imports: [
-		RouterLink,
-		ProfileSectionHeader,
-		UiButton,
-		UiProgress,
-		UiSkeleton
-	],
+	imports: [ListCard, ProfileSectionHeader, UiButton, UiSkeleton],
 	templateUrl: "./profile-lists.html",
 	host: { class: "block empty:hidden" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProfileLists {
 	private readonly listsService = inject(PublicListsService);
+	private readonly isMobile = inject(ViewportService).isMobile;
 
 	readonly username = input.required<string>();
+	readonly isSelf = input(false);
 
 	private readonly lists = rxResource({
 		params: () => this.username(),
@@ -72,13 +70,17 @@ export class ProfileLists {
 		].filter(group => group.items.length > 0);
 	});
 
+	private readonly collapsedCount = computed(() =>
+		this.isMobile() ? COLLAPSED_LIST_COUNT_MOBILE : COLLAPSED_LIST_COUNT
+	);
+
 	protected readonly hasHiddenLists = computed(() =>
-		this.groups().some(group => group.items.length > COLLAPSED_LIST_COUNT)
+		this.groups().some(group => group.items.length > this.collapsedCount())
 	);
 
 	protected visibleItems(group: ListGroup): PublicList[] {
 		return this.expanded()
 			? group.items
-			: group.items.slice(0, COLLAPSED_LIST_COUNT);
+			: group.items.slice(0, this.collapsedCount());
 	}
 }
