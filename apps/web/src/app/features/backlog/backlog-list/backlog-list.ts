@@ -52,6 +52,7 @@ import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import {
 	UiBottomSheet,
 	UiButton,
+	UiDialog,
 	UiEmptyState,
 	UiIconButton,
 	UiInput,
@@ -133,6 +134,7 @@ const MIXED_STATUS_VALUE = "__mixed__";
 		FloatingXScrollbar,
 		RouterLink,
 		UiButton,
+		UiDialog,
 		UiEmptyState,
 		UiIconButton,
 		UiInput,

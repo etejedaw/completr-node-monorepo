@@ -1,0 +1,150 @@
+@let e = entry();
+<div class="flex items-start gap-4">
+	<app-game-poster
+		class="w-20 sm:w-24 aspect-[2/3] shrink-0 rounded-md ring-1 ring-white/10 shadow-lg shadow-black/40"
+		[src]="e.game.backgroundUrl"
+		[title]="e.game.title"
+		[width]="200"
+	/>
+	<div class="flex-1 min-w-0 flex flex-col gap-2">
+		<div class="flex flex-wrap items-center gap-2">
+			<span
+				class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
+				[class]="statusClass(e.status)"
+				>{{ statusLabel(e.status) }}</span
+			>
+			<span class="text-[0.8125rem] text-fg-secondary"
+				>{{ e.platform.abbreviation }}</span
+			>
+		</div>
+		@if (e.compilationGame; as compilation) {
+		<a
+			class="tap-area inline-flex items-center gap-1 w-fit px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand-subtle border border-brand/30 no-underline hover:border-brand"
+			[routerLink]="['/games', compilation.code]"
+			[title]="'Part of ' + compilation.title"
+			(click)="navigated.emit()"
+		>
+			<span aria-hidden="true" class="material-icons text-[0.75rem]"
+				>library_books</span
+			>
+			in {{ compilation.title }}
+		</a>
+		}
+		<app-star-rating
+			size="sm"
+			[value]="e.userRating ?? null"
+			[readonly]="true"
+		/>
+		@if (hasRatio()) {
+		<app-ratio-summary
+			class="self-start"
+			[ratio]="e.ratio"
+			[personalRatio]="e.personalRatio"
+		/>
+		}
+	</div>
+</div>
+
+<dl class="m-0 mt-5 grid grid-cols-2 sm:grid-cols-3 gap-2">
+	@for (fact of facts(); track fact.label) {
+	<div class="bg-input-bg border border-line rounded-card px-3 py-2.5">
+		<dt
+			class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted"
+		>
+			{{ fact.label }}
+		</dt>
+		<dd class="m-0 mt-0.5 text-sm text-fg tabular-nums">
+			{{ fact.value }}
+		</dd>
+	</div>
+	}
+</dl>
+
+@if (moodTags().length > 0) {
+<ul
+	class="list-none m-0 mt-4 p-0 flex flex-wrap gap-1.5"
+	aria-label="Mood tags"
+>
+	@for (tag of moodTags(); track tag) {
+	<li
+		class="px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-xs font-medium"
+	>
+		{{ tag }}
+	</li>
+	}
+</ul>
+} @if (latestProgress(); as progress) {
+<div
+	class="mt-4 bg-input-bg border border-line rounded-card p-3 flex items-start gap-2"
+>
+	<span aria-hidden="true" class="material-icons text-base text-brand mt-px"
+		>bookmark</span
+	>
+	<div class="flex-1 min-w-0">
+		<p
+			class="m-0 text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted"
+		>
+			Where I am
+		</p>
+		<p
+			class="m-0 mt-1 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap break-words"
+		>
+			{{ progress.note }}
+		</p>
+		<p class="m-0 mt-1 text-[0.625rem] text-fg-muted tabular-nums">
+			{{ progress.createdAt | date: "MMM d, y · HH:mm" }}
+		</p>
+	</div>
+</div>
+} @if (e.notes) {
+<figure class="m-0 mt-4 border-l-2 border-line-hover pl-3">
+	<figcaption
+		class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+	>
+		Notes
+	</figcaption>
+	<p class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap">
+		{{ e.notes }}
+	</p>
+</figure>
+} @if (e.hasReview && e.reviewContent) {
+<figure class="m-0 mt-4 border-l-2 border-brand pl-3">
+	<figcaption
+		class="flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-wider text-brand mb-1"
+	>
+		<span aria-hidden="true" class="material-icons text-sm"
+			>rate_review</span
+		>
+		Review
+	</figcaption>
+	<blockquote
+		class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap"
+	>
+		{{ e.reviewContent }}
+	</blockquote>
+</figure>
+} @if (coopMembers().length > 0) {
+<div class="mt-4">
+	<p
+		class="m-0 mb-2 text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted"
+	>
+		Played with
+	</p>
+	<ul class="list-none m-0 p-0 flex flex-wrap gap-2">
+		@for (member of coopMembers(); track member.userId) {
+		<li
+			class="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full bg-surface border border-line"
+		>
+			<ui-avatar
+				class="w-6 h-6 text-[0.625rem]"
+				[src]="member.avatarUrl"
+				[name]="member.name || member.username"
+			/>
+			<span class="text-xs text-fg-secondary"
+				>{{ member.name || member.username }}</span
+			>
+		</li>
+		}
+	</ul>
+</div>
+}

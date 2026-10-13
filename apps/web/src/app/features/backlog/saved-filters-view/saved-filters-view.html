@@ -193,38 +193,30 @@
 	</ul>
 </ui-bottom-sheet>
 } @if (showModal()) {
-<div
-	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]"
+<ui-dialog
+	eyebrow="Saved views"
+	heading="Edit view"
+	size="sm"
+	[dismissible]="!saving() && !deleting()"
+	(closed)="closeModal()"
 >
-	<div
-		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[440px] shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
-	>
-		<div class="flex justify-between items-center mb-5">
-			<h2 class="font-display m-0 text-lg font-bold">Edit View</h2>
-			<button
-				class="bg-none border-0 text-fg-muted text-2xl cursor-pointer px-1 leading-none transition hover:text-fg"
-				(click)="closeModal()"
-			>
-				&times;
-			</button>
-		</div>
-
-		<div class="mb-4">
+	<div class="flex flex-col gap-4">
+		<div>
 			<label
 				for="saved-filter-name"
 				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
 				>Name</label
 			>
 			<input
+				uiInput
 				id="saved-filter-name"
 				type="text"
-				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
 				[value]="editName()"
 				(input)="editName.set($any($event.target).value)"
 			/>
 		</div>
 
-		<div class="mb-4">
+		<div>
 			<label
 				for="saved-filter-description"
 				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
@@ -234,62 +226,60 @@
 				uiTextarea
 				id="saved-filter-description"
 				rows="3"
-				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+				placeholder="Optional description..."
 				[value]="editDescription()"
 				(input)="editDescription.set($any($event.target).value)"
-				placeholder="Optional description..."
 			></textarea>
 		</div>
 
-		<div class="mb-4">
-			<label
-				class="flex items-center gap-2 cursor-pointer text-xs font-medium text-fg-secondary uppercase tracking-wider"
-			>
-				<input
-					type="checkbox"
-					class="w-auto"
+		<div class="flex flex-col divide-y divide-line border-y border-line">
+			<div class="flex items-center gap-3 min-h-[52px] py-2">
+				<span class="flex-1 min-w-0">
+					<span class="block text-sm text-fg">Show in My Games</span>
+					<span class="block text-[0.6875rem] text-fg-muted"
+						>Pin this view as a quick filter</span
+					>
+				</span>
+				<ui-switch
+					ariaLabel="Show in My Games"
 					[checked]="editShowInBacklog()"
-					(change)="editShowInBacklog.set($any($event.target).checked)"
+					(checkedChange)="editShowInBacklog.set($event)"
 				/>
-				Show in Backlog
-			</label>
-			<span class="block mt-1 text-[0.6875rem] text-fg-muted"
-				>Pin this view as a quick filter in the Backlog page</span
+			</div>
+			<div
+				class="flex items-center gap-3 min-h-[52px] py-2"
+				[class.opacity-50]="!editShowInBacklog()"
 			>
-		</div>
-
-		<div class="mb-4">
-			<label
-				class="flex items-center gap-2 cursor-pointer text-xs font-medium text-fg-secondary uppercase tracking-wider"
-			>
-				<input
-					type="checkbox"
-					class="w-auto"
+				<span class="flex-1 min-w-0">
+					<span class="block text-sm text-fg">Default view</span>
+					<span class="block text-[0.6875rem] text-fg-muted"
+						>Apply it when opening My Games</span
+					>
+				</span>
+				<ui-switch
+					ariaLabel="Default view"
 					[checked]="editIsDefault()"
-					(change)="editIsDefault.set($any($event.target).checked)"
 					[disabled]="!editShowInBacklog()"
+					(checkedChange)="editIsDefault.set($event)"
 				/>
-				Default view
-			</label>
-			<span class="block mt-1 text-[0.6875rem] text-fg-muted"
-				>Auto-apply this view when opening the Backlog</span
-			>
+			</div>
 		</div>
 
-		<div class="mb-4">
-			<span
-				class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Icon</span
+		<fieldset class="m-0 p-0 border-0">
+			<legend
+				class="mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
 			>
-			<div class="flex flex-wrap gap-1">
+				Icon
+			</legend>
+			<div class="flex flex-wrap gap-1.5">
 				<button
 					type="button"
-					class="w-8 h-8 rounded border border-line inline-flex items-center justify-center text-fg-muted transition hover:border-brand"
-					[class.!border-brand]="!editIcon()"
-					[class.text-brand]="!editIcon()"
-					(click)="editIcon.set(null)"
-					title="No icon"
+					class="size-9 max-md:size-[44px] pointer-coarse:size-[44px] rounded-card border inline-flex items-center justify-center transition hover:border-brand"
+					[class]="!editIcon() ? 'border-brand text-brand bg-brand-subtle' : 'border-line text-fg-muted'"
 					aria-label="No icon"
+					title="No icon"
+					[attr.aria-pressed]="!editIcon()"
+					(click)="editIcon.set(null)"
 				>
 					<span aria-hidden="true" class="material-icons text-base"
 						>block</span
@@ -298,10 +288,11 @@
 				@for (ic of iconOptions; track ic) {
 				<button
 					type="button"
-					class="w-8 h-8 rounded border border-line inline-flex items-center justify-center transition hover:border-brand"
-					[class.!border-brand]="editIcon() === ic"
-					(click)="editIcon.set(ic)"
+					class="size-9 max-md:size-[44px] pointer-coarse:size-[44px] rounded-card border inline-flex items-center justify-center transition hover:border-brand"
+					[class]="editIcon() === ic ? 'border-brand bg-brand-subtle' : 'border-line'"
 					[attr.aria-label]="ic"
+					[attr.aria-pressed]="editIcon() === ic"
+					(click)="editIcon.set(ic)"
 				>
 					<span
 						aria-hidden="true"
@@ -312,21 +303,23 @@
 				</button>
 				}
 			</div>
-		</div>
+		</fieldset>
 
-		<div class="mb-4">
-			<span
-				class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Color</span
+		<fieldset class="m-0 p-0 border-0">
+			<legend
+				class="mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
 			>
-			<div class="flex flex-wrap items-center gap-1.5">
+				Color
+			</legend>
+			<div class="flex flex-wrap items-center gap-2">
 				<button
 					type="button"
-					class="w-7 h-7 rounded-full border border-line inline-flex items-center justify-center text-fg-muted transition hover:border-brand"
-					[class.!border-brand]="!editColor()"
-					(click)="editColor.set(null)"
-					title="No color"
+					class="size-8 max-md:size-[44px] pointer-coarse:size-[44px] rounded-full border inline-flex items-center justify-center text-fg-muted transition hover:border-brand"
+					[class]="!editColor() ? 'border-brand ring-2 ring-fg/80 ring-offset-2 ring-offset-sidebar' : 'border-line'"
 					aria-label="No color"
+					title="No color"
+					[attr.aria-pressed]="!editColor()"
+					(click)="editColor.set(null)"
 				>
 					<span aria-hidden="true" class="material-icons text-sm"
 						>block</span
@@ -335,123 +328,78 @@
 				@for (c of colorOptions; track c.key) {
 				<button
 					type="button"
-					class="w-7 h-7 rounded-full transition"
+					class="size-8 max-md:size-[44px] pointer-coarse:size-[44px] rounded-full transition"
+					[class]="editColor() === c.key ? 'ring-2 ring-fg/80 ring-offset-2 ring-offset-sidebar' : ''"
 					[style.background]="c.hex"
-					[style.outline]="
-						editColor() === c.key ? '2px solid #fff' : 'none'
-					"
-					[style.outline-offset]="'1px'"
-					(click)="editColor.set(c.key)"
 					[attr.aria-label]="c.key"
+					[attr.aria-pressed]="editColor() === c.key"
 					[title]="c.key"
+					(click)="editColor.set(c.key)"
 				></button>
 				}
 			</div>
-		</div>
+		</fieldset>
+	</div>
 
-		<div
-			class="flex justify-between items-center mt-5 pt-4 border-t border-line"
+	<ng-container dialogFooter>
+		<app-dialog-delete-action
+			question="Delete this view?"
+			[busy]="deleting()"
+			(confirmed)="deleteFilter()"
+		/>
+		<button uiButton variant="ghost" type="button" (click)="closeModal()">
+			Cancel
+		</button>
+		<button
+			uiButton
+			variant="primary"
+			type="button"
+			[disabled]="saving() || !editName().trim()"
+			(click)="saveEdit()"
 		>
-			<div class="flex items-center gap-2">
-				@if (!showConfirmDelete()) {
-				<button
-					class="px-3 py-1.5 bg-transparent border border-danger/30 text-danger rounded text-xs cursor-pointer transition hover:bg-danger/10"
-					(click)="showConfirmDelete.set(true)"
-				>
-					Delete
-				</button>
-				} @else {
-				<span class="text-[0.8125rem] text-danger"
-					>Delete this view?</span
-				>
-				<button
-					class="px-3 py-1.5 bg-danger border-0 text-white rounded text-xs font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-					(click)="deleteFilter()"
-					[disabled]="deleting()"
-				>
-					{{ deleting() ? '...' : 'Yes' }}
-				</button>
-				<button
-					class="px-3 py-1.5 bg-transparent border-0 text-fg-muted rounded text-xs cursor-pointer hover:text-fg"
-					(click)="showConfirmDelete.set(false)"
-				>
-					Cancel
-				</button>
-				}
-			</div>
-			<button
-				class="px-5 py-2 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer ml-auto transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-				style="
-					background: linear-gradient(
-						135deg,
-						var(--color-brand),
-						var(--color-brand-deep)
-					);
-				"
-				(click)="saveEdit()"
-				[disabled]="saving() || !editName().trim()"
-			>
-				{{ saving() ? 'Saving...' : 'Save' }}
-			</button>
-		</div>
-	</div>
-</div>
+			{{ saving() ? "Saving..." : "Save" }}
+		</button>
+	</ng-container>
+</ui-dialog>
 } @if (showDuplicateModal()) {
-<div
-	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]"
+<ui-dialog
+	eyebrow="Saved views"
+	heading="Duplicate view"
+	size="sm"
+	[dismissible]="!duplicating()"
+	(closed)="closeDuplicateModal()"
 >
-	<div
-		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[440px] shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
+	<label
+		for="duplicate-filter-name"
+		class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+		>Name</label
 	>
-		<div class="flex justify-between items-center mb-5">
-			<h2 class="font-display m-0 text-lg font-bold">Duplicate View</h2>
-			<button
-				class="bg-none border-0 text-fg-muted text-2xl cursor-pointer px-1 leading-none transition hover:text-fg"
-				(click)="closeDuplicateModal()"
-				aria-label="Close"
-			>
-				&times;
-			</button>
-		</div>
-
-		<div class="mb-5">
-			<label
-				for="duplicate-filter-name"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Name</label
-			>
-			<input
-				id="duplicate-filter-name"
-				type="text"
-				class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
-				[value]="duplicateName()"
-				(input)="duplicateName.set($any($event.target).value)"
-				(keydown.enter)="confirmDuplicate()"
-			/>
-		</div>
-
-		<div class="flex justify-end items-center gap-2">
-			<button
-				class="px-3 py-1.5 bg-transparent border-0 text-fg-muted rounded text-[0.8125rem] cursor-pointer hover:text-fg"
-				(click)="closeDuplicateModal()"
-			>
-				Cancel
-			</button>
-			<button
-				class="px-5 py-2 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-				style="
-					background: linear-gradient(
-						135deg,
-						var(--color-brand),
-						var(--color-brand-deep)
-					);
-				"
-				(click)="confirmDuplicate()"
-				[disabled]="duplicating() || !duplicateName().trim()"
-			>
-				{{ duplicating() ? 'Duplicating...' : 'Duplicate' }}
-			</button>
-		</div>
-	</div>
-</div>
+	<input
+		uiInput
+		id="duplicate-filter-name"
+		type="text"
+		[value]="duplicateName()"
+		(input)="duplicateName.set($any($event.target).value)"
+		(keydown.enter)="confirmDuplicate()"
+	/>
+	<ng-container dialogFooter>
+		<button
+			uiButton
+			variant="ghost"
+			type="button"
+			(click)="closeDuplicateModal()"
+		>
+			Cancel
+		</button>
+		<button
+			uiButton
+			variant="primary"
+			type="button"
+			[disabled]="duplicating() || !duplicateName().trim()"
+			(click)="confirmDuplicate()"
+		>
+			{{ duplicating() ? "Duplicating..." : "Duplicate" }}
+		</button>
+	</ng-container>
+</ui-dialog>
 }

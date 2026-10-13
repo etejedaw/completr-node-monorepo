@@ -12,6 +12,7 @@ import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
+import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import {
@@ -22,11 +23,14 @@ import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiBottomSheet,
 	UiButton,
+	UiDialog,
 	UiEmptyState,
+	UiInput,
 	UiPagination,
 	UiPremiumBadge,
 	UiSearchBar,
 	UiSkeleton,
+	UiSwitch,
 	UiTextarea
 } from "../../../shared/ui";
 import { injectLibraryPosters } from "../library-posters";
@@ -83,7 +87,11 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
 		UiSkeleton,
 		UiBottomSheet,
 		UiTextarea,
-		PremiumOnly
+		PremiumOnly,
+		UiDialog,
+		UiInput,
+		UiSwitch,
+		DialogDeleteAction
 	],
 	templateUrl: "./saved-filters-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -172,7 +180,6 @@ export class SavedFiltersView implements OnInit {
 	protected readonly colorOptions = SAVED_FILTER_COLORS;
 	protected readonly colorHex = savedFilterColorHex;
 	protected readonly saving = signal(false);
-	protected readonly showConfirmDelete = signal(false);
 	protected readonly deleting = signal(false);
 	protected readonly showDuplicateModal = signal(false);
 	protected readonly duplicatingFilter = signal<SavedFilter | null>(null);
@@ -299,7 +306,6 @@ export class SavedFiltersView implements OnInit {
 		this.editIsDefault.set(filter.isDefault);
 		this.editIcon.set(filter.icon);
 		this.editColor.set(filter.color);
-		this.showConfirmDelete.set(false);
 		this.showModal.set(true);
 	}
 
