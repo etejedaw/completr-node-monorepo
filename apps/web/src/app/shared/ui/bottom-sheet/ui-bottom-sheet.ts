@@ -1,6 +1,11 @@
 import {
+	afterNextRender,
 	ChangeDetectionStrategy,
 	Component,
+	DestroyRef,
+	DOCUMENT,
+	ElementRef,
+	inject,
 	input,
 	output
 } from "@angular/core";
@@ -62,4 +67,18 @@ export class UiBottomSheet {
 	readonly heading = input.required<string>();
 	readonly subheading = input<string | null>(null);
 	readonly closed = output<void>();
+
+	constructor() {
+		const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+		const document = inject(DOCUMENT);
+		afterNextRender({
+			write: () => {
+				const focused = document.activeElement;
+				document.body.appendChild(host);
+				if (focused instanceof HTMLElement && host.contains(focused))
+					focused.focus();
+			}
+		});
+		inject(DestroyRef).onDestroy(() => host.remove());
+	}
 }
