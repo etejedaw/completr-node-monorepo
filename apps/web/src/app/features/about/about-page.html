@@ -1,0 +1,217 @@
+<app-library-hero heading="Completr" [posters]="posters()">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>About</span
+	>
+	<p
+		heroSubtitle
+		class="m-0 mt-3 max-w-xl text-sm sm:text-base text-fg-secondary leading-relaxed"
+	>
+		A game backlog tracker in the spirit of Trakt and Letterboxd, built
+		around one question: what should you play next?
+	</p>
+	<a
+		heroActions
+		uiButton
+		variant="secondary"
+		class="!bg-surface/70 backdrop-blur sm:mb-6"
+		routerLink="/help"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>menu_book</span
+		>
+		Read the guide
+	</a>
+</app-library-hero>
+
+<section
+	aria-labelledby="about-pitch"
+	class="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16 lg:items-end"
+>
+	<h2
+		id="about-pitch"
+		class="font-display m-0 text-3xl sm:text-5xl font-bold tracking-tight leading-[1.05] [text-wrap:balance]"
+	>
+		Too many games.
+		<span class="text-brand">Not enough time.</span>
+	</h2>
+	<div
+		class="flex flex-col gap-3 max-w-[60ch] text-[1.0625rem] leading-relaxed text-fg-secondary"
+	>
+		<p class="m-0">
+			Completr weighs every game's score against the hours it takes to
+			beat. That number, the
+			<a
+				routerLink="/help"
+				fragment="ratio"
+				class="tap-area text-brand no-underline hover:underline"
+				>ratio</a
+			>, puts the games that give you the most per hour at the top of your
+			backlog.
+		</p>
+		<p class="m-0">
+			Track every run, follow friends, build lists and see what's worth
+			your next evening.
+		</p>
+	</div>
+</section>
+
+<div class="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+	<section
+		aria-labelledby="about-maker"
+		class="relative isolate overflow-hidden flex flex-col gap-4 p-6 rounded-card border border-line bg-surface"
+	>
+		<div
+			aria-hidden="true"
+			class="absolute -z-10 -bottom-24 -left-16 w-72 h-72 rounded-full bg-brand-glow blur-3xl opacity-40"
+		></div>
+		<span
+			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-muted"
+			>Made by</span
+		>
+		<div class="flex items-center gap-4">
+			<span
+				aria-hidden="true"
+				class="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-brand to-brand-deep text-white font-display text-lg font-bold shadow-lg shadow-brand-glow"
+				>ET</span
+			>
+			<div class="min-w-0">
+				<h2
+					id="about-maker"
+					class="m-0 font-display text-xl font-bold text-fg"
+				>
+					Esteban Tejeda
+				</h2>
+				<a
+					href="https://www.etejeda.dev"
+					target="_blank"
+					rel="noopener"
+					class="tap-area text-sm text-brand no-underline hover:underline"
+					>etejeda.dev</a
+				>
+			</div>
+		</div>
+		<p class="m-0 text-sm text-fg-secondary leading-relaxed">
+			Built solo, one bug at a time. Your feedback decides what comes
+			next, so bug reports and ideas are always welcome.
+		</p>
+		<a
+			uiButton
+			variant="primary"
+			class="mt-auto self-start"
+			[href]="'mailto:' + feedbackEmail"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>mail</span
+			>
+			Send feedback
+		</a>
+	</section>
+
+	<section
+		aria-labelledby="about-open-source"
+		class="flex flex-col gap-3 p-6 rounded-card border border-line bg-surface/40"
+	>
+		<span
+			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-muted"
+			>Open source</span
+		>
+		<h2
+			id="about-open-source"
+			class="m-0 flex items-center gap-2 font-display text-lg font-semibold text-fg"
+		>
+			<span aria-hidden="true" class="material-icons text-success"
+				>lock_open</span
+			>
+			AGPL-3.0
+		</h2>
+		<p class="m-0 text-sm text-fg-secondary leading-relaxed">
+			Every line is public. Read the code, report an issue or host your
+			own copy.
+		</p>
+		<div class="mt-auto flex flex-wrap gap-x-4 gap-y-2 text-sm">
+			<a
+				[href]="repositoryUrl"
+				target="_blank"
+				rel="noopener"
+				class="tap-area inline-flex items-center gap-1 text-brand no-underline hover:underline"
+				>Source code
+				<span aria-hidden="true" class="material-icons text-sm"
+					>open_in_new</span
+				></a
+			>
+			<a
+				[href]="issuesUrl"
+				target="_blank"
+				rel="noopener"
+				class="tap-area inline-flex items-center gap-1 text-brand no-underline hover:underline"
+				>Report an issue
+				<span aria-hidden="true" class="material-icons text-sm"
+					>open_in_new</span
+				></a
+			>
+		</div>
+	</section>
+
+	<section
+		aria-labelledby="about-stack"
+		class="flex flex-col gap-3 p-6 rounded-card border border-line bg-surface/40 md:col-span-2 lg:col-span-1"
+	>
+		<span
+			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-muted"
+			>Built with</span
+		>
+		<h2 id="about-stack" class="sr-only">Technology</h2>
+		<ul class="m-0 p-0 list-none flex flex-wrap gap-2">
+			@for (tech of stack; track tech) {
+			<li
+				class="px-3 py-1.5 rounded-full border border-line bg-input-bg text-xs font-medium text-fg-secondary"
+			>
+				{{ tech }}
+			</li>
+			}
+		</ul>
+	</section>
+
+	<section
+		aria-labelledby="about-data"
+		class="flex flex-col gap-3 p-6 rounded-card border border-line bg-surface/40 md:col-span-2 lg:col-span-3"
+	>
+		<span
+			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-muted"
+			>Data sources</span
+		>
+		<h2 id="about-data" class="sr-only">Data sources</h2>
+		<ul class="m-0 p-0 list-none grid gap-3 sm:grid-cols-3">
+			@for (source of dataSources; track source.name) {
+			<li>
+				<a
+					[href]="source.url"
+					target="_blank"
+					rel="noopener"
+					class="group flex flex-col gap-1 h-full min-h-[44px] p-3 rounded-lg border border-line no-underline transition-colors hover:border-line-hover hover:bg-surface"
+				>
+					<span
+						class="inline-flex items-center gap-1 text-sm font-semibold text-fg group-hover:text-brand"
+						>{{ source.name }}
+						<span
+							aria-hidden="true"
+							class="material-icons text-sm text-fg-muted"
+							>open_in_new</span
+						></span
+					>
+					<span class="text-xs text-fg-muted leading-snug"
+						>{{ source.provides }}</span
+					>
+				</a>
+			</li>
+			}
+		</ul>
+		<p class="m-0 text-xs text-fg-muted">
+			Used per their respective API terms.
+		</p>
+	</section>
+</div>
+
+<app-info-page-links current="about" />
