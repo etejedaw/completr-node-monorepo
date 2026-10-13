@@ -15,6 +15,7 @@ import {
 	type Game,
 	type GameShelfEntry
 } from "../../../core/models";
+import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
@@ -26,10 +27,12 @@ import {
 	matchesPlatform,
 	PlatformFilter
 } from "../../../shared/components/platform-filter/platform-filter";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
+	UiPremiumBadge,
 	UiSearchBar
 } from "../../../shared/ui";
 import { BacklogService } from "../../backlog/backlog";
@@ -78,7 +81,9 @@ function readStoredViewMode(): ShelfViewMode {
 		CoverGrid,
 		LibraryHero,
 		LibraryToolbar,
-		PlatformFilter
+		PlatformFilter,
+		PremiumOnly,
+		UiPremiumBadge
 	],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -90,6 +95,7 @@ export class GameShelfList implements OnInit {
 	private readonly backlogService = inject(BacklogService);
 	private readonly gamesService = inject(GamesService);
 	private readonly dialogs = inject(DialogService);
+	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly viewModes = VIEW_MODES;
 
 	protected readonly allEntries = signal<GameShelfEntry[]>([]);

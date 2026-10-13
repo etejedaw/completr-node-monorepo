@@ -5,10 +5,20 @@
 		>Library</span
 	>
 	<p heroSubtitle class="m-0 mt-2 max-w-xl text-sm text-fg-secondary">
-		<span class="font-semibold text-fg tabular-nums"
+		<span
+			class="font-semibold text-fg tabular-nums"
+			[class.!text-premium]="isPremium()"
 			>{{ tags().length }}</span
 		>
-		{{ tags().length === 1 ? 'tag' : 'tags' }} ·
+		{{ tags().length === 1 ? 'tag' : 'tags' }}
+		<ui-premium-badge
+			*appPremiumOnly
+			size="sm"
+			interactive
+			label="Premium perk: unlimited tags"
+			message="Your tags have no limit. Create as many labels as you like."
+		/>
+		·
 		<span class="font-semibold text-fg tabular-nums"
 			>{{ totalUsage() }}</span
 		>

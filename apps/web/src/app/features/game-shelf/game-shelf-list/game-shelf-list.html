@@ -5,9 +5,20 @@
 		>Library</span
 	>
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
-		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
-		{{ total() === 1 ? 'game' : 'games' }} you own @if
-		(platformCounts().length > 1) { · across
+		<span
+			class="font-semibold text-fg tabular-nums"
+			[class.!text-premium]="isPremium()"
+			>{{ total() }}</span
+		>
+		{{ total() === 1 ? 'game' : 'games' }} you own
+		<ui-premium-badge
+			*appPremiumOnly
+			size="sm"
+			interactive
+			label="Premium perk: unlimited My Shelf"
+			message="Your shelf has no limit. Add every game you own."
+		/>
+		@if (platformCounts().length > 1) { · across
 		<span class="font-semibold text-fg tabular-nums"
 			>{{ platformCounts().length }}</span
 		>

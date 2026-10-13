@@ -8,6 +8,7 @@ import {
 } from "@angular/core";
 import { Router } from "@angular/router";
 
+import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
@@ -15,12 +16,14 @@ import {
 	OptionPicker,
 	type PickerOption
 } from "../../../shared/components/option-picker/option-picker";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiBottomSheet,
 	UiButton,
 	UiDialog,
 	UiEmptyState,
 	UiInput,
+	UiPremiumBadge,
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
@@ -70,7 +73,9 @@ const SHEET_ACTIONS: {
 		UiInput,
 		UiSearchBar,
 		UiSkeleton,
-		UiDialog
+		UiDialog,
+		PremiumOnly,
+		UiPremiumBadge
 	],
 	templateUrl: "./tags-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -79,6 +84,7 @@ export default class TagsPage implements OnInit {
 	private readonly moodTagsService = inject(MoodTagsService);
 	private readonly toast = inject(ToastService);
 	private readonly router = inject(Router);
+	protected readonly isPremium = inject(AuthService).isPremium;
 
 	protected readonly tags = signal<UserTag[]>([]);
 	protected readonly loading = signal(true);
