@@ -6,6 +6,11 @@ import {
 	model
 } from "@angular/core";
 
+import {
+	OptionPicker,
+	type PickerOption
+} from "../option-picker/option-picker";
+
 export interface PlatformCount {
 	id: string;
 	label: string;
@@ -49,8 +54,19 @@ export function matchesPlatform(
 
 @Component({
 	selector: "app-platform-filter",
+	imports: [OptionPicker],
 	template: `
-		<nav aria-label="Filter by platform" class="flex flex-wrap gap-2">
+		<app-option-picker
+			class="md:hidden"
+			label="Platform"
+			heading="Filter by platform"
+			[options]="pickerOptions()"
+			[(value)]="selected"
+		/>
+		<nav
+			aria-label="Filter by platform"
+			class="max-md:hidden flex flex-wrap gap-2"
+		>
 			@for (option of options(); track option.id) {
 				<button
 					type="button"
@@ -81,4 +97,13 @@ export class PlatformFilter {
 		{ id: "", label: "All", count: this.total() },
 		...this.platforms()
 	]);
+
+	protected readonly pickerOptions = computed<PickerOption[]>(() =>
+		this.options().map(option => ({
+			value: option.id,
+			label: option.id ? option.label : "All platforms",
+			icon: option.id ? "sports_esports" : "apps",
+			count: option.count
+		}))
+	);
 }
