@@ -7,7 +7,7 @@
 			<div class="flex flex-col">
 				<span
 					class="font-display text-5xl font-bold leading-none tabular-nums"
-					[class]="averageRating() ? 'text-warning' : 'text-fg-muted'"
+					[class]="averageRating() ? 'text-rating' : 'text-fg-muted'"
 					>{{ averageRating() ?? '—' }}</span
 				>
 				<span
@@ -38,7 +38,7 @@
 					class="w-7 inline-flex items-center gap-0.5 text-fg-secondary tabular-nums"
 					>{{ bucket.stars }}<span
 						aria-hidden="true"
-						class="material-icons text-[0.75rem] text-warning"
+						class="material-icons text-[0.75rem] text-rating"
 						>star</span
 					></span
 				>
@@ -47,7 +47,7 @@
 					aria-hidden="true"
 				>
 					<span
-						class="block h-full rounded-full bg-warning/80 transition-[width] duration-500"
+						class="block h-full rounded-full bg-rating/80 transition-[width] duration-500"
 						[style.width.%]="bucket.percent"
 					></span>
 				</span>
@@ -80,7 +80,7 @@
 			/>
 			@if (ratingLabel(reviewForm.rating().value()); as label) {
 			<span
-				class="text-xs font-bold uppercase tracking-[0.14em] text-warning"
+				class="text-xs font-bold uppercase tracking-[0.14em] text-rating"
 				>{{ label }}</span
 			>
 			}

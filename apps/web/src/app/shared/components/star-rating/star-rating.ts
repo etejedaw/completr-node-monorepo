@@ -77,7 +77,7 @@ export class StarRating {
 		const sizeText = STAR_GLYPH[this.size()];
 		const state = this.starState(star);
 		let color = "";
-		if (state === "full") color = "text-warning";
+		if (state === "full") color = "text-rating";
 		else if (state === "empty") color = "text-fg-muted/40";
 		return `absolute inset-0 flex items-center justify-center pointer-events-none transition-colors leading-none ${sizeText} ${color}`;
 	}

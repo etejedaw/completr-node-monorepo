@@ -28,8 +28,8 @@ const SEGMENT_STYLES: Omit<LibrarySegment, "count" | "percent">[] = [
 	{
 		status: "playing",
 		label: "Playing",
-		barClass: "bg-warning",
-		dotClass: "bg-warning"
+		barClass: "bg-playing",
+		dotClass: "bg-playing"
 	},
 	{
 		status: "not_started",

@@ -59,7 +59,7 @@ const COLLAGE_SIZE = 4;
 			<div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
 				@if (list().isOfficial) {
 					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-canvas/70 text-warning backdrop-blur-md"
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-canvas/70 text-brand-hover backdrop-blur-md"
 					>
 						<span
 							aria-hidden="true"
@@ -71,7 +71,7 @@ const COLLAGE_SIZE = 4;
 				}
 				@if (progress()?.percent === 100) {
 					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/90 text-black backdrop-blur-md"
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-success/90 text-black backdrop-blur-md"
 					>
 						<span
 							aria-hidden="true"

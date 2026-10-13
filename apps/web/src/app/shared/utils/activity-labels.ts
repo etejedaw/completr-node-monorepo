@@ -39,7 +39,7 @@ const ACTIVITY_ICONS: Record<string, string> = {
 const ACTIVITY_ICON_COLOR_CLASSES: Record<string, string> = {
 	backlog_added: "text-brand",
 	backlog_not_started: "text-fg-muted",
-	backlog_playing: "text-warning",
+	backlog_playing: "text-playing",
 	backlog_completed: "text-success",
 	backlog_abandoned: "text-danger",
 	backlog_endless: "text-brand",

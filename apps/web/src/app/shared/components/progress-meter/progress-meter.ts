@@ -20,7 +20,7 @@ import { UiProgress } from "../../ui";
 				class="flex items-center gap-1.5 font-semibold text-fg tabular-nums"
 			>
 				@if (isComplete()) {
-					<span class="inline-flex items-center gap-0.5 text-warning">
+					<span class="inline-flex items-center gap-0.5 text-success">
 						<span aria-hidden="true" class="material-icons text-sm"
 							>emoji_events</span
 						>

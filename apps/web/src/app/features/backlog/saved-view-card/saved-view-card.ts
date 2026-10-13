@@ -78,7 +78,7 @@ function buildChips(view: SavedFilter): ViewChip[] {
 		chips.push({
 			label: "Rating",
 			icon: "star",
-			classes: "bg-warning/10 text-warning"
+			classes: "bg-rating/10 text-rating"
 		});
 	}
 	if (view.sortBy && view.sortBy !== "createdAt") {

@@ -15,7 +15,7 @@ import { type PublicProfile } from "../public-profile.service";
 const ROLE_BADGES: Record<string, { label: string; className: string }> = {
 	admin: { label: "Admin", className: "bg-danger/20 text-danger" },
 	moderator: { label: "Mod", className: "bg-info/20 text-info" },
-	premium: { label: "Premium", className: "bg-warning/20 text-warning" }
+	premium: { label: "Premium", className: "bg-premium/20 text-premium" }
 };
 
 const MEMBER_SINCE_FORMAT = new Intl.DateTimeFormat("en", {

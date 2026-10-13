@@ -2,7 +2,7 @@ import { type BacklogStatus } from "../../core/models";
 
 const STATUS_CLASSES: Record<BacklogStatus, string> = {
 	not_started: "bg-fg-muted/10 text-fg-muted",
-	playing: "bg-warning/10 text-warning",
+	playing: "bg-playing/10 text-playing",
 	completed: "bg-success/10 text-success",
 	abandoned: "bg-danger/10 text-danger",
 	endless: "bg-brand-subtle text-brand"
@@ -26,7 +26,7 @@ const STATUS_ICONS: Record<BacklogStatus, string> = {
 
 const STATUS_ICON_COLORS: Record<BacklogStatus, string> = {
 	not_started: "text-fg-muted",
-	playing: "text-warning",
+	playing: "text-playing",
 	completed: "text-success",
 	abandoned: "text-danger",
 	endless: "text-brand"

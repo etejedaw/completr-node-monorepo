@@ -44,7 +44,7 @@
 				<div class="flex flex-wrap items-center gap-1.5 mb-2 sm:mb-3">
 					@if (game().isDlc) {
 					<span
-						class="py-0.5 px-2 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-warning/25 text-warning backdrop-blur-sm"
+						class="py-0.5 px-2 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand/25 text-brand-hover backdrop-blur-sm"
 						>DLC</span
 					>
 					} @if (game().isCompilation) {
@@ -84,7 +84,7 @@
 					} @if (game().parentGame; as parent) {
 					<span aria-hidden="true" class="text-white/30">•</span>
 					<a
-						class="text-warning no-underline transition hover:text-white"
+						class="text-brand-hover no-underline transition hover:text-white"
 						[routerLink]="['/games', parent.code]"
 						>DLC of {{ parent.title }}</a
 					>

@@ -83,7 +83,7 @@ export class BacklogCalendar {
 	);
 	protected readonly hiddenStatuses = signal<Set<BacklogStatus>>(new Set());
 	protected readonly legendItems: { status: BacklogStatus; dot: string }[] = [
-		{ status: "playing", dot: "bg-warning" },
+		{ status: "playing", dot: "bg-playing" },
 		{ status: "completed", dot: "bg-success" },
 		{ status: "abandoned", dot: "bg-danger" },
 		{ status: "endless", dot: "bg-brand" }
@@ -186,7 +186,7 @@ export class BacklogCalendar {
 	barClass(status: BacklogStatus): string {
 		const map: Record<BacklogStatus, string> = {
 			not_started: "bg-fg-muted/15 text-fg-secondary",
-			playing: "bg-warning/25 text-warning",
+			playing: "bg-playing/25 text-playing",
 			completed: "bg-success/25 text-success",
 			abandoned: "bg-danger/25 text-danger",
 			endless: "bg-brand-subtle text-brand"
@@ -197,7 +197,7 @@ export class BacklogCalendar {
 	dotClass(status: BacklogStatus): string {
 		const map: Record<BacklogStatus, string> = {
 			not_started: "bg-fg-muted",
-			playing: "bg-warning",
+			playing: "bg-playing",
 			completed: "bg-success",
 			abandoned: "bg-danger",
 			endless: "bg-brand"

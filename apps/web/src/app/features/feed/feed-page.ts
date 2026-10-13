@@ -158,7 +158,7 @@ export class FeedPage implements OnInit {
 			value: "type:backlog_playing",
 			label: "Started playing",
 			icon: "play_circle",
-			iconClass: "text-warning"
+			iconClass: "text-playing"
 		},
 		{ value: "type:game_reviewed", label: "Reviews", icon: "rate_review" },
 		{ value: "cat:lists", label: "Lists", icon: "format_list_bulleted" },

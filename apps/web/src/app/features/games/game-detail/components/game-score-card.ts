@@ -44,7 +44,7 @@ function buildVariant(score: CanonicalScore): ScoreCardVariant | null {
 					label: "Rating",
 					value: getRatingLabel(score.score),
 					stars: score.score ?? 0,
-					valueClass: "text-warning"
+					valueClass: "text-rating"
 				},
 				{ label: "Duration", value: `${duration}`, unit: "h avg" }
 			]

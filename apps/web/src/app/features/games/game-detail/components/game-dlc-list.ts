@@ -26,7 +26,7 @@ import { GamePoster } from "../../../../shared/components/game-poster/game-poste
 							class="flex-1 min-w-0 flex flex-col justify-center gap-1.5 px-4 py-3"
 						>
 							<span
-								class="w-fit px-1.5 py-px rounded-full bg-warning/15 text-warning text-[0.5625rem] font-bold uppercase tracking-wider"
+								class="w-fit px-1.5 py-px rounded-full bg-brand/15 text-brand-hover text-[0.5625rem] font-bold uppercase tracking-wider"
 								>DLC</span
 							>
 							<span

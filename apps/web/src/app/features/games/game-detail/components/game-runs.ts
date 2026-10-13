@@ -173,7 +173,7 @@ import {
 										}
 										@if (run.userRating) {
 											<span
-												class="inline-flex items-center gap-0.5 text-warning"
+												class="inline-flex items-center gap-0.5 text-rating"
 											>
 												<span
 													aria-hidden="true"

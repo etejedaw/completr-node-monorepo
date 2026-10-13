@@ -74,7 +74,7 @@ export interface FeaturedList {
 								}
 								@if (list.completed) {
 									<span
-										class="inline-flex items-center gap-0.5 text-warning font-semibold"
+										class="inline-flex items-center gap-0.5 text-success font-semibold"
 									>
 										<span
 											aria-hidden="true"
