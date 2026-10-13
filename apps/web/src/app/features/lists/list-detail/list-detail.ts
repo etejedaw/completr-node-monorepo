@@ -4,7 +4,6 @@ import {
 	CdkDropList,
 	moveItemInArray
 } from "@angular/cdk/drag-drop";
-import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -13,14 +12,17 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
+import { toObservable } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import {
 	debounceTime,
 	distinctUntilChanged,
+	filter,
 	forkJoin,
 	of,
 	Subject,
-	switchMap
+	switchMap,
+	take
 } from "rxjs";
 
 import {
@@ -34,11 +36,11 @@ import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
 import {
 	UiBottomSheet,
 	UiButton,
 	UiEmptyState,
-	UiProgress,
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
@@ -77,17 +79,16 @@ const LIST_ACTIONS: { id: ListActionId; icon: string; label: string }[] = [
 @Component({
 	selector: "app-list-detail",
 	imports: [
-		NgTemplateOutlet,
 		RouterLink,
 		CdkDropList,
 		CdkDrag,
 		GamePoster,
 		LibraryHero,
 		ListItemRow,
+		ProgressMeter,
 		UiBottomSheet,
 		UiButton,
 		UiEmptyState,
-		UiProgress,
 		UiSearchBar,
 		UiSkeleton
 	],
@@ -175,6 +176,15 @@ export class ListDetail implements OnInit {
 		if (viewer && viewer === from) return false;
 		return true;
 	});
+	protected readonly singleProgressLabel = computed(() =>
+		this.showComparisonBanner()
+			? `@${this.fromUsername()}’s progress`
+			: "Your progress"
+	);
+	private readonly viewerLoaded$ = toObservable(this.authService.user).pipe(
+		filter(user => user !== null),
+		take(1)
+	);
 	protected readonly canCompare = computed(() => {
 		if (!this.showComparisonBanner()) return false;
 		return this.viewerUsername() !== null;
@@ -187,7 +197,7 @@ export class ListDetail implements OnInit {
 			this.route.snapshot.queryParamMap.get(ListDetail.COMPARE_PARAM) ===
 				"1"
 		);
-		if (this.listId) this.loadList();
+		if (this.listId) this.loadListOnceViewerIsKnown();
 
 		this.searchSubject
 			.pipe(
@@ -398,6 +408,15 @@ export class ListDetail implements OnInit {
 			},
 			error: () => this.togglingFollow.set(false)
 		});
+	}
+
+	private loadListOnceViewerIsKnown() {
+		const needsViewer = this.compareMode() && this.showComparisonBanner();
+		if (!needsViewer || this.viewerUsername() !== null) {
+			this.loadList();
+			return;
+		}
+		this.viewerLoaded$.subscribe(() => this.loadList());
 	}
 
 	private loadList() {

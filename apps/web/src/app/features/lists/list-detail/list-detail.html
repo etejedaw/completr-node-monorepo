@@ -187,22 +187,24 @@
 
 	@if (compareMode() && viewerListProgress() && current.progress) {
 	<div class="grid gap-3 sm:grid-cols-2 max-w-3xl">
-		<ng-container
-			[ngTemplateOutlet]="progressBar"
-			[ngTemplateOutletContext]="{ label: 'You', progress: viewerListProgress()! }"
+		<app-progress-meter
+			label="You"
+			[completed]="viewerListProgress()!.completed"
+			[total]="viewerListProgress()!.total"
 		/>
-		<ng-container
-			[ngTemplateOutlet]="progressBar"
-			[ngTemplateOutletContext]="{ label: '@' + fromUsername(), progress: current.progress }"
+		<app-progress-meter
+			[label]="'@' + fromUsername()"
+			[completed]="current.progress.completed"
+			[total]="current.progress.total"
 		/>
 	</div>
 	} @else if (progressSummary(); as summary) {
-	<div class="max-w-xl">
-		<ng-container
-			[ngTemplateOutlet]="progressBar"
-			[ngTemplateOutletContext]="{ label: rowMode() === 'theirs' ? '@' + fromUsername() + '’s progress' : 'Your progress', progress: summary }"
-		/>
-	</div>
+	<app-progress-meter
+		class="max-w-xl"
+		[label]="singleProgressLabel()"
+		[completed]="summary.completed"
+		[total]="summary.total"
+	/>
 	}
 </app-library-hero>
 
@@ -456,32 +458,3 @@
 	</ul>
 </ui-bottom-sheet>
 } }
-
-<ng-template #progressBar let-label="label" let-progress="progress">
-	<div class="flex flex-col gap-1.5">
-		<div class="flex items-center justify-between gap-3 text-xs">
-			<span
-				class="font-semibold uppercase tracking-[0.14em] text-fg-muted"
-				>{{ label }}</span
-			>
-			<span
-				class="flex items-center gap-1.5 font-semibold text-fg tabular-nums"
-			>
-				@if (progress.total > 0 && progress.completed >= progress.total)
-				{
-				<span class="inline-flex items-center gap-0.5 text-warning">
-					<span aria-hidden="true" class="material-icons text-sm"
-						>emoji_events</span
-					>
-					Completed
-				</span>
-				} {{ progress.completed }}/{{ progress.total }}
-			</span>
-		</div>
-		<ui-progress
-			[value]="progress.completed"
-			[max]="progress.total || 1"
-			indicatorClass="bg-gradient-to-r from-brand to-success"
-		/>
-	</div>
-</ng-template>
