@@ -34,4 +34,34 @@ const releases = defineCollection({
 	})
 });
 
-export const collections = { releases };
+const legal = defineCollection({
+	loader: glob({ pattern: "**/*.md", base: "./src/content/legal" }),
+	schema: z.object({
+		lang: z.enum(["es", "en"]),
+		version: z.string(),
+		updated: z
+			.union([z.string(), z.date()])
+			.transform(value =>
+				value instanceof Date ? value.toISOString().slice(0, 10) : value
+			),
+		title: z.string(),
+		summary: z.string(),
+		highlights: z.array(
+			z.object({
+				section: z.string(),
+				icon: z.string(),
+				title: z.string(),
+				text: z.string()
+			})
+		),
+		sections: z.array(
+			z.object({
+				id: z.string(),
+				label: z.string(),
+				icon: z.string()
+			})
+		)
+	})
+});
+
+export const collections = { releases, legal };
