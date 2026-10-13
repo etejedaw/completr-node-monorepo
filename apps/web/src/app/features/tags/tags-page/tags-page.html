@@ -4,7 +4,7 @@
 		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
 		>Library</span
 	>
-	<p heroSubtitle class="m-0 mt-2 mb-6 max-w-xl text-sm text-fg-secondary">
+	<p heroSubtitle class="m-0 mt-2 max-w-xl text-sm text-fg-secondary">
 		<span class="font-semibold text-fg tabular-nums"
 			>{{ tags().length }}</span
 		>
@@ -16,13 +16,7 @@
 		deleting one updates every game that uses it.
 	</p>
 	@if (!creating()) {
-	<button
-		heroActions
-		uiButton
-		variant="primary"
-		class="sm:mb-6"
-		(click)="openCreate()"
-	>
+	<button heroActions uiButton variant="primary" (click)="openCreate()">
 		<span aria-hidden="true" class="material-icons text-base">add</span>
 		New tag
 	</button>

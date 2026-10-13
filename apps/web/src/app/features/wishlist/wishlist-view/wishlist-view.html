@@ -7,7 +7,6 @@
 	<p
 		heroSubtitle
 		class="m-0 mt-2 flex items-center gap-1.5 text-sm text-fg-secondary"
-		[class.mb-6]="platformCounts().length <= 1"
 	>
 		<span
 			class="font-semibold text-fg tabular-nums"
@@ -24,19 +23,12 @@
 		/>
 	</p>
 	@if (isLoading() || allEntries().length > 0) {
-	<button
-		heroActions
-		uiButton
-		variant="primary"
-		[class.sm:mb-6]="platformCounts().length <= 1"
-		(click)="openAddModal()"
-	>
+	<button heroActions uiButton variant="primary" (click)="openAddModal()">
 		<span aria-hidden="true" class="material-icons text-base">add</span>
 		Add game
 	</button>
 	} @if (platformCounts().length > 1) {
 	<app-platform-filter
-		class="pb-5"
 		[platforms]="platformCounts()"
 		[total]="allEntries().length"
 		[(selected)]="selectedPlatform"

@@ -98,7 +98,7 @@
 			</span>
 		</p>
 	</div>
-	<div heroActions class="flex flex-wrap items-center gap-2 sm:mb-6">
+	<div heroActions class="flex flex-wrap items-center gap-2">
 		@if (isOwner()) {
 		<button
 			uiButton
@@ -186,7 +186,7 @@
 	</div>
 
 	@if (compareMode() && viewerListProgress() && current.progress) {
-	<div class="grid gap-3 sm:grid-cols-2 pb-6 max-w-3xl">
+	<div class="grid gap-3 sm:grid-cols-2 max-w-3xl">
 		<ng-container
 			[ngTemplateOutlet]="progressBar"
 			[ngTemplateOutletContext]="{ label: 'You', progress: viewerListProgress()! }"
@@ -197,7 +197,7 @@
 		/>
 	</div>
 	} @else if (progressSummary(); as summary) {
-	<div class="pb-6 max-w-xl">
+	<div class="max-w-xl">
 		<ng-container
 			[ngTemplateOutlet]="progressBar"
 			[ngTemplateOutletContext]="{ label: rowMode() === 'theirs' ? '@' + fromUsername() + '’s progress' : 'Your progress', progress: summary }"

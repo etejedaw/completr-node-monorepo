@@ -4,11 +4,7 @@
 		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
 		>Library</span
 	>
-	<p
-		heroSubtitle
-		class="m-0 mt-2 text-sm text-fg-secondary"
-		[class.mb-6]="platformCounts().length <= 1"
-	>
+	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
 		{{ total() === 1 ? 'game' : 'games' }} you own @if
 		(platformCounts().length > 1) { · across
@@ -18,19 +14,12 @@
 		platforms }
 	</p>
 	@if (isLoading() || allEntries().length > 0) {
-	<button
-		heroActions
-		uiButton
-		variant="primary"
-		[class.sm:mb-6]="platformCounts().length <= 1"
-		(click)="openCreate()"
-	>
+	<button heroActions uiButton variant="primary" (click)="openCreate()">
 		<span aria-hidden="true" class="material-icons text-base">add</span>
 		Add to Shelf
 	</button>
 	} @if (platformCounts().length > 1) {
 	<app-platform-filter
-		class="pb-5"
 		[platforms]="platformCounts()"
 		[total]="allEntries().length"
 		[(selected)]="selectedPlatform"

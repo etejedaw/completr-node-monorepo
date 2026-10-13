@@ -6,7 +6,7 @@
 	>
 	<p
 		heroSubtitle
-		class="m-0 mt-2 mb-6 flex items-center gap-1.5 text-sm text-fg-secondary"
+		class="m-0 mt-2 flex items-center gap-1.5 text-sm text-fg-secondary"
 	>
 		<span
 			class="font-semibold text-fg tabular-nums"
@@ -23,13 +23,7 @@
 		/>
 	</p>
 	@if (isLoading() || entries().length > 0) {
-	<button
-		heroActions
-		uiButton
-		variant="primary"
-		class="sm:mb-6"
-		(click)="openAddModal()"
-	>
+	<button heroActions uiButton variant="primary" (click)="openAddModal()">
 		<span aria-hidden="true" class="material-icons text-base">add</span>
 		Add from library
 	</button>
