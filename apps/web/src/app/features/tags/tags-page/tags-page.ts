@@ -12,12 +12,15 @@ import { ToastService } from "../../../core/services/toast";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import {
+	OptionPicker,
+	type PickerOption
+} from "../../../shared/components/option-picker/option-picker";
+import {
 	UiBottomSheet,
 	UiButton,
 	UiEmptyState,
 	UiInput,
 	UiSearchBar,
-	UiSelect,
 	UiSkeleton
 } from "../../../shared/ui";
 import { injectLibraryPosters } from "../../backlog/library-posters";
@@ -30,9 +33,9 @@ import { type TagEdit, TagRow } from "../tag-row/tag-row";
 
 type TagSort = "usage" | "name";
 
-const SORT_OPTIONS: { value: TagSort; label: string }[] = [
-	{ value: "usage", label: "Most used" },
-	{ value: "name", label: "Name (A–Z)" }
+const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: TagSort })[] = [
+	{ value: "usage", label: "Most used", icon: "trending_up" },
+	{ value: "name", label: "Name (A–Z)", icon: "sort_by_alpha" }
 ];
 
 type SheetActionId = "games" | "edit" | "delete";
@@ -58,13 +61,13 @@ const SHEET_ACTIONS: {
 	imports: [
 		LibraryHero,
 		LibraryToolbar,
+		OptionPicker,
 		TagRow,
 		UiBottomSheet,
 		UiButton,
 		UiEmptyState,
 		UiInput,
 		UiSearchBar,
-		UiSelect,
 		UiSkeleton
 	],
 	templateUrl: "./tags-page.html",
@@ -85,7 +88,7 @@ export default class TagsPage implements OnInit {
 	protected readonly submittingNew = signal(false);
 	protected readonly searchQuery = signal("");
 	protected readonly sortBy = signal<TagSort>("usage");
-	protected readonly sortOptions = SORT_OPTIONS;
+	protected readonly sortPickerOptions = SORT_PICKER_OPTIONS;
 	protected readonly sheetActions = SHEET_ACTIONS;
 	protected readonly actionSheetTag = signal<UserTag | null>(null);
 	protected readonly skeletonRange = [0, 1, 2, 3, 4];

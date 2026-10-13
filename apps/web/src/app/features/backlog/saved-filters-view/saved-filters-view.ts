@@ -14,6 +14,10 @@ import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import {
+	OptionPicker,
+	type PickerOption
+} from "../../../shared/components/option-picker/option-picker";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiBottomSheet,
@@ -22,7 +26,6 @@ import {
 	UiPagination,
 	UiPremiumBadge,
 	UiSearchBar,
-	UiSelect,
 	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
@@ -55,13 +58,13 @@ const SHEET_ACTIONS: { id: SheetActionId; icon: string; label: string }[] = [
 	{ id: "edit", icon: "edit", label: "Edit" }
 ];
 
-const SORT_OPTIONS: { value: SortMode; label: string }[] = [
-	{ value: "name_asc", label: "Name (A–Z)" },
-	{ value: "name_desc", label: "Name (Z–A)" },
-	{ value: "created_desc", label: "Recently created" },
-	{ value: "created_asc", label: "Oldest first" },
-	{ value: "pinned", label: "Pinned first" },
-	{ value: "default", label: "Default first" }
+const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
+	{ value: "name_asc", label: "Name (A–Z)", icon: "sort_by_alpha" },
+	{ value: "name_desc", label: "Name (Z–A)", icon: "sort_by_alpha" },
+	{ value: "created_desc", label: "Recently created", icon: "schedule" },
+	{ value: "created_asc", label: "Oldest first", icon: "history" },
+	{ value: "pinned", label: "Pinned first", icon: "push_pin" },
+	{ value: "default", label: "Default first", icon: "star" }
 ];
 
 @Component({
@@ -70,13 +73,13 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 		RouterLink,
 		LibraryHero,
 		LibraryToolbar,
+		OptionPicker,
 		SavedViewCard,
 		UiButton,
 		UiEmptyState,
 		UiPagination,
 		UiPremiumBadge,
 		UiSearchBar,
-		UiSelect,
 		UiSkeleton,
 		UiBottomSheet,
 		UiTextarea,
@@ -97,7 +100,7 @@ export class SavedFiltersView implements OnInit {
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
-	protected readonly sortOptions = SORT_OPTIONS;
+	protected readonly sortPickerOptions = SORT_PICKER_OPTIONS;
 	protected readonly sheetActions = SHEET_ACTIONS;
 	protected readonly actionSheetView = signal<SavedFilter | null>(null);
 

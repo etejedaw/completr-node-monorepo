@@ -42,32 +42,26 @@
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>
-	<label
-		class="relative shrink-0 flex items-center max-sm:flex-1 max-sm:basis-full"
-	>
-		<span class="sr-only">Sort saved views</span>
-		<span
-			aria-hidden="true"
-			class="material-icons pointer-events-none absolute left-2.5 text-base text-fg-muted"
-			>sort</span
-		>
-		<select
-			uiSelect
-			size="sm"
-			class="!pl-8 max-sm:w-full max-sm:min-h-[44px] pointer-coarse:min-h-[44px]"
-			[value]="sortMode()"
-			(change)="sortMode.set($any($event.target).value)"
-		>
-			@for (option of sortOptions; track option.value) {
-			<option
-				[value]="option.value"
-				[selected]="option.value === sortMode()"
-			>
-				{{ option.label }}
-			</option>
-			}
-		</select>
-	</label>
+	<app-option-picker
+		class="max-md:hidden shrink-0"
+		variant="compact"
+		size="md"
+		label="Sort"
+		heading="Sort saved views by"
+		placeholderIcon="sort"
+		[options]="sortPickerOptions"
+		[value]="sortMode()"
+		(valueChange)="sortMode.set($any($event))"
+	/>
+	<app-option-picker
+		class="md:hidden basis-full"
+		label="Sort"
+		heading="Sort saved views by"
+		placeholderIcon="sort"
+		[options]="sortPickerOptions"
+		[value]="sortMode()"
+		(valueChange)="sortMode.set($any($event))"
+	/>
 </app-library-toolbar>
 } @if (frozen()) {
 <div
