@@ -7,17 +7,36 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
-import { form, FormField } from "@angular/forms/signals";
+import { form, FormField, maxLength, validate } from "@angular/forms/signals";
 
 import { environment } from "../../../../environments/environment";
 import { AuthService, type AuthSession } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
+import {
+	failedPasswordRules,
+	PASSWORD_MAX_LENGTH,
+	PASSWORD_RULES
+} from "../../../core/utils/password-policy";
 import { UiButton, UiInput, UiPagination } from "../../../shared/ui";
+import { SettingsPanel } from "../components/settings-panel";
+import { SettingsRow } from "../components/settings-row";
+import { currentSessionFirst, describeDevice, timeAgo } from "./session-device";
+
+const SESSIONS_PAGE_SIZE = 10;
+const EMPTY_PASSWORDS = { newPassword: "", confirmPassword: "" };
 
 @Component({
 	selector: "app-settings-security",
-	imports: [FormField, UiButton, UiInput, UiPagination],
+	imports: [
+		FormField,
+		SettingsPanel,
+		SettingsRow,
+		UiButton,
+		UiInput,
+		UiPagination
+	],
 	templateUrl: "./settings-security.html",
+	host: { class: "contents" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsSecurity implements OnInit {
@@ -25,177 +44,151 @@ export class SettingsSecurity implements OnInit {
 	private readonly http = inject(HttpClient);
 	private readonly toast = inject(ToastService);
 
-	protected readonly sessions = signal<AuthSession[]>([]);
-	protected readonly total = signal(0);
-	protected readonly offset = signal(0);
-	protected readonly limit = 10;
-	protected readonly sessionsLoading = signal(false);
-	protected readonly revokingSessionId = signal<string | null>(null);
-	protected readonly revokingAll = signal(false);
-	protected readonly confirmRevokeAll = signal(false);
+	protected readonly passwordRules = PASSWORD_RULES;
+	protected readonly describeDevice = describeDevice;
+	protected readonly timeAgo = timeAgo;
 
-	protected readonly currentSessionId = computed(() =>
-		this.authService.sessionId()
+	protected readonly passwords = signal(EMPTY_PASSWORDS);
+	protected readonly passwordForm = form(this.passwords, path => {
+		maxLength(path.newPassword, PASSWORD_MAX_LENGTH);
+		maxLength(path.confirmPassword, PASSWORD_MAX_LENGTH);
+		validate(path.newPassword, ({ value }) =>
+			failedPasswordRules(value()).length > 0
+				? {
+						kind: "passwordPolicy",
+						message: "Meet every requirement below."
+					}
+				: null
+		);
+		validate(path.confirmPassword, ({ value, valueOf }) =>
+			value() !== valueOf(path.newPassword)
+				? {
+						kind: "passwordMismatch",
+						message: "Both passwords must match."
+					}
+				: null
+		);
+	});
+	protected readonly showPasswords = signal(false);
+	protected readonly changingPassword = signal(false);
+	protected readonly passedRules = computed(
+		() =>
+			new Set(
+				PASSWORD_RULES.filter(rule =>
+					rule.test(this.passwords().newPassword)
+				).map(rule => rule.id)
+			)
 	);
 
-	protected readonly passwordModel = signal({
-		newPassword: "",
-		confirmPassword: ""
-	});
-	readonly passwordForm = form(this.passwordModel);
-	protected readonly changingPassword = signal(false);
+	protected readonly currentSessionId = signal(this.authService.sessionId());
+	private readonly sessionsPage = signal<AuthSession[]>([]);
+	protected readonly sessions = computed(() =>
+		currentSessionFirst(this.sessionsPage(), this.currentSessionId())
+	);
+	protected readonly total = signal(0);
+	protected readonly offset = signal(0);
+	protected readonly limit = SESSIONS_PAGE_SIZE;
+	protected readonly sessionsLoading = signal(true);
+	protected readonly revokingSessionId = signal<string | null>(null);
+	protected readonly confirmingSignOutOthers = signal(false);
+	protected readonly signingOutOthers = signal(false);
+	protected readonly otherSessionsCount = computed(() =>
+		Math.max(this.total() - 1, 0)
+	);
 
 	ngOnInit() {
 		this.loadSessions();
 	}
 
-	loadSessions() {
-		this.sessionsLoading.set(true);
-		this.authService
-			.getSessions({ limit: this.limit, offset: this.offset() })
-			.subscribe({
-				next: data => {
-					this.sessions.set(data.sessions);
-					this.total.set(data.total);
-					this.sessionsLoading.set(false);
-				},
-				error: () => this.sessionsLoading.set(false)
-			});
-	}
-
-	onOffsetChange(value: number) {
-		this.offset.set(value);
-		this.loadSessions();
-	}
-
-	revokeSession(session: AuthSession) {
-		if (this.revokingSessionId()) return;
-		if (session.id === this.currentSessionId()) {
-			this.toast.warning(
-				"Use the logout button to end the current session."
-			);
-			return;
-		}
-		this.revokingSessionId.set(session.id);
-		this.authService.revokeSession(session.id).subscribe({
-			next: () => {
-				this.revokingSessionId.set(null);
-				this.toast.success("Session revoked.");
-				this.loadSessions();
-			},
-			error: () => {
-				this.revokingSessionId.set(null);
-				this.toast.warning("Could not revoke session.");
-			}
-		});
-	}
-
-	revokeAllOthers() {
-		const current = this.currentSessionId();
-		if (!current) {
-			this.toast.warning("Current session unknown. Please re-login.");
-			return;
-		}
-		this.revokingAll.set(true);
-		this.authService.revokeOtherSessions(current).subscribe({
-			next: count => {
-				this.revokingAll.set(false);
-				this.confirmRevokeAll.set(false);
-				this.toast.success(
-					count === 0
-						? "No other sessions to revoke."
-						: `${count} session${count === 1 ? "" : "s"} revoked.`
-				);
-				this.offset.set(0);
-				this.loadSessions();
-			},
-			error: () => {
-				this.revokingAll.set(false);
-				this.toast.warning("Could not revoke sessions.");
-			}
-		});
-	}
-
-	changePassword() {
-		const { newPassword, confirmPassword } = this.passwordForm().value();
-		if (newPassword.length < 8) {
-			this.toast.warning("Password must be at least 8 characters.");
-			return;
-		}
-		if (newPassword !== confirmPassword) {
-			this.toast.warning("Passwords do not match.");
+	protected changePassword() {
+		if (this.passwordForm().invalid()) {
+			this.passwordForm().markAsTouched();
 			return;
 		}
 		this.changingPassword.set(true);
 		this.http
 			.patch(`${environment.apiUrl}/auth/password`, {
-				password: newPassword
+				password: this.passwords().newPassword
 			})
 			.subscribe({
 				next: () => {
 					this.changingPassword.set(false);
-					this.passwordModel.set({
-						newPassword: "",
-						confirmPassword: ""
-					});
+					this.passwords.set(EMPTY_PASSWORDS);
+					this.passwordForm().reset();
+					this.showPasswords.set(false);
 					this.toast.success(
-						"Password changed. All other sessions were signed out."
+						"Password updated. Your other devices were signed out."
 					);
+					this.offset.set(0);
 					this.loadSessions();
 				},
 				error: () => {
 					this.changingPassword.set(false);
-					this.toast.warning("Could not change password.");
+					this.toast.warning("Could not update your password.");
 				}
 			});
 	}
 
-	protected timeAgo(date: string | null): string {
-		if (!date) return "never";
-		const diff = Date.now() - new Date(date).getTime();
-		const minutes = Math.floor(diff / 60000);
-		if (minutes < 1) return "just now";
-		if (minutes < 60) return `${minutes}m ago`;
-		const hours = Math.floor(minutes / 60);
-		if (hours < 24) return `${hours}h ago`;
-		const days = Math.floor(hours / 24);
-		return `${days}d ago`;
+	protected goToSessionsPage(offset: number) {
+		this.offset.set(offset);
+		this.loadSessions();
 	}
 
-	protected parseDevice(userAgent: string | null): {
-		name: string;
-		icon: string;
-	} {
-		if (!userAgent) return { name: "Unknown device", icon: "devices" };
-		const ua = userAgent;
+	protected revokeSession(session: AuthSession) {
+		if (this.revokingSessionId()) return;
+		this.revokingSessionId.set(session.id);
+		this.authService.revokeSession(session.id).subscribe({
+			next: () => {
+				this.revokingSessionId.set(null);
+				this.toast.success(
+					`Signed out ${describeDevice(session.deviceInfo).name}.`
+				);
+				this.loadSessions();
+			},
+			error: () => {
+				this.revokingSessionId.set(null);
+				this.toast.warning("Could not sign out that device.");
+			}
+		});
+	}
 
-		let os = "Unknown OS";
-		let icon = "devices";
-		if (/iPhone|iPad|iPod/i.test(ua)) {
-			os = /iPad/i.test(ua) ? "iPad" : "iPhone";
-			icon = "phone_iphone";
-		} else if (/Android/i.test(ua)) {
-			os = "Android";
-			icon = "phone_android";
-		} else if (/Windows/i.test(ua)) {
-			os = "Windows";
-			icon = "desktop_windows";
-		} else if (/Macintosh|Mac OS X/i.test(ua)) {
-			os = "macOS";
-			icon = "laptop_mac";
-		} else if (/Linux/i.test(ua)) {
-			os = "Linux";
-			icon = "computer";
+	protected signOutOtherSessions() {
+		const current = this.currentSessionId();
+		if (!current) {
+			this.toast.warning("Sign in again to manage your devices.");
+			return;
 		}
+		this.signingOutOthers.set(true);
+		this.authService.revokeOtherSessions(current).subscribe({
+			next: count => {
+				this.signingOutOthers.set(false);
+				this.confirmingSignOutOthers.set(false);
+				this.toast.success(
+					count === 0
+						? "No other devices were signed in."
+						: `Signed out ${count} other device${count === 1 ? "" : "s"}.`
+				);
+				this.offset.set(0);
+				this.loadSessions();
+			},
+			error: () => {
+				this.signingOutOthers.set(false);
+				this.toast.warning("Could not sign out your other devices.");
+			}
+		});
+	}
 
-		let browser = "Browser";
-		if (/Edg\//i.test(ua)) browser = "Edge";
-		else if (/Chrome\//i.test(ua) && !/Chromium/i.test(ua))
-			browser = "Chrome";
-		else if (/Firefox\//i.test(ua)) browser = "Firefox";
-		else if (/Safari\//i.test(ua) && !/Chrome/i.test(ua))
-			browser = "Safari";
-
-		return { name: `${browser} · ${os}`, icon };
+	private loadSessions() {
+		this.sessionsLoading.set(true);
+		this.authService
+			.getSessions({ limit: this.limit, offset: this.offset() })
+			.subscribe({
+				next: data => {
+					this.sessionsPage.set(data.sessions);
+					this.total.set(data.total);
+					this.sessionsLoading.set(false);
+				},
+				error: () => this.sessionsLoading.set(false)
+			});
 	}
 }
