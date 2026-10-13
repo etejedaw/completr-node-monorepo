@@ -2,6 +2,7 @@ import { Op } from "sequelize";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import * as favoritesServiceError from "./errors/favorites.service-error";
 import { Favorite } from "./favorite.model";
@@ -28,14 +29,15 @@ export async function replaceFavorites(user: RequestUser, gameIds: string[]) {
 		throw favoritesServiceError.gamesNotFoundError(missing);
 	}
 
-	await Favorite.destroy({ where: { userId: user.id } });
-
 	const entries = gameIds.map((gameId, index) => ({
 		userId: user.id,
 		gameId,
 		position: index + 1
 	}));
-	await Favorite.bulkCreate(entries);
+	await sequelize.transaction(async transaction => {
+		await Favorite.destroy({ where: { userId: user.id }, transaction });
+		await Favorite.bulkCreate(entries, { transaction });
+	});
 
 	return Favorite.findAll({
 		where: { userId: user.id },
