@@ -237,20 +237,28 @@ export async function getListDetailForUsername(
 	const publicOnly = !isSelf;
 	const gameIds = (list.ListItems ?? []).map(i => i.gameId);
 
-	const [followerCount, backlogSummaryMap, progress] = await Promise.all([
-		listsService.getFollowerCount(listId),
-		canSeeProgress
-			? listsService.getBacklogSummaryMap(gameIds, user.id, publicOnly)
-			: Promise.resolve(undefined),
-		canSeeProgress
-			? listsService.getListProgress(listId, user.id, publicOnly)
-			: Promise.resolve(null)
-	]);
+	const [followerCount, isFollowing, backlogSummaryMap, progress] =
+		await Promise.all([
+			listsService.getFollowerCount(listId),
+			viewerId
+				? listsService.getIsFollowing(listId, viewerId)
+				: Promise.resolve(false),
+			canSeeProgress
+				? listsService.getBacklogSummaryMap(
+						gameIds,
+						user.id,
+						publicOnly
+					)
+				: Promise.resolve(undefined),
+			canSeeProgress
+				? listsService.getListProgress(listId, user.id, publicOnly)
+				: Promise.resolve(null)
+		]);
 
 	return {
 		profileUser: { username: user.username, name: user.name },
 		listPlain,
-		aggregates: { followerCount, backlogSummaryMap, progress }
+		aggregates: { followerCount, isFollowing, backlogSummaryMap, progress }
 	};
 }
 

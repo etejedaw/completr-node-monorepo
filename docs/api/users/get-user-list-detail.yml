@@ -24,7 +24,9 @@ docs: |-
 
     Privacy: the profile user's progress is only included when their backlog is public (`isBacklogPublic`) or you are them; for other users only their **public** backlog entries are counted. When their backlog is private, the list is still returned but without progress data (`progress: null`, no per-item `backlogStatus`).
 
-    **Authentication:** Optional (Bearer token). The viewer identity is only used to detect self-view.
+    `isFollowing` is the exception: it is computed for the **viewer** (whether you follow this list), so the Follow button is correct when you open someone else's list. It is `false` for anonymous requests.
+
+    **Authentication:** Optional (Bearer token). The viewer identity is used to detect self-view and to compute `isFollowing`.
     **Rate Limit:** 100 requests per minute (public).
 
     Returns 403 if the profile is private. Returns 404 if user/list not found or list is private.
@@ -51,6 +53,7 @@ docs: |-
           "scoreSource": "metacritic",
           "durationSource": "hltb",
           "followerCount": 12,
+          "isFollowing": true,
           "progress": { "completed": 8, "total": 15 },
           "items": [
             {

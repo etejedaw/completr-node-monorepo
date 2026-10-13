@@ -63,6 +63,7 @@ export interface UserListDetailBundle {
 	listPlain: List;
 	aggregates: {
 		followerCount: number;
+		isFollowing: boolean;
 		backlogSummaryMap: Map<string, BacklogSummary> | undefined;
 		progress: { completed: number; total: number } | null;
 	};
