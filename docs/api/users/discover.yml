@@ -38,9 +38,20 @@ docs: |-
             "username": "johndoe",
             "name": "John Doe",
             "avatarUrl": null,
-            "isPublic": true
+            "profileVisibility": "public",
+            "isSelf": false,
+            "followerCount": 12,
+            "isFollowing": false,
+            "gamesTotal": 609,
+            "completedTotal": 214,
+            "featuredGame": {
+              "title": "Resident Evil 4",
+              "backgroundUrl": "https://…/re4.jpg"
+            }
           }
         ]
       }
     }
     ```
+
+    Each user includes card insights resolved with the viewer's visibility rules. If the viewer cannot see the profile section, `followerCount`, `gamesTotal`, `completedTotal` and `featuredGame` are `null` (`isFollowing` still reflects the viewer's own follow). `gamesTotal` / `completedTotal` are `null` when the backlog section is not visible (counts only public backlogs for other viewers), and `featuredGame` (the #1 favorite) is `null` when the favorites section is not visible or empty. `isFollowing` is only `true` for an authenticated viewer who follows the user.

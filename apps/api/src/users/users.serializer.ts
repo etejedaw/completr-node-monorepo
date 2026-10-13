@@ -10,6 +10,7 @@ import {
 	type EnrichedUserList,
 	type FullUserProfile,
 	type RestrictedUserProfile,
+	type UserCardInsights,
 	type UserCompletionsBundle,
 	type UserHighlightsBundle,
 	type UserReviewsBundle
@@ -119,6 +120,18 @@ export function userSummarySerializer(user: User) {
 		name: user.name,
 		avatarUrl: user.avatarUrl,
 		profileVisibility: user.profileVisibility
+	};
+}
+
+export function userCardSerializer(card: UserCardInsights) {
+	return {
+		...userSummarySerializer(card.user),
+		isSelf: card.isSelf,
+		followerCount: card.followerCount,
+		isFollowing: card.isFollowing,
+		gamesTotal: card.gamesTotal,
+		completedTotal: card.completedTotal,
+		featuredGame: card.featuredGame
 	};
 }
 

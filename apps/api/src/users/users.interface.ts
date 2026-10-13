@@ -114,3 +114,14 @@ export interface UserReviewsBundle {
 	durationMap: Map<string, number>;
 	total: number;
 }
+
+export interface UserCardInsights {
+	user: User;
+	isSelf: boolean;
+	profileVisible: boolean;
+	followerCount: number | null;
+	isFollowing: boolean;
+	gamesTotal: number | null;
+	completedTotal: number | null;
+	featuredGame: { title: string; backgroundUrl: string | null } | null;
+}
