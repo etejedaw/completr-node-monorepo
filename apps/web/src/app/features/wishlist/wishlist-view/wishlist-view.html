@@ -10,7 +10,7 @@
 	>
 		<span
 			class="font-semibold text-fg tabular-nums"
-			[class.!text-warning]="isPremium()"
+			[class.!text-premium]="isPremium()"
 			>{{ total() }}</span
 		>
 		{{ total() === 1 ? 'game' : 'games' }} you want to get
@@ -18,8 +18,8 @@
 			*appPremiumOnly
 			size="sm"
 			interactive
-			label="Unlimited wishlist (Premium)"
-			message="Unlimited wishlist — a Premium perk."
+			label="Premium perk: unlimited Want to Get"
+			message="Your Want to Get list has no limit. Track every game you're after."
 		/>
 	</p>
 	@if (isLoading() || allEntries().length > 0) {

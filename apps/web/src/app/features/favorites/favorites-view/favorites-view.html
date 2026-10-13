@@ -10,7 +10,7 @@
 	>
 		<span
 			class="font-semibold text-fg tabular-nums"
-			[class.!text-warning]="isPremium()"
+			[class.!text-premium]="isPremium()"
 			>{{ total() }}</span
 		>
 		all-time {{ total() === 1 ? 'favorite' : 'favorites' }}
@@ -18,8 +18,8 @@
 			*appPremiumOnly
 			size="sm"
 			interactive
-			label="Unlimited favorites (Premium)"
-			message="Unlimited favorites — a Premium perk."
+			label="Premium perk: unlimited favorites"
+			message="Your favorites have no limit. Showcase as many games as you like."
 		/>
 	</p>
 	<a

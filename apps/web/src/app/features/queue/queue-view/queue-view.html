@@ -10,7 +10,7 @@
 	>
 		<span
 			class="font-semibold text-fg tabular-nums"
-			[class.!text-warning]="isPremium()"
+			[class.!text-premium]="isPremium()"
 			>{{ total() }}</span
 		>
 		{{ total() === 1 ? 'game' : 'games' }} in your queue
@@ -18,8 +18,8 @@
 			*appPremiumOnly
 			size="sm"
 			interactive
-			label="Unlimited Up Next (Premium)"
-			message="Unlimited Up Next — a Premium perk."
+			label="Premium perk: unlimited Up Next"
+			message="Your Up Next has no limit. Queue as many games as you like."
 		/>
 	</p>
 	@if (isLoading() || entries().length > 0) {
