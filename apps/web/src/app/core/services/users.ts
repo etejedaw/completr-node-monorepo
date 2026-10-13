@@ -3,7 +3,7 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type VisibilityLevel } from "../models/user.model";
+import { type UserRole, type VisibilityLevel } from "../models/user.model";
 import { buildHttpParams } from "../utils/http-params";
 
 export interface UserResult {
@@ -12,6 +12,7 @@ export interface UserResult {
 	name: string;
 	avatarUrl: string | null;
 	profileVisibility: VisibilityLevel;
+	role?: UserRole;
 	isSelf?: boolean;
 	followerCount?: number | null;
 	isFollowing?: boolean;

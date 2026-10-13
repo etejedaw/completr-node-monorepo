@@ -6,6 +6,7 @@ import { map, type Observable, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { type User } from "../models";
 import { buildHttpParams } from "../utils/http-params";
+import { isPremiumRole } from "../utils/premium";
 import { StorageService } from "./storage";
 import { type ThemeId, ThemeService } from "./theme";
 
@@ -55,10 +56,7 @@ export class AuthService {
 	readonly isLoggedIn = computed(
 		() => this._user() !== null || this.storage.get(TOKEN_KEY) !== null
 	);
-	readonly isPremium = computed(() => {
-		const role = this._user()?.role;
-		return role === "premium" || role === "moderator" || role === "admin";
-	});
+	readonly isPremium = computed(() => isPremiumRole(this._user()?.role));
 
 	token(): string | null {
 		return this.storage.get(TOKEN_KEY);

@@ -36,6 +36,7 @@
 	--color-warning: #f59e0b;
 	--color-danger: #ef4444;
 	--color-info: #38bdf8;
+	--color-premium: var(--color-warning);
 
 	--color-line: rgba(255, 255, 255, 0.06);
 	--color-line-hover: rgba(255, 255, 255, 0.12);

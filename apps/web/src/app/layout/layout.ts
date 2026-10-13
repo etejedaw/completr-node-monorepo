@@ -101,6 +101,7 @@ export class Layout implements OnInit {
 	protected readonly onboarding = inject(OnboardingService);
 
 	protected readonly user = this.auth.user;
+	protected readonly isPremium = this.auth.isPremium;
 	protected readonly collapsed = signal(readCollapsedPreference());
 	protected readonly tablet = signal(false);
 	protected readonly railMode = computed(

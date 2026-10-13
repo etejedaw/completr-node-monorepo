@@ -16,7 +16,7 @@ import {
 	template: `
 		<span
 			ngpAvatar
-			class="block w-full h-full rounded-full overflow-hidden bg-brand-subtle text-brand"
+			class="relative block w-full h-full rounded-full overflow-hidden bg-brand-subtle text-brand"
 		>
 			@if (src()) {
 				<img
@@ -34,6 +34,12 @@ import {
 			>
 				{{ initial() }}
 			</span>
+			@if (premium()) {
+				<span
+					aria-hidden="true"
+					class="absolute inset-0 rounded-full border-[length:clamp(2px,0.08em,4px)] border-premium pointer-events-none"
+				></span>
+			}
 		</span>
 	`,
 	host: {
@@ -45,6 +51,7 @@ export class UiAvatar {
 	src = input<string | null | undefined>(null);
 	name = input<string | null | undefined>(null);
 	alt = input<string | null | undefined>(null);
+	premium = input(false);
 
 	protected readonly initial = computed(() => {
 		const n = this.name();

@@ -25,6 +25,7 @@
 			<ui-avatar
 				[src]="person.avatarUrl"
 				[name]="person.username"
+				[premium]="isPremium()"
 				class="w-16 h-16 text-xl ring-4 ring-surface shadow-lg shadow-black/40"
 			/>
 			@if (canFollow() && !person.isSelf && person.followerCount !== null)
