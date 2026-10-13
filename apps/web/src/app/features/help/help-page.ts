@@ -1,12 +1,5 @@
-import {
-	afterNextRender,
-	ChangeDetectionStrategy,
-	Component,
-	DOCUMENT,
-	inject,
-	signal
-} from "@angular/core";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
+import { RouterLink } from "@angular/router";
 
 import { type BacklogStatus } from "../../core/models";
 import { OnboardingService } from "../../core/services/onboarding";
@@ -15,6 +8,11 @@ import { GamePoster } from "../../shared/components/game-poster/game-poster";
 import { InfoPageLinks } from "../../shared/components/info-page-links/info-page-links";
 import { LibraryHero } from "../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../shared/components/library-toolbar/library-toolbar";
+import {
+	type PageSection,
+	PageToc
+} from "../../shared/components/page-toc/page-toc";
+import { injectSectionScrollSpy } from "../../shared/components/page-toc/section-scroll-spy";
 import { RatioSummary } from "../../shared/components/ratio-summary/ratio-summary";
 import { StarRating } from "../../shared/components/star-rating/star-rating";
 import { InView } from "../../shared/directives/in-view";
@@ -27,11 +25,8 @@ import {
 import { type CanonicalScore } from "../../shared/utils/canonical-score";
 import { injectLibraryPosters } from "../backlog/library-posters";
 import { GameScoreCard } from "../games/game-detail/components/game-score-card";
-import { type HelpSection, HelpToc } from "./components/help-toc";
 
-const PROGRAMMATIC_SCROLL_MS = 1000;
-
-const SECTIONS: readonly HelpSection[] = [
+const SECTIONS: readonly PageSection[] = [
 	{ id: "runs", label: "Runs", icon: "list_alt" },
 	{ id: "ratio", label: "Ratio", icon: "trending_up" },
 	{ id: "scores", label: "Scores", icon: "leaderboard" },
@@ -104,7 +99,7 @@ const SCORE_EXAMPLES: readonly CanonicalScore[] = [
 		RouterLink,
 		LibraryHero,
 		LibraryToolbar,
-		HelpToc,
+		PageToc,
 		InView,
 		GamePoster,
 		RatioSummary,
@@ -118,8 +113,6 @@ const SCORE_EXAMPLES: readonly CanonicalScore[] = [
 })
 export class HelpPage {
 	private readonly onboarding = inject(OnboardingService);
-	private readonly route = inject(ActivatedRoute);
-	private readonly document = inject(DOCUMENT);
 
 	protected readonly posters = injectLibraryPosters();
 	protected readonly sections = SECTIONS;
@@ -129,54 +122,13 @@ export class HelpPage {
 		...entry,
 		nav: NAV_ITEMS_BY_ROUTE.get(entry.route)
 	}));
-	protected readonly active = signal(SECTIONS[0]!.id);
-	private followScrollAfter = 0;
-	private atPageEnd = false;
-	private sectionInReadingBand: string = SECTIONS[0]!.id;
+	protected readonly scrollSpy = injectSectionScrollSpy(SECTIONS);
 
 	protected readonly statusClass = backlogStatusClass;
 	protected readonly statusIcon = backlogStatusIcon;
 	protected readonly statusLabel = backlogStatusLabel;
 
-	constructor() {
-		afterNextRender(() => {
-			const fragment = this.route.snapshot.fragment;
-			if (fragment) this.scrollTo(fragment, "auto");
-		});
-	}
-
 	protected openTour() {
 		this.onboarding.open();
-	}
-
-	protected onSectionInView(id: string, inView: boolean) {
-		if (inView) this.sectionInReadingBand = id;
-		this.syncActiveWithScroll();
-	}
-
-	protected onEndInView(inView: boolean) {
-		this.atPageEnd = inView;
-		this.syncActiveWithScroll();
-	}
-
-	private syncActiveWithScroll() {
-		if (Date.now() < this.followScrollAfter) return;
-		this.active.set(
-			this.atPageEnd ? SECTIONS.at(-1)!.id : this.sectionInReadingBand
-		);
-	}
-
-	protected scrollTo(id: string, behavior?: ScrollBehavior) {
-		const target = this.document.getElementById(id);
-		if (!target) return;
-		const reduceMotion = this.document.defaultView?.matchMedia(
-			"(prefers-reduced-motion: reduce)"
-		).matches;
-		this.followScrollAfter = Date.now() + PROGRAMMATIC_SCROLL_MS;
-		target.scrollIntoView({
-			behavior: behavior ?? (reduceMotion ? "auto" : "smooth"),
-			block: "start"
-		});
-		this.active.set(id);
 	}
 }

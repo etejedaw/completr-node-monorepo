@@ -25,22 +25,26 @@
 </app-library-hero>
 
 <app-library-toolbar class="lg:hidden">
-	<app-help-toc
+	<app-page-toc
+		path="/help"
+		label="Guide sections"
 		variant="chips"
 		class="w-full min-w-0"
 		[sections]="sections"
-		[active]="active()"
-		(selected)="scrollTo($event)"
+		[active]="scrollSpy.active()"
+		(selected)="scrollSpy.scrollTo($event)"
 	/>
 </app-library-toolbar>
 
 <div class="lg:grid lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-12 xl:gap-16">
 	<aside class="hidden lg:block">
 		<div class="sticky top-[calc(var(--topbar-height)+1.5rem)]">
-			<app-help-toc
+			<app-page-toc
+				path="/help"
+				label="Guide sections"
 				[sections]="sections"
-				[active]="active()"
-				(selected)="scrollTo($event)"
+				[active]="scrollSpy.active()"
+				(selected)="scrollSpy.scrollTo($event)"
 			/>
 		</div>
 	</aside>
@@ -52,7 +56,7 @@
 			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
 			appInView
 			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="onSectionInView('runs', $event)"
+			(inViewChange)="scrollSpy.onSectionInView('runs', $event)"
 		>
 			<span
 				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
@@ -135,7 +139,7 @@
 			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
 			appInView
 			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="onSectionInView('ratio', $event)"
+			(inViewChange)="scrollSpy.onSectionInView('ratio', $event)"
 		>
 			<span
 				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
@@ -273,7 +277,7 @@
 			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
 			appInView
 			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="onSectionInView('scores', $event)"
+			(inViewChange)="scrollSpy.onSectionInView('scores', $event)"
 		>
 			<span
 				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
@@ -323,7 +327,7 @@
 			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
 			appInView
 			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="onSectionInView('statuses', $event)"
+			(inViewChange)="scrollSpy.onSectionInView('statuses', $event)"
 		>
 			<span
 				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
@@ -381,7 +385,7 @@
 			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
 			appInView
 			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="onSectionInView('collection', $event)"
+			(inViewChange)="scrollSpy.onSectionInView('collection', $event)"
 		>
 			<span
 				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
@@ -440,7 +444,7 @@
 			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
 			appInView
 			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="onSectionInView('saved-views', $event)"
+			(inViewChange)="scrollSpy.onSectionInView('saved-views', $event)"
 		>
 			<span
 				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
@@ -517,7 +521,7 @@
 			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
 			appInView
 			inViewRootMargin="-30% 0px -65% 0px"
-			(inViewChange)="onSectionInView('privacy', $event)"
+			(inViewChange)="scrollSpy.onSectionInView('privacy', $event)"
 		>
 			<span
 				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
@@ -610,5 +614,5 @@
 	aria-hidden="true"
 	class="h-px"
 	appInView
-	(inViewChange)="onEndInView($event)"
+	(inViewChange)="scrollSpy.onEndInView($event)"
 ></div>
