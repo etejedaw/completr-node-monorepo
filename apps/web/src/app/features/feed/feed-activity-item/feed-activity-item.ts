@@ -7,6 +7,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
+import { isPremiumRole } from "../../../core/utils/premium";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { UiAvatar } from "../../../shared/ui";
 import {
@@ -20,6 +21,7 @@ interface ActivityActor {
 	username: string;
 	displayName: string;
 	avatarUrl: string | null | undefined;
+	isPremium: boolean;
 }
 
 interface ActivityAction {
@@ -71,14 +73,16 @@ export class FeedActivityItem {
 			return {
 				username: target.username ?? "",
 				displayName: target.name,
-				avatarUrl: target.avatarUrl
+				avatarUrl: target.avatarUrl,
+				isPremium: isPremiumRole(target.role)
 			};
 		}
 		if (!activity.user) return null;
 		return {
 			username: activity.user.username,
 			displayName: activity.user.name || activity.user.username,
-			avatarUrl: activity.user.avatarUrl
+			avatarUrl: activity.user.avatarUrl,
+			isPremium: isPremiumRole(activity.user.role)
 		};
 	});
 

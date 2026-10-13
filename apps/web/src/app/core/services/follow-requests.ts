@@ -12,6 +12,7 @@ export interface IncomingFollowRequest {
 		username: string;
 		name: string;
 		avatarUrl?: string;
+		role?: string;
 	};
 }
 
