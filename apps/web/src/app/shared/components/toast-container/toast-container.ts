@@ -38,6 +38,8 @@ export class ToastContainer implements OnInit {
 				return "warning";
 			case "error":
 				return "error";
+			case "premium":
+				return "workspace_premium";
 			default:
 				return "info";
 		}
@@ -51,6 +53,8 @@ export class ToastContainer implements OnInit {
 				return "bg-warning/10 border-warning/30 text-warning";
 			case "error":
 				return "bg-danger/10 border-danger/30 text-danger";
+			case "premium":
+				return "bg-premium/10 border-premium/35 text-premium";
 			default:
 				return "bg-brand-subtle border-brand/30 text-brand";
 		}

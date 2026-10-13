@@ -1,12 +1,13 @@
 import { inject, Injectable, type TemplateRef } from "@angular/core";
 import { NgpToastManager, type NgpToastRef } from "ng-primitives/toast";
 
-export type ToastVariant = "info" | "success" | "warning" | "error";
+export type ToastVariant = "info" | "success" | "warning" | "error" | "premium";
 
 export const UNDO_WINDOW_MS = 5000;
 
 export interface Toast {
 	id: number;
+	title?: string;
 	message: string;
 	variant: ToastVariant;
 	undoLabel?: string;
@@ -42,11 +43,17 @@ export class ToastService {
 		this.template = tpl as TemplateRef<void>;
 	}
 
-	show(message: string, variant: ToastVariant = "info", durationMs = 4000) {
+	show(
+		message: string,
+		variant: ToastVariant = "info",
+		durationMs = 4000,
+		title?: string
+	) {
 		if (!this.template) return;
 		const id = this.nextId++;
 		const ctx: Toast = {
 			id,
+			title,
 			message,
 			variant
 		};
@@ -71,6 +78,10 @@ export class ToastService {
 
 	error(message: string, durationMs?: number) {
 		this.show(message, "error", durationMs);
+	}
+
+	premium(title: string, message: string) {
+		this.show(message, "premium", 5000, title);
 	}
 
 	pending(opts: PendingToastOptions): number {
