@@ -47,7 +47,7 @@ const MOSAIC_LENGTH = 14;
 			</div>
 
 			<div
-				class="bleed-inner pt-[calc(var(--topbar-height)+3rem)] sm:pt-[calc(var(--topbar-height)+4.5rem)] pb-0 flex flex-col gap-6"
+				class="bleed-inner pt-[calc(var(--topbar-height)+3rem)] sm:pt-[calc(var(--topbar-height)+4.5rem)] pb-6 flex flex-col gap-6"
 			>
 				<div
 					class="flex flex-col sm:flex-row sm:items-end justify-between gap-4"
@@ -61,7 +61,7 @@ const MOSAIC_LENGTH = 14;
 						</h1>
 						<ng-content select="[heroSubtitle]" />
 					</div>
-					<div class="flex items-center gap-2 shrink-0">
+					<div class="flex items-center gap-2 shrink-0 empty:hidden">
 						<ng-content select="[heroActions]" />
 					</div>
 				</div>
