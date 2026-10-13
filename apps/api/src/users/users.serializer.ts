@@ -109,7 +109,8 @@ export function fullProfileSerializer(profile: FullUserProfile) {
 		backlogTotal: profile.backlogTotal,
 		backlogStats: profile.backlogStats,
 		listsTotal: profile.listsTotal,
-		recentActivity: profile.recentActivity.map(activitySerializer)
+		recentActivity: profile.recentActivity.map(activitySerializer),
+		access: profile.access
 	};
 }
 

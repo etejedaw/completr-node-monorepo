@@ -13,7 +13,7 @@ import * as userFollowersService from "../user-followers/user-followers.service"
 import * as wishlistService from "../wishlist/wishlist.service";
 import { type VisibilitySection } from "./constants/visibility.constants";
 import * as userDomain from "./errors/users.domain-error";
-import { canView } from "./helpers/visibility.helper";
+import { canView, resolveSectionAccess } from "./helpers/visibility.helper";
 import { type ComparisonDimension } from "./schemas/comparison-query.schema";
 import { type User } from "./user.model";
 import {
@@ -93,11 +93,12 @@ async function buildFullProfile(
 	isSelf: boolean
 ): Promise<FullUserProfile> {
 	const userId = user.id;
-	const [canViewBacklog, canViewLists, canViewFeed] = await Promise.all([
-		canView(viewerId, user, "backlog"),
-		canView(viewerId, user, "list"),
-		canView(viewerId, user, "feed")
-	]);
+	const access = await resolveSectionAccess(viewerId, user);
+	const {
+		backlog: canViewBacklog,
+		list: canViewLists,
+		feed: canViewFeed
+	} = access;
 
 	const [
 		backlogResult,
@@ -136,7 +137,8 @@ async function buildFullProfile(
 		recentActivity,
 		followerCount,
 		followingCount,
-		isFollowing
+		isFollowing,
+		access
 	};
 }
 

@@ -5,6 +5,7 @@ import { type FranchiseProgressEntry } from "../franchises/franchises.service";
 import { type List } from "../lists/list.model";
 import { type BacklogSummary } from "../lists/lists.service";
 import { type Review } from "../reviews/review.model";
+import { type SectionAccess } from "./helpers/visibility.helper";
 import { type ComparisonDimension } from "./schemas/comparison-query.schema";
 import { type User } from "./user.model";
 
@@ -29,6 +30,7 @@ export interface FullUserProfile {
 	followerCount: number;
 	followingCount: number;
 	isFollowing: boolean;
+	access: SectionAccess;
 }
 
 export type UserProfileResult = RestrictedUserProfile | FullUserProfile;
