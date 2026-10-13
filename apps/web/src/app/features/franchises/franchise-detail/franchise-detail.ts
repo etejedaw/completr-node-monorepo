@@ -1,15 +1,23 @@
+import { type HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
-	type OnInit,
+	linkedSignal,
 	signal
 } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { rxResource, toSignal } from "@angular/core/rxjs-interop";
+import { ActivatedRoute, RouterLink } from "@angular/router";
+import { map } from "rxjs";
 
-import { AuthService } from "../../../core/services/auth";
+import { type BacklogStatus, type Game } from "../../../core/models";
+import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
-import { UiPagination, UiProgress } from "../../../shared/ui";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
+import { UiButton, UiEmptyState, UiPagination } from "../../../shared/ui";
+import { backlogStatusLabel } from "../../../shared/utils/backlog-status";
 import {
 	type FranchiseDetail as FranchiseDetailData,
 	FranchisesService
@@ -17,98 +25,106 @@ import {
 
 const PAGE_SIZE = 24;
 
-const STATUS_LABELS: Record<string, string> = {
-	completed: "Completed",
-	playing: "Playing",
-	not_started: "To play",
-	abandoned: "Dropped",
-	endless: "Endless"
-};
-
 @Component({
 	selector: "app-franchise-detail",
-	imports: [UiPagination, UiProgress, GameCoverCard],
+	imports: [
+		RouterLink,
+		CoverGrid,
+		GameCoverCard,
+		LibraryHero,
+		ProgressMeter,
+		UiButton,
+		UiEmptyState,
+		UiPagination
+	],
 	templateUrl: "./franchise-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FranchiseDetail implements OnInit {
+export class FranchiseDetail {
 	private readonly route = inject(ActivatedRoute);
 	private readonly franchisesService = inject(FranchisesService);
-	private readonly authService = inject(AuthService);
 
-	protected readonly code = signal("");
-	protected readonly detail = signal<FranchiseDetailData | null>(null);
-	protected readonly offset = signal(0);
 	protected readonly limit = PAGE_SIZE;
-	protected readonly isLoading = signal(true);
-	protected readonly notFound = signal(false);
-	protected readonly tracked = signal(false);
-	protected readonly toggling = signal(false);
-	protected readonly isLoggedIn = this.authService.isLoggedIn;
 
-	ngOnInit() {
-		if (this.authService.token() && !this.authService.user()) {
-			this.authService.loadUser().subscribe({
-				next: () => this.init(),
-				error: () => this.init()
-			});
-		} else {
-			this.init();
+	private readonly code = toSignal(
+		this.route.paramMap.pipe(map(params => params.get("code") ?? "")),
+		{ initialValue: this.route.snapshot.paramMap.get("code") ?? "" }
+	);
+
+	protected readonly offset = linkedSignal({
+		source: this.code,
+		computation: () => 0
+	});
+
+	protected readonly page = rxResource({
+		params: () => ({ code: this.code(), offset: this.offset() }),
+		stream: ({ params }) =>
+			this.franchisesService.getFranchiseByCode(params.code, {
+				limit: PAGE_SIZE,
+				offset: params.offset
+			})
+	});
+
+	private readonly loadedPage = computed(() =>
+		this.page.hasValue() ? this.page.value() : undefined
+	);
+
+	protected readonly detail = linkedSignal<
+		FranchiseDetailData | undefined,
+		FranchiseDetailData | undefined
+	>({
+		source: this.loadedPage,
+		computation: (value, previous) => {
+			if (value) return value;
+			const kept = previous?.value;
+			return kept?.franchise.code === this.code() ? kept : undefined;
 		}
-	}
+	});
 
-	private init() {
-		this.code.set(this.route.snapshot.paramMap.get("code") ?? "");
-		this.load();
-	}
+	protected readonly isFirstLoad = computed(
+		() => !this.detail() && this.page.isLoading()
+	);
+
+	protected readonly notFound = computed(
+		() =>
+			(this.page.error() as HttpErrorResponse | undefined)?.status === 404
+	);
+
+	protected readonly tracked = linkedSignal(
+		() => this.detail()?.isTracked ?? false
+	);
+	protected readonly toggling = signal(false);
+
+	protected readonly heroPosters = computed(() =>
+		(this.detail()?.games ?? []).map(game => ({
+			src: game.backgroundUrl,
+			title: game.title
+		}))
+	);
 
 	protected goToOffset(offset: number) {
 		this.offset.set(offset);
-		this.load();
 	}
 
 	protected statusLabel(status: string | null) {
-		return status ? (STATUS_LABELS[status] ?? "") : "";
+		return status ? backlogStatusLabel(status as BacklogStatus) : undefined;
 	}
 
-	private load() {
-		this.isLoading.set(true);
-		this.notFound.set(false);
-		this.franchisesService
-			.getFranchiseByCode(this.code(), {
-				limit: this.limit,
-				offset: this.offset()
-			})
-			.subscribe({
-				next: data => {
-					this.detail.set(data);
-					this.tracked.set(data.isTracked);
-					this.isLoading.set(false);
-				},
-				error: () => {
-					this.notFound.set(true);
-					this.isLoading.set(false);
-				}
-			});
-	}
-
-	protected trackBtnClass() {
-		const base =
-			"ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border transition cursor-pointer disabled:opacity-50 ";
-		return this.tracked()
-			? base + "border-brand bg-brand/20 text-brand"
-			: base +
-					"border-line text-fg-muted hover:text-fg hover:border-brand/40";
+	protected releaseYear(game: Game) {
+		return game.releaseAt
+			? String(new Date(game.releaseAt).getUTCFullYear())
+			: undefined;
 	}
 
 	protected toggleTrack() {
 		if (this.toggling()) return;
 		const next = !this.tracked();
+		const code = this.code();
 		this.toggling.set(true);
-		const req$ = next
-			? this.franchisesService.trackFranchise(this.code())
-			: this.franchisesService.untrackFranchise(this.code());
-		req$.subscribe({
+		const request$ = next
+			? this.franchisesService.trackFranchise(code)
+			: this.franchisesService.untrackFranchise(code);
+		request$.subscribe({
 			next: () => {
 				this.tracked.set(next);
 				this.toggling.set(false);

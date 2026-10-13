@@ -1,98 +1,118 @@
-<div class="max-w-7xl mx-auto p-6 lg:p-8 max-md:px-4">
-	@if (isLoading()) {
-	<div class="text-center py-16 text-fg-muted text-sm">Loading...</div>
-	} @else if (notFound() || !detail()) {
-	<div class="text-center py-16 text-fg-muted text-sm">
-		Franchise not found.
-	</div>
-	} @else {
-	<div class="flex items-center gap-3 mb-3 flex-wrap">
-		<span aria-hidden="true" class="material-icons text-brand"
+@if (isFirstLoad()) {
+<div aria-busy="true" aria-label="Loading saga">
+	<div
+		class="bleed bleed-top h-72 mb-6 border-b border-line bg-surface/40 animate-[skeletonPulse_1.4s_ease-in-out_infinite]"
+	></div>
+	<app-cover-grid [loading]="true" loadingLabel="Loading games" />
+</div>
+} @else if (notFound()) {
+<ui-empty-state
+	icon="collections_bookmark"
+	title="Saga not found"
+	hint="It may have been renamed or removed from the catalog."
+>
+	<a uiButton variant="secondary" routerLink="/games">Browse games</a>
+</ui-empty-state>
+} @else if (detail(); as current) {
+<app-library-hero [heading]="current.franchise.name" [posters]="heroPosters()">
+	<span
+		heroEyebrow
+		class="inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+	>
+		<span aria-hidden="true" class="material-icons text-sm"
 			>collections_bookmark</span
 		>
-		<h1
-			class="font-display m-0 text-3xl md:text-4xl font-bold tracking-tight"
-		>
-			{{ detail()!.franchise.name }}
-		</h1>
-		@if (isLoggedIn()) {
-		<button
-			type="button"
-			[class]="trackBtnClass()"
-			[disabled]="toggling()"
-			(click)="toggleTrack()"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>{{ tracked() ? 'check' : 'add' }}</span
-			>
-			{{ tracked() ? 'Tracking' : 'Track saga' }}
-		</button>
+		Saga
+	</span>
+	<div heroSubtitle class="mt-2 flex flex-col gap-2 max-w-2xl">
+		@if (current.franchise.description) {
+		<p class="m-0 text-sm text-fg-secondary">
+			{{ current.franchise.description }}
+		</p>
 		}
-	</div>
-
-	@if (detail()!.franchise.description) {
-	<p class="text-fg-secondary text-sm max-w-2xl mb-4">
-		{{ detail()!.franchise.description }}
-	</p>
-	} @let _progress = detail()!.progress; @let _isComplete = _progress.total >
-	0 && _progress.completed >= _progress.total;
-	<div
-		class="mb-5 px-4 py-3 bg-surface border rounded-card transition-colors"
-		[class.border-line]="!_isComplete"
-		[class.border-warning]="_isComplete"
-		[class.bg-warning\/5]="_isComplete"
-	>
-		<div class="flex items-center justify-between mb-2 gap-3">
-			<span
-				class="text-xs font-semibold text-fg-secondary uppercase tracking-wider"
+		<p class="m-0 text-sm text-fg-secondary">
+			<span class="font-semibold text-fg tabular-nums"
+				>{{ current.progress.total }}</span
 			>
-				Your progress
-			</span>
-			<div class="flex items-center gap-2">
-				@if (_isComplete) {
-				<span
-					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold uppercase tracking-wider bg-warning/15 text-warning"
-				>
-					<span aria-hidden="true" class="material-icons text-sm"
-						>emoji_events</span
-					>
-					Completed
-				</span>
-				}
-				<span class="text-[0.8125rem] font-semibold text-fg"
-					>{{ _progress.completed }}/{{ _progress.total }}</span
-				>
-			</div>
-		</div>
-		<ui-progress
-			[value]="_progress.completed"
-			[max]="_progress.total || 1"
-			indicatorClass=""
-			indicatorStyle="background: linear-gradient(135deg, var(--color-brand), var(--color-success));"
-		/>
+			{{ current.progress.total === 1 ? 'game' : 'games' }} · in release
+			order
+		</p>
 	</div>
-
-	@if (detail()!.games.length === 0) {
-	<div class="text-center py-12 text-fg-muted text-sm">
-		No games in this franchise yet.
-	</div>
-	} @else {
-	<div
-		class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5"
+	<button
+		heroActions
+		uiButton
+		type="button"
+		[variant]="tracked() ? 'secondary' : 'primary'"
+		[class.!bg-surface/70]="tracked()"
+		[class.backdrop-blur]="tracked()"
+		class="max-sm:min-h-[44px]"
+		[attr.aria-pressed]="tracked()"
+		[attr.aria-busy]="toggling()"
+		[disabled]="toggling()"
+		title="Tracked sagas show their progress on your profile"
+		(click)="toggleTrack()"
 	>
-		@for (game of detail()!.games; track game.id) {
+		<span aria-hidden="true" class="material-icons text-base"
+			>{{ tracked() ? 'check' : 'add' }}</span
+		>
+		{{ tracked() ? 'Tracking' : 'Track saga' }}
+	</button>
+	@if (current.progress.total > 0) {
+	<app-progress-meter
+		class="max-w-xl"
+		label="Your progress"
+		[completed]="current.progress.completed"
+		[total]="current.progress.total"
+	/>
+	}
+</app-library-hero>
+
+@if (page.error() && !page.isLoading()) {
+<ui-empty-state
+	icon="cloud_off"
+	title="Couldn't load these games"
+	hint="Check your connection and try again."
+>
+	<button uiButton variant="secondary" type="button" (click)="page.reload()">
+		Try again
+	</button>
+</ui-empty-state>
+} @else if (page.isLoading()) {
+<app-cover-grid [loading]="true" loadingLabel="Loading games" />
+} @else if (current.games.length === 0) {
+<ui-empty-state
+	icon="sports_esports"
+	title="No games in this saga yet"
+	hint="Games are added to a saga as the catalog grows."
+>
+	<a uiButton variant="secondary" routerLink="/games">Browse games</a>
+</ui-empty-state>
+} @else {
+<app-cover-grid>
+	@for (game of current.games; track game.id) {
+	<li>
 		<app-game-cover-card
 			[game]="game"
 			[topLeftBadge]="statusLabel(game.backlogStatus)"
+			[subtitle]="releaseYear(game)"
 		/>
-		}
-	</div>
-
-	<ui-pagination
-		[offset]="offset()"
-		[limit]="limit"
-		[total]="detail()!.progress.total"
-		(offsetChange)="goToOffset($event)"
-	/>
-	} }
-</div>
+	</li>
+	}
+</app-cover-grid>
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit"
+	[total]="current.progress.total"
+	(offsetChange)="goToOffset($event)"
+/>
+} } @else if (page.error()) {
+<ui-empty-state
+	icon="cloud_off"
+	title="Couldn't load this saga"
+	hint="Check your connection and try again."
+>
+	<button uiButton variant="secondary" type="button" (click)="page.reload()">
+		Try again
+	</button>
+</ui-empty-state>
+}
