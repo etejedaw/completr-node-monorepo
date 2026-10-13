@@ -8,7 +8,7 @@ const DATA_SOURCES = [
 ] as const;
 
 const FOOTER_LINK_CLASSES =
-	"inline-flex items-center pointer-coarse:min-h-[44px] pointer-coarse:px-2 text-fg-secondary hover:text-brand no-underline";
+	"inline-flex items-center max-sm:min-h-[44px] max-sm:px-2 pointer-coarse:min-h-[44px] pointer-coarse:px-2 text-fg-secondary hover:text-brand no-underline";
 
 @Component({
 	selector: "app-attribution-footer",
@@ -22,7 +22,7 @@ const FOOTER_LINK_CLASSES =
 				respective API terms:
 			</p>
 			<ul
-				class="m-0 mt-1.5 p-0 list-none flex flex-wrap items-center gap-x-4 gap-y-1 pointer-coarse:mt-1 pointer-coarse:-mx-2 pointer-coarse:gap-[8px]"
+				class="m-0 mt-1.5 p-0 list-none flex flex-wrap items-center gap-x-4 gap-y-1 max-sm:mt-1 max-sm:-mx-2 max-sm:gap-[8px] pointer-coarse:mt-1 pointer-coarse:-mx-2 pointer-coarse:gap-[8px]"
 			>
 				@for (source of dataSources; track source.name) {
 					<li>

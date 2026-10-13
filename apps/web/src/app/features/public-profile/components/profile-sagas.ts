@@ -80,7 +80,7 @@ const COLLAPSED_SAGA_COUNT = 6;
 					<button
 						uiButton
 						variant="ghost"
-						class="mt-3"
+						class="mt-3 max-sm:min-h-[44px]"
 						[attr.aria-expanded]="expanded()"
 						(click)="expanded.set(!expanded())"
 					>
