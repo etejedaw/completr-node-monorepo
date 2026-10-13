@@ -108,17 +108,15 @@ export class PublicProfileComponent implements OnInit {
 		total: 0
 	};
 	protected readonly visibility = computed(() => {
-		const user = this.profile()?.user;
-		const self = this.isSelf();
-		const visible = (level: string | undefined) =>
-			self || (!!level && level !== "private");
+		const access = this.profile()?.access;
 		return {
-			backlog: visible(user?.backlogVisibility),
-			shelf: visible(user?.shelfVisibility),
-			lists: visible(user?.listVisibility),
-			favorites: visible(user?.favoriteVisibility),
-			queue: visible(user?.queueVisibility),
-			wishlist: visible(user?.wishlistVisibility)
+			backlog: !!access?.backlog,
+			shelf: !!access?.shelf,
+			lists: !!access?.list,
+			favorites: !!access?.favorite,
+			queue: !!access?.queue,
+			wishlist: !!access?.wishlist,
+			feed: !!access?.feed
 		};
 	});
 	protected readonly backdropUrl = computed(() => {
@@ -157,10 +155,7 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly showActivity = computed(() => {
 		const p = this.profile();
 		if (!p) return false;
-		return (
-			(this.isSelf() || p.user.feedVisibility !== "private") &&
-			p.recentActivity.length > 0
-		);
+		return this.visibility().feed && p.recentActivity.length > 0;
 	});
 	protected readonly highlightsData = signal<{
 		recent: HighlightEntry[];
@@ -486,10 +481,7 @@ export class PublicProfileComponent implements OnInit {
 				if (this.visibility().backlog) {
 					this.ensureHighlightsLoaded(username);
 				}
-				if (
-					this.isSelf() ||
-					data.user.favoriteVisibility !== "private"
-				) {
+				if (this.visibility().favorites) {
 					this.ensureFavoritesLoaded(username);
 				}
 				this.reviewsService
@@ -503,10 +495,12 @@ export class PublicProfileComponent implements OnInit {
 					this.loadComparison();
 				}
 				this.sagas.set([]);
-				this.libraryService.getUserFranchises(username).subscribe({
-					next: franchises => this.sagas.set(franchises),
-					error: () => this.sagas.set([])
-				});
+				if (this.visibility().backlog) {
+					this.libraryService.getUserFranchises(username).subscribe({
+						next: franchises => this.sagas.set(franchises),
+						error: () => this.sagas.set([])
+					});
+				}
 			},
 			error: err => {
 				if (err.status === 404) this.notFound.set(true);

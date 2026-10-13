@@ -226,6 +226,7 @@
 
 	<app-profile-sagas [sagas]="sagas()" [isSelf]="isSelf()" />
 
+	@if (showActivity() || isSelf()) {
 	<section aria-labelledby="activity-heading">
 		<app-profile-section-header
 			heading="Recent activity"
@@ -240,6 +241,7 @@
 		</p>
 		}
 	</section>
+	}
 </div>
 
 @if (!isLoggedIn()) {

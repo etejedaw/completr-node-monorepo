@@ -52,6 +52,18 @@ export interface BacklogStats {
 	total: number;
 }
 
+export type ProfileSection =
+	| "profile"
+	| "queue"
+	| "wishlist"
+	| "favorite"
+	| "feed"
+	| "backlog"
+	| "shelf"
+	| "list";
+
+export type ProfileSectionAccess = Record<ProfileSection, boolean>;
+
 export interface PublicProfile {
 	user: PublicUser;
 	isPrivate?: boolean;
@@ -66,6 +78,7 @@ export interface PublicProfile {
 	backlogStats: BacklogStats;
 	listsTotal: number;
 	recentActivity: PublicActivity[];
+	access?: ProfileSectionAccess;
 }
 
 @Injectable({ providedIn: "root" })
