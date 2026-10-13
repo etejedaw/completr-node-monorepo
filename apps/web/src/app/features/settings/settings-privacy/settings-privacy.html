@@ -97,6 +97,8 @@
 		<app-settings-row
 			[label]="profileGate.title"
 			[hint]="profileGate.description"
+			[icon]="profileGate.icon"
+			[iconColor]="profileGate.iconColor"
 		>
 			<div class="flex md:justify-end">
 				<app-segmented-control
@@ -115,7 +117,12 @@
 		</h3>
 		@for (section of group.sections; track section.key) { @let level =
 		draft()[section.key]; @let effective = effectiveLevel(section.key);
-		<app-settings-row [label]="section.title" [hint]="section.description">
+		<app-settings-row
+			[label]="section.title"
+			[hint]="section.description"
+			[icon]="section.icon"
+			[iconColor]="section.iconColor"
+		>
 			<div class="flex flex-col gap-2 md:items-end">
 				<app-segmented-control
 					[label]="section.title + ' visibility'"
