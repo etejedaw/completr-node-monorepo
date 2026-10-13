@@ -61,12 +61,6 @@ export class ProfileStats {
 
 	readonly listsOpened = output<void>();
 
-	protected readonly completionRate = computed(() => {
-		const { completed, abandoned } = this.stats();
-		const finished = completed + abandoned;
-		return finished > 0 ? Math.round((completed / finished) * 100) : null;
-	});
-
 	protected readonly segments = computed<LibrarySegment[]>(() => {
 		const stats = this.stats();
 		const total = Math.max(stats.total, 1);

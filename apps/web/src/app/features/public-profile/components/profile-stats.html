@@ -83,21 +83,11 @@
 	<div
 		class="flex flex-col justify-center gap-3 p-4 rounded-card border border-line bg-surface"
 	>
-		<div class="flex items-baseline justify-between gap-3">
-			<h2
-				class="m-0 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-			>
-				Library breakdown
-			</h2>
-			@if (completionRate() !== null) {
-			<p class="m-0 text-xs text-fg-muted">
-				<span class="font-semibold text-success tabular-nums"
-					>{{ completionRate() }}%</span
-				>
-				finish rate
-			</p>
-			}
-		</div>
+		<h2
+			class="m-0 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+		>
+			Library breakdown
+		</h2>
 		<div
 			class="flex h-2.5 rounded-full overflow-hidden bg-input-bg gap-0.5"
 			role="img"
