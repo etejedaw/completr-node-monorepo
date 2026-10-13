@@ -29,24 +29,28 @@
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
 		/>
-		<label class="hidden md:flex items-center gap-2 shrink-0">
-			<span class="sr-only">Sort by</span>
-			<span
-				aria-hidden="true"
-				class="material-icons text-lg text-fg-muted"
-				>sort</span
-			>
-			<select
-				uiSelect
-				class="!w-auto !h-10"
-				[value]="sortBy()"
-				(change)="setSortBy($any($event.target).value)"
-			>
-				@for (opt of sortOptions; track opt.value) {
-				<option [value]="opt.value">{{ opt.label }}</option>
-				}
-			</select>
-		</label>
+		<app-option-picker
+			class="max-md:hidden shrink-0"
+			variant="compact"
+			size="md"
+			label="Genre"
+			heading="Filter by genre"
+			placeholderIcon="category"
+			[options]="genrePickerOptions()"
+			[value]="genrePickerValue()"
+			[placeholder]="genrePickerPlaceholder()"
+			(valueChange)="pickGenre($event)"
+		/>
+		<app-option-picker
+			class="max-md:hidden shrink-0"
+			variant="compact"
+			size="md"
+			label="Sort"
+			heading="Sort games by"
+			[options]="sortPickerOptions"
+			[value]="sortBy()"
+			(valueChange)="setSortBy($event)"
+		/>
 		<button
 			type="button"
 			class="shrink-0 inline-flex items-center gap-1.5 h-10 pointer-coarse:min-h-[44px] pointer-coarse:min-w-[44px] px-3 rounded-card border text-sm font-medium cursor-pointer transition"
@@ -101,24 +105,6 @@
 			(valueChange)="setSortBy($event)"
 		/>
 	</div>
-	@if (quickGenres().length > 0) {
-	<nav
-		aria-label="Quick genre filters"
-		class="max-md:hidden -mx-[var(--page-pad-x)] px-[var(--page-pad-x)] mt-3 pointer-coarse:py-[8px] pointer-coarse:-mb-[8px] pointer-coarse:mt-[2px] flex gap-1.5 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_var(--page-pad-x),black_calc(100%-3rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-	>
-		@for (genre of quickGenres(); track genre.id) {
-		<button
-			type="button"
-			class="tap-area shrink-0 h-8 px-3 rounded-full border text-xs font-medium cursor-pointer transition"
-			[class]="isQuickGenreActive(genre.code) ? 'border-brand bg-brand-subtle text-brand' : 'border-line bg-surface/60 text-fg-secondary hover:border-fg-muted hover:text-fg'"
-			[attr.aria-pressed]="isQuickGenreActive(genre.code)"
-			(click)="toggleQuickGenre(genre.code)"
-		>
-			{{ genre.name }}
-		</button>
-		}
-	</nav>
-	}
 </div>
 
 @if (showFilters() && !isMobile()) {

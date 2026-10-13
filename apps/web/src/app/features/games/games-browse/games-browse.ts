@@ -41,7 +41,6 @@ import {
 	UiButton,
 	UiPagination,
 	UiSearchBar,
-	UiSelect,
 	UiSkeleton
 } from "../../../shared/ui";
 import { ListsService } from "../../lists/lists";
@@ -54,7 +53,6 @@ import {
 import { BrowseHero } from "./components/browse-hero";
 
 const FEATURED_GAMES_LIMIT = 5;
-const QUICK_GENRES_LIMIT = 16;
 
 const MIXED_GENRES_VALUE = "__mixed__";
 
@@ -78,7 +76,6 @@ const SORT_ICONS: Record<string, string> = {
 		UiButton,
 		UiPagination,
 		UiSearchBar,
-		UiSelect,
 		UiSkeleton,
 		BrowseFilters,
 		BrowseHero,
@@ -195,9 +192,6 @@ export class GamesBrowse implements OnInit {
 	);
 	protected readonly selectedGenreNames = computed(() =>
 		this.allGenres().filter(genre => this.selectedGenres().has(genre.code))
-	);
-	protected readonly quickGenres = computed(() =>
-		this.allGenres().slice(0, QUICK_GENRES_LIMIT)
 	);
 	protected readonly genrePickerOptions = computed<PickerOption[]>(() => [
 		{ value: "", label: "Any genre", icon: "category" },
@@ -358,16 +352,6 @@ export class GamesBrowse implements OnInit {
 
 	toggleFilters() {
 		this.showFilters.update(v => !v);
-	}
-
-	toggleQuickGenre(code: string) {
-		const selected = this.selectedGenres();
-		const isOnlySelection = selected.size === 1 && selected.has(code);
-		this.selectedGenres.set(isOnlySelection ? new Set() : new Set([code]));
-	}
-
-	isQuickGenreActive(code: string): boolean {
-		return this.selectedGenres().has(code);
 	}
 
 	showGenre(code: string) {
