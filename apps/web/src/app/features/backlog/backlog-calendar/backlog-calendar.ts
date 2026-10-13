@@ -1,4 +1,3 @@
-import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -9,23 +8,17 @@ import {
 	output,
 	signal
 } from "@angular/core";
-import {
-	NgpDatePicker,
-	NgpDatePickerCell,
-	NgpDatePickerCellRender,
-	NgpDatePickerGrid,
-	NgpDatePickerLabel,
-	NgpDatePickerNextMonth,
-	NgpDatePickerPreviousMonth,
-	NgpDatePickerRowRender
-} from "ng-primitives/date-picker";
-import {
-	NgpNativeDateAdapter,
-	provideDateAdapter
-} from "ng-primitives/date-time";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
-import { UiIconButton } from "../../../shared/ui";
+import {
+	type CalendarAgendaItem,
+	CalendarDayTemplate,
+	MonthCalendar,
+	sameTime,
+	shortDate,
+	startOfMonth
+} from "../../../shared/components/month-calendar/month-calendar";
+import { backlogStatusLabel } from "../../../shared/utils/backlog-status";
 import { type BacklogFilters, BacklogService } from "../backlog";
 
 interface BarSlot {
@@ -52,24 +45,17 @@ interface WeekSegment {
 	lane: number;
 }
 
+interface DateRange {
+	start: Date;
+	end: Date;
+}
+
 const MAX_LANES = 3;
 const MONTH_LIMIT = 100;
 
 @Component({
 	selector: "app-backlog-calendar",
-	imports: [
-		DatePipe,
-		NgpDatePicker,
-		NgpDatePickerCell,
-		NgpDatePickerCellRender,
-		NgpDatePickerGrid,
-		NgpDatePickerLabel,
-		NgpDatePickerNextMonth,
-		NgpDatePickerPreviousMonth,
-		NgpDatePickerRowRender,
-		UiIconButton
-	],
-	providers: [provideDateAdapter(NgpNativeDateAdapter)],
+	imports: [MonthCalendar, CalendarDayTemplate],
 	templateUrl: "./backlog-calendar.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -82,6 +68,11 @@ export class BacklogCalendar {
 	private readonly now = new Date();
 
 	protected readonly focusedDate = signal(this.startOfDay(this.now));
+	protected readonly selectedDay = signal<Date | null>(null);
+	private readonly monthStart = computed(
+		() => startOfMonth(this.focusedDate()),
+		{ equal: sameTime }
+	);
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly unscheduledCount = signal(0);
@@ -90,28 +81,17 @@ export class BacklogCalendar {
 	protected readonly isTruncated = computed(
 		() => this.monthTotal() > MONTH_LIMIT
 	);
-	protected readonly selectedDay = signal<Date | null>(null);
 	protected readonly hiddenStatuses = signal<Set<BacklogStatus>>(new Set());
 	protected readonly legendItems: { status: BacklogStatus; dot: string }[] = [
-		{ status: "playing", dot: "bg-warning/25" },
-		{ status: "completed", dot: "bg-success/25" },
-		{ status: "abandoned", dot: "bg-danger/25" },
-		{ status: "endless", dot: "bg-brand-subtle" }
-	];
-	protected readonly weekdayLabels = [
-		"Mon",
-		"Tue",
-		"Wed",
-		"Thu",
-		"Fri",
-		"Sat",
-		"Sun"
+		{ status: "playing", dot: "bg-warning" },
+		{ status: "completed", dot: "bg-success" },
+		{ status: "abandoned", dot: "bg-danger" },
+		{ status: "endless", dot: "bg-brand" }
 	];
 
 	private readonly loadEffect = effect(onCleanup => {
 		const filters = this.filters();
-		const focus = this.focusedDate();
-		const monthStart = new Date(focus.getFullYear(), focus.getMonth(), 1);
+		const monthStart = this.monthStart();
 		const gridStart = this.startOfWeekMonday(monthStart);
 		const gridEnd = this.addDays(gridStart, 41);
 		this.isLoading.set(true);
@@ -145,14 +125,55 @@ export class BacklogCalendar {
 		onCleanup(() => sub.unsubscribe());
 	});
 
-	private readonly layout = computed<CalendarLayout>(() => {
+	private readonly visibleEntries = computed(() => {
 		const hidden = this.hiddenStatuses();
-		const visible =
-			hidden.size === 0
-				? this.entries()
-				: this.entries().filter(e => !hidden.has(e.status));
-		return this.buildLayout(visible);
+		return hidden.size === 0
+			? this.entries()
+			: this.entries().filter(e => !hidden.has(e.status));
 	});
+
+	private readonly layout = computed<CalendarLayout>(() =>
+		this.buildLayout(this.visibleEntries())
+	);
+
+	protected readonly monthEntries = computed(() => {
+		const monthStart = this.monthStart();
+		const monthEnd = new Date(
+			monthStart.getFullYear(),
+			monthStart.getMonth() + 1,
+			0
+		);
+		return this.visibleEntries()
+			.map(entry => ({ entry, range: this.effectiveRange(entry) }))
+			.filter(
+				(item): item is { entry: BacklogEntry; range: DateRange } =>
+					!!item.range &&
+					item.range.start <= monthEnd &&
+					item.range.end >= monthStart
+			)
+			.sort((a, b) => a.range.start.getTime() - b.range.start.getTime())
+			.map(item => item.entry);
+	});
+
+	protected readonly agendaItems = computed<CalendarAgendaItem[]>(() => {
+		const day = this.selectedDay();
+		const entries = day
+			? (this.layout().dayEntries.get(this.dateKey(day)) ?? [])
+			: this.monthEntries();
+		return entries.map(entry => ({
+			id: entry.id,
+			title: entry.game.title,
+			posterSrc: entry.game.backgroundUrl,
+			meta: `${backlogStatusLabel(entry.status)} · ${entry.platform.abbreviation}`,
+			dotClass: this.dotClass(entry.status),
+			dateLabel: this.rangeLabel(entry)
+		}));
+	});
+
+	protected readonly markersFor = (date: Date): string[] =>
+		(this.layout().dayEntries.get(this.dateKey(date)) ?? []).map(entry =>
+			this.dotClass(entry.status)
+		);
 
 	protected slotsFor(date: Date): (BarSlot | null)[] {
 		return this.layout().slots.get(this.dateKey(date)) ?? [];
@@ -160,27 +181,6 @@ export class BacklogCalendar {
 
 	protected overflowFor(date: Date): number {
 		return this.layout().overflow.get(this.dateKey(date)) ?? 0;
-	}
-
-	protected isToday(date: Date): boolean {
-		return this.diffDays(date, this.now) === 0;
-	}
-
-	protected isWeekend(date: Date): boolean {
-		const day = date.getDay();
-		return day === 0 || day === 6;
-	}
-
-	protected isOutsideMonth(date: Date): boolean {
-		const focus = this.focusedDate();
-		return (
-			date.getMonth() !== focus.getMonth() ||
-			date.getFullYear() !== focus.getFullYear()
-		);
-	}
-
-	goToday() {
-		this.focusedDate.set(this.startOfDay(this.now));
 	}
 
 	barClass(status: BacklogStatus): string {
@@ -205,30 +205,21 @@ export class BacklogCalendar {
 		return map[status] ?? "bg-fg-muted";
 	}
 
-	protected entriesForDay(date: Date): BacklogEntry[] {
-		return this.layout().dayEntries.get(this.dateKey(date)) ?? [];
-	}
-
-	statusLabel(status: BacklogStatus): string {
-		const map: Record<BacklogStatus, string> = {
-			not_started: "Not Started",
-			playing: "Playing",
-			completed: "Completed",
-			abandoned: "Abandoned",
-			endless: "Endless"
-		};
-		return map[status] ?? status;
-	}
-
-	protected selectedDayEntries(): BacklogEntry[] {
-		const day = this.selectedDay();
-		return day
-			? (this.layout().dayEntries.get(this.dateKey(day)) ?? [])
-			: [];
-	}
-
 	isStatusHidden(status: BacklogStatus): boolean {
 		return this.hiddenStatuses().has(status);
+	}
+
+	protected statusLabel(status: BacklogStatus): string {
+		return backlogStatusLabel(status);
+	}
+
+	protected selectDay(date: Date) {
+		this.selectedDay.set(date);
+	}
+
+	protected openEntry(id: string) {
+		const entry = this.entries().find(item => item.id === id);
+		if (entry) this.entryClick.emit(entry);
 	}
 
 	toggleStatus(status: BacklogStatus) {
@@ -236,19 +227,6 @@ export class BacklogCalendar {
 		if (next.has(status)) next.delete(status);
 		else next.add(status);
 		this.hiddenStatuses.set(next);
-	}
-
-	openDay(date: Date) {
-		this.selectedDay.set(date);
-	}
-
-	closeDay() {
-		this.selectedDay.set(null);
-	}
-
-	selectDayEntry(entry: BacklogEntry) {
-		this.selectedDay.set(null);
-		this.entryClick.emit(entry);
 	}
 
 	private buildLayout(entries: BacklogEntry[]): CalendarLayout {
@@ -338,9 +316,17 @@ export class BacklogCalendar {
 		}
 	}
 
-	private effectiveRange(
-		entry: BacklogEntry
-	): { start: Date; end: Date } | null {
+	private rangeLabel(entry: BacklogEntry): string {
+		const range = this.effectiveRange(entry);
+		if (!range) return "";
+		if (!entry.finishedAt && entry.status === "playing")
+			return `Since ${shortDate(range.start)}`;
+		if (this.diffDays(range.end, range.start) === 0)
+			return shortDate(range.start);
+		return `${shortDate(range.start)} – ${shortDate(range.end)}`;
+	}
+
+	private effectiveRange(entry: BacklogEntry): DateRange | null {
 		const startIso = entry.startedAt ?? entry.finishedAt;
 		if (!startIso) return null;
 		const start = this.parseDateOnly(startIso);
