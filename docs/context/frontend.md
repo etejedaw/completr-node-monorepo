@@ -27,6 +27,8 @@ Arquitectura y convenciones de `apps/web`, la aplicación Angular que consume la
 
 Al arrancar, `provideAppInitializer` intenta renovar el access token si está vencido, antes de resolver la primera ruta.
 
+Dos páginas muestran contenido que no vive en este repo de Angular sino en la landing: What's new (`GET /changelog`) y Privacy (`GET /privacy`). La API hace de proxy con caché de 5 minutos y la página lo pide con `httpResource`, con esqueleto mientras carga y un estado de error con _Try again_. Al leer el recurso en la plantilla, comprueba `hasValue()` antes de `value()`: en estado de error `value()` lanza. Para cambiar esos textos no se toca `apps/web`; ver [`landing.md`](./landing.md).
+
 ## Estructura de carpetas
 
 ```
