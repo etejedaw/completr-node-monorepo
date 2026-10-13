@@ -1,0 +1,50 @@
+---
+const links = [
+	{ href: "/#ratio", label: "El Ratio" },
+	{ href: "/#tour", label: "La app" },
+	{ href: "/#changelog", label: "Novedades" },
+	{ href: "/#open-source", label: "Código" }
+];
+---
+
+<header
+	class="sticky top-0 z-50 border-b border-[var(--color-line)]/70 bg-[var(--color-canvas)]/80 backdrop-blur-md"
+>
+	<nav
+		aria-label="Principal"
+		class="max-w-6xl mx-auto flex items-center gap-6 h-16 px-6"
+	>
+		<a
+			href="/"
+			class="flex items-center gap-2.5 min-h-[44px] no-underline text-[var(--color-fg)]"
+		>
+			<span
+				class="flex items-center justify-center w-8 h-8 rounded-lg font-display font-extrabold text-sm text-white"
+				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 6px 16px -4px var(--color-brand-glow);"
+				aria-hidden="true">C</span
+			>
+			<span class="font-display text-lg font-bold tracking-tight"
+				>Completr</span
+			>
+		</a>
+
+		<ul class="hidden md:flex items-center gap-1 m-0 p-0 list-none">
+			{
+				links.map(link => (
+					<li>
+						<a
+							href={link.href}
+							class="inline-flex items-center min-h-[44px] px-3 text-sm font-medium text-[var(--color-fg-secondary)] no-underline transition-colors hover:text-[var(--color-fg)]"
+						>
+							{link.label}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+
+		<a href="/#beta-signup" class="btn-primary ml-auto text-sm">
+			Unirme a la beta
+		</a>
+	</nav>
+</header>

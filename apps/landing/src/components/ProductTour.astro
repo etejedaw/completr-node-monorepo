@@ -1,0 +1,300 @@
+---
+import { Picture } from "astro:assets";
+
+import backlogCalendarDesktop from "../assets/screenshots/backlog-calendar-desktop.webp";
+import backlogDiaryDesktop from "../assets/screenshots/backlog-completed-desktop.webp";
+import backlogMobile from "../assets/screenshots/backlog-completed-mobile.webp";
+import backlogTableDesktop from "../assets/screenshots/backlog-table-completed-desktop.webp";
+import feedMobile from "../assets/screenshots/feed-mobile.webp";
+import franchiseMobile from "../assets/screenshots/franchise-mobile.webp";
+import gameDetailDesktop from "../assets/screenshots/game-detail-desktop.webp";
+import gameDetailMobile from "../assets/screenshots/game-detail-mobile.webp";
+import listDetailDesktop from "../assets/screenshots/list-detail-desktop.webp";
+import profileDesktop from "../assets/screenshots/profile-desktop.webp";
+import queueDesktop from "../assets/screenshots/queue-desktop.webp";
+import queueMobile from "../assets/screenshots/queue-mobile.webp";
+import DeviceFrames from "./DeviceFrames.astro";
+
+const libraryViews = [
+	{
+		id: "diary",
+		label: "Diary",
+		icon: "view_agenda",
+		image: backlogDiaryDesktop,
+		alt: "Vista Diary de My Games: tarjetas con portada, estado, nota, run y Ratio"
+	},
+	{
+		id: "hardcore",
+		label: "Hardcore",
+		icon: "table_rows",
+		image: backlogTableDesktop,
+		alt: "Vista Hardcore de My Games: tabla ordenable por score, duración y Ratio"
+	},
+	{
+		id: "calendar",
+		label: "Calendar",
+		icon: "calendar_month",
+		image: backlogCalendarDesktop,
+		alt: "Vista Calendar de My Games: qué jugaste cada día del mes"
+	}
+];
+
+const chapters = [
+	{
+		id: "up-next",
+		eyebrow: "Up Next",
+		title: "Qué jugar después, decidido.",
+		body: "Arma tu cola con los juegos que vienen. Ordénala a mano o por Ratio y empieza el siguiente con un toque.",
+		points: [
+			"El próximo juego, destacado arriba",
+			"Orden manual con arrastre o por Ratio",
+			"Start playing lo pasa a jugando"
+		],
+		desktop: queueDesktop,
+		desktopAlt:
+			"Up Next en escritorio: el próximo juego destacado y la cola con su Ratio",
+		mobile: queueMobile,
+		mobileAlt: "Up Next en el celular",
+		windowTitle: "Up Next · Completr"
+	},
+	{
+		id: "game",
+		eyebrow: "Ficha del juego",
+		title: "Cada juego, con su Ratio.",
+		body: "Metacritic, RAWG y HowLongToBeat en una sola ficha, con el Ratio calculado y tus runs anteriores a mano.",
+		points: [
+			"Score y duración de varias fuentes",
+			"Tus runs: veces jugado, completado y horas",
+			"Favorito, Up Next, My Shelf y listas desde la ficha"
+		],
+		desktop: gameDetailDesktop,
+		desktopAlt:
+			"Ficha de Resident Evil 4 con Ratio, scores, duración y tus runs",
+		mobile: gameDetailMobile,
+		mobileAlt: "Ficha del juego en el celular",
+		windowTitle: "Resident Evil 4 · Completr"
+	},
+	{
+		id: "lists",
+		eyebrow: "Listas y sagas",
+		title: "Termina la saga que empezaste.",
+		body: "Sigue listas curadas o arma las tuyas y mira tu avance juego por juego. También puedes seguir sagas completas del catálogo.",
+		points: [
+			"Progreso por lista y por saga",
+			"Compara tu avance con el de un amigo",
+			"Duplica una lista pública para hacerla tuya"
+		],
+		desktop: listDetailDesktop,
+		desktopAlt:
+			"Lista de la saga Resident Evil con el progreso y el Ratio de cada entrega",
+		mobile: franchiseMobile,
+		mobileAlt: "Saga de Halo en el celular con tu progreso",
+		windowTitle: "Resident Evil · Completr"
+	},
+	{
+		id: "profile",
+		eyebrow: "Perfil y amigos",
+		title: "Tu perfil, tu vitrina.",
+		body: "Tus favoritos, lo que estás jugando, tus reseñas y tus números. Sigue a tus amigos y mira qué terminan en el feed.",
+		points: [
+			"Top de favoritos y resumen de tu biblioteca",
+			"Feed con la actividad de quienes sigues",
+			"Privacidad por sección: tú decides qué se ve"
+		],
+		desktop: profileDesktop,
+		desktopAlt:
+			"Perfil público con favoritos, estadísticas y resumen de la biblioteca",
+		mobile: feedMobile,
+		mobileAlt: "Feed de actividad en el celular",
+		windowTitle: "@etejedaw · Completr"
+	}
+];
+---
+
+<section
+	id="tour"
+	class="relative py-24 px-6 border-t border-[var(--color-line)] overflow-hidden"
+>
+	<div class="max-w-6xl mx-auto">
+		<div class="max-w-2xl mb-14">
+			<span class="eyebrow">La app por dentro</span>
+			<h2
+				class="font-display mt-3 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
+			>
+				Todo tu backlog, <span class="text-gradient"
+					>en un solo lugar</span
+				>.
+			</h2>
+			<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
+				Capturas reales de Completr, en escritorio y en el celular.
+			</p>
+		</div>
+
+		<div
+			class="library-tour grid gap-10 lg:grid-cols-12 lg:gap-12 items-center"
+		>
+			<div class="min-w-0 lg:col-span-4 flex flex-col gap-5">
+				<span class="eyebrow">My Games</span>
+				<h3
+					class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight leading-tight"
+				>
+					Tu biblioteca, como la quieras ver.
+				</h3>
+				<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
+					Cada juego con su estado, tu nota, tus horas reales y el
+					Ratio a la vista. Cambia de vista según lo que necesites.
+				</p>
+				<div
+					role="radiogroup"
+					aria-label="Vista de My Games"
+					class="inline-flex self-start gap-1 p-1 rounded-xl bg-[var(--color-surface)] border border-[var(--color-line)]"
+				>
+					{
+						libraryViews.map((view, index) => (
+							<label class="library-tab relative inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-lg text-sm font-medium text-[var(--color-fg-muted)] cursor-pointer transition-colors hover:text-[var(--color-fg)]">
+								<input
+									type="radio"
+									name="library-view"
+									value={view.id}
+									checked={index === 0}
+									class="sr-only"
+								/>
+								<span
+									class="material-icons text-[1.125rem]"
+									aria-hidden="true"
+								>
+									{view.icon}
+								</span>
+								{view.label}
+							</label>
+						))
+					}
+				</div>
+				<ul
+					class="m-0 p-0 list-none flex flex-col gap-2 text-sm text-[var(--color-fg-secondary)]"
+				>
+					<li class="flex gap-2">
+						<span
+							class="material-icons text-[1.125rem] text-[var(--color-brand)]"
+							aria-hidden="true">check</span
+						>Filtros, vistas guardadas y tags de ánimo
+					</li>
+					<li class="flex gap-2">
+						<span
+							class="material-icons text-[1.125rem] text-[var(--color-brand)]"
+							aria-hidden="true">check</span
+						>Surprise me elige por ti entre tus filtros
+					</li>
+					<li class="flex gap-2">
+						<span
+							class="material-icons text-[1.125rem] text-[var(--color-brand)]"
+							aria-hidden="true">check</span
+						>Runs en co-op con tus amigos
+					</li>
+				</ul>
+			</div>
+
+			<div class="min-w-0 lg:col-span-8">
+				<DeviceFrames
+					desktop={backlogDiaryDesktop}
+					desktopAlt=""
+					mobile={backlogMobile}
+					mobileAlt="My Games en el celular"
+					windowTitle="My Games · Completr"
+				>
+					<div slot="desktop" class="grid">
+						{
+							libraryViews.map(view => (
+								<div
+									class="library-view [grid-area:1/1]"
+									data-view={view.id}
+								>
+									<Picture
+										src={view.image}
+										alt={view.alt}
+										formats={["avif", "webp"]}
+										fallbackFormat="webp"
+										widths={[640, 960, 1440, 2160]}
+										sizes="(min-width: 1280px) 760px, (min-width: 1024px) 60vw, 94vw"
+										class="block w-full h-auto"
+									/>
+								</div>
+							))
+						}
+					</div>
+				</DeviceFrames>
+			</div>
+		</div>
+
+		{
+			chapters.map((chapter, index) => (
+				<div
+					id={chapter.id}
+					class="grid gap-10 lg:grid-cols-12 lg:gap-12 items-center mt-28"
+				>
+					<div
+						class="min-w-0 lg:col-span-4 flex flex-col gap-5"
+						class:list={[index % 2 === 0 && "lg:order-2"]}
+					>
+						<span class="eyebrow">{chapter.eyebrow}</span>
+						<h3 class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight leading-tight">
+							{chapter.title}
+						</h3>
+						<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
+							{chapter.body}
+						</p>
+						<ul class="m-0 p-0 list-none flex flex-col gap-2 text-sm text-[var(--color-fg-secondary)]">
+							{chapter.points.map(point => (
+								<li class="flex gap-2">
+									<span
+										class="material-icons text-[1.125rem] text-[var(--color-brand)]"
+										aria-hidden="true"
+									>
+										check
+									</span>
+									{point}
+								</li>
+							))}
+						</ul>
+					</div>
+					<div class="min-w-0 lg:col-span-8">
+						<DeviceFrames
+							desktop={chapter.desktop}
+							desktopAlt={chapter.desktopAlt}
+							mobile={chapter.mobile}
+							mobileAlt={chapter.mobileAlt}
+							windowTitle={chapter.windowTitle}
+							phoneSide={index % 2 === 0 ? "left" : "right"}
+						/>
+					</div>
+				</div>
+			))
+		}
+	</div>
+</section>
+
+<style>
+	.library-view {
+		visibility: hidden;
+		opacity: 0;
+		transition: opacity 250ms ease;
+	}
+
+	.library-tour:has(input[value="diary"]:checked) [data-view="diary"],
+	.library-tour:has(input[value="hardcore"]:checked) [data-view="hardcore"],
+	.library-tour:has(input[value="calendar"]:checked) [data-view="calendar"] {
+		visibility: visible;
+		opacity: 1;
+	}
+
+	.library-tab:has(input:checked) {
+		background: var(--color-surface-raised);
+		color: var(--color-fg);
+		box-shadow: inset 0 0 0 1px var(--color-line-strong);
+	}
+
+	.library-tab:has(input:focus-visible) {
+		outline: 2px solid var(--color-brand);
+		outline-offset: 2px;
+	}
+</style>

@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 
 import Footer from "../components/Footer.astro";
+import SiteHeader from "../components/SiteHeader.astro";
 import Layout from "../layouts/Layout.astro";
 
 const all = await getCollection("releases");
@@ -44,14 +45,8 @@ function tintBg(tint: string): string {
 	title="Novedades — Completr"
 	description="Todas las mejoras y funcionalidades que llegaron a Completr."
 >
-	<main class="relative px-6 py-24 max-w-3xl mx-auto">
-		<a
-			href="/"
-			class="inline-flex items-center gap-2 text-sm text-[var(--color-fg-muted)] hover:text-[var(--color-brand)] transition-colors no-underline mb-10"
-		>
-			← Volver al inicio
-		</a>
-
+	<SiteHeader />
+	<main class="relative px-6 pt-16 pb-24 max-w-3xl mx-auto">
 		<div class="flex items-start gap-4 mb-10">
 			<span
 				class="flex items-center justify-center w-12 h-12 rounded-2xl text-white shrink-0"
