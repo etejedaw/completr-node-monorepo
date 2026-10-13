@@ -64,6 +64,7 @@ export class OptionPicker {
 	readonly value = model<string>("");
 	readonly actions = input<readonly PickerAction[]>([]);
 	readonly variant = input<"field" | "compact">("field");
+	readonly size = input<"sm" | "md">("sm");
 	readonly placeholder = input("None");
 	readonly placeholderIcon = input("tune");
 	readonly actionSelected = output<string>();
