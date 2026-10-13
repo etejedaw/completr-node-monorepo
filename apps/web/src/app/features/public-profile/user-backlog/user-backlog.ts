@@ -9,11 +9,15 @@ import {
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
-import { type BacklogEntry } from "../../../core/models";
+import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { PointerService } from "../../../core/services/pointer";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import {
+	OptionPicker,
+	type PickerOption
+} from "../../../shared/components/option-picker/option-picker";
 import {
 	UiButton,
 	UiPagination,
@@ -56,6 +60,7 @@ const SHAREABLE_FILTER_KEYS = [
 @Component({
 	selector: "app-user-backlog",
 	imports: [
+		OptionPicker,
 		RouterLink,
 		BacklogEntryCard,
 		LibraryHero,
@@ -110,6 +115,20 @@ export class UserBacklog implements OnInit {
 		{ label: "Endless", value: "endless" },
 		{ label: "Abandoned", value: "abandoned" }
 	];
+
+	protected readonly statusPickerOptions: readonly PickerOption[] =
+		this.statusTabs.map(tab =>
+			tab.value
+				? {
+						value: tab.value,
+						label: tab.label,
+						icon: backlogStatusIcon(tab.value as BacklogStatus),
+						iconClass: backlogStatusIconColor(
+							tab.value as BacklogStatus
+						)
+					}
+				: { value: "", label: "All games", icon: "apps" }
+		);
 
 	protected readonly activeStatusLabel = computed(
 		() =>

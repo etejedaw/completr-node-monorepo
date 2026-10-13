@@ -31,9 +31,17 @@
 		}
 	</div>
 
+	<app-option-picker
+		class="md:hidden"
+		label="Status"
+		heading="Filter by status"
+		[options]="statusPickerOptions"
+		[value]="activeStatus()"
+		(valueChange)="filterByStatus($event)"
+	/>
 	<nav
 		aria-label="Filter by status"
-		class="-mx-[var(--page-pad-x)] px-[var(--page-pad-x)] pointer-coarse:py-[8px] pointer-coarse:-mb-[8px] flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+		class="max-md:hidden -mx-[var(--page-pad-x)] px-[var(--page-pad-x)] pointer-coarse:py-[8px] pointer-coarse:-mb-[8px] flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 	>
 		@for (tab of statusTabs; track tab.value) {
 		<button
