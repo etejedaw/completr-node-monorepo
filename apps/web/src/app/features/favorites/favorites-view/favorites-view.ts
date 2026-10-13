@@ -1,13 +1,29 @@
 import {
+	CdkDrag,
+	type CdkDragDrop,
+	CdkDropList,
+	moveItemInArray
+} from "@angular/cdk/drag-drop";
+import {
+	afterNextRender,
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	ElementRef,
 	inject,
+	Injector,
 	type OnInit,
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+import {
+	catchError,
+	concatMap,
+	debounceTime,
+	distinctUntilChanged,
+	EMPTY,
+	Subject
+} from "rxjs";
 
 import { type FavoriteEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
@@ -25,13 +41,20 @@ import {
 	UiSearchBar
 } from "../../../shared/ui";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
+import {
+	type FavoriteReorderAction,
+	FavoriteReorderCard
+} from "../components/favorite-reorder-card/favorite-reorder-card";
 import { FavoritesService } from "../favorites";
 
 @Component({
 	selector: "app-favorites-view",
 	imports: [
 		RouterLink,
+		CdkDrag,
+		CdkDropList,
 		CoverGrid,
+		FavoriteReorderCard,
 		GameCoverCard,
 		LibraryHero,
 		LibraryToolbar,
@@ -48,6 +71,8 @@ import { FavoritesService } from "../favorites";
 export class FavoritesView implements OnInit {
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly toast = inject(ToastService);
+	private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+	private readonly injector = inject(Injector);
 	protected readonly openBacklogQuickAdd = injectBacklogQuickAdd(() =>
 		this.loadFavorites()
 	);
@@ -59,6 +84,16 @@ export class FavoritesView implements OnInit {
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
+	protected readonly reordering = signal(false);
+	protected readonly reorderAnnouncement = signal("");
+	protected readonly canReorder = computed(
+		() =>
+			!this.searchQuery().trim() &&
+			this.offset() === 0 &&
+			this.entries().length > 1 &&
+			this.entries().length === this.total()
+	);
+	private readonly orderChanges = new Subject<string[]>();
 	protected readonly heroPosters = computed(() =>
 		this.entries().map(entry => ({
 			src: entry.game.backgroundUrl,
@@ -72,6 +107,22 @@ export class FavoritesView implements OnInit {
 	}
 
 	private readonly searchSubject = new Subject<string>();
+
+	constructor() {
+		this.orderChanges
+			.pipe(
+				concatMap(gameIds =>
+					this.favoritesService.replaceFavorites(gameIds).pipe(
+						catchError(() => {
+							this.toast.error("Could not save the new order.");
+							this.loadFavorites();
+							return EMPTY;
+						})
+					)
+				)
+			)
+			.subscribe();
+	}
 
 	ngOnInit() {
 		this.searchSubject
@@ -115,6 +166,66 @@ export class FavoritesView implements OnInit {
 				}),
 			onUndo: restore
 		});
+	}
+
+	startReordering() {
+		if (!this.canReorder()) return;
+		this.reorderAnnouncement.set("");
+		this.reordering.set(true);
+	}
+
+	finishReordering() {
+		this.reordering.set(false);
+	}
+
+	onReorderAction(index: number, action: FavoriteReorderAction) {
+		const target =
+			action === "first"
+				? 0
+				: action === "earlier"
+					? index - 1
+					: index + 1;
+		this.moveEntry(index, target, action);
+	}
+
+	onDrop(event: CdkDragDrop<FavoriteEntry[]>) {
+		this.moveEntry(event.previousIndex, event.currentIndex);
+	}
+
+	private moveEntry(
+		from: number,
+		to: number,
+		focusAction?: FavoriteReorderAction
+	) {
+		const current = this.entries();
+		if (from === to || to < 0 || to >= current.length) return;
+		const reordered = [...current];
+		moveItemInArray(reordered, from, to);
+		this.entries.set(this.renumber(reordered));
+		const moved = reordered[to];
+		this.reorderAnnouncement.set(
+			`${moved.game.title} moved to position ${to + 1} of ${reordered.length}.`
+		);
+		if (focusAction) this.keepFocusOn(moved.game.id, focusAction);
+		this.orderChanges.next(reordered.map(entry => entry.game.id));
+	}
+
+	private keepFocusOn(gameId: string, action: FavoriteReorderAction) {
+		afterNextRender(
+			() => {
+				const card = this.host.nativeElement.querySelector(
+					`[data-favorite-id="${gameId}"]`
+				);
+				const preferred = card?.querySelector<HTMLButtonElement>(
+					`[data-reorder-action="${action}"]:not(:disabled)`
+				);
+				const fallback = card?.querySelector<HTMLButtonElement>(
+					"[data-reorder-action]:not(:disabled)"
+				);
+				(preferred ?? fallback)?.focus();
+			},
+			{ injector: this.injector }
+		);
 	}
 
 	private renumber(entries: FavoriteEntry[]): FavoriteEntry[] {
