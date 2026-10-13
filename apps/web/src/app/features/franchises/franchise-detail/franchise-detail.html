@@ -77,7 +77,7 @@
 		Try again
 	</button>
 </ui-empty-state>
-} @else if (page.isLoading()) {
+} @else if (page.status() === "loading") {
 <app-cover-grid [loading]="true" loadingLabel="Loading games" />
 } @else if (current.games.length === 0) {
 <ui-empty-state
@@ -88,13 +88,16 @@
 	<a uiButton variant="secondary" routerLink="/games">Browse games</a>
 </ui-empty-state>
 } @else {
-<app-cover-grid>
+<app-cover-grid [actionable]="true">
 	@for (game of current.games; track game.id) {
 	<li>
 		<app-game-cover-card
 			[game]="game"
 			[topLeftBadge]="statusLabel(game.backlogStatus)"
 			[subtitle]="releaseYear(game)"
+			[showAddToBacklog]="true"
+			[inBacklog]="game.backlogStatus !== null"
+			(addToBacklog)="openBacklogQuickAdd(game)"
 		/>
 	</li>
 	}

@@ -18,6 +18,7 @@ import { LibraryHero } from "../../../shared/components/library-hero/library-her
 import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
 import { UiButton, UiEmptyState, UiPagination } from "../../../shared/ui";
 import { backlogStatusLabel } from "../../../shared/utils/backlog-status";
+import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import {
 	type FranchiseDetail as FranchiseDetailData,
 	FranchisesService
@@ -94,6 +95,10 @@ export class FranchiseDetail {
 		() => this.detail()?.isTracked ?? false
 	);
 	protected readonly toggling = signal(false);
+
+	protected readonly openBacklogQuickAdd = injectBacklogQuickAdd(() =>
+		this.page.reload()
+	);
 
 	protected readonly heroPosters = computed(() =>
 		(this.detail()?.games ?? []).map(game => ({
