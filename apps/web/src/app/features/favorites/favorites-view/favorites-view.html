@@ -76,7 +76,7 @@
 			[showAddToBacklog]="true"
 			[inBacklog]="entry.inBacklog ?? false"
 			(favoriteToggle)="remove(entry)"
-			(addToBacklog)="openBacklogQuickAdd(entry)"
+			(addToBacklog)="openBacklogQuickAdd(entry.game)"
 		/>
 	</li>
 	}

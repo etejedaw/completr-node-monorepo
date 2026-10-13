@@ -117,7 +117,7 @@ selectedPlatform()) {
 			[inWishlist]="isInWishlist(entry.game.id)"
 			(cardClick)="openEdit(entry)"
 			(favoriteToggle)="toggleFavorite(entry.game.id)"
-			(addToBacklog)="openBacklogQuickAdd(entry)"
+			(addToBacklog)="openBacklogQuickAdd(entry.game)"
 			(wishlistToggle)="toggleWishlist(entry.game.id)"
 		/>
 	</li>

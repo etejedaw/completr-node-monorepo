@@ -10,11 +10,7 @@ import {
 } from "@angular/core";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
-import {
-	type BacklogEntry,
-	type Game,
-	type GameShelfEntry
-} from "../../../core/models";
+import { type GameShelfEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
@@ -35,14 +31,8 @@ import {
 	UiPremiumBadge,
 	UiSearchBar
 } from "../../../shared/ui";
-import { BacklogService } from "../../backlog/backlog";
-import {
-	BacklogModal,
-	type BacklogModalData,
-	type BacklogModalResult
-} from "../../backlog/backlog-modal/backlog-modal";
+import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { FavoritesService } from "../../favorites/favorites";
-import { GamesService } from "../../games/games";
 import { WishlistService } from "../../wishlist/wishlist";
 import { GameShelfService } from "../game-shelf";
 import { GameShelfCalendar } from "../game-shelf-calendar/game-shelf-calendar";
@@ -92,9 +82,10 @@ export class GameShelfList implements OnInit {
 	private readonly shelfService = inject(GameShelfService);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly wishlistService = inject(WishlistService);
-	private readonly backlogService = inject(BacklogService);
-	private readonly gamesService = inject(GamesService);
 	private readonly dialogs = inject(DialogService);
+	protected readonly openBacklogQuickAdd = injectBacklogQuickAdd(() =>
+		this.loadShelf()
+	);
 	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly viewModes = VIEW_MODES;
 
@@ -154,46 +145,6 @@ export class GameShelfList implements OnInit {
 
 	toggleWishlist(gameId: string) {
 		this.wishlistService.toggle(gameId).subscribe();
-	}
-
-	openBacklogQuickAdd(entry: GameShelfEntry) {
-		this.backlogService.getMyBacklog({ game_id: entry.game.id }).subscribe({
-			next: res => {
-				const existing = res.data.backlog[0] ?? null;
-				if (existing) {
-					this.openBacklog(existing, null);
-					return;
-				}
-				this.openCreateBacklogFor(entry.game.code);
-			},
-			error: () => this.openCreateBacklogFor(entry.game.code)
-		});
-	}
-
-	private openCreateBacklogFor(code: string) {
-		this.gamesService.getByCode(code).subscribe(game => {
-			this.openBacklog(null, game);
-		});
-	}
-
-	private openBacklog(
-		entry: BacklogEntry | null,
-		preselectedGame: Game | null
-	) {
-		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
-			BacklogModal,
-			{
-				data: {
-					entry,
-					preselectedGame,
-					preselectedCompilationParent: null,
-					preselectAddToQueue: false
-				}
-			}
-		);
-		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.loadShelf();
-		});
 	}
 
 	isFavorite(gameId: string): boolean {

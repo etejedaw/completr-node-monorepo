@@ -372,7 +372,7 @@
 			[ownerUsername]="fromUsername()"
 			[viewerStatus]="viewerStatusFor(item.game.id)?.backlogStatus"
 			[canAddToLibrary]="viewerUsername() !== null"
-			(libraryRequested)="openEditBacklog(item)"
+			(libraryRequested)="openBacklogQuickAdd(item.game)"
 			(moveUp)="moveUp(i)"
 			(moveDown)="moveDown(i)"
 			(remove)="removeItem(item)"

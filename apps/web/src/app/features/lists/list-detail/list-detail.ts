@@ -25,12 +25,7 @@ import {
 	take
 } from "rxjs";
 
-import {
-	type BacklogEntry,
-	type Game,
-	type List,
-	type ListItem
-} from "../../../core/models";
+import { type Game, type List, type ListItem } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
@@ -44,12 +39,7 @@ import {
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
-import { BacklogService } from "../../backlog/backlog";
-import {
-	BacklogModal,
-	type BacklogModalData,
-	type BacklogModalResult
-} from "../../backlog/backlog-modal/backlog-modal";
+import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { GamesService } from "../../games/games";
 import {
 	DuplicateListModal,
@@ -100,9 +90,11 @@ export class ListDetail implements OnInit {
 	private readonly router = inject(Router);
 	private readonly listsService = inject(ListsService);
 	private readonly gamesService = inject(GamesService);
-	private readonly backlogService = inject(BacklogService);
 	private readonly authService = inject(AuthService);
 	private readonly dialogs = inject(DialogService);
+	protected readonly openBacklogQuickAdd = injectBacklogQuickAdd(() =>
+		this.loadList()
+	);
 	private readonly toast = inject(ToastService);
 	private readonly searchSubject = new Subject<string>();
 
@@ -338,46 +330,6 @@ export class ListDetail implements OnInit {
 		});
 		ref.afterClosed.subscribe(newList => {
 			if (newList) this.router.navigate(["/lists", newList.id]);
-		});
-	}
-
-	openBacklogModal(item: ListItem) {
-		this.gamesService.getByCode(item.game.code).subscribe(game => {
-			this.openBacklog(null, game);
-		});
-	}
-
-	openEditBacklog(item: ListItem) {
-		this.backlogService.getMyBacklog({ game_id: item.game.id }).subscribe({
-			next: res => {
-				const entry = res.data.backlog[0];
-				if (!entry) {
-					this.openBacklogModal(item);
-					return;
-				}
-				this.openBacklog(entry, null);
-			},
-			error: () => this.openBacklogModal(item)
-		});
-	}
-
-	private openBacklog(
-		entry: BacklogEntry | null,
-		preselectedGame: Game | null
-	) {
-		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
-			BacklogModal,
-			{
-				data: {
-					entry,
-					preselectedGame,
-					preselectedCompilationParent: null,
-					preselectAddToQueue: false
-				}
-			}
-		);
-		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.loadList();
 		});
 	}
 

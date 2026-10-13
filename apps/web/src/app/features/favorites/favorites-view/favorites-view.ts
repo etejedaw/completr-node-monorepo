@@ -9,13 +9,8 @@ import {
 import { RouterLink } from "@angular/router";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
-import {
-	type BacklogEntry,
-	type FavoriteEntry,
-	type Game
-} from "../../../core/models";
+import { type FavoriteEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
-import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
@@ -29,13 +24,7 @@ import {
 	UiPremiumBadge,
 	UiSearchBar
 } from "../../../shared/ui";
-import { BacklogService } from "../../backlog/backlog";
-import {
-	BacklogModal,
-	type BacklogModalData,
-	type BacklogModalResult
-} from "../../backlog/backlog-modal/backlog-modal";
-import { GamesService } from "../../games/games";
+import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { FavoritesService } from "../favorites";
 
 @Component({
@@ -58,10 +47,10 @@ import { FavoritesService } from "../favorites";
 })
 export class FavoritesView implements OnInit {
 	private readonly favoritesService = inject(FavoritesService);
-	private readonly backlogService = inject(BacklogService);
-	private readonly gamesService = inject(GamesService);
 	private readonly toast = inject(ToastService);
-	private readonly dialogs = inject(DialogService);
+	protected readonly openBacklogQuickAdd = injectBacklogQuickAdd(() =>
+		this.loadFavorites()
+	);
 
 	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly entries = signal<FavoriteEntry[]>([]);
@@ -92,46 +81,6 @@ export class FavoritesView implements OnInit {
 				this.loadFavorites();
 			});
 		this.loadFavorites();
-	}
-
-	openBacklogQuickAdd(entry: FavoriteEntry) {
-		this.backlogService.getMyBacklog({ game_id: entry.game.id }).subscribe({
-			next: res => {
-				const existing = res.data.backlog[0] ?? null;
-				if (existing) {
-					this.openBacklog(existing, null);
-					return;
-				}
-				this.openCreateBacklogFor(entry.game.code);
-			},
-			error: () => this.openCreateBacklogFor(entry.game.code)
-		});
-	}
-
-	private openCreateBacklogFor(code: string) {
-		this.gamesService.getByCode(code).subscribe(game => {
-			this.openBacklog(null, game);
-		});
-	}
-
-	private openBacklog(
-		entry: BacklogEntry | null,
-		preselectedGame: Game | null
-	) {
-		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
-			BacklogModal,
-			{
-				data: {
-					entry,
-					preselectedGame,
-					preselectedCompilationParent: null,
-					preselectAddToQueue: false
-				}
-			}
-		);
-		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.loadFavorites();
-		});
 	}
 
 	onSearch(query: string) {
