@@ -1,11 +1,31 @@
-import { ChangeDetectionStrategy, Component, input } from "@angular/core";
-import { RouterLink, RouterLinkActive } from "@angular/router";
+import {
+	ChangeDetectionStrategy,
+	Component,
+	inject,
+	input
+} from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
+import {
+	NavigationEnd,
+	Router,
+	RouterLink,
+	RouterLinkActive
+} from "@angular/router";
+import { filter, map } from "rxjs";
 
+import {
+	OptionPicker,
+	type PickerOption
+} from "../../../shared/components/option-picker/option-picker";
 import { SETTINGS_SECTIONS } from "../settings-sections";
+
+function settingsSectionOf(url: string): string {
+	return url.split("?")[0]!.split("#")[0]!.split("/")[2] ?? "";
+}
 
 @Component({
 	selector: "app-settings-nav",
-	imports: [RouterLink, RouterLinkActive],
+	imports: [RouterLink, RouterLinkActive, OptionPicker],
 	template: `
 		@if (variant() === "rail") {
 			<nav aria-label="Settings sections">
@@ -48,30 +68,12 @@ import { SETTINGS_SECTIONS } from "../settings-sections";
 				</ul>
 			</nav>
 		} @else {
-			<nav
-				aria-label="Settings sections"
-				class="-mx-1 px-1 overflow-x-auto [scrollbar-width:none]"
-			>
-				<ul class="m-0 p-0 list-none flex gap-2 w-max">
-					@for (section of sections; track section.path) {
-						<li>
-							<a
-								class="inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full border border-line text-[0.8125rem] font-medium whitespace-nowrap no-underline text-fg-secondary transition-colors hover:border-line-hover hover:text-fg"
-								[routerLink]="['/settings', section.path]"
-								routerLinkActive="!border-brand !bg-brand-subtle !text-brand"
-								ariaCurrentWhenActive="page"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-base"
-									>{{ section.icon }}</span
-								>
-								{{ section.label }}
-							</a>
-						</li>
-					}
-				</ul>
-			</nav>
+			<app-option-picker
+				label="Section"
+				heading="Settings"
+				[options]="pickerOptions"
+				[value]="currentPath()"
+			/>
 		}
 	`,
 	host: { class: "block" },
@@ -80,5 +82,22 @@ import { SETTINGS_SECTIONS } from "../settings-sections";
 export class SettingsNav {
 	readonly variant = input<"rail" | "chips">("rail");
 
+	private readonly router = inject(Router);
+
 	protected readonly sections = SETTINGS_SECTIONS;
+	protected readonly pickerOptions: readonly PickerOption[] =
+		SETTINGS_SECTIONS.map(section => ({
+			value: section.path,
+			label: section.label,
+			icon: section.icon,
+			hint: section.description,
+			link: `/settings/${section.path}`
+		}));
+	protected readonly currentPath = toSignal(
+		this.router.events.pipe(
+			filter(event => event instanceof NavigationEnd),
+			map(() => settingsSectionOf(this.router.url))
+		),
+		{ initialValue: settingsSectionOf(this.router.url) }
+	);
 }
