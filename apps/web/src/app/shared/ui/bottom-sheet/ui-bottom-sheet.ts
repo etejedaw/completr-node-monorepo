@@ -1,16 +1,12 @@
 import {
-	afterNextRender,
 	ChangeDetectionStrategy,
 	Component,
-	DestroyRef,
-	DOCUMENT,
-	ElementRef,
-	inject,
 	input,
 	output
 } from "@angular/core";
 
 import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
+import { injectBodyPortal } from "../portal/body-portal";
 
 @Component({
 	selector: "ui-bottom-sheet",
@@ -69,16 +65,6 @@ export class UiBottomSheet {
 	readonly closed = output<void>();
 
 	constructor() {
-		const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
-		const document = inject(DOCUMENT);
-		afterNextRender({
-			write: () => {
-				const focused = document.activeElement;
-				document.body.appendChild(host);
-				if (focused instanceof HTMLElement && host.contains(focused))
-					focused.focus();
-			}
-		});
-		inject(DestroyRef).onDestroy(() => host.remove());
+		injectBodyPortal();
 	}
 }
