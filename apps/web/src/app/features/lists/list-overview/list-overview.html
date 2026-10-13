@@ -5,8 +5,20 @@
 		>Library</span
 	>
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
-		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
-		{{ total() === 1 ? 'list' : 'lists' }} of yours ·
+		<span
+			class="font-semibold text-fg tabular-nums"
+			[class.!text-premium]="isPremium()"
+			>{{ total() }}</span
+		>
+		{{ total() === 1 ? 'list' : 'lists' }} of yours
+		<ui-premium-badge
+			*appPremiumOnly
+			size="sm"
+			interactive
+			label="Premium perk: unlimited lists"
+			message="Your lists have no limit. Create as many as you like."
+		/>
+		·
 		<span class="font-semibold text-fg tabular-nums"
 			>{{ followingLists().length }}</span
 		>

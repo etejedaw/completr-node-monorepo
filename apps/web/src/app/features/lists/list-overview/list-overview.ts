@@ -10,14 +10,17 @@ import {
 import { debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { type FollowingList, type List } from "../../../core/models";
+import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { ListCard } from "../../../shared/components/list-card/list-card";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
 	UiPagination,
+	UiPremiumBadge,
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
@@ -40,7 +43,9 @@ import { ListsService } from "../lists";
 		UiEmptyState,
 		UiPagination,
 		UiSearchBar,
-		UiSkeleton
+		UiSkeleton,
+		PremiumOnly,
+		UiPremiumBadge
 	],
 	templateUrl: "./list-overview.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -49,6 +54,7 @@ export class ListOverview implements OnInit {
 	private readonly listsService = inject(ListsService);
 	private readonly dialogs = inject(DialogService);
 	private readonly searchSubject = new Subject<string>();
+	protected readonly isPremium = inject(AuthService).isPremium;
 
 	protected readonly lists = signal<List[]>([]);
 	protected readonly followingLists = signal<FollowingList[]>([]);
