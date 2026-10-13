@@ -12,6 +12,10 @@ import { AuthService } from "../../core/services/auth";
 import { FollowRequestsService } from "../../core/services/follow-requests";
 import { ToastService } from "../../core/services/toast";
 import { isPremiumRole } from "../../core/utils/premium";
+import {
+	OptionPicker,
+	type PickerOption
+} from "../../shared/components/option-picker/option-picker";
 import { PremiumOnly } from "../../shared/directives/premium-only";
 import {
 	UiAvatar,
@@ -104,6 +108,7 @@ function groupByDay(activities: FeedActivity[]): ActivityDayGroup[] {
 	selector: "app-feed-page",
 	imports: [
 		RouterLink,
+		OptionPicker,
 		UiAvatar,
 		UiButton,
 		UiPagination,
@@ -134,15 +139,30 @@ export class FeedPage implements OnInit {
 	);
 
 	protected readonly filter = signal("");
-	protected readonly filterOptions = [
-		{ value: "", label: "All activity" },
-		{ value: "cat:games", label: "Games" },
-		{ value: "type:backlog_completed", label: "Completed only" },
-		{ value: "type:backlog_abandoned", label: "Abandoned only" },
-		{ value: "type:backlog_playing", label: "Started playing" },
-		{ value: "type:game_reviewed", label: "Reviews" },
-		{ value: "cat:lists", label: "Lists" },
-		{ value: "cat:social", label: "Co-op & social" }
+	protected readonly filterOptions: readonly PickerOption[] = [
+		{ value: "", label: "All activity", icon: "dynamic_feed" },
+		{ value: "cat:games", label: "Games", icon: "sports_esports" },
+		{
+			value: "type:backlog_completed",
+			label: "Completed only",
+			icon: "check_circle",
+			iconClass: "text-success"
+		},
+		{
+			value: "type:backlog_abandoned",
+			label: "Abandoned only",
+			icon: "cancel",
+			iconClass: "text-danger"
+		},
+		{
+			value: "type:backlog_playing",
+			label: "Started playing",
+			icon: "play_circle",
+			iconClass: "text-warning"
+		},
+		{ value: "type:game_reviewed", label: "Reviews", icon: "rate_review" },
+		{ value: "cat:lists", label: "Lists", icon: "format_list_bulleted" },
+		{ value: "cat:social", label: "Co-op & social", icon: "group" }
 	];
 
 	protected readonly followRequests = this.followRequestsService.incoming;

@@ -83,7 +83,23 @@
 	} }
 
 	<div *appPremiumOnly class="mb-6">
-		<div class="flex items-center gap-1.5 mb-2">
+		<div class="md:hidden flex items-center gap-2">
+			<app-option-picker
+				class="flex-1"
+				label="Show"
+				heading="Show in your feed"
+				[options]="filterOptions"
+				[value]="filter()"
+				(valueChange)="setFilter($event)"
+			/>
+			<ui-premium-badge
+				size="sm"
+				interactive
+				label="Feed filtering (Premium)"
+				message="You've unlocked feed filtering — a Premium perk."
+			/>
+		</div>
+		<div class="max-md:hidden flex items-center gap-1.5 mb-2">
 			<ui-premium-badge
 				size="sm"
 				interactive
@@ -97,7 +113,7 @@
 		</div>
 		<nav
 			aria-label="Filter feed"
-			class="-mx-[var(--page-pad-x)] px-[var(--page-pad-x)] pointer-coarse:py-[8px] pointer-coarse:-my-[8px] flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+			class="max-md:hidden -mx-[var(--page-pad-x)] px-[var(--page-pad-x)] pointer-coarse:py-[8px] pointer-coarse:-my-[8px] flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 		>
 			@for (option of filterOptions; track option.value) {
 			<button
