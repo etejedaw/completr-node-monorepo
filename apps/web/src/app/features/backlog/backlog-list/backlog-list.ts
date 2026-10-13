@@ -41,6 +41,11 @@ import { GameFilterPanel } from "../../../shared/components/game-filter-panel/ga
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
+import {
+	OptionPicker,
+	type PickerAction,
+	type PickerOption
+} from "../../../shared/components/option-picker/option-picker";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import { FloatingXScrollbar } from "../../../shared/directives/floating-x-scrollbar";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
@@ -111,10 +116,13 @@ const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 	"not_started"
 ]);
 
+const MIXED_STATUS_VALUE = "__mixed__";
+
 @Component({
 	selector: "app-backlog-list",
 	imports: [
 		DatePipe,
+		OptionPicker,
 		BacklogCalendar,
 		SurpriseMe,
 		StarRating,
@@ -175,8 +183,6 @@ export class BacklogList implements OnInit {
 	protected readonly statusSheetEntry = signal<BacklogEntry | null>(null);
 	protected readonly ratingSheet = signal<RatingSheetState | null>(null);
 	protected readonly toolsSheetOpen = signal(false);
-	protected readonly statusFilterSheetOpen = signal(false);
-	protected readonly viewsSheetOpen = signal(false);
 
 	protected readonly activeView = computed(
 		() =>
@@ -205,6 +211,44 @@ export class BacklogList implements OnInit {
 		if (single) return this.statusIcon(single);
 		return "filter_list";
 	});
+
+	protected readonly statusPickerOptions = computed<PickerOption[]>(() => [
+		{ value: "", label: "All games", icon: "apps" },
+		...this.statusFilters.map(status => ({
+			value: status.value,
+			label: status.label,
+			icon: this.statusIcon(status.value as BacklogStatus),
+			iconClass: this.statusIconColor(status.value as BacklogStatus)
+		}))
+	]);
+
+	protected readonly statusPickerValue = computed(() => {
+		if (this.activeStatuses().size === 0) return "";
+		return this.singleActiveStatus() ?? MIXED_STATUS_VALUE;
+	});
+
+	protected readonly viewPickerOptions = computed<PickerOption[]>(() => [
+		{ value: "", label: "None", icon: "bookmark_border" },
+		...this.backlogFilters().map(view => ({
+			value: view.id,
+			label: view.name,
+			icon: view.icon || "bookmark_border",
+			iconColor: view.icon ? this.colorHex(view.color) : null
+		}))
+	]);
+
+	protected readonly viewPickerActions = computed<PickerAction[]>(() => [
+		...(this.backlogFilters().length > 1
+			? [
+					{
+						id: "reorder",
+						label: "Reorder pinned views",
+						icon: "swap_vert"
+					}
+				]
+			: []),
+		{ id: "manage", label: "Manage saved views", icon: "settings" }
+	]);
 
 	protected readonly quickStatusIconColor = computed(() => {
 		const single = this.singleActiveStatus();
@@ -1233,19 +1277,27 @@ export class BacklogList implements OnInit {
 		this.toggleStatsPanel();
 	}
 
-	protected chooseQuickStatus(status: string | null) {
-		this.statusFilterSheetOpen.set(false);
-		this.setQuickStatus(status);
+	protected pickStatus(value: string) {
+		if (value === MIXED_STATUS_VALUE) return;
+		this.setQuickStatus(value || null);
 	}
 
-	protected chooseSavedView(view: SavedFilter) {
-		this.viewsSheetOpen.set(false);
-		this.applySavedFilter(view);
+	protected pickView(id: string) {
+		if (!id) {
+			if (this.activeFilterId()) {
+				this.clearFilters();
+				this.showFilters.set(false);
+			}
+			return;
+		}
+		const view = this.backlogFilters().find(item => item.id === id);
+		if (view && view.id !== this.activeFilterId())
+			this.applySavedFilter(view);
 	}
 
-	protected reorderViewsFromSheet() {
-		this.viewsSheetOpen.set(false);
-		this.openReorderModal();
+	protected runViewAction(id: string) {
+		if (id === "reorder") this.openReorderModal();
+		if (id === "manage") this.router.navigate(["/saved-views"]);
 	}
 
 	protected isFlipped(entryId: string): boolean {
