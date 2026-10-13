@@ -1,0 +1,68 @@
+info:
+    name: Get Privacy Policy
+    type: http
+    seq: 1
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/privacy"
+    auth: none
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Privacy Policy
+
+    Returns the English privacy policy that the Angular app renders on `/privacy`. The text
+    lives only in the landing (`src/content/legal/privacy-en.md` next to the Spanish
+    `privacy-es.md`); the landing publishes it as `privacy.json` and this endpoint acts as a
+    server-side proxy in front of it, the same way `GET /changelog` does, so the app only
+    talks to the origin already whitelisted in its CSP. The source URL comes from
+    `PRIVACY_SOURCE_URL`.
+
+    The response is cached in memory for 5 minutes. When the upstream source is
+    unreachable, the last known cached body is served instead. If there is no cache
+    yet and the upstream fails, the endpoint returns `503`.
+
+    **Authentication:** Public, no auth required.
+    **Rate Limit:** 300 requests per minute (public limiter).
+
+    ### Response (200)
+
+    `sections` keep the same order and `id` in both languages, so `/privacy#cookies`
+    points to the same section in the app and in the landing. `html` is the rendered
+    Markdown of the section body (paragraphs, lists, bold, links) without its heading.
+
+    ```json
+    {
+      "lang": "en",
+      "version": "2.0",
+      "updated": "2026-08-16",
+      "title": "Privacy Policy",
+      "summary": "The idea is simple: I collect the minimum needed for the app to work...",
+      "highlights": [
+        {
+          "section": "cookies",
+          "icon": "cookie",
+          "title": "One cookie, no banners",
+          "text": "A single strictly necessary cookie keeps you signed in."
+        }
+      ],
+      "sections": [
+        {
+          "id": "cookies",
+          "label": "Cookies",
+          "icon": "cookie",
+          "title": "Cookies and analytics",
+          "html": "<p>To understand how the app is used I use <strong>Umami</strong>...</p>"
+        }
+      ]
+    }
+    ```
+
+    ### Errors
+
+    | Status | Body                                               | Reason                                                |
+    |--------|----------------------------------------------------|-------------------------------------------------------|
+    | 503    | `{ "error": "Privacy policy source unavailable" }` | Upstream landing is down and there is no cached entry |
