@@ -103,8 +103,7 @@ export class GameShelfList implements OnInit {
 		"Title",
 		"Platform",
 		"Edition",
-		"Acquired",
-		"Notes"
+		"Acquired"
 	];
 	protected readonly viewMode = signal<ShelfViewMode>(readStoredViewMode());
 

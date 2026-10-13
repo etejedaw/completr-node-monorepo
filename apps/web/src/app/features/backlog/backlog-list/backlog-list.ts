@@ -36,7 +36,6 @@ import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
-import { EntryAnnotation } from "../../../shared/components/entry-annotation/entry-annotation";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
@@ -129,7 +128,6 @@ const MIXED_STATUS_VALUE = "__mixed__";
 		GameTitleCell,
 		BacklogEntryCard,
 		LibraryHero,
-		EntryAnnotation,
 		SwipeActions,
 		UiBottomSheet,
 		FloatingXScrollbar,
