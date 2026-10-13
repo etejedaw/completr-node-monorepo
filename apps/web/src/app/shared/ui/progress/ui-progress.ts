@@ -19,7 +19,7 @@ import {
 			[ngpProgressValue]="value()"
 			[ngpProgressMax]="max()"
 			[ngpProgressValueLabel]="valueLabel()"
-			class="block w-full overflow-hidden rounded-full bg-input-bg"
+			class="block w-full overflow-hidden rounded-full bg-line-hover"
 			[class]="trackClass()"
 		>
 			<div
