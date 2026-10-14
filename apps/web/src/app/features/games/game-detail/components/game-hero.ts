@@ -41,7 +41,7 @@ const SCORE_TYPE_CLASSES: Record<
 > = {
 	completr: "text-brand border-brand/40 bg-brand-subtle",
 	aggregate: "text-info border-info/40 bg-info/10",
-	rawg: "text-fg-secondary border-line-hover bg-white/5"
+	rawg: "text-fg-secondary border-line-hover bg-fg-muted/10"
 };
 
 @Component({
