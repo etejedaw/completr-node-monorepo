@@ -24,7 +24,7 @@ import { injectBodyPortal } from "../portal/body-portal";
 			aria-modal="true"
 			[attr.aria-label]="heading()"
 			class="fixed inset-x-0 bottom-0 z-[1001] max-h-[85dvh] flex flex-col rounded-t-2xl bg-sidebar border-t border-line shadow-[0_-24px_60px_-20px_rgba(0,0,0,0.8)] pb-[env(safe-area-inset-bottom)] motion-safe:animate-[uiSheetUp_280ms_cubic-bezier(0.16,1,0.3,1)] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[28rem] sm:bottom-6 sm:rounded-2xl sm:border"
-			(escape)="closed.emit()"
+			(escape)="onEscape($event)"
 		>
 			<div
 				aria-hidden="true"
@@ -51,7 +51,7 @@ import { injectBodyPortal } from "../portal/body-portal";
 				</div>
 				<button
 					type="button"
-					class="w-11 h-11 -mr-2 rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-fg hover:bg-surface"
+					class="shrink-0 -mr-2 size-[36px] max-md:size-[44px] tap:size-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-fg hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand"
 					aria-label="Close"
 					(click)="closed.emit()"
 				>
@@ -78,6 +78,11 @@ export class UiBottomSheet {
 	readonly closed = output<void>();
 
 	constructor() {
-		injectBodyPortal();
+		injectBodyPortal({ restoreFocus: true });
+	}
+
+	protected onEscape(event: KeyboardEvent) {
+		event.stopPropagation();
+		this.closed.emit();
 	}
 }
