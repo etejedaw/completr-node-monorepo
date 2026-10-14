@@ -3,7 +3,8 @@ import {
 	Component,
 	computed,
 	input,
-	output
+	output,
+	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
@@ -39,6 +40,11 @@ export class ProfileHero {
 
 	readonly followToggled = output<void>();
 	readonly shared = output<void>();
+
+	protected readonly backdropLoaded = signal<string | null>(null);
+	protected readonly isBackdropLoaded = computed(
+		() => this.backdropLoaded() === this.backdropUrl()
+	);
 
 	protected readonly user = computed(() => this.profile().user);
 	protected readonly displayName = computed(
