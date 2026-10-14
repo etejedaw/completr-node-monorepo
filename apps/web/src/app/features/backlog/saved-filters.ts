@@ -20,7 +20,9 @@ export const STAT_KEYS = [
 	"longestPlayed",
 	"bestPersonalRatio",
 	"highestRated",
-	"countByStatus"
+	"countByStatus",
+	"ratingDistribution",
+	"completionsByMonth"
 ] as const;
 export type StatKey = (typeof STAT_KEYS)[number];
 
@@ -28,7 +30,9 @@ export const DEFAULT_ENABLED_STATS: StatKey[] = [
 	"totalEntries",
 	"totalRealHours",
 	"avgRatio",
-	"avgPersonalRatio"
+	"avgPersonalRatio",
+	"completionsByMonth",
+	"countByStatus"
 ];
 
 export const STAT_LABELS: Record<StatKey, string> = {
@@ -43,11 +47,57 @@ export const STAT_LABELS: Record<StatKey, string> = {
 	avgScore: "Avg score",
 	avgUserRating: "Avg rating",
 	estimatedVsRealDelta: "Estimated vs real Δ",
-	longestPlayed: "Longest played (highlight)",
-	bestPersonalRatio: "Best personal ratio (highlight)",
-	highestRated: "Highest rated (highlight)",
-	countByStatus: "By status (chips)"
+	longestPlayed: "Longest played",
+	bestPersonalRatio: "Best personal ratio",
+	highestRated: "Highest rated",
+	countByStatus: "Games by status",
+	ratingDistribution: "Your ratings",
+	completionsByMonth: "Completions by month"
 };
+
+export interface StatGroup {
+	label: string;
+	hint: string | null;
+	keys: readonly StatKey[];
+}
+
+export const SUMMARY_STAT_KEYS: readonly StatKey[] = [
+	"totalEntries",
+	"totalRealHours",
+	"avgRatio",
+	"avgPersonalRatio"
+];
+
+export const STAT_GROUPS: readonly StatGroup[] = [
+	{
+		label: "Summary",
+		hint: "Always visible above your games.",
+		keys: SUMMARY_STAT_KEYS
+	},
+	{
+		label: "Charts",
+		hint: "Shown when you expand the stats.",
+		keys: ["completionsByMonth", "countByStatus", "ratingDistribution"]
+	},
+	{
+		label: "Rates & averages",
+		hint: null,
+		keys: [
+			"completionRate",
+			"abandonmentRate",
+			"avgEstimatedDuration",
+			"avgRealDuration",
+			"estimatedVsRealDelta",
+			"avgScore",
+			"avgUserRating"
+		]
+	},
+	{
+		label: "Highlights",
+		hint: null,
+		keys: ["longestPlayed", "bestPersonalRatio", "highestRated"]
+	}
+];
 
 export interface SavedFilter {
 	id: string;
@@ -102,6 +152,16 @@ export interface BacklogHighlight {
 	value: number;
 }
 
+export interface RatingBucket {
+	stars: number;
+	count: number;
+}
+
+export interface MonthlyCount {
+	month: string;
+	count: number;
+}
+
 export interface SavedFilterStats {
 	totalEntries: number;
 	countByStatus: {
@@ -124,6 +184,8 @@ export interface SavedFilterStats {
 	longestPlayed: BacklogHighlight | null;
 	bestPersonalRatio: BacklogHighlight | null;
 	highestRated: BacklogHighlight | null;
+	ratingDistribution?: RatingBucket[];
+	completionsByMonth?: MonthlyCount[];
 }
 
 interface SavedFilterStatsResponse {

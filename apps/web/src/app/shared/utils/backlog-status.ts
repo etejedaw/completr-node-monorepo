@@ -33,6 +33,18 @@ const STATUS_ICON_COLORS: Record<BacklogStatus, string> = {
 	endless: "text-brand"
 };
 
+const STATUS_FILL_CLASSES: Record<BacklogStatus, string> = {
+	not_started: "bg-fg-muted",
+	playing: "bg-playing",
+	completed: "bg-success",
+	abandoned: "bg-danger",
+	endless: "bg-brand"
+};
+
+export function backlogStatusFillClass(status: BacklogStatus): string {
+	return STATUS_FILL_CLASSES[status] ?? "bg-fg-muted";
+}
+
 export function backlogStatusClass(status: BacklogStatus): string {
 	return STATUS_CLASSES[status] ?? "";
 }
@@ -49,7 +61,7 @@ export function backlogStatusIconColor(status: BacklogStatus): string {
 	return STATUS_ICON_COLORS[status] ?? "";
 }
 
-const STATUS_FILTER_ORDER: readonly BacklogStatus[] = [
+export const BACKLOG_STATUS_ORDER: readonly BacklogStatus[] = [
 	"not_started",
 	"playing",
 	"completed",
@@ -60,7 +72,7 @@ const STATUS_FILTER_ORDER: readonly BacklogStatus[] = [
 export const BACKLOG_STATUS_FILTERS: readonly {
 	label: string;
 	value: BacklogStatus;
-}[] = STATUS_FILTER_ORDER.map(value => ({
+}[] = BACKLOG_STATUS_ORDER.map(value => ({
 	value,
 	label: STATUS_LABELS[value]
 }));
