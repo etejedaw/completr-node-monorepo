@@ -2,6 +2,7 @@
 	[(month)]="focusedDate"
 	[(selected)]="selectedDay"
 	[loading]="isLoading()"
+	[minYear]="earliestYear()"
 	[markersFor]="markersFor"
 	[agendaItems]="agendaItems()"
 	emptyMonthHint="No games were played this month with the current filters."

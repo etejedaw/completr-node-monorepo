@@ -8,6 +8,8 @@ import {
 	output,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { forkJoin } from "rxjs";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
 import {
@@ -75,6 +77,7 @@ export class BacklogCalendar {
 	);
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
+	protected readonly earliestYear = signal<number | null>(null);
 	protected readonly unscheduledCount = signal(0);
 	protected readonly monthTotal = signal(0);
 	protected readonly monthLimit = MONTH_LIMIT;
@@ -88,6 +91,35 @@ export class BacklogCalendar {
 		{ status: "abandoned", dot: "bg-danger" },
 		{ status: "endless", dot: "bg-brand" }
 	];
+
+	private readonly earliestYearSubscription = forkJoin([
+		this.backlogService.getMyBacklog({
+			sort_by: "startedAt",
+			sort_order: "asc",
+			limit: 1,
+			offset: 0
+		}),
+		this.backlogService.getMyBacklog({
+			sort_by: "finishedAt",
+			sort_order: "asc",
+			limit: 1,
+			offset: 0
+		})
+	])
+		.pipe(takeUntilDestroyed())
+		.subscribe({
+			next: ([byStart, byFinish]) => {
+				const years = [
+					byStart.data.backlog[0]?.startedAt,
+					byFinish.data.backlog[0]?.finishedAt
+				]
+					.filter((iso): iso is string => !!iso)
+					.map(iso => this.parseDateOnly(iso).getFullYear());
+				this.earliestYear.set(
+					years.length > 0 ? Math.min(...years) : null
+				);
+			}
+		});
 
 	private readonly loadEffect = effect(onCleanup => {
 		const filters = this.filters();
