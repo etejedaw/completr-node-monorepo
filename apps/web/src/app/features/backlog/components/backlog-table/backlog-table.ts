@@ -12,6 +12,7 @@ import { type BacklogEntry, type BacklogStatus } from "../../../../core/models";
 import { GameTitleCell } from "../../../../shared/components/game-title-cell/game-title-cell";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { FloatingXScrollbar } from "../../../../shared/directives/floating-x-scrollbar";
+import { UiAvatar } from "../../../../shared/ui";
 import {
 	BACKLOG_STATUS_FILTERS,
 	backlogStatusClass,
@@ -106,7 +107,13 @@ const STATUS_CHANGEABLE_FROM: ReadonlySet<BacklogStatus> = new Set([
 
 @Component({
 	selector: "app-backlog-table",
-	imports: [DatePipe, FloatingXScrollbar, GameTitleCell, StarRating],
+	imports: [
+		DatePipe,
+		FloatingXScrollbar,
+		GameTitleCell,
+		StarRating,
+		UiAvatar
+	],
 	templateUrl: "./backlog-table.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
