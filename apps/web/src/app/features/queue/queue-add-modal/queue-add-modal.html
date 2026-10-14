@@ -71,14 +71,14 @@
 					>
 					<span
 						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
-						[class]="statusClass(entry.status)"
+						[class]="backlogStatusClass(entry.status)"
 					>
 						<span
 							aria-hidden="true"
 							class="material-icons text-[0.875rem]"
-							>{{ statusIcon(entry.status) }}</span
+							>{{ backlogStatusIcon(entry.status) }}</span
 						>
-						{{ statusLabel(entry.status) }}
+						{{ backlogStatusLabel(entry.status) }}
 					</span>
 				</div>
 			</div>

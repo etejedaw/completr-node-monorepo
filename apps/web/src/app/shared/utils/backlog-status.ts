@@ -41,24 +41,38 @@ const STATUS_FILL_CLASSES: Record<BacklogStatus, string> = {
 	endless: "bg-brand"
 };
 
-export function backlogStatusFillClass(status: BacklogStatus): string {
-	return STATUS_FILL_CLASSES[status] ?? "bg-fg-muted";
+const STATUS_CALENDAR_BAR_CLASSES: Record<BacklogStatus, string> = {
+	not_started: "bg-fg-muted/15 text-fg-secondary",
+	playing: "bg-playing/25 text-playing",
+	completed: "bg-success/25 text-success",
+	abandoned: "bg-danger/25 text-danger",
+	endless: "bg-brand-subtle text-brand"
+};
+
+export function backlogStatusCalendarBarClass(
+	status: BacklogStatus | string
+): string {
+	return STATUS_CALENDAR_BAR_CLASSES[status as BacklogStatus] ?? "";
 }
 
-export function backlogStatusClass(status: BacklogStatus): string {
-	return STATUS_CLASSES[status] ?? "";
+export function backlogStatusFillClass(status: BacklogStatus | string): string {
+	return STATUS_FILL_CLASSES[status as BacklogStatus] ?? "bg-fg-muted";
 }
 
-export function backlogStatusLabel(status: BacklogStatus): string {
-	return STATUS_LABELS[status] ?? status;
+export function backlogStatusClass(status: BacklogStatus | string): string {
+	return STATUS_CLASSES[status as BacklogStatus] ?? "";
 }
 
-export function backlogStatusIcon(status: BacklogStatus): string {
-	return STATUS_ICONS[status] ?? "schedule";
+export function backlogStatusLabel(status: BacklogStatus | string): string {
+	return STATUS_LABELS[status as BacklogStatus] ?? status;
 }
 
-export function backlogStatusIconColor(status: BacklogStatus): string {
-	return STATUS_ICON_COLORS[status] ?? "";
+export function backlogStatusIcon(status: BacklogStatus | string): string {
+	return STATUS_ICONS[status as BacklogStatus] ?? "schedule";
+}
+
+export function backlogStatusIconColor(status: BacklogStatus | string): string {
+	return STATUS_ICON_COLORS[status as BacklogStatus] ?? "";
 }
 
 export const BACKLOG_STATUS_ORDER: readonly BacklogStatus[] = [

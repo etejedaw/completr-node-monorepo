@@ -20,7 +20,11 @@ import {
 	shortDate,
 	startOfMonth
 } from "../../../shared/components/month-calendar/month-calendar";
-import { backlogStatusLabel } from "../../../shared/utils/backlog-status";
+import {
+	backlogStatusCalendarBarClass,
+	backlogStatusFillClass,
+	backlogStatusLabel
+} from "../../../shared/utils/backlog-status";
 import { type BacklogFilters, BacklogService } from "../backlog";
 
 interface BarSlot {
@@ -197,14 +201,14 @@ export class BacklogCalendar {
 			title: entry.game.title,
 			posterSrc: entry.game.backgroundUrl,
 			meta: `${backlogStatusLabel(entry.status)} · ${entry.platform.abbreviation}`,
-			dotClass: this.dotClass(entry.status),
+			dotClass: backlogStatusFillClass(entry.status),
 			dateLabel: this.rangeLabel(entry)
 		}));
 	});
 
 	protected readonly markersFor = (date: Date): string[] =>
 		(this.layout().dayEntries.get(this.dateKey(date)) ?? []).map(entry =>
-			this.dotClass(entry.status)
+			backlogStatusFillClass(entry.status)
 		);
 
 	protected slotsFor(date: Date): (BarSlot | null)[] {
@@ -215,27 +219,7 @@ export class BacklogCalendar {
 		return this.layout().overflow.get(this.dateKey(date)) ?? 0;
 	}
 
-	barClass(status: BacklogStatus): string {
-		const map: Record<BacklogStatus, string> = {
-			not_started: "bg-fg-muted/15 text-fg-secondary",
-			playing: "bg-playing/25 text-playing",
-			completed: "bg-success/25 text-success",
-			abandoned: "bg-danger/25 text-danger",
-			endless: "bg-brand-subtle text-brand"
-		};
-		return map[status] ?? "";
-	}
-
-	dotClass(status: BacklogStatus): string {
-		const map: Record<BacklogStatus, string> = {
-			not_started: "bg-fg-muted",
-			playing: "bg-playing",
-			completed: "bg-success",
-			abandoned: "bg-danger",
-			endless: "bg-brand"
-		};
-		return map[status] ?? "bg-fg-muted";
-	}
+	protected readonly barClass = backlogStatusCalendarBarClass;
 
 	isStatusHidden(status: BacklogStatus): boolean {
 		return this.hiddenStatuses().has(status);
