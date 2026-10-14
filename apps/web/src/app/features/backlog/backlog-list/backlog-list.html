@@ -107,17 +107,16 @@
 					[class.border-brand]="hasActiveFilters() || hasAnyStatEnabled()"
 					[class.text-brand]="hasActiveFilters() || hasAnyStatEnabled()"
 					aria-haspopup="dialog"
-					(click)="toolsSheetOpen.set(true)"
+					(click)="openMobileTools()"
 				>
 					<span aria-hidden="true" class="material-icons text-lg"
 						>tune</span
 					>
-					Filters & stats @if (activeFiltersCount() +
-					enabledStatsCount() > 0) {
-					<span
-						class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-solid text-white text-[0.625rem] font-bold leading-none"
-						>{{ activeFiltersCount() + enabledStatsCount() }}</span
-					>
+					{{ activeFilterId() ? 'Filters & stats' : 'Filters' }} @if
+					(activeFiltersCount() + enabledStatsCount() > 0) {
+					<ui-count-badge
+						[count]="activeFiltersCount() + enabledStatsCount()"
+					/>
 					}
 				</button>
 				<button
@@ -130,17 +129,15 @@
 					[class.border-brand]="showFilters() || hasActiveFilters()"
 					[class.text-brand]="showFilters() || hasActiveFilters()"
 					[class.bg-brand-subtle]="showFilters()"
-					(click)="toggleFilters()"
+					aria-haspopup="dialog"
+					(click)="openFilters()"
 				>
 					<span aria-hidden="true" class="material-icons text-base"
 						>tune</span
 					>
 					<span class="max-sm:sr-only">Filters</span>
 					@if (activeFiltersCount() > 0) {
-					<span
-						class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-solid text-white text-[0.625rem] font-bold leading-none"
-						>{{ activeFiltersCount() }}</span
-					>
+					<ui-count-badge [count]="activeFiltersCount()" />
 					}
 				</button>
 				@if (activeFilterId()) {
@@ -154,6 +151,7 @@
 					[class.border-brand]="showStatsPanel() || hasAnyStatEnabled()"
 					[class.text-brand]="showStatsPanel() || hasAnyStatEnabled()"
 					[class.bg-brand-subtle]="showStatsPanel()"
+					aria-haspopup="dialog"
 					title="Configure the stats of this view"
 					(click)="toggleStatsPanel()"
 				>
@@ -162,10 +160,7 @@
 					>
 					<span class="max-sm:sr-only">Stats</span>
 					@if (enabledStatsCount() > 0) {
-					<span
-						class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-solid text-white text-[0.625rem] font-bold leading-none"
-						>{{ enabledStatsCount() }}</span
-					>
+					<ui-count-badge [count]="enabledStatsCount()" />
 					}
 				</button>
 				}
@@ -182,7 +177,7 @@
 		} @if (hasActiveFilters()) {
 		<button
 			type="button"
-			class="inline-flex items-center gap-1 h-8 tap:h-10 px-3 rounded-full bg-transparent border border-line text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-danger/50 hover:text-danger"
+			class="inline-flex items-center gap-1 h-8 tap:min-h-[44px] px-3 rounded-full bg-transparent border border-line text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-danger/50 hover:text-danger"
 			(click)="clearFilters()"
 		>
 			<span aria-hidden="true" class="material-icons text-sm"
@@ -572,241 +567,216 @@
 		</div>
 		} } }
 	</section>
-	} @if (showFilters()) {
-	<button
-		type="button"
-		aria-label="Close filters"
-		class="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm"
-		(click)="showFilters.set(false)"
-	></button>
-	<aside
-		class="fixed top-0 right-0 h-screen w-full sm:w-[420px] z-[90] bg-sidebar border-l border-line shadow-[0_0_60px_-12px_rgba(0,0,0,0.7)] flex flex-col"
+	} @if (showFilters()) { @if (isMobile()) {
+	<ui-bottom-sheet
+		eyebrow="My Games"
+		[heading]="filtersHeading()"
+		[subheading]="filtersSubheading()"
+		(closed)="closeFilters()"
 	>
-		<header
-			class="flex items-center justify-between px-5 py-4 border-b border-line shrink-0"
-		>
-			<h2
-				class="font-display text-lg font-bold m-0 flex items-center gap-2"
-			>
-				<span aria-hidden="true" class="material-icons text-brand"
-					>tune</span
-				>
-				Filters @if (activeFiltersCount() > 0) {
-				<span
-					class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-solid text-white text-[0.625rem] font-bold leading-none"
-					>{{ activeFiltersCount() }}</span
-				>
-				}
-			</h2>
-			<button
-				uiIconButton
-				size="sm"
-				(click)="showFilters.set(false)"
-				aria-label="Close"
-			>
-				<span aria-hidden="true" class="material-icons">close</span>
-			</button>
-		</header>
+		<div class="px-2 pt-2">
+			<ng-container *ngTemplateOutlet="filtersBody" />
+		</div>
+		<ng-container ngProjectAs="[sheetFooter]">
+			<ng-container *ngTemplateOutlet="filtersFooter" />
+		</ng-container>
+	</ui-bottom-sheet>
+	} @else {
+	<ui-drawer
+		eyebrow="My Games"
+		[heading]="filtersHeading()"
+		[subheading]="filtersSubheading()"
+		(closed)="closeFilters()"
+	>
+		<ng-container *ngTemplateOutlet="filtersBody" />
+		<ng-container ngProjectAs="[drawerFooter]">
+			<ng-container *ngTemplateOutlet="filtersFooter" />
+		</ng-container>
+	</ui-drawer>
+	} } @if (showStatsPanel()) { @if (isMobile()) {
+	<ui-bottom-sheet
+		[eyebrow]="activeView()?.name ?? 'My Games'"
+		heading="Stats"
+		subheading="Choose which stats this view shows. Changes save automatically."
+		(closed)="showStatsPanel.set(false)"
+	>
+		<ng-container *ngTemplateOutlet="statsBody" />
+		<ng-container ngProjectAs="[sheetFooter]">
+			<ng-container *ngTemplateOutlet="statsFooter" />
+		</ng-container>
+	</ui-bottom-sheet>
+	} @else {
+	<ui-drawer
+		[eyebrow]="activeView()?.name ?? 'My Games'"
+		heading="Stats"
+		subheading="Choose which stats this view shows. Changes save automatically."
+		(closed)="showStatsPanel.set(false)"
+	>
+		<ng-container *ngTemplateOutlet="statsBody" />
+		<ng-container ngProjectAs="[drawerFooter]">
+			<ng-container *ngTemplateOutlet="statsFooter" />
+		</ng-container>
+	</ui-drawer>
+	} }
 
-		<div class="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-6">
-			<section>
-				<h3
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2"
-				>
-					Status
-				</h3>
-				<div class="flex flex-wrap gap-1.5">
-					@for (s of statusFilters; track s.value) {
-					<button
-						class="bg-input-bg border border-line text-fg-secondary text-xs font-medium px-3 py-1.5 rounded-full cursor-pointer font-sans transition hover:border-fg-muted hover:text-fg"
-						[class.!bg-brand-subtle]="isStatusActive(s.value)"
-						[class.!border-brand]="isStatusActive(s.value)"
-						[class.!text-brand]="isStatusActive(s.value)"
-						(click)="toggleStatus(s.value)"
-					>
-						{{ s.label }}
-					</button>
-					}
-				</div>
-			</section>
+	<ng-template #filtersBody>
+		<div class="flex flex-col gap-6">
+			<app-filter-section label="Status">
+				<app-chip-group
+					[options]="statusChipOptions"
+					[value]="selectedStatuses()"
+					(valueChange)="setStatuses($event)"
+				/>
+			</app-filter-section>
 
-			<section>
-				<h3
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2"
-				>
-					Platform
-				</h3>
-				<select
-					uiSelect
-					[value]="selectedPlatform()"
-					(change)="selectedPlatform.set($any($event.target).value)"
-				>
-					<option value="">All platforms</option>
-					@for (p of allPlatforms(); track p.id) {
-					<option [value]="p.id">{{ p.name }}</option>
-					}
-				</select>
-			</section>
+			<app-option-picker
+				label="Platform"
+				heading="Filter by platform"
+				placeholder="All platforms"
+				placeholderIcon="devices"
+				[options]="platformPickerOptions()"
+				[value]="selectedPlatform()"
+				(valueChange)="selectedPlatform.set($event)"
+			/>
 
-			<section>
-				<h3
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2"
-				>
-					Started
-				</h3>
-				<div class="grid grid-cols-2 gap-2">
-					<input
-						type="date"
-						placeholder="From"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-						[value]="startedFrom()"
-						(input)="startedFrom.set($any($event.target).value)"
-					/>
-					<input
-						type="date"
-						placeholder="To"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-						[value]="startedTo()"
-						(input)="startedTo.set($any($event.target).value)"
-					/>
-				</div>
-			</section>
-
-			<section>
-				<h3
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2"
-				>
-					Finished
-				</h3>
-				<div class="grid grid-cols-2 gap-2">
-					<input
-						type="date"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-						[value]="finishedFrom()"
-						(input)="finishedFrom.set($any($event.target).value)"
-					/>
-					<input
-						type="date"
-						class="w-full px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans focus:outline-none focus:border-brand"
-						[value]="finishedTo()"
-						(input)="finishedTo.set($any($event.target).value)"
-					/>
-				</div>
-			</section>
-
-			<section>
-				<h3
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2"
-				>
-					Rating range
-				</h3>
+			<app-filter-section label="Started">
 				<div class="grid grid-cols-2 gap-3">
-					<div>
+					<label class="flex flex-col gap-1 min-w-0">
+						<span class="text-[0.6875rem] text-fg-muted"
+							><span class="sr-only">Started, </span>From</span
+						>
+						<input
+							uiInput
+							type="date"
+							[value]="startedFrom()"
+							(input)="startedFrom.set($any($event.target).value)"
+						/>
+					</label>
+					<label class="flex flex-col gap-1 min-w-0">
+						<span class="text-[0.6875rem] text-fg-muted"
+							><span class="sr-only">Started, </span>To</span
+						>
+						<input
+							uiInput
+							type="date"
+							[value]="startedTo()"
+							(input)="startedTo.set($any($event.target).value)"
+						/>
+					</label>
+				</div>
+			</app-filter-section>
+
+			<app-filter-section label="Finished">
+				<div class="grid grid-cols-2 gap-3">
+					<label class="flex flex-col gap-1 min-w-0">
+						<span class="text-[0.6875rem] text-fg-muted"
+							><span class="sr-only">Finished, </span>From</span
+						>
+						<input
+							uiInput
+							type="date"
+							[value]="finishedFrom()"
+							(input)="finishedFrom.set($any($event.target).value)"
+						/>
+					</label>
+					<label class="flex flex-col gap-1 min-w-0">
+						<span class="text-[0.6875rem] text-fg-muted"
+							><span class="sr-only">Finished, </span>To</span
+						>
+						<input
+							uiInput
+							type="date"
+							[value]="finishedTo()"
+							(input)="finishedTo.set($any($event.target).value)"
+						/>
+					</label>
+				</div>
+			</app-filter-section>
+
+			<app-filter-section label="Your rating">
+				<div class="grid grid-cols-2 gap-3">
+					<div class="flex flex-col gap-1">
 						<span
 							id="backlog-min-rating"
-							class="block text-[0.625rem] text-fg-muted mb-1"
-							>Min</span
+							class="text-[0.6875rem] text-fg-muted"
+							><span class="sr-only">Your rating, </span>Min</span
 						>
 						<app-star-rating
 							ariaLabelledby="backlog-min-rating"
+							size="sm"
 							[value]="minRating()"
 							(ratingChange)="minRating.set($event)"
-							size="sm"
 						/>
 					</div>
-					<div>
+					<div class="flex flex-col gap-1">
 						<span
 							id="backlog-max-rating"
-							class="block text-[0.625rem] text-fg-muted mb-1"
-							>Max</span
+							class="text-[0.6875rem] text-fg-muted"
+							><span class="sr-only">Your rating, </span>Max</span
 						>
 						<app-star-rating
 							ariaLabelledby="backlog-max-rating"
+							size="sm"
 							[value]="maxRating()"
 							(ratingChange)="maxRating.set($event)"
-							size="sm"
 						/>
 					</div>
 				</div>
-			</section>
+			</app-filter-section>
 
-			<section>
-				<div class="flex items-center justify-between mb-2">
-					<h3
-						class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider m-0"
-					>
-						Tags
-					</h3>
-					<a
-						routerLink="/tags"
-						class="text-[0.6875rem] text-brand no-underline hover:underline"
-						(click)="showFilters.set(false)"
-						>Manage →</a
-					>
-				</div>
+			<app-filter-section
+				label="Tags"
+				hint="Entries that match all selected tags."
+			>
+				<a
+					sectionAction
+					routerLink="/tags"
+					class="tap-area text-[0.6875rem] font-medium text-brand no-underline hover:underline"
+					(click)="closeFilters()"
+					>Manage tags →</a
+				>
 				<app-mood-tags-input
 					[tags]="selectedMoodTags()"
 					[suggestions]="moodTagsSuggestions()"
 					placeholder="e.g. relajante, corto…"
 					(tagsChange)="updateMoodTagsFilter($event)"
 				/>
-				<p class="m-0 mt-1 text-[0.625rem] text-fg-muted">
-					Entries that match all selected tags.
-				</p>
-			</section>
+			</app-filter-section>
 
-			<section>
-				<h3
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider m-0 mb-2"
-				>
-					Co-op
-				</h3>
-				<label
-					class="flex items-center gap-3 text-sm text-fg cursor-pointer select-none py-1.5 px-2 rounded transition hover:bg-input-bg"
-				>
-					<input
-						type="checkbox"
-						class="cursor-pointer"
-						[checked]="coopOnly()"
-						(change)="toggleCoopOnly()"
-					/>
-					<span class="inline-flex items-center gap-1.5">
-						<span
-							aria-hidden="true"
-							class="material-icons text-base text-brand"
-							>group</span
-						>
-						Only games played in co-op
-					</span>
-				</label>
-			</section>
+			<app-filter-section label="Co-op">
+				<ui-switch
+					class="text-sm text-fg"
+					label="Only games played in co-op"
+					[checked]="coopOnly()"
+					(checkedChange)="setCoopOnly($event)"
+				/>
+			</app-filter-section>
 
-			<section class="pt-3 border-t border-line">
-				<button
-					type="button"
-					class="w-full bg-transparent border border-line text-fg-secondary text-xs font-semibold uppercase tracking-wider px-3 py-2 rounded cursor-pointer inline-flex items-center justify-center gap-2 transition hover:border-brand hover:text-brand"
-					(click)="toggleAdvancedFilters()"
+			<button
+				type="button"
+				uiButton
+				variant="secondary"
+				[block]="true"
+				aria-controls="backlog-advanced-filters"
+				[attr.aria-expanded]="showAdvancedFilters()"
+				(click)="toggleAdvancedFilters()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>{{ showAdvancedFilters() ? 'expand_less' : 'expand_more'
+					}}</span
 				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>{{ showAdvancedFilters() ? 'expand_less' :
-						'expand_more' }}</span
-					>
-					Advanced filters @if (!showAdvancedFilters() &&
-					hasAdvancedFiltersActive()) {
-					<span
-						class="inline-block w-1.5 h-1.5 rounded-full bg-brand"
-					></span>
-					}
-				</button>
-			</section>
+				Advanced filters @if (!showAdvancedFilters() &&
+				hasAdvancedFiltersActive()) {
+				<span
+					aria-hidden="true"
+					class="inline-block w-1.5 h-1.5 rounded-full bg-brand"
+				></span>
+				<span class="sr-only">(in use)</span>
+				}
+			</button>
 
 			@if (showAdvancedFilters()) {
-			<section>
-				<h3
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2"
-				>
-					Genres, platforms &amp; year
-				</h3>
+			<div id="backlog-advanced-filters" class="flex flex-col gap-6">
 				<app-game-filter-panel
 					[allGenres]="allGenres()"
 					[allPlatforms]="allPlatforms()"
@@ -815,268 +785,129 @@
 					[(yearFrom)]="yearFrom"
 					[(yearTo)]="yearTo"
 				/>
-			</section>
 
-			<section>
-				<h3
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2"
-				>
-					Real duration (h)
-				</h3>
-				<div class="grid grid-cols-2 gap-3">
-					<label
-						class="flex flex-col gap-1 text-[0.625rem] text-fg-muted"
-					>
-						Min
-						<input
-							uiInput
-							size="sm"
-							type="number"
-							min="0"
-							step="0.5"
-							[value]="minRealDuration() ?? ''"
-							(input)="minRealDuration.set(parseNumber($any($event.target).value))"
-						/>
-					</label>
-					<label
-						class="flex flex-col gap-1 text-[0.625rem] text-fg-muted"
-					>
-						Max
-						<input
-							uiInput
-							size="sm"
-							type="number"
-							min="0"
-							step="0.5"
-							[value]="maxRealDuration() ?? ''"
-							(input)="maxRealDuration.set(parseNumber($any($event.target).value))"
-						/>
-					</label>
-				</div>
-			</section>
+				<app-filter-section label="Real duration (h)">
+					<app-range-inputs
+						label="Real duration in hours"
+						[step]="0.5"
+						[(min)]="minRealDuration"
+						[(max)]="maxRealDuration"
+					/>
+				</app-filter-section>
 
-			<section>
-				<h3
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2"
-				>
-					Ratio (score/duration)
-				</h3>
-				<div class="grid grid-cols-2 gap-3">
-					<label
-						class="flex flex-col gap-1 text-[0.625rem] text-fg-muted"
-					>
-						Min
-						<input
-							uiInput
-							size="sm"
-							type="number"
-							min="0"
-							step="0.01"
-							[value]="minRatio() ?? ''"
-							(input)="minRatio.set(parseNumber($any($event.target).value))"
-						/>
-					</label>
-					<label
-						class="flex flex-col gap-1 text-[0.625rem] text-fg-muted"
-					>
-						Max
-						<input
-							uiInput
-							size="sm"
-							type="number"
-							min="0"
-							step="0.01"
-							[value]="maxRatio() ?? ''"
-							(input)="maxRatio.set(parseNumber($any($event.target).value))"
-						/>
-					</label>
-				</div>
-			</section>
+				<app-filter-section label="Ratio (score/duration)">
+					<app-range-inputs
+						label="Ratio"
+						[step]="0.01"
+						[(min)]="minRatio"
+						[(max)]="maxRatio"
+					/>
+				</app-filter-section>
 
-			<section>
-				<h3
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2"
-				>
-					Personal ratio (score/real)
-				</h3>
-				<div class="grid grid-cols-2 gap-3">
-					<label
-						class="flex flex-col gap-1 text-[0.625rem] text-fg-muted"
-					>
-						Min
-						<input
-							uiInput
-							size="sm"
-							type="number"
-							min="0"
-							step="0.01"
-							[value]="minPersonalRatio() ?? ''"
-							(input)="minPersonalRatio.set(parseNumber($any($event.target).value))"
-						/>
-					</label>
-					<label
-						class="flex flex-col gap-1 text-[0.625rem] text-fg-muted"
-					>
-						Max
-						<input
-							uiInput
-							size="sm"
-							type="number"
-							min="0"
-							step="0.01"
-							[value]="maxPersonalRatio() ?? ''"
-							(input)="maxPersonalRatio.set(parseNumber($any($event.target).value))"
-						/>
-					</label>
-				</div>
-			</section>
+				<app-filter-section label="Personal ratio (score/real)">
+					<app-range-inputs
+						label="Personal ratio"
+						[step]="0.01"
+						[(min)]="minPersonalRatio"
+						[(max)]="maxPersonalRatio"
+					/>
+				</app-filter-section>
+			</div>
 			}
 
-			<section>
-				<h3
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2"
-				>
-					Sort
-				</h3>
-				<div class="grid grid-cols-2 gap-2">
-					<select
-						uiSelect
-						[value]="sortBy()"
-						(change)="sortBy.set($any($event.target).value)"
-					>
-						<option value="createdAt">Date added</option>
-						<option value="title">Title</option>
-						<option value="score">Score</option>
-						<option value="duration">Duration</option>
-						<option value="ratio">Ratio</option>
-						<option value="realDuration">Real duration</option>
-						<option value="personalRatio">Personal ratio</option>
-						<option value="userRating">Rating</option>
-						<option value="finishedAt">Finished</option>
-						<option value="status">Status</option>
-					</select>
-					<select
-						uiSelect
-						[value]="sortOrder()"
-						(change)="sortOrder.set($any($event.target).value)"
-					>
-						<option value="desc">Descending</option>
-						<option value="asc">Ascending</option>
-					</select>
-				</div>
-			</section>
+			<div class="grid grid-cols-2 gap-2">
+				<app-option-picker
+					label="Sort by"
+					heading="Sort games by"
+					[options]="sortPickerOptions"
+					[value]="sortBy()"
+					(valueChange)="sortBy.set($event)"
+				/>
+				<app-option-picker
+					label="Order"
+					heading="Sort order"
+					[options]="sortOrderPickerOptions"
+					[value]="sortOrder()"
+					(valueChange)="setSortOrder($event)"
+				/>
+			</div>
 
 			@if (activeFilterId()) {
-			<section class="pt-3 border-t border-line">
+			<div class="pt-5 border-t border-line">
 				<button
-					class="w-full bg-transparent border border-line text-fg-secondary text-sm font-medium px-3 py-2 rounded cursor-pointer inline-flex items-center justify-center gap-2 transition hover:border-brand hover:text-brand disabled:opacity-30"
-					(click)="updateCurrentFilter()"
+					type="button"
+					uiButton
+					variant="secondary"
+					[block]="true"
 					[disabled]="savingFilter()"
+					(click)="updateCurrentFilter()"
 				>
 					<span aria-hidden="true" class="material-icons text-base"
 						>save</span
 					>
 					Update current view
 				</button>
-			</section>
-			} @else if (hasActiveFilters()) {
-			<section class="pt-3 border-t border-line">
-				<h3
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider mb-2"
+			</div>
+			} @else if (hasActiveFilters() || creatingView()) {
+			<div class="pt-5 border-t border-line">
+				<app-filter-section
+					label="Save as view"
+					[hint]="
+						hasActiveFilters()
+							? 'Name it and it is saved when you show the results.'
+							: 'Pick the filters above first, then name your view to save it.'
+					"
 				>
-					Save as view
-				</h3>
-				<input
-					uiInput
-					type="text"
-					class="!w-full !text-sm"
-					placeholder="View name..."
-					[value]="newFilterName()"
-					(input)="newFilterName.set($any($event.target).value)"
-					(keydown.enter)="saveCurrentFilter()"
-				/>
-				<div
-					class="flex items-center gap-2 mt-2 text-sm text-fg-secondary"
-				>
+					<input
+						uiInput
+						type="text"
+						aria-label="View name"
+						placeholder="View name..."
+						[value]="newFilterName()"
+						(input)="newFilterName.set($any($event.target).value)"
+						(keydown.enter)="saveCurrentFilter()"
+					/>
 					<ui-switch
+						class="mt-3 text-sm text-fg-secondary"
+						label="Pin to backlog"
 						[checked]="newFilterPinned()"
 						(checkedChange)="newFilterPinned.set($event)"
-						label="Pin to backlog"
 					/>
-				</div>
-			</section>
+				</app-filter-section>
+			</div>
 			}
 		</div>
+	</ng-template>
 
-		<footer
-			class="flex items-center justify-between gap-2 px-5 py-3 border-t border-line shrink-0"
+	<ng-template #filtersFooter>
+		<button
+			type="button"
+			uiButton
+			variant="ghost"
+			[disabled]="!hasActiveFilters()"
+			(click)="clearFilters()"
 		>
-			@if (hasActiveFilters()) {
-			<button
-				class="bg-transparent border-0 text-fg-muted text-sm font-medium px-2 py-1.5 cursor-pointer inline-flex items-center gap-1 transition hover:text-danger"
-				(click)="clearFilters()"
+			<span aria-hidden="true" class="material-icons text-base"
+				>filter_alt_off</span
 			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>filter_alt_off</span
-				>
-				Clear all
-			</button>
-			} @else {
-			<span></span>
-			}
-			<button
-				uiButton
-				variant="primary"
-				(click)="applyFilters(); showFilters.set(false)"
-			>
-				{{ hasPendingViewName() ? "Apply & Save" : "Apply" }}
-			</button>
-		</footer>
-	</aside>
-	} @if (showStatsPanel()) {
-	<button
-		type="button"
-		aria-label="Close stats"
-		class="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm"
-		(click)="showStatsPanel.set(false)"
-	></button>
-	<aside
-		class="fixed top-0 right-0 h-screen w-full sm:w-[420px] z-[90] bg-sidebar border-l border-line shadow-[0_0_60px_-12px_rgba(0,0,0,0.7)] flex flex-col"
-	>
-		<header
-			class="flex items-center justify-between px-5 py-4 border-b border-line shrink-0"
+			Clear
+		</button>
+		<button
+			type="button"
+			uiButton
+			variant="primary"
+			[disabled]="savingFilter()"
+			(click)="applyAndCloseFilters()"
 		>
-			<h2
-				class="font-display text-lg font-bold m-0 flex items-center gap-2"
-			>
-				<span aria-hidden="true" class="material-icons text-brand"
-					>insights</span
-				>
-				Stats @if (isStatsCustom() && enabledStatsCount() > 0) {
-				<span
-					class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-solid text-white text-[0.625rem] font-bold leading-none"
-					>{{ enabledStatsCount() }}</span
-				>
-				}
-			</h2>
-			<button
-				uiIconButton
-				size="sm"
-				(click)="showStatsPanel.set(false)"
-				aria-label="Close"
-			>
-				<span aria-hidden="true" class="material-icons">close</span>
-			</button>
-		</header>
+			{{ applyLabel() }}
+		</button>
+	</ng-template>
 
-		<div class="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-1">
-			<p class="text-xs text-fg-muted m-0 mb-2">
-				Choose which stats appear in this view's panel. Changes save
-				automatically.
-			</p>
+	<ng-template #statsBody>
+		<div class="flex flex-col gap-1 px-2 md:px-0">
 			@for (key of allStatKeys; track key) {
 			<label
-				class="flex items-center gap-3 text-sm text-fg cursor-pointer select-none py-1.5 px-2 rounded transition hover:bg-input-bg"
+				class="flex items-center gap-3 min-h-9 tap:min-h-[44px] text-sm text-fg cursor-pointer select-none px-2 rounded transition hover:bg-input-bg"
 			>
 				<input
 					type="checkbox"
@@ -1089,32 +920,32 @@
 			</label>
 			}
 		</div>
+	</ng-template>
 
-		<footer
-			class="flex items-center justify-between px-5 py-4 border-t border-line shrink-0"
+	<ng-template #statsFooter>
+		<button
+			type="button"
+			uiButton
+			variant="ghost"
+			title="Reset to defaults"
+			[disabled]="statsConfigSaving() || !isStatsCustom()"
+			(click)="resetStatsConfig()"
 		>
-			<button
-				type="button"
-				class="bg-transparent border-0 text-fg-muted text-sm font-medium px-2 py-1.5 cursor-pointer inline-flex items-center gap-1 transition hover:text-fg disabled:opacity-50"
-				[disabled]="statsConfigSaving() || !isStatsCustom()"
-				(click)="resetStatsConfig()"
-				title="Reset to defaults"
+			<span aria-hidden="true" class="material-icons text-base"
+				>restart_alt</span
 			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>restart_alt</span
-				>
-				Reset to defaults
-			</button>
-			<button
-				uiButton
-				variant="primary"
-				(click)="showStatsPanel.set(false)"
-			>
-				Done
-			</button>
-		</footer>
-	</aside>
-	} @if (isInitialLoad() && isLoading()) {
+			Reset to defaults
+		</button>
+		<button
+			type="button"
+			uiButton
+			variant="primary"
+			(click)="showStatsPanel.set(false)"
+		>
+			Done
+		</button>
+	</ng-template>
+	@if (isInitialLoad() && isLoading()) {
 	<div class="flex flex-col gap-3">
 		@for (i of skeletonRange; track i) {
 		<div
@@ -1579,7 +1410,12 @@
 	</div>
 </ui-bottom-sheet>
 } @if (toolsSheetOpen()) {
-<ui-bottom-sheet heading="Filters & stats" (closed)="toolsSheetOpen.set(false)">
+<ui-bottom-sheet
+	eyebrow="My Games"
+	heading="Filters & stats"
+	[subheading]="activeView()?.name ?? null"
+	(closed)="toolsSheetOpen.set(false)"
+>
 	<div class="flex flex-col gap-1">
 		<button
 			type="button"

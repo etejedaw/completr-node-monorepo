@@ -5,6 +5,7 @@ import {
 	CdkDropList,
 	moveItemInArray
 } from "@angular/cdk/drag-drop";
+import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -15,14 +16,23 @@ import {
 	signal,
 	untracked
 } from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
+import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import {
 	ActivatedRoute,
 	type ParamMap,
 	Router,
 	RouterLink
 } from "@angular/router";
-import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+import {
+	catchError,
+	debounceTime,
+	distinctUntilChanged,
+	map,
+	of,
+	startWith,
+	Subject,
+	switchMap
+} from "rxjs";
 
 import {
 	type BacklogEntry,
@@ -33,11 +43,17 @@ import {
 import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
+import { ViewportService } from "../../../core/services/viewport";
 import {
 	BacklogEntryCard,
 	type BacklogStatusOption
 } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
+import {
+	ChipGroup,
+	type ChipOption
+} from "../../../shared/components/chip-group/chip-group";
+import { FilterSection } from "../../../shared/components/filter-section/filter-section";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
@@ -46,6 +62,7 @@ import {
 	type PickerAction,
 	type PickerOption
 } from "../../../shared/components/option-picker/option-picker";
+import { RangeInputs } from "../../../shared/components/range-inputs/range-inputs";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
 	type ViewModeOption,
@@ -56,14 +73,15 @@ import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import {
 	UiBottomSheet,
 	UiButton,
+	UiCountBadge,
 	UiDialog,
+	UiDrawer,
 	UiEmptyState,
 	UiIconButton,
 	UiInput,
 	UiNoMatches,
 	UiPagination,
 	UiSearchBar,
-	UiSelect,
 	UiSkeleton,
 	UiSwitch,
 	UiTextarea
@@ -121,6 +139,28 @@ const MIXED_STATUS_VALUE = "__mixed__";
 
 type BacklogViewMode = "diary" | "hardcore" | "calendar";
 
+type SortOrder = "asc" | "desc";
+
+const BACKLOG_SORT_OPTIONS: readonly PickerOption[] = [
+	{ value: "createdAt", label: "Date added", icon: "schedule" },
+	{ value: "title", label: "Title", icon: "sort_by_alpha" },
+	{ value: "score", label: "Score", icon: "star" },
+	{ value: "duration", label: "Duration", icon: "timer" },
+	{ value: "ratio", label: "Ratio", icon: "trending_up" },
+	{ value: "realDuration", label: "Real duration", icon: "hourglass_bottom" },
+	{ value: "personalRatio", label: "Personal ratio", icon: "insights" },
+	{ value: "userRating", label: "Rating", icon: "grade" },
+	{ value: "finishedAt", label: "Finished", icon: "event_available" },
+	{ value: "status", label: "Status", icon: "flag" }
+];
+
+const SORT_ORDER_OPTIONS: readonly PickerOption[] = [
+	{ value: "desc", label: "Descending", icon: "arrow_downward" },
+	{ value: "asc", label: "Ascending", icon: "arrow_upward" }
+];
+
+const NEW_VIEW_PARAM = "newView";
+
 const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 	{
 		value: "diary",
@@ -158,18 +198,23 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		UiBottomSheet,
 		RouterLink,
 		UiButton,
+		UiCountBadge,
 		UiDialog,
+		UiDrawer,
 		UiEmptyState,
 		UiNoMatches,
 		UiIconButton,
 		UiInput,
 		UiPagination,
 		UiSearchBar,
-		UiSelect,
 		UiSkeleton,
 		UiSwitch,
 		UiTextarea,
 		GameFilterPanel,
+		ChipGroup,
+		FilterSection,
+		RangeInputs,
+		NgTemplateOutlet,
 		MoodTagsInput,
 		CdkDropList,
 		CdkDrag,
@@ -194,6 +239,7 @@ export class BacklogList implements OnInit {
 	private readonly moodTagsService = inject(MoodTagsService);
 	private readonly dialogs = inject(DialogService);
 	private readonly toast = inject(ToastService);
+	protected readonly isMobile = inject(ViewportService).isMobile;
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -283,7 +329,7 @@ export class BacklogList implements OnInit {
 		}))
 	);
 	protected readonly sortBy = signal("createdAt");
-	protected readonly sortOrder = signal<"asc" | "desc">("desc");
+	protected readonly sortOrder = signal<SortOrder>("desc");
 	protected readonly queueBacklogIds = signal<Set<string>>(new Set());
 	protected readonly surpriseMeFilters = signal<BacklogFilters | null>(null);
 	protected readonly statusMenuOpenId = signal<string | null>(null);
@@ -294,12 +340,21 @@ export class BacklogList implements OnInit {
 	private readonly queryParamMap = toSignal(this.route.queryParamMap);
 	private readonly savedFiltersLoaded = signal(false);
 	private eagerlyAppliedParams: ParamMap | null = null;
+	private newViewPending = false;
 
 	private readonly applyFromUrlEffect = effect(() => {
 		const params = this.queryParamMap();
 		if (!params) return;
 		const filtersLoaded = this.savedFiltersLoaded();
 		untracked(() => {
+			if (params.has(NEW_VIEW_PARAM)) {
+				this.startNewView();
+				return;
+			}
+			if (this.newViewPending) {
+				if (filtersLoaded) this.newViewPending = false;
+				return;
+			}
 			if (!filtersLoaded) {
 				if (params.get("savedFilterId")) return;
 				this.eagerlyAppliedParams = params;
@@ -334,6 +389,9 @@ export class BacklogList implements OnInit {
 	}
 
 	protected readonly showFilters = signal(false);
+	protected readonly creatingView = signal(false);
+	protected readonly sortPickerOptions = BACKLOG_SORT_OPTIONS;
+	protected readonly sortOrderPickerOptions = SORT_ORDER_OPTIONS;
 	protected readonly showAdvancedFilters = signal(false);
 	protected readonly allPlatforms = signal<Platform[]>([]);
 	protected readonly allGenres = signal<Genre[]>([]);
@@ -587,14 +645,72 @@ export class BacklogList implements OnInit {
 		this.selectedMoodTags.set(tags);
 	}
 
-	toggleCoopOnly() {
-		this.coopOnly.update(v => !v);
+	protected setCoopOnly(value: boolean) {
+		this.coopOnly.set(value);
 		this.activeFilterId.set(null);
 	}
 
 	protected readonly statusFilters: BacklogStatusOption[] = [
 		...BACKLOG_STATUS_FILTERS
 	];
+
+	protected readonly statusChipOptions: readonly ChipOption[] =
+		BACKLOG_STATUS_FILTERS;
+
+	protected readonly platformPickerOptions = computed<PickerOption[]>(() => [
+		{ value: "", label: "All platforms", icon: "devices" },
+		...this.allPlatforms().map(platform => ({
+			value: platform.id,
+			label: platform.name
+		}))
+	]);
+
+	protected readonly filtersHeading = computed(() =>
+		this.creatingView() ? "New view" : "Filters"
+	);
+
+	protected readonly filtersSubheading = computed(() => {
+		const count = this.activeFiltersCount();
+		if (count > 0)
+			return `${count} ${count === 1 ? "filter" : "filters"} active`;
+		if (this.creatingView())
+			return "Choose filters, then name and save your view";
+		return "Narrow your library by status, platform, dates and more";
+	});
+
+	private readonly previewFilters = computed(
+		() => (this.showFilters() ? this.buildBaseFilters() : null),
+		{ equal: (a, b) => JSON.stringify(a) === JSON.stringify(b) }
+	);
+
+	private readonly previewTotal = toSignal(
+		toObservable(this.previewFilters).pipe(
+			debounceTime(250),
+			switchMap(filters =>
+				filters
+					? this.backlogService
+							.getMyBacklog({ ...filters, limit: 1 })
+							.pipe(
+								map(res => res.data.total),
+								catchError(() => of(null)),
+								startWith(null)
+							)
+					: of(null)
+			)
+		),
+		{ initialValue: null }
+	);
+
+	protected readonly applyLabel = computed(() => {
+		const total = this.previewTotal();
+		const saving = this.hasPendingViewName();
+		if (total === null)
+			return saving ? "Save & show results" : "Show results";
+		const noun = total === 1 ? "result" : "results";
+		return saving
+			? `Save & show ${total} ${noun}`
+			: `Show ${total} ${noun}`;
+	});
 
 	ngOnInit() {
 		this.setupSearch();
@@ -710,20 +826,30 @@ export class BacklogList implements OnInit {
 		);
 
 		if (filter.sortBy) this.sortBy.set(filter.sortBy);
-		if (filter.sortOrder)
-			this.sortOrder.set(filter.sortOrder as "asc" | "desc");
+		if (filter.sortOrder) this.sortOrder.set(filter.sortOrder as SortOrder);
 
 		if (this.hasAdvancedFiltersActive()) this.showAdvancedFilters.set(true);
 	}
 
 	private resetFilterState() {
 		this.selectedPlatform.set("");
+		this.selectedPlatforms.set(new Set());
+		this.selectedGenres.set(new Set());
+		this.yearFrom.set(null);
+		this.yearTo.set(null);
 		this.startedFrom.set("");
 		this.startedTo.set("");
 		this.finishedFrom.set("");
 		this.finishedTo.set("");
 		this.minRating.set(null);
 		this.maxRating.set(null);
+		this.minRealDuration.set(null);
+		this.maxRealDuration.set(null);
+		this.minRatio.set(null);
+		this.maxRatio.set(null);
+		this.minPersonalRatio.set(null);
+		this.maxPersonalRatio.set(null);
+		this.selectedMoodTags.set([]);
 		this.activeStatuses.set(new Set());
 		this.coopOnly.set(false);
 		this.activeFilterId.set(null);
@@ -796,28 +922,54 @@ export class BacklogList implements OnInit {
 		});
 	}
 
-	toggleStatus(status: string) {
-		const current = new Set(this.activeStatuses());
-		if (current.has(status)) {
-			current.delete(status);
-		} else {
-			current.add(status);
-		}
-		this.activeStatuses.set(current);
-		this.activeFilterId.set(null);
-	}
-
 	setQuickStatus(status: string | null) {
 		this.activeStatuses.set(status ? new Set([status]) : new Set());
 		this.applyFilters();
 	}
 
-	isStatusActive(status: string): boolean {
-		return this.activeStatuses().has(status);
+	protected openFilters() {
+		this.showStatsPanel.set(false);
+		this.toolsSheetOpen.set(false);
+		this.showFilters.set(true);
 	}
 
-	toggleFilters() {
-		this.showFilters.set(!this.showFilters());
+	protected closeFilters() {
+		this.showFilters.set(false);
+		this.creatingView.set(false);
+	}
+
+	protected applyAndCloseFilters() {
+		this.applyFilters();
+		this.closeFilters();
+	}
+
+	protected openMobileTools() {
+		if (this.activeFilterId()) this.toolsSheetOpen.set(true);
+		else this.openFilters();
+	}
+
+	protected setStatuses(values: readonly string[]) {
+		this.activeStatuses.set(new Set(values));
+		this.activeFilterId.set(null);
+	}
+
+	protected setSortOrder(value: string) {
+		if (value === "asc" || value === "desc") this.sortOrder.set(value);
+	}
+
+	private startNewView() {
+		this.newViewPending = true;
+		this.clearFilters();
+		this.newFilterName.set("");
+		this.newFilterPinned.set(true);
+		this.openFilters();
+		this.creatingView.set(true);
+		this.router.navigate([], {
+			relativeTo: this.route,
+			queryParams: { [NEW_VIEW_PARAM]: null },
+			queryParamsHandling: "merge",
+			replaceUrl: true
+		});
 	}
 
 	applyFilters() {
@@ -1247,12 +1399,12 @@ export class BacklogList implements OnInit {
 	}
 
 	protected openFiltersFromSheet() {
-		this.toolsSheetOpen.set(false);
-		this.toggleFilters();
+		this.openFilters();
 	}
 
 	protected openStatsFromSheet() {
 		this.toolsSheetOpen.set(false);
+		this.closeFilters();
 		this.toggleStatsPanel();
 	}
 
