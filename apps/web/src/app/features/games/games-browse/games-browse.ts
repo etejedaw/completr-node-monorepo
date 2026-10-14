@@ -39,6 +39,7 @@ import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shel
 import {
 	UiBottomSheet,
 	UiButton,
+	UiCountBadge,
 	UiPagination,
 	UiSearchBar,
 	UiSkeleton
@@ -74,6 +75,7 @@ const SORT_ICONS: Record<string, string> = {
 		AdminGameEditor,
 		UiBottomSheet,
 		UiButton,
+		UiCountBadge,
 		UiPagination,
 		UiSearchBar,
 		UiSkeleton,
@@ -152,6 +154,18 @@ export class GamesBrowse implements OnInit {
 		if (this.minDuration() !== null || this.maxDuration() !== null) n++;
 		if (this.isDlc() !== null) n++;
 		return n;
+	});
+	protected readonly filtersSubheading = computed(() => {
+		const count = this.activeFiltersCount();
+		return count > 0
+			? `${count} ${count === 1 ? "filter" : "filters"} active`
+			: "Narrow the catalog by genre, platform, year and more";
+	});
+	protected readonly showResultsLabel = computed(() => {
+		if (this.viewMode() !== "filtered" || this.isLoadingFiltered())
+			return "Show results";
+		const total = this.filteredTotal();
+		return `Show ${total} ${total === 1 ? "result" : "results"}`;
 	});
 	protected readonly inSearchOrFilterMode = computed(
 		() =>
