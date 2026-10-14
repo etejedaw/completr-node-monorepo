@@ -7,7 +7,8 @@ import {
 	type BacklogStatus,
 	type Game,
 	type Genre,
-	type Platform
+	type Platform,
+	type UserRole
 } from "../../core/models";
 import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
 
@@ -319,6 +320,7 @@ export class GamesService {
 						username: string;
 						name: string;
 						avatarUrl: string | null;
+						role: UserRole;
 						status: BacklogStatus;
 						finishedAt: string | null;
 						userRating: number | null;
@@ -336,6 +338,7 @@ export class GamesService {
 						username: string;
 						name: string;
 						avatarUrl: string | null;
+						role: UserRole;
 						status: BacklogStatus;
 					}[];
 				};

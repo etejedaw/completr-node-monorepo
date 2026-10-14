@@ -8,8 +8,9 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { type BacklogStatus } from "../../../../core/models";
+import { type BacklogStatus, type UserRole } from "../../../../core/models";
 import { AuthService } from "../../../../core/services/auth";
+import { isPremiumRole } from "../../../../core/utils/premium";
 import { UiAvatar } from "../../../../shared/ui";
 import {
 	backlogStatusClass,
@@ -22,6 +23,7 @@ interface FriendActivity {
 	username: string;
 	name: string;
 	avatarUrl: string | null;
+	role: UserRole;
 	status: BacklogStatus;
 	finishedAt: string | null;
 	userRating: number | null;
@@ -31,6 +33,7 @@ interface OtherPlayer {
 	username: string;
 	name: string;
 	avatarUrl: string | null;
+	role: UserRole;
 	status: BacklogStatus;
 }
 
@@ -52,6 +55,7 @@ export class GameSocialActivity {
 	protected readonly statusClass = backlogStatusClass;
 	protected readonly statusLabel = backlogStatusLabel;
 	protected readonly statusFillClass = backlogStatusFillClass;
+	protected readonly isPremiumRole = isPremiumRole;
 
 	constructor() {
 		effect(() => {
@@ -66,9 +70,5 @@ export class GameSocialActivity {
 				.getPlayers(id)
 				.subscribe(p => this.players.set(p));
 		});
-	}
-
-	hasContent(): boolean {
-		return this.friends().length > 0 || this.players().length > 0;
 	}
 }
