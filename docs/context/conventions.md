@@ -59,11 +59,14 @@ No comentar lo que el nombre ya dice. No dejar referencias a tareas, issues o PR
 - **Todo cambio de código se hace en `develop`.** Nunca editar ni commitear directo en `main`.
 - `main` solo recibe merges desde `develop` para pasar a productivo.
 - Antes de editar, verificar la rama con `git branch --show-current`; si es `main`, cambiar a `develop` (`git switch develop`) antes de tocar nada.
+- **Historia lineal en `develop`.** Una rama de trabajo se integra con rebase sobre `develop` y avance rápido (`git merge --ff-only <rama>`), sin commits de merge. Solo el paso de `develop` a `main` es un merge.
+- **Trabajo en paralelo con worktrees.** Viven en `.worktree/<bloque>`, uno por bloque y con su propia rama. Están en `.gitignore` y ESLint los ignora. Cada bloque toca archivos distintos. Las ramas de los bloques se integran una a una con rebase en una rama de integración, y esa rama entra a `develop` de la misma forma.
 
 ## Commits
 
 - **Conventional Commits** (`feat`, `fix`, `docs`, `chore`, `refactor`, `style`, `test`, `perf`, `build`, `ci`).
-- **Una sola línea**, sin body, sin footer, sin firma de IA.
+- **Una sola línea**, sin body, sin footer.
+- **Sin firma de IA en nada**: ni `Co-Authored-By` ni "Generated with" en commits, merges, migraciones o PRs.
 - **Imperativo, minúsculas, sin punto final.**
 - **Granulares** — un cambio lógico por commit. Si el working tree mezcla cosas, se separan agrupando por archivo (no por hunk).
 
@@ -80,6 +83,8 @@ Después de cualquier cambio de código, desde la raíz del repo:
 5. Si modificaste el schema de un modelo o una asociación → crear migración Sequelize en `apps/api/migrations/`. Cada `onDelete` de `associations.database.ts` va también como `ON DELETE` en la FK de la migración.
 6. Si cambiaste un enum, un constraint, una validación o un auto-comportamiento → actualizar [`../invariants.md`](../invariants.md).
 7. Si cambiaste un tope por rol, un permiso o qué se ve en público → **eso es una decisión de negocio, no un invariante**: se documenta en la planificación de producto, fuera de `docs/`.
+
+El changelog (`docs/changelogs/` y, si el usuario nota el cambio, la entrada pública de la landing) se escribe **una vez al cerrar la tanda de trabajo**, no por cada cambio. El proceso está en `.claude/skills/changelog/SKILL.md`.
 
 Los pasos 6 y 7 no son opcionales. La documentación de este repo acumuló tres datos falsos (un estado del enum faltante, el modelo de privacidad entero y el nombre de un campo de respuesta) precisamente porque nadie los ejecutaba.
 
@@ -125,6 +130,7 @@ const backlogInclude = [
 
 Aunque el repo es de un solo developer, hay acciones que requieren confirmación explícita:
 
-- **Cambios en modelos / DB.** Nunca cambiar columnas, tipos o asociaciones sin preguntar primero (auto-restart propaga el cambio inmediatamente).
+- **Pedir que se lea, revise o prepare algo no autoriza a editar código.** Se resume, se propone y se espera la orden.
+- **Cambios en modelos / DB.** Nunca cambiar columnas, tipos o asociaciones sin preguntar primero (auto-restart propaga el cambio inmediatamente). Tampoco ejecutar migraciones ni modificar datos sin preguntar.
 - **Commits y pushes.** No commitear ni pushear automáticamente — esperar instrucción.
 - **Operaciones destructivas** (borrar archivos, `git reset --hard`, `rm -rf`, drops de tablas).
