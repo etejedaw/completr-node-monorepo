@@ -160,7 +160,10 @@
 	} @placeholder {
 	<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
 	} } @if (visibility().queue) { @defer (on viewport; prefetch on idle) {
-	<app-profile-up-next [username]="username()" />
+	<app-profile-up-next
+		[username]="username()"
+		[entries]="queueData() ?? []"
+	/>
 	} @placeholder {
 	<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
 	} } @if (visibility().backlog) { @if (highlightsData() === null) {

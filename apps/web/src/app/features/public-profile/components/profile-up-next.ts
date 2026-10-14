@@ -1,18 +1,8 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	inject,
-	input
-} from "@angular/core";
-import { rxResource } from "@angular/core/rxjs-interop";
-import { catchError, map, of } from "rxjs";
+import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
+import { type QueueEntry } from "../../../core/models/queue.model";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
-import { PublicLibraryService } from "../services/public-library.service";
-
-const UP_NEXT_LIMIT = 10;
 
 @Component({
 	selector: "app-profile-up-next",
@@ -42,22 +32,6 @@ const UP_NEXT_LIMIT = 10;
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProfileUpNext {
-	private readonly libraryService = inject(PublicLibraryService);
-
 	readonly username = input.required<string>();
-
-	private readonly queue = rxResource({
-		params: () => this.username(),
-		stream: ({ params: username }) =>
-			this.libraryService
-				.getUserQueue(username, { limit: UP_NEXT_LIMIT })
-				.pipe(
-					map(page => page.items),
-					catchError(() => of([]))
-				)
-	});
-
-	protected readonly entries = computed(() =>
-		this.queue.hasValue() ? this.queue.value() : []
-	);
+	readonly entries = input.required<QueueEntry[]>();
 }
