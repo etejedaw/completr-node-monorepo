@@ -3,7 +3,7 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
-	type ElementRef,
+	ElementRef,
 	input,
 	output,
 	viewChild
@@ -74,8 +74,10 @@ export class SelectedGameRow {
 	readonly autofocus = input(false);
 	readonly changeRequested = output<void>();
 
-	private readonly changeButton =
-		viewChild<ElementRef<HTMLButtonElement>>("changeButton");
+	private readonly changeButton = viewChild<
+		string,
+		ElementRef<HTMLButtonElement>
+	>("changeButton", { read: ElementRef });
 
 	protected readonly details = computed(() => {
 		const year = this.game().releaseAt?.substring(0, 4);
