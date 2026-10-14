@@ -28,15 +28,10 @@ import {
 import { type FeedActivity, type FeedCategory, FeedService } from "./feed";
 import { FeedActivityItem } from "./feed-activity-item/feed-activity-item";
 
-interface ActivityEntry {
-	key: string;
-	activities: FeedActivity[];
-}
-
 interface ActivityDayGroup {
 	key: string;
 	label: string;
-	entries: ActivityEntry[];
+	activities: FeedActivity[];
 }
 
 const DAY_MS = 86_400_000;
@@ -63,24 +58,6 @@ function dayLabel(dayStart: number, todayStart: number): string {
 	return DATE_FORMAT.format(dayStart);
 }
 
-function gameCodeOf(activity: FeedActivity): string | null {
-	const game =
-		activity.target?.type === "game" ? activity.target : activity.game;
-	return game?.code ?? null;
-}
-
-function belongsToEntry(entry: ActivityEntry, activity: FeedActivity): boolean {
-	const latest = entry.activities[entry.activities.length - 1];
-	const gameCode = gameCodeOf(activity);
-	return (
-		gameCode !== null &&
-		gameCode === gameCodeOf(latest) &&
-		activity.user?.id === latest.user?.id &&
-		activity.type !== "coop_tagged" &&
-		latest.type !== "coop_tagged"
-	);
-}
-
 function groupByDay(activities: FeedActivity[]): ActivityDayGroup[] {
 	const todayStart = startOfDay(new Date());
 	const groups = new Map<number, ActivityDayGroup>();
@@ -91,16 +68,11 @@ function groupByDay(activities: FeedActivity[]): ActivityDayGroup[] {
 			group = {
 				key: String(dayStart),
 				label: dayLabel(dayStart, todayStart),
-				entries: []
+				activities: []
 			};
 			groups.set(dayStart, group);
 		}
-		const lastEntry = group.entries[group.entries.length - 1];
-		if (lastEntry && belongsToEntry(lastEntry, activity)) {
-			lastEntry.activities.push(activity);
-		} else {
-			group.entries.push({ key: activity.id, activities: [activity] });
-		}
+		group.activities.push(activity);
 	}
 	return [...groups.values()];
 }
@@ -195,19 +167,13 @@ export class FeedPage implements OnInit {
 		this.followRequestsService.list().subscribe();
 	}
 
-	deleteActivities(ids: string[]) {
+	deleteActivity(id: string) {
 		const snapshot = this.activities();
-		const removed = new Set(ids);
-		if (!snapshot.some(activity => removed.has(activity.id))) return;
-		this.activities.set(
-			snapshot.filter(activity => !removed.has(activity.id))
-		);
+		if (!snapshot.some(activity => activity.id === id)) return;
+		this.activities.set(snapshot.filter(activity => activity.id !== id));
 		this.toast.pending({
-			message: ids.length > 1 ? "Activities removed" : "Activity removed",
-			onCommit: () =>
-				ids.forEach(id =>
-					this.feedService.deleteActivity(id).subscribe()
-				),
+			message: "Activity removed",
+			onCommit: () => this.feedService.deleteActivity(id).subscribe(),
 			onUndo: () => this.activities.set(snapshot)
 		});
 	}

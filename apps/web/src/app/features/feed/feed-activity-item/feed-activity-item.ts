@@ -25,26 +25,10 @@ interface ActivityActor {
 	isPremium: boolean;
 }
 
-interface ActivityAction {
-	type: string;
-	label: string;
-	icon: string;
-	iconColor: string;
-}
-
 const TIME_OF_DAY_FORMAT = new Intl.DateTimeFormat("en", {
 	hour: "numeric",
 	minute: "2-digit"
 });
-
-function toAction(type: string): ActivityAction {
-	return {
-		type,
-		label: activityLabel(type),
-		icon: activityIcon(type),
-		iconColor: activityIconColorClass(type)
-	};
-}
 
 @Component({
 	selector: "app-feed-activity-item",
@@ -54,18 +38,10 @@ function toAction(type: string): ActivityAction {
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FeedActivityItem {
-	readonly activities = input.required<FeedActivity[]>();
+	readonly activity = input.required<FeedActivity>();
 	readonly isOwn = input(false);
 
-	readonly deleted = output<string[]>();
-
-	protected readonly activity = computed(() => this.activities()[0]);
-	protected readonly actions = computed(() => {
-		const types = this.activities()
-			.map(activity => activity.type)
-			.reverse();
-		return [...new Set(types)].map(toAction);
-	});
+	readonly deleted = output<string>();
 
 	protected readonly actor = computed<ActivityActor | null>(() => {
 		const activity = this.activity();
@@ -102,12 +78,8 @@ export class FeedActivityItem {
 		return target;
 	});
 
-	protected readonly actionsLabel = computed(() =>
-		this.isCoop()
-			? "is playing co-op"
-			: this.actions()
-					.map(action => action.label)
-					.join(" · ")
+	protected readonly actionLabel = computed(() =>
+		this.isCoop() ? "is playing co-op" : this.label()
 	);
 	protected readonly isCoop = computed(
 		() => this.activity().type === "coop_tagged"
@@ -126,6 +98,6 @@ export class FeedActivityItem {
 	);
 
 	protected emitDelete(): void {
-		this.deleted.emit(this.activities().map(activity => activity.id));
+		this.deleted.emit(this.activity().id);
 	}
 }

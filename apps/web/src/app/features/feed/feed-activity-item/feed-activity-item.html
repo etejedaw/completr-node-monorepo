@@ -37,7 +37,7 @@
 			[routerLink]="['/user', actor.username]"
 			>{{ actor.displayName }}</a
 		>{{ " " }} }
-		<span>{{ actionsLabel() }}</span>
+		<span>{{ actionLabel() }}</span>
 		@if (game(); as game) { {{ " " }}<a
 			class="font-medium text-fg no-underline hover:text-brand"
 			[routerLink]="['/games', game.code]"
@@ -69,7 +69,6 @@
 	@if (isOwn()) {
 	<app-activity-delete-button
 		tooltip="Remove from feed"
-		[multiple]="activities().length > 1"
 		(pressed)="emitDelete()"
 	/>
 	}
