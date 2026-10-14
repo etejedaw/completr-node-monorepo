@@ -1,15 +1,22 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	input,
 	model,
 	output
 } from "@angular/core";
 
 import { type Genre, type Platform } from "../../../../core/models";
+import { FilterSection } from "../../../../shared/components/filter-section/filter-section";
 import { GameFilterPanel } from "../../../../shared/components/game-filter-panel/game-filter-panel";
+import { RangeInputs } from "../../../../shared/components/range-inputs/range-inputs";
+import {
+	SegmentedControl,
+	type SegmentedOption
+} from "../../../../shared/components/segmented-control/segmented-control";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
-import { UiButton, UiInput, UiSelect } from "../../../../shared/ui";
+import { UiButton } from "../../../../shared/ui";
 
 export interface BrowseSortOption {
 	value: string;
@@ -18,20 +25,30 @@ export interface BrowseSortOption {
 }
 
 type GameTypeFilter = boolean | null;
+type GameTypeValue = "all" | "games" | "dlc";
 
-const GAME_TYPE_OPTIONS: { value: GameTypeFilter; label: string }[] = [
-	{ value: null, label: "All" },
-	{ value: false, label: "Games" },
-	{ value: true, label: "DLC" }
+const GAME_TYPE_OPTIONS: SegmentedOption<GameTypeValue>[] = [
+	{ value: "all", label: "All" },
+	{ value: "games", label: "Games" },
+	{ value: "dlc", label: "DLC" }
 ];
 
-function toNullableNumber(value: string): number | null {
-	return value ? Number(value) : null;
-}
+const GAME_TYPE_FILTER: Record<GameTypeValue, GameTypeFilter> = {
+	all: null,
+	games: false,
+	dlc: true
+};
 
 @Component({
 	selector: "app-browse-filters",
-	imports: [GameFilterPanel, StarRating, UiButton, UiInput, UiSelect],
+	imports: [
+		FilterSection,
+		GameFilterPanel,
+		RangeInputs,
+		SegmentedControl,
+		StarRating,
+		UiButton
+	],
 	templateUrl: "./browse-filters.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -39,9 +56,8 @@ function toNullableNumber(value: string): number | null {
 export class BrowseFilters {
 	readonly allGenres = input.required<Genre[]>();
 	readonly allPlatforms = input.required<Platform[]>();
-	readonly sortOptions = input.required<BrowseSortOption[]>();
-	readonly sortBy = input.required<string>();
 	readonly activeCount = input(0);
+	readonly showClear = input(true);
 
 	readonly selectedGenres = model.required<Set<string>>();
 	readonly selectedPlatforms = model.required<Set<string>>();
@@ -53,16 +69,16 @@ export class BrowseFilters {
 	readonly maxDuration = model.required<number | null>();
 	readonly isDlc = model.required<GameTypeFilter>();
 
-	readonly sortChange = output<string>();
 	readonly cleared = output<void>();
 
 	protected readonly typeOptions = GAME_TYPE_OPTIONS;
+	protected readonly typeValue = computed<GameTypeValue>(() => {
+		const isDlc = this.isDlc();
+		if (isDlc === null) return "all";
+		return isDlc ? "dlc" : "games";
+	});
 
-	protected setMinDuration(value: string): void {
-		this.minDuration.set(toNullableNumber(value));
-	}
-
-	protected setMaxDuration(value: string): void {
-		this.maxDuration.set(toNullableNumber(value));
+	protected setType(value: GameTypeValue): void {
+		this.isDlc.set(GAME_TYPE_FILTER[value]);
 	}
 }

@@ -39,42 +39,29 @@
 		[value]="activeStatus()"
 		(valueChange)="filterByStatus($event)"
 	/>
-	<nav
-		aria-label="Filter by status"
-		class="max-md:hidden -mx-[var(--page-pad-x)] px-[var(--page-pad-x)] pointer-coarse:py-[8px] pointer-coarse:-mb-[8px] flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-	>
-		@for (tab of statusTabs; track tab.value) {
-		<button
-			type="button"
-			class="tap-area shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg"
-			[class.!text-brand]="activeStatus() === tab.value"
-			[class.!border-brand]="activeStatus() === tab.value"
-			[class.!bg-brand-subtle]="activeStatus() === tab.value"
-			[attr.aria-pressed]="activeStatus() === tab.value"
-			(click)="filterByStatus(tab.value)"
-		>
-			@if (tab.value) {
-			<span
-				aria-hidden="true"
-				class="material-icons text-base"
-				[class]="statusIconColor($any(tab.value))"
-				>{{ statusIcon($any(tab.value)) }}</span
-			>
-			} {{ tab.label }}
-		</button>
-		}
-	</nav>
+	<app-backlog-status-pills
+		layout="scroll"
+		[selected]="selectedStatuses()"
+		(statusSelect)="filterByStatus($event)"
+	/>
 </app-library-hero>
 
 <div
 	class="bleed bleed-inner sticky top-[var(--topbar-height)] z-30 py-3 mb-4 bg-canvas/85 backdrop-blur-md border-b border-line/60"
 >
-	<ui-search-bar
-		class="block max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
-		[placeholder]="'Search ' + username() + '\'s games...'"
-		[value]="searchQuery()"
-		(valueChange)="onSearch($event)"
-	/>
+	<div class="flex flex-wrap items-center gap-2">
+		<ui-search-bar
+			class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
+			[placeholder]="'Search ' + username() + '\'s games...'"
+			[value]="searchQuery()"
+			(valueChange)="onSearch($event)"
+		/>
+		<app-view-mode-toggle
+			[options]="viewModes"
+			[value]="viewMode()"
+			(valueChange)="setViewMode($event)"
+		/>
+	</div>
 </div>
 
 @if (isLoading()) {
@@ -96,24 +83,25 @@
 	}
 </div>
 } @else if (entries().length === 0) {
-<section class="flex flex-col items-center text-center py-20 px-6">
-	<span aria-hidden="true" class="material-icons text-4xl text-fg-muted mb-3"
-		>{{ searchQuery() ? 'search_off' : 'videogame_asset_off' }}</span
-	>
-	<h2 class="m-0 font-display text-xl font-semibold text-fg">
-		{{ searchQuery() ? 'No matches' : 'Nothing here yet' }}
-	</h2>
-	<p class="m-0 mt-2 mb-6 text-sm text-fg-muted">
-		@if (searchQuery()) { No games match "{{ searchQuery() }}". } @else if
-		(activeStatus()) { No {{ activeStatusLabel().toLowerCase() }} games to
-		show. } @else { This library has no public games yet. }
-	</p>
+<ui-plain-empty-state
+	[icon]="searchQuery() ? 'search_off' : 'videogame_asset_off'"
+	[title]="searchQuery() ? 'No matches' : 'Nothing here yet'"
+	[message]="emptyMessage()"
+>
 	@if (activeStatus() || searchQuery()) {
 	<button uiButton variant="secondary" (click)="resetFilters()">
 		Show all games
 	</button>
 	}
-</section>
+</ui-plain-empty-state>
+} @else { @if (viewMode() === 'hardcore') {
+<app-backlog-table
+	[entries]="entries()"
+	[sortBy]="effectiveSort().sortBy"
+	[sortOrder]="effectiveSort().sortOrder"
+	[readonly]="true"
+	(sortChange)="sortByColumn($event)"
+/>
 } @else {
 <div class="grid gap-3 xl:grid-cols-2">
 	@for (entry of entries(); track entry.id) {
@@ -126,6 +114,7 @@
 	/>
 	}
 </div>
+}
 <ui-pagination
 	[offset]="offset()"
 	[limit]="limit"

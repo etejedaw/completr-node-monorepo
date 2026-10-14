@@ -57,7 +57,7 @@ const SHOWCASE_TITLES = [
 		>
 			<div class="flex items-center gap-2.5 mb-auto">
 				<span
-					class="flex items-center justify-center w-9 h-9 rounded-lg font-display font-bold text-lg text-white bg-brand shadow-lg shadow-brand/30"
+					class="flex items-center justify-center w-9 h-9 rounded-lg font-display font-bold text-lg text-white bg-brand-solid shadow-lg shadow-brand/30"
 					>C</span
 				>
 				<span

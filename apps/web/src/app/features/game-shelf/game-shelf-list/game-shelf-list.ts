@@ -23,10 +23,15 @@ import {
 	matchesPlatform,
 	PlatformFilter
 } from "../../../shared/components/platform-filter/platform-filter";
+import {
+	type ViewModeOption,
+	ViewModeToggle
+} from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
+	UiNoMatches,
 	UiPagination,
 	UiPremiumBadge,
 	UiSearchBar
@@ -46,7 +51,7 @@ type ShelfViewMode = "grid" | "table" | "calendar";
 
 const VIEW_MODE_STORAGE_KEY = "completr.shelf.viewMode";
 
-const VIEW_MODES: { value: ShelfViewMode; label: string; icon: string }[] = [
+const VIEW_MODES: readonly ViewModeOption<ShelfViewMode>[] = [
 	{ value: "grid", label: "Grid", icon: "grid_view" },
 	{ value: "table", label: "Hardcore", icon: "table_rows" },
 	{ value: "calendar", label: "Calendar", icon: "calendar_month" }
@@ -60,9 +65,11 @@ function readStoredViewMode(): ShelfViewMode {
 @Component({
 	selector: "app-game-shelf-list",
 	imports: [
+		ViewModeToggle,
 		DatePipe,
 		UiButton,
 		UiEmptyState,
+		UiNoMatches,
 		UiPagination,
 		UiSearchBar,
 		GameCoverCard,

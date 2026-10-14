@@ -55,17 +55,15 @@
 			type="button"
 			class="shrink-0 inline-flex items-center gap-1.5 h-10 tap:min-h-[44px] tap:min-w-[44px] px-3 rounded-card border text-sm font-medium cursor-pointer transition"
 			[class]="showFilters() || activeFiltersCount() > 0 ? 'border-brand bg-brand-subtle text-brand' : 'border-line bg-transparent text-fg-secondary hover:border-brand hover:text-brand'"
-			[attr.aria-expanded]="showFilters()"
-			aria-controls="browse-filters"
+			[attr.aria-expanded]="isMobile() ? null : showFilters()"
+			[attr.aria-controls]="isMobile() ? null : 'browse-filters'"
+			[attr.aria-haspopup]="isMobile() ? 'dialog' : null"
 			(click)="toggleFilters()"
 		>
 			<span aria-hidden="true" class="material-icons text-lg">tune</span>
 			<span class="max-sm:sr-only">Filters</span>
 			@if (activeFiltersCount() > 0) {
-			<span
-				class="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none"
-				>{{ activeFiltersCount() }}</span
-			>
+			<ui-count-badge [count]="activeFiltersCount()" />
 			}
 		</button>
 		@if (isAdmin()) {
@@ -117,37 +115,45 @@
 </section>
 } @if (showFilters() && isMobile()) {
 <ui-bottom-sheet
+	eyebrow="Catalog"
 	heading="Filters"
-	[subheading]="activeFiltersCount() > 0 ? activeFiltersCount() + ' active' : null"
+	[subheading]="filtersSubheading()"
 	(closed)="showFilters.set(false)"
 >
-	<div id="browse-filters" class="px-2 pt-2">
-		<ng-container *ngTemplateOutlet="filtersForm" />
-		<div
-			class="sticky bottom-0 -mx-5 mt-6 px-5 pt-3 pb-1 bg-gradient-to-t from-sidebar via-sidebar to-sidebar/0"
-		>
-			<button
-				uiButton
-				variant="primary"
-				[block]="true"
-				class="!h-11"
-				(click)="showFilters.set(false)"
-			>
-				Show {{ viewMode() === 'filtered' ? filteredTotal() : '' }}
-				results
-			</button>
-		</div>
+	<div class="px-2 pt-2">
+		<ng-container
+			*ngTemplateOutlet="filtersForm; context: { $implicit: false }"
+		/>
 	</div>
+	<button
+		sheetFooter
+		uiButton
+		variant="ghost"
+		[disabled]="activeFiltersCount() === 0"
+		(click)="clearFilters()"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>filter_alt_off</span
+		>
+		Clear
+	</button>
+	<button
+		sheetFooter
+		uiButton
+		variant="primary"
+		(click)="showFilters.set(false)"
+	>
+		{{ showResultsLabel() }}
+	</button>
 </ui-bottom-sheet>
 }
 
-<ng-template #filtersForm>
+<ng-template #filtersForm let-showClear>
 	<app-browse-filters
 		[allGenres]="allGenres()"
 		[allPlatforms]="allPlatforms()"
-		[sortOptions]="sortOptions"
-		[sortBy]="sortBy()"
 		[activeCount]="activeFiltersCount()"
+		[showClear]="showClear ?? true"
 		[(selectedGenres)]="selectedGenres"
 		[(selectedPlatforms)]="selectedPlatforms"
 		[(yearFrom)]="yearFrom"
@@ -157,7 +163,6 @@
 		[(minDuration)]="minDuration"
 		[(maxDuration)]="maxDuration"
 		[(isDlc)]="isDlc"
-		(sortChange)="setSortBy($event)"
 		(cleared)="clearFilters()"
 	/>
 </ng-template>

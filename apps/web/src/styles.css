@@ -1,7 +1,11 @@
 @import "tailwindcss";
 @import "material-icons/iconfont/material-icons.css" layer(base);
-@import "../public/fonts/space-grotesk.css";
+@import "../public/fonts/chakra-petch.css";
+@import "../public/fonts/manrope.css";
 @import "./styles/ui.css";
+@import "./styles/themes/refined-dark.css";
+@import "./styles/themes/midnight-cyan.css";
+@import "./styles/themes/twilight-arcade.css";
 
 @custom-variant tap {
 	@media (max-width: 639px), (pointer: coarse) {
@@ -16,11 +20,11 @@
 
 @theme {
 	--font-sans:
-		"Space Grotesk", ui-sans-serif, -apple-system, BlinkMacSystemFont,
-		"Segoe UI", sans-serif;
+		"Manrope", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+		sans-serif;
 	--font-display:
-		"Space Grotesk", ui-sans-serif, -apple-system, BlinkMacSystemFont,
-		"Segoe UI", sans-serif;
+		"Chakra Petch", "Manrope", ui-sans-serif, -apple-system,
+		BlinkMacSystemFont, "Segoe UI", sans-serif;
 
 	--color-canvas: #0a0a0c;
 	--color-sidebar: #0e0e11;
@@ -35,6 +39,8 @@
 	--color-brand: #8b5cf6;
 	--color-brand-hover: #a78bfa;
 	--color-brand-deep: #7c3aed;
+	--color-brand-solid: #7c3aed;
+	--color-brand-solid-hover: #6d28d9;
 	--color-brand-subtle: rgba(139, 92, 246, 0.1);
 	--color-brand-glow: rgba(139, 92, 246, 0.25);
 
@@ -66,136 +72,6 @@
 	--radius-card: 0.625rem;
 }
 
-:root,
-:root[data-theme="refined-dark"] {
-	--color-canvas: #0a0a0c;
-	--color-sidebar: #0e0e11;
-	--color-surface: #131318;
-	--color-surface-hover: #1a1a20;
-	--color-input-bg: #0c0c0f;
-
-	--color-fg: #f5f5f7;
-	--color-fg-secondary: #a1a1aa;
-	--color-fg-muted: #71717a;
-
-	--color-brand: #8b5cf6;
-	--color-brand-hover: #a78bfa;
-	--color-brand-deep: #7c3aed;
-	--color-brand-subtle: rgba(139, 92, 246, 0.1);
-	--color-brand-glow: rgba(139, 92, 246, 0.25);
-
-	--color-success: #10b981;
-	--color-warning: #f97316;
-	--color-danger: #ef4444;
-	--color-info: #38bdf8;
-	--color-premium: #fbbf24;
-	--color-rating: var(--color-brand);
-	--color-playing: #38bdf8;
-
-	--color-line: rgba(255, 255, 255, 0.06);
-	--color-line-hover: rgba(255, 255, 255, 0.12);
-
-	--color-nav-feed: #38bdf8;
-	--color-nav-backlog: #818cf8;
-	--color-nav-queue: #fb7185;
-	--color-nav-shelf: #fb923c;
-	--color-nav-wishlist: #f472b6;
-	--color-nav-favorites: #f43f5e;
-	--color-nav-saved-views: #c084fc;
-	--color-nav-tags: #a3e635;
-	--color-nav-browse: #34d399;
-	--color-nav-lists: #2dd4bf;
-	--color-nav-users: #e879f9;
-	--color-nav-admin: #94a3b8;
-	--color-nav-more: var(--color-fg-secondary);
-}
-
-:root[data-theme="midnight-cyan"] {
-	--color-canvas: #0b0f19;
-	--color-sidebar: #111827;
-	--color-surface: #1e293b;
-	--color-surface-hover: #263548;
-	--color-input-bg: #0f172a;
-
-	--color-fg: #e2e8f0;
-	--color-fg-secondary: #94a3b8;
-	--color-fg-muted: #64748b;
-
-	--color-brand: #0ea5e9;
-	--color-brand-hover: #0284c7;
-	--color-brand-deep: #0369a1;
-	--color-brand-subtle: rgba(14, 165, 233, 0.12);
-	--color-brand-glow: rgba(14, 165, 233, 0.25);
-
-	--color-success: #22c55e;
-	--color-warning: #f97316;
-	--color-danger: #ef4444;
-	--color-info: #38bdf8;
-	--color-premium: #fbbf24;
-	--color-rating: var(--color-brand);
-	--color-playing: #818cf8;
-
-	--color-line: rgba(148, 163, 184, 0.12);
-	--color-line-hover: rgba(148, 163, 184, 0.24);
-
-	--color-nav-feed: #60a5fa;
-	--color-nav-backlog: #a78bfa;
-	--color-nav-queue: #fb7185;
-	--color-nav-shelf: #fb923c;
-	--color-nav-wishlist: #f472b6;
-	--color-nav-favorites: #fb7185;
-	--color-nav-saved-views: #c084fc;
-	--color-nav-tags: #a3e635;
-	--color-nav-browse: #34d399;
-	--color-nav-lists: #2dd4bf;
-	--color-nav-users: #e879f9;
-	--color-nav-admin: #94a3b8;
-	--color-nav-more: var(--color-fg-secondary);
-}
-
-:root[data-theme="twilight-arcade"] {
-	--color-canvas: #181028;
-	--color-sidebar: #1f1535;
-	--color-surface: #261b3f;
-	--color-surface-hover: #2f234d;
-	--color-input-bg: #14092a;
-
-	--color-fg: #f4eeff;
-	--color-fg-secondary: #b9a8d4;
-	--color-fg-muted: #7e6e9a;
-
-	--color-brand: #ff5d8f;
-	--color-brand-hover: #ff7da9;
-	--color-brand-deep: #e63d72;
-	--color-brand-subtle: rgba(255, 93, 143, 0.12);
-	--color-brand-glow: rgba(255, 93, 143, 0.35);
-
-	--color-success: #5bd8a1;
-	--color-warning: #ff9447;
-	--color-danger: #ff5d6c;
-	--color-info: #b692ff;
-	--color-premium: #ffc857;
-	--color-rating: var(--color-brand);
-	--color-playing: #7dd3fc;
-
-	--color-line: rgba(182, 146, 255, 0.12);
-	--color-line-hover: rgba(182, 146, 255, 0.22);
-
-	--color-nav-feed: #7dd3fc;
-	--color-nav-backlog: #b692ff;
-	--color-nav-queue: #ffa07a;
-	--color-nav-shelf: #ffb067;
-	--color-nav-wishlist: #f9a8d4;
-	--color-nav-favorites: #ff6b8b;
-	--color-nav-saved-views: #d8b4fe;
-	--color-nav-tags: #bef264;
-	--color-nav-browse: #5bd8a1;
-	--color-nav-lists: #5eead4;
-	--color-nav-users: #f0abfc;
-	--color-nav-admin: #9d8bb8;
-	--color-nav-more: var(--color-fg-secondary);
-}
-
 :root {
 	--topbar-height: 3.5rem;
 	--tabbar-height: 4rem;
@@ -217,6 +93,8 @@
 	--accent: var(--color-brand);
 	--accent-hover: var(--color-brand-hover);
 	--accent-deep: var(--color-brand-deep);
+	--accent-solid: var(--color-brand-solid);
+	--accent-solid-hover: var(--color-brand-solid-hover);
 	--accent-subtle: var(--color-brand-subtle);
 	--accent-glow: var(--color-brand-glow);
 
@@ -445,6 +323,15 @@ h6 {
 	}
 	to {
 		opacity: 1;
+	}
+}
+
+@keyframes uiDrawerIn {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
 	}
 }
 

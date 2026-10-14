@@ -31,69 +31,95 @@
 			</p>
 			<button uiButton variant="secondary" (click)="spin()">Retry</button>
 		</div>
-		} @default { @if (pick(); as entry) {
+		} @default { @for (entry of revealedPick(); track entry.id) {
 		<div
-			class="flex flex-col gap-3 transition-opacity"
+			class="flex flex-col transition-opacity motion-safe:animate-[uiFadeUp_420ms_cubic-bezier(0.16,1,0.3,1)]"
 			[class.opacity-40]="state() === 'loading'"
 			aria-live="polite"
 		>
 			<div
-				class="aspect-video w-full rounded-lg overflow-hidden bg-surface border border-line"
+				aria-hidden="true"
+				class="relative aspect-video w-full rounded-card overflow-hidden border border-line bg-surface"
 			>
-				@if (entry.game.backgroundUrl) {
-				<img
-					[src]="entry.game.backgroundUrl | coverUrl: 640"
-					[alt]="entry.game.title"
-					class="w-full h-full object-cover"
+				<app-game-poster
+					class="absolute inset-0 scale-110 blur-2xl opacity-60"
+					[src]="entry.game.backgroundUrl"
+					[title]="entry.game.title"
+					[width]="200"
+					[compact]="true"
 				/>
-				} @else {
-				<div class="w-full h-full flex items-center justify-center">
-					<span
-						aria-hidden="true"
-						class="material-icons text-5xl text-fg-muted"
-						>sports_esports</span
-					>
-				</div>
-				}
-			</div>
-			<div>
-				<h3 class="m-0 text-xl font-bold font-display leading-tight">
-					{{ entry.game.title }}
-				</h3>
+				<app-game-poster
+					class="absolute inset-0 [mask-image:linear-gradient(to_bottom,black_55%,transparent)]"
+					[src]="entry.game.backgroundUrl"
+					[title]="entry.game.title"
+					[width]="640"
+					[compact]="true"
+				/>
 				<div
-					class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-secondary"
-				>
-					<span
-						class="px-1.5 py-0.5 rounded bg-input-bg border border-line font-semibold"
-						>{{ entry.platform.abbreviation }}</span
-					>
-					@if (entry.duration) {
-					<span class="inline-flex items-center gap-1"
-						><span aria-hidden="true" class="material-icons text-sm"
-							>schedule</span
-						>{{ entry.duration }}h</span
-					>
-					} @if (entry.ratio) {
-					<span class="inline-flex items-center gap-1"
-						><span aria-hidden="true" class="material-icons text-sm"
-							>trending_up</span
-						>Ratio {{ entry.ratio }}</span
-					>
-					}
-				</div>
-				@if (entry.moodTags?.length) {
-				<div class="mt-2 flex flex-wrap gap-1">
-					@for (tag of entry.moodTags; track tag) {
-					<span
-						class="px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-[0.6875rem] font-medium"
-						>{{ tag }}</span
-					>
-					}
-				</div>
-				}
+					class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-sidebar to-transparent"
+				></div>
 			</div>
+			<div class="relative -mt-14 flex items-end gap-3 px-3">
+				<app-game-poster
+					class="w-20 shrink-0 aspect-[2/3] rounded-card ring-1 ring-line shadow-[0_12px_30px_-10px_rgba(0,0,0,0.8)]"
+					[src]="entry.game.backgroundUrl"
+					[title]="entry.game.title"
+					[width]="200"
+				/>
+				<div class="flex-1 min-w-0 pb-0.5">
+					<h3
+						class="m-0 text-xl font-bold font-display leading-tight text-balance break-words"
+					>
+						{{ entry.game.title }}
+					</h3>
+					<div
+						class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-secondary"
+					>
+						<span
+							class="px-1.5 py-0.5 rounded bg-white/5 text-fg-secondary text-[0.6875rem] font-semibold tracking-wide"
+							>{{ entry.platform.abbreviation }}</span
+						>
+						@if (entry.duration) {
+						<span
+							class="inline-flex items-center gap-1 tabular-nums"
+							><span
+								aria-hidden="true"
+								class="material-icons text-sm"
+								>schedule</span
+							>{{ entry.duration }}h</span
+						>
+						} @if (entry.ratio) {
+						<span
+							class="inline-flex items-center gap-1 tabular-nums"
+							><span
+								aria-hidden="true"
+								class="material-icons text-sm"
+								>trending_up</span
+							>Ratio {{ entry.ratio }}</span
+						>
+						}
+					</div>
+				</div>
+			</div>
+			@if (entry.moodTags?.length) {
+			<ul
+				class="list-none m-0 mt-3 p-0 flex flex-wrap gap-1.5"
+				aria-label="Tags"
+			>
+				@for (tag of entry.moodTags; track tag) {
+				<li
+					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-[0.6875rem] font-medium"
+				>
+					<span aria-hidden="true" class="material-icons text-xs"
+						>label</span
+					>
+					{{ tag }}
+				</li>
+				}
+			</ul>
+			}
 		</div>
-		} @else {
+		} @empty {
 		<div class="py-10 text-center text-sm text-fg-muted" aria-live="polite">
 			Rolling the dice…
 		</div>
@@ -111,6 +137,7 @@
 		<button
 			uiButton
 			variant="ghost"
+			class="md:mr-auto"
 			[disabled]="state() === 'loading' || (candidateCount() ?? 0) < 2"
 			(click)="spin()"
 		>
@@ -134,6 +161,7 @@
 		<a
 			uiButton
 			variant="primary"
+			class="max-md:order-first max-md:basis-full"
 			[routerLink]="['/games', entry.game.code]"
 			(click)="close()"
 		>

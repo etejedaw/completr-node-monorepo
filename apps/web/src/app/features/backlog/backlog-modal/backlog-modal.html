@@ -1,8 +1,9 @@
 <ui-dialog
 	eyebrow="My Games"
-	[size]="isEdit() && viewMode() === 'summary' ? 'md' : 'lg'"
+	[size]="(isEdit() && viewMode() === 'summary') || isSearchStep() ? 'md' : 'lg'"
 	[heading]="heading()"
-	[subheading]="isEdit() && viewMode() === 'edit' ? entry!.game.title : null"
+	[subheading]="subheading()"
+	[flush]="isSearchStep()"
 	[dismissible]="!isLoading()"
 	(closed)="onClose()"
 >
@@ -21,293 +22,168 @@
 		[coopMembers]="coopMembers()"
 		(navigated)="onClose()"
 	/>
+	} @else if (isSearchStep()) {
+	<app-game-search-step
+		[results]="search.results()"
+		[status]="search.status()"
+		[onlineSearching]="search.forceSearching()"
+		[autofocus]="returnedToSearch()"
+		[(query)]="searchQuery"
+		(picked)="selectGame($event)"
+		(searchOnline)="search.searchOnline()"
+	/>
 	} @else {
-	<form id="backlog-entry-form" novalidate (submit)="onSubmit($event)">
-		@if (compilationParent()) {
-		<div class="mb-4 p-3 bg-brand-subtle/40 border border-brand/30 rounded">
-			<div class="flex items-center gap-2 mb-2">
+	<form
+		id="backlog-entry-form"
+		class="flex flex-col gap-5"
+		novalidate
+		(submit)="onSubmit($event)"
+	>
+		@if (compilationParent(); as parent) {
+		<section
+			class="p-3 rounded-card border border-brand/30 bg-brand-subtle/40"
+			aria-labelledby="compilation-heading"
+		>
+			<div class="flex items-center gap-2">
 				<span
 					aria-hidden="true"
 					class="material-icons text-brand text-base"
 					>library_books</span
 				>
-				<span
-					class="text-xs font-semibold text-brand uppercase tracking-wider"
-					>Compilation</span
-				>
-				<span class="flex-1 text-sm font-medium text-fg"
-					>{{ compilationParent()!.title }}</span
-				>
+				<div class="flex-1 min-w-0 flex flex-col gap-0.5">
+					<span
+						id="compilation-heading"
+						class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-brand"
+						>Compilation</span
+					>
+					<span class="text-sm font-medium text-fg truncate"
+						>{{ parent.title }}</span
+					>
+				</div>
 				@if (!preselectedCompilationParent && !isEdit()) {
 				<button
+					uiIconButton
+					size="sm"
 					type="button"
-					class="bg-none border-0 text-fg-muted text-base cursor-pointer leading-none hover:text-fg"
+					aria-label="Remove compilation context"
 					(click)="clearCompilationParent()"
-					title="Remove compilation context"
 				>
-					<span aria-hidden="true" class="material-icons text-base"
+					<span aria-hidden="true" class="material-icons text-lg"
 						>close</span
 					>
 				</button>
 				}
 			</div>
-			@if (!selectedGame() &&
-			(compilationParent()!.compilationItems?.length ?? 0) > 0) {
-			<div>
-				<div class="text-xs text-fg-secondary mb-2">
-					Which game are you playing?
-				</div>
-				<div class="grid grid-cols-2 gap-2">
-					@for (item of compilationParent()!.compilationItems!; track
-					item.id) { @if (item.game) {
+			@if (!selectedGame() && (parent.compilationItems?.length ?? 0) > 0)
+			{
+			<p class="m-0 mt-3 mb-2 text-xs text-fg-secondary">
+				Which game are you playing?
+			</p>
+			<ul class="list-none m-0 p-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
+				@for (item of parent.compilationItems!; track item.id) { @if
+				(item.game) {
+				<li>
 					<button
 						type="button"
-						class="flex items-center gap-2 p-2 bg-input-bg border border-line rounded text-left cursor-pointer transition hover:border-brand hover:bg-brand-subtle"
+						class="w-full min-h-[44px] flex items-center gap-2.5 p-2 rounded-card border border-line bg-input-bg text-left cursor-pointer transition hover:border-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 						(click)="pickCompilationChild(item.game)"
 					>
-						@if (item.game.backgroundUrl) {
-						<img
+						<app-game-poster
+							class="w-8 aspect-[2/3] shrink-0 rounded-sm"
 							[src]="item.game.backgroundUrl"
-							[alt]="item.game.title"
-							class="w-8 h-10 object-cover rounded shrink-0"
-							loading="lazy"
+							[title]="item.game.title"
+							[width]="200"
+							[compact]="true"
 						/>
-						} @else {
-						<div class="w-8 h-10 bg-surface rounded shrink-0"></div>
-						}
 						<span
-							class="flex-1 text-xs font-medium text-fg line-clamp-2 leading-tight"
+							class="flex-1 min-w-0 text-xs font-medium text-fg line-clamp-2 leading-tight"
 							>{{ item.game.title }}</span
 						>
 					</button>
-					} }
-				</div>
-				<button
-					type="button"
-					class="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 bg-transparent border border-dashed border-line rounded text-xs text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand"
-					(click)="selectWholeCompilation()"
-				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>layers</span
-					>
-					Track whole compilation as one entry
-				</button>
-			</div>
-			}
-		</div>
-		} @if (!isEdit()) {
-		<div class="mb-4">
-			<span
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Game <span class="text-danger font-bold">*</span></span
-			>
-			@if (selectedGame()) {
-			<div
-				class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded"
-				[class.opacity-70]="preselectedGame"
-			>
-				@if (selectedGame()!.backgroundUrl) {
-				<img
-					alt=""
-					[src]="selectedGame()!.backgroundUrl"
-					class="w-7 h-[38px] object-cover rounded-[3px] shrink-0"
-					loading="lazy"
-				/>
-				}
-				<span class="flex-1 text-sm font-medium"
-					>{{ selectedGame()!.title }}</span
-				>
-				@if (!preselectedGame) {
-				<button
-					type="button"
-					class="bg-none border-0 text-fg-muted text-xl cursor-pointer px-1 leading-none hover:text-fg"
-					(click)="clearGame()"
-				>
-					&times;
-				</button>
-				}
-			</div>
-			} @else if (compilationParent()) {
-			<div
-				class="px-3 py-2 bg-input-bg border border-dashed border-line rounded text-xs text-fg-muted"
-			>
-				Pick a game from the compilation above.
-			</div>
-			} @else {
-			<input
-				type="text"
-				class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-				placeholder="Search games..."
-				[value]="searchQuery()"
-				(input)="onSearch($event)"
-			/>
-			@if (isSearching() && gameResults().length === 0) {
-			<div
-				class="px-3 py-2.5 text-[0.8125rem] text-fg-muted bg-input-bg border border-line rounded mt-1"
-			>
-				Searching...
-			</div>
-			} @if (isSearchingOnline()) {
-			<div
-				class="px-3 py-2.5 text-[0.8125rem] text-brand bg-input-bg border border-line rounded mt-1 flex items-center gap-2"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-base animate-spin"
-					>autorenew</span
-				>
-				Searching online...
-			</div>
-			} @if (gameResults().length > 0 || (!isSearching() &&
-			!isSearchingOnline() && searchQuery().length >= 2)) {
-			<ul
-				class="list-none bg-input-bg border border-line rounded mt-1 max-h-[200px] overflow-y-auto"
-			>
-				@for (game of gameResults(); track game.id) {
-				<li
-					role="button"
-					tabindex="0"
-					class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] transition hover:bg-surface"
-					(click)="selectGame(game)"
-					(keydown.enter)="selectGame(game)"
-					(keydown.space)="selectGame(game); $event.preventDefault()"
-				>
-					@if (game.backgroundUrl) {
-					<img
-						alt=""
-						[src]="game.backgroundUrl"
-						class="w-7 h-[38px] object-cover rounded-[3px] shrink-0"
-						loading="lazy"
-					/>
-					}
-					<span class="flex-1">{{ game.title }}</span>
-					@if (game.justImported) {
-					<span
-						class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/15 text-info text-[0.65rem] font-semibold uppercase tracking-wider rounded"
-						title="Just imported from RAWG"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.75rem]"
-							>cloud_download</span
-						>
-						RAWG
-					</span>
-					} @if (game.isDlc) {
-					<span
-						class="px-1.5 py-0.5 bg-brand/15 text-brand-hover text-[0.65rem] font-semibold uppercase tracking-wider rounded"
-						>DLC</span
-					>
-					}
 				</li>
-				} @if (searchQuery().length >= 2) {
-				<li
-					role="button"
-					tabindex="0"
-					class="flex items-center gap-2.5 px-3 py-2 cursor-pointer text-[0.8125rem] border-t border-line text-brand font-medium transition hover:bg-surface"
-					(click)="forceSearch()"
-					(keydown.enter)="forceSearch()"
-					(keydown.space)="forceSearch(); $event.preventDefault()"
-				>
-					{{ isForceSearching() ? 'Searching...' : 'Force search for
-					"' + searchQuery() + '"' }}
-				</li>
-				}
+				} }
 			</ul>
-			} }
-		</div>
-		} @else {
-		<div class="mb-4">
-			<span
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Game</span
-			>
-			<div
-				class="flex items-center gap-2.5 px-3 py-2 bg-input-bg border border-line rounded opacity-70"
-			>
-				@if (selectedGame()?.backgroundUrl) {
-				<img
-					alt=""
-					[src]="selectedGame()!.backgroundUrl"
-					class="w-7 h-[38px] object-cover rounded-[3px] shrink-0"
-					loading="lazy"
-				/>
-				}
-				<span class="flex-1 text-sm font-medium"
-					>{{ selectedGame()!.title }}</span
-				>
-			</div>
-		</div>
-		} @if (selectedGame() && !compilationParent() &&
-		availableCompilationParents().length > 0) {
-		<div class="mb-4">
-			<label
-				for="compilation-parent"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Part of compilation
-				<span class="text-fg-muted font-normal normal-case"
-					>(optional)</span
-				></label
-			>
-			<select
-				uiSelect
-				id="compilation-parent"
-				(change)="onCompilationParentChange($any($event.target).value)"
-			>
-				<option value="">None — track as standalone</option>
-				@for (parent of availableCompilationParents(); track parent.id)
-				{
-				<option [value]="parent.id">{{ parent.title }}</option>
-				}
-			</select>
-		</div>
-		}
-
-		<div class="flex gap-2 mb-3">
 			<button
+				uiButton
+				variant="ghost"
+				size="sm"
 				type="button"
-				class="flex-1 flex items-center justify-center gap-2 max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 border rounded text-xs font-medium font-sans cursor-pointer transition"
-				[class]="addToQueue() ? 'bg-brand/10 border-brand text-brand' : 'bg-input-bg border-line-hover text-fg-muted hover:border-brand hover:text-brand'"
-				(click)="addToQueue.set(!addToQueue())"
+				class="mt-2 w-full max-md:min-h-[44px] border border-dashed border-line"
+				(click)="selectWholeCompilation()"
 			>
 				<span aria-hidden="true" class="material-icons text-base"
-					>{{ addToQueue() ? 'playlist_add_check' : 'playlist_play'
-					}}</span
+					>layers</span
 				>
-				{{ addToQueue() ? 'In Queue' : 'Add to Queue' }}
-			</button>
-			@if (!isEdit()) {
-			<button
-				type="button"
-				class="flex-1 flex items-center justify-center gap-2 max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line-hover rounded text-fg-muted text-xs font-medium font-sans cursor-pointer transition hover:border-brand hover:text-brand"
-				[class.!bg-brand-subtle]="addToShelf()"
-				[class.!border-brand]="addToShelf()"
-				[class.!text-brand]="addToShelf()"
-				(click)="addToShelf.set(!addToShelf())"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>shelves</span
-				>
-				{{ addToShelf() ? 'In Shelf' : 'Add to Shelf' }}
+				Track whole compilation as one entry
 			</button>
 			}
-		</div>
+		</section>
+		} @if (selectedGame(); as game) {
+		<app-selected-game-row
+			[game]="game"
+			[changeable]="!isEdit() && !preselectedGame"
+			[autofocus]="!isEdit() && !preselectedGame"
+			(changeRequested)="clearGame()"
+		/>
 
-		@if (!isEdit()) {
-		<div class="mb-4">
-			<label
-				for="platformId"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Platform <span class="text-danger font-bold">*</span></label
-			>
-			<select uiSelect id="platformId" [formField]="form.platformId">
-				<option value="">Select platform</option>
-				@for (p of gamePlatforms(); track p.id) {
-				<option [value]="p.id">{{ p.name }}</option>
-				}
-			</select>
+		@if (!compilationParent() && availableCompilationParents().length > 0) {
+		<app-option-picker
+			label="Part of compilation"
+			heading="Part of compilation"
+			[options]="compilationParentOptions()"
+			[value]="''"
+			(valueChange)="onCompilationParentChange($event)"
+		/>
+		} @if (!isEdit()) { @if (platformOptions().length > 0) {
+		<app-option-picker
+			label="Platform"
+			heading="Platform"
+			placeholder="Required — pick one"
+			placeholderIcon="sports_esports"
+			[options]="platformOptions()"
+			[value]="form.platformId().value()"
+			(valueChange)="setPlatform($event)"
+		/>
+		} @else {
+		<p
+			class="m-0 px-3 py-2.5 rounded-card border border-dashed border-line text-[0.8125rem] text-fg-muted"
+		>
+			This game has no platforms in the catalog yet, so it can't be added.
+		</p>
+		} }
+
+		<div class="flex flex-col divide-y divide-line border-y border-line">
+			<div class="flex items-center gap-3 min-h-[52px] py-2">
+				<span class="flex-1 min-w-0">
+					<span class="block text-sm text-fg"
+						>{{ isEdit() ? "In Up Next" : "Add to Up Next" }}</span
+					>
+					<span class="block text-[0.6875rem] text-fg-muted"
+						>Queue it among the games to play next</span
+					>
+				</span>
+				<ui-switch
+					ariaLabel="Add to Up Next"
+					[checked]="addToQueue()"
+					(checkedChange)="addToQueue.set($event)"
+				/>
+			</div>
+			@if (!isEdit()) {
+			<div class="flex items-center gap-3 min-h-[52px] py-2">
+				<span class="flex-1 min-w-0">
+					<span class="block text-sm text-fg">Add to My Shelf</span>
+					<span class="block text-[0.6875rem] text-fg-muted"
+						>You own it on the platform above</span
+					>
+				</span>
+				<ui-switch
+					ariaLabel="Add to My Shelf"
+					[checked]="addToShelf()"
+					(checkedChange)="addToShelf.set($event)"
+				/>
+			</div>
+			}
 		</div>
-		}
 
 		<ui-tabs [(value)]="activeFormTab">
 			<ui-tab-list
@@ -342,13 +218,13 @@
 			<div uiTabPanel value="reference" class="pt-1">
 				<div class="flex items-center justify-between gap-3 mb-1">
 					<h3
-						class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider"
+						class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-[0.16em]"
 					>
 						Reference data
 					</h3>
 					<div class="flex items-center gap-1.5">
 						<span
-							class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
+							class="text-[0.625rem] uppercase tracking-[0.16em] text-fg-muted"
 							>Ratio</span
 						>
 						<span
@@ -380,7 +256,7 @@
 					<div>
 						<label
 							for="score"
-							class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+							class="flex items-center gap-1 mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 							>Critic Score
 							<span class="text-danger font-bold">*</span>
 							<button
@@ -399,22 +275,18 @@
 						@if (gameScores().length > 0 || (selectedGame() &&
 						!isEdit())) {
 						<div
-							class="min-h-[26px] mb-1.5 flex flex-wrap items-center gap-1"
+							class="min-h-[26px] mb-2 flex flex-wrap items-center gap-1.5"
 						>
-							@if (gameScores().length > 0) { @for (s of
-							gameScores(); track s.source) {
-							<button
-								type="button"
-								class="max-md:min-h-[44px] tap:min-h-[44px] bg-input-bg border border-line text-fg-secondary text-[0.625rem] max-md:text-xs font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
-								[class.!bg-brand-subtle]="activeScoreSource() === s.source"
-								[class.!border-brand]="activeScoreSource() === s.source"
-								[class.!text-brand]="activeScoreSource() === s.source"
-								(click)="applyScore(s.source, s.score)"
-							>
-								{{ s.source }} {{ s.score }}{{
-								getScaleLabel(s.source) }}
-							</button>
-							} } @else {
+							@if (gameScores().length > 0) {
+							<app-chip-group
+								mode="single"
+								label="Score sources"
+								[allowEmpty]="false"
+								[options]="scoreChipOptions()"
+								[value]="[activeScoreSource()]"
+								(valueChange)="pickScoreSource($event)"
+							/>
+							} @else {
 							<span
 								class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted"
 							>
@@ -442,7 +314,8 @@
 								[formField]="form.score"
 								placeholder="0–5"
 								step="0.1"
-								class="w-full max-md:min-h-[44px] tap:min-h-[44px] pl-3 pr-9 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+								uiInput
+								class="pr-9"
 								(input)="onScoreManualChange()"
 							/>
 							<span
@@ -454,7 +327,7 @@
 					<div>
 						<label
 							for="duration"
-							class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+							class="flex items-center gap-1 mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 							>Duration (h)
 							<span class="text-danger font-bold">*</span>
 							<button
@@ -473,21 +346,18 @@
 						@if (gameTimes().length > 0 || (selectedGame() &&
 						!isEdit())) {
 						<div
-							class="min-h-[26px] mb-1.5 flex flex-wrap items-center gap-1"
+							class="min-h-[26px] mb-2 flex flex-wrap items-center gap-1.5"
 						>
-							@if (gameTimes().length > 0) { @for (t of
-							gameTimes(); track t.source) {
-							<button
-								type="button"
-								class="max-md:min-h-[44px] tap:min-h-[44px] bg-input-bg border border-line text-fg-secondary text-[0.625rem] max-md:text-xs font-medium px-2 py-0.5 rounded-[3px] cursor-pointer transition hover:border-fg-muted hover:text-fg"
-								[class.!bg-brand-subtle]="activeDurationSource() === t.source"
-								[class.!border-brand]="activeDurationSource() === t.source"
-								[class.!text-brand]="activeDurationSource() === t.source"
-								(click)="applyDuration(t.source, t.duration)"
-							>
-								{{ t.source }} {{ t.duration }}h
-							</button>
-							} } @else {
+							@if (gameTimes().length > 0) {
+							<app-chip-group
+								mode="single"
+								label="Duration sources"
+								[allowEmpty]="false"
+								[options]="durationChipOptions()"
+								[value]="[activeDurationSource()]"
+								(valueChange)="pickDurationSource($event)"
+							/>
+							} @else {
 							<span
 								class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted"
 							>
@@ -514,7 +384,7 @@
 							[formField]="form.duration"
 							placeholder="HowLongToBeat estimate"
 							step="0.5"
-							class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							uiInput
 							(input)="onDurationManualChange()"
 						/>
 					</div>
@@ -535,7 +405,7 @@
 			<div uiTabPanel value="tracking" class="pt-1">
 				<div class="flex items-baseline justify-between mb-3">
 					<h3
-						class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider"
+						class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-[0.16em]"
 					>
 						Your tracking
 					</h3>
@@ -544,47 +414,41 @@
 					>
 				</div>
 
-				<div class="mb-4">
-					<label
-						for="status"
-						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-						>Status</label
-					>
-					<select uiSelect id="status" [formField]="form.status">
-						<option value="not_started">Not Started</option>
-						<option value="playing">Playing</option>
-						<option value="completed">Completed</option>
-						<option value="endless">Endless</option>
-						<option value="abandoned">Abandoned</option>
-					</select>
-				</div>
+				<app-option-picker
+					class="mb-4"
+					label="Status"
+					heading="Status"
+					[options]="statusOptions"
+					[value]="form.status().value()"
+					(valueChange)="setStatus($event)"
+				/>
 
 				@if (showTrackingDetails()) {
 				<div class="grid grid-cols-2 gap-3">
 					<div class="mb-4">
 						<label
 							for="startedAt"
-							class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+							class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 							>Started</label
 						>
 						<input
 							id="startedAt"
 							type="date"
 							[formField]="form.startedAt"
-							class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							uiInput
 						/>
 					</div>
 					<div class="mb-4">
 						<label
 							for="finishedAt"
-							class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+							class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 							>Finished</label
 						>
 						<input
 							id="finishedAt"
 							type="date"
 							[formField]="form.finishedAt"
-							class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							uiInput
 						/>
 					</div>
 				</div>
@@ -593,7 +457,7 @@
 					<div class="mb-4">
 						<span
 							id="backlog-my-rating-label"
-							class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+							class="flex items-center gap-1 mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 						>
 							My Rating
 							<button
@@ -618,7 +482,7 @@
 					<div class="mb-4">
 						<label
 							for="realDuration"
-							class="flex items-center gap-1 mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+							class="flex items-center gap-1 mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 							>Real Duration (h)
 							<button
 								type="button"
@@ -639,7 +503,7 @@
 							[formField]="form.realDuration"
 							placeholder="Actual hours"
 							step="0.5"
-							class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+							uiInput
 						/>
 					</div>
 				</div>
@@ -652,7 +516,7 @@
 				} @if (isEdit()) {
 				<div class="mb-4 pt-3 border-t border-line">
 					<span
-						class="block mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 						>Played with</span
 					>
 					<p
@@ -666,21 +530,13 @@
 					<ul class="list-none p-0 m-0 flex flex-col gap-1.5 mb-2">
 						@for (member of coopMembers(); track member.userId) {
 						<li
-							class="flex items-center gap-2 bg-input-bg border border-line rounded px-2.5 py-1.5"
+							class="flex items-center gap-2 rounded-card border border-line bg-input-bg pl-2.5 pr-1 py-1"
 						>
-							@if (member.avatarUrl) {
-							<img
+							<ui-avatar
+								class="w-7 h-7 text-[0.625rem] shrink-0"
 								[src]="member.avatarUrl"
-								[alt]="member.username"
-								class="w-6 h-6 rounded-full object-cover shrink-0"
+								[name]="member.name || member.username"
 							/>
-							} @else {
-							<div
-								class="w-6 h-6 rounded-full bg-brand/20 text-brand text-[0.625rem] font-semibold flex items-center justify-center shrink-0"
-							>
-								{{ member.username[0]?.toUpperCase() }}
-							</div>
-							}
 							<div class="flex-1 min-w-0">
 								<span
 									class="block text-xs font-medium text-fg line-clamp-1"
@@ -694,45 +550,44 @@
 								>
 							</div>
 							<button
+								uiButton
+								variant="ghost"
+								size="sm"
 								type="button"
-								class="bg-transparent border-0 text-[0.6875rem] text-brand cursor-pointer hover:underline"
-								(click)="openSyncDialog(member)"
+								class="max-md:min-h-[44px]"
 								title="Compare and sync from this peer"
+								(click)="openSyncDialog(member)"
 							>
 								Sync
 							</button>
 							<button
+								uiIconButton
+								size="sm"
+								tone="danger"
 								type="button"
-								class="bg-transparent border-0 text-fg-muted hover:text-danger cursor-pointer p-0.5 transition"
-								(click)="removeCoopMember(member)"
+								[attr.aria-label]="'Remove ' + (member.name || member.username)"
 								[disabled]="coopRemovingId() === member.userId"
-								title="Remove"
+								(click)="removeCoopMember(member)"
 							>
-								<span class="material-icons text-sm"
+								<span
+									aria-hidden="true"
+									class="material-icons text-base"
 									>close</span
 								>
 							</button>
 						</li>
 						}
 					</ul>
-					} @if (availableFollows().length > 0) {
-					<select
-						uiSelect
-						(change)="addCoopMember($any($event.target).value); $any($event.target).value = ''"
-						[disabled]="coopAdding()"
-					>
-						<option value="">
-							{{ coopAdding() ? 'Adding…' : 'Add a friend you
-							follow…' }}
-						</option>
-						@for (friend of availableFollows(); track friend.id) {
-						<option [value]="friend.id">
-							{{ friend.name || friend.username }}{{ '@' +
-							friend.username !== friend.name ? ' (@' +
-							friend.username + ')' : '' }}
-						</option>
-						}
-					</select>
+					} @if (coopFriendActions().length > 0) {
+					<app-option-picker
+						label="Played with"
+						heading="Add a friend you follow"
+						placeholderIcon="person_add"
+						[placeholder]="coopAdding() ? 'Adding…' : 'Add a friend you follow…'"
+						[options]="[]"
+						[actions]="coopFriendActions()"
+						(actionSelected)="addCoopMember($event)"
+					/>
 					} @else if (coopMembers().length === 0) {
 					<p class="text-[0.6875rem] text-fg-muted italic m-0">
 						You're not following anyone yet. Follow a friend to tag
@@ -746,7 +601,7 @@
 			<div uiTabPanel value="notes" class="pt-1">
 				<div class="flex items-baseline justify-between mb-3">
 					<h3
-						class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-wider"
+						class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-[0.16em]"
 					>
 						Your annotations
 					</h3>
@@ -758,7 +613,7 @@
 				<div class="mb-4">
 					<span
 						id="backlog-tags-label"
-						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 						>Tags</span
 					>
 					<app-mood-tags-input
@@ -777,14 +632,13 @@
 				<div class="mb-4">
 					<label
 						for="progress-note"
-						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 						>Where I am</label
 					>
 					<div class="flex gap-2">
 						<input
 							uiInput
 							id="progress-note"
-							size="sm"
 							placeholder="e.g. Cap 3, stuck en el puzzle del agua"
 							[value]="progressDraft()"
 							(input)="updateProgressDraft($any($event.target).value)"
@@ -796,9 +650,8 @@
 						<button
 							uiButton
 							variant="primary"
-							size="sm"
 							type="button"
-							class="max-md:min-w-[56px] tap:min-w-[56px]"
+							class="shrink-0 min-w-[56px]"
 							(click)="addProgressNote()"
 							[disabled]="progressLoading() || !progressDraft().trim()"
 						>
@@ -825,19 +678,25 @@
 							</p>
 						</div>
 						<button
+							uiIconButton
+							size="sm"
+							tone="danger"
 							type="button"
-							class="bg-transparent border-0 text-fg-muted cursor-pointer p-0.5 hover:text-danger transition"
-							(click)="deleteProgressNote(progressNotes()[0])"
+							aria-label="Delete progress note"
 							[disabled]="progressSavingId() === progressNotes()[0].id"
-							title="Delete"
+							(click)="deleteProgressNote(progressNotes()[0])"
 						>
-							<span class="material-icons text-sm">close</span>
+							<span
+								aria-hidden="true"
+								class="material-icons text-base"
+								>close</span
+							>
 						</button>
 					</div>
 					@if (progressNotes().length > 1) {
 					<button
 						type="button"
-						class="bg-transparent border-0 text-[0.6875rem] text-brand cursor-pointer mt-1.5 hover:underline"
+						class="tap-area mt-1.5 p-0 bg-transparent border-0 text-[0.6875rem] text-brand cursor-pointer hover:underline"
 						(click)="toggleProgressHistory()"
 					>
 						{{ progressHistoryOpen() ? 'Hide history' : 'Show
@@ -862,13 +721,17 @@
 								</p>
 							</div>
 							<button
+								uiIconButton
+								size="sm"
+								tone="danger"
 								type="button"
-								class="bg-transparent border-0 text-fg-muted cursor-pointer p-0.5 hover:text-danger transition"
-								(click)="deleteProgressNote(n)"
+								aria-label="Delete progress note"
 								[disabled]="progressSavingId() === n.id"
-								title="Delete"
+								(click)="deleteProgressNote(n)"
 							>
-								<span class="material-icons text-sm"
+								<span
+									aria-hidden="true"
+									class="material-icons text-base"
 									>close</span
 								>
 							</button>
@@ -887,7 +750,7 @@
 				<div class="mb-4">
 					<label
 						for="notes"
-						class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+						class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 						>Notes</label
 					>
 					<textarea
@@ -896,7 +759,6 @@
 						[formField]="form.notes"
 						rows="3"
 						placeholder="Your thoughts..."
-						class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-sm font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 					></textarea>
 				</div>
 
@@ -918,7 +780,7 @@
 				<div class="mt-3 pt-3 border-t border-line">
 					<label
 						for="review-content"
-						class="block mb-1.5 text-xs font-medium text-fg-muted uppercase tracking-wider"
+						class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 						>Review (optional)</label
 					>
 					<textarea
@@ -926,7 +788,6 @@
 						id="review-content"
 						rows="3"
 						placeholder="Share your review of this game..."
-						class="w-full max-md:min-h-[44px] tap:min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded text-fg text-[0.8125rem] font-sans resize-y transition focus:outline-none focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 						[value]="reviewContent()"
 						(input)="reviewContent.set($any($event.target).value)"
 					></textarea>
@@ -949,6 +810,7 @@
 				}
 			</div>
 		</ui-tabs>
+		}
 	</form>
 	}
 
@@ -1055,73 +917,61 @@
 >
 	@let mine = entry;
 	<div class="flex flex-col gap-1">
-		<label
-			class="flex items-start gap-3 min-h-[44px] py-1.5 cursor-pointer"
-		>
-			<input
-				type="checkbox"
-				class="cursor-pointer mt-0.5"
-				[checked]="syncFields().status"
-				(change)="toggleSyncField('status')"
-			/>
-			<div class="flex-1">
+		<div class="flex items-center gap-3 min-h-[52px] py-2">
+			<div class="flex-1 min-w-0">
 				<span class="block text-sm text-fg">Status</span>
 				<span class="block text-[0.6875rem] text-fg-muted tabular-nums"
 					>{{ mine?.status ?? '—' }} → {{ m.status }}</span
 				>
 			</div>
-		</label>
-		<label
-			class="flex items-start gap-3 min-h-[44px] py-1.5 cursor-pointer"
-		>
-			<input
-				type="checkbox"
-				class="cursor-pointer mt-0.5"
-				[checked]="syncFields().startedAt"
-				(change)="toggleSyncField('startedAt')"
+			<ui-switch
+				ariaLabel="Sync Status"
+				[checked]="syncFields().status"
+				(checkedChange)="toggleSyncField('status')"
 			/>
-			<div class="flex-1">
+		</div>
+		<div class="flex items-center gap-3 min-h-[52px] py-2">
+			<div class="flex-1 min-w-0">
 				<span class="block text-sm text-fg">Started At</span>
 				<span class="block text-[0.6875rem] text-fg-muted tabular-nums"
 					>{{ mine?.startedAt ?? '—' }} → {{ m.startedAt ?? '—'
 					}}</span
 				>
 			</div>
-		</label>
-		<label
-			class="flex items-start gap-3 min-h-[44px] py-1.5 cursor-pointer"
-		>
-			<input
-				type="checkbox"
-				class="cursor-pointer mt-0.5"
-				[checked]="syncFields().finishedAt"
-				(change)="toggleSyncField('finishedAt')"
+			<ui-switch
+				ariaLabel="Sync Started At"
+				[checked]="syncFields().startedAt"
+				(checkedChange)="toggleSyncField('startedAt')"
 			/>
-			<div class="flex-1">
+		</div>
+		<div class="flex items-center gap-3 min-h-[52px] py-2">
+			<div class="flex-1 min-w-0">
 				<span class="block text-sm text-fg">Finished At</span>
 				<span class="block text-[0.6875rem] text-fg-muted tabular-nums"
 					>{{ mine?.finishedAt ?? '—' }} → {{ m.finishedAt ?? '—'
 					}}</span
 				>
 			</div>
-		</label>
-		<label
-			class="flex items-start gap-3 min-h-[44px] py-1.5 cursor-pointer"
-		>
-			<input
-				type="checkbox"
-				class="cursor-pointer mt-0.5"
-				[checked]="syncFields().realDuration"
-				(change)="toggleSyncField('realDuration')"
+			<ui-switch
+				ariaLabel="Sync Finished At"
+				[checked]="syncFields().finishedAt"
+				(checkedChange)="toggleSyncField('finishedAt')"
 			/>
-			<div class="flex-1">
+		</div>
+		<div class="flex items-center gap-3 min-h-[52px] py-2">
+			<div class="flex-1 min-w-0">
 				<span class="block text-sm text-fg">Real Duration</span>
 				<span class="block text-[0.6875rem] text-fg-muted tabular-nums"
 					>{{ mine?.realDuration ?? '—' }}h → {{ m.realDuration ?? '—'
 					}}h</span
 				>
 			</div>
-		</label>
+			<ui-switch
+				ariaLabel="Sync Real Duration"
+				[checked]="syncFields().realDuration"
+				(checkedChange)="toggleSyncField('realDuration')"
+			/>
+		</div>
 	</div>
 	<ng-container dialogFooter>
 		<button

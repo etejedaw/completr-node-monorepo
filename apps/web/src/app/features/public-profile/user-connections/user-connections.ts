@@ -16,6 +16,7 @@ import { LibraryToolbar } from "../../../shared/components/library-toolbar/libra
 import {
 	UiButton,
 	UiEmptyState,
+	UiNoMatches,
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
@@ -45,6 +46,7 @@ const CONNECTION_TABS: { kind: ConnectionKind; label: string }[] = [
 		UserCard,
 		UiButton,
 		UiEmptyState,
+		UiNoMatches,
 		UiSearchBar,
 		UiSkeleton
 	],

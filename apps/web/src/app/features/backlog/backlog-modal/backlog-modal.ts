@@ -11,29 +11,36 @@ import {
 import { form, FormField, max, min, required } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
 import { injectDialogRef } from "ng-primitives/dialog";
-import {
-	debounceTime,
-	distinctUntilChanged,
-	forkJoin,
-	of,
-	Subject,
-	switchMap
-} from "rxjs";
+import { forkJoin } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
-import { type Game, type Platform } from "../../../core/models";
+import { type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
+import {
+	ChipGroup,
+	type ChipOption
+} from "../../../shared/components/chip-group/chip-group";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
+import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
+import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
+import {
+	OptionPicker,
+	type PickerAction,
+	type PickerOption
+} from "../../../shared/components/option-picker/option-picker";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
+	UiAvatar,
 	UiButton,
 	UiDialog,
+	UiIconButton,
 	UiInput,
-	UiSelect,
+	UiSwitch,
 	UiTab,
 	UiTabList,
 	UiTabPanel,
@@ -41,7 +48,10 @@ import {
 	UiTextarea
 } from "../../../shared/ui";
 import {
+	BACKLOG_STATUS_FILTERS,
 	backlogStatusClass,
+	backlogStatusIcon,
+	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../../shared/utils/backlog-status";
 import {
@@ -55,6 +65,7 @@ import {
 	type SyncField
 } from "../../coop-runs/coop-runs";
 import { GameShelfService } from "../../game-shelf/game-shelf";
+import { injectGameSearch } from "../../games/game-search";
 import { GamesService } from "../../games/games";
 import { type Review, ReviewsService } from "../../games/reviews";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
@@ -78,9 +89,20 @@ export interface BacklogModalData {
 }
 export type BacklogModalResult = "saved";
 
+const BACKLOG_FORM_STATUS_OPTIONS: readonly PickerOption[] =
+	BACKLOG_STATUS_FILTERS.map(filter => ({
+		value: filter.value,
+		label: filter.label,
+		icon: backlogStatusIcon(filter.value),
+		iconClass: backlogStatusIconColor(filter.value)
+	}));
+
+const STANDALONE_RUN = "";
+
 @Component({
 	selector: "app-backlog-modal",
 	imports: [
+		ChipGroup,
 		DatePipe,
 		FormField,
 		RouterLink,
@@ -88,10 +110,16 @@ export type BacklogModalResult = "saved";
 		MoodTagsInput,
 		BacklogEntrySummary,
 		DialogDeleteAction,
+		GamePoster,
+		GameSearchStep,
+		OptionPicker,
+		SelectedGameRow,
+		UiAvatar,
 		UiButton,
 		UiDialog,
+		UiIconButton,
 		UiInput,
-		UiSelect,
+		UiSwitch,
 		UiTabs,
 		UiTabList,
 		UiTab,
@@ -189,15 +217,21 @@ export class BacklogModal implements OnInit {
 
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
-	protected readonly platforms = signal<Platform[]>([]);
-	protected readonly gameResults = signal<Game[]>([]);
 	protected readonly selectedGame = signal<Game | null>(null);
 	protected readonly searchQuery = signal("");
-	protected readonly gamePlatforms = computed(
-		() => this.selectedGame()?.platforms ?? []
+	protected readonly search = injectGameSearch(
+		this.searchQuery,
+		signal(true)
 	);
-	protected readonly isSearching = signal(false);
-	protected readonly isSearchingOnline = signal(false);
+	protected readonly returnedToSearch = signal(false);
+	protected readonly statusOptions = BACKLOG_FORM_STATUS_OPTIONS;
+	protected readonly platformOptions = computed<PickerOption[]>(() =>
+		(this.selectedGame()?.platforms ?? []).map(platform => ({
+			value: platform.id,
+			label: platform.name,
+			icon: "sports_esports"
+		}))
+	);
 	protected readonly addToQueue = signal(false);
 	protected readonly isInQueue = signal(false);
 	protected readonly addToShelf = signal(false);
@@ -214,8 +248,33 @@ export class BacklogModal implements OnInit {
 	protected readonly gameTimes = computed(
 		() => this.selectedGame()?.times ?? []
 	);
+	protected readonly scoreChipOptions = computed<ChipOption[]>(() =>
+		this.gameScores().map(entry => ({
+			value: entry.source,
+			label: `${entry.source} ${entry.score}${this.getScaleLabel(entry.source)}`
+		}))
+	);
+	protected readonly durationChipOptions = computed<ChipOption[]>(() =>
+		this.gameTimes().map(entry => ({
+			value: entry.source,
+			label: `${entry.source} ${entry.duration}h`
+		}))
+	);
 
-	private readonly searchSubject = new Subject<string>();
+	protected readonly compilationParentOptions = computed<PickerOption[]>(
+		() => [
+			{
+				value: STANDALONE_RUN,
+				label: "None — track as standalone",
+				icon: "videogame_asset"
+			},
+			...this.availableCompilationParents().map(parent => ({
+				value: parent.id,
+				label: parent.title,
+				icon: "library_books"
+			}))
+		]
+	);
 
 	protected readonly isEdit = signal(false);
 	protected readonly viewMode = signal<"summary" | "edit">("edit");
@@ -224,6 +283,18 @@ export class BacklogModal implements OnInit {
 		return this.viewMode() === "summary"
 			? this.entry!.game.title
 			: "Edit run";
+	});
+	protected readonly isSearchStep = computed(
+		() =>
+			!this.isEdit() && !this.selectedGame() && !this.compilationParent()
+	);
+	protected readonly subheading = computed(() => {
+		if (this.isSearchStep()) {
+			return "Search the catalog for a game to track";
+		}
+		return this.isEdit() && this.viewMode() === "edit"
+			? this.entry!.game.title
+			: null;
 	});
 	protected readonly activeFormTab = signal<
 		"reference" | "tracking" | "notes"
@@ -307,10 +378,19 @@ export class BacklogModal implements OnInit {
 	});
 	protected readonly syncing = signal(false);
 
-	protected availableFollows() {
+	protected readonly coopFriendActions = computed<PickerAction[]>(() => {
 		const taken = new Set(this.coopMembers().map(m => m.userId));
-		return this.myFollowing().filter(f => !taken.has(f.id));
-	}
+		return this.myFollowing()
+			.filter(friend => !taken.has(friend.id))
+			.map(friend => ({
+				id: friend.id,
+				label:
+					friend.name && friend.name !== friend.username
+						? `${friend.name} (@${friend.username})`
+						: `@${friend.username}`,
+				icon: "person_add"
+			}));
+	});
 
 	protected readonly pickerCandidates = signal<CoopCandidate[]>([]);
 	protected readonly pickerUserId = signal<string | null>(null);
@@ -489,43 +569,12 @@ export class BacklogModal implements OnInit {
 	);
 
 	ngOnInit() {
-		this.gamesService.getPlatforms().subscribe(p => this.platforms.set(p));
 		this.scoreSourcesService.load();
 		this.moodTagsService
 			.getMyTags()
 			.subscribe(tags =>
 				this.moodTagsSuggestions.set(tags.map(t => t.tag))
 			);
-
-		this.searchSubject
-			.pipe(
-				debounceTime(400),
-				distinctUntilChanged(),
-				switchMap(query => {
-					if (query.length < 2) {
-						this.isSearching.set(false);
-						this.isSearchingOnline.set(false);
-						return of([]);
-					}
-					this.isSearching.set(true);
-					this.isSearchingOnline.set(false);
-					return this.gamesService.searchLocal(query).pipe(
-						switchMap(localResults => {
-							if (localResults.length > 0) {
-								return of(localResults);
-							}
-							this.isSearching.set(false);
-							this.isSearchingOnline.set(true);
-							return this.gamesService.search(query);
-						})
-					);
-				})
-			)
-			.subscribe(games => {
-				this.gameResults.set(games);
-				this.isSearching.set(false);
-				this.isSearchingOnline.set(false);
-			});
 
 		const e = this.entry;
 		if (e) {
@@ -646,8 +695,6 @@ export class BacklogModal implements OnInit {
 			duration: duration.value
 		}));
 		this.prefillScoreOnceSourcesLoad(game);
-		this.gameResults.set([]);
-		this.searchQuery.set("");
 	}
 
 	clearCompilationChild() {
@@ -673,6 +720,7 @@ export class BacklogModal implements OnInit {
 
 	clearCompilationParent() {
 		this.compilationParent.set(null);
+		if (!this.selectedGame()) this.returnedToSearch.set(true);
 	}
 
 	onCompilationParentChange(parentId: string) {
@@ -691,32 +739,8 @@ export class BacklogModal implements OnInit {
 		} as Game);
 	}
 
-	protected readonly isForceSearching = signal(false);
-
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
-		this.searchQuery.set(query);
-		if (query.length >= 2) this.isSearching.set(true);
-		this.searchSubject.next(query);
-	}
-
-	forceSearch() {
-		const query = this.searchQuery();
-		if (query.length < 2) return;
-		this.isForceSearching.set(true);
-		this.gamesService.search(query, true).subscribe({
-			next: games => {
-				this.gameResults.set(games);
-				this.isForceSearching.set(false);
-			},
-			error: () => this.isForceSearching.set(false)
-		});
-	}
-
 	selectGame(game: Game) {
 		if (game.isCompilation && !this.isEdit()) {
-			this.gameResults.set([]);
-			this.searchQuery.set("");
 			this.selectedGame.set(null);
 			this.model.update(m => ({ ...m, gameId: "", platformId: "" }));
 			if (
@@ -739,6 +763,16 @@ export class BacklogModal implements OnInit {
 		this.activeScoreSource.set(source);
 		const normalized = this.scoreSourcesService.normalize(score, source);
 		this.model.update(m => ({ ...m, score: normalized }));
+	}
+
+	protected pickScoreSource(values: readonly string[]) {
+		const entry = this.gameScores().find(item => item.source === values[0]);
+		if (entry) this.applyScore(entry.source, entry.score);
+	}
+
+	protected pickDurationSource(values: readonly string[]) {
+		const entry = this.gameTimes().find(item => item.source === values[0]);
+		if (entry) this.applyDuration(entry.source, entry.duration);
 	}
 
 	applyDuration(source: string, duration: number) {
@@ -802,7 +836,17 @@ export class BacklogModal implements OnInit {
 
 	clearGame() {
 		this.selectedGame.set(null);
-		this.model.update(m => ({ ...m, gameId: "" }));
+		this.existingReview.set(null);
+		this.model.update(m => ({ ...m, gameId: "", platformId: "" }));
+		if (!this.compilationParent()) this.returnedToSearch.set(true);
+	}
+
+	setPlatform(platformId: string) {
+		this.model.update(m => ({ ...m, platformId }));
+	}
+
+	setStatus(status: string) {
+		this.model.update(m => ({ ...m, status }));
 	}
 
 	onSubmit(event: Event) {

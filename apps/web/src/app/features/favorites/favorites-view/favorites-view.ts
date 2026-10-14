@@ -36,6 +36,7 @@ import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
+	UiNoMatches,
 	UiPagination,
 	UiPremiumBadge,
 	UiSearchBar
@@ -61,6 +62,7 @@ import { FavoritesService } from "../favorites";
 		PremiumOnly,
 		UiButton,
 		UiEmptyState,
+		UiNoMatches,
 		UiPagination,
 		UiPremiumBadge,
 		UiSearchBar

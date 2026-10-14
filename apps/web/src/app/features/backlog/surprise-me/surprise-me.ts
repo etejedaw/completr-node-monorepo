@@ -13,7 +13,7 @@ import { RouterLink } from "@angular/router";
 import { map, type Observable, of, switchMap, tap } from "rxjs";
 
 import { type BacklogEntry } from "../../../core/models";
-import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
+import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { UiButton, UiDialog } from "../../../shared/ui";
 import { QueueService } from "../../queue/queue";
 import { type BacklogFilters, BacklogService } from "../backlog";
@@ -25,7 +25,7 @@ const STABLE_ORDER = { sort_by: "createdAt", sort_order: "asc" } as const;
 
 @Component({
 	selector: "app-surprise-me",
-	imports: [RouterLink, CoverUrlPipe, UiButton, UiDialog],
+	imports: [RouterLink, GamePoster, UiButton, UiDialog],
 	templateUrl: "./surprise-me.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -44,6 +44,10 @@ export class SurpriseMe implements OnInit {
 	protected readonly queueing = signal(false);
 	protected readonly queueError = signal<string | null>(null);
 
+	protected readonly revealedPick = computed(() => {
+		const pick = this.pick();
+		return pick ? [pick] : [];
+	});
 	protected readonly isPickQueued = computed(() => {
 		const pick = this.pick();
 		return !!pick && this.queuedBacklogIds().has(pick.id);

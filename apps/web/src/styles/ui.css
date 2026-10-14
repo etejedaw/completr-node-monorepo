@@ -37,12 +37,12 @@
 }
 
 .ui-button[data-variant="primary"] {
-	background: var(--accent);
+	background: var(--accent-solid);
 	color: #fff;
 }
 
 .ui-button[data-variant="primary"][data-hover]:not([data-disabled]) {
-	background: var(--accent-hover);
+	background: var(--accent-solid-hover);
 }
 
 .ui-button[data-variant="secondary"] {

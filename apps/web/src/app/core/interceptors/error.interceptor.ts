@@ -19,6 +19,7 @@ import { ToastService } from "../services/toast";
 import { planLimitMessage } from "../utils/plan-limit-message";
 
 let isRefreshing = false;
+const PLAN_LIMIT_TOAST_TITLE = "Free plan limit";
 const refreshSubject = new BehaviorSubject<string | null>(null);
 
 export function errorInterceptor(
@@ -41,7 +42,8 @@ export function errorInterceptor(
 
 			if (error.status === 402) {
 				const message = planLimitMessage(error.error?.type);
-				if (message) toast.warning(message, 6000);
+				if (message)
+					toast.premium(PLAN_LIMIT_TOAST_TITLE, message, 6000);
 				return throwError(() => error);
 			}
 

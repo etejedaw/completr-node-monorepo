@@ -48,7 +48,7 @@ import { AttributionFooter } from "../../shared/components/attribution-footer/at
 						>
 						<a
 							routerLink="/register"
-							class="inline-flex items-center h-10 tap:min-h-[44px] px-4 rounded-card bg-brand text-white text-sm font-semibold no-underline shadow-lg shadow-brand/25 transition hover:bg-brand-hover hover:text-white"
+							class="inline-flex items-center h-10 tap:min-h-[44px] px-4 rounded-card bg-brand-solid text-white text-sm font-semibold no-underline shadow-lg shadow-brand/25 transition hover:bg-brand-solid-hover hover:text-white"
 							>Create account</a
 						>
 					</nav>

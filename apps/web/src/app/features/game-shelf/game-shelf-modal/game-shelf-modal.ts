@@ -9,27 +9,22 @@ import {
 } from "@angular/core";
 import { form, FormField, required } from "@angular/forms/signals";
 import { injectDialogRef } from "ng-primitives/dialog";
-import {
-	debounceTime,
-	distinctUntilChanged,
-	of,
-	Subject,
-	switchMap
-} from "rxjs";
 
-import { type GameShelfEntry } from "../../../core/models";
-import { type Game, type Platform } from "../../../core/models";
+import { type Game, type GameShelfEntry } from "../../../core/models";
+import {
+	ChipGroup,
+	type ChipOption
+} from "../../../shared/components/chip-group/chip-group";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
+import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
 import {
-	UiButton,
-	UiDialog,
-	UiIconButton,
-	UiInput,
-	UiSelect,
-	UiTextarea
-} from "../../../shared/ui";
-import { GamesService } from "../../games/games";
+	OptionPicker,
+	type PickerOption
+} from "../../../shared/components/option-picker/option-picker";
+import { UiButton, UiDialog, UiInput, UiTextarea } from "../../../shared/ui";
+import { injectGameSearch } from "../../games/game-search";
 import {
 	type CreateGameShelfDto,
 	GameShelfService,
@@ -42,18 +37,31 @@ export interface GameShelfModalData {
 }
 export type GameShelfModalResult = "saved";
 
+const EDITION_SUGGESTIONS = [
+	"Standard",
+	"Deluxe",
+	"GOTY",
+	"Collector's",
+	"Definitive",
+	"Complete",
+	"Digital",
+	"Physical"
+];
+
 @Component({
 	selector: "app-game-shelf-modal",
 	imports: [
+		ChipGroup,
 		DatePipe,
 		DialogDeleteAction,
 		FormField,
 		GamePoster,
+		GameSearchStep,
+		OptionPicker,
+		SelectedGameRow,
 		UiButton,
 		UiDialog,
-		UiIconButton,
 		UiInput,
-		UiSelect,
 		UiTextarea
 	],
 	templateUrl: "./game-shelf-modal.html",
@@ -61,7 +69,6 @@ export type GameShelfModalResult = "saved";
 })
 export class GameShelfModal implements OnInit {
 	private readonly shelfService = inject(GameShelfService);
-	private readonly gamesService = inject(GamesService);
 	private readonly dialogRef = injectDialogRef<
 		GameShelfModalData,
 		GameShelfModalResult
@@ -71,18 +78,20 @@ export class GameShelfModal implements OnInit {
 
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
-	protected readonly platforms = signal<Platform[]>([]);
-	protected readonly gameResults = signal<Game[]>([]);
 	protected readonly selectedGame = signal<Game | null>(null);
 	protected readonly searchQuery = signal("");
-	protected readonly isSearching = signal(false);
-	protected readonly isSearchingOnline = signal(false);
-	protected readonly gamePlatforms = computed(
-		() => this.selectedGame()?.platforms ?? []
+	protected readonly search = injectGameSearch(
+		this.searchQuery,
+		signal(true)
 	);
-	protected readonly isForceSearching = signal(false);
-
-	private readonly searchSubject = new Subject<string>();
+	protected readonly returnedToSearch = signal(false);
+	protected readonly platformOptions = computed<PickerOption[]>(() =>
+		(this.selectedGame()?.platforms ?? []).map(platform => ({
+			value: platform.id,
+			label: platform.name,
+			icon: "sports_esports"
+		}))
+	);
 	protected readonly isEdit = signal(false);
 	protected readonly viewMode = signal<"summary" | "edit">("edit");
 	protected readonly heading = computed(() => {
@@ -90,6 +99,15 @@ export class GameShelfModal implements OnInit {
 		return this.viewMode() === "summary"
 			? this.entry!.game.title
 			: "Edit shelf entry";
+	});
+	protected readonly isSearchStep = computed(
+		() => !this.isEdit() && !this.selectedGame()
+	);
+	protected readonly subheading = computed(() => {
+		if (this.isSearchStep()) return "Search the catalog for a game you own";
+		return this.isEdit() && this.viewMode() === "edit"
+			? this.entry!.game.title
+			: null;
 	});
 
 	switchToEdit() {
@@ -109,54 +127,17 @@ export class GameShelfModal implements OnInit {
 		required(path.platformId);
 	});
 
-	protected readonly editionSuggestions = [
-		"Standard",
-		"Deluxe",
-		"GOTY",
-		"Collector's",
-		"Definitive",
-		"Complete",
-		"Digital",
-		"Physical"
-	];
+	protected readonly editionChipOptions: readonly ChipOption[] =
+		EDITION_SUGGESTIONS.map(suggestion => ({
+			value: suggestion,
+			label: suggestion
+		}));
 
-	applyEditionSuggestion(value: string) {
-		this.model.update(m => ({ ...m, edition: value }));
+	applyEditionSuggestion(value: string | undefined) {
+		if (value) this.model.update(m => ({ ...m, edition: value }));
 	}
 
 	ngOnInit() {
-		this.gamesService.getPlatforms().subscribe(p => this.platforms.set(p));
-
-		this.searchSubject
-			.pipe(
-				debounceTime(400),
-				distinctUntilChanged(),
-				switchMap(query => {
-					if (query.length < 2) {
-						this.isSearching.set(false);
-						this.isSearchingOnline.set(false);
-						return of([]);
-					}
-					this.isSearching.set(true);
-					this.isSearchingOnline.set(false);
-					return this.gamesService.searchLocal(query).pipe(
-						switchMap(localResults => {
-							if (localResults.length > 0) {
-								return of(localResults);
-							}
-							this.isSearching.set(false);
-							this.isSearchingOnline.set(true);
-							return this.gamesService.search(query);
-						})
-					);
-				})
-			)
-			.subscribe(games => {
-				this.gameResults.set(games);
-				this.isSearching.set(false);
-				this.isSearchingOnline.set(false);
-			});
-
 		const e = this.entry;
 		if (e) {
 			this.isEdit.set(true);
@@ -181,26 +162,6 @@ export class GameShelfModal implements OnInit {
 		}
 	}
 
-	onSearch(event: Event) {
-		const query = (event.target as HTMLInputElement).value;
-		this.searchQuery.set(query);
-		if (query.length >= 2) this.isSearching.set(true);
-		this.searchSubject.next(query);
-	}
-
-	forceSearch() {
-		const query = this.searchQuery();
-		if (query.length < 2) return;
-		this.isForceSearching.set(true);
-		this.gamesService.search(query, true).subscribe({
-			next: games => {
-				this.gameResults.set(games);
-				this.isForceSearching.set(false);
-			},
-			error: () => this.isForceSearching.set(false)
-		});
-	}
-
 	selectGame(game: Game) {
 		this.selectedGame.set(game);
 		const platforms = game.platforms ?? [];
@@ -209,13 +170,16 @@ export class GameShelfModal implements OnInit {
 			gameId: game.id,
 			platformId: platforms.length === 1 ? platforms[0].id : ""
 		}));
-		this.gameResults.set([]);
-		this.searchQuery.set("");
+	}
+
+	setPlatform(platformId: string) {
+		this.model.update(m => ({ ...m, platformId }));
 	}
 
 	clearGame() {
 		this.selectedGame.set(null);
-		this.model.update(m => ({ ...m, gameId: "" }));
+		this.model.update(m => ({ ...m, gameId: "", platformId: "" }));
+		this.returnedToSearch.set(true);
 	}
 
 	onSubmit(event: Event) {

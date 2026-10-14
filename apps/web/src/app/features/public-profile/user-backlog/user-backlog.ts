@@ -9,25 +9,29 @@ import {
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
-import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { type BacklogEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { PointerService } from "../../../core/services/pointer";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
+import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import {
-	OptionPicker,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
+	type ViewModeOption,
+	ViewModeToggle
+} from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import {
 	UiButton,
 	UiPagination,
+	UiPlainEmptyState,
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import {
-	backlogStatusIcon,
-	backlogStatusIconColor
+	BACKLOG_STATUS_FILTERS,
+	BACKLOG_STATUS_PICKER_OPTIONS
 } from "../../../shared/utils/backlog-status";
+import { BacklogTable } from "../../backlog/components/backlog-table/backlog-table";
 import {
 	type ProfileAccessError,
 	ProfileAccessState
@@ -57,16 +61,63 @@ const SHAREABLE_FILTER_KEYS = [
 	"mood_tags"
 ];
 
+type PublicBacklogViewMode = "diary" | "hardcore";
+type SortOrder = "asc" | "desc";
+
+const VIEW_MODE_STORAGE_KEY = "completr.publicBacklog.viewMode";
+
+const PUBLIC_BACKLOG_VIEW_MODES: readonly ViewModeOption<PublicBacklogViewMode>[] =
+	[
+		{
+			value: "diary",
+			label: "Diary",
+			icon: "view_agenda",
+			title: "Diary view"
+		},
+		{
+			value: "hardcore",
+			label: "Hardcore",
+			icon: "table_rows",
+			title: "Hardcore (table) view"
+		}
+	];
+
+function readStoredViewMode(): PublicBacklogViewMode {
+	return localStorage.getItem(VIEW_MODE_STORAGE_KEY) === "hardcore"
+		? "hardcore"
+		: "diary";
+}
+
+function defaultSortForStatus(status: string): {
+	sortBy: string;
+	sortOrder: SortOrder;
+} {
+	switch (status) {
+		case "playing":
+		case "endless":
+			return { sortBy: "startedAt", sortOrder: "desc" };
+		case "completed":
+		case "abandoned":
+			return { sortBy: "finishedAt", sortOrder: "desc" };
+		default:
+			return { sortBy: "createdAt", sortOrder: "desc" };
+	}
+}
+
 @Component({
 	selector: "app-user-backlog",
 	imports: [
+		BacklogTable,
+		ViewModeToggle,
 		OptionPicker,
 		RouterLink,
 		BacklogEntryCard,
+		BacklogStatusPills,
 		LibraryHero,
 		ProfileAccessState,
 		UiButton,
 		UiPagination,
+		UiPlainEmptyState,
 		UiSearchBar,
 		UiSkeleton
 	],
@@ -89,8 +140,6 @@ export class UserBacklog implements OnInit {
 	protected readonly activeStatus = signal("");
 	protected readonly limit = PAGE_SIZE;
 	protected readonly skeletonRange = [0, 1, 2, 3, 4, 5];
-	protected readonly statusIcon = backlogStatusIcon;
-	protected readonly statusIconColor = backlogStatusIconColor;
 	protected readonly flippedEntryIds = signal<Set<string>>(new Set());
 	protected readonly heroPosters = computed(() =>
 		this.entries().map(entry => ({
@@ -100,42 +149,44 @@ export class UserBacklog implements OnInit {
 	);
 
 	private readonly sharedFilters = signal<Record<string, string>>({});
-	private readonly urlSortBy = signal("");
-	private readonly urlSortOrder = signal("");
+	private readonly explicitSortBy = signal("");
+	private readonly explicitSortOrder = signal<SortOrder>("desc");
+	protected readonly effectiveSort = computed(() =>
+		this.explicitSortBy()
+			? {
+					sortBy: this.explicitSortBy(),
+					sortOrder: this.explicitSortOrder()
+				}
+			: defaultSortForStatus(this.activeStatus())
+	);
+	protected readonly viewModes = PUBLIC_BACKLOG_VIEW_MODES;
+	protected readonly viewMode =
+		signal<PublicBacklogViewMode>(readStoredViewMode());
 	protected readonly viewName = signal("");
 	protected readonly viewDescription = signal("");
 
 	private readonly searchSubject = new Subject<string>();
 
-	protected readonly statusTabs = [
-		{ label: "All", value: "" },
-		{ label: "Not Started", value: "not_started" },
-		{ label: "Playing", value: "playing" },
-		{ label: "Completed", value: "completed" },
-		{ label: "Endless", value: "endless" },
-		{ label: "Abandoned", value: "abandoned" }
-	];
-
-	protected readonly statusPickerOptions: readonly PickerOption[] =
-		this.statusTabs.map(tab =>
-			tab.value
-				? {
-						value: tab.value,
-						label: tab.label,
-						icon: backlogStatusIcon(tab.value as BacklogStatus),
-						iconClass: backlogStatusIconColor(
-							tab.value as BacklogStatus
-						)
-					}
-				: { value: "", label: "All games", icon: "apps" }
-		);
+	protected readonly statusPickerOptions = BACKLOG_STATUS_PICKER_OPTIONS;
+	protected readonly selectedStatuses = computed(() =>
+		this.activeStatus() ? [this.activeStatus()] : []
+	);
 
 	protected readonly activeStatusLabel = computed(
 		() =>
-			this.statusTabs.find(
-				tab => tab.value && tab.value === this.activeStatus()
+			BACKLOG_STATUS_FILTERS.find(
+				filter => filter.value === this.activeStatus()
 			)?.label ?? ""
 	);
+
+	protected readonly emptyMessage = computed(() => {
+		if (this.searchQuery())
+			return `No games match "${this.searchQuery()}".`;
+		if (this.activeStatus()) {
+			return `No ${this.activeStatusLabel().toLowerCase()} games to show.`;
+		}
+		return "This library has no public games yet.";
+	});
 
 	protected isFlipped(entryId: string): boolean {
 		return this.flippedEntryIds().has(entryId);
@@ -184,8 +235,10 @@ export class UserBacklog implements OnInit {
 			if (value) shared[key] = value;
 		}
 		this.sharedFilters.set(shared);
-		this.urlSortBy.set(qp.get("sort_by") ?? "");
-		this.urlSortOrder.set(qp.get("sort_order") ?? "");
+		this.explicitSortBy.set(qp.get("sort_by") ?? "");
+		this.explicitSortOrder.set(
+			qp.get("sort_order") === "asc" ? "asc" : "desc"
+		);
 		this.viewName.set(qp.get("view_name") ?? "");
 		this.viewDescription.set(qp.get("view_desc") ?? "");
 
@@ -207,38 +260,31 @@ export class UserBacklog implements OnInit {
 		this.load();
 	}
 
-	private defaultSortForStatus(status: string): {
-		sort_by: string;
-		sort_order: string;
-	} {
-		switch (status) {
-			case "playing":
-				return { sort_by: "startedAt", sort_order: "desc" };
-			case "completed":
-			case "abandoned":
-				return { sort_by: "finishedAt", sort_order: "desc" };
-			case "endless":
-				return { sort_by: "startedAt", sort_order: "desc" };
-			default:
-				return { sort_by: "createdAt", sort_order: "desc" };
-		}
+	protected setViewMode(mode: PublicBacklogViewMode) {
+		this.viewMode.set(mode);
+		localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+	}
+
+	protected sortByColumn(column: string) {
+		const { sortBy, sortOrder } = this.effectiveSort();
+		this.explicitSortOrder.set(
+			sortBy === column && sortOrder === "desc" ? "asc" : "desc"
+		);
+		this.explicitSortBy.set(column);
+		this.offset.set(0);
+		this.load();
 	}
 
 	private load() {
 		this.isLoading.set(true);
 		this.error.set(null);
 
-		const sort = this.urlSortBy()
-			? {
-					sort_by: this.urlSortBy(),
-					sort_order: this.urlSortOrder() || "desc"
-				}
-			: this.defaultSortForStatus(this.activeStatus());
+		const sort = this.effectiveSort();
 		const filters: Record<string, string | number> = {
 			limit: this.limit,
 			offset: this.offset(),
-			sort_by: sort.sort_by,
-			sort_order: sort.sort_order,
+			sort_by: sort.sortBy,
+			sort_order: sort.sortOrder,
 			...this.sharedFilters()
 		};
 		if (this.activeStatus()) filters["status"] = this.activeStatus();

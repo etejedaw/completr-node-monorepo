@@ -1,9 +1,15 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	input,
 	model
 } from "@angular/core";
+
+import {
+	ChipGroup,
+	type ChipOption
+} from "../../../shared/components/chip-group/chip-group";
 
 export interface WishlistPlatformOption {
 	id: string;
@@ -13,6 +19,7 @@ export interface WishlistPlatformOption {
 
 @Component({
 	selector: "app-wishlist-platform-choice",
+	imports: [ChipGroup],
 	template: `
 		@if (platforms().length === 0) {
 			<p class="m-0 text-[0.8125rem] text-fg-muted">
@@ -25,24 +32,13 @@ export interface WishlistPlatformOption {
 					Pick a platform
 					<span class="font-normal text-fg-muted">(optional)</span>
 				</legend>
-				<div class="flex flex-wrap gap-2">
-					@for (platform of platforms(); track platform.id) {
-						<button
-							type="button"
-							class="min-h-[32px] max-md:min-h-[44px] max-md:min-w-[44px] tap:min-h-[44px] tap:min-w-[44px] px-3 rounded-full border text-xs font-medium cursor-pointer transition"
-							[class]="
-								selected() === platform.id
-									? 'bg-brand-subtle border-brand text-brand'
-									: 'bg-input-bg border-line text-fg-secondary hover:border-brand hover:text-brand'
-							"
-							[attr.aria-pressed]="selected() === platform.id"
-							[attr.title]="platform.name"
-							(click)="selected.set(platform.id)"
-						>
-							{{ platform.abbreviation }}
-						</button>
-					}
-				</div>
+				<app-chip-group
+					mode="single"
+					[allowEmpty]="false"
+					[options]="chipOptions()"
+					[value]="selectedValues()"
+					(valueChange)="select($event)"
+				/>
 			</fieldset>
 		}
 	`,
@@ -51,4 +47,21 @@ export interface WishlistPlatformOption {
 export class WishlistPlatformChoice {
 	readonly platforms = input.required<readonly WishlistPlatformOption[]>();
 	readonly selected = model<string | null>(null);
+
+	protected readonly chipOptions = computed<ChipOption[]>(() =>
+		this.platforms().map(platform => ({
+			value: platform.id,
+			label: platform.abbreviation,
+			hint: platform.name
+		}))
+	);
+	protected readonly selectedValues = computed(() => {
+		const selected = this.selected();
+		return selected ? [selected] : [];
+	});
+
+	protected select(values: readonly string[]) {
+		const [value] = values;
+		if (value) this.selected.set(value);
+	}
 }

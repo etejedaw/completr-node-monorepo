@@ -4,16 +4,17 @@ Arquitectura y convenciones de `apps/landing`, el sitio público de Completr (`h
 
 ## Stack
 
-| Capa      | Tecnología                                        |
-| --------- | ------------------------------------------------- |
-| Framework | Astro 7, salida estática (`output: "static"`)     |
-| Lenguaje  | TypeScript 6.0 (`astro/tsconfigs/strict`)         |
-| Estilos   | Tailwind CSS 4 vía `@tailwindcss/vite`            |
-| Contenido | Content collections (`src/content.config.ts`)     |
-| SEO       | `@astrojs/sitemap`, `public/robots.txt`           |
-| Servidor  | nginx en producción (`nginx.conf`), sin SSR       |
-| Lint      | `eslint-plugin-astro` + reglas comunes de la raíz |
-| Formato   | `prettier-plugin-astro`, declarado en la raíz     |
+| Capa      | Tecnología                                                                                                                                                |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework | Astro 7, salida estática (`output: "static"`)                                                                                                             |
+| Lenguaje  | TypeScript 6.0 (`astro/tsconfigs/strict`)                                                                                                                 |
+| Estilos   | Tailwind CSS 4 vía `@tailwindcss/vite`                                                                                                                    |
+| Fuentes   | Chakra Petch (títulos) y Manrope (texto), las mismas de la app; autoalojadas en `public/fonts/` (subconjunto latin) con su licencia OFL 1.1 (`*-OFL.txt`) |
+| Contenido | Content collections (`src/content.config.ts`)                                                                                                             |
+| SEO       | `@astrojs/sitemap`, `public/robots.txt`                                                                                                                   |
+| Servidor  | nginx en producción (`nginx.conf`), sin SSR                                                                                                               |
+| Lint      | `eslint-plugin-astro` + reglas comunes de la raíz                                                                                                         |
+| Formato   | `prettier-plugin-astro`, declarado en la raíz                                                                                                             |
 
 ## Estructura de carpetas
 

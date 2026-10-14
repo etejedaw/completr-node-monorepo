@@ -20,6 +20,7 @@ import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
@@ -27,6 +28,7 @@ import {
 	UiDialog,
 	UiInput,
 	UiPagination,
+	UiPlainEmptyState,
 	UiPremiumBadge,
 	UiSearchBar
 } from "../../../shared/ui";
@@ -37,6 +39,7 @@ import {
 	QueueAddModal,
 	type QueueAddModalData
 } from "../queue-add-modal/queue-add-modal";
+import { QueueListSection } from "../queue-list-section/queue-list-section";
 import { QueueNextCard } from "../queue-next-card/queue-next-card";
 import {
 	queueFeaturedEyebrow,
@@ -52,6 +55,9 @@ import { QueueSortControl } from "../queue-sort-control/queue-sort-control";
 	selector: "app-queue-view",
 	imports: [
 		LibraryHero,
+		LibraryToolbar,
+		QueueListSection,
+		UiPlainEmptyState,
 		UiButton,
 		UiDialog,
 		UiInput,
@@ -82,6 +88,9 @@ export class QueueView implements OnInit {
 	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
+	protected readonly noMatchesMessage = computed(
+		() => `Nothing in Up Next matches "${this.searchQuery().trim()}".`
+	);
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;

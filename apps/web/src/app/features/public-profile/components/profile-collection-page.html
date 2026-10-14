@@ -89,15 +89,11 @@
 	>
 </ui-empty-state>
 } @else if (visibleCount() === 0) {
-<ui-empty-state
-	icon="search_off"
-	title="No matches found"
+<ui-no-matches
 	hint="Nothing on this page matches your search or platform."
->
-	<button uiButton variant="secondary" (click)="clearFilters()">
-		Clear search & filter
-	</button>
-</ui-empty-state>
+	clearLabel="Clear search & filter"
+	(cleared)="clearFilters()"
+/>
 } @else {
 <ng-content />
 <ui-pagination

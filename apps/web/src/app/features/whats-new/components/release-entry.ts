@@ -24,7 +24,7 @@ import {
 				></div>
 				<div class="flex flex-wrap items-center gap-2">
 					<span
-						class="px-2.5 py-1 rounded-full bg-brand text-white text-[0.6875rem] font-bold uppercase tracking-wider"
+						class="px-2.5 py-1 rounded-full bg-brand-solid text-white text-[0.6875rem] font-bold uppercase tracking-wider"
 						>Latest</span
 					>
 					<span

@@ -20,6 +20,7 @@ import {
 import {
 	UiButton,
 	UiEmptyState,
+	UiNoMatches,
 	UiPagination,
 	UiSearchBar,
 	UiSkeleton
@@ -40,6 +41,7 @@ import {
 		ProfileAccessState,
 		UiButton,
 		UiEmptyState,
+		UiNoMatches,
 		UiPagination,
 		UiSearchBar,
 		UiSkeleton

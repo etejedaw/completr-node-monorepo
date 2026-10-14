@@ -9,9 +9,15 @@ import { injectDialogRef } from "ng-primitives/dialog";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
-import { UiButton, UiDialog, UiSearchBar } from "../../../shared/ui";
+import {
+	UiButton,
+	UiDialog,
+	UiPlainEmptyState,
+	UiSearchBar
+} from "../../../shared/ui";
 import {
 	backlogStatusClass,
+	backlogStatusIcon,
 	backlogStatusLabel
 } from "../../../shared/utils/backlog-status";
 import { BacklogService } from "../../backlog/backlog";
@@ -23,7 +29,7 @@ export interface QueueAddModalData {
 
 @Component({
 	selector: "app-queue-add-modal",
-	imports: [GamePoster, UiButton, UiDialog, UiSearchBar],
+	imports: [GamePoster, UiButton, UiDialog, UiPlainEmptyState, UiSearchBar],
 	templateUrl: "./queue-add-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -36,6 +42,7 @@ export class QueueAddModal implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly adding = signal<string | null>(null);
 	protected readonly searchQuery = signal("");
+	protected readonly announcement = signal("");
 	protected readonly skeletonRows = [1, 2, 3, 4, 5];
 
 	ngOnInit() {
@@ -62,6 +69,7 @@ export class QueueAddModal implements OnInit {
 		this.queueService.addFromBacklog(entry.id).subscribe({
 			next: () => {
 				this.adding.set(null);
+				this.announcement.set(`${entry.game.title} added to Up Next`);
 				this.entries.set(this.entries().filter(e => e.id !== entry.id));
 				this.dialogRef.data.onAdded();
 			},
@@ -75,6 +83,9 @@ export class QueueAddModal implements OnInit {
 
 	protected statusLabel = (status?: string) =>
 		status ? backlogStatusLabel(status as BacklogStatus) : "";
+
+	protected statusIcon = (status?: string) =>
+		status ? backlogStatusIcon(status as BacklogStatus) : "";
 
 	protected statusClass = (status?: string) =>
 		status ? backlogStatusClass(status as BacklogStatus) : "";

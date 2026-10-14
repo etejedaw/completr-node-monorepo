@@ -9,7 +9,14 @@ import { RouterLink } from "@angular/router";
 
 import { type QueueEntry } from "../../../core/models";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { UiButton, UiPagination, UiSearchBar } from "../../../shared/ui";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import {
+	UiButton,
+	UiPagination,
+	UiPlainEmptyState,
+	UiSearchBar
+} from "../../../shared/ui";
+import { QueueListSection } from "../../queue/queue-list-section/queue-list-section";
 import { QueueNextCard } from "../../queue/queue-next-card/queue-next-card";
 import {
 	queueFeaturedEyebrow,
@@ -30,13 +37,16 @@ const QUEUE_PAGE_SIZE = 100;
 	imports: [
 		RouterLink,
 		LibraryHero,
+		LibraryToolbar,
 		ProfileAccessState,
+		QueueListSection,
 		QueueNextCard,
 		QueueRow,
 		QueueSkeleton,
 		QueueSortControl,
 		UiButton,
 		UiPagination,
+		UiPlainEmptyState,
 		UiSearchBar
 	],
 	templateUrl: "./user-queue.html",
@@ -66,6 +76,10 @@ export class UserQueue {
 		this.featured() ? this.sortedEntries().slice(1) : this.sortedEntries()
 	);
 	protected readonly restOffset = computed(() => (this.featured() ? 1 : 0));
+	protected readonly noMatchesMessage = computed(
+		() =>
+			`Nothing in their Up Next matches "${this.collection.query().trim()}".`
+	);
 	protected readonly featuredEyebrow = computed(() =>
 		queueFeaturedEyebrow(this.sortBy())
 	);

@@ -3,9 +3,13 @@ export { UiBottomSheet } from "./bottom-sheet/ui-bottom-sheet";
 export type { UiButtonSize, UiButtonVariant } from "./button/ui-button";
 export { UiButton } from "./button/ui-button";
 export { UiCheckbox } from "./checkbox/ui-checkbox";
+export { UiCountBadge } from "./count-badge/ui-count-badge";
 export type { UiDialogSize } from "./dialog/ui-dialog";
 export { UiDialog } from "./dialog/ui-dialog";
+export { UiDrawer } from "./drawer/ui-drawer";
 export { UiEmptyState } from "./empty-state/ui-empty-state";
+export { UiNoMatches } from "./empty-state/ui-no-matches";
+export { UiPlainEmptyState } from "./empty-state/ui-plain-empty-state";
 export { UiFocusTrap } from "./focus-trap/ui-focus-trap";
 export {
 	UiDescription,
