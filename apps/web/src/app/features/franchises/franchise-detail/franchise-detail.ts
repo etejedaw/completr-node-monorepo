@@ -15,7 +15,6 @@ import { type BacklogStatus, type Game } from "../../../core/models";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
 import { UiButton, UiEmptyState, UiPagination } from "../../../shared/ui";
 import { backlogStatusLabel } from "../../../shared/utils/backlog-status";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
@@ -33,7 +32,6 @@ const PAGE_SIZE = 24;
 		CoverGrid,
 		GameCoverCard,
 		LibraryHero,
-		ProgressMeter,
 		UiButton,
 		UiEmptyState,
 		UiPagination
