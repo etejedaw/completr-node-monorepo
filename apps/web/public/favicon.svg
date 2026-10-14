@@ -6,13 +6,5 @@
 		</linearGradient>
 	</defs>
 	<rect width="32" height="32" rx="7" fill="url(#g)" />
-	<text
-		x="50%"
-		y="50%"
-		text-anchor="middle"
-		dy=".35em"
-		font-family="Sora, sans-serif"
-		font-weight="800"
-		font-size="18"
-		fill="white">C</text>
+	<path fill="white" d="M12.60 23L10.30 20.70L10.30 11.30L12.60 9L19.44 9L21.70 11.26L21.70 13.40L18.98 13.40L18.98 12.26L18.04 11.32L14.04 11.32L13.02 12.34L13.02 19.66L14.04 20.68L18.04 20.68L18.98 19.74L18.98 18.60L21.70 18.60L21.70 20.74L19.44 23L12.60 23Z" />
 </svg>
