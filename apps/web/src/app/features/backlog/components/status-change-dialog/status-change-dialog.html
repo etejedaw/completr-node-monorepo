@@ -1,0 +1,162 @@
+@let pending = pendingUpdate();
+<ui-dialog
+	eyebrow="Change status"
+	size="sm"
+	[heading]="statusLabel(pending.status) + '?'"
+	[subheading]="pending.entry.game.title"
+	(closed)="cancelled.emit()"
+>
+	<span
+		dialogLead
+		aria-hidden="true"
+		class="material-icons text-2xl mt-1"
+		[class]="statusIconColor(pending.status)"
+		>{{ statusIcon(pending.status) }}</span
+	>
+	<div class="flex flex-col gap-4">
+		<p class="m-0 text-sm text-fg-secondary leading-relaxed">
+			<strong>{{ pending.entry.game.title }}</strong> will be marked as
+			<span
+				class="font-medium"
+				[class.text-playing]="pending.status === 'playing'"
+				[class.text-success]="pending.status === 'completed'"
+				[class.text-danger]="pending.status === 'abandoned'"
+				[class.text-brand]="pending.status === 'endless'"
+				[class.text-fg-muted]="pending.status === 'not_started'"
+			>
+				{{ statusLabel(pending.status) }}</span
+			>. @if (inQueue() && pending.status !== 'not_started') { It will be
+			removed from your Queue. }
+		</p>
+		@if (pending.status === 'playing') {
+		<div>
+			<label
+				for="pendingStartedAt"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Started on</label
+			>
+			<input
+				uiInput
+				id="pendingStartedAt"
+				type="date"
+				[value]="pending.startedAt"
+				(input)="updatePendingStatus({ startedAt: $any($event.target).value })"
+			/>
+		</div>
+		} @if (pending.status === 'completed' || pending.status === 'abandoned')
+		{
+		<div>
+			<label
+				for="pendingFinishedAt"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+			>
+				{{ pending.status === 'abandoned' ? 'Abandoned on' : 'Finished
+				on' }}
+			</label>
+			<input
+				uiInput
+				id="pendingFinishedAt"
+				type="date"
+				[value]="pending.finishedAt"
+				(input)="updatePendingStatus({ finishedAt: $any($event.target).value })"
+			/>
+		</div>
+		@if (pending.status === 'completed') {
+		<div>
+			<label
+				for="pendingRealDuration"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Real duration (hours)</label
+			>
+			<input
+				uiInput
+				id="pendingRealDuration"
+				type="number"
+				inputmode="decimal"
+				min="0"
+				step="0.5"
+				[value]="pending.realDuration"
+				(input)="updatePendingStatus({ realDuration: $any($event.target).value })"
+			/>
+		</div>
+		}
+		<div>
+			<label
+				for="pendingNotes"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Notes</label
+			>
+			<textarea
+				uiTextarea
+				id="pendingNotes"
+				rows="3"
+				[placeholder]="pending.status === 'abandoned' ? 'Why did you drop it?' : 'Your thoughts...'"
+				[value]="pending.notes"
+				(input)="updatePendingStatus({ notes: $any($event.target).value })"
+			></textarea>
+		</div>
+		} @if (pending.status === 'completed' || pending.status === 'abandoned'
+		|| pending.status === 'endless') {
+		<div>
+			<span
+				id="pending-your-rating"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Your rating</span
+			>
+			<app-star-rating
+				ariaLabelledby="pending-your-rating"
+				[value]="pending.rating"
+				(ratingChange)="updatePendingStatus({ rating: $event })"
+			/>
+		</div>
+		<div class="flex items-center gap-3 min-h-[44px]">
+			<ui-switch
+				ariaLabel="Write a review"
+				[checked]="pending.reviewToggle"
+				[disabled]="!!pending.entry.review"
+				(checkedChange)="updatePendingStatus({ reviewToggle: $event })"
+			/>
+			<span
+				class="text-sm"
+				[class.text-fg-muted]="pending.entry.review"
+				[class.text-fg-secondary]="!pending.entry.review"
+				>Write a review</span
+			>
+		</div>
+		@if (pending.entry.review) {
+		<button uiButton variant="ghost" (click)="reviewRequested.emit()">
+			<span aria-hidden="true" class="material-icons text-base"
+				>rate_review</span
+			>
+			Write or edit review
+		</button>
+		} @else if (pending.reviewToggle) {
+		<div>
+			<label
+				for="pendingReviewContent"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Review</label
+			>
+			<textarea
+				uiTextarea
+				id="pendingReviewContent"
+				rows="4"
+				[value]="pending.reviewContent"
+				(input)="updatePendingStatus({ reviewContent: $any($event.target).value })"
+			></textarea>
+			<p class="mt-1 text-xs text-fg-muted">
+				Rating and content will be saved as a public review for this
+				game.
+			</p>
+		</div>
+		} }
+	</div>
+	<ng-container dialogFooter>
+		<button uiButton variant="ghost" (click)="cancelled.emit()">
+			Cancel
+		</button>
+		<button uiButton variant="primary" (click)="confirmed.emit()">
+			Confirm
+		</button>
+	</ng-container>
+</ui-dialog>

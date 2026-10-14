@@ -1,0 +1,71 @@
+<ui-dialog
+	eyebrow="Pinned views"
+	heading="Reorder pinned views"
+	subheading="Arrange how your pinned views appear as chips in My Games."
+	size="sm"
+	[dismissible]="!saving()"
+	(closed)="cancelled.emit()"
+>
+	<div
+		class="flex flex-col gap-2"
+		cdkDropList
+		(cdkDropListDropped)="onReorderDrop($event)"
+	>
+		@for (item of items(); track item.id; let i = $index) {
+		<div
+			cdkDrag
+			class="flex items-center gap-1 bg-input-bg border border-line rounded-card pl-1 pr-1 py-1"
+		>
+			<button
+				uiIconButton
+				size="sm"
+				cdkDragHandle
+				class="cursor-grab active:cursor-grabbing touch-none"
+				aria-label="Drag to reorder"
+				title="Drag to reorder"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>drag_indicator</span
+				></button
+			><span class="flex-1 text-sm truncate">{{ item.name }}</span>
+			<button
+				uiIconButton
+				size="sm"
+				[disabled]="i === 0"
+				(click)="moveReorderUp(i)"
+				aria-label="Move up"
+				title="Move up"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>keyboard_arrow_up</span
+				>
+			</button>
+			<button
+				uiIconButton
+				size="sm"
+				[disabled]="i === items().length - 1"
+				(click)="moveReorderDown(i)"
+				aria-label="Move down"
+				title="Move down"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>keyboard_arrow_down</span
+				>
+			</button>
+		</div>
+		}
+	</div>
+	<ng-container dialogFooter>
+		<button uiButton variant="ghost" (click)="cancelled.emit()">
+			Cancel
+		</button>
+		<button
+			uiButton
+			variant="primary"
+			[disabled]="saving()"
+			(click)="save()"
+		>
+			Save order
+		</button>
+	</ng-container>
+</ui-dialog>

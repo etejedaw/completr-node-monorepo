@@ -1,0 +1,58 @@
+import {
+	ChangeDetectionStrategy,
+	Component,
+	input,
+	output
+} from "@angular/core";
+
+import { type BacklogEntry, type BacklogStatus } from "../../../../core/models";
+import { StarRating } from "../../../../shared/components/star-rating/star-rating";
+import {
+	UiButton,
+	UiDialog,
+	UiInput,
+	UiSwitch,
+	UiTextarea
+} from "../../../../shared/ui";
+import {
+	backlogStatusIcon,
+	backlogStatusIconColor,
+	backlogStatusLabel
+} from "../../../../shared/utils/backlog-status";
+
+export interface PendingStatusUpdate {
+	entry: BacklogEntry;
+	status: BacklogStatus;
+	startedAt: string;
+	finishedAt: string;
+	realDuration: string;
+	rating: number | null;
+	reviewToggle: boolean;
+	reviewContent: string;
+	notes: string;
+}
+
+@Component({
+	selector: "app-status-change-dialog",
+	imports: [StarRating, UiButton, UiDialog, UiInput, UiSwitch, UiTextarea],
+	templateUrl: "./status-change-dialog.html",
+	host: { class: "contents" },
+	changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class StatusChangeDialog {
+	protected readonly statusLabel = backlogStatusLabel;
+	protected readonly statusIcon = backlogStatusIcon;
+	protected readonly statusIconColor = backlogStatusIconColor;
+
+	readonly pendingUpdate = input.required<PendingStatusUpdate>();
+	readonly inQueue = input(false);
+
+	readonly edited = output<Partial<PendingStatusUpdate>>();
+	readonly confirmed = output<void>();
+	readonly cancelled = output<void>();
+	readonly reviewRequested = output<void>();
+
+	protected updatePendingStatus(patch: Partial<PendingStatusUpdate>) {
+		this.edited.emit(patch);
+	}
+}

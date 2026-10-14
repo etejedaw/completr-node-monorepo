@@ -1,12 +1,4 @@
 import {
-	CdkDrag,
-	type CdkDragDrop,
-	CdkDragHandle,
-	CdkDropList,
-	moveItemInArray
-} from "@angular/cdk/drag-drop";
-import { NgTemplateOutlet } from "@angular/common";
-import {
 	afterNextRender,
 	ChangeDetectionStrategy,
 	Component,
@@ -21,12 +13,7 @@ import {
 	viewChild
 } from "@angular/core";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
-import {
-	ActivatedRoute,
-	type ParamMap,
-	Router,
-	RouterLink
-} from "@angular/router";
+import { ActivatedRoute, type ParamMap, Router } from "@angular/router";
 import {
 	catchError,
 	debounceTime,
@@ -47,48 +34,30 @@ import {
 import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
-import { ViewportService } from "../../../core/services/viewport";
 import {
 	BacklogEntryCard,
 	type BacklogStatusOption
 } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
-import {
-	ChipGroup,
-	type ChipOption
-} from "../../../shared/components/chip-group/chip-group";
-import { FilterSection } from "../../../shared/components/filter-section/filter-section";
-import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import {
 	OptionPicker,
 	type PickerAction,
 	type PickerOption
 } from "../../../shared/components/option-picker/option-picker";
-import { RangeInputs } from "../../../shared/components/range-inputs/range-inputs";
-import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
 	type ViewModeOption,
 	ViewModeToggle
 } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
-import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import {
-	UiBottomSheet,
 	UiButton,
 	UiCountBadge,
-	UiDialog,
-	UiDrawer,
 	UiEmptyState,
-	UiIconButton,
-	UiInput,
 	UiNoMatches,
 	UiPagination,
 	UiSearchBar,
-	UiSkeleton,
-	UiSwitch,
-	UiTextarea
+	UiSkeleton
 } from "../../../shared/ui";
 import {
 	BACKLOG_STATUS_FILTERS,
@@ -109,7 +78,21 @@ import {
 	type BacklogModalData,
 	type BacklogModalResult
 } from "../backlog-modal/backlog-modal";
+import {
+	BacklogFiltersPanel,
+	type SortOrder
+} from "../components/backlog-filters-panel/backlog-filters-panel";
 import { BacklogTable } from "../components/backlog-table/backlog-table";
+import { BacklogToolsSheet } from "../components/backlog-tools-sheet/backlog-tools-sheet";
+import { EntryRatingSheet } from "../components/entry-rating-sheet/entry-rating-sheet";
+import { EntryStatusSheet } from "../components/entry-status-sheet/entry-status-sheet";
+import { ReorderViewsDialog } from "../components/reorder-views-dialog/reorder-views-dialog";
+import { SavedViewStats } from "../components/saved-view-stats/saved-view-stats";
+import { SavedViewStatsPanel } from "../components/saved-view-stats-panel/saved-view-stats-panel";
+import {
+	type PendingStatusUpdate,
+	StatusChangeDialog
+} from "../components/status-change-dialog/status-change-dialog";
 import { savedFilterColorHex } from "../saved-filter-appearance";
 import {
 	DEFAULT_ENABLED_STATS,
@@ -117,51 +100,13 @@ import {
 	SavedFiltersService,
 	type SavedFilterStats,
 	STAT_KEYS,
-	STAT_LABELS,
 	type StatKey
 } from "../saved-filters";
 import { SurpriseMe } from "../surprise-me/surprise-me";
 
-interface PendingStatusUpdate {
-	entry: BacklogEntry;
-	status: BacklogStatus;
-	startedAt: string;
-	finishedAt: string;
-	realDuration: string;
-	rating: number | null;
-	reviewToggle: boolean;
-	reviewContent: string;
-	notes: string;
-}
-
-interface RatingSheetState {
-	entry: BacklogEntry;
-	value: number | null;
-}
-
 const MIXED_STATUS_VALUE = "__mixed__";
 
 type BacklogViewMode = "diary" | "hardcore" | "calendar";
-
-type SortOrder = "asc" | "desc";
-
-const BACKLOG_SORT_OPTIONS: readonly PickerOption[] = [
-	{ value: "createdAt", label: "Date added", icon: "schedule" },
-	{ value: "title", label: "Title", icon: "sort_by_alpha" },
-	{ value: "score", label: "Score", icon: "star" },
-	{ value: "duration", label: "Duration", icon: "timer" },
-	{ value: "ratio", label: "Ratio", icon: "trending_up" },
-	{ value: "realDuration", label: "Real duration", icon: "hourglass_bottom" },
-	{ value: "personalRatio", label: "Personal ratio", icon: "insights" },
-	{ value: "userRating", label: "Rating", icon: "grade" },
-	{ value: "finishedAt", label: "Finished", icon: "event_available" },
-	{ value: "status", label: "Status", icon: "flag" }
-];
-
-const SORT_ORDER_OPTIONS: readonly PickerOption[] = [
-	{ value: "desc", label: "Descending", icon: "arrow_downward" },
-	{ value: "asc", label: "Ascending", icon: "arrow_upward" }
-];
 
 const NEW_VIEW_PARAM = "newView";
 
@@ -195,35 +140,24 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		OptionPicker,
 		BacklogCalendar,
 		SurpriseMe,
-		StarRating,
 		BacklogEntryCard,
 		LibraryHero,
 		SwipeActions,
-		UiBottomSheet,
-		RouterLink,
 		UiButton,
 		UiCountBadge,
-		UiDialog,
-		UiDrawer,
 		UiEmptyState,
 		UiNoMatches,
-		UiIconButton,
-		UiInput,
 		UiPagination,
 		UiSearchBar,
 		UiSkeleton,
-		UiSwitch,
-		UiTextarea,
-		GameFilterPanel,
-		ChipGroup,
-		FilterSection,
-		RangeInputs,
-		NgTemplateOutlet,
-		MoodTagsInput,
-		CdkDropList,
-		CdkDrag,
-		CdkDragHandle,
-		CoverUrlPipe
+		BacklogFiltersPanel,
+		BacklogToolsSheet,
+		EntryRatingSheet,
+		EntryStatusSheet,
+		ReorderViewsDialog,
+		SavedViewStats,
+		SavedViewStatsPanel,
+		StatusChangeDialog
 	],
 	templateUrl: "./backlog-list.html",
 	host: {
@@ -243,7 +177,6 @@ export class BacklogList implements OnInit {
 	private readonly moodTagsService = inject(MoodTagsService);
 	private readonly dialogs = inject(DialogService);
 	private readonly toast = inject(ToastService);
-	protected readonly isMobile = inject(ViewportService).isMobile;
 
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -256,7 +189,7 @@ export class BacklogList implements OnInit {
 	protected readonly activeStatuses = signal<Set<string>>(new Set());
 	protected readonly pointer = inject(PointerService);
 	protected readonly statusSheetEntry = signal<BacklogEntry | null>(null);
-	protected readonly ratingSheet = signal<RatingSheetState | null>(null);
+	protected readonly ratingSheetEntry = signal<BacklogEntry | null>(null);
 	protected readonly toolsSheetOpen = signal(false);
 
 	protected readonly activeView = computed(
@@ -401,8 +334,6 @@ export class BacklogList implements OnInit {
 
 	protected readonly showFilters = signal(false);
 	protected readonly creatingView = signal(false);
-	protected readonly sortPickerOptions = BACKLOG_SORT_OPTIONS;
-	protected readonly sortOrderPickerOptions = SORT_ORDER_OPTIONS;
 	protected readonly showAdvancedFilters = signal(false);
 	protected readonly allPlatforms = signal<Platform[]>([]);
 	protected readonly allGenres = signal<Genre[]>([]);
@@ -437,7 +368,6 @@ export class BacklogList implements OnInit {
 	protected readonly newFilterPinned = signal(true);
 	protected readonly savingFilter = signal(false);
 	protected readonly showReorderModal = signal(false);
-	protected readonly reorderItems = signal<SavedFilter[]>([]);
 	protected readonly savingReorder = signal(false);
 
 	protected readonly stats = signal<SavedFilterStats | null>(null);
@@ -448,8 +378,6 @@ export class BacklogList implements OnInit {
 	);
 	protected readonly showStatsPanel = signal(false);
 	protected readonly statsConfigSaving = signal(false);
-	protected readonly allStatKeys = STAT_KEYS;
-	protected readonly statLabels = STAT_LABELS;
 
 	protected enabledStatsCount(): number {
 		const filter = this.getActiveFilter();
@@ -525,37 +453,15 @@ export class BacklogList implements OnInit {
 		return this.savedFilters().find(f => f.id === id) ?? null;
 	}
 
-	protected isStatEnabled(key: StatKey): boolean {
-		const filter = this.getActiveFilter();
-		const enabled = filter?.enabledStats;
-		if (enabled === undefined || enabled === null) {
-			return (DEFAULT_ENABLED_STATS as readonly string[]).includes(key);
-		}
-		return enabled.includes(key);
-	}
+	protected readonly enabledStatKeys = computed<ReadonlySet<StatKey>>(() => {
+		const enabled = this.getActiveFilter()?.enabledStats;
+		if (enabled === undefined || enabled === null)
+			return new Set(DEFAULT_ENABLED_STATS);
+		return new Set(STAT_KEYS.filter(key => enabled.includes(key)));
+	});
 
 	protected hasAnyStatEnabled(): boolean {
-		return this.allStatKeys.some(k => this.isStatEnabled(k));
-	}
-
-	protected hasAnyHighlightEnabled(): boolean {
-		return (
-			this.isStatEnabled("longestPlayed") ||
-			this.isStatEnabled("bestPersonalRatio") ||
-			this.isStatEnabled("highestRated")
-		);
-	}
-
-	protected hasAnyExpandedStatEnabled(): boolean {
-		return (
-			this.isStatEnabled("completionRate") ||
-			this.isStatEnabled("abandonmentRate") ||
-			this.isStatEnabled("avgRealDuration") ||
-			this.isStatEnabled("avgEstimatedDuration") ||
-			this.isStatEnabled("avgScore") ||
-			this.isStatEnabled("avgUserRating") ||
-			this.isStatEnabled("estimatedVsRealDelta")
-		);
+		return this.enabledStatKeys().size > 0;
 	}
 
 	protected toggleStatKey(key: StatKey) {
@@ -610,24 +516,7 @@ export class BacklogList implements OnInit {
 			});
 	}
 
-	formatStat(value: number | null, suffix = "", decimals = 2): string {
-		if (value == null) return "—";
-		const rounded =
-			decimals === 0
-				? Math.round(value).toString()
-				: value.toFixed(decimals).replace(/\.?0+$/, "");
-		return rounded + suffix;
-	}
-
-	formatPercent(value: number | null): string {
-		if (value == null) return "—";
-		return (value * 100).toFixed(0) + "%";
-	}
-
 	protected readonly hasActiveFilters = () => this.activeFiltersCount() > 0;
-
-	protected readonly hasPendingViewName = () =>
-		this.newFilterName().trim().length > 0;
 
 	protected readonly activeFiltersCount = () => {
 		let count = 0;
@@ -652,10 +541,6 @@ export class BacklogList implements OnInit {
 		return count;
 	};
 
-	updateMoodTagsFilter(tags: string[]) {
-		this.selectedMoodTags.set(tags);
-	}
-
 	protected setCoopOnly(value: boolean) {
 		this.coopOnly.set(value);
 		this.activeFilterId.set(null);
@@ -665,36 +550,12 @@ export class BacklogList implements OnInit {
 		...BACKLOG_STATUS_FILTERS
 	];
 
-	protected readonly statusChipOptions: readonly ChipOption[] =
-		BACKLOG_STATUS_FILTERS;
-
-	protected readonly platformPickerOptions = computed<PickerOption[]>(() => [
-		{ value: "", label: "All platforms", icon: "devices" },
-		...this.allPlatforms().map(platform => ({
-			value: platform.id,
-			label: platform.name
-		}))
-	]);
-
-	protected readonly filtersHeading = computed(() =>
-		this.creatingView() ? "New view" : "Filters"
-	);
-
-	protected readonly filtersSubheading = computed(() => {
-		const count = this.activeFiltersCount();
-		if (count > 0)
-			return `${count} ${count === 1 ? "filter" : "filters"} active`;
-		if (this.creatingView())
-			return "Choose filters, then name and save your view";
-		return "Narrow your library by status, platform, dates and more";
-	});
-
 	private readonly previewFilters = computed(
 		() => (this.showFilters() ? this.buildBaseFilters() : null),
 		{ equal: (a, b) => JSON.stringify(a) === JSON.stringify(b) }
 	);
 
-	private readonly previewTotal = toSignal(
+	protected readonly previewTotal = toSignal(
 		toObservable(this.previewFilters).pipe(
 			debounceTime(250),
 			switchMap(filters =>
@@ -711,17 +572,6 @@ export class BacklogList implements OnInit {
 		),
 		{ initialValue: null }
 	);
-
-	protected readonly applyLabel = computed(() => {
-		const total = this.previewTotal();
-		const saving = this.hasPendingViewName();
-		if (total === null)
-			return saving ? "Save & show results" : "Show results";
-		const noun = total === 1 ? "result" : "results";
-		return saving
-			? `Save & show ${total} ${noun}`
-			: `Show ${total} ${noun}`;
-	});
 
 	ngOnInit() {
 		this.setupSearch();
@@ -891,7 +741,6 @@ export class BacklogList implements OnInit {
 	}
 
 	openReorderModal() {
-		this.reorderItems.set([...this.backlogFilters()]);
 		this.showReorderModal.set(true);
 	}
 
@@ -899,30 +748,8 @@ export class BacklogList implements OnInit {
 		this.showReorderModal.set(false);
 	}
 
-	moveReorderUp(index: number) {
-		if (index === 0) return;
-		const items = [...this.reorderItems()];
-		[items[index - 1], items[index]] = [items[index], items[index - 1]];
-		this.reorderItems.set(items);
-	}
-
-	moveReorderDown(index: number) {
-		const items = [...this.reorderItems()];
-		if (index >= items.length - 1) return;
-		[items[index], items[index + 1]] = [items[index + 1], items[index]];
-		this.reorderItems.set(items);
-	}
-
-	onReorderDrop(event: CdkDragDrop<SavedFilter[]>) {
-		if (event.previousIndex === event.currentIndex) return;
-		const items = [...this.reorderItems()];
-		moveItemInArray(items, event.previousIndex, event.currentIndex);
-		this.reorderItems.set(items);
-	}
-
-	saveReorder() {
+	saveReorder(ids: string[]) {
 		this.savingReorder.set(true);
-		const ids = this.reorderItems().map(f => f.id);
 		this.savedFiltersService.reorder(ids).subscribe({
 			next: () => {
 				this.savingReorder.set(false);
@@ -987,10 +814,6 @@ export class BacklogList implements OnInit {
 	protected setStatuses(values: readonly string[]) {
 		this.activeStatuses.set(new Set(values));
 		this.activeFilterId.set(null);
-	}
-
-	protected setSortOrder(value: string) {
-		if (value === "asc" || value === "desc") this.sortOrder.set(value);
 	}
 
 	private startNewView() {
@@ -1362,11 +1185,6 @@ export class BacklogList implements OnInit {
 		return `${y}-${m}-${d}`;
 	}
 
-	parseNumber(value: string): number | null {
-		const trimmed = value?.trim();
-		return trimmed ? Number(trimmed) : null;
-	}
-
 	hasAdvancedFiltersActive(): boolean {
 		return (
 			this.selectedPlatforms().size > 0 ||
@@ -1380,10 +1198,6 @@ export class BacklogList implements OnInit {
 			this.minPersonalRatio() !== null ||
 			this.maxPersonalRatio() !== null
 		);
-	}
-
-	toggleAdvancedFilters() {
-		this.showAdvancedFilters.update(v => !v);
 	}
 
 	isFavorite(gameId: string): boolean {
@@ -1418,19 +1232,13 @@ export class BacklogList implements OnInit {
 
 	protected openRatingSheet(entry: BacklogEntry, event: Event) {
 		event.stopPropagation();
-		this.ratingSheet.set({ entry, value: entry.userRating ?? null });
+		this.ratingSheetEntry.set(entry);
 	}
 
-	protected updateRatingDraft(value: number | null) {
-		this.ratingSheet.update(sheet => (sheet ? { ...sheet, value } : sheet));
-	}
-
-	protected saveRatingSheet() {
-		const sheet = this.ratingSheet();
-		if (!sheet) return;
-		this.ratingSheet.set(null);
-		if (sheet.value !== (sheet.entry.userRating ?? null)) {
-			this.onQuickRate(sheet.entry, sheet.value);
+	protected saveRatingSheet(entry: BacklogEntry, value: number | null) {
+		this.ratingSheetEntry.set(null);
+		if (value !== (entry.userRating ?? null)) {
+			this.onQuickRate(entry, value);
 		}
 	}
 
