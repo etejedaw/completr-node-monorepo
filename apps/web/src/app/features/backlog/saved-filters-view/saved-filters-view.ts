@@ -24,6 +24,7 @@ import {
 	UiButton,
 	UiDialog,
 	UiEmptyState,
+	UiFieldLabel,
 	UiInput,
 	UiNoMatches,
 	UiPagination,
@@ -75,6 +76,7 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
 @Component({
 	selector: "app-saved-filters-view",
 	imports: [
+		UiFieldLabel,
 		RouterLink,
 		LibraryHero,
 		LibraryToolbar,

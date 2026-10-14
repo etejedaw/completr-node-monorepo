@@ -10,6 +10,7 @@ import { StarRating } from "../../../../shared/components/star-rating/star-ratin
 import {
 	UiButton,
 	UiDialog,
+	UiFieldLabel,
 	UiInput,
 	UiSwitch,
 	UiTextarea
@@ -34,7 +35,15 @@ export interface PendingStatusUpdate {
 
 @Component({
 	selector: "app-status-change-dialog",
-	imports: [StarRating, UiButton, UiDialog, UiInput, UiSwitch, UiTextarea],
+	imports: [
+		UiFieldLabel,
+		StarRating,
+		UiButton,
+		UiDialog,
+		UiInput,
+		UiSwitch,
+		UiTextarea
+	],
 	templateUrl: "./status-change-dialog.html",
 	host: { class: "contents" },
 	changeDetection: ChangeDetectionStrategy.OnPush

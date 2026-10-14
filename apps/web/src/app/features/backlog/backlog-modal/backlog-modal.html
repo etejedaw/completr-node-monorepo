@@ -8,12 +8,7 @@
 	(closed)="onClose()"
 >
 	@if (error()) {
-	<div
-		role="alert"
-		class="bg-danger/10 border border-danger/20 text-danger px-3 py-2 rounded-card mb-4 text-[0.8125rem]"
-	>
-		{{ error() }}
-	</div>
+	<ui-alert class="mb-4">{{ error() }}</ui-alert>
 	} @if (isEdit() && viewMode() === "summary") {
 	<app-backlog-entry-summary
 		[entry]="entry!"
@@ -875,9 +870,16 @@
 			>
 				<div class="flex items-center justify-between mb-1">
 					<span
-						class="text-xs font-semibold uppercase tracking-wider text-fg"
-						>{{ c.status }}</span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
+						[class]="backlogStatusClass(c.status)"
 					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.875rem]"
+							>{{ backlogStatusIcon(c.status) }}</span
+						>
+						{{ backlogStatusLabel(c.status) }}
+					</span>
 					@if (c.coopRunId) {
 					<span class="text-[0.625rem] text-warning"
 						>Already in another co-op</span

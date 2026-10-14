@@ -49,7 +49,7 @@
 	@for (fact of facts(); track fact.label) {
 	<div class="bg-input-bg border border-line rounded-card px-3 py-2.5">
 		<dt
-			class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted"
+			class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
 		>
 			{{ fact.label }}
 		</dt>
@@ -82,7 +82,7 @@
 	>
 	<div class="flex-1 min-w-0">
 		<p
-			class="m-0 text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted"
+			class="m-0 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
 		>
 			Where I am
 		</p>
@@ -99,7 +99,7 @@
 } @if (e.notes) {
 <figure class="m-0 mt-4 border-l-2 border-line-hover pl-3">
 	<figcaption
-		class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+		class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted mb-1"
 	>
 		Notes
 	</figcaption>
@@ -110,7 +110,7 @@
 } @if (e.hasReview && e.reviewContent) {
 <figure class="m-0 mt-4 border-l-2 border-brand pl-3">
 	<figcaption
-		class="flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-wider text-brand mb-1"
+		class="flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-brand mb-1"
 	>
 		<span aria-hidden="true" class="material-icons text-sm"
 			>rate_review</span
@@ -126,7 +126,7 @@
 } @if (coopMembers().length > 0) {
 <div class="mt-4">
 	<p
-		class="m-0 mb-2 text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted"
+		class="m-0 mb-2 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
 	>
 		Played with
 	</p>
