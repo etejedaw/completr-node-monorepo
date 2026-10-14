@@ -32,6 +32,12 @@ import { injectBodyPortal } from "../portal/body-portal";
 			></div>
 			<header class="flex items-center gap-3 px-5 pt-3 pb-2">
 				<div class="flex-1 min-w-0">
+					@if (eyebrow()) {
+						<span
+							class="block text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+							>{{ eyebrow() }}</span
+						>
+					}
 					<h2
 						class="m-0 font-display text-lg font-semibold text-fg truncate"
 					>
@@ -52,16 +58,23 @@ import { injectBodyPortal } from "../portal/body-portal";
 					<span aria-hidden="true" class="material-icons">close</span>
 				</button>
 			</header>
-			<div class="overflow-y-auto px-3 pb-4">
+			<div class="min-h-0 overflow-y-auto overscroll-contain px-3 pb-4">
 				<ng-content />
+			</div>
+			<div
+				class="empty:hidden shrink-0 flex items-center gap-2 px-5 py-3 border-t border-line [&>*]:flex-1 [&>.ui-button]:min-h-[44px]"
+			>
+				<ng-content select="[sheetFooter]" />
 			</div>
 		</section>
 	`,
+	host: { class: "relative z-[1000]" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UiBottomSheet {
 	readonly heading = input.required<string>();
 	readonly subheading = input<string | null>(null);
+	readonly eyebrow = input<string | null>(null);
 	readonly closed = output<void>();
 
 	constructor() {
