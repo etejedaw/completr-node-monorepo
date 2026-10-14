@@ -124,19 +124,11 @@ export class PublicProfileComponent implements OnInit {
 			feed: !!access?.feed
 		};
 	});
-	protected readonly isBackdropResolved = computed(() => {
-		const { queue, favorites } = this.visibility();
-		return (
-			(!queue || this.queueData() !== null) &&
-			(!favorites || this.favoritesData() !== null)
-		);
-	});
+	protected readonly isBackdropResolved = computed(
+		() => !this.visibility().favorites || this.favoritesData() !== null
+	);
 	protected readonly backdropUrl = computed(() => {
 		if (!this.isBackdropResolved()) return null;
-		const fromQueue = this.queueData()?.find(
-			entry => entry.backlog.game.backgroundUrl
-		)?.backlog.game.backgroundUrl;
-		if (fromQueue) return fromQueue;
 		const fromFavorites = this.favoritesData()?.find(
 			favorite => favorite.game.backgroundUrl
 		)?.game.backgroundUrl;
