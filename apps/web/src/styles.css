@@ -326,6 +326,15 @@ h6 {
 	}
 }
 
+@keyframes uiDrawerIn {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
 @keyframes uiDialogIn {
 	from {
 		opacity: 0;
