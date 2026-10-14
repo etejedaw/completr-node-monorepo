@@ -458,11 +458,7 @@
 	[dismissible]="!reportModal().submitting"
 	(closed)="closeReportModal()"
 >
-	<label
-		for="report-message"
-		class="block mb-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-		>What's wrong?</label
-	>
+	<label for="report-message" uiFieldLabel>What's wrong?</label>
 	<textarea
 		uiTextarea
 		id="report-message"
@@ -480,12 +476,7 @@
 		{{ reportModal().message.length }} characters · at least 10
 	</p>
 	@if (reportModal().error) {
-	<p
-		role="alert"
-		class="m-0 mt-2 py-1.5 px-3 bg-danger/10 border border-danger/20 rounded text-danger text-xs"
-	>
-		{{ reportModal().error }}
-	</p>
+	<ui-alert class="mt-2">{{ reportModal().error }}</ui-alert>
 	}
 	<ng-container dialogFooter>
 		<button uiButton variant="ghost" (click)="closeReportModal()">

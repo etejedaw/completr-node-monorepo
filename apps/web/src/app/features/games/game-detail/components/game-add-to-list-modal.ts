@@ -7,7 +7,13 @@ import {
 } from "@angular/core";
 import { injectDialogRef } from "ng-primitives/dialog";
 
-import { UiButton, UiDialog, UiInput } from "../../../../shared/ui";
+import {
+	UiAlert,
+	UiButton,
+	UiDialog,
+	UiFieldLabel,
+	UiInput
+} from "../../../../shared/ui";
 import { ListsService } from "../../../lists/lists";
 import { GamesService } from "../../games";
 
@@ -49,7 +55,7 @@ interface ModalState {
 
 @Component({
 	selector: "app-game-add-to-list-modal",
-	imports: [UiButton, UiDialog, UiInput],
+	imports: [UiAlert, UiButton, UiDialog, UiFieldLabel, UiInput],
 	templateUrl: "./game-add-to-list-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
