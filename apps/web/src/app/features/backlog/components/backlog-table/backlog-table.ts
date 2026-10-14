@@ -117,9 +117,10 @@ export class BacklogTable {
 	readonly entries = input.required<readonly BacklogEntry[]>();
 	readonly sortBy = input.required<string>();
 	readonly sortOrder = input.required<"asc" | "desc">();
-	readonly queuedBacklogIds = input.required<ReadonlySet<string>>();
-	readonly updatingStatusIds = input.required<ReadonlySet<string>>();
+	readonly queuedBacklogIds = input<ReadonlySet<string>>(new Set());
+	readonly updatingStatusIds = input<ReadonlySet<string>>(new Set());
 	readonly statusMenuOpenId = model<string | null>(null);
+	readonly readonly = input(false);
 
 	readonly sortChange = output<string>();
 	readonly entryOpen = output<BacklogTableEntryEvent>();
@@ -158,6 +159,11 @@ export class BacklogTable {
 
 	protected isFavorite(gameId: string): boolean {
 		return this.favoritesService.isFavorite(gameId);
+	}
+
+	protected openEntry(entry: BacklogEntry, event: Event) {
+		if (this.readonly()) return;
+		this.entryOpen.emit({ entry, event });
 	}
 
 	protected isInQueue(entry: BacklogEntry): boolean {

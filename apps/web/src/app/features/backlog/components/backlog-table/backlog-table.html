@@ -31,7 +31,7 @@
 				<th scope="col" [class]="column.headerClass">
 					{{ column.label }}
 				</th>
-				} }
+				} } @if (!readonly()) {
 				<th
 					scope="col"
 					class="sticky top-0 bg-sidebar/95 backdrop-blur z-[1] border-b border-line"
@@ -44,13 +44,15 @@
 				>
 					<span class="sr-only">Up Next</span>
 				</th>
+				}
 			</tr>
 		</thead>
 		<tbody>
 			@for (entry of entries(); track entry.id) {
 			<tr
-				class="group/tr cursor-pointer border-b border-line/70 last:border-b-0 transition even:bg-white/[0.015] hover:!bg-brand/[0.06]"
-				(click)="entryOpen.emit({ entry, event: $event })"
+				class="group/tr border-b border-line/70 last:border-b-0 transition even:bg-white/[0.015] hover:!bg-brand/[0.06]"
+				[class.cursor-pointer]="!readonly()"
+				(click)="openEntry(entry, $event)"
 			>
 				<td class="px-3 py-3 align-middle min-w-[180px]">
 					<app-game-title-cell
@@ -154,7 +156,7 @@
 						<span>
 							<app-star-rating
 								[value]="entry.userRating ?? null"
-								[readonly]="!canQuickRate(entry)"
+								[readonly]="readonly() || !canQuickRate(entry)"
 								[showValue]="false"
 								size="sm"
 								(ratingChange)="quickRate.emit({ entry, rating: $event })"
@@ -169,7 +171,7 @@
 					: "-" }}
 				</td>
 				<td class="px-3 py-3 align-middle whitespace-nowrap">
-					@if (canChangeStatus(entry.status)) {
+					@if (!readonly() && canChangeStatus(entry.status)) {
 					<div class="relative inline-block">
 						<button
 							type="button"
@@ -237,6 +239,7 @@
 					</span>
 					}
 				</td>
+				@if (!readonly()) {
 				<td class="px-2 py-3 align-middle w-9 text-center">
 					<button
 						class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-nav-favorites"
@@ -269,6 +272,7 @@
 						>
 					</button>
 				</td>
+				}
 			</tr>
 			}
 		</tbody>
