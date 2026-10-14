@@ -41,6 +41,7 @@ docs: |-
             "username": "andres",
             "name": "Andres",
             "avatarUrl": "https://example.com/avatar.png",
+            "role": "premium",
             "status": "completed",
             "finishedAt": "2026-02-14",
             "userRating": 9
@@ -50,7 +51,7 @@ docs: |-
     }
     ```
 
-    `status` is one of `not_started | playing | completed | abandoned | endless`. `avatarUrl`, `finishedAt`, and `userRating` may be `null`.
+    `role` is one of `user | premium | moderator | admin`; `premium`, `moderator` and `admin` render the Premium avatar border. `status` is one of `not_started | playing | completed | abandoned | endless`. `avatarUrl`, `finishedAt`, and `userRating` may be `null`.
 
     ### Errors
 

@@ -41,6 +41,7 @@ docs: |-
             "username": "marta",
             "name": "Marta",
             "avatarUrl": "https://example.com/avatar.png",
+            "role": "premium",
             "status": "playing"
           }
         ]
@@ -48,7 +49,7 @@ docs: |-
     }
     ```
 
-    `status` is one of `not_started | playing | completed | abandoned | endless`. `avatarUrl` may be `null`. The `players` array is empty when no eligible users exist.
+    `role` is one of `user | premium | moderator | admin`; `premium`, `moderator` and `admin` render the Premium avatar border. `status` is one of `not_started | playing | completed | abandoned | endless`. `avatarUrl` may be `null`. The `players` array is empty when no eligible users exist.
 
     ### Errors
 
