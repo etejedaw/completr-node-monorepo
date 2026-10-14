@@ -53,7 +53,7 @@ export interface FeaturedList {
 								>
 								@if (list.isOfficial) {
 									<span
-										class="shrink-0 px-1.5 py-px rounded-full bg-brand/15 text-brand text-[0.5625rem] font-bold uppercase tracking-wider"
+										class="shrink-0 px-1.5 py-px rounded-full bg-brand/15 text-brand text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
 										>Official</span
 									>
 								}

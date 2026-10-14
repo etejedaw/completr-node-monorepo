@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 					{{ heading() }}
 					@if (count() !== null) {
 						<span
-							class="px-2 py-0.5 rounded-full bg-white/5 font-sans text-xs font-semibold text-fg-muted tabular-nums"
+							class="px-2 py-0.5 rounded-full bg-fg-muted/10 font-sans text-xs font-semibold text-fg-muted tabular-nums"
 							>{{ count() }}</span
 						>
 					}
