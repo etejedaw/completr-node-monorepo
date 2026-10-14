@@ -178,7 +178,7 @@ export interface GameCoverCardGame {
 				>
 					@if (ratio() !== null && ratio() !== undefined) {
 						<span
-							class="px-2 py-0.5 rounded-md text-xs font-display font-bold tabular-nums text-white bg-brand/90 shadow-md shadow-black/40 backdrop-blur-sm"
+							class="px-2 py-0.5 rounded-md text-xs font-display font-bold tabular-nums text-white bg-brand-solid/90 shadow-md shadow-black/40 backdrop-blur-sm"
 							>{{ ratio() }}</span
 						>
 					}

@@ -47,7 +47,7 @@ interface ReorderButton {
 				>
 				@if (isFirst()) {
 					<span
-						class="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-brand shadow-md shadow-black/40"
+						class="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-brand-solid shadow-md shadow-black/40"
 					>
 						<span
 							aria-hidden="true"

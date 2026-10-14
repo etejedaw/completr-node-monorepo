@@ -35,7 +35,7 @@ export interface FeaturedList {
 							class="flex items-center justify-center w-11 h-11 rounded-lg shrink-0"
 							[class]="
 								list.isOfficial
-									? 'bg-brand text-white shadow-lg shadow-brand/30'
+									? 'bg-brand-solid text-white shadow-lg shadow-brand/30'
 									: 'bg-nav-lists/15 text-nav-lists'
 							"
 						>
