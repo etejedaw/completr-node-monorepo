@@ -16,7 +16,7 @@ import { injectSectionScrollSpy } from "../../shared/components/page-toc/section
 import { RatioSummary } from "../../shared/components/ratio-summary/ratio-summary";
 import { StarRating } from "../../shared/components/star-rating/star-rating";
 import { InView } from "../../shared/directives/in-view";
-import { UiButton } from "../../shared/ui";
+import { UiButton, UiProgress } from "../../shared/ui";
 import {
 	backlogStatusClass,
 	backlogStatusIcon,
@@ -106,7 +106,8 @@ const SCORE_EXAMPLES: readonly CanonicalScore[] = [
 		StarRating,
 		GameScoreCard,
 		InfoPageLinks,
-		UiButton
+		UiButton,
+		UiProgress
 	],
 	templateUrl: "./help-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
