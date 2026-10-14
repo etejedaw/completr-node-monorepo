@@ -56,7 +56,7 @@ let nextDrawerId = 0;
 					</div>
 					<button
 						type="button"
-						class="shrink-0 -mr-2 -mt-1 size-[36px] tap:size-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-fg hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand"
+						class="shrink-0 -mr-2 -mt-1 size-[36px] max-md:size-[44px] tap:size-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-fg hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand"
 						[attr.aria-label]="'Close ' + heading()"
 						(click)="closed.emit()"
 					>
