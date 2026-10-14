@@ -160,3 +160,5 @@ tmp/
 
 # Claude local settings (keep skills tracked)
 .claude/settings.local.json
+# Git worktrees (local only)
+.worktree/
