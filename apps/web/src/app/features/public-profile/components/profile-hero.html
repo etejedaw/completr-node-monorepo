@@ -67,7 +67,7 @@
 					</h1>
 					@if (roleBadge(); as badge) {
 					<span
-						class="px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider backdrop-blur-md"
+						class="px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.16em] backdrop-blur-md"
 						[class]="badge.className"
 						>{{ badge.label }}</span
 					>
@@ -97,35 +97,42 @@
 					class="mt-5 flex flex-wrap items-center gap-2 max-sm:justify-center"
 				>
 					<a
-						class="tap-area inline-flex items-baseline gap-1.5 h-10 px-3 rounded-card bg-canvas/50 border border-white/10 backdrop-blur-md text-sm text-white/70 no-underline transition hover:text-white hover:border-white/30"
+						uiButton
+						variant="secondary"
+						size="lg"
+						class="!bg-surface/70 backdrop-blur h-10 tap:min-h-[44px] !text-fg-secondary hover:!text-fg"
 						[routerLink]="['/user', user().username, 'followers']"
 					>
-						<strong
-							class="text-base text-white tabular-nums self-center"
+						<strong class="text-base text-fg tabular-nums"
 							>{{ profile().followerCount }}</strong
 						>
-						<span class="self-center"
+						<span
 							>{{ profile().followerCount === 1 ? 'follower' :
 							'followers' }}</span
 						>
 					</a>
 					<a
-						class="tap-area inline-flex items-baseline gap-1.5 h-10 px-3 rounded-card bg-canvas/50 border border-white/10 backdrop-blur-md text-sm text-white/70 no-underline transition hover:text-white hover:border-white/30"
+						uiButton
+						variant="secondary"
+						size="lg"
+						class="!bg-surface/70 backdrop-blur h-10 tap:min-h-[44px] !text-fg-secondary hover:!text-fg"
 						[routerLink]="['/user', user().username, 'following']"
 					>
-						<strong
-							class="text-base text-white tabular-nums self-center"
+						<strong class="text-base text-fg tabular-nums"
 							>{{ profile().followingCount }}</strong
 						>
-						<span class="self-center">following</span>
+						<span>following</span>
 					</a>
 
 					<span class="hidden sm:block flex-1"></span>
 
 					@if (isSelf()) {
 					<a
+						uiButton
+						variant="secondary"
+						size="lg"
 						routerLink="/settings/profile"
-						class="inline-flex items-center gap-1.5 h-10 tap:min-h-[44px] px-4 rounded-card bg-canvas/50 border border-white/15 backdrop-blur-md text-sm font-semibold text-white no-underline transition hover:border-white/40 hover:text-white"
+						class="!bg-surface/70 backdrop-blur h-10 tap:min-h-[44px] font-semibold"
 					>
 						<span
 							aria-hidden="true"
@@ -136,9 +143,12 @@
 					</a>
 					} @else if (isLoggedIn()) {
 					<button
+						uiButton
+						size="lg"
 						type="button"
-						class="inline-flex items-center gap-1.5 h-10 tap:min-h-[44px] min-w-[8.5rem] justify-center px-5 rounded-card text-sm font-semibold cursor-pointer transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-						[class]="profile().isFollowing || profile().hasPendingRequest ? 'bg-canvas/50 border border-white/15 backdrop-blur-md text-white hover:border-white/40' : 'bg-brand-solid border-0 text-white shadow-lg shadow-brand/30 hover:bg-brand-solid-hover'"
+						class="h-10 tap:min-h-[44px] min-w-[8.5rem] font-semibold"
+						[variant]="isFollowEngaged() ? 'secondary' : 'primary'"
+						[class]="isFollowEngaged() ? '!bg-surface/70 backdrop-blur' : 'shadow-lg shadow-brand/30'"
 						[disabled]="togglingFollow()"
 						[attr.aria-pressed]="profile().isFollowing"
 						[title]="profile().hasPendingRequest ? 'Cancel follow request' : ''"
@@ -153,8 +163,11 @@
 					</button>
 					} @else {
 					<a
+						uiButton
+						variant="primary"
+						size="lg"
 						routerLink="/login"
-						class="inline-flex items-center gap-1.5 h-10 tap:min-h-[44px] px-5 rounded-card bg-brand-solid text-white text-sm font-semibold no-underline shadow-lg shadow-brand/30 transition hover:bg-brand-solid-hover hover:text-white"
+						class="h-10 tap:min-h-[44px] font-semibold shadow-lg shadow-brand/30"
 					>
 						<span
 							aria-hidden="true"
@@ -165,8 +178,11 @@
 					</a>
 					}
 					<button
+						uiButton
+						variant="secondary"
+						size="lg"
 						type="button"
-						class="inline-flex items-center justify-center w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] rounded-card bg-canvas/50 border border-white/15 backdrop-blur-md text-white/80 cursor-pointer transition hover:text-white hover:border-white/40"
+						class="!bg-surface/70 backdrop-blur h-10 tap:min-h-[44px] w-10 !p-0 tap:min-w-[44px] !text-fg-secondary hover:!text-fg"
 						aria-label="Share profile"
 						title="Copy profile link"
 						(click)="shared.emit()"

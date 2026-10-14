@@ -27,7 +27,8 @@
 			>group</span
 		>
 		@if (isLoading()) {
-		<span>Loading connections…</span>
+		<ui-skeleton variant="text" class="block w-48" />
+		<span class="sr-only">Loading connections…</span>
 		} @else if (kind === 'followers') {
 		<span
 			><span class="font-semibold text-fg tabular-nums"

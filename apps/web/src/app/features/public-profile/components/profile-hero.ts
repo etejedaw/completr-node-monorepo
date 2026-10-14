@@ -9,15 +9,10 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { isPremiumRole } from "../../../core/utils/premium";
+import { elevatedRoleBadge } from "../../../core/utils/role-badge";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
-import { UiAvatar } from "../../../shared/ui";
+import { UiAvatar, UiButton } from "../../../shared/ui";
 import { type PublicProfile } from "../public-profile.service";
-
-const ROLE_BADGES: Record<string, { label: string; className: string }> = {
-	admin: { label: "Admin", className: "bg-danger/20 text-danger" },
-	moderator: { label: "Mod", className: "bg-info/20 text-info" },
-	premium: { label: "Premium", className: "bg-premium/20 text-premium" }
-};
 
 const MEMBER_SINCE_FORMAT = new Intl.DateTimeFormat("en", {
 	month: "long",
@@ -26,7 +21,7 @@ const MEMBER_SINCE_FORMAT = new Intl.DateTimeFormat("en", {
 
 @Component({
 	selector: "app-profile-hero",
-	imports: [RouterLink, CoverUrlPipe, UiAvatar],
+	imports: [RouterLink, CoverUrlPipe, UiAvatar, UiButton],
 	templateUrl: "./profile-hero.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -53,11 +48,14 @@ export class ProfileHero {
 	protected readonly isPremium = computed(() =>
 		isPremiumRole(this.user().role)
 	);
-	protected readonly roleBadge = computed(
-		() => ROLE_BADGES[this.user().role] ?? null
+	protected readonly roleBadge = computed(() =>
+		elevatedRoleBadge(this.user().role)
 	);
 	protected readonly memberSince = computed(() =>
 		MEMBER_SINCE_FORMAT.format(new Date(this.user().createdAt))
+	);
+	protected readonly isFollowEngaged = computed(
+		() => this.profile().isFollowing || this.profile().hasPendingRequest
 	);
 	protected readonly followLabel = computed(() => {
 		const profile = this.profile();
