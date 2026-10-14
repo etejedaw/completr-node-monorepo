@@ -239,6 +239,7 @@ Reglas:
 - Default: 300 requests/min por usuario autenticado.
 - `admin` y `moderator` están exentos.
 - Limites diferenciados por tipo de endpoint: público (más restrictivo), usuario (medio), auth (mínimo).
+- `authLimiter` (`POST /auth/login`, `/auth/refresh` y `PATCH /auth/password`): 5 por minuto; al superarlos, bloqueo de 15 minutos. `registerLimiter` (`/auth/register` y alta de usuarios desde Admin): 3 por minuto. Valores en `apps/api/src/common/config/rate-limiter.config.ts`.
 
 ---
 
