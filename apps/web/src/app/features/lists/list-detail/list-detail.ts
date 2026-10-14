@@ -117,6 +117,7 @@ export class ListDetail implements OnInit {
 		index: number;
 	} | null>(null);
 	protected readonly skeletonRange = [0, 1, 2, 3, 4];
+	protected readonly searchSkeletonRows = [0, 1, 2];
 	protected readonly heroPosters = computed(() =>
 		(this.list()?.items ?? []).map(item => ({
 			src: item.game.backgroundUrl,

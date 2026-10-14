@@ -282,16 +282,34 @@
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>
-	@if (isSearching()) {
-	<p class="m-0 mt-3 text-sm text-fg-muted">Searching…</p>
-	} @else if (isSearchingOnline()) {
-	<p class="m-0 mt-3 flex items-center gap-2 text-sm text-fg-muted">
-		<span aria-hidden="true" class="material-icons text-base animate-spin"
-			>autorenew</span
-		>
-		Not in Completr yet — searching online…
+	@if (isSearching() || isSearchingOnline()) {
+	<p
+		class="m-0 mt-3 text-sm text-fg-muted"
+		[class.sr-only]="isSearching()"
+		role="status"
+	>
+		{{ isSearching() ? "Searching…" : "Not in Completr yet — searching
+		online…" }}
 	</p>
-	} @if (searchResults().length > 0) {
+	<ul
+		class="list-none m-0 mt-3 p-0 max-w-2xl divide-y divide-line"
+		aria-hidden="true"
+	>
+		@for (row of searchSkeletonRows; track row) {
+		<li class="min-h-[52px] flex items-center gap-3 px-2 py-2">
+			<ui-skeleton
+				variant="rect"
+				class="block w-8 aspect-[2/3] shrink-0 [&>span]:h-full [&>span]:rounded"
+			/>
+			<ui-skeleton variant="text" class="block flex-1 max-w-[50%]" />
+			<ui-skeleton
+				variant="circle"
+				class="block w-5 h-5 ml-auto shrink-0 [&>span]:h-full"
+			/>
+		</li>
+		}
+	</ul>
+	} @else if (searchResults().length > 0) {
 	<ul class="list-none m-0 mt-3 p-0 max-w-2xl divide-y divide-line">
 		@for (game of searchResults(); track game.id) { @let alreadyInList =
 		isGameInList(game.id);
