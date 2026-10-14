@@ -113,6 +113,7 @@ export function gameFriendActivitySerializer(entry: Backlog) {
 		username: entry.User!.username,
 		name: entry.User!.name,
 		avatarUrl: entry.User!.avatarUrl ?? null,
+		role: entry.User!.role,
 		status: entry.status,
 		finishedAt: entry.finishedAt ?? null,
 		userRating: entry.userRating ?? null
@@ -124,6 +125,7 @@ export function gamePlayerSerializer(entry: Backlog) {
 		username: entry.User!.username,
 		name: entry.User!.name,
 		avatarUrl: entry.User!.avatarUrl ?? null,
+		role: entry.User!.role,
 		status: entry.status
 	};
 }

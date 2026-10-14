@@ -3,6 +3,7 @@ import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { type Game } from "../games/game.model";
 import { type Platform } from "../platforms/platform.model";
+import { type UserRole } from "../users/user-role.type";
 
 export const BACKLOG_STATUSES = [
 	"not_started",
@@ -40,6 +41,7 @@ class Backlog extends Model {
 		username: string;
 		name: string;
 		avatarUrl?: string;
+		role: UserRole;
 	};
 }
 
