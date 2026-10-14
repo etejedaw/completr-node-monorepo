@@ -11,6 +11,10 @@ import { injectDialogRef } from "ng-primitives/dialog";
 
 import { type List } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
+import {
+	ChipGroup,
+	type ChipOption
+} from "../../../shared/components/chip-group/chip-group";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import {
 	UiButton,
@@ -19,8 +23,6 @@ import {
 	UiFormField,
 	UiInput,
 	UiLabel,
-	UiRadioGroup,
-	UiRadioItem,
 	UiSwitch,
 	UiTextarea
 } from "../../../shared/ui";
@@ -36,10 +38,13 @@ interface SourceOption {
 	label: string;
 }
 
+type SourceField = "scoreSource" | "durationSource";
+
 interface SourceGroup {
-	field: "scoreSource" | "durationSource";
+	field: SourceField;
 	label: string;
-	options: readonly SourceOption[];
+	options: readonly ChipOption[];
+	selected: readonly string[];
 }
 
 const DURATION_SOURCES: readonly SourceOption[] = [
@@ -51,6 +56,7 @@ const DURATION_SOURCES: readonly SourceOption[] = [
 @Component({
 	selector: "app-list-modal",
 	imports: [
+		ChipGroup,
 		DialogDeleteAction,
 		FormField,
 		UiButton,
@@ -60,8 +66,6 @@ const DURATION_SOURCES: readonly SourceOption[] = [
 		UiTextarea,
 		UiFormField,
 		UiLabel,
-		UiRadioGroup,
-		UiRadioItem,
 		UiSwitch
 	],
 	templateUrl: "./list-modal.html",
@@ -75,16 +79,12 @@ export class ListModal implements OnInit {
 			.map(source => ({ value: source.code, label: source.name }))
 	);
 	protected readonly sourceGroups = computed<SourceGroup[]>(() => [
-		{
-			field: "scoreSource",
-			label: "Score source",
-			options: this.scoreSourceOptions()
-		},
-		{
-			field: "durationSource",
-			label: "Duration source",
-			options: DURATION_SOURCES
-		}
+		this.sourceGroup(
+			"scoreSource",
+			"Score source",
+			this.scoreSourceOptions()
+		),
+		this.sourceGroup("durationSource", "Duration source", DURATION_SOURCES)
 	]);
 
 	private readonly listsService = inject(ListsService);
@@ -114,6 +114,29 @@ export class ListModal implements OnInit {
 		required(path.scoreSource);
 		required(path.durationSource);
 	});
+
+	protected setSource(field: SourceField, values: readonly string[]) {
+		const [value] = values;
+		if (value) this.form[field]().value.set(value);
+	}
+
+	private sourceGroup(
+		field: SourceField,
+		label: string,
+		options: readonly SourceOption[]
+	): SourceGroup {
+		const selected = this.form[field]().value();
+		return {
+			field,
+			label,
+			selected: [selected],
+			options: options.map(option =>
+				option.value === selected
+					? { ...option, icon: "check" }
+					: option
+			)
+		};
+	}
 
 	ngOnInit() {
 		this.scoreSourcesService.load();

@@ -61,8 +61,7 @@
 		</div>
 
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-3">
-			@for (group of sourceGroups(); track group.field) { @let field =
-			form[group.field];
+			@for (group of sourceGroups(); track group.field) {
 			<fieldset class="m-0 mb-4 p-0 border-0 min-w-0">
 				<legend
 					class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
@@ -70,29 +69,14 @@
 					{{ group.label }}
 					<span class="text-danger font-bold">*</span>
 				</legend>
-				<div
-					uiRadioGroup
-					orientation="horizontal"
-					class="flex flex-wrap gap-1.5"
-					[attr.aria-label]="group.label"
-					[value]="field().value()"
-					(valueChange)="field().value.set($any($event))"
-				>
-					@for (option of group.options; track option.value) {
-					<button
-						type="button"
-						uiRadioItem
-						class="inline-flex items-center gap-1 min-h-[32px] max-md:min-h-[44px] tap:min-h-[44px] px-3 rounded-full border text-xs font-medium cursor-pointer transition bg-input-bg border-line text-fg-secondary hover:border-brand hover:text-brand data-[checked]:bg-brand-subtle data-[checked]:border-brand data-[checked]:text-brand data-[focus-visible]:outline data-[focus-visible]:outline-2 data-[focus-visible]:outline-brand data-[focus-visible]:outline-offset-2"
-						[value]="option.value"
-					>
-						@if (field().value() === option.value) {
-						<span aria-hidden="true" class="material-icons text-sm"
-							>check</span
-						>
-						} {{ option.label }}
-					</button>
-					}
-				</div>
+				<app-chip-group
+					mode="single"
+					[allowEmpty]="false"
+					[label]="group.label"
+					[options]="group.options"
+					[value]="group.selected"
+					(valueChange)="setSource(group.field, $event)"
+				/>
 			</fieldset>
 			}
 		</div>
