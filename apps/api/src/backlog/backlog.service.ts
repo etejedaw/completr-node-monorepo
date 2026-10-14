@@ -333,7 +333,22 @@ export interface BacklogStats {
 	longestPlayed: BacklogHighlight | null;
 	bestPersonalRatio: BacklogHighlight | null;
 	highestRated: BacklogHighlight | null;
+	ratingDistribution: RatingBucket[];
+	completionsByMonth: MonthlyCount[];
 }
+
+export interface RatingBucket {
+	stars: number;
+	count: number;
+}
+
+export interface MonthlyCount {
+	month: string;
+	count: number;
+}
+
+const RATING_STARS = [5, 4, 3, 2, 1];
+const COMPLETION_TREND_MONTHS = 12;
 
 const HIGHLIGHT_GAME_ATTRS = ["id", "code", "title", "backgroundUrl"];
 
@@ -370,6 +385,101 @@ function toNumberOrNull(value: unknown): number | null {
 	if (value === null || value === undefined) return null;
 	const n = Number(value);
 	return Number.isFinite(n) ? n : null;
+}
+
+async function countRatingsByStars(
+	baseWhere: Record<string, unknown>
+): Promise<RatingBucket[]> {
+	const starsExpression = fn("LEAST", 5, fn("CEIL", col("userRating")));
+	const rows = (await Backlog.findAll({
+		where: { [Op.and]: [baseWhere, { userRating: { [Op.gt]: 0 } }] },
+		attributes: [
+			[starsExpression, "stars"],
+			[fn("COUNT", col("id")), "count"]
+		],
+		group: [starsExpression],
+		raw: true
+	})) as unknown as { stars: unknown; count: unknown }[];
+
+	const countByStars = new Map(
+		rows.map(row => [Number(row.stars), Number(row.count)])
+	);
+	return RATING_STARS.map(stars => ({
+		stars,
+		count: countByStars.get(stars) ?? 0
+	}));
+}
+
+function toMonthKey(date: Date): string {
+	return date.toISOString().slice(0, 7);
+}
+
+function toDateOnly(date: Date): string {
+	return date.toISOString().slice(0, 10);
+}
+
+function monthStartsEndingAt(lastMonth: Date, count: number): Date[] {
+	return Array.from(
+		{ length: count },
+		(_, index) =>
+			new Date(
+				Date.UTC(
+					lastMonth.getUTCFullYear(),
+					lastMonth.getUTCMonth() - (count - 1 - index),
+					1
+				)
+			)
+	);
+}
+
+async function findLatestCompletionDate(
+	completedWhere: Record<string, unknown>
+): Promise<Date | null> {
+	const row = (await Backlog.findOne({
+		where: completedWhere,
+		attributes: [[fn("MAX", col("finishedAt")), "latest"]],
+		raw: true
+	})) as unknown as { latest: string | null } | null;
+	return row?.latest ? new Date(`${row.latest}T00:00:00Z`) : null;
+}
+
+async function countCompletionsByMonth(
+	baseWhere: Record<string, unknown>
+): Promise<MonthlyCount[]> {
+	const completedWhere = {
+		[Op.and]: [
+			baseWhere,
+			{ status: "completed", finishedAt: { [Op.not]: null } }
+		]
+	};
+	const latest = await findLatestCompletionDate(completedWhere);
+	if (!latest) return [];
+
+	const months = monthStartsEndingAt(latest, COMPLETION_TREND_MONTHS);
+	const firstMonthStart = toDateOnly(months[0] ?? latest);
+	const monthExpression = fn("TO_CHAR", col("finishedAt"), "YYYY-MM");
+	const rows = (await Backlog.findAll({
+		where: {
+			[Op.and]: [
+				completedWhere,
+				{ finishedAt: { [Op.gte]: firstMonthStart } }
+			]
+		},
+		attributes: [
+			[monthExpression, "month"],
+			[fn("COUNT", col("id")), "count"]
+		],
+		group: [monthExpression],
+		raw: true
+	})) as unknown as { month: string; count: unknown }[];
+
+	const countByMonth = new Map(
+		rows.map(row => [row.month, Number(row.count)])
+	);
+	return months.map(start => {
+		const month = toMonthKey(start);
+		return { month, count: countByMonth.get(month) ?? 0 };
+	});
 }
 
 export async function computeBacklogStats(
@@ -428,30 +538,36 @@ export async function computeBacklogStats(
 	const completed = Number(safe.completed ?? 0);
 	const abandoned = Number(safe.abandoned ?? 0);
 
-	const [longestEntry, bestRatioEntry, highestRatedEntry] = await Promise.all(
-		[
-			findHighlight(
-				baseWhere,
-				{ realDuration: { [Op.not]: null, [Op.gt]: 0 } },
-				[literal(`"Backlog"."realDuration" DESC`)]
-			),
-			findHighlight(
-				baseWhere,
-				{
-					realDuration: { [Op.not]: null, [Op.gt]: 0 },
-					score: { [Op.not]: null, [Op.gt]: 0 }
-				},
-				[
-					literal(
-						`("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) DESC NULLS LAST`
-					)
-				]
-			),
-			findHighlight(baseWhere, { userRating: { [Op.not]: null } }, [
-				literal(`"Backlog"."userRating" DESC`)
-			])
-		]
-	);
+	const [
+		longestEntry,
+		bestRatioEntry,
+		highestRatedEntry,
+		ratingDistribution,
+		completionsByMonth
+	] = await Promise.all([
+		findHighlight(
+			baseWhere,
+			{ realDuration: { [Op.not]: null, [Op.gt]: 0 } },
+			[literal(`"Backlog"."realDuration" DESC`)]
+		),
+		findHighlight(
+			baseWhere,
+			{
+				realDuration: { [Op.not]: null, [Op.gt]: 0 },
+				score: { [Op.not]: null, [Op.gt]: 0 }
+			},
+			[
+				literal(
+					`("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) DESC NULLS LAST`
+				)
+			]
+		),
+		findHighlight(baseWhere, { userRating: { [Op.not]: null } }, [
+			literal(`"Backlog"."userRating" DESC`)
+		]),
+		countRatingsByStars(baseWhere),
+		countCompletionsByMonth(baseWhere)
+	]);
 
 	const bestPersonalRatioValue =
 		bestRatioEntry &&
@@ -488,7 +604,9 @@ export async function computeBacklogStats(
 		highestRated: toHighlight(
 			highestRatedEntry,
 			highestRatedEntry?.userRating ?? null
-		)
+		),
+		ratingDistribution,
+		completionsByMonth
 	};
 }
 

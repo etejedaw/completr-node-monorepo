@@ -20,7 +20,9 @@ export const STAT_KEYS = [
 	"longestPlayed",
 	"bestPersonalRatio",
 	"highestRated",
-	"countByStatus"
+	"countByStatus",
+	"ratingDistribution",
+	"completionsByMonth"
 ] as const;
 export type StatKey = (typeof STAT_KEYS)[number];
 
