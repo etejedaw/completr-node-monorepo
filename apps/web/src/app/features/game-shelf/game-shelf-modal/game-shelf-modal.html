@@ -8,12 +8,7 @@
 	(closed)="onClose()"
 >
 	@if (error()) {
-	<div
-		role="alert"
-		class="bg-danger/10 border border-danger/25 text-danger px-3 py-2 rounded-card mb-4 text-[0.8125rem]"
-	>
-		{{ error() }}
-	</div>
+	<ui-alert class="mb-4">{{ error() }}</ui-alert>
 	} @if (isEdit() && viewMode() === "summary") { @let e = entry!;
 	<div class="flex items-start gap-4">
 		<app-game-poster
