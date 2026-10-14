@@ -1,6 +1,6 @@
 @let entry = item();
 <article
-	class="group relative flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3 bg-canvas transition hover:bg-white/[0.03]"
+	class="group relative flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3 bg-canvas transition hover:bg-surface"
 >
 	<span
 		class="shrink-0 w-6 sm:w-8 text-right font-display text-lg sm:text-xl font-bold text-fg-muted tabular-nums"
@@ -196,8 +196,9 @@
 	@if (editable()) {
 	<div class="shrink-0 flex items-center gap-0.5">
 		<button
+			uiIconButton
 			type="button"
-			class="sm:hidden w-[44px] h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition active:bg-white/10"
+			class="sm:!hidden tap:min-w-[44px] tap:min-h-[44px] !rounded-full active:!bg-surface-hover"
 			aria-haspopup="dialog"
 			[attr.aria-label]="'More actions for ' + entry.game.title"
 			(click)="moreRequested.emit()"
@@ -210,8 +211,9 @@
 			class="max-sm:hidden flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100 transition-opacity"
 		>
 			<button
+				uiIconButton
 				type="button"
-				class="w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface disabled:opacity-30 disabled:cursor-default"
+				class="tap:min-w-[44px] tap:min-h-[44px] !rounded-full disabled:!opacity-30 disabled:!cursor-default"
 				[disabled]="isFirst()"
 				[attr.aria-label]="'Move ' + entry.game.title + ' up'"
 				title="Move up"
@@ -222,8 +224,9 @@
 				>
 			</button>
 			<button
+				uiIconButton
 				type="button"
-				class="w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface disabled:opacity-30 disabled:cursor-default"
+				class="tap:min-w-[44px] tap:min-h-[44px] !rounded-full disabled:!opacity-30 disabled:!cursor-default"
 				[disabled]="isLast()"
 				[attr.aria-label]="'Move ' + entry.game.title + ' down'"
 				title="Move down"
@@ -234,8 +237,10 @@
 				>
 			</button>
 			<button
+				uiIconButton
+				tone="danger"
 				type="button"
-				class="w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-danger hover:bg-danger/10"
+				class="tap:min-w-[44px] tap:min-h-[44px] !rounded-full"
 				[attr.aria-label]="'Remove ' + entry.game.title + ' from the list'"
 				title="Remove from list"
 				(click)="remove.emit()"
