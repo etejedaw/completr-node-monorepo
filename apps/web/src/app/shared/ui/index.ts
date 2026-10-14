@@ -1,3 +1,5 @@
+export type { UiAlertTone } from "./alert/ui-alert";
+export { UiAlert } from "./alert/ui-alert";
 export { UiAvatar } from "./avatar/ui-avatar";
 export { UiBottomSheet } from "./bottom-sheet/ui-bottom-sheet";
 export type { UiButtonSize, UiButtonVariant } from "./button/ui-button";
@@ -24,6 +26,7 @@ export type {
 export { UiIconButton } from "./icon-button/ui-icon-button";
 export type { UiInputSize } from "./input/ui-input";
 export { UiInput } from "./input/ui-input";
+export { UiFieldLabel } from "./label/ui-field-label";
 export { UiPagination } from "./pagination/ui-pagination";
 export { UiPremiumBadge } from "./premium-badge/ui-premium-badge";
 export { UiProgress } from "./progress/ui-progress";
