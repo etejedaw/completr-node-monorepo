@@ -11,6 +11,7 @@ export interface ChipOption {
 	label: string;
 	icon?: string;
 	count?: number | null;
+	hint?: string;
 }
 
 export type ChipGroupMode = "multiple" | "single";
@@ -33,7 +34,7 @@ const ARROW_STEP: Record<string, number> = {
 			@for (option of options(); track option.value; let index = $index) {
 				<button
 					type="button"
-					class="inline-flex items-center gap-1.5 px-3 py-1.5 tap:min-h-[44px] rounded-full border text-xs font-medium font-sans cursor-pointer transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+					class="inline-flex items-center gap-1.5 px-3 py-1.5 tap:min-h-[44px] tap:min-w-[44px] justify-center rounded-full border text-xs font-medium font-sans cursor-pointer transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 					[class]="
 						isSelected(option.value)
 							? 'border-brand bg-brand-subtle text-brand'
@@ -48,6 +49,7 @@ const ARROW_STEP: Record<string, number> = {
 					"
 					[attr.tabindex]="tabIndexFor(option.value, index)"
 					[attr.data-chip-value]="option.value"
+					[attr.title]="option.hint ?? null"
 					(click)="toggle(option.value)"
 				>
 					@if (option.icon) {
