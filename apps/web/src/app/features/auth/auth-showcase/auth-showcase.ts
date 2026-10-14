@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from "@angular/core";
 
+import { AppLogo } from "../../../shared/components/app-logo/app-logo";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 
 const SHOWCASE_TITLES = [
@@ -23,7 +24,7 @@ const SHOWCASE_TITLES = [
 
 @Component({
 	selector: "app-auth-showcase",
-	imports: [GamePoster],
+	imports: [AppLogo, GamePoster],
 	template: `
 		<div
 			aria-hidden="true"
@@ -55,16 +56,7 @@ const SHOWCASE_TITLES = [
 		<div
 			class="relative h-full flex flex-col justify-end p-6 sm:p-10 lg:p-14"
 		>
-			<div class="flex items-center gap-2.5 mb-auto">
-				<span
-					class="flex items-center justify-center w-9 h-9 rounded-lg font-display font-bold text-lg text-white bg-brand-solid shadow-lg shadow-brand/30"
-					>C</span
-				>
-				<span
-					class="font-display text-xl font-bold tracking-tight text-fg"
-					>Completr</span
-				>
-			</div>
+			<app-logo size="lg" class="mb-auto" />
 
 			<div
 				class="hidden lg:flex items-center gap-4 w-fit mb-10 p-3 pr-6 rounded-card bg-surface/80 backdrop-blur-md border border-line shadow-2xl shadow-black/60 motion-safe:animate-[uiFadeUp_700ms_cubic-bezier(0.16,1,0.3,1)_both]"
