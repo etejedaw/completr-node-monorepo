@@ -5,7 +5,6 @@ import {
 	CdkDropList,
 	moveItemInArray
 } from "@angular/cdk/drag-drop";
-import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -34,9 +33,12 @@ import {
 import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
-import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
+import {
+	BacklogEntryCard,
+	type BacklogStatusOption
+} from "../../../shared/components/backlog-entry-card/backlog-entry-card";
+import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
 import { GameFilterPanel } from "../../../shared/components/game-filter-panel/game-filter-panel";
-import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import {
@@ -45,7 +47,6 @@ import {
 	type PickerOption
 } from "../../../shared/components/option-picker/option-picker";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
-import { FloatingXScrollbar } from "../../../shared/directives/floating-x-scrollbar";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import {
@@ -55,6 +56,7 @@ import {
 	UiEmptyState,
 	UiIconButton,
 	UiInput,
+	UiNoMatches,
 	UiPagination,
 	UiSearchBar,
 	UiSelect,
@@ -63,7 +65,8 @@ import {
 	UiTextarea
 } from "../../../shared/ui";
 import {
-	backlogStatusClass,
+	BACKLOG_STATUS_FILTERS,
+	BACKLOG_STATUS_PICKER_OPTIONS,
 	backlogStatusIcon,
 	backlogStatusIconColor,
 	backlogStatusLabel
@@ -80,6 +83,7 @@ import {
 	type BacklogModalData,
 	type BacklogModalResult
 } from "../backlog-modal/backlog-modal";
+import { BacklogTable } from "../components/backlog-table/backlog-table";
 import { savedFilterColorHex } from "../saved-filter-appearance";
 import {
 	DEFAULT_ENABLED_STATS,
@@ -109,32 +113,26 @@ interface RatingSheetState {
 	value: number | null;
 }
 
-const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
-	"playing",
-	"endless",
-	"not_started"
-]);
-
 const MIXED_STATUS_VALUE = "__mixed__";
 
 @Component({
 	selector: "app-backlog-list",
 	imports: [
-		DatePipe,
+		BacklogTable,
+		BacklogStatusPills,
 		OptionPicker,
 		BacklogCalendar,
 		SurpriseMe,
 		StarRating,
-		GameTitleCell,
 		BacklogEntryCard,
 		LibraryHero,
 		SwipeActions,
 		UiBottomSheet,
-		FloatingXScrollbar,
 		RouterLink,
 		UiButton,
 		UiDialog,
 		UiEmptyState,
+		UiNoMatches,
 		UiIconButton,
 		UiInput,
 		UiPagination,
@@ -211,14 +209,9 @@ export class BacklogList implements OnInit {
 		return "filter_list";
 	});
 
-	protected readonly statusPickerOptions = computed<PickerOption[]>(() => [
-		{ value: "", label: "All games", icon: "apps" },
-		...this.statusFilters.map(status => ({
-			value: status.value,
-			label: status.label,
-			icon: this.statusIcon(status.value as BacklogStatus),
-			iconClass: this.statusIconColor(status.value as BacklogStatus)
-		}))
+	protected readonly statusPickerOptions = BACKLOG_STATUS_PICKER_OPTIONS;
+	protected readonly selectedStatuses = computed(() => [
+		...this.activeStatuses()
 	]);
 
 	protected readonly statusPickerValue = computed(() => {
@@ -568,15 +561,9 @@ export class BacklogList implements OnInit {
 		this.activeFilterId.set(null);
 	}
 
-	private readonly statuses: { label: string; value: string }[] = [
-		{ label: "Not Started", value: "not_started" },
-		{ label: "Playing", value: "playing" },
-		{ label: "Completed", value: "completed" },
-		{ label: "Endless", value: "endless" },
-		{ label: "Abandoned", value: "abandoned" }
+	protected readonly statusFilters: BacklogStatusOption[] = [
+		...BACKLOG_STATUS_FILTERS
 	];
-
-	protected readonly statusFilters = this.statuses;
 
 	ngOnInit() {
 		this.setupSearch();
@@ -794,13 +781,6 @@ export class BacklogList implements OnInit {
 		this.applyFilters();
 	}
 
-	isQuickStatus(status: string | null): boolean {
-		const active = this.activeStatuses();
-		return status === null
-			? active.size === 0
-			: active.size === 1 && active.has(status);
-	}
-
 	isStatusActive(status: string): boolean {
 		return this.activeStatuses().has(status);
 	}
@@ -991,27 +971,9 @@ export class BacklogList implements OnInit {
 		this.loadBacklog();
 	}
 
-	ariaSortFor(column: string): "ascending" | "descending" | "none" {
-		if (this.sortBy() !== column) return "none";
-		return this.sortOrder() === "asc" ? "ascending" : "descending";
-	}
-
-	protected statusClass = backlogStatusClass;
 	protected statusLabel = backlogStatusLabel;
 	protected statusIcon = backlogStatusIcon;
 	protected statusIconColor = backlogStatusIconColor;
-
-	canChangeStatus(status: BacklogStatus): boolean {
-		return (
-			status === "not_started" ||
-			status === "playing" ||
-			status === "endless"
-		);
-	}
-
-	canQuickRate(entry: BacklogEntry): boolean {
-		return entry.status !== "not_started" && entry.userRating == null;
-	}
 
 	onQuickRate(entry: BacklogEntry, rating: number | null) {
 		if (rating == null) return;
@@ -1297,13 +1259,6 @@ export class BacklogList implements OnInit {
 		if (next.has(entry.id)) next.delete(entry.id);
 		else next.add(entry.id);
 		this.flippedEntryIds.set(next);
-	}
-
-	protected showsProgress(entry: BacklogEntry): boolean {
-		return (
-			!!entry.latestProgress &&
-			PROGRESS_VISIBLE_STATUSES.has(entry.status)
-		);
 	}
 
 	openCreate() {
