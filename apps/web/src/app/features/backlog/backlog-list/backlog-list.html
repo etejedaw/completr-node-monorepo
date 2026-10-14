@@ -92,54 +92,11 @@
 			/>
 			}
 
-			<div
-				role="group"
-				aria-label="View mode"
-				class="flex gap-0.5 bg-input-bg border border-line rounded-card p-1"
-			>
-				<button
-					type="button"
-					class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 tap:min-h-[44px] tap:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
-					[class.!bg-surface-hover]="viewMode() === 'diary'"
-					[class.!text-fg]="viewMode() === 'diary'"
-					[attr.aria-pressed]="viewMode() === 'diary'"
-					(click)="setViewMode('diary')"
-					title="Diary view"
-				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>view_agenda</span
-					>
-					<span class="max-lg:sr-only">Diary</span>
-				</button>
-				<button
-					type="button"
-					class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 tap:min-h-[44px] tap:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
-					[class.!bg-surface-hover]="viewMode() === 'hardcore'"
-					[class.!text-fg]="viewMode() === 'hardcore'"
-					[attr.aria-pressed]="viewMode() === 'hardcore'"
-					(click)="setViewMode('hardcore')"
-					title="Hardcore (table) view"
-				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>table_rows</span
-					>
-					<span class="max-lg:sr-only">Hardcore</span>
-				</button>
-				<button
-					type="button"
-					class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 tap:min-h-[44px] tap:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
-					[class.!bg-surface-hover]="viewMode() === 'calendar'"
-					[class.!text-fg]="viewMode() === 'calendar'"
-					[attr.aria-pressed]="viewMode() === 'calendar'"
-					(click)="setViewMode('calendar')"
-					title="Calendar view"
-				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>calendar_month</span
-					>
-					<span class="max-lg:sr-only">Calendar</span>
-				</button>
-			</div>
+			<app-view-mode-toggle
+				[options]="viewModes"
+				[value]="viewMode()"
+				(valueChange)="setViewMode($event)"
+			/>
 
 			<div class="flex items-center gap-2">
 				<button
@@ -158,7 +115,7 @@
 					Filters & stats @if (activeFiltersCount() +
 					enabledStatsCount() > 0) {
 					<span
-						class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none"
+						class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-solid text-white text-[0.625rem] font-bold leading-none"
 						>{{ activeFiltersCount() + enabledStatsCount() }}</span
 					>
 					}
@@ -181,7 +138,7 @@
 					<span class="max-sm:sr-only">Filters</span>
 					@if (activeFiltersCount() > 0) {
 					<span
-						class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none"
+						class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-solid text-white text-[0.625rem] font-bold leading-none"
 						>{{ activeFiltersCount() }}</span
 					>
 					}
@@ -206,7 +163,7 @@
 					<span class="max-sm:sr-only">Stats</span>
 					@if (enabledStatsCount() > 0) {
 					<span
-						class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none"
+						class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-solid text-white text-[0.625rem] font-bold leading-none"
 						>{{ enabledStatsCount() }}</span
 					>
 					}
@@ -636,7 +593,7 @@
 				>
 				Filters @if (activeFiltersCount() > 0) {
 				<span
-					class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none"
+					class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-solid text-white text-[0.625rem] font-bold leading-none"
 					>{{ activeFiltersCount() }}</span
 				>
 				}
@@ -1097,7 +1054,7 @@
 				>
 				Stats @if (isStatsCustom() && enabledStatsCount() > 0) {
 				<span
-					class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand text-white text-[0.625rem] font-bold leading-none"
+					class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-solid text-white text-[0.625rem] font-bold leading-none"
 					>{{ enabledStatsCount() }}</span
 				>
 				}

@@ -47,6 +47,10 @@ import {
 	type PickerOption
 } from "../../../shared/components/option-picker/option-picker";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import {
+	type ViewModeOption,
+	ViewModeToggle
+} from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import {
@@ -115,9 +119,33 @@ interface RatingSheetState {
 
 const MIXED_STATUS_VALUE = "__mixed__";
 
+type BacklogViewMode = "diary" | "hardcore" | "calendar";
+
+const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
+	{
+		value: "diary",
+		label: "Diary",
+		icon: "view_agenda",
+		title: "Diary view"
+	},
+	{
+		value: "hardcore",
+		label: "Hardcore",
+		icon: "table_rows",
+		title: "Hardcore (table) view"
+	},
+	{
+		value: "calendar",
+		label: "Calendar",
+		icon: "calendar_month",
+		title: "Calendar view"
+	}
+];
+
 @Component({
 	selector: "app-backlog-list",
 	imports: [
+		ViewModeToggle,
 		BacklogTable,
 		BacklogStatusPills,
 		OptionPicker,
@@ -292,12 +320,15 @@ export class BacklogList implements OnInit {
 		});
 	});
 
-	protected readonly viewMode = signal<"diary" | "hardcore" | "calendar">(
-		(localStorage.getItem("completr.backlog.viewMode") as
-			"diary" | "hardcore" | "calendar") || "diary"
+	protected readonly viewMode = signal<BacklogViewMode>(
+		(localStorage.getItem(
+			"completr.backlog.viewMode"
+		) as BacklogViewMode) || "diary"
 	);
 
-	setViewMode(mode: "diary" | "hardcore" | "calendar") {
+	protected readonly viewModes = BACKLOG_VIEW_MODES;
+
+	setViewMode(mode: BacklogViewMode) {
 		this.viewMode.set(mode);
 		localStorage.setItem("completr.backlog.viewMode", mode);
 	}

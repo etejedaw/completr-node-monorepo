@@ -46,28 +46,7 @@
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>
-	<div
-		role="group"
-		aria-label="View mode"
-		class="flex gap-0.5 bg-input-bg border border-line rounded-card p-1"
-	>
-		@for (mode of viewModes; track mode.value) {
-		<button
-			type="button"
-			class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 max-sm:h-10 tap:min-h-[44px] tap:min-w-[44px] max-sm:px-3.5 rounded-md text-xs font-medium text-fg-muted cursor-pointer transition hover:text-fg bg-transparent border-0"
-			[class.!bg-surface-hover]="viewMode() === mode.value"
-			[class.!text-fg]="viewMode() === mode.value"
-			[attr.aria-pressed]="viewMode() === mode.value"
-			[title]="mode.label + ' view'"
-			(click)="viewMode.set(mode.value)"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>{{ mode.icon }}</span
-			>
-			<span class="max-lg:sr-only">{{ mode.label }}</span>
-		</button>
-		}
-	</div>
+	<app-view-mode-toggle [options]="viewModes" [(value)]="viewMode" />
 </app-library-toolbar>
 } @if (isLoading()) {
 <app-cover-grid [loading]="true" loadingLabel="Loading shelf" />
