@@ -1,0 +1,140 @@
+<div class="sticky top-0 z-10 bg-sidebar px-5 md:px-6 pb-3">
+	<ui-search-bar [placeholder]="placeholder()" [(value)]="query" />
+</div>
+
+@switch (status()) { @case ("idle") {
+<p class="m-0 px-6 py-10 text-center text-[0.8125rem] text-fg-muted">
+	Type at least 2 characters to search.
+</p>
+} @case ("searching") {
+<p
+	class="m-0 px-6 py-10 flex items-center justify-center gap-2 text-[0.8125rem] text-fg-muted"
+	role="status"
+>
+	<span
+		aria-hidden="true"
+		class="material-icons text-base motion-safe:animate-spin"
+		>autorenew</span
+	>
+	Searching...
+</p>
+} @case ("searchingOnline") {
+<p
+	class="m-0 px-6 py-10 flex items-center justify-center gap-2 text-[0.8125rem] text-brand"
+	role="status"
+>
+	<span
+		aria-hidden="true"
+		class="material-icons text-base motion-safe:animate-spin"
+		>travel_explore</span
+	>
+	Searching online...
+</p>
+} @default { @if (results().length === 0) {
+<div
+	class="flex flex-col items-center text-center gap-2 px-6 py-10"
+	role="status"
+>
+	<span aria-hidden="true" class="material-icons text-3xl text-fg-muted"
+		>search_off</span
+	>
+	<p class="m-0 text-sm font-semibold text-fg">No games found</p>
+	<p class="m-0 text-[0.8125rem] text-fg-muted max-w-[20rem]">
+		{{ emptyHint() }}
+	</p>
+	@if (allowOnline()) {
+	<button
+		uiButton
+		variant="secondary"
+		size="sm"
+		type="button"
+		class="mt-2 min-h-[44px]"
+		[disabled]="onlineSearching()"
+		(click)="searchOnline.emit()"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>travel_explore</span
+		>
+		{{ onlineSearching() ? "Searching online..." : "Search online" }}
+	</button>
+	}
+</div>
+} @else {
+<p class="sr-only" role="status">
+	{{ results().length }} {{ results().length === 1 ? "game" : "games" }} found
+</p>
+<ul class="list-none m-0 px-5 md:px-6 divide-y divide-line">
+	@for (game of results(); track game.id) {
+	<li class="flex items-center gap-3 py-2.5">
+		<app-game-poster
+			class="w-10 aspect-[2/3] shrink-0 rounded ring-1 ring-white/10"
+			[src]="game.backgroundUrl"
+			[title]="game.title"
+			[width]="200"
+			[compact]="true"
+		/>
+		<div class="flex flex-col gap-1 min-w-0 flex-1">
+			<span class="text-[0.8125rem] font-medium text-fg truncate"
+				>{{ game.title }}</span
+			>
+			@if (releaseYear(game) || game.justImported || game.isDlc) {
+			<span class="flex items-center gap-1.5 flex-wrap">
+				@if (releaseYear(game); as year) {
+				<span class="text-[0.6875rem] text-fg-muted tabular-nums"
+					>{{ year }}</span
+				>
+				} @if (game.justImported) {
+				<span
+					class="inline-flex items-center gap-1 px-1.5 py-px rounded-full bg-info/15 text-info text-[0.625rem] font-semibold uppercase tracking-wider"
+					title="Just imported from RAWG"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-[0.75rem]"
+						>cloud_download</span
+					>
+					RAWG
+				</span>
+				} @if (game.isDlc) {
+				<span
+					class="px-1.5 py-px rounded-full bg-brand-subtle text-brand text-[0.625rem] font-semibold uppercase tracking-wider"
+					>DLC</span
+				>
+				}
+			</span>
+			}
+		</div>
+		<button
+			uiButton
+			variant="secondary"
+			size="sm"
+			type="button"
+			class="shrink-0 max-md:min-h-[44px]"
+			[attr.aria-label]="'Select ' + game.title"
+			(click)="picked.emit(game)"
+		>
+			Select
+		</button>
+	</li>
+	}
+</ul>
+@if (allowOnline()) {
+<div class="px-5 md:px-6 pt-1 pb-4">
+	<button
+		type="button"
+		class="w-full min-h-[44px] flex items-center gap-2 px-3 rounded-card border border-dashed border-line bg-transparent text-left text-[0.8125rem] font-medium text-brand cursor-pointer transition hover:border-brand hover:bg-brand-subtle disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+		[disabled]="onlineSearching()"
+		(click)="searchOnline.emit()"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>travel_explore</span
+		>
+		<span class="flex-1 min-w-0 truncate"
+			>{{ onlineSearching() ? "Searching online..." : "Not here? Search
+			online for “" + query().trim() + "”" }}</span
+		>
+	</button>
+</div>
+} @else {
+<div class="pb-4"></div>
+} } } }
