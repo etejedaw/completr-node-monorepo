@@ -1,4 +1,5 @@
 import { type BacklogStatus } from "../../core/models";
+import { type PickerOption } from "../components/option-picker/option-picker";
 
 const STATUS_CLASSES: Record<BacklogStatus, string> = {
 	not_started: "bg-fg-muted/10 text-fg-muted",
@@ -47,3 +48,29 @@ export function backlogStatusIcon(status: BacklogStatus): string {
 export function backlogStatusIconColor(status: BacklogStatus): string {
 	return STATUS_ICON_COLORS[status] ?? "";
 }
+
+const STATUS_FILTER_ORDER: readonly BacklogStatus[] = [
+	"not_started",
+	"playing",
+	"completed",
+	"endless",
+	"abandoned"
+];
+
+export const BACKLOG_STATUS_FILTERS: readonly {
+	label: string;
+	value: BacklogStatus;
+}[] = STATUS_FILTER_ORDER.map(value => ({
+	value,
+	label: STATUS_LABELS[value]
+}));
+
+export const BACKLOG_STATUS_PICKER_OPTIONS: readonly PickerOption[] = [
+	{ value: "", label: "All games", icon: "apps" },
+	...BACKLOG_STATUS_FILTERS.map(filter => ({
+		value: filter.value,
+		label: filter.label,
+		icon: backlogStatusIcon(filter.value),
+		iconClass: backlogStatusIconColor(filter.value)
+	}))
+];
