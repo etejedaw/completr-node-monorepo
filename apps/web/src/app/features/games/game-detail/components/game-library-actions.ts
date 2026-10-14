@@ -7,9 +7,10 @@ import {
 } from "@angular/core";
 
 import { type BacklogEntry } from "../../../../core/models";
+import { UiButton } from "../../../../shared/ui";
 import {
-	backlogStatusClass,
 	backlogStatusIcon,
+	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
 
@@ -28,6 +29,7 @@ interface SecondaryAction {
 
 @Component({
 	selector: "app-game-library-actions",
+	imports: [UiButton],
 	templateUrl: "./game-library-actions.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -51,7 +53,7 @@ export class GameLibraryActions {
 	readonly listsRequested = output<void>();
 	readonly favoriteToggled = output<void>();
 
-	protected readonly statusClass = backlogStatusClass;
+	protected readonly statusIconColor = backlogStatusIconColor;
 	protected readonly statusIcon = backlogStatusIcon;
 	protected readonly statusLabel = backlogStatusLabel;
 

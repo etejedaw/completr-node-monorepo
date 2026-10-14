@@ -7,24 +7,32 @@
 	<div class="flex items-stretch gap-2 flex-1 sm:flex-none">
 		@if (latestRun(); as run) {
 		<button
+			uiButton
+			variant="secondary"
+			size="lg"
 			type="button"
-			class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 h-11 tap:min-h-[44px] px-4 rounded-card border border-white/10 backdrop-blur-md text-sm font-semibold cursor-pointer transition hover:brightness-125 active:scale-[0.98]"
-			[class]="statusClass(run.status)"
-			(click)="openPrimary()"
+			class="flex-1 sm:flex-none h-11 !rounded-card !bg-surface/70 backdrop-blur-md active:scale-[0.98]"
 			[title]="'Open your ' + statusLabel(run.status).toLowerCase() + ' run'"
+			(click)="openPrimary()"
 		>
-			<span aria-hidden="true" class="material-icons text-lg"
-				>{{ statusIcon(run.status) }}</span
+			<span
+				class="inline-flex items-center gap-2"
+				[class]="statusIconColor(run.status)"
 			>
-			{{ statusLabel(run.status) }}
-			<span class="opacity-60 font-medium"
-				>· {{ run.platform.abbreviation }}</span
-			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>{{ statusIcon(run.status) }}</span
+				>
+				{{ statusLabel(run.status) }}
+			</span>
+			<span class="text-fg-muted">· {{ run.platform.abbreviation }}</span>
 		</button>
 		} @else {
 		<button
+			uiButton
+			variant="primary"
+			size="lg"
 			type="button"
-			class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 h-11 tap:min-h-[44px] px-5 rounded-card border-0 bg-brand-solid text-white text-sm font-semibold cursor-pointer shadow-lg shadow-brand/30 transition hover:bg-brand-solid-hover active:scale-[0.98]"
+			class="flex-1 sm:flex-none h-11 !rounded-card shadow-lg shadow-brand/30 active:scale-[0.98]"
 			(click)="openPrimary()"
 		>
 			<span aria-hidden="true" class="material-icons text-lg"
@@ -34,9 +42,12 @@
 		</button>
 		}
 		<button
+			uiButton
+			variant="secondary"
+			size="lg"
 			type="button"
-			class="shrink-0 inline-flex items-center justify-center gap-2 h-11 tap:min-h-[44px] tap:min-w-[44px] rounded-card border backdrop-blur-md text-sm font-medium cursor-pointer transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-			[class]="(favorite() ? 'border-nav-favorites/50 bg-nav-favorites/15 text-nav-favorites' : 'border-white/10 bg-canvas/50 text-white/80 hover:text-white hover:border-white/30') + (variant() === 'full' ? ' w-11 md:w-auto md:px-3.5' : ' w-11')"
+			class="shrink-0 h-11 w-11 !px-0 tap:min-w-[44px] !rounded-card backdrop-blur-md active:scale-95"
+			[class]="(favorite() ? '!border-nav-favorites/50 !bg-nav-favorites/15 !text-nav-favorites' : '!bg-surface/70') + (variant() === 'full' ? ' md:w-auto md:!px-3.5' : '')"
 			[disabled]="togglingFavorite()"
 			[attr.aria-pressed]="favorite()"
 			[attr.aria-label]="favorite() ? 'Remove from favorites' : 'Add to favorites'"
@@ -60,9 +71,11 @@
 		@for (action of secondaryActions(); track action.id) {
 		<li class="flex">
 			<button
+				uiButton
+				variant="secondary"
 				type="button"
-				class="flex-1 inline-flex max-sm:flex-col items-center justify-center gap-1 sm:gap-2 h-16 sm:h-11 tap:min-h-[44px] px-2 sm:px-3.5 rounded-card border backdrop-blur-md text-[0.6875rem] sm:text-sm font-medium cursor-pointer transition active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
-				[class]="action.active ? 'border-white/20 bg-white/10 text-white' : 'border-white/10 bg-canvas/50 text-white/75 hover:text-white hover:border-white/25'"
+				class="flex-1 max-sm:flex-col h-16 sm:h-11 !px-2 sm:!px-3.5 !rounded-card backdrop-blur-md !text-[0.6875rem] sm:!text-sm !whitespace-normal active:scale-[0.97]"
+				[class]="action.active ? '!bg-surface-hover !border-line-hover' : '!bg-surface/70 !text-fg-secondary hover:!text-fg'"
 				[disabled]="action.disabled"
 				[attr.aria-pressed]="action.active"
 				(click)="runSecondary(action.id)"
