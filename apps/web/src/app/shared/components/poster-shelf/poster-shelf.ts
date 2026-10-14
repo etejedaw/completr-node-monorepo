@@ -12,11 +12,13 @@ import {
 } from "@angular/core";
 import { type Params, RouterLink } from "@angular/router";
 
+import { UiIconButton } from "../../ui";
+
 const SCROLL_EDGE_TOLERANCE = 4;
 
 @Component({
 	selector: "app-poster-shelf",
-	imports: [RouterLink],
+	imports: [RouterLink, UiIconButton],
 	template: `
 		<section [attr.aria-labelledby]="headingId">
 			<header class="flex items-end justify-between gap-3 mb-4">
@@ -67,8 +69,9 @@ const SCROLL_EDGE_TOLERANCE = 4;
 						}
 					}
 					<button
+						uiIconButton
 						type="button"
-						class="hidden sm:inline-flex w-9 h-9 items-center justify-center rounded-full bg-surface border border-line text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-30 disabled:cursor-default disabled:hover:border-line disabled:hover:text-fg-secondary"
+						class="!hidden sm:!inline-flex !w-9 !h-9 !rounded-full !bg-surface !border !border-line !text-fg-secondary hover:!border-brand hover:!text-brand disabled:!opacity-30 disabled:!cursor-default disabled:hover:!border-line disabled:hover:!text-fg-secondary"
 						[disabled]="atStart()"
 						[attr.aria-label]="'Scroll ' + heading() + ' back'"
 						(click)="scrollByPage(-1)"
@@ -78,8 +81,9 @@ const SCROLL_EDGE_TOLERANCE = 4;
 						>
 					</button>
 					<button
+						uiIconButton
 						type="button"
-						class="hidden sm:inline-flex w-9 h-9 items-center justify-center rounded-full bg-surface border border-line text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-30 disabled:cursor-default disabled:hover:border-line disabled:hover:text-fg-secondary"
+						class="!hidden sm:!inline-flex !w-9 !h-9 !rounded-full !bg-surface !border !border-line !text-fg-secondary hover:!border-brand hover:!text-brand disabled:!opacity-30 disabled:!cursor-default disabled:hover:!border-line disabled:hover:!text-fg-secondary"
 						[disabled]="atEnd()"
 						[attr.aria-label]="'Scroll ' + heading() + ' forward'"
 						(click)="scrollByPage(1)"
