@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from "@angular/common";
 import {
 	afterNextRender,
 	ChangeDetectionStrategy,
@@ -10,7 +11,7 @@ import {
 } from "@angular/core";
 
 import { type Game } from "../../../core/models";
-import { UiButton, UiSearchBar } from "../../ui";
+import { UiButton, UiSearchBar, UiSkeleton } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
 
 export type GameSearchStatus =
@@ -18,7 +19,7 @@ export type GameSearchStatus =
 
 @Component({
 	selector: "app-game-search-step",
-	imports: [GamePoster, UiButton, UiSearchBar],
+	imports: [GamePoster, NgTemplateOutlet, UiButton, UiSearchBar, UiSkeleton],
 	templateUrl: "./game-search-step.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -34,6 +35,8 @@ export class GameSearchStep {
 	readonly autofocus = input(false);
 	readonly picked = output<Game>();
 	readonly searchOnline = output<void>();
+
+	protected readonly skeletonRows = [0, 1, 2, 3];
 
 	private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
