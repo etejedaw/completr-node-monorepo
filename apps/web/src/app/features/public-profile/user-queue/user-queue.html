@@ -24,69 +24,34 @@
 	</p>
 </app-library-hero>
 
-@if (collection.isLoading() || collection.items().length > 0) {
-<app-library-toolbar>
-	<ui-search-bar
-		class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
-		[placeholder]="'Search ' + collection.username() + '\'s queue...'"
-		[value]="collection.query()"
-		(valueChange)="collection.query.set($event)"
-	/>
-	<app-queue-sort-control [(value)]="sortBy" manualLabel="Their order" />
-</app-library-toolbar>
-} @if (collection.isLoading()) {
-<app-queue-skeleton />
-} @else if (collection.items().length === 0) {
-<ui-plain-empty-state
-	icon="playlist_play"
-	title="Nothing queued yet"
-	[message]="'@' + collection.username() + ' hasn\'t lined up any games to play next.'"
->
-	<a
-		uiButton
-		variant="secondary"
-		[routerLink]="['/user', collection.username()]"
-		>Back to profile</a
-	>
-</ui-plain-empty-state>
-} @else if (sortedEntries().length === 0) {
-<ui-plain-empty-state
-	icon="search_off"
-	title="No matches"
-	[message]="noMatchesMessage()"
-	[compact]="true"
->
-	<button uiButton variant="secondary" (click)="collection.query.set('')">
-		Clear search
-	</button>
-</ui-plain-empty-state>
-} @else { @if (featured(); as next) {
-<app-queue-next-card
-	class="mb-8"
-	[entry]="next"
-	[eyebrow]="featuredEyebrow()"
+<app-queue-browser
+	manualLabel="Their order"
+	noMatchesScope="their Up Next"
 	[readonly]="true"
-/>
-} @if (rest().length > 0) {
-<app-queue-list-section [afterFeatured]="!!featured()">
-	<ol class="list-none m-0 p-0 divide-y divide-line">
-		@for (entry of rest(); track entry.id; let i = $index) {
-		<li>
-			<app-queue-row
-				[entry]="entry"
-				[position]="collection.offset() + i + restOffset() + 1"
-				[readonly]="true"
-			/>
-		</li>
-		}
-	</ol>
-</app-queue-list-section>
-} }
-
-<ui-pagination
+	[searchPlaceholder]="'Search ' + collection.username() + '\'s queue...'"
+	[entries]="collection.visibleItems()"
+	[queueIsEmpty]="collection.items().length === 0"
+	[isLoading]="collection.isLoading()"
+	[searchQuery]="collection.query()"
 	[offset]="collection.offset()"
 	[limit]="collection.limit"
 	[total]="collection.total()"
+	(searchChange)="collection.query.set($event)"
 	(offsetChange)="collection.goToOffset($event)"
-/>
+>
+	<ng-template #emptyQueue>
+		<ui-plain-empty-state
+			icon="playlist_play"
+			title="Nothing queued yet"
+			[message]="'@' + collection.username() + ' hasn\'t lined up any games to play next.'"
+		>
+			<a
+				uiButton
+				variant="secondary"
+				[routerLink]="['/user', collection.username()]"
+				>Back to profile</a
+			>
+		</ui-plain-empty-state>
+	</ng-template>
+</app-queue-browser>
 }

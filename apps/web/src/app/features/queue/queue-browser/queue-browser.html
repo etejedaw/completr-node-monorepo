@@ -1,0 +1,135 @@
+@if (isLoading() || !queueIsEmpty()) {
+<app-library-toolbar>
+	<ui-search-bar
+		class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
+		[placeholder]="searchPlaceholder()"
+		[value]="searchQuery()"
+		(valueChange)="searchChange.emit($event)"
+	/>
+	<app-queue-sort-control [(value)]="sortBy" [manualLabel]="manualLabel()" />
+</app-library-toolbar>
+@if (!readonly() && !isManual()) {
+<div
+	class="flex flex-wrap items-center justify-between gap-2 mb-6 px-3 py-2 rounded-card border border-line text-xs text-fg-muted"
+	role="status"
+>
+	Previewing a sorted order. Your saved order is unchanged.
+	<button
+		uiButton
+		variant="ghost"
+		size="sm"
+		[disabled]="savingOrder()"
+		(click)="saveOrder.emit(sortedEntries())"
+	>
+		<span aria-hidden="true" class="material-icons text-sm">save</span>
+		{{ savingOrder() ? 'Saving...' : 'Save as my order' }}
+	</button>
+</div>
+} } @if (isLoading()) {
+<app-queue-skeleton />
+} @else if (queueIsEmpty()) {
+<ng-container [ngTemplateOutlet]="emptyQueueTemplate()" />
+} @else if (sortedEntries().length === 0) {
+<ui-plain-empty-state
+	icon="search_off"
+	title="No matches"
+	[message]="noMatchesMessage()"
+	[compact]="true"
+>
+	<button uiButton variant="secondary" (click)="searchChange.emit('')">
+		Clear search
+	</button>
+</ui-plain-empty-state>
+} @else if (readonly()) { @if (featured(); as next) {
+<app-queue-next-card
+	class="mb-8"
+	[entry]="next"
+	[eyebrow]="featuredEyebrow()"
+	[readonly]="true"
+/>
+} @if (rest().length > 0) {
+<app-queue-list-section [afterFeatured]="!!featured()">
+	<ol class="list-none m-0 p-0 divide-y divide-line">
+		@for (entry of rest(); track entry.id; let i = $index) {
+		<li>
+			<app-queue-row
+				[entry]="entry"
+				[position]="offset() + i + restOffset() + 1"
+				[readonly]="true"
+			/>
+		</li>
+		}
+	</ol>
+</app-queue-list-section>
+} } @else { @if (featured(); as next) {
+<app-queue-next-card
+	class="mb-8"
+	[entry]="next"
+	[eyebrow]="featuredEyebrow()"
+	[isFavorite]="isFavorite(next)"
+	[statusUpdating]="isUpdatingStatus(next)"
+	[canMoveDown]="isManual() && rest().length > 0"
+	(startPlaying)="startPlaying.emit(next)"
+	(favoriteToggle)="favoriteToggle.emit(next.backlog.game.id)"
+	(remove)="remove.emit(next)"
+	(moveDown)="moveDown.emit(0)"
+/>
+} @if (rest().length > 0) {
+<app-queue-list-section [afterFeatured]="!!featured()">
+	<ol
+		class="list-none m-0 p-0 divide-y divide-line"
+		cdkDropList
+		[cdkDropListDisabled]="!isManual()"
+		(cdkDropListDropped)="onDrop($event)"
+	>
+		@for (entry of rest(); track entry.id; let i = $index) { @let index = i
+		+ restOffset();
+		<li cdkDrag [cdkDragDisabled]="!isManual()" class="relative">
+			<div
+				aria-hidden="true"
+				class="absolute inset-0 flex items-center px-4 transition-colors"
+				[class.invisible]="!swipe.direction()"
+				[class.justify-start]="swipe.direction() === 'right'"
+				[class.justify-end]="swipe.direction() === 'left'"
+				[class]="swipe.direction() === 'right' ? (swipe.armed() ? 'bg-nav-favorites/35' : 'bg-nav-favorites/15') : swipe.direction() === 'left' ? (swipe.armed() ? 'bg-danger/35' : 'bg-danger/15') : ''"
+			>
+				<span
+					class="material-icons text-2xl transition-transform"
+					[class]="swipe.direction() === 'right' ? 'text-nav-favorites' : 'text-danger'"
+					[class.scale-125]="swipe.armed()"
+					>{{ swipe.direction() === 'right' ? (isFavorite(entry) ?
+					'heart_broken' : 'favorite') : 'playlist_remove' }}</span
+				>
+			</div>
+			<app-queue-row
+				appSwipeActions
+				#swipe="swipeActions"
+				class="relative"
+				[swipeDisabled]="!pointer.isCoarse()"
+				(swipeRight)="favoriteToggle.emit(entry.backlog.game.id)"
+				(swipeLeft)="remove.emit(entry)"
+				[entry]="entry"
+				[position]="offset() + index + 1"
+				[reorderable]="isManual()"
+				[isFirst]="index === 0"
+				[isLast]="index === entries().length - 1"
+				[isFavorite]="isFavorite(entry)"
+				[statusUpdating]="isUpdatingStatus(entry)"
+				(startPlaying)="startPlaying.emit(entry)"
+				(favoriteToggle)="favoriteToggle.emit(entry.backlog.game.id)"
+				(remove)="remove.emit(entry)"
+				(moveUp)="moveUp.emit(index)"
+				(moveDown)="moveDown.emit(index)"
+			/>
+		</li>
+		}
+	</ol>
+</app-queue-list-section>
+} }
+
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit()"
+	[total]="total()"
+	(offsetChange)="offsetChange.emit($event)"
+/>
