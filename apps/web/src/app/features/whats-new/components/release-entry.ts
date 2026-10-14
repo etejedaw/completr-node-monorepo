@@ -24,11 +24,11 @@ import {
 				></div>
 				<div class="flex flex-wrap items-center gap-2">
 					<span
-						class="px-2.5 py-1 rounded-full bg-brand-solid text-white text-[0.6875rem] font-bold uppercase tracking-wider"
+						class="px-2.5 py-1 rounded-full bg-brand-solid text-white text-[0.6875rem] font-bold uppercase tracking-[0.16em]"
 						>Latest</span
 					>
 					<span
-						class="px-2.5 py-1 rounded-full text-[0.6875rem] font-semibold uppercase tracking-wider"
+						class="px-2.5 py-1 rounded-full text-[0.6875rem] font-semibold uppercase tracking-[0.16em]"
 						[class]="tintClass(entry.tint)"
 						>{{ entry.tag }}</span
 					>
@@ -85,7 +85,7 @@ import {
 					>
 					<span aria-hidden="true" class="text-fg-muted">·</span>
 					<span
-						class="text-[0.6875rem] font-semibold uppercase tracking-wider text-fg-secondary"
+						class="text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 						>{{ entry.tag }}</span
 					>
 				</div>

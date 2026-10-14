@@ -14,7 +14,7 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { environment } from "../../../environments/environment";
 import { InfoPageLinks } from "../../shared/components/info-page-links/info-page-links";
 import { LibraryHero } from "../../shared/components/library-hero/library-hero";
-import { UiButton, UiSkeleton } from "../../shared/ui";
+import { UiButton, UiEmptyState, UiSkeleton } from "../../shared/ui";
 import { injectLibraryPosters } from "../backlog/library-posters";
 import { ReleaseEntryCard } from "./components/release-entry";
 import {
@@ -64,6 +64,7 @@ function groupByMonth(releases: ReleaseView[]): MonthGroup[] {
 		ReleaseEntryCard,
 		InfoPageLinks,
 		UiButton,
+		UiEmptyState,
 		UiSkeleton
 	],
 	templateUrl: "./whats-new-page.html",

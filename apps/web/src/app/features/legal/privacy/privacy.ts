@@ -22,7 +22,7 @@ import {
 } from "../../../shared/components/page-toc/page-toc";
 import { injectSectionScrollSpy } from "../../../shared/components/page-toc/section-scroll-spy";
 import { InView } from "../../../shared/directives/in-view";
-import { UiButton, UiSkeleton } from "../../../shared/ui";
+import { UiButton, UiEmptyState, UiSkeleton } from "../../../shared/ui";
 import { LANDING_PRIVACY_URL, type PrivacyPolicy } from "./privacy-policy";
 
 const SKELETON_SECTIONS = [1, 2, 3];
@@ -38,6 +38,7 @@ const SKELETON_SECTIONS = [1, 2, 3];
 		InView,
 		InfoPageLinks,
 		UiButton,
+		UiEmptyState,
 		UiSkeleton
 	],
 	templateUrl: "./privacy.html",
