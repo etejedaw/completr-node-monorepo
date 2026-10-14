@@ -100,13 +100,7 @@
 								class="material-icons text-sm"
 								>collections_bookmark</span
 							>
-							{{ franchise.name }} @if (game().franchiseProgress;
-							as progress) {
-							<span class="text-white/50 tabular-nums"
-								>{{ progress.completed }}/{{ progress.total
-								}}</span
-							>
-							}
+							{{ franchise.name }}
 						</a>
 						@if (isLoggedIn()) {
 						<button
