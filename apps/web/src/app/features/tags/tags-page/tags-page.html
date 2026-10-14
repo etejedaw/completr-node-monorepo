@@ -25,12 +25,10 @@
 		times used. Personal labels to filter what to play — renaming or
 		deleting one updates every game that uses it.
 	</p>
-	@if (!creating()) {
-	<button heroActions uiButton variant="primary" (click)="openCreate()">
+	<button heroActions uiButton variant="primary" (click)="creating.set(true)">
 		<span aria-hidden="true" class="material-icons text-base">add</span>
 		New tag
 	</button>
-	}
 </app-library-hero>
 
 @if (loading() || tags().length > 0) {
@@ -62,72 +60,6 @@
 		(valueChange)="sortBy.set($any($event))"
 	/>
 </app-library-toolbar>
-} @if (creating()) {
-<form
-	class="mb-6 flex flex-col gap-3 p-4 rounded-card bg-surface border border-brand/40 shadow-[0_0_0_3px_var(--color-brand-subtle)]"
-	aria-labelledby="new-tag-heading"
-	(submit)="$event.preventDefault(); commitCreate()"
-	(keydown.escape)="cancelCreate()"
->
-	<h2 id="new-tag-heading" class="m-0 font-display text-base font-semibold">
-		New tag
-	</h2>
-	<div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-		<label class="flex flex-col gap-1.5">
-			<span
-				class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>Name</span
-			>
-			<input
-				uiInput
-				maxlength="40"
-				required
-				placeholder="e.g. relaxing"
-				[value]="newName()"
-				(input)="newName.set($any($event.target).value)"
-			/>
-		</label>
-		<label class="flex flex-col gap-1.5">
-			<span
-				class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>Description (optional)</span
-			>
-			<input
-				uiInput
-				maxlength="255"
-				[value]="newDescription()"
-				(input)="newDescription.set($any($event.target).value)"
-			/>
-		</label>
-	</div>
-	<div class="flex flex-wrap items-center justify-between gap-2">
-		<p class="m-0 text-xs text-fg-muted">
-			It starts with 0 games. Assign it from the edit window of any game
-			in My Games.
-		</p>
-		<div class="flex items-center gap-2 ml-auto">
-			<button
-				uiButton
-				type="button"
-				variant="ghost"
-				size="sm"
-				[disabled]="submittingNew()"
-				(click)="cancelCreate()"
-			>
-				Cancel
-			</button>
-			<button
-				uiButton
-				type="submit"
-				variant="primary"
-				size="sm"
-				[disabled]="submittingNew() || !newName().trim()"
-			>
-				{{ submittingNew() ? 'Creating…' : 'Create tag' }}
-			</button>
-		</div>
-	</div>
-</form>
 } @if (loading()) {
 <div
 	class="rounded-card border border-line bg-surface/60 divide-y divide-line"
@@ -142,18 +74,18 @@
 	</div>
 	}
 </div>
-} @else if (tags().length === 0) { @if (!creating()) {
+} @else if (tags().length === 0) {
 <ui-empty-state
 	icon="label"
 	title="No tags yet"
 	hint="Tags are personal labels like “relaxing” or “with friends”. Create one here or add it while editing a game, then use it to filter My Games."
 >
-	<button uiButton variant="primary" (click)="openCreate()">
+	<button uiButton variant="primary" (click)="creating.set(true)">
 		<span aria-hidden="true" class="material-icons text-base">add</span>
 		New tag
 	</button>
 </ui-empty-state>
-} } @else if (visibleTags().length === 0) {
+} @else if (visibleTags().length === 0) {
 <ui-no-matches
 	hint="No tags match your search."
 	(cleared)="searchQuery.set('')"
@@ -249,4 +181,9 @@
 		</button>
 	</ng-container>
 </ui-dialog>
+} @if (creating()) {
+<app-tag-create-dialog
+	(created)="onTagCreated()"
+	(closed)="creating.set(false)"
+/>
 }

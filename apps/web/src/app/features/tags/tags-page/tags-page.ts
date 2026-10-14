@@ -1,3 +1,4 @@
+import { type HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -22,7 +23,6 @@ import {
 	UiButton,
 	UiDialog,
 	UiEmptyState,
-	UiInput,
 	UiNoMatches,
 	UiPremiumBadge,
 	UiSearchBar,
@@ -34,6 +34,8 @@ import {
 	type UpdateTagDto,
 	type UserTag
 } from "../../mood-tags/mood-tags";
+import { TagCreateDialog } from "../tag-create-dialog/tag-create-dialog";
+import { isCentrallyNotified } from "../tag-errors";
 import { type TagEdit, TagRow } from "../tag-row/tag-row";
 
 type TagSort = "usage" | "name";
@@ -67,12 +69,12 @@ const SHEET_ACTIONS: {
 		LibraryHero,
 		LibraryToolbar,
 		OptionPicker,
+		TagCreateDialog,
 		TagRow,
 		UiBottomSheet,
 		UiButton,
 		UiEmptyState,
 		UiNoMatches,
-		UiInput,
 		UiSearchBar,
 		UiSkeleton,
 		UiDialog,
@@ -93,9 +95,6 @@ export default class TagsPage implements OnInit {
 	protected readonly saving = signal<string | null>(null);
 	protected readonly editingTag = signal<string | null>(null);
 	protected readonly creating = signal(false);
-	protected readonly newName = signal("");
-	protected readonly newDescription = signal("");
-	protected readonly submittingNew = signal(false);
 	protected readonly searchQuery = signal("");
 	protected readonly sortBy = signal<TagSort>("usage");
 	protected readonly sortPickerOptions = SORT_PICKER_OPTIONS;
@@ -138,40 +137,10 @@ export default class TagsPage implements OnInit {
 		else this.requestDelete(tag);
 	}
 
-	openCreate() {
-		this.creating.set(true);
-		this.newName.set("");
-		this.newDescription.set("");
-	}
-
-	cancelCreate() {
+	onTagCreated() {
 		this.creating.set(false);
-		this.newName.set("");
-		this.newDescription.set("");
-	}
-
-	commitCreate() {
-		const tag = this.newName().trim();
-		if (!tag) return;
-		const description = this.newDescription().trim();
-		this.submittingNew.set(true);
-		this.moodTagsService
-			.createTag({
-				tag,
-				description: description || null
-			})
-			.subscribe({
-				next: () => {
-					this.submittingNew.set(false);
-					this.cancelCreate();
-					this.toast.success("Tag created.");
-					this.load();
-				},
-				error: err => {
-					this.submittingNew.set(false);
-					this.toast.error(err.error?.title ?? "Create failed");
-				}
-			});
+		this.toast.success("Tag created.");
+		this.load();
 	}
 
 	ngOnInit() {
@@ -217,9 +186,10 @@ export default class TagsPage implements OnInit {
 				this.toast.success("Tag updated.");
 				this.load();
 			},
-			error: err => {
+			error: (err: HttpErrorResponse) => {
 				this.saving.set(null);
-				this.toast.error(err.error?.title ?? "Update failed");
+				if (!isCentrallyNotified(err))
+					this.toast.error(err.error?.title ?? "Update failed");
 			}
 		});
 	}
@@ -245,10 +215,11 @@ export default class TagsPage implements OnInit {
 				this.toast.success("Tag deleted.");
 				this.load();
 			},
-			error: err => {
+			error: (err: HttpErrorResponse) => {
 				this.saving.set(null);
 				this.pendingDelete.set(null);
-				this.toast.error(err.error?.title ?? "Delete failed");
+				if (!isCentrallyNotified(err))
+					this.toast.error(err.error?.title ?? "Delete failed");
 			}
 		});
 	}

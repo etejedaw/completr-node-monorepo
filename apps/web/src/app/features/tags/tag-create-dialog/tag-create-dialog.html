@@ -1,0 +1,103 @@
+@let name = form.name(); @let description = form.description();
+<ui-dialog
+	eyebrow="Tags"
+	heading="New tag"
+	subheading="It starts with 0 games. Assign it from the edit window of any game in My Games."
+	size="sm"
+	[dismissible]="!submitting()"
+	(closed)="close()"
+>
+	@if (error()) {
+	<div
+		role="alert"
+		class="bg-danger/10 border border-danger/20 text-danger px-3 py-2 rounded-card mb-4 text-[0.8125rem]"
+	>
+		{{ error() }}
+	</div>
+	}
+
+	<form id="tag-create-form" novalidate (submit)="submit($event)">
+		<div uiFormField class="mb-4">
+			<label
+				uiLabel
+				for="tag-create-name"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Name <span class="text-danger font-bold">*</span></label
+			>
+			<input
+				uiInput
+				id="tag-create-name"
+				type="text"
+				autocomplete="off"
+				placeholder="e.g. relaxing"
+				[formField]="form.name"
+				[attr.aria-invalid]="name.touched() && name.invalid()"
+			/>
+			@if (name.touched() && name.invalid()) {
+			<p
+				uiDescription
+				class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>error_outline</span
+				>
+				{{ name.errors()[0]?.message }}
+			</p>
+			}
+		</div>
+
+		<div uiFormField>
+			<label
+				uiLabel
+				for="tag-create-description"
+				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+				>Description</label
+			>
+			<input
+				uiInput
+				id="tag-create-description"
+				type="text"
+				autocomplete="off"
+				placeholder="When to reach for it"
+				[formField]="form.description"
+				[attr.aria-invalid]="description.touched() && description.invalid()"
+			/>
+			@if (description.touched() && description.invalid()) {
+			<p
+				uiDescription
+				class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>error_outline</span
+				>
+				{{ description.errors()[0]?.message }}
+			</p>
+			} @else {
+			<p uiDescription class="m-0 mt-1.5 text-xs text-fg-muted">
+				Optional. Shown next to the tag in your list.
+			</p>
+			}
+		</div>
+	</form>
+
+	<ng-container dialogFooter>
+		<button
+			uiButton
+			variant="ghost"
+			type="button"
+			[disabled]="submitting()"
+			(click)="close()"
+		>
+			Cancel
+		</button>
+		<button
+			uiButton
+			variant="primary"
+			type="submit"
+			form="tag-create-form"
+			[disabled]="submitting()"
+		>
+			{{ submitting() ? "Creating…" : "Create" }}
+		</button>
+	</ng-container>
+</ui-dialog>
