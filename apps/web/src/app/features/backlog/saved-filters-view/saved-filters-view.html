@@ -92,15 +92,10 @@
 	}
 </div>
 } @else if (filteredFilters().length === 0) { @if (searchQuery().trim()) {
-<ui-empty-state
-	icon="search_off"
-	title="No matches found"
+<ui-no-matches
 	hint="No saved views match your search."
->
-	<button uiButton variant="secondary" (click)="onSearch('')">
-		Clear search
-	</button>
-</ui-empty-state>
+	(cleared)="onSearch('')"
+/>
 } @else {
 <ui-empty-state
 	icon="bookmarks"

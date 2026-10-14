@@ -49,15 +49,11 @@
 <app-cover-grid [loading]="true" loadingLabel="Loading wishlist" />
 } @else if (entries().length === 0) { @if (searchQuery().trim() ||
 selectedPlatform()) {
-<ui-empty-state
-	icon="search_off"
-	title="No matches found"
+<ui-no-matches
 	hint="Nothing in Want to Get matches your search or platform."
->
-	<button uiButton variant="secondary" (click)="clearSearchAndFilter()">
-		Clear search & filter
-	</button>
-</ui-empty-state>
+	clearLabel="Clear search & filter"
+	(cleared)="clearSearchAndFilter()"
+/>
 } @else {
 <ui-empty-state
 	icon="redeem"

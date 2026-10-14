@@ -154,15 +154,10 @@
 	</button>
 </ui-empty-state>
 } } @else if (visibleTags().length === 0) {
-<ui-empty-state
-	icon="search_off"
-	title="No matches found"
+<ui-no-matches
 	hint="No tags match your search."
->
-	<button uiButton variant="secondary" (click)="searchQuery.set('')">
-		Clear search
-	</button>
-</ui-empty-state>
+	(cleared)="searchQuery.set('')"
+/>
 } @else {
 <ul
 	class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"

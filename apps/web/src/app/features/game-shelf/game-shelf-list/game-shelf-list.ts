@@ -27,6 +27,7 @@ import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
+	UiNoMatches,
 	UiPagination,
 	UiPremiumBadge,
 	UiSearchBar
@@ -63,6 +64,7 @@ function readStoredViewMode(): ShelfViewMode {
 		DatePipe,
 		UiButton,
 		UiEmptyState,
+		UiNoMatches,
 		UiPagination,
 		UiSearchBar,
 		GameCoverCard,

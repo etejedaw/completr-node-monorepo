@@ -21,6 +21,7 @@ import {
 	UiAvatar,
 	UiButton,
 	UiPagination,
+	UiPlainEmptyState,
 	UiPremiumBadge,
 	UiSkeleton
 } from "../../shared/ui";
@@ -112,6 +113,7 @@ function groupByDay(activities: FeedActivity[]): ActivityDayGroup[] {
 		UiAvatar,
 		UiButton,
 		UiPagination,
+		UiPlainEmptyState,
 		UiPremiumBadge,
 		UiSkeleton,
 		PremiumOnly,

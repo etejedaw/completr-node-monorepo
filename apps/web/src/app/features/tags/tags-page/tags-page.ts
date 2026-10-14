@@ -23,6 +23,7 @@ import {
 	UiDialog,
 	UiEmptyState,
 	UiInput,
+	UiNoMatches,
 	UiPremiumBadge,
 	UiSearchBar,
 	UiSkeleton
@@ -70,6 +71,7 @@ const SHEET_ACTIONS: {
 		UiBottomSheet,
 		UiButton,
 		UiEmptyState,
+		UiNoMatches,
 		UiInput,
 		UiSearchBar,
 		UiSkeleton,

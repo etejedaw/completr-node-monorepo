@@ -108,15 +108,10 @@
 	</div>
 </ui-empty-state>
 } @else if (visibleUsers().length === 0) {
-<ui-empty-state
-	icon="search_off"
-	title="No matches found"
+<ui-no-matches
 	[hint]="'Nobody here matches “' + query() + '”.'"
->
-	<button uiButton variant="secondary" (click)="query.set('')">
-		Clear search
-	</button>
-</ui-empty-state>
+	(cleared)="query.set('')"
+/>
 } @else {
 <ul
 	class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
