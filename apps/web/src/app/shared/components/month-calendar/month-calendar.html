@@ -28,7 +28,12 @@
 						ngpDatePickerLabel
 						class="font-display m-0 text-lg font-bold tracking-tight leading-tight"
 					>
-						{{ month() | date: "MMMM yyyy" }}
+						<app-month-year-picker
+							[month]="month()"
+							[minYear]="minYear()"
+							[maxYear]="maxYear()"
+							(monthChosen)="changeMonth($event)"
+						/>
 					</h2>
 					<ng-content select="[calendarSummary]" />
 				</div>
