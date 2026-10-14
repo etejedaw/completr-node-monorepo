@@ -11,6 +11,10 @@ import { form, FormField, required } from "@angular/forms/signals";
 import { injectDialogRef } from "ng-primitives/dialog";
 
 import { type Game, type GameShelfEntry } from "../../../core/models";
+import {
+	ChipGroup,
+	type ChipOption
+} from "../../../shared/components/chip-group/chip-group";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
@@ -33,9 +37,21 @@ export interface GameShelfModalData {
 }
 export type GameShelfModalResult = "saved";
 
+const EDITION_SUGGESTIONS = [
+	"Standard",
+	"Deluxe",
+	"GOTY",
+	"Collector's",
+	"Definitive",
+	"Complete",
+	"Digital",
+	"Physical"
+];
+
 @Component({
 	selector: "app-game-shelf-modal",
 	imports: [
+		ChipGroup,
 		DatePipe,
 		DialogDeleteAction,
 		FormField,
@@ -111,19 +127,14 @@ export class GameShelfModal implements OnInit {
 		required(path.platformId);
 	});
 
-	protected readonly editionSuggestions = [
-		"Standard",
-		"Deluxe",
-		"GOTY",
-		"Collector's",
-		"Definitive",
-		"Complete",
-		"Digital",
-		"Physical"
-	];
+	protected readonly editionChipOptions: readonly ChipOption[] =
+		EDITION_SUGGESTIONS.map(suggestion => ({
+			value: suggestion,
+			label: suggestion
+		}));
 
-	applyEditionSuggestion(value: string) {
-		this.model.update(m => ({ ...m, edition: value }));
+	applyEditionSuggestion(value: string | undefined) {
+		if (value) this.model.update(m => ({ ...m, edition: value }));
 	}
 
 	ngOnInit() {
