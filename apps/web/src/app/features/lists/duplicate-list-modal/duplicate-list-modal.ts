@@ -9,8 +9,10 @@ import { injectDialogRef } from "ng-primitives/dialog";
 
 import { type List } from "../../../core/models";
 import {
+	UiAlert,
 	UiButton,
 	UiDialog,
+	UiFieldLabel,
 	UiFormField,
 	UiInput,
 	UiLabel
@@ -24,7 +26,16 @@ export type DuplicateListModalResult = List | null;
 
 @Component({
 	selector: "app-duplicate-list-modal",
-	imports: [FormField, UiButton, UiDialog, UiInput, UiFormField, UiLabel],
+	imports: [
+		UiAlert,
+		UiFieldLabel,
+		FormField,
+		UiButton,
+		UiDialog,
+		UiInput,
+		UiFormField,
+		UiLabel
+	],
 	templateUrl: "./duplicate-list-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
