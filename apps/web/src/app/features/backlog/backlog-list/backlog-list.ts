@@ -7,14 +7,18 @@ import {
 } from "@angular/cdk/drag-drop";
 import { NgTemplateOutlet } from "@angular/common";
 import {
+	afterNextRender,
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	effect,
+	ElementRef,
 	inject,
+	Injector,
 	type OnInit,
 	signal,
-	untracked
+	untracked,
+	viewChild
 } from "@angular/core";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import {
@@ -936,6 +940,31 @@ export class BacklogList implements OnInit {
 	protected closeFilters() {
 		this.showFilters.set(false);
 		this.creatingView.set(false);
+		this.returnFocusToToolsButton();
+	}
+
+	protected closeStatsPanel() {
+		this.showStatsPanel.set(false);
+		this.returnFocusToToolsButton();
+	}
+
+	private readonly injector = inject(Injector);
+	private readonly mobileToolsButton = viewChild<
+		string,
+		ElementRef<HTMLButtonElement>
+	>("mobileToolsButton", { read: ElementRef });
+	private focusToolsButtonOnClose = false;
+
+	private returnFocusToToolsButton() {
+		if (!this.focusToolsButtonOnClose) return;
+		this.focusToolsButtonOnClose = false;
+		afterNextRender(
+			() =>
+				this.mobileToolsButton()?.nativeElement.focus({
+					preventScroll: true
+				}),
+			{ injector: this.injector }
+		);
 	}
 
 	protected applyAndCloseFilters() {
@@ -1400,12 +1429,14 @@ export class BacklogList implements OnInit {
 
 	protected openFiltersFromSheet() {
 		this.openFilters();
+		this.focusToolsButtonOnClose = true;
 	}
 
 	protected openStatsFromSheet() {
 		this.toolsSheetOpen.set(false);
 		this.closeFilters();
 		this.toggleStatsPanel();
+		this.focusToolsButtonOnClose = true;
 	}
 
 	protected pickStatus(value: string) {

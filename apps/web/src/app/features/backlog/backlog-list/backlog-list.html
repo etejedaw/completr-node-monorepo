@@ -100,6 +100,7 @@
 
 			<div class="flex items-center gap-2">
 				<button
+					#mobileToolsButton
 					type="button"
 					class="sm:hidden h-12 px-4 tap:min-h-[44px] bg-transparent border rounded-card text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-2 transition"
 					[class.border-line]="!hasActiveFilters() && !hasAnyStatEnabled()"
@@ -598,7 +599,7 @@
 		[eyebrow]="activeView()?.name ?? 'My Games'"
 		heading="Stats"
 		subheading="Choose which stats this view shows. Changes save automatically."
-		(closed)="showStatsPanel.set(false)"
+		(closed)="closeStatsPanel()"
 	>
 		<ng-container *ngTemplateOutlet="statsBody" />
 		<ng-container ngProjectAs="[sheetFooter]">
@@ -610,7 +611,7 @@
 		[eyebrow]="activeView()?.name ?? 'My Games'"
 		heading="Stats"
 		subheading="Choose which stats this view shows. Changes save automatically."
-		(closed)="showStatsPanel.set(false)"
+		(closed)="closeStatsPanel()"
 	>
 		<ng-container *ngTemplateOutlet="statsBody" />
 		<ng-container ngProjectAs="[drawerFooter]">
@@ -940,7 +941,7 @@
 			type="button"
 			uiButton
 			variant="primary"
-			(click)="showStatsPanel.set(false)"
+			(click)="closeStatsPanel()"
 		>
 			Done
 		</button>
