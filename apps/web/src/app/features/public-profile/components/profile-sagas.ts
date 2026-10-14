@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { UiButton, UiProgress } from "../../../shared/ui";
+import { UiButton } from "../../../shared/ui";
 import { type FranchiseProgress } from "../../franchises/franchises";
 import { ProfileSectionHeader } from "./profile-section-header";
 
@@ -15,7 +15,7 @@ const COLLAPSED_SAGA_COUNT = 6;
 
 @Component({
 	selector: "app-profile-sagas",
-	imports: [RouterLink, ProfileSectionHeader, UiButton, UiProgress],
+	imports: [RouterLink, ProfileSectionHeader, UiButton],
 	template: `
 		@if (sagas().length > 0) {
 			<section aria-labelledby="profile-sagas-heading">
@@ -40,38 +40,21 @@ const COLLAPSED_SAGA_COUNT = 6;
 									aria-hidden="true"
 									class="shrink-0 w-10 h-10 inline-flex items-center justify-center rounded-card bg-brand-subtle text-brand"
 								>
-									<span class="material-icons text-xl">{{
-										saga.completed >= saga.total &&
-										saga.total > 0
-											? "emoji_events"
-											: "collections_bookmark"
-									}}</span>
-								</span>
-								<span class="flex-1 min-w-0">
-									<span
-										class="flex items-baseline justify-between gap-2 mb-1.5"
+									<span class="material-icons text-xl"
+										>collections_bookmark</span
 									>
-										<span
-											class="text-sm font-medium text-fg truncate group-hover:text-brand"
-											>{{ saga.franchise.name }}</span
-										>
-										<span
-											class="shrink-0 text-xs text-fg-muted tabular-nums"
-											>{{ saga.completed }}/{{
-												saga.total
-											}}
-											<span class="sr-only"
-												>games completed</span
-											></span
-										>
-									</span>
-									<ui-progress
-										[value]="saga.completed"
-										[max]="saga.total || 1"
-										trackClass="h-1.5"
-										indicatorClass="bg-gradient-to-r from-brand to-success"
-									/>
 								</span>
+								<span
+									class="flex-1 min-w-0 text-sm font-medium text-fg truncate group-hover:text-brand"
+									>{{ saga.franchise.name }}</span
+								>
+								<span
+									class="shrink-0 text-xs text-fg-muted tabular-nums"
+									>{{ saga.total }}
+									{{
+										saga.total === 1 ? "game" : "games"
+									}}</span
+								>
 							</a>
 						</li>
 					}
@@ -120,8 +103,7 @@ const COLLAPSED_SAGA_COUNT = 6;
 					<p
 						class="m-0 flex-1 min-w-[12rem] text-sm text-fg-secondary"
 					>
-						Track a saga from any franchise page to follow your
-						progress here.
+						Track a saga from any franchise page to see it here.
 					</p>
 					<a
 						uiButton
