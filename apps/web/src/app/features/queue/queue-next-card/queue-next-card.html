@@ -110,8 +110,11 @@
 			class="col-span-2 row-start-3 flex items-center gap-2 md:col-span-1 md:col-start-2 md:row-start-2 md:self-start"
 		>
 			<button
+				uiButton
+				variant="primary"
+				size="lg"
 				type="button"
-				class="max-sm:flex-1 inline-flex items-center justify-center gap-1.5 h-10 tap:min-h-[44px] px-4 rounded-card border-0 bg-brand-solid text-white text-sm font-semibold cursor-pointer transition hover:bg-brand-solid-hover active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+				class="max-sm:flex-1 h-10 tap:min-h-[44px] font-semibold"
 				[disabled]="statusUpdating()"
 				(click)="startPlaying.emit()"
 			>
