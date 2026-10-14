@@ -73,7 +73,7 @@
 					@for (weekday of weekdays; track weekday.short) {
 					<th
 						scope="col"
-						class="text-center text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted pb-1.5"
+						class="text-center text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted pb-1.5"
 						[attr.abbr]="weekday.full"
 					>
 						{{ weekday.short }}
@@ -101,7 +101,7 @@
 							<span
 								class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[0.6875rem] leading-none tabular-nums"
 								[class.bg-brand]="isToday(date)"
-								[class.text-white]="isToday(date)"
+								[class.text-canvas]="isToday(date)"
 								[class.font-bold]="isToday(date)"
 								[class.font-medium]="!isToday(date)"
 								[class.text-fg-muted]="!isToday(date) && isOutsideMonth(date)"
