@@ -35,7 +35,7 @@
 		>
 			<div class="flex flex-wrap items-center gap-1.5 mb-3">
 				<span
-					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand-solid text-white"
+					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-semibold uppercase tracking-[0.16em] bg-brand-solid text-white"
 				>
 					<span
 						aria-hidden="true"
@@ -46,7 +46,7 @@
 				</span>
 				@for (genre of game.genres.slice(0, 3); track genre.id) {
 				<a
-					class="tap-area px-2 py-0.5 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25 hover:text-white"
+					class="tap-area px-2 py-0.5 rounded-full text-[0.625rem] font-semibold uppercase tracking-[0.16em] bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25 hover:text-white"
 					routerLink="/games"
 					[queryParams]="{ genres: genre.code }"
 					>{{ genre.name }}</a
@@ -64,7 +64,9 @@
 			</h1>
 			<div class="mt-5 flex flex-wrap items-center gap-3">
 				<a
-					class="inline-flex items-center gap-1.5 h-11 tap:min-h-[44px] px-5 rounded-card bg-brand-solid text-white text-sm font-semibold no-underline shadow-lg shadow-brand/30 transition hover:bg-brand-solid-hover hover:text-white active:scale-[0.98]"
+					uiButton
+					size="lg"
+					class="h-11 !rounded-card shadow-lg shadow-brand/30 active:scale-[0.98]"
 					[routerLink]="['/games', game.code]"
 				>
 					View game
@@ -111,8 +113,10 @@
 
 			<div class="flex items-center gap-1 ml-auto">
 				<button
+					uiIconButton
+					size="lg"
 					type="button"
-					class="w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-canvas/50 border border-white/10 text-white/80 backdrop-blur-md cursor-pointer transition hover:text-white hover:border-white/30"
+					class="tap:min-w-[44px] tap:min-h-[44px] !rounded-full !border !border-line !bg-surface/70 !text-fg-secondary backdrop-blur-md hover:!border-line-hover hover:!text-fg"
 					[attr.aria-label]="paused() ? 'Resume rotation' : 'Pause rotation'"
 					[attr.aria-pressed]="paused()"
 					(click)="togglePaused()"
@@ -122,8 +126,10 @@
 					>
 				</button>
 				<button
+					uiIconButton
+					size="lg"
 					type="button"
-					class="w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-canvas/50 border border-white/10 text-white/80 backdrop-blur-md cursor-pointer transition hover:text-white hover:border-white/30"
+					class="tap:min-w-[44px] tap:min-h-[44px] !rounded-full !border !border-line !bg-surface/70 !text-fg-secondary backdrop-blur-md hover:!border-line-hover hover:!text-fg"
 					aria-label="Previous featured game"
 					(click)="step(-1)"
 				>
@@ -132,8 +138,10 @@
 					>
 				</button>
 				<button
+					uiIconButton
+					size="lg"
 					type="button"
-					class="w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-canvas/50 border border-white/10 text-white/80 backdrop-blur-md cursor-pointer transition hover:text-white hover:border-white/30"
+					class="tap:min-w-[44px] tap:min-h-[44px] !rounded-full !border !border-line !bg-surface/70 !text-fg-secondary backdrop-blur-md hover:!border-line-hover hover:!text-fg"
 					aria-label="Next featured game"
 					(click)="step(1)"
 				>
