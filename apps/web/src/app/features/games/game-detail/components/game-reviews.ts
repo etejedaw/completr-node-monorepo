@@ -11,6 +11,7 @@ import { form, FormField } from "@angular/forms/signals";
 import { ActivatedRoute } from "@angular/router";
 
 import { AuthService } from "../../../../core/services/auth";
+import { RatingDistribution } from "../../../../shared/components/rating-distribution/rating-distribution";
 import { ReviewCard } from "../../../../shared/components/review-card/review-card";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../../shared/constants/rating-labels";
@@ -22,7 +23,14 @@ const RATING_BUCKETS = [5, 4, 3, 2, 1];
 
 @Component({
 	selector: "app-game-reviews",
-	imports: [FormField, ReviewCard, StarRating, UiButton, UiTextarea],
+	imports: [
+		FormField,
+		RatingDistribution,
+		ReviewCard,
+		StarRating,
+		UiButton,
+		UiTextarea
+	],
 	templateUrl: "./game-reviews.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -66,11 +74,7 @@ export class GameReviews {
 			const count = rated.filter(
 				review => Math.ceil(review.rating!) === stars
 			).length;
-			return {
-				stars,
-				count,
-				percent: rated.length ? (count / rated.length) * 100 : 0
-			};
+			return { stars, count };
 		});
 	});
 
