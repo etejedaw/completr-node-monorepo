@@ -36,7 +36,7 @@
 
 		<div
 			class="md:hidden grid gap-2"
-			[class.grid-cols-2]="backlogFilters().length > 0"
+			[class.grid-cols-2]="viewPickerViews().length > 0"
 		>
 			<app-option-picker
 				label="Status"
@@ -47,7 +47,7 @@
 				[placeholderIcon]="quickStatusIcon()"
 				(valueChange)="pickStatus($event)"
 			/>
-			@if (backlogFilters().length > 0) {
+			@if (viewPickerViews().length > 0) {
 			<app-option-picker
 				label="View"
 				heading="Saved views"
@@ -77,7 +77,7 @@
 				(valueChange)="onSearch($event)"
 			/>
 
-			@if (backlogFilters().length > 0) {
+			@if (viewPickerViews().length > 0) {
 			<app-option-picker
 				class="max-md:hidden"
 				variant="compact"

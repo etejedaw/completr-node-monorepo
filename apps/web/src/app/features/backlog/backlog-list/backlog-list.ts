@@ -261,7 +261,7 @@ export class BacklogList implements OnInit {
 
 	protected readonly activeView = computed(
 		() =>
-			this.backlogFilters().find(
+			this.savedFilters().find(
 				view => view.id === this.activeFilterId()
 			) ?? null
 	);
@@ -297,13 +297,20 @@ export class BacklogList implements OnInit {
 		return this.singleActiveStatus() ?? MIXED_STATUS_VALUE;
 	});
 
+	protected readonly viewPickerViews = computed(() => {
+		const pinned = this.backlogFilters();
+		const active = this.activeView();
+		return active && !active.showInBacklog ? [...pinned, active] : pinned;
+	});
+
 	protected readonly viewPickerOptions = computed<PickerOption[]>(() => [
 		{ value: "", label: "None", icon: "bookmark_border" },
-		...this.backlogFilters().map(view => ({
+		...this.viewPickerViews().map(view => ({
 			value: view.id,
 			label: view.name,
 			icon: view.icon || "bookmark_border",
-			iconColor: view.icon ? this.colorHex(view.color) : null
+			iconColor: view.icon ? this.colorHex(view.color) : null,
+			hint: view.showInBacklog ? undefined : "Not pinned"
 		}))
 	]);
 
