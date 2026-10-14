@@ -3,6 +3,7 @@ import {
 	Component,
 	computed,
 	inject,
+	linkedSignal,
 	type OnInit,
 	signal
 } from "@angular/core";
@@ -12,6 +13,10 @@ import { AuthService } from "../../core/services/auth";
 import { FollowRequestsService } from "../../core/services/follow-requests";
 import { ToastService } from "../../core/services/toast";
 import { isPremiumRole } from "../../core/utils/premium";
+import {
+	LibraryHero,
+	type LibraryHeroPoster
+} from "../../shared/components/library-hero/library-hero";
 import {
 	OptionPicker,
 	type PickerOption
@@ -25,7 +30,12 @@ import {
 	UiPremiumBadge,
 	UiSkeleton
 } from "../../shared/ui";
-import { type FeedActivity, type FeedCategory, FeedService } from "./feed";
+import {
+	type ActivityTarget,
+	type FeedActivity,
+	type FeedCategory,
+	FeedService
+} from "./feed";
 import { FeedActivityItem } from "./feed-activity-item/feed-activity-item";
 
 interface ActivityDayGroup {
@@ -77,10 +87,28 @@ function groupByDay(activities: FeedActivity[]): ActivityDayGroup[] {
 	return [...groups.values()];
 }
 
+function gamePosters(activities: FeedActivity[]): LibraryHeroPoster[] {
+	const seenGameKeys = new Set<string>();
+	const posters: LibraryHeroPoster[] = [];
+	for (const { game } of activities) {
+		if (!game?.backgroundUrl) continue;
+		const gameKey = gameIdentity(game);
+		if (seenGameKeys.has(gameKey)) continue;
+		seenGameKeys.add(gameKey);
+		posters.push({ src: game.backgroundUrl, title: game.name });
+	}
+	return posters;
+}
+
+function gameIdentity(game: ActivityTarget): string {
+	return game.id || game.code || game.name;
+}
+
 @Component({
 	selector: "app-feed-page",
 	imports: [
 		RouterLink,
+		LibraryHero,
 		OptionPicker,
 		UiAvatar,
 		UiButton,
@@ -111,6 +139,20 @@ export class FeedPage implements OnInit {
 	protected readonly activityGroups = computed(() =>
 		groupByDay(this.activities())
 	);
+	private readonly loadedHeroPosters = computed(() =>
+		gamePosters(this.activities())
+	);
+	protected readonly heroPosters = linkedSignal<
+		{ posters: LibraryHeroPoster[]; isLoading: boolean },
+		LibraryHeroPoster[]
+	>({
+		source: () => ({
+			posters: this.loadedHeroPosters(),
+			isLoading: this.isLoading()
+		}),
+		computation: ({ posters, isLoading }, previous) =>
+			isLoading && previous?.value.length ? previous.value : posters
+	});
 
 	protected readonly filter = signal("");
 	protected readonly filterOptions: readonly PickerOption[] = [
