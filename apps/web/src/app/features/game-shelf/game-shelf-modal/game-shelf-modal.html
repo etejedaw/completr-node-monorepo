@@ -2,7 +2,8 @@
 	eyebrow="My Shelf"
 	size="md"
 	[heading]="heading()"
-	[subheading]="isEdit() && viewMode() === 'edit' ? entry!.game.title : null"
+	[subheading]="subheading()"
+	[flush]="isSearchStep()"
 	[dismissible]="!isLoading()"
 	(closed)="onClose()"
 >
@@ -24,7 +25,7 @@
 		<dl class="m-0 flex-1 min-w-0 grid grid-cols-1 gap-3 text-[0.8125rem]">
 			<div>
 				<dt
-					class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted"
+					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
 				>
 					Platform
 				</dt>
@@ -35,7 +36,7 @@
 			@if (e.edition) {
 			<div>
 				<dt
-					class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted"
+					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
 				>
 					Edition
 				</dt>
@@ -44,7 +45,7 @@
 			}
 			<div>
 				<dt
-					class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted"
+					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
 				>
 					Acquired
 				</dt>
@@ -58,7 +59,7 @@
 	@if (e.notes) {
 	<figure class="m-0 mt-5 border-l-2 border-nav-shelf/60 pl-3">
 		<figcaption
-			class="text-[0.625rem] font-semibold uppercase tracking-wider text-fg-muted mb-1"
+			class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted mb-1"
 		>
 			Notes
 		</figcaption>
@@ -66,160 +67,53 @@
 			{{ e.notes }}
 		</p>
 	</figure>
-	} } @else {
+	} } @else if (isSearchStep()) {
+	<app-game-search-step
+		[results]="search.results()"
+		[status]="search.status()"
+		[onlineSearching]="search.forceSearching()"
+		[autofocus]="returnedToSearch()"
+		[(query)]="searchQuery"
+		(picked)="selectGame($event)"
+		(searchOnline)="search.searchOnline()"
+	/>
+	} @else {
 	<form
 		id="shelf-entry-form"
-		class="flex flex-col gap-4"
+		class="flex flex-col gap-5"
 		(submit)="onSubmit($event)"
 	>
-		@if (!isEdit()) {
-		<div>
-			<span
-				id="shelf-game-label"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
-				>Game <span class="text-danger font-bold">*</span></span
-			>
-			@if (selectedGame(); as game) {
-			<div
-				class="flex items-center gap-3 min-h-[44px] px-3 py-2 bg-input-bg border border-line rounded-card"
-				[class.opacity-70]="preselectedGame"
-			>
-				<app-game-poster
-					class="w-8 aspect-[2/3] shrink-0 rounded-sm"
-					[src]="game.backgroundUrl"
-					[title]="game.title"
-					[width]="200"
-					[compact]="true"
-				/>
-				<span class="flex-1 min-w-0 text-sm font-medium truncate"
-					>{{ game.title }}</span
-				>
-				@if (!preselectedGame) {
-				<button
-					uiIconButton
-					size="sm"
-					type="button"
-					aria-label="Change game"
-					(click)="clearGame()"
-				>
-					<span aria-hidden="true" class="material-icons text-lg"
-						>close</span
-					>
-				</button>
-				}
-			</div>
-			} @else {
-			<input
-				uiInput
-				type="search"
-				aria-labelledby="shelf-game-label"
-				placeholder="Search games..."
-				autocomplete="off"
-				[value]="searchQuery()"
-				(input)="onSearch($event)"
-			/>
-			@if (isSearching() && gameResults().length === 0) {
-			<p
-				class="m-0 mt-1 px-3 py-2.5 text-[0.8125rem] text-fg-muted"
-				role="status"
-			>
-				Searching...
-			</p>
-			} @if (isSearchingOnline()) {
-			<p
-				class="m-0 mt-1 px-3 py-2.5 text-[0.8125rem] text-brand flex items-center gap-2"
-				role="status"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-base motion-safe:animate-spin"
-					>autorenew</span
-				>
-				Searching online...
-			</p>
-			} @if ( gameResults().length > 0 || (!isSearching() &&
-			!isSearchingOnline() && searchQuery().length >= 2) ) {
-			<ul
-				class="list-none m-0 mt-1 p-1 bg-input-bg border border-line rounded-card max-h-[240px] overflow-y-auto"
-				aria-label="Search results"
-			>
-				@for (game of gameResults(); track game.id) {
-				<li>
-					<button
-						type="button"
-						class="w-full flex items-center gap-2.5 min-h-[44px] px-2 py-1.5 rounded text-left bg-transparent border-0 cursor-pointer text-[0.8125rem] text-fg transition hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand"
-						(click)="selectGame(game)"
-					>
-						<app-game-poster
-							class="w-7 aspect-[2/3] shrink-0 rounded-sm"
-							[src]="game.backgroundUrl"
-							[title]="game.title"
-							[width]="200"
-							[compact]="true"
-						/>
-						<span class="flex-1 min-w-0 truncate"
-							>{{ game.title }}</span
-						>
-						@if (game.justImported) {
-						<span
-							class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-info/15 text-info text-[0.65rem] font-semibold uppercase tracking-wider rounded"
-							title="Just imported from RAWG"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.75rem]"
-								>cloud_download</span
-							>
-							RAWG
-						</span>
-						} @if (game.isDlc) {
-						<span
-							class="px-1.5 py-0.5 bg-brand/15 text-brand-hover text-[0.65rem] font-semibold uppercase tracking-wider rounded"
-							>DLC</span
-						>
-						}
-					</button>
-				</li>
-				} @if (searchQuery().length >= 2) {
-				<li class="border-t border-line mt-1 pt-1">
-					<button
-						type="button"
-						class="w-full flex items-center gap-2 min-h-[44px] px-2 py-1.5 rounded text-left bg-transparent border-0 cursor-pointer text-[0.8125rem] font-medium text-brand transition hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand"
-						(click)="forceSearch()"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>travel_explore</span
-						>
-						{{ isForceSearching() ? "Searching..." : 'Search online
-						for "' + searchQuery() + '"' }}
-					</button>
-				</li>
-				}
-			</ul>
-			} }
-		</div>
+		@if (!isEdit()) { @let game = selectedGame()!;
+		<app-selected-game-row
+			[game]="game"
+			[changeable]="!preselectedGame"
+			[autofocus]="!preselectedGame"
+			(changeRequested)="clearGame()"
+		/>
 
-		<div>
-			<label
-				for="shelf-platform"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
-				>Platform <span class="text-danger font-bold">*</span></label
-			>
-			<select uiSelect id="shelf-platform" [formField]="form.platformId">
-				<option value="">Select platform</option>
-				@for (p of gamePlatforms(); track p.id) {
-				<option [value]="p.id">{{ p.name }}</option>
-				}
-			</select>
-		</div>
-		}
+		@if (platformOptions().length > 0) {
+		<app-option-picker
+			label="Platform"
+			heading="Platform"
+			placeholder="Required — pick one"
+			placeholderIcon="sports_esports"
+			[options]="platformOptions()"
+			[value]="form.platformId().value()"
+			(valueChange)="setPlatform($event)"
+		/>
+		} @else {
+		<p
+			class="m-0 px-3 py-2.5 rounded-card border border-dashed border-line text-[0.8125rem] text-fg-muted"
+		>
+			This game has no platforms in the catalog yet, so it can't be added
+			to My Shelf.
+		</p>
+		} }
 
 		<div>
 			<label
 				for="shelf-edition"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+				class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 				>Edition</label
 			>
 			<input
@@ -237,12 +131,12 @@
 				@for (suggestion of editionSuggestions; track suggestion) {
 				<button
 					type="button"
-					class="min-h-[28px] max-md:min-h-[44px] tap:min-h-[44px] px-2.5 text-[0.7rem] font-medium rounded-full border transition cursor-pointer"
+					class="tap-area min-h-[28px] max-md:min-h-[44px] px-3 text-xs font-medium rounded-full border cursor-pointer transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 					[class]="
-								form.edition().value() === suggestion
-									? 'bg-brand-subtle border-brand text-brand'
-									: 'bg-input-bg border-line text-fg-muted hover:border-brand hover:text-brand'
-							"
+						form.edition().value() === suggestion
+							? 'border-brand bg-brand-subtle text-brand'
+							: 'border-line bg-transparent text-fg-secondary hover:border-line-hover hover:text-fg'
+					"
 					[attr.aria-pressed]="form.edition().value() === suggestion"
 					(click)="applyEditionSuggestion(suggestion)"
 				>
@@ -255,7 +149,7 @@
 		<div>
 			<label
 				for="shelf-acquired"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+				class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 				>Acquired</label
 			>
 			<input
@@ -269,7 +163,7 @@
 		<div>
 			<label
 				for="shelf-notes"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wide"
+				class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 				>Notes</label
 			>
 			<textarea
@@ -299,7 +193,7 @@
 			>
 			Edit
 		</button>
-		} @else { @if (isEdit()) {
+		} @else if (!isSearchStep()) { @if (isEdit()) {
 		<app-dialog-delete-action
 			question="Remove from My Shelf?"
 			[busy]="isLoading()"
