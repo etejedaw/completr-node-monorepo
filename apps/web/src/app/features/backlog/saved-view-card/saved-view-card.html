@@ -16,7 +16,7 @@
 	<header class="flex items-center gap-3">
 		<span
 			aria-hidden="true"
-			class="shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-card bg-white/5 ring-1 ring-white/10"
+			class="shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-card bg-input-bg ring-1 ring-line"
 			[style.color]="accent()"
 		>
 			<span class="material-icons text-lg"
@@ -46,8 +46,9 @@
 			class="relative z-10 shrink-0 flex items-center gap-0.5 -mr-1.5 -my-1"
 		>
 			<button
+				uiIconButton
 				type="button"
-				class="sm:hidden w-[44px] h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
+				class="sm:!hidden tap:min-h-[44px] tap:min-w-[44px]"
 				aria-haspopup="dialog"
 				[attr.aria-label]="'More actions for ' + item.name"
 				(click)="moreRequested.emit()"
@@ -58,8 +59,9 @@
 			</button>
 			@for (action of actions(); track action.id) {
 			<button
+				uiIconButton
 				type="button"
-				class="max-sm:hidden w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:bg-white/5 hover:text-fg active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
+				class="max-sm:!hidden tap:min-h-[44px] tap:min-w-[44px]"
 				[attr.aria-label]="action.label"
 				[title]="action.label"
 				(click)="trigger(action.id)"
@@ -102,11 +104,11 @@
 </article>
 } @else {
 <article
-	class="group relative flex items-start md:items-center gap-3 px-3 sm:px-4 py-3 transition hover:bg-white/[0.03] focus-within:bg-white/[0.03]"
+	class="group relative flex items-start md:items-center gap-3 px-3 sm:px-4 py-3 transition hover:bg-surface-hover focus-within:bg-surface-hover"
 >
 	<span
 		aria-hidden="true"
-		class="shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-card bg-white/5 ring-1 ring-white/10"
+		class="shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-card bg-input-bg ring-1 ring-line"
 		[style.color]="accent()"
 	>
 		<span class="material-icons text-lg"
@@ -151,8 +153,9 @@
 	</div>
 	<div class="relative z-10 shrink-0 flex items-center gap-0.5 -my-1">
 		<button
+			uiIconButton
 			type="button"
-			class="sm:hidden w-[44px] h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
+			class="sm:!hidden tap:min-h-[44px] tap:min-w-[44px]"
 			aria-haspopup="dialog"
 			[attr.aria-label]="'More actions for ' + item.name"
 			(click)="moreRequested.emit()"
@@ -163,8 +166,9 @@
 		</button>
 		@for (action of actions(); track action.id) {
 		<button
+			uiIconButton
 			type="button"
-			class="max-sm:hidden w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:bg-white/5 hover:text-fg active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
+			class="max-sm:!hidden tap:min-h-[44px] tap:min-w-[44px]"
 			[attr.aria-label]="action.label"
 			[title]="action.label"
 			(click)="trigger(action.id)"

@@ -31,16 +31,17 @@ import { ToastService } from "../../../core/services/toast";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
-	UiButton,
-	UiEmptyState,
-	UiNoMatches,
-	UiPagination,
-	UiPremiumBadge,
-	UiSearchBar
-} from "../../../shared/ui";
+	LibraryPage,
+	type LibraryPageState
+} from "../../../shared/components/library-page/library-page";
+import {
+	LibraryPageContent,
+	LibraryPageEmptyAction,
+	LibraryPageToolbar
+} from "../../../shared/components/library-page/library-page-slots";
+import { PremiumOnly } from "../../../shared/directives/premium-only";
+import { UiButton, UiPremiumBadge, UiSearchBar } from "../../../shared/ui";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import {
 	type FavoriteReorderAction,
@@ -58,12 +59,12 @@ import { FavoritesService } from "../favorites";
 		FavoriteReorderCard,
 		GameCoverCard,
 		LibraryHero,
-		LibraryToolbar,
+		LibraryPage,
+		LibraryPageContent,
+		LibraryPageEmptyAction,
+		LibraryPageToolbar,
 		PremiumOnly,
 		UiButton,
-		UiEmptyState,
-		UiNoMatches,
-		UiPagination,
 		UiPremiumBadge,
 		UiSearchBar
 	],
@@ -96,6 +97,11 @@ export class FavoritesView implements OnInit {
 			this.entries().length === this.total()
 	);
 	private readonly orderChanges = new Subject<string[]>();
+	protected readonly pageState = computed<LibraryPageState>(() => {
+		if (this.isLoading()) return "loading";
+		if (this.entries().length > 0) return "ready";
+		return this.searchQuery().trim() ? "no-matches" : "empty";
+	});
 	protected readonly heroPosters = computed(() =>
 		this.entries().map(entry => ({
 			src: entry.game.backgroundUrl,

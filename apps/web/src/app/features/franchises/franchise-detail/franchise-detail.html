@@ -45,11 +45,11 @@
 		[variant]="tracked() ? 'secondary' : 'primary'"
 		[class.!bg-surface/70]="tracked()"
 		[class.backdrop-blur]="tracked()"
-		class="max-sm:min-h-[44px]"
+		class="tap:min-h-[44px]"
 		[attr.aria-pressed]="tracked()"
 		[attr.aria-busy]="toggling()"
 		[disabled]="toggling()"
-		title="Tracked sagas show their progress on your profile"
+		title="Tracked sagas appear on your profile"
 		(click)="toggleTrack()"
 	>
 		<span aria-hidden="true" class="material-icons text-base"
@@ -57,14 +57,6 @@
 		>
 		{{ tracked() ? 'Tracking' : 'Track saga' }}
 	</button>
-	@if (current.progress.total > 0) {
-	<app-progress-meter
-		class="max-w-xl"
-		label="Your progress"
-		[completed]="current.progress.completed"
-		[total]="current.progress.total"
-	/>
-	}
 </app-library-hero>
 
 @if (page.error() && !page.isLoading()) {

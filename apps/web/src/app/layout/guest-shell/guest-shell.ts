@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { RouterLink, RouterOutlet } from "@angular/router";
 
+import { AppLogo } from "../../shared/components/app-logo/app-logo";
 import { AttributionFooter } from "../../shared/components/attribution-footer/attribution-footer";
+import { UiButton } from "../../shared/ui";
 
 @Component({
 	selector: "app-guest-shell",
-	imports: [RouterOutlet, RouterLink, AttributionFooter],
+	imports: [RouterOutlet, RouterLink, AppLogo, AttributionFooter, UiButton],
 	template: `
 		<main
 			id="main-content"
@@ -25,17 +27,10 @@ import { AttributionFooter } from "../../shared/components/attribution-footer/at
 				>
 					<a
 						href="https://www.completr.app"
-						class="flex items-center gap-2 min-h-[44px] no-underline"
+						class="flex items-center min-h-[44px] no-underline"
 						aria-label="Completr"
 					>
-						<span
-							class="flex items-center justify-center w-8 h-8 rounded-lg font-display font-bold text-base text-white bg-gradient-to-br from-brand to-brand-deep shadow-lg shadow-brand/25"
-							>C</span
-						>
-						<span
-							class="text-lg font-bold text-fg tracking-tight font-display"
-							>Completr</span
-						>
+						<app-logo />
 					</a>
 					<nav
 						class="ml-auto flex items-center gap-2"
@@ -47,8 +42,11 @@ import { AttributionFooter } from "../../shared/components/attribution-footer/at
 							>Sign in</a
 						>
 						<a
+							uiButton
+							variant="primary"
+							size="lg"
 							routerLink="/register"
-							class="inline-flex items-center h-10 tap:min-h-[44px] px-4 rounded-card bg-brand-solid text-white text-sm font-semibold no-underline shadow-lg shadow-brand/25 transition hover:bg-brand-solid-hover hover:text-white"
+							class="h-10 tap:min-h-[44px] font-semibold shadow-lg shadow-brand/25"
 							>Create account</a
 						>
 					</nav>

@@ -18,6 +18,7 @@ export default defineConfig(
 			"**/.astro",
 			"**/out-tsc",
 			"tmp",
+			".worktree",
 			".claude/skills/frontend-design",
 			"apps/api/logs",
 			"apps/api/migrations",

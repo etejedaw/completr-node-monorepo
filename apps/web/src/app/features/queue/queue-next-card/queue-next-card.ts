@@ -9,10 +9,11 @@ import { RouterLink } from "@angular/router";
 import { type QueueEntry } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
+import { UiButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-queue-next-card",
-	imports: [RouterLink, GamePoster, CoverUrlPipe],
+	imports: [RouterLink, GamePoster, CoverUrlPipe, UiButton],
 	templateUrl: "./queue-next-card.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush

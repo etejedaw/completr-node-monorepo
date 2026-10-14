@@ -8,6 +8,8 @@ import {
 	output,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { forkJoin } from "rxjs";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
 import {
@@ -18,7 +20,11 @@ import {
 	shortDate,
 	startOfMonth
 } from "../../../shared/components/month-calendar/month-calendar";
-import { backlogStatusLabel } from "../../../shared/utils/backlog-status";
+import {
+	backlogStatusCalendarBarClass,
+	backlogStatusFillClass,
+	backlogStatusLabel
+} from "../../../shared/utils/backlog-status";
 import { type BacklogFilters, BacklogService } from "../backlog";
 
 interface BarSlot {
@@ -75,6 +81,7 @@ export class BacklogCalendar {
 	);
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly isLoading = signal(true);
+	protected readonly earliestYear = signal<number | null>(null);
 	protected readonly unscheduledCount = signal(0);
 	protected readonly monthTotal = signal(0);
 	protected readonly monthLimit = MONTH_LIMIT;
@@ -88,6 +95,35 @@ export class BacklogCalendar {
 		{ status: "abandoned", dot: "bg-danger" },
 		{ status: "endless", dot: "bg-brand" }
 	];
+
+	private readonly earliestYearSubscription = forkJoin([
+		this.backlogService.getMyBacklog({
+			sort_by: "startedAt",
+			sort_order: "asc",
+			limit: 1,
+			offset: 0
+		}),
+		this.backlogService.getMyBacklog({
+			sort_by: "finishedAt",
+			sort_order: "asc",
+			limit: 1,
+			offset: 0
+		})
+	])
+		.pipe(takeUntilDestroyed())
+		.subscribe({
+			next: ([byStart, byFinish]) => {
+				const years = [
+					byStart.data.backlog[0]?.startedAt,
+					byFinish.data.backlog[0]?.finishedAt
+				]
+					.filter((iso): iso is string => !!iso)
+					.map(iso => this.parseDateOnly(iso).getFullYear());
+				this.earliestYear.set(
+					years.length > 0 ? Math.min(...years) : null
+				);
+			}
+		});
 
 	private readonly loadEffect = effect(onCleanup => {
 		const filters = this.filters();
@@ -165,14 +201,14 @@ export class BacklogCalendar {
 			title: entry.game.title,
 			posterSrc: entry.game.backgroundUrl,
 			meta: `${backlogStatusLabel(entry.status)} · ${entry.platform.abbreviation}`,
-			dotClass: this.dotClass(entry.status),
+			dotClass: backlogStatusFillClass(entry.status),
 			dateLabel: this.rangeLabel(entry)
 		}));
 	});
 
 	protected readonly markersFor = (date: Date): string[] =>
 		(this.layout().dayEntries.get(this.dateKey(date)) ?? []).map(entry =>
-			this.dotClass(entry.status)
+			backlogStatusFillClass(entry.status)
 		);
 
 	protected slotsFor(date: Date): (BarSlot | null)[] {
@@ -183,27 +219,7 @@ export class BacklogCalendar {
 		return this.layout().overflow.get(this.dateKey(date)) ?? 0;
 	}
 
-	barClass(status: BacklogStatus): string {
-		const map: Record<BacklogStatus, string> = {
-			not_started: "bg-fg-muted/15 text-fg-secondary",
-			playing: "bg-playing/25 text-playing",
-			completed: "bg-success/25 text-success",
-			abandoned: "bg-danger/25 text-danger",
-			endless: "bg-brand-subtle text-brand"
-		};
-		return map[status] ?? "";
-	}
-
-	dotClass(status: BacklogStatus): string {
-		const map: Record<BacklogStatus, string> = {
-			not_started: "bg-fg-muted",
-			playing: "bg-playing",
-			completed: "bg-success",
-			abandoned: "bg-danger",
-			endless: "bg-brand"
-		};
-		return map[status] ?? "bg-fg-muted";
-	}
+	protected readonly barClass = backlogStatusCalendarBarClass;
 
 	isStatusHidden(status: BacklogStatus): boolean {
 		return this.hiddenStatuses().has(status);

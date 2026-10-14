@@ -1,0 +1,66 @@
+@if (isMobile()) {
+<ui-bottom-sheet
+	[eyebrow]="viewName() ?? 'My Games'"
+	heading="Stats"
+	subheading="Choose which stats this view shows. Changes save automatically."
+	(closed)="closed.emit()"
+>
+	<ng-container *ngTemplateOutlet="statsBody" />
+	<ng-container ngProjectAs="[sheetFooter]">
+		<ng-container *ngTemplateOutlet="statsFooter" />
+	</ng-container>
+</ui-bottom-sheet>
+} @else {
+<ui-drawer
+	[eyebrow]="viewName() ?? 'My Games'"
+	heading="Stats"
+	subheading="Choose which stats this view shows. Changes save automatically."
+	(closed)="closed.emit()"
+>
+	<ng-container *ngTemplateOutlet="statsBody" />
+	<ng-container ngProjectAs="[drawerFooter]">
+		<ng-container *ngTemplateOutlet="statsFooter" />
+	</ng-container>
+</ui-drawer>
+}
+
+<ng-template #statsBody>
+	<div class="flex flex-col gap-6 px-2 md:px-0">
+		@for (group of statGroups; track group.label) {
+		<app-filter-section [label]="group.label" [hint]="group.hint">
+			<ul class="list-none m-0 p-0 flex flex-col">
+				@for (key of group.keys; track key) {
+				<li class="flex items-center min-h-10 tap:min-h-[44px]">
+					<ui-switch
+						class="w-full text-sm text-fg"
+						[label]="statLabels[key]"
+						[checked]="enabledStats().has(key)"
+						[disabled]="saving()"
+						(checkedChange)="statToggle.emit(key)"
+					/>
+				</li>
+				}
+			</ul>
+		</app-filter-section>
+		}
+	</div>
+</ng-template>
+
+<ng-template #statsFooter>
+	<button
+		type="button"
+		uiButton
+		variant="ghost"
+		title="Reset to defaults"
+		[disabled]="saving() || !custom()"
+		(click)="resetRequested.emit()"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>restart_alt</span
+		>
+		Reset to defaults
+	</button>
+	<button uiButton type="button" variant="primary" (click)="closed.emit()">
+		Done
+	</button>
+</ng-template>

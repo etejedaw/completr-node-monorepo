@@ -91,6 +91,16 @@ Esto levanta:
 
 Para bajarla: `npm run db:down`.
 
+Si alguno de esos puertos está ocupado (por ejemplo, por otro proyecto con su propio Postgres), crea `apps/api/.env` con los que quieras usar. Docker Compose lee ese archivo solo; las variables que no definas mantienen su valor por defecto:
+
+```bash
+PG_PORT=5432
+PG_TEST_PORT=5433
+PGADMIN_PORT=80
+```
+
+Si cambias `PG_PORT`, define el mismo valor en `apps/api/.env.dev.local` para que la API y las migraciones apunten al puerto nuevo.
+
 ### 4. Correr migraciones
 
 ```bash

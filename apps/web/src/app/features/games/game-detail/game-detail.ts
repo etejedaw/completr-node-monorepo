@@ -15,7 +15,14 @@ import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ExpandableText } from "../../../shared/components/expandable-text/expandable-text";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { InView } from "../../../shared/directives/in-view";
-import { UiButton, UiDialog, UiTextarea } from "../../../shared/ui";
+import {
+	UiAlert,
+	UiButton,
+	UiDialog,
+	UiFieldLabel,
+	UiSkeleton,
+	UiTextarea
+} from "../../../shared/ui";
 import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
 import { metascoreColorClass } from "../../../shared/utils/metascore-color";
 import { BacklogService } from "../../backlog/backlog";
@@ -83,7 +90,9 @@ interface ReportModalState {
 	imports: [
 		RouterLink,
 		AdminGameEditor,
+		UiAlert,
 		UiButton,
+		UiFieldLabel,
 		UiTextarea,
 		GameSection,
 		InView,
@@ -99,7 +108,8 @@ interface ReportModalState {
 		GameReviews,
 		MoodTagsInput,
 		ExpandableText,
-		UiDialog
+		UiDialog,
+		UiSkeleton
 	],
 	templateUrl: "./game-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

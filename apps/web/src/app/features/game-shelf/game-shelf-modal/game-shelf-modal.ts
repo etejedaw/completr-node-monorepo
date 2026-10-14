@@ -23,7 +23,13 @@ import {
 	OptionPicker,
 	type PickerOption
 } from "../../../shared/components/option-picker/option-picker";
-import { UiButton, UiDialog, UiInput, UiTextarea } from "../../../shared/ui";
+import {
+	UiAlert,
+	UiButton,
+	UiDialog,
+	UiInput,
+	UiTextarea
+} from "../../../shared/ui";
 import { injectGameSearch } from "../../games/game-search";
 import {
 	type CreateGameShelfDto,
@@ -51,6 +57,7 @@ const EDITION_SUGGESTIONS = [
 @Component({
 	selector: "app-game-shelf-modal",
 	imports: [
+		UiAlert,
 		ChipGroup,
 		DatePipe,
 		DialogDeleteAction,

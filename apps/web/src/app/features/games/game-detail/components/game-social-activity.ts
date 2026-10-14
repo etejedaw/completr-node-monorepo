@@ -8,14 +8,21 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
+import { type BacklogStatus } from "../../../../core/models";
 import { AuthService } from "../../../../core/services/auth";
+import { UiAvatar } from "../../../../shared/ui";
+import {
+	backlogStatusClass,
+	backlogStatusFillClass,
+	backlogStatusLabel
+} from "../../../../shared/utils/backlog-status";
 import { GamesService } from "../../games";
 
 interface FriendActivity {
 	username: string;
 	name: string;
 	avatarUrl: string | null;
-	status: string;
+	status: BacklogStatus;
 	finishedAt: string | null;
 	userRating: number | null;
 }
@@ -24,18 +31,12 @@ interface OtherPlayer {
 	username: string;
 	name: string;
 	avatarUrl: string | null;
-	status: string;
-}
-
-interface StatusMeta {
-	label: string;
-	classes: string;
-	dot: string;
+	status: BacklogStatus;
 }
 
 @Component({
 	selector: "app-game-social-activity",
-	imports: [RouterLink],
+	imports: [RouterLink, UiAvatar],
 	templateUrl: "./game-social-activity.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -47,6 +48,10 @@ export class GameSocialActivity {
 
 	protected readonly friends = signal<FriendActivity[]>([]);
 	protected readonly players = signal<OtherPlayer[]>([]);
+
+	protected readonly statusClass = backlogStatusClass;
+	protected readonly statusLabel = backlogStatusLabel;
+	protected readonly statusFillClass = backlogStatusFillClass;
 
 	constructor() {
 		effect(() => {
@@ -61,41 +66,6 @@ export class GameSocialActivity {
 				.getPlayers(id)
 				.subscribe(p => this.players.set(p));
 		});
-	}
-
-	protected statusMeta(status: string): StatusMeta {
-		switch (status) {
-			case "completed":
-				return {
-					label: "Completed",
-					classes: "bg-success/15 text-success",
-					dot: "bg-success"
-				};
-			case "playing":
-				return {
-					label: "Playing",
-					classes: "bg-brand/15 text-brand",
-					dot: "bg-brand"
-				};
-			case "abandoned":
-				return {
-					label: "Abandoned",
-					classes: "bg-danger/15 text-danger",
-					dot: "bg-danger"
-				};
-			case "endless":
-				return {
-					label: "Endless",
-					classes: "bg-brand-subtle text-brand",
-					dot: "bg-brand"
-				};
-			default:
-				return {
-					label: "Backlog",
-					classes: "bg-input-bg text-fg-muted",
-					dot: "bg-fg-muted"
-				};
-		}
 	}
 
 	hasContent(): boolean {

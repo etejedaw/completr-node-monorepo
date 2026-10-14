@@ -1,0 +1,81 @@
+<button
+	type="button"
+	class="inline-flex items-center justify-center gap-1 max-w-full px-2 py-0.5 tap:min-h-[44px] rounded-card bg-transparent border-0 text-inherit font-display text-lg font-bold tracking-tight leading-tight cursor-pointer transition hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-brand"
+	[ngpPopoverTrigger]="popover"
+	[ngpPopoverTriggerDisabled]="isMobile()"
+	ngpPopoverTriggerPlacement="bottom"
+	[ngpPopoverTriggerOffset]="6"
+	[attr.aria-label]="'Choose month and year, showing ' + (month() | date: 'MMMM yyyy')"
+	(click)="openSheet()"
+>
+	<span class="truncate">{{ month() | date: "MMMM yyyy" }}</span>
+	<span aria-hidden="true" class="material-icons shrink-0 text-fg-muted"
+		>expand_more</span
+	>
+</button>
+
+<ng-template #popover>
+	<div
+		ngpPopover
+		class="fixed z-[1010] w-[19rem] max-w-[calc(100vw-2rem)] p-3 bg-sidebar border border-line rounded-card shadow-[0_24px_48px_-16px_rgba(0,0,0,0.75)] outline-none data-[enter]:animate-[uiFadeUp_140ms_ease-out]"
+	>
+		<ng-container *ngTemplateOutlet="pickerBody" />
+	</div>
+</ng-template>
+
+@if (sheetOpen()) {
+<ui-bottom-sheet heading="Go to month" (closed)="sheetOpen.set(false)">
+	<div class="px-2 pb-2">
+		<ng-container *ngTemplateOutlet="pickerBody" />
+	</div>
+</ui-bottom-sheet>
+}
+
+<ng-template #pickerBody>
+	<div class="flex flex-col gap-4 text-left">
+		<section class="flex flex-col gap-2">
+			<p
+				class="m-0 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+			>
+				Year
+			</p>
+			<div
+				class="max-h-[9.5rem] overflow-y-auto overscroll-contain p-1 -m-1"
+			>
+				<app-chip-group
+					label="Year"
+					mode="single"
+					[allowEmpty]="false"
+					[options]="yearOptions()"
+					[value]="selectedYearValue()"
+					(valueChange)="chooseYear($event)"
+				/>
+			</div>
+		</section>
+		<section class="flex flex-col gap-2">
+			<p
+				class="m-0 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+			>
+				Month
+			</p>
+			<div class="grid grid-cols-4 gap-2" role="group" aria-label="Month">
+				@for (item of months; track item.short; let index = $index) {
+				<button
+					type="button"
+					class="min-h-[40px] tap:min-h-[44px] rounded-card border text-sm font-medium cursor-pointer transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+					[class]="
+						index === shownMonthIndex()
+							? 'border-brand bg-brand-subtle text-brand'
+							: 'border-line bg-input-bg text-fg-secondary hover:border-line-hover hover:text-fg'
+					"
+					[attr.aria-pressed]="index === shownMonthIndex()"
+					[attr.aria-label]="item.full + ' ' + shownYear()"
+					(click)="chooseMonth(index)"
+				>
+					{{ item.short }}
+				</button>
+				}
+			</div>
+		</section>
+	</div>
+</ng-template>

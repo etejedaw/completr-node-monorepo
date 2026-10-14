@@ -69,7 +69,20 @@ docs: |-
             "backlogId": "uuid",
             "game": { "id": "uuid", "code": "the-witcher-3", "title": "The Witcher 3", "backgroundUrl": "https://..." },
             "value": 10
-          }
+          },
+          "ratingDistribution": [
+            { "stars": 5, "count": 3 },
+            { "stars": 4, "count": 8 },
+            { "stars": 3, "count": 2 },
+            { "stars": 2, "count": 0 },
+            { "stars": 1, "count": 1 }
+          ],
+          "completionsByMonth": [
+            { "month": "2025-01", "count": 0 },
+            { "month": "2025-02", "count": 2 },
+            { "month": "...", "count": 1 },
+            { "month": "2025-12", "count": 3 }
+          ]
         }
       }
     }
@@ -83,6 +96,8 @@ docs: |-
     - `estimatedVsRealDelta` = `SUM(realDuration - duration)` over `completed` entries. Positive means players took longer than the estimated duration on average.
     - `completionRate` / `abandonmentRate` are ratios in [0, 1] (multiply by 100 for percent). `null` when `totalEntries = 0`.
     - Highlights (`longestPlayed`, `bestPersonalRatio`, `highestRated`) return the single matching entry with its `value`. `null` when no entry has the required field populated.
+    - `ratingDistribution` always has five buckets ordered from 5 to 1 stars. Each `userRating` (0–5, half steps) is rounded up to its bucket (`4.5` → 5, `0.5` → 1); unrated entries are not counted.
+    - `completionsByMonth` has 12 consecutive months (`YYYY-MM`) of `completed` entries by `finishedAt`, ending at the month of the most recent completion in the filter (not the current month), so past semesters still show their activity. Empty array when no completed entry has `finishedAt`.
     - Numeric fields return `null` when there is no data to aggregate.
 
     ### Errors

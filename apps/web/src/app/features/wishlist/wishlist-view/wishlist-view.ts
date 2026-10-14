@@ -15,21 +15,22 @@ import { ToastService } from "../../../core/services/toast";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import {
+	LibraryPage,
+	type LibraryPageState
+} from "../../../shared/components/library-page/library-page";
+import {
+	LibraryPageContent,
+	LibraryPageEmptyAction,
+	LibraryPageToolbar
+} from "../../../shared/components/library-page/library-page-slots";
 import {
 	countByPlatform,
 	matchesPlatform,
 	PlatformFilter
 } from "../../../shared/components/platform-filter/platform-filter";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
-import {
-	UiButton,
-	UiEmptyState,
-	UiNoMatches,
-	UiPagination,
-	UiPremiumBadge,
-	UiSearchBar
-} from "../../../shared/ui";
+import { UiButton, UiPremiumBadge, UiSearchBar } from "../../../shared/ui";
 import { FavoritesService } from "../../favorites/favorites";
 import { WishlistService } from "../wishlist";
 import {
@@ -43,13 +44,13 @@ import {
 		GameCoverCard,
 		CoverGrid,
 		LibraryHero,
-		LibraryToolbar,
+		LibraryPage,
+		LibraryPageContent,
+		LibraryPageEmptyAction,
+		LibraryPageToolbar,
 		PlatformFilter,
 		PremiumOnly,
 		UiButton,
-		UiEmptyState,
-		UiNoMatches,
-		UiPagination,
 		UiPremiumBadge,
 		UiSearchBar
 	],
@@ -79,6 +80,13 @@ export class WishlistView implements OnInit {
 			matchesPlatform(entry.platform, this.selectedPlatform())
 		)
 	);
+	protected readonly pageState = computed<LibraryPageState>(() => {
+		if (this.isLoading()) return "loading";
+		if (this.entries().length > 0) return "ready";
+		return this.searchQuery().trim() || this.selectedPlatform()
+			? "no-matches"
+			: "empty";
+	});
 	protected readonly heroPosters = computed(() =>
 		this.allEntries().map(entry => ({
 			src: entry.game.backgroundUrl,

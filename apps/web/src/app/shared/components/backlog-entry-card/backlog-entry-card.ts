@@ -9,6 +9,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { UiAvatar } from "../../ui";
 import {
 	backlogStatusClass,
 	backlogStatusIcon,
@@ -50,7 +51,8 @@ const CHANGEABLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		FlipCard,
 		GamePoster,
 		RatioSummary,
-		StarRating
+		StarRating,
+		UiAvatar
 	],
 	templateUrl: "./backlog-entry-card.html",
 	host: { class: "relative flex flex-col h-full" },

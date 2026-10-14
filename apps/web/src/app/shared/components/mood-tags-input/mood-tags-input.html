@@ -1,6 +1,6 @@
 <div class="relative">
 	<div
-		class="flex flex-wrap gap-1.5 items-center px-2 py-1.5 max-md:py-0 pointer-coarse:py-0 bg-input-bg border border-line rounded text-sm min-h-[2.25rem] max-md:min-h-[44px] tap:min-h-[44px] focus-within:border-brand"
+		class="flex flex-wrap gap-1.5 items-center px-2 py-1.5 max-md:py-0 tap:py-0 bg-input-bg border border-line rounded text-sm min-h-[2.25rem] max-md:min-h-[44px] tap:min-h-[44px] focus-within:border-brand"
 	>
 		@for (tag of tags(); track tag; let i = $index) {
 		<span
@@ -39,7 +39,7 @@
 	>
 		@for (s of filteredSuggestions(); track s) {
 		<li
-			class="px-3 py-1.5 max-md:py-3 pointer-coarse:py-3 text-sm text-fg-secondary cursor-pointer hover:bg-input-bg hover:text-fg transition"
+			class="px-3 py-1.5 max-md:py-3 tap:py-3 text-sm text-fg-secondary cursor-pointer hover:bg-input-bg hover:text-fg transition"
 			(mousedown)="pickSuggestion(s)"
 		>
 			{{ s }}

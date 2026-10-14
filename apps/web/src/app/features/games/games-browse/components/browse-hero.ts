@@ -11,12 +11,13 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type Game } from "../../../../core/models";
+import { UiButton, UiIconButton } from "../../../../shared/ui";
 
 const ROTATION_INTERVAL_MS = 7000;
 
 @Component({
 	selector: "app-browse-hero",
-	imports: [RouterLink],
+	imports: [RouterLink, UiButton, UiIconButton],
 	templateUrl: "./browse-hero.html",
 	host: {
 		class: "block",

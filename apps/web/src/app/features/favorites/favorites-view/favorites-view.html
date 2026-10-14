@@ -34,104 +34,107 @@
 	</a>
 </app-library-hero>
 
-@if (isLoading() || entries().length > 0 || searchQuery().trim()) {
-<app-library-toolbar>
-	@if (reordering()) {
-	<p
-		class="m-0 flex-1 min-w-0 flex items-center gap-2 text-sm text-fg-secondary"
-	>
-		<span aria-hidden="true" class="material-icons text-lg text-brand"
-			>swap_horiz</span
-		>
-		<span>Drag a cover or use the arrows. Your #1 leads your profile.</span>
-	</p>
-	<button uiButton variant="primary" (click)="finishReordering()">
-		<span aria-hidden="true" class="material-icons text-base">check</span>
-		Done
-	</button>
-	} @else {
-	<ui-search-bar
-		class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
-		placeholder="Search your favorites..."
-		[value]="searchQuery()"
-		(valueChange)="onSearch($event)"
-	/>
-	<button
-		uiButton
-		variant="secondary"
-		class="tap:min-h-[44px]"
-		[disabled]="!canReorder()"
-		[title]="canReorder() ? 'Change the order of your favorites' : 'Clear the search to reorder'"
-		(click)="startReordering()"
-	>
-		<span aria-hidden="true" class="material-icons text-base"
-			>swap_horiz</span
-		>
-		Reorder
-	</button>
-	}
-</app-library-toolbar>
-<p class="sr-only" aria-live="polite">{{ reorderAnnouncement() }}</p>
-} @if (isLoading()) {
-<app-cover-grid [loading]="true" loadingLabel="Loading favorites" />
-} @else if (entries().length === 0) { @if (searchQuery().trim()) {
-<ui-no-matches
-	hint="No favorites match your search."
-	(cleared)="onSearch('')"
-/>
-} @else {
-<ui-empty-state
-	icon="favorite"
-	title="No favorites yet"
-	hint="Mark your all-time favorite games. Visit a game's page and tap the heart to add it here — your top pick leads your public profile."
->
-	<a uiButton variant="primary" routerLink="/games">Browse games</a>
-</ui-empty-state>
-} } @else if (reordering()) {
-<app-cover-grid
-	[actionable]="true"
-	cdkDropList
-	cdkDropListOrientation="mixed"
-	cdkDropListElementContainer=".poster-grid"
-	[cdkDropListData]="entries()"
-	(cdkDropListDropped)="onDrop($event)"
->
-	@for (entry of entries(); track entry.game.id; let index = $index, first =
-	$first, last = $last) {
-	<li cdkDrag [cdkDragData]="entry">
-		<app-favorite-reorder-card
-			[entry]="entry"
-			[position]="index + 1"
-			[isFirst]="first"
-			[isLast]="last"
-			(move)="onReorderAction(index, $event)"
-		/>
-	</li>
-	}
-</app-cover-grid>
-} @else {
-<app-cover-grid [actionable]="true">
-	@for (entry of entries(); track entry.id) {
-	<li>
-		<app-game-cover-card
-			[game]="entry.game"
-			[moodTags]="entry.moodTags"
-			[topLeftBadge]="'#' + entry.position"
-			[showFavorite]="true"
-			[isFavorite]="true"
-			[showAddToBacklog]="true"
-			[inBacklog]="entry.inBacklog ?? false"
-			(favoriteToggle)="remove(entry)"
-			(addToBacklog)="openBacklogQuickAdd(entry.game)"
-		/>
-	</li>
-	}
-</app-cover-grid>
-} @if (!isLoading() && !reordering()) {
-<ui-pagination
+<app-library-page
+	[state]="pageState()"
+	[showToolbar]="isLoading() || entries().length > 0 || !!searchQuery().trim()"
+	[liveAnnouncement]="reorderAnnouncement()"
+	loadingLabel="Loading favorites"
+	noMatchesHint="No favorites match your search."
+	emptyIcon="favorite"
+	emptyTitle="No favorites yet"
+	emptyHint="Mark your all-time favorite games. Visit a game's page and tap the heart to add it here — your top pick leads your public profile."
+	[showPagination]="!reordering()"
 	[offset]="offset()"
 	[limit]="limit"
 	[total]="total()"
+	(cleared)="onSearch('')"
 	(offsetChange)="onOffsetChange($event)"
-/>
-}
+>
+	<ng-template appLibraryPageToolbar>
+		@if (reordering()) {
+		<p
+			class="m-0 flex-1 min-w-0 flex items-center gap-2 text-sm text-fg-secondary"
+		>
+			<span aria-hidden="true" class="material-icons text-lg text-brand"
+				>swap_horiz</span
+			>
+			<span
+				>Drag a cover or use the arrows. Your #1 leads your
+				profile.</span
+			>
+		</p>
+		<button uiButton variant="primary" (click)="finishReordering()">
+			<span aria-hidden="true" class="material-icons text-base"
+				>check</span
+			>
+			Done
+		</button>
+		} @else {
+		<ui-search-bar
+			class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+			placeholder="Search your favorites..."
+			[value]="searchQuery()"
+			(valueChange)="onSearch($event)"
+		/>
+		<button
+			uiButton
+			variant="secondary"
+			class="tap:min-h-[44px]"
+			[disabled]="!canReorder()"
+			[title]="canReorder() ? 'Change the order of your favorites' : 'Clear the search to reorder'"
+			(click)="startReordering()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>swap_horiz</span
+			>
+			Reorder
+		</button>
+		}
+	</ng-template>
+	<ng-template appLibraryPageEmptyAction>
+		<a uiButton variant="primary" routerLink="/games">Browse games</a>
+	</ng-template>
+	<ng-template appLibraryPageContent>
+		@if (reordering()) {
+		<app-cover-grid
+			[actionable]="true"
+			cdkDropList
+			cdkDropListOrientation="mixed"
+			cdkDropListElementContainer=".poster-grid"
+			[cdkDropListData]="entries()"
+			(cdkDropListDropped)="onDrop($event)"
+		>
+			@for (entry of entries(); track entry.game.id; let index = $index,
+			first = $first, last = $last) {
+			<li cdkDrag [cdkDragData]="entry">
+				<app-favorite-reorder-card
+					[entry]="entry"
+					[position]="index + 1"
+					[isFirst]="first"
+					[isLast]="last"
+					(move)="onReorderAction(index, $event)"
+				/>
+			</li>
+			}
+		</app-cover-grid>
+		} @else {
+		<app-cover-grid [actionable]="true">
+			@for (entry of entries(); track entry.id) {
+			<li>
+				<app-game-cover-card
+					[game]="entry.game"
+					[moodTags]="entry.moodTags"
+					[topLeftBadge]="'#' + entry.position"
+					[showFavorite]="true"
+					[isFavorite]="true"
+					[showAddToBacklog]="true"
+					[inBacklog]="entry.inBacklog ?? false"
+					(favoriteToggle)="remove(entry)"
+					(addToBacklog)="openBacklogQuickAdd(entry.game)"
+				/>
+			</li>
+			}
+		</app-cover-grid>
+		}
+	</ng-template>
+</app-library-page>

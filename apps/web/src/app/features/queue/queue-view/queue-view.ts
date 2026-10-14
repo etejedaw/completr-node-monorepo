@@ -1,9 +1,4 @@
-import {
-	CdkDrag,
-	type CdkDragDrop,
-	CdkDropList,
-	moveItemInArray
-} from "@angular/cdk/drag-drop";
+import { moveItemInArray } from "@angular/cdk/drag-drop";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -17,20 +12,15 @@ import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 import { type QueueEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
-import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
-import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
 	UiButton,
 	UiDialog,
 	UiInput,
-	UiPagination,
 	UiPlainEmptyState,
-	UiPremiumBadge,
-	UiSearchBar
+	UiPremiumBadge
 } from "../../../shared/ui";
 import { BacklogService } from "../../backlog/backlog";
 import { FavoritesService } from "../../favorites/favorites";
@@ -39,39 +29,23 @@ import {
 	QueueAddModal,
 	type QueueAddModalData
 } from "../queue-add-modal/queue-add-modal";
-import { QueueListSection } from "../queue-list-section/queue-list-section";
-import { QueueNextCard } from "../queue-next-card/queue-next-card";
 import {
-	queueFeaturedEyebrow,
-	type QueueSort,
-	type QueueStatusChange,
-	sortQueueEntries
-} from "../queue-order";
-import { QueueRow } from "../queue-row/queue-row";
-import { QueueSkeleton } from "../queue-skeleton/queue-skeleton";
-import { QueueSortControl } from "../queue-sort-control/queue-sort-control";
+	QueueBrowser,
+	type QueueEntryMove
+} from "../queue-browser/queue-browser";
+import { type QueueSort, type QueueStatusChange } from "../queue-order";
 
 @Component({
 	selector: "app-queue-view",
 	imports: [
 		LibraryHero,
-		LibraryToolbar,
-		QueueListSection,
+		QueueBrowser,
 		UiPlainEmptyState,
 		UiButton,
 		UiDialog,
 		UiInput,
-		UiPagination,
 		UiPremiumBadge,
-		UiSearchBar,
-		QueueNextCard,
-		QueueRow,
-		QueueSkeleton,
-		QueueSortControl,
-		CdkDropList,
-		CdkDrag,
-		PremiumOnly,
-		SwipeActions
+		PremiumOnly
 	],
 	templateUrl: "./queue-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -84,13 +58,10 @@ export class QueueView implements OnInit {
 	private readonly dialogs = inject(DialogService);
 
 	protected readonly isPremium = inject(AuthService).isPremium;
-	protected readonly pointer = inject(PointerService);
+	protected readonly favoriteGameIds = this.favoritesService.favoriteIds;
 	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
-	protected readonly noMatchesMessage = computed(
-		() => `Nothing in Up Next matches "${this.searchQuery().trim()}".`
-	);
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
@@ -119,29 +90,11 @@ export class QueueView implements OnInit {
 			title: entry.backlog.game.title
 		}))
 	);
-	protected readonly filteredEntries = computed(() =>
-		sortQueueEntries(this.entries(), this.sortBy())
-	);
 
-	protected readonly featured = computed(() => {
-		if (this.offset() > 0 || this.searchQuery().trim()) return null;
-		return this.filteredEntries()[0] ?? null;
-	});
-	protected readonly rest = computed(() =>
-		this.featured()
-			? this.filteredEntries().slice(1)
-			: this.filteredEntries()
-	);
-	protected readonly restOffset = computed(() => (this.featured() ? 1 : 0));
-	protected readonly isManual = computed(() => this.sortBy() === "manual");
-	protected readonly featuredEyebrow = computed(() =>
-		queueFeaturedEyebrow(this.sortBy())
-	);
-
-	saveCurrentOrder() {
+	saveCurrentOrder(orderedEntries: QueueEntry[]) {
 		if (this.sortBy() === "manual" || this.savingOrder()) return;
 		this.savingOrder.set(true);
-		const backlogIds = this.filteredEntries().map(e => e.backlog.id);
+		const backlogIds = orderedEntries.map(e => e.backlog.id);
 		this.queueService.reorder(backlogIds).subscribe({
 			next: updated => {
 				this.entries.set(updated);
@@ -165,10 +118,6 @@ export class QueueView implements OnInit {
 		this.loadQueue();
 	}
 
-	isFavorite(gameId: string): boolean {
-		return this.favoritesService.isFavorite(gameId);
-	}
-
 	toggleFavorite(gameId: string) {
 		this.favoritesService.toggle(gameId).subscribe();
 	}
@@ -187,10 +136,6 @@ export class QueueView implements OnInit {
 		this.dialogs.open<QueueAddModalData>(QueueAddModal, {
 			data: { onAdded: () => this.loadQueue() }
 		});
-	}
-
-	isUpdatingStatus(entry: QueueEntry): boolean {
-		return this.updatingStatusIds().has(entry.backlog.id);
 	}
 
 	requestStatusChange(entry: QueueEntry, status: QueueStatusChange) {
@@ -284,16 +229,9 @@ export class QueueView implements OnInit {
 		this.reorder(list);
 	}
 
-	onDrop(event: CdkDragDrop<QueueEntry[]>) {
-		if (!this.isManual()) return;
-		if (event.previousIndex === event.currentIndex) return;
-		const shift = this.restOffset();
+	moveEntry({ fromIndex, toIndex }: QueueEntryMove) {
 		const list = [...this.entries()];
-		moveItemInArray(
-			list,
-			event.previousIndex + shift,
-			event.currentIndex + shift
-		);
+		moveItemInArray(list, fromIndex, toIndex);
 		this.reorder(list);
 	}
 

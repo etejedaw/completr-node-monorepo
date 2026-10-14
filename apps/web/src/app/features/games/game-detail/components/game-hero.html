@@ -44,18 +44,18 @@
 				<div class="flex flex-wrap items-center gap-1.5 mb-2 sm:mb-3">
 					@if (game().isDlc) {
 					<span
-						class="py-0.5 px-2 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand/25 text-brand-hover backdrop-blur-sm"
+						class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-[0.16em] bg-brand/25 text-brand-hover backdrop-blur-sm"
 						>DLC</span
 					>
 					} @if (game().isCompilation) {
 					<span
-						class="py-0.5 px-2 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-brand/25 text-brand backdrop-blur-sm"
+						class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-[0.16em] bg-brand/25 text-brand-hover backdrop-blur-sm"
 						>Compilation</span
 					>
 					} @for (genre of game().genres.slice(0, 3); track genre.id)
 					{
 					<a
-						class="tap-area py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-wider bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25 hover:text-white"
+						class="tap-area py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-[0.16em] bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25 hover:text-white"
 						routerLink="/games"
 						[queryParams]="{ genres: genre.code }"
 						>{{ genre.name }}</a
@@ -100,19 +100,13 @@
 								class="material-icons text-sm"
 								>collections_bookmark</span
 							>
-							{{ franchise.name }} @if (game().franchiseProgress;
-							as progress) {
-							<span class="text-white/50 tabular-nums"
-								>{{ progress.completed }}/{{ progress.total
-								}}</span
-							>
-							}
+							{{ franchise.name }}
 						</a>
 						@if (isLoggedIn()) {
 						<button
 							type="button"
-							class="tap-area inline-flex items-center gap-0.5 h-6 px-2 rounded-full border text-[0.6875rem] font-semibold cursor-pointer transition disabled:opacity-50"
-							[class]="franchiseTracked() ? 'border-brand/50 bg-brand-subtle text-brand' : 'border-white/30 bg-transparent text-white/80 hover:text-white hover:border-white/60'"
+							class="tap-area inline-flex items-center gap-0.5 h-6 px-2 rounded-full border text-[0.6875rem] font-medium cursor-pointer transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50 disabled:cursor-not-allowed"
+							[class]="franchiseTracked() ? 'border-brand bg-brand-subtle text-brand' : 'border-white/30 bg-transparent text-white/80 hover:text-white hover:border-white/60'"
 							[disabled]="togglingFranchise()"
 							[attr.aria-pressed]="franchiseTracked()"
 							(click)="franchiseTrackToggled.emit()"

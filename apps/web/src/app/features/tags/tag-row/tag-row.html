@@ -9,10 +9,7 @@
 	@let name = form.name(); @let description = form.description();
 	<div class="grid gap-4 md:gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
 		<div uiFormField class="min-w-0">
-			<label
-				uiLabel
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				[for]="fieldId + '-name'"
+			<label uiLabel uiFieldLabel [for]="fieldId + '-name'"
 				>Name <span class="text-danger font-bold">*</span></label
 			>
 			<input
@@ -36,10 +33,7 @@
 			}
 		</div>
 		<div uiFormField class="min-w-0">
-			<label
-				uiLabel
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				[for]="fieldId + '-description'"
+			<label uiLabel uiFieldLabel [for]="fieldId + '-description'"
 				>Description</label
 			>
 			<input
@@ -81,7 +75,7 @@
 </form>
 } @else {
 <article
-	class="group relative flex items-center gap-3 px-3 sm:px-4 py-3 transition hover:bg-white/[0.03] focus-within:bg-white/[0.03]"
+	class="group relative flex items-center gap-3 px-3 sm:px-4 py-3 transition hover:bg-surface-hover focus-within:bg-surface-hover"
 >
 	<div
 		class="flex-1 min-w-0 flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4"
@@ -103,15 +97,12 @@
 			{{ item.description || 'No description' }}
 		</p>
 		<div class="flex items-center gap-2 md:w-40 md:shrink-0">
-			<span
+			<ui-progress
 				aria-hidden="true"
-				class="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden"
-			>
-				<span
-					class="block h-full rounded-full bg-brand/70"
-					[style.width.%]="usagePercent()"
-				></span>
-			</span>
+				class="flex-1 min-w-0"
+				indicatorClass="bg-brand/70"
+				[value]="usagePercent()"
+			/>
 			<span class="shrink-0 text-xs text-fg-muted tabular-nums">
 				{{ item.usageCount }} {{ item.usageCount === 1 ? 'game' :
 				'games' }}
@@ -120,8 +111,9 @@
 	</div>
 	<div class="relative z-10 shrink-0 flex items-center gap-0.5">
 		<button
+			uiIconButton
 			type="button"
-			class="sm:hidden w-[44px] h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
+			class="sm:!hidden tap:min-h-[44px] tap:min-w-[44px]"
 			aria-haspopup="dialog"
 			[attr.aria-label]="'More actions for ' + item.tag"
 			(click)="moreRequested.emit()"
@@ -131,8 +123,9 @@
 			>
 		</button>
 		<button
+			uiIconButton
 			type="button"
-			class="max-sm:hidden w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:bg-white/5 hover:text-fg active:bg-white/10 focus-visible:outline-2 focus-visible:outline-brand"
+			class="max-sm:!hidden tap:min-h-[44px] tap:min-w-[44px]"
 			[attr.aria-label]="'Edit ' + item.tag"
 			[title]="'Edit ' + item.tag"
 			[disabled]="saving()"
@@ -141,8 +134,10 @@
 			<span aria-hidden="true" class="material-icons text-lg">edit</span>
 		</button>
 		<button
+			uiIconButton
+			tone="danger"
 			type="button"
-			class="max-sm:hidden w-8 h-8 tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:bg-danger/10 hover:text-danger active:bg-danger/20 focus-visible:outline-2 focus-visible:outline-brand"
+			class="max-sm:!hidden tap:min-h-[44px] tap:min-w-[44px]"
 			[attr.aria-label]="'Delete ' + item.tag"
 			[title]="'Delete ' + item.tag"
 			[disabled]="saving()"

@@ -28,15 +28,7 @@
 			</p>
 
 			@if (error()) {
-			<div
-				role="alert"
-				class="flex items-start gap-2 bg-danger/10 border border-danger/25 text-red-300 px-3.5 py-2.5 rounded-card mb-5 text-sm"
-			>
-				<span aria-hidden="true" class="material-icons text-base mt-px"
-					>error_outline</span
-				>
-				{{ error() }}
-			</div>
+			<ui-alert class="mb-5">{{ error() }}</ui-alert>
 			}
 
 			<form (submit)="onSubmit($event)" class="flex flex-col gap-5">
@@ -83,11 +75,13 @@
 							[formField]="form.password"
 							placeholder="Your password"
 							autocomplete="current-password"
-							class="!pl-10 !pr-11 !py-3 !text-sm"
+							class="!pl-10 !pr-11 tap:!pr-[48px] !py-3 !text-sm"
 						/>
 						<button
+							uiIconButton
+							size="lg"
 							type="button"
-							class="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-md bg-transparent border-0 cursor-pointer text-fg-muted hover:text-fg hover:bg-surface transition"
+							class="absolute right-1 top-1/2 -translate-y-1/2 tap:min-h-[44px] tap:min-w-[44px] tap:right-0"
 							(click)="toggleShowPassword()"
 							[attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
 							[title]="showPassword() ? 'Hide password' : 'Show password'"

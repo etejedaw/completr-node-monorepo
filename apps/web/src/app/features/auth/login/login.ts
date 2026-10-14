@@ -8,12 +8,20 @@ import { form, FormField, required } from "@angular/forms/signals";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 
 import { AuthService } from "../../../core/services/auth";
-import { UiButton, UiInput } from "../../../shared/ui";
+import { UiAlert, UiButton, UiIconButton, UiInput } from "../../../shared/ui";
 import { AuthShowcase } from "../auth-showcase/auth-showcase";
 
 @Component({
 	selector: "app-login",
-	imports: [FormField, UiButton, UiInput, RouterLink, AuthShowcase],
+	imports: [
+		FormField,
+		UiAlert,
+		UiButton,
+		UiIconButton,
+		UiInput,
+		RouterLink,
+		AuthShowcase
+	],
 	templateUrl: "./login.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

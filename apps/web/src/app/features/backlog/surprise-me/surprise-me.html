@@ -13,24 +13,32 @@
 	>
 	<div class="flex flex-col gap-4">
 		@switch (state()) { @case ('empty') {
-		<div class="py-6 text-center flex flex-col items-center gap-2">
-			<span
-				aria-hidden="true"
-				class="material-icons text-4xl text-fg-muted"
-				>search_off</span
-			>
-			<p class="m-0 text-sm text-fg-secondary">
-				@if (onlyUnplayed()) { You have no Not started games matching
-				your filters. } @else { No games match your current filters. }
-			</p>
-		</div>
+		<ui-plain-empty-state
+			role="status"
+			[compact]="true"
+			icon="search_off"
+			title="Nothing to pick"
+			[message]="
+				onlyUnplayed()
+					? 'You have no Not started games matching your filters.'
+					: 'No games match your current filters.'
+			"
+		/>
 		} @case ('error') {
-		<div class="py-6 text-center flex flex-col items-center gap-3">
-			<p class="m-0 text-sm text-danger">
-				Couldn't pick a game. Try again.
-			</p>
-			<button uiButton variant="secondary" (click)="spin()">Retry</button>
-		</div>
+		<ui-plain-empty-state
+			role="alert"
+			[compact]="true"
+			icon="cloud_off"
+			title="Couldn't pick a game"
+			message="Check your connection and try again."
+		>
+			<button uiButton variant="secondary" type="button" (click)="spin()">
+				<span aria-hidden="true" class="material-icons text-base"
+					>refresh</span
+				>
+				Try again
+			</button>
+		</ui-plain-empty-state>
 		} @default { @for (entry of revealedPick(); track entry.id) {
 		<div
 			class="flex flex-col transition-opacity motion-safe:animate-[uiFadeUp_420ms_cubic-bezier(0.16,1,0.3,1)]"
@@ -76,7 +84,7 @@
 						class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-secondary"
 					>
 						<span
-							class="px-1.5 py-0.5 rounded bg-white/5 text-fg-secondary text-[0.6875rem] font-semibold tracking-wide"
+							class="px-1.5 py-0.5 rounded bg-input-bg text-fg-secondary text-[0.6875rem] font-semibold tracking-wide"
 							>{{ entry.platform.abbreviation }}</span
 						>
 						@if (entry.duration) {

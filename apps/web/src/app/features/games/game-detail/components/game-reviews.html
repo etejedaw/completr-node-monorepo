@@ -28,37 +28,7 @@
 			</div>
 		</div>
 
-		<ul
-			class="list-none m-0 p-0 flex flex-col gap-1.5"
-			aria-label="Rating distribution"
-		>
-			@for (bucket of ratingDistribution(); track bucket.stars) {
-			<li class="flex items-center gap-2.5 text-xs">
-				<span
-					class="w-7 inline-flex items-center gap-0.5 text-fg-secondary tabular-nums"
-					>{{ bucket.stars }}<span
-						aria-hidden="true"
-						class="material-icons text-[0.75rem] text-rating"
-						>star</span
-					></span
-				>
-				<span
-					class="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden"
-					aria-hidden="true"
-				>
-					<span
-						class="block h-full rounded-full bg-rating/80 transition-[width] duration-500"
-						[style.width.%]="bucket.percent"
-					></span>
-				</span>
-				<span class="w-6 text-right text-fg-muted tabular-nums"
-					>{{ bucket.count }}<span class="sr-only">
-						reviews with {{ bucket.stars }} stars</span
-					></span
-				>
-			</li>
-			}
-		</ul>
+		<app-rating-distribution [buckets]="ratingDistribution()" />
 	</section>
 
 	@if (show()) {

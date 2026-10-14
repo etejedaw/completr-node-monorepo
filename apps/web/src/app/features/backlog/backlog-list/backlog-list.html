@@ -36,7 +36,7 @@
 
 		<div
 			class="md:hidden grid gap-2"
-			[class.grid-cols-2]="backlogFilters().length > 0"
+			[class.grid-cols-2]="viewPickerViews().length > 0"
 		>
 			<app-option-picker
 				label="Status"
@@ -47,7 +47,7 @@
 				[placeholderIcon]="quickStatusIcon()"
 				(valueChange)="pickStatus($event)"
 			/>
-			@if (backlogFilters().length > 0) {
+			@if (viewPickerViews().length > 0) {
 			<app-option-picker
 				label="View"
 				heading="Saved views"
@@ -77,7 +77,7 @@
 				(valueChange)="onSearch($event)"
 			/>
 
-			@if (backlogFilters().length > 0) {
+			@if (viewPickerViews().length > 0) {
 			<app-option-picker
 				class="max-md:hidden"
 				variant="compact"
@@ -189,764 +189,71 @@
 		}
 	</div>
 	} @if (activeFilterId() && hasAnyStatEnabled()) {
-	<section class="mb-4 bg-surface border border-line rounded-card p-4">
-		<header class="flex items-center justify-between mb-3">
-			<h2
-				class="font-display m-0 text-sm font-semibold text-fg-secondary uppercase tracking-wider flex items-center gap-2"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-base text-brand"
-					>insights</span
-				>
-				Stats
-			</h2>
-			<button
-				type="button"
-				class="bg-transparent border-0 text-fg-muted text-xs font-medium cursor-pointer inline-flex items-center gap-1 transition hover:text-fg"
-				(click)="toggleStatsExpanded()"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>{{ statsExpanded() ? 'expand_less' : 'expand_more' }}</span
-				>
-				{{ statsExpanded() ? 'Less' : 'More' }}
-			</button>
-		</header>
-
-		@if (statsLoading() && !stats()) {
-		<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-			@for (i of [0,1,2,3]; track i) {
-			<ui-skeleton variant="rect" class="h-16 rounded-md" />
-			}
-		</div>
-		} @else if (statsError()) {
-		<div
-			class="flex items-center justify-between gap-3 bg-danger/10 border border-danger/30 rounded-md p-3"
-		>
-			<div class="flex items-center gap-2 text-sm text-danger">
-				<span aria-hidden="true" class="material-icons text-base"
-					>error_outline</span
-				>
-				Couldn't load stats.
-			</div>
-			<button
-				type="button"
-				class="bg-transparent border border-danger/40 text-danger px-2.5 py-1 rounded text-xs font-medium cursor-pointer transition hover:bg-danger/10"
-				(click)="retryStats()"
-			>
-				Retry
-			</button>
-		</div>
-		} @else if (stats(); as s) {
-		<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-			@if (isStatEnabled('totalEntries')) {
-			<div
-				class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1"
-			>
-				<span
-					class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-					>Entries</span
-				>
-				<span class="font-display text-xl font-bold tabular-nums"
-					>{{ formatStat(s.totalEntries, '', 0) }}</span
-				>
-			</div>
-			} @if (isStatEnabled('totalRealHours')) {
-			<div
-				class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1"
-			>
-				<span
-					class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-					>Real hours</span
-				>
-				<span class="font-display text-xl font-bold tabular-nums"
-					>{{ formatStat(s.totalRealHours, 'h', 1) }}</span
-				>
-			</div>
-			} @if (isStatEnabled('avgRatio')) {
-			<div
-				class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1"
-			>
-				<span
-					class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-					>Avg ratio</span
-				>
-				<span
-					class="font-display text-xl font-bold text-brand tabular-nums"
-					>{{ formatStat(s.avgRatio) }}</span
-				>
-			</div>
-			} @if (isStatEnabled('avgPersonalRatio')) {
-			<div
-				class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1"
-			>
-				<span
-					class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-					>Avg personal ratio</span
-				>
-				<span
-					class="font-display text-xl font-bold text-brand tabular-nums"
-					>{{ formatStat(s.avgPersonalRatio) }}</span
-				>
-			</div>
-			}
-		</div>
-
-		@if (statsExpanded()) { @if (hasAnyExpandedStatEnabled()) {
-		<div
-			class="mt-4 pt-4 border-t border-line grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"
-		>
-			@if (isStatEnabled('completionRate')) {
-			<div
-				class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1"
-			>
-				<span
-					class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-					>Completion rate</span
-				>
-				<span
-					class="font-display text-base font-semibold text-success tabular-nums"
-					>{{ formatPercent(s.completionRate) }}</span
-				>
-			</div>
-			} @if (isStatEnabled('abandonmentRate')) {
-			<div
-				class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1"
-			>
-				<span
-					class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-					>Abandonment rate</span
-				>
-				<span
-					class="font-display text-base font-semibold text-danger tabular-nums"
-					>{{ formatPercent(s.abandonmentRate) }}</span
-				>
-			</div>
-			} @if (isStatEnabled('avgRealDuration')) {
-			<div
-				class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1"
-			>
-				<span
-					class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-					>Avg real duration</span
-				>
-				<span class="font-display text-base font-semibold tabular-nums"
-					>{{ formatStat(s.avgRealDuration, 'h', 1) }}</span
-				>
-			</div>
-			} @if (isStatEnabled('avgEstimatedDuration')) {
-			<div
-				class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1"
-			>
-				<span
-					class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-					>Avg estimated duration</span
-				>
-				<span class="font-display text-base font-semibold tabular-nums"
-					>{{ formatStat(s.avgEstimatedDuration, 'h', 1) }}</span
-				>
-			</div>
-			} @if (isStatEnabled('avgScore')) {
-			<div
-				class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1"
-			>
-				<span
-					class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-					>Avg score</span
-				>
-				<span class="font-display text-base font-semibold tabular-nums"
-					>{{ formatStat(s.avgScore, '', 1) }}</span
-				>
-			</div>
-			} @if (isStatEnabled('avgUserRating')) {
-			<div
-				class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1"
-			>
-				<span
-					class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-					>Avg rating</span
-				>
-				<span class="font-display text-base font-semibold tabular-nums"
-					>{{ formatStat(s.avgUserRating, '', 1) }}</span
-				>
-			</div>
-			} @if (isStatEnabled('estimatedVsRealDelta')) {
-			<div
-				class="bg-input-bg border border-line rounded-md p-3 flex flex-col gap-1 col-span-2"
-				[title]="'Sum of (realDuration - duration) over completed entries. Positive = took longer than estimated.'"
-			>
-				<span
-					class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-					>Estimated vs real Δ (completed)</span
-				>
-				<span
-					class="font-display text-base font-semibold tabular-nums"
-					[class.text-warning]="s.estimatedVsRealDelta !== null && s.estimatedVsRealDelta > 0"
-					[class.text-success]="s.estimatedVsRealDelta !== null && s.estimatedVsRealDelta < 0"
-					>{{ formatStat(s.estimatedVsRealDelta, 'h', 1) }}</span
-				>
-			</div>
-			}
-		</div>
-		} @if (hasAnyHighlightEnabled() && (s.longestPlayed ||
-		s.bestPersonalRatio || s.highestRated)) {
-		<div class="mt-4 pt-4 border-t border-line">
-			<h3
-				class="text-[0.625rem] uppercase tracking-wider text-fg-muted font-semibold mb-2"
-			>
-				Highlights
-			</h3>
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-				@if (isStatEnabled('longestPlayed') && s.longestPlayed; as h) {
-				<a
-					[routerLink]="['/games', h.game.code]"
-					class="flex items-center gap-3 bg-input-bg border border-line rounded-md p-2.5 no-underline transition hover:border-brand/40"
-				>
-					@if (h.game.backgroundUrl) {
-					<img
-						[src]="h.game.backgroundUrl | coverUrl: 200"
-						[alt]="h.game.title"
-						class="w-10 h-14 object-cover rounded shrink-0"
-						loading="lazy"
-					/>
-					} @else {
-					<div class="w-10 h-14 bg-surface rounded shrink-0"></div>
-					}
-					<div class="min-w-0 flex-1">
-						<span
-							class="block text-[0.625rem] uppercase tracking-wider text-fg-muted"
-							>Longest played</span
-						>
-						<span
-							class="block text-sm font-semibold text-fg line-clamp-1"
-							>{{ h.game.title }}</span
-						>
-						<span
-							class="block text-xs text-fg-secondary tabular-nums"
-							>{{ formatStat(h.value, 'h', 1) }}</span
-						>
-					</div>
-				</a>
-				} @if (isStatEnabled('bestPersonalRatio') &&
-				s.bestPersonalRatio; as h) {
-				<a
-					[routerLink]="['/games', h.game.code]"
-					class="flex items-center gap-3 bg-input-bg border border-line rounded-md p-2.5 no-underline transition hover:border-brand/40"
-				>
-					@if (h.game.backgroundUrl) {
-					<img
-						[src]="h.game.backgroundUrl | coverUrl: 200"
-						[alt]="h.game.title"
-						class="w-10 h-14 object-cover rounded shrink-0"
-						loading="lazy"
-					/>
-					} @else {
-					<div class="w-10 h-14 bg-surface rounded shrink-0"></div>
-					}
-					<div class="min-w-0 flex-1">
-						<span
-							class="block text-[0.625rem] uppercase tracking-wider text-fg-muted"
-							>Best personal ratio</span
-						>
-						<span
-							class="block text-sm font-semibold text-fg line-clamp-1"
-							>{{ h.game.title }}</span
-						>
-						<span
-							class="block text-xs text-brand font-semibold tabular-nums"
-							>{{ formatStat(h.value) }}</span
-						>
-					</div>
-				</a>
-				} @if (isStatEnabled('highestRated') && s.highestRated; as h) {
-				<a
-					[routerLink]="['/games', h.game.code]"
-					class="flex items-center gap-3 bg-input-bg border border-line rounded-md p-2.5 no-underline transition hover:border-brand/40"
-				>
-					@if (h.game.backgroundUrl) {
-					<img
-						[src]="h.game.backgroundUrl | coverUrl: 200"
-						[alt]="h.game.title"
-						class="w-10 h-14 object-cover rounded shrink-0"
-						loading="lazy"
-					/>
-					} @else {
-					<div class="w-10 h-14 bg-surface rounded shrink-0"></div>
-					}
-					<div class="min-w-0 flex-1">
-						<span
-							class="block text-[0.625rem] uppercase tracking-wider text-fg-muted"
-							>Highest rated</span
-						>
-						<span
-							class="block text-sm font-semibold text-fg line-clamp-1"
-							>{{ h.game.title }}</span
-						>
-						<span
-							class="block text-xs text-rating font-semibold tabular-nums"
-							>{{ formatStat(h.value, '★', 1) }}</span
-						>
-					</div>
-				</a>
-				}
-			</div>
-		</div>
-		} @if (isStatEnabled('countByStatus')) {
-		<div class="mt-4 pt-4 border-t border-line">
-			<h3
-				class="text-[0.625rem] uppercase tracking-wider text-fg-muted font-semibold mb-2"
-			>
-				By status
-			</h3>
-			<div class="flex flex-wrap gap-2">
-				<span
-					class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-fg-muted/10 text-fg-muted"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.875rem]"
-						>schedule</span
-					>
-					Not started
-					<strong class="tabular-nums"
-						>{{ s.countByStatus.not_started }}</strong
-					>
-				</span>
-				<span
-					class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-playing/10 text-playing"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.875rem]"
-						>play_circle</span
-					>
-					Playing
-					<strong class="tabular-nums"
-						>{{ s.countByStatus.playing }}</strong
-					>
-				</span>
-				<span
-					class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.875rem]"
-						>check_circle</span
-					>
-					Completed
-					<strong class="tabular-nums"
-						>{{ s.countByStatus.completed }}</strong
-					>
-				</span>
-				<span
-					class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-danger/10 text-danger"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.875rem]"
-						>cancel</span
-					>
-					Abandoned
-					<strong class="tabular-nums"
-						>{{ s.countByStatus.abandoned }}</strong
-					>
-				</span>
-				<span
-					class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-subtle text-brand"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.875rem]"
-						>all_inclusive</span
-					>
-					Endless
-					<strong class="tabular-nums"
-						>{{ s.countByStatus.endless }}</strong
-					>
-				</span>
-			</div>
-		</div>
-		} } }
-	</section>
-	} @if (showFilters()) { @if (isMobile()) {
-	<ui-bottom-sheet
-		eyebrow="My Games"
-		[heading]="filtersHeading()"
-		[subheading]="filtersSubheading()"
+	<app-saved-view-stats
+		[stats]="stats()"
+		[enabledStats]="enabledStatKeys()"
+		[loading]="statsLoading()"
+		[loadFailed]="statsError()"
+		[expanded]="statsExpanded()"
+		(expandedToggle)="toggleStatsExpanded()"
+		(retryRequested)="retryStats()"
+	/>
+	} @if (showFilters()) {
+	<app-backlog-filters-panel
+		[allPlatforms]="allPlatforms()"
+		[allGenres]="allGenres()"
+		[moodTagsSuggestions]="moodTagsSuggestions()"
+		[activeFiltersCount]="activeFiltersCount()"
+		[advancedFiltersActive]="hasAdvancedFiltersActive()"
+		[hasActiveView]="!!activeFilterId()"
+		[creatingView]="creatingView()"
+		[saving]="savingFilter()"
+		[previewTotal]="previewTotal()"
+		[statuses]="selectedStatuses()"
+		(statusesChange)="setStatuses($event)"
+		[coopOnly]="coopOnly()"
+		(coopOnlyChange)="setCoopOnly($event)"
+		[sortOrder]="sortOrder()"
+		(sortOrderChange)="sortOrder.set($event)"
+		[(selectedPlatform)]="selectedPlatform"
+		[(selectedPlatforms)]="selectedPlatforms"
+		[(selectedGenres)]="selectedGenres"
+		[(yearFrom)]="yearFrom"
+		[(yearTo)]="yearTo"
+		[(startedFrom)]="startedFrom"
+		[(startedTo)]="startedTo"
+		[(finishedFrom)]="finishedFrom"
+		[(finishedTo)]="finishedTo"
+		[(minRating)]="minRating"
+		[(maxRating)]="maxRating"
+		[(minRealDuration)]="minRealDuration"
+		[(maxRealDuration)]="maxRealDuration"
+		[(minRatio)]="minRatio"
+		[(maxRatio)]="maxRatio"
+		[(minPersonalRatio)]="minPersonalRatio"
+		[(maxPersonalRatio)]="maxPersonalRatio"
+		[(selectedMoodTags)]="selectedMoodTags"
+		[(sortBy)]="sortBy"
+		[(showAdvancedFilters)]="showAdvancedFilters"
+		[(newFilterName)]="newFilterName"
+		[(newFilterPinned)]="newFilterPinned"
+		(updateViewRequested)="updateCurrentFilter()"
+		(saveViewRequested)="saveCurrentFilter()"
+		(cleared)="clearFilters()"
+		(applied)="applyAndCloseFilters()"
 		(closed)="closeFilters()"
-	>
-		<div class="px-2 pt-2">
-			<ng-container *ngTemplateOutlet="filtersBody" />
-		</div>
-		<ng-container ngProjectAs="[sheetFooter]">
-			<ng-container *ngTemplateOutlet="filtersFooter" />
-		</ng-container>
-	</ui-bottom-sheet>
-	} @else {
-	<ui-drawer
-		eyebrow="My Games"
-		[heading]="filtersHeading()"
-		[subheading]="filtersSubheading()"
-		(closed)="closeFilters()"
-	>
-		<ng-container *ngTemplateOutlet="filtersBody" />
-		<ng-container ngProjectAs="[drawerFooter]">
-			<ng-container *ngTemplateOutlet="filtersFooter" />
-		</ng-container>
-	</ui-drawer>
-	} } @if (showStatsPanel()) { @if (isMobile()) {
-	<ui-bottom-sheet
-		[eyebrow]="activeView()?.name ?? 'My Games'"
-		heading="Stats"
-		subheading="Choose which stats this view shows. Changes save automatically."
+	/>
+	} @if (showStatsPanel()) {
+	<app-saved-view-stats-panel
+		[viewName]="activeView()?.name ?? null"
+		[enabledStats]="enabledStatKeys()"
+		[saving]="statsConfigSaving()"
+		[custom]="isStatsCustom()"
+		(statToggle)="toggleStatKey($event)"
+		(resetRequested)="resetStatsConfig()"
 		(closed)="closeStatsPanel()"
-	>
-		<ng-container *ngTemplateOutlet="statsBody" />
-		<ng-container ngProjectAs="[sheetFooter]">
-			<ng-container *ngTemplateOutlet="statsFooter" />
-		</ng-container>
-	</ui-bottom-sheet>
-	} @else {
-	<ui-drawer
-		[eyebrow]="activeView()?.name ?? 'My Games'"
-		heading="Stats"
-		subheading="Choose which stats this view shows. Changes save automatically."
-		(closed)="closeStatsPanel()"
-	>
-		<ng-container *ngTemplateOutlet="statsBody" />
-		<ng-container ngProjectAs="[drawerFooter]">
-			<ng-container *ngTemplateOutlet="statsFooter" />
-		</ng-container>
-	</ui-drawer>
-	} }
-
-	<ng-template #filtersBody>
-		<div class="flex flex-col gap-6">
-			<app-filter-section label="Status">
-				<app-chip-group
-					[options]="statusChipOptions"
-					[value]="selectedStatuses()"
-					(valueChange)="setStatuses($event)"
-				/>
-			</app-filter-section>
-
-			<app-option-picker
-				label="Platform"
-				heading="Filter by platform"
-				placeholder="All platforms"
-				placeholderIcon="devices"
-				[options]="platformPickerOptions()"
-				[value]="selectedPlatform()"
-				(valueChange)="selectedPlatform.set($event)"
-			/>
-
-			<app-filter-section label="Started">
-				<div class="grid grid-cols-2 gap-3">
-					<label class="flex flex-col gap-1 min-w-0">
-						<span class="text-[0.6875rem] text-fg-muted"
-							><span class="sr-only">Started, </span>From</span
-						>
-						<input
-							uiInput
-							type="date"
-							[value]="startedFrom()"
-							(input)="startedFrom.set($any($event.target).value)"
-						/>
-					</label>
-					<label class="flex flex-col gap-1 min-w-0">
-						<span class="text-[0.6875rem] text-fg-muted"
-							><span class="sr-only">Started, </span>To</span
-						>
-						<input
-							uiInput
-							type="date"
-							[value]="startedTo()"
-							(input)="startedTo.set($any($event.target).value)"
-						/>
-					</label>
-				</div>
-			</app-filter-section>
-
-			<app-filter-section label="Finished">
-				<div class="grid grid-cols-2 gap-3">
-					<label class="flex flex-col gap-1 min-w-0">
-						<span class="text-[0.6875rem] text-fg-muted"
-							><span class="sr-only">Finished, </span>From</span
-						>
-						<input
-							uiInput
-							type="date"
-							[value]="finishedFrom()"
-							(input)="finishedFrom.set($any($event.target).value)"
-						/>
-					</label>
-					<label class="flex flex-col gap-1 min-w-0">
-						<span class="text-[0.6875rem] text-fg-muted"
-							><span class="sr-only">Finished, </span>To</span
-						>
-						<input
-							uiInput
-							type="date"
-							[value]="finishedTo()"
-							(input)="finishedTo.set($any($event.target).value)"
-						/>
-					</label>
-				</div>
-			</app-filter-section>
-
-			<app-filter-section label="Your rating">
-				<div class="grid grid-cols-2 gap-3">
-					<div class="flex flex-col gap-1">
-						<span
-							id="backlog-min-rating"
-							class="text-[0.6875rem] text-fg-muted"
-							><span class="sr-only">Your rating, </span>Min</span
-						>
-						<app-star-rating
-							ariaLabelledby="backlog-min-rating"
-							size="sm"
-							[value]="minRating()"
-							(ratingChange)="minRating.set($event)"
-						/>
-					</div>
-					<div class="flex flex-col gap-1">
-						<span
-							id="backlog-max-rating"
-							class="text-[0.6875rem] text-fg-muted"
-							><span class="sr-only">Your rating, </span>Max</span
-						>
-						<app-star-rating
-							ariaLabelledby="backlog-max-rating"
-							size="sm"
-							[value]="maxRating()"
-							(ratingChange)="maxRating.set($event)"
-						/>
-					</div>
-				</div>
-			</app-filter-section>
-
-			<app-filter-section
-				label="Tags"
-				hint="Entries that match all selected tags."
-			>
-				<a
-					sectionAction
-					routerLink="/tags"
-					class="tap-area text-[0.6875rem] font-medium text-brand no-underline hover:underline"
-					(click)="closeFilters()"
-					>Manage tags →</a
-				>
-				<app-mood-tags-input
-					[tags]="selectedMoodTags()"
-					[suggestions]="moodTagsSuggestions()"
-					placeholder="e.g. relajante, corto…"
-					(tagsChange)="updateMoodTagsFilter($event)"
-				/>
-			</app-filter-section>
-
-			<app-filter-section label="Co-op">
-				<ui-switch
-					class="text-sm text-fg"
-					label="Only games played in co-op"
-					[checked]="coopOnly()"
-					(checkedChange)="setCoopOnly($event)"
-				/>
-			</app-filter-section>
-
-			<button
-				type="button"
-				uiButton
-				variant="secondary"
-				[block]="true"
-				aria-controls="backlog-advanced-filters"
-				[attr.aria-expanded]="showAdvancedFilters()"
-				(click)="toggleAdvancedFilters()"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>{{ showAdvancedFilters() ? 'expand_less' : 'expand_more'
-					}}</span
-				>
-				Advanced filters @if (!showAdvancedFilters() &&
-				hasAdvancedFiltersActive()) {
-				<span
-					aria-hidden="true"
-					class="inline-block w-1.5 h-1.5 rounded-full bg-brand"
-				></span>
-				<span class="sr-only">(in use)</span>
-				}
-			</button>
-
-			@if (showAdvancedFilters()) {
-			<div id="backlog-advanced-filters" class="flex flex-col gap-6">
-				<app-game-filter-panel
-					[allGenres]="allGenres()"
-					[allPlatforms]="allPlatforms()"
-					[(selectedGenres)]="selectedGenres"
-					[(selectedPlatforms)]="selectedPlatforms"
-					[(yearFrom)]="yearFrom"
-					[(yearTo)]="yearTo"
-				/>
-
-				<app-filter-section label="Real duration (h)">
-					<app-range-inputs
-						label="Real duration in hours"
-						[step]="0.5"
-						[(min)]="minRealDuration"
-						[(max)]="maxRealDuration"
-					/>
-				</app-filter-section>
-
-				<app-filter-section label="Ratio (score/duration)">
-					<app-range-inputs
-						label="Ratio"
-						[step]="0.01"
-						[(min)]="minRatio"
-						[(max)]="maxRatio"
-					/>
-				</app-filter-section>
-
-				<app-filter-section label="Personal ratio (score/real)">
-					<app-range-inputs
-						label="Personal ratio"
-						[step]="0.01"
-						[(min)]="minPersonalRatio"
-						[(max)]="maxPersonalRatio"
-					/>
-				</app-filter-section>
-			</div>
-			}
-
-			<div class="grid grid-cols-2 gap-2">
-				<app-option-picker
-					label="Sort by"
-					heading="Sort games by"
-					[options]="sortPickerOptions"
-					[value]="sortBy()"
-					(valueChange)="sortBy.set($event)"
-				/>
-				<app-option-picker
-					label="Order"
-					heading="Sort order"
-					[options]="sortOrderPickerOptions"
-					[value]="sortOrder()"
-					(valueChange)="setSortOrder($event)"
-				/>
-			</div>
-
-			@if (activeFilterId()) {
-			<div class="pt-5 border-t border-line">
-				<button
-					type="button"
-					uiButton
-					variant="secondary"
-					[block]="true"
-					[disabled]="savingFilter()"
-					(click)="updateCurrentFilter()"
-				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>save</span
-					>
-					Update current view
-				</button>
-			</div>
-			} @else if (hasActiveFilters() || creatingView()) {
-			<div class="pt-5 border-t border-line">
-				<app-filter-section
-					label="Save as view"
-					[hint]="
-						hasActiveFilters()
-							? 'Name it and it is saved when you show the results.'
-							: 'Pick the filters above first, then name your view to save it.'
-					"
-				>
-					<input
-						uiInput
-						type="text"
-						aria-label="View name"
-						placeholder="View name..."
-						[value]="newFilterName()"
-						(input)="newFilterName.set($any($event.target).value)"
-						(keydown.enter)="saveCurrentFilter()"
-					/>
-					<ui-switch
-						class="mt-3 text-sm text-fg-secondary"
-						label="Pin to backlog"
-						[checked]="newFilterPinned()"
-						(checkedChange)="newFilterPinned.set($event)"
-					/>
-				</app-filter-section>
-			</div>
-			}
-		</div>
-	</ng-template>
-
-	<ng-template #filtersFooter>
-		<button
-			type="button"
-			uiButton
-			variant="ghost"
-			[disabled]="!hasActiveFilters()"
-			(click)="clearFilters()"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>filter_alt_off</span
-			>
-			Clear
-		</button>
-		<button
-			type="button"
-			uiButton
-			variant="primary"
-			[disabled]="savingFilter()"
-			(click)="applyAndCloseFilters()"
-		>
-			{{ applyLabel() }}
-		</button>
-	</ng-template>
-
-	<ng-template #statsBody>
-		<div class="flex flex-col gap-1 px-2 md:px-0">
-			@for (key of allStatKeys; track key) {
-			<label
-				class="flex items-center gap-3 min-h-9 tap:min-h-[44px] text-sm text-fg cursor-pointer select-none px-2 rounded transition hover:bg-input-bg"
-			>
-				<input
-					type="checkbox"
-					class="cursor-pointer"
-					[checked]="isStatEnabled(key)"
-					[disabled]="statsConfigSaving()"
-					(change)="toggleStatKey(key)"
-				/>
-				<span>{{ statLabels[key] }}</span>
-			</label>
-			}
-		</div>
-	</ng-template>
-
-	<ng-template #statsFooter>
-		<button
-			type="button"
-			uiButton
-			variant="ghost"
-			title="Reset to defaults"
-			[disabled]="statsConfigSaving() || !isStatsCustom()"
-			(click)="resetStatsConfig()"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>restart_alt</span
-			>
-			Reset to defaults
-		</button>
-		<button
-			type="button"
-			uiButton
-			variant="primary"
-			(click)="closeStatsPanel()"
-		>
-			Done
-		</button>
-	</ng-template>
-	@if (isInitialLoad() && isLoading()) {
+	/>
+	} @if (isInitialLoad() && isLoading()) {
 	<div class="flex flex-col gap-3">
 		@for (i of skeletonRange; track i) {
 		<div
@@ -1091,239 +398,21 @@
 </div>
 
 @if (pendingStatusUpdate(); as pending) {
-<ui-dialog
-	eyebrow="Change status"
-	size="sm"
-	[heading]="statusLabel(pending.status) + '?'"
-	[subheading]="pending.entry.game.title"
-	(closed)="cancelStatusChange()"
->
-	<span
-		dialogLead
-		aria-hidden="true"
-		class="material-icons text-2xl mt-1"
-		[class]="statusIconColor(pending.status)"
-		>{{ statusIcon(pending.status) }}</span
-	>
-	<div class="flex flex-col gap-4">
-		<p class="m-0 text-sm text-fg-secondary leading-relaxed">
-			<strong>{{ pending.entry.game.title }}</strong> will be marked as
-			<span
-				class="font-medium"
-				[class.text-playing]="pending.status === 'playing'"
-				[class.text-success]="pending.status === 'completed'"
-				[class.text-danger]="pending.status === 'abandoned'"
-				[class.text-brand]="pending.status === 'endless'"
-				[class.text-fg-muted]="pending.status === 'not_started'"
-			>
-				{{ statusLabel(pending.status) }}</span
-			>. @if (isInQueue(pending.entry) && pending.status !==
-			'not_started') { It will be removed from your Queue. }
-		</p>
-		@if (pending.status === 'playing') {
-		<div>
-			<label
-				for="pendingStartedAt"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Started on</label
-			>
-			<input
-				uiInput
-				id="pendingStartedAt"
-				type="date"
-				[value]="pending.startedAt"
-				(input)="updatePendingStatus({ startedAt: $any($event.target).value })"
-			/>
-		</div>
-		} @if (pending.status === 'completed' || pending.status === 'abandoned')
-		{
-		<div>
-			<label
-				for="pendingFinishedAt"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-			>
-				{{ pending.status === 'abandoned' ? 'Abandoned on' : 'Finished
-				on' }}
-			</label>
-			<input
-				uiInput
-				id="pendingFinishedAt"
-				type="date"
-				[value]="pending.finishedAt"
-				(input)="updatePendingStatus({ finishedAt: $any($event.target).value })"
-			/>
-		</div>
-		@if (pending.status === 'completed') {
-		<div>
-			<label
-				for="pendingRealDuration"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Real duration (hours)</label
-			>
-			<input
-				uiInput
-				id="pendingRealDuration"
-				type="number"
-				inputmode="decimal"
-				min="0"
-				step="0.5"
-				[value]="pending.realDuration"
-				(input)="updatePendingStatus({ realDuration: $any($event.target).value })"
-			/>
-		</div>
-		}
-		<div>
-			<label
-				for="pendingNotes"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Notes</label
-			>
-			<textarea
-				uiTextarea
-				id="pendingNotes"
-				rows="3"
-				[placeholder]="pending.status === 'abandoned' ? 'Why did you drop it?' : 'Your thoughts...'"
-				[value]="pending.notes"
-				(input)="updatePendingStatus({ notes: $any($event.target).value })"
-			></textarea>
-		</div>
-		} @if (pending.status === 'completed' || pending.status === 'abandoned'
-		|| pending.status === 'endless') {
-		<div>
-			<span
-				id="pending-your-rating"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Your rating</span
-			>
-			<app-star-rating
-				ariaLabelledby="pending-your-rating"
-				[value]="pending.rating"
-				(ratingChange)="updatePendingStatus({ rating: $event })"
-			/>
-		</div>
-		<div class="flex items-center gap-3 min-h-[44px]">
-			<ui-switch
-				ariaLabel="Write a review"
-				[checked]="pending.reviewToggle"
-				[disabled]="!!pending.entry.review"
-				(checkedChange)="updatePendingStatus({ reviewToggle: $event })"
-			/>
-			<span
-				class="text-sm"
-				[class.text-fg-muted]="pending.entry.review"
-				[class.text-fg-secondary]="!pending.entry.review"
-				>Write a review</span
-			>
-		</div>
-		@if (pending.entry.review) {
-		<button uiButton variant="ghost" (click)="saveAndOpenReview()">
-			<span aria-hidden="true" class="material-icons text-base"
-				>rate_review</span
-			>
-			Write or edit review
-		</button>
-		} @else if (pending.reviewToggle) {
-		<div>
-			<label
-				for="pendingReviewContent"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Review</label
-			>
-			<textarea
-				uiTextarea
-				id="pendingReviewContent"
-				rows="4"
-				[value]="pending.reviewContent"
-				(input)="updatePendingStatus({ reviewContent: $any($event.target).value })"
-			></textarea>
-			<p class="mt-1 text-xs text-fg-muted">
-				Rating and content will be saved as a public review for this
-				game.
-			</p>
-		</div>
-		} }
-	</div>
-	<ng-container dialogFooter>
-		<button uiButton variant="ghost" (click)="cancelStatusChange()">
-			Cancel
-		</button>
-		<button uiButton variant="primary" (click)="confirmStatusChange()">
-			Confirm
-		</button>
-	</ng-container>
-</ui-dialog>
+<app-status-change-dialog
+	[pendingUpdate]="pending"
+	[inQueue]="isInQueue(pending.entry)"
+	(edited)="updatePendingStatus($event)"
+	(confirmed)="confirmStatusChange()"
+	(cancelled)="cancelStatusChange()"
+	(reviewRequested)="saveAndOpenReview()"
+/>
 } @if (showReorderModal()) {
-<ui-dialog
-	eyebrow="Pinned views"
-	heading="Reorder pinned views"
-	subheading="Arrange how your pinned views appear as chips in My Games."
-	size="sm"
-	[dismissible]="!savingReorder()"
-	(closed)="closeReorderModal()"
->
-	<div
-		class="flex flex-col gap-2"
-		cdkDropList
-		(cdkDropListDropped)="onReorderDrop($event)"
-	>
-		@for (item of reorderItems(); track item.id; let i = $index) {
-		<div
-			cdkDrag
-			class="flex items-center gap-1 bg-input-bg border border-line rounded-card pl-1 pr-1 py-1"
-		>
-			<button
-				uiIconButton
-				size="sm"
-				cdkDragHandle
-				class="cursor-grab active:cursor-grabbing touch-none"
-				aria-label="Drag to reorder"
-				title="Drag to reorder"
-			>
-				<span aria-hidden="true" class="material-icons text-lg"
-					>drag_indicator</span
-				></button
-			><span class="flex-1 text-sm truncate">{{ item.name }}</span>
-			<button
-				uiIconButton
-				size="sm"
-				[disabled]="i === 0"
-				(click)="moveReorderUp(i)"
-				aria-label="Move up"
-				title="Move up"
-			>
-				<span aria-hidden="true" class="material-icons text-lg"
-					>keyboard_arrow_up</span
-				>
-			</button>
-			<button
-				uiIconButton
-				size="sm"
-				[disabled]="i === reorderItems().length - 1"
-				(click)="moveReorderDown(i)"
-				aria-label="Move down"
-				title="Move down"
-			>
-				<span aria-hidden="true" class="material-icons text-lg"
-					>keyboard_arrow_down</span
-				>
-			</button>
-		</div>
-		}
-	</div>
-	<ng-container dialogFooter>
-		<button uiButton variant="ghost" (click)="closeReorderModal()">
-			Cancel
-		</button>
-		<button
-			uiButton
-			variant="primary"
-			[disabled]="savingReorder()"
-			(click)="saveReorder()"
-		>
-			Save order
-		</button>
-	</ng-container>
-</ui-dialog>
+<app-reorder-views-dialog
+	[views]="backlogFilters()"
+	[saving]="savingReorder()"
+	(saveRequested)="saveReorder($event)"
+	(cancelled)="closeReorderModal()"
+/>
 } @if (surpriseMeFilters(); as filters) {
 <app-surprise-me
 	[filters]="filters"
@@ -1332,132 +421,27 @@
 	(queued)="loadQueueIds()"
 />
 } @if (statusSheetEntry(); as sheetEntry) {
-<ui-bottom-sheet
-	heading="Change status"
-	[subheading]="sheetEntry.game.title"
+<app-entry-status-sheet
+	[entry]="sheetEntry"
+	[statusOptions]="statusFilters"
+	[updating]="isStatusUpdating(sheetEntry)"
+	(statusSelected)="selectStatusFromSheet(sheetEntry, $event.status, $event.event)"
 	(closed)="statusSheetEntry.set(null)"
->
-	<ul class="list-none m-0 p-0 flex flex-col gap-1">
-		@for (s of statusFilters; track s.value) {
-		<li>
-			<button
-				type="button"
-				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border border-transparent text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface disabled:cursor-default"
-				[class.!bg-brand-subtle]="s.value === sheetEntry.status"
-				[class.!border-brand/30]="s.value === sheetEntry.status"
-				[disabled]="s.value === sheetEntry.status || isStatusUpdating(sheetEntry)"
-				(click)="selectStatusFromSheet(sheetEntry, s.value, $event)"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-2xl"
-					[class]="statusIconColor($any(s.value))"
-					>{{ statusIcon($any(s.value)) }}</span
-				>
-				<span class="flex-1">{{ s.label }}</span>
-				@if (s.value === sheetEntry.status) {
-				<span aria-hidden="true" class="material-icons text-brand"
-					>check</span
-				>
-				<span class="sr-only">Current status</span>
-				}
-			</button>
-		</li>
-		}
-	</ul>
-</ui-bottom-sheet>
-} @if (ratingSheet(); as sheet) {
-<ui-bottom-sheet
-	heading="Your rating"
-	[subheading]="sheet.entry.game.title"
-	(closed)="ratingSheet.set(null)"
->
-	<div class="flex flex-col items-center gap-5 px-2 pt-2 pb-1">
-		<span
-			class="font-display text-6xl font-bold tabular-nums leading-none"
-			[class.text-rating]="sheet.value"
-			[class.text-fg-muted]="!sheet.value"
-			>{{ sheet.value ?? "–" }}</span
-		>
-		<app-star-rating
-			size="lg"
-			[value]="sheet.value"
-			(ratingChange)="updateRatingDraft($event)"
-		/>
-		<p class="m-0 text-xs text-fg-muted text-center">
-			Tap the left half of a star for half points.
-		</p>
-		<div class="grid grid-cols-2 gap-2 w-full">
-			<button
-				uiButton
-				variant="secondary"
-				size="lg"
-				class="!h-12"
-				[disabled]="sheet.value === null"
-				(click)="updateRatingDraft(null)"
-			>
-				Clear
-			</button>
-			<button
-				uiButton
-				variant="primary"
-				size="lg"
-				class="!h-12"
-				(click)="saveRatingSheet()"
-			>
-				Save
-			</button>
-		</div>
-	</div>
-</ui-bottom-sheet>
+/>
+} @if (ratingSheetEntry(); as ratingEntry) {
+<app-entry-rating-sheet
+	[entry]="ratingEntry"
+	(saved)="saveRatingSheet(ratingEntry, $event)"
+	(closed)="ratingSheetEntry.set(null)"
+/>
 } @if (toolsSheetOpen()) {
-<ui-bottom-sheet
-	eyebrow="My Games"
-	heading="Filters & stats"
-	[subheading]="activeView()?.name ?? null"
+<app-backlog-tools-sheet
+	[viewName]="activeView()?.name ?? null"
+	[hasActiveView]="!!activeFilterId()"
+	[activeFiltersCount]="activeFiltersCount()"
+	[enabledStatsCount]="enabledStatsCount()"
+	(filtersRequested)="openFiltersFromSheet()"
+	(statsRequested)="openStatsFromSheet()"
 	(closed)="toolsSheetOpen.set(false)"
->
-	<div class="flex flex-col gap-1">
-		<button
-			type="button"
-			class="w-full min-h-16 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-left cursor-pointer transition active:bg-surface"
-			(click)="openFiltersFromSheet()"
-		>
-			<span aria-hidden="true" class="material-icons text-2xl text-brand"
-				>tune</span
-			>
-			<span class="flex-1 flex flex-col">
-				<span class="text-base font-medium text-fg">Filters</span>
-				<span class="text-xs text-fg-muted">
-					{{ activeFiltersCount() > 0 ? activeFiltersCount() + '
-					active' : 'Platform, rating, tags, genres and more' }}
-				</span>
-			</span>
-			<span aria-hidden="true" class="material-icons text-fg-muted"
-				>chevron_right</span
-			>
-		</button>
-		<button
-			type="button"
-			class="w-full min-h-16 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-left cursor-pointer transition active:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
-			[disabled]="!activeFilterId()"
-			(click)="openStatsFromSheet()"
-		>
-			<span aria-hidden="true" class="material-icons text-2xl text-brand"
-				>insights</span
-			>
-			<span class="flex-1 flex flex-col">
-				<span class="text-base font-medium text-fg">Stats</span>
-				<span class="text-xs text-fg-muted">
-					{{ activeFilterId() ? (enabledStatsCount() > 0 ?
-					enabledStatsCount() + ' visible' : 'Choose which stats to
-					show') : 'Apply a saved view to configure its stats' }}
-				</span>
-			</span>
-			<span aria-hidden="true" class="material-icons text-fg-muted"
-				>chevron_right</span
-			>
-		</button>
-	</div>
-</ui-bottom-sheet>
+/>
 }

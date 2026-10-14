@@ -33,23 +33,49 @@ const STATUS_ICON_COLORS: Record<BacklogStatus, string> = {
 	endless: "text-brand"
 };
 
-export function backlogStatusClass(status: BacklogStatus): string {
-	return STATUS_CLASSES[status] ?? "";
+const STATUS_FILL_CLASSES: Record<BacklogStatus, string> = {
+	not_started: "bg-fg-muted",
+	playing: "bg-playing",
+	completed: "bg-success",
+	abandoned: "bg-danger",
+	endless: "bg-brand"
+};
+
+const STATUS_CALENDAR_BAR_CLASSES: Record<BacklogStatus, string> = {
+	not_started: "bg-fg-muted/15 text-fg-secondary",
+	playing: "bg-playing/25 text-playing",
+	completed: "bg-success/25 text-success",
+	abandoned: "bg-danger/25 text-danger",
+	endless: "bg-brand-subtle text-brand"
+};
+
+export function backlogStatusCalendarBarClass(
+	status: BacklogStatus | string
+): string {
+	return STATUS_CALENDAR_BAR_CLASSES[status as BacklogStatus] ?? "";
 }
 
-export function backlogStatusLabel(status: BacklogStatus): string {
-	return STATUS_LABELS[status] ?? status;
+export function backlogStatusFillClass(status: BacklogStatus | string): string {
+	return STATUS_FILL_CLASSES[status as BacklogStatus] ?? "bg-fg-muted";
 }
 
-export function backlogStatusIcon(status: BacklogStatus): string {
-	return STATUS_ICONS[status] ?? "schedule";
+export function backlogStatusClass(status: BacklogStatus | string): string {
+	return STATUS_CLASSES[status as BacklogStatus] ?? "";
 }
 
-export function backlogStatusIconColor(status: BacklogStatus): string {
-	return STATUS_ICON_COLORS[status] ?? "";
+export function backlogStatusLabel(status: BacklogStatus | string): string {
+	return STATUS_LABELS[status as BacklogStatus] ?? status;
 }
 
-const STATUS_FILTER_ORDER: readonly BacklogStatus[] = [
+export function backlogStatusIcon(status: BacklogStatus | string): string {
+	return STATUS_ICONS[status as BacklogStatus] ?? "schedule";
+}
+
+export function backlogStatusIconColor(status: BacklogStatus | string): string {
+	return STATUS_ICON_COLORS[status as BacklogStatus] ?? "";
+}
+
+export const BACKLOG_STATUS_ORDER: readonly BacklogStatus[] = [
 	"not_started",
 	"playing",
 	"completed",
@@ -60,7 +86,7 @@ const STATUS_FILTER_ORDER: readonly BacklogStatus[] = [
 export const BACKLOG_STATUS_FILTERS: readonly {
 	label: string;
 	value: BacklogStatus;
-}[] = STATUS_FILTER_ORDER.map(value => ({
+}[] = BACKLOG_STATUS_ORDER.map(value => ({
 	value,
 	label: STATUS_LABELS[value]
 }));

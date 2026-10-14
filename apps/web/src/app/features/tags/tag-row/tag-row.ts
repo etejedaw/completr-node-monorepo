@@ -16,9 +16,12 @@ import { RouterLink } from "@angular/router";
 import {
 	UiButton,
 	UiDescription,
+	UiFieldLabel,
 	UiFormField,
+	UiIconButton,
 	UiInput,
-	UiLabel
+	UiLabel,
+	UiProgress
 } from "../../../shared/ui";
 import { type UserTag } from "../../mood-tags/mood-tags";
 
@@ -35,6 +38,9 @@ let nextRowId = 0;
 @Component({
 	selector: "app-tag-row",
 	imports: [
+		UiIconButton,
+		UiProgress,
+		UiFieldLabel,
 		FormField,
 		RouterLink,
 		UiButton,

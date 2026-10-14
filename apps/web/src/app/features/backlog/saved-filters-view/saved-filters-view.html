@@ -198,11 +198,7 @@
 >
 	<div class="flex flex-col gap-4">
 		<div>
-			<label
-				for="saved-filter-name"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-				>Name</label
-			>
+			<label for="saved-filter-name" uiFieldLabel>Name</label>
 			<input
 				uiInput
 				id="saved-filter-name"
@@ -213,9 +209,7 @@
 		</div>
 
 		<div>
-			<label
-				for="saved-filter-description"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+			<label for="saved-filter-description" uiFieldLabel
 				>Description</label
 			>
 			<textarea
@@ -262,11 +256,7 @@
 		</div>
 
 		<fieldset class="m-0 p-0 border-0">
-			<legend
-				class="mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-			>
-				Icon
-			</legend>
+			<legend uiFieldLabel>Icon</legend>
 			<div class="flex flex-wrap gap-1.5">
 				<button
 					type="button"
@@ -302,11 +292,7 @@
 		</fieldset>
 
 		<fieldset class="m-0 p-0 border-0">
-			<legend
-				class="mb-1.5 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-			>
-				Color
-			</legend>
+			<legend uiFieldLabel>Color</legend>
 			<div class="flex flex-wrap items-center gap-2">
 				<button
 					type="button"
@@ -365,11 +351,7 @@
 	[dismissible]="!duplicating()"
 	(closed)="closeDuplicateModal()"
 >
-	<label
-		for="duplicate-filter-name"
-		class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-		>Name</label
-	>
+	<label for="duplicate-filter-name" uiFieldLabel>Name</label>
 	<input
 		uiInput
 		id="duplicate-filter-name"

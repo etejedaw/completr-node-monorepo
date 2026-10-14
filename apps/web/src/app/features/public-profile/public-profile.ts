@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 
+import { type QueueEntry } from "../../core/models/queue.model";
 import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
 import { isPremiumRole } from "../../core/utils/premium";
@@ -50,6 +51,7 @@ import { PublicSocialService } from "./services/public-social.service";
 
 const LATEST_REVIEWS_COUNT = 4;
 const REVIEWS_SAMPLE_SIZE = 20;
+const UP_NEXT_LIMIT = 10;
 
 @Component({
 	selector: "app-public-profile",
@@ -122,7 +124,11 @@ export class PublicProfileComponent implements OnInit {
 			feed: !!access?.feed
 		};
 	});
+	protected readonly isBackdropResolved = computed(
+		() => !this.visibility().favorites || this.favoritesData() !== null
+	);
 	protected readonly backdropUrl = computed(() => {
+		if (!this.isBackdropResolved()) return null;
 		const fromFavorites = this.favoritesData()?.find(
 			favorite => favorite.game.backgroundUrl
 		)?.game.backgroundUrl;
@@ -138,6 +144,7 @@ export class PublicProfileComponent implements OnInit {
 		);
 	});
 
+	protected readonly queueData = signal<QueueEntry[] | null>(null);
 	protected readonly favoritesData = signal<PublicFavorite[] | null>(null);
 	protected readonly sagas = signal<FranchiseProgress[]>([]);
 	protected readonly comparison = signal<UserComparison | null>(null);
@@ -294,6 +301,16 @@ export class PublicProfileComponent implements OnInit {
 				),
 			error: () => this.favoritesData.set([])
 		});
+	}
+
+	private ensureQueueLoaded(username: string) {
+		if (this.queueData() !== null) return;
+		this.libraryService
+			.getUserQueue(username, { limit: UP_NEXT_LIMIT })
+			.subscribe({
+				next: page => this.queueData.set(page.items),
+				error: () => this.queueData.set([])
+			});
 	}
 
 	protected readonly userReviews = signal<ReviewEntry[]>([]);
@@ -489,6 +506,7 @@ export class PublicProfileComponent implements OnInit {
 		this.highlightsData.set(null);
 		this.highlightsMonth.set(this.currentMonth());
 		this.favoritesData.set(null);
+		this.queueData.set(null);
 		this.comparison.set(null);
 		this.comparisonBy.set("completed");
 		this.comparisonPrivate.set(false);
@@ -510,6 +528,9 @@ export class PublicProfileComponent implements OnInit {
 				}
 				if (this.visibility().favorites) {
 					this.ensureFavoritesLoaded(username);
+				}
+				if (this.visibility().queue) {
+					this.ensureQueueLoaded(username);
 				}
 				this.reviewsService
 					.getUserReviews(username, { limit: REVIEWS_SAMPLE_SIZE })

@@ -13,10 +13,11 @@ import {
 	ToastService,
 	UNDO_WINDOW_MS
 } from "../../../core/services/toast";
+import { UiButton } from "../../ui";
 
 @Component({
 	selector: "app-toast-container",
-	imports: [NgpToast],
+	imports: [NgpToast, UiButton],
 	templateUrl: "./toast-container.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

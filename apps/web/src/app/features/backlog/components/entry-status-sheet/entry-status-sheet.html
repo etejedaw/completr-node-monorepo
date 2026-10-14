@@ -1,0 +1,34 @@
+<ui-bottom-sheet
+	heading="Change status"
+	[subheading]="entry().game.title"
+	(closed)="closed.emit()"
+>
+	<ul class="list-none m-0 p-0 flex flex-col gap-1">
+		@for (s of statusOptions(); track s.value) {
+		<li>
+			<button
+				type="button"
+				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border border-transparent text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface disabled:cursor-default"
+				[class.!bg-brand-subtle]="s.value === entry().status"
+				[class.!border-brand/30]="s.value === entry().status"
+				[disabled]="s.value === entry().status || updating()"
+				(click)="statusSelected.emit({ status: s.value, event: $event })"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-2xl"
+					[class]="statusIconColor($any(s.value))"
+					>{{ statusIcon($any(s.value)) }}</span
+				>
+				<span class="flex-1">{{ s.label }}</span>
+				@if (s.value === entry().status) {
+				<span aria-hidden="true" class="material-icons text-brand"
+					>check</span
+				>
+				<span class="sr-only">Current status</span>
+				}
+			</button>
+		</li>
+		}
+	</ul>
+</ui-bottom-sheet>

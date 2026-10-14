@@ -1,30 +1,32 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	input,
 	model,
 	output
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import {
 	LibraryHero,
 	type LibraryHeroPoster
 } from "../../../shared/components/library-hero/library-hero";
-import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import {
+	LibraryPage,
+	type LibraryPageSkeleton,
+	type LibraryPageState
+} from "../../../shared/components/library-page/library-page";
+import {
+	LibraryPageContent,
+	LibraryPageEmptyAction,
+	LibraryPageToolbar
+} from "../../../shared/components/library-page/library-page-slots";
 import {
 	type PlatformCount,
 	PlatformFilter
 } from "../../../shared/components/platform-filter/platform-filter";
-import {
-	UiButton,
-	UiEmptyState,
-	UiNoMatches,
-	UiPagination,
-	UiSearchBar,
-	UiSkeleton
-} from "../../../shared/ui";
+import { UiButton, UiSearchBar } from "../../../shared/ui";
 import {
 	type ProfileAccessError,
 	ProfileAccessState
@@ -35,16 +37,14 @@ import {
 	imports: [
 		RouterLink,
 		LibraryHero,
-		LibraryToolbar,
-		CoverGrid,
+		LibraryPage,
+		LibraryPageContent,
+		LibraryPageEmptyAction,
+		LibraryPageToolbar,
 		PlatformFilter,
 		ProfileAccessState,
 		UiButton,
-		UiEmptyState,
-		UiNoMatches,
-		UiPagination,
-		UiSearchBar,
-		UiSkeleton
+		UiSearchBar
 	],
 	templateUrl: "./profile-collection-page.html",
 	host: { class: "block" },
@@ -59,7 +59,7 @@ export class ProfileCollectionPage {
 	readonly subtitleSuffix = input("");
 	readonly searchPlaceholder = input<string | null>(null);
 	readonly platforms = input<PlatformCount[]>([]);
-	readonly skeleton = input<"posters" | "cards">("posters");
+	readonly skeleton = input<LibraryPageSkeleton>("posters");
 	readonly posters = input<LibraryHeroPoster[]>([]);
 	readonly total = input(0);
 	readonly itemCount = input(0);
@@ -75,7 +75,12 @@ export class ProfileCollectionPage {
 	readonly platform = model("");
 	readonly offsetChange = output<number>();
 
-	protected readonly cardSkeletonRange = [0, 1, 2, 3];
+	protected readonly pageState = computed<LibraryPageState>(() => {
+		if (this.isLoading()) return "loading";
+		if (this.itemCount() === 0) return "empty";
+		if (this.visibleCount() === 0) return "no-matches";
+		return "ready";
+	});
 
 	protected clearFilters() {
 		this.query.set("");

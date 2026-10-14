@@ -19,13 +19,15 @@
 		@if (changelog.isLoading() && !changelog.hasValue()) {
 		<div aria-busy="true" aria-label="Loading updates">
 			<div class="p-5 sm:p-8 rounded-card border border-line bg-surface">
-				<ui-skeleton class="h-5 w-40 rounded-full" />
-				<ui-skeleton class="mt-4 h-9 w-3/4 rounded-md" />
+				<ui-skeleton class="block h-5 w-40 rounded-full" />
+				<ui-skeleton class="block mt-4 h-9 w-3/4 rounded-md" />
 				<div class="mt-6 grid gap-5 md:grid-cols-2">
 					@for (i of [1, 2, 3, 4]; track i) {
 					<div class="flex gap-3">
-						<ui-skeleton class="w-9 h-9 shrink-0 rounded-lg" />
-						<ui-skeleton class="h-12 flex-1 rounded-md" />
+						<ui-skeleton
+							class="block w-9 h-9 shrink-0 rounded-lg"
+						/>
+						<ui-skeleton class="block h-12 flex-1 rounded-md" />
 					</div>
 					}
 				</div>
@@ -35,36 +37,26 @@
 			>
 				@for (i of [1, 2]; track i) {
 				<div class="flex flex-col gap-2">
-					<ui-skeleton class="h-4 w-28 rounded-full" />
-					<ui-skeleton class="h-6 w-2/3 rounded-md" />
-					<ui-skeleton class="h-4 w-full rounded-md" />
-					<ui-skeleton class="h-4 w-5/6 rounded-md" />
+					<ui-skeleton class="block h-4 w-28 rounded-full" />
+					<ui-skeleton class="block h-6 w-2/3 rounded-md" />
+					<ui-skeleton class="block h-4 w-full rounded-md" />
+					<ui-skeleton class="block h-4 w-5/6 rounded-md" />
 				</div>
 				}
 			</div>
 		</div>
 		} @else if (changelog.error()) {
-		<div
+		<ui-empty-state
 			role="alert"
-			class="flex flex-col items-center text-center gap-3 py-16 px-6 rounded-card border border-line bg-surface/40"
+			icon="cloud_off"
+			title="Couldn't load the updates"
+			hint="The changelog is out of reach right now. Check your connection and try again."
 		>
-			<span
-				aria-hidden="true"
-				class="material-icons text-4xl text-fg-muted"
-				>cloud_off</span
-			>
-			<h2 class="m-0 font-display text-lg font-semibold">
-				Couldn't load the updates
-			</h2>
-			<p class="m-0 max-w-sm text-sm text-fg-muted">
-				The changelog is out of reach right now. Check your connection
-				and try again.
-			</p>
 			<button
 				uiButton
 				type="button"
 				variant="secondary"
-				class="mt-2"
+				class="tap:min-h-[44px]"
 				(click)="changelog.reload()"
 			>
 				<span aria-hidden="true" class="material-icons text-base"
@@ -72,7 +64,7 @@
 				>
 				Try again
 			</button>
-		</div>
+		</ui-empty-state>
 		} @else if (latest(); as entry) {
 		<app-release-entry [release]="entry" variant="featured" />
 

@@ -3,18 +3,18 @@ name: completr
 services:
     postgres:
         image: postgres:bookworm
-        restart: always
+        restart: unless-stopped
         ports:
-            - 5432:5432
+            - "${PG_PORT:-5432}:5432"
         environment:
             - POSTGRES_USER=root
             - POSTGRES_PASSWORD=toor
             - POSTGRES_DB=completr
     postgres-test:
         image: postgres:bookworm
-        restart: always
+        restart: unless-stopped
         ports:
-            - 5433:5432
+            - "${PG_TEST_PORT:-5433}:5432"
         environment:
             - POSTGRES_USER=root
             - POSTGRES_PASSWORD=toor
@@ -23,7 +23,7 @@ services:
         image: elestio/pgadmin
         restart: unless-stopped
         ports:
-            - 80:80
+            - "${PGADMIN_PORT:-80}:80"
         environment:
             - PGADMIN_DEFAULT_EMAIL=root@postgres.com
             - PGADMIN_DEFAULT_PASSWORD=toor

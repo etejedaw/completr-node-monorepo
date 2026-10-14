@@ -1,19 +1,18 @@
-<div class="max-w-3xl mx-auto">
-	<header class="mb-6">
-		<span
-			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-			>Activity</span
-		>
-		<h1
-			class="m-0 mt-1 font-display text-3xl sm:text-4xl font-bold tracking-tight"
-		>
-			Feed
-		</h1>
-		<p class="m-0 mt-1.5 text-sm text-fg-muted">
-			What the people you follow are playing, finishing and reviewing.
-		</p>
-	</header>
+<app-library-hero heading="Feed" [posters]="heroPosters()">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Activity</span
+	>
+	<p
+		heroSubtitle
+		class="m-0 mt-2 max-w-xl text-sm sm:text-base text-fg-secondary leading-relaxed"
+	>
+		What the people you follow are playing, finishing and reviewing.
+	</p>
+</app-library-hero>
 
+<div class="max-w-3xl mx-auto">
 	@if (followRequests(); as requests) { @if (requests.length > 0) {
 	<section
 		class="mb-8 rounded-card border border-line p-4"

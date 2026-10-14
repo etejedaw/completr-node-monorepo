@@ -91,21 +91,14 @@
 						<div class="flex items-center gap-1 mt-1">
 							<div class="flex -space-x-1">
 								@for (m of entry.coopMembers.slice(0, 3); track
-								m.userId) { @if (m.avatarUrl) {
-								<img
+								m.userId) {
+								<ui-avatar
 									[src]="m.avatarUrl"
-									[alt]="m.username"
-									class="w-4 h-4 rounded-full object-cover border border-sidebar"
+									[name]="m.username"
 									[title]="m.name || m.username"
+									class="w-4 h-4 text-[0.4375rem] border border-sidebar"
 								/>
-								} @else {
-								<div
-									class="w-4 h-4 rounded-full bg-brand/20 text-brand text-[0.4375rem] font-semibold flex items-center justify-center border border-sidebar"
-									[title]="m.name || m.username"
-								>
-									{{ m.username[0]?.toUpperCase() }}
-								</div>
-								} }
+								}
 							</div>
 							@if (entry.coopMembers.length > 3) {
 							<span class="text-[0.5625rem] text-fg-muted"

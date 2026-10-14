@@ -14,7 +14,7 @@ import { map, type Observable, of, switchMap, tap } from "rxjs";
 
 import { type BacklogEntry } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
-import { UiButton, UiDialog } from "../../../shared/ui";
+import { UiButton, UiDialog, UiPlainEmptyState } from "../../../shared/ui";
 import { QueueService } from "../../queue/queue";
 import { type BacklogFilters, BacklogService } from "../backlog";
 
@@ -25,7 +25,7 @@ const STABLE_ORDER = { sort_by: "createdAt", sort_order: "asc" } as const;
 
 @Component({
 	selector: "app-surprise-me",
-	imports: [RouterLink, GamePoster, UiButton, UiDialog],
+	imports: [RouterLink, GamePoster, UiButton, UiDialog, UiPlainEmptyState],
 	templateUrl: "./surprise-me.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

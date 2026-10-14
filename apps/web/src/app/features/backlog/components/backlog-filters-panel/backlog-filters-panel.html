@@ -1,0 +1,311 @@
+@if (isMobile()) {
+<ui-bottom-sheet
+	eyebrow="My Games"
+	[heading]="heading()"
+	[subheading]="subheading()"
+	(closed)="closed.emit()"
+>
+	<div class="px-2 pt-2">
+		<ng-container *ngTemplateOutlet="filtersBody" />
+	</div>
+	<ng-container ngProjectAs="[sheetFooter]">
+		<ng-container *ngTemplateOutlet="filtersFooter" />
+	</ng-container>
+</ui-bottom-sheet>
+} @else {
+<ui-drawer
+	eyebrow="My Games"
+	[heading]="heading()"
+	[subheading]="subheading()"
+	(closed)="closed.emit()"
+>
+	<ng-container *ngTemplateOutlet="filtersBody" />
+	<ng-container ngProjectAs="[drawerFooter]">
+		<ng-container *ngTemplateOutlet="filtersFooter" />
+	</ng-container>
+</ui-drawer>
+}
+
+<ng-template #filtersBody>
+	<div class="flex flex-col gap-6">
+		<app-filter-section label="Status">
+			<app-chip-group
+				[options]="statusChipOptions"
+				[value]="statuses()"
+				(valueChange)="statuses.set($event)"
+			/>
+		</app-filter-section>
+
+		<app-option-picker
+			label="Platform"
+			heading="Filter by platform"
+			placeholder="All platforms"
+			placeholderIcon="devices"
+			[options]="platformPickerOptions()"
+			[value]="selectedPlatform()"
+			(valueChange)="selectedPlatform.set($event)"
+		/>
+
+		<app-filter-section label="Started">
+			<div class="grid grid-cols-2 gap-3">
+				<label class="flex flex-col gap-1 min-w-0">
+					<span class="text-[0.6875rem] text-fg-muted"
+						><span class="sr-only">Started, </span>From</span
+					>
+					<input
+						uiInput
+						type="date"
+						[value]="startedFrom()"
+						(input)="startedFrom.set($any($event.target).value)"
+					/>
+				</label>
+				<label class="flex flex-col gap-1 min-w-0">
+					<span class="text-[0.6875rem] text-fg-muted"
+						><span class="sr-only">Started, </span>To</span
+					>
+					<input
+						uiInput
+						type="date"
+						[value]="startedTo()"
+						(input)="startedTo.set($any($event.target).value)"
+					/>
+				</label>
+			</div>
+		</app-filter-section>
+
+		<app-filter-section label="Finished">
+			<div class="grid grid-cols-2 gap-3">
+				<label class="flex flex-col gap-1 min-w-0">
+					<span class="text-[0.6875rem] text-fg-muted"
+						><span class="sr-only">Finished, </span>From</span
+					>
+					<input
+						uiInput
+						type="date"
+						[value]="finishedFrom()"
+						(input)="finishedFrom.set($any($event.target).value)"
+					/>
+				</label>
+				<label class="flex flex-col gap-1 min-w-0">
+					<span class="text-[0.6875rem] text-fg-muted"
+						><span class="sr-only">Finished, </span>To</span
+					>
+					<input
+						uiInput
+						type="date"
+						[value]="finishedTo()"
+						(input)="finishedTo.set($any($event.target).value)"
+					/>
+				</label>
+			</div>
+		</app-filter-section>
+
+		<app-filter-section label="Your rating">
+			<div class="grid grid-cols-2 gap-3">
+				<div class="flex flex-col gap-1">
+					<span
+						id="backlog-min-rating"
+						class="text-[0.6875rem] text-fg-muted"
+						><span class="sr-only">Your rating, </span>Min</span
+					>
+					<app-star-rating
+						ariaLabelledby="backlog-min-rating"
+						size="sm"
+						[value]="minRating()"
+						(ratingChange)="minRating.set($event)"
+					/>
+				</div>
+				<div class="flex flex-col gap-1">
+					<span
+						id="backlog-max-rating"
+						class="text-[0.6875rem] text-fg-muted"
+						><span class="sr-only">Your rating, </span>Max</span
+					>
+					<app-star-rating
+						ariaLabelledby="backlog-max-rating"
+						size="sm"
+						[value]="maxRating()"
+						(ratingChange)="maxRating.set($event)"
+					/>
+				</div>
+			</div>
+		</app-filter-section>
+
+		<app-filter-section
+			label="Tags"
+			hint="Entries that match all selected tags."
+		>
+			<a
+				sectionAction
+				routerLink="/tags"
+				class="tap-area text-[0.6875rem] font-medium text-brand no-underline hover:underline"
+				(click)="closed.emit()"
+				>Manage tags →</a
+			>
+			<app-mood-tags-input
+				[tags]="selectedMoodTags()"
+				[suggestions]="moodTagsSuggestions()"
+				placeholder="e.g. relajante, corto…"
+				(tagsChange)="selectedMoodTags.set($event)"
+			/>
+		</app-filter-section>
+
+		<app-filter-section label="Co-op">
+			<ui-switch
+				class="text-sm text-fg"
+				label="Only games played in co-op"
+				[checked]="coopOnly()"
+				(checkedChange)="coopOnly.set($event)"
+			/>
+		</app-filter-section>
+
+		<button
+			type="button"
+			uiButton
+			variant="secondary"
+			[block]="true"
+			aria-controls="backlog-advanced-filters"
+			[attr.aria-expanded]="showAdvancedFilters()"
+			(click)="toggleAdvancedFilters()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>{{ showAdvancedFilters() ? 'expand_less' : 'expand_more'
+				}}</span
+			>
+			Advanced filters @if (!showAdvancedFilters() &&
+			advancedFiltersActive()) {
+			<span
+				aria-hidden="true"
+				class="inline-block w-1.5 h-1.5 rounded-full bg-brand"
+			></span>
+			<span class="sr-only">(in use)</span>
+			}
+		</button>
+
+		@if (showAdvancedFilters()) {
+		<div id="backlog-advanced-filters" class="flex flex-col gap-6">
+			<app-game-filter-panel
+				[allGenres]="allGenres()"
+				[allPlatforms]="allPlatforms()"
+				[(selectedGenres)]="selectedGenres"
+				[(selectedPlatforms)]="selectedPlatforms"
+				[(yearFrom)]="yearFrom"
+				[(yearTo)]="yearTo"
+			/>
+
+			<app-filter-section label="Real duration (h)">
+				<app-range-inputs
+					label="Real duration in hours"
+					[step]="0.5"
+					[(min)]="minRealDuration"
+					[(max)]="maxRealDuration"
+				/>
+			</app-filter-section>
+
+			<app-filter-section label="Ratio (score/duration)">
+				<app-range-inputs
+					label="Ratio"
+					[step]="0.01"
+					[(min)]="minRatio"
+					[(max)]="maxRatio"
+				/>
+			</app-filter-section>
+
+			<app-filter-section label="Personal ratio (score/real)">
+				<app-range-inputs
+					label="Personal ratio"
+					[step]="0.01"
+					[(min)]="minPersonalRatio"
+					[(max)]="maxPersonalRatio"
+				/>
+			</app-filter-section>
+		</div>
+		}
+
+		<div class="grid grid-cols-2 gap-2">
+			<app-option-picker
+				label="Sort by"
+				heading="Sort games by"
+				[options]="sortPickerOptions"
+				[value]="sortBy()"
+				(valueChange)="sortBy.set($event)"
+			/>
+			<app-option-picker
+				label="Order"
+				heading="Sort order"
+				[options]="sortOrderPickerOptions"
+				[value]="sortOrder()"
+				(valueChange)="setSortOrder($event)"
+			/>
+		</div>
+
+		@if (hasActiveView()) {
+		<div class="pt-5 border-t border-line">
+			<button
+				type="button"
+				uiButton
+				variant="secondary"
+				[block]="true"
+				[disabled]="saving()"
+				(click)="updateViewRequested.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>save</span
+				>
+				Update current view
+			</button>
+		</div>
+		} @else if (hasActiveFilters() || creatingView()) {
+		<div class="pt-5 border-t border-line">
+			<app-filter-section
+				label="Save as view"
+				[hint]="
+					hasActiveFilters()
+						? 'Name it and it is saved when you show the results.'
+						: 'Pick the filters above first, then name your view to save it.'
+				"
+			>
+				<input
+					uiInput
+					type="text"
+					aria-label="View name"
+					placeholder="View name..."
+					[value]="newFilterName()"
+					(input)="newFilterName.set($any($event.target).value)"
+					(keydown.enter)="saveViewRequested.emit()"
+				/>
+				<ui-switch
+					class="mt-3 text-sm text-fg-secondary"
+					label="Pin to backlog"
+					[checked]="newFilterPinned()"
+					(checkedChange)="newFilterPinned.set($event)"
+				/>
+			</app-filter-section>
+		</div>
+		}
+	</div>
+</ng-template>
+
+<ng-template #filtersFooter>
+	<button
+		type="button"
+		uiButton
+		variant="ghost"
+		[disabled]="!hasActiveFilters()"
+		(click)="cleared.emit()"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>filter_alt_off</span
+		>
+		Clear
+	</button>
+	<button
+		type="button"
+		uiButton
+		variant="primary"
+		[disabled]="saving()"
+		(click)="applied.emit()"
+	>
+		{{ applyLabel() }}
+	</button>
+</ng-template>

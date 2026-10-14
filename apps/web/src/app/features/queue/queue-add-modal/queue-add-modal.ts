@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { injectDialogRef } from "ng-primitives/dialog";
 
-import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { type BacklogEntry } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import {
 	UiButton,
@@ -81,12 +81,7 @@ export class QueueAddModal implements OnInit {
 		this.dialogRef.close();
 	}
 
-	protected statusLabel = (status?: string) =>
-		status ? backlogStatusLabel(status as BacklogStatus) : "";
-
-	protected statusIcon = (status?: string) =>
-		status ? backlogStatusIcon(status as BacklogStatus) : "";
-
-	protected statusClass = (status?: string) =>
-		status ? backlogStatusClass(status as BacklogStatus) : "";
+	protected readonly backlogStatusLabel = backlogStatusLabel;
+	protected readonly backlogStatusIcon = backlogStatusIcon;
+	protected readonly backlogStatusClass = backlogStatusClass;
 }

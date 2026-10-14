@@ -26,7 +26,7 @@ const LAYOUT_CLASSES: Record<
 		pill: `${PILL_BASE_CLASS} tap:h-11`
 	},
 	scroll: {
-		nav: "max-md:hidden -mx-[var(--page-pad-x)] px-[var(--page-pad-x)] pointer-coarse:py-[8px] pointer-coarse:-mb-[8px] flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+		nav: "max-md:hidden -mx-[var(--page-pad-x)] px-[var(--page-pad-x)] tap:py-[8px] tap:-mb-[8px] flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
 		pill: `tap-area shrink-0 ${PILL_BASE_CLASS}`
 	}
 };

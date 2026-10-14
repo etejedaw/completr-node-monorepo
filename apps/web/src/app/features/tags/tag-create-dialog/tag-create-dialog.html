@@ -8,20 +8,12 @@
 	(closed)="close()"
 >
 	@if (error()) {
-	<div
-		role="alert"
-		class="bg-danger/10 border border-danger/20 text-danger px-3 py-2 rounded-card mb-4 text-[0.8125rem]"
-	>
-		{{ error() }}
-	</div>
+	<ui-alert class="mb-4">{{ error() }}</ui-alert>
 	}
 
 	<form id="tag-create-form" novalidate (submit)="submit($event)">
 		<div uiFormField class="mb-4">
-			<label
-				uiLabel
-				for="tag-create-name"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+			<label uiLabel for="tag-create-name" uiFieldLabel
 				>Name <span class="text-danger font-bold">*</span></label
 			>
 			<input
@@ -47,10 +39,7 @@
 		</div>
 
 		<div uiFormField>
-			<label
-				uiLabel
-				for="tag-create-description"
-				class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
+			<label uiLabel for="tag-create-description" uiFieldLabel
 				>Description</label
 			>
 			<input

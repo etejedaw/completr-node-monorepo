@@ -48,7 +48,7 @@
 				@if (item.status === 'not_started' && !readonly()) {
 				<button
 					type="button"
-					class="max-sm:hidden absolute top-1 right-1 flex items-center justify-center w-8 h-8 rounded-full bg-playing text-canvas shadow-lg shadow-playing/40 ring-2 ring-white/20 opacity-0 group-hover/row:opacity-100 pointer-coarse:opacity-100 hover:scale-110 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
+					class="max-sm:hidden absolute top-1 right-1 flex items-center justify-center w-8 h-8 tap:min-w-[44px] tap:min-h-[44px] rounded-full bg-playing text-canvas shadow-lg shadow-playing/40 ring-2 ring-line opacity-0 group-hover/row:opacity-100 pointer-coarse:opacity-100 hover:scale-110 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
 					[disabled]="statusUpdating()"
 					(click)="startPlayingRequested.emit($event)"
 					title="Start playing"
@@ -75,7 +75,7 @@
 					>
 						<button
 							type="button"
-							class="w-9 h-9 rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-nav-favorites hover:bg-white/5"
+							class="w-9 h-9 tap:min-w-[44px] tap:min-h-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-nav-favorites hover:bg-surface-hover"
 							[class.!text-nav-favorites]="favorite()"
 							(click)="favoriteToggled.emit($event)"
 							[title]="favorite() ? 'Remove from favorites' : 'Add to favorites'"
@@ -90,7 +90,7 @@
 						</button>
 						<button
 							type="button"
-							class="w-9 h-9 rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-danger hover:bg-white/5"
+							class="w-9 h-9 tap:min-w-[44px] tap:min-h-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-danger hover:bg-surface-hover"
 							[class.!text-danger]="inQueue()"
 							(click)="queueToggled.emit($event)"
 							[title]="inQueue() ? 'Remove from Queue' : 'Add to Queue'"
@@ -113,7 +113,7 @@
 					<div class="relative inline-block">
 						<button
 							type="button"
-							class="tap-area inline-flex items-center gap-1 pl-2 pr-1 py-0.5 pointer-coarse:pl-3 pointer-coarse:pr-2 pointer-coarse:py-2 pointer-coarse:text-xs rounded-full text-[0.6875rem] font-semibold tracking-wide border border-line hover:border-brand/50 cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
+							class="tap-area inline-flex items-center gap-1 pl-2 pr-1 py-0.5 tap:pl-3 tap:pr-2 tap:py-2 tap:text-xs rounded-full text-[0.6875rem] font-semibold tracking-wide border border-line hover:border-brand/50 cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
 							[class]="statusClass(item.status)"
 							[disabled]="statusUpdating()"
 							(click)="statusMenuToggled.emit($event)"
@@ -177,7 +177,7 @@
 					</span>
 					}
 					<span
-						class="px-1.5 py-0.5 rounded bg-white/5 text-fg-secondary text-[0.6875rem] font-semibold tracking-wide"
+						class="px-1.5 py-0.5 rounded bg-surface-hover text-fg-secondary text-[0.6875rem] font-semibold tracking-wide"
 						>{{ item.platform.abbreviation }}</span
 					>
 					@if (item.coopMembers && item.coopMembers.length > 0) {
@@ -187,20 +187,14 @@
 						with
 						<span class="flex -space-x-1.5">
 							@for (m of item.coopMembers.slice(0, 3); track
-							m.userId) { @if (m.avatarUrl) {
-							<img
+							m.userId) {
+							<ui-avatar
 								[src]="m.avatarUrl"
-								[alt]="m.username"
-								class="w-5 h-5 rounded-full object-cover ring-2 ring-surface"
+								[name]="m.username"
 								[title]="m.name || m.username"
+								class="w-5 h-5 text-[0.5rem] ring-2 ring-surface"
 							/>
-							} @else {
-							<span
-								class="w-5 h-5 rounded-full bg-brand/20 text-brand text-[0.5rem] font-semibold flex items-center justify-center ring-2 ring-surface"
-								[title]="m.name || m.username"
-								>{{ m.username[0]?.toUpperCase() }}</span
-							>
-							} }
+							}
 						</span>
 						@if (item.coopMembers.length > 3) {
 						<span>+{{ item.coopMembers.length - 3 }}</span>
@@ -254,7 +248,7 @@
 						@if (coarsePointer() && canQuickRate()) {
 						<button
 							type="button"
-							class="flex items-center gap-2 -mx-2 px-2 min-h-[44px] -my-3 rounded-card bg-transparent border-0 cursor-pointer active:bg-white/5"
+							class="flex items-center gap-2 -mx-2 px-2 min-h-[44px] -my-3 rounded-card bg-transparent border-0 cursor-pointer active:bg-surface-hover"
 							[attr.aria-label]="'Rate ' + item.game.title"
 							(click)="ratingSheetRequested.emit($event)"
 						>
@@ -395,7 +389,7 @@
 @if (hasAnnotations()) {
 <button
 	type="button"
-	class="max-sm:hidden absolute top-3 right-3 z-10 w-9 h-9 rounded-full border cursor-pointer inline-flex items-center justify-center transition"
+	class="max-sm:hidden absolute top-3 right-3 z-10 w-9 h-9 tap:min-w-[44px] tap:min-h-[44px] rounded-full border cursor-pointer inline-flex items-center justify-center transition"
 	[class.bg-transparent]="!flipped()"
 	[class.border-transparent]="!flipped()"
 	[class.text-brand]="true"
@@ -421,7 +415,7 @@
 	@if (!readonly()) {
 	<button
 		type="button"
-		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-white/5"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-surface-hover"
 		[class.!text-nav-favorites]="favorite()"
 		[attr.aria-pressed]="favorite()"
 		(click)="favoriteToggled.emit($event)"
@@ -433,7 +427,7 @@
 	</button>
 	<button
 		type="button"
-		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-white/5"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-surface-hover"
 		[class.!text-danger]="inQueue()"
 		[attr.aria-pressed]="inQueue()"
 		(click)="queueToggled.emit($event)"
@@ -447,7 +441,7 @@
 	<button
 		type="button"
 		[class.border-l]="!readonly()"
-		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-line/60 text-[0.6875rem] font-medium text-brand cursor-pointer active:bg-white/5"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-line/60 text-[0.6875rem] font-medium text-brand cursor-pointer active:bg-surface-hover"
 		[class.bg-brand-subtle]="flipped()"
 		[attr.aria-pressed]="flipped()"
 		(click)="flipToggled.emit($event)"
@@ -463,7 +457,7 @@
 	} @if (item.status === 'not_started' && !readonly()) {
 	<button
 		type="button"
-		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-playing cursor-pointer active:bg-white/5 disabled:opacity-50"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-playing cursor-pointer active:bg-surface-hover disabled:opacity-50"
 		[disabled]="statusUpdating()"
 		(click)="startPlayingRequested.emit($event)"
 	>

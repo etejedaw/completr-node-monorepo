@@ -7,6 +7,7 @@ import {
 import { type Params, RouterLink } from "@angular/router";
 
 import { type ListPreviewItem } from "../../../core/models";
+import { UiProgress } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
 
 export interface ListCardList {
@@ -25,7 +26,7 @@ const COLLAGE_SIZE = 4;
 
 @Component({
 	selector: "app-list-card",
-	imports: [RouterLink, GamePoster],
+	imports: [RouterLink, GamePoster, UiProgress],
 	template: `
 		<a
 			class="group relative isolate block aspect-[16/10] rounded-card overflow-hidden bg-surface ring-1 ring-white/10 shadow-lg shadow-black/40 no-underline transition duration-200 hover:-translate-y-1 hover:ring-brand/60 focus-visible:ring-brand"
@@ -59,7 +60,7 @@ const COLLAGE_SIZE = 4;
 			<div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
 				@if (list().isOfficial) {
 					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-canvas/70 text-brand-hover backdrop-blur-md"
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.16em] bg-canvas/70 backdrop-blur-md text-brand-hover"
 					>
 						<span
 							aria-hidden="true"
@@ -71,7 +72,7 @@ const COLLAGE_SIZE = 4;
 				}
 				@if (progress()?.percent === 100) {
 					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-success/90 text-black backdrop-blur-md"
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.16em] bg-canvas/70 backdrop-blur-md text-success"
 					>
 						<span
 							aria-hidden="true"
@@ -83,7 +84,7 @@ const COLLAGE_SIZE = 4;
 				}
 				@if (showVisibility() && list().isPublic !== undefined) {
 					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-canvas/70 text-white backdrop-blur-md"
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.16em] bg-canvas/70 backdrop-blur-md text-fg"
 					>
 						<span
 							aria-hidden="true"
@@ -121,15 +122,13 @@ const COLLAGE_SIZE = 4;
 				}
 				@if (progress(); as listProgress) {
 					<div class="mt-2.5 flex items-center gap-2">
-						<span
+						<ui-progress
 							aria-hidden="true"
-							class="flex-1 h-1 rounded-full bg-white/15 overflow-hidden"
-						>
-							<span
-								class="block h-full rounded-full bg-gradient-to-r from-brand to-success"
-								[style.width.%]="listProgress.percent"
-							></span>
-						</span>
+							class="flex-1"
+							[value]="listProgress.percent"
+							trackClass="h-1"
+							indicatorClass="bg-gradient-to-r from-brand to-success"
+						/>
 						<span
 							class="shrink-0 text-[0.6875rem] font-semibold text-white/80 tabular-nums"
 							>{{ listProgress.completed }}/{{

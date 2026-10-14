@@ -3,7 +3,12 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type Game, type Genre, type Platform } from "../../core/models";
+import {
+	type BacklogStatus,
+	type Game,
+	type Genre,
+	type Platform
+} from "../../core/models";
 import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
 
 interface GamesResponse {
@@ -314,7 +319,7 @@ export class GamesService {
 						username: string;
 						name: string;
 						avatarUrl: string | null;
-						status: string;
+						status: BacklogStatus;
 						finishedAt: string | null;
 						userRating: number | null;
 					}[];
@@ -331,7 +336,7 @@ export class GamesService {
 						username: string;
 						name: string;
 						avatarUrl: string | null;
-						status: string;
+						status: BacklogStatus;
 					}[];
 				};
 			}>(`${environment.apiUrl}/games/${gameId}/players`)

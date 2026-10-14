@@ -1,0 +1,43 @@
+<ui-bottom-sheet
+	heading="Your rating"
+	[subheading]="entry().game.title"
+	(closed)="closed.emit()"
+>
+	<div class="flex flex-col items-center gap-5 px-2 pt-2 pb-1">
+		<span
+			class="font-display text-6xl font-bold tabular-nums leading-none"
+			[class.text-rating]="value()"
+			[class.text-fg-muted]="!value()"
+			>{{ value() ?? "–" }}</span
+		>
+		<app-star-rating
+			size="lg"
+			[value]="value()"
+			(ratingChange)="value.set($event)"
+		/>
+		<p class="m-0 text-xs text-fg-muted text-center">
+			Tap the left half of a star for half points.
+		</p>
+		<div class="grid grid-cols-2 gap-2 w-full">
+			<button
+				uiButton
+				variant="secondary"
+				size="lg"
+				class="!h-12"
+				[disabled]="value() === null"
+				(click)="value.set(null)"
+			>
+				Clear
+			</button>
+			<button
+				uiButton
+				variant="primary"
+				size="lg"
+				class="!h-12"
+				(click)="saved.emit(value())"
+			>
+				Save
+			</button>
+		</div>
+	</div>
+</ui-bottom-sheet>

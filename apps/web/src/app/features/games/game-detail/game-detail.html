@@ -1,18 +1,18 @@
 @if (isLoading()) {
 <div aria-busy="true" aria-label="Loading game">
-	<div
-		class="bleed bleed-top relative overflow-hidden bg-surface/40 animate-[skeletonPulse_1.4s_ease-in-out_infinite]"
-	>
+	<div class="bleed bleed-top relative overflow-hidden bg-surface/40">
 		<div
 			class="bleed-inner pt-[calc(var(--topbar-height)+8rem)] lg:pt-[calc(var(--topbar-height)+11rem)] pb-10 flex items-end gap-6"
 		>
-			<div
-				class="w-28 sm:w-40 md:w-48 lg:w-56 aspect-[2/3] rounded-xl bg-white/5"
-			></div>
+			<ui-skeleton
+				class="block shrink-0 w-28 sm:w-40 md:w-48 lg:w-56 aspect-[2/3] rounded-xl overflow-hidden *:h-full"
+			/>
 			<div class="flex-1 flex flex-col gap-3 pb-2">
-				<div class="h-3 w-40 rounded bg-white/5"></div>
-				<div class="h-10 w-3/4 rounded bg-white/10"></div>
-				<div class="h-3 w-56 rounded bg-white/5"></div>
+				<ui-skeleton variant="text" class="block w-40" />
+				<ui-skeleton
+					class="block h-10 w-3/4 rounded-md overflow-hidden *:h-full"
+				/>
+				<ui-skeleton variant="text" class="block w-56 max-w-full" />
 			</div>
 		</div>
 	</div>
@@ -458,11 +458,7 @@
 	[dismissible]="!reportModal().submitting"
 	(closed)="closeReportModal()"
 >
-	<label
-		for="report-message"
-		class="block mb-1 text-xs font-medium text-fg-secondary uppercase tracking-wider"
-		>What's wrong?</label
-	>
+	<label for="report-message" uiFieldLabel>What's wrong?</label>
 	<textarea
 		uiTextarea
 		id="report-message"
@@ -480,12 +476,7 @@
 		{{ reportModal().message.length }} characters · at least 10
 	</p>
 	@if (reportModal().error) {
-	<p
-		role="alert"
-		class="m-0 mt-2 py-1.5 px-3 bg-danger/10 border border-danger/20 rounded text-danger text-xs"
-	>
-		{{ reportModal().error }}
-	</p>
+	<ui-alert class="mt-2">{{ reportModal().error }}</ui-alert>
 	}
 	<ng-container dialogFooter>
 		<button uiButton variant="ghost" (click)="closeReportModal()">

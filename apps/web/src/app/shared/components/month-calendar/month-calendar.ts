@@ -29,6 +29,7 @@ import {
 
 import { UiButton, UiIconButton } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
+import { MonthYearPicker } from "./month-year-picker";
 
 export interface CalendarAgendaItem {
 	id: string;
@@ -98,6 +99,7 @@ export function shortDate(date: Date): string {
 		NgpDatePickerPreviousMonth,
 		NgpDatePickerRowRender,
 		GamePoster,
+		MonthYearPicker,
 		UiButton,
 		UiIconButton
 	],
@@ -112,6 +114,8 @@ export class MonthCalendar {
 	readonly loading = input(false);
 	readonly markersFor = input.required<(date: Date) => string[]>();
 	readonly agendaItems = input.required<CalendarAgendaItem[]>();
+	readonly minYear = input<number | null>(null);
+	readonly maxYear = input<number | null>(null);
 	readonly itemNoun = input("game");
 	readonly emptyMonthHint = input("Nothing on the calendar this month.");
 	readonly itemSelected = output<string>();

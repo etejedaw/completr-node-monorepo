@@ -17,19 +17,10 @@
 		>
 			<a
 				routerLink="/feed"
-				class="flex items-center gap-2.5 no-underline hover:opacity-90 min-w-0"
+				class="flex items-center no-underline hover:opacity-90 min-w-0"
 				aria-label="Completr home"
 			>
-				<span
-					class="flex items-center justify-center w-8 h-8 shrink-0 rounded-lg font-display font-bold text-base text-white bg-gradient-to-br from-brand to-brand-deep shadow-lg shadow-brand/25"
-					>C</span
-				>
-				@if (!railMode()) {
-				<span
-					class="text-lg font-bold text-fg tracking-tight font-display truncate"
-					>Completr</span
-				>
-				}
+				<app-logo [wordmark]="!railMode()" />
 			</a>
 		</div>
 
@@ -93,16 +84,16 @@
 						>{{ user()?.username }}</a
 					>
 					<span
-						class="inline-block mt-0.5 px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-wider"
-						[class]="roleBadgeClass()"
-						>{{ roleBadge() }}</span
+						class="inline-block mt-0.5 px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
+						[class]="roleBadge().className"
+						>{{ roleBadge().label }}</span
 					>
 				</div>
 				}
 				<div class="flex items-center" [class.flex-col]="railMode()">
 					<a
 						routerLink="/settings"
-						class="flex items-center justify-center w-9 h-9 rounded-md text-fg-muted no-underline transition hover:text-fg hover:bg-surface"
+						class="flex items-center justify-center w-9 h-9 tap:min-w-[44px] tap:min-h-[44px] rounded-md text-fg-muted no-underline transition hover:text-fg hover:bg-surface"
 						title="Settings"
 						aria-label="Settings"
 					>
@@ -111,8 +102,10 @@
 						>
 					</a>
 					<button
+						uiIconButton
+						tone="danger"
 						type="button"
-						class="flex items-center justify-center w-9 h-9 rounded-md bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-danger hover:bg-surface"
+						class="!w-9 !h-9 tap:min-w-[44px] tap:min-h-[44px]"
 						(click)="logout()"
 						title="Sign out"
 						aria-label="Sign out"
@@ -159,14 +152,7 @@
 					class="md:hidden flex items-center gap-2 min-h-[44px] no-underline shrink-0"
 					aria-label="Completr home"
 				>
-					<span
-						class="flex items-center justify-center w-8 h-8 rounded-lg font-display font-bold text-base text-white bg-gradient-to-br from-brand to-brand-deep shadow-lg shadow-brand/25"
-						>C</span
-					>
-					<span
-						class="text-lg font-bold text-fg tracking-tight font-display"
-						>Completr</span
-					>
+					<app-logo />
 				</a>
 
 				<app-global-search
@@ -310,9 +296,9 @@
 			<span class="block text-xs text-fg-muted">View your profile</span>
 		</span>
 		<span
-			class="px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-wider"
-			[class]="roleBadgeClass()"
-			>{{ roleBadge() }}</span
+			class="px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
+			[class]="roleBadge().className"
+			>{{ roleBadge().label }}</span
 		>
 	</a>
 

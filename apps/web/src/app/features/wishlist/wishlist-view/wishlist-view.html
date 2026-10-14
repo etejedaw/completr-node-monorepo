@@ -36,58 +36,50 @@
 	}
 </app-library-hero>
 
-@if (isLoading() || allEntries().length > 0 || searchQuery().trim()) {
-<app-library-toolbar>
-	<ui-search-bar
-		class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
-		placeholder="Search your wishlist..."
-		[value]="searchQuery()"
-		(valueChange)="onSearch($event)"
-	/>
-</app-library-toolbar>
-} @if (isLoading()) {
-<app-cover-grid [loading]="true" loadingLabel="Loading wishlist" />
-} @else if (entries().length === 0) { @if (searchQuery().trim() ||
-selectedPlatform()) {
-<ui-no-matches
-	hint="Nothing in Want to Get matches your search or platform."
-	clearLabel="Clear search & filter"
-	(cleared)="clearSearchAndFilter()"
-/>
-} @else {
-<ui-empty-state
-	icon="redeem"
-	title="Nothing wanted yet"
-	hint="Games you'd like to acquire someday — physical copies, digital keys, anything you don't own yet. Different from Up Next (those are games you can play right now)."
->
-	<button uiButton variant="primary" (click)="openAddModal()">
-		<span aria-hidden="true" class="material-icons text-base">add</span>
-		Add game
-	</button>
-</ui-empty-state>
-} } @else {
-<app-cover-grid [actionable]="true">
-	@for (entry of entries(); track entry.id) {
-	<li>
-		<app-game-cover-card
-			[game]="entry.game"
-			[moodTags]="entry.moodTags"
-			[topLeftBadge]="entry.platform?.abbreviation"
-			[showFavorite]="true"
-			[isFavorite]="isFavorite(entry.game.id)"
-			[showWishlistToggle]="true"
-			[inWishlist]="true"
-			(favoriteToggle)="toggleFavorite(entry.game.id)"
-			(wishlistToggle)="remove(entry)"
-		/>
-	</li>
-	}
-</app-cover-grid>
-} @if (!isLoading()) {
-<ui-pagination
+<app-library-page
+	[state]="pageState()"
+	[showToolbar]="isLoading() || allEntries().length > 0 || !!searchQuery().trim()"
+	loadingLabel="Loading wishlist"
+	noMatchesHint="Nothing in Want to Get matches your search or platform."
+	noMatchesClearLabel="Clear search & filter"
+	emptyIcon="redeem"
+	emptyTitle="Nothing wanted yet"
+	emptyHint="Games you'd like to acquire someday — physical copies, digital keys, anything you don't own yet. Different from Up Next (those are games you can play right now)."
 	[offset]="offset()"
 	[limit]="limit"
 	[total]="total()"
+	(cleared)="clearSearchAndFilter()"
 	(offsetChange)="onOffsetChange($event)"
-/>
-}
+>
+	<ng-template appLibraryPageToolbar>
+		<ui-search-bar
+			class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+			placeholder="Search your wishlist..."
+			[value]="searchQuery()"
+			(valueChange)="onSearch($event)"
+		/>
+	</ng-template>
+	<ng-template appLibraryPageEmptyAction>
+		<button uiButton variant="primary" (click)="openAddModal()">
+			<span aria-hidden="true" class="material-icons text-base">add</span>
+			Add game
+		</button>
+	</ng-template>
+	<app-cover-grid *appLibraryPageContent [actionable]="true">
+		@for (entry of entries(); track entry.id) {
+		<li>
+			<app-game-cover-card
+				[game]="entry.game"
+				[moodTags]="entry.moodTags"
+				[topLeftBadge]="entry.platform?.abbreviation"
+				[showFavorite]="true"
+				[isFavorite]="isFavorite(entry.game.id)"
+				[showWishlistToggle]="true"
+				[inWishlist]="true"
+				(favoriteToggle)="toggleFavorite(entry.game.id)"
+				(wishlistToggle)="remove(entry)"
+			/>
+		</li>
+		}
+	</app-cover-grid>
+</app-library-page>

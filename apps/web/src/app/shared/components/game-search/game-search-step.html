@@ -7,29 +7,20 @@
 	Type at least 2 characters to search.
 </p>
 } @case ("searching") {
-<p
-	class="m-0 px-6 py-10 flex items-center justify-center gap-2 text-[0.8125rem] text-fg-muted"
-	role="status"
->
-	<span
-		aria-hidden="true"
-		class="material-icons text-base motion-safe:animate-spin"
-		>autorenew</span
-	>
-	Searching...
-</p>
+<ng-container
+	*ngTemplateOutlet="searchingRows; context: { $implicit: 'Searching…' }"
+/>
 } @case ("searchingOnline") {
 <p
-	class="m-0 px-6 py-10 flex items-center justify-center gap-2 text-[0.8125rem] text-brand"
-	role="status"
+	class="m-0 px-5 md:px-6 pt-1 pb-2 flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-brand"
+	aria-hidden="true"
 >
-	<span
-		aria-hidden="true"
-		class="material-icons text-base motion-safe:animate-spin"
-		>travel_explore</span
-	>
-	Searching online...
+	<span class="material-icons text-sm">travel_explore</span>
+	Searching online
 </p>
+<ng-container
+	*ngTemplateOutlet="searchingRows; context: { $implicit: 'Searching online…' }"
+/>
 } @default { @if (results().length === 0) {
 <div
 	class="flex flex-col items-center text-center gap-2 px-6 py-10"
@@ -85,7 +76,7 @@
 				>
 				} @if (game.justImported) {
 				<span
-					class="inline-flex items-center gap-1 px-1.5 py-px rounded-full bg-info/15 text-info text-[0.625rem] font-semibold uppercase tracking-wider"
+					class="inline-flex items-center gap-1 px-1.5 py-px rounded-full bg-info/15 text-info text-[0.625rem] font-semibold uppercase tracking-[0.16em]"
 					title="Just imported from RAWG"
 				>
 					<span
@@ -97,7 +88,7 @@
 				</span>
 				} @if (game.isDlc) {
 				<span
-					class="px-1.5 py-px rounded-full bg-brand-subtle text-brand text-[0.625rem] font-semibold uppercase tracking-wider"
+					class="px-1.5 py-px rounded-full bg-brand-subtle text-brand text-[0.625rem] font-semibold uppercase tracking-[0.16em]"
 					>DLC</span
 				>
 				}
@@ -138,3 +129,28 @@
 } @else {
 <div class="pb-4"></div>
 } } } }
+
+<ng-template #searchingRows let-statusLabel>
+	<p class="sr-only" role="status">{{ statusLabel }}</p>
+	<ul
+		class="list-none m-0 px-5 md:px-6 pb-4 divide-y divide-line"
+		aria-hidden="true"
+	>
+		@for (row of skeletonRows; track row) {
+		<li class="flex items-center gap-3 py-2.5">
+			<ui-skeleton
+				variant="rect"
+				class="block w-10 aspect-[2/3] shrink-0 [&>span]:h-full [&>span]:rounded"
+			/>
+			<div class="flex flex-col gap-2 min-w-0 flex-1">
+				<ui-skeleton variant="text" class="block w-2/3" />
+				<ui-skeleton variant="text" class="block w-1/4" />
+			</div>
+			<ui-skeleton
+				variant="rect"
+				class="block w-16 h-8 shrink-0 [&>span]:h-full"
+			/>
+		</li>
+		}
+	</ul>
+</ng-template>

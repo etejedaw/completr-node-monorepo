@@ -10,7 +10,9 @@ export type UiSkeletonVariant = "rect" | "circle" | "text";
 		[class.rounded-full]="variant() === 'circle'"
 		[class.rounded-sm]="variant() === 'text'"
 		[class.h-3]="variant() === 'text'"
+		[class.h-full]="variant() !== 'text'"
 	></span>`,
+	host: { class: "block overflow-hidden" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UiSkeleton {

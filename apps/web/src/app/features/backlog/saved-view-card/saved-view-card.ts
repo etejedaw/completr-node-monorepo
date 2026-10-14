@@ -8,6 +8,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type BacklogStatus } from "../../../core/models";
+import { UiIconButton } from "../../../shared/ui";
 import {
 	backlogStatusClass,
 	backlogStatusIcon,
@@ -94,7 +95,7 @@ function buildChips(view: SavedFilter): ViewChip[] {
 
 @Component({
 	selector: "app-saved-view-card",
-	imports: [RouterLink],
+	imports: [RouterLink, UiIconButton],
 	templateUrl: "./saved-view-card.html",
 	host: { class: "block h-full" },
 	changeDetection: ChangeDetectionStrategy.OnPush

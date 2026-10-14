@@ -17,9 +17,11 @@ import {
 } from "../../../shared/components/chip-group/chip-group";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import {
+	UiAlert,
 	UiButton,
 	UiDescription,
 	UiDialog,
+	UiFieldLabel,
 	UiFormField,
 	UiInput,
 	UiLabel,
@@ -56,6 +58,8 @@ const DURATION_SOURCES: readonly SourceOption[] = [
 @Component({
 	selector: "app-list-modal",
 	imports: [
+		UiAlert,
+		UiFieldLabel,
 		ChipGroup,
 		DialogDeleteAction,
 		FormField,

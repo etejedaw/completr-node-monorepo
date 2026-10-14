@@ -14,7 +14,7 @@ import { injectDialogRef } from "ng-primitives/dialog";
 import { forkJoin } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
-import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { type BacklogEntry } from "../../../core/models";
 import { type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
@@ -35,6 +35,7 @@ import {
 } from "../../../shared/components/option-picker/option-picker";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
+	UiAlert,
 	UiAvatar,
 	UiButton,
 	UiDialog,
@@ -102,6 +103,7 @@ const STANDALONE_RUN = "";
 @Component({
 	selector: "app-backlog-modal",
 	imports: [
+		UiAlert,
 		ChipGroup,
 		DatePipe,
 		FormField,
@@ -304,11 +306,9 @@ export class BacklogModal implements OnInit {
 		this.viewMode.set("edit");
 	}
 
-	protected statusLabel = (status?: string) =>
-		status ? backlogStatusLabel(status as BacklogStatus) : "";
-
-	protected statusClass = (status?: string) =>
-		status ? backlogStatusClass(status as BacklogStatus) : "";
+	protected readonly backlogStatusClass = backlogStatusClass;
+	protected readonly backlogStatusLabel = backlogStatusLabel;
+	protected readonly backlogStatusIcon = backlogStatusIcon;
 
 	protected readonly model = signal({
 		gameId: "",
