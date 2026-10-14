@@ -80,8 +80,8 @@ export class ToastService {
 		this.show(message, "error", durationMs);
 	}
 
-	premium(title: string, message: string) {
-		this.show(message, "premium", 5000, title);
+	premium(title: string, message: string, durationMs = 5000) {
+		this.show(message, "premium", durationMs, title);
 	}
 
 	pending(opts: PendingToastOptions): number {
