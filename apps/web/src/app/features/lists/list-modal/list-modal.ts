@@ -14,12 +14,14 @@ import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import {
 	UiButton,
+	UiDescription,
 	UiDialog,
 	UiFormField,
 	UiInput,
 	UiLabel,
 	UiRadioGroup,
 	UiRadioItem,
+	UiSwitch,
 	UiTextarea
 } from "../../../shared/ui";
 import { type CreateListDto, ListsService, type UpdateListDto } from "../lists";
@@ -29,35 +31,61 @@ export interface ListModalData {
 }
 export type ListModalResult = "saved" | "deleted";
 
+interface SourceOption {
+	value: string;
+	label: string;
+}
+
+interface SourceGroup {
+	field: "scoreSource" | "durationSource";
+	label: string;
+	options: readonly SourceOption[];
+}
+
+const DURATION_SOURCES: readonly SourceOption[] = [
+	{ value: "hltb", label: "HLTB" },
+	{ value: "rawg", label: "RAWG" },
+	{ value: "completr", label: "Completr" }
+];
+
 @Component({
 	selector: "app-list-modal",
 	imports: [
 		DialogDeleteAction,
 		FormField,
 		UiButton,
+		UiDescription,
 		UiDialog,
 		UiInput,
 		UiTextarea,
 		UiFormField,
 		UiLabel,
 		UiRadioGroup,
-		UiRadioItem
+		UiRadioItem,
+		UiSwitch
 	],
 	templateUrl: "./list-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListModal implements OnInit {
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
-	protected readonly scoreSourceOptions = computed(() =>
+	private readonly scoreSourceOptions = computed(() =>
 		this.scoreSourcesService
 			.sources()
 			.map(source => ({ value: source.code, label: source.name }))
 	);
-	protected readonly DURATION_SOURCES = [
-		{ value: "hltb", label: "HLTB" },
-		{ value: "rawg", label: "RAWG" },
-		{ value: "completr", label: "Completr" }
-	] as const;
+	protected readonly sourceGroups = computed<SourceGroup[]>(() => [
+		{
+			field: "scoreSource",
+			label: "Score source",
+			options: this.scoreSourceOptions()
+		},
+		{
+			field: "durationSource",
+			label: "Duration source",
+			options: DURATION_SOURCES
+		}
+	]);
 
 	private readonly listsService = inject(ListsService);
 	private readonly dialogRef = injectDialogRef<
