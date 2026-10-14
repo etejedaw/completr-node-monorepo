@@ -9,24 +9,23 @@ import {
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
-import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { type BacklogEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { PointerService } from "../../../core/services/pointer";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
+import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import {
-	OptionPicker,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import {
 	UiButton,
 	UiPagination,
+	UiPlainEmptyState,
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import {
-	backlogStatusIcon,
-	backlogStatusIconColor
+	BACKLOG_STATUS_FILTERS,
+	BACKLOG_STATUS_PICKER_OPTIONS
 } from "../../../shared/utils/backlog-status";
 import {
 	type ProfileAccessError,
@@ -63,10 +62,12 @@ const SHAREABLE_FILTER_KEYS = [
 		OptionPicker,
 		RouterLink,
 		BacklogEntryCard,
+		BacklogStatusPills,
 		LibraryHero,
 		ProfileAccessState,
 		UiButton,
 		UiPagination,
+		UiPlainEmptyState,
 		UiSearchBar,
 		UiSkeleton
 	],
@@ -89,8 +90,6 @@ export class UserBacklog implements OnInit {
 	protected readonly activeStatus = signal("");
 	protected readonly limit = PAGE_SIZE;
 	protected readonly skeletonRange = [0, 1, 2, 3, 4, 5];
-	protected readonly statusIcon = backlogStatusIcon;
-	protected readonly statusIconColor = backlogStatusIconColor;
 	protected readonly flippedEntryIds = signal<Set<string>>(new Set());
 	protected readonly heroPosters = computed(() =>
 		this.entries().map(entry => ({
@@ -107,35 +106,26 @@ export class UserBacklog implements OnInit {
 
 	private readonly searchSubject = new Subject<string>();
 
-	protected readonly statusTabs = [
-		{ label: "All", value: "" },
-		{ label: "Not Started", value: "not_started" },
-		{ label: "Playing", value: "playing" },
-		{ label: "Completed", value: "completed" },
-		{ label: "Endless", value: "endless" },
-		{ label: "Abandoned", value: "abandoned" }
-	];
-
-	protected readonly statusPickerOptions: readonly PickerOption[] =
-		this.statusTabs.map(tab =>
-			tab.value
-				? {
-						value: tab.value,
-						label: tab.label,
-						icon: backlogStatusIcon(tab.value as BacklogStatus),
-						iconClass: backlogStatusIconColor(
-							tab.value as BacklogStatus
-						)
-					}
-				: { value: "", label: "All games", icon: "apps" }
-		);
+	protected readonly statusPickerOptions = BACKLOG_STATUS_PICKER_OPTIONS;
+	protected readonly selectedStatuses = computed(() =>
+		this.activeStatus() ? [this.activeStatus()] : []
+	);
 
 	protected readonly activeStatusLabel = computed(
 		() =>
-			this.statusTabs.find(
-				tab => tab.value && tab.value === this.activeStatus()
+			BACKLOG_STATUS_FILTERS.find(
+				filter => filter.value === this.activeStatus()
 			)?.label ?? ""
 	);
+
+	protected readonly emptyMessage = computed(() => {
+		if (this.searchQuery())
+			return `No games match "${this.searchQuery()}".`;
+		if (this.activeStatus()) {
+			return `No ${this.activeStatusLabel().toLowerCase()} games to show.`;
+		}
+		return "This library has no public games yet.";
+	});
 
 	protected isFlipped(entryId: string): boolean {
 		return this.flippedEntryIds().has(entryId);
