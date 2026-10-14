@@ -92,9 +92,10 @@ let nextDialogId = 0;
 						</div>
 						<button
 							type="button"
-							class="shrink-0 -mr-2 -mt-1 size-[36px] max-md:size-[44px] tap:size-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-fg hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand"
+							class="shrink-0 -mr-2 -mt-1 size-[36px] max-md:size-[44px] tap:size-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-fg hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand aria-disabled:opacity-40 aria-disabled:cursor-not-allowed aria-disabled:hover:text-fg-muted aria-disabled:hover:bg-transparent"
 							[attr.aria-label]="'Close ' + heading()"
-							(click)="closed.emit()"
+							[attr.aria-disabled]="dismissible() ? null : 'true'"
+							(click)="dismiss()"
 						>
 							<span
 								aria-hidden="true"
@@ -202,7 +203,7 @@ export class UiDialog {
 		this.dragOffset.set(0);
 	}
 
-	private dismiss() {
+	protected dismiss() {
 		if (this.dismissible()) this.closed.emit();
 	}
 }
