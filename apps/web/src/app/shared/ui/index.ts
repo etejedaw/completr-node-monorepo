@@ -6,6 +6,8 @@ export { UiCheckbox } from "./checkbox/ui-checkbox";
 export type { UiDialogSize } from "./dialog/ui-dialog";
 export { UiDialog } from "./dialog/ui-dialog";
 export { UiEmptyState } from "./empty-state/ui-empty-state";
+export { UiNoMatches } from "./empty-state/ui-no-matches";
+export { UiPlainEmptyState } from "./empty-state/ui-plain-empty-state";
 export { UiFocusTrap } from "./focus-trap/ui-focus-trap";
 export {
 	UiDescription,
