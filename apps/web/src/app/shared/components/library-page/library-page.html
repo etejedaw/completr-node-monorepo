@@ -1,0 +1,55 @@
+@if (showToolbar()) {
+<app-library-toolbar>
+	<ng-container [ngTemplateOutlet]="toolbarSlot()?.template ?? null" />
+</app-library-toolbar>
+@if (liveAnnouncement() !== null) {
+<p class="sr-only" aria-live="polite">{{ liveAnnouncement() }}</p>
+} } @switch (state()) { @case ('loading') { @if (skeleton() === 'cards') {
+<div
+	class="grid gap-3 md:grid-cols-2"
+	aria-busy="true"
+	[attr.aria-label]="loadingLabel()"
+>
+	@for (i of cardSkeletonRange; track i) {
+	<div
+		class="flex gap-4 p-4 sm:p-5 rounded-card border border-line bg-surface"
+	>
+		<ui-skeleton
+			variant="rect"
+			class="block w-16 sm:w-20 aspect-[2/3] rounded-md shrink-0"
+		/>
+		<div class="flex-1 flex flex-col gap-2 py-1">
+			<ui-skeleton variant="text" class="block w-1/2 h-5" />
+			<ui-skeleton variant="text" class="block w-1/3" />
+			<ui-skeleton variant="text" class="block w-full mt-2" />
+			<ui-skeleton variant="text" class="block w-2/3" />
+		</div>
+	</div>
+	}
+</div>
+} @else {
+<app-cover-grid [loading]="true" [loadingLabel]="loadingLabel()" />
+} } @case ('no-matches') {
+<ui-no-matches
+	[hint]="noMatchesHint()"
+	[clearLabel]="noMatchesClearLabel()"
+	(cleared)="cleared.emit()"
+/>
+} @case ('empty') {
+<ui-empty-state
+	[icon]="emptyIcon()"
+	[title]="emptyTitle()"
+	[hint]="emptyHint()"
+>
+	<ng-container [ngTemplateOutlet]="emptyActionSlot()?.template ?? null" />
+</ui-empty-state>
+} @case ('ready') {
+<ng-container [ngTemplateOutlet]="contentSlot().template" />
+} } @if (paginationVisible()) {
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit()"
+	[total]="total()"
+	(offsetChange)="offsetChange.emit($event)"
+/>
+}
