@@ -19,6 +19,10 @@ import { type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
+import {
+	ChipGroup,
+	type ChipOption
+} from "../../../shared/components/chip-group/chip-group";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
@@ -98,6 +102,7 @@ const STANDALONE_RUN = "";
 @Component({
 	selector: "app-backlog-modal",
 	imports: [
+		ChipGroup,
 		DatePipe,
 		FormField,
 		RouterLink,
@@ -242,6 +247,18 @@ export class BacklogModal implements OnInit {
 	);
 	protected readonly gameTimes = computed(
 		() => this.selectedGame()?.times ?? []
+	);
+	protected readonly scoreChipOptions = computed<ChipOption[]>(() =>
+		this.gameScores().map(entry => ({
+			value: entry.source,
+			label: `${entry.source} ${entry.score}${this.getScaleLabel(entry.source)}`
+		}))
+	);
+	protected readonly durationChipOptions = computed<ChipOption[]>(() =>
+		this.gameTimes().map(entry => ({
+			value: entry.source,
+			label: `${entry.source} ${entry.duration}h`
+		}))
 	);
 
 	protected readonly compilationParentOptions = computed<PickerOption[]>(
@@ -746,6 +763,16 @@ export class BacklogModal implements OnInit {
 		this.activeScoreSource.set(source);
 		const normalized = this.scoreSourcesService.normalize(score, source);
 		this.model.update(m => ({ ...m, score: normalized }));
+	}
+
+	protected pickScoreSource(values: readonly string[]) {
+		const entry = this.gameScores().find(item => item.source === values[0]);
+		if (entry) this.applyScore(entry.source, entry.score);
+	}
+
+	protected pickDurationSource(values: readonly string[]) {
+		const entry = this.gameTimes().find(item => item.source === values[0]);
+		if (entry) this.applyDuration(entry.source, entry.duration);
 	}
 
 	applyDuration(source: string, duration: number) {

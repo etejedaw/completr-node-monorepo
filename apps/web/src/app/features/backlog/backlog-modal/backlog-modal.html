@@ -277,21 +277,16 @@
 						<div
 							class="min-h-[26px] mb-2 flex flex-wrap items-center gap-1.5"
 						>
-							@if (gameScores().length > 0) { @for (s of
-							gameScores(); track s.source) {
-							<button
-								type="button"
-								class="tap-area min-h-[26px] max-md:min-h-[44px] px-2.5 rounded-full border border-line bg-transparent text-[0.6875rem] max-md:text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-								[class.!bg-brand-subtle]="activeScoreSource() === s.source"
-								[class.!border-brand]="activeScoreSource() === s.source"
-								[class.!text-brand]="activeScoreSource() === s.source"
-								[attr.aria-pressed]="activeScoreSource() === s.source"
-								(click)="applyScore(s.source, s.score)"
-							>
-								{{ s.source }} {{ s.score }}{{
-								getScaleLabel(s.source) }}
-							</button>
-							} } @else {
+							@if (gameScores().length > 0) {
+							<app-chip-group
+								mode="single"
+								label="Score sources"
+								[allowEmpty]="false"
+								[options]="scoreChipOptions()"
+								[value]="[activeScoreSource()]"
+								(valueChange)="pickScoreSource($event)"
+							/>
+							} @else {
 							<span
 								class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted"
 							>
@@ -353,20 +348,16 @@
 						<div
 							class="min-h-[26px] mb-2 flex flex-wrap items-center gap-1.5"
 						>
-							@if (gameTimes().length > 0) { @for (t of
-							gameTimes(); track t.source) {
-							<button
-								type="button"
-								class="tap-area min-h-[26px] max-md:min-h-[44px] px-2.5 rounded-full border border-line bg-transparent text-[0.6875rem] max-md:text-xs font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-								[class.!bg-brand-subtle]="activeDurationSource() === t.source"
-								[class.!border-brand]="activeDurationSource() === t.source"
-								[class.!text-brand]="activeDurationSource() === t.source"
-								[attr.aria-pressed]="activeDurationSource() === t.source"
-								(click)="applyDuration(t.source, t.duration)"
-							>
-								{{ t.source }} {{ t.duration }}h
-							</button>
-							} } @else {
+							@if (gameTimes().length > 0) {
+							<app-chip-group
+								mode="single"
+								label="Duration sources"
+								[allowEmpty]="false"
+								[options]="durationChipOptions()"
+								[value]="[activeDurationSource()]"
+								(valueChange)="pickDurationSource($event)"
+							/>
+							} @else {
 							<span
 								class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted"
 							>
