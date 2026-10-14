@@ -110,7 +110,7 @@ export interface GameCoverCardGame {
 						}
 					</div>
 					<div
-						class="hidden max-sm:grid pointer-coarse:grid grid-flow-col auto-cols-fr border-t border-white/10"
+						class="hidden max-sm:grid pointer-coarse:grid grid-flow-col auto-cols-fr border-t border-line"
 					>
 						@for (
 							action of actions();
@@ -119,7 +119,7 @@ export interface GameCoverCardGame {
 						) {
 							<button
 								type="button"
-								class="min-h-[44px] inline-flex items-center justify-center bg-transparent border-0 border-white/10 cursor-pointer transition hover:bg-white/5 active:bg-white/10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
+								class="min-h-[44px] inline-flex items-center justify-center bg-transparent border-0 border-line cursor-pointer transition hover:bg-surface-hover active:bg-line-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
 								[class.border-l]="!first"
 								[class]="
 									action.active
