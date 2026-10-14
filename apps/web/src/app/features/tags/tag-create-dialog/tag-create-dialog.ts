@@ -10,9 +10,11 @@ import {
 import { form, FormField, maxLength, validate } from "@angular/forms/signals";
 
 import {
+	UiAlert,
 	UiButton,
 	UiDescription,
 	UiDialog,
+	UiFieldLabel,
 	UiFormField,
 	UiInput,
 	UiLabel
@@ -26,6 +28,8 @@ const TAG_DESCRIPTION_MAX_LENGTH = 255;
 @Component({
 	selector: "app-tag-create-dialog",
 	imports: [
+		UiAlert,
+		UiFieldLabel,
 		FormField,
 		UiButton,
 		UiDescription,
