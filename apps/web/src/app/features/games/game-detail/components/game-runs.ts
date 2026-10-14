@@ -93,7 +93,7 @@ import {
 					<li class="border-b border-line last:border-b-0">
 						<button
 							type="button"
-							class="group relative w-full flex gap-3 pl-5 pr-4 py-3 tap:min-h-[44px] text-left bg-transparent border-0 cursor-pointer transition hover:bg-white/[0.03]"
+							class="group relative w-full flex gap-3 pl-5 pr-4 py-3 tap:min-h-[44px] text-left bg-transparent border-0 cursor-pointer transition hover:bg-surface-hover"
 							[attr.aria-label]="
 								'Run ' +
 								(runs().length - i) +
