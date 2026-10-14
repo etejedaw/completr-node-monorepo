@@ -64,6 +64,16 @@ export class GameShelfCalendar {
 		return map;
 	});
 
+	protected readonly earliestYear = computed<number | null>(() => {
+		let earliest: number | null = null;
+		for (const entry of this.entries()) {
+			if (!entry.acquiredAt) continue;
+			const year = this.parseDateOnly(entry.acquiredAt).getFullYear();
+			if (earliest === null || year < earliest) earliest = year;
+		}
+		return earliest;
+	});
+
 	protected readonly undatedCount = computed(
 		() => this.entries().filter(e => !e.acquiredAt).length
 	);

@@ -1,6 +1,7 @@
 <app-month-calendar
 	[(month)]="focusedDate"
 	[(selected)]="selectedDay"
+	[minYear]="earliestYear()"
 	[markersFor]="markersFor"
 	[agendaItems]="agendaItems()"
 	emptyMonthHint="You didn't add anything to your shelf this month."
