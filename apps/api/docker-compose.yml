@@ -10,6 +10,8 @@ services:
             - POSTGRES_USER=root
             - POSTGRES_PASSWORD=toor
             - POSTGRES_DB=completr
+        volumes:
+            - ./.docker/postgres:/var/lib/postgresql
     postgres-test:
         image: postgres:bookworm
         restart: unless-stopped
@@ -19,6 +21,8 @@ services:
             - POSTGRES_USER=root
             - POSTGRES_PASSWORD=toor
             - POSTGRES_DB=completr_test
+        volumes:
+            - ./.docker/postgres-test:/var/lib/postgresql
     pgadmin:
         image: elestio/pgadmin
         restart: unless-stopped
