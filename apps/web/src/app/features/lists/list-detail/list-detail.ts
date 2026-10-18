@@ -315,8 +315,9 @@ export class ListDetail implements OnInit {
 			}
 		);
 		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.loadList();
-			else if (result === "deleted") this.router.navigate(["/lists"]);
+			if (result?.status === "saved") this.loadList();
+			else if (result?.status === "deleted")
+				this.router.navigate(["/lists"]);
 		});
 	}
 

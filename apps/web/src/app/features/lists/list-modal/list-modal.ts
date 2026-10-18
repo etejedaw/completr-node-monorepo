@@ -33,7 +33,10 @@ import { type CreateListDto, ListsService, type UpdateListDto } from "../lists";
 export interface ListModalData {
 	list: List | null;
 }
-export type ListModalResult = "saved" | "deleted";
+export type ListModalResult =
+	| { status: "created"; list: List }
+	| { status: "saved" }
+	| { status: "deleted" };
 
 interface SourceOption {
 	value: string;
@@ -174,7 +177,7 @@ export class ListModal implements OnInit {
 				durationSource: val.durationSource
 			};
 			this.listsService.update(this.list!.id, dto).subscribe({
-				next: () => this.dialogRef.close("saved"),
+				next: () => this.dialogRef.close({ status: "saved" }),
 				error: err => {
 					this.isLoading.set(false);
 					this.error.set(err.error?.title ?? "Update failed");
@@ -189,7 +192,7 @@ export class ListModal implements OnInit {
 				isPublic: val.isPublic
 			};
 			this.listsService.create(dto).subscribe({
-				next: () => this.dialogRef.close("saved"),
+				next: list => this.dialogRef.close({ status: "created", list }),
 				error: err => {
 					this.isLoading.set(false);
 					this.error.set(err.error?.title ?? "Creation failed");
@@ -201,7 +204,7 @@ export class ListModal implements OnInit {
 	onDelete() {
 		this.isLoading.set(true);
 		this.listsService.delete(this.list!.id).subscribe({
-			next: () => this.dialogRef.close("deleted"),
+			next: () => this.dialogRef.close({ status: "deleted" }),
 			error: err => {
 				this.isLoading.set(false);
 				this.error.set(err.error?.title ?? "Delete failed");
