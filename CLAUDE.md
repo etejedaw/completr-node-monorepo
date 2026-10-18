@@ -85,17 +85,7 @@ AFFiNE tiene el negocio y la planificación. Todo lo técnico vive en el repo, y
 
 ## Skills del repo
 
-Se instalan desde `etejedaw/workflow-skills` con `npx skills add etejedaw/workflow-skills --skill <nombre>`, salvo `release-changelog-public`, que es propia del repo. Lo que define este archivo manda sobre los valores por defecto de cada skill.
-
-| Skill                      | Cuándo                                                                                                   |
-| -------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `git-commit`               | Al commitear, cuando se pide                                                                             |
-| `bruno-endpoints`          | Cuando se crea, modifica o elimina un endpoint, para actualizar `docs/api/`                              |
-| `sequelize-migration`      | Cuando un cambio en un modelo afecta el esquema de la base                                               |
-| `release-changelog`        | Al cerrar una tanda de trabajo o antes de un paso a productivo, para el changelog técnico                |
-| `release-changelog-public` | Tras `release-changelog`, para publicar en la landing lo que el usuario nota de esos changelogs técnicos |
-| `frontend-design`          | Al construir o mejorar interfaces                                                                        |
-| `ui-ux-pro-max`            | Al diseñar, revisar o corregir UI y UX                                                                   |
+`release-changelog-public` es propia del repo y no viene de `workflow-skills`.
 
 ### Changelog técnico
 
