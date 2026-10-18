@@ -22,6 +22,7 @@
 	--color-danger: #ff5d6c;
 	--color-info: #b692ff;
 	--color-premium: #ffc857;
+	--color-admin: #d9d5ec;
 	--color-rating: var(--color-brand);
 	--color-playing: #7dd3fc;
 
@@ -39,6 +40,6 @@
 	--color-nav-browse: #5bd8a1;
 	--color-nav-lists: #5eead4;
 	--color-nav-users: #f0abfc;
-	--color-nav-admin: #9d8bb8;
+	--color-nav-admin: var(--color-admin);
 	--color-nav-more: var(--color-fg-secondary);
 }

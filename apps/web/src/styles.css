@@ -49,6 +49,7 @@
 	--color-danger: #ef4444;
 	--color-info: #38bdf8;
 	--color-premium: #fbbf24;
+	--color-admin: #dfe5ee;
 	--color-rating: #8b5cf6;
 	--color-playing: #38bdf8;
 
@@ -66,10 +67,22 @@
 	--color-nav-browse: #34d399;
 	--color-nav-lists: #2dd4bf;
 	--color-nav-users: #e879f9;
-	--color-nav-admin: #94a3b8;
+	--color-nav-admin: var(--color-admin);
 	--color-nav-more: var(--color-fg-secondary);
 
 	--radius-card: 0.625rem;
+}
+
+@utility bg-admin-metal {
+	background-image: linear-gradient(
+		135deg,
+		color-mix(in srgb, var(--color-admin) 20%, transparent) 0%,
+		color-mix(in srgb, var(--color-admin) 8%, transparent) 45%,
+		color-mix(in srgb, var(--color-admin) 16%, transparent) 100%
+	);
+	box-shadow:
+		inset 0 0 0 1px color-mix(in srgb, var(--color-admin) 35%, transparent),
+		inset 0 1px 0 color-mix(in srgb, var(--color-admin) 30%, transparent);
 }
 
 :root {
