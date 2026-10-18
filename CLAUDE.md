@@ -82,3 +82,43 @@ AFFiNE tiene el negocio y la planificación. Todo lo técnico vive en el repo, y
 **La frontera:** `docs/` describe el mecanismo (cómo se llama el enum, qué constraint existe, qué status devuelve la API). AFFiNE tiene la decisión (cuál es el límite de un free, qué significa cada estado, por qué existe el ratio). Un dato tiene un solo dueño: no lo dupliques en el otro lado.
 
 **Este archivo es el único del repo que puede mencionar AFFiNE.** El repo es AGPLv3: quien lo forkee no debe encontrar referencias a un workspace privado al que no tiene acceso. `README.md`, `docs/` y `docs/changelogs/` se escriben autocontenidos — cuando una decisión vive fuera del repo, se dice "es planificación de producto y no se documenta acá", sin nombrar la herramienta ni el doc. Si el dato existe en el código (un `FREE_*_LIMIT`, un `authMiddleware`), apunta al código, que además no se desfasa.
+
+## Skills del repo
+
+Se instalan desde `etejedaw/workflow-skills` con `npx skills add etejedaw/workflow-skills --skill <nombre>`, salvo `release-changelog-public`, que es propia del repo. Lo que define este archivo manda sobre los valores por defecto de cada skill.
+
+| Skill                      | Cuándo                                                                                                   |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `git-commit`               | Al commitear, cuando se pide                                                                             |
+| `bruno-endpoints`          | Cuando se crea, modifica o elimina un endpoint, para actualizar `docs/api/`                              |
+| `sequelize-migration`      | Cuando un cambio en un modelo afecta el esquema de la base                                               |
+| `release-changelog`        | Al cerrar una tanda de trabajo o antes de un paso a productivo, para el changelog técnico                |
+| `release-changelog-public` | Tras `release-changelog`, para publicar en la landing lo que el usuario nota de esos changelogs técnicos |
+| `frontend-design`          | Al construir o mejorar interfaces                                                                        |
+| `ui-ux-pro-max`            | Al diseñar, revisar o corregir UI y UX                                                                   |
+
+### Changelog técnico
+
+Configuración que usa `release-changelog`:
+
+- Carpeta: `docs/changelogs/`. Formato y convención de nombres: `docs/changelogs/README.md` (las entregas de una fase llevan la versión en el nombre: `YYYY-MM-DD-vX.Y.Z-<feature>.md`).
+- Un solo changelog para las tres apps. Un grupo puede mezclar commits de `apps/api`, `apps/web` y `apps/landing` si cuentan la misma feature.
+- Idioma: español, sin emojis, con el tono del resto de `docs/`.
+- Ruido que no se documenta, además del genérico: bookkeeping de `TODO.md`, `CONTEXT.md` o `MEMORY.md`.
+- El repo es AGPLv3: los changelogs no mencionan AFFiNE ni documentos internos de planificación.
+
+El changelog público (`apps/landing/src/content/releases/`) no lo genera esta skill: lo hace `release-changelog-public` a partir de los changelogs técnicos.
+
+### Migraciones
+
+Configuración que usa `sequelize-migration`:
+
+- Pedir confirmación antes de cambiar un modelo, una columna, un tipo o una asociación.
+- Carpeta: `apps/api/migrations/` (`.sequelizerc` en `apps/api`). Formato: CommonJS, extensión `.js`. Tabla de control: `SequelizeMeta`.
+- Crear con `npm run migrate:create -w apps/api -- <verbo>-<sujeto>-en-kebab-case`, por ejemplo `add-isfeedpublic-to-users`. El script pone el timestamp.
+- Estilo de las migraciones existentes: tabs, comillas dobles y SQL crudo idempotente en `queryInterface.sequelize.query` (`IF NOT EXISTS` / `IF EXISTS`, también en el `down`), no la API de `queryInterface`.
+- Sequelize crea las tablas en plural y las columnas en camelCase, así que los identificadores van entre comillas dobles (`"Users"`, `"isFeedPublic"`). Si el modelo define `tableName`, usa ese.
+- Cada `onDelete` de `apps/api/src/database/associations.database.ts` va también como `ON DELETE` en la FK de la migración. No hay `sync()`: si la migración lo omite, el borrado del padre falla con `23503` y la API responde 500.
+- Tablas nuevas: `id UUID PRIMARY KEY DEFAULT gen_random_uuid()` y `"createdAt"` / `"updatedAt"` como `TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()`.
+- Enums: el tipo se llama `enum_<Tabla>_<columna>` (por ejemplo `enum_Users_role`). Los tipos creados se envuelven en `DO $$ BEGIN ... EXCEPTION WHEN duplicate_object THEN null; END $$;`, como en `20260415230802-initial-schema.js`.
+- Comandos de aplicación: `npm run migrate:dev` y `npm run migrate:prod`. No correr ninguno de los dos, ni `migrate:undo:*`: avisar que la migración está lista y dejar que el usuario la aplique.
