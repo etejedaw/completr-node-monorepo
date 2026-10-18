@@ -15,6 +15,7 @@ import { ToastService } from "../../core/services/toast";
 import { isPremiumRole } from "../../core/utils/premium";
 import { GameCoverCard } from "../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
+import { BETA_SIGNUP_URL } from "../../shared/constants/beta-signup";
 import { UiAvatar, UiButton, UiDialog, UiSkeleton } from "../../shared/ui";
 import { FeedService } from "../feed/feed";
 import { type FranchiseProgress } from "../franchises/franchises";
@@ -94,6 +95,7 @@ export class PublicProfileComponent implements OnInit {
 
 	private static readonly HIGHLIGHTS_MONTH_PARAM = "highlightsMonth";
 
+	protected readonly betaSignupUrl = BETA_SIGNUP_URL;
 	protected readonly profile = signal<PublicProfile | null>(null);
 	protected readonly isLoading = signal(true);
 	protected readonly isPrivate = signal(false);
