@@ -70,7 +70,7 @@ No comentar lo que el nombre ya dice. No dejar referencias a tareas, issues o PR
 - **Imperativo, minúsculas, sin punto final.**
 - **Granulares** — un cambio lógico por commit. Si el working tree mezcla cosas, se separan agrupando por archivo (no por hunk).
 
-Detalle del flujo en `.claude/skills/commit/SKILL.md`.
+Detalle del flujo en `.claude/skills/git-commit/SKILL.md`.
 
 ## Post-edición obligatoria
 
@@ -84,7 +84,7 @@ Después de cualquier cambio de código, desde la raíz del repo:
 6. Si cambiaste un enum, un constraint, una validación o un auto-comportamiento → actualizar [`../invariants.md`](../invariants.md).
 7. Si cambiaste un tope por rol, un permiso o qué se ve en público → **eso es una decisión de negocio, no un invariante**: se documenta en la planificación de producto, fuera de `docs/`.
 
-El changelog (`docs/changelogs/` y, si el usuario nota el cambio, la entrada pública de la landing) se escribe **una vez al cerrar la tanda de trabajo**, no por cada cambio. El proceso está en `.claude/skills/changelog/SKILL.md`.
+El changelog (`docs/changelogs/` y, si el usuario nota el cambio, la entrada pública de la landing) se escribe **una vez al cerrar la tanda de trabajo**, no por cada cambio. El proceso está en `.claude/skills/release-changelog/SKILL.md` (técnico) y `.claude/skills/release-changelog-public/SKILL.md` (público).
 
 Los pasos 6 y 7 no son opcionales. La documentación de este repo acumuló tres datos falsos (un estado del enum faltante, el modelo de privacidad entero y el nombre de un campo de respuesta) precisamente porque nadie los ejecutaba.
 
