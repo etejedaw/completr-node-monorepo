@@ -3,6 +3,7 @@ import { RouterLink, RouterOutlet } from "@angular/router";
 
 import { AppLogo } from "../../shared/components/app-logo/app-logo";
 import { AttributionFooter } from "../../shared/components/attribution-footer/attribution-footer";
+import { BETA_SIGNUP_URL } from "../../shared/constants/beta-signup";
 import { UiButton } from "../../shared/ui";
 
 @Component({
@@ -45,9 +46,9 @@ import { UiButton } from "../../shared/ui";
 							uiButton
 							variant="primary"
 							size="lg"
-							routerLink="/register"
+							[href]="betaSignupUrl"
 							class="h-10 tap:min-h-[44px] font-semibold shadow-lg shadow-brand/25"
-							>Create account</a
+							>Join the beta</a
 						>
 					</nav>
 				</div>
@@ -61,6 +62,7 @@ import { UiButton } from "../../shared/ui";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GuestShell {
+	protected readonly betaSignupUrl = BETA_SIGNUP_URL;
 	protected readonly scrolled = signal(false);
 
 	protected onScroll(scrollTop: number): void {
