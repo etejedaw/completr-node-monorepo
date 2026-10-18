@@ -135,17 +135,18 @@ Si una vista muestra lo mismo que otra, reutiliza los componentes de la vista du
 - Temas: `refined-dark` (por defecto, **Refined Dark**: grafito casi negro con violeta), `midnight-cyan` y `twilight-arcade`.
 - Significado de los tokens de color:
 
-| Token                              | Uso                                                                                      |
-| ---------------------------------- | ---------------------------------------------------------------------------------------- |
-| `brand`, `brand-hover`             | Acentos y texto de marca. Debe cumplir 4.5:1 sobre `canvas`, `surface` y `surface-hover` |
-| `brand-solid`, `brand-solid-hover` | Superficies rellenas con texto blanco (botón primario, insignias). 4.5:1 con el blanco   |
-| `brand-subtle`, `brand-glow`       | Fondos translúcidos y halos                                                              |
-| `rating`                           | Estrellas y notas (igual a `brand`)                                                      |
-| `playing`                          | Estado Playing; distinto de `brand` en cada tema                                         |
-| `premium`                          | Dorado reservado a Premium: insignias, listones, contadores de tope y `toast.premium`    |
-| `warning`                          | Naranja de advertencias. El amarillo no se usa fuera de Premium                          |
-| `success`, `danger`, `info`        | Completado, destructivo/abandonado e información                                         |
-| `nav-*`                            | Color de identidad de cada sección del menú                                              |
+| Token                              | Uso                                                                                                                                     |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `brand`, `brand-hover`             | Acentos y texto de marca. Debe cumplir 4.5:1 sobre `canvas`, `surface` y `surface-hover`                                                |
+| `brand-solid`, `brand-solid-hover` | Superficies rellenas con texto blanco (botón primario, insignias). 4.5:1 con el blanco                                                  |
+| `brand-subtle`, `brand-glow`       | Fondos translúcidos y halos                                                                                                             |
+| `rating`                           | Estrellas y notas (igual a `brand`)                                                                                                     |
+| `playing`                          | Estado Playing; distinto de `brand` en cada tema                                                                                        |
+| `premium`                          | Dorado reservado a Premium: insignias, listones, contadores de tope y `toast.premium`                                                   |
+| `admin`                            | Platino reservado al rol Admin: insignia de rol (`bg-admin-metal text-admin`) y sección Admin del menú; no se usa en ninguna otra parte |
+| `warning`                          | Naranja de advertencias. El amarillo no se usa fuera de Premium                                                                         |
+| `success`, `danger`, `info`        | Completado, destructivo/abandonado e información                                                                                        |
+| `nav-*`                            | Color de identidad de cada sección del menú; `nav-admin` apunta a `admin`                                                               |
 
 - Texto secundario y atenuado (`fg-secondary`, `fg-muted`) también cumplen 4.5:1 sobre los tres fondos. Al tocar un tema, recalcular los contrastes.
 - Superficies y bordes: `canvas`, `sidebar`, `surface`, `surface-hover`, `input-bg`, `line` y `line-hover`. Un hover sobre una fila usa `hover:bg-surface-hover`. Nunca se usa blanco o negro con alfa (`bg-white/[0.03]`), porque no se adapta a los temas.
