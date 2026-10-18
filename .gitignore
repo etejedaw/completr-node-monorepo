@@ -162,3 +162,6 @@ tmp/
 .claude/settings.local.json
 # Git worktrees (local only)
 .worktree/
+
+apps/api/.docker/postgres/
+apps/api/.docker/postgres-test/

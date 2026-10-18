@@ -8,3 +8,6 @@ package-lock.json
 
 .claude/skills
 skills-lock.json
+
+apps/api/.docker/postgres
+apps/api/.docker/postgres-test
