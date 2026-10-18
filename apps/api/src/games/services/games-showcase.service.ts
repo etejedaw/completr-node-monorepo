@@ -51,7 +51,7 @@ export async function findShowcaseGames(): Promise<ShowcaseGameRow[]> {
 			inflightShowcase = null;
 		});
 		const games = await inflightShowcase;
-		cachedShowcase = { games, fetchedAt: Date.now() };
+		if (games.length > 0) cachedShowcase = { games, fetchedAt: Date.now() };
 		return games;
 	} catch (error) {
 		if (cachedShowcase) return cachedShowcase.games;
