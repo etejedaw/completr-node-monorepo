@@ -810,7 +810,18 @@
 	}
 
 	<ng-container dialogFooter>
-		@if (isEdit() && viewMode() === "summary") {
+		@if (isEdit() && viewMode() === "summary") { @if (allowNewRun) {
+		<button
+			uiButton
+			variant="secondary"
+			type="button"
+			class="md:mr-auto"
+			(click)="onNewRun()"
+		>
+			<span aria-hidden="true" class="material-icons text-base">add</span>
+			Add new run
+		</button>
+		}
 		<button uiButton variant="ghost" type="button" (click)="onClose()">
 			Close
 		</button>
