@@ -84,10 +84,17 @@
 						>{{ user()?.username }}</a
 					>
 					<span
-						class="inline-block mt-0.5 px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
+						class="inline-flex items-center gap-0.5 mt-0.5 px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
 						[class]="roleBadge().className"
-						>{{ roleBadge().label }}</span
 					>
+						@if (roleBadge().icon; as icon) {
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.6875rem]"
+							>{{ icon }}</span
+						>
+						} {{ roleBadge().label }}
+					</span>
 				</div>
 				}
 				<div class="flex items-center" [class.flex-col]="railMode()">
@@ -296,10 +303,15 @@
 			<span class="block text-xs text-fg-muted">View your profile</span>
 		</span>
 		<span
-			class="px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
+			class="inline-flex items-center gap-0.5 px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
 			[class]="roleBadge().className"
-			>{{ roleBadge().label }}</span
 		>
+			@if (roleBadge().icon; as icon) {
+			<span aria-hidden="true" class="material-icons text-[0.6875rem]"
+				>{{ icon }}</span
+			>
+			} {{ roleBadge().label }}
+		</span>
 	</a>
 
 	@for (section of sheetSections(); track section.id) {

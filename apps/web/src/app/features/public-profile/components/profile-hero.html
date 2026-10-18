@@ -67,10 +67,15 @@
 					</h1>
 					@if (roleBadge(); as badge) {
 					<span
-						class="px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.16em] backdrop-blur-md"
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.16em] backdrop-blur-md"
 						[class]="badge.className"
-						>{{ badge.label }}</span
 					>
+						@if (badge.icon; as icon) {
+						<span aria-hidden="true" class="material-icons text-xs"
+							>{{ icon }}</span
+						>
+						} {{ badge.label }}
+					</span>
 					}
 				</div>
 				<p
