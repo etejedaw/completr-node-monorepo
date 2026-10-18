@@ -16,7 +16,7 @@ import {
 import { AuthService } from "../../../core/services/auth";
 import { FollowRequestsService } from "../../../core/services/follow-requests";
 import { ToastService } from "../../../core/services/toast";
-import { isPremiumRole } from "../../../core/utils/premium";
+import { avatarRing } from "../../../core/utils/premium";
 import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
 import { UiAvatar, UiButton, UiSwitch } from "../../../shared/ui";
 import { ProfileService } from "../../profile/profile";
@@ -86,7 +86,7 @@ export class SettingsPrivacy implements OnInit {
 	protected readonly presets = PRIVACY_PRESETS;
 	protected readonly profileGate = PROFILE_GATE;
 	protected readonly visibilityLabel = visibilityLabel;
-	protected readonly isPremiumRole = isPremiumRole;
+	protected readonly avatarRing = avatarRing;
 
 	private readonly saved = signal<PrivacyDraft>(DEFAULT_DRAFT);
 	protected readonly draft = signal<PrivacyDraft>(DEFAULT_DRAFT);

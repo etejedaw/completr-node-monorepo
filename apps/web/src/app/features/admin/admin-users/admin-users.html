@@ -92,9 +92,15 @@
 					<td class="px-3 py-2 align-middle">
 						@if (user.role === 'admin') {
 						<span
-							class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-danger/10 text-danger"
-							>{{ user.role }}</span
+							class="inline-flex items-center gap-1 text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-admin-metal text-admin"
 						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-xs"
+								>shield</span
+							>
+							{{ user.role }}
+						</span>
 						} @else if (user.role === 'moderator') {
 						<span
 							class="inline-block text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-[rgba(168,85,247,0.12)] text-[#a855f7]"

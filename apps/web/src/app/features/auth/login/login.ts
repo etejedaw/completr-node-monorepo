@@ -8,6 +8,7 @@ import { form, FormField, required } from "@angular/forms/signals";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 
 import { AuthService } from "../../../core/services/auth";
+import { BETA_SIGNUP_URL } from "../../../shared/constants/beta-signup";
 import { UiAlert, UiButton, UiIconButton, UiInput } from "../../../shared/ui";
 import { AuthShowcase } from "../auth-showcase/auth-showcase";
 
@@ -30,6 +31,7 @@ export class Login {
 	private readonly router = inject(Router);
 	private readonly route = inject(ActivatedRoute);
 
+	protected readonly betaSignupUrl = BETA_SIGNUP_URL;
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
 	protected readonly showPassword = signal(false);

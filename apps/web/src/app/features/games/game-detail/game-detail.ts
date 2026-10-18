@@ -468,12 +468,14 @@ export class GameDetail implements OnInit {
 					entry,
 					preselectedGame: null,
 					preselectedCompilationParent: null,
-					preselectAddToQueue: false
+					preselectAddToQueue: false,
+					allowNewRun: true
 				}
 			}
 		);
 		ref.afterClosed.subscribe(result => {
 			if (result === "saved") this.loadUserStatus(g.id);
+			else if (result === "newRun") this.openBacklogModal();
 		});
 	}
 

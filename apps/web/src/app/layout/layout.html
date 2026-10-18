@@ -72,7 +72,7 @@
 					<ui-avatar
 						[src]="user()?.avatarUrl"
 						[name]="user()?.username"
-						[premium]="isPremium()"
+						[ring]="avatarRing()"
 						class="w-9 h-9 text-sm"
 					/>
 				</a>
@@ -84,10 +84,17 @@
 						>{{ user()?.username }}</a
 					>
 					<span
-						class="inline-block mt-0.5 px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
+						class="inline-flex items-center gap-0.5 mt-0.5 px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
 						[class]="roleBadge().className"
-						>{{ roleBadge().label }}</span
 					>
+						@if (roleBadge().icon; as icon) {
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.6875rem]"
+							>{{ icon }}</span
+						>
+						} {{ roleBadge().label }}
+					</span>
 				</div>
 				}
 				<div class="flex items-center" [class.flex-col]="railMode()">
@@ -192,7 +199,7 @@
 						<ui-avatar
 							[src]="user()?.avatarUrl"
 							[name]="user()?.username"
-							[premium]="isPremium()"
+							[ring]="avatarRing()"
 							class="w-8 h-8 text-xs"
 						/>
 					</a>
@@ -286,7 +293,7 @@
 		<ui-avatar
 			[src]="user()?.avatarUrl"
 			[name]="user()?.username"
-			[premium]="isPremium()"
+			[ring]="avatarRing()"
 			class="w-11 h-11 text-base"
 		/>
 		<span class="flex-1 min-w-0">
@@ -296,10 +303,15 @@
 			<span class="block text-xs text-fg-muted">View your profile</span>
 		</span>
 		<span
-			class="px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
+			class="inline-flex items-center gap-0.5 px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
 			[class]="roleBadge().className"
-			>{{ roleBadge().label }}</span
 		>
+			@if (roleBadge().icon; as icon) {
+			<span aria-hidden="true" class="material-icons text-[0.6875rem]"
+				>{{ icon }}</span
+			>
+			} {{ roleBadge().label }}
+		</span>
 	</a>
 
 	@for (section of sheetSections(); track section.id) {

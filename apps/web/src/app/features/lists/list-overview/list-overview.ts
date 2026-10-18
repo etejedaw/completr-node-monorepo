@@ -7,6 +7,7 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
+import { Router } from "@angular/router";
 import { debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { type FollowingList, type List } from "../../../core/models";
@@ -53,6 +54,7 @@ import { ListsService } from "../lists";
 export class ListOverview implements OnInit {
 	private readonly listsService = inject(ListsService);
 	private readonly dialogs = inject(DialogService);
+	private readonly router = inject(Router);
 	private readonly searchSubject = new Subject<string>();
 	protected readonly isPremium = inject(AuthService).isPremium;
 
@@ -124,7 +126,9 @@ export class ListOverview implements OnInit {
 			}
 		);
 		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.loadLists();
+			if (result?.status === "created")
+				this.router.navigate(["/lists", result.list.id]);
+			else if (result?.status === "saved") this.loadLists();
 		});
 	}
 

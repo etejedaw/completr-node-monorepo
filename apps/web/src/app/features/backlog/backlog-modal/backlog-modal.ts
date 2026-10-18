@@ -87,8 +87,9 @@ export interface BacklogModalData {
 	preselectedGame: Game | null;
 	preselectedCompilationParent: Game | null;
 	preselectAddToQueue: boolean;
+	allowNewRun?: boolean;
 }
-export type BacklogModalResult = "saved";
+export type BacklogModalResult = "saved" | "newRun";
 
 const BACKLOG_FORM_STATUS_OPTIONS: readonly PickerOption[] =
 	BACKLOG_STATUS_FILTERS.map(filter => ({
@@ -216,6 +217,7 @@ export class BacklogModal implements OnInit {
 		this.dialogRef.data.preselectedCompilationParent;
 	protected readonly preselectAddToQueue =
 		this.dialogRef.data.preselectAddToQueue;
+	protected readonly allowNewRun = this.dialogRef.data.allowNewRun ?? false;
 
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
@@ -997,6 +999,10 @@ export class BacklogModal implements OnInit {
 
 	onClose() {
 		this.dialogRef.close();
+	}
+
+	onNewRun() {
+		this.dialogRef.close("newRun");
 	}
 
 	private persistMoodTagsIfChanged(gameId: string) {

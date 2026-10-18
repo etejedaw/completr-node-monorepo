@@ -10,7 +10,7 @@ import { RouterLink } from "@angular/router";
 
 import { type BacklogStatus, type UserRole } from "../../../../core/models";
 import { AuthService } from "../../../../core/services/auth";
-import { isPremiumRole } from "../../../../core/utils/premium";
+import { avatarRing } from "../../../../core/utils/premium";
 import { UiAvatar } from "../../../../shared/ui";
 import {
 	backlogStatusClass,
@@ -55,7 +55,7 @@ export class GameSocialActivity {
 	protected readonly statusClass = backlogStatusClass;
 	protected readonly statusLabel = backlogStatusLabel;
 	protected readonly statusFillClass = backlogStatusFillClass;
-	protected readonly isPremiumRole = isPremiumRole;
+	protected readonly avatarRing = avatarRing;
 
 	constructor() {
 		effect(() => {

@@ -46,12 +46,12 @@
 				<span
 					aria-hidden="true"
 					class="absolute -inset-1.5 rounded-full bg-gradient-to-br to-transparent opacity-80 blur-sm"
-					[class]="isPremium() ? 'from-premium via-premium/40' : 'from-brand via-brand/40'"
+					[class]="avatarHaloClass()"
 				></span>
 				<ui-avatar
 					[src]="user().avatarUrl"
 					[name]="user().username"
-					[premium]="isPremium()"
+					[ring]="avatarRing()"
 					class="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40 text-5xl ring-4 ring-canvas shadow-2xl shadow-black/60"
 				/>
 			</div>
@@ -67,10 +67,15 @@
 					</h1>
 					@if (roleBadge(); as badge) {
 					<span
-						class="px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.16em] backdrop-blur-md"
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.16em] backdrop-blur-md"
 						[class]="badge.className"
-						>{{ badge.label }}</span
 					>
+						@if (badge.icon; as icon) {
+						<span aria-hidden="true" class="material-icons text-xs"
+							>{{ icon }}</span
+						>
+						} {{ badge.label }}
+					</span>
 					}
 				</div>
 				<p

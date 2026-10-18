@@ -114,8 +114,21 @@
 				</button>
 			</form>
 
+			<p class="m-0 mt-6 text-sm text-fg-muted">
+				Don't have an account?{{ " " }}
+				<a
+					[href]="betaSignupUrl"
+					class="inline-flex items-center gap-1 font-medium text-brand no-underline hover:text-brand-hover tap:min-h-[44px]"
+					>Join the closed beta<span
+						aria-hidden="true"
+						class="material-icons text-base"
+						>arrow_forward</span
+					></a
+				>
+			</p>
+
 			<div
-				class="mt-10 pt-6 border-t border-line flex flex-wrap items-center justify-between gap-3 text-xs text-fg-muted"
+				class="mt-6 pt-6 border-t border-line flex flex-wrap items-center justify-between gap-3 text-xs text-fg-muted"
 			>
 				<a
 					routerLink="/privacy"

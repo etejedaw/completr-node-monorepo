@@ -12,7 +12,7 @@ import { RouterLink } from "@angular/router";
 import { AuthService } from "../../core/services/auth";
 import { FollowRequestsService } from "../../core/services/follow-requests";
 import { ToastService } from "../../core/services/toast";
-import { isPremiumRole } from "../../core/utils/premium";
+import { avatarRing } from "../../core/utils/premium";
 import {
 	LibraryHero,
 	type LibraryHeroPoster
@@ -128,7 +128,7 @@ export class FeedPage implements OnInit {
 	private readonly toast = inject(ToastService);
 	private readonly followRequestsService = inject(FollowRequestsService);
 
-	protected readonly isPremiumRole = isPremiumRole;
+	protected readonly avatarRing = avatarRing;
 	protected readonly currentUserId = this.authService.user;
 	protected readonly activities = signal<FeedActivity[]>([]);
 	protected readonly isLoading = signal(true);

@@ -38,7 +38,7 @@
 			<ui-avatar
 				[src]="profile()?.user?.avatarUrl"
 				[name]="profile()?.user?.username || username()"
-				[premium]="isPremiumRole(profile()?.user?.role)"
+				[ring]="avatarRing(profile()?.user?.role)"
 				class="w-28 h-28 text-4xl ring-4 ring-canvas shadow-2xl shadow-black/60"
 			/>
 			<span
@@ -270,8 +270,8 @@
 		friends.
 	</p>
 	<div class="flex flex-wrap justify-center gap-2">
-		<a uiButton variant="primary" size="lg" routerLink="/register"
-			>Create your free account</a
+		<a uiButton variant="primary" size="lg" [href]="betaSignupUrl"
+			>Join the closed beta</a
 		>
 		<a uiButton variant="ghost" size="lg" routerLink="/login">Sign in</a>
 	</div>

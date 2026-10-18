@@ -86,3 +86,12 @@ export interface GameListsBundle {
 		contains: boolean;
 	}[];
 }
+
+export interface ShowcaseGameRow {
+	id: string;
+	code: string;
+	title: string;
+	backgroundUrl: string;
+	score: number | null;
+	duration: number | null;
+}

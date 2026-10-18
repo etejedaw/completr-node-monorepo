@@ -3,6 +3,7 @@ import { Router, type Routes } from "@angular/router";
 
 import { adminGuard } from "./core/guards/admin.guard";
 import { authGuard } from "./core/guards/auth.guard";
+import { betaSignupRedirectGuard } from "./core/guards/beta-signup-redirect.guard";
 import { guestGuard } from "./core/guards/guest.guard";
 import { guestMatch } from "./core/guards/guest.match";
 import { moderatorGuard } from "./core/guards/moderator.guard";
@@ -107,9 +108,8 @@ export const routes: Routes = [
 	},
 	{
 		path: "register",
-		canActivate: [guestGuard],
-		loadComponent: () =>
-			import("./features/auth/register/register").then(m => m.Register)
+		canActivate: [betaSignupRedirectGuard],
+		children: []
 	},
 	{
 		path: "user/:username/lists/:id",

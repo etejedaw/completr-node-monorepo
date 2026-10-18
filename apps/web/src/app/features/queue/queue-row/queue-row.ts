@@ -13,7 +13,7 @@ import { type QueueEntry } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { UiBottomSheet } from "../../../shared/ui";
 
-type RowActionId = "favorite" | "up" | "down" | "remove";
+type RowActionId = "favorite" | "top" | "up" | "down" | "remove";
 
 interface RowAction {
 	id: RowActionId;
@@ -39,14 +39,18 @@ export class QueueRow {
 	readonly isLast = input(false);
 	readonly isFavorite = input(false);
 	readonly statusUpdating = input(false);
+	readonly movingToTop = input(false);
 
 	readonly startPlaying = output<void>();
 	readonly favoriteToggle = output<void>();
 	readonly remove = output<void>();
+	readonly moveToTop = output<void>();
 	readonly moveUp = output<void>();
 	readonly moveDown = output<void>();
 
 	protected readonly sheetOpen = signal(false);
+
+	protected readonly isTop = computed(() => this.entry().position <= 1);
 
 	protected readonly sheetActions = computed<RowAction[]>(() => {
 		const favorite = this.isFavorite();
@@ -61,6 +65,13 @@ export class QueueRow {
 		];
 		if (this.reorderable())
 			actions.push(
+				{
+					id: "top",
+					icon: "vertical_align_top",
+					label: "Move to top",
+					iconClass: "text-fg-muted",
+					disabled: this.isTop() || this.movingToTop()
+				},
 				{
 					id: "up",
 					icon: "arrow_upward",
@@ -89,6 +100,7 @@ export class QueueRow {
 	protected runSheetAction(id: RowActionId) {
 		this.sheetOpen.set(false);
 		if (id === "favorite") this.favoriteToggle.emit();
+		else if (id === "top") this.moveToTop.emit();
 		else if (id === "up") this.moveUp.emit();
 		else if (id === "down") this.moveDown.emit();
 		else this.remove.emit();

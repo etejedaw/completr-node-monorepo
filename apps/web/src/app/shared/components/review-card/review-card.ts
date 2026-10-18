@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { isPremiumRole } from "../../../core/utils/premium";
+import { avatarRing } from "../../../core/utils/premium";
 import { getRatingLabel } from "../../constants/rating-labels";
 import { CoverUrlPipe } from "../../pipes/cover-url";
 import { UiAvatar } from "../../ui";
@@ -59,8 +59,8 @@ export class ReviewCard {
 	protected readonly posterUrl = computed(
 		() => this.review().game?.coverUrl ?? this.review().game?.backgroundUrl
 	);
-	protected readonly authorIsPremium = computed(() =>
-		isPremiumRole(this.review().user?.role)
+	protected readonly authorAvatarRing = computed(() =>
+		avatarRing(this.review().user?.role)
 	);
 	protected readonly authorName = computed(() => {
 		const user = this.review().user;

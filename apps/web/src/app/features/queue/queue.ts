@@ -70,6 +70,13 @@ export class QueueService {
 			.pipe(map(res => res.data.queue));
 	}
 
+	moveToTop(backlogId: string) {
+		return this.getMyQueueBacklogIds().pipe(
+			map(ids => [backlogId, ...ids.filter(id => id !== backlogId)]),
+			switchMap(backlogIds => this.reorder(backlogIds))
+		);
+	}
+
 	removeByBacklogId(backlogId: string) {
 		return this.getMyQueueBacklogIds().pipe(
 			map(ids => ids.filter(id => id !== backlogId)),

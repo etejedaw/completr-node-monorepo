@@ -10,6 +10,8 @@ import {
 	NgpAvatarImage
 } from "ng-primitives/avatar";
 
+export type UiAvatarRing = "premium" | "admin" | null;
+
 @Component({
 	selector: "ui-avatar",
 	imports: [NgpAvatar, NgpAvatarImage, NgpAvatarFallback],
@@ -34,10 +36,11 @@ import {
 			>
 				{{ initial() }}
 			</span>
-			@if (premium()) {
+			@if (ring(); as tier) {
 				<span
 					aria-hidden="true"
-					class="absolute inset-0 rounded-full border-[length:clamp(2px,0.08em,4px)] border-premium pointer-events-none"
+					class="absolute inset-0 rounded-full border-[length:clamp(2px,0.08em,4px)] pointer-events-none"
+					[class]="ringBorderClass[tier]"
 				></span>
 			}
 		</span>
@@ -51,7 +54,15 @@ export class UiAvatar {
 	src = input<string | null | undefined>(null);
 	name = input<string | null | undefined>(null);
 	alt = input<string | null | undefined>(null);
-	premium = input(false);
+	ring = input<UiAvatarRing>(null);
+
+	protected readonly ringBorderClass: Record<
+		NonNullable<UiAvatarRing>,
+		string
+	> = {
+		premium: "border-premium",
+		admin: "border-admin"
+	};
 
 	protected readonly initial = computed(() => {
 		const n = this.name();

@@ -115,9 +115,11 @@
 				[isLast]="index === entries().length - 1"
 				[isFavorite]="isFavorite(entry)"
 				[statusUpdating]="isUpdatingStatus(entry)"
+				[movingToTop]="movingToTop()"
 				(startPlaying)="startPlaying.emit(entry)"
 				(favoriteToggle)="favoriteToggle.emit(entry.backlog.game.id)"
 				(remove)="remove.emit(entry)"
+				(moveToTop)="moveToTop.emit(entry)"
 				(moveUp)="moveUp.emit(index)"
 				(moveDown)="moveDown.emit(index)"
 			/>

@@ -221,7 +221,7 @@
 					<ui-avatar
 						[src]="request.user.avatarUrl"
 						[name]="request.user.username"
-						[premium]="isPremiumRole(request.user.role)"
+						[ring]="avatarRing(request.user.role)"
 						class="w-10 h-10 text-sm"
 					/>
 					<span class="min-w-0">

@@ -135,17 +135,18 @@ Si una vista muestra lo mismo que otra, reutiliza los componentes de la vista du
 - Temas: `refined-dark` (por defecto, **Refined Dark**: grafito casi negro con violeta), `midnight-cyan` y `twilight-arcade`.
 - Significado de los tokens de color:
 
-| Token                              | Uso                                                                                      |
-| ---------------------------------- | ---------------------------------------------------------------------------------------- |
-| `brand`, `brand-hover`             | Acentos y texto de marca. Debe cumplir 4.5:1 sobre `canvas`, `surface` y `surface-hover` |
-| `brand-solid`, `brand-solid-hover` | Superficies rellenas con texto blanco (botón primario, insignias). 4.5:1 con el blanco   |
-| `brand-subtle`, `brand-glow`       | Fondos translúcidos y halos                                                              |
-| `rating`                           | Estrellas y notas (igual a `brand`)                                                      |
-| `playing`                          | Estado Playing; distinto de `brand` en cada tema                                         |
-| `premium`                          | Dorado reservado a Premium: insignias, listones, contadores de tope y `toast.premium`    |
-| `warning`                          | Naranja de advertencias. El amarillo no se usa fuera de Premium                          |
-| `success`, `danger`, `info`        | Completado, destructivo/abandonado e información                                         |
-| `nav-*`                            | Color de identidad de cada sección del menú                                              |
+| Token                              | Uso                                                                                                                                                                          |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `brand`, `brand-hover`             | Acentos y texto de marca. Debe cumplir 4.5:1 sobre `canvas`, `surface` y `surface-hover`                                                                                     |
+| `brand-solid`, `brand-solid-hover` | Superficies rellenas con texto blanco (botón primario, insignias). 4.5:1 con el blanco                                                                                       |
+| `brand-subtle`, `brand-glow`       | Fondos translúcidos y halos                                                                                                                                                  |
+| `rating`                           | Estrellas y notas (igual a `brand`)                                                                                                                                          |
+| `playing`                          | Estado Playing; distinto de `brand` en cada tema                                                                                                                             |
+| `premium`                          | Dorado reservado a Premium: insignias, listones, contadores de tope y `toast.premium`                                                                                        |
+| `admin`                            | Platino reservado al rol Admin: insignia de rol (`bg-admin-metal text-admin`), anillo y halo del avatar del admin, y sección Admin del menú; no se usa en ninguna otra parte |
+| `warning`                          | Naranja de advertencias. El amarillo no se usa fuera de Premium                                                                                                              |
+| `success`, `danger`, `info`        | Completado, destructivo/abandonado e información                                                                                                                             |
+| `nav-*`                            | Color de identidad de cada sección del menú; `nav-admin` apunta a `admin`                                                                                                    |
 
 - Texto secundario y atenuado (`fg-secondary`, `fg-muted`) también cumplen 4.5:1 sobre los tres fondos. Al tocar un tema, recalcular los contrastes.
 - Superficies y bordes: `canvas`, `sidebar`, `surface`, `surface-hover`, `input-bg`, `line` y `line-hover`. Un hover sobre una fila usa `hover:bg-surface-hover`. Nunca se usa blanco o negro con alfa (`bg-white/[0.03]`), porque no se adapta a los temas.
@@ -211,7 +212,7 @@ Antes de crear uno nuevo, reutilizar estos:
 | `InfoPageLinks`, `AttributionFooter`        | `shared/components/`                        | Pie de las páginas informativas y pie global de atribución                                                                                                                                                                                                                                                                    |
 | `ProfileCollectionPage`                     | `features/public-profile/components`        | Página de colección pública; se alimenta con `injectPublicCollection` (`features/public-profile/services/public-collection.ts`)                                                                                                                                                                                               |
 | `ErrorPage`                                 | `features/error-pages`                      | Base de `/403`, `/404` y la ruta comodín                                                                                                                                                                                                                                                                                      |
-| `UiAvatar`, `UiPremiumBadge`                | `shared/ui/`                                | Avatar con borde dorado (`[premium]="isPremiumRole(role)"`, helper en `core/utils/premium.ts`) y listón Premium que abre `toast.premium` con el beneficio                                                                                                                                                                     |
+| `UiAvatar`, `UiPremiumBadge`                | `shared/ui/`                                | Avatar con anillo según el rol (`[ring]="avatarRing(role)"`, helper en `core/utils/premium.ts`: platino para admin, dorado para premium y moderator) y listón Premium que abre `toast.premium` con el beneficio                                                                                                               |
 
 Helpers y directivas que también se reutilizan:
 
@@ -258,7 +259,7 @@ Helpers y directivas que también se reutilizan:
 - Reordenar siempre ofrece una alternativa al arrastre (flechas o "Move up/down"), y el arrastre solo empieza desde el asa (`cdkDragHandle`).
 - Las acciones destructivas reversibles (quitar de una colección, dejar de seguir) usan `toast.pending` con _Undo_. La ventana es de 5 segundos para toda la app (`UNDO_WINDOW_MS` en `core/services/toast.ts`) y no se configura por pantalla. Las irreversibles (borrar un tag o una lista) piden confirmación.
 - Los topes del plan free (HTTP 402) los avisa `errorInterceptor` con `toast.premium` y el texto de `core/utils/plan-limit-message.ts`. `toast.premium` se llama solo desde ahí y desde `UiPremiumBadge`; las pantallas no crean sus propios toasts Premium.
-- El dorado (`premium`) marca a los usuarios premium, moderator y admin (`isPremiumRole`). Toda superficie que muestre un usuario con su `role` pinta el borde en `UiAvatar`.
+- El dorado (`premium`) marca a los usuarios premium y moderator; el admin lleva platino (`admin`). `isPremiumRole` sigue incluyendo a los tres para el gating. Toda superficie que muestre un usuario con su `role` pinta el anillo de `UiAvatar` con `avatarRing(role)`.
 - Las insignias de rol salen de `core/utils/role-badge.ts` (`roleBadge`, `elevatedRoleBadge`), con tokens.
 - `styles/ui.css` no está en una capa de cascada, así que sus reglas ganan a las utilidades de Tailwind: para cambiar `display`, ancho, alto, borde o fondo de un `uiButton` / `uiIconButton` hace falta el modificador `!` (p. ej. `sm:!hidden`).
 - `ui-skeleton` es `block` y sus variantes `rect` y `circle` ocupan el alto del host: el tamaño se da en el host (`class="h-16 w-24 rounded-md"`).
