@@ -67,6 +67,7 @@ export class QueueView implements OnInit {
 	protected readonly limit = 100;
 	protected readonly sortBy = signal<QueueSort>("manual");
 	protected readonly savingOrder = signal(false);
+	protected readonly movingToTop = signal(false);
 	protected readonly updatingStatusIds = signal<Set<string>>(new Set());
 	protected readonly pendingPlayEntry = signal<QueueEntry | null>(null);
 	protected readonly pendingPlayStartedAt = signal<string>("");
@@ -227,6 +228,18 @@ export class QueueView implements OnInit {
 		const list = [...this.entries()];
 		[list[index], list[index + 1]] = [list[index + 1], list[index]];
 		this.reorder(list);
+	}
+
+	moveToTop(entry: QueueEntry) {
+		if (this.movingToTop()) return;
+		this.movingToTop.set(true);
+		this.queueService.moveToTop(entry.backlog.id).subscribe({
+			next: () => {
+				this.movingToTop.set(false);
+				this.loadQueue();
+			},
+			error: () => this.movingToTop.set(false)
+		});
 	}
 
 	moveEntry({ fromIndex, toIndex }: QueueEntryMove) {

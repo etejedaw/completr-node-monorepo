@@ -75,6 +75,7 @@ export class QueueBrowser {
 	readonly favoriteGameIds = input<ReadonlySet<string>>(new Set());
 	readonly updatingBacklogIds = input<ReadonlySet<string>>(new Set());
 	readonly savingOrder = input(false);
+	readonly movingToTop = input(false);
 	readonly sortBy = model<QueueSort>("manual");
 
 	readonly searchChange = output<string>();
@@ -83,6 +84,7 @@ export class QueueBrowser {
 	readonly startPlaying = output<QueueEntry>();
 	readonly favoriteToggle = output<string>();
 	readonly remove = output<QueueEntry>();
+	readonly moveToTop = output<QueueEntry>();
 	readonly moveUp = output<number>();
 	readonly moveDown = output<number>();
 	readonly entryMove = output<QueueEntryMove>();
