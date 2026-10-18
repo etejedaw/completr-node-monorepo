@@ -15,7 +15,8 @@ import {
 	gameListSerializer,
 	gameListSummarySerializer,
 	gamePlayerSerializer,
-	gameSerializer
+	gameSerializer,
+	gameShowcaseSerializer
 } from "./games.serializer";
 import * as gameService from "./games.service";
 import { type GameCodeParam } from "./schemas/game-code-params.schema";
@@ -107,6 +108,13 @@ export async function getLatestReviewedGames(
 	const gamesPlain = games.map(game => game.get({ plain: true }));
 
 	const data = { games: gamesPlain.map(g => gameListSerializer(g)) };
+	return response.status(200).json({ data });
+}
+
+export async function getShowcaseGames(_request: Request, response: Response) {
+	const games = await gameService.findShowcaseGames();
+
+	const data = gameShowcaseSerializer(games);
 	return response.status(200).json({ data });
 }
 

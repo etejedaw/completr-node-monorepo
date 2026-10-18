@@ -7,7 +7,7 @@ import { type GameTime } from "../game-times/game-time.model";
 import { type Genre } from "../genres/genres.model";
 import { type Platform } from "../platforms/platform.model";
 import { type Game } from "./game.model";
-import { type EnrichedGameList } from "./games.interface";
+import { type EnrichedGameList, type ShowcaseGameRow } from "./games.interface";
 
 export function gameListSerializer(
 	game: Game,
@@ -83,6 +83,39 @@ export function gameSerializer(
 			(
 				game as Game & { PartOfCompilations?: CompilationItem[] }
 			).PartOfCompilations?.map(compilationParentSerializer) ?? []
+	};
+}
+
+export function gameShowcaseSerializer(rows: ShowcaseGameRow[]) {
+	return {
+		games: rows.map(row => ({
+			id: row.id,
+			code: row.code,
+			title: row.title,
+			backgroundUrl: row.backgroundUrl
+		})),
+		featured: featuredShowcaseSerializer(rows)
+	};
+}
+
+function featuredShowcaseSerializer(rows: ShowcaseGameRow[]) {
+	let featured: { row: ShowcaseGameRow; ratio: number } | null = null;
+	for (const row of rows) {
+		const ratio = calculateRatioUtil(row.score, row.duration);
+		if (ratio === undefined) continue;
+		if (!featured || ratio > featured.ratio) featured = { row, ratio };
+	}
+	if (!featured) return null;
+
+	const { row, ratio } = featured;
+	return {
+		id: row.id,
+		code: row.code,
+		title: row.title,
+		backgroundUrl: row.backgroundUrl,
+		score: Math.round(row.score! * 100) / 100,
+		hours: Math.round(row.duration! * 10) / 10,
+		ratio
 	};
 }
 

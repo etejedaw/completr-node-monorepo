@@ -59,6 +59,7 @@ export {
 	rawgLookup,
 	searchGamesLocal
 } from "./services/games-search.service";
+export { findShowcaseGames } from "./services/games-showcase.service";
 export { splitGame } from "./services/games-variant.service";
 
 const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);

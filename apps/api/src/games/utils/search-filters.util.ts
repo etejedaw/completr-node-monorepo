@@ -112,7 +112,7 @@ export function buildSourceExclusionCondition(
 	};
 }
 
-const CANONICAL_SCORE_SUBQUERY = `(
+export const CANONICAL_SCORE_SUBQUERY = `(
 	SELECT gs.score * 5.0 / ss.scale FROM "GameScores" gs
 	JOIN "ScoreSources" ss ON ss.code = gs."source"
 	WHERE gs."gameId" = "Game"."id"
@@ -120,7 +120,7 @@ const CANONICAL_SCORE_SUBQUERY = `(
 	LIMIT 1
 )`;
 
-const CANONICAL_DURATION_SUBQUERY = `(
+export const CANONICAL_DURATION_SUBQUERY = `(
 	SELECT duration FROM "GameTimes" gt
 	WHERE gt."gameId" = "Game"."id"
 	ORDER BY CASE gt."source"

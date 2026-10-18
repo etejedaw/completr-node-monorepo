@@ -42,6 +42,12 @@ router.get(
 );
 
 router.get(
+	"/games/showcase",
+	[rateLimiterMiddleware(publicLimiter)],
+	gamesController.getShowcaseGames
+);
+
+router.get(
 	"/games/latest-reviewed",
 	[authMiddleware(), rateLimiterMiddleware(publicLimiter)],
 	gamesController.getLatestReviewedGames
