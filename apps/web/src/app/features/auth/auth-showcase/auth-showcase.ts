@@ -1,9 +1,18 @@
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed } from "@angular/core";
 
 import { AppLogo } from "../../../shared/components/app-logo/app-logo";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { injectShowcaseGames } from "../showcase-games";
 
-const SHOWCASE_TITLES = [
+interface ShowcasePoster {
+	src: string | null;
+	title: string;
+}
+
+const COLUMN_COUNT = 7;
+const POSTERS_PER_COLUMN = 6;
+
+const FALLBACK_TITLES = [
 	"Hollow Tide",
 	"Neon Drift",
 	"Ashen Crown",
@@ -22,6 +31,30 @@ const SHOWCASE_TITLES = [
 	"Lantern Deep"
 ];
 
+const FALLBACK_POSTERS: ShowcasePoster[] = FALLBACK_TITLES.map(title => ({
+	src: null,
+	title
+}));
+
+const FALLBACK_FEATURED = {
+	src: null,
+	title: "Hollow Tide",
+	score: 4.6,
+	hours: 12,
+	ratio: 8.4
+};
+
+function distributeInColumns(posters: ShowcasePoster[]): ShowcasePoster[][] {
+	return Array.from({ length: COLUMN_COUNT }, (_, column) => {
+		const columnPosters = Array.from(
+			{ length: POSTERS_PER_COLUMN },
+			(_, row) =>
+				posters[(column * POSTERS_PER_COLUMN + row) % posters.length]!
+		);
+		return [...columnPosters, ...columnPosters];
+	});
+}
+
 @Component({
 	selector: "app-auth-showcase",
 	imports: [AppLogo, GamePoster],
@@ -30,15 +63,17 @@ const SHOWCASE_TITLES = [
 			aria-hidden="true"
 			class="absolute inset-0 flex gap-3 sm:gap-4 justify-center -rotate-[8deg] scale-[1.2] lg:scale-110 origin-center"
 		>
-			@for (column of columns; track $index; let odd = $odd) {
+			@for (column of columns(); track $index; let odd = $odd) {
 				<div
 					class="flex flex-col gap-3 sm:gap-4 w-20 sm:w-28 lg:w-32 shrink-0 motion-safe:animate-[posterScroll_60s_linear_infinite]"
 					[style.animation-direction]="odd ? 'reverse' : 'normal'"
 					[style.animation-duration.s]="48 + $index * 9"
 				>
-					@for (title of column; track $index) {
+					@for (poster of column; track $index) {
 						<app-game-poster
-							[title]="title"
+							[src]="poster.src"
+							[title]="poster.title"
+							[width]="200"
 							class="w-full shrink-0 aspect-[2/3] rounded-md ring-1 ring-white/10 shadow-xl shadow-black/60"
 							titleSize="0.875rem"
 						/>
@@ -58,37 +93,43 @@ const SHOWCASE_TITLES = [
 		>
 			<app-logo size="lg" class="mb-auto" />
 
-			<div
-				class="hidden lg:flex items-center gap-4 w-fit mb-10 p-3 pr-6 rounded-card bg-surface/80 backdrop-blur-md border border-line shadow-2xl shadow-black/60 motion-safe:animate-[uiFadeUp_700ms_cubic-bezier(0.16,1,0.3,1)_both]"
-			>
-				<app-game-poster
-					title="Hollow Tide"
-					class="w-14 aspect-[2/3] rounded ring-1 ring-white/10"
-					[compact]="true"
-				/>
-				<div class="flex flex-col gap-1">
-					<span
-						class="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand"
-						>Up next · #1</span
-					>
-					<span class="font-display font-semibold text-fg"
-						>Hollow Tide</span
-					>
-					<span class="text-xs text-fg-muted"
-						>Score 4.6 · 12h to beat</span
-					>
+			@if (featured(); as featured) {
+				<div
+					class="hidden lg:flex items-center gap-4 w-fit mb-10 p-3 pr-6 rounded-card bg-surface/80 backdrop-blur-md border border-line shadow-2xl shadow-black/60 motion-safe:animate-[uiFadeUp_700ms_cubic-bezier(0.16,1,0.3,1)_both]"
+				>
+					<app-game-poster
+						[src]="featured.src"
+						[title]="featured.title"
+						[width]="200"
+						class="w-14 aspect-[2/3] rounded ring-1 ring-white/10"
+						[compact]="true"
+					/>
+					<div class="flex flex-col gap-1">
+						<span
+							class="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand"
+							>Up next · #1</span
+						>
+						<span
+							class="max-w-56 truncate font-display font-semibold text-fg"
+							>{{ featured.title }}</span
+						>
+						<span class="text-xs text-fg-muted"
+							>Score {{ featured.score }} · {{ featured.hours }}h
+							to beat</span
+						>
+					</div>
+					<div class="flex flex-col items-end ml-6 leading-none">
+						<span
+							class="text-[0.5625rem] uppercase tracking-[0.18em] text-fg-muted mb-1"
+							>Ratio</span
+						>
+						<span
+							class="font-display text-4xl font-bold text-brand tabular-nums"
+							>{{ featured.ratio }}</span
+						>
+					</div>
 				</div>
-				<div class="flex flex-col items-end ml-6 leading-none">
-					<span
-						class="text-[0.5625rem] uppercase tracking-[0.18em] text-fg-muted mb-1"
-						>Ratio</span
-					>
-					<span
-						class="font-display text-4xl font-bold text-brand tabular-nums"
-						>8.4</span
-					>
-				</div>
-			</div>
+			}
 
 			<h2
 				class="m-0 font-display font-bold tracking-tight text-fg leading-[0.95] text-3xl sm:text-4xl lg:text-5xl xl:text-6xl"
@@ -135,14 +176,31 @@ const SHOWCASE_TITLES = [
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuthShowcase {
-	protected readonly columns = Array.from({ length: 7 }, (_, column) => {
-		const titles = Array.from(
-			{ length: 6 },
-			(_, row) =>
-				SHOWCASE_TITLES[
-					(column * 5 + row * 3) % SHOWCASE_TITLES.length
-				]!
+	private readonly showcase = injectShowcaseGames();
+
+	protected readonly columns = computed(() => {
+		const games = this.showcase.hasValue()
+			? this.showcase.value().data.games
+			: [];
+		if (games.length < POSTERS_PER_COLUMN)
+			return distributeInColumns(FALLBACK_POSTERS);
+		return distributeInColumns(
+			games.map(game => ({ src: game.backgroundUrl, title: game.title }))
 		);
-		return [...titles, ...titles];
+	});
+
+	protected readonly featured = computed(() => {
+		if (this.showcase.isLoading()) return null;
+		const featured = this.showcase.hasValue()
+			? this.showcase.value().data.featured
+			: null;
+		if (!featured) return FALLBACK_FEATURED;
+		return {
+			src: featured.backgroundUrl,
+			title: featured.title,
+			score: featured.score,
+			hours: featured.hours,
+			ratio: featured.ratio
+		};
 	});
 }
