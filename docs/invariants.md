@@ -252,6 +252,13 @@ Reglas:
 - `sort_by=random` disponible para discover.
 - Si RAWG está deshabilitado no hay fallback: la búsqueda devuelve solo catálogo local.
 
+## Showcase de juegos
+
+- `GET /games/showcase` es público (sin token, `publicLimiter`) y solo expone datos de catálogo: `id`, `code`, `title`, `backgroundUrl`, y `score`, `hours` y `ratio` del juego destacado.
+- Devuelve hasta 21 juegos activos, no DLC y con `backgroundUrl`, ordenados por `GamePopularities.score` desc, `title` asc e `id` asc.
+- `featured` es el juego del set con mejor ratio usando las fuentes canónicas de `sort_by=ratio` (score de la fuente con menor `priority` normalizado a 0–5; duración `completr` → `hltb` → `rawg`). Es `null` si ninguno tiene score y duración.
+- La respuesta se cachea en memoria 30 minutos por proceso. Si el refresco falla y hay un resultado previo, se sirve ese.
+
 ## Providers externos
 
 - Un provider externo expone `isEnabled` en su clase base.
