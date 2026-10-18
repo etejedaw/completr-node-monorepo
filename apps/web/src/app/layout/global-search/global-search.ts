@@ -18,7 +18,7 @@ import {
 	GlobalSearchService,
 	type SearchResults
 } from "../../core/services/global-search";
-import { isPremiumRole } from "../../core/utils/premium";
+import { avatarRing } from "../../core/utils/premium";
 import { GamePoster } from "../../shared/components/game-poster/game-poster";
 import { UiAvatar } from "../../shared/ui";
 
@@ -44,7 +44,7 @@ export class GlobalSearch {
 	private readonly input = viewChild<ElementRef<HTMLInputElement>>("input");
 	private readonly queries = new Subject<string>();
 
-	protected readonly isPremiumRole = isPremiumRole;
+	protected readonly avatarRing = avatarRing;
 	protected readonly query = signal("");
 	protected readonly results = signal<SearchResults | null>(null);
 	protected readonly searching = signal(false);

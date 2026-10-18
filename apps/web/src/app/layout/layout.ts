@@ -22,6 +22,7 @@ import { filter } from "rxjs";
 
 import { AuthService } from "../core/services/auth";
 import { OnboardingService } from "../core/services/onboarding";
+import { avatarRing } from "../core/utils/premium";
 import { roleBadge } from "../core/utils/role-badge";
 import { AppLogo } from "../shared/components/app-logo/app-logo";
 import { AttributionFooter } from "../shared/components/attribution-footer/attribution-footer";
@@ -165,6 +166,9 @@ export class Layout implements OnInit {
 	}
 
 	protected readonly roleBadge = computed(() => roleBadge(this.user()?.role));
+	protected readonly avatarRing = computed(() =>
+		avatarRing(this.user()?.role)
+	);
 
 	ngOnInit() {
 		if (!this.user()) {

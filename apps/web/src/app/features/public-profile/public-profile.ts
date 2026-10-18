@@ -12,7 +12,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { type QueueEntry } from "../../core/models/queue.model";
 import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
-import { isPremiumRole } from "../../core/utils/premium";
+import { avatarRing } from "../../core/utils/premium";
 import { GameCoverCard } from "../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
 import { BETA_SIGNUP_URL } from "../../shared/constants/beta-signup";
@@ -154,7 +154,7 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly comparisonLoading = signal(false);
 	protected readonly comparisonPrivate = signal(false);
 	protected readonly comparisonDimensions = COMPARISON_OPTIONS;
-	protected readonly isPremiumRole = isPremiumRole;
+	protected readonly avatarRing = avatarRing;
 	protected readonly comparisonGames = computed(
 		() => this.comparison()?.inCommon ?? []
 	);

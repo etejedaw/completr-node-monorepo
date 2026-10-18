@@ -14,7 +14,7 @@
 			<ui-avatar
 				[src]="draft().avatarUrl || null"
 				[name]="account.username"
-				[premium]="isPremium()"
+				[ring]="avatarRing()"
 				class="w-20 h-20 sm:w-24 sm:h-24 text-3xl ring-4 ring-surface shadow-xl shadow-black/50"
 			/>
 			<div class="min-w-0 flex-1 sm:pb-1">

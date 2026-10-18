@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { isPremiumRole } from "../../../core/utils/premium";
+import { type AvatarRing, avatarRing } from "../../../core/utils/premium";
 import { ActivityDeleteButton } from "../../../shared/components/activity-delete-button/activity-delete-button";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { UiAvatar } from "../../../shared/ui";
@@ -22,7 +22,7 @@ interface ActivityActor {
 	username: string;
 	displayName: string;
 	avatarUrl: string | null | undefined;
-	isPremium: boolean;
+	avatarRing: AvatarRing;
 }
 
 const TIME_OF_DAY_FORMAT = new Intl.DateTimeFormat("en", {
@@ -51,7 +51,7 @@ export class FeedActivityItem {
 				username: target.username ?? "",
 				displayName: target.name,
 				avatarUrl: target.avatarUrl,
-				isPremium: isPremiumRole(target.role)
+				avatarRing: avatarRing(target.role)
 			};
 		}
 		if (!activity.user) return null;
@@ -59,7 +59,7 @@ export class FeedActivityItem {
 			username: activity.user.username,
 			displayName: activity.user.name || activity.user.username,
 			avatarUrl: activity.user.avatarUrl,
-			isPremium: isPremiumRole(activity.user.role)
+			avatarRing: avatarRing(activity.user.role)
 		};
 	});
 

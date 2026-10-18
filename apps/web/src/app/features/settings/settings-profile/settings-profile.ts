@@ -10,6 +10,7 @@ import { form, FormField, maxLength } from "@angular/forms/signals";
 
 import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
+import { avatarRing } from "../../../core/utils/premium";
 import { UiAvatar, UiInput, UiTextarea } from "../../../shared/ui";
 import { ProfileService, type UpdateProfileDto } from "../../profile/profile";
 import { SettingsPanel } from "../components/settings-panel";
@@ -49,7 +50,9 @@ export class SettingsProfile implements OnInit {
 	private readonly toast = inject(ToastService);
 
 	protected readonly user = this.authService.user;
-	protected readonly isPremium = this.authService.isPremium;
+	protected readonly avatarRing = computed(() =>
+		avatarRing(this.authService.user()?.role)
+	);
 	protected readonly nameMaxLength = NAME_MAX_LENGTH;
 	protected readonly bioMaxLength = BIO_MAX_LENGTH;
 	protected readonly avatars = Array.from(

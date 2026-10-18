@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { isPremiumRole } from "../../../core/utils/premium";
+import { avatarRing } from "../../../core/utils/premium";
 import { elevatedRoleBadge } from "../../../core/utils/role-badge";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import { UiAvatar, UiButton } from "../../../shared/ui";
@@ -45,9 +45,15 @@ export class ProfileHero {
 	protected readonly displayName = computed(
 		() => this.user().name || this.user().username
 	);
-	protected readonly isPremium = computed(() =>
-		isPremiumRole(this.user().role)
+	protected readonly avatarRing = computed(() =>
+		avatarRing(this.user().role)
 	);
+	protected readonly avatarHaloClass = computed(() => {
+		const ring = this.avatarRing();
+		if (ring === "admin") return "from-admin via-admin/40";
+		if (ring === "premium") return "from-premium via-premium/40";
+		return "from-brand via-brand/40";
+	});
 	protected readonly roleBadge = computed(() =>
 		elevatedRoleBadge(this.user().role)
 	);

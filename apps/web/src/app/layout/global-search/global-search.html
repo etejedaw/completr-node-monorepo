@@ -129,7 +129,7 @@
 				<ui-avatar
 					[src]="user.avatarUrl"
 					[name]="user.username"
-					[premium]="isPremiumRole(user.role)"
+					[ring]="avatarRing(user.role)"
 					class="w-8 h-8 text-xs"
 				/>
 				<span class="flex-1 min-w-0 flex flex-col">

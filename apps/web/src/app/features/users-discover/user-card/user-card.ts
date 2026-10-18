@@ -8,7 +8,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type UserResult } from "../../../core/services/users";
-import { isPremiumRole } from "../../../core/utils/premium";
+import { avatarRing } from "../../../core/utils/premium";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import { UiAvatar, UiButton } from "../../../shared/ui";
 
@@ -29,8 +29,8 @@ export class UserCard {
 
 	readonly followToggled = output<void>();
 
-	protected readonly isPremium = computed(() =>
-		isPremiumRole(this.user().role)
+	protected readonly avatarRing = computed(() =>
+		avatarRing(this.user().role)
 	);
 	protected readonly displayName = computed(
 		() => this.user().name || this.user().username
