@@ -2,6 +2,10 @@ import z from "zod";
 
 import { BACKLOG_STATUSES } from "../backlog.model";
 import { isStepOfHalf } from "../utils/is-step-of-half.util";
+import {
+	BacklogDurationSchema,
+	BacklogScoreSchema
+} from "./backlog-reference.schema";
 
 export const RegisterBacklogSchema = z
 	.object({
@@ -11,8 +15,8 @@ export const RegisterBacklogSchema = z
 		startedAt: z.iso.date().optional(),
 		finishedAt: z.iso.date().optional(),
 		realDuration: z.number().positive().optional(),
-		score: z.number().positive().max(5),
-		duration: z.number().positive(),
+		score: BacklogScoreSchema,
+		duration: BacklogDurationSchema,
 		userRating: z
 			.number()
 			.min(0.5)
