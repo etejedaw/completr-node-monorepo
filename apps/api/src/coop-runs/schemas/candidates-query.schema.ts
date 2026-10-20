@@ -6,3 +6,5 @@ export const CandidatesQuerySchema = z
 	})
 	.strict()
 	.readonly();
+
+export type CandidatesQuery = z.infer<typeof CandidatesQuerySchema>;

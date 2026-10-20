@@ -6,3 +6,5 @@ export const TagNameParamsSchema = z
 	})
 	.strict()
 	.readonly();
+
+export type TagNameParams = z.infer<typeof TagNameParamsSchema>;

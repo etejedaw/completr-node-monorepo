@@ -1,16 +1,12 @@
 import { type Request, type Response } from "express";
-import type z from "zod";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type CreateTagDto } from "./dtos/create-tag.dto";
 import { type ReplaceTagsDto } from "./dtos/replace-tags.dto";
 import { type UpdateTagDto } from "./dtos/update-tag.dto";
 import * as moodTagsService from "./mood-tags.service";
-import { type GameIdParamsSchema } from "./schemas/game-id-params.schema";
-import { type TagNameParamsSchema } from "./schemas/tag-name-params.schema";
-
-type GameIdParams = z.infer<typeof GameIdParamsSchema>;
-type TagNameParams = z.infer<typeof TagNameParamsSchema>;
+import { type GameIdParams } from "./schemas/game-id-params.schema";
+import { type TagNameParams } from "./schemas/tag-name-params.schema";
 
 export async function putGameTags(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;

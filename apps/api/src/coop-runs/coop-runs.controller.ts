@@ -1,5 +1,4 @@
 import { type Request, type Response } from "express";
-import type z from "zod";
 
 import * as activityService from "../activity/activity.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -7,13 +6,9 @@ import * as gamesService from "../games/games.service";
 import * as coopService from "./coop-runs.service";
 import { type AddMemberDto } from "./dtos/add-member.dto";
 import { type SyncDto } from "./dtos/sync.dto";
-import { type BacklogIdParamsSchema } from "./schemas/backlog-id-params.schema";
-import { type CandidatesQuerySchema } from "./schemas/candidates-query.schema";
-import { type MemberParamsSchema } from "./schemas/member-params.schema";
-
-type BacklogIdParams = z.infer<typeof BacklogIdParamsSchema>;
-type MemberParams = z.infer<typeof MemberParamsSchema>;
-type CandidatesQuery = z.infer<typeof CandidatesQuerySchema>;
+import { type BacklogIdParams } from "./schemas/backlog-id-params.schema";
+import { type CandidatesQuery } from "./schemas/candidates-query.schema";
+import { type MemberParams } from "./schemas/member-params.schema";
 
 export async function postMember(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;

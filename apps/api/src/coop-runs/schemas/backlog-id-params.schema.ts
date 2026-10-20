@@ -6,3 +6,5 @@ export const BacklogIdParamsSchema = z
 	})
 	.strict()
 	.readonly();
+
+export type BacklogIdParams = z.infer<typeof BacklogIdParamsSchema>;

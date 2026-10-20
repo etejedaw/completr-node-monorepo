@@ -7,3 +7,5 @@ export const MemberParamsSchema = z
 	})
 	.strict()
 	.readonly();
+
+export type MemberParams = z.infer<typeof MemberParamsSchema>;

@@ -7,3 +7,5 @@ export const NoteIdParamsSchema = z
 	})
 	.strict()
 	.readonly();
+
+export type NoteIdParams = z.infer<typeof NoteIdParamsSchema>;

@@ -1,15 +1,11 @@
 import { type Request, type Response } from "express";
-import type z from "zod";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { backlogProgressSerializer } from "./backlog-progress.serializer";
 import * as backlogProgressService from "./backlog-progress.service";
 import { type AddProgressDto } from "./dtos/add-progress.dto";
-import { type BacklogIdParamsSchema } from "./schemas/backlog-id-params.schema";
-import { type NoteIdParamsSchema } from "./schemas/note-id-params.schema";
-
-type BacklogIdParams = z.infer<typeof BacklogIdParamsSchema>;
-type NoteIdParams = z.infer<typeof NoteIdParamsSchema>;
+import { type BacklogIdParams } from "./schemas/backlog-id-params.schema";
+import { type NoteIdParams } from "./schemas/note-id-params.schema";
 
 export async function postProgress(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;

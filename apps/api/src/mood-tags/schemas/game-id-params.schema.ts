@@ -6,3 +6,5 @@ export const GameIdParamsSchema = z
 	})
 	.strict()
 	.readonly();
+
+export type GameIdParams = z.infer<typeof GameIdParamsSchema>;
