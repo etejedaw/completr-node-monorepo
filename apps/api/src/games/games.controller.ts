@@ -23,7 +23,9 @@ import { type GameCodeParam } from "./schemas/game-code-params.schema";
 import { type GameIdParam } from "./schemas/game-id-params.schema";
 import { type GameSearchQuery } from "./schemas/game-search-query.schema";
 import { type GamesQuery } from "./schemas/games-query.schema";
+import { type MarkCompilationDto } from "./schemas/mark-compilation.schema";
 import { type RawgIdParam } from "./schemas/rawg-id-params.schema";
+import { type SplitGameDto } from "./schemas/split-game.schema";
 import * as gamesProfileService from "./services/games-profile.service";
 import { mapGamesQueryToOptions } from "./utils/games-query.adapter";
 
@@ -191,11 +193,7 @@ export async function putCompilationItems(
 	response: Response
 ) {
 	const params = request.locals.params as GameIdParam;
-	const body = request.locals.body as {
-		items: (
-			{ mode: "link"; gameId: string } | { mode: "create"; title: string }
-		)[];
-	};
+	const body = request.locals.body as MarkCompilationDto;
 	const user = request.locals.user as RequestUser;
 
 	const items = await gameService.setCompilationItems(params.id, body.items);
@@ -217,9 +215,7 @@ export async function deleteCompilation(request: Request, response: Response) {
 
 export async function postSplitGame(request: Request, response: Response) {
 	const params = request.locals.params as GameIdParam;
-	const body = request.locals.body as {
-		variants: { title: string; variant: string }[];
-	};
+	const body = request.locals.body as SplitGameDto;
 	const user = request.locals.user as RequestUser;
 
 	const games = await gameService.splitGame(params.id, body.variants);

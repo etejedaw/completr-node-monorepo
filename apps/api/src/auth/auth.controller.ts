@@ -1,12 +1,14 @@
 import { type Request, type Response } from "express";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { userMeSerializer } from "../users";
 import * as authService from "./auth.service";
 import { type LoginDto, type RegisterDto } from "./dtos";
 import * as authDomainError from "./errors/auth.domains-error";
 import { type ChangePassword } from "./schemas";
 import { type RefreshTokenBody } from "./schemas/refresh-token.schema";
+import { type SessionIdParams } from "./schemas/session-id-params.schema";
 import {
 	clearRefreshCookie,
 	REFRESH_COOKIE_NAME,
@@ -108,7 +110,7 @@ export async function patchChangePassword(
 
 export async function getSessions(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
-	const query = request.locals.query as { limit?: number; offset?: number };
+	const query = request.locals.query as PaginationQuery;
 
 	const { sessions, total } = await authService.listSessions(user.id, {
 		limit: query.limit,
@@ -131,7 +133,7 @@ export async function getSessions(request: Request, response: Response) {
 
 export async function deleteSession(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
-	const { sessionId } = request.locals.params as { sessionId: string };
+	const { sessionId } = request.locals.params as SessionIdParams;
 
 	await authService.revokeSession(sessionId, user.id);
 
@@ -143,7 +145,7 @@ export async function deleteOtherSessions(
 	response: Response
 ) {
 	const user = request.locals.user as RequestUser;
-	const { sessionId } = request.locals.params as { sessionId: string };
+	const { sessionId } = request.locals.params as SessionIdParams;
 
 	const revoked = await authService.revokeOtherSessions(user.id, sessionId);
 

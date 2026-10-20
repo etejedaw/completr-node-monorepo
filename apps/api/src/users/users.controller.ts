@@ -16,6 +16,7 @@ import {
 } from "./schemas";
 import { type UserDiscoverQuery } from "./schemas/user-discover-query.schema";
 import { type UserSearchQuery } from "./schemas/user-search-query.schema";
+import { type UsernameListParams } from "./schemas/username-list-params.schema";
 import {
 	enrichedUserListSerializer,
 	fullProfileSerializer,
@@ -157,7 +158,7 @@ export async function getUserFollowingLists(
 }
 
 export async function getUserListDetail(request: Request, response: Response) {
-	const params = request.locals.params as UsernameParam & { listId: string };
+	const params = request.locals.params as UsernameListParams;
 	const currentUser = request.locals.user as RequestUser | undefined;
 
 	const bundle = await usersProfileService.getListDetailForUsername(

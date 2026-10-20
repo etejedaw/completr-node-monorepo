@@ -1,14 +1,10 @@
 import { type Request, type Response } from "express";
 
 import * as auditService from "./audit.service";
+import { type AuditQuery } from "./audit-query.schema";
 
 export async function getAuditLog(request: Request, response: Response) {
-	const query = (request.locals.query ?? {}) as {
-		limit?: number;
-		offset?: number;
-		action?: string;
-		targetType?: string;
-	};
+	const query = request.locals.query as AuditQuery;
 
 	const { rows, count, gameById, userById } = await auditService.findAll(
 		query.limit ?? 50,

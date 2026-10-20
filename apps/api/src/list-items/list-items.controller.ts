@@ -5,6 +5,8 @@ import { type ListIdParams } from "../lists/schemas/list-id-params.schema";
 import { type ReplaceListItemsDto } from "./dtos/replace-list-items.dto";
 import { listItemSerializer } from "./list-items.serializer";
 import * as listItemsService from "./list-items.service";
+import { type AddListItemBody } from "./schemas/add-list-item.schema";
+import { type ListItemGameParams } from "./schemas/list-item-game-params.schema";
 
 export async function putListItems(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;
@@ -24,7 +26,7 @@ export async function putListItems(request: Request, response: Response) {
 
 export async function postListItem(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;
-	const body = request.locals.body as { gameId: string };
+	const body = request.locals.body as AddListItemBody;
 	const user = request.locals.user as RequestUser;
 
 	const item = await listItemsService.addItem(
@@ -39,7 +41,7 @@ export async function postListItem(request: Request, response: Response) {
 }
 
 export async function deleteListItem(request: Request, response: Response) {
-	const params = request.locals.params as ListIdParams & { gameId: string };
+	const params = request.locals.params as ListItemGameParams;
 	const user = request.locals.user as RequestUser;
 
 	await listItemsService.removeItem(params.listId, user, params.gameId);
