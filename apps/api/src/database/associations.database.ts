@@ -3,6 +3,7 @@ import { ActivityGame } from "../activity/targets/activity-game.model";
 import { ActivityList } from "../activity/targets/activity-list.model";
 import { ActivityUser } from "../activity/targets/activity-user.model";
 import { AuditLog } from "../audit/audit.model";
+import { PasswordResetToken } from "../auth/password-reset-token.model";
 import { RefreshToken } from "../auth/refresh-token.model";
 import { Backlog } from "../backlog/backlog.model";
 import { BacklogProgress } from "../backlog-progress/backlog-progress.model";
@@ -58,6 +59,7 @@ export function setupAssociations() {
 	gameExternalIds();
 	scoreSources();
 	refreshTokens();
+	passwordResetTokens();
 	gameReports();
 	userFollowers();
 	userFollowRequests();
@@ -279,6 +281,14 @@ function gameReports() {
 function refreshTokens() {
 	User.hasMany(RefreshToken, { foreignKey: "userId", onDelete: "CASCADE" });
 	RefreshToken.belongsTo(User, { foreignKey: "userId" });
+}
+
+function passwordResetTokens() {
+	User.hasMany(PasswordResetToken, {
+		foreignKey: "userId",
+		onDelete: "CASCADE"
+	});
+	PasswordResetToken.belongsTo(User, { foreignKey: "userId" });
 }
 
 function userFollowers() {
