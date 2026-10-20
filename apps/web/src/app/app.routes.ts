@@ -8,6 +8,7 @@ import { guestGuard } from "./core/guards/guest.guard";
 import { guestMatch } from "./core/guards/guest.match";
 import { moderatorGuard } from "./core/guards/moderator.guard";
 import { selfProfileRedirect } from "./core/guards/self-profile-redirect.guard";
+import { tokenQueryGuard } from "./core/guards/token-query.guard";
 import { AuthService } from "./core/services/auth";
 
 const privacyRoute = {
@@ -105,6 +106,22 @@ export const routes: Routes = [
 		canActivate: [guestGuard],
 		loadComponent: () =>
 			import("./features/auth/login/login").then(m => m.Login)
+	},
+	{
+		path: "forgot-password",
+		canActivate: [guestGuard],
+		loadComponent: () =>
+			import("./features/auth/forgot-password/forgot-password").then(
+				m => m.ForgotPassword
+			)
+	},
+	{
+		path: "reset-password",
+		canActivate: [tokenQueryGuard],
+		loadComponent: () =>
+			import("./features/auth/reset-password/reset-password").then(
+				m => m.ResetPassword
+			)
 	},
 	{
 		path: "register",

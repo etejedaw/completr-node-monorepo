@@ -10,7 +10,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { AuthService } from "../../../core/services/auth";
 import { BETA_SIGNUP_URL } from "../../../shared/constants/beta-signup";
 import { UiAlert, UiButton, UiIconButton, UiInput } from "../../../shared/ui";
-import { AuthShowcase } from "../auth-showcase/auth-showcase";
+import { AuthPage } from "../auth-page/auth-page";
 
 @Component({
 	selector: "app-login",
@@ -21,7 +21,7 @@ import { AuthShowcase } from "../auth-showcase/auth-showcase";
 		UiIconButton,
 		UiInput,
 		RouterLink,
-		AuthShowcase
+		AuthPage
 	],
 	templateUrl: "./login.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

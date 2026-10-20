@@ -95,6 +95,20 @@ export class AuthService {
 		return this.postAuth("/auth/register", data);
 	}
 
+	requestPasswordReset(email: string) {
+		return this.http.post<void>(
+			`${environment.apiUrl}/auth/forgot-password`,
+			{ email }
+		);
+	}
+
+	resetPassword(token: string, password: string) {
+		return this.http.post<void>(
+			`${environment.apiUrl}/auth/reset-password`,
+			{ token, password }
+		);
+	}
+
 	refresh(): Observable<AuthResponse> {
 		return this.postAuth("/auth/refresh", {});
 	}
