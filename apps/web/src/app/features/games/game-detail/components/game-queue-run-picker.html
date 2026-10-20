@@ -1,0 +1,59 @@
+<ui-dialog
+	eyebrow="Up Next"
+	heading="Pick a run for Up Next"
+	size="sm"
+	[subheading]="gameTitle"
+	(closed)="close()"
+>
+	<ul class="list-none p-0 m-0 flex flex-col gap-2">
+		@for (item of runs; track item.run.id) {
+		<li>
+			<button
+				type="button"
+				class="w-full min-h-[44px] bg-input-bg border border-line rounded-card p-3 text-left cursor-pointer transition hover:border-brand focus-visible:outline-2 focus-visible:outline-brand"
+				(click)="choose(item.run)"
+			>
+				<span class="flex items-center gap-2 mb-1">
+					<span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
+						[class]="statusClass(item.run.status)"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>{{ statusIcon(item.run.status) }}</span
+						>
+						{{ statusLabel(item.run.status) }}
+					</span>
+					<span class="text-xs font-medium text-fg-secondary"
+						>{{ item.run.platform.abbreviation }}</span
+					>
+					<span
+						class="ml-auto text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-fg-muted"
+						>Run #{{ item.number }}</span
+					>
+				</span>
+				<span class="block text-[0.6875rem] text-fg-muted tabular-nums">
+					@if (item.run.startedAt) { Started {{ item.run.startedAt |
+					date: "MMM d, y" }} } @else { No start date yet }
+				</span>
+			</button>
+		</li>
+		}
+		<li>
+			<button
+				type="button"
+				class="w-full min-h-[44px] flex items-center gap-2 bg-transparent border border-dashed border-line rounded-card p-3 text-left text-sm font-medium text-brand cursor-pointer transition hover:border-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:outline-brand"
+				(click)="chooseNewRun()"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>add</span
+				>
+				New run
+			</button>
+		</li>
+	</ul>
+	<ng-container dialogFooter>
+		<button uiButton variant="ghost" type="button" (click)="close()">
+			Cancel
+		</button>
+	</ng-container>
+</ui-dialog>
