@@ -12,6 +12,7 @@ import { type BacklogEntry, type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
+import { ToastService } from "../../../core/services/toast";
 import { ExpandableText } from "../../../shared/components/expandable-text/expandable-text";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { InView } from "../../../shared/directives/in-view";
@@ -63,11 +64,17 @@ import { GameFeaturedLists } from "./components/game-featured-lists";
 import { type GameFact, GameHero } from "./components/game-hero";
 import { GameLibraryActions } from "./components/game-library-actions";
 import { GamePosterGrid } from "./components/game-poster-grid";
+import {
+	GameQueueRunPicker,
+	type GameQueueRunPickerData,
+	type GameQueueRunPickerResult
+} from "./components/game-queue-run-picker";
 import { GameReviews } from "./components/game-reviews";
 import { GameRuns } from "./components/game-runs";
 import { GameScoreCard } from "./components/game-score-card";
 import { GameSection } from "./components/game-section";
 import { GameSocialActivity } from "./components/game-social-activity";
+import { type QueueIntent, resolveQueueIntent } from "./queue-intent";
 
 const TIME_SOURCE_LABELS: Record<string, string> = {
 	completr: "Completr",
@@ -130,6 +137,7 @@ export class GameDetail implements OnInit {
 	private readonly gameShelfService = inject(GameShelfService);
 	private readonly moodTagsService = inject(MoodTagsService);
 	private readonly dialogs = inject(DialogService);
+	private readonly toast = inject(ToastService);
 
 	protected readonly game = signal<Game | null>(null);
 	protected readonly isLoggedIn = this.authService.isLoggedIn;
@@ -231,9 +239,12 @@ export class GameDetail implements OnInit {
 			.map(item => item.game)
 			.filter(game => game !== null)
 	);
-	protected readonly isInQueue = signal(false);
 	protected readonly isInShelf = signal(false);
-	protected readonly addedToQueue = signal(false);
+	protected readonly queuedRunIds = signal<ReadonlySet<string>>(new Set());
+	protected readonly addedToQueue = computed(
+		() => this.queuedRunIds().size > 0
+	);
+	protected readonly addingToQueue = signal(false);
 	protected readonly isModerator = computed(() => {
 		const role = this.authService.user()?.role;
 		return role === "moderator" || role === "admin";
@@ -320,17 +331,24 @@ export class GameDetail implements OnInit {
 		this.backlogService.getMyBacklog({ game_id: gameId }).subscribe({
 			next: res => this.myRuns.set(res.data.backlog)
 		});
-		this.queueService.getMyQueue().subscribe({
-			next: queue => {
-				const found = queue.some(w => w.backlog.game.id === gameId);
-				this.isInQueue.set(found);
-				this.addedToQueue.set(found);
-			}
-		});
+		this.loadQueuedRunIds(gameId);
 		this.gameShelfService.getMyShelf({ limit: 100 }).subscribe({
 			next: res =>
 				this.isInShelf.set(
 					res.data.gameShelf.some(s => s.game.id === gameId)
+				)
+		});
+	}
+
+	private loadQueuedRunIds(gameId: string) {
+		this.queueService.getMyQueue().subscribe({
+			next: queue =>
+				this.queuedRunIds.set(
+					new Set(
+						queue
+							.filter(entry => entry.backlog.game.id === gameId)
+							.map(entry => entry.backlog.id)
+					)
 				)
 		});
 	}
@@ -409,8 +427,47 @@ export class GameDetail implements OnInit {
 	}
 
 	addToQueue() {
-		if (this.addedToQueue()) return;
-		this.openBacklog(true);
+		if (this.addedToQueue() || this.addingToQueue()) return;
+		const intent = resolveQueueIntent(this.myRuns(), this.queuedRunIds());
+		this.followQueueIntent(intent);
+	}
+
+	private followQueueIntent(intent: QueueIntent) {
+		if (intent.kind === "direct") this.addRunToQueue(intent.run);
+		else if (intent.kind === "pick") this.pickRunForQueue(intent);
+		else this.openBacklog(true);
+	}
+
+	private pickRunForQueue(intent: Extract<QueueIntent, { kind: "pick" }>) {
+		const g = this.game();
+		if (!g) return;
+		const ref = this.dialogs.open<
+			GameQueueRunPickerData,
+			GameQueueRunPickerResult
+		>(GameQueueRunPicker, {
+			data: { gameTitle: g.title, runs: intent.runs }
+		});
+		ref.afterClosed.subscribe(result => {
+			if (result === "newRun") this.openBacklog(true);
+			else if (result) this.addRunToQueue(result);
+		});
+	}
+
+	private addRunToQueue(run: BacklogEntry) {
+		this.addingToQueue.set(true);
+		this.queueService.addFromBacklog(run.id).subscribe({
+			next: () => {
+				this.queuedRunIds.update(ids => new Set(ids).add(run.id));
+				this.addingToQueue.set(false);
+				this.toast.success(
+					`Your ${run.platform.abbreviation} run is in Up Next.`
+				);
+			},
+			error: () => {
+				this.addingToQueue.set(false);
+				this.loadQueuedRunIds(run.game.id);
+			}
+		});
 	}
 
 	deactivateGame() {
