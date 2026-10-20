@@ -13,5 +13,3 @@ export const SplitGameSchema = z
 	})
 	.strict()
 	.readonly();
-
-export type SplitGameDto = z.infer<typeof SplitGameSchema>;

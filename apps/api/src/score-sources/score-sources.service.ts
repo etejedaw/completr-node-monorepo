@@ -1,7 +1,7 @@
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import * as scoreSourcesServiceError from "./errors/score-sources.service-error";
+import { type RegisterScoreSourceDto } from "./register-score-source.dto";
 import { ScoreSource } from "./score-source.model";
-import { type RegisterScoreSourceDto } from "./score-sources.schema";
 
 export async function findAll() {
 	return ScoreSource.findAll({

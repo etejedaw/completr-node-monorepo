@@ -12,5 +12,3 @@ export const ReplaceFavoritesSchema = z
 	})
 	.strict()
 	.readonly();
-
-export type ReplaceFavoritesBody = z.infer<typeof ReplaceFavoritesSchema>;

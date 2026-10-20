@@ -7,15 +7,15 @@ import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
+import { type AddQueueDto } from "./dtos/add-queue.dto";
+import { type ReplaceQueueDto } from "./dtos/replace-queue.dto";
 import * as queueDomainError from "./errors/queue.domain-error";
 import { queueSerializer } from "./queue.serializer";
 import * as queueService from "./queue.service";
-import { type AddQueueBody } from "./schemas/add-queue-body.schema";
 import { type AddQueueQuery } from "./schemas/add-queue-query.schema";
-import { type ReplaceQueueBody } from "./schemas/replace-queue.schema";
 
 export async function postQueue(request: Request, response: Response) {
-	const body = request.locals.body as AddQueueBody;
+	const body = request.locals.body as AddQueueDto;
 	const query = request.locals.query as AddQueueQuery;
 	const user = request.locals.user as RequestUser;
 
@@ -39,7 +39,7 @@ export async function postQueue(request: Request, response: Response) {
 }
 
 export async function putQueue(request: Request, response: Response) {
-	const body = request.locals.body as ReplaceQueueBody;
+	const body = request.locals.body as ReplaceQueueDto;
 	const user = request.locals.user as RequestUser;
 
 	const entries = await queueService.replaceQueue(user, body.backlogIds);

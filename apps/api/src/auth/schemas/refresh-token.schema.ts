@@ -6,5 +6,3 @@ export const RefreshTokenSchema = z
 	})
 	.optional()
 	.default({});
-
-export type RefreshTokenBody = z.infer<typeof RefreshTokenSchema>;

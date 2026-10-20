@@ -1,6 +1,6 @@
 import { type Request, type Response } from "express";
 
-import { type RegisterScoreSourceDto } from "./score-sources.schema";
+import { type RegisterScoreSourceDto } from "./register-score-source.dto";
 import * as scoreSourcesService from "./score-sources.service";
 
 export async function getScoreSources(_request: Request, response: Response) {

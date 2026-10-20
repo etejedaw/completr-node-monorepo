@@ -4,10 +4,13 @@ import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { userMeSerializer } from "../users";
 import * as authService from "./auth.service";
-import { type LoginDto, type RegisterDto } from "./dtos";
+import {
+	type ChangePasswordDto,
+	type LoginDto,
+	type RefreshTokenDto,
+	type RegisterDto
+} from "./dtos";
 import * as authDomainError from "./errors/auth.domains-error";
-import { type ChangePassword } from "./schemas";
-import { type RefreshTokenBody } from "./schemas/refresh-token.schema";
 import { type SessionIdParams } from "./schemas/session-id-params.schema";
 import {
 	clearRefreshCookie,
@@ -22,7 +25,7 @@ function getDeviceInfo(request: Request): string {
 function getRefreshToken(request: Request): string {
 	const fromCookie = request.cookies?.[REFRESH_COOKIE_NAME] as
 		string | undefined;
-	const fromBody = (request.locals.body as RefreshTokenBody)?.refresh_token;
+	const fromBody = (request.locals.body as RefreshTokenDto)?.refresh_token;
 	const token = fromCookie ?? fromBody;
 	if (!token) throw authDomainError.invalidRefreshToken();
 	return token;
@@ -85,7 +88,7 @@ export async function postRefresh(request: Request, response: Response) {
 export async function postLogout(request: Request, response: Response) {
 	const fromCookie = request.cookies?.[REFRESH_COOKIE_NAME] as
 		string | undefined;
-	const fromBody = (request.locals.body as RefreshTokenBody)?.refresh_token;
+	const fromBody = (request.locals.body as RefreshTokenDto)?.refresh_token;
 	const refreshToken = fromCookie ?? fromBody;
 
 	if (refreshToken) await authService.logout(refreshToken);
@@ -99,7 +102,7 @@ export async function patchChangePassword(
 	request: Request,
 	response: Response
 ) {
-	const changePassword = request.locals.body as ChangePassword;
+	const changePassword = request.locals.body as ChangePasswordDto;
 
 	const user = request.locals.user as RequestUser;
 

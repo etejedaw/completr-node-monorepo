@@ -25,5 +25,3 @@ export const MarkCompilationSchema = z
 	})
 	.strict()
 	.readonly();
-
-export type MarkCompilationDto = z.infer<typeof MarkCompilationSchema>;

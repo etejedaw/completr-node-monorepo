@@ -20,5 +20,3 @@ export const RegisterScoreSourceSchema = z
 	})
 	.strict()
 	.readonly();
-
-export type RegisterScoreSourceDto = z.infer<typeof RegisterScoreSourceSchema>;

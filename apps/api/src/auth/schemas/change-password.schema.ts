@@ -8,5 +8,3 @@ export const ChangePasswordSchema = z
 	})
 	.strict()
 	.readonly();
-
-export type ChangePassword = z.infer<typeof ChangePasswordSchema>;

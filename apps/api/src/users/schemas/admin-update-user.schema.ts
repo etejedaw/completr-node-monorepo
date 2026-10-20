@@ -12,5 +12,3 @@ export const AdminUpdateUserSchema = z
 		isActive: z.boolean().optional()
 	})
 	.readonly();
-
-export type AdminUpdateUserDto = z.infer<typeof AdminUpdateUserSchema>;

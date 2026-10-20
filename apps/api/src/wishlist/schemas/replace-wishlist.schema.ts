@@ -12,5 +12,3 @@ export const ReplaceWishlistSchema = z
 	})
 	.strict()
 	.readonly();
-
-export type ReplaceWishlistBody = z.infer<typeof ReplaceWishlistSchema>;

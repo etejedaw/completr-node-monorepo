@@ -7,5 +7,3 @@ export const AddQueueBodySchema = z
 	})
 	.strict()
 	.readonly();
-
-export type AddQueueBody = z.infer<typeof AddQueueBodySchema>;

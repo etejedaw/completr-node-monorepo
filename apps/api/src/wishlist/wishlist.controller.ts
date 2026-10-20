@@ -7,8 +7,8 @@ import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
-import { type AddWishlistBody } from "./schemas/add-wishlist.schema";
-import { type ReplaceWishlistBody } from "./schemas/replace-wishlist.schema";
+import { type AddWishlistDto } from "./dtos/add-wishlist.dto";
+import { type ReplaceWishlistDto } from "./dtos/replace-wishlist.dto";
 import { type WishlistGameParams } from "./schemas/wishlist-game-params.schema";
 import { wishlistSerializer } from "./wishlist.serializer";
 import * as wishlistService from "./wishlist.service";
@@ -26,7 +26,7 @@ export async function getMeWishlistGameIds(
 }
 
 export async function putWishlist(request: Request, response: Response) {
-	const body = request.locals.body as ReplaceWishlistBody;
+	const body = request.locals.body as ReplaceWishlistDto;
 	const user = request.locals.user as RequestUser;
 
 	const currentIds = new Set(
@@ -56,7 +56,7 @@ export async function putWishlist(request: Request, response: Response) {
 }
 
 export async function postWishlist(request: Request, response: Response) {
-	const body = request.locals.body as AddWishlistBody;
+	const body = request.locals.body as AddWishlistDto;
 	const user = request.locals.user as RequestUser;
 
 	const entry = await wishlistService.addToWishlist(

@@ -9,5 +9,3 @@ export const CreateReviewSchema = z
 		message: "At least content or rating is required"
 	})
 	.readonly();
-
-export type CreateReviewDto = z.infer<typeof CreateReviewSchema>;

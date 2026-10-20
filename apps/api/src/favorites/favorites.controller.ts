@@ -8,12 +8,12 @@ import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
+import { type ReplaceFavoritesDto } from "./dtos/replace-favorites.dto";
 import { favoriteSerializer } from "./favorites.serializer";
 import * as favoritesService from "./favorites.service";
-import { type ReplaceFavoritesBody } from "./schemas/replace-favorites.schema";
 
 export async function putFavorites(request: Request, response: Response) {
-	const body = request.locals.body as ReplaceFavoritesBody;
+	const body = request.locals.body as ReplaceFavoritesDto;
 	const user = request.locals.user as RequestUser;
 
 	const currentIds = new Set(

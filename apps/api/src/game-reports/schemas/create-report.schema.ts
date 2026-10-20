@@ -9,5 +9,3 @@ export const CreateReportSchema = z
 	})
 	.strict()
 	.readonly();
-
-export type CreateReportBody = z.infer<typeof CreateReportSchema>;

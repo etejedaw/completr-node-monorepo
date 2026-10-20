@@ -4,11 +4,11 @@ import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type GameIdParam } from "../games/schemas/game-id-params.schema";
+import { type CreateReviewDto } from "./dtos/create-review.dto";
+import { type UpdateReviewDto } from "./dtos/update-review.dto";
 import * as reviewsServiceError from "./errors/reviews.service-error";
 import { reviewSerializer } from "./reviews.serializer";
 import * as reviewsService from "./reviews.service";
-import { type CreateReviewDto } from "./schemas/create-review.schema";
-import { type UpdateReviewDto } from "./schemas/update-review.schema";
 
 export async function postReview(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;

@@ -5,7 +5,9 @@ import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as franchiseService from "../franchises/franchises.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
+import { type MarkCompilationDto } from "./dtos/mark-compilation.dto";
 import { type RegisterGameDto } from "./dtos/register-game.dto";
+import { type SplitGameDto } from "./dtos/split-game.dto";
 import { type UpdateGameDto } from "./dtos/update-game.dto";
 import * as gameDomainError from "./errors/games.domain-error";
 import {
@@ -23,9 +25,7 @@ import { type GameCodeParam } from "./schemas/game-code-params.schema";
 import { type GameIdParam } from "./schemas/game-id-params.schema";
 import { type GameSearchQuery } from "./schemas/game-search-query.schema";
 import { type GamesQuery } from "./schemas/games-query.schema";
-import { type MarkCompilationDto } from "./schemas/mark-compilation.schema";
 import { type RawgIdParam } from "./schemas/rawg-id-params.schema";
-import { type SplitGameDto } from "./schemas/split-game.schema";
 import * as gamesProfileService from "./services/games-profile.service";
 import { mapGamesQueryToOptions } from "./utils/games-query.adapter";
 

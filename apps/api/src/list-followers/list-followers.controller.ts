@@ -6,7 +6,7 @@ import { listSummarySerializer } from "../lists/lists.serializer";
 import * as listsService from "../lists/lists.service";
 import { type ListIdParams } from "../lists/schemas/list-id-params.schema";
 import * as listFollowersService from "./list-followers.service";
-import { type UpdateFollowVisibilityBody } from "./schemas/update-follow-visibility.schema";
+import { type UpdateFollowVisibilityDto } from "./update-follow-visibility.dto";
 
 export async function postFollow(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;
@@ -59,7 +59,7 @@ export async function getFollowing(request: Request, response: Response) {
 
 export async function patchVisibility(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;
-	const body = request.locals.body as UpdateFollowVisibilityBody;
+	const body = request.locals.body as UpdateFollowVisibilityDto;
 	const user = request.locals.user as RequestUser;
 
 	await listFollowersService.updateVisibility(

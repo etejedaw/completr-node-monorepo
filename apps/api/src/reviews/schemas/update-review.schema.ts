@@ -6,5 +6,3 @@ export const UpdateReviewSchema = z
 		rating: z.number().min(0.5).max(5).nullable().optional()
 	})
 	.readonly();
-
-export type UpdateReviewDto = z.infer<typeof UpdateReviewSchema>;

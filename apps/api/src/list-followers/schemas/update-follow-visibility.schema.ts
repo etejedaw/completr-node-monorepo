@@ -6,7 +6,3 @@ export const UpdateFollowVisibilitySchema = z
 	})
 	.strict()
 	.readonly();
-
-export type UpdateFollowVisibilityBody = z.infer<
-	typeof UpdateFollowVisibilitySchema
->;

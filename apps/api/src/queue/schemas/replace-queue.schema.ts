@@ -11,5 +11,3 @@ export const ReplaceQueueSchema = z
 	})
 	.strict()
 	.readonly();
-
-export type ReplaceQueueBody = z.infer<typeof ReplaceQueueSchema>;

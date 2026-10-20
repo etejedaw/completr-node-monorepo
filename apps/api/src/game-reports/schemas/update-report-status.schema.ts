@@ -6,5 +6,3 @@ export const UpdateReportStatusSchema = z
 	})
 	.strict()
 	.readonly();
-
-export type UpdateReportStatusBody = z.infer<typeof UpdateReportStatusSchema>;

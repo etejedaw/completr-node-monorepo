@@ -7,5 +7,3 @@ export const AddWishlistSchema = z
 	})
 	.strict()
 	.readonly();
-
-export type AddWishlistBody = z.infer<typeof AddWishlistSchema>;
