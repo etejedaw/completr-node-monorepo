@@ -163,23 +163,54 @@
 			<div
 				class="mt-6 p-5 sm:p-6 rounded-card border border-brand/30 bg-brand-subtle/40"
 			>
-				<p
-					class="m-0 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-display text-2xl sm:text-4xl font-bold tracking-tight"
-				>
-					<span>Score %</span>
-					<span aria-hidden="true" class="text-fg-muted">÷</span>
-					<span class="sr-only">divided by</span>
-					<span>Hours</span>
-					<span aria-hidden="true" class="text-fg-muted">=</span>
-					<span class="sr-only">equals</span>
-					<span class="text-brand">Ratio</span>
-				</p>
-				<p class="m-0 mt-3 text-sm text-fg-muted leading-relaxed">
-					Score % is the score as a percentage of its scale, whatever
-					that scale is: 82/100 and 4.1/5 are both 82, and 6/7 is
-					about 86. A perfect score on a game you beat in one hour
-					sits at 100, the practical maximum.
-				</p>
+				<ol class="m-0 p-0 list-none flex flex-col gap-5">
+					<li>
+						<h3 class="m-0 text-sm font-semibold text-fg">
+							1. Bring the score to a 0–5 scale
+						</h3>
+						<p
+							class="m-0 mt-1 text-sm text-fg-secondary leading-relaxed"
+						>
+							Every source rates on its own scale, so Completr
+							converts the score first: 82/100 becomes 4.1 and 6/7
+							becomes 4.29. A score that is already out of 5 is
+							used as is.
+						</p>
+					</li>
+					<li>
+						<h3 class="m-0 text-sm font-semibold text-fg">
+							2. Divide it by the hours to beat
+						</h3>
+						<p
+							class="m-0 mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-display text-2xl sm:text-4xl font-bold tracking-tight"
+						>
+							<span>Score</span>
+							<span aria-hidden="true" class="text-fg-muted"
+								>÷</span
+							>
+							<span class="sr-only">divided by</span>
+							<span>Hours</span>
+							<span aria-hidden="true" class="text-fg-muted"
+								>×</span
+							>
+							<span class="sr-only">times</span>
+							<span class="tabular-nums">20</span>
+							<span aria-hidden="true" class="text-fg-muted"
+								>=</span
+							>
+							<span class="sr-only">equals</span>
+							<span class="text-brand">Ratio</span>
+						</p>
+						<p
+							class="m-0 mt-3 text-sm text-fg-muted leading-relaxed"
+						>
+							The × 20 is the same for every game: it only turns
+							the 0–5 score into a 0–100 number, so a five-star
+							game you beat in one hour sits at 100, the practical
+							maximum.
+						</p>
+					</li>
+				</ol>
 			</div>
 
 			<h3 class="m-0 mt-8 text-sm font-semibold text-fg">
