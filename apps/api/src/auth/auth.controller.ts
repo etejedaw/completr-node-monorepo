@@ -6,9 +6,11 @@ import { userMeSerializer } from "../users";
 import * as authService from "./auth.service";
 import {
 	type ChangePasswordDto,
+	type ForgotPasswordDto,
 	type LoginDto,
 	type RefreshTokenDto,
-	type RegisterDto
+	type RegisterDto,
+	type ResetPasswordDto
 } from "./dtos";
 import * as authDomainError from "./errors/auth.domains-error";
 import { type SessionIdParams } from "./schemas/session-id-params.schema";
@@ -107,6 +109,22 @@ export async function patchChangePassword(
 	const user = request.locals.user as RequestUser;
 
 	await authService.changePassword(user.id, changePassword.password);
+
+	return response.sendStatus(204);
+}
+
+export function postForgotPassword(request: Request, response: Response) {
+	const { email } = request.locals.body as ForgotPasswordDto;
+
+	authService.requestPasswordReset(email);
+
+	return response.sendStatus(204);
+}
+
+export async function postResetPassword(request: Request, response: Response) {
+	const { token, password } = request.locals.body as ResetPasswordDto;
+
+	await authService.resetPassword(token, password);
 
 	return response.sendStatus(204);
 }

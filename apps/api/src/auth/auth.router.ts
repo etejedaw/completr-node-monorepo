@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
 	authLimiter,
+	passwordResetLimiter,
 	registerLimiter
 } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
@@ -11,9 +12,11 @@ import * as authController from "./auth.controller";
 import { authMiddleware } from "./auth.middleware";
 import {
 	ChangePasswordSchema,
+	ForgotPasswordSchema,
 	LoginSchema,
 	RefreshTokenSchema,
-	RegisterSchema
+	RegisterSchema,
+	ResetPasswordSchema
 } from "./schemas";
 import { SessionIdParamsSchema } from "./schemas/session-id-params.schema";
 
@@ -61,6 +64,24 @@ router.patch(
 		validateSchemaMiddleware(ChangePasswordSchema, "body")
 	],
 	authController.patchChangePassword
+);
+
+router.post(
+	"/auth/forgot-password",
+	[
+		rateLimiterMiddleware(passwordResetLimiter),
+		validateSchemaMiddleware(ForgotPasswordSchema, "body")
+	],
+	authController.postForgotPassword
+);
+
+router.post(
+	"/auth/reset-password",
+	[
+		rateLimiterMiddleware(authLimiter),
+		validateSchemaMiddleware(ResetPasswordSchema, "body")
+	],
+	authController.postResetPassword
 );
 
 router.get(
