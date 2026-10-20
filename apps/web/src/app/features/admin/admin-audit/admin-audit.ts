@@ -14,6 +14,8 @@ import { type AuditLogEntry, AuditService } from "../services/audit.service";
 const ACTION_OPTIONS = [
 	"user_created",
 	"user_edited",
+	"user_invited",
+	"invitation_revoked",
 	"game_created",
 	"game_edited",
 	"game_deleted",
@@ -23,7 +25,7 @@ const ACTION_OPTIONS = [
 	"report_rejected"
 ];
 
-const TARGET_TYPE_OPTIONS = ["game", "user", "report", "job"];
+const TARGET_TYPE_OPTIONS = ["game", "user", "invitation", "report", "job"];
 
 @Component({
 	selector: "app-admin-audit",
