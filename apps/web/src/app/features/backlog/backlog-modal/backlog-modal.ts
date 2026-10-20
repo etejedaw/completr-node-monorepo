@@ -286,9 +286,7 @@ export class BacklogModal implements OnInit {
 	protected readonly viewMode = signal<"summary" | "edit">("edit");
 	protected readonly heading = computed(() => {
 		if (!this.isEdit()) return "Add to My Games";
-		return this.viewMode() === "summary"
-			? this.entry!.game.title
-			: "Edit run";
+		return this.viewMode() === "summary" ? "Your run" : "Edit run";
 	});
 	protected readonly isSearchStep = computed(
 		() =>
