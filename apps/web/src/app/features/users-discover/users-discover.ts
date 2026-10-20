@@ -13,6 +13,7 @@ import { AuthService } from "../../core/services/auth";
 import { type UserResult, UsersService } from "../../core/services/users";
 import { LibraryHero } from "../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../shared/components/library-toolbar/library-toolbar";
+import { UnfollowConfirmDialog } from "../../shared/components/unfollow-confirm-dialog/unfollow-confirm-dialog";
 import { UiEmptyState, UiSearchBar, UiSkeleton } from "../../shared/ui";
 import { injectFollowActions } from "./follow-actions";
 import { type FollowState, UserCard } from "./user-card/user-card";
@@ -28,6 +29,7 @@ const EMAIL_PATTERN = /.+@.+\..+/;
 		LibraryHero,
 		LibraryToolbar,
 		UserCard,
+		UnfollowConfirmDialog,
 		UiEmptyState,
 		UiSearchBar,
 		UiSkeleton
@@ -47,6 +49,7 @@ export class UsersDiscover implements OnInit {
 	protected readonly isSearching = signal(false);
 	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
 	private readonly followActions = injectFollowActions();
+	protected readonly unfollowTarget = this.followActions.unfollowTarget;
 
 	protected readonly heroPosters = computed(() =>
 		[...this.discoverUsers(), ...this.searchResults()].flatMap(user =>
@@ -108,6 +111,14 @@ export class UsersDiscover implements OnInit {
 
 	protected toggleFollow(user: UserResult) {
 		this.followActions.toggleFollow(user);
+	}
+
+	protected confirmUnfollow() {
+		this.followActions.confirmUnfollow();
+	}
+
+	protected cancelUnfollow() {
+		this.followActions.cancelUnfollow();
 	}
 
 	private loadDiscover() {

@@ -12,6 +12,7 @@ export function injectFollowActions() {
 	const followOverrides = signal<Record<string, FollowState>>({});
 	const followerDeltas = signal<Record<string, number>>({});
 	const busyIds = signal<Set<string>>(new Set());
+	const unfollowTarget = signal<UserResult | null>(null);
 
 	const setFollowState = (userId: string, state: FollowState) =>
 		followOverrides.update(overrides => ({
@@ -76,32 +77,40 @@ export function injectFollowActions() {
 		});
 	};
 
-	const unfollowWithUndo = (user: UserResult) => {
-		setFollowState(user.id, "none");
-		adjustFollowers(user.id, -1);
-		toast.pending({
-			message: `Unfollowed @${user.username}`,
-			onCommit: () =>
-				socialService.unfollow(user.username).subscribe({
-					error: () => {
-						setFollowState(user.id, "following");
-						adjustFollowers(user.id, 1);
-						toast.error(`Could not unfollow @${user.username}.`);
-					}
-				}),
-			onUndo: () => {
-				setFollowState(user.id, "following");
-				adjustFollowers(user.id, 1);
+	const cancelUnfollow = () => unfollowTarget.set(null);
+
+	const confirmUnfollow = () => {
+		const user = unfollowTarget();
+		if (!user || isBusy(user)) return;
+		setBusy(user.id, true);
+		socialService.unfollow(user.username).subscribe({
+			next: () => {
+				setFollowState(user.id, "none");
+				adjustFollowers(user.id, -1);
+				setBusy(user.id, false);
+				cancelUnfollow();
+			},
+			error: () => {
+				setBusy(user.id, false);
+				toast.error(`Could not unfollow @${user.username}.`);
 			}
 		});
 	};
 
 	const toggleFollow = (user: UserResult) => {
 		const state = followStateOf(user);
-		if (state === "following") unfollowWithUndo(user);
+		if (state === "following") unfollowTarget.set(user);
 		else if (state === "requested") cancelRequest(user);
 		else follow(user);
 	};
 
-	return { followStateOf, withLiveCounts, isBusy, toggleFollow };
+	return {
+		followStateOf,
+		withLiveCounts,
+		isBusy,
+		toggleFollow,
+		unfollowTarget: unfollowTarget.asReadonly(),
+		confirmUnfollow,
+		cancelUnfollow
+	};
 }
