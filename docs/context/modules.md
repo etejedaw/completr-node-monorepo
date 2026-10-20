@@ -74,6 +74,7 @@ apps/api/src/genres/
 ### `controller.ts`
 
 - Handlers de Express. Lee de `request.locals` (no de `request.body/query/params`).
+- `request.locals.body`, `params` y `query` se castean al tipo inferido del schema que valida esa ruta en `routes.ts`: el DTO para el body (`as RegisterGameDto`) y el tipo exportado por el schema para params y query (`as GameIdParam`, `as GamesQuery`). Nunca a un objeto escrito a mano (`as { limit?: number }`), a una intersección (`as GameIdParam & { listId: string }`) ni a un alias `z.infer` declarado en el controller: si el schema existe, su tipo se exporta y se importa; si no existe, se crea.
 - Orquesta llamadas a uno o más services.
 - **Lanza `DomainError`** ante reglas de negocio violadas.
 - Llama al `serializer` y responde con `{ data: ... }`.
@@ -93,7 +94,8 @@ apps/api/src/genres/
 
 ### `dtos/`
 
-- Tipos inferidos del schema Zod: `export type RegisterGameDto = z.infer<typeof RegisterGameSchema>`.
+- Tipo del body de un request, inferido de su schema Zod: `export type RegisterGameDto = z.infer<typeof RegisterGameSchema>`.
+- Siempre con sufijo `Dto`, y solo para bodies: params, query y headers no llevan DTO.
 - Un archivo por DTO aunque sean triviales — permite evolucionarlos sin tocar el schema.
 
 ### `schemas/`
@@ -101,6 +103,7 @@ apps/api/src/genres/
 - Schemas Zod para validar `body`, `params`, `query` o `headers`.
 - Un archivo por schema.
 - Nombrado: `<accion>-<recurso>.schema.ts` o `<recurso>-<parte>-params.schema.ts`.
+- Los schemas de `params`, `query` y `headers` exportan su tipo en el mismo archivo, debajo del schema: `export type GameIdParam = z.infer<typeof GameIdParamSchema>`. Los de `body` no exportan tipo: el suyo es el DTO.
 
 ### `errors/`
 

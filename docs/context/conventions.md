@@ -37,10 +37,14 @@ Aunque hoy son solo `z.infer<typeof Schema>`, **se mantienen en archivos separad
 
 ```ts
 // register-game.dto.ts
-import { z } from "zod";
-import { RegisterGameSchema } from "../schemas/register-game.schema";
+import type z from "zod";
+
+import { type RegisterGameSchema } from "../schemas/register-game.schema";
+
 export type RegisterGameDto = z.infer<typeof RegisterGameSchema>;
 ```
+
+Los DTOs son solo para bodies y siempre llevan sufijo `Dto`. El tipo de params, query y headers se exporta desde su propio schema (`GameIdParam`, `GamesQuery`). En el controller, todo lo que se lee de `request.locals` se castea a uno de esos tipos, nunca a un objeto escrito a mano. Detalle en [`modules.md`](./modules.md#controllerts).
 
 ## Comentarios
 
