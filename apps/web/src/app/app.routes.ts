@@ -124,6 +124,14 @@ export const routes: Routes = [
 			)
 	},
 	{
+		path: "accept-invite",
+		canActivate: [tokenQueryGuard],
+		loadComponent: () =>
+			import("./features/auth/accept-invite/accept-invite").then(
+				m => m.AcceptInvite
+			)
+	},
+	{
 		path: "register",
 		canActivate: [betaSignupRedirectGuard],
 		children: []

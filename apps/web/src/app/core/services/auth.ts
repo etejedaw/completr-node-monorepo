@@ -25,6 +25,18 @@ interface RegisterRequest {
 	name: string;
 }
 
+export interface PendingInvitation {
+	email: string;
+	expiresAt: string;
+}
+
+export interface AcceptInvitationRequest {
+	token: string;
+	username: string;
+	name: string;
+	password: string;
+}
+
 interface AuthResponse {
 	data: {
 		access_token: string;
@@ -93,6 +105,18 @@ export class AuthService {
 
 	register(data: RegisterRequest) {
 		return this.postAuth("/auth/register", data);
+	}
+
+	getInvitation(token: string) {
+		return this.http
+			.get<{
+				data: { invitation: PendingInvitation };
+			}>(`${environment.apiUrl}/invitations/${token}`)
+			.pipe(map(res => res.data.invitation));
+	}
+
+	acceptInvitation(data: AcceptInvitationRequest) {
+		return this.postAuth("/invitations/accept", data);
 	}
 
 	requestPasswordReset(email: string) {
