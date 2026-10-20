@@ -82,38 +82,6 @@ const COLLAPSED_SAGA_COUNT = 6;
 					</button>
 				}
 			</section>
-		} @else if (isSelf()) {
-			<section aria-labelledby="profile-sagas-heading">
-				<app-profile-section-header
-					heading="Sagas"
-					headingId="profile-sagas-heading"
-					eyebrow="Franchises"
-				/>
-				<div
-					class="flex flex-wrap items-center gap-4 p-4 rounded-card border border-dashed border-line"
-				>
-					<span
-						aria-hidden="true"
-						class="shrink-0 w-10 h-10 inline-flex items-center justify-center rounded-card bg-brand-subtle text-brand"
-					>
-						<span class="material-icons text-xl"
-							>collections_bookmark</span
-						>
-					</span>
-					<p
-						class="m-0 flex-1 min-w-[12rem] text-sm text-fg-secondary"
-					>
-						Track a saga from any franchise page to see it here.
-					</p>
-					<a
-						uiButton
-						variant="secondary"
-						size="sm"
-						routerLink="/games"
-						>Browse games</a
-					>
-				</div>
-			</section>
 		}
 	`,
 	host: { class: "block empty:hidden" },
@@ -121,7 +89,6 @@ const COLLAPSED_SAGA_COUNT = 6;
 })
 export class ProfileSagas {
 	readonly sagas = input.required<FranchiseProgress[]>();
-	readonly isSelf = input(false);
 
 	protected readonly collapsedCount = COLLAPSED_SAGA_COUNT;
 	protected readonly expanded = signal(false);
