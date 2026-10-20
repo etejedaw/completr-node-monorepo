@@ -35,8 +35,8 @@ docs: |-
     |--------------|--------|----------|--------------------------------------------------|
     | gameId       | uuid   | Yes      | The game UUID                                    |
     | platformId   | uuid   | Yes      | The platform UUID                                |
-    | score        | number | Yes      | Critic score on a 0–5 scale (> 0, max 5)         |
-    | duration     | number | Yes      | Average duration in hours                        |
+    | score        | number | Yes      | Critic score on a 0–5 scale (> 0, max 5, up to 2 decimals) |
+    | duration     | number | Yes      | Average duration in hours (> 0, up to 2 decimals) |
     | status       | string | No       | not_started, playing, completed, abandoned, endless |
     | startedAt    | date   | No       | ISO date                                         |
     | finishedAt   | date   | No       | ISO date                                         |
