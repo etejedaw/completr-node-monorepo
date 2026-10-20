@@ -16,6 +16,7 @@ import { genresDomainToHttpMapper } from "../../genres/errors/genres.domain-to-h
 import { listFollowersDomainToHttpMapper } from "../../list-followers/errors/list-followers.domain-to-http.mapper";
 import { listItemsDomainToHttpMapper } from "../../list-items/errors/list-items.domain-to-http.mapper";
 import { listsDomainToHttpMapper } from "../../lists/errors/lists.domain-to-http.mapper";
+import { mailDomainToHttpMapper } from "../../mail/errors/mail.domain-to-http.mapper";
 import { moodTagsDomainToHttpMapper } from "../../mood-tags/errors/mood-tags.domain-to-http.mapper";
 import { platformsDomainToHttpMapper } from "../../platforms/errors/platforms.domain-to-http.mapper";
 import { queueDomainToHttpMapper } from "../../queue/errors/queue.domain-to-http.mapper";
@@ -115,6 +116,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "RAWG Provider")
 		return rawgDomainToHttpMapper(error, request);
+
+	if (error.module === "Mail Provider")
+		return mailDomainToHttpMapper(error, request);
 
 	if (error.module === "Common Module" || error.module === "COMMON")
 		return commonDomainToHttpMapper(error, request);

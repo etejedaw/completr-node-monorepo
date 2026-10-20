@@ -15,6 +15,7 @@ import { genresErrorDomainNormalizer } from "../../genres/errors/genres.error-do
 import { listFollowersErrorDomainNormalizer } from "../../list-followers/errors/list-followers.error-domain.normalizer";
 import { listItemsErrorDomainNormalizer } from "../../list-items/errors/list-items.error-domain.normalizer";
 import { listsErrorDomainNormalizer } from "../../lists/errors/lists.error-domain.normalizer";
+import { mailErrorDomainNormalizer } from "../../mail/errors/mail.error-domain.normalizer";
 import { moodTagsErrorDomainNormalizer } from "../../mood-tags/errors/mood-tags.error-domain.normalizer";
 import { platformsErrorDomainNormalizer } from "../../platforms/errors/platforms.error-domain.normalizer";
 import { queueErrorDomainNormalizer } from "../../queue/errors/queue.error-domain.normalizer";
@@ -129,6 +130,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "RAWG Provider")
 		return rawgErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Mail Provider")
+		return mailErrorDomainNormalizer(error, correlationId);
 
 	return new DomainError("COMMON", "INTERNAL_ERROR", "Unexpected error", {
 		raw: error,
