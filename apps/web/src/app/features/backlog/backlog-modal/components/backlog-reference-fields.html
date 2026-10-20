@@ -1,0 +1,251 @@
+<section
+	class="rounded-card border border-line"
+	aria-labelledby="reference-heading"
+>
+	@if (isCollapsed()) {
+	<div class="flex items-center gap-3 min-h-[52px] pl-3 pr-1.5 py-1.5">
+		<span
+			aria-hidden="true"
+			class="material-icons text-brand text-base shrink-0"
+			>analytics</span
+		>
+		<div class="flex-1 min-w-0 flex flex-col gap-0.5">
+			<h3
+				id="reference-heading"
+				class="m-0 text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+			>
+				Reference
+			</h3>
+			<p class="m-0 text-sm font-medium text-fg tabular-nums truncate">
+				{{ summary() }}
+			</p>
+		</div>
+		<button
+			uiButton
+			variant="ghost"
+			size="sm"
+			type="button"
+			class="shrink-0 max-md:min-h-[44px]"
+			aria-expanded="false"
+			aria-label="Edit reference data"
+			(click)="focusField('score')"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>edit</span
+			>
+			Edit
+		</button>
+	</div>
+	} @else {
+	<div class="p-3">
+		<div class="flex items-center justify-between gap-3 mb-1">
+			<h3
+				id="reference-heading"
+				class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-[0.16em]"
+			>
+				Reference
+			</h3>
+			<div class="flex items-center gap-1.5">
+				<span
+					class="text-[0.625rem] uppercase tracking-[0.16em] text-fg-muted"
+					>Ratio</span
+				>
+				<span
+					class="font-display text-base font-bold tabular-nums"
+					[class.text-brand]="ratio() !== null"
+					[class.text-fg-muted]="ratio() === null"
+					>{{ ratio() ?? '—' }}</span
+				>
+				<button
+					type="button"
+					class="tap-area bg-none border-0 p-0 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+					aria-label="What is the ratio?"
+					(click)="toggleTooltip('ratio')"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>info</span
+					>
+				</button>
+			</div>
+		</div>
+		<p class="text-[0.75rem] text-fg-muted m-0 mb-3 leading-snug">
+			Critic score and estimated duration from external sources, required
+			to compute the ratio. Your personal data goes under Tracking below.
+		</p>
+
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
+			<div>
+				<label
+					for="score"
+					class="flex items-center gap-1 mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
+					>Critic Score
+					<span class="text-danger font-bold">*</span>
+					<button
+						type="button"
+						class="tap-area bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+						aria-label="Info"
+						(click)="toggleTooltip('score')"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>info</span
+						>
+					</button>
+				</label>
+				@if (showScoreSources()) {
+				<div
+					class="min-h-[26px] mb-2 flex flex-wrap items-center gap-1.5"
+				>
+					@if (scores().length > 0) {
+					<app-chip-group
+						mode="single"
+						label="Score sources"
+						[allowEmpty]="false"
+						[options]="scoreChipOptions()"
+						[value]="[activeScoreSource()]"
+						(valueChange)="pickScoreSource($event)"
+					/>
+					} @else {
+					<span
+						class="inline-flex flex-wrap items-center gap-1 text-[0.625rem] text-fg-muted"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.75rem]"
+							>help_outline</span
+						>
+						No sources found — enter it manually.
+						<button
+							type="button"
+							class="tap-area bg-none border-0 p-0 text-brand cursor-pointer hover:underline"
+							(click)="missingReported.emit('missing_score')"
+						>
+							Report missing
+						</button>
+					</span>
+					}
+				</div>
+				}
+				<div class="relative">
+					<input
+						#scoreInput
+						id="score"
+						type="number"
+						inputmode="decimal"
+						placeholder="0–5"
+						step="0.01"
+						uiInput
+						class="pr-9 aria-invalid:!border-danger"
+						[formField]="score()"
+						[attr.aria-invalid]="showScoreError()"
+						[attr.aria-describedby]="showScoreError() ? 'score-error' : null"
+						(input)="onScoreInput($event)"
+					/>
+					<span
+						class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fg-muted pointer-events-none select-none"
+						>/{{ maxCriticScore }}</span
+					>
+				</div>
+				@if (showScoreError()) {
+				<p
+					id="score-error"
+					class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>error_outline</span
+					>
+					{{ score()().errors()[0]?.message }}
+				</p>
+				}
+			</div>
+			<div>
+				<label
+					for="duration"
+					class="flex items-center gap-1 mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
+					>Duration (h)
+					<span class="text-danger font-bold">*</span>
+					<button
+						type="button"
+						class="tap-area bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+						aria-label="Info"
+						(click)="toggleTooltip('duration')"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>info</span
+						>
+					</button>
+				</label>
+				@if (showDurationSources()) {
+				<div
+					class="min-h-[26px] mb-2 flex flex-wrap items-center gap-1.5"
+				>
+					@if (times().length > 0) {
+					<app-chip-group
+						mode="single"
+						label="Duration sources"
+						[allowEmpty]="false"
+						[options]="durationChipOptions()"
+						[value]="[activeDurationSource()]"
+						(valueChange)="pickDurationSource($event)"
+					/>
+					} @else {
+					<span
+						class="inline-flex flex-wrap items-center gap-1 text-[0.625rem] text-fg-muted"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-[0.75rem]"
+							>help_outline</span
+						>
+						No sources found — enter it manually.
+						<button
+							type="button"
+							class="tap-area bg-none border-0 p-0 text-brand cursor-pointer hover:underline"
+							(click)="missingReported.emit('missing_duration')"
+						>
+							Report missing
+						</button>
+					</span>
+					}
+				</div>
+				}
+				<input
+					#durationInput
+					id="duration"
+					type="number"
+					inputmode="decimal"
+					placeholder="HowLongToBeat estimate"
+					step="0.01"
+					uiInput
+					class="aria-invalid:!border-danger"
+					[formField]="duration()"
+					[attr.aria-invalid]="showDurationError()"
+					[attr.aria-describedby]="showDurationError() ? 'duration-error' : null"
+					(input)="onDurationInput($event)"
+				/>
+				@if (showDurationError()) {
+				<p
+					id="duration-error"
+					class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+				>
+					<span aria-hidden="true" class="material-icons text-sm"
+						>error_outline</span
+					>
+					{{ duration()().errors()[0]?.message }}
+				</p>
+				}
+			</div>
+		</div>
+		@if (tooltipText()) {
+		<p
+			class="mt-3 mb-0 text-[0.75rem] text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug"
+		>
+			{{ tooltipText() }}
+		</p>
+		} @if (reportFeedback()) {
+		<p class="mt-2 mb-0 text-[0.75rem] text-success">
+			{{ reportFeedback() }}
+		</p>
+		}
+	</div>
+	}
+</section>
