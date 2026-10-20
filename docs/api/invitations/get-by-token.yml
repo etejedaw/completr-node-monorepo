@@ -1,0 +1,43 @@
+info:
+    name: Get Invitation By Token
+    type: http
+    seq: 4
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/invitations/:token"
+    params:
+        - name: token
+          value: "<64-char hex token from the invitation email>"
+          type: path
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Invitation By Token
+
+    Checks an invitation link before showing the sign-up form. Returns the invited email, which becomes the account email.
+
+    **Authentication:** None.
+    **Rate Limit:** 300 requests per minute.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "invitation": {
+          "email": "newfriend@example.com",
+          "expiresAt": "2026-10-27T12:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                     | When                                   |
+    |--------|--------------------------|----------------------------------------|
+    | 404    | INVITATION_INVALID_TOKEN | Token unknown, expired, revoked or used |
+    | 422    | COMMON_SCHEMA_INVALID    | Malformed token                        |

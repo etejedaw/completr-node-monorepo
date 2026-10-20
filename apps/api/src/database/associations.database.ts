@@ -3,6 +3,7 @@ import { ActivityGame } from "../activity/targets/activity-game.model";
 import { ActivityList } from "../activity/targets/activity-list.model";
 import { ActivityUser } from "../activity/targets/activity-user.model";
 import { AuditLog } from "../audit/audit.model";
+import { PasswordResetToken } from "../auth/password-reset-token.model";
 import { RefreshToken } from "../auth/refresh-token.model";
 import { Backlog } from "../backlog/backlog.model";
 import { BacklogProgress } from "../backlog-progress/backlog-progress.model";
@@ -21,6 +22,7 @@ import { GameShelf } from "../game-shelf/game-shelf.model";
 import { GameTime } from "../game-times/game-time.model";
 import { Game } from "../games/game.model";
 import { Genre } from "../genres/genres.model";
+import { UserInvitation } from "../invitations/user-invitation.model";
 import { ListFollower } from "../list-followers/list-follower.model";
 import { ListItem } from "../list-items/list-item.model";
 import { List } from "../lists/list.model";
@@ -58,6 +60,8 @@ export function setupAssociations() {
 	gameExternalIds();
 	scoreSources();
 	refreshTokens();
+	passwordResetTokens();
+	userInvitations();
 	gameReports();
 	userFollowers();
 	userFollowRequests();
@@ -279,6 +283,22 @@ function gameReports() {
 function refreshTokens() {
 	User.hasMany(RefreshToken, { foreignKey: "userId", onDelete: "CASCADE" });
 	RefreshToken.belongsTo(User, { foreignKey: "userId" });
+}
+
+function passwordResetTokens() {
+	User.hasMany(PasswordResetToken, {
+		foreignKey: "userId",
+		onDelete: "CASCADE"
+	});
+	PasswordResetToken.belongsTo(User, { foreignKey: "userId" });
+}
+
+function userInvitations() {
+	User.hasMany(UserInvitation, {
+		foreignKey: "invitedById",
+		onDelete: "SET NULL"
+	});
+	UserInvitation.belongsTo(User, { foreignKey: "invitedById" });
 }
 
 function userFollowers() {

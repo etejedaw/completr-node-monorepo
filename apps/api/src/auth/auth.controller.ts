@@ -6,21 +6,20 @@ import { userMeSerializer } from "../users";
 import * as authService from "./auth.service";
 import {
 	type ChangePasswordDto,
+	type ForgotPasswordDto,
 	type LoginDto,
 	type RefreshTokenDto,
-	type RegisterDto
+	type RegisterDto,
+	type ResetPasswordDto
 } from "./dtos";
 import * as authDomainError from "./errors/auth.domains-error";
 import { type SessionIdParams } from "./schemas/session-id-params.schema";
+import { getDeviceInfo } from "./utils/device-info.util";
 import {
 	clearRefreshCookie,
 	REFRESH_COOKIE_NAME,
 	setRefreshCookie
 } from "./utils/refresh-cookie.util";
-
-function getDeviceInfo(request: Request): string {
-	return (request.headers["user-agent"] ?? "Unknown device").slice(0, 500);
-}
 
 function getRefreshToken(request: Request): string {
 	const fromCookie = request.cookies?.[REFRESH_COOKIE_NAME] as
@@ -107,6 +106,22 @@ export async function patchChangePassword(
 	const user = request.locals.user as RequestUser;
 
 	await authService.changePassword(user.id, changePassword.password);
+
+	return response.sendStatus(204);
+}
+
+export function postForgotPassword(request: Request, response: Response) {
+	const { email } = request.locals.body as ForgotPasswordDto;
+
+	authService.requestPasswordReset(email);
+
+	return response.sendStatus(204);
+}
+
+export async function postResetPassword(request: Request, response: Response) {
+	const { token, password } = request.locals.body as ResetPasswordDto;
+
+	await authService.resetPassword(token, password);
 
 	return response.sendStatus(204);
 }

@@ -19,6 +19,13 @@ import {
 } from "@angular/forms/signals";
 
 import {
+	NAME_LENGTH_MESSAGE,
+	NAME_SAFE_TEXT_MESSAGE,
+	USERNAME_LENGTH_MESSAGE,
+	USERNAME_PATTERN,
+	USERNAME_PATTERN_MESSAGE
+} from "../../../core/utils/account-fields";
+import {
 	UiButton,
 	UiIconButton,
 	UiInput,
@@ -29,6 +36,7 @@ import {
 	fieldErrorsFromResponse,
 	validationSummary
 } from "../../../shared/utils/validation-errors";
+import { AdminInvitations } from "../admin-invitations/admin-invitations";
 import {
 	type AdminUser,
 	UserAdminService
@@ -43,12 +51,6 @@ interface CreateUserRequest {
 
 // Mirrors the API's RegisterSchema / PasswordPolicySchema, which rejects
 // anything else with a 400.
-const USERNAME_PATTERN = /^[a-z0-9._]+$/;
-const USERNAME_LENGTH_MESSAGE = "Username must be between 4 and 15 characters.";
-const USERNAME_PATTERN_MESSAGE =
-	"Username must contain only lowercase letters, digits, dots or underscores.";
-const NAME_LENGTH_MESSAGE = "Name must be between 4 and 80 characters.";
-const NAME_SAFE_TEXT_MESSAGE = "Name must not contain < or > characters.";
 const PASSWORD_LENGTH_MESSAGE = "Password must be between 8 and 15 characters.";
 const PASSWORD_COMPOSITION_RULES = [
 	{
@@ -94,6 +96,7 @@ function summarize(errors: readonly ValidationError.WithFieldTree[]): string {
 @Component({
 	selector: "app-admin-users",
 	imports: [
+		AdminInvitations,
 		DatePipe,
 		FormField,
 		UiButton,

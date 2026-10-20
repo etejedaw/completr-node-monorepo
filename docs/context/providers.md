@@ -214,11 +214,12 @@ Consecuencias:
 
 ## Providers implementados
 
-| Provider             | Propósito                                        |
-| -------------------- | ------------------------------------------------ |
-| `apps/api/src/rawg/` | RAWG API: géneros, descripciones, covers, scores |
+| Provider             | Propósito                                                                    |
+| -------------------- | ---------------------------------------------------------------------------- |
+| `apps/api/src/rawg/` | RAWG API: géneros, descripciones, covers, scores                             |
+| `apps/api/src/mail/` | Correo transaccional por SMTP (`nodemailer`). Se deshabilita sin `SMTP_HOST` |
 
-Es el único que existe hoy. **Qué integraciones vienen después no se decide acá:** el roadmap de fuentes externas es planificación de producto, y varias dependen de revisiones de licencia todavía abiertas.
+**Qué integraciones vienen después no se decide acá:** el roadmap de fuentes externas es planificación de producto, y varias dependen de revisiones de licencia todavía abiertas.
 
 ## Extraer notas y duraciones de un provider
 

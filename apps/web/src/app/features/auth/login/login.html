@@ -1,151 +1,109 @@
-<div
-	class="min-h-screen bg-canvas lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(26rem,1fr)]"
+<app-auth-page
+	eyebrow="Sign in"
+	heading="Welcome back"
+	subtitle="Pick up right where your backlog left off."
 >
-	<app-auth-showcase
-		class="h-64 sm:h-80 lg:h-auto lg:min-h-screen lg:sticky lg:top-0 border-b lg:border-b-0 lg:border-r border-line"
-	/>
+	@if (error()) {
+	<ui-alert class="mb-5">{{ error() }}</ui-alert>
+	}
 
-	<main
-		class="relative flex flex-col justify-center px-5 sm:px-10 lg:px-16 py-10 lg:py-16"
-	>
-		<div
-			aria-hidden="true"
-			class="pointer-events-none absolute -top-32 right-0 w-96 h-96 rounded-full blur-3xl opacity-40 bg-[radial-gradient(circle,var(--color-brand-glow),transparent_65%)]"
-		></div>
-
-		<div class="relative w-full max-w-sm mx-auto lg:mx-0">
-			<span
-				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-				>Sign in</span
+	<form (submit)="onSubmit($event)" class="flex flex-col gap-5">
+		<div>
+			<label
+				for="email"
+				class="block mb-1.5 text-sm font-medium text-fg-secondary"
+				>Email</label
 			>
-			<h1
-				class="m-0 mt-2 font-display text-3xl sm:text-4xl font-bold tracking-tight leading-tight"
-			>
-				Welcome back
-			</h1>
-			<p class="m-0 mt-2 mb-8 text-sm text-fg-muted">
-				Pick up right where your backlog left off.
-			</p>
-
-			@if (error()) {
-			<ui-alert class="mb-5">{{ error() }}</ui-alert>
-			}
-
-			<form (submit)="onSubmit($event)" class="flex flex-col gap-5">
-				<div>
-					<label
-						for="email"
-						class="block mb-1.5 text-sm font-medium text-fg-secondary"
-						>Email</label
-					>
-					<div class="relative">
-						<span
-							aria-hidden="true"
-							class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-lg text-fg-muted pointer-events-none"
-							>mail_outline</span
-						>
-						<input
-							uiInput
-							id="email"
-							type="email"
-							[formField]="form.email"
-							placeholder="you@example.com"
-							autocomplete="email"
-							class="!pl-10 !py-3 !text-sm"
-						/>
-					</div>
-				</div>
-
-				<div>
-					<label
-						for="password"
-						class="block mb-1.5 text-sm font-medium text-fg-secondary"
-						>Password</label
-					>
-					<div class="relative">
-						<span
-							aria-hidden="true"
-							class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-lg text-fg-muted pointer-events-none"
-							>lock_outline</span
-						>
-						<input
-							uiInput
-							id="password"
-							[type]="showPassword() ? 'text' : 'password'"
-							[formField]="form.password"
-							placeholder="Your password"
-							autocomplete="current-password"
-							class="!pl-10 !pr-11 tap:!pr-[48px] !py-3 !text-sm"
-						/>
-						<button
-							uiIconButton
-							size="lg"
-							type="button"
-							class="absolute right-1 top-1/2 -translate-y-1/2 tap:min-h-[44px] tap:min-w-[44px] tap:right-0"
-							(click)="toggleShowPassword()"
-							[attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
-							[title]="showPassword() ? 'Hide password' : 'Show password'"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-lg"
-								>{{ showPassword() ? 'visibility_off' :
-								'visibility' }}</span
-							>
-						</button>
-					</div>
-				</div>
-
-				<button
-					uiButton
-					variant="primary"
-					size="lg"
-					[block]="true"
-					type="submit"
-					class="!py-3.5 mt-1"
-					[disabled]="form().invalid() || isLoading()"
+			<div class="relative">
+				<span
+					aria-hidden="true"
+					class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-lg text-fg-muted pointer-events-none"
+					>mail_outline</span
 				>
-					{{ isLoading() ? 'Signing in...' : 'Sign in' }} @if
-					(!isLoading()) {
-					<span aria-hidden="true" class="material-icons text-base"
-						>arrow_forward</span
-					>
-					}
-				</button>
-			</form>
-
-			<p class="m-0 mt-6 text-sm text-fg-muted">
-				Don't have an account?{{ " " }}
-				<a
-					[href]="betaSignupUrl"
-					class="inline-flex items-center gap-1 font-medium text-brand no-underline hover:text-brand-hover tap:min-h-[44px]"
-					>Join the closed beta<span
-						aria-hidden="true"
-						class="material-icons text-base"
-						>arrow_forward</span
-					></a
-				>
-			</p>
-
-			<div
-				class="mt-6 pt-6 border-t border-line flex flex-wrap items-center justify-between gap-3 text-xs text-fg-muted"
-			>
-				<a
-					routerLink="/privacy"
-					class="text-fg-secondary no-underline hover:text-brand"
-					>Privacy Policy</a
-				>
-				<span>
-					Made with ♥ by
-					<a
-						href="https://www.etejeda.dev"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="text-fg-secondary no-underline hover:text-brand"
-						>Esteban Tejeda</a
-					>
-				</span>
+				<input
+					uiInput
+					id="email"
+					type="email"
+					[formField]="form.email"
+					placeholder="you@example.com"
+					autocomplete="email"
+					class="!pl-10 !py-3 !text-sm"
+				/>
 			</div>
 		</div>
-	</main>
-</div>
+
+		<div>
+			<div class="flex items-center justify-between gap-3 mb-1.5">
+				<label
+					for="password"
+					class="text-sm font-medium text-fg-secondary"
+					>Password</label
+				>
+				<a
+					routerLink="/forgot-password"
+					class="inline-flex items-center text-sm font-medium text-brand no-underline hover:text-brand-hover tap:min-h-[44px]"
+					>Forgot password?</a
+				>
+			</div>
+			<div class="relative">
+				<span
+					aria-hidden="true"
+					class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-lg text-fg-muted pointer-events-none"
+					>lock_outline</span
+				>
+				<input
+					uiInput
+					id="password"
+					[type]="showPassword() ? 'text' : 'password'"
+					[formField]="form.password"
+					placeholder="Your password"
+					autocomplete="current-password"
+					class="!pl-10 !pr-11 tap:!pr-[48px] !py-3 !text-sm"
+				/>
+				<button
+					uiIconButton
+					size="lg"
+					type="button"
+					class="absolute right-1 top-1/2 -translate-y-1/2 tap:min-h-[44px] tap:min-w-[44px] tap:right-0"
+					(click)="toggleShowPassword()"
+					[attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+					[title]="showPassword() ? 'Hide password' : 'Show password'"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>{{ showPassword() ? 'visibility_off' : 'visibility'
+						}}</span
+					>
+				</button>
+			</div>
+		</div>
+
+		<button
+			uiButton
+			variant="primary"
+			size="lg"
+			[block]="true"
+			type="submit"
+			class="!py-3.5 mt-1"
+			[disabled]="form().invalid() || isLoading()"
+		>
+			{{ isLoading() ? 'Signing in...' : 'Sign in' }} @if (!isLoading()) {
+			<span aria-hidden="true" class="material-icons text-base"
+				>arrow_forward</span
+			>
+			}
+		</button>
+	</form>
+
+	<p class="m-0 mt-6 text-sm text-fg-muted">
+		Don't have an account?{{ " " }}
+		<a
+			[href]="betaSignupUrl"
+			class="inline-flex items-center gap-1 font-medium text-brand no-underline hover:text-brand-hover tap:min-h-[44px]"
+			>Join the closed beta<span
+				aria-hidden="true"
+				class="material-icons text-base"
+				>arrow_forward</span
+			></a
+		>
+	</p>
+</app-auth-page>

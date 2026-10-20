@@ -23,6 +23,12 @@ services:
             - POSTGRES_DB=completr_test
         volumes:
             - ./.docker/postgres-test:/var/lib/postgresql
+    mailpit:
+        image: axllent/mailpit
+        restart: unless-stopped
+        ports:
+            - "${MAILPIT_SMTP_PORT:-1025}:1025"
+            - "${MAILPIT_UI_PORT:-8025}:8025"
     pgadmin:
         image: elestio/pgadmin
         restart: unless-stopped

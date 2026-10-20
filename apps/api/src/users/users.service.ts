@@ -25,6 +25,11 @@ export async function findUserByEmail(email: string) {
 	});
 }
 
+export async function isEmailRegistered(email: string) {
+	const count = await User.count({ where: { email } });
+	return count > 0;
+}
+
 export async function findUserByUsername(username: string) {
 	return await User.findOne({
 		where: { username, isActive: true }

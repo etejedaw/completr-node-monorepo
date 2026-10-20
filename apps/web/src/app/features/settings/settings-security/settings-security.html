@@ -46,28 +46,10 @@
 					{{ passwordForm.newPassword().errors()[0]?.message }}
 				</p>
 				}
-				<ul
-					id="new-password-rules"
-					aria-label="Password requirements"
-					class="list-none m-0 mt-3 p-0 grid gap-1.5 sm:grid-cols-2"
-				>
-					@for (rule of passwordRules; track rule.id) { @let passed =
-					passedRules().has(rule.id);
-					<li
-						class="flex items-center gap-1.5 text-xs transition-colors"
-						[class]="passed ? 'text-success' : 'text-fg-muted'"
-					>
-						<span aria-hidden="true" class="material-icons text-sm"
-							>{{ passed ? 'check_circle' :
-							'radio_button_unchecked' }}</span
-						>
-						{{ rule.label }}
-						<span class="sr-only"
-							>{{ passed ? '(done)' : '(missing)' }}</span
-						>
-					</li>
-					}
-				</ul>
+				<app-password-rules
+					listId="new-password-rules"
+					[password]="passwords().newPassword"
+				/>
 			</app-settings-row>
 
 			<app-settings-row

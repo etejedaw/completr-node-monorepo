@@ -69,10 +69,17 @@ Para desarrollo local no hace falta `.env.dev.local`: los valores por defecto de
 
 Si quieres sobrescribir alguna, crea `apps/api/.env.dev.local` solo con esas variables. [`apps/api/.env.example`](./apps/api/.env.example) lista todas las keys como referencia; no lo copies tal cual, porque una key vacía no toma el valor por defecto.
 
-La única que conviene definir es `RAWG_API_KEY`, gratuita en https://rawg.io/apidocs. Es opcional: sin ella, la API arranca y usa solo el catálogo local.
+Conviene definir dos cosas, ambas opcionales:
+
+- `RAWG_API_KEY`, gratuita en https://rawg.io/apidocs. Sin ella, la API arranca y usa solo el catálogo local.
+- `SMTP_HOST` y `SMTP_PORT`, para que la API envíe correos (por ejemplo, la recuperación de contraseña) a Mailpit. Sin `SMTP_HOST`, el correo queda deshabilitado y esos endpoints responden 503.
 
 ```bash
-echo "RAWG_API_KEY=<tu-key>" > apps/api/.env.dev.local
+cat > apps/api/.env.dev.local <<'ENV'
+RAWG_API_KEY=<tu-key>
+SMTP_HOST=localhost
+SMTP_PORT=1025
+ENV
 ```
 
 La URL de la API que usa el frontend está en [`apps/web/src/environments/`](./apps/web/src/environments/).
@@ -88,6 +95,7 @@ Esto levanta:
 - **PostgreSQL** en `localhost:5432` con la DB `completr`
 - **PostgreSQL de tests** en `localhost:5433` con la DB `completr_test`
 - **pgAdmin** en http://localhost (login `root@postgres.com` / `toor`)
+- **Mailpit** con SMTP en `localhost:1025` y la bandeja de correos enviados en http://localhost:8025
 
 Para bajarla: `npm run db:down`.
 
@@ -97,6 +105,8 @@ Si alguno de esos puertos está ocupado (por ejemplo, por otro proyecto con su p
 PG_PORT=5432
 PG_TEST_PORT=5433
 PGADMIN_PORT=80
+MAILPIT_SMTP_PORT=1025
+MAILPIT_UI_PORT=8025
 ```
 
 Si cambias `PG_PORT`, define el mismo valor en `apps/api/.env.dev.local` para que la API y las migraciones apunten al puerto nuevo.

@@ -1,0 +1,61 @@
+info:
+    name: Accept Invitation
+    type: http
+    seq: 5
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/invitations/accept"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "token": "<64-char hex token from the invitation email>",
+              "username": "newfriend",
+              "name": "New Friend",
+              "password": "Friend123+"
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Accept Invitation
+
+    Creates the account for the invited email with the chosen username, name and password, consumes the invitation and signs the user in. The response has the same shape as `POST /auth/register` and sets the refresh token cookie.
+
+    **Authentication:** None.
+    **Rate Limit:** 3 requests per minute.
+
+    ### Request Body
+
+    | Field    | Type   | Required | Description                                                  |
+    |----------|--------|----------|--------------------------------------------------------------|
+    | token    | string | Yes      | 64-char hex token from the invitation link                   |
+    | username | string | Yes      | 4-15 chars: lowercase letters, digits, dots or underscores   |
+    | name     | string | Yes      | 4-80 chars                                                   |
+    | password | string | Yes      | 8-15 chars, uppercase, lowercase, number, special            |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "user": { "id": "uuid", "username": "newfriend", "email": "newfriend@example.com", "name": "New Friend" },
+        "access_token": "jwt",
+        "session_id": "uuid"
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                     | When                                    |
+    |--------|--------------------------|-----------------------------------------|
+    | 404    | INVITATION_INVALID_TOKEN | Token unknown, expired, revoked or used |
+    | 409    | AUTH_USER_ALREADY_EXISTS | Username or email already registered    |
+    | 422    | COMMON_SCHEMA_INVALID    | Field out of the rules above            |
+    | 429    | AUTH_RATE_LIMITED        | Rate limit exceeded                     |

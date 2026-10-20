@@ -1,8 +1,21 @@
+import { environmentConfig } from "../common/config/environment.config";
+import { smtpSettings } from "../common/config/mail.config";
+import { PinoLogger } from "../common/logger/pino.logger";
+import * as mailServiceError from "../mail/errors/mail.service-error";
+import { MailClient } from "../mail/mail.provider";
 import * as userService from "../users/users.service";
 import { type LoginDto, type RegisterDto } from "./dtos";
 import * as authDomainError from "./errors/auth.domains-error";
 import * as passwordService from "./services/password.service";
+import * as passwordResetService from "./services/password-reset.service";
 import * as tokenService from "./services/token.service";
+import { buildPasswordResetEmail } from "./utils/password-reset-email.util";
+
+const RESET_PASSWORD_PATH = "/reset-password";
+
+const logger = new PinoLogger("Auth Service");
+
+const mail = MailClient.create(smtpSettings);
 
 export async function register(registerDto: RegisterDto, deviceInfo?: string) {
 	const userEmail = await userService.findUserByEmail(registerDto.email);
@@ -109,4 +122,49 @@ export async function revokeOtherSessions(
 	currentSessionId: string
 ) {
 	return tokenService.deleteOtherUserRefreshTokens(userId, currentSessionId);
+}
+
+export function requestPasswordReset(email: string) {
+	if (!mail.isEnabled) throw mailServiceError.disabledError();
+
+	sendPasswordResetEmail(email).catch(error =>
+		logger.error("requestPasswordReset", "failed", {
+			error: error instanceof Error ? error.message : String(error)
+		})
+	);
+}
+
+async function sendPasswordResetEmail(email: string) {
+	const user = await userService.findUserByEmail(email);
+	if (!user) return;
+
+	const rawToken = await passwordResetService.createPasswordResetToken(
+		user.id
+	);
+
+	const resetUrl = new URL(
+		RESET_PASSWORD_PATH,
+		environmentConfig.WEB_APP_URL
+	);
+	resetUrl.searchParams.set("token", rawToken);
+
+	await mail.send({
+		to: user.email,
+		...buildPasswordResetEmail(
+			user.username,
+			resetUrl.toString(),
+			environmentConfig.PASSWORD_RESET_TOKEN_TTL_MINUTES,
+			environmentConfig.WEB_APP_URL
+		)
+	});
+}
+
+export async function resetPassword(rawToken: string, password: string) {
+	const userId = await passwordResetService.claimPasswordResetToken(rawToken);
+	if (!userId) throw authDomainError.invalidPasswordResetToken();
+
+	const user = await userService.findUserById(userId);
+	if (!user) throw authDomainError.invalidPasswordResetToken();
+
+	await changePassword(user.id, password);
 }

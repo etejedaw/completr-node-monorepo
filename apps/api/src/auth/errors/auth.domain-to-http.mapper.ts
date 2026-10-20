@@ -65,6 +65,13 @@ export function authDomainToHttpMapper(
 			status: 401
 		});
 
+	if (error.code === "AUTH_INVALID_PASSWORD_RESET_TOKEN")
+		return new HttpError({
+			...baseOptions,
+			detail: "The password reset link is invalid, expired or has already been used",
+			status: 400
+		});
+
 	if (error.code === "AUTH_ROUTE_NOT_FOUND")
 		return new HttpError({
 			...baseOptions,

@@ -14,9 +14,9 @@ import { AuthService, type AuthSession } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
 import {
 	failedPasswordRules,
-	PASSWORD_MAX_LENGTH,
-	PASSWORD_RULES
+	PASSWORD_MAX_LENGTH
 } from "../../../core/utils/password-policy";
+import { PasswordRules } from "../../../shared/components/password-rules/password-rules";
 import { UiButton, UiInput, UiPagination } from "../../../shared/ui";
 import { SettingsPanel } from "../components/settings-panel";
 import { SettingsRow } from "../components/settings-row";
@@ -29,6 +29,7 @@ const EMPTY_PASSWORDS = { newPassword: "", confirmPassword: "" };
 	selector: "app-settings-security",
 	imports: [
 		FormField,
+		PasswordRules,
 		SettingsPanel,
 		SettingsRow,
 		UiButton,
@@ -44,7 +45,6 @@ export class SettingsSecurity implements OnInit {
 	private readonly http = inject(HttpClient);
 	private readonly toast = inject(ToastService);
 
-	protected readonly passwordRules = PASSWORD_RULES;
 	protected readonly describeDevice = describeDevice;
 	protected readonly timeAgo = timeAgo;
 
@@ -71,14 +71,6 @@ export class SettingsSecurity implements OnInit {
 	});
 	protected readonly showPasswords = signal(false);
 	protected readonly changingPassword = signal(false);
-	protected readonly passedRules = computed(
-		() =>
-			new Set(
-				PASSWORD_RULES.filter(rule =>
-					rule.test(this.passwords().newPassword)
-				).map(rule => rule.id)
-			)
-	);
 
 	protected readonly currentSessionId = signal(this.authService.sessionId());
 	private readonly sessionsPage = signal<AuthSession[]>([]);

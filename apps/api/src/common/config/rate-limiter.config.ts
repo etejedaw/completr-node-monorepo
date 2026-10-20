@@ -13,6 +13,11 @@ export const registerLimiter = new RateLimiterMemory({
 	duration: 1 * MINUTES_TO_SECONDS
 });
 
+export const passwordResetLimiter = new RateLimiterMemory({
+	points: 3,
+	duration: 15 * MINUTES_TO_SECONDS
+});
+
 export const publicLimiter = new RateLimiterMemory({
 	points: 300,
 	duration: 60

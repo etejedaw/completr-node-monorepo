@@ -1,0 +1,64 @@
+info:
+    name: Admin Invite User
+    type: http
+    seq: 1
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/invitations"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "email": "newfriend@example.com"
+            }
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Admin Invite User
+
+    Invites a person by email. Creates the invitation and sends an email with a link to `{WEB_APP_URL}/accept-invite?token=<token>`, where the person chooses username, name and password. The token is single-use and expires after `USER_INVITATION_TTL_DAYS` (default 7). Inviting an email that already has a pending invitation replaces it, so this is also how an invitation is resent. If the email cannot be sent, the invitation is discarded.
+
+    **Authentication:** Bearer token, admin only (other roles get 404).
+    **Rate Limit:** 3 requests per minute.
+    **Audit:** `user_invited` on target type `invitation`.
+
+    ### Request Body
+
+    | Field | Type   | Required | Description              |
+    |-------|--------|----------|--------------------------|
+    | email | string | Yes      | Email to invite (lowered) |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "invitation": {
+          "id": "uuid",
+          "email": "newfriend@example.com",
+          "createdAt": "2026-10-20T12:00:00.000Z",
+          "expiresAt": "2026-10-27T12:00:00.000Z",
+          "isExpired": false
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                        | When                                      |
+    |--------|-----------------------------|-------------------------------------------|
+    | 409    | INVITATION_EMAIL_REGISTERED | The email already has an account          |
+    | 422    | COMMON_SCHEMA_INVALID       | Invalid email                             |
+    | 502    | MAIL_SEND_ERROR             | The SMTP server rejected or failed to send |
+    | 503    | MAIL_DISABLED               | No SMTP server configured (`SMTP_HOST`)   |

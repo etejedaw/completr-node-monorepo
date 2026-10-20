@@ -27,6 +27,8 @@
 		</button>
 	</div>
 
+	<app-admin-invitations />
+
 	@if (isLoading()) {
 	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
 	} @else if (users().length === 0) {

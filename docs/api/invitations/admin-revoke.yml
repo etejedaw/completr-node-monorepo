@@ -1,0 +1,38 @@
+info:
+    name: Admin Revoke Invitation
+    type: http
+    seq: 3
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/admin/invitations/:invitationId"
+    params:
+        - name: invitationId
+          value: 00000000-0000-0000-0000-000000000000
+          type: path
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Admin Revoke Invitation
+
+    Deletes an invitation. Its link stops working right away.
+
+    **Authentication:** Bearer token, admin only (other roles get 404).
+    **Audit:** `invitation_revoked` on target type `invitation`.
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Type                  | When                   |
+    |--------|-----------------------|------------------------|
+    | 404    | INVITATION_NOT_FOUND  | No invitation with that id |
+    | 422    | COMMON_SCHEMA_INVALID | `invitationId` is not a UUID |
