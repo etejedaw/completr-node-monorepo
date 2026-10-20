@@ -1,5 +1,7 @@
 import z from "zod";
 
+import { type SmtpSettings } from "../../mail/mail.interface";
+
 const optionalSetting = z
 	.string()
 	.trim()
@@ -18,3 +20,12 @@ const MailConfigSchema = z
 	.readonly();
 
 export const mailConfig = MailConfigSchema.parse(process.env);
+
+export const smtpSettings: SmtpSettings = {
+	host: mailConfig.SMTP_HOST,
+	port: mailConfig.SMTP_PORT,
+	secure: mailConfig.SMTP_SECURE,
+	user: mailConfig.SMTP_USER,
+	password: mailConfig.SMTP_PASSWORD,
+	from: mailConfig.MAIL_FROM
+};

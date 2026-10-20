@@ -1,5 +1,5 @@
 import { environmentConfig } from "../common/config/environment.config";
-import { mailConfig } from "../common/config/mail.config";
+import { smtpSettings } from "../common/config/mail.config";
 import { PinoLogger } from "../common/logger/pino.logger";
 import * as mailServiceError from "../mail/errors/mail.service-error";
 import { MailClient } from "../mail/mail.provider";
@@ -15,14 +15,7 @@ const RESET_PASSWORD_PATH = "/reset-password";
 
 const logger = new PinoLogger("Auth Service");
 
-const mail = MailClient.create({
-	host: mailConfig.SMTP_HOST,
-	port: mailConfig.SMTP_PORT,
-	secure: mailConfig.SMTP_SECURE,
-	user: mailConfig.SMTP_USER,
-	password: mailConfig.SMTP_PASSWORD,
-	from: mailConfig.MAIL_FROM
-});
+const mail = MailClient.create(smtpSettings);
 
 export async function register(registerDto: RegisterDto, deviceInfo?: string) {
 	const userEmail = await userService.findUserByEmail(registerDto.email);

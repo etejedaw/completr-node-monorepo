@@ -14,15 +14,12 @@ import {
 } from "./dtos";
 import * as authDomainError from "./errors/auth.domains-error";
 import { type SessionIdParams } from "./schemas/session-id-params.schema";
+import { getDeviceInfo } from "./utils/device-info.util";
 import {
 	clearRefreshCookie,
 	REFRESH_COOKIE_NAME,
 	setRefreshCookie
 } from "./utils/refresh-cookie.util";
-
-function getDeviceInfo(request: Request): string {
-	return (request.headers["user-agent"] ?? "Unknown device").slice(0, 500);
-}
 
 function getRefreshToken(request: Request): string {
 	const fromCookie = request.cookies?.[REFRESH_COOKIE_NAME] as

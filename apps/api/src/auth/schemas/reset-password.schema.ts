@@ -1,10 +1,11 @@
 import z from "zod";
 
+import { OneTimeTokenSchema } from "../../common/schemas/one-time-token.schema";
 import { PasswordPolicySchema } from "./password-policy.schema";
 
 export const ResetPasswordSchema = z
 	.object({
-		token: z.string().regex(/^[a-f0-9]{64}$/, "Invalid reset token"),
+		token: OneTimeTokenSchema,
 		password: PasswordPolicySchema
 	})
 	.strict()
