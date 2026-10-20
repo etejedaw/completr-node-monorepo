@@ -33,6 +33,10 @@ import { ProfileSectionHeader } from "./components/profile-section-header";
 import { ProfileStats } from "./components/profile-stats";
 import { ProfileUpNext } from "./components/profile-up-next";
 import {
+	pickProfileBackdrop,
+	PROFILE_FAVORITES_LIMIT
+} from "./profile-backdrop";
+import {
 	type PublicProfile,
 	PublicProfileService
 } from "./public-profile.service";
@@ -126,25 +130,13 @@ export class PublicProfileComponent implements OnInit {
 			feed: !!access?.feed
 		};
 	});
-	protected readonly isBackdropResolved = computed(
-		() => !this.visibility().favorites || this.favoritesData() !== null
+	protected readonly backdropUrl = computed(() =>
+		pickProfileBackdrop({
+			profile: this.profile(),
+			favorites: this.favoritesData(),
+			showsFavorites: this.visibility().favorites
+		})
 	);
-	protected readonly backdropUrl = computed(() => {
-		if (!this.isBackdropResolved()) return null;
-		const fromFavorites = this.favoritesData()?.find(
-			favorite => favorite.game.backgroundUrl
-		)?.game.backgroundUrl;
-		if (fromFavorites) return fromFavorites;
-		const profile = this.profile();
-		return (
-			profile?.backlogs.find(backlog => backlog.game.backgroundUrl)?.game
-				.backgroundUrl ??
-			profile?.recentActivity.find(
-				activity => activity.game?.backgroundUrl
-			)?.game?.backgroundUrl ??
-			null
-		);
-	});
 
 	protected readonly queueData = signal<QueueEntry[] | null>(null);
 	protected readonly favoritesData = signal<PublicFavorite[] | null>(null);
@@ -292,17 +284,19 @@ export class PublicProfileComponent implements OnInit {
 
 	private ensureFavoritesLoaded(username: string) {
 		if (this.favoritesData() !== null) return;
-		this.libraryService.getUserFavorites(username, { limit: 8 }).subscribe({
-			next: res =>
-				this.favoritesData.set(
-					res.items.map(e => ({
-						id: e.id,
-						position: e.position,
-						game: e.game
-					}))
-				),
-			error: () => this.favoritesData.set([])
-		});
+		this.libraryService
+			.getUserFavorites(username, { limit: PROFILE_FAVORITES_LIMIT })
+			.subscribe({
+				next: res =>
+					this.favoritesData.set(
+						res.items.map(e => ({
+							id: e.id,
+							position: e.position,
+							game: e.game
+						}))
+					),
+				error: () => this.favoritesData.set([])
+			});
 	}
 
 	private ensureQueueLoaded(username: string) {

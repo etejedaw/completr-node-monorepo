@@ -11,8 +11,10 @@ import { form, FormField, maxLength } from "@angular/forms/signals";
 import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
 import { avatarRing } from "../../../core/utils/premium";
+import { ProfileBackdrop } from "../../../shared/components/profile-backdrop/profile-backdrop";
 import { UiAvatar, UiInput, UiTextarea } from "../../../shared/ui";
 import { ProfileService, type UpdateProfileDto } from "../../profile/profile";
+import { injectProfileBackdrop } from "../../public-profile/profile-backdrop";
 import { SettingsPanel } from "../components/settings-panel";
 import { SettingsRow } from "../components/settings-row";
 import { SettingsSaveBar } from "../components/settings-save-bar";
@@ -33,6 +35,7 @@ const EMPTY_DRAFT: ProfileDraft = { name: "", bio: "", avatarUrl: "" };
 	selector: "app-settings-profile",
 	imports: [
 		FormField,
+		ProfileBackdrop,
 		SettingsPanel,
 		SettingsRow,
 		SettingsSaveBar,
@@ -52,6 +55,9 @@ export class SettingsProfile implements OnInit {
 	protected readonly user = this.authService.user;
 	protected readonly avatarRing = computed(() =>
 		avatarRing(this.authService.user()?.role)
+	);
+	protected readonly backdropUrl = injectProfileBackdrop(
+		() => this.user()?.username
 	);
 	protected readonly nameMaxLength = NAME_MAX_LENGTH;
 	protected readonly bioMaxLength = BIO_MAX_LENGTH;
