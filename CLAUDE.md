@@ -16,19 +16,19 @@ Los documentos del proyecto viven en AFFiNE, workspace `b48542ca-7422-4505-a933-
 
 ### Roadmap (carpeta `Completr/Roadmap`)
 
-| Doc      | docId                   | Qué contiene                                                 |
-| -------- | ----------------------- | ------------------------------------------------------------ |
-| Fase 0   | `6CRhBgO0eO1FPwcA1NKLo` | Diseño y setup: base técnica y arquitectura                  |
-| Fase 1   | `MqWcRvR3JMcgZ2KoWjxPx` | Excel Killer: import, ratios, filtros por status y semestre  |
-| Fase 1.5 | `CG59mk4mMRGr1-0QeCQHP` | Beyond the Spreadsheet: vistas, filtros avanzados, deploy    |
-| Fase 2   | `NFxL6wwjgueRhnWam7p8B` | MVP Amigos: cuentas, import y visibilidad mutua              |
-| Fase 2.5 | `tLKKDQTK8jROxM25JuChI` | Pulido y UX: bugs de Fase 2, base de componentes UI          |
-| Fase 3   | `lJy0Fo_sbImOrriFjU2At` | Beta cerrada — **cerrada** (2026-07-04), queda como registro |
-| Fase 4   | `g18aJrTWDtGJWAnJfQabH` | Lote de features independiente de usuarios (fase activa)     |
-| Fase 5   | `4NWWL6zfUKvqbu7KDhqQs` | Estabilización y calidad según feedback de beta              |
-| Fase 5.5 | `48WMZc27S0w-kygxFr1Kx` | Cumplimiento legal de fuentes externas, pre-Premium          |
-| Fase 6   | `VmxX4pwLZzGscQmMTzix3` | Construcción y lanzamiento de Premium                        |
-| Fase 7   | `LgBAmwBIXgxYr4raLjdF0` | Escalamiento continuo: retención, engagement, expansión      |
+| Doc             | docId                   | Qué contiene                                                           |
+| --------------- | ----------------------- | ---------------------------------------------------------------------- |
+| Fase 0          | `6CRhBgO0eO1FPwcA1NKLo` | Diseño y setup: base técnica y arquitectura                            |
+| Fase 1          | `MqWcRvR3JMcgZ2KoWjxPx` | Excel Killer: import, ratios, filtros por status y semestre            |
+| Fase 1.5        | `CG59mk4mMRGr1-0QeCQHP` | Beyond the Spreadsheet: vistas, filtros avanzados, deploy              |
+| Fase 2          | `NFxL6wwjgueRhnWam7p8B` | MVP Amigos: cuentas, import y visibilidad mutua                        |
+| Fase 2.5        | `tLKKDQTK8jROxM25JuChI` | Pulido y UX: bugs de Fase 2, base de componentes UI                    |
+| Fase 3          | `lJy0Fo_sbImOrriFjU2At` | Beta cerrada — **cerrada** (2026-07-04), queda como registro           |
+| Fase 4          | `g18aJrTWDtGJWAnJfQabH` | Herramienta personal: features sin depender de comunidad (fase activa) |
+| Fase 5          | `4NWWL6zfUKvqbu7KDhqQs` | Comunidad y apertura: notificaciones, social, registro abierto         |
+| Fase 5.5        | `48WMZc27S0w-kygxFr1Kx` | Cumplimiento legal de fuentes externas, pre-Premium                    |
+| Fase 6          | `VmxX4pwLZzGscQmMTzix3` | Premium: construcción y lanzamiento (última fase)                      |
+| Ideas a evaluar | `WBjSETLZ8-`            | Ideas sin fase asignada: postergadas o por decidir                     |
 
 ### Feedback (carpeta `Completr/Feedback`)
 
