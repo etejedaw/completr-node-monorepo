@@ -7,6 +7,9 @@
 	[ngpMenuTriggerOffset]="6"
 	[attr.aria-haspopup]="isMobile() ? 'dialog' : 'menu'"
 	[attr.aria-label]="label() + ': ' + (current?.label ?? placeholder())"
+	[attr.aria-invalid]="invalid() || null"
+	[attr.aria-describedby]="describedBy()"
+	class="aria-invalid:!border-danger"
 	[class]="
 		variant() === 'field'
 			? 'w-full h-12 min-h-[44px] px-3.5 flex items-center gap-2.5 rounded-card border border-line bg-surface/70 backdrop-blur text-left cursor-pointer transition hover:border-line-hover active:bg-surface-hover'

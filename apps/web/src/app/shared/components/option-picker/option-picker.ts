@@ -67,6 +67,8 @@ export class OptionPicker {
 	readonly size = input<"sm" | "md">("sm");
 	readonly placeholder = input("None");
 	readonly placeholderIcon = input("tune");
+	readonly invalid = input(false);
+	readonly describedBy = input<string | null>(null);
 	readonly actionSelected = output<string>();
 	readonly lockedSelected = output<PickerOption>();
 
