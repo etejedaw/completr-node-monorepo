@@ -34,6 +34,7 @@
 		"migrate:status:dev": "npm run migrate:status:dev -w apps/api",
 		"migrate:prod": "npm run migrate:prod -w apps/api",
 		"migrate:status:prod": "npm run migrate:status:prod -w apps/api",
+		"seed:dev": "npm run seed:dev -w apps/api",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",

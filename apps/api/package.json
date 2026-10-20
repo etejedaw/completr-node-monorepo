@@ -27,7 +27,8 @@
 		"migrate:undo:prod": "node --env-file=.env.prod.local ../../node_modules/.bin/sequelize-cli db:migrate:undo --env prod",
 		"migrate:status:prod": "node --env-file=.env.prod.local ../../node_modules/.bin/sequelize-cli db:migrate:status --env prod",
 		"migrate:create": "node --env-file-if-exists=.env.dev.local ../../node_modules/.bin/sequelize-cli migration:generate --name",
-		"create:admin": "node dist/scripts/create-admin.js"
+		"create:admin": "node dist/scripts/create-admin.js",
+		"seed:dev": "node -r ts-node/register --env-file-if-exists=.env.dev.local ./scripts/seed-dev.ts"
 	},
 	"dependencies": {
 		"bcrypt": "^6.0.0",
