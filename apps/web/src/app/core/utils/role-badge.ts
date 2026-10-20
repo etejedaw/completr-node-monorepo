@@ -6,7 +6,9 @@ export interface RoleBadge {
 	icon: string | null;
 }
 
-const ROLE_BADGES: Record<UserRole, RoleBadge> = {
+type ElevatedRole = Exclude<UserRole, "user">;
+
+const ELEVATED_ROLE_BADGES: Record<ElevatedRole, RoleBadge> = {
 	admin: {
 		label: "Admin",
 		className: "bg-admin-metal text-admin",
@@ -17,22 +19,15 @@ const ROLE_BADGES: Record<UserRole, RoleBadge> = {
 		label: "Premium",
 		className: "bg-premium/15 text-premium",
 		icon: null
-	},
-	user: {
-		label: "Free",
-		className: "bg-fg-muted/15 text-fg-muted",
-		icon: null
 	}
 };
 
-export function roleBadge(role: string | null | undefined): RoleBadge {
-	return ROLE_BADGES[role as UserRole] ?? ROLE_BADGES.user;
+function isElevatedRole(role: string): role is ElevatedRole {
+	return Object.hasOwn(ELEVATED_ROLE_BADGES, role);
 }
 
 export function elevatedRoleBadge(
 	role: string | null | undefined
 ): RoleBadge | null {
-	return role && role !== "user" && role in ROLE_BADGES
-		? ROLE_BADGES[role as UserRole]
-		: null;
+	return role && isElevatedRole(role) ? ELEVATED_ROLE_BADGES[role] : null;
 }

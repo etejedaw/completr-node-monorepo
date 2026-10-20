@@ -110,6 +110,18 @@ type BacklogViewMode = "diary" | "hardcore" | "calendar";
 
 const NEW_VIEW_PARAM = "newView";
 
+interface ClearAction {
+	label: string;
+	description: string;
+	icon: string;
+}
+
+const EXIT_VIEW_ACTION: ClearAction = {
+	label: "Exit view",
+	description: "Exit the saved view and show all games",
+	icon: "bookmark_remove"
+};
+
 const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 	{
 		value: "diary",
@@ -540,6 +552,17 @@ export class BacklogList implements OnInit {
 		if (this.coopOnly()) count++;
 		return count;
 	};
+
+	protected readonly clearAction = computed<ClearAction | null>(() => {
+		if (this.activeFilterId()) return EXIT_VIEW_ACTION;
+		const count = this.activeFiltersCount();
+		if (count === 0) return null;
+		return {
+			label: `Clear (${count})`,
+			description: `Clear ${count} active ${count === 1 ? "filter" : "filters"}`,
+			icon: "filter_alt_off"
+		};
+	});
 
 	protected setCoopOnly(value: boolean) {
 		this.coopOnly.set(value);

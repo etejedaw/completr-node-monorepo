@@ -117,7 +117,22 @@ Si cambias `PG_PORT`, define el mismo valor en `apps/api/.env.dev.local` para qu
 npm run migrate:dev
 ```
 
-### 5. Iniciar la app en modo desarrollo
+### 5. Cargar datos de prueba (opcional)
+
+```bash
+npm run seed:dev
+```
+
+Llena una base local ya migrada con lo mínimo para probar a mano el modal de "Añadir juego". Es idempotente (puedes correrlo varias veces sin duplicar ni pisar lo que ya exista) y se niega a correr si `NODE_ENV` no es `dev` o si `PG_HOST` no es un host local.
+
+- **Usuarios**, ambos con la contraseña `DevSeed123!`: `admin@completr.local` (admin) y `user@completr.local` (usuario normal, username `player`).
+- **Plataformas**: PC, PlayStation 5, Nintendo Switch y Xbox Series X|S. Las fuentes de puntaje (Completr, Metacritic, OpenCritic y RAWG) las siembran las migraciones y el seed las asegura.
+- **Juegos**, uno por caso del modal: Astro Bot (puntaje, duración y una sola plataforma), Hades (puntaje, duración y varias plataformas), Balatro (sin puntaje, con duración), Celeste (sin duración, con puntaje), Tunic (sin puntaje ni duración) y Hollow Knight (sin plataformas).
+- **Backlog** de `user@completr.local`: Hades en `playing`, Astro Bot en `completed` y Celeste en `not_started`, para probar el modo edición.
+
+Los datos son de prueba: las notas, duraciones y plataformas de cada juego están simplificadas a propósito.
+
+### 6. Iniciar la app en modo desarrollo
 
 ```bash
 npm run dev
@@ -144,6 +159,7 @@ Todos se ejecutan desde la raíz:
 | `npm run typecheck`    | Chequeo de tipos de API y landing                                               |
 | `npm test`             | Tests del frontend                                                              |
 | `npm run migrate:dev`  | Aplica las migraciones pendientes en local                                      |
+| `npm run seed:dev`     | Carga datos de prueba en la base local (usuarios, catálogo, juegos y backlog)   |
 | `npm run migrate:prod` | Aplica las migraciones pendientes en producción, con `apps/api/.env.prod.local` |
 
 Cualquier otro script de una app: `npm run <script> -w apps/<app>`.

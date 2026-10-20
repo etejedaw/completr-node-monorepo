@@ -44,6 +44,7 @@ export class GameLibraryActions {
 	readonly favorite = input(false);
 	readonly togglingFavorite = input(false);
 	readonly togglingWishlist = input(false);
+	readonly queueing = input(false);
 
 	readonly backlogRequested = output<void>();
 	readonly runOpened = output<BacklogEntry>();
@@ -67,7 +68,7 @@ export class GameLibraryActions {
 				label: "Up Next",
 				activeLabel: "In Up Next",
 				active: this.inQueue(),
-				disabled: false,
+				disabled: this.queueing(),
 				accentClass: "text-nav-queue"
 			},
 			{

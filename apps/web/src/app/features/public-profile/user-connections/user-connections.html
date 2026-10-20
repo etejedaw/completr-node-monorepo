@@ -129,4 +129,11 @@
 	</li>
 	}
 </ul>
-} }
+} } @if (unfollowTarget(); as target) {
+<app-unfollow-confirm-dialog
+	[username]="target.username"
+	[busy]="isBusy(target)"
+	(confirmed)="confirmUnfollow()"
+	(cancelled)="cancelUnfollow()"
+/>
+}

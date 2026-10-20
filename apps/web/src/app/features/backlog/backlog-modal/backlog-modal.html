@@ -74,7 +74,10 @@
 			<p class="m-0 mt-3 mb-2 text-xs text-fg-secondary">
 				Which game are you playing?
 			</p>
-			<ul class="list-none m-0 p-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
+			<ul
+				#compilationOptions
+				class="list-none m-0 p-0 grid grid-cols-1 sm:grid-cols-2 gap-2"
+			>
 				@for (item of parent.compilationItems!; track item.id) { @if
 				(item.game) {
 				<li>
@@ -129,23 +132,54 @@
 			[value]="''"
 			(valueChange)="onCompilationParentChange($event)"
 		/>
-		} @if (!isEdit()) { @if (platformOptions().length > 0) {
-		<app-option-picker
-			label="Platform"
-			heading="Platform"
-			placeholder="Required — pick one"
-			placeholderIcon="sports_esports"
-			[options]="platformOptions()"
-			[value]="form.platformId().value()"
-			(valueChange)="setPlatform($event)"
+		} @if (!isEdit()) {
+		<div #platformField class="flex flex-col gap-1.5">
+			@if (platformOptions().length > 0) {
+			<app-option-picker
+				label="Platform"
+				heading="Platform"
+				placeholder="Required — pick one"
+				placeholderIcon="sports_esports"
+				[options]="platformOptions()"
+				[value]="form.platformId().value()"
+				[invalid]="showPlatformError()"
+				[describedBy]="showPlatformError() ? 'platform-error' : null"
+				(valueChange)="setPlatform($event)"
+			/>
+			@if (showPlatformError()) {
+			<p
+				id="platform-error"
+				class="m-0 flex items-center gap-1 text-xs text-danger"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>error_outline</span
+				>
+				{{ form.platformId().errors()[0]?.message }}
+			</p>
+			} } @else {
+			<p
+				tabindex="-1"
+				class="m-0 px-3 py-2.5 rounded-card border border-dashed border-line text-[0.8125rem] text-fg-muted"
+			>
+				This game has no platforms in the catalog yet, so it can't be
+				added.
+			</p>
+			}
+		</div>
+		}
+
+		<app-backlog-reference-fields
+			[score]="form.score"
+			[duration]="form.duration"
+			[scores]="gameScores()"
+			[times]="gameTimes()"
+			[showSourcesWhenEmpty]="!isEdit()"
+			[reportFeedback]="reportFeedback()"
+			[(activeScoreSource)]="activeScoreSource"
+			[(activeDurationSource)]="activeDurationSource"
+			[(expanded)]="referenceExpanded"
+			(missingReported)="reportMissing($event)"
 		/>
-		} @else {
-		<p
-			class="m-0 px-3 py-2.5 rounded-card border border-dashed border-line text-[0.8125rem] text-fg-muted"
-		>
-			This game has no platforms in the catalog yet, so it can't be added.
-		</p>
-		} }
 
 		<div class="flex flex-col divide-y divide-line border-y border-line">
 			<div class="flex items-center gap-3 min-h-[52px] py-2">
@@ -184,14 +218,6 @@
 			<ui-tab-list
 				class="!mb-4 sticky -top-1 bg-sidebar z-10 -mx-1 px-1 pt-1"
 			>
-				<button uiTab value="reference" type="button">
-					<span
-						aria-hidden="true"
-						class="material-icons text-base mr-1 align-middle"
-						>analytics</span
-					>
-					Reference
-				</button>
 				<button uiTab value="tracking" type="button">
 					<span
 						aria-hidden="true"
@@ -209,193 +235,6 @@
 					Notes
 				</button>
 			</ui-tab-list>
-
-			<div uiTabPanel value="reference" class="pt-1">
-				<div class="flex items-center justify-between gap-3 mb-1">
-					<h3
-						class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-[0.16em]"
-					>
-						Reference data
-					</h3>
-					<div class="flex items-center gap-1.5">
-						<span
-							class="text-[0.625rem] uppercase tracking-[0.16em] text-fg-muted"
-							>Ratio</span
-						>
-						<span
-							class="font-display text-base font-bold tabular-nums"
-							[class.text-brand]="ratio() !== null"
-							[class.text-fg-muted]="ratio() === null"
-							>{{ ratio() ?? '—' }}</span
-						>
-						<button
-							type="button"
-							class="tap-area bg-none border-0 p-0 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
-							(click)="toggleTooltip('ratio')"
-							aria-label="What is the ratio?"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-sm"
-								>info</span
-							>
-						</button>
-					</div>
-				</div>
-				<p class="text-[0.75rem] text-fg-muted m-0 mb-3 leading-snug">
-					Critic score and estimated duration from external sources.
-					Your personal data lives in the Tracking tab.
-				</p>
-
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
-					<div>
-						<label
-							for="score"
-							class="flex items-center gap-1 mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-							>Critic Score
-							<span class="text-danger font-bold">*</span>
-							<button
-								type="button"
-								class="tap-area bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
-								(click)="toggleTooltip('score')"
-								aria-label="Info"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-sm"
-									>info</span
-								>
-							</button>
-						</label>
-						@if (gameScores().length > 0 || (selectedGame() &&
-						!isEdit())) {
-						<div
-							class="min-h-[26px] mb-2 flex flex-wrap items-center gap-1.5"
-						>
-							@if (gameScores().length > 0) {
-							<app-chip-group
-								mode="single"
-								label="Score sources"
-								[allowEmpty]="false"
-								[options]="scoreChipOptions()"
-								[value]="[activeScoreSource()]"
-								(valueChange)="pickScoreSource($event)"
-							/>
-							} @else {
-							<span
-								class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-[0.75rem]"
-									>help_outline</span
-								>
-								No sources.
-								<button
-									type="button"
-									class="tap-area bg-none border-0 p-0 text-brand cursor-pointer hover:underline"
-									(click)="reportMissing('missing_score')"
-								>
-									Report missing
-								</button>
-							</span>
-							}
-						</div>
-						}
-						<div class="relative">
-							<input
-								id="score"
-								type="number"
-								[formField]="form.score"
-								placeholder="0–5"
-								step="0.1"
-								uiInput
-								class="pr-9"
-								(input)="onScoreManualChange()"
-							/>
-							<span
-								class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fg-muted pointer-events-none select-none"
-								>/5</span
-							>
-						</div>
-					</div>
-					<div>
-						<label
-							for="duration"
-							class="flex items-center gap-1 mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-							>Duration (h)
-							<span class="text-danger font-bold">*</span>
-							<button
-								type="button"
-								class="tap-area bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
-								(click)="toggleTooltip('duration')"
-								aria-label="Info"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-sm"
-									>info</span
-								>
-							</button>
-						</label>
-						@if (gameTimes().length > 0 || (selectedGame() &&
-						!isEdit())) {
-						<div
-							class="min-h-[26px] mb-2 flex flex-wrap items-center gap-1.5"
-						>
-							@if (gameTimes().length > 0) {
-							<app-chip-group
-								mode="single"
-								label="Duration sources"
-								[allowEmpty]="false"
-								[options]="durationChipOptions()"
-								[value]="[activeDurationSource()]"
-								(valueChange)="pickDurationSource($event)"
-							/>
-							} @else {
-							<span
-								class="inline-flex items-center gap-1 text-[0.625rem] text-fg-muted"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-[0.75rem]"
-									>help_outline</span
-								>
-								No sources.
-								<button
-									type="button"
-									class="tap-area bg-none border-0 p-0 text-brand cursor-pointer hover:underline"
-									(click)="reportMissing('missing_duration')"
-								>
-									Report missing
-								</button>
-							</span>
-							}
-						</div>
-						}
-						<input
-							id="duration"
-							type="number"
-							[formField]="form.duration"
-							placeholder="HowLongToBeat estimate"
-							step="0.5"
-							uiInput
-							(input)="onDurationManualChange()"
-						/>
-					</div>
-				</div>
-				@if (referenceTooltipText()) {
-				<p
-					class="mt-3 mb-0 text-[0.75rem] text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug"
-				>
-					{{ referenceTooltipText() }}
-				</p>
-				} @if (reportFeedback()) {
-				<p class="mt-2 mb-0 text-[0.75rem] text-success">
-					{{ reportFeedback() }}
-				</p>
-				}
-			</div>
 
 			<div uiTabPanel value="tracking" class="pt-1">
 				<div class="flex items-baseline justify-between mb-3">
@@ -502,11 +341,11 @@
 						/>
 					</div>
 				</div>
-				} @if (trackingTooltipText()) {
+				} @if (tooltipText()) {
 				<p
 					class="mt-1 mb-4 text-[0.75rem] text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug"
 				>
-					{{ trackingTooltipText() }}
+					{{ tooltipText() }}
 				</p>
 				} @if (isEdit()) {
 				<div class="mb-4 pt-3 border-t border-line">
@@ -527,23 +366,32 @@
 						<li
 							class="flex items-center gap-2 rounded-card border border-line bg-input-bg pl-2.5 pr-1 py-1"
 						>
-							<ui-avatar
-								class="w-7 h-7 text-[0.625rem] shrink-0"
-								[src]="member.avatarUrl"
-								[name]="member.name || member.username"
-							/>
-							<div class="flex-1 min-w-0">
-								<span
-									class="block text-xs font-medium text-fg line-clamp-1"
-									>{{ member.name || member.username }}</span
-								>
-								<span
-									class="block text-[0.625rem] text-fg-muted"
-									>{{ member.status }} · {{
-									member.realDuration ? member.realDuration +
-									'h' : '—' }}</span
-								>
-							</div>
+							<a
+								class="group flex-1 min-w-0 flex items-center gap-2 tap:min-h-[44px] rounded-sm no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+								[routerLink]="['/user', member.username]"
+								(click)="onClose()"
+							>
+								<ui-avatar
+									class="w-7 h-7 text-[0.625rem] shrink-0"
+									[src]="member.avatarUrl"
+									[name]="member.name || member.username"
+								/>
+								<span class="flex-1 min-w-0">
+									<span
+										class="block text-xs font-medium text-fg line-clamp-1 group-hover:text-brand group-hover:underline underline-offset-2"
+										>{{ member.name || member.username
+										}}<span class="sr-only"
+											>, view profile</span
+										></span
+									>
+									<span
+										class="block text-[0.625rem] text-fg-muted"
+										>{{ member.status }} · {{
+										member.realDuration ?
+										member.realDuration + 'h' : '—' }}</span
+									>
+								</span>
+							</a>
 							<button
 								uiButton
 								variant="ghost"
@@ -846,15 +694,47 @@
 		<button uiButton variant="ghost" type="button" (click)="onClose()">
 			Cancel
 		</button>
-		<button
-			uiButton
-			variant="primary"
-			type="submit"
-			form="backlog-entry-form"
-			[disabled]="form().invalid() || isLoading()"
+		<p
+			id="backlog-missing-fields"
+			aria-live="polite"
+			class="empty:hidden m-0 max-md:!basis-full flex flex-wrap items-center gap-x-1 text-xs text-fg-muted"
+			[class]="isEdit() ? '' : 'md:mr-auto'"
 		>
-			{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Add" }}
-		</button>
+			@if (missingFields().length > 0) {
+			<span aria-hidden="true" class="material-icons text-sm text-danger"
+				>error_outline</span
+			>
+			<span>Missing:</span>
+			@for (field of missingFields(); track field; let last = $last) {
+			<button
+				type="button"
+				class="tap:min-h-[44px] px-0.5 bg-transparent border-0 font-medium text-danger underline-offset-2 cursor-pointer hover:underline focus-visible:outline-2 focus-visible:outline-brand rounded-sm"
+				(click)="focusMissingField(field)"
+			>
+				{{ missingFieldLabels[field] }}
+			</button>
+			@if (!last) {
+			<span aria-hidden="true">·</span>
+			} } }
+		</p>
+		<span
+			class="inline-flex"
+			[class.cursor-not-allowed]="form().invalid()"
+			(pointerenter)="revealMissingFields()"
+		>
+			<button
+				uiButton
+				variant="primary"
+				type="submit"
+				form="backlog-entry-form"
+				class="max-md:!w-full"
+				[class.pointer-events-none]="form().invalid()"
+				[attr.aria-describedby]="missingFields().length > 0 ? 'backlog-missing-fields' : null"
+				[disabled]="form().invalid() || isLoading()"
+			>
+				{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Add" }}
+			</button>
+		</span>
 		}
 	</ng-container>
 </ui-dialog>

@@ -4,9 +4,11 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	type ElementRef,
 	inject,
 	type OnInit,
-	signal
+	signal,
+	viewChild
 } from "@angular/core";
 import { form, FormField, max, min, required } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
@@ -19,10 +21,6 @@ import { type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
-import {
-	ChipGroup,
-	type ChipOption
-} from "../../../shared/components/chip-group/chip-group";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
@@ -81,6 +79,20 @@ import {
 	type UpdateBacklogDto
 } from "../backlog";
 import { BacklogEntrySummary } from "./components/backlog-entry-summary";
+import {
+	BacklogReferenceFields,
+	type MissingReferenceCategory
+} from "./components/backlog-reference-fields";
+import { scrollIntoViewAndFocus } from "./focus-field";
+import {
+	MAX_CRITIC_SCORE,
+	MIN_REFERENCE_VALUE,
+	NO_REFERENCE_PICK,
+	pickDefaultDuration,
+	type ReferencePick,
+	roundReferenceValue,
+	toCriticScore
+} from "./reference-values";
 
 export interface BacklogModalData {
 	entry: BacklogEntry | null;
@@ -101,11 +113,27 @@ const BACKLOG_FORM_STATUS_OPTIONS: readonly PickerOption[] =
 
 const STANDALONE_RUN = "";
 
+type MissingField = "game" | "platform" | "score" | "duration";
+type TrackingTooltip = "rating" | "realDuration";
+
+const TRACKING_TOOLTIP_TEXTS: Record<TrackingTooltip, string> = {
+	rating: "Your personal rating (0.5–5 stars). Independent of critic score.",
+	realDuration:
+		"Hours you actually spent. Used to calculate your Personal Ratio."
+};
+
+const MISSING_FIELD_LABELS: Record<MissingField, string> = {
+	game: "Game",
+	platform: "Platform",
+	score: "Critic score",
+	duration: "Duration"
+};
+
 @Component({
 	selector: "app-backlog-modal",
 	imports: [
 		UiAlert,
-		ChipGroup,
+		BacklogReferenceFields,
 		DatePipe,
 		FormField,
 		RouterLink,
@@ -147,40 +175,27 @@ export class BacklogModal implements OnInit {
 	private readonly toast = inject(ToastService);
 	private readonly http = inject(HttpClient);
 
+	private readonly compilationOptions =
+		viewChild<ElementRef<HTMLElement>>("compilationOptions");
+	private readonly platformField =
+		viewChild<ElementRef<HTMLElement>>("platformField");
+	private readonly referenceFields = viewChild(BacklogReferenceFields);
+
 	protected readonly reportFeedback = signal("");
-	protected readonly openTooltip = signal<string | null>(null);
 
-	private static readonly TOOLTIP_TEXTS: Record<string, string> = {
-		ratio: "Ratio = (Critic Score ÷ Duration) × 20, scaled to 0–100. Higher means short and well-rated — useful to prioritize what to play next.",
-		score: "Average score from critics (Metacritic, OpenCritic, RAWG). Stored on a 0–5 scale — clicking a source button auto-normalizes the value for you.",
-		duration:
-			"Estimated playtime from HowLongToBeat or RAWG. Not your real playtime — that goes in Real Duration below.",
-		rating: "Your personal rating (0.5–5 stars). Independent of critic score.",
-		realDuration:
-			"Hours you actually spent. Used to calculate your Personal Ratio."
-	};
-
-	protected readonly referenceTooltipText = computed(() => {
-		const id = this.openTooltip();
-		if (id === "score" || id === "duration" || id === "ratio") {
-			return BacklogModal.TOOLTIP_TEXTS[id];
-		}
-		return null;
+	protected readonly openTooltip = signal<TrackingTooltip | null>(null);
+	protected readonly tooltipText = computed(() => {
+		const tooltip = this.openTooltip();
+		return tooltip ? TRACKING_TOOLTIP_TEXTS[tooltip] : null;
 	});
 
-	protected readonly trackingTooltipText = computed(() => {
-		const id = this.openTooltip();
-		if (id === "rating" || id === "realDuration") {
-			return BacklogModal.TOOLTIP_TEXTS[id];
-		}
-		return null;
-	});
-
-	toggleTooltip(id: string) {
-		this.openTooltip.update(current => (current === id ? null : id));
+	protected toggleTooltip(tooltip: TrackingTooltip) {
+		this.openTooltip.update(current =>
+			current === tooltip ? null : tooltip
+		);
 	}
 
-	reportMissing(category: "missing_score" | "missing_duration") {
+	protected reportMissing(category: MissingReferenceCategory) {
 		const game = this.selectedGame();
 		if (!game) return;
 		const message =
@@ -252,19 +267,6 @@ export class BacklogModal implements OnInit {
 	protected readonly gameTimes = computed(
 		() => this.selectedGame()?.times ?? []
 	);
-	protected readonly scoreChipOptions = computed<ChipOption[]>(() =>
-		this.gameScores().map(entry => ({
-			value: entry.source,
-			label: `${entry.source} ${entry.score}${this.getScaleLabel(entry.source)}`
-		}))
-	);
-	protected readonly durationChipOptions = computed<ChipOption[]>(() =>
-		this.gameTimes().map(entry => ({
-			value: entry.source,
-			label: `${entry.source} ${entry.duration}h`
-		}))
-	);
-
 	protected readonly compilationParentOptions = computed<PickerOption[]>(
 		() => [
 			{
@@ -284,9 +286,7 @@ export class BacklogModal implements OnInit {
 	protected readonly viewMode = signal<"summary" | "edit">("edit");
 	protected readonly heading = computed(() => {
 		if (!this.isEdit()) return "Add to My Games";
-		return this.viewMode() === "summary"
-			? this.entry!.game.title
-			: "Edit run";
+		return this.viewMode() === "summary" ? "Your run" : "Edit run";
 	});
 	protected readonly isSearchStep = computed(
 		() =>
@@ -300,9 +300,8 @@ export class BacklogModal implements OnInit {
 			? this.entry!.game.title
 			: null;
 	});
-	protected readonly activeFormTab = signal<
-		"reference" | "tracking" | "notes"
-	>("tracking");
+	protected readonly activeFormTab = signal<"tracking" | "notes">("tracking");
+	protected readonly referenceExpanded = signal(false);
 
 	switchToEdit() {
 		this.viewMode.set("edit");
@@ -326,25 +325,35 @@ export class BacklogModal implements OnInit {
 	});
 
 	readonly form = form(this.model, path => {
-		required(path.gameId);
-		required(path.platformId);
-		required(path.score);
-		min(path.score, 0.01);
-		max(path.score, 5);
-		required(path.duration);
-		min(path.duration, 0.01);
+		required(path.gameId, { message: "Pick a game" });
+		required(path.platformId, { message: "Pick a platform" });
+		required(path.score, { message: "Required to compute the ratio" });
+		min(path.score, MIN_REFERENCE_VALUE, {
+			message: "Must be greater than 0"
+		});
+		max(path.score, MAX_CRITIC_SCORE, {
+			message: `Max ${MAX_CRITIC_SCORE}`
+		});
+		required(path.duration, { message: "Required to compute the ratio" });
+		min(path.duration, MIN_REFERENCE_VALUE, {
+			message: "Must be greater than 0"
+		});
 	});
 
-	private readonly scoreValue = computed(() => this.form.score().value());
-	private readonly durationValue = computed(() =>
-		this.form.duration().value()
-	);
-	protected readonly ratio = computed(() => {
-		const s = this.scoreValue();
-		const d = this.durationValue();
-		if (s === null || s === undefined || !d || d <= 0) return null;
-		return Math.round((s / d) * 20 * 100) / 100;
+	protected readonly missingFields = computed<MissingField[]>(() => {
+		if (this.isSearchStep()) return [];
+		if (this.form.gameId().invalid()) return ["game"];
+		const missing: MissingField[] = [];
+		if (this.form.platformId().invalid()) missing.push("platform");
+		if (this.form.score().invalid()) missing.push("score");
+		if (this.form.duration().invalid()) missing.push("duration");
+		return missing;
 	});
+	protected readonly missingFieldLabels = MISSING_FIELD_LABELS;
+	protected readonly showPlatformError = computed(
+		() =>
+			this.form.platformId().touched() && this.form.platformId().invalid()
+	);
 
 	private readonly statusValue = computed(() => this.form.status().value());
 	protected readonly showTrackingDetails = computed(
@@ -619,8 +628,8 @@ export class BacklogModal implements OnInit {
 			this.model.set({
 				gameId: e.game.id,
 				platformId: e.platform.id,
-				score: e.score ?? null,
-				duration: e.duration ?? null,
+				score: roundReferenceValue(e.score),
+				duration: roundReferenceValue(e.duration),
 				status: e.status,
 				startedAt: e.startedAt ? e.startedAt.split("T")[0] : null,
 				finishedAt: e.finishedAt ? e.finishedAt.split("T")[0] : null,
@@ -686,8 +695,9 @@ export class BacklogModal implements OnInit {
 			.getGameTags(game.id)
 			.subscribe(tags => this.moodTags.set(tags));
 
-		const duration = this.pickDuration(game);
+		const duration = pickDefaultDuration(game.times);
 		this.activeDurationSource.set(duration.source);
+		this.referenceExpanded.set(false);
 
 		const platforms = game.platforms ?? [];
 		this.model.update(m => ({
@@ -761,42 +771,19 @@ export class BacklogModal implements OnInit {
 		this.applyGameSelection(game);
 	}
 
-	applyScore(source: string, score: number) {
-		this.activeScoreSource.set(source);
-		const normalized = this.scoreSourcesService.normalize(score, source);
-		this.model.update(m => ({ ...m, score: normalized }));
+	protected revealMissingFields() {
+		this.form().markAsTouched();
 	}
 
-	protected pickScoreSource(values: readonly string[]) {
-		const entry = this.gameScores().find(item => item.source === values[0]);
-		if (entry) this.applyScore(entry.source, entry.score);
-	}
-
-	protected pickDurationSource(values: readonly string[]) {
-		const entry = this.gameTimes().find(item => item.source === values[0]);
-		if (entry) this.applyDuration(entry.source, entry.duration);
-	}
-
-	applyDuration(source: string, duration: number) {
-		this.activeDurationSource.set(source);
-		this.model.update(m => ({ ...m, duration }));
-	}
-
-	onScoreManualChange() {
-		this.activeScoreSource.set("");
-		const current = this.form.score().value();
-		if (current !== null && current !== undefined && current > 5) {
-			this.form.score().value.set(5);
+	protected focusMissingField(field: MissingField) {
+		this.revealMissingFields();
+		if (field === "score" || field === "duration") {
+			this.referenceFields()?.focusField(field);
+			return;
 		}
-	}
-
-	onDurationManualChange() {
-		this.activeDurationSource.set("");
-	}
-
-	getScaleLabel(source: string): string {
-		const scale = this.scoreSourcesService.getScale(source);
-		return scale ? `/${scale}` : "";
+		const target =
+			field === "game" ? this.compilationOptions() : this.platformField();
+		if (target) scrollIntoViewAndFocus(target.nativeElement);
 	}
 
 	private prefillScoreOnceSourcesLoad(game: Game) {
@@ -808,7 +795,7 @@ export class BacklogModal implements OnInit {
 		});
 	}
 
-	private pickScore(game: Game): { value: number | null; source: string } {
+	private pickScore(game: Game): ReferencePick {
 		const priority = this.scoreSourcesService
 			.sources()
 			.map(source => source.code);
@@ -816,24 +803,14 @@ export class BacklogModal implements OnInit {
 			const found = game.scores?.find(s => s.source === source);
 			if (found) {
 				return {
-					value: this.scoreSourcesService.normalize(
-						found.score,
-						source
+					value: toCriticScore(
+						this.scoreSourcesService.normalize(found.score, source)
 					),
 					source
 				};
 			}
 		}
-		return { value: null, source: "" };
-	}
-
-	private pickDuration(game: Game): { value: number | null; source: string } {
-		const priority = ["hltb", "rawg", "completr"];
-		for (const source of priority) {
-			const found = game.times?.find(t => t.source === source);
-			if (found) return { value: found.duration, source };
-		}
-		return { value: null, source: "" };
+		return NO_REFERENCE_PICK;
 	}
 
 	clearGame() {
@@ -854,18 +831,7 @@ export class BacklogModal implements OnInit {
 	onSubmit(event: Event) {
 		event.preventDefault();
 		if (this.form().invalid()) {
-			const score = this.scoreValue();
-			const duration = this.durationValue();
-			const scoreBad = score == null || score < 0.01 || score > 5;
-			const durationBad = duration == null || duration < 0.01;
-			if (scoreBad || durationBad) {
-				this.activeFormTab.set("reference");
-				this.error.set(
-					"Set a score (0.01–5) and duration in the Reference tab before adding."
-				);
-			} else {
-				this.error.set("Please complete the required fields.");
-			}
+			this.revealMissingFields();
 			return;
 		}
 		this.isLoading.set(true);

@@ -23,7 +23,7 @@ import { filter } from "rxjs";
 import { AuthService } from "../core/services/auth";
 import { OnboardingService } from "../core/services/onboarding";
 import { avatarRing } from "../core/utils/premium";
-import { roleBadge } from "../core/utils/role-badge";
+import { elevatedRoleBadge } from "../core/utils/role-badge";
 import { AppLogo } from "../shared/components/app-logo/app-logo";
 import { AttributionFooter } from "../shared/components/attribution-footer/attribution-footer";
 import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
@@ -165,7 +165,9 @@ export class Layout implements OnInit {
 		return this.isNavTargetActive(target) ? NAV_ACTIVE_CLASSES : "";
 	}
 
-	protected readonly roleBadge = computed(() => roleBadge(this.user()?.role));
+	protected readonly roleBadge = computed(() =>
+		elevatedRoleBadge(this.user()?.role)
+	);
 	protected readonly avatarRing = computed(() =>
 		avatarRing(this.user()?.role)
 	);

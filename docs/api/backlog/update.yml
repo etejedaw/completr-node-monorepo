@@ -50,8 +50,8 @@ docs: |-
     | startedAt    | date   | No       | ISO date                                   |
     | finishedAt   | date   | No       | ISO date                                   |
     | realDuration | number | No       | Duration in hours                          |
-    | score        | number | No       | Critic score on a 0–5 scale (> 0, max 5)   |
-    | duration     | number | No       | Average duration in hours (> 0)            |
+    | score        | number | No       | Critic score on a 0–5 scale (> 0, max 5, up to 2 decimals) |
+    | duration     | number | No       | Average duration in hours (> 0, up to 2 decimals) |
     | userRating   | number | No       | 0.5–5 in steps of 0.5                      |
     | notes        | string | No       | Free text                                  |
 

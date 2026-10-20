@@ -13,6 +13,7 @@ import { AuthService } from "../../../core/services/auth";
 import { type UserResult } from "../../../core/services/users";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import { UnfollowConfirmDialog } from "../../../shared/components/unfollow-confirm-dialog/unfollow-confirm-dialog";
 import {
 	UiButton,
 	UiEmptyState,
@@ -44,6 +45,7 @@ const CONNECTION_TABS: { kind: ConnectionKind; label: string }[] = [
 		LibraryToolbar,
 		ProfileAccessState,
 		UserCard,
+		UnfollowConfirmDialog,
 		UiButton,
 		UiEmptyState,
 		UiNoMatches,
@@ -57,6 +59,8 @@ export class UserConnections {
 	private readonly route = inject(ActivatedRoute);
 	private readonly socialService = inject(PublicSocialService);
 	private readonly followActions = injectFollowActions();
+
+	protected readonly unfollowTarget = this.followActions.unfollowTarget;
 
 	protected readonly isLoggedIn = inject(AuthService).isLoggedIn;
 	protected readonly tabs = CONNECTION_TABS;
@@ -130,5 +134,13 @@ export class UserConnections {
 
 	protected toggleFollow(user: UserResult) {
 		this.followActions.toggleFollow(user);
+	}
+
+	protected confirmUnfollow() {
+		this.followActions.confirmUnfollow();
+	}
+
+	protected cancelUnfollow() {
+		this.followActions.cancelUnfollow();
 	}
 }

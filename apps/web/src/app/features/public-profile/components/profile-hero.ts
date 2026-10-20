@@ -3,14 +3,13 @@ import {
 	Component,
 	computed,
 	input,
-	output,
-	signal
+	output
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
 import { avatarRing } from "../../../core/utils/premium";
 import { elevatedRoleBadge } from "../../../core/utils/role-badge";
-import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
+import { ProfileBackdrop } from "../../../shared/components/profile-backdrop/profile-backdrop";
 import { UiAvatar, UiButton } from "../../../shared/ui";
 import { type PublicProfile } from "../public-profile.service";
 
@@ -21,7 +20,7 @@ const MEMBER_SINCE_FORMAT = new Intl.DateTimeFormat("en", {
 
 @Component({
 	selector: "app-profile-hero",
-	imports: [RouterLink, CoverUrlPipe, UiAvatar, UiButton],
+	imports: [RouterLink, ProfileBackdrop, UiAvatar, UiButton],
 	templateUrl: "./profile-hero.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -35,11 +34,6 @@ export class ProfileHero {
 
 	readonly followToggled = output<void>();
 	readonly shared = output<void>();
-
-	protected readonly backdropLoaded = signal<string | null>(null);
-	protected readonly isBackdropLoaded = computed(
-		() => this.backdropLoaded() === this.backdropUrl()
-	);
 
 	protected readonly user = computed(() => this.profile().user);
 	protected readonly displayName = computed(

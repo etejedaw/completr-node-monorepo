@@ -1,150 +1,282 @@
 @let e = entry();
-<div class="flex items-start gap-4">
-	<app-game-poster
-		class="w-20 sm:w-24 aspect-[2/3] shrink-0 rounded-md ring-1 ring-white/10 shadow-lg shadow-black/40"
-		[src]="e.game.backgroundUrl"
-		[title]="e.game.title"
-		[width]="200"
-	/>
-	<div class="flex-1 min-w-0 flex flex-col gap-2">
-		<div class="flex flex-wrap items-center gap-2">
-			<span
-				class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
-				[class]="statusClass(e.status)"
-				>{{ statusLabel(e.status) }}</span
-			>
-			<span class="text-[0.8125rem] text-fg-secondary"
-				>{{ e.platform.abbreviation }}</span
-			>
-		</div>
-		@if (e.compilationGame; as compilation) {
-		<a
-			class="tap-area inline-flex items-center gap-1 w-fit px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand-subtle border border-brand/30 no-underline hover:border-brand"
-			[routerLink]="['/games', compilation.code]"
-			[title]="'Part of ' + compilation.title"
-			(click)="navigated.emit()"
-		>
-			<span aria-hidden="true" class="material-icons text-[0.75rem]"
-				>library_books</span
-			>
-			in {{ compilation.title }}
-		</a>
-		}
-		<app-star-rating
-			size="sm"
-			[value]="e.userRating ?? null"
-			[readonly]="true"
+<section
+	class="relative isolate overflow-hidden -mx-5 md:-mx-6 px-5 md:px-6 pt-5 pb-5 border-b border-line"
+	aria-labelledby="summary-game-heading"
+>
+	<div aria-hidden="true" class="absolute inset-0 -z-10">
+		@if (e.game.backgroundUrl; as art) {
+		<img
+			[src]="art | coverUrl: 640"
+			alt=""
+			class="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-60 saturate-150"
 		/>
+		<img
+			[src]="art | coverUrl: 640"
+			alt=""
+			class="absolute inset-0 w-full h-full object-cover opacity-35 [mask-image:linear-gradient(to_left,black_15%,transparent_80%)]"
+		/>
+		} @else {
+		<div class="absolute inset-0 bg-surface"></div>
+		}
+		<div
+			class="absolute inset-0 bg-gradient-to-t from-sidebar via-sidebar/75 to-sidebar/25"
+		></div>
+		<div
+			class="absolute inset-0 bg-gradient-to-r from-sidebar/80 via-sidebar/30 to-transparent"
+		></div>
+		<div
+			class="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-sidebar to-transparent"
+		></div>
+	</div>
+
+	<div class="flex items-end gap-4 sm:gap-5">
+		<app-game-poster
+			class="w-24 sm:w-28 aspect-[2/3] shrink-0 rounded-lg ring-1 ring-white/15 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.9)]"
+			[src]="e.game.backgroundUrl"
+			[title]="e.game.title"
+			[width]="420"
+		/>
+		<div class="flex-1 min-w-0 flex flex-col items-start gap-2.5 pb-0.5">
+			<div class="flex flex-wrap items-center gap-1.5">
+				<span
+					class="inline-flex items-center gap-1 h-7 pl-1.5 pr-2.5 rounded-full bg-sidebar/80 border border-line backdrop-blur-sm text-xs font-semibold text-fg"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-base"
+						[class]="statusIconColor(e.status)"
+						>{{ statusIcon(e.status) }}</span
+					>
+					{{ statusLabel(e.status) }}
+				</span>
+				<span
+					class="inline-flex items-center h-7 px-2.5 rounded-full bg-sidebar/80 border border-line backdrop-blur-sm text-xs font-medium text-fg-secondary"
+					>{{ e.platform.abbreviation }}</span
+				>
+			</div>
+			<h3
+				id="summary-game-heading"
+				class="m-0 font-display text-xl sm:text-2xl font-bold tracking-tight leading-tight text-fg text-balance break-words drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]"
+			>
+				<a
+					class="group inline rounded-sm text-inherit no-underline hover:underline decoration-brand decoration-2 underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+					[routerLink]="['/games', e.game.code]"
+					(click)="navigated.emit()"
+					>{{ e.game.title }}<span
+						aria-hidden="true"
+						class="material-icons ml-1 align-middle text-lg text-fg-muted transition group-hover:text-brand"
+						>arrow_outward</span
+					></a
+				>
+			</h3>
+			@if (e.compilationGame; as compilation) {
+			<a
+				class="tap-area inline-flex items-center gap-1 max-w-full px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand-subtle border border-brand/30 no-underline hover:border-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+				[routerLink]="['/games', compilation.code]"
+				[title]="'Part of ' + compilation.title"
+				(click)="navigated.emit()"
+			>
+				<span aria-hidden="true" class="material-icons text-[0.75rem]"
+					>library_books</span
+				>
+				<span class="truncate">in {{ compilation.title }}</span>
+			</a>
+			}
+		</div>
+	</div>
+</section>
+
+<div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+	<section
+		class="rounded-card border border-line bg-surface p-3.5"
+		aria-labelledby="summary-tracking-heading"
+	>
+		<h3
+			id="summary-tracking-heading"
+			class="m-0 flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+		>
+			<span aria-hidden="true" class="material-icons text-sm text-brand"
+				>sports_esports</span
+			>
+			Tracking
+		</h3>
+		<dl class="m-0 mt-2">
+			<div
+				class="flex items-center justify-between gap-3 min-h-[36px] border-b border-line/60"
+			>
+				<dt class="text-xs text-fg-muted">Your rating</dt>
+				<dd class="m-0">
+					@if (e.userRating) {
+					<app-star-rating
+						size="sm"
+						[value]="e.userRating"
+						[readonly]="true"
+					/>
+					} @else {
+					<span class="text-sm text-fg-muted">Not rated</span>
+					}
+				</dd>
+			</div>
+			@for (fact of runFacts(); track fact.label) {
+			<div
+				class="flex items-center justify-between gap-3 min-h-[36px] border-b border-line/60 last:border-b-0"
+			>
+				<dt class="text-xs text-fg-muted">{{ fact.label }}</dt>
+				<dd
+					class="m-0 text-sm font-medium text-fg tabular-nums text-right"
+				>
+					{{ fact.value }}
+				</dd>
+			</div>
+			}
+		</dl>
+	</section>
+
+	<section
+		class="rounded-card border border-line bg-surface p-3.5 flex flex-col"
+		aria-labelledby="summary-reference-heading"
+	>
+		<h3
+			id="summary-reference-heading"
+			class="m-0 flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+		>
+			<span aria-hidden="true" class="material-icons text-sm text-brand"
+				>analytics</span
+			>
+			Reference
+		</h3>
+		<dl class="m-0 mt-2">
+			@for (fact of referenceFacts(); track fact.label) {
+			<div
+				class="flex items-center justify-between gap-3 min-h-[36px] border-b border-line/60"
+			>
+				<dt class="text-xs text-fg-muted">{{ fact.label }}</dt>
+				<dd
+					class="m-0 text-sm font-medium text-fg tabular-nums text-right"
+				>
+					{{ fact.value }}
+				</dd>
+			</div>
+			}
+		</dl>
 		@if (hasRatio()) {
 		<app-ratio-summary
-			class="self-start"
+			class="mt-auto pt-3 justify-end"
 			[ratio]="e.ratio"
 			[personalRatio]="e.personalRatio"
 		/>
+		} @else {
+		<p class="m-0 mt-auto pt-3 text-xs text-fg-muted text-right">
+			Add critic score and duration to get a ratio.
+		</p>
 		}
-	</div>
+	</section>
 </div>
 
-<dl class="m-0 mt-5 grid grid-cols-2 sm:grid-cols-3 gap-2">
-	@for (fact of facts(); track fact.label) {
-	<div class="bg-input-bg border border-line rounded-card px-3 py-2.5">
-		<dt
-			class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-		>
-			{{ fact.label }}
-		</dt>
-		<dd class="m-0 mt-0.5 text-sm text-fg tabular-nums">
-			{{ fact.value }}
-		</dd>
-	</div>
-	}
-</dl>
-
-@if (moodTags().length > 0) {
-<ul
-	class="list-none m-0 mt-4 p-0 flex flex-wrap gap-1.5"
-	aria-label="Mood tags"
->
-	@for (tag of moodTags(); track tag) {
-	<li
-		class="px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-xs font-medium"
+@if (hasJournal()) {
+<div class="mt-5 flex flex-col gap-4">
+	@if (latestProgress(); as progress) {
+	<section
+		class="rounded-card border border-line bg-input-bg p-3 flex items-start gap-2.5"
+		aria-labelledby="summary-progress-heading"
 	>
-		{{ tag }}
-	</li>
+		<span
+			aria-hidden="true"
+			class="material-icons text-base text-brand mt-px"
+			>bookmark</span
+		>
+		<div class="flex-1 min-w-0">
+			<h3
+				id="summary-progress-heading"
+				class="m-0 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+			>
+				Where I am
+			</h3>
+			<p
+				class="m-0 mt-1 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap break-words"
+			>
+				{{ progress.note }}
+			</p>
+			<p class="m-0 mt-1.5 text-[0.6875rem] text-fg-muted tabular-nums">
+				{{ progress.createdAt | date: "MMM d, y · HH:mm" }}
+			</p>
+		</div>
+	</section>
+	} @if (e.notes; as notes) {
+	<figure class="m-0 border-l-2 border-line-hover pl-3">
+		<figcaption
+			class="mb-1 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+		>
+			Notes
+		</figcaption>
+		<div
+			class="text-[0.8125rem] leading-relaxed text-fg-secondary whitespace-pre-wrap break-words"
+		>
+			<app-expandable-text [text]="notes" [lines]="4" />
+		</div>
+	</figure>
+	} @if (e.hasReview && e.reviewContent) {
+	<figure class="m-0 border-l-2 border-brand pl-3">
+		<figcaption
+			class="mb-1 flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-brand"
+		>
+			<span aria-hidden="true" class="material-icons text-sm"
+				>rate_review</span
+			>
+			Review
+		</figcaption>
+		<blockquote
+			class="m-0 text-[0.8125rem] leading-relaxed text-fg-secondary whitespace-pre-wrap break-words"
+		>
+			<app-expandable-text [text]="e.reviewContent" [lines]="4" />
+		</blockquote>
+	</figure>
 	}
-</ul>
-} @if (latestProgress(); as progress) {
-<div
-	class="mt-4 bg-input-bg border border-line rounded-card p-3 flex items-start gap-2"
->
-	<span aria-hidden="true" class="material-icons text-base text-brand mt-px"
-		>bookmark</span
-	>
-	<div class="flex-1 min-w-0">
-		<p
-			class="m-0 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-		>
-			Where I am
-		</p>
-		<p
-			class="m-0 mt-1 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap break-words"
-		>
-			{{ progress.note }}
-		</p>
-		<p class="m-0 mt-1 text-[0.625rem] text-fg-muted tabular-nums">
-			{{ progress.createdAt | date: "MMM d, y · HH:mm" }}
-		</p>
-	</div>
 </div>
-} @if (e.notes) {
-<figure class="m-0 mt-4 border-l-2 border-line-hover pl-3">
-	<figcaption
-		class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted mb-1"
-	>
-		Notes
-	</figcaption>
-	<p class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap">
-		{{ e.notes }}
-	</p>
-</figure>
-} @if (e.hasReview && e.reviewContent) {
-<figure class="m-0 mt-4 border-l-2 border-brand pl-3">
-	<figcaption
-		class="flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-brand mb-1"
-	>
-		<span aria-hidden="true" class="material-icons text-sm"
-			>rate_review</span
-		>
-		Review
-	</figcaption>
-	<blockquote
-		class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap"
-	>
-		{{ e.reviewContent }}
-	</blockquote>
-</figure>
-} @if (coopMembers().length > 0) {
-<div class="mt-4">
-	<p
+} @if (moodTags().length > 0) {
+<section class="mt-5" aria-labelledby="summary-mood-heading">
+	<h3
+		id="summary-mood-heading"
 		class="m-0 mb-2 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
 	>
-		Played with
-	</p>
-	<ul class="list-none m-0 p-0 flex flex-wrap gap-2">
-		@for (member of coopMembers(); track member.userId) {
+		Mood
+	</h3>
+	<ul class="list-none m-0 p-0 flex flex-wrap gap-1.5">
+		@for (tag of moodTags(); track tag) {
 		<li
-			class="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full bg-surface border border-line"
+			class="px-2.5 py-1 rounded-full bg-brand-subtle text-brand text-xs font-medium"
 		>
-			<ui-avatar
-				class="w-6 h-6 text-[0.625rem]"
-				[src]="member.avatarUrl"
-				[name]="member.name || member.username"
-			/>
-			<span class="text-xs text-fg-secondary"
-				>{{ member.name || member.username }}</span
-			>
+			{{ tag }}
 		</li>
 		}
 	</ul>
-</div>
+</section>
+} @if (coopMembers().length > 0) {
+<section class="mt-5" aria-labelledby="summary-coop-heading">
+	<h3
+		id="summary-coop-heading"
+		class="m-0 mb-2 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+	>
+		Played with
+	</h3>
+	<ul class="list-none m-0 p-0 flex flex-wrap gap-2">
+		@for (member of coopMembers(); track member.userId) {
+		<li>
+			<a
+				class="inline-flex items-center gap-2 min-h-[36px] tap:min-h-[44px] pl-1 pr-3 rounded-full bg-surface border border-line text-xs font-medium text-fg-secondary no-underline transition hover:border-brand hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+				[routerLink]="['/user', member.username]"
+				(click)="navigated.emit()"
+			>
+				<ui-avatar
+					class="w-7 h-7 text-[0.625rem]"
+					[src]="member.avatarUrl"
+					[name]="memberName(member)"
+				/>
+				{{ memberName(member) }}
+				<span class="sr-only">, view profile</span>
+			</a>
+		</li>
+		}
+	</ul>
+</section>
 }

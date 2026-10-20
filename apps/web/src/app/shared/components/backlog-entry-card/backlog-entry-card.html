@@ -58,6 +58,19 @@
 						>play_arrow</span
 					>
 				</button>
+				} @else if (item.status === 'playing' && !readonly()) {
+				<button
+					type="button"
+					class="max-sm:hidden absolute top-1 right-1 flex items-center justify-center w-8 h-8 tap:min-w-[44px] tap:min-h-[44px] rounded-full bg-success text-canvas shadow-lg shadow-success/40 ring-2 ring-line opacity-0 group-hover/row:opacity-100 pointer-coarse:opacity-100 hover:scale-110 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-0"
+					[disabled]="statusUpdating()"
+					(click)="completeRequested.emit($event)"
+					title="Mark as completed"
+					aria-label="Mark as completed"
+				>
+					<span aria-hidden="true" class="material-icons text-lg"
+						>{{ statusIcon('completed') }}</span
+					>
+				</button>
 				}
 			</div>
 			<div class="flex-1 min-w-0 flex flex-col gap-1.5">
@@ -465,6 +478,18 @@
 			>play_arrow</span
 		>
 		Play
+	</button>
+	} @else if (item.status === 'playing' && !readonly()) {
+	<button
+		type="button"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-success cursor-pointer active:bg-surface-hover disabled:opacity-50"
+		[disabled]="statusUpdating()"
+		(click)="completeRequested.emit($event)"
+	>
+		<span aria-hidden="true" class="material-icons text-xl"
+			>{{ statusIcon('completed') }}</span
+		>
+		Complete
 	</button>
 	}
 </div>

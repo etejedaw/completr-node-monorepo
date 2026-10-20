@@ -43,7 +43,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - El estado actual del usuario sobre un juego se deriva del backlog más reciente.
 - `playCount` se calcula contando los backlogs del usuario sobre el juego.
 - `userRating`: escala 0.5–5, paso de medio punto.
-- `score` y `duration`: requeridos y positivos al crear. `score` va en escala 0–5 (máximo 5, validado en el schema); las notas de fuentes en otra escala se normalizan antes de enviarse.
+- `score` y `duration`: requeridos y positivos al crear, con máximo 2 decimales (con más responde 422, no se redondea). `score` va en escala 0–5 (máximo 5, validado en el schema); las notas de fuentes en otra escala se normalizan antes de enviarse.
 - `realDuration`, `userRating`, `notes`, `startedAt`, `finishedAt`: nullable en update.
 - `notes` se excluye de respuestas públicas siempre.
 - Activity de cambio de status se emite solo cuando el status **realmente** cambia.

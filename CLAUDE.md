@@ -37,6 +37,7 @@ Los documentos del proyecto viven en AFFiNE, workspace `b48542ca-7422-4505-a933-
 | CONTEXT | `mvb07iftyW` | Convenciones de formato, IDs (FB-XXX), estados y severidades |
 | fase-2  | `euAngKluAU` | Feedback de usuarios de Fase 2 + 2.5                         |
 | fase-3  | `Po8jKhI6DJ` | Feedback de usuarios y beta testers de Fase 3                |
+| fase-4  | `r1oZgxGyv3` | Feedback de usuarios de Fase 4                               |
 
 Lee `Trabajo por feature` antes de empezar un ítem de una fase. Lee `Context` con `mcp__affine__export_doc_markdown` antes de empezar una fase nueva, al diseñar modelos o endpoints, o cuando la tarea toque decisiones de producto. Lee el doc de la fase que estés trabajando para saber el estado real de cada ítem; `Reglas de negocio` cuando toques estados, ratio o privacidad; `Premium` cuando toques gating o límites; `Feedback` cuando trabajes un FB-XXX. Para un fix puntual basta con el doc de la fase.
 
