@@ -6,3 +6,5 @@ export const ActivityIdParamsSchema = z
 	})
 	.strict()
 	.readonly();
+
+export type ActivityIdParams = z.infer<typeof ActivityIdParamsSchema>;

@@ -4,6 +4,8 @@ import { ACTIVITY_TYPES } from "../activity.model";
 
 export const FEED_CATEGORIES = ["games", "lists", "social"] as const;
 
+export type FeedCategory = (typeof FEED_CATEGORIES)[number];
+
 export const FeedQuerySchema = z
 	.object({
 		limit: z.coerce.number().int().min(1).max(100).optional(),

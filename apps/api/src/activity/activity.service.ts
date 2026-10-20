@@ -6,6 +6,7 @@ import * as userFollowersService from "../user-followers/user-followers.service"
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
 import { Activity, type ActivityType } from "./activity.model";
+import { type FeedCategory } from "./schemas/feed-query.schema";
 import { ActivityGame } from "./targets/activity-game.model";
 import { ActivityList } from "./targets/activity-list.model";
 import { ActivityUser } from "./targets/activity-user.model";
@@ -115,8 +116,6 @@ export async function getUserActivity(
 	});
 }
 
-export type FeedCategory = "games" | "lists" | "social";
-
 const CATEGORY_TYPES: Record<FeedCategory, readonly string[]> = {
 	games: GAME_TYPES,
 	lists: LIST_TYPES,
@@ -125,7 +124,7 @@ const CATEGORY_TYPES: Record<FeedCategory, readonly string[]> = {
 
 function resolveFeedTypes(filter: {
 	category?: FeedCategory;
-	types?: ActivityType[];
+	types?: readonly ActivityType[];
 }): string[] | undefined {
 	const { category, types } = filter;
 	let allowed: string[] | undefined = category
@@ -143,7 +142,10 @@ export async function getFeed(
 	userId: string,
 	limit = 25,
 	offset = 0,
-	filter: { category?: FeedCategory; types?: ActivityType[] } = {}
+	filter: {
+		category?: FeedCategory;
+		types?: readonly ActivityType[];
+	} = {}
 ) {
 	const followingIds = await userFollowersService.getFollowingIds(userId);
 	const feedUserIds = [userId, ...followingIds];
