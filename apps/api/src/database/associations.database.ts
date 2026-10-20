@@ -22,6 +22,7 @@ import { GameShelf } from "../game-shelf/game-shelf.model";
 import { GameTime } from "../game-times/game-time.model";
 import { Game } from "../games/game.model";
 import { Genre } from "../genres/genres.model";
+import { UserInvitation } from "../invitations/user-invitation.model";
 import { ListFollower } from "../list-followers/list-follower.model";
 import { ListItem } from "../list-items/list-item.model";
 import { List } from "../lists/list.model";
@@ -60,6 +61,7 @@ export function setupAssociations() {
 	scoreSources();
 	refreshTokens();
 	passwordResetTokens();
+	userInvitations();
 	gameReports();
 	userFollowers();
 	userFollowRequests();
@@ -289,6 +291,14 @@ function passwordResetTokens() {
 		onDelete: "CASCADE"
 	});
 	PasswordResetToken.belongsTo(User, { foreignKey: "userId" });
+}
+
+function userInvitations() {
+	User.hasMany(UserInvitation, {
+		foreignKey: "invitedById",
+		onDelete: "SET NULL"
+	});
+	UserInvitation.belongsTo(User, { foreignKey: "invitedById" });
 }
 
 function userFollowers() {

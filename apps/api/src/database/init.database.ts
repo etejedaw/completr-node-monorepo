@@ -24,6 +24,7 @@ import "../game-external/game-external.model";
 import "../score-sources/score-source.model";
 import "../auth/refresh-token.model";
 import "../auth/password-reset-token.model";
+import "../invitations/user-invitation.model";
 import "../game-reports/game-report.model";
 import "../user-followers/user-follower.model";
 import "../user-follow-requests/user-follow-request.model";
