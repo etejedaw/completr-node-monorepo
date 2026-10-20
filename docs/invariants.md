@@ -241,6 +241,17 @@ Reglas:
 - El token es de un solo uso: `POST /auth/reset-password` lo borra al consumirlo, junto con cualquier otro token del usuario, y revoca todas sus sesiones (refresh tokens). Un token desconocido, vencido o ya usado responde 400 `AUTH_INVALID_PASSWORD_RESET_TOKEN`.
 - El link del correo apunta a `{WEB_APP_URL}/reset-password?token=<token>`.
 
+### Invitaciones
+
+- Solo un admin invita (`POST /admin/invitations`). Un email que ya tiene cuenta, activa o no, responde 409 `INVITATION_EMAIL_REGISTERED`.
+- Una invitación pendiente por email (`UserInvitations.email` único): invitar de nuevo reemplaza la anterior y su link deja de funcionar. Así se reenvía.
+- Token igual que el de reset: 32 bytes en hex, solo se guarda el hash SHA-256 (`tokenHash`, único).
+- TTL configurable con `USER_INVITATION_TTL_DAYS`, default 7 días. Las vencidas siguen en el listado con `isExpired: true` hasta que se reenvían o revocan.
+- Si el correo no se puede enviar, la invitación se descarta y la respuesta es el error del provider (502 o 503).
+- `POST /invitations/accept` crea la cuenta con el email de la invitación (no se puede cambiar), borra la invitación e inicia sesión igual que `/auth/register`. Un token desconocido, vencido, revocado o ya usado responde 404 `INVITATION_INVALID_TOKEN`.
+- `invitedById` apunta al admin que invitó, con `ON DELETE SET NULL`.
+- El link del correo apunta a `{WEB_APP_URL}/accept-invite?token=<token>`.
+
 ---
 
 ## Rate limiting
@@ -248,7 +259,7 @@ Reglas:
 - Default: 300 requests/min por usuario autenticado.
 - `admin` y `moderator` están exentos.
 - Limites diferenciados por tipo de endpoint: público (más restrictivo), usuario (medio), auth (mínimo).
-- `authLimiter` (`POST /auth/login`, `/auth/refresh` y `PATCH /auth/password`): 5 por minuto; al superarlos, bloqueo de 15 minutos. `authLimiter` también cubre `POST /auth/reset-password`. `registerLimiter` (`/auth/register` y alta de usuarios desde Admin): 3 por minuto. `passwordResetLimiter` (`POST /auth/forgot-password`): 3 cada 15 minutos. Valores en `apps/api/src/common/config/rate-limiter.config.ts`.
+- `authLimiter` (`POST /auth/login`, `/auth/refresh` y `PATCH /auth/password`): 5 por minuto; al superarlos, bloqueo de 15 minutos. `authLimiter` también cubre `POST /auth/reset-password`. `registerLimiter` (`/auth/register` y alta de usuarios desde Admin): 3 por minuto. `passwordResetLimiter` (`POST /auth/forgot-password`): 3 cada 15 minutos. `registerLimiter` también cubre `POST /admin/invitations` y `POST /invitations/accept`. Valores en `apps/api/src/common/config/rate-limiter.config.ts`.
 
 ---
 
