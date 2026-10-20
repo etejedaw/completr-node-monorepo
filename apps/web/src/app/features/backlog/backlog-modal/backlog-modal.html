@@ -366,23 +366,32 @@
 						<li
 							class="flex items-center gap-2 rounded-card border border-line bg-input-bg pl-2.5 pr-1 py-1"
 						>
-							<ui-avatar
-								class="w-7 h-7 text-[0.625rem] shrink-0"
-								[src]="member.avatarUrl"
-								[name]="member.name || member.username"
-							/>
-							<div class="flex-1 min-w-0">
-								<span
-									class="block text-xs font-medium text-fg line-clamp-1"
-									>{{ member.name || member.username }}</span
-								>
-								<span
-									class="block text-[0.625rem] text-fg-muted"
-									>{{ member.status }} · {{
-									member.realDuration ? member.realDuration +
-									'h' : '—' }}</span
-								>
-							</div>
+							<a
+								class="group flex-1 min-w-0 flex items-center gap-2 tap:min-h-[44px] rounded-sm no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+								[routerLink]="['/user', member.username]"
+								(click)="onClose()"
+							>
+								<ui-avatar
+									class="w-7 h-7 text-[0.625rem] shrink-0"
+									[src]="member.avatarUrl"
+									[name]="member.name || member.username"
+								/>
+								<span class="flex-1 min-w-0">
+									<span
+										class="block text-xs font-medium text-fg line-clamp-1 group-hover:text-brand group-hover:underline underline-offset-2"
+										>{{ member.name || member.username
+										}}<span class="sr-only"
+											>, view profile</span
+										></span
+									>
+									<span
+										class="block text-[0.625rem] text-fg-muted"
+										>{{ member.status }} · {{
+										member.realDuration ?
+										member.realDuration + 'h' : '—' }}</span
+									>
+								</span>
+							</a>
 							<button
 								uiButton
 								variant="ghost"
