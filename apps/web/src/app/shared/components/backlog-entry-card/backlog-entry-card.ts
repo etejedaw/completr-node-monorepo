@@ -77,6 +77,7 @@ export class BacklogEntryCard {
 	readonly statusMenuClosed = output<void>();
 	readonly statusSelected = output<BacklogStatusSelection>();
 	readonly startPlayingRequested = output<Event>();
+	readonly completeRequested = output<Event>();
 	readonly quickRated = output<number | null>();
 	readonly ratingSheetRequested = output<Event>();
 
