@@ -22,6 +22,7 @@ import gameScoresRouter from "./game-scores/game-scores.routes";
 import gameTimesRouter from "./game-times/game-times.routes";
 import gamesRouter from "./games/games.routes";
 import genreRouter from "./genres/genres.routes";
+import invitationsRouter from "./invitations/invitations.routes";
 import jobsRouter from "./jobs/jobs.routes";
 import listFollowersRouter from "./list-followers/list-followers.routes";
 import listItemsRouter from "./list-items/list-items.routes";
@@ -57,6 +58,7 @@ export function server(port: number) {
 	app.use(loggerMiddleware);
 	app.use(authRouter);
 	app.use(usersRoute);
+	app.use(invitationsRouter);
 	app.use(gamesRouter);
 	app.use(platformRouter);
 	app.use(genreRouter);

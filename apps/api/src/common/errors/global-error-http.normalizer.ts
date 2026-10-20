@@ -13,6 +13,7 @@ import { gameShelfDomainToHttpMapper } from "../../game-shelf/errors/game-shelf.
 import { gameTimesDomainToHttpMapper } from "../../game-times/errors/game-times.domain-to-http.mapper";
 import { gamesDomainToHttpMapper } from "../../games/errors/games.domain-to-http.mapper";
 import { genresDomainToHttpMapper } from "../../genres/errors/genres.domain-to-http.mapper";
+import { invitationsDomainToHttpMapper } from "../../invitations/errors/invitations.domain-to-http.mapper";
 import { listFollowersDomainToHttpMapper } from "../../list-followers/errors/list-followers.domain-to-http.mapper";
 import { listItemsDomainToHttpMapper } from "../../list-items/errors/list-items.domain-to-http.mapper";
 import { listsDomainToHttpMapper } from "../../lists/errors/lists.domain-to-http.mapper";
@@ -116,6 +117,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "RAWG Provider")
 		return rawgDomainToHttpMapper(error, request);
+
+	if (error.module === "Invitation Module")
+		return invitationsDomainToHttpMapper(error, request);
 
 	if (error.module === "Mail Provider")
 		return mailDomainToHttpMapper(error, request);
