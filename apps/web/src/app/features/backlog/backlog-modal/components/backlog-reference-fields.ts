@@ -36,7 +36,7 @@ export type MissingReferenceCategory = "missing_score" | "missing_duration";
 type ReferenceTooltip = "ratio" | ReferenceField;
 
 const REFERENCE_TOOLTIP_TEXTS: Record<ReferenceTooltip, string> = {
-	ratio: "Ratio = (Critic Score ÷ Duration) × 20, scaled to 0–100. Higher means short and well-rated — useful to prioritize what to play next.",
+	ratio: "Ratio = Critic Score as a percentage (score ÷ 5 × 100) ÷ Duration in hours. Higher means short and well-rated — useful to prioritize what to play next.",
 	score: "Average score from critics (Metacritic, OpenCritic, RAWG). Stored on a 0–5 scale — clicking a source button auto-normalizes the value for you.",
 	duration:
 		"Estimated playtime from HowLongToBeat or RAWG. Not your real playtime — that goes in Real Duration, under Tracking."
