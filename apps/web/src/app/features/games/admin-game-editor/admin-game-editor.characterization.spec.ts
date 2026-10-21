@@ -308,12 +308,16 @@ describe("AdminGameEditor characterization", () => {
 
 		it("saves the game without touching its scores and durations", async () => {
 			await renderEditor();
+			const savedToastsBefore =
+				screen.queryAllByText("Game saved.").length;
 
 			await save();
 
 			await untilVisible(() => expect(saved).toHaveBeenCalledTimes(1));
 			await untilVisible(() =>
-				expect(screen.getByText("Game saved.")).toBeInTheDocument()
+				expect(screen.getAllByText("Game saved.")).toHaveLength(
+					savedToastsBefore + 1
+				)
 			);
 			expect(
 				screen.queryByText(/failed to save|NOT saved/)
@@ -328,27 +332,24 @@ describe("AdminGameEditor characterization", () => {
 	});
 
 	describe("intended change on failure", () => {
-		it.fails(
-			"keeps every score as it was when one of them fails to save",
-			async () => {
-				failingScoreSource = "opencritic";
-				await renderEditor();
+		it("keeps every score as it was when one of them fails to save", async () => {
+			failingScoreSource = "opencritic";
+			await renderEditor();
 
-				await changeValue("Scores", "metacritic", "70");
-				await changeValue("Scores", "opencritic", "80");
-				await save();
+			await changeValue("Scores", "metacritic", "70");
+			await changeValue("Scores", "opencritic", "80");
+			await save();
 
-				expect(
-					screen.getByText(
-						"Game updated but some scores/times failed to save."
-					)
-				).toBeInTheDocument();
-				expect(saved).not.toHaveBeenCalled();
-				expect(scores).toEqual([
-					{ source: "metacritic", score: 90 },
-					{ source: "opencritic", score: 85 }
-				]);
-			}
-		);
+			expect(
+				screen.getByText(
+					"Game updated but some scores/times failed to save."
+				)
+			).toBeInTheDocument();
+			expect(saved).not.toHaveBeenCalled();
+			expect(scores).toEqual([
+				{ source: "metacritic", score: 90 },
+				{ source: "opencritic", score: 85 }
+			]);
+		});
 	});
 });
