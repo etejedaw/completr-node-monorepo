@@ -108,7 +108,8 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `position` sin huecos y reordenable: quitar un item renumera los restantes 1..n en la misma transacción, conservando el orden. `(list_id, position)` tiene un índice no único, así que la unicidad la mantiene el service y no la base.
 - Si el creador edita o refresca una lista, todos los seguidores ven los cambios.
 - `GET /lists/:listId/followers` respeta la privacidad de la lista igual que `GET /lists/:id`: si la lista es privada y quien pide no es su dueño responde 404 `LIST_FOLLOWER_LIST_NOT_FOUND`, indistinguible de una lista inexistente. El dueño ve siempre sus seguidores.
-- `GET /users/:username/following-lists` excluye las listas privadas que no pertenezcan a quien mira; el propio usuario ve todas las que sigue.
+- `GET /users/:username/following-lists` excluye las listas privadas que no pertenezcan a quien mira y los follows con `ListFollower.isVisible = false`; ambos filtros van en la consulta, así que `total` y la paginación cuentan solo lo visible.
+- `GET /users/:username/lists/:listId` responde 404 `USER_NOT_FOUND` si la lista no pertenece a `:username`, y también si es privada y quien pide no es su dueño.
 - Refrescar items reaplica score/duration desde la fuente declarada.
 - `PUT /games/:gameId/lists` fija en una sola transacción el conjunto de listas propias que contienen el juego: añade el juego (al final, congelando score y duración de la fuente de cada lista) a las que faltan y lo quita de las propias que sobran (renumerando posiciones). Una lista ajena responde 403 `LIST_ITEM_FORBIDDEN`, una inexistente o un juego inexistente 404, y un free sobre el límite de listas recibe 402 `LIST_ITEM_FROZEN` solo si hay que añadir a alguna lista (quitar sigue permitido). Si algo falla no se aplica ningún cambio.
 - `GET /lists/recent` y `GET /lists/official` aceptan `limit` entero entre 1 y 50 (por defecto 12); cualquier otro valor o parámetro desconocido responde 422 `COMMON_SCHEMA_INVALID`.
@@ -233,6 +234,9 @@ Toda la lógica vive en `canView(viewerId, owner, section)` en `apps/api/src/use
 - Las solicitudes de seguimiento solo se aceptan cuando `profileVisibility === "private" && acceptFollowRequests`.
 - `notes` del backlog nunca aparecen en respuestas públicas, sin importar `backlogVisibility`.
 - `email` nunca se serializa en respuestas públicas.
+- `GET /games/:id/friends-activity` y `GET /games/:id/players` aplican `canView` con SQL: una sección `friends` solo se sirve al amigo mutuo. En `friends-activity` entran los seguidos con perfil y backlog `public`, más los seguidos mutuos con `public` o `friends`; `players` solo incluye usuarios con perfil y backlog `public`.
+- Las cuentas desactivadas (`isActive = false`) no cuentan como conexiones: `GET /users/:username/followers` y `GET /users/:username/following` las omiten, `getFollowerCount` / `getFollowingCount` (y con ellos `followerCount` / `followingCount` del perfil y de las tarjetas) no las cuentan, y `GET /games/:id/friends-activity` y `GET /games/:id/players` no las devuelven.
+- `GET /users/search` busca `q` de forma literal: `\`, `%` y `_` se escapan antes del `ILIKE`.
 - **Listas seguidas en perfil:** una entry es visible solo cuando el perfil es visible y `ListFollower.isVisible` es `true`.
 
 ---
