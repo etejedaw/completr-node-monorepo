@@ -15,7 +15,19 @@ http:
         data: |-
             {
               "gameId": "",
-              "platformId": ""
+              "platformId": "",
+              "score": 4.5,
+              "duration": 25,
+              "status": "completed",
+              "startedAt": "2026-09-01",
+              "finishedAt": "2026-10-12",
+              "realDuration": 31.5,
+              "userRating": 4.5,
+              "addToQueue": false,
+              "addToShelf": true,
+              "moodTags": ["cozy", "co-op"],
+              "review": { "content": "Great pacing until the last chapter", "rating": 4.5 },
+              "progressNote": "Credits rolled, post-game left"
             }
 
 settings:
@@ -25,6 +37,8 @@ docs: |-
     ## Create Backlog
 
     Creates a new backlog for the authenticated user. Default status is `not_started`.
+
+    The entry and every optional extra (`addToQueue`, `addToShelf`, `moodTags`, `review`, `progressNote`) are written in a single transaction: if any step fails, nothing is created and the response carries the error of the failing step. Without the extras the endpoint behaves as a plain creation.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -43,6 +57,12 @@ docs: |-
     | realDuration | number | No       | Duration in hours                                |
     | userRating   | number | No       | 1-10 in steps of 0.5                             |
     | notes        | string | No       | Free text                                        |
+    | compilationGameId | uuid | No     | Compilation the game is played from              |
+    | addToQueue   | boolean | No      | Append the new entry to Up Next. Requires status `not_started` |
+    | addToShelf   | boolean | No      | Add the game on `platformId` to the shelf. Skipped (no error) if that game is already on the shelf on that platform |
+    | moodTags     | string[] | No     | Replaces the user's mood tags for the game (max 10, 1-40 chars each, normalized). `[]` clears them |
+    | review       | object | No       | `{ content?, rating? }`, at least one of them. Only with status `completed`, `abandoned` or `endless`. Skipped (no error) if the user already reviewed the game |
+    | progressNote | string | No       | First progress note of the entry (1-500 chars, trimmed) |
 
     ### Response (201)
 
@@ -72,10 +92,20 @@ docs: |-
     }
     ```
 
+    The response shape does not change with the extras. Activity is recorded after the commit: `backlog_added`, plus `game_reviewed`, `queue_added` and `shelf_added` for the extras actually created.
+
     `ratio` and `personalRatio` are always present: `null` when the score or the duration (`realDuration` for `personalRatio`) is missing.
 
     ### Errors
 
     - 409 `BACKLOG_UNIQUE_CONSTRAINT` — The backlog entry already exists
     - 400 `BACKLOG_VALIDATION_ERROR` — Invalid data
-    - 422 `COMMON_SCHEMA_INVALID` — Body does not match the schema (for example `gameId` or `platformId` is not a UUID)
+    - 400 `BACKLOG_COMPILATION_CONTEXT_INVALID` — `compilationGameId` is not an active compilation containing the game
+    - 401 `AUTH_INVALID_TOKEN` — Missing or invalid token
+    - 402 `QUEUE_LIMIT_REACHED` — `addToQueue` with a free user whose Up Next is full
+    - 402 `GAME_SHELF_LIMIT_REACHED` — `addToShelf` with a free user whose shelf is full
+    - 402 `MOOD_TAGS_LIMIT_REACHED` — `moodTags` would exceed the free user's distinct tag limit
+    - 409 `QUEUE_BACKLOG_NOT_STARTED` — `addToQueue` with a status other than `not_started`
+    - 409 `REVIEW_ALREADY_EXISTS` — A review for the game was created concurrently by another request
+    - 422 `COMMON_REFERENCE_NOT_FOUND` — `gameId` or `platformId` does not exist
+    - 422 `COMMON_SCHEMA_INVALID` — Body does not match the schema (for example `gameId` or `platformId` is not a UUID, more than 10 mood tags, a review without content nor rating, or a review on an entry that is not `completed`, `abandoned` or `endless`)
