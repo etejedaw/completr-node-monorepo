@@ -469,6 +469,7 @@ export class AdminGameEditor implements OnInit {
 
 		if (requests.length === 0) {
 			this.saving.set(false);
+			this.toast.success("Game saved.");
 			this.saved.emit();
 			return;
 		}

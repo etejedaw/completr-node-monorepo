@@ -312,6 +312,9 @@ describe("AdminGameEditor characterization", () => {
 			await save();
 
 			await untilVisible(() => expect(saved).toHaveBeenCalledTimes(1));
+			await untilVisible(() =>
+				expect(screen.getByText("Game saved.")).toBeInTheDocument()
+			);
 			expect(
 				screen.queryByText(/failed to save|NOT saved/)
 			).not.toBeInTheDocument();
