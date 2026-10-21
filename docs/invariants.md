@@ -94,7 +94,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `ratio` por item: `score / duration`. `null` si la fuente no tiene el dato.
 - Scores normalizados redondeados a 2 decimales.
 - `realDuration` y `personalRatio` por item se calculan con sticky-best: se toma el mejor backlog del usuario sobre ese juego.
-- `position` única por `(list_id, position)`, sin huecos, reordenable.
+- `position` sin huecos y reordenable; `(list_id, position)` tiene un índice no único, así que la unicidad la mantiene el service y no la base.
 - Si el creador edita o refresca una lista, todos los seguidores ven los cambios.
 - Refrescar items reaplica score/duration desde la fuente declarada.
 
