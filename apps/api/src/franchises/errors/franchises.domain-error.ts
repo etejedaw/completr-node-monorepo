@@ -11,6 +11,15 @@ export function franchiseNotFound(context?: Record<string, unknown>) {
 	);
 }
 
+export function franchiseGamesNotFound(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"FRANCHISE_GAMES_NOT_FOUND",
+		"Some games of the franchise were not found",
+		context
+	);
+}
+
 export function franchiseValidation(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

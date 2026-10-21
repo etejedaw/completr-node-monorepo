@@ -19,6 +19,9 @@ export function franchisesDomainToHttpMapper(
 	if (error.code === "FRANCHISE_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
+	if (error.code === "FRANCHISE_GAMES_NOT_FOUND")
+		return new HttpError({ ...baseOptions, status: 404 });
+
 	if (error.code === "FRANCHISE_UNIQUE_CONSTRAINT")
 		return new HttpError({ ...baseOptions, status: 409 });
 

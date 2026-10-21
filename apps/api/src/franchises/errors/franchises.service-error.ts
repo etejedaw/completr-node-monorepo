@@ -22,3 +22,10 @@ export function notFoundError() {
 		raw: undefined
 	});
 }
+
+export function gamesNotFoundError(missingGameIds: string[]) {
+	return new ServiceError("FRANCHISE_GAMES_NOT_FOUND", {
+		...BASE_OPTIONS,
+		raw: { missingGameIds }
+	});
+}

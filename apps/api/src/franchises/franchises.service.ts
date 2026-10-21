@@ -1,8 +1,10 @@
-import { Op } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
+import { sequelize } from "../database/sequelize.database";
+import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
 import { type RegisterFranchiseDto } from "./dtos/register-franchise.dto";
 import { type UpdateFranchiseDto } from "./dtos/update-franchise.dto";
@@ -10,12 +12,52 @@ import * as franchiseServiceError from "./errors/franchises.service-error";
 import { Franchise } from "./franchise.model";
 import { UserFranchise } from "./user-franchise.model";
 
-export async function registerFranchise(
-	registerFranchise: RegisterFranchiseDto
+async function replaceFranchiseGames(
+	franchiseId: string,
+	gameIds: string[],
+	transaction: Transaction
 ) {
+	const targetGameIds = [...new Set(gameIds)];
+
+	const existingGames = await Game.findAll({
+		where: { id: { [Op.in]: targetGameIds } },
+		attributes: ["id"],
+		transaction
+	});
+	const existingGameIds = new Set(existingGames.map(game => game.id));
+	const missingGameIds = targetGameIds.filter(id => !existingGameIds.has(id));
+	if (missingGameIds.length > 0)
+		throw franchiseServiceError.gamesNotFoundError(missingGameIds);
+
+	const keptGamesFilter =
+		targetGameIds.length > 0 ? { id: { [Op.notIn]: targetGameIds } } : {};
+	await Game.update(
+		{ franchiseId: null },
+		{ where: { franchiseId, ...keptGamesFilter }, transaction }
+	);
+	await Game.update(
+		{ franchiseId },
+		{ where: { id: { [Op.in]: targetGameIds } }, transaction }
+	);
+}
+
+export async function registerFranchise({
+	gameIds,
+	...franchiseValues
+}: RegisterFranchiseDto) {
 	try {
-		const code = titleToSlug(registerFranchise.name);
-		return await Franchise.create({ ...registerFranchise, code });
+		const code = titleToSlug(franchiseValues.name);
+		if (!gameIds)
+			return await Franchise.create({ ...franchiseValues, code });
+
+		return await sequelize.transaction(async transaction => {
+			const franchise = await Franchise.create(
+				{ ...franchiseValues, code },
+				{ transaction }
+			);
+			await replaceFranchiseGames(franchise.id, gameIds, transaction);
+			return franchise;
+		});
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: franchiseServiceError.uniqueConstraintError,
@@ -50,15 +92,26 @@ export async function findAllFranchises(pagination: PaginatedSearchQuery = {}) {
 
 export async function updateFranchise(
 	id: string,
-	updateFranchiseDto: UpdateFranchiseDto
+	{ gameIds, ...franchiseValues }: UpdateFranchiseDto
 ) {
 	const franchise = await findFranchiseById(id);
 	if (!franchise) throw franchiseServiceError.notFoundError();
 
 	try {
-		const code = titleToSlug(updateFranchiseDto.name);
-		await franchise.update({ ...updateFranchiseDto, code });
-		return franchise;
+		const code = titleToSlug(franchiseValues.name);
+		if (!gameIds) {
+			await franchise.update({ ...franchiseValues, code });
+			return franchise;
+		}
+
+		return await sequelize.transaction(async transaction => {
+			await franchise.update(
+				{ ...franchiseValues, code },
+				{ transaction }
+			);
+			await replaceFranchiseGames(franchise.id, gameIds, transaction);
+			return franchise;
+		});
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: franchiseServiceError.uniqueConstraintError,

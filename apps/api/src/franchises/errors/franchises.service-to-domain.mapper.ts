@@ -13,6 +13,9 @@ export function franchisesServiceToDomainMapper(
 	if (error.code === "FRANCHISE_NOT_FOUND")
 		return franchiseDomainError.franchiseNotFound(context);
 
+	if (error.code === "FRANCHISE_GAMES_NOT_FOUND")
+		return franchiseDomainError.franchiseGamesNotFound(context);
+
 	if (error.code === "FRANCHISE_UNIQUE_CONSTRAINT")
 		return franchiseDomainError.franchiseUniqueConstraint(context);
 
