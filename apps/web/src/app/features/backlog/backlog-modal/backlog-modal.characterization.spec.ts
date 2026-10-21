@@ -472,57 +472,51 @@ describe("BacklogModal characterization", () => {
 	});
 
 	describe("intended change on failure", () => {
-		it.fails(
-			"creates nothing and shows the error when Up Next is full",
-			async () => {
-				queue = Array.from(
-					{ length: FREE_QUEUE_LIMIT },
-					(_, index) => `old-${index}`
-				);
-				await renderHost();
-				const dialog = await openModal();
+		it("creates nothing and shows the error when Up Next is full", async () => {
+			queue = Array.from(
+				{ length: FREE_QUEUE_LIMIT },
+				(_, index) => `old-${index}`
+			);
+			await renderHost();
+			const dialog = await openModal();
 
+			await userEvent.click(
+				within(dialog).getByRole("switch", {
+					name: "Add to Up Next"
+				})
+			);
+			await submit(dialog);
+
+			await untilVisible(() =>
+				expect(
+					within(dialog).getByText(
+						"Queue limit reached for free users"
+					)
+				).toBeInTheDocument()
+			);
+			expect(
+				screen.getByRole("dialog", { name: "Add to My Games" })
+			).toBeInTheDocument();
+			expect(runs).toEqual([]);
+			expect(queue).toHaveLength(FREE_QUEUE_LIMIT);
+		});
+
+		it("keeps a single shelf copy when two runs of the same game and platform add it", async () => {
+			await renderHost();
+
+			for (let attempt = 0; attempt < 2; attempt++) {
+				const dialog = await openModal();
 				await userEvent.click(
 					within(dialog).getByRole("switch", {
-						name: "Add to Up Next"
+						name: "Add to My Shelf"
 					})
 				);
 				await submit(dialog);
-
-				await untilVisible(() =>
-					expect(
-						within(dialog).getByText(
-							"Queue limit reached for free users"
-						)
-					).toBeInTheDocument()
-				);
-				expect(
-					screen.getByRole("dialog", { name: "Add to My Games" })
-				).toBeInTheDocument();
-				expect(runs).toEqual([]);
-				expect(queue).toHaveLength(FREE_QUEUE_LIMIT);
+				await untilClosed();
 			}
-		);
 
-		it.fails(
-			"keeps a single shelf copy when two runs of the same game and platform add it",
-			async () => {
-				await renderHost();
-
-				for (let attempt = 0; attempt < 2; attempt++) {
-					const dialog = await openModal();
-					await userEvent.click(
-						within(dialog).getByRole("switch", {
-							name: "Add to My Shelf"
-						})
-					);
-					await submit(dialog);
-					await untilClosed();
-				}
-
-				expect(runs).toHaveLength(2);
-				expect(shelf).toEqual([{ gameId: "g1", platformId: "p1" }]);
-			}
-		);
+			expect(runs).toHaveLength(2);
+			expect(shelf).toEqual([{ gameId: "g1", platformId: "p1" }]);
+		});
 	});
 });

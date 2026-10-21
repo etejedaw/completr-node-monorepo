@@ -400,60 +400,54 @@ describe("AdminFranchiseModal characterization", () => {
 	});
 
 	describe("intended change on failure", () => {
-		it.fails(
-			"creates neither the franchise nor any link when a game no longer exists",
-			async () => {
-				await renderFranchises();
-				const dialog = await openCreate();
+		it("creates neither the franchise nor any link when a game no longer exists", async () => {
+			await renderFranchises();
+			const dialog = await openCreate();
 
-				await userEvent.type(
-					within(dialog).getByRole("textbox", { name: /Name/ }),
-					"Indies"
-				);
-				await addGame(dialog, "hollow", "Hollow Knight");
-				await addGame(dialog, "ghost", "Ghost of a Tale");
-				await submit(dialog, "Create");
+			await userEvent.type(
+				within(dialog).getByRole("textbox", { name: /Name/ }),
+				"Indies"
+			);
+			await addGame(dialog, "hollow", "Hollow Knight");
+			await addGame(dialog, "ghost", "Ghost of a Tale");
+			await submit(dialog, "Create");
 
-				await untilVisible(() =>
-					expect(
-						within(dialog).getByRole("button", { name: "Create" })
-					).toBeEnabled()
-				);
+			await untilVisible(() =>
 				expect(
-					screen.getByRole("dialog", { name: "New Franchise" })
-				).toBeInTheDocument();
-				expect(franchises.map(f => f.name)).toEqual(["Souls"]);
-				expect(games.find(g => g.id === "hk")?.franchiseId).toBeNull();
-			}
-		);
+					within(dialog).getByRole("button", { name: "Create" })
+				).toBeEnabled()
+			);
+			expect(
+				screen.getByRole("dialog", { name: "New Franchise" })
+			).toBeInTheDocument();
+			expect(franchises.map(f => f.name)).toEqual(["Souls"]);
+			expect(games.find(g => g.id === "hk")?.franchiseId).toBeNull();
+		});
 
-		it.fails(
-			"keeps the franchise and its games when a game update fails halfway",
-			async () => {
-				failingGameId = "bb";
-				await renderFranchises();
-				const dialog = await openEdit("Souls");
+		it("keeps the franchise and its games when a game update fails halfway", async () => {
+			failingGameId = "bb";
+			await renderFranchises();
+			const dialog = await openEdit("Souls");
 
-				const name = within(dialog).getByRole("textbox", {
-					name: /Name/
-				});
-				await userEvent.clear(name);
-				await userEvent.type(name, "Soulsborne");
-				await removeGame(dialog, "Dark Souls II");
-				await addGame(dialog, "blood", "Bloodborne");
-				await submit(dialog, "Save");
+			const name = within(dialog).getByRole("textbox", {
+				name: /Name/
+			});
+			await userEvent.clear(name);
+			await userEvent.type(name, "Soulsborne");
+			await removeGame(dialog, "Dark Souls II");
+			await addGame(dialog, "blood", "Bloodborne");
+			await submit(dialog, "Save");
 
-				await untilVisible(() =>
-					expect(
-						within(dialog).getByRole("button", { name: "Save" })
-					).toBeEnabled()
-				);
+			await untilVisible(() =>
 				expect(
-					screen.getByRole("dialog", { name: "Edit Franchise" })
-				).toBeInTheDocument();
-				expect(franchises.map(f => f.name)).toEqual(["Souls"]);
-				expect(gamesIn("f-souls")).toEqual(["ds1", "ds2"]);
-			}
-		);
+					within(dialog).getByRole("button", { name: "Save" })
+				).toBeEnabled()
+			);
+			expect(
+				screen.getByRole("dialog", { name: "Edit Franchise" })
+			).toBeInTheDocument();
+			expect(franchises.map(f => f.name)).toEqual(["Souls"]);
+			expect(gamesIn("f-souls")).toEqual(["ds1", "ds2"]);
+		});
 	});
 });

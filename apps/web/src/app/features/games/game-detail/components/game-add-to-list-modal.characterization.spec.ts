@@ -349,40 +349,34 @@ describe("GameAddToListModal characterization", () => {
 	});
 
 	describe("intended change on failure", () => {
-		it.fails(
-			"changes no list when a frozen free user adds the game to a list",
-			async () => {
-				isFrozen = true;
-				await renderGame();
-				const dialog = await openListsDialog();
+		it("changes no list when a frozen free user adds the game to a list", async () => {
+			isFrozen = true;
+			await renderGame();
+			const dialog = await openListsDialog();
 
-				await toggle(dialog, "Roguelikes");
-				await toggle(dialog, "Played in 2024");
-				await save(dialog);
+			await toggle(dialog, "Roguelikes");
+			await toggle(dialog, "Played in 2024");
+			await save(dialog);
 
-				expect(
-					screen.getByRole("dialog", { name: "Add to your lists" })
-				).toBeInTheDocument();
-				expect(containing("g1")).toEqual(["l3"]);
-			}
-		);
+			expect(
+				screen.getByRole("dialog", { name: "Add to your lists" })
+			).toBeInTheDocument();
+			expect(containing("g1")).toEqual(["l3"]);
+		});
 
-		it.fails(
-			"changes no list when the second change fails on the server",
-			async () => {
-				failingListId = "l2";
-				await renderGame();
-				const dialog = await openListsDialog();
+		it("changes no list when the second change fails on the server", async () => {
+			failingListId = "l2";
+			await renderGame();
+			const dialog = await openListsDialog();
 
-				await toggle(dialog, "Roguelikes");
-				await toggle(dialog, "Couch co-op");
-				await save(dialog);
+			await toggle(dialog, "Roguelikes");
+			await toggle(dialog, "Couch co-op");
+			await save(dialog);
 
-				expect(
-					screen.getByRole("dialog", { name: "Add to your lists" })
-				).toBeInTheDocument();
-				expect(containing("g1")).toEqual(["l3"]);
-			}
-		);
+			expect(
+				screen.getByRole("dialog", { name: "Add to your lists" })
+			).toBeInTheDocument();
+			expect(containing("g1")).toEqual(["l3"]);
+		});
 	});
 });
