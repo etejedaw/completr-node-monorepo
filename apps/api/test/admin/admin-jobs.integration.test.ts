@@ -197,24 +197,16 @@ void describe("DELETE /admin/jobs/:jobId", () => {
 		assert.equal(response.status, 404);
 	});
 
-	void it(
-		"answers 4xx for a malformed job id instead of a server error",
-		{
-			todo: "bug: DELETE /admin/jobs/:jobId does not validate the uuid and answers 500"
-		},
-		async () => {
-			const admin = await createUserWithSession("admin");
+	void it("answers 4xx for a malformed job id instead of a server error", async () => {
+		const admin = await createUserWithSession("admin");
 
-			const response = await api()
-				.delete("/admin/jobs/not-a-uuid")
-				.set("Authorization", admin.authorization);
+		const response = await api()
+			.delete("/admin/jobs/not-a-uuid")
+			.set("Authorization", admin.authorization);
 
-			assert.ok(
-				response.status >= 400 && response.status < 500,
-				`expected 4xx, got ${response.status}`
-			);
-		}
-	);
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+	});
 
 	for (const role of NON_ADMIN_ROLES) {
 		void it(`hides the route from a ${role} and keeps the job running`, async () => {
