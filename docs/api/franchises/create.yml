@@ -15,7 +15,8 @@ http:
         data: |-
             {
               "name": "Resident Evil",
-              "description": "Survival horror saga by Capcom."
+              "description": "Survival horror saga by Capcom.",
+              "gameIds": ["uuid"]
             }
 
 settings:
@@ -24,7 +25,7 @@ settings:
 docs: |-
     ## Create Franchise
 
-    Creates a franchise. The `code` slug is derived from `name`. Assign games to it via `PATCH /games/:id` with `franchiseId`.
+    Creates a franchise. The `code` slug is derived from `name`. When `gameIds` is sent, the franchise and the game links are created in a single transaction: if any game does not exist, nothing is applied.
 
     **Authentication:** Bearer token required (role: moderator).
     **Rate Limit:** 50 requests per minute.
@@ -35,6 +36,7 @@ docs: |-
     |-------------|---------------|----------|--------------------|
     | name        | string        | Yes      | Max 100 characters |
     | description | string / null | No       | Max 500 characters |
+    | gameIds     | uuid[]        | No       | Final set of games of the franchise (max 500) |
 
     ### Response (201)
 
@@ -58,6 +60,7 @@ docs: |-
     | Status | Code                       | Description                          |
     |--------|----------------------------|--------------------------------------|
     | 403    | AUTH_FORBIDDEN             | Authenticated user is not a moderator |
+    | 404    | FRANCHISE_GAMES_NOT_FOUND | Some `gameIds` do not exist (context lists them) |
     | 409    | FRANCHISE_UNIQUE_CONSTRAINT | Name or code already exists          |
     | 400    | FRANCHISE_VALIDATION_ERROR | Invalid field values                 |
     | 422    | COMMON_SCHEMA_INVALID     | Body fails schema validation         |
