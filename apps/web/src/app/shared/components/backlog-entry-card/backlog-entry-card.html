@@ -4,6 +4,8 @@
 		flipCardFront
 		[attr.role]="readonly() ? null : 'button'"
 		[attr.tabindex]="readonly() ? null : 0"
+		[attr.aria-label]="readonly() ? null : cardLabel()"
+		[attr.aria-describedby]="readonly() ? null : cardDescriptionId()"
 		[class.max-sm:rounded-b-none]="hasMobileBar()"
 		[class.cursor-pointer]="!readonly()"
 		class="group/row relative isolate h-full flex flex-col rounded-card bg-surface border border-line transition duration-200 hover:border-brand/40 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-20px_rgba(0,0,0,0.9)] focus-visible:outline-2 focus-visible:outline-brand"
@@ -30,7 +32,10 @@
 				class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
 			></div>
 		</div>
-		<div class="flex-1 flex items-stretch gap-3 sm:gap-4 p-3 sm:p-4">
+		<div
+			[id]="cardDescriptionId()"
+			class="flex-1 flex items-stretch gap-3 sm:gap-4 p-3 sm:p-4"
+		>
 			<div class="relative shrink-0 self-center">
 				<a
 					[routerLink]="['/games', item.game.code]"

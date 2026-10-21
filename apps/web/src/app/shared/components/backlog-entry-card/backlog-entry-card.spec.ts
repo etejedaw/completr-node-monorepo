@@ -86,3 +86,39 @@ describe("BacklogEntryCard quick status actions", () => {
 		expect(element.querySelector(POSTER_COMPLETE_SELECTOR)).toBeNull();
 	});
 });
+
+describe("BacklogEntryCard accessible name", () => {
+	beforeEach(() => {
+		TestBed.configureTestingModule({
+			imports: [BacklogEntryCard],
+			providers: [provideRouter([])]
+		});
+	});
+
+	function card(readonly: boolean) {
+		const fixture = TestBed.createComponent(BacklogEntryCard);
+		fixture.componentRef.setInput("entry", entryWithStatus("playing"));
+		fixture.componentRef.setInput("readonly", readonly);
+		fixture.detectChanges();
+		return (fixture.nativeElement as HTMLElement).querySelector(
+			"article"
+		) as HTMLElement;
+	}
+
+	it("labels the interactive card with title and status and describes it with its details", () => {
+		const article = card(false);
+		const details = document.getElementById(
+			article.getAttribute("aria-describedby")!
+		);
+
+		expect(article.getAttribute("aria-label")).toBe("Hades, Playing");
+		expect(article.contains(details)).toBe(true);
+	});
+
+	it("leaves the readonly card without a button name", () => {
+		const article = card(true);
+
+		expect(article.hasAttribute("aria-label")).toBe(false);
+		expect(article.hasAttribute("aria-describedby")).toBe(false);
+	});
+});
