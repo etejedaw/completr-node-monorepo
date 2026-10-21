@@ -98,6 +98,8 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `realDuration` y `personalRatio` por item se calculan con sticky-best: se toma el mejor backlog del usuario sobre ese juego.
 - `position` sin huecos y reordenable: quitar un item renumera los restantes 1..n en la misma transacción, conservando el orden. `(list_id, position)` tiene un índice no único, así que la unicidad la mantiene el service y no la base.
 - Si el creador edita o refresca una lista, todos los seguidores ven los cambios.
+- `GET /lists/:listId/followers` respeta la privacidad de la lista igual que `GET /lists/:id`: si la lista es privada y quien pide no es su dueño responde 404 `LIST_FOLLOWER_LIST_NOT_FOUND`, indistinguible de una lista inexistente. El dueño ve siempre sus seguidores.
+- `GET /users/:username/following-lists` excluye las listas privadas que no pertenezcan a quien mira; el propio usuario ve todas las que sigue.
 - Refrescar items reaplica score/duration desde la fuente declarada.
 - `GET /lists/recent` y `GET /lists/official` aceptan `limit` entero entre 1 y 50 (por defecto 12); cualquier otro valor o parámetro desconocido responde 422 `COMMON_SCHEMA_INVALID`.
 
