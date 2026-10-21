@@ -10,3 +10,6 @@ tmp
 **/.env
 **/.env.*
 apps/api/migrations
+**/test
+**/*.spec.ts
+**/*.test.ts
