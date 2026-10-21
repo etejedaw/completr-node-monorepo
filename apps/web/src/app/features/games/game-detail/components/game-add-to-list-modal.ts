@@ -145,35 +145,28 @@ export class GameAddToListModal implements OnInit {
 	}
 
 	protected save() {
-		const gameId = this.gameId;
 		const selection = this.state().selection;
-		const ops: Promise<unknown>[] = this.myLists.flatMap(list => {
-			const newState = selection.get(list.id) ?? false;
-			if (newState === list.contains) return [];
-			const action = newState
-				? this.listsService.addItem(list.id, gameId)
-				: this.listsService.removeItem(list.id, gameId);
-			return [
-				new Promise((resolve, reject) =>
-					action.subscribe({ next: resolve, error: reject })
-				)
-			];
-		});
+		const hasChanges = this.myLists.some(
+			list => (selection.get(list.id) ?? false) !== list.contains
+		);
 
-		if (ops.length === 0) {
+		if (!hasChanges) {
 			this.close();
 			return;
 		}
 
+		const listIds = [...selection]
+			.filter(([, checked]) => checked)
+			.map(([listId]) => listId);
+
 		this.update({ saving: true });
-		Promise.all(ops)
-			.then(() => {
-				this.gamesService.getGameLists(gameId).subscribe(data => {
-					this.update({ saving: false });
-					this.dialogRef.data.onListsChanged(data);
-					this.close();
-				});
-			})
-			.catch(() => this.update({ saving: false }));
+		this.listsService.setGameLists(this.gameId, listIds).subscribe({
+			next: data => {
+				this.update({ saving: false });
+				this.dialogRef.data.onListsChanged(data);
+				this.close();
+			},
+			error: () => this.update({ saving: false })
+		});
 	}
 }

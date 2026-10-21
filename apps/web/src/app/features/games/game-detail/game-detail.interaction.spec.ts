@@ -65,7 +65,7 @@ describe("GameDetail interaction", () => {
 		contains: boolean;
 	}[];
 	const createdRuns: unknown[] = [];
-	const listAdds: string[] = [];
+	const listUpdates: string[][] = [];
 	const wishlistAdds: unknown[] = [];
 
 	function gameLists() {
@@ -78,6 +78,15 @@ describe("GameDetail interaction", () => {
 			return req.flush({ data: { user: viewer } });
 		if (method === "GET" && url === `${api}/games/hades`)
 			return req.flush({ data: { game: hades } });
+		if (method === "PUT" && url === `${api}/games/g1/lists`) {
+			const listIds = body.listIds as string[];
+			listUpdates.push(listIds);
+			myLists = myLists.map(list => ({
+				...list,
+				contains: listIds.includes(list.id)
+			}));
+			return req.flush(gameLists());
+		}
 		if (url === `${api}/games/g1/lists`) return req.flush(gameLists());
 		if (url === `${api}/games/g1/reviews`)
 			return req.flush({ data: { reviews: [] } });
@@ -142,16 +151,6 @@ describe("GameDetail interaction", () => {
 			return req.flush({ data: { queue: [], total: 0 } });
 		if (url.endsWith("/mood-tags"))
 			return req.flush({ data: { tags: [] } });
-		const listItemMatch = url.match(/\/lists\/([^/]+)\/items$/);
-		if (method === "POST" && listItemMatch) {
-			listAdds.push(listItemMatch[1]);
-			myLists = myLists.map(list =>
-				list.id === listItemMatch[1]
-					? { ...list, contains: true }
-					: list
-			);
-			return req.flush({ data: {} });
-		}
 		throw new Error(`Unexpected request: ${method} ${url}`);
 	}
 
@@ -209,7 +208,7 @@ describe("GameDetail interaction", () => {
 			{ id: "l2", name: "Couch co-op", isPublic: false, contains: false }
 		];
 		createdRuns.length = 0;
-		listAdds.length = 0;
+		listUpdates.length = 0;
 		wishlistAdds.length = 0;
 		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
@@ -301,7 +300,7 @@ describe("GameDetail interaction", () => {
 			).toHaveAttribute("aria-pressed", "true")
 		);
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-		expect(listAdds).toEqual(["l1"]);
+		expect(listUpdates).toEqual([["l1"]]);
 	});
 
 	it("marks the game as favorite and unmarks it again", async () => {
