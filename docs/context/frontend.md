@@ -119,6 +119,26 @@ Si una vista muestra lo mismo que otra, reutiliza los componentes de la vista du
 | Fechas en un mes          | Calendarios de My Games y My Shelf | `MonthCalendar`                                               | Cualquier vista nueva con fechas                                           |
 | Encabezado de página      | Todas las páginas de biblioteca    | `LibraryHero`                                                 | Feed, Help, What's new, About, perfil público                              |
 
+## Tests
+
+Los specs usan Vitest con jsdom a través de `@angular/build:unit-test`. Cada spec vive junto al archivo que prueba (`*.spec.ts`) y `describe`, `it`, `expect` y `vi` son globales.
+
+| Comando                                     | Qué hace                                 |
+| ------------------------------------------- | ---------------------------------------- |
+| `npm run test -w apps/web`                  | Corre los specs en modo watch            |
+| `npm run test -w apps/web -- --watch=false` | Corre los specs una vez (CI, pre-commit) |
+
+### Patrones
+
+- **Services HTTP**: `provideHttpClient()` + `provideHttpClientTesting()` y `HttpTestingController`. Cada test comprueba URL (con `environment.apiUrl`), método, params o body y el mapeo de la respuesta, y `afterEach` llama a `httpTesting.verify()`. Si el service arma los params con `buildHttpParams`, se busca la petición con `expectOne(req => req.url === ...)` y se inspeccionan los `params`.
+- **Guards e interceptores funcionales**: los guards se ejecutan con `TestBed.runInInjectionContext` y un `AuthService` falso (`useValue`). Para el resultado se acepta `boolean`, `UrlTree` u `Observable` (`lastValueFrom`) y las redirecciones se comparan con `router.serializeUrl`. Los interceptores se prueban a través de `HttpClient` con `provideHttpClient(withInterceptors([...]))`.
+- **Estado de módulo**: `errorInterceptor` guarda `isRefreshing` a nivel de módulo, así que todo test que dispare un 401 debe terminar el refresh (`next` + `complete`, o `error`) para no contaminar al siguiente.
+- **Componentes**: `TestBed.createComponent`, inputs con `fixture.componentRef.setInput` y `fixture.detectChanges()` después de cada interacción (la app es zoneless). Se prueba lo que se renderiza y los outputs emitidos, no los métodos internos. Los componentes con `routerLink` necesitan `provideRouter([])`.
+- **Dobles**: servicios con estado o efectos (`AuthService`, `ToastService`, `ViewportService`, `FavoritesService`) se reemplazan con `{ provide: X, useValue: {...} }` y `vi.fn()`. `StorageService` se prueba con el `localStorage` de jsdom, limpiándolo en `beforeEach`.
+- **APIs que jsdom no trae** (`ResizeObserver`, `CSS.escape`): se stubean con `vi.stubGlobal` en `beforeEach` y se restauran con `vi.unstubAllGlobals()` en `afterEach`.
+- **Bugs conocidos**: se dejan como `it.todo("...")` con la descripción del comportamiento esperado; no se corrigen dentro del PR de tests.
+- Los specs no llevan comentarios: el nombre del `it` en inglés describe el comportamiento.
+
 ## Nombres
 
 - Archivos en `kebab-case`. Componentes y el service principal de una feature sin sufijo (`game-card.ts`, `backlog.ts`); guards e interceptors con sufijo (`auth.guard.ts`, `auth.interceptor.ts`). Cuando una feature tiene varios services, van en `services/` con sufijo `.service.ts`.
