@@ -13,7 +13,6 @@ import {
 import { form, FormField, max, min, required } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
 import { injectDialogRef } from "ng-primitives/dialog";
-import { forkJoin } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry } from "../../../core/models";
@@ -63,7 +62,6 @@ import {
 	CoopRunsService,
 	type SyncField
 } from "../../coop-runs/coop-runs";
-import { GameShelfService } from "../../game-shelf/game-shelf";
 import { injectGameSearch } from "../../games/game-search";
 import { GamesService } from "../../games/games";
 import { type Review, ReviewsService } from "../../games/reviews";
@@ -74,6 +72,7 @@ import {
 } from "../../public-profile/services/public-social.service";
 import { QueueService } from "../../queue/queue";
 import {
+	type BacklogReviewDraft,
 	BacklogService,
 	type CreateBacklogDto,
 	type UpdateBacklogDto
@@ -165,7 +164,6 @@ export class BacklogModal implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	private readonly queueService = inject(QueueService);
-	private readonly gameShelfService = inject(GameShelfService);
 	private readonly reviewsService = inject(ReviewsService);
 	private readonly moodTagsService = inject(MoodTagsService);
 	private readonly progressService = inject(BacklogProgressService);
@@ -888,40 +886,15 @@ export class BacklogModal implements OnInit {
 				realDuration: val.realDuration ?? undefined,
 				userRating: val.userRating ?? undefined,
 				notes: val.notes || undefined,
-				compilationGameId: this.compilationParent()?.id ?? undefined
+				compilationGameId: this.compilationParent()?.id ?? undefined,
+				addToQueue: this.addToQueue() || undefined,
+				addToShelf: this.addToShelf() || undefined,
+				moodTags: this.moodTags(),
+				review: this.pendingReview() ?? undefined,
+				progressNote: this.progressDraft().trim() || undefined
 			};
 			this.backlogService.create(dto).subscribe({
-				next: backlog => {
-					this.submitReviewIfNeeded(val.gameId!);
-					this.persistMoodTagsIfChanged(val.gameId!);
-					const draft = this.progressDraft().trim();
-					if (draft) {
-						this.progressService
-							.addProgress(backlog.id, draft)
-							.subscribe();
-					}
-					const extras$ = [];
-					if (this.addToQueue()) {
-						extras$.push(
-							this.queueService.addFromBacklog(backlog.id)
-						);
-					}
-					if (this.addToShelf()) {
-						extras$.push(
-							this.gameShelfService.create({
-								gameId: val.gameId!,
-								platformId: val.platformId!
-							})
-						);
-					}
-					if (extras$.length > 0) {
-						forkJoin(extras$).subscribe(() =>
-							this.dialogRef.close("saved")
-						);
-					} else {
-						this.dialogRef.close("saved");
-					}
-				},
+				next: () => this.dialogRef.close("saved"),
 				error: err => {
 					this.isLoading.set(false);
 					this.error.set(err.error?.title ?? "Creation failed");
@@ -978,17 +951,22 @@ export class BacklogModal implements OnInit {
 	}
 
 	private submitReviewIfNeeded(gameId: string) {
-		if (!this.isFirstReviewableTransition()) return;
-		if (this.hasExistingReview()) return;
+		const review = this.pendingReview();
+		if (review)
+			this.reviewsService.createReview(gameId, review).subscribe();
+	}
+
+	private pendingReview(): BacklogReviewDraft | null {
+		if (!this.isFirstReviewableTransition()) return null;
+		if (this.hasExistingReview()) return null;
 
 		const content = this.reviewContent().trim();
 		const rating = this.form().value().userRating;
-		if (!content && !rating) return;
+		if (!content && !rating) return null;
 
-		const data: { content?: string; rating?: number } = {};
-		if (content) data.content = content;
-		if (rating) data.rating = rating;
-
-		this.reviewsService.createReview(gameId, data).subscribe();
+		const review: BacklogReviewDraft = {};
+		if (content) review.content = content;
+		if (rating) review.rating = rating;
+		return review;
 	}
 }

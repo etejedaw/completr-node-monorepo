@@ -54,6 +54,11 @@ export interface BacklogFilters extends Record<string, Appendable> {
 	offset?: number;
 }
 
+export interface BacklogReviewDraft {
+	content?: string;
+	rating?: number;
+}
+
 export interface CreateBacklogDto {
 	gameId: string;
 	platformId: string;
@@ -67,6 +72,11 @@ export interface CreateBacklogDto {
 	isPublic?: boolean;
 	notes?: string;
 	compilationGameId?: string;
+	addToQueue?: boolean;
+	addToShelf?: boolean;
+	moodTags?: string[];
+	review?: BacklogReviewDraft;
+	progressNote?: string;
 }
 
 export interface UpdateBacklogDto {
