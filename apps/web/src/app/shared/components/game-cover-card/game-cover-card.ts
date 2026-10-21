@@ -230,11 +230,14 @@ export class GameCoverCard {
 
 	protected readonly actions = computed<CoverAction[]>(() => {
 		const actions: CoverAction[] = [];
+		const title = this.game().title;
 		if (this.showFavorite()) {
 			const favorite = this.isFavorite();
 			actions.push({
 				id: "favorite",
-				label: favorite ? "Remove from favorites" : "Add to favorites",
+				label: favorite
+					? `Remove ${title} from favorites`
+					: `Add ${title} to favorites`,
 				icon: favorite ? "favorite" : "favorite_border",
 				active: favorite,
 				pressed: favorite,
@@ -248,8 +251,8 @@ export class GameCoverCard {
 			actions.push({
 				id: "wishlist",
 				label: wanted
-					? "Remove from Want to Get"
-					: "Add to Want to Get",
+					? `Remove ${title} from Want to Get`
+					: `Add ${title} to Want to Get`,
 				icon: "redeem",
 				active: wanted,
 				pressed: wanted,
@@ -262,7 +265,9 @@ export class GameCoverCard {
 			const inBacklog = this.inBacklog();
 			actions.push({
 				id: "backlog",
-				label: inBacklog ? "Edit in My Games" : "Add to My Games",
+				label: inBacklog
+					? `Edit ${title} in My Games`
+					: `Add ${title} to My Games`,
 				icon: inBacklog ? "check" : "playlist_add",
 				active: inBacklog,
 				pressed: null,
