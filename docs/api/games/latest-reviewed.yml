@@ -1,0 +1,57 @@
+info:
+    name: Get Latest Reviewed Games
+    type: http
+    seq: 17
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/games/latest-reviewed?limit=16"
+    params:
+        - name: limit
+          value: "16"
+          type: query
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Latest Reviewed Games
+
+    Returns the active games with the most recent review that has content (rating-only reviews do not count), newest review first. Inactive games are skipped before the limit is applied, so the response holds up to `limit` active games.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 300 requests per minute (public limiter).
+
+    ### Query Params
+
+    | Param | Type | Required | Description                       |
+    |-------|------|----------|-----------------------------------|
+    | limit | int  | No       | 1-50, default 16                  |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "games": [
+          {
+            "id": "uuid",
+            "title": "Elden Ring",
+            "code": "elden-ring",
+            "backgroundUrl": "https://...",
+            "isDlc": false,
+            "releaseAt": "2022-02-25",
+            "genres": [{ "id": "uuid", "name": "Action", "code": "action" }],
+            "scores": [{ "source": "metacritic", "score": 95 }],
+            "times": [{ "source": "hltb", "duration": 60 }],
+            "ratio": 8.33
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    - 422 `COMMON_SCHEMA_INVALID` — `limit` is not an integer between 1 and 50, or an unknown query param was sent

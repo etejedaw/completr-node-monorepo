@@ -189,47 +189,48 @@ void describe("GET /games/latest-reviewed", () => {
 		assert.equal(titlesOf(after.body)[0], "Just Reviewed");
 	});
 
-	void it(
-		"fills the limit with active games when the newest reviewed game is inactive",
-		{
-			todo: "bug: the limit is applied before inactive games are filtered out, so they take slots from the result"
-		},
-		async () => {
-			const reader = await createUserWithSession();
-			const reviewer = await createUserWithSession();
-			const retired = await createGame({
-				title: "Newest Retired",
-				isActive: false
-			});
-			await reviewAt(reviewer, retired, "2050-01-01T00:00:00Z");
+	void it("fills the limit with active games when the newest reviewed game is inactive", async () => {
+		const reader = await createUserWithSession();
+		const reviewer = await createUserWithSession();
+		const retired = await createGame({
+			title: "Newest Retired",
+			isActive: false
+		});
+		await reviewAt(reviewer, retired, "2050-01-01T00:00:00Z");
 
+		const response = await getLatestReviewed(
+			reader.authorization,
+			"?limit=1"
+		);
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.games.length, 1);
+	});
+
+	void it("rejects a non-numeric limit with 422 COMMON_SCHEMA_INVALID", async () => {
+		const reader = await createUserWithSession();
+
+		const response = await getLatestReviewed(
+			reader.authorization,
+			"?limit=abc"
+		);
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+	});
+
+	void it("rejects a limit outside 1 to 50 with 422 COMMON_SCHEMA_INVALID", async () => {
+		const reader = await createUserWithSession();
+
+		for (const limit of ["0", "51", "-1", "1.5"]) {
 			const response = await getLatestReviewed(
 				reader.authorization,
-				"?limit=1"
+				`?limit=${limit}`
 			);
-
-			assert.equal(response.status, 200);
-			assert.equal(response.body.data.games.length, 1);
+			assert.equal(response.status, 422, limit);
+			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID", limit);
 		}
-	);
-
-	void it(
-		"rejects a non-numeric limit with 422 COMMON_SCHEMA_INVALID",
-		{
-			todo: "bug: the limit query parameter is not validated, so a non-numeric value reaches the database"
-		},
-		async () => {
-			const reader = await createUserWithSession();
-
-			const response = await getLatestReviewed(
-				reader.authorization,
-				"?limit=abc"
-			);
-
-			assert.equal(response.status, 422);
-			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
-		}
-	);
+	});
 
 	void it("serves every role", async () => {
 		const accounts = await Promise.all([

@@ -11,6 +11,9 @@ import { Review } from "./review.model";
 const REVIEW_GAME_ATTRS = ["id", "code", "title", "coverUrl", "backgroundUrl"];
 
 const hasContent = literal(`"content" IS NOT NULL AND btrim("content") <> ''`);
+const reviewedGameIsActive = literal(
+	`"gameId" IN (SELECT "id" FROM "Games" WHERE "isActive" = true)`
+);
 const hasContentOrRating = literal(
 	`(("content" IS NOT NULL AND btrim("content") <> '') OR "rating" IS NOT NULL)`
 );
@@ -131,7 +134,7 @@ export async function findAggregatedRatingsByGame() {
 
 export async function findLatestReviewedGameIds(limit = 16) {
 	const rows = (await Review.findAll({
-		where: { [Op.and]: hasContent },
+		where: { [Op.and]: [hasContent, reviewedGameIsActive] },
 		attributes: ["gameId", [fn("MAX", col("createdAt")), "lastReviewedAt"]],
 		group: ["gameId"],
 		order: [[fn("MAX", col("createdAt")), "DESC"]],
