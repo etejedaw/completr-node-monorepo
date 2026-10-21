@@ -8,12 +8,17 @@ import {
 	type Transaction
 } from "sequelize";
 
+import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { sequelize } from "../database/sequelize.database";
+import * as gameShelfService from "../game-shelf/game-shelf.service";
 import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 import { Platform } from "../platforms/platform.model";
 import * as queueService from "../queue/queue.service";
+import * as reviewsService from "../reviews/reviews.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
 import { Backlog, type BacklogStatus } from "./backlog.model";
@@ -53,23 +58,31 @@ async function assertCompilationContext(
 		throw backlogServiceError.compilationContextInvalidError();
 }
 
-export async function createBacklog(
-	userId: string,
-	registerBacklog: RegisterBacklogDto
-) {
-	if (registerBacklog.compilationGameId) {
-		await assertCompilationContext(
-			registerBacklog.gameId,
-			registerBacklog.compilationGameId
-		);
-	}
+type BacklogFields = Omit<
+	RegisterBacklogDto,
+	"addToQueue" | "addToShelf" | "moodTags" | "review" | "progressNote"
+>;
 
+type BacklogReview = NonNullable<RegisterBacklogDto["review"]>;
+
+export interface CreatedBacklog {
+	backlog: Backlog;
+	reviewCreated: boolean;
+	addedToQueue: boolean;
+	addedToShelf: boolean;
+}
+
+async function insertBacklog(
+	userId: string,
+	backlogFields: BacklogFields,
+	transaction: Transaction
+) {
 	try {
-		const backlogEntry = await Backlog.create({
-			...registerBacklog,
-			userId
-		});
-		await backlogEntry.reload({ include: backlogInclude });
+		const backlogEntry = await Backlog.create(
+			{ ...backlogFields, userId },
+			{ transaction }
+		);
+		await backlogEntry.reload({ include: backlogInclude, transaction });
 		return backlogEntry;
 	} catch (error) {
 		rethrowSequelizeError(error, {
@@ -79,15 +92,120 @@ export async function createBacklog(
 	}
 }
 
-export async function findBacklogById(id: string) {
-	return Backlog.findOne({
-		where: { id },
-		include: backlogInclude
+async function createReviewIfMissing(
+	userId: string,
+	gameId: string,
+	review: BacklogReview,
+	transaction: Transaction
+) {
+	const existing = await reviewsService.findReviewByUserAndGame(
+		userId,
+		gameId,
+		transaction
+	);
+	if (existing) return false;
+
+	await reviewsService.createReview(userId, gameId, review, transaction);
+	return true;
+}
+
+async function addToShelfIfMissing(
+	user: RequestUser,
+	backlogEntry: Backlog,
+	transaction: Transaction
+) {
+	const { gameId, platformId } = backlogEntry;
+	if (
+		await gameShelfService.existsGameShelfEntry(
+			user.id,
+			gameId,
+			platformId,
+			transaction
+		)
+	)
+		return false;
+
+	await gameShelfService.registerGameShelf(
+		user,
+		{ gameId, platformId },
+		transaction
+	);
+	return true;
+}
+
+export async function createBacklog(
+	user: RequestUser,
+	registerBacklog: RegisterBacklogDto
+): Promise<CreatedBacklog> {
+	const {
+		addToQueue,
+		addToShelf,
+		moodTags,
+		review,
+		progressNote,
+		...backlogFields
+	} = registerBacklog;
+
+	if (backlogFields.compilationGameId) {
+		await assertCompilationContext(
+			backlogFields.gameId,
+			backlogFields.compilationGameId
+		);
+	}
+
+	return sequelize.transaction(async transaction => {
+		const backlogEntry = await insertBacklog(
+			user.id,
+			backlogFields,
+			transaction
+		);
+		const { id, gameId } = backlogEntry;
+
+		const reviewCreated = review
+			? await createReviewIfMissing(user.id, gameId, review, transaction)
+			: false;
+		if (moodTags)
+			await moodTagsService.replaceTags(
+				user,
+				gameId,
+				moodTags,
+				transaction
+			);
+		if (progressNote)
+			await backlogProgressService.addProgress(
+				user.id,
+				id,
+				progressNote,
+				transaction
+			);
+		if (addToQueue)
+			await queueService.addFromBacklog(id, user, transaction);
+		const addedToShelf = addToShelf
+			? await addToShelfIfMissing(user, backlogEntry, transaction)
+			: false;
+
+		return {
+			backlog: backlogEntry,
+			reviewCreated,
+			addedToQueue: addToQueue === true,
+			addedToShelf
+		};
 	});
 }
 
-export async function findBacklogBasicById(id: string) {
-	return Backlog.findOne({ where: { id } });
+export async function findBacklogById(id: string, transaction?: Transaction) {
+	return Backlog.findOne({
+		where: { id },
+		include: backlogInclude,
+		transaction
+	});
+}
+
+export async function findBacklogBasicById(
+	id: string,
+	transaction?: Transaction
+) {
+	return Backlog.findOne({ where: { id }, transaction });
 }
 
 export async function findBacklogsByUserAndIds(userId: string, ids: string[]) {

@@ -24,13 +24,18 @@ export async function postBacklog(request: Request, response: Response) {
 	const registerBacklog = request.locals.body as RegisterBacklogDto;
 	const user = request.locals.user as RequestUser;
 
-	const backlogEntry = await backlogService.createBacklog(
-		user.id,
-		registerBacklog
-	);
+	const { backlog: backlogEntry, ...extras } =
+		await backlogService.createBacklog(user, registerBacklog);
 	const backlogPlain = backlogEntry.get({ plain: true });
+	const { gameId } = backlogEntry;
 
-	activityService.record(user.id, "backlog_added", backlogEntry.gameId);
+	activityService.record(user.id, "backlog_added", gameId);
+	if (extras.reviewCreated)
+		activityService.record(user.id, "game_reviewed", gameId);
+	if (extras.addedToQueue)
+		activityService.record(user.id, "queue_added", gameId);
+	if (extras.addedToShelf)
+		activityService.record(user.id, "shelf_added", gameId);
 
 	const data = { backlog: backlogSerializer(backlogPlain) };
 	return response.status(201).json({ data });
