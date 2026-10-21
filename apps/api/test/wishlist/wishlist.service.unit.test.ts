@@ -11,7 +11,8 @@ import { asModel } from "../unit-helpers/as-model";
 import {
 	buildRequestUser,
 	captureRejection,
-	stub
+	stub,
+	stubTransaction
 } from "../unit-helpers/mocks";
 
 const FREE_WISHLIST_LIMIT = 20;
@@ -57,6 +58,7 @@ void describe("wishlistService.replaceWishlist", () => {
 		stub(Game, "findAll", async () =>
 			gameIds(FREE_WISHLIST_LIMIT).map(id => ({ id }))
 		);
+		stubTransaction();
 		stub(Wishlist, "destroy", async () => 0);
 		const bulkCreate = stub(Wishlist, "bulkCreate", async () => []);
 		stub(Wishlist, "findAll", async () => []);
@@ -82,6 +84,7 @@ void describe("wishlistService.replaceWishlist", () => {
 
 	void it("rebuilds positions from 1 in the given order", async () => {
 		stub(Game, "findAll", async () => [{ id: "g-2" }, { id: "g-1" }]);
+		stubTransaction();
 		stub(Wishlist, "destroy", async () => 0);
 		const bulkCreate = stub(Wishlist, "bulkCreate", async () => []);
 		stub(Wishlist, "findAll", async () => []);
@@ -89,32 +92,63 @@ void describe("wishlistService.replaceWishlist", () => {
 		await wishlistService.replaceWishlist(FREE_USER, ["g-2", "g-1"]);
 
 		assert.deepEqual(bulkCreate.mock.calls[0]?.arguments[0], [
-			{ userId: "user-1", gameId: "g-2", position: 1 },
-			{ userId: "user-1", gameId: "g-1", position: 2 }
+			{ userId: "user-1", gameId: "g-2", platformId: null, position: 1 },
+			{ userId: "user-1", gameId: "g-1", platformId: null, position: 2 }
 		]);
 	});
 
-	void it(
-		"keeps the desired platform of entries that stay in the wishlist",
-		{
-			todo: "replaceWishlist destroys every entry and re-inserts only userId, gameId and position, so reordering drops each entry's platformId"
-		},
-		async () => {
-			stub(Game, "findAll", async () => [{ id: "g-1" }]);
-			stub(Wishlist, "destroy", async () => 1);
-			const bulkCreate = stub(Wishlist, "bulkCreate", async () => []);
-			stub(Wishlist, "findAll", async () => [
-				{ gameId: "g-1", platformId: "platform-9" }
-			]);
+	void it("keeps the desired platform of entries that stay in the wishlist", async () => {
+		stub(Game, "findAll", async () => [{ id: "g-1" }, { id: "g-2" }]);
+		stubTransaction();
+		stub(Wishlist, "destroy", async () => 1);
+		const bulkCreate = stub(Wishlist, "bulkCreate", async () => []);
+		stub(Wishlist, "findAll", async () => [
+			{ gameId: "g-1", platformId: "platform-9" },
+			{ gameId: "g-3", platformId: "platform-3" }
+		]);
 
-			await wishlistService.replaceWishlist(FREE_USER, ["g-1"]);
+		await wishlistService.replaceWishlist(FREE_USER, ["g-2", "g-1"]);
 
-			const [entry] = bulkCreate.mock.calls[0]?.arguments[0] as {
-				platformId?: string;
-			}[];
-			assert.equal(entry?.platformId, "platform-9");
-		}
-	);
+		assert.deepEqual(bulkCreate.mock.calls[0]?.arguments[0], [
+			{
+				userId: "user-1",
+				gameId: "g-2",
+				platformId: null,
+				position: 1
+			},
+			{
+				userId: "user-1",
+				gameId: "g-1",
+				platformId: "platform-9",
+				position: 2
+			}
+		]);
+	});
+
+	void it("reads, destroys and recreates the entries inside one transaction", async () => {
+		stub(Game, "findAll", async () => [{ id: "g-1" }]);
+		const { transaction, mocked } = stubTransaction();
+		const destroy = stub(Wishlist, "destroy", async () => 1);
+		const bulkCreate = stub(Wishlist, "bulkCreate", async () => []);
+		const findAll = stub(Wishlist, "findAll", async () => []);
+
+		await wishlistService.replaceWishlist(FREE_USER, ["g-1"]);
+
+		assert.equal(mocked.mock.callCount(), 1);
+		assert.deepEqual(findAll.mock.calls[0]?.arguments, [
+			{
+				where: { userId: "user-1" },
+				attributes: ["gameId", "platformId"],
+				transaction
+			}
+		]);
+		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
+			{ where: { userId: "user-1" }, transaction }
+		]);
+		assert.deepEqual(bulkCreate.mock.calls[0]?.arguments[1], {
+			transaction
+		});
+	});
 });
 
 void describe("wishlistService.addToWishlist", () => {
