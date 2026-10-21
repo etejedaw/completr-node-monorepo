@@ -39,6 +39,7 @@ import {
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
+import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { GamesService } from "../../games/games";
 import {
@@ -97,6 +98,9 @@ export class ListDetail implements OnInit {
 	);
 	private readonly toast = inject(ToastService);
 	private readonly searchSubject = new Subject<string>();
+	private readonly pendingRemovals = new PendingRemovals<ListItem>(
+		item => item.game.id
+	);
 
 	protected readonly list = signal<List | null>(null);
 	protected readonly isOwner = computed(
@@ -230,7 +234,7 @@ export class ListDetail implements OnInit {
 	}
 
 	addGame(game: Game) {
-		const current = this.list()?.items?.map(i => i.game.id) ?? [];
+		const current = this.serverOrder(this.visibleItems());
 		if (current.includes(game.id)) return;
 		this.listsService
 			.replaceItems(this.listId, [...current, game.id])
@@ -244,27 +248,58 @@ export class ListDetail implements OnInit {
 	removeItem(item: ListItem) {
 		const current = this.list();
 		if (!current) return;
-		const remaining = current.items
-			.filter(i => i.id !== item.id)
-			.map((i, index) => ({ ...i, position: index + 1 }));
-		this.list.set({ ...current, items: remaining });
+		this.showItems(this.pendingRemovals.hide(item, current.items));
 		this.toast.pending({
 			message: `Removed ${item.game.title} from the list`,
-			onCommit: () =>
+			onCommit: () => {
+				this.pendingRemovals.commit(item);
 				this.listsService
 					.replaceItems(
 						this.listId,
-						remaining.map(i => i.game.id)
+						this.serverOrder(this.visibleItems())
 					)
 					.subscribe({
 						next: () => this.loadList(),
 						error: () => {
-							this.list.set(current);
+							this.loadList();
 							this.toast.error("Could not remove the game.");
 						}
-					}),
-			onUndo: () => this.list.set(current)
+					});
+			},
+			onUndo: () =>
+				this.showItems(
+					this.pendingRemovals.undo(item, this.visibleItems())
+				)
 		});
+	}
+
+	private visibleItems() {
+		return this.list()?.items ?? [];
+	}
+
+	private showItems(items: ListItem[]) {
+		const current = this.list();
+		if (!current) return;
+		this.list.set({
+			...current,
+			items: items.map((item, index) => ({
+				...item,
+				position: index + 1
+			}))
+		});
+	}
+
+	private showList(list: List) {
+		this.list.set({
+			...list,
+			items: this.pendingRemovals.withoutPending(list.items)
+		});
+	}
+
+	private serverOrder(visible: ListItem[]) {
+		return this.pendingRemovals
+			.withPending(visible)
+			.map(item => item.game.id);
 	}
 
 	runListAction(id: ListActionId) {
@@ -383,7 +418,7 @@ export class ListDetail implements OnInit {
 				viewerList: this.listsService.getById(this.listId)
 			}).subscribe({
 				next: ({ fromList, viewerList }) => {
-					this.list.set(fromList);
+					this.showList(fromList);
 					this.viewerProgress.set(
 						this.buildProgressMap(viewerList.items)
 					);
@@ -402,7 +437,7 @@ export class ListDetail implements OnInit {
 			: this.listsService.getById(this.listId);
 		request$.subscribe({
 			next: list => {
-				this.list.set(list);
+				this.showList(list);
 				this.isLoading.set(false);
 			},
 			error: () => this.isLoading.set(false)
@@ -481,7 +516,7 @@ export class ListDetail implements OnInit {
 			position: idx + 1
 		}));
 		this.list.set({ ...current, items: optimistic });
-		const gameIds = items.map(i => i.game.id);
+		const gameIds = this.serverOrder(items);
 		this.listsService.replaceItems(this.listId, gameIds).subscribe({
 			next: () => this.loadList(),
 			error: () => this.list.set(current)

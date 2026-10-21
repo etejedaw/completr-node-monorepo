@@ -165,6 +165,16 @@ describe("Lists interaction", () => {
 			.find(element => element instanceof HTMLInputElement)!;
 	}
 
+	function toast(message: string) {
+		return within(
+			screen.getByText(message).closest("[ngpToast]") as HTMLElement
+		);
+	}
+
+	function savedGameIds() {
+		return lists[0].items.map(item => item.game.id);
+	}
+
 	async function renderLists() {
 		const { fixture } = await render(ListsHost, {
 			providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -337,9 +347,114 @@ describe("Lists interaction", () => {
 		expect(screen.getByText("2 games")).toBeInTheDocument();
 	});
 
-	it.todo(
-		"keeps the list consistent when a game is reordered during the undo window of a removal (today the reorder saves the list without the removed game, and Undo restores the old order and the game only on screen)"
-	);
+	it("keeps an undone removal and the new order when a game is reordered during the undo window", async () => {
+		const user = userEvent.setup();
+		await renderLists();
+		await createListWithGames(user);
+		const savedOrders = itemReplacements.length;
+
+		await user.click(
+			screen.getByRole("button", { name: "Remove Celeste from the list" })
+		);
+		await screen.findByText("Removed Celeste from the list");
+		await user.click(
+			screen.getByRole("button", { name: "Move Hollow Knight up" })
+		);
+		await untilVisible(() =>
+			expect(rankingTitles()).toEqual(["Hollow Knight", "Hades"])
+		);
+		expect(itemReplacements.slice(savedOrders)).toEqual([
+			["g3", "g1", "g2"]
+		]);
+
+		await user.click(screen.getByRole("button", { name: /Undo/ }));
+		expect(rankingTitles()).toEqual(["Hollow Knight", "Hades", "Celeste"]);
+		expect(screen.getByText("3 games")).toBeInTheDocument();
+		answerPending();
+		expect(itemReplacements).toHaveLength(savedOrders + 1);
+		expect(savedGameIds()).toEqual(["g3", "g1", "g2"]);
+	});
+
+	it("commits a removal after a reorder during the undo window and keeps the new order", async () => {
+		const user = userEvent.setup();
+		await renderLists();
+		await createListWithGames(user);
+		const savedOrders = itemReplacements.length;
+
+		await user.click(
+			screen.getByRole("button", { name: "Remove Celeste from the list" })
+		);
+		await user.click(
+			screen.getByRole("button", { name: "Move Hollow Knight up" })
+		);
+		await untilVisible(() =>
+			expect(rankingTitles()).toEqual(["Hollow Knight", "Hades"])
+		);
+
+		await user.click(
+			await screen.findByRole("button", { name: "Dismiss" })
+		);
+
+		await untilVisible(() =>
+			expect(itemReplacements.slice(savedOrders)).toEqual([
+				["g3", "g1", "g2"],
+				["g3", "g1"]
+			])
+		);
+		expect(rankingTitles()).toEqual(["Hollow Knight", "Hades"]);
+		expect(screen.getByText("2 games")).toBeInTheDocument();
+		expect(savedGameIds()).toEqual(["g3", "g1"]);
+	});
+
+	it("keeps two pending removals on the server until each one is committed", async () => {
+		const user = userEvent.setup();
+		await renderLists();
+		await createListWithGames(user);
+		const savedOrders = itemReplacements.length;
+
+		await user.click(
+			screen.getByRole("button", { name: "Remove Celeste from the list" })
+		);
+		await user.click(
+			screen.getByRole("button", {
+				name: "Remove Hollow Knight from the list"
+			})
+		);
+		expect(rankingTitles()).toEqual(["Hades"]);
+		await screen.findByText("Removed Hollow Knight from the list");
+
+		await user.click(
+			toast("Removed Hollow Knight from the list").getByRole("button", {
+				name: /Undo/
+			})
+		);
+		expect(rankingTitles()).toEqual(["Hades", "Hollow Knight"]);
+		expect(itemReplacements).toHaveLength(savedOrders);
+
+		await user.click(
+			screen.getByRole("button", { name: "Move Hollow Knight up" })
+		);
+		await untilVisible(() =>
+			expect(rankingTitles()).toEqual(["Hollow Knight", "Hades"])
+		);
+		expect(itemReplacements.slice(savedOrders)).toEqual([
+			["g3", "g1", "g2"]
+		]);
+
+		await user.click(
+			toast("Removed Celeste from the list").getByRole("button", {
+				name: "Dismiss"
+			})
+		);
+		await untilVisible(() =>
+			expect(itemReplacements.slice(savedOrders)).toEqual([
+				["g3", "g1", "g2"],
+				["g3", "g1"]
+			])
+		);
+		expect(rankingTitles()).toEqual(["Hollow Knight", "Hades"]);
+		expect(savedGameIds()).toEqual(["g3", "g1"]);
+	});
 
 	it("makes the list private from the edit dialog", async () => {
 		const user = userEvent.setup();
