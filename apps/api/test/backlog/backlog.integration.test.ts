@@ -3,7 +3,11 @@ import { randomUUID } from "node:crypto";
 import { describe, it } from "node:test";
 
 import { Backlog } from "../../src/backlog/backlog.model";
+import { BacklogProgress } from "../../src/backlog-progress/backlog-progress.model";
+import { GameShelf } from "../../src/game-shelf/game-shelf.model";
+import { UserGameTag } from "../../src/mood-tags/user-game-tag.model";
 import { Queue } from "../../src/queue/queue.model";
+import { Review } from "../../src/reviews/review.model";
 import { User } from "../../src/users/user.model";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
@@ -11,10 +15,13 @@ import { useTestDatabase } from "../helpers/database.helper";
 import {
 	createBacklog,
 	createGame,
-	createPlatform
+	createPlatform,
+	createShelfEntries
 } from "../helpers/factories.helper";
 
 const BACKLOG_PATH = "/users/me/backlog";
+const FREE_QUEUE_LIMIT = 10;
+const FREE_SHELF_LIMIT = 250;
 
 useTestDatabase();
 
@@ -157,6 +164,270 @@ void describe("POST /users/me/backlog", () => {
 
 		assert.equal(response.status, 401);
 		assert.equal(response.body.type, "AUTH_INVALID_TOKEN");
+	});
+});
+
+void describe("POST /users/me/backlog with extras", () => {
+	const extras = {
+		status: "not_started",
+		addToQueue: true,
+		addToShelf: true,
+		moodTags: ["Cozy", "co-op"],
+		progressNote: "Chapter 3"
+	};
+
+	async function fillQueue(userId: string, count: number) {
+		const { game, platform } = await createGameAndPlatform();
+		for (let position = 1; position <= count; position++) {
+			const backlog = await createBacklog(userId, game.id, platform.id);
+			await Queue.create({ userId, backlogId: backlog.id, position });
+		}
+	}
+
+	async function countWrites(userId: string, gameId: string) {
+		const [backlogs, reviews, tags, progress, queue, shelf] =
+			await Promise.all([
+				Backlog.count({ where: { userId, gameId } }),
+				Review.count({ where: { userId, gameId } }),
+				UserGameTag.count({ where: { userId, gameId } }),
+				BacklogProgress.count({
+					include: [{ model: Backlog, where: { userId, gameId } }]
+				}),
+				Queue.count({
+					where: { userId },
+					include: [{ model: Backlog, where: { gameId } }]
+				}),
+				GameShelf.count({ where: { userId, gameId } })
+			]);
+		return { backlogs, reviews, tags, progress, queue, shelf };
+	}
+
+	const NOTHING_WRITTEN = {
+		backlogs: 0,
+		reviews: 0,
+		tags: 0,
+		progress: 0,
+		queue: 0,
+		shelf: 0
+	};
+
+	void it("creates the entry with its queue, shelf, mood tags and progress note", async () => {
+		const owner = await createUserWithSession();
+		const { game, platform } = await createGameAndPlatform();
+
+		const response = await addToBacklog(
+			owner.authorization,
+			backlogPayload(game.id, platform.id, extras)
+		);
+
+		assert.equal(response.status, 201);
+		const backlogId = response.body.data.backlog.id;
+		assert.deepEqual(await countWrites(owner.user.id, game.id), {
+			backlogs: 1,
+			reviews: 0,
+			tags: 2,
+			progress: 1,
+			queue: 1,
+			shelf: 1
+		});
+		const tags = await UserGameTag.findAll({
+			where: { userId: owner.user.id, gameId: game.id },
+			order: [["tag", "ASC"]]
+		});
+		assert.deepEqual(
+			tags.map(row => row.tag),
+			["co-op", "cozy"]
+		);
+		const note = await BacklogProgress.findOne({ where: { backlogId } });
+		assert.equal(note?.note, "Chapter 3");
+		const shelf = await GameShelf.findOne({
+			where: { userId: owner.user.id, gameId: game.id }
+		});
+		assert.equal(shelf?.platformId, platform.id);
+	});
+
+	void it("creates the review of a completed entry", async () => {
+		const owner = await createUserWithSession();
+		const { game, platform } = await createGameAndPlatform();
+
+		const response = await addToBacklog(
+			owner.authorization,
+			backlogPayload(game.id, platform.id, {
+				status: "completed",
+				userRating: 4.5,
+				review: { content: "Loved it", rating: 4.5 }
+			})
+		);
+
+		assert.equal(response.status, 201);
+		const review = await Review.findOne({
+			where: { userId: owner.user.id, gameId: game.id }
+		});
+		assert.equal(review?.content, "Loved it");
+		assert.equal(review?.rating, 4.5);
+	});
+
+	void it("keeps the existing review and shelf entry instead of failing", async () => {
+		const owner = await createUserWithSession();
+		const { game, platform } = await createGameAndPlatform();
+		await Review.create({
+			userId: owner.user.id,
+			gameId: game.id,
+			content: "First impressions"
+		});
+		await createShelfEntries(owner.user.id, game.id, platform.id, 1);
+
+		const response = await addToBacklog(
+			owner.authorization,
+			backlogPayload(game.id, platform.id, {
+				status: "completed",
+				addToShelf: true,
+				review: { content: "Second run" }
+			})
+		);
+
+		assert.equal(response.status, 201);
+		const counts = await countWrites(owner.user.id, game.id);
+		assert.equal(counts.reviews, 1);
+		assert.equal(counts.shelf, 1);
+		const review = await Review.findOne({
+			where: { userId: owner.user.id, gameId: game.id }
+		});
+		assert.equal(review?.content, "First impressions");
+	});
+
+	void it("adds the copy to the shelf when the game is shelved on another platform", async () => {
+		const owner = await createUserWithSession();
+		const { game, platform } = await createGameAndPlatform();
+		const otherPlatform = await createPlatform();
+		await createShelfEntries(owner.user.id, game.id, otherPlatform.id, 1);
+
+		const response = await addToBacklog(
+			owner.authorization,
+			backlogPayload(game.id, platform.id, { addToShelf: true })
+		);
+
+		assert.equal(response.status, 201);
+		assert.equal((await countWrites(owner.user.id, game.id)).shelf, 2);
+	});
+
+	void it("rolls everything back when the shelf limit fails after the other writes", async () => {
+		const owner = await createUserWithSession("user");
+		const { game, platform } = await createGameAndPlatform();
+		const shelved = await createGame();
+		await createShelfEntries(
+			owner.user.id,
+			shelved.id,
+			platform.id,
+			FREE_SHELF_LIMIT
+		);
+
+		const response = await addToBacklog(
+			owner.authorization,
+			backlogPayload(game.id, platform.id, {
+				...extras,
+				status: "not_started"
+			})
+		);
+
+		assert.equal(response.status, 402);
+		assert.equal(response.body.type, "GAME_SHELF_LIMIT_REACHED");
+		assert.deepEqual(
+			await countWrites(owner.user.id, game.id),
+			NOTHING_WRITTEN
+		);
+	});
+
+	void it("rolls everything back when Up Next is full", async () => {
+		const owner = await createUserWithSession("user");
+		const { game, platform } = await createGameAndPlatform();
+		await fillQueue(owner.user.id, FREE_QUEUE_LIMIT);
+
+		const response = await addToBacklog(
+			owner.authorization,
+			backlogPayload(game.id, platform.id, extras)
+		);
+
+		assert.equal(response.status, 402);
+		assert.equal(response.body.type, "QUEUE_LIMIT_REACHED");
+		assert.deepEqual(
+			await countWrites(owner.user.id, game.id),
+			NOTHING_WRITTEN
+		);
+		assert.equal(
+			await Queue.count({ where: { userId: owner.user.id } }),
+			FREE_QUEUE_LIMIT
+		);
+	});
+
+	void it("rejects queueing an entry that is not not_started with 409 and writes nothing", async () => {
+		const owner = await createUserWithSession();
+		const { game, platform } = await createGameAndPlatform();
+
+		const response = await addToBacklog(
+			owner.authorization,
+			backlogPayload(game.id, platform.id, {
+				status: "playing",
+				addToQueue: true,
+				moodTags: ["cozy"],
+				progressNote: "Chapter 1"
+			})
+		);
+
+		assert.equal(response.status, 409);
+		assert.equal(response.body.type, "QUEUE_BACKLOG_NOT_STARTED");
+		assert.deepEqual(
+			await countWrites(owner.user.id, game.id),
+			NOTHING_WRITTEN
+		);
+	});
+
+	void it("keeps the previous mood tags when the creation fails", async () => {
+		const owner = await createUserWithSession("user");
+		const { game, platform } = await createGameAndPlatform();
+		await UserGameTag.create({
+			userId: owner.user.id,
+			gameId: game.id,
+			tag: "previous"
+		});
+		await fillQueue(owner.user.id, FREE_QUEUE_LIMIT);
+
+		const response = await addToBacklog(
+			owner.authorization,
+			backlogPayload(game.id, platform.id, {
+				addToQueue: true,
+				moodTags: ["replacement"]
+			})
+		);
+
+		assert.equal(response.status, 402);
+		const tags = await UserGameTag.findAll({
+			where: { userId: owner.user.id, gameId: game.id }
+		});
+		assert.deepEqual(
+			tags.map(row => row.tag),
+			["previous"]
+		);
+	});
+
+	void it("rejects a review on an entry that is not finished with 422 COMMON_SCHEMA_INVALID", async () => {
+		const owner = await createUserWithSession();
+		const { game, platform } = await createGameAndPlatform();
+
+		const response = await addToBacklog(
+			owner.authorization,
+			backlogPayload(game.id, platform.id, {
+				status: "playing",
+				review: { content: "Too early" }
+			})
+		);
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		assert.equal(
+			await Backlog.count({ where: { userId: owner.user.id } }),
+			0
+		);
 	});
 });
 

@@ -1,20 +1,28 @@
 import assert from "node:assert/strict";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import { UniqueConstraintError, ValidationError } from "sequelize";
 
 import { Backlog } from "../../src/backlog/backlog.model";
 import * as backlogService from "../../src/backlog/backlog.service";
+import * as backlogProgressService from "../../src/backlog-progress/backlog-progress.service";
 import { sequelize } from "../../src/database/sequelize.database";
+import * as gameShelfService from "../../src/game-shelf/game-shelf.service";
 import * as gamesCompilationService from "../../src/games/services/games-compilation.service";
+import * as moodTagsService from "../../src/mood-tags/mood-tags.service";
 import * as queueService from "../../src/queue/queue.service";
+import * as reviewsService from "../../src/reviews/reviews.service";
 import { asModel } from "../unit-helpers/as-model";
 import {
+	buildRequestUser,
 	captureRejection,
 	spy,
 	stub,
 	stubTransaction
 } from "../unit-helpers/mocks";
+
+const USER = buildRequestUser({ id: "u-1" });
+const TRANSACTION = { id: "tx" };
 
 const registerDto = {
 	gameId: "game-1",
@@ -41,6 +49,10 @@ function errorCode(error: unknown) {
 }
 
 void describe("backlogService.createBacklog", () => {
+	beforeEach(() => {
+		stubTransaction();
+	});
+
 	afterEach(() => {
 		mock.restoreAll();
 	});
@@ -51,16 +63,21 @@ void describe("backlogService.createBacklog", () => {
 		const create = stub(Backlog, "create", async () => entry);
 
 		const result = await backlogService.createBacklog(
-			"u-1",
+			USER,
 			registerDto as never
 		);
 
-		assert.deepEqual(create.mock.calls[0]?.arguments[0], {
-			...registerDto,
-			userId: "u-1"
-		});
+		assert.deepEqual(create.mock.calls[0]?.arguments, [
+			{ ...registerDto, userId: "u-1" },
+			{ transaction: TRANSACTION }
+		]);
 		assert.equal(reload.mock.callCount(), 1);
-		assert.equal(result, entry);
+		assert.deepEqual(result, {
+			backlog: entry,
+			reviewCreated: false,
+			addedToQueue: false,
+			addedToShelf: false
+		});
 	});
 
 	void it("rejects a compilation that is not an active compilation", async () => {
@@ -68,7 +85,7 @@ void describe("backlogService.createBacklog", () => {
 		const create = stub(Backlog, "create", async () => ({}));
 
 		const error = await captureRejection(
-			backlogService.createBacklog("u-1", {
+			backlogService.createBacklog(USER, {
 				...registerDto,
 				compilationGameId: "comp-1"
 			} as never)
@@ -82,7 +99,7 @@ void describe("backlogService.createBacklog", () => {
 		stubCompilation({ exists: true, belongs: false });
 
 		const error = await captureRejection(
-			backlogService.createBacklog("u-1", {
+			backlogService.createBacklog(USER, {
 				...registerDto,
 				compilationGameId: "comp-1"
 			} as never)
@@ -95,7 +112,7 @@ void describe("backlogService.createBacklog", () => {
 		stubCompilation({ exists: true, belongs: true });
 		stub(Backlog, "create", async () => asModel({ reload: spy() }));
 
-		await backlogService.createBacklog("u-1", {
+		await backlogService.createBacklog(USER, {
 			...registerDto,
 			compilationGameId: "comp-1"
 		} as never);
@@ -109,7 +126,7 @@ void describe("backlogService.createBacklog", () => {
 		);
 		stub(Backlog, "create", async () => asModel({ reload: spy() }));
 
-		await backlogService.createBacklog("u-1", registerDto as never);
+		await backlogService.createBacklog(USER, registerDto as never);
 
 		assert.equal(exists.mock.callCount(), 0);
 	});
@@ -119,19 +136,177 @@ void describe("backlogService.createBacklog", () => {
 			throw new UniqueConstraintError({});
 		});
 		const unique = await captureRejection(
-			backlogService.createBacklog("u-1", registerDto as never)
+			backlogService.createBacklog(USER, registerDto as never)
 		);
 		mock.restoreAll();
+		stubTransaction();
 
 		stub(Backlog, "create", async () => {
 			throw new ValidationError("bad", []);
 		});
 		const validation = await captureRejection(
-			backlogService.createBacklog("u-1", registerDto as never)
+			backlogService.createBacklog(USER, registerDto as never)
 		);
 
 		assert.equal(errorCode(unique), "BACKLOG_UNIQUE_CONSTRAINT");
 		assert.equal(errorCode(validation), "BACKLOG_VALIDATION_ERROR");
+	});
+});
+
+void describe("backlogService.createBacklog extras", () => {
+	const createdEntry = {
+		id: "b-1",
+		gameId: "game-1",
+		platformId: "platform-1"
+	};
+	const extrasDto = {
+		...registerDto,
+		status: "completed",
+		addToQueue: true,
+		addToShelf: true,
+		moodTags: ["cozy"],
+		review: { content: "Great", rating: 4.5 },
+		progressNote: "Chapter 3"
+	};
+
+	function stubExtras(
+		options: {
+			reviewExists?: boolean;
+			shelfExists?: boolean;
+			queueFails?: boolean;
+		} = {}
+	) {
+		const create = stub(Backlog, "create", async () =>
+			asModel({ ...createdEntry, reload: spy() })
+		);
+		stub(reviewsService, "findReviewByUserAndGame", async () =>
+			options.reviewExists ? { id: "r-1" } : null
+		);
+		stub(gameShelfService, "existsGameShelfEntry", async () =>
+			Boolean(options.shelfExists)
+		);
+		return {
+			create,
+			createReview: stub(
+				reviewsService,
+				"createReview",
+				async () => ({})
+			),
+			replaceTags: stub(moodTagsService, "replaceTags", async () => []),
+			addProgress: stub(
+				backlogProgressService,
+				"addProgress",
+				async () => ({})
+			),
+			addFromBacklog: stub(queueService, "addFromBacklog", async () => {
+				if (options.queueFails)
+					throw Object.assign(new Error("limit"), {
+						code: "QUEUE_LIMIT_REACHED"
+					});
+				return {};
+			}),
+			registerGameShelf: stub(
+				gameShelfService,
+				"registerGameShelf",
+				async () => ({})
+			)
+		};
+	}
+
+	beforeEach(() => {
+		stubTransaction();
+	});
+
+	afterEach(() => {
+		mock.restoreAll();
+	});
+
+	void it("creates every requested extra inside the backlog transaction", async () => {
+		const extras = stubExtras();
+
+		const result = await backlogService.createBacklog(
+			USER,
+			extrasDto as never
+		);
+
+		assert.deepEqual(extras.createReview.mock.calls[0]?.arguments, [
+			"u-1",
+			"game-1",
+			{ content: "Great", rating: 4.5 },
+			TRANSACTION
+		]);
+		assert.deepEqual(extras.replaceTags.mock.calls[0]?.arguments, [
+			USER,
+			"game-1",
+			["cozy"],
+			TRANSACTION
+		]);
+		assert.deepEqual(extras.addProgress.mock.calls[0]?.arguments, [
+			"u-1",
+			"b-1",
+			"Chapter 3",
+			TRANSACTION
+		]);
+		assert.deepEqual(extras.addFromBacklog.mock.calls[0]?.arguments, [
+			"b-1",
+			USER,
+			TRANSACTION
+		]);
+		assert.deepEqual(extras.registerGameShelf.mock.calls[0]?.arguments, [
+			USER,
+			{ gameId: "game-1", platformId: "platform-1" },
+			TRANSACTION
+		]);
+		assert.equal(result.reviewCreated, true);
+		assert.equal(result.addedToQueue, true);
+		assert.equal(result.addedToShelf, true);
+	});
+
+	void it("does not persist the extras fields on the backlog row", async () => {
+		const { create } = stubExtras();
+
+		await backlogService.createBacklog(USER, extrasDto as never);
+
+		assert.deepEqual(create.mock.calls[0]?.arguments[0], {
+			...registerDto,
+			status: "completed",
+			userId: "u-1"
+		});
+	});
+
+	void it("skips the review and the shelf entry when they already exist", async () => {
+		const extras = stubExtras({ reviewExists: true, shelfExists: true });
+
+		const result = await backlogService.createBacklog(
+			USER,
+			extrasDto as never
+		);
+
+		assert.equal(extras.createReview.mock.callCount(), 0);
+		assert.equal(extras.registerGameShelf.mock.callCount(), 0);
+		assert.equal(result.reviewCreated, false);
+		assert.equal(result.addedToShelf, false);
+	});
+
+	void it("calls no other module when no extras are requested", async () => {
+		const extras = stubExtras();
+
+		await backlogService.createBacklog(USER, registerDto as never);
+
+		const { create: _create, ...otherModules } = extras;
+		for (const call of Object.values(otherModules))
+			assert.equal(call.mock.callCount(), 0);
+	});
+
+	void it("stops at the first failing extra and rejects with its error", async () => {
+		const extras = stubExtras({ queueFails: true });
+
+		const error = await captureRejection(
+			backlogService.createBacklog(USER, extrasDto as never)
+		);
+
+		assert.equal(errorCode(error), "QUEUE_LIMIT_REACHED");
+		assert.equal(extras.registerGameShelf.mock.callCount(), 0);
 	});
 });
 

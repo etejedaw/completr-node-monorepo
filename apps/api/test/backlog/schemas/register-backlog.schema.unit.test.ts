@@ -119,4 +119,83 @@ void describe("RegisterBacklogSchema", () => {
 			false
 		);
 	});
+
+	void it("accepts the optional extras of the creation modal", () => {
+		const result = RegisterBacklogSchema.safeParse({
+			...validRegistration,
+			status: "completed",
+			addToQueue: false,
+			addToShelf: true,
+			moodTags: [" cozy "],
+			review: { content: " Great run ", rating: 4.5 },
+			progressNote: " Chapter 3 "
+		});
+
+		assert.equal(result.success, true);
+		assert.deepEqual(result.data?.moodTags, ["cozy"]);
+		assert.deepEqual(result.data?.review, {
+			content: "Great run",
+			rating: 4.5
+		});
+		assert.equal(result.data?.progressNote, "Chapter 3");
+	});
+
+	void it("rejects a review without content nor rating", () => {
+		assert.equal(
+			RegisterBacklogSchema.safeParse({
+				...validRegistration,
+				status: "completed",
+				review: { content: "   " }
+			}).success,
+			false
+		);
+		assert.equal(
+			RegisterBacklogSchema.safeParse({
+				...validRegistration,
+				status: "completed",
+				review: {}
+			}).success,
+			false
+		);
+	});
+
+	void it("only accepts a review for completed, abandoned or endless entries", () => {
+		for (const status of [undefined, "not_started", "playing"]) {
+			assert.equal(
+				RegisterBacklogSchema.safeParse({
+					...validRegistration,
+					status,
+					review: { rating: 4 }
+				}).success,
+				false
+			);
+		}
+		for (const status of ["completed", "abandoned", "endless"]) {
+			assert.equal(
+				RegisterBacklogSchema.safeParse({
+					...validRegistration,
+					status,
+					review: { rating: 4 }
+				}).success,
+				true
+			);
+		}
+	});
+
+	void it("rejects more than 10 mood tags and an empty progress note", () => {
+		assert.equal(
+			RegisterBacklogSchema.safeParse({
+				...validRegistration,
+				moodTags: Array.from({ length: 11 }, (_, i) => `tag ${i}`)
+			}).success,
+			false
+		);
+		assert.equal(
+			RegisterBacklogSchema.safeParse({
+				...validRegistration,
+				progressNote: "  "
+			}).success,
+			false
+		);
+	});
 });
