@@ -331,24 +331,31 @@ void describe("genres write endpoints", () => {
 		assert.equal(response.body.type, "GENRE_UNIQUE_CONSTRAINT");
 	});
 
-	void it(
-		"rejects a name that cannot become a slug instead of storing an empty code",
-		{
-			todo: "bug: POST /genres with a name like '!!!' answers 201 and stores a genre with an empty code"
-		},
-		async () => {
-			const admin = await createUserWithSession("admin");
+	void it("rejects a name that cannot become a slug instead of storing an empty code", async () => {
+		const admin = await createUserWithSession("admin");
 
-			const response = await postGenre(admin.authorization, {
-				name: "!!!"
-			});
+		const response = await postGenre(admin.authorization, {
+			name: "!!!"
+		});
 
-			assert.ok(
-				response.status >= 400 && response.status < 500,
-				`expected 4xx, got ${response.status}`
-			);
-		}
-	);
+		assert.equal(response.status, 400);
+		assert.equal(response.body.type, "GENRE_VALIDATION_ERROR");
+		assert.equal(await Genre.count({ where: { code: "" } }), 0);
+	});
+
+	void it("rejects renaming to a name that cannot become a slug with 400 GENRE_VALIDATION_ERROR", async () => {
+		const admin = await createUserWithSession("admin");
+		const genre = await createGenre();
+
+		const response = await patchGenre(admin.authorization, genre.id, {
+			name: "!!!"
+		});
+
+		assert.equal(response.status, 400);
+		assert.equal(response.body.type, "GENRE_VALIDATION_ERROR");
+		await genre.reload();
+		assert.notEqual(genre.code, "");
+	});
 
 	const invalidCreateBodies: [string, Record<string, unknown>][] = [
 		["a missing name", {}],
@@ -408,26 +415,20 @@ void describe("genres write endpoints", () => {
 		assert.equal(response.body.type, "GENRE_NOT_FOUND");
 	});
 
-	void it(
-		"answers 409 GENRE_UNIQUE_CONSTRAINT when renaming to a name already in use",
-		{
-			todo: "bug: PATCH /genres/:genreId renaming to an existing name answers 500 instead of 409"
-		},
-		async () => {
-			const admin = await createUserWithSession("admin");
-			const [genre, other] = await Promise.all([
-				createGenre(),
-				createGenre()
-			]);
+	void it("answers 409 GENRE_UNIQUE_CONSTRAINT when renaming to a name already in use", async () => {
+		const admin = await createUserWithSession("admin");
+		const [genre, other] = await Promise.all([
+			createGenre(),
+			createGenre()
+		]);
 
-			const response = await patchGenre(admin.authorization, genre.id, {
-				name: other.name
-			});
+		const response = await patchGenre(admin.authorization, genre.id, {
+			name: other.name
+		});
 
-			assert.equal(response.status, 409);
-			assert.equal(response.body.type, "GENRE_UNIQUE_CONSTRAINT");
-		}
-	);
+		assert.equal(response.status, 409);
+		assert.equal(response.body.type, "GENRE_UNIQUE_CONSTRAINT");
+	});
 
 	void it("rejects an invalid rename with 422 COMMON_SCHEMA_INVALID", async () => {
 		const admin = await createUserWithSession("admin");
@@ -493,23 +494,14 @@ void describe("genres write endpoints", () => {
 		await deleteGenre(admin.authorization, genre.id).expect(204);
 	});
 
-	void it(
-		"answers 404 GENRE_NOT_FOUND when deleting an unknown genre",
-		{
-			todo: "bug: DELETE /genres/:genreId for a nonexistent genre answers 204"
-		},
-		async () => {
-			const admin = await createUserWithSession("admin");
+	void it("answers 404 GENRE_NOT_FOUND when deleting an unknown genre", async () => {
+		const admin = await createUserWithSession("admin");
 
-			const response = await deleteGenre(
-				admin.authorization,
-				randomUUID()
-			);
+		const response = await deleteGenre(admin.authorization, randomUUID());
 
-			assert.equal(response.status, 404);
-			assert.equal(response.body.type, "GENRE_NOT_FOUND");
-		}
-	);
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "GENRE_NOT_FOUND");
+	});
 
 	void it("rejects a malformed genre id on delete with 422 COMMON_SCHEMA_INVALID", async () => {
 		const admin = await createUserWithSession("admin");
@@ -726,23 +718,17 @@ void describe("platforms write endpoints", () => {
 		assert.equal(await Platform.count({ where: { id: platform.id } }), 1);
 	});
 
-	void it(
-		"answers 404 PLATFORM_NOT_FOUND when deleting an unknown platform",
-		{
-			todo: "bug: DELETE /platforms/:platformId for a nonexistent platform answers 204"
-		},
-		async () => {
-			const admin = await createUserWithSession("admin");
+	void it("answers 404 PLATFORM_NOT_FOUND when deleting an unknown platform", async () => {
+		const admin = await createUserWithSession("admin");
 
-			const response = await deletePlatform(
-				admin.authorization,
-				randomUUID()
-			);
+		const response = await deletePlatform(
+			admin.authorization,
+			randomUUID()
+		);
 
-			assert.equal(response.status, 404);
-			assert.equal(response.body.type, "PLATFORM_NOT_FOUND");
-		}
-	);
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "PLATFORM_NOT_FOUND");
+	});
 
 	void it("rejects a malformed platform id on delete with 422 COMMON_SCHEMA_INVALID", async () => {
 		const admin = await createUserWithSession("admin");
@@ -999,44 +985,56 @@ void describe("game-scores write endpoints", () => {
 		assert.equal(response.body.type, "COMMON_REFERENCE_NOT_FOUND");
 	});
 
-	void it(
-		"rejects a negative score",
-		{
-			todo: "bug: POST /game-scores accepts negative scores and answers 201"
-		},
-		async () => {
-			const admin = await createUserWithSession("admin");
-			const game = await createGame();
+	void it("rejects a negative score", async () => {
+		const admin = await createUserWithSession("admin");
+		const game = await createGame();
 
-			const response = await postGameScore(admin.authorization, {
-				gameId: game.id,
-				source: scoreSource,
-				score: -5
-			});
+		const response = await postGameScore(admin.authorization, {
+			gameId: game.id,
+			source: scoreSource,
+			score: -5
+		});
 
-			assert.equal(response.status, 422);
-			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
-		}
-	);
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+	});
 
-	void it(
-		"rejects a score above the scale of its source",
-		{
-			todo: "bug: POST /game-scores accepts a score above the source scale and answers 201"
-		},
-		async () => {
-			const admin = await createUserWithSession("admin");
-			const game = await createGame();
+	void it("rejects a score above the scale of its source", async () => {
+		const admin = await createUserWithSession("admin");
+		const game = await createGame();
 
-			const response = await postGameScore(admin.authorization, {
-				gameId: game.id,
-				source: scoreSource,
-				score: 5000
-			});
+		const response = await postGameScore(admin.authorization, {
+			gameId: game.id,
+			source: scoreSource,
+			score: 5000
+		});
 
-			assert.equal(response.status, 422);
-		}
-	);
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "GAME_SCORE_OUT_OF_RANGE");
+		assert.equal(await GameScore.count({ where: { gameId: game.id } }), 0);
+	});
+
+	void it("accepts a score of 0 and a score equal to the source scale", async () => {
+		const admin = await createUserWithSession("admin");
+		const [lowGame, highGame] = await Promise.all([
+			createGame(),
+			createGame()
+		]);
+
+		const low = await postGameScore(admin.authorization, {
+			gameId: lowGame.id,
+			source: scoreSource,
+			score: 0
+		});
+		const high = await postGameScore(admin.authorization, {
+			gameId: highGame.id,
+			source: scoreSource,
+			score: 100
+		});
+
+		assert.equal(low.status, 201);
+		assert.equal(high.status, 201);
+	});
 
 	const invalidBodies: [string, Record<string, unknown>][] = [
 		["a missing score", { source: "x" }],
@@ -1094,6 +1092,42 @@ void describe("game-scores write endpoints", () => {
 			assert.equal(stored?.score, 72);
 		});
 	}
+
+	void it("rejects updating a score to a negative value with 422 COMMON_SCHEMA_INVALID", async () => {
+		const admin = await createUserWithSession("admin");
+		const game = await createGame();
+		await createGameScore(game.id, scoreSource, 60);
+
+		const response = await patchGameScore(
+			admin.authorization,
+			game.id,
+			scoreSource,
+			{ score: -1 }
+		);
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+	});
+
+	void it("rejects updating a score above the source scale with 422 GAME_SCORE_OUT_OF_RANGE", async () => {
+		const admin = await createUserWithSession("admin");
+		const game = await createGame();
+		await createGameScore(game.id, scoreSource, 60);
+
+		const response = await patchGameScore(
+			admin.authorization,
+			game.id,
+			scoreSource,
+			{ score: 101 }
+		);
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "GAME_SCORE_OUT_OF_RANGE");
+		const stored = await GameScore.findOne({
+			where: { gameId: game.id, source: scoreSource }
+		});
+		assert.equal(stored?.score, 60);
+	});
 
 	void it("answers 404 GAME_SCORE_NOT_FOUND when updating a score that does not exist", async () => {
 		const admin = await createUserWithSession("admin");
@@ -1346,25 +1380,34 @@ void describe("game-times write endpoints", () => {
 		assert.equal(response.body.type, "COMMON_REFERENCE_NOT_FOUND");
 	});
 
-	void it(
-		"rejects a negative duration",
-		{
-			todo: "bug: POST /game-times accepts zero and negative durations and answers 201"
-		},
-		async () => {
-			const admin = await createUserWithSession("admin");
-			const game = await createGame();
+	void it("rejects a negative duration", async () => {
+		const admin = await createUserWithSession("admin");
+		const game = await createGame();
 
-			const response = await postGameTime(admin.authorization, {
-				gameId: game.id,
-				source: "hltb",
-				duration: -5
-			});
+		const response = await postGameTime(admin.authorization, {
+			gameId: game.id,
+			source: "hltb",
+			duration: -5
+		});
 
-			assert.equal(response.status, 422);
-			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
-		}
-	);
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+	});
+
+	void it("rejects a zero duration with 422 COMMON_SCHEMA_INVALID", async () => {
+		const admin = await createUserWithSession("admin");
+		const game = await createGame();
+
+		const response = await postGameTime(admin.authorization, {
+			gameId: game.id,
+			source: "hltb",
+			duration: 0
+		});
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		assert.equal(await GameTime.count({ where: { gameId: game.id } }), 0);
+	});
 
 	const invalidBodies: [string, Record<string, unknown>][] = [
 		["a missing duration", { source: "hltb" }],
@@ -1409,6 +1452,26 @@ void describe("game-times write endpoints", () => {
 			assert.equal(stored?.duration, 12.25);
 		});
 	}
+
+	void it("rejects updating a duration to zero with 422 COMMON_SCHEMA_INVALID", async () => {
+		const admin = await createUserWithSession("admin");
+		const game = await createGame();
+		await createGameTime(game.id, "hltb", 10);
+
+		const response = await patchGameTime(
+			admin.authorization,
+			game.id,
+			"hltb",
+			{ duration: 0 }
+		);
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		const stored = await GameTime.findOne({
+			where: { gameId: game.id, source: "hltb" }
+		});
+		assert.equal(stored?.duration, 10);
+	});
 
 	void it("answers 404 GAME_TIME_NOT_FOUND when updating a duration that does not exist", async () => {
 		const admin = await createUserWithSession("admin");
