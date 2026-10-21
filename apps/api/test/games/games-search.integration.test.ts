@@ -190,21 +190,15 @@ void describe("GET /games/search without local_only", () => {
 		assert.equal(response.body.data.games[0].justImported, false);
 	});
 
-	void it(
-		"treats force_rawg=false as false and searches the local catalog",
-		{
-			todo: "bug: force_rawg and local_only use z.coerce.boolean, so the string false becomes true"
-		},
-		async () => {
-			const response = await searchGames({
-				query: "metroid",
-				force_rawg: "false"
-			});
+	void it("treats force_rawg=false as false and searches the local catalog", async () => {
+		const response = await searchGames({
+			query: "metroid",
+			force_rawg: "false"
+		});
 
-			assert.equal(response.status, 200);
-			assert.deepEqual(titlesOf(response.body), ["Super Metroid"]);
-		}
-	);
+		assert.equal(response.status, 200);
+		assert.deepEqual(titlesOf(response.body), ["Super Metroid"]);
+	});
 });
 
 void describe("GET /games/search validation and authentication", () => {
