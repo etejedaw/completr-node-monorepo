@@ -76,6 +76,28 @@ describe("BacklogService", () => {
 		expect(result).toEqual({ id: "b1" });
 	});
 
+	it("sends the creation extras in the same request body", () => {
+		const dto = {
+			gameId: "g1",
+			platformId: "p1",
+			score: 4,
+			duration: 12,
+			status: "completed",
+			addToQueue: false,
+			addToShelf: true,
+			moodTags: ["cozy"],
+			review: { content: "Great", rating: 4.5 },
+			progressNote: "Credits rolled"
+		};
+
+		service.create(dto).subscribe();
+
+		const req = httpTesting.expectOne(url);
+		expect(req.request.method).toBe("POST");
+		expect(req.request.body).toEqual(dto);
+		req.flush({ data: { backlog: { id: "b1" } } });
+	});
+
 	it("updates an entry and returns the backlog with the queueRemoved flag", () => {
 		const data = { backlog: { id: "b1" }, queueRemoved: true };
 		let result: unknown;
