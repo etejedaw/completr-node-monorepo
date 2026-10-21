@@ -20,6 +20,15 @@ export function scoreSourceNotFound(context?: Record<string, unknown>) {
 	);
 }
 
+export function scoreOutOfRange(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_SCORE_OUT_OF_RANGE",
+		"Score is outside the scale of its source",
+		context
+	);
+}
+
 export function gameNotFound(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

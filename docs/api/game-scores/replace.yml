@@ -47,7 +47,7 @@ docs: |-
     |--------|-------|----------|-----------------------------------------------------------------------------|
     | scores | array | Yes      | Full set of scores. May be empty to delete every manual score. No repeated sources |
 
-    Each item: `source` (string, code from GET /score-sources, not `completr`) and `score` (number).
+    Each item: `source` (string, code from GET /score-sources, not `completr`) and `score` (number, from 0 up to the `scale` of its source).
 
     ### Response (200)
 
@@ -73,4 +73,5 @@ docs: |-
     |--------|------------------------------|------------------------------------------|
     | 404    | GAME_SCORE_GAME_NOT_FOUND    | The game does not exist                  |
     | 422    | GAME_SCORE_SOURCE_NOT_FOUND  | A source is not in the score sources catalog |
-    | 422    | COMMON_SCHEMA_INVALID        | Invalid body (repeated sources, `completr`, wrong types) |
+    | 422    | GAME_SCORE_OUT_OF_RANGE      | A score is above the scale of its source |
+    | 422    | COMMON_SCHEMA_INVALID        | Invalid body (repeated sources, `completr`, wrong types, negative scores) |

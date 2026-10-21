@@ -30,7 +30,7 @@ settings:
 docs: |-
     ## Update Game Score
 
-    Updates an existing game score for a specific source. Returns 404 if the score does not exist.
+    Updates an existing game score for a specific source. Returns 404 if the score does not exist, 422 (`COMMON_SCHEMA_INVALID`) if it is negative and 422 (`GAME_SCORE_OUT_OF_RANGE`) if it is above the `scale` of its source.
 
     **Authentication:** Bearer token required (role: moderator).
     **Rate Limit:** 50 requests per minute.
@@ -46,7 +46,7 @@ docs: |-
 
     | Field | Type   | Required | Description                               |
     |-------|--------|----------|-------------------------------------------|
-    | score | number | Yes      | The new score value                       |
+    | score | number | Yes      | The new score value, from 0 up to the `scale` of the source |
 
     ### Response (200)
 

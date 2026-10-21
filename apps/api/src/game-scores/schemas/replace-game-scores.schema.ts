@@ -9,7 +9,7 @@ export const ReplaceGameScoresSchema = z
 				z
 					.object({
 						source: ManualScoreSourceCodeSchema,
-						score: z.number()
+						score: z.number().min(0)
 					})
 					.strict()
 			)

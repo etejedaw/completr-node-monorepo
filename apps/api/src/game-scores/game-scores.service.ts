@@ -14,7 +14,7 @@ export async function createGameScore(
 	score: number,
 	transaction?: Transaction
 ) {
-	await assertSourceExists(source);
+	await assertScoreWithinSourceScale(source, score);
 	try {
 		return await GameScore.create(
 			{ gameId, source, score },
@@ -37,6 +37,7 @@ export async function updateGameScore(
 	});
 	if (!existing) throw gameScoreServiceError.notFoundError();
 
+	await assertScoreWithinSourceScale(source, score);
 	await existing.update({ score });
 	return existing;
 }
@@ -73,7 +74,8 @@ export async function replaceGameScores(
 	try {
 		return await sequelize.transaction(async transaction => {
 			await assertGameExists(gameId, transaction);
-			await assertSourcesExist(sources);
+			for (const entry of scores)
+				await assertScoreWithinSourceScale(entry.source, entry.score);
 
 			await GameScore.destroy({
 				where: {
@@ -117,13 +119,13 @@ async function assertGameExists(gameId: string, transaction: Transaction) {
 		throw gameScoreServiceError.gameNotFoundError(gameId);
 }
 
-async function assertSourcesExist(sources: string[]) {
-	const existing = await scoreSourcesService.findExistingCodes(sources);
-	const unknown = sources.find(source => !existing.has(source));
-	if (unknown) throw gameScoreServiceError.unknownSourceError(unknown);
-}
-
-async function assertSourceExists(source: string) {
-	if (!(await scoreSourcesService.existsByCode(source)))
-		throw gameScoreServiceError.unknownSourceError(source);
+async function assertScoreWithinSourceScale(source: string, score: number) {
+	const scoreSource = await scoreSourcesService.findByCode(source);
+	if (!scoreSource) throw gameScoreServiceError.unknownSourceError(source);
+	if (score > scoreSource.scale)
+		throw gameScoreServiceError.scoreOutOfRangeError(
+			source,
+			score,
+			scoreSource.scale
+		);
 }

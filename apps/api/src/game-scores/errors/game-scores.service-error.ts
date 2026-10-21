@@ -16,6 +16,17 @@ export function unknownSourceError(source: string) {
 	});
 }
 
+export function scoreOutOfRangeError(
+	source: string,
+	score: number,
+	scale: number
+) {
+	return new ServiceError("GAME_SCORE_OUT_OF_RANGE", {
+		...BASE_OPTIONS,
+		raw: { source, score, scale }
+	});
+}
+
 export function gameNotFoundError(gameId: string) {
 	return new ServiceError("GAME_SCORE_GAME_NOT_FOUND", {
 		...BASE_OPTIONS,
