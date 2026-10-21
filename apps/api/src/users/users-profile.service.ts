@@ -216,7 +216,11 @@ export async function getFollowingListsForUsername(
 	const user = await requireVisibleUser(viewerId, username, ["profile"]);
 
 	const { rows, total } =
-		await listFollowersService.getFollowingListsPaginated(user.id, query);
+		await listFollowersService.getFollowingListsPaginated(
+			user.id,
+			viewerId,
+			query
+		);
 
 	const followingLists = rows.filter(f => f.isVisible).map(f => f.List);
 	return { followingLists, total };

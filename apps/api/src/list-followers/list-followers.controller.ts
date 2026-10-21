@@ -27,9 +27,11 @@ export async function deleteFollow(request: Request, response: Response) {
 
 export async function getFollowers(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;
+	const user = request.locals.user as RequestUser;
 
 	const followers = await listFollowersService.getListFollowers(
-		params.listId
+		params.listId,
+		user.id
 	);
 	const users = followers.map(f => f.User);
 
