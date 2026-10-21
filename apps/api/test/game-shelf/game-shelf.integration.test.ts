@@ -87,23 +87,29 @@ void describe("POST /users/me/game-shelf", () => {
 		assert.equal(response.body.type, "COMMON_REFERENCE_NOT_FOUND");
 	});
 
-	void it(
-		"rejects a gameId that is not a UUID with 422",
-		{
-			todo: "RegisterGameShelfSchema validates gameId/platformId as any non-empty string, so Postgres rejects the cast and the API answers 500"
-		},
-		async () => {
-			const owner = await createUserWithSession();
-			const platform = await createPlatform();
+	void it("rejects a gameId that is not a UUID with 422", async () => {
+		const owner = await createUserWithSession();
+		const platform = await createPlatform();
 
-			const response = await addToShelf(owner.authorization, {
-				gameId: "not-a-uuid",
-				platformId: platform.id
-			});
+		const response = await addToShelf(owner.authorization, {
+			gameId: "not-a-uuid",
+			platformId: platform.id
+		});
 
-			assert.equal(response.status, 422);
-		}
-	);
+		assert.equal(response.status, 422);
+	});
+
+	void it("rejects a platformId that is not a UUID with 422", async () => {
+		const owner = await createUserWithSession();
+		const { game } = await createGameAndPlatform();
+
+		const response = await addToShelf(owner.authorization, {
+			gameId: game.id,
+			platformId: "not-a-uuid"
+		});
+
+		assert.equal(response.status, 422);
+	});
 
 	void it("rejects a free user over the limit with 402 GAME_SHELF_LIMIT_REACHED", async () => {
 		const owner = await createUserWithSession("user");
