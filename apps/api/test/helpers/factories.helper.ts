@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { hashPassword } from "../../src/auth/services/password.service";
 import { Backlog, type BacklogStatus } from "../../src/backlog/backlog.model";
+import { Franchise } from "../../src/franchises/franchise.model";
 import { GameScore } from "../../src/game-scores/game-score.model";
 import { GameShelf } from "../../src/game-shelf/game-shelf.model";
 import {
@@ -11,9 +12,11 @@ import {
 import { Game } from "../../src/games/game.model";
 import { List } from "../../src/lists/list.model";
 import { Platform } from "../../src/platforms/platform.model";
+import { SavedFilter } from "../../src/saved-filters/saved-filter.model";
 import { ScoreSource } from "../../src/score-sources/score-source.model";
 import { User } from "../../src/users/user.model";
 import { type UserRole } from "../../src/users/user-role.type";
+import { Wishlist } from "../../src/wishlist/wishlist.model";
 
 export const DEFAULT_PASSWORD = "Passw0rd!";
 
@@ -139,5 +142,45 @@ export function createShelfEntries(
 ) {
 	return GameShelf.bulkCreate(
 		Array.from({ length: count }, () => ({ userId, gameId, platformId }))
+	);
+}
+
+export function createFranchise(overrides: { name?: string } = {}) {
+	const suffix = uniqueSuffix();
+	return Franchise.create({
+		name: overrides.name ?? `Franchise ${suffix}`,
+		code: `franchise-${suffix}`
+	});
+}
+
+export async function createFranchiseGame(franchiseId: string) {
+	const game = await createGame();
+	return game.update({ franchiseId });
+}
+
+export function createSavedFilter(
+	userId: string,
+	overrides: { name?: string; position?: number } = {}
+) {
+	return SavedFilter.create({
+		userId,
+		name: overrides.name ?? `Filter ${uniqueSuffix()}`,
+		filters: {},
+		position: overrides.position ?? 1
+	});
+}
+
+export function createWishlistEntries(
+	userId: string,
+	gameIds: string[],
+	platformId: string | null = null
+) {
+	return Wishlist.bulkCreate(
+		gameIds.map((gameId, index) => ({
+			userId,
+			gameId,
+			platformId,
+			position: index + 1
+		}))
 	);
 }
