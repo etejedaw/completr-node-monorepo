@@ -16,17 +16,17 @@ void describe("calculateRatio", () => {
 		assert.equal(calculateRatio(80, 20, 100), 4);
 	});
 
-	void it("returns undefined when duration is zero", () => {
-		assert.equal(calculateRatio(4, 0), undefined);
+	void it("returns null when duration is zero", () => {
+		assert.equal(calculateRatio(4, 0), null);
 	});
 
-	void it("returns undefined when score is zero", () => {
-		assert.equal(calculateRatio(0, 10), undefined);
+	void it("returns null when score is zero", () => {
+		assert.equal(calculateRatio(0, 10), null);
 	});
 
-	void it("returns undefined when score or duration is null or undefined", () => {
-		assert.equal(calculateRatio(null, 10), undefined);
-		assert.equal(calculateRatio(4, null), undefined);
-		assert.equal(calculateRatio(undefined, undefined), undefined);
+	void it("returns null when score or duration is null or undefined", () => {
+		assert.equal(calculateRatio(null, 10), null);
+		assert.equal(calculateRatio(4, null), null);
+		assert.equal(calculateRatio(undefined, undefined), null);
 	});
 });

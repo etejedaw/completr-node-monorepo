@@ -36,7 +36,7 @@ void describe("gameListSerializer", () => {
 		assert.equal(result.ratio, 4);
 	});
 
-	void it("leaves the ratio undefined when the completr source is missing", () => {
+	void it("leaves the ratio null when the completr source is missing", () => {
 		const result = gameListSerializer(
 			buildGame({
 				GameScores: [{ source: "rawg", score: 4 }],
@@ -44,7 +44,7 @@ void describe("gameListSerializer", () => {
 			})
 		);
 
-		assert.equal(result.ratio, undefined);
+		assert.equal(result.ratio, null);
 	});
 
 	void it("defaults justImported to false and genres to empty", () => {

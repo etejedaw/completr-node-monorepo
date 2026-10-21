@@ -22,14 +22,14 @@ void describe("listItemSerializer", () => {
 		assert.equal(listItemSerializer(buildItem()).ratio, 6);
 	});
 
-	void it("leaves the ratio undefined when the source has no score or duration", () => {
+	void it("leaves the ratio null when the source has no score or duration", () => {
 		assert.equal(
 			listItemSerializer(buildItem({ score: null })).ratio,
-			undefined
+			null
 		);
 		assert.equal(
 			listItemSerializer(buildItem({ duration: null })).ratio,
-			undefined
+			null
 		);
 	});
 

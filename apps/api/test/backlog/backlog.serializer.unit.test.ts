@@ -15,10 +15,10 @@ void describe("backlogSerializer", () => {
 		assert.equal(result.personalRatio, 8);
 	});
 
-	void it("leaves personalRatio undefined when there is no real duration", () => {
+	void it("leaves personalRatio null when there is no real duration", () => {
 		const result = backlogSerializer(buildBacklog({ realDuration: null }));
 
-		assert.equal(result.personalRatio, undefined);
+		assert.equal(result.personalRatio, null);
 	});
 
 	void it("exposes the private notes and latest progress to the owner", () => {

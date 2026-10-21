@@ -102,7 +102,7 @@ function featuredShowcaseSerializer(rows: ShowcaseGameRow[]) {
 	let featured: { row: ShowcaseGameRow; ratio: number } | null = null;
 	for (const row of rows) {
 		const ratio = calculateRatioUtil(row.score, row.duration);
-		if (ratio === undefined) continue;
+		if (ratio === null) continue;
 		if (!featured || ratio > featured.ratio) featured = { row, ratio };
 	}
 	if (!featured) return null;
