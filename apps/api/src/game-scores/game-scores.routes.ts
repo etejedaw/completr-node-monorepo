@@ -8,6 +8,7 @@ import * as gameScoresController from "./game-scores.controller";
 import { GameScoreIdParamsSchema } from "./schemas/game-score-id-params.schema";
 import { GameScoreParamsSchema } from "./schemas/game-score-params.schema";
 import { RegisterGameScoreSchema } from "./schemas/register-game-score.schema";
+import { ReplaceGameScoresSchema } from "./schemas/replace-game-scores.schema";
 import { UpdateGameScoreSchema } from "./schemas/update-game-score.schema";
 
 const router = Router();
@@ -31,6 +32,17 @@ router.patch(
 		validateSchemaMiddleware(UpdateGameScoreSchema, "body")
 	],
 	gameScoresController.patchGameScore
+);
+
+router.put(
+	"/games/:gameId/scores",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("moderator"),
+		validateSchemaMiddleware(GameScoreParamsSchema, "params"),
+		validateSchemaMiddleware(ReplaceGameScoresSchema, "body")
+	],
+	gameScoresController.putGameScores
 );
 
 router.get(

@@ -1,6 +1,7 @@
 import { type Request, type Response } from "express";
 
 import { type RegisterGameScoreDto } from "./dtos/register-game-score.dto";
+import { type ReplaceGameScoresDto } from "./dtos/replace-game-scores.dto";
 import { type UpdateGameScoreDto } from "./dtos/update-game-score.dto";
 import * as gameScoresService from "./game-scores.service";
 import { type GameScoreIdParams } from "./schemas/game-score-id-params.schema";
@@ -32,6 +33,20 @@ export async function patchGameScore(request: Request, response: Response) {
 	const gameScorePlain = gameScore.get({ plain: true });
 
 	const data = { gameScore: gameScorePlain };
+	return response.status(200).json({ data });
+}
+
+export async function putGameScores(request: Request, response: Response) {
+	const params = request.locals.params as GameScoreParams;
+	const replaceGameScoresDto = request.locals.body as ReplaceGameScoresDto;
+
+	const scores = await gameScoresService.replaceGameScores(
+		params.gameId,
+		replaceGameScoresDto.scores
+	);
+	const scoresPlain = scores.map(score => score.get({ plain: true }));
+
+	const data = { gameScores: scoresPlain };
 	return response.status(200).json({ data });
 }
 

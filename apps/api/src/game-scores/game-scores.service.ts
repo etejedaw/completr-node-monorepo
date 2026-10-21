@@ -1,6 +1,9 @@
-import { type Transaction } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { sequelize } from "../database/sequelize.database";
+import { Game } from "../games/game.model";
+import { COMPLETR_SCORE_SOURCE } from "../score-sources/score-source.constants";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import * as gameScoreServiceError from "./errors/game-scores.service-error";
 import { GameScore } from "./game-score.model";
@@ -53,12 +56,53 @@ export async function findScoresByGameIdsAndSource(
 export async function upsertScore(
 	gameId: string,
 	source: string,
-	score: number
+	score: number,
+	transaction?: Transaction
 ) {
 	return GameScore.upsert(
 		{ gameId, source, score },
-		{ conflictFields: ["gameId", "source"] }
+		{ conflictFields: ["gameId", "source"], transaction }
 	);
+}
+
+export async function replaceGameScores(
+	gameId: string,
+	scores: { source: string; score: number }[]
+) {
+	const sources = scores.map(entry => entry.source);
+	try {
+		return await sequelize.transaction(async transaction => {
+			await assertGameExists(gameId, transaction);
+			await assertSourcesExist(sources);
+
+			await GameScore.destroy({
+				where: {
+					gameId,
+					source: {
+						[Op.notIn]: [...sources, COMPLETR_SCORE_SOURCE]
+					}
+				},
+				transaction
+			});
+			for (const entry of scores)
+				await upsertScore(
+					gameId,
+					entry.source,
+					entry.score,
+					transaction
+				);
+
+			return GameScore.findAll({
+				where: { gameId, source: { [Op.ne]: COMPLETR_SCORE_SOURCE } },
+				order: [["source", "ASC"]],
+				transaction
+			});
+		});
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: gameScoreServiceError.uniqueConstraintError
+		});
+	}
 }
 
 export async function deleteGameScore(gameId: string, source: string) {
@@ -66,6 +110,17 @@ export async function deleteGameScore(gameId: string, source: string) {
 	if (!existing) throw gameScoreServiceError.notFoundError();
 
 	await existing.destroy();
+}
+
+async function assertGameExists(gameId: string, transaction: Transaction) {
+	if ((await Game.count({ where: { id: gameId }, transaction })) === 0)
+		throw gameScoreServiceError.gameNotFoundError(gameId);
+}
+
+async function assertSourcesExist(sources: string[]) {
+	const existing = await scoreSourcesService.findExistingCodes(sources);
+	const unknown = sources.find(source => !existing.has(source));
+	if (unknown) throw gameScoreServiceError.unknownSourceError(unknown);
 }
 
 async function assertSourceExists(source: string) {

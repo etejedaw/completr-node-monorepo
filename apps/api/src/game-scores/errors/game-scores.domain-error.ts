@@ -20,6 +20,15 @@ export function scoreSourceNotFound(context?: Record<string, unknown>) {
 	);
 }
 
+export function gameNotFound(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_SCORE_GAME_NOT_FOUND",
+		"Game does not exist",
+		context
+	);
+}
+
 export function gameScoreAlreadyExists(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
