@@ -6,7 +6,7 @@ export interface Game {
 	releaseAt?: string;
 	coverUrl?: string;
 	backgroundUrl?: string;
-	ratio?: number;
+	ratio?: number | null;
 	isDlc: boolean;
 	justImported?: boolean;
 	parentGameId?: string;

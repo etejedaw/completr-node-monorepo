@@ -17,7 +17,7 @@ export interface PublicBacklog {
 	status: string;
 	score?: number;
 	duration?: number;
-	ratio?: number;
+	ratio?: number | null;
 	game: GameSummary;
 	platform: { id: string; abbreviation: string };
 }

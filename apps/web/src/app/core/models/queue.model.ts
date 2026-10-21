@@ -9,7 +9,7 @@ interface QueueBacklog {
 	status: string;
 	score?: number;
 	duration?: number;
-	ratio?: number;
+	ratio?: number | null;
 	startedAt?: string;
 	notes?: string;
 	moodTags?: string[];
