@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { describe, it } from "node:test";
 
+import { Franchise } from "../../src/franchises/franchise.model";
 import { Game } from "../../src/games/game.model";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
@@ -10,6 +11,7 @@ import {
 	createBacklog,
 	createFranchise,
 	createFranchiseGame,
+	createGame,
 	createPlatform
 } from "../helpers/factories.helper";
 
@@ -287,5 +289,137 @@ void describe("franchise management", () => {
 		await api().get(`/franchises/${franchise.code}`).expect(404);
 		const detached = await Game.findByPk(game.id);
 		assert.equal(detached?.franchiseId, null);
+	});
+});
+
+void describe("franchise management with gameIds", () => {
+	void it("creates a franchise linking its games in one request", async () => {
+		const moderator = await createUserWithSession("moderator");
+		const [first, second] = await Promise.all([createGame(), createGame()]);
+
+		const response = await api()
+			.post("/franchises")
+			.set("Authorization", moderator.authorization)
+			.send({ name: "Atomic Saga", gameIds: [first.id, second.id] });
+
+		assert.equal(response.status, 201);
+		const franchiseId = response.body.data.franchise.id;
+		const linked = await Game.findAll({ where: { franchiseId } });
+		assert.deepEqual(
+			new Set(linked.map(game => game.id)),
+			new Set([first.id, second.id])
+		);
+	});
+
+	void it("creates nothing when one of the games does not exist", async () => {
+		const moderator = await createUserWithSession("moderator");
+		const game = await createGame();
+
+		const response = await api()
+			.post("/franchises")
+			.set("Authorization", moderator.authorization)
+			.send({ name: "Half Saga", gameIds: [game.id, randomUUID()] });
+
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "FRANCHISE_GAMES_NOT_FOUND");
+		assert.equal(
+			await Franchise.count({ where: { name: "Half Saga" } }),
+			0
+		);
+		const untouched = await Game.findByPk(game.id);
+		assert.equal(untouched?.franchiseId, null);
+	});
+
+	void it("sets the final games of a franchise detaching the ones left out", async () => {
+		const moderator = await createUserWithSession("moderator");
+		const franchise = await createFranchise();
+		const [kept, removed, added] = await Promise.all([
+			createFranchiseGame(franchise.id),
+			createFranchiseGame(franchise.id),
+			createGame()
+		]);
+
+		const response = await api()
+			.patch(`/franchises/${franchise.id}`)
+			.set("Authorization", moderator.authorization)
+			.send({ name: franchise.name, gameIds: [kept.id, added.id] });
+
+		assert.equal(response.status, 200);
+		const linked = await Game.findAll({
+			where: { franchiseId: franchise.id }
+		});
+		assert.deepEqual(
+			new Set(linked.map(game => game.id)),
+			new Set([kept.id, added.id])
+		);
+		const detached = await Game.findByPk(removed.id);
+		assert.equal(detached?.franchiseId, null);
+	});
+
+	void it("detaches every game when gameIds is empty", async () => {
+		const moderator = await createUserWithSession("moderator");
+		const franchise = await createFranchise();
+		const game = await createFranchiseGame(franchise.id);
+
+		const response = await api()
+			.patch(`/franchises/${franchise.id}`)
+			.set("Authorization", moderator.authorization)
+			.send({ name: franchise.name, gameIds: [] });
+
+		assert.equal(response.status, 200);
+		const detached = await Game.findByPk(game.id);
+		assert.equal(detached?.franchiseId, null);
+	});
+
+	void it("leaves the games untouched when gameIds is omitted", async () => {
+		const moderator = await createUserWithSession("moderator");
+		const franchise = await createFranchise();
+		const game = await createFranchiseGame(franchise.id);
+
+		const response = await api()
+			.patch(`/franchises/${franchise.id}`)
+			.set("Authorization", moderator.authorization)
+			.send({ name: "Renamed Only" });
+
+		assert.equal(response.status, 200);
+		const stillLinked = await Game.findByPk(game.id);
+		assert.equal(stillLinked?.franchiseId, franchise.id);
+	});
+
+	void it("rolls back the rename and the links when a game does not exist", async () => {
+		const moderator = await createUserWithSession("moderator");
+		const franchise = await createFranchise();
+		const original = await createFranchiseGame(franchise.id);
+		const candidate = await createGame();
+
+		const response = await api()
+			.patch(`/franchises/${franchise.id}`)
+			.set("Authorization", moderator.authorization)
+			.send({
+				name: "Never Applied",
+				gameIds: [candidate.id, randomUUID()]
+			});
+
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "FRANCHISE_GAMES_NOT_FOUND");
+		const reloaded = await Franchise.findByPk(franchise.id);
+		assert.equal(reloaded?.name, franchise.name);
+		assert.equal(
+			(await Game.findByPk(original.id))?.franchiseId,
+			franchise.id
+		);
+		assert.equal((await Game.findByPk(candidate.id))?.franchiseId, null);
+	});
+
+	void it("rejects a gameIds entry that is not a uuid with 422 COMMON_SCHEMA_INVALID", async () => {
+		const moderator = await createUserWithSession("moderator");
+
+		const response = await api()
+			.post("/franchises")
+			.set("Authorization", moderator.authorization)
+			.send({ name: "Bad Ids", gameIds: ["nope"] });
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
 	});
 });
