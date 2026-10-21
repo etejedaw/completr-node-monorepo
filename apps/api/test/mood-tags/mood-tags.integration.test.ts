@@ -396,24 +396,35 @@ void describe("PATCH and DELETE /users/me/mood-tags/:tag", () => {
 });
 
 void describe("GET /users/me/mood-tags", () => {
-	void it(
-		"lists only the caller's tags",
-		{
-			todo: "the FULL OUTER JOIN in findTagsByUser filters MoodTagMetas by userId inside ON, so the tags created by other users without games leak into the response"
-		},
-		async () => {
-			const owner = await createUserWithSession();
-			const other = await createUserWithSession();
-			const tag = uniqueTag("someone else");
-			await api()
-				.post(MY_TAGS_PATH)
-				.set("Authorization", other.authorization)
-				.send({ tag })
-				.expect(201);
+	void it("lists only the caller's tags", async () => {
+		const owner = await createUserWithSession();
+		const other = await createUserWithSession();
+		const tag = uniqueTag("someone else");
+		await api()
+			.post(MY_TAGS_PATH)
+			.set("Authorization", other.authorization)
+			.send({ tag })
+			.expect(201);
 
-			const tags = await getMyTags(owner.authorization);
+		const tags = await getMyTags(owner.authorization);
 
-			assert.deepEqual(tags, []);
-		}
-	);
+		assert.deepEqual(tags, []);
+	});
+
+	void it("keeps the caller's usage and description when another user shares the tag name", async () => {
+		const owner = await createUserWithSession();
+		const other = await createUserWithSession();
+		const game = await createGame();
+		const tag = uniqueTag("shared");
+		await replaceGameTags(owner.authorization, game.id, [tag]).expect(200);
+		await api()
+			.post(MY_TAGS_PATH)
+			.set("Authorization", other.authorization)
+			.send({ tag, description: "Not mine" })
+			.expect(201);
+
+		const tags = await getMyTags(owner.authorization);
+
+		assert.deepEqual(tags, [{ tag, usageCount: 1, description: null }]);
+	});
 });
