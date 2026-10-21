@@ -1,4 +1,4 @@
-import { col, fn, literal, Op } from "sequelize";
+import { col, fn, literal, Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { Game } from "../games/game.model";
@@ -18,21 +18,28 @@ const hasContentOrRating = literal(
 export async function createReview(
 	userId: string,
 	gameId: string,
-	dto: { content?: string; rating?: number }
+	dto: { content?: string; rating?: number },
+	transaction?: Transaction
 ) {
 	const game = await gamesService.findGameById(gameId);
 	if (!game) throw reviewsServiceError.gameNotFoundError();
 
-	const existing = await Review.findOne({ where: { userId, gameId } });
+	const existing = await Review.findOne({
+		where: { userId, gameId },
+		transaction
+	});
 	if (existing) throw reviewsServiceError.alreadyExistsError();
 
 	try {
-		return await Review.create({
-			userId,
-			gameId,
-			content: dto.content,
-			rating: dto.rating
-		});
+		return await Review.create(
+			{
+				userId,
+				gameId,
+				content: dto.content,
+				rating: dto.rating
+			},
+			{ transaction }
+		);
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: () => reviewsServiceError.alreadyExistsError()
@@ -76,8 +83,12 @@ export async function findReviewsByUserIdPaginated(
 	});
 }
 
-export async function findReviewByUserAndGame(userId: string, gameId: string) {
-	return Review.findOne({ where: { userId, gameId } });
+export async function findReviewByUserAndGame(
+	userId: string,
+	gameId: string,
+	transaction?: Transaction
+) {
+	return Review.findOne({ where: { userId, gameId }, transaction });
 }
 
 export async function findReviewContentByUserAndGameIds(

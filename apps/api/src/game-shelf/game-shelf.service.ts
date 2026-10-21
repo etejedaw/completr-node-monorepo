@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -35,25 +35,45 @@ const shelfInclude = [
 
 export async function registerGameShelf(
 	user: RequestUser,
-	registerGameShelfDto: RegisterGameShelfDto
+	registerGameShelfDto: RegisterGameShelfDto,
+	transaction?: Transaction
 ) {
 	if (!isPremium(user.role)) {
-		const count = await GameShelf.count({ where: { userId: user.id } });
+		const count = await GameShelf.count({
+			where: { userId: user.id },
+			transaction
+		});
 		if (count >= FREE_SHELF_LIMIT)
 			throw gameShelfServiceError.limitReachedError();
 	}
 
 	try {
-		return await GameShelf.create({
-			...registerGameShelfDto,
-			userId: user.id
-		});
+		return await GameShelf.create(
+			{
+				...registerGameShelfDto,
+				userId: user.id
+			},
+			{ transaction }
+		);
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: gameShelfServiceError.uniqueConstraintError,
 			validation: gameShelfServiceError.validationError
 		});
 	}
+}
+
+export async function existsGameShelfEntry(
+	userId: string,
+	gameId: string,
+	platformId: string,
+	transaction?: Transaction
+) {
+	const count = await GameShelf.count({
+		where: { userId, gameId, platformId },
+		transaction
+	});
+	return count > 0;
 }
 
 export async function findGameShelfById(id: string) {

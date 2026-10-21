@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
 import { BacklogProgress } from "./backlog-progress.model";
@@ -7,14 +7,18 @@ import * as backlogProgressServiceError from "./errors/backlog-progress.service-
 export async function addProgress(
 	userId: string,
 	backlogId: string,
-	note: string
+	note: string,
+	transaction?: Transaction
 ) {
-	const backlog = await backlogService.findBacklogById(backlogId);
+	const backlog = await backlogService.findBacklogById(
+		backlogId,
+		transaction
+	);
 	if (!backlog) throw backlogProgressServiceError.backlogNotFoundError();
 	if (backlog.userId !== userId)
 		throw backlogProgressServiceError.forbiddenError();
 
-	return BacklogProgress.create({ backlogId, note });
+	return BacklogProgress.create({ backlogId, note }, { transaction });
 }
 
 export async function findProgressByBacklog(userId: string, backlogId: string) {

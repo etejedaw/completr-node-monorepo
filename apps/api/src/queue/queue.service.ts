@@ -20,9 +20,13 @@ function isPremium(role: string) {
 	return role === "premium" || role === "moderator" || role === "admin";
 }
 
-async function checkLimit(userId: string, role: string) {
+async function checkLimit(
+	userId: string,
+	role: string,
+	transaction?: Transaction
+) {
 	if (isPremium(role)) return;
-	const count = await Queue.count({ where: { userId } });
+	const count = await Queue.count({ where: { userId }, transaction });
 	if (count >= FREE_QUEUE_LIMIT) throw queueServiceError.limitReachedError();
 }
 
@@ -104,10 +108,26 @@ export async function addFromGame(
 	}
 }
 
-export async function addFromBacklog(backlogId: string, user: RequestUser) {
-	await checkLimit(user.id, user.role);
+async function appendToQueue(
+	userId: string,
+	backlogId: string,
+	transaction: Transaction
+) {
+	const position = await findNextPosition(userId, transaction);
+	await Queue.create({ userId, backlogId, position }, { transaction });
+}
 
-	const backlog = await backlogService.findBacklogBasicById(backlogId);
+export async function addFromBacklog(
+	backlogId: string,
+	user: RequestUser,
+	transaction?: Transaction
+) {
+	await checkLimit(user.id, user.role, transaction);
+
+	const backlog = await backlogService.findBacklogBasicById(
+		backlogId,
+		transaction
+	);
 	if (!backlog) throw queueServiceError.backlogNotFoundError();
 	if (backlog.userId !== user.id)
 		throw queueServiceError.backlogNotOwnedError();
@@ -115,25 +135,21 @@ export async function addFromBacklog(backlogId: string, user: RequestUser) {
 		throw queueServiceError.backlogNotStartedError([backlogId]);
 
 	const existing = await Queue.findOne({
-		where: { userId: user.id, backlogId }
+		where: { userId: user.id, backlogId },
+		transaction
 	});
 	if (existing) throw queueServiceError.alreadyInQueueError();
 
 	try {
-		await sequelize.transaction(async transaction => {
-			const position = await findNextPosition(user.id, transaction);
-			await Queue.create(
-				{
-					userId: user.id,
-					backlogId,
-					position
-				},
-				{ transaction }
+		if (transaction) await appendToQueue(user.id, backlogId, transaction);
+		else
+			await sequelize.transaction(queueTransaction =>
+				appendToQueue(user.id, backlogId, queueTransaction)
 			);
-		});
 		return Queue.findOne({
 			where: { backlogId, userId: user.id },
-			include: BACKLOG_INCLUDE
+			include: BACKLOG_INCLUDE,
+			transaction
 		});
 	} catch (error) {
 		rethrowSequelizeError(error, {

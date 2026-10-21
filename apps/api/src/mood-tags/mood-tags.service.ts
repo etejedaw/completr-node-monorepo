@@ -1,4 +1,4 @@
-import { Op, QueryTypes } from "sequelize";
+import { Op, QueryTypes, type Transaction } from "sequelize";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { sequelize } from "../database/sequelize.database";
@@ -36,10 +36,24 @@ async function assertWithinTagLimit(
 		throw moodTagsServiceError.limitReachedError(FREE_TAG_LIMIT);
 }
 
+async function writeGameTags(
+	userId: string,
+	gameId: string,
+	tags: string[],
+	transaction: Transaction
+) {
+	await UserGameTag.destroy({ where: { userId, gameId }, transaction });
+	if (tags.length === 0) return [];
+	const rows = tags.map(tag => ({ userId, gameId, tag }));
+	await UserGameTag.bulkCreate(rows, { transaction });
+	return tags;
+}
+
 export async function replaceTags(
 	user: RequestUser,
 	gameId: string,
-	rawTags: readonly string[]
+	rawTags: readonly string[],
+	transaction?: Transaction
 ) {
 	const userId = user.id;
 	const game = await gamesService.findGameById(gameId);
@@ -50,13 +64,10 @@ export async function replaceTags(
 		throw moodTagsServiceError.tooManyTagsError(MAX_TAGS_PER_GAME);
 	await assertWithinTagLimit(user, tags);
 
-	return sequelize.transaction(async transaction => {
-		await UserGameTag.destroy({ where: { userId, gameId }, transaction });
-		if (tags.length === 0) return [];
-		const rows = tags.map(tag => ({ userId, gameId, tag }));
-		await UserGameTag.bulkCreate(rows, { transaction });
-		return tags;
-	});
+	if (transaction) return writeGameTags(userId, gameId, tags, transaction);
+	return sequelize.transaction(tagsTransaction =>
+		writeGameTags(userId, gameId, tags, tagsTransaction)
+	);
 }
 
 export async function findTagsByGame(userId: string, gameId: string) {
