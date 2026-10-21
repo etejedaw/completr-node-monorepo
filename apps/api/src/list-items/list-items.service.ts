@@ -200,6 +200,20 @@ export async function addItem(
 	}
 }
 
+async function compactPositions(listId: string, transaction: Transaction) {
+	await sequelize.query(
+		`UPDATE "ListItems" AS li
+		SET "position" = ranked."position", "updatedAt" = NOW()
+		FROM (
+			SELECT "id", ROW_NUMBER() OVER (ORDER BY "position", "createdAt", "id") AS "position"
+			FROM "ListItems"
+			WHERE "listId" = :listId
+		) AS ranked
+		WHERE li."id" = ranked."id" AND li."position" <> ranked."position"`,
+		{ replacements: { listId }, transaction }
+	);
+}
+
 export async function removeItem(
 	listId: string,
 	user: RequestUser,
@@ -209,7 +223,13 @@ export async function removeItem(
 	if (!list) throw listItemsServiceError.listNotFoundError();
 	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
 
-	await ListItem.destroy({ where: { listId, gameId } });
+	await sequelize.transaction(async (transaction: Transaction) => {
+		const removedCount = await ListItem.destroy({
+			where: { listId, gameId },
+			transaction
+		});
+		if (removedCount > 0) await compactPositions(listId, transaction);
+	});
 }
 
 export async function refreshScores(listId: string, user: RequestUser) {

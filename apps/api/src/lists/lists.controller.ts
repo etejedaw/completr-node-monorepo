@@ -9,6 +9,7 @@ import { type UpdateListDto } from "./dtos/update-list.dto";
 import * as listDomainError from "./errors/lists.domain-error";
 import { listSerializer, listSummarySerializer } from "./lists.serializer";
 import * as listsService from "./lists.service";
+import { type DiscoveryQuery } from "./schemas/discovery-query.schema";
 import { type ListIdParams } from "./schemas/list-id-params.schema";
 
 export async function postList(request: Request, response: Response) {
@@ -99,7 +100,7 @@ export async function getListById(request: Request, response: Response) {
 }
 
 export async function getRecentLists(request: Request, response: Response) {
-	const limit = Number(request.query.limit ?? 12);
+	const { limit } = request.locals.query as DiscoveryQuery;
 	const lists = await listsService.findRecentUserLists(limit);
 	const listsPlain = lists.map(list => list.get({ plain: true }));
 
@@ -108,7 +109,7 @@ export async function getRecentLists(request: Request, response: Response) {
 }
 
 export async function getOfficialLists(request: Request, response: Response) {
-	const limit = Number(request.query.limit ?? 12);
+	const { limit } = request.locals.query as DiscoveryQuery;
 	const lists = await listsService.findOfficialLists(limit);
 	const listsPlain = lists.map(list => list.get({ plain: true }));
 

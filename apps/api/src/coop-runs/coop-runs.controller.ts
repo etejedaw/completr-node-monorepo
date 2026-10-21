@@ -62,9 +62,13 @@ export async function postSync(request: Request, response: Response) {
 }
 
 export async function getMembers(request: Request, response: Response) {
+	const user = request.locals.user as RequestUser;
 	const params = request.locals.params as BacklogIdParams;
 
-	const members = await coopService.findMembersForBacklog(params.backlogId);
+	const members = await coopService.findMembersForBacklog(
+		user.id,
+		params.backlogId
+	);
 	return response.status(200).json({ data: { members } });
 }
 

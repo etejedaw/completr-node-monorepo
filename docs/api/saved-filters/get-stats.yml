@@ -106,4 +106,4 @@ docs: |-
     |-------------------------------|------|--------------------------------------|
     | SAVED_FILTER_NOT_FOUND        | 404  | Filter does not exist                |
     | SAVED_FILTER_FORBIDDEN        | 403  | Caller is not the owner              |
-    | SAVED_FILTER_VALIDATION_ERROR | 400  | Stored filters JSON is not valid     |
+    | SAVED_FILTER_VALIDATION_ERROR | 422  | Stored filters JSON is not valid     |

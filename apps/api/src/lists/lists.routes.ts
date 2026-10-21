@@ -10,6 +10,7 @@ import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.
 import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 import { SearchQuerySchema } from "../common/schemas/search-query.schema";
 import * as listsController from "./lists.controller";
+import { DiscoveryQuerySchema } from "./schemas/discovery-query.schema";
 import { DuplicateListSchema } from "./schemas/duplicate-list.schema";
 import { ListIdParamsSchema } from "./schemas/list-id-params.schema";
 import { RegisterListSchema } from "./schemas/register-list.schema";
@@ -50,13 +51,21 @@ router.get(
 
 router.get(
 	"/lists/official",
-	[rateLimiterMiddleware(publicLimiter), authMiddleware()],
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authMiddleware(),
+		validateSchemaMiddleware(DiscoveryQuerySchema, "query")
+	],
 	listsController.getOfficialLists
 );
 
 router.get(
 	"/lists/recent",
-	[rateLimiterMiddleware(publicLimiter), authMiddleware()],
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authMiddleware(),
+		validateSchemaMiddleware(DiscoveryQuerySchema, "query")
+	],
 	listsController.getRecentLists
 );
 

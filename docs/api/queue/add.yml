@@ -28,7 +28,7 @@ settings:
 docs: |-
     ## Add to Queue
 
-    Adds a game or backlog entry to the user's play queue (games they want to play soon).
+    Adds a game or backlog entry to the user's play queue (games they want to play soon). The entry is appended after the last position.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.

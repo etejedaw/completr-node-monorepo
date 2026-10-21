@@ -14,7 +14,7 @@ settings:
 docs: |-
     ## Get My Queue
 
-    Returns the authenticated user's play queue ordered by position.
+    Returns the authenticated user's play queue ordered by position. Positions are consecutive from 1: when an entry leaves the queue (its backlog moves out of `not_started` or is deleted) the remaining entries are renumbered.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.

@@ -67,6 +67,6 @@ docs: |-
     }
     ```
 
-    `backlogStatus`: `completed` | `playing` | `not_started` | `abandoned` | `null` (not in backlog)
+    `backlogStatus`: `completed` | `playing` | `endless` | `not_started` | `abandoned` | `null` (not in backlog). When the viewer has several entries for the game, the status is picked by priority: `completed`, then `playing` / `endless`, then `abandoned`, then `not_started`.
 
-    `realDuration` and `personalRatio` are taken from the viewer's most recent backlog entry for the game. `personalRatio = (score / realDuration) * 20`. Both are `null` when missing.
+    `realDuration` and `personalRatio` are taken from the viewer's most recent backlog entry for the game. `personalRatio = (score / realDuration) * 20`. Both are `null` when missing, and `ratio` is `null` when the source has no score or duration.

@@ -141,7 +141,7 @@ export function buildOrder(sortBy: string, sortOrder: string): Order {
 	if (sortBy === "random") return [sequelize.literal("RANDOM()")];
 
 	const dir = sortOrder.toUpperCase() === "ASC" ? "ASC" : "DESC";
-	const nulls = dir === "ASC" ? "NULLS LAST" : "NULLS LAST";
+	const nulls = "NULLS LAST";
 
 	if (sortBy === "score") {
 		return [

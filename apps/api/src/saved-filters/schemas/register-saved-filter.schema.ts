@@ -6,12 +6,13 @@ import {
 	SORT_ORDERS,
 	STAT_KEYS
 } from "../saved-filter.model";
+import { SavedFilterFiltersSchema } from "./saved-filter-filters.schema";
 
 export const RegisterSavedFilterSchema = z
 	.object({
 		name: z.string().min(1).max(100),
 		description: z.string().max(255).optional(),
-		filters: z.record(z.string(), z.unknown()),
+		filters: SavedFilterFiltersSchema,
 		sortBy: z.string().max(50).optional(),
 		sortOrder: z.enum(SORT_ORDERS).optional(),
 		showInBacklog: z.boolean().optional(),

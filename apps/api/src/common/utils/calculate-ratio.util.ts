@@ -6,7 +6,7 @@ export function calculateRatio(
 	duration: number | null | undefined,
 	sourceScale: number = DEFAULT_SOURCE_SCALE
 ) {
-	if (!score || !duration) return undefined;
+	if (!score || !duration) return null;
 	const normalized = (score / sourceScale) * TARGET_SCALE;
 	return Math.round((normalized / duration) * 100) / 100;
 }

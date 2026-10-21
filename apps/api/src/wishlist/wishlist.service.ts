@@ -3,6 +3,7 @@ import { Op } from "sequelize";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import * as wishlistServiceError from "./errors/wishlist.service-error";
@@ -31,14 +32,26 @@ export async function replaceWishlist(user: RequestUser, gameIds: string[]) {
 		throw wishlistServiceError.gamesNotFoundError(missing);
 	}
 
-	await Wishlist.destroy({ where: { userId: user.id } });
+	await sequelize.transaction(async transaction => {
+		const current = await Wishlist.findAll({
+			where: { userId: user.id },
+			attributes: ["gameId", "platformId"],
+			transaction
+		});
+		const platformByGameId = new Map(
+			current.map(entry => [entry.gameId, entry.platformId])
+		);
 
-	const entries = gameIds.map((gameId, index) => ({
-		userId: user.id,
-		gameId,
-		position: index + 1
-	}));
-	await Wishlist.bulkCreate(entries);
+		await Wishlist.destroy({ where: { userId: user.id }, transaction });
+
+		const entries = gameIds.map((gameId, index) => ({
+			userId: user.id,
+			gameId,
+			platformId: platformByGameId.get(gameId) ?? null,
+			position: index + 1
+		}));
+		await Wishlist.bulkCreate(entries, { transaction });
+	});
 
 	return Wishlist.findAll({
 		where: { userId: user.id },

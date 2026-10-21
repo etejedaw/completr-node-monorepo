@@ -63,3 +63,5 @@ docs: |-
     - 403 `LIST_ITEM_FORBIDDEN` — Not the owner
     - 404 `LIST_ITEM_LIST_NOT_FOUND`
     - 404 `LIST_ITEM_GAMES_NOT_FOUND` — One or more gameIds not found (includes missing IDs in context)
+
+    `ratio` is always present: `null` when the list source has no score or duration for the game.

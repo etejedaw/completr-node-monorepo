@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
@@ -24,6 +24,22 @@ async function checkLimit(userId: string, role: string) {
 	if (isPremium(role)) return;
 	const count = await Queue.count({ where: { userId } });
 	if (count >= FREE_QUEUE_LIMIT) throw queueServiceError.limitReachedError();
+}
+
+export async function lockUserQueue(userId: string, transaction: Transaction) {
+	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
+		replacements: { lockKey: `queue:${userId}` },
+		transaction
+	});
+}
+
+async function findNextPosition(userId: string, transaction: Transaction) {
+	await lockUserQueue(userId, transaction);
+	const lastPosition = await Queue.max<number | null, Queue>("position", {
+		where: { userId },
+		transaction
+	});
+	return (lastPosition ?? 0) + 1;
 }
 
 const QUEUE_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
@@ -62,8 +78,7 @@ export async function addFromGame(
 			transaction
 		);
 
-		const position =
-			(await Queue.count({ where: { userId: user.id } })) + 1;
+		const position = await findNextPosition(user.id, transaction);
 
 		await Queue.create(
 			{
@@ -104,13 +119,17 @@ export async function addFromBacklog(backlogId: string, user: RequestUser) {
 	});
 	if (existing) throw queueServiceError.alreadyInQueueError();
 
-	const position = (await Queue.count({ where: { userId: user.id } })) + 1;
-
 	try {
-		await Queue.create({
-			userId: user.id,
-			backlogId,
-			position
+		await sequelize.transaction(async transaction => {
+			const position = await findNextPosition(user.id, transaction);
+			await Queue.create(
+				{
+					userId: user.id,
+					backlogId,
+					position
+				},
+				{ transaction }
+			);
 		});
 		return Queue.findOne({
 			where: { backlogId, userId: user.id },
@@ -153,6 +172,7 @@ export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 		position: index + 1
 	}));
 	await sequelize.transaction(async transaction => {
+		await lockUserQueue(user.id, transaction);
 		await Queue.destroy({ where: { userId: user.id }, transaction });
 		await Queue.bulkCreate(entries, { transaction });
 	});
@@ -182,13 +202,15 @@ export async function findQueueByUserId(userId: string) {
 
 export async function findQueueByUserIdPaginated(
 	userId: string,
-	pagination: PaginatedSearchQuery = {}
+	pagination: PaginatedSearchQuery = {},
+	publicOnly = false
 ) {
 	const include = pagination.search
 		? [
 				{
 					model: Backlog,
 					required: true,
+					where: publicOnly ? { isPublic: true } : undefined,
 					include: [
 						{
 							model: Game,
@@ -202,7 +224,15 @@ export async function findQueueByUserIdPaginated(
 					]
 				}
 			]
-		: BACKLOG_INCLUDE;
+		: publicOnly
+			? [
+					{
+						...BACKLOG_INCLUDE[0]!,
+						required: true,
+						where: { isPublic: true }
+					}
+				]
+			: BACKLOG_INCLUDE;
 
 	const query: Record<string, unknown> = {
 		where: { userId },
@@ -216,6 +246,33 @@ export async function findQueueByUserIdPaginated(
 	return { rows, total: count };
 }
 
-export async function removeByBacklogId(backlogId: string) {
-	await Queue.destroy({ where: { backlogId } });
+export async function compactPositions(
+	userId: string,
+	transaction: Transaction
+) {
+	await lockUserQueue(userId, transaction);
+	await sequelize.query(
+		`UPDATE "Queues" AS q
+		SET "position" = ranked."position", "updatedAt" = NOW()
+		FROM (
+			SELECT "id", ROW_NUMBER() OVER (ORDER BY "position", "createdAt", "id") AS "position"
+			FROM "Queues"
+			WHERE "userId" = :userId
+		) AS ranked
+		WHERE q."id" = ranked."id" AND q."position" <> ranked."position"`,
+		{ replacements: { userId }, transaction }
+	);
+}
+
+export async function removeByBacklogId(backlogId: string, userId: string) {
+	return sequelize.transaction(async transaction => {
+		await lockUserQueue(userId, transaction);
+		const removedCount = await Queue.destroy({
+			where: { backlogId, userId },
+			transaction
+		});
+		if (removedCount === 0) return false;
+		await compactPositions(userId, transaction);
+		return true;
+	});
 }

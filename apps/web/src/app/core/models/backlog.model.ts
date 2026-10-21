@@ -3,8 +3,8 @@ export interface BacklogEntry {
 	status: BacklogStatus;
 	score?: number;
 	duration?: number;
-	ratio?: number;
-	personalRatio?: number;
+	ratio?: number | null;
+	personalRatio?: number | null;
 	startedAt?: string;
 	finishedAt?: string;
 	realDuration?: number;

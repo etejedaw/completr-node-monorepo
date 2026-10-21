@@ -43,7 +43,7 @@ export interface ListItem {
 	position: number;
 	score?: number;
 	duration?: number;
-	ratio?: number;
+	ratio?: number | null;
 	game: ListItemGame;
 	backlogStatus?: string;
 	realDuration?: number | null;

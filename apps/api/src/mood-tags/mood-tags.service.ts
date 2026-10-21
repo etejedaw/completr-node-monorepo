@@ -70,18 +70,23 @@ export async function findTagsByGame(userId: string, gameId: string) {
 
 export async function findTagsByUser(userId: string) {
 	const rows = (await sequelize.query(
-		`SELECT
-			COALESCE(ugt."tag", mtm."tag") AS "tag",
-			COALESCE(ugt."usageCount", 0) AS "usageCount",
-			mtm."description" AS "description"
-		FROM (
+		`WITH ugt AS (
 			SELECT "tag", COUNT(*)::int AS "usageCount"
 			FROM "UserGameTags"
 			WHERE "userId" = :userId
 			GROUP BY "tag"
-		) ugt
-		FULL OUTER JOIN "MoodTagMetas" mtm
-			ON mtm."userId" = :userId AND mtm."tag" = ugt."tag"
+		),
+		mtm AS (
+			SELECT "tag", "description"
+			FROM "MoodTagMetas"
+			WHERE "userId" = :userId
+		)
+		SELECT
+			COALESCE(ugt."tag", mtm."tag") AS "tag",
+			COALESCE(ugt."usageCount", 0) AS "usageCount",
+			mtm."description" AS "description"
+		FROM ugt
+		FULL OUTER JOIN mtm ON mtm."tag" = ugt."tag"
 		ORDER BY "usageCount" DESC, "tag" ASC`,
 		{
 			replacements: { userId },

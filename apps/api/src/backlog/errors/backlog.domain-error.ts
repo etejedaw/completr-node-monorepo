@@ -29,6 +29,15 @@ export function backlogValidation(context?: Record<string, unknown>) {
 	);
 }
 
+export function backlogUniqueConstraint(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"BACKLOG_UNIQUE_CONSTRAINT",
+		"Backlog entry already exists",
+		context
+	);
+}
+
 export function backlogCompilationContextInvalid(
 	context?: Record<string, unknown>
 ) {

@@ -170,7 +170,7 @@ export async function getBacklogSummaryMap(
 		map.set(row.gameId, {
 			status: row.status,
 			realDuration: row.realDuration,
-			personalRatio: calculateRatio(row.score, row.realDuration) ?? null
+			personalRatio: calculateRatio(row.score, row.realDuration)
 		});
 	}
 	return map;

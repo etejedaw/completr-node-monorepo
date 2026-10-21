@@ -1,5 +1,5 @@
 import { HttpClient } from "@angular/common/http";
-import { inject, Injectable, signal } from "@angular/core";
+import { effect, inject, Injectable, signal } from "@angular/core";
 import {
 	map,
 	type Observable,
@@ -12,6 +12,7 @@ import {
 
 import { environment } from "../../../environments/environment";
 import { type FavoriteEntry } from "../../core/models";
+import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
 import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
 
@@ -34,13 +35,32 @@ export interface FavoritesPagination extends Record<string, Appendable> {
 @Injectable({ providedIn: "root" })
 export class FavoritesService {
 	private readonly http = inject(HttpClient);
+	private readonly auth = inject(AuthService);
 	private readonly toast = inject(ToastService);
 	private readonly baseUrl = `${environment.apiUrl}/users/me/favorites`;
 	private readonly _favorites = signal<FavoriteEntry[]>([]);
 	private readonly _favoriteIds = signal<Set<string>>(new Set());
 	readonly favorites = this._favorites.asReadonly();
 	readonly favoriteIds = this._favoriteIds.asReadonly();
+	private idsLoaded = false;
 	private idsLoad$: Observable<Set<string>> | null = null;
+
+	constructor() {
+		let previousUserId: string | null = null;
+		effect(() => {
+			const userId = this.auth.user()?.id ?? null;
+			if (previousUserId !== null && userId !== previousUserId)
+				this.reset();
+			previousUserId = userId;
+		});
+	}
+
+	private reset() {
+		this.idsLoaded = false;
+		this.idsLoad$ = null;
+		this._favorites.set([]);
+		this._favoriteIds.set(new Set());
+	}
 
 	load(pagination: FavoritesPagination = {}) {
 		const params = buildHttpParams(pagination);
@@ -48,6 +68,7 @@ export class FavoritesService {
 			tap(res => {
 				this._favorites.set(res.data.favorites);
 				if (!pagination.search && !pagination.offset) {
+					this.idsLoaded = true;
 					this._favoriteIds.set(
 						new Set(res.data.favorites.map(f => f.game.id))
 					);
@@ -57,7 +78,7 @@ export class FavoritesService {
 	}
 
 	ensureIdsLoaded(): Observable<Set<string>> {
-		if (this._favoriteIds().size > 0) return of(this._favoriteIds());
+		if (this.idsLoaded) return of(this._favoriteIds());
 		if (this.idsLoad$) return this.idsLoad$;
 		this.idsLoad$ = this.http
 			.get<FavoriteGameIdsResponse>(`${this.baseUrl}/game-ids`)
@@ -65,6 +86,7 @@ export class FavoritesService {
 				map(res => new Set(res.data.gameIds)),
 				tap(ids => {
 					this._favoriteIds.set(ids);
+					this.idsLoaded = true;
 					this.idsLoad$ = null;
 				}),
 				shareReplay(1)
@@ -80,6 +102,7 @@ export class FavoritesService {
 		return this.http.put<FavoritesResponse>(this.baseUrl, { gameIds }).pipe(
 			tap(res => {
 				this._favorites.set(res.data.favorites);
+				this.idsLoaded = true;
 				this._favoriteIds.set(
 					new Set(res.data.favorites.map(f => f.game.id))
 				);
@@ -108,6 +131,7 @@ export class FavoritesService {
 			tap({
 				next: res => {
 					this._favorites.set(res.data.favorites);
+					this.idsLoaded = true;
 					this._favoriteIds.set(
 						new Set(res.data.favorites.map(f => f.game.id))
 					);

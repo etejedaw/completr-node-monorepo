@@ -7,6 +7,14 @@ module.exports = {
 		database: process.env.PG_DATABASE || "completr",
 		dialect: "postgres"
 	},
+	test: {
+		host: process.env.PG_HOST || "127.0.0.1",
+		port: process.env.PG_PORT || 5433,
+		username: process.env.PG_USER || "root",
+		password: process.env.PG_PASSWORD || "toor",
+		database: process.env.PG_DATABASE || "completr_test",
+		dialect: "postgres"
+	},
 	prod: {
 		host: process.env.PG_HOST,
 		port: process.env.PG_PORT,

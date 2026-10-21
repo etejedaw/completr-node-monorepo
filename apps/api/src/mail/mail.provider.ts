@@ -1,5 +1,6 @@
 import nodemailer, { type Transporter } from "nodemailer";
 
+import { environmentConfig } from "../common/config/environment.config";
 import * as mailServiceError from "./errors/mail.service-error";
 import { type MailMessage, type SmtpSettings } from "./mail.interface";
 
@@ -9,6 +10,8 @@ export abstract class MailClient {
 	abstract readonly isEnabled: boolean;
 
 	static create(settings: SmtpSettings): MailClient {
+		if (environmentConfig.NODE_ENV === "test")
+			return new InMemoryMailProvider();
 		if (!settings.host) return new DisabledMailProvider();
 		return new SmtpMailProvider({ ...settings, host: settings.host });
 	}
@@ -53,5 +56,16 @@ export class DisabledMailProvider extends MailClient {
 
 	send(): Promise<void> {
 		throw mailServiceError.disabledError();
+	}
+}
+
+export class InMemoryMailProvider extends MailClient {
+	static readonly outbox: MailMessage[] = [];
+
+	readonly isEnabled = true;
+
+	send(message: MailMessage): Promise<void> {
+		InMemoryMailProvider.outbox.push(message);
+		return Promise.resolve();
 	}
 }

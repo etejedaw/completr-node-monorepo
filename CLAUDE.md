@@ -62,7 +62,7 @@ npm workspaces. Cada app tiene su `package.json`; el lockfile, el tooling (ESLin
 | `.claude/skills/`      | Skills del proyecto                                               |
 | `captain-definition-*` | Deploy de cada app; el contexto de build de Docker es la raíz     |
 
-Comandos desde la raíz: `npm run dev` (API + web + landing), `dev:api`, `dev:web`, `dev:landing`, `db` / `db:down`, `build`, `typecheck`, `test`, `lint`, `lint:fix`, `format`, `migrate:dev`, `migrate:status:dev`, `migrate:prod`, `migrate:status:prod` (los `:dev` leen `apps/api/.env.dev.local` si existe; los `:prod`, `apps/api/.env.prod.local`). Cualquier otro script de una app: `npm run <script> -w apps/<app>`. Las dependencias se instalan con `npm install <pkg> -w apps/<app>`, nunca con `npm install` dentro de la carpeta de la app.
+Comandos desde la raíz: `npm run dev` (API + web + landing), `dev:api`, `dev:web`, `dev:landing`, `db` / `db:down`, `build`, `typecheck`, `test` (API y web), `test:api`, `test:web`, `lint`, `lint:fix`, `format`, `migrate:dev`, `migrate:status:dev`, `migrate:prod`, `migrate:status:prod` (los `:dev` leen `apps/api/.env.dev.local` si existe; los `:prod`, `apps/api/.env.prod.local`). Cualquier otro script de una app: `npm run <script> -w apps/<app>`. Las dependencias se instalan con `npm install <pkg> -w apps/<app>`, nunca con `npm install` dentro de la carpeta de la app.
 
 ## Lo técnico vive en `docs/`
 

@@ -8,9 +8,7 @@ import auditRouter from "./audit/audit.routes";
 import authRouter from "./auth/auth.router";
 import backlogProgressRouter from "./backlog-progress/backlog-progress.routes";
 import changelogRouter from "./changelog/changelog.routes";
-import { apiKeysConfig } from "./common/config/api-keys.config";
 import { corsConfig } from "./common/config/cors.config";
-import { PinoLogger } from "./common/logger/pino.logger";
 import { correlationIdMiddleware } from "./common/middlewares/correlation-id.middleware";
 import { errorHandlerMiddleware } from "./common/middlewares/error-handler.middleware";
 import { loggerMiddleware } from "./common/middlewares/logger.middleware";
@@ -36,16 +34,7 @@ import userFollowersRouter from "./user-followers/user-followers.routes";
 import usersRoute from "./users/users.routes";
 import wellKnownRouter from "./well-known/well-known.routes";
 
-const logger = new PinoLogger("Server");
-
-export function server(port: number) {
-	if (!apiKeysConfig.RAWG_API_KEY) {
-		logger.warn(
-			"startup",
-			"RAWG_API_KEY not set: external game search and RAWG import are disabled"
-		);
-	}
-
+export function createApp() {
 	const app = express();
 
 	app.use(express.json());
@@ -83,5 +72,5 @@ export function server(port: number) {
 	app.use(privacyRouter);
 	app.use(errorHandlerMiddleware);
 
-	app.listen(port, () => logger.info("startup", "listening", { port }));
+	return app;
 }

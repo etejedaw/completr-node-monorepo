@@ -1,0 +1,54 @@
+info:
+    name: Get Recent Lists
+    type: http
+    seq: 8
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/lists/recent?limit=12"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Recent Lists
+
+    Returns the newest public lists of regular users, newest first.
+
+    **Auth:** Bearer token required.
+
+    **Rate Limit:** 50 requests per minute.
+
+    ### Query Parameters
+
+    | Param | Type    | Required | Description                                  |
+    |-------|---------|----------|----------------------------------------------|
+    | limit | integer | No       | Number of lists to return, 1 to 50 (default 12) |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "lists": [
+          {
+            "id": "uuid",
+            "name": "Resident Evil",
+            "description": "The full saga",
+            "isPublic": true,
+            "isOfficial": false,
+            "scoreSource": "metacritic",
+            "durationSource": "hltb",
+            "previewItems": []
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                    | Reason                                      |
+    |--------|-------------------------|---------------------------------------------|
+    | 422    | `COMMON_SCHEMA_INVALID` | `limit` is not an integer between 1 and 50, or an unknown parameter was sent |

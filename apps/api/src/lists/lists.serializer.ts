@@ -1,3 +1,4 @@
+import { type ListItem } from "../list-items/list-item.model";
 import { listItemSerializer } from "../list-items/list-items.serializer";
 import { type List } from "./list.model";
 import { type BacklogSummary } from "./lists.service";
@@ -40,6 +41,10 @@ export function listSerializer(
 	};
 }
 
+function byPosition(a: ListItem, b: ListItem) {
+	return a.position - b.position || a.id.localeCompare(b.id);
+}
+
 export function listSummarySerializer(list: List) {
 	return {
 		id: list.id,
@@ -50,7 +55,7 @@ export function listSummarySerializer(list: List) {
 		scoreSource: list.scoreSource,
 		durationSource: list.durationSource,
 		previewItems:
-			list.ListItems?.map(item => ({
+			list.ListItems?.toSorted(byPosition).map(item => ({
 				id: item.id,
 				game: item.Game
 					? {

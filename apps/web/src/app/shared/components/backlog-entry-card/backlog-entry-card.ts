@@ -86,6 +86,14 @@ export class BacklogEntryCard {
 	protected readonly statusIconColor = backlogStatusIconColor;
 	protected readonly statusLabel = backlogStatusLabel;
 
+	protected readonly cardLabel = computed(() => {
+		const entry = this.entry();
+		return `${entry.game.title}, ${backlogStatusLabel(entry.status)}`;
+	});
+	protected readonly cardDescriptionId = computed(
+		() => `entry-card-details-${this.entry().id}`
+	);
+
 	protected readonly hasAnnotations = computed(() => {
 		const entry = this.entry();
 		return !!entry.notes || (!!entry.hasReview && !!entry.reviewContent);

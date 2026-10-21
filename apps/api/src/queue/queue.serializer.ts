@@ -9,7 +9,21 @@ export function queueSerializer(entry: Queue, moodTags?: string[]) {
 	};
 }
 
+export function publicQueueSerializer(entry: Queue, position: number) {
+	return {
+		id: entry.id,
+		position,
+		backlog: publicBacklogSerializer(entry.Backlog)
+	};
+}
+
 function backlogSerializer(backlog: Queue["Backlog"], moodTags?: string[]) {
+	const publicBacklog = publicBacklogSerializer(backlog);
+	if (!publicBacklog) return undefined;
+	return { ...publicBacklog, moodTags: moodTags ?? [], notes: backlog.notes };
+}
+
+function publicBacklogSerializer(backlog: Queue["Backlog"]) {
 	if (!backlog) return undefined;
 	return {
 		id: backlog.id,
@@ -18,8 +32,6 @@ function backlogSerializer(backlog: Queue["Backlog"], moodTags?: string[]) {
 		duration: backlog.duration,
 		ratio: calculateRatio(backlog.score, backlog.duration),
 		startedAt: backlog.startedAt,
-		notes: backlog.notes,
-		moodTags: moodTags ?? [],
 		game: gameSerializer(backlog.Game),
 		platform: platformSerializer(backlog.Platform)
 	};

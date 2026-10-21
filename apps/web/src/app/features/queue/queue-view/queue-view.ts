@@ -7,7 +7,16 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
-import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
+import {
+	catchError,
+	concatMap,
+	debounceTime,
+	distinctUntilChanged,
+	EMPTY,
+	type Observable,
+	Subject,
+	tap
+} from "rxjs";
 
 import { type QueueEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
@@ -22,6 +31,11 @@ import {
 	UiPlainEmptyState,
 	UiPremiumBadge
 } from "../../../shared/ui";
+import {
+	arrangeIntoFullOrder,
+	moveIntoFullOrder
+} from "../../../shared/utils/full-order";
+import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { BacklogService } from "../../backlog/backlog";
 import { FavoritesService } from "../../favorites/favorites";
 import { QueueService } from "../queue";
@@ -34,6 +48,12 @@ import {
 	type QueueEntryMove
 } from "../queue-browser/queue-browser";
 import { type QueueSort, type QueueStatusChange } from "../queue-order";
+
+interface QueueWrite {
+	request: () => Observable<QueueEntry[]>;
+	saved?: () => void;
+	failed?: () => void;
+}
 
 @Component({
 	selector: "app-queue-view",
@@ -56,6 +76,11 @@ export class QueueView implements OnInit {
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly toast = inject(ToastService);
 	private readonly dialogs = inject(DialogService);
+	private readonly pendingRemovals = new PendingRemovals<QueueEntry>(
+		entry => entry.backlog.id
+	);
+	private readonly queueWrites = new Subject<QueueWrite>();
+	private pendingWrites = 0;
 
 	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly favoriteGameIds = this.favoritesService.favoriteIds;
@@ -95,20 +120,27 @@ export class QueueView implements OnInit {
 	saveCurrentOrder(orderedEntries: QueueEntry[]) {
 		if (this.sortBy() === "manual" || this.savingOrder()) return;
 		this.savingOrder.set(true);
-		const backlogIds = orderedEntries.map(e => e.backlog.id);
-		this.queueService.reorder(backlogIds).subscribe({
-			next: updated => {
-				this.entries.set(updated);
+		this.entries.set(orderedEntries);
+		const visibleOrder = this.serverOrder(orderedEntries);
+		this.enqueueWrite({
+			request: () =>
+				this.queueService.updateOrder(ids =>
+					arrangeIntoFullOrder(ids, visibleOrder)
+				),
+			saved: () => {
 				this.sortBy.set("manual");
 				this.savingOrder.set(false);
 			},
-			error: () => this.savingOrder.set(false)
+			failed: () => this.savingOrder.set(false)
 		});
 	}
 
 	private readonly searchSubject = new Subject<string>();
 
 	ngOnInit() {
+		this.queueWrites
+			.pipe(concatMap(write => this.runWrite(write)))
+			.subscribe();
 		this.searchSubject
 			.pipe(debounceTime(300), distinctUntilChanged())
 			.subscribe(() => {
@@ -198,19 +230,21 @@ export class QueueView implements OnInit {
 	}
 
 	remove(entry: QueueEntry) {
-		this.entries.set(this.entries().filter(e => e.id !== entry.id));
+		this.entries.set(this.pendingRemovals.hide(entry, this.entries()));
 		this.total.set(Math.max(0, this.total() - 1));
 		this.toast.pending({
 			message: `Removed ${entry.backlog.game.title} from queue`,
 			onCommit: () => {
-				const ids = this.entries().map(e => e.backlog.id);
-				this.queueService.reorder(ids).subscribe();
+				this.pendingRemovals.commit(entry);
+				this.enqueueWrite({
+					request: () =>
+						this.queueService.removeByBacklogId(entry.backlog.id)
+				});
 			},
 			onUndo: () => {
-				const restored = [...this.entries(), entry].sort(
-					(a, b) => a.position - b.position
+				this.entries.set(
+					this.pendingRemovals.undo(entry, this.entries())
 				);
-				this.entries.set(restored);
 				this.total.set(this.total() + 1);
 			}
 		});
@@ -220,32 +254,33 @@ export class QueueView implements OnInit {
 		if (index === 0) return;
 		const list = [...this.entries()];
 		[list[index - 1], list[index]] = [list[index], list[index - 1]];
-		this.reorder(list);
+		this.reorder(list, list[index - 1]);
 	}
 
 	moveDown(index: number) {
 		if (index >= this.entries().length - 1) return;
 		const list = [...this.entries()];
 		[list[index], list[index + 1]] = [list[index + 1], list[index]];
-		this.reorder(list);
+		this.reorder(list, list[index + 1]);
 	}
 
 	moveToTop(entry: QueueEntry) {
 		if (this.movingToTop()) return;
 		this.movingToTop.set(true);
-		this.queueService.moveToTop(entry.backlog.id).subscribe({
-			next: () => {
+		this.enqueueWrite({
+			request: () => this.queueService.moveToTop(entry.backlog.id),
+			saved: () => {
 				this.movingToTop.set(false);
 				this.loadQueue();
 			},
-			error: () => this.movingToTop.set(false)
+			failed: () => this.movingToTop.set(false)
 		});
 	}
 
 	moveEntry({ fromIndex, toIndex }: QueueEntryMove) {
 		const list = [...this.entries()];
 		moveItemInArray(list, fromIndex, toIndex);
-		this.reorder(list);
+		this.reorder(list, list[toIndex]);
 	}
 
 	private loadQueue() {
@@ -258,21 +293,61 @@ export class QueueView implements OnInit {
 			})
 			.subscribe({
 				next: res => {
-					this.entries.set(res.data.queue);
-					this.total.set(res.data.total ?? res.data.queue.length);
+					const visible = this.pendingRemovals.withoutPending(
+						res.data.queue
+					);
+					const hiddenCount = res.data.queue.length - visible.length;
+					this.entries.set(visible);
+					this.total.set(
+						(res.data.total ?? res.data.queue.length) - hiddenCount
+					);
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
 			});
 	}
 
-	private reorder(list: QueueEntry[]) {
-		const previous = this.entries();
+	private reorder(list: QueueEntry[], moved: QueueEntry) {
 		this.entries.set(list);
-		const backlogIds = list.map(e => e.backlog.id);
-		this.queueService.reorder(backlogIds).subscribe({
-			next: updated => this.entries.set(updated),
-			error: () => this.entries.set(previous)
+		const visibleOrder = this.serverOrder(list);
+		this.enqueueWrite({
+			request: () =>
+				this.queueService.updateOrder(ids =>
+					moveIntoFullOrder(ids, moved.backlog.id, visibleOrder)
+				)
 		});
+	}
+
+	private enqueueWrite(write: QueueWrite) {
+		this.pendingWrites++;
+		this.queueWrites.next(write);
+	}
+
+	private runWrite(write: QueueWrite) {
+		return write.request().pipe(
+			tap(updated => {
+				this.pendingWrites--;
+				if (this.pendingWrites === 0)
+					this.entries.set(this.shownIn(updated));
+				write.saved?.();
+			}),
+			catchError(() => {
+				this.pendingWrites--;
+				write.failed?.();
+				if (this.pendingWrites === 0) this.loadQueue();
+				return EMPTY;
+			})
+		);
+	}
+
+	private shownIn(queue: QueueEntry[]) {
+		const shownIds = new Set(this.entries().map(entry => entry.backlog.id));
+		return queue.filter(entry => shownIds.has(entry.backlog.id));
+	}
+
+	private serverOrder(visible: QueueEntry[]) {
+		return this.pendingRemovals
+			.withPending(visible)
+			.map(entry => entry.backlog.id);
 	}
 }
