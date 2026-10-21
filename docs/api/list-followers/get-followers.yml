@@ -18,7 +18,7 @@ settings:
 docs: |-
     ## Get List Followers
 
-    Returns users who follow this list.
+    Returns users who follow this list. A private list only shows its followers to its owner; for anyone else it answers like a list that does not exist.
 
     **Auth:** Bearer token required.
 
@@ -35,3 +35,10 @@ docs: |-
       }
     }
     ```
+
+    ### Errors
+
+    | Status | Type | When |
+    |--------|------|------|
+    | 401 | `UNAUTHORIZED` | Missing or invalid token |
+    | 404 | `LIST_FOLLOWER_LIST_NOT_FOUND` | The list does not exist, or it is private and the requester is not its owner |
