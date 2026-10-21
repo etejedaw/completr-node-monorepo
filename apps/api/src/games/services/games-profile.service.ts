@@ -49,8 +49,16 @@ export async function getFriendsActivityForGame(
 	viewerId: string,
 	gameId: string
 ) {
-	const friendIds = await userFollowersService.getFollowingIds(viewerId);
-	return backlogService.findFriendsActivityForGame(friendIds, gameId);
+	const followingIds = await userFollowersService.getFollowingIds(viewerId);
+	const mutualIds = await userFollowersService.getMutualFollowerIds(
+		viewerId,
+		followingIds
+	);
+	return backlogService.findFriendsActivityForGame(
+		followingIds,
+		mutualIds,
+		gameId
+	);
 }
 
 export async function getPlayersForGame(viewerId: string, gameId: string) {

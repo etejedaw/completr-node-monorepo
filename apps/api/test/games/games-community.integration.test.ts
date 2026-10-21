@@ -477,43 +477,47 @@ void describe("GET /games/:id/friends-activity", () => {
 		]);
 	});
 
-	void it(
-		"hides a friends-only backlog from a viewer that follows without being followed back",
-		{
-			todo: "bug: friends-only backlogs are served to one-way followers, but a friend is a mutual follow"
-		},
-		async () => {
-			const viewer = await createUserWithSession();
-			const game = await createGame();
-			const friend = await createPlayer(game, {
-				backlogVisibility: "friends"
-			});
-			await follow(viewer.user, friend);
+	void it("hides a friends-only backlog from a viewer that follows without being followed back", async () => {
+		const viewer = await createUserWithSession();
+		const game = await createGame();
+		const friend = await createPlayer(game, {
+			backlogVisibility: "friends"
+		});
+		await follow(viewer.user, friend);
 
-			const response = await getFor("friends-activity", viewer, game.id);
+		const response = await getFor("friends-activity", viewer, game.id);
 
-			assert.deepEqual(response.body.data.friends, []);
-		}
-	);
+		assert.deepEqual(response.body.data.friends, []);
+	});
 
-	void it(
-		"hides a friends-only profile from a viewer that follows without being followed back",
-		{
-			todo: "bug: users with a friends-only profile are served to one-way followers, but a friend is a mutual follow"
-		},
-		async () => {
-			const viewer = await createUserWithSession();
-			const game = await createGame();
-			const friend = await createPlayer(game, {
-				profileVisibility: "friends"
-			});
-			await follow(viewer.user, friend);
+	void it("hides a friends-only profile from a viewer that follows without being followed back", async () => {
+		const viewer = await createUserWithSession();
+		const game = await createGame();
+		const friend = await createPlayer(game, {
+			profileVisibility: "friends"
+		});
+		await follow(viewer.user, friend);
 
-			const response = await getFor("friends-activity", viewer, game.id);
+		const response = await getFor("friends-activity", viewer, game.id);
 
-			assert.deepEqual(response.body.data.friends, []);
-		}
-	);
+		assert.deepEqual(response.body.data.friends, []);
+	});
+
+	void it("hides followed users whose account is deactivated", async () => {
+		const viewer = await createUserWithSession();
+		const game = await createGame();
+		const active = await createPlayer(game);
+		const deactivated = await createPlayer(game);
+		await follow(viewer.user, active);
+		await follow(viewer.user, deactivated);
+		await deactivated.update({ isActive: false });
+
+		const response = await getFor("friends-activity", viewer, game.id);
+
+		assert.deepEqual(usernamesOf(response.body, "friends"), [
+			active.username
+		]);
+	});
 
 	void it("follows the follow graph: a new follow appears and an unfollow disappears", async () => {
 		const viewer = await createUserWithSession();
@@ -659,37 +663,25 @@ void describe("GET /games/:id/players", () => {
 		assert.deepEqual(response.body.data.players, []);
 	});
 
-	void it(
-		"hides friends-only backlogs from users that are not friends of the viewer",
-		{
-			todo: "bug: friends-only backlogs are served to any viewer, but a friend is a mutual follow"
-		},
-		async () => {
-			const viewer = await createUserWithSession();
-			const game = await createGame();
-			await createPlayer(game, { backlogVisibility: "friends" });
+	void it("hides friends-only backlogs from users that are not friends of the viewer", async () => {
+		const viewer = await createUserWithSession();
+		const game = await createGame();
+		await createPlayer(game, { backlogVisibility: "friends" });
 
-			const response = await getFor("players", viewer, game.id);
+		const response = await getFor("players", viewer, game.id);
 
-			assert.deepEqual(response.body.data.players, []);
-		}
-	);
+		assert.deepEqual(response.body.data.players, []);
+	});
 
-	void it(
-		"hides friends-only profiles from users that are not friends of the viewer",
-		{
-			todo: "bug: users with a friends-only profile are served to any viewer, but a friend is a mutual follow"
-		},
-		async () => {
-			const viewer = await createUserWithSession();
-			const game = await createGame();
-			await createPlayer(game, { profileVisibility: "friends" });
+	void it("hides friends-only profiles from users that are not friends of the viewer", async () => {
+		const viewer = await createUserWithSession();
+		const game = await createGame();
+		await createPlayer(game, { profileVisibility: "friends" });
 
-			const response = await getFor("players", viewer, game.id);
+		const response = await getFor("players", viewer, game.id);
 
-			assert.deepEqual(response.body.data.players, []);
-		}
-	);
+		assert.deepEqual(response.body.data.players, []);
+	});
 
 	void it("caps the result at ten distinct players", async () => {
 		const viewer = await createUserWithSession();
@@ -705,6 +697,20 @@ void describe("GET /games/:id/players", () => {
 		);
 		assert.equal(usernames.length, PLAYERS_LIMIT);
 		assert.equal(new Set(usernames).size, PLAYERS_LIMIT);
+	});
+
+	void it("hides players whose account is deactivated", async () => {
+		const viewer = await createUserWithSession();
+		const game = await createGame();
+		const active = await createPlayer(game);
+		const deactivated = await createPlayer(game);
+		await deactivated.update({ isActive: false });
+
+		const response = await getFor("players", viewer, game.id);
+
+		assert.deepEqual(usernamesOf(response.body, "players"), [
+			active.username
+		]);
 	});
 
 	void it("reflects a run that becomes private", async () => {

@@ -18,7 +18,7 @@ settings:
 docs: |-
     ## Get Random Players For Game
 
-    Returns a randomized sample (up to 10) of other users who have this game in their backlog, with their most recent status. Excludes the viewer and the users the viewer already follows (those are surfaced via `/games/:id/friends-activity`). Only users whose profile **and** backlog are not `private`, and whose backlog entry itself is public, are included.
+    Returns a randomized sample (up to 10) of other users who have this game in their backlog, with their most recent status. Excludes the viewer and the users the viewer already follows (those are surfaced via `/games/:id/friends-activity`). Only users whose profile **and** backlog are `public`, and whose backlog entry itself is public, are included: a `friends` section needs a mutual follow, and mutual followers are already excluded here, so those users never appear.
 
     The sample is shuffled in memory after deduping by user (one row per user, latest backlog). No caching — each call returns a fresh random pick.
 
