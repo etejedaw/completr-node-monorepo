@@ -1,6 +1,7 @@
 import { type Request, type Response } from "express";
 
 import { type RegisterGameTimeDto } from "./dtos/register-game-time.dto";
+import { type ReplaceGameTimesDto } from "./dtos/replace-game-times.dto";
 import { type UpdateGameTimeDto } from "./dtos/update-game-time.dto";
 import * as gameTimesService from "./game-times.service";
 import { type GameTimeIdParams } from "./schemas/game-time-id-params.schema";
@@ -28,6 +29,20 @@ export async function patchGameTime(request: Request, response: Response) {
 		updateGameTimeDto.duration
 	);
 	const data = { gameTime: gameTime.get({ plain: true }) };
+	return response.status(200).json({ data });
+}
+
+export async function putGameTimes(request: Request, response: Response) {
+	const params = request.locals.params as GameTimeParams;
+	const replaceGameTimesDto = request.locals.body as ReplaceGameTimesDto;
+
+	const times = await gameTimesService.replaceGameTimes(
+		params.gameId,
+		replaceGameTimesDto.times
+	);
+	const data = {
+		gameTimes: times.map(time => time.get({ plain: true }))
+	};
 	return response.status(200).json({ data });
 }
 

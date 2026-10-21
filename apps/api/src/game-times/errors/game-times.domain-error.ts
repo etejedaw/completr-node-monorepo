@@ -11,6 +11,15 @@ export function gameTimeNotFound(context?: Record<string, unknown>) {
 	);
 }
 
+export function gameNotFound(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_TIME_GAME_NOT_FOUND",
+		"Game does not exist",
+		context
+	);
+}
+
 export function gameTimeAlreadyExists(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

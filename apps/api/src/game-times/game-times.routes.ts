@@ -8,6 +8,7 @@ import * as gameTimesController from "./game-times.controller";
 import { GameTimeIdParamsSchema } from "./schemas/game-time-id-params.schema";
 import { GameTimeParamsSchema } from "./schemas/game-time-params.schema";
 import { RegisterGameTimeSchema } from "./schemas/register-game-time.schema";
+import { ReplaceGameTimesSchema } from "./schemas/replace-game-times.schema";
 import { UpdateGameTimeSchema } from "./schemas/update-game-time.schema";
 
 const router = Router();
@@ -31,6 +32,17 @@ router.patch(
 		validateSchemaMiddleware(UpdateGameTimeSchema, "body")
 	],
 	gameTimesController.patchGameTime
+);
+
+router.put(
+	"/games/:gameId/times",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("moderator"),
+		validateSchemaMiddleware(GameTimeParamsSchema, "params"),
+		validateSchemaMiddleware(ReplaceGameTimesSchema, "body")
+	],
+	gameTimesController.putGameTimes
 );
 
 router.get(

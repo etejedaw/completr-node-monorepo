@@ -19,6 +19,9 @@ export function gameTimesDomainToHttpMapper(
 	if (error.code === "GAME_TIME_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
+	if (error.code === "GAME_TIME_GAME_NOT_FOUND")
+		return new HttpError({ ...baseOptions, status: 404 });
+
 	if (error.code === "GAME_TIME_ALREADY_EXISTS")
 		return new HttpError({ ...baseOptions, status: 409 });
 

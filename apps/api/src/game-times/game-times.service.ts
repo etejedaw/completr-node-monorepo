@@ -1,8 +1,10 @@
-import { type Transaction } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { sequelize } from "../database/sequelize.database";
+import { Game } from "../games/game.model";
 import * as gameTimeServiceError from "./errors/game-times.service-error";
-import { GameTime, type TimeSource } from "./game-time.model";
+import { GameTime, TIME_SOURCES_API, type TimeSource } from "./game-time.model";
 
 export async function createGameTime(
 	gameId: string,
@@ -51,12 +53,59 @@ export async function findTimesByGameIdsAndSource(
 export async function upsertTime(
 	gameId: string,
 	source: TimeSource,
-	duration: number
+	duration: number,
+	transaction?: Transaction
 ) {
 	return GameTime.upsert(
 		{ gameId, source, duration },
-		{ conflictFields: ["gameId", "source"] }
+		{ conflictFields: ["gameId", "source"], transaction }
 	);
+}
+
+export async function replaceGameTimes(
+	gameId: string,
+	times: { source: TimeSource; duration: number }[]
+) {
+	const sources = times.map(entry => entry.source);
+	try {
+		return await sequelize.transaction(async transaction => {
+			await assertGameExists(gameId, transaction);
+
+			await GameTime.destroy({
+				where: {
+					gameId,
+					source: {
+						[Op.in]: TIME_SOURCES_API.filter(
+							source => !sources.includes(source)
+						)
+					}
+				},
+				transaction
+			});
+			for (const entry of times)
+				await upsertTime(
+					gameId,
+					entry.source,
+					entry.duration,
+					transaction
+				);
+
+			return GameTime.findAll({
+				where: { gameId, source: { [Op.in]: TIME_SOURCES_API } },
+				order: [["source", "ASC"]],
+				transaction
+			});
+		});
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: gameTimeServiceError.uniqueConstraintError
+		});
+	}
+}
+
+async function assertGameExists(gameId: string, transaction: Transaction) {
+	if ((await Game.count({ where: { id: gameId }, transaction })) === 0)
+		throw gameTimeServiceError.gameNotFoundError(gameId);
 }
 
 export async function deleteGameTime(gameId: string, source: TimeSource) {

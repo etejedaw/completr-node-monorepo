@@ -13,6 +13,9 @@ export function gameTimesServiceToDomainMapper(
 	if (error.code === "GAME_TIME_NOT_FOUND")
 		return gameTimeDomainError.gameTimeNotFound(context);
 
+	if (error.code === "GAME_TIME_GAME_NOT_FOUND")
+		return gameTimeDomainError.gameNotFound(context);
+
 	if (error.code === "GAME_TIME_UNIQUE_CONSTRAINT")
 		return gameTimeDomainError.gameTimeAlreadyExists(context);
 

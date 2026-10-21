@@ -9,6 +9,13 @@ export function notFoundError() {
 	});
 }
 
+export function gameNotFoundError(gameId: string) {
+	return new ServiceError("GAME_TIME_GAME_NOT_FOUND", {
+		...BASE_OPTIONS,
+		raw: { gameId }
+	});
+}
+
 export function uniqueConstraintError(rawError: unknown) {
 	return new ServiceError("GAME_TIME_UNIQUE_CONSTRAINT", {
 		...BASE_OPTIONS,
