@@ -58,7 +58,11 @@ export default defineConfig(
 	},
 
 	{
-		files: ["apps/api/src/**/*.ts", "apps/api/scripts/**/*.ts"],
+		files: [
+			"apps/api/src/**/*.ts",
+			"apps/api/scripts/**/*.ts",
+			"apps/api/test/**/*.ts"
+		],
 		languageOptions: {
 			parserOptions: {
 				projectService: true,
