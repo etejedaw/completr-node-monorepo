@@ -12,14 +12,7 @@ import {
 	NgpDialogOverlay,
 	NgpDialogTitle
 } from "ng-primitives/dialog";
-import {
-	debounceTime,
-	forkJoin,
-	type Observable,
-	of,
-	Subject,
-	switchMap
-} from "rxjs";
+import { debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { type Game } from "../../../core/models";
 import {
@@ -76,8 +69,6 @@ export class AdminFranchiseModal implements OnInit {
 	>();
 	private readonly franchise = this.dialogRef.data.franchise;
 	private readonly searchSubject = new Subject<string>();
-
-	private initialGameIds = new Set<string>();
 
 	protected readonly isEdit = signal(false);
 	protected readonly isLoading = signal(false);
@@ -141,7 +132,6 @@ export class AdminFranchiseModal implements OnInit {
 				next: detail => {
 					const games = detail.games.map(g => this.toSelected(g));
 					this.games.set(games);
-					this.initialGameIds = new Set(games.map(g => g.id));
 					this.hasMoreGames.set(detail.hasMore);
 					this.isLoadingGames.set(false);
 				},
@@ -185,7 +175,8 @@ export class AdminFranchiseModal implements OnInit {
 		const val = this.form().value();
 		const dto: FranchiseDto = {
 			name: val.name.trim(),
-			description: val.description.trim() || null
+			description: val.description.trim() || null,
+			gameIds: this.games().map(g => g.id)
 		};
 
 		if (this.isEdit()) this.saveEdit(dto);
@@ -193,44 +184,19 @@ export class AdminFranchiseModal implements OnInit {
 	}
 
 	private saveCreate(dto: FranchiseDto) {
-		this.franchisesService
-			.createFranchise(dto)
-			.pipe(
-				switchMap(franchise => {
-					const patches = this.games().map(g =>
-						this.gamesService.updateGame(g.id, {
-							franchiseId: franchise.id
-						})
-					);
-					return patches.length ? forkJoin(patches) : of([]);
-				})
-			)
-			.subscribe({
-				next: () => this.dialogRef.close("saved"),
-				error: err => this.fail(err, "Creation failed")
-			});
+		this.franchisesService.createFranchise(dto).subscribe({
+			next: () => this.dialogRef.close("saved"),
+			error: err => this.fail(err, "Creation failed")
+		});
 	}
 
 	private saveEdit(dto: FranchiseDto) {
-		const franchiseId = this.franchise!.id;
-		const currentIds = new Set(this.games().map(g => g.id));
-		const added = this.games().filter(g => !this.initialGameIds.has(g.id));
-		const removed = [...this.initialGameIds].filter(
-			id => !currentIds.has(id)
-		);
-
-		const ops: Observable<unknown>[] = [
-			this.franchisesService.updateFranchise(franchiseId, dto)
-		];
-		for (const g of added)
-			ops.push(this.gamesService.updateGame(g.id, { franchiseId }));
-		for (const id of removed)
-			ops.push(this.gamesService.updateGame(id, { franchiseId: null }));
-
-		forkJoin(ops).subscribe({
-			next: () => this.dialogRef.close("saved"),
-			error: err => this.fail(err, "Update failed")
-		});
+		this.franchisesService
+			.updateFranchise(this.franchise!.id, dto)
+			.subscribe({
+				next: () => this.dialogRef.close("saved"),
+				error: err => this.fail(err, "Update failed")
+			});
 	}
 
 	private fail(

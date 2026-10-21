@@ -30,6 +30,7 @@ export interface FranchiseDetail {
 export interface FranchiseDto {
 	name: string;
 	description?: string | null;
+	gameIds?: string[];
 }
 
 @Injectable({ providedIn: "root" })
