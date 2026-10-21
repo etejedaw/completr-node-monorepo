@@ -346,21 +346,15 @@ void describe("GET /users/search", () => {
 		);
 	});
 
-	void it(
-		"treats percent and underscore in q as literal characters",
-		{
-			todo: "bug: q is interpolated into ILIKE without escaping wildcards"
-		},
-		async () => {
-			const viewer = await createUserWithSession();
-			await createUserWithSession();
+	void it("treats percent and underscore in q as literal characters", async () => {
+		const viewer = await createUserWithSession();
+		await createUserWithSession();
 
-			const response = await search(viewer, { q: "%" });
+		const response = await search(viewer, { q: "%" });
 
-			assert.equal(response.status, 200);
-			assert.deepEqual(cardsOf(response), []);
-		}
-	);
+		assert.equal(response.status, 200);
+		assert.deepEqual(cardsOf(response), []);
+	});
 
 	void it("rejects a request without q or email with 422 COMMON_SCHEMA_INVALID", async () => {
 		const viewer = await createUserWithSession();
