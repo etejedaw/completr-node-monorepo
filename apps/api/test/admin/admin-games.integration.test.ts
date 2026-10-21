@@ -785,26 +785,55 @@ void describe("PATCH /games/:id", () => {
 		assert.notEqual(game.title, "???");
 	});
 
-	void it(
-		"answers 409 GAME_UNIQUE_CONSTRAINT when the new title collides with another game",
-		{
-			todo: "bug: PATCH /games/:id renaming to an existing title answers 500 instead of 409"
-		},
-		async () => {
-			const admin = await createUserWithSession("admin");
-			const [game, other] = await Promise.all([
-				createGame(),
-				createGame()
+	void it("answers 409 GAME_UNIQUE_CONSTRAINT when the new title collides with another game", async () => {
+		const admin = await createUserWithSession("admin");
+		const [game, other] = await Promise.all([createGame(), createGame()]);
+
+		const response = await patchGame(admin.authorization, game.id, {
+			title: other.title
+		});
+
+		assert.equal(response.status, 409);
+		assert.equal(response.body.type, "GAME_UNIQUE_CONSTRAINT");
+	});
+
+	void it("leaves the platforms and genres untouched when the new title collides", async () => {
+		const admin = await createUserWithSession("admin");
+		const [oldPlatform, newPlatform, oldGenre, newGenre] =
+			await Promise.all([
+				createPlatform(),
+				createPlatform(),
+				createGenre(),
+				createGenre()
 			]);
+		const created = await postGame(admin.authorization, {
+			title: uniqueTitle(),
+			platforms: [oldPlatform.code],
+			genres: [oldGenre.code]
+		}).expect(201);
+		const other = await createGame();
+		const { id, code } = created.body.data.game as GameBody;
 
-			const response = await patchGame(admin.authorization, game.id, {
-				title: other.title
-			});
+		const response = await patchGame(admin.authorization, id, {
+			title: other.title,
+			platforms: [newPlatform.code],
+			genres: [newGenre.code]
+		});
 
-			assert.equal(response.status, 409);
-			assert.equal(response.body.type, "GAME_UNIQUE_CONSTRAINT");
-		}
-	);
+		assert.equal(response.status, 409);
+		assert.equal(response.body.type, "GAME_UNIQUE_CONSTRAINT");
+		const reread = await getGameByCode(admin, code);
+		assert.equal(reread.status, 200);
+		const unchanged = reread.body.data.game as GameBody;
+		assert.deepEqual(
+			unchanged.platforms.map(entry => entry.code),
+			[oldPlatform.code]
+		);
+		assert.deepEqual(
+			unchanged.genres.map(entry => entry.code),
+			[oldGenre.code]
+		);
+	});
 
 	void it("rejects a malformed game id with 422 COMMON_SCHEMA_INVALID", async () => {
 		const admin = await createUserWithSession("admin");
@@ -938,23 +967,14 @@ void describe("DELETE /games/:id", () => {
 		assert.equal(await Backlog.count({ where: { gameId: game.id } }), 0);
 	});
 
-	void it(
-		"answers 404 GAME_NOT_FOUND when deactivating an unknown game",
-		{
-			todo: "bug: DELETE /games/:id for a nonexistent game answers 204 and audits a ghost deactivation"
-		},
-		async () => {
-			const admin = await createUserWithSession("admin");
+	void it("answers 404 GAME_NOT_FOUND when deactivating an unknown game", async () => {
+		const admin = await createUserWithSession("admin");
 
-			const response = await deleteGame(
-				admin.authorization,
-				randomUUID()
-			);
+		const response = await deleteGame(admin.authorization, randomUUID());
 
-			assert.equal(response.status, 404);
-			assert.equal(response.body.type, "GAME_NOT_FOUND");
-		}
-	);
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "GAME_NOT_FOUND");
+	});
 
 	void it("rejects a malformed game id with 422 COMMON_SCHEMA_INVALID", async () => {
 		const admin = await createUserWithSession("admin");

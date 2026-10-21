@@ -134,10 +134,6 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 		);
 	}
 
-	if (platforms) await platformsUpdate(game.id, platforms);
-	if (genres) await genresUpdate(game.id, genres);
-	if (externalIds) await upsertExternalIds(game.id, externalIds);
-
 	const updateData: Record<string, unknown> = { ...gameDto };
 	if (title) {
 		const code = titleToSlug(title);
@@ -149,7 +145,24 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 		updateData.code = code;
 	}
 
-	await game.update(updateData);
+	const platformIds = platforms
+		? await resolvePlatformIds(platforms)
+		: undefined;
+	const genreIds = genres ? await resolveGenreIds(genres) : undefined;
+
+	try {
+		await game.update(updateData);
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: gamesServiceError.uniqueConstraintError,
+			validation: gamesServiceError.validationError
+		});
+	}
+
+	if (platformIds)
+		await gamePlatformsService.replaceGamePlatforms(game.id, platformIds);
+	if (genreIds) await gameGenresService.replaceGameGenres(game.id, genreIds);
+	if (externalIds) await upsertExternalIds(game.id, externalIds);
 
 	const updatedGame = await findGameById(id);
 	return updatedGame as Game;
@@ -157,10 +170,9 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 
 export async function deactivateGame(id: string) {
 	const game = await findGameById(id);
-	if (!game) return false;
+	if (!game) throw gamesServiceError.notFoundError();
 
 	await game.update({ isActive: false });
-	return true;
 }
 
 export async function reactivateGame(id: string) {
@@ -401,28 +413,22 @@ async function linkGenres(
 	);
 }
 
-async function platformsUpdate(gameId: string, platforms: string[]) {
-	if (platforms.length === 0)
-		return await gamePlatformsService.replaceGamePlatforms(gameId, []);
+async function resolvePlatformIds(platforms: string[]) {
+	if (platforms.length === 0) return [];
 
 	const platformDb = await platformsService.findPlatformsByCode(platforms);
-
 	if (platformDb.length !== platforms.length)
 		throw gamesServiceError.platformNotFoundError();
 
-	const platformsIds = platformDb.map(platform => platform.id);
-	await gamePlatformsService.replaceGamePlatforms(gameId, platformsIds);
+	return platformDb.map(platform => platform.id);
 }
 
-async function genresUpdate(gameId: string, genres: string[]) {
-	if (genres.length === 0)
-		return await gameGenresService.replaceGameGenres(gameId, []);
+async function resolveGenreIds(genres: string[]) {
+	if (genres.length === 0) return [];
 
 	const genreDb = await genresService.findGenresByCode(genres);
-
 	if (genreDb.length !== genres.length)
 		throw gamesServiceError.genreNotFoundError();
 
-	const genreIds = genreDb.map(genre => genre.id);
-	await gameGenresService.replaceGameGenres(gameId, genreIds);
+	return genreDb.map(genre => genre.id);
 }

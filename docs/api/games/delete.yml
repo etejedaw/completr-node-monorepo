@@ -55,5 +55,5 @@ docs: |-
     ### Errors
 
     - 403 `GAME_FORBIDDEN` — Hard delete requires admin role
-    - 404 `GAME_NOT_FOUND`
+    - 404 `GAME_NOT_FOUND` — The game does not exist or, in a soft delete, is already inactive; no audit record is written
     - 409 `GAME_IN_USE` — The game is still referenced by reviews, variants or compilation backlogs

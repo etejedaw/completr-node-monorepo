@@ -59,6 +59,7 @@ docs: |-
 
     ### Errors
 
+    - 409 `GAME_UNIQUE_CONSTRAINT` — The new title produces a code that another game already has.
     - 422 `GAME_VARIANT_REQUIRED` — Another game shares the same external id and a variant label is required on all siblings.
 
     ### Response (200)
