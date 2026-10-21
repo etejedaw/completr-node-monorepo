@@ -46,7 +46,7 @@ docs: |-
 
     | Field    | Type   | Required | Description             |
     |----------|--------|----------|-------------------------|
-    | duration | number | Yes      | The new duration in hours |
+    | duration | number | Yes      | The new duration in hours, greater than 0 |
 
     ### Response (200)
 

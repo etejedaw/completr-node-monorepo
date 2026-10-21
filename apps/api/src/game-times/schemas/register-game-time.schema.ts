@@ -6,7 +6,7 @@ export const RegisterGameTimeSchema = z
 	.object({
 		gameId: z.uuid(),
 		source: z.enum(TIME_SOURCES_API),
-		duration: z.number()
+		duration: z.number().positive()
 	})
 	.strict()
 	.readonly();

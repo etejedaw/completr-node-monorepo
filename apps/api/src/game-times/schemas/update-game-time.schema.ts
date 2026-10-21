@@ -2,7 +2,7 @@ import z from "zod";
 
 export const UpdateGameTimeSchema = z
 	.object({
-		duration: z.number()
+		duration: z.number().positive()
 	})
 	.strict()
 	.readonly();

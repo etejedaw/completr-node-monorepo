@@ -9,7 +9,7 @@ export const ReplaceGameTimesSchema = z
 				z
 					.object({
 						source: z.enum(TIME_SOURCES_API),
-						duration: z.number()
+						duration: z.number().positive()
 					})
 					.strict()
 			)
