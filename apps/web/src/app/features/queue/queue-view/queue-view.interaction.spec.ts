@@ -155,6 +155,16 @@ describe("QueueView interaction", () => {
 		return within(item as HTMLElement);
 	}
 
+	function toast(message: string) {
+		return within(
+			screen.getByText(message).closest("[ngpToast]") as HTMLElement
+		);
+	}
+
+	function queueCount() {
+		return screen.getByText(/in your queue/);
+	}
+
 	async function renderQueue() {
 		const { fixture } = await render(QueueHost, {
 			providers: [provideHttpClient(), provideHttpClientTesting()]
@@ -262,9 +272,105 @@ describe("QueueView interaction", () => {
 		expect(queueOrder()).toEqual(["Hades", "Hollow Knight"]);
 	});
 
-	it.todo(
-		"keeps an undone removal on the server when the queue was reordered during the undo window (today the reorder sends the list without the removed game, the server drops it, and Undo only restores it on screen)"
-	);
+	it("keeps an undone removal on the server when the queue is reordered during the undo window", async () => {
+		const user = userEvent.setup();
+		await renderQueue();
+
+		await user.click(
+			row("Celeste").getByRole("button", { name: "Remove from Up Next" })
+		);
+		await screen.findByText("Removed Celeste from queue");
+		await user.click(
+			row("Hollow Knight").getByRole("button", { name: "Move up" })
+		);
+		await untilVisible(() =>
+			expect(queueOrder()).toEqual(["Hollow Knight", "Hades"])
+		);
+		expect(reorders).toEqual([["b3", "b1", "b2"]]);
+
+		await user.click(screen.getByRole("button", { name: /Undo/ }));
+		expect(queueOrder()).toEqual(["Hollow Knight", "Hades", "Celeste"]);
+		expect(queueCount()).toHaveTextContent("3 games in your queue");
+		answerPending();
+		expect(reorders).toEqual([["b3", "b1", "b2"]]);
+		expect(queuedIds).toEqual(["b3", "b1", "b2"]);
+	});
+
+	it("commits a removal after a reorder during the undo window and keeps the new order", async () => {
+		const user = userEvent.setup();
+		await renderQueue();
+
+		await user.click(
+			row("Celeste").getByRole("button", { name: "Remove from Up Next" })
+		);
+		await user.click(
+			row("Hollow Knight").getByRole("button", { name: "Move up" })
+		);
+		await untilVisible(() =>
+			expect(queueOrder()).toEqual(["Hollow Knight", "Hades"])
+		);
+		expect(reorders).toEqual([["b3", "b1", "b2"]]);
+
+		await user.click(
+			await screen.findByRole("button", { name: "Dismiss" })
+		);
+
+		await untilVisible(() =>
+			expect(reorders).toEqual([
+				["b3", "b1", "b2"],
+				["b3", "b1"]
+			])
+		);
+		expect(queueOrder()).toEqual(["Hollow Knight", "Hades"]);
+		expect(queueCount()).toHaveTextContent("2 games in your queue");
+		expect(queuedIds).toEqual(["b3", "b1"]);
+	});
+
+	it("keeps two pending removals on the server until each one is committed", async () => {
+		const user = userEvent.setup();
+		await renderQueue();
+
+		await user.click(
+			row("Celeste").getByRole("button", { name: "Remove from Up Next" })
+		);
+		await user.click(
+			row("Hollow Knight").getByRole("button", {
+				name: "Remove from Up Next"
+			})
+		);
+		expect(queueOrder()).toEqual(["Hades"]);
+		await screen.findByText("Removed Hollow Knight from queue");
+
+		await user.click(
+			toast("Removed Hollow Knight from queue").getByRole("button", {
+				name: /Undo/
+			})
+		);
+		expect(queueOrder()).toEqual(["Hades", "Hollow Knight"]);
+		expect(reorders).toEqual([]);
+
+		await user.click(
+			row("Hollow Knight").getByRole("button", { name: "Move up" })
+		);
+		await untilVisible(() =>
+			expect(queueOrder()).toEqual(["Hollow Knight", "Hades"])
+		);
+		expect(reorders).toEqual([["b3", "b1", "b2"]]);
+
+		await user.click(
+			toast("Removed Celeste from queue").getByRole("button", {
+				name: "Dismiss"
+			})
+		);
+		await untilVisible(() =>
+			expect(reorders).toEqual([
+				["b3", "b1", "b2"],
+				["b3", "b1"]
+			])
+		);
+		expect(queueOrder()).toEqual(["Hollow Knight", "Hades"]);
+		expect(queuedIds).toEqual(["b3", "b1"]);
+	});
 
 	it("starts playing the next game and takes it out of the queue", async () => {
 		const user = userEvent.setup();

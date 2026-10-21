@@ -22,6 +22,7 @@ import {
 	UiPlainEmptyState,
 	UiPremiumBadge
 } from "../../../shared/ui";
+import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { BacklogService } from "../../backlog/backlog";
 import { FavoritesService } from "../../favorites/favorites";
 import { QueueService } from "../queue";
@@ -56,6 +57,9 @@ export class QueueView implements OnInit {
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly toast = inject(ToastService);
 	private readonly dialogs = inject(DialogService);
+	private readonly pendingRemovals = new PendingRemovals<QueueEntry>(
+		entry => entry.backlog.id
+	);
 
 	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly favoriteGameIds = this.favoritesService.favoriteIds;
@@ -95,10 +99,10 @@ export class QueueView implements OnInit {
 	saveCurrentOrder(orderedEntries: QueueEntry[]) {
 		if (this.sortBy() === "manual" || this.savingOrder()) return;
 		this.savingOrder.set(true);
-		const backlogIds = orderedEntries.map(e => e.backlog.id);
+		const backlogIds = this.serverOrder(orderedEntries);
 		this.queueService.reorder(backlogIds).subscribe({
 			next: updated => {
-				this.entries.set(updated);
+				this.entries.set(this.pendingRemovals.withoutPending(updated));
 				this.sortBy.set("manual");
 				this.savingOrder.set(false);
 			},
@@ -198,19 +202,20 @@ export class QueueView implements OnInit {
 	}
 
 	remove(entry: QueueEntry) {
-		this.entries.set(this.entries().filter(e => e.id !== entry.id));
+		this.entries.set(this.pendingRemovals.hide(entry, this.entries()));
 		this.total.set(Math.max(0, this.total() - 1));
 		this.toast.pending({
 			message: `Removed ${entry.backlog.game.title} from queue`,
 			onCommit: () => {
-				const ids = this.entries().map(e => e.backlog.id);
-				this.queueService.reorder(ids).subscribe();
+				this.pendingRemovals.commit(entry);
+				this.queueService
+					.reorder(this.serverOrder(this.entries()))
+					.subscribe();
 			},
 			onUndo: () => {
-				const restored = [...this.entries(), entry].sort(
-					(a, b) => a.position - b.position
+				this.entries.set(
+					this.pendingRemovals.undo(entry, this.entries())
 				);
-				this.entries.set(restored);
 				this.total.set(this.total() + 1);
 			}
 		});
@@ -258,8 +263,14 @@ export class QueueView implements OnInit {
 			})
 			.subscribe({
 				next: res => {
-					this.entries.set(res.data.queue);
-					this.total.set(res.data.total ?? res.data.queue.length);
+					const visible = this.pendingRemovals.withoutPending(
+						res.data.queue
+					);
+					const hiddenCount = res.data.queue.length - visible.length;
+					this.entries.set(visible);
+					this.total.set(
+						(res.data.total ?? res.data.queue.length) - hiddenCount
+					);
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
@@ -269,10 +280,16 @@ export class QueueView implements OnInit {
 	private reorder(list: QueueEntry[]) {
 		const previous = this.entries();
 		this.entries.set(list);
-		const backlogIds = list.map(e => e.backlog.id);
-		this.queueService.reorder(backlogIds).subscribe({
-			next: updated => this.entries.set(updated),
+		this.queueService.reorder(this.serverOrder(list)).subscribe({
+			next: updated =>
+				this.entries.set(this.pendingRemovals.withoutPending(updated)),
 			error: () => this.entries.set(previous)
 		});
+	}
+
+	private serverOrder(visible: QueueEntry[]) {
+		return this.pendingRemovals
+			.withPending(visible)
+			.map(entry => entry.backlog.id);
 	}
 }
