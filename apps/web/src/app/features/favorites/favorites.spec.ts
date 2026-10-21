@@ -3,10 +3,12 @@ import {
 	HttpTestingController,
 	provideHttpClientTesting
 } from "@angular/common/http/testing";
+import { signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 
 import { environment } from "../../../environments/environment";
-import { type FavoriteEntry } from "../../core/models";
+import { type FavoriteEntry, type User } from "../../core/models";
+import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
 import { FavoritesService } from "./favorites";
 
@@ -17,16 +19,19 @@ function entry(gameId: string): FavoriteEntry {
 describe("FavoritesService", () => {
 	const url = `${environment.apiUrl}/users/me/favorites`;
 	const toast = { error: vi.fn() };
+	const user = signal<User | null>({ id: "user-a" } as User);
 	let service: FavoritesService;
 	let httpTesting: HttpTestingController;
 
 	beforeEach(() => {
 		toast.error.mockReset();
+		user.set({ id: "user-a" } as User);
 		TestBed.configureTestingModule({
 			providers: [
 				provideHttpClient(),
 				provideHttpClientTesting(),
-				{ provide: ToastService, useValue: toast }
+				{ provide: ToastService, useValue: toast },
+				{ provide: AuthService, useValue: { user: user.asReadonly() } }
 			]
 		});
 		service = TestBed.inject(FavoritesService);
@@ -74,6 +79,66 @@ describe("FavoritesService", () => {
 		service.ensureIdsLoaded().subscribe();
 
 		httpTesting.expectNone(`${url}/game-ids`);
+		expect(service.isFavorite("g1")).toBe(true);
+	});
+
+	it("does not refetch the game ids when the user has no favorites", () => {
+		service.ensureIdsLoaded().subscribe();
+		httpTesting
+			.expectOne(`${url}/game-ids`)
+			.flush({ data: { gameIds: [] } });
+
+		service.ensureIdsLoaded().subscribe();
+
+		httpTesting.expectNone(`${url}/game-ids`);
+	});
+
+	it("does not refetch the game ids after loading an empty list", () => {
+		loadFavorites();
+
+		service.ensureIdsLoaded().subscribe();
+
+		httpTesting.expectNone(`${url}/game-ids`);
+	});
+
+	it("refetches the game ids when another user signs in after an empty session", () => {
+		TestBed.tick();
+		service.ensureIdsLoaded().subscribe();
+		httpTesting
+			.expectOne(`${url}/game-ids`)
+			.flush({ data: { gameIds: [] } });
+
+		user.set(null);
+		TestBed.tick();
+		user.set({ id: "user-b" } as User);
+		TestBed.tick();
+		service.ensureIdsLoaded().subscribe();
+
+		httpTesting
+			.expectOne(`${url}/game-ids`)
+			.flush({ data: { gameIds: ["g1"] } });
+		expect(service.isFavorite("g1")).toBe(true);
+	});
+
+	it("clears the favorites and ids when the user signs out", () => {
+		TestBed.tick();
+		loadFavorites("g1");
+
+		user.set(null);
+		TestBed.tick();
+
+		expect(service.favorites()).toEqual([]);
+		expect(service.favoriteIds().size).toBe(0);
+	});
+
+	it("keeps the loaded data when the first user resolves after startup", () => {
+		user.set(null);
+		TestBed.tick();
+		loadFavorites("g1");
+
+		user.set({ id: "user-a" } as User);
+		TestBed.tick();
+
 		expect(service.isFavorite("g1")).toBe(true);
 	});
 

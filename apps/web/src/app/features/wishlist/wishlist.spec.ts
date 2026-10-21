@@ -3,10 +3,12 @@ import {
 	HttpTestingController,
 	provideHttpClientTesting
 } from "@angular/common/http/testing";
+import { signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 
 import { environment } from "../../../environments/environment";
-import { type WishlistEntry } from "../../core/models";
+import { type User, type WishlistEntry } from "../../core/models";
+import { AuthService } from "../../core/services/auth";
 import { WishlistService } from "./wishlist";
 
 function entry(gameId: string): WishlistEntry {
@@ -15,12 +17,18 @@ function entry(gameId: string): WishlistEntry {
 
 describe("WishlistService", () => {
 	const url = `${environment.apiUrl}/users/me/wishlist`;
+	const user = signal<User | null>({ id: "user-a" } as User);
 	let service: WishlistService;
 	let httpTesting: HttpTestingController;
 
 	beforeEach(() => {
+		user.set({ id: "user-a" } as User);
 		TestBed.configureTestingModule({
-			providers: [provideHttpClient(), provideHttpClientTesting()]
+			providers: [
+				provideHttpClient(),
+				provideHttpClientTesting(),
+				{ provide: AuthService, useValue: { user: user.asReadonly() } }
+			]
 		});
 		service = TestBed.inject(WishlistService);
 		httpTesting = TestBed.inject(HttpTestingController);
@@ -81,6 +89,58 @@ describe("WishlistService", () => {
 
 		httpTesting.expectNone(`${url}/game-ids`);
 		expect(ids).toEqual(new Set(["g1", "g2"]));
+	});
+
+	it("does not refetch the game ids when the wishlist is empty", () => {
+		service.ensureIdsLoaded().subscribe();
+		httpTesting
+			.expectOne(`${url}/game-ids`)
+			.flush({ data: { gameIds: [] } });
+
+		service.ensureIdsLoaded().subscribe();
+
+		httpTesting.expectNone(`${url}/game-ids`);
+	});
+
+	it("refetches the game ids when another user signs in after an empty session", () => {
+		TestBed.tick();
+		service.ensureIdsLoaded().subscribe();
+		httpTesting
+			.expectOne(`${url}/game-ids`)
+			.flush({ data: { gameIds: [] } });
+
+		user.set(null);
+		TestBed.tick();
+		user.set({ id: "user-b" } as User);
+		TestBed.tick();
+		service.ensureIdsLoaded().subscribe();
+
+		httpTesting
+			.expectOne(`${url}/game-ids`)
+			.flush({ data: { gameIds: ["g1"] } });
+		expect(service.isInWishlist("g1")).toBe(true);
+	});
+
+	it("clears the wishlist and ids when the user signs out", () => {
+		TestBed.tick();
+		loadWishlist("g1");
+
+		user.set(null);
+		TestBed.tick();
+
+		expect(service.wishlist()).toEqual([]);
+		expect(service.isInWishlist("g1")).toBe(false);
+	});
+
+	it("keeps the loaded data when the first user resolves after startup", () => {
+		user.set(null);
+		TestBed.tick();
+		loadWishlist("g1");
+
+		user.set({ id: "user-a" } as User);
+		TestBed.tick();
+
+		expect(service.isInWishlist("g1")).toBe(true);
 	});
 
 	it("shares one game-ids request between concurrent callers", () => {
