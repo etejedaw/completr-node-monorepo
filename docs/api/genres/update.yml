@@ -59,3 +59,9 @@ docs: |-
       }
     }
     ```
+
+    ### Errors
+
+    - 400 `GENRE_VALIDATION_ERROR` — The name does not produce a valid code (for example `!!!`)
+    - 404 `GENRE_NOT_FOUND` — The genre does not exist
+    - 409 `GENRE_UNIQUE_CONSTRAINT` — A genre with that name or code already exists

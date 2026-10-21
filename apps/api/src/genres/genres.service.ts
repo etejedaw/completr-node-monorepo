@@ -7,9 +7,15 @@ import { type UpdateGenreDto } from "./dtos/update-genre.dto";
 import * as genreServiceError from "./errors/genres.service-error";
 import { Genre } from "./genres.model";
 
+function genreCodeFromName(name: string) {
+	const code = titleToSlug(name);
+	if (!code) throw genreServiceError.validationError({ name });
+	return code;
+}
+
 export async function registerGenre(registerGenre: RegisterGenreDto) {
 	try {
-		const code = titleToSlug(registerGenre.name);
+		const code = genreCodeFromName(registerGenre.name);
 		return await Genre.create({ ...registerGenre, code });
 	} catch (error) {
 		rethrowSequelizeError(error, {
@@ -39,11 +45,18 @@ export async function updateGenre(id: string, updateGenreDto: UpdateGenreDto) {
 	const genre = await findGenreById(id);
 	if (!genre) throw genreServiceError.notFoundError();
 
-	const name = updateGenreDto.name;
-	const code = titleToSlug(name);
+	try {
+		const name = updateGenreDto.name;
+		const code = genreCodeFromName(name);
 
-	await genre.update({ name, code });
-	return genre;
+		await genre.update({ name, code });
+		return genre;
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: genreServiceError.uniqueConstraintError,
+			validation: genreServiceError.validationError
+		});
+	}
 }
 
 export async function findRandomGenre() {
@@ -54,11 +67,10 @@ export async function findRandomGenre() {
 
 export async function removeGenre(id: string) {
 	const genre = await findGenreById(id);
-	if (!genre) return false;
+	if (!genre) throw genreServiceError.notFoundError();
 
 	try {
 		await Genre.destroy({ where: { id } });
-		return true;
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			foreignKey: genreServiceError.inUseError
