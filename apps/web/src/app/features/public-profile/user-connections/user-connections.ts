@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, RouterLink, RouterLinkActive } from "@angular/router";
-import { forkJoin } from "rxjs";
+import { catchError, map, of } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
 import { type UserResult } from "../../../core/services/users";
@@ -27,6 +27,7 @@ import {
 	type ProfileAccessError,
 	ProfileAccessState
 } from "../components/profile-access-state";
+import { PublicProfileService } from "../public-profile.service";
 import { PublicSocialService } from "../services/public-social.service";
 
 export type ConnectionKind = "followers" | "following";
@@ -58,6 +59,7 @@ const CONNECTION_TABS: { kind: ConnectionKind; label: string }[] = [
 export class UserConnections {
 	private readonly route = inject(ActivatedRoute);
 	private readonly socialService = inject(PublicSocialService);
+	private readonly profileService = inject(PublicProfileService);
 	private readonly followActions = injectFollowActions();
 
 	protected readonly unfollowTarget = this.followActions.unfollowTarget;
@@ -74,10 +76,21 @@ export class UserConnections {
 	private readonly connections = rxResource({
 		params: () => this.username,
 		stream: ({ params: username }) =>
-			forkJoin({
-				followers: this.socialService.getFollowers(username),
-				following: this.socialService.getFollowing(username)
-			})
+			this.kind === "followers"
+				? this.socialService.getFollowers(username)
+				: this.socialService.getFollowing(username)
+	});
+
+	private readonly totals = rxResource({
+		params: () => this.username,
+		stream: ({ params: username }) =>
+			this.profileService.getProfile(username).pipe(
+				map(profile => ({
+					followers: profile.followerCount,
+					following: profile.followingCount
+				})),
+				catchError(() => of(null))
+			)
 	});
 
 	protected readonly isLoading = this.connections.isLoading;
@@ -88,7 +101,7 @@ export class UserConnections {
 	});
 
 	protected readonly users = computed(() =>
-		this.connections.hasValue() ? this.connections.value()[this.kind] : []
+		this.connections.hasValue() ? this.connections.value() : []
 	);
 
 	protected readonly visibleUsers = computed(() => {
@@ -115,9 +128,9 @@ export class UserConnections {
 	);
 
 	protected countFor(kind: ConnectionKind): number | null {
-		return this.connections.hasValue()
-			? this.connections.value()[kind].length
-			: null;
+		if (kind === this.kind && this.connections.hasValue())
+			return this.connections.value().length;
+		return this.totals.value()?.[kind] ?? null;
 	}
 
 	protected withLiveCounts(user: UserResult): UserResult {
