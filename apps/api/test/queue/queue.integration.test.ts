@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { describe, it } from "node:test";
 
 import { Backlog } from "../../src/backlog/backlog.model";
+import { UserGameTag } from "../../src/mood-tags/user-game-tag.model";
 import { Queue } from "../../src/queue/queue.model";
 import { User } from "../../src/users/user.model";
 import { api } from "../helpers/app.helper";
@@ -427,6 +428,83 @@ void describe("GET /users/:username/queue", () => {
 			.set("Authorization", owner.authorization);
 
 		assert.equal(own.body.data.queue[0].backlog.notes, "Private thoughts");
+	});
+
+	void it("hides entries of private backlogs keeping order, total and pagination", async () => {
+		const owner = await createUserWithSession();
+		const backlogs = await fillQueue(owner.user.id, 4);
+		await backlogs[1]!.update({ isPublic: false });
+		const visibleIds = [backlogs[0]!, backlogs[2]!, backlogs[3]!].map(
+			backlog => backlog.id
+		);
+		const path = `/users/${owner.user.username}/queue`;
+
+		const response = await api().get(path);
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.total, 3);
+		assert.deepEqual(
+			response.body.data.queue.map(
+				(entry: { backlog: { id: string } }) => entry.backlog.id
+			),
+			visibleIds
+		);
+		assert.deepEqual(
+			response.body.data.queue.map(
+				(entry: { position: number }) => entry.position
+			),
+			[1, 2, 3]
+		);
+
+		const page = await api().get(path).query({ limit: 2, offset: 1 });
+
+		assert.equal(page.body.data.total, 3);
+		assert.deepEqual(
+			page.body.data.queue.map(
+				(entry: { position: number }) => entry.position
+			),
+			[2, 3]
+		);
+		assert.deepEqual(
+			page.body.data.queue.map(
+				(entry: { backlog: { id: string } }) => entry.backlog.id
+			),
+			visibleIds.slice(1)
+		);
+	});
+
+	void it("does not expose the mood tags of the owner", async () => {
+		const owner = await createUserWithSession();
+		const [backlog] = await fillQueue(owner.user.id, 1);
+		await UserGameTag.create({
+			userId: owner.user.id,
+			gameId: backlog!.gameId,
+			tag: "cozy"
+		});
+
+		const response = await api().get(`/users/${owner.user.username}/queue`);
+
+		assert.equal(response.status, 200);
+		assert.equal("moodTags" in response.body.data.queue[0].backlog, false);
+
+		const own = await api()
+			.get(QUEUE_PATH)
+			.set("Authorization", owner.authorization);
+
+		assert.deepEqual(own.body.data.queue[0].backlog.moodTags, ["cozy"]);
+	});
+
+	void it("keeps private backlogs in the own queue", async () => {
+		const owner = await createUserWithSession();
+		const backlogs = await fillQueue(owner.user.id, 2);
+		await backlogs[0]!.update({ isPublic: false, notes: "Mine" });
+
+		const own = await api()
+			.get(QUEUE_PATH)
+			.set("Authorization", owner.authorization);
+
+		assert.equal(own.body.data.total, 2);
+		assert.equal(own.body.data.queue[0].backlog.notes, "Mine");
 	});
 
 	void it("rejects a private queue with 403 USER_PRIVATE", async () => {

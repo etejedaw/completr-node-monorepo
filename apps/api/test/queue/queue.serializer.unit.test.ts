@@ -59,20 +59,23 @@ void describe("publicQueueSerializer", () => {
 			Backlog: buildBacklog({ status: "not_started", notes: "Private" })
 		});
 
-		const result = publicQueueSerializer(entry, ["cozy"]);
-		const { notes, ...ownBacklog } = queueSerializer(entry, [
+		const result = publicQueueSerializer(entry, 1);
+		const { notes, moodTags, ...ownBacklog } = queueSerializer(entry, [
 			"cozy"
 		]).backlog!;
 
 		assert.equal(notes, "Private");
+		assert.deepEqual(moodTags, ["cozy"]);
 		assert.equal("notes" in result.backlog!, false);
+		assert.equal("moodTags" in result.backlog!, false);
 		assert.deepEqual(result.backlog, ownBacklog);
-		assert.equal(result.position, 2);
+		assert.equal(result.position, 1);
 	});
 
 	void it("returns an undefined backlog when the relation was not loaded", () => {
 		const result = publicQueueSerializer(
-			asModel<Queue>({ id: "q-1", position: 1, Backlog: undefined })
+			asModel<Queue>({ id: "q-1", position: 1, Backlog: undefined }),
+			1
 		);
 
 		assert.equal(result.backlog, undefined);
