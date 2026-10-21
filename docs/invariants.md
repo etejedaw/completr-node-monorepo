@@ -97,6 +97,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `position` sin huecos y reordenable; `(list_id, position)` tiene un índice no único, así que la unicidad la mantiene el service y no la base.
 - Si el creador edita o refresca una lista, todos los seguidores ven los cambios.
 - Refrescar items reaplica score/duration desde la fuente declarada.
+- `GET /lists/recent` y `GET /lists/official` aceptan `limit` entero entre 1 y 50 (por defecto 12); cualquier otro valor o parámetro desconocido responde 422 `COMMON_SCHEMA_INVALID`.
 
 ---
 
@@ -105,6 +106,15 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `isDefault`: solo una vista puede tenerlo en `true` por usuario. Setearla resetea las demás.
 - `showInBacklog`: bandera para mostrar la vista en el listado lateral del backlog.
 - Las vistas guardan filtros como JSONB; cualquier usuario puede construir la URL con query params equivalente y guardarla como bookmark del navegador.
+- `filters` se valida al crear y al editar con `BacklogQuerySchema` (el mismo de `GET /users/me/backlog`); un valor inválido responde 422 `COMMON_SCHEMA_INVALID`.
+- `GET /users/me/saved-filters/:filterId/stats` sobre un filtro que ya estaba guardado con filtros que hoy no pasan el schema responde 422 `SAVED_FILTER_VALIDATION_ERROR`.
+
+---
+
+## Co-op
+
+- Etiquetar a un usuario que ya es miembro del run responde 422 `COOP_ALREADY_TAGGED`, con o sin `targetBacklogId`.
+- `GET /users/me/backlog/:backlogId/coop` solo lo puede leer el dueño del backlog o un miembro de su run; cualquier otro recibe 403 `COOP_FORBIDDEN`. Un `backlogId` inexistente responde 404 `COOP_BACKLOG_NOT_FOUND`.
 
 ---
 
