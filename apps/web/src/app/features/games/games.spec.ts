@@ -282,6 +282,24 @@ describe("GamesService", () => {
 			update.flush(null);
 		});
 
+		it("replaces the whole set of scores in a single PUT", () => {
+			const scores = [{ source: "metacritic", score: 90 }];
+			service.replaceScores("g1", scores).subscribe();
+			const request = httpTesting.expectOne(`${api}/games/g1/scores`);
+			expect(request.request.method).toBe("PUT");
+			expect(request.request.body).toEqual({ scores });
+			request.flush(null);
+		});
+
+		it("replaces the whole set of times in a single PUT", () => {
+			const times = [{ source: "hltb", duration: 12 }];
+			service.replaceTimes("g1", times).subscribe();
+			const request = httpTesting.expectOne(`${api}/games/g1/times`);
+			expect(request.request.method).toBe("PUT");
+			expect(request.request.body).toEqual({ times });
+			request.flush(null);
+		});
+
 		it("deletes a score and a time expecting text responses", () => {
 			service.deleteScore("g1", "metacritic").subscribe();
 			const score = httpTesting.expectOne(

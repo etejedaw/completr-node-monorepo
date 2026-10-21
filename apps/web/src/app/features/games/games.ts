@@ -289,6 +289,21 @@ export class GamesService {
 		);
 	}
 
+	replaceScores(gameId: string, scores: { source: string; score: number }[]) {
+		return this.http.put(`${environment.apiUrl}/games/${gameId}/scores`, {
+			scores
+		});
+	}
+
+	replaceTimes(
+		gameId: string,
+		times: { source: string; duration: number }[]
+	) {
+		return this.http.put(`${environment.apiUrl}/games/${gameId}/times`, {
+			times
+		});
+	}
+
 	getGameLists(gameId: string) {
 		return this.http
 			.get<{
