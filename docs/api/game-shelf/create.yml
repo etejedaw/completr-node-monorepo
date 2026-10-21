@@ -36,8 +36,8 @@ docs: |-
 
     | Field      | Type   | Required | Description                     |
     |------------|--------|----------|---------------------------------|
-    | gameId     | string | Yes      | UUID of the game                |
-    | platformId | string | Yes      | UUID of the platform            |
+    | gameId     | uuid   | Yes      | UUID of the game                |
+    | platformId | uuid   | Yes      | UUID of the platform            |
     | edition    | string | No       | Max 100 characters              |
     | acquiredAt | string | No       | ISO date (e.g. "2024-12-25")    |
     | notes      | string | No       | Max 100 characters              |
@@ -65,3 +65,4 @@ docs: |-
     - 402 `GAME_SHELF_LIMIT_REACHED` — Free plan limit (250) reached; premium roles have no limit
     - 409 `GAME_SHELF_UNIQUE_CONSTRAINT` — Entry already exists
     - 400 `GAME_SHELF_VALIDATION_ERROR` — Invalid data
+    - 422 `COMMON_SCHEMA_INVALID` — Body does not match the schema (`gameId` and `platformId` must be UUIDs)

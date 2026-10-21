@@ -52,6 +52,10 @@ docs: |-
         "backlog": {
           "id": "uuid",
           "status": "not_started",
+          "score": 4,
+          "duration": 10,
+          "ratio": 8,
+          "personalRatio": null,
           "startedAt": null,
           "finishedAt": null,
           "realDuration": null,
@@ -67,3 +71,11 @@ docs: |-
       }
     }
     ```
+
+    `ratio` and `personalRatio` are always present: `null` when the score or the duration (`realDuration` for `personalRatio`) is missing.
+
+    ### Errors
+
+    - 409 `BACKLOG_UNIQUE_CONSTRAINT` — The backlog entry already exists
+    - 400 `BACKLOG_VALIDATION_ERROR` — Invalid data
+    - 422 `COMMON_SCHEMA_INVALID` — Body does not match the schema (for example `gameId` or `platformId` is not a UUID)

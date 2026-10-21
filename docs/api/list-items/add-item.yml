@@ -59,3 +59,5 @@ docs: |-
       }
     }
     ```
+
+    `ratio` is always present: `null` when the list source has no score or duration for the game.
