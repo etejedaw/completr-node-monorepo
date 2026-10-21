@@ -101,7 +101,7 @@
 				[meta]="completionsRange()"
 			>
 				@if (s.completionsByMonth?.length) {
-				<app-completions-chart [months]="s.completionsByMonth ?? []" />
+				<app-completions-chart [months]="s.completionsByMonth" />
 				} @else {
 				<p class="m-0 text-xs text-fg-muted">
 					Completed games with a finish date will show up here.
