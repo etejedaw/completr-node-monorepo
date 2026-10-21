@@ -13,7 +13,7 @@ import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
 import { Platform } from "../platforms/platform.model";
-import { Queue } from "../queue/queue.model";
+import * as queueService from "../queue/queue.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
 import { Backlog, type BacklogStatus } from "./backlog.model";
@@ -858,10 +858,7 @@ export async function updateBacklog(
 		updateBacklog.status === "abandoned" ||
 		updateBacklog.status === "endless"
 	) {
-		const deletedCount = await Queue.destroy({
-			where: { backlogId: id }
-		});
-		queueRemoved = deletedCount > 0;
+		queueRemoved = await queueService.removeByBacklogId(id, userId);
 	}
 
 	return { backlog: backlogEntry, queueRemoved };
@@ -909,6 +906,10 @@ export async function removeBacklog(id: string, userId: string) {
 	if (backlogEntry.userId !== userId)
 		throw backlogServiceError.forbiddenError();
 
-	await Backlog.destroy({ where: { id } });
+	await sequelize.transaction(async transaction => {
+		await queueService.lockUserQueue(userId, transaction);
+		await Backlog.destroy({ where: { id }, transaction });
+		await queueService.compactPositions(userId, transaction);
+	});
 	return true;
 }

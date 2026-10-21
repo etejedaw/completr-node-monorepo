@@ -7,9 +7,14 @@ import { Backlog } from "../../src/backlog/backlog.model";
 import * as backlogService from "../../src/backlog/backlog.service";
 import { sequelize } from "../../src/database/sequelize.database";
 import * as gamesCompilationService from "../../src/games/services/games-compilation.service";
-import { Queue } from "../../src/queue/queue.model";
+import * as queueService from "../../src/queue/queue.service";
 import { asModel } from "../unit-helpers/as-model";
-import { captureRejection, spy, stub } from "../unit-helpers/mocks";
+import {
+	captureRejection,
+	spy,
+	stub,
+	stubTransaction
+} from "../unit-helpers/mocks";
 
 const registerDto = {
 	gameId: "game-1",
@@ -178,22 +183,24 @@ void describe("backlogService.updateBacklog", () => {
 	] as const) {
 		void it(`removes the queue entry and reports queueRemoved when moving to ${status}`, async () => {
 			stubOwnedEntry();
-			const destroy = stub(Queue, "destroy", async () => 1);
+			const remove = stub(
+				queueService,
+				"removeByBacklogId",
+				async () => true
+			);
 
 			const result = await backlogService.updateBacklog("b-1", "owner", {
 				status
 			});
 
-			assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-				{ where: { backlogId: "b-1" } }
-			]);
+			assert.deepEqual(remove.mock.calls[0]?.arguments, ["b-1", "owner"]);
 			assert.equal(result.queueRemoved, true);
 		});
 	}
 
 	void it("reports queueRemoved false when the entry was not queued", async () => {
 		stubOwnedEntry();
-		stub(Queue, "destroy", async () => 0);
+		stub(queueService, "removeByBacklogId", async () => false);
 
 		const result = await backlogService.updateBacklog("b-1", "owner", {
 			status: "playing"
@@ -204,7 +211,11 @@ void describe("backlogService.updateBacklog", () => {
 
 	void it("keeps the queue entry when the status is not_started or not changed", async () => {
 		stubOwnedEntry();
-		const destroy = stub(Queue, "destroy", async () => 1);
+		const remove = stub(
+			queueService,
+			"removeByBacklogId",
+			async () => true
+		);
 
 		const toNotStarted = await backlogService.updateBacklog(
 			"b-1",
@@ -215,7 +226,7 @@ void describe("backlogService.updateBacklog", () => {
 			notes: "x"
 		});
 
-		assert.equal(destroy.mock.callCount(), 0);
+		assert.equal(remove.mock.callCount(), 0);
 		assert.equal(toNotStarted.queueRemoved, false);
 		assert.equal(noStatus.queueRemoved, false);
 	});
@@ -292,15 +303,32 @@ void describe("backlogService.removeBacklog", () => {
 		assert.equal(destroy.mock.callCount(), 0);
 	});
 
-	void it("deletes the entry of its owner", async () => {
+	void it("locks the queue, deletes the entry and compacts the queue in that order inside one transaction", async () => {
 		stub(Backlog, "findOne", async () =>
 			asModel({ id: "b-1", userId: "owner" })
 		);
-		const destroy = stub(Backlog, "destroy", async () => 1);
+		const { transaction } = stubTransaction();
+		const steps: string[] = [];
+		const lock = stub(queueService, "lockUserQueue", async () => {
+			steps.push("lock");
+		});
+		const destroy = stub(Backlog, "destroy", async () => {
+			steps.push("destroy");
+			return 1;
+		});
+		const compact = stub(queueService, "compactPositions", async () => {
+			steps.push("compact");
+		});
 
 		assert.equal(await backlogService.removeBacklog("b-1", "owner"), true);
+		assert.deepEqual(steps, ["lock", "destroy", "compact"]);
+		assert.deepEqual(lock.mock.calls[0]?.arguments, ["owner", transaction]);
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-			{ where: { id: "b-1" } }
+			{ where: { id: "b-1" }, transaction }
+		]);
+		assert.deepEqual(compact.mock.calls[0]?.arguments, [
+			"owner",
+			transaction
 		]);
 	});
 });

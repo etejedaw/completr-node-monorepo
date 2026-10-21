@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import * as backlogService from "../../src/backlog/backlog.service";
+import { sequelize } from "../../src/database/sequelize.database";
 import { Queue } from "../../src/queue/queue.model";
 import * as queueService from "../../src/queue/queue.service";
 import { asModel } from "../unit-helpers/as-model";
@@ -115,26 +116,60 @@ void describe("queueService.addFromBacklog", () => {
 		assert.equal(errorCode(error), "QUEUE_ALREADY_EXISTS");
 	});
 
-	void it("appends the entry at the end of the queue", async () => {
-		stub(Queue, "count", async () => 3);
+	void it("appends the entry after the last position inside a locked transaction", async () => {
+		stub(Queue, "count", async () => 2);
 		stub(backlogService, "findBacklogBasicById", async () =>
 			backlogEntry()
 		);
+		const { transaction } = stubTransaction();
+		const lock = stub(sequelize, "query", async () => []);
+		const max = stub(Queue, "max", async () => 5);
 		const findOne = stub(Queue, "findOne", async () => null);
 		const create = stub(Queue, "create", async () => ({}));
 
 		await queueService.addFromBacklog("b-1", FREE_USER);
 
-		assert.deepEqual(create.mock.calls[0]?.arguments[0], {
-			userId: "user-1",
-			backlogId: "b-1",
-			position: 4
-		});
+		assert.match(
+			String(lock.mock.calls[0]?.arguments[0]),
+			/pg_advisory_xact_lock/
+		);
+		assert.deepEqual(max.mock.calls[0]?.arguments, [
+			"position",
+			{ where: { userId: "user-1" }, transaction }
+		]);
+		assert.deepEqual(create.mock.calls[0]?.arguments, [
+			{ userId: "user-1", backlogId: "b-1", position: 6 },
+			{ transaction }
+		]);
 		assert.equal(findOne.mock.callCount(), 2);
+	});
+
+	void it("starts at position 1 when the queue is empty", async () => {
+		stub(Queue, "count", async () => 0);
+		stub(backlogService, "findBacklogBasicById", async () =>
+			backlogEntry()
+		);
+		stubTransaction();
+		stub(sequelize, "query", async () => []);
+		stub(Queue, "max", async () => null);
+		stub(Queue, "findOne", async () => null);
+		const create = stub(Queue, "create", async () => ({}));
+
+		await queueService.addFromBacklog("b-1", FREE_USER);
+
+		assert.equal(
+			(create.mock.calls[0]?.arguments[0] as { position: number })
+				.position,
+			1
+		);
 	});
 });
 
 void describe("queueService.replaceQueue", () => {
+	beforeEach(() => {
+		stub(sequelize, "query", async () => []);
+	});
+
 	afterEach(() => {
 		mock.restoreAll();
 	});
@@ -251,5 +286,72 @@ void describe("queueService.replaceQueue", () => {
 			],
 			{ transaction }
 		]);
+	});
+});
+
+void describe("queueService.compactPositions", () => {
+	afterEach(() => {
+		mock.restoreAll();
+	});
+
+	void it("locks the user's queue and renumbers it from 1 keeping the order", async () => {
+		const transaction = { id: "tx" };
+		const query = stub(sequelize, "query", async () => []);
+
+		await queueService.compactPositions("user-1", transaction as never);
+
+		assert.equal(query.mock.callCount(), 2);
+		const [lockSql, lockOptions] = query.mock.calls[0]!.arguments;
+		assert.match(String(lockSql), /pg_advisory_xact_lock/);
+		assert.deepEqual(lockOptions, {
+			replacements: { lockKey: "queue:user-1" },
+			transaction
+		});
+		const [compactSql, compactOptions] = query.mock.calls[1]!.arguments;
+		assert.match(
+			String(compactSql),
+			/ROW_NUMBER\(\) OVER \(ORDER BY "position", "createdAt", "id"\)/
+		);
+		assert.deepEqual(compactOptions, {
+			replacements: { userId: "user-1" },
+			transaction
+		});
+	});
+});
+
+void describe("queueService.removeByBacklogId", () => {
+	afterEach(() => {
+		mock.restoreAll();
+	});
+
+	void it("removes the user's entry and compacts in the same transaction", async () => {
+		const { transaction } = stubTransaction();
+		const query = stub(sequelize, "query", async () => []);
+		const destroy = stub(Queue, "destroy", async () => 1);
+
+		assert.equal(
+			await queueService.removeByBacklogId("b-1", "user-1"),
+			true
+		);
+		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
+			{ where: { backlogId: "b-1", userId: "user-1" }, transaction }
+		]);
+		assert.equal(query.mock.callCount(), 3);
+		assert.match(
+			String(query.mock.calls[2]?.arguments[0]),
+			/UPDATE "Queues"/
+		);
+	});
+
+	void it("skips the compaction when the backlog was not queued", async () => {
+		stubTransaction();
+		const query = stub(sequelize, "query", async () => []);
+		stub(Queue, "destroy", async () => 0);
+
+		assert.equal(
+			await queueService.removeByBacklogId("b-1", "user-1"),
+			false
+		);
+		assert.equal(query.mock.callCount(), 1);
 	});
 });

@@ -422,26 +422,20 @@ void describe("library journey: shelf, backlog, queue and a second playthrough",
 		assert.equal((await getOwnProfile()).backlogStats.total, 4);
 	});
 
-	void it(
-		"queues the second playthrough at the end of the queue",
-		{
-			todo: "queue positions are not compacted when an entry leaves the queue, so the next entry reuses count + 1 and collides with an existing position"
-		},
-		async () => {
-			const response = await queueFromBacklog(hadesSecondRunId);
-			assert.equal(response.status, 201);
+	void it("queues the second playthrough at the end of the queue", async () => {
+		const response = await queueFromBacklog(hadesSecondRunId);
+		assert.equal(response.status, 201);
 
-			const { queue } = await getQueue();
-			assert.deepEqual(
-				queue.map(entry => entry.backlog.id),
-				[outerWildsRunId, celesteRunId, hadesSecondRunId]
-			);
-			assert.equal(
-				new Set(queue.map(entry => entry.position)).size,
-				queue.length
-			);
-		}
-	);
+		const { queue } = await getQueue();
+		assert.deepEqual(
+			queue.map(entry => entry.backlog.id),
+			[outerWildsRunId, celesteRunId, hadesSecondRunId]
+		);
+		assert.deepEqual(
+			queue.map(entry => entry.position),
+			[1, 2, 3]
+		);
+	});
 
 	void it("deletes the first playthrough keeping the shelf, the second run and the queue", async () => {
 		const response = await api()

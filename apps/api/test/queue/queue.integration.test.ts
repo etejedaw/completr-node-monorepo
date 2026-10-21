@@ -409,25 +409,25 @@ void describe("GET /users/:username/queue", () => {
 		assert.equal(response.body.data.total, 2);
 	});
 
-	void it(
-		"hides the backlog notes of a public queue",
-		{
-			todo: "queueSerializer includes backlog.notes in GET /users/:username/queue, and notes must never appear in public responses"
-		},
-		async () => {
-			const owner = await createUserWithSession();
-			const [backlog] = await fillQueue(owner.user.id, 1);
-			await backlog!.update({ notes: "Private thoughts" });
-			const viewer = await createUserWithSession();
+	void it("hides the backlog notes of a public queue", async () => {
+		const owner = await createUserWithSession();
+		const [backlog] = await fillQueue(owner.user.id, 1);
+		await backlog!.update({ notes: "Private thoughts" });
+		const viewer = await createUserWithSession();
 
-			const response = await api()
-				.get(`/users/${owner.user.username}/queue`)
-				.set("Authorization", viewer.authorization);
+		const response = await api()
+			.get(`/users/${owner.user.username}/queue`)
+			.set("Authorization", viewer.authorization);
 
-			assert.equal(response.status, 200);
-			assert.equal("notes" in response.body.data.queue[0].backlog, false);
-		}
-	);
+		assert.equal(response.status, 200);
+		assert.equal("notes" in response.body.data.queue[0].backlog, false);
+
+		const own = await api()
+			.get(QUEUE_PATH)
+			.set("Authorization", owner.authorization);
+
+		assert.equal(own.body.data.queue[0].backlog.notes, "Private thoughts");
+	});
 
 	void it("rejects a private queue with 403 USER_PRIVATE", async () => {
 		const owner = await createUserWithSession();
@@ -447,5 +447,84 @@ void describe("GET /users/:username/queue", () => {
 
 		assert.equal(response.status, 404);
 		assert.equal(response.body.type, "USER_NOT_FOUND");
+	});
+});
+
+void describe("queue positions when an entry leaves the queue", () => {
+	async function queuedPositions(userId: string) {
+		const entries = await Queue.findAll({
+			where: { userId },
+			order: [["position", "ASC"]]
+		});
+		return entries.map(entry => [entry.backlogId, entry.position]);
+	}
+
+	void it("compacts the remaining entries when a backlog starts playing", async () => {
+		const owner = await createUserWithSession();
+		const [first, second, third] = await fillQueue(owner.user.id, 3);
+
+		const response = await api()
+			.patch(`/users/me/backlog/${second!.id}`)
+			.set("Authorization", owner.authorization)
+			.send({ status: "playing" });
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.queueRemoved, true);
+		assert.deepEqual(await queuedPositions(owner.user.id), [
+			[first!.id, 1],
+			[third!.id, 2]
+		]);
+	});
+
+	void it("compacts the remaining entries when a queued backlog is deleted", async () => {
+		const owner = await createUserWithSession();
+		const [first, second, third] = await fillQueue(owner.user.id, 3);
+
+		const response = await api()
+			.delete(`/users/me/backlog/${first!.id}`)
+			.set("Authorization", owner.authorization);
+
+		assert.equal(response.status, 204);
+		assert.deepEqual(await queuedPositions(owner.user.id), [
+			[second!.id, 1],
+			[third!.id, 2]
+		]);
+	});
+
+	void it("appends after the compacted entries without repeating a position", async () => {
+		const owner = await createUserWithSession();
+		const [first, second] = await fillQueue(owner.user.id, 2);
+		await api()
+			.patch(`/users/me/backlog/${first!.id}`)
+			.set("Authorization", owner.authorization)
+			.send({ status: "playing" })
+			.expect(200);
+		const [next] = await createOwnedBacklogs(owner.user.id, 1);
+
+		const response = await addFromBacklog(owner.authorization, next!.id);
+
+		assert.equal(response.status, 201);
+		assert.equal(response.body.data.queue.position, 2);
+		assert.deepEqual(await queuedPositions(owner.user.id), [
+			[second!.id, 1],
+			[next!.id, 2]
+		]);
+	});
+
+	void it("leaves the queue of other users untouched", async () => {
+		const owner = await createUserWithSession();
+		const other = await createUserWithSession();
+		const [first] = await fillQueue(owner.user.id, 2);
+		const othersBacklogs = await fillQueue(other.user.id, 2);
+
+		await api()
+			.delete(`/users/me/backlog/${first!.id}`)
+			.set("Authorization", owner.authorization)
+			.expect(204);
+
+		assert.deepEqual(
+			await queuedPositions(other.user.id),
+			othersBacklogs.map((backlog, index) => [backlog.id, index + 1])
+		);
 	});
 });
