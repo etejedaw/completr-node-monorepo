@@ -113,7 +113,7 @@ export async function getFollowingListsPaginated(
 	pagination: PaginationQuery = {}
 ) {
 	const query: Record<string, unknown> = {
-		where: { userId },
+		where: { userId, isVisible: true },
 		include: [listVisibleToViewer(userId, viewerId)],
 		order: [["createdAt", "DESC"]]
 	};

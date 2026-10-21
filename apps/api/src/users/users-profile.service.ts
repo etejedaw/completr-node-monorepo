@@ -222,7 +222,7 @@ export async function getFollowingListsForUsername(
 			query
 		);
 
-	const followingLists = rows.filter(f => f.isVisible).map(f => f.List);
+	const followingLists = rows.map(f => f.List);
 	return { followingLists, total };
 }
 
@@ -235,7 +235,7 @@ export async function getListDetailForUsername(
 	const isSelf = viewerId === user.id;
 
 	const list = await listsService.findListById(listId);
-	if (!list || (!list.isPublic && list.userId !== viewerId))
+	if (!list || list.userId !== user.id || (!list.isPublic && !isSelf))
 		throw userDomain.userNotFound();
 
 	const listPlain = list.get({ plain: true });

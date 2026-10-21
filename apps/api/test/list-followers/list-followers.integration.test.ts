@@ -310,26 +310,18 @@ void describe("PATCH /lists/:listId/follow", () => {
 		assert.equal(followed[0]?.isVisible, true);
 	});
 
-	void it(
-		"excludes a hidden follow from the total of the public profile listing",
-		{
-			todo: "bug: total in GET /users/:username/following-lists counts follows hidden with isVisible false"
-		},
-		async () => {
-			const { follower, stranger, list } = await setupFollowedList();
-			await patchFollow(follower, list.id, { isVisible: false }).expect(
-				204
-			);
+	void it("excludes a hidden follow from the total of the public profile listing", async () => {
+		const { follower, stranger, list } = await setupFollowedList();
+		await patchFollow(follower, list.id, { isVisible: false }).expect(204);
 
-			const response = await api()
-				.get(`/users/${follower.user.username}/following-lists`)
-				.set("Authorization", stranger.authorization)
-				.expect(200);
+		const response = await api()
+			.get(`/users/${follower.user.username}/following-lists`)
+			.set("Authorization", stranger.authorization)
+			.expect(200);
 
-			assert.equal(response.body.data.followingLists.length, 0);
-			assert.equal(response.body.data.total, 0);
-		}
-	);
+		assert.equal(response.body.data.followingLists.length, 0);
+		assert.equal(response.body.data.total, 0);
+	});
 
 	void it("keeps the follow itself: follower count, isFollowing and follower list do not change", async () => {
 		const { owner, follower, otherFollower, list } =

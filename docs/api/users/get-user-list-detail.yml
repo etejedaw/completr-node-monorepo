@@ -20,7 +20,7 @@ settings:
 docs: |-
     ## Get User's Public List Detail
 
-    Returns a public list with all its items, showing **`:username`'s progress** on it — this is the "see how @username has progressed through this list" view (used when opening a list from a user's profile). Per-item `backlogStatus`, `realDuration`, `personalRatio` and the list `progress` reflect the **profile user's** backlog, not the viewer's.
+    Returns a list owned by `:username` with all its items (404 `USER_NOT_FOUND` if the list belongs to another user), showing **`:username`'s progress** on it — this is the "see how @username has progressed through this list" view (used when opening a list from a user's profile). Per-item `backlogStatus`, `realDuration`, `personalRatio` and the list `progress` reflect the **profile user's** backlog, not the viewer's.
 
     Privacy: the profile user's progress is only included when their backlog is public (`isBacklogPublic`) or you are them; for other users only their **public** backlog entries are counted. When their backlog is private, the list is still returned but without progress data (`progress: null`, no per-item `backlogStatus`).
 

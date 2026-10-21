@@ -925,40 +925,32 @@ void describe("public profile endpoints", () => {
 			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
 		});
 
-		void it(
-			"answers 404 when the list belongs to another user than the one in the path",
-			{ todo: "bug: the list owner is never compared with the username" },
-			async () => {
-				const { open } = fixture.owners;
-				const foreignList = fixture.lists.backlogFriends.publicList;
+		void it("answers 404 when the list belongs to another user than the one in the path", async () => {
+			const { open } = fixture.owners;
+			const foreignList = fixture.lists.backlogFriends.publicList;
 
-				const response = await listDetail(
-					open.user.username,
-					foreignList.id,
-					fixture.viewers.stranger.authorization
-				);
+			const response = await listDetail(
+				open.user.username,
+				foreignList.id,
+				fixture.viewers.stranger.authorization
+			);
 
-				assert.equal(response.status, 404);
-				assert.equal(response.body.type, "USER_NOT_FOUND");
-			}
-		);
+			assert.equal(response.status, 404);
+			assert.equal(response.body.type, "USER_NOT_FOUND");
+		});
 
-		void it(
-			"does not serve the private list of its owner under another profile",
-			{ todo: "bug: the list owner is never compared with the username" },
-			async () => {
-				const { open, backlogFriends } = fixture.owners;
-				const { privateList } = fixture.lists.backlogFriends;
+		void it("does not serve the private list of its owner under another profile", async () => {
+			const { open, backlogFriends } = fixture.owners;
+			const { privateList } = fixture.lists.backlogFriends;
 
-				const response = await listDetail(
-					open.user.username,
-					privateList.id,
-					backlogFriends.authorization
-				);
+			const response = await listDetail(
+				open.user.username,
+				privateList.id,
+				backlogFriends.authorization
+			);
 
-				assert.equal(response.status, 404);
-				assert.equal(response.body.type, "USER_NOT_FOUND");
-			}
-		);
+			assert.equal(response.status, 404);
+			assert.equal(response.body.type, "USER_NOT_FOUND");
+		});
 	});
 });
