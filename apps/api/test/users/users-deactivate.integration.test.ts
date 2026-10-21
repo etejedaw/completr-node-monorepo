@@ -156,25 +156,40 @@ void describe("DELETE /users/me/deactivate", () => {
 		await login(bystander.user.email);
 	});
 
-	void it(
-		"drops the deactivated account from the followers of the profiles it followed",
-		{
-			todo: "bug: followers and following lists do not filter inactive users"
-		},
-		async () => {
-			const leaver = await createUserWithSession();
-			const followed = await createUserWithSession();
-			const viewer = await createUserWithSession();
-			await follow(leaver, followed);
-			assert.deepEqual(await followerUsernamesOf(followed, viewer), [
-				leaver.user.username
-			]);
+	void it("drops the deactivated account from the followers of the profiles it followed", async () => {
+		const leaver = await createUserWithSession();
+		const followed = await createUserWithSession();
+		const viewer = await createUserWithSession();
+		await follow(leaver, followed);
+		assert.deepEqual(await followerUsernamesOf(followed, viewer), [
+			leaver.user.username
+		]);
 
-			await deactivate(leaver.authorization).expect(204);
+		await deactivate(leaver.authorization).expect(204);
 
-			assert.deepEqual(await followerUsernamesOf(followed, viewer), []);
-		}
-	);
+		assert.deepEqual(await followerUsernamesOf(followed, viewer), []);
+	});
+
+	void it("drops the deactivated account from the follower and following counts of its connections", async () => {
+		const leaver = await createUserWithSession();
+		const followed = await createUserWithSession();
+		const follower = await createUserWithSession();
+		const viewer = await createUserWithSession();
+		await follow(leaver, followed);
+		await follow(follower, leaver);
+		await follow(followed, follower);
+		const before = await getProfile(followed.user.username, viewer);
+		const followerBefore = await getProfile(follower.user.username, viewer);
+		assert.equal(before.body.data.followerCount, 1);
+		assert.equal(followerBefore.body.data.followingCount, 1);
+
+		await deactivate(leaver.authorization).expect(204);
+
+		const after = await getProfile(followed.user.username, viewer);
+		const followerAfter = await getProfile(follower.user.username, viewer);
+		assert.equal(after.body.data.followerCount, 0);
+		assert.equal(followerAfter.body.data.followingCount, 0);
+	});
 
 	void it("rejects a request without a session with 422 AUTH_SCHEMA_INVALID", async () => {
 		const response = await deactivate();

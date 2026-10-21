@@ -44,7 +44,8 @@ export async function getFollowers(username: string) {
 			{
 				model: User,
 				as: "Follower",
-				attributes: USER_CARD_ATTRS
+				attributes: USER_CARD_ATTRS,
+				where: { isActive: true }
 			}
 		],
 		order: [["createdAt", "DESC"]]
@@ -61,7 +62,8 @@ export async function getFollowing(username: string) {
 			{
 				model: User,
 				as: "Following",
-				attributes: USER_CARD_ATTRS
+				attributes: USER_CARD_ATTRS,
+				where: { isActive: true }
 			}
 		],
 		order: [["createdAt", "DESC"]]
@@ -69,11 +71,17 @@ export async function getFollowing(username: string) {
 }
 
 export async function getFollowerCount(userId: string) {
-	return UserFollower.count({ where: { followingId: userId } });
+	return UserFollower.count({
+		where: { followingId: userId },
+		include: [{ model: User, as: "Follower", where: { isActive: true } }]
+	});
 }
 
 export async function getFollowingCount(userId: string) {
-	return UserFollower.count({ where: { followerId: userId } });
+	return UserFollower.count({
+		where: { followerId: userId },
+		include: [{ model: User, as: "Following", where: { isActive: true } }]
+	});
 }
 
 export async function getFollowingIds(userId: string) {
@@ -82,6 +90,19 @@ export async function getFollowingIds(userId: string) {
 		attributes: ["followingId"]
 	});
 	return rows.map(row => row.followingId);
+}
+
+export async function getMutualFollowerIds(
+	userId: string,
+	followingIds: string[]
+) {
+	if (followingIds.length === 0) return [];
+
+	const rows = await UserFollower.findAll({
+		where: { followingId: userId, followerId: { [Op.in]: followingIds } },
+		attributes: ["followerId"]
+	});
+	return rows.map(row => row.followerId);
 }
 
 export async function isFollowing(followerId: string, followingId: string) {
