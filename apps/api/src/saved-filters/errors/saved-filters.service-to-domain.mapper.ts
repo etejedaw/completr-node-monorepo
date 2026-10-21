@@ -22,6 +22,9 @@ export function savedFiltersServiceToDomainMapper(
 	if (error.code === "SAVED_FILTER_FROZEN")
 		return savedFilterDomainError.savedFilterFrozen(context);
 
+	if (error.code === "SAVED_FILTER_VALIDATION_ERROR")
+		return savedFilterDomainError.savedFilterValidationError(context);
+
 	return new DomainError(
 		"SavedFilter Module",
 		"SAVED_FILTER_INTERNAL_ERROR",

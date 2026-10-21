@@ -106,6 +106,14 @@ void describe("POST /users/me/saved-filters", () => {
 	});
 
 	for (const [description, body] of [
+		[
+			"filters with an unknown status",
+			{ name: "Broken", filters: { status: "paused" } }
+		],
+		[
+			"filters with a malformed date",
+			{ name: "Broken", filters: { started_from: "yesterday" } }
+		],
 		["a missing name", { filters: {} }],
 		["missing filters", { name: "No filters" }],
 		["an unknown icon", { name: "Bad icon", filters: {}, icon: "rocket" }],
@@ -212,6 +220,20 @@ void describe("PATCH /users/me/saved-filters/:filterId", () => {
 		assert.equal(response.body.data.savedFilter.name, "Hidden view");
 		assert.equal(response.body.data.savedFilter.showInBacklog, false);
 		assert.equal(response.body.data.savedFilter.isDefault, false);
+	});
+
+	void it("rejects invalid filters with 422 COMMON_SCHEMA_INVALID", async () => {
+		const owner = await createUserWithSession();
+		const filter = await createSavedFilter(owner.user.id);
+
+		const response = await api()
+			.patch(`${FILTERS_PATH}/${filter.id}`)
+			.set("Authorization", owner.authorization)
+			.send({ filters: { status: "paused" } });
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		assert.deepEqual((await filter.reload()).filters, {});
 	});
 
 	void it("rejects editing another user's filter with 403 SAVED_FILTER_FORBIDDEN", async () => {
@@ -369,25 +391,22 @@ void describe("GET /users/me/saved-filters/:filterId/stats", () => {
 		assert.equal(response.body.type, "SAVED_FILTER_FORBIDDEN");
 	});
 
-	void it(
-		"rejects stats of a filter whose stored filters are invalid with 422",
-		{
-			todo: "the stored filters are not validated on create, and SAVED_FILTER_VALIDATION_ERROR has no mapping, so GET /stats answers 500"
-		},
-		async () => {
-			const owner = await createUserWithSession();
-			const filter = await postFilter(owner.authorization, {
-				name: "Broken",
-				filters: { status: "paused" }
-			});
+	void it("rejects stats of a filter whose stored filters are invalid with 422 SAVED_FILTER_VALIDATION_ERROR", async () => {
+		const owner = await createUserWithSession();
+		const filter = await SavedFilter.create({
+			userId: owner.user.id,
+			name: "Broken",
+			filters: { status: "paused" },
+			position: 1
+		});
 
-			const response = await api()
-				.get(`${FILTERS_PATH}/${filter.body.data.savedFilter.id}/stats`)
-				.set("Authorization", owner.authorization);
+		const response = await api()
+			.get(`${FILTERS_PATH}/${filter.id}/stats`)
+			.set("Authorization", owner.authorization);
 
-			assert.equal(response.status, 422);
-		}
-	);
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "SAVED_FILTER_VALIDATION_ERROR");
+	});
 });
 
 void describe("DELETE /users/me/saved-filters/:filterId", () => {

@@ -43,7 +43,7 @@ docs: |-
     | Field         | Type     | Required | Description                                      |
     |---------------|----------|----------|--------------------------------------------------|
     | name          | string   | No       | Filter name (1-100 chars)                        |
-    | filters       | object   | No       | Updated query params                             |
+    | filters       | object   | No       | Updated query params. Validated with the same schema as `GET /users/me/backlog`; invalid values answer 422 `COMMON_SCHEMA_INVALID` |
     | sortBy        | string   | No       | Sort field                                       |
     | sortOrder     | string   | No       | asc or desc                                      |
     | showInBacklog | boolean  | No       | Whether the view appears as a chip in the backlog|

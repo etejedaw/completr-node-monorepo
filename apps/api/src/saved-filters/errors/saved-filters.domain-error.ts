@@ -37,3 +37,12 @@ export function savedFilterFrozen(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function savedFilterValidationError(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"SAVED_FILTER_VALIDATION_ERROR",
+		"The stored filters are not valid",
+		context
+	);
+}
