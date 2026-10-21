@@ -1,0 +1,75 @@
+info:
+    name: Set Game Lists
+    type: http
+    seq: 5
+
+http:
+    method: PUT
+    url: "{{BASE_URL}}/games/:gameId/lists"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    params:
+        - name: gameId
+          type: path
+          value: ""
+    body:
+        type: json
+        data: |-
+            {
+              "listIds": ["uuid1", "uuid2"]
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Set Game Lists
+
+    Sets the final collection of the viewer's own lists that must contain the game, atomically. In a single transaction the game is appended to the lists in `listIds` that do not have it yet (copying score and duration from each list's sources, like Add Item) and removed from the viewer's other lists that contain it (positions are renumbered, like Remove Item). If any step fails nothing is applied.
+
+    Lists the viewer owns and that are not in `listIds` are left without the game. An empty array removes the game from all of them.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 300 requests per minute (user).
+
+    ### Path Params
+
+    | Param  | Type | Required | Description |
+    |--------|------|----------|-------------|
+    | gameId | uuid | Yes      | Game UUID   |
+
+    ### Body
+
+    | Field   | Type   | Required | Description                                           |
+    |---------|--------|----------|-------------------------------------------------------|
+    | listIds | uuid[] | Yes      | Own lists that must contain the game. No duplicates   |
+
+    ### Response (200)
+
+    Same shape as Get Lists Containing Game, already reflecting the change:
+
+    ```json
+    {
+      "data": {
+        "lists": [
+          { "id": "uuid", "name": "Saga Resident Evil", "description": null, "isOfficial": false, "completed": false, "owner": { "username": "andres" } }
+        ],
+        "myLists": [
+          { "id": "uuid", "name": "My RPGs", "isPublic": true, "contains": true },
+          { "id": "uuid", "name": "Hidden gems", "isPublic": false, "contains": false }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code                       | When                                                                                  |
+    |--------|----------------------------|---------------------------------------------------------------------------------------|
+    | 402    | LIST_ITEM_FROZEN           | The game has to be added to a list and the free user is over the list limit (frozen)  |
+    | 403    | LIST_ITEM_FORBIDDEN        | A list in `listIds` belongs to another user                                           |
+    | 404    | LIST_ITEM_LIST_NOT_FOUND   | A list in `listIds` does not exist                                                    |
+    | 404    | LIST_ITEM_GAMES_NOT_FOUND  | The game does not exist                                                               |
+    | 422    | COMMON_SCHEMA_INVALID      | `gameId` or a `listIds` entry is not a uuid, or `listIds` has duplicates              |
