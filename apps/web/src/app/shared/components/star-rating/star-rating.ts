@@ -119,7 +119,7 @@ export class StarRating {
 			case "ArrowLeft":
 			case "ArrowDown":
 				event.preventDefault();
-				this.ratingChange.emit(Math.max(0, current - step));
+				this.ratingChange.emit(Math.max(0.5, current - step));
 				return;
 			case "Home":
 				event.preventDefault();

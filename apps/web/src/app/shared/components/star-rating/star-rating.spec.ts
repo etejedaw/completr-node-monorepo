@@ -177,12 +177,23 @@ describe("StarRating", () => {
 			expect(emitted).toEqual([5]);
 		});
 
-		it("never goes below zero", () => {
-			const { element, emitted } = render({ value: 0 });
+		it.each(["ArrowLeft", "ArrowDown"])(
+			"never goes below half a star on %s",
+			key => {
+				const { element, emitted } = render({ value: 0.5 });
+
+				press(element, key);
+
+				expect(emitted).toEqual([0.5]);
+			}
+		);
+
+		it("never emits zero when there is no rating yet", () => {
+			const { element, emitted } = render({ value: null });
 
 			press(element, "ArrowLeft");
 
-			expect(emitted).toEqual([0]);
+			expect(emitted).toEqual([0.5]);
 		});
 
 		it("ignores other keys without preventing the default", () => {
@@ -204,9 +215,5 @@ describe("StarRating", () => {
 
 			expect(emitted).toEqual([]);
 		});
-
-		it.todo(
-			"ArrowLeft from 0.5 emits 0, a value outside the 0.5 to 5 range, instead of clearing the rating"
-		);
 	});
 });
