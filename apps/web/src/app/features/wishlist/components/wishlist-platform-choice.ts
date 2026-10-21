@@ -34,6 +34,7 @@ export interface WishlistPlatformOption {
 				</legend>
 				<app-chip-group
 					mode="single"
+					label="Pick a platform (optional)"
 					[allowEmpty]="false"
 					[options]="chipOptions()"
 					[value]="selectedValues()"
