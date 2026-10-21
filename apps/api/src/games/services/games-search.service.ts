@@ -341,6 +341,10 @@ export async function findGamesByGenreCode(
 			{ association: "GameScores" },
 			{ association: "GameTimes" }
 		],
+		order: [
+			["title", "ASC"],
+			["id", "ASC"]
+		],
 		limit: limit + 1,
 		offset
 	});
