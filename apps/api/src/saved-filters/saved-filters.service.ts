@@ -122,19 +122,17 @@ export async function reorderSavedFilters(userId: string, ids: string[]) {
 
 	const positionById = new Map(ids.map((id, index) => [id, index + 1]));
 
+	const movedFilters = filters.filter(
+		filter => filter.position !== positionById.get(filter.id)
+	);
+
 	await sequelize.transaction(async transaction => {
-		await Promise.all(
-			filters
-				.filter(
-					filter => filter.position !== positionById.get(filter.id)
-				)
-				.map(filter =>
-					filter.update(
-						{ position: positionById.get(filter.id) },
-						{ transaction }
-					)
-				)
-		);
+		for (const filter of movedFilters) {
+			await filter.update(
+				{ position: positionById.get(filter.id) },
+				{ transaction }
+			);
+		}
 	});
 
 	return SavedFilter.findAll({

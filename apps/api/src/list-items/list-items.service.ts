@@ -136,16 +136,15 @@ export async function replaceItems(
 				await ListItem.bulkCreate(rows, { transaction });
 			}
 
-			const positionUpdates = existingItems
+			const movedItems = existingItems
 				.filter(item => newGameIds.has(item.gameId))
-				.filter(item => item.position !== gameIdOrder.get(item.gameId))
-				.map(item =>
-					item.update(
-						{ position: gameIdOrder.get(item.gameId)! },
-						{ transaction }
-					)
+				.filter(item => item.position !== gameIdOrder.get(item.gameId));
+			for (const item of movedItems) {
+				await item.update(
+					{ position: gameIdOrder.get(item.gameId)! },
+					{ transaction }
 				);
-			await Promise.all(positionUpdates);
+			}
 		} catch (error) {
 			rethrowSequelizeError(error, {
 				unique: listItemsServiceError.uniqueConstraintError,
@@ -336,15 +335,13 @@ export async function refreshScores(listId: string, user: RequestUser) {
 	);
 
 	await sequelize.transaction(async (transaction: Transaction) => {
-		await Promise.all(
-			items.map(item => {
-				const { score, duration } = freezeScoresFromContext(
-					item.gameId,
-					ctx
-				);
-				return item.update({ score, duration }, { transaction });
-			})
-		);
+		for (const item of items) {
+			const { score, duration } = freezeScoresFromContext(
+				item.gameId,
+				ctx
+			);
+			await item.update({ score, duration }, { transaction });
+		}
 	});
 
 	return items.length;
