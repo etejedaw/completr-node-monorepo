@@ -80,6 +80,19 @@ describe("FranchisesService", () => {
 		expect(result).toEqual({ id: "f1" });
 	});
 
+	it("sends the final game ids when saving a franchise", () => {
+		service
+			.updateFranchise("f1", { name: "Zelda", gameIds: ["g1", "g2"] })
+			.subscribe();
+
+		const req = httpTesting.expectOne(`${url}/f1`);
+		expect(req.request.body).toEqual({
+			name: "Zelda",
+			gameIds: ["g1", "g2"]
+		});
+		req.flush({ data: { franchise: { id: "f1" } } });
+	});
+
 	it("updates a franchise and returns it", () => {
 		let result: unknown;
 
