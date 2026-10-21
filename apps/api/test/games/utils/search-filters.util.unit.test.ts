@@ -6,6 +6,7 @@ import { Op } from "sequelize";
 import {
 	buildActiveFlagWhere,
 	buildAggregateCondition,
+	buildCanonicalScoreCondition,
 	buildCompilationFlagsWhere,
 	buildGenreCondition,
 	buildMissingRelationCondition,
@@ -135,6 +136,37 @@ void describe("buildAggregateCondition", () => {
 		);
 
 		assert.match(sql, /HAVING AVG\(duration\) >= 0/);
+	});
+});
+
+void describe("buildCanonicalScoreCondition", () => {
+	function clausesOf(condition: object | null) {
+		return (condition as Record<symbol, object[]>)[Op.and]!;
+	}
+
+	void it("returns null without bounds", () => {
+		assert.equal(buildCanonicalScoreCondition(undefined, undefined), null);
+	});
+
+	void it("adds one clause per bound", () => {
+		assert.equal(clausesOf(buildCanonicalScoreCondition(2, 4)).length, 2);
+		assert.equal(
+			clausesOf(buildCanonicalScoreCondition(undefined, 4)).length,
+			1
+		);
+	});
+
+	void it("keeps a zero minimum", () => {
+		assert.equal(
+			clausesOf(buildCanonicalScoreCondition(0, undefined)).length,
+			1
+		);
+	});
+
+	void it("compares the normalized canonical score used by the score sort", () => {
+		const [clause] = clausesOf(buildCanonicalScoreCondition(2, undefined));
+
+		assert.match(JSON.stringify(clause), /gs\.score \* 5\.0 \/ ss\.scale/);
 	});
 });
 

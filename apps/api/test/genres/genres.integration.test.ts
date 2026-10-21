@@ -277,30 +277,21 @@ void describe("GET /genres/:code/games", () => {
 		assert.equal(response.body.data.hasMore, false);
 	});
 
-	void it(
-		"keeps every genre of a game in its serialized genres",
-		{
-			todo: "bug: the genre filter truncates each game's genres to the queried genre"
-		},
-		async () => {
-			const reader = await createUserWithSession();
-			const action = await createNamedGenre("Action", "action");
-			const stealth = await createNamedGenre("Stealth", "stealth");
-			const [game] = await createGamesInGenre(action, 1);
-			await linkGames(stealth, [game!]);
+	void it("keeps every genre of a game in its serialized genres", async () => {
+		const reader = await createUserWithSession();
+		const action = await createNamedGenre("Action", "action");
+		const stealth = await createNamedGenre("Stealth", "stealth");
+		const [game] = await createGamesInGenre(action, 1);
+		await linkGames(stealth, [game!]);
 
-			const response = await getGenreGames(
-				reader.authorization,
-				"action"
-			);
+		const response = await getGenreGames(reader.authorization, "action");
 
-			const [entry] = response.body.data.games as GenreGameEntry[];
-			assert.deepEqual(entry!.genres.map(genre => genre.code).sort(), [
-				"action",
-				"stealth"
-			]);
-		}
-	);
+		const [entry] = response.body.data.games as GenreGameEntry[];
+		assert.deepEqual(entry!.genres.map(genre => genre.code).sort(), [
+			"action",
+			"stealth"
+		]);
+	});
 
 	void it("hides a game once it is deactivated", async () => {
 		const reader = await createUserWithSession();

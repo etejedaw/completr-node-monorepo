@@ -594,30 +594,16 @@ void describe("GET /games filters", () => {
 		]);
 	});
 
-	void it(
-		"filters by minimum score on the 0 to 5 scale",
-		{
-			todo: "bug: min_score and max_score compare the raw source scores instead of normalizing them to 0-5"
-		},
-		async () => {
-			assert.deepEqual(await titlesFor({ min_score: 4.2 }), [
-				"Café Déjà Vu"
-			]);
-		}
-	);
+	void it("filters by minimum score on the 0 to 5 scale", async () => {
+		assert.deepEqual(await titlesFor({ min_score: 4.2 }), ["Café Déjà Vu"]);
+	});
 
-	void it(
-		"filters by maximum score on the 0 to 5 scale",
-		{
-			todo: "bug: min_score and max_score compare the raw source scores instead of normalizing them to 0-5"
-		},
-		async () => {
-			assert.deepEqual((await titlesFor({ max_score: 3.5 })).sort(), [
-				"Bravo Strike",
-				"Hotel Mix"
-			]);
-		}
-	);
+	void it("filters by maximum score on the 0 to 5 scale", async () => {
+		assert.deepEqual((await titlesFor({ max_score: 3.5 })).sort(), [
+			"Bravo Strike",
+			"Hotel Mix"
+		]);
+	});
 
 	void it("combines filters, sorting and pagination", async () => {
 		const response = await getGames({
