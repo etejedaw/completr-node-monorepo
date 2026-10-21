@@ -24,7 +24,7 @@ docs: |-
 
     ### Response (200)
 
-    Same shape as Get My Queue.
+    Same shape as Get My Queue, except that `backlog.notes` is never included: backlog notes are private.
 
     ### Errors
 
