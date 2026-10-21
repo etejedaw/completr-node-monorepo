@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -29,8 +27,8 @@ const completrTimes = [
 	{ source: "completr", duration: 20 }
 ];
 
-describe("gameListSerializer", () => {
-	it("computes the ratio from the completr score and duration only", () => {
+void describe("gameListSerializer", () => {
+	void it("computes the ratio from the completr score and duration only", () => {
 		const result = gameListSerializer(
 			buildGame({ GameScores: completrScores, GameTimes: completrTimes })
 		);
@@ -38,7 +36,7 @@ describe("gameListSerializer", () => {
 		assert.equal(result.ratio, 4);
 	});
 
-	it("leaves the ratio undefined when the completr source is missing", () => {
+	void it("leaves the ratio undefined when the completr source is missing", () => {
 		const result = gameListSerializer(
 			buildGame({
 				GameScores: [{ source: "rawg", score: 4 }],
@@ -49,14 +47,14 @@ describe("gameListSerializer", () => {
 		assert.equal(result.ratio, undefined);
 	});
 
-	it("defaults justImported to false and genres to empty", () => {
+	void it("defaults justImported to false and genres to empty", () => {
 		const result = gameListSerializer(buildGame());
 
 		assert.equal(result.justImported, false);
 		assert.deepEqual(result.genres, []);
 	});
 
-	it("flags justImported when requested", () => {
+	void it("flags justImported when requested", () => {
 		assert.equal(
 			gameListSerializer(buildGame(), { justImported: true })
 				.justImported,
@@ -65,8 +63,8 @@ describe("gameListSerializer", () => {
 	});
 });
 
-describe("gameAdminListSerializer", () => {
-	it("includes the activation state, scores and times by source", () => {
+void describe("gameAdminListSerializer", () => {
+	void it("includes the activation state, scores and times by source", () => {
 		const result = gameAdminListSerializer(
 			buildGame({
 				isActive: false,
@@ -83,8 +81,8 @@ describe("gameAdminListSerializer", () => {
 	});
 });
 
-describe("gameSerializer", () => {
-	it("defaults every optional relation to an empty value", () => {
+void describe("gameSerializer", () => {
+	void it("defaults every optional relation to an empty value", () => {
 		const result = gameSerializer(buildGame());
 
 		assert.deepEqual(result.platforms, []);
@@ -99,7 +97,7 @@ describe("gameSerializer", () => {
 		assert.equal(result.isCompilation, false);
 	});
 
-	it("serializes the parent game, franchise and platforms", () => {
+	void it("serializes the parent game, franchise and platforms", () => {
 		const result = gameSerializer(
 			buildGame({
 				ParentGame: buildGame({
@@ -126,7 +124,7 @@ describe("gameSerializer", () => {
 		assert.equal(result.platforms[0]?.abbreviation, "PC");
 	});
 
-	it("exposes the compilation children and drops orphan parent links as null", () => {
+	void it("exposes the compilation children and drops orphan parent links as null", () => {
 		const result = gameSerializer(
 			buildGame({
 				CompilationItems: [
@@ -146,7 +144,7 @@ describe("gameSerializer", () => {
 		assert.deepEqual(result.partOfCompilations, [null]);
 	});
 
-	it("serializes external links by source and id only", () => {
+	void it("serializes external links by source and id only", () => {
 		const result = gameSerializer(
 			buildGame({
 				GameExternals: [
@@ -166,7 +164,7 @@ describe("gameSerializer", () => {
 	});
 });
 
-describe("gameShowcaseSerializer", () => {
+void describe("gameShowcaseSerializer", () => {
 	function row(overrides: Partial<ShowcaseGameRow>): ShowcaseGameRow {
 		return {
 			id: "g",
@@ -179,7 +177,7 @@ describe("gameShowcaseSerializer", () => {
 		} as ShowcaseGameRow;
 	}
 
-	it("features the game with the best ratio, rounding score and hours", () => {
+	void it("features the game with the best ratio, rounding score and hours", () => {
 		const result = gameShowcaseSerializer([
 			row({ id: "a", score: 4, duration: 40 }),
 			row({ id: "b", score: 4.456, duration: 10.26 })
@@ -192,7 +190,7 @@ describe("gameShowcaseSerializer", () => {
 		assert.equal(result.featured?.ratio, 8.69);
 	});
 
-	it("skips rows without score or duration when featuring", () => {
+	void it("skips rows without score or duration when featuring", () => {
 		const result = gameShowcaseSerializer([
 			row({ id: "a", score: null, duration: 10 }),
 			row({ id: "b", score: 3, duration: 30 })
@@ -201,14 +199,14 @@ describe("gameShowcaseSerializer", () => {
 		assert.equal(result.featured?.id, "b");
 	});
 
-	it("returns a null featured game when no row has a ratio", () => {
+	void it("returns a null featured game when no row has a ratio", () => {
 		assert.equal(gameShowcaseSerializer([row({ id: "a" })]).featured, null);
 		assert.equal(gameShowcaseSerializer([]).featured, null);
 	});
 });
 
-describe("gameListSummarySerializer", () => {
-	it("nulls the owner when the list has no owner username", () => {
+void describe("gameListSummarySerializer", () => {
+	void it("nulls the owner when the list has no owner username", () => {
 		const result = gameListSummarySerializer({
 			id: "l-1",
 			name: "Official",
@@ -222,7 +220,7 @@ describe("gameListSummarySerializer", () => {
 		assert.equal(result.description, null);
 	});
 
-	it("wraps the owner username", () => {
+	void it("wraps the owner username", () => {
 		const result = gameListSummarySerializer({
 			id: "l-1",
 			name: "Mine",
@@ -236,7 +234,7 @@ describe("gameListSummarySerializer", () => {
 	});
 });
 
-describe("friend activity and player serializers", () => {
+void describe("friend activity and player serializers", () => {
 	const entry = buildBacklog({
 		User: {
 			username: "friend",
@@ -249,7 +247,7 @@ describe("friend activity and player serializers", () => {
 		userRating: undefined
 	}) as Backlog;
 
-	it("normalizes missing friend activity values to null", () => {
+	void it("normalizes missing friend activity values to null", () => {
 		const result = gameFriendActivitySerializer(entry);
 
 		assert.equal(result.avatarUrl, null);
@@ -257,7 +255,7 @@ describe("friend activity and player serializers", () => {
 		assert.equal(result.userRating, null);
 	});
 
-	it("never exposes the user email or the backlog notes", () => {
+	void it("never exposes the user email or the backlog notes", () => {
 		const serialized = JSON.stringify([
 			gameFriendActivitySerializer(entry),
 			gamePlayerSerializer(entry)
@@ -267,7 +265,7 @@ describe("friend activity and player serializers", () => {
 		assert.equal(serialized.includes("private notes"), false);
 	});
 
-	it("serializes the player status without rating or dates", () => {
+	void it("serializes the player status without rating or dates", () => {
 		assert.deepEqual(Object.keys(gamePlayerSerializer(entry)).sort(), [
 			"avatarUrl",
 			"name",

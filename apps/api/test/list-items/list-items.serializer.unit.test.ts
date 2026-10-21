@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -19,12 +17,12 @@ function buildItem(overrides: Record<string, unknown> = {}) {
 	});
 }
 
-describe("listItemSerializer", () => {
-	it("computes the ratio from the frozen score and duration", () => {
+void describe("listItemSerializer", () => {
+	void it("computes the ratio from the frozen score and duration", () => {
 		assert.equal(listItemSerializer(buildItem()).ratio, 6);
 	});
 
-	it("leaves the ratio undefined when the source has no score or duration", () => {
+	void it("leaves the ratio undefined when the source has no score or duration", () => {
 		assert.equal(
 			listItemSerializer(buildItem({ score: null })).ratio,
 			undefined
@@ -35,7 +33,7 @@ describe("listItemSerializer", () => {
 		);
 	});
 
-	it("returns an undefined game when it was not loaded", () => {
+	void it("returns an undefined game when it was not loaded", () => {
 		assert.equal(
 			listItemSerializer(buildItem({ Game: undefined })).game,
 			undefined

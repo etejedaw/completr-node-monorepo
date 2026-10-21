@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
@@ -33,12 +31,12 @@ function numberedTags(count: number) {
 	return Array.from({ length: count }, (_, index) => `tag${index}`);
 }
 
-describe("moodTagsService.replaceTags", () => {
+void describe("moodTagsService.replaceTags", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("fails with MOOD_TAGS_GAME_NOT_FOUND when the game does not exist", async () => {
+	void it("fails with MOOD_TAGS_GAME_NOT_FOUND when the game does not exist", async () => {
 		stub(Game, "findOne", async () => null);
 
 		const error = await captureRejection(
@@ -51,7 +49,7 @@ describe("moodTagsService.replaceTags", () => {
 		);
 	});
 
-	it("rejects more than 10 distinct tags per game", async () => {
+	void it("rejects more than 10 distinct tags per game", async () => {
 		stubGameFound();
 
 		const error = await captureRejection(
@@ -61,7 +59,7 @@ describe("moodTagsService.replaceTags", () => {
 		assert.equal((error as { code: string }).code, "MOOD_TAGS_TOO_MANY");
 	});
 
-	it("counts tags after normalization, so duplicates do not hit the per-game cap", async () => {
+	void it("counts tags after normalization, so duplicates do not hit the per-game cap", async () => {
 		stubGameFound();
 		stubTransaction();
 		stub(UserGameTag, "destroy", async () => 0);
@@ -78,7 +76,7 @@ describe("moodTagsService.replaceTags", () => {
 		assert.equal(bulkCreate.mock.callCount(), 1);
 	});
 
-	it("blocks a free user from introducing a tag name over the free limit", async () => {
+	void it("blocks a free user from introducing a tag name over the free limit", async () => {
 		stubGameFound();
 		stubExistingTagNames(numberedTags(25));
 
@@ -92,7 +90,7 @@ describe("moodTagsService.replaceTags", () => {
 		);
 	});
 
-	it("lets a free user over the limit keep using tags that already exist", async () => {
+	void it("lets a free user over the limit keep using tags that already exist", async () => {
 		stubGameFound();
 		stubTransaction();
 		stubExistingTagNames(numberedTags(30));
@@ -107,7 +105,7 @@ describe("moodTagsService.replaceTags", () => {
 		assert.deepEqual(saved, ["tag3", "tag4"]);
 	});
 
-	it("allows a free user to reach exactly the free limit", async () => {
+	void it("allows a free user to reach exactly the free limit", async () => {
 		stubGameFound();
 		stubTransaction();
 		stubExistingTagNames(numberedTags(24));
@@ -121,7 +119,7 @@ describe("moodTagsService.replaceTags", () => {
 		assert.deepEqual(saved, ["one more"]);
 	});
 
-	it("skips the limit lookup for premium users", async () => {
+	void it("skips the limit lookup for premium users", async () => {
 		stubGameFound();
 		stubTransaction();
 		const query = stubExistingTagNames(numberedTags(100));
@@ -133,7 +131,7 @@ describe("moodTagsService.replaceTags", () => {
 		assert.equal(query.mock.callCount(), 0);
 	});
 
-	it("replaces the previous tags with the normalized ones inside a transaction", async () => {
+	void it("replaces the previous tags with the normalized ones inside a transaction", async () => {
 		stubGameFound();
 		const { transaction } = stubTransaction();
 		stubExistingTagNames([]);
@@ -155,7 +153,7 @@ describe("moodTagsService.replaceTags", () => {
 		]);
 	});
 
-	it("only clears the tags when the new list is empty", async () => {
+	void it("only clears the tags when the new list is empty", async () => {
 		stubGameFound();
 		stubTransaction();
 		const destroy = stub(UserGameTag, "destroy", async () => 0);
@@ -169,12 +167,12 @@ describe("moodTagsService.replaceTags", () => {
 	});
 });
 
-describe("moodTagsService.createTag", () => {
+void describe("moodTagsService.createTag", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("rejects empty and too long tag names", async () => {
+	void it("rejects empty and too long tag names", async () => {
 		const empty = await captureRejection(
 			moodTagsService.createTag(FREE_USER, "   ", null)
 		);
@@ -189,7 +187,7 @@ describe("moodTagsService.createTag", () => {
 		);
 	});
 
-	it("returns the existing tag without creating it nor checking the limit", async () => {
+	void it("returns the existing tag without creating it nor checking the limit", async () => {
 		stub(MoodTagMeta, "findOne", async () =>
 			asModel({ description: "kept" })
 		);
@@ -211,7 +209,7 @@ describe("moodTagsService.createTag", () => {
 		assert.equal(create.mock.callCount(), 0);
 	});
 
-	it("creates a new tag trimming and capping the description to 255 characters", async () => {
+	void it("creates a new tag trimming and capping the description to 255 characters", async () => {
 		stub(MoodTagMeta, "findOne", async () => null);
 		stubExistingTagNames([]);
 		const create = stub(MoodTagMeta, "create", async () => ({}));
@@ -231,7 +229,7 @@ describe("moodTagsService.createTag", () => {
 		});
 	});
 
-	it("stores a blank description as null", async () => {
+	void it("stores a blank description as null", async () => {
 		stub(MoodTagMeta, "findOne", async () => null);
 		stubExistingTagNames([]);
 		stub(MoodTagMeta, "create", async () => ({}));
@@ -245,7 +243,7 @@ describe("moodTagsService.createTag", () => {
 		assert.equal(result.description, null);
 	});
 
-	it("blocks a free user from creating a tag over the free limit", async () => {
+	void it("blocks a free user from creating a tag over the free limit", async () => {
 		stub(MoodTagMeta, "findOne", async () => null);
 		stubExistingTagNames(numberedTags(25));
 		const create = stub(MoodTagMeta, "create", async () => ({}));
@@ -262,12 +260,12 @@ describe("moodTagsService.createTag", () => {
 	});
 });
 
-describe("moodTagsService.renameTag", () => {
+void describe("moodTagsService.renameTag", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("does nothing when old and new names normalize to the same tag", async () => {
+	void it("does nothing when old and new names normalize to the same tag", async () => {
 		const count = stub(UserGameTag, "count", async () => 1);
 
 		await moodTagsService.renameTag("user-1", "Cozy", " cozy ");
@@ -275,7 +273,7 @@ describe("moodTagsService.renameTag", () => {
 		assert.equal(count.mock.callCount(), 0);
 	});
 
-	it("rejects a blank old or new name and a new name over 40 characters", async () => {
+	void it("rejects a blank old or new name and a new name over 40 characters", async () => {
 		const blankNew = await captureRejection(
 			moodTagsService.renameTag("u", "cozy", " ")
 		);
@@ -293,7 +291,7 @@ describe("moodTagsService.renameTag", () => {
 		);
 	});
 
-	it("fails with MOOD_TAGS_TAG_NOT_FOUND when the user has no such tag", async () => {
+	void it("fails with MOOD_TAGS_TAG_NOT_FOUND when the user has no such tag", async () => {
 		stub(UserGameTag, "count", async () => 0);
 		stub(MoodTagMeta, "count", async () => 0);
 
@@ -307,7 +305,7 @@ describe("moodTagsService.renameTag", () => {
 		);
 	});
 
-	it("renames a tag that only exists as metadata", async () => {
+	void it("renames a tag that only exists as metadata", async () => {
 		stub(UserGameTag, "count", async () => 0);
 		stub(MoodTagMeta, "count", async () => 1);
 		stubTransaction();
@@ -328,7 +326,7 @@ describe("moodTagsService.renameTag", () => {
 		assert.deepEqual(update.mock.calls[0]?.arguments[0], { tag: "new" });
 	});
 
-	it("merges metadata into an existing target tag keeping the target description", async () => {
+	void it("merges metadata into an existing target tag keeping the target description", async () => {
 		stub(UserGameTag, "count", async () => 2);
 		stubTransaction();
 		stub(sequelize, "query", async () => []);
@@ -353,7 +351,7 @@ describe("moodTagsService.renameTag", () => {
 		assert.equal(sourceDestroy.mock.callCount(), 1);
 	});
 
-	it("moves the old description to the target tag when the target has none", async () => {
+	void it("moves the old description to the target tag when the target has none", async () => {
 		stub(UserGameTag, "count", async () => 2);
 		stubTransaction();
 		stub(sequelize, "query", async () => []);
@@ -379,12 +377,12 @@ describe("moodTagsService.renameTag", () => {
 	});
 });
 
-describe("moodTagsService.deleteTag", () => {
+void describe("moodTagsService.deleteTag", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("rejects a blank tag", async () => {
+	void it("rejects a blank tag", async () => {
 		const error = await captureRejection(
 			moodTagsService.deleteTag("u", "  ")
 		);
@@ -392,7 +390,7 @@ describe("moodTagsService.deleteTag", () => {
 		assert.equal((error as { code: string }).code, "MOOD_TAGS_INVALID_TAG");
 	});
 
-	it("fails with MOOD_TAGS_TAG_NOT_FOUND when neither assignments nor metadata exist", async () => {
+	void it("fails with MOOD_TAGS_TAG_NOT_FOUND when neither assignments nor metadata exist", async () => {
 		stub(UserGameTag, "count", async () => 0);
 		stub(MoodTagMeta, "count", async () => 0);
 
@@ -406,7 +404,7 @@ describe("moodTagsService.deleteTag", () => {
 		);
 	});
 
-	it("removes assignments and metadata of the normalized tag", async () => {
+	void it("removes assignments and metadata of the normalized tag", async () => {
 		stub(UserGameTag, "count", async () => 1);
 		stub(MoodTagMeta, "count", async () => 0);
 		const { transaction } = stubTransaction();
@@ -423,12 +421,12 @@ describe("moodTagsService.deleteTag", () => {
 	});
 });
 
-describe("moodTagsService.findGameIdsByTags", () => {
+void describe("moodTagsService.findGameIdsByTags", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("returns no games without querying when all tags are blank", async () => {
+	void it("returns no games without querying when all tags are blank", async () => {
 		const query = stub(sequelize, "query", async () => []);
 
 		assert.deepEqual(
@@ -438,7 +436,7 @@ describe("moodTagsService.findGameIdsByTags", () => {
 		assert.equal(query.mock.callCount(), 0);
 	});
 
-	it("requires every distinct normalized tag to match", async () => {
+	void it("requires every distinct normalized tag to match", async () => {
 		const query = stub(sequelize, "query", async () => [{ gameId: "g-1" }]);
 
 		const result = await moodTagsService.findGameIdsByTags("u", [
@@ -456,12 +454,12 @@ describe("moodTagsService.findGameIdsByTags", () => {
 	});
 });
 
-describe("moodTagsService.findTagsForGames", () => {
+void describe("moodTagsService.findTagsForGames", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("returns an empty map without querying when there are no games", async () => {
+	void it("returns an empty map without querying when there are no games", async () => {
 		const findAll = stub(UserGameTag, "findAll", async () => []);
 
 		const result = await moodTagsService.findTagsForGames("u", []);
@@ -470,7 +468,7 @@ describe("moodTagsService.findTagsForGames", () => {
 		assert.equal(findAll.mock.callCount(), 0);
 	});
 
-	it("groups the tags by game", async () => {
+	void it("groups the tags by game", async () => {
 		stub(UserGameTag, "findAll", async () => [
 			{ gameId: "g-1", tag: "a" },
 			{ gameId: "g-1", tag: "b" },

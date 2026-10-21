@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
@@ -37,12 +35,12 @@ function errorCode(error: unknown) {
 	return (error as { code: string }).code;
 }
 
-describe("backlogService.createBacklog", () => {
+void describe("backlogService.createBacklog", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("creates the entry for the user and reloads it with its relations", async () => {
+	void it("creates the entry for the user and reloads it with its relations", async () => {
 		const reload = spy();
 		const entry = asModel({ reload });
 		const create = stub(Backlog, "create", async () => entry);
@@ -60,7 +58,7 @@ describe("backlogService.createBacklog", () => {
 		assert.equal(result, entry);
 	});
 
-	it("rejects a compilation that is not an active compilation", async () => {
+	void it("rejects a compilation that is not an active compilation", async () => {
 		stubCompilation({ exists: false, belongs: true });
 		const create = stub(Backlog, "create", async () => ({}));
 
@@ -75,7 +73,7 @@ describe("backlogService.createBacklog", () => {
 		assert.equal(create.mock.callCount(), 0);
 	});
 
-	it("rejects a game that is not part of the given compilation", async () => {
+	void it("rejects a game that is not part of the given compilation", async () => {
 		stubCompilation({ exists: true, belongs: false });
 
 		const error = await captureRejection(
@@ -88,7 +86,7 @@ describe("backlogService.createBacklog", () => {
 		assert.equal(errorCode(error), "BACKLOG_COMPILATION_CONTEXT_INVALID");
 	});
 
-	it("accepts a game that belongs to an active compilation", async () => {
+	void it("accepts a game that belongs to an active compilation", async () => {
 		stubCompilation({ exists: true, belongs: true });
 		stub(Backlog, "create", async () => asModel({ reload: spy() }));
 
@@ -98,7 +96,7 @@ describe("backlogService.createBacklog", () => {
 		} as never);
 	});
 
-	it("does not check compilations when no compilation game is given", async () => {
+	void it("does not check compilations when no compilation game is given", async () => {
 		const exists = stub(
 			gamesCompilationService,
 			"existsActiveCompilation",
@@ -111,7 +109,7 @@ describe("backlogService.createBacklog", () => {
 		assert.equal(exists.mock.callCount(), 0);
 	});
 
-	it("maps unique and validation errors to service errors", async () => {
+	void it("maps unique and validation errors to service errors", async () => {
 		stub(Backlog, "create", async () => {
 			throw new UniqueConstraintError({});
 		});
@@ -132,7 +130,7 @@ describe("backlogService.createBacklog", () => {
 	});
 });
 
-describe("backlogService.updateBacklog", () => {
+void describe("backlogService.updateBacklog", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
@@ -149,7 +147,7 @@ describe("backlogService.updateBacklog", () => {
 		return { entry, update };
 	}
 
-	it("fails with BACKLOG_NOT_FOUND when the entry does not exist", async () => {
+	void it("fails with BACKLOG_NOT_FOUND when the entry does not exist", async () => {
 		stub(Backlog, "findOne", async () => null);
 
 		const error = await captureRejection(
@@ -159,7 +157,7 @@ describe("backlogService.updateBacklog", () => {
 		assert.equal(errorCode(error), "BACKLOG_NOT_FOUND");
 	});
 
-	it("fails with BACKLOG_FORBIDDEN when the entry belongs to someone else", async () => {
+	void it("fails with BACKLOG_FORBIDDEN when the entry belongs to someone else", async () => {
 		const { update } = stubOwnedEntry("owner");
 
 		const error = await captureRejection(
@@ -178,7 +176,7 @@ describe("backlogService.updateBacklog", () => {
 		"abandoned",
 		"endless"
 	] as const) {
-		it(`removes the queue entry and reports queueRemoved when moving to ${status}`, async () => {
+		void it(`removes the queue entry and reports queueRemoved when moving to ${status}`, async () => {
 			stubOwnedEntry();
 			const destroy = stub(Queue, "destroy", async () => 1);
 
@@ -193,7 +191,7 @@ describe("backlogService.updateBacklog", () => {
 		});
 	}
 
-	it("reports queueRemoved false when the entry was not queued", async () => {
+	void it("reports queueRemoved false when the entry was not queued", async () => {
 		stubOwnedEntry();
 		stub(Queue, "destroy", async () => 0);
 
@@ -204,7 +202,7 @@ describe("backlogService.updateBacklog", () => {
 		assert.equal(result.queueRemoved, false);
 	});
 
-	it("keeps the queue entry when the status is not_started or not changed", async () => {
+	void it("keeps the queue entry when the status is not_started or not changed", async () => {
 		stubOwnedEntry();
 		const destroy = stub(Queue, "destroy", async () => 1);
 
@@ -222,7 +220,7 @@ describe("backlogService.updateBacklog", () => {
 		assert.equal(noStatus.queueRemoved, false);
 	});
 
-	it("validates the compilation context against the stored game", async () => {
+	void it("validates the compilation context against the stored game", async () => {
 		stubOwnedEntry();
 		const belongs = stub(
 			gamesCompilationService,
@@ -248,7 +246,7 @@ describe("backlogService.updateBacklog", () => {
 		]);
 	});
 
-	it("allows clearing the compilation game without validating it", async () => {
+	void it("allows clearing the compilation game without validating it", async () => {
 		const { update } = stubOwnedEntry();
 		const exists = stub(
 			gamesCompilationService,
@@ -265,12 +263,12 @@ describe("backlogService.updateBacklog", () => {
 	});
 });
 
-describe("backlogService.removeBacklog", () => {
+void describe("backlogService.removeBacklog", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("fails with BACKLOG_NOT_FOUND for a missing entry", async () => {
+	void it("fails with BACKLOG_NOT_FOUND for a missing entry", async () => {
 		stub(Backlog, "findOne", async () => null);
 
 		const error = await captureRejection(
@@ -280,7 +278,7 @@ describe("backlogService.removeBacklog", () => {
 		assert.equal(errorCode(error), "BACKLOG_NOT_FOUND");
 	});
 
-	it("fails with BACKLOG_FORBIDDEN and keeps the entry of another user", async () => {
+	void it("fails with BACKLOG_FORBIDDEN and keeps the entry of another user", async () => {
 		stub(Backlog, "findOne", async () =>
 			asModel({ id: "b-1", userId: "owner" })
 		);
@@ -294,7 +292,7 @@ describe("backlogService.removeBacklog", () => {
 		assert.equal(destroy.mock.callCount(), 0);
 	});
 
-	it("deletes the entry of its owner", async () => {
+	void it("deletes the entry of its owner", async () => {
 		stub(Backlog, "findOne", async () =>
 			asModel({ id: "b-1", userId: "owner" })
 		);
@@ -307,12 +305,12 @@ describe("backlogService.removeBacklog", () => {
 	});
 });
 
-describe("backlogService empty input shortcuts", () => {
+void describe("backlogService empty input shortcuts", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("skip the database when there are no ids, games or statuses", async () => {
+	void it("skip the database when there are no ids, games or statuses", async () => {
 		const findAll = stub(Backlog, "findAll", async () => []);
 		const count = stub(Backlog, "count", async () => 5);
 		const query = stub(sequelize, "query", async () => []);
@@ -359,7 +357,7 @@ describe("backlogService empty input shortcuts", () => {
 		assert.equal(query.mock.callCount(), 0);
 	});
 
-	it("restrict the distinct game count to public entries when asked", async () => {
+	void it("restrict the distinct game count to public entries when asked", async () => {
 		const count = stub(Backlog, "count", async () => 2);
 
 		await backlogService.countDistinctGamesByUserStatusAndGameIds(
@@ -389,12 +387,12 @@ describe("backlogService empty input shortcuts", () => {
 	});
 });
 
-describe("backlogService.findLatestCompletedDurations", () => {
+void describe("backlogService.findLatestCompletedDurations", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("keys the durations by user and game", async () => {
+	void it("keys the durations by user and game", async () => {
 		const query = stub(sequelize, "query", async () => [
 			{ userId: "u-1", gameId: "g-1", realDuration: 12 },
 			{ userId: "u-2", gameId: "g-1", realDuration: 30 }

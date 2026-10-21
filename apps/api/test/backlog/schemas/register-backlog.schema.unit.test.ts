@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -15,15 +13,15 @@ const validRegistration = {
 	duration: 12.5
 };
 
-describe("RegisterBacklogSchema", () => {
-	it("accepts the minimal valid payload", () => {
+void describe("RegisterBacklogSchema", () => {
+	void it("accepts the minimal valid payload", () => {
 		assert.equal(
 			RegisterBacklogSchema.safeParse(validRegistration).success,
 			true
 		);
 	});
 
-	it("requires score and duration", () => {
+	void it("requires score and duration", () => {
 		const { score: _score, ...withoutScore } = validRegistration;
 		const { duration: _duration, ...withoutDuration } = validRegistration;
 
@@ -37,7 +35,7 @@ describe("RegisterBacklogSchema", () => {
 		);
 	});
 
-	it("rejects unknown statuses", () => {
+	void it("rejects unknown statuses", () => {
 		assert.equal(
 			RegisterBacklogSchema.safeParse({
 				...validRegistration,
@@ -47,7 +45,7 @@ describe("RegisterBacklogSchema", () => {
 		);
 	});
 
-	it("accepts every backlog status", () => {
+	void it("accepts every backlog status", () => {
 		for (const status of [
 			"not_started",
 			"playing",
@@ -66,7 +64,7 @@ describe("RegisterBacklogSchema", () => {
 		}
 	});
 
-	it("accepts userRating in half point steps between 0.5 and 5", () => {
+	void it("accepts userRating in half point steps between 0.5 and 5", () => {
 		for (const userRating of [0.5, 3, 4.5, 5]) {
 			assert.equal(
 				RegisterBacklogSchema.safeParse({
@@ -79,7 +77,7 @@ describe("RegisterBacklogSchema", () => {
 		}
 	});
 
-	it("rejects userRating outside 0.5-5 or off the half point step", () => {
+	void it("rejects userRating outside 0.5-5 or off the half point step", () => {
 		for (const userRating of [0, 0.25, 3.3, 5.5]) {
 			assert.equal(
 				RegisterBacklogSchema.safeParse({
@@ -92,7 +90,7 @@ describe("RegisterBacklogSchema", () => {
 		}
 	});
 
-	it("rejects dates that are not ISO calendar dates", () => {
+	void it("rejects dates that are not ISO calendar dates", () => {
 		assert.equal(
 			RegisterBacklogSchema.safeParse({
 				...validRegistration,
@@ -102,7 +100,7 @@ describe("RegisterBacklogSchema", () => {
 		);
 	});
 
-	it("rejects unknown fields", () => {
+	void it("rejects unknown fields", () => {
 		assert.equal(
 			RegisterBacklogSchema.safeParse({
 				...validRegistration,
@@ -112,7 +110,7 @@ describe("RegisterBacklogSchema", () => {
 		);
 	});
 
-	it("rejects a non positive realDuration", () => {
+	void it("rejects a non positive realDuration", () => {
 		assert.equal(
 			RegisterBacklogSchema.safeParse({
 				...validRegistration,

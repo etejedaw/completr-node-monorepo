@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -25,8 +23,8 @@ function buildShelfEntry() {
 	});
 }
 
-describe("gameShelfSerializer", () => {
-	it("serializes the entry with game and platform and no owner id", () => {
+void describe("gameShelfSerializer", () => {
+	void it("serializes the entry with game and platform and no owner id", () => {
 		const result = gameShelfSerializer(buildShelfEntry(), ["cozy"]);
 
 		assert.equal(result.edition, "Collector");
@@ -36,13 +34,13 @@ describe("gameShelfSerializer", () => {
 		assert.equal("userId" in result, false);
 	});
 
-	it("defaults moodTags to an empty list", () => {
+	void it("defaults moodTags to an empty list", () => {
 		assert.deepEqual(gameShelfSerializer(buildShelfEntry()).moodTags, []);
 	});
 });
 
-describe("gameShelfMeSerializer", () => {
-	it("adds the owner id and the inBacklog flag", () => {
+void describe("gameShelfMeSerializer", () => {
+	void it("adds the owner id and the inBacklog flag", () => {
 		const result = gameShelfMeSerializer(
 			buildShelfEntry(),
 			undefined,
@@ -54,13 +52,13 @@ describe("gameShelfMeSerializer", () => {
 		assert.deepEqual(result.moodTags, []);
 	});
 
-	it("defaults inBacklog to false", () => {
+	void it("defaults inBacklog to false", () => {
 		assert.equal(gameShelfMeSerializer(buildShelfEntry()).inBacklog, false);
 	});
 });
 
-describe("gameShelfSerializerTiny", () => {
-	it("returns only the flat shelf columns without relations", () => {
+void describe("gameShelfSerializerTiny", () => {
+	void it("returns only the flat shelf columns without relations", () => {
 		const result = gameShelfSerializerTiny(buildShelfEntry());
 
 		assert.deepEqual(Object.keys(result).sort(), [

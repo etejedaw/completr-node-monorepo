@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { afterEach, describe, it, mock } from "node:test";
@@ -20,8 +18,8 @@ const payload = {
 	sid: "s-1"
 };
 
-describe("access tokens", () => {
-	it("signs a token that verifies back to the same payload", () => {
+void describe("access tokens", () => {
+	void it("signs a token that verifies back to the same payload", () => {
 		const token = tokenService.signAccessToken(payload);
 
 		const verified = tokenService.verifyAccessToken(token);
@@ -30,7 +28,7 @@ describe("access tokens", () => {
 		assert.equal(verified.sid, "s-1");
 	});
 
-	it("sets an expiry on the token", () => {
+	void it("sets an expiry on the token", () => {
 		const decoded = jwt.decode(tokenService.signAccessToken(payload)) as {
 			exp: number;
 			iat: number;
@@ -39,13 +37,13 @@ describe("access tokens", () => {
 		assert.ok(decoded.exp > decoded.iat);
 	});
 
-	it("rejects a token signed with another secret", () => {
+	void it("rejects a token signed with another secret", () => {
 		const forged = jwt.sign(payload, "another-secret");
 
 		assert.throws(() => tokenService.verifyAccessToken(forged));
 	});
 
-	it("rejects an expired token", () => {
+	void it("rejects an expired token", () => {
 		const expired = jwt.sign(
 			payload,
 			environmentConfig.ACCESS_TOKEN_SECRET,
@@ -58,12 +56,12 @@ describe("access tokens", () => {
 	});
 });
 
-describe("createRefreshToken", () => {
+void describe("createRefreshToken", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("stores the SHA-256 hash of the raw token and returns the session id", async () => {
+	void it("stores the SHA-256 hash of the raw token and returns the session id", async () => {
 		const create = stub(RefreshToken, "create", async () => ({
 			id: "session-7"
 		}));
@@ -87,7 +85,7 @@ describe("createRefreshToken", () => {
 		assert.ok(stored.expiresAt.getTime() > Date.now());
 	});
 
-	it("stores a null device info when none is given", async () => {
+	void it("stores a null device info when none is given", async () => {
 		const create = stub(RefreshToken, "create", async () => ({ id: "s" }));
 
 		await tokenService.createRefreshToken("u-1");
@@ -100,18 +98,18 @@ describe("createRefreshToken", () => {
 	});
 });
 
-describe("verifyRefreshToken", () => {
+void describe("verifyRefreshToken", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("returns null for an unknown token", async () => {
+	void it("returns null for an unknown token", async () => {
 		stub(RefreshToken, "findOne", async () => null);
 
 		assert.equal(await tokenService.verifyRefreshToken("raw"), null);
 	});
 
-	it("looks the token up by its hash, never by the raw value", async () => {
+	void it("looks the token up by its hash, never by the raw value", async () => {
 		const findOne = stub(RefreshToken, "findOne", async () => null);
 
 		await tokenService.verifyRefreshToken("raw");
@@ -125,7 +123,7 @@ describe("verifyRefreshToken", () => {
 		);
 	});
 
-	it("deletes and rejects an expired token", async () => {
+	void it("deletes and rejects an expired token", async () => {
 		const destroy = spy();
 		stub(RefreshToken, "findOne", async () =>
 			asModel({ expiresAt: new Date(Date.now() - 1000), destroy })
@@ -135,7 +133,7 @@ describe("verifyRefreshToken", () => {
 		assert.equal(destroy.mock.callCount(), 1);
 	});
 
-	it("returns a valid token", async () => {
+	void it("returns a valid token", async () => {
 		const stored = asModel<RefreshToken>({
 			expiresAt: new Date(Date.now() + 60_000)
 		});
@@ -145,12 +143,12 @@ describe("verifyRefreshToken", () => {
 	});
 });
 
-describe("touchSessionLastUsed", () => {
+void describe("touchSessionLastUsed", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("updates a session at most once per throttle window", async () => {
+	void it("updates a session at most once per throttle window", async () => {
 		const update = stub(RefreshToken, "update", async () => [1]);
 
 		await tokenService.touchSessionLastUsed("throttled-session");
@@ -159,7 +157,7 @@ describe("touchSessionLastUsed", () => {
 		assert.equal(update.mock.callCount(), 1);
 	});
 
-	it("updates different sessions independently", async () => {
+	void it("updates different sessions independently", async () => {
 		const update = stub(RefreshToken, "update", async () => [1]);
 
 		await tokenService.touchSessionLastUsed("session-a");
@@ -169,12 +167,12 @@ describe("touchSessionLastUsed", () => {
 	});
 });
 
-describe("refresh token deletion", () => {
+void describe("refresh token deletion", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("deletes by id scoped to the user and reports whether something was deleted", async () => {
+	void it("deletes by id scoped to the user and reports whether something was deleted", async () => {
 		const destroy = stub(RefreshToken, "destroy", async () => 1);
 
 		assert.equal(
@@ -193,7 +191,7 @@ describe("refresh token deletion", () => {
 		);
 	});
 
-	it("keeps only the current session when revoking the others", async () => {
+	void it("keeps only the current session when revoking the others", async () => {
 		const destroy = stub(RefreshToken, "destroy", async () => 3);
 
 		const deleted = await tokenService.deleteOtherUserRefreshTokens(
@@ -207,7 +205,7 @@ describe("refresh token deletion", () => {
 		]);
 	});
 
-	it("deletes every session of the user", async () => {
+	void it("deletes every session of the user", async () => {
 		const destroy = stub(RefreshToken, "destroy", async () => 2);
 
 		await tokenService.deleteAllUserRefreshTokens("u-1");

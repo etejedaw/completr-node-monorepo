@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -8,8 +6,8 @@ import { wishlistSerializer } from "../../src/wishlist/wishlist.serializer";
 import { asModel } from "../unit-helpers/as-model";
 import { buildGame, buildPlatform } from "../unit-helpers/builders";
 
-describe("wishlistSerializer", () => {
-	it("serializes the game and the desired platform", () => {
+void describe("wishlistSerializer", () => {
+	void it("serializes the game and the desired platform", () => {
 		const entry = asModel<Wishlist>({
 			id: "w-1",
 			position: 0,
@@ -28,7 +26,7 @@ describe("wishlistSerializer", () => {
 		assert.deepEqual(result.moodTags, ["backlog"]);
 	});
 
-	it("returns a null platform when no platform was chosen", () => {
+	void it("returns a null platform when no platform was chosen", () => {
 		const entry = asModel<Wishlist>({
 			id: "w-1",
 			position: 0,
@@ -39,7 +37,7 @@ describe("wishlistSerializer", () => {
 		assert.equal(wishlistSerializer(entry).platform, null);
 	});
 
-	it("defaults moodTags to an empty list and omits a missing game", () => {
+	void it("defaults moodTags to an empty list and omits a missing game", () => {
 		const entry = asModel<Wishlist>({
 			id: "w-1",
 			position: 0,

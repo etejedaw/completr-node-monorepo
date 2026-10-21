@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -30,9 +28,9 @@ const statusTable: [string, string, number][] = [
 	["Common Module", "COMMON_REFERENCE_NOT_FOUND", 422]
 ];
 
-describe("globalErrorHttpNormalizer", () => {
+void describe("globalErrorHttpNormalizer", () => {
 	for (const [module, code, status] of statusTable) {
-		it(`maps ${code} to HTTP ${status}`, () => {
+		void it(`maps ${code} to HTTP ${status}`, () => {
 			const httpError = globalErrorHttpNormalizer(
 				new DomainError(module, code, "message"),
 				fakeRequest()
@@ -43,7 +41,7 @@ describe("globalErrorHttpNormalizer", () => {
 		});
 	}
 
-	it("maps an unmapped code of a known module to 500", () => {
+	void it("maps an unmapped code of a known module to 500", () => {
 		const httpError = globalErrorHttpNormalizer(
 			new DomainError("Game Module", "GAME_SOMETHING_NEW", "message"),
 			fakeRequest()
@@ -52,7 +50,7 @@ describe("globalErrorHttpNormalizer", () => {
 		assert.equal(httpError.status, 500);
 	});
 
-	it("maps an unknown module to 500", () => {
+	void it("maps an unknown module to 500", () => {
 		const httpError = globalErrorHttpNormalizer(
 			new DomainError("Ghost Module", "GHOST", "message"),
 			fakeRequest()
@@ -62,7 +60,7 @@ describe("globalErrorHttpNormalizer", () => {
 		assert.equal(httpError.type, "GHOST");
 	});
 
-	it("routes the COMMON INTERNAL_ERROR fallback to 500", () => {
+	void it("routes the COMMON INTERNAL_ERROR fallback to 500", () => {
 		const httpError = globalErrorHttpNormalizer(
 			new DomainError("COMMON", "INTERNAL_ERROR", "Unexpected error"),
 			fakeRequest()
@@ -71,7 +69,7 @@ describe("globalErrorHttpNormalizer", () => {
 		assert.equal(httpError.status, 500);
 	});
 
-	it("carries the request url, correlation id, context and issues", () => {
+	void it("carries the request url, correlation id, context and issues", () => {
 		const issues = [{ path: "name", code: "too_small", message: "short" }];
 
 		const httpError = globalErrorHttpNormalizer(

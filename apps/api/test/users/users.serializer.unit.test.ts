@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -60,8 +58,8 @@ function leaksSensitiveData(value: unknown) {
 	return SENSITIVE.some(secret => serialized.includes(secret));
 }
 
-describe("user serializers", () => {
-	it("never expose email or password hash except the admin view", () => {
+void describe("user serializers", () => {
+	void it("never expose email or password hash except the admin view", () => {
 		const user = buildUser();
 
 		for (const serialized of [
@@ -74,14 +72,14 @@ describe("user serializers", () => {
 		}
 	});
 
-	it("exposes the email only in the admin serializer", () => {
+	void it("exposes the email only in the admin serializer", () => {
 		const result = userAdminSerializer(buildUser());
 
 		assert.equal(result.email, "private@example.com");
 		assert.equal(JSON.stringify(result).includes("hash"), false);
 	});
 
-	it("include every visibility setting and theme in the me serializer", () => {
+	void it("include every visibility setting and theme in the me serializer", () => {
 		const result = userMeSerializer(buildUser());
 
 		assert.equal(result.queueVisibility, "friends");
@@ -89,7 +87,7 @@ describe("user serializers", () => {
 		assert.equal(result.theme, "refined-dark");
 	});
 
-	it("leave the public serializer with identity fields only", () => {
+	void it("leave the public serializer with identity fields only", () => {
 		assert.deepEqual(
 			Object.keys(userPublicSerializer(buildUser())).sort(),
 			["avatarUrl", "bio", "id", "name", "username"]
@@ -97,8 +95,8 @@ describe("user serializers", () => {
 	});
 });
 
-describe("restrictedProfileSerializer", () => {
-	it("marks the profile private and exposes only public identity and follow state", () => {
+void describe("restrictedProfileSerializer", () => {
+	void it("marks the profile private and exposes only public identity and follow state", () => {
 		const result = restrictedProfileSerializer({
 			kind: "restricted",
 			user: buildUser({ profileVisibility: "private" }),
@@ -116,7 +114,7 @@ describe("restrictedProfileSerializer", () => {
 	});
 });
 
-describe("fullProfileSerializer", () => {
+void describe("fullProfileSerializer", () => {
 	function buildFullProfile(isSelf: boolean) {
 		return {
 			kind: "full" as const,
@@ -150,13 +148,13 @@ describe("fullProfileSerializer", () => {
 		};
 	}
 
-	it("keeps backlog notes when the viewer is the owner", () => {
+	void it("keeps backlog notes when the viewer is the owner", () => {
 		const result = fullProfileSerializer(buildFullProfile(true));
 
 		assert.equal(result.backlogs[0] && "notes" in result.backlogs[0], true);
 	});
 
-	it("removes backlog notes when someone else views the profile", () => {
+	void it("removes backlog notes when someone else views the profile", () => {
 		const result = fullProfileSerializer(buildFullProfile(false));
 
 		assert.equal(
@@ -166,7 +164,7 @@ describe("fullProfileSerializer", () => {
 		assert.equal(JSON.stringify(result).includes("private notes"), false);
 	});
 
-	it("does not expose the user's email nor acceptFollowRequests", () => {
+	void it("does not expose the user's email nor acceptFollowRequests", () => {
 		const result = fullProfileSerializer(buildFullProfile(false));
 
 		assert.equal(leaksSensitiveData(result), false);
@@ -174,8 +172,8 @@ describe("fullProfileSerializer", () => {
 	});
 });
 
-describe("userCardSerializer", () => {
-	it("merges the summary with insights and the role", () => {
+void describe("userCardSerializer", () => {
+	void it("merges the summary with insights and the role", () => {
 		const result = userCardSerializer({
 			user: buildUser({ role: "premium" }),
 			isSelf: false,
@@ -194,8 +192,8 @@ describe("userCardSerializer", () => {
 	});
 });
 
-describe("enrichedUserListSerializer", () => {
-	it("adds follower count and progress to the list summary", () => {
+void describe("enrichedUserListSerializer", () => {
+	void it("adds follower count and progress to the list summary", () => {
 		const result = enrichedUserListSerializer({
 			list: asModel({
 				id: "l-1",
@@ -217,7 +215,7 @@ describe("enrichedUserListSerializer", () => {
 	});
 });
 
-describe("userHighlightsSerializer", () => {
+void describe("userHighlightsSerializer", () => {
 	function buildHighlights(isSelf: boolean): UserHighlightsBundle {
 		const entry = { get: () => buildBacklog() };
 		return asModel<UserHighlightsBundle>({
@@ -235,7 +233,7 @@ describe("userHighlightsSerializer", () => {
 		});
 	}
 
-	it("serializes with notes for the owner and nulls missing highlights", () => {
+	void it("serializes with notes for the owner and nulls missing highlights", () => {
 		const { highlights } = userHighlightsSerializer(buildHighlights(true));
 
 		assert.equal("notes" in highlights.recent[0]!, true);
@@ -243,7 +241,7 @@ describe("userHighlightsSerializer", () => {
 		assert.equal(highlights.month.completedCount, 2);
 	});
 
-	it("hides notes from everyone else in recent and month highlights", () => {
+	void it("hides notes from everyone else in recent and month highlights", () => {
 		const { highlights } = userHighlightsSerializer(buildHighlights(false));
 
 		assert.equal("notes" in highlights.recent[0]!, false);
@@ -251,7 +249,7 @@ describe("userHighlightsSerializer", () => {
 	});
 });
 
-describe("userCompletionsSerializer", () => {
+void describe("userCompletionsSerializer", () => {
 	function bundle(isSelf: boolean) {
 		const backlog = buildBacklog();
 		return {
@@ -262,13 +260,13 @@ describe("userCompletionsSerializer", () => {
 		};
 	}
 
-	it("attaches the review of each game", () => {
+	void it("attaches the review of each game", () => {
 		const { completions } = userCompletionsSerializer(bundle(true));
 
 		assert.equal(completions[0]?.hasReview, true);
 	});
 
-	it("hides notes when the viewer is not the owner", () => {
+	void it("hides notes when the viewer is not the owner", () => {
 		const { completions, total } = userCompletionsSerializer(bundle(false));
 
 		assert.equal("notes" in completions[0]!, false);
@@ -276,8 +274,8 @@ describe("userCompletionsSerializer", () => {
 	});
 });
 
-describe("userReviewsSerializer", () => {
-	it("resolves the playthrough duration by user and game", () => {
+void describe("userReviewsSerializer", () => {
+	void it("resolves the playthrough duration by user and game", () => {
 		const result = userReviewsSerializer(
 			asModel<UserReviewsBundle>({
 				user: { id: "u-1" },

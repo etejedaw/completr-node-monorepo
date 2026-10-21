@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
@@ -13,12 +11,12 @@ import { hashOneTimeToken } from "../../../src/common/utils/one-time-token.util"
 import { asModel } from "../../unit-helpers/as-model";
 import { stub } from "../../unit-helpers/mocks";
 
-describe("createPasswordResetToken", () => {
+void describe("createPasswordResetToken", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("removes the previous tokens of the user before issuing a new one", async () => {
+	void it("removes the previous tokens of the user before issuing a new one", async () => {
 		const destroy = stub(PasswordResetToken, "destroy", async () => 1);
 		stub(PasswordResetToken, "create", async () => ({}));
 
@@ -29,7 +27,7 @@ describe("createPasswordResetToken", () => {
 		]);
 	});
 
-	it("stores only the hash of the returned raw token with the configured expiry", async () => {
+	void it("stores only the hash of the returned raw token with the configured expiry", async () => {
 		stub(PasswordResetToken, "destroy", async () => 0);
 		const create = stub(PasswordResetToken, "create", async () => ({}));
 		const before = Date.now();
@@ -51,12 +49,12 @@ describe("createPasswordResetToken", () => {
 	});
 });
 
-describe("claimPasswordResetToken", () => {
+void describe("claimPasswordResetToken", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("returns null for an unknown or expired token", async () => {
+	void it("returns null for an unknown or expired token", async () => {
 		stub(PasswordResetToken, "findOne", async () => null);
 		const destroy = stub(PasswordResetToken, "destroy", async () => 0);
 
@@ -64,7 +62,7 @@ describe("claimPasswordResetToken", () => {
 		assert.equal(destroy.mock.callCount(), 0);
 	});
 
-	it("looks the token up by hash", async () => {
+	void it("looks the token up by hash", async () => {
 		const findOne = stub(PasswordResetToken, "findOne", async () => null);
 		const raw = "b".repeat(64);
 
@@ -78,7 +76,7 @@ describe("claimPasswordResetToken", () => {
 		assert.equal(where.tokenHash, hashOneTimeToken(raw));
 	});
 
-	it("returns null when another request already consumed the token", async () => {
+	void it("returns null when another request already consumed the token", async () => {
 		stub(PasswordResetToken, "findOne", async () =>
 			asModel({ id: "t-1", userId: "u-1" })
 		);
@@ -88,7 +86,7 @@ describe("claimPasswordResetToken", () => {
 		assert.equal(destroy.mock.callCount(), 1);
 	});
 
-	it("consumes the token and every other token of the user", async () => {
+	void it("consumes the token and every other token of the user", async () => {
 		stub(PasswordResetToken, "findOne", async () =>
 			asModel({ id: "t-1", userId: "u-1" })
 		);

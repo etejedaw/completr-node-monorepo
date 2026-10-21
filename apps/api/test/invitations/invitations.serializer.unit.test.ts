@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -17,8 +15,8 @@ function buildInvitation(expiresAt: Date) {
 	});
 }
 
-describe("invitationSerializer", () => {
-	it("flags an invitation in the past as expired", () => {
+void describe("invitationSerializer", () => {
+	void it("flags an invitation in the past as expired", () => {
 		const result = invitationSerializer(
 			buildInvitation(new Date(Date.now() - 1000))
 		);
@@ -26,7 +24,7 @@ describe("invitationSerializer", () => {
 		assert.equal(result.isExpired, true);
 	});
 
-	it("keeps a future invitation as not expired", () => {
+	void it("keeps a future invitation as not expired", () => {
 		const result = invitationSerializer(
 			buildInvitation(new Date(Date.now() + 60_000))
 		);
@@ -34,7 +32,7 @@ describe("invitationSerializer", () => {
 		assert.equal(result.isExpired, false);
 	});
 
-	it("never exposes the token hash", () => {
+	void it("never exposes the token hash", () => {
 		const result = invitationSerializer(buildInvitation(new Date()));
 
 		assert.equal("tokenHash" in result, false);

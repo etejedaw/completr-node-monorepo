@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -8,8 +6,8 @@ import { queueSerializer } from "../../src/queue/queue.serializer";
 import { asModel } from "../unit-helpers/as-model";
 import { buildBacklog } from "../unit-helpers/builders";
 
-describe("queueSerializer", () => {
-	it("serializes position and the backlog with its ratio", () => {
+void describe("queueSerializer", () => {
+	void it("serializes position and the backlog with its ratio", () => {
 		const entry = asModel<Queue>({
 			id: "q-1",
 			position: 2,
@@ -28,7 +26,7 @@ describe("queueSerializer", () => {
 		});
 	});
 
-	it("returns an undefined backlog when the relation was not loaded", () => {
+	void it("returns an undefined backlog when the relation was not loaded", () => {
 		const result = queueSerializer(
 			asModel<Queue>({ id: "q-1", position: 1, Backlog: undefined })
 		);
@@ -36,7 +34,7 @@ describe("queueSerializer", () => {
 		assert.equal(result.backlog, undefined);
 	});
 
-	it("returns undefined game and platform when they were not loaded", () => {
+	void it("returns undefined game and platform when they were not loaded", () => {
 		const result = queueSerializer(
 			asModel<Queue>({
 				id: "q-1",

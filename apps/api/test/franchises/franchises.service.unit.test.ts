@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
@@ -16,12 +14,12 @@ function errorCode(error: unknown) {
 	return (error as { code: string }).code;
 }
 
-describe("franchisesService.registerFranchise", () => {
+void describe("franchisesService.registerFranchise", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("derives the code from the franchise name", async () => {
+	void it("derives the code from the franchise name", async () => {
 		const create = stub(
 			Franchise,
 			"create",
@@ -38,7 +36,7 @@ describe("franchisesService.registerFranchise", () => {
 		});
 	});
 
-	it("maps a unique violation to FRANCHISE_UNIQUE_CONSTRAINT", async () => {
+	void it("maps a unique violation to FRANCHISE_UNIQUE_CONSTRAINT", async () => {
 		stub(Franchise, "create", async () => {
 			throw new UniqueConstraintError({});
 		});
@@ -51,12 +49,12 @@ describe("franchisesService.registerFranchise", () => {
 	});
 });
 
-describe("franchisesService.updateFranchise", () => {
+void describe("franchisesService.updateFranchise", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("fails with FRANCHISE_NOT_FOUND for a missing franchise", async () => {
+	void it("fails with FRANCHISE_NOT_FOUND for a missing franchise", async () => {
 		stub(Franchise, "findOne", async () => null);
 
 		const error = await captureRejection(
@@ -66,7 +64,7 @@ describe("franchisesService.updateFranchise", () => {
 		assert.equal(errorCode(error), "FRANCHISE_NOT_FOUND");
 	});
 
-	it("regenerates the code from the new name", async () => {
+	void it("regenerates the code from the new name", async () => {
 		const update = spy();
 		const franchise = asModel({ update });
 		stub(Franchise, "findOne", async () => franchise);
@@ -81,7 +79,7 @@ describe("franchisesService.updateFranchise", () => {
 		]);
 	});
 
-	it("maps a unique violation on update", async () => {
+	void it("maps a unique violation on update", async () => {
 		stub(Franchise, "findOne", async () =>
 			asModel({
 				update: async () => {
@@ -98,12 +96,12 @@ describe("franchisesService.updateFranchise", () => {
 	});
 });
 
-describe("franchisesService.removeFranchise", () => {
+void describe("franchisesService.removeFranchise", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("returns false without deleting when the franchise does not exist", async () => {
+	void it("returns false without deleting when the franchise does not exist", async () => {
 		stub(Franchise, "findOne", async () => null);
 		const destroy = stub(Franchise, "destroy", async () => 0);
 
@@ -111,7 +109,7 @@ describe("franchisesService.removeFranchise", () => {
 		assert.equal(destroy.mock.callCount(), 0);
 	});
 
-	it("deletes an existing franchise", async () => {
+	void it("deletes an existing franchise", async () => {
 		stub(Franchise, "findOne", async () => asModel({ id: "f-1" }));
 		const destroy = stub(Franchise, "destroy", async () => 1);
 
@@ -122,12 +120,12 @@ describe("franchisesService.removeFranchise", () => {
 	});
 });
 
-describe("franchisesService tracking", () => {
+void describe("franchisesService tracking", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("tracks a franchise idempotently with findOrCreate", async () => {
+	void it("tracks a franchise idempotently with findOrCreate", async () => {
 		const findOrCreate = stub(UserFranchise, "findOrCreate", async () => [
 			{},
 			false
@@ -140,7 +138,7 @@ describe("franchisesService tracking", () => {
 		]);
 	});
 
-	it("reports whether the user tracks a franchise", async () => {
+	void it("reports whether the user tracks a franchise", async () => {
 		stub(UserFranchise, "findOne", async () => asModel({ id: "x" }));
 		assert.equal(
 			await franchisesService.isTrackingFranchise("u-1", "f-1"),
@@ -155,7 +153,7 @@ describe("franchisesService tracking", () => {
 		);
 	});
 
-	it("lists the tracked franchise ids", async () => {
+	void it("lists the tracked franchise ids", async () => {
 		stub(UserFranchise, "findAll", async () => [
 			{ franchiseId: "f-1" },
 			{ franchiseId: "f-2" }
@@ -168,12 +166,12 @@ describe("franchisesService tracking", () => {
 	});
 });
 
-describe("franchisesService.findTrackedFranchiseProgress", () => {
+void describe("franchisesService.findTrackedFranchiseProgress", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("returns nothing without querying when no franchise is tracked", async () => {
+	void it("returns nothing without querying when no franchise is tracked", async () => {
 		const find = stub(Franchise, "findAll", async () => []);
 
 		assert.deepEqual(
@@ -183,7 +181,7 @@ describe("franchisesService.findTrackedFranchiseProgress", () => {
 		assert.equal(find.mock.callCount(), 0);
 	});
 
-	it("counts completed games per franchise and sorts by completed descending", async () => {
+	void it("counts completed games per franchise and sorts by completed descending", async () => {
 		stub(gamesSearchService, "findFranchiseIdsForGameIds", async () => [
 			"f-2",
 			"f-2",

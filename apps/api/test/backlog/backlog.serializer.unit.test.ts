@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -9,21 +7,21 @@ import {
 } from "../../src/backlog/backlog.serializer";
 import { buildBacklog, buildGame } from "../unit-helpers/builders";
 
-describe("backlogSerializer", () => {
-	it("derives ratio and personalRatio from score, duration and real duration", () => {
+void describe("backlogSerializer", () => {
+	void it("derives ratio and personalRatio from score, duration and real duration", () => {
 		const result = backlogSerializer(buildBacklog());
 
 		assert.equal(result.ratio, 4);
 		assert.equal(result.personalRatio, 8);
 	});
 
-	it("leaves personalRatio undefined when there is no real duration", () => {
+	void it("leaves personalRatio undefined when there is no real duration", () => {
 		const result = backlogSerializer(buildBacklog({ realDuration: null }));
 
 		assert.equal(result.personalRatio, undefined);
 	});
 
-	it("exposes the private notes and latest progress to the owner", () => {
+	void it("exposes the private notes and latest progress to the owner", () => {
 		const progress = {
 			note: "boss down",
 			createdAt: new Date("2024-01-02")
@@ -35,7 +33,7 @@ describe("backlogSerializer", () => {
 		assert.deepEqual(result.latestProgress, progress);
 	});
 
-	it("reports hasReview only when the review has non blank content", () => {
+	void it("reports hasReview only when the review has non blank content", () => {
 		assert.equal(
 			backlogSerializer(buildBacklog(), { content: "Great", rating: 5 })
 				.hasReview,
@@ -54,7 +52,7 @@ describe("backlogSerializer", () => {
 		assert.equal(backlogSerializer(buildBacklog()).hasReview, false);
 	});
 
-	it("defaults optional collections and nulls", () => {
+	void it("defaults optional collections and nulls", () => {
 		const result = backlogSerializer(buildBacklog());
 
 		assert.deepEqual(result.moodTags, []);
@@ -66,7 +64,7 @@ describe("backlogSerializer", () => {
 		assert.equal(result.compilationGame, null);
 	});
 
-	it("serializes the compilation game as a summary", () => {
+	void it("serializes the compilation game as a summary", () => {
 		const compilation = buildGame({
 			id: "comp-1",
 			code: "collection",
@@ -85,7 +83,7 @@ describe("backlogSerializer", () => {
 		});
 	});
 
-	it("only exposes the whitelisted game and platform fields", () => {
+	void it("only exposes the whitelisted game and platform fields", () => {
 		const result = backlogSerializer(buildBacklog());
 
 		assert.deepEqual(Object.keys(result.game).sort(), [
@@ -102,8 +100,8 @@ describe("backlogSerializer", () => {
 	});
 });
 
-describe("backlogPublicSerializer", () => {
-	it("never exposes the notes nor the latest progress", () => {
+void describe("backlogPublicSerializer", () => {
+	void it("never exposes the notes nor the latest progress", () => {
 		const progress = { note: "secret", createdAt: new Date() };
 
 		const result = backlogPublicSerializer(
@@ -118,7 +116,7 @@ describe("backlogPublicSerializer", () => {
 		assert.equal(JSON.stringify(result).includes("private notes"), false);
 	});
 
-	it("keeps the rest of the public fields", () => {
+	void it("keeps the rest of the public fields", () => {
 		const result = backlogPublicSerializer(
 			buildBacklog(),
 			{ content: "ok", rating: 4 },

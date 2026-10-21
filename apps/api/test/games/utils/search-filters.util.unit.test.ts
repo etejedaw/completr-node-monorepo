@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -25,23 +23,23 @@ function inSubquery(
 	return idFilter[operator]!.val;
 }
 
-describe("buildActiveFlagWhere", () => {
-	it("only returns active games by default", () => {
+void describe("buildActiveFlagWhere", () => {
+	void it("only returns active games by default", () => {
 		assert.deepEqual(buildActiveFlagWhere(undefined), { isActive: true });
 		assert.deepEqual(buildActiveFlagWhere({}), { isActive: true });
 	});
 
-	it("returns only inactive games when onlyInactive is set", () => {
+	void it("returns only inactive games when onlyInactive is set", () => {
 		assert.deepEqual(buildActiveFlagWhere({ onlyInactive: true }), {
 			isActive: false
 		});
 	});
 
-	it("does not filter when includeInactive is set", () => {
+	void it("does not filter when includeInactive is set", () => {
 		assert.deepEqual(buildActiveFlagWhere({ includeInactive: true }), {});
 	});
 
-	it("gives onlyInactive priority over includeInactive", () => {
+	void it("gives onlyInactive priority over includeInactive", () => {
 		assert.deepEqual(
 			buildActiveFlagWhere({ onlyInactive: true, includeInactive: true }),
 			{ isActive: false }
@@ -49,18 +47,18 @@ describe("buildActiveFlagWhere", () => {
 	});
 });
 
-describe("buildCompilationFlagsWhere", () => {
-	it("returns an empty filter without flags", () => {
+void describe("buildCompilationFlagsWhere", () => {
+	void it("returns an empty filter without flags", () => {
 		assert.deepEqual(buildCompilationFlagsWhere(undefined), {});
 	});
 
-	it("filters by isDlc even when false", () => {
+	void it("filters by isDlc even when false", () => {
 		assert.deepEqual(buildCompilationFlagsWhere({ isDlc: false }), {
 			isDlc: false
 		});
 	});
 
-	it("excludes compilations only when isCompilation is not explicit", () => {
+	void it("excludes compilations only when isCompilation is not explicit", () => {
 		assert.deepEqual(
 			buildCompilationFlagsWhere({ excludeCompilations: true }),
 			{
@@ -77,8 +75,8 @@ describe("buildCompilationFlagsWhere", () => {
 	});
 });
 
-describe("buildReleaseDateRangeWhere", () => {
-	it("spans from January 1st to December 31st of the given years", () => {
+void describe("buildReleaseDateRangeWhere", () => {
+	void it("spans from January 1st to December 31st of the given years", () => {
 		assert.deepEqual(buildReleaseDateRangeWhere(2000, 2005), {
 			releaseAt: {
 				[Op.gte]: new Date("2000-01-01"),
@@ -87,18 +85,18 @@ describe("buildReleaseDateRangeWhere", () => {
 		});
 	});
 
-	it("returns an empty filter when no year is given", () => {
+	void it("returns an empty filter when no year is given", () => {
 		assert.deepEqual(buildReleaseDateRangeWhere(undefined, undefined), {});
 	});
 });
 
-describe("genre and platform conditions", () => {
-	it("return null for missing or empty code lists", () => {
+void describe("genre and platform conditions", () => {
+	void it("return null for missing or empty code lists", () => {
 		assert.equal(buildGenreCondition(undefined), null);
 		assert.equal(buildPlatformCondition([]), null);
 	});
 
-	it("escape the codes inside the subquery", () => {
+	void it("escape the codes inside the subquery", () => {
 		assert.match(
 			inSubquery(buildGenreCondition(["rpg", "it's"])),
 			/g\.code IN \('rpg', 'it''s'\)/
@@ -110,8 +108,8 @@ describe("genre and platform conditions", () => {
 	});
 });
 
-describe("buildAggregateCondition", () => {
-	it("returns null without bounds", () => {
+void describe("buildAggregateCondition", () => {
+	void it("returns null without bounds", () => {
 		assert.equal(
 			buildAggregateCondition(
 				"GameScores",
@@ -123,7 +121,7 @@ describe("buildAggregateCondition", () => {
 		);
 	});
 
-	it("combines both bounds on the average", () => {
+	void it("combines both bounds on the average", () => {
 		const sql = inSubquery(
 			buildAggregateCondition("GameScores", "score", 2, 4)
 		);
@@ -131,7 +129,7 @@ describe("buildAggregateCondition", () => {
 		assert.match(sql, /HAVING AVG\(score\) >= 2 AND AVG\(score\) <= 4/);
 	});
 
-	it("keeps a zero minimum", () => {
+	void it("keeps a zero minimum", () => {
 		const sql = inSubquery(
 			buildAggregateCondition("GameTimes", "duration", 0, undefined)
 		);
@@ -140,15 +138,15 @@ describe("buildAggregateCondition", () => {
 	});
 });
 
-describe("missing relation and source exclusion conditions", () => {
-	it("exclude games present in the relation table", () => {
+void describe("missing relation and source exclusion conditions", () => {
+	void it("exclude games present in the relation table", () => {
 		assert.match(
 			inSubquery(buildMissingRelationCondition("GameScores"), Op.notIn),
 			/FROM "GameScores"/
 		);
 	});
 
-	it("return null when there are no sources to exclude", () => {
+	void it("return null when there are no sources to exclude", () => {
 		assert.equal(
 			buildSourceExclusionCondition("GameScores", undefined),
 			null
@@ -156,7 +154,7 @@ describe("missing relation and source exclusion conditions", () => {
 		assert.equal(buildSourceExclusionCondition("GameScores", []), null);
 	});
 
-	it("exclude games with any of the given sources", () => {
+	void it("exclude games with any of the given sources", () => {
 		assert.match(
 			inSubquery(
 				buildSourceExclusionCondition("GameTimes", ["hltb", "rawg"]),
@@ -167,7 +165,7 @@ describe("missing relation and source exclusion conditions", () => {
 	});
 });
 
-describe("buildOrder", () => {
+void describe("buildOrder", () => {
 	function orderSql(sortBy: string, sortOrder: string): string {
 		const [first] = buildOrder(sortBy, sortOrder) as unknown as [
 			{ val: string }
@@ -175,34 +173,34 @@ describe("buildOrder", () => {
 		return first.val;
 	}
 
-	it("sorts randomly regardless of direction", () => {
+	void it("sorts randomly regardless of direction", () => {
 		assert.equal(orderSql("random", "asc"), "RANDOM()");
 	});
 
-	it("sorts plain columns with the normalized direction", () => {
+	void it("sorts plain columns with the normalized direction", () => {
 		assert.deepEqual(buildOrder("title", "asc"), [["title", "ASC"]]);
 		assert.deepEqual(buildOrder("title", "desc"), [["title", "DESC"]]);
 	});
 
-	it("falls back to DESC for unexpected directions", () => {
+	void it("falls back to DESC for unexpected directions", () => {
 		assert.deepEqual(buildOrder("title", "sideways"), [["title", "DESC"]]);
 	});
 
-	it("sorts by score using the source with the lowest priority and nulls last", () => {
+	void it("sorts by score using the source with the lowest priority and nulls last", () => {
 		const sql = orderSql("score", "desc");
 
 		assert.match(sql, /ORDER BY ss\.priority ASC/);
 		assert.match(sql, /DESC NULLS LAST$/);
 	});
 
-	it("sorts by ratio dividing score by a non zero duration", () => {
+	void it("sorts by ratio dividing score by a non zero duration", () => {
 		assert.match(
 			orderSql("ratio", "asc"),
 			/NULLIF\(.*, 0\)\) ASC NULLS LAST$/s
 		);
 	});
 
-	it("sorts by popularity from the popularity table", () => {
+	void it("sorts by popularity from the popularity table", () => {
 		assert.match(orderSql("popularity", "desc"), /FROM "GamePopularities"/);
 	});
 });

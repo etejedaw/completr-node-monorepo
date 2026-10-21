@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -7,8 +5,8 @@ import { type Platform } from "../../src/platforms/platform.model";
 import { platformSerializer } from "../../src/platforms/platform.serializer";
 import { asModel } from "../unit-helpers/as-model";
 
-describe("platformSerializer", () => {
-	it("exposes the public catalog fields only", () => {
+void describe("platformSerializer", () => {
+	void it("exposes the public catalog fields only", () => {
 		const platform = asModel<Platform>({
 			id: "p-1",
 			name: "PlayStation 5",

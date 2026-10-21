@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -12,15 +10,15 @@ const validRegistration = {
 	name: "Player One"
 };
 
-describe("RegisterSchema", () => {
-	it("lowercases the email", () => {
+void describe("RegisterSchema", () => {
+	void it("lowercases the email", () => {
 		assert.equal(
 			RegisterSchema.parse(validRegistration).email,
 			"player@example.com"
 		);
 	});
 
-	it("rejects unknown fields such as role", () => {
+	void it("rejects unknown fields such as role", () => {
 		assert.equal(
 			RegisterSchema.safeParse({ ...validRegistration, role: "admin" })
 				.success,
@@ -28,7 +26,7 @@ describe("RegisterSchema", () => {
 		);
 	});
 
-	it("rejects angle brackets in the bio and bios over 250 characters", () => {
+	void it("rejects angle brackets in the bio and bios over 250 characters", () => {
 		assert.equal(
 			RegisterSchema.safeParse({ ...validRegistration, bio: "<i>" })
 				.success,
@@ -43,7 +41,7 @@ describe("RegisterSchema", () => {
 		);
 	});
 
-	it("rejects malformed emails and avatar urls", () => {
+	void it("rejects malformed emails and avatar urls", () => {
 		assert.equal(
 			RegisterSchema.safeParse({ ...validRegistration, email: "nope" })
 				.success,

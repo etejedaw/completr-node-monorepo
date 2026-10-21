@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
@@ -9,7 +7,7 @@ import {
 	getThemeTier
 } from "../../../src/users/helpers/theme.helper";
 
-describe("theme helper", () => {
+void describe("theme helper", () => {
 	beforeEach(() => {
 		THEME_CATALOG.push({ id: "gold-rush", tier: "premium" });
 	});
@@ -18,24 +16,24 @@ describe("theme helper", () => {
 		THEME_CATALOG.pop();
 	});
 
-	it("returns the tier of a catalog theme and null for unknown ones", () => {
+	void it("returns the tier of a catalog theme and null for unknown ones", () => {
 		assert.equal(getThemeTier("refined-dark"), "free");
 		assert.equal(getThemeTier("gold-rush"), "premium");
 		assert.equal(getThemeTier("ghost"), null);
 	});
 
-	it("lets every role use free themes", () => {
+	void it("lets every role use free themes", () => {
 		assert.equal(canUseTheme("refined-dark", "user"), true);
 	});
 
-	it("restricts premium themes to premium, moderator and admin", () => {
+	void it("restricts premium themes to premium, moderator and admin", () => {
 		assert.equal(canUseTheme("gold-rush", "user"), false);
 		assert.equal(canUseTheme("gold-rush", "premium"), true);
 		assert.equal(canUseTheme("gold-rush", "moderator"), true);
 		assert.equal(canUseTheme("gold-rush", "admin"), true);
 	});
 
-	it("rejects unknown themes for every role", () => {
+	void it("rejects unknown themes for every role", () => {
 		assert.equal(canUseTheme("ghost", "admin"), false);
 	});
 });

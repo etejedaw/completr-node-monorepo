@@ -1,12 +1,10 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { ChangePasswordSchema } from "../../../src/auth/schemas/change-password.schema";
 
-describe("ChangePasswordSchema", () => {
-	it("applies the password policy", () => {
+void describe("ChangePasswordSchema", () => {
+	void it("applies the password policy", () => {
 		assert.equal(
 			ChangePasswordSchema.safeParse({ password: "weak" }).success,
 			false
@@ -17,7 +15,7 @@ describe("ChangePasswordSchema", () => {
 		);
 	});
 
-	it("rejects unknown fields", () => {
+	void it("rejects unknown fields", () => {
 		assert.equal(
 			ChangePasswordSchema.safeParse({
 				password: "Abcdef1!",

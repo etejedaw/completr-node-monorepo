@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
@@ -26,12 +24,12 @@ function stubShelfEntry(userId: string) {
 	return update;
 }
 
-describe("gameShelfService.registerGameShelf", () => {
+void describe("gameShelfService.registerGameShelf", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("creates the entry for the requesting user", async () => {
+	void it("creates the entry for the requesting user", async () => {
 		stub(GameShelf, "count", async () => 0);
 		const create = stub(
 			GameShelf,
@@ -50,7 +48,7 @@ describe("gameShelfService.registerGameShelf", () => {
 		});
 	});
 
-	it("allows a free user one below the limit", async () => {
+	void it("allows a free user one below the limit", async () => {
 		stub(GameShelf, "count", async () => FREE_SHELF_LIMIT - 1);
 		const create = stub(GameShelf, "create", async () => ({}));
 
@@ -62,7 +60,7 @@ describe("gameShelfService.registerGameShelf", () => {
 		assert.equal(create.mock.callCount(), 1);
 	});
 
-	it("rejects a free user at the limit with GAME_SHELF_LIMIT_REACHED", async () => {
+	void it("rejects a free user at the limit with GAME_SHELF_LIMIT_REACHED", async () => {
 		stub(GameShelf, "count", async () => FREE_SHELF_LIMIT);
 		const create = stub(GameShelf, "create", async () => ({}));
 
@@ -77,7 +75,7 @@ describe("gameShelfService.registerGameShelf", () => {
 		assert.equal(create.mock.callCount(), 0);
 	});
 
-	it("does not count the shelf of premium, moderator and admin users", async () => {
+	void it("does not count the shelf of premium, moderator and admin users", async () => {
 		const count = stub(GameShelf, "count", async () => 10_000);
 		stub(GameShelf, "create", async () => ({}));
 
@@ -91,7 +89,7 @@ describe("gameShelfService.registerGameShelf", () => {
 		assert.equal(count.mock.callCount(), 0);
 	});
 
-	it("maps unique constraint errors to GAME_SHELF_UNIQUE_CONSTRAINT", async () => {
+	void it("maps unique constraint errors to GAME_SHELF_UNIQUE_CONSTRAINT", async () => {
 		stub(GameShelf, "count", async () => 0);
 		stub(GameShelf, "create", async () => {
 			throw new UniqueConstraintError({});
@@ -107,7 +105,7 @@ describe("gameShelfService.registerGameShelf", () => {
 		);
 	});
 
-	it("maps validation errors to GAME_SHELF_VALIDATION_ERROR", async () => {
+	void it("maps validation errors to GAME_SHELF_VALIDATION_ERROR", async () => {
 		stub(GameShelf, "count", async () => 0);
 		stub(GameShelf, "create", async () => {
 			throw new ValidationError("bad", []);
@@ -123,7 +121,7 @@ describe("gameShelfService.registerGameShelf", () => {
 		);
 	});
 
-	it("rethrows unexpected database errors untouched", async () => {
+	void it("rethrows unexpected database errors untouched", async () => {
 		const boom = new Error("connection lost");
 		stub(GameShelf, "count", async () => 0);
 		stub(GameShelf, "create", async () => {
@@ -138,12 +136,12 @@ describe("gameShelfService.registerGameShelf", () => {
 	});
 });
 
-describe("gameShelfService.updateGameShelf", () => {
+void describe("gameShelfService.updateGameShelf", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("fails with GAME_SHELF_NOT_FOUND when the entry does not exist", async () => {
+	void it("fails with GAME_SHELF_NOT_FOUND when the entry does not exist", async () => {
 		stub(GameShelf, "findOne", async () => null);
 
 		const error = await captureRejection(
@@ -153,7 +151,7 @@ describe("gameShelfService.updateGameShelf", () => {
 		assert.equal((error as { code: string }).code, "GAME_SHELF_NOT_FOUND");
 	});
 
-	it("fails with GAME_SHELF_FORBIDDEN when the entry belongs to someone else", async () => {
+	void it("fails with GAME_SHELF_FORBIDDEN when the entry belongs to someone else", async () => {
 		const update = stubShelfEntry("owner");
 
 		const error = await captureRejection(
@@ -164,7 +162,7 @@ describe("gameShelfService.updateGameShelf", () => {
 		assert.equal(update.mock.callCount(), 0);
 	});
 
-	it("updates the entry of its owner", async () => {
+	void it("updates the entry of its owner", async () => {
 		const update = stubShelfEntry("owner");
 
 		await gameShelfService.updateGameShelf("gs-1", "owner", { notes: "x" });
@@ -173,12 +171,12 @@ describe("gameShelfService.updateGameShelf", () => {
 	});
 });
 
-describe("gameShelfService.removeGameShelf", () => {
+void describe("gameShelfService.removeGameShelf", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("returns false when the entry does not exist", async () => {
+	void it("returns false when the entry does not exist", async () => {
 		stub(GameShelf, "findOne", async () => null);
 		const destroy = stub(GameShelf, "destroy", async () => 0);
 
@@ -189,7 +187,7 @@ describe("gameShelfService.removeGameShelf", () => {
 		assert.equal(destroy.mock.callCount(), 0);
 	});
 
-	it("returns false and keeps the entry when it belongs to someone else", async () => {
+	void it("returns false and keeps the entry when it belongs to someone else", async () => {
 		stubShelfEntry("owner");
 		const destroy = stub(GameShelf, "destroy", async () => 0);
 
@@ -200,7 +198,7 @@ describe("gameShelfService.removeGameShelf", () => {
 		assert.equal(destroy.mock.callCount(), 0);
 	});
 
-	it("deletes the entry scoped by id and owner", async () => {
+	void it("deletes the entry scoped by id and owner", async () => {
 		stubShelfEntry("owner");
 		const destroy = stub(GameShelf, "destroy", async () => 1);
 
@@ -214,12 +212,12 @@ describe("gameShelfService.removeGameShelf", () => {
 	});
 });
 
-describe("gameShelfService public shelf queries", () => {
+void describe("gameShelfService public shelf queries", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("only fetches public entries for other viewers", async () => {
+	void it("only fetches public entries for other viewers", async () => {
 		const findAndCountAll = stub(
 			GameShelf,
 			"findAndCountAll",
@@ -240,7 +238,7 @@ describe("gameShelfService public shelf queries", () => {
 		assert.equal(query.offset, 10);
 	});
 
-	it("includes private entries of the owner and filters by title when searching", async () => {
+	void it("includes private entries of the owner and filters by title when searching", async () => {
 		const findAndCountAll = stub(
 			GameShelf,
 			"findAndCountAll",
@@ -261,7 +259,7 @@ describe("gameShelfService public shelf queries", () => {
 		assert.equal(result.total, 3);
 	});
 
-	it("restricts game entries to public ones when asked", async () => {
+	void it("restricts game entries to public ones when asked", async () => {
 		const findAll = stub(GameShelf, "findAll", async () => []);
 
 		await gameShelfService.findGameEntriesByUserId("u-1", true, ["g-1"]);

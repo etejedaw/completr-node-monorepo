@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -25,8 +23,8 @@ function buildActivity(overrides: Record<string, unknown> = {}) {
 	});
 }
 
-describe("activitySerializer", () => {
-	it("resolves a game target", () => {
+void describe("activitySerializer", () => {
+	void it("resolves a game target", () => {
 		const result = activitySerializer(
 			buildActivity({
 				ActivityGame: {
@@ -49,7 +47,7 @@ describe("activitySerializer", () => {
 		});
 	});
 
-	it("resolves a list target", () => {
+	void it("resolves a list target", () => {
 		const result = activitySerializer(
 			buildActivity({
 				ActivityList: { List: { id: "l-1", name: "Favs" } }
@@ -63,7 +61,7 @@ describe("activitySerializer", () => {
 		});
 	});
 
-	it("resolves a user target using the username when the name is empty", () => {
+	void it("resolves a user target using the username when the name is empty", () => {
 		const result = activitySerializer(
 			buildActivity({
 				ActivityUser: {
@@ -82,7 +80,7 @@ describe("activitySerializer", () => {
 		assert.equal(result.target?.name, "friend");
 	});
 
-	it("prefers the game target over list and user targets", () => {
+	void it("prefers the game target over list and user targets", () => {
 		const result = activitySerializer(
 			buildActivity({
 				ActivityGame: {
@@ -100,11 +98,11 @@ describe("activitySerializer", () => {
 		assert.equal(result.target?.type, "game");
 	});
 
-	it("returns a null target when no relation was loaded", () => {
+	void it("returns a null target when no relation was loaded", () => {
 		assert.equal(activitySerializer(buildActivity()).target, null);
 	});
 
-	it("reads the metadata game and leaves it undefined otherwise", () => {
+	void it("reads the metadata game and leaves it undefined otherwise", () => {
 		const withMetadata = activitySerializer(
 			buildActivity({
 				metadata: {
@@ -128,7 +126,7 @@ describe("activitySerializer", () => {
 		assert.equal(activitySerializer(buildActivity()).game, undefined);
 	});
 
-	it("serializes the author without private fields and tolerates a missing author", () => {
+	void it("serializes the author without private fields and tolerates a missing author", () => {
 		const result = activitySerializer(buildActivity());
 
 		assert.equal("email" in (result.user ?? {}), false);

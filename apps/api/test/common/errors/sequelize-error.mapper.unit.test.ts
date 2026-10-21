@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -22,8 +20,8 @@ const mappers = {
 	foreignKey: mapperFor("FOREIGN_KEY")
 };
 
-describe("rethrowSequelizeError", () => {
-	it("maps a unique constraint error with the unique mapper", () => {
+void describe("rethrowSequelizeError", () => {
+	void it("maps a unique constraint error with the unique mapper", () => {
 		const raw = new UniqueConstraintError({});
 
 		assert.throws(
@@ -33,7 +31,7 @@ describe("rethrowSequelizeError", () => {
 		);
 	});
 
-	it("maps a validation error with the validation mapper", () => {
+	void it("maps a validation error with the validation mapper", () => {
 		assert.throws(
 			() =>
 				rethrowSequelizeError(new ValidationError("bad", []), mappers),
@@ -41,7 +39,7 @@ describe("rethrowSequelizeError", () => {
 		);
 	});
 
-	it("maps a foreign key error with the foreignKey mapper", () => {
+	void it("maps a foreign key error with the foreignKey mapper", () => {
 		assert.throws(
 			() =>
 				rethrowSequelizeError(
@@ -52,7 +50,7 @@ describe("rethrowSequelizeError", () => {
 		);
 	});
 
-	it("prefers the unique mapper because UniqueConstraintError extends ValidationError", () => {
+	void it("prefers the unique mapper because UniqueConstraintError extends ValidationError", () => {
 		assert.throws(
 			() =>
 				rethrowSequelizeError(new UniqueConstraintError({}), {
@@ -63,7 +61,7 @@ describe("rethrowSequelizeError", () => {
 		);
 	});
 
-	it("rethrows the original error when the matching mapper is missing", () => {
+	void it("rethrows the original error when the matching mapper is missing", () => {
 		const raw = new ForeignKeyConstraintError({});
 
 		assert.throws(
@@ -72,7 +70,7 @@ describe("rethrowSequelizeError", () => {
 		);
 	});
 
-	it("rethrows unrelated errors untouched", () => {
+	void it("rethrows unrelated errors untouched", () => {
 		const raw = new Error("boom");
 
 		assert.throws(

@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -15,8 +13,8 @@ function handle(error: Error, request = fakeRequest()) {
 	return captured;
 }
 
-describe("errorHandlerMiddleware", () => {
-	it("responds with the status and problem details of a service error", () => {
+void describe("errorHandlerMiddleware", () => {
+	void it("responds with the status and problem details of a service error", () => {
 		const captured = handle(
 			new ServiceError("GAME_NOT_FOUND", {
 				service: "Games Service",
@@ -33,7 +31,7 @@ describe("errorHandlerMiddleware", () => {
 		assert.ok(captured.body?.timestamp instanceof Date);
 	});
 
-	it("responds 402 when a free limit service error reaches the handler", () => {
+	void it("responds 402 when a free limit service error reaches the handler", () => {
 		const captured = handle(
 			new ServiceError("GAME_SHELF_LIMIT_REACHED", {
 				service: "GameShelf Service",
@@ -44,7 +42,7 @@ describe("errorHandlerMiddleware", () => {
 		assert.equal(captured.status, 402);
 	});
 
-	it("responds with the issues of a schema validation domain error", () => {
+	void it("responds with the issues of a schema validation domain error", () => {
 		const issues = [{ path: "score", code: "too_big", message: "max 5" }];
 
 		const captured = handle(
@@ -61,7 +59,7 @@ describe("errorHandlerMiddleware", () => {
 		assert.deepEqual(captured.body?.issues, issues);
 	});
 
-	it("omits issues when the error has none", () => {
+	void it("omits issues when the error has none", () => {
 		const captured = handle(
 			new DomainError("Game Module", "GAME_NOT_FOUND", "Game not found")
 		);
@@ -69,7 +67,7 @@ describe("errorHandlerMiddleware", () => {
 		assert.equal("issues" in (captured.body ?? {}), false);
 	});
 
-	it("includes the context outside production", () => {
+	void it("includes the context outside production", () => {
 		const captured = handle(
 			new DomainError("Game Module", "GAME_NOT_FOUND", "x", {
 				gameId: "1"
@@ -79,14 +77,14 @@ describe("errorHandlerMiddleware", () => {
 		assert.deepEqual(captured.body?.context, { gameId: "1" });
 	});
 
-	it("responds 500 INTERNAL_ERROR for unexpected errors", () => {
+	void it("responds 500 INTERNAL_ERROR for unexpected errors", () => {
 		const captured = handle(new Error("boom"));
 
 		assert.equal(captured.status, 500);
 		assert.equal(captured.body?.type, "INTERNAL_ERROR");
 	});
 
-	it("falls back to an empty correlation id when the request has no locals", () => {
+	void it("falls back to an empty correlation id when the request has no locals", () => {
 		const captured = handle(
 			new Error("boom"),
 			asModel({ originalUrl: "/x" })

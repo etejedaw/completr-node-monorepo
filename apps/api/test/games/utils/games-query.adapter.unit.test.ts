@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -10,8 +8,8 @@ function adapt(query: Partial<GamesQuery>) {
 	return mapGamesQueryToOptions(query as GamesQuery);
 }
 
-describe("mapGamesQueryToOptions", () => {
-	it("maps pagination, sort and search", () => {
+void describe("mapGamesQueryToOptions", () => {
+	void it("maps pagination, sort and search", () => {
 		const options = adapt({
 			limit: 10,
 			offset: 20,
@@ -25,13 +23,13 @@ describe("mapGamesQueryToOptions", () => {
 		assert.equal(options.search, "zelda");
 	});
 
-	it("prefers the genres list over the single genre", () => {
+	void it("prefers the genres list over the single genre", () => {
 		const options = adapt({ genres: ["rpg", "action"], genre: "puzzle" });
 
 		assert.deepEqual(options.filters?.genres, ["rpg", "action"]);
 	});
 
-	it("falls back to the single genre when the list is missing or empty", () => {
+	void it("falls back to the single genre when the list is missing or empty", () => {
 		assert.deepEqual(adapt({ genre: "puzzle" }).filters?.genres, [
 			"puzzle"
 		]);
@@ -41,11 +39,11 @@ describe("mapGamesQueryToOptions", () => {
 		);
 	});
 
-	it("leaves genres undefined when neither is given", () => {
+	void it("leaves genres undefined when neither is given", () => {
 		assert.equal(adapt({}).filters?.genres, undefined);
 	});
 
-	it("groups the compilation, status and missing flags", () => {
+	void it("groups the compilation, status and missing flags", () => {
 		const filters = adapt({
 			is_dlc: true,
 			exclude_compilations: true,
@@ -67,7 +65,7 @@ describe("mapGamesQueryToOptions", () => {
 		assert.deepEqual(filters?.excludedSources?.scoreSources, ["rawg"]);
 	});
 
-	it("maps release year and min/max ranges", () => {
+	void it("maps release year and min/max ranges", () => {
 		const filters = adapt({
 			release_year_from: 1990,
 			min_score: 2,

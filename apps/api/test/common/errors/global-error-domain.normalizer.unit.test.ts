@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -13,8 +11,8 @@ function serviceError(service: string, code: string) {
 	return new ServiceError(code, { service, raw: undefined });
 }
 
-describe("globalErrorDomainNormalizer", () => {
-	it("returns a DomainError as is", () => {
+void describe("globalErrorDomainNormalizer", () => {
+	void it("returns a DomainError as is", () => {
 		const domainError = new DomainError(
 			"Game Module",
 			"GAME_NOT_FOUND",
@@ -63,7 +61,7 @@ describe("globalErrorDomainNormalizer", () => {
 		expectedModule,
 		expectedCode
 	] of routedServices) {
-		it(`routes a ${service} ServiceError to ${expectedModule}`, () => {
+		void it(`routes a ${service} ServiceError to ${expectedModule}`, () => {
 			const domainError = globalErrorDomainNormalizer(
 				serviceError(service, code),
 				"corr"
@@ -75,7 +73,7 @@ describe("globalErrorDomainNormalizer", () => {
 		});
 	}
 
-	it("maps a ServiceError from an unknown service to INTERNAL_ERROR", () => {
+	void it("maps a ServiceError from an unknown service to INTERNAL_ERROR", () => {
 		const domainError = globalErrorDomainNormalizer(
 			serviceError("Ghost Service", "X"),
 			"corr"
@@ -85,7 +83,7 @@ describe("globalErrorDomainNormalizer", () => {
 		assert.equal(domainError.code, "INTERNAL_ERROR");
 	});
 
-	it("maps a foreign key error on parent delete to COMMON_RESOURCE_IN_USE", () => {
+	void it("maps a foreign key error on parent delete to COMMON_RESOURCE_IN_USE", () => {
 		const raw = new ForeignKeyConstraintError({
 			message:
 				'update or delete on table "Games" violates foreign key constraint'
@@ -97,7 +95,7 @@ describe("globalErrorDomainNormalizer", () => {
 		assert.equal(domainError.code, "COMMON_RESOURCE_IN_USE");
 	});
 
-	it("maps a foreign key error on child insert to COMMON_REFERENCE_NOT_FOUND", () => {
+	void it("maps a foreign key error on child insert to COMMON_REFERENCE_NOT_FOUND", () => {
 		const raw = new ForeignKeyConstraintError({
 			message:
 				'insert or update on table "Backlogs" violates foreign key constraint'
@@ -108,7 +106,7 @@ describe("globalErrorDomainNormalizer", () => {
 		assert.equal(domainError.code, "COMMON_REFERENCE_NOT_FOUND");
 	});
 
-	it("wraps unexpected errors as INTERNAL_ERROR keeping the raw error", () => {
+	void it("wraps unexpected errors as INTERNAL_ERROR keeping the raw error", () => {
 		const raw = new Error("boom");
 
 		const domainError = globalErrorDomainNormalizer(raw, "corr");

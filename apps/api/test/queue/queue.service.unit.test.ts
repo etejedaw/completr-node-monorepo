@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
@@ -30,12 +28,12 @@ function backlogEntry(overrides: Record<string, unknown> = {}) {
 	});
 }
 
-describe("queueService.addFromBacklog", () => {
+void describe("queueService.addFromBacklog", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("rejects a free user whose queue is already at the limit", async () => {
+	void it("rejects a free user whose queue is already at the limit", async () => {
 		stub(Queue, "count", async () => FREE_QUEUE_LIMIT);
 		const find = stub(backlogService, "findBacklogBasicById", async () =>
 			backlogEntry()
@@ -49,7 +47,7 @@ describe("queueService.addFromBacklog", () => {
 		assert.equal(find.mock.callCount(), 0);
 	});
 
-	it("skips the limit for premium users", async () => {
+	void it("skips the limit for premium users", async () => {
 		const count = stub(Queue, "count", async () => 500);
 		stub(backlogService, "findBacklogBasicById", async () => null);
 
@@ -64,7 +62,7 @@ describe("queueService.addFromBacklog", () => {
 		assert.equal(count.mock.callCount(), 0);
 	});
 
-	it("fails when the backlog does not exist", async () => {
+	void it("fails when the backlog does not exist", async () => {
 		stub(Queue, "count", async () => 0);
 		stub(backlogService, "findBacklogBasicById", async () => null);
 
@@ -75,7 +73,7 @@ describe("queueService.addFromBacklog", () => {
 		assert.equal(errorCode(error), "QUEUE_BACKLOG_NOT_FOUND");
 	});
 
-	it("fails when the backlog belongs to another user", async () => {
+	void it("fails when the backlog belongs to another user", async () => {
 		stub(Queue, "count", async () => 0);
 		stub(backlogService, "findBacklogBasicById", async () =>
 			backlogEntry({ userId: "owner" })
@@ -89,7 +87,7 @@ describe("queueService.addFromBacklog", () => {
 	});
 
 	for (const status of ["playing", "completed", "abandoned", "endless"]) {
-		it(`only accepts not_started backlogs, rejecting ${status}`, async () => {
+		void it(`only accepts not_started backlogs, rejecting ${status}`, async () => {
 			stub(Queue, "count", async () => 0);
 			stub(backlogService, "findBacklogBasicById", async () =>
 				backlogEntry({ status })
@@ -103,7 +101,7 @@ describe("queueService.addFromBacklog", () => {
 		});
 	}
 
-	it("rejects a backlog that is already queued", async () => {
+	void it("rejects a backlog that is already queued", async () => {
 		stub(Queue, "count", async () => 0);
 		stub(backlogService, "findBacklogBasicById", async () =>
 			backlogEntry()
@@ -117,7 +115,7 @@ describe("queueService.addFromBacklog", () => {
 		assert.equal(errorCode(error), "QUEUE_ALREADY_EXISTS");
 	});
 
-	it("appends the entry at the end of the queue", async () => {
+	void it("appends the entry at the end of the queue", async () => {
 		stub(Queue, "count", async () => 3);
 		stub(backlogService, "findBacklogBasicById", async () =>
 			backlogEntry()
@@ -136,12 +134,12 @@ describe("queueService.addFromBacklog", () => {
 	});
 });
 
-describe("queueService.replaceQueue", () => {
+void describe("queueService.replaceQueue", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("clears the queue when the new list is empty", async () => {
+	void it("clears the queue when the new list is empty", async () => {
 		const destroy = stub(Queue, "destroy", async () => 2);
 
 		assert.deepEqual(await queueService.replaceQueue(FREE_USER, []), []);
@@ -150,7 +148,7 @@ describe("queueService.replaceQueue", () => {
 		]);
 	});
 
-	it("rejects more entries than the free limit before touching the database", async () => {
+	void it("rejects more entries than the free limit before touching the database", async () => {
 		const find = stub(
 			backlogService,
 			"findBacklogsByUserAndIds",
@@ -169,7 +167,7 @@ describe("queueService.replaceQueue", () => {
 		assert.equal(find.mock.callCount(), 0);
 	});
 
-	it("accepts exactly the free limit", async () => {
+	void it("accepts exactly the free limit", async () => {
 		const ids = Array.from(
 			{ length: FREE_QUEUE_LIMIT },
 			(_, index) => `b-${index}`
@@ -190,7 +188,7 @@ describe("queueService.replaceQueue", () => {
 		);
 	});
 
-	it("does not limit premium users", async () => {
+	void it("does not limit premium users", async () => {
 		const ids = Array.from({ length: 50 }, (_, index) => `b-${index}`);
 		stub(backlogService, "findBacklogsByUserAndIds", async () =>
 			ids.map(id => ({ id, status: "not_started" }))
@@ -206,7 +204,7 @@ describe("queueService.replaceQueue", () => {
 		);
 	});
 
-	it("fails when some backlogs are not the user's", async () => {
+	void it("fails when some backlogs are not the user's", async () => {
 		stub(backlogService, "findBacklogsByUserAndIds", async () => [
 			{ id: "b-1", status: "not_started" }
 		]);
@@ -218,7 +216,7 @@ describe("queueService.replaceQueue", () => {
 		assert.equal(errorCode(error), "QUEUE_BACKLOGS_NOT_FOUND");
 	});
 
-	it("fails when any backlog is not in not_started", async () => {
+	void it("fails when any backlog is not in not_started", async () => {
 		stub(backlogService, "findBacklogsByUserAndIds", async () => [
 			{ id: "b-1", status: "not_started" },
 			{ id: "b-2", status: "playing" }
@@ -231,7 +229,7 @@ describe("queueService.replaceQueue", () => {
 		assert.equal(errorCode(error), "QUEUE_BACKLOG_NOT_STARTED");
 	});
 
-	it("rebuilds the queue positions in the given order inside a transaction", async () => {
+	void it("rebuilds the queue positions in the given order inside a transaction", async () => {
 		stub(backlogService, "findBacklogsByUserAndIds", async () => [
 			{ id: "b-2", status: "not_started" },
 			{ id: "b-1", status: "not_started" }

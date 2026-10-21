@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -8,12 +6,12 @@ import { UpdateBacklogSchema } from "../../../src/backlog/schemas/update-backlog
 const GAME_ID = "0b1c2d3e-4f50-4a6b-8c7d-9e0f1a2b3c4d";
 const PLATFORM_ID = "1c2d3e4f-5061-4b7c-9d8e-0f1a2b3c4d5e";
 
-describe("UpdateBacklogSchema", () => {
-	it("accepts an empty update", () => {
+void describe("UpdateBacklogSchema", () => {
+	void it("accepts an empty update", () => {
 		assert.equal(UpdateBacklogSchema.safeParse({}).success, true);
 	});
 
-	it("allows clearing nullable fields with null", () => {
+	void it("allows clearing nullable fields with null", () => {
 		const parsed = UpdateBacklogSchema.safeParse({
 			startedAt: null,
 			finishedAt: null,
@@ -26,7 +24,7 @@ describe("UpdateBacklogSchema", () => {
 		assert.equal(parsed.success, true);
 	});
 
-	it("does not allow clearing score or duration with null", () => {
+	void it("does not allow clearing score or duration with null", () => {
 		assert.equal(
 			UpdateBacklogSchema.safeParse({ score: null }).success,
 			false
@@ -37,7 +35,7 @@ describe("UpdateBacklogSchema", () => {
 		);
 	});
 
-	it("does not allow changing the game or the platform", () => {
+	void it("does not allow changing the game or the platform", () => {
 		assert.equal(
 			UpdateBacklogSchema.safeParse({ gameId: GAME_ID }).success,
 			false
@@ -48,7 +46,7 @@ describe("UpdateBacklogSchema", () => {
 		);
 	});
 
-	it("keeps validating score precision on update", () => {
+	void it("keeps validating score precision on update", () => {
 		assert.equal(
 			UpdateBacklogSchema.safeParse({ score: 4.123 }).success,
 			false

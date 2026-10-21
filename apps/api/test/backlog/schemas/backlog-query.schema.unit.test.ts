@@ -1,12 +1,10 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { BacklogQuerySchema } from "../../../src/backlog/schemas/backlog-query.schema";
 
-describe("BacklogQuerySchema", () => {
-	it("splits a comma separated status into an array", () => {
+void describe("BacklogQuerySchema", () => {
+	void it("splits a comma separated status into an array", () => {
 		const parsed = BacklogQuerySchema.parse({
 			status: "playing,completed"
 		});
@@ -14,14 +12,14 @@ describe("BacklogQuerySchema", () => {
 		assert.deepEqual(parsed.status, ["playing", "completed"]);
 	});
 
-	it("rejects an unknown status inside the list", () => {
+	void it("rejects an unknown status inside the list", () => {
 		assert.equal(
 			BacklogQuerySchema.safeParse({ status: "playing,dropped" }).success,
 			false
 		);
 	});
 
-	it("drops empty items of platforms and genres lists", () => {
+	void it("drops empty items of platforms and genres lists", () => {
 		const parsed = BacklogQuerySchema.parse({
 			platforms: "pc,,ps5,",
 			genres: "rpg,"
@@ -31,14 +29,14 @@ describe("BacklogQuerySchema", () => {
 		assert.deepEqual(parsed.genres, ["rpg"]);
 	});
 
-	it("rejects mood_tags made only of separators", () => {
+	void it("rejects mood_tags made only of separators", () => {
 		assert.equal(
 			BacklogQuerySchema.safeParse({ mood_tags: ",," }).success,
 			false
 		);
 	});
 
-	it("parses boolean flags from query strings", () => {
+	void it("parses boolean flags from query strings", () => {
 		const parsed = BacklogQuerySchema.parse({
 			undated: "true",
 			coop_only: "false",
@@ -50,7 +48,7 @@ describe("BacklogQuerySchema", () => {
 		assert.equal(parsed.no_finished_date, true);
 	});
 
-	it("coerces numeric filters and pagination", () => {
+	void it("coerces numeric filters and pagination", () => {
 		const parsed = BacklogQuerySchema.parse({
 			min_score: "3.5",
 			max_ratio: "40",
@@ -64,7 +62,7 @@ describe("BacklogQuerySchema", () => {
 		assert.equal(parsed.offset, 20);
 	});
 
-	it("rejects invalid dates and uuids", () => {
+	void it("rejects invalid dates and uuids", () => {
 		assert.equal(
 			BacklogQuerySchema.safeParse({ started_from: "2024-13-01" })
 				.success,
@@ -76,7 +74,7 @@ describe("BacklogQuerySchema", () => {
 		);
 	});
 
-	it("accepts the ratio sort fields and rejects unknown ones", () => {
+	void it("accepts the ratio sort fields and rejects unknown ones", () => {
 		assert.equal(
 			BacklogQuerySchema.safeParse({ sort_by: "personalRatio" }).success,
 			true
@@ -87,7 +85,7 @@ describe("BacklogQuerySchema", () => {
 		);
 	});
 
-	it("limits the page size to 100", () => {
+	void it("limits the page size to 100", () => {
 		assert.equal(
 			BacklogQuerySchema.safeParse({ limit: "101" }).success,
 			false

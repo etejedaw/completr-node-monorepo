@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -8,8 +6,8 @@ import { favoriteSerializer } from "../../src/favorites/favorites.serializer";
 import { asModel } from "../unit-helpers/as-model";
 import { buildGame } from "../unit-helpers/builders";
 
-describe("favoriteSerializer", () => {
-	it("serializes position, game and the inBacklog flag", () => {
+void describe("favoriteSerializer", () => {
+	void it("serializes position, game and the inBacklog flag", () => {
 		const entry = asModel<Favorite>({
 			id: "f-1",
 			position: 3,
@@ -24,7 +22,7 @@ describe("favoriteSerializer", () => {
 		assert.equal(result.game?.title, "Hollow Knight");
 	});
 
-	it("defaults inBacklog to false and moodTags to empty", () => {
+	void it("defaults inBacklog to false and moodTags to empty", () => {
 		const result = favoriteSerializer(
 			asModel<Favorite>({ id: "f-1", position: 0, Game: undefined })
 		);

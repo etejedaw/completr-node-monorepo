@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
@@ -70,12 +68,12 @@ function stubGamesExist(ids: string[]) {
 	);
 }
 
-describe("listItemsService access rules", () => {
+void describe("listItemsService access rules", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("fails with LIST_ITEM_LIST_NOT_FOUND when the list does not exist", async () => {
+	void it("fails with LIST_ITEM_LIST_NOT_FOUND when the list does not exist", async () => {
 		stub(List, "findOne", async () => null);
 
 		for (const action of [
@@ -91,7 +89,7 @@ describe("listItemsService access rules", () => {
 		}
 	});
 
-	it("fails with LIST_ITEM_FORBIDDEN when the list belongs to someone else", async () => {
+	void it("fails with LIST_ITEM_FORBIDDEN when the list belongs to someone else", async () => {
 		stubList({ userId: "owner" });
 
 		for (const action of [
@@ -107,7 +105,7 @@ describe("listItemsService access rules", () => {
 		}
 	});
 
-	it("freezes add, replace and refresh for a free user above the list limit", async () => {
+	void it("freezes add, replace and refresh for a free user above the list limit", async () => {
 		stubList();
 		stubOwnedListCount(FREE_OWNED_LISTS_LIMIT + 1);
 
@@ -123,7 +121,7 @@ describe("listItemsService access rules", () => {
 		}
 	});
 
-	it("still allows removing an item while frozen", async () => {
+	void it("still allows removing an item while frozen", async () => {
 		stubList();
 		const count = stubOwnedListCount(FREE_OWNED_LISTS_LIMIT + 1);
 		const destroy = stub(ListItem, "destroy", async () => 1);
@@ -136,7 +134,7 @@ describe("listItemsService access rules", () => {
 		assert.equal(count.mock.callCount(), 0);
 	});
 
-	it("never freezes premium users", async () => {
+	void it("never freezes premium users", async () => {
 		stubList();
 		const count = stubOwnedListCount(100);
 		stub(ListItem, "findAll", async () => []);
@@ -152,12 +150,12 @@ describe("listItemsService access rules", () => {
 	});
 });
 
-describe("listItemsService.addItem", () => {
+void describe("listItemsService.addItem", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("returns the existing item without creating a duplicate", async () => {
+	void it("returns the existing item without creating a duplicate", async () => {
 		stubList();
 		stubOwnedListCount(1);
 		const existing = asModel({ id: "li-1" });
@@ -171,7 +169,7 @@ describe("listItemsService.addItem", () => {
 		assert.equal(create.mock.callCount(), 0);
 	});
 
-	it("fails when the game does not exist", async () => {
+	void it("fails when the game does not exist", async () => {
 		stubList();
 		stubOwnedListCount(1);
 		stub(ListItem, "findOne", async () => null);
@@ -184,7 +182,7 @@ describe("listItemsService.addItem", () => {
 		assert.equal(errorCode(error), "LIST_ITEM_GAMES_NOT_FOUND");
 	});
 
-	it("appends after the highest position and copies score and duration from the list sources", async () => {
+	void it("appends after the highest position and copies score and duration from the list sources", async () => {
 		stubList();
 		stubOwnedListCount(1);
 		stub(ListItem, "findOne", async () => null);
@@ -207,7 +205,7 @@ describe("listItemsService.addItem", () => {
 		});
 	});
 
-	it("starts at position 1 in an empty list and leaves missing data as null", async () => {
+	void it("starts at position 1 in an empty list and leaves missing data as null", async () => {
 		stubList();
 		stubOwnedListCount(1);
 		stub(ListItem, "findOne", async () => null);
@@ -227,7 +225,7 @@ describe("listItemsService.addItem", () => {
 		assert.equal(values.duration, null);
 	});
 
-	it("normalizes scores from non 0-5 sources to the 0-5 scale rounded to two decimals", async () => {
+	void it("normalizes scores from non 0-5 sources to the 0-5 scale rounded to two decimals", async () => {
 		stubList({ scoreSource: "metacritic" });
 		stubOwnedListCount(1);
 		stub(ListItem, "findOne", async () => null);
@@ -245,12 +243,12 @@ describe("listItemsService.addItem", () => {
 	});
 });
 
-describe("listItemsService.replaceItems", () => {
+void describe("listItemsService.replaceItems", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("clears the list when no games are given", async () => {
+	void it("clears the list when no games are given", async () => {
 		stubList();
 		stubOwnedListCount(1);
 		const destroy = stub(ListItem, "destroy", async () => 3);
@@ -264,7 +262,7 @@ describe("listItemsService.replaceItems", () => {
 		]);
 	});
 
-	it("fails and reports the games that do not exist", async () => {
+	void it("fails and reports the games that do not exist", async () => {
 		stubList();
 		stubOwnedListCount(1);
 		stubGamesExist(["g-1"]);
@@ -276,7 +274,7 @@ describe("listItemsService.replaceItems", () => {
 		assert.equal(errorCode(error), "LIST_ITEM_GAMES_NOT_FOUND");
 	});
 
-	it("deletes removed items, creates new ones and only moves items whose position changed", async () => {
+	void it("deletes removed items, creates new ones and only moves items whose position changed", async () => {
 		stubList();
 		stubOwnedListCount(1);
 		stubGamesExist(["g-3", "g-1", "g-2"]);
@@ -324,12 +322,12 @@ describe("listItemsService.replaceItems", () => {
 	});
 });
 
-describe("listItemsService.refreshScores", () => {
+void describe("listItemsService.refreshScores", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("reapplies the declared sources to every item and returns the count", async () => {
+	void it("reapplies the declared sources to every item and returns the count", async () => {
 		stubList();
 		stubOwnedListCount(1);
 		const first = spy();

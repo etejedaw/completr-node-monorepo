@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
@@ -35,19 +33,19 @@ function mockMutualFollowers(result: boolean) {
 	);
 }
 
-describe("canView", () => {
+void describe("canView", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("always allows the owner even when the section is private", async () => {
+	void it("always allows the owner even when the section is private", async () => {
 		const mutual = mockMutualFollowers(false);
 
 		assert.equal(await canView("owner", buildOwner(), "backlog"), true);
 		assert.equal(mutual.mock.callCount(), 0);
 	});
 
-	it("allows public sections to anonymous viewers", async () => {
+	void it("allows public sections to anonymous viewers", async () => {
 		assert.equal(
 			await canView(
 				undefined,
@@ -58,14 +56,14 @@ describe("canView", () => {
 		);
 	});
 
-	it("denies private sections to everyone else", async () => {
+	void it("denies private sections to everyone else", async () => {
 		mockMutualFollowers(true);
 
 		assert.equal(await canView("viewer", buildOwner(), "backlog"), false);
 		assert.equal(await canView(undefined, buildOwner(), "backlog"), false);
 	});
 
-	it("denies friends sections to anonymous viewers", async () => {
+	void it("denies friends sections to anonymous viewers", async () => {
 		const mutual = mockMutualFollowers(true);
 
 		assert.equal(
@@ -79,7 +77,7 @@ describe("canView", () => {
 		assert.equal(mutual.mock.callCount(), 0);
 	});
 
-	it("allows friends sections only to mutual followers", async () => {
+	void it("allows friends sections only to mutual followers", async () => {
 		const owner = buildOwner({ wishlistVisibility: "friends" });
 
 		mockMutualFollowers(true);
@@ -90,7 +88,7 @@ describe("canView", () => {
 		assert.equal(await canView("viewer", owner, "wishlist"), false);
 	});
 
-	it("checks the mutual follow between the viewer and the owner", async () => {
+	void it("checks the mutual follow between the viewer and the owner", async () => {
 		const mutual = mockMutualFollowers(true);
 
 		await canView(
@@ -102,7 +100,7 @@ describe("canView", () => {
 		assert.deepEqual(mutual.mock.calls[0]?.arguments, ["viewer", "owner"]);
 	});
 
-	it("resolves each section against its own visibility field", async () => {
+	void it("resolves each section against its own visibility field", async () => {
 		const owner = buildOwner({ profileVisibility: "public" });
 
 		assert.equal(await canView("viewer", owner, "profile"), true);
@@ -110,12 +108,12 @@ describe("canView", () => {
 	});
 });
 
-describe("resolveSectionAccess", () => {
+void describe("resolveSectionAccess", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("grants every section to the owner without checking followers", async () => {
+	void it("grants every section to the owner without checking followers", async () => {
 		const mutual = mockMutualFollowers(false);
 
 		const access = await resolveSectionAccess("owner", buildOwner());
@@ -124,7 +122,7 @@ describe("resolveSectionAccess", () => {
 		assert.equal(mutual.mock.callCount(), 0);
 	});
 
-	it("grants public sections and denies private ones to a stranger", async () => {
+	void it("grants public sections and denies private ones to a stranger", async () => {
 		const access = await resolveSectionAccess(
 			"viewer",
 			buildOwner({
@@ -138,7 +136,7 @@ describe("resolveSectionAccess", () => {
 		assert.equal(access.backlog, false);
 	});
 
-	it("grants friends sections to mutual followers with a single follower lookup", async () => {
+	void it("grants friends sections to mutual followers with a single follower lookup", async () => {
 		const mutual = mockMutualFollowers(true);
 
 		const access = await resolveSectionAccess(
@@ -155,7 +153,7 @@ describe("resolveSectionAccess", () => {
 		assert.equal(mutual.mock.callCount(), 1);
 	});
 
-	it("denies friends sections to non mutual followers", async () => {
+	void it("denies friends sections to non mutual followers", async () => {
 		mockMutualFollowers(false);
 
 		const access = await resolveSectionAccess(
@@ -166,7 +164,7 @@ describe("resolveSectionAccess", () => {
 		assert.equal(access.queue, false);
 	});
 
-	it("skips the follower lookup when no section is friends only or the viewer is anonymous", async () => {
+	void it("skips the follower lookup when no section is friends only or the viewer is anonymous", async () => {
 		const mutual = mockMutualFollowers(true);
 
 		await resolveSectionAccess(

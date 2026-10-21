@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
@@ -24,12 +22,12 @@ function stubGamesExist(ids: string[]) {
 	stub(Game, "findAll", async () => ids.map(id => ({ id })));
 }
 
-describe("favoritesService.replaceFavorites", () => {
+void describe("favoritesService.replaceFavorites", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("clears the favorites when the new list is empty", async () => {
+	void it("clears the favorites when the new list is empty", async () => {
 		const destroy = stub(Favorite, "destroy", async () => 3);
 
 		assert.deepEqual(
@@ -41,7 +39,7 @@ describe("favoritesService.replaceFavorites", () => {
 		]);
 	});
 
-	it("rejects a free user above the limit with FAVORITE_LIMIT_REACHED", async () => {
+	void it("rejects a free user above the limit with FAVORITE_LIMIT_REACHED", async () => {
 		const findAll = stub(Game, "findAll", async () => []);
 
 		const error = await captureRejection(
@@ -58,7 +56,7 @@ describe("favoritesService.replaceFavorites", () => {
 		assert.equal(findAll.mock.callCount(), 0);
 	});
 
-	it("accepts exactly the free limit and any amount for premium users", async () => {
+	void it("accepts exactly the free limit and any amount for premium users", async () => {
 		for (const [user, count] of [
 			[FREE_USER, FREE_FAVORITE_LIMIT],
 			[buildRequestUser({ role: "admin" }), 40]
@@ -79,7 +77,7 @@ describe("favoritesService.replaceFavorites", () => {
 		}
 	});
 
-	it("reports which games were not found", async () => {
+	void it("reports which games were not found", async () => {
 		stubGamesExist(["g-1"]);
 
 		const error = await captureRejection(
@@ -92,7 +90,7 @@ describe("favoritesService.replaceFavorites", () => {
 		);
 	});
 
-	it("rebuilds positions from 1 in the given order inside a transaction", async () => {
+	void it("rebuilds positions from 1 in the given order inside a transaction", async () => {
 		stubGamesExist(["g-2", "g-1"]);
 		const { transaction } = stubTransaction();
 		const destroy = stub(Favorite, "destroy", async () => 0);

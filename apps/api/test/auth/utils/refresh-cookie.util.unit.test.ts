@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -23,8 +21,8 @@ function recordingResponse() {
 	return { response, calls };
 }
 
-describe("setRefreshCookie", () => {
-	it("stores the token in an HttpOnly cookie scoped to /auth", () => {
+void describe("setRefreshCookie", () => {
+	void it("stores the token in an HttpOnly cookie scoped to /auth", () => {
 		const { response, calls } = recordingResponse();
 
 		setRefreshCookie(response, "token-value");
@@ -40,7 +38,7 @@ describe("setRefreshCookie", () => {
 		assert.equal(options.path, "/auth");
 	});
 
-	it("expires the cookie after the configured refresh token days", () => {
+	void it("expires the cookie after the configured refresh token days", () => {
 		const { response, calls } = recordingResponse();
 
 		setRefreshCookie(response, "token-value");
@@ -53,8 +51,8 @@ describe("setRefreshCookie", () => {
 	});
 });
 
-describe("clearRefreshCookie", () => {
-	it("clears the cookie using the same scope it was set with", () => {
+void describe("clearRefreshCookie", () => {
+	void it("clears the cookie using the same scope it was set with", () => {
 		const { response, calls } = recordingResponse();
 
 		clearRefreshCookie(response);

@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -8,22 +6,22 @@ import {
 	verifyPassword
 } from "../../../src/auth/services/password.service";
 
-describe("password service", () => {
-	it("hashes a password into a hash that is not the plain text", async () => {
+void describe("password service", () => {
+	void it("hashes a password into a hash that is not the plain text", async () => {
 		const hash = await hashPassword("Abcdef1!");
 
 		assert.notEqual(hash, "Abcdef1!");
 		assert.match(hash, /^\$2[aby]\$/);
 	});
 
-	it("produces a different hash on every call because of the salt", async () => {
+	void it("produces a different hash on every call because of the salt", async () => {
 		assert.notEqual(
 			await hashPassword("Abcdef1!"),
 			await hashPassword("Abcdef1!")
 		);
 	});
 
-	it("verifies the right password and rejects a wrong one", async () => {
+	void it("verifies the right password and rejects a wrong one", async () => {
 		const hash = await hashPassword("Abcdef1!");
 
 		assert.equal(await verifyPassword("Abcdef1!", hash), true);

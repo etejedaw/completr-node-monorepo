@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
@@ -35,12 +33,12 @@ function stubScoreSource(exists: boolean) {
 	return stub(scoreSourcesService, "existsByCode", async () => exists);
 }
 
-describe("listsService.createList", () => {
+void describe("listsService.createList", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("creates the list for the requesting user", async () => {
+	void it("creates the list for the requesting user", async () => {
 		stub(List, "count", async () => 0);
 		stubScoreSource(true);
 		const create = stub(List, "create", async (values: object) => values);
@@ -53,7 +51,7 @@ describe("listsService.createList", () => {
 		});
 	});
 
-	it("allows a free user one below the limit", async () => {
+	void it("allows a free user one below the limit", async () => {
 		stub(List, "count", async () => FREE_LIST_LIMIT - 1);
 		stubScoreSource(true);
 		const create = stub(List, "create", async () => ({}));
@@ -63,7 +61,7 @@ describe("listsService.createList", () => {
 		assert.equal(create.mock.callCount(), 1);
 	});
 
-	it("rejects a free user at the limit with LIST_LIMIT_REACHED", async () => {
+	void it("rejects a free user at the limit with LIST_LIMIT_REACHED", async () => {
 		stub(List, "count", async () => FREE_LIST_LIMIT);
 		const create = stub(List, "create", async () => ({}));
 
@@ -75,7 +73,7 @@ describe("listsService.createList", () => {
 		assert.equal(create.mock.callCount(), 0);
 	});
 
-	it("does not limit premium, moderator and admin users", async () => {
+	void it("does not limit premium, moderator and admin users", async () => {
 		const count = stub(List, "count", async () => 1000);
 		stubScoreSource(true);
 		stub(List, "create", async () => ({}));
@@ -90,7 +88,7 @@ describe("listsService.createList", () => {
 		assert.equal(count.mock.callCount(), 0);
 	});
 
-	it("rejects an unknown score source with LIST_SCORE_SOURCE_NOT_FOUND", async () => {
+	void it("rejects an unknown score source with LIST_SCORE_SOURCE_NOT_FOUND", async () => {
 		stub(List, "count", async () => 0);
 		stubScoreSource(false);
 		const create = stub(List, "create", async () => ({}));
@@ -104,7 +102,7 @@ describe("listsService.createList", () => {
 	});
 });
 
-describe("listsService.duplicateList", () => {
+void describe("listsService.duplicateList", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
@@ -126,7 +124,7 @@ describe("listsService.duplicateList", () => {
 		stub(List, "findOne", async () => source);
 	}
 
-	it("fails with LIST_NOT_FOUND when the source does not exist", async () => {
+	void it("fails with LIST_NOT_FOUND when the source does not exist", async () => {
 		stub(List, "findOne", async () => null);
 
 		const error = await captureRejection(
@@ -136,7 +134,7 @@ describe("listsService.duplicateList", () => {
 		assert.equal(errorCode(error), "LIST_NOT_FOUND");
 	});
 
-	it("fails with LIST_FORBIDDEN when copying someone else's private list", async () => {
+	void it("fails with LIST_FORBIDDEN when copying someone else's private list", async () => {
 		stubSource({ isPublic: false });
 
 		const error = await captureRejection(
@@ -146,7 +144,7 @@ describe("listsService.duplicateList", () => {
 		assert.equal(errorCode(error), "LIST_FORBIDDEN");
 	});
 
-	it("lets the owner duplicate their own private list", async () => {
+	void it("lets the owner duplicate their own private list", async () => {
 		stubSource({ isPublic: false, userId: "user-1" });
 		stub(List, "count", async () => 0);
 		const { transaction } = { transaction: { id: "tx" } };
@@ -165,7 +163,7 @@ describe("listsService.duplicateList", () => {
 		assert.equal(result.id, "new-1");
 	});
 
-	it("rejects a free user at the list limit", async () => {
+	void it("rejects a free user at the list limit", async () => {
 		stubSource();
 		stub(List, "count", async () => FREE_LIST_LIMIT);
 
@@ -176,7 +174,7 @@ describe("listsService.duplicateList", () => {
 		assert.equal(errorCode(error), "LIST_LIMIT_REACHED");
 	});
 
-	it("copies sources and items into a private list by default inside a transaction", async () => {
+	void it("copies sources and items into a private list by default inside a transaction", async () => {
 		stubSource();
 		stub(List, "count", async () => 0);
 		const transaction = { id: "tx" };
@@ -224,7 +222,7 @@ describe("listsService.duplicateList", () => {
 		]);
 	});
 
-	it("skips the item insert for an empty source list", async () => {
+	void it("skips the item insert for an empty source list", async () => {
 		stubSource({ ListItems: [] });
 		stub(List, "count", async () => 0);
 		stub(
@@ -244,7 +242,7 @@ describe("listsService.duplicateList", () => {
 	});
 });
 
-describe("listsService.updateList", () => {
+void describe("listsService.updateList", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
@@ -257,7 +255,7 @@ describe("listsService.updateList", () => {
 		return update;
 	}
 
-	it("fails with LIST_NOT_FOUND for a missing list", async () => {
+	void it("fails with LIST_NOT_FOUND for a missing list", async () => {
 		stub(List, "findOne", async () => null);
 
 		const error = await captureRejection(
@@ -267,7 +265,7 @@ describe("listsService.updateList", () => {
 		assert.equal(errorCode(error), "LIST_NOT_FOUND");
 	});
 
-	it("fails with LIST_FORBIDDEN for someone else's list", async () => {
+	void it("fails with LIST_FORBIDDEN for someone else's list", async () => {
 		const update = stubOwnedList("owner");
 
 		const error = await captureRejection(
@@ -278,7 +276,7 @@ describe("listsService.updateList", () => {
 		assert.equal(update.mock.callCount(), 0);
 	});
 
-	it("fails with LIST_FROZEN when a free user owns more lists than the limit", async () => {
+	void it("fails with LIST_FROZEN when a free user owns more lists than the limit", async () => {
 		const update = stubOwnedList();
 		stub(List, "count", async () => FREE_LIST_LIMIT + 1);
 
@@ -290,7 +288,7 @@ describe("listsService.updateList", () => {
 		assert.equal(update.mock.callCount(), 0);
 	});
 
-	it("does not freeze a free user who owns exactly the limit", async () => {
+	void it("does not freeze a free user who owns exactly the limit", async () => {
 		const update = stubOwnedList();
 		stub(List, "count", async () => FREE_LIST_LIMIT);
 
@@ -299,7 +297,7 @@ describe("listsService.updateList", () => {
 		assert.equal(update.mock.callCount(), 1);
 	});
 
-	it("never freezes premium users", async () => {
+	void it("never freezes premium users", async () => {
 		const update = stubOwnedList();
 		const count = stub(List, "count", async () => 100);
 
@@ -313,7 +311,7 @@ describe("listsService.updateList", () => {
 		assert.equal(update.mock.callCount(), 1);
 	});
 
-	it("validates the score source only when it changes", async () => {
+	void it("validates the score source only when it changes", async () => {
 		stubOwnedList();
 		stub(List, "count", async () => 0);
 		const exists = stubScoreSource(false);
@@ -328,12 +326,12 @@ describe("listsService.updateList", () => {
 	});
 });
 
-describe("listsService.removeList", () => {
+void describe("listsService.removeList", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("fails with LIST_NOT_FOUND and LIST_FORBIDDEN", async () => {
+	void it("fails with LIST_NOT_FOUND and LIST_FORBIDDEN", async () => {
 		stub(List, "findOne", async () => null);
 		const missing = await captureRejection(
 			listsService.removeList("l-1", FREE_USER)
@@ -349,7 +347,7 @@ describe("listsService.removeList", () => {
 		assert.equal(errorCode(forbidden), "LIST_FORBIDDEN");
 	});
 
-	it("deletes the list of its owner even when the account is frozen", async () => {
+	void it("deletes the list of its owner even when the account is frozen", async () => {
 		stub(List, "findOne", async () => asModel({ userId: "user-1" }));
 		const destroy = stub(List, "destroy", async () => 1);
 		const count = stub(List, "count", async () => 100);
@@ -362,12 +360,12 @@ describe("listsService.removeList", () => {
 	});
 });
 
-describe("listsService.findListsByUserId", () => {
+void describe("listsService.findListsByUserId", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("flags a free user above the limit as frozen", async () => {
+	void it("flags a free user above the limit as frozen", async () => {
 		stub(List, "findAndCountAll", async () => ({
 			rows: [],
 			count: FREE_LIST_LIMIT + 1
@@ -380,7 +378,7 @@ describe("listsService.findListsByUserId", () => {
 		assert.equal(result.total, FREE_LIST_LIMIT + 1);
 	});
 
-	it("does not flag as frozen at the limit nor for premium users", async () => {
+	void it("does not flag as frozen at the limit nor for premium users", async () => {
 		stub(List, "findAndCountAll", async () => ({ rows: [], count: 0 }));
 		stub(List, "count", async () => FREE_LIST_LIMIT);
 
@@ -399,12 +397,12 @@ describe("listsService.findListsByUserId", () => {
 	});
 });
 
-describe("listsService.getBacklogSummaryMap", () => {
+void describe("listsService.getBacklogSummaryMap", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("returns an empty map without querying when there are no games", async () => {
+	void it("returns an empty map without querying when there are no games", async () => {
 		const find = stub(
 			backlogService,
 			"findBacklogSummariesByUserAndGameIds",
@@ -418,7 +416,7 @@ describe("listsService.getBacklogSummaryMap", () => {
 		assert.equal(find.mock.callCount(), 0);
 	});
 
-	it("derives the personal ratio from score and real duration, null when missing", async () => {
+	void it("derives the personal ratio from score and real duration, null when missing", async () => {
 		stub(
 			backlogService,
 			"findBacklogSummariesByUserAndGameIds",
@@ -455,7 +453,7 @@ describe("listsService.getBacklogSummaryMap", () => {
 		});
 	});
 
-	it("forwards the publicOnly flag", async () => {
+	void it("forwards the publicOnly flag", async () => {
 		const find = stub(
 			backlogService,
 			"findBacklogSummariesByUserAndGameIds",
@@ -468,12 +466,12 @@ describe("listsService.getBacklogSummaryMap", () => {
 	});
 });
 
-describe("listsService.getListProgress", () => {
+void describe("listsService.getListProgress", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("returns zero progress for an empty list without counting backlogs", async () => {
+	void it("returns zero progress for an empty list without counting backlogs", async () => {
 		stub(ListItem, "findAll", async () => []);
 		const count = stub(
 			backlogService,
@@ -488,7 +486,7 @@ describe("listsService.getListProgress", () => {
 		assert.equal(count.mock.callCount(), 0);
 	});
 
-	it("counts completed, abandoned and endless games as finished", async () => {
+	void it("counts completed, abandoned and endless games as finished", async () => {
 		stub(ListItem, "findAll", async () => [
 			{ gameId: "g-1" },
 			{ gameId: "g-2" },
@@ -512,12 +510,12 @@ describe("listsService.getListProgress", () => {
 	});
 });
 
-describe("listsService.findUserListsWithGameFlag", () => {
+void describe("listsService.findUserListsWithGameFlag", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("marks which of the user's lists already contain the game", async () => {
+	void it("marks which of the user's lists already contain the game", async () => {
 		stub(List, "findAll", async () => [
 			{ id: "l-1", name: "A", isPublic: true },
 			{ id: "l-2", name: "B", isPublic: false }

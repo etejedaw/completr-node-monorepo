@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -35,8 +33,8 @@ function buildReview(overrides: Record<string, unknown> = {}) {
 	});
 }
 
-describe("reviewSerializer", () => {
-	it("serializes the author without private fields", () => {
+void describe("reviewSerializer", () => {
+	void it("serializes the author without private fields", () => {
 		const result = reviewSerializer(buildReview(), 12.5);
 
 		assert.deepEqual(result.user, {
@@ -49,7 +47,7 @@ describe("reviewSerializer", () => {
 		assert.equal(result.playthroughDuration, 12.5);
 	});
 
-	it("defaults playthroughDuration to null and user to null when not loaded", () => {
+	void it("defaults playthroughDuration to null and user to null when not loaded", () => {
 		const result = reviewSerializer(buildReview({ User: undefined }));
 
 		assert.equal(result.playthroughDuration, null);
@@ -57,8 +55,8 @@ describe("reviewSerializer", () => {
 	});
 });
 
-describe("userReviewSerializer", () => {
-	it("serializes the reviewed game instead of the author", () => {
+void describe("userReviewSerializer", () => {
+	void it("serializes the reviewed game instead of the author", () => {
 		const result = userReviewSerializer(buildReview(), 8);
 
 		assert.deepEqual(result.game, {
@@ -71,7 +69,7 @@ describe("userReviewSerializer", () => {
 		assert.equal("user" in result, false);
 	});
 
-	it("normalizes missing images to null and a missing game to null", () => {
+	void it("normalizes missing images to null and a missing game to null", () => {
 		const noImages = userReviewSerializer(
 			buildReview({
 				Game: buildGame({

@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
@@ -27,12 +25,12 @@ function gameIds(count: number) {
 	return Array.from({ length: count }, (_, index) => `g-${index}`);
 }
 
-describe("wishlistService.replaceWishlist", () => {
+void describe("wishlistService.replaceWishlist", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("clears the wishlist when the new list is empty", async () => {
+	void it("clears the wishlist when the new list is empty", async () => {
 		const destroy = stub(Wishlist, "destroy", async () => 2);
 
 		assert.deepEqual(
@@ -44,7 +42,7 @@ describe("wishlistService.replaceWishlist", () => {
 		]);
 	});
 
-	it("rejects a free user above the limit and allows exactly the limit", async () => {
+	void it("rejects a free user above the limit and allows exactly the limit", async () => {
 		const findGames = stub(Game, "findAll", async () => []);
 		const error = await captureRejection(
 			wishlistService.replaceWishlist(
@@ -72,7 +70,7 @@ describe("wishlistService.replaceWishlist", () => {
 		);
 	});
 
-	it("fails when some games do not exist", async () => {
+	void it("fails when some games do not exist", async () => {
 		stub(Game, "findAll", async () => [{ id: "g-1" }]);
 
 		const error = await captureRejection(
@@ -82,7 +80,7 @@ describe("wishlistService.replaceWishlist", () => {
 		assert.equal(errorCode(error), "WISHLIST_GAMES_NOT_FOUND");
 	});
 
-	it("rebuilds positions from 1 in the given order", async () => {
+	void it("rebuilds positions from 1 in the given order", async () => {
 		stub(Game, "findAll", async () => [{ id: "g-2" }, { id: "g-1" }]);
 		stub(Wishlist, "destroy", async () => 0);
 		const bulkCreate = stub(Wishlist, "bulkCreate", async () => []);
@@ -96,7 +94,7 @@ describe("wishlistService.replaceWishlist", () => {
 		]);
 	});
 
-	it(
+	void it(
 		"keeps the desired platform of entries that stay in the wishlist",
 		{
 			todo: "replaceWishlist destroys every entry and re-inserts only userId, gameId and position, so reordering drops each entry's platformId"
@@ -119,7 +117,7 @@ describe("wishlistService.replaceWishlist", () => {
 	);
 });
 
-describe("wishlistService.addToWishlist", () => {
+void describe("wishlistService.addToWishlist", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
@@ -133,7 +131,7 @@ describe("wishlistService.addToWishlist", () => {
 		return { findWishlist, create };
 	}
 
-	it("fails when the game does not exist", async () => {
+	void it("fails when the game does not exist", async () => {
 		stub(Game, "findOne", async () => null);
 
 		const error = await captureRejection(
@@ -143,7 +141,7 @@ describe("wishlistService.addToWishlist", () => {
 		assert.equal(errorCode(error), "WISHLIST_GAMES_NOT_FOUND");
 	});
 
-	it("fails when the desired platform does not exist", async () => {
+	void it("fails when the desired platform does not exist", async () => {
 		stub(Game, "findOne", async () => asModel({ id: "g-1" }));
 		stub(Platform, "findOne", async () => null);
 
@@ -154,7 +152,7 @@ describe("wishlistService.addToWishlist", () => {
 		assert.equal(errorCode(error), "WISHLIST_PLATFORM_NOT_FOUND");
 	});
 
-	it("does not check the platform when none is given", async () => {
+	void it("does not check the platform when none is given", async () => {
 		const platformLookup = stub(Platform, "findOne", async () => null);
 		stubHappyPath();
 
@@ -163,7 +161,7 @@ describe("wishlistService.addToWishlist", () => {
 		assert.equal(platformLookup.mock.callCount(), 0);
 	});
 
-	it("rejects a game that is already in the wishlist", async () => {
+	void it("rejects a game that is already in the wishlist", async () => {
 		stub(Game, "findOne", async () => asModel({ id: "g-1" }));
 		stub(Wishlist, "findOne", async () => asModel({ id: "w-1" }));
 
@@ -174,7 +172,7 @@ describe("wishlistService.addToWishlist", () => {
 		assert.equal(errorCode(error), "WISHLIST_ALREADY_EXISTS");
 	});
 
-	it("rejects a free user at the limit but allows premium users", async () => {
+	void it("rejects a free user at the limit but allows premium users", async () => {
 		stubHappyPath(FREE_WISHLIST_LIMIT);
 		const error = await captureRejection(
 			wishlistService.addToWishlist(FREE_USER, "g-1")
@@ -190,7 +188,7 @@ describe("wishlistService.addToWishlist", () => {
 		assert.equal(create.mock.callCount(), 1);
 	});
 
-	it("appends at the end with a null platform by default", async () => {
+	void it("appends at the end with a null platform by default", async () => {
 		const { create } = stubHappyPath(4);
 
 		await wishlistService.addToWishlist(FREE_USER, "g-1");
@@ -203,7 +201,7 @@ describe("wishlistService.addToWishlist", () => {
 		});
 	});
 
-	it("maps a concurrent unique violation to WISHLIST_ALREADY_EXISTS", async () => {
+	void it("maps a concurrent unique violation to WISHLIST_ALREADY_EXISTS", async () => {
 		stub(Game, "findOne", async () => asModel({ id: "g-1" }));
 		stub(Wishlist, "findOne", async () => null);
 		stub(Wishlist, "count", async () => 0);
@@ -219,12 +217,12 @@ describe("wishlistService.addToWishlist", () => {
 	});
 });
 
-describe("wishlistService.removeFromWishlist", () => {
+void describe("wishlistService.removeFromWishlist", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	it("fails with WISHLIST_NOT_FOUND when nothing was deleted", async () => {
+	void it("fails with WISHLIST_NOT_FOUND when nothing was deleted", async () => {
 		stub(Wishlist, "destroy", async () => 0);
 
 		const error = await captureRejection(
@@ -234,7 +232,7 @@ describe("wishlistService.removeFromWishlist", () => {
 		assert.equal(errorCode(error), "WISHLIST_NOT_FOUND");
 	});
 
-	it("deletes only the entry of the requesting user", async () => {
+	void it("deletes only the entry of the requesting user", async () => {
 		const destroy = stub(Wishlist, "destroy", async () => 1);
 
 		await wishlistService.removeFromWishlist(FREE_USER, "g-1");

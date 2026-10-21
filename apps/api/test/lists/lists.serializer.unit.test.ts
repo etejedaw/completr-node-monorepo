@@ -1,5 +1,3 @@
-/// <reference types="node" />
-
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -35,8 +33,8 @@ function buildList(overrides: Record<string, unknown> = {}) {
 	});
 }
 
-describe("listSerializer", () => {
-	it("marks lists owned by an admin as official", () => {
+void describe("listSerializer", () => {
+	void it("marks lists owned by an admin as official", () => {
 		assert.equal(listSerializer(buildList()).isOfficial, false);
 		assert.equal(
 			listSerializer(
@@ -46,7 +44,7 @@ describe("listSerializer", () => {
 		);
 	});
 
-	it("exposes the owner username only", () => {
+	void it("exposes the owner username only", () => {
 		const result = listSerializer(
 			buildList({
 				User: { username: "owner", role: "user", email: "x@y.z" }
@@ -56,14 +54,14 @@ describe("listSerializer", () => {
 		assert.deepEqual(result.owner, { username: "owner" });
 	});
 
-	it("returns a null owner when the user was not loaded", () => {
+	void it("returns a null owner when the user was not loaded", () => {
 		assert.equal(
 			listSerializer(buildList({ User: undefined })).owner,
 			null
 		);
 	});
 
-	it("defaults follower data and progress", () => {
+	void it("defaults follower data and progress", () => {
 		const result = listSerializer(buildList());
 
 		assert.equal(result.followerCount, 0);
@@ -71,7 +69,7 @@ describe("listSerializer", () => {
 		assert.equal(result.progress, null);
 	});
 
-	it("enriches items with the owner's backlog summary by game id", () => {
+	void it("enriches items with the owner's backlog summary by game id", () => {
 		const backlogSummaryMap = new Map([
 			[
 				"game-1",
@@ -89,7 +87,7 @@ describe("listSerializer", () => {
 		assert.equal(item?.personalRatio, 8);
 	});
 
-	it("nulls the backlog data of items the user has not played", () => {
+	void it("nulls the backlog data of items the user has not played", () => {
 		const [item] = listSerializer(buildList(), {
 			backlogSummaryMap: new Map()
 		}).items!;
@@ -99,7 +97,7 @@ describe("listSerializer", () => {
 		assert.equal(item?.personalRatio, null);
 	});
 
-	it("leaves items undefined when they were not loaded", () => {
+	void it("leaves items undefined when they were not loaded", () => {
 		assert.equal(
 			listSerializer(buildList({ ListItems: undefined })).items,
 			undefined
@@ -107,8 +105,8 @@ describe("listSerializer", () => {
 	});
 });
 
-describe("listSummarySerializer", () => {
-	it("maps preview items to a minimal game", () => {
+void describe("listSummarySerializer", () => {
+	void it("maps preview items to a minimal game", () => {
 		const result = listSummarySerializer(buildList());
 
 		assert.deepEqual(result.previewItems, [
@@ -124,7 +122,7 @@ describe("listSummarySerializer", () => {
 		]);
 	});
 
-	it("returns empty previews when items were not loaded", () => {
+	void it("returns empty previews when items were not loaded", () => {
 		assert.deepEqual(
 			listSummarySerializer(buildList({ ListItems: undefined }))
 				.previewItems,
@@ -132,7 +130,7 @@ describe("listSummarySerializer", () => {
 		);
 	});
 
-	it("does not expose the owner id", () => {
+	void it("does not expose the owner id", () => {
 		assert.equal("userId" in listSummarySerializer(buildList()), false);
 	});
 });
