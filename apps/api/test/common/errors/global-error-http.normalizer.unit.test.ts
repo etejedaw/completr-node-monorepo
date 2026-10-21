@@ -9,6 +9,7 @@ const statusTable: [string, string, number][] = [
 	["Game Module", "GAME_NOT_FOUND", 404],
 	["Game Module", "GAME_UNIQUE_CONSTRAINT", 409],
 	["Backlog Module", "BACKLOG_FORBIDDEN", 403],
+	["Backlog Module", "BACKLOG_UNIQUE_CONSTRAINT", 409],
 	["Backlog Module", "BACKLOG_VALIDATION_ERROR", 400],
 	["Auth Module", "AUTH_INVALID_CREDENTIALS", 401],
 	["Auth Module", "AUTH_RATE_LIMITED", 429],
