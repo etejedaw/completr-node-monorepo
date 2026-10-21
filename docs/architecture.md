@@ -17,6 +17,8 @@ El `package-lock.json`, ESLint, Prettier, Husky y lint-staged viven en la raíz.
 
 El resto de este documento describe el backend.
 
+`createApp()` devuelve la app sin abrir un puerto; `app.ts` es el único que llama a `listen`. Así los tests de integración usan la misma app con `supertest` (ver [`context/conventions.md`](./context/conventions.md#tests-de-la-api)).
+
 ## Stack
 
 | Capa           | Tecnología                               |
@@ -34,8 +36,8 @@ El resto de este documento describe el backend.
 
 ```
 apps/api/src/
-├── app.ts                  # Bootstrap (initDatabase + server)
-├── server.ts               # Express app, registro de routers y middlewares globales
+├── app.ts                  # Bootstrap: initDatabase, warning de RAWG y listen
+├── server.ts               # createApp(): arma la app Express (routers y middlewares globales) sin listen
 ├── common/                 # Infraestructura compartida (no es un módulo de negocio)
 │   ├── config/             # Variables de entorno y configuración (CORS, rate limiter, DB)
 │   ├── errors/             # Clases base (ServiceError, DomainError, HttpError) + normalizers globales

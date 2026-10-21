@@ -76,13 +76,32 @@ No comentar lo que el nombre ya dice. No dejar referencias a tareas, issues o PR
 
 Detalle del flujo en `.claude/skills/git-commit/SKILL.md`.
 
+## Tests de la API
+
+Viven en `apps/api/test/`, con la misma estructura modular que `src/`. Corren con `node:test` y TypeScript vía `-r ts-node/register`; los de integración usan `supertest` contra `createApp()` (de `src/server.ts`) sin levantar un puerto.
+
+| Archivo                                      | Qué es                                              |
+| -------------------------------------------- | --------------------------------------------------- |
+| `test/<modulo>/<modulo>.integration.test.ts` | Integración HTTP contra la DB de test               |
+| `test/<modulo>/<archivo>.unit.test.ts`       | Unitarios, sin DB                                   |
+| `test/helpers/`                              | Cliente supertest, truncado, factories, login, mail |
+| `test/global-setup.mjs`                      | Aplica las migraciones a la DB de test              |
+
+Comandos desde la raíz: `npm run test:api` (unitarios e integración), `npm run test:unit -w apps/api`, `npm run test:integration -w apps/api`, `npm run test:web` y `npm test` (API y web). El `test` de `apps/api` es `test:unit && test:integration`. Los scripts fijan `NODE_ENV=test` y cargan `apps/api/.env.test.local` si existe. Los tests entran en `tsconfig.json` (los revisa `typecheck`) pero no en `tsconfig.build.json`, que es el que usa `build`.
+
+- **DB de test:** servicio `postgres-test` de `apps/api/docker-compose.yml` (DB `completr_test`), que levanta `npm run db`. Con `NODE_ENV=test` la API se conecta por defecto a `127.0.0.1:5433`, usuario `root`, clave `toor`; las variables `PG_*` lo sobreescriben. Si el puerto local es otro, ponlo en `apps/api/.env.test.local` (por ejemplo `PG_PORT=5435`); ese archivo no se commitea.
+- **Migraciones:** el global setup de `test:integration` corre `sequelize-cli db:migrate --env test` antes de cada corrida. `test:unit` no lo usa ni toca la DB. No hay `sync()`.
+- **Aislamiento:** cada archivo de test corre en su propio proceso y `useTestDatabase()` hace `TRUNCATE ... RESTART IDENTITY CASCADE` de todas las tablas salvo `SequelizeMeta` antes de empezar. Dentro de un archivo los datos se comparten, así que las factories generan usernames y emails únicos. Los de integración corren con `--test-concurrency=1` porque comparten DB. El truncado también vacía los catálogos sembrados por migración (por ejemplo `ScoreSources`): el test que los necesita los crea con las factories, pasando el seed a `useTestDatabase(seed)`; los `before` de nivel raíz corren en paralelo y no sirven para eso.
+- **Entorno `test`:** el rate limiter queda desactivado y el mail no sale por SMTP: `MailClient.create` devuelve `InMemoryMailProvider`, cuyo `outbox` se inspecciona con `test/helpers/mail.helper.ts`.
+- **Bugs:** si un test revela un bug de `src/`, se deja marcado con `{ todo: "..." }` hasta que se corrija.
+
 ## Post-edición obligatoria
 
 Después de cualquier cambio de código, desde la raíz del repo:
 
 1. `npm run lint:fix`
 2. `npm run format`
-3. `npm run typecheck` si tocaste tipos o interfaces del backend o la landing (corre también `astro check`); `npm test` si tocaste el frontend; `npm run build:landing` si tocaste la landing, porque valida el contenido de `src/content/` contra su schema.
+3. `npm run typecheck` si tocaste tipos o interfaces del backend o la landing (corre también `astro check`); `npm run test:api` si tocaste el backend; `npm run test:web` si tocaste el frontend; `npm run build:landing` si tocaste la landing, porque valida el contenido de `src/content/` contra su schema.
 4. Si modificaste o agregaste un endpoint → actualizar `docs/api/` (Bruno v3.1, formato `.yml`).
 5. Si modificaste el schema de un modelo o una asociación → crear migración Sequelize en `apps/api/migrations/`. Cada `onDelete` de `associations.database.ts` va también como `ON DELETE` en la FK de la migración.
 6. Si cambiaste un enum, un constraint, una validación o un auto-comportamiento → actualizar [`../invariants.md`](../invariants.md).
