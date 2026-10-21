@@ -27,6 +27,27 @@ interface RefreshResponse {
 	data: { updatedItems: number };
 }
 
+interface GameListsResponse {
+	data: GameListsMembership;
+}
+
+export interface GameListsMembership {
+	lists: {
+		id: string;
+		name: string;
+		description?: string;
+		isOfficial: boolean;
+		completed: boolean;
+		owner: { username: string } | null;
+	}[];
+	myLists: {
+		id: string;
+		name: string;
+		isPublic: boolean;
+		contains: boolean;
+	}[];
+}
+
 export interface CreateListDto {
 	name: string;
 	description?: string;
@@ -124,6 +145,15 @@ export class ListsService {
 
 	removeItem(listId: string, gameId: string) {
 		return this.http.delete(`${this.baseUrl}/${listId}/items/${gameId}`);
+	}
+
+	setGameLists(gameId: string, listIds: string[]) {
+		return this.http
+			.put<GameListsResponse>(
+				`${environment.apiUrl}/games/${gameId}/lists`,
+				{ listIds }
+			)
+			.pipe(map(res => res.data));
 	}
 
 	refreshScores(id: string) {

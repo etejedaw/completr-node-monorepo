@@ -166,6 +166,21 @@ describe("ListsService", () => {
 		remove.flush(null);
 	});
 
+	it("sets the lists of a game in a single request and returns the new membership", () => {
+		const data = { lists: [], myLists: [{ id: "l1", contains: true }] };
+		let result: unknown;
+
+		service.setGameLists("g1", ["l1"]).subscribe(r => (result = r));
+
+		const req = httpTesting.expectOne(
+			`${environment.apiUrl}/games/g1/lists`
+		);
+		expect(req.request.method).toBe("PUT");
+		expect(req.request.body).toEqual({ listIds: ["l1"] });
+		req.flush({ data });
+		expect(result).toEqual(data);
+	});
+
 	it("refreshes the scores and returns how many items were updated", () => {
 		let updated: number | undefined;
 
