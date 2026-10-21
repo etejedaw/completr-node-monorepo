@@ -136,18 +136,35 @@ void describe("GET /lists/recent", () => {
 		);
 	});
 
-	void it(
-		"rejects a non-numeric limit with 422 COMMON_SCHEMA_INVALID",
-		{
-			todo: "GET /lists/recent and /lists/official read limit with Number() without a schema, so a non-numeric value reaches Sequelize as NaN"
-		},
-		async () => {
-			const response = await getLists("/lists/recent", { limit: "many" });
+	void it("honours the limit", async () => {
+		const owner = await createUser();
+		await createListAt(owner.id, minutesAgo(3));
+		await createListAt(owner.id, minutesAgo(2));
 
-			assert.equal(response.status, 422);
-			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		const response = await getLists("/lists/recent", { limit: 1 });
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.lists.length, 1);
+	});
+});
+
+void describe("limit validation of the discovery endpoints", () => {
+	for (const path of ["/lists/recent", "/lists/official"]) {
+		for (const limit of ["many", "0", "51", "1.5"]) {
+			void it(`rejects limit=${limit} on ${path} with 422 COMMON_SCHEMA_INVALID`, async () => {
+				const response = await getLists(path, { limit });
+
+				assert.equal(response.status, 422);
+				assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+			});
 		}
-	);
+
+		void it(`accepts the maximum limit of 50 on ${path}`, async () => {
+			const response = await getLists(path, { limit: 50 });
+
+			assert.equal(response.status, 200);
+		});
+	}
 });
 
 void describe("GET /lists/search", () => {
