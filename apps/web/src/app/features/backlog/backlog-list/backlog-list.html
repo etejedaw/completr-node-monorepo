@@ -73,6 +73,7 @@
 			<ui-search-bar
 				class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
 				placeholder="Search your library..."
+				ariaLabel="Search your library"
 				[value]="searchQuery()"
 				(valueChange)="onSearch($event)"
 			/>

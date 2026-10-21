@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	input,
 	model
 } from "@angular/core";
@@ -21,6 +22,7 @@ import { NgpSearch, NgpSearchClear } from "ng-primitives/search";
 				type="text"
 				class="flex-1 bg-transparent border-0 px-2.5 py-3 text-fg text-base outline-none placeholder:text-fg-muted"
 				[placeholder]="placeholder()"
+				[attr.aria-label]="accessibleName()"
 				[value]="value()"
 				(input)="onInput($event)"
 				(keydown.escape)="value.set('')"
@@ -44,6 +46,11 @@ import { NgpSearch, NgpSearchClear } from "ng-primitives/search";
 export class UiSearchBar {
 	value = model("");
 	placeholder = input("Search...");
+	ariaLabel = input<string | null>(null);
+
+	protected readonly accessibleName = computed(
+		() => this.ariaLabel() ?? this.placeholder().replace(/\.{3}$/, "")
+	);
 
 	protected onInput(event: Event) {
 		this.value.set((event.target as HTMLInputElement).value);
