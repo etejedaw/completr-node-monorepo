@@ -48,11 +48,10 @@ export async function updatePlatform(
 
 export async function removePlatform(id: string) {
 	const platform = await findPlatformById(id);
-	if (!platform) return false;
+	if (!platform) throw platformServiceError.notFoundError();
 
 	try {
 		await Platform.destroy({ where: { id } });
-		return true;
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			foreignKey: platformServiceError.inUseError

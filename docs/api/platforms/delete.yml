@@ -35,4 +35,5 @@ docs: |-
 
     ### Errors
 
+    - 404 `PLATFORM_NOT_FOUND` — The platform does not exist
     - 409 `PLATFORM_IN_USE` — The platform is referenced by games, shelves, backlogs or wishlist entries
