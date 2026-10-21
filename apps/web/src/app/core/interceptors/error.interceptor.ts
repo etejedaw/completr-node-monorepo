@@ -20,7 +20,10 @@ import { planLimitMessage } from "../utils/plan-limit-message";
 
 let isRefreshing = false;
 const PLAN_LIMIT_TOAST_TITLE = "Free plan limit";
-const refreshSubject = new BehaviorSubject<string | null>(null);
+const REFRESH_FAILED = Symbol("refresh-failed");
+const refreshSubject = new BehaviorSubject<
+	string | typeof REFRESH_FAILED | null
+>(null);
 
 export function errorInterceptor(
 	req: HttpRequest<unknown>,
@@ -72,6 +75,8 @@ export function errorInterceptor(
 					filter(token => token !== null),
 					take(1),
 					switchMap(token => {
+						if (token === REFRESH_FAILED)
+							return throwError(() => error);
 						const retryReq = req.clone({
 							headers: req.headers.set(
 								"Authorization",
@@ -99,6 +104,7 @@ export function errorInterceptor(
 					return next(retryReq);
 				}),
 				catchError(refreshError => {
+					refreshSubject.next(REFRESH_FAILED);
 					auth.clearSession();
 					return throwError(() => refreshError);
 				}),

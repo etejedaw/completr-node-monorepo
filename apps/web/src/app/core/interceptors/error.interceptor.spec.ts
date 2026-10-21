@@ -246,7 +246,42 @@ describe("errorInterceptor", () => {
 		expect(onSecond).toHaveBeenCalledTimes(1);
 	});
 
-	it.todo(
-		"completes or errors requests queued behind a refresh that fails (they stay pending forever today)"
-	);
+	it("errors every request queued behind a refresh that fails", () => {
+		const onFirst = vi.fn<(error: HttpErrorResponse) => void>();
+		const onSecond = vi.fn<(error: HttpErrorResponse) => void>();
+
+		http.get("/api/first").subscribe({ error: onFirst });
+		http.get("/api/second").subscribe({ error: onSecond });
+		httpTesting
+			.expectOne("/api/first")
+			.flush(null, { status: 401, statusText: "Unauthorized" });
+		httpTesting
+			.expectOne("/api/second")
+			.flush(null, { status: 401, statusText: "Unauthorized" });
+
+		refresh$.error(new Error("refresh failed"));
+
+		expect(onFirst).toHaveBeenCalledTimes(1);
+		expect(onSecond).toHaveBeenCalledTimes(1);
+		expect(onSecond.mock.calls[0][0].status).toBe(401);
+		expect(auth.clearSession).toHaveBeenCalledTimes(1);
+	});
+
+	it("tries to refresh again on the next 401 after a failed refresh", () => {
+		http.get("/api/first").subscribe({ error: vi.fn() });
+		httpTesting
+			.expectOne("/api/first")
+			.flush(null, { status: 401, statusText: "Unauthorized" });
+		refresh$.error(new Error("refresh failed"));
+		expect(auth.refresh).toHaveBeenCalledTimes(1);
+
+		refresh$ = new Subject();
+		auth.refresh.mockReturnValue(refresh$);
+		http.get("/api/second").subscribe({ error: vi.fn() });
+		httpTesting
+			.expectOne("/api/second")
+			.flush(null, { status: 401, statusText: "Unauthorized" });
+
+		expect(auth.refresh).toHaveBeenCalledTimes(2);
+	});
 });
