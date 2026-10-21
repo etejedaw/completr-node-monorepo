@@ -10,7 +10,7 @@ import * as usersService from "../users/users.service";
 import { type AddQueueDto } from "./dtos/add-queue.dto";
 import { type ReplaceQueueDto } from "./dtos/replace-queue.dto";
 import * as queueDomainError from "./errors/queue.domain-error";
-import { queueSerializer } from "./queue.serializer";
+import { publicQueueSerializer, queueSerializer } from "./queue.serializer";
 import * as queueService from "./queue.service";
 import { type AddQueueQuery } from "./schemas/add-queue-query.schema";
 
@@ -130,7 +130,7 @@ export async function getUserQueue(request: Request, response: Response) {
 
 	const data = {
 		queue: entriesPlain.map(e =>
-			queueSerializer(
+			publicQueueSerializer(
 				e,
 				e.Backlog?.gameId ? tagsByGame.get(e.Backlog.gameId) : undefined
 			)
