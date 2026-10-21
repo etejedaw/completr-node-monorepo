@@ -24,7 +24,7 @@ docs: |-
 
     ### Response (200)
 
-    Same shape as Get My Queue, except that `backlog.notes` is never included: backlog notes are private.
+    Same shape as Get My Queue, except that `backlog.notes` and `backlog.moodTags` are never included, and entries whose backlog is private (`isPublic = false`) are excluded. `total` and pagination (`limit`, `offset`, `search`) count only the visible entries, and `position` is renumbered over the visible entries (`offset + index + 1`) so hidden entries leave no gaps.
 
     ### Errors
 
