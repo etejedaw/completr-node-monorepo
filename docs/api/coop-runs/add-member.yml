@@ -80,4 +80,4 @@ docs: |-
     | 403    | `COOP_FORBIDDEN`                | The backlog is not yours                        |
     | 422    | `COOP_SELF_TAG`                 | You tried to tag yourself                       |
     | 422    | `COOP_TARGET_NOT_FOLLOWED`      | You are not following the target user           |
-    | 422    | `COOP_ALREADY_TAGGED`           | User is already part of this run                |
+    | 422    | `COOP_ALREADY_TAGGED`           | User is already part of this run (with or without `targetBacklogId`) |

@@ -128,29 +128,23 @@ void describe("POST /users/me/backlog/:backlogId/coop", () => {
 		);
 	});
 
-	void it(
-		"rejects tagging the same member twice with 422 COOP_ALREADY_TAGGED",
-		{
-			todo: "without targetBacklogId the second tag ignores the member already in the run and creates another playthrough for them"
-		},
-		async () => {
-			const { host, partner, hostBacklog } = await seedCoopPair();
-			await addMember(host, hostBacklog.id, {
-				userId: partner.user.id
-			}).expect(201);
+	void it("rejects tagging the same member twice with 422 COOP_ALREADY_TAGGED", async () => {
+		const { host, partner, hostBacklog } = await seedCoopPair();
+		await addMember(host, hostBacklog.id, {
+			userId: partner.user.id
+		}).expect(201);
 
-			const response = await addMember(host, hostBacklog.id, {
-				userId: partner.user.id
-			});
+		const response = await addMember(host, hostBacklog.id, {
+			userId: partner.user.id
+		});
 
-			assert.equal(response.status, 422);
-			assert.equal(response.body.type, "COOP_ALREADY_TAGGED");
-			assert.equal(
-				await Backlog.count({ where: { userId: partner.user.id } }),
-				1
-			);
-		}
-	);
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COOP_ALREADY_TAGGED");
+		assert.equal(
+			await Backlog.count({ where: { userId: partner.user.id } }),
+			1
+		);
+	});
 
 	void it("rejects an explicit playthrough already in the run with 422 COOP_ALREADY_TAGGED", async () => {
 		const { host, partner, hostBacklog } = await seedCoopPair();
@@ -258,26 +252,50 @@ void describe("GET /users/me/backlog/:backlogId/coop", () => {
 		assert.deepEqual(await getMembers(host, hostBacklog.id), []);
 	});
 
-	void it(
-		"rejects listing the members of another user's playthrough with 403 COOP_FORBIDDEN",
-		{
-			todo: "GET /users/me/backlog/:backlogId/coop does not check that the backlog belongs to the caller"
-		},
-		async () => {
-			const { host, partner, hostBacklog } = await seedCoopPair();
-			await addMember(host, hostBacklog.id, {
-				userId: partner.user.id
-			}).expect(201);
-			const intruder = await createUserWithSession();
+	void it("lists the other members for a member of the run", async () => {
+		const { host, partner, hostBacklog } = await seedCoopPair();
+		const tagged = await addMember(host, hostBacklog.id, {
+			userId: partner.user.id
+		}).expect(201);
 
-			const response = await api()
-				.get(coopPath(hostBacklog.id))
-				.set("Authorization", intruder.authorization);
+		const response = await api()
+			.get(coopPath(tagged.body.data.targetBacklogId))
+			.set("Authorization", partner.authorization);
 
-			assert.equal(response.status, 403);
-			assert.equal(response.body.type, "COOP_FORBIDDEN");
-		}
-	);
+		assert.equal(response.status, 200);
+		assert.deepEqual(
+			response.body.data.members.map(
+				(member: { userId: string }) => member.userId
+			),
+			[host.user.id]
+		);
+	});
+
+	void it("rejects listing the members of another user's playthrough with 403 COOP_FORBIDDEN", async () => {
+		const { host, partner, hostBacklog } = await seedCoopPair();
+		await addMember(host, hostBacklog.id, {
+			userId: partner.user.id
+		}).expect(201);
+		const intruder = await createUserWithSession();
+
+		const response = await api()
+			.get(coopPath(hostBacklog.id))
+			.set("Authorization", intruder.authorization);
+
+		assert.equal(response.status, 403);
+		assert.equal(response.body.type, "COOP_FORBIDDEN");
+	});
+
+	void it("rejects an unknown playthrough with 404 COOP_BACKLOG_NOT_FOUND", async () => {
+		const { host } = await seedCoopPair();
+
+		const response = await api()
+			.get(coopPath(randomUUID()))
+			.set("Authorization", host.authorization);
+
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "COOP_BACKLOG_NOT_FOUND");
+	});
 });
 
 void describe("GET /users/me/backlog/:backlogId/coop/candidates", () => {

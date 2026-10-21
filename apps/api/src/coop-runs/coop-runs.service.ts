@@ -31,6 +31,21 @@ async function assertFollowing(currentUserId: string, targetUserId: string) {
 	if (!link) throw coopServiceError.notFollowingError();
 }
 
+async function assertNotInRun(coopRunId: string, userId: string) {
+	const membership = await Backlog.findOne({ where: { coopRunId, userId } });
+	if (membership) throw coopServiceError.alreadyTaggedError();
+}
+
+async function assertInRun(viewerId: string, backlog: Backlog) {
+	if (backlog.userId === viewerId) return;
+	if (!backlog.coopRunId) throw coopServiceError.forbiddenError();
+
+	const membership = await Backlog.findOne({
+		where: { coopRunId: backlog.coopRunId, userId: viewerId }
+	});
+	if (!membership) throw coopServiceError.forbiddenError();
+}
+
 export async function addMember(
 	currentUserId: string,
 	myBacklogId: string,
@@ -45,6 +60,9 @@ export async function addMember(
 	await assertFollowing(currentUserId, targetUserId);
 
 	const myBacklog = await loadOwnedBacklog(myBacklogId, currentUserId);
+	if (myBacklog.coopRunId)
+		await assertNotInRun(myBacklog.coopRunId, targetUserId);
+
 	const canSeeTargetBacklog = await canView(currentUserId, target, "backlog");
 
 	return sequelize.transaction(async transaction => {
@@ -224,7 +242,10 @@ export async function syncFromMember(
 	return myBacklog;
 }
 
-export async function findMembersForBacklog(backlogId: string): Promise<
+export async function findMembersForBacklog(
+	currentUserId: string,
+	backlogId: string
+): Promise<
 	{
 		userId: string;
 		username: string;
@@ -237,8 +258,9 @@ export async function findMembersForBacklog(backlogId: string): Promise<
 		realDuration: number | null;
 	}[]
 > {
-	const backlog = await Backlog.findOne({ where: { id: backlogId } });
-	if (!backlog || !backlog.coopRunId) return [];
+	const backlog = await loadAnyBacklog(backlogId);
+	await assertInRun(currentUserId, backlog);
+	if (!backlog.coopRunId) return [];
 
 	const peers = await Backlog.findAll({
 		where: {

@@ -51,3 +51,12 @@ docs: |-
     ```
 
     Empty array when the backlog has no `coopRunId`.
+
+    Only the owner of the backlog or a member of its run can list the members.
+
+    ### Errors
+
+    | Status | Type                     | Reason                                                  |
+    |--------|--------------------------|---------------------------------------------------------|
+    | 404    | `COOP_BACKLOG_NOT_FOUND` | The backlogId does not exist                            |
+    | 403    | `COOP_FORBIDDEN`         | The caller is neither the owner nor a member of the run |
