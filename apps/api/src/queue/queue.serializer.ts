@@ -9,24 +9,21 @@ export function queueSerializer(entry: Queue, moodTags?: string[]) {
 	};
 }
 
-export function publicQueueSerializer(entry: Queue, moodTags?: string[]) {
+export function publicQueueSerializer(entry: Queue, position: number) {
 	return {
 		id: entry.id,
-		position: entry.position,
-		backlog: publicBacklogSerializer(entry.Backlog, moodTags)
+		position,
+		backlog: publicBacklogSerializer(entry.Backlog)
 	};
 }
 
 function backlogSerializer(backlog: Queue["Backlog"], moodTags?: string[]) {
-	const publicBacklog = publicBacklogSerializer(backlog, moodTags);
+	const publicBacklog = publicBacklogSerializer(backlog);
 	if (!publicBacklog) return undefined;
-	return { ...publicBacklog, notes: backlog.notes };
+	return { ...publicBacklog, moodTags: moodTags ?? [], notes: backlog.notes };
 }
 
-function publicBacklogSerializer(
-	backlog: Queue["Backlog"],
-	moodTags?: string[]
-) {
+function publicBacklogSerializer(backlog: Queue["Backlog"]) {
 	if (!backlog) return undefined;
 	return {
 		id: backlog.id,
@@ -35,7 +32,6 @@ function publicBacklogSerializer(
 		duration: backlog.duration,
 		ratio: calculateRatio(backlog.score, backlog.duration),
 		startedAt: backlog.startedAt,
-		moodTags: moodTags ?? [],
 		game: gameSerializer(backlog.Game),
 		platform: platformSerializer(backlog.Platform)
 	};

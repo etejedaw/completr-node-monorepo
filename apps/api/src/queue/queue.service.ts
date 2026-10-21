@@ -202,13 +202,15 @@ export async function findQueueByUserId(userId: string) {
 
 export async function findQueueByUserIdPaginated(
 	userId: string,
-	pagination: PaginatedSearchQuery = {}
+	pagination: PaginatedSearchQuery = {},
+	publicOnly = false
 ) {
 	const include = pagination.search
 		? [
 				{
 					model: Backlog,
 					required: true,
+					where: publicOnly ? { isPublic: true } : undefined,
 					include: [
 						{
 							model: Game,
@@ -222,7 +224,15 @@ export async function findQueueByUserIdPaginated(
 					]
 				}
 			]
-		: BACKLOG_INCLUDE;
+		: publicOnly
+			? [
+					{
+						...BACKLOG_INCLUDE[0]!,
+						required: true,
+						where: { isPublic: true }
+					}
+				]
+			: BACKLOG_INCLUDE;
 
 	const query: Record<string, unknown> = {
 		where: { userId },
