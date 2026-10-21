@@ -152,9 +152,7 @@ describe("BacklogList interaction", () => {
 	}
 
 	function searchBox() {
-		return screen
-			.getAllByPlaceholderText("Search your library...")
-			.find(element => element instanceof HTMLInputElement)!;
+		return screen.getByRole("textbox", { name: "Search your library" });
 	}
 
 	function statusPills() {
@@ -214,6 +212,25 @@ describe("BacklogList interaction", () => {
 
 		expect(screen.getByText("3")).toBeInTheDocument();
 		expect(screen.getByText(/games in your library/)).toBeInTheDocument();
+	});
+
+	it("gives each card a short accessible name and describes it with its details", async () => {
+		await renderBacklog();
+
+		const hollowKnight = screen.getByRole("button", {
+			name: "Hollow Knight, Not Started"
+		});
+		expect(screen.getByRole("button", { name: "Hades, Playing" })).toBe(
+			card("Hades")
+		);
+		const details = document.getElementById(
+			hollowKnight.getAttribute("aria-describedby")!
+		);
+		expect(details).toContainElement(
+			within(hollowKnight).getAllByRole("link", {
+				name: "Hollow Knight"
+			})[0]
+		);
 	});
 
 	it("filters by status, then narrows the list with a title search", async () => {

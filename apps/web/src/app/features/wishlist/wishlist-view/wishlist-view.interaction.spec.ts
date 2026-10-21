@@ -145,9 +145,7 @@ describe("WishlistView interaction", () => {
 	}
 
 	function searchBox() {
-		return screen
-			.getAllByPlaceholderText("Search your wishlist...")
-			.find(element => element instanceof HTMLInputElement)!;
+		return screen.getByRole("textbox", { name: "Search Want to Get" });
 	}
 
 	async function renderWishlist() {
@@ -243,7 +241,7 @@ describe("WishlistView interaction", () => {
 
 		await user.click(
 			cover("Tunic").getAllByRole("button", {
-				name: "Remove from Want to Get"
+				name: "Remove Tunic from Want to Get"
 			})[0]
 		);
 		expect(coverTitles()).toEqual(["Hades", "Celeste"]);
@@ -260,7 +258,7 @@ describe("WishlistView interaction", () => {
 
 		await user.click(
 			cover("Tunic").getAllByRole("button", {
-				name: "Remove from Want to Get"
+				name: "Remove Tunic from Want to Get"
 			})[0]
 		);
 		await user.click(
@@ -277,22 +275,42 @@ describe("WishlistView interaction", () => {
 
 		await user.click(
 			cover("Celeste").getAllByRole("button", {
-				name: "Add to favorites"
+				name: "Add Celeste to favorites"
 			})[0]
 		);
 
 		await untilVisible(() =>
 			expect(
 				cover("Celeste").getAllByRole("button", {
-					name: "Remove from favorites"
+					name: "Remove Celeste from favorites"
 				})[0]
 			).toHaveAttribute("aria-pressed", "true")
 		);
 		expect(favoriteIds).toEqual(["g-celeste"]);
 		expect(
 			cover("Hades").getAllByRole("button", {
-				name: "Add to favorites"
+				name: "Add Hades to favorites"
 			})[0]
 		).toHaveAttribute("aria-pressed", "false");
+	});
+
+	it("names the cover actions after the game", async () => {
+		await renderWishlist();
+
+		expect(
+			cover("Hades").getAllByRole("button", {
+				name: "Remove Hades from Want to Get"
+			}).length
+		).toBeGreaterThan(0);
+		expect(
+			cover("Hades").getAllByRole("button", {
+				name: "Add Hades to favorites"
+			}).length
+		).toBeGreaterThan(0);
+		expect(
+			cover("Hades").queryAllByRole("button", {
+				name: "Remove Celeste from Want to Get"
+			})
+		).toHaveLength(0);
 	});
 });
