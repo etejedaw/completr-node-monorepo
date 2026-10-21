@@ -10,6 +10,7 @@ import { type TimeSource } from "../game-times/game-time.model";
 import * as gameTimesService from "../game-times/game-times.service";
 import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
+import * as gamesProfileService from "../games/services/games-profile.service";
 import { type List } from "../lists/list.model";
 import * as listsService from "../lists/lists.service";
 import { type ScoreSource } from "../score-sources/score-source.model";
@@ -230,6 +231,94 @@ export async function removeItem(
 		});
 		if (removedCount > 0) await compactPositions(listId, transaction);
 	});
+}
+
+async function loadOwnedLists(listIds: string[], ownedListIds: Set<string>) {
+	return Promise.all(
+		listIds.map(async listId => {
+			const list = await listsService.findListBasicById(listId);
+			if (!list) throw listItemsServiceError.listNotFoundError();
+			if (!ownedListIds.has(list.id))
+				throw listItemsServiceError.forbiddenError();
+			return list;
+		})
+	);
+}
+
+export async function setGameLists(
+	gameId: string,
+	user: RequestUser,
+	listIds: string[]
+) {
+	const games = await gamesService.findGamesByIds([gameId]);
+	if (games.length === 0)
+		throw listItemsServiceError.gamesNotFoundError([gameId]);
+
+	const currentLists = await listsService.findUserListsWithGameFlag(
+		user.id,
+		gameId
+	);
+	const ownedListIds = new Set(currentLists.map(list => list.id));
+	const containingListIds = new Set(
+		currentLists.filter(list => list.contains).map(list => list.id)
+	);
+
+	const requestedLists = await loadOwnedLists(listIds, ownedListIds);
+	const requestedListIds = new Set(listIds);
+
+	const listsToAdd = requestedLists.filter(
+		list => !containingListIds.has(list.id)
+	);
+	const listIdsToRemove = [...containingListIds].filter(
+		listId => !requestedListIds.has(listId)
+	);
+
+	if (listsToAdd.length > 0) await checkFrozen(user.id, user.role);
+
+	const frozenContexts = await Promise.all(
+		listsToAdd.map(list => loadFrozenScoreContext(list, [gameId]))
+	);
+
+	await sequelize.transaction(async (transaction: Transaction) => {
+		try {
+			for (const [index, list] of listsToAdd.entries()) {
+				const max = (await ListItem.max("position", {
+					where: { listId: list.id },
+					transaction
+				})) as number | null;
+				const { score, duration } = freezeScoresFromContext(
+					gameId,
+					frozenContexts[index]!
+				);
+				await ListItem.create(
+					{
+						listId: list.id,
+						gameId,
+						position: (max ?? 0) + 1,
+						score,
+						duration
+					},
+					{ transaction }
+				);
+			}
+
+			for (const listId of listIdsToRemove) {
+				const removedCount = await ListItem.destroy({
+					where: { listId, gameId },
+					transaction
+				});
+				if (removedCount > 0)
+					await compactPositions(listId, transaction);
+			}
+		} catch (error) {
+			rethrowSequelizeError(error, {
+				unique: listItemsServiceError.uniqueConstraintError,
+				validation: listItemsServiceError.validationError
+			});
+		}
+	});
+
+	return gamesProfileService.getListsForGame(user.id, gameId);
 }
 
 export async function refreshScores(listId: string, user: RequestUser) {

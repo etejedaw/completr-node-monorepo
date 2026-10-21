@@ -7,7 +7,9 @@ import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.
 import { ListIdParamsSchema } from "../lists/schemas/list-id-params.schema";
 import * as listItemsController from "./list-items.controller";
 import { AddListItemSchema } from "./schemas/add-list-item.schema";
+import { GameListsParamsSchema } from "./schemas/game-lists-params.schema";
 import { ListItemGameParamsSchema } from "./schemas/list-item-game-params.schema";
+import { PutGameListsSchema } from "./schemas/put-game-lists.schema";
 import { ReplaceListItemsSchema } from "./schemas/replace-list-items.schema";
 
 const router = Router();
@@ -52,6 +54,17 @@ router.post(
 		validateSchemaMiddleware(ListIdParamsSchema, "params")
 	],
 	listItemsController.postRefreshScores
+);
+
+router.put(
+	"/games/:gameId/lists",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator", "admin"),
+		validateSchemaMiddleware(GameListsParamsSchema, "params"),
+		validateSchemaMiddleware(PutGameListsSchema, "body")
+	],
+	listItemsController.putGameLists
 );
 
 export default router;

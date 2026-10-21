@@ -1,11 +1,14 @@
 import { type Request, type Response } from "express";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { gameListSummarySerializer } from "../games/games.serializer";
 import { type ListIdParams } from "../lists/schemas/list-id-params.schema";
 import { type AddListItemDto } from "./dtos/add-list-item.dto";
+import { type PutGameListsDto } from "./dtos/put-game-lists.dto";
 import { type ReplaceListItemsDto } from "./dtos/replace-list-items.dto";
 import { listItemSerializer } from "./list-items.serializer";
 import * as listItemsService from "./list-items.service";
+import { type GameListsParams } from "./schemas/game-lists-params.schema";
 import { type ListItemGameParams } from "./schemas/list-item-game-params.schema";
 
 export async function putListItems(request: Request, response: Response) {
@@ -58,5 +61,23 @@ export async function postRefreshScores(request: Request, response: Response) {
 	);
 
 	const data = { updatedItems: updatedCount };
+	return response.status(200).json({ data });
+}
+
+export async function putGameLists(request: Request, response: Response) {
+	const params = request.locals.params as GameListsParams;
+	const body = request.locals.body as PutGameListsDto;
+	const user = request.locals.user as RequestUser;
+
+	const bundle = await listItemsService.setGameLists(
+		params.gameId,
+		user,
+		body.listIds
+	);
+
+	const data = {
+		lists: bundle.lists.map(gameListSummarySerializer),
+		myLists: bundle.myLists
+	};
 	return response.status(200).json({ data });
 }
