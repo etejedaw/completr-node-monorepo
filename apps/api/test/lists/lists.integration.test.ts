@@ -7,10 +7,12 @@ import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
 import { useTestDatabase } from "../helpers/database.helper";
 import {
+	createBacklog,
 	createGame,
 	createGameScore,
 	createGameTime,
 	createList,
+	createPlatform,
 	createScoreSource
 } from "../helpers/factories.helper";
 
@@ -147,6 +149,40 @@ void describe("lists CRUD", () => {
 
 		assert.equal(response.status, 401);
 		assert.equal(response.body.type, "AUTH_INVALID_TOKEN");
+	});
+});
+
+void describe("list backlog summary", () => {
+	void it("ranks an endless entry alongside playing over not_started and abandoned ones", async () => {
+		const owner = await createUserWithSession();
+		const list = await createList(owner.user.id, scoreSource, {
+			isPublic: true
+		});
+		const game = await createGame();
+		await api()
+			.put(`/lists/${list.id}/items`)
+			.set("Authorization", owner.authorization)
+			.send({ gameIds: [game.id] })
+			.expect(200);
+		const endlessPlatform = await createPlatform();
+		const abandonedPlatform = await createPlatform();
+		const notStartedPlatform = await createPlatform();
+		await createBacklog(owner.user.id, game.id, notStartedPlatform.id, {
+			status: "not_started"
+		});
+		await createBacklog(owner.user.id, game.id, abandonedPlatform.id, {
+			status: "abandoned"
+		});
+		await createBacklog(owner.user.id, game.id, endlessPlatform.id, {
+			status: "endless"
+		});
+
+		const response = await api()
+			.get(`/lists/${list.id}`)
+			.set("Authorization", owner.authorization);
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.list.items[0].backlogStatus, "endless");
 	});
 });
 
@@ -368,7 +404,7 @@ void describe("list items", () => {
 		assert.equal(response.status, 201);
 		assert.equal(response.body.data.item.score, null);
 		assert.equal(response.body.data.item.duration, null);
-		assert.equal(response.body.data.item.ratio, undefined);
+		assert.equal(response.body.data.item.ratio, null);
 	});
 
 	void it("replaces the items keeping the requested order", async () => {

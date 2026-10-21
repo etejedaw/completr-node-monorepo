@@ -132,6 +132,7 @@ export async function findBacklogSummariesByUserAndGameIds(
 		   CASE status
 		     WHEN 'completed' THEN 1
 		     WHEN 'playing' THEN 2
+		     WHEN 'endless' THEN 2
 		     WHEN 'abandoned' THEN 3
 		     WHEN 'not_started' THEN 4
 		   END,
