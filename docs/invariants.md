@@ -66,6 +66,8 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - Auto-remove al cambiar el status del backlog asociado fuera de `not_started`.
 - Auto-remove al borrar el backlog asociado (`ON DELETE CASCADE` en `Queues.backlogId`).
 - Unique `(user_id, backlog_id)`.
+- `position` sin huecos ni duplicados: toda salida de la queue (cambio de status fuera de `not_started`, borrado del backlog) renumera las restantes 1..n en la misma transacción, y el alta usa `MAX(position) + 1`. Las operaciones sobre la queue de un usuario se serializan con un advisory lock transaccional (`pg_advisory_xact_lock`).
+- `GET /users/:username/queue` omite `backlog.notes`.
 
 ---
 
@@ -94,7 +96,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `ratio` por item: `score / duration`. `null` si la fuente no tiene el dato.
 - Scores normalizados redondeados a 2 decimales.
 - `realDuration` y `personalRatio` por item se calculan con sticky-best: se toma el mejor backlog del usuario sobre ese juego.
-- `position` sin huecos y reordenable; `(list_id, position)` tiene un índice no único, así que la unicidad la mantiene el service y no la base.
+- `position` sin huecos y reordenable: quitar un item renumera los restantes 1..n en la misma transacción, conservando el orden. `(list_id, position)` tiene un índice no único, así que la unicidad la mantiene el service y no la base.
 - Si el creador edita o refresca una lista, todos los seguidores ven los cambios.
 - Refrescar items reaplica score/duration desde la fuente declarada.
 - `GET /lists/recent` y `GET /lists/official` aceptan `limit` entero entre 1 y 50 (por defecto 12); cualquier otro valor o parámetro desconocido responde 422 `COMMON_SCHEMA_INVALID`.
