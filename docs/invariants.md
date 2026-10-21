@@ -53,6 +53,15 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `Backlog.compilationGameId` persiste el juego compilation al que pertenece la run.
 - Se valida que el link child sea consistente con el `CompilationItem` correspondiente.
 
+### Creación con extras
+
+- `POST /users/me/backlog` acepta los opcionales `addToQueue`, `addToShelf`, `moodTags`, `review` y `progressNote`, y escribe el backlog y todos los extras en una sola transacción: si falla cualquier paso, no se crea nada y la respuesta lleva el error del módulo que falló (por ejemplo, 402 `QUEUE_LIMIT_REACHED`, 402 `GAME_SHELF_LIMIT_REACHED`, 402 `MOOD_TAGS_LIMIT_REACHED` o 409 `QUEUE_BACKLOG_NOT_STARTED`).
+- `addToQueue` exige status `not_started`.
+- `addToShelf` se omite sin error si el usuario ya tiene el juego en la estantería en la misma plataforma.
+- `moodTags` reemplaza los tags del usuario para el juego; `[]` los borra.
+- `review` solo se acepta con status `completed`, `abandoned` o `endless` (si no, 422 `COMMON_SCHEMA_INVALID`) y se omite sin error si el usuario ya tiene review del juego.
+- Las activities (`backlog_added` y, si se crearon, `game_reviewed`, `queue_added` y `shelf_added`) se registran después del commit.
+
 ### Auto-comportamientos al cambiar status
 
 - Pasar a `playing`, `completed`, `abandoned` o `endless` **elimina la entrada del queue** si existía.
@@ -101,6 +110,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `GET /lists/:listId/followers` respeta la privacidad de la lista igual que `GET /lists/:id`: si la lista es privada y quien pide no es su dueño responde 404 `LIST_FOLLOWER_LIST_NOT_FOUND`, indistinguible de una lista inexistente. El dueño ve siempre sus seguidores.
 - `GET /users/:username/following-lists` excluye las listas privadas que no pertenezcan a quien mira; el propio usuario ve todas las que sigue.
 - Refrescar items reaplica score/duration desde la fuente declarada.
+- `PUT /games/:gameId/lists` fija en una sola transacción el conjunto de listas propias que contienen el juego: añade el juego (al final, congelando score y duración de la fuente de cada lista) a las que faltan y lo quita de las propias que sobran (renumerando posiciones). Una lista ajena responde 403 `LIST_ITEM_FORBIDDEN`, una inexistente o un juego inexistente 404, y un free sobre el límite de listas recibe 402 `LIST_ITEM_FROZEN` solo si hay que añadir a alguna lista (quitar sigue permitido). Si algo falla no se aplica ningún cambio.
 - `GET /lists/recent` y `GET /lists/official` aceptan `limit` entero entre 1 y 50 (por defecto 12); cualquier otro valor o parámetro desconocido responde 422 `COMMON_SCHEMA_INVALID`.
 
 ---
@@ -157,6 +167,14 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - Score: precarga la nota de la fuente con menor `priority` que tenga el juego, normalizada a 0–5.
 - Duration: precarga desde `GameTime.source = "hltb"` si existe.
 - El usuario puede sobrescribir antes de guardar.
+
+### Reemplazo en bloque
+
+- `PUT /games/:gameId/scores` y `PUT /games/:gameId/times` reemplazan en una transacción el conjunto completo de scores manuales o duraciones manuales (`hltb`, `rawg`) de un juego: upsert de lo enviado y borrado de lo que no viene. La fuente calculada `completr` nunca se envía ni se borra. Juego inexistente responde 404 `GAME_SCORE_GAME_NOT_FOUND` o `GAME_TIME_GAME_NOT_FOUND`; una fuente de score fuera del catálogo, 422 `GAME_SCORE_SOURCE_NOT_FOUND`. Si algo falla no se aplica nada.
+
+### Sagas
+
+- `POST /franchises` y `PATCH /franchises/:id` aceptan `gameIds` opcional: el conjunto final de juegos de la saga. Si se envía, la saga y los vínculos se aplican en una sola transacción: los juegos listados quedan con ese `franchiseId` y los que la saga tenía y no aparecen se desvinculan (`franchiseId = null`). Si algún id no existe responde 404 `FRANCHISE_GAMES_NOT_FOUND` y no se aplica nada. Sin `gameIds` los juegos no se tocan.
 
 ### Datos crudos
 
