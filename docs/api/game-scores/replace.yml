@@ -1,0 +1,76 @@
+info:
+    name: Replace Game Scores
+    type: http
+    seq: 5
+
+http:
+    method: PUT
+    url: "{{BASE_URL}}/games/:gameId/scores"
+    params:
+        - name: gameId
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "scores": [
+                { "source": "metacritic", "score": 92 },
+                { "source": "opencritic", "score": 88 }
+              ]
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Replace Game Scores
+
+    Replaces, in a single transaction, the full set of manual scores of a game. Sent sources are upserted and manual sources that are not sent are deleted. The computed `completr` score is never touched. If anything fails nothing is applied.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param  | Type | Required | Description   |
+    |--------|------|----------|---------------|
+    | gameId | uuid | Yes      | The game UUID |
+
+    ### Request Body
+
+    | Field  | Type  | Required | Description                                                                 |
+    |--------|-------|----------|-----------------------------------------------------------------------------|
+    | scores | array | Yes      | Full set of scores. May be empty to delete every manual score. No repeated sources |
+
+    Each item: `source` (string, code from GET /score-sources, not `completr`) and `score` (number).
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "gameScores": [
+          {
+            "id": "uuid",
+            "gameId": "uuid",
+            "source": "metacritic",
+            "score": 92,
+            "updatedAt": "2025-01-01T00:00:00.000Z"
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code                         | Description                              |
+    |--------|------------------------------|------------------------------------------|
+    | 404    | GAME_SCORE_GAME_NOT_FOUND    | The game does not exist                  |
+    | 422    | GAME_SCORE_SOURCE_NOT_FOUND  | A source is not in the score sources catalog |
+    | 422    | COMMON_SCHEMA_INVALID        | Invalid body (repeated sources, `completr`, wrong types) |

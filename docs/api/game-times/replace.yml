@@ -1,0 +1,75 @@
+info:
+    name: Replace Game Times
+    type: http
+    seq: 5
+
+http:
+    method: PUT
+    url: "{{BASE_URL}}/games/:gameId/times"
+    params:
+        - name: gameId
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "times": [
+                { "source": "hltb", "duration": 18.5 },
+                { "source": "rawg", "duration": 12 }
+              ]
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Replace Game Times
+
+    Replaces, in a single transaction, the full set of manual durations of a game. Sent sources are upserted and manual sources (hltb, rawg) that are not sent are deleted. The computed `completr` duration is never touched. If anything fails nothing is applied.
+
+    **Authentication:** Bearer token required (role: moderator).
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Param  | Type | Required | Description   |
+    |--------|------|----------|---------------|
+    | gameId | uuid | Yes      | The game UUID |
+
+    ### Request Body
+
+    | Field | Type  | Required | Description                                                                  |
+    |-------|-------|----------|------------------------------------------------------------------------------|
+    | times | array | Yes      | Full set of durations. May be empty to delete every manual duration. No repeated sources |
+
+    Each item: `source` (`hltb` or `rawg`) and `duration` (number, hours).
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "gameTimes": [
+          {
+            "id": "uuid",
+            "gameId": "uuid",
+            "source": "hltb",
+            "duration": 18.5,
+            "updatedAt": "2025-01-01T00:00:00.000Z"
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code                    | Description                                      |
+    |--------|-------------------------|--------------------------------------------------|
+    | 404    | GAME_TIME_GAME_NOT_FOUND | The game does not exist                         |
+    | 422    | COMMON_SCHEMA_INVALID   | Invalid body (repeated sources, `completr`, wrong types) |
