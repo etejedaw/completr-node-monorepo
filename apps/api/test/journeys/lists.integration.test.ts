@@ -199,19 +199,13 @@ void describe("lists journey: build, share, follow, duplicate and delete a list"
 		assert.deepEqual(gameIdsOf(list), [inside.id, portal.id]);
 	});
 
-	void it(
-		"keeps positions without gaps after removing an item",
-		{
-			todo: "DELETE /lists/:listId/items/:gameId does not compact the positions of the remaining items"
-		},
-		async () => {
-			const list = await getVisibleList(owner, listId);
-			assert.deepEqual(
-				list.items.map(item => item.position),
-				[1, 2]
-			);
-		}
-	);
+	void it("keeps positions without gaps after removing an item", async () => {
+		const list = await getVisibleList(owner, listId);
+		assert.deepEqual(
+			list.items.map(item => item.position),
+			[1, 2]
+		);
+	});
 
 	void it("rejects another user touching the items and keeps them", async () => {
 		const response = await addItem(celeste.id, follower);

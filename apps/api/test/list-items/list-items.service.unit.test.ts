@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
+import { sequelize } from "../../src/database/sequelize.database";
 import * as gameScoresService from "../../src/game-scores/game-scores.service";
 import * as gameTimesService from "../../src/game-times/game-times.service";
 import * as gamesSearchService from "../../src/games/services/games-search.service";
@@ -124,14 +125,46 @@ void describe("listItemsService access rules", () => {
 	void it("still allows removing an item while frozen", async () => {
 		stubList();
 		const count = stubOwnedListCount(FREE_OWNED_LISTS_LIMIT + 1);
+		const { transaction } = stubTransaction();
+		stub(sequelize, "query", async () => []);
 		const destroy = stub(ListItem, "destroy", async () => 1);
 
 		await listItemsService.removeItem("l-1", FREE_USER, "g-1");
 
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-			{ where: { listId: "l-1", gameId: "g-1" } }
+			{ where: { listId: "l-1", gameId: "g-1" }, transaction }
 		]);
 		assert.equal(count.mock.callCount(), 0);
+	});
+
+	void it("renumbers the remaining items in the same transaction", async () => {
+		stubList();
+		const { transaction } = stubTransaction();
+		const query = stub(sequelize, "query", async () => []);
+		stub(ListItem, "destroy", async () => 1);
+
+		await listItemsService.removeItem("l-1", FREE_USER, "g-1");
+
+		const [sql, options] = query.mock.calls[0]!.arguments;
+		assert.match(
+			String(sql),
+			/ROW_NUMBER\(\) OVER \(ORDER BY "position", "createdAt", "id"\)/
+		);
+		assert.deepEqual(options, {
+			replacements: { listId: "l-1" },
+			transaction
+		});
+	});
+
+	void it("skips the renumbering when the game was not in the list", async () => {
+		stubList();
+		stubTransaction();
+		const query = stub(sequelize, "query", async () => []);
+		stub(ListItem, "destroy", async () => 0);
+
+		await listItemsService.removeItem("l-1", FREE_USER, "g-1");
+
+		assert.equal(query.mock.callCount(), 0);
 	});
 
 	void it("never freezes premium users", async () => {
