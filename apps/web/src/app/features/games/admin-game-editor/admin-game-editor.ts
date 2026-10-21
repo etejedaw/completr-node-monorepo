@@ -441,51 +441,39 @@ export class AdminGameEditor implements OnInit {
 
 	private saveScoresAndTimes(gameId: string) {
 		const g = this.game()!;
-		const existingScores = new Set(g.scores.map(s => s.source));
-		const existingTimes = new Set(g.times.map(t => t.source));
-		const currentScoreSources = new Set(this.scores().map(s => s.source));
-		const currentTimeSources = new Set(this.times().map(t => t.source));
+		const requests = [];
 
-		const scoreOps = this.scores().map(s => {
-			if (existingScores.has(s.source)) {
-				return this.gamesService.updateScore(gameId, s.source, s.score);
-			}
-			return this.gamesService.createScore(gameId, s.source, s.score);
-		});
-
-		const timeOps = this.times().map(t => {
-			if (existingTimes.has(t.source)) {
-				return this.gamesService.updateTime(
+		if (this.scoresChanged(g.scores)) {
+			requests.push(
+				this.gamesService.replaceScores(
 					gameId,
-					t.source,
-					t.duration
-				);
-			}
-			return this.gamesService.createTime(gameId, t.source, t.duration);
-		});
+					this.scores().map(({ source, score }) => ({
+						source,
+						score
+					}))
+				)
+			);
+		}
 
-		const scoreDeleteOps = [...existingScores]
-			.filter(source => !currentScoreSources.has(source))
-			.map(source => this.gamesService.deleteScore(gameId, source));
+		if (this.timesChanged(g.times)) {
+			requests.push(
+				this.gamesService.replaceTimes(
+					gameId,
+					this.times().map(({ source, duration }) => ({
+						source,
+						duration
+					}))
+				)
+			);
+		}
 
-		const timeDeleteOps = [...existingTimes]
-			.filter(source => !currentTimeSources.has(source))
-			.map(source => this.gamesService.deleteTime(gameId, source));
-
-		const allOps = [
-			...scoreOps,
-			...timeOps,
-			...scoreDeleteOps,
-			...timeDeleteOps
-		];
-
-		if (allOps.length === 0) {
+		if (requests.length === 0) {
 			this.saving.set(false);
 			this.saved.emit();
 			return;
 		}
 
-		forkJoin(allOps).subscribe({
+		forkJoin(requests).subscribe({
 			next: () => {
 				this.saving.set(false);
 				this.toast.success("Game saved.");
@@ -504,6 +492,24 @@ export class AdminGameEditor implements OnInit {
 				}
 			}
 		});
+	}
+
+	private scoresChanged(original: { source: string; score: number }[]) {
+		const current = this.scores();
+		if (current.length !== original.length) return true;
+		const originalBySource = new Map(
+			original.map(s => [s.source, s.score])
+		);
+		return current.some(s => originalBySource.get(s.source) !== s.score);
+	}
+
+	private timesChanged(original: { source: string; duration: number }[]) {
+		const current = this.times();
+		if (current.length !== original.length) return true;
+		const originalBySource = new Map(
+			original.map(t => [t.source, t.duration])
+		);
+		return current.some(t => originalBySource.get(t.source) !== t.duration);
 	}
 
 	openSplitModal() {
