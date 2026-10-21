@@ -70,23 +70,21 @@ export class QueueService {
 			.pipe(map(res => res.data.queue));
 	}
 
-	moveToTop(backlogId: string) {
+	updateOrder(change: (backlogIds: string[]) => string[]) {
 		return this.getMyQueueBacklogIds().pipe(
-			map(ids => [backlogId, ...ids.filter(id => id !== backlogId)]),
+			map(change),
 			switchMap(backlogIds => this.reorder(backlogIds))
 		);
 	}
 
+	moveToTop(backlogId: string) {
+		return this.updateOrder(ids => [
+			backlogId,
+			...ids.filter(id => id !== backlogId)
+		]);
+	}
+
 	removeByBacklogId(backlogId: string) {
-		return this.getMyQueueBacklogIds().pipe(
-			map(ids => ids.filter(id => id !== backlogId)),
-			switchMap(remaining =>
-				this.http
-					.put<QueueListResponse>(this.baseUrl, {
-						backlogIds: remaining
-					})
-					.pipe(map(res => res.data.queue))
-			)
-		);
+		return this.updateOrder(ids => ids.filter(id => id !== backlogId));
 	}
 }

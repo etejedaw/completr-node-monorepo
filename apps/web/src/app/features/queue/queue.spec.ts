@@ -95,6 +95,23 @@ describe("QueueService", () => {
 		expect(result).toEqual([{ id: "q2" }, { id: "q1" }]);
 	});
 
+	it("applies a change to the full order before putting it", () => {
+		let result: unknown;
+
+		service
+			.updateOrder(ids => [...ids].reverse())
+			.subscribe(r => (result = r));
+
+		httpTesting
+			.expectOne(`${url}/backlog-ids`)
+			.flush({ data: { backlogIds: ["b1", "b2", "b3"] } });
+		const put = httpTesting.expectOne(url);
+		expect(put.request.method).toBe("PUT");
+		expect(put.request.body).toEqual({ backlogIds: ["b3", "b2", "b1"] });
+		put.flush({ data: { queue: [{ id: "q3" }] } });
+		expect(result).toEqual([{ id: "q3" }]);
+	});
+
 	it("moves an entry to the top keeping the order of the rest", () => {
 		service.moveToTop("b3").subscribe();
 
