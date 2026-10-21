@@ -50,6 +50,14 @@ const library = [
 	run("b4", "tunic", "Tunic")
 ];
 
+const fillers = Array.from({ length: 100 }, (_, index) =>
+	run(`f${index}`, `filler-${index}`, `Filler ${index}`)
+);
+
+function libraryEntry(backlogId: string) {
+	return [...library, ...fillers].find(entry => entry.id === backlogId)!;
+}
+
 describe("QueueView interaction", () => {
 	let httpTesting: HttpTestingController;
 	let queuedIds: string[];
@@ -60,8 +68,24 @@ describe("QueueView interaction", () => {
 		return queuedIds.map((backlogId, index) => ({
 			id: `q-${backlogId}`,
 			position: index + 1,
-			backlog: library.find(entry => entry.id === backlogId)!
+			backlog: libraryEntry(backlogId)
 		}));
+	}
+
+	function queuePage(req: TestRequest) {
+		const { params } = req.request;
+		const search = params.get("search")?.toLowerCase();
+		const offset = Number(params.get("offset") ?? 0);
+		const limit = Number(params.get("limit") ?? queuedIds.length);
+		const matching = queueEntries().filter(
+			entry =>
+				!search ||
+				entry.backlog.game.title.toLowerCase().includes(search)
+		);
+		return {
+			queue: matching.slice(offset, offset + limit),
+			total: matching.length
+		};
 	}
 
 	function answer(req: TestRequest) {
@@ -69,9 +93,7 @@ describe("QueueView interaction", () => {
 		if (url === `${api}/users/me/favorites/game-ids`)
 			return req.flush({ data: { gameIds: [] } });
 		if (method === "GET" && url === queueUrl)
-			return req.flush({
-				data: { queue: queueEntries(), total: queuedIds.length }
-			});
+			return req.flush({ data: queuePage(req) });
 		if (url === `${queueUrl}/backlog-ids`)
 			return req.flush({ data: { backlogIds: queuedIds } });
 		if (method === "PUT" && url === queueUrl) {
@@ -165,14 +187,24 @@ describe("QueueView interaction", () => {
 		return screen.getByText(/in your queue/);
 	}
 
-	async function renderQueue() {
+	async function renderQueue(
+		expectedOrder = ["Hades", "Celeste", "Hollow Knight"]
+	) {
 		const { fixture } = await render(QueueHost, {
 			providers: [provideHttpClient(), provideHttpClientTesting()]
 		});
 		TestBed.inject(ApplicationRef).components.push(fixture.componentRef);
 		httpTesting = TestBed.inject(HttpTestingController);
-		await untilVisible(() =>
-			expect(queueOrder()).toEqual(["Hades", "Celeste", "Hollow Knight"])
+		await untilVisible(() => expect(queueOrder()).toEqual(expectedOrder));
+	}
+
+	async function search(
+		user: ReturnType<typeof userEvent.setup>,
+		query: string
+	) {
+		await user.type(
+			screen.getByRole("textbox", { name: "Search your queue" }),
+			query
 		);
 	}
 
@@ -370,6 +402,111 @@ describe("QueueView interaction", () => {
 		);
 		expect(queueOrder()).toEqual(["Hollow Knight", "Hades"]);
 		expect(queuedIds).toEqual(["b3", "b1"]);
+	});
+
+	it("sends quick reorders one after another, each on top of the previous one", async () => {
+		const user = userEvent.setup();
+		queuedIds = ["b1", "b2", "b3", "b4"];
+		await renderQueue(["Hades", "Celeste", "Hollow Knight", "Tunic"]);
+
+		await user.click(row("Tunic").getByRole("button", { name: "Move up" }));
+		await user.click(row("Tunic").getByRole("button", { name: "Move up" }));
+		expect(queueOrder()).toEqual([
+			"Hades",
+			"Tunic",
+			"Celeste",
+			"Hollow Knight"
+		]);
+
+		const firstRound = httpTesting.match(() => true);
+		expect(firstRound.map(req => req.request.url)).toEqual([
+			`${queueUrl}/backlog-ids`
+		]);
+		firstRound.forEach(answer);
+
+		await untilVisible(() =>
+			expect(reorders).toEqual([
+				["b1", "b2", "b4", "b3"],
+				["b1", "b4", "b2", "b3"]
+			])
+		);
+		expect(queueOrder()).toEqual([
+			"Hades",
+			"Tunic",
+			"Celeste",
+			"Hollow Knight"
+		]);
+	});
+
+	it("moves a game within a search and keeps the rest of the queue on the server", async () => {
+		const user = userEvent.setup();
+		queuedIds = ["b1", "b2", "b3", "b4"];
+		await renderQueue(["Hades", "Celeste", "Hollow Knight", "Tunic"]);
+
+		await search(user, "h");
+		await untilVisible(() =>
+			expect(queueOrder()).toEqual(["Hades", "Hollow Knight"])
+		);
+
+		await user.click(
+			row("Hollow Knight").getByRole("button", { name: "Move up" })
+		);
+		await untilVisible(() =>
+			expect(reorders).toEqual([["b3", "b1", "b2", "b4"]])
+		);
+		expect(queuedIds).toEqual(["b3", "b1", "b2", "b4"]);
+		expect(queueOrder()).toEqual(["Hollow Knight", "Hades"]);
+	});
+
+	it("moves a game on a paged queue and keeps the games of the other pages", async () => {
+		const user = userEvent.setup();
+		const fillerIds = fillers.map(entry => entry.id);
+		queuedIds = ["b1", "b2", "b3", ...fillerIds];
+		await renderQueue([
+			"Hades",
+			"Celeste",
+			"Hollow Knight",
+			...fillers.slice(0, 97).map(entry => entry.game.title)
+		]);
+
+		await user.click(
+			row("Hollow Knight").getByRole("button", { name: "Move up" })
+		);
+		await untilVisible(() => expect(reorders).toHaveLength(1));
+		expect(reorders[0]).toEqual(["b1", "b3", "b2", ...fillerIds]);
+		expect(queueOrder()).toHaveLength(100);
+		expect(queueOrder().slice(0, 3)).toEqual([
+			"Hades",
+			"Hollow Knight",
+			"Celeste"
+		]);
+	});
+
+	it("removes a game within a search and deletes only that game on the server", async () => {
+		const user = userEvent.setup();
+		queuedIds = ["b1", "b2", "b3", "b4"];
+		await renderQueue(["Hades", "Celeste", "Hollow Knight", "Tunic"]);
+
+		await search(user, "h");
+		await untilVisible(() =>
+			expect(queueOrder()).toEqual(["Hades", "Hollow Knight"])
+		);
+
+		await user.click(
+			row("Hollow Knight").getByRole("button", {
+				name: "Remove from Up Next"
+			})
+		);
+		expect(queueOrder()).toEqual(["Hades"]);
+		await user.click(
+			await screen.findByRole("button", { name: "Dismiss" })
+		);
+
+		await untilVisible(() =>
+			expect(reorders).toEqual([["b1", "b2", "b4"]])
+		);
+		expect(queuedIds).toEqual(["b1", "b2", "b4"]);
+		expect(queueOrder()).toEqual(["Hades"]);
 	});
 
 	it("starts playing the next game and takes it out of the queue", async () => {
