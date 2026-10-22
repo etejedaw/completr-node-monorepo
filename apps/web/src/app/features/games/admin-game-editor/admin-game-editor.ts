@@ -14,6 +14,7 @@ import { forkJoin } from "rxjs";
 import { type Game, type Genre, type Platform } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
+import { adminErrorMessage } from "../../../core/utils/admin-error-message";
 import { UiSelect, UiTextarea } from "../../../shared/ui";
 import { type Franchise, FranchisesService } from "../../franchises/franchises";
 import {
@@ -128,6 +129,29 @@ export class AdminGameEditor implements OnInit {
 
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	protected readonly timeSources = ["hltb", "rawg"];
+
+	protected readonly scoreErrors = computed(() =>
+		this.scores().map(entry =>
+			this.scoreErrorFor(entry.source, entry.score)
+		)
+	);
+	protected readonly timeErrors = computed(() =>
+		this.times().map(entry => this.durationErrorFor(entry.duration))
+	);
+	protected readonly newScoreError = computed(() => {
+		const value = this.newScoreValue();
+		return value === null
+			? null
+			: this.scoreErrorFor(this.newScoreSource(), value);
+	});
+	protected readonly newTimeError = computed(() => {
+		const value = this.newTimeValue();
+		return value === null ? null : this.durationErrorFor(value);
+	});
+	private readonly hasInvalidValues = computed(
+		() =>
+			this.scoreErrors().some(Boolean) || this.timeErrors().some(Boolean)
+	);
 
 	ngOnInit() {
 		this.scoreSourcesService.load();
@@ -285,10 +309,29 @@ export class AdminGameEditor implements OnInit {
 		this.scores.set(current);
 	}
 
+	protected scaleOf(source: string) {
+		return this.scoreSourcesService.getScale(source);
+	}
+
+	private scoreErrorFor(source: string, score: number) {
+		if (!Number.isFinite(score) || score < 0)
+			return "Score can't be negative.";
+		const scale = source ? this.scaleOf(source) : null;
+		if (scale !== null && score > scale)
+			return `Score can't be above ${scale} for ${source}.`;
+		return null;
+	}
+
+	private durationErrorFor(duration: number) {
+		return Number.isFinite(duration) && duration > 0
+			? null
+			: "Duration must be greater than 0.";
+	}
+
 	addScore() {
 		const source = this.newScoreSource();
 		const score = this.newScoreValue();
-		if (!source || score === null) return;
+		if (!source || score === null || this.newScoreError()) return;
 		const current = [...this.scores()];
 		const idx = current.findIndex(s => s.source === source);
 		if (idx >= 0) {
@@ -310,7 +353,7 @@ export class AdminGameEditor implements OnInit {
 	addTime() {
 		const source = this.newTimeSource();
 		const duration = this.newTimeValue();
-		if (!source || duration === null) return;
+		if (!source || duration === null || this.newTimeError()) return;
 		const current = [...this.times()];
 		const idx = current.findIndex(t => t.source === source);
 		if (idx >= 0) {
@@ -336,6 +379,12 @@ export class AdminGameEditor implements OnInit {
 	}
 
 	save() {
+		if (this.hasInvalidValues()) {
+			this.saveError.set(
+				"Fix the highlighted scores and durations before saving."
+			);
+			return;
+		}
 		this.saving.set(true);
 		this.saveError.set("");
 
@@ -344,6 +393,15 @@ export class AdminGameEditor implements OnInit {
 		} else {
 			this.doCreate();
 		}
+	}
+
+	private saveFailureMessage(
+		err: { status?: number },
+		rateLimitMessage: string,
+		fallback: string
+	) {
+		if (err.status === 429) return rateLimitMessage;
+		return adminErrorMessage(err) ?? fallback;
 	}
 
 	private doCreate() {
@@ -379,17 +437,13 @@ export class AdminGameEditor implements OnInit {
 			},
 			error: err => {
 				this.saving.set(false);
-				if (err.status === 429) {
-					this.saveError.set(
-						"Rate limit reached. Game was NOT created. Try again in a moment."
-					);
-				} else if (err?.error?.type === "GAME_VARIANT_REQUIRED") {
-					this.saveError.set(
-						"Another game shares this external id. Set a variant label on both games."
-					);
-				} else {
-					this.saveError.set("Failed to create game.");
-				}
+				this.saveError.set(
+					this.saveFailureMessage(
+						err,
+						"Rate limit reached. Game was NOT created. Try again in a moment.",
+						"Failed to create game."
+					)
+				);
 			}
 		});
 	}
@@ -424,17 +478,13 @@ export class AdminGameEditor implements OnInit {
 			next: () => this.saveScoresAndTimes(g.id),
 			error: err => {
 				this.saving.set(false);
-				if (err.status === 429) {
-					this.saveError.set(
-						"Rate limit reached. Changes were NOT saved. Try again in a moment."
-					);
-				} else if (err?.error?.type === "GAME_VARIANT_REQUIRED") {
-					this.saveError.set(
-						"Another game shares this external id. Set a variant label on both games."
-					);
-				} else {
-					this.saveError.set("Failed to update game.");
-				}
+				this.saveError.set(
+					this.saveFailureMessage(
+						err,
+						"Rate limit reached. Changes were NOT saved. Try again in a moment.",
+						"Failed to update game."
+					)
+				);
 			}
 		});
 	}
@@ -487,8 +537,11 @@ export class AdminGameEditor implements OnInit {
 						"Game info saved but scores/times hit the rate limit. Reopen the editor and try those again."
 					);
 				} else {
+					const reason = adminErrorMessage(err);
 					this.saveError.set(
-						"Game updated but some scores/times failed to save."
+						reason
+							? `Game info saved, but scores/times were not: ${reason}`
+							: "Game updated but some scores/times failed to save."
 					);
 				}
 			}

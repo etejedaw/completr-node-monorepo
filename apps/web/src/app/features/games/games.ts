@@ -1,4 +1,4 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpContext } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
@@ -11,6 +11,12 @@ import {
 	type UserRole
 } from "../../core/models";
 import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
+import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
+
+const SUPPRESS_TOAST_CONTEXT = new HttpContext().set(
+	SUPPRESS_VALIDATION_TOAST,
+	true
+);
 
 interface GamesResponse {
 	data: { games: Game[]; total: number; limit: number; offset: number };
@@ -290,18 +296,22 @@ export class GamesService {
 	}
 
 	replaceScores(gameId: string, scores: { source: string; score: number }[]) {
-		return this.http.put(`${environment.apiUrl}/games/${gameId}/scores`, {
-			scores
-		});
+		return this.http.put(
+			`${environment.apiUrl}/games/${gameId}/scores`,
+			{ scores },
+			{ context: SUPPRESS_TOAST_CONTEXT }
+		);
 	}
 
 	replaceTimes(
 		gameId: string,
 		times: { source: string; duration: number }[]
 	) {
-		return this.http.put(`${environment.apiUrl}/games/${gameId}/times`, {
-			times
-		});
+		return this.http.put(
+			`${environment.apiUrl}/games/${gameId}/times`,
+			{ times },
+			{ context: SUPPRESS_TOAST_CONTEXT }
+		);
 	}
 
 	getGameLists(gameId: string) {
