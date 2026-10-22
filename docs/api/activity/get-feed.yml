@@ -19,6 +19,8 @@ docs: |-
 
     Returns recent activity from users you follow. Activities include adding games to backlog, completing games, adding favorites, etc.
 
+    Besides your own activity, an author's events are included according to their privacy: with profile and feed visibility `public` they show to anyone who follows them; with `friends` in either one they show only to mutual followers; with `private` in either one they never show. The filter runs in the query, so pagination is consistent.
+
     **Auth:** Bearer token (any authenticated user).
 
     **Rate Limit:** 50 requests per minute.

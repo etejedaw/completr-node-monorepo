@@ -276,7 +276,9 @@ Eventos registrados:
 Reglas:
 
 - El feed incluye actividades propias del usuario consultante.
-- Filtrado por `feedVisibility` del autor de cada evento.
+- Filtrado por visibilidad del autor de cada evento, en la consulta, así que `total` y la paginación solo cuentan lo visible: el feed exige `canView` de `profile` y de `feed`. Un autor con ambos en `public` se ve para quien lo sigue; con `friends` en cualquiera de los dos solo se ve si el seguimiento es mutuo; con `private` en cualquiera de los dos solo lo ve el propio autor.
+- Los eventos `user_followed` y `user_followed_by` nunca se devuelven en el feed.
+- Los filtros `category` y `types` son premium (`premium`, `moderator`, `admin`): un free que los envía recibe 402 `ACTIVITY_FEED_FILTER_PREMIUM`. Con ambos, el resultado es la intersección.
 - Los eventos `backlog_*` solo se emiten cuando el status realmente cambia.
 
 ---
