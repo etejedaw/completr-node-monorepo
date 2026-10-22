@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 
 import { provideRouter } from "@angular/router";
-import { render, screen } from "@testing-library/angular";
+import { render, screen, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { ProfileCollectionPage } from "./profile-collection-page";
@@ -75,14 +75,19 @@ describe("ProfileCollectionPage", () => {
 	});
 
 	it("counts the items with the right plural", async () => {
-		await renderPage({ total: 3 });
-		expect(screen.getByText(/games/)).toBeInTheDocument();
+		const { container } = await renderPage({ total: 3 });
+		expect(within(container).getByText(/games/)).toBeInTheDocument();
 	});
 
 	it("uses the singular for a single item", async () => {
-		await renderPage({ total: 1, itemCount: 1, visibleCount: 1 });
-		expect(screen.getByText(/\bgame\b/)).toBeInTheDocument();
-		expect(screen.queryByText(/games/)).not.toBeInTheDocument();
+		const { container } = await renderPage({
+			total: 1,
+			itemCount: 1,
+			visibleCount: 1
+		});
+		const page = within(container);
+		expect(page.getByText(/\bgame\b/)).toBeInTheDocument();
+		expect(page.queryByText(/games/)).not.toBeInTheDocument();
 	});
 
 	it("replaces the whole page with the private state when access is forbidden", async () => {
