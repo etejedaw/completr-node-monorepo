@@ -114,7 +114,9 @@ describe("injectGameSearch", () => {
 		const { results, status } = setup();
 
 		type("ze");
+		settle();
 		type("zel");
+		settle();
 		first.next([game("stale")]);
 		second.next([game("fresh")]);
 
@@ -122,9 +124,34 @@ describe("injectGameSearch", () => {
 		expect(status()).toBe("done");
 	});
 
-	it.todo(
-		"waits GAME_SEARCH_DEBOUNCE_MS before querying: debounceTime over of(term) emits on completion, so the request goes out immediately"
-	);
+	it("waits GAME_SEARCH_DEBOUNCE_MS before querying", () => {
+		const { status } = setup();
+
+		type("zelda");
+		vi.advanceTimersByTime(GAME_SEARCH_DEBOUNCE_MS - 1);
+
+		expect(searchLocal).not.toHaveBeenCalled();
+		expect(status()).toBe("searching");
+
+		vi.advanceTimersByTime(1);
+
+		expect(searchLocal).toHaveBeenCalledOnce();
+		expect(searchLocal).toHaveBeenCalledWith("zelda");
+	});
+
+	it("queries only the last term when typing faster than the debounce", () => {
+		setup();
+
+		type("ze");
+		vi.advanceTimersByTime(GAME_SEARCH_DEBOUNCE_MS / 2);
+		type("zel");
+		vi.advanceTimersByTime(GAME_SEARCH_DEBOUNCE_MS / 2);
+		type("zeld");
+		settle();
+
+		expect(searchLocal).toHaveBeenCalledOnce();
+		expect(searchLocal).toHaveBeenCalledWith("zeld");
+	});
 
 	it("does not go online when the local catalog has results", () => {
 		searchLocal.mockReturnValue(of([game("zelda")]));
