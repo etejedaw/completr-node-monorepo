@@ -54,11 +54,33 @@ export class RawgProvider {
 		url.searchParams.set("key", this.apiKey);
 		url.searchParams.set("search", query);
 
-		const response = await fetch(url.toString());
-		this.handleErrors(response);
-
-		const data = await response.json();
+		const data = await this.request<RawgSearchResponse>(url);
 		return data.results;
+	}
+
+	private async request<T>(url: URL): Promise<T> {
+		const response = await this.fetchRawg(url);
+		this.handleErrors(response);
+		return await this.parseBody<T>(response);
+	}
+
+	private async fetchRawg(url: URL): Promise<Response> {
+		try {
+			return await fetch(url.toString());
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : "unknown";
+			throw rawgServiceError.requestError(
+				`RAWG request failed before a response: ${reason}`
+			);
+		}
+	}
+
+	private async parseBody<T>(response: Response): Promise<T> {
+		try {
+			return (await response.json()) as T;
+		} catch (error) {
+			throw rawgServiceError.parseError(error);
+		}
 	}
 
 	private handleErrors(response: Response): void {
@@ -74,7 +96,7 @@ export class RawgProvider {
 
 - **Clase con constructor** que recibe credenciales/configuración. La instancia la crea el módulo que la consume, vía el método estático `create` de la clase base (ver "Providers opcionales").
 - **Métodos públicos** = la interfaz limpia. Nombres en términos del dominio del provider (`searchGame`, `getGameById`).
-- **Métodos privados** para parsing, manejo de errores, helpers internos.
+- **Métodos privados** para parsing, manejo de errores, helpers internos. Ningún error crudo sale del provider: los fallos de red y los cuerpos ilegibles también se traducen a `ServiceError`.
 - **Sin lógica de negocio** — el provider no decide qué hacer con los datos, solo los entrega.
 
 ## Errores
@@ -199,7 +221,7 @@ export class DisabledRawgProvider extends RawgClient {
 	readonly isEnabled = false;
 
 	searchGame(): Promise<RawgGameSearchResult[]> {
-		throw rawgServiceError.disabledError();
+		return Promise.reject(rawgServiceError.disabledError());
 	}
 	// ...
 }
