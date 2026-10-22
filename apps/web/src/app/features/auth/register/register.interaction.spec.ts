@@ -83,47 +83,94 @@ describe("Register interaction", () => {
 		httpTesting.verify();
 	});
 
-	it("keeps the submit button disabled until every field is valid", async () => {
+	it("shows a message per field and does not send an empty form", async () => {
 		const user = userEvent.setup();
 		await renderRegister();
 
-		const submit = screen.getByRole("button", { name: "Create account" });
-		expect(submit).toBeDisabled();
+		await user.click(
+			screen.getByRole("button", { name: "Create account" })
+		);
 
-		await user.type(screen.getByLabelText("Username"), "ada");
-		await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
-		await user.type(screen.getByLabelText("Email"), "ada@example.com");
-		await user.type(screen.getByLabelText("Password"), "Passw0rd!");
-		expect(submit).toBeDisabled();
-
-		await user.type(screen.getByLabelText("Username"), "_l");
-		expect(submit).toBeEnabled();
+		expect(
+			await screen.findByText("Username is required.")
+		).toBeInTheDocument();
+		expect(screen.getByText("Name is required.")).toBeInTheDocument();
+		expect(screen.getByText("Email is required.")).toBeInTheDocument();
+		expect(
+			screen.getByText("Meet every requirement below.")
+		).toBeInTheDocument();
+		httpTesting.expectNone(`${api}/auth/register`);
 	});
 
-	it("stays disabled for an invalid email or a short password", async () => {
+	it("explains an invalid username, email and name", async () => {
 		const user = userEvent.setup();
 		await renderRegister();
 
-		await fillForm(user);
-		const submit = screen.getByRole("button", { name: "Create account" });
-		expect(submit).toBeEnabled();
+		await user.type(screen.getByLabelText("Username"), "Ada!");
+		await user.type(screen.getByLabelText("Name"), "<Ada>");
+		await user.type(screen.getByLabelText("Email"), "not-an-email");
+		await user.click(
+			screen.getByRole("button", { name: "Create account" })
+		);
 
-		const email = screen.getByLabelText("Email");
-		await user.clear(email);
-		await user.type(email, "not-an-email");
-		expect(submit).toBeDisabled();
-		await user.clear(email);
-		await user.type(email, "ada@example.com");
-		expect(submit).toBeEnabled();
-
-		const password = screen.getByLabelText("Password");
-		await user.clear(password);
-		await user.type(password, "short1!");
-		expect(submit).toBeDisabled();
-		await user.clear(password);
-		await user.type(password, "Passw0rd!");
-		expect(submit).toBeEnabled();
+		expect(
+			await screen.findByText(
+				"Username must contain only lowercase letters, digits, dots or underscores."
+			)
+		).toBeInTheDocument();
+		expect(
+			screen.getByText("Name must not contain < or > characters.")
+		).toBeInTheDocument();
+		expect(
+			screen.getByText("Enter a valid email address.")
+		).toBeInTheDocument();
+		httpTesting.expectNone(`${api}/auth/register`);
 	});
+
+	it("marks the password requirements as met while typing", async () => {
+		const user = userEvent.setup();
+		await renderRegister();
+
+		const rules = screen.getByRole("list", {
+			name: "Password requirements"
+		});
+		expect(rules).toHaveTextContent("A number (missing)");
+
+		await user.type(screen.getByLabelText("Password"), "abc1");
+
+		expect(rules).toHaveTextContent("A number (done)");
+		expect(rules).toHaveTextContent("A lowercase letter (done)");
+		expect(rules).toHaveTextContent("An uppercase letter (missing)");
+		expect(rules).toHaveTextContent("A symbol, like ! or # (missing)");
+		expect(rules).toHaveTextContent("8–15 characters (missing)");
+	});
+
+	it.each([
+		"short1!",
+		"password1!",
+		"PASSWORD1!",
+		"Password!!",
+		"Password11"
+	])(
+		"rejects the password %s because it breaks the policy",
+		async password => {
+			const user = userEvent.setup();
+			await renderRegister();
+
+			await fillForm(user);
+			const field = screen.getByLabelText("Password");
+			await user.clear(field);
+			await user.type(field, password);
+			await user.click(
+				screen.getByRole("button", { name: "Create account" })
+			);
+
+			expect(
+				await screen.findByText("Meet every requirement below.")
+			).toBeInTheDocument();
+			httpTesting.expectNone(`${api}/auth/register`);
+		}
+	);
 
 	it("caps username and password at their maximum length while typing", async () => {
 		const user = userEvent.setup();
