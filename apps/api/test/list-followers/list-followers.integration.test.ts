@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import { ListFollower } from "../../src/list-followers/list-follower.model";
 import { List } from "../../src/lists/list.model";
+import { UserFollower } from "../../src/user-followers/user-follower.model";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
 import { useTestDatabase } from "../helpers/database.helper";
@@ -179,9 +180,8 @@ void describe("GET /users/:username/following-lists", () => {
 		assert.equal(response.body.data.total, 1);
 	});
 
-	void it("keeps every followed list for the user themselves", async () => {
-		const { follower, publicList, privateList, viewerPrivateList } =
-			await setupFollowedLists();
+	void it("applies the visibility rule to the followed lists even for the user themselves", async () => {
+		const { follower, publicList } = await setupFollowedLists();
 
 		const response = await getFollowingLists(
 			follower.user.username,
@@ -189,10 +189,8 @@ void describe("GET /users/:username/following-lists", () => {
 		);
 
 		assert.equal(response.status, 200);
-		assert.deepEqual(
-			new Set(listIds(response)),
-			new Set([publicList.id, privateList.id, viewerPrivateList.id])
-		);
+		assert.deepEqual(listIds(response), [publicList.id]);
+		assert.equal(response.body.data.total, 1);
 	});
 });
 
@@ -620,5 +618,137 @@ void describe("DELETE /lists/:listId/follow", () => {
 			.set("Authorization", "Bearer invalid-token");
 
 		assert.equal(response.status, 401);
+	});
+});
+
+void describe("list followers respect the visibility of the list owner", () => {
+	async function setupHiddenOwner(
+		visibility: { profileVisibility?: string; listVisibility?: string },
+		befriendViewer = false
+	) {
+		const owner = await createUserWithSession();
+		const follower = await createUserWithSession();
+		const viewer = await createUserWithSession();
+		await owner.user.update(visibility);
+		const list = await createList(owner.user.id, "metacritic", {
+			isPublic: true
+		});
+		await ListFollower.create({
+			listId: list.id,
+			userId: follower.user.id
+		});
+		await UserFollower.create({
+			followerId: follower.user.id,
+			followingId: owner.user.id
+		});
+		if (befriendViewer) {
+			await UserFollower.create({
+				followerId: viewer.user.id,
+				followingId: owner.user.id
+			});
+			await UserFollower.create({
+				followerId: owner.user.id,
+				followingId: viewer.user.id
+			});
+		}
+		return { owner, follower, viewer, list };
+	}
+
+	void it("hides the followers of a list when the owner profile is private", async () => {
+		const { owner, viewer, list } = await setupHiddenOwner({
+			profileVisibility: "private"
+		});
+
+		const hidden = await getFollowers(list.id, viewer.authorization);
+		const own = await getFollowers(list.id, owner.authorization);
+
+		assert.equal(hidden.status, 404);
+		assert.equal(hidden.body.type, "LIST_FOLLOWER_LIST_NOT_FOUND");
+		assert.equal(own.status, 200);
+	});
+
+	void it("hides the followers of a list when the owner lists section is friends-only unless mutual", async () => {
+		const stranger = await setupHiddenOwner({ listVisibility: "friends" });
+		const friend = await setupHiddenOwner(
+			{ listVisibility: "friends" },
+			true
+		);
+
+		const hidden = await getFollowers(
+			stranger.list.id,
+			stranger.viewer.authorization
+		);
+		const shown = await getFollowers(
+			friend.list.id,
+			friend.viewer.authorization
+		);
+
+		assert.equal(hidden.status, 404);
+		assert.equal(shown.status, 200);
+	});
+
+	void it("does not let anyone follow a list they cannot see", async () => {
+		const { viewer, list } = await setupHiddenOwner({
+			listVisibility: "private"
+		});
+
+		const response = await api()
+			.post(`/lists/${list.id}/follow`)
+			.set("Authorization", viewer.authorization);
+
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "LIST_FOLLOWER_LIST_NOT_FOUND");
+	});
+
+	void it("lets a mutual follower follow a list of a friends-only owner", async () => {
+		const { viewer, list } = await setupHiddenOwner(
+			{ profileVisibility: "friends", listVisibility: "friends" },
+			true
+		);
+
+		const response = await api()
+			.post(`/lists/${list.id}/follow`)
+			.set("Authorization", viewer.authorization);
+
+		assert.equal(response.status, 201);
+	});
+
+	void it("leaves out of the followed lists of a user the ones whose owner hides them from the viewer", async () => {
+		const { follower, viewer, list } = await setupHiddenOwner({
+			listVisibility: "private"
+		});
+
+		const response = await api()
+			.get(`/users/${follower.user.username}/following-lists`)
+			.set("Authorization", viewer.authorization);
+
+		assert.equal(response.status, 200);
+		assert.deepEqual(response.body.data.followingLists, []);
+		assert.equal(response.body.data.total, 0);
+		assert.ok(
+			!(await getFollowedLists(follower)).some(
+				followed => followed.id === list.id
+			)
+		);
+	});
+
+	void it("keeps a followed list for a viewer who is allowed to see its owner", async () => {
+		const { follower, viewer, list } = await setupHiddenOwner(
+			{ profileVisibility: "friends", listVisibility: "friends" },
+			true
+		);
+
+		const response = await api()
+			.get(`/users/${follower.user.username}/following-lists`)
+			.set("Authorization", viewer.authorization);
+
+		assert.equal(response.status, 200);
+		assert.deepEqual(
+			response.body.data.followingLists.map(
+				(followed: { id: string }) => followed.id
+			),
+			[list.id]
+		);
+		assert.equal(response.body.data.total, 1);
 	});
 });
