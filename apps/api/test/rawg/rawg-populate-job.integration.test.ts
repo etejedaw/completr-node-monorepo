@@ -248,7 +248,7 @@ void describe("POST /admin/jobs/populate-rawg", () => {
 		assert.equal(job.status, "failed");
 		assert.equal(
 			job.result,
-			"Failed after 0 processed, 0 not found. Reason: fetch failed"
+			"Failed after 0 processed, 0 not found. Reason: RAWG_REQUEST_ERROR: RAWG request failed before a response: fetch failed"
 		);
 		assert.equal(await externalOf(game.id), null);
 	});
