@@ -7,6 +7,7 @@ import { backlogProgressDomainToHttpMapper } from "../../backlog-progress/errors
 import { coopRunsDomainToHttpMapper } from "../../coop-runs/errors/coop-runs.domain-to-http.mapper";
 import { favoritesDomainToHttpMapper } from "../../favorites/errors/favorites.domain-to-http.mapper";
 import { franchisesDomainToHttpMapper } from "../../franchises/errors/franchises.domain-to-http.mapper";
+import { gameExternalDomainToHttpMapper } from "../../game-external/errors/game-external.domain-to-http.mapper";
 import { gameReportsDomainToHttpMapper } from "../../game-reports/errors/game-reports.domain-to-http.mapper";
 import { gameScoresDomainToHttpMapper } from "../../game-scores/errors/game-scores.domain-to-http.mapper";
 import { gameShelfDomainToHttpMapper } from "../../game-shelf/errors/game-shelf.domain-to-http.mapper";
@@ -51,6 +52,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "Genre Module")
 		return genresDomainToHttpMapper(error, request);
+
+	if (error.module === "Game External Module")
+		return gameExternalDomainToHttpMapper(error, request);
 
 	if (error.module === "Franchise Module")
 		return franchisesDomainToHttpMapper(error, request);
