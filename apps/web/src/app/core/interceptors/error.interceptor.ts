@@ -16,6 +16,7 @@ import {
 } from "../../shared/utils/validation-errors";
 import { AuthService } from "../services/auth";
 import { ToastService } from "../services/toast";
+import { adminErrorMessage } from "../utils/admin-error-message";
 import { planLimitMessage } from "../utils/plan-limit-message";
 
 let isRefreshing = false;
@@ -36,6 +37,7 @@ export function errorInterceptor(
 		catchError(error => {
 			if (error.status === 409) {
 				const detail =
+					adminErrorMessage(error) ??
 					error.error?.detail ??
 					error.error?.title ??
 					"This action was already performed. Please refresh and try again.";

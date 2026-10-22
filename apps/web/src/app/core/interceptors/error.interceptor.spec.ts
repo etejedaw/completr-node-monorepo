@@ -93,6 +93,23 @@ describe("errorInterceptor", () => {
 		);
 	});
 
+	it("prefers the admin message for a known catalog code on a 409", () => {
+		failWith(409, {
+			type: "GAME_IN_USE",
+			title: "Game is referenced by other games or backlogs and cannot be deleted"
+		});
+		failWith(409, { type: "GENRE_IN_USE", detail: "Genre in use" });
+
+		expect(toast.warning).toHaveBeenNthCalledWith(
+			1,
+			"This game can't be deleted because users have data on it (backlog, lists, reviews, etc.) or it has variants or DLC. Deactivate it instead to hide it without losing data."
+		);
+		expect(toast.warning).toHaveBeenNthCalledWith(
+			2,
+			"This genre is assigned to at least one game. Remove it from those games before deleting it."
+		);
+	});
+
 	it("shows a premium toast with the plan limit message on a 402", () => {
 		const onError = failWith(402, { type: "LIST_LIMIT_REACHED" });
 
