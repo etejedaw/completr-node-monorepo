@@ -7,11 +7,13 @@ import {
 	effect,
 	inject,
 	type OnInit,
-	signal
+	signal,
+	untracked
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
+	catchError,
 	debounceTime,
 	distinctUntilChanged,
 	map,
@@ -188,7 +190,7 @@ export class GamesBrowse implements OnInit {
 		this.sortBy();
 		this.sortOrder();
 		if (this.isInitialLoad()) return;
-		this.onFiltersChanged();
+		untracked(() => this.onFiltersChanged());
 	});
 
 	protected readonly featuredGames = computed(() =>
@@ -256,7 +258,8 @@ export class GamesBrowse implements OnInit {
 							this.isSearching.set(false);
 							this.isSearchingOnline.set(true);
 							return this.gamesService.search(query);
-						})
+						}),
+						catchError(() => of<Game[]>([]))
 					);
 				})
 			)
@@ -271,10 +274,14 @@ export class GamesBrowse implements OnInit {
 		this.loadLatestReviewed();
 		this.loadOfficialLists();
 		this.loadRecentLists();
-		this.gamesService.getGenres().subscribe(g => this.allGenres.set(g));
-		this.gamesService
-			.getPlatforms()
-			.subscribe(p => this.allPlatforms.set(p));
+		this.gamesService.getGenres().subscribe({
+			next: g => this.allGenres.set(g),
+			error: () => this.allGenres.set([])
+		});
+		this.gamesService.getPlatforms().subscribe({
+			next: p => this.allPlatforms.set(p),
+			error: () => this.allPlatforms.set([])
+		});
 		this.applyFromUrl();
 		this.syncGenresWithUrl();
 
@@ -298,9 +305,12 @@ export class GamesBrowse implements OnInit {
 		const query = this.searchQuery().trim();
 		if (query.length < 2) return;
 		this.searchingRawg.set(true);
-		this.gamesService.search(query, true).subscribe(games => {
-			this.searchResults.set(games);
-			this.searchingRawg.set(false);
+		this.gamesService.search(query, true).subscribe({
+			next: games => {
+				this.searchResults.set(games);
+				this.searchingRawg.set(false);
+			},
+			error: () => this.searchingRawg.set(false)
 		});
 	}
 
@@ -322,9 +332,12 @@ export class GamesBrowse implements OnInit {
 	}
 
 	private loadRandomGenre() {
-		this.gamesService.getGenres().subscribe(genres => {
-			if (genres.length === 0) return;
-			this.tryGenre([...genres], 5);
+		this.gamesService.getGenres().subscribe({
+			next: genres => {
+				if (genres.length === 0) return;
+				this.tryGenre([...genres], 5);
+			},
+			error: () => this.genreGames.set([])
 		});
 	}
 
@@ -336,32 +349,38 @@ export class GamesBrowse implements OnInit {
 
 		this.gamesService
 			.getGames({ limit: 16, genre: candidate.code, sort_by: "random" })
-			.subscribe(res => {
-				if (res.data.games.length > 0) {
-					this.randomGenre.set(candidate);
-					this.genreGames.set(res.data.games);
-				} else {
-					this.tryGenre(pool, attemptsLeft - 1);
-				}
+			.subscribe({
+				next: res => {
+					if (res.data.games.length > 0) {
+						this.randomGenre.set(candidate);
+						this.genreGames.set(res.data.games);
+					} else {
+						this.tryGenre(pool, attemptsLeft - 1);
+					}
+				},
+				error: () => this.genreGames.set([])
 			});
 	}
 
 	private loadLatestReviewed() {
-		this.gamesService
-			.getLatestReviewed(16)
-			.subscribe(games => this.latestReviewed.set(games));
+		this.gamesService.getLatestReviewed(16).subscribe({
+			next: games => this.latestReviewed.set(games),
+			error: () => this.latestReviewed.set([])
+		});
 	}
 
 	private loadOfficialLists() {
-		this.listsService
-			.getOfficial(12)
-			.subscribe(lists => this.officialLists.set(lists));
+		this.listsService.getOfficial(12).subscribe({
+			next: lists => this.officialLists.set(lists),
+			error: () => this.officialLists.set([])
+		});
 	}
 
 	private loadRecentLists() {
-		this.listsService
-			.getRecent(12)
-			.subscribe(lists => this.recentLists.set(lists));
+		this.listsService.getRecent(12).subscribe({
+			next: lists => this.recentLists.set(lists),
+			error: () => this.recentLists.set([])
+		});
 	}
 
 	toggleFilters() {

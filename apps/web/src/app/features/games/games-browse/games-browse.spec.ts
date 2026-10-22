@@ -377,9 +377,24 @@ describe("GamesBrowse", () => {
 			).toBeInTheDocument();
 		});
 
-		it.todo(
-			"survives a failing spotlight request: loadRandomGenre subscribes without an error handler, so the error is unhandled"
-		);
+		it("survives a failing spotlight request", async () => {
+			getGames.mockImplementation((query: Record<string, unknown>) => {
+				if (query["genre"])
+					return throwError(() => new Error("spotlight failed"));
+				return of({
+					data: { games: latestGames, total: 3, limit: 16, offset: 0 }
+				});
+			});
+
+			await renderBrowse();
+
+			expect(
+				screen.queryByRole("heading", { name: "RPG" })
+			).not.toBeInTheDocument();
+			expect(
+				screen.queryByRole("heading", { name: "Action" })
+			).not.toBeInTheDocument();
+		});
 
 		it("gives up on the spotlight after five empty genres", async () => {
 			const many = Array.from({ length: 8 }, (_, i) => ({
@@ -888,13 +903,38 @@ describe("GamesBrowse", () => {
 			);
 		});
 
-		it.todo(
-			"stays on page 2 after Next page: filtersEffect also tracks the signals read by loadFiltered (filteredOffset, searchQuery), so it fires again and resets the offset to 0"
-		);
+		it("stays on page 2 after Next page", async () => {
+			await renderBrowse();
+			await openFilters();
+			await userEvent.click(chip("RPG"));
+			await screen.findByRole("heading", { name: "RPG games" });
 
-		it.todo(
-			"does not reload the filtered games when only the page changes"
-		);
+			await userEvent.click(
+				screen.getByRole("button", { name: "Next page" })
+			);
+
+			expect(
+				await screen.findByText("51–100 of 120")
+			).toBeInTheDocument();
+			expect(lastFiltered()).toMatchObject({ offset: 50, genres: "rpg" });
+			expect(
+				screen.getByRole("button", { name: "Previous page" })
+			).toBeEnabled();
+		});
+
+		it("does not reload the filtered games when only the page changes", async () => {
+			await renderBrowse();
+			await openFilters();
+			await userEvent.click(chip("RPG"));
+			await screen.findByRole("heading", { name: "RPG games" });
+			const callsBefore = filteredCalls().length;
+
+			await userEvent.click(
+				screen.getByRole("button", { name: "Next page" })
+			);
+
+			expect(filteredCalls()).toHaveLength(callsBefore + 1);
+		});
 
 		it("has no pager when everything fits in one page", async () => {
 			filtered = { games: [game("f1")], total: 10 };
