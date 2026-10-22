@@ -348,18 +348,18 @@ Reglas:
 
 - Un provider externo expone `isEnabled` en su clase base.
 - Si falta su credencial, el `create` de la clase base devuelve la implementación deshabilitada: el backend arranca igual y cada método lanza `<PROVIDER>_DISABLED`.
-- RAWG: `RAWG_API_KEY` es opcional (vacía o ausente = deshabilitado).
+- RAWG: `RAWG_API_KEY` es opcional (vacía o ausente = deshabilitado). Sus métodos deshabilitados devuelven una promesa rechazada con `RAWG_DISABLED`, no lanzan de forma síncrona.
 - Mail: `SMTP_HOST` es opcional (vacío o ausente = deshabilitado). Códigos: `MAIL_DISABLED` (503) y `MAIL_SEND_ERROR` (502).
 
 ### Códigos de error de RAWG
 
-| Código                | Status |
-| --------------------- | ------ |
-| `RAWG_DISABLED`       | 503    |
-| `RAWG_NOT_FOUND`      | 404    |
-| `RAWG_RATE_LIMITED`   | 429    |
-| `RAWG_REQUEST_ERROR`  | 502    |
-| `RAWG_PARSE_ERROR`    | 502    |
-| `RAWG_INTERNAL_ERROR` | 500    |
+| Código                | Status | Cuándo                                                              |
+| --------------------- | ------ | ------------------------------------------------------------------- |
+| `RAWG_DISABLED`       | 503    | `RAWG_API_KEY` ausente o vacía                                      |
+| `RAWG_NOT_FOUND`      | 404    | RAWG respondió 404                                                  |
+| `RAWG_RATE_LIMITED`   | 429    | RAWG respondió 429                                                  |
+| `RAWG_REQUEST_ERROR`  | 502    | RAWG respondió con otro status de error, o falló la red al llamarlo |
+| `RAWG_PARSE_ERROR`    | 502    | RAWG respondió 2xx con un cuerpo que no es JSON válido              |
+| `RAWG_INTERNAL_ERROR` | 500    | Código de `RAWG Provider` sin mapeo propio                          |
 
 Con RAWG deshabilitado: `GET /games/rawg-lookup`, `GET /games/rawg-detail/:rawgId`, `GET /game-external/rawg/:slug` y `POST /admin/jobs/populate-rawg` responden 503; el resto del backend no se ve afectado.
