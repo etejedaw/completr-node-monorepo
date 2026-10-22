@@ -20,6 +20,8 @@ docs: |-
 
     **Rate Limit:** 50 requests per minute.
 
+    Visibility: only lists the viewer may see are returned. A list is visible when its owner's profile (`profileVisibility`) and lists section (`listVisibility`) are visible to the viewer (friend = mutual follow) and the list is public. The filter runs in the query, so the result only holds visible lists.
+
     ### Query Parameters
 
     | Param | Type   | Required | Description          |

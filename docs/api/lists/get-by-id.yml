@@ -22,6 +22,8 @@ docs: |-
     **Authentication:** Optional (Bearer token). Unauthenticated users get `backlogStatus: null` and `isFollowing: false`.
     **Rate Limit:** 100 requests per minute (public).
 
+    Visibility: a viewer who is not the owner sees the list only when the owner's profile is visible to them (`profileVisibility`; friend = mutual follow), the lists section is visible to them (`listVisibility`) and the list is public (`isPublic`). The owner always sees their own lists. Otherwise it answers 404 `LIST_NOT_FOUND`, the same as a list that does not exist.
+
     ### Path Params
 
     | Param  | Type | Required | Description |

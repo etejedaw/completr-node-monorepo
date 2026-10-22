@@ -19,7 +19,7 @@ docs: |-
     ## Get Lists Containing Game
 
     Returns lists relevant to the viewer for the given game:
-    - `lists`: public lists from any user that include this game (sorted: official admin lists first, then by recency).
+    - `lists`: public lists from other users that include this game and that the viewer may see (sorted: official admin lists first, then by recency). A list is visible when its owner's profile (`profileVisibility`) and lists section (`listVisibility`) are visible to the viewer (friend = mutual follow) and the list is public; the filter runs in the query. The viewer's own public lists also appear here.
     - `myLists`: ALL viewer's own lists with a `contains` boolean indicating whether this game is in each list. Used both for the "In your lists" section (filter `contains === true`) and for the "Add to Lists" modal in game detail (full checkbox state).
 
     **Authentication:** Bearer token required.

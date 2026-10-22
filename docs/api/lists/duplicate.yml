@@ -30,7 +30,7 @@ docs: |-
 
     Creates an editable copy of a list into the authenticated user's own lists. Copies the source name (overridable), description, score/duration source and all items (with their frozen score/duration and position). The copy is owned by the caller; the original is untouched.
 
-    The source list must be public or owned by the caller. Runs in a single transaction.
+    The source list must be public or owned by the caller, and visible to the caller: a public list whose owner's profile (`profileVisibility`) or lists section (`listVisibility`) is hidden from the caller answers 404 `LIST_NOT_FOUND`; a private list of another user answers 403 `LIST_FORBIDDEN`. Runs in a single transaction.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -71,6 +71,6 @@ docs: |-
 
     ### Errors
 
-    - 404 `LIST_NOT_FOUND` — Source list does not exist
+    - 404 `LIST_NOT_FOUND` — Source list does not exist, or it is public but hidden from the caller by the owner's profile or lists section
     - 403 `LIST_FORBIDDEN` — Source list is private and not owned by the caller
     - 402 `LIST_LIMIT_REACHED` — Free user reached 5 list limit
