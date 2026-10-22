@@ -6,7 +6,7 @@ import { ScoreSourceCodeSchema } from "../../score-sources/score-sources.schema"
 
 const GameScoreEntrySchema = z.object({
 	source: ScoreSourceCodeSchema,
-	score: z.number().positive()
+	score: z.number().min(0)
 });
 
 const GameTimeEntrySchema = z.object({

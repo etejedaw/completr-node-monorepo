@@ -6,6 +6,7 @@ import {
 import { TestBed } from "@angular/core/testing";
 
 import { environment } from "../../../environments/environment";
+import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
 import { GamesService } from "./games";
 
 describe("GamesService", () => {
@@ -288,6 +289,9 @@ describe("GamesService", () => {
 			const request = httpTesting.expectOne(`${api}/games/g1/scores`);
 			expect(request.request.method).toBe("PUT");
 			expect(request.request.body).toEqual({ scores });
+			expect(request.request.context.get(SUPPRESS_VALIDATION_TOAST)).toBe(
+				true
+			);
 			request.flush(null);
 		});
 
@@ -297,6 +301,9 @@ describe("GamesService", () => {
 			const request = httpTesting.expectOne(`${api}/games/g1/times`);
 			expect(request.request.method).toBe("PUT");
 			expect(request.request.body).toEqual({ times });
+			expect(request.request.context.get(SUPPRESS_VALIDATION_TOAST)).toBe(
+				true
+			);
 			request.flush(null);
 		});
 

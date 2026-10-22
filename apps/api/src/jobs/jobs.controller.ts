@@ -2,6 +2,7 @@ import { type Request, type Response } from "express";
 
 import * as auditService from "../audit/audit.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type JobIdParam } from "./job-id-params.schema";
 import * as jobsService from "./jobs.service";
 
 export async function getJobs(_request: Request, response: Response) {
@@ -87,7 +88,7 @@ export async function postCleanupCoopRuns(
 }
 
 export async function deleteJob(request: Request, response: Response) {
-	const jobId = request.params.jobId as string;
+	const { jobId } = request.locals.params as JobIdParam;
 
 	const cancelled = await jobsService.cancelJob(jobId);
 	if (!cancelled) return response.sendStatus(404);

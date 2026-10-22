@@ -7,6 +7,7 @@ import { ListItem } from "../list-items/list-item.model";
 import { List } from "../lists/list.model";
 import * as listsService from "../lists/lists.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
+import { visibleListsCondition } from "../users/helpers/visibility.helper";
 import { User } from "../users/user.model";
 import * as listFollowersServiceError from "./errors/list-followers.service-error";
 import { ListFollower } from "./list-follower.model";
@@ -43,6 +44,8 @@ export async function followList(listId: string, userId: string) {
 	const list = await listsService.findListById(listId);
 	if (!list) throw listFollowersServiceError.listNotFoundError();
 	if (!list.isPublic) throw listFollowersServiceError.notPublicError();
+	if (!(await listsService.isListVisibleToViewer(listId, userId)))
+		throw listFollowersServiceError.listNotFoundError();
 
 	const existing = await ListFollower.findOne({
 		where: { listId, userId }
@@ -68,9 +71,7 @@ export async function unfollowList(listId: string, userId: string) {
 }
 
 export async function getListFollowers(listId: string, viewerId: string) {
-	const list = await listsService.findListById(listId);
-	if (!list) throw listFollowersServiceError.listNotFoundError();
-	if (!list.isPublic && list.userId !== viewerId)
+	if (!(await listsService.isListVisibleToViewer(listId, viewerId)))
 		throw listFollowersServiceError.listNotFoundError();
 
 	return ListFollower.findAll({
@@ -88,22 +89,16 @@ export async function getListFollowers(listId: string, viewerId: string) {
 export async function getFollowingLists(userId: string) {
 	return ListFollower.findAll({
 		where: { userId },
-		include: [FOLLOWED_LIST_PREVIEW_INCLUDE],
+		include: [listVisibleToViewer(userId)],
 		order: [["createdAt", "DESC"]]
 	});
 }
 
-function listVisibleToViewer(userId: string, viewerId: string | undefined) {
-	if (viewerId === userId) return FOLLOWED_LIST_PREVIEW_INCLUDE;
-
-	const visibleLists = [
-		{ isPublic: true },
-		...(viewerId ? [{ userId: viewerId }] : [])
-	];
+function listVisibleToViewer(viewerId: string | undefined) {
 	return {
 		...FOLLOWED_LIST_PREVIEW_INCLUDE,
 		required: true,
-		where: { [Op.or]: visibleLists }
+		where: { [Op.and]: [visibleListsCondition(viewerId)] }
 	};
 }
 
@@ -113,8 +108,8 @@ export async function getFollowingListsPaginated(
 	pagination: PaginationQuery = {}
 ) {
 	const query: Record<string, unknown> = {
-		where: { userId },
-		include: [listVisibleToViewer(userId, viewerId)],
+		where: { userId, isVisible: true },
+		include: [listVisibleToViewer(viewerId)],
 		order: [["createdAt", "DESC"]]
 	};
 	if (pagination.limit) query.limit = pagination.limit;

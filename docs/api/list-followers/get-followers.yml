@@ -18,7 +18,7 @@ settings:
 docs: |-
     ## Get List Followers
 
-    Returns users who follow this list. A private list only shows its followers to its owner; for anyone else it answers like a list that does not exist.
+    Returns users who follow this list. The list must be visible to the requester: the owner's profile (`profileVisibility`) and lists section (`listVisibility`) must be visible to them (friend = mutual follow) and the list must be public. The owner always sees their own list's followers. For anyone else a hidden or private list answers like a list that does not exist.
 
     **Auth:** Bearer token required.
 
@@ -41,4 +41,4 @@ docs: |-
     | Status | Type | When |
     |--------|------|------|
     | 401 | `UNAUTHORIZED` | Missing or invalid token |
-    | 404 | `LIST_FOLLOWER_LIST_NOT_FOUND` | The list does not exist, or it is private and the requester is not its owner |
+    | 404 | `LIST_FOLLOWER_LIST_NOT_FOUND` | The list does not exist, or the requester may not see it (private list, or hidden by the owner's profile or lists section) |

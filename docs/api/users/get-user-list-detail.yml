@@ -20,7 +20,7 @@ settings:
 docs: |-
     ## Get User's Public List Detail
 
-    Returns a public list with all its items, showing **`:username`'s progress** on it — this is the "see how @username has progressed through this list" view (used when opening a list from a user's profile). Per-item `backlogStatus`, `realDuration`, `personalRatio` and the list `progress` reflect the **profile user's** backlog, not the viewer's.
+    Returns a list owned by `:username` with all its items (404 `LIST_NOT_FOUND` if the list belongs to another user), showing **`:username`'s progress** on it — this is the "see how @username has progressed through this list" view (used when opening a list from a user's profile). Per-item `backlogStatus`, `realDuration`, `personalRatio` and the list `progress` reflect the **profile user's** backlog, not the viewer's.
 
     Privacy: the profile user's progress is only included when their backlog is public (`isBacklogPublic`) or you are them; for other users only their **public** backlog entries are counted. When their backlog is private, the list is still returned but without progress data (`progress: null`, no per-item `backlogStatus`).
 
@@ -29,7 +29,9 @@ docs: |-
     **Authentication:** Optional (Bearer token). The viewer identity is used to detect self-view and to compute `isFollowing`.
     **Rate Limit:** 100 requests per minute (public).
 
-    Returns 403 if the profile is private. Returns 404 if user/list not found or list is private.
+    Visibility: a viewer who is not the owner sees the list only when the owner's profile is visible to them (`profileVisibility`; friend = mutual follow), the lists section is visible to them (`listVisibility`) and the list is public (`isPublic`). The owner always sees their own lists. Following the list does not bypass the rule.
+
+    Returns 403 `USER_PRIVATE` if the profile is not visible to the viewer. Returns 404 `USER_NOT_FOUND` only when the user does not exist. Returns 404 `LIST_NOT_FOUND` when the list does not exist, belongs to another user, is private, or is hidden by the owner's lists section; a hidden list answers exactly like a missing one so its existence is not revealed.
 
     ### Path Params
 

@@ -47,7 +47,7 @@ docs: |-
 
     | Field    | Type   | Required | Description                                                                    |
     |----------|--------|----------|--------------------------------------------------------------------------------|
-    | message  | string | Yes      | 10-1000 characters                                                             |
+    | message  | string | Yes      | 10-1000 characters after trimming surrounding whitespace; stored trimmed       |
     | category | enum   | No       | `general` (default), `missing_score`, `missing_duration`                       |
 
     ### Response (201)

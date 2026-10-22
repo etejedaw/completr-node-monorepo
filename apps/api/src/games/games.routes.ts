@@ -13,6 +13,7 @@ import { GameCodeParamSchema } from "./schemas/game-code-params.schema";
 import { GameIdParamSchema } from "./schemas/game-id-params.schema";
 import { GameSearchQuerySchema } from "./schemas/game-search-query.schema";
 import { GamesQuerySchema } from "./schemas/games-query.schema";
+import { LatestReviewedQuerySchema } from "./schemas/latest-reviewed-query.schema";
 import { MarkCompilationSchema } from "./schemas/mark-compilation.schema";
 import { RawgIdParamSchema } from "./schemas/rawg-id-params.schema";
 import { RegisterGameSchema } from "./schemas/register-game.schema";
@@ -49,7 +50,11 @@ router.get(
 
 router.get(
 	"/games/latest-reviewed",
-	[authMiddleware(), rateLimiterMiddleware(publicLimiter)],
+	[
+		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(LatestReviewedQuerySchema, "query")
+	],
 	gamesController.getLatestReviewedGames
 );
 

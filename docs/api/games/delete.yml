@@ -21,7 +21,7 @@ settings:
 docs: |-
     ## Delete Game
 
-    Deactivates a game (soft delete). With `?hard=true`, performs a physical delete with CASCADE (admin only).
+    Deactivates a game (soft delete). With `?hard=true`, physically deletes a game that no user references (admin only).
 
     **Authentication:** Bearer token required (role: moderator). Hard delete requires admin.
     **Rate Limit:** 50 requests per minute.
@@ -36,7 +36,7 @@ docs: |-
 
     | Param | Type   | Required | Description                                         |
     |-------|--------|----------|-----------------------------------------------------|
-    | hard  | string | No       | `true` for physical delete with CASCADE (admin only) |
+    | hard  | string | No       | `true` for physical delete, only when the game has no user data (admin only) |
 
     ### Soft delete (default)
 
@@ -44,9 +44,9 @@ docs: |-
 
     ### Hard delete (`?hard=true`)
 
-    Physically deletes the game and all associated data: backlogs (and their queue entries and progress), game-shelf, list-items, favorites, wishlist entries, scores, times, platforms, genres, external IDs, reports, activity targets, popularity, mood tags, compilation items and coop runs.
+    Physically deletes the game and its catalog data: scores, times, platforms, genres, external IDs, popularity and compilation items.
 
-    Rejected with 409 while the game has reviews, variants (`parentGameId`) or is the compilation of some backlog (`compilationGameId`).
+    Before deleting, and inside the same transaction, the API checks the game for user data and answers 409 `GAME_IN_USE` without deleting anything if it finds any: backlog entries (including those that point at it as `compilationGameId`, and with them their queue entries and progress), game-shelf entries, list items, favorites, wishlist entries, reviews, coop runs, mood tags and activity targets. Reports about the game do not count as use and are deleted with it. It also answers 409 while the game has variants or DLCs (`parentGameId`).
 
     ### Response (204)
 
@@ -55,5 +55,5 @@ docs: |-
     ### Errors
 
     - 403 `GAME_FORBIDDEN` — Hard delete requires admin role
-    - 404 `GAME_NOT_FOUND`
-    - 409 `GAME_IN_USE` — The game is still referenced by reviews, variants or compilation backlogs
+    - 404 `GAME_NOT_FOUND` — The game does not exist or, in a soft delete, is already inactive; no audit record is written
+    - 409 `GAME_IN_USE` — Hard delete only: the game has user data (see above) or variants. Nothing is deleted

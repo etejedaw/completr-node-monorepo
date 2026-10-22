@@ -48,8 +48,8 @@ docs: |-
     | isDlc        | boolean  | No       | Whether this is a DLC                                    |
     | parentGameId | uuid     | No       | Parent game UUID (for DLCs)                              |
     | variant      | string   | No       | Variant label (e.g. "Pearl"). Required when this game shares an external id with another game. |
-    | scores       | array    | No       | `[{ source: "metacritic", score: 82 }]`                 |
-    | times        | array    | No       | `[{ source: "hltb", duration: 15 }]`                    |
+    | scores       | array    | No       | `[{ source: "metacritic", score: 82 }]`. Score from 0 to the source scale, both inclusive (negative: 422 `COMMON_SCHEMA_INVALID`; above the scale: 422 `GAME_SCORE_OUT_OF_RANGE`) |
+    | times        | array    | No       | `[{ source: "hltb", duration: 15 }]`. Duration greater than 0 |
 
     ### Response (201)
 

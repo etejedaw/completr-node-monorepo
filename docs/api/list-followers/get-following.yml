@@ -17,7 +17,7 @@ auth:
 docs: |-
     ## Get Following Lists
 
-    Returns lists that the authenticated user is following, with visibility status.
+    Returns lists that the authenticated user is following, with visibility status. Lists the user can no longer see (private, or hidden by the owner's profile or lists section) are left out: following a list does not bypass the visibility rule.
 
     **Auth:** Bearer token (any authenticated user).
 

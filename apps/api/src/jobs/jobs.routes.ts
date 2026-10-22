@@ -3,6 +3,8 @@ import { Router } from "express";
 import { hiddenRouteMiddleware } from "../auth/hidden-route.middleware";
 import { userLimiter } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import { JobIdParamSchema } from "./job-id-params.schema";
 import * as jobsController from "./jobs.controller";
 
 const router = Router();
@@ -45,7 +47,11 @@ router.post(
 
 router.delete(
 	"/admin/jobs/:jobId",
-	[rateLimiterMiddleware(userLimiter), hiddenRouteMiddleware()],
+	[
+		rateLimiterMiddleware(userLimiter),
+		hiddenRouteMiddleware(),
+		validateSchemaMiddleware(JobIdParamSchema, "params")
+	],
 	jobsController.deleteJob
 );
 

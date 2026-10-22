@@ -24,7 +24,7 @@ docs: |-
     **Authentication:** Optional (Bearer token). The viewer identity is used to detect self-view and to apply profile privacy.
     **Rate Limit:** 100 requests per minute (public).
 
-    Returns 403 if the profile or its lists are private for the viewer. Returns 404 if the user does not exist.
+    Visibility: requires both the owner's profile (`profileVisibility`) and lists section (`listVisibility`) to be visible to the viewer, otherwise 403 `USER_PRIVATE`. Returns 404 if the user does not exist.
 
     ### Path Params
 

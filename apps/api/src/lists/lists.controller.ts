@@ -72,10 +72,8 @@ export async function getListById(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;
 	const user = request.locals.user as RequestUser;
 
-	const list = await listsService.findListById(params.listId);
+	const list = await listsService.findVisibleListById(params.listId, user.id);
 	if (!list) throw listDomainError.listNotFound();
-	if (!list.isPublic && list.userId !== user.id)
-		throw listDomainError.listNotFound();
 
 	const listPlain = list.get({ plain: true });
 	const gameIds = (list.ListItems ?? []).map(item => item.gameId);
@@ -101,7 +99,8 @@ export async function getListById(request: Request, response: Response) {
 
 export async function getRecentLists(request: Request, response: Response) {
 	const { limit } = request.locals.query as DiscoveryQuery;
-	const lists = await listsService.findRecentUserLists(limit);
+	const user = request.locals.user as RequestUser;
+	const lists = await listsService.findRecentUserLists(user.id, limit);
 	const listsPlain = lists.map(list => list.get({ plain: true }));
 
 	const data = { lists: listsPlain.map(listSummarySerializer) };
@@ -110,7 +109,8 @@ export async function getRecentLists(request: Request, response: Response) {
 
 export async function getOfficialLists(request: Request, response: Response) {
 	const { limit } = request.locals.query as DiscoveryQuery;
-	const lists = await listsService.findOfficialLists(limit);
+	const user = request.locals.user as RequestUser;
+	const lists = await listsService.findOfficialLists(user.id, limit);
 	const listsPlain = lists.map(list => list.get({ plain: true }));
 
 	const data = { lists: listsPlain.map(listSummarySerializer) };
@@ -119,8 +119,9 @@ export async function getOfficialLists(request: Request, response: Response) {
 
 export async function searchLists(request: Request, response: Response) {
 	const { query } = request.locals.query as SearchQuery;
+	const user = request.locals.user as RequestUser;
 
-	const lists = await listsService.searchPublicLists(query);
+	const lists = await listsService.searchPublicLists(query, user.id);
 	const listsPlain = lists.map(list => list.get({ plain: true }));
 
 	const data = { lists: listsPlain.map(listSummarySerializer) };

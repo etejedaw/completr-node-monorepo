@@ -34,6 +34,11 @@ docs: |-
     |-------|--------|----------|--------------------|
     | name  | string | Yes      | Max 50 characters  |
 
+    ### Errors
+
+    - 400 `GENRE_VALIDATION_ERROR` — The name does not produce a valid code (for example `!!!`)
+    - 409 `GENRE_UNIQUE_CONSTRAINT` — A genre with that name or code already exists
+
     ### Response (201)
 
     ```json

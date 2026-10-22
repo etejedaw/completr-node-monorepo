@@ -31,6 +31,7 @@ const USER_TYPES: string[] = [
 	"coop_tagged"
 ];
 const SOCIAL_TYPES: string[] = ["user_followed", "user_followed_by"];
+const FRIEND_VISIBLE_LEVELS = ["public", "friends"];
 
 export function record(
 	userId: string,
@@ -148,6 +149,10 @@ export async function getFeed(
 	} = {}
 ) {
 	const followingIds = await userFollowersService.getFollowingIds(userId);
+	const mutualIds = await userFollowersService.getMutualFollowerIds(
+		userId,
+		followingIds
+	);
 	const feedUserIds = [userId, ...followingIds];
 
 	const typeCondition: { [Op.notIn]: readonly string[]; [Op.in]?: string[] } =
@@ -172,6 +177,11 @@ export async function getFeed(
 						{
 							profileVisibility: "public",
 							feedVisibility: "public"
+						},
+						{
+							id: { [Op.in]: mutualIds },
+							profileVisibility: { [Op.in]: FRIEND_VISIBLE_LEVELS },
+							feedVisibility: { [Op.in]: FRIEND_VISIBLE_LEVELS }
 						}
 					]
 				}

@@ -107,8 +107,13 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `realDuration` y `personalRatio` por item se calculan con sticky-best: se toma el mejor backlog del usuario sobre ese juego.
 - `position` sin huecos y reordenable: quitar un item renumera los restantes 1..n en la misma transacción, conservando el orden. `(list_id, position)` tiene un índice no único, así que la unicidad la mantiene el service y no la base.
 - Si el creador edita o refresca una lista, todos los seguidores ven los cambios.
-- `GET /lists/:listId/followers` respeta la privacidad de la lista igual que `GET /lists/:id`: si la lista es privada y quien pide no es su dueño responde 404 `LIST_FOLLOWER_LIST_NOT_FOUND`, indistinguible de una lista inexistente. El dueño ve siempre sus seguidores.
-- `GET /users/:username/following-lists` excluye las listas privadas que no pertenezcan a quien mira; el propio usuario ve todas las que sigue.
+- **Visibilidad de una lista de otro usuario:** quien no es el dueño la ve solo si cumple las tres condiciones a la vez: `canView(viewer, owner, "profile")`, `canView(viewer, owner, "list")` y `List.isPublic`. El dueño ve siempre todas las suyas. El orden de precedencia es perfil, luego sección de listas, luego `isPublic`. Seguir una lista (`ListFollower`) no salta la regla para leerla. Las listas oficiales (de un admin) siguen la misma regla.
+- La regla vive en `visibleListsCondition(viewerId)` (SQL, para consultas) y en `canViewList(viewerId, owner, list)` (en memoria, cuando el dueño ya está cargado), ambas en `apps/api/src/users/helpers/visibility.helper.ts`. Los listados agregados (`GET /lists/recent`, `GET /lists/official`, `GET /lists/search`, `GET /games/:id/lists`, `GET /users/:username/following-lists`) filtran en la consulta, así que `limit`, `total` y la paginación cuentan solo lo visible.
+- Una lista que existe pero que quien pide no puede ver (por `listVisibility` o por `isPublic`) responde igual que una inexistente: 404 `LIST_NOT_FOUND`, para no revelar su existencia. Esto aplica a `GET /lists/:listId` y a `GET /users/:username/lists/:listId`; en el segundo, `USER_NOT_FOUND` queda solo para un usuario inexistente y `USER_PRIVATE` (403) para un perfil no visible.
+- `GET /lists/:listId/followers` aplica la misma regla: una lista que quien pide no puede ver responde 404 `LIST_FOLLOWER_LIST_NOT_FOUND`, indistinguible de una inexistente. `POST /lists/:listId/follow` sobre una lista pública que quien pide no puede ver responde también 404 `LIST_FOLLOWER_LIST_NOT_FOUND`; sobre una privada sigue respondiendo 403 `LIST_FOLLOWER_NOT_PUBLIC`.
+- `POST /lists/:listId/duplicate` sobre la lista pública de otro usuario que quien pide no puede ver responde 404 `LIST_NOT_FOUND`; sobre una privada ajena sigue respondiendo 403 `LIST_FORBIDDEN`.
+- `GET /users/:username/following-lists` y `GET /lists/following` excluyen las listas que quien pide no puede ver según la regla, incluso las que sigue él mismo. El listado público del perfil excluye además los follows con `ListFollower.isVisible = false`. Ambos filtros van en la consulta, así que `total` y la paginación cuentan solo lo visible.
+- `GET /users/:username/lists` exige `canView(..., "profile")` y `canView(..., "list")`; si alguna falla responde 403 `USER_PRIVATE`.
 - Refrescar items reaplica score/duration desde la fuente declarada.
 - `PUT /games/:gameId/lists` fija en una sola transacción el conjunto de listas propias que contienen el juego: añade el juego (al final, congelando score y duración de la fuente de cada lista) a las que faltan y lo quita de las propias que sobran (renumerando posiciones). Una lista ajena responde 403 `LIST_ITEM_FORBIDDEN`, una inexistente o un juego inexistente 404, y un free sobre el límite de listas recibe 402 `LIST_ITEM_FROZEN` solo si hay que añadir a alguna lista (quitar sigue permitido). Si algo falla no se aplica ningún cambio.
 - `GET /lists/recent` y `GET /lists/official` aceptan `limit` entero entre 1 y 50 (por defecto 12); cualquier otro valor o parámetro desconocido responde 422 `COMMON_SCHEMA_INVALID`.
@@ -172,6 +177,23 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 
 - `PUT /games/:gameId/scores` y `PUT /games/:gameId/times` reemplazan en una transacción el conjunto completo de scores manuales o duraciones manuales (`hltb`, `rawg`) de un juego: upsert de lo enviado y borrado de lo que no viene. La fuente calculada `completr` nunca se envía ni se borra. Juego inexistente responde 404 `GAME_SCORE_GAME_NOT_FOUND` o `GAME_TIME_GAME_NOT_FOUND`; una fuente de score fuera del catálogo, 422 `GAME_SCORE_SOURCE_NOT_FOUND`. Si algo falla no se aplica nada.
 
+### Rangos válidos
+
+- `GameScore.score` va de 0 a la `scale` de su fuente, ambos inclusive. El mínimo lo valida el schema (negativo responde 422 `COMMON_SCHEMA_INVALID`); el máximo depende de la fuente y lo valida el service (por encima de la `scale` responde 422 `GAME_SCORE_OUT_OF_RANGE`). Aplica a `POST /game-scores`, `PATCH /game-scores/:gameId/:source` `PUT /games/:gameId/scores` y `POST /games` (con score 0 aceptado).
+- `GameTime.duration` es mayor que 0 (cero o negativo responde 422 `COMMON_SCHEMA_INVALID`). Aplica a `POST /game-times`, `PATCH /game-times/:gameId/:source` y `PUT /games/:gameId/times`.
+
+### Géneros y plataformas
+
+- El `code` de un género se genera del nombre con `slugify`. Un nombre que no produce slug (por ejemplo `!!!`) responde 400 `GENRE_VALIDATION_ERROR` al crear y al renombrar.
+- Renombrar un género a un nombre o code ya existente responde 409 `GENRE_UNIQUE_CONSTRAINT`.
+- Borrar un género o una plataforma inexistente responde 404 `GENRE_NOT_FOUND` / `PLATFORM_NOT_FOUND`.
+
+### Edición y borrado de juegos
+
+- `PATCH /games/:id` es atómico: el update del juego y el reemplazo de plataformas, géneros y external ids van en una sola transacción. Si un paso falla no se aplica ninguno.
+- `DELETE /games/:id` sin `hard` desactiva el juego (`isActive = false`) y no toca sus datos.
+- `DELETE /games/:id?hard=true` (solo admin) borra el juego y sus datos de catálogo (plataformas, géneros, scores, times, external ids, popularidad e items de compilation). Antes de borrar, dentro de una transacción, comprueba con consultas explícitas que ningún usuario lo referencia: backlog (también como `compilationGameId`, y por tanto su queue), game-shelf, list-items, favoritos, wishlist, reviews, coop runs, mood tags por juego y actividad; y que no tiene variantes ni DLCs (`parentGameId`). Si lo está responde 409 `GAME_IN_USE` y no se borra nada; el `ON DELETE` de las FKs no se usa como control. Los reports del juego no cuentan como uso y se borran con él.
+
 ### Sagas
 
 - `POST /franchises` y `PATCH /franchises/:id` aceptan `gameIds` opcional: el conjunto final de juegos de la saga. Si se envía, la saga y los vínculos se aplican en una sola transacción: los juegos listados quedan con ese `franchiseId` y los que la saga tenía y no aparecen se desvinculan (`franchiseId = null`). Si algún id no existe responde 404 `FRANCHISE_GAMES_NOT_FOUND` y no se aplica nada. Sin `gameIds` los juegos no se tocan.
@@ -184,6 +206,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 ### Jobs de actualización masiva
 
 - Solo `admin` puede dispararlos.
+- `DELETE /admin/jobs/:jobId` valida que `jobId` sea un UUID: otro valor responde 422 `COMMON_SCHEMA_INVALID`.
 - `calculate-ratings` y `calculate-durations` exigen mínimo del **10% de usuarios** con dato para emitir score Completr.
 
 ---
@@ -233,7 +256,10 @@ Toda la lógica vive en `canView(viewerId, owner, section)` en `apps/api/src/use
 - Las solicitudes de seguimiento solo se aceptan cuando `profileVisibility === "private" && acceptFollowRequests`.
 - `notes` del backlog nunca aparecen en respuestas públicas, sin importar `backlogVisibility`.
 - `email` nunca se serializa en respuestas públicas.
-- **Listas seguidas en perfil:** una entry es visible solo cuando el perfil es visible y `ListFollower.isVisible` es `true`.
+- `GET /games/:id/friends-activity` y `GET /games/:id/players` aplican `canView` con SQL: una sección `friends` solo se sirve al amigo mutuo. En `friends-activity` entran los seguidos con perfil y backlog `public`, más los seguidos mutuos con `public` o `friends`; `players` solo incluye usuarios con perfil y backlog `public`.
+- Las cuentas desactivadas (`isActive = false`) no cuentan como conexiones: `GET /users/:username/followers` y `GET /users/:username/following` las omiten, `getFollowerCount` / `getFollowingCount` (y con ellos `followerCount` / `followingCount` del perfil y de las tarjetas) no las cuentan, y `GET /games/:id/friends-activity` y `GET /games/:id/players` no las devuelven.
+- `GET /users/search` busca `q` de forma literal: `\`, `%` y `_` se escapan antes del `ILIKE`.
+- **Listas seguidas en perfil:** una entry es visible solo cuando el perfil es visible, `ListFollower.isVisible` es `true` y la lista cumple la regla de visibilidad de listas (ver "Listas y list-items").
 
 ---
 
@@ -250,7 +276,9 @@ Eventos registrados:
 Reglas:
 
 - El feed incluye actividades propias del usuario consultante.
-- Filtrado por `feedVisibility` del autor de cada evento.
+- Filtrado por visibilidad del autor de cada evento, en la consulta, así que `total` y la paginación solo cuentan lo visible: el feed exige `canView` de `profile` y de `feed`. Un autor con ambos en `public` se ve para quien lo sigue; con `friends` en cualquiera de los dos solo se ve si el seguimiento es mutuo; con `private` en cualquiera de los dos solo lo ve el propio autor.
+- Los eventos `user_followed` y `user_followed_by` nunca se devuelven en el feed.
+- Los filtros `category` y `types` son premium (`premium`, `moderator`, `admin`): un free que los envía recibe 402 `ACTIVITY_FEED_FILTER_PREMIUM`. Con ambos, el resultado es la intersección.
 - Los eventos `backlog_*` solo se emiten cuando el status realmente cambia.
 
 ---
@@ -302,6 +330,11 @@ Reglas:
 - Fallback a RAWG cuando no hay match local, salvo `local_only=true`. Importa hasta 3 resultados con detalle, excluye DLCs.
 - `force_rawg=true` salta búsqueda local.
 - `sort_by=random` disponible para discover.
+- `force_rawg` y `local_only` se parsean con `z.stringbool()`: `"true"` / `"false"` (y sus variantes) valen lo que dicen; cualquier otro valor responde 422 `COMMON_SCHEMA_INVALID`.
+- `GET /games` con `min_score` / `max_score` compara contra el score canónico normalizado a 0–5 (el de la fuente con menor `priority`), el mismo que usa `sort_by=score`; los juegos sin score quedan fuera del rango.
+- `GET /games/latest-reviewed` acepta `limit` entero entre 1 y 50 (por defecto 16); otro valor o un parámetro desconocido responde 422 `COMMON_SCHEMA_INVALID`. Los juegos inactivos se descartan antes de aplicar el `limit`.
+- `PATCH /games/:id` con un título cuyo slug ya usa otro juego responde 409 `GAME_UNIQUE_CONSTRAINT`. `DELETE /games/:id` (baja lógica) sobre un juego inexistente o ya inactivo responde 404 `GAME_NOT_FOUND` y no registra auditoría.
+- `GET /genres/:code/games` devuelve cada juego con todos sus géneros; el género pedido solo filtra qué juegos entran.
 - Si RAWG está deshabilitado no hay fallback: la búsqueda devuelve solo catálogo local.
 
 ## Showcase de juegos

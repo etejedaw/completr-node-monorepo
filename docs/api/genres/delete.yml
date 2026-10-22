@@ -35,4 +35,5 @@ docs: |-
 
     ### Errors
 
+    - 404 `GENRE_NOT_FOUND` — The genre does not exist
     - 409 `GENRE_IN_USE` — The genre is assigned to at least one game

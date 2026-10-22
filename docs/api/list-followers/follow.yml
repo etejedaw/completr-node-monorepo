@@ -20,6 +20,8 @@ docs: |-
 
     Follows a public list. The list appears on the user's profile as a social bookmark.
 
+    The list must be visible to the requester: a public list whose owner's profile (`profileVisibility`) or lists section (`listVisibility`) is hidden from them answers 404, as if it did not exist. Following a list never bypasses that rule for reading it.
+
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
 
@@ -30,5 +32,5 @@ docs: |-
     ### Errors
 
     - 403 `LIST_FOLLOWER_NOT_PUBLIC` — Cannot follow a private list
-    - 404 `LIST_FOLLOWER_LIST_NOT_FOUND`
+    - 404 `LIST_FOLLOWER_LIST_NOT_FOUND` — The list does not exist, or it is public but hidden from the requester by the owner's profile or lists section
     - 409 `LIST_FOLLOWER_ALREADY_FOLLOWING` — Already following this list

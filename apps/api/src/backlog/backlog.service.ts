@@ -746,19 +746,34 @@ export async function findBacklogByUserId(
 }
 
 export async function findFriendsActivityForGame(
-	friendIds: string[],
+	followingIds: string[],
+	mutualIds: string[],
 	gameId: string
 ) {
-	if (friendIds.length === 0) return [];
+	if (followingIds.length === 0) return [];
 
 	const rows = await Backlog.findAll({
-		where: { gameId, isPublic: true, userId: { [Op.in]: friendIds } },
+		where: { gameId, isPublic: true, userId: { [Op.in]: followingIds } },
 		include: [
 			{
 				model: User,
 				where: {
-					profileVisibility: { [Op.in]: ["public", "friends"] },
-					backlogVisibility: { [Op.in]: ["public", "friends"] }
+					isActive: true,
+					[Op.or]: [
+						{
+							profileVisibility: "public",
+							backlogVisibility: "public"
+						},
+						{
+							id: { [Op.in]: mutualIds },
+							profileVisibility: {
+								[Op.in]: ["public", "friends"]
+							},
+							backlogVisibility: {
+								[Op.in]: ["public", "friends"]
+							}
+						}
+					]
 				},
 				attributes: USER_PUBLIC_ATTRS
 			}
@@ -788,8 +803,9 @@ export async function findRandomPlayersForGame(
 			{
 				model: User,
 				where: {
-					profileVisibility: { [Op.in]: ["public", "friends"] },
-					backlogVisibility: { [Op.in]: ["public", "friends"] }
+					isActive: true,
+					profileVisibility: "public",
+					backlogVisibility: "public"
 				},
 				attributes: USER_PUBLIC_ATTRS
 			}

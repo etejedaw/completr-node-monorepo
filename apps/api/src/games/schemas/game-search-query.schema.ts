@@ -3,8 +3,8 @@ import z from "zod";
 export const GameSearchQuerySchema = z
 	.object({
 		query: z.string().min(1).max(200),
-		force_rawg: z.coerce.boolean().optional(),
-		local_only: z.coerce.boolean().optional()
+		force_rawg: z.stringbool().optional(),
+		local_only: z.stringbool().optional()
 	})
 	.strict()
 	.readonly();

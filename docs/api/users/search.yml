@@ -14,7 +14,7 @@ settings:
 docs: |-
     ## Search Users
 
-    Search users by username/name (partial, case-insensitive) or by exact email.
+    Search users by username/name (partial, case-insensitive, literal: `%`, `_` and `\` in `q` match themselves, not as wildcards) or by exact email.
     Returns active users (both public and private). Private users appear in results
     but their profile shows limited info.
 

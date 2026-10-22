@@ -1,3 +1,5 @@
+import { type Transaction } from "sequelize";
+
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import * as gameExternalServiceError from "./errors/game-external.service-error";
 import { type ExternalSource, GameExternal } from "./game-external.model";
@@ -42,19 +44,24 @@ export async function findGameIdsBySource(
 export async function upsert(
 	gameId: string,
 	source: ExternalSource,
-	externalId: string
+	externalId: string,
+	transaction?: Transaction
 ) {
 	const existing = await GameExternal.findOne({
-		where: { gameId, source }
+		where: { gameId, source },
+		transaction
 	});
 
 	if (existing) {
-		await existing.update({ externalId });
+		await existing.update({ externalId }, { transaction });
 		return existing;
 	}
 
 	try {
-		return await GameExternal.create({ gameId, source, externalId });
+		return await GameExternal.create(
+			{ gameId, source, externalId },
+			{ transaction }
+		);
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: gameExternalServiceError.uniqueConstraintError

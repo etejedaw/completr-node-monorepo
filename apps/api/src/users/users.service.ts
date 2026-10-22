@@ -51,13 +51,20 @@ export async function countActiveUsers() {
 	return User.count({ where: { isActive: true } });
 }
 
+const LIKE_WILDCARDS = /[\\%_]/g;
+
+function escapeLikePattern(term: string) {
+	return term.replace(LIKE_WILDCARDS, "\\$&");
+}
+
 export async function searchUsers(query: string, limit = 20) {
+	const pattern = `%${escapeLikePattern(query)}%`;
 	return User.findAll({
 		where: {
 			isActive: true,
 			[Op.or]: [
-				{ username: { [Op.iLike]: `%${query}%` } },
-				{ name: { [Op.iLike]: `%${query}%` } }
+				{ username: { [Op.iLike]: pattern } },
+				{ name: { [Op.iLike]: pattern } }
 			]
 		},
 		attributes: USER_CARD_ATTRS,

@@ -105,7 +105,7 @@ export function gameInUse(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
 		"GAME_IN_USE",
-		"Game is referenced by other games or backlogs and cannot be deleted",
+		"Game is referenced by user data or other games and cannot be deleted",
 		context
 	);
 }

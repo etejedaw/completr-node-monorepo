@@ -6,7 +6,7 @@ export const RegisterGameScoreSchema = z
 	.object({
 		gameId: z.uuid(),
 		source: ManualScoreSourceCodeSchema,
-		score: z.number()
+		score: z.number().min(0)
 	})
 	.strict()
 	.readonly();

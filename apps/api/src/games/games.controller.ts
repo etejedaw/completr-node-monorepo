@@ -25,6 +25,7 @@ import { type GameCodeParam } from "./schemas/game-code-params.schema";
 import { type GameIdParam } from "./schemas/game-id-params.schema";
 import { type GameSearchQuery } from "./schemas/game-search-query.schema";
 import { type GamesQuery } from "./schemas/games-query.schema";
+import { type LatestReviewedQuery } from "./schemas/latest-reviewed-query.schema";
 import { type RawgIdParam } from "./schemas/rawg-id-params.schema";
 import * as gamesProfileService from "./services/games-profile.service";
 import { mapGamesQueryToOptions } from "./utils/games-query.adapter";
@@ -105,8 +106,8 @@ export async function getLatestReviewedGames(
 	request: Request,
 	response: Response
 ) {
-	const limit = Number(request.query.limit ?? 16);
-	const games = await gameService.findLatestReviewed(limit);
+	const query = request.locals.query as LatestReviewedQuery;
+	const games = await gameService.findLatestReviewed(query.limit);
 	const gamesPlain = games.map(game => game.get({ plain: true }));
 
 	const data = { games: gamesPlain.map(g => gameListSerializer(g)) };

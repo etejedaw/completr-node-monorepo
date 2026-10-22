@@ -18,7 +18,7 @@ settings:
 docs: |-
     ## Get Friends Activity For Game
 
-    Returns the users the authenticated viewer follows who have this game in their backlog, with their current status. One entry per friend — the most recent. Only friends whose profile **and** backlog are public, and whose backlog entry itself is public, are included. Powers the "Played by Friends" panel in game detail.
+    Returns the users the authenticated viewer follows who have this game in their backlog, with their current status. One entry per friend — the most recent. Only users whose profile **and** backlog are visible to the viewer, and whose backlog entry itself is public, are included: `public` sections always, `friends` sections only when the follow is mutual (a one-way follow does not reveal them). Powers the "Played by Friends" panel in game detail.
 
     Returns an empty `friends` array when none of the followed users have public activity for the game (no 404 for unknown game ids).
 

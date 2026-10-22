@@ -14,9 +14,13 @@ export async function linkGameToGenres(
 	});
 }
 
-export async function replaceGameGenres(gameId: string, genreIds: string[]) {
-	await GameGenre.destroy({ where: { gameId } });
+export async function replaceGameGenres(
+	gameId: string,
+	genreIds: string[],
+	transaction?: Transaction
+) {
+	await GameGenre.destroy({ where: { gameId }, transaction });
 	if (!genreIds.length) return;
 
-	return linkGameToGenres(gameId, genreIds);
+	return linkGameToGenres(gameId, genreIds, transaction);
 }

@@ -1,19 +1,29 @@
-import { type Transaction } from "sequelize";
+import { type Model, type ModelStatic, type Transaction } from "sequelize";
+
+import { ActivityGame } from "../activity/targets/activity-game.model";
 
 import { apiKeysConfig } from "../common/config/api-keys.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { PinoLogger } from "../common/logger/pino.logger";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
+import { Backlog } from "../backlog/backlog.model";
+import { CoopRun } from "../coop-runs/coop-run.model";
 import { sequelize } from "../database/sequelize.database";
+import { Favorite } from "../favorites/favorite.model";
 import * as gameExternalService from "../game-external/game-external.service";
 import * as gameGenresService from "../game-genre/game-genre.service";
 import * as gamePlatformsService from "../game-platform/game-platform.service";
 import * as gameScoresService from "../game-scores/game-scores.service";
+import { GameShelf } from "../game-shelf/game-shelf.model";
 import * as gameTimesService from "../game-times/game-times.service";
 import * as genresService from "../genres/genres.service";
+import { ListItem } from "../list-items/list-item.model";
+import { UserGameTag } from "../mood-tags/user-game-tag.model";
 import * as platformsService from "../platforms/platforms.service";
 import { RawgClient } from "../rawg/rawg.provider";
+import { Review } from "../reviews/review.model";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
+import { Wishlist } from "../wishlist/wishlist.model";
 import { type RegisterGameDto } from "./dtos/register-game.dto";
 import { type UpdateGameDto } from "./dtos/update-game.dto";
 import * as gamesServiceError from "./errors/games.service-error";
@@ -61,6 +71,18 @@ export {
 } from "./services/games-search.service";
 export { findShowcaseGames } from "./services/games-showcase.service";
 export { splitGame } from "./services/games-variant.service";
+
+const USER_DATA_MODELS: ModelStatic<Model>[] = [
+	Backlog,
+	GameShelf,
+	ListItem,
+	Favorite,
+	Wishlist,
+	Review,
+	CoopRun,
+	UserGameTag,
+	ActivityGame
+];
 
 const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
 const logger = new PinoLogger("GamesService");
@@ -134,10 +156,6 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 		);
 	}
 
-	if (platforms) await platformsUpdate(game.id, platforms);
-	if (genres) await genresUpdate(game.id, genres);
-	if (externalIds) await upsertExternalIds(game.id, externalIds);
-
 	const updateData: Record<string, unknown> = { ...gameDto };
 	if (title) {
 		const code = titleToSlug(title);
@@ -149,7 +167,36 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 		updateData.code = code;
 	}
 
-	await game.update(updateData);
+	const platformIds = platforms
+		? await resolvePlatformIds(platforms)
+		: undefined;
+	const genreIds = genres ? await resolveGenreIds(genres) : undefined;
+
+	await sequelize.transaction(async transaction => {
+		try {
+			await game.update(updateData, { transaction });
+		} catch (error) {
+			rethrowSequelizeError(error, {
+				unique: gamesServiceError.uniqueConstraintError,
+				validation: gamesServiceError.validationError
+			});
+		}
+
+		if (platformIds)
+			await gamePlatformsService.replaceGamePlatforms(
+				game.id,
+				platformIds,
+				transaction
+			);
+		if (genreIds)
+			await gameGenresService.replaceGameGenres(
+				game.id,
+				genreIds,
+				transaction
+			);
+		if (externalIds)
+			await upsertExternalIds(game.id, externalIds, transaction);
+	});
 
 	const updatedGame = await findGameById(id);
 	return updatedGame as Game;
@@ -157,10 +204,9 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 
 export async function deactivateGame(id: string) {
 	const game = await findGameById(id);
-	if (!game) return false;
+	if (!game) throw gamesServiceError.notFoundError();
 
 	await game.update({ isActive: false });
-	return true;
 }
 
 export async function reactivateGame(id: string) {
@@ -172,17 +218,39 @@ export async function reactivateGame(id: string) {
 }
 
 export async function hardDeleteGame(id: string) {
-	const game = await Game.findOne({ where: { id } });
-	if (!game) throw gamesServiceError.notFoundError();
-
 	try {
-		await Game.destroy({ where: { id } });
-		return true;
+		return await sequelize.transaction(async transaction => {
+			const game = await Game.findOne({ where: { id }, transaction });
+			if (!game) throw gamesServiceError.notFoundError();
+
+			if (await isGameInUse(id, transaction))
+				throw gamesServiceError.inUseError(undefined);
+
+			await Game.destroy({ where: { id }, transaction });
+			return true;
+		});
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			foreignKey: gamesServiceError.inUseError
 		});
 	}
+}
+
+async function isGameInUse(gameId: string, transaction: Transaction) {
+	const lookups = [
+		...USER_DATA_MODELS.map(model => ({ model, where: { gameId } })),
+		{ model: Backlog, where: { compilationGameId: gameId } },
+		{ model: Game, where: { parentGameId: gameId } }
+	];
+	for (const { model, where } of lookups) {
+		const reference = await model.findOne({
+			where,
+			attributes: ["id"],
+			transaction
+		});
+		if (reference) return true;
+	}
+	return false;
 }
 
 export async function searchGames(query: string, forceRawg = false) {
@@ -300,13 +368,17 @@ async function resolveRawgResult(
 
 async function upsertExternalIds(
 	gameId: string,
-	externalIds: UpdateGameDto["externalIds"]
+	externalIds: UpdateGameDto["externalIds"],
+	transaction?: Transaction
 ) {
 	if (!externalIds) return;
-	const promises = externalIds.map(({ source, externalId }) =>
-		gameExternalService.upsert(gameId, source, externalId)
-	);
-	await Promise.all(promises);
+	for (const { source, externalId } of externalIds)
+		await gameExternalService.upsert(
+			gameId,
+			source,
+			externalId,
+			transaction
+		);
 }
 
 async function linkPlatforms(
@@ -401,28 +473,22 @@ async function linkGenres(
 	);
 }
 
-async function platformsUpdate(gameId: string, platforms: string[]) {
-	if (platforms.length === 0)
-		return await gamePlatformsService.replaceGamePlatforms(gameId, []);
+async function resolvePlatformIds(platforms: string[]) {
+	if (platforms.length === 0) return [];
 
 	const platformDb = await platformsService.findPlatformsByCode(platforms);
-
 	if (platformDb.length !== platforms.length)
 		throw gamesServiceError.platformNotFoundError();
 
-	const platformsIds = platformDb.map(platform => platform.id);
-	await gamePlatformsService.replaceGamePlatforms(gameId, platformsIds);
+	return platformDb.map(platform => platform.id);
 }
 
-async function genresUpdate(gameId: string, genres: string[]) {
-	if (genres.length === 0)
-		return await gameGenresService.replaceGameGenres(gameId, []);
+async function resolveGenreIds(genres: string[]) {
+	if (genres.length === 0) return [];
 
 	const genreDb = await genresService.findGenresByCode(genres);
-
 	if (genreDb.length !== genres.length)
 		throw gamesServiceError.genreNotFoundError();
 
-	const genreIds = genreDb.map(genre => genre.id);
-	await gameGenresService.replaceGameGenres(gameId, genreIds);
+	return genreDb.map(genre => genre.id);
 }

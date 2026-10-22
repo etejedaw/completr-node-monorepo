@@ -47,7 +47,7 @@ docs: |-
     |-------|-------|----------|------------------------------------------------------------------------------|
     | times | array | Yes      | Full set of durations. May be empty to delete every manual duration. No repeated sources |
 
-    Each item: `source` (`hltb` or `rawg`) and `duration` (number, hours).
+    Each item: `source` (`hltb` or `rawg`) and `duration` (number, hours, greater than 0).
 
     ### Response (200)
 
@@ -72,4 +72,4 @@ docs: |-
     | Status | Code                    | Description                                      |
     |--------|-------------------------|--------------------------------------------------|
     | 404    | GAME_TIME_GAME_NOT_FOUND | The game does not exist                         |
-    | 422    | COMMON_SCHEMA_INVALID   | Invalid body (repeated sources, `completr`, wrong types) |
+    | 422    | COMMON_SCHEMA_INVALID   | Invalid body (repeated sources, `completr`, wrong types, durations of 0 or less) |

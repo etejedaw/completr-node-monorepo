@@ -24,6 +24,8 @@ docs: |-
     | Param | Type   | Required | Description                   |
     |-------|--------|----------|-------------------------------|
     | query | string | Yes      | Search term (1-200 chars)     |
+    | force_rawg | bool | No     | `true` skips the local search and goes straight to RAWG. Accepts `true` / `false` |
+    | local_only | bool | No     | `true` searches only the local catalog (max 10 results, no RAWG fallback). Accepts `true` / `false` |
 
     ### Response (200)
 

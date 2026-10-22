@@ -19,6 +19,7 @@ import { rawgToGameMapper } from "../mappers/rawg-to-game.mapper";
 import {
 	buildActiveFlagWhere,
 	buildAggregateCondition,
+	buildCanonicalScoreCondition,
 	buildCompilationFlagsWhere,
 	buildGenreCondition,
 	buildMissingRelationCondition,
@@ -179,12 +180,7 @@ function collectAndConditions(
 	conditions.push(buildGenreCondition(filters.genres));
 	conditions.push(buildPlatformCondition(filters.platforms));
 	conditions.push(
-		buildAggregateCondition(
-			"GameScores",
-			"score",
-			filters.score?.min,
-			filters.score?.max
-		)
+		buildCanonicalScoreCondition(filters.score?.min, filters.score?.max)
 	);
 	conditions.push(
 		buildAggregateCondition(
@@ -338,15 +334,16 @@ export async function findGamesByGenreCode(
 ) {
 	const { limit = 50, offset = 0 } = options;
 	const rows = await Game.findAll({
-		where: { isActive: true },
+		where: { isActive: true, ...buildGenreCondition([genreCode]) },
 		include: [
 			{ association: "Platforms" },
-			{
-				association: "Genres",
-				where: { code: genreCode }
-			},
+			{ association: "Genres" },
 			{ association: "GameScores" },
 			{ association: "GameTimes" }
+		],
+		order: [
+			["title", "ASC"],
+			["id", "ASC"]
 		],
 		limit: limit + 1,
 		offset

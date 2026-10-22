@@ -1,4 +1,4 @@
-import { Op, type Order } from "sequelize";
+import { Op, type Order, where as whereFn } from "sequelize";
 
 import { buildRangeWhere } from "../../common/utils/sequelize-range.util";
 import { sequelize } from "../../database/sequelize.database";
@@ -85,6 +85,20 @@ export function buildAggregateCondition(
 			)
 		}
 	};
+}
+
+export function buildCanonicalScoreCondition(
+	min: number | undefined,
+	max: number | undefined
+): object | null {
+	if (min === undefined && max === undefined) return null;
+	const canonicalScore = sequelize.literal(CANONICAL_SCORE_SUBQUERY);
+	const conditions = [];
+	if (min !== undefined)
+		conditions.push(whereFn(canonicalScore, Op.gte, min));
+	if (max !== undefined)
+		conditions.push(whereFn(canonicalScore, Op.lte, max));
+	return { [Op.and]: conditions };
 }
 
 export function buildMissingRelationCondition(table: string): object {
