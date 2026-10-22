@@ -69,25 +69,30 @@ void describe("RawgClient.create", () => {
 void describe("DisabledRawgProvider", () => {
 	const provider = new DisabledRawgProvider();
 
-	const methods: [string, () => unknown][] = [
+	const methods: [string, () => Promise<unknown>][] = [
 		["searchGame", () => provider.searchGame()],
 		["getGameById", () => provider.getGameById()],
 		["getGameBySlug", () => provider.getGameBySlug()]
 	];
 
 	for (const [name, call] of methods) {
-		void it(`${name} throws RAWG_DISABLED`, () => {
-			assert.throws(call, error => {
-				assertServiceError(error, "RAWG_DISABLED");
-				return true;
+		void it(`${name} returns a promise rejected with RAWG_DISABLED`, async () => {
+			let promise: Promise<unknown> | undefined;
+			assert.doesNotThrow(() => {
+				promise = call();
 			});
+			assert.ok(promise instanceof Promise);
+
+			const error = await captureRejection(promise);
+
+			assertServiceError(error, "RAWG_DISABLED");
 		});
 	}
 
-	void it("never calls fetch", () => {
+	void it("never calls fetch", async () => {
 		const fetchMock = stubFetchWith(jsonResponse({}));
 
-		assert.throws(() => provider.searchGame());
+		await captureRejection(provider.searchGame());
 
 		assert.equal(fetchMock.mock.callCount(), 0);
 	});
@@ -252,23 +257,49 @@ void describe("RawgProvider.searchGame", () => {
 		});
 	}
 
-	void it("rejects with the original SyntaxError when the body is not valid JSON", async () => {
+	void it("fails with RAWG_PARSE_ERROR keeping the SyntaxError when the body is not valid JSON", async () => {
 		stubFetchWith(new Response("<html>gateway</html>", { status: 200 }));
 
 		const error = await captureRejection(provider.searchGame("x"));
 
-		assert.ok(error instanceof SyntaxError);
+		const serviceError = assertServiceError(error, "RAWG_PARSE_ERROR");
+		assert.ok(serviceError.serviceError.raw instanceof SyntaxError);
 	});
 
-	void it("rejects with the original error when the network fails", async () => {
-		const networkFailure = new TypeError("fetch failed");
+	void it("fails with RAWG_REQUEST_ERROR describing the cause when the network fails", async () => {
 		stubFetch(async () => {
-			throw networkFailure;
+			throw new TypeError("fetch failed");
 		});
 
 		const error = await captureRejection(provider.searchGame("x"));
 
-		assert.equal(error, networkFailure);
+		const serviceError = assertServiceError(error, "RAWG_REQUEST_ERROR");
+		assert.equal(
+			serviceError.serviceError.raw,
+			"RAWG request failed before a response: fetch failed"
+		);
+	});
+
+	void it("fails with RAWG_REQUEST_ERROR when fetch rejects with something that is not an Error", async () => {
+		stubFetch(async () => {
+			throw "socket closed";
+		});
+
+		const error = await captureRejection(provider.searchGame("x"));
+
+		const serviceError = assertServiceError(error, "RAWG_REQUEST_ERROR");
+		assert.equal(
+			serviceError.serviceError.raw,
+			"RAWG request failed before a response: unknown"
+		);
+	});
+
+	void it("does not parse the body of an error status", async () => {
+		stubFetchWith(new Response("<html>oops</html>", { status: 500 }));
+
+		const error = await captureRejection(provider.searchGame("x"));
+
+		assertServiceError(error, "RAWG_REQUEST_ERROR");
 	});
 });
 
@@ -333,23 +364,27 @@ void describe("RawgProvider.getGameById", () => {
 		assertServiceError(error, "RAWG_REQUEST_ERROR");
 	});
 
-	void it("rejects with the original SyntaxError when the body is not valid JSON", async () => {
+	void it("fails with RAWG_PARSE_ERROR keeping the SyntaxError when the body is not valid JSON", async () => {
 		stubFetchWith(new Response("not json", { status: 200 }));
 
 		const error = await captureRejection(provider.getGameById(1));
 
-		assert.ok(error instanceof SyntaxError);
+		const serviceError = assertServiceError(error, "RAWG_PARSE_ERROR");
+		assert.ok(serviceError.serviceError.raw instanceof SyntaxError);
 	});
 
-	void it("rejects with the original error when the network fails", async () => {
-		const networkFailure = new TypeError("fetch failed");
+	void it("fails with RAWG_REQUEST_ERROR describing the cause when the network fails", async () => {
 		stubFetch(async () => {
-			throw networkFailure;
+			throw new TypeError("fetch failed");
 		});
 
 		const error = await captureRejection(provider.getGameById(1));
 
-		assert.equal(error, networkFailure);
+		const serviceError = assertServiceError(error, "RAWG_REQUEST_ERROR");
+		assert.equal(
+			serviceError.serviceError.raw,
+			"RAWG request failed before a response: fetch failed"
+		);
 	});
 });
 
@@ -403,22 +438,26 @@ void describe("RawgProvider.getGameBySlug", () => {
 		assertServiceError(error, "RAWG_REQUEST_ERROR");
 	});
 
-	void it("rejects with the original SyntaxError when the body is not valid JSON", async () => {
+	void it("fails with RAWG_PARSE_ERROR keeping the SyntaxError when the body is not valid JSON", async () => {
 		stubFetchWith(new Response("not json", { status: 200 }));
 
 		const error = await captureRejection(provider.getGameBySlug("x"));
 
-		assert.ok(error instanceof SyntaxError);
+		const serviceError = assertServiceError(error, "RAWG_PARSE_ERROR");
+		assert.ok(serviceError.serviceError.raw instanceof SyntaxError);
 	});
 
-	void it("rejects with the original error when the network fails", async () => {
-		const networkFailure = new TypeError("fetch failed");
+	void it("fails with RAWG_REQUEST_ERROR describing the cause when the network fails", async () => {
 		stubFetch(async () => {
-			throw networkFailure;
+			throw new TypeError("fetch failed");
 		});
 
 		const error = await captureRejection(provider.getGameBySlug("x"));
 
-		assert.equal(error, networkFailure);
+		const serviceError = assertServiceError(error, "RAWG_REQUEST_ERROR");
+		assert.equal(
+			serviceError.serviceError.raw,
+			"RAWG request failed before a response: fetch failed"
+		);
 	});
 });

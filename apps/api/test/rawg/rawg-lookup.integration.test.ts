@@ -58,7 +58,9 @@ const RAWG_FAILURES: [string, RawgHandler, number, string][] = [
 		"RAWG_RATE_LIMITED"
 	],
 	["500", rawgFailureHandler(500), 502, "RAWG_REQUEST_ERROR"],
-	["503", rawgFailureHandler(503), 502, "RAWG_REQUEST_ERROR"]
+	["503", rawgFailureHandler(503), 502, "RAWG_REQUEST_ERROR"],
+	["network failure", networkFailure, 502, "RAWG_REQUEST_ERROR"],
+	["invalid JSON body", invalidJson, 502, "RAWG_PARSE_ERROR"]
 ];
 
 void describe("RAWG test setup", () => {
@@ -229,8 +231,8 @@ void describe("GET /games/rawg-lookup", () => {
 		assert.equal(rawgCalls.length, 0);
 	});
 
-	for (const [status, handler, httpStatus, type] of RAWG_FAILURES) {
-		void it(`maps a RAWG ${status} to ${httpStatus} ${type}`, async () => {
+	for (const [label, handler, httpStatus, type] of RAWG_FAILURES) {
+		void it(`maps a RAWG ${label} to ${httpStatus} ${type}`, async () => {
 			stubRawgFetch(handler);
 			const account = await createUserWithSession("moderator");
 
@@ -242,30 +244,6 @@ void describe("GET /games/rawg-lookup", () => {
 			assert.equal(response.body.type, type);
 		});
 	}
-
-	void it("answers 500 INTERNAL_ERROR when the network to RAWG fails", async () => {
-		stubRawgFetch(networkFailure);
-		const account = await createUserWithSession("moderator");
-
-		const response = await lookup(account.authorization, {
-			query: "zelda"
-		});
-
-		assert.equal(response.status, 500);
-		assert.equal(response.body.type, "INTERNAL_ERROR");
-	});
-
-	void it("answers 500 INTERNAL_ERROR when RAWG returns a body that is not JSON", async () => {
-		stubRawgFetch(invalidJson);
-		const account = await createUserWithSession("moderator");
-
-		const response = await lookup(account.authorization, {
-			query: "zelda"
-		});
-
-		assert.equal(response.status, 500);
-		assert.equal(response.body.type, "INTERNAL_ERROR");
-	});
 });
 
 void describe("GET /games/rawg-detail/:rawgId", () => {
@@ -387,8 +365,8 @@ void describe("GET /games/rawg-detail/:rawgId", () => {
 		assert.equal(response.body.type, "AUTH_SCHEMA_INVALID");
 	});
 
-	for (const [status, handler, httpStatus, type] of RAWG_FAILURES) {
-		void it(`maps a RAWG ${status} to ${httpStatus} ${type}`, async () => {
+	for (const [label, handler, httpStatus, type] of RAWG_FAILURES) {
+		void it(`maps a RAWG ${label} to ${httpStatus} ${type}`, async () => {
 			stubRawgFetch(handler);
 			const account = await createUserWithSession("moderator");
 
@@ -398,16 +376,6 @@ void describe("GET /games/rawg-detail/:rawgId", () => {
 			assert.equal(response.body.type, type);
 		});
 	}
-
-	void it("answers 500 INTERNAL_ERROR when the network to RAWG fails", async () => {
-		stubRawgFetch(networkFailure);
-		const account = await createUserWithSession("moderator");
-
-		const response = await detail(account.authorization, 326243);
-
-		assert.equal(response.status, 500);
-		assert.equal(response.body.type, "INTERNAL_ERROR");
-	});
 });
 
 void describe("GET /game-external/rawg/:slug", () => {
@@ -496,8 +464,8 @@ void describe("GET /game-external/rawg/:slug", () => {
 		assert.equal(response.body.type, "AUTH_SCHEMA_INVALID");
 	});
 
-	for (const [status, handler, httpStatus, type] of RAWG_FAILURES) {
-		void it(`maps a RAWG ${status} to ${httpStatus} ${type}`, async () => {
+	for (const [label, handler, httpStatus, type] of RAWG_FAILURES) {
+		void it(`maps a RAWG ${label} to ${httpStatus} ${type}`, async () => {
 			stubRawgFetch(handler);
 			const account = await createUserWithSession("moderator");
 
