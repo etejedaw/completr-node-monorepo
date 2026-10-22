@@ -24,7 +24,7 @@ docs: |-
     | Param | Type   | Required | Description                   |
     |-------|--------|----------|-------------------------------|
     | query | string | Yes      | Search term (1-200 chars)     |
-    | force_rawg | bool | No     | `true` skips the local search and goes straight to RAWG. Accepts `true` / `false` |
+    | force_rawg | bool | No     | `true` skips the local search and goes straight to RAWG, and a failure of the RAWG search is returned as an error (see Errors). Accepts `true` / `false` |
     | local_only | bool | No     | `true` searches only the local catalog (max 10 results, no RAWG fallback). Accepts `true` / `false` |
 
     ### Response (200)
@@ -53,3 +53,13 @@ docs: |-
     ```
 
     Returns empty array if no results found locally or in RAWG.
+
+    Without `force_rawg`, a failure of the RAWG fallback (rate limit, 5xx, network) is logged and the response is still 200 with an empty `games` array. Failures resolving an individual RAWG result or the slug of the query are always tolerated and skipped.
+
+    ### Errors
+
+    Only with `force_rawg=true`, when the RAWG search itself fails:
+
+    - 429 `RAWG_RATE_LIMITED` — RAWG rate limited the search
+    - 502 `RAWG_REQUEST_ERROR` — RAWG answered with a 5xx or the network to RAWG failed
+    - 502 `RAWG_PARSE_ERROR` — RAWG answered with an unreadable body

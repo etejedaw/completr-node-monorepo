@@ -1,12 +1,12 @@
 import { type Model, type ModelStatic, type Transaction } from "sequelize";
 
 import { ActivityGame } from "../activity/targets/activity-game.model";
-
+import { Backlog } from "../backlog/backlog.model";
 import { apiKeysConfig } from "../common/config/api-keys.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
-import { Backlog } from "../backlog/backlog.model";
 import { CoopRun } from "../coop-runs/coop-run.model";
 import { sequelize } from "../database/sequelize.database";
 import { Favorite } from "../favorites/favorite.model";
@@ -20,6 +20,7 @@ import * as genresService from "../genres/genres.service";
 import { ListItem } from "../list-items/list-item.model";
 import { UserGameTag } from "../mood-tags/user-game-tag.model";
 import * as platformsService from "../platforms/platforms.service";
+import * as rawgServiceError from "../rawg/errors/rawg.service-error";
 import { RawgClient } from "../rawg/rawg.provider";
 import { Review } from "../reviews/review.model";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
@@ -276,10 +277,10 @@ export async function searchGames(query: string, forceRawg = false) {
 		}
 	}
 
-	return searchAndCreateFromRawg(query);
+	return searchAndCreateFromRawg(query, forceRawg);
 }
 
-async function searchAndCreateFromRawg(query: string) {
+async function searchAndCreateFromRawg(query: string, forceRawg: boolean) {
 	const importedIds = new Set<string>();
 	if (!rawg.isEnabled) return { games: [] as Game[], importedIds };
 
@@ -317,6 +318,11 @@ async function searchAndCreateFromRawg(query: string) {
 
 		return { games, importedIds };
 	} catch (error) {
+		if (forceRawg) {
+			throw error instanceof ServiceError
+				? error
+				: rawgServiceError.requestError(error);
+		}
 		logger.warn("searchAndCreateFromRawg", "RAWG fallback failed", error);
 		return { games: [], importedIds };
 	}

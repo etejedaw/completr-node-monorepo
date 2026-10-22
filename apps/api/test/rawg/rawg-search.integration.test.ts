@@ -20,6 +20,7 @@ import {
 	UNRATED_SEARCH_RESULT
 } from "./fixtures/rawg.fixtures";
 import {
+	jsonResponse,
 	rawgCatalogHandler,
 	rawgFailureHandler,
 	stubRawgFetch
@@ -193,7 +194,7 @@ void describe("GET /games/search with force_rawg=true", () => {
 		assert.equal(rawgCalls.length, 0);
 	});
 
-	void it("answers 200 with no games when RAWG fails", async () => {
+	void it("answers 502 RAWG_REQUEST_ERROR when RAWG fails with a 5xx", async () => {
 		const { rawgCalls } = stubRawgFetch(rawgFailureHandler(500));
 
 		const response = await searchGames({
@@ -201,9 +202,55 @@ void describe("GET /games/search with force_rawg=true", () => {
 			force_rawg: "true"
 		});
 
+		assert.equal(response.status, 502);
+		assert.equal(response.body.type, "RAWG_REQUEST_ERROR");
+		assert.ok(searchCall(rawgCalls));
+	});
+
+	void it("answers 429 RAWG_RATE_LIMITED when RAWG rate limits the search", async () => {
+		stubRawgFetch(rawgFailureHandler(429));
+
+		const response = await searchGames({
+			query: "elden ring",
+			force_rawg: "true"
+		});
+
+		assert.equal(response.status, 429);
+		assert.equal(response.body.type, "RAWG_RATE_LIMITED");
+	});
+
+	void it("answers 502 when the network to RAWG fails", async () => {
+		stubRawgFetch(() => {
+			throw new TypeError("fetch failed");
+		});
+
+		const response = await searchGames({
+			query: "elden ring",
+			force_rawg: "true"
+		});
+
+		assert.equal(response.status, 502);
+		assert.equal(response.body.type, "RAWG_REQUEST_ERROR");
+	});
+
+	void it("tolerates a failing detail or slug lookup and keeps the rest", async () => {
+		stubRawgFetch(url => {
+			if (url.pathname === "/api/games")
+				return jsonResponse({
+					count: 1,
+					next: null,
+					results: [UNRATED_SEARCH_RESULT]
+				});
+			return jsonResponse({ detail: "Failure" }, 500);
+		});
+
+		const response = await searchGames({
+			query: "obscure prototype",
+			force_rawg: "true"
+		});
+
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
-		assert.ok(searchCall(rawgCalls));
 	});
 });
 
