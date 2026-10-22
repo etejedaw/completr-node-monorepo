@@ -8,6 +8,7 @@ import { Game } from "../games/game.model";
 import { ListFollower } from "../list-followers/list-follower.model";
 import { ListItem } from "../list-items/list-item.model";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
+import { visibleListsCondition } from "../users/helpers/visibility.helper";
 import { User } from "../users/user.model";
 import { type DuplicateListDto } from "./dtos/duplicate-list.dto";
 import { type RegisterListDto } from "./dtos/register-list.dto";
@@ -63,6 +64,8 @@ export async function duplicateList(
 	if (!source) throw listsServiceError.notFoundError();
 	if (!source.isPublic && source.userId !== user.id)
 		throw listsServiceError.forbiddenError();
+	if (!(await isListVisibleToViewer(source.id, user.id)))
+		throw listsServiceError.notFoundError();
 
 	if (!isPremium(user.role)) {
 		const count = await List.count({ where: { userId: user.id } });
@@ -102,36 +105,50 @@ export async function duplicateList(
 	});
 }
 
+export async function isListVisibleToViewer(
+	listId: string,
+	viewerId: string | undefined
+) {
+	const visible = await List.findOne({
+		where: { id: listId, [Op.and]: [visibleListsCondition(viewerId)] },
+		attributes: ["id"]
+	});
+	return !!visible;
+}
+
 export async function findListBasicById(id: string) {
 	return List.findOne({ where: { id } });
 }
 
-export async function findListById(id: string) {
-	return List.findOne({
-		where: { id },
+const LIST_DETAIL_INCLUDE = [
+	{
+		model: User,
+		attributes: ["id", "username", "role"]
+	},
+	{
+		model: ListItem,
 		include: [
 			{
-				model: User,
-				attributes: ["id", "username", "role"]
-			},
-			{
-				model: ListItem,
-				include: [
-					{
-						model: Game,
-						attributes: [
-							"id",
-							"code",
-							"title",
-							"backgroundUrl",
-							"isDlc"
-						]
-					}
-				],
-				separate: true,
-				order: [["position", "ASC"]]
+				model: Game,
+				attributes: ["id", "code", "title", "backgroundUrl", "isDlc"]
 			}
-		]
+		],
+		separate: true,
+		order: [["position", "ASC"]] as [string, string][]
+	}
+];
+
+export async function findListById(id: string) {
+	return List.findOne({ where: { id }, include: LIST_DETAIL_INCLUDE });
+}
+
+export async function findVisibleListById(
+	id: string,
+	viewerId: string | undefined
+) {
+	return List.findOne({
+		where: { id, [Op.and]: [visibleListsCondition(viewerId)] },
+		include: LIST_DETAIL_INCLUDE
 	});
 }
 
@@ -272,9 +289,12 @@ export async function countListsByUserId(userId: string, publicOnly = false) {
 	return List.count({ where });
 }
 
-export async function findPublicListsByGameId(gameId: string) {
+export async function findPublicListsByGameId(
+	gameId: string,
+	viewerId: string | undefined
+) {
 	return List.findAll({
-		where: { isPublic: true },
+		where: { isPublic: true, [Op.and]: [visibleListsCondition(viewerId)] },
 		include: [
 			{
 				model: ListItem,
@@ -341,9 +361,12 @@ export async function findUserListsWithGameFlag(
 	}));
 }
 
-export async function findRecentUserLists(limit = 12) {
+export async function findRecentUserLists(
+	viewerId: string | undefined,
+	limit = 12
+) {
 	return List.findAll({
-		where: { isPublic: true },
+		where: { isPublic: true, [Op.and]: [visibleListsCondition(viewerId)] },
 		include: [
 			{
 				model: User,
@@ -374,9 +397,12 @@ export async function findRecentUserLists(limit = 12) {
 	});
 }
 
-export async function findOfficialLists(limit = 12) {
+export async function findOfficialLists(
+	viewerId: string | undefined,
+	limit = 12
+) {
 	return List.findAll({
-		where: { isPublic: true },
+		where: { isPublic: true, [Op.and]: [visibleListsCondition(viewerId)] },
 		include: [
 			{
 				model: User,
@@ -407,11 +433,16 @@ export async function findOfficialLists(limit = 12) {
 	});
 }
 
-export async function searchPublicLists(query: string, limit = 20) {
+export async function searchPublicLists(
+	query: string,
+	viewerId: string | undefined,
+	limit = 20
+) {
 	return List.findAll({
 		where: {
 			name: { [Op.iLike]: `%${query}%` },
-			isPublic: true
+			isPublic: true,
+			[Op.and]: [visibleListsCondition(viewerId)]
 		},
 		include: [
 			{

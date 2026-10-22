@@ -6,6 +6,7 @@ import * as favoritesService from "../favorites/favorites.service";
 import * as franchiseService from "../franchises/franchises.service";
 import * as gameShelfService from "../game-shelf/game-shelf.service";
 import * as listFollowersService from "../list-followers/list-followers.service";
+import * as listDomainError from "../lists/errors/lists.domain-error";
 import * as listsService from "../lists/lists.service";
 import * as reviewsService from "../reviews/reviews.service";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
@@ -13,7 +14,11 @@ import * as userFollowersService from "../user-followers/user-followers.service"
 import * as wishlistService from "../wishlist/wishlist.service";
 import { type VisibilitySection } from "./constants/visibility.constants";
 import * as userDomain from "./errors/users.domain-error";
-import { canView, resolveSectionAccess } from "./helpers/visibility.helper";
+import {
+	canView,
+	canViewList,
+	resolveSectionAccess
+} from "./helpers/visibility.helper";
 import { type ComparisonDimension } from "./schemas/comparison-query.schema";
 import { type User } from "./user.model";
 import {
@@ -235,8 +240,12 @@ export async function getListDetailForUsername(
 	const isSelf = viewerId === user.id;
 
 	const list = await listsService.findListById(listId);
-	if (!list || list.userId !== user.id || (!list.isPublic && !isSelf))
-		throw userDomain.userNotFound();
+	if (
+		!list ||
+		list.userId !== user.id ||
+		!(await canViewList(viewerId, user, list))
+	)
+		throw listDomainError.listNotFound();
 
 	const listPlain = list.get({ plain: true });
 	const canSeeProgress = await canView(viewerId, user, "backlog");

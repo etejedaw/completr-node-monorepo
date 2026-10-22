@@ -11,7 +11,7 @@ export async function getListsForGame(
 	gameId: string
 ): Promise<GameListsBundle> {
 	const [publicLists, myLists] = await Promise.all([
-		listsService.findPublicListsByGameId(gameId),
+		listsService.findPublicListsByGameId(gameId, viewerId),
 		listsService.findUserListsWithGameFlag(viewerId, gameId)
 	]);
 

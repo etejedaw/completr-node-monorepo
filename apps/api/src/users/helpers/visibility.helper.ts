@@ -1,3 +1,6 @@
+import { literal } from "sequelize";
+
+import { sequelize } from "../../database/sequelize.database";
 import * as userFollowersService from "../../user-followers/user-followers.service";
 import {
 	VISIBILITY_SECTIONS,
@@ -55,4 +58,54 @@ export async function resolveSectionAccess(
 				(levels[index] === "friends" && isMutual)
 		])
 	) as SectionAccess;
+}
+
+export async function canViewList(
+	viewerId: string | undefined,
+	owner: User,
+	list: { isPublic: boolean }
+): Promise<boolean> {
+	if (viewerId && viewerId === owner.id) return true;
+	if (!list.isPublic) return false;
+	return (
+		(await canView(viewerId, owner, "profile")) &&
+		(await canView(viewerId, owner, "list"))
+	);
+}
+
+const LIST_OWNER_ALIAS = "list_owner";
+
+function mutualFollowersSql(viewerSql: string, ownerIdSql: string) {
+	const followsOwner = `EXISTS (SELECT 1 FROM "UserFollowers" AS "viewer_follow" WHERE "viewer_follow"."followerId" = ${viewerSql} AND "viewer_follow"."followingId" = ${ownerIdSql})`;
+	const followedByOwner = `EXISTS (SELECT 1 FROM "UserFollowers" AS "owner_follow" WHERE "owner_follow"."followerId" = ${ownerIdSql} AND "owner_follow"."followingId" = ${viewerSql})`;
+	return `${followsOwner} AND ${followedByOwner}`;
+}
+
+function sectionAllowsSql(
+	section: VisibilitySection,
+	viewerId: string | undefined
+) {
+	const column = `"${LIST_OWNER_ALIAS}"."${SECTION_TO_FIELD[section]}"`;
+	if (!viewerId) return `${column} = 'public'`;
+
+	const mutual = mutualFollowersSql(
+		sequelize.escape(viewerId),
+		`"${LIST_OWNER_ALIAS}"."id"`
+	);
+	return `(${column} = 'public' OR (${column} = 'friends' AND ${mutual}))`;
+}
+
+export function visibleListsCondition(
+	viewerId: string | undefined,
+	listAlias = "List"
+) {
+	const ownerId = `"${listAlias}"."userId"`;
+	const asOwner = viewerId
+		? `${ownerId} = ${sequelize.escape(viewerId)} OR `
+		: "";
+	const ownerAllows = `EXISTS (SELECT 1 FROM "Users" AS "${LIST_OWNER_ALIAS}" WHERE "${LIST_OWNER_ALIAS}"."id" = ${ownerId} AND ${sectionAllowsSql("profile", viewerId)} AND ${sectionAllowsSql("list", viewerId)})`;
+
+	return literal(
+		`(${asOwner}("${listAlias}"."isPublic" = true AND ${ownerAllows}))`
+	);
 }
