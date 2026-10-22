@@ -1,4 +1,7 @@
-import { provideHttpClient } from "@angular/common/http";
+import {
+	type HttpErrorResponse,
+	provideHttpClient
+} from "@angular/common/http";
 import {
 	HttpTestingController,
 	provideHttpClientTesting
@@ -6,6 +9,7 @@ import {
 import { TestBed } from "@angular/core/testing";
 
 import { environment } from "../../../environments/environment";
+import { ToastService } from "../../core/services/toast";
 import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
 import { GamesService } from "./games";
 
@@ -13,10 +17,16 @@ describe("GamesService", () => {
 	const api = environment.apiUrl;
 	let service: GamesService;
 	let httpTesting: HttpTestingController;
+	const toast = { warning: vi.fn() };
 
 	beforeEach(() => {
+		toast.warning.mockReset();
 		TestBed.configureTestingModule({
-			providers: [provideHttpClient(), provideHttpClientTesting()]
+			providers: [
+				provideHttpClient(),
+				provideHttpClientTesting(),
+				{ provide: ToastService, useValue: toast }
+			]
 		});
 		service = TestBed.inject(GamesService);
 		httpTesting = TestBed.inject(HttpTestingController);
@@ -71,6 +81,51 @@ describe("GamesService", () => {
 			httpTesting
 				.expectOne(`${api}/games/search?query=zelda&force_rawg=true`)
 				.flush({ data: { games: [] } });
+		});
+
+		it("warns the user and rethrows when the forced RAWG search fails", () => {
+			let failure: HttpErrorResponse | undefined;
+
+			service.search("zelda", true).subscribe({
+				error: (error: HttpErrorResponse) => (failure = error)
+			});
+
+			httpTesting
+				.expectOne(`${api}/games/search?query=zelda&force_rawg=true`)
+				.flush(
+					{ type: "RAWG_REQUEST_ERROR" },
+					{ status: 502, statusText: "Bad Gateway" }
+				);
+			expect(failure?.status).toBe(502);
+			expect(toast.warning).toHaveBeenCalledWith(
+				"Couldn't search online right now. Try again in a moment."
+			);
+		});
+
+		it("leaves the rate limit warning to the error interceptor", () => {
+			let failure: HttpErrorResponse | undefined;
+
+			service.search("zelda", true).subscribe({
+				error: (error: HttpErrorResponse) => (failure = error)
+			});
+
+			httpTesting
+				.expectOne(`${api}/games/search?query=zelda&force_rawg=true`)
+				.flush(
+					{ type: "RAWG_RATE_LIMITED" },
+					{ status: 429, statusText: "Too Many Requests" }
+				);
+			expect(failure?.status).toBe(429);
+			expect(toast.warning).not.toHaveBeenCalled();
+		});
+
+		it("does not warn when the implicit search fails", () => {
+			service.search("zelda").subscribe({ error: () => undefined });
+
+			httpTesting
+				.expectOne(`${api}/games/search?query=zelda`)
+				.flush({}, { status: 502, statusText: "Bad Gateway" });
+			expect(toast.warning).not.toHaveBeenCalled();
 		});
 
 		it("searches only the local catalog", () => {
