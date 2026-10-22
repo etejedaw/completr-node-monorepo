@@ -191,6 +191,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 ### Edición y borrado de juegos
 
 - `PATCH /games/:id` es atómico: el update del juego y el reemplazo de plataformas, géneros y external ids van en una sola transacción. Si un paso falla no se aplica ninguno.
+- Un external id repetido para el mismo juego y fuente responde 409 `GAME_EXTERNAL_ALREADY_EXISTS`; un external id inexistente, 404 `GAME_EXTERNAL_NOT_FOUND`.
 - `DELETE /games/:id` sin `hard` desactiva el juego (`isActive = false`) y no toca sus datos.
 - `DELETE /games/:id?hard=true` (solo admin) borra el juego y sus datos de catálogo (plataformas, géneros, scores, times, external ids, popularidad e items de compilation). Antes de borrar, dentro de una transacción, comprueba con consultas explícitas que ningún usuario lo referencia: backlog (también como `compilationGameId`, y por tanto su queue), game-shelf, list-items, favoritos, wishlist, reviews, coop runs, mood tags por juego y actividad; y que no tiene variantes ni DLCs (`parentGameId`). Si lo está responde 409 `GAME_IN_USE` y no se borra nada; el `ON DELETE` de las FKs no se usa como control. Los reports del juego no cuentan como uso y se borran con él.
 
