@@ -19,10 +19,11 @@ export async function linkGameToPlatforms(
 
 export async function replaceGamePlatforms(
 	gameId: string,
-	platformsId: string[]
+	platformsId: string[],
+	transaction?: Transaction
 ) {
-	await GamePlatform.destroy({ where: { gameId } });
+	await GamePlatform.destroy({ where: { gameId }, transaction });
 	if (!platformsId.length) return;
 
-	return await linkGameToPlatforms(gameId, platformsId);
+	return await linkGameToPlatforms(gameId, platformsId, transaction);
 }
