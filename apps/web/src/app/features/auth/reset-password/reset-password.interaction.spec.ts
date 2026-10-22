@@ -285,26 +285,24 @@ describe("Reset password interaction", () => {
 		}
 	);
 
-	it("sends an empty token when the link has none and lets the API reject it", async () => {
-		const user = userEvent.setup();
-		await renderResetPassword("/reset-password");
+	it.each(["/reset-password", "/reset-password?token="])(
+		"shows the invalid link page without the form for %s",
+		async route => {
+			await renderResetPassword(route);
 
-		await fillPasswords(user);
-		await user.click(
-			screen.getByRole("button", { name: "Update password" })
-		);
-
-		const request = httpTesting.expectOne(`${api}/auth/reset-password`);
-		expect(request.request.body).toEqual({
-			token: "",
-			password: "Passw0rd!"
-		});
-		request.flush(null, { status: 400, statusText: "Bad Request" });
-
-		expect(
-			await screen.findByRole("heading", {
-				name: "This link no longer works"
-			})
-		).toBeInTheDocument();
-	});
+			expect(
+				await screen.findByRole("heading", {
+					name: "This link no longer works"
+				})
+			).toBeInTheDocument();
+			expect(
+				screen.getByRole("link", { name: "Request a new link" })
+			).toHaveAttribute("href", "/forgot-password");
+			expect(
+				screen.getByRole("link", { name: "Back to sign in" })
+			).toHaveAttribute("href", "/login");
+			expect(screen.queryByLabelText("New password")).toBeNull();
+			httpTesting.expectNone(`${api}/auth/reset-password`);
+		}
+	);
 });
