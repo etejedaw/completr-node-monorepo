@@ -162,7 +162,13 @@ void describe("globalErrorDomainNormalizer", () => {
 			"Invitation Module",
 			"INVITATION_UNIQUE_CONSTRAINT"
 		],
-		["Mail Provider", "MAIL_DISABLED", "Mail Provider", "MAIL_DISABLED"]
+		["Mail Provider", "MAIL_DISABLED", "Mail Provider", "MAIL_DISABLED"],
+		[
+			"Game External Service",
+			"GAME_EXTERNAL_UNIQUE_CONSTRAINT",
+			"Game External Module",
+			"GAME_EXTERNAL_ALREADY_EXISTS"
+		]
 	];
 
 	for (const [
@@ -203,6 +209,7 @@ void describe("globalErrorDomainNormalizer", () => {
 
 		assert.equal(domainError.module, "COMMON");
 		assert.equal(domainError.code, "INTERNAL_ERROR");
+		assert.equal(domainError.message, "Unexpected internal error");
 	});
 
 	void it("maps a foreign key error on parent delete to COMMON_RESOURCE_IN_USE", () => {
