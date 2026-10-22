@@ -38,7 +38,7 @@ docs: |-
           {
             "rawgId": 736255,
             "title": "Front Mission 1st Remake",
-            "coverUrl": "https://...",
+            "backgroundUrl": "https://media.rawg.io/...",
             "releaseAt": "2022-11-23",
             "metacritic": 72,
             "playtime": 0,
@@ -52,8 +52,8 @@ docs: |-
 
     ### Errors
 
-    - 404 `RAWG_NOT_FOUND` — RAWG has no game for that query
+    - 404 `RAWG_NOT_FOUND` — RAWG answered 404 (a search without matches is a 200 with an empty `results`)
     - 429 `RAWG_RATE_LIMITED` — RAWG rate limit reached
-    - 502 `RAWG_REQUEST_ERROR` — RAWG request failed
-    - 502 `RAWG_PARSE_ERROR` — Unexpected RAWG response
+    - 502 `RAWG_REQUEST_ERROR` — RAWG answered with another error status, or the request to RAWG failed (network)
+    - 502 `RAWG_PARSE_ERROR` — RAWG answered with a body that is not valid JSON
     - 503 `RAWG_DISABLED` — `RAWG_API_KEY` is not configured on the server

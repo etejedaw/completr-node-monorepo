@@ -53,6 +53,6 @@ docs: |-
 
     - 404 `RAWG_NOT_FOUND` — RAWG has no game for that id
     - 429 `RAWG_RATE_LIMITED` — RAWG rate limit reached
-    - 502 `RAWG_REQUEST_ERROR` — RAWG request failed
-    - 502 `RAWG_PARSE_ERROR` — Unexpected RAWG response
+    - 502 `RAWG_REQUEST_ERROR` — RAWG answered with another error status, or the request to RAWG failed (network)
+    - 502 `RAWG_PARSE_ERROR` — RAWG answered with a body that is not valid JSON
     - 503 `RAWG_DISABLED` — `RAWG_API_KEY` is not configured on the server
