@@ -75,7 +75,7 @@ export interface PublicProfile {
 	isFollowing: boolean;
 	backlogs: PublicBacklog[];
 	backlogTotal: number;
-	backlogStats: BacklogStats;
+	backlogStats?: BacklogStats;
 	listsTotal: number;
 	recentActivity: PublicActivity[];
 	access?: ProfileSectionAccess;
