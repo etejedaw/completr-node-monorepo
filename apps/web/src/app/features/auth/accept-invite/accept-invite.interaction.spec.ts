@@ -147,19 +147,23 @@ describe("Accept invite interaction", () => {
 		expect(screen.queryByLabelText("Username")).not.toBeInTheDocument();
 	});
 
-	it("looks the invitation up with an empty token when the link has none", async () => {
-		await renderAcceptInvite("/accept-invite");
+	it.each(["/accept-invite", "/accept-invite?token="])(
+		"shows the invalid invitation page without calling the API for %s",
+		async route => {
+			await renderAcceptInvite(route);
 
-		httpTesting
-			.expectOne(`${api}/invitations/`)
-			.flush(null, { status: 404, statusText: "Not Found" });
-
-		expect(
-			await screen.findByRole("heading", {
-				name: "This invitation no longer works"
-			})
-		).toBeInTheDocument();
-	});
+			expect(
+				await screen.findByRole("heading", {
+					name: "This invitation no longer works"
+				})
+			).toBeInTheDocument();
+			expect(
+				screen.getByRole("link", { name: /sign in/i })
+			).toHaveAttribute("href", "/login");
+			expect(screen.queryByLabelText("Username")).toBeNull();
+			httpTesting.expectNone(`${api}/invitations/`);
+		}
+	);
 
 	it("shows the invalid invitation page for any lookup error", async () => {
 		await renderAcceptInvite();
