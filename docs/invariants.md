@@ -175,7 +175,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 
 ### Rangos válidos
 
-- `GameScore.score` va de 0 a la `scale` de su fuente, ambos inclusive. El mínimo lo valida el schema (negativo responde 422 `COMMON_SCHEMA_INVALID`); el máximo depende de la fuente y lo valida el service (por encima de la `scale` responde 422 `GAME_SCORE_OUT_OF_RANGE`). Aplica a `POST /game-scores`, `PATCH /game-scores/:gameId/:source` y `PUT /games/:gameId/scores`.
+- `GameScore.score` va de 0 a la `scale` de su fuente, ambos inclusive. El mínimo lo valida el schema (negativo responde 422 `COMMON_SCHEMA_INVALID`); el máximo depende de la fuente y lo valida el service (por encima de la `scale` responde 422 `GAME_SCORE_OUT_OF_RANGE`). Aplica a `POST /game-scores`, `PATCH /game-scores/:gameId/:source` `PUT /games/:gameId/scores` y `POST /games` (con score 0 aceptado).
 - `GameTime.duration` es mayor que 0 (cero o negativo responde 422 `COMMON_SCHEMA_INVALID`). Aplica a `POST /game-times`, `PATCH /game-times/:gameId/:source` y `PUT /games/:gameId/times`.
 
 ### Géneros y plataformas
@@ -183,6 +183,12 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - El `code` de un género se genera del nombre con `slugify`. Un nombre que no produce slug (por ejemplo `!!!`) responde 400 `GENRE_VALIDATION_ERROR` al crear y al renombrar.
 - Renombrar un género a un nombre o code ya existente responde 409 `GENRE_UNIQUE_CONSTRAINT`.
 - Borrar un género o una plataforma inexistente responde 404 `GENRE_NOT_FOUND` / `PLATFORM_NOT_FOUND`.
+
+### Edición y borrado de juegos
+
+- `PATCH /games/:id` es atómico: el update del juego y el reemplazo de plataformas, géneros y external ids van en una sola transacción. Si un paso falla no se aplica ninguno.
+- `DELETE /games/:id` sin `hard` desactiva el juego (`isActive = false`) y no toca sus datos.
+- `DELETE /games/:id?hard=true` (solo admin) borra el juego y sus datos de catálogo (plataformas, géneros, scores, times, external ids, popularidad e items de compilation). Antes de borrar, dentro de una transacción, comprueba con consultas explícitas que ningún usuario lo referencia: backlog (también como `compilationGameId`, y por tanto su queue), game-shelf, list-items, favoritos, wishlist, reviews, coop runs, mood tags por juego y actividad; y que no tiene variantes ni DLCs (`parentGameId`). Si lo está responde 409 `GAME_IN_USE` y no se borra nada; el `ON DELETE` de las FKs no se usa como control. Los reports del juego no cuentan como uso y se borran con él.
 
 ### Sagas
 

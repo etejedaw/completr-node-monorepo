@@ -33,7 +33,7 @@ settings:
 docs: |-
     ## Update Game
 
-    Updates an existing game. All fields are optional.
+    Updates an existing game. All fields are optional. The game fields and the replacement of platforms, genres and external IDs are applied atomically: if any step fails, nothing is changed.
 
     **Authentication:** Bearer token required (role: moderator).
     **Rate Limit:** 50 requests per minute.
