@@ -144,6 +144,22 @@ void describe("listsService.duplicateList", () => {
 		assert.equal(errorCode(error), "LIST_FORBIDDEN");
 	});
 
+	void it("fails with LIST_NOT_FOUND when the owner hides a public source from the viewer", async () => {
+		const source = asModel({
+			id: "src-1",
+			userId: "owner",
+			isPublic: true
+		});
+		const answers = [source, null];
+		stub(List, "findOne", async () => answers.shift());
+
+		const error = await captureRejection(
+			listsService.duplicateList(FREE_USER, "src-1", { name: "Copy" })
+		);
+
+		assert.equal(errorCode(error), "LIST_NOT_FOUND");
+	});
+
 	void it("lets the owner duplicate their own private list", async () => {
 		stubSource({ isPublic: false, userId: "user-1" });
 		stub(List, "count", async () => 0);

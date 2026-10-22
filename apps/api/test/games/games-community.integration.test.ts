@@ -45,6 +45,7 @@ interface RunOverrides {
 interface Visibilities {
 	profileVisibility?: VisibilityLevel;
 	backlogVisibility?: VisibilityLevel;
+	listVisibility?: VisibilityLevel;
 }
 
 function createRun(user: User, game: Game, overrides: RunOverrides = {}) {
@@ -158,6 +159,81 @@ void describe("GET /games/:id/lists", () => {
 		assert.equal(
 			JSON.stringify(response.body).includes(owner.user.username),
 			false
+		);
+	});
+
+	void it("leaves out the lists whose owner hides them by profile or lists section", async () => {
+		const viewer = await createUserWithSession();
+		const game = await createGame();
+		const hiddenOwners: Visibilities[] = [
+			{ profileVisibility: "private" },
+			{ profileVisibility: "friends" },
+			{ listVisibility: "private" },
+			{ listVisibility: "friends" }
+		];
+		const shownOwner = await createUser();
+		const shownList = await createList(shownOwner.id, scoreSource, {
+			isPublic: true
+		});
+		await ListItem.create({
+			listId: shownList.id,
+			gameId: game.id,
+			position: 1
+		});
+		for (const visibilities of hiddenOwners) {
+			const owner = await createUser();
+			await owner.update(visibilities);
+			const list = await createList(owner.id, scoreSource, {
+				isPublic: true
+			});
+			await ListItem.create({
+				listId: list.id,
+				gameId: game.id,
+				position: 1
+			});
+		}
+
+		const response = await getFor("lists", viewer, game.id);
+
+		assert.equal(response.status, 200);
+		assert.deepEqual(
+			response.body.data.lists.map((entry: { id: string }) => entry.id),
+			[shownList.id]
+		);
+	});
+
+	void it("shows a friends-only lists section to a mutual follower and keeps the viewer's own lists in myLists", async () => {
+		const viewer = await createUserWithSession();
+		const friend = await createUser();
+		await friend.update({
+			profileVisibility: "friends",
+			listVisibility: "friends"
+		});
+		await follow(viewer.user, friend);
+		await follow(friend, viewer.user);
+		const game = await createGame();
+		const friendList = await createList(friend.id, scoreSource, {
+			isPublic: true
+		});
+		const ownPrivate = await createList(viewer.user.id, scoreSource, {
+			isPublic: false
+		});
+		for (const list of [friendList, ownPrivate])
+			await ListItem.create({
+				listId: list.id,
+				gameId: game.id,
+				position: 1
+			});
+
+		const response = await getFor("lists", viewer, game.id);
+
+		assert.deepEqual(
+			response.body.data.lists.map((entry: { id: string }) => entry.id),
+			[friendList.id]
+		);
+		assert.deepEqual(
+			response.body.data.myLists.map((entry: { id: string }) => entry.id),
+			[ownPrivate.id]
 		);
 	});
 

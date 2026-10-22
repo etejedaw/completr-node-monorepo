@@ -883,7 +883,7 @@ void describe("public profile endpoints", () => {
 					authorizationOf(viewerKey, open)
 				);
 				assert.equal(response.status, 404, viewerKey);
-				assert.equal(response.body.type, "USER_NOT_FOUND", viewerKey);
+				assert.equal(response.body.type, "LIST_NOT_FOUND", viewerKey);
 			}
 		});
 
@@ -907,13 +907,13 @@ void describe("public profile endpoints", () => {
 			assert.equal(mutual.body.type, "USER_PRIVATE");
 		});
 
-		void it("answers 404 USER_NOT_FOUND for a list that does not exist", async () => {
+		void it("answers 404 LIST_NOT_FOUND for a list that does not exist", async () => {
 			const { open } = fixture.owners;
 
 			const response = await listDetail(open.user.username, randomUUID());
 
 			assert.equal(response.status, 404);
-			assert.equal(response.body.type, "USER_NOT_FOUND");
+			assert.equal(response.body.type, "LIST_NOT_FOUND");
 		});
 
 		void it("rejects a malformed list id with 422 COMMON_SCHEMA_INVALID", async () => {
@@ -936,7 +936,7 @@ void describe("public profile endpoints", () => {
 			);
 
 			assert.equal(response.status, 404);
-			assert.equal(response.body.type, "USER_NOT_FOUND");
+			assert.equal(response.body.type, "LIST_NOT_FOUND");
 		});
 
 		void it("does not serve the private list of its owner under another profile", async () => {
@@ -950,7 +950,7 @@ void describe("public profile endpoints", () => {
 			);
 
 			assert.equal(response.status, 404);
-			assert.equal(response.body.type, "USER_NOT_FOUND");
+			assert.equal(response.body.type, "LIST_NOT_FOUND");
 		});
 	});
 });
