@@ -2,6 +2,7 @@ import { Op } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
 import { apiKeysConfig } from "../common/config/api-keys.config";
+import { ServiceError } from "../common/errors/service-error";
 import * as coopRunsService from "../coop-runs/coop-runs.service";
 import * as gameExternalService from "../game-external/game-external.service";
 import * as gamePopularityService from "../game-popularity/game-popularity.service";
@@ -68,9 +69,21 @@ export async function startPopulateRawg(limit?: number) {
 	return startJob("populate_rawg", jobId => runPopulateRawg(jobId, limit));
 }
 
+function isRawgNotFound(error: unknown) {
+	return error instanceof ServiceError && error.code === "RAWG_NOT_FOUND";
+}
+
+function describeFailure(error: unknown) {
+	if (error instanceof ServiceError) {
+		const { raw } = error.serviceError;
+		return typeof raw === "string" ? `${error.code}: ${raw}` : error.code;
+	}
+	return error instanceof Error ? error.message : String(error);
+}
+
 async function runPopulateRawg(jobId: string, limit?: number) {
 	let processed = 0;
-	let errors = 0;
+	let notFound = 0;
 
 	try {
 		const gameIdsWithRawg =
@@ -86,7 +99,7 @@ async function runPopulateRawg(jobId: string, limit?: number) {
 			if (await isCancelled(jobId)) {
 				await completeJob(
 					jobId,
-					`Cancelled after ${processed} processed. Errors: ${errors}`
+					`Cancelled after ${processed} processed. Not found: ${notFound}`
 				);
 				return;
 			}
@@ -100,20 +113,21 @@ async function runPopulateRawg(jobId: string, limit?: number) {
 					);
 					processed++;
 				}
-			} catch {
-				errors++;
+			} catch (error) {
+				if (!isRawgNotFound(error)) throw error;
+				notFound++;
 			}
 			await new Promise(r => setTimeout(r, 1100));
 		}
 
 		await completeJob(
 			jobId,
-			`Processed: ${processed}, Errors: ${errors}, Skipped: ${hasRawg.size}, Total: ${allGames.length}`
+			`Processed: ${processed}, Not found: ${notFound}, Skipped: ${hasRawg.size}, Total: ${allGames.length}`
 		);
-	} catch {
+	} catch (error) {
 		await failJob(
 			jobId,
-			`Failed after ${processed} processed. Errors: ${errors}`
+			`Failed after ${processed} processed, ${notFound} not found. Reason: ${describeFailure(error)}`
 		);
 	}
 }

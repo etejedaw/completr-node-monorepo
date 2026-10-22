@@ -81,7 +81,7 @@ void describe("POST /admin/jobs/populate-rawg", () => {
 		assert.equal(job.status, "completed");
 		assert.equal(
 			job.result,
-			"Processed: 1, Errors: 0, Skipped: 0, Total: 1"
+			"Processed: 1, Not found: 0, Skipped: 0, Total: 1"
 		);
 		assert.ok(job.completedAt);
 		assert.equal((await externalOf(game.id))?.externalId, "326243");
@@ -110,7 +110,7 @@ void describe("POST /admin/jobs/populate-rawg", () => {
 		assert.equal(job.status, "completed");
 		assert.equal(
 			job.result,
-			"Processed: 1, Errors: 0, Skipped: 1, Total: 2"
+			"Processed: 1, Not found: 0, Skipped: 1, Total: 2"
 		);
 		assert.deepEqual(
 			rawgCalls.map(call => call.pathname),
@@ -134,7 +134,7 @@ void describe("POST /admin/jobs/populate-rawg", () => {
 		assert.equal(job.status, "completed");
 		assert.equal(
 			job.result,
-			"Processed: 0, Errors: 0, Skipped: 0, Total: 0"
+			"Processed: 0, Not found: 0, Skipped: 0, Total: 0"
 		);
 		assert.equal(rawgCalls.length, 0);
 	});
@@ -156,7 +156,7 @@ void describe("POST /admin/jobs/populate-rawg", () => {
 		assert.equal(job.status, "completed");
 		assert.equal(
 			job.result,
-			"Processed: 1, Errors: 0, Skipped: 0, Total: 2"
+			"Processed: 1, Not found: 0, Skipped: 0, Total: 2"
 		);
 		assert.equal(rawgCalls.length, 1);
 		const stored = await GameExternal.count({
@@ -165,7 +165,7 @@ void describe("POST /admin/jobs/populate-rawg", () => {
 		assert.equal(stored, 1);
 	});
 
-	void it("counts a game RAWG does not know as an error and stores nothing for it", async () => {
+	void it("counts a game RAWG does not know as not found, stores nothing for it and completes the job", async () => {
 		const game = await createCatalogGame(
 			"Home Brew Game",
 			"home-brew-game"
@@ -177,41 +177,67 @@ void describe("POST /admin/jobs/populate-rawg", () => {
 		assert.equal(job.status, "completed");
 		assert.equal(
 			job.result,
-			"Processed: 0, Errors: 1, Skipped: 0, Total: 1"
+			"Processed: 0, Not found: 1, Skipped: 0, Total: 1"
 		);
 		assert.equal(await externalOf(game.id), null);
 	});
 
-	void it("keeps the job completed and counts the error when RAWG fails with a 5xx", async () => {
-		const game = await createCatalogGame("Elden Ring", "elden-ring");
+	void it("keeps going after a game RAWG does not know", async () => {
+		await createCatalogGame("Home Brew Game", "home-brew-game");
+		const known = await createCatalogGame("Elden Ring", "elden-ring");
+		const { rawgCalls } = stubRawgFetch(
+			rawgCatalogHandler({ details: [ELDEN_RING_DETAIL] })
+		);
+
+		const job = await runPopulateJob();
+
+		assert.equal(job.status, "completed");
+		assert.equal(
+			job.result,
+			"Processed: 1, Not found: 1, Skipped: 0, Total: 2"
+		);
+		assert.equal(rawgCalls.length, 2);
+		assert.equal((await externalOf(known.id))?.externalId, "326243");
+	});
+
+	void it("fails the job and stops at once when RAWG fails with a 5xx", async () => {
+		const first = await createCatalogGame("Elden Ring", "elden-ring");
+		const second = await createCatalogGame(
+			"Hollow Knight",
+			"hollow-knight"
+		);
 		const { rawgCalls } = stubRawgFetch(rawgFailureHandler(500));
 
 		const job = await runPopulateJob();
 
-		assert.equal(job.status, "completed");
-		assert.equal(
-			job.result,
-			"Processed: 0, Errors: 1, Skipped: 0, Total: 1"
+		assert.equal(job.status, "failed");
+		assert.match(
+			job.result ?? "",
+			/^Failed after 0 processed, 0 not found\. Reason: RAWG_REQUEST_ERROR: RAWG API returned 500/
 		);
+		assert.ok(job.completedAt);
 		assert.equal(rawgCalls.length, 1);
-		assert.equal(await externalOf(game.id), null);
+		assert.equal(await externalOf(first.id), null);
+		assert.equal(await externalOf(second.id), null);
 	});
 
-	void it("keeps the job completed and counts the error when RAWG rate limits", async () => {
-		const game = await createCatalogGame("Elden Ring", "elden-ring");
-		stubRawgFetch(rawgFailureHandler(429));
+	void it("fails the job and stops at once when RAWG rate limits", async () => {
+		await createCatalogGame("Elden Ring", "elden-ring");
+		await createCatalogGame("Hollow Knight", "hollow-knight");
+		const { rawgCalls } = stubRawgFetch(rawgFailureHandler(429));
 
 		const job = await runPopulateJob();
 
-		assert.equal(job.status, "completed");
+		assert.equal(job.status, "failed");
 		assert.equal(
 			job.result,
-			"Processed: 0, Errors: 1, Skipped: 0, Total: 1"
+			"Failed after 0 processed, 0 not found. Reason: RAWG_RATE_LIMITED"
 		);
-		assert.equal(await externalOf(game.id), null);
+		assert.equal(rawgCalls.length, 1);
+		assert.equal(await GameExternal.count(), 0);
 	});
 
-	void it("keeps the job completed and counts the error when the network to RAWG fails", async () => {
+	void it("fails the job when the network to RAWG fails", async () => {
 		const game = await createCatalogGame("Elden Ring", "elden-ring");
 		stubRawgFetch(() => {
 			throw new TypeError("fetch failed");
@@ -219,12 +245,39 @@ void describe("POST /admin/jobs/populate-rawg", () => {
 
 		const job = await runPopulateJob();
 
-		assert.equal(job.status, "completed");
+		assert.equal(job.status, "failed");
 		assert.equal(
 			job.result,
-			"Processed: 0, Errors: 1, Skipped: 0, Total: 1"
+			"Failed after 0 processed, 0 not found. Reason: fetch failed"
 		);
 		assert.equal(await externalOf(game.id), null);
+	});
+
+	void it("reports what it processed and what was not found when RAWG fails midway", async () => {
+		await createCatalogGame("Elden Ring", "elden-ring");
+		await createCatalogGame("Hollow Knight", "hollow-knight");
+		await createCatalogGame("Home Brew Game", "home-brew-game");
+		const calls: string[] = [];
+		stubRawgFetch(url => {
+			calls.push(url.pathname);
+			if (calls.length === 1) return jsonResponse(ELDEN_RING_DETAIL);
+			if (calls.length === 2)
+				return jsonResponse({ detail: "Not found." }, 404);
+			return jsonResponse({ detail: "Failure" }, 429);
+		});
+
+		const job = await runPopulateJob();
+
+		assert.equal(job.status, "failed");
+		assert.equal(
+			job.result,
+			"Failed after 1 processed, 1 not found. Reason: RAWG_RATE_LIMITED"
+		);
+		assert.equal(calls.length, 3);
+		assert.equal(
+			await GameExternal.count({ where: { source: "rawg" } }),
+			1
+		);
 	});
 
 	void it("neither processes nor counts an error for a RAWG response without id", async () => {
@@ -236,7 +289,7 @@ void describe("POST /admin/jobs/populate-rawg", () => {
 		assert.equal(job.status, "completed");
 		assert.equal(
 			job.result,
-			"Processed: 0, Errors: 0, Skipped: 0, Total: 1"
+			"Processed: 0, Not found: 0, Skipped: 0, Total: 1"
 		);
 		assert.equal(await externalOf(game.id), null);
 	});
