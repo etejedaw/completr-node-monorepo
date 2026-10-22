@@ -13,6 +13,7 @@ import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
+import { adminErrorMessage } from "../../../core/utils/admin-error-message";
 import { ExpandableText } from "../../../shared/components/expandable-text/expandable-text";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { InView } from "../../../shared/directives/in-view";
@@ -476,7 +477,13 @@ export class GameDetail implements OnInit {
 		this.updateAdminActions({ deactivating: true });
 		this.gamesService.deactivate(g.id).subscribe({
 			next: () => this.router.navigate(["/games"]),
-			error: () => this.updateAdminActions({ deactivating: false })
+			error: err => {
+				this.updateAdminActions({
+					deactivating: false,
+					confirmDeactivate: false
+				});
+				this.reportAdminActionError(err, "Could not deactivate game.");
+			}
 		});
 	}
 
@@ -486,8 +493,23 @@ export class GameDetail implements OnInit {
 		this.updateAdminActions({ deleting: true });
 		this.gamesService.hardDelete(g.id).subscribe({
 			next: () => this.router.navigate(["/games"]),
-			error: () => this.updateAdminActions({ deleting: false })
+			error: err => {
+				this.updateAdminActions({
+					deleting: false,
+					confirmDelete: false
+				});
+				this.reportAdminActionError(err, "Could not delete game.");
+			}
 		});
+	}
+
+	private reportAdminActionError(
+		err: { status?: number },
+		fallback: string
+	) {
+		const alreadyToastedByInterceptor = err.status === 409;
+		if (alreadyToastedByInterceptor) return;
+		this.toast.warning(adminErrorMessage(err) ?? fallback);
 	}
 
 	openBacklogModal() {
