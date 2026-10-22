@@ -136,6 +136,59 @@ void describe("POST /games/:id/reports", () => {
 		assert.equal(await GameReport.count({ where: { gameId: game.id } }), 0);
 	});
 
+	void it("rejects a message made only of whitespace with 422", async () => {
+		const reporter = await createUserWithSession();
+		const game = await createGame();
+
+		const response = await postReport(reporter, game.id, {
+			message: " ".repeat(MIN_MESSAGE_LENGTH)
+		});
+
+		assert.equal(response.status, 422);
+		assert.equal(await GameReport.count({ where: { gameId: game.id } }), 0);
+	});
+
+	void it("rejects a message that falls under the minimum once trimmed with 422", async () => {
+		const reporter = await createUserWithSession();
+		const game = await createGame();
+
+		const response = await postReport(reporter, game.id, {
+			message: `   ${"a".repeat(MIN_MESSAGE_LENGTH - 1)}   `
+		});
+
+		assert.equal(response.status, 422);
+		assert.equal(await GameReport.count({ where: { gameId: game.id } }), 0);
+	});
+
+	void it("stores a valid message trimmed of surrounding whitespace", async () => {
+		const reporter = await createUserWithSession();
+		const game = await createGame();
+
+		const response = await postReport(reporter, game.id, {
+			message: `  \n${VALID_MESSAGE}\t  `
+		});
+
+		assert.equal(response.status, 201);
+		assert.equal(response.body.data.report.message, VALID_MESSAGE);
+		const stored = await GameReport.findByPk(response.body.data.report.id);
+		assert.equal(stored?.message, VALID_MESSAGE);
+	});
+
+	void it("counts the length of the trimmed message against the maximum", async () => {
+		const reporter = await createUserWithSession();
+		const game = await createGame();
+
+		const response = await postReport(reporter, game.id, {
+			message: ` ${"a".repeat(MAX_MESSAGE_LENGTH)} `
+		});
+
+		assert.equal(response.status, 201);
+		assert.equal(
+			response.body.data.report.message,
+			"a".repeat(MAX_MESSAGE_LENGTH)
+		);
+	});
+
 	void it("rejects a body without message with 422", async () => {
 		const reporter = await createUserWithSession();
 		const game = await createGame();
