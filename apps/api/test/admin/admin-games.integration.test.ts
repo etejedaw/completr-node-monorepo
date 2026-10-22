@@ -1,13 +1,29 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
 
+import { Activity } from "../../src/activity/activity.model";
+import { ActivityGame } from "../../src/activity/targets/activity-game.model";
 import { AuditLog } from "../../src/audit/audit.model";
 import { Backlog } from "../../src/backlog/backlog.model";
 import { CompilationItem } from "../../src/compilation-items/compilation-item.model";
+import { CoopRun } from "../../src/coop-runs/coop-run.model";
+import { Favorite } from "../../src/favorites/favorite.model";
 import { GameExternal } from "../../src/game-external/game-external.model";
+import * as gameExternalService from "../../src/game-external/game-external.service";
+import { GameGenre } from "../../src/game-genre/game-genre.model";
+import { GamePlatform } from "../../src/game-platform/game-platform.model";
+import { GameReport } from "../../src/game-reports/game-report.model";
+import { GameScore } from "../../src/game-scores/game-score.model";
+import { GameShelf } from "../../src/game-shelf/game-shelf.model";
+import { GameTime } from "../../src/game-times/game-time.model";
 import { Game } from "../../src/games/game.model";
 import { Genre } from "../../src/genres/genres.model";
+import { ListItem } from "../../src/list-items/list-item.model";
+import { UserGameTag } from "../../src/mood-tags/user-game-tag.model";
+import { Queue } from "../../src/queue/queue.model";
+import { Review } from "../../src/reviews/review.model";
+import { Wishlist } from "../../src/wishlist/wishlist.model";
 import { type UserRole } from "../../src/users/user-role.type";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
@@ -19,8 +35,11 @@ import {
 	createGame,
 	createGameScore,
 	createGameTime,
+	createList,
 	createPlatform,
-	createScoreSource
+	createScoreSource,
+	createUser,
+	createWishlistEntries
 } from "../helpers/factories.helper";
 
 let scoreSource: string;
@@ -137,6 +156,79 @@ interface GameBody {
 	scores: { source: string; score: number }[];
 	times: { source: string; duration: number }[];
 }
+
+const USER_DATA_SEEDS: Record<string, (gameId: string) => Promise<unknown>> = {
+	"a backlog entry": async gameId => {
+		const user = await createUser();
+		const platform = await createPlatform();
+		return createBacklog(user.id, gameId, platform.id);
+	},
+	"a queued backlog entry": async gameId => {
+		const user = await createUser();
+		const platform = await createPlatform();
+		const backlog = await createBacklog(user.id, gameId, platform.id);
+		return Queue.create({
+			userId: user.id,
+			backlogId: backlog.id,
+			position: 1
+		});
+	},
+	"a backlog entry that points at it as compilation": async gameId => {
+		const user = await createUser();
+		const platform = await createPlatform();
+		const other = await createGame();
+		const backlog = await createBacklog(user.id, other.id, platform.id);
+		return backlog.update({ compilationGameId: gameId });
+	},
+	"a game shelf entry": async gameId => {
+		const user = await createUser();
+		const platform = await createPlatform();
+		return GameShelf.create({
+			userId: user.id,
+			gameId,
+			platformId: platform.id
+		});
+	},
+	"a list item": async gameId => {
+		const user = await createUser();
+		const list = await createList(user.id, scoreSource);
+		return ListItem.create({ listId: list.id, gameId, position: 1 });
+	},
+	"a favorite": async gameId => {
+		const user = await createUser();
+		return Favorite.create({ userId: user.id, gameId, position: 1 });
+	},
+	"a wishlist entry": async gameId => {
+		const user = await createUser();
+		return createWishlistEntries(user.id, [gameId]);
+	},
+	"a review": async gameId => {
+		const user = await createUser();
+		return Review.create({
+			userId: user.id,
+			gameId,
+			content: "Great",
+			rating: 4
+		});
+	},
+	"a coop run": gameId => CoopRun.create({ gameId }),
+	"a mood tag": async gameId => {
+		const user = await createUser();
+		return UserGameTag.create({
+			userId: user.id,
+			gameId,
+			tag: "cozy"
+		});
+	},
+	"an activity": async gameId => {
+		const user = await createUser();
+		const activity = await Activity.create({
+			userId: user.id,
+			type: "favorite_added"
+		});
+		return ActivityGame.create({ activityId: activity.id, gameId });
+	}
+};
 
 const FORBIDDEN_FOR_NON_STAFF = [
 	{
@@ -504,14 +596,42 @@ void describe("POST /games", () => {
 		assert.equal(await Game.count({ where: { title } }), 0);
 	});
 
+	void it("accepts a score of 0 on a registered game", async () => {
+		const admin = await createUserWithSession("admin");
+
+		const response = await postGame(admin.authorization, {
+			title: uniqueTitle(),
+			scores: [{ source: scoreSource, score: 0 }]
+		});
+
+		assert.equal(response.status, 201);
+		assert.deepEqual(response.body.data.game.scores, [
+			{ source: scoreSource, score: 0 }
+		]);
+	});
+
+	void it("answers 422 GAME_SCORE_OUT_OF_RANGE for a score above the source scale", async () => {
+		const admin = await createUserWithSession("admin");
+		const title = uniqueTitle();
+
+		const response = await postGame(admin.authorization, {
+			title,
+			scores: [{ source: scoreSource, score: 101 }]
+		});
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "GAME_SCORE_OUT_OF_RANGE");
+		assert.equal(await Game.count({ where: { title } }), 0);
+	});
+
 	const invalidBodies: [string, Record<string, unknown>][] = [
 		["a missing title", {}],
 		["an empty title", { title: "" }],
 		["a title over 200 characters", { title: "a".repeat(201) }],
 		["an unknown field", { title: "Strict", isActive: false }],
 		[
-			"a non-positive score",
-			{ title: "Score", scores: [{ source: "x", score: 0 }] }
+			"a negative score",
+			{ title: "Score", scores: [{ source: "x", score: -1 }] }
 		],
 		[
 			"a non-positive duration",
@@ -611,6 +731,60 @@ void describe("PATCH /games/:id", () => {
 		assert.deepEqual(
 			updated.genres.map(entry => entry.code),
 			[newGenre.code]
+		);
+	});
+
+	void it("rolls back the title, platforms, genres and external ids when a step fails mid-update", async () => {
+		const admin = await createUserWithSession("admin");
+		const [oldPlatform, newPlatform, oldGenre, newGenre] =
+			await Promise.all([
+				createPlatform(),
+				createPlatform(),
+				createGenre(),
+				createGenre()
+			]);
+		const oldTitle = uniqueTitle();
+		const created = await postGame(admin.authorization, {
+			title: oldTitle,
+			platforms: [oldPlatform.code],
+			genres: [oldGenre.code],
+			externalIds: [{ source: "rawg", externalId: "111" }]
+		}).expect(201);
+		const gameId = created.body.data.game.id as string;
+		const upsert = mock.method(gameExternalService, "upsert", () =>
+			Promise.reject(new Error("simulated database failure"))
+		);
+
+		try {
+			const response = await patchGame(admin.authorization, gameId, {
+				title: uniqueTitle(),
+				platforms: [newPlatform.code],
+				genres: [newGenre.code],
+				externalIds: [{ source: "rawg", externalId: "222" }]
+			});
+
+			assert.equal(response.status, 500);
+			assert.equal(upsert.mock.callCount(), 1);
+		} finally {
+			upsert.mock.restore();
+		}
+
+		const game = await Game.findByPk(gameId);
+		assert.equal(game?.title, oldTitle);
+		const platformLinks = await GamePlatform.findAll({ where: { gameId } });
+		assert.deepEqual(
+			platformLinks.map(link => link.platformId),
+			[oldPlatform.id]
+		);
+		const genreLinks = await GameGenre.findAll({ where: { gameId } });
+		assert.deepEqual(
+			genreLinks.map(link => link.genreId),
+			[oldGenre.id]
+		);
+		const externals = await GameExternal.findAll({ where: { gameId } });
+		assert.deepEqual(
+			externals.map(external => external.externalId),
+			["111"]
 		);
 	});
 
@@ -949,12 +1123,103 @@ void describe("DELETE /games/:id", () => {
 		assert.equal(response.body.type, "GAME_NOT_FOUND");
 	});
 
-	void it("hard deleting a game also removes what users tracked about it", async () => {
+	for (const [label, seed] of Object.entries(USER_DATA_SEEDS)) {
+		void it(`answers 409 GAME_IN_USE and keeps the game when hard deleting a game with ${label}`, async () => {
+			const admin = await createUserWithSession("admin");
+			const game = await createGame();
+			await seed(game.id);
+
+			const response = await deleteGame(
+				admin.authorization,
+				game.id,
+				"?hard=true"
+			);
+
+			assert.equal(response.status, 409);
+			assert.equal(response.body.type, "GAME_IN_USE");
+			assert.equal(await Game.count({ where: { id: game.id } }), 1);
+		});
+	}
+
+	void it("does not delete the catalog data of a game in use when it answers 409", async () => {
 		const admin = await createUserWithSession("admin");
-		const owner = await createUserWithSession();
 		const game = await createGame();
 		const platform = await createPlatform();
-		await createBacklog(owner.user.id, game.id, platform.id);
+		const genre = await createGenre();
+		await GameGenre.create({ gameId: game.id, genreId: genre.id });
+		await GamePlatform.create({ gameId: game.id, platformId: platform.id });
+		await createGameScore(game.id, scoreSource, 80);
+		await createGameTime(game.id, "hltb", 12);
+		await GameExternal.create({
+			gameId: game.id,
+			source: "rawg",
+			externalId: uniqueSuffix()
+		});
+		const owner = await createUser();
+		await createBacklog(owner.id, game.id, platform.id);
+
+		const response = await deleteGame(
+			admin.authorization,
+			game.id,
+			"?hard=true"
+		);
+
+		assert.equal(response.status, 409);
+		assert.equal(await Game.count({ where: { id: game.id } }), 1);
+		assert.equal(await GameGenre.count({ where: { gameId: game.id } }), 1);
+		assert.equal(
+			await GamePlatform.count({ where: { gameId: game.id } }),
+			1
+		);
+		assert.equal(await GameScore.count({ where: { gameId: game.id } }), 1);
+		assert.equal(await GameTime.count({ where: { gameId: game.id } }), 1);
+		assert.equal(
+			await GameExternal.count({ where: { gameId: game.id } }),
+			1
+		);
+		assert.equal(await Backlog.count({ where: { gameId: game.id } }), 1);
+		assert.equal(
+			await AuditLog.count({
+				where: { action: "game_deleted", targetId: game.id }
+			}),
+			0
+		);
+	});
+
+	void it("answers 409 GAME_IN_USE when the game has variants", async () => {
+		const admin = await createUserWithSession("admin");
+		const parent = await createGame();
+		const variant = await createGame();
+		await variant.update({ parentGameId: parent.id });
+
+		const response = await deleteGame(
+			admin.authorization,
+			parent.id,
+			"?hard=true"
+		);
+
+		assert.equal(response.status, 409);
+		assert.equal(response.body.type, "GAME_IN_USE");
+		assert.equal(await Game.count({ where: { id: parent.id } }), 1);
+	});
+
+	void it("hard deletes a game that only has reports and removes them", async () => {
+		const admin = await createUserWithSession("admin");
+		const reporter = await createUser();
+		const game = await createGame();
+		await GameReport.create({
+			userId: reporter.id,
+			gameId: game.id,
+			message: "Wrong cover",
+			status: "pending"
+		});
+		await GameReport.create({
+			userId: reporter.id,
+			gameId: game.id,
+			message: "Missing score",
+			category: "missing_score",
+			status: "approved"
+		});
 
 		const response = await deleteGame(
 			admin.authorization,
@@ -964,7 +1229,54 @@ void describe("DELETE /games/:id", () => {
 
 		assert.equal(response.status, 204);
 		assert.equal(await Game.count({ where: { id: game.id } }), 0);
-		assert.equal(await Backlog.count({ where: { gameId: game.id } }), 0);
+		assert.equal(await GameReport.count({ where: { gameId: game.id } }), 0);
+	});
+
+	void it("hard deletes a game that only has catalog data", async () => {
+		const admin = await createUserWithSession("admin");
+		const game = await createGame();
+		const child = await createGame();
+		const platform = await createPlatform();
+		const genre = await createGenre();
+		await GameGenre.create({ gameId: game.id, genreId: genre.id });
+		await GamePlatform.create({ gameId: game.id, platformId: platform.id });
+		await createGameScore(game.id, scoreSource, 80);
+		await createGameTime(game.id, "hltb", 12);
+		await GameExternal.create({
+			gameId: game.id,
+			source: "rawg",
+			externalId: uniqueSuffix()
+		});
+		await CompilationItem.create({
+			parentGameId: game.id,
+			childGameId: child.id,
+			position: 1
+		});
+
+		const response = await deleteGame(
+			admin.authorization,
+			game.id,
+			"?hard=true"
+		);
+
+		assert.equal(response.status, 204);
+		assert.equal(await Game.count({ where: { id: game.id } }), 0);
+		assert.equal(await GameGenre.count({ where: { gameId: game.id } }), 0);
+		assert.equal(
+			await GamePlatform.count({ where: { gameId: game.id } }),
+			0
+		);
+		assert.equal(await GameScore.count({ where: { gameId: game.id } }), 0);
+		assert.equal(await GameTime.count({ where: { gameId: game.id } }), 0);
+		assert.equal(
+			await GameExternal.count({ where: { gameId: game.id } }),
+			0
+		);
+		assert.equal(
+			await CompilationItem.count({ where: { parentGameId: game.id } }),
+			0
+		);
+		assert.equal(await Game.count({ where: { id: child.id } }), 1);
 	});
 
 	void it("answers 404 GAME_NOT_FOUND when deactivating an unknown game", async () => {
