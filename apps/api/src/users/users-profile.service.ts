@@ -200,15 +200,16 @@ export async function getListsForUsername(
 			? (await listsService.findListsByUserId(viewer)).lists
 			: await listsService.findPublicListsByUserId(user.id);
 
-	const enriched = await Promise.all(
-		lists.map(async list => {
-			const [followerCount, progress] = await Promise.all([
-				listsService.getFollowerCount(list.id),
-				listsService.getListProgress(list.id, user.id)
-			]);
-			return { list, followerCount, progress };
-		})
-	);
+	const listIds = lists.map(list => list.id);
+	const [followerCounts, progressByList] = await Promise.all([
+		listsService.getListFollowerCounts(listIds),
+		listsService.getListsProgress(listIds, user.id)
+	]);
+	const enriched = lists.map(list => ({
+		list,
+		followerCount: followerCounts.get(list.id) ?? 0,
+		progress: progressByList.get(list.id) ?? { completed: 0, total: 0 }
+	}));
 
 	return { lists: enriched, total: enriched.length };
 }
