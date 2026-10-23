@@ -18,6 +18,7 @@ import {
 	catchError,
 	debounceTime,
 	distinctUntilChanged,
+	forkJoin,
 	map,
 	of,
 	startWith,
@@ -349,7 +350,6 @@ export class BacklogList implements OnInit {
 	protected readonly showAdvancedFilters = signal(false);
 	protected readonly allPlatforms = signal<Platform[]>([]);
 	protected readonly allGenres = signal<Genre[]>([]);
-	protected readonly selectedPlatform = signal("");
 	protected readonly selectedPlatforms = signal<Set<string>>(new Set());
 	protected readonly selectedGenres = signal<Set<string>>(new Set());
 	protected readonly yearFrom = signal<number | null>(null);
@@ -532,7 +532,6 @@ export class BacklogList implements OnInit {
 
 	protected readonly activeFiltersCount = () => {
 		let count = 0;
-		if (this.selectedPlatform() !== "") count++;
 		if (this.selectedPlatforms().size > 0) count++;
 		if (this.selectedGenres().size > 0) count++;
 		if (this.yearFrom() !== null || this.yearTo() !== null) count++;
@@ -600,11 +599,14 @@ export class BacklogList implements OnInit {
 		this.setupSearch();
 		this.loadQueueIds();
 		this.favoritesService.ensureIdsLoaded().subscribe();
-		this.gamesService
-			.getPlatforms()
-			.subscribe(p => this.allPlatforms.set(p));
 		this.gamesService.getGenres().subscribe(g => this.allGenres.set(g));
-		this.savedFiltersService.getAll().subscribe(filters => {
+		forkJoin({
+			platforms: this.gamesService
+				.getPlatforms()
+				.pipe(catchError(() => of([]))),
+			filters: this.savedFiltersService.getAll()
+		}).subscribe(({ platforms, filters }) => {
+			this.allPlatforms.set(platforms);
 			this.savedFilters.set(filters);
 			this.backlogFilters.set(filters.filter(f => f.showInBacklog));
 			this.savedFiltersLoaded.set(true);
@@ -666,10 +668,7 @@ export class BacklogList implements OnInit {
 
 	private applySavedFilterState(filter: SavedFilter) {
 		const f = filter.filters as Record<string, string>;
-		this.selectedPlatform.set(f["platform_id"] ?? "");
-		this.selectedPlatforms.set(
-			f["platforms"] ? new Set(f["platforms"].split(",")) : new Set()
-		);
+		this.selectedPlatforms.set(this.platformCodesOf(f));
 		this.selectedGenres.set(
 			f["genres"] ? new Set(f["genres"].split(",")) : new Set()
 		);
@@ -715,8 +714,18 @@ export class BacklogList implements OnInit {
 		if (this.hasAdvancedFiltersActive()) this.showAdvancedFilters.set(true);
 	}
 
+	private platformCodesOf(filters: Record<string, string>): Set<string> {
+		const codes = new Set(
+			filters["platforms"]?.split(",").filter(Boolean) ?? []
+		);
+		const legacyPlatform = this.allPlatforms().find(
+			platform => platform.id === filters["platform_id"]
+		);
+		if (legacyPlatform) codes.add(legacyPlatform.code);
+		return codes;
+	}
+
 	private resetFilterState() {
-		this.selectedPlatform.set("");
 		this.selectedPlatforms.set(new Set());
 		this.selectedGenres.set(new Set());
 		this.yearFrom.set(null);
@@ -863,7 +872,6 @@ export class BacklogList implements OnInit {
 
 	clearFilters() {
 		this.searchQuery.set("");
-		this.selectedPlatform.set("");
 		this.selectedPlatforms.set(new Set());
 		this.selectedGenres.set(new Set());
 		this.yearFrom.set(null);
@@ -968,8 +976,6 @@ export class BacklogList implements OnInit {
 		const filters: Record<string, string> = {};
 		const statuses = this.activeStatuses();
 		if (statuses.size > 0) filters["status"] = [...statuses].join(",");
-		if (this.selectedPlatform())
-			filters["platform_id"] = this.selectedPlatform();
 		if (this.selectedPlatforms().size > 0)
 			filters["platforms"] = [...this.selectedPlatforms()].join(",");
 		if (this.selectedGenres().size > 0)
@@ -1210,7 +1216,6 @@ export class BacklogList implements OnInit {
 
 	hasAdvancedFiltersActive(): boolean {
 		return (
-			this.selectedPlatforms().size > 0 ||
 			this.selectedGenres().size > 0 ||
 			this.yearFrom() !== null ||
 			this.yearTo() !== null ||
@@ -1355,9 +1360,6 @@ export class BacklogList implements OnInit {
 			filters.status = [...statuses].join(",");
 		}
 
-		if (this.selectedPlatform()) {
-			filters.platform_id = this.selectedPlatform();
-		}
 		if (this.selectedPlatforms().size > 0) {
 			filters.platforms = [...this.selectedPlatforms()].join(",");
 		}

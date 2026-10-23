@@ -19,6 +19,7 @@ import {
 import { FilterSection } from "../../../../shared/components/filter-section/filter-section";
 import { GameFilterPanel } from "../../../../shared/components/game-filter-panel/game-filter-panel";
 import { MoodTagsInput } from "../../../../shared/components/mood-tags-input/mood-tags-input";
+import { MultiOptionPicker } from "../../../../shared/components/option-picker/multi-option-picker";
 import {
 	OptionPicker,
 	type PickerOption
@@ -63,6 +64,7 @@ const SORT_ORDER_OPTIONS: readonly PickerOption[] = [
 		FilterSection,
 		GameFilterPanel,
 		MoodTagsInput,
+		MultiOptionPicker,
 		OptionPicker,
 		RangeInputs,
 		StarRating,
@@ -94,7 +96,6 @@ export class BacklogFiltersPanel {
 	readonly previewTotal = input<number | null>(null);
 
 	readonly statuses = model<readonly string[]>([]);
-	readonly selectedPlatform = model("");
 	readonly selectedPlatforms = model<Set<string>>(new Set());
 	readonly selectedGenres = model<Set<string>>(new Set());
 	readonly yearFrom = model<number | null>(null);
@@ -129,13 +130,17 @@ export class BacklogFiltersPanel {
 		() => this.activeFiltersCount() > 0
 	);
 
-	protected readonly platformPickerOptions = computed<PickerOption[]>(() => [
-		{ value: "", label: "All platforms", icon: "devices" },
-		...this.allPlatforms().map(platform => ({
-			value: platform.id,
-			label: platform.name
+	protected readonly platformPickerOptions = computed<PickerOption[]>(() =>
+		this.allPlatforms().map(platform => ({
+			value: platform.code,
+			label: platform.name,
+			shortLabel: platform.abbreviation
 		}))
-	]);
+	);
+
+	protected readonly platformValues = computed(() =>
+		Array.from(this.selectedPlatforms())
+	);
 
 	protected readonly heading = computed(() =>
 		this.creatingView() ? "New view" : "Filters"
@@ -160,6 +165,10 @@ export class BacklogFiltersPanel {
 			? `Save & show ${total} ${noun}`
 			: `Show ${total} ${noun}`;
 	});
+
+	protected setPlatforms(codes: readonly string[]) {
+		this.selectedPlatforms.set(new Set(codes));
+	}
 
 	protected toggleAdvancedFilters() {
 		this.showAdvancedFilters.update(visible => !visible);

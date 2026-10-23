@@ -11,7 +11,8 @@ import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
-import { type BacklogEntry } from "../../../core/models";
+import { type BacklogEntry, type Platform } from "../../../core/models";
+import { type SavedFilter } from "../saved-filters";
 import { BacklogList } from "./backlog-list";
 
 const api = environment.apiUrl;
@@ -27,6 +28,28 @@ function entry(overrides: Partial<BacklogEntry>): BacklogEntry {
 		ratio: 0.23,
 		game: { id: "g0", code: "game", title: "Game", isDlc: false },
 		platform: { id: "p1", abbreviation: "PC" },
+		...overrides
+	};
+}
+
+const platformCatalog: Platform[] = [
+	{ id: "p1", name: "PC", code: "pc", abbreviation: "PC" },
+	{ id: "p2", name: "PlayStation 2", code: "ps2", abbreviation: "PS2" },
+	{ id: "p3", name: "PlayStation 3", code: "ps3", abbreviation: "PS3" },
+	{ id: "p4", name: "Nintendo Switch", code: "switch", abbreviation: "NSW" }
+];
+
+function savedView(overrides: Partial<SavedFilter>): SavedFilter {
+	return {
+		id: "v1",
+		name: "Consoles",
+		filters: {},
+		showInBacklog: true,
+		isDefault: false,
+		enabledStats: null,
+		icon: null,
+		color: null,
+		createdAt: "2026-01-01T00:00:00.000Z",
 		...overrides
 	};
 }
@@ -59,6 +82,9 @@ function initialLibrary(): BacklogEntry[] {
 describe("BacklogList interaction", () => {
 	let httpTesting: HttpTestingController;
 	let library: BacklogEntry[];
+	let savedViews: SavedFilter[];
+	const savedViewWrites: { method: string; url: string; body: unknown }[] =
+		[];
 	const backlogQueries: URLSearchParams[] = [];
 	const backlogPatches: { id: string; body: unknown }[] = [];
 	const deletedIds: string[] = [];
@@ -97,6 +123,8 @@ describe("BacklogList interaction", () => {
 		}
 		if (url.endsWith("/progress") || url.endsWith("/coop"))
 			return req.flush({ data: { progress: [], members: [] } });
+		if (url.endsWith("/stats"))
+			return req.flush({}, { status: 500, statusText: "Server Error" });
 		if (url.endsWith("/mood-tags"))
 			return req.flush({ data: { tags: [] } });
 		if (url === `${api}/users/me/queue/backlog-ids`)
@@ -105,10 +133,19 @@ describe("BacklogList interaction", () => {
 			return req.flush({ data: { queue: [], total: 0 } });
 		if (url === `${api}/users/me/favorites/game-ids`)
 			return req.flush({ data: { gameIds: [] } });
-		if (url === `${api}/users/me/saved-filters`)
-			return req.flush({ data: { savedFilters: [] } });
+		if (url === `${api}/users/me/saved-filters` && method === "GET")
+			return req.flush({ data: { savedFilters: savedViews } });
+		if (
+			url.startsWith(`${api}/users/me/saved-filters`) &&
+			method !== "GET"
+		) {
+			savedViewWrites.push({ method, url, body: req.request.body });
+			return req.flush({
+				data: { savedFilter: savedView(req.request.body as object) }
+			});
+		}
 		if (url === `${api}/platforms`)
-			return req.flush({ data: { platforms: [] } });
+			return req.flush({ data: { platforms: platformCatalog } });
 		if (url === `${api}/genres`) return req.flush({ data: { genres: [] } });
 		if (url === `${api}/score-sources`)
 			return req.flush({ data: { sources: [] } });
@@ -161,10 +198,11 @@ describe("BacklogList interaction", () => {
 		);
 	}
 
-	async function renderBacklog() {
+	async function renderBacklog(initialRoute = "/") {
 		const result = await render(BacklogList, {
 			providers: [provideHttpClient(), provideHttpClientTesting()],
-			routes: [{ path: "**", component: BacklogList }]
+			routes: [{ path: "**", component: BacklogList }],
+			initialRoute
 		});
 		httpTesting = TestBed.inject(HttpTestingController);
 		await untilVisible(() =>
@@ -180,6 +218,8 @@ describe("BacklogList interaction", () => {
 	beforeEach(() => {
 		localStorage.clear();
 		library = initialLibrary();
+		savedViews = [];
+		savedViewWrites.length = 0;
 		backlogQueries.length = 0;
 		backlogPatches.length = 0;
 		deletedIds.length = 0;
@@ -461,5 +501,240 @@ describe("BacklogList interaction", () => {
 		);
 		expect(deletedIds).toEqual(["b3"]);
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+	});
+	describe("platform filter", () => {
+		function filtersButton() {
+			return screen
+				.getAllByRole("button", { name: /^Filters/ })
+				.find(button => !button.classList.contains("sm:hidden"))!;
+		}
+
+		function platformTrigger() {
+			return screen.getByRole("button", { name: /^Platform:/ });
+		}
+
+		function platformOption(name: string) {
+			return screen.getByRole("option", { name });
+		}
+
+		function lastLibraryQuery() {
+			return backlogQueries
+				.filter(query => query.get("limit") !== "1")
+				.at(-1)!;
+		}
+
+		async function openFilters(user: ReturnType<typeof userEvent.setup>) {
+			await user.click(filtersButton());
+			await screen.findByRole("button", { name: /^Platform:/ });
+		}
+
+		async function showResults(user: ReturnType<typeof userEvent.setup>) {
+			await user.click(
+				screen.getByRole("button", { name: /^(Save & )?[Ss]how/ })
+			);
+			answerPending();
+		}
+
+		beforeEach(() => {
+			Element.prototype.getAnimations = () => [];
+		});
+
+		afterEach(() => {
+			Reflect.deleteProperty(Element.prototype, "getAnimations");
+		});
+
+		it("sends the chosen platforms together as platforms and never as platform_id", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await openFilters(user);
+			expect(platformTrigger()).toHaveAccessibleName(
+				"Platform: All platforms"
+			);
+
+			await user.click(platformTrigger());
+			await user.click(platformOption("PlayStation 3"));
+			await user.click(platformOption("PlayStation 2"));
+			await user.keyboard("{Escape}");
+			expect(platformTrigger()).toHaveAccessibleName(
+				"Platform: PS2, PS3"
+			);
+			await showResults(user);
+
+			await untilVisible(() =>
+				expect(lastLibraryQuery().get("platforms")).toBe("ps2,ps3")
+			);
+			expect(lastLibraryQuery().has("platform_id")).toBe(false);
+		});
+
+		it("counts the platform selection as one active filter and previews it with platforms", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await openFilters(user);
+
+			await user.click(platformTrigger());
+			await user.click(platformOption("PC"));
+			await user.click(platformOption("Nintendo Switch"));
+			await user.keyboard("{Escape}");
+
+			await untilVisible(() => {
+				expect(
+					within(filtersButton()).getByText("1")
+				).toBeInTheDocument();
+				const preview = backlogQueries.filter(
+					query => query.get("limit") === "1"
+				);
+				expect(preview.at(-1)?.get("platforms")).toBe("pc,switch");
+			});
+			expect(
+				backlogQueries.every(query => !query.has("platform_id"))
+			).toBe(true);
+		});
+
+		it("clears the whole selection from the footer Clear", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await openFilters(user);
+			await user.click(platformTrigger());
+			await user.click(platformOption("PC"));
+			await user.click(platformOption("PlayStation 2"));
+			await user.keyboard("{Escape}");
+			expect(platformTrigger()).toHaveAccessibleName("Platform: PC, PS2");
+
+			await user.click(screen.getByRole("button", { name: "Clear" }));
+
+			await untilVisible(() =>
+				expect(lastLibraryQuery().has("platforms")).toBe(false)
+			);
+			expect(platformTrigger()).toHaveAccessibleName(
+				"Platform: All platforms"
+			);
+			expect(
+				within(filtersButton()).queryByText("1")
+			).not.toBeInTheDocument();
+		});
+
+		it("converts a saved view with platform_id into the equivalent selection", async () => {
+			const user = userEvent.setup();
+			savedViews = [
+				savedView({
+					id: "legacy",
+					name: "Only PS2",
+					isDefault: true,
+					filters: { platform_id: "p2" }
+				})
+			];
+			await renderBacklog();
+
+			await untilVisible(() =>
+				expect(lastLibraryQuery().get("platforms")).toBe("ps2")
+			);
+			expect(
+				backlogQueries.every(query => !query.has("platform_id"))
+			).toBe(true);
+			expect(within(filtersButton()).getByText("1")).toBeInTheDocument();
+
+			await openFilters(user);
+			expect(platformTrigger()).toHaveAccessibleName(
+				"Platform: PlayStation 2"
+			);
+		});
+
+		it("merges platform_id with platforms when a view has both", async () => {
+			savedViews = [
+				savedView({
+					isDefault: true,
+					filters: { platform_id: "p2", platforms: "pc" }
+				})
+			];
+			await renderBacklog();
+
+			await untilVisible(() =>
+				expect(lastLibraryQuery().get("platforms")).toBe("pc,ps2")
+			);
+		});
+
+		it("opens a view linked by id with its platforms selected", async () => {
+			const user = userEvent.setup();
+			savedViews = [
+				savedView({
+					id: "linked",
+					filters: { platforms: "pc,ps2,ps3,switch" }
+				})
+			];
+			await renderBacklog("/?savedFilterId=linked");
+
+			await untilVisible(() =>
+				expect(lastLibraryQuery().get("platforms")).toBe(
+					"pc,ps2,ps3,switch"
+				)
+			);
+			await openFilters(user);
+			expect(platformTrigger()).toHaveAccessibleName(
+				"Platform: 4 platforms"
+			);
+		});
+
+		it("updates a legacy view saving platforms and dropping platform_id", async () => {
+			const user = userEvent.setup();
+			savedViews = [
+				savedView({
+					id: "legacy",
+					isDefault: true,
+					filters: { platform_id: "p2" }
+				})
+			];
+			await renderBacklog();
+			await untilVisible(() =>
+				expect(lastLibraryQuery().get("platforms")).toBe("ps2")
+			);
+			await openFilters(user);
+			await user.click(platformTrigger());
+			await user.click(platformOption("PC"));
+			await user.keyboard("{Escape}");
+
+			await user.click(
+				screen.getByRole("button", { name: /Update current view/ })
+			);
+			answerPending();
+
+			expect(savedViewWrites).toEqual([
+				{
+					method: "PATCH",
+					url: `${api}/users/me/saved-filters/legacy`,
+					body: expect.objectContaining({
+						filters: { platforms: "pc,ps2" }
+					})
+				}
+			]);
+		});
+
+		it("saves a new view with the selected platforms", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await openFilters(user);
+			await user.click(platformTrigger());
+			await user.click(platformOption("PlayStation 2"));
+			await user.click(platformOption("PlayStation 3"));
+			await user.keyboard("{Escape}");
+
+			await user.type(
+				screen.getByRole("textbox", { name: "View name" }),
+				"Sony"
+			);
+			await showResults(user);
+
+			await untilVisible(() =>
+				expect(savedViewWrites).toEqual([
+					{
+						method: "POST",
+						url: `${api}/users/me/saved-filters`,
+						body: expect.objectContaining({
+							name: "Sony",
+							filters: { platforms: "ps2,ps3" }
+						})
+					}
+				])
+			);
+		});
 	});
 });

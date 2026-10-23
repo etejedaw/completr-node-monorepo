@@ -36,14 +36,16 @@
 			/>
 		</app-filter-section>
 
-		<app-option-picker
+		<app-multi-option-picker
 			label="Platform"
 			heading="Filter by platform"
 			placeholder="All platforms"
 			placeholderIcon="devices"
+			noun="platforms"
+			searchLabel="Search platforms"
 			[options]="platformPickerOptions()"
-			[value]="selectedPlatform()"
-			(valueChange)="selectedPlatform.set($event)"
+			[values]="platformValues()"
+			(valuesChange)="setPlatforms($event)"
 		/>
 
 		<app-filter-section label="Started">
@@ -186,9 +188,7 @@
 		<div id="backlog-advanced-filters" class="flex flex-col gap-6">
 			<app-game-filter-panel
 				[allGenres]="allGenres()"
-				[allPlatforms]="allPlatforms()"
 				[(selectedGenres)]="selectedGenres"
-				[(selectedPlatforms)]="selectedPlatforms"
 				[(yearFrom)]="yearFrom"
 				[(yearTo)]="yearTo"
 			/>
