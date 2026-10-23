@@ -17,6 +17,21 @@ export async function linkGameToPlatforms(
 	});
 }
 
+export async function linkGamesToPlatforms(
+	gameIds: string[],
+	platformsId: string[],
+	transaction?: Transaction
+) {
+	const gamePlatforms = gameIds.flatMap(gameId =>
+		platformsId.map(platformId => ({ gameId, platformId }))
+	);
+	if (gamePlatforms.length === 0) return [];
+	return GamePlatform.bulkCreate(gamePlatforms, {
+		ignoreDuplicates: true,
+		transaction
+	});
+}
+
 export async function replaceGamePlatforms(
 	gameId: string,
 	platformsId: string[],
