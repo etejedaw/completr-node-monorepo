@@ -1,4 +1,4 @@
-import { Op, type Transaction } from "sequelize";
+import { col, fn, Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -58,6 +58,44 @@ async function loadFrozenScoreContext(
 		timesByGameId: new Map(times.map(t => [t.gameId, t])),
 		scoreSource
 	};
+}
+
+async function loadFrozenScoreContextsForGame(
+	lists: List[],
+	gameId: string
+): Promise<Map<string, FrozenScoreContext>> {
+	const scoreSourceCodes = [...new Set(lists.map(list => list.scoreSource))];
+	const durationSources = [
+		...new Set(lists.map(list => list.durationSource as TimeSource))
+	];
+	const [scores, times, scoreSources] = await Promise.all([
+		gameScoresService.findScoresByGameIdAndSources(
+			gameId,
+			scoreSourceCodes
+		),
+		gameTimesService.findTimesByGameIdAndSources(gameId, durationSources),
+		scoreSourcesService.findByCodes(scoreSourceCodes)
+	]);
+	const scoreBySource = new Map(scores.map(score => [score.source, score]));
+	const timeBySource = new Map(times.map(time => [time.source, time]));
+	const scoreSourceByCode = new Map(
+		scoreSources.map(scoreSource => [scoreSource.code, scoreSource])
+	);
+
+	return new Map(
+		lists.map(list => {
+			const score = scoreBySource.get(list.scoreSource);
+			const time = timeBySource.get(list.durationSource as TimeSource);
+			return [
+				list.id,
+				{
+					scoresByGameId: new Map(score ? [[gameId, score]] : []),
+					timesByGameId: new Map(time ? [[gameId, time]] : []),
+					scoreSource: scoreSourceByCode.get(list.scoreSource) ?? null
+				}
+			];
+		})
+	);
 }
 
 function freezeScoresFromContext(gameId: string, ctx: FrozenScoreContext) {
@@ -243,6 +281,23 @@ export async function addItem(
 	}
 }
 
+async function compactPositionsInLists(
+	listIds: string[],
+	transaction: Transaction
+) {
+	await sequelize.query(
+		`UPDATE "ListItems" AS li
+		SET "position" = ranked."position", "updatedAt" = NOW()
+		FROM (
+			SELECT "id", ROW_NUMBER() OVER (PARTITION BY "listId" ORDER BY "position", "createdAt", "id") AS "position"
+			FROM "ListItems"
+			WHERE "listId" IN (:listIds)
+		) AS ranked
+		WHERE li."id" = ranked."id" AND li."position" <> ranked."position"`,
+		{ replacements: { listIds }, transaction }
+	);
+}
+
 async function compactPositions(listId: string, transaction: Transaction) {
 	await sequelize.query(
 		`UPDATE "ListItems" AS li
@@ -255,6 +310,20 @@ async function compactPositions(listId: string, transaction: Transaction) {
 		WHERE li."id" = ranked."id" AND li."position" <> ranked."position"`,
 		{ replacements: { listId }, transaction }
 	);
+}
+
+async function findMaxPositionsByListId(
+	listIds: string[],
+	transaction: Transaction
+) {
+	const rows = (await ListItem.findAll({
+		attributes: ["listId", [fn("MAX", col("position")), "maxPosition"]],
+		where: { listId: listIds },
+		group: ["listId"],
+		raw: true,
+		transaction
+	})) as unknown as { listId: string; maxPosition: number }[];
+	return new Map(rows.map(row => [row.listId, row.maxPosition]));
 }
 
 export async function removeItem(
@@ -319,40 +388,38 @@ export async function setGameLists(
 
 	if (listsToAdd.length > 0) await checkFrozen(user.id, user.role);
 
-	const frozenContexts = await Promise.all(
-		listsToAdd.map(list => loadFrozenScoreContext(list, [gameId]))
+	const frozenContexts = await loadFrozenScoreContextsForGame(
+		listsToAdd,
+		gameId
 	);
 
 	await sequelize.transaction(async (transaction: Transaction) => {
 		try {
-			for (const [index, list] of listsToAdd.entries()) {
-				const max = (await ListItem.max("position", {
-					where: { listId: list.id },
+			if (listsToAdd.length > 0) {
+				const maxPositions = await findMaxPositionsByListId(
+					listsToAdd.map(list => list.id),
 					transaction
-				})) as number | null;
-				const { score, duration } = freezeScoresFromContext(
-					gameId,
-					frozenContexts[index]!
 				);
-				await ListItem.create(
-					{
+				await ListItem.bulkCreate(
+					listsToAdd.map(list => ({
 						listId: list.id,
 						gameId,
-						position: (max ?? 0) + 1,
-						score,
-						duration
-					},
+						position: (maxPositions.get(list.id) ?? 0) + 1,
+						...freezeScoresFromContext(
+							gameId,
+							frozenContexts.get(list.id)!
+						)
+					})),
 					{ transaction }
 				);
 			}
 
-			for (const listId of listIdsToRemove) {
-				const removedCount = await ListItem.destroy({
-					where: { listId, gameId },
+			if (listIdsToRemove.length > 0) {
+				await ListItem.destroy({
+					where: { gameId, listId: listIdsToRemove },
 					transaction
 				});
-				if (removedCount > 0)
-					await compactPositions(listId, transaction);
+				await compactPositionsInLists(listIdsToRemove, transaction);
 			}
 		} catch (error) {
 			rethrowSequelizeError(error, {
