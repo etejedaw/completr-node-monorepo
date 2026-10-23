@@ -34,6 +34,21 @@ export async function canView(
 	return userFollowersService.areMutualFollowers(viewerId, owner.id);
 }
 
+export function isSectionVisible(
+	viewerId: string | undefined,
+	owner: User,
+	section: VisibilitySection,
+	isMutual: boolean
+): boolean {
+	if (viewerId && viewerId === owner.id) return true;
+
+	const level = owner[SECTION_TO_FIELD[section]];
+	if (level === "public") return true;
+	if (level === "private") return false;
+
+	return !!viewerId && isMutual;
+}
+
 export type SectionAccess = Record<VisibilitySection, boolean>;
 
 export async function resolveSectionAccess(

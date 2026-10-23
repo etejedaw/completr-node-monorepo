@@ -5,6 +5,7 @@ import * as userFollowersService from "../../../src/user-followers/user-follower
 import { type VisibilityLevel } from "../../../src/users/constants/visibility.constants";
 import {
 	canView,
+	isSectionVisible,
 	resolveSectionAccess
 } from "../../../src/users/helpers/visibility.helper";
 import { type User } from "../../../src/users/user.model";
@@ -178,5 +179,43 @@ void describe("resolveSectionAccess", () => {
 
 		assert.equal(mutual.mock.callCount(), 0);
 		assert.equal(anonymous.queue, false);
+	});
+});
+
+void describe("isSectionVisible", () => {
+	void it("always allows the owner even when the section is private", () => {
+		const owner = buildOwner();
+
+		assert.equal(isSectionVisible("owner", owner, "backlog", false), true);
+	});
+
+	void it("allows public sections to anyone and denies private ones to others", () => {
+		const owner = buildOwner({
+			backlogVisibility: "public",
+			favoriteVisibility: "private"
+		});
+
+		assert.equal(
+			isSectionVisible(undefined, owner, "backlog", false),
+			true
+		);
+		assert.equal(
+			isSectionVisible("viewer", owner, "favorite", true),
+			false
+		);
+	});
+
+	void it("allows friends sections only to a signed in mutual follower", () => {
+		const owner = buildOwner({ profileVisibility: "friends" });
+
+		assert.equal(isSectionVisible("viewer", owner, "profile", true), true);
+		assert.equal(
+			isSectionVisible("viewer", owner, "profile", false),
+			false
+		);
+		assert.equal(
+			isSectionVisible(undefined, owner, "profile", true),
+			false
+		);
 	});
 });
