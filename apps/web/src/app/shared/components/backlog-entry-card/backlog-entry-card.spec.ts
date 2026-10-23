@@ -122,3 +122,56 @@ describe("BacklogEntryCard accessible name", () => {
 		expect(article.hasAttribute("aria-describedby")).toBe(false);
 	});
 });
+
+describe("BacklogEntryCard rendering cost", () => {
+	function render(statusMenuOpen = false) {
+		const fixture = TestBed.createComponent(BacklogEntryCard);
+		fixture.componentRef.setInput("entry", {
+			...entryWithStatus("playing"),
+			game: {
+				...entryWithStatus("playing").game,
+				backgroundUrl: "https://media.rawg.io/media/games/abc/hades.jpg"
+			}
+		});
+		fixture.componentRef.setInput("statusMenuOpen", statusMenuOpen);
+		fixture.detectChanges();
+		return fixture.nativeElement as HTMLElement;
+	}
+
+	beforeEach(() => {
+		TestBed.configureTestingModule({
+			imports: [BacklogEntryCard],
+			providers: [provideRouter([])]
+		});
+	});
+
+	it("requests the same image URL for the blurred background and the poster", () => {
+		const element = render();
+		const sources = Array.from(element.querySelectorAll("img")).map(image =>
+			image.getAttribute("src")
+		);
+		const posterSource = element
+			.querySelector("a img")
+			?.getAttribute("src");
+
+		expect(posterSource).toBeTruthy();
+		expect(sources.filter(source => source === posterSource).length).toBe(
+			3
+		);
+	});
+
+	it("skips rendering off-screen cards with content-visibility and an intrinsic size", () => {
+		const element = render();
+
+		expect(element.style.contentVisibility).toBe("auto");
+		expect(element.className).toContain(
+			"[contain-intrinsic-size:auto_180px]"
+		);
+	});
+
+	it("keeps the card fully rendered while the status menu is open", () => {
+		const element = render(true);
+
+		expect(element.style.contentVisibility).toBe("visible");
+	});
+});
