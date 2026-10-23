@@ -127,12 +127,23 @@ export async function reorderSavedFilters(userId: string, ids: string[]) {
 	);
 
 	await sequelize.transaction(async transaction => {
-		for (const filter of movedFilters) {
-			await filter.update(
-				{ position: positionById.get(filter.id) },
-				{ transaction }
-			);
-		}
+		if (movedFilters.length === 0) return;
+		const values = movedFilters
+			.map(() => "(?::uuid, ?::integer)")
+			.join(", ");
+		await sequelize.query(
+			`UPDATE "SavedFilters" AS sf
+			SET "position" = v."position", "updatedAt" = NOW()
+			FROM (VALUES ${values}) AS v("id", "position")
+			WHERE sf."id" = v."id"`,
+			{
+				replacements: movedFilters.flatMap(filter => [
+					filter.id,
+					positionById.get(filter.id)!
+				]),
+				transaction
+			}
+		);
 	});
 
 	return SavedFilter.findAll({
