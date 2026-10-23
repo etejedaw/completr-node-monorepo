@@ -248,15 +248,73 @@ describe("public profile services", () => {
 		it.each([
 			["getFollowers", "followers"],
 			["getFollowing", "following"]
-		] as const)("%s reads /%s and returns the users", (method, path) => {
+		] as const)(
+			"%s reads a page of /%s with limit, offset and search and returns users and total",
+			(method, path) => {
+				let result: unknown;
+
+				service[method]("ada", {
+					limit: 24,
+					offset: 48,
+					search: "bo"
+				}).subscribe(r => (result = r));
+
+				const req = httpTesting.expectOne(
+					r => r.url === `${users}/ada/${path}`
+				);
+				expect(req.request.method).toBe("GET");
+				expect(req.request.params.get("limit")).toBe("24");
+				expect(req.request.params.get("offset")).toBe("48");
+				expect(req.request.params.get("search")).toBe("bo");
+				req.flush({ data: { users: [{ id: "u2" }], total: 49 } });
+				expect(result).toEqual({ users: [{ id: "u2" }], total: 49 });
+			}
+		);
+
+		it.each([
+			["getFollowers", "followers"],
+			["getFollowing", "following"]
+		] as const)(
+			"%s leaves out an empty search and the params it was not given",
+			(method, path) => {
+				service[method]("ada", { offset: 0, search: "" }).subscribe();
+
+				const req = httpTesting.expectOne(
+					r => r.url === `${users}/ada/${path}`
+				);
+				expect(req.request.params.keys()).toEqual(["offset"]);
+				req.flush({ data: { users: [], total: 0 } });
+			}
+		);
+
+		it("getAllFollowing walks every page of /following and returns all the users", () => {
 			let result: unknown;
 
-			service[method]("ada").subscribe(r => (result = r));
+			service.getAllFollowing("ada").subscribe(r => (result = r));
 
-			httpTesting
-				.expectOne(`${users}/ada/${path}`)
-				.flush({ data: { users: [{ id: "u2" }] } });
-			expect(result).toEqual([{ id: "u2" }]);
+			const first = httpTesting.expectOne(
+				r => r.url === `${users}/ada/following`
+			);
+			expect(first.request.params.get("limit")).toBe("100");
+			expect(first.request.params.get("offset")).toBe("0");
+			first.flush({
+				data: {
+					users: Array.from({ length: 100 }, (_, i) => ({
+						id: `a${i}`
+					})),
+					total: 102
+				}
+			});
+			const second = httpTesting.expectOne(
+				r => r.url === `${users}/ada/following`
+			);
+			expect(second.request.params.get("offset")).toBe("100");
+			second.flush({
+				data: { users: [{ id: "b0" }, { id: "b1" }], total: 102 }
+			});
+
+			expect(result).toHaveLength(102);
+			expect((result as { id: string }[]).at(-1)).toEqual({ id: "b1" });
 		});
 	});
 });

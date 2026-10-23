@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 
-import { provideHttpClient } from "@angular/common/http";
+import { type HttpParams, provideHttpClient } from "@angular/common/http";
 import {
 	HttpTestingController,
 	provideHttpClientTesting,
@@ -75,13 +75,29 @@ describe("UserConnections characterization", () => {
 
 	function connections(
 		username: string,
-		kind: "followers" | "following"
+		kind: "followers" | "following",
+		params: HttpParams
 	): ApiResponse {
 		const user = findUser(username);
 		if (!user) return failure(404, "USER_NOT_FOUND");
 		if (user.profileVisibility !== "public")
 			return failure(403, "USER_PROFILE_PRIVATE");
-		return ok({ data: { users: user[kind].map(toResult) } });
+		const search = params.get("search")?.toLowerCase() ?? "";
+		const matches = user[kind]
+			.map(toResult)
+			.filter(
+				result =>
+					result.username.toLowerCase().includes(search) ||
+					result.name?.toLowerCase().includes(search)
+			);
+		const offset = Number(params.get("offset") ?? 0);
+		const limit = Number(params.get("limit") ?? 24);
+		return ok({
+			data: {
+				users: matches.slice(offset, offset + limit),
+				total: matches.length
+			}
+		});
 	}
 
 	function profile(username: string): ApiResponse {
@@ -124,7 +140,8 @@ describe("UserConnections characterization", () => {
 		if (method === "GET" && connectionsMatch)
 			return connections(
 				connectionsMatch[1],
-				connectionsMatch[2] as "followers" | "following"
+				connectionsMatch[2] as "followers" | "following",
+				req.request.params
 			);
 		const profileMatch = url.match(/\/users\/([^/]+)$/);
 		if (method === "GET" && profileMatch && url.startsWith(api))
