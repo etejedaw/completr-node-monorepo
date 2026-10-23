@@ -203,6 +203,21 @@ describe("GameHero", () => {
 			);
 		});
 
+		it("requests the sharp backdrop resized to 1280 px", () => {
+			const { element } = render({
+				backgroundUrl: "https://media.rawg.io/media/games/bg.jpg"
+			});
+
+			const sources = Array.from(element.querySelectorAll("img")).map(
+				img => img.src
+			);
+			expect(sources).toContain(
+				"https://media.rawg.io/media/resize/1280/-/games/bg.jpg"
+			);
+			const sharp = element.querySelector("img[fetchpriority='high']");
+			expect((sharp as HTMLImageElement).src).toContain("resize/1280");
+		});
+
 		it("falls back to the other image when one is missing", () => {
 			const onlyCover = render({
 				coverUrl: "https://img.test/cover.jpg"
