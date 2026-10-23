@@ -30,9 +30,13 @@ function buildPublicList(
 }
 
 function stubProgress(progressByListId: Record<string, [number, number]>) {
-	return stub(listsService, "getListProgress", async (listId: string) => {
-		const [completed, total] = progressByListId[listId] ?? [0, 0];
-		return { completed, total };
+	return stub(listsService, "getListsProgress", async (listIds: string[]) => {
+		return new Map(
+			listIds.map(listId => {
+				const [completed, total] = progressByListId[listId] ?? [0, 0];
+				return [listId, { completed, total }];
+			})
+		);
 	});
 }
 
@@ -147,7 +151,7 @@ void describe("gamesProfileService.getListsForGame", () => {
 		assert.equal(lists[0]?.isOfficial, false);
 	});
 
-	void it("requests the progress of every list for the viewer", async () => {
+	void it("requests the progress of every list for the viewer in one call", async () => {
 		stub(listsService, "findPublicListsByGameId", async () => [
 			buildPublicList({ id: "a" }),
 			buildPublicList({ id: "b" })
@@ -159,10 +163,7 @@ void describe("gamesProfileService.getListsForGame", () => {
 
 		assert.deepEqual(
 			progress.mock.calls.map(call => call.arguments),
-			[
-				["a", "viewer"],
-				["b", "viewer"]
-			]
+			[[["a", "b"], "viewer"]]
 		);
 	});
 
@@ -174,7 +175,10 @@ void describe("gamesProfileService.getListsForGame", () => {
 		const bundle = await gamesProfileService.getListsForGame("v", "g");
 
 		assert.deepEqual(bundle, { lists: [], myLists: [] });
-		assert.equal(progress.mock.callCount(), 0);
+		assert.deepEqual(
+			progress.mock.calls.map(call => call.arguments),
+			[[[], "v"]]
+		);
 	});
 
 	void it("propagates the error when a list query fails", async () => {

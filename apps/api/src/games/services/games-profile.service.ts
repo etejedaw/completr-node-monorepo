@@ -15,8 +15,12 @@ export async function getListsForGame(
 		listsService.findUserListsWithGameFlag(viewerId, gameId)
 	]);
 
-	const enriched = await Promise.all(
-		publicLists.map(list => enrichGameList(list, viewerId))
+	const progressByList = await listsService.getListsProgress(
+		publicLists.map(list => list.id),
+		viewerId
+	);
+	const enriched = publicLists.map(list =>
+		enrichGameList(list, progressByList.get(list.id))
 	);
 
 	enriched.sort((a, b) => {
@@ -28,13 +32,12 @@ export async function getListsForGame(
 	return { lists: enriched, myLists };
 }
 
-async function enrichGameList(
+function enrichGameList(
 	list: Awaited<
 		ReturnType<typeof listsService.findPublicListsByGameId>
 	>[number],
-	viewerId: string
-): Promise<EnrichedGameList> {
-	const progress = await listsService.getListProgress(list.id, viewerId);
+	progress: listsService.ListProgress = { completed: 0, total: 0 }
+): EnrichedGameList {
 	return {
 		id: list.id,
 		name: list.name,
