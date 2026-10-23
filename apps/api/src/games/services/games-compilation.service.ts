@@ -34,35 +34,29 @@ export async function setCompilationItems(
 			transaction
 		});
 
-		const resolvedChildIds: string[] = [];
-		for (const item of items) {
-			if (item.mode === "link") {
-				resolvedChildIds.push(item.gameId);
-			} else {
-				const child = await createCompilationChild(
-					parent,
-					item.title,
-					inherited,
-					transaction
-				);
-				resolvedChildIds.push(child.id);
-			}
-		}
+		const children = await createCompilationChildren(
+			parent,
+			items.flatMap(item => (item.mode === "create" ? [item.title] : [])),
+			inherited,
+			transaction
+		);
+		const createdChildIds = children.map(child => child.id);
+		const resolvedChildIds = items.map(item =>
+			item.mode === "link" ? item.gameId : createdChildIds.shift()!
+		);
 
 		if (new Set(resolvedChildIds).size !== resolvedChildIds.length) {
 			throw gamesServiceError.compilationInvalidError();
 		}
 
-		for (let i = 0; i < resolvedChildIds.length; i++) {
-			await CompilationItem.create(
-				{
-					parentGameId,
-					childGameId: resolvedChildIds[i],
-					position: i
-				},
-				{ transaction }
-			);
-		}
+		await CompilationItem.bulkCreate(
+			resolvedChildIds.map((childGameId, position) => ({
+				parentGameId,
+				childGameId,
+				position
+			})),
+			{ validate: true, transaction }
+		);
 
 		await parent.update({ isCompilation: true }, { transaction });
 
@@ -223,14 +217,15 @@ function extractParentAssets(parent: Game): InheritedParentAssets {
 	};
 }
 
-async function createCompilationChild(
+async function createCompilationChildren(
 	parent: Game,
-	title: string,
+	titles: string[],
 	inherited: InheritedParentAssets,
 	transaction: Transaction
 ) {
-	const child = await Game.create(
-		{
+	if (titles.length === 0) return [];
+	const children = await Game.bulkCreate(
+		titles.map(title => ({
 			title,
 			code: titleToSlug(title),
 			description: parent.description,
@@ -239,38 +234,31 @@ async function createCompilationChild(
 			backgroundUrl: parent.backgroundUrl,
 			isDlc: false,
 			isCompilation: false
-		},
-		{ transaction }
+		})),
+		{ validate: true, transaction }
 	);
-	if (inherited.platformIds.length > 0) {
-		await gamePlatformsService.linkGameToPlatforms(
-			child.id,
-			inherited.platformIds,
-			transaction
-		);
-	}
-	if (inherited.genreIds.length > 0) {
-		await gameGenresService.linkGameToGenres(
-			child.id,
-			inherited.genreIds,
-			transaction
-		);
-	}
-	for (const s of inherited.scores) {
-		await gameScoresService.createGameScore(
-			child.id,
-			s.source,
-			s.score,
-			transaction
-		);
-	}
-	for (const t of inherited.times) {
-		await gameTimesService.createGameTime(
-			child.id,
-			t.source,
-			t.duration,
-			transaction
-		);
-	}
-	return child;
+	const childIds = children.map(child => child.id);
+	await gamePlatformsService.linkGamesToPlatforms(
+		childIds,
+		inherited.platformIds,
+		transaction
+	);
+	await gameGenresService.linkGamesToGenres(
+		childIds,
+		inherited.genreIds,
+		transaction
+	);
+	await gameScoresService.createGameScores(
+		childIds.flatMap(gameId =>
+			inherited.scores.map(score => ({ gameId, ...score }))
+		),
+		transaction
+	);
+	await gameTimesService.createGameTimes(
+		childIds.flatMap(gameId =>
+			inherited.times.map(time => ({ gameId, ...time }))
+		),
+		transaction
+	);
+	return children;
 }

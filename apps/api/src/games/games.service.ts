@@ -378,13 +378,7 @@ async function upsertExternalIds(
 	transaction?: Transaction
 ) {
 	if (!externalIds) return;
-	for (const { source, externalId } of externalIds)
-		await gameExternalService.upsert(
-			gameId,
-			source,
-			externalId,
-			transaction
-		);
+	await gameExternalService.upsertMany(gameId, externalIds, transaction);
 }
 
 async function linkPlatforms(
@@ -435,15 +429,10 @@ async function createScores(
 	transaction?: Transaction
 ) {
 	if (!scores) return;
-	const promises = scores.map(score =>
-		gameScoresService.createGameScore(
-			gameId,
-			score.source,
-			score.score,
-			transaction
-		)
+	await gameScoresService.createGameScores(
+		scores.map(score => ({ gameId, ...score })),
+		transaction
 	);
-	await Promise.all(promises);
 }
 
 async function createTimes(
@@ -452,15 +441,10 @@ async function createTimes(
 	transaction?: Transaction
 ) {
 	if (!times) return;
-	const promises = times.map(time =>
-		gameTimesService.createGameTime(
-			gameId,
-			time.source,
-			time.duration,
-			transaction
-		)
+	await gameTimesService.createGameTimes(
+		times.map(time => ({ gameId, ...time })),
+		transaction
 	);
-	await Promise.all(promises);
 }
 
 async function linkGenres(

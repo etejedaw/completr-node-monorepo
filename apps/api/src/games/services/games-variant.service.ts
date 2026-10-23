@@ -1,4 +1,4 @@
-import { type Transaction } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../../common/errors/sequelize-error.mapper";
 import { titleToSlug } from "../../common/utils/title-to-slug.util";
@@ -12,32 +12,41 @@ import * as gameTimesService from "../../game-times/game-times.service";
 import * as gamesServiceError from "../errors/games.service-error";
 import { Game } from "../game.model";
 import { type SplitVariantInput } from "../games.interface";
-import { findGameById } from "./games-search.service";
 
 export async function assertVariantConsistency(
 	externalIds: readonly { source: string; externalId: string }[],
 	variant: string | null,
 	currentGameId: string | null
 ) {
-	for (const { source, externalId } of externalIds) {
-		const siblings = await GameExternal.findAll({
-			where: { source, externalId },
-			include: [{ association: "Game" }]
-		});
-		const otherSiblings = siblings.filter(s => s.gameId !== currentGameId);
-		if (otherSiblings.length === 0) continue;
-		if (!variant || variant.trim().length === 0) {
-			throw gamesServiceError.variantRequiredError();
+	if (externalIds.length === 0) return;
+	const siblings = await GameExternal.findAll({
+		where: {
+			[Op.or]: externalIds.map(({ source, externalId }) => ({
+				source,
+				externalId
+			}))
 		}
-		for (const sibling of otherSiblings) {
-			const siblingGame = await Game.findByPk(sibling.gameId);
-			if (
-				!siblingGame?.variant ||
-				siblingGame.variant.trim().length === 0
-			) {
-				throw gamesServiceError.variantRequiredError();
-			}
-		}
+	});
+	const otherSiblingIds = [
+		...new Set(
+			siblings
+				.filter(sibling => sibling.gameId !== currentGameId)
+				.map(sibling => sibling.gameId)
+		)
+	];
+	if (otherSiblingIds.length === 0) return;
+	if (!variant || variant.trim().length === 0) {
+		throw gamesServiceError.variantRequiredError();
+	}
+	const siblingGames = await Game.findAll({
+		where: { id: otherSiblingIds },
+		attributes: ["id", "variant"]
+	});
+	const hasVariantById = new Map(
+		siblingGames.map(game => [game.id, !!game.variant?.trim()])
+	);
+	if (otherSiblingIds.some(id => !hasVariantById.get(id))) {
+		throw gamesServiceError.variantRequiredError();
 	}
 }
 
@@ -57,24 +66,17 @@ export async function splitGame(
 	const transaction = await sequelize.transaction();
 	try {
 		await applyFirstVariantToOriginal(original, firstVariant, transaction);
-		const createdIds: string[] = [original.id];
-
-		for (const variant of restVariants) {
-			const created = await createVariantFromOriginal(
-				original,
-				variant,
-				inherited,
-				transaction
-			);
-			createdIds.push(created.id);
-		}
+		const created = await createVariantsFromOriginal(
+			original,
+			restVariants,
+			inherited,
+			transaction
+		);
+		const createdIds = [original.id, ...created.map(game => game.id)];
 
 		await transaction.commit();
 
-		const refreshed = await Promise.all(
-			createdIds.map(id => findGameById(id))
-		);
-		return refreshed.filter((g): g is Game => g !== null);
+		return await findVariantsInOrder(createdIds);
 	} catch (error) {
 		await transaction.rollback();
 		rethrowSequelizeError(error, {
@@ -152,14 +154,14 @@ async function applyFirstVariantToOriginal(
 	);
 }
 
-async function createVariantFromOriginal(
+async function createVariantsFromOriginal(
 	original: Game,
-	variant: SplitVariantInput,
+	variants: readonly SplitVariantInput[],
 	inherited: InheritedAssets,
 	transaction: Transaction
 ) {
-	const newGame = await Game.create(
-		{
+	const created = await Game.bulkCreate(
+		variants.map(variant => ({
 			title: variant.title,
 			code: titleToSlug(variant.title),
 			description: original.description,
@@ -169,50 +171,60 @@ async function createVariantFromOriginal(
 			isDlc: original.isDlc,
 			parentGameId: original.parentGameId,
 			variant: variant.variant
-		},
-		{ transaction }
+		})),
+		{ validate: true, transaction }
 	);
 
-	if (inherited.platformIds.length > 0) {
-		await gamePlatformsService.linkGameToPlatforms(
-			newGame.id,
-			inherited.platformIds,
-			transaction
-		);
-	}
-	if (inherited.genreIds.length > 0) {
-		await gameGenresService.linkGameToGenres(
-			newGame.id,
-			inherited.genreIds,
-			transaction
-		);
-	}
-	for (const s of inherited.scores) {
-		await gameScoresService.createGameScore(
-			newGame.id,
-			s.source,
-			s.score,
-			transaction
-		);
-	}
-	for (const t of inherited.times) {
-		await gameTimesService.createGameTime(
-			newGame.id,
-			t.source,
-			t.duration,
-			transaction
-		);
-	}
-	for (const e of inherited.externals) {
-		await GameExternal.create(
-			{
-				gameId: newGame.id,
-				source: e.source,
-				externalId: e.externalId
-			},
-			{ transaction }
+	const createdIds = created.map(game => game.id);
+	await gamePlatformsService.linkGamesToPlatforms(
+		createdIds,
+		inherited.platformIds,
+		transaction
+	);
+	await gameGenresService.linkGamesToGenres(
+		createdIds,
+		inherited.genreIds,
+		transaction
+	);
+
+	await gameScoresService.createGameScores(
+		created.flatMap(({ id }) =>
+			inherited.scores.map(score => ({ gameId: id, ...score }))
+		),
+		transaction
+	);
+	await gameTimesService.createGameTimes(
+		created.flatMap(({ id }) =>
+			inherited.times.map(time => ({ gameId: id, ...time }))
+		),
+		transaction
+	);
+	if (inherited.externals.length > 0) {
+		await GameExternal.bulkCreate(
+			created.flatMap(({ id }) =>
+				inherited.externals.map(external => ({
+					gameId: id,
+					...external
+				}))
+			),
+			{ validate: true, transaction }
 		);
 	}
 
-	return newGame;
+	return created;
+}
+
+async function findVariantsInOrder(ids: string[]) {
+	const games = await Game.findAll({
+		where: { id: ids, isActive: true },
+		include: [
+			{ association: "Platforms" },
+			{ association: "Genres" },
+			{ association: "GameScores" },
+			{ association: "GameTimes" },
+			{ association: "Franchise" }
+		]
+	});
+	const gameById = new Map(games.map(game => [game.id, game]));
+	return ids.flatMap(id => gameById.get(id) ?? []);
 }
