@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, QueryTypes } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -18,6 +18,12 @@ import { List } from "./list.model";
 
 const FREE_LIST_LIMIT = 5;
 export const LIST_PREVIEW_SIZE = 4;
+const FINISHED_STATUSES = ["completed", "abandoned", "endless"];
+
+export interface ListProgress {
+	completed: number;
+	total: number;
+}
 
 function isPremium(role: string) {
 	return role === "premium" || role === "moderator" || role === "admin";
@@ -156,6 +162,20 @@ export async function getFollowerCount(listId: string) {
 	return ListFollower.count({ where: { listId } });
 }
 
+export async function getListFollowerCounts(
+	listIds: string[]
+): Promise<Map<string, number>> {
+	const counts = new Map<string, number>(listIds.map(id => [id, 0]));
+	if (listIds.length === 0) return counts;
+
+	const rows = (await ListFollower.count({
+		where: { listId: { [Op.in]: listIds } },
+		group: ["listId"]
+	})) as unknown as { listId: string; count: number }[];
+	for (const row of rows) counts.set(row.listId, Number(row.count));
+	return counts;
+}
+
 export async function getIsFollowing(listId: string, userId: string) {
 	const follower = await ListFollower.findOne({
 		where: { listId, userId }
@@ -197,7 +217,7 @@ export async function getListProgress(
 	listId: string,
 	userId: string,
 	publicOnly = false
-): Promise<{ completed: number; total: number }> {
+): Promise<ListProgress> {
 	const items = await ListItem.findAll({
 		where: { listId },
 		attributes: ["gameId"]
@@ -209,10 +229,54 @@ export async function getListProgress(
 		await backlogService.countDistinctGamesByUserStatusAndGameIds(
 			userId,
 			gameIds,
-			["completed", "abandoned", "endless"],
+			FINISHED_STATUSES,
 			publicOnly
 		);
 	return { completed, total: items.length };
+}
+
+export async function getListsProgress(
+	listIds: string[],
+	userId: string,
+	publicOnly = false
+): Promise<Map<string, ListProgress>> {
+	const progressByList = new Map<string, ListProgress>(
+		listIds.map(id => [id, { completed: 0, total: 0 }])
+	);
+	if (listIds.length === 0) return progressByList;
+
+	const publicCondition = publicOnly ? `AND b."isPublic" = true` : "";
+	const rows = (await sequelize.query(
+		`SELECT li."listId" AS "listId",
+			COUNT(*)::int AS "total",
+			(COUNT(DISTINCT li."gameId") FILTER (
+				WHERE EXISTS (
+					SELECT 1 FROM "Backlogs" b
+					WHERE b."userId" = :userId
+						AND b."gameId" = li."gameId"
+						AND b."status" IN (:statuses)
+						${publicCondition}
+				)
+			))::int AS "completed"
+		FROM "ListItems" li
+		WHERE li."listId" IN (:listIds)
+		GROUP BY li."listId"`,
+		{
+			replacements: {
+				userId,
+				listIds,
+				statuses: FINISHED_STATUSES
+			},
+			type: QueryTypes.SELECT
+		}
+	)) as { listId: string; total: number; completed: number }[];
+
+	for (const row of rows)
+		progressByList.set(row.listId, {
+			completed: row.completed,
+			total: row.total
+		});
+	return progressByList;
 }
 
 export async function findListsByUserId(
