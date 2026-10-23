@@ -382,17 +382,146 @@ describe("BacklogTable", () => {
 			expect(events.open).not.toHaveBeenCalled();
 		});
 
-		it("closes the menu with Escape", () => {
-			const { fixture, element } = render([entry()], {
-				statusMenuOpenId: "b1"
+		describe("keyboard", () => {
+			function openMenu(status: BacklogStatus = "playing") {
+				const view = render([entry({ status })]);
+				const trigger = statusButton(view.element)!;
+				view.events.statusMenu.mockImplementation(() =>
+					view.fixture.componentRef.setInput("statusMenuOpenId", "b1")
+				);
+				trigger.click();
+				view.fixture.detectChanges();
+				return { ...view, trigger };
+			}
+
+			function press(
+				target: EventTarget,
+				key: string,
+				init: KeyboardEventInit = {}
+			) {
+				const event = new KeyboardEvent("keydown", {
+					key,
+					bubbles: true,
+					cancelable: true,
+					...init
+				});
+				target.dispatchEvent(event);
+				return event;
+			}
+
+			function focused() {
+				return Array.from(document.activeElement?.childNodes ?? [])
+					.filter(node => node.nodeType === Node.TEXT_NODE)
+					.map(node => node.textContent)
+					.join("")
+					.trim();
+			}
+
+			function menu(element: HTMLElement) {
+				return element.querySelector("[role='menu']");
+			}
+
+			it("moves the focus to the first enabled option when the menu opens", async () => {
+				const { fixture, element } = openMenu("playing");
+				await fixture.whenStable();
+
+				expect(menu(element)).not.toBeNull();
+				expect(focused()).toBe("Not Started");
 			});
 
-			element
-				.querySelector("[role='menu']")!
-				.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-			fixture.detectChanges();
+			it("skips the current status when it is the first option", async () => {
+				const { fixture } = openMenu("not_started");
+				await fixture.whenStable();
 
-			expect(element.querySelector("[role='menu']")).toBeNull();
+				expect(focused()).toBe("Playing");
+			});
+
+			it("closes with Escape while the focus is on the trigger and keeps it there", async () => {
+				const { fixture, element, trigger } = openMenu();
+				await fixture.whenStable();
+				trigger.focus();
+
+				press(trigger, "Escape");
+				fixture.detectChanges();
+
+				expect(menu(element)).toBeNull();
+				expect(document.activeElement).toBe(trigger);
+			});
+
+			it("closes with Escape from inside the menu and returns the focus to the trigger", async () => {
+				const { fixture, element, trigger } = openMenu();
+				await fixture.whenStable();
+
+				press(document.activeElement!, "Escape");
+				fixture.detectChanges();
+
+				expect(menu(element)).toBeNull();
+				expect(document.activeElement).toBe(trigger);
+			});
+
+			it("closes with Escape pressed elsewhere on the page and returns the focus to the trigger", async () => {
+				const { fixture, element, trigger } = openMenu();
+				await fixture.whenStable();
+				const outside = document.createElement("button");
+				document.body.appendChild(outside);
+				outside.focus();
+
+				press(outside, "Escape");
+				fixture.detectChanges();
+				outside.remove();
+
+				expect(menu(element)).toBeNull();
+				expect(document.activeElement).toBe(trigger);
+			});
+
+			it("walks the enabled options with the arrows, skipping the current status and wrapping around", async () => {
+				const { fixture } = openMenu("playing");
+				await fixture.whenStable();
+
+				const down = [
+					"ArrowDown",
+					"ArrowDown",
+					"ArrowDown",
+					"ArrowDown"
+				].map(key => {
+					press(document.activeElement!, key);
+					return focused();
+				});
+				const up = ["ArrowUp", "ArrowUp"].map(key => {
+					press(document.activeElement!, key);
+					return focused();
+				});
+
+				expect(down).toEqual([
+					"Completed",
+					"Endless",
+					"Abandoned",
+					"Not Started"
+				]);
+				expect(up).toEqual(["Abandoned", "Endless"]);
+			});
+
+			it("jumps to the first and last enabled options with Home and End", async () => {
+				const { fixture } = openMenu("playing");
+				await fixture.whenStable();
+
+				press(document.activeElement!, "End");
+				expect(focused()).toBe("Abandoned");
+
+				press(document.activeElement!, "Home");
+				expect(focused()).toBe("Not Started");
+			});
+
+			it("closes on Tab without trapping the focus", async () => {
+				const { fixture, element } = openMenu();
+				await fixture.whenStable();
+
+				const event = press(document.activeElement!, "Tab");
+				fixture.detectChanges();
+
+				expect(menu(element)).toBeNull();
+				expect(event.defaultPrevented).toBe(false);
+			});
 		});
 	});
 
