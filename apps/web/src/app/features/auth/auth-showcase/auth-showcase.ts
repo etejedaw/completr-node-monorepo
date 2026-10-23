@@ -1,16 +1,34 @@
 import { ChangeDetectionStrategy, Component, computed } from "@angular/core";
+import { RouterLink } from "@angular/router";
 
 import { AppLogo } from "../../../shared/components/app-logo/app-logo";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
-import { injectShowcaseGames } from "../showcase-games";
+import { injectShowcaseGames, type ShowcaseGame } from "../showcase-games";
 
 interface ShowcasePoster {
 	src: string | null;
 	title: string;
 }
 
+interface FeaturedGame {
+	code: string | null;
+	src: string | null;
+	title: string;
+	details: string | null;
+	score: number;
+	hours: number;
+	ratio: number;
+}
+
+type RatedShowcaseGame = ShowcaseGame & {
+	score: number;
+	hours: number;
+	ratio: number;
+};
+
 const COLUMN_COUNT = 7;
 const POSTERS_PER_COLUMN = 6;
+const FEATURED_GENRE_LIMIT = 2;
 
 const FALLBACK_TITLES = [
 	"Hollow Tide",
@@ -36,13 +54,39 @@ const FALLBACK_POSTERS: ShowcasePoster[] = FALLBACK_TITLES.map(title => ({
 	title
 }));
 
-const FALLBACK_FEATURED = {
+const FALLBACK_FEATURED: FeaturedGame = {
+	code: null,
 	src: null,
 	title: "Hollow Tide",
+	details: null,
 	score: 4.6,
 	hours: 12,
 	ratio: 8.4
 };
+
+function isRated(game: ShowcaseGame): game is RatedShowcaseGame {
+	return game.score !== null && game.hours !== null && game.ratio !== null;
+}
+
+function featuredDetails(game: ShowcaseGame): string | null {
+	const parts = [
+		game.releaseYear?.toString(),
+		game.genres.slice(0, FEATURED_GENRE_LIMIT).join(", ")
+	].filter(Boolean);
+	return parts.length ? parts.join(" · ") : null;
+}
+
+function toFeaturedGame(game: RatedShowcaseGame): FeaturedGame {
+	return {
+		code: game.code,
+		src: game.backgroundUrl,
+		title: game.title,
+		details: featuredDetails(game),
+		score: game.score,
+		hours: game.hours,
+		ratio: game.ratio
+	};
+}
 
 function distributeInColumns(posters: ShowcasePoster[]): ShowcasePoster[][] {
 	return Array.from({ length: COLUMN_COUNT }, (_, column) => {
@@ -57,7 +101,7 @@ function distributeInColumns(posters: ShowcasePoster[]): ShowcasePoster[][] {
 
 @Component({
 	selector: "app-auth-showcase",
-	imports: [AppLogo, GamePoster],
+	imports: [AppLogo, GamePoster, RouterLink],
 	template: `
 		<div
 			aria-hidden="true"
@@ -94,8 +138,25 @@ function distributeInColumns(posters: ShowcasePoster[]): ShowcasePoster[][] {
 			<app-logo size="lg" class="mb-auto" />
 
 			@if (featured(); as featured) {
-				<div
-					class="hidden lg:flex items-center gap-4 w-fit mb-10 p-3 pr-6 rounded-card bg-surface/80 backdrop-blur-md border border-line shadow-2xl shadow-black/60 motion-safe:animate-[uiFadeUp_700ms_cubic-bezier(0.16,1,0.3,1)_both]"
+				<a
+					[routerLink]="featured.code ? '/login' : null"
+					[queryParams]="
+						featured.code
+							? { returnUrl: '/games/' + featured.code }
+							: null
+					"
+					[attr.aria-label]="
+						featured.code
+							? 'Sign in to see ' + featured.title
+							: null
+					"
+					[attr.title]="
+						featured.code
+							? 'Sign in to see ' + featured.title
+							: null
+					"
+					class="hidden lg:flex items-center gap-4 w-fit mb-10 p-3 pr-6 rounded-card bg-surface/80 backdrop-blur-md border border-line shadow-2xl shadow-black/60 no-underline text-inherit transition-colors duration-200 motion-safe:animate-[uiFadeUp_700ms_cubic-bezier(0.16,1,0.3,1)_both]"
+					[class]="featured.code ? linkedCardClass : ''"
 				>
 					<app-game-poster
 						[src]="featured.src"
@@ -107,12 +168,18 @@ function distributeInColumns(posters: ShowcasePoster[]): ShowcasePoster[][] {
 					<div class="flex flex-col gap-1">
 						<span
 							class="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand"
-							>Up next · #1</span
+							>Featured pick</span
 						>
 						<span
 							class="max-w-56 truncate font-display font-semibold text-fg"
 							>{{ featured.title }}</span
 						>
+						@if (featured.details) {
+							<span
+								class="max-w-56 truncate text-xs text-fg-muted"
+								>{{ featured.details }}</span
+							>
+						}
 						<span class="text-xs text-fg-muted"
 							>Score {{ featured.score }} · {{ featured.hours }}h
 							to beat</span
@@ -128,7 +195,7 @@ function distributeInColumns(posters: ShowcasePoster[]): ShowcasePoster[][] {
 							>{{ featured.ratio }}</span
 						>
 					</div>
-				</div>
+				</a>
 			}
 
 			<h2
@@ -189,18 +256,17 @@ export class AuthShowcase {
 		);
 	});
 
-	protected readonly featured = computed(() => {
+	private readonly featuredPick = Math.random();
+	protected readonly linkedCardClass =
+		"cursor-pointer hover:border-brand/40 focus-visible:outline-2 focus-visible:outline-brand";
+
+	protected readonly featured = computed<FeaturedGame | null>(() => {
 		if (this.showcase.isLoading()) return null;
-		const featured = this.showcase.hasValue()
-			? this.showcase.value().data.featured
-			: null;
-		if (!featured) return FALLBACK_FEATURED;
-		return {
-			src: featured.backgroundUrl,
-			title: featured.title,
-			score: featured.score,
-			hours: featured.hours,
-			ratio: featured.ratio
-		};
+		const candidates = this.showcase.hasValue()
+			? this.showcase.value().data.games.filter(isRated)
+			: [];
+		if (candidates.length === 0) return FALLBACK_FEATURED;
+		const index = Math.floor(this.featuredPick * candidates.length);
+		return toFeaturedGame(candidates[index]!);
 	});
 }

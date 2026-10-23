@@ -89,7 +89,7 @@ describe("Accept invite interaction", () => {
 		httpTesting
 			.match(`${api}/games/showcase`)
 			.filter(req => !req.cancelled)
-			.forEach(req => req.flush({ data: { games: [], featured: null } }));
+			.forEach(req => req.flush({ data: { games: [] } }));
 	}
 
 	async function fillForm(user: ReturnType<typeof userEvent.setup>) {

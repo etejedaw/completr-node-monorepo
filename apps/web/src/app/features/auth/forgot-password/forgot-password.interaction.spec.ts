@@ -37,7 +37,7 @@ describe("Forgot password interaction", () => {
 		httpTesting
 			.match(`${api}/games/showcase`)
 			.filter(req => !req.cancelled)
-			.forEach(req => req.flush({ data: { games: [], featured: null } }));
+			.forEach(req => req.flush({ data: { games: [] } }));
 	}
 
 	async function requestLink(

@@ -7,18 +7,16 @@ export interface ShowcaseGame {
 	code: string;
 	title: string;
 	backgroundUrl: string;
-}
-
-export interface FeaturedShowcaseGame extends ShowcaseGame {
-	score: number;
-	hours: number;
-	ratio: number;
+	releaseYear: number | null;
+	genres: string[];
+	score: number | null;
+	hours: number | null;
+	ratio: number | null;
 }
 
 export interface ShowcaseGamesResponse {
 	data: {
 		games: ShowcaseGame[];
-		featured: FeaturedShowcaseGame | null;
 	};
 }
 

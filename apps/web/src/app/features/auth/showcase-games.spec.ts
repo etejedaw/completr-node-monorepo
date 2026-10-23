@@ -40,10 +40,14 @@ describe("injectShowcaseGames", () => {
 						id: "g1",
 						code: "hades",
 						title: "Hades",
-						backgroundUrl: "https://img.example/hades.jpg"
+						backgroundUrl: "https://img.example/hades.jpg",
+						releaseYear: 2020,
+						genres: ["Action", "Indie"],
+						score: 4.65,
+						hours: 22.5,
+						ratio: 4.13
 					}
-				],
-				featured: null
+				]
 			}
 		};
 		request.flush(response);

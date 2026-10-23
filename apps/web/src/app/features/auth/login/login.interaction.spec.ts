@@ -60,7 +60,7 @@ describe("Login interaction", () => {
 		httpTesting = TestBed.inject(HttpTestingController);
 		httpTesting
 			.match(`${api}/games/showcase`)
-			.forEach(req => req.flush({ data: { games: [], featured: null } }));
+			.forEach(req => req.flush({ data: { games: [] } }));
 		return result;
 	}
 

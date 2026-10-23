@@ -7,6 +7,7 @@ import {
 } from "@angular/common/http/testing";
 import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { provideRouter } from "@angular/router";
 import { render, screen } from "@testing-library/angular";
 
 import { environment } from "../../../../environments/environment";
@@ -19,7 +20,25 @@ function showcaseGame(index: number) {
 		id: `g${index}`,
 		code: `game-${index}`,
 		title: `Game ${index}`,
-		backgroundUrl: `https://img.example/game-${index}.jpg`
+		backgroundUrl: `https://img.example/game-${index}.jpg`,
+		releaseYear: null as number | null,
+		genres: [] as string[],
+		score: null as number | null,
+		hours: null as number | null,
+		ratio: null as number | null
+	};
+}
+
+function ratedGame(index: number, title: string, ratio: number) {
+	return {
+		...showcaseGame(index),
+		code: title.toLowerCase(),
+		title,
+		releaseYear: 2018,
+		genres: ["Platformer", "Indie", "Adventure"],
+		score: 4.9,
+		hours: 8,
+		ratio
 	};
 }
 
@@ -28,7 +47,11 @@ describe("AuthShowcase", () => {
 
 	async function renderShowcase() {
 		const result = await render(AuthShowcase, {
-			providers: [provideHttpClient(), provideHttpClientTesting()]
+			providers: [
+				provideHttpClient(),
+				provideHttpClientTesting(),
+				provideRouter([])
+			]
 		});
 		httpTesting = TestBed.inject(HttpTestingController);
 		return result;
@@ -48,11 +71,12 @@ describe("AuthShowcase", () => {
 
 	afterEach(() => {
 		httpTesting.verify();
+		vi.restoreAllMocks();
 	});
 
 	it("renders the marketing copy and the selling points", async () => {
 		await renderShowcase();
-		await answer({ data: { games: [], featured: null } });
+		await answer({ data: { games: [] } });
 
 		expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
 			/Play what's\s*worth your time\./
@@ -70,15 +94,15 @@ describe("AuthShowcase", () => {
 	it("hides the featured card while the showcase loads", async () => {
 		await renderShowcase();
 
-		expect(screen.queryByText("Up next · #1")).not.toBeInTheDocument();
+		expect(screen.queryByText("Featured pick")).not.toBeInTheDocument();
 
-		await answer({ data: { games: [], featured: null } });
-		expect(screen.getByText("Up next · #1")).toBeInTheDocument();
+		await answer({ data: { games: [] } });
+		expect(screen.getByText("Featured pick")).toBeInTheDocument();
 	});
 
 	it("falls back to placeholder titles and featured game without catalog data", async () => {
 		await renderShowcase();
-		await answer({ data: { games: [], featured: null } });
+		await answer({ data: { games: [] } });
 
 		expect(screen.getAllByText("Hollow Tide").length).toBeGreaterThan(0);
 		expect(screen.getAllByText("Neon Drift").length).toBeGreaterThan(0);
@@ -89,7 +113,7 @@ describe("AuthShowcase", () => {
 	it("falls back to placeholders when there are fewer games than a column needs", async () => {
 		await renderShowcase();
 		await answer({
-			data: { games: [1, 2, 3].map(showcaseGame), featured: null }
+			data: { games: [1, 2, 3].map(showcaseGame) }
 		});
 
 		expect(screen.queryByAltText("Game 1")).not.toBeInTheDocument();
@@ -100,8 +124,7 @@ describe("AuthShowcase", () => {
 		await renderShowcase();
 		await answer({
 			data: {
-				games: [1, 2, 3, 4, 5, 6].map(showcaseGame),
-				featured: null
+				games: [1, 2, 3, 4, 5, 6].map(showcaseGame)
 			}
 		});
 
@@ -110,27 +133,74 @@ describe("AuthShowcase", () => {
 		expect(screen.queryByLabelText("Neon Drift")).not.toBeInTheDocument();
 	});
 
-	it("shows the featured game with its score, hours and ratio", async () => {
+	it("features a rated catalog game with its details, score, hours and ratio", async () => {
 		await renderShowcase();
 		await answer({
-			data: {
-				games: [],
-				featured: {
-					...showcaseGame(9),
-					title: "Celeste",
-					score: 4.9,
-					hours: 8,
-					ratio: 12.3
-				}
-			}
+			data: { games: [showcaseGame(1), ratedGame(9, "Celeste", 12.3)] }
 		});
 
 		expect(screen.getAllByText("Celeste").length).toBeGreaterThan(0);
+		expect(
+			screen.getByText("2018 · Platformer, Indie")
+		).toBeInTheDocument();
 		expect(screen.getByText("Score 4.9 · 8h to beat")).toBeInTheDocument();
 		expect(screen.getByText("12.3")).toBeInTheDocument();
 		expect(
 			screen.queryByText("Score 4.6 · 12h to beat")
 		).not.toBeInTheDocument();
+	});
+
+	it("links the featured game to its page after signing in", async () => {
+		await renderShowcase();
+		await answer({ data: { games: [ratedGame(9, "Celeste", 12.3)] } });
+
+		const link = screen.getByRole("link", {
+			name: "Sign in to see Celeste"
+		});
+		expect(link).toHaveAttribute(
+			"href",
+			"/login?returnUrl=%2Fgames%2Fceleste"
+		);
+		expect(link).toHaveClass("cursor-pointer");
+	});
+
+	it("picks the featured game at random among the rated ones", async () => {
+		const games = [
+			ratedGame(1, "Celeste", 12.3),
+			showcaseGame(2),
+			ratedGame(3, "Hades", 4.1)
+		];
+		vi.spyOn(Math, "random").mockReturnValue(0);
+		await renderShowcase();
+		await answer({ data: { games } });
+		expect(
+			screen.getByRole("link", { name: "Sign in to see Celeste" })
+		).toBeInTheDocument();
+	});
+
+	it("can feature the last rated game and never an unrated one", async () => {
+		const games = [
+			ratedGame(1, "Celeste", 12.3),
+			showcaseGame(2),
+			ratedGame(3, "Hades", 4.1)
+		];
+		vi.spyOn(Math, "random").mockReturnValue(0.99);
+		await renderShowcase();
+		await answer({ data: { games } });
+		expect(
+			screen.getByRole("link", { name: "Sign in to see Hades" })
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("link", { name: "Sign in to see Game 2" })
+		).not.toBeInTheDocument();
+	});
+
+	it("does not link the placeholder featured game", async () => {
+		await renderShowcase();
+		await answer({ data: { games: [showcaseGame(1)] } });
+
+		expect(screen.getByText("Score 4.6 · 12h to beat")).toBeInTheDocument();
+		expect(screen.queryByRole("link")).not.toBeInTheDocument();
 	});
 
 	it("falls back to placeholders when the request fails", async () => {

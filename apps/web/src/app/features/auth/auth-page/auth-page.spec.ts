@@ -38,7 +38,7 @@ describe("AuthPage", () => {
 	afterEach(() => {
 		httpTesting
 			.match(`${api}/games/showcase`)
-			.forEach(req => req.flush({ data: { games: [], featured: null } }));
+			.forEach(req => req.flush({ data: { games: [] } }));
 		httpTesting.verify();
 	});
 
