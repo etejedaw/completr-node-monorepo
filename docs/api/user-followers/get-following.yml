@@ -5,11 +5,17 @@ info:
 
 http:
     method: GET
-    url: "{{BASE_URL}}/users/:username/following"
+    url: "{{BASE_URL}}/users/:username/following?limit=24&offset=0"
     params:
         - name: username
           value: johndoe
           type: path
+        - name: limit
+          value: "24"
+          type: query
+        - name: offset
+          value: "0"
+          type: query
 
 settings:
     encodeUrl: true
@@ -17,11 +23,19 @@ settings:
 docs: |-
     ## Get Following
 
-    List users the specified user follows, newest first. Deactivated accounts are not listed. Each entry is a user card (same shape as `GET /users/discover`): stats, `featuredGame` and `followerCount` follow each listed user's privacy settings for the viewer (`null` when hidden), and `isFollowing` / `isSelf` are relative to the viewer.
+    List users the specified user follows, newest first (ties broken by follow id), paginated and with optional search. Deactivated accounts are not listed and do not count towards `total`. Each entry is a user card (same shape as `GET /users/discover`): stats, `featuredGame` and `followerCount` follow each listed user's privacy settings for the viewer (`null` when hidden), and `isFollowing` / `isSelf` are relative to the viewer.
 
     **Auth:** Optional (Bearer token). Without a token, `isFollowing` is always `false` and only public sections are counted. The list follows the profile owner's profile visibility: if the viewer cannot see the profile, the request fails with 403.
 
     **Rate Limit:** 100 requests per minute.
+
+    ### Query Params
+
+    | Param  | Type    | Required | Default | Description                                                                 |
+    |--------|---------|----------|---------|-----------------------------------------------------------------------------|
+    | limit  | integer | No       | 24      | Page size (1–100)                                                           |
+    | offset | integer | No       | 0       | Page offset                                                                 |
+    | search | string  | No       | —       | Case-insensitive match on the listed user's `username` or `name` (1–100 characters). `%`, `_` and `\` are matched literally. Omit it instead of sending it empty |
 
     ### Response (200)
 
@@ -43,13 +57,16 @@ docs: |-
             "completedTotal": 58,
             "featuredGame": { "title": "Hollow Knight", "backgroundUrl": "https://media.rawg.io/media/games/..." }
           }
-        ]
+        ],
+        "total": 37
       }
     }
     ```
+
+    `total` counts every match of the search (or every active connection without `search`), not just the current page. An `offset` past the end returns an empty `users` with the same `total`.
 
     ### Errors
 
     - `403 USER_PRIVATE` — the profile is not visible to the viewer (the profile section gates every other section, including connections)
     - `404 USER_NOT_FOUND` — no user with that username
-    - `422 SCHEMA_VALIDATION_ERROR` — invalid username
+    - `422 COMMON_SCHEMA_INVALID` — invalid username, `limit` outside 1–100, negative `offset` or `search` empty or longer than 100 characters
