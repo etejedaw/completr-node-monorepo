@@ -11,7 +11,7 @@ describe("CoverUrlPipe", () => {
 		);
 	});
 
-	it.each([200, 640] as const)("uses the requested width %i", width => {
+	it.each([200, 640, 1280] as const)("uses the requested width %i", width => {
 		expect(pipe.transform(`${RAWG}games/cover.jpg`, width)).toBe(
 			`${RAWG}resize/${width}/-/games/cover.jpg`
 		);

@@ -6,7 +6,7 @@ const RAWG_MEDIA_PREFIX = "https://media.rawg.io/media/";
 export class CoverUrlPipe implements PipeTransform {
 	transform(
 		url: string | null | undefined,
-		width: 200 | 420 | 640 = 420
+		width: 200 | 420 | 640 | 1280 = 420
 	): string {
 		if (!url?.startsWith(RAWG_MEDIA_PREFIX)) {
 			return url ?? "";
