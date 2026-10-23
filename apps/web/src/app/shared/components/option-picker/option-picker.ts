@@ -25,6 +25,7 @@ import { UiBottomSheet } from "../../ui";
 export interface PickerOption {
 	value: string;
 	label: string;
+	shortLabel?: string;
 	icon?: string;
 	iconClass?: string;
 	iconColor?: string | null;
