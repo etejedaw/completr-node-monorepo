@@ -750,7 +750,7 @@ void describe("PATCH /games/:id", () => {
 			externalIds: [{ source: "rawg", externalId: "111" }]
 		}).expect(201);
 		const gameId = created.body.data.game.id as string;
-		const upsert = mock.method(gameExternalService, "upsert", () =>
+		const upsert = mock.method(gameExternalService, "upsertMany", () =>
 			Promise.reject(new Error("simulated database failure"))
 		);
 
