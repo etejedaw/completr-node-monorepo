@@ -31,16 +31,21 @@ useTestDatabase(async () => {
 });
 
 void describe("GET /games/showcase without rated games", () => {
-	void it("lists the games and leaves featured null when none has score and duration", async () => {
+	void it("lists the games with null ratios when none has score and duration", async () => {
 		const response = await api().get("/games/showcase");
 
 		assert.equal(response.status, 200);
-		assert.deepEqual(
-			response.body.data.games.map(
-				(game: { title: string }) => game.title
-			),
-			["Plain Game", "Scored Only"]
+		const games = [...response.body.data.games].sort(
+			(a: { title: string }, b: { title: string }) =>
+				a.title.localeCompare(b.title)
 		);
-		assert.equal(response.body.data.featured, null);
+		assert.deepEqual(
+			games.map(game => [game.title, game.score, game.ratio]),
+			[
+				["Plain Game", null, null],
+				["Scored Only", 4.5, null]
+			]
+		);
+		assert.equal("featured" in response.body.data, false);
 	});
 });

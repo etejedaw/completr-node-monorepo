@@ -87,35 +87,21 @@ export function gameSerializer(
 }
 
 export function gameShowcaseSerializer(rows: ShowcaseGameRow[]) {
-	return {
-		games: rows.map(row => ({
-			id: row.id,
-			code: row.code,
-			title: row.title,
-			backgroundUrl: row.backgroundUrl
-		})),
-		featured: featuredShowcaseSerializer(rows)
-	};
+	return { games: rows.map(showcaseGameSerializer) };
 }
 
-function featuredShowcaseSerializer(rows: ShowcaseGameRow[]) {
-	let featured: { row: ShowcaseGameRow; ratio: number } | null = null;
-	for (const row of rows) {
-		const ratio = calculateRatioUtil(row.score, row.duration);
-		if (ratio === null) continue;
-		if (!featured || ratio > featured.ratio) featured = { row, ratio };
-	}
-	if (!featured) return null;
-
-	const { row, ratio } = featured;
+function showcaseGameSerializer(row: ShowcaseGameRow) {
 	return {
 		id: row.id,
 		code: row.code,
 		title: row.title,
 		backgroundUrl: row.backgroundUrl,
-		score: Math.round(row.score! * 100) / 100,
-		hours: Math.round(row.duration! * 10) / 10,
-		ratio
+		releaseYear: row.releaseYear,
+		genres: row.genres,
+		score: row.score === null ? null : Math.round(row.score * 100) / 100,
+		hours:
+			row.duration === null ? null : Math.round(row.duration * 10) / 10,
+		ratio: calculateRatioUtil(row.score, row.duration)
 	};
 }
 

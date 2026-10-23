@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
 
+import { GameGenre } from "../../src/game-genre/game-genre.model";
 import { GamePopularity } from "../../src/game-popularity/game-popularity.model";
 import { Game } from "../../src/games/game.model";
+import { Genre } from "../../src/genres/genres.model";
 import { api } from "../helpers/app.helper";
 import { useTestDatabase } from "../helpers/database.helper";
 import {
@@ -23,6 +25,7 @@ interface ShowcaseSeed {
 	backgroundUrl?: string | null;
 	isDlc?: boolean;
 	isActive?: boolean;
+	releaseAt?: string;
 }
 
 async function createShowcaseGame(seed: ShowcaseSeed) {
@@ -34,7 +37,8 @@ async function createShowcaseGame(seed: ShowcaseSeed) {
 				? BACKGROUND_URL
 				: seed.backgroundUrl,
 		isDlc: seed.isDlc ?? false,
-		isActive: seed.isActive ?? true
+		isActive: seed.isActive ?? true,
+		releaseAt: seed.releaseAt ? new Date(seed.releaseAt) : undefined
 	});
 	if (seed.popularity !== undefined) {
 		await GamePopularity.create({
@@ -49,19 +53,38 @@ function getShowcase() {
 	return api().get("/games/showcase");
 }
 
+async function getShowcaseWithRandom(value: number) {
+	const random = mock.method(Math, "random", () => value);
+	try {
+		return await getShowcase();
+	} finally {
+		random.mock.restore();
+	}
+}
+
+async function tagGenres(gameId: string, names: string[]) {
+	for (const name of names) {
+		const genre = await Genre.create({
+			name,
+			code: name.toLowerCase()
+		});
+		await GameGenre.create({ gameId, genreId: genre.id });
+	}
+}
+
 function regularTitle(index: number) {
 	return `Show ${String(index).padStart(2, "0")}`;
 }
 
 void describe("GET /games/showcase", () => {
-	void it("answers an empty showcase without a featured game when the catalog is empty", async () => {
+	void it("answers an empty showcase when the catalog is empty", async () => {
 		const response = await getShowcase();
 
 		assert.equal(response.status, 200);
-		assert.deepEqual(response.body.data, { games: [], featured: null });
+		assert.deepEqual(response.body.data, { games: [] });
 	});
 
-	void it("lists up to 21 eligible games by popularity, then title, and features the best ratio", async () => {
+	void it("samples 21 eligible games from the most popular ones with their catalog data and ratio", async () => {
 		await createScoreSource({ code: "completr", scale: 5, priority: 5 });
 		await createScoreSource({
 			code: "metacritic-t",
@@ -74,25 +97,26 @@ void describe("GET /games/showcase", () => {
 				index,
 				await createShowcaseGame({
 					title: regularTitle(index),
-					popularity: 100 - index
+					popularity: 1000 - index,
+					releaseAt: index === 3 ? "2013-08-07" : undefined
 				})
 			);
 		}
-		await createShowcaseGame({ title: "Tie Zulu", popularity: 1000 });
-		await createShowcaseGame({ title: "Tie Alpha", popularity: 1000 });
+		await createShowcaseGame({ title: "Tie Zulu", popularity: 2000 });
+		await createShowcaseGame({ title: "Tie Alpha", popularity: 2000 });
 		await createShowcaseGame({
 			title: "Popular Dlc",
-			popularity: 500,
+			popularity: 5000,
 			isDlc: true
 		});
 		await createShowcaseGame({
 			title: "Popular Retired",
-			popularity: 400,
+			popularity: 4000,
 			isActive: false
 		});
 		await createShowcaseGame({
 			title: "Popular Without Background",
-			popularity: 300,
+			popularity: 3000,
 			backgroundUrl: null
 		});
 
@@ -101,6 +125,7 @@ void describe("GET /games/showcase", () => {
 		await createGameScore(featuredGame.id, "completr", 4.5);
 		await createGameTime(featuredGame.id, "hltb", 10);
 		await createGameTime(featuredGame.id, "rawg", 5);
+		await tagGenres(featuredGame.id, ["Puzzle", "Adventure"]);
 		const scoreOnlyGame = regularGames.get(2)!;
 		await createGameScore(scoreOnlyGame.id, "metacritic-t", 100);
 		const slowGame = regularGames.get(1)!;
@@ -110,10 +135,10 @@ void describe("GET /games/showcase", () => {
 		await createGameScore(outsideTheShowcase.id, "metacritic-t", 100);
 		await createGameTime(outsideTheShowcase.id, "hltb", 1);
 
-		const response = await getShowcase();
+		const response = await getShowcaseWithRandom(0);
 
 		assert.equal(response.status, 200);
-		const { games, featured } = response.body.data;
+		const { games } = response.body.data;
 		assert.equal(games.length, SHOWCASE_SIZE);
 		assert.deepEqual(
 			games.map((game: { title: string }) => game.title),
@@ -125,22 +150,35 @@ void describe("GET /games/showcase", () => {
 				)
 			]
 		);
-		assert.deepEqual(Object.keys(games[0]).sort(), [
-			"backgroundUrl",
-			"code",
-			"id",
-			"title"
-		]);
-		assert.equal(games[0].backgroundUrl, BACKGROUND_URL);
-		assert.deepEqual(featured, {
+		const byTitle = new Map(
+			games.map((game: { title: string }) => [game.title, game])
+		);
+		assert.deepEqual(byTitle.get("Show 03"), {
 			id: featuredGame.id,
 			code: featuredGame.code,
 			title: "Show 03",
 			backgroundUrl: BACKGROUND_URL,
+			releaseYear: 2013,
+			genres: ["Adventure", "Puzzle"],
 			score: 4.5,
 			hours: 10,
 			ratio: 9
 		});
+		assert.deepEqual(byTitle.get("Show 04"), {
+			id: regularGames.get(4)!.id,
+			code: regularGames.get(4)!.code,
+			title: "Show 04",
+			backgroundUrl: BACKGROUND_URL,
+			releaseYear: null,
+			genres: [],
+			score: null,
+			hours: null,
+			ratio: null
+		});
+		assert.equal(
+			(byTitle.get("Show 02") as { ratio: number | null }).ratio,
+			null
+		);
 	});
 
 	void it("excludes DLCs, inactive games and games without a background", async () => {

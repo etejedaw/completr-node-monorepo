@@ -171,37 +171,60 @@ void describe("gameShowcaseSerializer", () => {
 			code: "g",
 			title: "G",
 			backgroundUrl: null,
+			releaseYear: null,
+			genres: [],
 			score: null,
 			duration: null,
 			...overrides
 		} as ShowcaseGameRow;
 	}
 
-	void it("features the game with the best ratio, rounding score and hours", () => {
+	void it("exposes catalog data, rounded score and hours, and the ratio of every game", () => {
 		const result = gameShowcaseSerializer([
-			row({ id: "a", score: 4, duration: 40 }),
-			row({ id: "b", score: 4.456, duration: 10.26 })
+			row({
+				id: "b",
+				code: "brothers",
+				title: "Brothers",
+				backgroundUrl: "https://img.test/b.jpg",
+				releaseYear: 2013,
+				genres: ["Adventure", "Puzzle"],
+				score: 4.456,
+				duration: 10.26
+			})
 		]);
 
-		assert.equal(result.games.length, 2);
-		assert.equal(result.featured?.id, "b");
-		assert.equal(result.featured?.score, 4.46);
-		assert.equal(result.featured?.hours, 10.3);
-		assert.equal(result.featured?.ratio, 8.69);
+		assert.deepEqual(result, {
+			games: [
+				{
+					id: "b",
+					code: "brothers",
+					title: "Brothers",
+					backgroundUrl: "https://img.test/b.jpg",
+					releaseYear: 2013,
+					genres: ["Adventure", "Puzzle"],
+					score: 4.46,
+					hours: 10.3,
+					ratio: 8.69
+				}
+			]
+		});
 	});
 
-	void it("skips rows without score or duration when featuring", () => {
-		const result = gameShowcaseSerializer([
-			row({ id: "a", score: null, duration: 10 }),
-			row({ id: "b", score: 3, duration: 30 })
-		]);
+	void it("nulls score, hours and ratio when the game lacks them", () => {
+		const [scoreOnly, unrated] = gameShowcaseSerializer([
+			row({ id: "a", score: 3, duration: null }),
+			row({ id: "b" })
+		]).games;
 
-		assert.equal(result.featured?.id, "b");
+		assert.equal(scoreOnly?.score, 3);
+		assert.equal(scoreOnly?.hours, null);
+		assert.equal(scoreOnly?.ratio, null);
+		assert.equal(unrated?.score, null);
+		assert.equal(unrated?.ratio, null);
 	});
 
-	void it("returns a null featured game when no row has a ratio", () => {
-		assert.equal(gameShowcaseSerializer([row({ id: "a" })]).featured, null);
-		assert.equal(gameShowcaseSerializer([]).featured, null);
+	void it("does not include a featured game", () => {
+		assert.deepEqual(gameShowcaseSerializer([]), { games: [] });
 	});
 });
 

@@ -92,6 +92,8 @@ export interface ShowcaseGameRow {
 	code: string;
 	title: string;
 	backgroundUrl: string;
+	releaseYear: number | null;
+	genres: string[];
 	score: number | null;
 	duration: number | null;
 }
