@@ -68,7 +68,9 @@ export class AcceptInvite implements OnInit {
 	private readonly token =
 		inject(ActivatedRoute).snapshot.queryParamMap.get("token") ?? "";
 
-	protected readonly status = signal<InvitationStatus>("loading");
+	protected readonly status = signal<InvitationStatus>(
+		this.token ? "loading" : "invalid"
+	);
 	protected readonly invitedEmail = signal("");
 	protected readonly isSubmitting = signal(false);
 	protected readonly error = signal("");
@@ -122,6 +124,7 @@ export class AcceptInvite implements OnInit {
 	});
 
 	ngOnInit() {
+		if (!this.token) return;
 		this.auth.getInvitation(this.token).subscribe({
 			next: invitation => {
 				this.invitedEmail.set(invitation.email);

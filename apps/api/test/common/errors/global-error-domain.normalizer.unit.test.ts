@@ -29,10 +29,17 @@ void describe("globalErrorDomainNormalizer", () => {
 		["Users Service", "USER_NOT_FOUND", "User Module", "USER_NOT_FOUND"],
 		["Games Service", "GAME_NOT_FOUND", "Game Module", "GAME_NOT_FOUND"],
 		[
-			"Backlog Service",
-			"BACKLOG_FORBIDDEN",
-			"Backlog Module",
-			"BACKLOG_FORBIDDEN"
+			"Platform Service",
+			"PLATFORM_NOT_FOUND",
+			"Platform Module",
+			"PLATFORM_NOT_FOUND"
+		],
+		["Genre Service", "GENRE_NOT_FOUND", "Genre Module", "GENRE_NOT_FOUND"],
+		[
+			"Franchise Service",
+			"FRANCHISE_NOT_FOUND",
+			"Franchise Module",
+			"FRANCHISE_NOT_FOUND"
 		],
 		[
 			"GameShelf Service",
@@ -40,7 +47,91 @@ void describe("globalErrorDomainNormalizer", () => {
 			"GameShelf Module",
 			"GAME_SHELF_LIMIT_REACHED"
 		],
+		[
+			"ScoreSource Service",
+			"SCORE_SOURCE_UNIQUE_CONSTRAINT",
+			"ScoreSource Module",
+			"SCORE_SOURCE_ALREADY_EXISTS"
+		],
+		[
+			"GameScore Service",
+			"GAME_SCORE_NOT_FOUND",
+			"GameScore Module",
+			"GAME_SCORE_NOT_FOUND"
+		],
+		[
+			"GameTime Service",
+			"GAME_TIME_NOT_FOUND",
+			"GameTime Module",
+			"GAME_TIME_NOT_FOUND"
+		],
+		[
+			"Backlog Service",
+			"BACKLOG_FORBIDDEN",
+			"Backlog Module",
+			"BACKLOG_FORBIDDEN"
+		],
+		[
+			"SavedFilter Service",
+			"SAVED_FILTER_LIMIT_REACHED",
+			"SavedFilter Module",
+			"SAVED_FILTER_LIMIT_REACHED"
+		],
 		["List Service", "LIST_FROZEN", "List Module", "LIST_FROZEN"],
+		[
+			"ListItem Service",
+			"LIST_ITEM_FROZEN",
+			"ListItem Module",
+			"LIST_ITEM_FROZEN"
+		],
+		[
+			"ListFollower Service",
+			"LIST_FOLLOWER_LIST_NOT_FOUND",
+			"ListFollower Module",
+			"LIST_FOLLOWER_LIST_NOT_FOUND"
+		],
+		[
+			"Queue Service",
+			"QUEUE_LIMIT_REACHED",
+			"Queue Module",
+			"QUEUE_LIMIT_REACHED"
+		],
+		[
+			"Wishlist Service",
+			"WISHLIST_LIMIT_REACHED",
+			"Wishlist Module",
+			"WISHLIST_LIMIT_REACHED"
+		],
+		[
+			"Favorite Service",
+			"FAVORITE_LIMIT_REACHED",
+			"Favorite Module",
+			"FAVORITE_LIMIT_REACHED"
+		],
+		[
+			"GameReport Service",
+			"GAME_REPORT_NOT_FOUND",
+			"GameReport Module",
+			"GAME_REPORT_NOT_FOUND"
+		],
+		[
+			"UserFollower Service",
+			"USER_FOLLOWER_USER_NOT_FOUND",
+			"UserFollower Module",
+			"USER_FOLLOWER_USER_NOT_FOUND"
+		],
+		[
+			"UserFollowRequest Service",
+			"USER_FOLLOW_REQUEST_NOT_FOUND",
+			"UserFollowRequest Module",
+			"USER_FOLLOW_REQUEST_NOT_FOUND"
+		],
+		[
+			"Review Service",
+			"REVIEW_NOT_FOUND",
+			"Review Module",
+			"REVIEW_NOT_FOUND"
+		],
 		[
 			"MoodTags Service",
 			"MOOD_TAGS_LIMIT_REACHED",
@@ -48,10 +139,35 @@ void describe("globalErrorDomainNormalizer", () => {
 			"MOOD_TAGS_LIMIT_REACHED"
 		],
 		[
-			"Franchise Service",
-			"FRANCHISE_NOT_FOUND",
-			"Franchise Module",
-			"FRANCHISE_NOT_FOUND"
+			"BacklogProgress Service",
+			"BACKLOG_PROGRESS_BACKLOG_NOT_FOUND",
+			"BacklogProgress Module",
+			"BACKLOG_PROGRESS_BACKLOG_NOT_FOUND"
+		],
+		[
+			"CoopRuns Service",
+			"COOP_BACKLOG_NOT_FOUND",
+			"CoopRuns Module",
+			"COOP_BACKLOG_NOT_FOUND"
+		],
+		[
+			"RAWG Provider",
+			"RAWG_RATE_LIMITED",
+			"RAWG Provider",
+			"RAWG_RATE_LIMITED"
+		],
+		[
+			"Invitation Service",
+			"INVITATION_UNIQUE_CONSTRAINT",
+			"Invitation Module",
+			"INVITATION_UNIQUE_CONSTRAINT"
+		],
+		["Mail Provider", "MAIL_DISABLED", "Mail Provider", "MAIL_DISABLED"],
+		[
+			"Game External Service",
+			"GAME_EXTERNAL_UNIQUE_CONSTRAINT",
+			"Game External Module",
+			"GAME_EXTERNAL_ALREADY_EXISTS"
 		]
 	];
 
@@ -73,6 +189,18 @@ void describe("globalErrorDomainNormalizer", () => {
 		});
 	}
 
+	void it("maps an Auth Service ServiceError to COMMON INTERNAL_ERROR through the auth normalizer", () => {
+		const raw = serviceError("Auth Service", "AUTH_ANYTHING");
+
+		const domainError = globalErrorDomainNormalizer(raw, "corr");
+
+		assert.equal(domainError.module, "COMMON");
+		assert.equal(domainError.code, "INTERNAL_ERROR");
+		assert.equal(domainError.message, "Unexpected internal error");
+		assert.equal(domainError.context?.raw, raw);
+		assert.equal(domainError.context?.correlationId, "corr");
+	});
+
 	void it("maps a ServiceError from an unknown service to INTERNAL_ERROR", () => {
 		const domainError = globalErrorDomainNormalizer(
 			serviceError("Ghost Service", "X"),
@@ -81,6 +209,7 @@ void describe("globalErrorDomainNormalizer", () => {
 
 		assert.equal(domainError.module, "COMMON");
 		assert.equal(domainError.code, "INTERNAL_ERROR");
+		assert.equal(domainError.message, "Unexpected internal error");
 	});
 
 	void it("maps a foreign key error on parent delete to COMMON_RESOURCE_IN_USE", () => {

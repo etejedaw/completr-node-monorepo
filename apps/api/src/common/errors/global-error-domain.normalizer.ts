@@ -6,6 +6,7 @@ import { backlogProgressErrorDomainNormalizer } from "../../backlog-progress/err
 import { coopRunsErrorDomainNormalizer } from "../../coop-runs/errors/coop-runs.error-domain.normalizer";
 import { favoritesErrorDomainNormalizer } from "../../favorites/errors/favorites.error-domain.normalizer";
 import { franchisesErrorDomainNormalizer } from "../../franchises/errors/franchises.error-domain.normalizer";
+import { gameExternalErrorDomainNormalizer } from "../../game-external/errors/game-external.error-domain.normalizer";
 import { gameReportsErrorDomainNormalizer } from "../../game-reports/errors/game-reports.error-domain.normalizer";
 import { gameScoresErrorDomainNormalizer } from "../../game-scores/errors/game-scores.error-domain.normalizer";
 import { gameShelfErrorDomainNormalizer } from "../../game-shelf/errors/game-shelf.error-domain.normalizer";
@@ -44,10 +45,15 @@ export function globalErrorDomainNormalizer(
 	if (error instanceof ForeignKeyConstraintError)
 		return foreignKeyErrorMapper(error, correlationId);
 
-	return new DomainError("COMMON", "INTERNAL_ERROR", "Unexpected error", {
-		raw: error,
-		correlationId
-	});
+	return new DomainError(
+		"COMMON",
+		"INTERNAL_ERROR",
+		"Unexpected internal error",
+		{
+			raw: error,
+			correlationId
+		}
+	);
 }
 
 function globalServiceErrorMapper(
@@ -138,10 +144,18 @@ function globalServiceErrorMapper(
 	if (error.serviceError.service === "Mail Provider")
 		return mailErrorDomainNormalizer(error, correlationId);
 
-	return new DomainError("COMMON", "INTERNAL_ERROR", "Unexpected error", {
-		raw: error,
-		correlationId
-	});
+	if (error.serviceError.service === "Game External Service")
+		return gameExternalErrorDomainNormalizer(error, correlationId);
+
+	return new DomainError(
+		"COMMON",
+		"INTERNAL_ERROR",
+		"Unexpected internal error",
+		{
+			raw: error,
+			correlationId
+		}
+	);
 }
 
 const PARENT_ROW_DELETE_PATTERN = /^update or delete on table/;

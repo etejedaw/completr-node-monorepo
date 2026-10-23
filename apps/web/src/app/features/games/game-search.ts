@@ -1,6 +1,6 @@
 import { inject, type Signal, signal } from "@angular/core";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { catchError, debounceTime, type Observable, of, switchMap } from "rxjs";
+import { catchError, map, type Observable, of, switchMap, timer } from "rxjs";
 
 import { type Game } from "../../core/models";
 import { type GameSearchStatus } from "../../shared/components/game-search/game-search-step";
@@ -42,8 +42,8 @@ export function injectGameSearch(
 					return of(null);
 				}
 				status.set("searching");
-				return of(term.trim()).pipe(
-					debounceTime(GAME_SEARCH_DEBOUNCE_MS)
+				return timer(GAME_SEARCH_DEBOUNCE_MS).pipe(
+					map(() => term.trim())
 				);
 			}),
 			switchMap(term =>

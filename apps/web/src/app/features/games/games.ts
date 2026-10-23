@@ -1,6 +1,10 @@
-import { HttpClient, HttpContext } from "@angular/common/http";
+import {
+	HttpClient,
+	HttpContext,
+	type HttpErrorResponse
+} from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { map } from "rxjs";
+import { catchError, map, throwError } from "rxjs";
 
 import { environment } from "../../../environments/environment";
 import {
@@ -10,8 +14,13 @@ import {
 	type Platform,
 	type UserRole
 } from "../../core/models";
+import { ToastService } from "../../core/services/toast";
 import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
 import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
+
+const RATE_LIMITED_STATUS = 429;
+const ONLINE_SEARCH_FAILED_MESSAGE =
+	"Couldn't search online right now. Try again in a moment.";
 
 const SUPPRESS_TOAST_CONTEXT = new HttpContext().set(
 	SUPPRESS_VALIDATION_TOAST,
@@ -124,6 +133,7 @@ export interface GamesQuery extends Record<string, Appendable> {
 @Injectable({ providedIn: "root" })
 export class GamesService {
 	private readonly http = inject(HttpClient);
+	private readonly toast = inject(ToastService);
 
 	getGames(query: GamesQuery = {}) {
 		const params = buildHttpParams(query);
@@ -138,7 +148,14 @@ export class GamesService {
 			.get<GamesSearchResponse>(
 				`${environment.apiUrl}/games/search?${params}`
 			)
-			.pipe(map(res => res.data.games));
+			.pipe(
+				map(res => res.data.games),
+				catchError((error: HttpErrorResponse) => {
+					if (forceRawg && error.status !== RATE_LIMITED_STATUS)
+						this.toast.warning(ONLINE_SEARCH_FAILED_MESSAGE);
+					return throwError(() => error);
+				})
+			);
 	}
 
 	searchLocal(query: string) {

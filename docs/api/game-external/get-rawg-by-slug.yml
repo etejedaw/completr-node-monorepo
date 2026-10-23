@@ -39,13 +39,11 @@ docs: |-
           "title": "Resident Evil 4",
           "description": "...",
           "coverUrl": "https://media.rawg.io/...",
-          "backgroundUrl": "https://media.rawg.io/...",
           "releaseAt": "2005-01-11",
-          "metacritic": 96,
-          "playtime": 16,
-          "rating": 4.35,
           "platforms": ["pc", "playstation-4", "xbox-one"],
-          "genres": ["action", "shooter"]
+          "genres": ["action", "shooter"],
+          "scores": [{ "source": "metacritic", "score": 96 }],
+          "times": [{ "source": "rawg", "duration": 16 }]
         }
       }
     }
@@ -55,6 +53,6 @@ docs: |-
 
     - 404 `RAWG_NOT_FOUND` — RAWG has no game for that slug
     - 429 `RAWG_RATE_LIMITED` — RAWG rate limit reached
-    - 502 `RAWG_REQUEST_ERROR` — RAWG request failed
-    - 502 `RAWG_PARSE_ERROR` — Unexpected RAWG response
+    - 502 `RAWG_REQUEST_ERROR` — RAWG answered with another error status, or the request to RAWG failed (network)
+    - 502 `RAWG_PARSE_ERROR` — RAWG answered with a body that is not valid JSON
     - 503 `RAWG_DISABLED` — `RAWG_API_KEY` is not configured on the server

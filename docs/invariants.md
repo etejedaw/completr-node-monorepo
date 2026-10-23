@@ -191,6 +191,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 ### Edición y borrado de juegos
 
 - `PATCH /games/:id` es atómico: el update del juego y el reemplazo de plataformas, géneros y external ids van en una sola transacción. Si un paso falla no se aplica ninguno.
+- Un external id repetido para el mismo juego y fuente responde 409 `GAME_EXTERNAL_ALREADY_EXISTS`; un external id inexistente, 404 `GAME_EXTERNAL_NOT_FOUND`.
 - `DELETE /games/:id` sin `hard` desactiva el juego (`isActive = false`) y no toca sus datos.
 - `DELETE /games/:id?hard=true` (solo admin) borra el juego y sus datos de catálogo (plataformas, géneros, scores, times, external ids, popularidad e items de compilation). Antes de borrar, dentro de una transacción, comprueba con consultas explícitas que ningún usuario lo referencia: backlog (también como `compilationGameId`, y por tanto su queue), game-shelf, list-items, favoritos, wishlist, reviews, coop runs, mood tags por juego y actividad; y que no tiene variantes ni DLCs (`parentGameId`). Si lo está responde 409 `GAME_IN_USE` y no se borra nada; el `ON DELETE` de las FKs no se usa como control. Los reports del juego no cuentan como uso y se borran con él.
 
@@ -328,7 +329,7 @@ Reglas:
 - Token-AND con normalización de puntuación y espacios.
 - Accent-insensitive sobre títulos.
 - Fallback a RAWG cuando no hay match local, salvo `local_only=true`. Importa hasta 3 resultados con detalle, excluye DLCs.
-- `force_rawg=true` salta búsqueda local.
+- `force_rawg=true` salta búsqueda local y propaga el fallo de la búsqueda en RAWG (429 `RAWG_RATE_LIMITED`, 502 `RAWG_REQUEST_ERROR` / `RAWG_PARSE_ERROR`). En el fallback implícito el fallo se registra como warning y la respuesta es 200 con lista vacía. El fallo al resolver un resultado individual se tolera en ambos casos.
 - `sort_by=random` disponible para discover.
 - `force_rawg` y `local_only` se parsean con `z.stringbool()`: `"true"` / `"false"` (y sus variantes) valen lo que dicen; cualquier otro valor responde 422 `COMMON_SCHEMA_INVALID`.
 - `GET /games` con `min_score` / `max_score` compara contra el score canónico normalizado a 0–5 (el de la fuente con menor `priority`), el mismo que usa `sort_by=score`; los juegos sin score quedan fuera del rango.
@@ -348,18 +349,20 @@ Reglas:
 
 - Un provider externo expone `isEnabled` en su clase base.
 - Si falta su credencial, el `create` de la clase base devuelve la implementación deshabilitada: el backend arranca igual y cada método lanza `<PROVIDER>_DISABLED`.
-- RAWG: `RAWG_API_KEY` es opcional (vacía o ausente = deshabilitado).
+- RAWG: `RAWG_API_KEY` es opcional (vacía o ausente = deshabilitado). Sus métodos deshabilitados devuelven una promesa rechazada con `RAWG_DISABLED`, no lanzan de forma síncrona.
 - Mail: `SMTP_HOST` es opcional (vacío o ausente = deshabilitado). Códigos: `MAIL_DISABLED` (503) y `MAIL_SEND_ERROR` (502).
 
 ### Códigos de error de RAWG
 
-| Código                | Status |
-| --------------------- | ------ |
-| `RAWG_DISABLED`       | 503    |
-| `RAWG_NOT_FOUND`      | 404    |
-| `RAWG_RATE_LIMITED`   | 429    |
-| `RAWG_REQUEST_ERROR`  | 502    |
-| `RAWG_PARSE_ERROR`    | 502    |
-| `RAWG_INTERNAL_ERROR` | 500    |
+| Código                | Status | Cuándo                                                              |
+| --------------------- | ------ | ------------------------------------------------------------------- |
+| `RAWG_DISABLED`       | 503    | `RAWG_API_KEY` ausente o vacía                                      |
+| `RAWG_NOT_FOUND`      | 404    | RAWG respondió 404                                                  |
+| `RAWG_RATE_LIMITED`   | 429    | RAWG respondió 429                                                  |
+| `RAWG_REQUEST_ERROR`  | 502    | RAWG respondió con otro status de error, o falló la red al llamarlo |
+| `RAWG_PARSE_ERROR`    | 502    | RAWG respondió 2xx con un cuerpo que no es JSON válido              |
+| `RAWG_INTERNAL_ERROR` | 500    | Código de `RAWG Provider` sin mapeo propio                          |
 
 Con RAWG deshabilitado: `GET /games/rawg-lookup`, `GET /games/rawg-detail/:rawgId`, `GET /game-external/rawg/:slug` y `POST /admin/jobs/populate-rawg` responden 503; el resto del backend no se ve afectado.
+
+El job `populate_rawg` cuenta como no encontrado un juego al que RAWG responde 404 (`RAWG_NOT_FOUND`) y sigue con el siguiente. Cualquier otro fallo (429, 5xx, red, cuerpo ilegible o error al guardar) lo detiene de inmediato con status `failed` y un `result` con los juegos procesados, los no encontrados y el motivo.

@@ -38,7 +38,9 @@ export class ResetPassword {
 	private readonly token =
 		inject(ActivatedRoute).snapshot.queryParamMap.get("token") ?? "";
 
-	protected readonly status = signal<ResetStatus>("editing");
+	protected readonly status = signal<ResetStatus>(
+		this.token ? "editing" : "invalidLink"
+	);
 	protected readonly isLoading = signal(false);
 	protected readonly error = signal("");
 	protected readonly showPasswords = signal(false);

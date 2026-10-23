@@ -60,7 +60,11 @@
 			</div>
 			}
 
-			<form (submit)="onSubmit($event)" class="flex flex-col gap-5">
+			<form
+				(submit)="onSubmit($event)"
+				novalidate
+				class="flex flex-col gap-5"
+			>
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
 						<label
@@ -73,9 +77,19 @@
 							id="username"
 							type="text"
 							[formField]="form.username"
+							aria-describedby="username-error"
 							placeholder="your_username"
 							autocomplete="username"
 						/>
+						@if (form.username().touched() &&
+						form.username().invalid()) {
+						<p
+							id="username-error"
+							class="m-0 mt-1.5 text-xs text-danger"
+						>
+							{{ form.username().errors()[0]?.message }}
+						</p>
+						}
 					</div>
 					<div>
 						<label
@@ -88,9 +102,18 @@
 							id="name"
 							type="text"
 							[formField]="form.name"
+							aria-describedby="name-error"
 							placeholder="Your name"
 							autocomplete="name"
 						/>
+						@if (form.name().touched() && form.name().invalid()) {
+						<p
+							id="name-error"
+							class="m-0 mt-1.5 text-xs text-danger"
+						>
+							{{ form.name().errors()[0]?.message }}
+						</p>
+						}
 					</div>
 				</div>
 
@@ -105,9 +128,15 @@
 						id="email"
 						type="email"
 						[formField]="form.email"
+						aria-describedby="email-error"
 						placeholder="you@example.com"
 						autocomplete="email"
 					/>
+					@if (form.email().touched() && form.email().invalid()) {
+					<p id="email-error" class="m-0 mt-1.5 text-xs text-danger">
+						{{ form.email().errors()[0]?.message }}
+					</p>
+					}
 				</div>
 
 				<div>
@@ -121,8 +150,22 @@
 						id="password"
 						type="password"
 						[formField]="form.password"
-						placeholder="Min 8 chars, uppercase, number, special"
+						aria-describedby="password-rules password-error"
+						placeholder="Create a password"
 						autocomplete="new-password"
+					/>
+					@if (form.password().touched() && form.password().invalid())
+					{
+					<p
+						id="password-error"
+						class="m-0 mt-1.5 text-xs text-danger"
+					>
+						{{ form.password().errors()[0]?.message }}
+					</p>
+					}
+					<app-password-rules
+						listId="password-rules"
+						[password]="model().password"
 					/>
 				</div>
 
@@ -132,7 +175,7 @@
 					size="lg"
 					[block]="true"
 					type="submit"
-					[disabled]="form().invalid() || isLoading()"
+					[disabled]="isLoading()"
 				>
 					{{ isLoading() ? 'Creating account...' : 'Create account' }}
 				</button>

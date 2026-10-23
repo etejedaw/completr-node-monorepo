@@ -19,3 +19,12 @@ export function alreadyExists(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function internalError(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_EXTERNAL_INTERNAL_ERROR",
+		"Unexpected Game External Service error",
+		context
+	);
+}

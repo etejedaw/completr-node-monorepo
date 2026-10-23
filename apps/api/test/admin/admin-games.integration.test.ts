@@ -23,7 +23,6 @@ import { ListItem } from "../../src/list-items/list-item.model";
 import { UserGameTag } from "../../src/mood-tags/user-game-tag.model";
 import { Queue } from "../../src/queue/queue.model";
 import { Review } from "../../src/reviews/review.model";
-import { Wishlist } from "../../src/wishlist/wishlist.model";
 import { type UserRole } from "../../src/users/user-role.type";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";

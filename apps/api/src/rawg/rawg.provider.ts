@@ -2,7 +2,8 @@ import * as rawgServiceError from "./errors/rawg.service-error";
 import {
 	type RawgGameDetail,
 	type RawgGameSearchResult,
-	type RawgSearchFilters
+	type RawgSearchFilters,
+	type RawgSearchResponse
 } from "./rawg.interface";
 
 export abstract class RawgClient {
@@ -49,10 +50,7 @@ export class RawgProvider extends RawgClient {
 				url.searchParams.set(key, value.toString());
 		}
 
-		const response = await fetch(url.toString());
-		this.handleErrors(response);
-
-		const data = await response.json();
+		const data = await this.request<RawgSearchResponse>(url);
 		return data.results;
 	}
 
@@ -60,20 +58,39 @@ export class RawgProvider extends RawgClient {
 		const url = new URL(`${this.BASE_URL}/games/${id}`);
 		url.searchParams.set("key", this.apiKey);
 
-		const response = await fetch(url.toString());
-		this.handleErrors(response);
-
-		return await response.json();
+		return await this.request<RawgGameDetail>(url);
 	}
 
 	async getGameBySlug(slug: string): Promise<RawgGameDetail> {
 		const url = new URL(`${this.BASE_URL}/games/${slug}`);
 		url.searchParams.set("key", this.apiKey);
 
-		const response = await fetch(url.toString());
-		this.handleErrors(response);
+		return await this.request<RawgGameDetail>(url);
+	}
 
-		return await response.json();
+	private async request<T>(url: URL): Promise<T> {
+		const response = await this.fetchRawg(url);
+		this.handleErrors(response);
+		return await this.parseBody<T>(response);
+	}
+
+	private async fetchRawg(url: URL): Promise<Response> {
+		try {
+			return await fetch(url.toString());
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : "unknown";
+			throw rawgServiceError.requestError(
+				`RAWG request failed before a response: ${reason}`
+			);
+		}
+	}
+
+	private async parseBody<T>(response: Response): Promise<T> {
+		try {
+			return (await response.json()) as T;
+		} catch (error) {
+			throw rawgServiceError.parseError(error);
+		}
 	}
 
 	private handleErrors(response: Response): void {
@@ -90,14 +107,14 @@ export class DisabledRawgProvider extends RawgClient {
 	readonly isEnabled = false;
 
 	searchGame(): Promise<RawgGameSearchResult[]> {
-		throw rawgServiceError.disabledError();
+		return Promise.reject(rawgServiceError.disabledError());
 	}
 
 	getGameById(): Promise<RawgGameDetail> {
-		throw rawgServiceError.disabledError();
+		return Promise.reject(rawgServiceError.disabledError());
 	}
 
 	getGameBySlug(): Promise<RawgGameDetail> {
-		throw rawgServiceError.disabledError();
+		return Promise.reject(rawgServiceError.disabledError());
 	}
 }

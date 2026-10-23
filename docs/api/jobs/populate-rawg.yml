@@ -48,10 +48,17 @@ docs: |-
 
     The job runs asynchronously. Poll `GET /admin/jobs` to see its `status` and `result`.
 
-    ### Behavior on completion
+    ### Behavior while running
 
-    Result string format:
-    `Processed: X, Errors: Y, Skipped: Z, Total: T`
+    - A game RAWG does not know (404 `RAWG_NOT_FOUND`) is counted as not found and the job continues.
+    - Any other RAWG failure (429 rate limit, 5xx, network, unreadable body) stops the job at once and leaves it in `failed`. The remaining games are not attempted.
+    - Cancelling the job works as before.
+
+    ### Result string
+
+    - Completed: `Processed: X, Not found: N, Skipped: Z, Total: T`
+    - Cancelled: `Cancelled after X processed. Not found: N`
+    - Failed: `Failed after X processed, N not found. Reason: <reason>`, where `<reason>` is the error code (for example `RAWG_RATE_LIMITED`, or `RAWG_REQUEST_ERROR: RAWG API returned 500: ...`) or the network error message.
 
     ### Errors
 
