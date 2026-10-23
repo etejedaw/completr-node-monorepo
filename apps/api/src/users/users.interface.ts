@@ -128,3 +128,8 @@ export interface UserCardInsights {
 	completedTotal: number | null;
 	featuredGame: { title: string; backgroundUrl: string | null } | null;
 }
+
+export interface UserConnectionCardsBundle {
+	cards: UserCardInsights[];
+	total: number;
+}

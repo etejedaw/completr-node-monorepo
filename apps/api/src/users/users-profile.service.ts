@@ -1,6 +1,7 @@
 import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import * as favoritesService from "../favorites/favorites.service";
 import * as franchiseService from "../franchises/franchises.service";
@@ -27,9 +28,9 @@ import {
 	type ComparisonGameEntry,
 	type FullUserProfile,
 	type RestrictedUserProfile,
-	type UserCardInsights,
 	type UserComparisonBundle,
 	type UserCompletionsBundle,
+	type UserConnectionCardsBundle,
 	type UserFollowingListsBundle,
 	type UserFranchisesBundle,
 	type UserHighlightsBundle,
@@ -532,19 +533,33 @@ export async function getReviewsForUsername(
 	return { user, reviewsPlain, durationMap, total: count };
 }
 
+async function findConnectionUsers(
+	userId: string,
+	kind: "followers" | "following",
+	query: PaginatedSearchQuery
+) {
+	if (kind === "followers") {
+		const { rows, total } = await userFollowersService.getFollowers(
+			userId,
+			query
+		);
+		return { users: rows.map(row => row.Follower), total };
+	}
+	const { rows, total } = await userFollowersService.getFollowing(
+		userId,
+		query
+	);
+	return { users: rows.map(row => row.Following), total };
+}
+
 export async function getConnectionCardsForUsername(
 	viewerId: string | undefined,
 	username: string,
-	kind: "followers" | "following"
-): Promise<UserCardInsights[]> {
-	await requireVisibleUser(viewerId, username, ["profile"]);
-	const users =
-		kind === "followers"
-			? (await userFollowersService.getFollowers(username)).map(
-					row => row.Follower
-				)
-			: (await userFollowersService.getFollowing(username)).map(
-					row => row.Following
-				);
-	return userCardsService.buildUserCards(viewerId, users);
+	kind: "followers" | "following",
+	query: PaginatedSearchQuery
+): Promise<UserConnectionCardsBundle> {
+	const user = await requireVisibleUser(viewerId, username, ["profile"]);
+	const { users, total } = await findConnectionUsers(user.id, kind, query);
+	const cards = await userCardsService.buildUserCards(viewerId, users);
+	return { cards, total };
 }

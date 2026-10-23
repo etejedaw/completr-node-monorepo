@@ -1,12 +1,46 @@
-import { Op } from "sequelize";
+import { Op, type Order, type WhereOptions } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { escapeLikePattern } from "../common/utils/escape-like-pattern.util";
 import { sequelize } from "../database/sequelize.database";
 import { USER_CARD_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import * as serviceError from "./errors/user-followers.service-error";
 import { UserFollower } from "./user-follower.model";
+
+const DEFAULT_CONNECTIONS_LIMIT = 24;
+
+const CONNECTIONS_ORDER: Order = [
+	["createdAt", "DESC"],
+	["id", "DESC"]
+];
+
+function connectionUserWhere(search: string | undefined): WhereOptions {
+	if (!search) return { isActive: true };
+
+	const pattern = `%${escapeLikePattern(search)}%`;
+	return {
+		isActive: true,
+		[Op.or]: [
+			{ username: { [Op.iLike]: pattern } },
+			{ name: { [Op.iLike]: pattern } }
+		]
+	};
+}
+
+function connectionUserInclude(
+	as: "Follower" | "Following",
+	search: string | undefined
+) {
+	return {
+		model: User,
+		as,
+		attributes: USER_CARD_ATTRS,
+		where: connectionUserWhere(search)
+	};
+}
 
 export async function unfollow(followerId: string, username: string) {
 	const target = await usersService.findUserByUsername(username);
@@ -35,40 +69,34 @@ export async function findFollow(followerId: string, followingId: string) {
 	return UserFollower.findOne({ where: { followerId, followingId } });
 }
 
-export async function getFollowers(username: string) {
-	const user = await usersService.findUserByUsername(username);
-	if (!user) throw serviceError.userNotFoundError();
-
-	return UserFollower.findAll({
-		where: { followingId: user.id },
-		include: [
-			{
-				model: User,
-				as: "Follower",
-				attributes: USER_CARD_ATTRS,
-				where: { isActive: true }
-			}
-		],
-		order: [["createdAt", "DESC"]]
+export async function getFollowers(
+	userId: string,
+	pagination: PaginatedSearchQuery = {}
+) {
+	const { rows, count } = await UserFollower.findAndCountAll({
+		where: { followingId: userId },
+		include: [connectionUserInclude("Follower", pagination.search)],
+		order: CONNECTIONS_ORDER,
+		limit: pagination.limit ?? DEFAULT_CONNECTIONS_LIMIT,
+		offset: pagination.offset ?? 0,
+		distinct: true
 	});
+	return { rows, total: count };
 }
 
-export async function getFollowing(username: string) {
-	const user = await usersService.findUserByUsername(username);
-	if (!user) throw serviceError.userNotFoundError();
-
-	return UserFollower.findAll({
-		where: { followerId: user.id },
-		include: [
-			{
-				model: User,
-				as: "Following",
-				attributes: USER_CARD_ATTRS,
-				where: { isActive: true }
-			}
-		],
-		order: [["createdAt", "DESC"]]
+export async function getFollowing(
+	userId: string,
+	pagination: PaginatedSearchQuery = {}
+) {
+	const { rows, count } = await UserFollower.findAndCountAll({
+		where: { followerId: userId },
+		include: [connectionUserInclude("Following", pagination.search)],
+		order: CONNECTIONS_ORDER,
+		limit: pagination.limit ?? DEFAULT_CONNECTIONS_LIMIT,
+		offset: pagination.offset ?? 0,
+		distinct: true
 	});
+	return { rows, total: count };
 }
 
 export async function getFollowerCount(userId: string) {

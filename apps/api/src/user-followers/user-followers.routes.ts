@@ -8,6 +8,7 @@ import {
 } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
 import { UsernameParamSchema } from "../users/schemas/username-params.schema";
 import * as controller from "./user-followers.controller";
 
@@ -38,7 +39,8 @@ router.get(
 	[
 		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
-		validateSchemaMiddleware(UsernameParamSchema, "params")
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	controller.getFollowers
 );
@@ -48,7 +50,8 @@ router.get(
 	[
 		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
-		validateSchemaMiddleware(UsernameParamSchema, "params")
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	controller.getFollowing
 );
