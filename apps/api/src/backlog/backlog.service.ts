@@ -417,6 +417,62 @@ export async function countBacklogByStatus(userId: string, publicOnly = false) {
 	return result;
 }
 
+export async function countBacklogByStatusForUsers(
+	owners: { userId: string; publicOnly: boolean }[]
+) {
+	const countsByUser = new Map(
+		owners.map(owner => [
+			owner.userId,
+			{
+				not_started: 0,
+				playing: 0,
+				completed: 0,
+				abandoned: 0,
+				endless: 0,
+				total: 0
+			}
+		])
+	);
+	if (owners.length === 0) return countsByUser;
+
+	const publicOnlyIds = owners
+		.filter(owner => owner.publicOnly)
+		.map(owner => owner.userId);
+	const unrestrictedIds = owners
+		.filter(owner => !owner.publicOnly)
+		.map(owner => owner.userId);
+	const ownerConditions: Record<string, unknown>[] = [];
+	if (publicOnlyIds.length > 0)
+		ownerConditions.push({
+			userId: { [Op.in]: publicOnlyIds },
+			isPublic: true
+		});
+	if (unrestrictedIds.length > 0)
+		ownerConditions.push({ userId: { [Op.in]: unrestrictedIds } });
+
+	const rows = (await Backlog.findAll({
+		where: { [Op.or]: ownerConditions },
+		attributes: [
+			"userId",
+			"status",
+			[sequelize.fn("COUNT", sequelize.col("id")), "count"]
+		],
+		group: ["userId", "status"],
+		raw: true
+	})) as unknown as { userId: string; status: string; count: string }[];
+
+	for (const row of rows) {
+		const counts = countsByUser.get(row.userId);
+		if (!counts) continue;
+		const n = Number(row.count);
+		if (row.status in counts) {
+			counts[row.status as keyof typeof counts] = n;
+		}
+		counts.total += n;
+	}
+	return countsByUser;
+}
+
 export interface BacklogHighlightGame {
 	id: string;
 	code: string;
