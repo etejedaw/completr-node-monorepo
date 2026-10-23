@@ -42,19 +42,15 @@ export async function getFollowing(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 
 	const entries = await listFollowersService.getFollowingLists(user.id);
-	const lists = await Promise.all(
-		entries.map(async e => {
-			const progress = await listsService.getListProgress(
-				e.listId,
-				user.id
-			);
-			return {
-				...listSummarySerializer(e.List),
-				isVisible: e.isVisible,
-				progress
-			};
-		})
+	const progressByList = await listsService.getListsProgress(
+		entries.map(e => e.listId),
+		user.id
 	);
+	const lists = entries.map(e => ({
+		...listSummarySerializer(e.List),
+		isVisible: e.isVisible,
+		progress: progressByList.get(e.listId) ?? { completed: 0, total: 0 }
+	}));
 
 	return response.status(200).json({ data: { lists } });
 }
