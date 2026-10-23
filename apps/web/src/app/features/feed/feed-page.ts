@@ -30,13 +30,9 @@ import {
 	UiPremiumBadge,
 	UiSkeleton
 } from "../../shared/ui";
-import {
-	type ActivityTarget,
-	type FeedActivity,
-	type FeedCategory,
-	FeedService
-} from "./feed";
+import { type FeedActivity, type FeedCategory, FeedService } from "./feed";
 import { FeedActivityItem } from "./feed-activity-item/feed-activity-item";
+import { gamePosters } from "./feed-hero-posters";
 
 interface ActivityDayGroup {
 	key: string;
@@ -85,23 +81,6 @@ function groupByDay(activities: FeedActivity[]): ActivityDayGroup[] {
 		group.activities.push(activity);
 	}
 	return [...groups.values()];
-}
-
-function gamePosters(activities: FeedActivity[]): LibraryHeroPoster[] {
-	const seenGameKeys = new Set<string>();
-	const posters: LibraryHeroPoster[] = [];
-	for (const { game } of activities) {
-		if (!game?.backgroundUrl) continue;
-		const gameKey = gameIdentity(game);
-		if (seenGameKeys.has(gameKey)) continue;
-		seenGameKeys.add(gameKey);
-		posters.push({ src: game.backgroundUrl, title: game.name });
-	}
-	return posters;
-}
-
-function gameIdentity(game: ActivityTarget): string {
-	return game.id || game.code || game.name;
 }
 
 @Component({
