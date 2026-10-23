@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { sequelize } from "../database/sequelize.database";
 import { USER_CARD_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
 import * as usersService from "../users/users.service";
@@ -77,6 +78,32 @@ export async function getFollowerCount(userId: string) {
 	});
 }
 
+export async function getFollowerCounts(userIds: string[]) {
+	const counts = new Map<string, number>(userIds.map(id => [id, 0]));
+	if (userIds.length === 0) return counts;
+
+	const rows = (await UserFollower.findAll({
+		where: { followingId: { [Op.in]: userIds } },
+		include: [
+			{
+				model: User,
+				as: "Follower",
+				where: { isActive: true },
+				attributes: []
+			}
+		],
+		attributes: [
+			"followingId",
+			[sequelize.fn("COUNT", sequelize.col("UserFollower.id")), "count"]
+		],
+		group: ["UserFollower.followingId"],
+		raw: true
+	})) as unknown as { followingId: string; count: string }[];
+
+	for (const row of rows) counts.set(row.followingId, Number(row.count));
+	return counts;
+}
+
 export async function getFollowingCount(userId: string) {
 	return UserFollower.count({
 		where: { followerId: userId },
@@ -124,4 +151,27 @@ export async function areMutualFollowers(a: string, b: string) {
 		attributes: ["followerId", "followingId"]
 	});
 	return rows.length === 2;
+}
+
+export async function findFollowEdges(userId: string, otherIds: string[]) {
+	const edges = {
+		followingIds: new Set<string>(),
+		followerIds: new Set<string>()
+	};
+	if (otherIds.length === 0) return edges;
+
+	const rows = await UserFollower.findAll({
+		where: {
+			[Op.or]: [
+				{ followerId: userId, followingId: { [Op.in]: otherIds } },
+				{ followingId: userId, followerId: { [Op.in]: otherIds } }
+			]
+		},
+		attributes: ["followerId", "followingId"]
+	});
+	for (const row of rows) {
+		if (row.followerId === userId) edges.followingIds.add(row.followingId);
+		if (row.followingId === userId) edges.followerIds.add(row.followerId);
+	}
+	return edges;
 }
