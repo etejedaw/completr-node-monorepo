@@ -17,6 +17,7 @@ import {
 import { type UserDiscoverQuery } from "./schemas/user-discover-query.schema";
 import { type UserSearchQuery } from "./schemas/user-search-query.schema";
 import { type UsernameListParams } from "./schemas/username-list-params.schema";
+import * as userCardsService from "./user-cards.service";
 import {
 	enrichedUserListSerializer,
 	fullProfileSerializer,
@@ -94,10 +95,7 @@ export async function searchUsers(request: Request, response: Response) {
 	const users = email
 		? await usersService.findUserByExactEmail(email)
 		: await usersService.searchUsers(q!, limit);
-	const cards = await usersProfileService.buildUserCards(
-		currentUser?.id,
-		users
-	);
+	const cards = await userCardsService.buildUserCards(currentUser?.id, users);
 
 	const data = { users: cards.map(userCardSerializer) };
 	return response.status(200).json({ data });
@@ -111,10 +109,7 @@ export async function getDiscoverUsers(request: Request, response: Response) {
 		limit ?? 12,
 		currentUser?.id
 	);
-	const cards = await usersProfileService.buildUserCards(
-		currentUser?.id,
-		users
-	);
+	const cards = await userCardsService.buildUserCards(currentUser?.id, users);
 
 	const data = { users: cards.map(userCardSerializer) };
 	return response.status(200).json({ data });
