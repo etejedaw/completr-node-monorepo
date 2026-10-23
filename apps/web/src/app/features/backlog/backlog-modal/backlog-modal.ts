@@ -600,7 +600,7 @@ export class BacklogModal implements OnInit {
 			const currentUser = this.authService.user();
 			if (currentUser?.username) {
 				this.publicSocial
-					.getFollowing(currentUser.username)
+					.getAllFollowing(currentUser.username)
 					.subscribe(users => this.myFollowing.set(users));
 			}
 			this.selectedGame.set({

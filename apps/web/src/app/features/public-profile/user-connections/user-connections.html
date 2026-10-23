@@ -26,24 +26,20 @@
 		<span aria-hidden="true" class="material-icons text-lg text-nav-users"
 			>group</span
 		>
-		@if (isLoading()) {
+		@let count = connectionCount(); @if (count === null) {
 		<ui-skeleton variant="text" class="block w-48" />
 		<span class="sr-only">Loading connections…</span>
 		} @else if (kind === 'followers') {
 		<span
-			><span class="font-semibold text-fg tabular-nums"
-				>{{ users().length }}</span
-			>
-			{{ users().length === 1 ? 'player follows' : 'players follow' }} {{
-			'@' + username }}</span
+			><span class="font-semibold text-fg tabular-nums">{{ count }}</span>
+			{{ count === 1 ? 'player follows' : 'players follow' }} {{ '@' +
+			username }}</span
 		>
 		} @else {
 		<span
 			>{{ '@' + username }} follows
-			<span class="font-semibold text-fg tabular-nums"
-				>{{ users().length }}</span
-			>
-			{{ users().length === 1 ? 'player' : 'players' }}</span
+			<span class="font-semibold text-fg tabular-nums">{{ count }}</span>
+			{{ count === 1 ? 'player' : 'players' }}</span
 		>
 		}
 	</p>
@@ -69,13 +65,13 @@
 	</nav>
 </app-library-hero>
 
-@if (isLoading() || users().length > 0) {
+@if (!hasNoConnections()) {
 <app-library-toolbar>
 	<ui-search-bar
 		class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
 		placeholder="Search by name or username..."
 		[value]="query()"
-		(valueChange)="query.set($event)"
+		(valueChange)="onSearch($event)"
 	/>
 </app-library-toolbar>
 } @if (isLoading()) {
@@ -95,7 +91,7 @@
 	</div>
 	}
 </div>
-} @else if (users().length === 0) {
+} @else if (hasNoConnections()) {
 <ui-empty-state
 	icon="group"
 	[title]="kind === 'followers' ? 'No followers yet' : 'Not following anyone yet'"
@@ -108,16 +104,16 @@
 		>
 	</div>
 </ui-empty-state>
-} @else if (visibleUsers().length === 0) {
+} @else if (users().length === 0) {
 <ui-no-matches
-	[hint]="'Nobody here matches “' + query() + '”.'"
-	(cleared)="query.set('')"
+	[hint]="'Nobody here matches “' + search() + '”.'"
+	(cleared)="clearSearch()"
 />
 } @else {
 <ul
 	class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
 >
-	@for (user of visibleUsers(); track user.id) {
+	@for (user of users(); track user.id) {
 	<li>
 		<app-user-card
 			[user]="withLiveCounts(user)"
@@ -129,6 +125,12 @@
 	</li>
 	}
 </ul>
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit"
+	[total]="total()"
+	(offsetChange)="goToOffset($event)"
+/>
 } } @if (unfollowTarget(); as target) {
 <app-unfollow-confirm-dialog
 	[username]="target.username"
