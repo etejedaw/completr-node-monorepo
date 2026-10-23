@@ -14,20 +14,20 @@ settings:
 docs: |-
     ## Get Games Showcase
 
-    Returns the most popular games of the catalog for the decorative poster wall of the login page, plus one featured game for its "Up next" card. Only exposes catalog data: no user data is ever included.
+    Returns a random sample of popular catalog games for the decorative poster wall of the login page. Each game carries the catalog data the client needs to feature one of them in its "Up next" card. Only exposes catalog data: no user data is ever included.
 
     **Authentication:** Public, no auth required.
     **Rate Limit:** 300 requests per minute (public limiter).
 
     ### Selection
 
-    - Up to 21 active games that are not DLCs and have a `backgroundUrl`.
-    - Ordered by `GamePopularities.score` desc (games without a popularity row count as 0), then `title` asc and `id` asc as a stable tie-break.
-    - `featured` is the game of that set with the best ratio. It uses the same canonical sources as `GET /games?sort_by=ratio`: the score of the source with the lowest `priority`, normalized to 0-5, and the duration picked by `completr` → `hltb` → `rawg`. Games without score or duration are skipped. On a ratio tie the most popular game wins.
-    - `featured` is `null` when no game of the set has both score and duration.
-    - `score` is normalized 0-5 with 2 decimals, `hours` has 1 decimal and `ratio` is on the 0-100 scale divided by hours, with 2 decimals (same formula as the rest of the API).
+    - The pool is up to 80 active games that are not DLCs and have a `backgroundUrl`, ordered by `GamePopularities.score` desc (games without a popularity row count as 0), then `title` asc and `id` asc as a stable tie-break.
+    - The response is a random sample of 21 games of that pool, in random order (or the whole pool when it is smaller).
+    - `releaseYear` comes from the release date and is `null` when unknown. `genres` holds the genre names in alphabetical order.
+    - `score`, `hours` and `ratio` use the same canonical sources as `GET /games?sort_by=ratio`: the score of the source with the lowest `priority`, normalized to 0-5, and the duration picked by `completr` → `hltb` → `rawg`. `score` has 2 decimals, `hours` 1 decimal and `ratio` is on the 0-100 scale divided by hours, with 2 decimals (same formula as the rest of the API). Each one is `null` when its data is missing; `ratio` is `null` when either score or duration is missing.
+    - There is no featured game in the response: the client picks one.
 
-    The response is cached in memory for 30 minutes. If refreshing it fails and a previous result exists, the stale result is served.
+    The sample is cached in memory for 30 minutes, so it changes on every refresh. If refreshing it fails and a previous result exists, the stale result is served.
 
     ### Response (200)
 
@@ -39,18 +39,14 @@ docs: |-
             "id": "uuid",
             "code": "hades",
             "title": "Hades",
-            "backgroundUrl": "https://media.rawg.io/media/games/1f4/1f47a270b8f241e4676b14d39ec620f7.jpg"
+            "backgroundUrl": "https://media.rawg.io/media/games/1f4/1f47a270b8f241e4676b14d39ec620f7.jpg",
+            "releaseYear": 2020,
+            "genres": ["Action", "Indie", "RPG"],
+            "score": 4.65,
+            "hours": 22.5,
+            "ratio": 4.13
           }
-        ],
-        "featured": {
-          "id": "uuid",
-          "code": "hades",
-          "title": "Hades",
-          "backgroundUrl": "https://media.rawg.io/media/games/1f4/1f47a270b8f241e4676b14d39ec620f7.jpg",
-          "score": 4.65,
-          "hours": 22.5,
-          "ratio": 4.13
-        }
+        ]
       }
     }
     ```

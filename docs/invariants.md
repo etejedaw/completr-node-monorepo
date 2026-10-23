@@ -340,10 +340,10 @@ Reglas:
 
 ## Showcase de juegos
 
-- `GET /games/showcase` es público (sin token, `publicLimiter`) y solo expone datos de catálogo: `id`, `code`, `title`, `backgroundUrl`, y `score`, `hours` y `ratio` del juego destacado.
-- Devuelve hasta 21 juegos activos, no DLC y con `backgroundUrl`, ordenados por `GamePopularities.score` desc, `title` asc e `id` asc.
-- `featured` es el juego del set con mejor ratio usando las fuentes canónicas de `sort_by=ratio` (score de la fuente con menor `priority` normalizado a 0–5; duración `completr` → `hltb` → `rawg`). Es `null` si ninguno tiene score y duración.
-- La respuesta se cachea en memoria 30 minutos por proceso. Si el refresco falla y hay un resultado previo, se sirve ese.
+- `GET /games/showcase` es público (sin token, `publicLimiter`) y solo expone datos de catálogo de cada juego: `id`, `code`, `title`, `backgroundUrl`, `releaseYear`, `genres` (nombres, orden alfabético), `score`, `hours` y `ratio`.
+- Toma un pool de hasta 80 juegos activos, no DLC y con `backgroundUrl`, ordenados por `GamePopularities.score` desc, `title` asc e `id` asc, y devuelve una muestra al azar de 21 de ese pool, en orden aleatorio.
+- `score`, `hours` y `ratio` usan las fuentes canónicas de `sort_by=ratio` (score de la fuente con menor `priority` normalizado a 0–5; duración `completr` → `hltb` → `rawg`). Son `null` cuando falta el dato; `ratio` es `null` si falta score o duración. No hay juego destacado en la respuesta: lo elige el cliente.
+- La muestra se cachea en memoria 30 minutos por proceso, así que cambia con cada refresco. Si el refresco falla y hay un resultado previo, se sirve ese.
 
 ## Providers externos
 
