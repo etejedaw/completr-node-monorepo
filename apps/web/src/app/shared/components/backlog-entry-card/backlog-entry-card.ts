@@ -55,7 +55,10 @@ const CHANGEABLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		UiAvatar
 	],
 	templateUrl: "./backlog-entry-card.html",
-	host: { class: "relative flex flex-col h-full" },
+	host: {
+		class: "relative flex flex-col h-full [overflow-clip-margin:3rem] [contain-intrinsic-size:auto_180px] max-sm:[contain-intrinsic-size:auto_225px]",
+		"[style.content-visibility]": "statusMenuOpen() ? 'visible' : 'auto'"
+	},
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BacklogEntryCard {
