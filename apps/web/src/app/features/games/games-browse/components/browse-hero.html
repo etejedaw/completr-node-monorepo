@@ -5,16 +5,17 @@
 	aria-label="Featured games"
 >
 	<div aria-hidden="true" class="absolute inset-0 -z-10">
-		@for (item of games(); track item.id; let i = $index) {
+		@for (item of games(); track item.id; let i = $index) { @if
+		(mountedIndexes().has(i)) {
 		<img
-			[src]="item.backgroundUrl"
+			[src]="item.backgroundUrl | coverUrl: 1280"
 			alt=""
 			[attr.fetchpriority]="i === 0 ? 'high' : null"
 			[attr.loading]="i === 0 ? null : 'lazy'"
 			class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out"
 			[class]="i === index() ? 'opacity-80' : 'opacity-0'"
 		/>
-		}
+		} }
 		<div
 			class="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/60 to-canvas/10"
 		></div>

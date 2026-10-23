@@ -131,6 +131,68 @@ describe("BrowseHero", () => {
 		expect(images[1].className).toContain("opacity-0");
 	});
 
+	describe("background images", () => {
+		const RAWG = "https://media.rawg.io/media/";
+		const rawgGames = () =>
+			["a", "b", "c", "d"].map(id =>
+				game(id, { backgroundUrl: `${RAWG}games/${id}.jpg` })
+			);
+		const sources = (element: HTMLElement) =>
+			Array.from(element.querySelectorAll("img")).map(img => img.src);
+
+		it("mounts only the active and the next background at the start", () => {
+			const { element } = render(rawgGames());
+
+			expect(sources(element)).toEqual([
+				`${RAWG}resize/1280/-/games/a.jpg`,
+				`${RAWG}resize/1280/-/games/b.jpg`
+			]);
+		});
+
+		it("mounts the following background when advancing and keeps the seen ones", () => {
+			const { fixture, element } = render(rawgGames());
+
+			button(element, "Next featured game").click();
+			fixture.detectChanges();
+			expect(sources(element)).toEqual([
+				`${RAWG}resize/1280/-/games/a.jpg`,
+				`${RAWG}resize/1280/-/games/b.jpg`,
+				`${RAWG}resize/1280/-/games/c.jpg`
+			]);
+			button(element, "Next featured game").click();
+			fixture.detectChanges();
+			expect(sources(element)).toHaveLength(4);
+		});
+
+		it("keeps the first background mounted after jumping with a dot", () => {
+			const { fixture, element } = render(rawgGames());
+
+			button(element, "Show Game c").click();
+			fixture.detectChanges();
+
+			expect(sources(element)).toEqual([
+				`${RAWG}resize/1280/-/games/a.jpg`,
+				`${RAWG}resize/1280/-/games/c.jpg`,
+				`${RAWG}resize/1280/-/games/d.jpg`
+			]);
+			const images = Array.from(element.querySelectorAll("img"));
+			expect(images[0].className).toContain("opacity-0");
+			expect(images[1].className).toContain("opacity-80");
+		});
+
+		it("mounts the last background and skips the unseen ones when stepping back", () => {
+			const { fixture, element } = render(rawgGames());
+
+			button(element, "Previous featured game").click();
+			fixture.detectChanges();
+
+			expect(sources(element)).toEqual([
+				`${RAWG}resize/1280/-/games/a.jpg`,
+				`${RAWG}resize/1280/-/games/d.jpg`
+			]);
+		});
+	});
+
 	describe("navigation", () => {
 		it("steps forward and wraps around to the first game", () => {
 			const { fixture, element } = render([game("a"), game("b")]);
