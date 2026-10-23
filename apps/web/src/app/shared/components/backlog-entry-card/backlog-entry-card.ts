@@ -9,6 +9,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { MenuKeyboard } from "../../directives/menu-keyboard";
 import { UiAvatar } from "../../ui";
 import {
 	backlogStatusClass,
@@ -50,6 +51,7 @@ const CHANGEABLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		RouterLink,
 		FlipCard,
 		GamePoster,
+		MenuKeyboard,
 		RatioSummary,
 		StarRating,
 		UiAvatar
