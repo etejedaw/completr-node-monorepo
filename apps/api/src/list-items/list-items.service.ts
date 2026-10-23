@@ -1,4 +1,4 @@
-import { type Transaction } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -11,7 +11,7 @@ import * as gameTimesService from "../game-times/game-times.service";
 import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
 import * as gamesProfileService from "../games/services/games-profile.service";
-import { type List } from "../lists/list.model";
+import { List } from "../lists/list.model";
 import * as listsService from "../lists/lists.service";
 import { type ScoreSource } from "../score-sources/score-source.model";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
@@ -74,6 +74,48 @@ function freezeScoresFromContext(gameId: string, ctx: FrozenScoreContext) {
 		score: normalizedScore,
 		duration: gameTime?.duration ?? null
 	};
+}
+
+async function bulkUpdatePositions(
+	rows: { id: string; position: number }[],
+	transaction: Transaction
+) {
+	if (rows.length === 0) return;
+	const values = rows.map(() => "(?::uuid, ?::integer)").join(", ");
+	await sequelize.query(
+		`UPDATE "ListItems" AS li
+		SET "position" = v."position", "updatedAt" = NOW()
+		FROM (VALUES ${values}) AS v("id", "position")
+		WHERE li."id" = v."id"`,
+		{
+			replacements: rows.flatMap(row => [row.id, row.position]),
+			transaction
+		}
+	);
+}
+
+async function bulkUpdateFrozenScores(
+	rows: { id: string; score: number | null; duration: number | null }[],
+	transaction: Transaction
+) {
+	if (rows.length === 0) return;
+	const values = rows
+		.map(() => "(?::uuid, ?::double precision, ?::double precision)")
+		.join(", ");
+	await sequelize.query(
+		`UPDATE "ListItems" AS li
+		SET "score" = v."score", "duration" = v."duration", "updatedAt" = NOW()
+		FROM (VALUES ${values}) AS v("id", "score", "duration")
+		WHERE li."id" = v."id"`,
+		{
+			replacements: rows.flatMap(row => [
+				row.id,
+				row.score,
+				row.duration
+			]),
+			transaction
+		}
+	);
 }
 
 export async function replaceItems(
@@ -139,12 +181,13 @@ export async function replaceItems(
 			const movedItems = existingItems
 				.filter(item => newGameIds.has(item.gameId))
 				.filter(item => item.position !== gameIdOrder.get(item.gameId));
-			for (const item of movedItems) {
-				await item.update(
-					{ position: gameIdOrder.get(item.gameId)! },
-					{ transaction }
-				);
-			}
+			await bulkUpdatePositions(
+				movedItems.map(item => ({
+					id: item.id,
+					position: gameIdOrder.get(item.gameId)!
+				})),
+				transaction
+			);
 		} catch (error) {
 			rethrowSequelizeError(error, {
 				unique: listItemsServiceError.uniqueConstraintError,
@@ -233,15 +276,17 @@ export async function removeItem(
 }
 
 async function loadOwnedLists(listIds: string[], ownedListIds: Set<string>) {
-	return Promise.all(
-		listIds.map(async listId => {
-			const list = await listsService.findListBasicById(listId);
-			if (!list) throw listItemsServiceError.listNotFoundError();
-			if (!ownedListIds.has(list.id))
-				throw listItemsServiceError.forbiddenError();
-			return list;
-		})
-	);
+	const lists = await List.findAll({
+		where: { id: { [Op.in]: listIds } }
+	});
+	const listById = new Map(lists.map(list => [list.id, list]));
+	return listIds.map(listId => {
+		const list = listById.get(listId);
+		if (!list) throw listItemsServiceError.listNotFoundError();
+		if (!ownedListIds.has(list.id))
+			throw listItemsServiceError.forbiddenError();
+		return list;
+	});
 }
 
 export async function setGameLists(
@@ -335,13 +380,13 @@ export async function refreshScores(listId: string, user: RequestUser) {
 	);
 
 	await sequelize.transaction(async (transaction: Transaction) => {
-		for (const item of items) {
-			const { score, duration } = freezeScoresFromContext(
-				item.gameId,
-				ctx
-			);
-			await item.update({ score, duration }, { transaction });
-		}
+		await bulkUpdateFrozenScores(
+			items.map(item => ({
+				id: item.id,
+				...freezeScoresFromContext(item.gameId, ctx)
+			})),
+			transaction
+		);
 	});
 
 	return items.length;

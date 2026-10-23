@@ -13,7 +13,6 @@ import { asModel } from "../unit-helpers/as-model";
 import {
 	buildRequestUser,
 	captureRejection,
-	spy,
 	stub,
 	stubTransaction
 } from "../unit-helpers/mocks";
@@ -311,12 +310,11 @@ void describe("listItemsService.replaceItems", () => {
 		stubList();
 		stubOwnedListCount(1);
 		stubGamesExist(["g-3", "g-1", "g-2"]);
-		const moved = spy();
-		const unchanged = spy();
+		const query = stub(sequelize, "query", async () => []);
 		stub(ListItem, "findAll", async () => [
-			{ id: "li-a", gameId: "g-1", position: 1, update: moved },
-			{ id: "li-b", gameId: "g-9", position: 2, update: spy() },
-			{ id: "li-c", gameId: "g-2", position: 3, update: unchanged }
+			{ id: "li-a", gameId: "g-1", position: 1 },
+			{ id: "li-b", gameId: "g-9", position: 2 },
+			{ id: "li-c", gameId: "g-2", position: 3 }
 		]);
 		stubSources({
 			scores: [{ gameId: "g-3", score: 3 }],
@@ -347,11 +345,11 @@ void describe("listItemsService.replaceItems", () => {
 			],
 			{ transaction }
 		]);
-		assert.deepEqual(moved.mock.calls[0]?.arguments, [
-			{ position: 2 },
-			{ transaction }
-		]);
-		assert.equal(unchanged.mock.callCount(), 0);
+		assert.equal(query.mock.callCount(), 1);
+		assert.deepEqual(query.mock.calls[0]?.arguments[1], {
+			replacements: ["li-a", 2],
+			transaction
+		});
 	});
 });
 
@@ -363,11 +361,10 @@ void describe("listItemsService.refreshScores", () => {
 	void it("reapplies the declared sources to every item and returns the count", async () => {
 		stubList();
 		stubOwnedListCount(1);
-		const first = spy();
-		const second = spy();
+		const query = stub(sequelize, "query", async () => []);
 		stub(ListItem, "findAll", async () => [
-			{ gameId: "g-1", update: first },
-			{ gameId: "g-2", update: second }
+			{ id: "li-1", gameId: "g-1" },
+			{ id: "li-2", gameId: "g-2" }
 		]);
 		stubSources({
 			scores: [{ gameId: "g-1", score: 4 }],
@@ -381,13 +378,10 @@ void describe("listItemsService.refreshScores", () => {
 		);
 
 		assert.equal(refreshed, 2);
-		assert.deepEqual(first.mock.calls[0]?.arguments, [
-			{ score: 4, duration: 10 },
-			{ transaction }
-		]);
-		assert.deepEqual(second.mock.calls[0]?.arguments, [
-			{ score: null, duration: null },
-			{ transaction }
-		]);
+		assert.equal(query.mock.callCount(), 1);
+		assert.deepEqual(query.mock.calls[0]?.arguments[1], {
+			replacements: ["li-1", 4, 10, "li-2", null, null],
+			transaction
+		});
 	});
 });
