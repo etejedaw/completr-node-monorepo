@@ -27,6 +27,24 @@ export async function createGameScore(
 	}
 }
 
+export async function createGameScores(
+	rows: { gameId: string; source: string; score: number }[],
+	transaction?: Transaction
+) {
+	if (rows.length === 0) return [];
+	await assertScoresWithinSourceScale(rows);
+	try {
+		return await GameScore.bulkCreate(rows, {
+			validate: true,
+			transaction
+		});
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: gameScoreServiceError.uniqueConstraintError
+		});
+	}
+}
+
 export async function updateGameScore(
 	gameId: string,
 	source: string,
@@ -52,6 +70,14 @@ export async function findScoresByGameIdsAndSource(
 ) {
 	if (gameIds.length === 0) return [];
 	return GameScore.findAll({ where: { gameId: gameIds, source } });
+}
+
+export async function findScoresByGameIdAndSources(
+	gameId: string,
+	sources: string[]
+) {
+	if (sources.length === 0) return [];
+	return GameScore.findAll({ where: { gameId, source: sources } });
 }
 
 export async function upsertScore(
@@ -121,6 +147,27 @@ async function assertGameExists(gameId: string, transaction: Transaction) {
 
 async function assertScoreWithinSourceScale(source: string, score: number) {
 	const scoreSource = await scoreSourcesService.findByCode(source);
+	assertScoreFitsSource(scoreSource, source, score);
+}
+
+async function assertScoresWithinSourceScale(
+	rows: { source: string; score: number }[]
+) {
+	const scoreSources = await scoreSourcesService.findByCodes([
+		...new Set(rows.map(row => row.source))
+	]);
+	const scoreSourceByCode = new Map(
+		scoreSources.map(scoreSource => [scoreSource.code, scoreSource])
+	);
+	for (const { source, score } of rows)
+		assertScoreFitsSource(scoreSourceByCode.get(source), source, score);
+}
+
+function assertScoreFitsSource(
+	scoreSource: { scale: number } | null | undefined,
+	source: string,
+	score: number
+) {
 	if (!scoreSource) throw gameScoreServiceError.unknownSourceError(source);
 	if (score > scoreSource.scale)
 		throw gameScoreServiceError.scoreOutOfRangeError(

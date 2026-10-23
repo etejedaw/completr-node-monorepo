@@ -16,6 +16,11 @@ export async function findByCode(code: string) {
 	return ScoreSource.findOne({ where: { code } });
 }
 
+export async function findByCodes(codes: string[]) {
+	if (codes.length === 0) return [];
+	return ScoreSource.findAll({ where: { code: codes } });
+}
+
 export async function findExistingCodes(codes: string[]): Promise<Set<string>> {
 	if (codes.length === 0) return new Set();
 	const sources = await ScoreSource.findAll({

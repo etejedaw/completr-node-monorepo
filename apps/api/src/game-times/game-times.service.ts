@@ -24,6 +24,23 @@ export async function createGameTime(
 	}
 }
 
+export async function createGameTimes(
+	rows: { gameId: string; source: TimeSource; duration: number }[],
+	transaction?: Transaction
+) {
+	if (rows.length === 0) return [];
+	try {
+		return await GameTime.bulkCreate(rows, {
+			validate: true,
+			transaction
+		});
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: gameTimeServiceError.uniqueConstraintError
+		});
+	}
+}
+
 export async function updateGameTime(
 	gameId: string,
 	source: TimeSource,
@@ -48,6 +65,14 @@ export async function findTimesByGameIdsAndSource(
 ) {
 	if (gameIds.length === 0) return [];
 	return GameTime.findAll({ where: { gameId: gameIds, source } });
+}
+
+export async function findTimesByGameIdAndSources(
+	gameId: string,
+	sources: TimeSource[]
+) {
+	if (sources.length === 0) return [];
+	return GameTime.findAll({ where: { gameId, source: sources } });
 }
 
 export async function upsertTime(
