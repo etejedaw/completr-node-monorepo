@@ -21,6 +21,7 @@ import {
 } from "./helpers/visibility.helper";
 import { type ComparisonDimension } from "./schemas/comparison-query.schema";
 import { type User } from "./user.model";
+import * as userCardsService from "./user-cards.service";
 import {
 	type BacklogStatusCounts,
 	type ComparisonGameEntry,
@@ -545,71 +546,5 @@ export async function getConnectionCardsForUsername(
 			: (await userFollowersService.getFollowing(username)).map(
 					row => row.Following
 				);
-	return buildUserCards(viewerId, users);
-}
-
-export async function buildUserCards(
-	viewerId: string | undefined,
-	users: User[]
-): Promise<UserCardInsights[]> {
-	return Promise.all(users.map(user => buildUserCard(viewerId, user)));
-}
-
-async function buildUserCard(
-	viewerId: string | undefined,
-	user: User
-): Promise<UserCardInsights> {
-	const isSelf = viewerId === user.id;
-	const [profileVisible, isFollowing] = await Promise.all([
-		canView(viewerId, user, "profile"),
-		viewerId && !isSelf
-			? userFollowersService.isFollowing(viewerId, user.id)
-			: Promise.resolve(false)
-	]);
-	if (!profileVisible) {
-		return {
-			user,
-			isSelf,
-			profileVisible,
-			followerCount: null,
-			isFollowing,
-			gamesTotal: null,
-			completedTotal: null,
-			featuredGame: null
-		};
-	}
-
-	const [canViewBacklog, canViewFavorites] = await Promise.all([
-		canView(viewerId, user, "backlog"),
-		canView(viewerId, user, "favorite")
-	]);
-	const [followerCount, backlogStats, featuredGame] = await Promise.all([
-		userFollowersService.getFollowerCount(user.id),
-		canViewBacklog
-			? backlogService.countBacklogByStatus(user.id, !isSelf)
-			: Promise.resolve(null),
-		canViewFavorites ? loadFeaturedFavorite(user.id) : Promise.resolve(null)
-	]);
-
-	return {
-		user,
-		isSelf,
-		profileVisible,
-		followerCount,
-		isFollowing,
-		gamesTotal: backlogStats?.total ?? null,
-		completedTotal: backlogStats?.completed ?? null,
-		featuredGame
-	};
-}
-
-async function loadFeaturedFavorite(userId: string) {
-	const { rows } = await favoritesService.findFavoritesByUserIdPaginated(
-		userId,
-		{ limit: 1 }
-	);
-	const game = rows[0]?.get({ plain: true }).Game;
-	return game
-		? { title: game.title, backgroundUrl: game.backgroundUrl ?? null }
-		: null;
+	return userCardsService.buildUserCards(viewerId, users);
 }

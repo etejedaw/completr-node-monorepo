@@ -12,7 +12,6 @@ import { USER_CARD_ATTRS } from "../../src/users/constants/user-attrs.constants"
 import { type VisibilityLevel } from "../../src/users/constants/visibility.constants";
 import { User } from "../../src/users/user.model";
 import { buildUserCards } from "../../src/users/user-cards.service";
-import * as usersProfileService from "../../src/users/users-profile.service";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
 import { truncateAllTables, useTestDatabase } from "../helpers/database.helper";
@@ -440,31 +439,5 @@ void describe("user cards query count", () => {
 			assert.deepEqual(result, []);
 			assert.equal(count, 0);
 		});
-	});
-
-	void describe("equivalence with the legacy buildUserCards", () => {
-		let seed: Awaited<ReturnType<typeof seedVariedCards>>;
-
-		before(async () => {
-			seed = await seedVariedCards();
-		});
-
-		for (const scenario of ["mutual", "stranger", "anonymous"] as const) {
-			void it(`matches the per-user cards for a ${scenario} viewer`, async () => {
-				const viewerId = seed.viewerIds[scenario];
-
-				const batched = await buildUserCards(viewerId, seed.users);
-				const perUser = await usersProfileService.buildUserCards(
-					viewerId,
-					seed.users
-				);
-
-				assert.equal(seed.users.length, 9);
-				assert.ok(batched.some(card => !card.profileVisible));
-				assert.ok(batched.some(card => card.featuredGame !== null));
-				assert.ok(batched.some(card => card.gamesTotal !== null));
-				assert.deepEqual(batched, perUser);
-			});
-		}
 	});
 });
