@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { sequelize } from "../../src/database/sequelize.database";
 import { ListItem } from "../../src/list-items/list-item.model";
 import { SavedFilter } from "../../src/saved-filters/saved-filter.model";
 import { api } from "../helpers/app.helper";
@@ -20,6 +21,7 @@ const FEW = 1;
 const FEW_MOVABLE = 2;
 const MANY = 6;
 const MAX_OWNED_LISTS = 5;
+const PAST = new Date("2020-01-01T00:00:00.000Z");
 
 let scoreSource: string;
 
@@ -88,9 +90,9 @@ void describe("PUT /lists/:listId/items query count", () => {
 	void it("refreshes updatedAt of the moved items", async () => {
 		const owner = await createUserWithSession();
 		const { list, games } = await createListWithItems(owner.user.id, 3);
-		const before = await ListItem.findAll({ where: { listId: list.id } });
-		const updatedAtByGame = new Map(
-			before.map(item => [item.gameId, item.updatedAt.getTime()])
+		await sequelize.query(
+			`UPDATE "ListItems" SET "updatedAt" = :past WHERE "listId" = :listId`,
+			{ replacements: { past: PAST, listId: list.id } }
 		);
 
 		await api()
@@ -100,11 +102,11 @@ void describe("PUT /lists/:listId/items query count", () => {
 			.expect(200);
 
 		const after = await ListItem.findAll({ where: { listId: list.id } });
+		assert.equal(after.length, 3);
 		for (const item of after) {
-			const previous = updatedAtByGame.get(item.gameId)!;
 			if (item.gameId === games[2]!.id)
-				assert.equal(item.updatedAt.getTime(), previous);
-			else assert.ok(item.updatedAt.getTime() > previous);
+				assert.equal(item.updatedAt.getTime(), PAST.getTime());
+			else assert.ok(item.updatedAt.getTime() > PAST.getTime());
 		}
 	});
 });

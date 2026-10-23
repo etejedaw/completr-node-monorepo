@@ -240,15 +240,8 @@ void describe("PUT /games/:gameId/lists", () => {
 		const toRemove = await createList(owner.user.id, scoreSource);
 		await addItem(toRemove.id, game.id, 1);
 
-		const originalCreate = ListItem.create.bind(ListItem);
-		let calls = 0;
-		const createMock = mock.method(ListItem, "create", ((
-			...args: Parameters<typeof originalCreate>
-		) => {
-			calls += 1;
-			if (calls === 2) return Promise.reject(new Error("boom"));
-			return originalCreate(...args);
-		}) as typeof ListItem.create);
+		const destroyMock = mock.method(ListItem, "destroy", (() =>
+			Promise.reject(new Error("boom"))) as typeof ListItem.destroy);
 
 		try {
 			const response = await putGameLists(owner.authorization, game.id, [
@@ -257,9 +250,9 @@ void describe("PUT /games/:gameId/lists", () => {
 			]);
 
 			assert.equal(response.status, 500);
-			assert.equal(calls, 2);
+			assert.equal(destroyMock.mock.callCount(), 1);
 		} finally {
-			createMock.mock.restore();
+			destroyMock.mock.restore();
 		}
 
 		assert.deepEqual(await listGameIds(firstToAdd.id), []);
