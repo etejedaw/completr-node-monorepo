@@ -226,7 +226,8 @@ void describe("userHighlightsSerializer", () => {
 					startsAt: "2024-01-01",
 					endsAt: "2024-01-31",
 					completedCount: 2,
-					mostPlayed: entry,
+					longestPlayed: entry,
+					bestPersonalRatio: entry,
 					highestRated: null
 				}
 			}
@@ -245,7 +246,8 @@ void describe("userHighlightsSerializer", () => {
 		const { highlights } = userHighlightsSerializer(buildHighlights(false));
 
 		assert.equal("notes" in highlights.recent[0]!, false);
-		assert.equal("notes" in highlights.month.mostPlayed!, false);
+		assert.equal("notes" in highlights.month.longestPlayed!, false);
+		assert.equal("notes" in highlights.month.bestPersonalRatio!, false);
 	});
 });
 

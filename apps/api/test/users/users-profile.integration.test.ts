@@ -61,6 +61,7 @@ interface EntryOverrides {
 	status?: BacklogStatus;
 	finishedAt?: string;
 	realDuration?: number;
+	score?: number;
 	userRating?: number;
 	notes?: string;
 	isPublic?: boolean;
@@ -477,7 +478,8 @@ void describe("public profile endpoints", () => {
 			assert.ok(recent.every((entry: object) => !("notes" in entry)));
 			assert.equal(month.startsAt, CURRENT_MONTH_START);
 			assert.equal(month.completedCount, 1);
-			assert.equal(month.mostPlayed.id, openSeed.publicToday.id);
+			assert.equal(month.longestPlayed.id, openSeed.publicToday.id);
+			assert.equal(month.bestPersonalRatio.id, openSeed.publicToday.id);
 			assert.equal(month.highestRated.id, openSeed.publicToday.id);
 		});
 
@@ -507,7 +509,8 @@ void describe("public profile endpoints", () => {
 			);
 			assert.equal(publicEntry.notes, "private notes");
 			assert.equal(month.completedCount, 2);
-			assert.equal(month.mostPlayed.id, openSeed.privateToday.id);
+			assert.equal(month.longestPlayed.id, openSeed.privateToday.id);
+			assert.equal(month.bestPersonalRatio.id, openSeed.publicToday.id);
 			assert.equal(month.highestRated.id, openSeed.privateToday.id);
 		});
 
@@ -528,11 +531,19 @@ void describe("public profile endpoints", () => {
 			assert.equal(visitorMonth.startsAt, "2024-03-01T00:00:00.000Z");
 			assert.equal(visitorMonth.endsAt, "2024-03-31T23:59:59.999Z");
 			assert.equal(visitorMonth.completedCount, 2);
-			assert.equal(visitorMonth.mostPlayed.id, openSeed.march20.id);
+			assert.equal(visitorMonth.longestPlayed.id, openSeed.march20.id);
+			assert.equal(
+				visitorMonth.bestPersonalRatio.id,
+				openSeed.march10.id
+			);
 			assert.equal(visitorMonth.highestRated.id, openSeed.march10.id);
 			const ownerMonth = owner.body.data.highlights.month;
 			assert.equal(ownerMonth.completedCount, 3);
-			assert.equal(ownerMonth.mostPlayed.id, openSeed.march15Private.id);
+			assert.equal(
+				ownerMonth.longestPlayed.id,
+				openSeed.march15Private.id
+			);
+			assert.equal(ownerMonth.bestPersonalRatio.id, openSeed.march10.id);
 			assert.equal(
 				ownerMonth.highestRated.id,
 				openSeed.march15Private.id
@@ -550,8 +561,59 @@ void describe("public profile endpoints", () => {
 			assert.equal(response.status, 200);
 			const { month } = response.body.data.highlights;
 			assert.equal(month.completedCount, 0);
-			assert.equal(month.mostPlayed, null);
+			assert.equal(month.longestPlayed, null);
+			assert.equal(month.bestPersonalRatio, null);
 			assert.equal(month.highestRated, null);
+		});
+
+		void it("picks the highest personal ratio of the month over the longest played one", async () => {
+			const player = await createUserWithSession();
+			const [slow, fast, unplayed] = await Promise.all(
+				Array.from({ length: 3 }, () => createGame())
+			);
+			await createEntry(player.user.id, slow!, {
+				finishedAt: "2022-06-10",
+				score: 5,
+				realDuration: 40
+			});
+			const best = await createEntry(player.user.id, fast!, {
+				finishedAt: "2022-06-12",
+				score: 4,
+				realDuration: 5
+			});
+			await createEntry(player.user.id, unplayed!, {
+				finishedAt: "2022-06-14"
+			});
+
+			const response = await highlights(
+				player.user.username,
+				player.authorization,
+				{ year: 2022, month: 6 }
+			);
+
+			const { month } = response.body.data.highlights;
+			assert.equal(month.completedCount, 3);
+			assert.equal(month.bestPersonalRatio.id, best.id);
+			assert.equal(month.bestPersonalRatio.personalRatio, 16);
+		});
+
+		void it("answers a null best personal ratio when no completion has a real duration", async () => {
+			const player = await createUserWithSession();
+			const game = await createGame();
+			await createEntry(player.user.id, game, {
+				finishedAt: "2022-07-10"
+			});
+
+			const response = await highlights(
+				player.user.username,
+				player.authorization,
+				{ year: 2022, month: 7 }
+			);
+
+			const { month } = response.body.data.highlights;
+			assert.equal(month.completedCount, 1);
+			assert.equal(month.bestPersonalRatio, null);
+			assert.equal(month.longestPlayed, null);
 		});
 
 		void it("rejects an incomplete or out of range month with 422 COMMON_SCHEMA_INVALID", async () => {

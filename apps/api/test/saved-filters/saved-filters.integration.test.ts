@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { describe, it } from "node:test";
 
+import { Backlog } from "../../src/backlog/backlog.model";
 import { SavedFilter } from "../../src/saved-filters/saved-filter.model";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
@@ -376,6 +377,57 @@ void describe("GET /users/me/saved-filters/:filterId/stats", () => {
 		assert.equal(stats.countByStatus.playing, 0);
 		assert.equal(stats.completionRate, 0.5);
 		assert.equal(stats.abandonmentRate, 0.5);
+	});
+
+	void it("expresses the average and best ratios in the 0-100 scale", async () => {
+		const owner = await createUserWithSession();
+		const platform = await createPlatform();
+		const [fast, slow, unplayed] = await Promise.all([
+			createGame(),
+			createGame(),
+			createGame()
+		]);
+		await Backlog.create({
+			userId: owner.user.id,
+			gameId: fast.id,
+			platformId: platform.id,
+			status: "completed",
+			score: 4,
+			duration: 10,
+			realDuration: 8
+		});
+		await Backlog.create({
+			userId: owner.user.id,
+			gameId: slow.id,
+			platformId: platform.id,
+			status: "completed",
+			score: 3,
+			duration: 20,
+			realDuration: 30
+		});
+		await Backlog.create({
+			userId: owner.user.id,
+			gameId: unplayed.id,
+			platformId: platform.id,
+			status: "not_started",
+			score: 4,
+			duration: 7
+		});
+		const filter = await postFilter(owner.authorization, {
+			name: "Everything",
+			filters: {}
+		}).expect(201);
+
+		const response = await api()
+			.get(`${FILTERS_PATH}/${filter.body.data.savedFilter.id}/stats`)
+			.set("Authorization", owner.authorization);
+
+		assert.equal(response.status, 200);
+		const { stats } = response.body.data;
+		assert.equal(stats.avgRatio, 7.48);
+		assert.equal(stats.avgPersonalRatio, 6);
+		assert.equal(stats.bestPersonalRatio.game.id, fast.id);
+		assert.equal(stats.bestPersonalRatio.value, 10);
 	});
 
 	void it("rejects another user's filter with 403 SAVED_FILTER_FORBIDDEN", async () => {
