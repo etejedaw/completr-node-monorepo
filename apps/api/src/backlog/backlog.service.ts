@@ -11,6 +11,10 @@ import {
 import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import {
+	calculateRatio,
+	RATIO_SCORE_MULTIPLIER
+} from "../common/utils/calculate-ratio.util";
 import { sequelize } from "../database/sequelize.database";
 import * as gameShelfService from "../game-shelf/game-shelf.service";
 import { Game } from "../games/game.model";
@@ -688,13 +692,13 @@ export async function computeBacklogStats(
 			[fn("AVG", col("userRating")), "avgUserRating"],
 			[
 				literal(
-					`AVG("Backlog"."score" / NULLIF("Backlog"."duration", 0))`
+					`ROUND((AVG("Backlog"."score" / NULLIF("Backlog"."duration", 0)) * ${RATIO_SCORE_MULTIPLIER})::numeric, 2)`
 				),
 				"avgRatio"
 			],
 			[
 				literal(
-					`AVG("Backlog"."score" / NULLIF("Backlog"."realDuration", 0))`
+					`ROUND((AVG("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) * ${RATIO_SCORE_MULTIPLIER})::numeric, 2)`
 				),
 				"avgPersonalRatio"
 			],
@@ -744,13 +748,9 @@ export async function computeBacklogStats(
 		countCompletionsByMonth(baseWhere)
 	]);
 
-	const bestPersonalRatioValue =
-		bestRatioEntry &&
-		bestRatioEntry.score !== null &&
-		bestRatioEntry.score !== undefined &&
-		bestRatioEntry.realDuration
-			? bestRatioEntry.score / bestRatioEntry.realDuration
-			: null;
+	const bestPersonalRatioValue = bestRatioEntry
+		? calculateRatio(bestRatioEntry.score, bestRatioEntry.realDuration)
+		: null;
 
 	return {
 		totalEntries,
@@ -945,16 +945,23 @@ export async function findHighlightsByUserId(
 		order: [["finishedAt", "DESC"]]
 	});
 
-	let mostPlayed: Backlog | null = null;
+	let longestPlayed: Backlog | null = null;
+	let bestPersonalRatio: Backlog | null = null;
+	let bestPersonalRatioValue = 0;
 	let highestRated: Backlog | null = null;
 	for (const entry of monthEntries) {
 		if (
 			entry.realDuration !== null &&
 			entry.realDuration !== undefined &&
-			(mostPlayed === null ||
-				(mostPlayed.realDuration ?? 0) < entry.realDuration)
+			(longestPlayed === null ||
+				(longestPlayed.realDuration ?? 0) < entry.realDuration)
 		) {
-			mostPlayed = entry;
+			longestPlayed = entry;
+		}
+		const personalRatio = calculateRatio(entry.score, entry.realDuration);
+		if (personalRatio !== null && personalRatio > bestPersonalRatioValue) {
+			bestPersonalRatio = entry;
+			bestPersonalRatioValue = personalRatio;
 		}
 		if (
 			entry.userRating !== null &&
@@ -972,7 +979,8 @@ export async function findHighlightsByUserId(
 			startsAt: monthStart,
 			endsAt: monthEnd,
 			completedCount: monthEntries.length,
-			mostPlayed,
+			longestPlayed,
+			bestPersonalRatio,
 			highestRated
 		}
 	};

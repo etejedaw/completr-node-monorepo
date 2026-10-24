@@ -162,7 +162,10 @@ export function userHighlightsSerializer(bundle: UserHighlightsBundle) {
 				startsAt: highlights.month.startsAt,
 				endsAt: highlights.month.endsAt,
 				completedCount: highlights.month.completedCount,
-				mostPlayed: serialize(highlights.month.mostPlayed),
+				longestPlayed: serialize(highlights.month.longestPlayed),
+				bestPersonalRatio: serialize(
+					highlights.month.bestPersonalRatio
+				),
 				highestRated: serialize(highlights.month.highestRated)
 			}
 		}
