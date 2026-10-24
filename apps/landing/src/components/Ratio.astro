@@ -22,7 +22,7 @@ const steps = [
 		icon: "speed",
 		title: "Mira el Ratio",
 		description:
-			"Completr divide la nota por las horas y te muestra cuánto rinde cada hora que le dedicas."
+			"Completr lleva la nota a escala 100, la divide por las horas y te muestra cuánto rinde cada hora que le dedicas."
 	},
 	{
 		icon: "sports_esports",
@@ -59,9 +59,9 @@ const steps = [
 					class="m-0 mb-4 text-[var(--color-fg-secondary)] leading-relaxed"
 				>
 					El <strong class="text-[var(--color-fg)]">Ratio</strong> responde
-					la pregunta de cada noche: <em>¿qué juego ahora?</em> Divide la
-					nota del juego por las horas que toma terminarlo y premia a los
-					que más te dan por cada hora.
+					la pregunta de cada noche: <em>¿qué juego ahora?</em> Lleva la
+					nota del juego (0 a 5) a escala 100 con ×20, la divide por las horas que toma
+					terminarlo y premia a los que más te dan por cada hora.
 				</p>
 				<p
 					class="m-0 mb-6 text-[var(--color-fg-secondary)] leading-relaxed"
@@ -77,6 +77,8 @@ const steps = [
 					>
 					<span>=</span>
 					<span>nota</span>
+					<span>×</span>
+					<span>20</span>
 					<span>÷</span>
 					<span>horas para terminarlo</span>
 				</p>
