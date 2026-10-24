@@ -11,6 +11,7 @@ export interface HighlightEntry {
 	status: string;
 	userRating?: number | null;
 	realDuration?: number | null;
+	personalRatio?: number | null;
 	finishedAt?: string | null;
 	game: GameSummary;
 	platform: { id: string; abbreviation: string };
@@ -37,7 +38,8 @@ export interface HighlightsData {
 		startsAt: string;
 		endsAt: string;
 		completedCount: number;
-		mostPlayed: HighlightEntry | null;
+		longestPlayed: HighlightEntry | null;
+		bestPersonalRatio: HighlightEntry | null;
 		highestRated: HighlightEntry | null;
 	};
 }

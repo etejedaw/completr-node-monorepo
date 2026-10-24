@@ -48,7 +48,7 @@ import {
 	type UserComparison
 } from "./services/public-library.service";
 import {
-	type HighlightEntry,
+	type HighlightsData,
 	PublicReviewsService,
 	type ReviewEntry
 } from "./services/public-reviews.service";
@@ -161,16 +161,7 @@ export class PublicProfileComponent implements OnInit {
 		if (!p) return false;
 		return this.visibility().feed && p.recentActivity.length > 0;
 	});
-	protected readonly highlightsData = signal<{
-		recent: HighlightEntry[];
-		month: {
-			startsAt: string;
-			endsAt: string;
-			completedCount: number;
-			mostPlayed: HighlightEntry | null;
-			highestRated: HighlightEntry | null;
-		};
-	} | null>(null);
+	protected readonly highlightsData = signal<HighlightsData | null>(null);
 	protected readonly highlightsMonth = signal(this.currentMonth());
 	protected readonly isLoadingHighlightsMonth = signal(false);
 	protected readonly monthLabel = computed(() => {
@@ -275,7 +266,8 @@ export class PublicProfileComponent implements OnInit {
 						startsAt: new Date().toISOString(),
 						endsAt: new Date().toISOString(),
 						completedCount: 0,
-						mostPlayed: null,
+						longestPlayed: null,
+						bestPersonalRatio: null,
 						highestRated: null
 					}
 				})

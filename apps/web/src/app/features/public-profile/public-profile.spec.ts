@@ -102,7 +102,8 @@ const emptyHighlights = {
 		startsAt: "2026-02-01T00:00:00.000Z",
 		endsAt: "2026-02-28T00:00:00.000Z",
 		completedCount: 0,
-		mostPlayed: null,
+		longestPlayed: null,
+		bestPersonalRatio: null,
 		highestRated: null
 	}
 };

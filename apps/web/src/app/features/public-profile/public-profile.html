@@ -171,7 +171,8 @@
 	<app-profile-month-review
 		[monthLabel]="monthLabel()"
 		[completedCount]="highlightsData()!.month.completedCount"
-		[mostPlayed]="highlightsData()!.month.mostPlayed"
+		[longestPlayed]="highlightsData()!.month.longestPlayed"
+		[bestPersonalRatio]="highlightsData()!.month.bestPersonalRatio"
 		[highestRated]="highlightsData()!.month.highestRated"
 		[canGoNext]="!isAtCurrentMonth()"
 		[loading]="isLoadingHighlightsMonth()"

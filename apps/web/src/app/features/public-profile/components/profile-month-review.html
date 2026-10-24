@@ -39,7 +39,7 @@
 	</header>
 
 	<div
-		class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] transition-opacity"
+		class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,0.8fr)_repeat(3,minmax(0,1fr))] transition-opacity"
 		[class.opacity-50]="loading()"
 	>
 		<div
@@ -62,8 +62,8 @@
 			</p>
 		</div>
 
-		@for (highlight of [mostPlayed(), highestRated()]; track $index; let
-		first = $first) { @if (highlight; as entry) {
+		@for (highlight of highlights(); track highlight.key) { @if
+		(highlight.entry; as entry) {
 		<a
 			class="group relative isolate flex items-end gap-4 min-h-[9.5rem] p-4 rounded-card overflow-hidden border border-line no-underline transition hover:border-brand/50"
 			[routerLink]="['/games', entry.game.code]"
@@ -91,23 +91,20 @@
 			<span class="flex-1 min-w-0 flex flex-col gap-1">
 				<span
 					class="inline-flex items-center gap-1 text-[0.625rem] font-semibold uppercase tracking-[0.16em]"
-					[class]="first ? 'text-info' : 'text-rating'"
+					[class]="highlight.labelClass"
 				>
 					<span aria-hidden="true" class="material-icons text-sm"
-						>{{ first ? 'schedule' : 'star' }}</span
+						>{{ highlight.icon }}</span
 					>
-					{{ first ? 'Most played' : 'Highest rated' }}
+					{{ highlight.label }}
 				</span>
 				<span
 					class="font-display text-base font-semibold text-white leading-tight line-clamp-2"
 					>{{ entry.game.title }}</span
 				>
-				<span class="text-xs text-white/70 tabular-nums">
-					@if (first && entry.realDuration) { {{ entry.realDuration
-					}}h played } @else if (!first && entry.userRating) { ★ {{
-					entry.userRating }} } @else { {{ entry.platform.abbreviation
-					}} }
-				</span>
+				<span class="text-xs text-white/70 tabular-nums"
+					>{{ highlight.value ?? entry.platform.abbreviation }}</span
+				>
 			</span>
 		</a>
 		} @else {
@@ -115,9 +112,10 @@
 			class="flex flex-col items-center justify-center gap-1.5 min-h-[9.5rem] p-4 rounded-card border border-dashed border-line text-center text-sm text-fg-muted"
 		>
 			<span aria-hidden="true" class="material-icons text-xl"
-				>{{ first ? 'schedule' : 'star_border' }}</span
+				>{{ highlight.emptyIcon }}</span
 			>
-			{{ first ? 'No playtime logged' : 'No ratings this month' }}
+			<span class="sr-only">{{ highlight.label }}:</span>
+			{{ highlight.emptyText }}
 		</div>
 		} }
 	</div>
