@@ -50,8 +50,8 @@ docs: |-
           "avgEstimatedDuration": 18.7,
           "avgScore": 82.4,
           "avgUserRating": 7.6,
-          "avgRatio": 4.71,
-          "avgPersonalRatio": 4.03,
+          "avgRatio": 94.2,
+          "avgPersonalRatio": 80.6,
           "estimatedVsRealDelta": 52.1,
           "completionRate": 0.714,
           "abandonmentRate": 0.095,
@@ -91,8 +91,8 @@ docs: |-
     ### Notes
 
     - `totalRealHours` sums `realDuration` across all matching entries (nulls ignored).
-    - `avgRatio` = `AVG(score / NULLIF(duration, 0))`.
-    - `avgPersonalRatio` = `AVG(score / NULLIF(realDuration, 0))`.
+    - `avgRatio` = `AVG(score / NULLIF(duration, 0)) * 20`, rounded to 2 decimals (0-100 scale, same as `ratio` of a backlog entry).
+    - `avgPersonalRatio` = `AVG(score / NULLIF(realDuration, 0)) * 20`, rounded to 2 decimals (0-100 scale, same as `personalRatio`). The `value` of `bestPersonalRatio` uses the same scale.
     - `estimatedVsRealDelta` = `SUM(realDuration - duration)` over `completed` entries. Positive means players took longer than the estimated duration on average.
     - `completionRate` / `abandonmentRate` are ratios in [0, 1] (multiply by 100 for percent). `null` when `totalEntries = 0`.
     - Highlights (`longestPlayed`, `bestPersonalRatio`, `highestRated`) return the single matching entry with its `value`. `null` when no entry has the required field populated.

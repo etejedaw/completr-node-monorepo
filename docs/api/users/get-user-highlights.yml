@@ -29,7 +29,7 @@ docs: |-
 
     The response contains:
     - `recent`: top 6 most recent completed backlog entries (ordered by `finishedAt` desc).
-    - `month`: summary for the current calendar month (UTC) with `completedCount`, `mostPlayed` (single entry with the highest `realDuration`), and `highestRated` (single entry with the highest `userRating`).
+    - `month`: summary for the current calendar month (UTC) with `completedCount`, `longestPlayed` (single entry with the highest `realDuration`), `bestPersonalRatio` (single entry with the highest `personalRatio`, on the 0-100 scale; requires `realDuration` > 0 and `score`), and `highestRated` (single entry with the highest `userRating`).
 
     Backlog entries are public-only unless the viewer is the owner; private entries are excluded for everyone else.
 
@@ -64,7 +64,8 @@ docs: |-
             "startsAt": "2026-06-01T00:00:00.000Z",
             "endsAt": "2026-06-30T00:00:00.000Z",
             "completedCount": 5,
-            "mostPlayed": { "id": "...", "realDuration": 42.5, "game": {...} },
+            "longestPlayed": { "id": "...", "realDuration": 42.5, "game": {...} },
+            "bestPersonalRatio": { "id": "...", "realDuration": 8, "personalRatio": 10, "game": {...} },
             "highestRated": { "id": "...", "userRating": 9.5, "game": {...} }
           }
         }
@@ -72,7 +73,7 @@ docs: |-
     }
     ```
 
-    `mostPlayed` and `highestRated` may be `null` when no entries qualify.
+    `longestPlayed`, `bestPersonalRatio` and `highestRated` may be `null` when no entries qualify.
 
     ### Errors
 

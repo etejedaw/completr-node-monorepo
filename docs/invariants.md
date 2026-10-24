@@ -219,6 +219,8 @@ Fórmulas y comportamiento en bordes.
 - `ratio = GameShelf.score / GameShelf.duration` — escala 0–100, 2 decimales, `null` si falta alguno.
 - `personalRatio = GameShelf.score / Backlog.realDuration` — desde el backlog completado con `realDuration`. Si hay varios, se elige el primero o el mejor.
 - En `ListItem`, el ratio es `null` cuando la fuente declarada por la lista no tiene score o duration para ese juego.
+- Las stats agregadas del backlog (`avgRatio`, `avgPersonalRatio` y el `value` de `bestPersonalRatio`) usan la misma escala 0–100 y 2 decimales que `ratio` y `personalRatio`. El multiplicador sale de `RATIO_SCORE_MULTIPLIER` en `calculate-ratio.util.ts`.
+- `highlights.month` del perfil expone `longestPlayed` (mayor `realDuration`), `bestPersonalRatio` (mayor `personalRatio` entre las completadas con `realDuration` mayor que 0 y `score`) y `highestRated` (mayor `userRating`). Cada uno es `null` si ninguna entrada del mes califica.
 
 ---
 
