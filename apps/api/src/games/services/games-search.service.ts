@@ -1,13 +1,10 @@
-import {
-	col,
-	fn,
-	type Includeable,
-	Op,
-	where as whereFn,
-	type WhereOptions
-} from "sequelize";
+import { col, fn, type Includeable, Op } from "sequelize";
 
 import { apiKeysConfig } from "../../common/config/api-keys.config";
+import {
+	buildTextSearchRelevanceOrder,
+	buildTextSearchWhere
+} from "../../common/utils/text-search.util";
 import { sequelize } from "../../database/sequelize.database";
 import { type RawgGameDetail } from "../../rawg/rawg.interface";
 import { RawgClient } from "../../rawg/rawg.provider";
@@ -30,6 +27,8 @@ import {
 } from "../utils/search-filters.util";
 
 const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
+
+export const GAME_TITLE_COLUMN = "Game.title";
 
 const GAME_SUMMARY_ATTRS = ["id", "code", "title", "backgroundUrl", "coverUrl"];
 const PLATFORM_ATTRS = ["id", "name", "code", "abbreviation"];
@@ -175,7 +174,8 @@ function collectAndConditions(
 ): object[] {
 	const conditions: (object | null)[] = [];
 
-	if (search) conditions.push(buildTitleSearchWhere(search));
+	if (search)
+		conditions.push(buildTextSearchWhere(search, [GAME_TITLE_COLUMN]));
 
 	conditions.push(buildGenreCondition(filters.genres));
 	conditions.push(buildPlatformCondition(filters.platforms));
@@ -234,43 +234,15 @@ export async function findLatestReviewed(limit = 16) {
 		.filter((g): g is Game => g !== undefined);
 }
 
-export function buildTitleSearchWhere(query: string): WhereOptions | null {
-	const normalized = query
-		.normalize("NFD")
-		.replace(/[\u0300-\u036f]/g, "")
-		.trim()
-		.toLowerCase()
-		.replace(/[^a-z0-9\s]/g, " ")
-		.replace(/\s+/g, " ")
-		.trim();
-	if (!normalized) return null;
-	const tokens = normalized
-		.split(" ")
-		.map(t => t.replace(/[^a-z0-9]/g, ""))
-		.filter(t => t.length > 0);
-	if (tokens.length === 0) return null;
-	const normalizedTitle = fn(
-		"regexp_replace",
-		fn("lower", fn("unaccent", col("title"))),
-		"[^a-z0-9]",
-		"",
-		"g"
-	);
-	return {
-		[Op.and]: tokens.map(token =>
-			whereFn(normalizedTitle, Op.like, `%${token}%`)
-		)
-	};
-}
-
 export async function searchGamesLocal(query: string) {
-	const titleWhere = buildTitleSearchWhere(query);
+	const titleWhere = buildTextSearchWhere(query, [GAME_TITLE_COLUMN]);
 	if (!titleWhere) return [];
 	return Game.findAll({
 		where: {
 			isActive: true,
 			...titleWhere
 		},
+		order: buildTextSearchRelevanceOrder(query, GAME_TITLE_COLUMN),
 		include: [
 			{ association: "Platforms" },
 			{ association: "Genres" },

@@ -6,6 +6,10 @@ import { apiKeysConfig } from "../common/config/api-keys.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
+import {
+	buildTextSearchRelevanceOrder,
+	buildTextSearchWhere
+} from "../common/utils/text-search.util";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { CoopRun } from "../coop-runs/coop-run.model";
 import { sequelize } from "../database/sequelize.database";
@@ -34,9 +38,9 @@ import {
 	rawgToGameMapper
 } from "./mappers/rawg-to-game.mapper";
 import {
-	buildTitleSearchWhere,
 	findGameByCode,
-	findGameById
+	findGameById,
+	GAME_TITLE_COLUMN
 } from "./services/games-search.service";
 import { assertVariantConsistency } from "./services/games-variant.service";
 
@@ -256,13 +260,14 @@ async function isGameInUse(gameId: string, transaction: Transaction) {
 
 export async function searchGames(query: string, forceRawg = false) {
 	if (!forceRawg) {
-		const titleWhere = buildTitleSearchWhere(query);
+		const titleWhere = buildTextSearchWhere(query, [GAME_TITLE_COLUMN]);
 		if (titleWhere) {
 			const localResults = await Game.findAll({
 				where: {
 					isActive: true,
 					...titleWhere
 				},
+				order: buildTextSearchRelevanceOrder(query, GAME_TITLE_COLUMN),
 				include: [
 					{ association: "Platforms" },
 					{ association: "Genres" },
