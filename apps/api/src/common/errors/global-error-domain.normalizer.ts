@@ -7,6 +7,7 @@ import { coopRunsErrorDomainNormalizer } from "../../coop-runs/errors/coop-runs.
 import { favoritesErrorDomainNormalizer } from "../../favorites/errors/favorites.error-domain.normalizer";
 import { franchisesErrorDomainNormalizer } from "../../franchises/errors/franchises.error-domain.normalizer";
 import { gameExternalErrorDomainNormalizer } from "../../game-external/errors/game-external.error-domain.normalizer";
+import { gamePlatinumErrorDomainNormalizer } from "../../game-platinum/errors/game-platinum.error-domain.normalizer";
 import { gameReportsErrorDomainNormalizer } from "../../game-reports/errors/game-reports.error-domain.normalizer";
 import { gameScoresErrorDomainNormalizer } from "../../game-scores/errors/game-scores.error-domain.normalizer";
 import { gameShelfErrorDomainNormalizer } from "../../game-shelf/errors/game-shelf.error-domain.normalizer";
@@ -128,6 +129,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "MoodTags Service")
 		return moodTagsErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "GamePlatinum Service")
+		return gamePlatinumErrorDomainNormalizer(error, correlationId);
 
 	if (error.serviceError.service === "BacklogProgress Service")
 		return backlogProgressErrorDomainNormalizer(error, correlationId);

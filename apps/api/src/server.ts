@@ -15,6 +15,7 @@ import { loggerMiddleware } from "./common/middlewares/logger.middleware";
 import coopRunsRouter from "./coop-runs/coop-runs.routes";
 import franchisesRouter from "./franchises/franchises.routes";
 import gameExternalRouter from "./game-external/game-external.routes";
+import gamePlatinumRouter from "./game-platinum/game-platinum.routes";
 import gameReportsRouter from "./game-reports/game-reports.routes";
 import gameScoresRouter from "./game-scores/game-scores.routes";
 import gameTimesRouter from "./game-times/game-times.routes";
@@ -66,6 +67,7 @@ export function createApp() {
 	app.use(auditRouter);
 	app.use(jobsRouter);
 	app.use(moodTagsRouter);
+	app.use(gamePlatinumRouter);
 	app.use(backlogProgressRouter);
 	app.use(coopRunsRouter);
 	app.use(changelogRouter);

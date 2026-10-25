@@ -8,6 +8,7 @@ import { coopRunsDomainToHttpMapper } from "../../coop-runs/errors/coop-runs.dom
 import { favoritesDomainToHttpMapper } from "../../favorites/errors/favorites.domain-to-http.mapper";
 import { franchisesDomainToHttpMapper } from "../../franchises/errors/franchises.domain-to-http.mapper";
 import { gameExternalDomainToHttpMapper } from "../../game-external/errors/game-external.domain-to-http.mapper";
+import { gamePlatinumDomainToHttpMapper } from "../../game-platinum/errors/game-platinum.domain-to-http.mapper";
 import { gameReportsDomainToHttpMapper } from "../../game-reports/errors/game-reports.domain-to-http.mapper";
 import { gameScoresDomainToHttpMapper } from "../../game-scores/errors/game-scores.domain-to-http.mapper";
 import { gameShelfDomainToHttpMapper } from "../../game-shelf/errors/game-shelf.domain-to-http.mapper";
@@ -109,6 +110,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "MoodTags Module")
 		return moodTagsDomainToHttpMapper(error, request);
+
+	if (error.module === "GamePlatinum Module")
+		return gamePlatinumDomainToHttpMapper(error, request);
 
 	if (error.module === "BacklogProgress Module")
 		return backlogProgressDomainToHttpMapper(error, request);
