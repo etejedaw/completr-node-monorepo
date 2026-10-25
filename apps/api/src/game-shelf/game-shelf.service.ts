@@ -4,6 +4,7 @@ import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
+import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { type RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
@@ -117,11 +118,10 @@ export async function findGameShelfByUserIdPaginated(
 		model: Game,
 		attributes: GAME_ATTRS
 	};
-	if (pagination.search) {
-		gameInclude.where = {
-			title: { [Op.iLike]: `%${pagination.search}%` }
-		};
-	}
+	const titleWhere = pagination.search
+		? buildTextSearchWhere(pagination.search, ["Game.title"])
+		: null;
+	if (titleWhere) gameInclude.where = titleWhere;
 
 	const query: Record<string, unknown> = {
 		where: { userId },

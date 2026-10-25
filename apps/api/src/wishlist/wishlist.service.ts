@@ -3,6 +3,7 @@ import { Op } from "sequelize";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
@@ -139,10 +140,11 @@ export async function findWishlistByUserIdPaginated(
 	pagination: PaginatedSearchQuery = {}
 ) {
 	const gameInclude: Record<string, unknown> = { model: Game };
-	if (pagination.search) {
-		gameInclude.where = {
-			title: { [Op.iLike]: `%${pagination.search}%` }
-		};
+	const titleWhere = pagination.search
+		? buildTextSearchWhere(pagination.search, ["Game.title"])
+		: null;
+	if (titleWhere) {
+		gameInclude.where = titleWhere;
 		gameInclude.required = true;
 	}
 

@@ -1,4 +1,4 @@
-import { Op, type Transaction } from "sequelize";
+import { type Transaction } from "sequelize";
 
 import { Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
@@ -6,6 +6,7 @@ import * as backlogServiceError from "../backlog/errors/backlog.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
@@ -221,7 +222,10 @@ export async function findQueueByUserIdPaginated(
 	pagination: PaginatedSearchQuery = {},
 	publicOnly = false
 ) {
-	const include = pagination.search
+	const titleWhere = pagination.search
+		? buildTextSearchWhere(pagination.search, ["Backlog->Game.title"])
+		: null;
+	const include = titleWhere
 		? [
 				{
 					model: Backlog,
@@ -232,9 +236,7 @@ export async function findQueueByUserIdPaginated(
 							model: Game,
 							required: true,
 							attributes: QUEUE_GAME_ATTRS,
-							where: {
-								title: { [Op.iLike]: `%${pagination.search}%` }
-							}
+							where: titleWhere
 						},
 						{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
 					]

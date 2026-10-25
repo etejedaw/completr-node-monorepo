@@ -15,6 +15,7 @@ import {
 	calculateRatio,
 	RATIO_SCORE_MULTIPLIER
 } from "../common/utils/calculate-ratio.util";
+import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import * as gameShelfService from "../game-shelf/game-shelf.service";
 import { Game } from "../games/game.model";
@@ -336,11 +337,10 @@ function buildIncludes(filters: BacklogQuery) {
 		model: Game,
 		attributes: BACKLOG_GAME_ATTRS
 	};
-	if (filters.search) {
-		gameInclude.where = {
-			title: { [Op.iLike]: `%${filters.search}%` }
-		};
-	}
+	const titleWhere = filters.search
+		? buildTextSearchWhere(filters.search, ["Game.title"])
+		: null;
+	if (titleWhere) gameInclude.where = titleWhere;
 	return [
 		gameInclude,
 		{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS },
