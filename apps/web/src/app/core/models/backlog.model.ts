@@ -21,6 +21,15 @@ export interface BacklogEntry {
 	game: BacklogGame;
 	platform: BacklogPlatform;
 	compilationGame?: BacklogCompilationGame | null;
+	platinum?: GamePlatinum | null;
+}
+
+export interface GamePlatinum {
+	id: string;
+	backlogId: string | null;
+	platformId: string | null;
+	platinumedAt: string | null;
+	notes?: string | null;
 }
 
 export interface BacklogCompilationGame {

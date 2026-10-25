@@ -1,3 +1,5 @@
+import { type GamePlatinum } from "./backlog.model";
+
 export interface Game {
 	id: string;
 	title: string;
@@ -23,6 +25,7 @@ export interface Game {
 	compilationItems?: CompilationItem[];
 	partOfCompilations?: PartOfCompilation[];
 	userMoodTags?: string[];
+	userPlatinum?: GamePlatinum | null;
 	franchise?: { id: string; name: string; code: string } | null;
 	franchiseProgress?: { completed: number; total: number } | null;
 	franchiseTracked?: boolean;
