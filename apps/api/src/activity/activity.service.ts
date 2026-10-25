@@ -22,7 +22,8 @@ const GAME_TYPES: string[] = [
 	"wishlist_added",
 	"shelf_added",
 	"favorite_added",
-	"game_reviewed"
+	"game_reviewed",
+	"game_platinumed"
 ];
 const LIST_TYPES: string[] = ["list_created", "list_followed"];
 const USER_TYPES: string[] = [
@@ -180,7 +181,9 @@ export async function getFeed(
 						},
 						{
 							id: { [Op.in]: mutualIds },
-							profileVisibility: { [Op.in]: FRIEND_VISIBLE_LEVELS },
+							profileVisibility: {
+								[Op.in]: FRIEND_VISIBLE_LEVELS
+							},
 							feedVisibility: { [Op.in]: FRIEND_VISIBLE_LEVELS }
 						}
 					]
