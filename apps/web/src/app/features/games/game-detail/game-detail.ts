@@ -8,7 +8,11 @@ import {
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 
-import { type BacklogEntry, type Game } from "../../../core/models";
+import {
+	type BacklogEntry,
+	type Game,
+	type GamePlatinum
+} from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
@@ -42,6 +46,11 @@ import {
 	type GameShelfModalResult
 } from "../../game-shelf/game-shelf-modal/game-shelf-modal";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
+import {
+	PlatinumDialog,
+	type PlatinumDialogData,
+	type PlatinumDialogResult
+} from "../../platinum/platinum-dialog/platinum-dialog";
 import { QueueService } from "../../queue/queue";
 import { WishlistService } from "../../wishlist/wishlist";
 import {
@@ -64,6 +73,7 @@ import { GameDlcList } from "./components/game-dlc-list";
 import { GameFeaturedLists } from "./components/game-featured-lists";
 import { type GameFact, GameHero } from "./components/game-hero";
 import { GameLibraryActions } from "./components/game-library-actions";
+import { GamePlatinumCard } from "./components/game-platinum-card";
 import { GamePosterGrid } from "./components/game-poster-grid";
 import {
 	GameQueueRunPicker,
@@ -108,6 +118,7 @@ interface ReportModalState {
 		GameLibraryActions,
 		GameScoreCard,
 		GameRuns,
+		GamePlatinumCard,
 		GamePosterGrid,
 		GameFeaturedLists,
 		GameDlcList,
@@ -188,6 +199,15 @@ export class GameDetail implements OnInit {
 	protected readonly isFavorite = signal(false);
 	protected readonly isInWishlist = signal(false);
 	protected readonly myRuns = signal<BacklogEntry[]>([]);
+	protected readonly platinum = signal<GamePlatinum | null>(null);
+	protected readonly platinumPlatformName = computed(() => {
+		const platformId = this.platinum()?.platformId;
+		if (!platformId) return null;
+		const platform = this.game()?.platforms.find(p => p.id === platformId);
+		if (platform) return platform.name;
+		const run = this.myRuns().find(r => r.platform.id === platformId);
+		return run?.platform.abbreviation ?? null;
+	});
 	protected readonly latestRun = computed(() => this.myRuns()[0] ?? null);
 	protected readonly heroActionsInView = signal(true);
 	protected readonly score = computed(() => pickCanonicalScore(this.game()));
@@ -306,6 +326,7 @@ export class GameDetail implements OnInit {
 				this.game.set(game);
 				this.franchiseTracked.set(game.franchiseTracked ?? false);
 				this.moodTags.set(game.userMoodTags ?? []);
+				this.platinum.set(game.userPlatinum ?? null);
 				this.editingMoodTags.set(false);
 				this.isFavorite.set(this.favoritesService.isFavorite(game.id));
 				this.isInWishlist.set(
@@ -503,10 +524,7 @@ export class GameDetail implements OnInit {
 		});
 	}
 
-	private reportAdminActionError(
-		err: { status?: number },
-		fallback: string
-	) {
+	private reportAdminActionError(err: { status?: number }, fallback: string) {
 		const alreadyToastedByInterceptor = err.status === 409;
 		if (alreadyToastedByInterceptor) return;
 		this.toast.warning(adminErrorMessage(err) ?? fallback);
@@ -555,6 +573,34 @@ export class GameDetail implements OnInit {
 		ref.afterClosed.subscribe(result => {
 			if (result === "saved") this.loadUserStatus(g.id);
 			else if (result === "newRun") this.openBacklogModal();
+		});
+	}
+
+	openPlatinumDialog() {
+		const g = this.game();
+		if (!g) return;
+		const ref = this.dialogs.open<PlatinumDialogData, PlatinumDialogResult>(
+			PlatinumDialog,
+			{
+				data: {
+					gameId: g.id,
+					gameTitle: g.title,
+					platforms: g.platforms ?? [],
+					runs: this.myRuns(),
+					platinum: this.platinum()
+				}
+			}
+		);
+		ref.afterClosed.subscribe(result => {
+			if (!result) return;
+			const platinum = result === "removed" ? null : result.platinum;
+			this.platinum.set(platinum);
+			this.myRuns.update(runs => runs.map(run => ({ ...run, platinum })));
+			this.toast.success(
+				platinum
+					? `${g.title} platinumed`
+					: `Platinum removed from ${g.title}`
+			);
 		});
 	}
 

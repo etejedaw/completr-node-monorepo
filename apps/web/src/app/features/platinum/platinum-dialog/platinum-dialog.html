@@ -1,0 +1,83 @@
+<ui-dialog
+	eyebrow="Platinum"
+	size="sm"
+	[heading]="isEdit ? 'Edit platinum' : 'Mark as platinumed'"
+	[subheading]="data.gameTitle"
+	(closed)="close()"
+>
+	<span
+		dialogLead
+		aria-hidden="true"
+		class="material-icons text-2xl mt-1 text-fg-secondary"
+		>emoji_events</span
+	>
+	<div class="flex flex-col gap-4">
+		@if (data.runs.length > 0) {
+		<app-option-picker
+			label="Run"
+			heading="Run where you got it"
+			[options]="runOptions"
+			[value]="backlogId()"
+			(valueChange)="selectRun($event)"
+		/>
+		}
+		<app-option-picker
+			label="Platform"
+			heading="Platform"
+			placeholderIcon="sports_esports"
+			[options]="platformOptions()"
+			[value]="platformId()"
+			(valueChange)="platformId.set($event)"
+		/>
+		<div>
+			<label for="platinumedAt" uiFieldLabel>Platinumed on</label>
+			<input
+				uiInput
+				id="platinumedAt"
+				type="date"
+				[value]="platinumedAt()"
+				(input)="platinumedAt.set($any($event.target).value)"
+			/>
+		</div>
+		<div>
+			<label for="platinumNotes" uiFieldLabel>Notes</label>
+			<textarea
+				uiTextarea
+				id="platinumNotes"
+				rows="3"
+				placeholder="Hardest trophy, how long it took…"
+				[attr.maxlength]="notesMaxLength"
+				[value]="notes()"
+				(input)="notes.set($any($event.target).value)"
+			></textarea>
+			<p class="mt-1 text-xs text-fg-muted tabular-nums">
+				{{ notes().length }} / {{ notesMaxLength }}
+			</p>
+		</div>
+		@if (saveError()) {
+		<ui-alert tone="danger">{{ saveError() }}</ui-alert>
+		}
+	</div>
+	<ng-container dialogFooter>
+		@if (isEdit) {
+		<app-dialog-delete-action
+			label="Remove"
+			question="Remove the platinum?"
+			[busy]="removing()"
+			(confirmed)="remove()"
+		/>
+		}
+		<button uiButton variant="ghost" type="button" (click)="close()">
+			Cancel
+		</button>
+		<button
+			uiButton
+			variant="primary"
+			type="button"
+			[disabled]="busy()"
+			(click)="save()"
+		>
+			{{ saving() ? "Saving…" : "Save" }}
+		</button>
+	</ng-container>
+</ui-dialog>

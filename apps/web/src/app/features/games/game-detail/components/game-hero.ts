@@ -58,6 +58,7 @@ export class GameHero {
 	readonly isLoggedIn = input(false);
 	readonly franchiseTracked = input(false);
 	readonly togglingFranchise = input(false);
+	readonly platinumed = input(false);
 
 	readonly franchiseTrackToggled = output<void>();
 

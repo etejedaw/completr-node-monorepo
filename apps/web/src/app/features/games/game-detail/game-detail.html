@@ -33,6 +33,7 @@
 	[isLoggedIn]="isLoggedIn()"
 	[franchiseTracked]="franchiseTracked()"
 	[togglingFranchise]="togglingFranchise()"
+	[platinumed]="!!platinum()"
 	(franchiseTrackToggled)="toggleFranchiseTrack()"
 >
 	<app-game-library-actions
@@ -291,6 +292,13 @@
 			[reportSent]="reportModal().sent"
 			[reporting]="reportModal().submitting"
 			(missingDataReported)="reportMissingData()"
+		/>
+
+		<app-game-platinum-card
+			[platinum]="platinum()"
+			[runs]="myRuns()"
+			[platformName]="platinumPlatformName()"
+			(editRequested)="openPlatinumDialog()"
 		/>
 
 		@if (myRuns().length > 0) {

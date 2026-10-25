@@ -72,7 +72,16 @@
 				<div
 					class="mt-2 sm:mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-white/75"
 				>
-					@if (releaseYear(); as year) {
+					@if (platinumed()) {
+					<span class="inline-flex items-center gap-1 font-medium">
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>emoji_events</span
+						>
+						Platinumed
+					</span>
+					} @if (releaseYear(); as year) {
 					<span class="tabular-nums" [title]="game().releaseAt"
 						>{{ year }}</span
 					>

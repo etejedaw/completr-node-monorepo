@@ -8,6 +8,7 @@ import {
 } from "@angular/core";
 
 import { type BacklogEntry } from "../../../../core/models";
+import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
 import {
 	backlogStatusClass,
 	backlogStatusIcon,
@@ -17,7 +18,7 @@ import {
 
 @Component({
 	selector: "app-game-runs",
-	imports: [DatePipe],
+	imports: [DatePipe, PlatinumTrophy],
 	template: `
 		<section
 			class="bg-surface/60 border border-line rounded-card overflow-hidden"
@@ -131,6 +132,17 @@ import {
 										>#{{ runs().length - i }}</span
 									>
 								</span>
+								@if (
+									run.platinum &&
+									run.platinum.backlogId === run.id
+								) {
+									<app-platinum-trophy
+										scope="run"
+										[platinumedAt]="
+											run.platinum.platinumedAt
+										"
+									/>
+								}
 								@if (run.startedAt || run.finishedAt) {
 									<span
 										class="flex items-center gap-1.5 text-xs text-fg-muted tabular-nums"
