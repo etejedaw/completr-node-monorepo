@@ -4,6 +4,8 @@ import * as auditService from "../audit/audit.service";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as franchiseService from "../franchises/franchises.service";
+import { gamePlatinumSerializer } from "../game-platinum/game-platinum.serializer";
+import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import { type MarkCompilationDto } from "./dtos/mark-compilation.dto";
 import { type RegisterGameDto } from "./dtos/register-game.dto";
@@ -40,7 +42,7 @@ export async function getGameByCode(request: Request, response: Response) {
 	if (!game) throw gameDomainError.gameNotFound();
 
 	const gamePlain = game.get({ plain: true });
-	const [userMoodTags, franchiseProgress, franchiseTracked] =
+	const [userMoodTags, franchiseProgress, franchiseTracked, platinum] =
 		await Promise.all([
 			user ? moodTagsService.findTagsByGame(user.id, game.id) : [],
 			buildFranchiseProgress(game.franchiseId, user),
@@ -49,13 +51,20 @@ export async function getGameByCode(request: Request, response: Response) {
 						user.id,
 						game.franchiseId
 					)
-				: Promise.resolve(false)
+				: Promise.resolve(false),
+			user
+				? gamePlatinumService.findPlatinumByUserAndGame(
+						user.id,
+						game.id
+					)
+				: Promise.resolve(null)
 		]);
 
 	const data = {
 		game: {
 			...gameSerializer(gamePlain),
 			userMoodTags,
+			userPlatinum: platinum ? gamePlatinumSerializer(platinum) : null,
 			franchiseProgress,
 			franchiseTracked
 		}

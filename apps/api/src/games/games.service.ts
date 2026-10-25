@@ -17,6 +17,7 @@ import { Favorite } from "../favorites/favorite.model";
 import * as gameExternalService from "../game-external/game-external.service";
 import * as gameGenresService from "../game-genre/game-genre.service";
 import * as gamePlatformsService from "../game-platform/game-platform.service";
+import { GamePlatinum } from "../game-platinum/game-platinum.model";
 import * as gameScoresService from "../game-scores/game-scores.service";
 import { GameShelf } from "../game-shelf/game-shelf.model";
 import * as gameTimesService from "../game-times/game-times.service";
@@ -86,6 +87,7 @@ const USER_DATA_MODELS: ModelStatic<Model>[] = [
 	Review,
 	CoopRun,
 	UserGameTag,
+	GamePlatinum,
 	ActivityGame
 ];
 
