@@ -40,6 +40,7 @@ docs: |-
     | finished_from | date   | No       | Filter by finishedAt >= date (ISO format: `2025-01-01`)                     |
     | finished_to       | date   | No       | Filter by finishedAt <= date (ISO format: `2025-06-30`)                     |
     | no_finished_date  | bool   | No       | If `true`, returns only entries with no finishedAt date                      |
+    | platinumed_only | bool | No       | If `true`, returns only entries of games the user platinumed (all their runs, not only the platinum run) |
     | min_score     | number | No       | Filter by score >= value                                                    |
     | max_score     | number | No       | Filter by score <= value                                                    |
     | min_duration      | number | No       | Filter by duration >= value (hours)                                         |
@@ -73,7 +74,8 @@ docs: |-
             "isPublic": true,
             "notes": "Great game",
             "game": { "id": "uuid", "title": "Fez", "coverUrl": "https://...", "isDlc": false },
-            "platform": { "id": "uuid", "abbreviation": "Steam" }
+            "platform": { "id": "uuid", "abbreviation": "Steam" },
+            "platinum": { "id": "uuid", "backlogId": "uuid", "platformId": "uuid", "platinumedAt": "2026-03-12" }
           }
         ]
       }
@@ -81,3 +83,5 @@ docs: |-
     ```
 
     `ratio` and `personalRatio` are always present: `null` when the score or the duration (`realDuration` for `personalRatio`) is missing.
+
+    `platinum` is the owner's platinum for the game of the entry, or `null`, and follows the same visibility as the backlog. For other viewers it omits `notes`, and `backlogId` is `null` when the platinum run is private. The owner gets the full object, `notes` included.

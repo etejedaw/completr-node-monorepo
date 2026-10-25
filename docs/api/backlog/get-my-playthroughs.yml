@@ -39,6 +39,7 @@ docs: |-
     | no_finished_date  | bool   | No       | If `true`, returns only entries with no finishedAt date                      |
     | undated       | bool   | No       | If `true`, returns only entries with neither startedAt nor finishedAt (e.g. for an "unscheduled" count in the calendar) |
     | coop_only     | bool   | No       | If `true`, returns only entries played in co-op (those linked to a coop run) |
+    | platinumed_only | bool | No       | If `true`, returns only entries of games the user platinumed (all their runs, not only the platinum run) |
     | min_score     | number | No       | Filter by score >= value                                                    |
     | max_score     | number | No       | Filter by score <= value                                                    |
     | min_duration      | number | No       | Filter by duration >= value (hours)                                         |
@@ -81,7 +82,8 @@ docs: |-
             "moodTags": ["corto", "relajante"],
             "latestProgress": { "note": "Capítulo 3 — stuck en el puzzle del agua", "createdAt": "2026-06-25T20:31:09.451Z" },
             "game": { "id": "uuid", "title": "Fez", "coverUrl": "https://...", "isDlc": false },
-            "platform": { "id": "uuid", "abbreviation": "Steam" }
+            "platform": { "id": "uuid", "abbreviation": "Steam" },
+            "platinum": { "id": "uuid", "backlogId": "uuid", "platformId": "uuid", "platinumedAt": "2026-03-12", "notes": "All trophies" }
           }
         ]
       }
@@ -89,3 +91,5 @@ docs: |-
     ```
 
     `ratio` and `personalRatio` are always present: `null` when the score or the duration (`realDuration` for `personalRatio`) is missing.
+
+    `platinum` is the user's platinum for the game of the entry, or `null`. Every run of the same game carries the same object; the run where it was earned is the one whose `id` equals `platinum.backlogId`.

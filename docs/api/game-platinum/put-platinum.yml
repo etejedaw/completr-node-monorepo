@@ -1,0 +1,81 @@
+info:
+    name: Upsert Game Platinum
+    type: http
+    seq: 1
+
+http:
+    method: PUT
+    url: "{{BASE_URL}}/users/me/games/:gameId/platinum"
+    params:
+        - name: gameId
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "backlogId": "uuid",
+              "platinumedAt": "2026-03-12",
+              "notes": "Last trophy was the speedrun"
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Upsert Game Platinum
+
+    Marks a game as platinumed by the authenticated user, or replaces the existing platinum. There is one platinum per user and game (unique `(userId, gameId)`), so the request is idempotent: sending the same body twice leaves the same single platinum. It is independent of the game shelf and survives even if the user no longer owns the game.
+
+    The body replaces the whole platinum: a field that is omitted is stored as `null`.
+
+    **Authentication:** Bearer token required (roles: user, premium, moderator).
+    **Rate Limit:** user limiter.
+
+    ### Path Parameters
+
+    | Param  | Type | Required | Description |
+    |--------|------|----------|-------------|
+    | gameId | uuid | Yes      | The game    |
+
+    ### Request Body
+
+    | Field        | Type   | Required | Description |
+    |--------------|--------|----------|-------------|
+    | backlogId    | uuid   | No       | The run (backlog entry) where the platinum was earned. Must belong to the user and to the same game. Nullable |
+    | platformId   | uuid   | No       | Platform of the platinum. When omitted and `backlogId` is sent, the platform of the run is used. Nullable |
+    | platinumedAt | date   | No       | ISO date (`YYYY-MM-DD`). Nullable |
+    | notes        | string | No       | Trimmed, up to 500 characters. Empty string is stored as `null`. Nullable |
+
+    ### Response (201 created / 200 updated)
+
+    ```json
+    {
+      "data": {
+        "platinum": {
+          "id": "uuid",
+          "backlogId": "uuid",
+          "platformId": "uuid",
+          "platinumedAt": "2026-03-12",
+          "notes": "Last trophy was the speedrun"
+        }
+      }
+    }
+    ```
+
+    Creating the platinum records the activity `game_platinumed`; updating it does not.
+
+    ### Errors
+
+    | Status | Type                                  | Reason |
+    |--------|---------------------------------------|--------|
+    | 404    | `GAME_PLATINUM_GAME_NOT_FOUND`        | The game does not exist or is inactive |
+    | 404    | `GAME_PLATINUM_BACKLOG_NOT_FOUND`     | `backlogId` does not exist or belongs to another user |
+    | 422    | `GAME_PLATINUM_BACKLOG_GAME_MISMATCH` | `backlogId` is a run of another game |
+    | 422    | `GAME_PLATINUM_PLATFORM_NOT_FOUND`    | `platformId` does not exist |
+    | 422    | `COMMON_SCHEMA_INVALID`               | Invalid ids or date, notes over 500 characters or unknown fields |
+    | 409    | `GAME_PLATINUM_UNIQUE_CONSTRAINT`     | Concurrent creation of the same platinum |

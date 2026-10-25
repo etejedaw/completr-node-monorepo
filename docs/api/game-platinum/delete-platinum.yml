@@ -1,0 +1,40 @@
+info:
+    name: Delete Game Platinum
+    type: http
+    seq: 2
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/users/me/games/:gameId/platinum"
+    params:
+        - name: gameId
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Delete Game Platinum
+
+    Removes the platinum of the authenticated user for a game. The `game_platinumed` activity already recorded is kept.
+
+    **Authentication:** Bearer token required (roles: user, premium, moderator).
+    **Rate Limit:** user limiter.
+
+    ### Path Parameters
+
+    | Param  | Type | Required | Description |
+    |--------|------|----------|-------------|
+    | gameId | uuid | Yes      | The game    |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Type                      | Reason |
+    |--------|---------------------------|--------|
+    | 404    | `GAME_PLATINUM_NOT_FOUND` | The user has no platinum for this game |

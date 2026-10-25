@@ -81,4 +81,5 @@ docs: |-
     | favorite_added     | Added a game to favorites      |
     | list_created       | Created a new list             |
     | game_reviewed      | Reviewed a game                |
+    | game_platinumed    | Platinumed a game              |
     | coop_tagged        | Tagged a friend in a co-op run |
