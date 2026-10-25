@@ -3,6 +3,7 @@ import { Op, QueryTypes } from "sequelize";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
+import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { ListFollower } from "../list-followers/list-follower.model";
@@ -502,11 +503,12 @@ export async function searchPublicLists(
 	viewerId: string | undefined,
 	limit = 20
 ) {
+	const nameWhere = buildTextSearchWhere(query, ["List.name"]);
+	if (!nameWhere) return [];
 	return List.findAll({
 		where: {
-			name: { [Op.iLike]: `%${query}%` },
 			isPublic: true,
-			[Op.and]: [visibleListsCondition(viewerId)]
+			[Op.and]: [nameWhere, visibleListsCondition(viewerId)]
 		},
 		include: [
 			{

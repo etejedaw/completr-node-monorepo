@@ -2,6 +2,7 @@ import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
@@ -76,7 +77,8 @@ export async function findFranchiseById(id: string) {
 
 export async function findAllFranchises(pagination: PaginatedSearchQuery = {}) {
 	const where = pagination.search
-		? { name: { [Op.iLike]: `%${pagination.search}%` } }
+		? (buildTextSearchWhere(pagination.search, ["Franchise.name"]) ??
+			undefined)
 		: undefined;
 
 	const query: Record<string, unknown> = {

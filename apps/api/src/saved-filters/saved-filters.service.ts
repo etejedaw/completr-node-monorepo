@@ -4,6 +4,7 @@ import * as backlogService from "../backlog/backlog.service";
 import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { type RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
 import { type UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
@@ -59,12 +60,13 @@ export async function findSavedFiltersByUserId(
 	pagination: PaginatedSearchQuery = {}
 ) {
 	const where: Record<string, unknown> = { userId };
-	if (pagination.search) {
-		where[Op.or as unknown as string] = [
-			{ name: { [Op.iLike]: `%${pagination.search}%` } },
-			{ description: { [Op.iLike]: `%${pagination.search}%` } }
-		];
-	}
+	const searchWhere = pagination.search
+		? buildTextSearchWhere(pagination.search, [
+				"SavedFilter.name",
+				"SavedFilter.description"
+			])
+		: null;
+	if (searchWhere) Object.assign(where, searchWhere);
 
 	const query: Record<string, unknown> = {
 		where,
