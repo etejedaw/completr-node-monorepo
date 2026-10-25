@@ -487,13 +487,31 @@ for (const kind of CONNECTION_KINDS) {
 				new Date("2026-03-01T10:00:00.000Z")
 			]);
 
-			for (const search of ["%", "u%"]) {
+			for (const search of ["zzz%", "zzz_", "zzz\\"]) {
 				const response = await listConnections(owner.username, kind, {
 					search
 				});
 
 				assert.deepEqual(connectionUsernames(response), []);
 				assert.equal(response.body.data.total, 0);
+			}
+		});
+
+		void it("does not filter when the search has no letters or digits", async () => {
+			const owner = await createUser();
+			const [other] = await seedConnections(owner, kind, [
+				new Date("2026-03-01T10:00:00.000Z")
+			]);
+
+			for (const search of ["%", "_", "%_\\"]) {
+				const response = await listConnections(owner.username, kind, {
+					search
+				});
+
+				assert.deepEqual(connectionUsernames(response), [
+					other!.username
+				]);
+				assert.equal(response.body.data.total, 1);
 			}
 		});
 
