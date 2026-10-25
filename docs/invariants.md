@@ -96,6 +96,21 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 
 ---
 
+## Platinos
+
+- Tabla `GamePlatinums`, un platino por usuario y juego: unique `(userId, gameId)`. Es independiente de `GameShelf`: el platino sigue aunque el usuario ya no tenga el juego.
+- Campos opcionales: `backlogId` (la run donde se consiguió), `platformId`, `platinumedAt` (fecha) y `notes` (recortadas, hasta 500 caracteres; vacías se guardan como `null`).
+- FKs: `userId` y `gameId` con `ON DELETE CASCADE`; `backlogId` con `ON DELETE SET NULL`, así que borrar la run deja el platino sin run; `platformId` sin `ON DELETE` (una plataforma con platinos responde `PLATFORM_IN_USE` al borrarla).
+- `PUT /users/me/games/:gameId/platinum` crea (201) o reemplaza (200) el platino completo: un campo omitido queda en `null`. Si llega `backlogId` sin `platformId`, se usa la plataforma de la run.
+- `backlogId` de una run inexistente o de otro usuario responde 404 `GAME_PLATINUM_BACKLOG_NOT_FOUND`; de una run propia de otro juego, 422 `GAME_PLATINUM_BACKLOG_GAME_MISMATCH`. Un juego inexistente o inactivo responde 404 `GAME_PLATINUM_GAME_NOT_FOUND`, y una plataforma inexistente, 422 `GAME_PLATINUM_PLATFORM_NOT_FOUND`.
+- `DELETE /users/me/games/:gameId/platinum` responde 204, o 404 `GAME_PLATINUM_NOT_FOUND` si no hay platino. La activity ya registrada no se borra.
+- La activity `game_platinumed` se registra solo al crear el platino, no al actualizarlo.
+- No hay endpoint de lectura propio. Cada run de `GET /users/me/backlog` y `GET /users/:username/backlog` lleva `platinum` (el mismo objeto para todas las runs del juego, o `null`), cargado con una sola consulta por request; la ficha (`GET /games/:code`) lleva `userPlatinum` del usuario autenticado. Las demás respuestas que reutilizan el serializer del backlog (perfil, highlights, completions, alta y edición de runs) no cargan el platino y omiten la clave.
+- En el backlog público el platino sigue la visibilidad del backlog del dueño. Para otros viewers omite `notes` y pone `backlogId` en `null` si la run del platino es privada.
+- El filtro `platinumed_only` del backlog (también en saved filters) deja las runs de los juegos platinados por el dueño, todas y no solo la del platino.
+
+---
+
 ## Listas y list-items
 
 - Pública o privada (`isPublic`).
@@ -193,7 +208,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `PATCH /games/:id` es atómico: el update del juego y el reemplazo de plataformas, géneros y external ids van en una sola transacción. Si un paso falla no se aplica ninguno.
 - Un external id repetido para el mismo juego y fuente responde 409 `GAME_EXTERNAL_ALREADY_EXISTS`; un external id inexistente, 404 `GAME_EXTERNAL_NOT_FOUND`.
 - `DELETE /games/:id` sin `hard` desactiva el juego (`isActive = false`) y no toca sus datos.
-- `DELETE /games/:id?hard=true` (solo admin) borra el juego y sus datos de catálogo (plataformas, géneros, scores, times, external ids, popularidad e items de compilation). Antes de borrar, dentro de una transacción, comprueba con consultas explícitas que ningún usuario lo referencia: backlog (también como `compilationGameId`, y por tanto su queue), game-shelf, list-items, favoritos, wishlist, reviews, coop runs, mood tags por juego y actividad; y que no tiene variantes ni DLCs (`parentGameId`). Si lo está responde 409 `GAME_IN_USE` y no se borra nada; el `ON DELETE` de las FKs no se usa como control. Los reports del juego no cuentan como uso y se borran con él.
+- `DELETE /games/:id?hard=true` (solo admin) borra el juego y sus datos de catálogo (plataformas, géneros, scores, times, external ids, popularidad e items de compilation). Antes de borrar, dentro de una transacción, comprueba con consultas explícitas que ningún usuario lo referencia: backlog (también como `compilationGameId`, y por tanto su queue), game-shelf, list-items, favoritos, wishlist, reviews, coop runs, mood tags por juego, platinos y actividad; y que no tiene variantes ni DLCs (`parentGameId`). Si lo está responde 409 `GAME_IN_USE` y no se borra nada; el `ON DELETE` de las FKs no se usa como control. Los reports del juego no cuentan como uso y se borran con él.
 
 ### Sagas
 
@@ -276,6 +291,7 @@ Eventos registrados:
 - `user_followed`, `user_followed_by`.
 - `list_created`, `list_followed`.
 - `game_reviewed`.
+- `game_platinumed`.
 
 Reglas:
 
