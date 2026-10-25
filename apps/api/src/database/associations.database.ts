@@ -15,6 +15,7 @@ import { UserFranchise } from "../franchises/user-franchise.model";
 import { GameExternal } from "../game-external/game-external.model";
 import { GameGenre } from "../game-genre/game-genre.model";
 import { GamePlatform } from "../game-platform/game-platform.model";
+import { GamePlatinum } from "../game-platinum/game-platinum.model";
 import { GamePopularity } from "../game-popularity/game-popularity.model";
 import { GameReport } from "../game-reports/game-report.model";
 import { GameScore } from "../game-scores/game-score.model";
@@ -57,6 +58,7 @@ export function setupAssociations() {
 	queue();
 	wishlist();
 	favorites();
+	gamePlatinums();
 	gameExternalIds();
 	scoreSources();
 	refreshTokens();
@@ -265,6 +267,23 @@ function favorites() {
 
 	Game.hasMany(Favorite, { foreignKey: "gameId", onDelete: "CASCADE" });
 	Favorite.belongsTo(Game, { foreignKey: "gameId" });
+}
+
+function gamePlatinums() {
+	User.hasMany(GamePlatinum, { foreignKey: "userId", onDelete: "CASCADE" });
+	GamePlatinum.belongsTo(User, { foreignKey: "userId" });
+
+	Game.hasMany(GamePlatinum, { foreignKey: "gameId", onDelete: "CASCADE" });
+	GamePlatinum.belongsTo(Game, { foreignKey: "gameId" });
+
+	Backlog.hasMany(GamePlatinum, {
+		foreignKey: "backlogId",
+		onDelete: "SET NULL"
+	});
+	GamePlatinum.belongsTo(Backlog, { foreignKey: "backlogId" });
+
+	Platform.hasMany(GamePlatinum, { foreignKey: "platformId" });
+	GamePlatinum.belongsTo(Platform, { foreignKey: "platformId" });
 }
 
 function gameExternalIds() {

@@ -20,6 +20,7 @@ import "../saved-filters/saved-filter.model";
 import "../queue/queue.model";
 import "../wishlist/wishlist.model";
 import "../favorites/favorite.model";
+import "../game-platinum/game-platinum.model";
 import "../game-external/game-external.model";
 import "../score-sources/score-source.model";
 import "../auth/refresh-token.model";
