@@ -261,8 +261,8 @@ Toda la lógica vive en `canView(viewerId, owner, section)` en `apps/api/src/use
 - `email` nunca se serializa en respuestas públicas.
 - `GET /games/:id/friends-activity` y `GET /games/:id/players` aplican `canView` con SQL: una sección `friends` solo se sirve al amigo mutuo. En `friends-activity` entran los seguidos con perfil y backlog `public`, más los seguidos mutuos con `public` o `friends`; `players` solo incluye usuarios con perfil y backlog `public`.
 - Las cuentas desactivadas (`isActive = false`) no cuentan como conexiones: `GET /users/:username/followers` y `GET /users/:username/following` las omiten, `getFollowerCount` / `getFollowingCount` (y con ellos `followerCount` / `followingCount` del perfil y de las tarjetas) no las cuentan, y `GET /games/:id/friends-activity` y `GET /games/:id/players` no las devuelven.
-- `GET /users/search` busca `q` de forma literal: `\`, `%` y `_` se escapan antes del `ILIKE`.
-- `GET /users/:username/followers` y `GET /users/:username/following` paginan en la consulta: `limit` entero entre 1 y 100 (por defecto 24), `offset` desde 0 (por defecto 0) y `search` opcional de 1 a 100 caracteres, que busca con `ILIKE` en `username` y `name` del usuario listado y de forma literal (`\`, `%` y `_` se escapan). El orden es `createdAt` descendente con `id` de desempate, y `total` cuenta lo que cumple el filtro, sin cuentas desactivadas. Cualquier otro valor responde 422 `COMMON_SCHEMA_INVALID`.
+- `GET /users/search` busca `q` con las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto) sobre `username` y `name`: sin acentos ni mayúsculas, por palabras en cualquier orden y de forma literal (`\`, `%` y `_` no son comodines). Una `q` sin letras ni dígitos devuelve lista vacía.
+- `GET /users/:username/followers` y `GET /users/:username/following` paginan en la consulta: `limit` entero entre 1 y 100 (por defecto 24), `offset` desde 0 (por defecto 0) y `search` opcional de 1 a 100 caracteres, que busca en `username` y `name` del usuario listado con las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto) (un `search` sin letras ni dígitos no filtra). El orden es `createdAt` descendente con `id` de desempate, y `total` cuenta lo que cumple el filtro, sin cuentas desactivadas. Cualquier otro valor responde 422 `COMMON_SCHEMA_INVALID`.
 - **Listas seguidas en perfil:** una entry es visible solo cuando el perfil es visible, `ListFollower.isVisible` es `true` y la lista cumple la regla de visibilidad de listas (ver "Listas y list-items").
 
 ---
@@ -327,10 +327,21 @@ Reglas:
 
 ---
 
+## Reglas de búsqueda de texto
+
+Toda búsqueda de texto de la API (el `search` de los listados paginados, `q` de `GET /users/search`, `query` de `GET /lists/search` y `GET /games/search`) usa el mismo mecanismo, definido una sola vez en `apps/api/src/common/utils/text-search.util.ts`. Ningún service arma su propio `ILIKE`.
+
+- **Normalización.** La consulta y las columnas se comparan en minúsculas, sin acentos y solo con `a-z0-9`: el signo de puntuación y los espacios no cuentan. En SQL la columna pasa por `regexp_replace(lower(unaccent(columna)), '[^a-z0-9]', '', 'g')` (extensión `unaccent`); en TypeScript la consulta pasa por `tokenizeSearchQuery`. `pokemon` encuentra `Pokémon` y `spiderman` encuentra `Spider-Man`.
+- **Palabras.** La consulta se separa en palabras (cualquier carácter que no sea `a-z0-9` las divide) y el registro tiene que contener todas, en cualquier orden y sin tener que ser contiguas: `evil resident` encuentra `Resident Evil`. Cada palabra se busca como subcadena del texto normalizado.
+- **Literal.** `%`, `_` y `\` no son comodines: la normalización los descarta antes de armar el `LIKE`, así que nunca llegan al patrón.
+- **Varias columnas.** Cuando una búsqueda mira más de una columna (`username` y `name` de un usuario, `name` y `description` de un filtro guardado), cada palabra tiene que estar en al menos una de ellas; las palabras pueden repartirse entre columnas (`pepe garcia` encuentra al usuario `pepe99` con nombre `José García`). Las columnas de un modelo incluido se referencian por su alias (`Game.title`, `Backlog->Game.title`, `Follower.username`).
+- **Consulta vacía.** Si tras normalizar no queda ninguna palabra (`%`, `_`, `\`, solo signos), el listado paginado no filtra y devuelve todo lo que devolvería sin `search`. Los endpoints cuya función es buscar (`GET /users/search`, `GET /lists/search`, `GET /games/search`) devuelven lista vacía.
+- **Orden de relevancia.** `buildTextSearchRelevanceOrder` ordena por título normalizado igual a la consulta, luego por título que empieza con ella y luego el resto; dentro de cada grupo, `title` ascendente y `id` de desempate. Lo usan `GET /games/search` (local) y `searchGames`. Los listados con orden propio (backlog, favoritos, queue, etc.) lo conservan.
+- **Límite.** El orden se aplica antes del `limit`, así que con más coincidencias que el límite (10 en `local_only=true`) el título exacto entra igual.
+
 ## Búsqueda de juegos
 
-- Token-AND con normalización de puntuación y espacios.
-- Accent-insensitive sobre títulos.
+- Sigue las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto) sobre `Game.title`.
 - Fallback a RAWG cuando no hay match local, salvo `local_only=true`. Importa hasta 3 resultados con detalle, excluye DLCs.
 - `force_rawg=true` salta búsqueda local y propaga el fallo de la búsqueda en RAWG (429 `RAWG_RATE_LIMITED`, 502 `RAWG_REQUEST_ERROR` / `RAWG_PARSE_ERROR`). En el fallback implícito el fallo se registra como warning y la respuesta es 200 con lista vacía. El fallo al resolver un resultado individual se tolera en ambos casos.
 - `sort_by=random` disponible para discover.
