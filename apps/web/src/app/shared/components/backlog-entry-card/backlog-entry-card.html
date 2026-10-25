@@ -86,7 +86,9 @@
 						(click)="$event.stopPropagation()"
 						>{{ item.game.title }}</a
 					>
-					@if (!readonly()) {
+					@if (showsGameTrophy()) {
+					<app-platinum-trophy class="mt-0.5" scope="game" />
+					} @if (!readonly()) {
 					<div
 						class="max-sm:hidden flex items-center -mt-1 -mr-1 shrink-0"
 						[class.!mr-9]="hasAnnotations()"
@@ -203,7 +205,12 @@
 						class="px-1.5 py-0.5 rounded bg-surface-hover text-fg-secondary text-[0.6875rem] font-semibold tracking-wide"
 						>{{ item.platform.abbreviation }}</span
 					>
-					@if (item.coopMembers && item.coopMembers.length > 0) {
+					@if (isPlatinumRun()) {
+					<app-platinum-trophy
+						scope="run"
+						[platinumedAt]="item.platinum?.platinumedAt ?? null"
+					/>
+					} @if (item.coopMembers && item.coopMembers.length > 0) {
 					<span
 						class="inline-flex items-center gap-1.5 text-[0.6875rem] text-fg-muted"
 					>

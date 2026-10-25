@@ -10,6 +10,7 @@ import {
 
 import { type BacklogEntry, type BacklogStatus } from "../../../../core/models";
 import { GameTitleCell } from "../../../../shared/components/game-title-cell/game-title-cell";
+import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { FloatingXScrollbar } from "../../../../shared/directives/floating-x-scrollbar";
 import { MenuKeyboard } from "../../../../shared/directives/menu-keyboard";
@@ -21,6 +22,7 @@ import {
 	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
+import { isPlatinumRun } from "../../../../shared/utils/platinum";
 import { FavoritesService } from "../../../favorites/favorites";
 
 export interface BacklogTableEntryEvent {
@@ -113,6 +115,7 @@ const STATUS_CHANGEABLE_FROM: ReadonlySet<BacklogStatus> = new Set([
 		FloatingXScrollbar,
 		GameTitleCell,
 		MenuKeyboard,
+		PlatinumTrophy,
 		StarRating,
 		UiAvatar
 	],
@@ -145,6 +148,7 @@ export class BacklogTable {
 	protected readonly statusLabel = backlogStatusLabel;
 	protected readonly statusIcon = backlogStatusIcon;
 	protected readonly statusIconColor = backlogStatusIconColor;
+	protected readonly isPlatinumRun = isPlatinumRun;
 
 	protected ariaSortFor(column: string): "ascending" | "descending" | "none" {
 		if (this.sortBy() !== column) return "none";

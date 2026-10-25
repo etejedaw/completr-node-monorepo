@@ -36,6 +36,7 @@ export interface BacklogFilters extends Record<string, Appendable> {
 	active_to?: string;
 	undated?: boolean;
 	coop_only?: boolean;
+	platinumed_only?: boolean;
 	min_score?: number;
 	max_score?: number;
 	min_duration?: number;

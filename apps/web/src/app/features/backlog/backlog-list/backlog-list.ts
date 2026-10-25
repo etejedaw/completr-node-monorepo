@@ -71,6 +71,7 @@ import { FavoritesService } from "../../favorites/favorites";
 import { GamesService } from "../../games/games";
 import { ReviewsService } from "../../games/reviews";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
+import { PlatinumService } from "../../platinum/platinum";
 import { QueueService } from "../../queue/queue";
 import { type BacklogFilters, BacklogService } from "../backlog";
 import { BacklogCalendar } from "../backlog-calendar/backlog-calendar";
@@ -188,6 +189,7 @@ export class BacklogList implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly reviewsService = inject(ReviewsService);
 	private readonly moodTagsService = inject(MoodTagsService);
+	private readonly platinumService = inject(PlatinumService);
 	private readonly dialogs = inject(DialogService);
 	private readonly toast = inject(ToastService);
 
@@ -369,6 +371,7 @@ export class BacklogList implements OnInit {
 	protected readonly selectedMoodTags = signal<string[]>([]);
 	protected readonly moodTagsSuggestions = signal<string[]>([]);
 	protected readonly coopOnly = signal(false);
+	protected readonly platinumedOnly = signal(false);
 
 	protected readonly appliedFilters = signal<BacklogFilters>({});
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
@@ -549,6 +552,7 @@ export class BacklogList implements OnInit {
 		if (this.activeStatuses().size > 0) count++;
 		if (this.selectedMoodTags().length > 0) count++;
 		if (this.coopOnly()) count++;
+		if (this.platinumedOnly()) count++;
 		return count;
 	};
 
@@ -565,6 +569,11 @@ export class BacklogList implements OnInit {
 
 	protected setCoopOnly(value: boolean) {
 		this.coopOnly.set(value);
+		this.activeFilterId.set(null);
+	}
+
+	protected setPlatinumedOnly(value: boolean) {
+		this.platinumedOnly.set(value);
 		this.activeFilterId.set(null);
 	}
 
@@ -702,6 +711,7 @@ export class BacklogList implements OnInit {
 			f["mood_tags"] ? f["mood_tags"].split(",").filter(Boolean) : []
 		);
 		this.coopOnly.set(f["coop_only"] === "true");
+		this.platinumedOnly.set(f["platinumed_only"] === "true");
 
 		const status = f["status"];
 		this.activeStatuses.set(
@@ -745,6 +755,7 @@ export class BacklogList implements OnInit {
 		this.selectedMoodTags.set([]);
 		this.activeStatuses.set(new Set());
 		this.coopOnly.set(false);
+		this.platinumedOnly.set(false);
 		this.activeFilterId.set(null);
 		this.activeFilterDescription.set("");
 		this.sortBy.set("createdAt");
@@ -891,6 +902,7 @@ export class BacklogList implements OnInit {
 		this.selectedMoodTags.set([]);
 		this.activeStatuses.set(new Set());
 		this.coopOnly.set(false);
+		this.platinumedOnly.set(false);
 		this.activeFilterId.set(null);
 		this.activeFilterDescription.set("");
 		this.sortBy.set("createdAt");
@@ -1007,6 +1019,7 @@ export class BacklogList implements OnInit {
 		if (this.selectedMoodTags().length > 0)
 			filters["mood_tags"] = this.selectedMoodTags().join(",");
 		if (this.coopOnly()) filters["coop_only"] = "true";
+		if (this.platinumedOnly()) filters["platinumed_only"] = "true";
 		return filters;
 	}
 
@@ -1095,7 +1108,9 @@ export class BacklogList implements OnInit {
 			rating: entry.review?.rating ?? entry.userRating ?? null,
 			reviewToggle: false,
 			reviewContent: "",
-			notes: entry.notes ?? ""
+			notes: entry.notes ?? "",
+			markPlatinum: false,
+			platinumedAt: today
 		});
 	}
 
@@ -1162,6 +1177,8 @@ export class BacklogList implements OnInit {
 		const reviewContent = pending.reviewContent.trim() || undefined;
 		const shouldSubmitReview =
 			reviewSubmit && (reviewRating !== undefined || reviewContent);
+		const shouldMarkPlatinum =
+			status === "completed" && pending.markPlatinum && !entry.platinum;
 
 		this.pendingStatusUpdate.set(null);
 
@@ -1178,9 +1195,15 @@ export class BacklogList implements OnInit {
 		this.backlogService.update(entry.id, payload).subscribe({
 			next: ({ backlog, queueRemoved }) => {
 				this.entries.set(
-					this.entries().map(e => (e.id === entry.id ? backlog : e))
+					this.entries().map(e =>
+						e.id === entry.id
+							? { ...backlog, platinum: e.platinum }
+							: e
+					)
 				);
 				if (queueRemoved) this.loadQueueIds();
+				if (shouldMarkPlatinum)
+					this.markRunAsPlatinum(entry, pending.platinumedAt);
 
 				if (!shouldSubmitReview) {
 					clearUpdating();
@@ -1204,6 +1227,28 @@ export class BacklogList implements OnInit {
 			},
 			error: clearUpdating
 		});
+	}
+
+	private markRunAsPlatinum(entry: BacklogEntry, platinumedAt: string) {
+		this.platinumService
+			.save(entry.game.id, {
+				backlogId: entry.id,
+				platinumedAt: platinumedAt || null
+			})
+			.subscribe({
+				next: platinum => {
+					this.entries.set(
+						this.entries().map(e =>
+							e.game.id === entry.game.id ? { ...e, platinum } : e
+						)
+					);
+					this.toast.success(`${entry.game.title} platinumed`);
+				},
+				error: () =>
+					this.toast.error(
+						`Status saved, but ${entry.game.title} could not be marked as platinumed`
+					)
+			});
 	}
 
 	private todayDateString(): string {
@@ -1388,6 +1433,7 @@ export class BacklogList implements OnInit {
 		if (this.selectedMoodTags().length > 0)
 			filters.mood_tags = this.selectedMoodTags().join(",");
 		if (this.coopOnly()) filters.coop_only = true;
+		if (this.platinumedOnly()) filters.platinumed_only = true;
 		if (this.searchQuery().trim())
 			filters.search = this.searchQuery().trim();
 

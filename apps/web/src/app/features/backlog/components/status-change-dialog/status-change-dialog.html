@@ -70,7 +70,41 @@
 				(input)="updatePendingStatus({ realDuration: $any($event.target).value })"
 			/>
 		</div>
-		}
+		@if (pending.entry.platinum; as platinum) {
+		<div
+			class="flex items-center gap-2 min-h-[44px] text-sm text-fg-secondary"
+		>
+			@if (platinum.backlogId === pending.entry.id) {
+			<app-platinum-trophy
+				scope="run"
+				[platinumedAt]="platinum.platinumedAt"
+			/>
+			} @else {
+			<app-platinum-trophy scope="game" />
+			<span>You already platinumed this game</span>
+			}
+		</div>
+		} @else {
+		<div class="flex items-center gap-3 min-h-[44px]">
+			<ui-switch
+				ariaLabel="Mark as platinumed"
+				[checked]="pending.markPlatinum"
+				(checkedChange)="updatePendingStatus({ markPlatinum: $event })"
+			/>
+			<span class="text-sm text-fg-secondary">Mark as platinumed</span>
+		</div>
+		@if (pending.markPlatinum) {
+		<div>
+			<label for="pendingPlatinumedAt" uiFieldLabel>Platinumed on</label>
+			<input
+				uiInput
+				id="pendingPlatinumedAt"
+				type="date"
+				[value]="pending.platinumedAt"
+				(input)="updatePendingStatus({ platinumedAt: $any($event.target).value })"
+			/>
+		</div>
+		} } }
 		<div>
 			<label for="pendingNotes" uiFieldLabel>Notes</label>
 			<textarea

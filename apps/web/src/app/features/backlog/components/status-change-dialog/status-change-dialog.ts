@@ -6,6 +6,7 @@ import {
 } from "@angular/core";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../../core/models";
+import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import {
 	UiButton,
@@ -31,12 +32,15 @@ export interface PendingStatusUpdate {
 	reviewToggle: boolean;
 	reviewContent: string;
 	notes: string;
+	markPlatinum: boolean;
+	platinumedAt: string;
 }
 
 @Component({
 	selector: "app-status-change-dialog",
 	imports: [
 		UiFieldLabel,
+		PlatinumTrophy,
 		StarRating,
 		UiButton,
 		UiDialog,

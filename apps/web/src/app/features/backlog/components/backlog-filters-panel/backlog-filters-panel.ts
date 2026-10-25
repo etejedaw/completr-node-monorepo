@@ -114,6 +114,7 @@ export class BacklogFiltersPanel {
 	readonly maxPersonalRatio = model<number | null>(null);
 	readonly selectedMoodTags = model<string[]>([]);
 	readonly coopOnly = model(false);
+	readonly platinumedOnly = model(false);
 	readonly sortBy = model("createdAt");
 	readonly sortOrder = model<SortOrder>("desc");
 	readonly showAdvancedFilters = model(false);

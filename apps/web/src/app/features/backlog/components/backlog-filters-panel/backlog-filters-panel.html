@@ -161,6 +161,15 @@
 			/>
 		</app-filter-section>
 
+		<app-filter-section label="Platinum">
+			<ui-switch
+				class="text-sm text-fg"
+				label="Only platinumed games"
+				[checked]="platinumedOnly()"
+				(checkedChange)="platinumedOnly.set($event)"
+			/>
+		</app-filter-section>
+
 		<button
 			type="button"
 			uiButton

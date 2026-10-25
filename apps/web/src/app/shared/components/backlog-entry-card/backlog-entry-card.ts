@@ -17,8 +17,10 @@ import {
 	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../utils/backlog-status";
+import { isPlatinumRun } from "../../utils/platinum";
 import { FlipCard } from "../flip-card/flip-card";
 import { GamePoster } from "../game-poster/game-poster";
+import { PlatinumTrophy } from "../platinum-trophy/platinum-trophy";
 import { RatioSummary } from "../ratio-summary/ratio-summary";
 import { StarRating } from "../star-rating/star-rating";
 
@@ -52,6 +54,7 @@ const CHANGEABLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		FlipCard,
 		GamePoster,
 		MenuKeyboard,
+		PlatinumTrophy,
 		RatioSummary,
 		StarRating,
 		UiAvatar
@@ -121,6 +124,12 @@ export class BacklogEntryCard {
 			entry.userRating == null
 		);
 	});
+	protected readonly isPlatinumRun = computed(() =>
+		isPlatinumRun(this.entry())
+	);
+	protected readonly showsGameTrophy = computed(
+		() => !!this.entry().platinum && !this.isPlatinumRun()
+	);
 	protected readonly hasMobileBar = computed(
 		() => !this.readonly() || this.hasAnnotations()
 	);
