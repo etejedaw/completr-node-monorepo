@@ -26,7 +26,7 @@ docs: |-
     | offset             | int     | default 0                                                |
     | sort_by            | enum    | createdAt, title, releaseAt, random, score, duration, ratio, popularity — default createdAt |
     | sort_order         | enum    | asc, desc — default desc                                 |
-    | search             | string  | Partial title match (ILIKE)                              |
+    | search             | string  | Title match: Accent-, case- and punctuation-insensitive; every word must match, in any order; `%`, `_` and `\` are matched literally. A value without letters or digits does not filter |
     | genre              | string  | Single genre code (legacy, kept for compat)              |
     | genres             | csv     | Multiple genre codes (comma-separated)                   |
     | platforms          | csv     | Multiple platform codes (comma-separated)                |

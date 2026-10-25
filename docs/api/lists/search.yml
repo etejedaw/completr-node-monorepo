@@ -26,7 +26,7 @@ docs: |-
 
     | Param | Type   | Required | Description          |
     |-------|--------|----------|----------------------|
-    | query | string | Yes      | List name search term |
+    | query | string | Yes      | List name search: ignores case, accents and punctuation; every word must match, in any order; `%`, `_` and `\` are literal. A term without letters or digits returns an empty list |
 
     ### Response (200)
 

@@ -14,7 +14,7 @@ settings:
 docs: |-
     ## Search Games
 
-    Searches for games by title. First searches locally, then falls back to RAWG API if no local results found. If RAWG finds a match, the game is automatically created in the database with scores, times, genres and platforms.
+    Searches for games by title. Local results are ordered by relevance: exact title first, then titles starting with the term, then the rest, alphabetical within each group. First searches locally, then falls back to RAWG API if no local results found. If RAWG finds a match, the game is automatically created in the database with scores, times, genres and platforms.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -23,7 +23,7 @@ docs: |-
 
     | Param | Type   | Required | Description                   |
     |-------|--------|----------|-------------------------------|
-    | query | string | Yes      | Search term (1-200 chars)     |
+    | query | string | Yes      | Search term (1-200 chars). Local matching ignores case, accents and punctuation; every word must match the title, in any order; `%`, `_` and `\` are literal. A term without letters or digits finds nothing locally |
     | force_rawg | bool | No     | `true` skips the local search and goes straight to RAWG, and a failure of the RAWG search is returned as an error (see Errors). Accepts `true` / `false` |
     | local_only | bool | No     | `true` searches only the local catalog (max 10 results, no RAWG fallback). Accepts `true` / `false` |
 

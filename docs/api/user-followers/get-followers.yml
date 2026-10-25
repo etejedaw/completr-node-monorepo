@@ -35,7 +35,7 @@ docs: |-
     |--------|---------|----------|---------|-----------------------------------------------------------------------------|
     | limit  | integer | No       | 24      | Page size (1–100)                                                           |
     | offset | integer | No       | 0       | Page offset                                                                 |
-    | search | string  | No       | —       | Case-insensitive match on the listed user's `username` or `name` (1–100 characters). `%`, `_` and `\` are matched literally. Omit it instead of sending it empty |
+    | search | string  | No       | —       | Match on the listed user's `username` or `name` (1–100 characters), ignoring case, accents and punctuation; every word must appear in one of the two fields, in any order. `%`, `_` and `\` are never wildcards, and a value without letters or digits does not filter. Omit it instead of sending it empty |
 
     ### Response (200)
 

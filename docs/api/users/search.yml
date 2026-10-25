@@ -14,7 +14,7 @@ settings:
 docs: |-
     ## Search Users
 
-    Search users by username/name (partial, case-insensitive, literal: `%`, `_` and `\` in `q` match themselves, not as wildcards) or by exact email.
+    Search users by username/name or by exact email. `q` is matched against `username` and `name` ignoring case, accents and punctuation: every word must appear in one of the two fields, in any order, and `%`, `_` and `\` are never wildcards. A `q` without letters or digits returns an empty list.
     Returns active users (both public and private). Private users appear in results
     but their profile shows limited info.
 
@@ -28,7 +28,7 @@ docs: |-
 
     | Param | Type    | Required | Description                                |
     |-------|---------|----------|--------------------------------------------|
-    | q     | string  | No       | Partial match on username or name (ILIKE)  |
+    | q     | string  | No       | Words matched on username or name (see above)|
     | email | string  | No       | Exact email match (case-insensitive)       |
     | limit | integer | No       | Max results (1-50, default 20)             |
 

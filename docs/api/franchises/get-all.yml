@@ -24,7 +24,7 @@ settings:
 docs: |-
     ## Get All Franchises
 
-    Returns franchises ordered by name, with optional case-insensitive name search and pagination. Powers the admin franchise picker and management list.
+    Returns franchises ordered by name, with optional name search and pagination. Powers the admin franchise picker and management list.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 100 requests per minute (public).
@@ -33,7 +33,7 @@ docs: |-
 
     | Param  | Type    | Required | Default | Description                          |
     |--------|---------|----------|---------|--------------------------------------|
-    | search | string  | No       | —       | Case-insensitive match on `name`     |
+    | search | string  | No       | —       | Accent-, case- and punctuation-insensitive; every word must match, in any order; `%`, `_` and `\` are matched literally on `name`. A value without letters or digits does not filter |
     | limit  | integer | No       | —       | Page size (1–100)                    |
     | offset | integer | No       | —       | Page offset                          |
 

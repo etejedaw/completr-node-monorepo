@@ -25,7 +25,7 @@ docs: |-
     |--------|---------|----------|------------------------------|
     | limit  | integer | No       | Page size (default 50, max 100) |
     | offset | integer | No       | Pagination offset (default 0)|
-    | search | string  | No       | Filter by game title (iLike) |
+    | search | string  | No       | Filter by game title. Accent-, case- and punctuation-insensitive; every word must match, in any order; `%`, `_` and `\` are matched literally. A value without letters or digits does not filter |
 
     ### Response (200)
 
