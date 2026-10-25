@@ -156,6 +156,11 @@ export class FeedPage implements OnInit {
 			iconClass: "text-playing"
 		},
 		{ value: "type:game_reviewed", label: "Reviews", icon: "rate_review" },
+		{
+			value: "type:game_platinumed",
+			label: "Platinums",
+			icon: "emoji_events"
+		},
 		{ value: "cat:lists", label: "Lists", icon: "format_list_bulleted" },
 		{ value: "cat:social", label: "Co-op & social", icon: "group" }
 	];

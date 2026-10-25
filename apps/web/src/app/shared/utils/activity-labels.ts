@@ -14,6 +14,7 @@ const ACTIVITY_LABELS: Record<string, string> = {
 	user_followed: "followed a user",
 	user_followed_by: "started following you",
 	game_reviewed: "reviewed",
+	game_platinumed: "platinumed",
 	coop_tagged: "is playing co-op with"
 };
 
@@ -33,6 +34,7 @@ const ACTIVITY_ICONS: Record<string, string> = {
 	user_followed: "person_add",
 	user_followed_by: "person",
 	game_reviewed: "rate_review",
+	game_platinumed: "emoji_events",
 	coop_tagged: "groups"
 };
 
@@ -52,6 +54,7 @@ const ACTIVITY_ICON_COLOR_CLASSES: Record<string, string> = {
 	user_followed: "text-brand",
 	user_followed_by: "text-brand",
 	game_reviewed: "text-success",
+	game_platinumed: "text-fg-secondary",
 	coop_tagged: "text-brand"
 };
 
