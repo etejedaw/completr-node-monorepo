@@ -2,7 +2,7 @@ import { Op, type Order, type WhereOptions } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
-import { escapeLikePattern } from "../common/utils/escape-like-pattern.util";
+import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { USER_CARD_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
@@ -17,17 +17,14 @@ const CONNECTIONS_ORDER: Order = [
 	["id", "DESC"]
 ];
 
-function connectionUserWhere(search: string | undefined): WhereOptions {
-	if (!search) return { isActive: true };
-
-	const pattern = `%${escapeLikePattern(search)}%`;
-	return {
-		isActive: true,
-		[Op.or]: [
-			{ username: { [Op.iLike]: pattern } },
-			{ name: { [Op.iLike]: pattern } }
-		]
-	};
+function connectionUserWhere(
+	as: "Follower" | "Following",
+	search: string | undefined
+): WhereOptions {
+	const searchWhere = search
+		? buildTextSearchWhere(search, [`${as}.username`, `${as}.name`])
+		: null;
+	return { isActive: true, ...searchWhere };
 }
 
 function connectionUserInclude(
@@ -38,7 +35,7 @@ function connectionUserInclude(
 		model: User,
 		as,
 		attributes: USER_CARD_ATTRS,
-		where: connectionUserWhere(search)
+		where: connectionUserWhere(as, search)
 	};
 }
 

@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { USER_CARD_ATTRS } from "./constants/user-attrs.constants";
 import { type CreateUserDto, type UpdateUserDto } from "./dtos";
@@ -51,22 +52,14 @@ export async function countActiveUsers() {
 	return User.count({ where: { isActive: true } });
 }
 
-const LIKE_WILDCARDS = /[\\%_]/g;
-
-function escapeLikePattern(term: string) {
-	return term.replace(LIKE_WILDCARDS, "\\$&");
-}
-
 export async function searchUsers(query: string, limit = 20) {
-	const pattern = `%${escapeLikePattern(query)}%`;
+	const nameWhere = buildTextSearchWhere(query, [
+		"User.username",
+		"User.name"
+	]);
+	if (!nameWhere) return [];
 	return User.findAll({
-		where: {
-			isActive: true,
-			[Op.or]: [
-				{ username: { [Op.iLike]: pattern } },
-				{ name: { [Op.iLike]: pattern } }
-			]
-		},
+		where: { isActive: true, ...nameWhere },
 		attributes: USER_CARD_ATTRS,
 		limit,
 		order: [["username", "ASC"]]
