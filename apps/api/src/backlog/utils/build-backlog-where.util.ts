@@ -164,6 +164,18 @@ export function buildBacklogWhere(
 		}
 	}
 
+	if (filters.platinumed_only) {
+		const ownerId = base.userId as string | undefined;
+		if (ownerId)
+			andConditions.push({
+				gameId: {
+					[Op.in]: literal(
+						`(SELECT "gameId" FROM "GamePlatinums" WHERE "userId" = ${sequelize.escape(ownerId)})`
+					)
+				}
+			});
+	}
+
 	if (andConditions.length > 0)
 		where[Op.and as unknown as string] = andConditions;
 

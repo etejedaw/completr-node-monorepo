@@ -1,4 +1,5 @@
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
+import { type SerializedGamePlatinum } from "../game-platinum/game-platinum.serializer";
 import { type Game } from "../games/game.model";
 import { type Platform } from "../platforms/platform.model";
 import { type Backlog } from "./backlog.model";
@@ -16,7 +17,8 @@ export function backlogSerializer(
 	review?: { content: string | null; rating: number | null } | null,
 	moodTags?: string[],
 	latestProgress?: { note: string; createdAt: Date } | null,
-	coopMembers?: CoopMemberSummary[]
+	coopMembers?: CoopMemberSummary[],
+	platinum?: SerializedGamePlatinum | null
 ) {
 	return {
 		id: backlogEntry.id,
@@ -47,7 +49,8 @@ export function backlogSerializer(
 		platform: platformSerializer(backlogEntry.Platform),
 		compilationGame: backlogEntry.CompilationGame
 			? gameSummarySerializer(backlogEntry.CompilationGame)
-			: null
+			: null,
+		...(platinum !== undefined && { platinum })
 	};
 }
 
@@ -65,14 +68,16 @@ export function backlogPublicSerializer(
 	review?: { content: string | null; rating: number | null } | null,
 	moodTags?: string[],
 	latestProgress?: { note: string; createdAt: Date } | null,
-	coopMembers?: CoopMemberSummary[]
+	coopMembers?: CoopMemberSummary[],
+	platinum?: SerializedGamePlatinum | null
 ) {
 	const full = backlogSerializer(
 		backlogEntry,
 		review,
 		moodTags,
 		latestProgress,
-		coopMembers
+		coopMembers,
+		platinum
 	);
 	const { notes: _notes, latestProgress: _lp, ...publicEntry } = full;
 	return publicEntry;

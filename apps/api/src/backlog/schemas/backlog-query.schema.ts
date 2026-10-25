@@ -44,6 +44,7 @@ export const BacklogQuerySchema = z
 		no_finished_date: z.stringbool().optional(),
 		undated: z.stringbool().optional(),
 		coop_only: z.stringbool().optional(),
+		platinumed_only: z.stringbool().optional(),
 		min_score: z.coerce.number().optional(),
 		max_score: z.coerce.number().optional(),
 		min_duration: z.coerce.number().optional(),

@@ -4,6 +4,11 @@ import * as activityService from "../activity/activity.service";
 import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as coopRunsService from "../coop-runs/coop-runs.service";
+import {
+	gamePlatinumPublicSerializer,
+	gamePlatinumSerializer
+} from "../game-platinum/game-platinum.serializer";
+import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as reviewsService from "../reviews/reviews.service";
 import * as userDomainError from "../users/errors/users.domain-error";
@@ -74,17 +79,23 @@ export async function getMeBacklog(request: Request, response: Response) {
 		await coopRunsService.findMembersForManyBacklogs(
 			backlogPlain.map(e => e.id)
 		);
+	const platinumByGameId = await gamePlatinumService.findPlatinumsForGames(
+		user.id,
+		gameIds
+	);
 
 	const data = {
-		backlog: backlogPlain.map(entry =>
-			backlogSerializer(
+		backlog: backlogPlain.map(entry => {
+			const platinum = platinumByGameId.get(entry.gameId);
+			return backlogSerializer(
 				entry,
 				reviewByGameId.get(entry.gameId),
 				moodTagsByGameId.get(entry.gameId),
 				latestProgressByBacklog.get(entry.id),
-				coopMembersByBacklog.get(entry.id)
-			)
-		),
+				coopMembersByBacklog.get(entry.id),
+				platinum ? gamePlatinumSerializer(platinum) : null
+			);
+		}),
 		total
 	};
 	return response.status(200).json({ data });
@@ -126,25 +137,32 @@ export async function getUserBacklog(request: Request, response: Response) {
 		await coopRunsService.findMembersForManyBacklogs(
 			backlogPlain.map(e => e.id)
 		);
+	const platinumByGameId = await gamePlatinumService.findPlatinumsForGames(
+		user.id,
+		gameIds
+	);
 
 	const data = {
-		backlog: backlogPlain.map(entry =>
-			isSelf
+		backlog: backlogPlain.map(entry => {
+			const platinum = platinumByGameId.get(entry.gameId);
+			return isSelf
 				? backlogSerializer(
 						entry,
 						reviewByGameId.get(entry.gameId),
 						moodTagsByGameId.get(entry.gameId),
 						latestProgressByBacklog.get(entry.id),
-						coopMembersByBacklog.get(entry.id)
+						coopMembersByBacklog.get(entry.id),
+						platinum ? gamePlatinumSerializer(platinum) : null
 					)
 				: backlogPublicSerializer(
 						entry,
 						reviewByGameId.get(entry.gameId),
 						moodTagsByGameId.get(entry.gameId),
 						undefined,
-						coopMembersByBacklog.get(entry.id)
-					)
-		),
+						coopMembersByBacklog.get(entry.id),
+						platinum ? gamePlatinumPublicSerializer(platinum) : null
+					);
+		}),
 		total
 	};
 	return response.status(200).json({ data });
