@@ -140,4 +140,20 @@ describe("GameRuns", () => {
 		expect(icons).not.toContain("star");
 		expect(icons).not.toContain("bookmark");
 	});
+	it("shows the run trophy only on the run where the platinum was earned", () => {
+		const platinum = {
+			id: "platinum-1",
+			backlogId: "2",
+			platformId: null,
+			platinumedAt: "2026-03-12"
+		};
+		const { element } = render([
+			run({ id: "1", status: "completed", platinum }),
+			run({ id: "2", status: "completed", platinum })
+		]);
+
+		const items = Array.from(element.querySelectorAll("ol li"));
+		expect(items[0]?.textContent).not.toContain("Platinumed");
+		expect(items[1]?.textContent).toContain("Platinumed on Mar 12, 2026");
+	});
 });

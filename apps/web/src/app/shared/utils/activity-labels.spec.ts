@@ -20,6 +20,14 @@ describe("activity labels", () => {
 		expect(activityIconColorClass("game_reviewed")).toBe("text-success");
 	});
 
+	it("describes a platinum with the trophy icon", () => {
+		expect(activityLabel("game_platinumed")).toBe("platinumed");
+		expect(activityIcon("game_platinumed")).toBe("emoji_events");
+		expect(activityIconColorClass("game_platinumed")).toBe(
+			"text-fg-secondary"
+		);
+	});
+
 	it("falls back for an unknown activity", () => {
 		expect(activityLabel("nope")).toBe("did something");
 		expect(activityIcon("nope")).toBe("circle");

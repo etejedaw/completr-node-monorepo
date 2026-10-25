@@ -88,16 +88,19 @@ describe("BacklogList interaction", () => {
 	const backlogQueries: URLSearchParams[] = [];
 	const backlogPatches: { id: string; body: unknown }[] = [];
 	const deletedIds: string[] = [];
+	const platinumPuts: { gameId: string; body: unknown }[] = [];
 
 	function listBacklog(req: TestRequest) {
 		const params = req.request.params;
 		backlogQueries.push(new URLSearchParams(params.toString()));
 		const statuses = params.get("status")?.split(",");
 		const search = params.get("search")?.toLowerCase();
+		const platinumedOnly = params.get("platinumed_only") === "true";
 		const backlog = library.filter(
 			item =>
 				(!statuses || statuses.includes(item.status)) &&
-				(!search || item.game.title.toLowerCase().includes(search))
+				(!search || item.game.title.toLowerCase().includes(search)) &&
+				(!platinumedOnly || !!item.platinum)
 		);
 		req.flush({ data: { backlog, total: backlog.length } });
 	}
@@ -110,8 +113,32 @@ describe("BacklogList interaction", () => {
 		req.flush({ data: { backlog: updated, queueRemoved: false } });
 	}
 
+	function putPlatinum(req: TestRequest, gameId: string) {
+		const body = req.request.body as {
+			backlogId: string | null;
+			platinumedAt: string | null;
+		};
+		platinumPuts.push({ gameId, body });
+		const platinum = {
+			id: `platinum-${gameId}`,
+			backlogId: body.backlogId,
+			platformId: null,
+			platinumedAt: body.platinumedAt,
+			notes: null
+		};
+		library = library.map(item =>
+			item.game.id === gameId ? { ...item, platinum } : item
+		);
+		req.flush({ data: { platinum } }, { status: 201, statusText: "OK" });
+	}
+
 	function answer(req: TestRequest) {
 		const { method, url } = req.request;
+		const platinumMatch = url.match(
+			/\/users\/me\/games\/([^/]+)\/platinum$/
+		);
+		if (method === "PUT" && platinumMatch)
+			return putPlatinum(req, platinumMatch[1]);
 		const entryMatch = url.match(/\/users\/me\/backlog\/([^/]+)$/);
 		if (method === "GET" && url === backlogUrl) return listBacklog(req);
 		if (method === "PATCH" && entryMatch)
@@ -223,6 +250,7 @@ describe("BacklogList interaction", () => {
 		backlogQueries.length = 0;
 		backlogPatches.length = 0;
 		deletedIds.length = 0;
+		platinumPuts.length = 0;
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -384,6 +412,103 @@ describe("BacklogList interaction", () => {
 		]);
 	});
 
+	it("marks the run as platinumed after saving the Completed status", async () => {
+		const user = userEvent.setup();
+		await renderBacklog();
+
+		await user.click(
+			within(card("Hades")).getByRole("button", { name: /Playing/ })
+		);
+		await user.click(
+			within(
+				screen.getByRole("menu", { name: "Change status" })
+			).getByRole("menuitem", { name: /Completed/ })
+		);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Completed?"
+		});
+		expect(
+			within(dialog).queryByLabelText("Platinumed on")
+		).not.toBeInTheDocument();
+
+		await user.click(
+			within(dialog).getByRole("switch", { name: "Mark as platinumed" })
+		);
+		const platinumedOn = within(dialog).getByLabelText("Platinumed on");
+		await user.clear(platinumedOn);
+		await user.type(platinumedOn, "2026-03-12");
+		await user.click(
+			within(dialog).getByRole("button", { name: "Confirm" })
+		);
+
+		await untilVisible(() =>
+			expect(
+				within(card("Hades")).getByText("Platinumed on Mar 12, 2026")
+			).toBeInTheDocument()
+		);
+		expect(backlogPatches.map(patch => patch.id)).toEqual(["b1"]);
+		expect(platinumPuts).toEqual([
+			{
+				gameId: "g1",
+				body: { backlogId: "b1", platinumedAt: "2026-03-12" }
+			}
+		]);
+	});
+
+	it("shows an existing platinum instead of offering it again when completing", async () => {
+		const user = userEvent.setup();
+		library = library.map(item =>
+			item.id === "b1"
+				? {
+						...item,
+						platinum: {
+							id: "platinum-g1",
+							backlogId: "b0",
+							platformId: null,
+							platinumedAt: null,
+							notes: null
+						}
+					}
+				: item
+		);
+		await renderBacklog();
+
+		expect(
+			within(card("Hades")).getByRole("img", { name: "Platinumed" })
+		).toBeInTheDocument();
+		expect(
+			within(card("Hades")).queryByText(/^Platinumed on/)
+		).not.toBeInTheDocument();
+
+		await user.click(
+			within(card("Hades")).getByRole("button", { name: /Playing/ })
+		);
+		await user.click(
+			within(
+				screen.getByRole("menu", { name: "Change status" })
+			).getByRole("menuitem", { name: /Completed/ })
+		);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Completed?"
+		});
+
+		expect(
+			within(dialog).getByText("You already platinumed this game")
+		).toBeInTheDocument();
+		expect(
+			within(dialog).queryByRole("switch", { name: "Mark as platinumed" })
+		).not.toBeInTheDocument();
+
+		await user.click(
+			within(dialog).getByRole("button", { name: "Confirm" })
+		);
+		await untilVisible(() => expect(backlogPatches).toHaveLength(1));
+		expect(platinumPuts).toEqual([]);
+		expect(
+			within(card("Hades")).getByRole("img", { name: "Platinumed" })
+		).toBeInTheDocument();
+	});
+
 	it("asks for notes when abandoning but not when starting to play", async () => {
 		const user = userEvent.setup();
 		await renderBacklog();
@@ -541,6 +666,44 @@ describe("BacklogList interaction", () => {
 
 		afterEach(() => {
 			Reflect.deleteProperty(Element.prototype, "getAnimations");
+		});
+
+		it("filters to platinumed games with the Platinum switch", async () => {
+			const user = userEvent.setup();
+			library = library.map(item =>
+				item.id === "b3"
+					? {
+							...item,
+							platinum: {
+								id: "platinum-g3",
+								backlogId: "b3",
+								platformId: null,
+								platinumedAt: null,
+								notes: null
+							}
+						}
+					: item
+			);
+			await renderBacklog();
+			await openFilters(user);
+
+			await user.click(
+				screen.getByRole("switch", { name: "Only platinumed games" })
+			);
+			await untilVisible(() =>
+				expect(
+					within(filtersButton()).getByText("1")
+				).toBeInTheDocument()
+			);
+			await showResults(user);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Celeste"])
+			);
+			expect(lastLibraryQuery().get("platinumed_only")).toBe("true");
+			expect(
+				within(card("Celeste")).getByText("Platinumed")
+			).toBeInTheDocument();
 		});
 
 		it("sends the chosen platforms together as platforms and never as platform_id", async () => {
