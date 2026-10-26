@@ -6,7 +6,8 @@ import { type VisibilityLevel } from "../../../src/users/constants/visibility.co
 import {
 	canView,
 	isSectionVisible,
-	resolveSectionAccess
+	resolveSectionAccess,
+	sectionVisibleToViewerSql
 } from "../../../src/users/helpers/visibility.helper";
 import { type User } from "../../../src/users/user.model";
 import { asModel } from "../../unit-helpers/as-model";
@@ -22,6 +23,7 @@ function buildOwner(levels: Partial<Record<string, VisibilityLevel>> = {}) {
 		backlogVisibility: "private",
 		shelfVisibility: "private",
 		listVisibility: "private",
+		platinumVisibility: "private",
 		...levels
 	});
 }
@@ -217,5 +219,42 @@ void describe("isSectionVisible", () => {
 			isSectionVisible(undefined, owner, "profile", true),
 			false
 		);
+	});
+});
+
+void describe("sectionVisibleToViewerSql", () => {
+	const ownerIdSql = '"Activity"."userId"';
+
+	void it("only accepts public owners for an anonymous viewer", () => {
+		const sql = sectionVisibleToViewerSql(
+			"platinum",
+			undefined,
+			ownerIdSql
+		);
+
+		assert.match(sql, /"platinumVisibility" = 'public'/);
+		assert.doesNotMatch(sql, /'friends'/);
+		assert.doesNotMatch(sql, /"Activity"\."userId" = '/);
+	});
+
+	void it("lets the viewer see their own rows and friends sections of mutual followers", () => {
+		const sql = sectionVisibleToViewerSql(
+			"platinum",
+			"viewer-1",
+			ownerIdSql
+		);
+
+		assert.ok(sql.startsWith(`(${ownerIdSql} = 'viewer-1' OR `));
+		assert.match(sql, /"platinumVisibility" = 'friends' AND EXISTS/);
+	});
+
+	void it("escapes the viewer id", () => {
+		const sql = sectionVisibleToViewerSql(
+			"platinum",
+			"x' OR '1'='1",
+			ownerIdSql
+		);
+
+		assert.ok(sql.includes("'x'' OR ''1''=''1'"));
 	});
 });

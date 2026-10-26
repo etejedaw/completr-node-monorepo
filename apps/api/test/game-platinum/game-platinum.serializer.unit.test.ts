@@ -8,7 +8,8 @@ import {
 import { type GamePlatinum } from "../../src/game-platinum/game-platinum.model";
 import {
 	gamePlatinumPublicSerializer,
-	gamePlatinumSerializer
+	gamePlatinumSerializer,
+	platinumEntrySerializer
 } from "../../src/game-platinum/game-platinum.serializer";
 import { asModel } from "../unit-helpers/as-model";
 import { buildBacklog } from "../unit-helpers/builders";
@@ -61,6 +62,55 @@ void describe("gamePlatinumPublicSerializer", () => {
 		const platinum = buildPlatinum({ backlogId: null, Backlog: null });
 
 		assert.equal(gamePlatinumPublicSerializer(platinum).backlogId, null);
+	});
+});
+
+void describe("platinumEntrySerializer", () => {
+	const game = {
+		id: "game-1",
+		code: "bloodborne",
+		title: "Bloodborne",
+		backgroundUrl: "https://img.test/bb.jpg",
+		isDlc: false
+	};
+	const platform = {
+		id: "platform-1",
+		name: "PlayStation 4",
+		abbreviation: "PS4"
+	};
+
+	void it("adds the game and the platform to the owner view with notes", () => {
+		const platinum = buildPlatinum({ Game: game, Platform: platform });
+
+		assert.deepEqual(platinumEntrySerializer(platinum, true), {
+			...gamePlatinumSerializer(platinum),
+			platform,
+			game
+		});
+	});
+
+	void it("uses the public view for visitors", () => {
+		const platinum = buildPlatinum({
+			Game: game,
+			Platform: platform,
+			Backlog: { id: "backlog-1", isPublic: false }
+		});
+
+		const result = platinumEntrySerializer(platinum, false);
+
+		assert.equal("notes" in result, false);
+		assert.equal(result.backlogId, null);
+		assert.deepEqual(result.game, game);
+	});
+
+	void it("serves a null platform when the platinum has none", () => {
+		const platinum = buildPlatinum({
+			platformId: null,
+			Game: game,
+			Platform: null
+		});
+
+		assert.equal(platinumEntrySerializer(platinum, false).platform, null);
 	});
 });
 
