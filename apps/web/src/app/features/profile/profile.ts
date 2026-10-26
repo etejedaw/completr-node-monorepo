@@ -17,6 +17,7 @@ export interface UpdateProfileDto {
 	backlogVisibility?: VisibilityLevel;
 	shelfVisibility?: VisibilityLevel;
 	listVisibility?: VisibilityLevel;
+	platinumVisibility?: VisibilityLevel;
 	acceptFollowRequests?: boolean;
 }
 

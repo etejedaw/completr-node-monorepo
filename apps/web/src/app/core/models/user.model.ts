@@ -16,6 +16,7 @@ export interface User {
 	backlogVisibility: VisibilityLevel;
 	shelfVisibility: VisibilityLevel;
 	listVisibility: VisibilityLevel;
+	platinumVisibility: VisibilityLevel;
 	acceptFollowRequests: boolean;
 	theme?: string;
 	isActive: boolean;

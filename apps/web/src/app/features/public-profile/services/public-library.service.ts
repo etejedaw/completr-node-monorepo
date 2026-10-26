@@ -6,6 +6,7 @@ import { environment } from "../../../../environments/environment";
 import { type BacklogEntry } from "../../../core/models/backlog.model";
 import { type FavoriteEntry } from "../../../core/models/favorite.model";
 import { type GameShelfEntry } from "../../../core/models/game-shelf.model";
+import { type PlatinumEntry } from "../../../core/models/platinum.model";
 import { type QueueEntry } from "../../../core/models/queue.model";
 import { type WishlistEntry } from "../../../core/models/wishlist.model";
 import { buildHttpParams } from "../../../core/utils/http-params";
@@ -60,6 +61,23 @@ export class PublicLibraryService {
 			}>(`${environment.apiUrl}/users/${username}/backlog`, { params })
 			.pipe(
 				map(res => ({ items: res.data.backlog, total: res.data.total }))
+			);
+	}
+
+	getUserPlatinums(
+		username: string,
+		pagination: { limit?: number; offset?: number } = {}
+	) {
+		const params = buildHttpParams(pagination);
+		return this.http
+			.get<{
+				data: { platinums: PlatinumEntry[]; total: number };
+			}>(`${environment.apiUrl}/users/${username}/platinums`, { params })
+			.pipe(
+				map(res => ({
+					items: res.data.platinums,
+					total: res.data.total
+				}))
 			);
 	}
 
