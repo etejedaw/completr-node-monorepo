@@ -28,7 +28,8 @@ const openAccess: ProfileSectionAccess = {
 	feed: true,
 	backlog: true,
 	shelf: true,
-	list: true
+	list: true,
+	platinum: true
 };
 
 const closedAccess: ProfileSectionAccess = {
@@ -39,7 +40,8 @@ const closedAccess: ProfileSectionAccess = {
 	feed: false,
 	backlog: false,
 	shelf: false,
-	list: false
+	list: false,
+	platinum: false
 };
 
 const recentActivity = [
@@ -116,6 +118,7 @@ describe("PublicProfileComponent", () => {
 	const unfollow = vi.fn();
 	const cancelFollowRequest = vi.fn();
 	const getUserFavorites = vi.fn();
+	const getUserPlatinums = vi.fn();
 	const getUserQueue = vi.fn();
 	const getUserFranchises = vi.fn();
 	const getComparison = vi.fn();
@@ -149,6 +152,7 @@ describe("PublicProfileComponent", () => {
 			cancelFollowRequest,
 			getUserFavorites,
 			getUserQueue,
+			getUserPlatinums,
 			getUserFranchises,
 			getComparison,
 			getUserReviews,
@@ -160,6 +164,7 @@ describe("PublicProfileComponent", () => {
 		toast.warning.mockReset();
 		toast.pending.mockReset();
 		getUserFavorites.mockReturnValue(of({ items: [], total: 0 }));
+		getUserPlatinums.mockReturnValue(of({ items: [], total: 0 }));
 		getUserQueue.mockReturnValue(of({ items: [], total: 0 }));
 		getUserFranchises.mockReturnValue(of([]));
 		getUserReviews.mockReturnValue(of({ reviews: [], total: 0 }));
@@ -226,6 +231,7 @@ describe("PublicProfileComponent", () => {
 					provide: PublicLibraryService,
 					useValue: {
 						getUserFavorites,
+						getUserPlatinums,
 						getUserQueue,
 						getUserFranchises,
 						getComparison,
@@ -315,6 +321,7 @@ describe("PublicProfileComponent", () => {
 			expect(getUserReviews).not.toHaveBeenCalled();
 			expect(getHighlights).not.toHaveBeenCalled();
 			expect(getUserFavorites).not.toHaveBeenCalled();
+			expect(getUserPlatinums).not.toHaveBeenCalled();
 			expect(getUserQueue).not.toHaveBeenCalled();
 			expect(getUserFranchises).not.toHaveBeenCalled();
 			expect(getComparison).not.toHaveBeenCalled();
@@ -433,6 +440,7 @@ describe("PublicProfileComponent", () => {
 				limit: expect.any(Number)
 			});
 			expect(getUserQueue).toHaveBeenCalledWith("ada", { limit: 10 });
+			expect(getUserPlatinums).toHaveBeenCalledWith("ada", { limit: 8 });
 			expect(getUserFranchises).toHaveBeenCalledWith("ada");
 		});
 
@@ -444,6 +452,7 @@ describe("PublicProfileComponent", () => {
 			await screen.findByLabelText("Profile stats");
 			expect(getHighlights).not.toHaveBeenCalled();
 			expect(getUserFavorites).not.toHaveBeenCalled();
+			expect(getUserPlatinums).not.toHaveBeenCalled();
 			expect(getUserQueue).not.toHaveBeenCalled();
 			expect(getUserFranchises).not.toHaveBeenCalled();
 		});
@@ -516,6 +525,75 @@ describe("PublicProfileComponent", () => {
 			expect(
 				screen.queryByRole("heading", { name: "Favorite games" })
 			).not.toBeInTheDocument();
+		});
+
+		describe("platinums", () => {
+			const platinumPage = {
+				items: [
+					{
+						id: "p1",
+						backlogId: null,
+						platformId: "ps5",
+						platinumedAt: "2026-03-12",
+						platform: {
+							id: "ps5",
+							name: "PlayStation 5",
+							abbreviation: "PS5"
+						},
+						game: {
+							id: "g1",
+							code: "astro-bot",
+							title: "Astro Bot",
+							isDlc: false
+						}
+					}
+				],
+				total: 12
+			};
+
+			it("shows the latest platinums with the total and a link to all of them", async () => {
+				getUserPlatinums.mockReturnValue(of(platinumPage));
+				await renderProfile({ data: profile() });
+
+				const heading = await screen.findByRole("heading", {
+					name: "Platinums"
+				});
+				const section = heading.closest("section")!;
+				expect(section).toHaveTextContent("12 platinums");
+				expect(section).toHaveTextContent("Astro Bot");
+				expect(section).toHaveTextContent("PS5");
+				expect(section).toHaveTextContent("Mar 12, 2026");
+				expect(
+					section.querySelector('a[href="/user/ada/platinums"]')
+				).not.toBeNull();
+			});
+
+			it("shows nothing when the owner has no platinums", async () => {
+				await renderProfile({ data: profile() });
+
+				await screen.findByLabelText("Profile stats");
+				await waitFor(() =>
+					expect(getUserPlatinums).toHaveBeenCalled()
+				);
+				expect(
+					screen.queryByRole("heading", { name: "Platinums" })
+				).not.toBeInTheDocument();
+			});
+
+			it("neither requests nor shows the platinums when they are hidden", async () => {
+				getUserPlatinums.mockReturnValue(of(platinumPage));
+				await renderProfile({
+					data: profile({
+						access: { ...openAccess, platinum: false }
+					})
+				});
+
+				await screen.findByLabelText("Profile stats");
+				expect(getUserPlatinums).not.toHaveBeenCalled();
+				expect(
+					screen.queryByRole("heading", { name: "Platinums" })
+				).not.toBeInTheDocument();
+			});
 		});
 
 		it("shows the recent activity when the feed is visible", async () => {

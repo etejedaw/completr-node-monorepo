@@ -36,7 +36,7 @@ describe("privacy options", () => {
 		]);
 	});
 
-	it("groups every section key exactly once, with its title and icon from the navigation", () => {
+	it("groups every section key exactly once, each with a title and an icon", () => {
 		const sections = PRIVACY_SECTION_GROUPS.flatMap(
 			group => group.sections
 		);
@@ -51,16 +51,32 @@ describe("privacy options", () => {
 		}
 	});
 
-	it("covers the seven profile sections", () => {
+	it("covers the eight profile sections", () => {
 		expect([...SECTION_KEYS].sort()).toEqual([
 			"backlogVisibility",
 			"favoriteVisibility",
 			"feedVisibility",
 			"listVisibility",
+			"platinumVisibility",
 			"queueVisibility",
 			"shelfVisibility",
 			"wishlistVisibility"
 		]);
+	});
+
+	it("lists Platinums in the Library group with the platinum trophy", () => {
+		const library = PRIVACY_SECTION_GROUPS.find(
+			group => group.title === "Library"
+		)!;
+		const platinums = library.sections.find(
+			section => section.key === "platinumVisibility"
+		);
+
+		expect(platinums).toMatchObject({
+			title: "Platinums",
+			icon: "emoji_events",
+			iconColor: "text-platinum"
+		});
 	});
 
 	describe("effectiveVisibility", () => {
