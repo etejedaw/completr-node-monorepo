@@ -127,22 +127,23 @@ import {
 										class="text-xs font-medium text-fg-secondary"
 										>{{ run.platform.abbreviation }}</span
 									>
+									@if (
+										run.platinum &&
+										run.platinum.backlogId === run.id
+									) {
+										<app-platinum-trophy
+											scope="run"
+											iconSizeClass="text-sm"
+											[platinumedAt]="
+												run.platinum.platinumedAt
+											"
+										/>
+									}
 									<span
 										class="ml-auto text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-fg-muted"
 										>#{{ runs().length - i }}</span
 									>
 								</span>
-								@if (
-									run.platinum &&
-									run.platinum.backlogId === run.id
-								) {
-									<app-platinum-trophy
-										scope="run"
-										[platinumedAt]="
-											run.platinum.platinumedAt
-										"
-									/>
-								}
 								@if (run.startedAt || run.finishedAt) {
 									<span
 										class="flex items-center gap-1.5 text-xs text-fg-muted tabular-nums"

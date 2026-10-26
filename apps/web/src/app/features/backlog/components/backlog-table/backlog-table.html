@@ -61,18 +61,12 @@
 						[code]="entry.game.code"
 						[moodTags]="entry.moodTags"
 					>
-						@if (isPlatinumRun(entry)) {
-						<div class="mt-1">
-							<app-platinum-trophy
-								scope="run"
-								[platinumedAt]="entry.platinum?.platinumedAt ?? null"
-							/>
-						</div>
-						} @else if (entry.platinum) {
+						@if (entry.platinum) {
 						<app-platinum-trophy
 							class="align-middle"
-							scope="game"
 							iconSizeClass="text-sm"
+							[scope]="isPlatinumRun(entry) ? 'run' : 'game'"
+							[platinumedAt]="isPlatinumRun(entry) ? entry.platinum.platinumedAt : null"
 						/>
 						} @if (entry.compilationGame) {
 						<span

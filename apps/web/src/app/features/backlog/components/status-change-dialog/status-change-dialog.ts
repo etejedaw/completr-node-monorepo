@@ -1,3 +1,4 @@
+import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -39,6 +40,7 @@ export interface PendingStatusUpdate {
 @Component({
 	selector: "app-status-change-dialog",
 	imports: [
+		DatePipe,
 		UiFieldLabel,
 		PlatinumTrophy,
 		StarRating,

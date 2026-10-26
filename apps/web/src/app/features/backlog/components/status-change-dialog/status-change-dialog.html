@@ -79,6 +79,10 @@
 				scope="run"
 				[platinumedAt]="platinum.platinumedAt"
 			/>
+			<span
+				>Platinumed in this run@if (platinum.platinumedAt) { on {{
+				platinum.platinumedAt | date: "MMM d, y" }} }</span
+			>
 			} @else {
 			<app-platinum-trophy scope="game" />
 			<span>You already platinumed this game</span>

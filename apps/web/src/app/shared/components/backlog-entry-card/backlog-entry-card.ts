@@ -127,9 +127,6 @@ export class BacklogEntryCard {
 	protected readonly isPlatinumRun = computed(() =>
 		isPlatinumRun(this.entry())
 	);
-	protected readonly showsGameTrophy = computed(
-		() => !!this.entry().platinum && !this.isPlatinumRun()
-	);
 	protected readonly hasMobileBar = computed(
 		() => !this.readonly() || this.hasAnnotations()
 	);
