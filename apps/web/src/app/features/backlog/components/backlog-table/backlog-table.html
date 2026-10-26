@@ -66,6 +66,7 @@
 							class="align-middle"
 							iconSizeClass="text-sm"
 							[scope]="isPlatinumRun(entry) ? 'run' : 'game'"
+							[dimmed]="!isPlatinumRun(entry)"
 							[platinumedAt]="isPlatinumRun(entry) ? entry.platinum.platinumedAt : null"
 						/>
 						} @if (entry.compilationGame) {

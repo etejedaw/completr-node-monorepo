@@ -90,6 +90,7 @@
 					<app-platinum-trophy
 						class="mt-0.5"
 						[scope]="isPlatinumRun() ? 'run' : 'game'"
+						[dimmed]="!isPlatinumRun()"
 						[platinumedAt]="isPlatinumRun() ? item.platinum.platinumedAt : null"
 					/>
 					} @if (!readonly()) {

@@ -31,11 +31,12 @@ export class PlatinumTrophy {
 	readonly scope = input<PlatinumTrophyScope>("game");
 	readonly platinumedAt = input<string | null>(null);
 	readonly iconSizeClass = input("text-base");
+	readonly dimmed = input(false);
 
 	private readonly locale = inject(LOCALE_ID);
 
 	protected readonly toneClass = computed(() =>
-		this.scope() === "run" ? "text-fg" : "text-fg-muted"
+		this.dimmed() ? "text-platinum/55" : "text-platinum"
 	);
 
 	protected readonly label = computed(() => {
