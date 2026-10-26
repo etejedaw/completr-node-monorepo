@@ -1,0 +1,83 @@
+info:
+    name: Get User Platinums
+    type: http
+    seq: 3
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/:username/platinums?limit=8"
+    params:
+        - name: limit
+          value: "8"
+          type: query
+        - name: username
+          type: path
+          value: ""
+    auth: none
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get User Platinums
+
+    Returns the platinums of `:username`, latest first. Used by the Platinums section of the public profile (limit 8) and the dedicated `/user/:username/platinums` page (limit 50).
+
+    **Authentication:** Optional (used to detect the owner and mutual follow).
+    **Rate Limit:** 100 requests per minute (public).
+
+    Requires access to the owner's profile (`profileVisibility`) and platinums (`platinumVisibility`): `friends` only for mutual followers, `private` only for the owner.
+
+    Order: `platinumedAt` desc with undated platinums last, then `createdAt` desc. Other viewers do not get `notes`, and `backlogId` is `null` when the run of the platinum is private. The owner gets both.
+
+    ### Path Params
+
+    | Param    | Type   | Required | Description       |
+    |----------|--------|----------|-------------------|
+    | username | string | Yes      | Profile username  |
+
+    ### Query Params
+
+    | Param  | Type   | Required | Description                                      |
+    |--------|--------|----------|--------------------------------------------------|
+    | limit  | int    | No       | Max items per page (1–100)                       |
+    | offset | int    | No       | Items to skip (>= 0)                             |
+    | search | string | No       | 1–100 characters, matched against the game title |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "platinums": [
+          {
+            "id": "uuid",
+            "backlogId": "uuid",
+            "platformId": "uuid",
+            "platinumedAt": "2026-03-12",
+            "platform": {
+              "id": "uuid",
+              "name": "PlayStation 5",
+              "abbreviation": "PS5"
+            },
+            "game": {
+              "id": "uuid",
+              "code": "astro-bot",
+              "title": "Astro Bot",
+              "backgroundUrl": "https://…/astro-bot.jpg",
+              "isDlc": false
+            }
+          }
+        ],
+        "total": 12
+      }
+    }
+    ```
+
+    `platinumedAt` and `platform` can be `null`. `total` counts every platinum matching `search`.
+
+    ### Errors
+
+    - `403 USER_PRIVATE` — the viewer cannot see the profile or the platinums.
+    - `404 USER_NOT_FOUND` — the user does not exist.
+    - `422 COMMON_SCHEMA_INVALID` — `limit`, `offset` or `search` out of range.

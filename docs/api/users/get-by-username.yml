@@ -25,7 +25,7 @@ docs: |-
 
     When the authenticated requester is the same as the requested user (self view), all data is returned regardless of visibility flags.
 
-    Per-section visibility (`backlogVisibility`, `listVisibility`, `feedVisibility`) gates whether the backlog/lists/activity blocks are populated for non-self viewers.
+    Per-section visibility (`backlogVisibility`, `listVisibility`, `feedVisibility`) gates whether the backlog/lists/activity blocks are populated for non-self viewers. `recentActivity` leaves out `game_platinumed` events when the viewer cannot see the platinums (`platinumVisibility`).
 
     **Authentication:** Optional (used to detect self, mutual follow, etc.).
     **Rate Limit:** 100 requests per minute.
@@ -56,6 +56,7 @@ docs: |-
           "backlogVisibility": "public",
           "shelfVisibility": "public",
           "listVisibility": "public",
+          "platinumVisibility": "public",
           "createdAt": "2026-01-01T00:00:00.000Z"
         },
         "followerCount": 12,
@@ -80,7 +81,8 @@ docs: |-
           "feed": false,
           "backlog": true,
           "shelf": true,
-          "list": true
+          "list": true,
+          "platinum": true
         }
       }
     }

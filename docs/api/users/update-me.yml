@@ -58,9 +58,10 @@ docs: |-
     | backlogVisibility     | `private` \| `friends` \| `public`  | No       | Backlog (My Games) visibility                                     |
     | shelfVisibility       | `private` \| `friends` \| `public`  | No       | Shelf visibility                                                  |
     | listVisibility        | `private` \| `friends` \| `public`  | No       | Lists visibility                                                  |
+    | platinumVisibility    | `private` \| `friends` \| `public`  | No       | Platinums visibility (page, profile section, backlog and feed)    |
     | acceptFollowRequests  | boolean                             | No       | If `false` on a `private` profile, the Follow button is hidden. Toggling from true to false deletes all pending requests. |
     | theme                 | string                              | No       | Theme id                                                          |
 
     ### Response (200)
 
-    Returns the updated `userMe` payload (all 8 visibility enums included).
+    Returns the updated `userMe` payload (all 9 visibility enums included).

@@ -105,8 +105,9 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `backlogId` de una run inexistente o de otro usuario responde 404 `GAME_PLATINUM_BACKLOG_NOT_FOUND`; de una run propia de otro juego, 422 `GAME_PLATINUM_BACKLOG_GAME_MISMATCH`. Un juego inexistente o inactivo responde 404 `GAME_PLATINUM_GAME_NOT_FOUND`, y una plataforma inexistente, 422 `GAME_PLATINUM_PLATFORM_NOT_FOUND`.
 - `DELETE /users/me/games/:gameId/platinum` responde 204, o 404 `GAME_PLATINUM_NOT_FOUND` si no hay platino. La activity ya registrada no se borra.
 - La activity `game_platinumed` se registra solo al crear el platino, no al actualizarlo.
-- No hay endpoint de lectura propio. Cada run de `GET /users/me/backlog` y `GET /users/:username/backlog` lleva `platinum` (el mismo objeto para todas las runs del juego, o `null`), cargado con una sola consulta por request; la ficha (`GET /games/:code`) lleva `userPlatinum` del usuario autenticado. Las demás respuestas que reutilizan el serializer del backlog (perfil, highlights, completions, alta y edición de runs) no cargan el platino y omiten la clave.
-- En el backlog público el platino sigue la visibilidad del backlog del dueño. Para otros viewers omite `notes` y pone `backlogId` en `null` si la run del platino es privada.
+- `GET /users/:username/platinums` lista los platinos de un usuario, paginado con `limit` (1 a 100), `offset` y `search` opcional sobre el título del juego con las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto). Orden: `platinumedAt` descendente con los platinos sin fecha al final, luego `createdAt` descendente e `id` de desempate. Cada entrada lleva el juego (`id`, `code`, `title`, `backgroundUrl`, `isDlc`) y la plataforma (`id`, `name`, `abbreviation`, o `null`); `total` cuenta lo que cumple el filtro. Exige `canView` de `profile` y de `platinum` (403 `USER_PRIVATE` si no) y responde 404 `USER_NOT_FOUND` para un usuario inexistente. Para otros viewers omite `notes` y pone `backlogId` en `null` si la run es privada; el dueño lo recibe completo.
+- Cada run de `GET /users/me/backlog` y `GET /users/:username/backlog` lleva `platinum` (el mismo objeto para todas las runs del juego, o `null`), cargado con una sola consulta por request; la ficha (`GET /games/:code`) lleva `userPlatinum` del usuario autenticado. Las demás respuestas que reutilizan el serializer del backlog (perfil, highlights, completions, alta y edición de runs) no cargan el platino y omiten la clave.
+- En el backlog público el platino exige poder ver el backlog y la sección `platinum` del dueño. Sin acceso a `platinum`, cada run lleva `platinum: null` y `platinumed_only` se ignora, para no revelar qué juegos están platinados. Con acceso, para otros viewers omite `notes` y pone `backlogId` en `null` si la run del platino es privada.
 - El filtro `platinumed_only` del backlog (también en saved filters) deja las runs de los juegos platinados por el dueño, todas y no solo la del platino.
 
 ---
@@ -243,7 +244,7 @@ Fórmulas y comportamiento en bordes.
 
 ### Campos en `User`
 
-Ocho secciones independientes, cada una con un `VisibilityLevel` (`apps/api/src/users/constants/visibility.constants.ts`): `private`, `friends`, `public`.
+Nueve secciones independientes, cada una con un `VisibilityLevel` (`apps/api/src/users/constants/visibility.constants.ts`): `private`, `friends`, `public`.
 
 | Sección  | Campo                |
 | -------- | -------------------- |
@@ -255,6 +256,9 @@ Ocho secciones independientes, cada una con un `VisibilityLevel` (`apps/api/src/
 | backlog  | `backlogVisibility`  |
 | shelf    | `shelfVisibility`    |
 | list     | `listVisibility`     |
+| platinum | `platinumVisibility` |
+
+Todas arrancan en `public` para una cuenta nueva. `platinumVisibility` se agregó después que las demás: la migración `add-platinumvisibility-to-users` copió en cada cuenta existente su `backlogVisibility`, porque hasta entonces los platinos solo se veían a través del backlog.
 
 Más `acceptFollowRequests` (boolean).
 
@@ -298,6 +302,7 @@ Reglas:
 - El feed incluye actividades propias del usuario consultante.
 - Filtrado por visibilidad del autor de cada evento, en la consulta, así que `total` y la paginación solo cuentan lo visible: el feed exige `canView` de `profile` y de `feed`. Un autor con ambos en `public` se ve para quien lo sigue; con `friends` en cualquiera de los dos solo se ve si el seguimiento es mutuo; con `private` en cualquiera de los dos solo lo ve el propio autor.
 - Los eventos `user_followed` y `user_followed_by` nunca se devuelven en el feed.
+- `game_platinumed` exige además `canView` de `platinum` del autor, también en la consulta: con `platinumVisibility` en `friends` solo lo ven los seguidores mutuos y en `private` solo el autor. En la actividad reciente del perfil (`GET /users/:username`) se omite para quien no puede ver los platinos.
 - Los filtros `category` y `types` son premium (`premium`, `moderator`, `admin`): un free que los envía recibe 402 `ACTIVITY_FEED_FILTER_PREMIUM`. Con ambos, el resultado es la intersección.
 - Los eventos `backlog_*` solo se emiten cuando el status realmente cambia.
 
