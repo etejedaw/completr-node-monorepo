@@ -140,6 +140,13 @@
 		}
 	</ol>
 </section>
+} @if (visibility().platinums && (platinumsData()?.length ?? 0) > 0) {
+<app-profile-platinums
+	class="mt-10"
+	[username]="username()"
+	[platinums]="platinumsData()!"
+	[total]="platinumsTotal()"
+/>
 }
 
 <div class="mt-12 flex flex-col gap-12">

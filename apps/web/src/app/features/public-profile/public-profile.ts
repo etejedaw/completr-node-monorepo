@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 
+import { type PlatinumEntry } from "../../core/models/platinum.model";
 import { type QueueEntry } from "../../core/models/queue.model";
 import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
@@ -26,6 +27,7 @@ import { ProfileHero } from "./components/profile-hero";
 import { ProfileInCommon } from "./components/profile-in-common";
 import { ProfileLists } from "./components/profile-lists";
 import { ProfileMonthReview } from "./components/profile-month-review";
+import { ProfilePlatinums } from "./components/profile-platinums";
 import { ProfilePlayingNow } from "./components/profile-playing-now";
 import { ProfileReviews } from "./components/profile-reviews";
 import { ProfileSagas } from "./components/profile-sagas";
@@ -57,6 +59,7 @@ import { PublicSocialService } from "./services/public-social.service";
 const LATEST_REVIEWS_COUNT = 4;
 const REVIEWS_SAMPLE_SIZE = 20;
 const UP_NEXT_LIMIT = 10;
+const PROFILE_PLATINUMS_LIMIT = 8;
 
 @Component({
 	selector: "app-public-profile",
@@ -72,6 +75,7 @@ const UP_NEXT_LIMIT = 10;
 		ProfileInCommon,
 		ProfileLists,
 		ProfileMonthReview,
+		ProfilePlatinums,
 		ProfilePlayingNow,
 		ProfileReviews,
 		ProfileSagas,
@@ -127,7 +131,8 @@ export class PublicProfileComponent implements OnInit {
 			favorites: !!access?.favorite,
 			queue: !!access?.queue,
 			wishlist: !!access?.wishlist,
-			feed: !!access?.feed
+			feed: !!access?.feed,
+			platinums: !!access?.platinum
 		};
 	});
 	protected readonly backdropUrl = computed(() =>
@@ -140,6 +145,8 @@ export class PublicProfileComponent implements OnInit {
 
 	protected readonly queueData = signal<QueueEntry[] | null>(null);
 	protected readonly favoritesData = signal<PublicFavorite[] | null>(null);
+	protected readonly platinumsData = signal<PlatinumEntry[] | null>(null);
+	protected readonly platinumsTotal = signal(0);
 	protected readonly sagas = signal<FranchiseProgress[]>([]);
 	protected readonly comparison = signal<UserComparison | null>(null);
 	protected readonly comparisonBy = signal<ComparisonDimension>("completed");
@@ -288,6 +295,19 @@ export class PublicProfileComponent implements OnInit {
 						}))
 					),
 				error: () => this.favoritesData.set([])
+			});
+	}
+
+	private ensurePlatinumsLoaded(username: string) {
+		if (this.platinumsData() !== null) return;
+		this.libraryService
+			.getUserPlatinums(username, { limit: PROFILE_PLATINUMS_LIMIT })
+			.subscribe({
+				next: page => {
+					this.platinumsData.set(page.items);
+					this.platinumsTotal.set(page.total);
+				},
+				error: () => this.platinumsData.set([])
 			});
 	}
 
@@ -494,6 +514,8 @@ export class PublicProfileComponent implements OnInit {
 		this.highlightsData.set(null);
 		this.highlightsMonth.set(this.currentMonth());
 		this.favoritesData.set(null);
+		this.platinumsData.set(null);
+		this.platinumsTotal.set(0);
 		this.queueData.set(null);
 		this.comparison.set(null);
 		this.comparisonBy.set("completed");
@@ -516,6 +538,9 @@ export class PublicProfileComponent implements OnInit {
 				}
 				if (this.visibility().favorites) {
 					this.ensureFavoritesLoaded(username);
+				}
+				if (this.visibility().platinums) {
+					this.ensurePlatinumsLoaded(username);
 				}
 				if (this.visibility().queue) {
 					this.ensureQueueLoaded(username);
