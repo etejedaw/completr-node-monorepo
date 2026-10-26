@@ -67,7 +67,14 @@
 						class="material-icons ml-1 align-middle text-lg text-fg-muted transition group-hover:text-brand"
 						>arrow_outward</span
 					></a
-				>
+				>@if (platinum(); as platinum) {
+				<app-platinum-trophy
+					class="ml-1.5 align-middle"
+					iconSizeClass="text-xl"
+					[scope]="isPlatinumRun() ? 'run' : 'game'"
+					[platinumedAt]="isPlatinumRun() ? platinum.platinumedAt : null"
+				/>
+				}
 			</h3>
 			@if (e.compilationGame; as compilation) {
 			<a

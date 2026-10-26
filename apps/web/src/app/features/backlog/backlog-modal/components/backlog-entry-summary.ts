@@ -10,9 +10,10 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { type BacklogEntry } from "../../../../core/models";
+import { type BacklogEntry, type GamePlatinum } from "../../../../core/models";
 import { ExpandableText } from "../../../../shared/components/expandable-text/expandable-text";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
+import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
 import { RatioSummary } from "../../../../shared/components/ratio-summary/ratio-summary";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
@@ -42,6 +43,7 @@ interface SummaryFact {
 		DatePipe,
 		ExpandableText,
 		GamePoster,
+		PlatinumTrophy,
 		RatioSummary,
 		RouterLink,
 		StarRating,
@@ -55,6 +57,7 @@ export class BacklogEntrySummary {
 	readonly moodTags = input<readonly string[]>([]);
 	readonly progressNotes = input<readonly ProgressNote[]>([]);
 	readonly coopMembers = input<readonly CoopMember[]>([]);
+	readonly platinum = input<GamePlatinum | null>(null);
 	readonly navigated = output<void>();
 
 	private readonly locale = inject(LOCALE_ID);
@@ -62,6 +65,10 @@ export class BacklogEntrySummary {
 	protected readonly statusLabel = backlogStatusLabel;
 	protected readonly statusIcon = backlogStatusIcon;
 	protected readonly statusIconColor = backlogStatusIconColor;
+
+	protected readonly isPlatinumRun = computed(
+		() => this.platinum()?.backlogId === this.entry().id
+	);
 
 	protected readonly hasRatio = computed(() => {
 		const e = this.entry();
@@ -99,6 +106,12 @@ export class BacklogEntrySummary {
 				value: this.formatDay(e.finishedAt)
 			});
 		facts.push({ label: "Platform", value: e.platform.abbreviation });
+		const platinum = this.platinum();
+		if (platinum)
+			facts.push({
+				label: "Platinum",
+				value: this.describePlatinum(platinum)
+			});
 		return facts;
 	});
 
@@ -118,6 +131,13 @@ export class BacklogEntrySummary {
 
 	protected memberName(member: CoopMember): string {
 		return member.name || member.username;
+	}
+
+	private describePlatinum(platinum: GamePlatinum): string {
+		const where = this.isPlatinumRun() ? "This run" : "Another run";
+		return platinum.platinumedAt
+			? `${where} · ${this.formatDay(platinum.platinumedAt)}`
+			: where;
 	}
 
 	private formatHours(hours: number | null | undefined): string {
