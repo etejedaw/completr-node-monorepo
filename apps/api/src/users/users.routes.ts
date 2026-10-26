@@ -14,9 +14,11 @@ import {
 } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
 import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 import * as favoritesController from "../favorites/favorites.controller";
 import favoritesRouter from "../favorites/favorites.routes";
+import * as gamePlatinumController from "../game-platinum/game-platinum.controller";
 import * as gameShelfController from "../game-shelf/game-shelf.controller";
 import gameShelfRouter from "../game-shelf/game-shelf.routes";
 import * as queueController from "../queue/queue.controller";
@@ -188,6 +190,17 @@ router.get(
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	favoritesController.getUserFavorites
+);
+
+router.get(
+	"/users/:username/platinums",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
+	],
+	gamePlatinumController.getUserPlatinums
 );
 
 router.get(

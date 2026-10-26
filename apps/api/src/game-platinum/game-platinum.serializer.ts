@@ -20,6 +20,40 @@ export function gamePlatinumPublicSerializer(platinum: GamePlatinum) {
 	};
 }
 
+function platinumGameSerializer(game: GamePlatinum["Game"]) {
+	if (!game) return undefined;
+	return {
+		id: game.id,
+		code: game.code,
+		title: game.title,
+		backgroundUrl: game.backgroundUrl,
+		isDlc: game.isDlc
+	};
+}
+
+function platinumPlatformSerializer(platform: GamePlatinum["Platform"]) {
+	if (!platform) return null;
+	return {
+		id: platform.id,
+		name: platform.name,
+		abbreviation: platform.abbreviation
+	};
+}
+
+export function platinumEntrySerializer(
+	platinum: GamePlatinum,
+	isOwner: boolean
+) {
+	const details = isOwner
+		? gamePlatinumSerializer(platinum)
+		: gamePlatinumPublicSerializer(platinum);
+	return {
+		...details,
+		platform: platinumPlatformSerializer(platinum.Platform),
+		game: platinumGameSerializer(platinum.Game)
+	};
+}
+
 export type SerializedGamePlatinum =
 	| ReturnType<typeof gamePlatinumSerializer>
 	| ReturnType<typeof gamePlatinumPublicSerializer>;

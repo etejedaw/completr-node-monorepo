@@ -1,10 +1,14 @@
-import { type Transaction } from "sequelize";
+import { literal, type Transaction } from "sequelize";
 
 import { Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
+import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
+import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
 import * as gamePlatinumServiceError from "./errors/game-platinum.service-error";
 import { GamePlatinum } from "./game-platinum.model";
@@ -130,4 +134,46 @@ export async function findPlatinumsForGames(
 		include: [PLATINUM_RUN_INCLUDE]
 	});
 	return new Map(platinums.map(platinum => [platinum.gameId, platinum]));
+}
+
+const LATEST_PLATINUMS_FIRST = [
+	[literal('"GamePlatinum"."platinumedAt" DESC NULLS LAST')],
+	["createdAt", "DESC"],
+	["id", "ASC"]
+];
+
+export async function findPlatinumsByUserIdPaginated(
+	userId: string,
+	pagination: PaginatedSearchQuery = {}
+) {
+	const gameInclude: Record<string, unknown> = {
+		model: Game,
+		attributes: ["id", "code", "title", "backgroundUrl", "isDlc"]
+	};
+	const titleWhere = pagination.search
+		? buildTextSearchWhere(pagination.search, ["Game.title"])
+		: null;
+	if (titleWhere) {
+		gameInclude.where = titleWhere;
+		gameInclude.required = true;
+	}
+
+	const query: Record<string, unknown> = {
+		where: { userId },
+		include: [
+			gameInclude,
+			{
+				model: Platform,
+				attributes: ["id", "name", "abbreviation"],
+				required: false
+			},
+			PLATINUM_RUN_INCLUDE
+		],
+		order: LATEST_PLATINUMS_FIRST
+	};
+	if (pagination.limit) query.limit = pagination.limit;
+	if (pagination.offset) query.offset = pagination.offset;
+
+	const { rows, count } = await GamePlatinum.findAndCountAll(query);
+	return { rows, total: count };
 }

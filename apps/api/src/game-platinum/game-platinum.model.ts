@@ -2,6 +2,8 @@ import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { type Backlog } from "../backlog/backlog.model";
 import { sequelize } from "../database/sequelize.database";
+import { type Game } from "../games/game.model";
+import { type Platform } from "../platforms/platform.model";
 
 class GamePlatinum extends Model {
 	declare id: string;
@@ -14,6 +16,11 @@ class GamePlatinum extends Model {
 	declare createdAt: Date;
 	declare updatedAt: Date;
 	declare Backlog?: Pick<Backlog, "id" | "isPublic"> | null;
+	declare Game?: Pick<
+		Game,
+		"id" | "code" | "title" | "backgroundUrl" | "isDlc"
+	>;
+	declare Platform?: Pick<Platform, "id" | "name" | "abbreviation"> | null;
 }
 
 GamePlatinum.init(
