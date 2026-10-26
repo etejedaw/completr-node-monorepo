@@ -13,9 +13,10 @@ import {
 import { form, FormField, max, min, required } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
 import { injectDialogRef } from "ng-primitives/dialog";
+import { type Observable, of } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
-import { type BacklogEntry } from "../../../core/models";
+import { type BacklogEntry, type GamePlatinum } from "../../../core/models";
 import { type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
@@ -30,6 +31,7 @@ import {
 	type PickerAction,
 	type PickerOption
 } from "../../../shared/components/option-picker/option-picker";
+import { PlatinumTrophy } from "../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
 	UiAlert,
@@ -66,6 +68,7 @@ import { injectGameSearch } from "../../games/game-search";
 import { GamesService } from "../../games/games";
 import { type Review, ReviewsService } from "../../games/reviews";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
+import { PlatinumService } from "../../platinum/platinum";
 import {
 	PublicSocialService,
 	type PublicSocialUser
@@ -143,6 +146,7 @@ const MISSING_FIELD_LABELS: Record<MissingField, string> = {
 		GamePoster,
 		GameSearchStep,
 		OptionPicker,
+		PlatinumTrophy,
 		SelectedGameRow,
 		UiAvatar,
 		UiButton,
@@ -171,6 +175,7 @@ export class BacklogModal implements OnInit {
 	private readonly publicSocial = inject(PublicSocialService);
 	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
+	private readonly platinumService = inject(PlatinumService);
 	private readonly http = inject(HttpClient);
 
 	private readonly compilationOptions =
@@ -577,6 +582,59 @@ export class BacklogModal implements OnInit {
 		() => !!this.entry?.review || !!this.existingReview()
 	);
 
+	protected readonly existingPlatinum = signal<GamePlatinum | null>(null);
+	protected readonly platinumInRun = signal(false);
+	protected readonly platinumDate = signal("");
+
+	private readonly platinumIsThisRun = computed(
+		() =>
+			!!this.entry && this.existingPlatinum()?.backlogId === this.entry.id
+	);
+
+	protected readonly platinumElsewhere = computed(() => {
+		const platinum = this.existingPlatinum();
+		return platinum && !this.platinumIsThisRun() ? platinum : null;
+	});
+
+	protected readonly showPlatinumSection = computed(
+		() =>
+			this.isEdit() &&
+			(this.statusValue() === "completed" || this.platinumIsThisRun())
+	);
+
+	setPlatinumInRun(checked: boolean) {
+		this.platinumInRun.set(checked);
+		if (checked && !this.platinumDate()) {
+			this.platinumDate.set(
+				this.form.finishedAt().value() || todayIsoDate()
+			);
+		}
+	}
+
+	private applyExistingPlatinum(platinum: GamePlatinum | null) {
+		this.existingPlatinum.set(platinum);
+		const isThisRun = !!platinum && platinum.backlogId === this.entry?.id;
+		this.platinumInRun.set(isThisRun);
+		this.platinumDate.set(isThisRun ? (platinum.platinumedAt ?? "") : "");
+	}
+
+	private syncPlatinum(gameId: string): Observable<unknown> {
+		const wanted = this.platinumInRun();
+		const wasThisRun = this.platinumIsThisRun();
+		const date = this.platinumDate() || null;
+
+		if (!wanted)
+			return wasThisRun ? this.platinumService.remove(gameId) : of(null);
+		if (wasThisRun && this.existingPlatinum()?.platinumedAt === date)
+			return of(null);
+
+		return this.platinumService.save(gameId, {
+			backlogId: this.entry!.id,
+			platinumedAt: date,
+			notes: this.existingPlatinum()?.notes ?? null
+		});
+	}
+
 	ngOnInit() {
 		this.scoreSourcesService.load();
 		this.moodTagsService
@@ -617,10 +675,13 @@ export class BacklogModal implements OnInit {
 					backgroundUrl: e.compilationGame.backgroundUrl
 				} as Game);
 			}
+			this.applyExistingPlatinum(e.platinum ?? null);
 			this.gamesService.getByCode(e.game.code).subscribe({
 				next: full => {
 					this.selectedGame.set(full);
 					this.refreshAvailableCompilationParents(full);
+					if (full.userPlatinum !== undefined)
+						this.applyExistingPlatinum(full.userPlatinum);
 				}
 			});
 			this.model.set({
@@ -867,7 +928,15 @@ export class BacklogModal implements OnInit {
 						this.isInQueue.set(false);
 						this.addToQueue.set(false);
 					}
-					this.handleQueueChange(this.entry!.id);
+					this.syncPlatinum(val.gameId!).subscribe({
+						next: () => this.handleQueueChange(this.entry!.id),
+						error: () => {
+							this.toast.error(
+								"The run was saved, but the platinum could not be updated"
+							);
+							this.handleQueueChange(this.entry!.id);
+						}
+					});
 				},
 				error: err => {
 					this.isLoading.set(false);
@@ -969,4 +1038,8 @@ export class BacklogModal implements OnInit {
 		if (rating) review.rating = rating;
 		return review;
 	}
+}
+
+function todayIsoDate() {
+	return new Date().toISOString().split("T")[0];
 }
