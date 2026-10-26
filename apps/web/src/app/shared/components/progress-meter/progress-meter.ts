@@ -22,7 +22,7 @@ import { UiProgress } from "../../ui";
 				@if (isComplete()) {
 					<span class="inline-flex items-center gap-0.5 text-success">
 						<span aria-hidden="true" class="material-icons text-sm"
-							>emoji_events</span
+							>military_tech</span
 						>
 						Completed
 					</span>

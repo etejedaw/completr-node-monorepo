@@ -79,7 +79,7 @@ export interface FeaturedList {
 										<span
 											aria-hidden="true"
 											class="material-icons text-sm"
-											>emoji_events</span
+											>military_tech</span
 										>
 										You completed it
 									</span>

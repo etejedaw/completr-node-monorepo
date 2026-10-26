@@ -77,7 +77,7 @@ const COLLAGE_SIZE = 4;
 						<span
 							aria-hidden="true"
 							class="material-icons text-[0.75rem]"
-							>emoji_events</span
+							>military_tech</span
 						>
 						Completed
 					</span>
