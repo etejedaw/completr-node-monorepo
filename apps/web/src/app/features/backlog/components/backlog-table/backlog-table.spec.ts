@@ -236,6 +236,26 @@ describe("BacklogTable", () => {
 			).toBe(true);
 		});
 
+		it("shows the platinum trophy on the same line as the title", () => {
+			const { element } = render([
+				entry({
+					platinum: {
+						id: "pl1",
+						backlogId: "b1",
+						platformId: "p1",
+						platinumedAt: "2026-03-12"
+					}
+				})
+			]);
+
+			const title = element.querySelector('a[href="/games/hades"]');
+			const trophy = element.querySelector(
+				'[role="img"][aria-label="Platinumed in this run on Mar 12, 2026"]'
+			);
+			expect(trophy).not.toBeNull();
+			expect(title?.parentElement?.contains(trophy!)).toBe(true);
+		});
+
 		it("shows the compilation the game belongs to", () => {
 			const { element } = render([
 				entry({
