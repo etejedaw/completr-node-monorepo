@@ -1,27 +1,28 @@
 ---
-const score = 4.75;
 const ratioScale = 20;
-const longGame = { hours: 80 };
-const shortGames = { count: 6, hours: 12 };
-const spareHours = longGame.hours - shortGames.count * shortGames.hours;
-const shortGameShare = (shortGames.hours / longGame.hours) * 100;
-const spareShare = (spareHours / longGame.hours) * 100;
-const hoursPerDay = 2;
-const rulerMarks = [0, 20, 40, 60, 80];
-const calendar = [
+const score = 4.75;
+const stars = ["star", "star", "star", "star", "star_half"];
+const weekends = ["primer", "segundo", "tercer", "cuarto"];
+const blockBackground =
+	"background: linear-gradient(90deg, var(--color-brand-deep), var(--color-brand));";
+const ratioOf = (hours: number) =>
+	(Math.round((score / hours) * ratioScale * 10) / 10).toFixed(1);
+const examples = [
 	{
-		days: shortGames.hours / hoursPerDay,
-		label: "por cada juego corto"
+		when: "Para las vacaciones",
+		label: "Una gran aventura",
+		blocks: 1,
+		ratio: ratioOf(80),
+		ratioNote: "Bajo, porque dura mucho."
 	},
 	{
-		days: longGame.hours / hoursPerDay,
-		label: "de una sola aventura larga"
+		when: "Para tus fines de semana",
+		label: "Un juego corto cada uno",
+		blocks: 4,
+		ratio: ratioOf(12),
+		ratioNote: "Alto, porque se terminan pronto."
 	}
 ];
-const shortGameSlots = Array.from(
-	{ length: shortGames.count },
-	(_, index) => index + 1
-);
 
 const steps = [
 	{
@@ -34,7 +35,7 @@ const steps = [
 		icon: "speed",
 		title: "Mira el Ratio",
 		description:
-			"Completr divide la nota por las horas, multiplica por 20 y te muestra cuánto rinde cada hora que le dedicas."
+			"Completr cruza qué tan bueno es cada juego con lo que toma terminarlo y te señala los buenos que se terminan pronto."
 	},
 	{
 		icon: "sports_esports",
@@ -70,79 +71,90 @@ const steps = [
 				<p
 					class="m-0 mb-4 text-[var(--color-fg-secondary)] leading-relaxed"
 				>
-					El <strong class="text-[var(--color-fg)]">Ratio</strong> responde
-					la pregunta de cada noche: <em>¿qué juego ahora?</em> No dice
-					qué juego es mejor: pesa la nota contra las horas que toma terminarlo
-					para que veas{" "}
+					El <strong class="text-[var(--color-fg)]">Ratio</strong>{
+						" "
+					}
+					responde la pregunta de cada noche:{" "}
+					<em>¿qué juego ahora?</em> No dice qué juego es mejor: te señala{
+						" "
+					}
 					<strong class="text-[var(--color-fg)]"
-						>cuánto juego bien valorado cabe en tu tiempo</strong
-					>.
+						>los buenos que se terminan pronto</strong
+					>, para que elijas según el tiempo que tengas.
 				</p>
 				<p
 					class="m-0 mb-6 text-[var(--color-fg-secondary)] leading-relaxed"
 				>
-					Cuando lo terminas, tu run usa tus horas reales: así sabes
-					si te rindió más o menos de lo esperado.
+					Y cuando terminas un juego, te cuenta si te rindió más o
+					menos de lo que esperabas.
 				</p>
+
 				<div
 					class="p-5 sm:p-6 rounded-2xl border border-[var(--color-brand)]/30 bg-[var(--color-brand)]/10"
 				>
-					<p
-						class="m-0 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-display text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-fg)]"
-					>
-						<span
-							>Nota{" "}
+					<div>
+						<p
+							class="m-0 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-display text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-fg)]"
+						>
 							<span
-								class="font-sans text-xs sm:text-sm font-medium tracking-normal text-[var(--color-fg-muted)] tabular-nums"
-								>(1–5)</span
-							></span
-						>
-						<span
-							aria-hidden="true"
-							class="text-[var(--color-fg-muted)]">÷</span
-						>
-						<span class="sr-only">dividido por</span>
-						<span>Horas</span>
-						<span
-							aria-hidden="true"
-							class="text-[var(--color-fg-muted)]">×</span
-						>
-						<span class="sr-only">por</span>
-						<span class="tabular-nums">{ratioScale}</span>
-						<span
-							aria-hidden="true"
-							class="text-[var(--color-fg-muted)]">=</span
-						>
-						<span class="sr-only">igual a</span>
-						<span class="text-[var(--color-brand)]">Ratio</span>
-					</p>
-					<dl
-						class="m-0 mt-5 grid gap-4 sm:grid-cols-2 text-sm leading-relaxed"
-					>
-						<div>
-							<dt class="font-semibold text-[var(--color-fg)]">
-								Nota, en escala 1–5
-							</dt>
-							<dd
-								class="m-0 mt-1 text-[var(--color-fg-secondary)]"
+								>Nota{" "}
+								<span
+									class="font-sans text-xs sm:text-sm font-medium tracking-normal text-[var(--color-fg-muted)] tabular-nums"
+									>(1–5)</span
+								></span
 							>
-								Cada fuente puntúa en su propia escala, así que
-								la nota se normaliza primero: 82/100 pasa a 4.1.
-							</dd>
-						</div>
-						<div>
-							<dt class="font-semibold text-[var(--color-fg)]">
-								Por qué × 20
-							</dt>
-							<dd
-								class="m-0 mt-1 text-[var(--color-fg-secondary)]"
+							<span
+								aria-hidden="true"
+								class="text-[var(--color-fg-muted)]">÷</span
 							>
-								Deja el resultado como un número de 0 a 100: un
-								juego de cinco estrellas que terminas en una
-								hora queda en 100.
-							</dd>
-						</div>
-					</dl>
+							<span class="sr-only">dividido por</span>
+							<span>Horas</span>
+							<span
+								aria-hidden="true"
+								class="text-[var(--color-fg-muted)]">×</span
+							>
+							<span class="sr-only">por</span>
+							<span class="tabular-nums">{ratioScale}</span>
+							<span
+								aria-hidden="true"
+								class="text-[var(--color-fg-muted)]">=</span
+							>
+							<span class="sr-only">igual a</span>
+							<span class="text-[var(--color-brand)]">Ratio</span>
+						</p>
+						<dl
+							class="m-0 mt-5 grid gap-4 sm:grid-cols-2 text-sm leading-relaxed"
+						>
+							<div>
+								<dt
+									class="font-semibold text-[var(--color-fg)]"
+								>
+									Nota, en escala 1–5
+								</dt>
+								<dd
+									class="m-0 mt-1 text-[var(--color-fg-secondary)]"
+								>
+									Cada fuente puntúa en su propia escala, así
+									que la nota se normaliza primero: 82/100
+									pasa a 4.1.
+								</dd>
+							</div>
+							<div>
+								<dt
+									class="font-semibold text-[var(--color-fg)]"
+								>
+									Por qué × 20
+								</dt>
+								<dd
+									class="m-0 mt-1 text-[var(--color-fg-secondary)]"
+								>
+									Deja el resultado como un número de 0 a 100:
+									un juego de cinco estrellas que terminas en
+									una hora queda en 100.
+								</dd>
+							</div>
+						</dl>
+					</div>
 				</div>
 			</div>
 
@@ -153,124 +165,97 @@ const steps = [
 				<figcaption class="mb-7">
 					<span
 						class="block text-xs font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]"
-						>Las mismas {longGame.hours} horas</span
+						>Misma nota, distinto tiempo</span
 					>
 					<span
 						class="block mt-1 font-display text-xl font-bold text-[var(--color-fg)] text-balance"
-						>Un viaje largo, o {shortGames.count} más cortos igual de
-						buenos</span
+						>Una gran aventura, o un juego corto cada fin de semana</span
 					>
 				</figcaption>
 
 				<div class="mb-7 flex flex-col gap-7">
-					<div>
-						<p
-							class="m-0 mb-2.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm text-[var(--color-fg-secondary)]"
-						>
-							<span>
-								<strong
-									class="font-semibold text-[var(--color-fg)]"
-									>1 juego largo</strong
-								>{" "}
-								· nota {score}
-							</span>
-							<span class="tabular-nums">{longGame.hours} h</span>
-						</p>
-						<div
-							class="h-10 rounded-lg"
-							style="background: linear-gradient(90deg, var(--color-brand-deep), var(--color-brand));"
-							aria-hidden="true"
-						>
-						</div>
-					</div>
-
-					<div>
-						<p
-							class="m-0 mb-2.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm text-[var(--color-fg-secondary)]"
-						>
-							<span>
-								<strong
-									class="font-semibold text-[var(--color-fg)]"
-									>{shortGames.count} juegos cortos</strong
-								>{" "}
-								· nota {score}
-							</span>
-							<span class="tabular-nums"
-								>{shortGames.hours} h cada uno</span
-							>
-						</p>
-						<div class="flex h-10 gap-1" aria-hidden="true">
-							{
-								shortGameSlots.map(slot => (
-									<div
-										class="flex items-center justify-center rounded-lg font-display text-sm font-bold text-white/90 tabular-nums"
-										style={`width: ${shortGameShare}%; background: linear-gradient(90deg, var(--color-brand-deep), var(--color-brand));`}
+					{
+						examples.map(example => (
+							<div>
+								<div class="mb-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+									<p class="m-0 text-sm font-semibold text-[var(--color-fg)]">
+										{example.when}
+									</p>
+									<span
+										class="inline-flex text-[var(--color-brand)]"
+										role="img"
+										aria-label={`Nota ${score} de 5`}
 									>
-										{slot}
+										{stars.map(icon => (
+											<span
+												class="material-icons text-base"
+												aria-hidden="true"
+											>
+												{icon}
+											</span>
+										))}
+									</span>
+								</div>
+								{example.blocks === 1 ? (
+									<div
+										class="flex h-14 items-center gap-2 rounded-xl px-4 text-sm font-semibold text-white"
+										style={blockBackground}
+									>
+										<span
+											class="material-icons text-xl"
+											aria-hidden="true"
+										>
+											explore
+										</span>
+										{example.label}
 									</div>
-								))
-							}
-							<div
-								class="flex min-w-0 items-center justify-center overflow-hidden whitespace-nowrap rounded-lg border border-dashed border-[var(--color-line-strong)] text-[0.625rem] font-semibold text-[var(--color-fg-muted)] tabular-nums"
-								style={`width: ${spareShare}%;`}
-							>
-								+{spareHours} h
+								) : (
+									<ul class="m-0 grid h-14 list-none grid-cols-4 gap-2 p-0">
+										{weekends.map(weekend => (
+											<li
+												class="flex items-center justify-center gap-1.5 rounded-xl text-xs font-semibold text-white"
+												style={blockBackground}
+											>
+												<span
+													class="material-icons text-lg"
+													aria-hidden="true"
+												>
+													sports_esports
+												</span>
+												<span
+													class="max-sm:hidden"
+													aria-hidden="true"
+												>
+													Un juego
+												</span>
+												<span class="sr-only">
+													Un juego corto el {weekend}{" "}
+													fin de semana
+												</span>
+											</li>
+										))}
+									</ul>
+								)}
+								<p class="m-0 mt-2.5 flex items-center gap-2 text-sm text-[var(--color-fg-secondary)]">
+									<span class="shrink-0 rounded-full border border-[var(--color-line-strong)] px-2.5 py-0.5 text-xs font-semibold text-[var(--color-fg)] tabular-nums">
+										Ratio {example.ratio}
+									</span>
+									{example.ratioNote}
+								</p>
 							</div>
-						</div>
-					</div>
-
-					<div
-						class="-mt-4 flex justify-between text-[0.625rem] font-medium text-[var(--color-fg-muted)] tabular-nums"
-						aria-hidden="true"
-					>
-						{
-							rulerMarks.map(mark => (
-								<span class="flex flex-col items-center gap-1 first:items-start last:items-end">
-									<span class="block h-1.5 w-px bg-[var(--color-line-strong)]" />
-									{mark} h
-								</span>
-							))
-						}
-					</div>
-
-					<div>
-						<p
-							class="m-0 mb-2.5 text-xs font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]"
-						>
-							A {hoursPerDay} h por día
-						</p>
-						<dl class="m-0 grid grid-cols-2 gap-3">
-							{
-								calendar.map(entry => (
-									<div class="flex flex-col-reverse gap-1 rounded-xl border border-[var(--color-line)] bg-[var(--color-surface-raised)] px-4 py-3">
-										<dt class="text-xs text-[var(--color-fg-secondary)] leading-snug">
-											{entry.label}
-										</dt>
-										<dd class="m-0 font-display text-2xl font-bold text-[var(--color-fg)] tabular-nums">
-											{entry.days} días
-										</dd>
-									</div>
-								))
-							}
-						</dl>
-					</div>
+						))
+					}
 				</div>
 
 				<p
 					class="m-0 mt-auto pt-5 border-t border-[var(--color-line)] text-sm text-[var(--color-fg-secondary)] leading-relaxed"
 				>
-					Ninguno vale menos. En las horas de un juego largo también
-					caben{" "}
 					<strong class="text-[var(--color-fg)]"
-						>{shortGames.count} juegos igual de bien valorados</strong
-					>, y te sobran {spareHours}. El Ratio te muestra esa cuenta
-					para que elijas según el tiempo que tengas.
-				</p>
-				<p
-					class="m-0 mt-3 text-sm text-[var(--color-fg-muted)] leading-relaxed"
-				>
-					¿Vacaciones por delante? Ese juego largo te sigue esperando
-					en tu lista.
+						>Los dos son grandes juegos.</strong
+					>{" "}
+					La aventura tiene un Ratio más bajo solo porque dura más, no porque
+					sea peor. Completr te ayuda a elegir el que mejor encaja en el
+					tiempo que tienes ahora.
 				</p>
 			</figure>
 		</div>
