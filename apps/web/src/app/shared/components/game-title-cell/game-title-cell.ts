@@ -17,12 +17,15 @@ import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
 				class="w-9 aspect-[2/3] rounded shrink-0 ring-1 ring-white/10"
 			/>
 			<div class="min-w-0 flex-1">
-				<a
-					[routerLink]="['/games', code()]"
-					(click)="$event.stopPropagation()"
-					class="text-fg font-medium no-underline hover:text-brand line-clamp-1 block"
-					>{{ title() }}</a
-				>
+				<div class="flex items-center gap-1.5 min-w-0">
+					<a
+						[routerLink]="['/games', code()]"
+						(click)="$event.stopPropagation()"
+						class="text-fg font-medium no-underline hover:text-brand line-clamp-1 min-w-0"
+						>{{ title() }}</a
+					>
+					<ng-content select="[titleSuffix]" />
+				</div>
 				<app-mood-tags-chips
 					[tags]="moodTags()"
 					containerClass="mt-0.5"
