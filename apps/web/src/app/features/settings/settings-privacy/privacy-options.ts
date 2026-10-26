@@ -9,7 +9,8 @@ export type SectionVisibilityKey =
 	| "queueVisibility"
 	| "wishlistVisibility"
 	| "favoriteVisibility"
-	| "feedVisibility";
+	| "feedVisibility"
+	| "platinumVisibility";
 
 export interface PrivacyDraft extends Record<
 	SectionVisibilityKey | "profileVisibility",
@@ -18,17 +19,21 @@ export interface PrivacyDraft extends Record<
 	acceptFollowRequests: boolean;
 }
 
-interface PrivacySectionConfig {
-	key: SectionVisibilityKey;
-	route: string;
-	description: string;
-}
-
-export interface PrivacySection extends PrivacySectionConfig {
+interface PrivacySectionDisplay {
 	title: string;
 	icon: string;
 	iconColor: string;
 }
+
+interface PrivacySectionConfig {
+	key: SectionVisibilityKey;
+	description: string;
+	route?: string;
+	display?: PrivacySectionDisplay;
+}
+
+export interface PrivacySection
+	extends Omit<PrivacySectionConfig, "display">, PrivacySectionDisplay {}
 
 interface PrivacySectionGroup<T> {
 	title: string;
@@ -113,6 +118,15 @@ const PRIVACY_SECTION_CONFIG: PrivacySectionGroup<PrivacySectionConfig>[] = [
 				key: "shelfVisibility",
 				route: "/game-shelf",
 				description: "The games you own and on which platform."
+			},
+			{
+				key: "platinumVisibility",
+				description: "The games you've platinumed and when.",
+				display: {
+					title: "Platinums",
+					icon: "emoji_events",
+					iconColor: "text-platinum"
+				}
 			}
 		]
 	},
@@ -160,18 +174,22 @@ const NAV_ITEMS_BY_ROUTE = new Map(
 	])
 );
 
+function navDisplay(route: string): PrivacySectionDisplay {
+	const navItem = NAV_ITEMS_BY_ROUTE.get(route)!;
+	return {
+		title: navItem.label,
+		icon: navItem.icon,
+		iconColor: navItem.iconColorClass
+	};
+}
+
 export const PRIVACY_SECTION_GROUPS: PrivacySectionGroup<PrivacySection>[] =
 	PRIVACY_SECTION_CONFIG.map(group => ({
 		title: group.title,
-		sections: group.sections.map(section => {
-			const navItem = NAV_ITEMS_BY_ROUTE.get(section.route)!;
-			return {
-				...section,
-				title: navItem.label,
-				icon: navItem.icon,
-				iconColor: navItem.iconColorClass
-			};
-		})
+		sections: group.sections.map(({ display, ...section }) => ({
+			...section,
+			...(display ?? navDisplay(section.route!))
+		}))
 	}));
 
 export const SECTION_KEYS: SectionVisibilityKey[] =
