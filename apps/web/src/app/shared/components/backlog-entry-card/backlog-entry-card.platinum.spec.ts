@@ -35,6 +35,12 @@ describe("BacklogEntryCard platinum trophy", () => {
 		return element.querySelector('[role="img"][aria-label="Platinumed"]');
 	}
 
+	function runTrophy(element: HTMLElement) {
+		return element.querySelector(
+			'[role="img"][aria-label="Platinumed in this run on Mar 12, 2026"]'
+		);
+	}
+
 	beforeEach(() => {
 		TestBed.configureTestingModule({
 			imports: [BacklogEntryCard],
@@ -42,18 +48,19 @@ describe("BacklogEntryCard platinum trophy", () => {
 		});
 	});
 
-	it("shows the run trophy with the date on the run where it was earned", () => {
+	it("shows only the run trophy, without text, on the run where it was earned", () => {
 		const element = render(entry("run-1", PLATINUM));
 
-		expect(element.textContent).toContain("Platinumed on Mar 12, 2026");
+		expect(runTrophy(element)).not.toBeNull();
 		expect(gameTrophy(element)).toBeNull();
+		expect(element.textContent).not.toContain("Platinumed");
 	});
 
 	it("shows only the game trophy on another run of a platinumed game", () => {
 		const element = render(entry("run-2", PLATINUM));
 
 		expect(gameTrophy(element)).not.toBeNull();
-		expect(element.textContent).not.toContain("Platinumed on");
+		expect(runTrophy(element)).toBeNull();
 	});
 
 	it("shows the game trophy when the platinum has no run", () => {
@@ -67,13 +74,14 @@ describe("BacklogEntryCard platinum trophy", () => {
 	it("shows the trophies in the read-only public card", () => {
 		const element = render(entry("run-1", PLATINUM), true);
 
-		expect(element.textContent).toContain("Platinumed on Mar 12, 2026");
+		expect(runTrophy(element)).not.toBeNull();
 	});
 
 	it("shows no trophy for a game without platinum", () => {
 		const element = render(entry("run-1", null));
 
-		expect(gameTrophy(element)).toBeNull();
-		expect(element.textContent).not.toContain("Platinumed");
+		expect(
+			element.querySelector('[role="img"][aria-label^="Platinumed"]')
+		).toBeNull();
 	});
 });

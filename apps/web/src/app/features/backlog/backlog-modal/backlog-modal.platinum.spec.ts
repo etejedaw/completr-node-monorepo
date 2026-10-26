@@ -122,6 +122,14 @@ describe("BacklogModal platinum", () => {
 	}
 
 	async function renderEditModal(entry: BacklogEntry) {
+		await renderSummary(entry);
+		await userEvent.click(
+			await screen.findByRole("button", { name: /^edit$/i })
+		);
+		answerPending();
+	}
+
+	async function renderSummary(entry: BacklogEntry) {
 		const data: BacklogModalData = {
 			entry,
 			preselectedGame: null,
@@ -136,10 +144,6 @@ describe("BacklogModal platinum", () => {
 			]
 		});
 		httpTesting = TestBed.inject(HttpTestingController);
-		answerPending();
-		await userEvent.click(
-			await screen.findByRole("button", { name: /^edit$/i })
-		);
 		answerPending();
 	}
 
@@ -277,6 +281,30 @@ describe("BacklogModal platinum", () => {
 
 		expect(
 			screen.getByText(/Platinumed in another run/)
+		).toBeInTheDocument();
+	});
+
+	it("shows the run trophy and the platinum date in the run preview", async () => {
+		userPlatinum = platinumIn("b1");
+		await renderSummary(buildEntry("completed", platinumIn("b1")));
+
+		expect(
+			await screen.findByRole("img", {
+				name: "Platinumed in this run on Mar 12, 2026"
+			})
+		).toBeInTheDocument();
+		expect(screen.getByText("This run · Mar 12, 2026")).toBeInTheDocument();
+	});
+
+	it("shows the game trophy in the preview of another run", async () => {
+		userPlatinum = platinumIn("b0");
+		await renderSummary(buildEntry("completed", platinumIn("b0")));
+
+		expect(
+			await screen.findByRole("img", { name: "Platinumed" })
+		).toBeInTheDocument();
+		expect(
+			screen.getByText("Another run · Mar 12, 2026")
 		).toBeInTheDocument();
 	});
 });

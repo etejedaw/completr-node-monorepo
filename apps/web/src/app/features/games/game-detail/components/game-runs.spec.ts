@@ -153,7 +153,12 @@ describe("GameRuns", () => {
 		]);
 
 		const items = Array.from(element.querySelectorAll("ol li"));
-		expect(items[0]?.textContent).not.toContain("Platinumed");
-		expect(items[1]?.textContent).toContain("Platinumed on Mar 12, 2026");
+		const trophyLabel = (item: Element | undefined) =>
+			item?.querySelector('[role="img"]')?.getAttribute("aria-label") ??
+			null;
+		expect(trophyLabel(items[0])).toBeNull();
+		expect(trophyLabel(items[1])).toBe(
+			"Platinumed in this run on Mar 12, 2026"
+		);
 	});
 });

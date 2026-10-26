@@ -24,20 +24,24 @@ describe("PlatinumTrophy", () => {
 		expect(element.textContent).not.toContain("Platinumed on");
 	});
 
-	it("renders the trophy with the date at run level", () => {
+	it("renders only the trophy icon at run level, with the date in its label", () => {
 		const element = render({ scope: "run", platinumedAt: "2026-03-12" });
 
-		expect(element.querySelector('[role="img"]')).toBeNull();
-		expect(element.textContent?.replace(/\s+/g, " ")).toContain(
-			"Platinumed on Mar 12, 2026"
+		const icon = element.querySelector('[role="img"]');
+		expect(icon?.getAttribute("aria-label")).toBe(
+			"Platinumed in this run on Mar 12, 2026"
 		);
+		expect(icon?.getAttribute("title")).toBe(
+			"Platinumed in this run on Mar 12, 2026"
+		);
+		expect(element.textContent?.trim()).toBe("emoji_events");
 	});
 
-	it("says Platinumed without a date at run level", () => {
+	it("labels the run trophy without a date", () => {
 		const element = render({ scope: "run", platinumedAt: null });
 
-		expect(element.textContent?.replace(/\s+/g, " ").trim()).toBe(
-			"emoji_events Platinumed"
-		);
+		expect(
+			element.querySelector('[role="img"]')?.getAttribute("aria-label")
+		).toBe("Platinumed in this run");
 	});
 });

@@ -139,7 +139,7 @@ describe("StatusChangeDialog platinum", () => {
 		);
 
 		expect(
-			dialog.getByText(/Platinumed on Jan 5, 2026/)
+			dialog.getByText(/Platinumed in this run on Jan 5, 2026/)
 		).toBeInTheDocument();
 	});
 });

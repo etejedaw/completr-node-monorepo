@@ -443,7 +443,9 @@ describe("BacklogList interaction", () => {
 
 		await untilVisible(() =>
 			expect(
-				within(card("Hades")).getByText("Platinumed on Mar 12, 2026")
+				within(card("Hades")).getByRole("img", {
+					name: "Platinumed in this run on Mar 12, 2026"
+				})
 			).toBeInTheDocument()
 		);
 		expect(backlogPatches.map(patch => patch.id)).toEqual(["b1"]);
@@ -702,7 +704,9 @@ describe("BacklogList interaction", () => {
 			);
 			expect(lastLibraryQuery().get("platinumed_only")).toBe("true");
 			expect(
-				within(card("Celeste")).getByText("Platinumed")
+				within(card("Celeste")).getByRole("img", {
+					name: /^Platinumed/
+				})
 			).toBeInTheDocument();
 		});
 
