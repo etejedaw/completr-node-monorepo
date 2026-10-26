@@ -61,6 +61,13 @@ const publicProfileRoutes: Routes = [
 			)
 	},
 	{
+		path: "user/:username/platinums",
+		loadComponent: () =>
+			import("./features/public-profile/user-platinums/user-platinums").then(
+				m => m.UserPlatinums
+			)
+	},
+	{
 		path: "user/:username/reviews",
 		loadComponent: () =>
 			import("./features/public-profile/user-reviews/user-reviews").then(

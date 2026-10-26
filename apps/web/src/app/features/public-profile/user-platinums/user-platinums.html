@@ -1,0 +1,30 @@
+<app-profile-collection-page
+	heading="Platinums"
+	icon="emoji_events"
+	iconColor="text-platinum"
+	noun="platinum"
+	privateTitle="These platinums are private"
+	emptyTitle="No platinums yet"
+	emptyText="They haven't platinumed any game yet."
+	[username]="collection.username()"
+	[posters]="collection.posters()"
+	[total]="collection.total()"
+	[itemCount]="collection.items().length"
+	[visibleCount]="collection.visibleItems().length"
+	[isLoading]="collection.isLoading()"
+	[error]="collection.error()"
+	[offset]="collection.offset()"
+	[limit]="collection.limit"
+	[(query)]="collection.query"
+	[platforms]="collection.platformCounts()"
+	[(platform)]="collection.platform"
+	(offsetChange)="collection.goToOffset($event)"
+>
+	<app-cover-grid>
+		@for (entry of collection.visibleItems(); track entry.id) {
+		<li>
+			<app-platinum-cover-card [platinum]="entry" />
+		</li>
+		}
+	</app-cover-grid>
+</app-profile-collection-page>
