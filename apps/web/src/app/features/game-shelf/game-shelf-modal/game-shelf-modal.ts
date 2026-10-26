@@ -125,7 +125,7 @@ export class GameShelfModal implements OnInit {
 		gameId: "",
 		platformId: "",
 		edition: "",
-		acquiredAt: null as string | null,
+		acquiredAt: "",
 		notes: ""
 	});
 
@@ -158,7 +158,7 @@ export class GameShelfModal implements OnInit {
 				gameId: e.game.id,
 				platformId: e.platform.id,
 				edition: e.edition ?? "",
-				acquiredAt: e.acquiredAt ? e.acquiredAt.substring(0, 10) : null,
+				acquiredAt: e.acquiredAt ? e.acquiredAt.substring(0, 10) : "",
 				notes: e.notes ?? ""
 			});
 		}

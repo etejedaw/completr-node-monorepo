@@ -320,8 +320,8 @@ export class BacklogModal implements OnInit {
 		score: null as number | null,
 		duration: null as number | null,
 		status: "not_started",
-		startedAt: null as string | null,
-		finishedAt: null as string | null,
+		startedAt: "",
+		finishedAt: "",
 		realDuration: null as number | null,
 		userRating: null as number | null,
 		notes: ""
@@ -690,8 +690,8 @@ export class BacklogModal implements OnInit {
 				score: roundReferenceValue(e.score),
 				duration: roundReferenceValue(e.duration),
 				status: e.status,
-				startedAt: e.startedAt ? e.startedAt.split("T")[0] : null,
-				finishedAt: e.finishedAt ? e.finishedAt.split("T")[0] : null,
+				startedAt: e.startedAt ? e.startedAt.split("T")[0] : "",
+				finishedAt: e.finishedAt ? e.finishedAt.split("T")[0] : "",
 				realDuration: e.realDuration ?? null,
 				userRating: e.userRating ?? null,
 				notes: e.notes ?? ""
