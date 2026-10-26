@@ -16,7 +16,8 @@ const SECTION_TO_FIELD: Record<VisibilitySection, keyof User> = {
 	feed: "feedVisibility",
 	backlog: "backlogVisibility",
 	shelf: "shelfVisibility",
-	list: "listVisibility"
+	list: "listVisibility",
+	platinum: "platinumVisibility"
 };
 
 export async function canView(
@@ -98,16 +99,31 @@ function mutualFollowersSql(viewerSql: string, ownerIdSql: string) {
 
 function sectionAllowsSql(
 	section: VisibilitySection,
-	viewerId: string | undefined
+	viewerId: string | undefined,
+	ownerAlias = LIST_OWNER_ALIAS
 ) {
-	const column = `"${LIST_OWNER_ALIAS}"."${SECTION_TO_FIELD[section]}"`;
+	const column = `"${ownerAlias}"."${SECTION_TO_FIELD[section]}"`;
 	if (!viewerId) return `${column} = 'public'`;
 
 	const mutual = mutualFollowersSql(
 		sequelize.escape(viewerId),
-		`"${LIST_OWNER_ALIAS}"."id"`
+		`"${ownerAlias}"."id"`
 	);
 	return `(${column} = 'public' OR (${column} = 'friends' AND ${mutual}))`;
+}
+
+const SECTION_OWNER_ALIAS = "section_owner";
+
+export function sectionVisibleToViewerSql(
+	section: VisibilitySection,
+	viewerId: string | undefined,
+	ownerIdSql: string
+) {
+	const asOwner = viewerId
+		? `${ownerIdSql} = ${sequelize.escape(viewerId)} OR `
+		: "";
+	const ownerAllows = `EXISTS (SELECT 1 FROM "Users" AS "${SECTION_OWNER_ALIAS}" WHERE "${SECTION_OWNER_ALIAS}"."id" = ${ownerIdSql} AND ${sectionAllowsSql(section, viewerId, SECTION_OWNER_ALIAS)})`;
+	return `(${asOwner}${ownerAllows})`;
 }
 
 export function visibleListsCondition(

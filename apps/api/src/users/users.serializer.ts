@@ -32,6 +32,7 @@ export function userMeSerializer(user: User) {
 		backlogVisibility: user.backlogVisibility,
 		shelfVisibility: user.shelfVisibility,
 		listVisibility: user.listVisibility,
+		platinumVisibility: user.platinumVisibility,
 		acceptFollowRequests: user.acceptFollowRequests,
 		theme: user.theme,
 		createdAt: user.createdAt
@@ -64,6 +65,7 @@ export function userProfileSerializer(user: User) {
 		backlogVisibility: user.backlogVisibility,
 		shelfVisibility: user.shelfVisibility,
 		listVisibility: user.listVisibility,
+		platinumVisibility: user.platinumVisibility,
 		createdAt: user.createdAt
 	};
 }

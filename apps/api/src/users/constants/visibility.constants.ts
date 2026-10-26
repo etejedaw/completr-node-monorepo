@@ -9,6 +9,7 @@ export const VISIBILITY_SECTIONS = [
 	"feed",
 	"backlog",
 	"shelf",
-	"list"
+	"list",
+	"platinum"
 ] as const;
 export type VisibilitySection = (typeof VISIBILITY_SECTIONS)[number];

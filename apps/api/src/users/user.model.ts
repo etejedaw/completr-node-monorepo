@@ -24,6 +24,7 @@ class User extends Model {
 	declare backlogVisibility: VisibilityLevel;
 	declare shelfVisibility: VisibilityLevel;
 	declare listVisibility: VisibilityLevel;
+	declare platinumVisibility: VisibilityLevel;
 	declare acceptFollowRequests: boolean;
 	declare theme: string;
 	declare isActive: boolean;
@@ -75,6 +76,7 @@ User.init(
 		backlogVisibility: visibilityField(),
 		shelfVisibility: visibilityField(),
 		listVisibility: visibilityField(),
+		platinumVisibility: visibilityField(),
 		acceptFollowRequests: {
 			type: DataTypes.BOOLEAN,
 			allowNull: false,
