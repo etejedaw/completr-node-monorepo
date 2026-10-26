@@ -1,12 +1,12 @@
 ---
 const score = 4.75;
-const scoreToHundred = 20;
+const ratioScale = 20;
 const games = [
 	{ label: "Juego corto", hours: 12 },
 	{ label: "Juego largo", hours: 80 }
 ].map(game => ({
 	...game,
-	ratio: Math.round(((score * scoreToHundred) / game.hours) * 100) / 100
+	ratio: Math.round((score / game.hours) * ratioScale * 100) / 100
 }));
 const bestRatio = Math.max(...games.map(game => game.ratio));
 const timesBetter = Math.round(games[0].ratio / games[1].ratio);
@@ -22,7 +22,7 @@ const steps = [
 		icon: "speed",
 		title: "Mira el Ratio",
 		description:
-			"Completr lleva la nota a escala 100, la divide por las horas y te muestra cuánto rinde cada hora que le dedicas."
+			"Completr divide la nota por las horas, multiplica por 20 y te muestra cuánto rinde cada hora que le dedicas."
 	},
 	{
 		icon: "sports_esports",
@@ -59,9 +59,11 @@ const steps = [
 					class="m-0 mb-4 text-[var(--color-fg-secondary)] leading-relaxed"
 				>
 					El <strong class="text-[var(--color-fg)]">Ratio</strong> responde
-					la pregunta de cada noche: <em>¿qué juego ahora?</em> Lleva la
-					nota del juego (0 a 5) a escala 100 con ×20, la divide por las horas que toma
-					terminarlo y premia a los que más te dan por cada hora.
+					la pregunta de cada noche: <em>¿qué juego ahora?</em> Pesa qué
+					tan bueno es un juego contra lo que toma terminarlo:
+					<strong class="text-[var(--color-fg)]"
+						>más alto, más te da cada hora</strong
+					>.
 				</p>
 				<p
 					class="m-0 mb-6 text-[var(--color-fg-secondary)] leading-relaxed"
@@ -69,19 +71,66 @@ const steps = [
 					Cuando lo terminas, tu run usa tus horas reales: así sabes
 					si te rindió más o menos de lo esperado.
 				</p>
-				<p
-					class="m-0 inline-flex flex-wrap items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-line)] text-sm text-[var(--color-fg-secondary)]"
+				<div
+					class="p-5 sm:p-6 rounded-2xl border border-[var(--color-brand)]/30 bg-[var(--color-brand)]/10"
 				>
-					<strong class="font-display text-[var(--color-brand)]"
-						>Ratio</strong
+					<p
+						class="m-0 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-display text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-fg)]"
 					>
-					<span>=</span>
-					<span>nota</span>
-					<span>×</span>
-					<span>20</span>
-					<span>÷</span>
-					<span>horas para terminarlo</span>
-				</p>
+						<span
+							>Nota
+							<span
+								class="font-sans text-xs sm:text-sm font-medium tracking-normal text-[var(--color-fg-muted)] tabular-nums"
+								>(1–5)</span
+							></span
+						>
+						<span
+							aria-hidden="true"
+							class="text-[var(--color-fg-muted)]">÷</span
+						>
+						<span class="sr-only">dividido por</span>
+						<span>Horas</span>
+						<span
+							aria-hidden="true"
+							class="text-[var(--color-fg-muted)]">×</span
+						>
+						<span class="sr-only">por</span>
+						<span class="tabular-nums">{ratioScale}</span>
+						<span
+							aria-hidden="true"
+							class="text-[var(--color-fg-muted)]">=</span
+						>
+						<span class="sr-only">igual a</span>
+						<span class="text-[var(--color-brand)]">Ratio</span>
+					</p>
+					<dl
+						class="m-0 mt-5 grid gap-4 sm:grid-cols-2 text-sm leading-relaxed"
+					>
+						<div>
+							<dt class="font-semibold text-[var(--color-fg)]">
+								Nota, en escala 1–5
+							</dt>
+							<dd
+								class="m-0 mt-1 text-[var(--color-fg-secondary)]"
+							>
+								Cada fuente puntúa en su propia escala, así que
+								la nota se normaliza primero: 82/100 pasa a 4.1.
+							</dd>
+						</div>
+						<div>
+							<dt class="font-semibold text-[var(--color-fg)]">
+								Por qué × 20
+							</dt>
+							<dd
+								class="m-0 mt-1 text-[var(--color-fg-secondary)]"
+							>
+								Deja el resultado como un número de 0 a 100: un
+								juego de cinco estrellas que terminas en una
+								hora queda en 100.
+							</dd>
+						</div>
+					</dl>
+				</div>
 			</div>
 
 			<figure
