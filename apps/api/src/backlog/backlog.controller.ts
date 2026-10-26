@@ -4,6 +4,7 @@ import * as activityService from "../activity/activity.service";
 import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as coopRunsService from "../coop-runs/coop-runs.service";
+import { type GamePlatinum } from "../game-platinum/game-platinum.model";
 import {
 	gamePlatinumPublicSerializer,
 	gamePlatinumSerializer
@@ -116,9 +117,14 @@ export async function getUserBacklog(request: Request, response: Response) {
 	if (!(await canView(currentUser?.id, user, "backlog")))
 		throw userDomainError.userPrivate();
 
+	const canViewPlatinums = await canView(currentUser?.id, user, "platinum");
+	const visibleQuery = canViewPlatinums
+		? query
+		: { ...query, platinumed_only: undefined };
+
 	const { rows, total } = isSelf
-		? await backlogService.findBacklogByUserId(user.id, query)
-		: await backlogService.findPublicBacklogByUserId(user.id, query);
+		? await backlogService.findBacklogByUserId(user.id, visibleQuery)
+		: await backlogService.findPublicBacklogByUserId(user.id, visibleQuery);
 	const backlogPlain = rows.map(backlog => backlog.get({ plain: true }));
 
 	const reviews = await reviewsService.findReviewsByUserId(user.id);
@@ -137,10 +143,9 @@ export async function getUserBacklog(request: Request, response: Response) {
 		await coopRunsService.findMembersForManyBacklogs(
 			backlogPlain.map(e => e.id)
 		);
-	const platinumByGameId = await gamePlatinumService.findPlatinumsForGames(
-		user.id,
-		gameIds
-	);
+	const platinumByGameId = canViewPlatinums
+		? await gamePlatinumService.findPlatinumsForGames(user.id, gameIds)
+		: new Map<string, GamePlatinum>();
 
 	const data = {
 		backlog: backlogPlain.map(entry => {

@@ -1,9 +1,10 @@
-import { Op } from "sequelize";
+import { literal, Op } from "sequelize";
 
 import { Game } from "../games/game.model";
 import { List } from "../lists/list.model";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
+import { sectionVisibleToViewerSql } from "../users/helpers/visibility.helper";
 import { User } from "../users/user.model";
 import { Activity, type ActivityType } from "./activity.model";
 import { type FeedCategory } from "./schemas/feed-query.schema";
@@ -32,6 +33,7 @@ const USER_TYPES: string[] = [
 	"coop_tagged"
 ];
 const SOCIAL_TYPES: string[] = ["user_followed", "user_followed_by"];
+const PLATINUM_TYPES: string[] = ["game_platinumed"];
 const FRIEND_VISIBLE_LEVELS = ["public", "friends"];
 
 export function record(
@@ -104,11 +106,15 @@ const TARGET_INCLUDES = [
 export async function getUserActivity(
 	userId: string,
 	limit = 10,
-	options: { includeSocial?: boolean } = {}
+	options: { includeSocial?: boolean; includePlatinums?: boolean } = {}
 ) {
 	const where: Record<string, unknown> = { userId };
-	if (!options.includeSocial) {
-		where.type = { [Op.notIn]: SOCIAL_TYPES };
+	const hiddenTypes = [
+		...(options.includeSocial ? [] : SOCIAL_TYPES),
+		...(options.includePlatinums === false ? PLATINUM_TYPES : [])
+	];
+	if (hiddenTypes.length > 0) {
+		where.type = { [Op.notIn]: hiddenTypes };
 	}
 	return Activity.findAll({
 		where,
@@ -140,6 +146,18 @@ function resolveFeedTypes(filter: {
 	return allowed;
 }
 
+function platinumActivityVisibleCondition(viewerId: string) {
+	const platinumTypes = PLATINUM_TYPES.map(type => `'${type}'`).join(", ");
+	const ownerAllows = sectionVisibleToViewerSql(
+		"platinum",
+		viewerId,
+		'"Activity"."userId"'
+	);
+	return literal(
+		`("Activity"."type" NOT IN (${platinumTypes}) OR ${ownerAllows})`
+	);
+}
+
 export async function getFeed(
 	userId: string,
 	limit = 25,
@@ -166,7 +184,8 @@ export async function getFeed(
 	const { rows, count } = await Activity.findAndCountAll({
 		where: {
 			userId: { [Op.in]: feedUserIds },
-			type: typeCondition
+			type: typeCondition,
+			[Op.and]: [platinumActivityVisibleCondition(userId)]
 		},
 		include: [
 			{

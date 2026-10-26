@@ -123,7 +123,8 @@ async function buildFullProfile(
 			: Promise.resolve(0),
 		canViewFeed
 			? activityService.getUserActivity(userId, 10, {
-					includeSocial: isSelf
+					includeSocial: isSelf,
+					includePlatinums: access.platinum
 				})
 			: Promise.resolve([]),
 		userFollowersService.getFollowerCount(userId),
