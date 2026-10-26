@@ -209,6 +209,23 @@ describe("BacklogModal platinum", () => {
 		]);
 	});
 
+	it("sends dates picked on an empty field as plain days", async () => {
+		const entry = buildEntry("completed", null);
+		delete entry.finishedAt;
+		await renderEditModal(entry);
+
+		await userEvent.type(screen.getByLabelText("Started"), "2026-03-01");
+		await userEvent.type(screen.getByLabelText("Finished"), "2026-03-10");
+		await save();
+
+		expect(writes.find(write => write.method === "PATCH")?.body).toEqual(
+			expect.objectContaining({
+				startedAt: "2026-03-01",
+				finishedAt: "2026-03-10"
+			})
+		);
+	});
+
 	it("hides the platinum section while the run is not completed", async () => {
 		await renderEditModal(buildEntry("playing", null));
 
