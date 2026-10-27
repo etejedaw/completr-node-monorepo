@@ -12,7 +12,7 @@ Arquitectura en [`architecture.md`](./architecture.md), endpoints en [`api/`](./
 
 Enum `User.role` en `apps/api/src/users/user-role.type.ts`: `user`, `premium`, `moderator`, `admin`. Default al registrarse: `user`.
 
-- El gating premium se resuelve con `isPremium()`, que acepta `premium`, `moderator` y `admin`.
+- El gating premium se resuelve con `isPremium()`, que acepta `premium`, `moderator` y `admin`. El export usa la versión compartida `isPremiumRole()` de `apps/api/src/common/utils/is-premium-role.util.ts`, con los mismos roles.
 - Qué puede hacer cada rol se hace cumplir en `authMiddleware(...)` de cada `*.routes.ts`: esa es la fuente autoritativa de permisos.
 
 ---
@@ -306,6 +306,20 @@ Reglas:
 - `game_platinumed` exige además `canView` de `platinum` del autor, también en la consulta: con `platinumVisibility` en `friends` solo lo ven los seguidores mutuos y en `private` solo el autor. En la actividad reciente del perfil (`GET /users/:username`) se omite para quien no puede ver los platinos.
 - Los filtros `category` y `types` son premium (`premium`, `moderator`, `admin`): un free que los envía recibe 402 `ACTIVITY_FEED_FILTER_PREMIUM`. Con ambos, el resultado es la intersección.
 - Los eventos `backlog_*` solo se emiten cuando el status realmente cambia.
+
+---
+
+## Export de colecciones
+
+Endpoints: `GET /users/me/backlog/export`, `/users/me/queue/export`, `/users/me/game-shelf/export`, `/users/me/wishlist/export`, `/users/me/favorites/export`, `/users/me/platinums/export` y `GET /lists/:listId/export`. Las columnas de cada recurso viven en su `*.export-row.mapper.ts` (`BACKLOG_EXPORT_COLUMNS`, `QUEUE_EXPORT_COLUMNS`, etc.) y están documentadas en [`api/`](./api/).
+
+- `format` acepta `csv` (por defecto) o `json` (`ExportFormatQuerySchema`); cualquier otro valor responde 422 `COMMON_SCHEMA_INVALID`.
+- `format=json` es premium (`isPremiumRole()`): un free recibe 402 `EXPORT_FORMAT_PREMIUM` (`Common Module`), lo verifica `exportFormatAccessMiddleware` antes de consultar.
+- Siempre se exporta la colección completa del usuario autenticado, sin paginar ni filtrar, con una sola consulta por recurso. Orden: backlog por `createdAt` descendente; queue, wishlist, favorites y listas por `position`; platinos por `platinumedAt` descendente (sin fecha al final); game shelf por título del juego.
+- `GET /lists/:listId/export` solo exporta listas propias: una lista ajena (aunque sea pública) o inexistente responde 404 `LIST_NOT_FOUND`.
+- Respuesta: `Content-Disposition: attachment; filename="completr-<recurso>-YYYY-MM-DD.<csv|json>"` con la fecha en UTC (`completr-list-<slug>-…` para listas, `completr-list-…` si el nombre no da slug). CORS expone `Content-Disposition` (`exposedHeaders` en `cors.config.ts`).
+- CSV (`serializeCsv()`): `text/csv; charset=utf-8`, BOM UTF-8, fila de cabecera, coma, `\r\n` al final de cada línea, escape RFC 4180. Un texto que empieza con `=`, `+`, `-`, `@`, tab o CR se prefija con `'`. `null` es un campo vacío. Una colección vacía devuelve solo la cabecera.
+- JSON: `application/json; charset=utf-8`, un array desnudo (sin `data`) con las mismas claves que las columnas del CSV y tipos nativos; una colección vacía devuelve `[]`.
 
 ---
 
