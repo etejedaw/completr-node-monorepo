@@ -2,7 +2,8 @@ import "@testing-library/jest-dom/vitest";
 
 import { signal } from "@angular/core";
 import { ActivatedRoute, provideRouter } from "@angular/router";
-import { render, screen, waitFor } from "@testing-library/angular";
+import { render, screen, waitFor, within } from "@testing-library/angular";
+import userEvent from "@testing-library/user-event";
 import { of, Subject, throwError } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
@@ -54,6 +55,7 @@ describe("UserPlatinums", () => {
 			}
 		);
 		getUserPlatinums.mockReset();
+		localStorage.clear();
 	});
 
 	afterEach(() => {
@@ -94,7 +96,7 @@ describe("UserPlatinums", () => {
 			await screen.findByRole("heading", { name: "Platinums" })
 		).toBeInTheDocument();
 		expect(getUserPlatinums).toHaveBeenCalledWith("ada", {
-			limit: 50,
+			limit: 100,
 			offset: 0
 		});
 		expect(screen.getAllByText("Astro Bot").length).toBeGreaterThan(0);
@@ -138,5 +140,27 @@ describe("UserPlatinums", () => {
 		await waitFor(() => expect(getUserPlatinums).toHaveBeenCalled());
 		expect(screen.queryAllByText("Astro Bot")).toHaveLength(0);
 		expect(screen.queryByText("No platinums yet")).not.toBeInTheDocument();
+	});
+
+	it("switches to the hardcore table without the owner's notes or edit actions", async () => {
+		const user = userEvent.setup();
+		getUserPlatinums.mockReturnValue(of({ items: entries, total: 2 }));
+		await renderPage();
+
+		await user.click(
+			await screen.findByRole("button", { name: /Hardcore/ })
+		);
+
+		const table = screen.getByRole("table");
+		expect(
+			within(table).getByRole("columnheader", { name: "Platinumed on" })
+		).toBeInTheDocument();
+		expect(
+			within(table).queryByRole("columnheader", { name: "Notes" })
+		).not.toBeInTheDocument();
+		expect(
+			within(table).queryByRole("button", { name: /Edit platinum/ })
+		).not.toBeInTheDocument();
+		expect(within(table).getAllByRole("row")).toHaveLength(3);
 	});
 });
