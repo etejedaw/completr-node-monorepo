@@ -9,6 +9,7 @@ import {
 
 import {
 	type ExportFormat,
+	type ExportParams,
 	type ExportResource,
 	ExportService
 } from "../../../core/services/export";
@@ -75,6 +76,7 @@ export class ExportActions {
 
 	readonly resource = input.required<ExportResource>();
 	readonly label = input.required<string>();
+	readonly params = input<ExportParams>({});
 
 	private readonly downloading = signal<ReadonlySet<ExportFormat>>(new Set());
 
@@ -89,16 +91,18 @@ export class ExportActions {
 	protected download(format: ExportFormat) {
 		if (this.isDownloading(format)) return;
 		this.setDownloading(format, true);
-		this.exportService.download(this.resource(), format).subscribe({
-			next: () => this.setDownloading(format, false),
-			error: (error: HttpErrorResponse) => {
-				this.setDownloading(format, false);
-				if (!STATUSES_TOASTED_BY_INTERCEPTOR.has(error.status))
-					this.toast.error(
-						`Could not download ${this.label()}. Please try again.`
-					);
-			}
-		});
+		this.exportService
+			.download(this.resource(), format, this.params())
+			.subscribe({
+				next: () => this.setDownloading(format, false),
+				error: (error: HttpErrorResponse) => {
+					this.setDownloading(format, false);
+					if (!STATUSES_TOASTED_BY_INTERCEPTOR.has(error.status))
+						this.toast.error(
+							`Could not download ${this.label()}. Please try again.`
+						);
+				}
+			});
 	}
 
 	private setDownloading(format: ExportFormat, active: boolean) {

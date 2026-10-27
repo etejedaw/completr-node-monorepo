@@ -8,6 +8,7 @@ import { type Observable, Subject, throwError } from "rxjs";
 import { AuthService } from "../../../core/services/auth";
 import {
 	type ExportFormat,
+	type ExportParams,
 	type ExportResource,
 	ExportService
 } from "../../../core/services/export";
@@ -22,7 +23,8 @@ describe("ExportActions", () => {
 		download: vi.fn(
 			(
 				_resource: ExportResource,
-				format: ExportFormat
+				format: ExportFormat,
+				_params?: ExportParams
 			): Observable<void> => {
 				const download = new Subject<void>();
 				pending.set(format, download);
@@ -102,7 +104,8 @@ describe("ExportActions", () => {
 		expect(exportService.download).toHaveBeenCalledTimes(1);
 		expect(exportService.download).toHaveBeenCalledWith(
 			{ listId: "list-1" },
-			"csv"
+			"csv",
+			{}
 		);
 		expect(csv).toBeDisabled();
 		expect(csv).toHaveAttribute("aria-busy", "true");
@@ -131,6 +134,50 @@ describe("ExportActions", () => {
 		expect(
 			screen.getByRole("button", { name: "Download My Games as CSV" })
 		).not.toBeDisabled();
+	});
+
+	it("forwards the view params to the download", async () => {
+		const user = userEvent.setup();
+		await render(ExportActions, {
+			inputs: {
+				resource: "platinums",
+				label: "Platinums",
+				params: { search: "elden", platform: "any" }
+			},
+			providers: providers()
+		});
+
+		await user.click(
+			screen.getByRole("button", { name: "Download Platinums as CSV" })
+		);
+
+		expect(exportService.download).toHaveBeenCalledWith(
+			"platinums",
+			"csv",
+			{
+				search: "elden",
+				platform: "any"
+			}
+		);
+	});
+
+	it("shows an error toast when the format is not acceptable (406)", async () => {
+		const user = userEvent.setup();
+		exportService.download.mockReturnValueOnce(
+			throwError(() => ({
+				status: 406,
+				error: { type: "EXPORT_FORMAT_NOT_ACCEPTABLE" }
+			}))
+		);
+		await renderActions();
+
+		await user.click(
+			screen.getByRole("button", { name: "Download My Games as CSV" })
+		);
+
+		expect(toast.error).toHaveBeenCalledWith(
+			"Could not download My Games. Please try again."
+		);
 	});
 
 	it("leaves the plan limit toast to the interceptor on a 402", async () => {
