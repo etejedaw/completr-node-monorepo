@@ -149,6 +149,30 @@ export async function findListById(id: string) {
 	return List.findOne({ where: { id }, include: LIST_DETAIL_INCLUDE });
 }
 
+export async function findOwnListForExport(id: string, userId: string) {
+	return List.findOne({
+		where: { id, userId },
+		attributes: ["id", "name"],
+		include: [
+			{
+				model: ListItem,
+				attributes: [
+					"id",
+					"position",
+					"score",
+					"duration",
+					"createdAt"
+				],
+				include: [{ model: Game, attributes: ["id", "code", "title"] }]
+			}
+		],
+		order: [
+			[ListItem, "position", "ASC"],
+			[ListItem, "id", "ASC"]
+		]
+	});
+}
+
 export async function findVisibleListById(
 	id: string,
 	viewerId: string | undefined

@@ -5,8 +5,10 @@ import {
 	publicLimiter,
 	userLimiter
 } from "../common/config/rate-limiter.config";
+import { exportFormatAccessMiddleware } from "../common/middlewares/export-format-access.middleware";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import { ExportFormatQuerySchema } from "../common/schemas/export-format-query.schema";
 import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 import { SearchQuerySchema } from "../common/schemas/search-query.schema";
 import * as listsController from "./lists.controller";
@@ -87,6 +89,18 @@ router.get(
 		validateSchemaMiddleware(ListIdParamsSchema, "params")
 	],
 	listsController.getListById
+);
+
+router.get(
+	"/lists/:listId/export",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator", "admin"),
+		validateSchemaMiddleware(ListIdParamsSchema, "params"),
+		validateSchemaMiddleware(ExportFormatQuerySchema, "query"),
+		exportFormatAccessMiddleware
+	],
+	listsController.getListExport
 );
 
 router.patch(
