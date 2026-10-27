@@ -7,6 +7,12 @@ describe("planLimitMessage", () => {
 		);
 	});
 
+	it("explains that JSON export needs Premium", () => {
+		expect(planLimitMessage("EXPORT_FORMAT_PREMIUM")).toBe(
+			"JSON export is a Premium perk. On the free plan you can download your collections as CSV."
+		);
+	});
+
 	it("shares the frozen message between list and list item", () => {
 		expect(planLimitMessage("LIST_FROZEN")).toBe(
 			planLimitMessage("LIST_ITEM_FROZEN")
