@@ -6,9 +6,9 @@ import {
 	userLimiter
 } from "../common/config/rate-limiter.config";
 import { exportFormatAccessMiddleware } from "../common/middlewares/export-format-access.middleware";
+import { exportFormatNegotiationMiddleware } from "../common/middlewares/export-format-negotiation.middleware";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { ExportFormatQuerySchema } from "../common/schemas/export-format-query.schema";
 import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 import { SearchQuerySchema } from "../common/schemas/search-query.schema";
 import * as listsController from "./lists.controller";
@@ -97,7 +97,7 @@ router.get(
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
 		validateSchemaMiddleware(ListIdParamsSchema, "params"),
-		validateSchemaMiddleware(ExportFormatQuerySchema, "query"),
+		exportFormatNegotiationMiddleware,
 		exportFormatAccessMiddleware
 	],
 	listsController.getListExport

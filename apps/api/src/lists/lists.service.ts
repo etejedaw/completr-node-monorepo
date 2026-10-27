@@ -163,7 +163,7 @@ export async function findOwnListForExport(id: string, userId: string) {
 					"duration",
 					"createdAt"
 				],
-				include: [{ model: Game, attributes: ["id", "code", "title"] }]
+				include: [{ model: Game, attributes: ["id", "title"] }]
 			}
 		],
 		order: [

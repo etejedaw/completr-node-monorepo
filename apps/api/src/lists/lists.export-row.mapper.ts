@@ -6,7 +6,6 @@ import { type ListItem } from "../list-items/list-item.model";
 export const LIST_EXPORT_COLUMNS = [
 	"position",
 	"gameTitle",
-	"gameCode",
 	"score",
 	"duration",
 	"ratio",
@@ -19,7 +18,6 @@ export function listItemToExportRow(item: ListItem): ListItemExportRow {
 	return {
 		position: item.position,
 		gameTitle: item.Game.title,
-		gameCode: item.Game.code,
 		score: item.score ?? null,
 		duration: item.duration ?? null,
 		ratio: calculateRatio(item.score, item.duration),

@@ -1,8 +1,8 @@
 import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
+import { type ExportFormat } from "../common/interfaces/export-format.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type ExportFormatQuery } from "../common/schemas/export-format-query.schema";
 import { type SearchQuery } from "../common/schemas/search-query.schema";
 import { sendExport } from "../common/utils/send-export.util";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
@@ -166,7 +166,7 @@ function listExportResource(listName: string) {
 export async function getListExport(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;
 	const user = request.locals.user as RequestUser;
-	const { format } = request.locals.query as ExportFormatQuery;
+	const format = request.locals.exportFormat as ExportFormat;
 
 	const list = await listsService.findOwnListForExport(
 		params.listId,
