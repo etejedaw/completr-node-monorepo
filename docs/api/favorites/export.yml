@@ -5,11 +5,15 @@ info:
 
 http:
     method: GET
-    url: "{{BASE_URL}}/users/me/favorites/export?format=csv"
+    url: "{{BASE_URL}}/users/me/favorites/export"
     params:
-        - name: format
-          value: csv
+        - name: search
+          value: ""
           type: query
+          disabled: true
+    headers:
+        - name: Accept
+          value: text/csv
     auth: inherit
 
 settings:
@@ -18,16 +22,27 @@ settings:
 docs: |-
     ## Export My Favorites
 
-    Downloads the whole collection of the authenticated user as a file: no pagination and no filters. `format=csv` is available to every role; `format=json` requires `premium`, `moderator` or `admin`.
+    Downloads the authenticated user's favorites as a file, applying the same filters, search and sort as the listing view (`GET /users/me/favorites`) but without pagination (`limit` and `offset` are ignored). Without query params it exports the whole collection.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
 
     ### Query Params
 
-    | Param  | Type   | Required | Description                         |
-    |--------|--------|----------|-------------------------------------|
-    | format | string | No       | `csv` (default) or `json` (premium) |
+    | Param | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | search | string | No | 1–100 characters, matched against the game title (same rules as the listing) |
+
+    ### Format (content negotiation)
+
+    The format is negotiated with the `Accept` header (Express `req.accepts(["text/csv", "application/json"])`); there is no `format` query param. Responses always carry `Vary: Accept`.
+
+    | `Accept` | Result |
+    |----------|--------|
+    | missing, `*/*`, `text/*` or only wildcards | CSV (default) |
+    | `text/csv`, or a list where `text/csv` wins | CSV |
+    | `application/json`, or a list where it wins | JSON — `premium`, `moderator` or `admin` only |
+    | neither acceptable (e.g. `text/html`) | 406 `EXPORT_FORMAT_NOT_ACCEPTABLE` |
 
     ### Response (200)
 
@@ -35,10 +50,11 @@ docs: |-
 
     - `Content-Disposition: attachment; filename="completr-favorites-YYYY-MM-DD.csv"` (date in UTC; exposed to the browser through CORS `Access-Control-Expose-Headers`)
     - `Content-Type: text/csv; charset=utf-8` for CSV, `application/json; charset=utf-8` for JSON
+    - `Vary: Accept`
 
-    CSV: UTF-8 BOM, a header row with the column names, comma separator, `\r\n` line endings and RFC 4180 quoting (fields with a comma, a quote or a line break are wrapped in double quotes, inner quotes are doubled). Text that starts with `=`, `+`, `-`, `@`, tab or carriage return is prefixed with `'` to prevent formula injection. `null` is an empty field. An empty collection returns only the header row.
+    CSV: UTF-8 BOM, a header row with the column names, comma separator, `\r\n` line endings and RFC 4180 quoting (fields with a comma, a quote or a line break are wrapped in double quotes, inner quotes are doubled). Text that starts with `=`, `+`, `-`, `@`, tab or carriage return is prefixed with `'` to prevent formula injection. `null` is an empty field. An empty result returns only the header row.
 
-    JSON: a bare array (not wrapped in `data`) with one object per row, the same keys as the CSV columns and native types. An empty collection returns `[]`.
+    JSON: a bare array (not wrapped in `data`) with one object per row, the same keys as the CSV columns and native types. An empty result returns `[]`.
 
     Rows are ordered by favorite `position` ascending.
 
@@ -48,7 +64,6 @@ docs: |-
     |--------|------|-------------|
     | position | int | Position among favorites, from 1 |
     | gameTitle | string | Game title |
-    | gameCode | string | Game slug (`/games/:code`), useful to match the game on reimport |
     | addedAt | string | ISO 8601 date-time the entry was created |
 
     ```json
@@ -56,7 +71,6 @@ docs: |-
       {
         "position": 1,
         "gameTitle": "Chrono Trigger",
-        "gameCode": "chrono-trigger",
         "addedAt": "2026-02-01T20:00:00.000Z"
       }
     ]
@@ -66,5 +80,6 @@ docs: |-
 
     - 401 `AUTH_INVALID_TOKEN` — Invalid or expired token
     - 422 `AUTH_SCHEMA_INVALID` — Missing `Authorization` header
-    - 422 `COMMON_SCHEMA_INVALID` — `format` is not `csv` or `json`
-    - 402 `EXPORT_FORMAT_PREMIUM` — `format=json` requested by a `user` (free) account
+    - 422 `COMMON_SCHEMA_INVALID` — A query param has an invalid value
+    - 402 `EXPORT_FORMAT_PREMIUM` — JSON negotiated by a `user` (free) account
+    - 406 `EXPORT_FORMAT_NOT_ACCEPTABLE` — `Accept` allows neither `text/csv` nor `application/json`
