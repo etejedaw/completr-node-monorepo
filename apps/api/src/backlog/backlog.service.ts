@@ -785,6 +785,28 @@ export async function computeBacklogStats(
 	};
 }
 
+const BACKLOG_EXPORT_INCLUDE = [
+	{ model: Game, attributes: ["id", "code", "title"] },
+	{ model: Platform, attributes: ["id", "name"] },
+	{
+		model: Game,
+		as: "CompilationGame",
+		attributes: ["id", "title"],
+		required: false
+	}
+];
+
+export async function findBacklogForExport(userId: string) {
+	return Backlog.findAll({
+		where: { userId },
+		include: BACKLOG_EXPORT_INCLUDE,
+		order: [
+			["createdAt", "DESC"],
+			["id", "ASC"]
+		]
+	});
+}
+
 export async function findBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}

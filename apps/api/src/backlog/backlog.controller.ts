@@ -3,6 +3,8 @@ import { type Request, type Response } from "express";
 import * as activityService from "../activity/activity.service";
 import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type ExportFormatQuery } from "../common/schemas/export-format-query.schema";
+import { sendExport } from "../common/utils/send-export.util";
 import * as coopRunsService from "../coop-runs/coop-runs.service";
 import { type GamePlatinum } from "../game-platinum/game-platinum.model";
 import {
@@ -16,6 +18,10 @@ import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
+import {
+	BACKLOG_EXPORT_COLUMNS,
+	backlogToExportRow
+} from "./backlog.export-row.mapper";
 import {
 	backlogPublicSerializer,
 	backlogSerializer
@@ -100,6 +106,22 @@ export async function getMeBacklog(request: Request, response: Response) {
 		total
 	};
 	return response.status(200).json({ data });
+}
+
+export async function getMeBacklogExport(request: Request, response: Response) {
+	const user = request.locals.user as RequestUser;
+	const { format } = request.locals.query as ExportFormatQuery;
+
+	const entries = await backlogService.findBacklogForExport(user.id);
+
+	return sendExport(response, {
+		resource: "backlog",
+		format,
+		columns: BACKLOG_EXPORT_COLUMNS,
+		rows: entries.map(entry =>
+			backlogToExportRow(entry.get({ plain: true }))
+		)
+	});
 }
 
 export async function getUserBacklog(request: Request, response: Response) {
