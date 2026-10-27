@@ -1,0 +1,47 @@
+<app-month-calendar
+	[(month)]="focusedDate"
+	[(selected)]="selectedDay"
+	[minYear]="earliestYear()"
+	[markersFor]="markersFor"
+	[agendaItems]="agendaItems()"
+	itemNoun="platinum"
+	[emptyMonthHint]="emptyMonthHint()"
+	(itemSelected)="openPlatinum($event)"
+>
+	<p calendarSummary class="m-0 text-[0.6875rem] text-fg-muted tabular-nums">
+		{{ monthPlatinums().length }} platinumed
+	</p>
+
+	<ng-template appCalendarDay let-date>
+		@for (platinum of platinumsForDay(date).slice(0, maxChips); track
+		platinum.id) {
+		<button
+			type="button"
+			class="-mx-px h-[18px] flex items-center gap-1 px-1.5 rounded bg-platinum/15 text-platinum text-[0.6875rem] font-medium leading-none truncate cursor-pointer transition hover:brightness-110"
+			[title]="platinum.game.title"
+			(click)="platinumClick.emit(platinum)"
+		>
+			<span aria-hidden="true" class="material-icons text-[0.75rem]"
+				>emoji_events</span
+			>
+			<span class="truncate">{{ platinum.game.title }}</span>
+		</button>
+		} @if (overflowFor(date) > 0) {
+		<button
+			type="button"
+			class="self-start px-1.5 text-[0.625rem] font-medium text-fg-muted leading-none bg-transparent border-0 cursor-pointer hover:text-platinum"
+			(click)="selectDay(date)"
+		>
+			+{{ overflowFor(date) }} more
+		</button>
+		}
+	</ng-template>
+
+	@if (undatedCount() > 0) {
+	<p class="m-0 mt-3 text-xs text-fg-muted leading-snug">
+		{{ undatedCount() }} {{ undatedCount() === 1 ? "platinum has" :
+		"platinums have" }} no date and {{ undatedCount() === 1 ? "isn't" :
+		"aren't" }} shown here.
+	</p>
+	}
+</app-month-calendar>
