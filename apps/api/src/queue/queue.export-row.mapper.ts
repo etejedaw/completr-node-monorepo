@@ -6,7 +6,6 @@ import { type Queue } from "./queue.model";
 export const QUEUE_EXPORT_COLUMNS = [
 	"position",
 	"gameTitle",
-	"gameCode",
 	"platform",
 	"status",
 	"score",
@@ -22,7 +21,6 @@ export function queueToExportRow(entry: Queue): QueueExportRow {
 	return {
 		position: entry.position,
 		gameTitle: backlog.Game.title,
-		gameCode: backlog.Game.code,
 		platform: backlog.Platform.name,
 		status: backlog.status,
 		score: backlog.score ?? null,

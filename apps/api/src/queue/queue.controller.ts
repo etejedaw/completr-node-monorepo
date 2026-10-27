@@ -1,8 +1,8 @@
 import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
+import { type ExportFormat } from "../common/interfaces/export-format.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type ExportFormatQuery } from "../common/schemas/export-format-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { sendExport } from "../common/utils/send-export.util";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
@@ -20,6 +20,7 @@ import {
 import { publicQueueSerializer, queueSerializer } from "./queue.serializer";
 import * as queueService from "./queue.service";
 import { type AddQueueQuery } from "./schemas/add-queue-query.schema";
+import { type QueueExportQuery } from "./schemas/queue-export-query.schema";
 
 export async function postQueue(request: Request, response: Response) {
 	const body = request.locals.body as AddQueueDto;
@@ -140,9 +141,10 @@ export async function getUserQueue(request: Request, response: Response) {
 
 export async function getMeQueueExport(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
-	const { format } = request.locals.query as ExportFormatQuery;
+	const format = request.locals.exportFormat as ExportFormat;
+	const query = request.locals.query as QueueExportQuery;
 
-	const entries = await queueService.findQueueForExport(user.id);
+	const entries = await queueService.findQueueForExport(user.id, query);
 
 	return sendExport(response, {
 		resource: "queue",
