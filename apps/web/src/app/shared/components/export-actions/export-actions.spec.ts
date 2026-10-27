@@ -32,7 +32,7 @@ describe("ExportActions", () => {
 			}
 		)
 	};
-	const toast = { error: vi.fn() };
+	const toast = { error: vi.fn(), premium: vi.fn() };
 
 	function providers() {
 		return [
@@ -60,6 +60,7 @@ describe("ExportActions", () => {
 		pending = new Map();
 		exportService.download.mockClear();
 		toast.error.mockReset();
+		toast.premium.mockReset();
 	});
 
 	it("shows only the CSV button to free users", async () => {
@@ -85,6 +86,28 @@ describe("ExportActions", () => {
 		expect(
 			screen.getByRole("button", { name: "Download My Games as JSON" })
 		).toHaveAttribute("data-variant", "premium");
+	});
+
+	it("explains the JSON perk from the premium badge", async () => {
+		isPremium.set(true);
+		await renderActions();
+
+		await userEvent.click(
+			screen.getByRole("button", { name: "Premium perk: JSON export" })
+		);
+
+		expect(toast.premium).toHaveBeenCalledWith(
+			"Premium perk",
+			"JSON export is a Premium perk. Free accounts can download their collections as CSV."
+		);
+	});
+
+	it("hides the premium badge from free users", async () => {
+		await renderActions();
+
+		expect(
+			screen.queryByRole("button", { name: "Premium perk: JSON export" })
+		).not.toBeInTheDocument();
 	});
 
 	it("disables the button while it downloads and keeps the other one active", async () => {

@@ -16,12 +16,13 @@ import {
 import { ToastService } from "../../../core/services/toast";
 import { PremiumOnly } from "../../directives/premium-only";
 import { UiButton } from "../../ui/button/ui-button";
+import { UiPremiumBadge } from "../../ui/premium-badge/ui-premium-badge";
 
 const STATUSES_TOASTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
 
 @Component({
 	selector: "app-export-actions",
-	imports: [UiButton, PremiumOnly],
+	imports: [UiButton, UiPremiumBadge, PremiumOnly],
 	template: `
 		<button
 			uiButton
@@ -43,27 +44,36 @@ const STATUSES_TOASTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
 			>
 			CSV
 		</button>
-		<button
-			*appPremiumOnly
-			uiButton
-			type="button"
-			variant="premium"
-			size="sm"
-			class="h-9"
-			[disabled]="isDownloading('json')"
-			[attr.aria-busy]="isDownloading('json') || null"
-			[attr.aria-label]="downloadLabel('json')"
-			[title]="downloadLabel('json')"
-			(click)="download('json')"
-		>
-			<span
-				aria-hidden="true"
-				class="material-icons text-base"
-				[class.animate-spin]="isDownloading('json')"
-				>{{ isDownloading("json") ? "autorenew" : "download" }}</span
+		<ng-container *appPremiumOnly>
+			<button
+				uiButton
+				type="button"
+				variant="premium"
+				size="sm"
+				class="h-9"
+				[disabled]="isDownloading('json')"
+				[attr.aria-busy]="isDownloading('json') || null"
+				[attr.aria-label]="downloadLabel('json')"
+				[title]="downloadLabel('json')"
+				(click)="download('json')"
 			>
-			JSON
-		</button>
+				<span
+					aria-hidden="true"
+					class="material-icons text-base"
+					[class.animate-spin]="isDownloading('json')"
+					>{{
+						isDownloading("json") ? "autorenew" : "download"
+					}}</span
+				>
+				JSON
+			</button>
+			<ui-premium-badge
+				size="sm"
+				interactive
+				label="Premium perk: JSON export"
+				message="JSON export is a Premium perk. Free accounts can download their collections as CSV."
+			/>
+		</ng-container>
 	`,
 	host: {
 		class: "flex shrink-0 items-center gap-[8px]"
