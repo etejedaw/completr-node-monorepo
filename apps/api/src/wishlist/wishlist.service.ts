@@ -159,3 +159,14 @@ export async function findWishlistByUserIdPaginated(
 	const { rows, count } = await Wishlist.findAndCountAll(query);
 	return { rows, total: count };
 }
+
+export async function findWishlistForExport(userId: string) {
+	return Wishlist.findAll({
+		where: { userId },
+		include: [
+			{ model: Game, attributes: ["id", "code", "title"] },
+			{ model: Platform, attributes: ["id", "name"] }
+		],
+		order: [["position", "ASC"]]
+	});
+}
