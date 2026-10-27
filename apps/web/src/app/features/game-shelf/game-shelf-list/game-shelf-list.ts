@@ -14,6 +14,7 @@ import { type GameShelfEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
+import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
@@ -66,6 +67,7 @@ function readStoredViewMode(): ShelfViewMode {
 @Component({
 	selector: "app-game-shelf-list",
 	imports: [
+		ExportActions,
 		ViewModeToggle,
 		DatePipe,
 		UiButton,

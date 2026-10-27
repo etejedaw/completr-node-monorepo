@@ -40,6 +40,7 @@ import {
 	type BacklogStatusOption
 } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
+import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
 	OptionPicker,
@@ -148,6 +149,7 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 @Component({
 	selector: "app-backlog-list",
 	imports: [
+		ExportActions,
 		ViewModeToggle,
 		BacklogTable,
 		BacklogStatusPills,

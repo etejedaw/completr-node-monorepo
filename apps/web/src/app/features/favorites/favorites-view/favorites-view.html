@@ -71,7 +71,7 @@
 		</button>
 		} @else {
 		<ui-search-bar
-			class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+			class="flex-1 min-w-[12rem] max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
 			placeholder="Search your favorites..."
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
@@ -89,7 +89,9 @@
 			>
 			Reorder
 		</button>
-		}
+		@if (!isLoading()) {
+		<app-export-actions resource="favorites" label="Favorites" />
+		} }
 	</ng-template>
 	<ng-template appLibraryPageEmptyAction>
 		<a uiButton variant="primary" routerLink="/games">Browse games</a>

@@ -14,6 +14,7 @@ import {
 
 import { type QueueEntry } from "../../../core/models";
 import { PointerService } from "../../../core/services/pointer";
+import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
@@ -41,6 +42,7 @@ export interface QueueEntryMove {
 @Component({
 	selector: "app-queue-browser",
 	imports: [
+		ExportActions,
 		NgTemplateOutlet,
 		CdkDropList,
 		CdkDrag,

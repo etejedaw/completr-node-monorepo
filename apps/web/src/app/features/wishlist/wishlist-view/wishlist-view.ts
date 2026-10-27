@@ -13,6 +13,7 @@ import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
+import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
@@ -41,6 +42,7 @@ import {
 @Component({
 	selector: "app-wishlist-view",
 	imports: [
+		ExportActions,
 		GameCoverCard,
 		CoverGrid,
 		LibraryHero,

@@ -29,6 +29,7 @@ import { type FavoriteEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
+import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
@@ -52,6 +53,7 @@ import { FavoritesService } from "../favorites";
 @Component({
 	selector: "app-favorites-view",
 	imports: [
+		ExportActions,
 		RouterLink,
 		CdkDrag,
 		CdkDropList,

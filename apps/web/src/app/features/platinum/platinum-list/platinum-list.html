@@ -51,6 +51,9 @@
 			(valueChange)="onSearch($event)"
 		/>
 		<app-view-mode-toggle [options]="viewModes" [(value)]="viewMode" />
+		@if (!isLoading()) {
+		<app-export-actions resource="platinums" label="Platinums" />
+		}
 	</ng-template>
 	<ng-template appLibraryPageEmptyAction>
 		<button uiButton variant="primary" (click)="openAdd()">

@@ -59,6 +59,9 @@
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
 		/>
+		@if (!isLoading()) {
+		<app-export-actions resource="wishlist" label="Want to Get" />
+		}
 	</ng-template>
 	<ng-template appLibraryPageEmptyAction>
 		<button uiButton variant="primary" (click)="openAddModal()">

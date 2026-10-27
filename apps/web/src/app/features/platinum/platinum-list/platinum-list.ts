@@ -14,6 +14,7 @@ import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 import { type PlatinumEntry } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
+import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
 	LibraryPage,
@@ -49,6 +50,7 @@ const VIEW_MODE_STORAGE_KEY = "completr.platinums.viewMode";
 @Component({
 	selector: "app-platinum-list",
 	imports: [
+		ExportActions,
 		LibraryHero,
 		LibraryPage,
 		LibraryPageContent,
