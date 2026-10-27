@@ -3,6 +3,7 @@ import { DOCUMENT, inject, Injectable } from "@angular/core";
 import { map, type Observable } from "rxjs";
 
 import { environment } from "../../../environments/environment";
+import { type Appendable, buildHttpParams } from "../utils/http-params";
 
 export type ExportFormat = "csv" | "json";
 
@@ -10,6 +11,13 @@ export type ExportCollection =
 	"backlog" | "queue" | "game-shelf" | "wishlist" | "favorites" | "platinums";
 
 export type ExportResource = ExportCollection | { listId: string };
+
+export type ExportParams = Record<string, Appendable>;
+
+const ACCEPT_BY_FORMAT: Record<ExportFormat, string> = {
+	csv: "text/csv",
+	json: "application/json"
+};
 
 // Matches filename*=UTF-8''completr-backlog-2026-10-27.csv
 const ENCODED_FILENAME_PATTERN = /filename\*\s*=\s*(?:[\w-]+'[^']*')?([^;]+)/i;
@@ -21,12 +29,17 @@ export class ExportService {
 	private readonly http = inject(HttpClient);
 	private readonly document = inject(DOCUMENT);
 
-	download(resource: ExportResource, format: ExportFormat): Observable<void> {
+	download(
+		resource: ExportResource,
+		format: ExportFormat,
+		params: ExportParams = {}
+	): Observable<void> {
 		return this.http
 			.get(exportUrl(resource), {
 				observe: "response",
 				responseType: "blob",
-				params: { format }
+				headers: { Accept: ACCEPT_BY_FORMAT[format] },
+				params: buildHttpParams(params)
 			})
 			.pipe(
 				map(response =>

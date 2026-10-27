@@ -77,17 +77,38 @@ describe("ExportService", () => {
 		);
 		expect(req.request.method).toBe("GET");
 		expect(req.request.responseType).toBe("blob");
-		expect(req.request.params.get("format")).toBe("csv");
+		expect(req.request.headers.get("Accept")).toBe("text/csv");
+		expect(req.request.params.keys()).toEqual([]);
 		req.flush(new Blob(["a,b"]));
 	});
 
-	it("requests the export of a list by id with the json format", () => {
+	it("sends the view params and omits the empty ones", () => {
+		service
+			.download("wishlist", "csv", {
+				search: "hades",
+				platform: "",
+				sort: undefined,
+				status: "playing,completed"
+			})
+			.subscribe();
+
+		const req = httpTesting.expectOne(r =>
+			r.url.endsWith("/users/me/wishlist/export")
+		);
+		expect(req.request.params.keys()).toEqual(["search", "status"]);
+		expect(req.request.params.get("search")).toBe("hades");
+		expect(req.request.params.get("status")).toBe("playing,completed");
+		req.flush(new Blob([""]));
+	});
+
+	it("asks for JSON with the Accept header when exporting a list", () => {
 		service.download({ listId: "list-1" }, "json").subscribe();
 
 		const req = httpTesting.expectOne(
 			r => r.url === `${environment.apiUrl}/lists/list-1/export`
 		);
-		expect(req.request.params.get("format")).toBe("json");
+		expect(req.request.headers.get("Accept")).toBe("application/json");
+		expect(req.request.params.has("format")).toBe(false);
 		req.flush(new Blob(["{}"]));
 	});
 
