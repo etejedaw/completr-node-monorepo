@@ -26,7 +26,8 @@ const statusTable: [string, string, number][] = [
 	["MoodTags Module", "MOOD_TAGS_LIMIT_REACHED", 402],
 	["Common Module", "COMMON_SCHEMA_INVALID", 422],
 	["Common Module", "COMMON_RESOURCE_IN_USE", 409],
-	["Common Module", "COMMON_REFERENCE_NOT_FOUND", 422]
+	["Common Module", "COMMON_REFERENCE_NOT_FOUND", 422],
+	["Common Module", "EXPORT_FORMAT_PREMIUM", 402]
 ];
 
 void describe("globalErrorHttpNormalizer", () => {
