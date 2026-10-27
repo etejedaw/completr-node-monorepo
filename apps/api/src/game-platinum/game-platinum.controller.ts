@@ -32,6 +32,25 @@ export async function putPlatinum(request: Request, response: Response) {
 	return response.status(created ? 201 : 200).json({ data });
 }
 
+export async function getMyPlatinums(request: Request, response: Response) {
+	const user = request.locals.user as RequestUser;
+	const query = (request.locals.query ?? {}) as PaginatedSearchQuery;
+
+	const { rows, total } =
+		await gamePlatinumService.findPlatinumsByUserIdPaginated(
+			user.id,
+			query
+		);
+
+	const data = {
+		platinums: rows.map(platinum =>
+			platinumEntrySerializer(platinum, true)
+		),
+		total
+	};
+	return response.status(200).json({ data });
+}
+
 export async function deletePlatinum(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 	const params = request.locals.params as GamePlatinumParams;

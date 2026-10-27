@@ -193,6 +193,16 @@ router.get(
 );
 
 router.get(
+	"/users/me/platinums",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator"),
+		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
+	],
+	gamePlatinumController.getMyPlatinums
+);
+
+router.get(
 	"/users/:username/platinums",
 	[
 		rateLimiterMiddleware(publicLimiter),
