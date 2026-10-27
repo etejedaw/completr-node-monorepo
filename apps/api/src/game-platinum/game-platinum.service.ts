@@ -1,4 +1,4 @@
-import { literal, type Transaction } from "sequelize";
+import { literal, type Order, type Transaction } from "sequelize";
 
 import { Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
@@ -136,8 +136,8 @@ export async function findPlatinumsForGames(
 	return new Map(platinums.map(platinum => [platinum.gameId, platinum]));
 }
 
-const LATEST_PLATINUMS_FIRST = [
-	[literal('"GamePlatinum"."platinumedAt" DESC NULLS LAST')],
+const LATEST_PLATINUMS_FIRST: Order = [
+	literal('"GamePlatinum"."platinumedAt" DESC NULLS LAST'),
 	["createdAt", "DESC"],
 	["id", "ASC"]
 ];
@@ -176,4 +176,19 @@ export async function findPlatinumsByUserIdPaginated(
 
 	const { rows, count } = await GamePlatinum.findAndCountAll(query);
 	return { rows, total: count };
+}
+
+export async function findPlatinumsForExport(userId: string) {
+	return GamePlatinum.findAll({
+		where: { userId },
+		include: [
+			{ model: Game, attributes: ["id", "code", "title"] },
+			{
+				model: Platform,
+				attributes: ["id", "name"],
+				required: false
+			}
+		],
+		order: LATEST_PLATINUMS_FIRST
+	});
 }

@@ -2,11 +2,17 @@ import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type ExportFormatQuery } from "../common/schemas/export-format-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { sendExport } from "../common/utils/send-export.util";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
+import {
+	PLATINUMS_EXPORT_COLUMNS,
+	platinumToExportRow
+} from "./game-platinum.export-row.mapper";
 import {
 	gamePlatinumSerializer,
 	platinumEntrySerializer
@@ -87,4 +93,23 @@ export async function getUserPlatinums(request: Request, response: Response) {
 		total
 	};
 	return response.status(200).json({ data });
+}
+
+export async function getMyPlatinumsExport(
+	request: Request,
+	response: Response
+) {
+	const user = request.locals.user as RequestUser;
+	const { format } = request.locals.query as ExportFormatQuery;
+
+	const entries = await gamePlatinumService.findPlatinumsForExport(user.id);
+
+	return sendExport(response, {
+		resource: "platinums",
+		format,
+		columns: PLATINUMS_EXPORT_COLUMNS,
+		rows: entries.map(entry =>
+			platinumToExportRow(entry.get({ plain: true }))
+		)
+	});
 }
