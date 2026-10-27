@@ -2,8 +2,8 @@ import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
 import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
+import { type ExportFormat } from "../common/interfaces/export-format.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type ExportFormatQuery } from "../common/schemas/export-format-query.schema";
 import { sendExport } from "../common/utils/send-export.util";
 import * as coopRunsService from "../coop-runs/coop-runs.service";
 import { type GamePlatinum } from "../game-platinum/game-platinum.model";
@@ -29,6 +29,7 @@ import {
 import * as backlogService from "./backlog.service";
 import { type RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { type UpdateBacklogDto } from "./dtos/update-backlog.dto";
+import { type BacklogExportQuery } from "./schemas/backlog-export-query.schema";
 import { type BacklogIdParams } from "./schemas/backlog-id-params.schema";
 import { type BacklogQuery } from "./schemas/backlog-query.schema";
 
@@ -110,9 +111,10 @@ export async function getMeBacklog(request: Request, response: Response) {
 
 export async function getMeBacklogExport(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
-	const { format } = request.locals.query as ExportFormatQuery;
+	const format = request.locals.exportFormat as ExportFormat;
+	const query = request.locals.query as BacklogExportQuery;
 
-	const entries = await backlogService.findBacklogForExport(user.id);
+	const entries = await backlogService.findBacklogForExport(user.id, query);
 
 	return sendExport(response, {
 		resource: "backlog",
