@@ -29,5 +29,8 @@ export function commonDomainToHttpMapper(
 	if (error.code === "EXPORT_FORMAT_PREMIUM")
 		return new HttpError({ ...baseOptions, status: 402 });
 
+	if (error.code === "EXPORT_FORMAT_NOT_ACCEPTABLE")
+		return new HttpError({ ...baseOptions, status: 406 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

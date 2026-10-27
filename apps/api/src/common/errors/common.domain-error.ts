@@ -28,3 +28,12 @@ export function exportFormatPremium(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function exportFormatNotAcceptable(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"EXPORT_FORMAT_NOT_ACCEPTABLE",
+		"Export is only available as text/csv or application/json",
+		context
+	);
+}
