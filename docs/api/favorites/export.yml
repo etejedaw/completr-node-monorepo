@@ -1,0 +1,70 @@
+info:
+    name: Export My Favorites
+    type: http
+    seq: 5
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/favorites/export?format=csv"
+    params:
+        - name: format
+          value: csv
+          type: query
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Export My Favorites
+
+    Downloads the whole collection of the authenticated user as a file: no pagination and no filters. `format=csv` is available to every role; `format=json` requires `premium`, `moderator` or `admin`.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Query Params
+
+    | Param  | Type   | Required | Description                         |
+    |--------|--------|----------|-------------------------------------|
+    | format | string | No       | `csv` (default) or `json` (premium) |
+
+    ### Response (200)
+
+    Headers:
+
+    - `Content-Disposition: attachment; filename="completr-favorites-YYYY-MM-DD.csv"` (date in UTC; exposed to the browser through CORS `Access-Control-Expose-Headers`)
+    - `Content-Type: text/csv; charset=utf-8` for CSV, `application/json; charset=utf-8` for JSON
+
+    CSV: UTF-8 BOM, a header row with the column names, comma separator, `\r\n` line endings and RFC 4180 quoting (fields with a comma, a quote or a line break are wrapped in double quotes, inner quotes are doubled). Text that starts with `=`, `+`, `-`, `@`, tab or carriage return is prefixed with `'` to prevent formula injection. `null` is an empty field. An empty collection returns only the header row.
+
+    JSON: a bare array (not wrapped in `data`) with one object per row, the same keys as the CSV columns and native types. An empty collection returns `[]`.
+
+    Rows are ordered by favorite `position` ascending.
+
+    ### Columns
+
+    | Column | Type | Description |
+    |--------|------|-------------|
+    | position | int | Position among favorites, from 1 |
+    | gameTitle | string | Game title |
+    | gameCode | string | Game slug (`/games/:code`), useful to match the game on reimport |
+    | addedAt | string | ISO 8601 date-time the entry was created |
+
+    ```json
+    [
+      {
+        "position": 1,
+        "gameTitle": "Chrono Trigger",
+        "gameCode": "chrono-trigger",
+        "addedAt": "2026-02-01T20:00:00.000Z"
+      }
+    ]
+    ```
+
+    ### Errors
+
+    - 401 `AUTH_INVALID_TOKEN` — Invalid or expired token
+    - 422 `AUTH_SCHEMA_INVALID` — Missing `Authorization` header
+    - 422 `COMMON_SCHEMA_INVALID` — `format` is not `csv` or `json`
+    - 402 `EXPORT_FORMAT_PREMIUM` — `format=json` requested by a `user` (free) account
