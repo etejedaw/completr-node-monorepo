@@ -376,6 +376,9 @@ export class BacklogList implements OnInit {
 	protected readonly platinumedOnly = signal(false);
 
 	protected readonly appliedFilters = signal<BacklogFilters>({});
+	protected readonly exportParams = computed<BacklogFilters>(() =>
+		this.withSort(this.buildBaseFilters())
+	);
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
 	protected readonly backlogFilters = signal<SavedFilter[]>([]);
 	protected readonly colorHex = savedFilterColorHex;
@@ -1442,6 +1445,14 @@ export class BacklogList implements OnInit {
 		return filters;
 	}
 
+	private withSort(filters: BacklogFilters): BacklogFilters {
+		return {
+			...filters,
+			sort_by: this.sortBy(),
+			sort_order: this.sortOrder()
+		};
+	}
+
 	private loadSeq = 0;
 
 	private loadBacklog() {
@@ -1450,11 +1461,9 @@ export class BacklogList implements OnInit {
 		const base = this.buildBaseFilters();
 		this.appliedFilters.set(base);
 		const filters: BacklogFilters = {
-			...base,
+			...this.withSort(base),
 			limit: this.limit,
-			offset: this.offset(),
-			sort_by: this.sortBy(),
-			sort_order: this.sortOrder()
+			offset: this.offset()
 		};
 
 		this.backlogService.getMyBacklog(filters).subscribe({

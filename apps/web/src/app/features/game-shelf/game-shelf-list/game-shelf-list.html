@@ -63,7 +63,11 @@
 		/>
 		<app-view-mode-toggle [options]="viewModes" [(value)]="viewMode" />
 		@if (!isLoading()) {
-		<app-export-actions resource="game-shelf" label="My Shelf" />
+		<app-export-actions
+			resource="game-shelf"
+			[params]="exportParams()"
+			label="My Shelf"
+		/>
 		}
 	</ng-template>
 	<ng-template appLibraryPageEmptyAction>

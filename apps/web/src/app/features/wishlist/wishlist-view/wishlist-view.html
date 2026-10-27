@@ -60,7 +60,11 @@
 			(valueChange)="onSearch($event)"
 		/>
 		@if (!isLoading()) {
-		<app-export-actions resource="wishlist" label="Want to Get" />
+		<app-export-actions
+			resource="wishlist"
+			[params]="exportParams()"
+			label="Want to Get"
+		/>
 		}
 	</ng-template>
 	<ng-template appLibraryPageEmptyAction>

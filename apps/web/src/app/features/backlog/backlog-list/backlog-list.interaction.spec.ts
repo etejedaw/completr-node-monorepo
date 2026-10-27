@@ -132,6 +132,8 @@ describe("BacklogList interaction", () => {
 		req.flush({ data: { platinum } }, { status: 201, statusText: "OK" });
 	}
 
+	const exportRequests: TestRequest["request"][] = [];
+
 	function answer(req: TestRequest) {
 		const { method, url } = req.request;
 		const platinumMatch = url.match(
@@ -141,6 +143,10 @@ describe("BacklogList interaction", () => {
 			return putPlatinum(req, platinumMatch[1]);
 		const entryMatch = url.match(/\/users\/me\/backlog\/([^/]+)$/);
 		if (method === "GET" && url === backlogUrl) return listBacklog(req);
+		if (method === "GET" && url === `${backlogUrl}/export`) {
+			exportRequests.push(req.request);
+			return req.flush(new Blob(["gameTitle\n"], { type: "text/csv" }));
+		}
 		if (method === "PATCH" && entryMatch)
 			return patchBacklog(req, entryMatch[1]);
 		if (method === "DELETE" && entryMatch) {
@@ -251,6 +257,7 @@ describe("BacklogList interaction", () => {
 		backlogPatches.length = 0;
 		deletedIds.length = 0;
 		platinumPuts.length = 0;
+		exportRequests.length = 0;
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -273,6 +280,59 @@ describe("BacklogList interaction", () => {
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
+	});
+
+	it("exports exactly the filtered and sorted library", async () => {
+		const user = userEvent.setup();
+		const click = vi
+			.spyOn(HTMLAnchorElement.prototype, "click")
+			.mockImplementation(() => undefined);
+		Object.assign(URL, {
+			createObjectURL: vi.fn(() => "blob:export"),
+			revokeObjectURL: vi.fn()
+		});
+		savedViews = [
+			savedView({
+				id: "linked",
+				filters: {},
+				sortBy: "ratio",
+				sortOrder: "asc"
+			})
+		];
+		await renderBacklog("/?savedFilterId=linked");
+		await user.click(
+			statusPills().getByRole("button", { name: /Not Started/ })
+		);
+		await untilVisible(() =>
+			expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+		);
+		await user.type(searchBox(), "hollow");
+		await untilVisible(() =>
+			expect(visibleTitles()).toEqual(["Hollow Knight"])
+		);
+
+		await user.click(
+			screen.getByRole("button", { name: "Download My Games as CSV" })
+		);
+		answerPending();
+
+		expect(exportRequests).toHaveLength(1);
+		const [request] = exportRequests;
+		expect(request.headers.get("Accept")).toBe("text/csv");
+		expect(
+			Object.fromEntries(
+				request.params.keys().map(key => [key, request.params.get(key)])
+			)
+		).toEqual({
+			status: "not_started",
+			search: "hollow",
+			sort_by: "ratio",
+			sort_order: "asc"
+		});
+		expect(click).toHaveBeenCalledTimes(1);
+		click.mockRestore();
+		Reflect.deleteProperty(URL, "createObjectURL");
+		Reflect.deleteProperty(URL, "revokeObjectURL");
 	});
 
 	it("loads the library and shows the total", async () => {

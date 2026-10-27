@@ -13,6 +13,7 @@ import {
 } from "@angular/core";
 
 import { type QueueEntry } from "../../../core/models";
+import { type ExportParams } from "../../../core/services/export";
 import { PointerService } from "../../../core/services/pointer";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
@@ -79,6 +80,10 @@ export class QueueBrowser {
 	readonly savingOrder = input(false);
 	readonly movingToTop = input(false);
 	readonly sortBy = model<QueueSort>("manual");
+	protected readonly exportParams = computed<ExportParams>(() => ({
+		search: this.searchQuery().trim() || undefined,
+		sort: this.sortBy()
+	}));
 
 	readonly searchChange = output<string>();
 	readonly offsetChange = output<number>();

@@ -90,7 +90,11 @@
 			Reorder
 		</button>
 		@if (!isLoading()) {
-		<app-export-actions resource="favorites" label="Favorites" />
+		<app-export-actions
+			resource="favorites"
+			[params]="exportParams()"
+			label="Favorites"
+		/>
 		} }
 	</ng-template>
 	<ng-template appLibraryPageEmptyAction>

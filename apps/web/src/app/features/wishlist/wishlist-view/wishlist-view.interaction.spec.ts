@@ -57,8 +57,10 @@ describe("WishlistView interaction", () => {
 	let favoriteIds: string[];
 	const searches: (string | null)[] = [];
 	const removedGameIds: string[] = [];
-	const exportRequests: { format: string | null; search: string | null }[] =
-		[];
+	const exportRequests: {
+		accept: string | null;
+		params: Record<string, string | null>;
+	}[] = [];
 
 	function answer(req: TestRequest) {
 		const { method, url, body, params } = req.request;
@@ -93,8 +95,10 @@ describe("WishlistView interaction", () => {
 		}
 		if (method === "GET" && url === `${wishlistUrl}/export`) {
 			exportRequests.push({
-				format: params.get("format"),
-				search: params.get("search")
+				accept: req.request.headers.get("Accept"),
+				params: Object.fromEntries(
+					params.keys().map(key => [key, params.get(key)])
+				)
 			});
 			return req.flush(new Blob(["title\n"], { type: "text/csv" }));
 		}
@@ -204,7 +208,24 @@ describe("WishlistView interaction", () => {
 		Reflect.deleteProperty(URL, "revokeObjectURL");
 	});
 
-	it("exports the whole Want to Get as CSV regardless of the search", async () => {
+	it("exports the whole Want to Get as CSV when no filter is active", async () => {
+		const user = userEvent.setup();
+		const click = vi
+			.spyOn(HTMLAnchorElement.prototype, "click")
+			.mockImplementation(() => undefined);
+		await renderWishlist();
+
+		await user.click(
+			screen.getByRole("button", { name: "Download Want to Get as CSV" })
+		);
+		answerPending();
+
+		expect(exportRequests).toEqual([{ accept: "text/csv", params: {} }]);
+		expect(click).toHaveBeenCalledTimes(1);
+		click.mockRestore();
+	});
+
+	it("exports Want to Get with the active platform and search", async () => {
 		const user = userEvent.setup();
 		const click = vi
 			.spyOn(HTMLAnchorElement.prototype, "click")
@@ -216,6 +237,7 @@ describe("WishlistView interaction", () => {
 				name: "Download Want to Get as JSON"
 			})
 		).not.toBeInTheDocument();
+		await user.click(platformFilter().getByRole("button", { name: /PC/ }));
 		await user.type(searchBox(), "hades");
 		await untilVisible(() => expect(coverTitles()).toEqual(["Hades"]));
 		await user.click(
@@ -223,7 +245,9 @@ describe("WishlistView interaction", () => {
 		);
 		answerPending();
 
-		expect(exportRequests).toEqual([{ format: "csv", search: null }]);
+		expect(exportRequests).toEqual([
+			{ accept: "text/csv", params: { search: "hades", platform: "p1" } }
+		]);
 		expect(click).toHaveBeenCalledTimes(1);
 		await untilVisible(() =>
 			expect(

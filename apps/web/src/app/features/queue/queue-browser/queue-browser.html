@@ -8,7 +8,11 @@
 	/>
 	<app-queue-sort-control [(value)]="sortBy" [manualLabel]="manualLabel()" />
 	@if (!readonly() && !isLoading()) {
-	<app-export-actions resource="queue" label="Up Next" />
+	<app-export-actions
+		resource="queue"
+		[params]="exportParams()"
+		label="Up Next"
+	/>
 	}
 </app-library-toolbar>
 @if (!readonly() && !isManual()) {

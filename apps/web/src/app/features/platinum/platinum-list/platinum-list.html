@@ -52,7 +52,11 @@
 		/>
 		<app-view-mode-toggle [options]="viewModes" [(value)]="viewMode" />
 		@if (!isLoading()) {
-		<app-export-actions resource="platinums" label="Platinums" />
+		<app-export-actions
+			resource="platinums"
+			[params]="exportParams()"
+			label="Platinums"
+		/>
 		}
 	</ng-template>
 	<ng-template appLibraryPageEmptyAction>
