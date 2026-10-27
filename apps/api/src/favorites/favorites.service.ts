@@ -98,3 +98,11 @@ export async function findFavoritesByUserIdPaginated(
 	const { rows, count } = await Favorite.findAndCountAll(query);
 	return { rows, total: count };
 }
+
+export async function findFavoritesForExport(userId: string) {
+	return Favorite.findAll({
+		where: { userId },
+		include: [{ model: Game, attributes: ["id", "code", "title"] }],
+		order: [["position", "ASC"]]
+	});
+}

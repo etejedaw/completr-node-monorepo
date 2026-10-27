@@ -3,12 +3,18 @@ import { type Request, type Response } from "express";
 import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type ExportFormatQuery } from "../common/schemas/export-format-query.schema";
+import { sendExport } from "../common/utils/send-export.util";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
 import { type ReplaceFavoritesDto } from "./dtos/replace-favorites.dto";
+import {
+	FAVORITES_EXPORT_COLUMNS,
+	favoriteToExportRow
+} from "./favorites.export-row.mapper";
 import { favoriteSerializer } from "./favorites.serializer";
 import * as favoritesService from "./favorites.service";
 
@@ -116,4 +122,23 @@ export async function getUserFavorites(request: Request, response: Response) {
 		total
 	};
 	return response.status(200).json({ data });
+}
+
+export async function getMeFavoritesExport(
+	request: Request,
+	response: Response
+) {
+	const user = request.locals.user as RequestUser;
+	const { format } = request.locals.query as ExportFormatQuery;
+
+	const entries = await favoritesService.findFavoritesForExport(user.id);
+
+	return sendExport(response, {
+		resource: "favorites",
+		format,
+		columns: FAVORITES_EXPORT_COLUMNS,
+		rows: entries.map(entry =>
+			favoriteToExportRow(entry.get({ plain: true }))
+		)
+	});
 }
