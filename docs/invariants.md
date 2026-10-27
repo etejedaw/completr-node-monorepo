@@ -313,13 +313,18 @@ Reglas:
 
 Endpoints: `GET /users/me/backlog/export`, `/users/me/queue/export`, `/users/me/game-shelf/export`, `/users/me/wishlist/export`, `/users/me/favorites/export`, `/users/me/platinums/export` y `GET /lists/:listId/export`. Las columnas de cada recurso viven en su `*.export-row.mapper.ts` (`BACKLOG_EXPORT_COLUMNS`, `QUEUE_EXPORT_COLUMNS`, etc.) y están documentadas en [`api/`](./api/).
 
-- `format` acepta `csv` (por defecto) o `json` (`ExportFormatQuerySchema`); cualquier otro valor responde 422 `COMMON_SCHEMA_INVALID`.
-- `format=json` es premium (`isPremiumRole()`): un free recibe 402 `EXPORT_FORMAT_PREMIUM` (`Common Module`), lo verifica `exportFormatAccessMiddleware` antes de consultar.
-- Siempre se exporta la colección completa del usuario autenticado, sin paginar ni filtrar, con una sola consulta por recurso. Orden: backlog por `createdAt` descendente; queue, wishlist, favorites y listas por `position`; platinos por `platinumedAt` descendente (sin fecha al final); game shelf por título del juego.
+- El formato se negocia por el header `Accept` con `req.accepts(["text/csv", "application/json"])` en `exportFormatNegotiationMiddleware`; no hay parámetro `format`. Sin `Accept`, con solo comodines o cuando gana `text/csv` → CSV; cuando gana `application/json` → JSON; si no se acepta ninguno → 406 `EXPORT_FORMAT_NOT_ACCEPTABLE` (`Common Module`). Toda respuesta lleva `Vary: Accept`.
+- JSON es premium (`isPremiumRole()`): un free recibe 402 `EXPORT_FORMAT_PREMIUM` (`Common Module`), lo verifica `exportFormatAccessMiddleware` sobre el formato negociado, antes de consultar.
+- Cada export acepta los mismos filtros, búsqueda y orden que su listado, sin paginación (`limit` y `offset` se ignoran); sin parámetros exporta la colección completa. Un valor inválido responde 422 `COMMON_SCHEMA_INVALID`. Se resuelve con una sola consulta por recurso.
+    - Backlog: `BacklogExportQuerySchema` (`BacklogQuerySchema` sin `limit`/`offset`), con `buildBacklogWhere` y el mismo orden que `GET /users/me/backlog` (por defecto `createdAt` descendente).
+    - Queue: `search` y `sort` (`manual` por defecto, `ratio`, `score`, `duration`) en `QueueExportQuerySchema`. `manual` es `position` ascendente; `ratio` y `score` van descendentes y `duration` ascendente, con los valores nulos al final y los empates por `position` (`sortQueueExport`).
+    - Game shelf, wishlist y platinos: `search` y `platform` (`ExportPlatformSearchQuerySchema`). `platform` es un UUID (solo esa plataforma) o `any` (solo filas sin plataforma, `buildPlatformFilterWhere`). Orden: título del juego en game shelf, `position` en wishlist y `platinumedAt` descendente (sin fecha al final) en platinos.
+    - Favorites: `search` (`ExportSearchQuerySchema`), orden por `position`.
+    - Listas: sin parámetros de filtro, orden por `position`.
 - `GET /lists/:listId/export` solo exporta listas propias: una lista ajena (aunque sea pública) o inexistente responde 404 `LIST_NOT_FOUND`.
 - Respuesta: `Content-Disposition: attachment; filename="completr-<recurso>-YYYY-MM-DD.<csv|json>"` con la fecha en UTC (`completr-list-<slug>-…` para listas, `completr-list-…` si el nombre no da slug). CORS expone `Content-Disposition` (`exposedHeaders` en `cors.config.ts`).
-- CSV (`serializeCsv()`): `text/csv; charset=utf-8`, BOM UTF-8, fila de cabecera, coma, `\r\n` al final de cada línea, escape RFC 4180. Un texto que empieza con `=`, `+`, `-`, `@`, tab o CR se prefija con `'`. `null` es un campo vacío. Una colección vacía devuelve solo la cabecera.
-- JSON: `application/json; charset=utf-8`, un array desnudo (sin `data`) con las mismas claves que las columnas del CSV y tipos nativos; una colección vacía devuelve `[]`.
+- CSV (`serializeCsv()`): `text/csv; charset=utf-8`, BOM UTF-8, fila de cabecera, coma, `\r\n` al final de cada línea, escape RFC 4180. Un texto que empieza con `=`, `+`, `-`, `@`, tab o CR se prefija con `'`. `null` es un campo vacío. Un resultado vacío devuelve solo la cabecera.
+- JSON: `application/json; charset=utf-8`, un array desnudo (sin `data`) con las mismas claves que las columnas del CSV y tipos nativos; un resultado vacío devuelve `[]`.
 
 ---
 
