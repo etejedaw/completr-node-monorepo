@@ -5,7 +5,6 @@ import { type Favorite } from "./favorite.model";
 export const FAVORITES_EXPORT_COLUMNS = [
 	"position",
 	"gameTitle",
-	"gameCode",
 	"addedAt"
 ] as const;
 
@@ -15,7 +14,6 @@ export function favoriteToExportRow(entry: Favorite): FavoriteExportRow {
 	return {
 		position: entry.position,
 		gameTitle: entry.Game.title,
-		gameCode: entry.Game.code,
 		addedAt: toIsoDateTime(entry.createdAt)
 	};
 }

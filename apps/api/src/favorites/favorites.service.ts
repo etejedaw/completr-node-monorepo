@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type ExportSearchQuery } from "../common/schemas/export-search-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
@@ -99,10 +100,23 @@ export async function findFavoritesByUserIdPaginated(
 	return { rows, total: count };
 }
 
-export async function findFavoritesForExport(userId: string) {
+export async function findFavoritesForExport(
+	userId: string,
+	filters: ExportSearchQuery = {}
+) {
+	const titleWhere = filters.search
+		? buildTextSearchWhere(filters.search, ["Game.title"])
+		: null;
+
 	return Favorite.findAll({
 		where: { userId },
-		include: [{ model: Game, attributes: ["id", "code", "title"] }],
+		include: [
+			{
+				model: Game,
+				attributes: ["id", "title"],
+				...(titleWhere && { required: true, where: titleWhere })
+			}
+		],
 		order: [["position", "ASC"]]
 	});
 }
