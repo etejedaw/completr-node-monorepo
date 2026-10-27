@@ -1,8 +1,8 @@
 <ui-dialog
 	eyebrow="Platinum"
 	size="sm"
-	[heading]="isEdit ? 'Edit platinum' : 'Mark as platinumed'"
-	[subheading]="data.gameTitle"
+	[heading]="heading()"
+	[subheading]="subheading()"
 	(closed)="close()"
 >
 	<span
@@ -11,12 +11,43 @@
 		class="material-icons text-2xl mt-1 text-fg-secondary"
 		>emoji_events</span
 	>
+	@switch (step()) { @case ('search') {
+	<app-game-search-step
+		[results]="search.results()"
+		[status]="search.status()"
+		[onlineSearching]="search.forceSearching()"
+		[autofocus]="returnedToSearch()"
+		[(query)]="searchQuery"
+		(picked)="pickGame($event)"
+		(searchOnline)="search.searchOnline()"
+	/>
+	} @case ('loading') {
+	<div class="flex flex-col gap-4" aria-busy="true">
+		<span class="sr-only">Loading the game</span>
+		<ui-skeleton class="h-16 w-full rounded-card" />
+		<ui-skeleton class="h-11 w-full rounded-card" />
+		<ui-skeleton class="h-11 w-full rounded-card" />
+	</div>
+	} @case ('load-error') {
+	<ui-alert tone="danger">
+		The game could not be loaded.
+		<button uiButton variant="ghost" type="button" (click)="retryLoad()">
+			Try again
+		</button>
+	</ui-alert>
+	} @default {
 	<div class="flex flex-col gap-4">
-		@if (data.runs.length > 0) {
+		@if (picksGame && context(); as current) {
+		<app-selected-game-row
+			[game]="current.game"
+			[meta]="isEdit() ? 'Already platinumed — editing it' : null"
+			(changeRequested)="changeGame()"
+		/>
+		} @if (runs().length > 0) {
 		<app-option-picker
 			label="Run"
 			heading="Run where you got it"
-			[options]="runOptions"
+			[options]="runOptions()"
 			[value]="backlogId()"
 			(valueChange)="selectRun($event)"
 		/>
@@ -58,8 +89,9 @@
 		<ui-alert tone="danger">{{ saveError() }}</ui-alert>
 		}
 	</div>
+	} }
 	<ng-container dialogFooter>
-		@if (isEdit) {
+		@if (step() === 'form' && isEdit()) {
 		<app-dialog-delete-action
 			label="Remove"
 			question="Remove the platinum?"
@@ -70,6 +102,7 @@
 		<button uiButton variant="ghost" type="button" (click)="close()">
 			Cancel
 		</button>
+		@if (step() === 'form') {
 		<button
 			uiButton
 			variant="primary"
@@ -79,5 +112,6 @@
 		>
 			{{ saving() ? "Saving…" : "Save" }}
 		</button>
+		}
 	</ng-container>
 </ui-dialog>
