@@ -5,7 +5,6 @@ import { type Wishlist } from "./wishlist.model";
 export const WISHLIST_EXPORT_COLUMNS = [
 	"position",
 	"gameTitle",
-	"gameCode",
 	"platform",
 	"addedAt"
 ] as const;
@@ -16,7 +15,6 @@ export function wishlistToExportRow(entry: Wishlist): WishlistExportRow {
 	return {
 		position: entry.position,
 		gameTitle: entry.Game.title,
-		gameCode: entry.Game.code,
 		platform: entry.Platform?.name ?? null,
 		addedAt: toIsoDateTime(entry.createdAt)
 	};
