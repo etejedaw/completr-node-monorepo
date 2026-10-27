@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { NgpButton } from "ng-primitives/button";
 
-export type UiButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type UiButtonVariant =
+	"primary" | "secondary" | "ghost" | "danger" | "premium";
 export type UiButtonSize = "sm" | "md" | "lg";
 
 @Component({
