@@ -2,8 +2,10 @@ import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
+import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
@@ -172,4 +174,29 @@ export async function removeGameShelf(id: string, userId: string) {
 
 	await GameShelf.destroy({ where: { id, userId } });
 	return true;
+}
+
+export async function findGameShelfForExport(
+	userId: string,
+	filters: ExportPlatformSearchQuery = {}
+) {
+	const titleWhere = filters.search
+		? buildTextSearchWhere(filters.search, ["Game.title"])
+		: null;
+
+	return GameShelf.findAll({
+		where: { userId, ...buildPlatformFilterWhere(filters.platform) },
+		include: [
+			{
+				model: Game,
+				attributes: ["id", "title"],
+				...(titleWhere && { required: true, where: titleWhere })
+			},
+			{ model: Platform, attributes: ["id", "name"] }
+		],
+		order: [
+			[Game, "title", "ASC"],
+			["createdAt", "ASC"]
+		]
+	});
 }

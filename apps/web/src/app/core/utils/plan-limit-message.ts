@@ -1,4 +1,6 @@
 const PLAN_LIMIT_MESSAGES: Record<string, string> = {
+	EXPORT_FORMAT_PREMIUM:
+		"JSON export is a Premium perk. On the free plan you can download your collections as CSV.",
 	FAVORITE_LIMIT_REACHED:
 		"You've reached the free limit for favorites. Remove one to add another.",
 	GAME_SHELF_LIMIT_REACHED:

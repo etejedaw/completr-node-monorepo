@@ -29,6 +29,7 @@ import { type Game, type List, type ListItem } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
+import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
@@ -70,6 +71,7 @@ const LIST_ACTIONS: { id: ListActionId; icon: string; label: string }[] = [
 @Component({
 	selector: "app-list-detail",
 	imports: [
+		ExportActions,
 		RouterLink,
 		CdkDropList,
 		CdkDrag,

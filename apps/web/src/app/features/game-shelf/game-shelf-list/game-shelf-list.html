@@ -62,6 +62,13 @@
 			(valueChange)="onSearch($event)"
 		/>
 		<app-view-mode-toggle [options]="viewModes" [(value)]="viewMode" />
+		@if (!isLoading()) {
+		<app-export-actions
+			resource="game-shelf"
+			[params]="exportParams()"
+			label="My Shelf"
+		/>
+		}
 	</ng-template>
 	<ng-template appLibraryPageEmptyAction>
 		<button uiButton variant="primary" (click)="openCreate()">

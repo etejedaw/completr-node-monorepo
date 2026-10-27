@@ -1,0 +1,82 @@
+<div
+	class="overflow-x-auto rounded-card border border-line bg-surface/40 shadow-[0_24px_48px_-32px_rgba(0,0,0,0.9)]"
+>
+	<table class="w-full border-collapse text-sm">
+		<thead>
+			<tr>
+				@for (column of columns(); track column) {
+				<th
+					scope="col"
+					[class]="headerCellClass"
+					[class.min-w-[220px]]="column === 'Title'"
+				>
+					{{ column }}
+				</th>
+				} @if (selectable()) {
+				<th scope="col" [class]="headerCellClass" class="w-12">
+					<span class="sr-only">Edit</span>
+				</th>
+				}
+			</tr>
+		</thead>
+		<tbody>
+			@for (platinum of platinums(); track platinum.id) {
+			<tr
+				class="border-b border-line/50 last:border-b-0 transition hover:bg-surface-hover/60"
+				[class.cursor-pointer]="selectable()"
+				(click)="selectRow(platinum)"
+			>
+				<td class="px-4 py-2.5 align-middle">
+					<app-game-title-cell
+						[coverUrl]="platinum.game.backgroundUrl"
+						[title]="platinum.game.title"
+						[code]="platinum.game.code"
+					/>
+				</td>
+				<td class="px-4 py-2.5 align-middle whitespace-nowrap">
+					@if (platinum.platform; as platform) {
+					<span
+						class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide bg-platinum/15 text-platinum"
+						[title]="platform.name"
+						>{{ platform.abbreviation }}</span
+					>
+					} @else {
+					<span class="text-fg-muted text-xs">—</span>
+					}
+				</td>
+				<td
+					class="px-4 py-2.5 align-middle text-fg-secondary text-xs whitespace-nowrap tabular-nums"
+				>
+					@if (platinum.platinumedAt; as platinumedAt) {
+					<time [attr.datetime]="platinumedAt"
+						>{{ platinumedAt | date: 'MMM d, y' }}</time
+					>
+					} @else { — }
+				</td>
+				@if (showNotes()) {
+				<td
+					class="px-4 py-2.5 align-middle text-fg-muted text-xs max-w-[22rem]"
+				>
+					<span class="line-clamp-2"
+						>{{ platinum.notes || '—' }}</span
+					>
+				</td>
+				} @if (selectable()) {
+				<td class="px-2 py-2.5 align-middle text-center">
+					<button
+						type="button"
+						class="w-9 h-9 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-platinum hover:bg-surface"
+						[attr.aria-label]="'Edit platinum of ' + platinum.game.title"
+						(click)="selected.emit(platinum); $event.stopPropagation()"
+					>
+						<span aria-hidden="true" class="material-icons text-lg"
+							>edit</span
+						>
+					</button>
+				</td>
+				}
+			</tr>
+			}
+		</tbody>
+	</table>
+</div>

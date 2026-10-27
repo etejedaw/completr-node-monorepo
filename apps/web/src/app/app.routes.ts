@@ -279,6 +279,13 @@ export const routes: Routes = [
 					)
 			},
 			{
+				path: "platinums",
+				loadComponent: () =>
+					import("./features/platinum/platinum-list/platinum-list").then(
+						m => m.PlatinumList
+					)
+			},
+			{
 				path: "profile",
 				canActivate: [selfProfileRedirect],
 				children: []

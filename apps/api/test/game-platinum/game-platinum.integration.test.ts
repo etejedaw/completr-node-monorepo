@@ -9,7 +9,7 @@ import { GamePlatinum } from "../../src/game-platinum/game-platinum.model";
 import { Game } from "../../src/games/game.model";
 import { User } from "../../src/users/user.model";
 import { api } from "../helpers/app.helper";
-import { createUserWithSession } from "../helpers/auth.helper";
+import { bearer, createUserWithSession } from "../helpers/auth.helper";
 import { useTestDatabase } from "../helpers/database.helper";
 import { eventually } from "../helpers/eventually.helper";
 import {
@@ -324,6 +324,65 @@ void describe("DELETE /users/me/games/:gameId/platinum", () => {
 			await GamePlatinum.count({ where: { userId: other.user.id } }),
 			1
 		);
+	});
+});
+
+void describe("GET /users/me/platinums", () => {
+	void it("lists only the platinums of the session user, latest first, with notes", async () => {
+		const owner = await createUserWithSession();
+		const other = await createUserWithSession();
+		const older = await createGame({ title: "Older Platinum" });
+		const newer = await createGame({ title: "Newer Platinum" });
+		const foreign = await createGame();
+		await putPlatinum(owner.authorization, older.id, {
+			platinumedAt: "2025-01-10",
+			notes: "First"
+		}).expect(201);
+		await putPlatinum(owner.authorization, newer.id, {
+			platinumedAt: "2026-02-20"
+		}).expect(201);
+		await putPlatinum(other.authorization, foreign.id).expect(201);
+
+		const response = await api()
+			.get("/users/me/platinums")
+			.set("Authorization", owner.authorization);
+
+		assert.equal(response.status, 200);
+		const { platinums, total } = response.body.data as {
+			platinums: (PlatinumBody & { game: { id: string } })[];
+			total: number;
+		};
+		assert.equal(total, 2);
+		assert.deepEqual(
+			platinums.map(platinum => platinum.game.id),
+			[newer.id, older.id]
+		);
+		assert.equal(platinums.at(1)?.notes, "First");
+	});
+
+	void it("filters by game title with search and paginates keeping the total", async () => {
+		const owner = await createUserWithSession();
+		for (const title of ["Astro Bot", "Astro's Playroom", "Bloodborne"]) {
+			const game = await createGame({ title });
+			await putPlatinum(owner.authorization, game.id).expect(201);
+		}
+
+		const response = await api()
+			.get("/users/me/platinums?search=astro&limit=1")
+			.set("Authorization", owner.authorization);
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.total, 2);
+		assert.equal(response.body.data.platinums.length, 1);
+	});
+
+	void it("rejects an invalid token with 401 AUTH_INVALID_TOKEN", async () => {
+		const response = await api()
+			.get("/users/me/platinums")
+			.set("Authorization", bearer("invalid"));
+
+		assert.equal(response.status, 401);
+		assert.equal(response.body.type, "AUTH_INVALID_TOKEN");
 	});
 });
 

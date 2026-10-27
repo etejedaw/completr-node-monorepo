@@ -157,6 +157,10 @@
 				>more_horiz</span
 			>
 		</button>
+		<app-export-actions
+			[resource]="{ listId: current.id }"
+			[label]="current.name"
+		/>
 		} @else if (current.isPublic) {
 		<button
 			uiButton

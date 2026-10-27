@@ -20,11 +20,15 @@
 	[(platform)]="collection.platform"
 	(offsetChange)="collection.goToOffset($event)"
 >
-	<app-cover-grid>
-		@for (entry of collection.visibleItems(); track entry.id) {
-		<li>
-			<app-platinum-cover-card [platinum]="entry" />
-		</li>
-		}
-	</app-cover-grid>
+	<app-view-mode-toggle
+		collectionToolbar
+		[options]="viewModes"
+		[(value)]="viewMode"
+	/>
+	<app-platinum-collection
+		[platinums]="collection.visibleItems()"
+		[viewMode]="viewMode()"
+		emptyMonthHint="No platinums this month."
+		(selected)="openGame($event)"
+	/>
 </app-profile-collection-page>

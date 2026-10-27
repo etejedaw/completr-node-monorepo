@@ -27,8 +27,10 @@ import {
 
 import { type FavoriteEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
+import { type ExportParams } from "../../../core/services/export";
 import { ToastService } from "../../../core/services/toast";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
+import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
@@ -52,6 +54,7 @@ import { FavoritesService } from "../favorites";
 @Component({
 	selector: "app-favorites-view",
 	imports: [
+		ExportActions,
 		RouterLink,
 		CdkDrag,
 		CdkDropList,
@@ -84,6 +87,9 @@ export class FavoritesView implements OnInit {
 	protected readonly entries = signal<FavoriteEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
+	protected readonly exportParams = computed<ExportParams>(() => ({
+		search: this.searchQuery().trim() || undefined
+	}));
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;

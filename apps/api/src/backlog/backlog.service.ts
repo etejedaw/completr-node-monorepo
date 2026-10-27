@@ -30,11 +30,12 @@ import { Backlog, type BacklogStatus } from "./backlog.model";
 import { type RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { type UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import * as backlogServiceError from "./errors/backlog.service-error";
+import { type BacklogExportQuery } from "./schemas/backlog-export-query.schema";
 import { type BacklogQuery } from "./schemas/backlog-query.schema";
 import { buildBacklogWhere } from "./utils/build-backlog-where.util";
 
 const BACKLOG_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
-const BACKLOG_PLATFORM_ATTRS = ["id", "abbreviation"];
+const BACKLOG_PLATFORM_ATTRS = ["id", "name", "abbreviation"];
 
 const backlogInclude = [
 	{ model: Game, attributes: BACKLOG_GAME_ATTRS },
@@ -783,6 +784,17 @@ export async function computeBacklogStats(
 		ratingDistribution,
 		completionsByMonth
 	};
+}
+
+export async function findBacklogForExport(
+	userId: string,
+	filters: BacklogExportQuery = {}
+) {
+	return Backlog.findAll({
+		where: buildBacklogWhere({ userId }, filters),
+		include: buildIncludes(filters),
+		order: buildOrder(filters)
+	});
 }
 
 export async function findBacklogByUserId(

@@ -12,7 +12,7 @@ Arquitectura en [`architecture.md`](./architecture.md), endpoints en [`api/`](./
 
 Enum `User.role` en `apps/api/src/users/user-role.type.ts`: `user`, `premium`, `moderator`, `admin`. Default al registrarse: `user`.
 
-- El gating premium se resuelve con `isPremium()`, que acepta `premium`, `moderator` y `admin`.
+- El gating premium se resuelve con `isPremium()`, que acepta `premium`, `moderator` y `admin`. El export usa la versión compartida `isPremiumRole()` de `apps/api/src/common/utils/is-premium-role.util.ts`, con los mismos roles.
 - Qué puede hacer cada rol se hace cumplir en `authMiddleware(...)` de cada `*.routes.ts`: esa es la fuente autoritativa de permisos.
 
 ---
@@ -106,6 +106,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `DELETE /users/me/games/:gameId/platinum` responde 204, o 404 `GAME_PLATINUM_NOT_FOUND` si no hay platino. La activity ya registrada no se borra.
 - La activity `game_platinumed` se registra solo al crear el platino, no al actualizarlo.
 - `GET /users/:username/platinums` lista los platinos de un usuario, paginado con `limit` (1 a 100), `offset` y `search` opcional sobre el título del juego con las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto). Orden: `platinumedAt` descendente con los platinos sin fecha al final, luego `createdAt` descendente e `id` de desempate. Cada entrada lleva el juego (`id`, `code`, `title`, `backgroundUrl`, `isDlc`) y la plataforma (`id`, `name`, `abbreviation`, o `null`); `total` cuenta lo que cumple el filtro. Exige `canView` de `profile` y de `platinum` (403 `USER_PRIVATE` si no) y responde 404 `USER_NOT_FOUND` para un usuario inexistente. Para otros viewers omite `notes` y pone `backlogId` en `null` si la run es privada; el dueño lo recibe completo.
+- `GET /users/me/platinums` lista los platinos del usuario autenticado con la misma paginación, búsqueda, orden y forma que `GET /users/:username/platinums`, sin chequeos de visibilidad y siempre con `notes` y `backlogId`. Se registra antes de `/users/:username/platinums` para que `me` no se tome como username.
 - Cada run de `GET /users/me/backlog` y `GET /users/:username/backlog` lleva `platinum` (el mismo objeto para todas las runs del juego, o `null`), cargado con una sola consulta por request; la ficha (`GET /games/:code`) lleva `userPlatinum` del usuario autenticado. Las demás respuestas que reutilizan el serializer del backlog (perfil, highlights, completions, alta y edición de runs) no cargan el platino y omiten la clave.
 - En el backlog público el platino exige poder ver el backlog y la sección `platinum` del dueño. Sin acceso a `platinum`, cada run lleva `platinum: null` y `platinumed_only` se ignora, para no revelar qué juegos están platinados. Con acceso, para otros viewers omite `notes` y pone `backlogId` en `null` si la run del platino es privada.
 - El filtro `platinumed_only` del backlog (también en saved filters) deja las runs de los juegos platinados por el dueño, todas y no solo la del platino.
@@ -305,6 +306,25 @@ Reglas:
 - `game_platinumed` exige además `canView` de `platinum` del autor, también en la consulta: con `platinumVisibility` en `friends` solo lo ven los seguidores mutuos y en `private` solo el autor. En la actividad reciente del perfil (`GET /users/:username`) se omite para quien no puede ver los platinos.
 - Los filtros `category` y `types` son premium (`premium`, `moderator`, `admin`): un free que los envía recibe 402 `ACTIVITY_FEED_FILTER_PREMIUM`. Con ambos, el resultado es la intersección.
 - Los eventos `backlog_*` solo se emiten cuando el status realmente cambia.
+
+---
+
+## Export de colecciones
+
+Endpoints: `GET /users/me/backlog/export`, `/users/me/queue/export`, `/users/me/game-shelf/export`, `/users/me/wishlist/export`, `/users/me/favorites/export`, `/users/me/platinums/export` y `GET /lists/:listId/export`. Las columnas de cada recurso viven en su `*.export-row.mapper.ts` (`BACKLOG_EXPORT_COLUMNS`, `QUEUE_EXPORT_COLUMNS`, etc.) y están documentadas en [`api/`](./api/).
+
+- El formato se negocia por el header `Accept` con `req.accepts(["text/csv", "application/json"])` en `exportFormatNegotiationMiddleware`; no hay parámetro `format`. Sin `Accept`, con solo comodines o cuando gana `text/csv` → CSV; cuando gana `application/json` → JSON; si no se acepta ninguno → 406 `EXPORT_FORMAT_NOT_ACCEPTABLE` (`Common Module`). Toda respuesta lleva `Vary: Accept`.
+- JSON es premium (`isPremiumRole()`): un free recibe 402 `EXPORT_FORMAT_PREMIUM` (`Common Module`), lo verifica `exportFormatAccessMiddleware` sobre el formato negociado, antes de consultar.
+- Cada export acepta los mismos filtros, búsqueda y orden que su listado, sin paginación (`limit` y `offset` se ignoran); sin parámetros exporta la colección completa. Un valor inválido responde 422 `COMMON_SCHEMA_INVALID`. Se resuelve con una sola consulta por recurso.
+    - Backlog: `BacklogExportQuerySchema` (`BacklogQuerySchema` sin `limit`/`offset`), con `buildBacklogWhere` y el mismo orden que `GET /users/me/backlog` (por defecto `createdAt` descendente).
+    - Queue: `search` y `sort` (`manual` por defecto, `ratio`, `score`, `duration`) en `QueueExportQuerySchema`. `manual` es `position` ascendente; `ratio` y `score` van descendentes y `duration` ascendente, con los valores nulos al final y los empates por `position` (`sortQueueExport`).
+    - Game shelf, wishlist y platinos: `search` y `platform` (`ExportPlatformSearchQuerySchema`). `platform` es un UUID (solo esa plataforma) o `any` (solo filas sin plataforma, `buildPlatformFilterWhere`). Orden: título del juego en game shelf, `position` en wishlist y `platinumedAt` descendente (sin fecha al final) en platinos.
+    - Favorites: `search` (`ExportSearchQuerySchema`), orden por `position`.
+    - Listas: sin parámetros de filtro, orden por `position`.
+- `GET /lists/:listId/export` solo exporta listas propias: una lista ajena (aunque sea pública) o inexistente responde 404 `LIST_NOT_FOUND`.
+- Respuesta: `Content-Disposition: attachment; filename="completr-<recurso>-YYYY-MM-DD.<csv|json>"` con la fecha en UTC (`completr-list-<slug>-…` para listas, `completr-list-…` si el nombre no da slug). CORS expone `Content-Disposition` (`exposedHeaders` en `cors.config.ts`).
+- CSV (`serializeCsv()`): `text/csv; charset=utf-8`, BOM UTF-8, fila de cabecera, coma, `\r\n` al final de cada línea, escape RFC 4180. Un texto que empieza con `=`, `+`, `-`, `@`, tab o CR se prefija con `'`. `null` es un campo vacío. Un resultado vacío devuelve solo la cabecera.
+- JSON: `application/json; charset=utf-8`, un array desnudo (sin `data`) con las mismas claves que las columnas del CSV y tipos nativos; un resultado vacío devuelve `[]`.
 
 ---
 

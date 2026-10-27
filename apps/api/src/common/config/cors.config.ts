@@ -17,5 +17,6 @@ export const corsConfig: CorsOptions = {
 	origin: validateOrigin,
 	methods: environmentConfig.CORS_METHODS.split(","),
 	allowedHeaders: environmentConfig.CORS_ALLOWED_HEADERS.split(","),
-	credentials: environmentConfig.CORS_CREDENTIALS
+	credentials: environmentConfig.CORS_CREDENTIALS,
+	exposedHeaders: ["Content-Disposition"]
 };

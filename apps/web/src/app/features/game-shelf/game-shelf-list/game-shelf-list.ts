@@ -13,7 +13,9 @@ import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 import { type GameShelfEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
+import { type ExportParams } from "../../../core/services/export";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
+import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { GameTitleCell } from "../../../shared/components/game-title-cell/game-title-cell";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
@@ -66,6 +68,7 @@ function readStoredViewMode(): ShelfViewMode {
 @Component({
 	selector: "app-game-shelf-list",
 	imports: [
+		ExportActions,
 		ViewModeToggle,
 		DatePipe,
 		UiButton,
@@ -101,6 +104,10 @@ export class GameShelfList implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
 	protected readonly selectedPlatform = signal("");
+	protected readonly exportParams = computed<ExportParams>(() => ({
+		search: this.searchQuery().trim() || undefined,
+		platform: this.selectedPlatform() || undefined
+	}));
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;

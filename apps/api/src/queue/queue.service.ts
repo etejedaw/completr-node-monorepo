@@ -14,6 +14,8 @@ import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
 import * as queueServiceError from "./errors/queue.service-error";
 import { Queue } from "./queue.model";
+import { type QueueExportQuery } from "./schemas/queue-export-query.schema";
+import { sortQueueExport } from "./sort-queue-export.util";
 
 const FREE_QUEUE_LIMIT = 10;
 
@@ -293,4 +295,34 @@ export async function removeByBacklogId(backlogId: string, userId: string) {
 		await compactPositions(userId, transaction);
 		return true;
 	});
+}
+
+export async function findQueueForExport(
+	userId: string,
+	filters: QueueExportQuery
+) {
+	const titleWhere = filters.search
+		? buildTextSearchWhere(filters.search, ["Backlog->Game.title"])
+		: null;
+
+	const entries = await Queue.findAll({
+		where: { userId },
+		include: [
+			{
+				model: Backlog,
+				attributes: ["id", "status", "score", "duration"],
+				required: titleWhere !== null,
+				include: [
+					{
+						model: Game,
+						attributes: ["id", "title"],
+						...(titleWhere && { required: true, where: titleWhere })
+					},
+					{ model: Platform, attributes: ["id", "name"] }
+				]
+			}
+		],
+		order: [["position", "ASC"]]
+	});
+	return sortQueueExport(entries, filters.sort);
 }

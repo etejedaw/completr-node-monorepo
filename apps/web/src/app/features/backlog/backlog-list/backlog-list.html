@@ -180,6 +180,14 @@
 				</button>
 				}
 			</div>
+
+			@if (!isLoading()) {
+			<app-export-actions
+				resource="backlog"
+				[params]="exportParams()"
+				label="My Games"
+			/>
+			}
 		</div>
 	</div>
 

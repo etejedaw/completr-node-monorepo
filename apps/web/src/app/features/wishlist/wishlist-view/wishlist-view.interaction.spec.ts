@@ -57,6 +57,10 @@ describe("WishlistView interaction", () => {
 	let favoriteIds: string[];
 	const searches: (string | null)[] = [];
 	const removedGameIds: string[] = [];
+	const exportRequests: {
+		accept: string | null;
+		params: Record<string, string | null>;
+	}[] = [];
 
 	function answer(req: TestRequest) {
 		const { method, url, body, params } = req.request;
@@ -88,6 +92,15 @@ describe("WishlistView interaction", () => {
 			return req.flush({
 				data: { wishlist: matches, total: matches.length }
 			});
+		}
+		if (method === "GET" && url === `${wishlistUrl}/export`) {
+			exportRequests.push({
+				accept: req.request.headers.get("Accept"),
+				params: Object.fromEntries(
+					params.keys().map(key => [key, params.get(key)])
+				)
+			});
+			return req.flush(new Blob(["title\n"], { type: "text/csv" }));
 		}
 		const removeMatch = url.match(/\/users\/me\/wishlist\/([^/]+)$/);
 		if (method === "DELETE" && removeMatch) {
@@ -170,6 +183,11 @@ describe("WishlistView interaction", () => {
 		favoriteIds = [];
 		searches.length = 0;
 		removedGameIds.length = 0;
+		exportRequests.length = 0;
+		Object.assign(URL, {
+			createObjectURL: vi.fn(() => "blob:export"),
+			revokeObjectURL: vi.fn()
+		});
 		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
 			"matchMedia",
@@ -186,6 +204,59 @@ describe("WishlistView interaction", () => {
 		httpTesting.verify();
 		vi.unstubAllGlobals();
 		Reflect.deleteProperty(Element.prototype, "getAnimations");
+		Reflect.deleteProperty(URL, "createObjectURL");
+		Reflect.deleteProperty(URL, "revokeObjectURL");
+	});
+
+	it("exports the whole Want to Get as CSV when no filter is active", async () => {
+		const user = userEvent.setup();
+		const click = vi
+			.spyOn(HTMLAnchorElement.prototype, "click")
+			.mockImplementation(() => undefined);
+		await renderWishlist();
+
+		await user.click(
+			screen.getByRole("button", { name: "Download Want to Get as CSV" })
+		);
+		answerPending();
+
+		expect(exportRequests).toEqual([{ accept: "text/csv", params: {} }]);
+		expect(click).toHaveBeenCalledTimes(1);
+		click.mockRestore();
+	});
+
+	it("exports Want to Get with the active platform and search", async () => {
+		const user = userEvent.setup();
+		const click = vi
+			.spyOn(HTMLAnchorElement.prototype, "click")
+			.mockImplementation(() => undefined);
+		await renderWishlist();
+
+		expect(
+			screen.queryByRole("button", {
+				name: "Download Want to Get as JSON"
+			})
+		).not.toBeInTheDocument();
+		await user.click(platformFilter().getByRole("button", { name: /PC/ }));
+		await user.type(searchBox(), "hades");
+		await untilVisible(() => expect(coverTitles()).toEqual(["Hades"]));
+		await user.click(
+			screen.getByRole("button", { name: "Download Want to Get as CSV" })
+		);
+		answerPending();
+
+		expect(exportRequests).toEqual([
+			{ accept: "text/csv", params: { search: "hades", platform: "p1" } }
+		]);
+		expect(click).toHaveBeenCalledTimes(1);
+		await untilVisible(() =>
+			expect(
+				screen.getByRole("button", {
+					name: "Download Want to Get as CSV"
+				})
+			).not.toBeDisabled()
+		);
+		click.mockRestore();
 	});
 
 	it("filters by platform and then searches by title", async () => {

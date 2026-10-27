@@ -11,8 +11,10 @@ import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 import { type WishlistEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
+import { type ExportParams } from "../../../core/services/export";
 import { ToastService } from "../../../core/services/toast";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
+import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
@@ -41,6 +43,7 @@ import {
 @Component({
 	selector: "app-wishlist-view",
 	imports: [
+		ExportActions,
 		GameCoverCard,
 		CoverGrid,
 		LibraryHero,
@@ -68,6 +71,10 @@ export class WishlistView implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
 	protected readonly selectedPlatform = signal("");
+	protected readonly exportParams = computed<ExportParams>(() => ({
+		search: this.searchQuery().trim() || undefined,
+		platform: this.selectedPlatform() || undefined
+	}));
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;

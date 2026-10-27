@@ -6,7 +6,13 @@ import { NgpDialogRef } from "ng-primitives/dialog";
 import { provideExitAnimationManager } from "ng-primitives/internal";
 import { of, throwError } from "rxjs";
 
-import { type BacklogEntry, type GamePlatinum } from "../../../core/models";
+import {
+	type BacklogEntry,
+	type Game,
+	type GamePlatinum
+} from "../../../core/models";
+import { BacklogService } from "../../backlog/backlog";
+import { GamesService } from "../../games/games";
 import { PlatinumService } from "../platinum";
 import { PlatinumDialog, type PlatinumDialogData } from "./platinum-dialog";
 
@@ -18,6 +24,18 @@ const dialogRef = vi.hoisted(() => ({
 }));
 
 const platinumService = { save: vi.fn(), remove: vi.fn() };
+const gamesService = { getByCode: vi.fn(), searchLocal: vi.fn() };
+const backlogService = { getMyBacklog: vi.fn() };
+
+const PLATFORMS = [
+	{ id: "pc", name: "PC", code: "pc", abbreviation: "PC" },
+	{
+		id: "ps5",
+		name: "PlayStation 5",
+		code: "ps5",
+		abbreviation: "PS5"
+	}
+];
 
 const RUNS = [
 	{
@@ -46,26 +64,29 @@ const SAVED: GamePlatinum = {
 
 describe("PlatinumDialog", () => {
 	async function renderDialog(platinum: GamePlatinum | null = null) {
-		dialogRef.data = {
-			gameId: "game-1",
-			gameTitle: "Hades",
-			platforms: [
-				{ id: "pc", name: "PC", code: "pc", abbreviation: "PC" },
-				{
-					id: "ps5",
-					name: "PlayStation 5",
-					code: "ps5",
-					abbreviation: "PS5"
-				}
-			],
-			runs: RUNS,
-			platinum
-		};
+		return renderWithData({
+			context: {
+				game: {
+					id: "game-1",
+					code: "hades",
+					title: "Hades",
+					platforms: PLATFORMS
+				},
+				runs: RUNS,
+				platinum
+			}
+		});
+	}
+
+	async function renderWithData(data: PlatinumDialogData) {
+		dialogRef.data = data;
 		await render(PlatinumDialog, {
 			providers: [
 				provideExitAnimationManager(),
 				{ provide: NgpDialogRef, useValue: dialogRef },
-				{ provide: PlatinumService, useValue: platinumService }
+				{ provide: PlatinumService, useValue: platinumService },
+				{ provide: GamesService, useValue: gamesService },
+				{ provide: BacklogService, useValue: backlogService }
 			]
 		});
 		return within(await screen.findByRole("dialog"));
@@ -75,6 +96,9 @@ describe("PlatinumDialog", () => {
 		dialogRef.close.mockClear();
 		platinumService.save.mockReset();
 		platinumService.remove.mockReset();
+		gamesService.getByCode.mockReset();
+		gamesService.searchLocal.mockReset();
+		backlogService.getMyBacklog.mockReset();
 		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
 			"matchMedia",
@@ -159,5 +183,67 @@ describe("PlatinumDialog", () => {
 			dialog.getByText("The platinum could not be saved. Try again.")
 		).toBeInTheDocument();
 		expect(dialogRef.close).not.toHaveBeenCalled();
+	});
+
+	it("loads the game, its runs and its platinum when opened from the platinums page", async () => {
+		gamesService.getByCode.mockReturnValue(
+			of({
+				id: "game-1",
+				code: "hades",
+				title: "Hades",
+				platforms: PLATFORMS,
+				userPlatinum: SAVED
+			} as Game)
+		);
+		backlogService.getMyBacklog.mockReturnValue(
+			of({ data: { backlog: RUNS, total: RUNS.length } })
+		);
+
+		const dialog = await renderWithData({
+			game: { id: "game-1", code: "hades" }
+		});
+
+		expect(
+			await dialog.findByRole("heading", { name: "Edit platinum" })
+		).toBeInTheDocument();
+		expect(gamesService.getByCode).toHaveBeenCalledWith("hades");
+		expect(backlogService.getMyBacklog).toHaveBeenCalledWith({
+			game_id: "game-1"
+		});
+		expect(dialog.getByLabelText("Notes")).toHaveValue("Hard");
+	});
+
+	it("starts with the catalog search when no game is given", async () => {
+		const dialog = await renderWithData({});
+
+		expect(
+			dialog.getByRole("heading", { name: "Add a platinum" })
+		).toBeInTheDocument();
+		expect(
+			dialog.getByPlaceholderText("Search games by title...")
+		).toBeInTheDocument();
+		expect(
+			dialog.queryByRole("button", { name: "Save" })
+		).not.toBeInTheDocument();
+	});
+
+	it("offers a retry when the game cannot be loaded", async () => {
+		gamesService.getByCode.mockReturnValue(
+			throwError(() => new Error("x"))
+		);
+		backlogService.getMyBacklog.mockReturnValue(
+			of({ data: { backlog: [], total: 0 } })
+		);
+
+		const dialog = await renderWithData({
+			game: { id: "game-1", code: "hades" }
+		});
+
+		expect(
+			await dialog.findByText("The game could not be loaded.")
+		).toBeInTheDocument();
+		expect(
+			dialog.getByRole("button", { name: "Try again" })
+		).toBeInTheDocument();
 	});
 });

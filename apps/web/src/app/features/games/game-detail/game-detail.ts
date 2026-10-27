@@ -583,11 +583,17 @@ export class GameDetail implements OnInit {
 			PlatinumDialog,
 			{
 				data: {
-					gameId: g.id,
-					gameTitle: g.title,
-					platforms: g.platforms ?? [],
-					runs: this.myRuns(),
-					platinum: this.platinum()
+					context: {
+						game: {
+							id: g.id,
+							code: g.code,
+							title: g.title,
+							backgroundUrl: g.backgroundUrl,
+							platforms: g.platforms ?? []
+						},
+						runs: this.myRuns(),
+						platinum: this.platinum()
+					}
 				}
 			}
 		);

@@ -1,0 +1,78 @@
+<app-library-hero heading="Platinums" [posters]="heroPosters()">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Library</span
+	>
+	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
+		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
+		{{ total() === 1 ? 'game' : 'games' }} platinumed @if
+		(platformCounts().length > 1) { · across
+		<span class="font-semibold text-fg tabular-nums"
+			>{{ platformCounts().length }}</span
+		>
+		platforms }
+	</p>
+	@if (isLoading() || allPlatinums().length > 0) {
+	<button heroActions uiButton variant="primary" (click)="openAdd()">
+		<span aria-hidden="true" class="material-icons text-base">add</span>
+		Add platinum
+	</button>
+	} @if (platformCounts().length > 1) {
+	<app-platform-filter
+		[platforms]="platformCounts()"
+		[total]="allPlatinums().length"
+		[(selected)]="selectedPlatform"
+	/>
+	}
+</app-library-hero>
+
+<app-library-page
+	[state]="pageState()"
+	[showToolbar]="isLoading() || allPlatinums().length > 0 || !!searchQuery().trim()"
+	loadingLabel="Loading platinums"
+	noMatchesHint="None of your platinums matches your current search or platform."
+	noMatchesClearLabel="Clear search & filter"
+	emptyIcon="emoji_events"
+	emptyTitle="No platinums yet"
+	emptyHint="Every game you finish at 100% lives here. Add one from the catalog, or mark it from a game page or a run."
+	[showPagination]="viewMode() !== 'calendar'"
+	[offset]="offset()"
+	[limit]="limit"
+	[total]="total()"
+	(cleared)="clearSearchAndFilter()"
+	(offsetChange)="onOffsetChange($event)"
+>
+	<ng-template appLibraryPageToolbar>
+		<ui-search-bar
+			class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
+			placeholder="Search your platinums..."
+			[value]="searchQuery()"
+			(valueChange)="onSearch($event)"
+		/>
+		<app-view-mode-toggle [options]="viewModes" [(value)]="viewMode" />
+		@if (!isLoading()) {
+		<app-export-actions
+			resource="platinums"
+			[params]="exportParams()"
+			label="Platinums"
+		/>
+		}
+	</ng-template>
+	<ng-template appLibraryPageEmptyAction>
+		<button uiButton variant="primary" (click)="openAdd()">
+			<span aria-hidden="true" class="material-icons text-base">add</span>
+			Add platinum
+		</button>
+	</ng-template>
+	<ng-template appLibraryPageContent>
+		<app-platinum-collection
+			[platinums]="platinums()"
+			[viewMode]="viewMode()"
+			[selectable]="true"
+			[showNotes]="true"
+			emptyMonthHint="You didn't get any platinum this month."
+			(selected)="openEdit($event)"
+		/>
+	</ng-template>
+</app-library-page>

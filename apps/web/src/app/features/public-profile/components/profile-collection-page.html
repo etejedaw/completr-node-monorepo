@@ -72,6 +72,7 @@
 			[value]="query()"
 			(valueChange)="query.set($event)"
 		/>
+		<ng-content select="[collectionToolbar]" />
 	</ng-template>
 	<ng-template appLibraryPageEmptyAction>
 		<a uiButton variant="secondary" [routerLink]="['/user', username()]"

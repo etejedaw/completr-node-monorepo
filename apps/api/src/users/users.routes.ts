@@ -12,8 +12,11 @@ import {
 	registerLimiter,
 	userLimiter
 } from "../common/config/rate-limiter.config";
+import { exportFormatAccessMiddleware } from "../common/middlewares/export-format-access.middleware";
+import { exportFormatNegotiationMiddleware } from "../common/middlewares/export-format-negotiation.middleware";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import { ExportPlatformSearchQuerySchema } from "../common/schemas/export-platform-search-query.schema";
 import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
 import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 import * as favoritesController from "../favorites/favorites.controller";
@@ -190,6 +193,28 @@ router.get(
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	favoritesController.getUserFavorites
+);
+
+router.get(
+	"/users/me/platinums",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator"),
+		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
+	],
+	gamePlatinumController.getMyPlatinums
+);
+
+router.get(
+	"/users/me/platinums/export",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator"),
+		validateSchemaMiddleware(ExportPlatformSearchQuerySchema, "query"),
+		exportFormatNegotiationMiddleware,
+		exportFormatAccessMiddleware
+	],
+	gamePlatinumController.getMyPlatinumsExport
 );
 
 router.get(

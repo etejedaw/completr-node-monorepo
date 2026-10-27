@@ -1,0 +1,74 @@
+info:
+    name: Get My Platinums
+    type: http
+    seq: 4
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/platinums?limit=100"
+    params:
+        - name: limit
+          value: "100"
+          type: query
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get My Platinums
+
+    Returns the platinums of the authenticated user, latest first. Used by the private `/platinums` page. Unlike `GET /users/:username/platinums`, it does not check any visibility setting and always includes `notes` and `backlogId`.
+
+    **Authentication:** Bearer token required (roles: user, premium, moderator).
+    **Rate Limit:** user limiter.
+
+    Order: `platinumedAt` desc with undated platinums last, then `createdAt` desc.
+
+    ### Query Params
+
+    | Param  | Type   | Required | Description                                      |
+    |--------|--------|----------|--------------------------------------------------|
+    | limit  | int    | No       | Max items per page (1–100)                       |
+    | offset | int    | No       | Items to skip (>= 0)                             |
+    | search | string | No       | 1–100 characters, matched against the game title |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "platinums": [
+          {
+            "id": "uuid",
+            "backlogId": "uuid",
+            "platformId": "uuid",
+            "platinumedAt": "2026-03-12",
+            "notes": "Last trophy was the speedrun",
+            "platform": {
+              "id": "uuid",
+              "name": "PlayStation 5",
+              "abbreviation": "PS5"
+            },
+            "game": {
+              "id": "uuid",
+              "code": "astro-bot",
+              "title": "Astro Bot",
+              "backgroundUrl": "https://…/astro-bot.jpg",
+              "isDlc": false
+            }
+          }
+        ],
+        "total": 12
+      }
+    }
+    ```
+
+    `platinumedAt`, `notes`, `backlogId` and `platform` can be `null`. `total` counts every platinum matching `search`.
+
+    ### Errors
+
+    | Status | Type                    | Reason |
+    |--------|-------------------------|--------|
+    | 401    | `AUTH_INVALID_TOKEN`    | Invalid or expired token |
+    | 422    | `COMMON_SCHEMA_INVALID` | `limit`, `offset` or `search` out of range |

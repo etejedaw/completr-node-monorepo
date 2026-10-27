@@ -1,12 +1,19 @@
 import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
+import { type ExportFormat } from "../common/interfaces/export-format.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type SearchQuery } from "../common/schemas/search-query.schema";
+import { sendExport } from "../common/utils/send-export.util";
+import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { type DuplicateListDto } from "./dtos/duplicate-list.dto";
 import { type RegisterListDto } from "./dtos/register-list.dto";
 import { type UpdateListDto } from "./dtos/update-list.dto";
 import * as listDomainError from "./errors/lists.domain-error";
+import {
+	LIST_EXPORT_COLUMNS,
+	listItemToExportRow
+} from "./lists.export-row.mapper";
 import { listSerializer, listSummarySerializer } from "./lists.serializer";
 import * as listsService from "./lists.service";
 import { type DiscoveryQuery } from "./schemas/discovery-query.schema";
@@ -149,4 +156,30 @@ export async function deleteList(request: Request, response: Response) {
 
 	await listsService.removeList(params.listId, user);
 	return response.sendStatus(204);
+}
+
+function listExportResource(listName: string) {
+	const slug = titleToSlug(listName);
+	return slug ? `list-${slug}` : "list";
+}
+
+export async function getListExport(request: Request, response: Response) {
+	const params = request.locals.params as ListIdParams;
+	const user = request.locals.user as RequestUser;
+	const format = request.locals.exportFormat as ExportFormat;
+
+	const list = await listsService.findOwnListForExport(
+		params.listId,
+		user.id
+	);
+	if (!list) throw listDomainError.listNotFound();
+
+	const listPlain = list.get({ plain: true });
+
+	return sendExport(response, {
+		resource: listExportResource(listPlain.name),
+		format,
+		columns: LIST_EXPORT_COLUMNS,
+		rows: (listPlain.ListItems ?? []).map(listItemToExportRow)
+	});
 }

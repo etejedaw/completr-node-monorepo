@@ -78,6 +78,13 @@ export const NAV_SECTIONS: readonly NavSection[] = [
 				tooltip: "Your all-time favorite games"
 			},
 			{
+				route: "/platinums",
+				icon: "emoji_events",
+				label: "Platinums",
+				iconColorClass: "text-platinum",
+				tooltip: "Every game you finished at 100%"
+			},
+			{
 				route: "/saved-views",
 				icon: "bookmark",
 				label: "Saved Views",

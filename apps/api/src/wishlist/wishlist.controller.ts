@@ -1,7 +1,10 @@
 import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
+import { type ExportFormat } from "../common/interfaces/export-format.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
+import { sendExport } from "../common/utils/send-export.util";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
@@ -10,6 +13,10 @@ import * as usersService from "../users/users.service";
 import { type AddWishlistDto } from "./dtos/add-wishlist.dto";
 import { type ReplaceWishlistDto } from "./dtos/replace-wishlist.dto";
 import { type WishlistGameParams } from "./schemas/wishlist-game-params.schema";
+import {
+	WISHLIST_EXPORT_COLUMNS,
+	wishlistToExportRow
+} from "./wishlist.export-row.mapper";
 import { wishlistSerializer } from "./wishlist.serializer";
 import * as wishlistService from "./wishlist.service";
 
@@ -137,4 +144,24 @@ export async function getUserWishlist(request: Request, response: Response) {
 		total
 	};
 	return response.status(200).json({ data });
+}
+
+export async function getMeWishlistExport(
+	request: Request,
+	response: Response
+) {
+	const user = request.locals.user as RequestUser;
+	const format = request.locals.exportFormat as ExportFormat;
+	const query = request.locals.query as ExportPlatformSearchQuery;
+
+	const entries = await wishlistService.findWishlistForExport(user.id, query);
+
+	return sendExport(response, {
+		resource: "wishlist",
+		format,
+		columns: WISHLIST_EXPORT_COLUMNS,
+		rows: entries.map(entry =>
+			wishlistToExportRow(entry.get({ plain: true }))
+		)
+	});
 }

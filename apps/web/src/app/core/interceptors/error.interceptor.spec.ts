@@ -128,6 +128,46 @@ describe("errorInterceptor", () => {
 		expect(onError).toHaveBeenCalledTimes(1);
 	});
 
+	function failWithBlob(status: number, text: string) {
+		const onError = vi.fn<(error: HttpErrorResponse) => void>();
+		http.get("/api/file", { responseType: "blob" }).subscribe({
+			error: onError
+		});
+		httpTesting
+			.expectOne("/api/file")
+			.flush(new Blob([text], { type: "application/json" }), {
+				status,
+				statusText: "err"
+			});
+		return onError;
+	}
+
+	it("parses a blob error body as JSON before showing the plan limit toast", async () => {
+		const onError = failWithBlob(
+			402,
+			JSON.stringify({ type: "EXPORT_FORMAT_PREMIUM" })
+		);
+
+		await vi.waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
+		expect(onError.mock.calls[0][0].status).toBe(402);
+		expect(onError.mock.calls[0][0].error).toEqual({
+			type: "EXPORT_FORMAT_PREMIUM"
+		});
+		expect(toast.premium).toHaveBeenCalledWith(
+			"Free plan limit",
+			expect.stringContaining("JSON export is a Premium perk"),
+			6000
+		);
+	});
+
+	it("keeps a blob error body that is not JSON as text", async () => {
+		const onError = failWithBlob(404, "Not found");
+
+		await vi.waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
+		expect(onError.mock.calls[0][0].error).toBe("Not found");
+		expect(toast.premium).not.toHaveBeenCalled();
+	});
+
 	it("warns about rate limiting on a 429", () => {
 		const onError = failWith(429);
 

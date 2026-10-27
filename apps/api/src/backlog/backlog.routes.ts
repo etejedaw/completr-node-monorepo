@@ -2,9 +2,12 @@ import { Router } from "express";
 
 import { authMiddleware } from "../auth/auth.middleware";
 import { userLimiter } from "../common/config/rate-limiter.config";
+import { exportFormatAccessMiddleware } from "../common/middlewares/export-format-access.middleware";
+import { exportFormatNegotiationMiddleware } from "../common/middlewares/export-format-negotiation.middleware";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import * as backlogController from "./backlog.controller";
+import { BacklogExportQuerySchema } from "./schemas/backlog-export-query.schema";
 import { BacklogIdParamsSchema } from "./schemas/backlog-id-params.schema";
 import { BacklogQuerySchema } from "./schemas/backlog-query.schema";
 import { RegisterBacklogSchema } from "./schemas/register-backlog.schema";
@@ -30,6 +33,18 @@ router.get(
 		validateSchemaMiddleware(BacklogQuerySchema, "query")
 	],
 	backlogController.getMeBacklog
+);
+
+router.get(
+	"/export",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator"),
+		validateSchemaMiddleware(BacklogExportQuerySchema, "query"),
+		exportFormatNegotiationMiddleware,
+		exportFormatAccessMiddleware
+	],
+	backlogController.getMeBacklogExport
 );
 
 router.patch(
