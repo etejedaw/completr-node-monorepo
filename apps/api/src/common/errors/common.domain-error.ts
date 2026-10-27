@@ -19,3 +19,12 @@ export function commonReferenceNotFound(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function exportFormatPremium(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"EXPORT_FORMAT_PREMIUM",
+		"Export format requires a premium account",
+		context
+	);
+}

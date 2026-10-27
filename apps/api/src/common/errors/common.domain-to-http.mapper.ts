@@ -26,5 +26,8 @@ export function commonDomainToHttpMapper(
 	if (error.code === "COMMON_REFERENCE_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 422 });
 
+	if (error.code === "EXPORT_FORMAT_PREMIUM")
+		return new HttpError({ ...baseOptions, status: 402 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }
