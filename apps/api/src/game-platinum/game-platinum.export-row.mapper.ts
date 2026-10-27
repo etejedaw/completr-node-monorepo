@@ -4,7 +4,6 @@ import { type GamePlatinum } from "./game-platinum.model";
 
 export const PLATINUMS_EXPORT_COLUMNS = [
 	"gameTitle",
-	"gameCode",
 	"platform",
 	"platinumedAt",
 	"notes"
@@ -15,7 +14,6 @@ type PlatinumExportRow = ExportRow<(typeof PLATINUMS_EXPORT_COLUMNS)[number]>;
 export function platinumToExportRow(platinum: GamePlatinum): PlatinumExportRow {
 	return {
 		gameTitle: platinum.Game?.title ?? null,
-		gameCode: platinum.Game?.code ?? null,
 		platform: platinum.Platform?.name ?? null,
 		platinumedAt: toIsoDateTime(platinum.platinumedAt),
 		notes: platinum.notes

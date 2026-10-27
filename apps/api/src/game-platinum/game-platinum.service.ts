@@ -3,7 +3,9 @@ import { literal, type Order, type Transaction } from "sequelize";
 import { Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
@@ -178,11 +180,22 @@ export async function findPlatinumsByUserIdPaginated(
 	return { rows, total: count };
 }
 
-export async function findPlatinumsForExport(userId: string) {
+export async function findPlatinumsForExport(
+	userId: string,
+	filters: ExportPlatformSearchQuery = {}
+) {
+	const titleWhere = filters.search
+		? buildTextSearchWhere(filters.search, ["Game.title"])
+		: null;
+
 	return GamePlatinum.findAll({
-		where: { userId },
+		where: { userId, ...buildPlatformFilterWhere(filters.platform) },
 		include: [
-			{ model: Game, attributes: ["id", "code", "title"] },
+			{
+				model: Game,
+				attributes: ["id", "title"],
+				...(titleWhere && { required: true, where: titleWhere })
+			},
 			{
 				model: Platform,
 				attributes: ["id", "name"],

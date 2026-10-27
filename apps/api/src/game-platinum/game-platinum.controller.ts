@@ -1,8 +1,9 @@
 import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
+import { type ExportFormat } from "../common/interfaces/export-format.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type ExportFormatQuery } from "../common/schemas/export-format-query.schema";
+import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { sendExport } from "../common/utils/send-export.util";
 import * as userDomainError from "../users/errors/users.domain-error";
@@ -100,9 +101,13 @@ export async function getMyPlatinumsExport(
 	response: Response
 ) {
 	const user = request.locals.user as RequestUser;
-	const { format } = request.locals.query as ExportFormatQuery;
+	const format = request.locals.exportFormat as ExportFormat;
+	const query = request.locals.query as ExportPlatformSearchQuery;
 
-	const entries = await gamePlatinumService.findPlatinumsForExport(user.id);
+	const entries = await gamePlatinumService.findPlatinumsForExport(
+		user.id,
+		query
+	);
 
 	return sendExport(response, {
 		resource: "platinums",
