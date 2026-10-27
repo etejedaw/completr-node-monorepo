@@ -2,7 +2,9 @@ import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type ExportFormatQuery } from "../common/schemas/export-format-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { sendExport } from "../common/utils/send-export.util";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
@@ -11,6 +13,10 @@ import * as usersService from "../users/users.service";
 import { type AddQueueDto } from "./dtos/add-queue.dto";
 import { type ReplaceQueueDto } from "./dtos/replace-queue.dto";
 import * as queueDomainError from "./errors/queue.domain-error";
+import {
+	QUEUE_EXPORT_COLUMNS,
+	queueToExportRow
+} from "./queue.export-row.mapper";
 import { publicQueueSerializer, queueSerializer } from "./queue.serializer";
 import * as queueService from "./queue.service";
 import { type AddQueueQuery } from "./schemas/add-queue-query.schema";
@@ -130,4 +136,18 @@ export async function getUserQueue(request: Request, response: Response) {
 		total
 	};
 	return response.status(200).json({ data });
+}
+
+export async function getMeQueueExport(request: Request, response: Response) {
+	const user = request.locals.user as RequestUser;
+	const { format } = request.locals.query as ExportFormatQuery;
+
+	const entries = await queueService.findQueueForExport(user.id);
+
+	return sendExport(response, {
+		resource: "queue",
+		format,
+		columns: QUEUE_EXPORT_COLUMNS,
+		rows: entries.map(entry => queueToExportRow(entry.get({ plain: true })))
+	});
 }

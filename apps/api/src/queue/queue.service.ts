@@ -294,3 +294,22 @@ export async function removeByBacklogId(backlogId: string, userId: string) {
 		return true;
 	});
 }
+
+const QUEUE_EXPORT_INCLUDE = [
+	{
+		model: Backlog,
+		attributes: ["id", "status", "score", "duration"],
+		include: [
+			{ model: Game, attributes: ["id", "code", "title"] },
+			{ model: Platform, attributes: ["id", "name"] }
+		]
+	}
+];
+
+export async function findQueueForExport(userId: string) {
+	return Queue.findAll({
+		where: { userId },
+		include: QUEUE_EXPORT_INCLUDE,
+		order: [["position", "ASC"]]
+	});
+}
