@@ -59,4 +59,21 @@ describe("PlatinumService", () => {
 		req.flush(null, { status: 204, statusText: "No Content" });
 		expect(done).toBe(true);
 	});
+
+	it("gets the platinums of the session user with pagination and search", () => {
+		let total = 0;
+
+		service
+			.getMine({ limit: 100, offset: 0, search: "astro" })
+			.subscribe(res => (total = res.data.total));
+
+		const req = httpTesting.expectOne(
+			r => r.url === `${environment.apiUrl}/users/me/platinums`
+		);
+		expect(req.request.method).toBe("GET");
+		expect(req.request.params.get("limit")).toBe("100");
+		expect(req.request.params.get("search")).toBe("astro");
+		req.flush({ data: { platinums: [], total: 3 } });
+		expect(total).toBe(3);
+	});
 });
