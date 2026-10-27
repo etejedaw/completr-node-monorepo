@@ -173,3 +173,17 @@ export async function removeGameShelf(id: string, userId: string) {
 	await GameShelf.destroy({ where: { id, userId } });
 	return true;
 }
+
+export async function findGameShelfForExport(userId: string) {
+	return GameShelf.findAll({
+		where: { userId },
+		include: [
+			{ model: Game, attributes: ["id", "code", "title"] },
+			{ model: Platform, attributes: ["id", "name"] }
+		],
+		order: [
+			[Game, "title", "ASC"],
+			["createdAt", "ASC"]
+		]
+	});
+}

@@ -3,6 +3,8 @@ import { type Request, type Response } from "express";
 import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type ExportFormatQuery } from "../common/schemas/export-format-query.schema";
+import { sendExport } from "../common/utils/send-export.util";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
@@ -10,6 +12,10 @@ import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
 import { type RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import { type UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
+import {
+	GAME_SHELF_EXPORT_COLUMNS,
+	gameShelfToExportRow
+} from "./game-shelf.export-row.mapper";
 import * as gameShelfService from "./game-shelf.service";
 import { type GameShelfIdParam } from "./schemas/game-shelf-id-params.schema";
 import {
@@ -126,4 +132,23 @@ export async function deleteGameShelf(request: Request, response: Response) {
 	await gameShelfService.removeGameShelf(gameShelfId, user.id);
 
 	return response.sendStatus(204);
+}
+
+export async function getMeGameShelfExport(
+	request: Request,
+	response: Response
+) {
+	const user = request.locals.user as RequestUser;
+	const { format } = request.locals.query as ExportFormatQuery;
+
+	const entries = await gameShelfService.findGameShelfForExport(user.id);
+
+	return sendExport(response, {
+		resource: "game-shelf",
+		format,
+		columns: GAME_SHELF_EXPORT_COLUMNS,
+		rows: entries.map(entry =>
+			gameShelfToExportRow(entry.get({ plain: true }))
+		)
+	});
 }
