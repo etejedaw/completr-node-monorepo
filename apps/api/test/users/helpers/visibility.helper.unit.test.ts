@@ -25,6 +25,7 @@ function buildOwner(levels: Partial<Record<string, VisibilityLevel>> = {}) {
 		listVisibility: "private",
 		platinumVisibility: "private",
 		franchiseVisibility: "private",
+		rewindVisibility: "private",
 		...levels
 	});
 }

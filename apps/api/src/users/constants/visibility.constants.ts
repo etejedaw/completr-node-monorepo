@@ -11,6 +11,7 @@ export const VISIBILITY_SECTIONS = [
 	"shelf",
 	"list",
 	"platinum",
-	"franchise"
+	"franchise",
+	"rewind"
 ] as const;
 export type VisibilitySection = (typeof VISIBILITY_SECTIONS)[number];

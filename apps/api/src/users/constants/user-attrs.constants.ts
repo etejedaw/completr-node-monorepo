@@ -17,5 +17,6 @@ export const USER_CARD_ATTRS = [
 	"shelfVisibility",
 	"listVisibility",
 	"platinumVisibility",
-	"franchiseVisibility"
+	"franchiseVisibility",
+	"rewindVisibility"
 ];
