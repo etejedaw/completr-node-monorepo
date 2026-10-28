@@ -1,171 +1,352 @@
-@let data = highlights(); @let spans = cellClasses();
+@let data = highlights(); @let view = cells();
 <ul
 	class="list-none m-0 p-0 grid grid-cols-2 lg:grid-cols-4 grid-flow-dense gap-3 sm:gap-4"
 >
-	@if (data.topRated; as top) {
-	<li class="min-w-0" [class]="spans.topRated">
+	@if (data.topRated; as top) { @let cell = view.topRated!;
+	<li
+		appRewindReveal
+		class="min-w-0"
+		[class]="cell.classes"
+		[revealDelay]="cell.delayMs"
+		[style.--tone]="cell.tone"
+	>
 		<a
-			class="group relative isolate flex h-full min-h-[18rem] overflow-hidden rounded-card border border-line bg-surface no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			class="group relative isolate flex h-full min-h-[18rem] items-end gap-4 overflow-hidden rounded-card p-5 sm:p-6 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand [--veil:color-mix(in_oklab,var(--tone)_35%,var(--color-canvas))]"
+			[class]="tintClass"
 			[routerLink]="['/games', top.code]"
 		>
-			<div
+			@if (artOf(top); as art) {
+			<img
+				alt=""
 				aria-hidden="true"
-				class="absolute -right-16 -top-16 -z-10 size-64 rounded-full bg-[radial-gradient(circle,var(--color-brand-glow),transparent_70%)]"
-			></div>
-			<div
-				class="flex flex-1 flex-col justify-between gap-6 p-5 sm:p-6 min-w-0"
-			>
-				<span class="text-sm font-medium text-fg-secondary"
+				loading="lazy"
+				class="absolute inset-0 -z-20 size-full object-cover opacity-80 saturate-125 transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.06] motion-safe:group-hover:-rotate-1"
+				[src]="art | coverUrl: 1280"
+			/>
+			}
+			<span
+				aria-hidden="true"
+				class="absolute inset-0 -z-10 bg-[linear-gradient(to_top,var(--veil)_55%,color-mix(in_oklab,var(--veil)_60%,transparent)_85%,color-mix(in_oklab,var(--tone)_20%,transparent))]"
+			></span>
+			<span class="flex min-w-0 flex-1 flex-col gap-3">
+				<span class="text-sm font-semibold" [class]="tintSecondaryClass"
 					>Top rated</span
 				>
-				<span class="flex flex-col gap-3 min-w-0">
-					<app-star-rating
-						aria-hidden="true"
-						[value]="top.userRating"
-						[readonly]="true"
-						[showValue]="false"
-						size="md"
-					/>
-					<span
-						class="font-display text-2xl sm:text-3xl font-bold leading-tight tracking-tight text-fg text-balance group-hover:text-brand"
-						>{{ top.title }}</span
-					>
-					<span class="sr-only"
-						>Rated {{ top.userRating }} out of 5</span
-					>
-				</span>
-			</div>
+				<app-star-rating
+					aria-hidden="true"
+					[value]="top.userRating"
+					[readonly]="true"
+					[showValue]="false"
+					size="md"
+				/>
+				<span
+					class="font-display text-3xl sm:text-4xl font-bold leading-[1.05] tracking-tight text-fg text-balance group-hover:underline"
+					>{{ top.title }}</span
+				>
+				<span class="sr-only">Rated {{ top.userRating }} out of 5</span>
+			</span>
 			<app-game-poster
 				aria-hidden="true"
-				class="w-2/5 max-w-[13rem] shrink-0 self-stretch"
+				class="w-24 sm:w-32 shrink-0 aspect-[2/3] rotate-3 rounded-md ring-1 ring-line-hover shadow-[0_24px_48px_-20px_var(--color-canvas)] transition-transform duration-500 ease-out motion-safe:group-hover:rotate-0"
 				[src]="top.coverUrl"
 				[title]="top.title"
 			/>
 		</a>
 	</li>
-	} @if (data.bestRatio; as best) {
-	<li class="min-w-0" [class]="spans.bestRatio">
+	} @if (data.bestRatio; as best) { @let cell = view.bestRatio!;
+	<li
+		appRewindReveal
+		class="min-w-0"
+		[class]="cell.classes"
+		[revealDelay]="cell.delayMs"
+		[style.--tone]="cell.tone"
+	>
 		<a
-			class="group flex h-full items-center gap-4 rounded-card border border-line bg-surface p-5 no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			class="group relative isolate flex h-full min-h-[10rem] items-end gap-4 overflow-hidden rounded-card p-5 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand [--veil:color-mix(in_oklab,var(--tone)_35%,var(--color-canvas))]"
+			[class]="tintClass"
 			[routerLink]="['/games', best.code]"
 		>
-			<app-game-poster
+			@if (artOf(best); as art) {
+			<img
+				alt=""
 				aria-hidden="true"
-				class="w-16 shrink-0 aspect-[2/3] rounded-md"
-				[src]="best.coverUrl"
-				[title]="best.title"
-				[width]="200"
-				[compact]="true"
+				loading="lazy"
+				class="absolute inset-0 -z-20 size-full object-cover opacity-80 saturate-125 transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.06] motion-safe:group-hover:rotate-1"
+				[src]="art | coverUrl: 1280"
 			/>
-			<span class="flex-1 min-w-0 flex flex-col gap-1">
-				<span class="text-sm font-medium text-fg-secondary"
+			}
+			<span
+				aria-hidden="true"
+				class="absolute inset-0 -z-10 bg-[linear-gradient(to_top,var(--veil)_60%,color-mix(in_oklab,var(--veil)_60%,transparent)_90%,color-mix(in_oklab,var(--tone)_20%,transparent))]"
+			></span>
+			<span class="flex min-w-0 flex-1 flex-col gap-1">
+				<span class="text-sm font-semibold" [class]="tintSecondaryClass"
 					>Best value</span
 				>
 				<span
-					class="truncate text-base font-semibold text-fg group-hover:text-brand"
+					class="truncate font-display text-xl sm:text-2xl font-bold tracking-tight text-fg group-hover:underline"
 					>{{ best.title }}</span
 				>
-				<span class="text-xs text-fg-secondary"
+				<span class="text-xs" [class]="tintSecondaryClass"
 					>Highest score per hour you played</span
 				>
 			</span>
 			<span
-				class="shrink-0 font-display text-3xl sm:text-4xl font-bold text-brand tabular-nums"
+				class="shrink-0 font-display text-5xl font-bold leading-none tabular-nums text-fg"
 				>{{ best.personalRatio }}</span
 			>
 		</a>
 	</li>
-	} @if (data.longest; as longest) {
-	<li class="min-w-0" [class]="spans.longest">
+	} @if (data.firstFinished; as first) { @if (view.firstFinished; as cell) {
+	<li
+		appRewindReveal
+		class="min-w-0"
+		[class]="cell.classes"
+		[revealDelay]="cell.delayMs"
+		[style.--tone]="cell.tone"
+	>
 		<a
-			class="group flex h-full min-w-0 flex-col justify-between gap-4 rounded-card border border-line bg-surface p-4 sm:p-5 no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			class="group flex h-full min-w-0 items-center gap-3 rounded-card p-4 sm:p-5 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			[class]="tintClass"
+			[routerLink]="['/games', first.code]"
+		>
+			<app-game-poster
+				aria-hidden="true"
+				class="w-12 sm:w-14 shrink-0 aspect-[2/3] -rotate-3 rounded-md ring-1 ring-line-hover"
+				[src]="first.coverUrl"
+				[title]="first.title"
+				[width]="200"
+				[compact]="true"
+			/>
+			<span class="flex min-w-0 flex-col gap-1">
+				<span class="text-sm font-semibold" [class]="tintSecondaryClass"
+					>First of the year</span
+				>
+				<span
+					class="line-clamp-2 font-display text-base sm:text-lg font-bold leading-tight text-fg group-hover:underline"
+					>{{ first.title }}</span
+				>
+				<span class="text-sm tabular-nums" [class]="tintSecondaryClass"
+					>{{ shortDate(first.finishedAt) }}</span
+				>
+			</span>
+		</a>
+	</li>
+	} } @if (data.lastFinished; as last) { @if (view.lastFinished; as cell) {
+	<li
+		appRewindReveal
+		class="min-w-0"
+		[class]="cell.classes"
+		[revealDelay]="cell.delayMs"
+		[style.--tone]="cell.tone"
+	>
+		<a
+			class="group flex h-full min-w-0 items-center gap-3 rounded-card p-4 sm:p-5 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			[class]="tintClass"
+			[routerLink]="['/games', last.code]"
+		>
+			<app-game-poster
+				aria-hidden="true"
+				class="w-12 sm:w-14 shrink-0 aspect-[2/3] rotate-3 rounded-md ring-1 ring-line-hover"
+				[src]="last.coverUrl"
+				[title]="last.title"
+				[width]="200"
+				[compact]="true"
+			/>
+			<span class="flex min-w-0 flex-col gap-1">
+				<span class="text-sm font-semibold" [class]="tintSecondaryClass"
+					>Last of the year</span
+				>
+				<span
+					class="line-clamp-2 font-display text-base sm:text-lg font-bold leading-tight text-fg group-hover:underline"
+					>{{ last.title }}</span
+				>
+				<span class="text-sm tabular-nums" [class]="tintSecondaryClass"
+					>{{ shortDate(last.finishedAt) }}</span
+				>
+			</span>
+		</a>
+	</li>
+	} } @if (data.longest; as longest) { @let cell = view.longest!;
+	<li
+		appRewindReveal
+		class="min-w-0"
+		[class]="cell.classes"
+		[revealDelay]="cell.delayMs"
+		[style.--tone]="cell.tone"
+	>
+		<a
+			class="group flex h-full min-w-0 flex-col justify-between gap-4 rounded-card p-4 sm:p-5 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			[class]="solidClass"
 			[routerLink]="['/games', longest.code]"
 		>
-			<span class="text-sm font-medium text-fg-secondary">Longest</span>
-			<span class="flex flex-col gap-1 min-w-0">
+			<span class="text-sm font-semibold">Longest</span>
+			<span class="flex min-w-0 flex-col gap-1">
 				<span
-					class="font-display text-3xl sm:text-4xl font-bold leading-none tabular-nums text-fg"
+					class="font-display text-4xl sm:text-5xl font-bold leading-none tabular-nums"
 					>{{ formatHours(longest.hours) }}<span
-						class="ml-1 text-base font-semibold text-fg-secondary"
+						class="ml-1 text-base font-semibold"
 						>h{{ longest.isEstimate ? " est." : "" }}</span
 					></span
 				>
-				<span class="truncate text-sm text-fg group-hover:text-brand"
+				<span
+					class="truncate text-sm font-semibold group-hover:underline"
 					>{{ longest.title }}</span
 				>
 			</span>
 		</a>
 	</li>
-	} @if (data.fastest; as fastest) {
-	<li class="min-w-0" [class]="spans.fastest">
+	} @if (data.fastest; as fastest) { @let cell = view.fastest!;
+	<li
+		appRewindReveal
+		class="min-w-0"
+		[class]="cell.classes"
+		[revealDelay]="cell.delayMs"
+		[style.--tone]="cell.tone"
+	>
 		<a
-			class="group flex h-full min-w-0 flex-col justify-between gap-4 rounded-card border border-line bg-surface p-4 sm:p-5 no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			class="group flex h-full min-w-0 flex-col justify-between gap-4 rounded-card p-4 sm:p-5 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			[class]="solidClass"
 			[routerLink]="['/games', fastest.code]"
 		>
-			<span class="text-sm font-medium text-fg-secondary">Fastest</span>
-			<span class="flex flex-col gap-1 min-w-0">
+			<span class="text-sm font-semibold">Fastest</span>
+			<span class="flex min-w-0 flex-col gap-1">
 				<span
-					class="font-display text-3xl sm:text-4xl font-bold leading-none tabular-nums text-fg"
+					class="font-display text-4xl sm:text-5xl font-bold leading-none tabular-nums"
 					>{{ formatHours(fastest.hours) }}<span
-						class="ml-1 text-base font-semibold text-fg-secondary"
+						class="ml-1 text-base font-semibold"
 						>h{{ fastest.isEstimate ? " est." : "" }}</span
 					></span
 				>
-				<span class="truncate text-sm text-fg group-hover:text-brand"
+				<span
+					class="truncate text-sm font-semibold group-hover:underline"
 					>{{ fastest.title }}</span
 				>
 			</span>
 		</a>
 	</li>
-	} @if (data.favoriteGenre; as genre) {
+	} @if (data.longestStreak; as streak) { @let cell = view.longestStreak!;
 	<li
-		class="flex flex-col justify-between gap-4 min-w-0 rounded-card border border-line bg-surface p-4 sm:p-5"
-		[class]="spans.favoriteGenre"
+		appRewindReveal
+		class="flex min-w-0 flex-col justify-between gap-4 rounded-card p-4 sm:p-5"
+		[class]="cell.classes + ' ' + solidClass"
+		[revealDelay]="cell.delayMs"
+		[style.--tone]="cell.tone"
 	>
-		<span class="text-sm font-medium text-fg-secondary"
-			>Favorite genre</span
-		>
-		<span class="flex flex-col gap-1 min-w-0">
-			<span
-				class="font-display text-xl sm:text-2xl font-bold leading-tight tracking-tight text-fg text-balance"
-				>{{ genre.name }}</span
+		<span class="text-sm font-semibold">Longest streak</span>
+		<span class="flex min-w-0 flex-col gap-1">
+			<span class="text-base font-semibold leading-tight"
+				><span
+					class="font-display text-4xl sm:text-5xl font-bold leading-none tabular-nums"
+					>{{ streak.months }}</span
+				>{{ " months in a row" }}</span
 			>
-			<span class="text-sm text-fg-secondary tabular-nums"
-				>{{ genreShare() }}</span
+			<span aria-hidden="true" class="text-sm font-semibold"
+				>{{ streakRange() }}</span
 			>
+			<span class="sr-only">{{ spokenStreakRange() }}</span>
 		</span>
 	</li>
-	} @if (data.topPlatform; as platform) {
+	} @if (data.busiestMonth) { @let cell = view.busiestMonth!;
 	<li
-		class="flex flex-col justify-between gap-4 min-w-0 rounded-card border border-line bg-surface p-4 sm:p-5"
-		[class]="spans.topPlatform"
+		appRewindReveal
+		class="flex min-w-0 flex-col justify-between gap-4 rounded-card p-4 sm:p-5"
+		[class]="cell.classes + ' ' + solidClass"
+		[revealDelay]="cell.delayMs"
+		[style.--tone]="cell.tone"
 	>
-		<span class="text-sm font-medium text-fg-secondary">Main platform</span>
-		<span class="flex flex-col gap-1 min-w-0">
+		<span class="text-sm font-semibold">Busiest month</span>
+		<span class="flex min-w-0 flex-col gap-1">
 			<span
-				class="font-display text-xl sm:text-2xl font-bold leading-tight tracking-tight text-fg text-balance"
-				>{{ platform.name }}</span
-			>
-			<span class="text-sm text-fg-secondary tabular-nums"
-				>{{ platformRuns() }}</span
-			>
-		</span>
-	</li>
-	} @if (data.busiestMonth) {
-	<li
-		class="flex flex-col justify-between gap-4 min-w-0 rounded-card border border-line bg-surface p-4 sm:p-5"
-		[class]="spans.busiestMonth"
-	>
-		<span class="text-sm font-medium text-fg-secondary">Busiest month</span>
-		<span class="flex flex-col gap-1 min-w-0">
-			<span
-				class="font-display text-xl sm:text-2xl font-bold leading-tight tracking-tight text-fg"
+				class="font-display text-2xl sm:text-3xl font-bold leading-tight tracking-tight"
 				>{{ busiestMonthName() }}</span
 			>
-			<span class="text-sm text-fg-secondary tabular-nums"
+			<span class="text-sm font-semibold tabular-nums"
 				>{{ busiestMonthCount() }}</span
 			>
 		</span>
+	</li>
+	} @if (data.topGenres.length > 0) { @let cell = view.topGenres!;
+	<li
+		appRewindReveal
+		class="flex min-w-0 flex-col gap-3 rounded-card p-4 sm:p-5"
+		[class]="cell.classes + ' ' + tintClass"
+		[revealDelay]="cell.delayMs"
+		[style.--tone]="cell.tone"
+	>
+		<span
+			id="rewind-top-genres"
+			class="text-sm font-semibold"
+			[class]="tintSecondaryClass"
+			>Top genres</span
+		>
+		<ol
+			class="m-0 flex list-none flex-col gap-2 p-0"
+			aria-labelledby="rewind-top-genres"
+		>
+			@for (genre of data.topGenres; track genre.code; let rank = $index)
+			{
+			<li class="flex min-w-0 items-center gap-3">
+				<span
+					aria-hidden="true"
+					class="grid size-7 shrink-0 place-items-center rounded-md font-display text-sm font-bold tabular-nums"
+					[class]="solidClass"
+					>{{ rank + 1 }}</span
+				>{{ " " }}
+				<span
+					class="min-w-0 flex-1 truncate font-display font-bold leading-tight"
+					[class]="rank === 0 ? 'text-xl sm:text-2xl' : 'text-base'"
+					>{{ genre.name }}</span
+				>{{ " " }}
+				<span
+					class="shrink-0 text-sm tabular-nums"
+					[class]="tintSecondaryClass"
+					>{{ gamesCount(genre.count) }}</span
+				>
+			</li>
+			}
+		</ol>
+	</li>
+	} @if (data.topPlatforms.length > 0) { @let cell = view.topPlatforms!;
+	<li
+		appRewindReveal
+		class="flex min-w-0 flex-col gap-3 rounded-card p-4 sm:p-5"
+		[class]="cell.classes + ' ' + tintClass"
+		[revealDelay]="cell.delayMs"
+		[style.--tone]="cell.tone"
+	>
+		<span
+			id="rewind-top-platforms"
+			class="text-sm font-semibold"
+			[class]="tintSecondaryClass"
+			>Platforms</span
+		>
+		<ol
+			class="m-0 flex list-none flex-col gap-2 p-0"
+			aria-labelledby="rewind-top-platforms"
+		>
+			@for (platform of data.topPlatforms; track platform.name; let rank =
+			$index) {
+			<li class="flex min-w-0 items-center gap-3">
+				<span
+					aria-hidden="true"
+					class="grid size-7 shrink-0 place-items-center rounded-md font-display text-sm font-bold tabular-nums"
+					[class]="solidClass"
+					>{{ rank + 1 }}</span
+				>{{ " " }}
+				<span
+					class="min-w-0 flex-1 truncate font-display font-bold leading-tight"
+					[class]="rank === 0 ? 'text-xl sm:text-2xl' : 'text-base'"
+					>{{ platform.name }}</span
+				>{{ " " }}
+				<span
+					class="shrink-0 text-sm tabular-nums"
+					[class]="tintSecondaryClass"
+					>{{ runsCount(platform.count) }}</span
+				>
+			</li>
+			}
+		</ol>
 	</li>
 	}
 </ul>

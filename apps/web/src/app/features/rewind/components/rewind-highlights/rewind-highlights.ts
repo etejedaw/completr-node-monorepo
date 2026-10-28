@@ -7,14 +7,40 @@ import {
 import { RouterLink } from "@angular/router";
 
 import {
-	type RewindHighlights as RewindHighlightsData,
-	type RewindTotals
+	type RewindFinishedGame,
+	type RewindHighlights as RewindHighlightsData
 } from "../../../../core/models/rewind.model";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
-import { formatHours, monthName, pluralize } from "../../rewind-copy";
+import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
+import {
+	formatHours,
+	monthName,
+	monthRange,
+	pluralize,
+	shortDate,
+	spokenMonthRange
+} from "../../rewind-copy";
+import { RewindReveal } from "../../rewind-reveal";
+import {
+	type RewindTone,
+	TONE_SOLID_CLASS,
+	TONE_TINT_CLASS,
+	TONE_TINT_SECONDARY_CLASS,
+	toneVar
+} from "../../rewind-tone";
 
-export type HighlightKey = keyof RewindHighlightsData;
+export type HighlightKey =
+	| "topRated"
+	| "bestRatio"
+	| "firstFinished"
+	| "lastFinished"
+	| "longest"
+	| "fastest"
+	| "longestStreak"
+	| "busiestMonth"
+	| "topGenres"
+	| "topPlatforms";
 
 export interface HighlightCell {
 	key: HighlightKey;
@@ -25,18 +51,42 @@ export interface HighlightCell {
 
 export const NARROW_COLUMNS = 2;
 export const WIDE_COLUMNS = 4;
-
-const HIGHLIGHT_ORDER: HighlightKey[] = [
+export const HIGHLIGHT_ORDER: HighlightKey[] = [
 	"topRated",
 	"bestRatio",
+	"firstFinished",
+	"lastFinished",
 	"longest",
 	"fastest",
-	"favoriteGenre",
-	"topPlatform",
-	"busiestMonth"
+	"longestStreak",
+	"busiestMonth",
+	"topGenres",
+	"topPlatforms"
 ];
 
-const LARGE_HIGHLIGHTS = new Set<HighlightKey>(["topRated", "bestRatio"]);
+export const HIGHLIGHT_TONE: Record<HighlightKey, RewindTone> = {
+	topRated: "brand",
+	bestRatio: "lists",
+	firstFinished: "tags",
+	lastFinished: "tags",
+	longest: "sagas",
+	fastest: "playing",
+	longestStreak: "shelf",
+	busiestMonth: "success",
+	topGenres: "queue",
+	topPlatforms: "platinum"
+};
+
+const REVEAL_STAGGER_MS = 60;
+const WIDE_LARGE = new Set<HighlightKey>(["topRated", "bestRatio"]);
+const NARROW_FULL = new Set<HighlightKey>([
+	"topRated",
+	"bestRatio",
+	"firstFinished",
+	"lastFinished",
+	"topGenres",
+	"topPlatforms"
+]);
 const TOP_RATED_TALL_MIN_NEIGHBOURS = 3;
 
 const NARROW_SPAN_CLASS: Record<number, string> = {
@@ -51,9 +101,41 @@ const WIDE_SPAN_CLASS: Record<number, string> = {
 	4: "lg:col-span-4"
 };
 
+function isSameGame(
+	first: RewindFinishedGame | null,
+	last: RewindFinishedGame | null
+): boolean {
+	return !!first && !!last && first.gameId === last.gameId;
+}
+
+export function presentHighlightKeys(
+	highlights: RewindHighlightsData
+): HighlightKey[] {
+	const present: Record<HighlightKey, boolean> = {
+		topRated: highlights.topRated !== null,
+		bestRatio: highlights.bestRatio !== null,
+		firstFinished: highlights.firstFinished !== null,
+		lastFinished:
+			highlights.lastFinished !== null &&
+			!isSameGame(highlights.firstFinished, highlights.lastFinished),
+		longest: highlights.longest !== null,
+		fastest: highlights.fastest !== null,
+		longestStreak: highlights.longestStreak !== null,
+		busiestMonth: highlights.busiestMonth !== null,
+		topGenres: highlights.topGenres.length > 0,
+		topPlatforms: highlights.topPlatforms.length > 0
+	};
+	return HIGHLIGHT_ORDER.filter(key => present[key]);
+}
+
 function baseCell(key: HighlightKey): HighlightCell {
-	const columns = LARGE_HIGHLIGHTS.has(key) ? 2 : 1;
-	return { key, columns, wideColumns: columns, wideRows: 1 };
+	const wideColumns = WIDE_LARGE.has(key) ? 2 : 1;
+	return {
+		key,
+		columns: NARROW_FULL.has(key) ? 2 : 1,
+		wideColumns,
+		wideRows: 1
+	};
 }
 
 function cellArea(cell: HighlightCell): number {
@@ -65,15 +147,16 @@ function missingCells(used: number, columns: number): number {
 	return remainder === 0 ? 0 : columns - remainder;
 }
 
-export function highlightLayout(
-	highlights: RewindHighlightsData
-): HighlightCell[] {
-	const cells = HIGHLIGHT_ORDER.filter(key => highlights[key] !== null).map(
-		baseCell
-	);
+function lastMatching(
+	cells: HighlightCell[],
+	predicate: (cell: HighlightCell) => boolean
+): HighlightCell | undefined {
+	return [...cells].reverse().find(predicate);
+}
+
+function packIntoFullRows(cells: HighlightCell[]): HighlightCell[] {
 	if (cells.length === 0) return cells;
-	const [first] = cells;
-	const neighbours = cells.filter(cell => cell !== first);
+	const [first, ...neighbours] = cells;
 	const neighbourArea = neighbours.reduce(
 		(sum, cell) => sum + cellArea(cell),
 		0
@@ -84,12 +167,32 @@ export function highlightLayout(
 	) {
 		first.wideRows = 2;
 	}
-	const last = cells.at(-1)!;
 	const narrowArea = cells.reduce((sum, cell) => sum + cell.columns, 0);
 	const wideArea = cells.reduce((sum, cell) => sum + cellArea(cell), 0);
-	last.columns += missingCells(narrowArea, NARROW_COLUMNS);
-	last.wideColumns += missingCells(wideArea, WIDE_COLUMNS);
+	const narrowGap = missingCells(narrowArea, NARROW_COLUMNS);
+	const wideGap = missingCells(wideArea, WIDE_COLUMNS);
+	const narrowFiller = lastMatching(
+		cells,
+		cell => cell.columns + narrowGap <= NARROW_COLUMNS
+	);
+	const wideFiller = lastMatching(
+		cells,
+		cell =>
+			cell.wideRows === 1 && cell.wideColumns + wideGap <= WIDE_COLUMNS
+	);
+	if (narrowFiller) narrowFiller.columns += narrowGap;
+	if (wideFiller) wideFiller.wideColumns += wideGap;
 	return cells;
+}
+
+export function highlightLayoutOf(keys: HighlightKey[]): HighlightCell[] {
+	return packIntoFullRows(keys.map(baseCell));
+}
+
+export function highlightLayout(
+	highlights: RewindHighlightsData
+): HighlightCell[] {
+	return highlightLayoutOf(presentHighlightKeys(highlights));
 }
 
 function cellClass(cell: HighlightCell): string {
@@ -102,35 +205,40 @@ function cellClass(cell: HighlightCell): string {
 		.join(" ");
 }
 
+interface CellView {
+	classes: string;
+	tone: string;
+	delayMs: number;
+}
+
 @Component({
 	selector: "app-rewind-highlights",
-	imports: [RouterLink, GamePoster, StarRating],
+	imports: [CoverUrlPipe, RouterLink, GamePoster, RewindReveal, StarRating],
 	templateUrl: "./rewind-highlights.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RewindHighlights {
 	readonly highlights = input.required<RewindHighlightsData>();
-	readonly totals = input.required<RewindTotals>();
 
 	protected readonly formatHours = formatHours;
-	protected readonly cellClasses = computed(() => {
-		const classes: Partial<Record<HighlightKey, string>> = {};
-		for (const cell of highlightLayout(this.highlights())) {
-			classes[cell.key] = cellClass(cell);
-		}
-		return classes;
+	protected readonly shortDate = shortDate;
+	protected readonly solidClass = TONE_SOLID_CLASS;
+	protected readonly tintClass = TONE_TINT_CLASS;
+	protected readonly tintSecondaryClass = TONE_TINT_SECONDARY_CLASS;
+
+	protected readonly cells = computed(() => {
+		const views: Partial<Record<HighlightKey, CellView>> = {};
+		highlightLayout(this.highlights()).forEach((cell, index) => {
+			views[cell.key] = {
+				classes: cellClass(cell),
+				tone: toneVar(HIGHLIGHT_TONE[cell.key]),
+				delayMs: (index % WIDE_COLUMNS) * REVEAL_STAGGER_MS
+			};
+		});
+		return views;
 	});
-	protected readonly genreShare = computed(() => {
-		const genre = this.highlights().favoriteGenre;
-		return genre
-			? `${genre.count} of ${pluralize(this.totals().finished, "game", "games")}`
-			: "";
-	});
-	protected readonly platformRuns = computed(() => {
-		const platform = this.highlights().topPlatform;
-		return platform ? pluralize(platform.count, "run", "runs") : "";
-	});
+
 	protected readonly busiestMonthName = computed(() => {
 		const month = this.highlights().busiestMonth;
 		return month ? monthName(month.month) : "";
@@ -141,4 +249,27 @@ export class RewindHighlights {
 			? `${pluralize(month.count, "game", "games")} finished`
 			: "";
 	});
+	protected readonly streakRange = computed(() => {
+		const streak = this.highlights().longestStreak;
+		return streak ? monthRange(streak.fromMonth, streak.toMonth) : "";
+	});
+	protected readonly spokenStreakRange = computed(() => {
+		const streak = this.highlights().longestStreak;
+		return streak ? spokenMonthRange(streak.fromMonth, streak.toMonth) : "";
+	});
+
+	protected artOf(game: {
+		backgroundUrl: string | null;
+		coverUrl: string | null;
+	}): string | null {
+		return game.backgroundUrl ?? game.coverUrl;
+	}
+
+	protected gamesCount(count: number): string {
+		return pluralize(count, "game", "games");
+	}
+
+	protected runsCount(count: number): string {
+		return pluralize(count, "run", "runs");
+	}
 }
