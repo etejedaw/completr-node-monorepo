@@ -1,8 +1,10 @@
 import {
+	createEnvironmentInjector,
+	DestroyRef,
+	EnvironmentInjector,
 	inject,
 	Injectable,
 	InjectionToken,
-	Injector,
 	type TemplateRef
 } from "@angular/core";
 import type * as ToastLibraryModule from "ng-primitives/toast";
@@ -69,7 +71,7 @@ export interface PendingToastOptions {
 
 @Injectable({ providedIn: "root" })
 export class ToastService {
-	private readonly injector = inject(Injector);
+	private readonly injector = inject(EnvironmentInjector);
 	private readonly loadLibrary = inject(TOAST_LIBRARY_LOADER);
 	private manager: NgpToastManager | null = null;
 	private loading: Promise<void> | null = null;
@@ -77,8 +79,15 @@ export class ToastService {
 	private template: TemplateRef<void> | null = null;
 	private nextId = 1;
 	private readonly pendings = new Map<number, PendingEntry>();
+	private toastInjector: EnvironmentInjector | null = null;
+	private destroyed = false;
 
 	constructor() {
+		inject(DestroyRef).onDestroy(() => {
+			this.destroyed = true;
+			this.waiting.length = 0;
+			this.toastInjector?.destroy();
+		});
 		whenIdle(() => this.load());
 	}
 
@@ -191,12 +200,12 @@ export class ToastService {
 	}
 
 	private load() {
-		if (this.manager || this.loading) return;
+		if (this.manager || this.loading || this.destroyed) return;
 		this.loading = this.loadLibrary()
 			.then(({ NgpToastManager, provideToastConfig }) => {
-				const injector = Injector.create({
-					parent: this.injector,
-					providers: [
+				if (this.destroyed) return;
+				const injector = createEnvironmentInjector(
+					[
 						provideToastConfig({
 							placement: "bottom-end",
 							offsetBottom: toastOffsetBottom(),
@@ -206,8 +215,10 @@ export class ToastService {
 							ariaLive: "polite"
 						}),
 						NgpToastManager
-					]
-				});
+					],
+					this.injector
+				);
+				this.toastInjector = injector;
 				const manager = injector.get(NgpToastManager);
 				this.manager = manager;
 				this.loading = null;

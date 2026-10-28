@@ -14,7 +14,7 @@ describe("ToastService", () => {
 	const template = {} as TemplateRef<unknown>;
 	let toasts: ToastService;
 	let refs: { dismiss: ReturnType<typeof vi.fn> }[];
-	const manager = { show: vi.fn() };
+	const manager = { show: vi.fn(), destroyed: vi.fn() };
 	let loadLibrary: ReturnType<typeof vi.fn>;
 
 	function lastContext() {
@@ -25,6 +25,9 @@ describe("ToastService", () => {
 		return {
 			NgpToastManager: class {
 				show = manager.show;
+				ngOnDestroy() {
+					manager.destroyed();
+				}
 			},
 			provideToastConfig: () => []
 		};
@@ -244,6 +247,7 @@ describe("ToastService", () => {
 		async function setUpLazy(loader: () => Promise<unknown>) {
 			TestBed.resetTestingModule();
 			manager.show.mockClear();
+			manager.destroyed.mockClear();
 			lazy = createService(loader);
 			lazy.registerTemplate(template);
 		}
@@ -352,6 +356,31 @@ describe("ToastService", () => {
 			lazy.info("Now");
 
 			expect(manager.show).toHaveBeenCalledOnce();
+		});
+
+		it("drops queued toasts when the app is destroyed before the import ends", async () => {
+			await setUpLazy(gatedLoader());
+
+			lazy.info("Too late");
+			TestBed.resetTestingModule();
+			release();
+			await vi.advanceTimersByTimeAsync(IDLE_PRELOAD_MS);
+			lazy.info("After destroy");
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(manager.show).not.toHaveBeenCalled();
+			expect(loadLibrary).toHaveBeenCalledOnce();
+		});
+
+		it("destroys the toast manager with the app so no toast outlives it", async () => {
+			await setUpLazy(() => Promise.resolve(fakeLibrary()));
+			lazy.info("Visible");
+			await vi.advanceTimersByTimeAsync(0);
+			expect(manager.destroyed).not.toHaveBeenCalled();
+
+			TestBed.resetTestingModule();
+
+			expect(manager.destroyed).toHaveBeenCalledOnce();
 		});
 	});
 });
