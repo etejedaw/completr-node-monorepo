@@ -300,4 +300,4 @@ Para sumar un campo nuevo del provider se agrega una entrada al array; el mapper
 
 ## Nota: ¿providers en `apps/api/src/` o en `apps/api/src/common/providers/`?
 
-Hoy todos viven directamente en `apps/api/src/`. La regla vigente es **un provider por carpeta en `apps/api/src/`**. Mover los genéricos a `apps/api/src/common/providers/` sigue siendo una decisión abierta.
+Decidido: **un provider por carpeta directamente en `apps/api/src/`**, al mismo nivel que los módulos de negocio. No existe `apps/api/src/common/providers/`. La única forma de anidar es la del provider con modelo inyectable, donde cada proveedor es un submódulo de su capacidad (ver [`../architecture.md`](../architecture.md#provider-con-modelo-inyectable)).

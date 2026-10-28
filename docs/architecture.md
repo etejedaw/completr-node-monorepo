@@ -92,6 +92,28 @@ Los servicios externos (RAWG, HLTB, Metacritic, Steam) viven como **providers** 
 
 Ver [`context/providers.md`](./context/providers.md).
 
+### Provider con modelo inyectable
+
+Cuando una capacidad puede cumplirla más de un proveedor externo (IA con DeepSeek, OpenAI u otro), el provider no es el proveedor: es una clase propia de la capacidad que recibe por constructor la implementación concreta. El ejemplo vigente es `apps/api/src/ia/`.
+
+```
+apps/api/src/<capacidad>/
+├── <capacidad>.interface.ts    Tipos de request/response y la interfaz <Capacidad>Model
+├── <capacidad>.provider.ts     class <Capacidad>Provider { constructor(private readonly model: <Capacidad>Model) }
+│                               export const <capacidad>Provider = new <Capacidad>Provider(<Proveedor>Model.create(...))
+├── errors/                     Errores en 3 capas de la capacidad, no del proveedor
+└── <proveedor>/
+    └── <proveedor>.provider.ts <Proveedor>Model implements <Capacidad>Model, con static create y su variante Disabled
+```
+
+- **Un solo punto de entrada.** El resto de la API importa solo la instancia `<capacidad>Provider` de `<capacidad>/<capacidad>.provider`. Nadie crea su propia instancia ni importa el submódulo del proveedor: lo prohíbe una regla `no-restricted-imports` en `eslint.config.mjs`.
+- **El contrato es la interfaz `<Capacidad>Model`**, escrita en términos de la capacidad (por ejemplo `generateText` e `isEnabled`), nunca en los del proveedor. Los tipos propios del proveedor (settings, forma de la respuesta) quedan dentro de su submódulo.
+- **La clase de la capacidad hace lo común a todos los proveedores:** validar la entrada, normalizarla y exponer si hay un modelo configurado. El submódulo del proveedor solo habla con el servicio externo y traduce sus fallos a los errores de la capacidad.
+- **Cambiar de proveedor** es escribir otro submódulo que implemente la interfaz y cambiar la línea que crea la instancia. Los consumidores no se tocan.
+- **Tests:** la clase de la capacidad se prueba con un modelo falso que implementa la interfaz; cada proveedor se prueba aparte con `fetch` (o su transporte) simulado.
+
+Un servicio externo que no tiene alternativas intercambiables sigue la forma simple de un provider, como `rawg/`: clase base abstracta con `static create`, la implementación activa y la `Disabled`.
+
 ## Imágenes para compartir
 
 `rewind-share/` dibuja en el servidor la imagen del Rewind (story 1080×1920 y og 1200×630) y la página HTML de vista previa de enlaces. No tiene modelo propio: pide los datos a `rewind.service` y por eso hereda su privacidad y sus errores.
