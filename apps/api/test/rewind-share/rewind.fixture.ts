@@ -1,6 +1,7 @@
 import {
 	type Rewind,
-	type RewindFinishedGame
+	type RewindFinishedGame,
+	type RewindTotals
 } from "../../src/rewind/rewind.interface";
 
 export function finishedGame(
@@ -42,6 +43,7 @@ export function buildRewind(overrides: Partial<Rewind> = {}): Rewind {
 	];
 	return {
 		year: 2026,
+		persona: "marathoner",
 		user: {
 			username: "esteban",
 			name: "Esteban",
@@ -55,7 +57,11 @@ export function buildRewind(overrides: Partial<Rewind> = {}): Rewind {
 			abandoned: 4,
 			started: 23,
 			hoursPlayed: 212.5,
-			platinums: 3
+			platinums: 3,
+			finishRate: 82,
+			averageRating: 4.3,
+			genresPlayed: 7,
+			platformsPlayed: 3
 		},
 		finishedGames: games,
 		highlights: {
@@ -65,7 +71,19 @@ export function buildRewind(overrides: Partial<Rewind> = {}): Rewind {
 			fastest: { ...games[3]!, hours: 2, isEstimate: true },
 			favoriteGenre: { code: "survival", name: "Survival", count: 7 },
 			topPlatform: { name: "PC", abbreviation: "PC", count: 12 },
-			busiestMonth: { month: 3, count: 5 }
+			busiestMonth: { month: 3, count: 5 },
+			firstFinished: games[0]!,
+			lastFinished: games[3]!,
+			topGenres: [
+				{ code: "survival", name: "Survival", count: 7 },
+				{ code: "action", name: "Action", count: 5 },
+				{ code: "puzzle", name: "Puzzle", count: 3 }
+			],
+			topPlatforms: [
+				{ name: "PC", abbreviation: "PC", count: 12 },
+				{ name: "PlayStation 5", abbreviation: "PS5", count: 4 }
+			],
+			longestStreak: { months: 5, fromMonth: 3, toMonth: 7 }
 		},
 		...overrides
 	};
@@ -73,12 +91,17 @@ export function buildRewind(overrides: Partial<Rewind> = {}): Rewind {
 
 export function emptyRewind(): Rewind {
 	return buildRewind({
+		persona: "steady-player",
 		totals: {
 			finished: 0,
 			abandoned: 0,
 			started: 3,
 			hoursPlayed: 0,
-			platinums: null
+			platinums: null,
+			finishRate: null,
+			averageRating: null,
+			genresPlayed: 0,
+			platformsPlayed: 0
 		},
 		finishedGames: [],
 		highlights: {
@@ -88,7 +111,29 @@ export function emptyRewind(): Rewind {
 			fastest: null,
 			favoriteGenre: null,
 			topPlatform: null,
-			busiestMonth: null
+			busiestMonth: null,
+			firstFinished: null,
+			lastFinished: null,
+			topGenres: [],
+			topPlatforms: [],
+			longestStreak: null
 		}
 	});
+}
+
+export function emptyTotals(
+	overrides: Partial<RewindTotals> = {}
+): RewindTotals {
+	return {
+		finished: 0,
+		abandoned: 0,
+		started: 0,
+		hoursPlayed: 0,
+		platinums: null,
+		finishRate: null,
+		averageRating: null,
+		genresPlayed: 0,
+		platformsPlayed: 0,
+		...overrides
+	};
 }

@@ -7,7 +7,7 @@ import { escapeHtml } from "../../src/rewind-share/utils/escape-html.util";
 import { removeEmoji } from "../../src/rewind-share/utils/remove-emoji.util";
 import { rewindSummary } from "../../src/rewind-share/utils/rewind-summary.util";
 import { truncateText } from "../../src/rewind-share/utils/truncate-text.util";
-import { buildRewind } from "./rewind.fixture";
+import { buildRewind, emptyTotals } from "./rewind.fixture";
 
 const HOSTILE_USERNAME = `"><script>alert('x')</script>&`;
 
@@ -19,7 +19,7 @@ function metaContent(html: string, key: string): string | undefined {
 }
 
 function totals(finished: number, abandoned: number, started: number) {
-	return { finished, abandoned, started, hoursPlayed: 0, platinums: null };
+	return emptyTotals({ finished, abandoned, started });
 }
 
 void describe("renderSharePage", () => {

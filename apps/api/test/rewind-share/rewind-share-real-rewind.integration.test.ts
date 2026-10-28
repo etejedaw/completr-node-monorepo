@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import { Backlog } from "../../src/backlog/backlog.model";
-import { type User } from "../../src/users/user.model";
+import { User } from "../../src/users/user.model";
 import { api } from "../helpers/app.helper";
 import { useTestDatabase } from "../helpers/database.helper";
 import {
@@ -16,6 +16,13 @@ useTestDatabase();
 
 let publicOwner: User;
 let privateOwner: User;
+
+async function registerBefore2025(owner: User) {
+	await User.update(
+		{ createdAt: new Date("2024-01-01") },
+		{ where: { id: owner.id }, silent: true }
+	);
+}
 
 async function finishGameIn2025(owner: User) {
 	const [game, platform] = await Promise.all([
@@ -39,6 +46,10 @@ void describe("Rewind share endpoints with the real Rewind", () => {
 		publicOwner = await createUser();
 		privateOwner = await createUser();
 		await privateOwner.update({ rewindVisibility: "private" });
+		await Promise.all([
+			registerBefore2025(publicOwner),
+			registerBefore2025(privateOwner)
+		]);
 		await Promise.all([
 			finishGameIn2025(publicOwner),
 			finishGameIn2025(privateOwner)

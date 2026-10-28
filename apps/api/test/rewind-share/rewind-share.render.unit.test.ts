@@ -1,10 +1,18 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
-import { type Rewind } from "../../src/rewind/rewind.interface";
+import {
+	type Rewind,
+	REWIND_PERSONA_CODES
+} from "../../src/rewind/rewind.interface";
 import { renderRewindImage } from "../../src/rewind-share/rewind-share.service";
 import { hasPngSignature, pngDimensions, samplePng } from "./png.helper";
-import { buildRewind, emptyRewind, finishedGame } from "./rewind.fixture";
+import {
+	buildRewind,
+	emptyRewind,
+	emptyTotals,
+	finishedGame
+} from "./rewind.fixture";
 
 const LONG_TITLE = "Ñandú Edición Definitiva ".repeat(10).slice(0, 200);
 
@@ -24,6 +32,13 @@ function rewindWithCovers(...coverUrls: string[]): Rewind {
 			})
 		)
 	});
+}
+
+function rewindWithBackdrop(backgroundUrl: string): Rewind {
+	const rewind = buildRewind();
+	const topRated = rewind.highlights.topRated!;
+	rewind.highlights.topRated = { ...topRated, backgroundUrl };
+	return rewind;
 }
 
 function waitForAbort(_input: unknown, init?: RequestInit): Promise<Response> {
@@ -83,13 +98,7 @@ void describe("renderRewindImage", () => {
 	void it("renders a year where every total is zero", async () => {
 		await assertRendersBothFormats(
 			buildRewind({
-				totals: {
-					finished: 0,
-					abandoned: 0,
-					started: 0,
-					hoursPlayed: 0,
-					platinums: 0
-				},
+				totals: emptyTotals({ platinums: 0 }),
 				finishedGames: []
 			})
 		);
@@ -109,7 +118,7 @@ void describe("renderRewindImage", () => {
 		);
 
 		assert.ok(hasPngSignature(image.png));
-		assert.equal(image.hasMissingCovers, false);
+		assert.equal(image.hasMissingImages, false);
 		assert.equal(fetchMock.mock.callCount(), 2);
 	});
 
@@ -135,7 +144,7 @@ void describe("renderRewindImage", () => {
 			width: 1080,
 			height: 1920
 		});
-		assert.equal(image.hasMissingCovers, true);
+		assert.equal(image.hasMissingImages, true);
 	});
 
 	void it("gives up on a cover that takes longer than 3 seconds", async () => {
@@ -149,7 +158,7 @@ void describe("renderRewindImage", () => {
 
 		const elapsed = Date.now() - started;
 		assert.ok(elapsed >= 2900 && elapsed < 6000, `took ${elapsed} ms`);
-		assert.equal(image.hasMissingCovers, true);
+		assert.equal(image.hasMissingImages, true);
 	});
 
 	void it("never fetches covers with a non-http URL", async () => {
@@ -184,5 +193,70 @@ void describe("renderRewindImage", () => {
 			fetchMock.mock.calls[0]?.arguments[0],
 			"https://media.rawg.io/media/resize/420/-/games/abc/cover.jpg"
 		);
+	});
+
+	void it("renders both formats for every persona", async () => {
+		for (const persona of REWIND_PERSONA_CODES) {
+			await assertRendersBothFormats(buildRewind({ persona }));
+		}
+	});
+
+	void it("renders without background art and never asks for one", async () => {
+		const fetchMock = stubFetch(() =>
+			Promise.resolve(new Response(new Uint8Array(samplePng())))
+		);
+
+		const image = await renderRewindImage(buildRewind(), "story");
+
+		assert.equal(fetchMock.mock.callCount(), 0);
+		assert.equal(image.hasMissingImages, false);
+		assert.deepEqual(pngDimensions(image.png), {
+			width: 1080,
+			height: 1920
+		});
+	});
+
+	void it("fetches the top rated background art at backdrop width", async () => {
+		const fetchMock = stubFetch(() =>
+			Promise.resolve(new Response(new Uint8Array(samplePng())))
+		);
+		const rewind = rewindWithBackdrop(
+			"https://media.rawg.io/media/games/top/art.jpg"
+		);
+
+		const image = await renderRewindImage(rewind, "og");
+
+		assert.equal(image.hasMissingImages, false);
+		assert.deepEqual(
+			fetchMock.mock.calls.map(call => call.arguments[0]),
+			["https://media.rawg.io/media/resize/640/-/games/top/art.jpg"]
+		);
+	});
+
+	void it("still renders when the background art fails and flags it as missing", async () => {
+		stubFetch(() => Promise.reject(new Error("network down")));
+
+		for (const format of ["story", "og"] as const) {
+			const image = await renderRewindImage(
+				rewindWithBackdrop("https://art.test/broken.jpg"),
+				format
+			);
+			assert.ok(hasPngSignature(image.png));
+			assert.equal(image.hasMissingImages, true);
+		}
+	});
+
+	void it("ignores background art with a non-http URL", async () => {
+		const fetchMock = stubFetch(() =>
+			Promise.resolve(new Response(new Uint8Array(samplePng())))
+		);
+
+		const image = await renderRewindImage(
+			rewindWithBackdrop("javascript:alert(1)"),
+			"story"
+		);
+
+		assert.equal(fetchMock.mock.callCount(), 0);
+		assert.ok(hasPngSignature(image.png));
 	});
 });
