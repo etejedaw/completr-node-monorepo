@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -8,7 +8,9 @@ import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
+import * as gamesService from "../games/games.service";
 import { Platform } from "../platforms/platform.model";
+import * as platformsService from "../platforms/platforms.service";
 import * as wishlistServiceError from "./errors/wishlist.service-error";
 import { Wishlist } from "./wishlist.model";
 
@@ -28,7 +30,7 @@ export async function replaceWishlist(user: RequestUser, gameIds: string[]) {
 	if (!isPremium(user.role) && gameIds.length > FREE_WISHLIST_LIMIT)
 		throw wishlistServiceError.limitReachedError();
 
-	const games = await Game.findAll({ where: { id: gameIds } });
+	const games = await gamesService.findGamesByIds(gameIds);
 	if (games.length !== gameIds.length) {
 		const foundIds = new Set(games.map(g => g.id));
 		const missing = gameIds.filter(id => !foundIds.has(id));
@@ -71,11 +73,11 @@ export async function addToWishlist(
 	gameId: string,
 	platformId?: string
 ) {
-	const game = await Game.findOne({ where: { id: gameId } });
+	const game = await gamesService.findGameRecordById(gameId);
 	if (!game) throw wishlistServiceError.gamesNotFoundError([gameId]);
 
 	if (platformId) {
-		const platform = await Platform.findOne({ where: { id: platformId } });
+		const platform = await platformsService.findPlatformById(platformId);
 		if (!platform) throw wishlistServiceError.platformNotFoundError();
 	}
 
@@ -194,4 +196,17 @@ export async function findWishlistForExport(
 			["id", "ASC"]
 		]
 	});
+}
+
+export async function existsByGameId(
+	gameId: string,
+	transaction?: Transaction
+) {
+	return (
+		(await Wishlist.findOne({
+			where: { gameId: gameId },
+			attributes: ["id"],
+			transaction
+		})) !== null
+	);
 }

@@ -217,3 +217,16 @@ export async function countPlatinumsByUserIdAndYear(
 		}
 	});
 }
+
+export async function existsByGameId(
+	gameId: string,
+	transaction?: Transaction
+) {
+	return (
+		(await GamePlatinum.findOne({
+			where: { gameId: gameId },
+			attributes: ["id"],
+			transaction
+		})) !== null
+	);
+}

@@ -2,7 +2,7 @@ import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { sequelize } from "../database/sequelize.database";
-import { Game } from "../games/game.model";
+import * as gamesService from "../games/games.service";
 import { COMPLETR_SCORE_SOURCE } from "../score-sources/score-source.constants";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import * as gameScoreServiceError from "./errors/game-scores.service-error";
@@ -144,7 +144,7 @@ export async function deleteGameScore(gameId: string, source: string) {
 }
 
 async function assertGameExists(gameId: string, transaction: Transaction) {
-	if ((await Game.count({ where: { id: gameId }, transaction })) === 0)
+	if (!(await gamesService.existsGameById(gameId, transaction)))
 		throw gameScoreServiceError.gameNotFoundError(gameId);
 }
 

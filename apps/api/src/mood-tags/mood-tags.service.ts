@@ -283,3 +283,16 @@ export async function findTagsForGames(
 	}
 	return map;
 }
+
+export async function existsByGameId(
+	gameId: string,
+	transaction?: Transaction
+) {
+	return (
+		(await UserGameTag.findOne({
+			where: { gameId: gameId },
+			attributes: ["id"],
+			transaction
+		})) !== null
+	);
+}

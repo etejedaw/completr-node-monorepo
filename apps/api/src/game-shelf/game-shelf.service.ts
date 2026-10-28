@@ -203,3 +203,16 @@ export async function findGameShelfForExport(
 		]
 	});
 }
+
+export async function existsByGameId(
+	gameId: string,
+	transaction?: Transaction
+) {
+	return (
+		(await GameShelf.findOne({
+			where: { gameId: gameId },
+			attributes: ["id"],
+			transaction
+		})) !== null
+	);
+}

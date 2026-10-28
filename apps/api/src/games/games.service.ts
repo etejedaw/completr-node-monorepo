@@ -1,7 +1,7 @@
-import { type Model, type ModelStatic, type Transaction } from "sequelize";
+import { type Transaction } from "sequelize";
 
-import { ActivityGame } from "../activity/targets/activity-game.model";
-import { Backlog } from "../backlog/backlog.model";
+import * as activityService from "../activity/activity.service";
+import * as backlogService from "../backlog/backlog.service";
 import { apiKeysConfig } from "../common/config/api-keys.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { ServiceError } from "../common/errors/service-error";
@@ -11,25 +11,25 @@ import {
 	buildTextSearchWhere
 } from "../common/utils/text-search.util";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
-import { CoopRun } from "../coop-runs/coop-run.model";
+import * as coopRunsService from "../coop-runs/coop-runs.service";
 import { sequelize } from "../database/sequelize.database";
-import { Favorite } from "../favorites/favorite.model";
+import * as favoritesService from "../favorites/favorites.service";
 import * as gameExternalService from "../game-external/game-external.service";
 import * as gameGenresService from "../game-genre/game-genre.service";
 import * as gamePlatformsService from "../game-platform/game-platform.service";
-import { GamePlatinum } from "../game-platinum/game-platinum.model";
+import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import * as gameScoresService from "../game-scores/game-scores.service";
-import { GameShelf } from "../game-shelf/game-shelf.model";
+import * as gameShelfService from "../game-shelf/game-shelf.service";
 import * as gameTimesService from "../game-times/game-times.service";
 import * as genresService from "../genres/genres.service";
-import { ListItem } from "../list-items/list-item.model";
-import { UserGameTag } from "../mood-tags/user-game-tag.model";
+import * as listItemsService from "../list-items/list-items.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as platformsService from "../platforms/platforms.service";
 import * as rawgServiceError from "../rawg/errors/rawg.service-error";
 import { RawgClient } from "../rawg/rawg.provider";
-import { Review } from "../reviews/review.model";
+import * as reviewsService from "../reviews/reviews.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
-import { Wishlist } from "../wishlist/wishlist.model";
+import * as wishlistService from "../wishlist/wishlist.service";
 import { type RegisterGameDto } from "./dtos/register-game.dto";
 import { type UpdateGameDto } from "./dtos/update-game.dto";
 import * as gamesServiceError from "./errors/games.service-error";
@@ -59,13 +59,18 @@ export {
 	setCompilationItems
 } from "./services/games-compilation.service";
 export {
+	assignFranchiseToGames,
+	clearFranchiseFromGames,
 	countActiveGamesByFranchiseIds,
+	existsGameById,
 	findActiveGameSummaries,
 	findAll,
+	findExistingGameIds,
 	findFranchiseIdsForGameIds,
 	findGameByCode,
 	findGameById,
 	findGameIdsByFranchiseId,
+	findGameRecordById,
 	findGamesByFranchiseId,
 	findGamesByGenreCode,
 	findGamesByIds,
@@ -77,19 +82,6 @@ export {
 } from "./services/games-search.service";
 export { findShowcaseGames } from "./services/games-showcase.service";
 export { splitGame } from "./services/games-variant.service";
-
-const USER_DATA_MODELS: ModelStatic<Model>[] = [
-	Backlog,
-	GameShelf,
-	ListItem,
-	Favorite,
-	Wishlist,
-	Review,
-	CoopRun,
-	UserGameTag,
-	GamePlatinum,
-	ActivityGame
-];
 
 const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
 const logger = new PinoLogger("GamesService");
@@ -251,17 +243,25 @@ export async function hardDeleteGame(id: string) {
 
 async function isGameInUse(gameId: string, transaction: Transaction) {
 	const lookups = [
-		...USER_DATA_MODELS.map(model => ({ model, where: { gameId } })),
-		{ model: Backlog, where: { compilationGameId: gameId } },
-		{ model: Game, where: { parentGameId: gameId } }
+		() => backlogService.existsByGameId(gameId, transaction),
+		() => gameShelfService.existsByGameId(gameId, transaction),
+		() => listItemsService.existsByGameId(gameId, transaction),
+		() => favoritesService.existsByGameId(gameId, transaction),
+		() => wishlistService.existsByGameId(gameId, transaction),
+		() => reviewsService.existsByGameId(gameId, transaction),
+		() => coopRunsService.existsByGameId(gameId, transaction),
+		() => moodTagsService.existsByGameId(gameId, transaction),
+		() => gamePlatinumService.existsByGameId(gameId, transaction),
+		() => activityService.existsByGameId(gameId, transaction),
+		() => backlogService.existsByCompilationGameId(gameId, transaction),
+		async () =>
+			(await Game.count({
+				where: { parentGameId: gameId },
+				transaction
+			})) > 0
 	];
-	for (const { model, where } of lookups) {
-		const reference = await model.findOne({
-			where,
-			attributes: ["id"],
-			transaction
-		});
-		if (reference) return true;
+	for (const lookup of lookups) {
+		if (await lookup()) return true;
 	}
 	return false;
 }

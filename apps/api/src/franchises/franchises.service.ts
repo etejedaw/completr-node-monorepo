@@ -20,25 +20,22 @@ async function replaceFranchiseGames(
 ) {
 	const targetGameIds = [...new Set(gameIds)];
 
-	const existingGames = await Game.findAll({
-		where: { id: { [Op.in]: targetGameIds } },
-		attributes: ["id"],
-		transaction
-	});
-	const existingGameIds = new Set(existingGames.map(game => game.id));
+	const existingGameIds = new Set(
+		await gamesService.findExistingGameIds(targetGameIds, transaction)
+	);
 	const missingGameIds = targetGameIds.filter(id => !existingGameIds.has(id));
 	if (missingGameIds.length > 0)
 		throw franchiseServiceError.gamesNotFoundError(missingGameIds);
 
-	const keptGamesFilter =
-		targetGameIds.length > 0 ? { id: { [Op.notIn]: targetGameIds } } : {};
-	await Game.update(
-		{ franchiseId: null },
-		{ where: { franchiseId, ...keptGamesFilter }, transaction }
+	await gamesService.clearFranchiseFromGames(
+		franchiseId,
+		targetGameIds,
+		transaction
 	);
-	await Game.update(
-		{ franchiseId },
-		{ where: { id: { [Op.in]: targetGameIds } }, transaction }
+	await gamesService.assignFranchiseToGames(
+		franchiseId,
+		targetGameIds,
+		transaction
 	);
 }
 

@@ -1,4 +1,4 @@
-import { col, fn, type Includeable, Op } from "sequelize";
+import { col, fn, type Includeable, Op, type Transaction } from "sequelize";
 
 import { apiKeysConfig } from "../../common/config/api-keys.config";
 import {
@@ -104,6 +104,50 @@ export async function findGameByCode(code: string) {
 export async function findGamesByIds(ids: string[]) {
 	if (ids.length === 0) return [];
 	return Game.findAll({ where: { id: ids } });
+}
+
+export async function findGameRecordById(id: string) {
+	return Game.findOne({ where: { id } });
+}
+
+export async function existsGameById(id: string, transaction?: Transaction) {
+	return (await Game.count({ where: { id }, transaction })) > 0;
+}
+
+export async function findExistingGameIds(
+	ids: string[],
+	transaction?: Transaction
+) {
+	const games = await Game.findAll({
+		where: { id: { [Op.in]: ids } },
+		attributes: ["id"],
+		transaction
+	});
+	return games.map(game => game.id);
+}
+
+export async function clearFranchiseFromGames(
+	franchiseId: string,
+	keptGameIds: string[],
+	transaction: Transaction
+) {
+	const keptGamesFilter =
+		keptGameIds.length > 0 ? { id: { [Op.notIn]: keptGameIds } } : {};
+	await Game.update(
+		{ franchiseId: null },
+		{ where: { franchiseId, ...keptGamesFilter }, transaction }
+	);
+}
+
+export async function assignFranchiseToGames(
+	franchiseId: string,
+	gameIds: string[],
+	transaction: Transaction
+) {
+	await Game.update(
+		{ franchiseId },
+		{ where: { id: { [Op.in]: gameIds } }, transaction }
+	);
 }
 
 export async function findActiveGameSummaries() {
