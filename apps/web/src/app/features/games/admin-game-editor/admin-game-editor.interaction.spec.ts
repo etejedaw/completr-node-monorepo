@@ -657,6 +657,56 @@ describe("AdminGameEditor interaction", () => {
 			}
 		);
 
+		it("asks for a variant label on the new game after a 422 variant required and creates it once one is set", async () => {
+			await renderCreate();
+			failures["POST /games"] = {
+				status: 422,
+				body: { type: "GAME_VARIANT_REQUIRED" }
+			};
+			await userEvent.type(titleInput(), "Dragon Quest I & II");
+			await userEvent.dblClick(button("Create Game"));
+			await untilVisible(() =>
+				expect(screen.getByRole("alert")).toHaveTextContent(
+					"Another game already uses this external id. Set a variant label on this game (e.g. Collection) to tell them apart."
+				)
+			);
+			expect(created).not.toHaveBeenCalled();
+
+			delete failures["POST /games"];
+			await userEvent.type(
+				screen.getByLabelText("Variant label"),
+				"  I & II "
+			);
+			await userEvent.click(button("Create Game"));
+
+			await untilVisible(() => expect(created).toHaveBeenCalledTimes(1));
+			expect(screen.queryByRole("alert")).toBeNull();
+			expect(callsTo("POST", "/games").at(-1)?.body?.["variant"]).toBe(
+				"I & II"
+			);
+		});
+
+		it("points to the sibling without a label when the new game already has one and still gets a 422 variant required", async () => {
+			await renderCreate();
+			failures["POST /games"] = {
+				status: 422,
+				body: { type: "GAME_VARIANT_REQUIRED" }
+			};
+			await userEvent.type(titleInput(), "Dragon Quest I & II");
+			await userEvent.type(
+				screen.getByLabelText("Variant label"),
+				"I & II"
+			);
+			await userEvent.click(button("Create Game"));
+			await untilVisible(() =>
+				expect(screen.getByRole("alert")).toHaveTextContent(
+					"Another game with this external id has no variant label. Add one to that game first, then create this one."
+				)
+			);
+			expect(button("Create Game")).toBeEnabled();
+			expect(created).not.toHaveBeenCalled();
+		});
+
 		it("blocks the request and reports an invalid score, then sends once it is fixed", async () => {
 			await renderCreate();
 			await userEvent.type(titleInput(), "Hades");
