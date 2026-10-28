@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import { PasswordResetToken } from "../../../src/auth/password-reset-token.model";
 import {
@@ -8,12 +8,42 @@ import {
 } from "../../../src/auth/services/password-reset.service";
 import { environmentConfig } from "../../../src/common/config/environment.config";
 import { hashOneTimeToken } from "../../../src/common/utils/one-time-token.util";
+import { sequelize } from "../../../src/database/sequelize.database";
 import { asModel } from "../../unit-helpers/as-model";
-import { stub } from "../../unit-helpers/mocks";
+import { stub, stubTransaction } from "../../unit-helpers/mocks";
 
 void describe("createPasswordResetToken", () => {
+	beforeEach(() => {
+		stubTransaction();
+		stub(sequelize, "query", async () => []);
+		stub(PasswordResetToken, "count", async () => 0);
+	});
+
 	afterEach(() => {
 		mock.restoreAll();
+	});
+
+	void it("issues nothing and keeps the current token while the user is in cooldown", async () => {
+		stub(PasswordResetToken, "count", async () => 1);
+		const destroy = stub(PasswordResetToken, "destroy", async () => 1);
+		const create = stub(PasswordResetToken, "create", async () => ({}));
+
+		assert.equal(await createPasswordResetToken("u-1"), null);
+		assert.equal(destroy.mock.callCount(), 0);
+		assert.equal(create.mock.callCount(), 0);
+	});
+
+	void it("takes a per-user lock before checking the cooldown", async () => {
+		const query = stub(sequelize, "query", async () => []);
+		stub(PasswordResetToken, "destroy", async () => 0);
+		stub(PasswordResetToken, "create", async () => ({}));
+
+		await createPasswordResetToken("u-1");
+
+		assert.match(
+			String(query.mock.calls[0]?.arguments[0]),
+			/advisory_xact_lock/
+		);
 	});
 
 	void it("removes the previous tokens of the user before issuing a new one", async () => {
@@ -23,7 +53,7 @@ void describe("createPasswordResetToken", () => {
 		await createPasswordResetToken("u-1");
 
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-			{ where: { userId: "u-1" } }
+			{ where: { userId: "u-1" }, transaction: { id: "tx" } }
 		]);
 	});
 
@@ -32,7 +62,7 @@ void describe("createPasswordResetToken", () => {
 		const create = stub(PasswordResetToken, "create", async () => ({}));
 		const before = Date.now();
 
-		const rawToken = await createPasswordResetToken("u-1");
+		const rawToken = (await createPasswordResetToken("u-1")) ?? "";
 
 		const stored = create.mock.calls[0]?.arguments[0] as {
 			userId: string;

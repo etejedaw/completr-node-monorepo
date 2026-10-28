@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
+import { setTimeout as delay } from "node:timers/promises";
 
+import { PasswordResetToken } from "../../src/auth/password-reset-token.model";
+import { environmentConfig } from "../../src/common/config/environment.config";
+import { sequelize } from "../../src/database/sequelize.database";
+import { InMemoryMailProvider } from "../../src/mail/mail.provider";
 import { api } from "../helpers/app.helper";
 import {
 	bearer,
@@ -19,6 +24,7 @@ import {
 
 const NEW_PASSWORD = "N3wPassw0rd!";
 const UNKNOWN_ONE_TIME_TOKEN = "a".repeat(64);
+const NEGATIVE_ASSERTION_SETTLE_MS = 150;
 
 useTestDatabase();
 
@@ -437,4 +443,144 @@ void describe("password reset", () => {
 		assert.equal(response.status, 422);
 		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
 	});
+});
+
+void describe("password reset cooldown", () => {
+	beforeEach(clearOutbox);
+
+	function forgotPassword(email: string) {
+		return api().post("/auth/forgot-password").send({ email });
+	}
+
+	async function resetTokensOf(userId: string) {
+		return PasswordResetToken.findAll({ where: { userId } });
+	}
+
+	async function ageTokensOf(userId: string, minutes: number) {
+		await sequelize.query(
+			`UPDATE "PasswordResetTokens" SET "createdAt" = NOW() - make_interval(mins => :minutes) WHERE "userId" = :userId`,
+			{ replacements: { userId, minutes } }
+		);
+	}
+
+	void it("does not issue a second token nor mail while the first one is cooling down", async () => {
+		const user = await createUser();
+		await forgotPassword(user.email).expect(204);
+		const firstMail = await waitForMailTo(user.email);
+		const [firstToken] = await resetTokensOf(user.id);
+		clearOutbox();
+
+		const second = await forgotPassword(user.email);
+		await delay(NEGATIVE_ASSERTION_SETTLE_MS);
+
+		assert.equal(second.status, 204);
+		assert.equal(findLastMailTo(user.email), undefined);
+		const tokens = await resetTokensOf(user.id);
+		assert.equal(tokens.length, 1);
+		assert.equal(tokens[0]?.id, firstToken?.id);
+		assert.ok(extractTokenFromMail(firstMail));
+	});
+
+	void it("issues a new token and mail once the cooldown has elapsed", async () => {
+		const user = await createUser();
+		const firstToken = await requestToken(user.email);
+		await ageTokensOf(
+			user.id,
+			environmentConfig.PASSWORD_RESET_COOLDOWN_MINUTES + 1
+		);
+		clearOutbox();
+
+		const secondToken = await requestToken(user.email);
+
+		assert.notEqual(secondToken, firstToken);
+		assert.equal((await resetTokensOf(user.id)).length, 1);
+	});
+
+	void it("still cools down just before the limit", async () => {
+		const user = await createUser();
+		await requestToken(user.email);
+		await ageTokensOf(
+			user.id,
+			environmentConfig.PASSWORD_RESET_COOLDOWN_MINUTES - 1
+		);
+		clearOutbox();
+
+		await forgotPassword(user.email).expect(204);
+		await delay(NEGATIVE_ASSERTION_SETTLE_MS);
+
+		assert.equal(findLastMailTo(user.email), undefined);
+	});
+
+	void it("sends a single mail and keeps a single token for concurrent requests", async () => {
+		const user = await createUser();
+
+		const responses = await Promise.all(
+			Array.from({ length: 8 }, () => forgotPassword(user.email))
+		);
+		await waitForMailTo(user.email);
+		await delay(NEGATIVE_ASSERTION_SETTLE_MS);
+
+		assert.ok(responses.every(response => response.status === 204));
+		assert.equal((await resetTokensOf(user.id)).length, 1);
+		const mails = InMemoryMailProvider.outbox.filter(
+			mail => mail.to === user.email
+		);
+		assert.equal(mails.length, 1);
+	});
+
+	void it("answers the same 204 for cooling down, unknown and inactive accounts", async () => {
+		const cooling = await createUser();
+		await requestToken(cooling.email);
+		const inactive = await createUser({ isActive: false });
+
+		const responses = await Promise.all([
+			forgotPassword(cooling.email),
+			forgotPassword("ghost@completr.test"),
+			forgotPassword(inactive.email)
+		]);
+		await delay(NEGATIVE_ASSERTION_SETTLE_MS);
+
+		for (const response of responses) {
+			assert.equal(response.status, 204);
+			assert.deepEqual(response.body, {});
+			assert.equal(response.text, "");
+		}
+		assert.equal((await resetTokensOf(inactive.id)).length, 0);
+	});
+
+	void it("answers 204 or 422 for garbage emails without issuing tokens", async () => {
+		const tokensBefore = await PasswordResetToken.count();
+		const garbageEmails = [
+			"",
+			"   ",
+			"not-an-email",
+			"<b>@x</b>",
+			"😀@😀.com"
+		];
+
+		for (const email of garbageEmails) {
+			const response = await forgotPassword(email);
+			assert.ok([204, 422].includes(response.status), email);
+		}
+		assert.equal(await PasswordResetToken.count(), tokensBefore);
+	});
+
+	void it("lets the token issued before the cooldown request reset the password", async () => {
+		const user = await createUser();
+		const token = await requestToken(user.email);
+		await forgotPassword(user.email).expect(204);
+		await delay(NEGATIVE_ASSERTION_SETTLE_MS);
+
+		const response = await api()
+			.post("/auth/reset-password")
+			.send({ token, password: NEW_PASSWORD });
+
+		assert.equal(response.status, 204);
+		await login(user.email, NEW_PASSWORD);
+	});
+
+	async function requestToken(email: string) {
+		await forgotPassword(email).expect(204);
+		return extractTokenFromMail(await waitForMailTo(email));
+	}
 });

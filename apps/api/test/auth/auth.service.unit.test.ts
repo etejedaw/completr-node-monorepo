@@ -370,6 +370,20 @@ void describe("authService.requestPasswordReset", () => {
 		assert.match(sentMail?.text ?? "", /token=raw-reset/);
 	});
 
+	void it("sends nothing when the user is in cooldown", async () => {
+		stub(usersService, "findUserByEmail", async () => asModel(activeUser));
+		stub(
+			passwordResetService,
+			"createPasswordResetToken",
+			async () => null
+		);
+
+		authService.requestPasswordReset("p@example.com");
+		await flushBackgroundWork();
+
+		assert.equal(InMemoryMailProvider.outbox.length, 0);
+	});
+
 	void it("sends nothing when the email does not belong to any user", async () => {
 		stub(usersService, "findUserByEmail", async () => null);
 

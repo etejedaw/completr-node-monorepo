@@ -141,6 +141,7 @@ async function sendPasswordResetEmail(email: string) {
 	const rawToken = await passwordResetService.createPasswordResetToken(
 		user.id
 	);
+	if (!rawToken) return;
 
 	const resetUrl = new URL(
 		RESET_PASSWORD_PATH,
