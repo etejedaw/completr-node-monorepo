@@ -719,7 +719,7 @@ export class AdminGameEditor implements OnInit {
 					);
 				} else if (err?.error?.type === "GAME_UNIQUE_CONSTRAINT") {
 					this.splitError.set(
-						"A target title collides with an existing game. Use unique titles."
+						"A target title produces a slug already used by another game, possibly an inactive one. Use unique titles."
 					);
 				} else if (err?.error?.type === "GAME_SPLIT_INVALID") {
 					this.splitError.set("Invalid split request.");

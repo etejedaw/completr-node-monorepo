@@ -1526,7 +1526,7 @@ describe("AdminGameEditor interaction", () => {
 				"a 409 unique constraint",
 				409,
 				{ type: "GAME_UNIQUE_CONSTRAINT" },
-				"A target title collides with an existing game. Use unique titles."
+				"A target title produces a slug already used by another game, possibly an inactive one. Use unique titles."
 			],
 			[
 				"a 422 invalid split",
