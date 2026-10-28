@@ -105,7 +105,7 @@ describe("AdminFranchiseModal", () => {
 						{ id: "g1", title: "Ocarina" },
 						{ id: "g2", title: "Majora" }
 					],
-					progress: { completed: 0, total: 2 },
+					gameCount: 2,
 					isTracked: false,
 					hasMore: false
 				}

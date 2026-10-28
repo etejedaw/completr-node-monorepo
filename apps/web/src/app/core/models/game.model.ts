@@ -27,7 +27,6 @@ export interface Game {
 	userMoodTags?: string[];
 	userPlatinum?: GamePlatinum | null;
 	franchise?: { id: string; name: string; code: string } | null;
-	franchiseProgress?: { completed: number; total: number } | null;
 	franchiseTracked?: boolean;
 }
 

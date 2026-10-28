@@ -99,7 +99,7 @@ describe("AdminFranchiseModal interaction", () => {
 					title: game.title,
 					franchise: { id: entry.id, name: entry.name }
 				})),
-				progress: { completed: 0, total: all.length },
+				gameCount: all.length,
 				isTracked: false,
 				hasMore: all.length > page.length
 			}

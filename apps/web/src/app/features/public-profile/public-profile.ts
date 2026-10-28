@@ -19,7 +19,7 @@ import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
 import { BETA_SIGNUP_URL } from "../../shared/constants/beta-signup";
 import { UiAvatar, UiButton, UiDialog, UiSkeleton } from "../../shared/ui";
 import { FeedService } from "../feed/feed";
-import { type FranchiseProgress } from "../franchises/franchises";
+import { type TrackedFranchise } from "../franchises/franchises";
 import { ProfileAccessState } from "./components/profile-access-state";
 import { ProfileActivity } from "./components/profile-activity";
 import { ProfileCollections } from "./components/profile-collections";
@@ -147,7 +147,7 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly favoritesData = signal<PublicFavorite[] | null>(null);
 	protected readonly platinumsData = signal<PlatinumEntry[] | null>(null);
 	protected readonly platinumsTotal = signal(0);
-	protected readonly sagas = signal<FranchiseProgress[]>([]);
+	protected readonly sagas = signal<TrackedFranchise[]>([]);
 	protected readonly comparison = signal<UserComparison | null>(null);
 	protected readonly comparisonBy = signal<ComparisonDimension>("completed");
 	protected readonly comparisonLoading = signal(false);

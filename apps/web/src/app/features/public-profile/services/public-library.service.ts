@@ -10,7 +10,7 @@ import { type PlatinumEntry } from "../../../core/models/platinum.model";
 import { type QueueEntry } from "../../../core/models/queue.model";
 import { type WishlistEntry } from "../../../core/models/wishlist.model";
 import { buildHttpParams } from "../../../core/utils/http-params";
-import { type FranchiseProgress } from "../../franchises/franchises";
+import { type TrackedFranchise } from "../../franchises/franchises";
 import { type GameSummary } from "./types";
 
 export interface PublicBacklog {
@@ -152,7 +152,7 @@ export class PublicLibraryService {
 	getUserFranchises(username: string) {
 		return this.http
 			.get<{
-				data: { franchises: FranchiseProgress[]; total: number };
+				data: { franchises: TrackedFranchise[]; total: number };
 			}>(`${environment.apiUrl}/users/${username}/franchises`)
 			.pipe(map(res => res.data.franchises));
 	}

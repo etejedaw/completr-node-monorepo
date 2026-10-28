@@ -13,16 +13,33 @@ export interface Franchise {
 	description?: string | null;
 }
 
-export interface FranchiseProgress {
-	franchise: { id: string; name: string; code: string };
-	completed: number;
+export interface FranchisePreviewGame {
+	id: string;
+	code: string;
+	title: string;
+	backgroundUrl: string | null;
+}
+
+export interface FranchiseSummary extends Franchise {
+	gameCount: number;
+	isTracked: boolean;
+	previewGames: FranchisePreviewGame[];
+}
+
+export interface FranchisePage {
+	franchises: FranchiseSummary[];
 	total: number;
+}
+
+export interface TrackedFranchise {
+	franchise: { id: string; name: string; code: string };
+	gameCount: number;
 }
 
 export interface FranchiseDetail {
 	franchise: Franchise;
 	games: (Game & { backlogStatus: string | null })[];
-	progress: { completed: number; total: number };
+	gameCount: number;
 	isTracked: boolean;
 	hasMore: boolean;
 }
@@ -43,9 +60,7 @@ export class FranchisesService {
 	) {
 		const params = buildHttpParams(query);
 		return this.http
-			.get<{
-				data: { franchises: Franchise[]; total: number };
-			}>(this.baseUrl, { params })
+			.get<{ data: FranchisePage }>(this.baseUrl, { params })
 			.pipe(map(res => res.data));
 	}
 
@@ -78,6 +93,12 @@ export class FranchisesService {
 
 	deleteFranchise(id: string) {
 		return this.http.delete<void>(`${this.baseUrl}/${id}`);
+	}
+
+	setTracked(code: string, tracked: boolean) {
+		return tracked
+			? this.trackFranchise(code)
+			: this.untrackFranchise(code);
 	}
 
 	trackFranchise(code: string) {

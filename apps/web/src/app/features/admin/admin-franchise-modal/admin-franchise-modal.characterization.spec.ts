@@ -64,7 +64,7 @@ describe("AdminFranchiseModal characterization", () => {
 				title: game.title,
 				franchise: { id: franchise.id, name: franchise.name }
 			})),
-			progress: { completed: 0, total: franchiseGames.length },
+			gameCount: franchiseGames.length,
 			isTracked: false,
 			hasMore: false
 		};

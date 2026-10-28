@@ -8,7 +8,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { UiButton } from "../../../shared/ui";
-import { type FranchiseProgress } from "../../franchises/franchises";
+import { type TrackedFranchise } from "../../franchises/franchises";
 import { ProfileSectionHeader } from "./profile-section-header";
 
 const COLLAPSED_SAGA_COUNT = 6;
@@ -50,9 +50,9 @@ const COLLAPSED_SAGA_COUNT = 6;
 								>
 								<span
 									class="shrink-0 text-xs text-fg-muted tabular-nums"
-									>{{ saga.total }}
+									>{{ saga.gameCount }}
 									{{
-										saga.total === 1 ? "game" : "games"
+										saga.gameCount === 1 ? "game" : "games"
 									}}</span
 								>
 							</a>
@@ -88,7 +88,7 @@ const COLLAPSED_SAGA_COUNT = 6;
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProfileSagas {
-	readonly sagas = input.required<FranchiseProgress[]>();
+	readonly sagas = input.required<TrackedFranchise[]>();
 
 	protected readonly collapsedCount = COLLAPSED_SAGA_COUNT;
 	protected readonly expanded = signal(false);

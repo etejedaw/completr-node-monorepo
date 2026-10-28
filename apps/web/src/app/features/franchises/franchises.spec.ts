@@ -115,6 +115,18 @@ describe("FranchisesService", () => {
 		req.flush(null);
 	});
 
+	it("sets the tracked state with a POST to track and a DELETE to stop", () => {
+		service.setTracked("zelda", true).subscribe();
+		const track = httpTesting.expectOne(`${url}/zelda/track`);
+		expect(track.request.method).toBe("POST");
+		track.flush(null);
+
+		service.setTracked("zelda", false).subscribe();
+		const untrack = httpTesting.expectOne(`${url}/zelda/track`);
+		expect(untrack.request.method).toBe("DELETE");
+		untrack.flush(null);
+	});
+
 	it("tracks and untracks a franchise by code", () => {
 		service.trackFranchise("zelda").subscribe();
 		const track = httpTesting.expectOne(`${url}/zelda/track`);
