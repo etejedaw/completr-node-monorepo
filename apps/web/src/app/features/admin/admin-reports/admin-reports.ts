@@ -8,12 +8,20 @@ import {
 } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 
-import { UiButton } from "../../../shared/ui";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { UiButton, UiEmptyState, UiSkeleton } from "../../../shared/ui";
 import { type GameReport, ReportsService } from "../services/reports.service";
 
 @Component({
 	selector: "app-admin-reports",
-	imports: [RouterLink, DatePipe, UiButton],
+	imports: [
+		RouterLink,
+		DatePipe,
+		LibraryHero,
+		UiButton,
+		UiEmptyState,
+		UiSkeleton
+	],
 	templateUrl: "./admin-reports.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -23,6 +31,8 @@ export class AdminReports implements OnInit {
 
 	protected readonly reports = signal<GameReport[]>([]);
 	protected readonly isLoading = signal(true);
+	protected readonly loadFailed = signal(false);
+	protected readonly skeletonRows = [1, 2, 3];
 	protected readonly filterGameId = signal<string | null>(null);
 
 	ngOnInit() {
@@ -58,8 +68,13 @@ export class AdminReports implements OnInit {
 			});
 	}
 
+	reload() {
+		this.loadReports();
+	}
+
 	private loadReports() {
 		this.isLoading.set(true);
+		this.loadFailed.set(false);
 		this.reportsService.getPendingReports().subscribe({
 			next: reports => {
 				const gameId = this.filterGameId();
@@ -68,7 +83,10 @@ export class AdminReports implements OnInit {
 				);
 				this.isLoading.set(false);
 			},
-			error: () => this.isLoading.set(false)
+			error: () => {
+				this.loadFailed.set(true);
+				this.isLoading.set(false);
+			}
 		});
 	}
 }
