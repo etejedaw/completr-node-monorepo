@@ -8,11 +8,11 @@ const RAWG_MEDIA_PREFIX = "https://media.rawg.io/media/";
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47];
 const JPEG_SIGNATURE = [0xff, 0xd8, 0xff];
 
-function resizedCoverUrl(url: string): string {
+function resizedImageUrl(url: string, width: number): string {
 	if (!url.startsWith(RAWG_MEDIA_PREFIX)) return url;
 	const path = url.slice(RAWG_MEDIA_PREFIX.length);
 	if (path.startsWith("resize/") || path.startsWith("crop/")) return url;
-	return `${RAWG_MEDIA_PREFIX}resize/${COVER_FETCH_WIDTH}/-/${path}`;
+	return `${RAWG_MEDIA_PREFIX}resize/${width}/-/${path}`;
 }
 
 function startsWith(bytes: Buffer, signature: number[]): boolean {
@@ -34,8 +34,11 @@ function isHttpUrl(url: string): boolean {
 	}
 }
 
-async function downloadImage(url: string): Promise<Buffer | null> {
-	const response = await fetch(resizedCoverUrl(url), {
+async function downloadImage(
+	url: string,
+	width: number
+): Promise<Buffer | null> {
+	const response = await fetch(resizedImageUrl(url, width), {
 		signal: AbortSignal.timeout(COVER_FETCH_TIMEOUT_MS)
 	});
 	if (!response.ok) return null;
@@ -45,12 +48,13 @@ async function downloadImage(url: string): Promise<Buffer | null> {
 	return bytes.length > COVER_MAX_BYTES ? null : bytes;
 }
 
-export async function fetchCoverDataUri(
-	url: string | null
+export async function fetchImageDataUri(
+	url: string | null,
+	width = COVER_FETCH_WIDTH
 ): Promise<string | null> {
 	if (!url || !isHttpUrl(url)) return null;
 	try {
-		const bytes = await downloadImage(url);
+		const bytes = await downloadImage(url, width);
 		if (!bytes) return null;
 		const mimeType = imageMimeType(bytes);
 		if (!mimeType) return null;

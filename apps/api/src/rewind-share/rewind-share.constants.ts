@@ -1,16 +1,22 @@
+import { type RewindPersonaCode } from "../rewind/rewind.interface";
+
 export const SHARE_COLORS = {
 	canvas: "#0a0a0c",
 	surface: "#131318",
 	foreground: "#f5f5f7",
-	secondary: "#a1a1aa",
-	muted: "#71717a",
+	secondary: "#d4d4d8",
+	muted: "#a1a1aa",
+	ink: "#0a0a0c",
 	brand: "#8b5cf6",
-	brandGlow: "rgba(139, 92, 246, 0.28)",
+	brandLight: "#a78bfa",
 	finished: "#10b981",
 	abandoned: "#ef4444",
 	started: "#38bdf8",
 	platinum: "#67e8f9",
-	dots: "#2a2a33"
+	pink: "#fb7185",
+	orange: "#fb923c",
+	lime: "#a3e635",
+	blue: "#60a5fa"
 } as const;
 
 export const SHARE_FONT_FAMILY = {
@@ -23,7 +29,44 @@ export const SHARE_IMAGE_SIZES = {
 	og: { width: 1200, height: 630 }
 } as const;
 
+export interface SharePersona {
+	title: string;
+	phrase: string;
+}
+
+export const SHARE_PERSONAS: Record<RewindPersonaCode, SharePersona> = {
+	"trophy-hunter": {
+		title: "Trophy Hunter",
+		phrase: "You didn't just finish games, you emptied them."
+	},
+	marathoner: {
+		title: "Marathoner",
+		phrase: "Long games, long nights, no shortcuts."
+	},
+	"short-and-sweet": {
+		title: "Short & Sweet",
+		phrase: "Lots of great games, none of them overstayed."
+	},
+	finisher: {
+		title: "The Finisher",
+		phrase: "When you start a game, you see the credits."
+	},
+	"genre-explorer": {
+		title: "Genre Explorer",
+		phrase: "No genre was safe from you this year."
+	},
+	"picky-player": {
+		title: "Picky Player",
+		phrase: "Life's too short for games that don't click."
+	},
+	"steady-player": {
+		title: "Steady Player",
+		phrase: "One game at a time, all year long."
+	}
+};
+
 export const COVER_FETCH_TIMEOUT_MS = 3000;
 export const COVER_MAX_BYTES = 5 * 1024 * 1024;
 export const COVER_FETCH_WIDTH = 420;
+export const BACKDROP_FETCH_WIDTH = 640;
 export const SHARE_IMAGE_CACHE_SIZE = 100;

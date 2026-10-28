@@ -7,6 +7,11 @@ export interface ShareCover {
 	dataUri: string | null;
 }
 
+export interface ShareArtwork {
+	covers: ShareCover[];
+	backdrop: string | null;
+}
+
 export interface SharePageMeta {
 	title: string;
 	description: string;

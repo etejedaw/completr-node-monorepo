@@ -17,22 +17,20 @@ export interface SatoriElement {
 	};
 }
 
-export interface TallyEntry {
-	label: string;
-	value: string;
-	color: string;
+export interface CanvasSize {
+	width: number;
+	height: number;
 }
 
-export interface TallySizes {
-	labelSize: number;
-	valueSize: number;
-	dotSize: number;
-}
-
-const DOTS_PER_ROW = 80;
 const COVER_TITLE_MAX_LENGTH = 60;
-const STAR_PATH =
-	"M12 2.5l2.94 6.08 6.56.95-4.75 4.63 1.12 6.53L12 17.6l-5.87 3.09 1.12-6.53L2.5 9.53l6.56-.95z";
+const YEAR_GRADIENT = `linear-gradient(100deg, #ddd6fe 0%, ${SHARE_COLORS.brandLight} 28%, ${SHARE_COLORS.pink} 64%, ${SHARE_COLORS.orange} 100%)`;
+const FILL: SatoriStyle = {
+	position: "absolute",
+	top: 0,
+	left: 0,
+	right: 0,
+	bottom: 0
+};
 
 export function box(
 	style: SatoriStyle,
@@ -40,7 +38,10 @@ export function box(
 ): SatoriElement {
 	return {
 		type: "div",
-		props: { style: { display: "flex", ...style }, children }
+		props: {
+			style: { display: "flex", boxSizing: "border-box", ...style },
+			children
+		}
 	};
 }
 
@@ -60,28 +61,20 @@ export function image(
 	};
 }
 
-export function singleLine(style: SatoriStyle, content: string): SatoriElement {
-	return text(
-		{
-			display: "block",
-			overflow: "hidden",
-			whiteSpace: "nowrap",
-			textOverflow: "ellipsis",
-			...style
-		},
-		content
-	);
+export function diamond(size: number, color: string): SatoriElement {
+	return box({
+		width: size,
+		height: size,
+		flexShrink: 0,
+		borderRadius: size * 0.22,
+		backgroundColor: color,
+		transform: "rotate(45deg)"
+	});
 }
 
 export function wordmark(fontSize: number): SatoriElement {
 	return box({ alignItems: "center", gap: fontSize * 0.45 }, [
-		box({
-			width: fontSize * 0.62,
-			height: fontSize * 0.62,
-			borderRadius: fontSize * 0.16,
-			backgroundColor: SHARE_COLORS.brand,
-			transform: "rotate(45deg)"
-		}),
+		diamond(fontSize * 0.62, SHARE_COLORS.brand),
 		text(
 			{
 				fontFamily: SHARE_FONT_FAMILY.display,
@@ -95,45 +88,102 @@ export function wordmark(fontSize: number): SatoriElement {
 	]);
 }
 
-export function brandGlow(size: number, style: SatoriStyle): SatoriElement {
-	return box({
-		position: "absolute",
-		width: size,
-		height: size,
-		backgroundImage: `radial-gradient(circle at center, ${SHARE_COLORS.brandGlow} 0%, rgba(139, 92, 246, 0) 68%)`,
-		...style
-	});
-}
-
-export function starIcon(size: number, color: string): SatoriElement {
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="${color}" d="${STAR_PATH}"/></svg>`;
-	return image(
-		`data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`,
-		size,
-		size
+export function gradientYear(year: number, fontSize: number): SatoriElement {
+	return text(
+		{
+			fontFamily: SHARE_FONT_FAMILY.display,
+			fontWeight: 700,
+			fontSize,
+			lineHeight: 0.84,
+			letterSpacing: "-0.045em",
+			marginLeft: -fontSize * 0.05,
+			paddingRight: fontSize * 0.06,
+			backgroundImage: YEAR_GRADIENT,
+			backgroundClip: "text",
+			color: "transparent"
+		},
+		String(year)
 	);
 }
 
-function coverFallback(title: string, width: number): SatoriChild[] {
+interface BackgroundLayer {
+	image: string;
+	size: string;
+}
+
+const FULL_SIZE = "100% 100%";
+
+const COLOR_BLOBS: BackgroundLayer[] = [
+	{
+		image: "radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.6) 0%, rgba(139, 92, 246, 0) 55%)",
+		size: FULL_SIZE
+	},
+	{
+		image: "radial-gradient(circle at 0% 55%, rgba(251, 113, 133, 0.34) 0%, rgba(251, 113, 133, 0) 45%)",
+		size: FULL_SIZE
+	},
+	{
+		image: "radial-gradient(circle at 100% 100%, rgba(45, 212, 191, 0.24) 0%, rgba(45, 212, 191, 0) 50%)",
+		size: FULL_SIZE
+	}
+];
+
+const ART_VEIL: BackgroundLayer = {
+	image: "linear-gradient(180deg, rgba(10, 10, 12, 0.55) 0%, rgba(10, 10, 12, 0.7) 40%, rgba(10, 10, 12, 0.93) 100%)",
+	size: FULL_SIZE
+};
+
+function artFit(size: CanvasSize): string {
+	return size.height > size.width ? "auto 100%" : "100% auto";
+}
+
+function backdropLayers(
+	art: string | null,
+	size: CanvasSize
+): BackgroundLayer[] {
+	if (!art) return COLOR_BLOBS;
 	return [
-		box({
-			position: "absolute",
-			top: 0,
-			left: 0,
-			right: 0,
-			bottom: 0,
-			opacity: 0.16,
-			backgroundImage:
-				"repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0px, rgba(255, 255, 255, 0.5) 1px, rgba(255, 255, 255, 0) 1px, rgba(255, 255, 255, 0) 9px)"
-		}),
+		ART_VEIL,
+		...COLOR_BLOBS,
+		{ image: `url(${art})`, size: artFit(size) }
+	];
+}
+
+export function backdropStyle(
+	art: string | null,
+	size: CanvasSize
+): SatoriStyle {
+	const layers = backdropLayers(art, size);
+	return {
+		backgroundColor: SHARE_COLORS.canvas,
+		backgroundImage: layers.map(layer => layer.image).join(", "),
+		backgroundSize: layers.map(layer => layer.size).join(", "),
+		backgroundPosition: "center",
+		backgroundRepeat: "no-repeat"
+	};
+}
+
+type FallbackContent = (title: string, width: number) => SatoriChild[];
+
+const FALLBACK_STRIPES: SatoriElement = box({
+	...FILL,
+	opacity: 0.16,
+	backgroundImage:
+		"repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0px, rgba(255, 255, 255, 0.5) 1px, rgba(255, 255, 255, 0) 1px, rgba(255, 255, 255, 0) 9px)"
+});
+
+function titledFallback(title: string, width: number): SatoriChild[] {
+	return [
+		FALLBACK_STRIPES,
+		box({ flexGrow: 1 }),
 		text(
 			{
 				display: "block",
 				fontFamily: SHARE_FONT_FAMILY.display,
 				fontWeight: 700,
-				fontSize: Math.round(width * 0.12),
+				fontSize: Math.round(width * 0.13),
 				lineHeight: 1.05,
-				color: "rgba(255, 255, 255, 0.92)",
+				color: "rgba(255, 255, 255, 0.94)",
 				padding: Math.round(width * 0.08),
 				lineClamp: 4
 			},
@@ -142,24 +192,37 @@ function coverFallback(title: string, width: number): SatoriChild[] {
 	];
 }
 
-export function coverCard(
+export type CoverMarkerSide = "flex-start" | "center" | "flex-end";
+
+function markedFallback(side: CoverMarkerSide): FallbackContent {
+	return (_title, width) => [
+		FALLBACK_STRIPES,
+		box(
+			{
+				flexGrow: 1,
+				alignItems: "center",
+				justifyContent: side,
+				padding: `0px ${Math.round(width * 0.14)}px`
+			},
+			[diamond(Math.round(width * 0.16), "rgba(255, 255, 255, 0.85)")]
+		)
+	];
+}
+
+function coverFace(
 	cover: ShareCover,
 	width: number,
 	height: number,
-	style: SatoriStyle = {}
+	fallbackContent: FallbackContent
 ): SatoriElement {
-	const radius = Math.round(width * 0.086);
 	const frame: SatoriStyle = {
 		position: "relative",
 		width,
 		height,
-		flexShrink: 0,
-		borderRadius: radius,
+		borderRadius: Math.round(width * 0.07),
 		overflow: "hidden",
 		backgroundColor: SHARE_COLORS.surface,
-		border: "2px solid rgba(255, 255, 255, 0.08)",
-		boxShadow: "0 24px 48px rgba(0, 0, 0, 0.55)",
-		...style
+		border: "3px solid rgba(255, 255, 255, 0.18)"
 	};
 
 	if (cover.dataUri) {
@@ -171,63 +234,69 @@ export function coverCard(
 		{
 			...frame,
 			flexDirection: "column",
-			justifyContent: "flex-end",
 			backgroundImage: titleGradient(cover.title)
 		},
-		coverFallback(cover.title, width)
+		fallbackContent(cover.title, width)
 	);
 }
 
-function dottedLeader(dotSize: number): SatoriElement {
-	const dots = Array.from({ length: DOTS_PER_ROW }, () =>
-		box({
-			width: dotSize,
-			height: dotSize,
-			flexShrink: 0,
-			borderRadius: dotSize,
-			backgroundColor: SHARE_COLORS.dots
-		})
-	);
+function card(
+	face: SatoriElement,
+	width: number,
+	height: number,
+	style: SatoriStyle
+): SatoriElement {
 	return box(
 		{
-			flexGrow: 1,
-			flexShrink: 1,
-			flexBasis: 0,
-			minWidth: 0,
-			overflow: "hidden",
-			gap: dotSize * 1.6,
-			marginLeft: dotSize * 3,
-			marginRight: dotSize * 3,
-			marginBottom: dotSize * 2.2
+			width,
+			height,
+			flexShrink: 0,
+			borderRadius: Math.round(width * 0.07),
+			boxShadow: `0 ${Math.round(width * 0.06)}px ${Math.round(width * 0.07)}px rgba(0, 0, 0, 0.55)`,
+			...style
 		},
-		dots
+		[face]
 	);
 }
 
-export function tallyRow(entry: TallyEntry, sizes: TallySizes): SatoriElement {
-	return box({ alignItems: "flex-end", width: "100%" }, [
-		text(
-			{
-				fontFamily: SHARE_FONT_FAMILY.text,
-				fontWeight: 600,
-				fontSize: sizes.labelSize,
-				color: SHARE_COLORS.secondary,
-				flexShrink: 0,
-				paddingBottom: sizes.labelSize * 0.12
-			},
-			entry.label
-		),
-		dottedLeader(sizes.dotSize),
-		text(
-			{
-				fontFamily: SHARE_FONT_FAMILY.display,
-				fontWeight: 600,
-				fontSize: sizes.valueSize,
-				lineHeight: 1,
-				color: entry.color,
-				flexShrink: 0
-			},
-			entry.value
-		)
-	]);
+export function coverCard(
+	cover: ShareCover,
+	width: number,
+	height: number,
+	style: SatoriStyle = {}
+): SatoriElement {
+	return card(
+		coverFace(cover, width, height, titledFallback),
+		width,
+		height,
+		style
+	);
+}
+
+export function partlyHiddenCoverCard(
+	cover: ShareCover,
+	width: number,
+	height: number,
+	markerSide: CoverMarkerSide,
+	style: SatoriStyle = {}
+): SatoriElement {
+	return card(
+		coverFace(cover, width, height, markedFallback(markerSide)),
+		width,
+		height,
+		style
+	);
+}
+
+export function ownerLabel(username: string, fontSize: number): SatoriElement {
+	return text(
+		{
+			fontFamily: SHARE_FONT_FAMILY.text,
+			fontWeight: 600,
+			fontSize,
+			color: SHARE_COLORS.foreground,
+			flexShrink: 0
+		},
+		`@${username}'s Rewind`
+	);
 }

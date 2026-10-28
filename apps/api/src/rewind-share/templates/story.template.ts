@@ -4,223 +4,149 @@ import {
 	SHARE_FONT_FAMILY,
 	SHARE_IMAGE_SIZES
 } from "../rewind-share.constants";
-import { type ShareCover } from "../rewind-share.interface";
+import { type ShareArtwork, type ShareCover } from "../rewind-share.interface";
 import { displayText } from "../utils/display-text.util";
-import { formatRating } from "../utils/format-count.util";
 import { rewindSummary } from "../utils/rewind-summary.util";
+import { coverFan } from "./cover-fan.template";
 import {
+	backdropStyle,
 	box,
-	brandGlow,
-	coverCard,
-	type SatoriChild,
+	gradientYear,
+	ownerLabel,
 	type SatoriElement,
-	singleLine,
-	starIcon,
-	tallyRow,
 	text,
 	wordmark
 } from "./elements.template";
-import { platinumEntry, tallyEntries } from "./tally-entries.template";
+import { personaBadge } from "./persona-badge.template";
+import { leadTile, supportingTiles, tileBox } from "./stat-tiles.template";
 
 export interface StoryTemplateInput {
 	rewind: Rewind;
-	covers: ShareCover[];
+	artwork: ShareArtwork;
 	host: string;
 }
 
-export const STORY_COVER_LIMIT = 4;
+export const STORY_COVER_LIMIT = 5;
 
-const SIDE_PADDING = 96;
-const CONTENT_WIDTH = SHARE_IMAGE_SIZES.story.width - SIDE_PADDING * 2;
+const { width: STORY_WIDTH, height: STORY_HEIGHT } = SHARE_IMAGE_SIZES.story;
+const SIDE_PADDING = 80;
+const CONTENT_WIDTH = STORY_WIDTH - SIDE_PADDING * 2;
 const TOP_SAFE_AREA = 220;
 const BOTTOM_SAFE_AREA = 280;
-const FOOTER_OFFSET = 56;
-const COVER_WIDTH = 210;
-const COVER_HEIGHT = 315;
-const COVER_STAGGER = [0, 24, 8, 32];
+const FOOTER_OFFSET = 64;
 const USERNAME_MAX_LENGTH = 22;
-const DETAIL_VALUE_MAX_LENGTH = 40;
-const TALLY_SIZES = { labelSize: 40, valueSize: 64, dotSize: 7 };
+const TILES_HEIGHT = 348;
+const TILES_GAP = 16;
+const LEAD_TILE_WIDTH = 400;
+const SUPPORTING_TILE_LIMIT = 3;
+const FAN_LAYOUT = {
+	coverWidth: 244,
+	coverHeight: 344,
+	areaWidth: STORY_WIDTH,
+	areaHeight: 380,
+	spreadX: 168,
+	dropY: 10,
+	tiltDegrees: 7,
+	shrinkPerStep: 0.07
+};
 
 function header(username: string): SatoriElement {
 	return box(
 		{
 			justifyContent: "space-between",
 			alignItems: "center",
+			width: CONTENT_WIDTH,
+			flexShrink: 0
+		},
+		[
+			wordmark(34),
+			ownerLabel(displayText(username, USERNAME_MAX_LENGTH), 36)
+		]
+	);
+}
+
+function titleBlock(rewind: Rewind): SatoriElement {
+	return box({ flexDirection: "column", marginTop: 56, flexShrink: 0 }, [
+		gradientYear(rewind.year, 384),
+		box({ marginTop: 40 }, [
+			personaBadge(rewind.persona, { titleSize: 76, phraseSize: 36 })
+		])
+	]);
+}
+
+function summaryHeadline(rewind: Rewind): SatoriElement {
+	return box(
+		{
+			flexGrow: 1,
+			flexShrink: 1,
+			minHeight: 0,
+			alignItems: "center",
 			width: CONTENT_WIDTH
 		},
 		[
-			wordmark(36),
-			singleLine(
+			text(
 				{
-					fontFamily: SHARE_FONT_FAMILY.text,
-					fontWeight: 600,
-					fontSize: 36,
-					color: SHARE_COLORS.secondary,
-					maxWidth: 480
+					fontFamily: SHARE_FONT_FAMILY.display,
+					fontWeight: 700,
+					fontSize: 92,
+					lineHeight: 1.02,
+					color: SHARE_COLORS.foreground
 				},
-				`@${displayText(username, USERNAME_MAX_LENGTH)}`
+				rewindSummary(rewind.totals)
 			)
 		]
 	);
 }
 
-function yearBlock(year: number): SatoriElement {
-	return box({ flexDirection: "column", marginTop: 44 }, [
-		text(
-			{
-				fontFamily: SHARE_FONT_FAMILY.text,
-				fontWeight: 600,
-				fontSize: 56,
-				color: SHARE_COLORS.secondary
-			},
-			"Rewind"
-		),
-		text(
-			{
-				fontFamily: SHARE_FONT_FAMILY.display,
-				fontWeight: 700,
-				fontSize: 300,
-				lineHeight: 0.86,
-				letterSpacing: "-0.04em",
-				color: SHARE_COLORS.foreground,
-				marginLeft: -14,
-				marginTop: 12
-			},
-			String(year)
-		)
-	]);
-}
-
-function coverRow(covers: ShareCover[], rewind: Rewind): SatoriElement {
-	if (covers.length === 0) {
-		return text(
-			{
-				fontFamily: SHARE_FONT_FAMILY.display,
-				fontWeight: 600,
-				fontSize: 88,
-				lineHeight: 1.05,
-				color: SHARE_COLORS.foreground,
-				marginTop: 72,
-				width: CONTENT_WIDTH
-			},
-			rewindSummary(rewind.totals)
-		);
-	}
+function coverStage(rewind: Rewind, covers: ShareCover[]): SatoriElement {
+	if (covers.length === 0) return summaryHeadline(rewind);
 	return box(
 		{
-			gap: 16,
-			marginTop: 60,
-			height: COVER_HEIGHT + Math.max(...COVER_STAGGER)
+			flexGrow: 1,
+			flexShrink: 1,
+			minHeight: 0,
+			alignItems: "center",
+			marginLeft: -SIDE_PADDING,
+			width: STORY_WIDTH
 		},
-		covers.map((cover, index) =>
-			coverCard(cover, COVER_WIDTH, COVER_HEIGHT, {
-				marginTop: COVER_STAGGER[index] ?? 0
-			})
-		)
+		[coverFan(covers, FAN_LAYOUT)]
 	);
 }
 
-function detailRow(label: string, value: SatoriChild[]): SatoriElement {
-	return box({ alignItems: "center", gap: 28, width: "100%" }, [
-		text(
-			{
-				fontFamily: SHARE_FONT_FAMILY.text,
-				fontWeight: 600,
-				fontSize: 36,
-				color: SHARE_COLORS.secondary,
-				flexShrink: 0
-			},
-			label
-		),
+function statTiles(rewind: Rewind): SatoriElement {
+	const supporting = supportingTiles(rewind.totals, SUPPORTING_TILE_LIMIT);
+	const lead = tileBox(leadTile(rewind.totals), {
+		valueSize: 200,
+		labelSize: 40,
+		width: supporting.length > 0 ? LEAD_TILE_WIDTH : CONTENT_WIDTH,
+		height: TILES_HEIGHT,
+		stacked: true
+	});
+	if (supporting.length === 0) return lead;
+
+	const tileHeight =
+		(TILES_HEIGHT - TILES_GAP * (supporting.length - 1)) /
+		supporting.length;
+	return box({ gap: TILES_GAP, width: CONTENT_WIDTH, flexShrink: 0 }, [
+		lead,
 		box(
 			{
-				alignItems: "center",
-				gap: 16,
-				flexGrow: 1,
-				flexShrink: 1,
-				overflow: "hidden",
-				justifyContent: "flex-end"
+				flexDirection: "column",
+				gap: TILES_GAP,
+				width: CONTENT_WIDTH - LEAD_TILE_WIDTH - TILES_GAP,
+				flexShrink: 0
 			},
-			value
+			supporting.map(tile =>
+				tileBox(tile, {
+					valueSize: 72,
+					labelSize: 32,
+					width: "100%",
+					height: tileHeight,
+					stacked: false
+				})
+			)
 		)
 	]);
-}
-
-function detailValue(content: string): SatoriElement {
-	return singleLine(
-		{
-			fontFamily: SHARE_FONT_FAMILY.display,
-			fontWeight: 600,
-			fontSize: 46,
-			color: SHARE_COLORS.foreground,
-			flexShrink: 1
-		},
-		displayText(content, DETAIL_VALUE_MAX_LENGTH)
-	);
-}
-
-function detailRows(rewind: Rewind): SatoriElement[] {
-	const { favoriteGenre, topRated } = rewind.highlights;
-	const rows: SatoriElement[] = [];
-	if (favoriteGenre)
-		rows.push(
-			detailRow("Favorite genre", [detailValue(favoriteGenre.name)])
-		);
-	if (topRated) {
-		rows.push(
-			detailRow("Top rated", [
-				detailValue(topRated.title),
-				box({ alignItems: "center", gap: 8, flexShrink: 0 }, [
-					starIcon(40, SHARE_COLORS.brand),
-					text(
-						{
-							fontFamily: SHARE_FONT_FAMILY.display,
-							fontWeight: 600,
-							fontSize: 46,
-							color: SHARE_COLORS.brand
-						},
-						formatRating(topRated.userRating)
-					)
-				])
-			])
-		);
-	}
-	return rows;
-}
-
-function results(rewind: Rewind): SatoriElement {
-	const platinums = platinumEntry(rewind.totals);
-	const entries = platinums
-		? [...tallyEntries(rewind.totals), platinums]
-		: tallyEntries(rewind.totals);
-	const details = detailRows(rewind);
-
-	return box(
-		{
-			flexDirection: "column",
-			marginTop: 60,
-			gap: 12,
-			width: CONTENT_WIDTH
-		},
-		[
-			...entries.map(entry => tallyRow(entry, TALLY_SIZES)),
-			...(details.length > 0
-				? [
-						box(
-							{
-								flexDirection: "column",
-								gap: 16,
-								marginTop: 24,
-								paddingTop: 30,
-								borderTop: `2px solid ${SHARE_COLORS.dots}`
-							},
-							details
-						)
-					]
-				: [])
-		]
-	);
 }
 
 function footer(host: string): SatoriElement {
@@ -228,10 +154,7 @@ function footer(host: string): SatoriElement {
 		{
 			position: "absolute",
 			left: SIDE_PADDING,
-			top:
-				SHARE_IMAGE_SIZES.story.height -
-				BOTTOM_SAFE_AREA +
-				FOOTER_OFFSET,
+			top: STORY_HEIGHT - BOTTOM_SAFE_AREA + FOOTER_OFFSET,
 			fontFamily: SHARE_FONT_FAMILY.text,
 			fontWeight: 600,
 			fontSize: 32,
@@ -243,25 +166,24 @@ function footer(host: string): SatoriElement {
 
 export function storyTemplate({
 	rewind,
-	covers,
+	artwork,
 	host
 }: StoryTemplateInput): SatoriElement {
 	return box(
 		{
 			position: "relative",
 			flexDirection: "column",
-			width: SHARE_IMAGE_SIZES.story.width,
-			height: SHARE_IMAGE_SIZES.story.height,
-			padding: `${TOP_SAFE_AREA}px ${SIDE_PADDING}px 0px`,
-			backgroundColor: SHARE_COLORS.canvas,
-			overflow: "hidden"
+			width: STORY_WIDTH,
+			height: STORY_HEIGHT,
+			padding: `${TOP_SAFE_AREA}px ${SIDE_PADDING}px ${BOTTOM_SAFE_AREA}px`,
+			overflow: "hidden",
+			...backdropStyle(artwork.backdrop, SHARE_IMAGE_SIZES.story)
 		},
 		[
-			brandGlow(1200, { top: -520, right: -520 }),
 			header(rewind.user.username),
-			yearBlock(rewind.year),
-			coverRow(covers, rewind),
-			results(rewind),
+			titleBlock(rewind),
+			coverStage(rewind, artwork.covers),
+			statTiles(rewind),
 			footer(host)
 		]
 	);

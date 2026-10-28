@@ -4,11 +4,13 @@ import satori from "satori";
 import { environmentConfig } from "../common/config/environment.config";
 import { type Rewind } from "../rewind/rewind.interface";
 import {
+	BACKDROP_FETCH_WIDTH,
 	SHARE_IMAGE_CACHE_SIZE,
 	SHARE_IMAGE_SIZES
 } from "./rewind-share.constants";
 import {
 	type RewindImageFormat,
+	type ShareArtwork,
 	type ShareCover,
 	type SharePageMeta
 } from "./rewind-share.interface";
@@ -16,16 +18,17 @@ import { type SatoriElement } from "./templates/elements.template";
 import { OG_COVER_LIMIT, ogTemplate } from "./templates/og.template";
 import { sharePageTemplate } from "./templates/share-page.template";
 import { STORY_COVER_LIMIT, storyTemplate } from "./templates/story.template";
-import { fetchCoverDataUri } from "./utils/fetch-cover.util";
+import { fetchImageDataUri } from "./utils/fetch-image.util";
 import { hashRewind } from "./utils/hash-rewind.util";
 import { loadShareFonts } from "./utils/load-share-fonts.util";
 import { LruCache } from "./utils/lru-cache.util";
 import { rewindSummary } from "./utils/rewind-summary.util";
+import { selectBackdropUrl } from "./utils/select-backdrop-url.util";
 import { selectShareCovers } from "./utils/select-share-covers.util";
 
 interface RenderedImage {
 	png: Buffer;
-	hasMissingCovers: boolean;
+	hasMissingImages: boolean;
 }
 
 const GENERIC_SHARE_TITLE = "Completr Rewind";
@@ -53,38 +56,57 @@ interface LoadedCover extends ShareCover {
 	failedToLoad: boolean;
 }
 
+interface LoadedArtwork extends ShareArtwork {
+	hasMissingImages: boolean;
+}
+
+function failedToLoad(url: string | null, dataUri: string | null): boolean {
+	return Boolean(url) && !dataUri;
+}
+
 async function loadCover(
 	title: string,
 	coverUrl: string | null
 ): Promise<LoadedCover> {
-	const dataUri = await fetchCoverDataUri(coverUrl);
-	return { title, dataUri, failedToLoad: Boolean(coverUrl) && !dataUri };
+	const dataUri = await fetchImageDataUri(coverUrl);
+	return { title, dataUri, failedToLoad: failedToLoad(coverUrl, dataUri) };
 }
 
-function loadCovers(
+async function loadArtwork(
 	rewind: Rewind,
 	format: RewindImageFormat
-): Promise<LoadedCover[]> {
+): Promise<LoadedArtwork> {
 	const games = selectShareCovers(rewind, COVER_LIMITS[format]);
-	return Promise.all(games.map(game => loadCover(game.title, game.coverUrl)));
+	const backdropUrl = selectBackdropUrl(rewind);
+	const [covers, backdrop] = await Promise.all([
+		Promise.all(games.map(game => loadCover(game.title, game.coverUrl))),
+		fetchImageDataUri(backdropUrl, BACKDROP_FETCH_WIDTH)
+	]);
+	return {
+		covers,
+		backdrop,
+		hasMissingImages:
+			failedToLoad(backdropUrl, backdrop) ||
+			covers.some(cover => cover.failedToLoad)
+	};
 }
 
 function imageTemplate(
 	rewind: Rewind,
-	covers: ShareCover[],
+	artwork: ShareArtwork,
 	format: RewindImageFormat
 ): SatoriElement {
-	if (format === "og") return ogTemplate({ rewind, covers });
-	return storyTemplate({ rewind, covers, host: webAppHost() });
+	if (format === "og") return ogTemplate({ rewind, artwork });
+	return storyTemplate({ rewind, artwork, host: webAppHost() });
 }
 
 export async function renderRewindImage(
 	rewind: Rewind,
 	format: RewindImageFormat
 ): Promise<RenderedImage> {
-	const covers = await loadCovers(rewind, format);
+	const artwork = await loadArtwork(rewind, format);
 	const { width, height } = SHARE_IMAGE_SIZES[format];
-	const svg = await satori(imageTemplate(rewind, covers, format), {
+	const svg = await satori(imageTemplate(rewind, artwork, format), {
 		width,
 		height,
 		fonts: loadShareFonts()
@@ -95,7 +117,7 @@ export async function renderRewindImage(
 	})
 		.render()
 		.asPng();
-	return { png, hasMissingCovers: covers.some(cover => cover.failedToLoad) };
+	return { png, hasMissingImages: artwork.hasMissingImages };
 }
 
 function imageCacheKey(rewind: Rewind, format: RewindImageFormat): string {
@@ -120,7 +142,7 @@ export async function getRewindImage(
 	imageCache.set(key, rendering);
 	try {
 		const image = await rendering;
-		if (image.hasMissingCovers) forgetEntry(key, rendering);
+		if (image.hasMissingImages) forgetEntry(key, rendering);
 		return image.png;
 	} catch (error) {
 		forgetEntry(key, rendering);
