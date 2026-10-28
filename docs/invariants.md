@@ -373,6 +373,7 @@ Endpoints: `GET /users/me/backlog/export`, `/users/me/queue/export`, `/users/me/
 - El token de reset son 32 bytes aleatorios en hex (64 caracteres). En `PasswordResetTokens` se guarda solo su hash SHA-256 (`tokenHash`, único).
 - TTL configurable con `PASSWORD_RESET_TOKEN_TTL_MINUTES`, default 60 minutos.
 - Un usuario tiene como máximo un token vigente: pedir otro borra los anteriores.
+- Enfriamiento por cuenta: si el token vigente se creó hace menos de `PASSWORD_RESET_COOLDOWN_MINUTES` (default 5), no se crea otro ni se envía correo, y la respuesta sigue siendo 204. La comprobación y la creación van en una transacción con un lock de PostgreSQL por usuario, así que pedidos concurrentes producen un solo token y un solo correo.
 - El token es de un solo uso: `POST /auth/reset-password` lo borra al consumirlo, junto con cualquier otro token del usuario, y revoca todas sus sesiones (refresh tokens). Un token desconocido, vencido o ya usado responde 400 `AUTH_INVALID_PASSWORD_RESET_TOKEN`.
 - El link del correo apunta a `{WEB_APP_URL}/reset-password?token=<token>`.
 
@@ -395,6 +396,8 @@ Endpoints: `GET /users/me/backlog/export`, `/users/me/queue/export`, `/users/me/
 - `admin` y `moderator` están exentos.
 - Limites diferenciados por tipo de endpoint: público (más restrictivo), usuario (medio), auth (mínimo).
 - `authLimiter` (`POST /auth/login`, `/auth/refresh` y `PATCH /auth/password`): 5 por minuto; al superarlos, bloqueo de 15 minutos. `authLimiter` también cubre `POST /auth/reset-password`. `registerLimiter` (`/auth/register` y alta de usuarios desde Admin): 3 por minuto. `passwordResetLimiter` (`POST /auth/forgot-password`): 3 cada 15 minutos. `registerLimiter` también cubre `POST /admin/invitations` y `POST /invitations/accept`. Valores en `apps/api/src/common/config/rate-limiter.config.ts`.
+- La clave del límite es la IP del cliente, resuelta por `resolveClientIp` (`common/utils/client-ip.util.ts`). Si `CLIENT_IP_HEADER` está definida (por ejemplo `cf-connecting-ip`), se toma esa cabecera siempre que contenga una IP válida; si falta, viene vacía o no es una IP, se usa `request.ip`. Sin la variable, siempre `request.ip`.
+- `RATE_LIMIT_ENABLED` (default `true`) en `false` desactiva el rate limit. En `NODE_ENV=test` queda desactivado siempre.
 
 ---
 
