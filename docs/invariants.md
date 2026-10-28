@@ -219,6 +219,9 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 ### Sagas
 
 - `POST /franchises` y `PATCH /franchises/:id` aceptan `gameIds` opcional: el conjunto final de juegos de la saga. Si se envía, la saga y los vínculos se aplican en una sola transacción: los juegos listados quedan con ese `franchiseId` y los que la saga tenía y no aparecen se desvinculan (`franchiseId = null`). Si algún id no existe responde 404 `FRANCHISE_GAMES_NOT_FOUND` y no se aplica nada. Sin `gameIds` los juegos no se tocan.
+- Crear, editar y borrar sagas requiere rol `moderator` o `admin`. Un usuario solo puede seguirlas (`POST` / `DELETE /franchises/:code/track`).
+- `GET /franchises` y `GET /franchises/:code` aceptan visitantes (auth opcional; un token inválido cuenta como visitante). Ninguna respuesta de sagas incluye progreso personal: el conteo es `gameCount`, los juegos activos de la saga.
+- `GET /franchises` incluye en cada saga `previewGames`: hasta 4 juegos activos ordenados por fecha de lanzamiento (desempate por id), e `isTracked` del visitante (`false` sin sesión).
 
 ### Datos crudos
 
