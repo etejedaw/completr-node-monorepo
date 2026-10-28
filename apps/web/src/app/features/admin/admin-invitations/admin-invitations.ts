@@ -9,7 +9,15 @@ import {
 import { email, form, FormField, required } from "@angular/forms/signals";
 
 import { ToastService } from "../../../core/services/toast";
-import { UiAlert, UiButton, UiIconButton, UiInput } from "../../../shared/ui";
+import {
+	UiAlert,
+	UiButton,
+	UiDialog,
+	UiFieldLabel,
+	UiFormField,
+	UiInput,
+	UiLabel
+} from "../../../shared/ui";
 import {
 	type AdminInvitation,
 	InvitationAdminService
@@ -17,7 +25,17 @@ import {
 
 @Component({
 	selector: "app-admin-invitations",
-	imports: [DatePipe, FormField, UiAlert, UiButton, UiIconButton, UiInput],
+	imports: [
+		DatePipe,
+		FormField,
+		UiAlert,
+		UiButton,
+		UiDialog,
+		UiFieldLabel,
+		UiFormField,
+		UiInput,
+		UiLabel
+	],
 	templateUrl: "./admin-invitations.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
