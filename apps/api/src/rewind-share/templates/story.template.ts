@@ -17,7 +17,6 @@ import {
 	text,
 	wordmark
 } from "./elements.template";
-import { fanWithCaption } from "./featured-caption.template";
 import { personaBadge } from "./persona-badge.template";
 import { leadTile, supportingTiles, tileBox } from "./stat-tiles.template";
 
@@ -41,11 +40,11 @@ const TILES_GAP = 16;
 const LEAD_TILE_WIDTH = 400;
 const SUPPORTING_TILE_LIMIT = 3;
 const FAN_LAYOUT = {
-	coverWidth: 226,
-	coverHeight: 318,
+	coverWidth: 244,
+	coverHeight: 344,
 	areaWidth: STORY_WIDTH,
-	areaHeight: 344,
-	spreadX: 160,
+	areaHeight: 380,
+	spreadX: 168,
 	dropY: 10,
 	tiltDegrees: 7,
 	shrinkPerStep: 0.07
@@ -113,7 +112,7 @@ function coverStage(rewind: Rewind, covers: ShareCover[]): SatoriElement {
 			marginLeft: -SIDE_PADDING,
 			width: STORY_WIDTH
 		},
-		fanWithCaption(rewind, covers, coverFan(covers, FAN_LAYOUT), 34)
+		[coverFan(covers, FAN_LAYOUT)]
 	);
 }
 

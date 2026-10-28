@@ -17,7 +17,6 @@ import {
 	text,
 	wordmark
 } from "./elements.template";
-import { fanWithCaption } from "./featured-caption.template";
 import { personaBadge } from "./persona-badge.template";
 import { leadTile, supportingTiles, tileBox } from "./stat-tiles.template";
 
@@ -113,7 +112,7 @@ function rightColumn(rewind: Rewind, covers: ShareCover[]): SatoriElement {
 			justifyContent: "center",
 			marginRight: -PADDING
 		},
-		fanWithCaption(rewind, covers, coverFan(covers, FAN_LAYOUT), 20)
+		[coverFan(covers, FAN_LAYOUT)]
 	);
 }
 
