@@ -11,20 +11,22 @@ import { Router, RouterLink } from "@angular/router";
 import { type Game } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
+import { adminErrorMessage } from "../../../core/utils/admin-error-message";
 import {
 	ChipGroup,
 	type ChipOption
 } from "../../../shared/components/chip-group/chip-group";
+import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import {
 	SegmentedControl,
 	type SegmentedOption
 } from "../../../shared/components/segmented-control/segmented-control";
-import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import {
 	UiAlert,
 	UiButton,
+	UiDialog,
 	UiEmptyState,
 	UiIconButton,
 	UiNoMatches,
@@ -32,6 +34,7 @@ import {
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
+import { AdminGameEditor } from "../../games/admin-game-editor/admin-game-editor";
 import { type GamesQuery, GamesService } from "../../games/games";
 import { ReportsService } from "../services/reports.service";
 
@@ -39,6 +42,7 @@ import { ReportsService } from "../services/reports.service";
 	selector: "app-admin-games",
 	imports: [
 		RouterLink,
+		AdminGameEditor,
 		ChipGroup,
 		GamePoster,
 		LibraryHero,
@@ -46,6 +50,7 @@ import { ReportsService } from "../services/reports.service";
 		SegmentedControl,
 		UiAlert,
 		UiButton,
+		UiDialog,
 		UiEmptyState,
 		UiIconButton,
 		UiNoMatches,
@@ -88,12 +93,20 @@ export class AdminGames implements OnInit {
 		"active"
 	);
 	protected readonly reactivatingIds = signal<Set<string>>(new Set());
+	protected readonly showCreateEditor = signal(false);
+	protected readonly editingGame = signal<Game | null>(null);
+	protected readonly loadingEditorId = signal<string | null>(null);
+	protected readonly deactivateTarget = signal<Game | null>(null);
+	protected readonly isDeactivating = signal(false);
 
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	protected readonly manualScoreSources = computed(() =>
-		this.scoreSourcesService.manualSources().map(source => source.code)
+		this.scoreSourcesService.manualSources()
 	);
-	protected readonly TIME_SOURCES = ["hltb", "rawg"];
+	protected readonly TIME_SOURCES = [
+		{ code: "hltb", name: "HowLongToBeat" },
+		{ code: "rawg", name: "RAWG" }
+	];
 
 	ngOnInit() {
 		this.scoreSourcesService.load();
@@ -142,19 +155,25 @@ export class AdminGames implements OnInit {
 			this.noTimeSources().size > 0
 	);
 
-	protected readonly missingOptions = computed<ChipOption[]>(() => [
+	protected readonly generalMissingOptions: ChipOption[] = [
 		{ value: "noScores", label: "No scores" },
 		{ value: "noTimes", label: "No times" },
-		{ value: "noPlatforms", label: "No platforms" },
-		...this.manualScoreSources().map(src => ({
-			value: `score:${src}`,
-			label: `No ${src} score`
-		})),
-		...this.TIME_SOURCES.map(src => ({
-			value: `time:${src}`,
-			label: `No ${src} time`
+		{ value: "noPlatforms", label: "No platforms" }
+	];
+
+	protected readonly scoreMissingOptions = computed<ChipOption[]>(() =>
+		this.manualScoreSources().map(source => ({
+			value: `score:${source.code}`,
+			label: source.name
 		}))
-	]);
+	);
+
+	protected readonly timeMissingOptions: ChipOption[] = this.TIME_SOURCES.map(
+		source => ({
+			value: `time:${source.code}`,
+			label: source.name
+		})
+	);
 
 	protected readonly missingValue = computed(() => [
 		...(this.noScores() ? ["noScores"] : []),
@@ -164,10 +183,16 @@ export class AdminGames implements OnInit {
 		...[...this.noTimeSources()].map(src => `time:${src}`)
 	]);
 
-	protected onMissingChange(next: readonly string[]) {
-		const current = new Set(this.missingValue());
+	protected onMissingChange(
+		next: readonly string[],
+		group: readonly ChipOption[]
+	) {
+		const groupValues = new Set(group.map(option => option.value));
+		const current = new Set(
+			this.missingValue().filter(value => groupValues.has(value))
+		);
 		const incoming = new Set(next);
-		const changed = [...incoming, ...current].find(
+		const changed = [...groupValues].find(
 			value => incoming.has(value) !== current.has(value)
 		);
 		if (!changed) return;
@@ -227,6 +252,84 @@ export class AdminGames implements OnInit {
 				this.toast.warning("Could not reactivate game.");
 			}
 		});
+	}
+
+	toggleCreateEditor() {
+		this.editingGame.set(null);
+		this.showCreateEditor.update(open => !open);
+	}
+
+	toggleEditor(game: Game) {
+		this.showCreateEditor.set(false);
+		if (this.editingGame()?.id === game.id) {
+			this.editingGame.set(null);
+			return;
+		}
+		if (this.loadingEditorId() === game.id) return;
+		this.loadingEditorId.set(game.id);
+		this.gamesService.getByCode(game.code).subscribe({
+			next: fullGame => {
+				if (this.loadingEditorId() !== game.id) return;
+				this.loadingEditorId.set(null);
+				this.editingGame.set(fullGame);
+			},
+			error: () => {
+				if (this.loadingEditorId() === game.id)
+					this.loadingEditorId.set(null);
+				this.toast.warning("Could not load the game to edit.");
+			}
+		});
+	}
+
+	onGameCreated(game: Game) {
+		this.showCreateEditor.set(false);
+		this.toast.success(`Created "${game.title}"`);
+		this.loadGames();
+	}
+
+	onEditorSaved() {
+		this.editingGame.set(null);
+		this.loadGames();
+	}
+
+	onEditorSplit() {
+		this.editingGame.set(null);
+		this.loadGames();
+	}
+
+	askDeactivate(game: Game) {
+		this.deactivateTarget.set(game);
+	}
+
+	cancelDeactivate() {
+		if (this.isDeactivating()) return;
+		this.deactivateTarget.set(null);
+	}
+
+	confirmDeactivate(game: Game) {
+		if (this.isDeactivating()) return;
+		this.isDeactivating.set(true);
+		this.gamesService.deactivate(game.id).subscribe({
+			next: () => {
+				this.isDeactivating.set(false);
+				this.deactivateTarget.set(null);
+				if (this.editingGame()?.id === game.id)
+					this.editingGame.set(null);
+				this.toast.success(`Deactivated "${game.title}"`);
+				this.loadGames();
+			},
+			error: (err: { status?: number }) => {
+				this.isDeactivating.set(false);
+				this.deactivateTarget.set(null);
+				this.reportActionError(err, "Could not deactivate game.");
+			}
+		});
+	}
+
+	private reportActionError(err: { status?: number }, fallback: string) {
+		const alreadyToastedByInterceptor = err.status === 409;
+		if (alreadyToastedByInterceptor) return;
+		this.toast.warning(adminErrorMessage(err) ?? fallback);
 	}
 
 	goToGameReport(gameId: string) {
