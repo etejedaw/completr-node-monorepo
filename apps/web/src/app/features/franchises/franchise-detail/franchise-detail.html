@@ -11,7 +11,7 @@
 	title="Saga not found"
 	hint="It may have been renamed or removed from the catalog."
 >
-	<a uiButton variant="secondary" routerLink="/games">Browse games</a>
+	<a uiButton variant="secondary" routerLink="/franchises">Browse sagas</a>
 </ui-empty-state>
 } @else if (detail(); as current) {
 <app-library-hero [heading]="current.franchise.name" [posters]="heroPosters()">
@@ -32,10 +32,9 @@
 		}
 		<p class="m-0 text-sm text-fg-secondary">
 			<span class="font-semibold text-fg tabular-nums"
-				>{{ current.progress.total }}</span
+				>{{ current.gameCount }}</span
 			>
-			{{ current.progress.total === 1 ? 'game' : 'games' }} · in release
-			order
+			{{ current.gameCount === 1 ? 'game' : 'games' }} · in release order
 		</p>
 	</div>
 	<button
@@ -97,7 +96,7 @@
 <ui-pagination
 	[offset]="offset()"
 	[limit]="limit"
-	[total]="current.progress.total"
+	[total]="current.gameCount"
 	(offsetChange)="goToOffset($event)"
 />
 } } @else if (page.error()) {
