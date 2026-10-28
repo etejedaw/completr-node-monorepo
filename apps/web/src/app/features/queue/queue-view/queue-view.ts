@@ -1,4 +1,5 @@
 import { moveItemInArray } from "@angular/cdk/drag-drop";
+import { HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -31,10 +32,7 @@ import {
 	UiPlainEmptyState,
 	UiPremiumBadge
 } from "../../../shared/ui";
-import {
-	arrangeIntoFullOrder,
-	moveIntoFullOrder
-} from "../../../shared/utils/full-order";
+import { arrangeIntoFullOrder } from "../../../shared/utils/full-order";
 import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { BacklogService } from "../../backlog/backlog";
 import { FavoritesService } from "../../favorites/favorites";
@@ -48,6 +46,15 @@ import {
 	type QueueEntryMove
 } from "../queue-browser/queue-browser";
 import { type QueueSort, type QueueStatusChange } from "../queue-order";
+
+const STATUSES_REPORTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
+
+function isAlreadyReported(error: unknown) {
+	return (
+		error instanceof HttpErrorResponse &&
+		STATUSES_REPORTED_BY_INTERCEPTOR.has(error.status)
+	);
+}
 
 interface QueueWrite {
 	request: () => Observable<QueueEntry[]>;
@@ -312,8 +319,9 @@ export class QueueView implements OnInit {
 		const visibleOrder = this.serverOrder(list);
 		this.enqueueWrite({
 			request: () =>
-				this.queueService.updateOrder(ids =>
-					moveIntoFullOrder(ids, moved.backlog.id, visibleOrder)
+				this.queueService.moveWithinVisible(
+					moved.backlog.id,
+					visibleOrder
 				)
 		});
 	}
@@ -331,9 +339,11 @@ export class QueueView implements OnInit {
 					this.entries.set(this.shownIn(updated));
 				write.saved?.();
 			}),
-			catchError(() => {
+			catchError((error: unknown) => {
 				this.pendingWrites--;
 				write.failed?.();
+				if (!isAlreadyReported(error))
+					this.toast.error("Couldn't update your queue.");
 				if (this.pendingWrites === 0) this.loadQueue();
 				return EMPTY;
 			})
