@@ -165,7 +165,7 @@ function rewindPageUrl(username: string, year: number): string {
 }
 
 function ogImageUrl(username: string, year: number): string {
-	return `${baseUrl(environmentConfig.API_PUBLIC_URL)}/users/${encodeURIComponent(username)}/rewinds/${year}/og.png`;
+	return `${baseUrl(environmentConfig.WEB_APP_URL)}/share/rewind/${encodeURIComponent(username)}/${year}/og.png`;
 }
 
 function sharePageMeta(

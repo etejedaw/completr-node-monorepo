@@ -12,7 +12,6 @@ const EnvironmentConfigSchema = z
 		PASSWORD_RESET_COOLDOWN_MINUTES: z.coerce.number().default(5),
 		USER_INVITATION_TTL_DAYS: z.coerce.number().default(7),
 		WEB_APP_URL: z.url().default("http://localhost:4200"),
-		API_PUBLIC_URL: z.url().default("http://localhost:3000"),
 		CORS_ORIGIN: z.string().default("http://localhost:4200"),
 		CORS_METHODS: z.string().default("GET,POST,PATCH,PUT,DELETE,OPTIONS"),
 		CORS_ALLOWED_HEADERS: z.string().default("Content-Type,Authorization"),

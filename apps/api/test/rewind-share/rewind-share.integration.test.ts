@@ -58,12 +58,12 @@ void describe("Rewind share images", () => {
 	});
 
 	for (const format of IMAGE_FORMATS) {
-		void describe(`GET /users/:username/rewinds/:year/${format.path}`, () => {
+		void describe(`GET /share/rewind/:username/:year/${format.path}`, () => {
 			void it("answers a public PNG with exact dimensions to a guest", async () => {
 				const rewindMock = stubRewind(answerRewind);
 
 				const response = await api()
-					.get(`/users/esteban/rewinds/2026/${format.path}`)
+					.get(`/share/rewind/esteban/2026/${format.path}`)
 					.expect(200);
 
 				assert.equal(response.headers["content-type"], "image/png");
@@ -93,7 +93,7 @@ void describe("Rewind share images", () => {
 				const rewindMock = stubRewind(answerRewind);
 
 				const response = await api()
-					.get(`/users/esteban/rewinds/2026/${format.path}`)
+					.get(`/share/rewind/esteban/2026/${format.path}`)
 					.set("Authorization", authorization)
 					.expect(200);
 
@@ -112,7 +112,7 @@ void describe("Rewind share images", () => {
 				const rewindMock = stubRewind(answerRewind);
 
 				const response = await api()
-					.get(`/users/esteban/rewinds/2026/${format.path}`)
+					.get(`/share/rewind/esteban/2026/${format.path}`)
 					.set("Authorization", "Bearer not-a-token")
 					.expect(200);
 
@@ -128,7 +128,7 @@ void describe("Rewind share images", () => {
 
 				for (const year of INVALID_YEARS) {
 					const response = await api().get(
-						`/users/esteban/rewinds/${year}/${format.path}`
+						`/share/rewind/esteban/${year}/${format.path}`
 					);
 					assert.equal(response.status, 422, `year ${year}`);
 					assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
@@ -142,7 +142,7 @@ void describe("Rewind share images", () => {
 				);
 
 				const response = await api()
-					.get(`/users/nobody/rewinds/2026/${format.path}`)
+					.get(`/share/rewind/nobody/2026/${format.path}`)
 					.expect(404);
 
 				assert.equal(response.body.type, "USER_NOT_FOUND");
@@ -152,7 +152,7 @@ void describe("Rewind share images", () => {
 				stubRewind(() => Promise.reject(userDomainError.userPrivate()));
 
 				const response = await api()
-					.get(`/users/hidden/rewinds/2026/${format.path}`)
+					.get(`/share/rewind/hidden/2026/${format.path}`)
 					.expect(403);
 
 				assert.equal(response.body.type, "USER_PRIVATE");
@@ -164,7 +164,7 @@ void describe("Rewind share images", () => {
 				const responses = await Promise.all(
 					Array.from({ length: 4 }, () =>
 						api()
-							.get(`/users/esteban/rewinds/2026/${format.path}`)
+							.get(`/share/rewind/esteban/2026/${format.path}`)
 							.expect(200)
 					)
 				);
@@ -172,6 +172,24 @@ void describe("Rewind share images", () => {
 				const [first, ...rest] = responses.map(imageBody);
 				for (const png of rest) assert.ok(png.equals(first!));
 			});
+		});
+	}
+});
+
+void describe("legacy image routes", () => {
+	afterEach(() => {
+		mock.restoreAll();
+	});
+
+	for (const format of IMAGE_FORMATS) {
+		void it(`answers 404 on /users/:username/rewinds/:year/${format.path} without reading the Rewind`, async () => {
+			const rewindMock = stubRewind(answerRewind);
+
+			await api()
+				.get(`/users/esteban/rewinds/2026/${format.path}`)
+				.expect(404);
+
+			assert.equal(rewindMock.mock.callCount(), 0);
 		});
 	}
 });
@@ -198,7 +216,7 @@ void describe("GET /share/rewind/:username/:year", () => {
 		);
 		assert.match(
 			response.text,
-			/<meta property="og:image" content="http:\/\/localhost:3000\/users\/esteban\/rewinds\/2026\/og.png">/
+			/<meta property="og:image" content="http:\/\/localhost:4200\/share\/rewind\/esteban\/2026\/og.png">/
 		);
 		assert.match(
 			response.text,

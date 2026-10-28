@@ -25,7 +25,7 @@ docs: |-
 
     The Rewind is always read as a guest (the token, if sent, is ignored), because link previews are fetched anonymously:
 
-    - Visible to guests: `og:title` is `@username's 2026 Rewind`, `og:description` is the summary sentence (`18 games finished, 4 left behind and 23 started.`), `og:image` is the absolute URL of `og.png` built from `API_PUBLIC_URL`, and `twitter:card` is `summary_large_image`.
+    - Visible to guests: `og:title` is `@username's 2026 Rewind`, `og:description` is the summary sentence (`18 games finished, 4 left behind and 23 started.`), `og:image` is the absolute URL of `og.png` built from `WEB_APP_URL`, and `twitter:card` is `summary_large_image`.
     - Not visible to guests (private, missing user or year without data): a generic page titled `Completr Rewind`, without data or image (`twitter:card` is `summary`), that redirects the same way.
 
     The redirect target is `{WEB_APP_URL}/user/:username/rewind/:year`. Everything that comes from the request or the user is percent-encoded in URLs and HTML-escaped. The page has no scripts or inline styles, so the default Helmet CSP does not block it.
@@ -52,7 +52,7 @@ docs: |-
     <title>@esteban&#39;s 2026 Rewind</title>
     <meta property="og:title" content="@esteban&#39;s 2026 Rewind">
     <meta property="og:description" content="18 games finished, 4 left behind and 23 started.">
-    <meta property="og:image" content="https://api.completr.app/users/esteban/rewinds/2026/og.png">
+    <meta property="og:image" content="https://web.completr.app/share/rewind/esteban/2026/og.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta http-equiv="refresh" content="0; url=https://www.completr.app/user/esteban/rewind/2026">
     </head>

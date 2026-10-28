@@ -58,7 +58,7 @@ void describe("Rewind share endpoints with the real Rewind", () => {
 
 	void it("renders the story of a public Rewind for a guest", async () => {
 		const response = await api()
-			.get(`/users/${publicOwner.username}/rewinds/2025/story.png`)
+			.get(`/share/rewind/${publicOwner.username}/2025/story.png`)
 			.buffer(true)
 			.expect(200);
 
@@ -72,7 +72,7 @@ void describe("Rewind share endpoints with the real Rewind", () => {
 
 	void it("answers 404 REWIND_NOT_FOUND for a year without games", async () => {
 		const response = await api()
-			.get(`/users/${publicOwner.username}/rewinds/2024/og.png`)
+			.get(`/share/rewind/${publicOwner.username}/2024/og.png`)
 			.expect(404);
 
 		assert.equal(response.body.type, "REWIND_NOT_FOUND");
@@ -80,7 +80,7 @@ void describe("Rewind share endpoints with the real Rewind", () => {
 
 	void it("answers 403 USER_PRIVATE for a private Rewind image", async () => {
 		const response = await api()
-			.get(`/users/${privateOwner.username}/rewinds/2025/og.png`)
+			.get(`/share/rewind/${privateOwner.username}/2025/og.png`)
 			.expect(403);
 
 		assert.equal(response.body.type, "USER_PRIVATE");
@@ -103,7 +103,7 @@ void describe("Rewind share endpoints with the real Rewind", () => {
 
 		assert.match(
 			response.text,
-			new RegExp(`/users/${publicOwner.username}/rewinds/2025/og\\.png`)
+			new RegExp(`/share/rewind/${publicOwner.username}/2025/og\\.png`)
 		);
 		assert.match(response.text, /1 game finished/);
 	});

@@ -10,7 +10,7 @@ import * as rewindShareController from "./rewind-share.controller";
 const router = Router();
 
 router.get(
-	"/users/:username/rewinds/:year/story.png",
+	"/share/rewind/:username/:year/story.png",
 	[
 		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
@@ -20,7 +20,7 @@ router.get(
 );
 
 router.get(
-	"/users/:username/rewinds/:year/og.png",
+	"/share/rewind/:username/:year/og.png",
 	[
 		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,

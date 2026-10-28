@@ -36,7 +36,7 @@ void describe("renderSharePage", () => {
 		);
 		assert.equal(
 			metaContent(html, "og:image"),
-			"http://localhost:3000/users/esteban/rewinds/2026/og.png"
+			"http://localhost:4200/share/rewind/esteban/2026/og.png"
 		);
 		assert.equal(metaContent(html, "og:image:width"), "1200");
 		assert.equal(metaContent(html, "og:image:height"), "630");

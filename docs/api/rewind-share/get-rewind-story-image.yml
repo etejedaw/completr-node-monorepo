@@ -5,7 +5,7 @@ info:
 
 http:
     method: GET
-    url: "{{BASE_URL}}/users/:username/rewinds/:year/story.png"
+    url: "{{BASE_URL}}/share/rewind/:username/:year/story.png"
     params:
         - name: username
           type: path
