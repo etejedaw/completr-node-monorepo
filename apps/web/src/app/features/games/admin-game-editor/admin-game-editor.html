@@ -1,4 +1,9 @@
-<div class="bg-sidebar border border-line rounded-card mb-6">
+<div
+	[class]="
+		embedded() ? '' : 'bg-sidebar border border-line rounded-card mb-6'
+	"
+>
+	@if (!embedded()) {
 	<header class="px-5 pt-5 pb-4 md:px-6 border-b border-line">
 		<span
 			class="block text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
@@ -10,6 +15,7 @@
 			{{ isEditMode() ? 'Edit game' : 'New game' }}
 		</h3>
 	</header>
+	}
 
 	<div class="px-5 py-5 md:px-6 border-b border-line">
 		<h4
@@ -44,7 +50,9 @@
 		@if (rawgError()) {
 		<span class="block mt-2 text-xs text-danger">{{ rawgError() }}</span>
 		} @if (rawgId()) {
-		<span class="block mt-2 text-xs text-brand">RAWG ID: {{ rawgId() }}</span>
+		<span class="block mt-2 text-xs text-brand"
+			>RAWG ID: {{ rawgId() }}</span
+		>
 		}
 	</div>
 
@@ -78,7 +86,9 @@
 			</div>
 
 			<div>
-				<label uiFieldLabel for="editor-release-date">Release date</label>
+				<label uiFieldLabel for="editor-release-date"
+					>Release date</label
+				>
 				<input
 					uiInput
 					id="editor-release-date"
@@ -152,7 +162,8 @@
 						loading="lazy"
 					/>
 					}
-					<span class="flex-1 min-w-0 truncate text-[0.8125rem] font-medium"
+					<span
+						class="flex-1 min-w-0 truncate text-[0.8125rem] font-medium"
 						>{{ parentGame()!.title }}</span
 					>
 					<button
@@ -161,7 +172,9 @@
 						aria-label="Clear parent game"
 						(click)="clearParentGame()"
 					>
-						<span aria-hidden="true" class="material-icons text-base"
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
 							>close</span
 						>
 					</button>
@@ -189,7 +202,9 @@
 					</button>
 				</div>
 				@if (parentError()) {
-				<span class="block mt-2 text-xs text-danger">{{ parentError() }}</span>
+				<span class="block mt-2 text-xs text-danger"
+					>{{ parentError() }}</span
+				>
 				} }
 			</div>
 			}
@@ -294,7 +309,9 @@
 						[attr.aria-label]="'Remove ' + s.source + ' score'"
 						(click)="removeScore(i)"
 					>
-						<span aria-hidden="true" class="material-icons text-base"
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
 							>close</span
 						>
 					</button>
@@ -357,8 +374,7 @@
 			<p class="m-0 mt-1 text-xs text-danger" id="new-score-error">
 				{{ newScoreError() }}
 			</p>
-			}
-			}
+			} }
 		</div>
 
 		<div class="px-5 py-5 md:px-6 border-b border-line">
@@ -396,7 +412,9 @@
 						[attr.aria-label]="'Remove ' + t.source + ' duration'"
 						(click)="removeTime(i)"
 					>
-						<span aria-hidden="true" class="material-icons text-base"
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
 							>close</span
 						>
 					</button>
@@ -458,8 +476,7 @@
 			<p class="m-0 mt-1 text-xs text-danger" id="new-time-error">
 				{{ newTimeError() }}
 			</p>
-			}
-			}
+			} }
 		</div>
 	</div>
 
@@ -475,8 +492,8 @@
 				class="flex flex-col items-start gap-3 rounded-card border border-line bg-surface p-4"
 			>
 				<p class="m-0 text-[0.8125rem] text-fg-secondary text-pretty">
-					Split this game into multiple variants (e.g. Pokemon Pearl/Diamond
-					→ Pearl + Diamond).
+					Split this game into multiple variants (e.g. Pokemon
+					Pearl/Diamond → Pearl + Diamond).
 				</p>
 				<button
 					uiButton
@@ -496,8 +513,8 @@
 				class="flex flex-col items-start gap-3 rounded-card border border-line bg-surface p-4"
 			>
 				<p class="m-0 text-[0.8125rem] text-fg-secondary text-pretty">
-					Mark this game as a compilation that bundles other games (e.g. Mass
-					Effect Legendary Edition).
+					Mark this game as a compilation that bundles other games
+					(e.g. Mass Effect Legendary Edition).
 				</p>
 				<button
 					uiButton
@@ -510,7 +527,8 @@
 					<span aria-hidden="true" class="material-icons text-base"
 						>library_books</span
 					>
-					{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as compilation' }}
+					{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as
+					compilation' }}
 				</button>
 			</div>
 		</div>
@@ -518,7 +536,12 @@
 	}
 
 	<div
-		class="sticky z-10 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] md:bottom-0 flex flex-col gap-3 px-5 py-3 md:px-6 md:py-4 bg-sidebar/90 backdrop-blur-xl border-t border-line rounded-b-card"
+		class="sticky z-10 flex flex-col gap-3 px-5 py-3 md:px-6 md:py-4 bg-sidebar/90 backdrop-blur-xl border-t border-line"
+		[class]="
+			embedded()
+				? 'bottom-0'
+				: 'bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] md:bottom-0 rounded-b-card'
+		"
 	>
 		@if (saveError()) {
 		<ui-alert tone="danger">{{ saveError() }}</ui-alert>
@@ -531,7 +554,8 @@
 				(click)="save()"
 				[disabled]="saving() || !title().trim()"
 			>
-				{{ saving() ? 'Saving...' : isEditMode() ? 'Save Changes' : 'Create Game' }}
+				{{ saving() ? 'Saving...' : isEditMode() ? 'Save Changes' :
+				'Create Game' }}
 			</button>
 		</div>
 	</div>
@@ -588,7 +612,9 @@
 					@if (v.title.trim()) {
 					<div class="text-xs text-fg-muted mt-1.5 break-all">
 						slug →
-						<span class="text-fg-secondary">{{ previewSlug(v.title) }}</span>
+						<span class="text-fg-secondary"
+							>{{ previewSlug(v.title) }}</span
+						>
 					</div>
 					}
 				</div>
@@ -711,7 +737,8 @@
 					loading="lazy"
 				/>
 				}
-				<span class="flex-1 min-w-0 truncate text-[0.8125rem] font-medium"
+				<span
+					class="flex-1 min-w-0 truncate text-[0.8125rem] font-medium"
 					>{{ row.linkedGame.title }}</span
 				>
 				<span class="hidden sm:inline text-xs text-fg-muted"
@@ -761,7 +788,8 @@
 					<span class="flex-1 min-w-0 truncate text-[0.8125rem]"
 						>{{ g.title }}</span
 					>
-					<span class="hidden sm:inline text-[0.6875rem] text-fg-muted"
+					<span
+						class="hidden sm:inline text-[0.6875rem] text-fg-muted"
 						>{{ g.code }}</span
 					>
 				</button>
@@ -781,7 +809,9 @@
 				@if (row.title.trim()) {
 				<div class="text-xs text-fg-muted mt-1.5 break-all">
 					slug →
-					<span class="text-fg-secondary">{{ previewSlug(row.title) }}</span>
+					<span class="text-fg-secondary"
+						>{{ previewSlug(row.title) }}</span
+					>
 				</div>
 				}
 			</div>

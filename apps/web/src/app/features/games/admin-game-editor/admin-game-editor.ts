@@ -63,6 +63,7 @@ interface CompilationRow {
 })
 export class AdminGameEditor implements OnInit {
 	game = input<Game | null>(null);
+	embedded = input(false);
 	saved = output<void>();
 	created = output<Game>();
 	split = output<Game>();
