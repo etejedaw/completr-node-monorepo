@@ -43,6 +43,11 @@ type CompilationRowMode = "link" | "create";
 
 const DIACRITICS = /\p{Diacritic}/gu;
 
+const CREATE_VARIANT_MISSING_MESSAGE =
+	"Another game already uses this external id. Set a variant label on this game (e.g. Collection) to tell them apart.";
+const CREATE_SIBLING_VARIANT_MISSING_MESSAGE =
+	"Another game with this external id has no variant label. Add one to that game first, then create this one.";
+
 let nextCompilationRowId = 0;
 
 interface CompilationRow {
@@ -500,11 +505,13 @@ export class AdminGameEditor implements OnInit {
 			error: err => {
 				this.saving.set(false);
 				this.saveError.set(
-					this.saveFailureMessage(
-						err,
-						"Rate limit reached. Game was NOT created. Try again in a moment.",
-						"Failed to create game."
-					)
+					isVariantRequiredError(err)
+						? createVariantRequiredMessage(variantValue)
+						: this.saveFailureMessage(
+								err,
+								"Rate limit reached. Game was NOT created. Try again in a moment.",
+								"Failed to create game."
+							)
 				);
 			}
 		});
@@ -1028,4 +1035,14 @@ export class AdminGameEditor implements OnInit {
 		const used = new Set(this.times().map(t => t.source));
 		return this.timeSources.filter(s => !used.has(s));
 	}
+}
+
+function isVariantRequiredError(err: { error?: { type?: unknown } }) {
+	return err.error?.type === "GAME_VARIANT_REQUIRED";
+}
+
+function createVariantRequiredMessage(variant: string) {
+	return variant
+		? CREATE_SIBLING_VARIANT_MISSING_MESSAGE
+		: CREATE_VARIANT_MISSING_MESSAGE;
 }
