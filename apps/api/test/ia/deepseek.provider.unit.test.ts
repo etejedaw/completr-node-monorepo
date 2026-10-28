@@ -9,7 +9,7 @@ import {
 } from "../../src/ia/deepseek/deepseek.provider";
 import { captureRejection } from "../unit-helpers/mocks";
 
-const SETTINGS = { apiKey: "fake-key", model: "fake-model", timeoutMs: 5000 };
+const API_KEY = "fake-key";
 const REQUEST = { instructions: "Summarize.", content: "Played 3 games." };
 
 function jsonResponse(body: unknown, status = 200) {
@@ -53,23 +53,20 @@ afterEach(() => {
 
 void describe("DeepseekModel.create", () => {
 	void it("returns a DisabledDeepseekProvider without an API key", () => {
-		const client = DeepseekModel.create({
-			...SETTINGS,
-			apiKey: undefined
-		});
+		const client = DeepseekModel.create(undefined);
 
 		assert.ok(client instanceof DisabledDeepseekProvider);
 		assert.equal(client.isEnabled, false);
 	});
 
 	void it("returns a DisabledDeepseekProvider with an empty API key", () => {
-		const client = DeepseekModel.create({ ...SETTINGS, apiKey: "" });
+		const client = DeepseekModel.create("");
 
 		assert.ok(client instanceof DisabledDeepseekProvider);
 	});
 
 	void it("returns a DeepseekProvider with an API key", () => {
-		const client = DeepseekModel.create(SETTINGS);
+		const client = DeepseekModel.create(API_KEY);
 
 		assert.ok(client instanceof DeepseekProvider);
 		assert.equal(client.isEnabled, true);
@@ -92,7 +89,7 @@ void describe("DeepseekProvider.generateText", () => {
 	void it("sends an authenticated chat completion request", async () => {
 		const fetchMock = stubFetch(async () => jsonResponse(completion("Hi")));
 
-		await new DeepseekProvider(SETTINGS).generateText({
+		await new DeepseekProvider(API_KEY).generateText({
 			...REQUEST,
 			maxTokens: 200,
 			temperature: 0.4
@@ -109,7 +106,7 @@ void describe("DeepseekProvider.generateText", () => {
 			"Bearer fake-key"
 		);
 		assert.deepEqual(sentBody(fetchMock), {
-			model: "fake-model",
+			model: "deepseek-flash",
 			messages: [
 				{ role: "system", content: "Summarize." },
 				{ role: "user", content: "Played 3 games." }
@@ -124,7 +121,7 @@ void describe("DeepseekProvider.generateText", () => {
 	void it("omits max_tokens and temperature when not given", async () => {
 		const fetchMock = stubFetch(async () => jsonResponse(completion("Hi")));
 
-		await new DeepseekProvider(SETTINGS).generateText(REQUEST);
+		await new DeepseekProvider(API_KEY).generateText(REQUEST);
 
 		const body = sentBody(fetchMock);
 		assert.equal("max_tokens" in body, false);
@@ -134,7 +131,7 @@ void describe("DeepseekProvider.generateText", () => {
 	void it("returns the trimmed text", async () => {
 		stubFetch(async () => jsonResponse(completion("  Great year.\n")));
 
-		const result = await new DeepseekProvider(SETTINGS).generateText(
+		const result = await new DeepseekProvider(API_KEY).generateText(
 			REQUEST
 		);
 
@@ -144,7 +141,7 @@ void describe("DeepseekProvider.generateText", () => {
 	void it("flags a response cut by the token limit", async () => {
 		stubFetch(async () => jsonResponse(completion("Half a", "length")));
 
-		const result = await new DeepseekProvider(SETTINGS).generateText(
+		const result = await new DeepseekProvider(API_KEY).generateText(
 			REQUEST
 		);
 
@@ -155,7 +152,7 @@ void describe("DeepseekProvider.generateText", () => {
 		const text = "<b>Épico</b> 🎮 & más \u0000 ñ";
 		const fetchMock = stubFetch(async () => jsonResponse(completion(text)));
 
-		const result = await new DeepseekProvider(SETTINGS).generateText({
+		const result = await new DeepseekProvider(API_KEY).generateText({
 			instructions: "<script>alert(1)</script> 🎮",
 			content: "👾 <img src=x onerror=1>"
 		});
@@ -174,7 +171,7 @@ void describe("DeepseekProvider.generateText", () => {
 			);
 
 			const error = await assertRejectsWith(
-				new DeepseekProvider(SETTINGS).generateText(REQUEST),
+				new DeepseekProvider(API_KEY).generateText(REQUEST),
 				"IA_PROVIDER_UNAVAILABLE"
 			);
 			assert.match(
@@ -191,7 +188,7 @@ void describe("DeepseekProvider.generateText", () => {
 		});
 
 		await assertRejectsWith(
-			new DeepseekProvider(SETTINGS).generateText(REQUEST),
+			new DeepseekProvider(API_KEY).generateText(REQUEST),
 			"IA_PROVIDER_UNAVAILABLE"
 		);
 	});
@@ -202,7 +199,7 @@ void describe("DeepseekProvider.generateText", () => {
 		});
 
 		await assertRejectsWith(
-			new DeepseekProvider(SETTINGS).generateText(REQUEST),
+			new DeepseekProvider(API_KEY).generateText(REQUEST),
 			"IA_TIMEOUT"
 		);
 	});
@@ -220,7 +217,7 @@ void describe("DeepseekProvider.generateText", () => {
 		);
 
 		await assertRejectsWith(
-			new DeepseekProvider(SETTINGS).generateText({
+			new DeepseekProvider(API_KEY).generateText({
 				...REQUEST,
 				timeoutMs: 20
 			}),
@@ -228,11 +225,11 @@ void describe("DeepseekProvider.generateText", () => {
 		);
 	});
 
-	void it("uses the per-request timeout over the configured one", async () => {
+	void it("uses the per-request timeout over the default one", async () => {
 		const timeoutSpy = mock.method(AbortSignal, "timeout");
 		stubFetch(async () => jsonResponse(completion("Hi")));
 
-		await new DeepseekProvider(SETTINGS).generateText({
+		await new DeepseekProvider(API_KEY).generateText({
 			...REQUEST,
 			timeoutMs: 1234
 		});
@@ -240,13 +237,13 @@ void describe("DeepseekProvider.generateText", () => {
 		assert.equal(timeoutSpy.mock.calls[0]?.arguments[0], 1234);
 	});
 
-	void it("uses the configured timeout by default", async () => {
+	void it("uses a 30 second timeout by default", async () => {
 		const timeoutSpy = mock.method(AbortSignal, "timeout");
 		stubFetch(async () => jsonResponse(completion("Hi")));
 
-		await new DeepseekProvider(SETTINGS).generateText(REQUEST);
+		await new DeepseekProvider(API_KEY).generateText(REQUEST);
 
-		assert.equal(timeoutSpy.mock.calls[0]?.arguments[0], 5000);
+		assert.equal(timeoutSpy.mock.calls[0]?.arguments[0], 30_000);
 	});
 
 	void it("rejects with IA_INVALID_RESPONSE when the body is not JSON", async () => {
@@ -255,7 +252,7 @@ void describe("DeepseekProvider.generateText", () => {
 		);
 
 		await assertRejectsWith(
-			new DeepseekProvider(SETTINGS).generateText(REQUEST),
+			new DeepseekProvider(API_KEY).generateText(REQUEST),
 			"IA_INVALID_RESPONSE"
 		);
 	});
@@ -277,7 +274,7 @@ void describe("DeepseekProvider.generateText", () => {
 			stubFetch(async () => jsonResponse(body));
 
 			await assertRejectsWith(
-				new DeepseekProvider(SETTINGS).generateText(REQUEST),
+				new DeepseekProvider(API_KEY).generateText(REQUEST),
 				"IA_INVALID_RESPONSE"
 			);
 		});
@@ -291,7 +288,7 @@ void describe("DeepseekProvider.generateText", () => {
 				? jsonResponse({}, 500)
 				: jsonResponse(completion(`ok ${calls}`));
 		});
-		const provider = new DeepseekProvider(SETTINGS);
+		const provider = new DeepseekProvider(API_KEY);
 
 		const results = await Promise.allSettled([
 			provider.generateText(REQUEST),

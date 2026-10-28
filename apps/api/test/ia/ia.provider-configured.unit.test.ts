@@ -14,7 +14,7 @@ void describe("ia provider with DEEPSEEK_API_KEY", () => {
 		assert.equal(iaProvider.isConfigured, true);
 	});
 
-	void it("sends trimmed input with the configured key and model and returns the text", async () => {
+	void it("sends trimmed input with the configured key and the default model and returns the text", async () => {
 		const fetchMock = mock.method(
 			globalThis,
 			"fetch",
@@ -47,7 +47,7 @@ void describe("ia provider with DEEPSEEK_API_KEY", () => {
 			model: string;
 			messages: { content: string }[];
 		};
-		assert.equal(body.model, "fake-model");
+		assert.equal(body.model, "deepseek-flash");
 		assert.equal(body.messages[0]?.content, "Summarize.");
 		assert.equal(body.messages[1]?.content, "Played <b>3</b> games 👾");
 	});
