@@ -17,7 +17,8 @@ const SECTION_TO_FIELD: Record<VisibilitySection, keyof User> = {
 	backlog: "backlogVisibility",
 	shelf: "shelfVisibility",
 	list: "listVisibility",
-	platinum: "platinumVisibility"
+	platinum: "platinumVisibility",
+	franchise: "franchiseVisibility"
 };
 
 export async function canView(

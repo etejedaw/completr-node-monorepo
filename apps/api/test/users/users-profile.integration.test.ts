@@ -752,8 +752,43 @@ void describe("public profile endpoints", () => {
 
 		itEnforcesVisibility(
 			(_key, owner) => `/users/${owner.user.username}/franchises`,
-			ownerCase => ownerCase.allowedOnBacklogSections
+			ownerCase => ownerCase.allowedOnProfileOnlySections
 		);
+
+		void it("hides the tracked franchises by their own visibility, not by the backlog", async () => {
+			const { open } = fixture.owners;
+			const { stranger, follower, mutual } = fixture.viewers;
+			const statusFor = async (authorization?: string) =>
+				(await franchises(open.user.username, authorization)).status;
+
+			try {
+				await open.user.update({ franchiseVisibility: "friends" });
+				assert.equal(await statusFor(), 403);
+				assert.equal(await statusFor(stranger.authorization), 403);
+				assert.equal(await statusFor(follower.authorization), 403);
+				assert.equal(await statusFor(mutual.authorization), 200);
+				assert.equal(await statusFor(open.authorization), 200);
+
+				await open.user.update({ franchiseVisibility: "private" });
+				const hidden = await franchises(
+					open.user.username,
+					mutual.authorization
+				);
+				assert.equal(hidden.status, 403);
+				assert.equal(hidden.body.type, "USER_PRIVATE");
+				assert.equal(await statusFor(open.authorization), 200);
+			} finally {
+				await open.user.update({ franchiseVisibility: "public" });
+			}
+		});
+
+		void it("keeps the tracked franchises visible when only the backlog is private", async () => {
+			const { backlogPrivate } = fixture.owners;
+
+			const response = await franchises(backlogPrivate.user.username);
+
+			assert.equal(response.status, 200);
+		});
 
 		itAnswersNotFoundForMissingUser(name => `/users/${name}/franchises`);
 

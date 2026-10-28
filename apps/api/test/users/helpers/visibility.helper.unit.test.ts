@@ -24,6 +24,7 @@ function buildOwner(levels: Partial<Record<string, VisibilityLevel>> = {}) {
 		shelfVisibility: "private",
 		listVisibility: "private",
 		platinumVisibility: "private",
+		franchiseVisibility: "private",
 		...levels
 	});
 }

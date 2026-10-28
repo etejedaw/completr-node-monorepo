@@ -490,7 +490,7 @@ export async function getFranchisesForUsername(
 ): Promise<UserFranchisesBundle> {
 	const user = await requireVisibleUser(viewer?.id, username, [
 		"profile",
-		"backlog"
+		"franchise"
 	]);
 
 	const franchises = await franchiseService.findTrackedFranchises(user.id);

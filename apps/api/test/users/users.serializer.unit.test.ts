@@ -44,6 +44,7 @@ function buildUser(overrides: Record<string, unknown> = {}) {
 		shelfVisibility: "private",
 		listVisibility: "public",
 		platinumVisibility: "private",
+		franchiseVisibility: "private",
 		acceptFollowRequests: true,
 		theme: "refined-dark",
 		createdAt: new Date("2024-01-01"),
@@ -145,7 +146,8 @@ void describe("fullProfileSerializer", () => {
 				backlog: true,
 				shelf: false,
 				list: true,
-				platinum: false
+				platinum: false,
+				franchise: false
 			}
 		};
 	}
