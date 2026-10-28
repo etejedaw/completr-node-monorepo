@@ -87,6 +87,13 @@ function safeTextError(value: string): ValidationError.WithoutFieldTree | null {
 	return { kind: "unsafeText", message: NAME_SAFE_TEXT_MESSAGE };
 }
 
+function blankTextError(
+	value: string
+): ValidationError.WithoutFieldTree | null {
+	if (!value || value.trim()) return null;
+	return { kind: "blankText", message: "Name is required." };
+}
+
 function passwordCompositionError(
 	value: string
 ): ValidationError.WithoutFieldTree | null {
@@ -176,6 +183,7 @@ export class AdminUsers implements OnInit {
 		minLength(path.name, 4, { message: NAME_LENGTH_MESSAGE });
 		maxLength(path.name, 80, { message: NAME_LENGTH_MESSAGE });
 		validate(path.name, ({ value }) => safeTextError(value()));
+		validate(path.name, ({ value }) => blankTextError(value()));
 
 		required(path.password, { message: "Password is required." });
 		minLength(path.password, 8, { message: PASSWORD_LENGTH_MESSAGE });
@@ -223,6 +231,9 @@ export class AdminUsers implements OnInit {
 		});
 		validate(path.name, ({ value }) =>
 			nameChanged(value()) ? safeTextError(value()) : null
+		);
+		validate(path.name, ({ value }) =>
+			nameChanged(value()) ? blankTextError(value()) : null
 		);
 
 		// An empty password means "keep the current one"; the built-in validators
@@ -272,6 +283,7 @@ export class AdminUsers implements OnInit {
 		this.createForm().reset();
 		this.createError.set("");
 		this.createFieldErrors.set({});
+		this.showCreatePassword.set(false);
 		this.showCreateModal.set(true);
 	}
 
@@ -331,6 +343,7 @@ export class AdminUsers implements OnInit {
 		this.editForm().reset();
 		this.editError.set("");
 		this.editFieldErrors.set({});
+		this.showEditPassword.set(false);
 		this.showEditModal.set(true);
 	}
 

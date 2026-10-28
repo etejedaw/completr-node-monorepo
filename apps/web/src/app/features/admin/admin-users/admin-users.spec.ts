@@ -40,12 +40,14 @@ async function renderUsers(users = USERS) {
 		providers: [provideHttpClient(), provideHttpClientTesting()]
 	});
 	const http = TestBed.inject(HttpTestingController);
-	http.expectOne(req => req.url === `${environment.apiUrl}/admin/invitations`).flush({
+	http.expectOne(
+		req => req.url === `${environment.apiUrl}/admin/invitations`
+	).flush({
 		data: { invitations: [] }
 	});
-	http
-		.expectOne(req => req.url === `${environment.apiUrl}/admin/users`)
-		.flush({ data: { users, total: users.length } });
+	http.expectOne(
+		req => req.url === `${environment.apiUrl}/admin/users`
+	).flush({ data: { users, total: users.length } });
 	view.fixture.detectChanges();
 	return { http, ...view };
 }
@@ -72,14 +74,20 @@ describe("AdminUsers", () => {
 
 	it("opens the edit dialog for the clicked user", async () => {
 		await renderUsers();
-		await userEvent.click(screen.getAllByRole("button", { name: "Edit bob" })[0]!);
+		await userEvent.click(
+			screen.getAllByRole("button", { name: "Edit bob" })[0]!
+		);
 		const dialog = await screen.findByRole("dialog", { name: "Edit user" });
-		expect(within(dialog).getByLabelText("Name")).toHaveValue("Bob Builder");
+		expect(within(dialog).getByLabelText("Name")).toHaveValue(
+			"Bob Builder"
+		);
 	});
 
 	it("opens the create dialog from the hero action", async () => {
 		await renderUsers();
-		await userEvent.click(screen.getByRole("button", { name: /Create User/ }));
+		await userEvent.click(
+			screen.getByRole("button", { name: /Create User/ })
+		);
 		expect(
 			await screen.findByRole("dialog", { name: "Create user" })
 		).toBeTruthy();

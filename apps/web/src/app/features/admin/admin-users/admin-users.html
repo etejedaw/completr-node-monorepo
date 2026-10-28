@@ -9,7 +9,9 @@
 		{{ total() === 1 ? "account" : "accounts" }} in total
 	</p>
 	<button heroActions uiButton variant="primary" (click)="openCreate()">
-		<span aria-hidden="true" class="material-icons text-base">person_add</span>
+		<span aria-hidden="true" class="material-icons text-base"
+			>person_add</span
+		>
 		Create User
 	</button>
 </app-library-hero>
@@ -45,7 +47,12 @@
 	<ui-alert class="max-w-2xl">
 		<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
 			<span>Could not load the users.</span>
-			<button uiButton size="sm" variant="secondary" (click)="loadUsers()">
+			<button
+				uiButton
+				size="sm"
+				variant="secondary"
+				(click)="loadUsers()"
+			>
 				Try again
 			</button>
 		</div>
@@ -131,18 +138,21 @@
 					<td class="px-4 py-2.5 text-fg-secondary align-middle">
 						{{ user.email }}
 					</td>
-					<td class="px-4 py-2.5 text-fg align-middle">{{ user.name }}</td>
+					<td class="px-4 py-2.5 text-fg align-middle">
+						{{ user.name }}
+					</td>
 					<td class="px-4 py-2.5 align-middle">
 						<span
 							class="inline-flex items-center gap-1 text-[0.6875rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider"
 							[class]="badge.className"
 						>
 							@if (badge.icon) {
-							<span aria-hidden="true" class="material-icons text-xs">{{
-								badge.icon
-							}}</span>
-							}
-							{{ badge.label }}
+							<span
+								aria-hidden="true"
+								class="material-icons text-xs"
+								>{{ badge.icon }}</span
+							>
+							} {{ badge.label }}
 						</span>
 					</td>
 					<td class="px-4 py-2.5 align-middle">
@@ -188,19 +198,20 @@
 				/>
 				<span class="min-w-0 flex-1">
 					<span class="flex flex-wrap items-center gap-x-2 gap-y-1">
-						<span class="font-semibold text-sm truncate">{{
-							user.username
-						}}</span>
+						<span class="font-semibold text-sm truncate"
+							>{{ user.username }}</span
+						>
 						<span
 							class="inline-flex items-center gap-1 text-[0.625rem] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider"
 							[class]="badge.className"
 						>
 							@if (badge.icon) {
-							<span aria-hidden="true" class="material-icons text-xs">{{
-								badge.icon
-							}}</span>
-							}
-							{{ badge.label }}
+							<span
+								aria-hidden="true"
+								class="material-icons text-xs"
+								>{{ badge.icon }}</span
+							>
+							} {{ badge.label }}
 						</span>
 						@if (!user.isActive) {
 						<span
@@ -209,11 +220,12 @@
 						>
 						}
 					</span>
-					<span class="block text-xs text-fg-secondary truncate">{{
-						user.email
-					}}</span>
+					<span class="block text-xs text-fg-secondary truncate"
+						>{{ user.email }}</span
+					>
 					<span class="block text-xs text-fg-muted truncate"
-						>{{ user.name }} · {{ user.createdAt | date: "mediumDate" }}</span
+						>{{ user.name }} · {{ user.createdAt | date:
+						"mediumDate" }}</span
 					>
 				</span>
 				<span
@@ -251,7 +263,8 @@
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-x-3 gap-y-4 mb-4">
 			<div uiFormField>
 				<label uiLabel for="create-username" uiFieldLabel
-					>Username <span class="text-danger font-bold">*</span></label
+					>Username
+					<span class="text-danger font-bold">*</span></label
 				>
 				<input
 					id="create-username"
@@ -261,9 +274,12 @@
 					[formField]="createForm.username"
 					placeholder="johndoe"
 				/>
-				@if (createForm.username().touched() && createForm.username().invalid())
-				{ @for (error of createForm.username().errors(); track error) {
-				<p class="mt-1.5 m-0 text-xs text-danger">{{ error.message }}</p>
+				@if (createForm.username().touched() &&
+				createForm.username().invalid()) { @for (error of
+				createForm.username().errors(); track error) {
+				<p class="mt-1.5 m-0 text-xs text-danger">
+					{{ error.message }}
+				</p>
 				} } @else if (createFieldErrors()['username']; as msg) {
 				<p class="mt-1.5 m-0 text-xs text-danger">{{ msg }}</p>
 				}
@@ -280,9 +296,11 @@
 					[formField]="createForm.name"
 					placeholder="John Doe"
 				/>
-				@if (createForm.name().touched() && createForm.name().invalid()) {
-				@for (error of createForm.name().errors(); track error) {
-				<p class="mt-1.5 m-0 text-xs text-danger">{{ error.message }}</p>
+				@if (createForm.name().touched() && createForm.name().invalid())
+				{ @for (error of createForm.name().errors(); track error) {
+				<p class="mt-1.5 m-0 text-xs text-danger">
+					{{ error.message }}
+				</p>
 				} } @else if (createFieldErrors()['name']; as msg) {
 				<p class="mt-1.5 m-0 text-xs text-danger">{{ msg }}</p>
 				}
@@ -299,16 +317,20 @@
 					[formField]="createForm.email"
 					placeholder="john@example.com"
 				/>
-				@if (createForm.email().touched() && createForm.email().invalid()) {
-				@for (error of createForm.email().errors(); track error) {
-				<p class="mt-1.5 m-0 text-xs text-danger">{{ error.message }}</p>
+				@if (createForm.email().touched() &&
+				createForm.email().invalid()) { @for (error of
+				createForm.email().errors(); track error) {
+				<p class="mt-1.5 m-0 text-xs text-danger">
+					{{ error.message }}
+				</p>
 				} } @else if (createFieldErrors()['email']; as msg) {
 				<p class="mt-1.5 m-0 text-xs text-danger">{{ msg }}</p>
 				}
 			</div>
 			<div uiFormField>
 				<label uiLabel for="create-password" uiFieldLabel
-					>Password <span class="text-danger font-bold">*</span></label
+					>Password
+					<span class="text-danger font-bold">*</span></label
 				>
 				<div class="relative">
 					<input
@@ -327,14 +349,20 @@
 						[attr.aria-label]="showCreatePassword() ? 'Hide password' : 'Show password'"
 						[attr.aria-pressed]="showCreatePassword()"
 					>
-						<span aria-hidden="true" class="material-icons text-base">{{
-							showCreatePassword() ? "visibility_off" : "visibility"
-						}}</span>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>{{ showCreatePassword() ? "visibility_off" :
+							"visibility" }}</span
+						>
 					</button>
 				</div>
-				@if (createForm.password().touched() && createForm.password().invalid())
-				{ @for (error of createForm.password().errors(); track error) {
-				<p class="mt-1.5 m-0 text-xs text-danger">{{ error.message }}</p>
+				@if (createForm.password().touched() &&
+				createForm.password().invalid()) { @for (error of
+				createForm.password().errors(); track error) {
+				<p class="mt-1.5 m-0 text-xs text-danger">
+					{{ error.message }}
+				</p>
 				} } @else if (createFieldErrors()['password']; as msg) {
 				<p class="mt-1.5 m-0 text-xs text-danger">{{ msg }}</p>
 				}
@@ -411,7 +439,9 @@
 				</select>
 			</div>
 			<div uiFormField>
-				<label uiLabel for="edit-password" uiFieldLabel>New Password</label>
+				<label uiLabel for="edit-password" uiFieldLabel
+					>New Password</label
+				>
 				<div class="relative">
 					<input
 						id="edit-password"
@@ -429,14 +459,20 @@
 						[attr.aria-label]="showEditPassword() ? 'Hide password' : 'Show password'"
 						[attr.aria-pressed]="showEditPassword()"
 					>
-						<span aria-hidden="true" class="material-icons text-base">{{
-							showEditPassword() ? "visibility_off" : "visibility"
-						}}</span>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>{{ showEditPassword() ? "visibility_off" :
+							"visibility" }}</span
+						>
 					</button>
 				</div>
-				@if (editForm.password().touched() && editForm.password().invalid()) {
-				@for (error of editForm.password().errors(); track error) {
-				<p class="mt-1.5 m-0 text-xs text-danger">{{ error.message }}</p>
+				@if (editForm.password().touched() &&
+				editForm.password().invalid()) { @for (error of
+				editForm.password().errors(); track error) {
+				<p class="mt-1.5 m-0 text-xs text-danger">
+					{{ error.message }}
+				</p>
 				} } @else if (editFieldErrors()['password']; as msg) {
 				<p class="mt-1.5 m-0 text-xs text-danger">{{ msg }}</p>
 				}
@@ -451,7 +487,9 @@
 				class="size-4 cursor-pointer accent-brand"
 				[formField]="editForm.isActive"
 			/>
-			<span>{{ editForm.isActive().value() ? "Active" : "Inactive" }}</span>
+			<span
+				>{{ editForm.isActive().value() ? "Active" : "Inactive" }}</span
+			>
 		</label>
 	</form>
 
