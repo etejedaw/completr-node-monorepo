@@ -254,18 +254,18 @@ export class AdminGames implements OnInit {
 		});
 	}
 
-	toggleCreateEditor() {
+	openCreateEditor() {
 		this.editingGame.set(null);
-		this.showCreateEditor.update(open => !open);
+		this.showCreateEditor.set(true);
 	}
 
-	toggleEditor(game: Game) {
+	closeCreateEditor() {
 		this.showCreateEditor.set(false);
-		if (this.editingGame()?.id === game.id) {
-			this.editingGame.set(null);
-			return;
-		}
+	}
+
+	openEditor(game: Game) {
 		if (this.loadingEditorId() === game.id) return;
+		this.showCreateEditor.set(false);
 		this.loadingEditorId.set(game.id);
 		this.gamesService.getByCode(game.code).subscribe({
 			next: fullGame => {
@@ -279,6 +279,10 @@ export class AdminGames implements OnInit {
 				this.toast.warning("Could not load the game to edit.");
 			}
 		});
+	}
+
+	closeEditor() {
+		this.editingGame.set(null);
 	}
 
 	onGameCreated(game: Game) {

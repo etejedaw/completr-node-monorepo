@@ -11,20 +11,13 @@
 	<button
 		heroActions
 		uiButton
-		[variant]="showCreateEditor() ? 'secondary' : 'primary'"
-		[attr.aria-expanded]="showCreateEditor()"
-		(click)="toggleCreateEditor()"
+		aria-haspopup="dialog"
+		(click)="openCreateEditor()"
 	>
-		<span aria-hidden="true" class="material-icons text-lg"
-			>{{ showCreateEditor() ? "close" : "add" }}</span
-		>
-		{{ showCreateEditor() ? "Close editor" : "New game" }}
+		<span aria-hidden="true" class="material-icons text-lg">add</span>
+		New game
 	</button>
 </app-library-hero>
-
-@if (showCreateEditor()) {
-<app-admin-game-editor class="block" (created)="onGameCreated($event)" />
-}
 
 <app-library-toolbar>
 	<ui-search-bar
@@ -140,7 +133,7 @@
 	<span class="text-right">Actions</span>
 </div>
 <ul
-	class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-clip"
+	class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
 >
 	@for (game of games(); track game.id) {
 	<li
@@ -206,16 +199,16 @@
 			}
 			<button
 				uiIconButton
-				[title]="editingGame()?.id === game.id ? 'Close editor' : 'Edit game'"
-				[attr.aria-label]="(editingGame()?.id === game.id ? 'Close editor for ' : 'Edit ') + game.title"
-				[attr.aria-expanded]="editingGame()?.id === game.id"
+				title="Edit game"
+				aria-haspopup="dialog"
+				[attr.aria-label]="'Edit ' + game.title"
 				[attr.aria-busy]="loadingEditorId() === game.id"
 				[disabled]="loadingEditorId() === game.id"
-				(click)="toggleEditor(game)"
+				(click)="openEditor(game)"
 			>
 				<span aria-hidden="true" class="material-icons text-base"
-					>{{ editingGame()?.id === game.id ? "close" : "edit"
-					}}</span
+					>{{ loadingEditorId() === game.id ? "hourglass_empty" :
+					"edit" }}</span
 				>
 			</button>
 			@if (game.isActive === false) {
@@ -271,16 +264,7 @@
 			</div>
 		</div>
 	</li>
-	@if (editingGame(); as editing) { @if (editing.id === game.id) {
-	<li class="p-3 md:p-4 bg-canvas/60">
-		<app-admin-game-editor
-			class="block [&>div]:mb-0"
-			[game]="editing"
-			(saved)="onEditorSaved()"
-			(split)="onEditorSplit()"
-		/>
-	</li>
-	} } }
+	}
 </ul>
 
 @if (!searchQuery()) {
@@ -322,5 +306,35 @@
 			{{ isDeactivating() ? "Deactivating..." : "Deactivate" }}
 		</button>
 	</ng-container>
+</ui-dialog>
+} @if (showCreateEditor()) {
+<ui-dialog
+	size="xl"
+	eyebrow="Games"
+	heading="New game"
+	subheading="Fetch it from RAWG or fill in the details by hand."
+	[flush]="true"
+	(closed)="closeCreateEditor()"
+>
+	<app-admin-game-editor
+		[embedded]="true"
+		(created)="onGameCreated($event)"
+	/>
+</ui-dialog>
+} @if (editingGame(); as editing) {
+<ui-dialog
+	size="xl"
+	eyebrow="Games"
+	heading="Edit game"
+	[subheading]="editing.title"
+	[flush]="true"
+	(closed)="closeEditor()"
+>
+	<app-admin-game-editor
+		[embedded]="true"
+		[game]="editing"
+		(saved)="onEditorSaved()"
+		(split)="onEditorSplit()"
+	/>
 </ui-dialog>
 }
