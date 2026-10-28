@@ -9,6 +9,7 @@ const EnvironmentConfigSchema = z
 		REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(30),
 		PASSWORD_SALT_ROUNDS: z.coerce.number().default(10),
 		PASSWORD_RESET_TOKEN_TTL_MINUTES: z.coerce.number().default(60),
+		PASSWORD_RESET_COOLDOWN_MINUTES: z.coerce.number().default(5),
 		USER_INVITATION_TTL_DAYS: z.coerce.number().default(7),
 		WEB_APP_URL: z.url().default("http://localhost:4200"),
 		API_PUBLIC_URL: z.url().default("http://localhost:3000"),
@@ -25,6 +26,14 @@ const EnvironmentConfigSchema = z
 		PRIVACY_SOURCE_URL: z
 			.url()
 			.default("http://localhost:4321/privacy.json"),
+		CLIENT_IP_HEADER: z.preprocess(
+			value => value || undefined,
+			z.string().trim().toLowerCase().optional()
+		),
+		RATE_LIMIT_ENABLED: z.preprocess(
+			value => value || undefined,
+			z.stringbool().default(true)
+		),
 		REWIND_TODAY: z.preprocess(
 			value => value || undefined,
 			z.iso.date().optional()

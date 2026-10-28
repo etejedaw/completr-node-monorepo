@@ -4,6 +4,7 @@ import { type RateLimiterMemory } from "rate-limiter-flexible";
 import * as authDomainsErrors from "../../auth/errors/auth.domains-error";
 import { environmentConfig } from "../config/environment.config";
 import { type RequestUser } from "../interfaces/request-user.interface";
+import { resolveClientIp } from "../utils/client-ip.util";
 
 const PRIVILEGED_ROLES = new Set(["admin", "moderator"]);
 
@@ -16,7 +17,12 @@ function skipRateLimit(
 }
 
 export function rateLimiterMiddleware(limiter: RateLimiterMemory) {
-	if (environmentConfig.NODE_ENV === "test") return skipRateLimit;
+	if (
+		environmentConfig.NODE_ENV === "test" ||
+		!environmentConfig.RATE_LIMIT_ENABLED
+	) {
+		return skipRateLimit;
+	}
 
 	return async (
 		request: Request,
@@ -29,8 +35,7 @@ export function rateLimiterMiddleware(limiter: RateLimiterMemory) {
 				return next();
 			}
 
-			const ip = request.ip;
-			await limiter.consume(ip!);
+			await limiter.consume(resolveClientIp(request));
 			return next();
 		} catch (error) {
 			throw authDomainsErrors.authRateLimited({ raw: error });
