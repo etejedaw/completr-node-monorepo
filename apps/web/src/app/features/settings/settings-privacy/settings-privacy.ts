@@ -47,6 +47,7 @@ const DEFAULT_DRAFT: PrivacyDraft = {
 	favoriteVisibility: "public",
 	feedVisibility: "public",
 	platinumVisibility: "public",
+	franchiseVisibility: "public",
 	acceptFollowRequests: true
 };
 

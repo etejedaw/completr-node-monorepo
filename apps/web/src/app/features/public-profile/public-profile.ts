@@ -132,7 +132,8 @@ export class PublicProfileComponent implements OnInit {
 			queue: !!access?.queue,
 			wishlist: !!access?.wishlist,
 			feed: !!access?.feed,
-			platinums: !!access?.platinum
+			platinums: !!access?.platinum,
+			sagas: !!access?.franchise
 		};
 	});
 	protected readonly backdropUrl = computed(() =>
@@ -556,7 +557,7 @@ export class PublicProfileComponent implements OnInit {
 					this.loadComparison();
 				}
 				this.sagas.set([]);
-				if (this.visibility().backlog) {
+				if (this.visibility().sagas) {
 					this.libraryService.getUserFranchises(username).subscribe({
 						next: franchises => this.sagas.set(franchises),
 						error: () => this.sagas.set([])

@@ -22,6 +22,7 @@ export interface PublicUser {
 	shelfVisibility: VisibilityLevel;
 	listVisibility: VisibilityLevel;
 	platinumVisibility: VisibilityLevel;
+	franchiseVisibility: VisibilityLevel;
 	createdAt: string;
 }
 
@@ -62,7 +63,8 @@ export type ProfileSection =
 	| "backlog"
 	| "shelf"
 	| "list"
-	| "platinum";
+	| "platinum"
+	| "franchise";
 
 export type ProfileSectionAccess = Record<ProfileSection, boolean>;
 

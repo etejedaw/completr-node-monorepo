@@ -10,7 +10,8 @@ export type SectionVisibilityKey =
 	| "wishlistVisibility"
 	| "favoriteVisibility"
 	| "feedVisibility"
-	| "platinumVisibility";
+	| "platinumVisibility"
+	| "franchiseVisibility";
 
 export interface PrivacyDraft extends Record<
 	SectionVisibilityKey | "profileVisibility",
@@ -127,6 +128,11 @@ const PRIVACY_SECTION_CONFIG: PrivacySectionGroup<PrivacySectionConfig>[] = [
 					icon: "emoji_events",
 					iconColor: "text-platinum"
 				}
+			},
+			{
+				key: "franchiseVisibility",
+				route: "/franchises",
+				description: "The sagas you track, shown on your profile."
 			}
 		]
 	},

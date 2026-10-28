@@ -17,6 +17,7 @@ export interface User {
 	shelfVisibility: VisibilityLevel;
 	listVisibility: VisibilityLevel;
 	platinumVisibility: VisibilityLevel;
+	franchiseVisibility: VisibilityLevel;
 	acceptFollowRequests: boolean;
 	theme?: string;
 	isActive: boolean;

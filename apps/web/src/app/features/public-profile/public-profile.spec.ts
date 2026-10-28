@@ -29,7 +29,8 @@ const openAccess: ProfileSectionAccess = {
 	backlog: true,
 	shelf: true,
 	list: true,
-	platinum: true
+	platinum: true,
+	franchise: true
 };
 
 const closedAccess: ProfileSectionAccess = {
@@ -41,7 +42,8 @@ const closedAccess: ProfileSectionAccess = {
 	backlog: false,
 	shelf: false,
 	list: false,
-	platinum: false
+	platinum: false,
+	franchise: false
 };
 
 const recentActivity = [
@@ -593,6 +595,40 @@ describe("PublicProfileComponent", () => {
 				expect(
 					screen.queryByRole("heading", { name: "Platinums" })
 				).not.toBeInTheDocument();
+			});
+		});
+
+		describe("sagas", () => {
+			const trackedSagas = [
+				{
+					franchise: { id: "f1", name: "Metroid", code: "metroid" },
+					gameCount: 3
+				}
+			];
+
+			it("shows the tracked sagas when their section is visible, even with a hidden backlog", async () => {
+				getUserFranchises.mockReturnValue(of(trackedSagas));
+				await renderProfile({
+					data: profile({ access: { ...openAccess, backlog: false } })
+				});
+
+				await waitFor(() =>
+					expect(getUserFranchises).toHaveBeenCalledWith("ada")
+				);
+				expect(await screen.findByText("Metroid")).toBeInTheDocument();
+			});
+
+			it("neither requests nor shows the sagas when they are hidden", async () => {
+				getUserFranchises.mockReturnValue(of(trackedSagas));
+				await renderProfile({
+					data: profile({
+						access: { ...openAccess, franchise: false }
+					})
+				});
+
+				await screen.findByLabelText("Profile stats");
+				expect(getUserFranchises).not.toHaveBeenCalled();
+				expect(screen.queryByText("Metroid")).not.toBeInTheDocument();
 			});
 		});
 

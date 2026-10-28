@@ -51,11 +51,12 @@ describe("privacy options", () => {
 		}
 	});
 
-	it("covers the eight profile sections", () => {
+	it("covers the nine profile sections", () => {
 		expect([...SECTION_KEYS].sort()).toEqual([
 			"backlogVisibility",
 			"favoriteVisibility",
 			"feedVisibility",
+			"franchiseVisibility",
 			"listVisibility",
 			"platinumVisibility",
 			"queueVisibility",
@@ -76,6 +77,21 @@ describe("privacy options", () => {
 			title: "Platinums",
 			icon: "emoji_events",
 			iconColor: "text-platinum"
+		});
+	});
+
+	it("lists Sagas in the Library group with the Sagas menu icon", () => {
+		const library = PRIVACY_SECTION_GROUPS.find(
+			group => group.title === "Library"
+		)!;
+		const sagas = library.sections.find(
+			section => section.key === "franchiseVisibility"
+		);
+
+		expect(sagas).toMatchObject({
+			title: "Sagas",
+			icon: "collections_bookmark",
+			iconColor: "text-nav-sagas"
 		});
 	});
 

@@ -18,6 +18,7 @@ export interface UpdateProfileDto {
 	shelfVisibility?: VisibilityLevel;
 	listVisibility?: VisibilityLevel;
 	platinumVisibility?: VisibilityLevel;
+	franchiseVisibility?: VisibilityLevel;
 	acceptFollowRequests?: boolean;
 }
 
