@@ -64,7 +64,7 @@ function groupByMonth(games: RewindFinishedGame[]): FinishedMonth[] {
 										titleSize="0.75rem"
 									/>
 									<span
-										class="text-xs text-fg-muted tabular-nums"
+										class="text-xs text-fg-secondary tabular-nums"
 										>{{ dateOf(game) }}</span
 									>
 								</a>
