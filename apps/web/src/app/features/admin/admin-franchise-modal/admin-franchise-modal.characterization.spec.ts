@@ -325,7 +325,6 @@ describe("AdminFranchiseModal characterization", () => {
 		removedFromCatalog = [
 			{ id: "ghost", title: "Ghost of a Tale", franchiseId: null }
 		];
-		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({

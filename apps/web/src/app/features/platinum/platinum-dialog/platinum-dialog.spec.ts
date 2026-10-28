@@ -99,7 +99,6 @@ describe("PlatinumDialog", () => {
 		gamesService.getByCode.mockReset();
 		gamesService.searchLocal.mockReset();
 		backlogService.getMyBacklog.mockReset();
-		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -111,7 +110,6 @@ describe("PlatinumDialog", () => {
 	});
 
 	afterEach(() => {
-		Reflect.deleteProperty(Element.prototype, "getAnimations");
 		vi.unstubAllGlobals();
 	});
 

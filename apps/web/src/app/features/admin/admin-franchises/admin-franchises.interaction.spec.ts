@@ -185,7 +185,6 @@ describe("AdminFranchises interaction", () => {
 		toast.success.mockClear();
 		toast.warning.mockClear();
 		toast.error.mockClear();
-		Element.prototype.getAnimations = () => [];
 	});
 
 	afterEach(() => {
@@ -195,7 +194,6 @@ describe("AdminFranchises interaction", () => {
 			httpTesting.verify();
 		} finally {
 			vi.unstubAllGlobals();
-			Reflect.deleteProperty(Element.prototype, "getAnimations");
 		}
 	});
 

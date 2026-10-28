@@ -266,7 +266,6 @@ describe("AdminGameEditor characterization", () => {
 		times = [{ source: "hltb", duration: 20 }];
 		failingScoreSource = null;
 		unexpectedRequests = [];
-		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
