@@ -5,6 +5,7 @@ export * from "./game-shelf.model";
 export * from "./list.model";
 export * from "./platinum.model";
 export * from "./queue.model";
+export * from "./rewind.model";
 export * from "./saved-filter.model";
 export * from "./user.model";
 export * from "./wishlist.model";
