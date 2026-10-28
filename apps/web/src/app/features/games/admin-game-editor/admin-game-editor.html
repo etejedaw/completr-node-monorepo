@@ -565,7 +565,7 @@
 <ui-dialog
 	heading="Split game into variants"
 	eyebrow="Admin"
-	subheading="Use this when an external source (e.g. RAWG) bundles distinct titles in one record. The first variant overwrites the current game; the rest are created as new games sharing platforms, genres, scores, times and external ids."
+	subheading="Use this when an external source (e.g. RAWG) bundles distinct titles in one record. This game is not kept as a bundle: it is renamed to the first variant, and the rest are created as new games sharing platforms, genres, scores, times and external ids. To keep the bundle as a compilation, create it again afterwards with its own variant label."
 	size="lg"
 	[dismissible]="!splitting()"
 	(closed)="closeSplitModal()"
