@@ -46,13 +46,81 @@ void describe("GET /franchises", () => {
 		);
 	});
 
-	void it("rejects an invalid token with 401 AUTH_INVALID_TOKEN", async () => {
+	void it("serves each franchise with its active game count and a preview of its first games by release date", async () => {
+		const franchise = await createFranchise({
+			name: `Preview ${randomUUID()}`
+		});
+		const games = await Promise.all(
+			[2005, 2001, 2003, 2002, 2004].map(year =>
+				createFranchiseGame(franchise.id, {
+					releaseAt: new Date(`${year}-01-01`)
+				})
+			)
+		);
+		await createFranchiseGame(franchise.id, { isActive: false });
+
 		const response = await api()
 			.get("/franchises")
+			.query({ search: franchise.name });
+
+		assert.equal(response.status, 200);
+		const [summary] = response.body.data.franchises;
+		assert.equal(summary.id, franchise.id);
+		assert.equal(summary.gameCount, 5);
+		assert.equal(summary.isTracked, false);
+		assert.deepEqual(
+			summary.previewGames.map((game: { id: string }) => game.id),
+			[games[1]!.id, games[3]!.id, games[2]!.id, games[4]!.id]
+		);
+		assert.deepEqual(Object.keys(summary.previewGames[0]).sort(), [
+			"backgroundUrl",
+			"code",
+			"id",
+			"title"
+		]);
+	});
+
+	void it("marks only the franchises the viewer tracks", async () => {
+		const viewer = await createUserWithSession();
+		const prefix = randomUUID();
+		const tracked = await createFranchise({ name: `${prefix} A` });
+		await createFranchise({ name: `${prefix} B` });
+		await api()
+			.post(trackPath(tracked.code))
+			.set("Authorization", viewer.authorization);
+
+		const response = await api()
+			.get("/franchises")
+			.query({ search: prefix })
+			.set("Authorization", viewer.authorization);
+
+		assert.equal(response.status, 200);
+		assert.deepEqual(
+			response.body.data.franchises.map(
+				(franchise: { name: string; isTracked: boolean }) => [
+					franchise.name,
+					franchise.isTracked
+				]
+			),
+			[
+				[`${prefix} A`, true],
+				[`${prefix} B`, false]
+			]
+		);
+	});
+
+	void it("treats an invalid token as an anonymous visitor", async () => {
+		const franchise = await createFranchise({
+			name: `Anonymous ${randomUUID()}`
+		});
+
+		const response = await api()
+			.get("/franchises")
+			.query({ search: franchise.name })
 			.set("Authorization", "Bearer invalid");
 
-		assert.equal(response.status, 401);
-		assert.equal(response.body.type, "AUTH_INVALID_TOKEN");
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.franchises[0].isTracked, false);
 	});
 });
 
@@ -74,14 +142,12 @@ void describe("GET /franchises/:code", () => {
 			),
 			new Set(games.map(game => game.id))
 		);
-		assert.deepEqual(response.body.data.progress, {
-			completed: 0,
-			total: 2
-		});
+		assert.equal(response.body.data.gameCount, 2);
+		assert.equal(response.body.data.progress, undefined);
 		assert.equal(response.body.data.isTracked, false);
 	});
 
-	void it("reports the viewer's progress and backlog status per game", async () => {
+	void it("reports the viewer's backlog status per game", async () => {
 		const viewer = await createUserWithSession();
 		const franchise = await createFranchise();
 		const [completed, playing] = await Promise.all([
@@ -102,10 +168,7 @@ void describe("GET /franchises/:code", () => {
 			.set("Authorization", viewer.authorization);
 
 		assert.equal(response.status, 200);
-		assert.deepEqual(response.body.data.progress, {
-			completed: 1,
-			total: 3
-		});
+		assert.equal(response.body.data.gameCount, 3);
 		const statusByGame = new Map(
 			response.body.data.games.map(
 				(game: { id: string; backlogStatus: string | null }) => [
