@@ -205,7 +205,7 @@ Los `<pantalla>.interaction.spec.ts` simulan lo que hace un usuario en una panta
 - El scroll vive en `main` (`.page-scroller`, contenedor de consultas `page`); cada página va dentro de `.page-shell`. No se pone `isolate` en `<main>`, porque rompe el apilamiento de las hojas inferiores.
 - Medidas del shell como variables CSS en `styles.css`: `--topbar-height`, `--tabbar-height`, `--page-max-width`, `--page-pad-x`, `--page-pad-y` y `--page-pad-top`. Las barras fijas se pegan con `top-[var(--topbar-height)]`.
 - Escritorio: barra lateral que se colapsa a riel (se guarda en `localStorage`, y en tablet de 768 a 1023px es siempre riel) y búsqueda global inline con el atajo `/`. Mobile: barra inferior de 5 pestañas (Feed, My Games, Up Next, Browse, More) y búsqueda en overlay.
-- Los toasts se separan del borde inferior en mobile para quedar sobre la barra de pestañas (`toastOffsetBottom` en `app.config.ts`). Hay un solo `ToastContainer`, montado en `layout`.
+- Los toasts se separan del borde inferior en mobile para quedar sobre la barra de pestañas (`toastOffsetBottom` en `core/services/toast.ts`). Hay un solo `ToastContainer`, montado en `layout`. `ng-primitives/toast` no está en el bundle inicial: `ToastService` lo importa con `import()` dinámico, lo precarga en idle tras el arranque y aplica ahí la configuración de posición (no hay `provideToastConfig` en `app.config.ts`). Los toasts pedidos antes de que termine la carga se encolan y se muestran en orden; si el import falla, el siguiente toast lo reintenta. El loader es el token `TOAST_LIBRARY_LOADER`, que los specs reemplazan para controlar la carga.
 
 ### Utilidades globales (`src/styles.css`)
 
