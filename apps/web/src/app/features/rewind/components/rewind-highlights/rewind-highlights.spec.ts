@@ -7,7 +7,14 @@ import {
 	type RewindHighlights as RewindHighlightsData,
 	type RewindTotals
 } from "../../../../core/models/rewind.model";
-import { RewindHighlights } from "./rewind-highlights";
+import {
+	type HighlightCell,
+	type HighlightKey,
+	highlightLayout,
+	NARROW_COLUMNS,
+	RewindHighlights,
+	WIDE_COLUMNS
+} from "./rewind-highlights";
 
 const game = (code: string, title: string) => ({
 	gameId: code,
@@ -99,5 +106,132 @@ describe("RewindHighlights", () => {
 
 		expect(screen.getByText("1 run")).toBeInTheDocument();
 		expect(screen.getByText("1 game finished")).toBeInTheDocument();
+	});
+});
+
+const HIGHLIGHT_KEYS = Object.keys(fullHighlights) as HighlightKey[];
+
+function highlightsWith(present: HighlightKey[]): RewindHighlightsData {
+	const highlights = { ...fullHighlights };
+	for (const key of HIGHLIGHT_KEYS) {
+		if (!present.includes(key)) highlights[key] = null;
+	}
+	return highlights;
+}
+
+function everySubset(): HighlightKey[][] {
+	return Array.from({ length: 2 ** HIGHLIGHT_KEYS.length }, (_, mask) =>
+		HIGHLIGHT_KEYS.filter((_, bit) => mask & (1 << bit))
+	);
+}
+
+interface Placement {
+	columns: number;
+	rows: number;
+}
+
+function packedRows(placements: Placement[], columnCount: number) {
+	const grid: boolean[][] = [];
+	const isFree = (row: number, column: number) => !grid[row]?.[column];
+	for (const { columns, rows } of placements) {
+		let placed = false;
+		for (let row = 0; !placed; row++) {
+			for (let column = 0; column + columns <= columnCount; column++) {
+				const cells = Array.from({ length: rows * columns }, (_, i) => [
+					row + Math.floor(i / columns),
+					column + (i % columns)
+				]);
+				if (!cells.every(([r, c]) => isFree(r, c))) continue;
+				for (const [r, c] of cells) {
+					grid[r] ??= Array.from(
+						{ length: columnCount },
+						() => false
+					);
+					grid[r][c] = true;
+				}
+				placed = true;
+				break;
+			}
+		}
+	}
+	return grid;
+}
+
+function holes(grid: boolean[][]): number {
+	return grid.flat().filter(taken => !taken).length;
+}
+
+const wide = (cells: HighlightCell[]) =>
+	cells.map(cell => ({ columns: cell.wideColumns, rows: cell.wideRows }));
+const narrow = (cells: HighlightCell[]) =>
+	cells.map(cell => ({ columns: cell.columns, rows: 1 }));
+
+describe("highlightLayout", () => {
+	it.each(
+		everySubset().map(present => [present.join(", ") || "none", present])
+	)("leaves no gaps with %s", (_, present) => {
+		const cells = highlightLayout(
+			highlightsWith(present as HighlightKey[])
+		);
+
+		expect(cells.map(cell => cell.key)).toEqual(present);
+		expect(holes(packedRows(wide(cells), WIDE_COLUMNS))).toBe(0);
+		expect(holes(packedRows(narrow(cells), NARROW_COLUMNS))).toBe(0);
+	});
+
+	it("keeps the large cards full width and pairs the small ones on mobile", () => {
+		const cells = highlightLayout(fullHighlights);
+
+		expect(cells.map(cell => [cell.key, cell.columns])).toEqual([
+			["topRated", 2],
+			["bestRatio", 2],
+			["longest", 1],
+			["fastest", 1],
+			["favoriteGenre", 1],
+			["topPlatform", 1],
+			["busiestMonth", 2]
+		]);
+	});
+
+	it("makes Top rated a 2x2 tile on desktop only when it has neighbours to fill its side", () => {
+		const tall = highlightLayout(fullHighlights)[0];
+		const alone = highlightLayout(
+			highlightsWith(["topRated", "longest"])
+		)[0];
+
+		expect([tall.wideColumns, tall.wideRows]).toEqual([2, 2]);
+		expect([alone.wideColumns, alone.wideRows]).toEqual([2, 1]);
+	});
+});
+
+describe("RewindHighlights layout", () => {
+	it("stretches the last card so the grid ends on a full row", async () => {
+		await render(RewindHighlights, {
+			inputs: {
+				highlights: highlightsWith([
+					"longest",
+					"fastest",
+					"topPlatform"
+				]),
+				totals
+			},
+			providers: [provideRouter([])]
+		});
+
+		const [, , platform] = screen.getAllByRole("listitem");
+
+		expect(platform).toHaveClass("col-span-2", "lg:col-span-2");
+	});
+
+	it("draws every card with the same solid border", async () => {
+		await render(RewindHighlights, {
+			inputs: { highlights: fullHighlights, totals },
+			providers: [provideRouter([])]
+		});
+
+		const month = screen.getByText("Busiest month").closest("li")!;
+
+		expect(month).toHaveClass("border", "border-line", "bg-surface");
+		expect(month).not.toHaveClass("border-dashed");
 	});
 });

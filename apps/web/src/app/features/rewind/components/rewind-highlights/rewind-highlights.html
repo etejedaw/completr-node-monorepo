@@ -1,9 +1,9 @@
-@let data = highlights();
+@let data = highlights(); @let spans = cellClasses();
 <ul
-	class="list-none m-0 p-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 grid-flow-dense gap-3 sm:gap-4"
+	class="list-none m-0 p-0 grid grid-cols-2 lg:grid-cols-4 grid-flow-dense gap-3 sm:gap-4"
 >
 	@if (data.topRated; as top) {
-	<li class="sm:col-span-2 lg:row-span-2">
+	<li class="min-w-0" [class]="spans.topRated">
 		<a
 			class="group relative isolate flex h-full min-h-[18rem] overflow-hidden rounded-card border border-line bg-surface no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 			[routerLink]="['/games', top.code]"
@@ -44,7 +44,7 @@
 		</a>
 	</li>
 	} @if (data.bestRatio; as best) {
-	<li class="sm:col-span-2">
+	<li class="min-w-0" [class]="spans.bestRatio">
 		<a
 			class="group flex h-full items-center gap-4 rounded-card border border-line bg-surface p-5 no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 			[routerLink]="['/games', best.code]"
@@ -76,15 +76,15 @@
 		</a>
 	</li>
 	} @if (data.longest; as longest) {
-	<li>
+	<li class="min-w-0" [class]="spans.longest">
 		<a
-			class="group flex h-full flex-col justify-between gap-4 rounded-card border border-line bg-surface p-5 no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			class="group flex h-full min-w-0 flex-col justify-between gap-4 rounded-card border border-line bg-surface p-4 sm:p-5 no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 			[routerLink]="['/games', longest.code]"
 		>
 			<span class="text-sm font-medium text-fg-secondary">Longest</span>
 			<span class="flex flex-col gap-1 min-w-0">
 				<span
-					class="font-display text-4xl font-bold leading-none tabular-nums text-fg"
+					class="font-display text-3xl sm:text-4xl font-bold leading-none tabular-nums text-fg"
 					>{{ formatHours(longest.hours) }}<span
 						class="ml-1 text-base font-semibold text-fg-secondary"
 						>h{{ longest.isEstimate ? " est." : "" }}</span
@@ -97,15 +97,15 @@
 		</a>
 	</li>
 	} @if (data.fastest; as fastest) {
-	<li>
+	<li class="min-w-0" [class]="spans.fastest">
 		<a
-			class="group flex h-full flex-col justify-between gap-4 rounded-card border border-line bg-surface p-5 no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			class="group flex h-full min-w-0 flex-col justify-between gap-4 rounded-card border border-line bg-surface p-4 sm:p-5 no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 			[routerLink]="['/games', fastest.code]"
 		>
 			<span class="text-sm font-medium text-fg-secondary">Fastest</span>
 			<span class="flex flex-col gap-1 min-w-0">
 				<span
-					class="font-display text-4xl font-bold leading-none tabular-nums text-fg"
+					class="font-display text-3xl sm:text-4xl font-bold leading-none tabular-nums text-fg"
 					>{{ formatHours(fastest.hours) }}<span
 						class="ml-1 text-base font-semibold text-fg-secondary"
 						>h{{ fastest.isEstimate ? " est." : "" }}</span
@@ -119,14 +119,15 @@
 	</li>
 	} @if (data.favoriteGenre; as genre) {
 	<li
-		class="flex flex-col justify-between gap-4 rounded-card border border-line p-5"
+		class="flex flex-col justify-between gap-4 min-w-0 rounded-card border border-line bg-surface p-4 sm:p-5"
+		[class]="spans.favoriteGenre"
 	>
 		<span class="text-sm font-medium text-fg-secondary"
 			>Favorite genre</span
 		>
 		<span class="flex flex-col gap-1 min-w-0">
 			<span
-				class="font-display text-2xl font-bold leading-tight tracking-tight text-fg text-balance"
+				class="font-display text-xl sm:text-2xl font-bold leading-tight tracking-tight text-fg text-balance"
 				>{{ genre.name }}</span
 			>
 			<span class="text-sm text-fg-muted tabular-nums"
@@ -136,12 +137,13 @@
 	</li>
 	} @if (data.topPlatform; as platform) {
 	<li
-		class="flex flex-col justify-between gap-4 rounded-card border border-line p-5"
+		class="flex flex-col justify-between gap-4 min-w-0 rounded-card border border-line bg-surface p-4 sm:p-5"
+		[class]="spans.topPlatform"
 	>
 		<span class="text-sm font-medium text-fg-secondary">Main platform</span>
 		<span class="flex flex-col gap-1 min-w-0">
 			<span
-				class="font-display text-2xl font-bold leading-tight tracking-tight text-fg text-balance"
+				class="font-display text-xl sm:text-2xl font-bold leading-tight tracking-tight text-fg text-balance"
 				>{{ platform.name }}</span
 			>
 			<span class="text-sm text-fg-muted tabular-nums"
@@ -151,12 +153,13 @@
 	</li>
 	} @if (data.busiestMonth) {
 	<li
-		class="flex flex-col justify-between gap-4 rounded-card border border-line border-dashed p-5"
+		class="flex flex-col justify-between gap-4 min-w-0 rounded-card border border-line bg-surface p-4 sm:p-5"
+		[class]="spans.busiestMonth"
 	>
 		<span class="text-sm font-medium text-fg-secondary">Busiest month</span>
 		<span class="flex flex-col gap-1 min-w-0">
 			<span
-				class="font-display text-2xl font-bold leading-tight tracking-tight text-fg"
+				class="font-display text-xl sm:text-2xl font-bold leading-tight tracking-tight text-fg"
 				>{{ busiestMonthName() }}</span
 			>
 			<span class="text-sm text-fg-muted tabular-nums"
