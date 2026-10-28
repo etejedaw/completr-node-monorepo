@@ -3,7 +3,7 @@ import { afterEach, describe, it, mock } from "node:test";
 
 import { ServiceError } from "../../src/common/errors/service-error";
 import {
-	DeepseekClient,
+	DeepseekModel,
 	DeepseekProvider,
 	DisabledDeepseekProvider
 } from "../../src/ia/deepseek/deepseek.provider";
@@ -51,9 +51,9 @@ afterEach(() => {
 	mock.restoreAll();
 });
 
-void describe("DeepseekClient.create", () => {
+void describe("DeepseekModel.create", () => {
 	void it("returns a DisabledDeepseekProvider without an API key", () => {
-		const client = DeepseekClient.create({
+		const client = DeepseekModel.create({
 			...SETTINGS,
 			apiKey: undefined
 		});
@@ -63,13 +63,13 @@ void describe("DeepseekClient.create", () => {
 	});
 
 	void it("returns a DisabledDeepseekProvider with an empty API key", () => {
-		const client = DeepseekClient.create({ ...SETTINGS, apiKey: "" });
+		const client = DeepseekModel.create({ ...SETTINGS, apiKey: "" });
 
 		assert.ok(client instanceof DisabledDeepseekProvider);
 	});
 
 	void it("returns a DeepseekProvider with an API key", () => {
-		const client = DeepseekClient.create(SETTINGS);
+		const client = DeepseekModel.create(SETTINGS);
 
 		assert.ok(client instanceof DeepseekProvider);
 		assert.equal(client.isEnabled, true);

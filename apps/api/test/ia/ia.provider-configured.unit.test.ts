@@ -3,15 +3,15 @@ import "./ia-env.setup";
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
-import * as iaService from "../../src/ia/ia.service";
+import { iaProvider } from "../../src/ia/ia.provider";
 
 afterEach(() => {
 	mock.restoreAll();
 });
 
-void describe("ia service with DEEPSEEK_API_KEY", () => {
+void describe("ia provider with DEEPSEEK_API_KEY", () => {
 	void it("reports AI as configured", () => {
-		assert.equal(iaService.isIaConfigured(), true);
+		assert.equal(iaProvider.isConfigured, true);
 	});
 
 	void it("sends trimmed input with the configured key and model and returns the text", async () => {
@@ -31,7 +31,7 @@ void describe("ia service with DEEPSEEK_API_KEY", () => {
 				)) as typeof fetch
 		);
 
-		const result = await iaService.generateText({
+		const result = await iaProvider.generateText({
 			instructions: "  Summarize. ",
 			content: " Played <b>3</b> games 👾 ",
 			maxTokens: 100
