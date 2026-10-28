@@ -6,7 +6,9 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
+import { type Subscription } from "rxjs";
 
+import { ToastService } from "../../../core/services/toast";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { UiButton, UiEmptyState, UiSkeleton } from "../../../shared/ui";
@@ -59,10 +61,13 @@ const DEFAULT_JOB_STATUS_STYLE: JobStatusStyle = {
 })
 export class AdminJobs implements OnInit {
 	private readonly jobsService = inject(JobsService);
+	private readonly toast = inject(ToastService);
+	private loadRequest?: Subscription;
 
 	protected readonly jobs = signal<JobEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly starting = signal("");
+	protected readonly cancelling = signal("");
 	protected readonly loadFailed = signal(false);
 	protected readonly jobActions = JOB_ACTIONS;
 	protected readonly skeletonRows = [1, 2, 3, 4];
@@ -96,7 +101,20 @@ export class AdminJobs implements OnInit {
 	}
 
 	cancelJob(jobId: string) {
-		this.jobsService.cancelJob(jobId).subscribe(() => this.loadJobs());
+		if (this.cancelling()) return;
+		this.cancelling.set(jobId);
+		this.jobsService.cancelJob(jobId).subscribe({
+			next: () => {
+				this.cancelling.set("");
+				this.loadJobs();
+			},
+			error: () => {
+				this.cancelling.set("");
+				this.toast.warning(
+					"Couldn't cancel the job. It may have already finished."
+				);
+			}
+		});
 	}
 
 	refresh() {
@@ -108,9 +126,10 @@ export class AdminJobs implements OnInit {
 	}
 
 	private loadJobs() {
+		this.loadRequest?.unsubscribe();
 		this.isLoading.set(true);
 		this.loadFailed.set(false);
-		this.jobsService.getJobs().subscribe({
+		this.loadRequest = this.jobsService.getJobs().subscribe({
 			next: jobs => {
 				this.jobs.set(jobs);
 				this.isLoading.set(false);

@@ -151,6 +151,8 @@
 						variant="danger"
 						size="sm"
 						(click)="cancelJob(job.id)"
+						[disabled]="!!cancelling()"
+						[attr.aria-busy]="cancelling() === job.id || null"
 					>
 						Cancel
 					</button>
@@ -216,6 +218,8 @@
 			size="sm"
 			[block]="true"
 			(click)="cancelJob(job.id)"
+			[disabled]="!!cancelling()"
+			[attr.aria-busy]="cancelling() === job.id || null"
 		>
 			Cancel
 		</button>
