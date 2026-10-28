@@ -14,6 +14,7 @@ import { gameShelfErrorDomainNormalizer } from "../../game-shelf/errors/game-she
 import { gameTimesErrorDomainNormalizer } from "../../game-times/errors/game-times.error-domain.normalizer";
 import { gamesErrorDomainNormalizer } from "../../games/errors/games.error-domain.normalizer";
 import { genresErrorDomainNormalizer } from "../../genres/errors/genres.error-domain.normalizer";
+import { iaErrorDomainNormalizer } from "../../ia/errors/ia.error-domain.normalizer";
 import { invitationsErrorDomainNormalizer } from "../../invitations/errors/invitations.error-domain.normalizer";
 import { listFollowersErrorDomainNormalizer } from "../../list-followers/errors/list-followers.error-domain.normalizer";
 import { listItemsErrorDomainNormalizer } from "../../list-items/errors/list-items.error-domain.normalizer";
@@ -145,6 +146,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "RAWG Provider")
 		return rawgErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "IA Provider")
+		return iaErrorDomainNormalizer(error, correlationId);
 
 	if (error.serviceError.service === "Invitation Service")
 		return invitationsErrorDomainNormalizer(error, correlationId);
