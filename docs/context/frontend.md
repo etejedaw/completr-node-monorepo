@@ -189,7 +189,7 @@ Los `<pantalla>.interaction.spec.ts` simulan lo que hace un usuario en una panta
 | `success`, `danger`, `info`        | Completado, destructivo/abandonado e información                                                                                                                             |
 | `nav-*`                            | Color de identidad de cada sección del menú; `nav-admin` apunta a `admin`                                                                                                    |
 
-- Texto secundario y atenuado (`fg-secondary`, `fg-muted`) también cumplen 4.5:1 sobre los tres fondos. Al tocar un tema, recalcular los contrastes.
+- Texto secundario y atenuado (`fg-secondary`, `fg-muted`) también cumplen 4.5:1 sobre los tres fondos, y en cada tema la jerarquía `fg` > `fg-secondary` > `fg-muted` debe seguir siendo visible. Al tocar un tema, recalcular los contrastes.
 - Superficies y bordes: `canvas`, `sidebar`, `surface`, `surface-hover`, `input-bg`, `line` y `line-hover`. Un hover sobre una fila usa `hover:bg-surface-hover`. Nunca se usa blanco o negro con alfa (`bg-white/[0.03]`), porque no se adapta a los temas.
 - La raíz mide **14px** (`html { font-size: 14px }`), así que las clases en rem de Tailwind salen un 12,5% más chicas: `h-11` mide 38,5px y `gap-2` mide 7px. Los tamaños mínimos (44px táctiles, separaciones de 8px) se escriben en px: `min-h-[44px]`, `gap-[8px]`.
 
