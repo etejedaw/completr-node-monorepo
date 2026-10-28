@@ -6,21 +6,22 @@ import {
 	signal
 } from "@angular/core";
 import { form, FormField, maxLength, required } from "@angular/forms/signals";
-import {
-	injectDialogRef,
-	NgpDialog,
-	NgpDialogOverlay,
-	NgpDialogTitle
-} from "ng-primitives/dialog";
+import { injectDialogRef } from "ng-primitives/dialog";
 import { debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { type Game } from "../../../core/models";
+import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import {
+	UiAlert,
 	UiButton,
+	UiDescription,
+	UiDialog,
+	UiFieldLabel,
 	UiFormField,
 	UiIconButton,
 	UiInput,
 	UiLabel,
+	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
 import {
@@ -47,15 +48,18 @@ interface SelectedGame {
 	selector: "app-admin-franchise-modal",
 	imports: [
 		FormField,
-		NgpDialog,
-		NgpDialogOverlay,
-		NgpDialogTitle,
+		GamePoster,
+		UiAlert,
 		UiButton,
+		UiDescription,
+		UiDialog,
+		UiFieldLabel,
 		UiIconButton,
 		UiInput,
 		UiTextarea,
 		UiFormField,
-		UiLabel
+		UiLabel,
+		UiSkeleton
 	],
 	templateUrl: "./admin-franchise-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -70,6 +74,7 @@ export class AdminFranchiseModal implements OnInit {
 	private readonly franchise = this.dialogRef.data.franchise;
 	private readonly searchSubject = new Subject<string>();
 
+	protected readonly skeletonRange = [0, 1, 2];
 	protected readonly isEdit = signal(false);
 	protected readonly isLoading = signal(false);
 	protected readonly isLoadingGames = signal(false);
