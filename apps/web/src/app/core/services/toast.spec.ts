@@ -126,6 +126,57 @@ describe("ToastService", () => {
 		});
 	});
 
+	describe("repeated toasts", () => {
+		beforeEach(() => toasts.registerTemplate(template));
+
+		it("replaces a toast with the same content instead of stacking it", () => {
+			toasts.premium("Premium perk", "No limit");
+			toasts.premium("Premium perk", "No limit");
+			toasts.premium("Premium perk", "No limit");
+
+			expect(manager.show).toHaveBeenCalledTimes(3);
+			expect(refs[0].dismiss).toHaveBeenCalledOnce();
+			expect(refs[1].dismiss).toHaveBeenCalledOnce();
+			expect(refs[2].dismiss).not.toHaveBeenCalled();
+		});
+
+		it("keeps toasts whose message, variant or title differ", () => {
+			toasts.info("Saved");
+			toasts.success("Saved");
+			toasts.info("Saved again");
+			toasts.premium("Perk A", "Saved");
+
+			expect(manager.show).toHaveBeenCalledTimes(4);
+			refs.forEach(ref => expect(ref.dismiss).not.toHaveBeenCalled());
+		});
+
+		it("never collapses undo toasts, even with the same message", () => {
+			toasts.pending({ message: "Removed", onCommit: vi.fn() });
+			toasts.pending({ message: "Removed", onCommit: vi.fn() });
+
+			refs.forEach(ref => expect(ref.dismiss).not.toHaveBeenCalled());
+		});
+
+		it("leaves only the last one when repeats fire before the library loads", async () => {
+			TestBed.resetTestingModule();
+			let release!: () => void;
+			const gate = new Promise<void>(resolve => (release = resolve));
+			manager.show.mockClear();
+			refs = [];
+			const lazy = createService(() => gate.then(() => fakeLibrary()));
+			lazy.registerTemplate(template);
+
+			lazy.error("Offline");
+			lazy.error("Offline");
+			release();
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(refs).toHaveLength(2);
+			expect(refs[0].dismiss).toHaveBeenCalledOnce();
+			expect(refs[1].dismiss).not.toHaveBeenCalled();
+		});
+	});
+
 	describe("pending", () => {
 		it("returns -1 before a template is registered", () => {
 			expect(toasts.pending({ message: "x", onCommit: vi.fn() })).toBe(

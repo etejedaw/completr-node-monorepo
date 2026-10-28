@@ -12,7 +12,19 @@ import type { NgpToastManager, NgpToastRef } from "ng-primitives/toast";
 
 export type ToastVariant = "info" | "success" | "warning" | "error" | "premium";
 
-export const UNDO_WINDOW_MS = 5000;
+export const TOAST_CONFIG = {
+	placement: "bottom-end",
+	offsetRight: 16,
+	offsetBottom: 16,
+	mobileTabBarClearance: 80,
+	gap: 8,
+	maxToasts: 4,
+	durationMs: 4000,
+	premiumDurationMs: 5000,
+	undoWindowMs: 5000
+} as const;
+
+export const UNDO_WINDOW_MS = TOAST_CONFIG.undoWindowMs;
 
 type ToastLibrary = typeof ToastLibraryModule;
 
@@ -23,14 +35,15 @@ export const TOAST_LIBRARY_LOADER = new InjectionToken<
 	factory: () => () => import("ng-primitives/toast")
 });
 
-const MOBILE_TAB_BAR_CLEARANCE = 80;
 const PRELOAD_FALLBACK_DELAY_MS = 2000;
 
 function toastOffsetBottom(): number {
 	const isMobile =
 		typeof window !== "undefined" &&
 		window.matchMedia?.("(max-width: 767px)").matches;
-	return isMobile ? MOBILE_TAB_BAR_CLEARANCE : 16;
+	return isMobile
+		? TOAST_CONFIG.mobileTabBarClearance
+		: TOAST_CONFIG.offsetBottom;
 }
 
 function whenIdle(task: () => void) {
@@ -79,6 +92,7 @@ export class ToastService {
 	private template: TemplateRef<void> | null = null;
 	private nextId = 1;
 	private readonly pendings = new Map<number, PendingEntry>();
+	private readonly shownByContent = new Map<string, NgpToastRef>();
 	private toastInjector: EnvironmentInjector | null = null;
 	private destroyed = false;
 
@@ -98,7 +112,7 @@ export class ToastService {
 	show(
 		message: string,
 		variant: ToastVariant = "info",
-		durationMs = 4000,
+		durationMs: number = TOAST_CONFIG.durationMs,
 		title?: string
 	) {
 		if (!this.template) return;
@@ -110,11 +124,14 @@ export class ToastService {
 			variant
 		};
 		const template = this.template;
+		const contentKey = [variant, title ?? "", message].join("\u0000");
 		this.whenReady(manager => {
+			this.shownByContent.get(contentKey)?.dismiss();
 			const ref = manager.show(template, {
 				duration: durationMs,
 				context: ctx
 			});
+			this.shownByContent.set(contentKey, ref);
 			ctx.onDismiss = () => ref.dismiss();
 		});
 	}
@@ -135,7 +152,11 @@ export class ToastService {
 		this.show(message, "error", durationMs);
 	}
 
-	premium(title: string, message: string, durationMs = 5000) {
+	premium(
+		title: string,
+		message: string,
+		durationMs: number = TOAST_CONFIG.premiumDurationMs
+	) {
 		this.show(message, "premium", durationMs, title);
 	}
 
@@ -207,11 +228,11 @@ export class ToastService {
 				const injector = createEnvironmentInjector(
 					[
 						provideToastConfig({
-							placement: "bottom-end",
+							placement: TOAST_CONFIG.placement,
 							offsetBottom: toastOffsetBottom(),
-							offsetRight: 16,
-							gap: 8,
-							maxToasts: 4,
+							offsetRight: TOAST_CONFIG.offsetRight,
+							gap: TOAST_CONFIG.gap,
+							maxToasts: TOAST_CONFIG.maxToasts,
 							ariaLive: "polite"
 						}),
 						NgpToastManager
