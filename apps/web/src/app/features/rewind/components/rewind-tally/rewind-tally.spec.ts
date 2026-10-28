@@ -1,8 +1,10 @@
 import { TestBed } from "@angular/core/testing";
 
+import { type RewindTotals } from "../../../../core/models/rewind.model";
 import {
 	RewindTally,
 	type RewindTallyRow,
+	rewindTallyRows,
 	TALLY_DURATION_MS,
 	TALLY_STAGGER_MS
 } from "./rewind-tally";
@@ -170,5 +172,56 @@ describe("RewindTally", () => {
 		fixture.destroy();
 
 		expect(cancelAnimationFrame).toHaveBeenCalledWith(countingFrame);
+	});
+});
+
+describe("rewindTallyRows", () => {
+	const totals: RewindTotals = {
+		finished: 18,
+		abandoned: 4,
+		started: 23,
+		hoursPlayed: 212.5,
+		platinums: 2
+	};
+
+	const labels = (rows: RewindTallyRow[]) => rows.map(row => row.label);
+
+	it("lists every row in order when all of them have a value", () => {
+		expect(labels(rewindTallyRows(totals))).toEqual([
+			"Finished",
+			"Left behind",
+			"Started",
+			"Hours played",
+			"Platinums"
+		]);
+	});
+
+	it("hides Started and Platinums when they are zero", () => {
+		expect(
+			labels(rewindTallyRows({ ...totals, started: 0, platinums: 0 }))
+		).toEqual(["Finished", "Left behind", "Hours played"]);
+	});
+
+	it("hides Platinums when the viewer cannot see them", () => {
+		expect(labels(rewindTallyRows({ ...totals, platinums: null }))).toEqual(
+			["Finished", "Left behind", "Started", "Hours played"]
+		);
+	});
+
+	it("keeps Finished, Left behind and Hours played even at zero", () => {
+		const rows = rewindTallyRows({
+			finished: 0,
+			abandoned: 0,
+			started: 3,
+			hoursPlayed: 0,
+			platinums: null
+		});
+
+		expect(rows.map(row => [row.label, row.value])).toEqual([
+			["Finished", 0],
+			["Left behind", 0],
+			["Started", 3],
+			["Hours played", 0]
+		]);
 	});
 });

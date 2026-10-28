@@ -9,6 +9,7 @@ import {
 	signal
 } from "@angular/core";
 
+import { type RewindTotals } from "../../../../core/models/rewind.model";
 import { InView } from "../../../../shared/directives/in-view";
 import { formatHours } from "../../rewind-copy";
 
@@ -31,6 +32,21 @@ const TONE_CLASS: Record<RewindTallyTone, string> = {
 	platinum: "text-platinum",
 	neutral: "text-fg"
 };
+
+export function rewindTallyRows(totals: RewindTotals): RewindTallyRow[] {
+	const rows: (RewindTallyRow | null)[] = [
+		{ label: "Finished", value: totals.finished, tone: "success" },
+		{ label: "Left behind", value: totals.abandoned, tone: "danger" },
+		totals.started > 0
+			? { label: "Started", value: totals.started, tone: "playing" }
+			: null,
+		{ label: "Hours played", value: totals.hoursPlayed, tone: "neutral" },
+		totals.platinums
+			? { label: "Platinums", value: totals.platinums, tone: "platinum" }
+			: null
+	];
+	return rows.filter(row => row !== null);
+}
 
 function easeOutCubic(progress: number): number {
 	return 1 - Math.pow(1 - progress, 3);
