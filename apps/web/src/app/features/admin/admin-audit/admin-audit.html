@@ -1,155 +1,224 @@
-<div>
-	<div class="flex items-center justify-between mb-5">
-		<h1
-			class="font-display text-3xl md:text-4xl font-bold tracking-tight m-0"
-		>
-			Audit Log
-		</h1>
-		<span class="text-[0.8125rem] text-fg-muted"
-			>{{ total() }} entries</span
-		>
-	</div>
+<app-library-hero heading="Audit Log">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Admin</span
+	>
+	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
+		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
+		{{ total() === 1 ? 'entry' : 'entries' }}
+	</p>
+</app-library-hero>
 
-	<div class="flex flex-wrap gap-2 mb-4 items-end">
-		<div class="flex flex-col gap-1">
-			<label
-				for="audit-action"
-				class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-				>Action</label
-			>
-			<select
-				uiSelect
-				id="audit-action"
-				size="sm"
-				[value]="actionFilter()"
-				(change)="setActionFilter($any($event.target).value)"
-			>
-				<option value="">All</option>
-				@for (a of actionOptions; track a) {
-				<option [value]="a">{{ a }}</option>
-				}
-			</select>
-		</div>
-		<div class="flex flex-col gap-1">
-			<label
-				for="audit-target-type"
-				class="text-[0.625rem] uppercase tracking-wider text-fg-muted"
-				>Target type</label
-			>
-			<select
-				uiSelect
-				id="audit-target-type"
-				size="sm"
-				[value]="targetTypeFilter()"
-				(change)="setTargetTypeFilter($any($event.target).value)"
-			>
-				<option value="">All</option>
-				@for (t of targetTypeOptions; track t) {
-				<option [value]="t">{{ t }}</option>
-				}
-			</select>
-		</div>
-		@if (actionFilter() || targetTypeFilter()) {
-		<button
-			class="px-2.5 py-1.5 bg-transparent border border-line text-fg-muted text-xs rounded cursor-pointer hover:border-brand hover:text-brand transition"
-			(click)="clearFilters()"
-		>
-			Clear filters
-		</button>
-		}
-	</div>
-
-	@if (isLoading()) {
-	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
-	} @else if (logs().length === 0) {
-	<div class="text-center py-12 text-fg-muted text-sm">
-		No audit entries match the filters.
-	</div>
-	} @else {
-	<div class="overflow-x-auto">
-		<table class="w-full border-collapse text-[0.8125rem]">
-			<thead>
-				<tr>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						User
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						Action
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						Target
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						Date
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				@for (log of logs(); track log.id) {
-				<tr class="border-b border-line transition hover:bg-surface">
-					<td class="px-3 py-2 text-fg align-middle font-medium">
-						{{ log.user?.username ?? 'Unknown' }}
-					</td>
-					<td class="px-3 py-2 align-middle whitespace-nowrap">
-						<span
-							class="inline-block px-2 py-0.5 bg-surface rounded-full text-[0.6875rem] font-semibold text-fg-secondary"
-							>{{ log.action }}</span
-						>
-					</td>
-					<td
-						class="px-3 py-2 text-fg-secondary text-[0.8125rem] align-middle"
-					>
-						<span
-							class="inline-block px-1.5 py-0.5 mr-1.5 bg-input-bg rounded text-[0.625rem] uppercase tracking-wider text-fg-muted"
-							>{{ log.targetType }}</span
-						>
-						@if (log.target?.type === 'game' && log.target?.code) {
-						<a
-							class="text-brand no-underline hover:underline"
-							[routerLink]="['/games', log.target!.code]"
-							>{{ log.target!.label }}</a
-						>
-						} @else if (log.target?.type === 'user' &&
-						log.target?.username) {
-						<a
-							class="text-brand no-underline hover:underline"
-							[routerLink]="['/user', log.target!.username]"
-							>{{ log.target!.label }}</a
-						>
-						} @else {
-						<span class="font-mono text-fg-muted text-xs"
-							>{{ log.targetId.slice(0, 8) }}...</span
-						>
-						}
-					</td>
-					<td
-						class="px-3 py-2 text-fg-muted text-xs whitespace-nowrap align-middle"
-					>
-						{{ log.createdAt | date:'yyyy-MM-dd HH:mm' }}
-					</td>
-				</tr>
-				}
-			</tbody>
-		</table>
-	</div>
-
-	<ui-pagination
-		[offset]="offset()"
-		[limit]="limit"
-		[total]="total()"
-		(offsetChange)="goToOffset($event)"
+<app-library-toolbar>
+	<app-option-picker
+		class="max-md:hidden shrink-0"
+		variant="compact"
+		size="md"
+		label="Action"
+		heading="Filter by action"
+		placeholderIcon="bolt"
+		[options]="actionOptions"
+		[value]="actionFilter()"
+		(valueChange)="setActionFilter($event)"
 	/>
+	<app-option-picker
+		class="max-md:hidden shrink-0"
+		variant="compact"
+		size="md"
+		label="Target"
+		heading="Filter by target type"
+		placeholderIcon="category"
+		[options]="targetTypeOptions"
+		[value]="targetTypeFilter()"
+		(valueChange)="setTargetTypeFilter($event)"
+	/>
+	<app-option-picker
+		class="md:hidden flex-1 min-w-[10rem]"
+		label="Action"
+		heading="Filter by action"
+		placeholderIcon="bolt"
+		[options]="actionOptions"
+		[value]="actionFilter()"
+		(valueChange)="setActionFilter($event)"
+	/>
+	<app-option-picker
+		class="md:hidden flex-1 min-w-[10rem]"
+		label="Target"
+		heading="Filter by target type"
+		placeholderIcon="category"
+		[options]="targetTypeOptions"
+		[value]="targetTypeFilter()"
+		(valueChange)="setTargetTypeFilter($event)"
+	/>
+	@if (hasFilters()) {
+	<button uiButton variant="ghost" size="sm" (click)="clearFilters()">
+		<span aria-hidden="true" class="material-icons text-base">close</span>
+		Clear filters
+	</button>
+	}
+</app-library-toolbar>
+
+@if (isLoading()) {
+<div
+	aria-busy="true"
+	aria-label="Loading audit log"
+	class="flex flex-col divide-y divide-line"
+>
+	@for (i of skeletonRows; track i) {
+	<div class="flex items-center gap-4 py-3">
+		<ui-skeleton variant="text" class="block w-24 h-4" />
+		<ui-skeleton variant="text" class="block w-28 h-5 rounded-full" />
+		<ui-skeleton variant="text" class="block flex-1 h-4" />
+		<ui-skeleton variant="text" class="block w-28 max-sm:hidden" />
+	</div>
 	}
 </div>
+} @else if (loadFailed()) {
+<ui-empty-state
+	icon="cloud_off"
+	title="Couldn't load the audit log"
+	hint="Something went wrong while fetching the entries."
+>
+	<button uiButton variant="secondary" (click)="reload()">Try again</button>
+</ui-empty-state>
+} @else if (logs().length === 0) { @if (hasFilters()) {
+<ui-no-matches
+	hint="No audit entries match the filters."
+	clearLabel="Clear filters"
+	(cleared)="clearFilters()"
+/>
+} @else {
+<ui-empty-state
+	icon="history"
+	title="No audit entries yet"
+	hint="Admin actions will be recorded here."
+/>
+} } @else {
+<div class="max-md:hidden overflow-x-auto">
+	<table class="w-full border-collapse text-[0.8125rem]">
+		<thead>
+			<tr>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					User
+				</th>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Action
+				</th>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Target
+				</th>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Date
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			@for (log of logs(); track log.id) {
+			<tr class="border-b border-line transition hover:bg-surface-hover">
+				<td class="px-3 py-2.5 text-fg align-middle font-medium">
+					{{ log.user?.username ?? 'Unknown' }}
+				</td>
+				<td class="px-3 py-2.5 align-middle whitespace-nowrap">
+					<span
+						class="inline-block px-2 py-0.5 bg-surface border border-line rounded-full text-[0.6875rem] font-semibold text-fg-secondary"
+						>{{ log.action }}</span
+					>
+				</td>
+				<td class="px-3 py-2.5 text-fg-secondary align-middle">
+					<span
+						class="inline-block px-1.5 py-0.5 mr-1.5 bg-input-bg rounded text-[0.625rem] uppercase tracking-wider text-fg-muted"
+						>{{ log.targetType }}</span
+					>
+					@if (log.target?.type === 'game' && log.target?.code) {
+					<a
+						class="text-brand no-underline hover:underline"
+						[routerLink]="['/games', log.target!.code]"
+						>{{ log.target!.label }}</a
+					>
+					} @else if (log.target?.type === 'user' &&
+					log.target?.username) {
+					<a
+						class="text-brand no-underline hover:underline"
+						[routerLink]="['/user', log.target!.username]"
+						>{{ log.target!.label }}</a
+					>
+					} @else {
+					<span class="font-mono text-fg-muted text-xs"
+						>{{ log.targetId.slice(0, 8) }}...</span
+					>
+					}
+				</td>
+				<td
+					class="px-3 py-2.5 text-fg-muted text-xs whitespace-nowrap align-middle tabular-nums"
+				>
+					{{ log.createdAt | date:'yyyy-MM-dd HH:mm' }}
+				</td>
+			</tr>
+			}
+		</tbody>
+	</table>
+</div>
+
+<ul class="md:hidden list-none m-0 p-0 flex flex-col divide-y divide-line">
+	@for (log of logs(); track log.id) {
+	<li class="py-3 flex flex-col gap-2">
+		<div class="flex items-center justify-between gap-3">
+			<span
+				class="inline-block px-2 py-0.5 bg-surface border border-line rounded-full text-[0.6875rem] font-semibold text-fg-secondary"
+				>{{ log.action }}</span
+			>
+			<span class="text-xs text-fg-muted tabular-nums"
+				>{{ log.createdAt | date:'yyyy-MM-dd HH:mm' }}</span
+			>
+		</div>
+		<p class="m-0 text-sm text-fg-secondary">
+			<span class="font-medium text-fg"
+				>{{ log.user?.username ?? 'Unknown' }}</span
+			>
+			&middot;
+			<span
+				class="inline-block px-1.5 py-0.5 mr-1 bg-input-bg rounded text-[0.625rem] uppercase tracking-wider text-fg-muted"
+				>{{ log.targetType }}</span
+			>
+			@if (log.target?.type === 'game' && log.target?.code) {
+			<a
+				class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px]"
+				[routerLink]="['/games', log.target!.code]"
+				>{{ log.target!.label }}</a
+			>
+			} @else if (log.target?.type === 'user' && log.target?.username) {
+			<a
+				class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px]"
+				[routerLink]="['/user', log.target!.username]"
+				>{{ log.target!.label }}</a
+			>
+			} @else {
+			<span class="font-mono text-fg-muted text-xs"
+				>{{ log.targetId.slice(0, 8) }}...</span
+			>
+			}
+		</p>
+	</li>
+	}
+</ul>
+
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit"
+	[total]="total()"
+	(offsetChange)="goToOffset($event)"
+/>
+}
