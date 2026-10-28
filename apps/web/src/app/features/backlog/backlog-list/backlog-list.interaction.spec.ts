@@ -194,7 +194,9 @@ describe("BacklogList interaction", () => {
 
 	function answerPending() {
 		for (let round = 0; round < 10; round++) {
-			const pending = httpTesting.match(() => true);
+			const pending = httpTesting
+				.match(() => true)
+				.filter(req => !req.cancelled);
 			if (pending.length === 0) return;
 			pending.forEach(answer);
 		}
