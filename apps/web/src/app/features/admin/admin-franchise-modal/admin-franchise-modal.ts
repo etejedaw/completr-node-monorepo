@@ -1,13 +1,20 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
-import { form, FormField, maxLength, required } from "@angular/forms/signals";
+import {
+	form,
+	FormField,
+	maxLength,
+	required,
+	validate
+} from "@angular/forms/signals";
 import { injectDialogRef } from "ng-primitives/dialog";
-import { debounceTime, of, Subject, switchMap } from "rxjs";
+import { catchError, debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { type Game } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
@@ -79,17 +86,39 @@ export class AdminFranchiseModal implements OnInit {
 	protected readonly isLoading = signal(false);
 	protected readonly isLoadingGames = signal(false);
 	protected readonly hasMoreGames = signal(false);
+	protected readonly gamesLoadError = signal(false);
+	protected readonly searchError = signal(false);
+	private initialGameIds: string[] = [];
 	protected readonly error = signal("");
 
 	protected readonly games = signal<SelectedGame[]>([]);
 	protected readonly searchQuery = signal("");
 	protected readonly isSearching = signal(false);
+	protected readonly gamesLocked = computed(
+		() =>
+			this.isLoadingGames() ||
+			this.gamesLoadError() ||
+			this.hasMoreGames()
+	);
+	private readonly gamesChanged = computed(() => {
+		const current = this.games().map(g => g.id);
+		const initial = new Set(this.initialGameIds);
+		return (
+			current.length !== initial.size ||
+			current.some(id => !initial.has(id))
+		);
+	});
 	protected readonly results = signal<SelectedGame[]>([]);
 
 	protected readonly model = signal({ name: "", description: "" });
 
 	readonly form = form(this.model, path => {
 		required(path.name, { message: "Name is required" });
+		validate(path.name, ({ value }) =>
+			value().length > 0 && value().trim().length === 0
+				? { kind: "blankName", message: "Name is required" }
+				: null
+		);
 		maxLength(path.name, 100, {
 			message: "Name must be 100 characters or fewer"
 		});
@@ -103,12 +132,18 @@ export class AdminFranchiseModal implements OnInit {
 			.pipe(
 				debounceTime(300),
 				switchMap(query => {
+					this.searchError.set(false);
 					if (query.trim().length < 2) {
 						this.isSearching.set(false);
 						return of<Game[]>([]);
 					}
 					this.isSearching.set(true);
-					return this.gamesService.searchLocal(query);
+					return this.gamesService.searchLocal(query).pipe(
+						catchError(() => {
+							this.searchError.set(true);
+							return of<Game[]>([]);
+						})
+					);
 				})
 			)
 			.subscribe(games => {
@@ -129,18 +164,27 @@ export class AdminFranchiseModal implements OnInit {
 		}
 	}
 
+	protected retryLoadGames() {
+		if (this.franchise) this.loadGames(this.franchise.code);
+	}
+
 	private loadGames(code: string) {
 		this.isLoadingGames.set(true);
+		this.gamesLoadError.set(false);
 		this.franchisesService
 			.getFranchiseByCode(code, { limit: 100 })
 			.subscribe({
 				next: detail => {
 					const games = detail.games.map(g => this.toSelected(g));
 					this.games.set(games);
+					this.initialGameIds = games.map(g => g.id);
 					this.hasMoreGames.set(detail.hasMore);
 					this.isLoadingGames.set(false);
 				},
-				error: () => this.isLoadingGames.set(false)
+				error: () => {
+					this.gamesLoadError.set(true);
+					this.isLoadingGames.set(false);
+				}
 			});
 	}
 
@@ -161,6 +205,7 @@ export class AdminFranchiseModal implements OnInit {
 	}
 
 	addGame(game: SelectedGame) {
+		if (this.gamesLocked()) return;
 		this.games.update(games =>
 			games.some(g => g.id === game.id) ? games : [...games, game]
 		);
@@ -168,12 +213,14 @@ export class AdminFranchiseModal implements OnInit {
 	}
 
 	removeGame(id: string) {
+		if (this.gamesLocked()) return;
 		this.games.update(games => games.filter(g => g.id !== id));
 	}
 
 	onSubmit(event: Event) {
 		event.preventDefault();
-		if (this.form().invalid() || this.isLoading()) return;
+		if (this.form().invalid() || this.isLoading() || this.isLoadingGames())
+			return;
 		this.isLoading.set(true);
 		this.error.set("");
 
@@ -181,7 +228,10 @@ export class AdminFranchiseModal implements OnInit {
 		const dto: FranchiseDto = {
 			name: val.name.trim(),
 			description: val.description.trim() || null,
-			gameIds: this.games().map(g => g.id)
+			gameIds:
+				this.isEdit() && !this.gamesChanged()
+					? undefined
+					: this.games().map(g => g.id)
 		};
 
 		if (this.isEdit()) this.saveEdit(dto);
@@ -217,6 +267,7 @@ export class AdminFranchiseModal implements OnInit {
 	}
 
 	onClose() {
+		if (this.isLoading()) return;
 		this.dialogRef.close();
 	}
 }

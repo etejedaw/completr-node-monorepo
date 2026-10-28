@@ -73,6 +73,7 @@
 					class="!pl-10"
 					placeholder="Search games to add..."
 					aria-label="Search games to add"
+					[disabled]="gamesLocked()"
 					[value]="searchQuery()"
 					(input)="onSearch($event)"
 				/>
@@ -99,6 +100,10 @@
 					</li>
 					}
 				</ul>
+				} @else if (searchError()) {
+				<p class="m-0 px-3 py-6 text-center text-sm text-danger">
+					Could not search games. Try again.
+				</p>
 				} @else if (results().length === 0) {
 				<p class="m-0 px-3 py-6 text-center text-sm text-fg-muted">
 					No games found.
@@ -118,9 +123,9 @@
 								[compact]="true"
 							/>
 							<div class="flex flex-col min-w-0">
-								<span class="text-sm font-medium truncate">{{
-									game.title
-								}}</span>
+								<span class="text-sm font-medium truncate"
+									>{{ game.title }}</span
+								>
 								@if (game.franchiseName) {
 								<span class="text-[0.6875rem] text-warning"
 									>in {{ game.franchiseName }}</span
@@ -167,12 +172,27 @@
 					}
 				</ul>
 				<span class="sr-only">Loading games...</span>
+				} @else if (gamesLoadError()) {
+				<ui-alert>
+					<span class="flex flex-wrap items-center gap-x-3 gap-y-2">
+						Could not load the games of this franchise.
+						<button
+							uiButton
+							variant="secondary"
+							size="sm"
+							type="button"
+							(click)="retryLoadGames()"
+						>
+							Try again
+						</button>
+					</span>
+				</ui-alert>
 				} @else {
 				<div class="flex items-center justify-between gap-2 mb-2">
 					<span
 						class="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-fg-muted tabular-nums"
-						>{{ games().length }} game{{ games().length === 1 ?
-						"" : "s" }} in this franchise</span
+						>{{ games().length }} game{{ games().length === 1 ? "" :
+						"s" }} in this franchise</span
 					>
 					@if (hasMoreGames()) {
 					<span class="text-[0.6875rem] text-warning"
@@ -180,7 +200,12 @@
 					>
 					}
 				</div>
-				@if (games().length === 0) {
+				@if (hasMoreGames()) {
+				<p class="m-0 mb-2 text-xs text-warning">
+					This franchise has more games than can be shown here, so its
+					games can't be changed from this dialog.
+				</p>
+				} @if (games().length === 0) {
 				<div
 					class="flex flex-col items-center gap-1 px-4 py-6 text-center rounded-card border border-dashed border-line"
 				>
@@ -209,9 +234,9 @@
 								[width]="200"
 								[compact]="true"
 							/>
-							<span class="text-sm font-medium truncate">{{
-								game.title
-							}}</span>
+							<span class="text-sm font-medium truncate"
+								>{{ game.title }}</span
+							>
 						</div>
 						<button
 							uiIconButton
@@ -219,6 +244,7 @@
 							tone="danger"
 							type="button"
 							aria-label="Remove game"
+							[disabled]="gamesLocked()"
 							title="Remove game"
 							(click)="removeGame(game.id)"
 						>
@@ -237,7 +263,13 @@
 	</form>
 
 	<ng-container dialogFooter>
-		<button uiButton variant="ghost" type="button" (click)="onClose()">
+		<button
+			uiButton
+			variant="ghost"
+			type="button"
+			[disabled]="isLoading()"
+			(click)="onClose()"
+		>
 			Cancel
 		</button>
 		<button
@@ -245,7 +277,7 @@
 			variant="primary"
 			type="submit"
 			form="franchise-form"
-			[disabled]="form().invalid() || isLoading()"
+			[disabled]="form().invalid() || isLoading() || isLoadingGames()"
 		>
 			{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Create" }}
 		</button>
