@@ -133,7 +133,10 @@ describe("AdminGameEditor API errors and value validation", () => {
 	}
 
 	async function alertText() {
-		return (await screen.findByRole("alert")).textContent?.trim();
+		const alert = await screen.findByRole("alert");
+		return alert.querySelector(".material-icons")
+			? alert.lastElementChild?.textContent?.trim()
+			: alert.textContent?.trim();
 	}
 
 	beforeEach(() => {
