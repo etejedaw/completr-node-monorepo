@@ -29,6 +29,7 @@ import listsRouter from "./lists/lists.routes";
 import moodTagsRouter from "./mood-tags/mood-tags.routes";
 import platformRouter from "./platforms/platforms.routes";
 import privacyRouter from "./privacy/privacy.routes";
+import rewindRouter from "./rewind/rewind.routes";
 import scoreSourcesRouter from "./score-sources/score-sources.routes";
 import userFollowRequestsRouter from "./user-follow-requests/user-follow-requests.routes";
 import userFollowersRouter from "./user-followers/user-followers.routes";
@@ -72,6 +73,7 @@ export function createApp() {
 	app.use(coopRunsRouter);
 	app.use(changelogRouter);
 	app.use(privacyRouter);
+	app.use(rewindRouter);
 	app.use(errorHandlerMiddleware);
 
 	return app;

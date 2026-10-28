@@ -24,6 +24,7 @@ import { platformsErrorDomainNormalizer } from "../../platforms/errors/platforms
 import { queueErrorDomainNormalizer } from "../../queue/errors/queue.error-domain.normalizer";
 import { rawgErrorDomainNormalizer } from "../../rawg/errors/rawg.error-domain.normalizer";
 import { reviewsErrorDomainNormalizer } from "../../reviews/errors/reviews.error-domain.normalizer";
+import { rewindErrorDomainNormalizer } from "../../rewind/errors/rewind.error-domain.normalizer";
 import { savedFiltersErrorDomainNormalizer } from "../../saved-filters/errors/saved-filters.error-domain.normalizer";
 import { scoreSourcesErrorDomainNormalizer } from "../../score-sources/errors/score-sources.error-domain.normalizer";
 import { userFollowRequestsErrorDomainNormalizer } from "../../user-follow-requests/errors/user-follow-requests.error-domain.normalizer";
@@ -126,6 +127,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "Review Service")
 		return reviewsErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Rewind Service")
+		return rewindErrorDomainNormalizer(error, correlationId);
 
 	if (error.serviceError.service === "MoodTags Service")
 		return moodTagsErrorDomainNormalizer(error, correlationId);
