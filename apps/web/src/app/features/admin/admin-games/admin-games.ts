@@ -2,11 +2,14 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Router, RouterLink } from "@angular/router";
+import { catchError, debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { type Game } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
@@ -66,6 +69,9 @@ export class AdminGames implements OnInit {
 	private readonly reportsService = inject(ReportsService);
 	private readonly router = inject(Router);
 	private readonly toast = inject(ToastService);
+	private readonly destroyRef = inject(DestroyRef);
+	private readonly gamesRequests = new Subject<GamesQuery>();
+	private readonly searchChanges = new Subject<void>();
 
 	protected readonly Math = Math;
 	protected readonly games = signal<Game[]>([]);
@@ -109,7 +115,22 @@ export class AdminGames implements OnInit {
 	];
 
 	ngOnInit() {
-		this.scoreSourcesService.load();
+		this.gamesRequests
+			.pipe(
+				switchMap(query =>
+					this.gamesService
+						.getGames(query)
+						.pipe(catchError(() => of(null)))
+				),
+				takeUntilDestroyed(this.destroyRef)
+			)
+			.subscribe(res => this.applyGamesResponse(res));
+		this.searchChanges
+			.pipe(debounceTime(250), takeUntilDestroyed(this.destroyRef))
+			.subscribe(() => this.loadGames());
+		this.scoreSourcesService
+			.whenLoaded()
+			.subscribe({ error: () => undefined });
 		this.loadGames();
 		this.loadReports();
 	}
@@ -345,7 +366,7 @@ export class AdminGames implements OnInit {
 	onSearch(query: string) {
 		this.searchQuery.set(query);
 		this.offset.set(0);
-		this.loadGames();
+		this.searchChanges.next();
 	}
 
 	goToOffset(offset: number) {
@@ -358,7 +379,8 @@ export class AdminGames implements OnInit {
 			next: reports => {
 				const ids = new Set(reports.map(r => r.gameId));
 				this.reportedGameIds.set(ids);
-			}
+			},
+			error: () => undefined
 		});
 	}
 
@@ -385,16 +407,29 @@ export class AdminGames implements OnInit {
 		const timeSources = Array.from(this.noTimeSources());
 		if (timeSources.length > 0)
 			query["no_time_source"] = timeSources.join(",");
-		this.gamesService.getGames(query).subscribe({
-			next: res => {
-				this.games.set(res.data.games);
-				this.total.set(res.data.total);
-				this.isLoading.set(false);
-			},
-			error: () => {
-				this.loadError.set(true);
-				this.isLoading.set(false);
-			}
-		});
+		this.gamesRequests.next(query);
+	}
+
+	private applyGamesResponse(
+		res: { data: { games: Game[]; total: number } } | null
+	) {
+		if (!res) {
+			this.loadError.set(true);
+			this.isLoading.set(false);
+			return;
+		}
+		const { games, total } = res.data;
+		if (games.length === 0 && this.offset() > 0) {
+			this.offset.set(
+				total > 0
+					? Math.floor((total - 1) / this.limit) * this.limit
+					: 0
+			);
+			this.loadGames();
+			return;
+		}
+		this.games.set(games);
+		this.total.set(total);
+		this.isLoading.set(false);
 	}
 }

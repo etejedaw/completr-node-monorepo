@@ -267,14 +267,13 @@
 	}
 </ul>
 
-@if (!searchQuery()) {
 <ui-pagination
 	[offset]="offset()"
 	[limit]="limit"
 	[total]="total()"
 	(offsetChange)="goToOffset($event)"
 />
-} } @if (deactivateTarget(); as target) {
+} @if (deactivateTarget(); as target) {
 <ui-dialog
 	size="sm"
 	eyebrow="Games"
