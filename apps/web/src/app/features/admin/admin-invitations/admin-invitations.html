@@ -7,9 +7,9 @@
 			>
 				Pending invitations
 			</h2>
-			<span class="text-xs text-fg-muted tabular-nums">{{
-				invitations().length
-			}}</span>
+			<span class="text-xs text-fg-muted tabular-nums"
+				>{{ invitations().length }}</span
+			>
 		</div>
 		<button
 			uiButton
@@ -24,7 +24,21 @@
 		</button>
 	</div>
 
-	@if (invitations().length === 0) {
+	@if (invitations().length === 0) { @if (loadFailed()) {
+	<ui-alert>
+		<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+			<span>Could not load the invitations.</span>
+			<button
+				uiButton
+				size="sm"
+				variant="secondary"
+				(click)="loadInvitations()"
+			>
+				Try again
+			</button>
+		</div>
+	</ui-alert>
+	} @else {
 	<p
 		class="m-0 flex items-start gap-2 px-4 py-3 text-sm text-fg-muted rounded-card border border-line bg-surface/60"
 	>
@@ -34,7 +48,7 @@
 		No pending invitations. Invite someone by email and they'll choose their
 		own username and password.
 	</p>
-	} @else {
+	} } @else {
 	<ul
 		class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
 	>

@@ -44,6 +44,7 @@ export class AdminInvitations implements OnInit {
 	private readonly toast = inject(ToastService);
 
 	protected readonly invitations = signal<AdminInvitation[]>([]);
+	protected readonly loadFailed = signal(false);
 	protected readonly showInviteModal = signal(false);
 	protected readonly isInviting = signal(false);
 	protected readonly inviteError = signal("");
@@ -60,9 +61,13 @@ export class AdminInvitations implements OnInit {
 		this.loadInvitations();
 	}
 
-	private loadInvitations() {
+	protected loadInvitations() {
 		this.invitationAdminService.list().subscribe({
-			next: invitations => this.invitations.set(invitations)
+			next: invitations => {
+				this.invitations.set(invitations);
+				this.loadFailed.set(false);
+			},
+			error: () => this.loadFailed.set(true)
 		});
 	}
 
