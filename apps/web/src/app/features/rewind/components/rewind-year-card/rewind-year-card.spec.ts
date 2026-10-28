@@ -18,14 +18,18 @@ function summary(overrides: Partial<RewindYearSummary> = {}) {
 		finishedCount: 18,
 		startedCount: 23,
 		hoursPlayed: 212.5,
+		persona: "trophy-hunter" as const,
 		covers: ["a", "b", "c", "d", "e"].map(cover),
 		...overrides
 	};
 }
 
 describe("RewindYearCard", () => {
-	function render(value: RewindYearSummary) {
+	beforeEach(() => {
 		TestBed.configureTestingModule({ providers: [provideRouter([])] });
+	});
+
+	function render(value: RewindYearSummary) {
 		const fixture = TestBed.createComponent(RewindYearCard);
 		fixture.componentRef.setInput("username", "ada");
 		fixture.componentRef.setInput("summary", value);
@@ -41,6 +45,27 @@ describe("RewindYearCard", () => {
 		expect(link.textContent).toContain("2025");
 		expect(link.textContent).toContain("18 finished");
 		expect(element.querySelectorAll("app-game-poster")).toHaveLength(3);
+	});
+
+	it("shows the year's persona and paints the card with the year's colour", () => {
+		const element = render(summary({ year: 2025 }));
+		const link = element.querySelector("a")!;
+
+		expect(link.textContent).toContain("Trophy Hunter");
+		expect(link.textContent).not.toContain("you emptied them");
+		expect(link.style.getPropertyValue("--tone")).toBe(
+			"var(--color-nav-lists)"
+		);
+	});
+
+	it("gives consecutive years different colours", () => {
+		const tones = [2024, 2025, 2026].map(year =>
+			render(summary({ year }))
+				.querySelector("a")!
+				.style.getPropertyValue("--tone")
+		);
+
+		expect(new Set(tones).size).toBe(3);
 	});
 
 	it("falls back to the started count when nothing was finished", () => {
