@@ -62,6 +62,8 @@ describe("QueueView interaction", () => {
 	let httpTesting: HttpTestingController;
 	let queuedIds: string[];
 	const reorders: string[][] = [];
+	const moves: { backlogId: string; position: unknown }[] = [];
+	let moveFailure: { status: number; times: number } | null;
 	const statusUpdates: { id: string; body: unknown }[] = [];
 
 	function queueEntries(): QueueEntry[] {
@@ -99,6 +101,22 @@ describe("QueueView interaction", () => {
 		if (method === "PUT" && url === queueUrl) {
 			reorders.push(body.backlogIds);
 			queuedIds = body.backlogIds;
+			return req.flush({ data: { queue: queueEntries() } });
+		}
+		const moveMatch = url.match(/\/users\/me\/queue\/([^/]+)\/position$/);
+		if (method === "PATCH" && moveMatch) {
+			moves.push({ backlogId: moveMatch[1], position: body.position });
+			if (moveFailure && moveFailure.times > 0) {
+				moveFailure.times--;
+				return req.flush(null, {
+					status: moveFailure.status,
+					statusText: "failure"
+				});
+			}
+			const rest = queuedIds.filter(id => id !== moveMatch[1]);
+			rest.splice(body.position - 1, 0, moveMatch[1]);
+			queuedIds = rest;
+			reorders.push(rest);
 			return req.flush({ data: { queue: queueEntries() } });
 		}
 		if (method === "POST" && url === `${queueUrl}?source=backlog`) {
@@ -214,6 +232,8 @@ describe("QueueView interaction", () => {
 		localStorage.clear();
 		queuedIds = ["b1", "b2", "b3"];
 		reorders.length = 0;
+		moves.length = 0;
+		moveFailure = null;
 		statusUpdates.length = 0;
 		vi.stubGlobal(
 			"matchMedia",
@@ -272,6 +292,52 @@ describe("QueueView interaction", () => {
 			expect(queueOrder()).toEqual(["Celeste", "Hollow Knight", "Hades"])
 		);
 		expect(reorders.at(-1)).toEqual(["b2", "b3", "b1"]);
+		expect(moves.at(-1)).toEqual({ backlogId: "b2", position: 1 });
+	});
+
+	it("never replaces the whole queue when moving a game", async () => {
+		const user = userEvent.setup();
+		await renderQueue();
+
+		await user.click(
+			row("Hollow Knight").getByRole("button", { name: "Move to top" })
+		);
+
+		await untilVisible(() => expect(moves).toHaveLength(1));
+		expect(moves[0]).toEqual({ backlogId: "b3", position: 1 });
+		expect(httpTesting.match(r => r.method === "PUT")).toEqual([]);
+	});
+
+	it("sends the position within the whole queue when searching", async () => {
+		const user = userEvent.setup();
+		queuedIds = ["b1", "b2", "b3", "b4"];
+		await renderQueue(["Hades", "Celeste", "Hollow Knight", "Tunic"]);
+		await search(user, "h");
+		await untilVisible(() =>
+			expect(queueOrder()).toEqual(["Hades", "Hollow Knight"])
+		);
+
+		await user.click(
+			row("Hollow Knight").getByRole("button", { name: "Move up" })
+		);
+
+		await untilVisible(() => expect(moves).toHaveLength(1));
+		expect(moves[0]).toEqual({ backlogId: "b3", position: 1 });
+	});
+
+	it("ignores repeated clicks on Move to top while one is in flight", async () => {
+		const user = userEvent.setup();
+		await renderQueue();
+		const button = row("Hollow Knight").getByRole("button", {
+			name: "Move to top"
+		});
+
+		await user.click(button);
+		await user.click(button);
+		await user.click(button);
+
+		await untilVisible(() => expect(moves).toHaveLength(1));
+		expect(queueOrder()).toEqual(["Hollow Knight", "Hades", "Celeste"]);
 	});
 
 	it("removes a game with undo, then commits the removal", async () => {
@@ -574,6 +640,52 @@ describe("QueueView interaction", () => {
 				"Hollow Knight",
 				"Tunic"
 			])
+		);
+	});
+
+	for (const status of [500, 404, 0]) {
+		it(`restores the order and shows an error when a move fails with ${status}`, async () => {
+			const user = userEvent.setup();
+			moveFailure = { status, times: 1 };
+			await renderQueue();
+
+			await user.click(
+				row("Hollow Knight").getByRole("button", { name: "Move up" })
+			);
+
+			await untilVisible(() =>
+				expect(
+					screen.getAllByText("Couldn't update your queue.")[0]!
+				).toBeInTheDocument()
+			);
+			await untilVisible(() =>
+				expect(queueOrder()).toEqual([
+					"Hades",
+					"Celeste",
+					"Hollow Knight"
+				])
+			);
+			expect(queuedIds).toEqual(["b1", "b2", "b3"]);
+		});
+	}
+
+	it("keeps working after a failed move", async () => {
+		const user = userEvent.setup();
+		moveFailure = { status: 500, times: 1 };
+		await renderQueue();
+
+		await user.click(
+			row("Hollow Knight").getByRole("button", { name: "Move up" })
+		);
+		await untilVisible(() =>
+			expect(queueOrder()).toEqual(["Hades", "Celeste", "Hollow Knight"])
+		);
+		await user.click(
+			row("Hollow Knight").getByRole("button", { name: "Move up" })
+		);
+
+		await untilVisible(() =>
+			expect(queueOrder()).toEqual(["Hades", "Hollow Knight", "Celeste"])
 		);
 	});
 });
