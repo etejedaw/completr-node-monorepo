@@ -218,9 +218,10 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 
 ### Sagas
 
-- `POST /franchises` y `PATCH /franchises/:id` aceptan `gameIds` opcional: el conjunto final de juegos de la saga. Si se envía, la saga y los vínculos se aplican en una sola transacción: los juegos listados quedan con ese `franchiseId` y los que la saga tenía y no aparecen se desvinculan (`franchiseId = null`). Si algún id no existe responde 404 `FRANCHISE_GAMES_NOT_FOUND` y no se aplica nada. Sin `gameIds` los juegos no se tocan.
+- Una saga siempre tiene juegos: `POST /franchises` exige `gameIds` con al menos un id, y `PATCH /franchises/:id` acepta `gameIds` opcional pero nunca vacío (422 `COMMON_SCHEMA_INVALID`). `gameIds` es el conjunto final de juegos de la saga: la saga y los vínculos se aplican en una sola transacción: los juegos listados quedan con ese `franchiseId` y los que la saga tenía y no aparecen se desvinculan (`franchiseId = null`). Si algún id no existe responde 404 `FRANCHISE_GAMES_NOT_FOUND` y no se aplica nada. Sin `gameIds` los juegos no se tocan.
 - Crear, editar y borrar sagas requiere rol `moderator` o `admin`. Un usuario solo puede seguirlas (`POST` / `DELETE /franchises/:code/track`).
 - `GET /franchises` y `GET /franchises/:code` aceptan visitantes (auth opcional; un token inválido cuenta como visitante). Ninguna respuesta de sagas incluye progreso personal: el conteo es `gameCount`, los juegos activos de la saga.
+- `GET /users/:username/franchises` exige `canView` de `profile` y de `franchise` (403 `USER_PRIVATE`); la visibilidad del backlog no aplica.
 - `GET /franchises` incluye en cada saga `previewGames`: hasta 4 juegos activos ordenados por fecha de lanzamiento (desempate por id), e `isTracked` del visitante (`false` sin sesión).
 
 ### Datos crudos
@@ -252,21 +253,22 @@ Fórmulas y comportamiento en bordes.
 
 ### Campos en `User`
 
-Nueve secciones independientes, cada una con un `VisibilityLevel` (`apps/api/src/users/constants/visibility.constants.ts`): `private`, `friends`, `public`.
+Diez secciones independientes, cada una con un `VisibilityLevel` (`apps/api/src/users/constants/visibility.constants.ts`): `private`, `friends`, `public`.
 
-| Sección  | Campo                |
-| -------- | -------------------- |
-| profile  | `profileVisibility`  |
-| queue    | `queueVisibility`    |
-| wishlist | `wishlistVisibility` |
-| favorite | `favoriteVisibility` |
-| feed     | `feedVisibility`     |
-| backlog  | `backlogVisibility`  |
-| shelf    | `shelfVisibility`    |
-| list     | `listVisibility`     |
-| platinum | `platinumVisibility` |
+| Sección   | Campo                 |
+| --------- | --------------------- |
+| profile   | `profileVisibility`   |
+| queue     | `queueVisibility`     |
+| wishlist  | `wishlistVisibility`  |
+| favorite  | `favoriteVisibility`  |
+| feed      | `feedVisibility`      |
+| backlog   | `backlogVisibility`   |
+| shelf     | `shelfVisibility`     |
+| list      | `listVisibility`      |
+| platinum  | `platinumVisibility`  |
+| franchise | `franchiseVisibility` |
 
-Todas arrancan en `public` para una cuenta nueva. `platinumVisibility` se agregó después que las demás: la migración `add-platinumvisibility-to-users` copió en cada cuenta existente su `backlogVisibility`, porque hasta entonces los platinos solo se veían a través del backlog.
+Todas arrancan en `public` para una cuenta nueva. `platinumVisibility` se agregó después que las demás: la migración `add-platinumvisibility-to-users` copió en cada cuenta existente su `backlogVisibility`, porque hasta entonces los platinos solo se veían a través del backlog. `franchiseVisibility` (las sagas que sigue el usuario) siguió el mismo camino con `add-franchisevisibility-to-users`: hasta entonces `GET /users/:username/franchises` exigía la sección `backlog`.
 
 Más `acceptFollowRequests` (boolean).
 
