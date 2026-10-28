@@ -6,8 +6,9 @@ import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
-import { ListFollower } from "../list-followers/list-follower.model";
+import * as listFollowersService from "../list-followers/list-followers.service";
 import { ListItem } from "../list-items/list-item.model";
+import * as listItemsService from "../list-items/list-items.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import { visibleListsCondition } from "../users/helpers/visibility.helper";
 import { User } from "../users/user.model";
@@ -98,18 +99,7 @@ export async function duplicateList(
 			{ transaction }
 		);
 
-		if (items.length > 0) {
-			await ListItem.bulkCreate(
-				items.map(item => ({
-					listId: list.id,
-					gameId: item.gameId,
-					position: item.position,
-					score: item.score,
-					duration: item.duration
-				})),
-				{ transaction }
-			);
-		}
+		await listItemsService.copyItemsToList(list.id, items, transaction);
 
 		return list;
 	});
@@ -151,6 +141,10 @@ const LIST_DETAIL_INCLUDE = [
 	}
 ];
 
+export async function findListsByIds(ids: string[]) {
+	return List.findAll({ where: { id: { [Op.in]: ids } } });
+}
+
 export async function findListById(id: string) {
 	return List.findOne({ where: { id }, include: LIST_DETAIL_INCLUDE });
 }
@@ -190,7 +184,7 @@ export async function findVisibleListById(
 }
 
 export async function getFollowerCount(listId: string) {
-	return ListFollower.count({ where: { listId } });
+	return listFollowersService.countListFollowers(listId);
 }
 
 export async function getListFollowerCounts(
@@ -199,19 +193,13 @@ export async function getListFollowerCounts(
 	const counts = new Map<string, number>(listIds.map(id => [id, 0]));
 	if (listIds.length === 0) return counts;
 
-	const rows = (await ListFollower.count({
-		where: { listId: { [Op.in]: listIds } },
-		group: ["listId"]
-	})) as unknown as { listId: string; count: number }[];
+	const rows = await listFollowersService.countFollowersByListIds(listIds);
 	for (const row of rows) counts.set(row.listId, Number(row.count));
 	return counts;
 }
 
 export async function getIsFollowing(listId: string, userId: string) {
-	const follower = await ListFollower.findOne({
-		where: { listId, userId }
-	});
-	return !!follower;
+	return listFollowersService.isUserFollowingList(listId, userId);
 }
 
 export interface BacklogSummary {
@@ -249,13 +237,9 @@ export async function getListProgress(
 	userId: string,
 	publicOnly = false
 ): Promise<ListProgress> {
-	const items = await ListItem.findAll({
-		where: { listId },
-		attributes: ["gameId"]
-	});
-	if (items.length === 0) return { completed: 0, total: 0 };
+	const gameIds = await listItemsService.findGameIdsByListId(listId);
+	if (gameIds.length === 0) return { completed: 0, total: 0 };
 
-	const gameIds = items.map(i => i.gameId);
 	const completed =
 		await backlogService.countDistinctGamesByUserStatusAndGameIds(
 			userId,
@@ -263,7 +247,7 @@ export async function getListProgress(
 			FINISHED_STATUSES,
 			publicOnly
 		);
-	return { completed, total: items.length };
+	return { completed, total: gameIds.length };
 }
 
 export async function getListsProgress(
@@ -442,7 +426,7 @@ export async function findUserListsWithGameFlag(
 	userId: string,
 	gameId: string
 ) {
-	const [allLists, containingIds] = await Promise.all([
+	const [allLists, containingListIds] = await Promise.all([
 		List.findAll({
 			where: { userId },
 			attributes: ["id", "name", "isPublic"],
@@ -451,23 +435,10 @@ export async function findUserListsWithGameFlag(
 				["id", "DESC"]
 			]
 		}),
-		ListItem.findAll({
-			where: { gameId },
-			attributes: ["listId"],
-			include: [
-				{
-					model: List,
-					where: { userId },
-					attributes: []
-				}
-			],
-			raw: true
-		})
+		listItemsService.findListIdsContainingGameOwnedBy(gameId, userId)
 	]);
 
-	const containsSet = new Set(
-		(containingIds as unknown as { listId: string }[]).map(r => r.listId)
-	);
+	const containsSet = new Set(containingListIds);
 
 	return allLists.map(l => ({
 		id: l.id,

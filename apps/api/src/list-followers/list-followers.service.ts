@@ -144,3 +144,21 @@ export async function updateVisibility(
 	await follower.update({ isVisible });
 	return follower;
 }
+
+export async function countListFollowers(listId: string) {
+	return ListFollower.count({ where: { listId } });
+}
+
+export async function countFollowersByListIds(listIds: string[]) {
+	return (await ListFollower.count({
+		where: { listId: { [Op.in]: listIds } },
+		group: ["listId"]
+	})) as unknown as { listId: string; count: number }[];
+}
+
+export async function isUserFollowingList(listId: string, userId: string) {
+	const follower = await ListFollower.findOne({
+		where: { listId, userId }
+	});
+	return !!follower;
+}
