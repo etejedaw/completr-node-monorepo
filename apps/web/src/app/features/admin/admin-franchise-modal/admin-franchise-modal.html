@@ -5,8 +5,8 @@
 	[dismissible]="!isLoading()"
 	(closed)="onClose()"
 >
-	@if (error()) {
-	<ui-alert class="mb-4">{{ error() }}</ui-alert>
+	@if (visibleError()) {
+	<ui-alert class="mb-4">{{ visibleError() }}</ui-alert>
 	}
 
 	<form id="franchise-form" (submit)="onSubmit($event)">

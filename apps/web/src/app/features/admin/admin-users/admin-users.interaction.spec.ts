@@ -723,9 +723,172 @@ describe("Admin users interaction", () => {
 			);
 		});
 
-		it.todo(
-			"clears a server-side field error as soon as the admin edits that field, without waiting for the next submit"
-		);
+		function flushIssues(
+			request: TestRequest,
+			issues: { path: string; message: string }[]
+		) {
+			request.flush(
+				{
+					type: "COMMON_SCHEMA_INVALID",
+					issues: issues.map(issue => ({ code: "custom", ...issue }))
+				},
+				{ status: 422, statusText: "Unprocessable" }
+			);
+		}
+
+		async function createWithEmailIssue(user: User) {
+			const dialog = await openCreate(user);
+			await fillCreate(user, dialog);
+			await user.click(submitCreateButton(dialog));
+			flushIssues(pending("POST", USERS_URL)[0]!, [
+				{ path: "email", message: "Email already registered." }
+			]);
+			await within(dialog).findByRole("alert");
+			return dialog;
+		}
+
+		function emailFieldError(dialog: HTMLElement) {
+			return within(dialog).queryByText("Email already registered.", {
+				selector: "p"
+			});
+		}
+
+		it("clears a server-side field error as soon as the admin edits that field, without waiting for the next submit", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await createWithEmailIssue(user);
+			expect(emailFieldError(dialog)).toBeInTheDocument();
+
+			await user.type(within(dialog).getByLabelText(/^Email/), "x");
+
+			expect(emailFieldError(dialog)).not.toBeInTheDocument();
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(pending("POST", USERS_URL)).toHaveLength(0);
+		});
+
+		it("editing another field hides the summary but keeps the error under the field that failed", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await createWithEmailIssue(user);
+
+			await user.type(within(dialog).getByLabelText(/^Name/), "!");
+
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(emailFieldError(dialog)).toBeInTheDocument();
+		});
+
+		it("typing back exactly the value that failed shows the server error again", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await createWithEmailIssue(user);
+			const email = within(dialog).getByLabelText(/^Email/);
+
+			await user.type(email, "x");
+			expect(emailFieldError(dialog)).not.toBeInTheDocument();
+			await user.type(email, "{Backspace}");
+
+			expect(emailFieldError(dialog)).toBeInTheDocument();
+			expect(within(dialog).getByRole("alert")).toHaveTextContent(
+				"Email already registered."
+			);
+
+			await user.clear(email);
+			expect(emailFieldError(dialog)).not.toBeInTheDocument();
+			await user.type(email, "new@example.com");
+			expect(emailFieldError(dialog)).toBeInTheDocument();
+		});
+
+		it("resubmitting and failing again shows the new error, not the old one", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await createWithEmailIssue(user);
+			const email = within(dialog).getByLabelText(/^Email/);
+			await user.clear(email);
+			await user.type(email, "other@example.com");
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+
+			await user.click(submitCreateButton(dialog));
+			flushIssues(pending("POST", USERS_URL)[0]!, [
+				{ path: "email", message: "Email domain is blocked." }
+			]);
+
+			expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+				"Email domain is blocked."
+			);
+			expect(
+				within(dialog).getByText("Email domain is blocked.", {
+					selector: "p"
+				})
+			).toBeInTheDocument();
+			expect(emailFieldError(dialog)).not.toBeInTheDocument();
+
+			await user.type(email, "{Backspace}");
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+		});
+
+		it("a 409 without issues disappears when the admin edits any field", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await openCreate(user);
+			await fillCreate(user, dialog);
+			await user.click(submitCreateButton(dialog));
+			fail(pending("POST", USERS_URL)[0]!, 409, {
+				title: "Conflict",
+				detail: "Username already taken"
+			});
+			expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+				"Username already taken"
+			);
+
+			await user.type(within(dialog).getByLabelText(/^Name/), "z");
+
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			await user.type(
+				within(dialog).getByLabelText(/^Name/),
+				"{Backspace}"
+			);
+			expect(within(dialog).getByRole("alert")).toHaveTextContent(
+				"Username already taken"
+			);
+		});
+
+		it("a server error does not survive closing and reopening the create dialog", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await createWithEmailIssue(user);
+			await user.type(within(dialog).getByLabelText(/^Name/), "!");
+			await user.keyboard("{Escape}");
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+
+			const reopened = await openCreate(user);
+			expect(
+				within(reopened).queryByRole("alert")
+			).not.toBeInTheDocument();
+			await fillCreate(user, reopened);
+			expect(emailFieldError(reopened)).not.toBeInTheDocument();
+			expect(
+				within(reopened).queryByRole("alert")
+			).not.toBeInTheDocument();
+		});
+
+		it("editing several fields right after an error and mashing the keyboard never brings the stale error back", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await createWithEmailIssue(user);
+			const email = within(dialog).getByLabelText(/^Email/);
+
+			await user.type(email, "{Backspace}{Backspace}abc");
+			await user.type(
+				within(dialog).getByLabelText(/^Name/),
+				"{Backspace}"
+			);
+			await user.type(within(dialog).getByLabelText(/^Username/), "q");
+
+			expect(emailFieldError(dialog)).not.toBeInTheDocument();
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+		});
 
 		it("toggles password visibility with an accessible, pressed button", async () => {
 			const user = userEvent.setup();
@@ -1152,6 +1315,104 @@ describe("Admin users interaction", () => {
 			expect(pending("PATCH", `${USERS_URL}/u2`)).toHaveLength(1);
 		});
 
+		async function editWithNameIssue(user: User) {
+			const dialog = await openEdit(user);
+			const name = within(dialog).getByLabelText("Name");
+			await user.clear(name);
+			await user.type(name, "Bobby");
+			await user.click(submitEditButton(dialog));
+			pending("PATCH", `${USERS_URL}/u2`)[0]!.flush(
+				{
+					type: "COMMON_SCHEMA_INVALID",
+					issues: [
+						{
+							path: "name",
+							code: "custom",
+							message: "Name is not allowed."
+						}
+					]
+				},
+				{ status: 422, statusText: "Unprocessable" }
+			);
+			await within(dialog).findByRole("alert");
+			return dialog;
+		}
+
+		function nameFieldError(dialog: HTMLElement) {
+			return within(dialog).queryByText("Name is not allowed.", {
+				selector: "p"
+			});
+		}
+
+		it("clears a 422 name error and its summary as soon as the admin edits the name", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await editWithNameIssue(user);
+			expect(nameFieldError(dialog)).toBeInTheDocument();
+
+			await user.type(within(dialog).getByLabelText("Name"), "y");
+
+			expect(nameFieldError(dialog)).not.toBeInTheDocument();
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(pending("PATCH", `${USERS_URL}/u2`)).toHaveLength(0);
+		});
+
+		it("editing a different field in the edit dialog hides the summary but keeps the name error", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await editWithNameIssue(user);
+
+			await user.selectOptions(
+				within(dialog).getByLabelText("Role"),
+				"admin"
+			);
+
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(nameFieldError(dialog)).toBeInTheDocument();
+
+			await user.selectOptions(
+				within(dialog).getByLabelText("Role"),
+				"user"
+			);
+			expect(within(dialog).getByRole("alert")).toHaveTextContent(
+				"Name is not allowed."
+			);
+		});
+
+		it("going back to the name that failed shows the edit error again", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await editWithNameIssue(user);
+			const name = within(dialog).getByLabelText("Name");
+
+			await user.clear(name);
+			expect(nameFieldError(dialog)).not.toBeInTheDocument();
+			await user.type(name, "Bobby");
+
+			expect(nameFieldError(dialog)).toBeInTheDocument();
+			expect(within(dialog).getByRole("alert")).toBeInTheDocument();
+		});
+
+		it("an edit error does not survive closing and reopening the edit dialog", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await editWithNameIssue(user);
+			await user.keyboard("{Escape}");
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+
+			const reopened = await openEdit(user);
+			expect(within(reopened).getByLabelText("Name")).toHaveValue(
+				"Bob Builder"
+			);
+			expect(
+				within(reopened).queryByRole("alert")
+			).not.toBeInTheDocument();
+			expect(nameFieldError(reopened)).not.toBeInTheDocument();
+			expect(dialog).not.toBeInTheDocument();
+		});
+
 		it("reopening another user after Cancel shows that user's values and no old error", async () => {
 			const user = userEvent.setup();
 			await renderUsers();
@@ -1383,6 +1644,66 @@ describe("Admin users interaction", () => {
 					within(dialog).queryByRole("alert")
 				).not.toBeInTheDocument();
 				expect(pending("POST", INVITATIONS_URL)).toHaveLength(1);
+			}
+		);
+
+		it.each([
+			[409, "This email already has an account."],
+			[502, "The email could not be sent. Try again in a moment."]
+		])(
+			"editing the email hides a %i invitation error and resubmitting with another failing email shows the new one",
+			async (status, message) => {
+				const user = userEvent.setup();
+				await renderUsers();
+				const dialog = await openInvite(user);
+				const email = within(dialog).getByLabelText(/^Email/);
+				await user.type(email, "friend@example.com");
+				await user.click(
+					within(dialog).getByRole("button", {
+						name: "Send invitation"
+					})
+				);
+				fail(pending("POST", INVITATIONS_URL)[0]!, status);
+				expect(
+					await within(dialog).findByRole("alert")
+				).toHaveTextContent(message);
+
+				await user.type(email, "x");
+				expect(
+					within(dialog).queryByRole("alert")
+				).not.toBeInTheDocument();
+
+				await user.type(email, "{Backspace}");
+				expect(within(dialog).getByRole("alert")).toHaveTextContent(
+					message
+				);
+
+				await user.clear(email);
+				await user.type(email, "other@example.com");
+				expect(
+					within(dialog).queryByRole("alert")
+				).not.toBeInTheDocument();
+				await user.click(
+					within(dialog).getByRole("button", {
+						name: "Send invitation"
+					})
+				);
+				const posts = pending("POST", INVITATIONS_URL);
+				expect(posts).toHaveLength(1);
+				expect(posts[0]!.request.body).toEqual({
+					email: "other@example.com"
+				});
+				fail(posts[0]!, 503);
+
+				expect(
+					await within(dialog).findByRole("alert")
+				).toHaveTextContent(
+					"Email delivery is not configured on the server."
+				);
+				await user.type(email, "{Backspace}");
+				expect(
+					within(dialog).queryByRole("alert")
+				).not.toBeInTheDocument();
 			}
 		);
 

@@ -111,6 +111,19 @@ export class AdminFranchiseModal implements OnInit {
 	protected readonly results = signal<SelectedGame[]>([]);
 
 	protected readonly model = signal({ name: "", description: "" });
+	private readonly errorSnapshot = signal<{
+		name: string;
+		description: string;
+	} | null>(null);
+	protected readonly visibleError = computed(() => {
+		const snapshot = this.errorSnapshot();
+		const current = this.model();
+		return snapshot &&
+			(snapshot.name !== current.name ||
+				snapshot.description !== current.description)
+			? ""
+			: this.error();
+	});
 
 	readonly form = form(this.model, path => {
 		required(path.name, { message: "Name is required" });
@@ -223,6 +236,7 @@ export class AdminFranchiseModal implements OnInit {
 			return;
 		this.isLoading.set(true);
 		this.error.set("");
+		this.errorSnapshot.set(null);
 
 		const val = this.form().value();
 		const dto: FranchiseDto = {
@@ -259,6 +273,7 @@ export class AdminFranchiseModal implements OnInit {
 		fallback: string
 	) {
 		this.isLoading.set(false);
+		this.errorSnapshot.set({ ...this.model() });
 		this.error.set(
 			err.status === 409
 				? "A franchise with that name already exists"

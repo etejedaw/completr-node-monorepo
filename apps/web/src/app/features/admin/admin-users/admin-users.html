@@ -255,8 +255,10 @@
 	[dismissible]="!isCreating()"
 	(closed)="closeCreate()"
 >
-	@if (createError()) {
-	<ui-alert class="mb-4 whitespace-pre-line">{{ createError() }}</ui-alert>
+	@if (visibleCreateError()) {
+	<ui-alert class="mb-4 whitespace-pre-line"
+		>{{ visibleCreateError() }}</ui-alert
+	>
 	}
 
 	<form id="create-user-form" (submit)="submitCreate($event)" novalidate>
@@ -280,7 +282,7 @@
 				<p class="mt-1.5 m-0 text-xs text-danger">
 					{{ error.message }}
 				</p>
-				} } @else if (createFieldErrors()['username']; as msg) {
+				} } @else if (visibleCreateFieldErrors()['username']; as msg) {
 				<p class="mt-1.5 m-0 text-xs text-danger">{{ msg }}</p>
 				}
 			</div>
@@ -301,7 +303,7 @@
 				<p class="mt-1.5 m-0 text-xs text-danger">
 					{{ error.message }}
 				</p>
-				} } @else if (createFieldErrors()['name']; as msg) {
+				} } @else if (visibleCreateFieldErrors()['name']; as msg) {
 				<p class="mt-1.5 m-0 text-xs text-danger">{{ msg }}</p>
 				}
 			</div>
@@ -323,7 +325,7 @@
 				<p class="mt-1.5 m-0 text-xs text-danger">
 					{{ error.message }}
 				</p>
-				} } @else if (createFieldErrors()['email']; as msg) {
+				} } @else if (visibleCreateFieldErrors()['email']; as msg) {
 				<p class="mt-1.5 m-0 text-xs text-danger">{{ msg }}</p>
 				}
 			</div>
@@ -363,7 +365,7 @@
 				<p class="mt-1.5 m-0 text-xs text-danger">
 					{{ error.message }}
 				</p>
-				} } @else if (createFieldErrors()['password']; as msg) {
+				} } @else if (visibleCreateFieldErrors()['password']; as msg) {
 				<p class="mt-1.5 m-0 text-xs text-danger">{{ msg }}</p>
 				}
 			</div>
@@ -406,8 +408,10 @@
 		[ring]="avatarRing(user.role)"
 	/>
 
-	@if (editError()) {
-	<ui-alert class="mb-4 whitespace-pre-line">{{ editError() }}</ui-alert>
+	@if (visibleEditError()) {
+	<ui-alert class="mb-4 whitespace-pre-line"
+		>{{ visibleEditError() }}</ui-alert
+	>
 	}
 
 	<form id="edit-user-form" (submit)="submitEdit($event)" novalidate>
@@ -423,7 +427,7 @@
 			@if (editForm.name().touched() && editForm.name().invalid()) { @for
 			(error of editForm.name().errors(); track error) {
 			<p class="mt-1.5 m-0 text-xs text-danger">{{ error.message }}</p>
-			} } @else if (editFieldErrors()['name']; as msg) {
+			} } @else if (visibleEditFieldErrors()['name']; as msg) {
 			<p class="mt-1.5 m-0 text-xs text-danger">{{ msg }}</p>
 			}
 		</div>
@@ -473,7 +477,7 @@
 				<p class="mt-1.5 m-0 text-xs text-danger">
 					{{ error.message }}
 				</p>
-				} } @else if (editFieldErrors()['password']; as msg) {
+				} } @else if (visibleEditFieldErrors()['password']; as msg) {
 				<p class="mt-1.5 m-0 text-xs text-danger">{{ msg }}</p>
 				}
 			</div>

@@ -142,8 +142,8 @@
 	[dismissible]="!isInviting()"
 	(closed)="closeInvite()"
 >
-	@if (inviteError()) {
-	<ui-alert class="mb-4">{{ inviteError() }}</ui-alert>
+	@if (visibleInviteError()) {
+	<ui-alert class="mb-4">{{ visibleInviteError() }}</ui-alert>
 	}
 
 	<form id="invite-form" (submit)="submitInvite($event)" novalidate>

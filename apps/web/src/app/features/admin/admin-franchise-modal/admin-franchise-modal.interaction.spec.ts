@@ -1159,6 +1159,136 @@ describe("AdminFranchiseModal interaction", () => {
 		});
 	});
 
+	describe("server error visibility", () => {
+		const DUPLICATE = "A franchise with that name already exists";
+
+		async function createWithDuplicateName(user: User) {
+			await openCreate(user);
+			await user.type(nameInput(), "souls");
+			await user.type(descriptionInput(), "first");
+			await user.click(submitButton());
+			await appears(DUPLICATE);
+		}
+
+		function duplicateMessage() {
+			return within(dialog()).queryByText(DUPLICATE);
+		}
+
+		it("hides the server error as soon as the name is edited", async () => {
+			const user = userEvent.setup();
+			await renderHost();
+			await createWithDuplicateName(user);
+
+			await user.type(nameInput(), "x");
+
+			expect(duplicateMessage()).not.toBeInTheDocument();
+			expect(writes).toHaveLength(1);
+		});
+
+		it("hides the server error as soon as the description is edited", async () => {
+			const user = userEvent.setup();
+			await renderHost();
+			await createWithDuplicateName(user);
+
+			await user.type(descriptionInput(), "!");
+
+			expect(duplicateMessage()).not.toBeInTheDocument();
+		});
+
+		it("keeps the server error while games are added and removed", async () => {
+			const user = userEvent.setup();
+			await renderHost();
+			await createWithDuplicateName(user);
+
+			await typeSearch(user, "hollow");
+			await untilVisible(() =>
+				expect(rowWithTitle("Hollow Knight")).toBeDefined()
+			);
+			await user.click(
+				within(rowWithTitle("Hollow Knight")).getByRole("button", {
+					name: "Add"
+				})
+			);
+			expect(duplicateMessage()).toBeInTheDocument();
+
+			await user.click(
+				within(rowWithTitle("Hollow Knight")).getByRole("button", {
+					name: "Remove game"
+				})
+			);
+			expect(duplicateMessage()).toBeInTheDocument();
+		});
+
+		it("shows the error again when the name goes back to the one that failed", async () => {
+			const user = userEvent.setup();
+			await renderHost();
+			await createWithDuplicateName(user);
+
+			await user.type(nameInput(), "x");
+			expect(duplicateMessage()).not.toBeInTheDocument();
+			await user.type(nameInput(), "{Backspace}");
+
+			expect(duplicateMessage()).toBeInTheDocument();
+
+			await user.clear(nameInput());
+			expect(duplicateMessage()).not.toBeInTheDocument();
+			await user.type(nameInput(), "souls");
+			expect(duplicateMessage()).toBeInTheDocument();
+		});
+
+		it("shows the new error when a resubmit fails with a different message", async () => {
+			const user = userEvent.setup();
+			await renderHost();
+			await createWithDuplicateName(user);
+			await user.type(nameInput(), "x");
+			expect(duplicateMessage()).not.toBeInTheDocument();
+
+			createFailure = failure(500, "Server blew up");
+			await user.click(submitButton());
+
+			await appears("Server blew up");
+			expect(duplicateMessage()).not.toBeInTheDocument();
+
+			await user.type(descriptionInput(), "more");
+			expect(
+				within(dialog()).queryByText("Server blew up")
+			).not.toBeInTheDocument();
+		});
+
+		it("hides an edit-mode error on edit and keeps it when only games change", async () => {
+			const user = userEvent.setup();
+			await renderHost();
+			await openEdit(user, "Souls");
+			await user.clear(nameInput());
+			await user.type(nameInput(), "ZELDA");
+			await user.click(submitButton());
+			await appears(DUPLICATE);
+
+			await user.click(
+				within(rowWithTitle("Dark Souls II")).getByRole("button", {
+					name: "Remove game"
+				})
+			);
+			expect(duplicateMessage()).toBeInTheDocument();
+
+			await user.type(descriptionInput(), "d");
+			expect(duplicateMessage()).not.toBeInTheDocument();
+		});
+
+		it("does not carry the error into a reopened dialog", async () => {
+			const user = userEvent.setup();
+			await renderHost();
+			await createWithDuplicateName(user);
+			await user.type(nameInput(), "x");
+			await closeDialogWithCancel(user);
+
+			await openCreate(user);
+			expect(duplicateMessage()).not.toBeInTheDocument();
+			await user.type(nameInput(), "souls");
+			expect(duplicateMessage()).not.toBeInTheDocument();
+		});
+	});
+
 	describe("keyboard", () => {
 		it("moves from the name to the description to the search with Tab", async () => {
 			const user = userEvent.setup();

@@ -2,6 +2,7 @@ import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
@@ -56,6 +57,13 @@ export class AdminInvitations implements OnInit {
 		required(path.email, { message: "Email is required." });
 		email(path.email, { message: "Email is not valid." });
 	});
+	private readonly inviteErrorEmail = signal<string | null>(null);
+	protected readonly visibleInviteError = computed(() => {
+		const failedEmail = this.inviteErrorEmail();
+		return failedEmail !== null && failedEmail !== this.inviteModel().email
+			? ""
+			: this.inviteError();
+	});
 
 	ngOnInit() {
 		this.loadInvitations();
@@ -75,6 +83,7 @@ export class AdminInvitations implements OnInit {
 		this.inviteModel.set({ email: "" });
 		this.inviteForm().reset();
 		this.inviteError.set("");
+		this.inviteErrorEmail.set(null);
 		this.showInviteModal.set(true);
 	}
 
@@ -94,6 +103,7 @@ export class AdminInvitations implements OnInit {
 		const { email: address } = this.inviteForm().value();
 		this.isInviting.set(true);
 		this.inviteError.set("");
+		this.inviteErrorEmail.set(null);
 
 		this.invitationAdminService.invite(address).subscribe({
 			next: () => {
@@ -104,6 +114,7 @@ export class AdminInvitations implements OnInit {
 			},
 			error: err => {
 				this.isInviting.set(false);
+				this.inviteErrorEmail.set(this.inviteModel().email);
 				this.inviteError.set(this.inviteErrorMessage(err));
 			}
 		});
