@@ -903,6 +903,178 @@ describe("AdminGameEditor interaction", () => {
 		});
 	});
 
+	describe("parent of a DLC while editing", () => {
+		const dlcWithParent = () =>
+			({
+				...existingGame,
+				isDlc: true,
+				parentGame: summary("p1", "Base Game", "base-game")
+			}) as unknown as Game;
+
+		const dlcCheckbox = () => screen.getByRole("checkbox", { name: "DLC" });
+
+		async function saveAndGetBody() {
+			await userEvent.click(button("Save Changes"));
+			await untilVisible(() => expect(saved).toHaveBeenCalledTimes(1));
+			return callsTo("PATCH", "/games/g1")[0].body!;
+		}
+
+		it("saving a DLC with a parent without touching anything sends the same parent", async () => {
+			await renderEdit(dlcWithParent());
+
+			const body = await saveAndGetBody();
+
+			expect(body["parentGameId"]).toBe("p1");
+			expect(body["isDlc"]).toBe(true);
+		});
+
+		it("clearing the parent and saving sends parentGameId null", async () => {
+			await renderEdit(dlcWithParent());
+
+			await userEvent.click(button("Clear parent game"));
+			const body = await saveAndGetBody();
+
+			expect(body["parentGameId"]).toBeNull();
+			expect(body["isDlc"]).toBe(true);
+		});
+
+		it("clearing the parent twice in a row still sends a single null", async () => {
+			await renderEdit(dlcWithParent());
+
+			await userEvent.dblClick(button("Clear parent game"));
+			const body = await saveAndGetBody();
+
+			expect(body["parentGameId"]).toBeNull();
+			expect(callsTo("PATCH", "/games/g1")).toHaveLength(1);
+		});
+
+		it("clearing and linking another parent sends the new id", async () => {
+			parentCatalog["other-base"] = {
+				...existingGame,
+				id: "g9",
+				title: "Other Base",
+				code: "other-base"
+			} as unknown as Game;
+			await renderEdit(dlcWithParent());
+
+			await userEvent.click(button("Clear parent game"));
+			await userEvent.type(parentInput(), "other-base{Enter}");
+			await untilVisible(() =>
+				expect(screen.getByText("Other Base")).toBeInTheDocument()
+			);
+			const body = await saveAndGetBody();
+
+			expect(body["parentGameId"]).toBe("g9");
+		});
+
+		it("clearing, failing to find a new parent and saving still sends null", async () => {
+			await renderEdit(dlcWithParent());
+
+			await userEvent.click(button("Clear parent game"));
+			await userEvent.type(parentInput(), "nope{Enter}");
+			await untilVisible(() =>
+				expect(screen.getByText("Game not found")).toBeInTheDocument()
+			);
+			const body = await saveAndGetBody();
+
+			expect(body["parentGameId"]).toBeNull();
+		});
+
+		it("a game that is not a DLC and has no parent never sends parentGameId", async () => {
+			await renderEdit();
+
+			const body = await saveAndGetBody();
+
+			expect(body).not.toHaveProperty("parentGameId");
+			expect(body["isDlc"]).toBe(false);
+		});
+
+		it("a DLC without parent that was never linked does not send parentGameId", async () => {
+			await renderEdit({ ...existingGame, isDlc: true } as Game);
+
+			const body = await saveAndGetBody();
+
+			expect(body).not.toHaveProperty("parentGameId");
+			expect(body["isDlc"]).toBe(true);
+		});
+
+		it("unchecking DLC sends isDlc false and no parentGameId so the server clears the parent", async () => {
+			await renderEdit(dlcWithParent());
+
+			await userEvent.click(dlcCheckbox());
+			const body = await saveAndGetBody();
+
+			expect(body["isDlc"]).toBe(false);
+			expect(body).not.toHaveProperty("parentGameId");
+		});
+
+		it("clearing the parent and then unchecking DLC sends no parentGameId", async () => {
+			await renderEdit(dlcWithParent());
+
+			await userEvent.click(button("Clear parent game"));
+			await userEvent.click(dlcCheckbox());
+			const body = await saveAndGetBody();
+
+			expect(body["isDlc"]).toBe(false);
+			expect(body).not.toHaveProperty("parentGameId");
+		});
+
+		it("refuses the game's own slug as its parent and does not link it, even with Enter repeated", async () => {
+			await renderEdit({ ...existingGame, isDlc: true } as Game);
+
+			await userEvent.type(parentInput(), "hades{Enter}{Enter}{Enter}");
+			await untilVisible(() =>
+				expect(
+					screen.getByText("A game can't be its own parent.")
+				).toBeInTheDocument()
+			);
+
+			expect(
+				screen.queryByRole("button", { name: "Clear parent game" })
+			).toBeNull();
+			const body = await saveAndGetBody();
+			expect(body).not.toHaveProperty("parentGameId");
+		});
+
+		it("refuses the game's own slug even when it replaces the current parent", async () => {
+			await renderEdit(dlcWithParent());
+
+			await userEvent.click(button("Clear parent game"));
+			await userEvent.type(parentInput(), "hades");
+			await userEvent.click(button("Search"));
+			await untilVisible(() =>
+				expect(
+					screen.getByText("A game can't be its own parent.")
+				).toBeInTheDocument()
+			);
+			const body = await saveAndGetBody();
+
+			expect(body["parentGameId"]).toBeNull();
+		});
+
+		it("after the own-parent error a valid slug links normally and clears the error", async () => {
+			await renderEdit({ ...existingGame, isDlc: true } as Game);
+			await userEvent.type(parentInput(), "hades{Enter}");
+			await untilVisible(() =>
+				expect(
+					screen.getByText("A game can't be its own parent.")
+				).toBeInTheDocument()
+			);
+
+			await replaceText(parentInput(), "mass-effect");
+			await userEvent.click(button("Search"));
+			await untilVisible(() =>
+				expect(button("Clear parent game")).toBeInTheDocument()
+			);
+
+			expect(
+				screen.queryByText("A game can't be its own parent.")
+			).toBeNull();
+			const body = await saveAndGetBody();
+			expect(body["parentGameId"]).toBe(catalog[0].id);
+		});
+	});
+
 	describe("editing a game", () => {
 		it("shows the parent of a DLC that is being edited and keeps it when saving", async () => {
 			await renderEdit({
@@ -1202,6 +1374,81 @@ describe("AdminGameEditor interaction", () => {
 				"Variant titles must be unique."
 			);
 			expect(callsTo("POST", "/games/g1/split")).toEqual([]);
+		});
+
+		it("rejects variant labels that only differ by case or surrounding spaces, without sending anything", async () => {
+			await renderEdit();
+			const dialog = await openSplit();
+
+			await fillSplit(dialog, [
+				{ title: "Pearl Edition", variant: "Pearl" },
+				{ title: "Diamond Edition", variant: "  pEARL " }
+			]);
+			await userEvent.click(splitSubmit(dialog));
+
+			expect(within(dialog).getByRole("alert")).toHaveTextContent(
+				"Variant labels must be unique."
+			);
+			expect(callsTo("POST", "/games/g1/split")).toEqual([]);
+			expect(splitSubmit(dialog)).toBeEnabled();
+		});
+
+		it("clears the repeated-label error as soon as a label or a title is edited", async () => {
+			await renderEdit();
+			const dialog = await openSplit();
+			await fillSplit(dialog, [
+				{ title: "Pearl Edition", variant: "Pearl" },
+				{ title: "Diamond Edition", variant: "pearl" }
+			]);
+			await userEvent.click(splitSubmit(dialog));
+			expect(within(dialog).getByRole("alert")).toBeInTheDocument();
+
+			await userEvent.type(splitLabel(dialog, 1), "x");
+			expect(within(dialog).queryByRole("alert")).toBeNull();
+
+			await userEvent.type(splitLabel(dialog, 1), "{Backspace}");
+			await userEvent.click(splitSubmit(dialog));
+			expect(within(dialog).getByRole("alert")).toHaveTextContent(
+				"Variant labels must be unique."
+			);
+
+			await userEvent.type(splitTitle(dialog, 2), "!");
+			expect(within(dialog).queryByRole("alert")).toBeNull();
+			expect(callsTo("POST", "/games/g1/split")).toEqual([]);
+		});
+
+		it("sends nothing on a triple click with repeated labels and a single POST once corrected", async () => {
+			await renderEdit();
+			const dialog = await openSplit();
+			await fillSplit(dialog, [
+				{ title: "Pearl Edition", variant: "Pearl" },
+				{ title: "Diamond Edition", variant: " PEARL" }
+			]);
+			holds = ["POST /games/g1/split"];
+
+			await userEvent.tripleClick(splitSubmit(dialog));
+			answerPending();
+
+			expect(heldKeys("POST /games/g1/split")).toHaveLength(0);
+			expect(callsTo("POST", "/games/g1/split")).toEqual([]);
+			expect(within(dialog).getByRole("alert")).toHaveTextContent(
+				"Variant labels must be unique."
+			);
+
+			await replaceText(splitLabel(dialog, 1), "Diamond");
+			await userEvent.tripleClick(splitSubmit(dialog));
+			answerPending();
+
+			expect(heldKeys("POST /games/g1/split")).toHaveLength(1);
+			releaseAll();
+			await waitForDialogGone("Split game into variants");
+			expect(callsTo("POST", "/games/g1/split")).toHaveLength(1);
+			expect(callsTo("POST", "/games/g1/split")[0].body).toEqual({
+				variants: [
+					{ title: "Pearl Edition", variant: "Pearl" },
+					{ title: "Diamond Edition", variant: "Diamond" }
+				]
+			});
 		});
 
 		it("sends the trimmed variants once, even with three clicks, and closes after emitting the first game", async () => {
@@ -1674,20 +1921,6 @@ describe("AdminGameEditor interaction", () => {
 				"Variant titles need letters or numbers to build a slug."
 			);
 			expect(callsTo("POST", "/games/g1/split")).toEqual([]);
-		});
-
-		it("sends repeated variant labels because the server decides whether they are valid", async () => {
-			await renderEdit();
-			const dialog = await openSplit();
-			await fillSplit(dialog, [
-				{ title: "Pearl", variant: "Same" },
-				{ title: "Diamond", variant: "same" }
-			]);
-
-			await userEvent.click(splitSubmit(dialog));
-
-			await waitForDialogGone("Split game into variants");
-			expect(callsTo("POST", "/games/g1/split")).toHaveLength(1);
 		});
 
 		it("sends accents, emoji and HTML as plain text and flattens pasted line breaks", async () => {

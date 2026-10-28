@@ -131,6 +131,7 @@ export class AdminGameEditor implements OnInit {
 	private readonly compilationSearches = new Map<string, Subscription>();
 
 	protected readonly parentGame = signal<GameSummary | null>(null);
+	private readonly parentCleared = signal(false);
 	protected readonly fetchingParent = signal(false);
 	protected readonly parentError = signal("");
 	protected readonly selectedPlatforms = signal<Set<string>>(new Set());
@@ -230,6 +231,10 @@ export class AdminGameEditor implements OnInit {
 	fetchParentGame() {
 		const slug = this.parentSlug().trim();
 		if (!slug || this.parentRequest?.slug === slug) return;
+		if (slug.toLowerCase() === this.game()?.code) {
+			this.parentError.set("A game can't be its own parent.");
+			return;
+		}
 
 		this.parentRequest?.subscription.unsubscribe();
 		this.fetchingParent.set(true);
@@ -238,8 +243,13 @@ export class AdminGameEditor implements OnInit {
 		const subscription = this.gamesService.getByCode(slug).subscribe({
 			next: game => {
 				this.parentRequest = null;
-				this.parentGame.set(game);
 				this.fetchingParent.set(false);
+				if (game.id === this.game()?.id) {
+					this.parentError.set("A game can't be its own parent.");
+					return;
+				}
+				this.parentGame.set(game);
+				this.parentCleared.set(false);
 			},
 			error: () => {
 				this.parentRequest = null;
@@ -254,6 +264,7 @@ export class AdminGameEditor implements OnInit {
 		this.parentRequest?.subscription.unsubscribe();
 		this.parentRequest = null;
 		this.fetchingParent.set(false);
+		if (this.parentGame()) this.parentCleared.set(true);
 		this.parentGame.set(null);
 		this.model.update(m => ({ ...m, parentSlug: "" }));
 		this.parentError.set("");
@@ -515,9 +526,8 @@ export class AdminGameEditor implements OnInit {
 		};
 
 		const parent = this.parentGame();
-		if (this.isDlc() && parent) {
-			dto.parentGameId = parent.id;
-		}
+		if (this.isDlc() && parent) dto.parentGameId = parent.id;
+		else if (this.isDlc() && this.parentCleared()) dto.parentGameId = null;
 
 		if (this.rawgId()) {
 			dto.externalIds = [
@@ -681,6 +691,11 @@ export class AdminGameEditor implements OnInit {
 		const titles = new Set(cleaned.map(v => this.previewSlug(v.title)));
 		if (titles.size !== cleaned.length) {
 			this.splitError.set("Variant titles must be unique.");
+			return;
+		}
+		const labels = new Set(cleaned.map(v => v.variant.toLowerCase()));
+		if (labels.size !== cleaned.length) {
+			this.splitError.set("Variant labels must be unique.");
 			return;
 		}
 

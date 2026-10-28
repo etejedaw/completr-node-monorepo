@@ -79,7 +79,7 @@ export interface UpdateGameDto {
 	coverUrl?: string;
 	backgroundUrl?: string;
 	isDlc?: boolean;
-	parentGameId?: string;
+	parentGameId?: string | null;
 	franchiseId?: string | null;
 	variant?: string | null;
 	genres?: string[];
