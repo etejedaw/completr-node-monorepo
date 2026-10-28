@@ -17,6 +17,7 @@ import {
 	text,
 	wordmark
 } from "./elements.template";
+import { fanWithCaption } from "./featured-caption.template";
 import { personaBadge } from "./persona-badge.template";
 import { leadTile, supportingTiles, tileBox } from "./stat-tiles.template";
 
@@ -104,9 +105,16 @@ function rightColumn(rewind: Rewind, covers: ShareCover[]): SatoriElement {
 			)
 		]);
 	}
-	return box({ flexGrow: 1, alignItems: "center", marginRight: -PADDING }, [
-		coverFan(covers, FAN_LAYOUT)
-	]);
+	return box(
+		{
+			flexGrow: 1,
+			flexDirection: "column",
+			alignItems: "center",
+			justifyContent: "center",
+			marginRight: -PADDING
+		},
+		fanWithCaption(rewind, covers, coverFan(covers, FAN_LAYOUT), 20)
+	);
 }
 
 export function ogTemplate({

@@ -2,7 +2,7 @@ import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
 
 import { environmentConfig } from "../common/config/environment.config";
-import { type Rewind } from "../rewind/rewind.interface";
+import { type Rewind, type RewindGameRef } from "../rewind/rewind.interface";
 import {
 	BACKDROP_FETCH_WIDTH,
 	SHARE_IMAGE_CACHE_SIZE,
@@ -64,12 +64,14 @@ function failedToLoad(url: string | null, dataUri: string | null): boolean {
 	return Boolean(url) && !dataUri;
 }
 
-async function loadCover(
-	title: string,
-	coverUrl: string | null
-): Promise<LoadedCover> {
-	const dataUri = await fetchImageDataUri(coverUrl);
-	return { title, dataUri, failedToLoad: failedToLoad(coverUrl, dataUri) };
+async function loadCover(game: RewindGameRef): Promise<LoadedCover> {
+	const dataUri = await fetchImageDataUri(game.coverUrl);
+	return {
+		gameId: game.gameId,
+		title: game.title,
+		dataUri,
+		failedToLoad: failedToLoad(game.coverUrl, dataUri)
+	};
 }
 
 async function loadArtwork(
@@ -79,7 +81,7 @@ async function loadArtwork(
 	const games = selectShareCovers(rewind, COVER_LIMITS[format]);
 	const backdropUrl = selectBackdropUrl(rewind);
 	const [covers, backdrop] = await Promise.all([
-		Promise.all(games.map(game => loadCover(game.title, game.coverUrl))),
+		Promise.all(games.map(loadCover)),
 		fetchImageDataUri(backdropUrl, BACKDROP_FETCH_WIDTH)
 	]);
 	return {

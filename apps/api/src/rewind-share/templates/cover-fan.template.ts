@@ -24,11 +24,18 @@ interface FanSlot {
 	offset: number;
 }
 
-function fanSlots(covers: ShareCover[]): FanSlot[] {
-	const center = (covers.length - 1) / 2;
-	return covers
-		.map((cover, index) => ({ cover, offset: index - center }))
-		.sort((a, b) => Math.abs(b.offset) - Math.abs(a.offset));
+function offsetsFromCenterOut(count: number): number[] {
+	const center = (count - 1) / 2;
+	return Array.from({ length: count }, (_, index) => index - center).sort(
+		(a, b) => Math.abs(a) - Math.abs(b) || a - b
+	);
+}
+
+function fanSlots(coversByImportance: ShareCover[]): FanSlot[] {
+	const offsets = offsetsFromCenterOut(coversByImportance.length);
+	return coversByImportance
+		.map((cover, rank) => ({ cover, offset: offsets[rank] ?? 0 }))
+		.reverse();
 }
 
 function slotPlacement(offset: number, layout: CoverFanLayout): SatoriStyle {
