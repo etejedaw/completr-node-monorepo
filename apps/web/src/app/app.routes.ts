@@ -99,6 +99,20 @@ const publicProfileRoutes: Routes = [
 			)
 	},
 	{
+		path: "user/:username/rewind",
+		loadComponent: () =>
+			import("./features/rewind/rewind-archive/rewind-archive").then(
+				m => m.RewindArchive
+			)
+	},
+	{
+		path: "user/:username/rewind/:year",
+		loadComponent: () =>
+			import("./features/rewind/rewind-detail/rewind-detail").then(
+				m => m.RewindDetail
+			)
+	},
+	{
 		path: "user/:username/in-common",
 		loadComponent: () =>
 			import("./features/public-profile/user-in-common/user-in-common").then(

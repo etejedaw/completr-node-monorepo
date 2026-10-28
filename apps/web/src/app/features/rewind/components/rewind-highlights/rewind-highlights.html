@@ -1,0 +1,168 @@
+@let data = highlights();
+<ul
+	class="list-none m-0 p-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 grid-flow-dense gap-3 sm:gap-4"
+>
+	@if (data.topRated; as top) {
+	<li class="sm:col-span-2 lg:row-span-2">
+		<a
+			class="group relative isolate flex h-full min-h-[18rem] overflow-hidden rounded-card border border-line bg-surface no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			[routerLink]="['/games', top.code]"
+		>
+			<div
+				aria-hidden="true"
+				class="absolute -right-16 -top-16 -z-10 size-64 rounded-full bg-[radial-gradient(circle,var(--color-brand-glow),transparent_70%)]"
+			></div>
+			<div
+				class="flex flex-1 flex-col justify-between gap-6 p-5 sm:p-6 min-w-0"
+			>
+				<span class="text-sm font-medium text-fg-secondary"
+					>Top rated</span
+				>
+				<span class="flex flex-col gap-3 min-w-0">
+					<app-star-rating
+						aria-hidden="true"
+						[value]="top.userRating"
+						[readonly]="true"
+						[showValue]="false"
+						size="md"
+					/>
+					<span
+						class="font-display text-2xl sm:text-3xl font-bold leading-tight tracking-tight text-fg text-balance group-hover:text-brand"
+						>{{ top.title }}</span
+					>
+					<span class="sr-only"
+						>Rated {{ top.userRating }} out of 5</span
+					>
+				</span>
+			</div>
+			<app-game-poster
+				aria-hidden="true"
+				class="w-2/5 max-w-[13rem] shrink-0 self-stretch"
+				[src]="top.coverUrl"
+				[title]="top.title"
+			/>
+		</a>
+	</li>
+	} @if (data.bestRatio; as best) {
+	<li class="sm:col-span-2">
+		<a
+			class="group flex h-full items-center gap-4 rounded-card border border-line bg-surface p-5 no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			[routerLink]="['/games', best.code]"
+		>
+			<app-game-poster
+				aria-hidden="true"
+				class="w-16 shrink-0 aspect-[2/3] rounded-md"
+				[src]="best.coverUrl"
+				[title]="best.title"
+				[width]="200"
+				[compact]="true"
+			/>
+			<span class="flex-1 min-w-0 flex flex-col gap-1">
+				<span class="text-sm font-medium text-fg-secondary"
+					>Best value</span
+				>
+				<span
+					class="truncate text-base font-semibold text-fg group-hover:text-brand"
+					>{{ best.title }}</span
+				>
+				<span class="text-xs text-fg-muted"
+					>Highest score per hour you played</span
+				>
+			</span>
+			<span
+				class="shrink-0 font-display text-3xl sm:text-4xl font-bold text-brand tabular-nums"
+				>{{ best.personalRatio }}</span
+			>
+		</a>
+	</li>
+	} @if (data.longest; as longest) {
+	<li>
+		<a
+			class="group flex h-full flex-col justify-between gap-4 rounded-card border border-line bg-surface p-5 no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			[routerLink]="['/games', longest.code]"
+		>
+			<span class="text-sm font-medium text-fg-secondary">Longest</span>
+			<span class="flex flex-col gap-1 min-w-0">
+				<span
+					class="font-display text-4xl font-bold leading-none tabular-nums text-fg"
+					>{{ formatHours(longest.hours) }}<span
+						class="ml-1 text-base font-semibold text-fg-secondary"
+						>h{{ longest.isEstimate ? " est." : "" }}</span
+					></span
+				>
+				<span class="truncate text-sm text-fg group-hover:text-brand"
+					>{{ longest.title }}</span
+				>
+			</span>
+		</a>
+	</li>
+	} @if (data.fastest; as fastest) {
+	<li>
+		<a
+			class="group flex h-full flex-col justify-between gap-4 rounded-card border border-line bg-surface p-5 no-underline transition-colors hover:border-line-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			[routerLink]="['/games', fastest.code]"
+		>
+			<span class="text-sm font-medium text-fg-secondary">Fastest</span>
+			<span class="flex flex-col gap-1 min-w-0">
+				<span
+					class="font-display text-4xl font-bold leading-none tabular-nums text-fg"
+					>{{ formatHours(fastest.hours) }}<span
+						class="ml-1 text-base font-semibold text-fg-secondary"
+						>h{{ fastest.isEstimate ? " est." : "" }}</span
+					></span
+				>
+				<span class="truncate text-sm text-fg group-hover:text-brand"
+					>{{ fastest.title }}</span
+				>
+			</span>
+		</a>
+	</li>
+	} @if (data.favoriteGenre; as genre) {
+	<li
+		class="flex flex-col justify-between gap-4 rounded-card border border-line p-5"
+	>
+		<span class="text-sm font-medium text-fg-secondary"
+			>Favorite genre</span
+		>
+		<span class="flex flex-col gap-1 min-w-0">
+			<span
+				class="font-display text-2xl font-bold leading-tight tracking-tight text-fg text-balance"
+				>{{ genre.name }}</span
+			>
+			<span class="text-sm text-fg-muted tabular-nums"
+				>{{ genreShare() }}</span
+			>
+		</span>
+	</li>
+	} @if (data.topPlatform; as platform) {
+	<li
+		class="flex flex-col justify-between gap-4 rounded-card border border-line p-5"
+	>
+		<span class="text-sm font-medium text-fg-secondary">Main platform</span>
+		<span class="flex flex-col gap-1 min-w-0">
+			<span
+				class="font-display text-2xl font-bold leading-tight tracking-tight text-fg text-balance"
+				>{{ platform.name }}</span
+			>
+			<span class="text-sm text-fg-muted tabular-nums"
+				>{{ platformRuns() }}</span
+			>
+		</span>
+	</li>
+	} @if (data.busiestMonth) {
+	<li
+		class="flex flex-col justify-between gap-4 rounded-card border border-line border-dashed p-5"
+	>
+		<span class="text-sm font-medium text-fg-secondary">Busiest month</span>
+		<span class="flex flex-col gap-1 min-w-0">
+			<span
+				class="font-display text-2xl font-bold leading-tight tracking-tight text-fg"
+				>{{ busiestMonthName() }}</span
+			>
+			<span class="text-sm text-fg-muted tabular-nums"
+				>{{ busiestMonthCount() }}</span
+			>
+		</span>
+	</li>
+	}
+</ul>

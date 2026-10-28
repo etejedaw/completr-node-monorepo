@@ -1,0 +1,74 @@
+@let error = loadError(); @if (error === 'user_not_found' || error ===
+'not_found') {
+<app-profile-access-state reason="not_found" [username]="username()" />
+} @else if (error === 'private') {
+<app-profile-access-state
+	reason="private"
+	[username]="username()"
+	privateTitle="These Rewinds are private"
+/>
+} @else {
+<app-library-hero heading="Rewind" [posters]="posters()">
+	<a
+		heroEyebrow
+		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
+		[routerLink]="['/user', username()]"
+	>
+		<span aria-hidden="true" class="material-icons text-sm"
+			>arrow_back</span
+		>
+		{{ '@' + username() }}'s profile
+	</a>
+	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
+		{{ subtitle() }}
+	</p>
+</app-library-hero>
+
+@if (error === 'failed') {
+<ui-plain-empty-state
+	icon="cloud_off"
+	title="Couldn't load these Rewinds"
+	message="Check your connection and try again."
+>
+	<button
+		uiButton
+		variant="secondary"
+		class="tap:min-h-[44px]"
+		(click)="retry()"
+	>
+		Try again
+	</button>
+</ui-plain-empty-state>
+} @else if (years(); as list) { @if (list.length === 0) {
+<ui-plain-empty-state
+	icon="history"
+	title="No Rewinds yet"
+	message="A Rewind appears once a year has games started or finished."
+>
+	<a
+		uiButton
+		variant="secondary"
+		class="tap:min-h-[44px]"
+		[routerLink]="['/user', username()]"
+		>Back to profile</a
+	>
+</ui-plain-empty-state>
+} @else {
+<ul class="list-none m-0 p-0 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+	@for (summary of list; track summary.year) {
+	<li>
+		<app-rewind-year-card [username]="username()" [summary]="summary" />
+	</li>
+	}
+</ul>
+} } @else {
+<ul
+	class="list-none m-0 p-0 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+	aria-busy="true"
+	aria-label="Loading Rewinds"
+>
+	@for (card of skeletonCards; track card) {
+	<li><ui-skeleton class="h-56 rounded-card" /></li>
+	}
+</ul>
+} }

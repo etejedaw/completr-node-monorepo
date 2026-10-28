@@ -1,0 +1,86 @@
+<div
+	class="flex flex-col items-center gap-5 md:flex-row md:items-end md:gap-8"
+	appInView
+	inViewRootMargin="200px"
+	(inViewChange)="$event && preload()"
+>
+	<figure
+		class="m-0 shrink-0 relative aspect-[9/16] h-[min(70vh,34rem)] max-w-full overflow-hidden rounded-card border border-line bg-surface"
+		[attr.aria-busy]="image().isLoading() || null"
+	>
+		@if (image().objectUrl(); as url) {
+		<img
+			[src]="url"
+			[alt]="previewAlt()"
+			class="w-full h-full object-cover"
+		/>
+		} @else if (image().hasError()) {
+		<div
+			class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-3xl text-fg-muted"
+				>broken_image</span
+			>
+			<p class="m-0 text-sm text-fg-secondary">
+				Couldn't load the image.
+			</p>
+			<button
+				uiButton
+				variant="secondary"
+				size="sm"
+				class="tap:min-h-[44px]"
+				(click)="retryPreview()"
+			>
+				Try again
+			</button>
+		</div>
+		} @else {
+		<ui-skeleton variant="rect" class="absolute inset-0" />
+		<span class="sr-only">Preparing the image</span>
+		}
+	</figure>
+
+	<div class="w-full md:w-auto flex flex-col gap-2 md:min-w-[14rem]">
+		@if (canShareFiles) {
+		<button
+			uiButton
+			variant="primary"
+			class="max-md:min-h-[44px] tap:min-h-[44px]"
+			[disabled]="!isReady() || sharing()"
+			[attr.aria-busy]="sharing() || null"
+			(click)="shareImage()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>ios_share</span
+			>
+			Share image
+		</button>
+		}
+		<button
+			uiButton
+			[variant]="canShareFiles ? 'secondary' : 'primary'"
+			class="max-md:min-h-[44px] tap:min-h-[44px]"
+			[disabled]="downloadPending()"
+			[attr.aria-busy]="downloadPending() || null"
+			(click)="download()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>{{ downloadPending() ? 'hourglass_top' : 'download' }}</span
+			>
+			Download image
+		</button>
+		<button
+			uiButton
+			variant="ghost"
+			class="max-md:min-h-[44px] tap:min-h-[44px]"
+			(click)="copyLink()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>link</span
+			>
+			Copy link
+		</button>
+	</div>
+</div>
