@@ -5,7 +5,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { PasswordResetToken } from "../../src/auth/password-reset-token.model";
 import { environmentConfig } from "../../src/common/config/environment.config";
 import { sequelize } from "../../src/database/sequelize.database";
-import { InMemoryMailProvider } from "../../src/mail/mail.provider";
+import { InMemoryMailModel } from "../../src/mail/in-memory/in-memory.provider";
 import { api } from "../helpers/app.helper";
 import {
 	bearer,
@@ -522,7 +522,7 @@ void describe("password reset cooldown", () => {
 
 		assert.ok(responses.every(response => response.status === 204));
 		assert.equal((await resetTokensOf(user.id)).length, 1);
-		const mails = InMemoryMailProvider.outbox.filter(
+		const mails = InMemoryMailModel.outbox.filter(
 			mail => mail.to === user.email
 		);
 		assert.equal(mails.length, 1);

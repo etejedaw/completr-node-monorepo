@@ -1,18 +1,18 @@
 import { setTimeout as delay } from "node:timers/promises";
 
+import { InMemoryMailModel } from "../../src/mail/in-memory/in-memory.provider";
 import { type MailMessage } from "../../src/mail/mail.interface";
-import { InMemoryMailProvider } from "../../src/mail/mail.provider";
 
 const MAIL_POLL_INTERVAL_MS = 10;
 const MAIL_WAIT_TIMEOUT_MS = 2_000;
 const ONE_TIME_TOKEN_IN_URL = /token=([a-f0-9]{64})/;
 
 export function clearOutbox() {
-	InMemoryMailProvider.outbox.length = 0;
+	InMemoryMailModel.outbox.length = 0;
 }
 
 export function findLastMailTo(email: string): MailMessage | undefined {
-	return InMemoryMailProvider.outbox.findLast(mail => mail.to === email);
+	return InMemoryMailModel.outbox.findLast(mail => mail.to === email);
 }
 
 export async function waitForMailTo(email: string): Promise<MailMessage> {

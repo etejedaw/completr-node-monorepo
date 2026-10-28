@@ -5,7 +5,7 @@ import * as authService from "../../src/auth/auth.service";
 import * as passwordService from "../../src/auth/services/password.service";
 import * as passwordResetService from "../../src/auth/services/password-reset.service";
 import * as tokenService from "../../src/auth/services/token.service";
-import { InMemoryMailProvider } from "../../src/mail/mail.provider";
+import { InMemoryMailModel } from "../../src/mail/in-memory/in-memory.provider";
 import * as usersService from "../../src/users/users.service";
 import { asModel } from "../unit-helpers/as-model";
 import { captureRejection, stub } from "../unit-helpers/mocks";
@@ -347,7 +347,7 @@ void describe("authService.resetPassword", () => {
 
 void describe("authService.requestPasswordReset", () => {
 	beforeEach(() => {
-		InMemoryMailProvider.outbox.length = 0;
+		InMemoryMailModel.outbox.length = 0;
 	});
 
 	afterEach(() => {
@@ -365,7 +365,7 @@ void describe("authService.requestPasswordReset", () => {
 		authService.requestPasswordReset("p@example.com");
 		await flushBackgroundWork();
 
-		const [sentMail] = InMemoryMailProvider.outbox;
+		const [sentMail] = InMemoryMailModel.outbox;
 		assert.equal(sentMail?.to, "p@example.com");
 		assert.match(sentMail?.text ?? "", /token=raw-reset/);
 	});
@@ -381,7 +381,7 @@ void describe("authService.requestPasswordReset", () => {
 		authService.requestPasswordReset("p@example.com");
 		await flushBackgroundWork();
 
-		assert.equal(InMemoryMailProvider.outbox.length, 0);
+		assert.equal(InMemoryMailModel.outbox.length, 0);
 	});
 
 	void it("sends nothing when the email does not belong to any user", async () => {
@@ -390,7 +390,7 @@ void describe("authService.requestPasswordReset", () => {
 		authService.requestPasswordReset("ghost@example.com");
 		await flushBackgroundWork();
 
-		assert.equal(InMemoryMailProvider.outbox.length, 0);
+		assert.equal(InMemoryMailModel.outbox.length, 0);
 	});
 });
 
