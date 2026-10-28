@@ -199,7 +199,10 @@ export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 	return Queue.findAll({
 		where: { userId: user.id },
 		include: BACKLOG_INCLUDE,
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 
@@ -207,7 +210,10 @@ export async function findQueueBacklogIdsByUserId(userId: string) {
 	return Queue.findAll({
 		where: { userId },
 		attributes: ["backlogId"],
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 
@@ -215,7 +221,10 @@ export async function findQueueByUserId(userId: string) {
 	return Queue.findAll({
 		where: { userId },
 		include: BACKLOG_INCLUDE,
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 
@@ -257,7 +266,10 @@ export async function findQueueByUserIdPaginated(
 	const query: Record<string, unknown> = {
 		where: { userId },
 		include,
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
@@ -322,7 +334,10 @@ export async function findQueueForExport(
 				]
 			}
 		],
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	});
 	return sortQueueExport(entries, filters.sort);
 }

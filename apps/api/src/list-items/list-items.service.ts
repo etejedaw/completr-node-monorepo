@@ -237,7 +237,10 @@ export async function replaceItems(
 	return ListItem.findAll({
 		where: { listId },
 		include: [{ model: Game }],
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 

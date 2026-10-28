@@ -30,7 +30,10 @@ export async function findPendingReports() {
 			{ model: Game, attributes: ["id", "title", "code"] },
 			{ model: User, attributes: ["id", "username"] }
 		],
-		order: [["createdAt", "ASC"]]
+		order: [
+			["createdAt", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 

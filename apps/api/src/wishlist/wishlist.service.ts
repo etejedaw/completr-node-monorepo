@@ -59,7 +59,10 @@ export async function replaceWishlist(user: RequestUser, gameIds: string[]) {
 	return Wishlist.findAll({
 		where: { userId: user.id },
 		include: INCLUDE,
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 
@@ -133,7 +136,10 @@ export async function findGameEntriesByUserId(
 				attributes: ["id", "code", "title", "backgroundUrl"]
 			}
 		],
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 
@@ -153,7 +159,10 @@ export async function findWishlistByUserIdPaginated(
 	const query: Record<string, unknown> = {
 		where: { userId },
 		include: [gameInclude, { model: Platform }],
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
@@ -180,6 +189,9 @@ export async function findWishlistForExport(
 			},
 			{ model: Platform, attributes: ["id", "name"] }
 		],
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }

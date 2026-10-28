@@ -846,7 +846,10 @@ export async function findFriendsActivityForGame(
 				attributes: USER_PUBLIC_ATTRS
 			}
 		],
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 
 	const seen = new Set<string>();
@@ -878,7 +881,10 @@ export async function findRandomPlayersForGame(
 				attributes: USER_PUBLIC_ATTRS
 			}
 		],
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 
 	const byUser = new Map<string, (typeof rows)[number]>();
@@ -915,7 +921,10 @@ export async function findGameEntriesByStatus(
 				attributes: ["id", "code", "title", "backgroundUrl"]
 			}
 		],
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 }
 
@@ -944,7 +953,10 @@ export async function findHighlightsByUserId(
 	const recent = await Backlog.findAll({
 		where: baseWhere,
 		include: backlogInclude,
-		order: [["finishedAt", "DESC"]],
+		order: [
+			["finishedAt", "DESC"],
+			["id", "DESC"]
+		],
 		limit: recentLimit
 	});
 
@@ -954,7 +966,10 @@ export async function findHighlightsByUserId(
 			finishedAt: { [Op.gte]: monthStart, [Op.lte]: monthEnd }
 		},
 		include: backlogInclude,
-		order: [["finishedAt", "DESC"]]
+		order: [
+			["finishedAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 
 	let longestPlayed: Backlog | null = null;
@@ -1014,7 +1029,10 @@ export async function findCompletionsByUserIdPaginated(
 	const { rows, count } = await Backlog.findAndCountAll({
 		where,
 		include: backlogInclude,
-		order: [["finishedAt", "DESC"]],
+		order: [
+			["finishedAt", "DESC"],
+			["id", "DESC"]
+		],
 		limit,
 		offset,
 		distinct: true

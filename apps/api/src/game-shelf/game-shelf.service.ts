@@ -108,7 +108,10 @@ export async function findGameEntriesByUserId(
 				attributes: ["id", "code", "title", "backgroundUrl"]
 			}
 		],
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 }
 

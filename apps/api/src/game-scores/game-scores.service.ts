@@ -122,7 +122,10 @@ export async function replaceGameScores(
 
 			return GameScore.findAll({
 				where: { gameId, source: { [Op.ne]: COMPLETR_SCORE_SOURCE } },
-				order: [["source", "ASC"]],
+				order: [
+					["source", "ASC"],
+					["id", "ASC"]
+				],
 				transaction
 			});
 		});

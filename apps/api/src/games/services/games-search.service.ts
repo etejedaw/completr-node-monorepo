@@ -337,7 +337,10 @@ export async function findGamesByFranchiseId(
 			{ association: "GameScores" },
 			{ association: "GameTimes" }
 		],
-		order: [["releaseAt", "ASC"]],
+		order: [
+			["releaseAt", "ASC"],
+			["id", "ASC"]
+		],
 		limit: limit + 1,
 		offset
 	});

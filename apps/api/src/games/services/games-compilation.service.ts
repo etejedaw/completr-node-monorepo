@@ -106,7 +106,10 @@ export async function findCompilationItemsByParent(parentGameId: string) {
 				]
 			}
 		],
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 
@@ -137,7 +140,10 @@ export async function findCompilationParentsForChild(childGameId: string) {
 				required: true
 			}
 		],
-		order: [["createdAt", "ASC"]]
+		order: [
+			["createdAt", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 

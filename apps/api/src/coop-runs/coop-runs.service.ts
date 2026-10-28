@@ -100,7 +100,10 @@ export async function addMember(
 					status: { [Op.in]: ["playing", "not_started", "endless"] },
 					coopRunId: null
 				},
-				order: [["createdAt", "DESC"]],
+				order: [
+					["createdAt", "DESC"],
+					["id", "DESC"]
+				],
 				transaction
 			});
 		}
@@ -164,7 +167,10 @@ export async function findCandidatesForTarget(
 			gameId: myBacklog.gameId,
 			platformId: myBacklog.platformId
 		},
-		order: [["createdAt", "DESC"]],
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		],
 		attributes: [
 			"id",
 			"status",

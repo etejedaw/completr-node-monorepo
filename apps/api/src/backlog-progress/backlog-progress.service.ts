@@ -29,7 +29,10 @@ export async function findProgressByBacklog(userId: string, backlogId: string) {
 
 	return BacklogProgress.findAll({
 		where: { backlogId },
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 }
 

@@ -117,7 +117,10 @@ export async function replaceGameTimes(
 
 			return GameTime.findAll({
 				where: { gameId, source: { [Op.in]: TIME_SOURCES_API } },
-				order: [["source", "ASC"]],
+				order: [
+					["source", "ASC"],
+					["id", "ASC"]
+				],
 				transaction
 			});
 		});
