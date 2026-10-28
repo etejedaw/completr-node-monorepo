@@ -99,7 +99,7 @@ Ver [`context/providers.md`](./context/providers.md).
 - **Render:** satori convierte un árbol de elementos (objetos `{ type, props }`, sin JSX; solo flexbox) en SVG con el texto ya trazado, y resvg lo pasa a PNG con `loadSystemFonts: false`. Las fuentes son los `.woff` estáticos de `@fontsource/chakra-petch` y `@fontsource/manrope` (satori no lee woff2 ni fuentes variables), resueltas con `require.resolve` y leídas una sola vez por proceso.
 - **Portadas:** se descargan del `coverUrl` con un timeout de 3 s y un tope de 5 MB, y se incrustan como data URI. Solo se aceptan PNG y JPEG (por firma de bytes) y URLs `http(s)`; las de RAWG se piden redimensionadas a 420 px. Si fallan, se dibuja un degradado con el título.
 - **Caché:** LRU en memoria de 100 PNG por proceso, con clave usuario, año, formato y hash SHA-256 del JSON del Rewind; un cambio en los datos genera otra entrada. Las peticiones simultáneas a la misma imagen comparten el render, y una imagen con portadas que no se pudieron descargar no se guarda. Se pierde al reiniciar la API.
-- **URLs absolutas:** el `og:image` se arma con `API_PUBLIC_URL` (URL pública de la API, por defecto `http://localhost:3000`) y la redirección con `WEB_APP_URL`.
+- **URLs absolutas:** el `og:image` y la redirección se arman con `WEB_APP_URL`. La imagen vive bajo `/share/rewind/:username/:year/` (`og.png` y `story.png`), junto a la página de vista previa, porque en el dominio de la web `/users` es una ruta de Angular. En producción el nginx de la web hace proxy de `/share/` a la API (ver [`context/frontend.md`](./context/frontend.md)); en local lo hace `proxy.conf.json` de `ng serve`.
 
 ## Decisiones clave
 

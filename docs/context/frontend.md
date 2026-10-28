@@ -25,6 +25,8 @@ Arquitectura y convenciones de `apps/web`, la aplicación Angular que consume la
 | Auth        | JWT Bearer en header (`authInterceptor`) + refresh token (`errorInterceptor`) |
 | Token store | `localStorage` (`core/services/storage.ts`)                                   |
 
+Las rutas `/share/*` (página de vista previa e imágenes del Rewind) se sirven bajo el dominio de la web, no el de la API. En producción el `location ^~ /share/` de `nginx.conf` hace proxy a la API; la URL interna sale de la variable de entorno `API_UPSTREAM` (con esquema, sin ruta; por defecto `https://api.completr.app`), que la imagen de nginx sustituye en la plantilla `/etc/nginx/templates/default.conf.template` al arrancar. En local `ng serve` usa `proxy.conf.json`, que manda `/share` a `http://localhost:3002`. `ngsw-config.json` excluye `/share/**` de `navigationUrls` para que el service worker no responda esos enlaces con el `index.html`.
+
 Al arrancar, `provideAppInitializer` intenta renovar el access token si está vencido, antes de resolver la primera ruta.
 
 Dos páginas muestran contenido que no vive en este repo de Angular sino en la landing: What's new (`GET /changelog`) y Privacy (`GET /privacy`). La API hace de proxy con caché de 5 minutos y la página lo pide con `httpResource`, con esqueleto mientras carga y un estado de error con _Try again_. Al leer el recurso en la plantilla, comprueba `hasValue()` antes de `value()`: en estado de error `value()` lanza. Para cambiar esos textos no se toca `apps/web`; ver [`landing.md`](./landing.md).
