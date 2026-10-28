@@ -8,6 +8,8 @@ import {
 import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
 import { injectBodyPortal } from "../portal/body-portal";
 
+const BACKDROP_OPENING_GRACE_MS = 400;
+
 @Component({
 	selector: "ui-bottom-sheet",
 	imports: [UiFocusTrap],
@@ -16,7 +18,7 @@ import { injectBodyPortal } from "../portal/body-portal";
 			type="button"
 			class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm cursor-default border-0 motion-safe:animate-[uiSheetFade_200ms_ease-out]"
 			[attr.aria-label]="'Close ' + heading()"
-			(click)="closed.emit()"
+			(click)="onBackdropClick()"
 		></button>
 		<section
 			uiFocusTrap
@@ -77,8 +79,16 @@ export class UiBottomSheet {
 	readonly eyebrow = input<string | null>(null);
 	readonly closed = output<void>();
 
+	private readonly openedAt = performance.now();
+
 	constructor() {
 		injectBodyPortal({ restoreFocus: true });
+	}
+
+	protected onBackdropClick() {
+		if (performance.now() - this.openedAt < BACKDROP_OPENING_GRACE_MS)
+			return;
+		this.closed.emit();
 	}
 
 	protected onEscape(event: KeyboardEvent) {
