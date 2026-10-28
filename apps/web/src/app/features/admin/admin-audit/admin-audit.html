@@ -142,14 +142,14 @@
 						class="inline-block px-1.5 py-0.5 mr-1.5 bg-input-bg rounded text-[0.625rem] uppercase tracking-wider text-fg-muted"
 						>{{ log.targetType }}</span
 					>
-					@if (log.target?.type === 'game' && log.target?.code) {
+					@if (log.target?.type === 'game' && log.target.code) {
 					<a
 						class="text-brand no-underline hover:underline"
 						[routerLink]="['/games', log.target!.code]"
 						>{{ log.target!.label }}</a
 					>
 					} @else if (log.target?.type === 'user' &&
-					log.target?.username) {
+					log.target.username) {
 					<a
 						class="text-brand no-underline hover:underline"
 						[routerLink]="['/user', log.target!.username]"
@@ -193,13 +193,13 @@
 				class="inline-block px-1.5 py-0.5 mr-1 bg-input-bg rounded text-[0.625rem] uppercase tracking-wider text-fg-muted"
 				>{{ log.targetType }}</span
 			>
-			@if (log.target?.type === 'game' && log.target?.code) {
+			@if (log.target?.type === 'game' && log.target.code) {
 			<a
 				class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px]"
 				[routerLink]="['/games', log.target!.code]"
 				>{{ log.target!.label }}</a
 			>
-			} @else if (log.target?.type === 'user' && log.target?.username) {
+			} @else if (log.target?.type === 'user' && log.target.username) {
 			<a
 				class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px]"
 				[routerLink]="['/user', log.target!.username]"
