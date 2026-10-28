@@ -648,6 +648,7 @@ describe("PublicProfileComponent", () => {
 				finishedCount,
 				startedCount: 7,
 				hoursPlayed: 212.5,
+				persona: "marathoner" as const,
 				covers: [
 					{
 						gameId: `g-${year}`,
@@ -672,6 +673,7 @@ describe("PublicProfileComponent", () => {
 					await screen.findByRole("heading", { name: "Rewind 2026" })
 				).toBeInTheDocument();
 				expect(getRewindYears).toHaveBeenCalledWith("ada");
+				expect(screen.getByText("Marathoner")).toBeInTheDocument();
 				expect(
 					screen.getByRole("link", { name: "See @ada's Rewind" })
 				).toHaveAttribute("href", "/user/ada/rewind/2026");

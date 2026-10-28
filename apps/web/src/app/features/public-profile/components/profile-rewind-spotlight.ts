@@ -2,21 +2,32 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
-	input
+	DOCUMENT,
+	inject,
+	input,
+	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
 import { type RewindYearSummary } from "../../../core/models/rewind.model";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { InView } from "../../../shared/directives/in-view";
 import { UiButton } from "../../../shared/ui";
+import { RewindPersonaRank } from "../../rewind/components/rewind-persona-rank/rewind-persona-rank";
 import { formatHours } from "../../rewind/rewind-copy";
+import { canAnimateRewind } from "../../rewind/rewind-motion";
+import { REWIND_YEAR_FILL_CLASS } from "../../rewind/rewind-tone";
 
 const FAN_ROTATIONS = [-12, -6, 0, 6, 12];
 const MOBILE_FAN_SIZE = 3;
+const FAN_STEP_DEG = 6;
+const FAN_LIFT_REM = 0.6;
+const FAN_GATHER_PERCENT = 70;
+const FAN_STAGGER_MS = 60;
 
 @Component({
 	selector: "app-profile-rewind-spotlight",
-	imports: [RouterLink, GamePoster, UiButton],
+	imports: [RouterLink, GamePoster, InView, RewindPersonaRank, UiButton],
 	template: `
 		<section
 			class="relative isolate overflow-hidden rounded-card border border-line bg-surface p-5 sm:p-8 lg:p-10"
@@ -25,6 +36,10 @@ const MOBILE_FAN_SIZE = 3;
 			<div
 				aria-hidden="true"
 				class="absolute -top-24 -right-24 -z-10 size-[28rem] rounded-full bg-[radial-gradient(circle,var(--color-brand-glow),transparent_65%)]"
+			></div>
+			<div
+				aria-hidden="true"
+				class="absolute -bottom-32 left-1/3 -z-10 size-[24rem] rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--color-nav-queue)_18%,transparent),transparent_65%)]"
 			></div>
 			<div
 				class="flex flex-col-reverse gap-8 lg:flex-row lg:items-center lg:justify-between"
@@ -37,12 +52,18 @@ const MOBILE_FAN_SIZE = 3;
 						>
 						<h2
 							id="profile-rewind-heading"
-							class="m-0 font-display font-bold leading-[0.9] tracking-[-0.04em] tabular-nums text-fg text-[clamp(4.5rem,16vw,8rem)]"
+							class="m-0 font-display font-bold leading-[0.9] tracking-[-0.04em] tabular-nums text-[clamp(4.5rem,16vw,8rem)]"
 						>
-							<span class="sr-only">Rewind</span
-							>{{ " " + summary().year }}
+							<span class="sr-only">Rewind</span>{{ " "
+							}}<span [class]="yearFillClass">{{
+								summary().year
+							}}</span>
 						</h2>
 					</div>
+					<app-rewind-persona-rank
+						size="compact"
+						[code]="summary().persona"
+					/>
 					@if (covers().length === 0) {
 						<p class="m-0 text-base text-fg-secondary">
 							{{ readyLine() }}
@@ -96,6 +117,8 @@ const MOBILE_FAN_SIZE = 3;
 					<div
 						aria-hidden="true"
 						class="relative flex shrink-0 items-end justify-center self-center lg:pr-6 h-44 sm:h-56 lg:h-64"
+						appInView
+						(inViewChange)="$event && fanOpen.set(true)"
 					>
 						@for (
 							cover of covers();
@@ -103,10 +126,11 @@ const MOBILE_FAN_SIZE = 3;
 							let i = $index
 						) {
 							<app-game-poster
-								class="-mx-3 sm:-mx-4 w-24 sm:w-32 lg:w-36 aspect-[2/3] origin-bottom rounded-md ring-1 ring-line shadow-[0_18px_40px_-18px_rgba(0,0,0,0.8)]"
+								class="-mx-3 sm:-mx-4 w-24 sm:w-32 lg:w-36 aspect-[2/3] origin-bottom rounded-md ring-1 ring-line shadow-[0_18px_40px_-18px_var(--color-canvas)] motion-safe:transition-[rotate,translate] motion-safe:duration-[700ms] motion-safe:ease-[cubic-bezier(0.2,1.1,0.3,1)]"
 								[class.max-md:hidden]="i >= mobileFanSize"
 								[style.rotate.deg]="rotation(i)"
-								[style.translate]="'0 ' + lift(i) + 'rem'"
+								[style.translate]="placement(i)"
+								[style.transition-delay.ms]="fanDelay(i)"
 								[style.z-index]="zIndex(i)"
 								[src]="cover.coverUrl"
 								[title]="cover.title"
@@ -128,6 +152,10 @@ export class ProfileRewindSpotlight {
 	readonly hasMoreYears = input(false);
 
 	protected readonly mobileFanSize = MOBILE_FAN_SIZE;
+	protected readonly yearFillClass = REWIND_YEAR_FILL_CLASS;
+	protected readonly fanOpen = signal(
+		!canAnimateRewind(inject(DOCUMENT).defaultView)
+	);
 	protected readonly covers = computed(() =>
 		this.summary().covers.slice(0, FAN_ROTATIONS.length)
 	);
@@ -151,11 +179,18 @@ export class ProfileRewindSpotlight {
 	);
 
 	protected rotation(index: number): number {
-		return this.fanSlot(index) * 6;
+		return this.fanOpen() ? this.fanSlot(index) * FAN_STEP_DEG : 0;
 	}
 
-	protected lift(index: number): number {
-		return Math.abs(this.fanSlot(index)) * 0.6;
+	protected placement(index: number): string {
+		const slot = this.fanSlot(index);
+		return this.fanOpen()
+			? `0 ${Math.abs(slot) * FAN_LIFT_REM}rem`
+			: `${-slot * FAN_GATHER_PERCENT}% 0`;
+	}
+
+	protected fanDelay(index: number): number {
+		return Math.abs(this.fanSlot(index)) * FAN_STAGGER_MS;
 	}
 
 	protected zIndex(index: number): number {

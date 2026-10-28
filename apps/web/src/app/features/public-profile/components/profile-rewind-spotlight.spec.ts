@@ -20,6 +20,7 @@ function summary(overrides: Partial<RewindYearSummary> = {}) {
 		finishedCount: 18,
 		startedCount: 23,
 		hoursPlayed: 212,
+		persona: "genre-explorer" as const,
 		covers: ["a", "b", "c", "d", "e"].map(cover),
 		...overrides
 	};
@@ -50,6 +51,15 @@ describe("ProfileRewindSpotlight", () => {
 		const posters = container.querySelectorAll("app-game-poster");
 		expect(posters).toHaveLength(5);
 		expect(posters[0].closest("[aria-hidden='true']")).not.toBeNull();
+	});
+
+	it("shows the persona of the year as a subtitle", async () => {
+		await renderSpotlight(summary());
+
+		expect(screen.getByText("Genre Explorer")).toBeInTheDocument();
+		expect(
+			screen.queryByText("No genre was safe from you this year.")
+		).not.toBeInTheDocument();
 	});
 
 	it("addresses a visitor by the owner's username and hides Past rewinds with a single year", async () => {
@@ -94,5 +104,93 @@ describe("ProfileRewindSpotlight", () => {
 		expect(
 			screen.getByText("@ada's year in games is ready")
 		).toBeInTheDocument();
+	});
+
+	describe("fan of covers", () => {
+		let observerCallback: (entries: { isIntersecting: boolean }[]) => void;
+		let reducedMotion: boolean;
+
+		function stubBrowser() {
+			vi.stubGlobal(
+				"matchMedia",
+				vi.fn(() => ({ matches: reducedMotion }))
+			);
+			vi.stubGlobal(
+				"IntersectionObserver",
+				class {
+					constructor(handler: typeof observerCallback) {
+						observerCallback = handler;
+					}
+					observe = vi.fn();
+					disconnect = vi.fn();
+				}
+			);
+		}
+
+		function rotations(container: HTMLElement) {
+			return [
+				...container.querySelectorAll<HTMLElement>("app-game-poster")
+			].map(poster => poster.style.rotate);
+		}
+
+		beforeEach(() => {
+			reducedMotion = false;
+		});
+
+		afterEach(() => {
+			vi.unstubAllGlobals();
+		});
+
+		it("starts stacked and opens once it enters the screen", async () => {
+			stubBrowser();
+			const { container, fixture } = await render(
+				ProfileRewindSpotlight,
+				{
+					inputs: {
+						username: "ada",
+						summary: summary(),
+						isSelf: false,
+						hasMoreYears: false
+					},
+					providers: [provideRouter([])]
+				}
+			);
+			expect(rotations(container)).toEqual([
+				"0deg",
+				"0deg",
+				"0deg",
+				"0deg",
+				"0deg"
+			]);
+
+			observerCallback([{ isIntersecting: true }]);
+			fixture.detectChanges();
+			observerCallback([{ isIntersecting: false }]);
+			fixture.detectChanges();
+
+			expect(rotations(container)).toEqual([
+				"-12deg",
+				"-6deg",
+				"0deg",
+				"6deg",
+				"12deg"
+			]);
+		});
+
+		it("is already open when the user prefers reduced motion", async () => {
+			reducedMotion = true;
+			stubBrowser();
+			const { container } = await render(ProfileRewindSpotlight, {
+				inputs: {
+					username: "ada",
+					summary: summary(),
+					isSelf: false,
+					hasMoreYears: false
+				},
+				providers: [provideRouter([])]
+			});
+
+			expect(rotations(container)[0]).toBe("-12deg");
+		});
 	});
 });
