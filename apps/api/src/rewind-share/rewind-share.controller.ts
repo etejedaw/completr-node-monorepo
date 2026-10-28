@@ -5,9 +5,9 @@ import { ServiceError } from "../common/errors/service-error";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type Rewind } from "../rewind/rewind.interface";
 import * as rewindService from "../rewind/rewind.service";
+import { type RewindYearParams } from "../rewind/rewind-year-params.schema";
 import { type RewindImageFormat } from "./rewind-share.interface";
 import * as rewindShareService from "./rewind-share.service";
-import { type RewindYearParams } from "./rewind-year-params.schema";
 
 const VIEWER_CACHE_CONTROL = "private, max-age=300";
 const GUEST_CACHE_CONTROL = "public, max-age=3600";

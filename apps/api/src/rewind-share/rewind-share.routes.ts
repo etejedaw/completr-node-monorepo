@@ -4,8 +4,8 @@ import { authOptionalMiddleware } from "../auth/auth-optional.middleware";
 import { publicLimiter } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
+import { RewindYearParamsSchema } from "../rewind/rewind-year-params.schema";
 import * as rewindShareController from "./rewind-share.controller";
-import { RewindYearParamsSchema } from "./rewind-year-params.schema";
 
 const router = Router();
 
