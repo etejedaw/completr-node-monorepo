@@ -1,13 +1,12 @@
 import { type RewindDurationGame } from "../rewind.interface";
 import { type ClosedRewindRun } from "../rewind-run.interface";
 import { compareRunsChronologically } from "./compare-runs-chronologically.util";
+import { resolveRunHours, type RunHours } from "./resolve-run-hours.util";
 import { roundToTenth } from "./round-to-tenth.util";
 import { toRewindFinishedGame } from "./to-rewind-finished-game.util";
 
-interface DurationCandidate {
+interface DurationCandidate extends RunHours {
 	run: ClosedRewindRun;
-	hours: number;
-	isEstimate: boolean;
 }
 
 export interface DurationExtremes {
@@ -16,11 +15,8 @@ export interface DurationExtremes {
 }
 
 function toDurationCandidate(run: ClosedRewindRun): DurationCandidate[] {
-	if (run.realDuration !== null && run.realDuration > 0)
-		return [{ run, hours: run.realDuration, isEstimate: false }];
-	if (run.duration !== null && run.duration > 0)
-		return [{ run, hours: run.duration, isEstimate: true }];
-	return [];
+	const runHours = resolveRunHours(run);
+	return runHours ? [{ run, ...runHours }] : [];
 }
 
 function compareLongestFirst(

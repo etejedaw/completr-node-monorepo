@@ -1,4 +1,4 @@
-import { type RewindRun } from "../rewind-run.interface";
+import { type RewindCalendar, type RewindRun } from "../rewind-run.interface";
 import { isRewindYearOpen } from "./is-rewind-year-open.util";
 
 const CLOSING_STATUSES = new Set(["completed", "abandoned"]);
@@ -15,10 +15,13 @@ function datedYearsOf(run: RewindRun): number[] {
 	return years;
 }
 
-export function listRewindYears(runs: RewindRun[], today: Date): number[] {
+export function listRewindYears(
+	runs: RewindRun[],
+	calendar: RewindCalendar
+): number[] {
 	const years = new Set(runs.flatMap(datedYearsOf));
 
 	return [...years]
-		.filter(year => isRewindYearOpen(year, today))
+		.filter(year => isRewindYearOpen(year, calendar))
 		.sort((first, second) => second - first);
 }

@@ -24,6 +24,11 @@ export interface ClosedRewindRun extends RewindRun {
 	finishedAt: string;
 }
 
+export interface RewindCalendar {
+	today: Date;
+	firstYear: number;
+}
+
 export interface RewindGameGenre {
 	gameId: string;
 	code: string;

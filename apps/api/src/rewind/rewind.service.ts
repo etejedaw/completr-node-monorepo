@@ -1,4 +1,5 @@
 import * as backlogService from "../backlog/backlog.service";
+import { environmentConfig } from "../common/config/environment.config";
 import * as gameGenreService from "../game-genre/game-genre.service";
 import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import {
@@ -11,16 +12,31 @@ import * as rewindServiceError from "./errors/rewind.service-error";
 import { backlogToRewindRun } from "./mappers/backlog-to-rewind-run.mapper";
 import { userToRewindOwner } from "./mappers/user-to-rewind-owner.mapper";
 import { type Rewind, type RewindYears } from "./rewind.interface";
-import { type RewindRun } from "./rewind-run.interface";
+import { type RewindCalendar, type RewindRun } from "./rewind-run.interface";
 import { buildRewind } from "./utils/build-rewind.util";
 import { buildRewindYears } from "./utils/build-rewind-years.util";
 import { collectYearRuns } from "./utils/collect-year-runs.util";
 import { listRewindYears } from "./utils/list-rewind-years.util";
+import { resolveRewindToday } from "./utils/resolve-rewind-today.util";
 
 interface RewindViewerContext {
 	owner: User;
 	access: SectionAccess;
 	runs: RewindRun[];
+	calendar: RewindCalendar;
+}
+
+function rewindTodayOverride(): string | undefined {
+	return environmentConfig.NODE_ENV === "prod"
+		? undefined
+		: environmentConfig.REWIND_TODAY;
+}
+
+function buildRewindCalendar(owner: User): RewindCalendar {
+	return {
+		today: resolveRewindToday(rewindTodayOverride(), new Date()),
+		firstYear: owner.createdAt.getUTCFullYear()
+	};
 }
 
 async function requireRewindOwner(username: string): Promise<User> {
@@ -42,7 +58,12 @@ async function loadViewerContext(
 	const runs = await backlogService.findDatedRunsByUserId(owner.id, {
 		publicOnly: !isOwner
 	});
-	return { owner, access, runs: runs.map(backlogToRewindRun) };
+	return {
+		owner,
+		access,
+		runs: runs.map(backlogToRewindRun),
+		calendar: buildRewindCalendar(owner)
+	};
 }
 
 function countVisiblePlatinums(
@@ -56,12 +77,34 @@ function countVisiblePlatinums(
 	);
 }
 
+function listFinishedGameIds(runs: RewindRun[], years: number[]): string[] {
+	const gameIds = years.flatMap(year =>
+		collectYearRuns(runs, year).finished.map(run => run.gameId)
+	);
+	return [...new Set(gameIds)];
+}
+
 export async function getRewindYearsForViewer(
 	viewerId: string | undefined,
 	username: string
 ): Promise<RewindYears> {
-	const { runs } = await loadViewerContext(viewerId, username);
-	return buildRewindYears(runs, new Date());
+	const context = await loadViewerContext(viewerId, username);
+	const years = listRewindYears(context.runs, context.calendar);
+	const [genres, platinumCounts] = await Promise.all([
+		gameGenreService.findGenresByGameIds(
+			listFinishedGameIds(context.runs, years)
+		),
+		Promise.all(years.map(year => countVisiblePlatinums(context, year)))
+	]);
+
+	return buildRewindYears({
+		runs: context.runs,
+		genres,
+		platinumsByYear: new Map(
+			years.map((year, index) => [year, platinumCounts[index] ?? null])
+		),
+		calendar: context.calendar
+	});
 }
 
 export async function getRewindForViewer(
@@ -69,16 +112,14 @@ export async function getRewindForViewer(
 	username: string,
 	year: number
 ): Promise<Rewind> {
-	const today = new Date();
 	const context = await loadViewerContext(viewerId, username);
-	if (!listRewindYears(context.runs, today).includes(year))
+	if (!listRewindYears(context.runs, context.calendar).includes(year))
 		throw rewindServiceError.notFoundError();
 
-	const finishedGameIds = collectYearRuns(context.runs, year).finished.map(
-		run => run.gameId
-	);
 	const [genres, platinums] = await Promise.all([
-		gameGenreService.findGenresByGameIds(finishedGameIds),
+		gameGenreService.findGenresByGameIds(
+			listFinishedGameIds(context.runs, [year])
+		),
 		countVisiblePlatinums(context, year)
 	]);
 
@@ -88,6 +129,6 @@ export async function getRewindForViewer(
 		runs: context.runs,
 		genres,
 		platinums,
-		today
+		calendar: context.calendar
 	});
 }

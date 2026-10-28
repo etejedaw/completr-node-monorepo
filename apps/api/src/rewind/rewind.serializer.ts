@@ -9,6 +9,7 @@ function rewindYearSummarySerializer(
 ): RewindYearSummary {
 	return {
 		year: summary.year,
+		persona: summary.persona,
 		finishedCount: summary.finishedCount,
 		startedCount: summary.startedCount,
 		hoursPlayed: summary.hoursPlayed,
@@ -26,6 +27,7 @@ export function rewindYearsSerializer(rewindYears: RewindYears): RewindYears {
 export function rewindSerializer(rewind: Rewind): Rewind {
 	return {
 		year: rewind.year,
+		persona: rewind.persona,
 		user: rewind.user,
 		isSpotlight: rewind.isSpotlight,
 		otherYears: rewind.otherYears,

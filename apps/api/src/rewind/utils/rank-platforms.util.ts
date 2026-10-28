@@ -6,9 +6,9 @@ function compareByRunCount(first: RewindPlatform, second: RewindPlatform) {
 	return second.count - first.count || compareText(first.name, second.name);
 }
 
-export function findTopPlatform(
+export function rankPlatforms(
 	finishedRuns: ClosedRewindRun[]
-): RewindPlatform | null {
+): RewindPlatform[] {
 	const platformsByName = new Map<string, RewindPlatform>();
 
 	for (const { platform } of finishedRuns) {
@@ -22,6 +22,5 @@ export function findTopPlatform(
 		platformsByName.set(platform.name, entry);
 	}
 
-	const [top] = [...platformsByName.values()].sort(compareByRunCount);
-	return top ?? null;
+	return [...platformsByName.values()].sort(compareByRunCount);
 }

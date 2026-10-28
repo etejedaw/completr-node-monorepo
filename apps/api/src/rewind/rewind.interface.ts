@@ -15,6 +15,7 @@ export interface RewindFinishedGame extends RewindGameRef {
 
 export interface RewindYearSummary {
 	year: number;
+	persona: RewindPersonaCode;
 	finishedCount: number;
 	startedCount: number;
 	hoursPlayed: number;
