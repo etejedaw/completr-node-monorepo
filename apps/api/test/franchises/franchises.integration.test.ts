@@ -243,11 +243,16 @@ void describe("POST and DELETE /franchises/:code/track", () => {
 void describe("franchise management", () => {
 	void it("lets a moderator create a franchise with a slug code", async () => {
 		const moderator = await createUserWithSession("moderator");
+		const game = await createGame();
 
 		const response = await api()
 			.post("/franchises")
 			.set("Authorization", moderator.authorization)
-			.send({ name: "The Legend of Zelda", description: "Hyrule" });
+			.send({
+				name: "The Legend of Zelda",
+				description: "Hyrule",
+				gameIds: [game.id]
+			});
 
 		assert.equal(response.status, 201);
 		assert.equal(response.body.data.franchise.code, "the-legend-of-zelda");
@@ -257,11 +262,12 @@ void describe("franchise management", () => {
 	void it("rejects a duplicated name with 409 FRANCHISE_UNIQUE_CONSTRAINT", async () => {
 		const moderator = await createUserWithSession("moderator");
 		const existing = await createFranchise();
+		const game = await createGame();
 
 		const response = await api()
 			.post("/franchises")
 			.set("Authorization", moderator.authorization)
-			.send({ name: existing.name });
+			.send({ name: existing.name, gameIds: [game.id] });
 
 		assert.equal(response.status, 409);
 		assert.equal(response.body.type, "FRANCHISE_UNIQUE_CONSTRAINT");
@@ -419,21 +425,6 @@ void describe("franchise management with gameIds", () => {
 		assert.equal(detached?.franchiseId, null);
 	});
 
-	void it("detaches every game when gameIds is empty", async () => {
-		const moderator = await createUserWithSession("moderator");
-		const franchise = await createFranchise();
-		const game = await createFranchiseGame(franchise.id);
-
-		const response = await api()
-			.patch(`/franchises/${franchise.id}`)
-			.set("Authorization", moderator.authorization)
-			.send({ name: franchise.name, gameIds: [] });
-
-		assert.equal(response.status, 200);
-		const detached = await Game.findByPk(game.id);
-		assert.equal(detached?.franchiseId, null);
-	});
-
 	void it("leaves the games untouched when gameIds is omitted", async () => {
 		const moderator = await createUserWithSession("moderator");
 		const franchise = await createFranchise();
@@ -472,6 +463,44 @@ void describe("franchise management with gameIds", () => {
 			franchise.id
 		);
 		assert.equal((await Game.findByPk(candidate.id))?.franchiseId, null);
+	});
+
+	void it("rejects a franchise without games with 422 COMMON_SCHEMA_INVALID", async () => {
+		const moderator = await createUserWithSession("moderator");
+
+		for (const body of [
+			{ name: "No Games Field" },
+			{ name: "Empty Games", gameIds: [] }
+		]) {
+			const response = await api()
+				.post("/franchises")
+				.set("Authorization", moderator.authorization)
+				.send(body);
+
+			assert.equal(response.status, 422);
+			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		}
+		assert.equal(
+			await Franchise.count({
+				where: { name: ["No Games Field", "Empty Games"] }
+			}),
+			0
+		);
+	});
+
+	void it("refuses to empty a franchise and keeps its games", async () => {
+		const moderator = await createUserWithSession("moderator");
+		const franchise = await createFranchise();
+		const game = await createFranchiseGame(franchise.id);
+
+		const response = await api()
+			.patch(`/franchises/${franchise.id}`)
+			.set("Authorization", moderator.authorization)
+			.send({ name: franchise.name, gameIds: [] });
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		assert.equal((await Game.findByPk(game.id))?.franchiseId, franchise.id);
 	});
 
 	void it("rejects a gameIds entry that is not a uuid with 422 COMMON_SCHEMA_INVALID", async () => {
