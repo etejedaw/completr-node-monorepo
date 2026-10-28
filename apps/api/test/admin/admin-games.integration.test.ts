@@ -862,6 +862,120 @@ void describe("PATCH /games/:id", () => {
 		assert.equal(cleared.body.data.game.variant, null);
 	});
 
+	void it("links a DLC to its parent and unlinks it with null", async () => {
+		const admin = await createUserWithSession("admin");
+		const parent = await createGame();
+		const dlc = await createGame();
+
+		const linked = await patchGame(admin.authorization, dlc.id, {
+			isDlc: true,
+			parentGameId: parent.id
+		});
+		assert.equal(linked.status, 200);
+		assert.equal(linked.body.data.game.parentGameId, parent.id);
+
+		const unlinked = await patchGame(admin.authorization, dlc.id, {
+			parentGameId: null
+		});
+		assert.equal(unlinked.status, 200);
+		assert.equal(unlinked.body.data.game.parentGameId, null);
+		assert.equal(unlinked.body.data.game.isDlc, true);
+	});
+
+	void it("clears the parent when the game stops being a DLC, even if the body repeats the parent", async () => {
+		const admin = await createUserWithSession("admin");
+		const parent = await createGame();
+		const dlc = await createGame();
+		await patchGame(admin.authorization, dlc.id, {
+			isDlc: true,
+			parentGameId: parent.id
+		}).expect(200);
+
+		const response = await patchGame(admin.authorization, dlc.id, {
+			isDlc: false,
+			parentGameId: parent.id
+		});
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.game.isDlc, false);
+		assert.equal(response.body.data.game.parentGameId, null);
+		await dlc.reload();
+		assert.equal(dlc.parentGameId, null);
+	});
+
+	void it("lets a wrongly linked parent be hard deleted once its DLC is unlinked", async () => {
+		const admin = await createUserWithSession("admin");
+		const wrongParent = await createGame();
+		const dlc = await createGame();
+		await patchGame(admin.authorization, dlc.id, {
+			isDlc: true,
+			parentGameId: wrongParent.id
+		}).expect(200);
+		await deleteGame(
+			admin.authorization,
+			wrongParent.id,
+			"?hard=true"
+		).expect(409);
+
+		await patchGame(admin.authorization, dlc.id, {
+			parentGameId: null
+		}).expect(200);
+
+		await deleteGame(
+			admin.authorization,
+			wrongParent.id,
+			"?hard=true"
+		).expect(204);
+		assert.equal(await Game.count({ where: { id: wrongParent.id } }), 0);
+	});
+
+	void it("keeps the parent when an edit does not mention it", async () => {
+		const admin = await createUserWithSession("admin");
+		const parent = await createGame();
+		const dlc = await createGame();
+		await patchGame(admin.authorization, dlc.id, {
+			isDlc: true,
+			parentGameId: parent.id
+		}).expect(200);
+
+		const response = await patchGame(admin.authorization, dlc.id, {
+			description: "Expansion"
+		});
+
+		assert.equal(response.body.data.game.parentGameId, parent.id);
+	});
+
+	void it("rejects a game as its own parent with 400 GAME_VALIDATION_ERROR", async () => {
+		const admin = await createUserWithSession("admin");
+		const game = await createGame();
+
+		const response = await patchGame(admin.authorization, game.id, {
+			isDlc: true,
+			parentGameId: game.id
+		});
+
+		assert.equal(response.status, 400);
+		assert.equal(response.body.type, "GAME_VALIDATION_ERROR");
+		await game.reload();
+		assert.equal(game.parentGameId ?? null, null);
+		assert.equal(game.isDlc, false);
+	});
+
+	void it("rejects an unknown parentGameId with 422 COMMON_REFERENCE_NOT_FOUND and keeps the game", async () => {
+		const admin = await createUserWithSession("admin");
+		const game = await createGame();
+
+		const response = await patchGame(admin.authorization, game.id, {
+			isDlc: true,
+			parentGameId: randomUUID()
+		});
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_REFERENCE_NOT_FOUND");
+		await game.reload();
+		assert.equal(game.isDlc, false);
+	});
+
 	void it("answers 422 GAME_VARIANT_REQUIRED when the game shares an external id with a sibling without variant", async () => {
 		const admin = await createUserWithSession("admin");
 		const externalId = uniqueSuffix();
@@ -1517,6 +1631,61 @@ void describe("POST /games/:id/split", () => {
 		assert.equal(response.body.type, "GAME_SPLIT_INVALID");
 		await game.reload();
 		assert.equal(game.variant, null);
+	});
+
+	for (const [label, labels] of [
+		["the same label twice", ["Pearl", "Pearl"]],
+		["labels that only differ by case or spaces", ["Pearl", "  pEARL "]],
+		["a label made only of spaces", ["Pearl", "   "]]
+	] as const) {
+		void it(`rejects ${label} with 400 GAME_SPLIT_INVALID and leaves the game untouched`, async () => {
+			const admin = await createUserWithSession("admin");
+			const game = await createGame();
+			const gamesBefore = await Game.count();
+
+			const response = await splitGame(admin.authorization, game.id, {
+				variants: [
+					{ title: uniqueTitle("Pokemon Pearl"), variant: labels[0] },
+					{
+						title: uniqueTitle("Pokemon Diamond"),
+						variant: labels[1]
+					}
+				]
+			});
+
+			assert.equal(response.status, 400);
+			assert.equal(response.body.type, "GAME_SPLIT_INVALID");
+			await game.reload();
+			assert.equal(game.variant, null);
+			assert.equal(await Game.count(), gamesBefore);
+		});
+	}
+
+	void it("stores titles and labels without surrounding spaces", async () => {
+		const admin = await createUserWithSession("admin");
+		const game = await createGame();
+		const pearl = uniqueTitle("Pokemon Pearl");
+		const diamond = uniqueTitle("Pokemon Diamond");
+
+		const response = await splitGame(admin.authorization, game.id, {
+			variants: [
+				{ title: `  ${pearl} `, variant: " Pearl  " },
+				{ title: `${diamond}   `, variant: "  Diamond" }
+			]
+		});
+
+		assert.equal(response.status, 200);
+		const stored = await Game.findAll({
+			where: { title: [pearl, diamond] },
+			order: [["title", "ASC"]]
+		});
+		assert.deepEqual(
+			stored.map(g => [g.title, g.variant]),
+			[
+				[diamond, "Diamond"],
+				[pearl, "Pearl"]
+			]
+		);
 	});
 
 	void it("rejects a variant title that cannot become a slug with 400 GAME_SPLIT_INVALID", async () => {
