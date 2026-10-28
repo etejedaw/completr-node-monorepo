@@ -441,7 +441,7 @@ Toda búsqueda de texto de la API (el `search` de los listados paginados, `q` de
 - Si falta su credencial, el `create` de la clase base devuelve la implementación deshabilitada: el backend arranca igual y cada método lanza `<PROVIDER>_DISABLED`.
 - RAWG: `RAWG_API_KEY` es opcional (vacía o ausente = deshabilitado). Sus métodos deshabilitados devuelven una promesa rechazada con `RAWG_DISABLED`, no lanzan de forma síncrona.
 - Mail: `SMTP_HOST` es opcional (vacío o ausente = deshabilitado). Códigos: `MAIL_DISABLED` (503) y `MAIL_SEND_ERROR` (502).
-- IA: `DEEPSEEK_API_KEY` es opcional (vacía o ausente = IA no configurada). `DEEPSEEK_MODEL` (por defecto `deepseek-flash`) y `DEEPSEEK_TIMEOUT_MS` (por defecto `30000`) también. Un consumidor consulta `iaProvider.isConfigured` de `ia/ia.provider` antes de llamar si quiere degradar en silencio; si no, `iaProvider.generateText` rechaza con `IA_NOT_CONFIGURED`.
+- IA: `DEEPSEEK_API_KEY` es opcional (vacía o ausente = IA no configurada). El modelo (`deepseek-flash`) y el timeout por defecto (30 s) son fijos en la clase de DeepSeek. Un consumidor consulta `iaProvider.isConfigured` de `ia/ia.provider` antes de llamar si quiere degradar en silencio; si no, `iaProvider.generateText` rechaza con `IA_NOT_CONFIGURED`.
 
 ### Códigos de error de IA
 

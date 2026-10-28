@@ -94,7 +94,7 @@ Ver [`context/providers.md`](./context/providers.md).
 
 ### Provider con modelo inyectable
 
-Cuando una capacidad puede cumplirla más de un proveedor externo (IA con DeepSeek, OpenAI u otro), el provider no es el proveedor: es una clase propia de la capacidad que recibe por constructor la implementación concreta. El ejemplo vigente es `apps/api/src/ia/`.
+Cuando una capacidad puede cumplirla más de un proveedor externo (IA con DeepSeek, OpenAI u otro), el provider no es el proveedor: es una clase propia de la capacidad que recibe por constructor la implementación concreta. Siguen esta forma `apps/api/src/ia/` (`IaProvider` con `DeepseekModel`) y `apps/api/src/mail/` (`MailProvider` con `NodemailerModel`, o `InMemoryMailModel` en tests).
 
 ```
 apps/api/src/<capacidad>/
@@ -106,10 +106,11 @@ apps/api/src/<capacidad>/
     └── <proveedor>.provider.ts <Proveedor>Model implements <Capacidad>Model, con static create y su variante Disabled
 ```
 
-- **Un solo punto de entrada.** El resto de la API importa solo la instancia `<capacidad>Provider` de `<capacidad>/<capacidad>.provider`. Nadie crea su propia instancia ni importa el submódulo del proveedor: lo prohíbe una regla `no-restricted-imports` en `eslint.config.mjs`.
+- **Un solo punto de entrada.** El resto de la API importa solo la instancia `<capacidad>Provider` de `<capacidad>/<capacidad>.provider`. Nadie crea su propia instancia ni importa el submódulo del proveedor desde `apps/api/src/`: lo prohíbe una regla `no-restricted-imports` en `eslint.config.mjs`, que hay que ampliar con cada capacidad nueva. Los tests sí pueden importar los modelos internos.
 - **El contrato es la interfaz `<Capacidad>Model`**, escrita en términos de la capacidad (por ejemplo `generateText` e `isEnabled`), nunca en los del proveedor. Los tipos propios del proveedor (settings, forma de la respuesta) quedan dentro de su submódulo.
-- **La clase de la capacidad hace lo común a todos los proveedores:** validar la entrada, normalizarla y exponer si hay un modelo configurado. El submódulo del proveedor solo habla con el servicio externo y traduce sus fallos a los errores de la capacidad.
+- **La clase de la capacidad hace lo común a todos los proveedores:** validar la entrada, normalizarla, exponer si hay un modelo configurado y rechazar con el error de "no configurado" de la capacidad (por ejemplo `mailProvider.assertConfigured()`), en vez de que cada consumidor lo compruebe por su cuenta. El submódulo del proveedor solo habla con el servicio externo y traduce sus fallos a los errores de la capacidad.
 - **Cambiar de proveedor** es escribir otro submódulo que implemente la interfaz y cambiar la línea que crea la instancia. Los consumidores no se tocan.
+- **Configuración:** las keys de servicios externos van en `common/config/api-keys.config.ts`, y los ajustes que sí cambian por entorno, en el `*.config.ts` de la capacidad (por ejemplo `mail.config.ts` con el servidor SMTP). El archivo `<capacidad>.provider.ts` los lee y se los pasa al modelo por constructor. Lo que es fijo del proveedor (modelo, timeout, URL base) es una constante de su clase, no una variable de entorno.
 - **Tests:** la clase de la capacidad se prueba con un modelo falso que implementa la interfaz; cada proveedor se prueba aparte con `fetch` (o su transporte) simulado.
 
 Un servicio externo que no tiene alternativas intercambiables sigue la forma simple de un provider, como `rawg/`: clase base abstracta con `static create`, la implementación activa y la `Disabled`.

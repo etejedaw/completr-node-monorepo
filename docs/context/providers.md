@@ -236,11 +236,11 @@ Consecuencias:
 
 ## Providers implementados
 
-| Provider             | Propósito                                                                                            |
-| -------------------- | ---------------------------------------------------------------------------------------------------- |
-| `apps/api/src/rawg/` | RAWG API: géneros, descripciones, covers, scores                                                     |
-| `apps/api/src/mail/` | Correo transaccional por SMTP (`nodemailer`). Se deshabilita sin `SMTP_HOST`                         |
-| `apps/api/src/ia/`   | Generación de texto con IA. Proveedor interno: `ia/deepseek/`. Se deshabilita sin `DEEPSEEK_API_KEY` |
+| Provider             | Propósito                                                                                                              |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `apps/api/src/rawg/` | RAWG API: géneros, descripciones, covers, scores                                                                       |
+| `apps/api/src/mail/` | Correo transaccional. Modelos internos: `mail/nodemailer/` y `mail/in-memory/` (tests). Se deshabilita sin `SMTP_HOST` |
+| `apps/api/src/ia/`   | Generación de texto con IA. Proveedor interno: `ia/deepseek/`. Se deshabilita sin `DEEPSEEK_API_KEY`                   |
 
 **Qué integraciones vienen después no se decide acá:** el roadmap de fuentes externas es planificación de producto, y varias dependen de revisiones de licencia todavía abiertas.
 
@@ -262,7 +262,7 @@ apps/api/src/ia/
 - **Modelo inyectado:** `IaProvider` recibe por constructor un `IaModel` (interfaz de `ia.interface.ts`: `isEnabled` y `generateText`). Hoy es `DeepseekModel.create(...)`; cambiar a otro proveedor (OpenAI u otro) es escribir otro submódulo que implemente `IaModel` y cambiar esa línea de `ia.provider.ts`, sin tocar a los consumidores.
 - **Validación:** `IaProvider` rechaza con `IA_INVALID_INPUT` instrucciones o contenido en blanco, `maxTokens` y `timeoutMs` que no sean enteros positivos y `temperature` fuera de 0–2, antes de llamar a la red.
 - **DeepSeek:** `fetch` nativo contra `https://api.deepseek.com/chat/completions` (compatible con OpenAI), con el modo de razonamiento desactivado (`thinking: { type: "disabled" }`) y `stream: false`. El timeout usa `AbortSignal.timeout`.
-- **Variables (todas opcionales):** `DEEPSEEK_API_KEY` (vacía o ausente = IA no configurada, la API arranca igual), `DEEPSEEK_MODEL` (por defecto `deepseek-flash`) y `DEEPSEEK_TIMEOUT_MS` (por defecto `30000`). Se leen en `environment.config.ts`; el provider las recibe por constructor.
+- **Variables:** solo `DEEPSEEK_API_KEY`, opcional (vacía o ausente = IA no configurada, la API arranca igual). Se lee en `common/config/api-keys.config.ts`, junto a las demás keys de servicios externos, y `ia.provider.ts` la pasa a `DeepseekModel.create`. El modelo (`deepseek-flash`) y el timeout por defecto (30 s) son constantes de `DeepseekProvider`; un consumidor puede pedir otro timeout por petición con `timeoutMs`.
 - **Errores:** todos con `service: "IA Provider"`, registrados en los normalizers globales de `common/errors/`.
 
 | Código                    | Status | Cuándo                                                                        |

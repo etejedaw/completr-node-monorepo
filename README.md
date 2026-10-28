@@ -73,7 +73,7 @@ Conviene definir tres cosas, todas opcionales:
 
 - `RAWG_API_KEY`, gratuita en https://rawg.io/apidocs. Sin ella, la API arranca y usa solo el catálogo local.
 - `SMTP_HOST` y `SMTP_PORT`, para que la API envíe correos (por ejemplo, la recuperación de contraseña) a Mailpit. Sin `SMTP_HOST`, el correo queda deshabilitado y esos endpoints responden 503.
-- `DEEPSEEK_API_KEY`, para las funciones con IA. Sin ella, la IA queda como no configurada y la API arranca igual. `DEEPSEEK_MODEL` (por defecto `deepseek-flash`) y `DEEPSEEK_TIMEOUT_MS` (por defecto `30000`) ajustan el modelo y el tiempo máximo de espera.
+- `DEEPSEEK_API_KEY`, para las funciones con IA. Sin ella, la IA queda como no configurada y la API arranca igual.
 
 ```bash
 cat > apps/api/.env.dev.local <<'ENV'
