@@ -87,4 +87,4 @@ docs: |-
 
     - 400 `GAME_SPLIT_INVALID` — Two titles produce the same code, a title produces no code, two labels match ignoring case and surrounding spaces, or a label is only spaces. Titles and labels are stored trimmed.
     - 404 `GAME_NOT_FOUND` — Original game does not exist or is inactive.
-    - 409 `GAME_UNIQUE_CONSTRAINT` — A target title collides with an existing game code.
+    - 409 `GAME_UNIQUE_CONSTRAINT` — A target title produces a code already used by another game, active or inactive.
