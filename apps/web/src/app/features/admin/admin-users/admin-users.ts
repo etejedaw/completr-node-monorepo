@@ -25,12 +25,25 @@ import {
 	USERNAME_PATTERN,
 	USERNAME_PATTERN_MESSAGE
 } from "../../../core/utils/account-fields";
+import { avatarRing } from "../../../core/utils/premium";
 import {
+	elevatedRoleBadge,
+	type RoleBadge
+} from "../../../core/utils/role-badge";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import {
+	UiAlert,
+	UiAvatar,
 	UiButton,
-	UiIconButton,
+	UiDialog,
+	UiFieldLabel,
+	UiFormField,
 	UiInput,
+	UiLabel,
 	UiPagination,
-	UiSelect
+	UiPlainEmptyState,
+	UiSelect,
+	UiSkeleton
 } from "../../../shared/ui";
 import {
 	fieldErrorsFromResponse,
@@ -93,17 +106,31 @@ function summarize(errors: readonly ValidationError.WithFieldTree[]): string {
 		.join(" · ");
 }
 
+const USER_ROLE_BADGE: RoleBadge = {
+	label: "User",
+	className: "bg-fg-muted/10 text-fg-muted",
+	icon: null
+};
+
 @Component({
 	selector: "app-admin-users",
 	imports: [
 		AdminInvitations,
 		DatePipe,
 		FormField,
+		LibraryHero,
+		UiAlert,
+		UiAvatar,
 		UiButton,
-		UiIconButton,
+		UiDialog,
+		UiFieldLabel,
+		UiFormField,
 		UiInput,
+		UiLabel,
 		UiPagination,
-		UiSelect
+		UiPlainEmptyState,
+		UiSelect,
+		UiSkeleton
 	],
 	templateUrl: "./admin-users.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -117,6 +144,9 @@ export class AdminUsers implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 50;
 	protected readonly isLoading = signal(true);
+	protected readonly loadFailed = signal(false);
+	protected readonly skeletonRows = [1, 2, 3, 4, 5, 6];
+	protected readonly avatarRing = avatarRing;
 
 	protected readonly showCreateModal = signal(false);
 	protected readonly isCreating = signal(false);
@@ -212,15 +242,23 @@ export class AdminUsers implements OnInit {
 		this.loadUsers();
 	}
 
+	protected roleBadge(role: string): RoleBadge {
+		return elevatedRoleBadge(role) ?? USER_ROLE_BADGE;
+	}
+
 	loadUsers() {
 		this.isLoading.set(true);
+		this.loadFailed.set(false);
 		this.userAdminService.listUsers(this.limit, this.offset()).subscribe({
 			next: res => {
 				this.users.set(res.users);
 				this.total.set(res.total);
 				this.isLoading.set(false);
 			},
-			error: () => this.isLoading.set(false)
+			error: () => {
+				this.loadFailed.set(true);
+				this.isLoading.set(false);
+			}
 		});
 	}
 
