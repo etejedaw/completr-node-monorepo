@@ -332,7 +332,8 @@ void describe("POST /admin/invitations", () => {
 		assert.equal(mail.subject, "You're invited to Completr");
 		assert.ok(mail.html.length > 0);
 		assert.equal(
-			InMemoryMailProvider.outbox.filter(sent => sent.to === email).length,
+			InMemoryMailProvider.outbox.filter(sent => sent.to === email)
+				.length,
 			1
 		);
 	});
@@ -394,8 +395,8 @@ void describe("POST /admin/invitations", () => {
 		assert.ok(response.body.data.access_token);
 		assert.ok(response.body.data.session_id);
 		assert.ok(
-			(response.headers["set-cookie"] as unknown as string[]).some(cookie =>
-				cookie.startsWith("refresh_token=")
+			(response.headers["set-cookie"] as unknown as string[]).some(
+				cookie => cookie.startsWith("refresh_token=")
 			)
 		);
 		const stored = await User.findOne({ where: { email } });
@@ -463,7 +464,9 @@ void describe("POST /admin/invitations", () => {
 			assert.equal(response.status, 409);
 			assert.equal(response.body.type, "INVITATION_EMAIL_REGISTERED");
 			assert.equal(
-				await UserInvitation.count({ where: { email: existing.email } }),
+				await UserInvitation.count({
+					where: { email: existing.email }
+				}),
 				0
 			);
 			assert.equal(findLastMailTo(existing.email), undefined);
@@ -517,7 +520,9 @@ void describe("POST /admin/invitations", () => {
 			const second = await postInvitation(admin.authorization, {
 				email
 			}).expect(201);
-			const secondToken = extractTokenFromMail(await waitForMailTo(email));
+			const secondToken = extractTokenFromMail(
+				await waitForMailTo(email)
+			);
 
 			assert.notEqual(
 				second.body.data.invitation.id,
@@ -619,7 +624,10 @@ void describe("POST /admin/invitations", () => {
 			["an empty email", { email: "" }],
 			["an email without domain", { email: "invitee@" }],
 			["an email without at sign", { email: "invitee.completr.test" }],
-			["an email with spaces around it", { email: " invitee@completr.test " }],
+			[
+				"an email with spaces around it",
+				{ email: " invitee@completr.test " }
+			],
 			[
 				"unknown fields",
 				{ email: "invitee@completr.test", role: "admin" }
@@ -632,7 +640,10 @@ void describe("POST /admin/invitations", () => {
 				const invitationsBefore = await UserInvitation.count();
 				const mailsBefore = InMemoryMailProvider.outbox.length;
 
-				const response = await postInvitation(admin.authorization, body);
+				const response = await postInvitation(
+					admin.authorization,
+					body
+				);
 
 				assert.equal(response.status, 422);
 				assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
@@ -716,7 +727,12 @@ void describe("GET /admin/invitations", () => {
 		const { invitation: older } = await createInvitation(
 			firstAdmin.user.id
 		);
-		await older.update({ createdAt: new Date(Date.now() - 2 * DAY_MS) });
+		await UserInvitation.update(
+			{ createdAt: new Date(Date.now() - 2 * DAY_MS) },
+			{ where: { id: older.id }, silent: true }
+		);
+		await older.reload();
+		assert.ok(older.createdAt.getTime() < Date.now() - DAY_MS);
 		const { invitation: newer } = await createInvitation(
 			secondAdmin.user.id
 		);
@@ -851,7 +867,9 @@ void describe("GET /invitations/:token", () => {
 	void it("does not accept the stored hash as a token", async () => {
 		const { invitation } = await createInvitation();
 
-		const response = await api().get(`/invitations/${invitation.tokenHash}`);
+		const response = await api().get(
+			`/invitations/${invitation.tokenHash}`
+		);
 
 		assert.equal(response.status, 404);
 		assert.equal(response.body.type, "INVITATION_INVALID_TOKEN");

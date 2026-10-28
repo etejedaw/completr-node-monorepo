@@ -44,7 +44,10 @@ export async function replaceFavorites(user: RequestUser, gameIds: string[]) {
 	return Favorite.findAll({
 		where: { userId: user.id },
 		include: [{ model: Game }],
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 
@@ -71,7 +74,10 @@ export async function findGameEntriesByUserId(
 				attributes: ["id", "code", "title", "backgroundUrl"]
 			}
 		],
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 
@@ -91,7 +97,10 @@ export async function findFavoritesByUserIdPaginated(
 	const query: Record<string, unknown> = {
 		where: { userId },
 		include: [gameInclude],
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
@@ -117,6 +126,9 @@ export async function findFavoritesForExport(
 				...(titleWhere && { required: true, where: titleWhere })
 			}
 		],
-		order: [["position", "ASC"]]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }

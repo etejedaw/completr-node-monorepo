@@ -56,10 +56,14 @@ docs: |-
     | averageScore    | number   | No       | Average game score             |
     | averagePlaytime | number   | No       | Average playtime in minutes    |
     | variant         | string   | No       | Variant label (e.g. "Pearl"). Required when multiple games share the same external id. Send `null` to clear. |
+    | isDlc           | boolean  | No       | Marks the game as a DLC. Sending `false` also clears `parentGameId`, even if the body repeats it. |
+    | parentGameId    | uuid/null | No      | Base game of a DLC; send `null` to unlink it. A game cannot be its own parent. Omitting it keeps the current parent. |
 
     ### Errors
 
+    - 400 `GAME_VALIDATION_ERROR` — `parentGameId` is the game itself, or the title cannot become a slug.
     - 409 `GAME_UNIQUE_CONSTRAINT` — The new title produces a code that another game already has.
+    - 422 `COMMON_REFERENCE_NOT_FOUND` — `parentGameId` does not match any game.
     - 422 `GAME_VARIANT_REQUIRED` — Another game shares the same external id and a variant label is required on all siblings.
 
     ### Response (200)

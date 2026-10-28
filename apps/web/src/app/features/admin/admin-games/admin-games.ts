@@ -2,22 +2,65 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Router, RouterLink } from "@angular/router";
+import { catchError, debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { type Game } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
-import { UiPagination, UiSearchBar } from "../../../shared/ui";
+import { adminErrorMessage } from "../../../core/utils/admin-error-message";
+import {
+	ChipGroup,
+	type ChipOption
+} from "../../../shared/components/chip-group/chip-group";
+import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import {
+	SegmentedControl,
+	type SegmentedOption
+} from "../../../shared/components/segmented-control/segmented-control";
+import {
+	UiAlert,
+	UiButton,
+	UiDialog,
+	UiEmptyState,
+	UiIconButton,
+	UiNoMatches,
+	UiPagination,
+	UiSearchBar,
+	UiSkeleton
+} from "../../../shared/ui";
+import { AdminGameEditor } from "../../games/admin-game-editor/admin-game-editor";
 import { type GamesQuery, GamesService } from "../../games/games";
 import { ReportsService } from "../services/reports.service";
 
 @Component({
 	selector: "app-admin-games",
-	imports: [RouterLink, UiSearchBar, UiPagination],
+	imports: [
+		RouterLink,
+		AdminGameEditor,
+		ChipGroup,
+		GamePoster,
+		LibraryHero,
+		LibraryToolbar,
+		SegmentedControl,
+		UiAlert,
+		UiButton,
+		UiDialog,
+		UiEmptyState,
+		UiIconButton,
+		UiNoMatches,
+		UiPagination,
+		UiSearchBar,
+		UiSkeleton
+	],
 	templateUrl: "./admin-games.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -26,12 +69,24 @@ export class AdminGames implements OnInit {
 	private readonly reportsService = inject(ReportsService);
 	private readonly router = inject(Router);
 	private readonly toast = inject(ToastService);
+	private readonly destroyRef = inject(DestroyRef);
+	private readonly gamesRequests = new Subject<GamesQuery>();
+	private readonly searchChanges = new Subject<void>();
 
 	protected readonly Math = Math;
 	protected readonly games = signal<Game[]>([]);
 	protected readonly reportedGameIds = signal<Set<string>>(new Set());
 	protected readonly total = signal(0);
 	protected readonly isLoading = signal(true);
+	protected readonly loadError = signal(false);
+	protected readonly skeletonRange = [0, 1, 2, 3, 4, 5];
+	protected readonly activeFilterOptions: SegmentedOption<
+		"active" | "inactive" | "all"
+	>[] = [
+		{ value: "active", label: "Active" },
+		{ value: "inactive", label: "Deactivated" },
+		{ value: "all", label: "All" }
+	];
 	protected readonly searchQuery = signal("");
 	protected readonly offset = signal(0);
 	protected readonly limit = 50;
@@ -44,15 +99,38 @@ export class AdminGames implements OnInit {
 		"active"
 	);
 	protected readonly reactivatingIds = signal<Set<string>>(new Set());
+	protected readonly showCreateEditor = signal(false);
+	protected readonly editingGame = signal<Game | null>(null);
+	protected readonly loadingEditorId = signal<string | null>(null);
+	protected readonly deactivateTarget = signal<Game | null>(null);
+	protected readonly isDeactivating = signal(false);
 
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	protected readonly manualScoreSources = computed(() =>
-		this.scoreSourcesService.manualSources().map(source => source.code)
+		this.scoreSourcesService.manualSources()
 	);
-	protected readonly TIME_SOURCES = ["hltb", "rawg"];
+	protected readonly TIME_SOURCES = [
+		{ code: "hltb", name: "HowLongToBeat" },
+		{ code: "rawg", name: "RAWG" }
+	];
 
 	ngOnInit() {
-		this.scoreSourcesService.load();
+		this.gamesRequests
+			.pipe(
+				switchMap(query =>
+					this.gamesService
+						.getGames(query)
+						.pipe(catchError(() => of(null)))
+				),
+				takeUntilDestroyed(this.destroyRef)
+			)
+			.subscribe(res => this.applyGamesResponse(res));
+		this.searchChanges
+			.pipe(debounceTime(250), takeUntilDestroyed(this.destroyRef))
+			.subscribe(() => this.loadGames());
+		this.scoreSourcesService
+			.whenLoaded()
+			.subscribe({ error: () => undefined });
 		this.loadGames();
 		this.loadReports();
 	}
@@ -87,6 +165,85 @@ export class AdminGames implements OnInit {
 		this.loadGames();
 	}
 
+	protected readonly hasActiveFilters = computed(
+		() =>
+			this.searchQuery().trim().length > 0 ||
+			this.activeFilter() !== "active" ||
+			this.noScores() ||
+			this.noTimes() ||
+			this.noPlatforms() ||
+			this.noScoreSources().size > 0 ||
+			this.noTimeSources().size > 0
+	);
+
+	protected readonly generalMissingOptions: ChipOption[] = [
+		{ value: "noScores", label: "No scores" },
+		{ value: "noTimes", label: "No times" },
+		{ value: "noPlatforms", label: "No platforms" }
+	];
+
+	protected readonly scoreMissingOptions = computed<ChipOption[]>(() =>
+		this.manualScoreSources().map(source => ({
+			value: `score:${source.code}`,
+			label: source.name
+		}))
+	);
+
+	protected readonly timeMissingOptions: ChipOption[] = this.TIME_SOURCES.map(
+		source => ({
+			value: `time:${source.code}`,
+			label: source.name
+		})
+	);
+
+	protected readonly missingValue = computed(() => [
+		...(this.noScores() ? ["noScores"] : []),
+		...(this.noTimes() ? ["noTimes"] : []),
+		...(this.noPlatforms() ? ["noPlatforms"] : []),
+		...[...this.noScoreSources()].map(src => `score:${src}`),
+		...[...this.noTimeSources()].map(src => `time:${src}`)
+	]);
+
+	protected onMissingChange(
+		next: readonly string[],
+		group: readonly ChipOption[]
+	) {
+		const groupValues = new Set(group.map(option => option.value));
+		const current = new Set(
+			this.missingValue().filter(value => groupValues.has(value))
+		);
+		const incoming = new Set(next);
+		const changed = [...groupValues].find(
+			value => incoming.has(value) !== current.has(value)
+		);
+		if (!changed) return;
+		if (
+			changed === "noScores" ||
+			changed === "noTimes" ||
+			changed === "noPlatforms"
+		)
+			this.toggleFilter(changed);
+		else if (changed.startsWith("score:"))
+			this.toggleScoreSource(changed.slice("score:".length));
+		else this.toggleTimeSource(changed.slice("time:".length));
+	}
+
+	clearFilters() {
+		this.searchQuery.set("");
+		this.activeFilter.set("active");
+		this.noScores.set(false);
+		this.noTimes.set(false);
+		this.noPlatforms.set(false);
+		this.noScoreSources.set(new Set());
+		this.noTimeSources.set(new Set());
+		this.offset.set(0);
+		this.loadGames();
+	}
+
+	reload() {
+		this.loadGames();
+	}
+
 	isReactivating(gameId: string): boolean {
 		return this.reactivatingIds().has(gameId);
 	}
@@ -118,6 +275,88 @@ export class AdminGames implements OnInit {
 		});
 	}
 
+	openCreateEditor() {
+		this.editingGame.set(null);
+		this.showCreateEditor.set(true);
+	}
+
+	closeCreateEditor() {
+		this.showCreateEditor.set(false);
+	}
+
+	openEditor(game: Game) {
+		if (this.loadingEditorId() === game.id) return;
+		this.showCreateEditor.set(false);
+		this.loadingEditorId.set(game.id);
+		this.gamesService.getByCode(game.code).subscribe({
+			next: fullGame => {
+				if (this.loadingEditorId() !== game.id) return;
+				this.loadingEditorId.set(null);
+				this.editingGame.set(fullGame);
+			},
+			error: () => {
+				if (this.loadingEditorId() === game.id)
+					this.loadingEditorId.set(null);
+				this.toast.warning("Could not load the game to edit.");
+			}
+		});
+	}
+
+	closeEditor() {
+		this.editingGame.set(null);
+	}
+
+	onGameCreated(game: Game) {
+		this.showCreateEditor.set(false);
+		this.toast.success(`Created "${game.title}"`);
+		this.loadGames();
+	}
+
+	onEditorSaved() {
+		this.editingGame.set(null);
+		this.loadGames();
+	}
+
+	onEditorSplit() {
+		this.editingGame.set(null);
+		this.loadGames();
+	}
+
+	askDeactivate(game: Game) {
+		this.deactivateTarget.set(game);
+	}
+
+	cancelDeactivate() {
+		if (this.isDeactivating()) return;
+		this.deactivateTarget.set(null);
+	}
+
+	confirmDeactivate(game: Game) {
+		if (this.isDeactivating()) return;
+		this.isDeactivating.set(true);
+		this.gamesService.deactivate(game.id).subscribe({
+			next: () => {
+				this.isDeactivating.set(false);
+				this.deactivateTarget.set(null);
+				if (this.editingGame()?.id === game.id)
+					this.editingGame.set(null);
+				this.toast.success(`Deactivated "${game.title}"`);
+				this.loadGames();
+			},
+			error: (err: { status?: number }) => {
+				this.isDeactivating.set(false);
+				this.deactivateTarget.set(null);
+				this.reportActionError(err, "Could not deactivate game.");
+			}
+		});
+	}
+
+	private reportActionError(err: { status?: number }, fallback: string) {
+		const alreadyToastedByInterceptor = err.status === 409;
+		if (alreadyToastedByInterceptor) return;
+		this.toast.warning(adminErrorMessage(err) ?? fallback);
+	}
+
 	goToGameReport(gameId: string) {
 		this.router.navigate(["/admin/reports"], {
 			queryParams: { gameId }
@@ -127,7 +366,7 @@ export class AdminGames implements OnInit {
 	onSearch(query: string) {
 		this.searchQuery.set(query);
 		this.offset.set(0);
-		this.loadGames();
+		this.searchChanges.next();
 	}
 
 	goToOffset(offset: number) {
@@ -140,12 +379,14 @@ export class AdminGames implements OnInit {
 			next: reports => {
 				const ids = new Set(reports.map(r => r.gameId));
 				this.reportedGameIds.set(ids);
-			}
+			},
+			error: () => undefined
 		});
 	}
 
 	private loadGames() {
 		this.isLoading.set(true);
+		this.loadError.set(false);
 		const query: GamesQuery = {
 			limit: this.limit,
 			offset: this.offset(),
@@ -166,13 +407,29 @@ export class AdminGames implements OnInit {
 		const timeSources = Array.from(this.noTimeSources());
 		if (timeSources.length > 0)
 			query["no_time_source"] = timeSources.join(",");
-		this.gamesService.getGames(query).subscribe({
-			next: res => {
-				this.games.set(res.data.games);
-				this.total.set(res.data.total);
-				this.isLoading.set(false);
-			},
-			error: () => this.isLoading.set(false)
-		});
+		this.gamesRequests.next(query);
+	}
+
+	private applyGamesResponse(
+		res: { data: { games: Game[]; total: number } } | null
+	) {
+		if (!res) {
+			this.loadError.set(true);
+			this.isLoading.set(false);
+			return;
+		}
+		const { games, total } = res.data;
+		if (games.length === 0 && this.offset() > 0) {
+			this.offset.set(
+				total > 0
+					? Math.floor((total - 1) / this.limit) * this.limit
+					: 0
+			);
+			this.loadGames();
+			return;
+		}
+		this.games.set(games);
+		this.total.set(total);
+		this.isLoading.set(false);
 	}
 }

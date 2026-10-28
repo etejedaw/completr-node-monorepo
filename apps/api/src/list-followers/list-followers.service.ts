@@ -23,7 +23,10 @@ const FOLLOWED_LIST_PREVIEW_INCLUDE = {
 			model: ListItem,
 			separate: true,
 			limit: listsService.LIST_PREVIEW_SIZE,
-			order: [["position", "ASC"]] as [string, string][],
+			order: [
+				["position", "ASC"],
+				["id", "ASC"]
+			] as [string, string][],
 			include: [
 				{
 					model: Game,
@@ -82,7 +85,10 @@ export async function getListFollowers(listId: string, viewerId: string) {
 				attributes: USER_PUBLIC_ATTRS
 			}
 		],
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 }
 
@@ -90,7 +96,10 @@ export async function getFollowingLists(userId: string) {
 	return ListFollower.findAll({
 		where: { userId },
 		include: [listVisibleToViewer(userId)],
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 }
 
@@ -110,7 +119,10 @@ export async function getFollowingListsPaginated(
 	const query: Record<string, unknown> = {
 		where: { userId, isVisible: true },
 		include: [listVisibleToViewer(viewerId)],
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;

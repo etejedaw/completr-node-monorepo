@@ -2,6 +2,7 @@ import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
@@ -9,7 +10,15 @@ import {
 import { email, form, FormField, required } from "@angular/forms/signals";
 
 import { ToastService } from "../../../core/services/toast";
-import { UiAlert, UiButton, UiIconButton, UiInput } from "../../../shared/ui";
+import {
+	UiAlert,
+	UiButton,
+	UiDialog,
+	UiFieldLabel,
+	UiFormField,
+	UiInput,
+	UiLabel
+} from "../../../shared/ui";
 import {
 	type AdminInvitation,
 	InvitationAdminService
@@ -17,7 +26,17 @@ import {
 
 @Component({
 	selector: "app-admin-invitations",
-	imports: [DatePipe, FormField, UiAlert, UiButton, UiIconButton, UiInput],
+	imports: [
+		DatePipe,
+		FormField,
+		UiAlert,
+		UiButton,
+		UiDialog,
+		UiFieldLabel,
+		UiFormField,
+		UiInput,
+		UiLabel
+	],
 	templateUrl: "./admin-invitations.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -26,6 +45,7 @@ export class AdminInvitations implements OnInit {
 	private readonly toast = inject(ToastService);
 
 	protected readonly invitations = signal<AdminInvitation[]>([]);
+	protected readonly loadFailed = signal(false);
 	protected readonly showInviteModal = signal(false);
 	protected readonly isInviting = signal(false);
 	protected readonly inviteError = signal("");
@@ -37,14 +57,25 @@ export class AdminInvitations implements OnInit {
 		required(path.email, { message: "Email is required." });
 		email(path.email, { message: "Email is not valid." });
 	});
+	private readonly inviteErrorEmail = signal<string | null>(null);
+	protected readonly visibleInviteError = computed(() => {
+		const failedEmail = this.inviteErrorEmail();
+		return failedEmail !== null && failedEmail !== this.inviteModel().email
+			? ""
+			: this.inviteError();
+	});
 
 	ngOnInit() {
 		this.loadInvitations();
 	}
 
-	private loadInvitations() {
+	protected loadInvitations() {
 		this.invitationAdminService.list().subscribe({
-			next: invitations => this.invitations.set(invitations)
+			next: invitations => {
+				this.invitations.set(invitations);
+				this.loadFailed.set(false);
+			},
+			error: () => this.loadFailed.set(true)
 		});
 	}
 
@@ -52,6 +83,7 @@ export class AdminInvitations implements OnInit {
 		this.inviteModel.set({ email: "" });
 		this.inviteForm().reset();
 		this.inviteError.set("");
+		this.inviteErrorEmail.set(null);
 		this.showInviteModal.set(true);
 	}
 
@@ -71,6 +103,7 @@ export class AdminInvitations implements OnInit {
 		const { email: address } = this.inviteForm().value();
 		this.isInviting.set(true);
 		this.inviteError.set("");
+		this.inviteErrorEmail.set(null);
 
 		this.invitationAdminService.invite(address).subscribe({
 			next: () => {
@@ -81,6 +114,7 @@ export class AdminInvitations implements OnInit {
 			},
 			error: err => {
 				this.isInviting.set(false);
+				this.inviteErrorEmail.set(this.inviteModel().email);
 				this.inviteError.set(this.inviteErrorMessage(err));
 			}
 		});

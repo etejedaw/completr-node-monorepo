@@ -74,7 +74,12 @@ function invitationEmail(rawToken: string) {
 }
 
 export async function findAllInvitations() {
-	return UserInvitation.findAll({ order: [["createdAt", "DESC"]] });
+	return UserInvitation.findAll({
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
+	});
 }
 
 export async function deleteInvitation(id: string): Promise<boolean> {

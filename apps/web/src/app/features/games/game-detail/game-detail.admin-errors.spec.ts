@@ -129,7 +129,6 @@ describe("GameDetail admin action errors", () => {
 	beforeEach(() => {
 		localStorage.clear();
 		deleteResponse = { status: 500, type: "", title: "" };
-		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -152,7 +151,6 @@ describe("GameDetail admin action errors", () => {
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
-		Reflect.deleteProperty(Element.prototype, "getAnimations");
 	});
 
 	it("suggests deactivating when a hard delete hits GAME_IN_USE", async () => {
@@ -238,9 +236,9 @@ describe("GameDetail admin action errors", () => {
 		await user.click(screen.getByRole("button", { name: "Yes, delete" }));
 
 		await untilVisible(() =>
-			expect(
-				screen.getAllByText("Could not delete game.")
-			).toHaveLength(toastsBefore + 1)
+			expect(screen.getAllByText("Could not delete game.")).toHaveLength(
+				toastsBefore + 1
+			)
 		);
 	});
 });

@@ -282,7 +282,6 @@ describe("GameAddToListModal characterization", () => {
 		isFrozen = false;
 		failingListId = null;
 		unexpectedRequests = [];
-		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({

@@ -6,6 +6,8 @@ Lo que el código hace cumplir, en forma atómica: enums, constraints, validacio
 
 Arquitectura en [`architecture.md`](./architecture.md), endpoints en [`api/`](./api/).
 
+Todo listado ordenado por un campo que puede repetirse (fechas, posición, nombre) desempata por `id` en la misma dirección, así que dos filas con el mismo valor salen siempre en el mismo orden y la paginación no repite ni salta filas.
+
 ---
 
 ## Roles
@@ -208,6 +210,8 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 ### Edición y borrado de juegos
 
 - `PATCH /games/:id` es atómico: el update del juego y el reemplazo de plataformas, géneros y external ids van en una sola transacción. Si un paso falla no se aplica ninguno.
+- `PATCH /games/:id` desvincula un DLC de su padre con `parentGameId: null`; si lo omite, el padre se conserva. Con `isDlc: false` el padre se limpia siempre, aunque el body repita `parentGameId`: un juego que no es DLC no tiene padre. Un juego no puede ser su propio padre (400 `GAME_VALIDATION_ERROR`) y un `parentGameId` inexistente responde 422 `COMMON_REFERENCE_NOT_FOUND`.
+- `POST /games/:id/split` guarda títulos y etiquetas recortados y responde 400 `GAME_SPLIT_INVALID` si dos títulos dan el mismo code, si un título no produce code, si una etiqueta queda vacía o si dos etiquetas coinciden sin distinguir mayúsculas ni espacios: la etiqueta es lo único que distingue a variantes que comparten external id.
 - Un external id repetido para el mismo juego y fuente responde 409 `GAME_EXTERNAL_ALREADY_EXISTS`; un external id inexistente, 404 `GAME_EXTERNAL_NOT_FOUND`.
 - `DELETE /games/:id` sin `hard` desactiva el juego (`isActive = false`) y no toca sus datos.
 - `DELETE /games/:id?hard=true` (solo admin) borra el juego y sus datos de catálogo (plataformas, géneros, scores, times, external ids, popularidad e items de compilation). Antes de borrar, dentro de una transacción, comprueba con consultas explícitas que ningún usuario lo referencia: backlog (también como `compilationGameId`, y por tanto su queue), game-shelf, list-items, favoritos, wishlist, reviews, coop runs, mood tags por juego, platinos y actividad; y que no tiene variantes ni DLCs (`parentGameId`). Si lo está responde 409 `GAME_IN_USE` y no se borra nada; el `ON DELETE` de las FKs no se usa como control. Los reports del juego no cuentan como uso y se borran con él.

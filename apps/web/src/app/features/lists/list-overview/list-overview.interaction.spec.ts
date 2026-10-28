@@ -237,7 +237,6 @@ describe("Lists interaction", () => {
 		lists = [];
 		itemReplacements.length = 0;
 		listUpdates.length = 0;
-		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -252,7 +251,6 @@ describe("Lists interaction", () => {
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
-		Reflect.deleteProperty(Element.prototype, "getAnimations");
 	});
 
 	it("creates a list, adds games and opens it ranked in the order they were added", async () => {

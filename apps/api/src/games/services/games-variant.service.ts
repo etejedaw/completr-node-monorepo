@@ -52,9 +52,13 @@ export async function assertVariantConsistency(
 
 export async function splitGame(
 	gameId: string,
-	variants: readonly SplitVariantInput[]
+	requestedVariants: readonly SplitVariantInput[]
 ) {
 	const original = await loadGameForSplit(gameId);
+	const variants = requestedVariants.map(v => ({
+		title: v.title.trim(),
+		variant: v.variant.trim()
+	}));
 	assertSplitVariantsValid(variants);
 
 	const inherited = extractInheritedAssets(original);
@@ -104,11 +108,16 @@ async function loadGameForSplit(gameId: string) {
 function assertSplitVariantsValid(variants: readonly SplitVariantInput[]) {
 	if (variants.length < 2) throw gamesServiceError.splitInvalidError();
 	const codes = new Set<string>();
+	const labels = new Set<string>();
 	for (const v of variants) {
 		const code = titleToSlug(v.title);
 		if (!code) throw gamesServiceError.splitInvalidError();
 		if (codes.has(code)) throw gamesServiceError.splitInvalidError();
 		codes.add(code);
+		const label = v.variant.toLowerCase();
+		if (!label || labels.has(label))
+			throw gamesServiceError.splitInvalidError();
+		labels.add(label);
 	}
 }
 

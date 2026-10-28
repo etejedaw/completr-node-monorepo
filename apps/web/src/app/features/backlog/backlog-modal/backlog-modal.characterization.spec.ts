@@ -346,7 +346,6 @@ describe("BacklogModal characterization", () => {
 		reviews = [];
 		unexpectedRequests = [];
 		config.onUnhandledError = () => undefined;
-		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({

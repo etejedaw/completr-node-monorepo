@@ -42,14 +42,6 @@ class Host {
 }
 
 describe("MultiOptionPicker", () => {
-	beforeEach(() => {
-		Element.prototype.getAnimations = () => [];
-	});
-
-	afterEach(() => {
-		Reflect.deleteProperty(Element.prototype, "getAnimations");
-	});
-
 	async function renderPicker(
 		initial: string[] = [],
 		options: PickerOption[] = platforms,

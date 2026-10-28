@@ -226,12 +226,15 @@ describe("OptionPicker", () => {
 			const fixture = render({}, true);
 			trigger(fixture).click();
 			fixture.detectChanges();
+			const openedAt = performance.now();
+			vi.spyOn(performance, "now").mockReturnValue(openedAt + 1000);
 
 			(
 				document.body.querySelector(
 					'[aria-label="Close Filter by status"]'
 				) as HTMLButtonElement
 			).click();
+			vi.restoreAllMocks();
 			fixture.detectChanges();
 
 			expect(sheet()).toBeNull();

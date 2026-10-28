@@ -30,7 +30,10 @@ export async function findAll(
 				attributes: ["id", "username", "name"]
 			}
 		],
-		order: [["createdAt", "DESC"]],
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		],
 		limit,
 		offset
 	});

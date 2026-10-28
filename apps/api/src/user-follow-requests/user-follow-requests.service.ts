@@ -57,7 +57,10 @@ export async function listIncomingRequests(targetId: string) {
 				attributes: USER_PUBLIC_ATTRS
 			}
 		],
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 }
 

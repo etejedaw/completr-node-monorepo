@@ -26,6 +26,8 @@ const SWIPE_DISMISS_VELOCITY = 0.6;
 
 let nextDialogId = 0;
 
+const BACKDROP_OPENING_GRACE_MS = 400;
+
 @Component({
 	selector: "ui-dialog",
 	imports: [UiFocusTrap],
@@ -37,7 +39,7 @@ let nextDialogId = 0;
 				aria-hidden="true"
 				class="absolute inset-0 bg-black/60 backdrop-blur-sm motion-safe:animate-[uiSheetFade_200ms_ease-out]"
 				[style.opacity]="backdropOpacity()"
-				(pointerdown)="backdropPressed = true"
+				(pointerdown)="onBackdropPressed()"
 				(click)="onBackdropClick()"
 			></div>
 			<section
@@ -151,9 +153,15 @@ export class UiDialog {
 			: null
 	);
 	protected backdropPressed = false;
+	private readonly openedAt = performance.now();
 
 	constructor() {
 		injectBodyPortal({ restoreFocus: true });
+	}
+
+	protected onBackdropPressed() {
+		this.backdropPressed =
+			performance.now() - this.openedAt >= BACKDROP_OPENING_GRACE_MS;
 	}
 
 	protected onBackdropClick() {

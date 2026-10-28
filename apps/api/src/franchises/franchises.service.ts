@@ -83,7 +83,10 @@ export async function findAllFranchises(pagination: PaginatedSearchQuery = {}) {
 
 	const query: Record<string, unknown> = {
 		where,
-		order: [["name", "ASC"]]
+		order: [
+			["name", "ASC"],
+			["id", "ASC"]
+		]
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;

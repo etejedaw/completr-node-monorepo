@@ -2,6 +2,7 @@ import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
@@ -25,12 +26,25 @@ import {
 	USERNAME_PATTERN,
 	USERNAME_PATTERN_MESSAGE
 } from "../../../core/utils/account-fields";
+import { avatarRing } from "../../../core/utils/premium";
 import {
+	elevatedRoleBadge,
+	type RoleBadge
+} from "../../../core/utils/role-badge";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import {
+	UiAlert,
+	UiAvatar,
 	UiButton,
-	UiIconButton,
+	UiDialog,
+	UiFieldLabel,
+	UiFormField,
 	UiInput,
+	UiLabel,
 	UiPagination,
-	UiSelect
+	UiPlainEmptyState,
+	UiSelect,
+	UiSkeleton
 } from "../../../shared/ui";
 import {
 	fieldErrorsFromResponse,
@@ -74,6 +88,13 @@ function safeTextError(value: string): ValidationError.WithoutFieldTree | null {
 	return { kind: "unsafeText", message: NAME_SAFE_TEXT_MESSAGE };
 }
 
+function blankTextError(
+	value: string
+): ValidationError.WithoutFieldTree | null {
+	if (!value || value.trim()) return null;
+	return { kind: "blankText", message: "Name is required." };
+}
+
 function passwordCompositionError(
 	value: string
 ): ValidationError.WithoutFieldTree | null {
@@ -93,17 +114,53 @@ function summarize(errors: readonly ValidationError.WithFieldTree[]): string {
 		.join(" · ");
 }
 
+const USER_ROLE_BADGE: RoleBadge = {
+	label: "User",
+	className: "bg-fg-muted/10 text-fg-muted",
+	icon: null
+};
+
+type FormSnapshot = Record<string, unknown>;
+
+function errorsStillMatching(
+	errors: Record<string, string>,
+	snapshot: FormSnapshot | null,
+	current: FormSnapshot
+): Record<string, string> {
+	if (!snapshot) return errors;
+	return Object.fromEntries(
+		Object.entries(errors).filter(
+			([field]) => current[field] === snapshot[field]
+		)
+	);
+}
+
+function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
+	return (
+		!!snapshot &&
+		Object.keys(current).some(field => current[field] !== snapshot[field])
+	);
+}
+
 @Component({
 	selector: "app-admin-users",
 	imports: [
 		AdminInvitations,
 		DatePipe,
 		FormField,
+		LibraryHero,
+		UiAlert,
+		UiAvatar,
 		UiButton,
-		UiIconButton,
+		UiDialog,
+		UiFieldLabel,
+		UiFormField,
 		UiInput,
+		UiLabel,
 		UiPagination,
-		UiSelect
+		UiPlainEmptyState,
+		UiSelect,
+		UiSkeleton
 	],
 	templateUrl: "./admin-users.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -117,11 +174,15 @@ export class AdminUsers implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 50;
 	protected readonly isLoading = signal(true);
+	protected readonly loadFailed = signal(false);
+	protected readonly skeletonRows = [1, 2, 3, 4, 5, 6];
+	protected readonly avatarRing = avatarRing;
 
 	protected readonly showCreateModal = signal(false);
 	protected readonly isCreating = signal(false);
 	protected readonly createError = signal("");
 	protected readonly createFieldErrors = signal<Record<string, string>>({});
+	private readonly createServerSnapshot = signal<FormSnapshot | null>(null);
 	protected readonly showCreatePassword = signal(false);
 
 	protected readonly createModel = signal({
@@ -146,6 +207,7 @@ export class AdminUsers implements OnInit {
 		minLength(path.name, 4, { message: NAME_LENGTH_MESSAGE });
 		maxLength(path.name, 80, { message: NAME_LENGTH_MESSAGE });
 		validate(path.name, ({ value }) => safeTextError(value()));
+		validate(path.name, ({ value }) => blankTextError(value()));
 
 		required(path.password, { message: "Password is required." });
 		minLength(path.password, 8, { message: PASSWORD_LENGTH_MESSAGE });
@@ -154,6 +216,19 @@ export class AdminUsers implements OnInit {
 			passwordCompositionError(value())
 		);
 	});
+
+	protected readonly visibleCreateFieldErrors = computed(() =>
+		errorsStillMatching(
+			this.createFieldErrors(),
+			this.createServerSnapshot(),
+			this.createModel()
+		)
+	);
+	protected readonly visibleCreateError = computed(() =>
+		editedSince(this.createServerSnapshot(), this.createModel())
+			? ""
+			: this.createError()
+	);
 
 	toggleShowCreatePassword() {
 		this.showCreatePassword.update(v => !v);
@@ -164,6 +239,7 @@ export class AdminUsers implements OnInit {
 	protected readonly isEditing = signal(false);
 	protected readonly editError = signal("");
 	protected readonly editFieldErrors = signal<Record<string, string>>({});
+	private readonly editServerSnapshot = signal<FormSnapshot | null>(null);
 	protected readonly showEditPassword = signal(false);
 
 	protected readonly editModel = signal({
@@ -194,6 +270,9 @@ export class AdminUsers implements OnInit {
 		validate(path.name, ({ value }) =>
 			nameChanged(value()) ? safeTextError(value()) : null
 		);
+		validate(path.name, ({ value }) =>
+			nameChanged(value()) ? blankTextError(value()) : null
+		);
 
 		// An empty password means "keep the current one"; the built-in validators
 		// skip empty values, so they only kick in once something is typed.
@@ -204,6 +283,19 @@ export class AdminUsers implements OnInit {
 		);
 	});
 
+	protected readonly visibleEditFieldErrors = computed(() =>
+		errorsStillMatching(
+			this.editFieldErrors(),
+			this.editServerSnapshot(),
+			this.editModel()
+		)
+	);
+	protected readonly visibleEditError = computed(() =>
+		editedSince(this.editServerSnapshot(), this.editModel())
+			? ""
+			: this.editError()
+	);
+
 	toggleShowEditPassword() {
 		this.showEditPassword.update(v => !v);
 	}
@@ -212,15 +304,23 @@ export class AdminUsers implements OnInit {
 		this.loadUsers();
 	}
 
+	protected roleBadge(role: string): RoleBadge {
+		return elevatedRoleBadge(role) ?? USER_ROLE_BADGE;
+	}
+
 	loadUsers() {
 		this.isLoading.set(true);
+		this.loadFailed.set(false);
 		this.userAdminService.listUsers(this.limit, this.offset()).subscribe({
 			next: res => {
 				this.users.set(res.users);
 				this.total.set(res.total);
 				this.isLoading.set(false);
 			},
-			error: () => this.isLoading.set(false)
+			error: () => {
+				this.loadFailed.set(true);
+				this.isLoading.set(false);
+			}
 		});
 	}
 
@@ -234,6 +334,8 @@ export class AdminUsers implements OnInit {
 		this.createForm().reset();
 		this.createError.set("");
 		this.createFieldErrors.set({});
+		this.createServerSnapshot.set(null);
+		this.showCreatePassword.set(false);
 		this.showCreateModal.set(true);
 	}
 
@@ -247,6 +349,7 @@ export class AdminUsers implements OnInit {
 
 		this.createError.set("");
 		this.createFieldErrors.set({});
+		this.createServerSnapshot.set(null);
 
 		// Deliberate divergence from the rest of the repo, which disables the submit
 		// button on `form().invalid()`: an admin facing a dead button cannot tell what
@@ -270,6 +373,7 @@ export class AdminUsers implements OnInit {
 				this.loadUsers();
 			},
 			error: err => {
+				this.createServerSnapshot.set({ ...this.createModel() });
 				this.createFieldErrors.set(fieldErrorsFromResponse(err));
 				this.createError.set(
 					validationSummary(err) ||
@@ -293,6 +397,8 @@ export class AdminUsers implements OnInit {
 		this.editForm().reset();
 		this.editError.set("");
 		this.editFieldErrors.set({});
+		this.editServerSnapshot.set(null);
+		this.showEditPassword.set(false);
 		this.showEditModal.set(true);
 	}
 
@@ -308,6 +414,7 @@ export class AdminUsers implements OnInit {
 
 		this.editError.set("");
 		this.editFieldErrors.set({});
+		this.editServerSnapshot.set(null);
 
 		// Same divergence as submitCreate: the button stays enabled so an invalid
 		// form explains itself instead of doing nothing.
@@ -345,6 +452,7 @@ export class AdminUsers implements OnInit {
 				this.closeEdit();
 			},
 			error: err => {
+				this.editServerSnapshot.set({ ...this.editModel() });
 				this.editFieldErrors.set(fieldErrorsFromResponse(err));
 				this.editError.set(
 					validationSummary(err) ||

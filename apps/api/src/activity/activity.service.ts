@@ -119,7 +119,10 @@ export async function getUserActivity(
 	return Activity.findAll({
 		where,
 		include: TARGET_INCLUDES,
-		order: [["createdAt", "DESC"]],
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		],
 		limit
 	});
 }
@@ -210,7 +213,10 @@ export async function getFeed(
 			},
 			...TARGET_INCLUDES
 		],
-		order: [["createdAt", "DESC"]],
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		],
 		limit,
 		offset
 	});

@@ -33,7 +33,7 @@ export class ScoreSourcesService {
 	private sources$?: Observable<ScoreSourceInfo[]>;
 
 	load(): void {
-		this.whenLoaded().subscribe();
+		this.whenLoaded().subscribe({ error: () => undefined });
 	}
 
 	whenLoaded(): Observable<ScoreSourceInfo[]> {

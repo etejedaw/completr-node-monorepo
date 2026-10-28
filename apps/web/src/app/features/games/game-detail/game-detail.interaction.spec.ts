@@ -210,7 +210,6 @@ describe("GameDetail interaction", () => {
 		createdRuns.length = 0;
 		listUpdates.length = 0;
 		wishlistAdds.length = 0;
-		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -233,7 +232,6 @@ describe("GameDetail interaction", () => {
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
-		Reflect.deleteProperty(Element.prototype, "getAnimations");
 	});
 
 	it("adds the game to My Games and shows the new run status", async () => {

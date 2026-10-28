@@ -1,66 +1,127 @@
-<div>
-	<h1
-		class="font-display text-3xl md:text-4xl font-bold tracking-tight mt-0 mb-5"
+<app-library-hero heading="Pending Reports">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Admin</span
 	>
-		Pending Reports
-	</h1>
+	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
+		<span class="font-semibold text-fg tabular-nums"
+			>{{ reports().length }}</span
+		>
+		{{ reports().length === 1 ? 'report' : 'reports' }} waiting for review
+	</p>
+	<button
+		heroActions
+		uiButton
+		variant="secondary"
+		class="!bg-surface/70 backdrop-blur"
+		(click)="reload()"
+		[disabled]="isLoading()"
+	>
+		<span aria-hidden="true" class="material-icons text-base">refresh</span>
+		Refresh
+	</button>
+</app-library-hero>
 
-	@if (filterGameId()) {
+@if (filterGameId()) {
+<div
+	class="flex flex-wrap items-center justify-between gap-3 mb-6 px-3.5 py-2.5 bg-surface border border-line rounded-card max-w-3xl"
+>
+	<span class="flex items-center gap-2 text-sm text-fg-secondary">
+		<span aria-hidden="true" class="material-icons text-base text-brand"
+			>filter_alt</span
+		>
+		Filtered by game
+	</span>
+	<button uiButton variant="ghost" size="sm" (click)="clearFilter()">
+		Show all
+	</button>
+</div>
+} @if (isLoading()) {
+<div
+	class="flex flex-col gap-3 max-w-3xl"
+	aria-busy="true"
+	aria-label="Loading reports"
+>
+	@for (i of skeletonRows; track i) {
 	<div
-		class="flex items-center gap-3 mb-4 px-3 py-2 bg-surface border border-line rounded max-w-[700px]"
+		class="flex flex-col gap-3 p-4 rounded-card bg-surface border border-line"
 	>
-		<span class="text-[0.8125rem] text-fg-secondary">Filtered by game</span>
-		<button uiButton variant="ghost" size="sm" (click)="clearFilter()">
-			Show all
-		</button>
-	</div>
-	} @if (isLoading()) {
-	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
-	} @else if (reports().length === 0) {
-	<div class="text-center py-12 text-fg-muted text-sm">
-		No pending reports.
-	</div>
-	} @else {
-	<div class="flex flex-col gap-3 max-w-[700px]">
-		@for (report of reports(); track report.id) {
-		<div class="bg-surface border border-line rounded p-4">
-			<div class="flex items-baseline justify-between mb-2">
-				<a
-					class="font-semibold text-brand no-underline text-[0.9375rem] hover:underline"
-					[routerLink]="['/games', report.Game.code]"
-				>
-					{{ report.Game.title }}
-				</a>
-				<span class="text-xs text-fg-muted">
-					by {{ report.User.username }} &middot; {{ report.createdAt |
-					date : "yyyy-MM-dd" }}
-				</span>
-			</div>
-			<p
-				class="mt-0 mb-3 text-[0.8125rem] text-fg-secondary leading-relaxed"
-			>
-				{{ report.message }}
-			</p>
-			<div class="flex gap-2">
-				<button
-					uiButton
-					variant="primary"
-					size="sm"
-					(click)="approve(report)"
-				>
-					Approve
-				</button>
-				<button
-					uiButton
-					variant="danger"
-					size="sm"
-					(click)="reject(report)"
-				>
-					Reject
-				</button>
-			</div>
+		<div class="flex items-center justify-between gap-4">
+			<ui-skeleton variant="text" class="block w-1/3 h-5" />
+			<ui-skeleton variant="text" class="block w-1/5" />
 		</div>
-		}
+		<ui-skeleton variant="text" class="block w-full" />
+		<ui-skeleton variant="text" class="block w-2/3" />
+		<div class="flex gap-2">
+			<ui-skeleton class="h-9 w-24 rounded-md" />
+			<ui-skeleton class="h-9 w-24 rounded-md" />
+		</div>
 	</div>
 	}
 </div>
+} @else if (loadFailed()) {
+<ui-empty-state
+	icon="cloud_off"
+	title="Couldn't load reports"
+	hint="Something went wrong while fetching the pending reports."
+>
+	<button uiButton variant="secondary" (click)="reload()">Try again</button>
+</ui-empty-state>
+} @else if (reports().length === 0) {
+<ui-empty-state
+	icon="task_alt"
+	title="No pending reports"
+	hint="Every report has been reviewed. New ones will show up here."
+/>
+} @else {
+<ul class="list-none m-0 p-0 flex flex-col gap-3 max-w-3xl">
+	@for (report of reports(); track report.id) {
+	<li class="p-4 sm:p-5 bg-surface border border-line rounded-card">
+		<div
+			class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4 mb-2"
+		>
+			<a
+				class="font-display font-semibold text-base text-brand no-underline hover:underline tap:min-h-[44px] tap:inline-flex tap:items-center"
+				[routerLink]="['/games', report.Game.code]"
+			>
+				{{ report.Game.title }}
+			</a>
+			<span class="text-xs text-fg-muted tabular-nums">
+				by {{ report.User.username }} &middot; {{ report.createdAt |
+				date : "yyyy-MM-dd" }}
+			</span>
+		</div>
+		<p class="m-0 mb-4 text-sm text-fg-secondary leading-relaxed">
+			{{ report.message }}
+		</p>
+		<div class="flex flex-wrap gap-2 pt-3 border-t border-line">
+			<button
+				uiButton
+				variant="primary"
+				size="sm"
+				[disabled]="isBusy(report.id)"
+				(click)="approve(report)"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>check</span
+				>
+				Approve
+			</button>
+			<button
+				uiButton
+				variant="danger"
+				size="sm"
+				[disabled]="isBusy(report.id)"
+				(click)="reject(report)"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>close</span
+				>
+				Reject
+			</button>
+		</div>
+	</li>
+	}
+</ul>
+}

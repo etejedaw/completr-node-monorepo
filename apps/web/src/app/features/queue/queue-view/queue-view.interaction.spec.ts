@@ -213,7 +213,6 @@ describe("QueueView interaction", () => {
 		queuedIds = ["b1", "b2", "b3"];
 		reorders.length = 0;
 		statusUpdates.length = 0;
-		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -228,7 +227,6 @@ describe("QueueView interaction", () => {
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
-		Reflect.deleteProperty(Element.prototype, "getAnimations");
 	});
 
 	it("shows the next game first and the rest in order", async () => {

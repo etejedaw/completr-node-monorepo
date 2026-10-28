@@ -188,7 +188,6 @@ describe("WishlistView interaction", () => {
 			createObjectURL: vi.fn(() => "blob:export"),
 			revokeObjectURL: vi.fn()
 		});
-		Element.prototype.getAnimations = () => [];
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -203,7 +202,6 @@ describe("WishlistView interaction", () => {
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
-		Reflect.deleteProperty(Element.prototype, "getAnimations");
 		Reflect.deleteProperty(URL, "createObjectURL");
 		Reflect.deleteProperty(URL, "revokeObjectURL");
 	});

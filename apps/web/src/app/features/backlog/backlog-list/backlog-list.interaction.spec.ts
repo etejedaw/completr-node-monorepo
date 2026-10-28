@@ -722,14 +722,6 @@ describe("BacklogList interaction", () => {
 			answerPending();
 		}
 
-		beforeEach(() => {
-			Element.prototype.getAnimations = () => [];
-		});
-
-		afterEach(() => {
-			Reflect.deleteProperty(Element.prototype, "getAnimations");
-		});
-
 		it("filters to platinumed games with the Platinum switch", async () => {
 			const user = userEvent.setup();
 			library = library.map(item =>

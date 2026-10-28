@@ -42,10 +42,19 @@ describe("AdminFranchiseModal", () => {
 
 	beforeEach(() => {
 		dialogRef.close.mockClear();
+		vi.stubGlobal(
+			"matchMedia",
+			vi.fn(() => ({
+				matches: false,
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn()
+			}))
+		);
 	});
 
 	afterEach(() => {
 		httpTesting?.verify();
+		vi.unstubAllGlobals();
 	});
 
 	it("creates a franchise with a single request and closes", async () => {

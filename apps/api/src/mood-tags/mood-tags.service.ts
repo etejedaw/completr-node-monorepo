@@ -74,7 +74,10 @@ export async function findTagsByGame(userId: string, gameId: string) {
 	const rows = await UserGameTag.findAll({
 		where: { userId, gameId },
 		attributes: ["tag"],
-		order: [["tag", "ASC"]]
+		order: [
+			["tag", "ASC"],
+			["id", "ASC"]
+		]
 	});
 	return rows.map(r => r.tag);
 }
@@ -266,7 +269,10 @@ export async function findTagsForGames(
 	const rows = await UserGameTag.findAll({
 		where: { userId, gameId: { [Op.in]: [...gameIds] } },
 		attributes: ["gameId", "tag"],
-		order: [["tag", "ASC"]],
+		order: [
+			["tag", "ASC"],
+			["id", "ASC"]
+		],
 		raw: true
 	});
 	const map = new Map<string, string[]>();

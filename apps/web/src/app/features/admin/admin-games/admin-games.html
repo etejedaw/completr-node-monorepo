@@ -1,278 +1,339 @@
-<div>
-	<div class="flex items-center justify-between mb-5">
-		<div class="flex items-baseline gap-3">
-			<h1
-				class="font-display text-3xl md:text-4xl font-bold tracking-tight m-0"
-			>
-				Games
-			</h1>
-			<span class="text-[0.8125rem] text-fg-muted"
-				>{{ total() }} total</span
-			>
-		</div>
-	</div>
+<app-library-hero heading="Games">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Admin</span
+	>
+	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
+		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
+		{{ total() === 1 ? "game" : "games" }} in the catalog
+	</p>
+	<button
+		heroActions
+		uiButton
+		aria-haspopup="dialog"
+		(click)="openCreateEditor()"
+	>
+		<span aria-hidden="true" class="material-icons text-lg">add</span>
+		New game
+	</button>
+</app-library-hero>
 
+<app-library-toolbar>
 	<ui-search-bar
-		class="block mb-4 max-w-2xl"
+		class="flex-1 min-w-[12rem] max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
 		placeholder="Search games..."
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>
-
-	<div class="flex flex-wrap gap-2 mb-4">
-		<button
-			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="activeFilter() === 'active'"
-			[class.!border-brand]="activeFilter() === 'active'"
-			[class.!text-brand]="activeFilter() === 'active'"
-			(click)="setActiveFilter('active')"
-		>
-			Active
-		</button>
-		<button
-			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="activeFilter() === 'inactive'"
-			[class.!border-brand]="activeFilter() === 'inactive'"
-			[class.!text-brand]="activeFilter() === 'inactive'"
-			(click)="setActiveFilter('inactive')"
-		>
-			Deactivated
-		</button>
-		<button
-			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="activeFilter() === 'all'"
-			[class.!border-brand]="activeFilter() === 'all'"
-			[class.!text-brand]="activeFilter() === 'all'"
-			(click)="setActiveFilter('all')"
-		>
-			All
-		</button>
-		<span class="self-center text-fg-muted text-xs">|</span>
-		<button
-			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="noScores()"
-			[class.!border-brand]="noScores()"
-			[class.!text-brand]="noScores()"
-			(click)="toggleFilter('noScores')"
-		>
-			No Scores
-		</button>
-		<button
-			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="noTimes()"
-			[class.!border-brand]="noTimes()"
-			[class.!text-brand]="noTimes()"
-			(click)="toggleFilter('noTimes')"
-		>
-			No Times
-		</button>
-		<button
-			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="noPlatforms()"
-			[class.!border-brand]="noPlatforms()"
-			[class.!text-brand]="noPlatforms()"
-			(click)="toggleFilter('noPlatforms')"
-		>
-			No Platforms
-		</button>
-		<span class="self-center text-fg-muted text-xs">|</span>
-		@for (src of manualScoreSources(); track src) {
-		<button
-			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="noScoreSources().has(src)"
-			[class.!border-brand]="noScoreSources().has(src)"
-			[class.!text-brand]="noScoreSources().has(src)"
-			(click)="toggleScoreSource(src)"
-		>
-			No {{ src }} score
-		</button>
-		} @for (src of TIME_SOURCES; track src) {
-		<button
-			class="px-3 py-1.5 bg-input-bg border border-line rounded-full text-fg-secondary text-xs font-medium cursor-pointer transition hover:border-brand hover:text-brand"
-			[class.!bg-brand-subtle]="noTimeSources().has(src)"
-			[class.!border-brand]="noTimeSources().has(src)"
-			[class.!text-brand]="noTimeSources().has(src)"
-			(click)="toggleTimeSource(src)"
-		>
-			No {{ src }} time
-		</button>
-		}
-	</div>
-
-	@if (isLoading()) {
-	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
-	} @else if (games().length === 0) {
-	<div class="text-center py-12 text-fg-muted text-sm">No games found.</div>
-	} @else {
-	<div class="overflow-x-auto">
-		<table class="w-full border-collapse text-[0.8125rem]">
-			<thead>
-				<tr>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 pr-0"
-					></th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap min-w-[200px]"
-					>
-						Title
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						Code
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						Platforms
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						Scores
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						Times
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						DLC
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap w-10 text-center"
-					></th>
-				</tr>
-			</thead>
-			<tbody>
-				@for (game of games(); track game.id) {
-				<tr class="border-b border-line transition hover:bg-surface">
-					<td class="px-3 py-2 align-middle w-10 pr-0">
-						@if (game.backgroundUrl) {
-						<img
-							[src]="game.backgroundUrl"
-							[alt]="game.title"
-							class="w-9 h-12 object-cover rounded block"
-							loading="lazy"
-						/>
-						} @else {
-						<div class="w-9 h-12 bg-surface rounded"></div>
-						}
-					</td>
-					<td class="px-3 py-2 align-middle min-w-[200px]">
-						@if (game.isActive === false) {
-						<span
-							class="text-fg-muted font-medium"
-							[title]="game.title"
-							>{{ game.title }}</span
-						>
-						<span
-							class="ml-1.5 inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-danger/10 text-danger"
-							>Deactivated</span
-						>
-						} @else {
-						<a
-							class="text-fg font-medium no-underline transition hover:text-brand"
-							[routerLink]="['/games', game.code]"
-						>
-							{{ game.title }}
-						</a>
-						} @if (game.variant) {
-						<span
-							class="ml-1.5 inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-brand/15 text-brand"
-							>{{ game.variant }}</span
-						>
-						}
-					</td>
-					<td
-						class="px-3 py-2 align-middle text-fg-muted text-xs whitespace-nowrap"
-					>
-						{{ game.code }}
-					</td>
-					<td
-						class="px-3 py-2 align-middle text-fg-secondary text-xs max-w-[200px]"
-					>
-						{{ game.platforms.map(p => p.abbreviation).join(", ") ||
-						"-" }}
-					</td>
-					<td class="px-3 py-2 align-middle whitespace-nowrap">
-						@for (s of game.scores; track s.source) {
-						<span
-							class="inline-block px-1.5 py-0.5 bg-surface rounded text-[0.6875rem] text-fg-secondary mr-1"
-							>{{ s.source }}: {{ s.score }}</span
-						>
-						}
-					</td>
-					<td class="px-3 py-2 align-middle whitespace-nowrap">
-						@for (t of game.times; track t.source) {
-						<span
-							class="inline-block px-1.5 py-0.5 bg-surface rounded text-[0.6875rem] text-fg-secondary mr-1"
-							>{{ t.source }}: {{ t.duration }}h</span
-						>
-						}
-					</td>
-					<td class="px-3 py-2 align-middle">
-						@if (game.isDlc) {
-						<span
-							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning"
-							>DLC</span
-						>
-						}
-					</td>
-					<td
-						class="px-3 py-2 align-middle whitespace-nowrap text-center"
-					>
-						<div class="flex items-center justify-center gap-1">
-							@if (reportedGameIds().has(game.id)) {
-							<button
-								class="bg-danger/10 border border-danger/20 rounded text-danger cursor-pointer p-1 leading-none transition hover:bg-danger/20"
-								(click)="goToGameReport(game.id)"
-								title="View report"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-base"
-									>flag</span
-								>
-							</button>
-							} @if (game.isActive === false) {
-							<button
-								class="bg-success/10 border border-success/20 rounded text-success cursor-pointer p-1 leading-none transition hover:bg-success/20 disabled:opacity-50 disabled:cursor-not-allowed"
-								(click)="reactivate(game)"
-								[disabled]="isReactivating(game.id)"
-								title="Reactivate game"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-base"
-									>restore_from_trash</span
-								>
-							</button>
-							}
-						</div>
-					</td>
-				</tr>
-				}
-			</tbody>
-		</table>
-	</div>
-
-	@if (!searchQuery()) {
-	<ui-pagination
-		[offset]="offset()"
-		[limit]="limit"
-		[total]="total()"
-		(offsetChange)="goToOffset($event)"
+	<app-segmented-control
+		class="max-sm:basis-full max-sm:[&>div]:flex max-sm:[&>div]:w-full max-sm:[&_button]:flex-1"
+		label="Game status"
+		[options]="activeFilterOptions"
+		[value]="activeFilter()"
+		(valueChange)="setActiveFilter($event)"
 	/>
-	} }
+</app-library-toolbar>
+
+<section
+	aria-labelledby="missing-data-heading"
+	class="mb-6 flex flex-col gap-4"
+>
+	<h2
+		id="missing-data-heading"
+		class="m-0 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+	>
+		Missing data
+	</h2>
+	<div class="grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-8">
+		<div class="flex flex-col gap-2">
+			<h3 class="m-0 text-xs font-medium text-fg-secondary">General</h3>
+			<app-chip-group
+				label="Games missing any data"
+				[options]="generalMissingOptions"
+				[value]="missingValue()"
+				(valueChange)="onMissingChange($event, generalMissingOptions)"
+			/>
+		</div>
+		<div class="flex flex-col gap-2">
+			<h3 class="m-0 text-xs font-medium text-fg-secondary">
+				No score from
+			</h3>
+			<app-chip-group
+				label="Games missing a score from"
+				[options]="scoreMissingOptions()"
+				[value]="missingValue()"
+				(valueChange)="onMissingChange($event, scoreMissingOptions())"
+			/>
+		</div>
+		<div class="flex flex-col gap-2">
+			<h3 class="m-0 text-xs font-medium text-fg-secondary">
+				No time from
+			</h3>
+			<app-chip-group
+				label="Games missing a time from"
+				[options]="timeMissingOptions"
+				[value]="missingValue()"
+				(valueChange)="onMissingChange($event, timeMissingOptions)"
+			/>
+		</div>
+	</div>
+</section>
+
+@if (isLoading()) {
+<ul
+	class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
+	aria-busy="true"
+	aria-label="Loading games"
+>
+	@for (i of skeletonRange; track i) {
+	<li class="flex items-center gap-3 px-3 py-3">
+		<ui-skeleton
+			variant="rect"
+			class="block w-10 aspect-[2/3] rounded-md"
+		/>
+		<div class="flex-1 min-w-0 flex flex-col gap-2">
+			<ui-skeleton variant="text" class="block w-1/2 h-4" />
+			<ui-skeleton variant="text" class="block w-1/3" />
+		</div>
+	</li>
+	}
+</ul>
+} @else if (loadError()) {
+<ui-alert class="max-w-2xl">
+	<span class="flex flex-wrap items-center gap-x-3 gap-y-2">
+		Could not load games.
+		<button uiButton variant="secondary" size="sm" (click)="reload()">
+			Try again
+		</button>
+	</span>
+</ui-alert>
+} @else if (games().length === 0) { @if (hasActiveFilters()) {
+<ui-no-matches
+	hint="No games match these filters."
+	clearLabel="Clear filters"
+	(cleared)="clearFilters()"
+/>
+} @else {
+<ui-empty-state
+	icon="sports_esports"
+	title="No games found"
+	hint="The catalog has no active games yet."
+/>
+} } @else {
+<div
+	aria-hidden="true"
+	class="hidden md:grid md:grid-cols-[2.5rem_minmax(14rem,2fr)_minmax(8rem,1fr)_minmax(10rem,1.3fr)_minmax(8rem,1fr)_8.5rem] gap-x-4 px-3 pb-2 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-fg-muted"
+>
+	<span></span>
+	<span>Title</span>
+	<span>Platforms</span>
+	<span>Scores</span>
+	<span>Times</span>
+	<span class="text-right">Actions</span>
 </div>
+<ul
+	class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
+>
+	@for (game of games(); track game.id) {
+	<li
+		class="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] md:grid-cols-[2.5rem_minmax(14rem,2fr)_minmax(8rem,1fr)_minmax(10rem,1.3fr)_minmax(8rem,1fr)_8.5rem] items-center gap-x-3 md:gap-x-4 gap-y-2 px-3 py-3 transition hover:bg-surface-hover"
+	>
+		<app-game-poster
+			class="w-10 aspect-[2/3] rounded-md row-span-1 max-md:self-start"
+			[src]="game.backgroundUrl"
+			[title]="game.title"
+			[width]="200"
+			[compact]="true"
+		/>
+
+		<div class="min-w-0">
+			<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+				@if (game.isActive === false) {
+				<span class="text-fg-muted font-medium" [title]="game.title"
+					>{{ game.title }}</span
+				>
+				<span
+					class="inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-danger/10 text-danger"
+					>Deactivated</span
+				>
+				} @else {
+				<a
+					class="inline-flex items-center tap:min-h-[44px] text-fg font-medium no-underline transition hover:text-brand"
+					[routerLink]="['/games', game.code]"
+				>
+					{{ game.title }}
+				</a>
+				} @if (game.variant) {
+				<span
+					class="inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-brand-subtle text-brand"
+					>{{ game.variant }}</span
+				>
+				} @if (game.isDlc) {
+				<span
+					class="inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-warning/10 text-warning"
+					>DLC</span
+				>
+				}
+			</div>
+			<span class="block mt-0.5 text-xs text-fg-muted truncate"
+				>{{ game.code }}</span
+			>
+		</div>
+
+		<div
+			class="flex items-center justify-end gap-1 md:col-start-6 md:row-start-1"
+		>
+			@if (reportedGameIds().has(game.id)) {
+			<button
+				uiIconButton
+				tone="danger"
+				title="View report"
+				aria-label="View report"
+				(click)="goToGameReport(game.id)"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>flag</span
+				>
+			</button>
+			}
+			<button
+				uiIconButton
+				title="Edit game"
+				aria-haspopup="dialog"
+				[attr.aria-label]="'Edit ' + game.title"
+				[attr.aria-busy]="loadingEditorId() === game.id"
+				[disabled]="loadingEditorId() === game.id"
+				(click)="openEditor(game)"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>{{ loadingEditorId() === game.id ? "hourglass_empty" :
+					"edit" }}</span
+				>
+			</button>
+			@if (game.isActive === false) {
+			<button
+				uiIconButton
+				tone="accent"
+				title="Reactivate game"
+				aria-label="Reactivate game"
+				[disabled]="isReactivating(game.id)"
+				(click)="reactivate(game)"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>restore_from_trash</span
+				>
+			</button>
+			} @else {
+			<button
+				uiIconButton
+				tone="danger"
+				title="Deactivate game"
+				[attr.aria-label]="'Deactivate ' + game.title"
+				(click)="askDeactivate(game)"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>visibility_off</span
+				>
+			</button>
+			}
+		</div>
+
+		<div
+			class="col-span-3 md:col-span-1 md:col-start-3 md:row-start-1 min-w-0 flex flex-col gap-2 max-md:pl-[calc(2.5rem+0.75rem)] md:contents"
+		>
+			<p class="m-0 text-xs text-fg-secondary md:self-center">
+				<span class="md:hidden text-fg-muted">Platforms: </span>
+				{{ game.platforms.map(p => p.abbreviation).join(", ") || "-" }}
+			</p>
+			<div class="flex flex-wrap gap-1 md:self-center">
+				@for (s of game.scores; track s.source) {
+				<span
+					class="inline-block px-1.5 py-0.5 bg-surface rounded text-[0.6875rem] text-fg-secondary tabular-nums"
+					>{{ s.source }}: {{ s.score }}</span
+				>
+				}
+			</div>
+			<div class="flex flex-wrap gap-1 md:self-center">
+				@for (t of game.times; track t.source) {
+				<span
+					class="inline-block px-1.5 py-0.5 bg-surface rounded text-[0.6875rem] text-fg-secondary tabular-nums"
+					>{{ t.source }}: {{ t.duration }}h</span
+				>
+				}
+			</div>
+		</div>
+	</li>
+	}
+</ul>
+
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit"
+	[total]="total()"
+	(offsetChange)="goToOffset($event)"
+/>
+} @if (deactivateTarget(); as target) {
+<ui-dialog
+	size="sm"
+	eyebrow="Games"
+	[heading]="'Deactivate ' + target.title + '?'"
+	[dismissible]="!isDeactivating()"
+	(closed)="cancelDeactivate()"
+>
+	<p class="m-0 text-sm text-fg-secondary">
+		It is hidden from the catalog and keeps all its data. You can reactivate
+		it from the Deactivated filter.
+	</p>
+	<ng-container dialogFooter>
+		<button
+			uiButton
+			variant="ghost"
+			type="button"
+			[disabled]="isDeactivating()"
+			(click)="cancelDeactivate()"
+		>
+			Cancel
+		</button>
+		<button
+			uiButton
+			variant="danger"
+			type="button"
+			[disabled]="isDeactivating()"
+			(click)="confirmDeactivate(target)"
+		>
+			{{ isDeactivating() ? "Deactivating..." : "Deactivate" }}
+		</button>
+	</ng-container>
+</ui-dialog>
+} @if (showCreateEditor()) {
+<ui-dialog
+	size="xl"
+	eyebrow="Games"
+	heading="New game"
+	subheading="Fetch it from RAWG or fill in the details by hand."
+	[flush]="true"
+	(closed)="closeCreateEditor()"
+>
+	<app-admin-game-editor
+		[embedded]="true"
+		(created)="onGameCreated($event)"
+	/>
+</ui-dialog>
+} @if (editingGame(); as editing) {
+<ui-dialog
+	size="xl"
+	eyebrow="Games"
+	heading="Edit game"
+	[subheading]="editing.title"
+	[flush]="true"
+	(closed)="closeEditor()"
+>
+	<app-admin-game-editor
+		[embedded]="true"
+		[game]="editing"
+		(saved)="onEditorSaved()"
+		(split)="onEditorSplit()"
+	/>
+</ui-dialog>
+}

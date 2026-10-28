@@ -62,7 +62,10 @@ export async function searchUsers(query: string, limit = 20) {
 		where: { isActive: true, ...nameWhere },
 		attributes: USER_CARD_ATTRS,
 		limit,
-		order: [["username", "ASC"]]
+		order: [
+			["username", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 
@@ -119,7 +122,10 @@ export async function findUserByIdUnfiltered(id: string) {
 
 export async function findAllUsers(limit = 50, offset = 0) {
 	return User.findAndCountAll({
-		order: [["createdAt", "DESC"]],
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		],
 		limit,
 		offset
 	});

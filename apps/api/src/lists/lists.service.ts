@@ -64,7 +64,10 @@ export async function duplicateList(
 			{
 				model: ListItem,
 				separate: true,
-				order: [["position", "ASC"]]
+				order: [
+					["position", "ASC"],
+					["id", "ASC"]
+				]
 			}
 		]
 	});
@@ -141,7 +144,10 @@ const LIST_DETAIL_INCLUDE = [
 			}
 		],
 		separate: true,
-		order: [["position", "ASC"]] as [string, string][]
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		] as [string, string][]
 	}
 ];
 
@@ -319,7 +325,10 @@ export async function findListsByUserId(
 				model: ListItem,
 				separate: true,
 				limit: LIST_PREVIEW_SIZE,
-				order: [["position", "ASC"]] as [string, string][],
+				order: [
+					["position", "ASC"],
+					["id", "ASC"]
+				] as [string, string][],
 				include: [
 					{
 						model: Game,
@@ -334,7 +343,10 @@ export async function findListsByUserId(
 				]
 			}
 		],
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
@@ -353,7 +365,10 @@ export async function findPublicListsByUserId(userId: string) {
 				model: ListItem,
 				separate: true,
 				limit: LIST_PREVIEW_SIZE,
-				order: [["position", "ASC"]] as [string, string][],
+				order: [
+					["position", "ASC"],
+					["id", "ASC"]
+				] as [string, string][],
 				include: [
 					{
 						model: Game,
@@ -368,7 +383,10 @@ export async function findPublicListsByUserId(userId: string) {
 				]
 			}
 		],
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 }
 
@@ -395,7 +413,10 @@ export async function findPublicListsByGameId(
 				attributes: ["id", "username", "role"]
 			}
 		],
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 }
 
@@ -410,7 +431,10 @@ export async function findUserListsByGameId(gameId: string, userId: string) {
 				attributes: []
 			}
 		],
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 }
 
@@ -422,7 +446,10 @@ export async function findUserListsWithGameFlag(
 		List.findAll({
 			where: { userId },
 			attributes: ["id", "name", "isPublic"],
-			order: [["createdAt", "DESC"]]
+			order: [
+				["createdAt", "DESC"],
+				["id", "DESC"]
+			]
 		}),
 		ListItem.findAll({
 			where: { gameId },
@@ -466,7 +493,10 @@ export async function findRecentUserLists(
 				model: ListItem,
 				separate: true,
 				limit: LIST_PREVIEW_SIZE,
-				order: [["position", "ASC"]] as [string, string][],
+				order: [
+					["position", "ASC"],
+					["id", "ASC"]
+				] as [string, string][],
 				include: [
 					{
 						model: Game,
@@ -482,7 +512,10 @@ export async function findRecentUserLists(
 			}
 		],
 		limit,
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 }
 
@@ -502,7 +535,10 @@ export async function findOfficialLists(
 				model: ListItem,
 				separate: true,
 				limit: LIST_PREVIEW_SIZE,
-				order: [["position", "ASC"]] as [string, string][],
+				order: [
+					["position", "ASC"],
+					["id", "ASC"]
+				] as [string, string][],
 				include: [
 					{
 						model: Game,
@@ -518,7 +554,10 @@ export async function findOfficialLists(
 			}
 		],
 		limit,
-		order: [["createdAt", "DESC"]]
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
 	});
 }
 
@@ -543,7 +582,10 @@ export async function searchPublicLists(
 				model: ListItem,
 				separate: true,
 				limit: LIST_PREVIEW_SIZE,
-				order: [["position", "ASC"]] as [string, string][],
+				order: [
+					["position", "ASC"],
+					["id", "ASC"]
+				] as [string, string][],
 				include: [
 					{
 						model: Game,
@@ -559,7 +601,10 @@ export async function searchPublicLists(
 			}
 		],
 		limit,
-		order: [["name", "ASC"]]
+		order: [
+			["name", "ASC"],
+			["id", "ASC"]
+		]
 	});
 }
 

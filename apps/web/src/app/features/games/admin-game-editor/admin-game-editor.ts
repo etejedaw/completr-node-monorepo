@@ -9,13 +9,27 @@ import {
 	signal
 } from "@angular/core";
 import { form, FormField, maxLength } from "@angular/forms/signals";
-import { forkJoin } from "rxjs";
+import { forkJoin, type Subscription } from "rxjs";
 
-import { type Game, type Genre, type Platform } from "../../../core/models";
+import {
+	type Game,
+	type GameSummary,
+	type Genre,
+	type Platform
+} from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
-import { UiSelect, UiTextarea } from "../../../shared/ui";
+import {
+	UiAlert,
+	UiButton,
+	UiDialog,
+	UiFieldLabel,
+	UiIconButton,
+	UiInput,
+	UiSelect,
+	UiTextarea
+} from "../../../shared/ui";
 import { type Franchise, FranchisesService } from "../../franchises/franchises";
 import {
 	type CompilationItemInput,
@@ -27,7 +41,12 @@ import {
 
 type CompilationRowMode = "link" | "create";
 
+const DIACRITICS = /\p{Diacritic}/gu;
+
+let nextCompilationRowId = 0;
+
 interface CompilationRow {
+	id: string;
 	mode: CompilationRowMode;
 	title: string;
 	linkedGame: Game | null;
@@ -38,12 +57,23 @@ interface CompilationRow {
 
 @Component({
 	selector: "app-admin-game-editor",
-	imports: [FormField, UiSelect, UiTextarea],
+	imports: [
+		FormField,
+		UiAlert,
+		UiButton,
+		UiDialog,
+		UiFieldLabel,
+		UiIconButton,
+		UiInput,
+		UiSelect,
+		UiTextarea
+	],
 	templateUrl: "./admin-game-editor.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminGameEditor implements OnInit {
 	game = input<Game | null>(null);
+	embedded = input(false);
 	saved = output<void>();
 	created = output<Game>();
 	split = output<Game>();
@@ -92,8 +122,16 @@ export class AdminGameEditor implements OnInit {
 	protected readonly fetchingRawg = signal(false);
 	protected readonly rawgError = signal("");
 	protected readonly rawgId = signal<number | null>(null);
+	private rawgRequest: { slug: string; subscription: Subscription } | null =
+		null;
+	private parentRequest: {
+		slug: string;
+		subscription: Subscription;
+	} | null = null;
+	private readonly compilationSearches = new Map<string, Subscription>();
 
-	protected readonly parentGame = signal<Game | null>(null);
+	protected readonly parentGame = signal<GameSummary | null>(null);
+	private readonly parentCleared = signal(false);
 	protected readonly fetchingParent = signal(false);
 	protected readonly parentError = signal("");
 	protected readonly selectedPlatforms = signal<Set<string>>(new Set());
@@ -185,30 +223,48 @@ export class AdminGameEditor implements OnInit {
 		this.selectedPlatforms.set(new Set(g.platforms.map(p => p.code)));
 		this.selectedGenres.set(new Set(g.genres.map(ge => ge.code)));
 		this.selectedFranchiseId.set(g.franchise?.id ?? "");
+		this.parentGame.set(g.parentGame ?? null);
 		this.scores.set(g.scores.map(s => ({ ...s })));
 		this.times.set(g.times.map(t => ({ ...t })));
 	}
 
 	fetchParentGame() {
 		const slug = this.parentSlug().trim();
-		if (!slug) return;
+		if (!slug || this.parentRequest?.slug === slug) return;
+		if (slug.toLowerCase() === this.game()?.code) {
+			this.parentError.set("A game can't be its own parent.");
+			return;
+		}
 
+		this.parentRequest?.subscription.unsubscribe();
 		this.fetchingParent.set(true);
 		this.parentError.set("");
 
-		this.gamesService.getByCode(slug).subscribe({
+		const subscription = this.gamesService.getByCode(slug).subscribe({
 			next: game => {
-				this.parentGame.set(game);
+				this.parentRequest = null;
 				this.fetchingParent.set(false);
+				if (game.id === this.game()?.id) {
+					this.parentError.set("A game can't be its own parent.");
+					return;
+				}
+				this.parentGame.set(game);
+				this.parentCleared.set(false);
 			},
 			error: () => {
+				this.parentRequest = null;
 				this.parentError.set("Game not found");
 				this.fetchingParent.set(false);
 			}
 		});
+		this.parentRequest = { slug, subscription };
 	}
 
 	clearParentGame() {
+		this.parentRequest?.subscription.unsubscribe();
+		this.parentRequest = null;
+		this.fetchingParent.set(false);
+		if (this.parentGame()) this.parentCleared.set(true);
 		this.parentGame.set(null);
 		this.model.update(m => ({ ...m, parentSlug: "" }));
 		this.parentError.set("");
@@ -216,18 +272,24 @@ export class AdminGameEditor implements OnInit {
 
 	fetchRawg() {
 		const slug = this.rawgSlug().trim();
-		if (!slug) return;
+		if (!slug || this.rawgRequest?.slug === slug) return;
 
+		this.rawgRequest?.subscription.unsubscribe();
 		this.fetchingRawg.set(true);
 		this.rawgError.set("");
 
-		this.gamesService.rawgBySlug(slug).subscribe({
-			next: detail => this.applyRawgData(detail),
+		const subscription = this.gamesService.rawgBySlug(slug).subscribe({
+			next: detail => {
+				this.rawgRequest = null;
+				this.applyRawgData(detail);
+			},
 			error: () => {
+				this.rawgRequest = null;
 				this.rawgError.set("Game not found on RAWG");
 				this.fetchingRawg.set(false);
 			}
 		});
+		this.rawgRequest = { slug, subscription };
 	}
 
 	private applyRawgData(detail: RawgDetail) {
@@ -407,7 +469,7 @@ export class AdminGameEditor implements OnInit {
 	private doCreate() {
 		const variantValue = this.variant().trim();
 		const dto: CreateGameDto = {
-			title: this.title(),
+			title: this.title().trim(),
 			description: this.description() || undefined,
 			releaseAt: this.releaseAt() || undefined,
 			backgroundUrl: this.backgroundUrl() || undefined,
@@ -452,7 +514,7 @@ export class AdminGameEditor implements OnInit {
 		const g = this.game()!;
 		const variantTrim = this.variant().trim();
 		const dto: UpdateGameDto = {
-			title: this.title(),
+			title: this.title().trim(),
 			description: this.description() || undefined,
 			releaseAt: this.releaseAt() || undefined,
 			backgroundUrl: this.backgroundUrl() || undefined,
@@ -464,9 +526,8 @@ export class AdminGameEditor implements OnInit {
 		};
 
 		const parent = this.parentGame();
-		if (this.isDlc() && parent) {
-			dto.parentGameId = parent.id;
-		}
+		if (this.isDlc() && parent) dto.parentGameId = parent.id;
+		else if (this.isDlc() && this.parentCleared()) dto.parentGameId = null;
 
 		if (this.rawgId()) {
 			dto.externalIds = [
@@ -568,7 +629,7 @@ export class AdminGameEditor implements OnInit {
 
 	openSplitModal() {
 		const g = this.game();
-		if (!g) return;
+		if (!g || this.splitOpen()) return;
 		this.splitError.set("");
 		this.splitVariants.set([
 			{ title: g.title, variant: g.variant ?? "" },
@@ -584,21 +645,25 @@ export class AdminGameEditor implements OnInit {
 
 	addSplitVariant() {
 		if (this.splitVariants().length >= 10) return;
+		this.splitError.set("");
 		this.splitVariants.update(arr => [...arr, { title: "", variant: "" }]);
 	}
 
 	removeSplitVariant(index: number) {
 		if (this.splitVariants().length <= 2) return;
+		this.splitError.set("");
 		this.splitVariants.update(arr => arr.filter((_, i) => i !== index));
 	}
 
 	updateSplitVariantTitle(index: number, value: string) {
+		this.splitError.set("");
 		this.splitVariants.update(arr =>
 			arr.map((v, i) => (i === index ? { ...v, title: value } : v))
 		);
 	}
 
 	updateSplitVariantLabel(index: number, value: string) {
+		this.splitError.set("");
 		this.splitVariants.update(arr =>
 			arr.map((v, i) => (i === index ? { ...v, variant: value } : v))
 		);
@@ -617,9 +682,20 @@ export class AdminGameEditor implements OnInit {
 			);
 			return;
 		}
-		const titles = new Set(cleaned.map(v => v.title.toLowerCase()));
+		if (cleaned.some(v => !this.previewSlug(v.title))) {
+			this.splitError.set(
+				"Variant titles need letters or numbers to build a slug."
+			);
+			return;
+		}
+		const titles = new Set(cleaned.map(v => this.previewSlug(v.title)));
 		if (titles.size !== cleaned.length) {
 			this.splitError.set("Variant titles must be unique.");
+			return;
+		}
+		const labels = new Set(cleaned.map(v => v.variant.toLowerCase()));
+		if (labels.size !== cleaned.length) {
+			this.splitError.set("Variant labels must be unique.");
 			return;
 		}
 
@@ -656,22 +732,19 @@ export class AdminGameEditor implements OnInit {
 
 	openCompilationModal() {
 		const g = this.game();
-		if (!g) return;
+		if (!g || this.compilationOpen()) return;
+		this.cancelAllCompilationSearches();
 		this.compilationError.set("");
 		const existing = (g.compilationItems ?? [])
 			.filter(item => item.game)
 			.map(item => ({
-				mode: "link" as CompilationRowMode,
-				title: "",
+				...this.makeEmptyCompilationRow("link"),
 				linkedGame: {
 					id: item.game!.id,
 					title: item.game!.title,
 					code: item.game!.code,
 					backgroundUrl: item.game!.backgroundUrl
-				} as Game,
-				searchQuery: "",
-				searching: false,
-				searchResults: []
+				} as Game
 			}));
 		this.compilationRows.set(
 			existing.length > 0
@@ -686,11 +759,13 @@ export class AdminGameEditor implements OnInit {
 
 	closeCompilationModal() {
 		if (this.compilationSaving() || this.compilationClearing()) return;
+		this.cancelAllCompilationSearches();
 		this.compilationOpen.set(false);
 	}
 
 	private makeEmptyCompilationRow(mode: CompilationRowMode): CompilationRow {
 		return {
+			id: `compilation-row-${nextCompilationRowId++}`,
 			mode,
 			title: "",
 			linkedGame: null,
@@ -700,8 +775,25 @@ export class AdminGameEditor implements OnInit {
 		};
 	}
 
+	private cancelCompilationSearch(rowId: string) {
+		this.compilationSearches.get(rowId)?.unsubscribe();
+		this.compilationSearches.delete(rowId);
+	}
+
+	private cancelAllCompilationSearches() {
+		this.compilationSearches.forEach(search => search.unsubscribe());
+		this.compilationSearches.clear();
+	}
+
+	private patchCompilationRow(rowId: string, patch: Partial<CompilationRow>) {
+		this.compilationRows.update(rows =>
+			rows.map(r => (r.id === rowId ? { ...r, ...patch } : r))
+		);
+	}
+
 	addCompilationRow() {
 		if (this.compilationRows().length >= 50) return;
+		this.compilationError.set("");
 		this.compilationRows.update(rows => [
 			...rows,
 			this.makeEmptyCompilationRow("link")
@@ -709,111 +801,105 @@ export class AdminGameEditor implements OnInit {
 	}
 
 	removeCompilationRow(index: number) {
-		if (this.compilationRows().length <= 1) return;
-		this.compilationRows.update(rows => rows.filter((_, i) => i !== index));
+		const row = this.compilationRows()[index];
+		if (!row || this.compilationRows().length <= 1) return;
+		this.compilationError.set("");
+		this.cancelCompilationSearch(row.id);
+		this.compilationRows.update(rows => rows.filter(r => r.id !== row.id));
 	}
 
 	setCompilationRowMode(index: number, mode: CompilationRowMode) {
-		this.compilationRows.update(rows =>
-			rows.map((r, i) =>
-				i === index
-					? {
-							...r,
-							mode,
-							title: "",
-							linkedGame: null,
-							searchQuery: "",
-							searchResults: []
-						}
-					: r
-			)
-		);
-	}
-
-	updateCompilationRowTitle(index: number, value: string) {
-		this.compilationRows.update(rows =>
-			rows.map((r, i) => (i === index ? { ...r, title: value } : r))
-		);
-	}
-
-	updateCompilationRowQuery(index: number, value: string) {
-		this.compilationRows.update(rows =>
-			rows.map((r, i) =>
-				i === index ? { ...r, searchQuery: value, linkedGame: null } : r
-			)
-		);
-		const trimmed = value.trim();
-		if (trimmed.length < 2) {
-			this.compilationRows.update(rows =>
-				rows.map((r, i) =>
-					i === index
-						? { ...r, searchResults: [], searching: false }
-						: r
-				)
-			);
-			return;
-		}
-		this.compilationRows.update(rows =>
-			rows.map((r, i) => (i === index ? { ...r, searching: true } : r))
-		);
-		this.gamesService.searchLocal(trimmed).subscribe({
-			next: games => {
-				this.compilationRows.update(rows =>
-					rows.map((r, i) =>
-						i === index
-							? {
-									...r,
-									searching: false,
-									searchResults: games.slice(0, 8)
-								}
-							: r
-					)
-				);
-			},
-			error: () => {
-				this.compilationRows.update(rows =>
-					rows.map((r, i) =>
-						i === index
-							? { ...r, searching: false, searchResults: [] }
-							: r
-					)
-				);
-			}
+		const row = this.compilationRows()[index];
+		if (!row) return;
+		this.compilationError.set("");
+		this.cancelCompilationSearch(row.id);
+		this.patchCompilationRow(row.id, {
+			mode,
+			title: "",
+			linkedGame: null,
+			searchQuery: "",
+			searching: false,
+			searchResults: []
 		});
 	}
 
+	updateCompilationRowTitle(index: number, value: string) {
+		const row = this.compilationRows()[index];
+		if (!row) return;
+		this.compilationError.set("");
+		this.patchCompilationRow(row.id, { title: value });
+	}
+
+	updateCompilationRowQuery(index: number, value: string) {
+		const row = this.compilationRows()[index];
+		if (!row) return;
+		this.compilationError.set("");
+		this.cancelCompilationSearch(row.id);
+		const trimmed = value.trim();
+		if (trimmed.length < 2) {
+			this.patchCompilationRow(row.id, {
+				searchQuery: value,
+				linkedGame: null,
+				searchResults: [],
+				searching: false
+			});
+			return;
+		}
+		this.patchCompilationRow(row.id, {
+			searchQuery: value,
+			linkedGame: null,
+			searching: true
+		});
+		const ownId = this.game()?.id;
+		const search = this.gamesService.searchLocal(trimmed).subscribe({
+			next: games => {
+				this.compilationSearches.delete(row.id);
+				this.patchCompilationRow(row.id, {
+					searching: false,
+					searchResults: games
+						.filter(found => found.id !== ownId)
+						.slice(0, 8)
+				});
+			},
+			error: () => {
+				this.compilationSearches.delete(row.id);
+				this.patchCompilationRow(row.id, {
+					searching: false,
+					searchResults: []
+				});
+			}
+		});
+		this.compilationSearches.set(row.id, search);
+	}
+
 	pickCompilationRowGame(index: number, picked: Game) {
-		this.compilationRows.update(rows =>
-			rows.map((r, i) =>
-				i === index
-					? {
-							...r,
-							linkedGame: picked,
-							searchQuery: picked.title,
-							searchResults: []
-						}
-					: r
-			)
-		);
+		const row = this.compilationRows()[index];
+		if (!row) return;
+		this.compilationError.set("");
+		this.cancelCompilationSearch(row.id);
+		this.patchCompilationRow(row.id, {
+			linkedGame: picked,
+			searchQuery: picked.title,
+			searching: false,
+			searchResults: []
+		});
 	}
 
 	clearCompilationRowGame(index: number) {
-		this.compilationRows.update(rows =>
-			rows.map((r, i) =>
-				i === index
-					? {
-							...r,
-							linkedGame: null,
-							searchQuery: "",
-							searchResults: []
-						}
-					: r
-			)
-		);
+		const row = this.compilationRows()[index];
+		if (!row) return;
+		this.compilationError.set("");
+		this.patchCompilationRow(row.id, {
+			linkedGame: null,
+			searchQuery: "",
+			searchResults: []
+		});
 	}
 
 	previewSlug(title: string): string {
 		return title
+			.normalize("NFD")
+			.replace(DIACRITICS, "")
 			.toLowerCase()
 			.trim()
 			.replace(/[^a-z0-9]+/g, "-")
@@ -833,12 +919,24 @@ export class AdminGameEditor implements OnInit {
 					);
 					return;
 				}
+				if (row.linkedGame.id === g.id) {
+					this.compilationError.set(
+						"A compilation can't contain itself."
+					);
+					return;
+				}
 				items.push({ mode: "link", gameId: row.linkedGame.id });
 			} else {
 				const title = row.title.trim();
 				if (!title) {
 					this.compilationError.set(
 						"All create rows must have a title."
+					);
+					return;
+				}
+				if (!this.previewSlug(title)) {
+					this.compilationError.set(
+						"Created titles need letters or numbers to build a slug."
 					);
 					return;
 				}
@@ -862,6 +960,7 @@ export class AdminGameEditor implements OnInit {
 			return;
 		}
 
+		this.cancelAllCompilationSearches();
 		this.compilationSaving.set(true);
 		this.compilationError.set("");
 

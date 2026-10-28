@@ -20,7 +20,13 @@ const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
 const MIN_THRESHOLD_PERCENT = 0.1;
 
 export async function findAll() {
-	return Job.findAll({ order: [["createdAt", "DESC"]], limit: 20 });
+	return Job.findAll({
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		],
+		limit: 20
+	});
 }
 
 async function startJob(
