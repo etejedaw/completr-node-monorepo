@@ -484,8 +484,6 @@ async function loadTargetMap(
 	);
 }
 
-const FRANCHISE_PROGRESS_STATUSES = ["completed", "abandoned", "endless"];
-
 export async function getFranchisesForUsername(
 	viewer: RequestUser | undefined,
 	username: string
@@ -494,21 +492,8 @@ export async function getFranchisesForUsername(
 		"profile",
 		"backlog"
 	]);
-	const isSelf = viewer?.id === user.id;
 
-	const [trackedFranchiseIds, completedGameIds] = await Promise.all([
-		franchiseService.findTrackedFranchiseIds(user.id),
-		backlogService.findDistinctGameIdsByUserAndStatuses(
-			user.id,
-			FRANCHISE_PROGRESS_STATUSES,
-			!isSelf
-		)
-	]);
-	const franchises = await franchiseService.findTrackedFranchiseProgress(
-		trackedFranchiseIds,
-		completedGameIds
-	);
-
+	const franchises = await franchiseService.findTrackedFranchises(user.id);
 	return { franchises, total: franchises.length };
 }
 

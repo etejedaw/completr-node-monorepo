@@ -369,8 +369,8 @@ async function seedCompletedEntries(owner: Account) {
 
 async function seedFranchises(owner: Account) {
 	const userId = owner.user.id;
-	const tracked = await createFranchise();
-	const trackedEmpty = await createFranchise();
+	const tracked = await createFranchise({ name: `A ${randomUUID()}` });
+	const trackedEmpty = await createFranchise({ name: `B ${randomUUID()}` });
 	const untracked = await createFranchise();
 	const [a1, a2, a3, a4, b1, u1] = await Promise.all(
 		Array.from({ length: 6 }, () => createGame())
@@ -757,7 +757,7 @@ void describe("public profile endpoints", () => {
 
 		itAnswersNotFoundForMissingUser(name => `/users/${name}/franchises`);
 
-		void it("shows the progress of the tracked franchises counting only public entries to visitors", async () => {
+		void it("lists the tracked franchises by name with their active game count and no progress", async () => {
 			const { open } = fixture.owners;
 
 			const response = await franchises(open.user.username);
@@ -765,29 +765,9 @@ void describe("public profile endpoints", () => {
 			assert.equal(response.status, 200);
 			assert.equal(response.body.data.total, 2);
 			assert.deepEqual(response.body.data.franchises, [
-				{
-					franchise: openSeed.franchises.tracked,
-					completed: 2,
-					total: 4
-				},
-				{
-					franchise: openSeed.franchises.trackedEmpty,
-					completed: 0,
-					total: 1
-				}
+				{ franchise: openSeed.franchises.tracked, gameCount: 4 },
+				{ franchise: openSeed.franchises.trackedEmpty, gameCount: 1 }
 			]);
-		});
-
-		void it("counts the private entries too for the owner", async () => {
-			const { open } = fixture.owners;
-
-			const response = await franchises(
-				open.user.username,
-				open.authorization
-			);
-
-			assert.equal(response.body.data.franchises[0].completed, 3);
-			assert.equal(response.body.data.franchises[0].total, 4);
 		});
 
 		void it("answers an empty list when the user tracks no franchise", async () => {
