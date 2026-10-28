@@ -1,169 +1,226 @@
-<div>
-	<div class="flex items-center justify-between mb-5">
-		<h1
-			class="font-display text-3xl md:text-4xl font-bold tracking-tight m-0"
+<app-library-hero heading="Jobs">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Admin</span
+	>
+	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
+		<span class="font-semibold text-fg tabular-nums"
+			>{{ jobs().length }}</span
 		>
-			Jobs
-		</h1>
-		<button uiButton variant="secondary" size="sm" (click)="refresh()">
-			<span aria-hidden="true" class="material-icons text-lg"
-				>refresh</span
-			>
-		</button>
-	</div>
+		{{ jobs().length === 1 ? 'job' : 'jobs' }} recorded
+	</p>
+	<button
+		heroActions
+		uiButton
+		variant="secondary"
+		class="!bg-surface/70 backdrop-blur"
+		(click)="refresh()"
+		[disabled]="isLoading()"
+	>
+		<span aria-hidden="true" class="material-icons text-base">refresh</span>
+		Refresh
+	</button>
+</app-library-hero>
 
-	<div class="flex flex-wrap gap-2 mb-5">
-		<button
-			class="px-4 py-2 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:enabled:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-			style="
-				background: linear-gradient(
-					135deg,
-					var(--color-brand),
-					var(--color-brand-deep)
-				);
-			"
-			(click)="startJob('populate_rawg')"
-			[disabled]="starting()"
+<app-library-toolbar>
+	@for (action of jobActions; track action.type) {
+	<button
+		uiButton
+		variant="primary"
+		class="max-sm:flex-1 max-sm:basis-full"
+		(click)="startJob(action.type)"
+		[disabled]="!!starting()"
+		[attr.aria-busy]="starting() === action.type || null"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>{{ starting() === action.type ? 'hourglass_top' : action.icon
+			}}</span
 		>
-			{{ starting() === 'populate_rawg' ? 'Starting...' : 'Populate RAWG
-			IDs' }}
-		</button>
-		<button
-			class="px-4 py-2 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:enabled:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-			style="
-				background: linear-gradient(
-					135deg,
-					var(--color-brand),
-					var(--color-brand-deep)
-				);
-			"
-			(click)="startJob('calculate_ratings')"
-			[disabled]="starting()"
-		>
-			{{ starting() === 'calculate_ratings' ? 'Starting...' : 'Calculate
-			Ratings' }}
-		</button>
-		<button
-			class="px-4 py-2 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:enabled:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-			style="
-				background: linear-gradient(
-					135deg,
-					var(--color-brand),
-					var(--color-brand-deep)
-				);
-			"
-			(click)="startJob('calculate_durations')"
-			[disabled]="starting()"
-		>
-			{{ starting() === 'calculate_durations' ? 'Starting...' : 'Calculate
-			Durations' }}
-		</button>
-	</div>
+		{{ starting() === action.type ? 'Starting...' : action.label }}
+	</button>
+	}
+</app-library-toolbar>
 
-	@if (isLoading()) {
-	<div class="text-center py-12 text-fg-muted text-sm">Loading...</div>
-	} @else if (jobs().length === 0) {
-	<div class="text-center py-12 text-fg-muted text-sm">
-		No jobs have been run yet.
-	</div>
-	} @else {
-	<div class="overflow-x-auto">
-		<table class="w-full border-collapse text-[0.8125rem]">
-			<thead>
-				<tr>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						Type
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						Status
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						Result
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						Started
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					>
-						Completed
-					</th>
-					<th
-						scope="col"
-						class="text-left px-3 py-2.5 text-fg-muted font-semibold text-xs uppercase tracking-wider border-b border-line whitespace-nowrap"
-					></th>
-				</tr>
-			</thead>
-			<tbody>
-				@for (job of jobs(); track job.id) {
-				<tr class="border-b border-line transition hover:bg-surface">
-					<td class="px-3 py-2 text-fg align-middle">
-						{{ job.type }}
-					</td>
-					<td class="px-3 py-2 align-middle">
-						@if (job.status === 'running') {
-						<span
-							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-warning/10 text-warning"
-							>{{ job.status }}</span
-						>
-						} @else if (job.status === 'completed') {
-						<span
-							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-success/10 text-success"
-							>{{ job.status }}</span
-						>
-						} @else if (job.status === 'failed') {
-						<span
-							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-danger/10 text-danger"
-							>{{ job.status }}</span
-						>
-						} @else {
-						<span
-							class="inline-block px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold bg-fg-muted/10 text-fg-muted"
-							>{{ job.status }}</span
-						>
-						}
-					</td>
-					<td
-						class="px-3 py-2 text-fg-secondary text-xs align-middle max-w-[300px]"
-					>
-						{{ job.result ?? '-' }}
-					</td>
-					<td class="px-3 py-2 text-fg align-middle">
-						{{ job.createdAt | date : "yyyy-MM-dd HH:mm" }}
-					</td>
-					<td class="px-3 py-2 text-fg align-middle">
-						{{ job.completedAt ? (job.completedAt | date :
-						"yyyy-MM-dd HH:mm") : "-" }}
-					</td>
-					<td class="px-3 py-2 align-middle">
-						@if (job.status === 'running') {
-						<button
-							uiButton
-							variant="danger"
-							size="sm"
-							(click)="cancelJob(job.id)"
-						>
-							Cancel
-						</button>
-						}
-					</td>
-				</tr>
-				}
-			</tbody>
-		</table>
+@if (isLoading()) {
+<div
+	aria-busy="true"
+	aria-label="Loading jobs"
+	class="flex flex-col divide-y divide-line"
+>
+	@for (i of skeletonRows; track i) {
+	<div class="flex items-center gap-4 py-3">
+		<ui-skeleton variant="text" class="block w-40 h-4" />
+		<ui-skeleton variant="text" class="block w-24 h-5 rounded-full" />
+		<ui-skeleton variant="text" class="block flex-1 h-4" />
+		<ui-skeleton variant="text" class="block w-28 max-sm:hidden" />
 	</div>
 	}
 </div>
+} @else if (loadFailed()) {
+<ui-empty-state
+	icon="cloud_off"
+	title="Couldn't load the jobs"
+	hint="Something went wrong while fetching the job history."
+>
+	<button uiButton variant="secondary" (click)="refresh()">Try again</button>
+</ui-empty-state>
+} @else if (jobs().length === 0) {
+<ui-empty-state
+	icon="work_history"
+	title="No jobs have been run yet"
+	hint="Start one from the bar above and its progress will show up here."
+/>
+} @else {
+<div class="max-md:hidden overflow-x-auto">
+	<table class="w-full border-collapse text-[0.8125rem]">
+		<thead>
+			<tr>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Type
+				</th>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Status
+				</th>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Result
+				</th>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Started
+				</th>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Completed
+				</th>
+				<th scope="col" class="border-b border-line">
+					<span class="sr-only">Actions</span>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			@for (job of jobs(); track job.id) {
+			<tr class="border-b border-line transition hover:bg-surface-hover">
+				<td class="px-3 py-2.5 text-fg align-middle font-medium">
+					{{ job.type }}
+				</td>
+				<td class="px-3 py-2.5 align-middle">
+					<span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
+						[class]="statusStyle(job.status).classes"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>{{ statusStyle(job.status).icon }}</span
+						>
+						{{ job.status }}
+					</span>
+				</td>
+				<td
+					class="px-3 py-2.5 text-fg-secondary text-xs align-middle max-w-[300px]"
+				>
+					{{ job.result ?? '-' }}
+				</td>
+				<td
+					class="px-3 py-2.5 text-fg-secondary align-middle tabular-nums"
+				>
+					{{ job.createdAt | date : "yyyy-MM-dd HH:mm" }}
+				</td>
+				<td
+					class="px-3 py-2.5 text-fg-secondary align-middle tabular-nums"
+				>
+					{{ job.completedAt ? (job.completedAt | date : "yyyy-MM-dd
+					HH:mm") : "-" }}
+				</td>
+				<td class="px-3 py-2.5 align-middle text-right">
+					@if (job.status === 'running') {
+					<button
+						uiButton
+						variant="danger"
+						size="sm"
+						(click)="cancelJob(job.id)"
+					>
+						Cancel
+					</button>
+					}
+				</td>
+			</tr>
+			}
+		</tbody>
+	</table>
+</div>
+
+<ul class="md:hidden list-none m-0 p-0 flex flex-col gap-3">
+	@for (job of jobs(); track job.id) {
+	<li
+		class="p-4 bg-surface border border-line rounded-card flex flex-col gap-3"
+	>
+		<div class="flex items-center justify-between gap-3">
+			<span class="font-medium text-sm text-fg break-all"
+				>{{ job.type }}</span
+			>
+			<span
+				class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold shrink-0"
+				[class]="statusStyle(job.status).classes"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>{{ statusStyle(job.status).icon }}</span
+				>
+				{{ job.status }}
+			</span>
+		</div>
+		@if (job.result) {
+		<p class="m-0 text-xs text-fg-secondary break-words">
+			{{ job.result }}
+		</p>
+		}
+		<dl class="m-0 grid grid-cols-2 gap-3 text-xs">
+			<div>
+				<dt
+					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Started
+				</dt>
+				<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
+					{{ job.createdAt | date : "yyyy-MM-dd HH:mm" }}
+				</dd>
+			</div>
+			<div>
+				<dt
+					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Completed
+				</dt>
+				<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
+					{{ job.completedAt ? (job.completedAt | date : "yyyy-MM-dd
+					HH:mm") : "-" }}
+				</dd>
+			</div>
+		</dl>
+		@if (job.status === 'running') {
+		<button
+			uiButton
+			variant="danger"
+			size="sm"
+			[block]="true"
+			(click)="cancelJob(job.id)"
+		>
+			Cancel
+		</button>
+		}
+	</li>
+	}
+</ul>
+}
